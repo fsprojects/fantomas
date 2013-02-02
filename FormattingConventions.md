@@ -3,7 +3,7 @@ F# Formatting Conventions
 
 This article is written mostly based on ["F# Coding Guidelines"](http://research.microsoft.com/fsharp/expert-fsharp-draft/FormattingConventions.doc) from Don Syme.
 There are certain bits of the original documents which need to be updated when F# has changed a lot in last few years.
-Therefore, I attempt to reintroduce F# Formatting Conventions here with some relevant information from other sources as well.
+Therefore, I attempt to reintroduce F# Formatting Conventions here and add some relevant information from other sources as well.
 Another purpose of the article is to realize requirements for an F# code tidy tool I would like to create.
 
 ---
@@ -17,6 +17,31 @@ Another purpose of the article is to realize requirements for an F# code tidy to
 ---
 
 ### How to indent object expressions ###
+
+Object expressions and interfaces are aligned in the same way with `member` being indented after 4 spaces.
+For example, this is recommended
+
+```fsharp
+let comparer = 
+    { new IComparer<string> with
+          member x.Compare(s1, s2) = 
+              let rev (s : String) = 
+                  new String(Array.rev (s.ToCharArray())) 
+              let reversed = rev s1 i
+              reversed.CompareTo(rev s2) }
+```
+
+but not this
+
+```fsharp
+let comparer = 
+    { new IComparer<string> with 
+      member x.Compare(s1, s2) = 
+          let rev (s : String) = 
+              new String(Array.rev (s.ToCharArray())) in
+              let reversed = rev s1 in 
+              reversed.CompareTo(rev s2) }
+```
 
 ---
 
@@ -41,7 +66,7 @@ Another purpose of the article is to realize requirements for an F# code tidy to
 Pipeline `|>` should go at the start of a line immediately under the expression being operated on:
 
 ```fsharp
-// OK:
+// OK
 let methods2 = 
     System.AppDomain.CurrentDomain.GetAssemblies()
     |> List.ofArray 
@@ -51,7 +76,7 @@ let methods2 =
     |> List.map (fun t -> t.GetMethods()) 
     |> Array.concat
 
-// Tolerable:
+// OK
 let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
                |> List.ofArray 
                |> List.map (fun assm -> assm.GetTypes()) 
@@ -60,7 +85,7 @@ let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
                |> List.map (fun t -> t.GetMethods()) 
                |> Array.concat
 
-// Not OK:
+// Not OK
 let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
             |> List.ofArray 
             |> List.map (fun assm -> assm.GetTypes()) 
@@ -77,13 +102,13 @@ let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
 Indent `|` in type definition by 4 spaces:
 
 ```fsharp
-// OK:
+// OK
 type volume = 
     | Liter of float
     | USPint of float
     | ImperialPint of float
 
-// Not OK:
+// Not OK
 type volume = 
 | Liter of float
 | USPpint of float
