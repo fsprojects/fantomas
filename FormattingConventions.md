@@ -19,7 +19,7 @@ Another purpose of the article is to realize requirements for an F# code tidy to
 ### How to indent object expressions ###
 
 Object expressions and interfaces are aligned in the same way with `member` being indented after 4 spaces.
-For example, this is recommended
+For example, this is recommended:
 
 ```fsharp
 let comparer = 
@@ -31,7 +31,7 @@ let comparer =
               reversed.CompareTo(rev s2) }
 ```
 
-but not this
+but not this:
 
 ```fsharp
 let comparer = 
@@ -49,8 +49,56 @@ let comparer =
 
 ---
 
-### How to write match and try/with ###
+### How to write `match` and `try/with` ###
 
+ - Rules of a “with” in a “try”/”with” can be *optionally* 4-space indented e.g.
+
+    ```fsharp
+    try
+        if System.DateTime.Now.Second % 3 = 0 then
+            raise (new System.Exception())
+        else
+            raise (new System.ApplicationException())
+    with
+    | :? System.ApplicationException -> 
+        printfn "A second that was not a multiple of 3"    
+    | _ -> 
+        printfn "A second that was a multiple of 3"
+    ```
+
+   but this is also OK:
+
+    ```fsharp
+    try
+        if System.DateTime.Now.Second % 3 = 0 then
+            raise (new System.Exception())
+        else
+            raise (new System.ApplicationException())
+    with
+        | :? System.ApplicationException -> 
+            printfn "A second that was not a multiple of 3"    
+        | _ -> 
+           printfn "A second that was a multiple of 3"
+    ```
+ - Use a `|` for each clause of a match (strictly speaking it is optional for the first), except when the match is all on one line.
+
+    ```fsharp
+    // OK
+    match l with
+    | { him = x ; her = "Posh" } :: tail -> x
+    | _ :: tail -> find_david tail
+    | [] -> failwith "Couldn't find David"
+
+
+     // Not OK
+     match l with
+         | { him = x ; her = "Posh" } :: tail -> x
+         | _ :: tail -> find_david tail
+         | [] -> failwith "Couldn't find David"
+
+     // OK
+     match l with [] -> false | _ :: _ -> true
+    ```
 ---
 
 ### How to indent function applications ###
@@ -111,7 +159,7 @@ type volume =
 // Not OK
 type volume = 
 | Liter of float
-| USPpint of float
+| USPint of float
 | ImperialPint of float
 ```
 
