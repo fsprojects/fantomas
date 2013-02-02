@@ -20,7 +20,9 @@ Another purpose of the article is to realize requirements for an F# code tidy to
 
 ---
 
-### How to write `if...then...else` ###
+### Formatting rules for `if...then...else` ###
+
+---
 
 ### How to write match and try/with ###
 
@@ -36,13 +38,61 @@ Another purpose of the article is to realize requirements for an F# code tidy to
 
 ### How to indent pipelines ###
 
----
+Pipeline `|>` should go at the start of a line immediately under the expression being operated on:
 
-### How to write comprehensions ###
+```fsharp
+// OK:
+let methods2 = 
+    System.AppDomain.CurrentDomain.GetAssemblies()
+    |> List.ofArray 
+    |> List.map (fun assm -> assm.GetTypes()) 
+    |> Array.concat
+    |> List.ofArray 
+    |> List.map (fun t -> t.GetMethods()) 
+    |> Array.concat
+
+// Tolerable:
+let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
+               |> List.ofArray 
+               |> List.map (fun assm -> assm.GetTypes()) 
+               |> Array.concat
+               |> List.ofArray 
+               |> List.map (fun t -> t.GetMethods()) 
+               |> Array.concat
+
+// Not OK:
+let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
+            |> List.ofArray 
+            |> List.map (fun assm -> assm.GetTypes()) 
+            |> Array.concat
+            |> List.ofArray 
+            |> List.map (fun t -> t.GetMethods()) 
+            |> Array.concat
+```
 
 ---
 
 ### How to indent type definitions ###
+
+Indent `|` in type definition by 4 spaces:
+
+```fsharp
+// OK:
+type volume = 
+    | Liter of float
+    | USPint of float
+    | ImperialPint of float
+
+// Not OK:
+type volume = 
+| Liter of float
+| USPpint of float
+| ImperialPint of float
+```
+
+---
+
+### How to write comprehensions ###
 
 ---
 
