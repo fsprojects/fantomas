@@ -35,7 +35,7 @@ type Volume =
 
 ---
 
-#### Tuples, records, lists and arrays ####
+#### Value declarations ####
 
 ##### Tuples #####
 A tuple is parenthesized and the commas therein (delimiters) are each followed by a space e.g. `(1, 2)`, `(x, y, z)`.
@@ -62,7 +62,7 @@ Opening token for records starts in a new line. Closing token is normally on end
 
 ```fsharp
 let rainbow = 
-    { boss  = "Jeffrey"; 
+    { boss = "Jeffrey"; 
       lackeys = ["Zippy"; "George"; "Bungle"] }
 ```
 
@@ -71,14 +71,14 @@ For large constructs (> 6 lines) the closing token can be on a fresh line:
 
 ```fsharp
 let rainbow = 
-    { boss1  = "Jeffrey"; 
-      boss2  = "Jeffrey"; 
-      boss3  = "Jeffrey"; 
-      boss4  = "Jeffrey"; 
-      boss5  = "Jeffrey"; 
-      boss6  = "Jeffrey"; 
-      boss7  = "Jeffrey"; 
-      boss8  = "Jeffrey"; 
+    { boss1 = "Jeffrey"; 
+      boss2 = "Jeffrey"; 
+      boss3 = "Jeffrey"; 
+      boss4 = "Jeffrey"; 
+      boss5 = "Jeffrey"; 
+      boss6 = "Jeffrey"; 
+      boss7 = "Jeffrey"; 
+      boss8 = "Jeffrey"; 
       lackeys = ["Zippy"; "George"; "Bungle"];
     }
 ```
@@ -107,7 +107,7 @@ Always use at least one space between two distinct parantherical operators (e.g.
  { IngredientName = "Lemon"; Quantity = 1 }]
 ```
 
-Lists and arrays are split across multiple lines follow a similar rule as records do:
+Lists and arrays that split across multiple lines follow a similar rule as records do:
 
 ```fsharp
 let pascals_triangle = 
@@ -121,6 +121,24 @@ let pascals_triangle =
        [|1; 7; 21; 35; 35; 21; 7; 1|]; 
        [|1; 8; 28; 56; 70; 56; 28; 8; 1|];
     |]
+```
+
+##### Discriminated unions #####
+DUs that split across multiple lines follow a similar rule:
+
+```fsharp
+let tree1 = 
+    BinaryNode
+        (BinaryNode(BinaryValue 1, BinaryValue 2), 
+         BinaryNode(BinaryValue 3, BinaryValue 4))
+```
+However the following is also acceptable:
+```fsharp
+let tree1 = 
+    BinaryNode( 
+        BinaryNode(BinaryValue 1, BinaryValue 2), 
+        BinaryNode(BinaryValue 3, BinaryValue 4) 
+    )
 ```
 
 ---
@@ -213,10 +231,6 @@ let comparer =
 #### Function applications ####
 
 ---
-
-#### Value declarations ####
-
-----
 
 #### Pipeline operators ####
 
