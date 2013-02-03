@@ -14,8 +14,80 @@ Another purpose of the article is to recognize requirements for an F# code tidy 
 
 ### Formatting rules for syntactic constructs ###
 
-#### Lists, arrays, tuples and records ####
 
+#### Type definitions ####
+
+Indent `|` in type definition by 4 spaces:
+
+```fsharp
+// OK
+type Volume = 
+    | Liter of float
+    | USPint of float
+    | ImperialPint of float
+
+// Not OK
+type Volume = 
+| Liter of float
+| USPint of float
+| ImperialPint of float
+```
+
+---
+
+#### Tuples, records, lists and arrays ####
+
+##### Tuples #####
+A tuple is parenthesized and the commas therein (delimiters) are each followed by a space e.g. `(1, 2)`, `(x, y, z)`.
+
+A *commonly accepted exception* is to omit commas in pattern matching of tuples.
+The justification is to match multiple values, not construct new tuples.
+
+```fsharp
+let x, y = z
+
+match x, y with
+| 1, _ -> 0
+| x, 1 -> 0
+| x, y -> 1
+```      
+
+#### Records #####
+Short records can be written in one line:
+```fsharp
+let point = { X = 1.0; Y = 0.0 }
+```
+
+Opening token for records starts in a new line. Closing token is normally on end of line of last construct:
+
+```fsharp
+let rainbow = 
+    { boss  = "Jeffrey"; 
+      lackeys = ["Zippy"; "George"; "Bungle"] }
+```
+
+Not everyone likes this style, and variation is OK. 
+For large constructs (> 6 lines) the closing token can be on a fresh line:
+
+```fsharp
+let rainbow = 
+    { boss1  = "Jeffrey"; 
+      boss2  = "Jeffrey"; 
+      boss3  = "Jeffrey"; 
+      boss4  = "Jeffrey"; 
+      boss5  = "Jeffrey"; 
+      boss6  = "Jeffrey"; 
+      boss7  = "Jeffrey"; 
+      boss8  = "Jeffrey"; 
+      lackeys = ["Zippy"; "George"; "Bungle"];
+    }
+```
+
+
+Note that you can optionally include a trailing `;` for the last entry.
+
+
+##### Lists and arrays #####
 ---
 
 #### Object expressions and interfaces ####
@@ -52,7 +124,7 @@ let comparer =
 
 #### `match` and `try/with` ####
 
- - Rules of a “with” in a “try”/”with” can be *optionally* 4-space indented e.g.
+ - Rules of a `with` in a `try/with` can be *optionally* 4-space indented e.g.
 
     ```fsharp
     try
@@ -143,26 +215,6 @@ let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
             |> List.ofArray 
             |> List.map (fun t -> t.GetMethods()) 
             |> Array.concat
-```
-
----
-
-#### Type definitions ####
-
-Indent `|` in type definition by 4 spaces:
-
-```fsharp
-// OK
-type volume = 
-    | Liter of float
-    | USPint of float
-    | ImperialPint of float
-
-// Not OK
-type volume = 
-| Liter of float
-| USPint of float
-| ImperialPint of float
 ```
 
 ---
