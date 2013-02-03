@@ -52,7 +52,7 @@ match x, y with
 | x, y -> 1
 ```      
 
-#### Records #####
+##### Records ######
 Short records can be written in one line:
 ```fsharp
 let point = { X = 1.0; Y = 0.0 }
@@ -86,8 +86,43 @@ let rainbow =
 
 Note that you can optionally include a trailing `;` for the last entry.
 
-
 ##### Lists and arrays #####
+Write `x :: l` with spaces around the `::` (since `::` is an infix operator, hence surrounded by spaces) and `[1; 2; 3]` (since `;` is a delimiter, hence followed by a space).
+
+Always use at least one space between two distinct parantherical operators (e.g. leave a space between a `[` and a `{`).
+
+```fsharp
+// OK
+[ { IngredientName = "Green beans"; Quantity = 250 }; 
+  { IngredientName = "Pine nuts"; Quantity = 250 };
+  { IngredientName = "Feta cheese"; Quantity = 250 };
+  { IngredientName = "Olive oil"; Quantity = 10 };
+  { IngredientName = "Lemon"; Quantity = 1 } ]
+
+// Not OK
+[{ IngredientName = "Green beans"; Quantity = 250 }; 
+ { IngredientName = "Pine nuts" ; Quantity = 250 };
+ { IngredientName = "Feta cheese"; Quantity = 250 };
+ { IngredientName = "Olive oil"; Quantity = 10 };
+ { IngredientName = "Lemon"; Quantity = 1 }]
+```
+
+Lists and arrays are split across multiple lines follow a similar rule as records do:
+
+```fsharp
+let pascals_triangle = 
+    [| [|1|];
+       [|1; 1|];
+       [|1; 2; 1|];
+       [|1; 3; 3; 1|];
+       [|1; 4; 6; 4; 1|];
+       [|1; 5; 10; 10; 5; 1|];
+       [|1; 6; 15; 20; 15; 6; 1|];
+       [|1; 7; 21; 35; 35; 21; 7; 1|]; 
+       [|1; 8; 28; 56; 70; 56; 28; 8; 1|];
+    |]
+```
+
 ---
 
 #### Object expressions and interfaces ####
