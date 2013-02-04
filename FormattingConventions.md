@@ -1,7 +1,7 @@
 F# Formatting Conventions
 ===
 
-This article is written mostly based on ["F# Coding Guidelines"](http://research.microsoft.com/fsharp/expert-fsharp-draft/FormattingConventions.doc) from Don Syme.
+This article is written mostly based on ["F# Coding Guidelines"][1] from Don Syme.
 There are certain bits of the original documents which need to be updated when F# has changed a lot in last few years.
 Therefore, I attempt to reintroduce F# Formatting Conventions here and add some relevant information from other sources as well.
 Another purpose of the article is to recognize requirements for an F# code tidy tool I would like to create.
@@ -110,7 +110,7 @@ Always use at least one space between two distinct parantherical operators (e.g.
 Lists and arrays that split across multiple lines follow a similar rule as records do:
 
 ```fsharp
-let pascals_triangle = 
+let pascalsTriangle = 
     [| [|1|];
        [|1; 1|];
        [|1; 2; 1|];
@@ -171,11 +171,11 @@ let comparer =
 ```
 ---
 
-#### `if...then...else` ####
+#### Conditional expressions ####
 
 ---
 
-#### `match` and `try/with` ####
+#### Pattern matching constructs ####
 
  - Rules of a `with` in a `try/with` can be *optionally* 4-space indented e.g.
 
@@ -211,14 +211,14 @@ let comparer =
     ```fsharp
     // OK
     match l with
-    | { him = x ; her = "Posh" } :: tail -> x
+    | { him = x; her = "Posh" } :: tail -> x
     | _ :: tail -> findDavid tail
     | [] -> failwith "Couldn't find David"
 
 
      // Not OK
      match l with
-         | { him = x ; her = "Posh" } :: tail -> x
+         | { him = x; her = "Posh" } :: tail -> x
          | _ :: tail -> findDavid tail
          | [] -> failwith "Couldn't find David"
 
@@ -277,3 +277,12 @@ let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
 ---
 
 ### References ###
+This document is structured upon ["F# Coding Guidelines"][1] (offline version).
+General rules for indentation is referenced at ["Code Formatting Guidelines"][2].
+A few comventions for syntactic constructs are adapted from ["Caml Programming Guidelines"][3].
+Other whitespace-significant rules are taken from ["PEP 8 -- Style Guide for Python Code"][4].
+
+  [1]: http://research.microsoft.com/fsharp/expert-fsharp-draft/FormattingConventions.doc
+  [2]: http://msdn.microsoft.com/en-us/library/dd233191.aspx
+  [3]: http://caml.inria.fr/resources/doc/guides/guidelines.en.html
+  [4]: http://www.python.org/dev/peps/pep-0008/
