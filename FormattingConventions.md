@@ -161,6 +161,7 @@ let comparer =
 but this isn't:
 
 ```fsharp
+// Not OK
 let comparer = 
     { new IComparer<string> with 
       member x.Compare(s1, s2) = 
@@ -177,55 +178,104 @@ let comparer =
 
 #### Pattern matching constructs ####
 
- - Rules of a `with` in a `try/with` can be *optionally* 4-space indented e.g.
+Rules of a `with` in a `try/with` can be *optionally* 4-space indented e.g.
 
-    ```fsharp
-    try
-        if System.DateTime.Now.Second % 3 = 0 then
-            raise (new System.Exception())
-        else
-            raise (new System.ApplicationException())
-    with
+```fsharp
+try
+    if System.DateTime.Now.Second % 3 = 0 then
+        raise (new System.Exception())
+    else
+        raise (new System.ApplicationException())
+with
+| :? System.ApplicationException -> 
+    printfn "A second that was not a multiple of 3"    
+| _ -> 
+    printfn "A second that was a multiple of 3"
+```
+
+but this is also OK:
+
+```fsharp
+try
+    if System.DateTime.Now.Second % 3 = 0 then
+        raise (new System.Exception())
+    else
+        raise (new System.ApplicationException())
+with
     | :? System.ApplicationException -> 
         printfn "A second that was not a multiple of 3"    
     | _ -> 
         printfn "A second that was a multiple of 3"
-    ```
+```
 
-   but this is also OK:
+Use a `|` for each clause of a match (strictly speaking it is optional for the first), except when the match is all on one line.
 
-    ```fsharp
-    try
-        if System.DateTime.Now.Second % 3 = 0 then
-            raise (new System.Exception())
-        else
-            raise (new System.ApplicationException())
-    with
-        | :? System.ApplicationException -> 
-            printfn "A second that was not a multiple of 3"    
-        | _ -> 
-            printfn "A second that was a multiple of 3"
-    ```
- - Use a `|` for each clause of a match (strictly speaking it is optional for the first), except when the match is all on one line.
+```fsharp
+// OK
+match l with
+| { him = x; her = "Posh" } :: tail -> x
+| _ :: tail -> findDavid tail
+| [] -> failwith "Couldn't find David"
 
-    ```fsharp
-    // OK
-    match l with
+// Not OK
+match l with
     | { him = x; her = "Posh" } :: tail -> x
     | _ :: tail -> findDavid tail
     | [] -> failwith "Couldn't find David"
 
+// OK
+match l with [] -> false | _ :: _ -> true
+```
 
-     // Not OK
-     match l with
-         | { him = x; her = "Posh" } :: tail -> x
-         | _ :: tail -> findDavid tail
-         | [] -> failwith "Couldn't find David"
+If the expression on the right of the pattern matching arrow is too large, cut the line after the arrow.
+```fsharp
+match lam with
+| Abs (x, body) ->
+   1 + sizeLambda body
+| App (lam1, lam2) ->
+   sizeLambda lam1 + sizeLambda lam2
+| Var v -> 1
+```
+Some programmers apply this rule systematically to any clause of any pattern matching. 
+This doesn't add any good to readability hence **isn't recommended**.
 
-     // OK
-     match l with [] -> false | _ :: _ -> true
-    ```
-    
+```fsharp
+// Not OK
+let rec fib = function
+    | 0 ->
+        1
+    | 1 ->
+        1
+    | n ->
+        fib (n - 1) + fib ( n - 2)
+```       
+Pattern matching of anonymous functions, starting by `function`, are indented with respect to the `function` keyword:
+
+```fsharp
+List.map (function
+          | Abs (x, body) -> 1 + sizeLambda 0 body
+          | App (lam1, lam2) -> sizeLambda (sizeLambda 0 lam1) lam2
+          | Var v -> 1) lambdaList
+```
+
+Pattern matching in functions defined by `let` or `let rec` are indented 4 spaces after starting of `let` although `function` keyword may be used:
+```fsharp
+let rec sizeLambda acc = function
+    | Abs (x, body) -> sizeLambda (succ acc) body
+    | App (lam1, lam2) -> sizeLambda (sizeLambda acc lam1) lam2
+    | Var v -> succ acc
+```
+
+**Careful alignment of the arrows** of a pattern matching is considered **bad practice**, as exemplify in the following fragment:
+```fsharp
+// Not OK
+let f = function
+    | C1          -> 1
+    | LongName _  -> 2
+    | _           -> 3
+```
+The justification is that it is harder to maintain the program. Adding a new case may screw up indentation and we often give up alignment at that time.
+
 ---
 
 #### Function applications ####
@@ -278,7 +328,7 @@ let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
 
 ### References ###
 This document is structured upon ["F# Coding Guidelines"][1] (offline version).
-General rules for indentation is referenced at ["Code Formatting Guidelines"][2].
+General rules for indentation are referenced at ["Code Formatting Guidelines"][2].
 A few comventions for syntactic constructs are adapted from ["Caml Programming Guidelines"][3].
 Other whitespace-significant rules are taken from ["PEP 8 -- Style Guide for Python Code"][4].
 
