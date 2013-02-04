@@ -158,7 +158,7 @@ let comparer =
               reversed.CompareTo(rev s2) }
 ```
 
-but this isn't:
+but this isn't advocated:
 
 ```fsharp
 // Not OK
@@ -247,7 +247,7 @@ let rec fib = function
     | 1 ->
         1
     | n ->
-        fib (n - 1) + fib ( n - 2)
+        fib (n - 1) + fib (n - 2)
 ```       
 Pattern matching of anonymous functions, starting by `function`, are indented with respect to the `function` keyword:
 
@@ -328,8 +328,8 @@ let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
 
 ### References ###
 This document is structured upon ["F# Coding Guidelines"][1] (offline version).
-General rules for indentation are referenced at ["Code Formatting Guidelines"][2].
-A few comventions for syntactic constructs are adapted from ["Caml Programming Guidelines"][3].
+General rules for indentation are referenced at ["Code Formatting Guidelines (F#)"][2].
+A few conventions for syntactic constructs are adapted from ["Caml Programming Guidelines"][3].
 Other whitespace-significant rules are taken from ["PEP 8 -- Style Guide for Python Code"][4].
 
   [1]: http://research.microsoft.com/fsharp/expert-fsharp-draft/FormattingConventions.doc
