@@ -8,6 +8,31 @@ Another purpose of the article is to recognize requirements for an F# code tidy 
 
 ---
 
+**Table of Contents**
+
+- [General rules for indentation](#general-rules-for-indentation)
+- [Formatting rules for syntactic constructs](#formatting-rules-for-syntactic-constructs)
+	- [Type definitions](#type-definitions)
+	- [Value declarations](#value-declarations)
+		- [Tuples](#tuples)
+		- [Records](#records)
+		- [Lists and arrays](#lists-and-arrays)
+		- [Discriminated unions](#discriminated-unions)
+	- [Conditional expressions](#conditional-expressions)
+		- [Multiple branches](#multiple-branches)
+		- [Single branches](#single-branches)
+	- [Pattern matching constructs](#pattern-matching-constructs)
+	- [Function applications](#function-applications)
+	- [Infix operators](#infix-operators)
+	- [Pipeline operators](#pipeline-operators)
+	- [Modules](#modules)
+    - [Object expressions and interfaces](#object-expressions-and-interfaces)
+	- [Computation expressions](#computation-expressions)
+- [Conclusions](#conclusions)
+- [References](#references)
+
+---
+
 ### General rules for indentation ###
 
 ---
@@ -141,35 +166,6 @@ let tree1 =
     )
 ```
 
----
-
-#### Object expressions and interfaces ####
-
-Object expressions and interfaces are aligned in the same way with `member` being indented after 4 spaces.
-For example, this is recommended:
-
-```fsharp
-let comparer = 
-    { new IComparer<string> with
-          member x.Compare(s1, s2) = 
-              let rev (s : String) = 
-                  new String(Array.rev (s.ToCharArray())) 
-              let reversed = rev s1 i
-              reversed.CompareTo(rev s2) }
-```
-
-but this isn't advocated:
-
-```fsharp
-// Not OK
-let comparer = 
-    { new IComparer<string> with 
-      member x.Compare(s1, s2) = 
-          let rev (s : String) = 
-              new String(Array.rev (s.ToCharArray())) in
-              let reversed = rev s1 in 
-              reversed.CompareTo(rev s2) }
-```
 ---
 
 #### Conditional expressions ####
@@ -417,6 +413,36 @@ let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
 ---
 
 #### Modules ####
+
+---
+
+#### Object expressions and interfaces ####
+
+Object expressions and interfaces are aligned in the same way with `member` being indented after 4 spaces.
+For example, this is recommended:
+
+```fsharp
+let comparer = 
+    { new IComparer<string> with
+          member x.Compare(s1, s2) = 
+              let rev (s : String) = 
+                  new String(Array.rev (s.ToCharArray())) 
+              let reversed = rev s1 i
+              reversed.CompareTo(rev s2) }
+```
+
+but this isn't advocated:
+
+```fsharp
+// Not OK
+let comparer = 
+    { new IComparer<string> with 
+      member x.Compare(s1, s2) = 
+          let rev (s : String) = 
+              new String(Array.rev (s.ToCharArray())) in
+              let reversed = rev s1 in 
+              reversed.CompareTo(rev s2) }
+```
 
 ---
 
