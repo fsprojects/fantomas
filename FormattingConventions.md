@@ -1,8 +1,8 @@
 F# Formatting Conventions
 ===
 
-This article is written mostly based on ["F# Coding Guidelines"][1] from Don Syme.
-There are certain bits of the original documents which need to be updated when F# has changed a lot in last few years.
+This article is written mostly based on ["F# Coding Guidelines"][1] (offline version) from Don Syme.
+There are certain bits of the original document that need to be updated when F# has changed a lot in last few years.
 Therefore, I attempt to reintroduce F# Formatting Conventions here and add some relevant information from other sources as well.
 Another purpose of the article is to recognize requirements for an F# code tidy tool I would like to create.
 
@@ -101,7 +101,7 @@ Always use at least one space between two distinct parantherical operators (e.g.
 
 // Not OK
 [{ IngredientName = "Green beans"; Quantity = 250 }; 
- { IngredientName = "Pine nuts" ; Quantity = 250 };
+ { IngredientName = "Pine nuts"; Quantity = 250 };
  { IngredientName = "Feta cheese"; Quantity = 250 };
  { IngredientName = "Olive oil"; Quantity = 10 };
  { IngredientName = "Lemon"; Quantity = 1 }]
@@ -174,6 +174,42 @@ let comparer =
 
 #### Conditional expressions ####
 
+##### Multiple branches #####
+
+Multiple conditionals start each line (except the first one) by the keyword `else` or `elif`:
+```fsharp
+if cond1 then e1
+elif cond2 then e2
+elif cond3 then e3
+else e4
+```
+
+##### Single branches #####
+
+Indentation of conditionals depends on the sizes of the expressions which make them up.
+If `cond`, `e1` and `e2` are small, simply write them on one line:
+```fsharp
+if cond then e1 else e2
+```
+If `e1` and `cond` are small, but `e2` is large:
+```fsharp
+if cond then e1
+else
+    e2
+```
+If `e1` and `cond` are large and `e2` is small:
+```fsharp
+if cond then
+    e1
+else e2
+```
+If all the expressions are large:
+```fsharp
+if cond then
+    e1
+else
+    e2
+```
 ---
 
 #### Pattern matching constructs ####
@@ -230,9 +266,9 @@ match l with [] -> false | _ :: _ -> true
 If the expression on the right of the pattern matching arrow is too large, cut the line after the arrow.
 ```fsharp
 match lam with
-| Abs (x, body) ->
+| Abs(x, body) ->
    1 + sizeLambda body
-| App (lam1, lam2) ->
+| App(lam1, lam2) ->
    sizeLambda lam1 + sizeLambda lam2
 | Var v -> 1
 ```
@@ -253,16 +289,16 @@ Pattern matching of anonymous functions, starting by `function`, are indented wi
 
 ```fsharp
 List.map (function
-          | Abs (x, body) -> 1 + sizeLambda 0 body
-          | App (lam1, lam2) -> sizeLambda (sizeLambda 0 lam1) lam2
+          | Abs(x, body) -> 1 + sizeLambda 0 body
+          | App(lam1, lam2) -> sizeLambda (sizeLambda 0 lam1) lam2
           | Var v -> 1) lambdaList
 ```
 
 Pattern matching in functions defined by `let` or `let rec` are indented 4 spaces after starting of `let` although `function` keyword may be used:
 ```fsharp
 let rec sizeLambda acc = function
-    | Abs (x, body) -> sizeLambda (succ acc) body
-    | App (lam1, lam2) -> sizeLambda (sizeLambda acc lam1) lam2
+    | Abs(x, body) -> sizeLambda (succ acc) body
+    | App(lam1, lam2) -> sizeLambda (sizeLambda acc lam1) lam2
     | Var v -> succ acc
 ```
 
