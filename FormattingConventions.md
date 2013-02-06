@@ -351,24 +351,35 @@ Anonymous function arguments can be either on next line or with a dangling `fun`
 
 ```fsharp
 // OK
-toggle.Click.Add (fun _ -> 
-    if !eventAdded then 
-        event.Click.RemoveHandler (stuffHandler)
-    else
-        event.Click.AddHandler (stuffHandler)
-    eventAdded := not !eventAdded
-    setText eventAdded)
+let printListWithOffset a list1 =
+    List.iter (fun elem ->
+        printfn "%d" (a + elem)) list1
 
 // Tolerable
-toggle.Click.Add ( 
-    fun _ -> 
-        if !eventAdded then 
-            event.Click.RemoveHandler (stuffHandler)
-        else
-            event.Click.AddHandler (stuffHandler)
-        eventAdded := not !eventAdded
-        set_text eventAdded)
+let printListWithOffset a list1 =
+    List.iter (
+        fun elem ->
+            printfn "%d" (a + elem)) list1
 ```
+
+---
+
+#### Infix operators ####
+Be careful to *keep operator symbols well separated by spaces*: not only will your formulas be more readable, but you will avoid confusion with multi-character operators. 
+Obvious exceptions to this rule, the symbols `!` and `.`, are not separated from their arguments.
+Moreover, infix expressions are ok to lineup on same column:
+```fsharp
+// OK
+   acc + 
+   (Printf.sprintf "\t%s - %i\n\r" 
+        x.IngredientName x.Quantity)
+        
+// OK        
+let function1 arg1 arg2 arg3 arg4 =
+    arg1 + arg2
+  + arg3 + arg4
+```
+
 ---
 
 #### Pipeline operators ####
