@@ -369,12 +369,10 @@ Be careful to *keep operator symbols well separated by spaces*: not only will yo
 Obvious exceptions to this rule, the symbols `!` and `.`, are not separated from their arguments.
 Moreover, infix expressions are ok to lineup on same column:
 ```fsharp
-// OK
-   acc + 
-   (Printf.sprintf "\t%s - %i\n\r" 
-        x.IngredientName x.Quantity)
-        
-// OK        
+acc + 
+(Printf.sprintf "\t%s - %i\n\r" 
+     x.IngredientName x.Quantity)
+            
 let function1 arg1 arg2 arg3 arg4 =
     arg1 + arg2
   + arg3 + arg4
@@ -415,6 +413,10 @@ let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
             |> List.map (fun t -> t.GetMethods()) 
             |> Array.concat
 ```
+
+---
+
+#### Modules ####
 
 ---
 
