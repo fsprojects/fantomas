@@ -316,6 +316,59 @@ The justification is that it is harder to maintain the program. Adding a new cas
 
 #### Function applications ####
 
+Arguments are always indented from functions:
+
+```fsharp
+// OK
+Printf.sprintf "\t%s - %i\n\r" 
+     x.IngredientName x.Quantity
+
+// OK
+Printf.sprintf
+     "\t%s - %i\n\r" 
+     x.IngredientName x.Quantity 
+
+// OK
+let printVolumes x = 
+    Printf.printf "Volume in liters = %f, in us pints = %f, in imperial = %f" 
+        (convertVolumeToLiter x) 
+        (convertVolumeUSPint x) 
+        (convertVolumeImperialPint x) 
+
+// Not OK
+let printVolumes x = 
+    Printf.printf "Volume in liters = %f, in us pints = %f, in imperial = %f" 
+    (convertVolumeToLiter x) 
+    (convertVolumeUSPint x) 
+    (convertVolumeImperialPint x) 
+
+// Not OK
+Printf.sprintf "\t%s - %i\n\r" 
+x.IngredientName x.Quantity
+```
+
+Anonymous function arguments can be either on next line or with a dangling `fun` on the argument line:
+
+```fsharp
+// OK
+toggle.Click.Add (fun _ -> 
+    if !eventAdded then 
+        event.Click.RemoveHandler (stuffHandler)
+    else
+        event.Click.AddHandler (stuffHandler)
+    eventAdded := not !eventAdded
+    setText eventAdded)
+
+// Tolerable
+toggle.Click.Add ( 
+    fun _ -> 
+        if !eventAdded then 
+            event.Click.RemoveHandler (stuffHandler)
+        else
+            event.Click.AddHandler (stuffHandler)
+        eventAdded := not !eventAdded
+        set_text eventAdded)
+```
 ---
 
 #### Pipeline operators ####
