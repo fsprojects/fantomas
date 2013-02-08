@@ -34,10 +34,39 @@ Another purpose of the article is to recognize requirements for an F# source cod
 
 ### General rules for indentation ###
 
+#### Using spaces ####
+When indentation is required, you must use spaces, not tabs. 
+At least one space is required. 
+Your organization can create coding standards to specify the number of spaces to use for indentation; two, three or four spaces of indentation at each level where indentation occurs is typical. 
+You can configure Visual Studio to match your organization's indentation standards by changing the options in the **Options** dialog box, which is available from the **Tools** menu. 
+In the **Text Editor** node, expand F# and then click **Tabs**. For a description of the available options, see [Options, Text Editor, All Languages, Tabs](http://msdn.microsoft.com/en-us/library/7sffa753.aspx).
+
+In general, when the compiler parses your code, it maintains an internal stack that indicates the current level of nesting. 
+When code is indented, a new level of nesting is created, or pushed onto this internal stack. 
+When a construct ends, the level is popped. 
+Indentation is one way to signal the end of a level and pop the internal stack, but certain tokens also cause the level to be popped, such as the `end` keyword, or a closing brace or parenthesis.
+
+#### Offside rule ####
+Code in a multiline construct, such as a type definition, function definition, `try...with` construct, and looping constructs, must be indented relative to the opening line of the construct. 
+The first indented line establishes a column position for subsequent code in the same construct. 
+The indentation level is called a *context*. The column position sets a minimum column, referred to as an *offside line*, for subsequent lines of code that are in the same context. 
+When a line of code is encountered that is indented less than this established column position, the compiler assumes that the context has ended and that you are now coding at the next level up, in the previous context. 
+The term *offside* is used to describe the condition in which a line of code triggers the end of a construct because it is not indented far enough. 
+In other words, code to the left of an offside line is offside. 
+In correctly indented code, you take advantage of the offside rule in order to delineate the end of constructs. 
+If you use indentation improperly, an offside condition can cause the compiler to issue a warning or can lead to the incorrect interpretation of your code.
+Offside lines are determined as follows.
+ - An `=` token associated with a let introduces an offside line at the column of the first token after the `=` sign.
+ - In an `if...then...else` expression, the column position of the first token after the `then` keyword or the `else` keyword introduces an offside line.
+ - In a `try...with` expression, the first token after try introduces an offside line.
+ - In a match expression, the first token after with and the first token after each `->` introduce offside lines.
+ - The first token after `with` in a type extension introduces an offside line.
+ - The first token after an opening brace or parenthesis, or after the `begin` keyword, introduces an offside line.
+ - The first character in the keywords `let`, `if`, and `module` introduce offside lines.
+
 ---
 
 ### Formatting rules for syntactic constructs ###
-
 
 #### Type definitions ####
 
@@ -443,9 +472,9 @@ let comparer =
     { new IComparer<string> with
           member x.Compare(s1, s2) = 
               let rev (s : String) = 
-                  new String(Array.rev (s.ToCharArray())) 
+                  new String (Array.rev (s.ToCharArray())) 
               let reversed = rev s1 i
-              reversed.CompareTo(rev s2) }
+              reversed.CompareTo (rev s2) }
 ```
 
 but this isn't advocated:
@@ -456,9 +485,16 @@ let comparer =
     { new IComparer<string> with 
       member x.Compare(s1, s2) = 
           let rev (s : String) = 
-              new String(Array.rev (s.ToCharArray())) in
+              new String (Array.rev (s.ToCharArray())) in
               let reversed = rev s1 in 
-              reversed.CompareTo(rev s2) }
+              reversed.CompareTo (rev s2) }
+```
+Bodies of modules, classes, interfaces, and structures delimited by `begin...end`, `{...}`, `class...end`, or `interface...end`. 
+This allows for a style in which the opening keyword of a type definition can be on the same line as the type name without forcing the whole body to be indented farther than the opening keyword.
+```fsharp
+type IMyInterface = interface 
+    abstract Function1 : int -> int
+end
 ```
 
 ---
