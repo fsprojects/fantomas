@@ -41,7 +41,7 @@ When indentation is required, you must use spaces, not tabs.
 At least one space is required. 
 Your organization can create coding standards to specify the number of spaces to use for indentation; two, three or four spaces of indentation at each level where indentation occurs is typical. 
 That said, indentation of programs is a subjective matter.
-Variations are OK, but the first rule one should follow is *consistency of indentation*:
+Variations are OK, but the first rule you should follow is *consistency of indentation*:
 
 > Choose a generally accepted style of indentation, then use it systematically throughout the whole application.
 
@@ -66,8 +66,8 @@ If you use indentation improperly, an offside condition can cause the compiler t
 Offside lines are determined as follows.
  - An `=` token associated with a let introduces an offside line at the column of the first token after the `=` sign.
  - In an `if...then...else` expression, the column position of the first token after the `then` keyword or the `else` keyword introduces an offside line.
- - In a `try...with` expression, the first token after try introduces an offside line.
- - In a match expression, the first token after with and the first token after each `->` introduce offside lines.
+ - In a `try...with` expression, the first token after `try` introduces an offside line.
+ - In a `match` expression, the first token after `with` and the first token after each `->` introduce offside lines.
  - The first token after `with` in a type extension introduces an offside line.
  - The first token after an opening brace or parenthesis, or after the `begin` keyword, introduces an offside line.
  - The first character in the keywords `let`, `if`, and `module` introduce offside lines.
@@ -75,6 +75,8 @@ Offside lines are determined as follows.
 ---
 
 ### Formatting rules for syntactic constructs ###
+In this section, I use 4 spaces as indentation standard.
+Keep in mind that all the rules are equally applied for 2, 3 spaces, etc.
 
 #### Type definitions ####
 
@@ -508,10 +510,10 @@ end
 ---
 
 ### Conclusions ###
-This guideline is far from complete.
+This guideline is still far from complete.
 Many syntactic constructs have not had any defined rule yet.
 In those cases, please keep in mind *consistency of indentation* rule and extrapolate from rules of similar constructs.
-Although I do proofreading quite often, there are certainly mistakes here and there.
+Although I tried to keep a neutral position, there are mistakes and inconsistencies here and there.
 Feedbacks and suggestions for improving the article are always welcome.
 
 ---
