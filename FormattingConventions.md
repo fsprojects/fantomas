@@ -111,7 +111,7 @@ let rainbow =
 Note that you can optionally include a trailing `;` for the last entry.
 
 ##### Lists and arrays #####
-Write `x :: l` with spaces around the `::` (`::` is an infix operator, hence surrounded by spaces) and `[1; 2; 3]` (`;` is a delimiter, hence followed by a space).
+Write `x :: l` with spaces around the `::` operator (`::` is an infix operator, hence surrounded by spaces) and `[1; 2; 3]` (`;` is a delimiter, hence followed by a space).
 
 Always use at least one space between two distinct parenthetical operators (e.g. leave a space between a `[` and a `{`).
 
@@ -412,6 +412,24 @@ let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
 ---
 
 #### Modules ####
+Code in a local module must be indented relative to the module, but code in a top-level module does not have to be indented. 
+Namespace elements do not have to be indented.
+The following code examples illustrate this.
+```fsharp
+// A is a top-level module. 
+module A
+
+let function1 a b = a - b * b
+```
+
+```fsharp
+// A1 and A2 are local modules. 
+module A1 =
+    let function1 a b = a*a + b*b
+
+module A2 =
+    let function2 a b = a*a - b*b
+```
 
 ---
 
