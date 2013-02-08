@@ -11,6 +11,8 @@ Another purpose of the article is to recognize requirements for an F# source cod
 **Table of Contents**
 
 - [General rules for indentation](#general-rules-for-indentation)
+	- [Using spaces](#using-spaces)
+	- [Offside rule](#offside-rule)
 - [Formatting rules for syntactic constructs](#formatting-rules-for-syntactic-constructs)
 	- [Type definitions](#type-definitions)
 	- [Value declarations](#value-declarations)
@@ -26,7 +28,7 @@ Another purpose of the article is to recognize requirements for an F# source cod
 	- [Infix operators](#infix-operators)
 	- [Pipeline operators](#pipeline-operators)
 	- [Modules](#modules)
-    - [Object expressions and interfaces](#object-expressions-and-interfaces)
+	- [Object expressions and interfaces](#object-expressions-and-interfaces)
 - [Conclusions](#conclusions)
 - [References](#references)
 
@@ -38,8 +40,13 @@ Another purpose of the article is to recognize requirements for an F# source cod
 When indentation is required, you must use spaces, not tabs. 
 At least one space is required. 
 Your organization can create coding standards to specify the number of spaces to use for indentation; two, three or four spaces of indentation at each level where indentation occurs is typical. 
+That said, indentation of programs is a subjective matter.
+Variations are OK, but the first rule one should follow is *consistency of indentation*:
+
+> Choose a generally accepted style of indentation, then use it systematically throughout the whole application.
+
 You can configure Visual Studio to match your organization's indentation standards by changing the options in the **Options** dialog box, which is available from the **Tools** menu. 
-In the **Text Editor** node, expand F# and then click **Tabs**. For a description of the available options, see [Options, Text Editor, All Languages, Tabs](http://msdn.microsoft.com/en-us/library/7sffa753.aspx).
+In the **Text Editor** node, expand **F#** and then click **Tabs**. For a description of the available options, see [Options, Text Editor, All Languages, Tabs](http://msdn.microsoft.com/en-us/library/7sffa753.aspx).
 
 In general, when the compiler parses your code, it maintains an internal stack that indicates the current level of nesting. 
 When code is indented, a new level of nesting is created, or pushed onto this internal stack. 
@@ -47,6 +54,7 @@ When a construct ends, the level is popped.
 Indentation is one way to signal the end of a level and pop the internal stack, but certain tokens also cause the level to be popped, such as the `end` keyword, or a closing brace or parenthesis.
 
 #### Offside rule ####
+A page is often 80 columns wide.
 Code in a multiline construct, such as a type definition, function definition, `try...with` construct, and looping constructs, must be indented relative to the opening line of the construct. 
 The first indented line establishes a column position for subsequent code in the same construct. 
 The indentation level is called a *context*. The column position sets a minimum column, referred to as an *offside line*, for subsequent lines of code that are in the same context. 
@@ -297,7 +305,7 @@ match lam with
 | Var v -> 1
 ```
 Some programmers apply this rule systematically to any clause of any pattern matching. 
-This doesn't add any good to readability hence **isn't recommended**.
+This does not add any good to readability hence **is not recommended**.
 
 ```fsharp
 // Not OK
@@ -477,7 +485,7 @@ let comparer =
               reversed.CompareTo (rev s2) }
 ```
 
-but this isn't advocated:
+but this is not advocated:
 
 ```fsharp
 // Not OK
@@ -500,6 +508,11 @@ end
 ---
 
 ### Conclusions ###
+This guideline is far from complete.
+Many syntactic constructs have not had any defined rule yet.
+In those cases, please keep in mind *consistency of indentation* rule and extrapolate from rules of similar constructs.
+Although I do proofreading quite often, there are certainly mistakes here and there.
+Feedbacks and suggestions for improving the article are always welcome.
 
 ---
 
