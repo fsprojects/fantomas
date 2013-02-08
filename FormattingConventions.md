@@ -4,7 +4,7 @@ F# Formatting Conventions
 This article is written mostly based on ["F# Coding Guidelines"][1] (offline version) from Don Syme.
 There are certain bits of the original document that need to be updated when F# has changed a lot in last few years.
 Therefore, I attempt to reintroduce F# Formatting Conventions here and add some relevant information from other sources as well.
-Another purpose of the article is to recognize requirements for an F# code tidy tool I would like to create.
+Another purpose of the article is to recognize requirements for an F# source code formatter I would like to create.
 
 ---
 
@@ -27,7 +27,6 @@ Another purpose of the article is to recognize requirements for an F# code tidy 
 	- [Pipeline operators](#pipeline-operators)
 	- [Modules](#modules)
     - [Object expressions and interfaces](#object-expressions-and-interfaces)
-	- [Computation expressions](#computation-expressions)
 - [Conclusions](#conclusions)
 - [References](#references)
 
@@ -83,7 +82,7 @@ Short records can be written in one line:
 let point = { X = 1.0; Y = 0.0 }
 ```
 
-Opening token for records starts in a new line. Closing token is normally on end of line of last construct:
+Opening token for records starts in a new line. Closing token is normally on the end of line of last construct:
 
 ```fsharp
 let rainbow = 
@@ -91,7 +90,7 @@ let rainbow =
       lackeys = ["Zippy"; "George"; "Bungle"] }
 ```
 
-Not everyone likes this style, and variation is OK. 
+Not everyone likes this style, and variation is ok. 
 For large constructs (> 6 lines) the closing token can be on a fresh line:
 
 ```fsharp
@@ -112,9 +111,9 @@ let rainbow =
 Note that you can optionally include a trailing `;` for the last entry.
 
 ##### Lists and arrays #####
-Write `x :: l` with spaces around the `::` (since `::` is an infix operator, hence surrounded by spaces) and `[1; 2; 3]` (since `;` is a delimiter, hence followed by a space).
+Write `x :: l` with spaces around the `::` (`::` is an infix operator, hence surrounded by spaces) and `[1; 2; 3]` (`;` is a delimiter, hence followed by a space).
 
-Always use at least one space between two distinct parantherical operators (e.g. leave a space between a `[` and a `{`).
+Always use at least one space between two distinct parenthetical operators (e.g. leave a space between a `[` and a `{`).
 
 ```fsharp
 // OK
@@ -157,7 +156,7 @@ let tree1 =
         (BinaryNode(BinaryValue 1, BinaryValue 2), 
          BinaryNode(BinaryValue 3, BinaryValue 4))
 ```
-However the following is also acceptable:
+However, the following way is also acceptable:
 ```fsharp
 let tree1 = 
     BinaryNode( 
@@ -443,10 +442,6 @@ let comparer =
               let reversed = rev s1 in 
               reversed.CompareTo(rev s2) }
 ```
-
----
-
-#### Computation expressions ####
 
 ---
 
