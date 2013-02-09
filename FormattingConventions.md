@@ -75,7 +75,9 @@ Offside lines are determined as follows.
 ---
 
 ### Formatting rules for syntactic constructs ###
-In this section, I use 4 spaces as indentation standard.
+In this section, code fragments without comments are of good style.
+Bad coding styles will be explicitly specified by appropriate comments.
+I also use 4 spaces as indentation standard.
 Keep in mind that all the rules are equally applied for 2, 3 spaces, etc.
 
 #### Type definitions ####
@@ -506,6 +508,50 @@ type IMyInterface = interface
     abstract Function1 : int -> int
 end
 ```
+
+#### Whitespaces ####
+
+Avoid extraneous whitespace in the following situations:
+
+ - Immediately inside parentheses and brackets:
+   
+   ```fsharp
+   // OK 
+   spam (ham.[1])
+   
+   // Not OK
+   spam ( ham.[ 1 ] )
+   ```
+ - Immediately before a comma and semicolon.
+ - Around the `=` sign when used to indicate a named argument.
+   ```fsharp
+   // OK
+   let makeStreamReader x = new System.IO.StreamReader(path=x)
+   
+   // Not OK
+   let makeStreamReader x = new System.IO.StreamReader(path = x)
+   ```
+
+---
+
+#### Blank lines ####
+ - Separate top-level function and class definitions with two blank lines.
+ - Method definitions inside a class are separated by a single blank line.
+ - Extra blank lines may be used (sparingly) to separate groups of related functions. Blank lines may be omitted between a bunch of related one-liners (e.g. a set of dummy implementations).
+ - Use blank lines in functions, sparingly, to indicate logical sections.
+
+---
+
+#### Comments ####
+
+Block comments generally apply to some (or all) code that follows them, and are indented to the same level as that code. 
+Each line of a block comment starts with a `(*` or `//` and a single space (unless it is indented text inside the comment).
+Paragraphs inside a block comment are separated by a line containing a single `*` or `//`.
+
+Use inline comments sparingly.
+An inline comment is a comment on the same line as a statement. 
+Inline comments should be separated by at least two spaces from the statement. 
+They should start with a `//` and a single space.
 
 ---
 
