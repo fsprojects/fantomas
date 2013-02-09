@@ -29,6 +29,9 @@ Another purpose of the article is to recognize requirements for an F# source cod
 	- [Pipeline operators](#pipeline-operators)
 	- [Modules](#modules)
 	- [Object expressions and interfaces](#object-expressions-and-interfaces)
+	- [Whitespaces](#whitespaces)
+	- [Blank lines](#blank-lines)
+	- [Comments](#comments)
 - [Conclusions](#conclusions)
 - [References](#references)
 
