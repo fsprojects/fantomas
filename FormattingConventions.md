@@ -212,7 +212,7 @@ let tree1 =
 
 ##### Multiple branches #####
 
-Multiple conditionals start each line (except the first one) by the keyword `else` or `elif`:
+Multiple conditionals open each line counting from the second one by the keyword `else` or `elif`:
 ```fsharp
 if cond1 then e1
 elif cond2 then e2
@@ -346,7 +346,8 @@ let f = function
     | LongName _  -> 2
     | _           -> 3
 ```
-The justification is that it is harder to maintain the program. Adding a new case may screw up indentation and we often give up alignment at that time.
+The justification is that it is harder to maintain the program. 
+Adding a new case may screw up indentation and we often give up alignment at that time.
 
 ---
 
@@ -401,9 +402,10 @@ let printListWithOffset a list1 =
 ---
 
 #### Infix operators ####
-Be careful to *keep operator symbols well separated by spaces*: not only will your formulas be more readable, but you will avoid confusion with multi-character operators. 
-Obvious exceptions to this rule, the symbols `!` and `.`, are not separated from their arguments.
-Moreover, infix expressions are ok to lineup on same column:
+Be careful to *keep operator symbols well separated by spaces*; not only will your formulas be more readable, but you will avoid confusion with multi-character operators. 
+Obvious exceptions to this rule are the `!` and `.` symbols.
+They are not separated from their arguments.
+Moreover, infix expressions are OK to lineup on same column:
 ```fsharp
 acc + 
 (Printf.sprintf "\t%s - %i\n\r" 
@@ -513,7 +515,7 @@ end
 
 Avoid extraneous whitespace in the following situations:
 
- - Immediately inside parentheses and brackets:
+ - Immediately inside parentheses and brackets.
    
    ```fsharp
    // OK 
