@@ -6,9 +6,7 @@ There are certain bits of the original document that need to be updated when F# 
 Therefore, I attempt to reintroduce F# Formatting Conventions here and add some relevant information from other sources as well.
 Another purpose of the article is to recognize requirements for an F# source code formatter I would like to create.
 
----
-
-**Table of Contents**
+## **Table of Contents**
 
 - [General rules for indentation](#general-rules-for-indentation)
 	- [Using spaces](#using-spaces)
@@ -35,11 +33,9 @@ Another purpose of the article is to recognize requirements for an F# source cod
 - [Conclusions](#conclusions)
 - [References](#references)
 
----
+## General rules for indentation
 
-### General rules for indentation ###
-
-#### Using spaces ####
+### Using spaces
 When indentation is required, you must use spaces, not tabs. 
 At least one space is required. 
 Your organization can create coding standards to specify the number of spaces to use for indentation; two, three or four spaces of indentation at each level where indentation occurs is typical. 
@@ -56,7 +52,7 @@ When code is indented, a new level of nesting is created, or pushed onto this in
 When a construct ends, the level is popped. 
 Indentation is one way to signal the end of a level and pop the internal stack, but certain tokens also cause the level to be popped, such as the `end` keyword, or a closing brace or parenthesis.
 
-#### Offside rule ####
+### Offside rule
 A page is often 80 columns wide.
 Code in a multiline construct, such as a type definition, function definition, `try...with` construct, and looping constructs, must be indented relative to the opening line of the construct. 
 The first indented line establishes a column position for subsequent code in the same construct. 
@@ -75,9 +71,7 @@ Offside lines are determined as follows.
  - The first token after an opening brace or parenthesis, or after the `begin` keyword, introduces an offside line.
  - The first character in the keywords `let`, `if`, and `module` introduce offside lines.
 
----
-
-### Formatting rules for syntactic constructs ###
+## Formatting rules for syntactic constructs
 Keep in mind that *code is read much more often than it is written*.
 This section introduces a set of recommendations to improve the readability of code.
 Consistency with the recommendations is important.
@@ -88,7 +82,7 @@ In the section, code fragments without comments are of good styles.
 Bad coding styles will be explicitly specified by corresponding comments.
 Although I also use 4 spaces as the indentation standard, all the rules are equally applied for 2, 3 spaces, etc.
 
-#### Type definitions ####
+### Type definitions
 
 Indent `|` in type definition by 4 spaces:
 
@@ -106,11 +100,9 @@ type Volume =
 | ImperialPint of float
 ```
 
----
+### Value declarations
 
-#### Value declarations ####
-
-##### Tuples #####
+#### Tuples
 A tuple is parenthesized and the commas therein (delimiters) are each followed by a space e.g. `(1, 2)`, `(x, y, z)`.
 
 A *commonly accepted exception* is to omit commas in pattern matching of tuples.
@@ -125,7 +117,7 @@ match x, y with
 | x, y -> 1
 ```      
 
-##### Records ######
+#### Records
 Short records can be written in one line:
 ```fsharp
 let point = { X = 1.0; Y = 0.0 }
@@ -159,7 +151,7 @@ let rainbow =
 
 Note that you can optionally include a trailing `;` for the last entry.
 
-##### Lists and arrays #####
+#### Lists and arrays
 Write `x :: l` with spaces around the `::` operator (`::` is an infix operator, hence surrounded by spaces) and `[1; 2; 3]` (`;` is a delimiter, hence followed by a space).
 
 Always use at least one space between two distinct parenthetical operators (e.g. leave a space between a `[` and a `{`).
@@ -196,7 +188,7 @@ let pascalsTriangle =
     |]
 ```
 
-##### Discriminated unions #####
+#### Discriminated unions
 DUs that split across multiple lines follow a similar rule:
 
 ```fsharp
@@ -214,11 +206,9 @@ let tree1 =
     )
 ```
 
----
+### Conditional expressions
 
-#### Conditional expressions ####
-
-##### Multiple branches #####
+#### Multiple branches
 
 Multiple conditionals open each line counting from the second one by the keyword `else` or `elif`:
 ```fsharp
@@ -228,7 +218,7 @@ elif cond3 then e3
 else e4
 ```
 
-##### Single branches #####
+#### Single branches
 
 Indentation of conditionals depends on the sizes of the expressions which make them up.
 If `cond`, `e1` and `e2` are small, simply write them on one line:
@@ -254,9 +244,8 @@ if cond then
 else
     e2
 ```
----
 
-#### Pattern matching constructs ####
+### Pattern matching constructs
 
 Rules of a `with` in a `try/with` can be *optionally* 4-space indented e.g.
 
@@ -357,9 +346,7 @@ let f = function
 The justification is that it is harder to maintain the program. 
 Adding a new case may screw up indentation and we often give up alignment at that time.
 
----
-
-#### Function applications ####
+### Function applications
 
 Arguments are always indented from functions:
 
@@ -407,9 +394,7 @@ let printListWithOffset a list1 =
             printfn "%d" (a + elem)) list1
 ```
 
----
-
-#### Infix operators ####
+### Infix operators
 Be careful to *keep operator symbols well separated by spaces*; not only will your formulas be more readable, but you will avoid confusion with multi-character operators. 
 Obvious exceptions to this rule are the `!` and `.` symbols.
 They are not separated from their arguments.
@@ -424,9 +409,7 @@ let function1 arg1 arg2 arg3 arg4 =
   + arg3 + arg4
 ```
 
----
-
-#### Pipeline operators ####
+### Pipeline operators
 
 Pipeline `|>` should go at the start of a line immediately under the expression being operated on:
 
@@ -460,9 +443,7 @@ let methods2 = System.AppDomain.CurrentDomain.GetAssemblies()
             |> Array.concat
 ```
 
----
-
-#### Modules ####
+### Modules
 Code in a local module must be indented relative to the module, but code in a top-level module does not have to be indented. 
 Namespace elements do not have to be indented.
 The following code examples illustrate this.
@@ -482,9 +463,7 @@ module A2 =
     let function2 a b = a*a - b*b
 ```
 
----
-
-#### Object expressions and interfaces ####
+### Object expressions and interfaces
 
 Object expressions and interfaces are aligned in the same way with `member` being indented after 4 spaces.
 For example, this is recommended:
@@ -512,14 +491,14 @@ let comparer =
               reversed.CompareTo (rev s2) }
 ```
 Bodies of modules, classes, interfaces, and structures delimited by `begin...end`, `{...}`, `class...end`, or `interface...end`. 
-This allows for a style in which the opening keyword of a type definition can be on the same line as the type name without forcing the whole body to be indented farther than the opening keyword.
+This allows for a style in which the opening keyword of a type definition can be on the same line as the type name without forcing the whole body to be indented further than the opening keyword.
 ```fsharp
 type IMyInterface = interface 
     abstract Function1 : int -> int
 end
 ```
 
-#### Whitespaces ####
+### Whitespaces
 
 Avoid extraneous whitespace in the following situations:
 
@@ -542,17 +521,13 @@ Avoid extraneous whitespace in the following situations:
    let makeStreamReader x = new System.IO.StreamReader(path = x)
    ```
 
----
-
-#### Blank lines ####
+### Blank lines
  - Separate top-level function and class definitions with two blank lines.
  - Method definitions inside a class are separated by a single blank line.
  - Extra blank lines may be used (sparingly) to separate groups of related functions. Blank lines may be omitted between a bunch of related one-liners (e.g. a set of dummy implementations).
  - Use blank lines in functions, sparingly, to indicate logical sections.
 
----
-
-#### Comments ####
+### Comments
 
 Block comments generally apply to some (or all) code that follows them, and are indented to the same level as that code. 
 Each line of a block comment starts with a `(*` or `//` and a single space (unless it is indented text inside the comment).
@@ -563,18 +538,14 @@ An inline comment is a comment on the same line as a statement.
 Inline comments should be separated by at least two spaces from the statement. 
 They should start with a `//` and a single space.
 
----
-
-### Conclusions ###
+## Conclusions
 This guideline is still far from complete.
 Many syntactic constructs have not had any defined rule yet.
 In those cases, please keep in mind *consistency of indentation* rule and extrapolate from rules of similar constructs.
 Although I tried to keep a neutral position, there are mistakes and inconsistencies here and there.
 Feedbacks and suggestions for improving the article are always welcome.
 
----
-
-### References ###
+## References
 This document is structured upon ["F# Coding Guidelines"][1] (offline version).
 General rules for indentation are referenced at ["Code Formatting Guidelines (F#)"][2].
 A few conventions for syntactic constructs are adapted from ["Caml Programming Guidelines"][3].
