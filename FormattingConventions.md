@@ -78,10 +78,15 @@ Offside lines are determined as follows.
 ---
 
 ### Formatting rules for syntactic constructs ###
-In this section, code fragments without comments are of good style.
-Bad coding styles will be explicitly specified by appropriate comments.
-I also use 4 spaces as indentation standard.
-Keep in mind that all the rules are equally applied for 2, 3 spaces, etc.
+Keep in mind that *code is read much more often than it is written*.
+This section introduces a set of recommendations to improve the readability of code.
+Consistency with the recommendations is important.
+However, sometimes these formatting conventions do not apply.
+It is a good reason to break a particular rule, if applying it would make the code less readable.
+
+In the section, code fragments without comments are of good styles.
+Bad coding styles will be explicitly specified by corresponding comments.
+Although I also use 4 spaces as the indentation standard, all the rules are equally applied for 2, 3 spaces, etc.
 
 #### Type definitions ####
 
