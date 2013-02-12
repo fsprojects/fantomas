@@ -1,4 +1,4 @@
-F# Formatting Conventions
+A comprehensive guide to F# Formatting Conventions
 ===
 
 This article is written mostly based on ["F# Coding Guidelines"][1] (offline version) from Don Syme.
@@ -78,7 +78,7 @@ Consistency with the recommendations is important.
 However, sometimes these formatting conventions do not apply.
 It is a good reason to break a particular rule, if applying it would make the code less readable.
 
-In the section, code fragments without comments are of good styles.
+In this section, code fragments without comments are of good styles.
 Bad coding styles will be explicitly specified by corresponding comments.
 Although I also use 4 spaces as the indentation standard, all the rules are equally applied for 2, 3 spaces, etc.
 
@@ -127,7 +127,7 @@ Opening token for records starts in a new line. Closing token is normally on the
 
 ```fsharp
 let rainbow = 
-    { boss = "Jeffrey"; 
+    { boss = "Jeffrey"
       lackeys = ["Zippy"; "George"; "Bungle"] }
 ```
 
@@ -136,20 +136,21 @@ For large constructs (> 6 lines) the closing token can be on a fresh line:
 
 ```fsharp
 let rainbow = 
-    { boss1 = "Jeffrey"; 
-      boss2 = "Jeffrey"; 
-      boss3 = "Jeffrey"; 
-      boss4 = "Jeffrey"; 
-      boss5 = "Jeffrey"; 
-      boss6 = "Jeffrey"; 
-      boss7 = "Jeffrey"; 
-      boss8 = "Jeffrey"; 
-      lackeys = ["Zippy"; "George"; "Bungle"];
+    { boss1 = "Jeffrey"
+      boss2 = "Jeffrey" 
+      boss3 = "Jeffrey" 
+      boss4 = "Jeffrey" 
+      boss5 = "Jeffrey" 
+      boss6 = "Jeffrey" 
+      boss7 = "Jeffrey" 
+      boss8 = "Jeffrey" 
+      lackeys = ["Zippy"; "George"; "Bungle"]
     }
 ```
 
-
-Note that you can optionally include a trailing `;` for the last entry.
+Assume that all fields are aligned at the same column, the trailing `;` right before each line break is optional.
+You can also optionally include a trailing `;` for the last entry.
+The same rule applies for list and array elements.
 
 #### Lists and arrays
 Write `x :: l` with spaces around the `::` operator (`::` is an infix operator, hence surrounded by spaces) and `[1; 2; 3]` (`;` is a delimiter, hence followed by a space).
@@ -158,17 +159,17 @@ Always use at least one space between two distinct parenthetical operators (e.g.
 
 ```fsharp
 // OK
-[ { IngredientName = "Green beans"; Quantity = 250 }; 
-  { IngredientName = "Pine nuts"; Quantity = 250 };
-  { IngredientName = "Feta cheese"; Quantity = 250 };
-  { IngredientName = "Olive oil"; Quantity = 10 };
+[ { IngredientName = "Green beans"; Quantity = 250 }
+  { IngredientName = "Pine nuts"; Quantity = 250 }
+  { IngredientName = "Feta cheese"; Quantity = 250 }
+  { IngredientName = "Olive oil"; Quantity = 10 }
   { IngredientName = "Lemon"; Quantity = 1 } ]
 
 // Not OK
-[{ IngredientName = "Green beans"; Quantity = 250 }; 
- { IngredientName = "Pine nuts"; Quantity = 250 };
- { IngredientName = "Feta cheese"; Quantity = 250 };
- { IngredientName = "Olive oil"; Quantity = 10 };
+[{ IngredientName = "Green beans"; Quantity = 250 }
+ { IngredientName = "Pine nuts"; Quantity = 250 }
+ { IngredientName = "Feta cheese"; Quantity = 250 }
+ { IngredientName = "Olive oil"; Quantity = 10 }
  { IngredientName = "Lemon"; Quantity = 1 }]
 ```
 
@@ -176,15 +177,15 @@ Lists and arrays that split across multiple lines follow a similar rule as recor
 
 ```fsharp
 let pascalsTriangle = 
-    [| [|1|];
-       [|1; 1|];
-       [|1; 2; 1|];
-       [|1; 3; 3; 1|];
-       [|1; 4; 6; 4; 1|];
-       [|1; 5; 10; 10; 5; 1|];
-       [|1; 6; 15; 20; 15; 6; 1|];
-       [|1; 7; 21; 35; 35; 21; 7; 1|]; 
-       [|1; 8; 28; 56; 70; 56; 28; 8; 1|];
+    [| [|1|]
+       [|1; 1|]
+       [|1; 2; 1|]
+       [|1; 3; 3; 1|]
+       [|1; 4; 6; 4; 1|]
+       [|1; 5; 10; 10; 5; 1|]
+       [|1; 6; 15; 20; 15; 6; 1|]
+       [|1; 7; 21; 35; 35; 21; 7; 1|] 
+       [|1; 8; 28; 56; 70; 56; 28; 8; 1|]
     |]
 ```
 
