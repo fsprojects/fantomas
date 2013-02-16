@@ -27,7 +27,7 @@ let internal parseWith fileName content =
     | Some tree -> failwithf "Currently not support tree %A" tree
     | None -> failwith "parse: Wrong input"
 
-let parse s = parseWith "" s
+let parse s = parseWith "/var/tmp.fs" s
 
 /// Parse an fs, fsx or fsi file using compiler services
 let parseFromFile fileName = 

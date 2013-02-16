@@ -7,16 +7,13 @@
 
 open Microsoft.FSharp.Compiler.Ast
 
-open Fantomas.Utils
 open Fantomas.Ast
 
 /// Get identifier with corresponding location
 let internal longIdentToVar (LongIdentWithDots(ids, _)) = 
-    let s = List.map (fun (id : Ident) -> id.idText) ids |> String.concat "."
-    let arr = Array.ofList ids
-    let l1 = mkSrcLoc arr.[0].idRange
-    let l2 = mkSrcLoc arr.[arr.Length-1].idRange
-    Var(s, joinSrcLoc l1 l2)
+    List.map (fun (id : Ident) -> id.idText) ids 
+    |> String.concat "."
+    |> Var
 
 let foldDecls decls =
     let rec loopDecl x =
@@ -52,7 +49,7 @@ let foldDecls decls =
     and loopExceptionDef x =
         match x with
         | SynExceptionDefn.ExceptionDefn(SynExceptionRepr.ExceptionDefnRepr(_, uc, _, _, _, _), ms, _) ->
-            let(name, _) = loopUnionCases uc
+            let name = loopUnionCases uc
             let msAcc = List.map loopClassMember ms                    
             ExceptionDef(name, msAcc)
 
@@ -116,7 +113,7 @@ let foldDecls decls =
             let e1Acc = loopExpr e1
             let e2Acc = loopExpr e2
             let e3Acc = loopExpr e3
-            For(PVar(id.idText, mkSrcLoc id.idRange), e1Acc, e2Acc, e3Acc)
+            For(PVar(id.idText), e1Acc, e2Acc, e3Acc)
         | SynExpr.Null _ -> Null
         | SynExpr.AddressOf(_, e, _, _) ->
             let eAcc = loopExpr e
@@ -145,7 +142,7 @@ let foldDecls decls =
             Tuple esAcc
         | SynExpr.Const(x, _) -> loopConst x
         | SynExpr.Ident(id) -> 
-            Var(id.idText, mkSrcLoc id.idRange) 
+            Var(id.idText) 
         | SynExpr.LongIdent(_, ids, _, _) ->                     
             longIdentToVar ids
         | SynExpr.App(_, _, x, y, _) -> 
@@ -261,7 +258,7 @@ let foldDecls decls =
 
     and loopRecordFieldInst(_, x : Ident, e) =
          let eAcc = loopExpr e
-         ((x.idText, mkSrcLoc x.idRange), eAcc)
+         ((x.idText), eAcc)
 
     and loopSimplePats x =
         match x with 
@@ -275,7 +272,7 @@ let foldDecls decls =
         | SynSimplePat.Attrib(p, a, _) ->
             loopSimplePat p
         | SynSimplePat.Id(ident, _, _, _, _, _) -> 
-            PVar(ident.idText, mkSrcLoc(ident.idRange))
+            PVar(ident.idText)
         | SynSimplePat.Typed(p,_,_) ->
             loopSimplePat p
 
@@ -299,7 +296,7 @@ let foldDecls decls =
             let msAcc = List.map loopMeasure ms
             Seq msAcc 
         | SynMeasure.Named(li, _) -> 
-            let liAcc = TLongIdent(List.map (fun (id:Ident) -> TIdent(id.idText, mkSrcLoc id.idRange)) li)
+            let liAcc = TLongIdent(List.map (fun (id:Ident) -> TIdent(id.idText)) li)
             Named liAcc
 
     and loopConst x =
@@ -352,9 +349,9 @@ let foldDecls decls =
         | SynType.Anon(_) ->
             TAnon
         | SynType.LongIdent(LongIdentWithDots(ident, _)) ->
-            TLongIdent(List.map (fun (id:Ident) -> TIdent(id.idText, mkSrcLoc id.idRange)) ident) 
+            TLongIdent(List.map (fun (id:Ident) -> TIdent(id.idText)) ident) 
         | SynType.Var(SynTypar.Typar(id, _, _), _) ->
-            Type.TVar(TIdent(id.idText, mkSrcLoc id.idRange))
+            Type.TVar(TIdent(id.idText))
         | SynType.Fun(ty1, ty2, _) ->
             let ty1Acc = loopType ty1
             let ty2Acc = loopType ty2
@@ -383,16 +380,16 @@ let foldDecls decls =
         | SynMemberDefn.Open _ -> ClassMember.NotSupported
 
         | SynMemberDefn.ImplicitInherit(t, e, id, _) ->
-            let idAcc = Option.map (fun (x : Ident) -> TIdent(x.idText, mkSrcLoc x.idRange)) id
+            let idAcc = Option.map (fun (x : Ident) -> TIdent(x.idText)) id
             let tAcc = loopType t
             let eAcc = loopExpr e
             ClassMember.ImplicitInherit(tAcc, eAcc, idAcc)
         | SynMemberDefn.Inherit(t, id, _) ->
-            let idAcc = Option.map (fun (x : Ident) -> TIdent(x.idText, mkSrcLoc x.idRange)) id
+            let idAcc = Option.map (fun (x : Ident) -> TIdent(x.idText)) id
             let tAcc = loopType t
             ClassMember.Inherit(tAcc, idAcc)
         | SynMemberDefn.ValField(SynField.Field(_,_,id,t,_,_,_,_), _) ->
-            let idAcc = Option.map (fun (x : Ident) -> TIdent(x.idText, mkSrcLoc x.idRange)) id
+            let idAcc = Option.map (fun (x : Ident) -> TIdent(x.idText)) id
             let tAcc = loopType t
             ClassMember.ValField(idAcc, tAcc)
         | SynMemberDefn.ImplicitCtor(_,_,ps,_,_) -> 
@@ -434,20 +431,20 @@ let foldDecls decls =
     and loopUnionCases x =
         match x with
         | SynUnionCase.UnionCase(_,x,_,_,_,_) ->
-            (x.idText, mkSrcLoc x.idRange)
+            (x.idText)
 
     and loopEnumCases x =
         match x with
         | SynEnumCase.EnumCase(_,x,c,_,_) ->
             match loopConst c with
             | Lit cAcc ->
-                ((x.idText, mkSrcLoc x.idRange), cAcc)
+                ((x.idText), cAcc)
             | _ -> failwith "loopEnumCases: Unexpected input"
 
     and loopRecordFields x =
         match x with 
         | SynField.Field(_, _, identOption, _, _, _, _, _) -> 
-            Option.map (fun (x : Ident) ->(x.idText, mkSrcLoc x.idRange)) identOption
+            Option.map (fun (x : Ident) ->(x.idText)) identOption
 
     and loopClause x = 
         match x with
@@ -459,7 +456,7 @@ let foldDecls decls =
     and loopPat x =
         match x with
         | SynPat.OptionalVal(x, _) -> 
-            PVar(x.idText, mkSrcLoc x.idRange)
+            PVar(x.idText)
         | SynPat.Attrib(p, attrs, _) ->
             let pAcc = loopPat p
             let attrsAcc = List.map loopAttribute attrs
@@ -478,10 +475,10 @@ let foldDecls decls =
         | SynPat.Named(p, x, _, _, _) -> 
             let pAcc = loopPat p
             match pAcc with
-            | PWild -> PVar(x.idText, mkSrcLoc x.idRange)
-            | _ -> PNamed(pAcc, PVar(x.idText, mkSrcLoc x.idRange))
+            | PWild -> PVar(x.idText)
+            | _ -> PNamed(pAcc, PVar(x.idText))
         | SynPat.LongIdent(LongIdentWithDots(xs, _), _, _, ys, _, _) -> 
-            let x = xs |> Seq.map (fun (x : Ident) -> PVar(x.idText, mkSrcLoc x.idRange)) 
+            let x = xs |> Seq.map (fun (x : Ident) -> PVar(x.idText)) 
                        |> Seq.toList                               
                        |> fun xs' -> match xs' with
                                      | x'::[] -> match x' with
