@@ -8,10 +8,11 @@ let checker = InteractiveChecker.Create(NotifyFileTypeCheckStateIsDirty ignore)
 
 // Sample input for the compiler service
 let input = """
+  module Tests
   let foo() = 
     let msg = "Hello world"
     printfn "%s" msg """
-let file = "/home/user/Test.fsx"
+let file = "/home/user/Test.fs"
 
 // Get compiler options for a single script file
 let checkOptions = checker.GetCheckOptionsFromScriptRoot(file, input, DateTime.Now, [| |])
