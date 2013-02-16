@@ -1,7 +1,7 @@
 ﻿module Fantomas.Ast
 
-// The source of this module is from http://fsharprefactor.codeplex.com/SourceControl/changeset/view/96754#1277905
-// Most types are simplified according to our needs
+// This module is a modified version of http://fsharprefactor.codeplex.com/SourceControl/changeset/view/96754#1277905
+// Most types are simplified according to our needs.
 
 open System
 

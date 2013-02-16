@@ -5,4 +5,6 @@
 #load "Converter.fs"
 #load "Parser.fs"
 
-let result = Fantomas.Parser.parse (__SOURCE_DIRECTORY__ + "/Example.fs");;
+open Fantomas.Parser
+
+let result = parse (__SOURCE_DIRECTORY__ + "/Example.fs");;

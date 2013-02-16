@@ -2,7 +2,7 @@
 
 // This module is a modified version of http://fsharprefactor.codeplex.com/SourceControl/changeset/view/96754#1719584
 // There are two major changes:
-// 1. Remove the continuation monad. I do not believe ASTs are too deep to cause stackoverflow.
+// 1. Remove the continuation monad. I do not believe that ASTs are too deep to cause stackoverflow.
 // 2. Modify patterns to compile with F# 3.0 AST. There are many internal changes between v2.0 and v3.0.
 
 open Microsoft.FSharp.Compiler.Ast
@@ -29,7 +29,7 @@ let foldDecls decls =
             Attributes attrsAcc
         | SynModuleDecl.HashDirective(ParsedHashDirective(s, ss, _), _) ->
             HashDirective(s, ss)
-        | SynModuleDecl.Let(isRec,xs,_) -> 
+        | SynModuleDecl.Let(isRec, xs, _) -> 
             let xsAcc = List.map loopBinding xs
             let xsAcc' = List.map (fun (nAcc, eAcc) -> Let(isRec, [nAcc, eAcc], Lit(Unit))) xsAcc
             Exp xsAcc'
@@ -39,7 +39,7 @@ let foldDecls decls =
         | SynModuleDecl.Types(xs, _) -> 
             let xsAcc = List.map loopTypeDef xs
             Types xsAcc
-        | SynModuleDecl.NestedModule(SynComponentInfo.ComponentInfo(_,_,_,longId,_,_,_,_),xs,_,_) -> 
+        | SynModuleDecl.NestedModule(SynComponentInfo.ComponentInfo(_, _, _, longId, _, _, _, _), xs, _, _) -> 
             let xsAcc = List.map loopDecl xs
             NestedModule(List.map (fun (x : Ident) -> x.idText) longId, xsAcc)
         | SynModuleDecl.Open(LongIdentWithDots(xs, _), _) -> 
@@ -50,7 +50,7 @@ let foldDecls decls =
     
     and loopExceptionDef x =
         match x with
-        | SynExceptionDefn.ExceptionDefn(SynExceptionRepr.ExceptionDefnRepr(_,uc,_,_,_,_), ms, _) ->
+        | SynExceptionDefn.ExceptionDefn(SynExceptionRepr.ExceptionDefnRepr(_, uc, _, _, _, _), ms, _) ->
             let(name, _) = loopUnionCases uc
             let msAcc = List.map loopClassMember ms                    
             ExceptionDef(name, msAcc)
@@ -441,7 +441,7 @@ let foldDecls decls =
             match loopConst c with
             | Lit cAcc ->
                 ((x.idText, mkSrcLoc x.idRange), cAcc)
-            | _ -> failwith "loopEnumCases: Wrong argument"
+            | _ -> failwith "loopEnumCases: Unexpected input"
 
     and loopRecordFields x =
         match x with 
@@ -505,7 +505,7 @@ let foldDecls decls =
         | SynPat.Const(c, _) -> 
             match loopConst c with
             | Lit lit -> PLit lit
-            | _ -> failwith "loopPat: Wrong argument"
+            | _ -> failwith "loopPat: Unexpected input"
         | SynPat.ArrayOrList(_,xs,_) -> 
             let xsAcc = List.map loopPat xs
             PList xsAcc
@@ -527,7 +527,6 @@ let foldDecls decls =
             let xAcc = loopPat x
             let pAcc = buildPApp f xs'
             PApp(pAcc, xAcc)
-        | _ -> failwith "buildPApp: Wrong argument"
+        | _ -> failwith "buildPApp: Unexpected input"
        
     List.map loopDecl decls
-

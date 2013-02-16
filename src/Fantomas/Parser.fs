@@ -9,7 +9,7 @@ open System.IO
 
 open Fantomas.Converter
 
-/// Parse an fs, fsi or fsx file using compiler services
+/// Parse an fs, fsx or fsi file using compiler services
 let parse fileName = 
     let content = File.ReadAllText(fileName)
     // Create an interactive checker instance (ignore notifications)
