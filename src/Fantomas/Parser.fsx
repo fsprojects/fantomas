@@ -7,4 +7,4 @@
 
 open Fantomas.Parser
 
-let result = parse (__SOURCE_DIRECTORY__ + "/Example.fs");;
+let result = parseFromFile (__SOURCE_DIRECTORY__ + "/Example.fs");;

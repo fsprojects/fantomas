@@ -113,7 +113,7 @@ and TypeDef<'a> =
     | DisUnion of string * 'a list
     | Enum of string * ('a * Literal) list
     | Record of string * 'a option list * ClassMember<'a> list
-    | None of string
+    | Nothing of string
     | Class of string * ClassMember<'a> list
     | Abbrev of string * Type<'a>
 

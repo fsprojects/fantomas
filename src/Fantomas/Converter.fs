@@ -10,11 +10,12 @@ open Microsoft.FSharp.Compiler.Ast
 open Fantomas.Utils
 open Fantomas.Ast
 
-/// TODO: revising this function
-let longIdentToVar (LongIdentWithDots(ids, _)) = 
+/// Get identifier with corresponding location
+let internal longIdentToVar (LongIdentWithDots(ids, _)) = 
     let s = List.map (fun (id : Ident) -> id.idText) ids |> String.concat "."
-    let l1 = List.head ids |> (fun id -> mkSrcLoc id.idRange)
-    let l2 = System.Linq.Enumerable.Last ids |> (fun id -> mkSrcLoc id.idRange)
+    let arr = Array.ofList ids
+    let l1 = mkSrcLoc arr.[0].idRange
+    let l2 = mkSrcLoc arr.[arr.Length-1].idRange
     Var(s, joinSrcLoc l1 l2)
 
 let foldDecls decls =
@@ -31,7 +32,7 @@ let foldDecls decls =
             HashDirective(s, ss)
         | SynModuleDecl.Let(isRec, xs, _) -> 
             let xsAcc = List.map loopBinding xs
-            let xsAcc' = List.map (fun (nAcc, eAcc) -> Let(isRec, [nAcc, eAcc], Lit(Unit))) xsAcc
+            let xsAcc' = List.map (fun (nAcc, eAcc) -> Let(isRec, [nAcc, eAcc], Lit Unit)) xsAcc
             Exp xsAcc'
         | SynModuleDecl.DoExpr(_, x, _) -> 
             let xAcc = loopExpr x
@@ -205,7 +206,7 @@ let foldDecls decls =
                 let e3Acc = loopExpr e3.Value
                 IfThenElse(e1Acc, e2Acc, Some e3Acc)
             else
-                IfThenElse(e1Acc, e2Acc, Option.None)
+                IfThenElse(e1Acc, e2Acc, None)
         // Need some major changes
 //        | SynExpr.Record(_,_,xs,_) -> 
 //            let xsAcc = List.map loopRecordFieldInst xs
@@ -401,7 +402,7 @@ let foldDecls decls =
             loopMemberBinding b
         | SynMemberDefn.LetBindings(es,_,_,_) ->
             let esAcc = List.map loopBinding es
-            let esAcc' = List.map (fun (pAcc, eAcc) -> Let(false, [pAcc, eAcc], Lit(Unit))) esAcc
+            let esAcc' = List.map (fun (pAcc, eAcc) -> Let(false, [pAcc, eAcc], Lit Unit)) esAcc
             ClassMember.LetBindings esAcc'
         | SynMemberDefn.AbstractSlot(SynValSig.ValSpfn(_, ident, _, _, _, _, _, _, _, _, _),_,_) ->
             ClassMember.AbstractSlot(ident.idText)
@@ -424,7 +425,7 @@ let foldDecls decls =
             let msAcc = List.map loopClassMember ms
             TypeDef.Record(name, fieldsAcc, msAcc)
         | SynTypeDefnSimpleRepr.None _ -> 
-            TypeDef.None name 
+            Nothing name 
         | SynTypeDefnSimpleRepr.TypeAbbrev(_, ty, _) ->
             let tAcc = loopType ty
             TypeDef.Abbrev(name, tAcc)
@@ -520,7 +521,7 @@ let foldDecls decls =
 
     and buildPApp f xs = 
         match xs with
-        | x::[] -> 
+        | [x] -> 
             let xAcc = loopPat x
             PApp(f, xAcc)
         | x::xs' -> 
