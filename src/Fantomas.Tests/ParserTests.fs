@@ -94,7 +94,38 @@ let ``option values``() =
     |> should equal [[Let(false,[PVar "x", Var "None"], Lit(Unit))]]
 
 [<Test>]
-let ``discriminated unions``() =
+let ``type declarations``() =
     parseTypes "type Exp = Var of string"
     |> should equal [[DisUnion("Exp", ["Var"])]]
 
+[<Test>]
+let ``pattern matching``() =
+    parseExps "let f (x, y) = x"
+    |> should equal [[Let(false,[PApp(PVar "f", PParen(PTuple [PVar "x"; PVar "y"])), Var "x"], Lit(Unit))]]
+    parseExps "let _ = x"
+    |> should equal [[Let(false,[PWild, Var "x"], Lit(Unit))]]
+    parseExps "let f x = match x with True -> 42"
+    |> should equal [[Let(false,[PApp(PVar "f", PVar "x"), Match(Var "x", [Clause(PVar("True"), Lit(Int 42))])], Lit(Unit))]]
+    parseExps "let f p = match p with (x, y) -> x"
+    |> should equal [[Let(false,[PApp(PVar "f", PVar "p"), Match(Var "p", [Clause(PParen (PTuple [PVar "x"; PVar "y"]), Var "x")])], Lit(Unit))]]
+
+[<Test>]
+let ``sequence expressions``() =
+    parseExps "let xs = seq { 1..10 }"
+    |> should equal [[Let(false,[PVar "xs", App (Var "seq",App (App (Var "op_Range",Lit (Int 1)),Lit (Int 10)))], Lit Unit)]]
+    parseExps "let xs = seq { for i in 1..5 do yield i }"
+    |> should equal [[Let(false,[PVar "xs", App (Var "seq",ForEach(PVar "i", App (App (Var "op_Range",Lit (Int 1)), Lit (Int 5)), YieldOrReturn (Var "i")))], Lit Unit)]]
+
+
+[<Test>]
+let ``module handling``() =
+    parse "open System"
+    |> should equal [[Open ["System"]]]
+    parse """
+    open System
+    open System.IO"""
+    |> should equal [[Open ["System"]; Open ["System";"IO"]]]
+    parse "let xs = List.head [1..5]"
+    |> should equal [[Let(false,[PVar "xs", App (Var "List.head",App (App (Var "op_Range",Lit (Int 1)),Lit (Int 5)))], Lit Unit)]]
+    parse "module MyModule = let x = 42"
+    |> should equal [[NestedModule (["MyModule"], [Exp [Let(false,[PVar "x",Lit (Int 42)],Lit Unit)]])]]
