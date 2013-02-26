@@ -42,6 +42,7 @@
     <None Include="packages.config" />
     <None Include="app.config" />
     <Compile Include="ParserTests.fs" />
+    <Compile Include="ParserTestsExt.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FsUnit.NUnit">

@@ -116,16 +116,15 @@ let ``sequence expressions``() =
     parseExps "let xs = seq { for i in 1..5 do yield i }"
     |> should equal [[Let(false,[PVar "xs", App (Var "seq",ForEach(PVar "i", App (App (Var "op_Range",Lit (Int 1)), Lit (Int 5)), YieldOrReturn (Var "i")))], Lit Unit)]]
 
-
 [<Test>]
 let ``module handling``() =
     parse "open System"
-    |> should equal [[Open ["System"]]]
+    |> should equal [Open ["System"]]
     parse """
     open System
     open System.IO"""
-    |> should equal [[Open ["System"]; Open ["System";"IO"]]]
+    |> should equal [Open ["System"]; Open ["System";"IO"]]
     parse "let xs = List.head [1..5]"
-    |> should equal [[Let(false,[PVar "xs", App (Var "List.head",App (App (Var "op_Range",Lit (Int 1)),Lit (Int 5)))], Lit Unit)]]
+    |> should equal [Let(false,[PVar "xs", App (Var "List.head",App (App (Var "op_Range",Lit (Int 1)),Lit (Int 5)))], Lit Unit)]
     parse "module MyModule = let x = 42"
-    |> should equal [[NestedModule (["MyModule"], [Exp [Let(false,[PVar "x",Lit (Int 42)],Lit Unit)]])]]
+    |> should equal [NestedModule (["MyModule"], [Exp [Let(false,[PVar "x",Lit (Int 42)],Lit Unit)]])]
