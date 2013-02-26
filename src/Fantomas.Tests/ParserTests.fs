@@ -17,6 +17,8 @@ let ``literals``() =
    parseExps "'g'" |> should equal [[(Lit (Char 'g'))]]
    parseExps "true" |> should equal [[(Lit (Bool true))]]
    parseExps "false" |> should equal [[(Lit (Bool false))]]
+   // What about generic literal G
+   parseExps "256I" |> should equal [[(Lit (BigInt 256I))]]
 
 [<Test>]
 let ``simple declarations``() =
@@ -51,7 +53,7 @@ let ``nested declarations``() =
 let ``infix operators``() =
     parseExps "x + y + z" 
     |> should equal [[App(App (Var "op_Addition", App(App (Var "op_Addition", Var "x"), Var "y")), Var "z")]]
-    parseExps "(+) ((+) ((+) x y) z) k" |> should equal (parse "((x + y) + z) + k")
+    parseExps "(+) ((+) ((+) x y) z) k" |> should equal (parseExps "((x + y) + z) + k")
 
 [<Test>]
 let ``applications associate to the left``() =
@@ -125,6 +127,29 @@ let ``module handling``() =
     open System.IO"""
     |> should equal [Open ["System"]; Open ["System";"IO"]]
     parse "let xs = List.head [1..5]"
-    |> should equal [Let(false,[PVar "xs", App (Var "List.head",App (App (Var "op_Range",Lit (Int 1)),Lit (Int 5)))], Lit Unit)]
+    |> should equal 
+          [Exp
+             [Let
+                (false,
+                 [(PVar "xs",
+                   App
+                     (Var "List.head",
+                      App (App (Var "op_Range",Lit (Int 1)),Lit (Int 5))))],Lit Unit)]]
     parse "module MyModule = let x = 42"
     |> should equal [NestedModule (["MyModule"], [Exp [Let(false,[PVar "x",Lit (Int 42)],Lit Unit)]])]
+
+[<Test>]
+let ``Record alias`` () =
+    parse """
+        type AParameters = { a : int }
+        type X = | A of AParameters | B
+        let f (r : X) =
+            match r with
+            | X.A ( { a = aValue } as t )-> aValue
+            | X.B -> 0"""
+    |> should equal [Types [Record ("AParameters",[Some "a"],[])]; Types [DisUnion ("X",["A"; "B"])];
+                         Exp [Let (false, [(PApp (PVar "f", PParen(PVar "r")),
+                                                 Match (Var "r",
+                                                    [Clause (PApp (PLongVar [PVar "X"; PVar "A"], 
+                                                                PParen(PNamed (PRecord [("a", PVar "aValue")],PVar "t"))), Var "aValue");
+                                                     Clause (PLongVar [PVar "X"; PVar "B"],Lit (Int 0))]))],Lit Unit)]]

@@ -9,5 +9,4 @@ open Fantomas.Parser
 
 let result = parseFromFile (__SOURCE_DIRECTORY__ + "/Example.fs");;
 
-let a = parseExps "let x = 42\n\
-     let y = 24";;
+let a = parse "let product = List.";;

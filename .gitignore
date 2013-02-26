@@ -101,6 +101,7 @@ publish
 [Oo]bj
 sql
 TestResults
+packages
 *.Cache
 ClientBin
 stylecop.*

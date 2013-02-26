@@ -25,7 +25,7 @@ let internal parseWith fileName content =
         let (SynModuleOrNamespace(_, _,decls, _, _, _, _)) = List.head m
         foldDecls decls
     | Some tree -> failwithf "Currently not support tree %A" tree
-    | None -> failwith "parse: Wrong input"
+    | None -> failwith "parse: Unexpected input"
 
 let parse s = parseWith "/var/tmp.fs" s
 
