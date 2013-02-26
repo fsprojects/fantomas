@@ -17,7 +17,7 @@ limitations under the License.
 *)
 
 /// A simple command-line argument processor.
-namespace FSharp.Args
+namespace Microsoft.FSharp.Text.Args
 
 /// The spec value describes the action of the argument,
 /// and whether it expects a following parameter.

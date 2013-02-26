@@ -16,7 +16,7 @@ limitations under the License.
 
 *)
 
-namespace FSharp.Args
+namespace Microsoft.FSharp.Text.Args
 
 type ArgType = 
   | ClearArg of bool ref
