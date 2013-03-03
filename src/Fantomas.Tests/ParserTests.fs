@@ -21,7 +21,7 @@ let ``literals``() =
    parseExps "256I" |> should equal [[(Lit (BigInt 256I) : Exp<string>)]]
 
 [<Test>]
-let``Signed byte``() =
+let``signed byte``() =
     parseExps "let x = 0y"
     |> should equal [[Let(false,[PVar "x", Lit(SByte 0y)], Lit(Unit))]]
 
@@ -31,17 +31,17 @@ let``64 bit integer``() =
     |> should equal [[Let(false,[PVar "x", Lit(Int64 (0L))], Lit(Unit))]]
 
 [<Test>]
-let``Unsigned 64 bit integer``() =
+let``unsigned 64 bit integer``() =
     parseExps "let x = 0UL"
     |> should equal [[Let(false,[PVar "x", Lit(UInt64 (0UL))], Lit(Unit))]]
 
 [<Test>]
-let``Single``() =
+let``single``() =
     parseExps "let x = 0.0f"
     |> should equal [[Let(false,[PVar "x", Lit(Single (0.0f))], Lit(Unit))]]
 
 [<Test>]
-let ``Support for Int16, UInt16 and Byte``() =
+let ``support for Int16, UInt16 and Byte``() =
     parseExps "let x = 0us" |> should equal [[Let (false,[(PVar "x", Lit (UInt16 0us))],Lit Unit)]]
     parseExps "let x = 0s" |> should equal [[Let (false,[(PVar "x", Lit (Int16  0s))],Lit Unit)]]
     parseExps "let x = 0uy" |> should equal [[Let (false,[(PVar "x", Lit (Byte 0uy))],Lit Unit)]]
@@ -107,7 +107,14 @@ let tuples() =
     parseExps "let x = (42, 24)"
     |> should equal [[Let(false,[PVar "x", Paren(Tuple [Lit(Int 42);Lit(Int 24)])], Lit(Unit))]]
     parseExps """let x = (42, ("Hello", y))"""
-    |> should equal [[Let(false,[PVar "x", Paren(Tuple [Lit(Int 42); Paren(Tuple [Lit(String "Hello"); Var "y"])])], Lit(Unit))]]
+    |> should equal 
+              [[Let
+                  (false,
+                   [(PVar "x",
+                     Paren
+                       (Tuple
+                          [Lit (Int 42); Paren (Tuple [Lit (String "Hello"); Var "y"])]))],
+                   Lit Unit)]]
 
 [<Test>]
 let lists() =
@@ -132,17 +139,34 @@ let ``pattern matching``() =
     |> should equal [[Let(false,[PApp(PVar "f", PParen(PTuple [PVar "x"; PVar "y"])), Var "x"], Lit(Unit))]]
     parseExps "let _ = x"
     |> should equal [[Let(false,[PWild, Var "x"], Lit(Unit))]]
-    parseExps "let f x = match x with True -> 42"
-    |> should equal [[Let(false,[PApp(PVar "f", PVar "x"), Match(Var "x", [Clause(PVar("True"), Lit(Int 42))])], Lit(Unit))]]
     parseExps "let f p = match p with (x, y) -> x"
-    |> should equal [[Let(false,[PApp(PVar "f", PVar "p"), Match(Var "p", [Clause(PParen (PTuple [PVar "x"; PVar "y"]), Var "x")])], Lit(Unit))]]
-
+    |> should equal
+              [[Let
+                  (false,
+                   [(PApp (PVar "f",PVar "p"),
+                     Match
+                       (Var "p",[Clause (PParen (PTuple [PVar "x"; PVar "y"]),Var "x")]))],
+                   Lit Unit)]]
 [<Test>]
 let ``sequence expressions``() =
     parseExps "let xs = seq { 1..10 }"
-    |> should equal [[Let(false,[PVar "xs", App (Var "seq",App (App (Var "op_Range",Lit (Int 1)),Lit (Int 10)))], Lit Unit)]]
+    |> should equal 
+              [[Let
+                  (false,
+                   [(PVar "xs",
+                     App (Var "seq",App (App (Var "op_Range",Lit (Int 1)),Lit (Int 10))))],
+                   Lit Unit)]]
+
     parseExps "let xs = seq { for i in 1..5 do yield i }"
-    |> should equal [[Let(false,[PVar "xs", App (Var "seq",ForEach(PVar "i", App (App (Var "op_Range",Lit (Int 1)), Lit (Int 5)), YieldOrReturn (Var "i")))], Lit Unit)]]
+    |> should equal 
+              [[Let
+                  (false,
+                   [(PVar "xs",
+                     App
+                       (Var "seq",
+                        ForEach
+                          (PVar "i",App (App (Var "op_Range",Lit (Int 1)),Lit (Int 5)),
+                           YieldOrReturn (Var "i"))))],Lit Unit)]]
 
 [<Test>]
 let ``module handling``() =
@@ -165,7 +189,7 @@ let ``module handling``() =
     |> should equal [Module<string>.NestedModule (["MyModule"], [Exp [Let(false,[PVar "x",Lit (Int 42)],Lit Unit)]])]
 
 [<Test>]
-let ``Record alias``() =
+let ``record alias``() =
     parse """
         type AParameters = { a : int }
         type X = | A of AParameters | B
@@ -173,9 +197,18 @@ let ``Record alias``() =
             match r with
             | X.A ( { a = aValue } as t )-> aValue
             | X.B -> 0"""
-    |> should equal [Types [Record ("AParameters",[Some "a"],[])]; Types [DisUnion ("X",["A"; "B"])];
-                         Exp [Let (false, [(PApp (PVar "f", PParen(PVar "r")),
-                                                 Match (Var "r",
-                                                    [Clause (PApp (PLongVar [PVar "X"; PVar "A"], 
-                                                                PParen(PNamed (PRecord [("a", PVar "aValue")],PVar "t"))), Var "aValue");
-                                                     Clause (PLongVar [PVar "X"; PVar "B"],Lit (Int 0))]))],Lit Unit)]]
+    |> should equal 
+              [Types [Record ("AParameters",[Some "a"],[])];
+               Types [DisUnion ("X",["A"; "B"])];
+               Exp
+                 [Let
+                    (false,
+                     [(PApp (PVar "f",PParen (PVar "r")),
+                       Match
+                         (Var "r",
+                          [Clause
+                             (PApp
+                                (PLongVar [PVar "X"; PVar "A"],
+                                 PParen (PNamed (PRecord [("a", PVar "aValue")],PVar "t"))),
+                              Var "aValue");
+                           Clause (PLongVar [PVar "X"; PVar "B"],Lit (Int 0))]))],Lit Unit)]]

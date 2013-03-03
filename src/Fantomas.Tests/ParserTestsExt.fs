@@ -7,20 +7,52 @@ open Fantomas.Ast
 open Fantomas.Parser
 
 [<Test>]
-let ``Lazy keyword``() =
+let ``assert keyword``() =
+    parseExps "let _ = assert (posNbits <= 32)"
+    |> should equal
+              [[Let
+                  (false,
+                   [(PWild,
+                     Assert
+                       (Paren
+                          (App
+                             (App (Var "op_LessThanOrEqual",Var "posNbits"),Lit (Int 32)))))],
+                   Lit Unit)]]
+
+[<Test>]
+let ``val keyword``() =
+    parseTypes """
+        type MyType() =
+            [<DefaultValue>] val mutable myInt2 : int"""
+    |> should equal 
+              [[Class
+                  ("MyType",
+                   [ImplicitCtor [];
+                    ValField (Some (TIdent "myInt2"),TLongIdent [TIdent "int"])])]]
+
+[<Test>]
+let ``while loop``() =
+    parseExps """
+        while x > 0 do
+            foo x """
+    |> should equal [[While (App (App (Var "op_GreaterThan",Var "x"),Lit (Int 0)), App (Var "foo",Var "x"))]]
+
+[<Test>]
+let ``lazy keyword``() =
     parseExps "let f = lazy 42"
     |> should equal [[Let (false,[(PVar "f", Lazy (Lit (Int 42)))],Lit Unit)]]
 
 [<Test>]
-let ``Enum support``() =
-    parseTypes """type Choice = 
-                      | Yes = 0
-                      | No  = 1"""
+let ``enum support``() =
+    parseTypes """
+        type Choice = 
+            | Yes = 0
+            | No  = 1"""
     |> should equal [[Enum ("Choice",[("Yes", Int 0); ("No", Int 1)])]]
 
 [<Test>]
 let ``inferred downcast``() =
-    parseExps "let x:string = downcast foo()"
+    parseExps "let x : string = downcast foo()"
     |> should equal
               [[Let
                   (false,
@@ -29,12 +61,12 @@ let ``inferred downcast``() =
                        (InferredDowncast (App (Var "foo",Lit Unit)),
                         TLongIdent [TIdent "string"]))],Lit Unit)]]
 [<Test>]
-let ``Quoted identifier``() =      
+let ``quoted identifier``() =      
     parseExps "let x' = 42"  
     |> should equal [[Let(false,[PVar "x'", Lit(Int 42)], Lit(Unit))]]
 
 [<Test>]
-let ``Inheriting a type``() =
+let ``inheriting a type``() =
     parseTypes ("type IPartialEqualityComparer<'T> = inherit IEqualityComparer<'T>")
     |> should equal 
             [[Class
@@ -44,7 +76,7 @@ let ``Inheriting a type``() =
                        None)])]]  
 
 [<Test>]
-let ``Assembly level attribute``() =
+let ``assembly level attribute``() =
     parse """
         [<Dependency("FSharp.Compiler", LoadHint.Always)>]
         do ()"""
@@ -64,13 +96,13 @@ let ``Implicit inherit``() =
                     ImplicitInherit (TLongIdent [TIdent "MyClassBase"],Lit Unit,None)])]]
 
 [<Test>]
-let ``Module abbreviation``() =
+let ``module abbreviation``() =
     // FsUnit can't infer correct types
     parse "module ES = Microsoft.FSharp.Quotations.ExprShape"
     |> should equal [Module<string>.ModuleAbbrev ("ES",["Microsoft"; "FSharp"; "Quotations"; "ExprShape"])]
 
 [<Test>]
-let ``Try finally``() =
+let ``try finally``() =
     parseExps """
         let divide x y =
             try
@@ -83,7 +115,7 @@ let ``Try finally``() =
                                                  App (Var "printfn",Lit (String "Always print this"))))],Lit Unit)]]
 
 [<Test>]
-let``Typed quotation``() =
+let``typed quotation``() =
     parseExps "let x = <@ 2 + 3 @>"
     |> should equal 
             [[Let
@@ -94,7 +126,7 @@ let``Typed quotation``() =
                         App (App (Var "op_Addition",Lit (Int 2)),Lit (Int 3))))],Lit Unit)]]
 
 [<Test>]
-let``Untyped quotation``() =
+let``untyped quotation``() =
     parseExps "let x = <@@ 2 + 3 @@>"
     |> should equal
             [[Let
@@ -105,12 +137,12 @@ let``Untyped quotation``() =
                         App (App (Var "op_Addition",Lit (Int 2)),Lit (Int 3))))],Lit Unit)]]
 
 [<Test>]
-let ``Inferred upcast``() =
+let ``inferred upcast``() =
     parse "let x = upcast y"
     |> should equal [Exp [Let (false,[(PVar "x", InferredUpcast (Var "y"))],Lit Unit)]]
 
 [<Test>]
-let ``Type test``() =
+let ``type test``() =
     parse "let x = 2 :? double"
     |> should equal
           [Exp
@@ -120,29 +152,29 @@ let ``Type test``() =
                  Lit Unit)]]
 
 [<Test>]
-let ``Dot set``() =
+let ``dot set``() =
     parse "(List.head xs).Value <- 42"
     |> should equal [Exp [DotSet (Paren (App (Var "List.head",Var "xs")),Var "Value",Lit (Int 42))]]
 
 [<Test>]
-let ``Interface implementation with no members``() =
+let ``interface implementation with no members``() =
     parse """
         type SomeClass =
             interface IFoo"""
     |> should equal [Types [Class ("SomeClass",[Interface (TLongIdent [TIdent "IFoo"], None)])]]
 
 [<Test>]
-let ``Generic measure type instantiation``() =
+let ``generic measure type instantiation``() =
     parse "let f<'a> = 42<'a>"
     |> should equal [Exp [Let (false,[(PVar "f", Measure (Lit (Int 42),Seq [MVar "a"]))],Lit Unit)]]
 
 [<Test>]
-let ``Anonymous measure type instantiation``() =
+let ``anonymous measure type instantiation``() =
     parse "let f = 0.0<_>"
     |> should equal [Exp [Let (false,[(PVar "f", Measure (Lit (Double 0.0), Anon))],Lit Unit)]]
 
 [<Test>]
-let ``And patterns``() = 
+let ``and patterns``() = 
     parse """
         let detectZeroAND point =
             match point with
@@ -166,7 +198,7 @@ let ``And patterns``() =
                                                  Clause (PWild,Lit (Int 3))]))],Lit Unit)]]
 
 [<Test>]
-let ``Statically resolved type constraints``() = 
+let ``statically resolved type constraints``() = 
     parse """
         let inline joinM b m =
             let (>>=) m f = (^x: (member Bind: ^m -> (^n -> ^n) -> ^n) b, m, f)
@@ -193,7 +225,7 @@ let ``Statically resolved type constraints``() =
                  Lit Unit)]]
 
 [<Test>]
-let ``Support for DiscardAfterError``() = 
+let ``support for DiscardAfterError``() = 
     parse "let product = List."
     |> should equal [Exp [Let (false,[(PVar "product", ArbitraryAfterError)],Lit Unit)]]
 
@@ -216,7 +248,7 @@ let ``Type extension``() =
                         App (App (Var "op_Multiply",Var "c"),Var "d")))])]]
 
 [<Test>]
-let ``Optional arguments in class members``() =
+let ``optional arguments in class members``() =
     parse "type Foo() = member this.Foo ?x = defaultArg x 42"
     |> should equal 
           [Types
@@ -228,12 +260,12 @@ let ``Optional arguments in class members``() =
                      App (App (Var "defaultArg",Var "x"),Lit (Int 42)))])]]   
                                 
 [<Test>]
-let ``Long name identifier``() =
+let ``long name identifier``() =
     parse "let ``my function`` ``this value`` = ``this value``"
     |> should equal [Exp [Let (false,[(PApp (PVar "my function",PVar "this value"), Var "this value")], Lit Unit)]]
 
 [<Test>]
-let ``Params array attribute``() =
+let ``params array attribute``() =
     parse """
         [<AttributeUsage(AttributeTargets.Method, AllowMultiple = true)>]
         type TestAttribute([<ParamArray>] parameters: obj[])  =
@@ -249,7 +281,7 @@ let ``Params array attribute``() =
                     (true,PLongVar [PVar "this"; PVar "Parameters"],Var "parameters")])]]
 
 [<Test>]
-let ``Hash constraint``() =
+let ``hash constraint``() =
     parse "let something: #IEnumerable option = None"
     |> should equal
           [Exp
@@ -263,7 +295,7 @@ let ``Hash constraint``() =
                          [TLongIdent [TIdent "IEnumerable"]])))],Lit Unit)]]
 
 [<Test>]
-let ``Unit of Measure products support``() =
+let ``unit of measure support``() =
     parse """
         [<Measure>] type m
         [<Measure>] type kg
@@ -297,4 +329,3 @@ let ``Unit of Measure products support``() =
                        (Seq [Named (TLongIdent [TIdent "m"])],
                         Seq [Named (TLongIdent [TIdent "Pa"])]),
                      Seq [Named (TLongIdent [TIdent "s"])])))],Lit Unit)]]
-
