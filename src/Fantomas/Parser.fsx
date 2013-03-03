@@ -9,4 +9,6 @@ open Fantomas.Parser
 
 let result = parseFromFile (__SOURCE_DIRECTORY__ + "/Example.fsx");;
 
-let a = parseExps "let x:string = downcast foo()";;
+let a = parseExps """try Foo() with
+                 | :? System.ArgumentException
+                 | :? System.ArgumentNullException -> 42"""

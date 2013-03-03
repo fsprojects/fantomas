@@ -7,6 +7,51 @@ open Fantomas.Ast
 open Fantomas.Parser
 
 [<Test>]
+let ``exception pattern matching``() =
+    parseExps """try Foo() with
+                 | :? System.ArgumentException
+                 | :? System.ArgumentNullException -> 42"""
+    |> should equal
+              [[TryWith
+                  (App (Var "Foo",Lit Unit),
+                   [Clause
+                      (POr
+                         (PIsInst
+                            (TLongIdent [TIdent "System"; TIdent "ArgumentException"]),
+                          PIsInst
+                            (TLongIdent [TIdent "System"; TIdent "ArgumentNullException"])),
+                       Lit (Int 42))])]]
+
+[<Test>]
+let ``for loop``() =
+    parseExps """
+        for i = 0 to 5 do
+            printf "%i" i """
+    |> should equal [[For (PVar "i",Lit (Int 0),Lit (Int 5), App (App (Var "printf",Lit (String "%i")),Var "i"))]]
+
+[<Test>]
+let ``extern method arguments attributes``() =
+    parse """
+        extern bool private HeapSetInformation( 
+            UIntPtr _HeapHandle, 
+            UInt32  _HeapInformationClass, 
+            UIntPtr _HeapInformation, 
+            UIntPtr _HeapInformationLength)"""
+    |> should equal [Exp [Let (false,
+                                [(PApp
+                                    (PVar "HeapSetInformation",
+                                    PTuple
+                                        [PAttribute (PVar "_HeapHandle",[]);
+                                        PAttribute (PVar "_HeapInformationClass",[]);
+                                        PAttribute (PVar "_HeapInformation",[]);
+                                        PAttribute (PVar "_HeapInformationLength",[])]),
+                                  Typed
+                                    (App
+                                        (Var "failwith",
+                                        Lit (String "extern was not given a DllImport attribute")),
+                                    TApp (TLongIdent [TIdent "bool"],[])))],Lit Unit)]]
+
+[<Test>]
 let ``assert keyword``() =
     parseExps "let _ = assert (posNbits <= 32)"
     |> should equal

@@ -71,8 +71,7 @@ let foldDecls decls =
     and loopExpr x =
         match x with
         // Not implemented AST sections
-//        | SynExpr.DeprecatedTypeOf _ -> ArbitraryAfterError
-//        | SynExpr.DiscardAfterError _ -> ArbitraryAfterError
+        | SynExpr.DiscardAfterMissingQualificationAfterDot _ -> ArbitraryAfterError
         | SynExpr.DotNamedIndexedPropertySet _ -> ArbitraryAfterError
         | SynExpr.ImplicitZero _ -> ArbitraryAfterError
         | SynExpr.LibraryOnlyILAssembly _ -> ArbitraryAfterError
@@ -126,10 +125,10 @@ let foldDecls decls =
             let eAcc = loopExpr e
             let csAcc = List.map loopClause cs
             Match(eAcc, csAcc)
-//        | SynExpr.Seq(_, _, e1, e2, _) -> 
-//            let e1Acc = loopExpr e1
-//            let e2Acc = loopExpr e2
-//            List [e1Acc; e2Acc]
+        | SynExpr.Sequential(_, _, e1, e2, _) -> 
+            let e1Acc = loopExpr e1
+            let e2Acc = loopExpr e2
+            List [e1Acc; e2Acc]
         | SynExpr.ArrayOrList(_, xs, _) -> 
             let xsAcc = List.map loopExpr xs
             List xsAcc
@@ -363,7 +362,7 @@ let foldDecls decls =
         | SynType.Tuple(ts, _) ->
             let tsAcc = List.map (fun (_, x) -> loopType x) ts
             TTuple tsAcc
-         | _ -> failwith "loopType: unsupported pattern"
+         | _ -> failwith "loopType: Unsupported pattern"
 
     and loopRep name ms x =
         match x with
@@ -510,7 +509,7 @@ let foldDecls decls =
         | SynPat.IsInst(t, _) ->
             let tAcc = loopType t
             PIsInst tAcc
-        | _ -> failwith "looPat: Unsupported pattern"
+        | _ -> failwith "loopPat: Unsupported pattern"
 
     and loopAttribute(x : SynAttribute) =
         let argExprAcc = loopExpr(x.ArgExpr)
