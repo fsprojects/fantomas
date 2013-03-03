@@ -7,17 +7,122 @@ open Fantomas.Ast
 open Fantomas.Parser
 
 [<Test>]
-let ``Type test``() =
-    parseExps "let x = 2 :? double"
+let ``Lazy keyword``() =
+    parseExps "let f = lazy 42"
+    |> should equal [[Let (false,[(PVar "f", Lazy (Lit (Int 42)))],Lit Unit)]]
+
+[<Test>]
+let ``Enum support``() =
+    parseTypes """type Choice = 
+                      | Yes = 0
+                      | No  = 1"""
+    |> should equal [[Enum ("Choice",[("Yes", Int 0); ("No", Int 1)])]]
+
+[<Test>]
+let ``inferred downcast``() =
+    parseExps "let x:string = downcast foo()"
     |> should equal
-          [[Let
-              (false,[(PVar "x", TypeTest (Lit (Int 2),TLongIdent [TIdent "double"]))],
-               Lit Unit)]]
+              [[Let
+                  (false,
+                   [(PVar "x",
+                     Typed
+                       (InferredDowncast (App (Var "foo",Lit Unit)),
+                        TLongIdent [TIdent "string"]))],Lit Unit)]]
+[<Test>]
+let ``Quoted identifier``() =      
+    parseExps "let x' = 42"  
+    |> should equal [[Let(false,[PVar "x'", Lit(Int 42)], Lit(Unit))]]
+
+[<Test>]
+let ``Inheriting a type``() =
+    parseTypes ("type IPartialEqualityComparer<'T> = inherit IEqualityComparer<'T>")
+    |> should equal 
+            [[Class
+                  ("IPartialEqualityComparer",
+                   [Inherit
+                      (TApp (TLongIdent [TIdent "IEqualityComparer"],[TVar (TIdent "T")]),
+                       None)])]]  
+
+[<Test>]
+let ``Assembly level attribute``() =
+    parse """
+        [<Dependency("FSharp.Compiler", LoadHint.Always)>]
+        do ()"""
+    |> should equal 
+            [Attributes
+                 [Attribute
+                    (Paren (Tuple [Lit (String "FSharp.Compiler"); Var "LoadHint.Always"]))];
+             Exp [Do (Lit Unit)]]
+
+[<Test>]
+let ``Implicit inherit``() =
+    parseTypes "type MyClassDerived() = inherit MyClassBase()"
+    |> should equal
+              [[Class
+                  ("MyClassDerived",
+                   [ImplicitCtor [];
+                    ImplicitInherit (TLongIdent [TIdent "MyClassBase"],Lit Unit,None)])]]
+
+[<Test>]
+let ``Module abbreviation``() =
+    // FsUnit can't infer correct types
+    parse "module ES = Microsoft.FSharp.Quotations.ExprShape"
+    |> should equal [Module<string>.ModuleAbbrev ("ES",["Microsoft"; "FSharp"; "Quotations"; "ExprShape"])]
+
+[<Test>]
+let ``Try finally``() =
+    parseExps """
+        let divide x y =
+            try
+                x / y 
+            finally
+                printfn "Always print this"
+                """
+    |> should equal [[Let (false,  [(PApp (PApp (PVar "divide",PVar "x"),PVar "y"),  
+                                     TryFinally (App (App (Var "op_Division",Var "x"),Var "y"), 
+                                                 App (Var "printfn",Lit (String "Always print this"))))],Lit Unit)]]
+
+[<Test>]
+let``Typed quotation``() =
+    parseExps "let x = <@ 2 + 3 @>"
+    |> should equal 
+            [[Let
+                  (false,
+                   [(PVar "x",
+                     Quote
+                       (Var "op_Quotation",
+                        App (App (Var "op_Addition",Lit (Int 2)),Lit (Int 3))))],Lit Unit)]]
+
+[<Test>]
+let``Untyped quotation``() =
+    parseExps "let x = <@@ 2 + 3 @@>"
+    |> should equal
+            [[Let
+                  (false,
+                   [(PVar "x",
+                     Quote
+                       (Var "op_QuotationUntyped",
+                        App (App (Var "op_Addition",Lit (Int 2)),Lit (Int 3))))],Lit Unit)]]
+
+[<Test>]
+let ``Inferred upcast``() =
+    parse "let x = upcast y"
+    |> should equal [Exp [Let (false,[(PVar "x", InferredUpcast (Var "y"))],Lit Unit)]]
+
+[<Test>]
+let ``Type test``() =
+    parse "let x = 2 :? double"
+    |> should equal
+          [Exp
+             [Let
+                (false,
+                 [(PVar "x", TypeTest (Lit (Int 2),TLongIdent [TIdent "double"]))],
+                 Lit Unit)]]
 
 [<Test>]
 let ``Dot set``() =
-    parseExps "(List.head xs).Value <- 42"
-    |> should equal [[DotSet (Paren (App (Var "List.head",Var "xs")),Var "Value",Lit (Int 42))]]
+    parse "(List.head xs).Value <- 42"
+    |> should equal [Exp [DotSet (Paren (App (Var "List.head",Var "xs")),Var "Value",Lit (Int 42))]]
 
 [<Test>]
 let ``Interface implementation with no members``() =

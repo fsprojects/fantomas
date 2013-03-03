@@ -8,17 +8,43 @@ open Fantomas.Parser
 
 [<Test>]
 let ``literals``() =
-   parseExps "42" |> should equal [[(Lit (Int 42))]]
-   parseExps "-42" |> should equal [[(Lit (Int -42))]]
-   parseExps "0.05" |> should equal [[(Lit (Double 0.05))]]
-   parseExps "-12.5" |> should equal [[(Lit (Double -12.5))]]
-   parseExps "2.0015" |> should equal [[(Lit (Double 2.0015))]]
-   parseExps "'f'" |> should equal [[(Lit (Char 'f'))]]
-   parseExps "'g'" |> should equal [[(Lit (Char 'g'))]]
-   parseExps "true" |> should equal [[(Lit (Bool true))]]
-   parseExps "false" |> should equal [[(Lit (Bool false))]]
+   parseExps "42" |> should equal [[(Lit (Int 42) : Exp<string>)]]
+   parseExps "-42" |> should equal [[(Lit (Int -42) : Exp<string>)]]
+   parseExps "0.05" |> should equal [[(Lit (Double 0.05) : Exp<string>)]]
+   parseExps "-12.5" |> should equal [[(Lit (Double -12.5) : Exp<string>)]]
+   parseExps "2.0015" |> should equal [[(Lit (Double 2.0015) : Exp<string>)]]
+   parseExps "'f'" |> should equal [[(Lit (Char 'f') : Exp<string>)]]
+   parseExps "'g'" |> should equal [[(Lit (Char 'g') : Exp<string>)]]
+   parseExps "true" |> should equal [[(Lit (Bool true) : Exp<string>)]]
+   parseExps "false" |> should equal [[(Lit (Bool false) : Exp<string>)]]
    // What about generic literal G
-   parseExps "256I" |> should equal [[(Lit (BigInt 256I))]]
+   parseExps "256I" |> should equal [[(Lit (BigInt 256I) : Exp<string>)]]
+
+[<Test>]
+let``Signed byte``() =
+    parseExps "let x = 0y"
+    |> should equal [[Let(false,[PVar "x", Lit(SByte 0y)], Lit(Unit))]]
+
+[<Test>]
+let``64 bit integer``() =
+    parseExps "let x = 0L"
+    |> should equal [[Let(false,[PVar "x", Lit(Int64 (0L))], Lit(Unit))]]
+
+[<Test>]
+let``Unsigned 64 bit integer``() =
+    parseExps "let x = 0UL"
+    |> should equal [[Let(false,[PVar "x", Lit(UInt64 (0UL))], Lit(Unit))]]
+
+[<Test>]
+let``Single``() =
+    parseExps "let x = 0.0f"
+    |> should equal [[Let(false,[PVar "x", Lit(Single (0.0f))], Lit(Unit))]]
+
+[<Test>]
+let ``Support for Int16, UInt16 and Byte``() =
+    parseExps "let x = 0us" |> should equal [[Let (false,[(PVar "x", Lit (UInt16 0us))],Lit Unit)]]
+    parseExps "let x = 0s" |> should equal [[Let (false,[(PVar "x", Lit (Int16  0s))],Lit Unit)]]
+    parseExps "let x = 0uy" |> should equal [[Let (false,[(PVar "x", Lit (Byte 0uy))],Lit Unit)]]
 
 [<Test>]
 let ``simple declarations``() =
@@ -121,11 +147,11 @@ let ``sequence expressions``() =
 [<Test>]
 let ``module handling``() =
     parse "open System"
-    |> should equal [Open ["System"]]
+    |> should equal [Module<string>.Open ["System"]]
     parse """
     open System
     open System.IO"""
-    |> should equal [Open ["System"]; Open ["System";"IO"]]
+    |> should equal [Module<string>.Open ["System"]; Open ["System";"IO"]]
     parse "let xs = List.head [1..5]"
     |> should equal 
           [Exp
@@ -136,10 +162,10 @@ let ``module handling``() =
                      (Var "List.head",
                       App (App (Var "op_Range",Lit (Int 1)),Lit (Int 5))))],Lit Unit)]]
     parse "module MyModule = let x = 42"
-    |> should equal [NestedModule (["MyModule"], [Exp [Let(false,[PVar "x",Lit (Int 42)],Lit Unit)]])]
+    |> should equal [Module<string>.NestedModule (["MyModule"], [Exp [Let(false,[PVar "x",Lit (Int 42)],Lit Unit)]])]
 
 [<Test>]
-let ``Record alias`` () =
+let ``Record alias``() =
     parse """
         type AParameters = { a : int }
         type X = | A of AParameters | B
