@@ -7,6 +7,6 @@
 
 open Fantomas.Parser
 
-let result = parseFromFile (__SOURCE_DIRECTORY__ + "/Example.fs");;
+let result = parseFromFile (__SOURCE_DIRECTORY__ + "/Example.fsx");;
 
-let a = parse "let product = List.";;
+let a = parseExps "let x:string = downcast foo()";;

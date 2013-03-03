@@ -41,7 +41,6 @@
     <Compile Include="Converter.fs" />
     <Compile Include="Parser.fs" />
     <None Include="Parser.fsx" />
-    <Compile Include="Example.fs" />
     <None Include="Example.fsx" />
   </ItemGroup>
   <ItemGroup>
