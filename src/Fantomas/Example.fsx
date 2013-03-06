@@ -24,10 +24,15 @@ let input = """
   let foo() = 
     // Line comment
     let msg = "Hello world"
-    printfn "%s" msg """
+    printfn "%s" msg
+  
+  type Point (x : int, y : int) =
+    member this.X = x
+    member this.Y = y"""
+
 let file = "/home/user/Test.fs"
 
 let test = "let product = List."
 
 #time "on";;
-printfn "%s" <| parse test file
+printfn "%s" <| parse input file
