@@ -26,12 +26,12 @@ let``signed byte``() =
     |> should equal [[Let(false,[PVar "x", Lit(SByte 0y)], Lit(Unit))]]
 
 [<Test>]
-let``64 bit integer``() =
+let``64 bit Int``() =
     parseExps "let x = 0L"
     |> should equal [[Let(false,[PVar "x", Lit(Int64 (0L))], Lit(Unit))]]
 
 [<Test>]
-let``unsigned 64 bit integer``() =
+let``unsigned 64 bit Int``() =
     parseExps "let x = 0UL"
     |> should equal [[Let(false,[PVar "x", Lit(UInt64 (0UL))], Lit(Unit))]]
 
@@ -212,3 +212,72 @@ let ``record alias``() =
                                  PParen (PNamed (PRecord [("a", PVar "aValue")],PVar "t"))),
                               Var "aValue");
                            Clause (PLongVar [PVar "X"; PVar "B"],Lit (Int 0))]))],Lit Unit)]]
+
+[<Test>]
+let ``dot indexed set``() =
+    parseExps "twoDimensionalArray.[0, 1] <- 1.0"
+    |> should equal [[DotIndexedSet (Var "twoDimensionalArray", [Tuple [Lit (Int 0); Lit (Int 1)]], Lit (Double 1.0))]]
+                    
+
+[<Test>]
+let ``dot indexed get``() =
+    parseExps "let x = twoDimensionalArray.[0,1]"
+    |> should equal   [[Let
+                          (false,
+                           [(PVar "x",
+                             DotIndexedGet
+                               (Var "twoDimensionalArray",[Tuple [Lit (Int 0); Lit (Int 1)]]))],
+                           Lit Unit)]]
+
+[<Test>]
+let ``record type definition``() =
+    parseTypes "type Point = { X : int; Y : int }"
+    |> should equal [[Record("Point", [Some "X"; Some "Y"], [])]]
+
+[<Test>]
+let ``record usage``() =
+    parseExps "let p = { X = 2; Y = 32 }"
+    |> should equal [[Let (false,[PVar "p", Exp.Record ["X", Lit(Int 2); "Y", Lit(Int 32)]], Lit Unit)]]
+                    
+
+[<Test>]
+let ``class definition``() =
+    parseTypes """
+        type Point (x : int, y : int) =
+            member this.X = x
+            member this.Y = y"""
+    |> should equal [[Class("Point", [ImplicitCtor [PVar "x"; PVar "y"]; 
+                                        Member (true, PLongVar [PVar "this"; PVar "X"], Var "x"); 
+                                        Member (true, PLongVar [PVar "this"; PVar "Y"], Var "y")])]]
+
+[<Test>]
+let ``exception declaration``() =
+    parse "exception Empty"
+    |> should equal [(Exception (ExceptionDef ("Empty",[])) : Module<string>)]
+
+[<Test>]
+let ``exception declaration with static members``() =
+    parse "exception Empty with static member Foo = 42"
+    |> should equal [Exception (ExceptionDef ("Empty",[Member (false, PVar "Foo",Lit (Int 42))]))] 
+                    
+
+[<Test>]
+let ``tuple type in type constraint``() =
+    parseExps "let xs : 'a * 'b = ys"
+    |> should equal [[Let (false, [(PVar "xs", Typed (Var "ys",TTuple [TVar (TIdent "a"); TVar (TIdent "b")]))], Lit Unit)]]
+
+[<Test>]
+let ``record pattern``() =
+    parseExps "let { FirstName = x; LastName = y } = ret"
+    |> should equal [[Let (false, [(PRecord [("FirstName", PVar "x"); ("LastName", PVar "y")], Var "ret")], Lit Unit)]]
+                    
+[<Test>]
+let ``anonymous type constraint``() =
+    parseExps "let x : IDictionary<_, _> = dict"
+    |> should equal   [[Let
+                          (false,
+                           [(PVar "x",
+                             Typed
+                               (Var "dict",TApp (TLongIdent [TIdent "IDictionary"],[TAnon; TAnon])))],
+                           Lit Unit)]]
+
