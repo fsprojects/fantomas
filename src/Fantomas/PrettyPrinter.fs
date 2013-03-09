@@ -1,15 +1,16 @@
 ﻿module Fantomas.PrettyPrinter
 
 open System
+open System.IO
 open Microsoft.FSharp.Compiler.Ast
+open System.CodeDom.Compiler
+open Fantomas.SourceParser
 
 type Position = ContinueSameLine | BeginNewLine
 type Num = int
 
 type FormatConfig = 
-    { /// Level of indentation
-      IndentLevel : Num;
-      /// Break into a new line at this column
+    { /// Break into a new line at this column
       PageWidth : Num;
       /// Number of spaces for each identation
       WhiteSpaceNum : Num;
@@ -28,62 +29,90 @@ type FormatConfig =
       /// Number of blank lines between functions and types
       BlankLineNum : Num }
     static member Default = 
-        { IndentLevel = 0; PageWidth = 120; WhiteSpaceNum = 4; ParenInPattern = true; LongIdentLength = 10;
+        { PageWidth = 120; WhiteSpaceNum = 4; ParenInPattern = true; LongIdentLength = 10;
           PipelinePos = BeginNewLine; InfixPos = ContinueSameLine; SpaceBeforeColon = true;
           IndentOnTryWith = false; BlankLineNum = 1 }
-    member x.Inc = { x with IndentLevel = x.IndentLevel + x.WhiteSpaceNum }
 
-type FormatConfig with
-    static member (+>)(c : FormatConfig, i: ParsedInput) = 
-        match i with
-        | ParsedInput.ImplFile im -> c +> im
-        | ParsedInput.SigFile si -> c +> si
+type Context = 
+    { Config : FormatConfig; Writer: IndentedTextWriter }
+    /// Initialize with a string writer and space as delimiter
+    static member Default = { Config = FormatConfig.Default; Writer = new IndentedTextWriter(new StringWriter(), " ") }
 
-    static member (+>)(c : FormatConfig, i: ParsedImplFileInput) =
-        match i with
-        | ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, _, mns, _) ->
-            // Each module is separated by a number of blank lines
-            mns |> Seq.map ((+>) c) |> String.concat (new String('\n', c.BlankLineNum))
+let dump (ctx: Context) = ctx.Writer.InnerWriter.ToString()
 
-    static member (+>)(c : FormatConfig, i: ParsedSigFileInput) = failwith "Not implemented yet"
-    static member (+>)(c : FormatConfig, m : SynModuleOrNamespace) =
-        match m with
-        | SynModuleOrNamespace.SynModuleOrNamespace(li, _, mds, px, ats, ao, _) ->
-            c ++>> mds
-    
-    static member (+>)(c : FormatConfig, md : SynModuleDecl) = 
-        // When the module declaration creates one level of indetation?
-        match md with
-        | SynModuleDecl.Attributes(a, _) -> c ++>> a
-        | SynModuleDecl.DoExpr(sp, se, _) -> c +> se // TODO: do smth with sp
-        | SynModuleDecl.Exception(se, _) -> c +> se
-        | SynModuleDecl.HashDirective(ph, _) -> c +> ph
-        | SynModuleDecl.Let(isRec, bs, _) -> "[Let]"
-        | SynModuleDecl.ModuleAbbrev(i, li, _) -> sprintf "module %s = %s" (c +> i) (c ++>> li)
-        | SynModuleDecl.NamespaceFragment(m) -> c +> m
-        | SynModuleDecl.NestedModule(ci, mds, _, _) -> sprintf "%s\n%s" (c +> ci) (c.Inc ++>> mds)
-        | SynModuleDecl.Open(LongIdentWithDots(li, _), _) -> sprintf "open %s" (c ++>> li)
-        | SynModuleDecl.Types(sts, _) -> sts |> Seq.map ((+>) c) |> String.concat (new String('\n', c.BlankLineNum))
-           
-    static member (+>)(c : FormatConfig, px : PreXmlDoc) = "[PreXmlDoc]"
-    static member (+>)(c : FormatConfig, at : SynAttribute) = "[SynAttribute]"
-    static member (+>)(c : FormatConfig, se : SynExpr) = "[SynExpr]"
-    static member (+>)(c : FormatConfig, se : SynExceptionDefn) = "[SynExceptionDefn]"
-    static member (+>)(c : FormatConfig, ph : ParsedHashDirective) = "[ParsedHashDirective]"
-    static member (+>)(c : FormatConfig, bd : SynBinding) = "[SynBinding]"
-    static member (+>)(c : FormatConfig, id : Ident) = id.idText
-    static member (+>)(c : FormatConfig, td : SynTypeDefn) = "[SynTypeDefn]"
-    static member (+>)(c : FormatConfig, ci : SynComponentInfo) =
-        match ci with
-        | SynComponentInfo.ComponentInfo(ats, ts, _, li, px, _, ao, _) -> 
-            sprintf "%s\n%s\nmodule %s%s = " (c +> px) (c ++>> ats) (defaultArg (Option.map (sprintf "%O ") ao) "")
-                (c ++>> li)  
+let incIndent (ctx : Context) = 
+    ctx.Writer.Indent <- ctx.Writer.Indent + ctx.Config.WhiteSpaceNum
+    ctx
 
-    static member (++>>)(c : FormatConfig, lid : LongIdent) =
-        lid |> Seq.map ((+>) c) |> String.concat (new String('.', c.BlankLineNum))
-    static member (++>>)(c : FormatConfig, mds : SynModuleDecls) = 
-        mds |> Seq.map ((+>) c) |> String.concat (new String('\n', c.BlankLineNum))
-    static member (++>>)(c : FormatConfig, ats : SynAttributes) = "[SynAttributes]"
+let decIndent (ctx : Context) = 
+    ctx.Writer.Indent <- ctx.Writer.Indent - ctx.Config.WhiteSpaceNum
+    ctx
+
+/// Function composition operator
+let (+>) (ctx : Context -> Context) (f : Context -> Context) x =
+    f (ctx x)
+
+let (++>>) (ctx : Context -> Context) (fs : (Context -> Context) seq) =
+    Seq.fold (+>) ctx fs
+
+/// Break-line and append specified string
+let (++) (ctx : Context -> Context) (str : string) x =
+    let c = ctx x
+    c.Writer.WriteLine()
+    c.Writer.Write(str)
+    c
+
+/// Append specified string without line-break
+let (--) (ctx : Context -> Context) (str : string) x =
+    let c = ctx x
+    c.Writer.Write(str)
+    c
+
+let (!!) (str : string) = id ++ str 
+
+/// Call function, but give it context as an argument      
+let withCtxt f x =
+    (f x) x
+
+let rec genParsedInput i = 
+    match i with
+    | ParsedInput.ImplFile im -> genImpFile im
+    | ParsedInput.SigFile si -> genSigFile si
+
+and genImpFile = function
+    | ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, _, mns, _) ->
+        // Each module is separated by a number of blank lines
+        mns |> Seq.map genModuleOrNamespace |> Seq.reduce (+>)
+
+and genSigFile si = failwith "Not implemented yet"
+
+and genModuleOrNamespace = function
+    | SynModuleOrNamespace.SynModuleOrNamespace(li, _, mds, px, ats, ao, _) ->
+        mds |> Seq.map genModuleDecl |> Seq.reduce (+>)
+
+and genModuleDecl md =
+    match md with
+    | Attributes(a) -> !! "[Attributes]"
+    | DoExpr(e) ->  genExpr e
+    | Exception(ex) -> genException ex
+    | HashDirective(s, ss) -> !! (sprintf "#%s %s" s <| String.concat "." ss)
+    | Let(isRec, bs) -> !! "[Let]"
+    | ModuleAbbrev(s1, s2) -> !! (sprintf "module %s = %s" s1 s2)
+    | NamespaceFragment(m) -> !! "[NamespaceFragment]"
+    | NestedModule(ats, px, ao, s, mds) -> 
+        id ++ "[Attributes]" ++ "[XmlDocs]" 
+        ++ sprintf "module %s%s = " (defaultArg (Option.map(sprintf "%O ") ao) "") s
+        +> incIndent
+        ++>> Seq.map genModuleDecl mds
+    | Open(s) -> !! (sprintf "open %s" s)
+    | Types(sts) -> Seq.map genTypeDefn sts |> Seq.reduce (+>)
+    | _ -> failwithf "Unexpected pattern %O" md
+
+and genExpr e = id
+
+and genException e = id
+
+and genTypeDefn td = id
         
         
 

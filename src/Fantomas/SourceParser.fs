@@ -2,8 +2,6 @@
 
 open Microsoft.FSharp.Compiler.Ast
 
-open Fantomas.Ast
-
 let inline (|Ident|) (id: Ident) = id.idText
 
 let inline (|LongIdent|) (li: LongIdent) = 
@@ -30,7 +28,7 @@ let (|NamespaceFragment|_|) = function
     | SynModuleDecl.NamespaceFragment m -> Some m 
     | _ -> None
 
-let (|Attributes|) = function
+let (|Attributes|_|) = function
     | SynModuleDecl.Attributes(ats, _) -> Some ats
     | _ -> None
 
@@ -47,8 +45,8 @@ let (|Types|_|) = function
     | _ -> None
 
 let (|NestedModule|_|) = function
-    | SynModuleDecl.NestedModule(SynComponentInfo.ComponentInfo(_, _, _, LongIdent li, _, _, _, _), xs, _, _) -> 
-        Some(li, xs)
+    | SynModuleDecl.NestedModule(SynComponentInfo.ComponentInfo(ats, _, _, LongIdent li, px, _, ao, _), xs, _, _) -> 
+        Some(ats, px, ao, li, xs)
     | _ -> None
 
 let (|Exception|_|) = function

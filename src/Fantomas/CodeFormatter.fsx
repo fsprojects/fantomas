@@ -1,8 +1,10 @@
 ﻿#r "../../lib/FSharp.Compiler.dll"
 
+#load "SourceParser.fs"
 #load "PrettyPrinter.fs"
 #load "CodeFormatter.fs"
 
+open Fantomas.SourceParser
 open Fantomas.PrettyPrinter
 open Fantomas.CodeFormatter
 

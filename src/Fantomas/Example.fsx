@@ -2,6 +2,7 @@
 
 // Open the namespace with InteractiveChecker type
 open System
+open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.SourceCodeServices
 
 // Create an interactive checker instance (ignore notifications)

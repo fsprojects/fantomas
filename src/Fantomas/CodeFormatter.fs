@@ -20,7 +20,8 @@ let internal parseWith fileName content =
 let parse s = parseWith "/var/tmp.fs" s
            
 /// Format a source code tree using config
-let format tree (config: FormatConfig) = config +> tree
+let format tree (config: FormatConfig) = 
+    genParsedInput tree { Context.Default with Config = config } |> dump
 
 /// Format a source file using given config
 let formatFile f config = 
