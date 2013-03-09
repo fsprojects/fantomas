@@ -45,7 +45,11 @@ let (|Attributes|_|) = function
     | _ -> None
 
 let (|Let|_|) = function
-    | SynModuleDecl.Let(isRec, xs, _) -> Some(isRec, xs)
+    | SynModuleDecl.Let(false, xs, _) -> Some (List.head xs)
+    | _ -> None
+
+let (|LetRec|_|) = function
+    | SynModuleDecl.Let(true, xs, _) -> Some xs
     | _ -> None
 
 let (|DoExpr|_|) = function
@@ -77,7 +81,7 @@ let (|LetBinding|MemberBinding|) = function
     | SynBinding.Binding(ao, _, _, _, ats, px, _, pat, _, expr, _, _) -> 
         LetBinding(px, ats, ao, pat, expr)
 
-// expressions
+// Expressions
 
 let (|TraitCall|_|) = function
     | SynExpr.TraitCall(ts, msig, expr, _) ->
@@ -123,8 +127,8 @@ let (|For|_|) = function
     | SynExpr.For(_, Ident id, e1, _, e2, e3, _) -> Some(id, e1, e2, e3)
     | _ -> None
 
-let (|Null|_|) = function 
-    | SynExpr.Null _ -> Some () 
+let (|NullExp|_|) = function 
+    | SynExpr.Null _ -> Some() 
     | _ -> None
 
 let (|TypeApp|_|) = function
@@ -224,6 +228,66 @@ let (|TryWith|_|) = function
 
 let (|TryFinally|_|) = function
     | SynExpr.TryFinally(e1, e2, _, _, _) -> Some(e1, e2)
+    | _ -> None
+
+// Patterns
+let (|PatOptionalVal|_|) = function
+    | SynPat.OptionalVal(Ident id, _) -> Some id
+    | _ -> None
+
+let (|PatAttrib|_|) = function
+    | SynPat.Attrib(p, ats, _) -> Some(p, ats)
+    | _ -> None
+
+let (|PatOr|_|) = function
+    | SynPat.Or(p1, p2, _) -> Some(p1, p2)
+    | _ -> None
+
+let (|PatAnds|_|) = function
+    | SynPat.Ands(ps, _) -> Some ps
+    | _ -> None
+
+type PatKind = PatNull | PatWild
+
+let (|PatNullary|_|) = function
+    | SynPat.Null _ -> Some PatNull
+    | SynPat.Wild _ -> Some PatWild
+    | _ -> None
+
+type SeqPatKind = PatTuple | PatArray | PatList
+
+let (|PatSeq|_|) = function
+    | SynPat.Tuple(ps, _) -> Some(PatTuple, ps)
+    | SynPat.ArrayOrList(true, ps, _) -> Some(PatArray, ps)
+    | SynPat.ArrayOrList(false, ps, _) -> Some(PatList, ps)
+    | _ -> None
+
+let (|PatTyped|_|) = function
+    | SynPat.Typed(p, t, _) -> Some(p, t)
+    | _ -> None
+
+let (|PatNamed|_|) = function
+    | SynPat.Named(p, Ident id, _, ao, _) -> Some(ao, p, id)
+    | _ -> None
+
+let (|PatLongIdent|_|) = function
+    | SynPat.LongIdent(LongIdentWithDots li, _, _, xs, ao, _) -> Some(ao, li, xs)
+    | _ -> None
+
+let (|PatParen|_|) = function
+    | SynPat.Paren(p, _) -> Some p
+    | _ -> None
+
+let (|PatRecord|_|) = function
+    | SynPat.Record(xs, _) -> Some xs
+    | _ -> None
+
+let (|PatConst|_|) = function
+    | SynPat.Const(c, _) -> Some c
+    | _ -> None
+
+let (|PatIsInst|_|) = function
+    | SynPat.IsInst(t, _) -> Some t
     | _ -> None
 
 // Literals

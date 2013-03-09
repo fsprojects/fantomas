@@ -1,11 +1,13 @@
 ﻿#r "../../lib/FSharp.Compiler.dll"
 
 #load "SourceParser.fs"
-#load "PrettyPrinter.fs"
+#load "FormatConfig.fs"
+#load "CodePrinter.fs"
 #load "CodeFormatter.fs"
 
 open Fantomas.SourceParser
-open Fantomas.PrettyPrinter
+open Fantomas.FormatConfig
+open Fantomas.CodePrinter
 open Fantomas.CodeFormatter
 
 let config = FormatConfig.Default

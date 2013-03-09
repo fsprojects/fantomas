@@ -4,7 +4,8 @@ open System
 open System.IO
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.SourceCodeServices
-open Fantomas.PrettyPrinter
+open Fantomas.FormatConfig
+open Fantomas.CodePrinter
 
 let internal parseWith fileName content = 
     // Create an interactive checker instance (ignore notifications)
@@ -17,10 +18,11 @@ let internal parseWith fileName content =
     | Some tree -> tree
     | None -> failwith "parseWith: Unexpected input"
 
+/// Parse a source code string
 let parse s = parseWith "/var/tmp.fs" s
            
 /// Format a source code tree using config
-let format tree (config: FormatConfig) = 
+let format tree config = 
     genParsedInput tree { Context.Default with Config = config } |> dump
 
 /// Format a source file using given config
