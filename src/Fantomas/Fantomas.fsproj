@@ -36,14 +36,14 @@
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
   <ItemGroup>
-    <Compile Include="Utils.fs" />
     <Compile Include="Ast.fs" />
     <Compile Include="Converter.fs" />
     <Compile Include="Parser.fs" />
     <None Include="Parser.fsx" />
     <None Include="Example.fsx" />
     <Compile Include="SourceParser.fs" />
-    <Compile Include="PrettyPrinter.fs" />
+    <Compile Include="FormatConfig.fs" />
+    <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatter.fs" />
     <None Include="CodeFormatter.fsx" />
   </ItemGroup>

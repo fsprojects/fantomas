@@ -1,9 +1,7 @@
-﻿module Fantomas.PrettyPrinter
+﻿module Fantomas.FormatConfig
 
-open System
 open System.IO
 open System.CodeDom.Compiler
-open Fantomas.SourceParser
 
 type Position = ContinueSameLine | BeginNewLine
 type Num = int
@@ -51,7 +49,7 @@ let decIndent (ctx : Context) =
 let (+>) (ctx : Context -> Context) (f : Context -> Context) x =
     f (ctx x)
 
-let (++>>) (ctx : Context -> Context) (fs : (Context -> Context) seq) =
+let (++>>) (ctx : Context -> Context) fs =
     Seq.fold (+>) ctx fs
 
 /// Break-line and append specified string
@@ -67,52 +65,10 @@ let (--) (ctx : Context -> Context) (str : string) x =
     c.Writer.Write(str)
     c
 
-let (!!) (str : string) = id ++ str 
+let (!) (str : string) = id -- str 
+let (!.) (str : string) = id ++ str 
 
 /// Call function, but give it context as an argument      
 let withCtxt f x =
     (f x) x
-
-let rec genParsedInput = function
-    | ImplFile im -> genImpFile im
-    | SigFile si -> genSigFile si
-
-and genImpFile = function
-    | ParsedImplFileInput(hs, mns) ->
-        // Each module is separated by a number of blank lines
-        mns |> Seq.map genModuleOrNamespace |> Seq.reduce (+>)
-
-and genSigFile si = failwith "Not implemented yet"
-
-and genModuleOrNamespace = function
-    | ModuleOrNamespace(ats, px, ao, li, mds) ->
-        mds |> Seq.map genModuleDecl |> Seq.reduce (+>)
-
-and genModuleDecl = function
-    | Attributes(a) -> !! "[Attributes]"
-    | DoExpr(e) ->  genExpr e
-    | Exception(ex) -> genException ex
-    | HashDirective(s, ss) -> !! (sprintf "#%s %s" s <| String.concat "." ss)
-    | Let(isRec, bs) -> !! "[Let]"
-    | ModuleAbbrev(s1, s2) -> !! (sprintf "module %s = %s" s1 s2)
-    | NamespaceFragment(m) -> !! "[NamespaceFragment]"
-    | NestedModule(ats, px, ao, s, mds) -> 
-        id ++ "[Attributes]" ++ "[XmlDocs]" 
-        ++ sprintf "module %s%s = " (defaultArg (Option.map(sprintf "%O ") ao) "") s
-        +> incIndent
-        ++>> Seq.map genModuleDecl mds
-    | Open(s) -> !! (sprintf "open %s" s)
-    | Types(sts) -> Seq.map genTypeDefn sts |> Seq.reduce (+>)
-    | md -> failwithf "Unexpected pattern: %O" md
-
-and genExpr e = id
-
-and genException e = id
-
-and genTypeDefn td = id
-        
-        
-
-
-
 
