@@ -10,6 +10,18 @@ let inline (|LongIdent|) (li: LongIdent) =
 let inline (|LongIdentWithDots|) (LongIdentWithDots(li, _)) = 
     li |> Seq.map (fun id -> id.idText) |> String.concat "."
 
+// File level patterns
+
+let (|ImplFile|SigFile|) = function
+    | ParsedInput.ImplFile im -> ImplFile im
+    | ParsedInput.SigFile si -> SigFile si
+
+let (|ParsedImplFileInput|) = function
+    | ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _) -> (hs, mns)
+
+let (|ModuleOrNamespace|) = function
+    | SynModuleOrNamespace.SynModuleOrNamespace(li, _, mds, px, ats, ao, _) -> (ats, px, ao, li, mds)
+
 // Module declarations
 
 let (|Open|_|) = function

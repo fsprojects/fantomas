@@ -2,7 +2,6 @@
 
 open System
 open System.IO
-open Microsoft.FSharp.Compiler.Ast
 open System.CodeDom.Compiler
 open Fantomas.SourceParser
 
@@ -74,24 +73,22 @@ let (!!) (str : string) = id ++ str
 let withCtxt f x =
     (f x) x
 
-let rec genParsedInput i = 
-    match i with
-    | ParsedInput.ImplFile im -> genImpFile im
-    | ParsedInput.SigFile si -> genSigFile si
+let rec genParsedInput = function
+    | ImplFile im -> genImpFile im
+    | SigFile si -> genSigFile si
 
 and genImpFile = function
-    | ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, _, mns, _) ->
+    | ParsedImplFileInput(hs, mns) ->
         // Each module is separated by a number of blank lines
         mns |> Seq.map genModuleOrNamespace |> Seq.reduce (+>)
 
 and genSigFile si = failwith "Not implemented yet"
 
 and genModuleOrNamespace = function
-    | SynModuleOrNamespace.SynModuleOrNamespace(li, _, mds, px, ats, ao, _) ->
+    | ModuleOrNamespace(ats, px, ao, li, mds) ->
         mds |> Seq.map genModuleDecl |> Seq.reduce (+>)
 
-and genModuleDecl md =
-    match md with
+and genModuleDecl = function
     | Attributes(a) -> !! "[Attributes]"
     | DoExpr(e) ->  genExpr e
     | Exception(ex) -> genException ex
@@ -106,7 +103,7 @@ and genModuleDecl md =
         ++>> Seq.map genModuleDecl mds
     | Open(s) -> !! (sprintf "open %s" s)
     | Types(sts) -> Seq.map genTypeDefn sts |> Seq.reduce (+>)
-    | _ -> failwithf "Unexpected pattern %O" md
+    | md -> failwithf "Unexpected pattern: %O" md
 
 and genExpr e = id
 

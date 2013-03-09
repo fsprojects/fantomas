@@ -33,7 +33,5 @@ let input = """
 
 let file = "/home/user/Test.fs"
 
-let test = "let product = List."
-
 #time "on";;
 printfn "%s" <| parse input file
