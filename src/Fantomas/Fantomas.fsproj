@@ -42,6 +42,10 @@
     <Compile Include="Parser.fs" />
     <None Include="Parser.fsx" />
     <None Include="Example.fsx" />
+    <Compile Include="SourceParser.fs" />
+    <Compile Include="PrettyPrinter.fs" />
+    <Compile Include="CodeFormatter.fs" />
+    <None Include="CodeFormatter.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Compiler">
