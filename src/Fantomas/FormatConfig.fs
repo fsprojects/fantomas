@@ -101,7 +101,8 @@ let colOpt fs1 fs2 (c : seq<'T>) f (ctx : Context) =
 
 // Separator functions        
 let sepDot = !- "."
-let sepWordAnd = !- " and "      
+let sepWordAnd = !- " and "  
+let sepWordOf = !- " of "      
 let sepSpace = !- " "      
 let sepNln = !+ ""
 let sepArgs = !- ", "

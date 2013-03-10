@@ -16,20 +16,19 @@ and genImpFile = function
 and genSigFile si = failwith "Not implemented yet"
 
 and genModuleOrNamespace = function
-    | ModuleOrNamespace(ats, px, ao, li, mds) ->
-        col sepNln mds genModuleDecl
+    | ModuleOrNamespace(ats, px, ao, li, mds) -> col sepNln mds genModuleDecl
 
 and genModuleDecl = function
     | Attributes(ats) -> col sepArgs ats genAttribute
     | DoExpr(e) ->  genExpr e
     | Exception(ex) -> genException ex
-    | HashDirective(s1, s2) -> !- "#" -- s1 +> sepSpace -- s2
+    | HashDirective(s1, s2) -> !- "#" -- s1 +> sepSpace -- sprintf "%A" s2 // print with quotes
     | Let(b) -> !- "let " +> genBinding b
     | LetRec(b::bs) -> !- "let rec " +> genBinding b +> sepNln +> col sepNln bs (fun b -> !- "and " +> genBinding b)
     | ModuleAbbrev(s1, s2) -> !- "module " -- s1 +> sepEq -- s2
     | NamespaceFragment(m) -> !- "[NamespaceFragment]"
     | NestedModule(ats, px, ao, s, mds) -> 
-        colOpt sepArgs sepNln ats genAttribute +> colOpt sepNln sepNln (genPreXmlDoc px) (!-)
+        colOpt sepArgs sepNln ats genAttribute +> genPreXmlDoc px
         -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
         +> incIndent +> sepNln +> col sepNln mds genModuleDecl
     | Open(s) -> !- (sprintf "open %s" s)
@@ -40,7 +39,7 @@ and genAccess(Access s) = !- s
 
 and genAttribute(Attribute(li, e, isGetSet)) = !- "[<" -- li +> genExpr e -- ">]"
     
-and genPreXmlDoc(PreXmlDoc lines) = lines
+and genPreXmlDoc(PreXmlDoc lines) = colOpt sepNln sepNln lines (!-)
 
 and genBinding = function
     | LetBinding(px, ats, ao, p, e) -> genPat p +> sepEq +> genExpr e
@@ -55,7 +54,6 @@ and genExpr = function
     | ConstExpr(Const s) -> !- s
     | NullExpr -> id
     | Quote(e1, e2) -> id
-    | ConstExpr(Const s) -> !- s 
     | TypedExpr(_, e, t) -> id
     | Tuple(es) -> !- "(" +> col sepArgs es genExpr -- ")"
     | ArrayOrList(es) -> id
@@ -86,9 +84,33 @@ and genExpr = function
     | LetOrUseBang(isUse, p, e1, e2) -> id
     | e -> failwithf "Unexpected pattern: %O" e
 
-and genException e = id
+and genTypeDefn e = id
 
-and genTypeDefn td = id
+and genException(ExceptionDef(ats, px, ao, uc, ms)) = 
+    colOpt sepArgs sepNln ats genAttribute +> genPreXmlDoc px
+    -- "exception " +> opt sepSpace ao genAccess +> genUnionCase uc
+    +> sepNln +> colOpt sepNln sepNln ms genMemberDefn
+
+and genUnionCase(UnionCase(ats, px, ao, s, UnionCaseType fs)) = 
+    opt sepSpace ao genAccess -- s +> sepWordOf +> col sepStar fs genField
+
+and genField (Field(ats, px, ao, isStatic, t, so)) = genType t
+
+and genType = function
+    | TypeLongIdent li -> !- li
+    | t -> failwithf "Unexpected pattern: %O" t
+
+and genMemberDefn = function
+    | MemberDefnNestedType(td, ao) -> id
+    | MemberDefnOpen(so) -> id
+    | MemberDefnImplicitInherit(t, e, so) -> id
+    | MemberDefnInherit(t, so) -> id
+    | MemberDefnValField(ats, px, ao, t, so) -> id
+    | MemberDefnImplicitCtor(ats, ao, ps, so) -> id
+    | MemberDefnMember(bo) -> id
+    | MemberDefnLetBindings(isStatic, isRec, bs) -> id
+    | MemberDefnInterface(t, mdo) -> id
+    | md -> failwithf "Unexpected pattern: %O" md
 
 and genPat = function
     | PatOptionalVal(x) -> id
@@ -108,9 +130,3 @@ and genPat = function
     | PatConst(Const s) -> !- s
     | PatIsInst(p) -> id
     | p -> failwithf "Unexpected pattern: %O" p
-        
-        
-
-
-
-

@@ -10,6 +10,53 @@ let inline (|LongIdent|) (li: LongIdent) =
 let inline (|LongIdentWithDots|) (LongIdentWithDots(li, _)) = 
     li |> Seq.map (fun id -> id.idText) |> String.concat "."
 
+// Literals
+
+let (|Measure|) x = 
+    let rec loop = function
+        | SynMeasure.Var((SynTypar.Typar(Ident id, _, _)), _) -> id
+        | SynMeasure.Anon _ -> "_"
+        | SynMeasure.One -> "1"
+        | SynMeasure.Product(m1, m2, _) -> 
+            let s1 = loop m1
+            let s2 = loop m2
+            sprintf "%s*%s" s1 s2
+        | SynMeasure.Divide(m1, m2, _) -> 
+            let s1 = loop m1
+            let s2 = loop m2
+            sprintf "%s/%s" s1 s2
+        | SynMeasure.Power(m, n, _) -> 
+            let s = loop m
+            sprintf "%s^%i" s n
+        | SynMeasure.Seq(ms, _) -> 
+            List.map loop ms |> String.concat " "
+        | SynMeasure.Named(LongIdent li, _) -> li
+    sprintf "<%s>" <| loop x
+
+/// Lose information about kinds of literals
+let rec (|Const|) = function
+    | SynConst.Measure(Const c, Measure m) -> Const(c + m)
+    | SynConst.UserNum(num, ty) -> Const(num + ty)
+    | SynConst.Unit -> Const "()"
+    | SynConst.Bool b -> Const(sprintf "%A" b)
+    | SynConst.SByte s -> Const(sprintf "%A" s)
+    | SynConst.Byte b -> Const(sprintf "%A" b)
+    | SynConst.Int16 i -> Const(sprintf "%A" i)
+    | SynConst.UInt16 u -> Const(sprintf "%A" u)
+    | SynConst.Int32 i -> Const(sprintf "%A" i)
+    | SynConst.UInt32 u -> Const(sprintf "%A" u)
+    | SynConst.Int64 i -> Const(sprintf "%A" i)
+    | SynConst.UInt64 u -> Const(sprintf "%A" u)
+    | SynConst.IntPtr i -> Const(sprintf "%in" i)
+    | SynConst.UIntPtr u -> Const(sprintf "%iun" u)
+    | SynConst.Single s -> Const(sprintf "%A" s)
+    | SynConst.Double d -> Const(sprintf "%A" d)
+    | SynConst.Char c -> Const(sprintf "%A" c)
+    | SynConst.Decimal d -> Const(sprintf "%A" d)
+    | SynConst.String(s, _) -> Const(sprintf "%A" s)
+    | SynConst.Bytes(bs, _) -> failwith "Not implemented yet"
+    | SynConst.UInt16s us -> failwith "Not implemented yet"
+
 // File level patterns
 
 let (|ImplFile|SigFile|) = function
@@ -88,13 +135,72 @@ let (|Exception|_|) = function
 
 let (|ExceptionDef|) = function
     | SynExceptionDefn.ExceptionDefn(SynExceptionRepr.ExceptionDefnRepr(ats, uc, _, px, ao, _), ms, _) ->
-        (px, ats, ao, uc, ms)
+        (ats, px, ao, uc, ms)
+
+let (|UnionCase|) = function
+    | SynUnionCase.UnionCase(ats, Ident s, uct, px, ao, _) -> (ats, px, ao, s, uct)
+
+let (|UnionCaseType|) = function
+    | SynUnionCaseType.UnionCaseFields(fs) -> fs
+    | SynUnionCaseType.UnionCaseFullType _ -> failwith "UnionCaseFullType should be used internally only."
+
+let (|Field|) = function
+    | SynField.Field(ats, isStatic, ido, t, _, px, ao, _) -> (ats, px, ao, isStatic, t, Option.map (|Ident|) ido)
+
+let (|EnumCase|) = function
+    | SynEnumCase.EnumCase(ats, Ident id, c, ao, _) -> (ats, id, c, ao)
+
+let (|MemberDefnNestedType|_|) = function               
+    | SynMemberDefn.NestedType(td, ao, _) -> Some(td, ao)
+    | _ -> None
+
+let (|MemberDefnOpen|_|) = function               
+    | SynMemberDefn.Open(LongIdent li, _) -> Some li
+    | _ -> None
+
+let (|MemberDefnImplicitInherit|_|) = function  
+    | SynMemberDefn.ImplicitInherit(t, e, ido, _) -> Some(t, e, Option.map (|Ident|) ido)
+    | _ -> None
+
+let (|MemberDefnInherit|_|) = function  
+    | SynMemberDefn.Inherit(t, ido, _) -> Some(t, Option.map (|Ident|) ido)
+    | _ -> None
+
+let (|MemberDefnValField|_|) = function  
+    | SynMemberDefn.ValField(SynField.Field(ats, _, ido, t, _, px, ao, _), _) -> Some(ats, px, ao, t, Option.map (|Ident|) ido)
+    | _ -> None
+
+let (|MemberDefnImplicitCtor|_|) = function  
+    | SynMemberDefn.ImplicitCtor(ao, ats,ps, ido, _) -> Some(ats, ao, ps, Option.map (|Ident|) ido)
+    | _ -> None
+
+let (|MemberDefnMember|_|) = function  
+    | SynMemberDefn.Member(b, _) -> Some b
+    | _ -> None
+
+let (|MemberDefnLetBindings|_|) = function
+    | SynMemberDefn.LetBindings(es, isStatic, isRec, _) -> Some(isStatic, isRec, es)
+    | _ -> None
+
+let (|MemberDefnAbstractSlot|_|) = function
+    | SynMemberDefn.AbstractSlot(SynValSig.ValSpfn(ats, Ident id, _, _, _, _, _, px, ao, _, _),_,_) -> Some(ats, px, ao, id)
+    | _ -> None
+
+let (|MemberDefnInterface|_|) = function
+    | SynMemberDefn.Interface(t, mdo, _) -> Some(t, mdo)
+    | _ -> None
 
 let (|LetBinding|MemberBinding|) = function
     | SynBinding.Binding(ao, _, _, _, ats, px, SynValData(Some isInst, _,_), pat, _, expr, _, _) -> 
         MemberBinding(px, ats, ao, isInst, pat, expr)
     | SynBinding.Binding(ao, _, _, _, ats, px, _, pat, _, expr, _, _) -> 
         LetBinding(px, ats, ao, pat, expr)
+
+// Types (expanding later)
+
+let (|TypeLongIdent|_|) = function
+    | SynType.LongIdent(LongIdentWithDots li) -> Some li
+    | _ -> None
 
 // Expressions
 
@@ -308,53 +414,4 @@ let (|PatConst|_|) = function
 let (|PatIsInst|_|) = function
     | SynPat.IsInst(t, _) -> Some t
     | _ -> None
-
-// Literals
-
-let (|Measure|) x = 
-    let rec loop = function
-        | SynMeasure.Var((SynTypar.Typar(Ident id, _, _)), _) -> id
-        | SynMeasure.Anon _ -> "_"
-        | SynMeasure.One -> "1"
-        | SynMeasure.Product(m1, m2, _) -> 
-            let s1 = loop m1
-            let s2 = loop m2
-            sprintf "%s*%s" s1 s2
-        | SynMeasure.Divide(m1, m2, _) -> 
-            let s1 = loop m1
-            let s2 = loop m2
-            sprintf "%s/%s" s1 s2
-        | SynMeasure.Power(m, n, _) -> 
-            let s = loop m
-            sprintf "%s^%i" s n
-        | SynMeasure.Seq(ms, _) -> 
-            List.map loop ms |> String.concat " "
-        | SynMeasure.Named(LongIdent li, _) -> li
-    sprintf "<%s>" <| loop x
-
-/// Lose information about kinds of literals
-let rec (|Const|) = function
-    | SynConst.Measure(Const c, Measure m) -> 
-        Const(c + m)
-    | SynConst.UserNum(num, ty) -> 
-        Const(num + ty)
-    | SynConst.Unit -> Const "()"
-    | SynConst.Bool b -> Const(sprintf "%A" b)
-    | SynConst.SByte s -> Const(sprintf "%A" s)
-    | SynConst.Byte b -> Const(sprintf "%A" b)
-    | SynConst.Int16 i -> Const(sprintf "%A" i)
-    | SynConst.UInt16 u -> Const(sprintf "%A" u)
-    | SynConst.Int32 i -> Const(sprintf "%A" i)
-    | SynConst.UInt32 u -> Const(sprintf "%A" u)
-    | SynConst.Int64 i -> Const(sprintf "%A" i)
-    | SynConst.UInt64 u -> Const(sprintf "%A" u)
-    | SynConst.IntPtr i -> Const(sprintf "%in" i)
-    | SynConst.UIntPtr u -> Const(sprintf "%iun" u)
-    | SynConst.Single s -> Const(sprintf "%A" s)
-    | SynConst.Double d -> Const(sprintf "%A" d)
-    | SynConst.Char c -> Const(sprintf "%A" c)
-    | SynConst.Decimal d -> Const(sprintf "%A" d)
-    | SynConst.String(s, _) -> Const(sprintf "%A" s)
-    | SynConst.Bytes(bs, _) -> failwith "Not implemented yet"
-    | SynConst.UInt16s us -> failwith "Not implemented yet"
         

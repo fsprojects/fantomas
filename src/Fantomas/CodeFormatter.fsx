@@ -50,7 +50,15 @@ let t08 = parse """
         let msg = "Hello world"
         printfn "%s" msg"""
 
-#time "on";;
+let t09 = parse """
+    #r "Fantomas.Tests.dll"
+    #load "Tests.fs"
+    """
+
+let t10 = parse """
+    exception Error2 of string * int
+    with member __.Message = "ErrorMessage"
+    """
 
 printfn "Result:\n%s" <| format t01 config;;
 printfn "Result:\n%s" <| format t02 config;;
@@ -60,3 +68,5 @@ printfn "Result:\n%s" <| format t05 config;;
 printfn "Result:\n%s" <| format t06 config;;
 printfn "Result:\n%s" <| format t07 config;;
 printfn "Result:\n%s" <| format t08 config;;
+printfn "Result:\n%s" <| format t09 config;;
+printfn "Result:\n%s" <| format t10 config;;
