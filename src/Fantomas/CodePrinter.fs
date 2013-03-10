@@ -94,22 +94,23 @@ and genException(ExceptionDef(ats, px, ao, uc, ms)) =
 and genUnionCase(UnionCase(ats, px, ao, s, UnionCaseType fs)) = 
     opt sepSpace ao genAccess -- s +> sepWordOf +> col sepStar fs genField
 
-and genField (Field(ats, px, ao, isStatic, t, so)) = genType t
+and genField(Field(ats, px, ao, isStatic, t, so)) = genType t
 
 and genType = function
-    | TypeLongIdent li -> !- li
+    | TLongIdent li -> !- li
     | t -> failwithf "Unexpected pattern: %O" t
 
 and genMemberDefn = function
-    | MemberDefnNestedType(td, ao) -> id
-    | MemberDefnOpen(so) -> id
-    | MemberDefnImplicitInherit(t, e, so) -> id
-    | MemberDefnInherit(t, so) -> id
-    | MemberDefnValField(ats, px, ao, t, so) -> id
-    | MemberDefnImplicitCtor(ats, ao, ps, so) -> id
-    | MemberDefnMember(bo) -> id
-    | MemberDefnLetBindings(isStatic, isRec, bs) -> id
-    | MemberDefnInterface(t, mdo) -> id
+    | MDNestedType(td, ao) -> id
+    | MDOpen(so) -> id
+    | MDImplicitInherit(t, e, so) -> id
+    | MDInherit(t, so) -> id
+    | MDValField(ats, px, ao, t, so) -> id
+    | MDImplicitCtor(ats, ao, ps, so) -> id
+    | MDMember(bo) -> id
+    | MDLetBindings(isStatic, isRec, bs) -> id
+    | MDInterface(t, mdo) -> id
+    | MDAutoProperty(ats, px, ao, mk, e, s) -> id
     | md -> failwithf "Unexpected pattern: %O" md
 
 and genPat = function

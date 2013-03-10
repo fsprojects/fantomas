@@ -27,8 +27,8 @@ let t06 = parse """
         member this.Parameters = parameters"""
 
 let t08 = parse """
-    /// This is a foo function
-    module Tests
+    /// This is a Test module
+    module Test
     let foo() = 
         // Line comment
         let msg = "Hello world"

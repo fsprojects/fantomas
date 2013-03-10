@@ -40,7 +40,7 @@ let ``open modules``() =
     formatString """
     open System
     open System.IO""" config
-    |> prepend "\r\n"
+    |> prepend newline
     |> should equal """
 open System
 open System.IO"""
@@ -59,12 +59,12 @@ and g x = x"""
 let ``hash directives``() =
     formatString """
     #r "Fantomas.Tests.dll"
-    #load "Tests.fs"
+    #load "CodeFormatterTests.fs"
     """ config
     |> prepend newline
     |> append newline
     |> should equal """
 #r "Fantomas.Tests.dll"
-#load "Tests.fs"
+#load "CodeFormatterTests.fs"
 """
 

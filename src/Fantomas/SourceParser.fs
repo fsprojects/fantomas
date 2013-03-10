@@ -84,7 +84,7 @@ let (|PreXmlDoc|) (px: PreXmlDoc) =
     match px.ToXmlDoc() with
     | XmlDoc lines -> lines
 
-// Module declarations
+// Module declarations (10 cases)
 
 let (|Open|_|) = function
     | SynModuleDecl.Open(LongIdentWithDots li, _) -> Some li
@@ -150,45 +150,53 @@ let (|Field|) = function
 let (|EnumCase|) = function
     | SynEnumCase.EnumCase(ats, Ident id, c, ao, _) -> (ats, id, c, ao)
 
-let (|MemberDefnNestedType|_|) = function               
+// Member definitions (11 cases)
+
+let (|MDNestedType|_|) = function               
     | SynMemberDefn.NestedType(td, ao, _) -> Some(td, ao)
     | _ -> None
 
-let (|MemberDefnOpen|_|) = function               
+let (|MDOpen|_|) = function               
     | SynMemberDefn.Open(LongIdent li, _) -> Some li
     | _ -> None
 
-let (|MemberDefnImplicitInherit|_|) = function  
+let (|MDImplicitInherit|_|) = function  
     | SynMemberDefn.ImplicitInherit(t, e, ido, _) -> Some(t, e, Option.map (|Ident|) ido)
     | _ -> None
 
-let (|MemberDefnInherit|_|) = function  
+let (|MDInherit|_|) = function  
     | SynMemberDefn.Inherit(t, ido, _) -> Some(t, Option.map (|Ident|) ido)
     | _ -> None
 
-let (|MemberDefnValField|_|) = function  
+let (|MDValField|_|) = function  
     | SynMemberDefn.ValField(SynField.Field(ats, _, ido, t, _, px, ao, _), _) -> Some(ats, px, ao, t, Option.map (|Ident|) ido)
     | _ -> None
 
-let (|MemberDefnImplicitCtor|_|) = function  
+let (|MDImplicitCtor|_|) = function  
     | SynMemberDefn.ImplicitCtor(ao, ats,ps, ido, _) -> Some(ats, ao, ps, Option.map (|Ident|) ido)
     | _ -> None
 
-let (|MemberDefnMember|_|) = function  
+let (|MDMember|_|) = function  
     | SynMemberDefn.Member(b, _) -> Some b
     | _ -> None
 
-let (|MemberDefnLetBindings|_|) = function
+let (|MDLetBindings|_|) = function
     | SynMemberDefn.LetBindings(es, isStatic, isRec, _) -> Some(isStatic, isRec, es)
     | _ -> None
 
-let (|MemberDefnAbstractSlot|_|) = function
+let (|MDAbstractSlot|_|) = function
     | SynMemberDefn.AbstractSlot(SynValSig.ValSpfn(ats, Ident id, _, _, _, _, _, px, ao, _, _),_,_) -> Some(ats, px, ao, id)
     | _ -> None
 
-let (|MemberDefnInterface|_|) = function
+let (|MDInterface|_|) = function
     | SynMemberDefn.Interface(t, mdo, _) -> Some(t, mdo)
     | _ -> None
+
+let (|MDAutoProperty|_|) = function
+    | SynMemberDefn.AutoProperty(ats, _, Ident s, _, mk, _, px, ao, e, _ , _) -> Some(ats, px, ao, mk, e, s)
+    | _ -> None
+
+// Bindings
 
 let (|LetBinding|MemberBinding|) = function
     | SynBinding.Binding(ao, _, _, _, ats, px, SynValData(Some isInst, _,_), pat, _, expr, _, _) -> 
@@ -196,7 +204,7 @@ let (|LetBinding|MemberBinding|) = function
     | SynBinding.Binding(ao, _, _, _, ats, px, _, pat, _, expr, _, _) -> 
         LetBinding(px, ats, ao, pat, expr)
 
-// Expressions
+// Expressions (55 cases, lacking to handle 11 cases)
 
 let (|TraitCall|_|) = function
     | SynExpr.TraitCall(ts, msig, expr, _) ->
@@ -348,7 +356,7 @@ let (|TryFinally|_|) = function
     | SynExpr.TryFinally(e1, e2, _, _, _) -> Some(e1, e2)
     | _ -> None
 
-// Patterns
+// Patterns (18 cases, lacking to handle 2 cases)
 
 let (|PatOptionalVal|_|) = function
     | SynPat.OptionalVal(Ident id, _) -> Some id
@@ -409,14 +417,80 @@ let (|PatIsInst|_|) = function
     | SynPat.IsInst(t, _) -> Some t
     | _ -> None
 
+// Members
+
+let (|MSMember|) = function
+    | SynMemberSig.Member(ValSpfn(ats, Ident s, _, t, _, _, _, px, ao, _, _), _, _) -> (ats, px, ao, s, t)
+    | _ -> failwith "MemberSigMember: other patterns will be added later"
+              
+let (|SPatAttrib|SPatId|SPatTyped|) = function
+    | SynSimplePat.Attrib(sp, ats, _) -> SPatAttrib(ats, sp)
+    | SynSimplePat.Id(Ident s, _, _, _, _, _) -> SPatId s
+    | SynSimplePat.Typed(sp, t, _) -> SPatTyped(sp, t)
+
+let (|RecordField|) = function
+    | SynField.Field(ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, Option.map (|Ident|) ido)
+
+let (|Clause|) = function
+    | SynMatchClause.Clause(p, _,e, _, _) -> (p, e)
+
+let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRGeneral|) = function
+    | SynTypeDefnSimpleRepr.Enum(ecs, _) -> TDSREnum ecs
+    | SynTypeDefnSimpleRepr.Union(ao, xs, _) -> TDSRUnion(ao, xs)
+    | SynTypeDefnSimpleRepr.Record(ao, fs, _) -> TDSRRecord(ao, fs)
+    | SynTypeDefnSimpleRepr.None _ -> TDSRNone()
+    | SynTypeDefnSimpleRepr.TypeAbbrev(_, t, _) -> TDSRTypeAbbrev t
+    | SynTypeDefnSimpleRepr.General _ -> TDSRGeneral() // expand later
+    | SynTypeDefnSimpleRepr.LibraryOnlyILAssembly _ -> failwith "LibraryOnlyILAssembly is not supported yet"
+
+let (|Simple|ObjectModel|) = function
+    | SynTypeDefnRepr.Simple(tdsr, _) -> Simple tdsr
+    | SynTypeDefnRepr.ObjectModel(tdk, md, _) -> ObjectModel(tdk, md)
+
 // Type definitions
 
 let (|TypeDef|) = function
     | SynTypeDefn.TypeDefn(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent li, px, _, ao, _) , tdr, ms, _) ->
         (ats, px, ao, tds, tcs, tdr, ms, li)
 
-// Types (expanding later)
+// Types (10 cases)
 
-let (|TypeLongIdent|_|) = function
+let (|THashConstraint|_|) = function
+    | SynType.HashConstraint(t, _) -> Some t
+    | _ -> None
+
+let (|TMeasurePower|_|) = function
+    | SynType.MeasurePower(t, n, _) -> Some(t, n)
+    | _ -> None
+
+let (|TArray|_|) = function
+    | SynType.Array(n, t, _) -> Some(t, n)
+    | _ -> None
+
+let (|TAnon|_|) = function    
+    | SynType.Anon(_) -> Some()
+    | _ -> None
+
+let (|TVar|_|) = function 
+    | SynType.Var(tp, _) -> Some tp
+    | _ -> None
+
+let (|TFun|_|) = function 
+    | SynType.Fun(t1, t2, _) -> Some(t1, t2)
+    | _ -> None
+
+let (|TApp|_|) = function 
+    | SynType.App(t, _, ts, _, _, _, _) -> Some(t, ts)
+    | _ -> None
+
+let (|TTuple|_|) = function     
+    | SynType.Tuple(ts, _) -> Some ts
+    | _ -> None
+
+let (|TWithGlobalConstraints|_|) = function     
+    | SynType.WithGlobalConstraints(t, ts, _) -> Some(t, ts)
+    | _ -> None
+
+let (|TLongIdent|_|) = function
     | SynType.LongIdent(LongIdentWithDots li) -> Some li
-    | _ -> None   
+    | _ -> None
