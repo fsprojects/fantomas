@@ -28,10 +28,10 @@ and genModuleDecl = function
     | ModuleAbbrev(s1, s2) -> !- "module " -- s1 +> sepEq -- s2
     | NamespaceFragment(m) -> !- "[NamespaceFragment]"
     | NestedModule(ats, px, ao, s, mds) -> 
-        colOpt sepArgs sepNln ats genAttribute +> genPreXmlDoc px
-        -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
-        +> incIndent +> sepNln +> col sepNln mds genModuleDecl
-    | Open(s) -> !- (sprintf "open %s" s)
+        colOpt sepArgs sepNln ats genAttribute 
+        +> genPreXmlDoc px -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
+        +> indent +> sepNln +> col sepNln mds genModuleDecl
+    | Open(s) -> !- "open " -- s
     | Types(sts) -> col sepNln sts genTypeDefn
     | md -> failwithf "Unexpected pattern: %O" md
 
@@ -87,8 +87,8 @@ and genExpr = function
 and genTypeDefn e = id
 
 and genException(ExceptionDef(ats, px, ao, uc, ms)) = 
-    colOpt sepArgs sepNln ats genAttribute +> genPreXmlDoc px
-    -- "exception " +> opt sepSpace ao genAccess +> genUnionCase uc
+    colOpt sepArgs sepNln ats genAttribute 
+    +> genPreXmlDoc px -- "exception " +> opt sepSpace ao genAccess +> genUnionCase uc
     +> sepNln +> colOpt sepNln sepNln ms genMemberDefn
 
 and genUnionCase(UnionCase(ats, px, ao, s, UnionCaseType fs)) = 

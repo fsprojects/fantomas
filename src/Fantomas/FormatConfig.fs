@@ -21,7 +21,7 @@ type FormatConfig =
       InfixPos : Position;
       /// Has a space before colon?
       SpaceBeforeColon : bool;
-      /// Indentation on try with or not?
+      /// Indentation on try/with or not?
       IndentOnTryWith : bool;
       /// Number of blank lines between functions and types
       BlankLineNum : Num }
@@ -39,13 +39,25 @@ let dump (ctx: Context) = ctx.Writer.InnerWriter.ToString()
 
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
-let incIndent (ctx : Context) = 
+/// Indent one more level based on configuration
+let indent (ctx : Context) = 
     ctx.Writer.Indent <- ctx.Writer.Indent + ctx.Config.WhiteSpaceNum
     ctx
 
-let decIndent (ctx : Context) = 
-    ctx.Writer.Indent <- ctx.Writer.Indent - ctx.Config.WhiteSpaceNum
+/// Unindent one more level based on configuration
+let unindent (ctx : Context) = 
+    ctx.Writer.Indent <- max 0 (ctx.Writer.Indent - ctx.Config.WhiteSpaceNum)
     ctx
+
+/// Apply function f at an absolute indent level
+let atIndentLevel level (f : Context -> Context) ctx =
+    if level < 0 then
+            invalidArg "level" "The indent level cannot be negative."
+    let oldLevel = ctx.Writer.Indent
+    ctx.Writer.Indent <- level
+    let result = f ctx
+    ctx.Writer.Indent <- oldLevel
+    result
 
 /// Function composition operator
 let (+>) (ctx : Context -> Context) (f : Context -> Context) x =
@@ -73,7 +85,7 @@ let withCtxt f x =
 
 /// Print object converted to string
 let str (o : 'T) (ctx : Context) =
-    ctx.Writer.Write(o :> obj)
+    ctx.Writer.Write(o.ToString())
     ctx
 
 /// Process collection - keeps context through the whole processing
@@ -106,10 +118,9 @@ let sepWordOf = !- " of "
 let sepSpace = !- " "      
 let sepNln = !+ ""
 let sepArgs = !- ", "
-let sepArgsSemi  = !- "; "
+let sepArgsSemi = !- "; "
 let sepNone = id
 let sepStar = !- " * "
-let sepNlnSemiSpace = !- ";" ++ "  "
 let sepEq = !- " = "
 let sepArrow = !- " -> "
 

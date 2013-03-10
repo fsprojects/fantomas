@@ -131,7 +131,7 @@ let (|Exception|_|) = function
     | SynModuleDecl.Exception(ed, _) -> Some ed
     | _ -> None
 
-// Exception definition
+// Exception definitions
 
 let (|ExceptionDef|) = function
     | SynExceptionDefn.ExceptionDefn(SynExceptionRepr.ExceptionDefnRepr(ats, uc, _, px, ao, _), ms, _) ->
@@ -195,12 +195,6 @@ let (|LetBinding|MemberBinding|) = function
         MemberBinding(px, ats, ao, isInst, pat, expr)
     | SynBinding.Binding(ao, _, _, _, ats, px, _, pat, _, expr, _, _) -> 
         LetBinding(px, ats, ao, pat, expr)
-
-// Types (expanding later)
-
-let (|TypeLongIdent|_|) = function
-    | SynType.LongIdent(LongIdentWithDots li) -> Some li
-    | _ -> None
 
 // Expressions
 
@@ -414,4 +408,15 @@ let (|PatConst|_|) = function
 let (|PatIsInst|_|) = function
     | SynPat.IsInst(t, _) -> Some t
     | _ -> None
-        
+
+// Type definitions
+
+let (|TypeDef|) = function
+    | SynTypeDefn.TypeDefn(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent li, px, _, ao, _) , tdr, ms, _) ->
+        (ats, px, ao, tds, tcs, tdr, ms, li)
+
+// Types (expanding later)
+
+let (|TypeLongIdent|_|) = function
+    | SynType.LongIdent(LongIdentWithDots li) -> Some li
+    | _ -> None   

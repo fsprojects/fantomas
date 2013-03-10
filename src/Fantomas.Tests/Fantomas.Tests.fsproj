@@ -41,10 +41,14 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="app.config" />
-    <Compile Include="ParserTests.fs" />
-    <Compile Include="ParserTestsExt.fs" />
+    <None Include="ParserTests.fs" />
+    <None Include="ParserTestsExt.fs" />
+    <Compile Include="CodeFormatterTests.fs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FSharp.Compiler">
+      <HintPath>..\..\lib\FSharp.Compiler.dll</HintPath>
+    </Reference>
     <Reference Include="FsUnit.NUnit">
       <HintPath>..\packages\FsUnit.1.1.1.0\Lib\Net40\FsUnit.NUnit.dll</HintPath>
       <Private>True</Private>
