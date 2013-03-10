@@ -26,11 +26,11 @@ and genModuleDecl = function
     | Let(b) -> !- "let " +> genBinding b
     | LetRec(b::bs) -> !- "let rec " +> genBinding b +> sepNln +> col sepNln bs (fun b -> !- "and " +> genBinding b)
     | ModuleAbbrev(s1, s2) -> !- "module " -- s1 +> sepEq -- s2
-    | NamespaceFragment(m) -> !- "[NamespaceFragment]"
+    | NamespaceFragment(m) -> failwithf "NamespaceFragment is not supported yet: %O" m
     | NestedModule(ats, px, ao, s, mds) -> 
         colOpt sepArgs sepNln ats genAttribute 
         +> genPreXmlDoc px -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
-        +> indent +> sepNln +> col sepNln mds genModuleDecl
+        +> indent +> sepNln +> col sepNln mds genModuleDecl +> unindent // sepNln forces evaluation
     | Open(s) -> !- "open " -- s
     | Types(sts) -> col sepNln sts genTypeDefn
     | md -> failwithf "Unexpected pattern: %O" md
@@ -47,7 +47,7 @@ and genBinding = function
 
 and genExpr = function
     // Superfluous paren in tuple
-    | SingleExpr(Paren, (Tuple es as e)) -> genExpr e
+    | SingleExpr(Paren, (Tuple _ as e)) -> genExpr e
     | SingleExpr(Paren, e) -> !- "(" +> genExpr e -- ")"
     | SingleExpr(Do, e) -> !- "do " +> genExpr e
     | SingleExpr(kind, e) -> id

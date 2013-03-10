@@ -37,10 +37,6 @@
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
   <ItemGroup>
     <None Include="Example.fsx" />
-    <Compile Include="Ast.fs" />
-    <Compile Include="Converter.fs" />
-    <Compile Include="Parser.fs" />
-    <None Include="Parser.fsx" />
     <Compile Include="SourceParser.fs" />
     <Compile Include="FormatConfig.fs" />
     <Compile Include="CodePrinter.fs" />

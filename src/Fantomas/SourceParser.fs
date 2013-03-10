@@ -169,7 +169,8 @@ let (|MDInherit|_|) = function
     | _ -> None
 
 let (|MDValField|_|) = function  
-    | SynMemberDefn.ValField(SynField.Field(ats, _, ido, t, _, px, ao, _), _) -> Some(ats, px, ao, t, Option.map (|Ident|) ido)
+    | SynMemberDefn.ValField(SynField.Field(ats, _, ido, t, _, px, ao, _), _) -> 
+        Some(ats, px, ao, t, Option.map (|Ident|) ido)
     | _ -> None
 
 let (|MDImplicitCtor|_|) = function  
@@ -185,7 +186,8 @@ let (|MDLetBindings|_|) = function
     | _ -> None
 
 let (|MDAbstractSlot|_|) = function
-    | SynMemberDefn.AbstractSlot(SynValSig.ValSpfn(ats, Ident id, _, _, _, _, _, px, ao, _, _),_,_) -> Some(ats, px, ao, id)
+    | SynMemberDefn.AbstractSlot(SynValSig.ValSpfn(ats, Ident id, _, _, _, _, _, px, ao, _, _),_,_) -> 
+        Some(ats, px, ao, id)
     | _ -> None
 
 let (|MDInterface|_|) = function
