@@ -24,15 +24,14 @@ and genModuleDecl = function
     | DoExpr(e) ->  genExpr e
     | Exception(ex) -> genException ex
     | HashDirective(s1, s2) -> !- "#" -- s1 +> sepSpace -- s2
-    | Let(LetBinding(px, ats, ao, p, e)) -> !- "let " +> genPat p +> sepEq +> genExpr e
-    | LetRec(bs) -> !- "[LetRec]"
+    | Let(b) -> !- "let " +> genBinding b
+    | LetRec(b::bs) -> !- "let rec " +> genBinding b +> sepNln +> col sepNln bs (fun b -> !- "and " +> genBinding b)
     | ModuleAbbrev(s1, s2) -> !- "module " -- s1 +> sepEq -- s2
     | NamespaceFragment(m) -> !- "[NamespaceFragment]"
     | NestedModule(ats, px, ao, s, mds) -> 
         colOpt sepArgs sepNln ats genAttribute +> colOpt sepNln sepNln (genPreXmlDoc px) (!-)
         -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
-        +> incIndent +> sepNln
-        +> col sepNln mds genModuleDecl
+        +> incIndent +> sepNln +> col sepNln mds genModuleDecl
     | Open(s) -> !- (sprintf "open %s" s)
     | Types(sts) -> col sepNln sts genTypeDefn
     | md -> failwithf "Unexpected pattern: %O" md
@@ -42,6 +41,10 @@ and genAccess(Access s) = !- s
 and genAttribute(Attribute(li, e, isGetSet)) = !- "[<" -- li +> genExpr e -- ">]"
     
 and genPreXmlDoc(PreXmlDoc lines) = lines
+
+and genBinding = function
+    | LetBinding(px, ats, ao, p, e) -> genPat p +> sepEq +> genExpr e
+    | MemberBinding(px, ats, ao, isInst, pat, expr) -> failwith "Not implemented yet"
 
 and genExpr = function
     // Superfluous paren in tuple
@@ -66,7 +69,7 @@ and genExpr = function
     | Lambda(e, cs) -> id
     | Match(e, cs) -> id
     | Sequential(e1, e) -> id
-    | App(e1, e2) -> id
+    | App(e1, e2) -> genExpr e1 +> sepSpace +> genExpr e2
     | TypeApp(e, ts) -> id
     | LetOrUse(isRec, isUse, bs, e) -> id
     | TryWith(e, cs) -> id
@@ -96,7 +99,7 @@ and genPat = function
     | PatNullary PatWild -> id
     | PatTyped(p, t) -> id
     | PatNamed(ao, p, s) -> !- s
-    | PatLongIdent(ao, li, ps) -> id
+    | PatLongIdent(ao, li, ps) -> opt sepSpace ao genAccess -- li +> sepSpace +> col sepSpace ps genPat
     | PatParen(p) -> id
     | PatSeq(PatTuple, ps) -> id
     | PatSeq(PatArray, ps) -> id

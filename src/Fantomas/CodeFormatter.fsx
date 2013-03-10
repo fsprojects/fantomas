@@ -38,6 +38,18 @@ let t06 = parse """
         inherit Attribute()
         member this.Parameters = parameters"""
 
+let t07 = parse """
+    let rec f x = g x
+    and g x = x"""
+
+let t08 = parse """
+    module Tests
+    /// This is a foo function
+    let foo() = 
+        // Line comment
+        let msg = "Hello world"
+        printfn "%s" msg"""
+
 #time "on";;
 
 printfn "Result:\n%s" <| format t01 config;;
@@ -46,3 +58,5 @@ printfn "Result:\n%s" <| format t03 config;;
 printfn "Result:\n%s" <| format t04 config;;
 printfn "Result:\n%s" <| format t05 config;;
 printfn "Result:\n%s" <| format t06 config;;
+printfn "Result:\n%s" <| format t07 config;;
+printfn "Result:\n%s" <| format t08 config;;
