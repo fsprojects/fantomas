@@ -19,7 +19,7 @@ let internal parseWith fileName content =
     | None -> failwith "parseWith: Unexpected input"
 
 /// Parse a source code string
-let parse s = parseWith "/var/tmp.fs" s
+let parse s = parseWith "/tmp.fs" s
            
 /// Format a source code tree using config
 let format tree config = 
@@ -33,7 +33,7 @@ let formatFile f config =
 
 /// Format a source string using given config
 let formatString s config =
-    let tree = parseWith "/var/tmp.fs" s
+    let tree = parseWith "/tmp.fs" s
     format tree config
 
 /// Format inFile and write to outFile

@@ -22,6 +22,21 @@ let (|ParsedImplFileInput|) = function
 let (|ModuleOrNamespace|) = function
     | SynModuleOrNamespace.SynModuleOrNamespace(li, _, mds, px, ats, ao, _) -> (ats, px, ao, li, mds)
 
+// Attribute
+let (|Attribute|) (a : SynAttribute) =
+    let (LongIdentWithDots li) = a.TypeName
+    (li, a.ArgExpr, a.AppliesToGetterAndSetter)
+
+// Access modifiers
+let (|Access|) = function
+    | SynAccess.Public -> "public"
+    | SynAccess.Internal -> "internal"
+    | SynAccess.Private -> "private"
+
+let (|PreXmlDoc|) (px: PreXmlDoc) =
+    match px.ToXmlDoc() with
+    | XmlDoc lines -> lines
+
 // Module declarations
 
 let (|Open|_|) = function
@@ -33,7 +48,7 @@ let (|ModuleAbbrev|_|) = function
     | _ -> None
 
 let (|HashDirective|_|) = function
-    | SynModuleDecl.HashDirective(ParsedHashDirective(s, ss, _), _) -> Some(s, ss)
+    | SynModuleDecl.HashDirective(ParsedHashDirective(s, ss, _), _) -> Some(s, String.concat "." ss)
     | _ -> None
 
 let (|NamespaceFragment|_|) = function 
@@ -93,18 +108,21 @@ let (|Quote|_|) = function
     | SynExpr.Quote(e1, _, e2, _, _) -> Some(e1, e2)
     | _ -> None
 
-type ExprKind = | InferredDowncast | InferredUpcast | Lazy | Assert | AddressOf 
-                | Paren | YieldOrReturn | YieldOrReturnFrom | Do | DoBang
+type ExprKind = | InferredDowncast | InferredUpcast | Lazy | Assert | AddressOfSingle | AddressOfDouble
+                | Paren | Yield | Return | YieldFrom | ReturnFrom | Do | DoBang
 
 let (|SingleExpr|_|) = function 
     | SynExpr.InferredDowncast(e, _) -> Some(InferredDowncast, e)
     | SynExpr.InferredUpcast(e, _) -> Some(InferredUpcast, e)
     | SynExpr.Lazy(e, _) -> Some(Lazy, e)
     | SynExpr.Assert(e, _) -> Some(Assert, e)
-    | SynExpr.AddressOf(_, e, _, _) -> Some(AddressOf, e) // Might break into 2 cases
+    | SynExpr.AddressOf(false, e, _, _) -> Some(AddressOfSingle, e)
+    | SynExpr.AddressOf(true, e, _, _) -> Some(AddressOfDouble, e)
     | SynExpr.Paren(e, _, _, _) -> Some(Paren, e)
-    | SynExpr.YieldOrReturn(_, e, _) -> Some(YieldOrReturn, e)
-    | SynExpr.YieldOrReturnFrom(_, e, _) -> Some(YieldOrReturnFrom, e)
+    | SynExpr.YieldOrReturn((false, _), e, _) -> Some(Yield, e)
+    | SynExpr.YieldOrReturn((true, _), e, _) -> Some(Return, e)
+    | SynExpr.YieldOrReturnFrom((false, _), e, _) -> Some(YieldFrom, e)
+    | SynExpr.YieldOrReturnFrom((true, _), e, _) -> Some(ReturnFrom, e)
     | SynExpr.Do(e, _) -> Some(Do, e)
     | SynExpr.DoBang(e, _) -> Some(DoBang, e)
     | _ -> None
@@ -127,7 +145,7 @@ let (|For|_|) = function
     | SynExpr.For(_, Ident id, e1, _, e2, e3, _) -> Some(id, e1, e2, e3)
     | _ -> None
 
-let (|NullExp|_|) = function 
+let (|NullExpr|_|) = function 
     | SynExpr.Null _ -> Some() 
     | _ -> None
 
@@ -144,15 +162,15 @@ let (|Sequential|_|) = function
     | _ -> None
 
 let (|ArrayOrList|_|) = function
-    | SynExpr.ArrayOrList(_, xs, _) -> Some xs
+    | SynExpr.ArrayOrList(isList, xs, _) -> Some(isList, xs)
     | _ -> None
 
 let (|CompExpr|_|) = function
-    | SynExpr.CompExpr(_, _, expr, _) -> Some expr
+    | SynExpr.CompExpr(isList, _, expr, _) -> Some(isList, expr)
     | _ -> None
 
 let (|ArrayOrListOfSeqExpr|_|) = function
-    | SynExpr.ArrayOrListOfSeqExpr(_, expr, _) -> Some expr
+    | SynExpr.ArrayOrListOfSeqExpr(isList, expr, _) -> Some(isList, expr)
     | _ -> None
 
 let (|Tuple|_|) = function
@@ -177,13 +195,13 @@ let (|Lambda|_|) = function
     | _ -> None
 
 let (|LetOrUse|_|) = function
-    | SynExpr.LetOrUse(isRec, _, xs, e, _) -> 
+    | SynExpr.LetOrUse(isRec, isUse, xs, e, _) -> 
         if List.isEmpty xs then failwith "Illformed bindings"
-        else Some (isRec, xs, e)
+        else Some (isRec, isUse, xs, e)
     | _ -> None
 
 let (|LetOrUseBang|_|) = function
-    | SynExpr.LetOrUseBang(_, _, _, p, e1, e2, _) -> Some(p, e1, e2)
+    | SynExpr.LetOrUseBang(_, isUse, _, p, e1, e2, _) -> Some(isUse, p, e1, e2)
     | _ -> None 
         
 let (|ForEach|_|) = function                               
@@ -231,6 +249,7 @@ let (|TryFinally|_|) = function
     | _ -> None
 
 // Patterns
+
 let (|PatOptionalVal|_|) = function
     | SynPat.OptionalVal(Ident id, _) -> Some id
     | _ -> None

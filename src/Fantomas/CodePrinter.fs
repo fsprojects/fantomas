@@ -11,89 +11,76 @@ let rec genParsedInput = function
 and genImpFile = function
     | ParsedImplFileInput(hs, mns) ->
         // Each module is separated by a number of blank lines
-        mns |> Seq.map genModuleOrNamespace |> Seq.reduce (+>)
+        col sepNln mns genModuleOrNamespace
 
 and genSigFile si = failwith "Not implemented yet"
 
 and genModuleOrNamespace = function
     | ModuleOrNamespace(ats, px, ao, li, mds) ->
-        mds |> Seq.map genModuleDecl |> Seq.reduce (+>)
+        col sepNln mds genModuleDecl
 
 and genModuleDecl = function
-    | Attributes(a) -> !. "[Attributes]"
+    | Attributes(ats) -> col sepArgs ats genAttribute
     | DoExpr(e) ->  genExpr e
     | Exception(ex) -> genException ex
-    | HashDirective(s, ss) -> !. (sprintf "#%s %s" s <| String.concat "." ss)
-    | Let(LetBinding(px, ats, ao, p, e)) -> !. "let " +> (genPat p) -- " = " +> (genExpr e)
-    | LetRec(bs) -> !. "[LetRec]"
-    | ModuleAbbrev(s1, s2) -> !. (sprintf "module %s = %s" s1 s2)
-    | NamespaceFragment(m) -> !. "[NamespaceFragment]"
+    | HashDirective(s1, s2) -> !- "#" -- s1 +> sepSpace -- s2
+    | Let(LetBinding(px, ats, ao, p, e)) -> !- "let " +> genPat p +> sepEq +> genExpr e
+    | LetRec(bs) -> !- "[LetRec]"
+    | ModuleAbbrev(s1, s2) -> !- "module " -- s1 +> sepEq -- s2
+    | NamespaceFragment(m) -> !- "[NamespaceFragment]"
     | NestedModule(ats, px, ao, s, mds) -> 
-        id ++ "[Attributes]" ++ "[XmlDocs]" 
-        ++ sprintf "module %s%s = " (defaultArg (Option.map(sprintf "%O ") ao) "") s
-        +> incIndent
-        ++>> Seq.map genModuleDecl mds
-    | Open(s) -> !. (sprintf "open %s" s)
-    | Types(sts) -> Seq.map genTypeDefn sts |> Seq.reduce (+>)
+        colOpt sepArgs sepNln ats genAttribute +> colOpt sepNln sepNln (genPreXmlDoc px) (!-)
+        -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
+        +> incIndent +> sepNln
+        +> col sepNln mds genModuleDecl
+    | Open(s) -> !- (sprintf "open %s" s)
+    | Types(sts) -> col sepNln sts genTypeDefn
     | md -> failwithf "Unexpected pattern: %O" md
 
+and genAccess(Access s) = !- s
+
+and genAttribute(Attribute(li, e, isGetSet)) = !- "[<" -- li +> genExpr e -- ">]"
+    
+and genPreXmlDoc(PreXmlDoc lines) = lines
+
 and genExpr = function
-    | SingleExpr(e) -> id
+    // Superfluous paren in tuple
+    | SingleExpr(Paren, (Tuple es as e)) -> genExpr e
+    | SingleExpr(Paren, e) -> !- "(" +> genExpr e -- ")"
+    | SingleExpr(Do, e) -> !- "do " +> genExpr e
+    | SingleExpr(kind, e) -> id
+    | ConstExpr(Const s) -> !- s
+    | NullExpr -> id
     | Quote(e1, e2) -> id
-    | ConstExpr(Const s) -> ! s 
+    | ConstExpr(Const s) -> !- s 
     | TypedExpr(_, e, t) -> id
-    | Tuple(es) -> id
+    | Tuple(es) -> !- "(" +> col sepArgs es genExpr -- ")"
     | ArrayOrList(es) -> id
     | Record(xs) -> id
     | ObjExpr(t, x, bd, ims) -> id
     | While(e1, e2) -> id
     | For(s, e1, e2, e3) -> id
     | ForEach(p, e1, e2) -> id
-    | CompExpr(e) -> id
+    | CompExpr(isList, e) -> id
     | ArrayOrListOfSeqExpr(e) -> id
-//    | Lambda (_,_,_,_,m)
-//    | Match (_,_,_,_,m)
-//    | MatchLambda (_,_,_,_,m)
-//    | Do (_,m)
-//    | Assert (_,m)
-//    | App (_,_,_,_,m)
-//    | TypeApp (_,_,_,_,_,_,m)
-//    | LetOrUse (_,_,_,_,m)
-//    | TryWith (_,_,_,_,m,_,_)
-//    | TryFinally (_,_,m,_,_)
-//    | Sequential (_,_,_,_,m)
-//    | ArbitraryAfterError(_,m)
-//    | FromParseError (_,m) 
-//    | DiscardAfterMissingQualificationAfterDot (_,m) 
-//    | IfThenElse (_,_,_,_,_,_,m)
-//    | LongIdent (_,_,_,m)
-//    | LongIdentSet (_,_,m)
-//    | NamedIndexedPropertySet (_,_,_,m)
-//    | DotIndexedGet (_,_,_,m)
-//    | DotIndexedSet (_,_,_,_,_,m)
-//    | DotGet (_,_,_,m)
-//    | DotSet (_,_,_,m)
-//    | DotNamedIndexedPropertySet (_,_,_,_,m)
-//    | LibraryOnlyUnionCaseFieldGet (_,_,_,m)
-//    | LibraryOnlyUnionCaseFieldSet (_,_,_,_,m)
-//    | LibraryOnlyILAssembly (_,_,_,_,m)
-//    | LibraryOnlyStaticOptimization (_,_,_,m)
-//    | TypeTest (_,_,m)
-//    | Upcast (_,_,m)
-//    | AddressOf (_,_,_,m)
-//    | Downcast (_,_,m)
-//    | JoinIn (_,_,_,m)
-//    | InferredUpcast (_,m)
-//    | InferredDowncast (_,m)
-//    | Null m
-//    | Lazy (_, m)
-//    | TraitCall(_,_,_,m)
-//    | ImplicitZero (m)
-//    | YieldOrReturn (_,_,m)
-//    | YieldOrReturnFrom (_,_,m)
-//    | LetOrUseBang  (_,_,_,_,_,_,m)
-//    | DoBang  (_,m) -> m
-//    | Ident id -> id.idRange
+    | Lambda(e, cs) -> id
+    | Match(e, cs) -> id
+    | Sequential(e1, e) -> id
+    | App(e1, e2) -> id
+    | TypeApp(e, ts) -> id
+    | LetOrUse(isRec, isUse, bs, e) -> id
+    | TryWith(e, cs) -> id
+    | TryFinally(e1, e2) -> id
+    | Sequential(e1, e2) -> id
+    | IfThenElse(e1, e2, e3) -> id
+    | Var(li) -> !- li
+    | LongIdentSet(e) -> id
+    | DotIndexedGet(e, es) -> id
+    | DotIndexedSet(e1, es, e2) -> id
+    | DotGet(e, s) -> id
+    | DotSet(e1,_s, e2) -> id
+    | TraitCall(ss, msg, e) -> id
+    | LetOrUseBang(isUse, p, e1, e2) -> id
     | e -> failwithf "Unexpected pattern: %O" e
 
 and genException e = id
@@ -108,14 +95,14 @@ and genPat = function
     | PatNullary PatNull -> id
     | PatNullary PatWild -> id
     | PatTyped(p, t) -> id
-    | PatNamed(ao, p, s) -> ! s
+    | PatNamed(ao, p, s) -> !- s
     | PatLongIdent(ao, li, ps) -> id
     | PatParen(p) -> id
     | PatSeq(PatTuple, ps) -> id
     | PatSeq(PatArray, ps) -> id
     | PatSeq(PatList, ps) -> id
     | PatRecord(xs) -> id
-    | PatConst(Const s) -> ! s
+    | PatConst(Const s) -> !- s
     | PatIsInst(p) -> id
     | p -> failwithf "Unexpected pattern: %O" p
         
