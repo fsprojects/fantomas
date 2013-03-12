@@ -68,3 +68,62 @@ let ``hash directives``() =
 #load "CodeFormatterTests.fs"
 """
 
+[<Test>]
+let ``discriminated unions declaration``() =
+    formatSourceString "type X = private | A of AParameters | B" config
+    |> prepend newline
+    |> should equal """
+type X = 
+    private
+    | A of AParameters
+    | B
+"""
+
+[<Test>]
+let ``record declaration``() =
+    formatSourceString "type AParameters = { a : int }" config
+    |> prepend newline
+    |> should equal """
+type AParameters = 
+    { a : int }
+"""
+
+[<Test>]
+let ``enums declaration``() =
+    formatSourceString """
+    type FontVariant =
+    | [<Description("small-caps")>] SmallCaps = 0""" config
+    |> prepend newline
+    |> should equal """
+type FontVariant = 
+    | [<Description("small-caps")>] SmallCaps = 0
+"""
+
+[<Test>]
+let ``units of measures``() =
+    formatSourceString """
+    [<Measure>] type m
+    [<Measure>] type kg
+    [<Measure>] type s
+    [<Measure>] type N = kg m / s^2
+    [<Measure>] type Pa = N / m^2
+    let a = 1.<m/Pa*s>""" config
+    |> prepend newline
+    |> should equal """
+[<Measure>]
+type m
+
+[<Measure>]
+type kg
+
+[<Measure>]
+type s
+
+[<Measure>]
+type N = kg m * s^2
+
+[<Measure>]
+type Pa = N * m^2
+
+let a = 1.0<m/Pa*s>"""
+

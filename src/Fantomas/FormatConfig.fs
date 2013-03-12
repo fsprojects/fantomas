@@ -21,14 +21,14 @@ type FormatConfig =
       InfixPos : Position;
       /// Has a space before colon?
       SpaceBeforeColon : bool;
-      /// Indentation on try/with or not?
-      IndentOnTryWith : bool;
+      /// No indentation on try/with?
+      NoIndentOnTryWith : bool;
       /// Number of blank lines between functions and types
       BlankLineNum : Num }
     static member Default = 
         { PageWidth = 120; WhiteSpaceNum = 4; ParenInPattern = true; LongIdentLength = 10;
           PipelinePos = BeginNewLine; InfixPos = ContinueSameLine; SpaceBeforeColon = true;
-          IndentOnTryWith = false; BlankLineNum = 1 }
+          NoIndentOnTryWith = true; BlankLineNum = 1 }
 
 type Context = 
     { Config : FormatConfig; Writer: IndentedTextWriter }
@@ -123,13 +123,16 @@ let ifElse b (f1 : Context -> Context) f2 (ctx : Context) =
 let rep n (f : Context -> Context) (ctx : Context) =
     [1..n] |> List.fold (fun c _ -> f c) ctx
 
+let wordAnd = !- " and "  
+let wordOf = !- " of "      
+
 // Separator functions        
 let sepDot = !- "."
-let sepWordAnd = !- " and "  
-let sepWordOf = !- " of "      
 let sepSpace = !- " "      
 let sepNln = !+ ""
+
 let sepComma = !- ", "
+
 let sepSemi = !- "; "
 let sepSemiNln = !+ ";"
 let sepNone = id
@@ -137,4 +140,9 @@ let sepStar = !- " * "
 let sepEq = !- " = "
 let sepArrow = !- " -> "
 let sepWild = !- "_"
+
+let inline sepColon (ctx : Context) = 
+    if ctx.Config.SpaceBeforeColon 
+    then str " : " ctx
+    else str ": " ctx
 

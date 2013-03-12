@@ -214,8 +214,9 @@ let (|TraitCall|_|) = function
         Some(ids, msig, expr)
     | _ -> None
 
+/// isRaw = true with <@@ and @@>
 let (|Quote|_|) = function                                    
-    | SynExpr.Quote(e1, isRaw, e2, _, _) -> Some(e1, e2)
+    | SynExpr.Quote(e1, isRaw, e2, _, _) -> Some(e1, e2, isRaw)
     | _ -> None
 
 let (|Paren|_|) = function 
@@ -289,15 +290,15 @@ let (|Sequential|_|) = function
     | _ -> None
 
 let (|ArrayOrList|_|) = function
-    | SynExpr.ArrayOrList(isList, xs, _) -> Some(isList, xs)
+    | SynExpr.ArrayOrList(isArray, xs, _) -> Some(isArray, xs)
     | _ -> None
 
 let (|CompExpr|_|) = function
-    | SynExpr.CompExpr(isList, _, expr, _) -> Some(isList, expr)
+    | SynExpr.CompExpr(isArray, _, expr, _) -> Some(isArray, expr)
     | _ -> None
 
 let (|ArrayOrListOfSeqExpr|_|) = function
-    | SynExpr.ArrayOrListOfSeqExpr(isList, expr, _) -> Some(isList, expr)
+    | SynExpr.ArrayOrListOfSeqExpr(isArray, expr, _) -> Some(isArray, expr)
     | _ -> None
 
 let (|Tuple|_|) = function

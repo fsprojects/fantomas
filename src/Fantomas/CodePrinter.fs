@@ -30,7 +30,7 @@ and genModuleDecl = function
     | NestedModule(ats, px, ao, s, mds) -> 
         colPost sepNln sepNln ats genAttribute 
         +> genPreXmlDoc px -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
-        +> indent +> sepNln +> col sepNln mds genModuleDecl +> unindent // sepNln forces evaluation
+        +> indent +> sepNln +> col sepNln mds genModuleDecl +> unindent
     | Open(s) -> !- "open " -- s
     | Types(sts) -> col sepNln sts genTypeDefn
     | md -> failwithf "Unexpected pattern: %O" md
@@ -62,33 +62,35 @@ and genBinding prefix = function
         +> genPat p +> sepEq +> genExpr e
 
 and genExpr = function
+    // Remove superfluous parens
+    | Paren (Tuple es as e) -> genExpr e
     | Paren e -> !- "(" +> genExpr e -- ")"
     | SingleExpr(kind, e) -> str kind +> sepSpace +> genExpr e
     | ConstExpr(Const s) -> !- s
     | NullExpr -> !- "null"
-    // Not sure how to differentiate <@ and <@@
-    | Quote(e1, e2) -> id
+    // Not sure about the role of e1
+    | Quote(e1, e2, isRaw) -> ifElse isRaw (!- "<@@ " +> genExpr e2 -- " @@>") (!- "<@ " +> genExpr e2 -- " @>")
     | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType t
     | TypedExpr(New, e, t) -> !- "new " +> genType t -- "(" +> genExpr e -- ")"
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType t
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
-    | TypedExpr(Typed, e, t) -> genExpr e -- " : " +> genType t
+    | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
     | Tuple es -> !- "(" +> col sepComma es genExpr -- ")"
     // Figure out how to break long expressions into multiple lines
-    | ArrayOrList(isList, xs) -> 
-        ifElse isList (!- "[" +> col sepComma xs genExpr -- "]") (!- "[|" +> col sepComma xs genExpr -- "|]")
+    | ArrayOrList(isArray, xs) -> 
+        ifElse isArray (!- "[|" +> col sepComma xs genExpr -- "|]") (!- "[" +> col sepComma xs genExpr -- "]")
     | Record(xs) -> id
     | ObjExpr(t, x, bd, ims) -> id
-    | While(e1, e2) -> id
+    | While(e1, e2) -> !- "while " +> genExpr e1 -- " do" +> sepNln +> genExpr e2
     | For(s, e1, e2, e3) -> id
     | ForEach(p, e1, e2) -> id
-    | CompExpr(isList, e) -> id
+    | CompExpr(isArray, e) -> id
     | ArrayOrListOfSeqExpr(e) -> id
     | Lambda(e, cs) -> id
     | Match(e, cs) -> id
     | Sequential(e1, e) -> id
     | App(e1, e2) -> genExpr e1 +> sepSpace +> genExpr e2
-    | TypeApp(e, ts) -> id
+    | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts genType -- ">"
     | LetOrUse(isRec, isUse, bs, e) -> id
     | TryWith(e, cs) -> id
     | TryFinally(e1, e2) -> id
@@ -96,8 +98,8 @@ and genExpr = function
     | IfThenElse(e1, e2, e3) -> id
     | Var(li) -> !- li
     | LongIdentSet(s, e) -> !- (sprintf "%s -> " s) +> genExpr e
-    | DotIndexedGet(e, es) -> genExpr e -- sprintf ".[" +> col sepComma es genExpr -- "]"
-    | DotIndexedSet(e1, es, e2) -> genExpr e1 -- sprintf ".[" +> col sepComma es genExpr -- "] <- " +> genExpr e2
+    | DotIndexedGet(e, es) -> genExpr e -- ".[" +> col sepComma es genExpr -- "]"
+    | DotIndexedSet(e1, es, e2) -> genExpr e1 -- ".[" +> col sepComma es genExpr -- "] <- " +> genExpr e2
     | DotGet(e, s) -> genExpr e -- sprintf ".%s" s
     | DotSet(e1, s, e2) -> genExpr e1 -- sprintf ".%s <- " s +> genExpr e2
     | TraitCall(ss, msg, e) -> id
@@ -112,18 +114,17 @@ and genTypeDefn(TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) =
     | Simple(TDSREnum ecs) ->
         typeName +> sepEq 
         +> indent +> sepNln
-        +> col sepNln ecs (genEnumCase true) +> sepNln
-        +> unindent
+        +> col sepNln ecs (genEnumCase true)
+        +> unindent +> sepNln // newline after unindent to be spacing-correct
     | Simple(TDSRUnion(ao', xs)) ->
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepNln ao' genAccess 
-        +> col sepNln xs (genUnionCase true) +> sepNln
-        +> unindent
+        +> col sepNln xs (genUnionCase true)
+        +> unindent +> sepNln
     | Simple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
-        +> indent +> sepNln +> opt sepNln ao' genAccess
-        -- "{ " +> col sepSemiNln fs genField -- " }" +> sepNln
-        +> unindent
+        +> indent +> sepNln +> opt sepNln ao' genAccess -- "{ " +> col sepSemiNln fs genField -- " }" 
+        +> unindent +> sepNln 
     | Simple TDSRNone -> 
         typeName +> sepNln
     | Simple(TDSRTypeAbbrev t) -> 
@@ -140,7 +141,7 @@ and genUnionCase hasBar (UnionCase(ats, px, ao, s, UnionCaseType fs)) =
     // Access option doesn't seem relevant here
     genPreXmlDoc px
     +> ifElse hasBar (!- "| ") id -- s 
-    +> colPre sepStar sepWordOf fs genField
+    +> colPre sepStar wordOf fs genField
 
 and genEnumCase hasBar (EnumCase(ats, px, s, Const c)) =
     genPreXmlDoc px
@@ -148,7 +149,7 @@ and genEnumCase hasBar (EnumCase(ats, px, s, Const c)) =
     +> colPost sepSpace sepSpace ats genAttribute -- s +> sepEq -- c    
 
 and genField(Field(ats, px, ao, isStatic, t, so)) = 
-    opt (!- " : ") so (!-) +> genType t
+    opt sepColon so (!-) +> genType t
 
 and genType = function
     | THashConstraint t -> !- "#" +> genType t
@@ -173,7 +174,7 @@ and genType = function
     // Not sure why the bool value could change '*' to '/'
     | TTuple ts -> col sepStar ts (snd >> genType)
     // Revise this case later
-    | TWithGlobalConstraints(t, tcs) -> genType t -- " with " +> col sepWordAnd tcs genTypeConstr
+    | TWithGlobalConstraints(t, tcs) -> genType t -- " with " +> col wordAnd tcs genTypeConstr
     | TLongIdent li -> !- li
     | t -> failwithf "Unexpected pattern: %O" t
 
@@ -196,19 +197,20 @@ and genMemberDefn = function
 
 and genPat = function
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)
+    // Not sure what it is about
     | PatAttrib(p, attrs) -> id
-    | PatOr(p1, p2) -> id
-    | PatAnds(ps) -> id
+    | PatOr(p1, p2) -> genPat p1 -- " | " +> genPat p2
+    | PatAnds(ps) -> col (!- " & ") ps genPat
     | PatNullary PatNull -> !- "null"
-    | PatNullary PatWild -> sepWild
-    | PatTyped(p, t) -> id
-    | PatNamed(ao, p, s) -> !- s
+    | PatNullary PatWild -> id
+    | PatTyped(p, t) -> genPat p +> sepColon +> genType t
+    | PatNamed(ao, p, s) ->  opt sepSpace ao genAccess -- s +> genPat p
     | PatLongIdent(ao, li, ps) -> opt sepSpace ao genAccess -- li +> sepSpace +> col sepSpace ps genPat
-    | PatParen(p) -> id
-    | PatSeq(PatTuple, ps) -> id
-    | PatSeq(PatArray, ps) -> id
-    | PatSeq(PatList, ps) -> id
-    | PatRecord(xs) -> id
+    | PatParen(p) -> !- "(" +> genPat p -- ")"
+    | PatSeq(PatTuple, ps) -> col sepComma ps genPat
+    | PatSeq(PatList, ps) -> !- "[" +> col sepSemi ps genPat -- "]"
+    | PatSeq(PatArray, ps) -> !- "[|" +> col sepSemi ps genPat -- "|]"
+    | PatRecord(xs) -> !- "{ " +> col sepSemi xs (fun ((LongIdent li,  Ident s), p) -> !- (sprintf "%s = %s" li s) +> genPat p) -- " }"
     | PatConst(Const s) -> !- s
     | PatIsInst(t) -> !- " :? " +> genType t
     | PatQuoteExpr e -> !- "<@ " +> genExpr e -- " @>"
