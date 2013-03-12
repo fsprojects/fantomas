@@ -215,11 +215,29 @@ let (|TraitCall|_|) = function
     | _ -> None
 
 let (|Quote|_|) = function                                    
-    | SynExpr.Quote(e1, _, e2, _, _) -> Some(e1, e2)
+    | SynExpr.Quote(e1, isRaw, e2, _, _) -> Some(e1, e2)
+    | _ -> None
+
+let (|Paren|_|) = function 
+    | SynExpr.Paren(e, _, _, _) -> Some e
     | _ -> None
 
 type ExprKind = | InferredDowncast | InferredUpcast | Lazy | Assert | AddressOfSingle | AddressOfDouble
-                | Paren | Yield | Return | YieldFrom | ReturnFrom | Do | DoBang
+                | Yield | Return | YieldFrom | ReturnFrom | Do | DoBang
+with override x.ToString() =
+        match x with
+        | InferredDowncast -> "downcast"
+        | InferredUpcast -> "upcast"
+        | Lazy -> "lazy"
+        | Assert -> "assert"
+        | AddressOfSingle -> "&"
+        | AddressOfDouble -> "&&"        
+        | Yield -> "yield"
+        | Return -> "return"
+        | YieldFrom -> "yield!"
+        | ReturnFrom -> "return!"
+        | Do -> "do"
+        | DoBang -> "do!"
 
 let (|SingleExpr|_|) = function 
     | SynExpr.InferredDowncast(e, _) -> Some(InferredDowncast, e)
@@ -227,8 +245,7 @@ let (|SingleExpr|_|) = function
     | SynExpr.Lazy(e, _) -> Some(Lazy, e)
     | SynExpr.Assert(e, _) -> Some(Assert, e)
     | SynExpr.AddressOf(false, e, _, _) -> Some(AddressOfSingle, e)
-    | SynExpr.AddressOf(true, e, _, _) -> Some(AddressOfDouble, e)
-    | SynExpr.Paren(e, _, _, _) -> Some(Paren, e)
+    | SynExpr.AddressOf(true, e, _, _) -> Some(AddressOfDouble, e)    
     | SynExpr.YieldOrReturn((false, _), e, _) -> Some(Yield, e)
     | SynExpr.YieldOrReturn((true, _), e, _) -> Some(Return, e)
     | SynExpr.YieldOrReturnFrom((false, _), e, _) -> Some(YieldFrom, e)
@@ -417,6 +434,10 @@ let (|PatConst|_|) = function
 
 let (|PatIsInst|_|) = function
     | SynPat.IsInst(t, _) -> Some t
+    | _ -> None
+
+let (|PatQuoteExpr|_|) = function
+    | SynPat.QuoteExpr(e, _) -> Some e
     | _ -> None
 
 // Members

@@ -62,17 +62,21 @@ and genBinding prefix = function
         +> genPat p +> sepEq +> genExpr e
 
 and genExpr = function
-    // Superfluous parens in tuple
-    | SingleExpr(Paren, (Tuple _ as e)) -> genExpr e
-    | SingleExpr(Paren, e) -> !- "(" +> genExpr e -- ")"
-    | SingleExpr(Do, e) -> !- "do " +> genExpr e
-    | SingleExpr(kind, e) -> id
+    | Paren e -> !- "(" +> genExpr e -- ")"
+    | SingleExpr(kind, e) -> str kind +> sepSpace +> genExpr e
     | ConstExpr(Const s) -> !- s
-    | NullExpr -> id
+    | NullExpr -> !- "null"
+    // Not sure how to differentiate <@ and <@@
     | Quote(e1, e2) -> id
-    | TypedExpr(_, e, t) -> id
-    | Tuple(es) -> !- "(" +> col sepComma es genExpr -- ")"
-    | ArrayOrList(es) -> id
+    | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType t
+    | TypedExpr(New, e, t) -> !- "new " +> genType t -- "(" +> genExpr e -- ")"
+    | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType t
+    | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
+    | TypedExpr(Typed, e, t) -> genExpr e -- " : " +> genType t
+    | Tuple es -> !- "(" +> col sepComma es genExpr -- ")"
+    // Figure out how to break long expressions into multiple lines
+    | ArrayOrList(isList, xs) -> 
+        ifElse isList (!- "[" +> col sepComma xs genExpr -- "]") (!- "[|" +> col sepComma xs genExpr -- "|]")
     | Record(xs) -> id
     | ObjExpr(t, x, bd, ims) -> id
     | While(e1, e2) -> id
@@ -91,11 +95,11 @@ and genExpr = function
     | Sequential(e1, e2) -> id
     | IfThenElse(e1, e2, e3) -> id
     | Var(li) -> !- li
-    | LongIdentSet(e) -> id
-    | DotIndexedGet(e, es) -> id
-    | DotIndexedSet(e1, es, e2) -> id
-    | DotGet(e, s) -> id
-    | DotSet(e1,_s, e2) -> id
+    | LongIdentSet(s, e) -> !- (sprintf "%s -> " s) +> genExpr e
+    | DotIndexedGet(e, es) -> genExpr e -- sprintf ".[" +> col sepComma es genExpr -- "]"
+    | DotIndexedSet(e1, es, e2) -> genExpr e1 -- sprintf ".[" +> col sepComma es genExpr -- "] <- " +> genExpr e2
+    | DotGet(e, s) -> genExpr e -- sprintf ".%s" s
+    | DotSet(e1, s, e2) -> genExpr e1 -- sprintf ".%s <- " s +> genExpr e2
     | TraitCall(ss, msg, e) -> id
     | LetOrUseBang(isUse, p, e1, e2) -> id
     | e -> failwithf "Unexpected pattern: %O" e
@@ -163,7 +167,7 @@ and genType = function
             match ts with
             | [] -> failwith "List of types should not be empty"
             | [t'] -> genType t' +> sepSpace +> genType t
-            | _ -> !- "(" +> col sepComma ts genType -- ") " +> genType t
+            | ts -> !- "(" +> col sepComma ts genType -- ") " +> genType t
         ifElse isPostfix postForm (genType t -- "<" +> col sepComma ts genType -- ">")
     | TLongIdentApp(t, li, ts) -> genType t -- li -- "<" +> col sepComma ts genType -- ">"
     // Not sure why the bool value could change '*' to '/'
@@ -191,12 +195,12 @@ and genMemberDefn = function
     | md -> failwithf "Unexpected pattern: %O" md
 
 and genPat = function
-    | PatOptionalVal(x) -> id
+    | PatOptionalVal(s) -> !- (sprintf "?%s" s)
     | PatAttrib(p, attrs) -> id
     | PatOr(p1, p2) -> id
     | PatAnds(ps) -> id
-    | PatNullary PatNull -> id
-    | PatNullary PatWild -> id
+    | PatNullary PatNull -> !- "null"
+    | PatNullary PatWild -> sepWild
     | PatTyped(p, t) -> id
     | PatNamed(ao, p, s) -> !- s
     | PatLongIdent(ao, li, ps) -> opt sepSpace ao genAccess -- li +> sepSpace +> col sepSpace ps genPat
@@ -206,5 +210,6 @@ and genPat = function
     | PatSeq(PatList, ps) -> id
     | PatRecord(xs) -> id
     | PatConst(Const s) -> !- s
-    | PatIsInst(p) -> id
+    | PatIsInst(t) -> !- " :? " +> genType t
+    | PatQuoteExpr e -> !- "<@ " +> genExpr e -- " @>"
     | p -> failwithf "Unexpected pattern: %O" p
