@@ -89,27 +89,35 @@ let str (o : 'T) (ctx : Context) =
     ctx
 
 /// Process collection - keeps context through the whole processing
-/// calls 'f' for every element in sequence and 'fs' between every two elements 
+/// calls 'f' for every element in sequence and 'f'' between every two elements 
 /// as a separator. This is a variant that works on typed collections.
-let col fs (c : seq<'T>) f (ctx : Context) =
+let col f' (c : seq<'T>) f (ctx : Context) =
     let mutable tryPick = true in
     let mutable st = ctx
     let e = c.GetEnumerator()   
     while (e.MoveNext()) do
-        if tryPick then tryPick <- false else st <- fs st
+        if tryPick then tryPick <- false else st <- f' st
         st <- f (e.Current) st
     st
 
-/// If there is a value, apply f and fs accordingly, otherwise, do nothing
-let opt fs o f (ctx : Context) =
+/// If there is a value, apply f and f' accordingly, otherwise, do nothing
+let opt f' o f (ctx : Context) =
     match o with
-    | Some x -> fs (f x ctx)
+    | Some x -> f' (f x ctx)
     | None -> ctx
 
-/// Similar to col, apply one more function fs2 at the end if not empty
-let colOpt fs1 fs2 (c : seq<'T>) f (ctx : Context) =
+/// Similar to col, apply one more function f2 at the end if the input sequence is not empty
+let colPost f1 f2 (c : seq<'T>) f (ctx : Context) =
     if Seq.isEmpty c then ctx
-    else fs2 (col fs1 c f ctx)
+    else f2 (col f1 c f ctx)
+
+/// Similar to col, apply one more function f2 at the beginning if the input sequence is not empty
+let colPre f1 f2 (c : seq<'T>) f (ctx : Context) =
+    if Seq.isEmpty c then ctx
+    else col f1 c f (f2 ctx)
+
+let ifElse b (f1 : Context -> Context) f2 (ctx : Context) =
+    if b then f1 ctx else f2 ctx
 
 // Separator functions        
 let sepDot = !- "."
@@ -117,8 +125,9 @@ let sepWordAnd = !- " and "
 let sepWordOf = !- " of "      
 let sepSpace = !- " "      
 let sepNln = !+ ""
-let sepArgs = !- ", "
-let sepArgsSemi = !- "; "
+let sepComma = !- ", "
+let sepSemi = !- "; "
+let sepSemiNln = !+ ";"
 let sepNone = id
 let sepStar = !- " * "
 let sepEq = !- " = "

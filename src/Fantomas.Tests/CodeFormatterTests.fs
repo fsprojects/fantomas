@@ -14,12 +14,12 @@ let inline append s content = content + s
 
 [<Test>]
 let ``module abbreviation``() =
-    formatString "module ES = Microsoft.FSharp.Quotations.ExprShape" config
+    formatSourceString "module ES = Microsoft.FSharp.Quotations.ExprShape" config
     |> should equal "module ES = Microsoft.FSharp.Quotations.ExprShape"
 
 [<Test>]
 let ``attributes on expressions``() =
-    formatString """
+    formatSourceString """
     [<Dependency("FSharp.Compiler", LoadHint.Always)>]
     do ()""" config
     |> prepend newline
@@ -29,7 +29,7 @@ do ()"""
 
 [<Test>]
 let ``module with functions``() =
-    formatString "module internal MyModule = let x = 42" config
+    formatSourceString "module internal MyModule = let x = 42" config
     |> prepend newline
     |> should equal """
 module internal MyModule = 
@@ -37,7 +37,7 @@ module internal MyModule =
 
 [<Test>]
 let ``open modules``() =
-    formatString """
+    formatSourceString """
     open System
     open System.IO""" config
     |> prepend newline
@@ -47,7 +47,7 @@ open System.IO"""
 
 [<Test>]
 let ``recursive functions``() =
-    formatString """
+    formatSourceString """
     let rec f x = g x
     and g x = x""" config
     |> prepend newline
@@ -57,7 +57,7 @@ and g x = x"""
 
 [<Test>]
 let ``hash directives``() =
-    formatString """
+    formatSourceString """
     #r "Fantomas.Tests.dll"
     #load "CodeFormatterTests.fs"
     """ config

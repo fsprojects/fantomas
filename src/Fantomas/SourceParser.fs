@@ -148,7 +148,7 @@ let (|Field|) = function
     | SynField.Field(ats, isStatic, ido, t, _, px, ao, _) -> (ats, px, ao, isStatic, t, Option.map (|Ident|) ido)
 
 let (|EnumCase|) = function
-    | SynEnumCase.EnumCase(ats, Ident id, c, ao, _) -> (ats, id, c, ao)
+    | SynEnumCase.EnumCase(ats, Ident s, c, px, _) -> (ats, px, s, c)
 
 // Member definitions (11 cases)
 
@@ -201,10 +201,10 @@ let (|MDAutoProperty|_|) = function
 // Bindings
 
 let (|LetBinding|MemberBinding|) = function
-    | SynBinding.Binding(ao, _, _, _, ats, px, SynValData(Some isInst, _,_), pat, _, expr, _, _) -> 
-        MemberBinding(px, ats, ao, isInst, pat, expr)
-    | SynBinding.Binding(ao, _, _, _, ats, px, _, pat, _, expr, _, _) -> 
-        LetBinding(px, ats, ao, pat, expr)
+    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, SynValData(Some mf, _,_), pat, _, expr, _, _) -> 
+        MemberBinding(ats, px, ao, isInline, mf.IsInstance, pat, expr, bk)
+    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, _, pat, _, expr, _, _) -> 
+        LetBinding(ats, px, ao, isInline, isMutable, pat, expr, bk)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
@@ -436,6 +436,8 @@ let (|RecordField|) = function
 let (|Clause|) = function
     | SynMatchClause.Clause(p, _,e, _, _) -> (p, e)
 
+// Type definitions
+
 let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRGeneral|) = function
     | SynTypeDefnSimpleRepr.Enum(ecs, _) -> TDSREnum ecs
     | SynTypeDefnSimpleRepr.Union(ao, xs, _) -> TDSRUnion(ao, xs)
@@ -448,8 +450,6 @@ let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRGeneral|) = func
 let (|Simple|ObjectModel|) = function
     | SynTypeDefnRepr.Simple(tdsr, _) -> Simple tdsr
     | SynTypeDefnRepr.ObjectModel(tdk, md, _) -> ObjectModel(tdk, md)
-
-// Type definitions
 
 let (|TypeDef|) = function
     | SynTypeDefn.TypeDefn(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent li, px, _, ao, _) , tdr, ms, _) ->

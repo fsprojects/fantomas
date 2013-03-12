@@ -19,16 +19,16 @@ and genModuleOrNamespace = function
     | ModuleOrNamespace(ats, px, ao, li, mds) -> col sepNln mds genModuleDecl
 
 and genModuleDecl = function
-    | Attributes(ats) -> col sepArgs ats genAttribute
+    | Attributes(ats) -> col sepNln ats genAttribute
     | DoExpr(e) ->  genExpr e
     | Exception(ex) -> genException ex
     | HashDirective(s1, s2) -> !- "#" -- s1 +> sepSpace -- sprintf "%A" s2 // print with quotes
-    | Let(b) -> !- "let " +> genBinding b
-    | LetRec(b::bs) -> !- "let rec " +> genBinding b +> sepNln +> col sepNln bs (fun b -> !- "and " +> genBinding b)
+    | Let(b) -> genBinding "let " b
+    | LetRec(b::bs) -> genBinding "let rec " b +> sepNln +> col sepNln bs (genBinding "and ")
     | ModuleAbbrev(s1, s2) -> !- "module " -- s1 +> sepEq -- s2
     | NamespaceFragment(m) -> failwithf "NamespaceFragment is not supported yet: %O" m
     | NestedModule(ats, px, ao, s, mds) -> 
-        colOpt sepArgs sepNln ats genAttribute 
+        colPost sepNln sepNln ats genAttribute 
         +> genPreXmlDoc px -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
         +> indent +> sepNln +> col sepNln mds genModuleDecl +> unindent // sepNln forces evaluation
     | Open(s) -> !- "open " -- s
@@ -39,11 +39,23 @@ and genAccess(Access s) = !- s
 
 and genAttribute(Attribute(li, e, isGetSet)) = !- "[<" -- li +> genExpr e -- ">]"
     
-and genPreXmlDoc(PreXmlDoc lines) = colOpt sepNln sepNln lines (!-)
+and genPreXmlDoc(PreXmlDoc lines) = colPost sepNln sepNln lines (!-)
 
-and genBinding = function
-    | LetBinding(px, ats, ao, p, e) -> genPat p +> sepEq +> genExpr e
-    | MemberBinding(px, ats, ao, isInst, pat, expr) -> failwith "Not implemented yet"
+and genBinding prefix = function
+    | LetBinding(ats, px, ao, isInline, isMutable, p, e, bk) ->
+        // Figure out what to do with SynBindingKind
+        colPost sepSpace sepNln ats genAttribute 
+        +> genPreXmlDoc px -- prefix +> opt sepSpace ao genAccess
+        +> ifElse isMutable (!- "mutable ") id +> ifElse isInline (!- "inline ") id
+        +> genPat p +> sepEq +> genExpr e
+    | MemberBinding(ats, px, ao, isInline, isInst, p, e, bk) ->
+        // Refactor: prefix doesn't make sense here
+        colPost sepSpace sepNln ats genAttribute
+        +> genPreXmlDoc px
+        +> ifElse isInst (!- "static member ") (!- "member ")
+        +> ifElse isInline (!- "inline ") id
+        +> opt sepSpace ao genAccess
+        +> genPat p +> sepEq +> genExpr e
 
 and genExpr = function
     // Superfluous paren in tuple
@@ -55,7 +67,7 @@ and genExpr = function
     | NullExpr -> id
     | Quote(e1, e2) -> id
     | TypedExpr(_, e, t) -> id
-    | Tuple(es) -> !- "(" +> col sepArgs es genExpr -- ")"
+    | Tuple(es) -> !- "(" +> col sepComma es genExpr -- ")"
     | ArrayOrList(es) -> id
     | Record(xs) -> id
     | ObjExpr(t, x, bd, ims) -> id
@@ -84,19 +96,60 @@ and genExpr = function
     | LetOrUseBang(isUse, p, e1, e2) -> id
     | e -> failwithf "Unexpected pattern: %O" e
 
-and genTypeDefn e = id
+and genTypeDefn(TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) = 
+    let typeName = 
+        colPost sepSpace sepNln ats genAttribute 
+        +> genPreXmlDoc px -- "type " +> opt sepSpace ao genAccess -- li
+    match tdr with
+    | Simple(TDSREnum ecs) ->
+        typeName +> sepEq 
+        +> indent +> sepNln
+        +> col sepNln ecs (genEnumCase true) +> sepNln
+        +> unindent
+    | Simple(TDSRUnion(ao', xs)) ->
+        typeName +> sepEq 
+        +> indent +> sepNln +> opt sepNln ao' genAccess 
+        +> col sepNln xs (genUnionCase true) +> sepNln
+        +> unindent
+    | Simple(TDSRRecord(ao', fs)) ->
+        typeName +> sepEq 
+        +> indent +> sepNln +> opt sepNln ao' genAccess
+        -- "{ " +> col sepSemiNln fs genField -- " }" +> sepNln
+        +> unindent
+    | Simple TDSRNone -> id
+    | Simple(TDSRTypeAbbrev t)  -> id
+    | Simple TDSRGeneral -> id
+    | ObjectModel(tdk, md) -> failwith "Not implemented yet"
 
 and genException(ExceptionDef(ats, px, ao, uc, ms)) = 
-    colOpt sepArgs sepNln ats genAttribute 
-    +> genPreXmlDoc px -- "exception " +> opt sepSpace ao genAccess +> genUnionCase uc
-    +> sepNln +> colOpt sepNln sepNln ms genMemberDefn
+    colPost sepSpace sepNln ats genAttribute 
+    +> genPreXmlDoc px -- "exception " +> opt sepSpace ao genAccess +> genUnionCase false uc
+    +> sepNln +> colPost sepNln sepNln ms genMemberDefn
 
-and genUnionCase(UnionCase(ats, px, ao, s, UnionCaseType fs)) = 
-    opt sepSpace ao genAccess -- s +> sepWordOf +> col sepStar fs genField
+and genUnionCase hasBar (UnionCase(ats, px, ao, s, UnionCaseType fs)) = 
+    // Access option doesn't seem relevant here
+    genPreXmlDoc px
+    +> ifElse hasBar (!- "| ") id -- s 
+    +> colPre sepStar sepWordOf fs genField
 
-and genField(Field(ats, px, ao, isStatic, t, so)) = genType t
+and genEnumCase hasBar (EnumCase(ats, px, s, Const c)) =
+    genPreXmlDoc px
+    +> ifElse hasBar (!- "| ") id 
+    +> colPost sepSpace sepSpace ats genAttribute -- s +> sepEq -- c    
+
+and genField(Field(ats, px, ao, isStatic, t, so)) = 
+    opt (!- " : ") so (!-) +> genType t
 
 and genType = function
+    | THashConstraint t -> id
+    | TMeasurePower(t, n) -> id
+    | TArray(t, n) -> id
+    | TAnon -> id
+    | TVar tp -> id
+    | TFun(t1, t2) -> id
+    | TApp(t, ts) -> id
+    | TTuple ts -> id
+    | TWithGlobalConstraints(t, ts) -> id
     | TLongIdent li -> !- li
     | t -> failwithf "Unexpected pattern: %O" t
 

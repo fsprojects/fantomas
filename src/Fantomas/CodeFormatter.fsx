@@ -12,7 +12,16 @@ open Fantomas.CodeFormatter
 
 let config = FormatConfig.Default
 
+let t01 = parse "type X = private | A of AParameters | B"
+
+let t02 = parse """
+    type FontVariant =
+    | [<Description("small-caps")>] SmallCaps = 0"""
+
 let t03 = parse """
+    type AParameters = { a : int }"""
+
+let t04 = parse """
     type AParameters = { a : int }
     type X = | A of AParameters | B
     let f (r : X) =
@@ -42,12 +51,12 @@ let t10 = parse """
 let t11 = parse """
     namespace Core
     type A = A
-    """
+    """;;
 
-//printfn "Result:\n%s" <| format t01 config;;
-//printfn "Result:\n%s" <| format t02 config;;
+printfn "Result:\n%s" <| format t01 config;;
+printfn "Result:\n%s" <| format t02 config;;
 printfn "Result:\n%s" <| format t03 config;;
-//printfn "Result:\n%s" <| format t04 config;;
+printfn "Result:\n%s" <| format t04 config;;
 //printfn "Result:\n%s" <| format t05 config;;
 printfn "Result:\n%s" <| format t06 config;;
 //printfn "Result:\n%s" <| format t07 config;;
