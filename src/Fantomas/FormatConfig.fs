@@ -119,6 +119,10 @@ let colPre f1 f2 (c : seq<'T>) f (ctx : Context) =
 let ifElse b (f1 : Context -> Context) f2 (ctx : Context) =
     if b then f1 ctx else f2 ctx
 
+/// Repeat application of a function n times
+let rep n (f : Context -> Context) (ctx : Context) =
+    [1..n] |> List.fold (fun c _ -> f c) ctx
+
 // Separator functions        
 let sepDot = !- "."
 let sepWordAnd = !- " and "  
@@ -132,4 +136,5 @@ let sepNone = id
 let sepStar = !- " * "
 let sepEq = !- " = "
 let sepArrow = !- " -> "
+let sepWild = !- "_"
 

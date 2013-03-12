@@ -455,7 +455,7 @@ let (|TypeDef|) = function
     | SynTypeDefn.TypeDefn(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent li, px, _, ao, _) , tdr, ms, _) ->
         (ats, px, ao, tds, tcs, tdr, ms, li)
 
-// Types (10 cases)
+// Types (15 cases)
 
 let (|THashConstraint|_|) = function
     | SynType.HashConstraint(t, _) -> Some t
@@ -463,6 +463,22 @@ let (|THashConstraint|_|) = function
 
 let (|TMeasurePower|_|) = function
     | SynType.MeasurePower(t, n, _) -> Some(t, n)
+    | _ -> None
+
+let (|TMeasureDivide|_|) = function
+    | SynType.MeasureDivide(t1, t2, _) -> Some(t1, t2)
+    | _ -> None
+
+let (|TStaticConstant|_|) = function
+    | SynType.StaticConstant(c, _) -> Some c
+    | _ -> None
+
+let (|TStaticConstantExpr|_|) = function
+    | SynType.StaticConstantExpr(c, _) -> Some c
+    | _ -> None
+
+let (|TStaticConstantNamed|_|) = function
+    | SynType.StaticConstantNamed(t1, t2, _) -> Some(t1, t2)
     | _ -> None
 
 let (|TArray|_|) = function
@@ -482,15 +498,19 @@ let (|TFun|_|) = function
     | _ -> None
 
 let (|TApp|_|) = function 
-    | SynType.App(t, _, ts, _, _, _, _) -> Some(t, ts)
+    | SynType.App(t, _, ts, _, _, isPostfix, _) -> Some(t, ts, isPostfix)    
     | _ -> None
+
+let (|TLongIdentApp|_|) = function
+    | SynType.LongIdentApp(t, LongIdentWithDots li, _, ts, _, _, _) -> Some(t, li, ts)    
+    | _ -> None    
 
 let (|TTuple|_|) = function     
     | SynType.Tuple(ts, _) -> Some ts
     | _ -> None
 
 let (|TWithGlobalConstraints|_|) = function     
-    | SynType.WithGlobalConstraints(t, ts, _) -> Some(t, ts)
+    | SynType.WithGlobalConstraints(t, tcs, _) -> Some(t, tcs)
     | _ -> None
 
 let (|TLongIdent|_|) = function

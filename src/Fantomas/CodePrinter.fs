@@ -37,7 +37,11 @@ and genModuleDecl = function
 
 and genAccess(Access s) = !- s
 
-and genAttribute(Attribute(li, e, isGetSet)) = !- "[<" -- li +> genExpr e -- ">]"
+and genAttribute(Attribute(li, e, isGetSet)) = 
+    match e with
+    // Special treatment for type application on attributes
+    | ConstExpr(Const "()") -> !- (sprintf "[<%s>]" li)
+    | e -> !- "[<" -- li +> genExpr e -- ">]"
     
 and genPreXmlDoc(PreXmlDoc lines) = colPost sepNln sepNln lines (!-)
 
@@ -49,7 +53,7 @@ and genBinding prefix = function
         +> ifElse isMutable (!- "mutable ") id +> ifElse isInline (!- "inline ") id
         +> genPat p +> sepEq +> genExpr e
     | MemberBinding(ats, px, ao, isInline, isInst, p, e, bk) ->
-        // Refactor: prefix doesn't make sense here
+        // TODO: prefix doesn't make sense here
         colPost sepSpace sepNln ats genAttribute
         +> genPreXmlDoc px
         +> ifElse isInst (!- "static member ") (!- "member ")
@@ -58,7 +62,7 @@ and genBinding prefix = function
         +> genPat p +> sepEq +> genExpr e
 
 and genExpr = function
-    // Superfluous paren in tuple
+    // Superfluous parens in tuple
     | SingleExpr(Paren, (Tuple _ as e)) -> genExpr e
     | SingleExpr(Paren, e) -> !- "(" +> genExpr e -- ")"
     | SingleExpr(Do, e) -> !- "do " +> genExpr e
@@ -116,8 +120,10 @@ and genTypeDefn(TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) =
         +> indent +> sepNln +> opt sepNln ao' genAccess
         -- "{ " +> col sepSemiNln fs genField -- " }" +> sepNln
         +> unindent
-    | Simple TDSRNone -> id
-    | Simple(TDSRTypeAbbrev t)  -> id
+    | Simple TDSRNone -> 
+        typeName +> sepNln
+    | Simple(TDSRTypeAbbrev t) -> 
+        typeName +> sepEq +> genType t +> sepNln
     | Simple TDSRGeneral -> id
     | ObjectModel(tdk, md) -> failwith "Not implemented yet"
 
@@ -141,17 +147,35 @@ and genField(Field(ats, px, ao, isStatic, t, so)) =
     opt (!- " : ") so (!-) +> genType t
 
 and genType = function
-    | THashConstraint t -> id
-    | TMeasurePower(t, n) -> id
-    | TArray(t, n) -> id
-    | TAnon -> id
-    | TVar tp -> id
-    | TFun(t1, t2) -> id
-    | TApp(t, ts) -> id
-    | TTuple ts -> id
-    | TWithGlobalConstraints(t, ts) -> id
+    | THashConstraint t -> !- "#" +> genType t
+    | TMeasurePower(t, n) -> genType t -- "^" +> str n
+    | TMeasureDivide(t1, t2) -> genType t1 -- " / " +> genType t2
+    | TStaticConstant(Const c) -> !- c
+    | TStaticConstantExpr(e) -> genExpr e
+    // Not sure about this case
+    | TStaticConstantNamed(t1, t2) -> genType t1 -- "=" +> genType t2
+    | TArray(t, n) -> genType t +> rep n (!- "[]")
+    | TAnon -> sepWild
+    | TVar tp -> !- "'" +> genTypePar tp 
+    | TFun(t1, t2) -> genType t1 +> sepArrow +> genType t2
+    | TApp(t, ts, isPostfix) -> 
+        let postForm = 
+            match ts with
+            | [] -> failwith "List of types should not be empty"
+            | [t'] -> genType t' +> sepSpace +> genType t
+            | _ -> !- "(" +> col sepComma ts genType -- ") " +> genType t
+        ifElse isPostfix postForm (genType t -- "<" +> col sepComma ts genType -- ">")
+    | TLongIdentApp(t, li, ts) -> genType t -- li -- "<" +> col sepComma ts genType -- ">"
+    // Not sure why the bool value could change '*' to '/'
+    | TTuple ts -> col sepStar ts (snd >> genType)
+    // Revise this case later
+    | TWithGlobalConstraints(t, tcs) -> genType t -- " with " +> col sepWordAnd tcs genTypeConstr
     | TLongIdent li -> !- li
     | t -> failwithf "Unexpected pattern: %O" t
+
+and genTypePar tp = id
+
+and genTypeConstr tc = id
 
 and genMemberDefn = function
     | MDNestedType(td, ao) -> id

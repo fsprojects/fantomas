@@ -29,6 +29,14 @@ let t04 = parse """
         | X.A ({ a = aValue } as t) -> aValue
         | X.B -> 0"""
 
+let t05 = parse """
+    [<Measure>] type m
+    [<Measure>] type kg
+    [<Measure>] type s
+    [<Measure>] type N = kg m / s^2
+    [<Measure>] type Pa = N / m^2
+    let a = 1.<m/Pa*s>"""
+
 let t06 = parse """
     [<AttributeUsage(AttributeTargets.Method, AllowMultiple = true)>]
     type TestAttribute([<ParamArray>] parameters: obj[])  =
@@ -57,7 +65,7 @@ printfn "Result:\n%s" <| format t01 config;;
 printfn "Result:\n%s" <| format t02 config;;
 printfn "Result:\n%s" <| format t03 config;;
 printfn "Result:\n%s" <| format t04 config;;
-//printfn "Result:\n%s" <| format t05 config;;
+printfn "Result:\n%s" <| format t05 config;;
 printfn "Result:\n%s" <| format t06 config;;
 //printfn "Result:\n%s" <| format t07 config;;
 printfn "Result:\n%s" <| format t08 config;;
