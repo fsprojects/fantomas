@@ -16,6 +16,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Args", "Args\Args.fsproj", 
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StructuredFormat", "StructuredFormat\StructuredFormat.fsproj", "{284D4199-C301-4C1A-B189-C05F8A825EF1}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Cmd", "Fantomas.Cmd\Fantomas.Cmd.fsproj", "{1E92A842-18B8-4445-9A07-BB202501A7A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{284D4199-C301-4C1A-B189-C05F8A825EF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{284D4199-C301-4C1A-B189-C05F8A825EF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{284D4199-C301-4C1A-B189-C05F8A825EF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E92A842-18B8-4445-9A07-BB202501A7A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E92A842-18B8-4445-9A07-BB202501A7A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E92A842-18B8-4445-9A07-BB202501A7A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E92A842-18B8-4445-9A07-BB202501A7A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
