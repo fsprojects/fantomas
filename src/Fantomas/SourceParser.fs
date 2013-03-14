@@ -1,4 +1,4 @@
-﻿module Fantomas.SourceParser
+﻿module internal Fantomas.SourceParser
 
 open Microsoft.FSharp.Compiler.Ast
 
@@ -270,7 +270,7 @@ let (|While|_|) = function
     | _ -> None
 
 let (|For|_|) = function 
-    | SynExpr.For(_, Ident id, e1, _, e2, e3, _) -> Some(id, e1, e2, e3)
+    | SynExpr.For(_, Ident id, e1, isUp, e2, e3, _) -> Some(id, e1, e2, e3, isUp)
     | _ -> None
 
 let (|NullExpr|_|) = function 
@@ -319,7 +319,7 @@ let (|App|_|) = function
     | _ -> None
 
 let (|Lambda|_|) = function
-    | SynExpr.Lambda(_, _, pats, e, _) -> Some(pats, e)
+    | SynExpr.Lambda(_, _, pats, e, _) -> Some(e, pats)
     | _ -> None
 
 let (|LetOrUse|_|) = function

@@ -100,14 +100,13 @@ type FontVariant =
 """
 
 [<Test>]
-let ``units of measures``() =
+let ``units of measures declaration``() =
     formatSourceString """
     [<Measure>] type m
     [<Measure>] type kg
     [<Measure>] type s
     [<Measure>] type N = kg m / s^2
-    [<Measure>] type Pa = N / m^2
-    let a = 1.<m/Pa*s>""" config
+    [<Measure>] type Pa = N / m^2""" config
     |> prepend newline
     |> should equal """
 [<Measure>]
@@ -124,6 +123,53 @@ type N = kg m * s^2
 
 [<Measure>]
 type Pa = N * m^2
+"""
 
-let a = 1.0<m/Pa*s>"""
+[<Test>]
+let ``typed quotations``() =
+    formatSourceString """
+    <@ 
+        let f x = x + 10
+        f 20
+    @>""" config
+    |> prepend newline
+    |> should equal """
+<@ let f x = x + 10
+   f 20 @>
+"""
 
+[<Test>]
+let ``untyped quotations``() =
+    formatSourceString "<@@ 2 + 3 @@>" config
+    |> should equal "<@@ 2 + 3 @@>"
+
+[<Test>]
+let ``exception declations``() =
+    formatSourceString "exception Error2 of string * int" config
+    |> should equal """exception Error2 of string * int
+"""
+
+[<Test>]
+let ``for loops``() =
+    formatSourceString """
+    let function1() =
+        for i = 1 to 10 do
+            printf "%d " i
+        printfn ""
+    let function2() =
+      for i = 10 downto 1 do
+        printf "%d " i
+      printfn ""
+    """ config
+    |> prepend newline
+    |> append newline
+    |> should equal """
+let function1 () = 
+    for i = 1 to 10 do
+        printf "%d " i
+    printfn ""
+let function2 () = 
+    for i = 10 downto 1 do
+        printf "%d " i
+    printfn ""
+"""
