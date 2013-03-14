@@ -41,8 +41,6 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="app.config" />
-    <None Include="ParserTests.fs" />
-    <None Include="ParserTestsExt.fs" />
     <Compile Include="CodeFormatterTests.fs" />
   </ItemGroup>
   <ItemGroup>

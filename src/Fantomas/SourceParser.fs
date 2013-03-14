@@ -1,4 +1,4 @@
-﻿module Fantomas.SourceParser
+﻿module internal Fantomas.SourceParser
 
 open Microsoft.FSharp.Compiler.Ast
 
@@ -148,7 +148,7 @@ let (|Field|) = function
     | SynField.Field(ats, isStatic, ido, t, _, px, ao, _) -> (ats, px, ao, isStatic, t, Option.map (|Ident|) ido)
 
 let (|EnumCase|) = function
-    | SynEnumCase.EnumCase(ats, Ident id, c, ao, _) -> (ats, id, c, ao)
+    | SynEnumCase.EnumCase(ats, Ident s, c, px, _) -> (ats, px, s, c)
 
 // Member definitions (11 cases)
 
@@ -169,7 +169,8 @@ let (|MDInherit|_|) = function
     | _ -> None
 
 let (|MDValField|_|) = function  
-    | SynMemberDefn.ValField(SynField.Field(ats, _, ido, t, _, px, ao, _), _) -> Some(ats, px, ao, t, Option.map (|Ident|) ido)
+    | SynMemberDefn.ValField(SynField.Field(ats, _, ido, t, _, px, ao, _), _) -> 
+        Some(ats, px, ao, t, Option.map (|Ident|) ido)
     | _ -> None
 
 let (|MDImplicitCtor|_|) = function  
@@ -185,7 +186,8 @@ let (|MDLetBindings|_|) = function
     | _ -> None
 
 let (|MDAbstractSlot|_|) = function
-    | SynMemberDefn.AbstractSlot(SynValSig.ValSpfn(ats, Ident id, _, _, _, _, _, px, ao, _, _),_,_) -> Some(ats, px, ao, id)
+    | SynMemberDefn.AbstractSlot(SynValSig.ValSpfn(ats, Ident id, _, _, _, _, _, px, ao, _, _),_,_) -> 
+        Some(ats, px, ao, id)
     | _ -> None
 
 let (|MDInterface|_|) = function
@@ -199,10 +201,10 @@ let (|MDAutoProperty|_|) = function
 // Bindings
 
 let (|LetBinding|MemberBinding|) = function
-    | SynBinding.Binding(ao, _, _, _, ats, px, SynValData(Some isInst, _,_), pat, _, expr, _, _) -> 
-        MemberBinding(px, ats, ao, isInst, pat, expr)
-    | SynBinding.Binding(ao, _, _, _, ats, px, _, pat, _, expr, _, _) -> 
-        LetBinding(px, ats, ao, pat, expr)
+    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, SynValData(Some mf, _,_), pat, _, expr, _, _) -> 
+        MemberBinding(ats, px, ao, isInline, mf.IsInstance, pat, expr, bk)
+    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, _, pat, _, expr, _, _) -> 
+        LetBinding(ats, px, ao, isInline, isMutable, pat, expr, bk)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
@@ -212,12 +214,31 @@ let (|TraitCall|_|) = function
         Some(ids, msig, expr)
     | _ -> None
 
+/// isRaw = true with <@@ and @@>
 let (|Quote|_|) = function                                    
-    | SynExpr.Quote(e1, _, e2, _, _) -> Some(e1, e2)
+    | SynExpr.Quote(e1, isRaw, e2, _, _) -> Some(e1, e2, isRaw)
+    | _ -> None
+
+let (|Paren|_|) = function 
+    | SynExpr.Paren(e, _, _, _) -> Some e
     | _ -> None
 
 type ExprKind = | InferredDowncast | InferredUpcast | Lazy | Assert | AddressOfSingle | AddressOfDouble
-                | Paren | Yield | Return | YieldFrom | ReturnFrom | Do | DoBang
+                | Yield | Return | YieldFrom | ReturnFrom | Do | DoBang
+with override x.ToString() =
+        match x with
+        | InferredDowncast -> "downcast"
+        | InferredUpcast -> "upcast"
+        | Lazy -> "lazy"
+        | Assert -> "assert"
+        | AddressOfSingle -> "&"
+        | AddressOfDouble -> "&&"        
+        | Yield -> "yield"
+        | Return -> "return"
+        | YieldFrom -> "yield!"
+        | ReturnFrom -> "return!"
+        | Do -> "do"
+        | DoBang -> "do!"
 
 let (|SingleExpr|_|) = function 
     | SynExpr.InferredDowncast(e, _) -> Some(InferredDowncast, e)
@@ -225,8 +246,7 @@ let (|SingleExpr|_|) = function
     | SynExpr.Lazy(e, _) -> Some(Lazy, e)
     | SynExpr.Assert(e, _) -> Some(Assert, e)
     | SynExpr.AddressOf(false, e, _, _) -> Some(AddressOfSingle, e)
-    | SynExpr.AddressOf(true, e, _, _) -> Some(AddressOfDouble, e)
-    | SynExpr.Paren(e, _, _, _) -> Some(Paren, e)
+    | SynExpr.AddressOf(true, e, _, _) -> Some(AddressOfDouble, e)    
     | SynExpr.YieldOrReturn((false, _), e, _) -> Some(Yield, e)
     | SynExpr.YieldOrReturn((true, _), e, _) -> Some(Return, e)
     | SynExpr.YieldOrReturnFrom((false, _), e, _) -> Some(YieldFrom, e)
@@ -250,7 +270,7 @@ let (|While|_|) = function
     | _ -> None
 
 let (|For|_|) = function 
-    | SynExpr.For(_, Ident id, e1, _, e2, e3, _) -> Some(id, e1, e2, e3)
+    | SynExpr.For(_, Ident id, e1, isUp, e2, e3, _) -> Some(id, e1, e2, e3, isUp)
     | _ -> None
 
 let (|NullExpr|_|) = function 
@@ -270,15 +290,15 @@ let (|Sequential|_|) = function
     | _ -> None
 
 let (|ArrayOrList|_|) = function
-    | SynExpr.ArrayOrList(isList, xs, _) -> Some(isList, xs)
+    | SynExpr.ArrayOrList(isArray, xs, _) -> Some(isArray, xs)
     | _ -> None
 
 let (|CompExpr|_|) = function
-    | SynExpr.CompExpr(isList, _, expr, _) -> Some(isList, expr)
+    | SynExpr.CompExpr(isArray, _, expr, _) -> Some(isArray, expr)
     | _ -> None
 
 let (|ArrayOrListOfSeqExpr|_|) = function
-    | SynExpr.ArrayOrListOfSeqExpr(isList, expr, _) -> Some(isList, expr)
+    | SynExpr.ArrayOrListOfSeqExpr(isArray, expr, _) -> Some(isArray, expr)
     | _ -> None
 
 let (|Tuple|_|) = function
@@ -299,7 +319,7 @@ let (|App|_|) = function
     | _ -> None
 
 let (|Lambda|_|) = function
-    | SynExpr.Lambda(_, _, pats, e, _) -> Some(pats, e)
+    | SynExpr.Lambda(_, _, pats, e, _) -> Some(e, pats)
     | _ -> None
 
 let (|LetOrUse|_|) = function
@@ -417,6 +437,10 @@ let (|PatIsInst|_|) = function
     | SynPat.IsInst(t, _) -> Some t
     | _ -> None
 
+let (|PatQuoteExpr|_|) = function
+    | SynPat.QuoteExpr(e, _) -> Some e
+    | _ -> None
+
 // Members
 
 let (|MSMember|) = function
@@ -434,6 +458,8 @@ let (|RecordField|) = function
 let (|Clause|) = function
     | SynMatchClause.Clause(p, _,e, _, _) -> (p, e)
 
+// Type definitions
+
 let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRGeneral|) = function
     | SynTypeDefnSimpleRepr.Enum(ecs, _) -> TDSREnum ecs
     | SynTypeDefnSimpleRepr.Union(ao, xs, _) -> TDSRUnion(ao, xs)
@@ -447,13 +473,11 @@ let (|Simple|ObjectModel|) = function
     | SynTypeDefnRepr.Simple(tdsr, _) -> Simple tdsr
     | SynTypeDefnRepr.ObjectModel(tdk, md, _) -> ObjectModel(tdk, md)
 
-// Type definitions
-
 let (|TypeDef|) = function
     | SynTypeDefn.TypeDefn(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent li, px, _, ao, _) , tdr, ms, _) ->
         (ats, px, ao, tds, tcs, tdr, ms, li)
 
-// Types (10 cases)
+// Types (15 cases)
 
 let (|THashConstraint|_|) = function
     | SynType.HashConstraint(t, _) -> Some t
@@ -461,6 +485,22 @@ let (|THashConstraint|_|) = function
 
 let (|TMeasurePower|_|) = function
     | SynType.MeasurePower(t, n, _) -> Some(t, n)
+    | _ -> None
+
+let (|TMeasureDivide|_|) = function
+    | SynType.MeasureDivide(t1, t2, _) -> Some(t1, t2)
+    | _ -> None
+
+let (|TStaticConstant|_|) = function
+    | SynType.StaticConstant(c, _) -> Some c
+    | _ -> None
+
+let (|TStaticConstantExpr|_|) = function
+    | SynType.StaticConstantExpr(c, _) -> Some c
+    | _ -> None
+
+let (|TStaticConstantNamed|_|) = function
+    | SynType.StaticConstantNamed(t1, t2, _) -> Some(t1, t2)
     | _ -> None
 
 let (|TArray|_|) = function
@@ -480,15 +520,19 @@ let (|TFun|_|) = function
     | _ -> None
 
 let (|TApp|_|) = function 
-    | SynType.App(t, _, ts, _, _, _, _) -> Some(t, ts)
+    | SynType.App(t, _, ts, _, _, isPostfix, _) -> Some(t, ts, isPostfix)    
     | _ -> None
+
+let (|TLongIdentApp|_|) = function
+    | SynType.LongIdentApp(t, LongIdentWithDots li, _, ts, _, _, _) -> Some(t, li, ts)    
+    | _ -> None    
 
 let (|TTuple|_|) = function     
     | SynType.Tuple(ts, _) -> Some ts
     | _ -> None
 
 let (|TWithGlobalConstraints|_|) = function     
-    | SynType.WithGlobalConstraints(t, ts, _) -> Some(t, ts)
+    | SynType.WithGlobalConstraints(t, tcs, _) -> Some(t, tcs)
     | _ -> None
 
 let (|TLongIdent|_|) = function

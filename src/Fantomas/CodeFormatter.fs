@@ -26,18 +26,18 @@ let format tree config =
     genParsedInput tree { Context.Default with Config = config } |> dump
 
 /// Format a source file using given config
-let formatFile f config = 
+let formatSourceFile f config = 
     let s = File.ReadAllText(f)
     let tree = parseWith f s
     format tree config
 
 /// Format a source string using given config
-let formatString s config =
+let formatSourceString s config =
     let tree = parseWith "/tmp.fs" s
     format tree config
 
 /// Format inFile and write to outFile
-let processFile inFile outFile config = 
-    let s = formatFile inFile config
+let processSourceFile inFile outFile config = 
+    let s = formatSourceFile inFile config
     File.WriteAllText(outFile, s)
     
