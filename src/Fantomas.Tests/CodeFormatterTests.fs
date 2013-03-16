@@ -173,3 +173,59 @@ let function2 () =
         printf "%d " i
     printfn ""
 """
+
+[<Test>]
+let ``object expressions``() =
+    formatSourceString """let obj1 = { new System.Object() with member x.ToString() = "F#" }""" config
+    |> prepend newline
+    |> should equal """
+let obj1 = 
+    { new System.Object with
+          static member x.ToString () = "F#" }"""
+
+[<Test>]
+let ``object expressions and interfaces``() =
+    formatSourceString """
+    let implementer() = 
+        { new ISecond with 
+            member this.H() = ()
+            member this.J() = ()
+          interface IFirst with 
+            member this.F() = ()
+            member this.G() = () }""" config
+    |> prepend newline
+    |> should equal """
+let implementer () = 
+    { new ISecond with
+          static member this.H () = ()
+          static member this.J () = ()
+      interface IFirst with
+          static member this.F () = ()
+          static member this.G () = () }
+"""
+
+[<Test>]
+let ``type annotations``() =
+    formatSourceString """
+    let iterate1 (f : unit -> seq<int>) =
+        for e in f() do printfn "%d" e
+    let iterate2 (f : unit -> #seq<int>) =
+        for e in f() do printfn "%d" e""" config
+    |> prepend newline
+    |> should equal """
+let iterate1 (f : unit -> seq<int>) = 
+    for e in f () do
+        printfn "%d" e
+let iterate2 (f : unit -> #seq<int>) = 
+    for e in f () do
+        printfn "%d" e"""
+
+[<Test>]
+let ``upcast and downcast``() =
+    formatSourceString """
+    let base1 = d1 :> Base1
+    let derived1 = base1 :?> Derived1""" config
+    |> prepend newline
+    |> should equal """
+let base1 = d1 :> Base1
+let derived1 = base1 :?> Derived1"""

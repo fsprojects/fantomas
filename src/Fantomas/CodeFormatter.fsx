@@ -12,26 +12,26 @@ open Fantomas.CodeFormatter
 
 let config = FormatConfig.Default
 
-let t01 = parse "let obj1 = { new System.Object() with member x.ToString() = \"F#\" }"
-
-let t02 = parse """
-    let implementer() = 
-        { new ISecond with 
-            member this.H() = ()
-            member this.J() = ()
-          interface IFirst with 
-            member this.F() = ()
-            member this.G() = () }"""
-
-let t03 = parse """
-    let iterate1 (f : unit -> seq<int>) =
-        for e in f() do printfn "%d" e
-    let iterate2 (f : unit -> #seq<int>) =
-        for e in f() do printfn "%d" e"""
-
-let t04 = parse """
-    let base1 = d1 :> Base1
-    let derived1 = base1 :?> Derived1"""
+//let t01 = parse "let obj1 = { new System.Object() with member x.ToString() = \"F#\" }"
+//
+//let t02 = parse """
+//    let implementer() = 
+//        { new ISecond with 
+//            member this.H() = ()
+//            member this.J() = ()
+//          interface IFirst with 
+//            member this.F() = ()
+//            member this.G() = () }"""
+//
+//let t03 = parse """
+//    let iterate1 (f : unit -> seq<int>) =
+//        for e in f() do printfn "%d" e
+//    let iterate2 (f : unit -> #seq<int>) =
+//        for e in f() do printfn "%d" e"""
+//
+//let t04 = parse """
+//    let base1 = d1 :> Base1
+//    let derived1 = base1 :?> Derived1"""
 
 let t05 = parse """
     type Delegate1 = delegate of (int * int) -> int
@@ -77,10 +77,10 @@ let t11 = parse """
     type A = A
     """;;
 
-printfn "Result:\n%s" <| format t01 config;;
-printfn "Result:\n%s" <| format t02 config;;
-printfn "Result:\n%s" <| format t03 config;;
-printfn "Result:\n%s" <| format t04 config;;
+//printfn "Result:\n%s" <| format t01 config;;
+//printfn "Result:\n%s" <| format t02 config;;
+//printfn "Result:\n%s" <| format t03 config;;
+//printfn "Result:\n%s" <| format t04 config;;
 printfn "Result:\n%s" <| format t05 config;;
 printfn "Result:\n%s" <| format t06 config;;
 printfn "Result:\n%s" <| format t07 config;;

@@ -169,8 +169,7 @@ let (|MDInherit|_|) = function
     | _ -> None
 
 let (|MDValField|_|) = function  
-    | SynMemberDefn.ValField(SynField.Field(ats, _, ido, t, _, px, ao, _), _) -> 
-        Some(ats, px, ao, t, Option.map (|Ident|) ido)
+    | SynMemberDefn.ValField(f, _) -> Some f
     | _ -> None
 
 let (|MDImplicitCtor|_|) = function  
@@ -186,8 +185,8 @@ let (|MDLetBindings|_|) = function
     | _ -> None
 
 let (|MDAbstractSlot|_|) = function
-    | SynMemberDefn.AbstractSlot(SynValSig.ValSpfn(ats, Ident id, _, _, _, _, _, px, ao, _, _),_,_) -> 
-        Some(ats, px, ao, id)
+    | SynMemberDefn.AbstractSlot(SynValSig.ValSpfn(ats, Ident s, _, _, _, _, _, px, ao, _, _),_,_) -> 
+        Some(ats, px, ao, s)
     | _ -> None
 
 let (|MDInterface|_|) = function
@@ -197,6 +196,11 @@ let (|MDInterface|_|) = function
 let (|MDAutoProperty|_|) = function
     | SynMemberDefn.AutoProperty(ats, _, Ident s, _, mk, _, px, ao, e, _ , _) -> Some(ats, px, ao, mk, e, s)
     | _ -> None
+
+// Interface impl
+
+let (|InterfaceImpl|) = function
+    | SynInterfaceImpl.InterfaceImpl(t, bs, _) -> (t, bs)
 
 // Bindings
 
@@ -472,6 +476,31 @@ let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRGeneral|) = func
 let (|Simple|ObjectModel|) = function
     | SynTypeDefnRepr.Simple(tdsr, _) -> Simple tdsr
     | SynTypeDefnRepr.ObjectModel(tdk, md, _) -> ObjectModel(tdk, md)
+
+type TypeDefnKindSingle = 
+    | TCUnspecified 
+    | TCClass 
+    | TCInterface 
+    | TCStruct 
+    | TCRecord
+    | TCUnion
+    | TCAbbrev
+    | TCHiddenRepr
+    | TCAugmentation
+    | TCILAssemblyCode
+
+let (|TCSimple|TCDelegate|) = function
+    | TyconUnspecified -> TCSimple TCUnspecified
+    | TyconClass -> TCSimple TCClass
+    | TyconInterface -> TCSimple TCInterface
+    | TyconStruct -> TCSimple TCStruct 
+    | TyconRecord -> TCSimple TCRecord
+    | TyconUnion -> TCSimple TCUnion
+    | TyconAbbrev -> TCSimple TCAbbrev
+    | TyconHiddenRepr -> TCSimple TCHiddenRepr
+    | TyconAugmentation -> TCSimple TCAugmentation
+    | TyconILAssemblyCode -> TCSimple TCILAssemblyCode
+    | TyconDelegate(t, vi) -> TCDelegate(t, vi)
 
 let (|TypeDef|) = function
     | SynTypeDefn.TypeDefn(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent li, px, _, ao, _) , tdr, ms, _) ->

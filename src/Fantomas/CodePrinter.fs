@@ -4,6 +4,34 @@ open System
 open Fantomas.SourceParser
 open Fantomas.FormatConfig
 
+/// Check whether an expressions should be broken into multiple lines
+let rec multilineExpr = function
+    | Paren e | SingleExpr(_, e) | TypedExpr(_, e, _) -> multilineExpr e
+    | ConstExpr _ | NullExpr | Var _ -> false
+    | Quote(e1, e2, _) -> multilineExpr e1 || multilineExpr e2
+    | Tuple es -> List.exists multilineExpr es
+    | ArrayOrList(_, es) -> List.exists multilineExpr es
+    | Record(xs) -> xs |> Seq.choose (fun (_, y, _) -> y) |> Seq.exists multilineExpr
+    | ObjExpr _ | While _ | For _ | ForEach _ -> true
+    | CompExpr(_, e) -> multilineExpr e
+    | ArrayOrListOfSeqExpr(_, e) -> multilineExpr e
+    | Lambda(e, _) -> multilineExpr e
+    | Match(e, cs) -> multilineExpr e || List.length cs > 1
+    | App(e1, e2) -> multilineExpr e1 || multilineExpr e2
+    | TypeApp(e, _) -> multilineExpr e
+    | LetOrUse(_, _, bs, e) -> not (List.isEmpty bs) || multilineExpr e
+    | TryWith _ | TryFinally _ | Sequential _ ->  true
+    | IfThenElse(e1, e2, Some e3) -> multilineExpr e1 || multilineExpr e2 || multilineExpr e3
+    | IfThenElse(e1, e2, None) -> multilineExpr e1 || multilineExpr e2
+    | LongIdentSet(_, e) -> multilineExpr e
+    | DotIndexedGet(e, es) -> multilineExpr e || List.exists multilineExpr es
+    | DotIndexedSet(e1, es, e2) -> multilineExpr e1 || multilineExpr e2 || List.exists multilineExpr es
+    | DotGet(e, _) -> multilineExpr e
+    | DotSet(e1, _, e2) -> multilineExpr e1 || multilineExpr e2
+    | TraitCall(_, _, e) -> multilineExpr e
+    | LetOrUseBang(_, _, e1, e2) -> multilineExpr e1 || multilineExpr e2
+    | e -> failwithf "Unexpected pattern: %O" e
+
 let rec genParsedInput = function
     | ImplFile im -> genImpFile im
     | SigFile si -> genSigFile si
@@ -50,13 +78,13 @@ and genPreXmlDoc(PreXmlDoc lines) = colPost sepNln sepNln lines (!-)
 and genBinding prefix = function
     | LetBinding(ats, px, ao, isInline, isMutable, p, e, bk) ->
         // Figure out what to do with SynBindingKind
-        colPost sepSpace sepNln ats genAttribute 
+        colPost sepNone sepNln ats genAttribute 
         +> genPreXmlDoc px -- prefix +> opt sepSpace ao genAccess
         +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") id
-        +> genPat p +> sepEq +> indent +> sepNln +> genExpr e +> unindent
+        +> genPat p +> sepEq +> ifElse (multilineExpr e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
     | MemberBinding(ats, px, ao, isInline, isInst, p, e, bk) ->
         // TODO: prefix doesn't make sense here
-        colPost sepSpace sepNln ats genAttribute
+        colPost sepNone sepNln ats genAttribute
         +> genPreXmlDoc px
         +> ifElse isInst (!- "static member ") (!- "member ")
         +> ifElse isInline (!- "inline ") id
@@ -88,14 +116,14 @@ and genExpr = function
         -- " }"
     | ObjExpr(t, x, bd, ims) ->
         !- "{ new " +> genType t -- " with" 
-        +> incrIndent 2 +> indent +> sepNln +> col sepNln bd (genBinding "")
-        +> colPre sepNln sepNln ims genInterfaceImpl -- " }" +> decrIndent 2 +> sepNln
+        +> incrIndent 2 +> indent +> sepNln +> col sepNln bd (genBinding "") +> unindent +> sepNln
+        +> col sepNln ims genInterfaceImpl -- " }" +> decrIndent 2 +> sepNln
     | While(e1, e2) -> 
         !- "while " +> genExpr e1 -- " do" 
         +> indent +> sepNln +> genExpr e2 +> unindent
     | For(s, e1, e2, e3, isUp) ->
         !- (sprintf "for %s = " s) +> genExpr e1 
-        +> ifElse isUp (!- " to ") (!- " downto ")+> genExpr e2 -- " do" 
+        +> ifElse isUp (!- " to ") (!- " downto ") +> genExpr e2 -- " do" 
         +> indent +> sepNln +> genExpr e3 +> unindent
     // When does something has form of 'for i in e1 -> e2'?
     | ForEach(p, e1, e2) ->
@@ -114,7 +142,10 @@ and genExpr = function
     // Not really understand it
     | LetOrUse(isRec, isUse, bs, e) ->
         ifElse isUse (!- "use ") (ifElse isRec (!- "let rec ") (!- "let "))
-        +> col sepSpace bs (genBinding "") +> sepEq +> genExpr e
+        +> col sepSpace bs (genBinding "") 
+        // Could possibly give an " in " here
+        +> sepNln +> genExpr e 
+    // Breakdown based on length of e
     | TryWith(e, cs) ->  !- "try " +> genExpr e ++ "with" +> sepNln +> col sepNln cs genMatchClause
     | TryFinally(e1, e2) -> !- "try " +> genExpr e1 ++ "finally" +> indent +> sepNln +> genExpr e2 +> unindent
     // May process the boolean flag later
@@ -163,8 +194,11 @@ and genTypeDefn(TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) =
         typeName +> sepNln
     | Simple(TDSRTypeAbbrev t) -> 
         typeName +> sepEq +> genType t +> sepNln
+    // What is this case?
     | Simple TDSRGeneral -> id
-    | ObjectModel(tdk, md) -> failwith "Not implemented yet"
+    | ObjectModel(tdk, mds) -> genTypeDefKind tdk +> col sepNln mds genMemberDefn
+
+and genTypeDefKind tdk = id
 
 and genException(ExceptionDef(ats, px, ao, uc, ms)) = 
     colPost sepSpace sepNln ats genAttribute 
@@ -216,24 +250,47 @@ and genTypePar tp = id
 
 and genTypeConstr tc = id
 
-and genInterfaceImpl ii = id
+and genInterfaceImpl (InterfaceImpl(t, bs)) = 
+    !- "interface " +> genType t -- " with"
+    +> indent +> sepNln +> col sepNln bs (genBinding "") +> unindent
 
 and genMatchClause mc = id
 
 and genMemberSig ms = id
 
 and genMemberDefn = function
-    | MDNestedType(td, ao) -> id
-    | MDOpen(so) -> id
-    | MDImplicitInherit(t, e, so) -> id
-    | MDInherit(t, so) -> id
-    | MDValField(ats, px, ao, t, so) -> id
-    | MDImplicitCtor(ats, ao, ps, so) -> id
-    | MDMember(bo) -> id
-    | MDLetBindings(isStatic, isRec, bs) -> id
-    | MDInterface(t, mdo) -> id
-    | MDAutoProperty(ats, px, ao, mk, e, s) -> id
+    | MDNestedType(td, ao) -> invalidArg "md" "This functionality is not implemented in F#"
+    | MDOpen(s) -> !- s
+    // What is the role of so
+    | MDImplicitInherit(t, e, so) -> !- "inherit " +> genType t +> genExpr e
+    | MDInherit(t, so) -> !- "inherit " +> genType t
+    | MDValField f -> genField f
+    | MDImplicitCtor(ats, ao, ps, so) -> 
+        colPost sepNone sepNln ats genAttribute
+        +> opt sepSpace ao genAccess
+        +> opt sepSpace so (!-)
+        +> col sepSpace ps genSimplePat 
+    | MDMember(b) -> genBinding "" b
+    | MDLetBindings(isStatic, isRec, bs) ->
+        let prefix = 
+            if isStatic && isRec then "static let rec "
+            elif isStatic then "static let "
+            else "let "
+        col sepNln bs (genBinding prefix)
+    | MDInterface(t, mdo) -> 
+        !- "interface " +> genType t -- " with" 
+        +> indent +> sepNln +> opt sepNln mdo (fun mds -> col sepNln mds genMemberDefn) +> unindent
+    | MDAutoProperty(ats, px, ao, mk, e, s) -> 
+        colPost sepNone sepNln ats genAttribute
+        +> genPreXmlDoc px -- "member val " 
+        +> opt sepSpace ao genAccess -- s +> sepEq +> genExpr e
+    | MDAbstractSlot(ats, px, ao, s) ->
+        colPost sepNone sepNln ats genAttribute
+        +> genPreXmlDoc px 
+        +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
     | md -> failwithf "Unexpected pattern: %O" md
+
+and genSimplePat sp = id
 
 and genSimplePats sp = id
 
