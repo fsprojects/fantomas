@@ -42,6 +42,7 @@
     <None Include="packages.config" />
     <None Include="app.config" />
     <Compile Include="CodeFormatterTests.fs" />
+    <Compile Include="CodeFormatterExtTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Compiler">

@@ -182,7 +182,7 @@ and genExpr = function
         +> indent +> sepNln +> genExpr e2 +> unindent
     // Not sure what it is different from ArrayOrListOfSeqExpr
     | CompExpr(isArray, e) ->
-        ifElse isArray (!- "[|" +> genExpr e -- "|]") (!- "[" +> genExpr e -- "]")
+        !- "{ " +> ifElse (multiline e) (indent +> sepNln +> genExpr e -- " }" +> unindent) (genExpr e -- " }")
     | ArrayOrListOfSeqExpr(isArray, e) -> ifElse isArray (!- "[|" +> genExpr e -- "|]") (!- "[" +> genExpr e -- "]")
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
     | Lambda(e, sp, isMember) -> !- "fun " +> genSimplePats sp +> sepArrow +> genExpr e
@@ -192,8 +192,9 @@ and genExpr = function
         +> colPre sepNln sepNln cs genMatchClause
     | App(App(App(Var ".. ..", e1), e2), e3) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
     // Spaces might be optional
-    | InfixApp(s, e1, e2) -> genExpr e1 +> sepSpace -- s +> sepSpace +> genExpr e2
-    | App(e1, e2) -> genExpr e1 +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
+    | InfixApp(s, e1, e2) -> genExpr e1 +> ifElse (s = "..") (!- s) (sepSpace -- s +> sepSpace) +> genExpr e2
+    | App(Var s, e2) -> !- s +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
+    | App(e1, e2) -> genExpr e1 +> sepSpace +> genExpr e2
     | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts genType -- ">"
     // Not really understand it
     | LetOrUse(isRec, isUse, bs, e) ->
@@ -228,7 +229,7 @@ and genExpr = function
         !- "(" +> types +> sepColon +> genMemberSig msg +> sepSpace +> genExpr e -- ")"
     | LetOrUseBang(isUse, p, e1, e2) ->
         ifElse isUse (!- "use! ") (!- "let! ") 
-        +> genPat p -- " = " +> genExpr e1 -- " in " +> genExpr e2
+        +> genPat p -- " = " +> genExpr e1 +> sepNln +> genExpr e2
     | e -> failwithf "Unexpected pattern: %O" e
 
 and genTypeDefn(TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) = 

@@ -44,8 +44,7 @@ let t04 = """
        override u.function1(a: int) = a + 1"""
 
 let t05 = """
-    type Delegate1 = delegate of (int * int) -> int
-    type Delegate2 = delegate of int * int -> int"""
+    seq { for i in 1 .. 10 -> i * i }"""
 
 let t06 = """
        let divide x y =
@@ -67,16 +66,31 @@ let rangeTest testValue mid size =
 """
 
 let t08 = """
-    let writetofile filename obj =
-     use file1 = File.CreateText(filename)
-     file1.WriteLine("{0}", obj.ToString())
+let fetchAsync(name, url:string) =
+    async { 
+        try 
+            let uri = new System.Uri(url)
+            let webClient = new WebClient()
+            let! html = webClient.AsyncDownloadString(uri)
+            printfn "Read %d characters for %s" html.Length name
+        with
+            | ex -> printfn "%s" (ex.Message);
+    }
     """
 
-let t09 = "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\""
+let t09 = """
+let comp =
+    eventually { for x in 1 .. 2 do
+                    printfn " x = %d" x
+                 return 3 + 4 }"""
 
 let t10 = """
-let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
-let str1 = "abc"
+let runAll() =
+    urlList
+    |> Seq.map fetchAsync
+    |> Async.Parallel 
+    |> Async.RunSynchronously
+    |> ignore
     """;;
 
 printfn "Result:\n%s" <| formatSourceString t01 config;;
@@ -87,6 +101,5 @@ printfn "Result:\n%s" <| formatSourceString t05 config;;
 printfn "Result:\n%s" <| formatSourceString t06 config;;
 printfn "Result:\n%s" <| formatSourceString t07 config;;
 printfn "Result:\n%s" <| formatSourceString t08 config;;
-printfn "Trees:\n%A" <| parse t09;;
 printfn "Result:\n%s" <| formatSourceString t09 config;;
 printfn "Result:\n%s" <| formatSourceString t10 config;;
