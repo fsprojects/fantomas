@@ -47,15 +47,24 @@ let t05 = parse """
     type Delegate1 = delegate of (int * int) -> int
     type Delegate2 = delegate of int * int -> int"""
 
-//let t06 = parse """
-//    let private myPrivateObj = new MyPrivateType()
-//    let internal myInternalObj = new MyInternalType()"""
+let t06 = parse """
+       let divide x y =
+           let stream : System.IO.FileStream = System.IO.File.Create("test.txt")
+           let writer : System.IO.StreamWriter = new System.IO.StreamWriter(stream)
+           try
+              writer.WriteLine("test1");
+              Some( x / y )
+           finally
+              writer.Flush()
+              printfn "Closing stream"
+              stream.Close()"""
 
-//let t07 = parse """
-//    assert (3 > 2)
-//    let result = lazy (x + 10)
-//    do printfn "Hello world"
-//"""
+let t07 = parse """
+let rangeTest testValue mid size =
+    match testValue with
+    | var1 when var1 >= mid - size/2 && var1 <= mid + size/2 -> printfn "The test value is in range."
+    | _ -> printfn "The test value is out of range."
+"""
 
 let t08 = parse """
 open System
@@ -71,18 +80,27 @@ let lookForValue value maxValue =
        continueLooping <- false
 lookForValue 10 20"""
 
-//let t09 = parse """
-//    let function2() =
-//      for i in 1 .. 2 .. 10 do
-//         printf "%d " i
-//      printfn ""
-//    function2()"""
+let t09 = parse """
+    let function1 x y =
+       try 
+         try 
+            if x = y then raise (InnerError("inner"))
+            else raise (OuterError("outer"))
+         with
+          | InnerError(str) -> printfn "Error1 %s" str
+       finally
+          printfn "Always print this."
+    """
 
-//let t10 = parse """
-//    let writetofile filename obj =
-//     use file1 = File.CreateText(filename)
-//     file1.WriteLine("{0}", obj.ToString())
-//    """
+let t10 = parse """
+let divide1 x y =
+   try
+      Some (x / y)
+   with
+      | :? System.DivideByZeroException -> printfn "Division by zero!"; None
+
+let result1 = divide1 100 0
+    """
 
 let t11 = parse """
     namespace Core
@@ -94,9 +112,9 @@ printfn "Result:\n%s" <| format t02 config;;
 printfn "Result:\n%s" <| format t03 config;;
 printfn "Result:\n%s" <| format t04 config;;
 printfn "Result:\n%s" <| format t05 config;;
-//printfn "Result:\n%s" <| format t06 config;;
-//printfn "Result:\n%s" <| format t07 config;;
+printfn "Result:\n%s" <| format t06 config;;
+printfn "Result:\n%s" <| format t07 config;;
 printfn "Result:\n%s" <| format t08 config;;
-//printfn "Result:\n%s" <| format t09 config;;
-//printfn "Result:\n%s" <| format t10 config;;
+printfn "Result:\n%s" <| format t09 config;;
+printfn "Result:\n%s" <| format t10 config;;
 printfn "Result:\n%s" <| format t11 config;;

@@ -15,7 +15,9 @@ let rec multilineExpr = function
     | ObjExpr _ | While _ | For _ | ForEach _ -> true
     | CompExpr(_, e) -> multilineExpr e
     | ArrayOrListOfSeqExpr(_, e) -> multilineExpr e
-    | Lambda(e, _) -> multilineExpr e
+    | JoinIn(e1, e2) -> multilineExpr e1 || multilineExpr e2
+    | Lambda(e, _, _) -> multilineExpr e
+    | MatchLambda _ -> true
     | Match(e, cs) -> multilineExpr e || List.length cs > 1
     | App(e1, e2) -> multilineExpr e1 || multilineExpr e2
     | TypeApp(e, _) -> multilineExpr e
@@ -42,7 +44,8 @@ let hasParenthesis = function
     | ArrayOrList _ | Record _ | ObjExpr _ -> false
     | While _ | For _ | ForEach _ -> true
     | CompExpr _  | ArrayOrListOfSeqExpr _ -> false
-    | Lambda _ | Match _ -> true
+    | JoinIn _ -> true
+    | Lambda _ | MatchLambda _ | Match _ -> true
     // This case depends on associtivity
     | App _ -> false
     | TypeApp _ -> false
@@ -131,7 +134,7 @@ and genBinding prefix = function
         colPost sepNone sepNln ats genAttribute
         +> genPreXmlDoc px
         +> ifElse isInst (!- "static member ") (!- "member ")
-        +> ifElse isInline (!- "inline ") id
+        +> ifElse isInline (!- "inline ") sepNone
         +> opt sepSpace ao genAccess
         +> genPat p +> sepEq +> genExpr e
 
@@ -177,10 +180,12 @@ and genExpr = function
     | CompExpr(isArray, e) ->
         ifElse isArray (!- "[|" +> genExpr e -- "|]") (!- "[" +> genExpr e -- "]")
     | ArrayOrListOfSeqExpr(isArray, e) -> ifElse isArray (!- "[|" +> genExpr e -- "|]") (!- "[" +> genExpr e -- "]")
-    | Lambda(e, sp) -> !- "fun " +> genSimplePats sp +> sepArrow +> genExpr e
+    | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
+    | Lambda(e, sp, isMember) -> !- "fun " +> genSimplePats sp +> sepArrow +> genExpr e
+    | MatchLambda(sp, isMember) -> !- "function " +> colPre sepNln sepNln sp genMatchClause
     | Match(e, cs) -> 
-        !- "match " +> genExpr e -- " with" 
-        +> indent +> sepNln +> col sepNln cs genMatchClause +> unindent +> sepNln
+        !- "match " +> genExpr e -- " with"
+        +> colPre sepNln sepNln cs genMatchClause
     | App(e1, e2) -> genExpr e1 +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
     | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts genType -- ">"
     // Not really understand it
@@ -190,8 +195,12 @@ and genExpr = function
         // Could possibly give an " in " here
         +> sepNln +> genExpr e 
     // Breakdown based on length of e
-    | TryWith(e, cs) ->  !- "try " +> genExpr e ++ "with" +> sepNln +> col sepNln cs genMatchClause
-    | TryFinally(e1, e2) -> !- "try " +> genExpr e1 ++ "finally" +> indent +> sepNln +> genExpr e2 +> unindent
+    | TryWith(e, cs) ->  
+        !- "try " +> indent +> sepNln +> genExpr e +> unindent ++ "with" 
+        +> sepNln +> col sepNln cs genMatchClause
+    | TryFinally(e1, e2) -> 
+        !- "try " +> indent +> sepNln +> genExpr e1 +> unindent ++ "finally" 
+        +> indent +> sepNln +> genExpr e2 +> unindent
     // May process the boolean flag later
     | Sequential(e1, e2) -> genExpr e1 +> sepNln +> genExpr e2
     | IfThenElse(e1, e2, Some e3) -> !- "if " +> genExpr e1 -- " then " +> genExpr e2 -- " else " +> genExpr e3
@@ -266,12 +275,12 @@ and genException(ExceptionDef(ats, px, ao, uc, ms)) =
 and genUnionCase hasBar (UnionCase(ats, px, ao, s, UnionCaseType fs)) = 
     // Access option doesn't seem relevant here
     genPreXmlDoc px
-    +> ifElse hasBar (!- "| ") sepNone -- s 
+    +> ifElse hasBar sepBar sepNone -- s 
     +> colPre sepStar wordOf fs genField
 
 and genEnumCase hasBar (EnumCase(ats, px, s, Const c)) =
     genPreXmlDoc px
-    +> ifElse hasBar (!- "| ") sepNone 
+    +> ifElse hasBar sepBar sepNone 
     +> colPost sepSpace sepSpace ats genAttribute -- s +> sepEq -- c    
 
 and genField(Field(ats, px, ao, isStatic, t, so)) = 
@@ -312,7 +321,9 @@ and genInterfaceImpl(InterfaceImpl(t, bs)) =
     !- "interface " +> genType t -- " with"
     +> indent +> sepNln +> col sepNln bs (genBinding "") +> unindent
 
-and genMatchClause mc = id
+and genMatchClause(Clause(p, e)) = 
+    sepBar +> genPat p +> sepArrow 
+    +> ifElse (multilineExpr e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
 
 and genMemberSig ms = id
 

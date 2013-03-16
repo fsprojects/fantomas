@@ -326,7 +326,15 @@ let (|App|_|) = function
     | _ -> None
 
 let (|Lambda|_|) = function
-    | SynExpr.Lambda(_, _, pats, e, _) -> Some(e, pats)
+    | SynExpr.Lambda(isMember, _, pats, e, _) -> Some(e, pats, isMember)
+    | _ -> None
+
+let (|MatchLambda|_|) = function
+    | SynExpr.MatchLambda(isMember, _, pats, _, _) -> Some(pats, isMember)
+    | _ -> None
+
+let (|JoinIn|_|) = function
+    | SynExpr.JoinIn(e1, _, e2, _) -> Some(e1, e2)
     | _ -> None
 
 let (|LetOrUse|_|) = function

@@ -142,6 +142,7 @@ let sepEq = !- " = "
 let sepArrow = !- " -> "
 let sepWild = !- "_"
 let sepNone = id
+let sepBar = !- "| "
 
 let inline sepColon(ctx : Context) = 
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx
