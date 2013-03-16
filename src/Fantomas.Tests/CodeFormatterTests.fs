@@ -200,8 +200,7 @@ let implementer() =
           static member this.J() = ()
       interface IFirst with
           static member this.F() = ()
-          static member this.G() = () }
-"""
+          static member this.G() = () }"""
 
 [<Test>]
 let ``type annotations``() =

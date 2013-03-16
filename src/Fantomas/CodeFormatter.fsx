@@ -66,31 +66,18 @@ let rangeTest testValue mid size =
 """
 
 let t08 = """
-let fetchAsync(name, url:string) =
-    async { 
-        try 
-            let uri = new System.Uri(url)
-            let webClient = new WebClient()
-            let! html = webClient.AsyncDownloadString(uri)
-            printfn "Read %d characters for %s" html.Length name
-        with
-            | ex -> printfn "%s" (ex.Message);
-    }
+let a1 = [| for i in 1 .. 10 -> i * i |]
+let a2 = [| 0 .. 99 |]  
+let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]
     """
 
-let t09 = """
-let comp =
-    eventually { for x in 1 .. 2 do
-                    printfn " x = %d" x
-                 return 3 + 4 }"""
+let t09 = """let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
+  (3, 2, 6); (3, 3, 9)|]"""
 
 let t10 = """
-let runAll() =
-    urlList
-    |> Seq.map fetchAsync
-    |> Async.Parallel 
-    |> Async.RunSynchronously
-    |> ignore
+let array1 = [| 1; 2; 3 |]
+array1.[0..2]  
+array1.[1] <- 3
     """;;
 
 printfn "Result:\n%s" <| formatSourceString t01 config;;
@@ -103,3 +90,5 @@ printfn "Result:\n%s" <| formatSourceString t07 config;;
 printfn "Result:\n%s" <| formatSourceString t08 config;;
 printfn "Result:\n%s" <| formatSourceString t09 config;;
 printfn "Result:\n%s" <| formatSourceString t10 config;;
+
+printfn "Tree:\n%A" <| parse t05;;

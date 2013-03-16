@@ -364,7 +364,7 @@ let (|LetOrUseBang|_|) = function
     | _ -> None 
         
 let (|ForEach|_|) = function                               
-    | SynExpr.ForEach(_, _, _, pat, e1, e2 ,_) -> Some (pat, e1, e2)
+    | SynExpr.ForEach(_, SeqExprOnly isArrow, _, pat, e1, e2 ,_) -> Some (pat, e1, e2, isArrow)
     | _ -> None
 
 let (|DotIndexedSet|_|) = function

@@ -12,6 +12,7 @@ let rec multiline = function
     | Tuple es -> List.exists multiline es
     | ArrayOrList(_, es) -> List.exists multiline es
     | Record(xs) -> xs |> Seq.choose (fun (_, y, _) -> y) |> Seq.exists multiline
+    | ForEach(_, e1, e2, true) -> multiline e1 || multiline e2
     | ObjExpr _ | While _ | For _ | ForEach _ -> true
     | CompExpr(_, e) -> multiline e
     | ArrayOrListOfSeqExpr(_, e) -> multiline e
@@ -167,8 +168,8 @@ and genExpr = function
         -- " }"
     | ObjExpr(t, x, bd, ims) ->
         !- "{ new " +> genType t -- " with" 
-        +> incrIndent 2 +> indent +> sepNln +> col sepNln bd (genBinding "") +> unindent +> sepNln
-        +> col sepNln ims genInterfaceImpl -- " }" +> decrIndent 2 +> sepNln
+        +> incrIndent 2 +> indent +> sepNln +> col sepNln bd (genBinding "") +> unindent
+        +> colPre sepNln sepNln ims genInterfaceImpl -- " }" +> decrIndent 2
     | While(e1, e2) -> 
         !- "while " +> genExpr e1 -- " do" 
         +> indent +> sepNln +> genExpr e2 +> unindent
@@ -176,14 +177,19 @@ and genExpr = function
         !- (sprintf "for %s = " s) +> genExpr e1 
         +> ifElse isUp (!- " to ") (!- " downto ") +> genExpr e2 -- " do" 
         +> indent +> sepNln +> genExpr e3 +> unindent
-    // When does something has form of 'for i in e1 -> e2'?
-    | ForEach(p, e1, e2) ->
-        !- "for " +> genPat p -- " in " +> genExpr e1 -- " do" 
-        +> indent +> sepNln +> genExpr e2 +> unindent
+    // It is my guess when an expression has form of 'for i in e1 -> e2'
+    | ForEach(p, e1, e2, isArrow) ->
+        !- "for " +> genPat p -- " in " +> genExpr e1 
+        +> ifElse (isArrow && not <| multiline e2) (sepArrow +> genExpr e2) 
+                (!- " do" +> indent +> sepNln +> genExpr e2 +> unindent)
     // Not sure what it is different from ArrayOrListOfSeqExpr
-    | CompExpr(isArray, e) ->
-        !- "{ " +> ifElse (multiline e) (indent +> sepNln +> genExpr e -- " }" +> unindent) (genExpr e -- " }")
+    | CompExpr(isArrayOrList, e) ->
+        ifElse isArrayOrList sepNone (!- "{ ") 
+        +> ifElse (multiline e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
+        +> ifElse isArrayOrList sepNone (!- " }") 
     | ArrayOrListOfSeqExpr(isArray, e) -> ifElse isArray (!- "[|" +> genExpr e -- "|]") (!- "[" +> genExpr e -- "]")
+    | App(Var "seq", (App _ as e)) ->
+        !- "seq { " +> genExpr e -- " }"
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
     | Lambda(e, sp, isMember) -> !- "fun " +> genSimplePats sp +> sepArrow +> genExpr e
     | MatchLambda(sp, isMember) -> !- "function " +> colPre sepNln sepNln sp genMatchClause
