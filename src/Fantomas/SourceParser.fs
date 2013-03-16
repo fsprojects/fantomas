@@ -10,11 +10,14 @@ let inline (|LongIdent|) (li: LongIdent) =
 let inline (|LongIdentWithDots|) (LongIdentWithDots(li, _)) = 
     li |> Seq.map (fun id -> id.idText) |> String.concat "."
 
+
+let inline (|Typar|) (SynTypar.Typar(Ident s, _ , _)) = s
+
 // Literals
 
 let (|Measure|) x = 
     let rec loop = function
-        | SynMeasure.Var((SynTypar.Typar(Ident id, _, _)), _) -> id
+        | SynMeasure.Var(Typar s, _) -> s
         | SynMeasure.Anon _ -> "_"
         | SynMeasure.One -> "1"
         | SynMeasure.Product(m1, m2, _) -> 
@@ -214,7 +217,7 @@ let (|LetBinding|MemberBinding|) = function
 
 let (|TraitCall|_|) = function
     | SynExpr.TraitCall(ts, msig, expr, _) ->
-        let ids = List.map (fun (SynTypar.Typar(Ident id, _, b)) -> id) ts
+        let ids = List.map (|Typar|) ts
         Some(ids, msig, expr)
     | _ -> None
 
@@ -456,6 +459,10 @@ let (|SPatAttrib|SPatId|SPatTyped|) = function
     | SynSimplePat.Id(Ident s, _, _, _, _, _) -> SPatId s
     | SynSimplePat.Typed(sp, t, _) -> SPatTyped(sp, t)
 
+let (|SimplePats|SPSTyped|) = function
+    | SynSimplePats.SimplePats(ps, _) -> SimplePats ps
+    | SynSimplePats.Typed(ps, t, _) -> SPSTyped(ps, t)
+
 let (|RecordField|) = function
     | SynField.Field(ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, Option.map (|Ident|) ido)
 
@@ -505,6 +512,9 @@ let (|TCSimple|TCDelegate|) = function
 let (|TypeDef|) = function
     | SynTypeDefn.TypeDefn(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent li, px, _, ao, _) , tdr, ms, _) ->
         (ats, px, ao, tds, tcs, tdr, ms, li)
+
+let (|TyparDecl|) = function
+    | SynTyparDecl.TyparDecl(ats, tp) -> (ats, tp)
 
 // Types (15 cases)
 

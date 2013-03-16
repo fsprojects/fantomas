@@ -32,6 +32,50 @@ let rec multilineExpr = function
     | LetOrUseBang(_, _, e1, e2) -> multilineExpr e1 || multilineExpr e2
     | e -> failwithf "Unexpected pattern: %O" e
 
+/// Don't provide parentheses if expression has delimiters such as [, [|, {, (, etc
+let hasParenthesis = function
+    | Paren _ | SingleExpr _ | TypedExpr _ -> true
+    | ConstExpr(Const "()") -> true
+    | ConstExpr _ | NullExpr | Var _ -> false
+    | Quote _ -> false
+    | Tuple _ -> true
+    | ArrayOrList _ | Record _ | ObjExpr _ -> false
+    | While _ | For _ | ForEach _ -> true
+    | CompExpr _  | ArrayOrListOfSeqExpr _ -> false
+    | Lambda _ | Match _ -> true
+    // This case depends on associtivity
+    | App _ -> false
+    | TypeApp _ -> false
+    | LetOrUse _ -> true
+    | TryWith _ | TryFinally _ | Sequential _ ->  true
+    | IfThenElse _ -> true
+    | LongIdentSet _ -> true
+    | DotIndexedGet _ -> false
+    | DotIndexedSet _ -> true
+    | DotGet _ -> true
+    | DotSet _ -> false
+    | TraitCall _ -> false
+    | LetOrUseBang _ -> true
+    | e -> failwithf "Unexpected pattern: %O" e
+
+let hasParenInPat = function
+    | PatOptionalVal _ -> false
+    | PatAttrib _ -> false
+    | PatOr _ -> true
+    | PatAnds _ -> true
+    | PatNullary _ -> false
+    | PatTyped _ -> false
+    | PatNamed _ -> false
+    | PatLongIdent _ -> false
+    | PatConst(Const "()") -> true
+    | PatConst _ -> false
+    | PatParen _ -> true
+    | PatSeq _ -> false
+    | PatRecord _ -> false
+    | PatIsInst _ -> true
+    | PatQuoteExpr e -> false
+    | p -> failwithf "Unexpected pattern: %O" p
+
 let rec genParsedInput = function
     | ImplFile im -> genImpFile im
     | SigFile si -> genSigFile si
@@ -80,7 +124,7 @@ and genBinding prefix = function
         // Figure out what to do with SynBindingKind
         colPost sepNone sepNln ats genAttribute 
         +> genPreXmlDoc px -- prefix +> opt sepSpace ao genAccess
-        +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") id
+        +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
         +> genPat p +> sepEq +> ifElse (multilineExpr e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
     | MemberBinding(ats, px, ao, isInline, isInst, p, e, bk) ->
         // TODO: prefix doesn't make sense here
@@ -102,7 +146,7 @@ and genExpr = function
     // Not sure about the role of e1
     | Quote(e1, e2, isRaw) -> ifElse isRaw (!- "<@@ " +> genExpr e2 -- " @@>") (!- "<@ " +> genExpr e2 -- " @>")
     | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType t
-    | TypedExpr(New, e, t) -> !- "new " +> genType t +> sepSpace +> genExpr e
+    | TypedExpr(New, e, t) -> !- "new " +> genType t +> ifElse (hasParenthesis e) (genExpr e) (sepSpace +> genExpr e)
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType t
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
@@ -137,7 +181,7 @@ and genExpr = function
     | Match(e, cs) -> 
         !- "match " +> genExpr e -- " with" 
         +> indent +> sepNln +> col sepNln cs genMatchClause +> unindent +> sepNln
-    | App(e1, e2) -> genExpr e1 +> sepSpace +> genExpr e2
+    | App(e1, e2) -> genExpr e1 +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
     | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts genType -- ">"
     // Not really understand it
     | LetOrUse(isRec, isUse, bs, e) ->
@@ -172,7 +216,7 @@ and genExpr = function
 
 and genTypeDefn(TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) = 
     let typeName = 
-        colPost sepSpace sepNln ats genAttribute 
+        colPost sepNone sepNln ats genAttribute 
         +> genPreXmlDoc px -- "type " +> opt sepSpace ao genAccess -- li
     match tdr with
     | Simple(TDSREnum ecs) ->
@@ -196,9 +240,23 @@ and genTypeDefn(TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) =
         typeName +> sepEq +> genType t +> sepNln
     // What is this case?
     | Simple TDSRGeneral -> id
-    | ObjectModel(tdk, mds) -> genTypeDefKind tdk +> col sepNln mds genMemberDefn
+    | ObjectModel(tdk, mds) -> 
+        typeName -- "(" +> col sepColon tds genTyparDecl -- ")" +> sepEq +> col sepNln mds genMemberDefn
 
-and genTypeDefKind tdk = id
+and genTyparDecl(TyparDecl(ats, tp)) = col sepNone ats genAttribute +> sepSpace +> genTypar tp
+
+and genTypeDefKind = function
+    | TCSimple TCUnspecified -> id
+    | TCSimple TCClass -> id
+    | TCSimple TCInterface -> id
+    | TCSimple TCStruct -> id
+    | TCSimple TCRecord -> id
+    | TCSimple TCUnion -> id
+    | TCSimple TCAbbrev -> id
+    | TCSimple TCHiddenRepr -> id
+    | TCSimple TCAugmentation -> id
+    | TCSimple TCILAssemblyCode -> id
+    | TCDelegate(t, vi) -> id
 
 and genException(ExceptionDef(ats, px, ao, uc, ms)) = 
     colPost sepSpace sepNln ats genAttribute 
@@ -229,7 +287,7 @@ and genType = function
     | TStaticConstantNamed(t1, t2) -> genType t1 -- "=" +> genType t2
     | TArray(t, n) -> genType t +> rep n (!- "[]")
     | TAnon -> sepWild
-    | TVar tp -> !- "'" +> genTypePar tp 
+    | TVar tp -> !- "'" +> genTypar tp 
     | TFun(t1, t2) -> genType t1 +> sepArrow +> genType t2
     | TApp(t, ts, isPostfix) -> 
         let postForm = 
@@ -246,11 +304,11 @@ and genType = function
     | TLongIdent li -> !- li
     | t -> failwithf "Unexpected pattern: %O" t
 
-and genTypePar tp = id
+and genTypar(Typar s) = !- s
 
 and genTypeConstr tc = id
 
-and genInterfaceImpl (InterfaceImpl(t, bs)) = 
+and genInterfaceImpl(InterfaceImpl(t, bs)) = 
     !- "interface " +> genType t -- " with"
     +> indent +> sepNln +> col sepNln bs (genBinding "") +> unindent
 
@@ -290,21 +348,31 @@ and genMemberDefn = function
         +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
     | md -> failwithf "Unexpected pattern: %O" md
 
-and genSimplePat sp = id
-
-and genSimplePats sp = id
+and genSimplePat = function
+    | SPatId s -> !- s
+    | SPatTyped(sp, t) -> genSimplePat sp -- " : " +> genType t
+    | SPatAttrib(ats, sp) -> colPost sepNone sepSpace ats genAttribute +> genSimplePat sp
+    
+and genSimplePats = function
+    | SimplePats ps -> col sepSpace ps genSimplePat
+    // Not sure what this pattern means
+    | SPSTyped(ps, t) -> genSimplePats ps -- " : " +> genType t
 
 and genPat = function
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)
     // Not sure what it is about
-    | PatAttrib(p, attrs) -> id
+    | PatAttrib(p, ats) -> col sepNone ats genAttribute +> genPat p
     | PatOr(p1, p2) -> genPat p1 -- " | " +> genPat p2
     | PatAnds(ps) -> col (!- " & ") ps genPat
     | PatNullary PatNull -> !- "null"
-    | PatNullary PatWild -> id
+    | PatNullary PatWild -> sepNone
     | PatTyped(p, t) -> genPat p +> sepColon +> genType t
     | PatNamed(ao, p, s) ->  opt sepSpace ao genAccess -- s +> genPat p
-    | PatLongIdent(ao, li, ps) -> opt sepSpace ao genAccess -- li +> sepSpace +> col sepSpace ps genPat
+    | PatLongIdent(ao, li, ps) -> 
+        match ps with
+        | [] -> invalidArg "ps" "List of patterns should not be empty"
+        | [p] -> opt sepSpace ao genAccess -- li +> ifElse (hasParenInPat p) (genPat p) (sepSpace +> genPat p)
+        | ps -> opt sepSpace ao genAccess -- li +> sepSpace +> col sepSpace ps genPat
     | PatParen(PatConst(Const s)) -> !- s
     | PatParen(p) -> !- "(" +> genPat p -- ")"
     | PatSeq(PatTuple, ps) -> col sepComma ps genPat

@@ -164,11 +164,11 @@ let ``for loops``() =
     |> prepend newline
     |> append newline
     |> should equal """
-let function1 () = 
+let function1() = 
     for i = 1 to 10 do
         printf "%d " i
     printfn ""
-let function2 () = 
+let function2() = 
     for i = 10 downto 1 do
         printf "%d " i
     printfn ""
@@ -181,7 +181,7 @@ let ``object expressions``() =
     |> should equal """
 let obj1 = 
     { new System.Object with
-          static member x.ToString () = "F#" }"""
+          static member x.ToString() = "F#" }"""
 
 [<Test>]
 let ``object expressions and interfaces``() =
@@ -195,13 +195,13 @@ let ``object expressions and interfaces``() =
             member this.G() = () }""" config
     |> prepend newline
     |> should equal """
-let implementer () = 
+let implementer() = 
     { new ISecond with
-          static member this.H () = ()
-          static member this.J () = ()
+          static member this.H() = ()
+          static member this.J() = ()
       interface IFirst with
-          static member this.F () = ()
-          static member this.G () = () }
+          static member this.F() = ()
+          static member this.G() = () }
 """
 
 [<Test>]
@@ -213,11 +213,11 @@ let ``type annotations``() =
         for e in f() do printfn "%d" e""" config
     |> prepend newline
     |> should equal """
-let iterate1 (f : unit -> seq<int>) = 
-    for e in f () do
+let iterate1(f : unit -> seq<int>) = 
+    for e in f() do
         printfn "%d" e
-let iterate2 (f : unit -> #seq<int>) = 
-    for e in f () do
+let iterate2(f : unit -> #seq<int>) = 
+    for e in f() do
         printfn "%d" e"""
 
 [<Test>]
@@ -229,3 +229,58 @@ let ``upcast and downcast``() =
     |> should equal """
 let base1 = d1 :> Base1
 let derived1 = base1 :?> Derived1"""
+
+[<Test>]
+let ``use binding``() =
+    formatSourceString """
+    let writetofile filename obj =
+     use file1 = File.CreateText(filename)
+     file1.WriteLine("{0}", obj.ToString())
+    """ config
+    |> prepend newline
+    |> should equal """
+let writetofile filename obj = 
+    use file1 = File.CreateText(filename)
+    file1.WriteLine("{0}", obj.ToString())"""
+
+[<Test>]
+let ``range expressions``() =
+    formatSourceString """
+    let function2() =
+      for i in 1 .. 2 .. 10 do
+         printf "%d " i
+      printfn ""
+    function2()""" config
+    |> prepend newline
+    |> should equal """
+let function2 () = 
+    for i in 1..2..10 do
+        printf "%d " i
+    printfn ""
+function2()"""
+
+[<Test>]
+let ``access modifiers``() =
+    formatSourceString """
+    let private myPrivateObj = new MyPrivateType()
+    let internal myInternalObj = new MyInternalType()""" config
+    |> prepend newline
+    |> should equal """
+let private myPrivateObj = new MyPrivateType()
+let internal myInternalObj = new MyInternalType()"""
+
+[<Test>]
+let ``keyworded expressions``() =
+    formatSourceString """
+    assert (3 > 2)
+    let result = lazy (x + 10)
+    do printfn "Hello world"
+    """ config
+    |> prepend newline
+    |> append newline
+    |> should equal """
+assert (3 > 2)
+let result = lazy (x + 10)
+do printfn "Hello world "
+"""
+

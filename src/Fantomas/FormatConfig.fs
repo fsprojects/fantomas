@@ -13,7 +13,7 @@ type FormatConfig =
       LongIdentLength : Num;
       /// Write semicolon at end of line?
       SemicolonAtEndOfLine : bool;
-      /// Not keep a space before argument?
+      /// Keep a space before argument?
       SpaceBeforeArgument : bool;
       SpaceBeforeColon : bool;
       SpaceAfterComma : bool;
@@ -143,15 +143,18 @@ let sepArrow = !- " -> "
 let sepWild = !- "_"
 let sepNone = id
 
-let inline sepColon (ctx : Context) = 
+let inline sepColon(ctx : Context) = 
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx
 
-let inline sepComma (ctx : Context) = 
+let inline sepComma(ctx : Context) = 
     if ctx.Config.SpaceAfterComma then str ", " ctx else str "," ctx
 
-let inline sepSemi (ctx : Context) = 
+let inline sepSemi(ctx : Context) = 
     if ctx.Config.SpaceAfterSemicolon then str "; " ctx else str ";" ctx
 
-let inline sepSemiNln (ctx : Context) = 
+let inline sepSemiNln(ctx : Context) = 
     if ctx.Config.SemicolonAtEndOfLine then str (";" + newline) ctx else str newline ctx
+
+let inline sepBeforeArg(ctx : Context) = 
+    if ctx.Config.SpaceBeforeArgument then str " " ctx else str "" ctx
 
