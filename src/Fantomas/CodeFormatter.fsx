@@ -103,9 +103,24 @@ let result1 = divide1 100 0
     """
 
 let t11 = parse """
-    namespace Core
-    type A = A
+    #light "off"
+
+    let div2 = 2;;
+
+    let f x = 
+        let r = x % div2 in
+          if r = 1 then 
+            begin "Odd"  end 
+          else 
+            begin "Even" end
     """;;
+
+let t12 = parse """
+    let function2() =
+      for i in 1 .. 2 .. 10 do
+         printf "%d " i
+      printfn ""
+    function2()"""
 
 printfn "Result:\n%s" <| format t01 config;;
 printfn "Result:\n%s" <| format t02 config;;
@@ -118,3 +133,4 @@ printfn "Result:\n%s" <| format t08 config;;
 printfn "Result:\n%s" <| format t09 config;;
 printfn "Result:\n%s" <| format t10 config;;
 printfn "Result:\n%s" <| format t11 config;;
+printfn "Result:\n%s" <| format t12 config;;

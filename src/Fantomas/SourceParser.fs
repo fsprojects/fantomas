@@ -1,6 +1,7 @@
 ﻿module internal Fantomas.SourceParser
 
 open Microsoft.FSharp.Compiler.Ast
+open Microsoft.FSharp.Compiler.PrettyNaming
 
 let inline (|Ident|) (id: Ident) = id.idText
 
@@ -10,9 +11,8 @@ let inline (|LongIdent|) (li: LongIdent) =
 let inline (|LongIdentWithDots|) (LongIdentWithDots(li, _)) = 
     li |> Seq.map (fun id -> id.idText) |> String.concat "."
 
-
 let inline (|Typar|) (SynTypar.Typar(Ident s, _ , _)) = s
-
+    
 // Literals
 
 let (|Measure|) x = 
@@ -317,12 +317,16 @@ let (|ConstExpr|_|) = function
     | _ -> None
 
 let (|Var|_|) = function
-    | SynExpr.Ident(Ident id) -> Some id
-    | SynExpr.LongIdent(_, LongIdentWithDots li, _, _) -> Some li
+    | SynExpr.Ident(Ident s) -> Some(DecompileOpName s)
+    | SynExpr.LongIdent(_, LongIdentWithDots s, _, _) -> Some(DecompileOpName s)
     | _ -> None
 
 let (|App|_|) = function
     | SynExpr.App(_, _, e1, e2, _) -> Some(e1, e2)
+    | _ -> None
+
+let (|InfixApp|_|) = function
+    | SynExpr.App(_, _, SynExpr.App(_, true, Var s, e1, _), e2, _) -> Some(s, e1, e2)
     | _ -> None
 
 let (|Lambda|_|) = function

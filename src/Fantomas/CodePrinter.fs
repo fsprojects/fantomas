@@ -4,34 +4,34 @@ open System
 open Fantomas.SourceParser
 open Fantomas.FormatConfig
 
-/// Check whether an expressions should be broken into multiple lines
-let rec multilineExpr = function
-    | Paren e | SingleExpr(_, e) | TypedExpr(_, e, _) -> multilineExpr e
+/// Check whether an expression should be broken into multiple lines
+let rec multiline = function
+    | Paren e | SingleExpr(_, e) | TypedExpr(_, e, _) -> multiline e
     | ConstExpr _ | NullExpr | Var _ -> false
-    | Quote(e1, e2, _) -> multilineExpr e1 || multilineExpr e2
-    | Tuple es -> List.exists multilineExpr es
-    | ArrayOrList(_, es) -> List.exists multilineExpr es
-    | Record(xs) -> xs |> Seq.choose (fun (_, y, _) -> y) |> Seq.exists multilineExpr
+    | Quote(e1, e2, _) -> multiline e1 || multiline e2
+    | Tuple es -> List.exists multiline es
+    | ArrayOrList(_, es) -> List.exists multiline es
+    | Record(xs) -> xs |> Seq.choose (fun (_, y, _) -> y) |> Seq.exists multiline
     | ObjExpr _ | While _ | For _ | ForEach _ -> true
-    | CompExpr(_, e) -> multilineExpr e
-    | ArrayOrListOfSeqExpr(_, e) -> multilineExpr e
-    | JoinIn(e1, e2) -> multilineExpr e1 || multilineExpr e2
-    | Lambda(e, _, _) -> multilineExpr e
+    | CompExpr(_, e) -> multiline e
+    | ArrayOrListOfSeqExpr(_, e) -> multiline e
+    | JoinIn(e1, e2) -> multiline e1 || multiline e2
+    | Lambda(e, _, _) -> multiline e
     | MatchLambda _ -> true
-    | Match(e, cs) -> multilineExpr e || List.length cs > 1
-    | App(e1, e2) -> multilineExpr e1 || multilineExpr e2
-    | TypeApp(e, _) -> multilineExpr e
-    | LetOrUse(_, _, bs, e) -> not (List.isEmpty bs) || multilineExpr e
+    | Match(e, cs) -> multiline e || List.length cs > 1
+    | App(e1, e2) -> multiline e1 || multiline e2
+    | TypeApp(e, _) -> multiline e
+    | LetOrUse(_, _, bs, e) -> not (List.isEmpty bs) || multiline e
     | TryWith _ | TryFinally _ | Sequential _ ->  true
-    | IfThenElse(e1, e2, Some e3) -> multilineExpr e1 || multilineExpr e2 || multilineExpr e3
-    | IfThenElse(e1, e2, None) -> multilineExpr e1 || multilineExpr e2
-    | LongIdentSet(_, e) -> multilineExpr e
-    | DotIndexedGet(e, es) -> multilineExpr e || List.exists multilineExpr es
-    | DotIndexedSet(e1, es, e2) -> multilineExpr e1 || multilineExpr e2 || List.exists multilineExpr es
-    | DotGet(e, _) -> multilineExpr e
-    | DotSet(e1, _, e2) -> multilineExpr e1 || multilineExpr e2
-    | TraitCall(_, _, e) -> multilineExpr e
-    | LetOrUseBang(_, _, e1, e2) -> multilineExpr e1 || multilineExpr e2
+    | IfThenElse(e1, e2, Some e3) -> multiline e1 || multiline e2 || multiline e3
+    | IfThenElse(e1, e2, None) -> multiline e1 || multiline e2
+    | LongIdentSet(_, e) -> multiline e
+    | DotIndexedGet(e, es) -> multiline e || List.exists multiline es
+    | DotIndexedSet(e1, es, e2) -> multiline e1 || multiline e2 || List.exists multiline es
+    | DotGet(e, _) -> multiline e
+    | DotSet(e1, _, e2) -> multiline e1 || multiline e2
+    | TraitCall(_, _, e) -> multiline e
+    | LetOrUseBang(_, _, e1, e2) -> multiline e1 || multiline e2
     | e -> failwithf "Unexpected pattern: %O" e
 
 /// Don't provide parentheses if expression has delimiters such as [, [|, {, (, etc
@@ -128,7 +128,7 @@ and genBinding prefix = function
         colPost sepNone sepNln ats genAttribute 
         +> genPreXmlDoc px -- prefix +> opt sepSpace ao genAccess
         +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
-        +> genPat p +> sepEq +> ifElse (multilineExpr e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
+        +> genPat p +> sepEq +> ifElse (multiline e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
     | MemberBinding(ats, px, ao, isInline, isInst, p, e, bk) ->
         // TODO: prefix doesn't make sense here
         colPost sepNone sepNln ats genAttribute
@@ -147,7 +147,10 @@ and genExpr = function
     | ConstExpr(Const s) -> !- s
     | NullExpr -> !- "null"
     // Not sure about the role of e1
-    | Quote(e1, e2, isRaw) -> ifElse isRaw (!- "<@@ " +> genExpr e2 -- " @@>") (!- "<@ " +> genExpr e2 -- " @>")
+    | Quote(e1, e2, isRaw) -> 
+        let level = if isRaw then 4 else 3
+        let e = ifElse (multiline e2) (incrIndent level +> genExpr e2 +> decrIndent level) (genExpr e2)
+        ifElse isRaw (!- "<@@ " +> e -- " @@>") (!- "<@ " +> e -- " @>")
     | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType t
     | TypedExpr(New, e, t) -> !- "new " +> genType t +> ifElse (hasParenthesis e) (genExpr e) (sepSpace +> genExpr e)
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType t
@@ -186,6 +189,9 @@ and genExpr = function
     | Match(e, cs) -> 
         !- "match " +> genExpr e -- " with"
         +> colPre sepNln sepNln cs genMatchClause
+    | App(App(App(Var ".. ..", e1), e2), e3) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
+    // Spaces might be optional
+    | InfixApp(s, e1, e2) -> genExpr e1 +> sepSpace -- s +> sepSpace +> genExpr e2
     | App(e1, e2) -> genExpr e1 +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
     | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts genType -- ">"
     // Not really understand it
@@ -205,7 +211,8 @@ and genExpr = function
     | Sequential(e1, e2) -> genExpr e1 +> sepNln +> genExpr e2
     | IfThenElse(e1, e2, Some e3) -> !- "if " +> genExpr e1 -- " then " +> genExpr e2 -- " else " +> genExpr e3
     | IfThenElse(e1, e2, None) -> !- "if " +> genExpr e1 -- " then " +> genExpr e2
-    | Var(li) -> !- li
+    // Is decode of infix operators correct?
+    | Var s -> !- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
     | DotIndexedGet(e, es) -> genExpr e -- ".[" +> col sepComma es genExpr -- "]"
     | DotIndexedSet(e1, es, e2) -> genExpr e1 -- ".[" +> col sepComma es genExpr -- "] <- " +> genExpr e2
@@ -323,7 +330,7 @@ and genInterfaceImpl(InterfaceImpl(t, bs)) =
 
 and genMatchClause(Clause(p, e)) = 
     sepBar +> genPat p +> sepArrow 
-    +> ifElse (multilineExpr e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
+    +> ifElse (multiline e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
 
 and genMemberSig ms = id
 

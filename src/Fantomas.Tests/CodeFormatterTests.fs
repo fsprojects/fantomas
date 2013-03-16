@@ -135,8 +135,7 @@ let ``typed quotations``() =
     |> prepend newline
     |> should equal """
 <@ let f x = x + 10
-   f 20 @>
-"""
+   f 20 @>"""
 
 [<Test>]
 let ``untyped quotations``() =
@@ -253,7 +252,7 @@ let ``range expressions``() =
     function2()""" config
     |> prepend newline
     |> should equal """
-let function2 () = 
+let function2() = 
     for i in 1..2..10 do
         printf "%d " i
     printfn ""
@@ -281,7 +280,7 @@ let ``keyworded expressions``() =
     |> should equal """
 assert (3 > 2)
 let result = lazy (x + 10)
-do printfn "Hello world "
+do printfn "Hello world"
 """
 
 [<Test>]
