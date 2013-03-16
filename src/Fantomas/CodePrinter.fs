@@ -145,6 +145,7 @@ and genExpr = function
     | Paren e -> !- "(" +> genExpr e -- ")"
     | SingleExpr(kind, e) -> str kind +> sepSpace +> genExpr e
     | ConstExpr(Const s) -> !- s
+    | ConstExpr(Unresolved r) -> (fun c -> str (content r c) c)
     | NullExpr -> !- "null"
     // Not sure about the role of e1
     | Quote(e1, e2, isRaw) -> 
@@ -285,10 +286,11 @@ and genUnionCase hasBar (UnionCase(ats, px, ao, s, UnionCaseType fs)) =
     +> ifElse hasBar sepBar sepNone -- s 
     +> colPre sepStar wordOf fs genField
 
-and genEnumCase hasBar (EnumCase(ats, px, s, Const c)) =
+and genEnumCase hasBar (EnumCase(ats, px, s, c)) =
+    let c' = match c with Const c' -> !- c' | Unresolved r -> (fun ctx -> str (content r ctx) ctx)
     genPreXmlDoc px
     +> ifElse hasBar sepBar sepNone 
-    +> colPost sepSpace sepSpace ats genAttribute -- s +> sepEq -- c    
+    +> colPost sepSpace sepSpace ats genAttribute -- s +> sepEq +> c'  
 
 and genField(Field(ats, px, ao, isStatic, t, so)) = 
     opt sepColon so (!-) +> genType t
@@ -399,6 +401,7 @@ and genPat = function
     | PatRecord(xs) -> 
         !- "{ " +> col sepSemi xs (fun ((LongIdent li, Ident s), p) -> !- (sprintf "%s = %s" li s) +> genPat p) -- " }"
     | PatConst(Const s) -> !- s
-    | PatIsInst(t) -> !- " :? " +> genType t
+    | PatConst(Unresolved r) -> (fun c -> str (content r c) c)
+    | PatIsInst(t) -> !- ":? " +> genType t
     | PatQuoteExpr e -> !- "<@ " +> genExpr e -- " @>"
     | p -> failwithf "Unexpected pattern: %O" p

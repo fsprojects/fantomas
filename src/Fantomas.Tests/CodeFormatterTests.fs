@@ -309,3 +309,117 @@ let filterNumbers =
     function 
     | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
     | a -> printfn "%d" a"""
+
+[<Test>]
+let ``try/with block``() =
+    formatSourceString """
+let divide1 x y =
+   try
+      Some (x / y)
+   with
+      | :? System.DivideByZeroException -> printfn "Division by zero!"; None
+
+let result1 = divide1 100 0
+    """ config
+    |> prepend newline
+    |> should equal """
+let divide1 x y = 
+    try 
+        Some(x / y)
+    with
+    | :? System.DivideByZeroException -> 
+        printfn "Division by zero!"
+        None
+let result1 = divide1 100 0"""
+
+[<Test>]
+let ``try/with and finally``() =
+    formatSourceString """
+    let function1 x y =
+       try 
+         try 
+            if x = y then raise (InnerError("inner"))
+            else raise (OuterError("outer"))
+         with
+          | InnerError(str) -> printfn "Error1 %s" str
+       finally
+          printfn "Always print this."
+    """ config
+    |> prepend newline
+    |> append newline
+    |> should equal """
+let function1 x y = 
+    try 
+        try 
+            if x = y then raise(InnerError("inner")) else raise(OuterError("outer"))
+        with
+        | InnerError(str) -> printfn "Error1 %s" str
+    finally
+        printfn "Always print this."
+"""
+
+[<Test>]
+let ``verbose syntax``() =
+    formatSourceString """
+    #light "off"
+
+    let div2 = 2;;
+
+    let f x = 
+        let r = x % div2 in
+          if r = 1 then 
+            begin "Odd"  end 
+          else 
+            begin "Even" end
+    """ config
+    |> prepend newline
+    |> should equal """
+let div2 = 2
+let f x = 
+    let r = x % div2
+    if r = 1 then ("Odd") else ("Even")"""
+
+[<Test>]
+let ``while loop``() =
+    formatSourceString """
+open System
+let lookForValue value maxValue =
+  let mutable continueLooping = true 
+  let randomNumberGenerator = new Random()
+  while continueLooping do 
+    let rand = randomNumberGenerator.Next(maxValue)
+    printf "%d " rand
+    if rand = value then 
+       printfn "\nFound a %d!" value
+       continueLooping <- false
+lookForValue 10 20""" config
+    |> prepend newline
+    |> should equal """
+open System
+let lookForValue value maxValue = 
+    let mutable continueLooping = true
+    let randomNumberGenerator = new Random()
+    while continueLooping do
+        let rand = randomNumberGenerator.Next(maxValue)
+        printf "%d " rand
+        if rand = value then printfn "\nFound a %d!" value
+        continueLooping <- false
+lookForValue 10 20"""
+
+[<Test>]
+let ``triple-quoted strings``() =
+    formatSourceString "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"" config
+    |> should equal "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\""
+
+[<Test>]
+let ``string literals``() =
+    formatSourceString """
+let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
+let str1 = "abc"
+    """ config 
+    |> prepend newline
+    |> append newline
+    |> should equal """
+let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
+let str1 = "abc"
+"""

@@ -20,21 +20,17 @@ let internal parseWith fileName content =
 
 /// Parse a source code string
 let parse s = parseWith "/tmp.fs" s
-           
-/// Format a source code tree using config
-let format tree config = 
-    genParsedInput tree { Context.Default with Config = config } |> dump
 
 /// Format a source file using given config
 let formatSourceFile f config = 
     let s = File.ReadAllText(f)
     let tree = parseWith f s
-    format tree config
+    Context.createContext config s |> genParsedInput tree |> dump
 
 /// Format a source string using given config
 let formatSourceString s config =
     let tree = parseWith "/tmp.fs" s
-    format tree config
+    Context.createContext config s |> genParsedInput tree |> dump
 
 /// Format inFile and write to outFile
 let processSourceFile inFile outFile config = 

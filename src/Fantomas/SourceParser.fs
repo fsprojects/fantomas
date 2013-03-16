@@ -1,7 +1,18 @@
 ﻿module internal Fantomas.SourceParser
 
+open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.PrettyNaming
+open Fantomas.FormatConfig
+
+/// Get source string content based on range value
+let inline content (r : range) (c : Context) = 
+    if r.StartLine <= c.Positions.Length && r.EndLine <= c.Positions.Length then
+        // Off-by-one start column
+        let start = c.Positions.[r.StartLine-1] + r.StartColumn
+        let finish = c.Positions.[r.EndLine-1] + r.EndColumn - 1
+        c.Content.[start..finish]
+    else ""
 
 let inline (|Ident|) (id: Ident) = id.idText
 
@@ -37,7 +48,7 @@ let (|Measure|) x =
     sprintf "<%s>" <| loop x
 
 /// Lose information about kinds of literals
-let rec (|Const|) = function
+let rec (|Const|Unresolved|) = function
     | SynConst.Measure(Const c, Measure m) -> Const(c + m)
     | SynConst.UserNum(num, ty) -> Const(num + ty)
     | SynConst.Unit -> Const "()"
@@ -56,9 +67,10 @@ let rec (|Const|) = function
     | SynConst.Double d -> Const(sprintf "%A" d)
     | SynConst.Char c -> Const(sprintf "%A" c)
     | SynConst.Decimal d -> Const(sprintf "%A" d)
-    | SynConst.String(s, _) -> Const(sprintf "%A" s)
-    | SynConst.Bytes(bs, _) -> failwith "Not implemented yet"
-    | SynConst.UInt16s us -> failwith "Not implemented yet"
+    | SynConst.String(s, r) -> Unresolved(r)
+    | SynConst.Bytes(bs, r) -> Unresolved(r)
+    | SynConst.UInt16s us -> Const(sprintf "%A" us)
+    | c -> invalidArg "c" "Ill-formed constants"
 
 // File level patterns
 

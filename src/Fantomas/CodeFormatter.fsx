@@ -1,18 +1,18 @@
 ﻿#r "../../lib/FSharp.Compiler.dll"
 
-#load "SourceParser.fs"
 #load "FormatConfig.fs"
+#load "SourceParser.fs"
 #load "CodePrinter.fs"
 #load "CodeFormatter.fs"
 
-open Fantomas.SourceParser
 open Fantomas.FormatConfig
+open Fantomas.SourceParser
 open Fantomas.CodePrinter
 open Fantomas.CodeFormatter
 
 let config = FormatConfig.Default
 
-let t01 = parse """
+let t01 = """
     type MyClass2(dataIn) as self =
        let data = dataIn
        do
@@ -20,12 +20,12 @@ let t01 = parse """
        member this.PrintMessage() =
            printf "Creating MyClass2 with Data %d" data"""
 
-let t02 = parse """
+let t02 = """
     type MyClass1(x: int, y: int) =
      do printfn "%d %d" x y
      new() = MyClass1(0, 0)"""
 
-let t03 = parse """
+let t03 = """
     type Point2D =
        struct 
           val X: float
@@ -33,7 +33,7 @@ let t03 = parse """
           new(x: float, y: float) = { X = x; Y = y }
        end"""
 
-let t04 = parse """
+let t04 = """
     type MyClassBase1() =
        let mutable z = 0
        abstract member function1 : int -> int
@@ -43,11 +43,11 @@ let t04 = parse """
        inherit MyClassBase1()
        override u.function1(a: int) = a + 1"""
 
-let t05 = parse """
+let t05 = """
     type Delegate1 = delegate of (int * int) -> int
     type Delegate2 = delegate of int * int -> int"""
 
-let t06 = parse """
+let t06 = """
        let divide x y =
            let stream : System.IO.FileStream = System.IO.File.Create("test.txt")
            let writer : System.IO.StreamWriter = new System.IO.StreamWriter(stream)
@@ -59,78 +59,34 @@ let t06 = parse """
               printfn "Closing stream"
               stream.Close()"""
 
-let t07 = parse """
+let t07 = """
 let rangeTest testValue mid size =
     match testValue with
     | var1 when var1 >= mid - size/2 && var1 <= mid + size/2 -> printfn "The test value is in range."
     | _ -> printfn "The test value is out of range."
 """
 
-let t08 = parse """
-open System
-let lookForValue value maxValue =
-  let mutable continueLooping = true 
-  let randomNumberGenerator = new Random()
-  while continueLooping do 
-    // Generate a random number between 1 and maxValue. 
-    let rand = randomNumberGenerator.Next(maxValue)
-    printf "%d " rand
-    if rand = value then 
-       printfn "\nFound a %d!" value
-       continueLooping <- false
-lookForValue 10 20"""
-
-let t09 = parse """
-    let function1 x y =
-       try 
-         try 
-            if x = y then raise (InnerError("inner"))
-            else raise (OuterError("outer"))
-         with
-          | InnerError(str) -> printfn "Error1 %s" str
-       finally
-          printfn "Always print this."
+let t08 = """
+    let writetofile filename obj =
+     use file1 = File.CreateText(filename)
+     file1.WriteLine("{0}", obj.ToString())
     """
 
-let t10 = parse """
-let divide1 x y =
-   try
-      Some (x / y)
-   with
-      | :? System.DivideByZeroException -> printfn "Division by zero!"; None
+let t09 = "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\""
 
-let result1 = divide1 100 0
-    """
-
-let t11 = parse """
-    #light "off"
-
-    let div2 = 2;;
-
-    let f x = 
-        let r = x % div2 in
-          if r = 1 then 
-            begin "Odd"  end 
-          else 
-            begin "Even" end
+let t10 = """
+let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
+let str1 = "abc"
     """;;
 
-let t12 = parse """
-    let function2() =
-      for i in 1 .. 2 .. 10 do
-         printf "%d " i
-      printfn ""
-    function2()"""
-
-printfn "Result:\n%s" <| format t01 config;;
-printfn "Result:\n%s" <| format t02 config;;
-printfn "Result:\n%s" <| format t03 config;;
-printfn "Result:\n%s" <| format t04 config;;
-printfn "Result:\n%s" <| format t05 config;;
-printfn "Result:\n%s" <| format t06 config;;
-printfn "Result:\n%s" <| format t07 config;;
-printfn "Result:\n%s" <| format t08 config;;
-printfn "Result:\n%s" <| format t09 config;;
-printfn "Result:\n%s" <| format t10 config;;
-printfn "Result:\n%s" <| format t11 config;;
-printfn "Result:\n%s" <| format t12 config;;
+printfn "Result:\n%s" <| formatSourceString t01 config;;
+printfn "Result:\n%s" <| formatSourceString t02 config;;
+printfn "Result:\n%s" <| formatSourceString t03 config;;
+printfn "Result:\n%s" <| formatSourceString t04 config;;
+printfn "Result:\n%s" <| formatSourceString t05 config;;
+printfn "Result:\n%s" <| formatSourceString t06 config;;
+printfn "Result:\n%s" <| formatSourceString t07 config;;
+printfn "Result:\n%s" <| formatSourceString t08 config;;
+printfn "Trees:\n%A" <| parse t09;;
+printfn "Result:\n%s" <| formatSourceString t09 config;;
+printfn "Result:\n%s" <| formatSourceString t10 config;;

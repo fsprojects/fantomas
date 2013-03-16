@@ -1,9 +1,11 @@
 ﻿module Fantomas.FormatConfig
 
+open System
 open System.IO
+open System.Text.RegularExpressions
 open System.CodeDom.Compiler
 
-type Position = ContinueSameLine | BeginNewLine
+let newline = System.Environment.NewLine
 type Num = int
 
 type FormatConfig = 
@@ -26,9 +28,17 @@ type FormatConfig =
           SpaceAfterComma = true; SpaceAfterSemicolon = true; IndentOnTryWith = false }
 
 type Context = 
-    { Config : FormatConfig; Writer: IndentedTextWriter }
+    { Config : FormatConfig; Writer: IndentedTextWriter; Content : string; Positions : int [] }
     /// Initialize with a string writer and use space as delimiter
-    static member Default = { Config = FormatConfig.Default; Writer = new IndentedTextWriter(new StringWriter(), " ") }
+    static member Default = { Config = FormatConfig.Default; Writer = new IndentedTextWriter(new StringWriter(), " ");
+                              Content = ""; Positions = [||] }
+    static member createContext config (content : string) =
+        let positions = 
+            content.Split([|'\n'|], StringSplitOptions.None)
+            |> Seq.map (fun s -> String.length s + 1)
+            |> Seq.scan (+) 0
+            |> Seq.toArray
+        { Context.Default with Config = config; Content = content; Positions = positions }
 
 let dump (ctx: Context) = ctx.Writer.InnerWriter.ToString()
 
@@ -127,8 +137,6 @@ let ifElse b (f1 : Context -> Context) f2 (ctx : Context) =
 /// Repeat application of a function n times
 let rep n (f : Context -> Context) (ctx : Context) =
     [1..n] |> List.fold (fun c _ -> f c) ctx
-
-let newline = System.Environment.NewLine
 
 let wordAnd = !- " and "  
 let wordOf = !- " of "      
