@@ -123,7 +123,7 @@ and genAttribute(Attribute(li, e, isGetSet)) =
     | ConstExpr(Const "()") -> !- (sprintf "[<%s>]" li)
     | e -> !- "[<" -- li +> genExpr e -- ">]"
     
-and genPreXmlDoc(PreXmlDoc lines) = colPost sepNln sepNln lines (!-)
+and genPreXmlDoc(PreXmlDoc lines) = colPost sepNln sepNln lines (sprintf "///%s" >> (!-))
 
 and genBinding prefix = function
     | LetBinding(ats, px, ao, isInline, isMutable, p, e, bk, bri) ->
@@ -262,6 +262,9 @@ and genTypeDefn(TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) =
     let typeName = 
         colPost sepNln sepNln ats genAttribute 
         +> genPreXmlDoc px -- "type " +> opt sepSpace ao genAccess -- li
+        // Haven't settled down with type constraints
+        +> ifElse tds.IsEmpty sepNone
+               (!- "<" +> col sepComma tds genTyparDecl +> col sepSpace tcs genTypeConstraint -- ">")
     match tdr with
     | Simple(TDSREnum ecs) ->
         typeName +> sepEq 
@@ -335,7 +338,7 @@ and genType = function
     | TStaticConstantNamed(t1, t2) -> genType t1 -- "=" +> genType t2
     | TArray(t, n) -> genType t +> rep n (!- "[]")
     | TAnon -> sepWild
-    | TVar tp -> !- "'" +> genTypar tp 
+    | TVar tp -> genTypar tp 
     | TFun(t1, t2) -> genType t1 +> sepArrow +> genType t2
     | TApp(t, ts, isPostfix) -> 
         let postForm = 
@@ -348,13 +351,13 @@ and genType = function
     // Not sure why the bool value could change '*' to '/'
     | TTuple ts -> col sepStar ts (snd >> genType)
     // Revise this case later
-    | TWithGlobalConstraints(t, tcs) -> genType t -- " with " +> col wordAnd tcs genTypeConstr
+    | TWithGlobalConstraints(t, tcs) -> genType t -- " with " +> col wordAnd tcs genTypeConstraint
     | TLongIdent li -> !- li
     | t -> failwithf "Unexpected pattern: %O" t
 
-and genTypar(Typar s) = !- s
+and genTypar(Typar s) = !- (sprintf "'%s" s)
 
-and genTypeConstr tc = id
+and genTypeConstraint tc = id
 
 and genInterfaceImpl(InterfaceImpl(t, bs)) = 
     !- "interface " +> genType t -- " with"

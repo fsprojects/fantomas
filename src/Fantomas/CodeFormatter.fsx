@@ -21,9 +21,17 @@ let t01 = """
            printf "Creating MyClass2 with Data %d" data"""
 
 let t02 = """
-[<Owner("Jason Carlson")>]
-[<Company("Microsoft")>]
-type SomeType1 = class end"""
+#light "off"
+let Multiple9x9 () = 
+  for i in 1 .. 9 do
+    printf "\n";
+    for j in 1 .. 9 do
+      let k = i * j in
+      printf "%d x %d = %2d " i j k;
+    done;
+  done;;
+Multiple9x9 ();;
+printf "\n" ;;"""
 
 let t03 = """
     type Point2D =
@@ -49,15 +57,20 @@ let list0to3 = [0 .. 3]
 """
 
 let t06 = """
-    let rec f x = g x
-    and g x = x"""
+let xRef : int ref = ref 10
+
+let PrintLines3() =
+    seq {
+        let finished = ref false 
+        while not !finished do 
+            match System.Console.ReadLine() with
+            | null -> finished := true
+            | s -> yield s
+    }"""
 
 let t07 = """
-type uColor =
-   | Red = 0u
-   | Green = 1u
-   | Blue = 2u
-let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
+let genericSumUnits ( x : float<'u>) (y: float<'u>) = x + y
+type vector3D<[<Measure>] 'u> = { x : float<'u>; y : float<'u>; z : float<'u>}
 """
 
 let t08 = """

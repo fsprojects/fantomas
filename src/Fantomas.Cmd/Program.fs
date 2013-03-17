@@ -1,4 +1,4 @@
-﻿
+﻿module Fantomas.Cmd.Program
 
 // Options:
 //  --encoding=<encoding>               Set the encoding, e.g. UTF-8. 
