@@ -1,11 +1,12 @@
 ﻿
 
 // Options:
-//  --encoding=<encoding>               Set the encoding, e.g. UTF-8. If not set, defaults to the platform default encoding (currently UTF-8).
-//  --force, -f                         If using --stdout, print the source unchanged if it cannot be parsed correctly.
+//  --encoding=<encoding>               Set the encoding, e.g. UTF-8. 
+//                                      If not set, defaults to the platform default encoding (currently UTF-8)
+//  --force, -f                         If using --stdout, print the source unchanged if it cannot be parsed correctly
 //  --help, -h                          Show help
 //  --config=<path>, -c=<path>          Read preferences from a config file
-//  --recurse, -r                       If any given file is a directory, recurse beneath it and collect all fs/fsx/fsi files for processing
+//  --recurse, -r                       If any given file is a directory, recurse it and process all fs/fsx/fsi files
 //  --stdin                             Read F# source from standard input
 //  --stdout                            Write the formatted output to standard output
 
