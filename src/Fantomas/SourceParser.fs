@@ -164,7 +164,7 @@ let (|UnionCaseType|) = function
     | SynUnionCaseType.UnionCaseFullType _ -> failwith "UnionCaseFullType should be used internally only."
 
 let (|Field|) = function
-    | SynField.Field(ats, isStatic, ido, t, _, px, ao, _) -> (ats, px, ao, isStatic, t, Option.map (|Ident|) ido)
+    | SynField.Field(ats, isStatic, ido, t, isMutable, px, ao, _) -> (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido)
 
 let (|EnumCase|) = function
     | SynEnumCase.EnumCase(ats, Ident s, c, px, _) -> (ats, px, s, c)
@@ -395,7 +395,7 @@ let (|IfThenElse|_|) = function
     | _ -> None
 
 let (|Record|_|) = function
-    | SynExpr.Record(_, _, xs, _) -> Some xs
+    | SynExpr.Record(_, eo, xs, _) -> Some(xs, Option.map fst eo)
     | _ -> None
 
 let (|ObjExpr|_|) = function

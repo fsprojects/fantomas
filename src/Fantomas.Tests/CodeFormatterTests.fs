@@ -33,7 +33,8 @@ let ``module with functions``() =
     |> prepend newline
     |> should equal """
 module internal MyModule = 
-    let x = 42"""
+    let x = 42
+    """
 
 [<Test>]
 let ``open modules``() =
@@ -53,7 +54,9 @@ let ``recursive functions``() =
     |> prepend newline
     |> should equal """
 let rec f x = g x
-and g x = x"""
+
+and g x = x
+"""
 
 [<Test>]
 let ``hash directives``() =
@@ -161,12 +164,12 @@ let ``for loops``() =
       printfn ""
     """ config
     |> prepend newline
-    |> append newline
     |> should equal """
 let function1() = 
     for i = 1 to 10 do
         printf "%d " i
     printfn ""
+
 let function2() = 
     for i = 10 downto 1 do
         printf "%d " i
@@ -180,7 +183,8 @@ let ``object expressions``() =
     |> should equal """
 let obj1 = 
     { new System.Object with
-          static member x.ToString() = "F#" }"""
+          static member x.ToString() = "F#" }
+"""
 
 [<Test>]
 let ``object expressions and interfaces``() =
@@ -200,7 +204,8 @@ let implementer() =
           static member this.J() = ()
       interface IFirst with
           static member this.F() = ()
-          static member this.G() = () }"""
+          static member this.G() = () }
+"""
 
 [<Test>]
 let ``type annotations``() =
@@ -214,9 +219,11 @@ let ``type annotations``() =
 let iterate1(f : unit -> seq<int>) = 
     for e in f() do
         printfn "%d" e
+
 let iterate2(f : unit -> #seq<int>) = 
     for e in f() do
-        printfn "%d" e"""
+        printfn "%d" e
+"""
 
 [<Test>]
 let ``upcast and downcast``() =
@@ -226,7 +233,9 @@ let ``upcast and downcast``() =
     |> prepend newline
     |> should equal """
 let base1 = d1 :> Base1
-let derived1 = base1 :?> Derived1"""
+
+let derived1 = base1 :?> Derived1
+"""
 
 [<Test>]
 let ``use binding``() =
@@ -239,7 +248,8 @@ let ``use binding``() =
     |> should equal """
 let writetofile filename obj = 
     use file1 = File.CreateText(filename)
-    file1.WriteLine("{0}", obj.ToString())"""
+    file1.WriteLine("{0}", obj.ToString())
+"""
 
 [<Test>]
 let ``range expressions``() =
@@ -255,6 +265,7 @@ let function2() =
     for i in 1..2..10 do
         printf "%d " i
     printfn ""
+
 function2()"""
 
 [<Test>]
@@ -265,7 +276,9 @@ let ``access modifiers``() =
     |> prepend newline
     |> should equal """
 let private myPrivateObj = new MyPrivateType()
-let internal myInternalObj = new MyInternalType()"""
+
+let internal myInternalObj = new MyInternalType()
+"""
 
 [<Test>]
 let ``keyworded expressions``() =
@@ -279,6 +292,7 @@ let ``keyworded expressions``() =
     |> should equal """
 assert (3 > 2)
 let result = lazy (x + 10)
+
 do printfn "Hello world"
 """
 
@@ -294,7 +308,8 @@ let ``match expressions``() =
 let filter123 x = 
     match x with
     | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
-    | a -> printfn "%d" a"""
+    | a -> printfn "%d" a
+"""
 
 [<Test>]
 let ``function keyword``() =
@@ -307,7 +322,8 @@ let ``function keyword``() =
 let filterNumbers = 
     function 
     | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
-    | a -> printfn "%d" a"""
+    | a -> printfn "%d" a
+"""
 
 [<Test>]
 let ``try/with block``() =
@@ -329,7 +345,9 @@ let divide1 x y =
     | :? System.DivideByZeroException -> 
         printfn "Division by zero!"
         None
-let result1 = divide1 100 0"""
+
+let result1 = divide1 100 0
+"""
 
 [<Test>]
 let ``try/with and finally``() =
@@ -345,12 +363,12 @@ let ``try/with and finally``() =
           printfn "Always print this."
     """ config
     |> prepend newline
-    |> append newline
     |> should equal """
 let function1 x y = 
     try 
         try 
-            if x = y then raise(InnerError("inner")) else raise(OuterError("outer"))
+            if x = y then raise(InnerError("inner"))
+            else raise(OuterError("outer"))
         with
         | InnerError(str) -> printfn "Error1 %s" str
     finally
@@ -374,9 +392,12 @@ let ``verbose syntax``() =
     |> prepend newline
     |> should equal """
 let div2 = 2
+
 let f x = 
     let r = x % div2
-    if r = 1 then ("Odd") else ("Even")"""
+    if r = 1 then ("Odd")
+    else ("Even")
+"""
 
 [<Test>]
 let ``while loop``() =
@@ -401,14 +422,16 @@ let lookForValue value maxValue =
     while continueLooping do
         let rand = randomNumberGenerator.Next(maxValue)
         printf "%d " rand
-        if rand = value then printfn "\nFound a %d!" value
-        continueLooping <- false
+        if rand = value then 
+            printfn "\nFound a %d!" value
+            continueLooping <- false
+
 lookForValue 10 20"""
 
 [<Test>]
 let ``triple-quoted strings``() =
     formatSourceString "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"" config
-    |> should equal "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\""
+    |> should equal "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"\r\n"
 
 [<Test>]
 let ``string literals``() =
@@ -417,8 +440,8 @@ let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
 let str1 = "abc"
     """ config 
     |> prepend newline
-    |> append newline
     |> should equal """
 let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
+
 let str1 = "abc"
 """

@@ -11,7 +11,7 @@ let rec multiline = function
     | Quote(e1, e2, _) -> multiline e1 || multiline e2
     | Tuple es -> List.exists multiline es
     | ArrayOrList(_, es) -> List.exists multiline es
-    | Record(xs) -> xs |> Seq.choose (fun (_, y, _) -> y) |> Seq.exists multiline
+    | Record(xs, _) -> xs |> Seq.choose (fun (_, y, _) -> y) |> Seq.exists multiline
     | ForEach(_, e1, e2, true) -> multiline e1 || multiline e2
     | ObjExpr _ | While _ | For _ | ForEach _ -> true
     | CompExpr(_, e) -> multiline e
@@ -24,8 +24,8 @@ let rec multiline = function
     | TypeApp(e, _) -> multiline e
     | LetOrUse(_, _, bs, e) -> not (List.isEmpty bs) || multiline e
     | TryWith _ | TryFinally _ | Sequential _ ->  true
-    | IfThenElse(e1, e2, Some e3) -> multiline e1 || multiline e2 || multiline e3
-    | IfThenElse(e1, e2, None) -> multiline e1 || multiline e2
+    // Not 100% correct, but reasonable
+    | IfThenElse _ -> true
     | LongIdentSet(_, e) -> multiline e
     | DotIndexedGet(e, es) -> multiline e || List.exists multiline es
     | DotIndexedSet(e1, es, e2) -> multiline e1 || multiline e2 || List.exists multiline es
@@ -101,8 +101,10 @@ and genModuleDecl = function
     | HashDirective(s1, s2) -> 
         // print strings with quotes
         !- "#" -- s1 +> sepSpace -- sprintf "%A" s2 
-    | Let(b) -> genBinding "let " b
-    | LetRec(b::bs) -> genBinding "let rec " b +> sepNln +> col sepNln bs (genBinding "and ")
+    // Add a new line after model-level let bindings
+    | Let(b) -> genBinding "let " b +> sepNln
+    | LetRec(b::bs) -> 
+        genBinding "let rec " b +> colPre (sepNln +> sepNln) (sepNln +> sepNln) bs (genBinding "and ") +> sepNln
     | ModuleAbbrev(s1, s2) -> !- "module " -- s1 +> sepEq -- s2
     | NamespaceFragment(m) -> failwithf "NamespaceFragment is not supported yet: %O" m
     | NestedModule(ats, px, ao, s, mds) -> 
@@ -175,8 +177,8 @@ and genExpr = function
     // Figure out how to break long expressions into multiple lines
     | ArrayOrList(isArray, xs) -> 
         ifElse isArray (!- "[|" +> col sepComma xs genExpr -- "|]") (!- "[" +> col sepComma xs genExpr -- "]")
-    | Record(xs) -> 
-        !- "{ " 
+    | Record(xs, eo) -> 
+        !- "{ " +> opt (!- " with ") eo genExpr
         +> col sepSemi xs (fun ((LongIdentWithDots li, _), eo, _) -> opt sepNone eo (fun e -> !- li +> sepEq +> genExpr e)) 
         -- " }"
     | ObjExpr(t, x, bd, ims) ->
@@ -190,11 +192,11 @@ and genExpr = function
         !- (sprintf "for %s = " s) +> genExpr e1 
         +> ifElse isUp (!- " to ") (!- " downto ") +> genExpr e2 -- " do" 
         +> indent +> sepNln +> genExpr e3 +> unindent
-    // It is my guess when an expression has form of 'for i in e1 -> e2'
+    // How to handle the form 'for i in e1 -> e2'
     | ForEach(p, e1, e2, isArrow) ->
         !- "for " +> genPat p -- " in " +> genExpr e1 
-        +> ifElse (isArrow && not <| multiline e2) (sepArrow +> genExpr e2) 
-                (!- " do" +> indent +> sepNln +> genExpr e2 +> unindent)
+        +> ifElse (isArrow && not <| multiline e2) (!- " do " +> genExpr e2) 
+            (!- " do" +> indent +> sepNln +> genExpr e2 +> unindent)                 
     // Not sure what it is different from ArrayOrListOfSeqExpr
     | CompExpr(isArrayOrList, e) ->
         ifElse isArrayOrList sepNone (!- "{ ") 
@@ -212,8 +214,8 @@ and genExpr = function
     | App(App(App(Var ".. ..", e1), e2), e3) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
     // Spaces might be optional
     | InfixApp(s, e1, e2) -> genExpr e1 +> ifElse (s = "..") (!- s) (sepSpace -- s +> sepSpace) +> genExpr e2
-    | App(Var s, e2) -> !- s +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
-    | App(e1, e2) -> genExpr e1 +> sepSpace +> genExpr e2
+    | App((App _ as e1), e2) -> genExpr e1 +> sepSpace +> genExpr e2
+    | App(e1, e2) -> genExpr e1 +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
     | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts genType -- ">"
     // Not really understand it
     | LetOrUse(isRec, isUse, bs, e) ->
@@ -230,8 +232,13 @@ and genExpr = function
         +> indent +> sepNln +> genExpr e2 +> unindent
     // May process the boolean flag later
     | Sequential(e1, e2) -> genExpr e1 +> sepNln +> genExpr e2
-    | IfThenElse(e1, e2, Some e3) -> !- "if " +> genExpr e1 -- " then " +> genExpr e2 -- " else " +> genExpr e3
-    | IfThenElse(e1, e2, None) -> !- "if " +> genExpr e1 -- " then " +> genExpr e2
+    | IfThenElse(e1, e2, Some e3) -> 
+        !- "if " +> genExpr e1
+        +> ifElse (multiline e2) (!- " then " +> indent +> sepNln +> genExpr e2 +> unindent) (!- " then " +> genExpr e2)
+        ++ "else" +> ifElse (multiline e3) (indent +> sepNln +> genExpr e3 +> unindent) (sepSpace +> genExpr e3)
+    | IfThenElse(e1, e2, None) -> 
+        !- "if " +> genExpr e1 
+        +> ifElse (multiline e2) (!- " then " +> indent +> sepNln +> genExpr e2 +> unindent) (!- " then " +> genExpr e2)
     // Is decode of infix operators correct?
     | Var s -> !- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
@@ -297,7 +304,7 @@ and genTypeDefKind = function
     | TCDelegate(t, vi) -> id
 
 and genException(ExceptionDef(ats, px, ao, uc, ms)) = 
-    colPost sepSpace sepNln ats genAttribute 
+    colPost sepNone sepNln ats genAttribute 
     +> genPreXmlDoc px -- "exception " +> opt sepSpace ao genAccess +> genUnionCase false uc
     +> sepNln +> colPost sepNln sepNln ms genMemberDefn
 
@@ -309,12 +316,14 @@ and genUnionCase hasBar (UnionCase(ats, px, ao, s, UnionCaseType fs)) =
 
 and genEnumCase hasBar (EnumCase(ats, px, s, c)) =
     let c' = match c with Const c' -> !- c' | Unresolved r -> (fun ctx -> str (content r ctx) ctx)
-    genPreXmlDoc px
-    +> ifElse hasBar sepBar sepNone 
+    genPreXmlDoc px +> ifElse hasBar sepBar sepNone 
     +> colPost sepSpace sepSpace ats genAttribute -- s +> sepEq +> c'  
 
-and genField(Field(ats, px, ao, isStatic, t, so)) = 
-    opt sepColon so (!-) +> genType t
+and genField(Field(ats, px, ao, isStatic, isMutable, t, so)) = 
+    genPreXmlDoc px 
+    +> colPost sepNone sepSpace ats genAttribute 
+    +> opt sepSpace ao genAccess +> ifElse isStatic (!- "static ") sepNone
+    +> ifElse isMutable (!- "mutable ") sepNone +> opt sepColon so (!-) +> genType t
 
 and genType = function
     | THashConstraint t -> !- "#" +> genType t

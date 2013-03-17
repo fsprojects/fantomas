@@ -49,28 +49,15 @@ let list0to3 = [0 .. 3]
 """
 
 let t06 = """
-let (|Even|Odd|) input = if input % 2 = 0 then Even else Odd
-
-let (|Integer|_|) (str: string) =
-   let mutable intvalue = 0
-   if System.Int32.TryParse(str, &intvalue) then Some(intvalue)
-   else None
-
-let (|ParseRegex|_|) regex str =
-   let m = Regex(regex).Match(str)
-   if m.Success
-   then Some (List.tail [ for x in m.Groups -> x.Value ])
-   else None
-"""
+    let rec f x = g x
+    and g x = x"""
 
 let t07 = """
-let test x y =
-  if x = y then "equals" 
-  elif x < y then "is less than" 
-  else "is greater than"
-
-if age < 10
-then printfn "You are only %d years old and already learning F#? Wow!" age
+type uColor =
+   | Red = 0u
+   | Green = 1u
+   | Blue = 2u
+let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
 """
 
 let t08 = """
