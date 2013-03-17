@@ -96,4 +96,55 @@ type MyClass2(dataIn) as self =
     member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data
 """
 
+[<Test>]
+let ``interfaces and inheritance``() =
+    formatSourceString """
+type IPrintable =
+   abstract member Print : unit -> unit
+
+type SomeClass1(x: int, y: float) =
+   interface IPrintable with 
+      member this.Print() = printfn "%d %f" x y
+type Interface3 =
+    inherit Interface1
+    inherit Interface2
+    abstract member Method3 : int -> int""" config
+    |> prepend newline
+    |> should equal """
+type IPrintable = 
+    abstract member Print : unit -> unit
+
+type SomeClass1(x : int, y : float) = 
+    interface IPrintable with
+        member this.Print() = printfn "%d %f" x y
+
+type Interface3 = 
+    inherit Interface1
+    inherit Interface2
+    abstract member Method3 : int -> int
+"""
+
+[<Test>]
+let ``recursive classes``() =
+    formatSourceString """
+type Folder(pathIn: string) =
+  let path = pathIn
+  let filenameArray : string array = System.IO.Directory.GetFiles(path)
+  member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
+
+and File(filename: string, containingFolder: Folder) = 
+   member __.Name = filename
+   member __.ContainingFolder = containingFolder""" config
+    |> prepend newline
+    |> should equal """
+type Folder(pathIn : string) = 
+    let path = pathIn
+    let filenameArray : string array = System.IO.Directory.GetFiles(path)
+    member this.FileArray = Array.map(fun elem -> new File(elem, this)) filenameArray
+
+and File(filename : string, containingFolder : Folder) = 
+    member __.Name = filename
+    member __.ContainingFolder = containingFolder
+"""
+
 

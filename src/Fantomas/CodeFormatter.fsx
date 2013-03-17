@@ -59,37 +59,15 @@ let list0to3 = [0 .. 3]
 """
 
 let t06 = """
-type IPrintable =
-   abstract member Print : unit -> unit
-
-type SomeClass1(x: int, y: float) =
-   interface IPrintable with 
-      member this.Print() = printfn "%d %f" x y
-type Interface3 =
-    inherit Interface1
-    inherit Interface2
-    abstract member Method3 : int -> int"""
-
-let t07 = """
-type Folder(pathIn: string) =
-  let path = pathIn
-  let filenameArray : string array = System.IO.Directory.GetFiles(path)
-  member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
-
-and File(filename: string, containingFolder: Folder) = 
-   member __.Name = filename
-   member __.ContainingFolder = containingFolder"""
-
-let t08 = """
 let a1 = [| for i in 1 .. 10 -> i * i |]
 let a2 = [| 0 .. 99 |]  
 let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]
     """
 
-let t09 = """let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
+let t07 = """let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
   (3, 2, 6); (3, 3, 9)|]"""
 
-let t10 = """
+let t08 = """
 let array1 = [| 1; 2; 3 |]
 array1.[0..2]  
 array1.[1] <- 3
@@ -103,7 +81,5 @@ printfn "Result:\n%s" <| formatSourceString t05 config;;
 printfn "Result:\n%s" <| formatSourceString t06 config;;
 printfn "Result:\n%s" <| formatSourceString t07 config;;
 printfn "Result:\n%s" <| formatSourceString t08 config;;
-printfn "Result:\n%s" <| formatSourceString t09 config;;
-printfn "Result:\n%s" <| formatSourceString t10 config;;
 
 printfn "Tree:\n%A" <| parse t07;;

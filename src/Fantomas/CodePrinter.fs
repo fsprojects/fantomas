@@ -112,8 +112,8 @@ and genModuleDecl = function
         +> genPreXmlDoc px -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
         +> indent +> sepNln +> col sepNln mds genModuleDecl +> unindent
     | Open(s) -> !- (sprintf "open %s" s)
-    // There is no nested type and they have newline in the end of definition
-    | Types(sts) -> col sepNln sts genTypeDefn
+    // There is no nested types and they have newlines in the ends of definitions
+    | Types(t::ts) -> genTypeDefn true t +> colPre sepNln sepNln ts (genTypeDefn false)
     | md -> failwithf "Unexpected pattern: %O" md
 
 and genAccess(Access s) = !- s
@@ -263,10 +263,11 @@ and genExpr = function
         +> genPat p -- " = " +> genExpr e1 +> sepNln +> genExpr e2
     | e -> failwithf "Unexpected pattern: %O" e
 
-and genTypeDefn(TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) = 
+and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) = 
     let typeName = 
         colPost sepNln sepNln ats genAttribute 
-        +> genPreXmlDoc px -- "type " +> opt sepSpace ao genAccess -- li
+        +> genPreXmlDoc px 
+        +> ifElse isFirst (!- "type ") (!- "and ") +> opt sepSpace ao genAccess -- li
         // Haven't settled down with type constraints
         +> ifElse tds.IsEmpty sepNone
                (!- "<" +> col sepComma tds genTyparDecl +> col sepSpace tcs genTypeConstraint -- ">")
