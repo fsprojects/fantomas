@@ -21,9 +21,9 @@ let t01 = """
            printf "Creating MyClass2 with Data %d" data"""
 
 let t02 = """
-    type MyClass1(x: int, y: int) =
-     do printfn "%d %d" x y
-     new() = MyClass1(0, 0)"""
+[<Owner("Jason Carlson")>]
+[<Company("Microsoft")>]
+type SomeType1 = class end"""
 
 let t03 = """
     type Point2D =
@@ -44,25 +44,33 @@ let t04 = """
        override u.function1(a: int) = a + 1"""
 
 let t05 = """
-    seq { for i in 1 .. 10 -> i * i }"""
+let listOfSquares = [ for i in 1 .. 10 -> i*i ]
+let list0to3 = [0 .. 3]
+"""
 
 let t06 = """
-       let divide x y =
-           let stream : System.IO.FileStream = System.IO.File.Create("test.txt")
-           let writer : System.IO.StreamWriter = new System.IO.StreamWriter(stream)
-           try
-              writer.WriteLine("test1");
-              Some( x / y )
-           finally
-              writer.Flush()
-              printfn "Closing stream"
-              stream.Close()"""
+let (|Even|Odd|) input = if input % 2 = 0 then Even else Odd
+
+let (|Integer|_|) (str: string) =
+   let mutable intvalue = 0
+   if System.Int32.TryParse(str, &intvalue) then Some(intvalue)
+   else None
+
+let (|ParseRegex|_|) regex str =
+   let m = Regex(regex).Match(str)
+   if m.Success
+   then Some (List.tail [ for x in m.Groups -> x.Value ])
+   else None
+"""
 
 let t07 = """
-let rangeTest testValue mid size =
-    match testValue with
-    | var1 when var1 >= mid - size/2 && var1 <= mid + size/2 -> printfn "The test value is in range."
-    | _ -> printfn "The test value is out of range."
+let test x y =
+  if x = y then "equals" 
+  elif x < y then "is less than" 
+  else "is greater than"
+
+if age < 10
+then printfn "You are only %d years old and already learning F#? Wow!" age
 """
 
 let t08 = """
@@ -91,4 +99,4 @@ printfn "Result:\n%s" <| formatSourceString t08 config;;
 printfn "Result:\n%s" <| formatSourceString t09 config;;
 printfn "Result:\n%s" <| formatSourceString t10 config;;
 
-printfn "Tree:\n%A" <| parse t05;;
+printfn "Tree:\n%A" <| parse t06;;

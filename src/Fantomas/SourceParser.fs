@@ -14,6 +14,10 @@ let inline content (r : range) (c : Context) =
         c.Content.[start..finish]
     else ""
 
+let inline (|OpName|) s =
+    if IsActivePatternName s then sprintf "(%s)" (DecompileOpName s)
+    else DecompileOpName s
+
 let inline (|Ident|) (id: Ident) = id.idText
 
 let inline (|LongIdent|) (li: LongIdent) = 
@@ -220,10 +224,13 @@ let (|InterfaceImpl|) = function
 // Bindings
 
 let (|LetBinding|MemberBinding|) = function
-    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, SynValData(Some mf, _,_), pat, _, expr, _, _) -> 
-        MemberBinding(ats, px, ao, isInline, mf.IsInstance, pat, expr, bk)
-    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, _, pat, _, expr, _, _) -> 
-        LetBinding(ats, px, ao, isInline, isMutable, pat, expr, bk)
+    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, SynValData(Some mf, _,_), pat, bri, expr, _, _) -> 
+        MemberBinding(ats, px, ao, isInline, mf.IsInstance, pat, expr, bk, bri)
+    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, _, pat, bri, expr, _, _) -> 
+        LetBinding(ats, px, ao, isInline, isMutable, pat, expr, bk, bri)
+
+let (|BindingReturnInfo|) = function
+    | SynBindingReturnInfo(t, _, ats) -> (ats, t)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
@@ -246,26 +253,26 @@ type ExprKind = | InferredDowncast | InferredUpcast | Lazy | Assert | AddressOfS
                 | Yield | Return | YieldFrom | ReturnFrom | Do | DoBang
 with override x.ToString() =
         match x with
-        | InferredDowncast -> "downcast"
-        | InferredUpcast -> "upcast"
-        | Lazy -> "lazy"
-        | Assert -> "assert"
+        | InferredDowncast -> "downcast "
+        | InferredUpcast -> "upcast "
+        | Lazy -> "lazy "
+        | Assert -> "assert "
         | AddressOfSingle -> "&"
         | AddressOfDouble -> "&&"        
-        | Yield -> "yield"
-        | Return -> "return"
-        | YieldFrom -> "yield!"
-        | ReturnFrom -> "return!"
-        | Do -> "do"
-        | DoBang -> "do!"
+        | Yield -> "yield "
+        | Return -> "return "
+        | YieldFrom -> "yield! "
+        | ReturnFrom -> "return! "
+        | Do -> "do "
+        | DoBang -> "do! "
 
 let (|SingleExpr|_|) = function 
     | SynExpr.InferredDowncast(e, _) -> Some(InferredDowncast, e)
     | SynExpr.InferredUpcast(e, _) -> Some(InferredUpcast, e)
     | SynExpr.Lazy(e, _) -> Some(Lazy, e)
     | SynExpr.Assert(e, _) -> Some(Assert, e)
-    | SynExpr.AddressOf(false, e, _, _) -> Some(AddressOfSingle, e)
-    | SynExpr.AddressOf(true, e, _, _) -> Some(AddressOfDouble, e)    
+    | SynExpr.AddressOf(true, e, _, _) -> Some(AddressOfSingle, e)
+    | SynExpr.AddressOf(false, e, _, _) -> Some(AddressOfDouble, e)    
     | SynExpr.YieldOrReturn((true, _), e, _) -> Some(Yield, e)
     | SynExpr.YieldOrReturn((false, _), e, _) -> Some(Return, e)
     | SynExpr.YieldOrReturnFrom((true, _), e, _) -> Some(YieldFrom, e)
@@ -329,8 +336,8 @@ let (|ConstExpr|_|) = function
     | _ -> None
 
 let (|Var|_|) = function
-    | SynExpr.Ident(Ident s) -> Some(DecompileOpName s)
-    | SynExpr.LongIdent(_, LongIdentWithDots s, _, _) -> Some(DecompileOpName s)
+    | SynExpr.Ident(Ident (OpName s)) -> Some(s)
+    | SynExpr.LongIdent(_, LongIdentWithDots (OpName s), _, _) -> Some(s)
     | _ -> None
 
 let (|App|_|) = function
@@ -449,7 +456,7 @@ let (|PatNamed|_|) = function
     | _ -> None
 
 let (|PatLongIdent|_|) = function
-    | SynPat.LongIdent(LongIdentWithDots li, _, _, xs, ao, _) -> Some(ao, li, xs)
+    | SynPat.LongIdent(LongIdentWithDots (OpName s), _, _, xs, ao, _) -> Some(ao, s, xs)
     | _ -> None
 
 let (|PatParen|_|) = function
@@ -491,7 +498,7 @@ let (|RecordField|) = function
     | SynField.Field(ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, Option.map (|Ident|) ido)
 
 let (|Clause|) = function
-    | SynMatchClause.Clause(p, _,e, _, _) -> (p, e)
+    | SynMatchClause.Clause(p, eo, e, _, _) -> (p, e, eo)
 
 // Type definitions
 
@@ -508,17 +515,8 @@ let (|Simple|ObjectModel|) = function
     | SynTypeDefnRepr.Simple(tdsr, _) -> Simple tdsr
     | SynTypeDefnRepr.ObjectModel(tdk, md, _) -> ObjectModel(tdk, md)
 
-type TypeDefnKindSingle = 
-    | TCUnspecified 
-    | TCClass 
-    | TCInterface 
-    | TCStruct 
-    | TCRecord
-    | TCUnion
-    | TCAbbrev
-    | TCHiddenRepr
-    | TCAugmentation
-    | TCILAssemblyCode
+type TypeDefnKindSingle = | TCUnspecified | TCClass | TCInterface | TCStruct | TCRecord
+                          | TCUnion | TCAbbrev | TCHiddenRepr | TCAugmentation | TCILAssemblyCode
 
 let (|TCSimple|TCDelegate|) = function
     | TyconUnspecified -> TCSimple TCUnspecified

@@ -5,7 +5,6 @@ open System.IO
 open System.Text.RegularExpressions
 open System.CodeDom.Compiler
 
-let newline = System.Environment.NewLine
 type Num = int
 
 type FormatConfig = 
@@ -24,7 +23,7 @@ type FormatConfig =
       IndentOnTryWith : bool }
     static member Default = 
         { IndentSpaceNum = 4; LongIdentLength = 10;
-          SemicolonAtEndOfLine = false; SpaceBeforeArgument = false; SpaceBeforeColon = true;
+          SemicolonAtEndOfLine = true; SpaceBeforeArgument = false; SpaceBeforeColon = true;
           SpaceAfterComma = true; SpaceAfterSemicolon = true; IndentOnTryWith = false }
 
 type Context = 
@@ -161,8 +160,9 @@ let inline sepComma(ctx : Context) =
 let inline sepSemi(ctx : Context) = 
     if ctx.Config.SpaceAfterSemicolon then str "; " ctx else str ";" ctx
 
-let inline sepSemiNln(ctx : Context) = 
-    if ctx.Config.SemicolonAtEndOfLine then str (";" + newline) ctx else str newline ctx
+/// !+ part is essential to indentation
+let sepSemiNln =
+    withCtxt(fun ctx -> if ctx.Config.SemicolonAtEndOfLine then !- ";" ++ "" else !+ "")
 
 let inline sepBeforeArg(ctx : Context) = 
     if ctx.Config.SpaceBeforeArgument then str " " ctx else str "" ctx

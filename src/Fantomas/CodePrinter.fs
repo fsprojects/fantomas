@@ -124,27 +124,40 @@ and genAttribute(Attribute(li, e, isGetSet)) =
 and genPreXmlDoc(PreXmlDoc lines) = colPost sepNln sepNln lines (!-)
 
 and genBinding prefix = function
-    | LetBinding(ats, px, ao, isInline, isMutable, p, e, bk) ->
+    | LetBinding(ats, px, ao, isInline, isMutable, p, e, bk, bri) ->
         // Figure out what to do with SynBindingKind
-        colPost sepNone sepNln ats genAttribute 
-        +> genPreXmlDoc px -- prefix +> opt sepSpace ao genAccess
-        +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
-        +> genPat p +> sepEq +> ifElse (multiline e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
-    | MemberBinding(ats, px, ao, isInline, isInst, p, e, bk) ->
+        let pref =
+            colPost sepNone sepNln ats genAttribute 
+            +> genPreXmlDoc px -- prefix +> opt sepSpace ao genAccess
+            +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
+            +> genPat p
+        match e with
+        | TypedExpr(Typed, e, t) ->
+            pref +> sepColon +> genType t +> sepEq
+            +> ifElse (multiline e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
+        | e ->
+            pref +> sepEq +> ifElse (multiline e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
+    | MemberBinding(ats, px, ao, isInline, isInst, p, e, bk, bri) ->
         // TODO: prefix doesn't make sense here
-        colPost sepNone sepNln ats genAttribute
-        +> genPreXmlDoc px
-        +> ifElse isInst (!- "static member ") (!- "member ")
-        +> ifElse isInline (!- "inline ") sepNone
-        +> opt sepSpace ao genAccess
-        +> genPat p +> sepEq +> genExpr e
+        let pref =
+            colPost sepNone sepNln ats genAttribute
+            +> genPreXmlDoc px
+            +> ifElse isInst (!- "static member ") (!- "member ")
+            +> ifElse isInline (!- "inline ") sepNone
+            +> opt sepSpace ao genAccess
+            +> genPat p
+        match e with
+        | TypedExpr(Typed, e, t) ->
+            pref +> sepColon +> genType t +> sepEq +> genExpr e
+        | e ->
+            pref +> sepEq +> genExpr e
 
 and genExpr = function
     // Remove superfluous parens
     | Paren(Tuple es as e) -> genExpr e
     | Paren(ConstExpr(Const "()")) -> !- "()"
     | Paren e -> !- "(" +> genExpr e -- ")"
-    | SingleExpr(kind, e) -> str kind +> sepSpace +> genExpr e
+    | SingleExpr(kind, e) -> str kind +> genExpr e
     | ConstExpr(Const s) -> !- s
     | ConstExpr(Unresolved r) -> (fun c -> str (content r c) c)
     | NullExpr -> !- "null"
@@ -192,10 +205,10 @@ and genExpr = function
         !- "seq { " +> genExpr e -- " }"
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
     | Lambda(e, sp, isMember) -> !- "fun " +> genSimplePats sp +> sepArrow +> genExpr e
-    | MatchLambda(sp, isMember) -> !- "function " +> colPre sepNln sepNln sp genMatchClause
+    | MatchLambda(sp, isMember) -> !- "function " +> colPre sepNln sepNln sp genClause
     | Match(e, cs) -> 
         !- "match " +> genExpr e -- " with"
-        +> colPre sepNln sepNln cs genMatchClause
+        +> colPre sepNln sepNln cs genClause
     | App(App(App(Var ".. ..", e1), e2), e3) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
     // Spaces might be optional
     | InfixApp(s, e1, e2) -> genExpr e1 +> ifElse (s = "..") (!- s) (sepSpace -- s +> sepSpace) +> genExpr e2
@@ -211,7 +224,7 @@ and genExpr = function
     // Breakdown based on length of e
     | TryWith(e, cs) ->  
         !- "try " +> indent +> sepNln +> genExpr e +> unindent ++ "with" 
-        +> sepNln +> col sepNln cs genMatchClause
+        +> sepNln +> col sepNln cs genClause
     | TryFinally(e1, e2) -> 
         !- "try " +> indent +> sepNln +> genExpr e1 +> unindent ++ "finally" 
         +> indent +> sepNln +> genExpr e2 +> unindent
@@ -240,7 +253,7 @@ and genExpr = function
 
 and genTypeDefn(TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) = 
     let typeName = 
-        colPost sepNone sepNln ats genAttribute 
+        colPost sepNln sepNln ats genAttribute 
         +> genPreXmlDoc px -- "type " +> opt sepSpace ao genAccess -- li
     match tdr with
     | Simple(TDSREnum ecs) ->
@@ -256,7 +269,8 @@ and genTypeDefn(TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) =
         +> unindent +> sepNln
     | Simple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
-        +> indent +> sepNln +> opt sepNln ao' genAccess -- "{ " +> col sepSemiNln fs genField -- " }" 
+        +> indent +> sepNln +> opt sepNln ao' genAccess -- "{ " 
+        +> incrIndent 2 +> col sepSemiNln fs genField +> decrIndent 2 -- " }" 
         +> unindent +> sepNln 
     | Simple TDSRNone -> 
         typeName +> sepNln
@@ -337,8 +351,8 @@ and genInterfaceImpl(InterfaceImpl(t, bs)) =
     !- "interface " +> genType t -- " with"
     +> indent +> sepNln +> col sepNln bs (genBinding "") +> unindent
 
-and genMatchClause(Clause(p, e)) = 
-    sepBar +> genPat p +> sepArrow 
+and genClause(Clause(p, e, eo)) = 
+    sepBar +> genPat p +> opt sepNone eo (fun e -> !- " when " +> genExpr e) +> sepArrow 
     +> ifElse (multiline e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
 
 and genMemberSig ms = id
@@ -392,13 +406,15 @@ and genPat = function
     | PatOr(p1, p2) -> genPat p1 -- " | " +> genPat p2
     | PatAnds(ps) -> col (!- " & ") ps genPat
     | PatNullary PatNull -> !- "null"
-    | PatNullary PatWild -> sepNone
+    | PatNullary PatWild -> sepWild
     | PatTyped(p, t) -> genPat p +> sepColon +> genType t
-    | PatNamed(ao, p, s) ->  opt sepSpace ao genAccess -- s +> genPat p
+    | PatNamed(ao, PatNullary PatWild, s) ->  opt sepSpace ao genAccess -- s
+    | PatNamed(ao, p, s) ->  opt sepSpace ao genAccess +> genPat p -- sprintf " as %s" s 
     | PatLongIdent(ao, li, ps) -> 
         match ps with
         | [] -> invalidArg "ps" "List of patterns should not be empty"
-        | [p] -> opt sepSpace ao genAccess -- li +> ifElse (hasParenInPat p) (genPat p) (sepSpace +> genPat p)
+        | [PatSeq(PatTuple, [p1; p2])] when li = "::" -> opt sepSpace ao genAccess +> genPat p1 -- " :: " +> genPat p2
+        | [p] -> opt sepSpace ao genAccess -- li +> ifElse (hasParenInPat p) (genPat p) (sepSpace +> genPat p) 
         | ps -> opt sepSpace ao genAccess -- li +> sepSpace +> col sepSpace ps genPat
     | PatParen(PatConst(Const s)) -> !- s
     | PatParen(p) -> !- "(" +> genPat p -- ")"
@@ -406,7 +422,9 @@ and genPat = function
     | PatSeq(PatList, ps) -> !- "[" +> col sepSemi ps genPat -- "]"
     | PatSeq(PatArray, ps) -> !- "[|" +> col sepSemi ps genPat -- "|]"
     | PatRecord(xs) -> 
-        !- "{ " +> col sepSemi xs (fun ((LongIdent li, Ident s), p) -> !- (sprintf "%s = %s" li s) +> genPat p) -- " }"
+        // TODO: refactor this to a function
+        !- "{ " +> col sepSemi xs (fun ((LongIdent li, Ident s), p) -> 
+                                    !- (if li = "" then sprintf "%s = " s else sprintf "%s.%s = " li s) +> genPat p) -- " }"
     | PatConst(Const s) -> !- s
     | PatConst(Unresolved r) -> (fun c -> str (content r c) c)
     | PatIsInst(t) -> !- ":? " +> genType t
