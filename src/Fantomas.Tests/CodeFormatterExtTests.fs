@@ -392,7 +392,7 @@ let rec tryFindMatch pred list =
 
 let test x y = 
     if x = y then "equals"
-    else
+    else 
         if x < y then "is less than"
         else "is greater than"
 

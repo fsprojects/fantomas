@@ -183,7 +183,7 @@ let ``object expressions``() =
     |> should equal """
 let obj1 = 
     { new System.Object with
-          static member x.ToString() = "F#" }
+          member x.ToString() = "F#" }
 """
 
 [<Test>]
@@ -200,11 +200,11 @@ let ``object expressions and interfaces``() =
     |> should equal """
 let implementer() = 
     { new ISecond with
-          static member this.H() = ()
-          static member this.J() = ()
+          member this.H() = ()
+          member this.J() = ()
       interface IFirst with
-          static member this.F() = ()
-          static member this.G() = () }
+          member this.F() = ()
+          member this.G() = () }
 """
 
 [<Test>]

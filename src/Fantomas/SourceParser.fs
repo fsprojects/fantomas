@@ -204,8 +204,8 @@ let (|MDLetBindings|_|) = function
     | _ -> None
 
 let (|MDAbstractSlot|_|) = function
-    | SynMemberDefn.AbstractSlot(SynValSig.ValSpfn(ats, Ident s, _, _, _, _, _, px, ao, _, _),_,_) -> 
-        Some(ats, px, ao, s)
+    | SynMemberDefn.AbstractSlot(SynValSig.ValSpfn(ats, Ident s, _, t, _, _, _, px, ao, _, _),_,_) -> 
+        Some(ats, px, ao, s, t)
     | _ -> None
 
 let (|MDInterface|_|) = function
@@ -223,9 +223,11 @@ let (|InterfaceImpl|) = function
 
 // Bindings
 
-let (|LetBinding|MemberBinding|) = function
-    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, SynValData(Some mf, _,_), pat, bri, expr, _, _) -> 
+let (|DoBinding|LetBinding|MemberBinding|) = function
+    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, SynValData(Some mf, _, _), pat, bri, expr, _, _) ->
         MemberBinding(ats, px, ao, isInline, mf.IsInstance, pat, expr, bk, bri)
+    | SynBinding.Binding(_, DoBinding, _, _, ats, px, _, _, _, expr, _, _) -> 
+        DoBinding(ats, px, expr)
     | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, _, pat, bri, expr, _, _) -> 
         LetBinding(ats, px, ao, isInline, isMutable, pat, expr, bk, bri)
 

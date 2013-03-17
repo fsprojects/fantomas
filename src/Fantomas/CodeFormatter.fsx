@@ -13,25 +13,27 @@ open Fantomas.CodeFormatter
 let config = FormatConfig.Default
 
 let t01 = """
-    type MyClass2(dataIn) as self =
-       let data = dataIn
-       do
-           self.PrintMessage()
-       member this.PrintMessage() =
-           printf "Creating MyClass2 with Data %d" data"""
+type BaseClass =
+    val string1 : string
+    new (str) = { string1 = str }
+    new () = { string1 = "" }
+
+type DerivedClass =
+    inherit BaseClass
+    val string2 : string
+    new (str1, str2) = { inherit BaseClass(str1); string2 = str2 }
+    new (str2) = { inherit BaseClass(); string2 = str2 }"""
 
 let t02 = """
-#light "off"
-let Multiple9x9 () = 
-  for i in 1 .. 9 do
-    printf "\n";
-    for j in 1 .. 9 do
-      let k = i * j in
-      printf "%d x %d = %2d " i j k;
-    done;
-  done;;
-Multiple9x9 ();;
-printf "\n" ;;"""
+type Type
+    = TyLam of Type * Type
+    | TyVar of string
+    | TyCon of string * Type list
+    with override this.ToString() =
+            match this with
+            | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
+            | TyVar a -> a
+            | TyCon (s, ts) -> s"""
 
 let t03 = """
     type Point2D =
@@ -57,21 +59,26 @@ let list0to3 = [0 .. 3]
 """
 
 let t06 = """
-let xRef : int ref = ref 10
+type IPrintable =
+   abstract member Print : unit -> unit
 
-let PrintLines3() =
-    seq {
-        let finished = ref false 
-        while not !finished do 
-            match System.Console.ReadLine() with
-            | null -> finished := true
-            | s -> yield s
-    }"""
+type SomeClass1(x: int, y: float) =
+   interface IPrintable with 
+      member this.Print() = printfn "%d %f" x y
+type Interface3 =
+    inherit Interface1
+    inherit Interface2
+    abstract member Method3 : int -> int"""
 
 let t07 = """
-let genericSumUnits ( x : float<'u>) (y: float<'u>) = x + y
-type vector3D<[<Measure>] 'u> = { x : float<'u>; y : float<'u>; z : float<'u>}
-"""
+type Folder(pathIn: string) =
+  let path = pathIn
+  let filenameArray : string array = System.IO.Directory.GetFiles(path)
+  member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
+
+and File(filename: string, containingFolder: Folder) = 
+   member __.Name = filename
+   member __.ContainingFolder = containingFolder"""
 
 let t08 = """
 let a1 = [| for i in 1 .. 10 -> i * i |]
@@ -99,4 +106,4 @@ printfn "Result:\n%s" <| formatSourceString t08 config;;
 printfn "Result:\n%s" <| formatSourceString t09 config;;
 printfn "Result:\n%s" <| formatSourceString t10 config;;
 
-printfn "Tree:\n%A" <| parse t06;;
+printfn "Tree:\n%A" <| parse t07;;

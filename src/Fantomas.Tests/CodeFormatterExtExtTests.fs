@@ -55,4 +55,45 @@ type vector3D<[<Measure>] 'u> =
       z : float<'u> }
 """
 
+[<Test>]
+let ``classes and inheritance``() =
+    formatSourceString """
+type MyClassBase2(x: int) =
+   let mutable z = x * x
+   do for i in 1..z do printf "%d " i
+
+type MyClassDerived2(y: int) =
+   inherit MyClassBase2(y * 2)
+   do for i in 1..y do printf "%d " i""" config
+    |> prepend newline
+    |> should equal """
+type MyClassBase2(x : int) = 
+    let mutable z = x * x
+    do 
+      for i in 1..z do
+          printf "%d " i
+
+type MyClassDerived2(y : int) = 
+    inherit MyClassBase2(y * 2)
+    do 
+      for i in 1..y do
+          printf "%d " i
+"""
+
+[<Test>]
+let ``classes and implicit constructors``() =
+    formatSourceString """
+    type MyClass2(dataIn) as self =
+       let data = dataIn
+       do self.PrintMessage()
+       member this.PrintMessage() =
+           printf "Creating MyClass2 with Data %d" data""" config
+    |> prepend newline
+    |> should equal """
+type MyClass2(dataIn) as self = 
+    let data = dataIn
+    do self.PrintMessage()
+    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data
+"""
+
 
