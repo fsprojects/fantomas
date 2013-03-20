@@ -10,7 +10,7 @@ module BinaryTrees
 open System
 open Unchecked
 type Next = 
-  { Left : Tree
+  { Left : Tree;
     Right : Tree }
 
 and [<Struct>] Tree(next : Next, item : int) = 

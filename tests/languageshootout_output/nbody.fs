@@ -11,12 +11,12 @@ let daysPerYear = 365.24
 let solarMass = 4.0 * pi ** 2.0
 
 type Planet = 
-  { mutable X : float
-    mutable Y : float
-    mutable Z : float
-    mutable VX : float
-    mutable VY : float
-    mutable VZ : float
+  { mutable X : float;
+    mutable Y : float;
+    mutable Z : float;
+    mutable VX : float;
+    mutable VY : float;
+    mutable VZ : float;
     Mass : float }
 
 let jupiter = { X = 4.841431442; Y = -1.160320044; Z = -0.1036220445; VX = 0.001660076643 * daysPerYear; VY = 0.007699011184 * daysPerYear; VZ = -6.90460017e-05 * daysPerYear; Mass = 0.0009547919384 * solarMass }
