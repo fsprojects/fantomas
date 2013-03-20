@@ -13,24 +13,6 @@ let inline prepend s content = s + content
 let inline append s content = content + s
 
 [<Test>]
-let ``line, file and path identifiers``() =
-    formatSourceString """
-    let printSourceLocation() =
-        printfn "Line: %s" __LINE__
-        printfn "Source Directory: %s" __SOURCE_DIRECTORY__
-        printfn "Source File: %s" __SOURCE_FILE__
-    printSourceLocation()
-    """ config
-    |> prepend newline
-    |> should equal """
-let printSourceLocation() = 
-    printfn "Line: %s" __LINE__
-    printfn "Source Directory: %s" __SOURCE_DIRECTORY__
-    printfn "Source File: %s" __SOURCE_FILE__
-
-printSourceLocation()"""
-
-[<Test>]
 let ``async workflows``() =
     formatSourceString """
 let fetchAsync(name, url:string) =
@@ -365,40 +347,6 @@ let (|ParseRegex|_|) regex str =
 """
 
 [<Test>]
-let ``if/then/else block``() =
-    formatSourceString """
-let rec tryFindMatch pred list =
-    match list with
-    | head :: tail -> if pred(head)
-                        then Some(head)
-                        else tryFindMatch pred tail
-    | [] -> None
-
-let test x y =
-  if x = y then "equals" 
-  elif x < y then "is less than" 
-  else "is greater than"
-
-if age < 10
-then printfn "You are only %d years old and already learning F#? Wow!" age""" config
-    |> prepend newline
-    |> should equal """
-let rec tryFindMatch pred list = 
-    match list with
-    | head :: tail -> 
-        if pred(head) then Some(head)
-        else tryFindMatch pred tail
-    | [] -> None
-
-let test x y = 
-    if x = y then "equals"
-    else 
-        if x < y then "is less than"
-        else "is greater than"
-
-if age < 10 then printfn "You are only %d years old and already learning F#? Wow!" age"""
-
-[<Test>]
 let ``records with update``() =
     formatSourceString """
 type Car = {
@@ -419,19 +367,146 @@ let myRecord3 = { myRecord2 with Y = 100; Z = 2 }
 """
 
 [<Test>]
-let ``enums conversion``() =
+let ``list comprehensions``() =
     formatSourceString """
-type uColor =
-   | Red = 0u
-   | Green = 1u
-   | Blue = 2u
-let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)""" config
+let listOfSquares = [ for i in 1 .. 10 -> i*i ]
+let list0to3 = [0 .. 3]""" config
     |> prepend newline
     |> should equal """
-type uColor = 
-    | Red = 0u
-    | Green = 1u
-    | Blue = 2u
+let listOfSquares = [for i in 1..10 do yield i * i]
 
-let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
+let list0to3 = [0..3]
 """
+
+[<Test>]
+let ``array comprehensions``() =
+    formatSourceString """
+let a1 = [| for i in 1 .. 10 -> i * i |]
+let a2 = [| 0 .. 99 |]  
+let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
+    |> prepend newline
+    |> should equal """
+let a1 = [|for i in 1..10 do yield i * i|]
+
+let a2 = [|0..99|]
+
+let a3 = 
+    [|for n in 1..100 do
+          if isPrime n then yield n|]
+"""
+
+[<Test>]
+let ``xml documentation``() =
+    formatSourceString """
+/// <summary>
+/// Kill Weight Mud
+/// </summary>
+///<param name="sidpp">description</param>
+///<param name="tvd">xdescription</param>
+///<param name="omw">ydescription</param>
+let kwm sidpp tvd omw =
+    (sidpp / 0.052 / tvd) + omw
+
+/// Kill Weight Mud
+let kwm sidpp tvd omw = 1.0""" config
+    |> prepend newline
+    |> should equal """
+/// <summary>
+/// Kill Weight Mud
+/// </summary>
+///<param name="sidpp">description</param>
+///<param name="tvd">xdescription</param>
+///<param name="omw">ydescription</param>
+let kwm sidpp tvd omw = (sidpp / 0.052 / tvd) + omw
+
+/// Kill Weight Mud
+let kwm sidpp tvd omw = 1.0
+"""
+
+[<Test>]
+let ``discriminated unions with members``() =
+    formatSourceString """
+type Type
+    = TyLam of Type * Type
+    | TyVar of string
+    | TyCon of string * Type list
+    with override this.ToString() =
+            match this with
+            | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
+            | TyVar a -> a
+            | TyCon (s, ts) -> s""" config
+    |> prepend newline
+    |> should equal """
+type Type = 
+    | TyLam of Type * Type
+    | TyVar of string
+    | TyCon of string * Type list
+    override this.ToString() = 
+        match this with
+        | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
+        | TyVar a -> a
+        | TyCon(s, ts) -> s
+"""
+
+[<Test>]
+let ``namespace declaration``() =
+    formatSourceString """
+namespace Widgets
+
+type MyWidget1 =
+    member this.WidgetName = "Widget1" 
+
+module WidgetsModule =
+    let widgetName = "Widget2"
+    """ config
+    |> prepend newline
+    |> should equal """
+namespace Widgets
+
+type MyWidget1 = 
+    member this.WidgetName = "Widget1"
+
+module WidgetsModule = 
+    let widgetName = "Widget2"
+    """
+
+[<Test>]
+let ``nested modules``() =
+    formatSourceString """
+module Y =
+    let x = 1 
+
+    module Z =
+        let z = 5""" config
+    |> prepend newline
+    |> should equal """
+module Y = 
+    let x = 1
+    
+    module Z = 
+        let z = 5
+        """
+
+[<Test>]
+let ``sibling modules``() =
+    formatSourceString """
+module TopLevel
+
+let topLevelX = 5
+
+module Inner1 =
+    let inner1X = 1
+module Inner2 =
+    let inner2X = 5""" config
+    |> prepend newline
+    |> should equal """
+module TopLevel
+
+let topLevelX = 5
+
+module Inner1 = 
+    let inner1X = 1
+    
+module Inner2 = 
+    let inner2X = 5
+    """

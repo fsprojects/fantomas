@@ -182,7 +182,7 @@ let ``object expressions``() =
     |> prepend newline
     |> should equal """
 let obj1 = 
-    { new System.Object with
+    { new System.Object() with
           member x.ToString() = "F#" }
 """
 
@@ -445,3 +445,73 @@ let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
 
 let str1 = "abc"
 """
+
+[<Test>]
+let ``line, file and path identifiers``() =
+    formatSourceString """
+    let printSourceLocation() =
+        printfn "Line: %s" __LINE__
+        printfn "Source Directory: %s" __SOURCE_DIRECTORY__
+        printfn "Source File: %s" __SOURCE_FILE__
+    printSourceLocation()
+    """ config
+    |> prepend newline
+    |> should equal """
+let printSourceLocation() = 
+    printfn "Line: %s" __LINE__
+    printfn "Source Directory: %s" __SOURCE_DIRECTORY__
+    printfn "Source File: %s" __SOURCE_FILE__
+
+printSourceLocation()"""
+
+[<Test>]
+let ``enums conversion``() =
+    formatSourceString """
+type uColor =
+   | Red = 0u
+   | Green = 1u
+   | Blue = 2u
+let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)""" config
+    |> prepend newline
+    |> should equal """
+type uColor = 
+    | Red = 0u
+    | Green = 1u
+    | Blue = 2u
+
+let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
+"""
+
+[<Test>]
+let ``if/then/else block``() =
+    formatSourceString """
+let rec tryFindMatch pred list =
+    match list with
+    | head :: tail -> if pred(head)
+                        then Some(head)
+                        else tryFindMatch pred tail
+    | [] -> None
+
+let test x y =
+  if x = y then "equals" 
+  elif x < y then "is less than" 
+  else "is greater than"
+
+if age < 10
+then printfn "You are only %d years old and already learning F#? Wow!" age""" config
+    |> prepend newline
+    |> should equal """
+let rec tryFindMatch pred list = 
+    match list with
+    | head :: tail -> 
+        if pred(head) then Some(head)
+        else tryFindMatch pred tail
+    | [] -> None
+
+let test x y = 
+    if x = y then "equals"
+    else 
+        if x < y then "is less than"
+        else "is greater than"
+
+if age < 10 then printfn "You are only %d years old and already learning F#? Wow!" age"""
