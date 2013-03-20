@@ -38,6 +38,8 @@ let commaText = "Enable/disable spaces after commas (default = true)."
 let semicolonText = "Enable/disable spaces after semicolons (default = true)."
 let indentOnTryWithText = "Enable/disable indentation on try/with block (default = false)."
 
+let outputText = "The argument should be a valid path for files or folders.\n Files should have .fs, .fsx, .fsi, .ml or .mli extension only."
+
 let time f =
   let sw = System.Diagnostics.Stopwatch.StartNew()
   let r = f()
@@ -45,14 +47,33 @@ let time f =
   printfn "Time taken: %O s" sw.Elapsed
   r
 
+type PathParam = 
+    | File of string 
+    | Folder of string 
+    | Nothing
+
+let extensions = set [|".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
+
+let isRightExtension s = Set.contains (Path.GetExtension s) extensions
+
+/// Get all appropriate files, either recursively or non-recursively
+let rec allFiles isRec path =
+    seq {
+        for f in Directory.GetFiles(path) do
+            if isRightExtension f then yield f
+        if isRec then
+            for d in Directory.GetDirectories(path) do
+                yield! allFiles isRec d    
+    }
+
 [<EntryPoint>]
 let main args = 
     let help = ref false
     let recurse = ref false
     let force = ref false
 
-    let outputPath = ref None
-    let inputPath = ref None
+    let outputPath = ref Nothing
+    let inputPath = ref Nothing
     
     let indent = ref 4
     
@@ -63,42 +84,44 @@ let main args =
     let spaceAfterSemiColon = ref true
     let indentOnTryWith = ref false
 
+    let handleOutput s =
+        if Directory.Exists(s) then
+           outputPath := Folder s
+        elif File.Exists(s) && isRightExtension(s) then
+            outputPath := File s
+        else
+            raise(HelpText outputText)
+
+    let handleInput s = 
+        if Directory.Exists(s) then
+           inputPath := Folder s
+        elif File.Exists(s) && isRightExtension(s) then
+            inputPath := File s
+        else
+            raise(HelpText outputText)
+
     let options =
         [| ArgInfo("--help", ArgType.Set help, helpText);
            ArgInfo("--recursive", ArgType.Set recurse, "Process the input folder recursively.");
            ArgInfo("--force", ArgType.Set force, "Force to return original string if parsing fails.");
-           ArgInfo("--out", ArgType.String(fun s -> outputPath := Some s), "Set the output path.");
+           ArgInfo("--output", ArgType.String handleOutput, outputText);
 
            ArgInfo("--indent", ArgType.Int(fun i -> indent := i), indentText);
            
-           ArgInfo("-semicolonAtEndOfLine", ArgType.Unit(fun () -> semicolonAtEndOfLine := false), semicolonEOFText);
-           ArgInfo("+semicolonAtEndOfLine", ArgType.Unit(fun () -> semicolonAtEndOfLine := true), semicolonEOFText);
-           ArgInfo("-spaceBeforeArgument", ArgType.Unit(fun () -> spaceBeforeArgument := false), argumentText);
-           ArgInfo("+spaceBeforeArgument", ArgType.Unit(fun () -> spaceBeforeArgument := true), argumentText);
-           ArgInfo("-spaceBeforeColon", ArgType.Unit(fun () -> spaceBeforeColon := false), colonText);
-           ArgInfo("+spaceBeforeColon", ArgType.Unit(fun () -> spaceBeforeColon := true), colonText);
-           ArgInfo("-spaceAfterComma", ArgType.Unit(fun () -> spaceAfterComma := false), commaText);
-           ArgInfo("+spaceAfterComma", ArgType.Unit(fun () -> spaceAfterComma := true), commaText);
-           ArgInfo("-spaceAfterSemiColon", ArgType.Unit(fun () -> spaceAfterSemiColon := false), semicolonText);
-           ArgInfo("+spaceAfterSemiColon", ArgType.Unit(fun () -> spaceAfterSemiColon := true), semicolonText);
-           ArgInfo("-indentOnTryWith", ArgType.Unit(fun () -> indentOnTryWith := false), indentOnTryWithText);
-           ArgInfo("+indentOnTryWith", ArgType.Unit(fun () -> indentOnTryWith := true), indentOnTryWithText); |]
+           ArgInfo("-semicolonAtEndOfLine", ArgType.Clear semicolonAtEndOfLine, semicolonEOFText);
+           ArgInfo("+semicolonAtEndOfLine", ArgType.Set semicolonAtEndOfLine, semicolonEOFText);
+           ArgInfo("-spaceBeforeArgument", ArgType.Clear spaceBeforeArgument, argumentText);
+           ArgInfo("+spaceBeforeArgument", ArgType.Set spaceBeforeArgument, argumentText);
+           ArgInfo("-spaceBeforeColon", ArgType.Clear spaceBeforeColon, colonText);
+           ArgInfo("+spaceBeforeColon", ArgType.Set spaceBeforeColon, colonText);
+           ArgInfo("-spaceAfterComma", ArgType.Clear spaceAfterComma, commaText);
+           ArgInfo("+spaceAfterComma", ArgType.Set spaceAfterComma, commaText);
+           ArgInfo("-spaceAfterSemiColon", ArgType.Clear spaceAfterSemiColon, semicolonText);
+           ArgInfo("+spaceAfterSemiColon", ArgType.Set spaceAfterSemiColon, semicolonText);
+           ArgInfo("-indentOnTryWith", ArgType.Clear indentOnTryWith, indentOnTryWithText);
+           ArgInfo("+indentOnTryWith", ArgType.Set indentOnTryWith, indentOnTryWithText); |]
 
-    let parseInput s = 
-        match !inputPath with
-        | None -> inputPath := Some s
-        | Some _ -> printfn "Input path has already been specified."
-
-    ArgParser.Parse(options, parseInput, "Fantomas.Cmd <filename>")
-
-    // Assume that we get the input as a single file
-
-    if Option.isNone !outputPath then
-        outputPath := !inputPath 
-                      |> Option.map (fun s ->
-                            let name = Path.GetFileNameWithoutExtension(s) + "_out"
-                            let ext = Path.GetExtension(s)
-                            Path.Combine(Path.GetDirectoryName(s), name + ext))
+    ArgParser.Parse(options, handleInput, "Fantomas.Cmd <input path>")
 
     let config = { FormatConfig.Default with 
                     IndentSpaceNum = !indent;
@@ -108,12 +131,43 @@ let main args =
                     SpaceAfterComma = !spaceAfterComma; 
                     SpaceAfterSemicolon = !spaceAfterSemiColon; 
                     IndentOnTryWith = !indentOnTryWith }
-    
+
+    // Assume that we get the input as a single file
     match !inputPath, !outputPath with
-    | Some s1, Some s2 -> 
+    | Nothing, _ -> 
+        Console.WriteLine("Input path is missing.")
+        exit 1
+    | File s1, Nothing ->
+        let s2 = 
+            let name = Path.GetFileNameWithoutExtension(s1) + "_out"
+            let ext = Path.GetExtension(s1)
+            Path.Combine(Path.GetDirectoryName(s1), name + ext)
         time (fun () -> processSourceFile s1 s2 config)
         Console.WriteLine("{0} has been written.", s2)
-    | _ -> ()
+    | File s1, File s2 ->
+        time (fun () -> processSourceFile s1 s2 config)
+        Console.WriteLine("{0} has been written.", s2)
+    | File _, Folder _ ->
+        Console.WriteLine("Output path should indicate a file.")
+        exit 1
+    | Folder s1, Nothing ->
+        allFiles !recurse s1
+        |> Seq.iter (fun s1 ->
+            let s2 = 
+                let name = Path.GetFileNameWithoutExtension(s1) + "_out"
+                let ext = Path.GetExtension(s1)
+                Path.Combine(Path.GetDirectoryName(s1), name + ext)
+            time (fun () -> processSourceFile s1 s2 config)
+            Console.WriteLine("{0} has been written.", s2))
+    | Folder _, File _ ->
+        Console.WriteLine("Output path should indicate a folder.")
+        exit 1
+    | Folder s1, Folder s2 ->
+        allFiles !recurse s1
+        |> Seq.iter (fun s1 ->
+            let s2 = Path.Combine(s2, Path.GetFileName(s1))
+            time (fun () -> processSourceFile s1 s2 config)
+            Console.WriteLine("{0} has been written.", s2))
 
     Console.WriteLine("Press any key to finish...")
     Console.ReadKey() |> ignore

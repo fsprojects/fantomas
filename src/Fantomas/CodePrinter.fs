@@ -288,8 +288,9 @@ and genExpr = function
     | Sequential(e1, e2) -> genExpr e1 +> sepNln +> genExpr e2
     | IfThenElse(e1, e2, Some e3) -> 
         !- "if " +> autoBreakBy 3 e1 -- " then " 
-        +> ifElse (multiline e2) (indent +> sepNln +> genExpr e2 +> unindent ++ "else ") (genExpr e2 -- " else ") 
-        +> autoBreakNln e3
+        +> ifElse (multiline e2) (indent +> sepNln +> genExpr e2 +> unindent ++ "else " +> autoBreakNln e3) 
+            (genExpr e2 +> ifElse (multiline e3) (!+ "else " +> indent +> sepNln +> genExpr e3 +> unindent) 
+                                (!- " else " +> genExpr e3))        
     | IfThenElse(e1, e2, None) -> 
         !- "if " +> autoBreakBy 3 e1 -- " then " +> autoBreakNln e2
     // Is decode of infix operators correct?

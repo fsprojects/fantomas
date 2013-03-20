@@ -409,8 +409,7 @@ let (|JoinIn|_|) = function
 
 let (|LetOrUse|_|) = function
     | SynExpr.LetOrUse(isRec, isUse, xs, e, _) -> 
-        if List.isEmpty xs then failwith "Illformed bindings"
-        else Some (isRec, isUse, xs, e)
+        Some(isRec, isUse, xs, e)
     | _ -> None
 
 let (|LetOrUseBang|_|) = function

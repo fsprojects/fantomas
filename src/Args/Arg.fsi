@@ -40,6 +40,9 @@ type ArgInfo =
   /// Return the usage help associated with the argument
   member HelpText : string
 
+exception Bad of string
+exception HelpText of string
+
 [<Sealed>]
 type ArgParser = 
     #if FX_NO_COMMAND_LINE_ARGS
