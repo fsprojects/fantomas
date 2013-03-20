@@ -44,6 +44,7 @@
     <Compile Include="CodeFormatterTests.fs" />
     <Compile Include="CodeFormatterExtTests.fs" />
     <Compile Include="CodeFormatterExtExtTests.fs" />
+    <Compile Include="CodeFormatterExtExtExtTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Compiler">
