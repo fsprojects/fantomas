@@ -2,6 +2,7 @@
 /// http://shootout.alioth.debian.org/
 ///
 /// Contributed by Valentin Kraevskiy
+module Nbody
 
 let pi = 3.141592653589793
 let daysPerYear = 365.24

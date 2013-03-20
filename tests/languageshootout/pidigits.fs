@@ -3,6 +3,7 @@
 ///
 /// contributed by Valentin Kraevskiy
 /// fixed by Joel Mueller
+module Pidigits
 
 #light
     

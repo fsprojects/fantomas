@@ -8,6 +8,7 @@
 /// and the ATS version by Hongwei Xi
 /// convert to C# by The Anh Tran
 /// convert to F# by Jomo Fisher
+module Fannkuch
 
 open System
 open System.Threading

@@ -2,7 +2,7 @@
 /// http://shootout.alioth.debian.org/
 /// contributed by Alex Peake
 /// Literal translation of Andrei Formiga's Scala solution
-
+module Fannkuch
 #light
 
 [<EntryPoint>]

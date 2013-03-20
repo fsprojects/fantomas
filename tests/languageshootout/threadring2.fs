@@ -5,6 +5,7 @@
 ///
 ///    Uses F# asyncs (lightweight threads) with customized auto reset cell 
 ///    as semaphore.
+module Threadring
 
 let ringLength = 503
 

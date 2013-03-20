@@ -3,6 +3,7 @@
 ///
 /// Modified version of Valentin Kraevskiy
 /// Contributed by Vassil Keremidchiev
+module Regexdna
 
 open System.Text.RegularExpressions
 open System.Threading

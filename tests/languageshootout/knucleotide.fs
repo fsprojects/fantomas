@@ -4,6 +4,7 @@
 /// http://shootout.alioth.debian.org/
 ///
 /// contributed by Jimmy Tang
+module Knucleotide
 
 open System
 open System.IO

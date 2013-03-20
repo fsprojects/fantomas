@@ -4,6 +4,7 @@
 /// contributed by Valentin Kraevskiy
 /// fixed by Joel Mueller
 /// updated by Anh-Dung Phan
+module Pidigits
 
 open System
 open System.Numerics

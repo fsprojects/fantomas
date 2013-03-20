@@ -2,6 +2,7 @@
 /// http://shootout.alioth.debian.org/
 ///
 /// Contributed by Valentin Kraevskiy
+module Fasta
 
 let im = 139968
 let ia = 3877

@@ -3,6 +3,7 @@
 ///
 /// Based on C# version by Isaac Gouy, The Anh Tran, Alan McGovern
 /// Contributed by Don Syme
+module Spectralnorm
 
 open System
 open System.Threading

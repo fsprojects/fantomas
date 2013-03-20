@@ -2,6 +2,7 @@
 ///    http://shootout.alioth.debian.org/
 ///
 ///    contributed by Jimmy Tang
+module Fastaredux
 
 open System;
 open System.IO;

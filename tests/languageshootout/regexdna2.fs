@@ -2,6 +2,7 @@
 /// http://shootout.alioth.debian.org/
 ///
 /// Contributed by Valentin Kraevskiy
+module Regexdna
 
 open System.Text.RegularExpressions
 

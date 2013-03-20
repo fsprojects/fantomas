@@ -2,7 +2,8 @@
 /// http://shootout.alioth.debian.org/
 ///
 /// from Scala version by Otto Bommer, August 2010
-/// Modified by Faisal Waris by remvoing ref's and using mutable variables, April /// 25, 2011
+/// Modified by Faisal Waris by removing ref's and using mutable variables, April 25, 2011
+module Fannkuchredux
 
 let fannkuch n =
   begin

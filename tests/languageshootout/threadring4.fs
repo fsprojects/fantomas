@@ -12,6 +12,7 @@
 ///        fsc --tailcalls+ -O --platform:x64 ThreadRingNew.fs -o ThreadRingNew.exe
 ///    Execute :
 ///        mono ThreadRingNew.exe 50000000
+module Threadring
 
 let NumberOfThreads = 503
 

@@ -5,6 +5,7 @@
 /// of Empty node and to use a single Next element.
 /// Based on F# version by Robert Pickering
 /// Based on ocaml version by Troestler Christophe & Isaac Gouy
+module BinaryTrees
 
 open System
 open Unchecked

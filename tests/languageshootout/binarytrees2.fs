@@ -5,7 +5,7 @@
 /// of Empty node.
 /// Based on F# version by Robert Pickering
 /// Based on ocaml version by Troestler Christophe & Isaac Gouy
-
+module BinaryTrees2
 
 [<CompilationRepresentation(CompilationRepresentationFlags
   .UseNullAsTrueValue)>]

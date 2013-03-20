@@ -5,6 +5,7 @@
 ///
 ///    Uses F# asyncs. Asyncs are triggered by tailcall in sequence as progress is 
 ///    made around the ring. 
+module Threadring
 
 let ringLength = 503
 

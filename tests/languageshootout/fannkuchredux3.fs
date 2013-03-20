@@ -4,8 +4,8 @@
 ///
 ///   from Scala version by Otto Bommer, 13 Dec 2011
 ///
-/// Modified by Vassil Keremidchiev by simplifying and parallelizing in F#, January /// 24, 2012
-
+/// Modified by Vassil Keremidchiev by simplifying and parallelizing in F#, January 24, 2012
+module Fannkuchredux
 
 open System.Threading
 

@@ -4,6 +4,7 @@
 /// Adapted by Antti Lankila from the earlier Isaac Gouy's implementation
 /// Add multithread & tweaks from C++ by The Anh Tran
 /// Translate to F# by Jomo Fisher
+module Mandelbrot
 
 open System
 open System.Threading
