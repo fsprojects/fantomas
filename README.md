@@ -11,7 +11,34 @@ Fantomas follows the formatting guideline being described in [A comprehensive gu
 
 ## Use cases
 The project is developed with the following use cases in mind:
- - Reformatting an unfamiliar code base. It gives readability when you are not the one originally written the code.
+ - Reformatting an unfamiliar code base. It gives readability when you are not the one originally written the code. 
+To illustrate, the following example
+
+	```fsharp
+	type Type
+	    = TyLam of Type * Type
+	    | TyVar of string
+	    | TyCon of string * Type list
+	    with override this.ToString () =
+	            match this with
+	            | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
+	            | TyVar a -> a
+	            | TyCon (s, ts) -> s
+	 ```
+will be rewritten to
+
+	```fsharp
+	type Type = 
+	    | TyLam of Type * Type
+	    | TyVar of string
+	    | TyCon of string * Type list
+	    override this.ToString() = 
+	        match this with
+	        | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
+	        | TyVar a -> a
+	        | TyCon(s, ts) -> s
+	 ```
+
  - Converting from verbose syntax to light syntax. 
 Feeding a source file in verbose mode, Fantomas will format it appropriately in light mode.
 This might be helpful for code generation since generating verbose source files is much easier.
