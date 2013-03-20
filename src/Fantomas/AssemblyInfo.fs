@@ -1,4 +1,4 @@
-﻿module internal AssemblyInfo
+﻿module internal Fantomas.AssemblyInfo
 
 open System
 open System.Reflection
@@ -40,4 +40,4 @@ let [<Literal>] version = "0.3.0"
 [<assembly: DependencyAttribute("System.Core", LoadHint.Always)>]
 [<assembly: DefaultDependency(LoadHint.Always)>]
 
-do ()
+do()

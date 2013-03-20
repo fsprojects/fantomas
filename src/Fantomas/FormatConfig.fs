@@ -103,7 +103,7 @@ let str (o : 'T) (ctx : Context) =
     ctx
 
 /// Process collection - keeps context through the whole processing
-/// calls 'f' for every element in sequence and 'f'' between every two elements 
+/// calls f for every element in sequence and f' between every two elements 
 /// as a separator. This is a variant that works on typed collections.
 let col f' (c : seq<'T>) f (ctx : Context) =
     let mutable tryPick = true in
@@ -114,22 +114,29 @@ let col f' (c : seq<'T>) f (ctx : Context) =
         st <- f (e.Current) st
     st
 
-/// If there is a value, apply f and f' accordingly, otherwise, do nothing
-let opt f' o f (ctx : Context) =
-    match o with
-    | Some x -> f' (f x ctx)
-    | None -> ctx
-
 /// Similar to col, apply one more function f2 at the end if the input sequence is not empty
-let colPost f1 f2 (c : seq<'T>) f (ctx : Context) =
+let colPost f2 f1 (c : seq<'T>) f (ctx : Context) =
     if Seq.isEmpty c then ctx
     else f2 (col f1 c f ctx)
 
 /// Similar to col, apply one more function f2 at the beginning if the input sequence is not empty
-let colPre f1 f2 (c : seq<'T>) f (ctx : Context) =
+let colPre f2 f1 (c : seq<'T>) f (ctx : Context) =
     if Seq.isEmpty c then ctx
     else col f1 c f (f2 ctx)
 
+/// If there is a value, apply f and f' accordingly, otherwise do nothing
+let opt (f' : Context -> _) o f (ctx : Context) =
+    match o with
+    | Some x -> f' (f x ctx)
+    | None -> ctx
+
+/// Similar to opt, but apply f2 at the beginning if there is a value
+let optPre (f2 : _ -> Context) (f1 : Context -> _) o f (ctx : Context) =
+    match o with
+    | Some x -> f1 (f x (f2 ctx))
+    | None -> ctx
+
+/// b is true, apply f1 otherwise apply f2
 let ifElse b (f1 : Context -> Context) f2 (ctx : Context) =
     if b then f1 ctx else f2 ctx
 
@@ -137,8 +144,9 @@ let ifElse b (f1 : Context -> Context) f2 (ctx : Context) =
 let rep n (f : Context -> Context) (ctx : Context) =
     [1..n] |> List.fold (fun c _ -> f c) ctx
 
-let wordAnd = !- " and "  
-let wordOf = !- " of "      
+let wordAnd = !- " and "
+let wordOr = !- " or "
+let wordOf = !- " of "   
 
 // Separator functions        
 let sepDot = !- "."
@@ -150,6 +158,20 @@ let sepArrow = !- " -> "
 let sepWild = !- "_"
 let sepNone = id
 let sepBar = !- "| "
+
+let [<Literal>] openL = "["
+let [<Literal>] closeL = "]"
+let [<Literal>] openA = "[|"
+let [<Literal>] closeA = "|]"
+let [<Literal>] openS = "{ "
+let [<Literal>] closeS = " }"
+
+let sepOpenL = !- openL
+let sepCloseL = !- closeL
+let sepOpenA = !- openA
+let sepCloseA = !- closeA
+let sepOpenS = !- openS
+let sepCloseS = !- closeS
 
 let inline sepColon(ctx : Context) = 
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx
@@ -166,4 +188,12 @@ let sepSemiNln =
 
 let inline sepBeforeArg(ctx : Context) = 
     if ctx.Config.SpaceBeforeArgument then str " " ctx else str "" ctx
+
+/// Conditional indentation on with keyword
+let inline indentWith(ctx : Context) =
+    if ctx.Config.IndentOnTryWith then indent ctx else ctx
+
+/// Conditional unindentation on with keyword
+let inline unindentWith(ctx : Context) =
+    if ctx.Config.IndentOnTryWith then unindent ctx else ctx
 

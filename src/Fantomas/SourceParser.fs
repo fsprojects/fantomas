@@ -14,8 +14,17 @@ let inline content (r : range) (c : Context) =
         c.Content.[start..finish]
     else ""
 
+/// Use infix operators in the short form
 let inline (|OpName|) s =
     if IsActivePatternName s then sprintf "(%s)" (DecompileOpName s)
+    elif IsPrefixOperator s then 
+        let s' = DecompileOpName s
+        if s'.[0] = '~' then s'.Substring(1)
+        else s'
+    else DecompileOpName s
+
+let inline (|OpNamePrefix|) s =
+    if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s then sprintf "(%s)" (DecompileOpName s)
     else DecompileOpName s
 
 let inline (|Ident|) (id: Ident) = id.idText
@@ -26,13 +35,20 @@ let inline (|LongIdent|) (li: LongIdent) =
 let inline (|LongIdentWithDots|) (LongIdentWithDots(li, _)) = 
     li |> Seq.map (fun id -> id.idText) |> String.concat "."
 
-let inline (|Typar|) (SynTypar.Typar(Ident s, _ , _)) = s
+// Type params
+
+let inline (|Typar|) (SynTypar.Typar(Ident s, req , _)) = 
+    match req with
+    | NoStaticReq -> (s, false)
+    | HeadTypeStaticReq -> (s, true)
+
+let inline (|ValTyparDecls|) (SynValTyparDecls(tds, b, tcs)) = (tds, b, tcs)
     
 // Literals
 
 let (|Measure|) x = 
     let rec loop = function
-        | SynMeasure.Var(Typar s, _) -> s
+        | SynMeasure.Var(Typar(s, _), _) -> s
         | SynMeasure.Anon _ -> "_"
         | SynMeasure.One -> "1"
         | SynMeasure.Product(m1, m2, _) -> 
@@ -86,7 +102,7 @@ let (|ParsedImplFileInput|) = function
     | ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _) -> (hs, mns)
 
 let (|ModuleOrNamespace|) = function
-    | SynModuleOrNamespace.SynModuleOrNamespace(li, _, mds, px, ats, ao, _) -> (ats, px, ao, li, mds)
+    | SynModuleOrNamespace.SynModuleOrNamespace(LongIdent s, isModule, mds, px, ats, ao, _) -> (ats, px, ao, s, mds, isModule)
 
 // Attribute
 let (|Attribute|) (a : SynAttribute) =
@@ -204,8 +220,8 @@ let (|MDLetBindings|_|) = function
     | _ -> None
 
 let (|MDAbstractSlot|_|) = function
-    | SynMemberDefn.AbstractSlot(SynValSig.ValSpfn(ats, Ident s, _, t, _, _, _, px, ao, _, _),_,_) -> 
-        Some(ats, px, ao, s, t)
+    | SynMemberDefn.AbstractSlot(ValSpfn(ats, Ident s, tds, t, _, _, _, px, ao, _, _), mf, _) -> 
+        Some(ats, px, ao, s, t, tds, mf)
     | _ -> None
 
 let (|MDInterface|_|) = function
@@ -223,23 +239,52 @@ let (|InterfaceImpl|) = function
 
 // Bindings
 
-let (|DoBinding|LetBinding|MemberBinding|) = function
+let (|PropertyGet|_|) = function
+    | MemberKind.PropertyGet -> Some()
+    | _ -> None
+
+let (|PropertySet|_|) = function
+    | MemberKind.PropertySet -> Some()
+    | _ -> None
+
+let (|PropertyGetSet|_|) = function
+    | MemberKind.PropertyGetSet -> Some()
+    | _ -> None
+
+let (|MFProperty|_|) (mf : MemberFlags) =
+    match mf.MemberKind with
+    | MemberKind.PropertyGet | MemberKind.PropertySet | MemberKind.PropertyGetSet as mk -> Some mk
+    | _ -> None
+
+let (|MFMemberFlags|) (mf : MemberFlags) = mf.MemberKind
+
+/// Find out which keyword to use
+let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf : MemberFlags) =
+    match mf.MemberKind with
+    | MemberKind.ClassConstructor | MemberKind.Constructor -> MFConstructor()
+    | MemberKind.Member | MemberKind.PropertyGet | MemberKind.PropertySet | MemberKind.PropertyGetSet as mk -> 
+        if mf.IsInstance && mf.IsOverrideOrExplicitImpl then MFOverride mk
+        elif mf.IsInstance then MFMember mk
+        else MFStaticMember mk
+
+let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|) = function
+    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, SynValData(Some(MFProperty _ as mf), _, _), pat, bri, expr, _, _) ->
+        PropertyBinding(ats, px, ao, isInline, mf, pat, expr, bk, bri)
     | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, SynValData(Some mf, _, _), pat, bri, expr, _, _) ->
-        MemberBinding(ats, px, ao, isInline, mf.IsInstance, pat, expr, bk, bri)
+        MemberBinding(ats, px, ao, isInline, mf, pat, expr, bk, bri)
     | SynBinding.Binding(_, DoBinding, _, _, ats, px, _, _, _, expr, _, _) -> 
         DoBinding(ats, px, expr)
     | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, _, pat, bri, expr, _, _) -> 
         LetBinding(ats, px, ao, isInline, isMutable, pat, expr, bk, bri)
-
+    
 let (|BindingReturnInfo|) = function
     | SynBindingReturnInfo(t, _, ats) -> (ats, t)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
 let (|TraitCall|_|) = function
-    | SynExpr.TraitCall(ts, msig, expr, _) ->
-        let ids = List.map (|Typar|) ts
-        Some(ids, msig, expr)
+    | SynExpr.TraitCall(tps, msg, expr, _) ->
+        Some(tps, msg, expr)
     | _ -> None
 
 /// isRaw = true with <@@ and @@>
@@ -419,7 +464,7 @@ let (|TryFinally|_|) = function
 // Patterns (18 cases, lacking to handle 2 cases)
 
 let (|PatOptionalVal|_|) = function
-    | SynPat.OptionalVal(Ident id, _) -> Some id
+    | SynPat.OptionalVal(Ident s, _) -> Some s
     | _ -> None
 
 let (|PatAttrib|_|) = function
@@ -458,7 +503,7 @@ let (|PatNamed|_|) = function
     | _ -> None
 
 let (|PatLongIdent|_|) = function
-    | SynPat.LongIdent(LongIdentWithDots (OpName s), _, _, xs, ao, _) -> Some(ao, s, xs)
+    | SynPat.LongIdent(LongIdentWithDots (OpName s), _, tpso, xs, ao, _) -> Some(ao, s, xs, tpso)
     | _ -> None
 
 let (|PatParen|_|) = function
@@ -483,13 +528,9 @@ let (|PatQuoteExpr|_|) = function
 
 // Members
 
-let (|MSMember|) = function
-    | SynMemberSig.Member(ValSpfn(ats, Ident s, _, t, _, _, _, px, ao, _, _), _, _) -> (ats, px, ao, s, t)
-    | _ -> failwith "MemberSigMember: other patterns will be added later"
-              
 let (|SPatAttrib|SPatId|SPatTyped|) = function
     | SynSimplePat.Attrib(sp, ats, _) -> SPatAttrib(ats, sp)
-    | SynSimplePat.Id(Ident s, _, _, _, _, _) -> SPatId s
+    | SynSimplePat.Id(Ident s, _, _, _, isOptArg, _) -> SPatId(s, isOptArg)
     | SynSimplePat.Typed(sp, t, _) -> SPatTyped(sp, t)
 
 let (|SimplePats|SPSTyped|) = function
@@ -515,7 +556,7 @@ let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRGeneral|) = func
 
 let (|Simple|ObjectModel|) = function
     | SynTypeDefnRepr.Simple(tdsr, _) -> Simple tdsr
-    | SynTypeDefnRepr.ObjectModel(tdk, md, _) -> ObjectModel(tdk, md)
+    | SynTypeDefnRepr.ObjectModel(tdk, mds, _) -> ObjectModel(tdk, mds)
 
 type TypeDefnKindSingle = | TCUnspecified | TCClass | TCInterface | TCStruct | TCRecord
                           | TCUnion | TCAbbrev | TCHiddenRepr | TCAugmentation | TCILAssemblyCode
@@ -601,3 +642,40 @@ let (|TWithGlobalConstraints|_|) = function
 let (|TLongIdent|_|) = function
     | SynType.LongIdent(LongIdentWithDots li) -> Some li
     | _ -> None
+
+// Type parameter
+
+type SingleTyparConstraintKind = | TyparIsValueType | TyparIsReferenceType | TyparIsUnmanaged
+                                 | TyparSupportsNull | TyparIsComparable | TyparIsEquatable
+with override x.ToString() =
+        match x with
+        | TyparIsValueType -> "struct"
+        | TyparIsReferenceType -> "not struct"
+        | TyparIsUnmanaged -> "unmanaged"
+        | TyparSupportsNull -> "null"
+        | TyparIsComparable -> "comparison"
+        | TyparIsEquatable -> "equality"
+
+let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|TyparIsEnum|TyparIsDelegate|) = 
+    function    
+    | WhereTyparIsValueType(tp, _) -> TyparSingle(TyparIsValueType, tp)
+    | WhereTyparIsReferenceType(tp, _) -> TyparSingle(TyparIsReferenceType, tp)
+    | WhereTyparIsUnmanaged(tp, _) -> TyparSingle(TyparIsUnmanaged, tp)
+    | WhereTyparSupportsNull(tp, _) -> TyparSingle(TyparSupportsNull, tp)
+    | WhereTyparIsComparable(tp, _) -> TyparSingle(TyparIsComparable, tp)
+    | WhereTyparIsEquatable(tp, _) -> TyparSingle(TyparIsEquatable, tp)
+    | WhereTyparDefaultsToType(tp, t, _) -> TyparDefaultsToType(tp, t)
+    | WhereTyparSubtypeOfType(tp, t, _) -> TyparSubtypeOfType(tp, t)
+    | WhereTyparSupportsMember(tps, msg, _) -> TyparSupportsMember(tps, msg)
+    | WhereTyparIsEnum(tp, ts, _) -> TyparIsEnum(tp, ts)
+    | WhereTyparIsDelegate(tp, ts, _) -> TyparIsDelegate(tp, ts)
+
+let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
+    | SynMemberSig.Member(vs, mf, _) -> MSMember(vs, mf) 
+    | SynMemberSig.Interface(t, _) -> MSInterface t
+    | SynMemberSig.Inherit(t, _) -> MSInherit t
+    | SynMemberSig.ValField(f, _) -> MSValField f
+    | SynMemberSig.NestedType(tds, _) -> MSNestedType tds          
+
+let (|ValSig|) (ValSpfn(ats, Ident(OpNamePrefix s), tds, t, _, _, _, px, ao, _, _)) = 
+    (ats, px, ao, s, t, tds)

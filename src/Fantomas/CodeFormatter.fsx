@@ -13,65 +13,80 @@ open Fantomas.CodeFormatter
 let config = FormatConfig.Default
 
 let t01 = """
-type BaseClass =
-    val string1 : string
-    new (str) = { string1 = str }
-    new () = { string1 = "" }
-
-type DerivedClass =
-    inherit BaseClass
-    val string2 : string
-    new (str1, str2) = { inherit BaseClass(str1); string2 = str2 }
-    new (str2) = { inherit BaseClass(); string2 = str2 }"""
+type Person(nameIn : string, idIn : int) =
+    let mutable name = nameIn
+    let mutable id = idIn
+    do printfn "Created a person object." 
+    member this.Name with get() = name and set(v) = name <- v
+    member this.ID with get() = id and set(v) = id <- v
+    new() = 
+        Person("Invalid Name", -1)
+        then
+            printfn "Created an invalid person object."
+            """
 
 let t02 = """
-type Type
-    = TyLam of Type * Type
-    | TyVar of string
-    | TyCon of string * Type list
-    with override this.ToString() =
-            match this with
-            | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
-            | TyVar a -> a
-            | TyCon (s, ts) -> s"""
+type NumberStrings() =
+   let mutable ordinals = [| "one"; "two"; "three"; "four"; "five";
+                             "six"; "seven"; "eight"; "nine"; "ten" |]
+   let mutable cardinals = [| "first"; "second"; "third"; "fourth";
+                              "fifth"; "sixth"; "seventh"; "eighth";
+                              "ninth"; "tenth" |]
+   member this.Item
+      with get(index) = ordinals.[index]
+      and set index value = ordinals.[index] <- value
+   member this.Ordinal
+      with get(index) = ordinals.[index]
+      and set index value = ordinals.[index] <- value
+   member this.Cardinal
+      with get(index) = cardinals.[index]
+      and set index value = cardinals.[index] <- value"""
 
 let t03 = """
-    type Point2D =
-       struct 
-          val X: float
-          val Y: float
-          new(x: float, y: float) = { X = x; Y = y }
-       end"""
+open System.Collections.Generic
+type SparseMatrix() =
+    let mutable table = new Dictionary<int * int, float>()
+    member this.Item
+        with get(key1, key2) = table.[(key1, key2)]
+        and set (key1, key2) value = table.[(key1, key2)] <- value
 
-let t04 = """
-    type MyClassBase1() =
-       let mutable z = 0
-       abstract member function1 : int -> int
-       default u.function1(a : int) = z <- z + a; z
-
-    type MyClassDerived1() =
-       inherit MyClassBase1()
-       override u.function1(a: int) = a + 1"""
-
-let t05 = """
-let listOfSquares = [ for i in 1 .. 10 -> i*i ]
-let list0to3 = [0 .. 3]
-"""
-
-let t06 = """
-let a1 = [| for i in 1 .. 10 -> i * i |]
-let a2 = [| 0 .. 99 |]  
-let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]
+let matrix1 = new SparseMatrix()
+for i in 1..1000 do
+    matrix1.[i, i] <- float i * float i
     """
 
-let t07 = """let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
+let t04 = """let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
   (3, 2, 6); (3, 3, 9)|]"""
 
-let t08 = """
+let t05 = """
 let array1 = [| 1; 2; 3 |]
 array1.[0..2]  
 array1.[1] <- 3
-    """;;
+    """
+
+let t06 = """
+query {
+    for student in db.Student do
+    groupJoin courseSelection in db.CourseSelection on
+               (student.StudentID = courseSelection.StudentID) into g
+    for courseSelection in g do
+    join course in db.Course on (courseSelection.CourseID = course.CourseID)
+    select (student.Name, course.CourseName)
+    }"""    
+
+let t07 = """
+query {
+    for student in db.Student do
+    where (query { for courseSelection in db.CourseSelection do
+                   exists (courseSelection.StudentID = student.StudentID) })
+    select student
+}"""
+
+let t08 = """
+type Delegate1 = delegate of (int * int) -> int
+type Delegate2 = delegate of int * int -> int
+"""
+;;
 
 printfn "Result:\n%s" <| formatSourceString t01 config;;
 printfn "Result:\n%s" <| formatSourceString t02 config;;
@@ -82,4 +97,4 @@ printfn "Result:\n%s" <| formatSourceString t06 config;;
 printfn "Result:\n%s" <| formatSourceString t07 config;;
 printfn "Result:\n%s" <| formatSourceString t08 config;;
 
-printfn "Tree:\n%A" <| parse t07;;
+printfn "Tree:\n%A" <| parse t08;;
