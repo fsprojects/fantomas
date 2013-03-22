@@ -6,7 +6,7 @@ open System.Resources
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 
-let [<Literal>] version = "0.4.0"
+let [<Literal>] version = "0.5.0"
     
 // Version information
 [<assembly: AssemblyVersion(version)>]
@@ -15,7 +15,7 @@ let [<Literal>] version = "0.4.0"
 
 // Assembly information
 [<assembly: AssemblyTitle("Fantomas")>]
-[<assembly: AssemblyDescription("A source code formatting library for F#.")>]
+[<assembly: AssemblyDescription("A source code formatting command line tool for F#.")>]
 [<assembly: NeutralResourcesLanguage("en-US")>]
 
 // General Information about an assembly is controlled through the following
