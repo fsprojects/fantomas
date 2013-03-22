@@ -6,7 +6,9 @@ module Fannkuch
 
 [<EntryPoint>]
 let main(args) = 
-  let n = if args.Length > 0 then int args.[0] else 7
+  let n = if args.Length > 0
+          then int args.[0]
+          else 7
   let mutable maxFlips = 0
   let mutable permN = 0
   let mutable j = 0
@@ -22,7 +24,8 @@ let main(args) =
     rot.[k] <- 0
     k <- k + 1
   while (rot.[n - 1] < n) do
-    if (permN < 30) then 
+    if (permN < 30)
+    then 
       k <- 0
       while (k < n) do
         printf "%d" perm.[k]
@@ -44,7 +47,8 @@ let main(args) =
         k <- k + 1
       first <- perm0.[0]
       flips <- flips + 1
-    if (flips > maxFlips) then maxFlips <- flips
+    if (flips > maxFlips)
+    then maxFlips <- flips
     temp <- perm.[0]
     perm.[0] <- perm.[1]
     perm.[1] <- temp

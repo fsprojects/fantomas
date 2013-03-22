@@ -9,7 +9,9 @@ module Fannkuchredux
 
 open System.Threading
 
-let rec fac x = if x < 2 then 1L else (int64 x) * fac(x - 1)
+let rec fac x = if x < 2
+                then 1L
+                else (int64 x) * fac(x - 1)
 
 let F = [0..20]
         |> Seq.map fac
@@ -22,7 +24,8 @@ type fannkuch(n) =
   let mutable flips = 0
   let mutable cksum = 0
   let rec direct idx i = 
-    if i > 0 then 
+    if i > 0
+    then 
       let d = int(idx / F.[i])
       count.[i] <- d
       for j = 0 to d - 1 do
@@ -51,7 +54,8 @@ type fannkuch(n) =
   let fcount() = 
     let mutable flips = 1
     let mutable first = p.[0]
-    if p.[first] <> 0 then 
+    if p.[first] <> 0
+    then 
       for i = 0 to n - 1 do
         pp.[i] <- p.[i]
       while pp.[first] <> 0 do
@@ -76,11 +80,15 @@ type fannkuch(n) =
     direct lo (p.Length - 1)
     let last = int(hi - lo - 1L)
     for j = 0 to last do
-      if p.[0] <> 0 then 
+      if p.[0] <> 0
+      then 
         let f = fcount()
         flips <- max flips f
-        cksum <- cksum + if (int64(j) + lo) % 2L = 0L then f else -f
-      if j < last then permute()
+        cksum <- cksum + if (int64(j) + lo) % 2L = 0L
+                         then f
+                         else -f
+      if j < last
+      then permute()
     (cksum, flips)
 
 let _ = 
@@ -95,11 +103,11 @@ let _ =
   let ntasks = int(split chunk)
   let (c, fl) = 
     [0..ntasks]
-    |> Seq.map(fun (i) -> 
+    |> Seq.map(fun i -> 
       async { 
         let thread = fannkuch(n)
         return thread.runTask(i, chunk) })
     |> Async.Parallel
     |> Async.RunSynchronously
-    |> Array.fold (fun (_cksum, _flips) -> fun (cksum, flips) -> (_cksum + cksum, max _flips flips)) (0, 0)
+    |> Array.fold (fun (_cksum, _flips) (cksum, flips) -> (_cksum + cksum, max _flips flips)) (0, 0)
   Printf.printf "%d\nPfannkuchen(%d) = %d\n" c n fl

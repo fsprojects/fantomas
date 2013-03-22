@@ -18,7 +18,9 @@ let maketable (dna : string) (length : int) =
   for start in 0..(dna.Length - length) do
     let substr = dna.Substring(start, length)
     let x = ref(ref 0)
-    if d.TryGetValue(substr, x) then x.Value := ! !x + 1 else d.[substr] <- ref 1
+    if d.TryGetValue(substr, x)
+    then x.Value := ! !x + 1
+    else d.[substr] <- ref 1
   d
 
 /// frequency for all substrings of a given length
@@ -34,7 +36,9 @@ let frequencies (dna : string) (length : int) =
 
 let countSubstring dna (substring : string) = 
   [let d = maketable dna (substring.Length)
-   yield (sprintf "%d\t%s" (if d.ContainsKey(substring) then !d.[substring] else 0) (substring.ToUpper()))]
+   yield (sprintf "%d\t%s" (if d.ContainsKey(substring)
+                            then !d.[substring]
+                            else 0) (substring.ToUpper()))]
 
 let input = Console.In
 
@@ -42,8 +46,8 @@ let dna =
   seq { 
     while true do
       yield input.ReadLine() }
-  |> Seq.takeWhile(fun (x) -> x <> null)
-  |> Seq.skipWhile(fun (x) -> not(x.StartsWith(">THREE")))
+  |> Seq.takeWhile(fun x -> x <> null)
+  |> Seq.skipWhile(fun x -> not(x.StartsWith(">THREE")))
   |> Seq.skip 1
   |> String.concat ""
 

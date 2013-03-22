@@ -34,11 +34,11 @@ let next_perm(permutation : int array, position) =
 let print_30_permut() = 
   let /// declare and initialize
   permutation : int array = 
-    Array.init n (fun (i) -> 
+    Array.init n (fun i -> 
       Console.Write(i + 1)
       i)
   Console.WriteLine()
-  let perm_remain = Array.init n (fun (i) -> i + 1)
+  let perm_remain = Array.init n (fun i -> i + 1)
   let mutable numPermutationsPrinted = 1
   let mutable finished = false
   let mutable pos_right = 2
@@ -47,16 +47,19 @@ let print_30_permut() =
     while not finished && pos_left < pos_right do
       next_perm(permutation, pos_left)
       perm_remain.[pos_left] <- perm_remain.[pos_left] - 1
-      if perm_remain.[pos_left] > 0 then 
+      if perm_remain.[pos_left] > 0
+      then 
         numPermutationsPrinted <- numPermutationsPrinted + 1
-        if numPermutationsPrinted < 31 then 
+        if numPermutationsPrinted < 31
+        then 
           for i in 0..n - 1 do
             Console.Write("{0}", (1 + permutation.[i]))
           Console.WriteLine()
         else 
           finished <- true
           pos_right <- n
-        if not finished then 
+        if not finished
+        then 
           while pos_left <> 1 do
             perm_remain.[pos_left - 1] <- pos_left
             pos_left <- pos_left - 1
@@ -104,22 +107,25 @@ let worker() =
     while pos_left < n - 1 do
       next_perm(permutation, pos_left)
       perm_remain.[pos_left] <- perm_remain.[pos_left] - 1
-      if perm_remain.[pos_left] > 0 then 
+      if perm_remain.[pos_left] > 0
+      then 
         while pos_left <> 1 do
           perm_remain.[pos_left - 1] <- pos_left
           pos_left <- pos_left - 1
-        if permutation.[0] <> 0 && permutation.[n - 1] <> n - 1 then 
+        if permutation.[0] <> 0 && permutation.[n - 1] <> n - 1
+        then 
           for ip in 0..n - 1 do
             perm_flip.[ip] <- permutation.[ip]
           let flipcount = count_flip(perm_flip)
-          if flip_max < flipcount then flip_max <- flipcount
+          if flip_max < flipcount
+          then flip_max <- flipcount
       else pos_left <- pos_left + 1
     flip_max_arr.[pos_right] <- flip_max
     pos_right <- Interlocked.Increment(&remain_task.contents)
 
 let fank_game() = 
   let th : Thread array = 
-    Array.init threads (fun (i) -> 
+    Array.init threads (fun i -> 
       let th = Thread(worker)
       th.Start()
       th)
@@ -128,12 +134,15 @@ let fank_game() =
     t.Join()
   let mutable mx = 0
   for i in flip_max_arr do
-    if (mx < i) then mx <- i
+    if (mx < i)
+    then mx <- i
   mx
 
 [<EntryPoint>]
 let main args = 
-  n <- if args.Length > 0 then int args.[0] else 7
+  n <- if args.Length > 0
+       then int args.[0]
+       else 7
   flip_max_arr <- Array.zeroCreate n
   Console.WriteLine("Pfannkuchen({0}) = {1}", n, fank_game())
   0

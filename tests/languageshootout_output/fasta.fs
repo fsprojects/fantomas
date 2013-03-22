@@ -24,7 +24,7 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
      AGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCC\
      AGCCTGGGCGACAGAGCGAGACTCCGTCTCAA
 
-let makeCumulative = List.fold (fun (cp, res) -> fun (c, p) -> (cp + p, (c, cp + p) :: res)) (0.0, []) >> snd >> List.toArray
+let makeCumulative = List.fold (fun (cp, res) (c, p) -> (cp + p, (c, cp + p) :: res)) (0.0, []) >> snd >> List.toArray
 
 let homoSapiens = 
   makeCumulative [(97uy, 0.3029549427)
@@ -73,21 +73,26 @@ let inline flush() =
 let inline write b = 
   buffer.[index] <- b
   index <- index + 1
-  if index = buffer.Length then flush()
+  if index = buffer.Length
+  then flush()
 
 let randomFasta desc table n = 
   Array.iter write desc
   for i in 1..n do
     write <| selectRandom table
-    if i % width = 0 then write 10uy
-  if n % width <> 0 then write 10uy
+    if i % width = 0
+    then write 10uy
+  if n % width <> 0
+  then write 10uy
 
 let repeatFasta desc (table : byte[]) n = 
   Array.iter write desc
   for i in 1..n do
     write <| table.[(i - 1) % table.Length]
-    if i % width = 0 then write 10uy
-  if n % width <> 0 then write 10uy
+    if i % width = 0
+    then write 10uy
+  if n % width <> 0
+  then write 10uy
 
 [<EntryPoint>]
 let main args = 

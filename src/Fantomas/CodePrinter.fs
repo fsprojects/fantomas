@@ -259,10 +259,12 @@ and genExpr = function
     | PrefixApp(s, e) -> !- s  +> genExpr e
     /// Handle spaces on an infix app based on which category it belongs to
     | InfixApp(s, e1, e2) -> 
-        ifElse (Set.contains s NewLineInfixOps) (atCurrentColumn (genExpr e1 +> sepNln -- s +> sepSpace +> genExpr e2))
+        ifElse (Set.contains s NewLineInfixOps) 
+            (atCurrentColumn (genExpr e1 +> sepNln -- s +> sepSpace +> genExpr e2))
             (ifElse (Set.contains s NoSpaceInfixOps) (genExpr e1 -- s +> genExpr e2) 
                 (genExpr e1 +> sepSpace -- s +> sepSpace +> genExpr e2))
-    | App(e1, [e2]) -> genExpr e1 +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
+    | App(e1, [e2]) -> 
+        genExpr e1 +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
     /// Always spacing in multiple arguments
     | App(e, es) -> genExpr e +> colPre sepSpace sepSpace es genExpr
     | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts genType -- ">"
@@ -282,13 +284,11 @@ and genExpr = function
     | Sequential(e1, e2, _) -> 
         atCurrentColumn (genExpr e1 +> sepNln +> genExpr e2)
     | IfThenElse(e1, e2, Some e3) -> 
-        atCurrentColumn (!- "if " +> genExpr e1 -- " then " 
-        +> ifElse (multiline e2) (indent +> sepNln +> genExpr e2 +> unindent ++ "else " +> autoBreakNln e3) 
-            (genExpr e2 +> ifElse (multiline e3) (!+ "else " +> indent +> sepNln +> genExpr e3 +> unindent) 
-                                (!- " else " +> genExpr e3))        
-        )
+        atCurrentColumn (!- "if " +> genExpr e1 
+        ++ "then " +> autoBreakNln e2
+        ++ "else " +> autoBreakNln e3)
     | IfThenElse(e1, e2, None) -> 
-        atCurrentColumn (!- "if " +> genExpr e1 -- " then " +> autoBreakNln e2)
+        atCurrentColumn (!- "if " +> genExpr e1 ++ "then " +> autoBreakNln e2)
     /// At this stage, all symbolic operators have been handled.
     | Var(OpNamePrefix s) -> !- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e

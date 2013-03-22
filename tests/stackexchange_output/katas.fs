@@ -10,13 +10,19 @@ module NaturalSortKata =
     | Equal
     | Lesser
     | Greater
-    static member Compare x y = if x = y then Equal else if x > y then Greater else Lesser
+    static member Compare x y = if x = y
+                                then Equal
+                                else if x > y
+                                     then Greater
+                                     else Lesser
   
   type ChunckType = 
     | NumberType
     | StringType
     | Unknown
-    static member GetType(c : char) = if System.Char.IsDigit(c) then NumberType else StringType
+    static member GetType(c : char) = if System.Char.IsDigit(c)
+                                      then NumberType
+                                      else StringType
     member this.Compare other = 
       match other with
       | ty when ty = this -> Equal
@@ -26,7 +32,8 @@ module NaturalSortKata =
       | StringType -> Greater
   
   let natualCompare (left : string) (right : string) = 
-    if left = right then Equal
+    if left = right
+    then Equal
     else 
       let fix str = new System.String(str
                                       |> List.rev
@@ -46,7 +53,8 @@ module NaturalSortKata =
             | (ty, l) -> (ty, fix(l))
         gather str (Unknown, [])
       let rec compare (left : string) (right : string) = 
-        if (not(left.Any())) || (not(right.Any())) then 
+        if (not(left.Any())) || (not(right.Any()))
+        then 
           match (left.Length, right.Length) with
           | llen, rlen when llen = rlen -> Equal
           | llen, rlen when llen > rlen -> Greater
@@ -61,7 +69,8 @@ module NaturalSortKata =
                            |> gatherChunck
           match lt.Compare rt with
           | Equal -> 
-            if lChunk = rChunk then 
+            if lChunk = rChunk
+            then 
               let lVal = left.Replace(lChunk, "")
               let rVal = right.Replace(rChunk, "")
               compare lVal rVal

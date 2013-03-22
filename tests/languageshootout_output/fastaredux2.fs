@@ -36,14 +36,13 @@ let os = new BufferedStream(Console.OpenStandardOutput(), 1 <<< 16)
 
 let repeatFasta alu n = 
   let r = Array.length alu
-  let s = 
-    Array.concat [alu
-                  alu]
+  let s = Array.concat [alu; alu]
   for j in .. .. 0 cols n - cols do
     os.Write(s, j % r, cols)
     os.WriteByte(10uy)
   os.Write(s, (n / cols * cols) % r, n % cols)
-  if n % cols <> 0 then os.WriteByte(10uy)
+  if n % cols <> 0
+  then os.WriteByte(10uy)
   os.Flush()
 
 let randomFasta src n = 
@@ -62,19 +61,24 @@ let randomFasta src n =
       while j <= int(float(LUTLEN - 1) * cum) do
         arr.[j] <- (key, i)
         j <- j + 1
-      if j <> v then arr.[j - 1] <- (0uy, i)
+      if j <> v
+      then arr.[j - 1] <- (0uy, i)
     arr
   let lookup x = 
     match lut.[x * (LUTLEN - 1) / IM] with
     | 0uy, p -> 
       let a, b, c = cumuArray.[p]
       let i, j, k = cumuArray.[p + 1]
-      if float(x) / float(IM) < b then a else i
+      if float(x) / float(IM) < b
+      then a
+      else i
     | c, p -> c
   let /// write output one line at a time
   buf = Array.zeroCreate(cols + 1)
   for x in .. .. n (-cols) 1 do
-    let e = if x < cols then x else cols
+    let e = if x < cols
+            then x
+            else cols
     buf.[e] <- 10uy
     for y in 0..e - 1 do
       s <- (s * IA + IC) % IM

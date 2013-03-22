@@ -33,7 +33,7 @@ let rec onblocks res s =
  "agggt[cgt]aa|tt[acg]accct"
  "agggta[cgt]a|t[acg]taccct"
  "agggtaa[cgt]|[acg]ttaccct"]
-|> List.map(fun (s) -> async { return System.String.Format("{0} {1}", s, ((regex s).Matches text).Count) })
+|> List.map(fun s -> async { return System.String.Format("{0} {1}", s, ((regex s).Matches text).Count) })
 |> Async.Parallel
 |> Async.RunSynchronously
 |> Array.iter(printfn "%s")
@@ -49,12 +49,12 @@ let newTextLength t =
    ("V", "(a|c|g)")
    ("W", "(a|t)")
    ("Y", "(c|t)")]
-  |> List.fold (fun (s) -> fun (code, alt) -> (regex code).Replace(s, alt)) t
+  |> List.fold (fun s (code, alt) -> (regex code).Replace(s, alt)) t
   |> String.length
 
 let newText = text
               |> onblocks []
-              |> Seq.map(fun (s) -> async { return newTextLength s })
+              |> Seq.map(fun s -> async { return newTextLength s })
               |> Async.Parallel
               |> Async.RunSynchronously
               |> Array.sum

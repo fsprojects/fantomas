@@ -406,12 +406,13 @@ let (|Var|_|) = function
 
 /// Get all application params at once
 let rec (|App|_|) = function
-    | SynExpr.App(_, _, e1, App(e2, es), _) -> Some(e1, e2::es)
+    /// function application is left-recursive
+    | SynExpr.App(_, _, App(e1, es), e2, _) -> Some(e1, [yield! es; yield e2])
     | SynExpr.App(_, _, e1, e2, _) -> Some(e1, [e2])
     | _ -> None
 
 let (|SeqApp|_|) = function
-    | SynExpr.App(_, _, Var "seq", e, _) -> Some e
+    | SynExpr.App(_, _, Var "seq", (SynExpr.App _ as e), _) -> Some e
     | _ -> None
 
 let (|PrefixApp|_|) = function

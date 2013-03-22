@@ -33,11 +33,14 @@ let fannkuch n =
        k <- perm.[0]
        flips <- flips + 1
      maxflips <- max maxflips flips
-     if nperm &&& 1 = 0 then checksum <- checksum + flips else checksum <- checksum - flips
+     if nperm &&& 1 = 0
+     then checksum <- checksum + flips
+     else checksum <- checksum - flips
      let mutable go = true
      let mutable t = 0
      while go do
-       if r = n then 
+       if r = n
+       then 
          (go <- false
           r <- 0)
        else 
@@ -46,7 +49,9 @@ let fannkuch n =
             perm1.[i] <- perm1.[i + 1]
           perm1.[r] <- t
           count.[r] <- count.[r] - 1
-          if count.[r] > 0 then go <- false else r <- r + 1)
+          if count.[r] > 0
+          then go <- false
+          else r <- r + 1)
      nperm <- nperm + 1
    (maxflips, checksum))
 

@@ -55,8 +55,9 @@ let move destinationRoot files =
   let moveHelper file = 
     let dateTaken = getDateTaken file
     let finalPath = Path.Combine(destinationRoot, dateTaken.Year.ToString(), dateTaken.ToString("yyyy-MM-dd"))
-    if not(Directory.Exists(finalPath)) then Directory.CreateDirectory(finalPath)
-                                             |> ignore
+    if not(Directory.Exists(finalPath))
+    then Directory.CreateDirectory(finalPath)
+         |> ignore
     let newFile = getNewFilename(Path.Combine(finalPath, Path.GetFileName(file)))
     try 
       File.Copy(file, newFile)
@@ -67,7 +68,7 @@ let move destinationRoot files =
 
 let moveFrom source = 
   getAllFiles source
-  |> Seq.filter(fun (f) -> Path.GetExtension(f).ToLower() <> ".db")
+  |> Seq.filter(fun f -> Path.GetExtension(f).ToLower() <> ".db")
   |> move """C:\_EXTERNAL_DRIVE\_Camera"""
   printfn "Done"
 

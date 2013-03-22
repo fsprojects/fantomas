@@ -26,7 +26,9 @@ let rec merge (ar1 : 'a array) (ar2 : 'a array) =
       let inext, jnext = (ilast + 1, jlast + 1)
       match (inext < ar1.Length, jnext < ar2.Length) with
       | true, true -> 
-        let indexnext = if ar1.[inext] < ar2.[jnext] then (true, inext, jlast) else (false, ilast, jnext)
+        let indexnext = if ar1.[inext] < ar2.[jnext]
+                        then (true, inext, jlast)
+                        else (false, ilast, jnext)
         yield Some(indexnext)
         yield! index indexnext
       | false, true -> 
@@ -40,7 +42,9 @@ let rec merge (ar1 : 'a array) (ar2 : 'a array) =
       | false, false -> yield None }
   let mergeindex = index(false, -1, -1)
   [for (formar1, i, j) in mergeindex
-                          |> Seq.choose(id) do yield if formar1 then ar1.[i] else ar2.[j]]
+                          |> Seq.choose(id) do yield if formar1
+                                                     then ar1.[i]
+                                                     else ar2.[j]]
 
 and mergesort = 
   function 

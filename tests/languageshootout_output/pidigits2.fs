@@ -28,21 +28,25 @@ let inline lfts n = (n, 4I * n + 2I, 2I * n + 1I)
 
 let rec digits n z = 
   let y = next z
-  if safe z y then (y, n, product z y) else digits (n + 1I) (compose z <| lfts n)
+  if safe z y
+  then (y, n, product z y)
+  else digits (n + 1I) (compose z <| lfts n)
 
 let rec loop n s i z total = 
-  if total = 0 then 
+  if total = 0
+  then 
     for _ in 1..n do
       Console.Write(" ")
     Console.Write("\t:{0}\n", s + 10 - n)
   else 
-    if n = 0 then 
+    if n = 0
+    then 
       Console.Write("\t:{0}\n", s + 10)
       loop 10 (s + 10) i z total
     else 
       let (y, i', z') = digits i z
       Console.Write("{0}", int y)
-      loop(n - 1) s i' z' (total - 1)
+      loop (n - 1) s i' z' (total - 1)
 
 loop 10 0 1I id <| try 
                      int(System.Environment.GetCommandLineArgs().[1])

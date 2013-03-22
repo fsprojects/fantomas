@@ -46,19 +46,20 @@ let DNAcodes =
 let chunksCounts = 
   let chunkedMatch(matchStr : string) = text
                                         |> onblocks (matchStr.Length - 1) blockSize
-                                        |> List.map(fun (t) -> async { return (matchStr, ((regex matchStr).Matches t).Count) })
+                                        |> List.map(fun t -> async { return (matchStr, ((regex matchStr).Matches t).Count) })
   DNAcodes
   |> List.collect chunkedMatch
   |> Async.Parallel
   |> Async.RunSynchronously
 
 DNAcodes
-|> List.map(fun (key) -> 
+|> List.map(fun key -> 
   (key, chunksCounts
-        |> Array.fold (fun (S) -> 
-          fun (k, cnt) -> 
-            match S with
-            | S -> if k = key then S + cnt else S) 0))
+        |> Array.fold (fun S (k, cnt) -> 
+          match S with
+          | S -> if k = key
+                 then S + cnt
+                 else S) 0))
 |> List.iter(fun (key, cnt) -> printfn "%s %i" key cnt)
 /// Gather result counts by summing them per DNA code
 let lengthAfterReplace text = 
@@ -73,12 +74,12 @@ let lengthAfterReplace text =
    ("V", "(a|c|g)")
    ("W", "(a|t)")
    ("Y", "(c|t)")]
-  |> List.fold (fun (s) -> fun (code, alt) -> (regex code).Replace(s, alt)) text
+  |> List.fold (fun s (code, alt) -> (regex code).Replace(s, alt)) text
   |> String.length
 
 let replacedSize = text
                    |> onProcBlocks
-                   |> List.map(fun (chunk) -> async { return lengthAfterReplace chunk })
+                   |> List.map(fun chunk -> async { return lengthAfterReplace chunk })
                    |> Async.Parallel
                    |> Async.RunSynchronously
                    |> Array.sum

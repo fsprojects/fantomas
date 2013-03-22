@@ -68,7 +68,7 @@ is reformulated to
 	Multiple9x9()
 	```
 
-For more complex examples, please take a look at F# outputs of [20 language shootout programs(tests/languageshootout_output) and [10 CodeReview.SE source files](tests/stackexchange_output).
+For more complex examples, please take a look at F# outputs of [20 language shootout programs](tests/languageshootout_output) and [10 CodeReview.SE source files](tests/stackexchange_output).
 
 ## How to use
 For detailed notes on how to use Fantomas, please take a look at [this document](Usage.md).
@@ -87,7 +87,7 @@ but it seems many corner cases of the language have not been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
 ## Why the name "Fantomas"?
- - It starts with an F, just like many other F# projects.
+There are a few reason to choose the name as such. First, it starts with an F, just like many other F# projects.
  - It is the character in literature that I like very much.
  - "Fantomas" means "ghost" in French; and this project is somehow mysterious in handling formatting rules as well as corner cases of F# language.
 

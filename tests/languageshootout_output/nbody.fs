@@ -66,16 +66,15 @@ let sun =
 
 let offsetMomentum a = 
   let x, y, z = 
-    Array.fold(fun (x, y, z) -> 
-      fun (body) -> 
-        let c = body.Mass / solarMass
-        (x + c * body.VX, y + c * body.VY, z + c * body.VZ)) (0.0, 0.0, 0.0) a
+    Array.fold (fun (x, y, z) body -> 
+      let c = body.Mass / solarMass
+      (x + c * body.VX, y + c * body.VY, z + c * body.VZ)) (0.0, 0.0, 0.0) a
   a.[0].VX <- -x
   a.[0].VY <- -y
   a.[0].VZ <- -z
 
 let move t = 
-  Array.iter(fun (body) -> 
+  Array.iter(fun body -> 
     body.X <- body.X + t * body.VX
     body.Y <- body.Y + t * body.VY
     body.Z <- body.Z + t * body.VZ)
@@ -97,25 +96,22 @@ let advance a t =
   move t a
 
 let rec energy i e a = 
-  if i < Array.length a then 
+  if i < Array.length a
+  then 
     let b1 = a.[i]
     let rec energy' a j e = 
-      if j < Array.length a then 
+      if j < Array.length a
+      then 
         let b2 = a.[j]
         let dx, dy, dz = (b1.X - b2.X, b1.Y - b2.Y, b1.Z - b2.Z)
         let dist = sqrt(dx * dx + dy * dy + dz * dz)
         energy' a (j + 1) (e - b1.Mass * b2.Mass / dist)
       else e
     let sq = b1.VX * b1.VX + b1.VY * b1.VY + b1.VZ * b1.VZ
-    energy(i + 1) (energy' a (i + 1) (e + 0.5 * b1.Mass * sq)) a
+    energy (i + 1) (energy' a (i + 1) (e + 0.5 * b1.Mass * sq)) a
   else e
 
-let planets = 
-  [|sun
-    jupiter
-    saturn
-    uranus
-    neptune|]
+let planets = [|sun; jupiter; saturn; uranus; neptune|]
 
 offsetMomentum planets
 let print = energy 0 0.0 >> printf "%.9f\n"
