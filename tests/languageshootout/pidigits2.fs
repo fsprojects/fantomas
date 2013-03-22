@@ -38,7 +38,7 @@ let rec loop n s i z total =
     elif n = 0 
     then Console.Write("\t:{0}\n", s + 10)
          loop 10 (s + 10) i z total
-    else let y, i', z' = digits i z
+    else let (y, i', z') = digits i z
          Console.Write("{0}", int y) 
          loop (n - 1) s i' z' (total - 1)
 

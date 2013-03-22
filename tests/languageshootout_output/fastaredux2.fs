@@ -5,7 +5,9 @@
 module Fastaredux
 
 open System
+
 open System.IO
+
 let IM, IA, IC = (139968, 3877, 29573)
 
 let cols, LUTLEN = (60, 1 <<< 9)
@@ -21,17 +23,14 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
     AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAA
 
 let iubvalues = 
-  [0.27
-   0.12
-   0.12
-   0.27] @ List.replicate 12 0.02
+  [0.27; 0.12; 0.12; 0.27] @ List.replicate 12 0.02
 
 let iub = Seq.zip "acgtBDHKMNRSVWY"B iubvalues
 
 let homosapien = 
-  [(97uy, 0.3029549427)
-   (99uy, 0.1979883005)
-   (103uy, 0.1975473066)
+  [(97uy, 0.3029549427);
+   (99uy, 0.1979883005);
+   (103uy, 0.1975473066);
    (116uy, 0.3015094502)]
 
 let os = new BufferedStream(Console.OpenStandardOutput(), 1 <<< 16)
@@ -39,13 +38,13 @@ let os = new BufferedStream(Console.OpenStandardOutput(), 1 <<< 16)
 let repeatFasta alu n = 
   let r = Array.length alu
   let s = 
-    Array.concat [alu
-     alu]
-  for j in 0..cols..n - cols do
-    os.Write(s, j % r, cols)
-    os.WriteByte(10uy)
-  os.Write(s, (n / cols * cols) % r, n % cols)
-  if n % cols <> 0 then os.WriteByte(10uy)
+    Array.concat [alu;
+                  alu]
+  for j in .. .. 0 cols n - cols do
+    os.Write(s, j % r, cols);
+    os.WriteByte(10uy);
+  os.Write(s, (n / cols * cols) % r, n % cols);
+  if n % cols <> 0 then os.WriteByte(10uy);
   os.Flush()
 
 let randomFasta src n = 
@@ -60,9 +59,9 @@ let randomFasta src n =
     for key, cum, i in cumuArray do
       let v = j
       while j <= int(float(LUTLEN - 1) * cum) do
-        arr.[j] <- (key, i)
-        j <- j + 1
-      if j <> v then arr.[j - 1] <- (0uy, i)
+        arr.[j] <- (key, i);
+        j <- j + 1;
+      if j <> v then arr.[j - 1] <- (0uy, i);
     arr
   let lookup x = 
     match lut.[x * (LUTLEN - 1) / IM] with
@@ -73,13 +72,13 @@ let randomFasta src n =
     | c, p -> c
   let /// write output one line at a time
   buf = Array.zeroCreate(cols + 1)
-  for x in n..(- cols)..1 do
+  for x in .. .. n (-cols) 1 do
     let e = if x < cols then x else cols
-    buf.[e] <- 10uy
+    buf.[e] <- 10uy;
     for y in 0..e - 1 do
-      s <- (s * IA + IC) % IM
-      buf.[y] <- lookup s
-    os.Write(buf, 0, e + 1)
+      s <- (s * IA + IC) % IM;
+      buf.[y] <- lookup s;
+    os.Write(buf, 0, e + 1);
   os.Flush()
 
 [<EntryPoint>]
@@ -89,10 +88,10 @@ let main args =
       int args.[0]
     with
     | _ -> 2500000
-  printfn ">ONE Homo sapiens alu"
-  repeatFasta alu (2 * n)
-  printfn ">TWO IUB ambiguity codes"
-  randomFasta iub (3 * n)
-  printfn ">THREE Homo sapiens frequency"
-  randomFasta homosapien (5 * n)
+  printfn ">ONE Homo sapiens alu";
+  repeatFasta alu (2 * n);
+  printfn ">TWO IUB ambiguity codes";
+  randomFasta iub (3 * n);
+  printfn ">THREE Homo sapiens frequency";
+  randomFasta homosapien (5 * n);
   0
