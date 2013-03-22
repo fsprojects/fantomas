@@ -12,24 +12,50 @@ type FormatConfig =
       IndentSpaceNum : Num;
       /// Length of long identifers to consider breaking to multiple lines
       LongIdentLength : Num;
-      /// Write semicolon at end of line?
       SemicolonAtEndOfLine : bool;
-      /// Keep a space before argument?
       SpaceBeforeArgument : bool;
       SpaceBeforeColon : bool;
       SpaceAfterComma : bool;
       SpaceAfterSemicolon : bool;
-      /// Indentation on try/with?
       IndentOnTryWith : bool }
     static member Default = 
         { IndentSpaceNum = 4; LongIdentLength = 10;
           SemicolonAtEndOfLine = true; SpaceBeforeArgument = false; SpaceBeforeColon = true;
           SpaceAfterComma = true; SpaceAfterSemicolon = true; IndentOnTryWith = false }
 
+/// Wrapping IndentedTextWriter with a current column position
+type ColumnIndentedTextWriter(tw : TextWriter) =
+    let indentWriter = new IndentedTextWriter(tw, " ")
+    let mutable col = 0
+    let mutable cursor = 0
+    member __.Write(s : string) =
+        match s.LastIndexOf('\n') with
+        | -1 -> col <- col + s.Length
+        | i -> col <- col + s.Length - i - 1
+        indentWriter.Write(s)
+    member __.WriteLine(s : string) =
+        col <- 0
+        indentWriter.WriteLine(s)
+    /// Current column of the page
+    member __.Column = col
+    member __.Indent 
+        with get() = indentWriter.Indent
+        and set i = indentWriter.Indent <- i
+    member __.InnerWriter = indentWriter.InnerWriter
+    interface IDisposable with
+        member __.Dispose() =
+            indentWriter.Dispose()    
+
 type Context = 
-    { Config : FormatConfig; Writer: IndentedTextWriter; Content : string; Positions : int [] }
+    { Config : FormatConfig; 
+      Writer: ColumnIndentedTextWriter;
+      /// The original source string to query as a last resort 
+      Content : string; 
+      /// Positions of new lines in the original source string
+      Positions : int [] }
     /// Initialize with a string writer and use space as delimiter
-    static member Default = { Config = FormatConfig.Default; Writer = new IndentedTextWriter(new StringWriter(), " ");
+    static member Default = { Config = FormatConfig.Default; 
+                              Writer = new ColumnIndentedTextWriter(new StringWriter());
                               Content = ""; Positions = [||] }
     static member createContext config (content : string) =
         let positions = 
@@ -63,7 +89,7 @@ let decrIndent i (ctx : Context) =
     ctx.Writer.Indent <- max 0 (ctx.Writer.Indent - i)
     ctx
 
-/// Apply function f at an absolute indent level
+/// Apply function f at an absolute indent level (use with care)
 let atIndentLevel level (f : Context -> Context) ctx =
     if level < 0 then
         invalidArg "level" "The indent level cannot be negative."
@@ -73,14 +99,20 @@ let atIndentLevel level (f : Context -> Context) ctx =
     ctx.Writer.Indent <- oldLevel
     result
 
+/// Write everything at current column indentation
+let atCurrentColumn (f : _ -> Context) (ctx : Context) =
+    match ctx.Writer.Column with
+    | 0 -> f ctx
+    | c -> atIndentLevel (ctx.Writer.Indent + c) f ctx
+
 /// Function composition operator
-let (+>) (ctx : Context -> Context) (f : Context -> Context) x =
+let (+>) (ctx : Context -> Context) (f : _ -> Context) x =
     f (ctx x)
 
 /// Break-line and append specified string
 let (++) (ctx : Context -> Context) (str : string) x =
     let c = ctx x
-    c.Writer.WriteLine()
+    c.Writer.WriteLine("")
     c.Writer.Write(str)
     c
 
@@ -159,19 +191,12 @@ let sepWild = !- "_"
 let sepNone = id
 let sepBar = !- "| "
 
-let [<Literal>] openL = "["
-let [<Literal>] closeL = "]"
-let [<Literal>] openA = "[|"
-let [<Literal>] closeA = "|]"
-let [<Literal>] openS = "{ "
-let [<Literal>] closeS = " }"
-
-let sepOpenL = !- openL
-let sepCloseL = !- closeL
-let sepOpenA = !- openA
-let sepCloseA = !- closeA
-let sepOpenS = !- openS
-let sepCloseS = !- closeS
+let sepOpenL = !- "["
+let sepCloseL = !- "]"
+let sepOpenA = !- "[|"
+let sepCloseA = !- "|]"
+let sepOpenS = !- "{ "
+let sepCloseS = !- " }"
 
 let inline sepColon(ctx : Context) = 
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx
@@ -182,8 +207,8 @@ let inline sepComma(ctx : Context) =
 let inline sepSemi(ctx : Context) = 
     if ctx.Config.SpaceAfterSemicolon then str "; " ctx else str ";" ctx
 
-/// !+ part is essential to indentation
 let sepSemiNln =
+    /// !+ part is essential to indentation
     withCtxt(fun ctx -> if ctx.Config.SemicolonAtEndOfLine then !- ";" ++ "" else !+ "")
 
 let inline sepBeforeArg(ctx : Context) = 
