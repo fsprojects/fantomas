@@ -10,8 +10,6 @@ type Num = int
 type FormatConfig = 
     { /// Number of spaces for each identation
       IndentSpaceNum : Num;
-      /// Length of long identifers to consider breaking to multiple lines
-      LongIdentLength : Num;
       SemicolonAtEndOfLine : bool;
       SpaceBeforeArgument : bool;
       SpaceBeforeColon : bool;
@@ -19,7 +17,7 @@ type FormatConfig =
       SpaceAfterSemicolon : bool;
       IndentOnTryWith : bool }
     static member Default = 
-        { IndentSpaceNum = 4; LongIdentLength = 10;
+        { IndentSpaceNum = 4;
           SemicolonAtEndOfLine = true; SpaceBeforeArgument = false; SpaceBeforeColon = true;
           SpaceAfterComma = true; SpaceAfterSemicolon = true; IndentOnTryWith = false }
 
@@ -221,4 +219,9 @@ let inline indentWith(ctx : Context) =
 /// Conditional unindentation on with keyword
 let inline unindentWith(ctx : Context) =
     if ctx.Config.IndentOnTryWith then unindent ctx else ctx
+
+// These should be moved into the config later
+
+let NoSpaceInfixOps = set [".."]
+let NewLineInfixOps = set ["|>"; "||>"; "|||>"]
 

@@ -29,8 +29,8 @@ let rec loopDepths maxDepth minDepth d =
     let niter = 1 <<< (maxDepth - d + minDepth)
     let mutable c = 0
     for i = 1 to niter do
-      c <- c + check(make i d) + check(make (-i) d);
-    printf "%i\t trees of depth %i\t check: %i\n" (2 * niter) d c;
+      c <- c + check(make i d) + check(make (-i) d)
+    printf "%i\t trees of depth %i\t check: %i\n" (2 * niter) d c
     loopDepths maxDepth minDepth (d + 2)
 
 [<EntryPoint>]
@@ -41,8 +41,8 @@ let main args =
     max (minDepth + 2) n
   let stretchDepth = maxDepth + 1
   let c = check(make 0 stretchDepth)
-  printf "stretch tree of depth %i\t check: %i\n" stretchDepth c;
+  printf "stretch tree of depth %i\t check: %i\n" stretchDepth c
   let longLivedTree = make 0 maxDepth
-  loopDepths maxDepth minDepth minDepth;
-  printf "long lived tree of depth %i\t check: %i\n" maxDepth (check longLivedTree);
+  loopDepths maxDepth minDepth minDepth
+  printf "long lived tree of depth %i\t check: %i\n" maxDepth (check longLivedTree)
   0

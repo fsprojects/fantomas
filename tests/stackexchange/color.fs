@@ -1,4 +1,9 @@
 /// The program is from http://codereview.stackexchange.com/q/21374
+module Color
+
+open System.IO
+open System.Net
+
 
 /// currently the color table is create via the AddColor method, however
 /// the initial values should be created with the loadrgb and colorinfo members

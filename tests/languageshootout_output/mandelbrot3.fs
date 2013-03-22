@@ -40,46 +40,46 @@ let Calculate() =
       let mutable i = 49
       let mutable more = true
       while more do
-        Ziv <- (Zrv * Ziv) + (Zrv * Ziv) + Civ;
-        Zrv <- Trv - Tiv + Crv;
-        Trv <- Zrv * Zrv;
-        Tiv <- Ziv * Ziv;
-        more <- (Trv + Tiv) <= 4.0;
+        Ziv <- (Zrv * Ziv) + (Zrv * Ziv) + Civ
+        Zrv <- Trv - Tiv + Crv
+        Trv <- Zrv * Zrv
+        Tiv <- Ziv * Ziv
+        more <- (Trv + Tiv) <= 4.0
         if more then 
-          i <- i - 1;
-          more <- i > 0;
-      byte_acc <- byte_acc <<< 1;
-      byte_acc <- byte_acc ||| (if i = 0 then 1 else 0);
-      bit_num <- bit_num + 1;
+          i <- i - 1
+          more <- i > 0
+      byte_acc <- byte_acc <<< 1
+      byte_acc <- byte_acc ||| (if i = 0 then 1 else 0)
+      bit_num <- bit_num + 1
       if bit_num = 8 then 
-        pdata.[byte_count] <- byte byte_acc;
-        byte_count <- byte_count + 1;
-        bit_num <- 0;
-        byte_acc <- 0;
+        pdata.[byte_count] <- byte byte_acc
+        byte_count <- byte_count + 1
+        bit_num <- 0
+        byte_acc <- 0
     if bit_num <> 0 then 
-      byte_acc <- byte_acc <<< (8 - (N &&& 7));
-      pdata.[byte_count] <- byte byte_acc;
-      byte_count <- byte_count + 1;
-    nbyte_each_line.[y] <- byte_count;
+      byte_acc <- byte_acc <<< (8 - (N &&& 7))
+      pdata.[byte_count] <- byte byte_acc
+      byte_count <- byte_count + 1
+    nbyte_each_line.[y] <- byte_count
     y <- Interlocked.Increment(&current_line.contents)
 
 [<EntryPoint>]
 let main args = 
-  if args.Length > 0 then N <- int args.[0];
-  Console.Out.WriteLine("P4\n{0} {0}", N);
-  width_bytes <- N / 8;
-  if width_bytes * 8 < N then width_bytes <- width_bytes + 1;
-  nbyte_each_line <- Array.zeroCreate N;
-  data <- Array.zeroCreate N;
+  if args.Length > 0 then N <- int args.[0]
+  Console.Out.WriteLine("P4\n{0} {0}", N)
+  width_bytes <- N / 8
+  if width_bytes * 8 < N then width_bytes <- width_bytes + 1
+  nbyte_each_line <- Array.zeroCreate N
+  data <- Array.zeroCreate N
   for i in 0..N - 1 do
-    data.[i] <- Array.zeroCreate width_bytes;
+    data.[i] <- Array.zeroCreate width_bytes
   let threads = Array.init (Environment.ProcessorCount - 1) (fun (i) -> new Thread(Calculate))
   for thread in threads do
-    thread.Start();
-  Calculate();
+    thread.Start()
+  Calculate()
   for thread in threads do
-    thread.Join();
+    thread.Join()
   let s = Console.OpenStandardOutput()
   for y in 0..N - 1 do
-    s.Write(data.[y], 0, nbyte_each_line.[y]);
+    s.Write(data.[y], 0, nbyte_each_line.[y])
   0

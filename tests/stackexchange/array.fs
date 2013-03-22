@@ -1,4 +1,5 @@
 /// The program is from http://codereview.stackexchange.com/q/17882
+module ArrayEx
 
 open System
 

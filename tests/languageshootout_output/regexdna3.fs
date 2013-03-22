@@ -32,32 +32,55 @@ let onblocks overlapSize blockSize =
 let onProcBlocks = onblocks 0 ((textSize / System.Environment.ProcessorCount) + 1)
 
 let DNAcodes = 
-  ["agggtaaa|tttaccct"; "[cgt]gggtaaa|tttaccc[acg]"; "a[act]ggtaaa|tttacc[agt]t"; "ag[act]gtaaa|tttac[agt]ct"; "agg[act]taaa|ttta[agt]cct"; "aggg[acg]aaa|ttt[cgt]ccct"; "agggt[cgt]aa|tt[acg]accct"; "agggta[cgt]a|t[acg]taccct"; "agggtaa[cgt]|[acg]ttaccct"]
+  ["agggtaaa|tttaccct"
+   "[cgt]gggtaaa|tttaccc[acg]"
+   "a[act]ggtaaa|tttacc[agt]t"
+   "ag[act]gtaaa|tttac[agt]ct"
+   "agg[act]taaa|ttta[agt]cct"
+   "aggg[acg]aaa|ttt[cgt]ccct"
+   "agggt[cgt]aa|tt[acg]accct"
+   "agggta[cgt]a|t[acg]taccct"
+   "agggtaa[cgt]|[acg]ttaccct"]
 
 /// Calculate all chunks in parallel
 let chunksCounts = 
-  let chunkedMatch(matchStr : string) = text |> onblocks (matchStr.Length - 1) blockSize |> List.map(fun (t) -> async { return (matchStr, ((regex matchStr).Matches t).Count) })
-  DNAcodes |> List.collect chunkedMatch |> Async.Parallel |> Async.RunSynchronously
+  let chunkedMatch(matchStr : string) = text
+                                                                              |> onblocks (matchStr.Length - 1) blockSize
+                                        |> List.map(fun (t) -> async { return (matchStr, ((regex matchStr).Matches t).Count) })
+  DNAcodes
+  |> List.collect chunkedMatch
+  |> Async.Parallel
+  |> Async.RunSynchronously
 
-DNAcodes |> List.map(fun (key) -> 
-  (key, chunksCounts |> Array.fold (fun (S) -> 
-    fun (k, cnt) -> 
-      match S with
-      | S -> if k = key then S + cnt else S) 0)) |> List.iter(fun (key, cnt) -> printfn "%s %i" key cnt)
+DNAcodes
+|> List.map(fun (key) -> 
+  (key, chunksCounts
+        |> Array.fold (fun (S) -> 
+          fun (k, cnt) -> 
+            match S with
+            | S -> if k = key then S + cnt else S) 0))
+|> List.iter(fun (key, cnt) -> printfn "%s %i" key cnt)
 /// Gather result counts by summing them per DNA code
 let lengthAfterReplace text = 
-  [("B", "(c|g|t)");
-   ("D", "(a|g|t)");
-   ("H", "(a|c|t)");
-   ("K", "(g|t)");
-   ("M", "(a|c)");
-   ("N", "(a|c|g|t)");
-   ("R", "(a|g)");
-   ("S", "(c|g)");
-   ("V", "(a|c|g)");
-   ("W", "(a|t)");
-   ("Y", "(c|t)")] |> List.fold (fun (s) -> fun (code, alt) -> (regex code).Replace(s, alt)) text |> String.length
+  [("B", "(c|g|t)")
+   ("D", "(a|g|t)")
+   ("H", "(a|c|t)")
+   ("K", "(g|t)")
+   ("M", "(a|c)")
+   ("N", "(a|c|g|t)")
+   ("R", "(a|g)")
+   ("S", "(c|g)")
+   ("V", "(a|c|g)")
+   ("W", "(a|t)")
+   ("Y", "(c|t)")]
+  |> List.fold (fun (s) -> fun (code, alt) -> (regex code).Replace(s, alt)) text
+  |> String.length
 
-let replacedSize = text |> onProcBlocks |> List.map(fun (chunk) -> async { return lengthAfterReplace chunk }) |> Async.Parallel |> Async.RunSynchronously |> Array.sum
+let replacedSize = text
+                                                                                               |> onProcBlocks
+                                                                            |> List.map(fun (chunk) -> async { return lengthAfterReplace chunk })
+                                                         |> Async.Parallel
+                                      |> Async.RunSynchronously
+                   |> Array.sum
 
 printf "\n%i\n%i\n%i\n" input.Length textSize replacedSize

@@ -33,15 +33,15 @@ let rec digits n z =
 let rec loop n s i z total = 
   if total = 0 then 
     for _ in 1..n do
-      Console.Write(" ");
+      Console.Write(" ")
     Console.Write("\t:{0}\n", s + 10 - n)
   else 
     if n = 0 then 
-      Console.Write("\t:{0}\n", s + 10);
+      Console.Write("\t:{0}\n", s + 10)
       loop 10 (s + 10) i z total
     else 
       let (y, i', z') = digits i z
-      Console.Write("{0}", int y);
+      Console.Write("{0}", int y)
       loop(n - 1) s i' z' (total - 1)
 
 loop 10 0 1I id <| try 

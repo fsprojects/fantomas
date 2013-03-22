@@ -6,13 +6,16 @@ open Microsoft.FSharp.Compiler.PrettyNaming
 open Fantomas.FormatConfig
 
 /// Get source string content based on range value
-let inline content (r : range) (c : Context) = 
-    if r.StartLine <= c.Positions.Length && r.EndLine <= c.Positions.Length then
-        // Off-by-one start column
-        let start = c.Positions.[r.StartLine-1] + r.StartColumn
-        let finish = c.Positions.[r.EndLine-1] + r.EndColumn - 1
-        c.Content.[start..finish]
-    else ""
+let inline content (sc : SynConst) (c : Context) = 
+    let r = sc.Range range.Zero
+    let s =
+        if r.StartLine <= c.Positions.Length && r.EndLine <= c.Positions.Length then
+            // Off-by-one start column
+            let start = c.Positions.[r.StartLine-1] + r.StartColumn
+            let finish = c.Positions.[r.EndLine-1] + r.EndColumn - 1
+            c.Content.[start..finish]
+        else ""
+    s
 
 /// Use infix operators in the short form
 let inline (|OpName|) s =
@@ -87,8 +90,8 @@ let rec (|Const|Unresolved|) = function
     | SynConst.Double d -> Const(sprintf "%A" d)
     | SynConst.Char c -> Const(sprintf "%A" c)
     | SynConst.Decimal d -> Const(sprintf "%A" d)
-    | SynConst.String(s, r) -> Unresolved(r)
-    | SynConst.Bytes(bs, r) -> Unresolved(r)
+    | SynConst.String _ as c -> Unresolved(c)
+    | SynConst.Bytes _ as c -> Unresolved(c)
     | SynConst.UInt16s us -> Const(sprintf "%A" us)
     | c -> invalidArg "c" "Ill-formed constants"
 
@@ -366,10 +369,10 @@ let (|Sequential|_|) = function
     | SynExpr.Sequential(_, isSeq, e1, e2, _) -> Some(e1, e2, isSeq)
     | _ -> None
 
-/// Special patterns 
+/// Only recognize numbers; strings are ignored
 let rec (|SeqVals|_|) = function
-    | Sequential(ConstExpr e1, ConstExpr e2, true) -> Some [e1; e2]
-    | Sequential(ConstExpr e, SeqVals es, true) -> Some(e::es)
+    | Sequential(ConstExpr(Const _ as e1), ConstExpr(Const _ as e2), true) -> Some [e1; e2]
+    | Sequential(ConstExpr(Const _ as e), SeqVals es, true) -> Some(e::es)
     | _ -> None
 
 let (|ArrayOrList|_|) = function

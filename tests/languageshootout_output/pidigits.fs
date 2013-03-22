@@ -28,29 +28,29 @@ let digits =
   let lfts = 
     let n = ref 0I
     fun () -> 
-      n := !n + 1I;
+      n := !n + 1I
       (!n, 4I * !n + 2I, 2I * !n + 1I)
   let rec digits() = 
     let y = next !z
     if safe !z y then 
-      z := (prod !z y);
+      z := (prod !z y)
       y
     else 
-      z := (comp !z <| lfts());
+      z := (comp !z <| lfts())
       digits()
   digits
 
 let rec loop n s total = 
   if total = 0 then 
     for _ in 1..n do
-      printf " ";
+      printf " "
     printf ("\t:%i\n") (s + 10 - n)
   else 
     if n = 0 then 
-      printf "\t:%i\n" <| s + 10;
+      printf "\t:%i\n" <| s + 10
       loop 10 (s + 10) total
     else 
-      printf "%i" <| int(digits());
+      printf "%i" <| int(digits())
       loop(n - 1) s (total - 1)
 
 loop 10 0 <| try 

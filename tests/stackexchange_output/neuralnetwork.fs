@@ -2,30 +2,20 @@
 module nnbasic
 
 let mutable neuroninput = 
-  [0.0
-   0.0]
+  [0.0; 0.0]
 
 let mutable weight = 
-  [0.4
-   0.6]
+  [0.4; 0.6]
 
 let rate = 0.2
 
 let threeshold = 2.0
 
 let matrix = 
-  [[0.0
-     0.0
-     0.0]
-   [0.0
-    1.0
-    1.0]
-   [1.0
-    0.0
-    1.0]
-   [1.0
-    1.0
-    1.0]]
+  [[0.0; 0.0; 0.0]
+   [0.0; 1.0; 1.0]
+   [1.0; 0.0; 1.0]
+   [1.0; 1.0; 1.0]]
 
 let display output real = if output = real then printfn "yes" else printfn "no"
 

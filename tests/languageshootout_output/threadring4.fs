@@ -24,15 +24,15 @@ let createWorker i =
   let next = (i + 1) % NumberOfThreads
   async { 
     if token = 0 then 
-      printfn "%d" (i + 1);
+      printfn "%d" (i + 1)
       exit 0
     else 
-      token <- token - 1;
+      token <- token - 1
       return! workers.[next] }
 
 [<EntryPoint>]
 let main args = 
-  token <- int args.[0];
-  workers <- Array.init NumberOfThreads createWorker;
-  Async.StartImmediate(workers.[0]);
+  token <- int args.[0]
+  workers <- Array.init NumberOfThreads createWorker
+  Async.StartImmediate(workers.[0])
   0

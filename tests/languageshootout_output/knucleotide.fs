@@ -18,14 +18,18 @@ let maketable (dna : string) (length : int) =
   for start in 0..(dna.Length - length) do
     let substr = dna.Substring(start, length)
     let x = ref(ref 0)
-    if d.TryGetValue(substr, x) then x.Value := ! !x + 1 else d.[substr] <- ref 1;
+    if d.TryGetValue(substr, x) then x.Value := ! !x + 1 else d.[substr] <- ref 1
   d
 
 /// frequency for all substrings of a given length
 let frequencies (dna : string) (length : int) = 
   [let d = maketable dna length
-   let total = d.Values |> Seq.map (!) |> Seq.sum
-   yield! [for pair in d do yield (pair.Key.ToUpper(), (float(pair.Value.Value) * 100.0 / float(total)))] |> List.sortBy(snd >> (~-)) |> List.map(fun (s, c) -> sprintf "%s %.3f" s c);
+   let total = d.Values
+                           |> Seq.map (!)
+               |> Seq.sum
+   yield! [for pair in d do yield (pair.Key.ToUpper(), (float(pair.Value.Value) * 100.0 / float(total)))]
+                 |> List.sortBy(snd >> (~-))
+          |> List.map(fun (s, c) -> sprintf "%s %.3f" s c)
    yield ""]
 
 let countSubstring dna (substring : string) = 
@@ -37,6 +41,20 @@ let input = Console.In
 let dna = 
   seq { 
     while true do
-      yield input.ReadLine() } |> Seq.takeWhile(fun (x) -> x <> null) |> Seq.skipWhile(fun (x) -> not(x.StartsWith(">THREE"))) |> Seq.skip 1 |> String.concat ""
+      yield input.ReadLine() }
+  |> Seq.takeWhile(fun (x) -> x <> null)
+  |> Seq.skipWhile(fun (x) -> not(x.StartsWith(">THREE")))
+  |> Seq.skip 1
+  |> String.concat ""
 
-[for len in [1; 2] do yield async { return frequencies dna len }] @ [for str in ["ggt"; "ggta"; "ggtatt"; "ggtattttaatt"; "ggtattttaatttatagt"] do yield async { return countSubstring dna str }] |> List.rev |> Async.Parallel |> Async.RunSynchronously |> Array.rev |> Seq.concat |> Seq.iter(printfn "%s")
+[for len in [1; 2] do yield async { return frequencies dna len }] @ [for str in ["ggt"
+                                                                                                                                                      "ggta"
+                                                                                                                                                      "ggtatt"
+                                                                                                                                                      "ggtattttaatt"
+                                                                                                                                                      "ggtattttaatttatagt"] do yield async { return countSubstring dna str }]
+|> List.rev
+|> Async.Parallel
+|> Async.RunSynchronously
+|> Array.rev
+|> Seq.concat
+|> Seq.iter(printfn "%s")

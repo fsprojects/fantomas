@@ -24,20 +24,39 @@ let rec onblocks res s =
   | s when (s.Length < size) -> res @ [s]
   | s -> onblocks (res @ [s.Substring(0, size)]) (s.Substring(size))
 
-["agggtaaa|tttaccct"; "[cgt]gggtaaa|tttaccc[acg]"; "a[act]ggtaaa|tttacc[agt]t"; "ag[act]gtaaa|tttac[agt]ct"; "agg[act]taaa|ttta[agt]cct"; "aggg[acg]aaa|ttt[cgt]ccct"; "agggt[cgt]aa|tt[acg]accct"; "agggta[cgt]a|t[acg]taccct"; "agggtaa[cgt]|[acg]ttaccct"] |> List.map(fun (s) -> async { return System.String.Format("{0} {1}", s, ((regex s).Matches text).Count) }) |> Async.Parallel |> Async.RunSynchronously |> Array.iter(printfn "%s")
+["agggtaaa|tttaccct"
+ "[cgt]gggtaaa|tttaccc[acg]"
+ "a[act]ggtaaa|tttacc[agt]t"
+ "ag[act]gtaaa|tttac[agt]ct"
+ "agg[act]taaa|ttta[agt]cct"
+ "aggg[acg]aaa|ttt[cgt]ccct"
+ "agggt[cgt]aa|tt[acg]accct"
+ "agggta[cgt]a|t[acg]taccct"
+ "agggtaa[cgt]|[acg]ttaccct"]
+|> List.map(fun (s) -> async { return System.String.Format("{0} {1}", s, ((regex s).Matches text).Count) })
+|> Async.Parallel
+|> Async.RunSynchronously
+|> Array.iter(printfn "%s")
 let newTextLength t = 
-  [("B", "(c|g|t)");
-   ("D", "(a|g|t)");
-   ("H", "(a|c|t)");
-   ("K", "(g|t)");
-   ("M", "(a|c)");
-   ("N", "(a|c|g|t)");
-   ("R", "(a|g)");
-   ("S", "(c|g)");
-   ("V", "(a|c|g)");
-   ("W", "(a|t)");
-   ("Y", "(c|t)")] |> List.fold (fun (s) -> fun (code, alt) -> (regex code).Replace(s, alt)) t |> String.length
+  [("B", "(c|g|t)")
+   ("D", "(a|g|t)")
+   ("H", "(a|c|t)")
+   ("K", "(g|t)")
+   ("M", "(a|c)")
+   ("N", "(a|c|g|t)")
+   ("R", "(a|g)")
+   ("S", "(c|g)")
+   ("V", "(a|c|g)")
+   ("W", "(a|t)")
+   ("Y", "(c|t)")]
+  |> List.fold (fun (s) -> fun (code, alt) -> (regex code).Replace(s, alt)) t
+  |> String.length
 
-let newText = text |> onblocks [] |> Seq.map(fun (s) -> async { return newTextLength s }) |> Async.Parallel |> Async.RunSynchronously |> Array.sum
+let newText = text
+                                                                      |> onblocks []
+                                                        |> Seq.map(fun (s) -> async { return newTextLength s })
+                                          |> Async.Parallel
+                            |> Async.RunSynchronously
+              |> Array.sum
 
 printf "\n%i\n%i\n%i\n" input.Length text.Length newText

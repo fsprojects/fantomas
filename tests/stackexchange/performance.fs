@@ -1,4 +1,5 @@
 /// The program is from http://codereview.stackexchange.com/q/20068
+module Performance
 
 open System
 open System.Drawing
@@ -74,7 +75,5 @@ let moveFrom source =
     |> move """C:\_EXTERNAL_DRIVE\_Camera"""
   printfn "Done"
 
-
-#time
 moveFrom """C:\Users\Mike\Pictures\To Network"""
 moveFrom """C:\_EXTERNAL_DRIVE\Camera"""

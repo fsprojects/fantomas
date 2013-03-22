@@ -1,4 +1,5 @@
 /// The program is from http://codereview.stackexchange.com/q/12643
+module Mergesort
 
 open System
 open System.Windows

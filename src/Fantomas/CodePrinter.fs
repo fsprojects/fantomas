@@ -14,7 +14,7 @@ module List =
 let inline genConst c =
     match c with
     | Const c -> !- c
-    | Unresolved r -> fun ctx -> str (content r ctx) ctx
+    | Unresolved c -> fun ctx -> str (content c ctx) ctx
 
 /// Recognize complex expressions
 let rec complex = function
@@ -247,7 +247,6 @@ and genExpr = function
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
     | Tuple es -> !- "(" +> col sepComma es genExpr -- ")"
-    /// Figure out how to break long expressions into multiple lines
     | ArrayOrList(isArray, xs) -> 
         ifElse isArray (sepOpenA +> atCurrentColumn (col sepSemiNln xs genExpr) +> sepCloseA) 
             (sepOpenL +> atCurrentColumn (col sepSemiNln xs genExpr) +> sepCloseL)
@@ -290,8 +289,11 @@ and genExpr = function
     /// Separate two prefix ops by spaces
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr e
     | PrefixApp(s, e) -> !- s  +> genExpr e
-    /// Spaces are optional for range expressions
-    | InfixApp(s, e1, e2) -> genExpr e1 +> ifElse (s = "..") (!- s) (sepSpace -- s +> sepSpace) +> genExpr e2
+    /// Handle spaces on an infix app based on which category it belongs to
+    | InfixApp(s, e1, e2) -> 
+        ifElse (Set.contains s NewLineInfixOps) (atCurrentColumn (genExpr e1 +> sepNln -- s +> sepSpace +> genExpr e2))
+            (ifElse (Set.contains s NoSpaceInfixOps) (genExpr e1 -- s +> genExpr e2) 
+                (genExpr e1 +> sepSpace -- s +> sepSpace +> genExpr e2))
     /// Always spacing in multiple arguments
     | App(App(e1, e2), e3) -> genExpr e1 +> sepSpace +> genExpr e2 +> sepSpace +> genExpr e3
     | App(e1, e2) -> genExpr e1 +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
@@ -308,9 +310,9 @@ and genExpr = function
         atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e1 +> unindent ++ "finally" 
         +> indent +> sepNln +> genExpr e2 +> unindent)    
     | SeqVals es -> atCurrentColumn (col sepSemi es genConst)
-    /// Boolean flag indicates the context of the sequential composition
+    /// It seems too annoying to use sepSemiNln
     | Sequential(e1, e2, _) -> 
-        atCurrentColumn (genExpr e1 +> sepSemiNln +> genExpr e2)
+        atCurrentColumn (genExpr e1 +> sepNln +> genExpr e2)
     | IfThenElse(e1, e2, Some e3) -> 
         atCurrentColumn (!- "if " +> genExpr e1 -- " then " 
         +> ifElse (multiline e2) (indent +> sepNln +> genExpr e2 +> unindent ++ "else " +> autoBreakNln e3) 

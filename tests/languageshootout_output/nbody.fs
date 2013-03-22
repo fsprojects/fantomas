@@ -70,14 +70,14 @@ let offsetMomentum a =
       fun (body) -> 
         let c = body.Mass / solarMass
         (x + c * body.VX, y + c * body.VY, z + c * body.VZ)) (0.0, 0.0, 0.0) a
-  a.[0].VX <- -x;
-  a.[0].VY <- -y;
+  a.[0].VX <- -x
+  a.[0].VY <- -y
   a.[0].VZ <- -z
 
 let move t = 
   Array.iter(fun (body) -> 
-    body.X <- body.X + t * body.VX;
-    body.Y <- body.Y + t * body.VY;
+    body.X <- body.X + t * body.VX
+    body.Y <- body.Y + t * body.VY
     body.Z <- body.Z + t * body.VZ)
 
 let advance a t = 
@@ -88,12 +88,12 @@ let advance a t =
       let dx, dy, dz = (b1.X - b2.X, b1.Y - b2.Y, b1.Z - b2.Z)
       let dist = sqrt(dx * dx + dy * dy + dz * dz)
       let mag = t / (dist * dist * dist)
-      b1.VX <- b1.VX - b2.Mass * mag * dx;
-      b1.VY <- b1.VY - b2.Mass * mag * dy;
-      b1.VZ <- b1.VZ - b2.Mass * mag * dz;
-      b2.VX <- b2.VX + b1.Mass * mag * dx;
-      b2.VY <- b2.VY + b1.Mass * mag * dy;
-      b2.VZ <- b2.VZ + b1.Mass * mag * dz;
+      b1.VX <- b1.VX - b2.Mass * mag * dx
+      b1.VY <- b1.VY - b2.Mass * mag * dy
+      b1.VZ <- b1.VZ - b2.Mass * mag * dz
+      b2.VX <- b2.VX + b1.Mass * mag * dx
+      b2.VY <- b2.VY + b1.Mass * mag * dy
+      b2.VZ <- b2.VZ + b1.Mass * mag * dz
   move t a
 
 let rec energy i e a = 
@@ -111,10 +111,10 @@ let rec energy i e a =
   else e
 
 let planets = 
-  [|sun;
-    jupiter;
-    saturn;
-    uranus;
+  [|sun
+    jupiter
+    saturn
+    uranus
     neptune|]
 
 offsetMomentum planets
@@ -127,8 +127,8 @@ let main args =
       int args.[0]
     with
     | _ -> 20000000
-  print planets;
+  print planets
   for i in 1..n do
-    advance planets 0.01;
-  print planets;
+    advance planets 0.01
+  print planets
   0

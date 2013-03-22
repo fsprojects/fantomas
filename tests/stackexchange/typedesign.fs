@@ -1,4 +1,5 @@
 /// The program is from http://codereview.stackexchange.com/q/20852
+module Typedesign
 
 type Metrics =
   | Revenue

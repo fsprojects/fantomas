@@ -1,16 +1,18 @@
+/// The program is from http://codereview.stackexchange.com/q/15364
 module Telnet
 
 open System
 
 open System.Net.Sockets
 
-/// The program is from http://codereview.stackexchange.com/q/15364
 let asyncGetInput = async { return BitConverter.GetBytes(Console.Read()) }
 
 let rec asyncSendInput(stream : NetworkStream) = 
   async { 
     let! input = asyncGetInput
-    stream.WriteByte |> Array.map <| input |> ignore
+    stream.WriteByte
+    |> Array.map <| input
+    |> ignore
     do! asyncSendInput stream }
 
 let asyncGetResponse(stream : NetworkStream) = async { return Char.ConvertFromUtf32(stream.ReadByte()) }
@@ -29,5 +31,7 @@ let main args =
   let stream = client.GetStream()
   printfn "Got stream, starting two way asynchronous communication."
   Async.Parallel [asyncSendInput stream
-                  asyncPrintResponse stream] |> Async.RunSynchronously |> ignore
+                  asyncPrintResponse stream]
+  |> Async.RunSynchronously
+  |> ignore
   0

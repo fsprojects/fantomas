@@ -28,7 +28,9 @@ module NaturalSortKata =
   let natualCompare (left : string) (right : string) = 
     if left = right then Equal
     else 
-      let fix str = new System.String(str |> List.rev |> List.toArray)
+      let fix str = new System.String(str
+                                                                      |> List.rev
+                                      |> List.toArray)
       let gatherChunck str = 
         let rec gather str acc = 
           match str with
@@ -39,8 +41,8 @@ module NaturalSortKata =
             match acc with
             | (ty, _) when ty = Unknown -> 
               let t = ChunckType.GetType(fistLetter)
-              gather rest (t, (::)(fistLetter, []))
-            | (ty, l) when ty = ChunckType.GetType(fistLetter) -> gather rest (ty, (::)(fistLetter, l))
+              gather rest (t, fistLetter :: [])
+            | (ty, l) when ty = ChunckType.GetType(fistLetter) -> gather rest (ty, fistLetter :: l)
             | (ty, l) -> (ty, fix(l))
         gather str (Unknown, [])
       let rec compare (left : string) (right : string) = 
@@ -51,8 +53,12 @@ module NaturalSortKata =
           | llen, rlen when llen < rlen -> Lesser
           | _ -> raise(InvalidException "Bad Data")
         else 
-          let lt, lChunk = left |> Seq.toList |> gatherChunck
-          let rt, rChunk = right |> Seq.toList |> gatherChunck
+          let lt, lChunk = left
+                                            |> Seq.toList
+                           |> gatherChunck
+          let rt, rChunk = right
+                                            |> Seq.toList
+                           |> gatherChunck
           match lt.Compare rt with
           | Equal -> 
             if lChunk = rChunk then 

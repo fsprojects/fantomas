@@ -51,7 +51,7 @@ type PathParam =
     | Folder of string 
     | Nothing
 
-let extensions = set [|".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
+let extensions = set [".fs"; ".fsx"; ".fsi"; ".ml"; ".mli"]
 
 let isFSharpFile s = Set.contains (Path.GetExtension s) extensions
 

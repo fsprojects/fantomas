@@ -1,3 +1,4 @@
+/// The program is from http://codereview.stackexchange.com/q/20068
 module Performance
 
 open System
@@ -10,7 +11,6 @@ open System.Text
 
 open System.Text.RegularExpressions
 
-/// The program is from http://codereview.stackexchange.com/q/20068
 let rec getAllFiles baseDir = 
   seq { 
     yield! Directory.EnumerateFiles(baseDir)
@@ -55,18 +55,21 @@ let move destinationRoot files =
   let moveHelper file = 
     let dateTaken = getDateTaken file
     let finalPath = Path.Combine(destinationRoot, dateTaken.Year.ToString(), dateTaken.ToString("yyyy-MM-dd"))
-    if not(Directory.Exists(finalPath)) then Directory.CreateDirectory(finalPath) |> ignore
+    if not(Directory.Exists(finalPath)) then Directory.CreateDirectory(finalPath)
+                                             |> ignore
     let newFile = getNewFilename(Path.Combine(finalPath, Path.GetFileName(file)))
     try 
       File.Copy(file, newFile)
     with
     | :? Exception as e -> failwith(sprintf "error renaming %s to %s\n%s" file newFile e.Message)
-  files |> Seq.iter moveHelper
+  files
+  |> Seq.iter moveHelper
 
 let moveFrom source = 
-  getAllFiles source |> Seq.filter(fun (f) -> Path.GetExtension(f).ToLower() <> ".db") |> move """C:\_EXTERNAL_DRIVE\_Camera"""
+  getAllFiles source
+  |> Seq.filter(fun (f) -> Path.GetExtension(f).ToLower() <> ".db")
+  |> move """C:\_EXTERNAL_DRIVE\_Camera"""
   printfn "Done"
 
-#time 
 moveFrom """C:\Users\Mike\Pictures\To Network"""
 moveFrom """C:\_EXTERNAL_DRIVE\Camera"""
