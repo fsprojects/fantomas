@@ -16,18 +16,6 @@ let inline genConst c =
     | Const c -> !- c
     | Unresolved c -> fun ctx -> str (content c ctx) ctx
 
-/// Recognize complex expressions
-let rec complex = function
-    | Paren e | SingleExpr(_, e) | TypedExpr(_, e, _) -> complex e
-    | ArrayOrListOfSeqExpr(_, e) -> complex e
-    | ConstExpr _ | NullExpr | Var _ -> false
-    | LongIdentSet(_, e) -> complex e
-    | DotIndexedGet(e, es) -> complex e || List.exists complex es
-    | DotIndexedSet(e1, es, e2) -> complex e1 || complex e2 || List.exists complex es
-    | DotGet(e, _) -> complex e
-    | DotSet(e1, _, e2) -> complex e1 || complex e2
-    | e -> true
-
 /// Check whether an expression should be broken into multiple lines
 let rec multiline = function
     | Paren e | SingleExpr(_, e) | TypedExpr(_, e, _) -> multiline e
@@ -46,13 +34,13 @@ let rec multiline = function
     | CompExpr(_, e) -> multiline e
     | ArrayOrListOfSeqExpr(_, e) -> multiline e
     | JoinIn(e1, e2) -> multiline e1 || multiline e2
-    | Lambda(e, _, _) -> multiline e
+    | Lambda(e, _) -> multiline e
     | MatchLambda _ -> true
     | Match(e, cs) -> multiline e || not (List.isEmpty cs)
-    | App(e1, e2) -> multiline e1 || multiline e2
+    | App(e1, es) -> multiline e1 || List.exists multiline es
     | TypeApp(e, _) -> multiline e
     | LetOrUse(_, _, bs, e) -> not (List.isEmpty bs) || multiline e
-    | SeqVals _ -> false
+    | SequentialSimple _ -> false
     | TryWith _ | TryFinally _ ->  true
     | Sequential _ -> true
     | IfThenElse(e1, e2, Some e3) -> multiline e1 || multiline e2 || multiline e3
@@ -64,34 +52,13 @@ let rec multiline = function
     | DotSet(e1, _, e2) -> multiline e1 || multiline e2
     | TraitCall(_, _, e) -> multiline e
     | LetOrUseBang(_, _, e1, e2) -> multiline e1 || multiline e2
-    | e -> failwithf "Unexpected expression: %O" e
+    /// Default mode is single-line
+    | e -> false
 
-/// Don't provide parentheses if expression has delimiters such as [, [|, {, (, etc
+/// Check if the expression already has surrounding parentheses
 let hasParenthesis = function
-    | Paren _ | SingleExpr _ | TypedExpr _ -> true
-    | ConstExpr(Const "()") -> true
-    | ConstExpr _ | NullExpr | Var _ -> false
-    | Quote _ -> false
-    | Tuple _ -> true
-    | ArrayOrList _ | Record _ | ObjExpr _ -> false
-    | While _ | For _ | ForEach _ -> true
-    | CompExpr _  | ArrayOrListOfSeqExpr _ -> false
-    | JoinIn _ -> true
-    | Lambda _ | MatchLambda _ | Match _ -> true
-    /// This case depends on associtivity
-    | App _ -> false
-    | TypeApp _ -> false
-    | LetOrUse _ -> true
-    | TryWith _ | TryFinally _ | Sequential _ ->  true
-    | IfThenElse _ -> true
-    | LongIdentSet _ -> true
-    | DotIndexedGet _ -> false
-    | DotIndexedSet _ -> true
-    | DotGet _ -> true
-    | DotSet _ -> false
-    | TraitCall _ -> false
-    | LetOrUseBang _ -> true
-    | e -> failwithf "Unexpected expression: %O" e
+    | Paren _ | ConstExpr(Const "()") | Tuple _ -> true
+    | _ -> false
 
 let hasParenInPat = function
     | PatOptionalVal _ -> false
@@ -243,7 +210,7 @@ and genExpr = function
         let e = genExpr e2
         ifElse isRaw (!- "<@@ " +> e -- " @@>") (!- "<@ " +> e -- " @>")
     | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType t
-    | TypedExpr(New, e, t) -> !- "new " +> genType t +> ifElse (hasParenthesis e) (genExpr e) (sepSpace +> genExpr e)
+    | TypedExpr(New, e, t) -> !- "new " +> genType t +> ifElse (hasParenthesis e) (sepBeforeArg +> genExpr e) (sepSpace +> genExpr e)
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType t
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
@@ -278,15 +245,15 @@ and genExpr = function
         ifElse isArrayOrList (genExpr e) (sepOpenS +> autoBreakNln e +> sepCloseS) 
     | ArrayOrListOfSeqExpr(isArray, e) -> 
         ifElse isArray (sepOpenA +> genExpr e +> sepCloseA) (sepOpenL +> genExpr e +> sepCloseL)
-    | App(Var "seq", (App _ as e)) ->
-        !- "seq { " +> genExpr e +> sepCloseS
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
-    | Lambda(e, sp, isMember) -> !- "fun " +> genSimplePats sp +> sepArrow +> autoBreakNln e
+    | Lambda(e, sps) -> !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e
     | MatchLambda(sp, isMember) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr e -- " with"
         +> colPre sepNln sepNln cs genClause)
-    | App(App(App(Var ".. ..", e1), e2), e3) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
+    | SeqApp(e) ->
+        !- "seq " +> sepOpenS +> genExpr e +> sepCloseS
+    | App(Var ".. ..", [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
     /// Separate two prefix ops by spaces
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr e
     | PrefixApp(s, e) -> !- s  +> genExpr e
@@ -295,9 +262,9 @@ and genExpr = function
         ifElse (Set.contains s NewLineInfixOps) (atCurrentColumn (genExpr e1 +> sepNln -- s +> sepSpace +> genExpr e2))
             (ifElse (Set.contains s NoSpaceInfixOps) (genExpr e1 -- s +> genExpr e2) 
                 (genExpr e1 +> sepSpace -- s +> sepSpace +> genExpr e2))
+    | App(e1, [e2]) -> genExpr e1 +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
     /// Always spacing in multiple arguments
-    | App(App(e1, e2), e3) -> genExpr e1 +> sepSpace +> genExpr e2 +> sepSpace +> genExpr e3
-    | App(e1, e2) -> genExpr e1 +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
+    | App(e, es) -> genExpr e +> colPre sepSpace sepSpace es genExpr
     | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts genType -- ">"
     | LetOrUse(isRec, isUse, bs, e) ->
         atCurrentColumn (ifElse isUse (!- "use ") (ifElse isRec (!- "let rec ") (!- "let "))
@@ -310,7 +277,7 @@ and genExpr = function
     | TryFinally(e1, e2) -> 
         atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e1 +> unindent ++ "finally" 
         +> indent +> sepNln +> genExpr e2 +> unindent)    
-    | SeqVals es -> atCurrentColumn (col sepSemi es genConst)
+    | SequentialSimple es -> atCurrentColumn (col sepSemi es genExpr)
     /// It seems too annoying to use sepSemiNln
     | Sequential(e1, e2, _) -> 
         atCurrentColumn (genExpr e1 +> sepNln +> genExpr e2)
@@ -523,8 +490,9 @@ and genSimplePat = function
     | SPatAttrib(ats, sp) -> colPost sepSpace sepNone ats genAttribute +> genSimplePat sp
     
 and genSimplePats = function
+    /// Remove parentheses on an extremely simple pattern
+    | SimplePats [SPatId _ as sp] -> genSimplePat sp
     | SimplePats ps -> !- "(" +> col sepComma ps genSimplePat -- ")"
-    /// Not sure what this pattern means
     | SPSTyped(ps, t) -> genSimplePats ps -- " : " +> genType t
 
 and inline genPatRecordFieldName(PatRecordFieldName(s1, s2, p)) =

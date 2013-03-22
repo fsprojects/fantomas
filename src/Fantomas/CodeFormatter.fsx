@@ -87,11 +87,11 @@ let t07 = """
     """
 
 let t08 = """
-let x = 1::[2; 3; 4]
-let y = 1::[2]
-let z = 1::[]
-type Delegate1 = delegate of (int * int) -> int
-type Delegate2 = delegate of int * int -> int
+let x = fun y z -> y + z
+let y = fun z -> z
+let z = fun () -> 1
+//type Delegate1 = delegate of (int * int) -> int
+//type Delegate2 = delegate of int * int -> int
 """
 ;;
 

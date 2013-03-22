@@ -299,9 +299,10 @@ let (|Paren|_|) = function
     | SynExpr.Paren(e, _, _, _) -> Some e
     | _ -> None
 
-type ExprKind = | InferredDowncast | InferredUpcast | Lazy | Assert | AddressOfSingle | AddressOfDouble
-                | Yield | Return | YieldFrom | ReturnFrom | Do | DoBang
-with override x.ToString() =
+type ExprKind = 
+    | InferredDowncast | InferredUpcast | Lazy | Assert | AddressOfSingle | AddressOfDouble
+    | Yield | Return | YieldFrom | ReturnFrom | Do | DoBang
+    override x.ToString() =
         match x with
         | InferredDowncast -> "downcast "
         | InferredUpcast -> "upcast "
@@ -369,10 +370,17 @@ let (|Sequential|_|) = function
     | SynExpr.Sequential(_, isSeq, e1, e2, _) -> Some(e1, e2, isSeq)
     | _ -> None
 
+let (|SimpleExpr|_|) = function
+    | SynExpr.Null _  
+    | SynExpr.Ident _ 
+    | SynExpr.LongIdent _
+    | SynExpr.Const(Const _, _) as e -> Some e
+    | _ -> None
+
 /// Only recognize numbers; strings are ignored
-let rec (|SeqVals|_|) = function
-    | Sequential(ConstExpr(Const _ as e1), ConstExpr(Const _ as e2), true) -> Some [e1; e2]
-    | Sequential(ConstExpr(Const _ as e), SeqVals es, true) -> Some(e::es)
+let rec (|SequentialSimple|_|) = function
+    | Sequential(SimpleExpr e1, SimpleExpr e2, true) -> Some [e1; e2]
+    | Sequential(SimpleExpr e, SequentialSimple es, true) -> Some(e::es)
     | _ -> None
 
 let (|ArrayOrList|_|) = function
@@ -396,8 +404,14 @@ let (|Var|_|) = function
     | SynExpr.LongIdent(_, LongIdentWithDots s, _, _) -> Some(s)
     | _ -> None
 
-let (|App|_|) = function
-    | SynExpr.App(_, _, e1, e2, _) -> Some(e1, e2)
+/// Get all application params at once
+let rec (|App|_|) = function
+    | SynExpr.App(_, _, e1, App(e2, es), _) -> Some(e1, e2::es)
+    | SynExpr.App(_, _, e1, e2, _) -> Some(e1, [e2])
+    | _ -> None
+
+let (|SeqApp|_|) = function
+    | SynExpr.App(_, _, Var "seq", e, _) -> Some e
     | _ -> None
 
 let (|PrefixApp|_|) = function
@@ -409,8 +423,10 @@ let (|InfixApp|_|) = function
     | SynExpr.App(_, _, SynExpr.App(_, true, Var(OpName s), e1, _), e2, _) -> Some(s, e1, e2)
     | _ -> None
 
-let (|Lambda|_|) = function
-    | SynExpr.Lambda(isMember, _, pats, e, _) -> Some(e, pats, isMember)
+/// Gather all arguments in lambda
+let rec (|Lambda|_|) = function
+    | SynExpr.Lambda(_, _, pats, Lambda(e, patss), _) -> Some(e, pats::patss)
+    | SynExpr.Lambda(_, _, pats, e, _) -> Some(e, [pats])
     | _ -> None
 
 let (|MatchLambda|_|) = function
@@ -625,7 +641,7 @@ let (|TArray|_|) = function
     | _ -> None
 
 let (|TAnon|_|) = function    
-    | SynType.Anon(_) -> Some()
+    | SynType.Anon _ -> Some()
     | _ -> None
 
 let (|TVar|_|) = function 
@@ -641,7 +657,7 @@ let (|TApp|_|) = function
     | _ -> None
 
 let (|TLongIdentApp|_|) = function
-    | SynType.LongIdentApp(t, LongIdentWithDots li, _, ts, _, _, _) -> Some(t, li, ts)    
+    | SynType.LongIdentApp(t, LongIdentWithDots s, _, ts, _, _, _) -> Some(t, s, ts)    
     | _ -> None    
 
 let (|TTuple|_|) = function     
@@ -653,14 +669,15 @@ let (|TWithGlobalConstraints|_|) = function
     | _ -> None
 
 let (|TLongIdent|_|) = function
-    | SynType.LongIdent(LongIdentWithDots li) -> Some li
+    | SynType.LongIdent(LongIdentWithDots s) -> Some s
     | _ -> None
 
 // Type parameter
 
-type SingleTyparConstraintKind = | TyparIsValueType | TyparIsReferenceType | TyparIsUnmanaged
-                                 | TyparSupportsNull | TyparIsComparable | TyparIsEquatable
-with override x.ToString() =
+type SingleTyparConstraintKind = 
+    | TyparIsValueType | TyparIsReferenceType | TyparIsUnmanaged
+    | TyparSupportsNull | TyparIsComparable | TyparIsEquatable
+    override x.ToString() =
         match x with
         | TyparIsValueType -> "struct"
         | TyparIsReferenceType -> "not struct"
@@ -669,8 +686,7 @@ with override x.ToString() =
         | TyparIsComparable -> "comparison"
         | TyparIsEquatable -> "equality"
 
-let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|TyparIsEnum|TyparIsDelegate|) = 
-    function    
+let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|TyparIsEnum|TyparIsDelegate|) = function  
     | WhereTyparIsValueType(tp, _) -> TyparSingle(TyparIsValueType, tp)
     | WhereTyparIsReferenceType(tp, _) -> TyparSingle(TyparIsReferenceType, tp)
     | WhereTyparIsUnmanaged(tp, _) -> TyparSingle(TyparIsUnmanaged, tp)
