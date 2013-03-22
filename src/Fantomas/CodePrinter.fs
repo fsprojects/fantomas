@@ -16,14 +16,31 @@ let inline genConst c =
     | Const c -> !- c
     | Unresolved r -> fun ctx -> str (content r ctx) ctx
 
+/// Recognize complex expressions
+let rec complex = function
+    | Paren e | SingleExpr(_, e) | TypedExpr(_, e, _) -> complex e
+    | ArrayOrListOfSeqExpr(_, e) -> complex e
+    | ConstExpr _ | NullExpr | Var _ -> false
+    | LongIdentSet(_, e) -> complex e
+    | DotIndexedGet(e, es) -> complex e || List.exists complex es
+    | DotIndexedSet(e1, es, e2) -> complex e1 || complex e2 || List.exists complex es
+    | DotGet(e, _) -> complex e
+    | DotSet(e1, _, e2) -> complex e1 || complex e2
+    | e -> true
+
 /// Check whether an expression should be broken into multiple lines
 let rec multiline = function
     | Paren e | SingleExpr(_, e) | TypedExpr(_, e, _) -> multiline e
     | ConstExpr _ | NullExpr | Var _ -> false
     | Quote(e1, e2, _) -> multiline e1 || multiline e2
     | Tuple es -> List.exists multiline es
-    | ArrayOrList(_, es) -> List.exists multiline es
-    | Record(xs, _) -> xs |> Seq.choose (fun (_, y, _) -> y) |> Seq.exists multiline
+    /// An array or a list is multiline if there are at least two elements and they are complex
+    | ArrayOrList(_, es) -> 
+        not (List.atmostOne es) && List.exists complex es
+    /// A record is multiline if there is at least two fields present
+    | Record(xs, _) -> 
+        let fields = xs |> List.choose ((|RecordFieldName|) >> snd) 
+        not (List.atmostOne fields) || List.exists multiline fields
     | ForEach(_, e1, e2, true) -> multiline e1 || multiline e2
     | ObjExpr _ | While _ | For _ | ForEach _ -> true
     | CompExpr(_, e) -> multiline e
@@ -31,11 +48,12 @@ let rec multiline = function
     | JoinIn(e1, e2) -> multiline e1 || multiline e2
     | Lambda(e, _, _) -> multiline e
     | MatchLambda _ -> true
-    | Match(e, cs) -> multiline e || not (List.atmostOne cs)
+    | Match(e, cs) -> multiline e || not (List.isEmpty cs)
     | App(e1, e2) -> multiline e1 || multiline e2
     | TypeApp(e, _) -> multiline e
     | LetOrUse(_, _, bs, e) -> not (List.isEmpty bs) || multiline e
-    | TryWith _ | TryFinally _ | Sequential _ ->  true
+    | TryWith _ | TryFinally _ ->  true
+    | Sequential _ -> true
     | IfThenElse(e1, e2, Some e3) -> multiline e1 || multiline e2 || multiline e3
     | IfThenElse(e1, e2, None) -> multiline e1 || multiline e2
     | LongIdentSet(_, e) -> multiline e
@@ -59,7 +77,7 @@ let hasParenthesis = function
     | CompExpr _  | ArrayOrListOfSeqExpr _ -> false
     | JoinIn _ -> true
     | Lambda _ | MatchLambda _ | Match _ -> true
-    // This case depends on associtivity
+    /// This case depends on associtivity
     | App _ -> false
     | TypeApp _ -> false
     | LetOrUse _ -> true
@@ -104,6 +122,7 @@ and genModuleOrNamespace = function
     | ModuleOrNamespace(ats, px, ao, s, mds, isModule) -> 
         genPreXmlDoc px
         +> colPost sepNln sepNln ats genAttribute
+        /// Checking for Tmp is a bit fragile
         +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ") -- s +> rep 2 sepNln)
         +> col sepNln mds genModuleDecl
 
@@ -112,9 +131,9 @@ and genModuleDecl = function
     | DoExpr(e) -> genExpr e
     | Exception(ex) -> genException ex
     | HashDirective(s1, s2) -> 
-        // print strings with quotes
-        !- "#" -- s1 +> sepSpace -- sprintf "%A" s2 
-    // Add a new line after model-level let bindings
+        /// print strings with quotes
+        !- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2))
+    /// Add a new line after model-level let bindings
     | Let(b) -> genLetBinding "let " b +> sepNln
     | LetRec(b::bs) -> 
         genLetBinding "let rec " b 
@@ -125,8 +144,8 @@ and genModuleDecl = function
         genPreXmlDoc px
         +> colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
         +> indent +> sepNln +> col sepNln mds genModuleDecl +> unindent
-    | Open(s) -> !- (sprintf "open %s" s)
-    // There is no nested types and they have newlines in the ends of definitions
+    | Open(s) -> !- (sprintf "open %s" s) +> sepNln
+    /// There is no nested types and they have newlines in the ends of definitions
     | Types(t::ts) -> genTypeDefn true t +> colPre sepNln sepNln ts (genTypeDefn false)
     | md -> failwithf "Unexpected module declaration: %O" md
 
@@ -134,22 +153,19 @@ and genAccess(Access s) = !- s
 
 and genAttribute(Attribute(li, e, isGetSet)) = 
     match e with
-    // Special treatment for function application on attributes
+    /// Special treatment for function application on attributes
     | ConstExpr(Const "()") -> !- (sprintf "[<%s>]" li)
     | e -> !- "[<" -- li +> genExpr e -- ">]"
     
 and genPreXmlDoc(PreXmlDoc lines) = colPost sepNln sepNln lines (sprintf "///%s" >> (!-))
 
-// These inline functions have to be defined before their uses
+/// These inline functions have to be defined before their uses
 
 and inline autoBreakNln e = 
     ifElse (multiline e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
 
 and inline autoBreakNlnBy l e = 
     ifElse (multiline e) (incrIndent l +> sepNln +> genExpr e +> decrIndent l) (genExpr e)
-
-and inline autoBreakBy l e = 
-    ifElse (multiline e) (incrIndent l +> genExpr e +> decrIndent l) (genExpr e)
 
 and inline genTyparList tps = 
     ifElse (List.atmostOne tps) (col wordOr tps genTypar) (!- "(" +> col wordOr tps genTypar -- ")")
@@ -160,7 +176,7 @@ and inline genTypeParam tds tcs =
 
 and genLetBinding pref = function
     | LetBinding(ats, px, ao, isInline, isMutable, p, e, bk, bri) ->
-        // Figure out what to do with SynBindingKind
+        /// Figure out what to do with SynBindingKind
         let prefix =
             genPreXmlDoc px
             +> colPost sepNln sepNone ats genAttribute -- pref +> opt sepSpace ao genAccess
@@ -210,18 +226,20 @@ and genMemberFlags isInterface = function
     | MFConstructor _ -> sepNone
     | MFOverride _ -> ifElse isInterface (!- "member ") (!- "override ")
 
+and inline genRecordFieldName(RecordFieldName(s, eo)) =
+    opt sepNone eo (fun e -> !- s +> sepEq +> genExpr e)
+
 and genExpr = function
-    // Remove superfluous parens
+    /// Remove superfluous parens
     | Paren(Tuple es as e) -> genExpr e
     | Paren(ConstExpr(Const "()")) -> !- "()"
-    | Paren e -> !- "(" +> autoBreakBy 1 e -- ")"
+    | Paren e -> !- "(" +> genExpr e -- ")"
     | SingleExpr(kind, e) -> str kind +> genExpr e
     | ConstExpr(c) -> genConst c
     | NullExpr -> !- "null"
-    // Not sure about the role of e1
-    | Quote(e1, e2, isRaw) -> 
-        let level = if isRaw then 4 else 3
-        let e = autoBreakBy level e2
+    /// Not sure about the role of e1
+    | Quote(e1, e2, isRaw) ->         
+        let e = genExpr e2
         ifElse isRaw (!- "<@@ " +> e -- " @@>") (!- "<@ " +> e -- " @>")
     | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType t
     | TypedExpr(New, e, t) -> !- "new " +> genType t +> ifElse (hasParenthesis e) (genExpr e) (sepSpace +> genExpr e)
@@ -229,72 +247,80 @@ and genExpr = function
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
     | Tuple es -> !- "(" +> col sepComma es genExpr -- ")"
-    // Figure out how to break long expressions into multiple lines
+    /// Figure out how to break long expressions into multiple lines
     | ArrayOrList(isArray, xs) -> 
-        ifElse isArray (sepOpenA +> col sepSemi xs genExpr +> sepCloseA) (sepOpenL +> col sepSemi xs genExpr +> sepCloseL)
+        ifElse isArray (sepOpenA +> atCurrentColumn (col sepSemiNln xs genExpr) +> sepCloseA) 
+            (sepOpenL +> atCurrentColumn (col sepSemiNln xs genExpr) +> sepCloseL)
     | Record(xs, eo) -> 
         sepOpenS +> opt (!- " with ") eo genExpr
-        +> col sepSemi xs (fun ((LongIdentWithDots li, _), eo, _) -> opt sepNone eo (fun e -> !- li +> sepEq +> genExpr e)) 
+        +> atCurrentColumn (col sepSemiNln xs genRecordFieldName)
         +> sepCloseS
     | ObjExpr(t, x, bd, ims) ->
-        // Should remove incrIndent to save spaces
-        sepOpenS -- "new " +> genType t -- " with" 
-        +> incrIndent openS.Length +> indent +> sepNln +> col sepNln bd (genMemberBinding true) +> unindent
-        +> colPre sepNln sepNln ims genInterfaceImpl +> sepCloseS +> decrIndent openS.Length
+        /// Should remove incrIndent to save spaces
+        sepOpenS +> 
+        atCurrentColumn (!- "new " +> genType t -- " with" 
+        +> indent +> sepNln +> col sepNln bd (genMemberBinding true) +> unindent
+        +> colPre sepNln sepNln ims genInterfaceImpl) +> sepCloseS
     | While(e1, e2) -> 
-        !- "while " +> genExpr e1 -- " do" 
-        +> indent +> sepNln +> genExpr e2 +> unindent
+        atCurrentColumn (!- "while " +> genExpr e1 -- " do" 
+        +> indent +> sepNln +> genExpr e2 +> unindent)
     | For(s, e1, e2, e3, isUp) ->
-        !- (sprintf "for %s = " s) +> genExpr e1 
+        atCurrentColumn (!- (sprintf "for %s = " s) +> genExpr e1 
         +> ifElse isUp (!- " to ") (!- " downto ") +> genExpr e2 -- " do" 
-        +> indent +> sepNln +> genExpr e3 +> unindent
-    // May handle the form 'for i in e1 -> e2' in the future
+        +> indent +> sepNln +> genExpr e3 +> unindent)
+    /// May handle the form 'for i in e1 -> e2' in the future
     | ForEach(p, e1, e2, isArrow) ->
-        !- "for " +> genPat p -- " in " +> genExpr e1 
+        atCurrentColumn (!- "for " +> genPat p -- " in " +> genExpr e1 
         +> ifElse (isArrow && not <| multiline e2) (!- " do " +> genExpr e2) 
             (!- " do" +> indent +> sepNln +> genExpr e2 +> unindent)  
+        )
     | CompExpr(isArrayOrList, e) ->
         ifElse isArrayOrList (genExpr e) (sepOpenS +> autoBreakNln e +> sepCloseS) 
     | ArrayOrListOfSeqExpr(isArray, e) -> 
-        ifElse isArray (sepOpenA +> autoBreakBy openA.Length e +> sepCloseA) 
-            (sepOpenL +> autoBreakBy openL.Length e +> sepCloseL)
+        ifElse isArray (sepOpenA +> genExpr e +> sepCloseA) (sepOpenL +> genExpr e +> sepCloseL)
     | App(Var "seq", (App _ as e)) ->
         !- "seq { " +> genExpr e +> sepCloseS
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
     | Lambda(e, sp, isMember) -> !- "fun " +> genSimplePats sp +> sepArrow +> autoBreakNln e
-    | MatchLambda(sp, isMember) -> !- "function " +> colPre sepNln sepNln sp genClause
+    | MatchLambda(sp, isMember) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
     | Match(e, cs) -> 
-        !- "match " +> genExpr e -- " with"
-        +> colPre sepNln sepNln cs genClause
+        atCurrentColumn (!- "match " +> genExpr e -- " with"
+        +> colPre sepNln sepNln cs genClause)
     | App(App(App(Var ".. ..", e1), e2), e3) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
-    // Spaces might be optional
+    /// Separate two prefix ops by spaces
+    | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr e
+    | PrefixApp(s, e) -> !- s  +> genExpr e
+    /// Spaces are optional for range expressions
     | InfixApp(s, e1, e2) -> genExpr e1 +> ifElse (s = "..") (!- s) (sepSpace -- s +> sepSpace) +> genExpr e2
-    | App((App _ as e1), e2) -> genExpr e1 +> sepSpace +> genExpr e2
+    /// Always spacing in multiple arguments
+    | App(App(e1, e2), e3) -> genExpr e1 +> sepSpace +> genExpr e2 +> sepSpace +> genExpr e3
     | App(e1, e2) -> genExpr e1 +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
     | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts genType -- ">"
     | LetOrUse(isRec, isUse, bs, e) ->
-        ifElse isUse (!- "use ") (ifElse isRec (!- "let rec ") (!- "let "))
-        +> col sepSpace bs (genLetBinding "") 
-        // Could possibly give an " in " here
-        +> sepNln +> genExpr e 
-    // Breakdown based on length of e
+        atCurrentColumn (ifElse isUse (!- "use ") (ifElse isRec (!- "let rec ") (!- "let "))
+        +> col sepSpace bs (genLetBinding "")
+        +> sepNln +> genExpr e)
+    /// Could customize a bit if e is single line
     | TryWith(e, cs) ->  
-        !- "try " +> indent +> sepNln +> genExpr e +> unindent ++ "with" 
-        +> indentWith +> sepNln +> col sepNln cs genClause +> unindentWith
+        atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e +> unindent ++ "with" 
+        +> indentWith +> sepNln +> col sepNln cs genClause +> unindentWith)
     | TryFinally(e1, e2) -> 
-        !- "try " +> indent +> sepNln +> genExpr e1 +> unindent ++ "finally" 
-        +> indent +> sepNln +> genExpr e2 +> unindent
-    // May process the boolean flag later
-    | Sequential(e1, e2) -> genExpr e1 +> sepNln +> genExpr e2
+        atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e1 +> unindent ++ "finally" 
+        +> indent +> sepNln +> genExpr e2 +> unindent)    
+    | SeqVals es -> atCurrentColumn (col sepSemi es genConst)
+    /// Boolean flag indicates the context of the sequential composition
+    | Sequential(e1, e2, _) -> 
+        atCurrentColumn (genExpr e1 +> sepSemiNln +> genExpr e2)
     | IfThenElse(e1, e2, Some e3) -> 
-        !- "if " +> autoBreakBy 3 e1 -- " then " 
+        atCurrentColumn (!- "if " +> genExpr e1 -- " then " 
         +> ifElse (multiline e2) (indent +> sepNln +> genExpr e2 +> unindent ++ "else " +> autoBreakNln e3) 
             (genExpr e2 +> ifElse (multiline e3) (!+ "else " +> indent +> sepNln +> genExpr e3 +> unindent) 
                                 (!- " else " +> genExpr e3))        
+        )
     | IfThenElse(e1, e2, None) -> 
-        !- "if " +> autoBreakBy 3 e1 -- " then " +> autoBreakNln e2
-    // Is decode of infix operators correct?
-    | Var s -> !- s
+        atCurrentColumn (!- "if " +> genExpr e1 -- " then " +> autoBreakNln e2)
+    /// At this stage, all symbolic operators have been handled.
+    | Var(OpNamePrefix s) -> !- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
     | DotIndexedGet(e, es) -> genExpr e -- ".[" +> col sepComma es genExpr +> sepCloseL
     | DotIndexedSet(e1, es, e2) -> genExpr e1 -- ".[" +> col sepComma es genExpr -- "] <- " +> genExpr e2
@@ -303,8 +329,8 @@ and genExpr = function
     | TraitCall(tps, msg, e) -> 
         !- "(" +> genTyparList tps +> sepColon +> genMemberSig msg +> sepSpace +> genExpr e -- ")"
     | LetOrUseBang(isUse, p, e1, e2) ->
-        ifElse isUse (!- "use! ") (!- "let! ") 
-        +> genPat p -- " = " +> genExpr e1 +> sepNln +> genExpr e2
+        atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
+        +> genPat p -- " = " +> genExpr e1 +> sepNln +> genExpr e2)
     | e -> failwithf "Unexpected expression: %O" e
 
 and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) = 
@@ -320,7 +346,7 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) =
         +> indent +> sepNln
         +> col sepNln ecs (genEnumCase true)
         +> colPre sepNln sepNln ms (genMemberDefn false)
-        // Add newline after unindent to be spacing-correct
+        /// Add newline after un-indent to be spacing-correct
         +> unindent +> sepNln 
     | Simple(TDSRUnion(ao', xs)) ->
         typeName +> sepEq 
@@ -331,14 +357,14 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) =
     | Simple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS 
-        +> incrIndent openS.Length +> col sepSemiNln fs (genField "") +> decrIndent openS.Length +> sepCloseS
+        +> atCurrentColumn (col sepSemiNln fs (genField "")) +> sepCloseS
         +> colPre sepNln sepNln ms (genMemberDefn false) 
         +> unindent +> sepNln 
     | Simple TDSRNone -> 
         typeName +> sepNln
     | Simple(TDSRTypeAbbrev t) -> 
         typeName +> sepEq +> genType t +> sepNln
-    // What is this case?
+    /// What is this case?
     | Simple TDSRGeneral -> id
     | ObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, mds) ->
         typeName +> sepEq +> indent +> sepNln +> genTypeDefKind tdk
@@ -346,12 +372,12 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) =
         ++ "end" +> unindent +> sepNln
     | ObjectModel(TCSimple TCAugmentation, _) ->
         typeName -- " with" +> indent +> sepNln 
-        // Remember that we use MemberDefn of parent node
+        /// Remember that we use MemberDefn of parent node
         +> col sepNln ms (genMemberDefn false) +> unindent +> sepNln
     | ObjectModel(tdk, mds) -> 
-        // Assume that there is at most one implicit constructor
+        /// Assume that there is at most one implicit constructor
         let impCtor = List.tryFind (function MDImplicitCtor _ -> true | _ -> false) mds
-        // Might need to sort so that let and do bindings come first
+        /// Might need to sort so that let and do bindings come first
         let others =  List.filter (function MDImplicitCtor _ -> false | _ -> true) mds
         typeName +> opt sepNone impCtor (genMemberDefn false) +> sepEq +> indent +> sepNln 
         +> col sepNln others (genMemberDefn false) +> unindent +> sepNln
@@ -398,7 +424,7 @@ and genType = function
     | TMeasureDivide(t1, t2) -> genType t1 -- " / " +> genType t2
     | TStaticConstant(c) -> genConst c
     | TStaticConstantExpr(e) -> genExpr e
-    // Not sure about this case
+    /// Not sure about this case
     | TStaticConstantNamed(t1, t2) -> genType t1 -- "=" +> genType t2
     | TArray(t, n) -> genType t +> rep n (!- "[]")
     | TAnon -> sepWild
@@ -412,15 +438,15 @@ and genType = function
             | ts -> !- "(" +> col sepComma ts genType -- ") " +> genType t
         ifElse isPostfix postForm (genType t -- "<" +> col sepComma ts genType -- ">")
     | TLongIdentApp(t, li, ts) -> genType t -- li -- "<" +> col sepComma ts genType -- ">"
-    // The surrounding brackets don't seem neccessary
+    /// The surrounding brackets don't seem neccessary
     | TTuple ts -> col sepStar ts (snd >> genType)
-    // Revise this case later
+    /// Revise this case later
     | TWithGlobalConstraints(t, tcs) -> genType t +> colPre (!- " when ") wordAnd tcs genTypeConstraint
     | TLongIdent li -> !- li
     | t -> failwithf "Unexpected type: %O" t
 
 and genTypar(Typar(s, isHead)) = 
-    // There is a potential parser bug with "<^T..."
+    /// There is a potential parser bug with "<^T..."
     ifElse isHead (!- "^") (!-"'") -- s
 
 and genTypeConstraint = function
@@ -451,7 +477,7 @@ and genMemberSig = function
 and genMemberDefn isInterface = function
     | MDNestedType(td, ao) -> invalidArg "md" "This functionality is not implemented in F#"
     | MDOpen(s) -> !- s
-    // What is the role of so
+    /// What is the role of so
     | MDImplicitInherit(t, e, so) -> !- "inherit " +> genType t +> genExpr e
     | MDInherit(t, so) -> !- "inherit " +> genType t
     | MDValField f -> genField "val " f
@@ -495,8 +521,11 @@ and genSimplePat = function
     
 and genSimplePats = function
     | SimplePats ps -> !- "(" +> col sepComma ps genSimplePat -- ")"
-    // Not sure what this pattern means
+    /// Not sure what this pattern means
     | SPSTyped(ps, t) -> genSimplePats ps -- " : " +> genType t
+
+and inline genPatRecordFieldName(PatRecordFieldName(s1, s2, p)) =
+    ifElse (s1 = "") (!- (sprintf "%s = " s2)) (!- (sprintf "%s.%s = " s1 s2)) +> genPat p
 
 and genPat = function
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)
@@ -520,13 +549,10 @@ and genPat = function
     | PatParen(PatConst(c)) -> genConst c
     | PatParen(p) -> !- "(" +> genPat p -- ")"
     | PatSeq(PatTuple, ps) -> col sepComma ps genPat
-        //ifElse (List.atmostOne ps) (col sepComma ps genPat) (!- "(" +> col sepComma ps genPat -- ")")
-    | PatSeq(PatList, ps) -> sepOpenL +> col sepSemi ps genPat +> sepCloseL
-    | PatSeq(PatArray, ps) -> sepOpenA +> col sepSemi ps genPat +> sepCloseA
+    | PatSeq(PatList, ps) -> sepOpenL +> atCurrentColumn (col sepSemiNln ps genPat) +> sepCloseL
+    | PatSeq(PatArray, ps) -> sepOpenA +> atCurrentColumn (col sepSemiNln ps genPat) +> sepCloseA
     | PatRecord(xs) -> 
-        // TODO: refactor this to a function
-        sepOpenS +> col sepSemi xs (fun ((LongIdent li, Ident s), p) -> 
-                                    !- (if li = "" then sprintf "%s = " s else sprintf "%s.%s = " li s) +> genPat p) +> sepCloseS
+        sepOpenS +> atCurrentColumn (col sepSemiNln xs genPatRecordFieldName) +> sepCloseS
     | PatConst(c) -> genConst c
     | PatIsInst(t) -> !- ":? " +> genType t
     | PatQuoteExpr e -> !- "<@ " +> genExpr e -- " @>"

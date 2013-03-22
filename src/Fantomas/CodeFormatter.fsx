@@ -75,14 +75,21 @@ query {
     }"""    
 
 let t07 = """
-query {
-    for student in db.Student do
-    where (query { for courseSelection in db.CourseSelection do
-                   exists (courseSelection.StudentID = student.StudentID) })
-    select student
-}"""
+    let function1 x y =
+       try 
+         try 
+            if x = y then raise (InnerError("inner"))
+            else raise (OuterError("outer"))
+         with
+          | InnerError(str) -> printfn "Error1 %s" str
+       finally
+          printfn "Always print this."
+    """
 
 let t08 = """
+let x = 1::[2; 3; 4]
+let y = 1::[2]
+let z = 1::[]
 type Delegate1 = delegate of (int * int) -> int
 type Delegate2 = delegate of int * int -> int
 """

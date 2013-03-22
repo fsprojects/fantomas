@@ -350,6 +350,10 @@ let (|NullExpr|_|) = function
     | SynExpr.Null _ -> Some() 
     | _ -> None
 
+let (|ConstExpr|_|) = function
+    | SynExpr.Const(x, _) -> Some x
+    | _ -> None
+
 let (|TypeApp|_|) = function
     | SynExpr.TypeApp(e, _, ts, _, _, _, _) -> Some(e, ts)
     | _ -> None
@@ -359,7 +363,13 @@ let (|Match|_|) = function
     | _ -> None
 
 let (|Sequential|_|) = function
-    | SynExpr.Sequential(_, _, e1, e2, _) -> Some(e1, e2)
+    | SynExpr.Sequential(_, isSeq, e1, e2, _) -> Some(e1, e2, isSeq)
+    | _ -> None
+
+/// Special patterns 
+let rec (|SeqVals|_|) = function
+    | Sequential(ConstExpr e1, ConstExpr e2, true) -> Some [e1; e2]
+    | Sequential(ConstExpr e, SeqVals es, true) -> Some(e::es)
     | _ -> None
 
 let (|ArrayOrList|_|) = function
@@ -378,21 +388,22 @@ let (|Tuple|_|) = function
     | SynExpr.Tuple(exprs, _, _) -> Some exprs
     | _ -> None
 
-let (|ConstExpr|_|) = function
-    | SynExpr.Const(x, _) -> Some x
-    | _ -> None
-
 let (|Var|_|) = function
-    | SynExpr.Ident(Ident (OpName s)) -> Some(s)
-    | SynExpr.LongIdent(_, LongIdentWithDots (OpName s), _, _) -> Some(s)
+    | SynExpr.Ident(Ident s) -> Some(s)
+    | SynExpr.LongIdent(_, LongIdentWithDots s, _, _) -> Some(s)
     | _ -> None
 
 let (|App|_|) = function
     | SynExpr.App(_, _, e1, e2, _) -> Some(e1, e2)
     | _ -> None
 
+let (|PrefixApp|_|) = function
+    | SynExpr.App(_, _, Var s, e2, _) when IsPrefixOperator s -> Some((|OpName|) s, e2)
+    | _ -> None
+
 let (|InfixApp|_|) = function
-    | SynExpr.App(_, _, SynExpr.App(_, true, Var s, e1, _), e2, _) -> Some(s, e1, e2)
+    | SynExpr.App(_, true, Var(OpName "::"), Tuple [e1; e2], _) -> Some("::", e1, e2)
+    | SynExpr.App(_, _, SynExpr.App(_, true, Var(OpName s), e1, _), e2, _) -> Some(s, e1, e2)
     | _ -> None
 
 let (|Lambda|_|) = function
@@ -678,3 +689,9 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
 
 let (|ValSig|) (ValSpfn(ats, Ident(OpNamePrefix s), tds, t, _, _, _, px, ao, _, _)) = 
     (ats, px, ao, s, t, tds)
+
+// Misc
+
+let (|RecordFieldName|) ((LongIdentWithDots s, _) : RecordFieldName, eo : SynExpr option, _) = (s, eo)
+
+let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), p) = (s1, s2, p)
