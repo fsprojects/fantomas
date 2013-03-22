@@ -34,9 +34,9 @@ let rec multiline = function
     | ConstExpr _ | NullExpr | Var _ -> false
     | Quote(e1, e2, _) -> multiline e1 || multiline e2
     | Tuple es -> List.exists multiline es
-    /// An array or a list is multiline if there are at least two elements and they are complex
+    /// An array or a list is multiline if there are at least two elements
     | ArrayOrList(_, es) -> 
-        not (List.atmostOne es) && List.exists complex es
+        not (List.atmostOne es)
     /// A record is multiline if there is at least two fields present
     | Record(xs, _) -> 
         let fields = xs |> List.choose ((|RecordFieldName|) >> snd) 
@@ -52,6 +52,7 @@ let rec multiline = function
     | App(e1, e2) -> multiline e1 || multiline e2
     | TypeApp(e, _) -> multiline e
     | LetOrUse(_, _, bs, e) -> not (List.isEmpty bs) || multiline e
+    | SeqVals _ -> false
     | TryWith _ | TryFinally _ ->  true
     | Sequential _ -> true
     | IfThenElse(e1, e2, Some e3) -> multiline e1 || multiline e2 || multiline e3

@@ -26,6 +26,6 @@ let makeSome some =
   | _ -> failwith "error"
 
 let readAllComments() = File.ReadAllLines("comments.txt")
-                                                                        |> Array.map parseComment
-                                                |> Array.filter filterOutNone
+                        |> Array.map parseComment
+                        |> Array.filter filterOutNone
                         |> Array.map makeSome

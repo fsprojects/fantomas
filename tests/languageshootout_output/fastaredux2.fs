@@ -22,8 +22,7 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
     AGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCC\
     AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAA
 
-let iubvalues = 
-  [0.27; 0.12; 0.12; 0.27] @ List.replicate 12 0.02
+let iubvalues = [0.27; 0.12; 0.12; 0.27] @ List.replicate 12 0.02
 
 let iub = Seq.zip "acgtBDHKMNRSVWY"B iubvalues
 

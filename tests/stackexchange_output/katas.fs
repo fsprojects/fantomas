@@ -29,7 +29,7 @@ module NaturalSortKata =
     if left = right then Equal
     else 
       let fix str = new System.String(str
-                                                                      |> List.rev
+                                      |> List.rev
                                       |> List.toArray)
       let gatherChunck str = 
         let rec gather str acc = 
@@ -54,10 +54,10 @@ module NaturalSortKata =
           | _ -> raise(InvalidException "Bad Data")
         else 
           let lt, lChunk = left
-                                            |> Seq.toList
+                           |> Seq.toList
                            |> gatherChunck
           let rt, rChunk = right
-                                            |> Seq.toList
+                           |> Seq.toList
                            |> gatherChunck
           match lt.Compare rt with
           | Equal -> 

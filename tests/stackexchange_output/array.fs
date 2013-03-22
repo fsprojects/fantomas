@@ -16,12 +16,12 @@ let private reorder cap (array : int[]) =
          |> Array.map(fun (elem) -> if elem = max then max else 1)
 
 let private getZeroes todo = todo
-                                                          |> Seq.takeWhile(fun (elem) -> elem = 0)
+                             |> Seq.takeWhile(fun (elem) -> elem = 0)
                              |> Seq.toArray
 
 let private getNumbers todo cap = todo
-                                                                                                      |> Seq.takeWhile(fun (elem) -> elem <> 0)
-                                                                    |> Seq.toArray
+                                  |> Seq.takeWhile(fun (elem) -> elem <> 0)
+                                  |> Seq.toArray
                                   |> reorder cap
 
 let GetEquivalentPermutation(array : int[], cap) = 

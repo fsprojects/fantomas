@@ -40,7 +40,7 @@ let rec merge (ar1 : 'a array) (ar2 : 'a array) =
       | false, false -> yield None }
   let mergeindex = index(false, -1, -1)
   [for (formar1, i, j) in mergeindex
-                           |> Seq.choose(id) do yield if formar1 then ar1.[i] else ar2.[j]]
+                          |> Seq.choose(id) do yield if formar1 then ar1.[i] else ar2.[j]]
 
 and mergesort = 
   function 
@@ -53,7 +53,7 @@ and mergesort =
     |> List.toArray
 
 let testval = ([|1..100|]
-                              |> shuffle
+               |> shuffle
                |> List.toArray)
 
 let test4 = mergesort testval

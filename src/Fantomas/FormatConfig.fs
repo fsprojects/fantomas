@@ -24,7 +24,7 @@ type FormatConfig =
 /// Wrapping IndentedTextWriter with a current column position
 type ColumnIndentedTextWriter(tw : TextWriter) =
     let indentWriter = new IndentedTextWriter(tw, " ")
-    let mutable col = 0
+    let mutable col = indentWriter.Indent
     let mutable cursor = 0
     member __.Write(s : string) =
         match s.LastIndexOf('\n') with
@@ -32,9 +32,9 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
         | i -> col <- col + s.Length - i - 1
         indentWriter.Write(s)
     member __.WriteLine(s : string) =
-        col <- 0
         indentWriter.WriteLine(s)
-    /// Current column of the page
+        col <- indentWriter.Indent
+    /// Current column of the page in absolute sense
     member __.Column = col
     member __.Indent 
         with get() = indentWriter.Indent
@@ -99,9 +99,7 @@ let atIndentLevel level (f : Context -> Context) ctx =
 
 /// Write everything at current column indentation
 let atCurrentColumn (f : _ -> Context) (ctx : Context) =
-    match ctx.Writer.Column with
-    | 0 -> f ctx
-    | c -> atIndentLevel (ctx.Writer.Indent + c) f ctx
+    atIndentLevel ctx.Writer.Column f ctx
 
 /// Function composition operator
 let (+>) (ctx : Context -> Context) (f : _ -> Context) x =
