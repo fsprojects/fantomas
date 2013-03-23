@@ -89,11 +89,8 @@ let t07 = """
     """
 
 let t08 = """
-let x = fun y z -> y + z
-let y = fun z -> z
-let z = fun () -> 1
-//type Delegate1 = delegate of (int * int) -> int
-//type Delegate2 = delegate of int * int -> int
+type Delegate1 = delegate of (int * int) -> int
+type Delegate2 = delegate of int * int -> int
 """
 ;;
 

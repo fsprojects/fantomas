@@ -23,7 +23,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\Fantomas.Cmd.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
-    <StartArguments>../../../../tests/stackexchange --out ../../../../tests/stackexchange_output --indent 2</StartArguments>
+    <StartArguments>../../../../tests/stackexchange --out ../../../../tests/stackexchange_output --indent 2 --noSemicolonEOL</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

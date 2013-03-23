@@ -187,12 +187,22 @@ let sepWild = !- "_"
 let sepNone = id
 let sepBar = !- "| "
 
+/// opening token of list
 let sepOpenL = !- "["
+/// closing token of list
 let sepCloseL = !- "]"
+/// opening token of array
 let sepOpenA = !- "[|"
+/// closing token of array
 let sepCloseA = !- "|]"
+/// opening token of sequence
 let sepOpenS = !- "{ "
+/// closing token of sequence
 let sepCloseS = !- " }"
+/// opening token of tuple
+let sepOpenT = !- "("
+/// closing token of tuple
+let sepCloseT = !- ")"
 
 let inline sepColon(ctx : Context) = 
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx

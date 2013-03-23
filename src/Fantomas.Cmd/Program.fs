@@ -19,7 +19,7 @@ open Fantomas.CodeFormatter
 /// Preferences:
 ///  --indent=[1-10]                 Set number of spaces to use for indentation
 ///  -longIdent=[10-100]             The length to start breaking an expression to multiple lines
-///  [+|-]semicolonAtEndOfLine       Enable/disable semicolons at the end of line (default = true)
+///  [+|-]semicolonEOL       Enable/disable semicolons at the end of line (default = true)
 ///  [+|-]spaceBeforeArgument        Enable/disable spaces before the first argument (default = false)
 ///  [+|-]spaceBeforeColon           Enable/disable spaces before colons (default = true)
 ///  [+|-]spaceAfterComma            Enable/disable spaces after commas (default = true)
@@ -28,7 +28,7 @@ open Fantomas.CodeFormatter
 
 let indentText = "Set number of spaces for indentation (default = 4). The value is between 1 and 10."
 
-let semicolonEOFText = "Disable semicolons at the end of line (default = true)."
+let semicolonEOLText = "Disable semicolons at the end of line (default = true)."
 let argumentText = "Enable spaces before the first argument (default = false)."
 let colonText = "Disable spaces before colons (default = true)."
 let commaText = "Disable spaces after commas (default = true)."
@@ -75,7 +75,7 @@ let main args =
     
     let indent = ref 4
     
-    let semicolonAtEndOfLine = ref true
+    let semicolonEOL = ref true
     let spaceBeforeArgument = ref false
     let spaceBeforeColon = ref true
     let spaceAfterComma = ref true
@@ -124,7 +124,7 @@ let main args =
 
            ArgInfo("--indent", ArgType.Int handleIndent, indentText);
            
-           ArgInfo("--noSemicolonAtEndOfLine", ArgType.Set semicolonAtEndOfLine, semicolonEOFText);
+           ArgInfo("--noSemicolonEOL", ArgType.Clear semicolonEOL, semicolonEOLText);
            ArgInfo("--spaceBeforeArgument", ArgType.Set spaceBeforeArgument, argumentText);           
            ArgInfo("--noSpaceBeforeColon", ArgType.Clear spaceBeforeColon, colonText);
            ArgInfo("--noSpaceAfterComma", ArgType.Clear spaceAfterComma, commaText);
@@ -135,7 +135,7 @@ let main args =
 
     let config = { FormatConfig.Default with 
                     IndentSpaceNum = !indent;
-                    SemicolonAtEndOfLine = !semicolonAtEndOfLine; 
+                    SemicolonAtEndOfLine = !semicolonEOL; 
                     SpaceBeforeArgument = !spaceBeforeArgument; 
                     SpaceBeforeColon = !spaceBeforeColon;
                     SpaceAfterComma = !spaceAfterComma; 

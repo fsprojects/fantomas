@@ -400,7 +400,8 @@ let (|Tuple|_|) = function
     | _ -> None
 
 let (|IndexedVar|_|) = function
-    | SynExpr.App(_, _, SynExpr.LongIdent(_, LongIdentWithDots "Microsoft.FSharp.Core.Some", _, _), ConstExpr e, _) -> 
+    /// We might have to narrow scope of this pattern to avoid incorrect usage
+    | SynExpr.App(_, _, SynExpr.LongIdent(_, LongIdentWithDots "Microsoft.FSharp.Core.Some", _, _), e, _) -> 
         Some(Some e)
     | SynExpr.LongIdent(_, LongIdentWithDots "Microsoft.FSharp.Core.None", _, _) -> Some None
     | _ -> None

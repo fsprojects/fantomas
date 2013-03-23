@@ -11,11 +11,6 @@ module List =
         | [] | [_] -> true
         | _ -> false
 
-let inline genConst c =
-    match c with
-    | Const c -> !- c
-    | Unresolved c -> fun ctx -> str (content c ctx) ctx
-
 /// Check whether an expression should be broken into multiple lines
 let rec multiline = function
     | Paren e | SingleExpr(_, e) | TypedExpr(_, e, _) -> multiline e
@@ -29,7 +24,6 @@ let rec multiline = function
     | Record(xs, _) -> 
         let fields = xs |> List.choose ((|RecordFieldName|) >> snd) 
         not (List.atmostOne fields) || List.exists multiline fields
-    | ForEach(_, e1, e2, true) -> multiline e1 || multiline e2
     | ObjExpr _ | While _ | For _ | ForEach _ -> true
     | CompExpr(_, e) -> multiline e
     | ArrayOrListOfSeqExpr(_, e) -> multiline e
@@ -37,15 +31,15 @@ let rec multiline = function
     | Lambda(e, _) -> multiline e
     | MatchLambda _ -> true
     | Match(e, cs) -> multiline e || not (List.isEmpty cs)
+    // This break abstraction since NewLineInfixOps is global var
+    | InfixApp(s, e1, e2) -> NewLineInfixOps.Contains s || multiline e1 || multiline e2
     | App(e1, es) -> multiline e1 || List.exists multiline es
     | TypeApp(e, _) -> multiline e
     | LetOrUse(_, _, bs, e) -> not (List.isEmpty bs) || multiline e
     | SequentialSimple _ -> false
     | TryWith _ | TryFinally _ ->  true
     | Sequential _ -> true
-    | ElIf(es, e) -> not (List.atmostOne es) || multiline e 
-                        || List.exists (fun (e1, e2) -> multiline e1 || multiline e2) es
-    | IfThenElse(e1, e2, None) -> multiline e1 || multiline e2
+    | IfThenElse _ -> true
     | LongIdentSet(_, e) -> multiline e
     | DotIndexedGet(e, es) -> multiline e || List.exists multiline es
     | DotIndexedSet(e1, es, e2) -> multiline e1 || multiline e2 || List.exists multiline es
@@ -78,6 +72,11 @@ let hasParenInPat = function
     | PatIsInst _ -> true
     | PatQuoteExpr e -> false
     | p -> failwithf "Unexpected pattern: %O" p
+
+let inline genConst c =
+    match c with
+    | Const c -> !- c
+    | Unresolved c -> fun ctx -> str (content c ctx) ctx
 
 let rec genParsedInput = function
     | ImplFile im -> genImpFile im
@@ -137,7 +136,7 @@ and inline autoBreakNlnBy l e =
     ifElse (multiline e) (incrIndent l +> sepNln +> genExpr e +> decrIndent l) (genExpr e)
 
 and inline genTyparList tps = 
-    ifElse (List.atmostOne tps) (col wordOr tps genTypar) (!- "(" +> col wordOr tps genTypar -- ")")
+    ifElse (List.atmostOne tps) (col wordOr tps genTypar) (sepOpenT +> col wordOr tps genTypar +> sepCloseT)
 
 and inline genTypeParam tds tcs =
     ifElse (List.isEmpty tds) sepNone
@@ -202,7 +201,7 @@ and genExpr = function
     /// Remove superfluous parens
     | Paren(Tuple es as e) -> genExpr e
     | Paren(ConstExpr(Const "()")) -> !- "()"
-    | Paren e -> !- "(" +> genExpr e -- ")"
+    | Paren e -> sepOpenT +> genExpr e +> sepCloseT
     | SingleExpr(kind, e) -> str kind +> genExpr e
     | ConstExpr(c) -> genConst c
     | NullExpr -> !- "null"
@@ -211,11 +210,12 @@ and genExpr = function
         let e = genExpr e2
         ifElse isRaw (!- "<@@ " +> e -- " @@>") (!- "<@ " +> e -- " @>")
     | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType t
-    | TypedExpr(New, e, t) -> !- "new " +> genType t +> ifElse (hasParenthesis e) (sepBeforeArg +> genExpr e) (sepSpace +> genExpr e)
+    | TypedExpr(New, e, t) -> 
+        !- "new " +> genType t +> ifElse (hasParenthesis e) (sepBeforeArg +> genExpr e) (sepSpace +> genExpr e)
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType t
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
-    | Tuple es -> !- "(" +> col sepComma es genExpr -- ")"
+    | Tuple es -> sepOpenT +> col sepComma es genExpr +> sepCloseT
     | ArrayOrList(isArray, xs) -> 
         ifElse isArray (sepOpenA +> atCurrentColumn (col sepSemiNln xs genExpr) +> sepCloseA) 
             (sepOpenL +> atCurrentColumn (col sepSemiNln xs genExpr) +> sepCloseL)
@@ -224,7 +224,6 @@ and genExpr = function
         +> atCurrentColumn (col sepSemiNln xs genRecordFieldName)
         +> sepCloseS
     | ObjExpr(t, x, bd, ims) ->
-        /// Should remove incrIndent to save spaces
         sepOpenS +> 
         atCurrentColumn (!- "new " +> genType t -- " with" 
         +> indent +> sepNln +> col sepNln bd (genMemberBinding true) +> unindent
@@ -237,23 +236,21 @@ and genExpr = function
         +> ifElse isUp (!- " to ") (!- " downto ") +> genExpr e2 -- " do" 
         +> indent +> sepNln +> genExpr e3 +> unindent)
     /// May handle the form 'for i in e1 -> e2' in the future
-    | ForEach(p, e1, e2, isArrow) ->
+    | ForEach(p, e1, e2, _) ->
         atCurrentColumn (!- "for " +> genPat p -- " in " +> genExpr e1 
-        +> ifElse (isArrow && not <| multiline e2) (!- " do " +> genExpr e2) 
-            (!- " do" +> indent +> sepNln +> genExpr e2 +> unindent)  
+        -- " do" +> indent +> sepNln +> genExpr e2 +> unindent
         )
     | CompExpr(isArrayOrList, e) ->
         ifElse isArrayOrList (genExpr e) (sepOpenS +> autoBreakNln e +> sepCloseS) 
     | ArrayOrListOfSeqExpr(isArray, e) -> 
         ifElse isArray (sepOpenA +> genExpr e +> sepCloseA) (sepOpenL +> genExpr e +> sepCloseL)
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
-    | Lambda(e, sps) -> !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e
+    | Lambda(e, sps) -> 
+        atCurrentColumn (!- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e)
     | MatchLambda(sp, isMember) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr e -- " with"
         +> colPre sepNln sepNln cs genClause)
-    /// Used in indexed ranges; should come even before App
-    | IndexedVar co -> opt sepNone co genConst
     | SeqApp(e) ->
         !- "seq " +> sepOpenS +> genExpr e +> sepCloseS
     | App(Var ".. ..", [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
@@ -302,17 +299,27 @@ and genExpr = function
     | DotGet(e, s) -> genExpr e -- sprintf ".%s" s
     | DotSet(e1, s, e2) -> genExpr e1 -- sprintf ".%s <- " s +> genExpr e2
     | TraitCall(tps, msg, e) -> 
-        !- "(" +> genTyparList tps +> sepColon +> genMemberSig msg +> sepSpace +> genExpr e -- ")"
+        sepOpenT +> genTyparList tps +> sepColon +> genMemberSig msg +> sepSpace +> genExpr e +> sepCloseT
     | LetOrUseBang(isUse, p, e1, e2) ->
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
         +> genPat p -- " = " +> genExpr e1 +> sepNln +> genExpr e2)
     | e -> failwithf "Unexpected expression: %O" e
 
+/// Use in indexed set and get only
 and genIndexedVars es =
     match es with
-    | [e1; e2] -> genExpr e1 -- ".." +> genExpr e2
-    | e1::e2::es -> genExpr e1 -- ".." +> genExpr e2 +> sepComma +> genIndexedVars es
-    | _ -> sepNone
+    | IndexedVar eo1 :: es ->
+        match es with
+        | [IndexedVar eo2] -> 
+            opt sepNone eo1 genExpr -- ".." +> opt sepNone eo2 genExpr
+        | IndexedVar eo2 :: es -> 
+            opt sepNone eo1 genExpr -- ".." +> opt sepNone eo2 genExpr 
+            +> sepComma +> genIndexedVars es
+        | _ -> 
+            opt sepNone eo1 genExpr +> sepComma +> genIndexedVars es
+    | [e] -> genExpr e
+    | e :: es -> genExpr e +> sepComma +> genIndexedVars es
+    | [] -> sepNone
 
 and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) = 
     let typeName = 
@@ -374,7 +381,7 @@ and genTypeDefKind = function
     | TCSimple TCUnion -> id
     | TCSimple TCAbbrev -> id
     | TCSimple TCHiddenRepr -> id
-    | TCSimple TCAugmentation -> id
+    | TCSimple TCAugmentation -> sepNone
     | TCSimple TCILAssemblyCode -> id
     | TCDelegate(t, vi) -> id
 
@@ -416,7 +423,7 @@ and genType = function
             match ts with
             | [] -> invalidArg "ts" "List of types should not be empty"
             | [t'] -> genType t' +> sepSpace +> genType t
-            | ts -> !- "(" +> col sepComma ts genType -- ") " +> genType t
+            | ts -> sepOpenT +> col sepComma ts genType -- ") " +> genType t
         ifElse isPostfix postForm (genType t -- "<" +> col sepComma ts genType -- ">")
     | TLongIdentApp(t, li, ts) -> genType t -- li -- "<" +> col sepComma ts genType -- ">"
     /// The surrounding brackets don't seem neccessary
@@ -449,7 +456,7 @@ and genClause(Clause(p, e, eo)) =
 
 and genMemberSig = function
     | MSMember(ValSig(ats, px, ao, s, t, ValTyparDecls(_, _, tcs)), mf) -> 
-        !- "(" +> genMemberFlags false mf -- s +> sepColon +> genType t -- ")"
+        sepOpenT +> genMemberFlags false mf -- s +> sepColon +> genType t +> sepCloseT
     | MSInterface t -> id
     | MSInherit t -> id
     | MSValField f -> id
@@ -463,8 +470,8 @@ and genMemberDefn isInterface = function
     | MDInherit(t, so) -> !- "inherit " +> genType t
     | MDValField f -> genField "val " f
     | MDImplicitCtor(ats, ao, ps, so) -> 
-        optPre sepSpace sepSpace ao genAccess -- "("
-        +> colPost sepSpace sepNone ats genAttribute +> col sepComma ps genSimplePat -- ")"
+        optPre sepSpace sepSpace ao genAccess +> sepOpenT
+        +> colPost sepSpace sepNone ats genAttribute +> col sepComma ps genSimplePat +> sepCloseT
         +> optPre (!- " as ") sepNone so (!-)
     | MDMember(b) -> genMemberBinding isInterface b
     | MDLetBindings(isStatic, isRec, bs) ->
@@ -503,7 +510,7 @@ and genSimplePat = function
 and genSimplePats = function
     /// Remove parentheses on an extremely simple pattern
     | SimplePats [SPatId _ as sp] -> genSimplePat sp
-    | SimplePats ps -> !- "(" +> col sepComma ps genSimplePat -- ")"
+    | SimplePats ps -> sepOpenT +> col sepComma ps genSimplePat +> sepCloseT
     | SPSTyped(ps, t) -> genSimplePats ps -- " : " +> genType t
 
 and inline genPatRecordFieldName(PatRecordFieldName(s1, s2, p)) =
@@ -529,13 +536,14 @@ and genPat = function
         | [p] -> aoc -- li +> tpsoc +> ifElse (hasParenInPat p) (genPat p) (sepSpace +> genPat p)
         | ps -> aoc -- li +> tpsoc +> sepSpace +> col sepSpace ps genPat
     | PatParen(PatConst(c)) -> genConst c
-    | PatParen(p) -> !- "(" +> genPat p -- ")"
+    | PatParen(p) -> sepOpenT +> genPat p +> sepCloseT
     | PatSeq(PatTuple, ps) -> col sepComma ps genPat
-    | PatSeq(PatList, ps) -> sepOpenL +> atCurrentColumn (col sepSemiNln ps genPat) +> sepCloseL
-    | PatSeq(PatArray, ps) -> sepOpenA +> atCurrentColumn (col sepSemiNln ps genPat) +> sepCloseA
+    | PatSeq(PatList, ps) -> sepOpenL +> atCurrentColumn (col sepSemi ps genPat) +> sepCloseL
+    | PatSeq(PatArray, ps) -> sepOpenA +> atCurrentColumn (col sepSemi ps genPat) +> sepCloseA
     | PatRecord(xs) -> 
-        sepOpenS +> atCurrentColumn (col sepSemiNln xs genPatRecordFieldName) +> sepCloseS
+        sepOpenS +> atCurrentColumn (col sepSemi xs genPatRecordFieldName) +> sepCloseS
     | PatConst(c) -> genConst c
     | PatIsInst(t) -> !- ":? " +> genType t
+    // What about "<@@ " ?
     | PatQuoteExpr e -> !- "<@ " +> genExpr e -- " @>"
     | p -> failwithf "Unexpected pattern: %O" p
