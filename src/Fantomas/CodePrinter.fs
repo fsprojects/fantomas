@@ -43,7 +43,8 @@ let rec multiline = function
     | SequentialSimple _ -> false
     | TryWith _ | TryFinally _ ->  true
     | Sequential _ -> true
-    | IfThenElse(e1, e2, Some e3) -> multiline e1 || multiline e2 || multiline e3
+    | ElIf(es, e) -> not (List.atmostOne es) || multiline e 
+                        || List.exists (fun (e1, e2) -> multiline e1 || multiline e2) es
     | IfThenElse(e1, e2, None) -> multiline e1 || multiline e2
     | LongIdentSet(_, e) -> multiline e
     | DotIndexedGet(e, es) -> multiline e || List.exists multiline es
@@ -251,6 +252,8 @@ and genExpr = function
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr e -- " with"
         +> colPre sepNln sepNln cs genClause)
+    /// Used in indexed ranges; should come even before App
+    | IndexedVar co -> opt sepNone co genConst
     | SeqApp(e) ->
         !- "seq " +> sepOpenS +> genExpr e +> sepCloseS
     | App(Var ".. ..", [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
@@ -283,17 +286,19 @@ and genExpr = function
     /// It seems too annoying to use sepSemiNln
     | Sequential(e1, e2, _) -> 
         atCurrentColumn (genExpr e1 +> sepNln +> genExpr e2)
-    | IfThenElse(e1, e2, Some e3) -> 
+    /// A generalization of IfThenElse
+    | ElIf((e1,e2)::es, en) ->
         atCurrentColumn (!- "if " +> genExpr e1 
         ++ "then " +> autoBreakNln e2
-        ++ "else " +> autoBreakNln e3)
+        +> col sepNone es (fun (e1, e2) -> !+ "elif " +> genExpr e1 ++ "then " +> autoBreakNln e2)
+        ++ "else " +> autoBreakNln en)
     | IfThenElse(e1, e2, None) -> 
         atCurrentColumn (!- "if " +> genExpr e1 ++ "then " +> autoBreakNln e2)
     /// At this stage, all symbolic operators have been handled.
     | Var(OpNamePrefix s) -> !- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
-    | DotIndexedGet(e, es) -> genExpr e -- ".[" +> col sepComma es genExpr +> sepCloseL
-    | DotIndexedSet(e1, es, e2) -> genExpr e1 -- ".[" +> col sepComma es genExpr -- "] <- " +> genExpr e2
+    | DotIndexedGet(e, es) -> genExpr e -- ".[" +> genIndexedVars es +> sepCloseL
+    | DotIndexedSet(e1, es, e2) -> genExpr e1 -- ".[" +> genIndexedVars es -- "] <- " +> genExpr e2
     | DotGet(e, s) -> genExpr e -- sprintf ".%s" s
     | DotSet(e1, s, e2) -> genExpr e1 -- sprintf ".%s <- " s +> genExpr e2
     | TraitCall(tps, msg, e) -> 
@@ -302,6 +307,12 @@ and genExpr = function
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
         +> genPat p -- " = " +> genExpr e1 +> sepNln +> genExpr e2)
     | e -> failwithf "Unexpected expression: %O" e
+
+and genIndexedVars es =
+    match es with
+    | [e1; e2] -> genExpr e1 -- ".." +> genExpr e2
+    | e1::e2::es -> genExpr e1 -- ".." +> genExpr e2 +> sepComma +> genIndexedVars es
+    | _ -> sepNone
 
 and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) = 
     let typeName = 

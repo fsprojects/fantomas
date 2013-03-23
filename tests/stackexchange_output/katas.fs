@@ -12,9 +12,9 @@ module NaturalSortKata =
     | Greater
     static member Compare x y = if x = y
                                 then Equal
-                                else if x > y
-                                     then Greater
-                                     else Lesser
+                                elif x > y
+                                then Greater
+                                else Lesser
   
   type ChunckType = 
     | NumberType

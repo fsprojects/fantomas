@@ -60,7 +60,9 @@ let t04 = """let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); 
 
 let t05 = """
 let array1 = [| 1; 2; 3 |]
-array1.[0..2]  
+array1.[0..2] 
+array2.[2.., 0..]
+array2.[..3, ..1] 
 array1.[1] <- 3
     """
 
@@ -104,4 +106,4 @@ printfn "Result:\n%s" <| formatSourceString t06 config;;
 printfn "Result:\n%s" <| formatSourceString t07 config;;
 printfn "Result:\n%s" <| formatSourceString t08 config;;
 
-printfn "Tree:\n%A" <| parse t08;;
+printfn "Tree:\n%A" <| parse t05;;

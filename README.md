@@ -87,9 +87,7 @@ but it seems many corner cases of the language have not been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
 ## Why the name "Fantomas"?
-There are a few reason to choose the name as such. First, it starts with an F, just like many other F# projects.
- - It is the character in literature that I like very much.
- - "Fantomas" means "ghost" in French; and this project is somehow mysterious in handling formatting rules as well as corner cases of F# language.
+There are a few reason to choose the name as such. First, it starts with an "F", just like many other F# projects. Second, Fantomas is my favourite character in the literature. Finally, Fantomas means "ghost" in French; and this project is somehow so *mysterious* in handling formatting rules as well as corner cases of the language.
 
 ## License
 The library and tool are available under Apache 2.0. 

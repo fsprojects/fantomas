@@ -49,14 +49,13 @@ let rec loop n s total =
     for _ in 1..n do
       printf " "
     printf ("\t:%i\n") (s + 10 - n)
+  elif n = 0
+  then 
+    printf "\t:%i\n" <| s + 10
+    loop 10 (s + 10) total
   else 
-    if n = 0
-    then 
-      printf "\t:%i\n" <| s + 10
-      loop 10 (s + 10) total
-    else 
-      printf "%i" <| int(digits())
-      loop (n - 1) s (total - 1)
+    printf "%i" <| int(digits())
+    loop (n - 1) s (total - 1)
 
 loop 10 0 <| try 
                int(System.Environment.GetCommandLineArgs().[1])

@@ -35,8 +35,8 @@ let inline (|Ident|) (id: Ident) = id.idText
 let inline (|LongIdent|) (li: LongIdent) = 
     li |> Seq.map (fun id -> id.idText) |> String.concat "."
 
-let inline (|LongIdentWithDots|) (LongIdentWithDots(li, _)) = 
-    li |> Seq.map (fun id -> id.idText) |> String.concat "."
+let inline (|LongIdentWithDots|) (LongIdentWithDots(s, _)) = 
+    s |> Seq.map (fun id -> id.idText) |> String.concat "."
 
 // Type params
 
@@ -109,8 +109,8 @@ let (|ModuleOrNamespace|) = function
 
 // Attribute
 let (|Attribute|) (a : SynAttribute) =
-    let (LongIdentWithDots li) = a.TypeName
-    (li, a.ArgExpr, a.AppliesToGetterAndSetter)
+    let (LongIdentWithDots s) = a.TypeName
+    (s, a.ArgExpr, a.AppliesToGetterAndSetter)
 
 // Access modifiers
 let (|Access|) = function
@@ -125,7 +125,7 @@ let (|PreXmlDoc|) (px: PreXmlDoc) =
 // Module declarations (10 cases)
 
 let (|Open|_|) = function
-    | SynModuleDecl.Open(LongIdentWithDots li, _) -> Some li
+    | SynModuleDecl.Open(LongIdentWithDots s, _) -> Some s
     | _ -> None
 
 let (|ModuleAbbrev|_|) = function
@@ -399,6 +399,12 @@ let (|Tuple|_|) = function
     | SynExpr.Tuple(exprs, _, _) -> Some exprs
     | _ -> None
 
+let (|IndexedVar|_|) = function
+    | SynExpr.App(_, _, SynExpr.LongIdent(_, LongIdentWithDots "Microsoft.FSharp.Core.Some", _, _), ConstExpr e, _) -> 
+        Some(Some e)
+    | SynExpr.LongIdent(_, LongIdentWithDots "Microsoft.FSharp.Core.None", _, _) -> Some None
+    | _ -> None
+
 let (|Var|_|) = function
     | SynExpr.Ident(Ident s) -> Some(s)
     | SynExpr.LongIdent(_, LongIdentWithDots s, _, _) -> Some(s)
@@ -469,6 +475,11 @@ let (|DotSet|_|) = function
 
 let (|IfThenElse|_|) = function
     | SynExpr.IfThenElse(e1, e2, e3, _, _, _, _) -> Some(e1, e2, e3)
+    | _ -> None
+
+let rec (|ElIf|_|) = function
+    | SynExpr.IfThenElse(e1, e2, Some(ElIf(es, e3)), _, _, _, _) -> Some((e1, e2)::es, e3)
+    | SynExpr.IfThenElse(e1, e2, Some e3, _, _, _, _) -> Some([(e1, e2)], e3)
     | _ -> None
 
 let (|Record|_|) = function
