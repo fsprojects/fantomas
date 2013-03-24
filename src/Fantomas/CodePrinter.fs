@@ -166,15 +166,41 @@ and genMemberBinding isInterface = function
             +> colPost sepSpace sepNone ats genAttribute +> genMemberFlags isInterface mf
             +> ifElse isInline (!- "inline ") sepNone
             +> opt sepSpace ao genAccess
+        let tuplerize ps =
+            let rec loop acc = function
+                | [p] -> (List.rev acc, p)
+                | p1::ps -> loop (p1::acc) ps
+                | [] -> invalidArg "p" "Patterns should not be empty"
+            loop [] ps
         match mf with
         | MFProperty PropertyGet ->
             match p with
-            | PatLongIdent(_, li, _, _) -> prefix -- li +> sepEq +> autoBreakNln e
+            /// Too tedious in handling property get and set
+            | PatLongIdent(_, s, [PatSeq(PatTuple, ps)], _) -> 
+                let (ps, p) = tuplerize ps
+                prefix -- s -- " with get " 
+                +> ifElse (List.atmostOne ps) (col sepComma ps genPat +> sepSpace) 
+                    (sepOpenT +> col sepComma ps genPat +> sepCloseT +> sepSpace)
+                +> genPat p
+                +> sepEq +> autoBreakNln e
+            | PatLongIdent(_, s, ps, _) -> 
+                prefix -- s -- " with get " 
+                +> col sepSpace ps genPat
+                +> sepEq +> autoBreakNln e
             | p -> failwithf "Unexpected pattern: %O" p
         | MFProperty PropertySet -> 
             match p with
-            | PatLongIdent(_, li, ps, _) -> 
-                prefix -- li -- " with set " +> col sepSpace ps genPat +> sepEq +> autoBreakNln e
+            | PatLongIdent(_, s, [PatSeq(PatTuple, ps)], _) -> 
+                let (ps, p) = tuplerize ps
+                prefix -- s -- " with set " 
+                +> ifElse (List.atmostOne ps) (col sepComma ps genPat +> sepSpace) 
+                    (sepOpenT +> col sepComma ps genPat +> sepCloseT +> sepSpace)
+                +> genPat p
+                +> sepEq +> autoBreakNln e
+            | PatLongIdent(_, s, ps, _) -> 
+                prefix -- s -- " with set " 
+                +> col sepSpace ps genPat
+                +> sepEq +> autoBreakNln e
             | p -> failwithf "Unexpected pattern: %O" p
         | mf -> failwithf "Unexpected member flags: %O" mf
     | MemberBinding(ats, px, ao, isInline, mf, p, e, bk, bri) ->
@@ -198,8 +224,6 @@ and inline genRecordFieldName(RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> genExpr e)
 
 and genExpr = function
-    /// Remove superfluous parens
-    | Paren(Tuple es as e) -> genExpr e
     | Paren(ConstExpr(Const "()")) -> !- "()"
     | Paren e -> sepOpenT +> genExpr e +> sepCloseT
     | SingleExpr(kind, e) -> str kind +> genExpr e
@@ -215,7 +239,7 @@ and genExpr = function
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType t
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
-    | Tuple es -> sepOpenT +> col sepComma es genExpr +> sepCloseT
+    | Tuple es -> col sepComma es genExpr
     | ArrayOrList(isArray, xs) -> 
         ifElse isArray (sepOpenA +> atCurrentColumn (col sepSemiNln xs genExpr) +> sepCloseA) 
             (sepOpenL +> atCurrentColumn (col sepSemiNln xs genExpr) +> sepCloseL)
@@ -297,7 +321,7 @@ and genExpr = function
     /// At this stage, all symbolic operators have been handled.
     | Var(OpNamePrefix s) -> !- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
-    | DotIndexedGet(e, es) -> genExpr e -- ".[" +> genIndexedVars es +> sepCloseL
+    | DotIndexedGet(e, es) -> genExpr e -- "." +> sepOpenL +> genIndexedVars es +> sepCloseL
     | DotIndexedSet(e1, es, e2) -> genExpr e1 -- ".[" +> genIndexedVars es -- "] <- " +> genExpr e2
     | DotGet(e, s) -> genExpr e -- sprintf ".%s" s
     | DotSet(e1, s, e2) -> genExpr e1 -- sprintf ".%s <- " s +> genExpr e2

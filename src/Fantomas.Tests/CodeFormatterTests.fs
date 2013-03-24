@@ -44,7 +44,9 @@ let ``open modules``() =
     |> prepend newline
     |> should equal """
 open System
-open System.IO"""
+
+open System.IO
+"""
 
 [<Test>]
 let ``recursive functions``() =
@@ -367,7 +369,8 @@ let ``try/with and finally``() =
 let function1 x y = 
     try 
         try 
-            if x = y then raise(InnerError("inner"))
+            if x = y
+            then raise(InnerError("inner"))
             else raise(OuterError("outer"))
         with
         | InnerError(str) -> printfn "Error1 %s" str
@@ -395,7 +398,8 @@ let div2 = 2
 
 let f x = 
     let r = x % div2
-    if r = 1 then ("Odd")
+    if r = 1
+    then ("Odd")
     else ("Even")
 """
 
@@ -416,13 +420,15 @@ lookForValue 10 20""" config
     |> prepend newline
     |> should equal """
 open System
+
 let lookForValue value maxValue = 
     let mutable continueLooping = true
     let randomNumberGenerator = new Random()
     while continueLooping do
         let rand = randomNumberGenerator.Next(maxValue)
         printf "%d " rand
-        if rand = value then 
+        if rand = value
+        then 
             printfn "\nFound a %d!" value
             continueLooping <- false
 
