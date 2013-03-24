@@ -19,7 +19,7 @@ open Fantomas.CodeFormatter
 /// Preferences:
 ///  --indent=[1-10]                 Set number of spaces to use for indentation
 ///  -longIdent=[10-100]             The length to start breaking an expression to multiple lines
-///  [+|-]semicolonEOL       Enable/disable semicolons at the end of line (default = true)
+///  [+|-]semicolonEOL               Enable/disable semicolons at the end of line (default = true)
 ///  [+|-]spaceBeforeArgument        Enable/disable spaces before the first argument (default = false)
 ///  [+|-]spaceBeforeColon           Enable/disable spaces before colons (default = true)
 ///  [+|-]spaceAfterComma            Enable/disable spaces after commas (default = true)
@@ -112,10 +112,11 @@ let main args =
             time (fun () -> processSourceFile inFile outFile config)
             Console.WriteLine("{0} has been written.", outFile)
         with
-        | _ ->
+        | exn ->
+            Console.WriteLine("The following exception occurs: {0}", exn.Message)
             if !force then
                 File.WriteAllText(outFile, File.ReadAllText(inFile))
-                Console.WriteLine("Forced writing original contents to {0}.", outFile)
+                Console.WriteLine("Force writing original contents to {0}.", outFile)
 
     let options =
         [| ArgInfo("--recurse", ArgType.Set recurse, recurseText);
@@ -152,10 +153,10 @@ let main args =
     | File s1, File s2 ->
         processSourceCode s1 s2 config
     | File _, Folder _ ->
-        Console.WriteLine("Output path should be a file since input path is.")
+        Console.WriteLine("Output path should be a file like input path.")
         exit 1
     | Folder _, File _ ->
-        Console.WriteLine("Output path should be a folder since input path is.")
+        Console.WriteLine("Output path should be a folder like input path.")
         exit 1
     | Folder s1, Folder s2 ->
         allFiles !recurse s1

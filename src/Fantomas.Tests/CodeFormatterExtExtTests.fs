@@ -249,7 +249,7 @@ type Derived1() =
 type Derived1() = 
     inherit AbstractBase()
     let mutable value = 10
-    override this.Property1 = value
+    override this.Property1 with get () = value
     override this.Property1 with set (v : int) = value <- v
 """
 
@@ -322,7 +322,7 @@ type public MyClass<'a> public (x, y) as this =
     static member StaticProp = PI
     static member StaticMethod a = a + 1
     member internal self.Prop1 = x
-    member self.Prop2 = z
+    member self.Prop2 with get () = z
     member self.Prop2 with set (a) = z <- a
     member self.Method(a, b) = x + y + z + a + b
 """
@@ -398,11 +398,11 @@ type Shape2D(x0 : float, y0 : float) =
     |> should equal """
 [<AbstractClass>]
 type Shape2D(x0 : float, y0 : float) = 
-    let mutable x, y = (x0, y0)
+    let mutable x, y = x0, y0
     let mutable rotAngle = 0.0
-    member this.CenterX = x
+    member this.CenterX with get () = x
     member this.CenterX with set xval = x <- xval
-    member this.CenterY = y
+    member this.CenterY with get () = y
     member this.CenterY with set yval = y <- yval
     abstract Area : float with get
     abstract Perimeter : float with get
