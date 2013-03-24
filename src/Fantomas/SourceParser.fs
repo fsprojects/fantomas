@@ -8,14 +8,19 @@ open Fantomas.FormatConfig
 /// Get source string content based on range value
 let inline content (sc : SynConst) (c : Context) = 
     let r = sc.Range range.Zero
-    let s =
-        if r.StartLine <= c.Positions.Length && r.EndLine <= c.Positions.Length then
-            // Off-by-one start column
-            let start = c.Positions.[r.StartLine-1] + r.StartColumn
-            let finish = c.Positions.[r.EndLine-1] + r.EndColumn - 1
-            c.Content.[start..finish]
-        else ""
-    s
+    if r.EndLine <= c.Positions.Length then
+        let start = c.Positions.[r.StartLine-1] + r.StartColumn
+        let finish = c.Positions.[r.EndLine-1] + r.EndColumn - 1
+        let content = c.Content
+        let s = content.[start..finish]
+        if s.Contains("\n") then
+            /// Terrible hack to compensate the offset made by F# compiler
+            let lastLine = content.[c.Positions.[r.EndLine-1]..finish]
+            let offset = lastLine.Length - lastLine.TrimStart(' ').Length
+            if finish + offset > content.Length then content.[start..]
+            else content.[start..finish + offset]
+        else s
+    else ""
 
 /// Use infix operators in the short form
 let inline (|OpName|) s =
@@ -92,6 +97,7 @@ let rec (|Const|Unresolved|) = function
     | SynConst.Decimal d -> Const(sprintf "%A" d)
     | SynConst.String _ as c -> Unresolved(c)
     | SynConst.Bytes _ as c -> Unresolved(c)
+    // Auto print may cut off the array
     | SynConst.UInt16s us -> Const(sprintf "%A" us)
     | c -> invalidArg "c" "Ill-formed constants"
 

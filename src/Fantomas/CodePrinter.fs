@@ -246,32 +246,35 @@ and genExpr = function
         ifElse isArray (sepOpenA +> genExpr e +> sepCloseA) (sepOpenL +> genExpr e +> sepCloseL)
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
     | Lambda(e, sps) -> 
-        atCurrentColumn (!- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e)
+        !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e
     | MatchLambda(sp, isMember) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr e -- " with"
         +> colPre sepNln sepNln cs genClause)
     | SeqApp(e) ->
         !- "seq " +> sepOpenS +> genExpr e +> sepCloseS
-    | App(Var ".. ..", [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
+    | App(Var(OpName ".. .."), [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
     /// Separate two prefix ops by spaces
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr e
     | PrefixApp(s, e) -> !- s  +> genExpr e
-    /// Handle spaces on an infix app based on which category it belongs to
+    /// Handle spaces of infix application based on which category it belongs to
     | InfixApp(s, e1, e2) -> 
         ifElse (Set.contains s NewLineInfixOps) 
             (atCurrentColumn (genExpr e1 +> sepNln -- s +> sepSpace +> genExpr e2))
             (ifElse (Set.contains s NoSpaceInfixOps) (genExpr e1 -- s +> genExpr e2) 
                 (genExpr e1 +> sepSpace -- s +> sepSpace +> genExpr e2))
     | App(e1, [e2]) -> 
-        genExpr e1 +> ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2)
+        atCurrentColumn (genExpr e1 +> 
+            ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2))
     /// Always spacing in multiple arguments
-    | App(e, es) -> genExpr e +> colPre sepSpace sepSpace es genExpr
+    | App(e, es) -> atCurrentColumn (genExpr e +> colPre sepSpace sepSpace es genExpr)
     | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts genType -- ">"
     | LetOrUse(isRec, isUse, bs, e) ->
-        atCurrentColumn (ifElse isUse (!- "use ") (ifElse isRec (!- "let rec ") (!- "let "))
-        +> col sepSpace bs (genLetBinding "")
-        +> sepNln +> genExpr e)
+        let prefix = 
+            if isUse then "use "
+            elif isRec then "let rec "
+            else "let "
+        atCurrentColumn (col sepSpace bs (genLetBinding prefix) +> sepNln +> genExpr e)
     /// Could customize a bit if e is single line
     | TryWith(e, cs) ->  
         atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e +> unindent ++ "with" 
@@ -463,7 +466,7 @@ and genMemberSig = function
     | MSNestedType tds -> id
 
 and genMemberDefn isInterface = function
-    | MDNestedType(td, ao) -> invalidArg "md" "This functionality is not implemented in F#"
+    | MDNestedType(td, ao) -> invalidArg "md" "This functionality is not implemented in F# compiler"
     | MDOpen(s) -> !- s
     /// What is the role of so
     | MDImplicitInherit(t, e, so) -> !- "inherit " +> genType t +> genExpr e

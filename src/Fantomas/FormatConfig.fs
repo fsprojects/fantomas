@@ -231,5 +231,5 @@ let inline unindentWith(ctx : Context) =
 // These should be moved into the config later
 
 let NoSpaceInfixOps = set [".."]
-let NewLineInfixOps = set ["|>"; "||>"; "|||>"]
+let NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"]
 

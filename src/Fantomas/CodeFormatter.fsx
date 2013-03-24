@@ -55,16 +55,23 @@ for i in 1..1000 do
     matrix1.[i, i] <- float i * float i
     """
 
-let t04 = """let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
-  (3, 2, 6); (3, 3, 9)|]"""
+let t04 = "
+    \"\"\"123
+4567
+89
+    \"\"\"
+"
 
 let t05 = """
-let array1 = [| 1; 2; 3 |]
-array1.[0..2] 
-array2.[2.., 0..]
-array2.[..3, ..1] 
-array1.[1] <- 3
-    """
+let alu =
+        "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
+        GAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGA\
+        CCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAAT\
+        ACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCA\
+        GCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGG\
+        AGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCC\
+  AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA"B
+"""
 
 let t06 = """
 query {
@@ -77,18 +84,6 @@ query {
     }"""    
 
 let t07 = """
-    let function1 x y =
-       try 
-         try 
-            if x = y then raise (InnerError("inner"))
-            else raise (OuterError("outer"))
-         with
-          | InnerError(str) -> printfn "Error1 %s" str
-       finally
-          printfn "Always print this."
-    """
-
-let t08 = """
 type Delegate1 = delegate of (int * int) -> int
 type Delegate2 = delegate of int * int -> int
 """
@@ -101,6 +96,5 @@ printfn "Result:\n%s" <| formatSourceString t04 config;;
 printfn "Result:\n%s" <| formatSourceString t05 config;;
 printfn "Result:\n%s" <| formatSourceString t06 config;;
 printfn "Result:\n%s" <| formatSourceString t07 config;;
-printfn "Result:\n%s" <| formatSourceString t08 config;;
 
 printfn "Tree:\n%A" <| parse t05;;
