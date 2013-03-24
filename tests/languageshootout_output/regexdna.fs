@@ -52,11 +52,12 @@ let newTextLength t =
   |> List.fold (fun s (code, alt) -> (regex code).Replace(s, alt)) t
   |> String.length
 
-let newText = text
-              |> onblocks []
-              |> Seq.map(fun s -> async { return newTextLength s })
-              |> Async.Parallel
-              |> Async.RunSynchronously
-              |> Array.sum
+let newText = 
+  text
+  |> onblocks []
+  |> Seq.map(fun s -> async { return newTextLength s })
+  |> Async.Parallel
+  |> Async.RunSynchronously
+  |> Array.sum
 
 printf "\n%i\n%i\n%i\n" input.Length text.Length newText

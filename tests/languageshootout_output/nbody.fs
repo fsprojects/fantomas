@@ -11,57 +11,57 @@ let daysPerYear = 365.24
 let solarMass = 4.0 * pi ** 2.0
 
 type Planet = 
-  { mutable X : float;
-    mutable Y : float;
-    mutable Z : float;
-    mutable VX : float;
-    mutable VY : float;
-    mutable VZ : float;
+  { mutable X : float
+    mutable Y : float
+    mutable Z : float
+    mutable VX : float
+    mutable VY : float
+    mutable VZ : float
     Mass : float }
 
 let jupiter = 
-  { X = 4.841431442;
-    Y = -1.160320044;
-    Z = -0.1036220445;
-    VX = 0.001660076643 * daysPerYear;
-    VY = 0.007699011184 * daysPerYear;
-    VZ = -6.90460017e-05 * daysPerYear;
+  { X = 4.841431442
+    Y = -1.160320044
+    Z = -0.1036220445
+    VX = 0.001660076643 * daysPerYear
+    VY = 0.007699011184 * daysPerYear
+    VZ = -6.90460017e-05 * daysPerYear
     Mass = 0.0009547919384 * solarMass }
 
 let saturn = 
-  { X = 8.343366718;
-    Y = 4.124798564;
-    Z = -0.4035234171;
-    VX = -0.002767425107 * daysPerYear;
-    VY = 0.004998528012 * daysPerYear;
-    VZ = 2.304172976e-05 * daysPerYear;
+  { X = 8.343366718
+    Y = 4.124798564
+    Z = -0.4035234171
+    VX = -0.002767425107 * daysPerYear
+    VY = 0.004998528012 * daysPerYear
+    VZ = 2.304172976e-05 * daysPerYear
     Mass = 0.0002858859807 * solarMass }
 
 let uranus = 
-  { X = 12.89436956;
-    Y = -15.1111514;
-    Z = -0.2233075789;
-    VX = 0.002964601376 * daysPerYear;
-    VY = 0.00237847174 * daysPerYear;
-    VZ = -2.965895685e-05 * daysPerYear;
+  { X = 12.89436956
+    Y = -15.1111514
+    Z = -0.2233075789
+    VX = 0.002964601376 * daysPerYear
+    VY = 0.00237847174 * daysPerYear
+    VZ = -2.965895685e-05 * daysPerYear
     Mass = 4.366244043e-05 * solarMass }
 
 let neptune = 
-  { X = 15.37969711;
-    Y = -25.91931461;
-    Z = 0.179258773;
-    VX = 0.002680677725 * daysPerYear;
-    VY = 0.0016282417 * daysPerYear;
-    VZ = -9.515922545e-05 * daysPerYear;
+  { X = 15.37969711
+    Y = -25.91931461
+    Z = 0.179258773
+    VX = 0.002680677725 * daysPerYear
+    VY = 0.0016282417 * daysPerYear
+    VZ = -9.515922545e-05 * daysPerYear
     Mass = 5.15138902e-05 * solarMass }
 
 let sun = 
-  { X = 0.0;
-    Y = 0.0;
-    Z = 0.0;
-    VX = 0.0;
-    VY = 0.0;
-    VZ = 0.0;
+  { X = 0.0
+    Y = 0.0
+    Z = 0.0
+    VX = 0.0
+    VY = 0.0
+    VZ = 0.0
     Mass = solarMass }
 
 let offsetMomentum a = 
@@ -114,7 +114,9 @@ let rec energy i e a =
 let planets = [|sun; jupiter; saturn; uranus; neptune|]
 
 offsetMomentum planets
-let print = energy 0 0.0 >> printf "%.9f\n"
+let print = 
+  energy 0 0.0
+  >> printf "%.9f\n"
 
 [<EntryPoint>]
 let main args = 

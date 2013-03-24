@@ -10,19 +10,21 @@ module NaturalSortKata =
     | Equal
     | Lesser
     | Greater
-    static member Compare x y = if x = y
-                                then Equal
-                                elif x > y
-                                then Greater
-                                else Lesser
+    static member Compare x y = 
+      if x = y
+      then Equal
+      elif x > y
+      then Greater
+      else Lesser
   
   type ChunckType = 
     | NumberType
     | StringType
     | Unknown
-    static member GetType(c : char) = if System.Char.IsDigit(c)
-                                      then NumberType
-                                      else StringType
+    static member GetType(c : char) = 
+      if System.Char.IsDigit(c)
+      then NumberType
+      else StringType
     member this.Compare other = 
       match other with
       | ty when ty = this -> Equal
@@ -35,9 +37,10 @@ module NaturalSortKata =
     if left = right
     then Equal
     else 
-      let fix str = new System.String(str
-                                      |> List.rev
-                                      |> List.toArray)
+      let fix str = 
+        new System.String(str
+                          |> List.rev
+                          |> List.toArray)
       let gatherChunck str = 
         let rec gather str acc = 
           match str with
@@ -61,12 +64,14 @@ module NaturalSortKata =
           | llen, rlen when llen < rlen -> Lesser
           | _ -> raise(InvalidException "Bad Data")
         else 
-          let lt, lChunk = left
-                           |> Seq.toList
-                           |> gatherChunck
-          let rt, rChunk = right
-                           |> Seq.toList
-                           |> gatherChunck
+          let lt, lChunk = 
+            left
+            |> Seq.toList
+            |> gatherChunck
+          let rt, rChunk = 
+            right
+            |> Seq.toList
+            |> gatherChunck
           match lt.Compare rt with
           | Equal -> 
             if lChunk = rChunk

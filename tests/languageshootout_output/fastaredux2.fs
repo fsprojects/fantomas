@@ -20,7 +20,7 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
     ACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCA\
     GCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGG\
     AGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCC\
-    AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAA
+    AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA"B
 
 let iubvalues = [0.27; 0.12; 0.12; 0.27] @ List.replicate 12 0.02
 
@@ -37,7 +37,7 @@ let os = new BufferedStream(Console.OpenStandardOutput(), 1 <<< 16)
 let repeatFasta alu n = 
   let r = Array.length alu
   let s = Array.concat [alu; alu]
-  for j in .. .. 0 cols n - cols do
+  for j in 0..cols..n - cols do
     os.Write(s, j % r, cols)
     os.WriteByte(10uy)
   os.Write(s, (n / cols * cols) % r, n % cols)
@@ -46,14 +46,14 @@ let repeatFasta alu n =
   os.Flush()
 
 let randomFasta src n = 
-  let /// cumulative probability for each nucleotide
-  cumuArray = 
+  /// cumulative probability for each nucleotide
+  let cumuArray = 
     let f (a, c, d) (x, y) = (x, c + y, d + 1)
     src
     |> Seq.scan f (0uy, 0.0, 0)
     |> Seq.toArray
-  let /// lookup table optimization
-  lut = 
+  /// lookup table optimization
+  let lut = 
     let arr = Array.zeroCreate LUTLEN
     let mutable j = 0
     for key, cum, i in cumuArray do
@@ -73,12 +73,13 @@ let randomFasta src n =
       then a
       else i
     | c, p -> c
-  let /// write output one line at a time
-  buf = Array.zeroCreate(cols + 1)
-  for x in .. .. n (-cols) 1 do
-    let e = if x < cols
-            then x
-            else cols
+  /// write output one line at a time
+  let buf = Array.zeroCreate(cols + 1)
+  for x in n..(-cols)..1 do
+    let e = 
+      if x < cols
+      then x
+      else cols
     buf.[e] <- 10uy
     for y in 0..e - 1 do
       s <- (s * IA + IC) % IM

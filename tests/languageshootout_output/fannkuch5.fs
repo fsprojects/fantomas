@@ -6,9 +6,10 @@ module Fannkuch
 
 [<EntryPoint>]
 let main(args) = 
-  let n = if args.Length > 0
-          then int args.[0]
-          else 7
+  let n = 
+    if args.Length > 0
+    then int args.[0]
+    else 7
   let mutable maxFlips = 0
   let mutable permN = 0
   let mutable j = 0

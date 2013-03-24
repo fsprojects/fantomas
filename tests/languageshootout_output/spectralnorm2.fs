@@ -15,8 +15,9 @@ type BarrierHandle(threads : int) =
   member x.WaitOne() = 
     let h = handle
     if Interlocked.Decrement(&current) > 0
-    then h.WaitOne()
-         |> ignore
+    then 
+      h.WaitOne()
+      |> ignore
     else 
       handle <- new ManualResetEvent(false)
       Interlocked.Exchange(&current, threads)
@@ -64,15 +65,18 @@ let RunGame n =
   let aps = 
     Async.Parallel [for i in 0..nthread - 1 do
                       let r1 = i * chunk
-                      let r2 = if (i < (nthread - 1))
-                               then r1 + chunk
-                               else n
+                      let r2 = 
+                        if (i < (nthread - 1))
+                        then r1 + chunk
+                        else n
                       yield async { return Approximate(u, v, tmp, r1, r2, barrier) }]
     |> Async.RunSynchronously
-  let vBv = aps
-            |> Array.sumBy fst
-  let vv = aps
-           |> Array.sumBy snd
+  let vBv = 
+    aps
+    |> Array.sumBy fst
+  let vv = 
+    aps
+    |> Array.sumBy snd
   Math.Sqrt(vBv / vv)
 
 [<EntryPoint>]

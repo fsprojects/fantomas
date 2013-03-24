@@ -15,13 +15,15 @@ let matrix =
    [1.0; 0.0; 1.0]
    [1.0; 1.0; 1.0]]
 
-let display output real = if output = real
-                          then printfn "yes"
-                          else printfn "no"
+let display output real = 
+  if output = real
+  then printfn "yes"
+  else printfn "no"
 
-let output(_ni : float list, _wi : float list) = if threeshold > _ni.[0] * _wi.[0] + _ni.[1] * _wi.[1]
-                                                 then 0.0
-                                                 else 1.0
+let output(_ni : float list, _wi : float list) = 
+  if threeshold > _ni.[0] * _wi.[0] + _ni.[1] * _wi.[1]
+  then 0.0
+  else 1.0
 
 let mutable iter = 0
 

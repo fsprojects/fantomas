@@ -10,9 +10,10 @@ let id = (1I, 0I, 0I, 1I)
 let comp (q, r, s, t) (u, v, x) = (q * u, q * v + r * x, s * u, s * v + t * x)
 
 let div x y = 
-  let rec next w n = if w > x
-                     then n
-                     else next (w + y) (n + 1I)
+  let rec next w n = 
+    if w > x
+    then n
+    else next (w + y) (n + 1I)
   next y 0I
 
 let extr (q, r, s, t) x = div (q * x + r) (s * x + t)

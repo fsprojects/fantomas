@@ -56,8 +56,9 @@ let move destinationRoot files =
     let dateTaken = getDateTaken file
     let finalPath = Path.Combine(destinationRoot, dateTaken.Year.ToString(), dateTaken.ToString("yyyy-MM-dd"))
     if not(Directory.Exists(finalPath))
-    then Directory.CreateDirectory(finalPath)
-         |> ignore
+    then 
+      Directory.CreateDirectory(finalPath)
+      |> ignore
     let newFile = getNewFilename(Path.Combine(finalPath, Path.GetFileName(file)))
     try 
       File.Copy(file, newFile)

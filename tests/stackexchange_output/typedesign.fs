@@ -18,9 +18,10 @@ type Metrics =
 
 let buildQuery groupBy (metrics : Metrics list) = 
   let concatenate f = 
-    let x = metrics
-            |> List.collect f
-            |> List.map(fun m -> sprintf "{%s: %s}" (fst m) (snd m))
+    let x = 
+      metrics
+      |> List.collect f
+      |> List.map(fun m -> sprintf "{%s: %s}" (fst m) (snd m))
     System.String.Join(",", x)
   let groupings = concatenate(fun m -> m.FormatGroupings)
   let projections = concatenate(fun m -> m.FormatProjections)

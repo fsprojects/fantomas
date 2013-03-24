@@ -22,9 +22,12 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
      ACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCA\
      GCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGG\
      AGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCC\
-     AGCCTGGGCGACAGAGCGAGACTCCGTCTCAA
+     AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA"B
 
-let makeCumulative = List.fold (fun (cp, res) (c, p) -> (cp + p, (c, cp + p) :: res)) (0.0, []) >> snd >> List.toArray
+let makeCumulative = 
+  List.fold (fun (cp, res) (c, p) -> (cp + p, (c, cp + p) :: res)) (0.0, [])
+  >> snd
+  >> List.toArray
 
 let homoSapiens = 
   makeCumulative [(97uy, 0.3029549427)

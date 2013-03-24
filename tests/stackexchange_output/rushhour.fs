@@ -31,22 +31,26 @@ type Direction =
 
 type Move = int * Direction
 
-let checkBoth target length current = if current > target || current + length - 1 < target
-                                      then true
-                                      else false
+let checkBoth target length current = 
+  if current > target || current + length - 1 < target
+  then true
+  else false
 
 let test (initialState : State) (brickInfo : Brick[]) (horizontalBricks : int[][], verticalBricks : int[][]) (rowNum, columnNum) = 
   let (redRowNum, _) = initialState.[0]
   let (_, redLength) = brickInfo.[0]
   let mySet = new HashSet<_>(HashIdentity.Structural)
-  let horizontalBricksAll = horizontalBricks
-                            |> Array.concat
-  let verticalBricksAll = verticalBricks
-                          |> Array.concat
+  let horizontalBricksAll = 
+    horizontalBricks
+    |> Array.concat
+  let verticalBricksAll = 
+    verticalBricks
+    |> Array.concat
   let rec solveDFS (currentState : State) (lastBrick, lastDirection) depth = 
     let generateState i (newPosition : Position) = 
-      let nextState = currentState
-                      |> Array.copy
+      let nextState = 
+        currentState
+        |> Array.copy
       nextState.[i] <- newPosition
       nextState
     let isDuplicated(set : HashSet<_>) = 
@@ -95,18 +99,18 @@ let test (initialState : State) (brickInfo : Brick[]) (horizontalBricks : int[][
                                                 [|columnLeft + redLength..columnNum - 1|]
                                                 |> Array.forall(fun columnID -> checkVacancy(redRowNum, columnID)) || horizontalBricksAll
                                                                                                                       |> Seq.tryFind(fun elem -> 
-                                                                                                                        (match generateRight elem with
-                                                                                                                         | Some(a, b) when checkVacancy a -> solveDFS (generateState elem b) (elem, Right) (depth + 1)
-                                                                                                                         | _ -> false) || (match generateLeft elem with
-                                                                                                                                           | Some(a, b) when checkVacancy a -> solveDFS (generateState elem b) (elem, Left) (depth + 1)
-                                                                                                                                           | _ -> false))
+                                                                                                                           (match generateRight elem with
+                                                                                                                            | Some(a, b) when checkVacancy a -> solveDFS (generateState elem b) (elem, Right) (depth + 1)
+                                                                                                                            | _ -> false) || (match generateLeft elem with
+                                                                                                                                              | Some(a, b) when checkVacancy a -> solveDFS (generateState elem b) (elem, Left) (depth + 1)
+                                                                                                                                              | _ -> false))
                                                                                                                       |> Option.isSome || verticalBricksAll
                                                                                                                                           |> Seq.tryFind(fun elem -> 
-                                                                                                                                            (match generateUp elem with
-                                                                                                                                             | Some(a, b) when checkVacancy a -> solveDFS (generateState elem b) (elem, Up) (depth + 1)
-                                                                                                                                             | _ -> false) || (match generateDown elem with
-                                                                                                                                                               | Some(a, b) when checkVacancy a -> solveDFS (generateState elem b) (elem, Down) (depth + 1)
-                                                                                                                                                               | _ -> false))
+                                                                                                                                               (match generateUp elem with
+                                                                                                                                                | Some(a, b) when checkVacancy a -> solveDFS (generateState elem b) (elem, Up) (depth + 1)
+                                                                                                                                                | _ -> false) || (match generateDown elem with
+                                                                                                                                                                  | Some(a, b) when checkVacancy a -> solveDFS (generateState elem b) (elem, Down) (depth + 1)
+                                                                                                                                                                  | _ -> false))
                                                                                                                                           |> Option.isSome)
     then 
       Console.WriteLine("Brick Name {0} Direction {1}", fst brickInfo.[lastBrick], lastDirection)

@@ -47,9 +47,10 @@ type AutoResetCell() =
 let createCell _ = AutoResetCell()
 
 let createThread (cells : AutoResetCell array) i = 
-  let next = if i = ringLength - 1
-             then 0
-             else i + 1
+  let next = 
+    if i = ringLength - 1
+    then 0
+    else i + 1
   async { 
     let more = ref true
     while !more do
@@ -61,9 +62,10 @@ let createThread (cells : AutoResetCell array) i =
 
 [<EntryPoint>]
 let main args = 
-  let count = if args.Length > 0
-              then int args.[0]
-              else 50000000
+  let count = 
+    if args.Length > 0
+    then int args.[0]
+    else 50000000
   let cells = Array.init ringLength createCell
   let threads = Array.init ringLength (createThread cells)
   cells.[0].RegisterResult(count)

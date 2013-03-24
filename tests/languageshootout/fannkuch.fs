@@ -18,8 +18,8 @@ let mutable flip_max_arr : int array = null
 let remain_task = ref -1
 let threads = Environment.ProcessorCount
 
-// Return next permut, by rotating elements [0 - position] one 'step'
-// next_perm('1234', 2) -> '2314'
+/// Return next permut, by rotating elements [0 - position] one 'step'
+/// next_perm('1234', 2) -> '2314'
 let next_perm(permutation:int array, position) = 
     let perm0 = permutation.[0]
     for i in 0..position-1 do 

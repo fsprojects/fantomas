@@ -22,6 +22,8 @@ let remain_task = ref -1
 
 let threads = Environment.ProcessorCount
 
+/// Return next permut, by rotating elements [0 - position] one 'step'
+/// next_perm('1234', 2) -> '2314'
 let next_perm(permutation : int array, position) = 
   let perm0 = permutation.[0]
   for i in 0..position - 1 do
@@ -32,8 +34,8 @@ let next_perm(permutation : int array, position) =
 /// strategy is different than that of original single thread.
 /// this function will 'correctly' print first 30 permutations
 let print_30_permut() = 
-  let /// declare and initialize
-  permutation : int array = 
+  /// declare and initialize
+  let permutation : int array = 
     Array.init n (fun i -> 
       Console.Write(i + 1)
       i)

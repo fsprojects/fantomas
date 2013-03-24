@@ -9,13 +9,15 @@ module Fannkuchredux
 
 open System.Threading
 
-let rec fac x = if x < 2
-                then 1L
-                else (int64 x) * fac(x - 1)
+let rec fac x = 
+  if x < 2
+  then 1L
+  else (int64 x) * fac(x - 1)
 
-let F = [0..20]
-        |> Seq.map fac
-        |> Seq.toArray
+let F = 
+  [0..20]
+  |> Seq.map fac
+  |> Seq.toArray
 
 type fannkuch(n) = 
   let p = Array.create n 0
