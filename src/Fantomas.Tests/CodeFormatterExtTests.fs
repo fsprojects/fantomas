@@ -348,7 +348,7 @@ let (|Integer|_|)(str : string) =
 let (|ParseRegex|_|) regex str = 
     let m = Regex(regex).Match(str)
     if m.Success
-    then
+    then 
         Some(List.tail [for x in m.Groups do
                             yield x.Value])
     else None

@@ -84,7 +84,7 @@ let rec genParsedInput = function
 
 and genImpFile(ParsedImplFileInput(hs, mns)) = col sepNln mns genModuleOrNamespace
 
-and genSigFile si = failwith "Not implemented yet"
+and genSigFile si = failwith "F# signature files are not supported yet"
 
 and genModuleOrNamespace = function
     | ModuleOrNamespace(ats, px, ao, s, mds, isModule) -> 
@@ -212,6 +212,16 @@ and genMemberBinding isInterface = function
         match e with
         | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType t +> sepEq +> autoBreakNln e
         | e -> prefix +> sepEq +> autoBreakNln e
+    | ExplicitCtor(ats, px, ao, p, e) ->
+        let prefix =
+            genPreXmlDoc px
+            +> colPost sepSpace sepNone ats genAttribute
+            +> opt sepSpace ao genAccess +> genPat p
+        match e with
+        // Handle special "then" block in constructors
+        | Sequential(e1, e2, _) -> 
+            prefix +> sepEq +> indent +> sepNln +> genExpr e1 ++ "then " +> autoBreakNln e2 +> unindent
+        | e -> prefix +> sepEq +> autoBreakNln e
     | b -> failwithf "%O isn't a member binding" b
 
 and genMemberFlags isInterface = function
@@ -247,9 +257,11 @@ and genExpr = function
         sepOpenS +> opt (!- " with ") eo genExpr
         +> atCurrentColumn (col sepSemiNln xs genRecordFieldName)
         +> sepCloseS
-    | ObjExpr(t, x, bd, ims) ->
+    | ObjExpr(t, eio, bd, ims) ->
+        /// Check the role of the second part of eio
+        let param = opt sepNone (Option.map fst eio) genExpr
         sepOpenS +> 
-        atCurrentColumn (!- "new " +> genType t -- " with" 
+        atCurrentColumn (!- "new " +> genType t +> param -- " with" 
         +> indent +> sepNln +> col sepNln bd (genMemberBinding true) +> unindent
         +> colPre sepNln sepNln ims genInterfaceImpl) +> sepCloseS
     | While(e1, e2) -> 
@@ -389,6 +401,8 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) =
         typeName -- " with" +> indent +> sepNln 
         /// Remember that we use MemberDefn of parent node
         +> col sepNln ms (genMemberDefn false) +> unindent +> sepNln
+    | ObjectModel(TCDelegate(t, ValInfo(aiss, _)), _) ->
+        typeName +> sepEq -- "delegate of " +> genTypeGroup (aiss.Head.Length = 1) t
     | ObjectModel(tdk, mds) -> 
         /// Assume that there is at most one implicit constructor
         let impCtor = List.tryFind (function MDImplicitCtor _ -> true | _ -> false) mds
@@ -431,7 +445,7 @@ and genField prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) =
     genPreXmlDoc px 
     +> colPost sepSpace sepNone ats genAttribute -- prefix
     +> opt sepSpace ao genAccess +> ifElse isStatic (!- "static ") sepNone
-    +> ifElse isMutable (!- "mutable ") sepNone +> opt sepColon so (!-) +> genType t
+    +> ifElse isMutable (!- "mutable ") sepNone +> opt sepColon so (!-) +> genTypeGroup true t
 
 and genType = function
     | THashConstraint t -> !- "#" +> genType t
@@ -444,6 +458,8 @@ and genType = function
     | TArray(t, n) -> genType t +> rep n (!- "[]")
     | TAnon -> sepWild
     | TVar tp -> genTypar tp 
+    // TFun is left associated
+    | TFun(t1, (TFun _ as t2)) -> genType t1 +> sepArrow +> sepOpenT +> genType t2 +> sepCloseT
     | TFun(t1, t2) -> genType t1 +> sepArrow +> genType t2
     | TApp(t, ts, isPostfix) -> 
         let postForm = 
@@ -454,11 +470,22 @@ and genType = function
         ifElse isPostfix postForm (genType t -- "<" +> col sepComma ts genType -- ">")
     | TLongIdentApp(t, li, ts) -> genType t -- li -- "<" +> col sepComma ts genType -- ">"
     /// The surrounding brackets don't seem neccessary
-    | TTuple ts -> col sepStar ts (snd >> genType)
+    | TTuple ts -> col sepStar ts (snd >> genTypeGroup true)
     /// Revise this case later
     | TWithGlobalConstraints(t, tcs) -> genType t +> colPre (!- " when ") wordAnd tcs genTypeConstraint
     | TLongIdent li -> !- li
     | t -> failwithf "Unexpected type: %O" t
+
+and genTypeGroup isGroup = function
+    | TTuple ts -> 
+        // Inner parts should have brackets for separation
+        ifElse isGroup (sepOpenT +> col sepStar ts (snd >> genTypeGroup true) +> sepCloseT)
+            (col sepStar ts (snd >> genTypeGroup true))
+    | TFun(t1, (TFun _ as t2)) -> 
+        genTypeGroup isGroup t1 +> sepArrow +> sepOpenT +> genTypeGroup isGroup t2 +> sepCloseT
+    | TFun(t1, t2) -> genTypeGroup isGroup t1 +> sepArrow +> genTypeGroup isGroup t2
+    | t -> genType t
+
 
 and genTypar(Typar(s, isHead)) = 
     /// There is a potential parser bug with "<^T..."

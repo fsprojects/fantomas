@@ -112,7 +112,7 @@ and File(filename: string, containingFolder: Folder) =
 type Folder(pathIn : string) = 
     let path = pathIn
     let filenameArray : string array = System.IO.Directory.GetFiles(path)
-    member this.FileArray = Array.map(fun elem -> new File(elem, this)) filenameArray
+    member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
 
 and File(filename : string, containingFolder : Folder) = 
     member __.Name = filename
@@ -164,7 +164,9 @@ type Point2D =
     struct
         val X : float
         val Y : float
-        new(x : float, y : float) = { X = x; Y = y }
+        new(x : float, y : float) = 
+            { X = x;
+              Y = y }
     end
 """
 

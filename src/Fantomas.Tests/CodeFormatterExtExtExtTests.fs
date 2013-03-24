@@ -124,7 +124,7 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
 """
 
 [<Test>]
-let ``indexed property``() =
+let ``indexed properties``() =
     formatSourceString """
 type NumberStrings() =
    let mutable ordinals = [| "one"; |]
@@ -152,7 +152,7 @@ type NumberStrings() =
 """
 
 [<Test>]
-let ``complex indexed property``() =
+let ``complex indexed properties``() =
     formatSourceString """
 open System.Collections.Generic
 type SparseMatrix() =
@@ -178,3 +178,51 @@ let matrix1 = new SparseMatrix()
 
 for i in 1..1000 do
     matrix1.[i, i] <- float i * float i"""
+
+[<Test>]
+let ``then blocks after constructors``() =
+    formatSourceString """
+type Person(nameIn : string, idIn : int) =
+    let mutable name = nameIn
+    let mutable id = idIn
+    do printfn "Created a person object." 
+    member this.Name with get() = name and set(v) = name <- v
+    member this.ID with get() = id and set(v) = id <- v
+    new() = 
+        Person("Invalid Name", -1)
+        then
+            printfn "Created an invalid person object."
+            """ config
+    |> prepend newline
+    |> should equal """
+type Person(nameIn : string, idIn : int) = 
+    let mutable name = nameIn
+    let mutable id = idIn
+    do printfn "Created a person object."
+    member this.Name with get () = name
+    member this.Name with set (v) = name <- v
+    member this.ID with get () = id
+    member this.ID with set (v) = id <- v
+    new() = 
+        Person("Invalid Name", -1)
+        then printfn "Created an invalid person object."
+"""
+
+[<Test>]
+let ``associativity of types``() =
+    formatSourceString """
+type Delegate1 = delegate of (int * int) * (int * int) -> int
+type Delegate2 = delegate of int * int -> int
+type Delegate3 = delegate of int -> (int -> int)
+type Delegate4 = delegate of (int -> int) -> int
+type U = U of (int * int)
+    """ config
+    |> prepend newline
+    |> should equal """
+type Delegate1 = delegate of (int * int) * (int * int) -> int
+type Delegate2 = delegate of int * int -> int
+type Delegate3 = delegate of int -> (int -> int)
+type Delegate4 = delegate of int -> int -> int
+type U = 
+    | U of (int * int)
+""" 

@@ -276,7 +276,9 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf : MemberFlags) =
         elif mf.IsInstance then MFMember mk
         else MFStaticMember mk
 
-let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|) = function
+let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) = function
+    | SynBinding.Binding(ao, bk, _, _, ats, px, SynValData(Some MFConstructor, _, _), pat, bri, expr, _, _) ->
+        ExplicitCtor(ats, px, ao, pat, expr)
     | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, SynValData(Some(MFProperty _ as mf), _, _), pat, bri, expr, _, _) ->
         PropertyBinding(ats, px, ao, isInline, mf, pat, expr, bk, bri)
     | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, SynValData(Some mf, _, _), pat, bri, expr, _, _) ->
@@ -494,7 +496,7 @@ let (|Record|_|) = function
     | _ -> None
 
 let (|ObjExpr|_|) = function
-    | SynExpr.ObjExpr(t, x, bd, ims, _, _) -> Some (t, x, bd, ims)
+    | SynExpr.ObjExpr(t, eio, bd, ims, _, _) -> Some (t, eio, bd, ims)
     | _ -> None
 
 let (|LongIdentSet|_|) = function
@@ -733,3 +735,5 @@ let (|ValSig|) (ValSpfn(ats, Ident(OpNamePrefix s), tds, t, _, _, _, px, ao, _, 
 let (|RecordFieldName|) ((LongIdentWithDots s, _) : RecordFieldName, eo : SynExpr option, _) = (s, eo)
 
 let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), p) = (s1, s2, p)
+
+let (|ValInfo|) (SynValInfo(aiss, ai)) = (aiss, ai)
