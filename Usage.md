@@ -4,20 +4,28 @@
 ### Using the command line tool
 ---
 
-Two required parameters for the tool are input and output path. The output path is prompted by `--out` e.g.
+Two required parameters for the tool are input and output path. 
+The output path is prompted by `--out` e.g.
 
 	Fantomas.Cmd.exe ../../../../tests/stackexchange/array.fs
 		--out ../../../../tests/stackexchange_output/array.fs 
 
-Both paths have to be files or folders at the same time. If they are folders, the structure of input folder will be reflected in the output one. The tool will explore the input folder recursively if you set `--recurse` option (see next section).
+Both paths have to be files or folders at the same time. 
+If they are folders, the structure of input folder will be reflected in the output one. 
+The tool will explore the input folder recursively if you set `--recurse` option (see [Options section](#options)).
 
 
 #### Options
  - `--recurse`: traverse the input folder recursively (if it is really a folder) to get all F# source files.
- - `--force`: force writing original contents to output files. This is helpful if the tool fails on some unknown F# constructs.
+ - `--force`: force writing original contents to output files. 
+This is helpful if the tool fails on some unknown F# constructs.
 
 #### Preferences
- - `--indent <number>`: `number` has to be between 1 and 10. This preference set the indentation (default = 4). The common values are 2 and 4. The same indentation is ensured to be consistent in a source file. To illustrate, here is a code fragment with `--indent 2` preference:
+ - `--indent <number>`: `number` has to be between 1 and 10. 
+This preference sets the indentation (default = 4). 
+The common values are 2 and 4. 
+The same indentation is ensured to be consistent in a source file. 
+To illustrate, here is a code fragment with `--indent 2`:
  
 	```fsharp
 	let inline selectRandom(f : _[]) = 
@@ -41,8 +49,11 @@ Both paths have to be files or folders at the same time. If they are folders, th
 	    VY = 0.004998528012 * daysPerYear;
 	    VZ = 2.304172976e-05 * daysPerYear;
 	    Mass = 0.0002858859807 * solarMass }
-
-    // After setting --noSemicolonEOL
+	```
+	
+	vs.
+	
+	```fsharp
 	let saturn = 
 	  { X = 8.343366718
 	    Y = 4.124798564
@@ -53,7 +64,8 @@ Both paths have to be files or folders at the same time. If they are folders, th
 	    Mass = 0.0002858859807 * solarMass }
 	```
 
- - `--spaceBeforeArgument`: if being set, a space is inserted before a function name and its first argument. For example, `Console.WriteLine("Hello World")` becomes `Console.WriteLine ("Hello World")`.
+ - `--spaceBeforeArgument`: if being set, a space is inserted before a function name and its first argument. 
+For example, `Console.WriteLine("Hello World")` becomes `Console.WriteLine ("Hello World")`.
 
  - `--noSpaceBeforeColon`: if being set, there is no space before `:` e.g.
 
@@ -80,46 +92,49 @@ Both paths have to be files or folders at the same time. If they are folders, th
 	    mutable VZ: float
 	    Mass: float }
 	```
- - `--noSpaceAfterComma`: it is useful if you would like to save spaces in tuples, arguments, etc. To illustrate `(1, 2, 3)` become `(1,2,3)`.
+ - `--noSpaceAfterComma`: it is useful if you would like to save spaces in tuples, arguments, etc. 
+To illustrate, `(1, 2, 3)` is rewritten to `(1,2,3)`.
  
- - `--noSpaceAfterSemiColon`: it save spaces on records, arrays, lists, etc. Now 
+ - `--noSpaceAfterSemiColon`: it saves spaces on records, arrays, lists, etc. Now 
 
-```fsharp
-let planets = [|sun; jupiter; saturn; uranus; neptune|]
-```
+	```fsharp
+	let planets = [|sun; jupiter; saturn; uranus; neptune|]
+	```
 
-becomes
+	becomes
 
-```fsharp
-let planets = [|sun;jupiter;saturn;uranus;neptune|]
-```
+	```fsharp
+	let planets = [|sun;jupiter;saturn;uranus;neptune|]
+	```
 
  - `--indentOnTryWith`: if being set, `with` blocks will be indented like in the following example:
 
-```
-try
-    if System.DateTime.Now.Second % 3 = 0 
-	then raise(new System.Exception())
-    else raise(new System.ApplicationException())
-with
-    | :? System.ApplicationException -> 
-        printfn "A second that was not a multiple of 3"    
-    | _ -> 
-        printfn "A second that was a multiple of 3"
-```
+	```
+	try
+	    if System.DateTime.Now.Second % 3 = 0 
+		then raise(new System.Exception())
+	    else raise(new System.ApplicationException())
+	with
+	    | :? System.ApplicationException -> 
+	        printfn "A second that was not a multiple of 3"    
+	    | _ -> 
+	        printfn "A second that was a multiple of 3"
+	```
 
-That said, most of the preferences are very simple. But they demonstrate the adaptiveness of Fantomas on a set of configurations. More preferences will be added depending on use cases.
+That said, most of the preferences are very simple. 
+But they demonstrate the adaptiveness of Fantomas on a set of configurations. 
+More preferences will be added depending on use cases.
 
 ### Using the library
 ---
-The main entry point of the library is function `processSourceFile`, which read the input file and write formatted source code to the output file:
+The main entry point of the library is function `processSourceFile`, which reads the input file and writes formatted source code to the output file:
 
 ```fsharp
-val processSourceFile :
-    inFile:string -> outFile:string -> config:FormatConfig -> unit
+val processSourceFile : inFile:string -> outFile:string -> config:FormatConfig -> unit
 ```
 
-The configuration consists of the fields described above. It's often customized by augmenting a default configuration:
+The configuration consists of the fields described in [Preferences section](#preferences). 
+It's often customized by augmenting a default configuration:
 
 ```fsharp
 let config = { FormatConfig.Default with 
@@ -135,4 +150,5 @@ let config = { FormatConfig.Default with
 If you would like to work with source strings, there is also function `formatSourceString`:
 
 ```fsharp
-val formatSourceString : s:string -> config:FormatConfig -> string```
+val formatSourceString : s:string -> config:FormatConfig -> string
+```
