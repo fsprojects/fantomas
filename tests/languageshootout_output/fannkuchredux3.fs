@@ -106,9 +106,9 @@ let _ =
   let (c, fl) = 
     [0..ntasks]
     |> Seq.map(fun i -> 
-      async { 
-        let thread = fannkuch(n)
-        return thread.runTask(i, chunk) })
+         async { 
+           let thread = fannkuch(n)
+           return thread.runTask(i, chunk) })
     |> Async.Parallel
     |> Async.RunSynchronously
     |> Array.fold (fun (_cksum, _flips) (cksum, flips) -> (_cksum + cksum, max _flips flips)) (0, 0)

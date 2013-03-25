@@ -5,7 +5,7 @@
 /// fixed by Joel Mueller
 module Pidigits
 
-let id = (1I, 0I, 0I, 1I)
+let id = 1I, 0I, 0I, 1I
 
 let comp (q, r, s, t) (u, v, x) = (q * u, q * v + r * x, s * u, s * v + t * x)
 
@@ -32,7 +32,7 @@ let digits =
     let n = ref 0I
     fun () -> 
       n := !n + 1I
-      (!n, 4I * !n + 2I, 2I * !n + 1I)
+      !n, 4I * !n + 2I, 2I * !n + 1I
   let rec digits() = 
     let y = next !z
     if safe !z y

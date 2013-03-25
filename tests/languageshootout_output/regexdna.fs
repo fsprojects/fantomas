@@ -38,17 +38,17 @@ let rec onblocks res s =
 |> Async.RunSynchronously
 |> Array.iter(printfn "%s")
 let newTextLength t = 
-  [("B", "(c|g|t)")
-   ("D", "(a|g|t)")
-   ("H", "(a|c|t)")
-   ("K", "(g|t)")
-   ("M", "(a|c)")
-   ("N", "(a|c|g|t)")
-   ("R", "(a|g)")
-   ("S", "(c|g)")
-   ("V", "(a|c|g)")
-   ("W", "(a|t)")
-   ("Y", "(c|t)")]
+  ["B", "(c|g|t)"
+   "D", "(a|g|t)"
+   "H", "(a|c|t)"
+   "K", "(g|t)"
+   "M", "(a|c)"
+   "N", "(a|c|g|t)"
+   "R", "(a|g)"
+   "S", "(c|g)"
+   "V", "(a|c|g)"
+   "W", "(a|t)"
+   "Y", "(c|t)"]
   |> List.fold (fun s (code, alt) -> (regex code).Replace(s, alt)) t
   |> String.length
 

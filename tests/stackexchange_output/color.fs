@@ -25,9 +25,9 @@ type MyFSColorTable() =
     |> Seq.filter(fun values -> 
          values
          |> Seq.length = 3)
-    |> Seq.map(fun values -> (string values.[0], string values.[2]))
-    |> Seq.map(fun (rgb, name) -> (rgb.Split([|' '|]), name))
-    |> Seq.map(fun (rgb, name) -> [|(name, rgb.[0], rgb.[1], rgb.[2])|])
+    |> Seq.map(fun values -> string values.[0], string values.[2])
+    |> Seq.map(fun (rgb, name) -> rgb.Split([|' '|]), name)
+    |> Seq.map(fun (rgb, name) -> [|name, rgb.[0], rgb.[1], rgb.[2]|])
   /// Mutable Color Table will be defined on-the-fly
   let mutable ColorTable = []
   /// Euclidean distance between 2 vectors - float is overkill here

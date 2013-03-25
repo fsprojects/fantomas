@@ -24,8 +24,8 @@ let shuffle(l : 'a array) =
 let rec merge (ar1 : 'a array) (ar2 : 'a array) = 
   let rec index(islastfromAr1, ilast, jlast) = 
     seq { 
-      let inext, jnext = (ilast + 1, jlast + 1)
-      match (inext < ar1.Length, jnext < ar2.Length) with
+      let inext, jnext = ilast + 1, jlast + 1
+      match inext < ar1.Length, jnext < ar2.Length with
       | true, true -> 
         let indexnext = 
           if ar1.[inext] < ar2.[jnext]

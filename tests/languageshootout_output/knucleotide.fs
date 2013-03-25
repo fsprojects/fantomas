@@ -31,7 +31,7 @@ let frequencies (dna : string) (length : int) =
      |> Seq.map (!)
      |> Seq.sum
    yield! [for pair in d do
-             yield (pair.Key.ToUpper(), (float(pair.Value.Value) * 100.0 / float(total)))]
+             yield pair.Key.ToUpper(), (float(pair.Value.Value) * 100.0 / float(total))]
           |> List.sortBy(snd
                          >> (~-))
           |> List.map(fun (s, c) -> sprintf "%s %.3f" s c)

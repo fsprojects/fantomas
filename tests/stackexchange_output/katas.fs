@@ -58,7 +58,7 @@ module NaturalSortKata =
       let rec compare (left : string) (right : string) = 
         if (not(left.Any())) || (not(right.Any()))
         then 
-          match (left.Length, right.Length) with
+          match left.Length, right.Length with
           | llen, rlen when llen = rlen -> Equal
           | llen, rlen when llen > rlen -> Greater
           | llen, rlen when llen < rlen -> Lesser

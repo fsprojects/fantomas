@@ -10,7 +10,7 @@ open System
 
 open System.Numerics
 
-let id = (1I, 0I, 0I, 1I)
+let id = 1I, 0I, 0I, 1I
 
 let inline compose (q, r, s, t) (u, v, x) = (q * u, q * v + r * x, s * u, s * v + t * x)
 
@@ -24,12 +24,12 @@ let inline product (u, v, w, x) n =
   let neg = -10I * n
   (10I * u + neg * w, 10I * v + neg * x, w, x)
 
-let inline lfts n = (n, 4I * n + 2I, 2I * n + 1I)
+let inline lfts n = n, 4I * n + 2I, 2I * n + 1I
 
 let rec digits n z = 
   let y = next z
   if safe z y
-  then (y, n, product z y)
+  then y, n, product z y
   else digits (n + 1I) (compose z <| lfts n)
 
 let rec loop n s i z total = 

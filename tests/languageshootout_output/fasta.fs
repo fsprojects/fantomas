@@ -25,32 +25,32 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
      AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA"B
 
 let makeCumulative = 
-  List.fold (fun (cp, res) (c, p) -> (cp + p, (c, cp + p) :: res)) (0.0, [])
+  List.fold (fun (cp, res) (c, p) -> cp + p, (c, cp + p) :: res) (0.0, [])
   >> snd
   >> List.toArray
 
 let homoSapiens = 
-  makeCumulative [(97uy, 0.3029549427)
-                  (99uy, 0.1979883005)
-                  (103uy, 0.1975473066)
-                  (116uy, 0.3015094502)]
+  makeCumulative [97uy, 0.3029549427
+                  99uy, 0.1979883005
+                  103uy, 0.1975473066
+                  116uy, 0.3015094502]
 
 let iub = 
-  makeCumulative [(97uy, 0.27)
-                  (99uy, 0.12)
-                  (103uy, 0.12)
-                  (116uy, 0.27)
-                  (66uy, 0.02)
-                  (68uy, 0.02)
-                  (72uy, 0.02)
-                  (75uy, 0.02)
-                  (77uy, 0.02)
-                  (78uy, 0.02)
-                  (82uy, 0.02)
-                  (83uy, 0.02)
-                  (86uy, 0.02)
-                  (87uy, 0.02)
-                  (89uy, 0.02)]
+  makeCumulative [97uy, 0.27
+                  99uy, 0.12
+                  103uy, 0.12
+                  116uy, 0.27
+                  66uy, 0.02
+                  68uy, 0.02
+                  72uy, 0.02
+                  75uy, 0.02
+                  77uy, 0.02
+                  78uy, 0.02
+                  82uy, 0.02
+                  83uy, 0.02
+                  86uy, 0.02
+                  87uy, 0.02
+                  89uy, 0.02]
 
 let inline selectRandom(f : _[]) = 
   let r = random 1.0

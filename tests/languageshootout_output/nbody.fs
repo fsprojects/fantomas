@@ -84,7 +84,7 @@ let advance a t =
     let b1 = a.[i]
     for j in i + 1..Array.length a - 1 do
       let b2 = a.[j]
-      let dx, dy, dz = (b1.X - b2.X, b1.Y - b2.Y, b1.Z - b2.Z)
+      let dx, dy, dz = b1.X - b2.X, b1.Y - b2.Y, b1.Z - b2.Z
       let dist = sqrt(dx * dx + dy * dy + dz * dz)
       let mag = t / (dist * dist * dist)
       b1.VX <- b1.VX - b2.Mass * mag * dx
@@ -103,7 +103,7 @@ let rec energy i e a =
       if j < Array.length a
       then 
         let b2 = a.[j]
-        let dx, dy, dz = (b1.X - b2.X, b1.Y - b2.Y, b1.Z - b2.Z)
+        let dx, dy, dz = b1.X - b2.X, b1.Y - b2.Y, b1.Z - b2.Z
         let dist = sqrt(dx * dx + dy * dy + dz * dz)
         energy' a (j + 1) (e - b1.Mass * b2.Mass / dist)
       else e

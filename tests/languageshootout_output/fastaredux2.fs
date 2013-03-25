@@ -8,9 +8,9 @@ open System
 
 open System.IO
 
-let IM, IA, IC = (139968, 3877, 29573)
+let IM, IA, IC = 139968, 3877, 29573
 
-let cols, LUTLEN = (60, 1 <<< 9)
+let cols, LUTLEN = 60, 1 <<< 9
 
 let mutable s = 42
 
@@ -27,10 +27,10 @@ let iubvalues = [0.27; 0.12; 0.12; 0.27] @ List.replicate 12 0.02
 let iub = Seq.zip "acgtBDHKMNRSVWY"B iubvalues
 
 let homosapien = 
-  [(97uy, 0.3029549427)
-   (99uy, 0.1979883005)
-   (103uy, 0.1975473066)
-   (116uy, 0.3015094502)]
+  [97uy, 0.3029549427
+   99uy, 0.1979883005
+   103uy, 0.1975473066
+   116uy, 0.3015094502]
 
 let os = new BufferedStream(Console.OpenStandardOutput(), 1 <<< 16)
 
@@ -59,10 +59,10 @@ let randomFasta src n =
     for key, cum, i in cumuArray do
       let v = j
       while j <= int(float(LUTLEN - 1) * cum) do
-        arr.[j] <- (key, i)
+        arr.[j] <- key, i
         j <- j + 1
       if j <> v
-      then arr.[j - 1] <- (0uy, i)
+      then arr.[j - 1] <- 0uy, i
     arr
   let lookup x = 
     match lut.[x * (LUTLEN - 1) / IM] with
