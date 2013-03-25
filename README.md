@@ -71,7 +71,7 @@ is reformulated to
 For more complex examples, please take a look at F# outputs of [20 language shootout programs](tests/languageshootout_output) and [10 CodeReview.SE source files](tests/stackexchange_output).
 
 ## How to use
-For detailed notes on how to use Fantomas, please take a look at [this document](Usage.md).
+For detailed guidelines, please read [Fantomas: How to use](Usage.md).
 
 ## Installation
 The code base is written in F# 3.0/.NET framework 4.0. 
@@ -82,7 +82,7 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ## Testing and validation
 I have tried to be careful in testing the project.
-There are 76 unit tests and 30 validated test examples, 
+There are 84 unit tests and 30 validated test examples, 
 but it seems many corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 

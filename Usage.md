@@ -4,5 +4,135 @@
 ### Using the command line tool
 ---
 
+Two required parameters for the tool are input and output path. The output path is prompted by `--out` e.g.
+
+	Fantomas.Cmd.exe ../../../../tests/stackexchange/array.fs
+		--out ../../../../tests/stackexchange_output/array.fs 
+
+Both paths have to be files or folders at the same time. If they are folders, the structure of input folder will be reflected in the output one. The tool will explore the input folder recursively if you set `--recurse` option (see next section).
+
+
+#### Options
+ - `--recurse`: traverse the input folder recursively (if it is really a folder) to get all F# source files.
+ - `--force`: force writing original contents to output files. This is helpful if the tool fails on some unknown F# constructs.
+
+#### Preferences
+ - `--indent <number>`: `number` has to be between 1 and 10. This preference set the indentation (default = 4). The common values are 2 and 4. The same indentation is ensured to be consistent in a source file. To illustrate, here is a code fragment with `--indent 2` preference:
+ 
+	```fsharp
+	let inline selectRandom(f : _[]) = 
+	  let r = random 1.0
+	  let rec find = 
+	    function 
+	    | 0 -> fst f.[0]
+	    | n when r < snd f.[n] -> fst f.[n]
+	    | n -> find(n - 1)
+	  find <| f.Length - 1
+	```
+
+ - `--noSemicolonEOL`: remove all semicolons at the end of lines e.g.
+
+	```fsharp
+	let saturn = 
+	  { X = 8.343366718;
+	    Y = 4.124798564;
+	    Z = -0.4035234171;
+	    VX = -0.002767425107 * daysPerYear;
+	    VY = 0.004998528012 * daysPerYear;
+	    VZ = 2.304172976e-05 * daysPerYear;
+	    Mass = 0.0002858859807 * solarMass }
+
+    // After setting --noSemicolonEOL
+	let saturn = 
+	  { X = 8.343366718
+	    Y = 4.124798564
+	    Z = -0.4035234171
+	    VX = -0.002767425107 * daysPerYear
+	    VY = 0.004998528012 * daysPerYear
+	    VZ = 2.304172976e-05 * daysPerYear
+	    Mass = 0.0002858859807 * solarMass }
+	```
+
+ - `--spaceBeforeArgument`: if being set, a space is inserted before a function name and its first argument. For example, `Console.WriteLine("Hello World")` becomes `Console.WriteLine ("Hello World")`.
+
+ - `--noSpaceBeforeColon`: if being set, there is no space before `:` e.g.
+
+	```fsharp
+	type Planet = 
+	  { mutable X : float
+	    mutable Y : float
+	    mutable Z : float
+	    mutable VX : float
+	    mutable VY : float
+	    mutable VZ : float
+	    Mass : float }
+	```
+	
+	vs.
+	
+	```fsharp
+	type Planet = 
+	  { mutable X: float
+	    mutable Y: float
+	    mutable Z: float
+	    mutable VX: float
+	    mutable VY: float
+	    mutable VZ: float
+	    Mass: float }
+	```
+ - `--noSpaceAfterComma`: it is useful if you would like to save spaces in tuples, arguments, etc. To illustrate `(1, 2, 3)` become `(1,2,3)`.
+ 
+ - `--noSpaceAfterSemiColon`: it save spaces on records, arrays, lists, etc. Now 
+
+```fsharp
+let planets = [|sun; jupiter; saturn; uranus; neptune|]
+```
+
+becomes
+
+```fsharp
+let planets = [|sun;jupiter;saturn;uranus;neptune|]
+```
+
+ - `--indentOnTryWith`: if being set, `with` blocks will be indented like in the following example:
+
+```
+try
+    if System.DateTime.Now.Second % 3 = 0 
+	then raise(new System.Exception())
+    else raise(new System.ApplicationException())
+with
+    | :? System.ApplicationException -> 
+        printfn "A second that was not a multiple of 3"    
+    | _ -> 
+        printfn "A second that was a multiple of 3"
+```
+
+That said, most of the preferences are very simple. But they demonstrate the adaptiveness of Fantomas on a set of configurations. More preferences will be added depending on use cases.
+
 ### Using the library
 ---
+The main entry point of the library is function `processSourceFile`, which read the input file and write formatted source code to the output file:
+
+```fsharp
+val processSourceFile :
+    inFile:string -> outFile:string -> config:FormatConfig -> unit
+```
+
+The configuration consists of the fields described above. It's often customized by augmenting a default configuration:
+
+```fsharp
+let config = { FormatConfig.Default with 
+                IndentSpaceNum = 2
+                SemicolonAtEndOfLine = false
+                SpaceBeforeArgument = false 
+                SpaceBeforeColon = false
+                SpaceAfterComma = true
+                SpaceAfterSemicolon = true
+                IndentOnTryWith = true }
+```
+
+If you would like to work with source strings, there is also function `formatSourceString`:
+
+```fsharp
+val formatSourceString : s:string -> config:FormatConfig -> string```
