@@ -7,6 +7,8 @@ open Microsoft.FSharp.Text.Args
 open Fantomas.FormatConfig
 open Fantomas.CodeFormatter
 
+/// These are functionalities that should be implemented now or later
+///
 /// Options:
 ///  --encoding=<encoding>           Set the encoding, e.g. UTF-8. 
 ///                                  If not set, defaults to the platform default encoding (currently UTF-8)

@@ -29,12 +29,12 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
     member __.Write(s : string) =
         match s.LastIndexOf('\n') with
         | -1 -> col <- col + s.Length
-        | i -> col <- col + s.Length - i - 1
+        | i -> col <- s.Length - i - 1
         indentWriter.Write(s)
     member __.WriteLine(s : string) =
-        indentWriter.WriteLine(s)
         col <- indentWriter.Indent
-    /// Current column of the page in absolute sense
+        indentWriter.WriteLine(s)
+    /// Current column of the page in an absolute manner
     member __.Column = col
     member __.Indent 
         with get() = indentWriter.Indent

@@ -56,22 +56,8 @@ let hasParenthesis = function
     | _ -> false
 
 let hasParenInPat = function
-    | PatOptionalVal _ -> false
-    | PatAttrib _ -> false
-    | PatOr _ -> true
-    | PatAnds _ -> true
-    | PatNullary _ -> false
-    | PatTyped _ -> false
-    | PatNamed _ -> false
-    | PatLongIdent _ -> false
-    | PatConst(Const "()") -> true
-    | PatConst _ -> false
-    | PatParen _ -> true
-    | PatSeq _ -> false
-    | PatRecord _ -> false
-    | PatIsInst _ -> true
-    | PatQuoteExpr e -> false
-    | p -> failwithf "Unexpected pattern: %O" p
+    | PatParen _ | PatConst(Const "()") -> true
+    | _ -> false
 
 let inline genConst c =
     match c with
@@ -424,7 +410,7 @@ and genTypeDefKind = function
     | TCSimple TCHiddenRepr -> id
     | TCSimple TCAugmentation -> sepNone
     | TCSimple TCILAssemblyCode -> id
-    | TCDelegate(t, vi) -> id
+    | TCDelegate(t, vi) -> sepNone
 
 and genException(ExceptionDef(ats, px, ao, uc, ms)) = 
     genPreXmlDoc px
