@@ -437,7 +437,7 @@ lookForValue 10 20"""
 [<Test>]
 let ``triple-quoted strings``() =
     formatSourceString "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"" config
-    |> should equal "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"\r\n"
+    |> should equal ("let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"" + newline)
 
 [<Test>]
 let ``string literals``() =
