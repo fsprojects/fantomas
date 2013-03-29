@@ -118,9 +118,6 @@ and genPreXmlDoc(PreXmlDoc lines) = colPost sepNln sepNln lines (sprintf "///%s"
 and inline autoBreakNln e = 
     ifElse (multiline e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
 
-and inline autoBreakNlnBy l e = 
-    ifElse (multiline e) (incrIndent l +> sepNln +> genExpr e +> decrIndent l) (genExpr e)
-
 and inline genTyparList tps = 
     ifElse (List.atmostOne tps) (col wordOr tps genTypar) (sepOpenT +> col wordOr tps genTypar +> sepCloseT)
 
@@ -142,7 +139,7 @@ and genLetBinding pref = function
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
         genPreXmlDoc px
-        +> colPost sepNln sepNone ats genAttribute -- prefix +> autoBreakNlnBy 2 e
+        +> colPost sepNln sepNone ats genAttribute -- prefix +> autoBreakNln e
     | b -> failwithf "%O isn't a let binding" b
 
 and genMemberBinding isInterface = function
