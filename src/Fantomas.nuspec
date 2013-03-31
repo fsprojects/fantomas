@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Fantomas</id>
+        <version>0.8.0</version>
+        <title>Fantomas</title>
+        <authors>Anh-Dung Phan</authors>
+        <owners />
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>This project aims at formatting F# source files based on a given configuration. Fantomas will ensure correct indentation and consistent spacing between elements in the source files. We assume that the source files are parsable by F# compiler before feeding into the tool.</description>
+        <summary>A source code formatting command line tool for F#.</summary>
+    </metadata>
+    <files>
+        <file src="Fantomas.Cmd\bin\Release\Args.dll" target="lib\Args.dll" />
+        <file src="Fantomas.Cmd\bin\Release\Fantomas.Cmd.exe" target="lib\Fantomas.Cmd.exe" />
+        <file src="Fantomas.Cmd\bin\Release\Fantomas.dll" target="lib\Fantomas.dll" />
+        <file src="Fantomas.Cmd\bin\Release\Fantomas.xml" target="lib\Fantomas.xml" />
+        <file src="Fantomas.Cmd\bin\Release\FSharp.Compiler.dll" target="lib\FSharp.Compiler.dll" />
+    </files>
+</package>
