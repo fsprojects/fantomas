@@ -6,7 +6,7 @@ open System.Resources
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 
-let [<Literal>] version = "0.8.0"
+let [<Literal>] version = "0.8.2"
     
 // Version information
 [<assembly: AssemblyVersion(version)>]

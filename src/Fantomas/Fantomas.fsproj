@@ -8,7 +8,7 @@
     <ProjectGuid>919adf2d-df2e-4f4d-9f8b-0376346535c9</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Fantomas</RootNamespace>
-    <AssemblyName>Fantomas</AssemblyName>
+    <AssemblyName>FantomasLib</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>Fantomas</Name>
   </PropertyGroup>
@@ -29,7 +29,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Fantomas.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\FantomasLib.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
