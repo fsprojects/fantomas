@@ -24,12 +24,12 @@ let parse s = parseWith "/tmp.fs" s
 /// Format a source file using given config
 let formatSourceFile f config = 
     let s = File.ReadAllText(f)
-    let tree = parseWith f s
+    let tree = parse s
     Context.createContext config s |> genParsedInput tree |> dump
 
 /// Format a source string using given config
 let formatSourceString s config =
-    let tree = parseWith "/tmp.fs" s
+    let tree = parse s
     Context.createContext config s |> genParsedInput tree |> dump
 
 /// Format inFile and write to outFile

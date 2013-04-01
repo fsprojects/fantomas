@@ -72,7 +72,7 @@ let main args =
     let recurse = ref false
     let force = ref false
 
-    let outputPath = ref Nothing
+    let outputPath = ref None
     let inputPath = ref Nothing
     
     let indent = ref 4
@@ -85,13 +85,7 @@ let main args =
     let indentOnTryWith = ref false
 
     let handleOutput s =
-        if Directory.Exists(s) then
-           outputPath := Folder s
-        elif File.Exists(s) && isFSharpFile(s) then
-           outputPath := File s
-        else
-            Console.WriteLine("Output path should be a file or a folder.")
-            exit 1
+        outputPath := Some s
 
     let handleInput s = 
         if Directory.Exists(s) then
@@ -115,7 +109,7 @@ let main args =
             Console.WriteLine("{0} has been written.", outFile)
         with
         | exn ->
-            Console.WriteLine("The following exception occurs: {0}", exn.Message)
+            Console.WriteLine("The following exception occurs: {0}", exn.ToString())
             if !force then
                 File.WriteAllText(outFile, File.ReadAllText(inFile))
                 Console.WriteLine("Force writing original contents to {0}.", outFile)
@@ -149,18 +143,14 @@ let main args =
     | Nothing, _ -> 
         Console.WriteLine("Input path is missing.")
         exit 1
-    | _, Nothing ->
+    | _, None ->
         Console.WriteLine("Output path is missing.")
         exit 1
-    | File s1, File s2 ->
+    | File s1, Some s2 ->
         processSourceCode s1 s2 config
-    | File _, Folder _ ->
-        Console.WriteLine("Output path should be a file like input path.")
-        exit 1
-    | Folder _, File _ ->
-        Console.WriteLine("Output path should be a folder like input path.")
-        exit 1
-    | Folder s1, Folder s2 ->
+    | Folder s1, Some s2 ->
+        if not <| Directory.Exists(s2) then
+            Directory.CreateDirectory(s2) |> ignore
         allFiles !recurse s1
         |> Seq.iter (fun s ->     
             /// s supposes to have form s1/suffix
