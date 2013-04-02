@@ -58,7 +58,8 @@ let array1 = [|1; 2; 3|]
 array1.[0..2]
 array2.[2.., 0..]
 array2.[..3, ..1]
-array1.[1] <- 3"""
+array1.[1] <- 3
+"""
 
 [<Test>]
 let ``array values``() =
@@ -177,7 +178,8 @@ type SparseMatrix() =
 let matrix1 = new SparseMatrix()
 
 for i in 1..1000 do
-    matrix1.[i, i] <- float i * float i"""
+    matrix1.[i, i] <- float i * float i
+"""
 
 [<Test>]
 let ``then blocks after constructors``() =

@@ -15,7 +15,8 @@ let inline append s content = content + s
 [<Test>]
 let ``module abbreviation``() =
     formatSourceString "module ES = Microsoft.FSharp.Quotations.ExprShape" config
-    |> should equal "module ES = Microsoft.FSharp.Quotations.ExprShape"
+    |> should equal """module ES = Microsoft.FSharp.Quotations.ExprShape
+"""
 
 [<Test>]
 let ``attributes on expressions``() =
@@ -25,7 +26,8 @@ let ``attributes on expressions``() =
     |> prepend newline
     |> should equal """
 [<Dependency("FSharp.Compiler", LoadHint.Always)>]
-do ()"""
+do ()
+"""
 
 [<Test>]
 let ``module with functions``() =
@@ -44,7 +46,6 @@ let ``open modules``() =
     |> prepend newline
     |> should equal """
 open System
-
 open System.IO
 """
 
@@ -67,7 +68,6 @@ let ``hash directives``() =
     #load "CodeFormatterTests.fs"
     """ config
     |> prepend newline
-    |> append newline
     |> should equal """
 #r "Fantomas.Tests.dll"
 #load "CodeFormatterTests.fs"
@@ -140,12 +140,14 @@ let ``typed quotations``() =
     |> prepend newline
     |> should equal """
 <@ let f x = x + 10
-   f 20 @>"""
+   f 20 @>
+"""
 
 [<Test>]
 let ``untyped quotations``() =
     formatSourceString "<@@ 2 + 3 @@>" config
-    |> should equal "<@@ 2 + 3 @@>"
+    |> should equal """<@@ 2 + 3 @@>
+"""
 
 [<Test>]
 let ``exception declations``() =
@@ -268,7 +270,8 @@ let function2() =
         printf "%d " i
     printfn ""
 
-function2()"""
+function2()
+"""
 
 [<Test>]
 let ``access modifiers``() =
@@ -290,9 +293,9 @@ let ``keyworded expressions``() =
     do printfn "Hello world"
     """ config
     |> prepend newline
-    |> append newline
     |> should equal """
 assert (3 > 2)
+
 let result = lazy (x + 10)
 
 do printfn "Hello world"
@@ -432,7 +435,8 @@ let lookForValue value maxValue =
             printfn "\nFound a %d!" value
             continueLooping <- false
 
-lookForValue 10 20"""
+lookForValue 10 20
+"""
 
 [<Test>]
 let ``triple-quoted strings``() =
@@ -468,7 +472,8 @@ let printSourceLocation() =
     printfn "Source Directory: %s" __SOURCE_DIRECTORY__
     printfn "Source File: %s" __SOURCE_FILE__
 
-printSourceLocation()"""
+printSourceLocation()
+"""
 
 [<Test>]
 let ``enums conversion``() =
@@ -523,4 +528,5 @@ let test x y =
     else "is greater than"
 
 if age < 10
-then printfn "You are only %d years old and already learning F#? Wow!" age"""
+then printfn "You are only %d years old and already learning F#? Wow!" age
+"""

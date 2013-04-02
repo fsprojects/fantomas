@@ -64,6 +64,23 @@ let inline genConst c =
     | Const c -> !- c
     | Unresolved c -> fun ctx -> str (content c ctx) ctx
 
+/// Group similar operations into a batch for processing
+let rec (|SingleModuleDecls|ComplexModuleDecls|Empty|) xs =
+    match xs with
+    | [Attributes _ | DoExpr _ | HashDirective _ | ModuleAbbrev _ | Open _ as x] ->
+        SingleModuleDecls([x], [])
+    | (Attributes _ | DoExpr _ | HashDirective _ | ModuleAbbrev _ | Open _ as x)::SingleModuleDecls(ys, zs) ->
+        SingleModuleDecls(x::ys, zs)
+    | (Attributes _ | DoExpr _ | HashDirective _ | ModuleAbbrev _ | Open _ as x)::xs' ->
+        SingleModuleDecls([x], xs')
+    | [x] ->
+        ComplexModuleDecls([x], [])
+    | x::ComplexModuleDecls(ys, zs) ->
+        ComplexModuleDecls(x::ys, zs)
+    | x::xs' ->
+        ComplexModuleDecls([x], xs')
+    | _ -> Empty
+
 let rec genParsedInput = function
     | ImplFile im -> genImpFile im
     | SigFile si -> genSigFile si
@@ -78,26 +95,37 @@ and genModuleOrNamespace = function
         +> colPost sepNln sepNln ats genAttribute
         /// Checking for Tmp is a bit fragile
         +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ") -- s +> rep 2 sepNln)
-        +> col sepNln mds genModuleDecl
+        +> genModuleDeclGroup mds
+
+and genModuleDeclGroup = function
+    | ComplexModuleDecls(ys, Empty) ->
+        col sepNln ys genModuleDecl
+    | ComplexModuleDecls(ys, zs) ->
+        col sepNln ys genModuleDecl +> sepNln +> genModuleDeclGroup zs
+    | SingleModuleDecls(ys, Empty) ->
+        col sepNone ys genModuleDecl 
+    | SingleModuleDecls(ys, zs) ->
+        col sepNone ys genModuleDecl +> sepNln +> genModuleDeclGroup zs
+    | Empty -> sepNone    
 
 and genModuleDecl = function
-    | Attributes(ats) -> col sepNln ats genAttribute
-    | DoExpr(e) -> genExpr e
-    | Exception(ex) -> genException ex
+    | Attributes(ats) -> col sepNln ats genAttribute +> sepNln
+    | DoExpr(e) -> genExpr e +> sepNln
+    | Exception(ex) -> genException ex +> sepNln
     | HashDirective(s1, s2) -> 
         /// print strings with quotes
-        !- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2))
-    /// Add a new line after model-level let bindings
+        !- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2)) +> sepNln
+    /// Add a new line after module-level let bindings
     | Let(b) -> genLetBinding "let " b +> sepNln
     | LetRec(b::bs) -> 
         genLetBinding "let rec " b 
         +> colPre (rep 2 sepNln) (rep 2 sepNln) bs (genLetBinding "and ") +> sepNln
-    | ModuleAbbrev(s1, s2) -> !- "module " -- s1 +> sepEq -- s2
+    | ModuleAbbrev(s1, s2) -> !- "module " -- s1 +> sepEq -- s2 +> sepNln
     | NamespaceFragment(m) -> failwithf "NamespaceFragment is not supported yet: %O" m
     | NestedModule(ats, px, ao, s, mds) -> 
         genPreXmlDoc px
         +> colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
-        +> indent +> sepNln +> col sepNln mds genModuleDecl +> unindent
+        +> indent +> sepNln +> genModuleDeclGroup mds +> unindent
     | Open(s) -> !- (sprintf "open %s" s) +> sepNln
     /// There is no nested types and they have newlines in the ends of definitions
     | Types(t::ts) -> genTypeDefn true t +> colPre sepNln sepNln ts (genTypeDefn false)
@@ -413,7 +441,7 @@ and genException(ExceptionDef(ats, px, ao, uc, ms)) =
     genPreXmlDoc px
     +> colPost sepNln sepNone ats genAttribute  -- "exception " 
     +> opt sepSpace ao genAccess +> genUnionCase false uc
-    +> sepNln +> colPost sepNln sepNln ms (genMemberDefn false)
+    +> colPre sepNln sepNln ms (genMemberDefn false)
 
 and genUnionCase hasBar (UnionCase(ats, px, _, s, UnionCaseType fs)) =
     genPreXmlDoc px
