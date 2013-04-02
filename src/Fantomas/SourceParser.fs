@@ -578,10 +578,10 @@ let (|PatQuoteExpr|_|) = function
 
 // Members
 
-let (|SPatAttrib|SPatId|SPatTyped|) = function
-    | SynSimplePat.Attrib(sp, ats, _) -> SPatAttrib(ats, sp)
-    | SynSimplePat.Id(Ident s, _, _, _, isOptArg, _) -> SPatId(s, isOptArg)
-    | SynSimplePat.Typed(sp, t, _) -> SPatTyped(sp, t)
+let (|SPAttrib|SPId|SPTyped|) = function
+    | SynSimplePat.Attrib(sp, ats, _) -> SPAttrib(ats, sp)
+    | SynSimplePat.Id(Ident s, _, isGen, _, isOptArg, _) -> SPId(s, isOptArg, isGen)
+    | SynSimplePat.Typed(sp, t, _) -> SPTyped(sp, t)
 
 let (|SimplePats|SPSTyped|) = function
     | SynSimplePats.SimplePats(ps, _) -> SimplePats ps
@@ -592,6 +592,11 @@ let (|RecordField|) = function
 
 let (|Clause|) = function
     | SynMatchClause.Clause(p, eo, e, _, _) -> (p, e, eo)
+
+/// Desugar a compiler generated lambda
+let (|DesugaredLambda|_|) = function
+    | Lambda(Match(Var s1, [Clause(PatNullary PatWild, e, None)]), [SimplePats [SPId(s2, _, true)]]) when s1 = s2 -> Some e
+    | _ -> None
 
 // Type definitions
 

@@ -13,18 +13,13 @@ open Fantomas.CodeFormatter
 let config = FormatConfig.Default
 
 let t01 = """
-module internal AssemblyAttributes = 
-    //[<assembly: System.Security.SecurityTransparent>]
-    do()
-
-//-------------------------------------------------------------------------------------------------
-module internal Global = 
-    let debugCmdLineArgs = true"""    
+let lexBuffer = 
+    new LexBuffer<_> 
+        { fillSync = Some (fun _ -> ()); 
+            fillAsync = Some (fun _ -> async { return () }) }"""    
 
 ;;
 
 printfn "Result:\n%s" <| formatSourceString t01 config;;
 
 printfn "Tree:\n%A" <| parse t01;;
-
-

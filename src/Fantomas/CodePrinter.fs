@@ -28,6 +28,7 @@ let rec multiline = function
     | CompExpr(_, e) -> multiline e
     | ArrayOrListOfSeqExpr(_, e) -> multiline e
     | JoinIn(e1, e2) -> multiline e1 || multiline e2
+    | DesugaredLambda(e) -> multiline e
     | Lambda(e, _) -> multiline e
     | MatchLambda _ -> true
     | Match(e, cs) -> multiline e || not (List.isEmpty cs)
@@ -242,7 +243,7 @@ and genMemberFlags isInterface = function
     | MFOverride _ -> ifElse isInterface (!- "member ") (!- "override ")
 
 and inline genRecordFieldName(RecordFieldName(s, eo)) =
-    opt sepNone eo (fun e -> !- s +> sepEq +> genExpr e)
+    opt sepNone eo (fun e -> !- s +> sepEq +> autoBreakNln e)
 
 and genExpr = function
     | Paren(ConstExpr(Const "()")) -> !- "()"
@@ -292,6 +293,7 @@ and genExpr = function
     | ArrayOrListOfSeqExpr(isArray, e) -> 
         ifElse isArray (sepOpenA +> genExpr e +> sepCloseA) (sepOpenL +> genExpr e +> sepCloseL)
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
+    | DesugaredLambda(e) -> !- "fun _" +> sepArrow +> autoBreakNln e
     | Lambda(e, sps) -> 
         !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e
     | MatchLambda(sp, isMember) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
@@ -475,7 +477,7 @@ and genType = function
     | TApp(t, ts, isPostfix) -> 
         let postForm = 
             match ts with
-            | [] -> invalidArg "ts" "List of types should not be empty"
+            | [] ->  genType t
             | [t'] -> genType t' +> sepSpace +> genType t
             | ts -> sepOpenT +> col sepComma ts genType -- ") " +> genType t
         ifElse isPostfix postForm (genType t -- "<" +> col sepComma ts genType -- ">")
@@ -568,13 +570,13 @@ and propertyKind = function
     | _ -> ""
 
 and genSimplePat = function
-    | SPatId(s, isOptArg) -> ifElse isOptArg (!- (sprintf "?%s" s)) (!- s)
-    | SPatTyped(sp, t) -> genSimplePat sp -- " : " +> genType t
-    | SPatAttrib(ats, sp) -> colPost sepSpace sepNone ats genAttribute +> genSimplePat sp
+    | SPId(s, isOptArg, _) -> ifElse isOptArg (!- (sprintf "?%s" s)) (!- s)
+    | SPTyped(sp, t) -> genSimplePat sp -- " : " +> genType t
+    | SPAttrib(ats, sp) -> colPost sepSpace sepNone ats genAttribute +> genSimplePat sp
     
 and genSimplePats = function
     /// Remove parentheses on an extremely simple pattern
-    | SimplePats [SPatId _ as sp] -> genSimplePat sp
+    | SimplePats [SPId _ as sp] -> genSimplePat sp
     | SimplePats ps -> sepOpenT +> col sepComma ps genSimplePat +> sepCloseT
     | SPSTyped(ps, t) -> genSimplePats ps -- " : " +> genType t
 

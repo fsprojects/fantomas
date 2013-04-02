@@ -21,19 +21,33 @@ let internal parseWith fileName content =
 /// Parse a source code string
 let parse s = parseWith "/tmp.fs" s
 
-/// Format a source file using given config
-let formatSourceFile f config = 
-    let s = File.ReadAllText(f)
-    let tree = parse s
-    Context.createContext config s |> genParsedInput tree |> dump
-
 /// Format a source string using given config
 let formatSourceString s config =
     let tree = parse s
     Context.createContext config s |> genParsedInput tree |> dump
 
+/// Format a source string using given config; return None if failed
+let tryFormatSourceString s config =
+    try
+        Some (formatSourceString s config)
+    with 
+    _ -> None
+
+/// Format a source file using given config
+let formatSourceFile f config = 
+    let s = File.ReadAllText(f)
+    formatSourceString s config
+
 /// Format inFile and write to outFile
 let processSourceFile inFile outFile config = 
     let s = formatSourceFile inFile config
     File.WriteAllText(outFile, s)
-    
+
+/// Format inFile and write to outFile; return None if failed
+let tryProcessSourceFile inFile outFile config = 
+    try
+        Some (processSourceFile inFile outFile config)
+    with 
+    _ -> None
+
+
