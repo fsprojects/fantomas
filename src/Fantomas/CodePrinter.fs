@@ -28,7 +28,7 @@ let rec multiline = function
     | CompExpr(_, e) -> multiline e
     | ArrayOrListOfSeqExpr(_, e) -> multiline e
     | JoinIn(e1, e2) -> multiline e1 || multiline e2
-    | DesugaredLambda(e) -> multiline e
+    | DesugaredMatch(_, e) -> multiline e
     | Lambda(e, _) -> multiline e
     | MatchLambda _ -> true
     | Match(e, cs) -> multiline e || not (List.isEmpty cs)
@@ -293,7 +293,7 @@ and genExpr = function
     | ArrayOrListOfSeqExpr(isArray, e) -> 
         ifElse isArray (sepOpenA +> genExpr e +> sepCloseA) (sepOpenL +> genExpr e +> sepCloseL)
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
-    | DesugaredLambda(e) -> !- "fun _" +> sepArrow +> autoBreakNln e
+    | DesugaredMatch(_, e) -> genExpr e
     | Lambda(e, sps) -> 
         !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e
     | MatchLambda(sp, isMember) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
@@ -455,10 +455,15 @@ and genEnumCase hasBar (EnumCase(ats, px, s, c)) =
     +> colPost sepSpace sepNone ats genAttribute -- s +> sepEq +> genConst c
 
 and genField prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) = 
+    /// Being protective on union cases of functions 
+    let t =
+        match t with
+        | TFun(t1, t2) -> sepOpenT +> genTypeGroup true t +> sepCloseT
+        | _ -> genTypeGroup true t
     genPreXmlDoc px 
     +> colPost sepSpace sepNone ats genAttribute -- prefix
     +> opt sepSpace ao genAccess +> ifElse isStatic (!- "static ") sepNone
-    +> ifElse isMutable (!- "mutable ") sepNone +> opt sepColon so (!-) +> genTypeGroup true t
+    +> ifElse isMutable (!- "mutable ") sepNone +> opt sepColon so (!-) +> t
 
 and genType = function
     | THashConstraint t -> !- "#" +> genType t
@@ -484,7 +489,6 @@ and genType = function
     | TLongIdentApp(t, li, ts) -> genType t -- li -- "<" +> col sepComma ts genType -- ">"
     /// The surrounding brackets don't seem neccessary
     | TTuple ts -> col sepStar ts (snd >> genTypeGroup true)
-    /// Revise this case later
     | TWithGlobalConstraints(t, tcs) -> genType t +> colPre (!- " when ") wordAnd tcs genTypeConstraint
     | TLongIdent li -> !- li
     | t -> failwithf "Unexpected type: %O" t

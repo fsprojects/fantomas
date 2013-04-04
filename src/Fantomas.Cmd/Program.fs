@@ -109,7 +109,7 @@ let main args =
             Console.WriteLine("{0} has been written.", outFile)
         with
         | exn ->
-            Console.WriteLine("The following exception occurs: {0}", exn.ToString())
+            Console.WriteLine("The following exception occurs while formatting {0}: {1}", inFile, exn.ToString())
             if !force then
                 File.WriteAllText(outFile, File.ReadAllText(inFile))
                 Console.WriteLine("Force writing original contents to {0}.", outFile)

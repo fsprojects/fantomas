@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Fantomas</id>
-        <version>0.8.5</version>
+        <version>0.8.6</version>
         <title>Fantomas</title>
         <authors>Anh-Dung Phan</authors>
         <owners />

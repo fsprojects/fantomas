@@ -15,9 +15,8 @@ let config = FormatConfig.Default
 let t01 = """
 let lexBuffer = 
     new LexBuffer<_> 
-        { fillSync = Some (fun _ -> ()); 
-            fillAsync = Some (fun _ -> async { return () }) }"""    
-
+        { fillSync = Some (fun _ _ -> ()); 
+            fillAsync = Some (fun _ -> async { return () }) }"""
 ;;
 
 printfn "Result:\n%s" <| formatSourceString t01 config;;

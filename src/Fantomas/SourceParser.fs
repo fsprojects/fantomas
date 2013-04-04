@@ -580,6 +580,8 @@ let (|PatQuoteExpr|_|) = function
 
 let (|SPAttrib|SPId|SPTyped|) = function
     | SynSimplePat.Attrib(sp, ats, _) -> SPAttrib(ats, sp)
+    /// Not sure compiler generated SPIds are used elsewhere.
+    | SynSimplePat.Id(Ident s, _, true, _, isOptArg, _) -> SPId("_", isOptArg, true)
     | SynSimplePat.Id(Ident s, _, isGen, _, isOptArg, _) -> SPId(s, isOptArg, isGen)
     | SynSimplePat.Typed(sp, t, _) -> SPTyped(sp, t)
 
@@ -593,9 +595,9 @@ let (|RecordField|) = function
 let (|Clause|) = function
     | SynMatchClause.Clause(p, eo, e, _, _) -> (p, e, eo)
 
-/// Desugar a compiler generated lambda
-let (|DesugaredLambda|_|) = function
-    | Lambda(Match(Var s1, [Clause(PatNullary PatWild, e, None)]), [SimplePats [SPId(s2, _, true)]]) when s1 = s2 -> Some e
+let rec (|DesugaredMatch|_|) = function
+    | SynExpr.Match(_, Var s, [Clause(PatNullary PatWild, DesugaredMatch(ss, e), None)], _, _) -> Some(s::ss, e)
+    | SynExpr.Match(_, Var s, [Clause(PatNullary PatWild, e, None)], _, _) -> Some([s], e)
     | _ -> None
 
 // Type definitions
