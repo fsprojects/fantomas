@@ -13,12 +13,20 @@ open Fantomas.CodeFormatter
 let config = FormatConfig.Default
 
 let t01 = """
-let lexBuffer = 
-    new LexBuffer<_> 
-        { fillSync = Some (fun _ _ -> ()); 
-            fillAsync = Some (fun _ -> async { return () }) }"""
+module WSNModeller.Utils
+
+val turnTracingOn : unit -> unit
+val turnTracingOff : unit -> unit
+val isTraced : unit -> bool
+
+module Random = begin
+    val exponential : mean:float -> float
+    val nextInt : max:int -> int
+    val nextInt64 : max:int64 -> int64
+    val next : max:float -> float
+end"""
 ;;
 
-printfn "Result:\n%s" <| formatSourceString t01 config;;
+printfn "Result:\n%s" <| formatSourceString true t01 config;;
 
-printfn "Tree:\n%A" <| parse t01;;
+printfn "Tree:\n%A" <| parse true t01;;

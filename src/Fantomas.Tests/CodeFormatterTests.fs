@@ -14,13 +14,13 @@ let inline append s content = content + s
 
 [<Test>]
 let ``module abbreviation``() =
-    formatSourceString "module ES = Microsoft.FSharp.Quotations.ExprShape" config
+    formatSourceString false "module ES = Microsoft.FSharp.Quotations.ExprShape" config
     |> should equal """module ES = Microsoft.FSharp.Quotations.ExprShape
 """
 
 [<Test>]
 let ``attributes on expressions``() =
-    formatSourceString """
+    formatSourceString false """
     [<Dependency("FSharp.Compiler", LoadHint.Always)>]
     do ()""" config
     |> prepend newline
@@ -31,7 +31,7 @@ do ()
 
 [<Test>]
 let ``module with functions``() =
-    formatSourceString "module internal MyModule = let x = 42" config
+    formatSourceString false "module internal MyModule = let x = 42" config
     |> prepend newline
     |> should equal """
 module internal MyModule = 
@@ -40,7 +40,7 @@ module internal MyModule =
 
 [<Test>]
 let ``open modules``() =
-    formatSourceString """
+    formatSourceString false """
     open System
     open System.IO""" config
     |> prepend newline
@@ -51,7 +51,7 @@ open System.IO
 
 [<Test>]
 let ``recursive functions``() =
-    formatSourceString """
+    formatSourceString false """
     let rec f x = g x
     and g x = x""" config
     |> prepend newline
@@ -63,7 +63,7 @@ and g x = x
 
 [<Test>]
 let ``hash directives``() =
-    formatSourceString """
+    formatSourceString false """
     #r "Fantomas.Tests.dll"
     #load "CodeFormatterTests.fs"
     """ config
@@ -75,7 +75,7 @@ let ``hash directives``() =
 
 [<Test>]
 let ``discriminated unions declaration``() =
-    formatSourceString "type X = private | A of AParameters | B" config
+    formatSourceString false "type X = private | A of AParameters | B" config
     |> prepend newline
     |> should equal """
 type X = 
@@ -86,7 +86,7 @@ type X =
 
 [<Test>]
 let ``record declaration``() =
-    formatSourceString "type AParameters = { a : int }" config
+    formatSourceString false "type AParameters = { a : int }" config
     |> prepend newline
     |> should equal """
 type AParameters = 
@@ -95,7 +95,7 @@ type AParameters =
 
 [<Test>]
 let ``enums declaration``() =
-    formatSourceString """
+    formatSourceString false """
     type FontVariant =
     | [<Description("small-caps")>] SmallCaps = 0""" config
     |> prepend newline
@@ -106,7 +106,7 @@ type FontVariant =
 
 [<Test>]
 let ``units of measures declaration``() =
-    formatSourceString """
+    formatSourceString false """
     [<Measure>] type m
     [<Measure>] type kg
     [<Measure>] type s
@@ -132,7 +132,7 @@ type Pa = N * m^2
 
 [<Test>]
 let ``typed quotations``() =
-    formatSourceString """
+    formatSourceString false """
     <@ 
         let f x = x + 10
         f 20
@@ -145,19 +145,19 @@ let ``typed quotations``() =
 
 [<Test>]
 let ``untyped quotations``() =
-    formatSourceString "<@@ 2 + 3 @@>" config
+    formatSourceString false "<@@ 2 + 3 @@>" config
     |> should equal """<@@ 2 + 3 @@>
 """
 
 [<Test>]
 let ``exception declations``() =
-    formatSourceString "exception Error2 of string * int" config
+    formatSourceString false "exception Error2 of string * int" config
     |> should equal """exception Error2 of string * int
 """
 
 [<Test>]
 let ``for loops``() =
-    formatSourceString """
+    formatSourceString false """
     let function1() =
         for i = 1 to 10 do
             printf "%d " i
@@ -182,7 +182,7 @@ let function2() =
 
 [<Test>]
 let ``object expressions``() =
-    formatSourceString """let obj1 = { new System.Object() with member x.ToString() = "F#" }""" config
+    formatSourceString false """let obj1 = { new System.Object() with member x.ToString() = "F#" }""" config
     |> prepend newline
     |> should equal """
 let obj1 = 
@@ -192,7 +192,7 @@ let obj1 =
 
 [<Test>]
 let ``object expressions and interfaces``() =
-    formatSourceString """
+    formatSourceString false """
     let implementer() = 
         { new ISecond with 
             member this.H() = ()
@@ -213,7 +213,7 @@ let implementer() =
 
 [<Test>]
 let ``type annotations``() =
-    formatSourceString """
+    formatSourceString false """
     let iterate1 (f : unit -> seq<int>) =
         for e in f() do printfn "%d" e
     let iterate2 (f : unit -> #seq<int>) =
@@ -231,7 +231,7 @@ let iterate2(f : unit -> #seq<int>) =
 
 [<Test>]
 let ``upcast and downcast``() =
-    formatSourceString """
+    formatSourceString false """
     let base1 = d1 :> Base1
     let derived1 = base1 :?> Derived1""" config
     |> prepend newline
@@ -243,7 +243,7 @@ let derived1 = base1 :?> Derived1
 
 [<Test>]
 let ``use binding``() =
-    formatSourceString """
+    formatSourceString false """
     let writetofile filename obj =
      use file1 = File.CreateText(filename)
      file1.WriteLine("{0}", obj.ToString())
@@ -257,7 +257,7 @@ let writetofile filename obj =
 
 [<Test>]
 let ``range expressions``() =
-    formatSourceString """
+    formatSourceString false """
     let function2() =
       for i in 1 .. 2 .. 10 do
          printf "%d " i
@@ -275,7 +275,7 @@ function2()
 
 [<Test>]
 let ``access modifiers``() =
-    formatSourceString """
+    formatSourceString false """
     let private myPrivateObj = new MyPrivateType()
     let internal myInternalObj = new MyInternalType()""" config
     |> prepend newline
@@ -287,7 +287,7 @@ let internal myInternalObj = new MyInternalType()
 
 [<Test>]
 let ``keyworded expressions``() =
-    formatSourceString """
+    formatSourceString false """
     assert (3 > 2)
     let result = lazy (x + 10)
     do printfn "Hello world"
@@ -303,7 +303,7 @@ do printfn "Hello world"
 
 [<Test>]
 let ``match expressions``() =
-    formatSourceString """
+    formatSourceString false """
     let filter123 x =
         match x with
         | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
@@ -318,7 +318,7 @@ let filter123 x =
 
 [<Test>]
 let ``function keyword``() =
-    formatSourceString """
+    formatSourceString false """
     let filterNumbers =
         function | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
                  | a -> printfn "%d" a""" config
@@ -332,7 +332,7 @@ let filterNumbers =
 
 [<Test>]
 let ``try/with block``() =
-    formatSourceString """
+    formatSourceString false """
 let divide1 x y =
    try
       Some (x / y)
@@ -356,7 +356,7 @@ let result1 = divide1 100 0
 
 [<Test>]
 let ``try/with and finally``() =
-    formatSourceString """
+    formatSourceString false """
     let function1 x y =
        try 
          try 
@@ -383,7 +383,7 @@ let function1 x y =
 
 [<Test>]
 let ``verbose syntax``() =
-    formatSourceString """
+    formatSourceString false """
     #light "off"
 
     let div2 = 2;;
@@ -408,7 +408,7 @@ let f x =
 
 [<Test>]
 let ``while loop``() =
-    formatSourceString """
+    formatSourceString false """
 open System
 let lookForValue value maxValue =
   let mutable continueLooping = true 
@@ -440,12 +440,12 @@ lookForValue 10 20
 
 [<Test>]
 let ``triple-quoted strings``() =
-    formatSourceString "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"" config
+    formatSourceString false "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"" config
     |> should equal ("let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"" + newline)
 
 [<Test>]
 let ``string literals``() =
-    formatSourceString """
+    formatSourceString false """
 let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
 let str1 = "abc"
     """ config 
@@ -458,7 +458,7 @@ let str1 = "abc"
 
 [<Test>]
 let ``line, file and path identifiers``() =
-    formatSourceString """
+    formatSourceString false """
     let printSourceLocation() =
         printfn "Line: %s" __LINE__
         printfn "Source Directory: %s" __SOURCE_DIRECTORY__
@@ -477,7 +477,7 @@ printSourceLocation()
 
 [<Test>]
 let ``enums conversion``() =
-    formatSourceString """
+    formatSourceString false """
 type uColor =
    | Red = 0u
    | Green = 1u
@@ -495,7 +495,7 @@ let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(
 
 [<Test>]
 let ``if/then/else block``() =
-    formatSourceString """
+    formatSourceString false """
 let rec tryFindMatch pred list =
     match list with
     | head :: tail -> if pred(head)

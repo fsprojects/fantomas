@@ -19,24 +19,28 @@ let internal parseWith fileName content =
     | None -> failwith "parseWith: Unexpected input"
 
 /// Parse a source code string
-let parse s = parseWith "/tmp.fs" s
+let parse fsi s = 
+    let fileName = if fsi then "/tmp.fsi" else "/tmp.fs"
+    parseWith fileName s
 
 /// Format a source string using given config
-let formatSourceString s config =
-    let tree = parse s
+let formatSourceString fsi s config =
+    let tree = parse fsi s
     Context.createContext config s |> genParsedInput tree |> dump
 
 /// Format a source string using given config; return None if failed
-let tryFormatSourceString s config =
+let tryFormatSourceString fsi s config =
     try
-        Some (formatSourceString s config)
+        Some (formatSourceString fsi s config)
     with 
     _ -> None
 
 /// Format a source file using given config
 let formatSourceFile f config = 
     let s = File.ReadAllText(f)
-    formatSourceString s config
+    let ext = Path.GetExtension(s)
+    let fsi = ext = ".fsi" || ext = ".mli"
+    formatSourceString fsi s config
 
 /// Format inFile and write to outFile
 let processSourceFile inFile outFile config = 

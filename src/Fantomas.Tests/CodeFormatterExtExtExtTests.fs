@@ -14,7 +14,7 @@ let inline append s content = content + s
 
 [<Test>]
 let ``type providers``() =
-    formatSourceString """
+    formatSourceString false """
 type Northwind = ODataService<"http://services.odata.org/Northwind/Northwind.svc/">""" config
     |> prepend newline
     |> should equal """
@@ -23,7 +23,7 @@ type Northwind = ODataService<"http://services.odata.org/Northwind/Northwind.svc
 
 [<Test>]
 let ``named arguments``() =
-    formatSourceString """
+    formatSourceString false """
 type SpeedingTicket() =
     member this.GetMPHOver(speed: int, limit: int) = speed - limit
 
@@ -44,7 +44,7 @@ let CalculateFine(ticket : SpeedingTicket) =
 
 [<Test>]
 let ``array indices``() =
-    formatSourceString """
+    formatSourceString false """
 let array1 = [| 1; 2; 3 |]
 array1.[0..2] 
 array2.[2.., 0..]
@@ -63,7 +63,7 @@ array1.[1] <- 3
 
 [<Test>]
 let ``array values``() =
-    formatSourceString """
+    formatSourceString false """
 let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
   (3, 2, 6); (3, 3, 9)|]
     """ config
@@ -83,7 +83,7 @@ let arr =
 
 [<Test>]
 let ``comments on local let bindings``() =
-    formatSourceString """
+    formatSourceString false """
 let print_30_permut() = 
 
     /// declare and initialize
@@ -103,7 +103,7 @@ let print_30_permut() =
 
 [<Test>]
 let ``multiline strings``() =
-    formatSourceString """
+    formatSourceString false """
 let alu =
         "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
         GAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGA\
@@ -126,7 +126,7 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
 
 [<Test>]
 let ``indexed properties``() =
-    formatSourceString """
+    formatSourceString false """
 type NumberStrings() =
    let mutable ordinals = [| "one"; |]
    let mutable cardinals = [| "first"; |]
@@ -154,7 +154,7 @@ type NumberStrings() =
 
 [<Test>]
 let ``complex indexed properties``() =
-    formatSourceString """
+    formatSourceString false """
 open System.Collections.Generic
 type SparseMatrix() =
     let mutable table = new Dictionary<int * int, float>()
@@ -183,7 +183,7 @@ for i in 1..1000 do
 
 [<Test>]
 let ``then blocks after constructors``() =
-    formatSourceString """
+    formatSourceString false """
 type Person(nameIn : string, idIn : int) =
     let mutable name = nameIn
     let mutable id = idIn
@@ -212,7 +212,7 @@ type Person(nameIn : string, idIn : int) =
 
 [<Test>]
 let ``associativity of types``() =
-    formatSourceString """
+    formatSourceString false """
 type Delegate1 = delegate of (int * int) * (int * int) -> int
 type Delegate2 = delegate of int * int -> int
 type Delegate3 = delegate of int -> (int -> int)

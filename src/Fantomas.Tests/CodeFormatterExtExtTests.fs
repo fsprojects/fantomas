@@ -14,7 +14,7 @@ let inline append s content = content + s
 
 [<Test>]
 let ``type params``() =
-    formatSourceString """
+    formatSourceString false """
 let genericSumUnits ( x : float<'u>) (y: float<'u>) = x + y
 type vector3D<[<Measure>] 'u> = { x : float<'u>; y : float<'u>; z : float<'u>}""" config
     |> prepend newline
@@ -29,7 +29,7 @@ type vector3D<[<Measure>] 'u> =
 
 [<Test>]
 let ``classes and inheritance``() =
-    formatSourceString """
+    formatSourceString false """
 type MyClassBase2(x: int) =
    let mutable z = x * x
    do for i in 1..z do printf "%d " i
@@ -54,7 +54,7 @@ type MyClassDerived2(y : int) =
 
 [<Test>]
 let ``classes and implicit constructors``() =
-    formatSourceString """
+    formatSourceString false """
     type MyClass2(dataIn) as self =
        let data = dataIn
        do self.PrintMessage()
@@ -70,7 +70,7 @@ type MyClass2(dataIn) as self =
 
 [<Test>]
 let ``interfaces and inheritance``() =
-    formatSourceString """
+    formatSourceString false """
 type IPrintable =
    abstract member Print : unit -> unit
 
@@ -98,7 +98,7 @@ type Interface3 =
 
 [<Test>]
 let ``recursive classes``() =
-    formatSourceString """
+    formatSourceString false """
 type Folder(pathIn: string) =
   let path = pathIn
   let filenameArray : string array = System.IO.Directory.GetFiles(path)
@@ -121,7 +121,7 @@ and File(filename : string, containingFolder : Folder) =
 
 [<Test>]
 let ``class declaration``() =
-    formatSourceString """
+    formatSourceString false """
 type BaseClass = class
     val string1 : string
     new (str) = { string1 = str }
@@ -151,7 +151,7 @@ type DerivedClass =
 
 [<Test>]
 let ``struct declaration``() =
-    formatSourceString """
+    formatSourceString false """
     type Point2D =
        struct 
           val X: float
@@ -172,7 +172,7 @@ type Point2D =
 
 [<Test>]
 let ``abstract and override keywords``() =
-    formatSourceString """
+    formatSourceString false """
     type MyClassBase1() =
        let mutable z = 0
        abstract member function1 : int -> int
@@ -197,7 +197,7 @@ type MyClassDerived1() =
 
 [<Test>]
 let ``intrinsic type extensions``() =
-    formatSourceString """
+    formatSourceString false """
 type MyClass() =
       member this.F() = 100
 
@@ -214,7 +214,7 @@ type MyClass with
 
 [<Test>]
 let ``optional type extensions``() =
-    formatSourceString """
+    formatSourceString false """
 /// Define a new member method FromString on the type Int32. 
 type System.Int32 with 
     member this.FromString( s : string ) =
@@ -228,7 +228,7 @@ type System.Int32 with
 
 [<Test>]
 let ``auto property``() =
-    formatSourceString """
+    formatSourceString false """
 type MyClass(property1 : int) =
     member val Property1 = property1
     member val Property2 = "" with get, set""" config
@@ -241,7 +241,7 @@ type MyClass(property1 : int) =
 
 [<Test>]
 let ``property handling``() =
-    formatSourceString """
+    formatSourceString false """
 type Derived1() =
    inherit AbstractBase()
    let mutable value = 10 
@@ -257,7 +257,7 @@ type Derived1() =
 
 [<Test>]
 let ``types with attributes``() =
-    formatSourceString """
+    formatSourceString false """
 type MyType() =
     let mutable myInt1 = 10
     [<DefaultValue>] val mutable myInt2 : int
@@ -282,7 +282,7 @@ type MyType() =
 
 [<Test>]
 let ``params arguments``() =
-    formatSourceString """
+    formatSourceString false """
 type X() =
     member this.F([<ParamArray>] args: Object[]) =
         for arg in args do
@@ -297,7 +297,7 @@ type X() =
 
 [<Test>]
 let ``generic types``() =
-    formatSourceString """
+    formatSourceString false """
 type public MyClass<'a> public (x, y) as this = 
     static let PI = 3.14 
     static do printfn "static constructor" 
@@ -331,7 +331,7 @@ type public MyClass<'a> public (x, y) as this =
 
 [<Test>]
 let ``optional arguments``() =
-    formatSourceString """
+    formatSourceString false """
 type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) =
     let duplex = defaultArg duplex0 Full
     let parity = defaultArg parity0 false 
@@ -358,7 +358,7 @@ type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) =
 
 [<Test>]
 let ``method params``() =
-    formatSourceString """
+    formatSourceString false """
 type Test() =
     member this.Function1<'a>(x, y) =
         printfn "%A, %A" x y
@@ -376,7 +376,7 @@ type Test() =
 
 [<Test>]
 let ``abstract classes``() =
-    formatSourceString """
+    formatSourceString false """
 [<AbstractClass>]
 type Shape2D(x0 : float, y0 : float) =
     let mutable x, y = x0, y0
@@ -418,7 +418,7 @@ type Shape2D(x0 : float, y0 : float) =
 
 [<Test>]
 let ``type constraints simple``() =
-    formatSourceString """
+    formatSourceString false """
 type Class1<'T when 'T :> System.Exception> =
     class end
 
@@ -493,7 +493,7 @@ type Class14<'T, 'U when 'T : equality and 'U : equality> =
 
 [<Test>]
 let ``type constraints complex``() =
-    formatSourceString """
+    formatSourceString false """
 type Class4<'T when 'T : (static member staticMethod1 : unit -> 'T) > =
     class end
 
@@ -526,7 +526,7 @@ type Class7<'T when 'T : (new : unit -> 'T)>() =
 
 [<Test>]
 let ``type constraints and inline``() =
-    formatSourceString """
+    formatSourceString false """
 let inline add(value1 : ^T when ^T : (static member (+) : ^T * ^T -> ^T), value2: ^T) =
     value1 + value2
 

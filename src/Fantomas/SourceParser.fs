@@ -110,8 +110,14 @@ let (|ImplFile|SigFile|) = function
 let (|ParsedImplFileInput|) = function
     | ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _) -> (hs, mns)
 
+let (|ParsedSigFileInput|) = function
+    | ParsedSigFileInput.ParsedSigFileInput(_, _, _, hs, mns) -> (hs, mns)
+
 let (|ModuleOrNamespace|) = function
     | SynModuleOrNamespace.SynModuleOrNamespace(LongIdent s, isModule, mds, px, ats, ao, _) -> (ats, px, ao, s, mds, isModule)
+
+let (|SigModuleOrNamespace|) = function
+    | SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(LongIdent s, isModule, mds, px, ats, ao, _) -> (ats, px, ao, s, mds, isModule)
 
 // Attribute
 let (|Attribute|) (a : SynAttribute) =
@@ -128,6 +134,8 @@ let (|PreXmlDoc|) (px: PreXmlDoc) =
     match px.ToXmlDoc() with
     | XmlDoc lines -> lines
 
+let (|ParsedHashDirective|) (ParsedHashDirective(s, ss, _)) = (s, String.concat "." ss)
+
 // Module declarations (10 cases)
 
 let (|Open|_|) = function
@@ -135,11 +143,11 @@ let (|Open|_|) = function
     | _ -> None
 
 let (|ModuleAbbrev|_|) = function
-    | SynModuleDecl.ModuleAbbrev(Ident id, LongIdent li, _) -> Some(id, li)
+    | SynModuleDecl.ModuleAbbrev(Ident s1, LongIdent s2, _) -> Some(s1, s2)
     | _ -> None
 
 let (|HashDirective|_|) = function
-    | SynModuleDecl.HashDirective(ParsedHashDirective(s, ss, _), _) -> Some(s, String.concat "." ss)
+    | SynModuleDecl.HashDirective(p, _) -> Some p
     | _ -> None
 
 let (|NamespaceFragment|_|) = function 
@@ -167,18 +175,57 @@ let (|Types|_|) = function
     | _ -> None
 
 let (|NestedModule|_|) = function
-    | SynModuleDecl.NestedModule(SynComponentInfo.ComponentInfo(ats, _, _, LongIdent li, px, _, ao, _), xs, _, _) -> 
-        Some(ats, px, ao, li, xs)
+    | SynModuleDecl.NestedModule(SynComponentInfo.ComponentInfo(ats, _, _, LongIdent s, px, _, ao, _), xs, _, _) -> 
+        Some(ats, px, ao, s, xs)
     | _ -> None
 
 let (|Exception|_|) = function
     | SynModuleDecl.Exception(ed, _) -> Some ed
     | _ -> None
 
+// Module declaration signatures (8 cases)
+
+let (|SigOpen|_|) = function
+    | SynModuleSigDecl.Open(LongIdent s, _) -> Some s
+    | _ -> None
+
+let (|SigModuleAbbrev|_|) = function
+    | SynModuleSigDecl.ModuleAbbrev(Ident s1, LongIdent s2, _) -> Some(s1, s2)
+    | _ -> None
+
+let (|SigHashDirective|_|) = function
+    | SynModuleSigDecl.HashDirective(p, _) -> Some p
+    | _ -> None
+
+let (|SigNamespaceFragment|_|) = function 
+    | SynModuleSigDecl.NamespaceFragment m -> Some m 
+    | _ -> None
+
+let (|SigVal|_|) = function
+    | SynModuleSigDecl.Val(v, _) -> Some v
+    | _ -> None
+
+let (|SigTypes|_|) = function
+    | SynModuleSigDecl.Types(tds, _) -> Some tds
+    | _ -> None
+
+let (|SigNestedModule|_|) = function
+    | SynModuleSigDecl.NestedModule(SynComponentInfo.ComponentInfo(ats, _, _, LongIdent s, px, _, ao, _), xs, _) -> 
+        Some(ats, px, ao, s, xs)
+    | _ -> None
+
+let (|SigException|_|) = function
+    | SynModuleSigDecl.Exception(es, _) -> Some es
+    | _ -> None
+
 // Exception definitions
 
 let (|ExceptionDef|) = function
     | SynExceptionDefn.ExceptionDefn(SynExceptionRepr.ExceptionDefnRepr(ats, uc, _, px, ao, _), ms, _) ->
+        (ats, px, ao, uc, ms)
+
+let (|SigExceptionDef|) = function
+    | SynExceptionSig.ExceptionSig(SynExceptionRepr.ExceptionDefnRepr(ats, uc, _, px, ao, _), ms, _) ->
         (ats, px, ao, uc, ms)
 
 let (|UnionCase|) = function
@@ -632,8 +679,12 @@ let (|TCSimple|TCDelegate|) = function
     | TyconDelegate(t, vi) -> TCDelegate(t, vi)
 
 let (|TypeDef|) = function
-    | SynTypeDefn.TypeDefn(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent li, px, _, ao, _) , tdr, ms, _) ->
-        (ats, px, ao, tds, tcs, tdr, ms, li)
+    | SynTypeDefn.TypeDefn(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent s, px, _, ao, _) , tdr, ms, _) ->
+        (ats, px, ao, tds, tcs, tdr, ms, s)
+
+let (|SigTypeDef|) = function
+    | SynTypeDefnSig.TypeDefnSig(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent s, px, _, ao, _) , tdr, ms, _) ->
+        (ats, px, ao, tds, tcs, tdr, ms, s)
 
 let (|TyparDecl|) = function
     | SynTyparDecl.TyparDecl(ats, tp) -> (ats, tp)
@@ -734,7 +785,7 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
     | SynMemberSig.ValField(f, _) -> MSValField f
     | SynMemberSig.NestedType(tds, _) -> MSNestedType tds          
 
-let (|ValSig|) (ValSpfn(ats, Ident(OpNamePrefix s), tds, t, _, _, _, px, ao, _, _)) = 
+let (|Val|) (ValSpfn(ats, Ident(OpNamePrefix s), tds, t, _, _, _, px, ao, _, _)) = 
     (ats, px, ao, s, t, tds)
 
 // Misc

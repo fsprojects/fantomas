@@ -14,7 +14,7 @@ let inline append s content = content + s
 
 [<Test>]
 let ``async workflows``() =
-    formatSourceString """
+    formatSourceString false """
 let fetchAsync(name, url:string) =
     async { 
         try 
@@ -41,7 +41,7 @@ let fetchAsync(name, url : string) =
 
 [<Test>]
 let ``computation expressions``() =
-    formatSourceString """
+    formatSourceString false """
 let comp =
     eventually { for x in 1 .. 2 do
                     printfn " x = %d" x
@@ -57,7 +57,7 @@ let comp =
 
 [<Test>]
 let ``sequence expressions``() =
-    formatSourceString """
+    formatSourceString false """
 let s1 = seq { for i in 1 .. 10 -> i * i }
 let s2 = seq { 0 .. 10 .. 100 }
 let rec inorder tree =
@@ -91,7 +91,7 @@ let rec inorder tree =
 
 [<Test>]
 let ``let bindings with return types``() =
-    formatSourceString """
+    formatSourceString false """
        let divide x y =
            let stream : System.IO.FileStream = System.IO.File.Create("test.txt")
            let writer : System.IO.StreamWriter = new System.IO.StreamWriter(stream)
@@ -118,7 +118,7 @@ let divide x y =
 
 [<Test>]
 let ``when clauses and as patterns``() =
-    formatSourceString """
+    formatSourceString false """
 let rangeTest testValue mid size =
     match testValue with
     | var1 when var1 >= mid - size/2 && var1 <= mid + size/2 -> printfn "The test value is in range."
@@ -140,7 +140,7 @@ printfn "%d %d %A" var1 var2 tuple1
 
 [<Test>]
 let ``and & or patterns``() =
-    formatSourceString """
+    formatSourceString false """
 let detectZeroOR point =
     match point with
     | (0, 0) | (0, _) | (_, 0) -> printfn "Zero found."
@@ -170,7 +170,7 @@ let detectZeroAND point =
 
 [<Test>]
 let ``cons and list patterns``() =
-    formatSourceString """
+    formatSourceString false """
 let rec printList l =
     match l with
     | head :: tail -> printf "%d " head; printList tail
@@ -203,7 +203,7 @@ let listLength list =
 
 [<Test>]
 let ``array patterns``() =
-    formatSourceString """
+    formatSourceString false """
 let vectorLength vec =
     match vec with
     | [| var1 |] -> var1
@@ -222,7 +222,7 @@ let vectorLength vec =
 
 [<Test>]
 let ``paren and tuple patterns``() =
-    formatSourceString """
+    formatSourceString false """
 let countValues list value =
     let rec checkList list acc =
        match list with
@@ -258,7 +258,7 @@ let detectZeroTuple point =
 
 [<Test>]
 let ``type test and null patterns``() =
-    formatSourceString """
+    formatSourceString false """
 let detect1 x =
     match x with
     | 1 -> printfn "Found a 1!"
@@ -299,7 +299,7 @@ let ReadFromFile(reader : System.IO.StreamReader) =
 
 [<Test>]
 let ``record patterns``() =
-    formatSourceString """
+    formatSourceString false """
 type MyRecord = { Name: string; ID: int }
 
 let IsMatchByName record1 (name: string) =
@@ -320,7 +320,7 @@ let IsMatchByName record1 (name : string) =
 
 [<Test>]
 let ``active patterns``() =
-    formatSourceString """
+    formatSourceString false """
 let (|Even|Odd|) input = if input % 2 = 0 then Even else Odd
 
 let (|Integer|_|) (str: string) =
@@ -357,7 +357,7 @@ let (|ParseRegex|_|) regex str =
 
 [<Test>]
 let ``records with update``() =
-    formatSourceString """
+    formatSourceString false """
 type Car = {
     Make : string
     Model : string
@@ -379,7 +379,7 @@ let myRecord3 =
 
 [<Test>]
 let ``list comprehensions``() =
-    formatSourceString """
+    formatSourceString false """
 let listOfSquares = [ for i in 1 .. 10 -> i*i ]
 let list0to3 = [0 .. 3]""" config
     |> prepend newline
@@ -393,7 +393,7 @@ let list0to3 = [0..3]
 
 [<Test>]
 let ``array comprehensions``() =
-    formatSourceString """
+    formatSourceString false """
 let a1 = [| for i in 1 .. 10 -> i * i |]
 let a2 = [| 0 .. 99 |]  
 let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
@@ -413,7 +413,7 @@ let a3 =
 
 [<Test>]
 let ``xml documentation``() =
-    formatSourceString """
+    formatSourceString false """
 /// <summary>
 /// Kill Weight Mud
 /// </summary>
@@ -441,7 +441,7 @@ let kwm sidpp tvd omw = 1.0
 
 [<Test>]
 let ``discriminated unions with members``() =
-    formatSourceString """
+    formatSourceString false """
 type Type
     = TyLam of Type * Type
     | TyVar of string
@@ -466,7 +466,7 @@ type Type =
 
 [<Test>]
 let ``namespace declaration``() =
-    formatSourceString """
+    formatSourceString false """
 namespace Widgets
 
 type MyWidget1 =
@@ -488,7 +488,7 @@ module WidgetsModule =
 
 [<Test>]
 let ``nested modules``() =
-    formatSourceString """
+    formatSourceString false """
 module Y =
     let x = 1 
 
@@ -505,7 +505,7 @@ module Y =
 
 [<Test>]
 let ``sibling modules``() =
-    formatSourceString """
+    formatSourceString false """
 module TopLevel
 
 let topLevelX = 5

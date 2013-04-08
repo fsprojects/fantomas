@@ -86,9 +86,17 @@ let rec genParsedInput = function
     | ImplFile im -> genImpFile im
     | SigFile si -> genSigFile si
 
-and genImpFile(ParsedImplFileInput(hs, mns)) = col sepNln mns genModuleOrNamespace
+and genImpFile(ParsedImplFileInput(hs, mns)) = 
+    col sepNln hs genParsedHashDirective
+    +> col sepNln mns genModuleOrNamespace
 
-and genSigFile si = failwith "F# signature files are not supported yet"
+and genSigFile(ParsedSigFileInput(hs, mns)) =
+    col sepNln hs genParsedHashDirective
+    +> col sepNln mns genSigModuleOrNamespace
+
+and genParsedHashDirective(ParsedHashDirective(s1, s2)) =
+    /// print strings with quotes
+    !- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2))
 
 and genModuleOrNamespace = function
     | ModuleOrNamespace(ats, px, ao, s, mds, isModule) -> 
@@ -97,6 +105,13 @@ and genModuleOrNamespace = function
         /// Checking for Tmp is a bit fragile
         +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ") -- s +> rep 2 sepNln)
         +> genModuleDeclGroup mds
+
+and genSigModuleOrNamespace = function
+    | SigModuleOrNamespace(ats, px, ao, s, mds, isModule) -> 
+        genPreXmlDoc px
+        +> colPost sepNln sepNln ats genAttribute
+        +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ") -- s +> rep 2 sepNln)
+        +> col sepNln mds genSigModuleDecl
 
 and genModuleDeclGroup = function
     | ComplexModuleDecls(ys, Empty) ->
@@ -113,9 +128,8 @@ and genModuleDecl = function
     | Attributes(ats) -> col sepNln ats genAttribute +> sepNln
     | DoExpr(e) -> genExpr e +> sepNln
     | Exception(ex) -> genException ex +> sepNln
-    | HashDirective(s1, s2) -> 
-        /// print strings with quotes
-        !- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2)) +> sepNln
+    | HashDirective(p) -> 
+        genParsedHashDirective p +> sepNln
     /// Add a new line after module-level let bindings
     | Let(b) -> genLetBinding "let " b +> sepNln
     | LetRec(b::bs) -> 
@@ -130,6 +144,21 @@ and genModuleDecl = function
     | Open(s) -> !- (sprintf "open %s" s) +> sepNln
     /// There is no nested types and they have newlines in the ends of definitions
     | Types(t::ts) -> genTypeDefn true t +> colPre sepNln sepNln ts (genTypeDefn false)
+    | md -> failwithf "Unexpected module declaration: %O" md
+
+and genSigModuleDecl = function
+    | SigException(ex) -> genSigException ex +> sepNln
+    | SigHashDirective(p) -> 
+        genParsedHashDirective p +> sepNln
+    | SigVal(v) -> genVal v +> sepNln
+    | SigModuleAbbrev(s1, s2) -> !- "module " -- s1 +> sepEq -- s2 +> sepNln
+    | SigNamespaceFragment(m) -> failwithf "NamespaceFragment is not supported yet: %O" m
+    | SigNestedModule(ats, px, ao, s, mds) -> 
+        genPreXmlDoc px
+        +> colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
+        +> indent +> sepNln +> col sepNln mds genSigModuleDecl +> unindent
+    | SigOpen(s) -> !- (sprintf "open %s" s) +> sepNln
+    | SigTypes(t::ts) -> genSigTypeDefn true t +> colPre sepNln sepNln ts (genSigTypeDefn false)
     | md -> failwithf "Unexpected module declaration: %O" md
 
 and genAccess(Access s) = !- s
@@ -241,6 +270,9 @@ and genMemberFlags isInterface = function
     | MFStaticMember _ -> !- "static member "
     | MFConstructor _ -> sepNone
     | MFOverride _ -> ifElse isInterface (!- "member ") (!- "override ")
+
+and genVal (Val(ats, px, ao, s, t, tds)) = 
+    !- (sprintf "val %s" s) +> sepColon +> genType t
 
 and inline genRecordFieldName(RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> autoBreakNln e)
@@ -424,6 +456,9 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) =
         typeName +> opt sepNone impCtor (genMemberDefn false) +> sepEq +> indent +> sepNln 
         +> col sepNln others (genMemberDefn false) +> unindent +> sepNln
 
+and genSigTypeDefn isFirst _ =
+    id
+
 and genTyparDecl(TyparDecl(ats, tp)) = colPost sepSpace sepNone ats genAttribute +> genTypar tp
 
 and genTypeDefKind = function
@@ -444,6 +479,9 @@ and genException(ExceptionDef(ats, px, ao, uc, ms)) =
     +> colPost sepNln sepNone ats genAttribute  -- "exception " 
     +> opt sepSpace ao genAccess +> genUnionCase false uc
     +> colPre sepNln sepNln ms (genMemberDefn false)
+
+and genSigException(SigExceptionDef(ats, px, ao, uc, ms)) = 
+    id
 
 and genUnionCase hasBar (UnionCase(ats, px, _, s, UnionCaseType fs)) =
     genPreXmlDoc px
@@ -503,7 +541,6 @@ and genTypeGroup isGroup = function
     | TFun(t1, t2) -> genTypeGroup isGroup t1 +> sepArrow +> genTypeGroup isGroup t2
     | t -> genType t
 
-
 and genTypar(Typar(s, isHead)) = 
     /// There is a potential parser bug with "<^T..."
     ifElse isHead (!- "^") (!-"'") -- s
@@ -526,7 +563,7 @@ and genClause(Clause(p, e, eo)) =
     sepBar +> genPat p +> optPre (!- " when ") sepNone eo genExpr +> sepArrow +> autoBreakNln e
 
 and genMemberSig = function
-    | MSMember(ValSig(ats, px, ao, s, t, ValTyparDecls(_, _, tcs)), mf) -> 
+    | MSMember(Val(ats, px, ao, s, t, ValTyparDecls(_, _, tcs)), mf) -> 
         sepOpenT +> genMemberFlags false mf -- s +> sepColon +> genType t +> sepCloseT
     | MSInterface t -> id
     | MSInherit t -> id
@@ -618,3 +655,4 @@ and genPat = function
     // What about "<@@ " ?
     | PatQuoteExpr e -> !- "<@ " +> genExpr e -- " @>"
     | p -> failwithf "Unexpected pattern: %O" p
+
