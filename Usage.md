@@ -7,7 +7,7 @@
 Two required parameters for the tool are input and output path. 
 The output path is prompted by `--out` e.g.
 
-	Fantomas.Cmd.exe ../../../../tests/stackexchange/array.fs
+	Fantomas.exe ../../../../tests/stackexchange/array.fs
 		--out ../../../../tests/stackexchange_output/array.fs 
 
 Both paths have to be files or folders at the same time. 
@@ -125,7 +125,7 @@ That said, most of the preferences are very simple.
 But they demonstrate the adaptiveness of Fantomas on a set of configurations. 
 More preferences will be added depending on use cases.
 
-### Using the library
+### Using the API
 ---
 The main entry point of the library is function `processSourceFile`, which reads the input file and writes formatted source code to the output file:
 
@@ -133,7 +133,7 @@ The main entry point of the library is function `processSourceFile`, which reads
 val processSourceFile : inFile:string -> outFile:string -> config:FormatConfig -> unit
 ```
 
-The configuration consists of the fields described in [Preferences section](#preferences). 
+`FormatConfig` type consists of the fields described in [Preferences section](#preferences). 
 It's often customized by augmenting a default configuration:
 
 ```fsharp
@@ -150,5 +150,7 @@ let config = { FormatConfig.Default with
 If you would like to work with source strings, there is also function `formatSourceString`:
 
 ```fsharp
-val formatSourceString : s:string -> config:FormatConfig -> string
+val formatSourceString : fsi:bool -> s:string -> config:FormatConfig -> string
 ```
+
+When the first argument is true, the source string is parsed as an F# signature.
