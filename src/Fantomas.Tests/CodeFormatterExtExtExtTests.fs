@@ -262,4 +262,107 @@ module Random =
     val nextInt64 : max:int64 -> int64
     
     val next : max:float -> float
-    """ 
+    """
+
+[<Test>]
+let ``class signatures``() =
+    formatSourceString true """
+module Heap
+
+type Heap<'T when 'T : comparison> =
+    class
+    new : capacity:int -> Heap<'T>
+    member Clear : unit -> unit
+    member ExtractMin : unit -> 'T
+    member Insert : k:'T -> unit
+    member IsEmpty : unit -> bool
+    member PeekMin : unit -> 'T
+    override ToString : unit -> string
+    member Count : int
+    end""" config
+    |> prepend newline
+    |> should equal """
+module Heap
+
+type Heap<'T when 'T : comparison> = 
+    class
+        new : capacity:int -> Heap<'T>
+        member Clear : unit -> unit
+        member ExtractMin : unit -> 'T
+        member Insert : k:'T -> unit
+        member IsEmpty : unit -> bool
+        member PeekMin : unit -> 'T
+        override ToString : unit -> string
+        member Count : int
+    end
+"""
+
+[<Test>]
+let ``record signatures``() =
+    formatSourceString true """
+/// Represents simple XML elements.
+type Element =
+    {
+        /// The attribute collection.
+        Attributes : IDictionary<Name,string>
+
+        /// The children collection.
+        Children : seq<INode>
+
+        /// The qualified name.
+        Name : Name
+    }
+
+    interface INode
+
+    /// Constructs an new empty Element.
+    static member Create : name: string -> Element
+
+    /// Constructs an new empty Element.
+    static member Create : name: string * uri: string -> Element
+
+    /// Replaces the children.
+    static member WithChildren : children: #seq<#INode> -> self: Element -> Element
+
+    /// Replaces the children.
+    static member ( - ) : self: Element * children: #seq<#INode> -> Element
+
+    /// Replaces the attributes.
+    static member WithAttributes : attrs: #seq<string*string> -> self: Element -> Element
+
+    /// Replaces the attributes.
+    static member ( + ) : self: Element * attrs: #seq<string*string> -> Element
+
+    /// Replaces the children with a single text node.
+    static member WithText : text: string -> self: Element-> Element
+
+    /// Replaces the children with a single text node.
+    static member ( -- ) : self: Element * text: string -> Element""" config
+    |> prepend newline
+    |> should equal """
+/// Represents simple XML elements.
+type Element = 
+    { /// The attribute collection.
+      Attributes : IDictionary<Name, string>;
+      /// The children collection.
+      Children : seq<INode>;
+      /// The qualified name.
+      Name : Name }
+    interface INode
+    /// Constructs an new empty Element.
+    static member Create : name:string -> Element
+    /// Constructs an new empty Element.
+    static member Create : name:string * uri:string -> Element
+    /// Replaces the children.
+    static member WithChildren : children:#seq<#INode> -> self:Element -> Element
+    /// Replaces the children.
+    static member (-) : self:Element * children:#seq<#INode> -> Element
+    /// Replaces the attributes.
+    static member WithAttributes : attrs:#seq<string * string> -> self:Element -> Element
+    /// Replaces the attributes.
+    static member (+) : self:Element * attrs:#seq<string * string> -> Element
+    /// Replaces the children with a single text node.
+    static member WithText : text:string -> self:Element -> Element
+    /// Replaces the children with a single text node.
+    static member (--) : self:Element * text:string -> Element
+"""

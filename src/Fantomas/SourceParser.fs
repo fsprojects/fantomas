@@ -662,6 +662,10 @@ let (|Simple|ObjectModel|) = function
     | SynTypeDefnRepr.Simple(tdsr, _) -> Simple tdsr
     | SynTypeDefnRepr.ObjectModel(tdk, mds, _) -> ObjectModel(tdk, mds)
 
+let (|SigSimple|SigObjectModel|) = function
+    | SynTypeDefnSigRepr.Simple(tdsr, _) -> SigSimple tdsr
+    | SynTypeDefnSigRepr.ObjectModel(tdk, mds, _) -> SigObjectModel(tdk, mds)
+
 type TypeDefnKindSingle = | TCUnspecified | TCClass | TCInterface | TCStruct | TCRecord
                           | TCUnion | TCAbbrev | TCHiddenRepr | TCAugmentation | TCILAssemblyCode
 
@@ -740,7 +744,7 @@ let (|TLongIdentApp|_|) = function
     | _ -> None    
 
 let (|TTuple|_|) = function     
-    | SynType.Tuple(ts, _) -> Some ts
+    | SynType.Tuple(ts, _) -> Some (List.map snd ts)
     | _ -> None
 
 let (|TWithGlobalConstraints|_|) = function     
