@@ -785,8 +785,8 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
     | SynMemberSig.ValField(f, _) -> MSValField f
     | SynMemberSig.NestedType(tds, _) -> MSNestedType tds          
 
-let (|Val|) (ValSpfn(ats, Ident(OpNamePrefix s), tds, t, _, _, _, px, ao, _, _)) = 
-    (ats, px, ao, s, t, tds)
+let (|Val|) (ValSpfn(ats, Ident(OpNamePrefix s), tds, t, vi, _, _, px, ao, _, _)) = 
+    (ats, px, ao, s, t, vi, tds)
 
 // Misc
 
@@ -795,3 +795,15 @@ let (|RecordFieldName|) ((LongIdentWithDots s, _) : RecordFieldName, eo : SynExp
 let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), p) = (s1, s2, p)
 
 let (|ValInfo|) (SynValInfo(aiss, ai)) = (aiss, ai)
+
+let (|ArgInfo|) (SynArgInfo(_, _, ido)) = 
+    Option.map (|Ident|) ido
+
+/// Extract function arguments with their associated info
+let (|FunType|) (t, ValInfo(aiss, ai)) = 
+    let rec loop = function
+        | TFun(t1, t2), ais::aiss -> 
+            (t1, ais)::loop(t2, aiss)
+        | t, [] -> [(t, [ai])]
+        | _ -> []
+    loop(t, aiss)

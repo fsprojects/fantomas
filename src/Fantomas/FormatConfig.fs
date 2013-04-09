@@ -207,6 +207,8 @@ let sepCloseT = !- ")"
 let inline sepColon(ctx : Context) = 
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx
 
+let sepColonFixed = !- ":"
+
 let inline sepComma(ctx : Context) = 
     if ctx.Config.SpaceAfterComma then str ", " ctx else str "," ctx
 

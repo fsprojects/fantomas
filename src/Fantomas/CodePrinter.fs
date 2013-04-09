@@ -271,8 +271,9 @@ and genMemberFlags isInterface = function
     | MFConstructor _ -> sepNone
     | MFOverride _ -> ifElse isInterface (!- "member ") (!- "override ")
 
-and genVal (Val(ats, px, ao, s, t, tds)) = 
-    !- (sprintf "val %s" s) +> sepColon +> genType t
+and genVal (Val(ats, px, ao, s, t, vi, tds)) = 
+    let (FunType ts) = (t, vi)
+    !- (sprintf "val %s" s) +> sepColon +> genTypeList ts
 
 and inline genRecordFieldName(RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> autoBreakNln e)
@@ -446,8 +447,8 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, li)) =
         typeName -- " with" +> indent +> sepNln 
         /// Remember that we use MemberDefn of parent node
         +> col sepNln ms (genMemberDefn false) +> unindent +> sepNln
-    | ObjectModel(TCDelegate(t, ValInfo(aiss, _)), _) ->
-        typeName +> sepEq -- "delegate of " +> genTypeGroup (aiss.Head.Length = 1) t
+    | ObjectModel(TCDelegate(FunType ts), _) ->
+        typeName +> sepEq -- "delegate of " +> genTypeList ts
     | ObjectModel(tdk, mds) -> 
         /// Assume that there is at most one implicit constructor
         let impCtor = List.tryFind (function MDImplicitCtor _ -> true | _ -> false) mds
@@ -496,8 +497,8 @@ and genField prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) =
     /// Being protective on union cases of functions 
     let t =
         match t with
-        | TFun(t1, t2) -> sepOpenT +> genTypeGroup true t +> sepCloseT
-        | _ -> genTypeGroup true t
+        | TFun(t1, t2) -> sepOpenT +> genComplexType t +> sepCloseT
+        | _ -> genComplexType t
     genPreXmlDoc px 
     +> colPost sepSpace sepNone ats genAttribute -- prefix
     +> opt sepSpace ao genAccess +> ifElse isStatic (!- "static ") sepNone
@@ -514,9 +515,7 @@ and genType = function
     | TArray(t, n) -> genType t +> rep n (!- "[]")
     | TAnon -> sepWild
     | TVar tp -> genTypar tp 
-    // TFun is left associated
-    | TFun(t1, (TFun _ as t2)) -> genType t1 +> sepArrow +> sepOpenT +> genType t2 +> sepCloseT
-    | TFun(t1, t2) -> genType t1 +> sepArrow +> genType t2
+    | TFun(t1, t2) -> genType t1 +> sepArrow +> genComplexType t2
     | TApp(t, ts, isPostfix) -> 
         let postForm = 
             match ts with
@@ -526,20 +525,30 @@ and genType = function
         ifElse isPostfix postForm (genType t -- "<" +> col sepComma ts genType -- ">")
     | TLongIdentApp(t, li, ts) -> genType t -- li -- "<" +> col sepComma ts genType -- ">"
     /// The surrounding brackets don't seem neccessary
-    | TTuple ts -> col sepStar ts (snd >> genTypeGroup true)
+    | TTuple ts -> col sepStar ts (snd >> genComplexType)
     | TWithGlobalConstraints(t, tcs) -> genType t +> colPre (!- " when ") wordAnd tcs genTypeConstraint
     | TLongIdent li -> !- li
     | t -> failwithf "Unexpected type: %O" t
 
-and genTypeGroup isGroup = function
+and genComplexType = function
     | TTuple ts -> 
         // Inner parts should have brackets for separation
-        ifElse isGroup (sepOpenT +> col sepStar ts (snd >> genTypeGroup true) +> sepCloseT)
-            (col sepStar ts (snd >> genTypeGroup true))
-    | TFun(t1, (TFun _ as t2)) -> 
-        genTypeGroup isGroup t1 +> sepArrow +> sepOpenT +> genTypeGroup isGroup t2 +> sepCloseT
-    | TFun(t1, t2) -> genTypeGroup isGroup t1 +> sepArrow +> genTypeGroup isGroup t2
+        sepOpenT +> col sepStar ts (snd >> genComplexType) +> sepCloseT
+    | TFun(t1, t2) -> 
+        sepOpenT +> genComplexType t1 +> sepArrow +> genComplexType t2 +> sepCloseT
     | t -> genType t
+
+and genTypeList = function
+    | [] -> sepNone
+    | (t, [ArgInfo so])::ts -> 
+        let gt =
+            match t with
+            | TTuple _ | TFun _ ->
+                // Tuple or Fun is grouped by brackets
+                sepOpenT +> opt sepColonFixed so (!-) +> genType t +> sepCloseT
+            | _ -> opt sepColonFixed so (!-) +> genType t
+        gt +> ifElse ts.IsEmpty sepNone (sepArrow +> genTypeList ts)
+    | (t, _)::ts -> genType t +> ifElse ts.IsEmpty sepNone (sepArrow +> genTypeList ts)
 
 and genTypar(Typar(s, isHead)) = 
     /// There is a potential parser bug with "<^T..."
@@ -563,8 +572,9 @@ and genClause(Clause(p, e, eo)) =
     sepBar +> genPat p +> optPre (!- " when ") sepNone eo genExpr +> sepArrow +> autoBreakNln e
 
 and genMemberSig = function
-    | MSMember(Val(ats, px, ao, s, t, ValTyparDecls(_, _, tcs)), mf) -> 
-        sepOpenT +> genMemberFlags false mf -- s +> sepColon +> genType t +> sepCloseT
+    | MSMember(Val(ats, px, ao, s, t, vi, _), mf) -> 
+        let (FunType ts) = (t, vi)
+        sepOpenT +> genMemberFlags false mf -- s +> sepColon +> genTypeList ts +> sepCloseT
     | MSInterface t -> id
     | MSInherit t -> id
     | MSValField f -> id
