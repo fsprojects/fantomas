@@ -49,7 +49,7 @@ let rec multiline = function
     | TraitCall(_, _, e) -> multiline e
     | LetOrUseBang(_, _, e1, e2) -> multiline e1 || multiline e2
     /// Default mode is single-line
-    | e -> false
+    | _ -> false
 
 /// Check if the expression already has surrounding parentheses
 let hasParenthesis = function
@@ -103,14 +103,16 @@ and genModuleOrNamespace = function
         genPreXmlDoc px
         +> colPost sepNln sepNln ats genAttribute
         /// Checking for Tmp is a bit fragile
-        +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ") -- s +> rep 2 sepNln)
+        +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
+        +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
         +> genModuleDeclGroup mds
 
 and genSigModuleOrNamespace = function
     | SigModuleOrNamespace(ats, px, ao, s, mds, isModule) -> 
         genPreXmlDoc px
         +> colPost sepNln sepNln ats genAttribute
-        +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ") -- s +> rep 2 sepNln)
+        +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
+        +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
         +> col sepNln mds genSigModuleDecl
 
 and genModuleDeclGroup = function
@@ -163,11 +165,11 @@ and genSigModuleDecl = function
 
 and genAccess(Access s) = !- s
 
-and genAttribute(Attribute(li, e, isGetSet)) = 
+and genAttribute(Attribute(s, e, _)) = 
     match e with
     /// Special treatment for function application on attributes
-    | ConstExpr(Const "()") -> !- (sprintf "[<%s>]" li)
-    | e -> !- "[<" -- li +> genExpr e -- ">]"
+    | ConstExpr(Const "()") -> !- (sprintf "[<%s>]" s)
+    | e -> !- "[<" -- s +> genExpr e -- ">]"
     
 and genPreXmlDoc(PreXmlDoc lines) = colPost sepNln sepNln lines (sprintf "///%s" >> (!-))
 
@@ -184,8 +186,7 @@ and inline genTypeParam tds tcs =
         (!- "<" +> col sepComma tds genTyparDecl +> colPre (!- " when ") wordAnd tcs genTypeConstraint -- ">")
 
 and genLetBinding pref = function
-    | LetBinding(ats, px, ao, isInline, isMutable, p, e, bk, bri) ->
-        /// Figure out what to do with SynBindingKind
+    | LetBinding(ats, px, ao, isInline, isMutable, p, e) ->
         let prefix =
             genPreXmlDoc px
             +> colPost sepNln sepNone ats genAttribute -- pref +> opt sepSpace ao genAccess
@@ -201,7 +202,7 @@ and genLetBinding pref = function
     | b -> failwithf "%O isn't a let binding" b
 
 and genMemberBinding isInterface = function
-    | PropertyBinding(ats, px, ao, isInline, mf, p, e, bk, bri) -> 
+    | PropertyBinding(ats, px, ao, isInline, mf, p, e) -> 
         let prefix =
             genPreXmlDoc px
             +> colPost sepSpace sepNone ats genAttribute +> genMemberFlags isInterface mf
@@ -239,7 +240,7 @@ and genMemberBinding isInterface = function
                 +> sepEq +> autoBreakNln e
             | p -> failwithf "Unexpected pattern: %O" p
         | mf -> failwithf "Unexpected member flags: %O" mf
-    | MemberBinding(ats, px, ao, isInline, mf, p, e, bk, bri) ->
+    | MemberBinding(ats, px, ao, isInline, mf, p, e) ->
         let prefix =
             genPreXmlDoc px
             +> colPost sepSpace sepNone ats genAttribute +> genMemberFlags isInterface mf
@@ -253,7 +254,7 @@ and genMemberBinding isInterface = function
             +> colPost sepSpace sepNone ats genAttribute
             +> opt sepSpace ao genAccess +> genPat p
         match e with
-        // Handle special "then" block in constructors
+        /// Handle special "then" block in constructors
         | Sequential(e1, e2, _) -> 
             prefix +> sepEq +> indent +> sepNln +> genExpr e1 ++ "then " +> autoBreakNln e2 +> unindent
         | e -> prefix +> sepEq +> autoBreakNln e
@@ -265,9 +266,11 @@ and genMemberFlags isInterface = function
     | MFConstructor _ -> sepNone
     | MFOverride _ -> ifElse isInterface (!- "member ") (!- "override ")
 
-and genVal (Val(ats, px, ao, s, t, vi, tds)) = 
+and genVal (Val(ats, px, ao, s, t, vi, _)) = 
     let (FunType ts) = (t, vi)
-    !- (sprintf "val %s" s) +> sepColon +> genTypeList ts
+    genPreXmlDoc px
+    +> colPost sepNln sepNone ats genAttribute -- "val "
+    +> opt sepSpace ao genAccess -- s +> sepColon +> genTypeList ts
 
 and inline genRecordFieldName(RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> autoBreakNln e)
@@ -279,7 +282,7 @@ and genExpr = function
     | ConstExpr(c) -> genConst c
     | NullExpr -> !- "null"
     /// Not sure about the role of e1
-    | Quote(e1, e2, isRaw) ->         
+    | Quote(_, e2, isRaw) ->         
         let e = genExpr e2
         ifElse isRaw (!- "<@@ " +> e -- " @@>") (!- "<@ " +> e -- " @>")
     | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType t
@@ -322,7 +325,7 @@ and genExpr = function
     | DesugaredMatch(_, e) -> genExpr e
     | Lambda(e, sps) -> 
         !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e
-    | MatchLambda(sp, isMember) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
+    | MatchLambda(sp, _) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr e -- " with"
             +> colPre sepNln sepNln cs genClause)
@@ -443,7 +446,7 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         +> col sepNln ms (genMemberDefn false) +> unindent +> sepNln
     | ObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq -- "delegate of " +> genTypeList ts
-    | ObjectModel(tdk, mds) -> 
+    | ObjectModel(_, mds) -> 
         /// Assume that there is at most one implicit constructor
         let impCtor = List.tryFind (function MDImplicitCtor _ -> true | _ -> false) mds
         /// Might need to sort so that let and do bindings come first
@@ -494,7 +497,7 @@ and genSigTypeDefn isFirst (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         +> col sepNln ms genMemberSig +> unindent +> sepNln
     | SigObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq -- "delegate of " +> genTypeList ts
-    | SigObjectModel(tdk, mds) -> 
+    | SigObjectModel(_, mds) -> 
         typeName +> sepEq +> indent +> sepNln 
         +> col sepNln mds genMemberSig +> unindent +> sepNln
 
@@ -506,7 +509,7 @@ and genMemberSig = function
     | MSInterface t -> !- "interface " +> genType t
     | MSInherit t -> !- "inherit " +> genType t
     | MSValField f -> genField "val " f
-    | MSNestedType tds -> invalidArg "md" "This is not implemented in F# compiler"
+    | MSNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
 
 and genTyparDecl(TyparDecl(ats, tp)) = colPost sepSpace sepNone ats genAttribute +> genTypar tp
 
@@ -535,7 +538,7 @@ and genSigException(SigExceptionDef(ats, px, ao, uc, ms)) =
     +> opt sepSpace ao genAccess +> genUnionCase false uc
     +> colPre sepNln sepNln ms genMemberSig
 
-and genUnionCase hasBar (UnionCase(ats, px, _, s, UnionCaseType fs)) =
+and genUnionCase hasBar (UnionCase(_, px, _, s, UnionCaseType fs)) =
     genPreXmlDoc px
     +> ifElse hasBar sepBar sepNone -- s 
     +> colPre wordOf sepStar fs (genField "")
@@ -548,7 +551,7 @@ and genField prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) =
     /// Being protective on union cases of functions 
     let t =
         match t with
-        | TFun(t1, t2) -> sepOpenT +> genComplexType t +> sepCloseT
+        | TFun _ -> sepOpenT +> genComplexType t +> sepCloseT
         | _ -> genComplexType t
     genPreXmlDoc px 
     +> colPost sepSpace sepNone ats genAttribute -- prefix
@@ -583,7 +586,7 @@ and genType = function
 
 and genComplexType = function
     | TTuple ts -> 
-        // Inner parts should have brackets for separation
+        /// Inner parts should have brackets for separation
         sepOpenT +> col sepStar ts genComplexType +> sepCloseT
     | TFun(t1, t2) -> 
         sepOpenT +> genComplexType t1 +> sepArrow +> genComplexType t2 +> sepCloseT
@@ -595,7 +598,7 @@ and genTypeList = function
         let gt =
             match t with
             | TTuple _ | TFun _ ->
-                // Tuple or Fun is grouped by brackets
+                /// Tuple or Fun is grouped by brackets
                 sepOpenT +> opt sepColonFixed so (!-) +> genType t +> sepCloseT
             | _ -> opt sepColonFixed so (!-) +> genType t
         gt +> ifElse ts.IsEmpty sepNone (sepArrow +> genTypeList ts)
@@ -627,11 +630,11 @@ and genClause(Clause(p, e, eo)) =
     sepBar +> genPat p +> optPre (!- " when ") sepNone eo genExpr +> sepArrow +> autoBreakNln e
 
 and genMemberDefn isInterface = function
-    | MDNestedType(td, ao) -> invalidArg "md" "This is not implemented in F# compiler"
+    | MDNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
     | MDOpen(s) -> !- s
     /// What is the role of so
-    | MDImplicitInherit(t, e, so) -> !- "inherit " +> genType t +> genExpr e
-    | MDInherit(t, so) -> !- "inherit " +> genType t
+    | MDImplicitInherit(t, e, _) -> !- "inherit " +> genType t +> genExpr e
+    | MDInherit(t, _) -> !- "inherit " +> genType t
     | MDValField f -> genField "val " f
     | MDImplicitCtor(ats, ao, ps, so) -> 
         optPre sepSpace sepSpace ao genAccess +> sepOpenT

@@ -35,13 +35,13 @@ let inline (|OpNamePrefix|) s =
     if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s then sprintf "(%s)" (DecompileOpName s)
     else DecompileOpName s
 
-let inline (|Ident|) (id: Ident) = id.idText
+let inline (|Ident|) (s: Ident) = s.idText
 
 let inline (|LongIdent|) (li: LongIdent) = 
-    li |> Seq.map (fun id -> id.idText) |> String.concat "."
+    li |> Seq.map (fun s -> s.idText) |> String.concat "."
 
 let inline (|LongIdentWithDots|) (LongIdentWithDots(s, _)) = 
-    s |> Seq.map (fun id -> id.idText) |> String.concat "."
+    s |> Seq.map (fun s -> s.idText) |> String.concat "."
 
 // Type params
 
@@ -72,7 +72,7 @@ let (|Measure|) x =
             sprintf "%s^%i" s n
         | SynMeasure.Seq(ms, _) -> 
             List.map loop ms |> String.concat " "
-        | SynMeasure.Named(LongIdent li, _) -> li
+        | SynMeasure.Named(LongIdent s, _) -> s
     sprintf "<%s>" <| loop x
 
 /// Lose information about kinds of literals
@@ -99,7 +99,7 @@ let rec (|Const|Unresolved|) = function
     | SynConst.Bytes _ as c -> Unresolved(c)
     // Auto print may cut off the array
     | SynConst.UInt16s us -> Const(sprintf "%A" us)
-    | c -> invalidArg "c" "Ill-formed constants"
+    | _ -> invalidArg "c" "Ill-formed constants"
 
 // File level patterns
 
@@ -248,7 +248,7 @@ let (|MDNestedType|_|) = function
     | _ -> None
 
 let (|MDOpen|_|) = function               
-    | SynMemberDefn.Open(LongIdent li, _) -> Some li
+    | SynMemberDefn.Open(LongIdent s, _) -> Some s
     | _ -> None
 
 let (|MDImplicitInherit|_|) = function  
@@ -324,16 +324,16 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf : MemberFlags) =
         else MFStaticMember mk
 
 let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) = function
-    | SynBinding.Binding(ao, bk, _, _, ats, px, SynValData(Some MFConstructor, _, _), pat, bri, expr, _, _) ->
+    | SynBinding.Binding(ao, _, _, _, ats, px, SynValData(Some MFConstructor, _, _), pat, _, expr, _, _) ->
         ExplicitCtor(ats, px, ao, pat, expr)
-    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, SynValData(Some(MFProperty _ as mf), _, _), pat, bri, expr, _, _) ->
-        PropertyBinding(ats, px, ao, isInline, mf, pat, expr, bk, bri)
-    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, SynValData(Some mf, _, _), pat, bri, expr, _, _) ->
-        MemberBinding(ats, px, ao, isInline, mf, pat, expr, bk, bri)
+    | SynBinding.Binding(ao, _, isInline, _, ats, px, SynValData(Some(MFProperty _ as mf), _, _), pat, _, expr, _, _) ->
+        PropertyBinding(ats, px, ao, isInline, mf, pat, expr)
+    | SynBinding.Binding(ao, _, isInline, _, ats, px, SynValData(Some mf, _, _), pat, _, expr, _, _) ->
+        MemberBinding(ats, px, ao, isInline, mf, pat, expr)
     | SynBinding.Binding(_, DoBinding, _, _, ats, px, _, _, _, expr, _, _) -> 
         DoBinding(ats, px, expr)
-    | SynBinding.Binding(ao, bk, isInline, isMutable, ats, px, _, pat, bri, expr, _, _) -> 
-        LetBinding(ats, px, ao, isInline, isMutable, pat, expr, bk, bri)
+    | SynBinding.Binding(ao, _, isInline, isMutable, ats, px, _, pat, _, expr, _, _) -> 
+        LetBinding(ats, px, ao, isInline, isMutable, pat, expr)
     
 let (|BindingReturnInfo|) = function
     | SynBindingReturnInfo(t, _, ats) -> (ats, t)
@@ -402,7 +402,7 @@ let (|While|_|) = function
     | _ -> None
 
 let (|For|_|) = function 
-    | SynExpr.For(_, Ident id, e1, isUp, e2, e3, _) -> Some(id, e1, e2, e3, isUp)
+    | SynExpr.For(_, Ident s, e1, isUp, e2, e3, _) -> Some(s, e1, e2, e3, isUp)
     | _ -> None
 
 let (|NullExpr|_|) = function 
@@ -522,11 +522,11 @@ let (|DotIndexedGet|_|) = function
     | _ -> None
 
 let (|DotGet|_|) = function
-    | SynExpr.DotGet(e, _, LongIdentWithDots li, _) -> Some(e, li)
+    | SynExpr.DotGet(e, _, LongIdentWithDots s, _) -> Some(e, s)
     | _ -> None
 
 let (|DotSet|_|) = function
-    | SynExpr.DotSet(e1, LongIdentWithDots li, e2, _) -> Some(e1, li, e2)
+    | SynExpr.DotSet(e1, LongIdentWithDots s, e2, _) -> Some(e1, s, e2)
     | _ -> None
 
 let (|IfThenElse|_|) = function
@@ -547,7 +547,7 @@ let (|ObjExpr|_|) = function
     | _ -> None
 
 let (|LongIdentSet|_|) = function
-    | SynExpr.LongIdentSet(LongIdentWithDots li, e, _) -> Some(li, e)
+    | SynExpr.LongIdentSet(LongIdentWithDots s, e, _) -> Some(s, e)
     | _ -> None
 
 let (|TryWith|_|) = function
@@ -596,7 +596,7 @@ let (|PatTyped|_|) = function
     | _ -> None
 
 let (|PatNamed|_|) = function
-    | SynPat.Named(p, Ident id, _, ao, _) -> Some(ao, p, id)
+    | SynPat.Named(p, Ident s, _, ao, _) -> Some(ao, p, s)
     | _ -> None
 
 let (|PatLongIdent|_|) = function
@@ -628,7 +628,7 @@ let (|PatQuoteExpr|_|) = function
 let (|SPAttrib|SPId|SPTyped|) = function
     | SynSimplePat.Attrib(sp, ats, _) -> SPAttrib(ats, sp)
     /// Not sure compiler generated SPIds are used elsewhere.
-    | SynSimplePat.Id(Ident s, _, true, _, isOptArg, _) -> SPId("_", isOptArg, true)
+    | SynSimplePat.Id(Ident _, _, true, _, isOptArg, _) -> SPId("_", isOptArg, true)
     | SynSimplePat.Id(Ident s, _, isGen, _, isOptArg, _) -> SPId(s, isOptArg, isGen)
     | SynSimplePat.Typed(sp, t, _) -> SPTyped(sp, t)
 

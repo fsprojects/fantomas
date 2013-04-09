@@ -25,7 +25,6 @@ type FormatConfig =
 type ColumnIndentedTextWriter(tw : TextWriter) =
     let indentWriter = new IndentedTextWriter(tw, " ")
     let mutable col = indentWriter.Indent
-    let mutable cursor = 0
     member __.Write(s : string) =
         match s.LastIndexOf('\n') with
         | -1 -> col <- col + s.Length

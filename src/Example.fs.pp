@@ -8,7 +8,6 @@ let config = { FormatConfig.Default with
                 IndentSpaceNum = 2 }
 
 let source = "
-    #light \"off\"
     let Multiple9x9 () = 
       for i in 1 .. 9 do
         printf \"\\n\";
