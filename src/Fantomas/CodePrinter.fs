@@ -356,7 +356,7 @@ and genExpr = function
     /// Could customize a bit if e is single line
     | TryWith(e, cs) ->  
         atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e +> unindent ++ "with" 
-            +> indentWith +> sepNln +> col sepNln cs genClause +> unindentWith)
+            +> indentOnWith +> sepNln +> col sepNln cs genClause +> unindentOnWith)
     | TryFinally(e1, e2) -> 
         atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e1 +> unindent ++ "finally" 
             +> indent +> sepNln +> genExpr e2 +> unindent)    
@@ -594,16 +594,18 @@ and genComplexType = function
 
 and genTypeList = function
     | [] -> sepNone
-    | (t, [ArgInfo so])::ts -> 
+    | (t, [ArgInfo(so, isOpt)])::ts -> 
         let gt =
             match t with
             | TTuple _ | TFun _ ->
                 /// Tuple or Fun is grouped by brackets
-                sepOpenT +> opt sepColonFixed so (!-) +> genType t +> sepCloseT
+                sepOpenT +> optPre (ifElse isOpt (!- "?") sepNone) sepColonFixed so (!-) +> genType t +> sepCloseT
             | _ -> opt sepColonFixed so (!-) +> genType t
         gt +> ifElse ts.IsEmpty sepNone (sepArrow +> genTypeList ts)
     | (TTuple ts', ais)::ts -> 
-        let gt = col sepStar (Seq.zip ais ts') (fun (ArgInfo so, t) -> opt sepColonFixed so (!-) +> genComplexType t)
+        let gt = col sepStar (Seq.zip ais ts') 
+                    (fun (ArgInfo(so, isOpt), t) -> optPre (ifElse isOpt (!- "?") sepNone) 
+                                                        sepColonFixed so (!-) +> genComplexType t)
         gt +> ifElse ts.IsEmpty sepNone (sepArrow +> genTypeList ts)
     | (t, _)::ts -> genType t +> ifElse ts.IsEmpty sepNone (sepArrow +> genTypeList ts)
 

@@ -177,7 +177,7 @@ let main args =
            ArgInfo("--stdin", ArgType.Set stdIn, stdInText);
            ArgInfo("--stdout", ArgType.Unit handleStdOut, stdOutText);
            
-           /// --out is no need if one specifies --stdout
+           /// --out doesn't matter if one specifies --stdout
            ArgInfo("--out", ArgType.String handleOutput, outputText);
 
            ArgInfo("--indent", ArgType.Int handleIndent, indentText);

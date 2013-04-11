@@ -316,10 +316,7 @@ type Element =
     interface INode
 
     /// Constructs an new empty Element.
-    static member Create : name: string -> Element
-
-    /// Constructs an new empty Element.
-    static member Create : name: string * uri: string -> Element
+    static member Create : name: string * ?uri: string -> Element
 
     /// Replaces the children.
     static member WithChildren : children: #seq<#INode> -> self: Element -> Element
@@ -350,9 +347,7 @@ type Element =
       Name : Name }
     interface INode
     /// Constructs an new empty Element.
-    static member Create : name:string -> Element
-    /// Constructs an new empty Element.
-    static member Create : name:string * uri:string -> Element
+    static member Create : name:string * ?uri:string -> Element
     /// Replaces the children.
     static member WithChildren : children:#seq<#INode> -> self:Element -> Element
     /// Replaces the children.

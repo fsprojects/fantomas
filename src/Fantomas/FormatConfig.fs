@@ -10,6 +10,8 @@ type Num = int
 type FormatConfig = 
     { /// Number of spaces for each identation
       IndentSpaceNum : Num;
+      /// The column where we break into new lines
+      ColumnWidth : Num;
       SemicolonAtEndOfLine : bool;
       SpaceBeforeArgument : bool;
       SpaceBeforeColon : bool;
@@ -17,7 +19,7 @@ type FormatConfig =
       SpaceAfterSemicolon : bool;
       IndentOnTryWith : bool }
     static member Default = 
-        { IndentSpaceNum = 4;
+        { IndentSpaceNum = 4; ColumnWidth = 80;
           SemicolonAtEndOfLine = true; SpaceBeforeArgument = false; SpaceBeforeColon = true;
           SpaceAfterComma = true; SpaceAfterSemicolon = true; IndentOnTryWith = false }
 
@@ -101,24 +103,24 @@ let atCurrentColumn (f : _ -> Context) (ctx : Context) =
     atIndentLevel ctx.Writer.Column f ctx
 
 /// Function composition operator
-let (+>) (ctx : Context -> Context) (f : _ -> Context) x =
+let inline (+>) (ctx : Context -> Context) (f : _ -> Context) x =
     f (ctx x)
 
 /// Break-line and append specified string
-let (++) (ctx : Context -> Context) (str : string) x =
+let inline (++) (ctx : Context -> Context) (str : string) x =
     let c = ctx x
     c.Writer.WriteLine("")
     c.Writer.Write(str)
     c
 
 /// Append specified string without line-break
-let (--) (ctx : Context -> Context) (str : string) x =
+let inline (--) (ctx : Context -> Context) (str : string) x =
     let c = ctx x
     c.Writer.Write(str)
     c
 
-let (!-) (str : string) = id -- str 
-let (!+) (str : string) = id ++ str 
+let inline (!-) (str : string) = id -- str 
+let inline (!+) (str : string) = id ++ str 
 
 /// Call function, but give it context as an argument      
 let withCtxt f x =
@@ -133,7 +135,7 @@ let str (o : 'T) (ctx : Context) =
 /// calls f for every element in sequence and f' between every two elements 
 /// as a separator. This is a variant that works on typed collections.
 let col f' (c : seq<'T>) f (ctx : Context) =
-    let mutable tryPick = true in
+    let mutable tryPick = true
     let mutable st = ctx
     let e = c.GetEnumerator()   
     while (e.MoveNext()) do
@@ -203,30 +205,34 @@ let sepOpenT = !- "("
 /// closing token of tuple
 let sepCloseT = !- ")"
 
-let inline sepColon(ctx : Context) = 
+/// Set checkpoints to break at an appropriate column
+let sepAutoNln(ctx : Context) = 
+    if ctx.Writer.Column >= ctx.Config.ColumnWidth then sepNln ctx else sepSpace ctx
+
+let sepColon(ctx : Context) = 
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx
 
 let sepColonFixed = !- ":"
 
-let inline sepComma(ctx : Context) = 
+let sepComma(ctx : Context) = 
     if ctx.Config.SpaceAfterComma then str ", " ctx else str "," ctx
 
-let inline sepSemi(ctx : Context) = 
+let sepSemi(ctx : Context) = 
     if ctx.Config.SpaceAfterSemicolon then str "; " ctx else str ";" ctx
 
-let sepSemiNln =
-    /// !+ part is essential to indentation
-    withCtxt(fun ctx -> if ctx.Config.SemicolonAtEndOfLine then !- ";" ++ "" else !+ "")
+let sepSemiNln(ctx : Context) =
+    /// sepNln part is essential to indentation
+    if ctx.Config.SemicolonAtEndOfLine then (!- ";" +> sepNln) ctx else sepNln ctx
 
-let inline sepBeforeArg(ctx : Context) = 
+let sepBeforeArg(ctx : Context) = 
     if ctx.Config.SpaceBeforeArgument then str " " ctx else str "" ctx
 
 /// Conditional indentation on with keyword
-let inline indentWith(ctx : Context) =
+let indentOnWith(ctx : Context) =
     if ctx.Config.IndentOnTryWith then indent ctx else ctx
 
 /// Conditional unindentation on with keyword
-let inline unindentWith(ctx : Context) =
+let unindentOnWith(ctx : Context) =
     if ctx.Config.IndentOnTryWith then unindent ctx else ctx
 
 // These should be moved into the config later

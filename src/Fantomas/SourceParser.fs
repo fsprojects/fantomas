@@ -800,8 +800,8 @@ let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), p) = (s1, s2, p)
 
 let (|ValInfo|) (SynValInfo(aiss, ai)) = (aiss, ai)
 
-let (|ArgInfo|) (SynArgInfo(_, _, ido)) = 
-    Option.map (|Ident|) ido
+let (|ArgInfo|) (SynArgInfo(_, isOpt, ido)) = 
+    (Option.map (|Ident|) ido, isOpt)
 
 /// Extract function arguments with their associated info
 let (|FunType|) (t, ValInfo(aiss, ai)) = 
