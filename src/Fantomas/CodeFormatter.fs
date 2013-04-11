@@ -35,22 +35,31 @@ let tryFormatSourceString fsi s config =
     with 
     _ -> None
 
-/// Format a source file using given config
-let formatSourceFile f config = 
-    let s = File.ReadAllText(f)
-    let ext = Path.GetExtension(s)
-    let fsi = ext = ".fsi" || ext = ".mli"
-    formatSourceString fsi s config
+/// Format a source string using given config and write to a text writer
+let processSourceString fsi inStr (tw : TextWriter) config =
+    let tree = parse fsi inStr
+    Context.createContext config inStr 
+    |> genParsedInput tree 
+    |> dump
+    |> tw.Write
 
-/// Format inFile and write to outFile
-let processSourceFile inFile outFile config = 
-    let s = formatSourceFile inFile config
-    File.WriteAllText(outFile, s)
-
-/// Format inFile and write to outFile; return None if failed
-let tryProcessSourceFile inFile outFile config = 
+/// Format a source string using given config and write to a text writer; return None if failed
+let tryProcessSourceString fsi inStr tw config =
     try
-        Some (processSourceFile inFile outFile config)
+        Some (processSourceString fsi inStr tw config)
+    with 
+    _ -> None
+
+/// Format inFile and write to text writer
+let processSourceFile inFile (tw : TextWriter) config = 
+    let s = File.ReadAllText(inFile)
+    let fsi = inFile.EndsWith(".fsi") || inFile.EndsWith(".mli")
+    tw.Write(formatSourceString fsi s config)
+
+/// Format inFile and write to text writer; return None if failed
+let tryProcessSourceFile inFile tw config = 
+    try
+        Some (processSourceFile inFile tw config)
     with 
     _ -> None
 
