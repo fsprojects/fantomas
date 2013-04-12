@@ -110,10 +110,6 @@ let atIndentLevel level (f : Context -> Context) ctx =
 let atCurrentColumn (f : _ -> Context) (ctx : Context) =
     atIndentLevel ctx.Writer.Column f ctx
 
-/// Write next line at next indentation level
-let atNextColumn (f : _ -> Context) (ctx : Context) =
-    atIndentLevel (ctx.Writer.Column + ctx.Config.IndentSpaceNum) f ctx
-
 /// Function composition operator
 let inline (+>) (ctx : Context -> Context) (f : _ -> Context) x =
     f (ctx x)
@@ -133,10 +129,6 @@ let inline (--) (ctx : Context -> Context) (str : string) x =
 
 let inline (!-) (str : string) = id -- str 
 let inline (!+) (str : string) = id ++ str 
-
-/// Call function, but give it context as an argument      
-let withCtxt f x =
-    (f x) x
 
 /// Print object converted to string
 let str (o : 'T) (ctx : Context) =

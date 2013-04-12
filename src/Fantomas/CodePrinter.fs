@@ -1,15 +1,9 @@
 ﻿module internal Fantomas.CodePrinter
 
 open System
-open Fantomas.SourceParser
-open Fantomas.FormatConfig
 
-[<RequireQualifiedAccess>]
-module List = 
-    let inline atmostOne xs =
-        match xs with
-        | [] | [_] -> true
-        | _ -> false
+open Fantomas.FormatConfig
+open Fantomas.SourceParser
 
 /// Check whether an expression should be broken into multiple lines
 let rec multiline = function
@@ -32,7 +26,10 @@ let rec multiline = function
     | Lambda(e, _) -> multiline e
     | MatchLambda _ -> true
     | Match(e, cs) -> multiline e || not (List.isEmpty cs)
-    | InfixApp(_, e1, e2) -> multiline e1 || multiline e2
+    /// An infix app is multiline if it contains at least two new line infix ops
+    | InfixApps(e, es) -> 
+        multiline e || not (List.atmostOne (List.filter (fst >> NewLineInfixOps.Contains) es)) 
+                    || List.exists (snd >> multiline) es
     | App(e1, es) -> multiline e1 || List.exists multiline es
     | TypeApp(e, _) -> multiline e
     | LetOrUse(_, _, bs, e) -> not (List.isEmpty bs) || multiline e
@@ -336,12 +333,10 @@ and genExpr = function
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr e
     | PrefixApp(s, e) -> !- s  +> genExpr e
     /// Handle spaces of infix application based on which category it belongs to
-    | InfixApp(s, e1, e2) -> 
-        atCurrentColumn
-            (ifElse (NewLineInfixOps.Contains s)
-                (genExpr e1 +> sepNln -- s +> sepSpace +> genExpr e2)
-                (ifElse (NoSpaceInfixOps.Contains s) (genExpr e1 -- s +> autoNln (genExpr e2))
-                    (genExpr e1 +> sepSpace -- s +> sepSpace +> autoNln (genExpr e2))))
+    | NoNewLineInfixApps(e, es) ->
+        atCurrentColumn (genExpr e +> genInfixApps false es)
+    | InfixApps(e, es) -> 
+        atCurrentColumn (genExpr e +> genInfixApps true es)
     /// Unlike infix app, function application needs a level of indentation
     | App(e1, [e2]) -> 
         atCurrentColumn (genExpr e1 +> 
@@ -391,6 +386,14 @@ and genExpr = function
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
             +> genPat p -- " = " +> genExpr e1 +> sepNln +> genExpr e2)
     | e -> failwithf "Unexpected expression: %O" e
+
+and genInfixApps newline = function
+    | (s, e)::es ->
+        (ifElse (newline && NewLineInfixOps.Contains s) (sepNln -- s +> sepSpace +> genExpr e)
+           (ifElse (NoSpaceInfixOps.Contains s) (!- s +> autoNln (genExpr e))
+              (sepSpace +> autoNln (!- s +> sepSpace +> genExpr e))))
+        +> genInfixApps newline es
+    | [] -> sepNone
 
 /// Use in indexed set and get only
 and genIndexedVars es =
@@ -702,13 +705,13 @@ and genPat = function
     | PatNamed(ao, p, s) ->  opt sepSpace ao genAccess +> genPat p -- sprintf " as %s" s 
     | PatLongIdent(ao, s, ps, tpso) -> 
         let aoc = opt sepSpace ao genAccess
-        let tpsoc = 
-            opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParam tds tcs)
+        let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParam tds tcs)
         match ps with
         | [] ->  aoc -- s +> tpsoc
         | [PatSeq(PatTuple, [p1; p2])] when s = "::" -> aoc +> genPat p1 -- " :: " +> genPat p2
         | [p] -> aoc -- s +> tpsoc +> ifElse (hasParenInPat p) (genPat p) (sepSpace +> genPat p)
-        | ps -> aoc -- s +> tpsoc +> sepSpace +> col sepSpace ps genPat
+        /// This pattern is potentially long
+        | ps -> atCurrentColumn (aoc -- s +> tpsoc +> sepSpace +> col sepSpace ps (autoNln << genPat))
     | PatParen(PatConst(c)) -> genConst c
     | PatParen(p) -> sepOpenT +> genPat p +> sepCloseT
     | PatSeq(PatTuple, ps) -> atCurrentColumn (col sepComma ps (autoNln << genPat))
