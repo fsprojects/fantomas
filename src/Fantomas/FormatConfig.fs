@@ -8,9 +8,9 @@ open System.CodeDom.Compiler
 type Num = int
 
 type FormatConfig = 
-    { /// Number of spaces for each identation
+    { /// Number of spaces for each indentation
       IndentSpaceNum : Num;
-      /// The column where we break into new lines
+      /// The column where we break to new lines
       ColumnWidth : Num;
       SemicolonAtEndOfLine : bool;
       SpaceBeforeArgument : bool;
@@ -36,7 +36,9 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
         col <- indentWriter.Indent
         indentWriter.WriteLine(s)
     /// Current column of the page in an absolute manner
-    member __.Column = col
+    member __.Column 
+        with get() = col
+        and set i = col <- i
     member __.Indent 
         with get() = indentWriter.Indent
         and set i = indentWriter.Indent <- i
@@ -63,6 +65,12 @@ type Context =
             |> Seq.scan (+) 0
             |> Seq.toArray
         { Context.Default with Config = config; Content = content; Positions = positions }
+    member x.With(writer : ColumnIndentedTextWriter) =
+        writer.Indent <- x.Writer.Indent
+        writer.Column <- x.Writer.Column
+        /// Use infinite column width to encounter worst-case scenario
+        let config = { x.Config with ColumnWidth = Int32.MaxValue }
+        { x with Writer = writer; Config = config }
 
 let dump (ctx: Context) = ctx.Writer.InnerWriter.ToString()
 
@@ -101,6 +109,10 @@ let atIndentLevel level (f : Context -> Context) ctx =
 /// Write everything at current column indentation
 let atCurrentColumn (f : _ -> Context) (ctx : Context) =
     atIndentLevel ctx.Writer.Column f ctx
+
+/// Write next line at next indentation level
+let atNextColumn (f : _ -> Context) (ctx : Context) =
+    atIndentLevel (ctx.Writer.Column + ctx.Config.IndentSpaceNum) f ctx
 
 /// Function composition operator
 let inline (+>) (ctx : Context -> Context) (f : _ -> Context) x =
@@ -205,9 +217,15 @@ let sepOpenT = !- "("
 /// closing token of tuple
 let sepCloseT = !- ")"
 
-/// Set checkpoints to break at an appropriate column
-let sepAutoNln(ctx : Context) = 
-    if ctx.Writer.Column >= ctx.Config.ColumnWidth then sepNln ctx else sepSpace ctx
+/// Set a checkpoint to break at an appropriate column
+let autoNln f (ctx : Context) = 
+    let width = ctx.Config.ColumnWidth
+    /// Create a dummy context to evaluate length of current operation
+    use colWriter = new ColumnIndentedTextWriter(new StringWriter())
+    let dummyCtx = ctx.With(colWriter)
+    let col = (f dummyCtx).Writer.Column
+    /// This isn't accurate if we go to new lines
+    if col > width then f (sepNln ctx) else f ctx
 
 let sepColon(ctx : Context) = 
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx

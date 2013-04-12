@@ -130,7 +130,8 @@ printfn "%d %d %A" var1 var2 tuple1""" config
     |> should equal """
 let rangeTest testValue mid size = 
     match testValue with
-    | var1 when var1 >= mid - size / 2 && var1 <= mid + size / 2 -> printfn "The test value is in range."
+    | var1 when var1 >= mid - size / 2 && var1 <= mid + size / 2 -> 
+        printfn "The test value is in range."
     | _ -> printfn "The test value is out of range."
 
 let (var1, var2) as tuple1 = (1, 2)
@@ -217,7 +218,9 @@ let vectorLength vec =
     | [|var1|] -> var1
     | [|var1; var2|] -> sqrt(var1 * var1 + var2 * var2)
     | [|var1; var2; var3|] -> sqrt(var1 * var1 + var2 * var2 + var3 * var3)
-    | _ -> failwith "vectorLength called with an unsupported array size of %d." (vec.Length)
+    | _ -> 
+        failwith "vectorLength called with an unsupported array size of %d." 
+            (vec.Length)
 """
 
 [<Test>]
@@ -373,8 +376,7 @@ type Car =
       mutable Odometer : int }
 
 let myRecord3 = 
-    { myRecord2 with Y = 100;
-                     Z = 2 }
+    { myRecord2 with Y = 100; Z = 2 }
 """
 
 [<Test>]

@@ -112,7 +112,8 @@ and File(filename: string, containingFolder: Folder) =
 type Folder(pathIn : string) = 
     let path = pathIn
     let filenameArray : string array = System.IO.Directory.GetFiles(path)
-    member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
+    member this.FileArray = 
+        Array.map (fun elem -> new File(elem, this)) filenameArray
 
 and File(filename : string, containingFolder : Folder) = 
     member __.Name = filename
@@ -165,8 +166,7 @@ type Point2D =
         val X : float
         val Y : float
         new(x : float, y : float) = 
-            { X = x;
-              Y = y }
+            { X = x; Y = y }
     end
 """
 
@@ -534,7 +534,10 @@ let inline heterogenousAdd(value1 : ^T when (^T or ^U) : (static member (+) : ^T
     value1 + value2""" config
     |> prepend newline
     |> should equal """
-let inline add(value1 : ^T when ^T : (static member (+) : ^T * ^T -> ^T), value2 : ^T) = value1 + value2
+let inline add(value1 : ^T when ^T : (static member (+) : ^T * ^T -> ^T), 
+               value2 : ^T) = value1 + value2
 
-let inline heterogenousAdd(value1 : ^T when (^T or ^U) : (static member (+) : ^T * ^U -> ^T), value2 : ^U) = value1 + value2
+let inline heterogenousAdd(
+                           value1 : ^T when (^T or ^U) : (static member (+) : ^T * ^U -> ^T), 
+                           value2 : ^U) = value1 + value2
 """

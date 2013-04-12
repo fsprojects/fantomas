@@ -32,8 +32,7 @@ let rec multiline = function
     | Lambda(e, _) -> multiline e
     | MatchLambda _ -> true
     | Match(e, cs) -> multiline e || not (List.isEmpty cs)
-    // This break abstraction since NewLineInfixOps is global var
-    | InfixApp(s, e1, e2) -> NewLineInfixOps.Contains s || multiline e1 || multiline e2
+    | InfixApp(_, e1, e2) -> multiline e1 || multiline e2
     | App(e1, es) -> multiline e1 || List.exists multiline es
     | TypeApp(e, _) -> multiline e
     | LetOrUse(_, _, bs, e) -> not (List.isEmpty bs) || multiline e
@@ -171,12 +170,14 @@ and genAttribute(Attribute(s, e, _)) =
     | ConstExpr(Const "()") -> !- (sprintf "[<%s>]" s)
     | e -> !- "[<" -- s +> genExpr e -- ">]"
     
-and genPreXmlDoc(PreXmlDoc lines) = colPost sepNln sepNln lines (sprintf "///%s" >> (!-))
+and genPreXmlDoc(PreXmlDoc lines) = 
+    colPost sepNln sepNln lines (sprintf "///%s" >> (!-))
 
 /// These inline functions have to be defined before their uses
 
 and inline autoBreakNln e = 
-    ifElse (multiline e) (indent +> sepNln +> genExpr e +> unindent) (genExpr e)
+    ifElse (multiline e) (indent +> sepNln +> genExpr e +> unindent) 
+        (indent +> autoNln (genExpr e) +> unindent)
 
 and inline genTyparList tps = 
     ifElse (List.atmostOne tps) (col wordOr tps genTypar) (sepOpenT +> col wordOr tps genTypar +> sepCloseT)
@@ -291,13 +292,13 @@ and genExpr = function
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType t
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
-    | Tuple es -> col sepComma es genExpr
+    | Tuple es -> atCurrentColumn (col sepComma es (autoNln << genExpr))
     | ArrayOrList(isArray, xs) -> 
-        ifElse isArray (sepOpenA +> atCurrentColumn (col sepSemiNln xs genExpr) +> sepCloseA) 
-            (sepOpenL +> atCurrentColumn (col sepSemiNln xs genExpr) +> sepCloseL)
+        ifElse isArray (sepOpenA +> atCurrentColumn (col sepSemi xs (autoNln << genExpr)) +> sepCloseA) 
+            (sepOpenL +> atCurrentColumn (col sepSemi xs (autoNln << genExpr)) +> sepCloseL)
     | Record(xs, eo) -> 
         sepOpenS +> opt (!- " with ") eo genExpr
-        +> atCurrentColumn (col sepSemiNln xs genRecordFieldName)
+        +> atCurrentColumn (col sepSemi xs (autoNln << genRecordFieldName))
         +> sepCloseS
     | ObjExpr(t, eio, bd, ims) ->
         /// Check the role of the second part of eio
@@ -318,7 +319,7 @@ and genExpr = function
         atCurrentColumn (!- "for " +> genPat p -- " in " +> genExpr e1 
             -- " do" +> indent +> sepNln +> genExpr e2 +> unindent)
     | CompExpr(isArrayOrList, e) ->
-        ifElse isArrayOrList (genExpr e) (sepOpenS +> autoBreakNln e +> sepCloseS) 
+        ifElse isArrayOrList (genExpr e) (autoBreakNln e) 
     | ArrayOrListOfSeqExpr(isArray, e) -> 
         ifElse isArray (sepOpenA +> genExpr e +> sepCloseA) (sepOpenL +> genExpr e +> sepCloseL)
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
@@ -327,32 +328,36 @@ and genExpr = function
         !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e
     | MatchLambda(sp, _) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
     | Match(e, cs) -> 
-        atCurrentColumn (!- "match " +> genExpr e -- " with"
-            +> colPre sepNln sepNln cs genClause)
-    | SeqApp(e) ->
-        !- "seq " +> sepOpenS +> genExpr e +> sepCloseS
+        atCurrentColumn (!- "match " +> genExpr e -- " with" +> colPre sepNln sepNln cs genClause)
+    | CompApp(s, e) ->
+        !- s +> sepSpace +> sepOpenS +> genExpr e +> sepCloseS
     | App(Var(OpName ".. .."), [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
     /// Separate two prefix ops by spaces
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr e
     | PrefixApp(s, e) -> !- s  +> genExpr e
     /// Handle spaces of infix application based on which category it belongs to
     | InfixApp(s, e1, e2) -> 
-        ifElse (Set.contains s NewLineInfixOps) 
-            (atCurrentColumn (genExpr e1 +> sepNln -- s +> sepSpace +> genExpr e2))
-            (ifElse (Set.contains s NoSpaceInfixOps) (genExpr e1 -- s +> genExpr e2) 
-                (genExpr e1 +> sepSpace -- s +> sepSpace +> genExpr e2))
+        atCurrentColumn
+            (ifElse (NewLineInfixOps.Contains s)
+                (genExpr e1 +> sepNln -- s +> sepSpace +> genExpr e2)
+                (ifElse (NoSpaceInfixOps.Contains s) (genExpr e1 -- s +> autoNln (genExpr e2))
+                    (genExpr e1 +> sepSpace -- s +> sepSpace +> autoNln (genExpr e2))))
+    /// Unlike infix app, function application needs a level of indentation
     | App(e1, [e2]) -> 
         atCurrentColumn (genExpr e1 +> 
-            ifElse (hasParenthesis e2) (sepBeforeArg +> genExpr e2) (sepSpace +> genExpr e2))
+            ifElse (hasParenthesis e2) (sepBeforeArg +> indent +> autoNln (genExpr e2) +> unindent) 
+                (sepSpace +> indent +> autoNln (genExpr e2) +> unindent))
     /// Always spacing in multiple arguments
-    | App(e, es) -> atCurrentColumn (genExpr e +> colPre sepSpace sepSpace es genExpr)
+    | App(e, es) -> 
+        atCurrentColumn 
+            (genExpr e +> colPre sepSpace sepSpace es (fun e -> indent +> autoNln (genExpr e) +> unindent))
     | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts genType -- ">"
     | LetOrUse(isRec, isUse, bs, e) ->
         let prefix = 
             if isUse then "use "
             elif isRec then "let rec "
             else "let "
-        atCurrentColumn (col sepSpace bs (genLetBinding prefix) +> sepNln +> genExpr e)
+        atCurrentColumn (col sepNln bs (genLetBinding prefix) +> sepNln +> genExpr e)
     /// Could customize a bit if e is single line
     | TryWith(e, cs) ->  
         atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e +> unindent ++ "with" 
@@ -360,7 +365,7 @@ and genExpr = function
     | TryFinally(e1, e2) -> 
         atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e1 +> unindent ++ "finally" 
             +> indent +> sepNln +> genExpr e2 +> unindent)    
-    | SequentialSimple es -> atCurrentColumn (col sepSemi es genExpr)
+    | SequentialSimple es -> atCurrentColumn (col sepSemi es (autoNln << genExpr))
     /// It seems too annoying to use sepSemiNln
     | Sequential(e1, e2, _) -> 
         atCurrentColumn (genExpr e1 +> sepNln +> genExpr e2)
@@ -695,22 +700,22 @@ and genPat = function
     | PatTyped(p, t) -> genPat p +> sepColon +> genType t
     | PatNamed(ao, PatNullary PatWild, s) ->  opt sepSpace ao genAccess -- s
     | PatNamed(ao, p, s) ->  opt sepSpace ao genAccess +> genPat p -- sprintf " as %s" s 
-    | PatLongIdent(ao, li, ps, tpso) -> 
+    | PatLongIdent(ao, s, ps, tpso) -> 
         let aoc = opt sepSpace ao genAccess
         let tpsoc = 
             opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParam tds tcs)
         match ps with
-        | [] ->  aoc -- li +> tpsoc
-        | [PatSeq(PatTuple, [p1; p2])] when li = "::" -> aoc +> genPat p1 -- " :: " +> genPat p2
-        | [p] -> aoc -- li +> tpsoc +> ifElse (hasParenInPat p) (genPat p) (sepSpace +> genPat p)
-        | ps -> aoc -- li +> tpsoc +> sepSpace +> col sepSpace ps genPat
+        | [] ->  aoc -- s +> tpsoc
+        | [PatSeq(PatTuple, [p1; p2])] when s = "::" -> aoc +> genPat p1 -- " :: " +> genPat p2
+        | [p] -> aoc -- s +> tpsoc +> ifElse (hasParenInPat p) (genPat p) (sepSpace +> genPat p)
+        | ps -> aoc -- s +> tpsoc +> sepSpace +> col sepSpace ps genPat
     | PatParen(PatConst(c)) -> genConst c
     | PatParen(p) -> sepOpenT +> genPat p +> sepCloseT
-    | PatSeq(PatTuple, ps) -> col sepComma ps genPat
-    | PatSeq(PatList, ps) -> sepOpenL +> atCurrentColumn (col sepSemi ps genPat) +> sepCloseL
-    | PatSeq(PatArray, ps) -> sepOpenA +> atCurrentColumn (col sepSemi ps genPat) +> sepCloseA
+    | PatSeq(PatTuple, ps) -> atCurrentColumn (col sepComma ps (autoNln << genPat))
+    | PatSeq(PatList, ps) -> sepOpenL +> atCurrentColumn (col sepSemi ps (autoNln << genPat)) +> sepCloseL
+    | PatSeq(PatArray, ps) -> sepOpenA +> atCurrentColumn (col sepSemi ps (autoNln << genPat)) +> sepCloseA
     | PatRecord(xs) -> 
-        sepOpenS +> atCurrentColumn (col sepSemi xs genPatRecordFieldName) +> sepCloseS
+        sepOpenS +> atCurrentColumn (col sepSemi xs (autoNln << genPatRecordFieldName)) +> sepCloseS
     | PatConst(c) -> genConst c
     | PatIsInst(t) -> !- ":? " +> genType t
     // What about "<@@ " ?

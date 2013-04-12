@@ -473,8 +473,9 @@ let rec (|App|_|) = function
     | SynExpr.App(_, _, e1, e2, _) -> Some(e1, [e2])
     | _ -> None
 
-let (|SeqApp|_|) = function
-    | SynExpr.App(_, _, Var "seq", (SynExpr.App _ as e), _) -> Some e
+let (|CompApp|_|) = function
+    | SynExpr.App(_, _, Var "seq", (SynExpr.App _ as e), _) -> Some("seq", e)
+    | SynExpr.App(_, _, Var s, (SynExpr.CompExpr _ as e), _) -> Some(s, e)
     | _ -> None
 
 let (|PrefixApp|_|) = function
