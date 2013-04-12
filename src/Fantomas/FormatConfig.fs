@@ -11,7 +11,7 @@ type FormatConfig =
     { /// Number of spaces for each indentation
       IndentSpaceNum : Num;
       /// The column where we break to new lines
-      ColumnWidth : Num;
+      PageWidth : Num;
       SemicolonAtEndOfLine : bool;
       SpaceBeforeArgument : bool;
       SpaceBeforeColon : bool;
@@ -19,7 +19,7 @@ type FormatConfig =
       SpaceAfterSemicolon : bool;
       IndentOnTryWith : bool }
     static member Default = 
-        { IndentSpaceNum = 4; ColumnWidth = 80;
+        { IndentSpaceNum = 4; PageWidth = 80;
           SemicolonAtEndOfLine = true; SpaceBeforeArgument = false; SpaceBeforeColon = true;
           SpaceAfterComma = true; SpaceAfterSemicolon = true; IndentOnTryWith = false }
 
@@ -69,7 +69,7 @@ type Context =
         writer.Indent <- x.Writer.Indent
         writer.Column <- x.Writer.Column
         /// Use infinite column width to encounter worst-case scenario
-        let config = { x.Config with ColumnWidth = Int32.MaxValue }
+        let config = { x.Config with PageWidth = Int32.MaxValue }
         { x with Writer = writer; Config = config }
 
 let dump (ctx: Context) = ctx.Writer.InnerWriter.ToString()
@@ -211,7 +211,7 @@ let sepCloseT = !- ")"
 
 /// Set a checkpoint to break at an appropriate column
 let autoNln f (ctx : Context) = 
-    let width = ctx.Config.ColumnWidth
+    let width = ctx.Config.PageWidth
     /// Create a dummy context to evaluate length of current operation
     use colWriter = new ColumnIndentedTextWriter(new StringWriter())
     let dummyCtx = ctx.With(colWriter)

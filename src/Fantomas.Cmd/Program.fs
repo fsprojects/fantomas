@@ -18,6 +18,7 @@ open Fantomas.FormatConfig
 
 /// Preferences:
 ///  --indent=[1-10]                 Set number of spaces to use for indentation
+///  --pageWidth=[60-inf]            Set the column where we break to new lines
 ///  [+|-]semicolonEOL               Enable/disable semicolons at the end of line (default = true)
 ///  [+|-]spaceBeforeArgument        Enable/disable spaces before the first argument (default = false)
 ///  [+|-]spaceBeforeColon           Enable/disable spaces before colons (default = true)
@@ -35,6 +36,7 @@ let stdInText = "Read F# source from standard input."
 let stdOutText = " Write the formatted source code to standard output."
 
 let indentText = "Set number of spaces for indentation (default = 4). The value is between 1 and 10."
+let widthText = "Set the column where we break to new lines (default = 80). The value should be at least 60."
 
 let semicolonEOLText = "Disable semicolons at the end of line (default = true)."
 let argumentText = "Enable spaces before the first argument (default = false)."
@@ -88,6 +90,7 @@ let main args =
     let stdOut = ref false
     
     let indent = ref 4
+    let pageWidth = ref 80
     
     let semicolonEOL = ref true
     let spaceBeforeArgument = ref false
@@ -118,6 +121,13 @@ let main args =
             indent := i
         else
             stderr.WriteLine("Number of spaces should be between 1 and 10.")
+            exit 1
+
+    let handlePageWidth i = 
+        if i >= 60 then
+            pageWidth := i
+        else
+            stderr.WriteLine("Page width should be at least 60.")
             exit 1
 
     let fileToFile inFile (outFile : string) config =
@@ -181,6 +191,7 @@ let main args =
            ArgInfo("--out", ArgType.String handleOutput, outputText);
 
            ArgInfo("--indent", ArgType.Int handleIndent, indentText);
+           ArgInfo("--pageWidth", ArgType.Int handlePageWidth, widthText);
            
            ArgInfo("--noSemicolonEOL", ArgType.Clear semicolonEOL, semicolonEOLText);
            ArgInfo("--spaceBeforeArgument", ArgType.Set spaceBeforeArgument, argumentText);           
@@ -193,6 +204,7 @@ let main args =
 
     let config = { FormatConfig.Default with 
                     IndentSpaceNum = !indent;
+                    PageWidth = !pageWidth;
                     SemicolonAtEndOfLine = !semicolonEOL; 
                     SpaceBeforeArgument = !spaceBeforeArgument; 
                     SpaceBeforeColon = !spaceBeforeColon;
