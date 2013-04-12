@@ -267,8 +267,8 @@ and genMemberFlags isInterface = function
 and genVal (Val(ats, px, ao, s, t, vi, _)) = 
     let (FunType ts) = (t, vi)
     genPreXmlDoc px
-    +> colPost sepNln sepNone ats genAttribute -- "val "
-    +> opt sepSpace ao genAccess -- s +> sepColon +> genTypeList ts
+    +> colPost sepNln sepNone ats genAttribute 
+    +> atCurrentColumn (indent -- "val " +> opt sepSpace ao genAccess -- s +> sepColon +> genTypeList ts +> unindent)
 
 and inline genRecordFieldName(RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> autoBreakNln e)
@@ -513,7 +513,8 @@ and genMemberSig = function
     | MSMember(Val(ats, px, ao, s, t, vi, _), mf) -> 
         let (FunType ts) = (t, vi)
         genPreXmlDoc px +> colPost sepSpace sepNone ats genAttribute 
-        +> genMemberFlags false mf +> opt sepNone ao genAccess -- s +> sepColon +> genTypeList ts
+        +> atCurrentColumn (indent +> genMemberFlags false mf +> opt sepNone ao genAccess -- s 
+                                   +> sepColon +> genTypeList ts +> unindent)
     | MSInterface t -> !- "interface " +> genType t
     | MSInherit t -> !- "inherit " +> genType t
     | MSValField f -> genField "val " f
@@ -609,13 +610,15 @@ and genTypeList = function
                 /// Tuple or Fun is grouped by brackets
                 sepOpenT +> optPre (ifElse isOpt (!- "?") sepNone) sepColonFixed so (!-) +> genType t +> sepCloseT
             | _ -> opt sepColonFixed so (!-) +> genType t
-        gt +> ifElse ts.IsEmpty sepNone (sepArrow +> genTypeList ts)
+        gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
     | (TTuple ts', ais)::ts -> 
         let gt = col sepStar (Seq.zip ais ts') 
                     (fun (ArgInfo(so, isOpt), t) -> optPre (ifElse isOpt (!- "?") sepNone) 
                                                         sepColonFixed so (!-) +> genComplexType t)
-        gt +> ifElse ts.IsEmpty sepNone (sepArrow +> genTypeList ts)
-    | (t, _)::ts -> genType t +> ifElse ts.IsEmpty sepNone (sepArrow +> genTypeList ts)
+        gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
+    | (t, _)::ts -> 
+        let gt = genType t
+        gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
 
 and genTypar(Typar(s, isHead)) = 
     /// There is a potential parser bug with "<^T..."

@@ -349,11 +349,13 @@ type Element =
     /// Constructs an new empty Element.
     static member Create : name:string * ?uri:string -> Element
     /// Replaces the children.
-    static member WithChildren : children:#seq<#INode> -> self:Element -> Element
+    static member WithChildren : children:#seq<#INode>
+         -> self:Element -> Element
     /// Replaces the children.
     static member (-) : self:Element * children:#seq<#INode> -> Element
     /// Replaces the attributes.
-    static member WithAttributes : attrs:#seq<string * string> -> self:Element -> Element
+    static member WithAttributes : attrs:#seq<string * string>
+         -> self:Element -> Element
     /// Replaces the attributes.
     static member (+) : self:Element * attrs:#seq<string * string> -> Element
     /// Replaces the children with a single text node.

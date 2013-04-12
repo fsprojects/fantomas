@@ -26,7 +26,6 @@ open Fantomas.FormatConfig
 ///  [+|-]spaceAfterSemiColon        Enable/disable spaces after semicolons (default = true)
 ///  [+|-]indentOnTryWith            Enable/disable indentation on try/with block (default = false)
 
-
 let forceText = "Print the source unchanged if it cannot be parsed correctly."
 let recurseText = "Process the input folder recursively."
 let outputText = "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only."
