@@ -2,13 +2,9 @@
 module Performance
 
 open System
-
 open System.Drawing
-
 open System.IO
-
 open System.Text
-
 open System.Text.RegularExpressions
 
 let rec getAllFiles baseDir = 
@@ -35,7 +31,9 @@ let addToFile file n =
   match n with
   | 2 -> 
     let fileDir = Path.GetDirectoryName(file)
-    let nextFile = Path.GetFileNameWithoutExtension(file) + "-" + n.ToString() + Path.GetExtension(file)
+    let nextFile = 
+      Path.GetFileNameWithoutExtension(file) + "-" + n.ToString() 
+      + Path.GetExtension(file)
     Path.Combine(fileDir, nextFile)
   | _ -> 
     let prev = n - 1
@@ -54,18 +52,18 @@ let getNewFilename newFilePath =
 let move destinationRoot files = 
   let moveHelper file = 
     let dateTaken = getDateTaken file
-    let finalPath = Path.Combine(destinationRoot, dateTaken.Year.ToString(), dateTaken.ToString("yyyy-MM-dd"))
+    let finalPath = 
+      Path.Combine
+        (destinationRoot, dateTaken.Year.ToString(), dateTaken.ToString("yyyy-MM-dd"))
     if not(Directory.Exists(finalPath))
-    then 
-      Directory.CreateDirectory(finalPath)
-      |> ignore
+    then Directory.CreateDirectory(finalPath) |> ignore
     let newFile = getNewFilename(Path.Combine(finalPath, Path.GetFileName(file)))
     try 
       File.Copy(file, newFile)
     with
-    | :? Exception as e -> failwith(sprintf "error renaming %s to %s\n%s" file newFile e.Message)
-  files
-  |> Seq.iter moveHelper
+    | :? Exception as e -> 
+      failwith(sprintf "error renaming %s to %s\n%s" file newFile e.Message)
+  files |> Seq.iter moveHelper
 
 let moveFrom source = 
   getAllFiles source

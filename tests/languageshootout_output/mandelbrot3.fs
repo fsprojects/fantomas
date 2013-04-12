@@ -7,9 +7,7 @@
 module Mandelbrot
 
 open System
-
 open System.Threading
-
 open System.IO
 
 let mutable N = 200
@@ -80,7 +78,8 @@ let main args =
   data <- Array.zeroCreate N
   for i in 0..N - 1 do
     data.[i] <- Array.zeroCreate width_bytes
-  let threads = Array.init (Environment.ProcessorCount - 1) (fun i -> new Thread(Calculate))
+  let threads = 
+    Array.init (Environment.ProcessorCount - 1) (fun i -> new Thread(Calculate))
   for thread in threads do
     thread.Start()
   Calculate()

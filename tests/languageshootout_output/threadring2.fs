@@ -15,34 +15,30 @@ type AutoResetCell() =
   member this.RegisterResult res = 
     let grabbed = 
       lock this (fun () -> 
-        match run with
-        | None -> 
-          value <- res
-          None
-        | grabbed -> 
-          run <- None
-          grabbed)
+          match run with
+          | None -> 
+            value <- res
+            None
+          | grabbed -> 
+            run <- None
+            grabbed)
     match grabbed with
     | None -> ()
     | Some run -> run res
   member this.AsyncResult = 
-    Async.FromContinuations(fun (success, _arg1, _arg2) -> 
-      match _arg1 with
-      | _ -> 
-        match _arg2 with
-        | _ -> 
-          let runNow = 
-            lock this (fun () -> 
+    Async.FromContinuations(fun (success, _, _) -> 
+        let runNow = 
+          lock this (fun () -> 
               if value = -1
               then 
                 run <- Some success
                 false
               else true)
-          if runNow
-          then 
-            let r = value
-            value <- -1
-            success r)
+        if runNow
+        then 
+          let r = value
+          value <- -1
+          success r)
 
 let createCell _ = AutoResetCell()
 

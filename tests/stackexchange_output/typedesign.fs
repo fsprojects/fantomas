@@ -25,4 +25,5 @@ let buildQuery groupBy (metrics : Metrics list) =
     System.String.Join(",", x)
   let groupings = concatenate(fun m -> m.FormatGroupings)
   let projections = concatenate(fun m -> m.FormatProjections)
-  sprintf """{$group: {_id: {%s: "$%s"}}, %s}, $project: {%s}}""" groupBy groupBy groupings projections
+  sprintf """{$group: {_id: {%s: "$%s"}}, %s}, $project: {%s}}""" groupBy groupBy 
+    groupings projections

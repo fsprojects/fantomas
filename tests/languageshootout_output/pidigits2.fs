@@ -7,12 +7,12 @@
 module Pidigits
 
 open System
-
 open System.Numerics
 
 let id = 1I, 0I, 0I, 1I
 
-let inline compose (q, r, s, t) (u, v, x) = (q * u, q * v + r * x, s * u, s * v + t * x)
+let inline compose (q, r, s, t) (u, v, x) = 
+  (q * u, q * v + r * x, s * u, s * v + t * x)
 
 let inline extract (q, r, s, t) x = BigInteger.Divide(q * x + r, s * x + t)
 

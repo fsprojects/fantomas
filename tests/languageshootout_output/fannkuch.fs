@@ -11,7 +11,6 @@
 module Fannkuch
 
 open System
-
 open System.Threading
 
 let mutable n = 0
@@ -37,8 +36,8 @@ let print_30_permut() =
   /// declare and initialize
   let permutation : int array = 
     Array.init n (fun i -> 
-      Console.Write(i + 1)
-      i)
+        Console.Write(i + 1)
+        i)
   Console.WriteLine()
   let perm_remain = Array.init n (fun i -> i + 1)
   let mutable numPermutationsPrinted = 1
@@ -128,9 +127,9 @@ let worker() =
 let fank_game() = 
   let th : Thread array = 
     Array.init threads (fun i -> 
-      let th = Thread(worker)
-      th.Start()
-      th)
+        let th = Thread(worker)
+        th.Start()
+        th)
   print_30_permut()
   for t in th do
     t.Join()

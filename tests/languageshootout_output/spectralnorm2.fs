@@ -6,7 +6,6 @@
 module Spectralnorm
 
 open System
-
 open System.Threading
 
 type BarrierHandle(threads : int) = 
@@ -15,18 +14,15 @@ type BarrierHandle(threads : int) =
   member x.WaitOne() = 
     let h = handle
     if Interlocked.Decrement(&current) > 0
-    then 
-      h.WaitOne()
-      |> ignore
+    then h.WaitOne() |> ignore
     else 
       handle <- new ManualResetEvent(false)
-      Interlocked.Exchange(&current, threads)
-      |> ignore
-      h.Set()
-      |> ignore
+      Interlocked.Exchange(&current, threads) |> ignore
+      h.Set() |> ignore
       h.Close()
 
-let Approximate(u : double[], v : double[], tmp : double[], rbegin, rend, barrier : BarrierHandle) = 
+let Approximate(u : double[], v : double[], tmp : double[], rbegin, rend, 
+                barrier : BarrierHandle) = 
   let mutable vBv = 0.0
   let mutable vv = 0.0
   let A i j = 1.0 / float((i + j) * (i + j + 1) / 2 + i + 1)
@@ -63,20 +59,17 @@ let RunGame n =
   let barrier = new BarrierHandle(nthread)
   let chunk = n / nthread
   let aps = 
-    Async.Parallel [for i in 0..nthread - 1 do
-                      let r1 = i * chunk
-                      let r2 = 
-                        if (i < (nthread - 1))
-                        then r1 + chunk
-                        else n
-                      yield async { return Approximate(u, v, tmp, r1, r2, barrier) }]
+    Async.Parallel 
+      [for i in 0..nthread - 1 do
+         let r1 = i * chunk
+         let r2 = 
+           if (i < (nthread - 1))
+           then r1 + chunk
+           else n
+         yield async { return Approximate(u, v, tmp, r1, r2, barrier) }] 
     |> Async.RunSynchronously
-  let vBv = 
-    aps
-    |> Array.sumBy fst
-  let vv = 
-    aps
-    |> Array.sumBy snd
+  let vBv = aps |> Array.sumBy fst
+  let vv = aps |> Array.sumBy snd
   Math.Sqrt(vBv / vv)
 
 [<EntryPoint>]

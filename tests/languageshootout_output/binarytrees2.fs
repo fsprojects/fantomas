@@ -49,5 +49,6 @@ let main args =
   printf "stretch tree of depth %i\t check: %i\n" stretchDepth c
   let longLivedTree = make 0 maxDepth
   loopDepths maxDepth minDepth minDepth
-  printf "long lived tree of depth %i\t check: %i\n" maxDepth (check longLivedTree)
+  printf "long lived tree of depth %i\t check: %i\n" maxDepth 
+    (check longLivedTree)
   0

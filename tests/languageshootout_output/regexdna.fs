@@ -6,7 +6,6 @@
 module Regexdna
 
 open System.Text.RegularExpressions
-
 open System.Threading
 
 let regex s = Regex(s, RegexOptions.Compiled)
@@ -33,10 +32,15 @@ let rec onblocks res s =
  "agggt[cgt]aa|tt[acg]accct"
  "agggta[cgt]a|t[acg]taccct"
  "agggtaa[cgt]|[acg]ttaccct"]
-|> List.map(fun s -> async { return System.String.Format("{0} {1}", s, ((regex s).Matches text).Count) })
+|> List.map
+     (fun s -> 
+       async { 
+         return System.String.Format
+                  ("{0} {1}", s, ((regex s).Matches text).Count) })
 |> Async.Parallel
 |> Async.RunSynchronously
 |> Array.iter(printfn "%s")
+
 let newTextLength t = 
   ["B", "(c|g|t)"
    "D", "(a|g|t)"

@@ -6,7 +6,6 @@
 module Regexdna
 
 open System.Text.RegularExpressions
-
 open System.Threading
 
 let regex s = Regex(s, RegexOptions.Compiled)
@@ -26,10 +25,13 @@ let onblocks overlapSize blockSize =
     function 
     | "" -> res
     | s when s.Length <= blockSize -> res @ [s]
-    | s -> onblocks' (res @ [s.Substring(0, blockSize)]) (s.Substring(blockSize - overlapSize))
+    | s -> 
+      onblocks' (res @ [s.Substring(0, blockSize)]) 
+        (s.Substring(blockSize - overlapSize))
   onblocks' []
 
-let onProcBlocks = onblocks 0 ((textSize / System.Environment.ProcessorCount) + 1)
+let onProcBlocks = 
+  onblocks 0 ((textSize / System.Environment.ProcessorCount) + 1)
 
 let DNAcodes = 
   ["agggtaaa|tttaccct"
@@ -47,7 +49,8 @@ let chunksCounts =
   let chunkedMatch(matchStr : string) = 
     text
     |> onblocks (matchStr.Length - 1) blockSize
-    |> List.map(fun t -> async { return matchStr, ((regex matchStr).Matches t).Count })
+    |> List.map
+         (fun t -> async { return matchStr, ((regex matchStr).Matches t).Count })
   DNAcodes
   |> List.collect chunkedMatch
   |> Async.Parallel
@@ -55,14 +58,14 @@ let chunksCounts =
 
 DNAcodes
 |> List.map(fun key -> 
-     key, chunksCounts
-          |> Array.fold (fun S (k, cnt) -> 
-               match S with
-               | S -> 
-                 if k = key
-                 then S + cnt
-                 else S) 0)
+       key, chunksCounts |> Array.fold (fun S (k, cnt) -> 
+                                match S with
+                                | S -> 
+                                  if k = key
+                                  then S + cnt
+                                  else S) 0)
 |> List.iter(fun (key, cnt) -> printfn "%s %i" key cnt)
+
 /// Gather result counts by summing them per DNA code
 let lengthAfterReplace text = 
   ["B", "(c|g|t)"

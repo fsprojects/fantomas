@@ -2,9 +2,7 @@
 module Mergesort
 
 open System
-
 open System.Windows
-
 open System.Collections.Generic
 
 let shuffle(l : 'a array) = 
@@ -13,11 +11,8 @@ let shuffle(l : 'a array) =
     match ileft.Count with
     | 0 -> r
     | n -> 
-      let ik = 
-        ileft
-        |> Seq.nth(rnd.Next(n))
-      ileft.Remove(ik)
-      |> ignore
+      let ik = ileft |> Seq.nth(rnd.Next(n))
+      ileft.Remove(ik) |> ignore
       pick ar (ar.[ik] :: r)
   pick l []
 
@@ -43,8 +38,7 @@ let rec merge (ar1 : 'a array) (ar2 : 'a array) =
         yield! index indexnext
       | false, false -> yield None }
   let mergeindex = index(false, -1, -1)
-  [for (formar1, i, j) in mergeindex
-                          |> Seq.choose(id) do
+  [for (formar1, i, j) in mergeindex |> Seq.choose(id) do
      yield if formar1
            then ar1.[i]
            else ar2.[j]]
@@ -56,8 +50,7 @@ and mergesort =
   | ar -> 
     let ar1 = ar.[0..ar.Length / 2 - 1]
     let ar2 = ar.[ar.Length / 2..ar.Length - 1]
-    merge (mergesort ar1) (mergesort ar2)
-    |> List.toArray
+    merge (mergesort ar1) (mergesort ar2) |> List.toArray
 
 let testval = 
   ([|1..100|]

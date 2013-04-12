@@ -52,7 +52,8 @@ module NaturalSortKata =
             | (ty, _) when ty = Unknown -> 
               let t = ChunckType.GetType(fistLetter)
               gather rest (t, fistLetter :: [])
-            | (ty, l) when ty = ChunckType.GetType(fistLetter) -> gather rest (ty, fistLetter :: l)
+            | (ty, l) when ty = ChunckType.GetType(fistLetter) -> 
+              gather rest (ty, fistLetter :: l)
             | (ty, l) -> (ty, fix(l))
         gather str (Unknown, [])
       let rec compare (left : string) (right : string) = 
@@ -81,7 +82,9 @@ module NaturalSortKata =
               compare lVal rVal
             else 
               match lt with
-              | NumberType -> Comparison.Compare (System.Int64.Parse(lChunk)) (System.Int64.Parse(rChunk))
+              | NumberType -> 
+                Comparison.Compare (System.Int64.Parse(lChunk)) 
+                  (System.Int64.Parse(rChunk))
               | _ -> Comparison.Compare lChunk rChunk
           | _ -> lt.Compare(rt)
       compare left right

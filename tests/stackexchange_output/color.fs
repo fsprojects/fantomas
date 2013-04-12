@@ -2,7 +2,6 @@
 module Color
 
 open System.IO
-
 open System.Net
 
 /// currently the color table is create via the AddColor method, however
@@ -22,9 +21,7 @@ type MyFSColorTable() =
     loadrgb.Split([|'\010'|])
     |> Seq.skip 1
     |> Seq.map(fun line -> line.Split([|'\009'|]))
-    |> Seq.filter(fun values -> 
-         values
-         |> Seq.length = 3)
+    |> Seq.filter(fun values -> values |> Seq.length = 3)
     |> Seq.map(fun values -> string values.[0], string values.[2])
     |> Seq.map(fun (rgb, name) -> rgb.Split([|' '|]), name)
     |> Seq.map(fun (rgb, name) -> [|name, rgb.[0], rgb.[1], rgb.[2]|])

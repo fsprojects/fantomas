@@ -8,7 +8,6 @@
 module BinaryTrees
 
 open System
-
 open Unchecked
 
 type Next = 
@@ -24,8 +23,10 @@ and [<Struct>] Tree(next : Next, item : int) =
 let rec make item depth = 
   if depth > 0
   then 
-    Tree({ Left = make (2 * item - 1) (depth - 1)
-           Right = make (2 * item) (depth - 1) }, item)
+    Tree
+      (
+       { Left = make (2 * item - 1) (depth - 1); 
+         Right = make (2 * item) (depth - 1) }, item)
   else Tree(defaultof<_>, item)
 
 let inline check(tree : Tree) = tree.Check()
@@ -54,5 +55,7 @@ let main args =
   Console.WriteLine("stretch tree of depth {0}\t check: {1}", stretchDepth, c)
   let longLivedTree = make 0 maxDepth
   loopDepths maxDepth minDepth minDepth
-  Console.WriteLine("long lived tree of depth {0}\t check: {1}", maxDepth, (check longLivedTree))
+  Console.WriteLine
+    ("long lived tree of depth {0}\t check: {1}", maxDepth, 
+     (check longLivedTree))
   exit 0

@@ -5,7 +5,6 @@
 module Fastaredux
 
 open System
-
 open System.IO
 
 let IM, IA, IC = 139968, 3877, 29573

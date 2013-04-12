@@ -2,7 +2,6 @@
 module Telnet
 
 open System
-
 open System.Net.Sockets
 
 let asyncGetInput = async { return BitConverter.GetBytes(Console.Read()) }
@@ -15,7 +14,8 @@ let rec asyncSendInput(stream : NetworkStream) =
     |> ignore
     do! asyncSendInput stream }
 
-let asyncGetResponse(stream : NetworkStream) = async { return Char.ConvertFromUtf32(stream.ReadByte()) }
+let asyncGetResponse(stream : NetworkStream) = 
+  async { return Char.ConvertFromUtf32(stream.ReadByte()) }
 
 let rec asyncPrintResponse(stream : NetworkStream) = 
   async { 
