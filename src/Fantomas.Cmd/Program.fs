@@ -30,11 +30,11 @@ let forceText = "Print the source unchanged if it cannot be parsed correctly."
 let recurseText = "Process the input folder recursively."
 let outputText = "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only."
 
-let fsiText = "Read F# source from stdio as F# signatures."
+let fsiText = "Read F# source from stdin as F# signatures."
 let stdInText = "Read F# source from standard input."
 let stdOutText = " Write the formatted source code to standard output."
 
-let indentText = "Set number of spaces for indentation (default = 4). The value is between 1 and 10."
+let indentText = "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
 let widthText = "Set the column where we break to new lines (default = 80). The value should be at least 60."
 
 let semicolonEOLText = "Disable semicolons at the end of line (default = true)."

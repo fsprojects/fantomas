@@ -4,11 +4,14 @@
 ### Using the command line tool
 ---
 
+For the overview how to use the tool, you can type the command
+
+	Fantomas --help
+
 Two required parameters for the tool are input and output path. 
 The output path is prompted by `--out` e.g.
 
-	Fantomas.exe ../../../../tests/stackexchange/array.fs
-		--out ../../../../tests/stackexchange_output/array.fs 
+	Fantomas ../../../../tests/stackexchange/array.fs --out ../../../../tests/stackexchange_output/array.fs 
 
 Both paths have to be files or folders at the same time. 
 If they are folders, the structure of input folder will be reflected in the output one. 
@@ -19,6 +22,17 @@ The tool will explore the input folder recursively if you set `--recurse` option
  - `--recurse`: traverse the input folder recursively (if it is really a folder) to get all F# source files.
  - `--force`: force writing original contents to output files. 
 This is helpful if the tool fails on some unknown F# constructs.
+ - `--stdin`: read input from standard input. This option is convenient to use with piping
+ 
+        type input.fs | Fantomas --stdin --out output.fs
+ 
+ - `--stdout`: write formatted source code to standard output e.g.
+ 
+        Fantomas input.fs --stdout
+
+ - `--fsi`: this option to be used with `--stdin` to specify that we are formatting F# signatures e.g.
+
+        type input.fsi | Fantomas --fsi --stdin --stdout
 
 #### Preferences
  - `--indent <number>`: `number` has to be between 1 and 10. 
@@ -37,6 +51,9 @@ To illustrate, here is a code fragment with `--indent 2`:
 	    | n -> find(n - 1)
 	  find <| f.Length - 1
 	```
+ - `--pageWidth <number>`: `number` has to be an integer greater or equal to 60.
+This preference sets the column where we break F# constructs into new lines.
+The default value is 80. To see its effects, please take a look at some [output files](tests/stackexchange_output) with `--pageWidth 90` preference.
 
  - `--noSemicolonEOL`: remove all semicolons at the end of lines e.g.
 
@@ -127,10 +144,10 @@ More preferences will be added depending on use cases.
 
 ### Using the API
 ---
-The main entry point of the library is function `processSourceFile`, which reads the input file and writes formatted source code to the output file:
+The main entry point of the library is function `processSourceFile` which reads the input file and writes formatted source code to a text writer:
 
 ```fsharp
-val processSourceFile : inFile:string -> outFile:string -> config:FormatConfig -> unit
+val processSourceFile : inFile:string -> tw:TextWriter -> config:FormatConfig -> unit
 ```
 
 `FormatConfig` type consists of the fields described in [Preferences section](#preferences). 
@@ -139,6 +156,7 @@ It's often customized by augmenting a default configuration:
 ```fsharp
 let config = { FormatConfig.Default with 
                 IndentSpaceNum = 2
+				PageWidth = 120
                 SemicolonAtEndOfLine = false
                 SpaceBeforeArgument = false 
                 SpaceBeforeColon = false

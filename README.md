@@ -91,6 +91,10 @@ Feel free to suggests tests if they haven't been handled correctly.
 ## Why the name "Fantomas"?
 There are a few reason to choose the name as such. First, it starts with an "F" just like many other F# projects. Second, Fantomas is my favourite character in the literature. Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
+## Acknowledgments
+I would like to gratefully thank [EricGT](https://github.com/EricGT) for his comments and feedbacks.
+Without his help, this project will not complete, let alone be useful.
+
 ## License
 The library and tool are available under Apache 2.0. 
 For more information see the [License file](LICENSE.md).
