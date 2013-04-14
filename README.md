@@ -73,6 +73,9 @@ is reformulated to
 For more complex examples, please take a look at F# outputs of [20 language shootout programs](tests/languageshootout_output) and [10 CodeReview.SE source files](tests/stackexchange_output).
 
 ## How to use
+Fantomas can be used as a command line tool or as an API.
+You can fork this repo and compile the project with F# 3.0/.NET framework 4.0. 
+Alternatively, there is also a [NuGet package](https://nuget.org/packages/Fantomas/) which contains the library and the command line tool.
 For detailed guidelines, please read [Fantomas: How to use](Usage.md).
 
 ## Installation
@@ -88,8 +91,18 @@ There are 87 unit tests and 30 validated test examples,
 but it seems many corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
+## Limitations
+Due to limited information in F# ASTs, beware of the current drawbacks:
+ - Inline comments and multiline comments are lost. Only XML doc comments are preserved.
+ - Compiler directives are lost.
+ - Multiple attributes are displayed separately.
+ - Properties with both get and set are displayed separately. 
+
 ## Why the name "Fantomas"?
-There are a few reason to choose the name as such. First, it starts with an "F" just like many other F# projects. Second, Fantomas is my favourite character in the literature. Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
+There are a few reason to choose the name as such. 
+First, it starts with an "F" just like many other F# projects. 
+Second, Fantomas is my favourite character in the literature. 
+Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
 ## Acknowledgments
 I would like to gratefully thank [EricGT](https://github.com/EricGT) for his comments and feedbacks.
