@@ -30,14 +30,14 @@ will be rewritten to
 
 	```fsharp
 	type Type = 
-	  | TyLam of Type * Type
-	  | TyVar of string
-	  | TyCon of string * Type list
-	  override this.ToString() = 
-	    match this with
-	    | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
-	    | TyVar a -> a
-	    | TyCon(s, ts) -> s
+	    | TyLam of Type * Type
+	    | TyVar of string
+	    | TyCon of string * Type list
+	    override this.ToString() = 
+	        match this with
+	        | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
+	        | TyVar a -> a
+	        | TyCon(s, ts) -> s
 	 ```
 
  - Converting from verbose syntax to light syntax. 
@@ -47,23 +47,23 @@ For example, this code fragment
 
 	```fsharp
 	let Multiple9x9 () = 
-	  for i in 1 .. 9 do
-	    printf "\n";
-	    for j in 1 .. 9 do
-	      let k = i * j in
-	      printf "%d x %d = %2d " i j k;
-	      done;
-	  done;;
+	    for i in 1 .. 9 do
+	        printf "\n";
+	        for j in 1 .. 9 do
+	            let k = i * j in
+	            printf "%d x %d = %2d " i j k;
+	        done;
+	    done;;
 	Multiple9x9 ();;
 	```	
 is reformulated to 
 	```fsharp
 	let Multiple9x9() = 
-	  for i in 1..9 do
-	    printf "\n"
-	    for j in 1..9 do
-	      let k = i * j
-	      printf "%d x %d = %2d " i j k
+	    for i in 1..9 do
+	        printf "\n"
+	        for j in 1..9 do
+	            let k = i * j
+	            printf "%d x %d = %2d " i j k
 	
 	Multiple9x9()
 	```
@@ -88,18 +88,18 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 ## Testing and validation
 I have tried to be careful in testing the project.
 There are 87 unit tests and 30 validated test examples, 
-but it seems many corner cases of the language haven't been covered.
+but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
 ## Limitations
-Due to limited information in F# ASTs, beware of the current drawbacks:
+Due to limited information in F# ASTs, beware of current drawbacks:
  - Inline comments and multiline comments are lost. Only XML doc comments are preserved.
  - Compiler directives are lost.
  - Multiple attributes are displayed separately.
  - Properties with both get and set are displayed separately. 
 
 ## Why the name "Fantomas"?
-There are a few reason to choose the name as such. 
+There are a few reasons to choose the name as such. 
 First, it starts with an "F" just like many other F# projects. 
 Second, Fantomas is my favourite character in the literature. 
 Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
