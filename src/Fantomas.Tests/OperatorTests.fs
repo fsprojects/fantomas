@@ -27,6 +27,48 @@ let ``should keep single triple ~~~ operator``() =
 """
 
 [<Test>]
+let ``should keep parens around ? operator definition``() =
+    formatSourceString false """let (?) f s = f s
+    """ config
+    |> should equal """let (?) f s = f s
+"""
+
+[<Test>]
+let ``should keep parens around ?<- operator definition``() =
+    formatSourceString false """let (?<-) f s = f s
+    """ config
+    |> should equal """let (?<-) f s = f s
+"""
+
+[<Test>]
+let ``should keep parens around !+ prefix operator definition``() =
+    formatSourceString false """let (!+) x = Include x
+    """ config
+    |> should equal """let (!+) x = Include x
+"""
+
+[<Test>]
+let ``should keep parens around ++ infix operator definition``() =
+    formatSourceString false """let (++) x y = { x with Includes = y :: x.Includes }
+    """ config
+    |> should equal """let (++) x y = { x with Includes = y :: x.Includes }
+"""
+
+[<Test>]
+let ``should keep parens around inlined ==> operator definition``() =
+    formatSourceString false """let inline (==>) x y = f x y
+    """ config
+    |> should equal """let inline (==>) x y = f x y
+"""
+
+[<Test>]
+let ``should keep parens around inlined @@ operator definition``() =
+    formatSourceString false """let inline (@@) path1 path2 = Path.Combine(path1, path2)
+    """ config
+    |> should equal """let inline (@@) path1 path2 = Path.Combine(path1, path2)
+"""
+
+[<Test>]
 let ``should pattern match on quotation expression``() =
     formatSourceString false """let rec print expr =
     match expr with
@@ -42,4 +84,14 @@ let ``should pattern match on quotation expression``() =
         printf " + "
         print exprList.Tail.Head
     | _ -> ()
+"""
+
+// the current behavior results in a compile error since line break is before the parens and not before the .
+[<Test>]
+let ``should break on . operator``() =
+    formatSourceString false """pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^").Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(").Replace(")", @"\)").Replace("+", @"\+")
+
+    """ config
+    |> should equal """pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^")
+  .Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(").Replace(")", @"\)").Replace("+", @"\+")
 """
