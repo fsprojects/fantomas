@@ -1,4 +1,4 @@
-﻿module Fantomas.CodeFormatter
+module Fantomas.CodeFormatter
 
 open System
 open System.IO
@@ -18,49 +18,41 @@ let internal parseWith fileName content =
     | Some tree -> tree
     | None -> failwith "parseWith: Unexpected input"
 
+let tryF f x = try Some (f x) with _ -> None
+
 /// Parse a source code string
 let parse fsi s = 
     let fileName = if fsi then "/tmp.fsi" else "/tmp.fs"
     parseWith fileName s
 
+let pDumpTree fsi inStr config = 
+    (parse fsi inStr, Context.createContext config inStr)
+    ||> genParsedInput
+    |>  dump
+
 /// Format a source string using given config
 let formatSourceString fsi s config =
-    let tree = parse fsi s
-    Context.createContext config s |> genParsedInput tree |> dump
+    pDumpTree fsi s config
 
 /// Format a source string using given config; return None if failed
 let tryFormatSourceString fsi s config =
-    try
-        Some (formatSourceString fsi s config)
-    with 
-    _ -> None
+    tryF (formatSourceString fsi s) config
 
 /// Format a source string using given config and write to a text writer
-let processSourceString fsi inStr (tw : TextWriter) config =
-    let tree = parse fsi inStr
-    Context.createContext config inStr 
-    |> genParsedInput tree 
-    |> dump
-    |> tw.Write
+let processSourceString fsi s config (tw : TextWriter)  =
+   pDumpTree fsi s config
+   |> tw.Write
 
 /// Format a source string using given config and write to a text writer; return None if failed
 let tryProcessSourceString fsi inStr tw config =
-    try
-        Some (processSourceString fsi inStr tw config)
-    with 
-    _ -> None
+    tryF (processSourceString fsi inStr tw) config
 
 /// Format inFile and write to text writer
 let processSourceFile inFile (tw : TextWriter) config = 
-    let s = File.ReadAllText(inFile)
-    let fsi = inFile.EndsWith(".fsi") || inFile.EndsWith(".mli")
+    let s = File.ReadAllText inFile
+    let fsi = inFile.EndsWith ".fsi" || inFile.EndsWith ".mli"
     tw.Write(formatSourceString fsi s config)
 
 /// Format inFile and write to text writer; return None if failed
 let tryProcessSourceFile inFile tw config = 
-    try
-        Some (processSourceFile inFile tw config)
-    with 
-    _ -> None
-
-
+    tryF (processSourceFile inFile tw) config
