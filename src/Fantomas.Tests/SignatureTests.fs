@@ -14,7 +14,7 @@ let inline append s content = content + s
 
 // the current behavior results in a compile error since "(string * string) list" is converted to "string * string list"
 [<Test>]
-let ``should break on . operator``() =
+let ``should keep the (string * string) list type signature in records``() =
     formatSourceString false """type MSBuildParams = 
     { Targets : string list
       Properties : (string * string) list
@@ -31,4 +31,25 @@ let ``should break on . operator``() =
       ToolsVersion : string option;
       Verbosity : MSBuildVerbosity option;
       FileLoggers : MSBuildFileLoggerConfig list option }
+"""
+
+[<Test>]
+let ``should keep the (string * string) list type signature in functions``() =
+    formatSourceString false """let MSBuildWithProjectProperties outputPath (targets : string) 
+    (properties : string -> (string * string) list) projects = doingsomstuff
+
+    """ config
+    |> should equal """let MSBuildWithProjectProperties outputPath (targets : string) 
+    (properties : string -> (string * string) list) projects = doingsomstuff
+"""
+
+
+[<Test>]
+let ``should keep the string * string list type signature in functions``() =
+    formatSourceString false """let MSBuildWithProjectProperties outputPath (targets : string) 
+    (properties : (string -> string) * string list) projects = doingsomstuff
+
+    """ config
+    |> should equal """let MSBuildWithProjectProperties outputPath (targets : string) 
+    (properties : (string -> string) * string list) projects = doingsomstuff
 """
