@@ -41,6 +41,20 @@ let ``should keep parens around ?<- operator definition``() =
 """
 
 [<Test>]
+let ``should keep parens around !+ prefix operator definition``() =
+    formatSourceString false """let (!+) x = Include x
+    """ config
+    |> should equal """let (!+) x = Include x
+"""
+
+[<Test>]
+let ``should keep parens around ++ infix operator definition``() =
+    formatSourceString false """let (++) x y = { x with Includes = y :: x.Includes }
+    """ config
+    |> should equal """let (++) x y = { x with Includes = y :: x.Includes }
+"""
+
+[<Test>]
 let ``should pattern match on quotation expression``() =
     formatSourceString false """let rec print expr =
     match expr with
