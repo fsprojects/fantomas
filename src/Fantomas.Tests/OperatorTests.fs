@@ -85,3 +85,13 @@ let ``should pattern match on quotation expression``() =
         print exprList.Tail.Head
     | _ -> ()
 """
+
+// the current behavior results in a compile error since line break is before the parens and not before the .
+[<Test>]
+let ``should break on . operator``() =
+    formatSourceString false """pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^").Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(").Replace(")", @"\)").Replace("+", @"\+")
+
+    """ config
+    |> should equal """pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^")
+  .Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(").Replace(")", @"\)").Replace("+", @"\+")
+"""
