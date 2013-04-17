@@ -222,24 +222,33 @@ let main args =
         Console.InputEncoding <- Text.Encoding.UTF8
         inputPath := StdIn(stdin.ReadToEnd())
 
+    let processFolder inputFolder outputFolder =
+        if not <| Directory.Exists(outputFolder) then
+            Directory.CreateDirectory(outputFolder) |> ignore
+        allFiles !recurse inputFolder
+        |> Seq.iter (fun i ->     
+            /// s supposes to have form s1/suffix
+            let suffix = i.Substring(inputFolder.Length + 1)
+            if inputFolder <> outputFolder then
+                let o = Path.Combine(outputFolder, suffix)
+                fileToFile i o config
+            else
+                let o = Path.GetTempFileName()
+                fileToFile i o config
+                File.Delete(i)               
+                File.Move(o,i))
+
     match !inputPath, !outputPath with
     | Unspecified, _ ->
         stderr.WriteLine("Input path is missing.")
         exit 1
+    | Folder p1, Notknown -> processFolder p1 p1
     | _, Notknown ->
         stderr.WriteLine("Output path is missing.")
         exit 1
     | File p1, IO p2 ->
         fileToFile p1 p2 config
-    | Folder p1, IO p2 ->
-        if not <| Directory.Exists(p2) then
-            Directory.CreateDirectory(p2) |> ignore
-        allFiles !recurse p1
-        |> Seq.iter (fun i ->     
-            /// s supposes to have form s1/suffix
-            let suffix = i.Substring(p1.Length + 1)
-            let o = Path.Combine(p2, suffix)
-            fileToFile i o config)
+    | Folder p1, IO p2 -> processFolder p1 p2
     | StdIn s, IO p ->
         stringToFile s p config
     | StdIn s, StdOut ->
