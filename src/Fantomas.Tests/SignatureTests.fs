@@ -53,3 +53,19 @@ let ``should keep the string * string list type signature in functions``() =
     |> should equal """let MSBuildWithProjectProperties outputPath (targets : string) 
     (properties : (string -> string) * string list) projects = doingsomstuff
 """
+
+[<Test>]
+let ``should not add parens in signature``() =
+    formatSourceString false """type Route = 
+    { Verb : string
+      Path : string
+      Handler : Map<string, string> -> HttpListenerContext -> string }
+    override x.ToString() = sprintf "%s %s" x.Verb x.Path
+
+    """ config
+    |> should equal """type Route = 
+    { Verb : string;
+      Path : string;
+      Handler : Map<string, string> -> HttpListenerContext -> string }
+    override x.ToString() = sprintf "%s %s" x.Verb x.Path
+"""
