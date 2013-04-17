@@ -251,15 +251,13 @@ let main args =
         stderr.WriteLine("Input path is missing.")
         exit 1
     | Folder p1, Notknown -> processFolder p1 p1
-    | File p1, Notknown -> processFile p1 p1 config
-    | _, Notknown ->
-        stderr.WriteLine("Output path is missing.")
-        exit 1
+    | File p1, Notknown -> processFile p1 p1 config    
     | File p1, IO p2 ->
         processFile p1 p2 config
     | Folder p1, IO p2 -> processFolder p1 p2
     | StdIn s, IO p ->
         stringToFile s p config
+    | StdIn s, Notknown
     | StdIn s, StdOut ->
         stringToStdOut s config
     | File p, StdOut -> 
