@@ -1,4 +1,4 @@
-﻿module Fantomas.TestsOperatorTests
+﻿module Fantomas.Tests.OperatorTests
 
 open NUnit.Framework
 open FsUnit
@@ -24,4 +24,22 @@ let ``should keep single triple ~~~ operator``() =
     formatSourceString false """~~~FileAttributes.ReadOnly
     """ config
     |> should equal """~~~FileAttributes.ReadOnly
+"""
+
+[<Test>]
+let ``should pattern match on quotation expression``() =
+    formatSourceString false """let rec print expr =
+    match expr with
+    | SpecificCall <@@ (+) @@> (_, _, exprList) ->        
+        print exprList.Head
+        printf " + "
+        print exprList.Tail.Head
+    | _ -> ()""" config
+    |> should equal """let rec print expr = 
+    match expr with
+    | SpecificCall <@@ (+) @@> (_, _, exprList) -> 
+        print exprList.Head
+        printf " + "
+        print exprList.Tail.Head
+    | _ -> ()
 """

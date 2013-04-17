@@ -34,8 +34,7 @@ let inline (|OpName|) s =
     if IsActivePatternName s then sprintf "(%s)" (DecompileOpName s)
     elif IsPrefixOperator s then 
         let s' = DecompileOpName s
-        if s'.[0] = '~' then s'.Substring(1)
-        else s'
+        if s'.[0] = '~' && s'.Length >= 2 && s'.[1] <> '~' then s'.Substring(1) else s'
     else DecompileOpName s
 
 let inline (|OpNamePrefix|) s =

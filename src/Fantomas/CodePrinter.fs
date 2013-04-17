@@ -724,7 +724,7 @@ and genPat = function
         sepOpenS +> atCurrentColumn (col sepSemi xs (autoNln << genPatRecordFieldName)) +> sepCloseS
     | PatConst(c) -> genConst c
     | PatIsInst(t) -> !- ":? " +> genType t
-    // What about "<@@ " ?
-    | PatQuoteExpr e -> !- "<@ " +> genExpr e -- " @>"
+    /// Quotes will be printed by inner expression
+    | PatQuoteExpr e -> genExpr e
     | p -> failwithf "Unexpected pattern: %O" p
 
