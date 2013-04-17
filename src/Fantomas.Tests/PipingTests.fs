@@ -33,3 +33,20 @@ let f x =
         else someveryveryveryverylongexpression
     |> f
 """
+
+// the current behavior results in a compile error since the |> is merged to the last line 
+[<Test>]
+let ``should keep the pipe after pattern matching``() =
+    formatSourceString false """let m = 
+    match x with
+    | y -> ErrorMessage msg
+    | _ -> LogMessage(msg, true) 
+    |> console.Write
+
+    """ config
+    |> should equal """let m = 
+    match x with
+    | y -> ErrorMessage msg
+    | _ -> LogMessage(msg, true)
+    |> console.Write
+"""
