@@ -62,6 +62,13 @@ let ``should keep parens around inlined ==> operator definition``() =
 """
 
 [<Test>]
+let ``should keep parens around inlined @@ operator definition``() =
+    formatSourceString false """let inline (@@) path1 path2 = Path.Combine(path1, path2)
+    """ config
+    |> should equal """let inline (@@) path1 path2 = Path.Combine(path1, path2)
+"""
+
+[<Test>]
 let ``should pattern match on quotation expression``() =
     formatSourceString false """let rec print expr =
     match expr with
