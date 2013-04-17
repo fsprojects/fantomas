@@ -55,6 +55,13 @@ let ``should keep parens around ++ infix operator definition``() =
 """
 
 [<Test>]
+let ``should keep parens around inlined ==> operator definition``() =
+    formatSourceString false """let inline (==>) x y = f x y
+    """ config
+    |> should equal """let inline (==>) x y = f x y
+"""
+
+[<Test>]
 let ``should pattern match on quotation expression``() =
     formatSourceString false """let rec print expr =
     match expr with
