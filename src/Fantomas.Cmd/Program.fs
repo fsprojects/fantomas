@@ -222,6 +222,15 @@ let main args =
         Console.InputEncoding <- Text.Encoding.UTF8
         inputPath := StdIn(stdin.ReadToEnd())
 
+    let processFile inputFile outputFile config =
+        if inputFile <> outputFile then
+            fileToFile inputFile outputFile config
+        else
+            let tempFile = Path.GetTempFileName()
+            fileToFile inputFile tempFile config
+            File.Delete(inputFile)
+            File.Move(tempFile,inputFile)
+
     let processFolder inputFolder outputFolder =
         if not <| Directory.Exists(outputFolder) then
             Directory.CreateDirectory(outputFolder) |> ignore
@@ -229,25 +238,25 @@ let main args =
         |> Seq.iter (fun i ->     
             /// s supposes to have form s1/suffix
             let suffix = i.Substring(inputFolder.Length + 1)
-            if inputFolder <> outputFolder then
-                let o = Path.Combine(outputFolder, suffix)
-                fileToFile i o config
-            else
-                let o = Path.GetTempFileName()
-                fileToFile i o config
-                File.Delete(i)               
-                File.Move(o,i))
+            let o =
+                if inputFolder <> outputFolder then
+                    Path.Combine(outputFolder, suffix)
+                else
+                    i
+
+            processFile i o config)
 
     match !inputPath, !outputPath with
     | Unspecified, _ ->
         stderr.WriteLine("Input path is missing.")
         exit 1
     | Folder p1, Notknown -> processFolder p1 p1
+    | File p1, Notknown -> processFile p1 p1 config
     | _, Notknown ->
         stderr.WriteLine("Output path is missing.")
         exit 1
     | File p1, IO p2 ->
-        fileToFile p1 p2 config
+        processFile p1 p2 config
     | Folder p1, IO p2 -> processFolder p1 p2
     | StdIn s, IO p ->
         stringToFile s p config
