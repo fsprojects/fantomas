@@ -87,12 +87,13 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ## Testing and validation
 I have tried to be careful in testing the project.
-There are 87 unit tests and 30 validated test examples, 
+There are 90 unit tests and 30 validated test examples, 
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
 ## Limitations
 Due to limited information in F# ASTs, beware of current drawbacks:
+
  - Inline comments and multiline comments are lost. Only XML doc comments are preserved.
  - Compiler directives are lost.
  - Multiple attributes are displayed separately.
@@ -104,8 +105,11 @@ First, it starts with an "F" just like many other F# projects.
 Second, Fantomas is my favourite character in the literature. 
 Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
+## Want to help?
+Would like to contribute? Read [the formatting conventions](FormattingConventions.md) and [the Usage notes](Usage.md) and discuss on [the issues](../../issues). You can fork the GitHub repository and send a pull request.
+
 ## Acknowledgments
-I would like to gratefully thank [EricGT](https://github.com/EricGT) for his comments and feedbacks.
+I would like to gratefully thank [EricGT](https://github.com/EricGT) for his comments and feedbacks from the early stage.
 Without his help, this project will not complete, let alone be useful.
 
 ## License
