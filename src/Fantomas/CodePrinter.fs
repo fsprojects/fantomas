@@ -373,7 +373,7 @@ and genExpr = function
     | IfThenElse(e1, e2, None) -> 
         atCurrentColumn (!- "if " +> genExpr e1 ++ "then " +> autoBreakNln e2)
     /// At this stage, all symbolic operators have been handled.
-    | Var(OpNamePrefix s) -> !- s
+    | Var(OpNameFull s) -> !- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
     | DotIndexedGet(e, es) -> genExpr e -- "." +> sepOpenL +> genIndexedVars es +> sepCloseL
     | DotIndexedSet(e1, es, e2) -> genExpr e1 -- ".[" +> genIndexedVars es -- "] <- " +> genExpr e2
@@ -711,7 +711,7 @@ and genPat = function
         let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParam tds tcs)
         match ps with
         | [] ->  aoc -- s +> tpsoc
-        | [PatSeq(PatTuple, [p1; p2])] when s = "::" -> aoc +> genPat p1 -- " :: " +> genPat p2
+        | [PatSeq(PatTuple, [p1; p2])] when s = "(::)" -> aoc +> genPat p1 -- " :: " +> genPat p2
         | [p] -> aoc -- s +> tpsoc +> ifElse (hasParenInPat p) (genPat p) (sepSpace +> genPat p)
         /// This pattern is potentially long
         | ps -> atCurrentColumn (aoc -- s +> tpsoc +> sepSpace +> col sepSpace ps (autoNln << genPat))

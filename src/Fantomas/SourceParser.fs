@@ -37,8 +37,10 @@ let inline (|OpName|) s =
         if s'.[0] = '~' && s'.Length >= 2 && s'.[1] <> '~' then s'.Substring(1) else s'
     else DecompileOpName s
 
-let inline (|OpNamePrefix|) s =
-    if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s then sprintf "(%s)" (DecompileOpName s)
+/// Operators in their declaration form
+let inline (|OpNameFull|) s =
+    if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic"
+    then sprintf "(%s)" (DecompileOpName s)
     else DecompileOpName s
 
 let inline (|Ident|) (s: Ident) = s.idText
@@ -619,7 +621,7 @@ let (|PatNamed|_|) = function
     | _ -> None
 
 let (|PatLongIdent|_|) = function
-    | SynPat.LongIdent(LongIdentWithDots (OpName s), _, tpso, xs, ao, _) -> Some(ao, s, xs, tpso)
+    | SynPat.LongIdent(LongIdentWithDots (OpNameFull s), _, tpso, xs, ao, _) -> Some(ao, s, xs, tpso)
     | _ -> None
 
 let (|PatParen|_|) = function
@@ -808,7 +810,7 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
     | SynMemberSig.ValField(f, _) -> MSValField f
     | SynMemberSig.NestedType(tds, _) -> MSNestedType tds          
 
-let (|Val|) (ValSpfn(ats, Ident(OpNamePrefix s), tds, t, vi, _, _, px, ao, _, _)) = 
+let (|Val|) (ValSpfn(ats, Ident(OpNameFull s), tds, t, vi, _, _, px, ao, _, _)) = 
     (ats, px, ao, s, t, vi, tds)
 
 // Misc
