@@ -27,6 +27,20 @@ let ``should keep single triple ~~~ operator``() =
 """
 
 [<Test>]
+let ``should keep parens around ? operator definition``() =
+    formatSourceString false """let (?) f s = f s
+    """ config
+    |> should equal """let (?) f s = f s
+"""
+
+[<Test>]
+let ``should keep parens around ?<- operator definition``() =
+    formatSourceString false """let (?<-) f s = f s
+    """ config
+    |> should equal """let (?<-) f s = f s
+"""
+
+[<Test>]
 let ``should pattern match on quotation expression``() =
     formatSourceString false """let rec print expr =
     match expr with
