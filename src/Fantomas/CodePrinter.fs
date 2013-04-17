@@ -311,10 +311,10 @@ and genExpr = function
         atCurrentColumn (!- (sprintf "for %s = " s) +> genExpr e1 
             +> ifElse isUp (!- " to ") (!- " downto ") +> genExpr e2 -- " do" 
             +> indent +> sepNln +> genExpr e3 +> unindent)
-    /// May handle the form 'for i in e1 -> e2' in the future
-    | ForEach(p, e1, e2, _) ->
+    /// Handle the form 'for i in e1 -> e2'
+    | ForEach(p, e1, e2, isArrow) ->
         atCurrentColumn (!- "for " +> genPat p -- " in " +> genExpr e1 
-            -- " do" +> indent +> sepNln +> genExpr e2 +> unindent)
+            +> ifElse isArrow (sepArrow +> autoBreakNln e2) (!- " do" +> indent +> sepNln +> genExpr e2 +> unindent))
     | CompExpr(isArrayOrList, e) ->
         ifElse isArrayOrList (genExpr e) (autoBreakNln e) 
     | ArrayOrListOfSeqExpr(isArray, e) -> 

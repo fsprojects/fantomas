@@ -74,8 +74,7 @@ let rec inorder tree =
     |> should equal """
 let s1 = 
     seq { 
-        for i in 1..10 do
-            yield i * i }
+        for i in 1..10 -> i * i }
 
 let s2 = seq { 0..10..100 }
 
@@ -353,8 +352,7 @@ let (|ParseRegex|_|) regex str =
     let m = Regex(regex).Match(str)
     if m.Success
     then 
-        Some(List.tail [for x in m.Groups do
-                            yield x.Value])
+        Some(List.tail [for x in m.Groups -> x.Value])
     else None
 """
 
@@ -387,8 +385,7 @@ let list0to3 = [0 .. 3]""" config
     |> prepend newline
     |> should equal """
 let listOfSquares = 
-    [for i in 1..10 do
-         yield i * i]
+    [for i in 1..10 -> i * i]
 
 let list0to3 = [0..3]
 """
@@ -402,8 +399,7 @@ let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
     |> prepend newline
     |> should equal """
 let a1 = 
-    [|for i in 1..10 do
-          yield i * i|]
+    [|for i in 1..10 -> i * i|]
 
 let a2 = [|0..99|]
 

@@ -530,7 +530,8 @@ let (|LetOrUseBang|_|) = function
     | SynExpr.LetOrUseBang(_, isUse, _, p, e1, e2, _) -> Some(isUse, p, e1, e2)
     | _ -> None 
         
-let (|ForEach|_|) = function                               
+let (|ForEach|_|) = function
+    | SynExpr.ForEach(_, SeqExprOnly true, _, pat, e1, SingleExpr(Yield, e2) ,_) -> Some (pat, e1, e2, true)
     | SynExpr.ForEach(_, SeqExprOnly isArrow, _, pat, e1, e2 ,_) -> Some (pat, e1, e2, isArrow)
     | _ -> None
 
