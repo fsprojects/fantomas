@@ -471,7 +471,7 @@ let (|IndexedVar|_|) = function
 
 let (|Var|_|) = function
     | SynExpr.Ident(Ident s) -> Some(s)
-    | SynExpr.LongIdent(_, LongIdentWithDots s, _, _) -> Some(s)
+    | SynExpr.LongIdent(isOpt, LongIdentWithDots s, _, _) -> if isOpt then Some (sprintf "?%s" s) else Some(s)
     | _ -> None
 
 /// Get all application params at once
