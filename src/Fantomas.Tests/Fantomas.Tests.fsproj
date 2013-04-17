@@ -48,6 +48,7 @@
     <Compile Include="ListTests.fs" />
     <Compile Include="ComparisionTests.fs" />
     <Compile Include="PipingTests.fs" />
+    <Compile Include="SignatureTests.fs" />
     <Compile Include="OperatorTests.fs" />
   </ItemGroup>
   <ItemGroup>
