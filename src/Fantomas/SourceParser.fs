@@ -692,6 +692,13 @@ let (|Simple|ObjectModel|) = function
     | SynTypeDefnRepr.Simple(tdsr, _) -> Simple tdsr
     | SynTypeDefnRepr.ObjectModel(tdk, mds, _) -> ObjectModel(tdk, mds)
 
+let (|MemberDefnList|) mds =
+    /// Assume that there is at most one implicit constructor
+    let impCtor = List.tryFind (function MDImplicitCtor _ -> true | _ -> false) mds
+    /// Might need to sort so that let and do bindings come first
+    let others =  List.filter (function MDImplicitCtor _ -> false | _ -> true) mds
+    (impCtor, others)
+
 let (|SigSimple|SigObjectModel|) = function
     | SynTypeDefnSigRepr.Simple(tdsr, _) -> SigSimple tdsr
     | SynTypeDefnSigRepr.ObjectModel(tdk, mds, _) -> SigObjectModel(tdk, mds)

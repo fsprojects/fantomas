@@ -456,9 +456,14 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName +> sepEq +> genType t +> sepNln
     /// What is this case?
     | Simple TDSRGeneral -> id
-    | ObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, mds) ->
-        typeName +> sepEq +> indent +> sepNln +> genTypeDefKind tdk
-        +> indent +> colPre sepNln sepNln mds (genMemberDefn false) +> unindent
+    | ObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others)) ->
+        let isInterface =
+            match tdk with
+            | TCSimple TCInterface -> true
+            | _ -> false
+        typeName +> opt sepNone impCtor (genMemberDefn isInterface) +> sepEq 
+        +> indent +> sepNln +> genTypeDefKind tdk
+        +> indent +> colPre sepNln sepNln others (genMemberDefn isInterface) +> unindent
         ++ "end" +> unindent +> sepNln
     | ObjectModel(TCSimple TCAugmentation, _) ->
         typeName -- " with" +> indent +> sepNln 
@@ -466,11 +471,7 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         +> col sepNln ms (genMemberDefn false) +> unindent +> sepNln
     | ObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq -- "delegate of " +> genTypeList ts
-    | ObjectModel(_, mds) -> 
-        /// Assume that there is at most one implicit constructor
-        let impCtor = List.tryFind (function MDImplicitCtor _ -> true | _ -> false) mds
-        /// Might need to sort so that let and do bindings come first
-        let others =  List.filter (function MDImplicitCtor _ -> false | _ -> true) mds
+    | ObjectModel(_, MemberDefnList(impCtor, others)) ->
         typeName +> opt sepNone impCtor (genMemberDefn false) +> sepEq +> indent +> sepNln 
         +> col sepNln others (genMemberDefn false) +> unindent +> sepNln
 
