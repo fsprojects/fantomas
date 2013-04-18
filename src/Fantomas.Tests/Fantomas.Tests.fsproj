@@ -41,6 +41,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="app.config" />
+    <Compile Include="TestHelpers.fs" />
     <Compile Include="CodeFormatterExtTests.fs" />
     <Compile Include="CodeFormatterExtExtTests.fs" />
     <Compile Include="CodeFormatterExtExtExtTests.fs" />
@@ -51,6 +52,11 @@
     <Compile Include="RecordTests.fs" />
     <Compile Include="SignatureTests.fs" />
     <Compile Include="ParameterTests.fs" />
+    <Compile Include="ActivePatternTests.fs" />
+    <Compile Include="InterfaceTests.fs" />
+    <Compile Include="ClassTests.fs" />
+    <Compile Include="FunctionDefinitionTests.fs" />
+    <Compile Include="AttributeTests.fs" />
     <Compile Include="OperatorTests.fs" />
   </ItemGroup>
   <ItemGroup>

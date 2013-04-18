@@ -3,14 +3,8 @@
 open NUnit.Framework
 open FsUnit
 
-open Fantomas.FormatConfig
 open Fantomas.CodeFormatter
-
-let config = FormatConfig.Default
-let newline = System.Environment.NewLine
-
-let inline prepend s content = s + content
-let inline append s content = content + s
+open Fantomas.Tests.TestHelper
 
 // the current behavior results in a compile error since "(string * string) list" is converted to "string * string list"
 [<Test>]
@@ -68,4 +62,28 @@ let ``should not add parens in signature``() =
       Path : string;
       Handler : Map<string, string> -> HttpListenerContext -> string }
     override x.ToString() = sprintf "%s %s" x.Verb x.Path
+"""
+
+[<Test>]
+let ``should keep the string * string * (string option) type signature``() =
+    formatSourceString false """type DGML = 
+    | Node of string
+    | Link of string * string * (string option)
+
+    """ config
+    |> should equal """type DGML = 
+    | Node of string
+    | Link of string * string * (string option)
+"""
+
+[<Test>]
+let ``should keep the (string option * Node) list type signature``() =
+    formatSourceString false """type Node = 
+    { Name : string;
+      NextNodes : (string option * Node) list }
+
+    """ config
+    |> should equal """type Node = 
+    { Name : string;
+      NextNodes : (string option * Node) list }
 """
