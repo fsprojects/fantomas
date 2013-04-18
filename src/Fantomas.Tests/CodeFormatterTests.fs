@@ -30,15 +30,6 @@ type X =
 """
 
 [<Test>]
-let ``record declaration``() =
-    formatSourceString false "type AParameters = { a : int }" config
-    |> prepend newline
-    |> should equal """
-type AParameters = 
-    { a : int }
-"""
-
-[<Test>]
 let ``enums declaration``() =
     formatSourceString false """
     type FontVariant =

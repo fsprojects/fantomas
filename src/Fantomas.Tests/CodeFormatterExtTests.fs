@@ -351,27 +351,6 @@ let (|ParseRegex|_|) regex str =
 """
 
 [<Test>]
-let ``records with update``() =
-    formatSourceString false """
-type Car = {
-    Make : string
-    Model : string
-    mutable Odometer : int
-    }
-
-let myRecord3 = { myRecord2 with Y = 100; Z = 2 }""" config
-    |> prepend newline
-    |> should equal """
-type Car = 
-    { Make : string;
-      Model : string;
-      mutable Odometer : int }
-
-let myRecord3 = 
-    { myRecord2 with Y = 100; Z = 2 }
-"""
-
-[<Test>]
 let ``list comprehensions``() =
     formatSourceString false """
 let listOfSquares = [ for i in 1 .. 10 -> i*i ]
