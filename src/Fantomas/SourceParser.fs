@@ -28,6 +28,8 @@ let inline (|OpName|) s =
     elif IsPrefixOperator s then 
         let s' = DecompileOpName s
         if s'.[0] = '~' && s'.Length >= 2 && s'.[1] <> '~' then s'.Substring(1) else s'
+    elif s.Contains " " 
+    then sprintf "``%s``" (DecompileOpName s)
     else DecompileOpName s
 
 /// Operators in their declaration form
@@ -38,6 +40,10 @@ let inline (|OpNameFull|) s =
         /// Use two spaces for symmetry
         if s'.StartsWith("*") && s' <> "*" then sprintf "( %s )" s'
         else sprintf "(%s)" s'
+    elif s.Contains " " 
+    then
+        /// Should recognize double-backticks in a more robust way 
+        sprintf "``%s``" (DecompileOpName s)
     else DecompileOpName s
 
 let inline (|Ident|) (s: Ident) = s.idText
