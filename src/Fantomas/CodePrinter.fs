@@ -675,8 +675,9 @@ and genMemberDefn isInterface = function
             else "let "
         col sepNln bs (genLetBinding prefix)
     | MDInterface(t, mdo) -> 
-        !- "interface " +> genType t -- " with" 
-        +> indent +> sepNln +> opt sepNone mdo (fun mds -> col sepNln mds (genMemberDefn true)) +> unindent
+        !- "interface " +> genType t
+        +> opt sepNone mdo 
+            (fun mds -> !- " with" +> indent +> sepNln +> col sepNln mds (genMemberDefn true) +> unindent)
     | MDAutoProperty(ats, px, ao, mk, e, s) -> 
         genPreXmlDoc px
         +> colPost sepSpace sepNone ats genAttribute -- "member val " 
