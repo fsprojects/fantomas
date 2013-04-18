@@ -3,14 +3,8 @@
 open NUnit.Framework
 open FsUnit
 
-open Fantomas.FormatConfig
 open Fantomas.CodeFormatter
-
-let config = FormatConfig.Default
-let newline = System.Environment.NewLine
-
-let inline prepend s content = s + content
-let inline append s content = content + s
+open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``should keep triple ~~~ operator``() =
@@ -62,7 +56,7 @@ let ``should keep parens around inlined ==> operator definition``() =
 """
 
 [<Test>]
-let ``should keep parens around inlined @@ operator definition``() =
+let ``should keep parens around inlined operator definition``() =
     formatSourceString false """let inline (@@) path1 path2 = Path.Combine(path1, path2)
     """ config
     |> should equal """let inline (@@) path1 path2 = Path.Combine(path1, path2)

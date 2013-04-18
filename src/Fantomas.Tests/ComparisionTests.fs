@@ -6,12 +6,8 @@ open FsUnit
 open Fantomas.FormatConfig
 open Fantomas.CodeFormatter
 
-let config = FormatConfig.Default
-let newline = System.Environment.NewLine
-
-let inline prepend s content = s + content
-let inline append s content = content + s
-
+open Fantomas.CodeFormatter
+open Fantomas.Tests.TestHelper
 
 // the current behavior results in a compile error since the = is moved to the next line and not correctly indented
 [<Test>]
