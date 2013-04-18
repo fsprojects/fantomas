@@ -63,3 +63,27 @@ let ``should not add parens in signature``() =
       Handler : Map<string, string> -> HttpListenerContext -> string }
     override x.ToString() = sprintf "%s %s" x.Verb x.Path
 """
+
+[<Test>]
+let ``should keep the string * string * (string option) type signature``() =
+    formatSourceString false """type DGML = 
+    | Node of string
+    | Link of string * string * (string option)
+
+    """ config
+    |> should equal """type DGML = 
+    | Node of string
+    | Link of string * string * (string option)
+"""
+
+[<Test>]
+let ``should keep the (string option * Node) list type signature``() =
+    formatSourceString false """type Node = 
+    { Name : string;
+      NextNodes : (string option * Node) list }
+
+    """ config
+    |> should equal """type Node = 
+    { Name : string;
+      NextNodes : (string option * Node) list }
+"""
