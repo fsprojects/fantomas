@@ -210,7 +210,7 @@ and genMemberBinding isInterface = function
     | PropertyBinding(ats, px, ao, isInline, mf, p, e) -> 
         let prefix =
             genPreXmlDoc px
-            +> colPost sepSpace sepNone ats genAttribute +> genMemberFlags isInterface mf
+            +> colPost sepNln sepNone ats genAttribute +> genMemberFlags isInterface mf
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
         let tuplerize ps =
             let rec loop acc = function
@@ -248,7 +248,7 @@ and genMemberBinding isInterface = function
     | MemberBinding(ats, px, ao, isInline, mf, p, e) ->
         let prefix =
             genPreXmlDoc px
-            +> colPost sepSpace sepNone ats genAttribute +> genMemberFlags isInterface mf
+            +> colPost sepNln sepNone ats genAttribute +> genMemberFlags isInterface mf
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat p
         match e with
         | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType t +> sepEq +> autoBreakNln e
@@ -256,7 +256,7 @@ and genMemberBinding isInterface = function
     | ExplicitCtor(ats, px, ao, p, e) ->
         let prefix =
             genPreXmlDoc px
-            +> colPost sepSpace sepNone ats genAttribute
+            +> colPost sepNln sepNone ats genAttribute
             +> opt sepSpace ao genAccess +> genPat p
         match e with
         /// Handle special "then" block in constructors

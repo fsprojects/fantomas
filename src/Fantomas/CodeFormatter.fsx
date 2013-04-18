@@ -33,8 +33,14 @@ let XpkgDefaults() =
         Samples = [];
     }
 """
+
+let t02 = """
+type Funcs = 
+    [<Extension>]
+    static member ToFunc (f: Action<_,_,_>) =
+        Func<_,_,_,_>(fun a b c -> f.Invoke(a,b,c))"""
 ;;
 
-printfn "Result:\n%s" <| formatSourceString false t01 config;;
+printfn "Result:\n%s" <| formatSourceString false t02 config;;
 
 printfn "Tree:\n%A" <| parse false t01;;
