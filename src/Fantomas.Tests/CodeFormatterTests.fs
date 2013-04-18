@@ -13,17 +13,6 @@ let ``module abbreviation``() =
 """
 
 [<Test>]
-let ``attributes on expressions``() =
-    formatSourceString false """
-    [<Dependency("FSharp.Compiler", LoadHint.Always)>]
-    do ()""" config
-    |> prepend newline
-    |> should equal """
-[<Dependency("FSharp.Compiler", LoadHint.Always)>]
-do ()
-"""
-
-[<Test>]
 let ``module with functions``() =
     formatSourceString false "module internal MyModule = let x = 42" config
     |> prepend newline
@@ -98,31 +87,7 @@ type FontVariant =
     | [<Description("small-caps")>] SmallCaps = 0
 """
 
-[<Test>]
-let ``units of measures declaration``() =
-    formatSourceString false """
-    [<Measure>] type m
-    [<Measure>] type kg
-    [<Measure>] type s
-    [<Measure>] type N = kg m / s^2
-    [<Measure>] type Pa = N / m^2""" config
-    |> prepend newline
-    |> should equal """
-[<Measure>]
-type m
 
-[<Measure>]
-type kg
-
-[<Measure>]
-type s
-
-[<Measure>]
-type N = kg m * s^2
-
-[<Measure>]
-type Pa = N * m^2
-"""
 
 [<Test>]
 let ``typed quotations``() =

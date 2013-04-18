@@ -6,20 +6,6 @@ open FsUnit
 open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
-[<Test>]
-let ``type params``() =
-    formatSourceString false """
-let genericSumUnits ( x : float<'u>) (y: float<'u>) = x + y
-type vector3D<[<Measure>] 'u> = { x : float<'u>; y : float<'u>; z : float<'u>}""" config
-    |> prepend newline
-    |> should equal """
-let genericSumUnits (x : float<'u>) (y : float<'u>) = x + y
-
-type vector3D<[<Measure>] 'u> = 
-    { x : float<'u>;
-      y : float<'u>;
-      z : float<'u> }
-"""
 
 [<Test>]
 let ``classes and inheritance``() =
