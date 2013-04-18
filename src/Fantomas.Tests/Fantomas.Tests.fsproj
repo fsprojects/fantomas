@@ -57,6 +57,8 @@
     <Compile Include="ClassTests.fs" />
     <Compile Include="FunctionDefinitionTests.fs" />
     <Compile Include="AttributeTests.fs" />
+    <Compile Include="CompilerDirectivesTests.fs" />
+    <Compile Include="CommentTests.fs" />
     <Compile Include="OperatorTests.fs" />
   </ItemGroup>
   <ItemGroup>

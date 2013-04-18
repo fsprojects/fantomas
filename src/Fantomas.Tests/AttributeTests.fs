@@ -8,7 +8,7 @@ open Fantomas.Tests.TestHelper
 
 // the current behavior results in an indentation error
 [<Test>]
-let ``should keep theattribute on top of the function``() =
+let ``should keep the attribute on top of the function``() =
     formatSourceString false """[<Extension>]
 type Funcs = 
     [<Extension>]

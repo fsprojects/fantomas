@@ -31,3 +31,10 @@ let ``should keep mutually recursive functions in nested function``() =
     and createJObject y = createJArray y
     createJArray
 """
+
+[<Test>]
+let ``should keep identifiers in double backticks``() =
+    formatSourceString false """let ``should keep identifiers in double backticks``() = x
+    """ config
+    |> should equal """let ``should keep identifiers in double backticks``() = x
+"""
