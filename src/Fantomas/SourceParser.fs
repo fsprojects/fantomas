@@ -33,7 +33,11 @@ let inline (|OpName|) s =
 /// Operators in their declaration form
 let inline (|OpNameFull|) s =
     if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic"
-    then sprintf "(%s)" (DecompileOpName s)
+    then
+        let s' = DecompileOpName s
+        /// Use two spaces for symmetry
+        if s'.StartsWith("*") && s' <> "*" then sprintf "( %s )" s'
+        else sprintf "(%s)" s'
     else DecompileOpName s
 
 let inline (|Ident|) (s: Ident) = s.idText

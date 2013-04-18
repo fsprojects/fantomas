@@ -95,12 +95,12 @@ let ``should break on . operator``() =
 let ``should keep space between ( and * in *** operator definition``() =
     formatSourceString false """let inline ( ***) l1 l2 = pair l2 l1
     """ config
-    |> should equal """let inline ( ***) l1 l2 = pair l2 l1
+    |> should equal """let inline ( *** ) l1 l2 = pair l2 l1
 """
 
 [<Test>]
 let ``should keep space between ( and * in *= operator definition``() =
     formatSourceString false """let inline ( *=) l v = update (( *) v) l
     """ config
-    |> should equal """let inline ( *=) l v = update (( *) v) l
+    |> should equal """let inline ( *= ) l v = update ((*) v) l
 """
