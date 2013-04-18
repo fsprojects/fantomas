@@ -40,10 +40,10 @@ let ``should keep identifiers with withespace in double backticks``() =
 """
 
 [<Test>]
-let ``should keep identifiers with ' in double backticks``() =
+let ``should remove backticks from shouldn't identifier``() =
     formatSourceString false """let ``shouldn't``() = x
     """ config
-    |> should equal """let ``shouldn't``() = x
+    |> should equal """let shouldn't() = x
 """
 
 [<Test>]
