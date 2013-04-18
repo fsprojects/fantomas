@@ -21,9 +21,10 @@ let f x =
     <|> if someveryveryveryverylongexpression then someveryveryveryverylongexpression else someveryveryveryverylongexpression
     <|> if someveryveryveryverylongexpression then someveryveryveryverylongexpression else someveryveryveryverylongexpression
     |> f
-
     """ config
-    |> should equal """let f x = 
+    |> prepend newline
+    |> should equal """
+let f x = 
     someveryveryveryverylongexpression 
     <|> if someveryveryveryverylongexpression
         then someveryveryveryverylongexpression
@@ -42,9 +43,10 @@ let ``should keep the pipe after pattern matching``() =
     | y -> ErrorMessage msg
     | _ -> LogMessage(msg, true) 
     |> console.Write
-
     """ config
-    |> should equal """let m = 
+    |> prepend newline
+    |> should equal """
+let m = 
     match x with
     | y -> ErrorMessage msg
     | _ -> LogMessage(msg, true)

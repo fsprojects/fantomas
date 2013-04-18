@@ -5,13 +5,6 @@ open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.PrettyNaming
 open Fantomas.FormatConfig
 
-[<RequireQualifiedAccess>]
-module List = 
-    let inline atmostOne xs =
-        match xs with
-        | [] | [_] -> true
-        | _ -> false
-
 /// Get source string content based on range value
 let inline content (sc : SynConst) (c : Context) = 
     let r = sc.Range range.Zero
@@ -495,16 +488,12 @@ let private (|InfixApp|_|) = function
     | SynExpr.App(_, _, SynExpr.App(_, true, Var(OpName s), e1, _), e2, _) -> Some(s, e1, e2)
     | _ -> None
 
+/// Should return the whole triple for convenience check
 let rec (|InfixApps|_|) = function
     | InfixApp(s, InfixApps(e1, es), e2) -> 
         Some(e1, [yield! es; yield (s, e2)])
     | InfixApp(s, e1, e2) -> 
         Some(e1, [(s, e2)])
-    | _ -> None
-
-let (|NoNewLineInfixApps|_|) = function
-    | InfixApps(e, es) when List.atmostOne (List.filter (fst >> NewLineInfixOps.Contains) es) ->
-        Some(e, es)
     | _ -> None
 
 /// Gather all arguments in lambda

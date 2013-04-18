@@ -5,6 +5,13 @@ open System
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 
+[<RequireQualifiedAccess>]
+module List = 
+    let inline atmostOne xs =
+        match xs with
+        | [] | [_] -> true
+        | _ -> false
+
 /// Check whether an expression should be broken into multiple lines
 let rec multiline = function
     | Paren e | SingleExpr(_, e) | TypedExpr(_, e, _) -> multiline e
@@ -333,10 +340,10 @@ and genExpr = function
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr e
     | PrefixApp(s, e) -> !- s  +> genExpr e
     /// Handle spaces of infix application based on which category it belongs to
-    | NoNewLineInfixApps(e, es) ->
-        atCurrentColumn (genExpr e +> genInfixApps false es)
     | InfixApps(e, es) -> 
-        atCurrentColumn (genExpr e +> genInfixApps true es)
+        /// Only put |> on the same line in a very trivial expression
+        let hasNewLine = multiline e || not (List.atmostOne es)
+        atCurrentColumn (genExpr e +> genInfixApps hasNewLine es)
     /// Unlike infix app, function application needs a level of indentation
     | App(e1, [e2]) -> 
         atCurrentColumn (genExpr e1 +> 
