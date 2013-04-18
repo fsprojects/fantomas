@@ -18,7 +18,6 @@ let ``hash directives``() =
 #load "CodeFormatterTests.fs"
 """
 
-
 [<Test>]
 let ``typed quotations``() =
     formatSourceString false """
@@ -42,31 +41,6 @@ let ``untyped quotations``() =
 let ``exception declations``() =
     formatSourceString false "exception Error2 of string * int" config
     |> should equal """exception Error2 of string * int
-"""
-
-[<Test>]
-let ``for loops``() =
-    formatSourceString false """
-    let function1() =
-        for i = 1 to 10 do
-            printf "%d " i
-        printfn ""
-    let function2() =
-      for i = 10 downto 1 do
-        printf "%d " i
-      printfn ""
-    """ config
-    |> prepend newline
-    |> should equal """
-let function1() = 
-    for i = 1 to 10 do
-        printf "%d " i
-    printfn ""
-
-let function2() = 
-    for i = 10 downto 1 do
-        printf "%d " i
-    printfn ""
 """
 
 [<Test>]
@@ -220,57 +194,6 @@ let filterNumbers =
 """
 
 [<Test>]
-let ``try/with block``() =
-    formatSourceString false """
-let divide1 x y =
-   try
-      Some (x / y)
-   with
-      | :? System.DivideByZeroException -> printfn "Division by zero!"; None
-
-let result1 = divide1 100 0
-    """ config
-    |> prepend newline
-    |> should equal """
-let divide1 x y = 
-    try 
-        Some(x / y)
-    with
-    | :? System.DivideByZeroException -> 
-        printfn "Division by zero!"
-        None
-
-let result1 = divide1 100 0
-"""
-
-[<Test>]
-let ``try/with and finally``() =
-    formatSourceString false """
-    let function1 x y =
-       try 
-         try 
-            if x = y then raise (InnerError("inner"))
-            else raise (OuterError("outer"))
-         with
-          | InnerError(str) -> printfn "Error1 %s" str
-       finally
-          printfn "Always print this."
-    """ config
-    |> prepend newline
-    |> should equal """
-let function1 x y = 
-    try 
-        try 
-            if x = y
-            then raise(InnerError("inner"))
-            else raise(OuterError("outer"))
-        with
-        | InnerError(str) -> printfn "Error1 %s" str
-    finally
-        printfn "Always print this."
-"""
-
-[<Test>]
 let ``verbose syntax``() =
     formatSourceString false """
     #light "off"
@@ -293,38 +216,6 @@ let f x =
     if r = 1
     then ("Odd")
     else ("Even")
-"""
-
-[<Test>]
-let ``while loop``() =
-    formatSourceString false """
-open System
-let lookForValue value maxValue =
-  let mutable continueLooping = true 
-  let randomNumberGenerator = new Random()
-  while continueLooping do 
-    let rand = randomNumberGenerator.Next(maxValue)
-    printf "%d " rand
-    if rand = value then 
-       printfn "\nFound a %d!" value
-       continueLooping <- false
-lookForValue 10 20""" config
-    |> prepend newline
-    |> should equal """
-open System
-
-let lookForValue value maxValue = 
-    let mutable continueLooping = true
-    let randomNumberGenerator = new Random()
-    while continueLooping do
-        let rand = randomNumberGenerator.Next(maxValue)
-        printf "%d " rand
-        if rand = value
-        then 
-            printfn "\nFound a %d!" value
-            continueLooping <- false
-
-lookForValue 10 20
 """
 
 [<Test>]
@@ -362,42 +253,4 @@ let printSourceLocation() =
     printfn "Source File: %s" __SOURCE_FILE__
 
 printSourceLocation()
-"""
-
-[<Test>]
-let ``if/then/else block``() =
-    formatSourceString false """
-let rec tryFindMatch pred list =
-    match list with
-    | head :: tail -> if pred(head)
-                        then Some(head)
-                        else tryFindMatch pred tail
-    | [] -> None
-
-let test x y =
-  if x = y then "equals" 
-  elif x < y then "is less than" 
-  else "is greater than"
-
-if age < 10
-then printfn "You are only %d years old and already learning F#? Wow!" age""" config
-    |> prepend newline
-    |> should equal """
-let rec tryFindMatch pred list = 
-    match list with
-    | head :: tail -> 
-        if pred(head)
-        then Some(head)
-        else tryFindMatch pred tail
-    | [] -> None
-
-let test x y = 
-    if x = y
-    then "equals"
-    elif x < y
-    then "is less than"
-    else "is greater than"
-
-if age < 10
-then printfn "You are only %d years old and already learning F#? Wow!" age
 """

@@ -48,6 +48,7 @@
     <Compile Include="CodeFormatterTests.fs" />
     <Compile Include="ListTests.fs" />
     <Compile Include="ComparisionTests.fs" />
+    <Compile Include="ControlStructureTests.fs" />
     <Compile Include="PipingTests.fs" />
     <Compile Include="ModuleTests.fs" />
     <Compile Include="UnionTests.fs" />
