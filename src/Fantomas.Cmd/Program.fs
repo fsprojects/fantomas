@@ -129,8 +129,9 @@ let main args =
             stderr.WriteLine("Page width should be at least 60.")
             exit 1
 
-    let fileToFile inFile (outFile : string) config =
+    let fileToFile (inFile : string)  (outFile : string) config =
         try
+            stdout.WriteLine("Processing {0}", inFile)
             use buffer = new StreamWriter(outFile)
             time (fun () -> CodeFormatter.processSourceFile inFile buffer config)
             buffer.Flush()
