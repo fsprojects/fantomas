@@ -422,8 +422,13 @@ let (|Match|_|) = function
     | SynExpr.Match(_, e, cs, _, _) -> Some(e, cs)
     | _ -> None
 
-let (|Sequential|_|) = function
+let private (|Sequential|_|) = function
     | SynExpr.Sequential(_, isSeq, e1, e2, _) -> Some(e1, e2, isSeq)
+    | _ -> None
+
+let rec (|Sequentials|_|) = function
+    | Sequential(e1, e2, _) -> Some [e1; e2]
+    | Sequential(e, Sequentials es, _) -> Some(e::es)
     | _ -> None
 
 let (|SimpleExpr|_|) = function
@@ -464,15 +469,21 @@ let (|IndexedVar|_|) = function
 
 let (|Var|_|) = function
     | SynExpr.Ident(Ident s) -> Some(s)
-    | SynExpr.LongIdent(isOpt, LongIdentWithDots s, _, _) -> if isOpt then Some (sprintf "?%s" s) else Some(s)
+    | SynExpr.LongIdent(isOpt, LongIdentWithDots s, _, _) -> 
+        if isOpt then Some (sprintf "?%s" s) else Some(s)
     | _ -> None
 
 /// Get all application params at once
-let rec (|App|_|) = function
-    /// function application is left-recursive
-    | SynExpr.App(_, _, App(e1, es), e2, _) -> Some(e1, [yield! es; yield e2])
-    | SynExpr.App(_, _, e1, e2, _) -> Some(e1, [e2])
-    | _ -> None
+let (|App|_|) e =
+    let rec loop = function
+        /// function application is left-recursive
+        | SynExpr.App(_, _, e, e2, _) -> 
+            let (e1, es) = loop e
+            (e1, e2::es)
+        | e -> (e, [])
+    match loop e with
+    | (_, []) -> None
+    | (e, es) -> Some(e, List.rev es)
 
 let (|CompApp|_|) = function
     | SynExpr.App(_, _, Var "seq", (SynExpr.App _ as e), _) -> Some("seq", e)
@@ -489,12 +500,15 @@ let private (|InfixApp|_|) = function
     | _ -> None
 
 /// Should return the whole triple for convenience check
-let rec (|InfixApps|_|) = function
-    | InfixApp(s, InfixApps(e1, es), e2) -> 
-        Some(e1, [yield! es; yield (s, e2)])
-    | InfixApp(s, e1, e2) -> 
-        Some(e1, [(s, e2)])
-    | _ -> None
+let (|InfixApps|_|) e =
+    let rec loop = function
+        | InfixApp(s, e, e2) -> 
+            let (e1, es) = loop e
+            (e1, (s, e2)::es)
+        | e -> (e, [])
+    match loop e with
+    | (_, []) -> None
+    | (e, es) -> Some(e, List.rev es)
 
 /// Gather all arguments in lambda
 let rec (|Lambda|_|) = function

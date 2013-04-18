@@ -42,7 +42,7 @@ let rec multiline = function
     | LetOrUse(_, _, bs, e) -> not (List.isEmpty bs) || multiline e
     | SequentialSimple _ -> false
     | TryWith _ | TryFinally _ ->  true
-    | Sequential _ -> true
+    | Sequentials _ -> true
     | IfThenElse _ -> true
     | LongIdentSet(_, e) -> multiline e
     | DotIndexedGet(e, es) -> multiline e || List.exists multiline es
@@ -260,7 +260,7 @@ and genMemberBinding isInterface = function
             +> opt sepSpace ao genAccess +> genPat p
         match e with
         /// Handle special "then" block in constructors
-        | Sequential(e1, e2, _) -> 
+        | Sequentials [e1; e2] -> 
             prefix +> sepEq +> indent +> sepNln +> genExpr e1 ++ "then " +> autoBreakNln e2 +> unindent
         | e -> prefix +> sepEq +> autoBreakNln e
     | b -> failwithf "%O isn't a member binding" b
@@ -369,8 +369,8 @@ and genExpr = function
             +> indent +> sepNln +> genExpr e2 +> unindent)    
     | SequentialSimple es -> atCurrentColumn (col sepSemi es (autoNln << genExpr))
     /// It seems too annoying to use sepSemiNln
-    | Sequential(e1, e2, _) -> 
-        atCurrentColumn (genExpr e1 +> sepNln +> genExpr e2)
+    | Sequentials es -> 
+        atCurrentColumn (col sepNln es genExpr)
     /// A generalization of IfThenElse
     | ElIf((e1,e2)::es, en) ->
         atCurrentColumn (!- "if " +> genExpr e1 
