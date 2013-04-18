@@ -18,27 +18,6 @@ let ``hash directives``() =
 #load "CodeFormatterTests.fs"
 """
 
-[<Test>]
-let ``discriminated unions declaration``() =
-    formatSourceString false "type X = private | A of AParameters | B" config
-    |> prepend newline
-    |> should equal """
-type X = 
-    private
-    | A of AParameters
-    | B
-"""
-
-[<Test>]
-let ``enums declaration``() =
-    formatSourceString false """
-    type FontVariant =
-    | [<Description("small-caps")>] SmallCaps = 0""" config
-    |> prepend newline
-    |> should equal """
-type FontVariant = 
-    | [<Description("small-caps")>] SmallCaps = 0
-"""
 
 [<Test>]
 let ``typed quotations``() =
@@ -383,25 +362,6 @@ let printSourceLocation() =
     printfn "Source File: %s" __SOURCE_FILE__
 
 printSourceLocation()
-"""
-
-[<Test>]
-let ``enums conversion``() =
-    formatSourceString false """
-type uColor =
-   | Red = 0u
-   | Green = 1u
-   | Blue = 2u
-let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)""" config
-    |> prepend newline
-    |> should equal """
-type uColor = 
-    | Red = 0u
-    | Green = 1u
-    | Blue = 2u
-
-let col3 = 
-    Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
 """
 
 [<Test>]

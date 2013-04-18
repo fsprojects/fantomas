@@ -411,31 +411,6 @@ let kwm sidpp tvd omw = 1.0
 """
 
 [<Test>]
-let ``discriminated unions with members``() =
-    formatSourceString false """
-type Type
-    = TyLam of Type * Type
-    | TyVar of string
-    | TyCon of string * Type list
-    with override this.ToString() =
-            match this with
-            | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
-            | TyVar a -> a
-            | TyCon (s, ts) -> s""" config
-    |> prepend newline
-    |> should equal """
-type Type = 
-    | TyLam of Type * Type
-    | TyVar of string
-    | TyCon of string * Type list
-    override this.ToString() = 
-        match this with
-        | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
-        | TyVar a -> a
-        | TyCon(s, ts) -> s
-"""
-
-[<Test>]
 let ``namespace declaration``() =
     formatSourceString false """
 namespace Widgets

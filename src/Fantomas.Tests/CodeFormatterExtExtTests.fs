@@ -49,9 +49,6 @@ type MyClass2(dataIn) as self =
 """
 
 
-
-
-
 [<Test>]
 let ``struct declaration``() =
     formatSourceString false """
