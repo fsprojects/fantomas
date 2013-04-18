@@ -53,6 +53,7 @@
     <Compile Include="SignatureTests.fs" />
     <Compile Include="ParameterTests.fs" />
     <Compile Include="ActivePatternTests.fs" />
+    <Compile Include="ClassTests.fs" />
     <Compile Include="OperatorTests.fs" />
   </ItemGroup>
   <ItemGroup>
