@@ -89,3 +89,18 @@ let ``should break on . operator``() =
     |> should equal """pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^")
   .Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(").Replace(")", @"\)").Replace("+", @"\+")
 """
+
+// the current behavior results in a compile error since the space is removed and now we made a comment
+[<Test>]
+let ``should keep space between ( and * in *** operator definition``() =
+    formatSourceString false """let inline ( ***) l1 l2 = pair l2 l1
+    """ config
+    |> should equal """let inline ( ***) l1 l2 = pair l2 l1
+"""
+
+[<Test>]
+let ``should keep space between ( and * in *= operator definition``() =
+    formatSourceString false """let inline ( *=) l v = update (( *) v) l
+    """ config
+    |> should equal """let inline ( *=) l v = update (( *) v) l
+"""
