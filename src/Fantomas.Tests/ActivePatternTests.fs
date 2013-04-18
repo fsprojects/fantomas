@@ -18,9 +18,11 @@ let ``should keep parens around active patterns in module``() =
     formatSourceString false """module Interpreted =
     let (|Match|_|) = (|Match|_|) RegexOptions.None
     """ config
-    |> should equal """module Interpreted = 
+    |> prepend newline
+    |> should equal """
+module Interpreted = 
     let (|Match|_|) = (|Match|_|) RegexOptions.None
-"""
+    """
 
 [<Test>]
 let ``should keep parens around active patterns in inlined functions``() =

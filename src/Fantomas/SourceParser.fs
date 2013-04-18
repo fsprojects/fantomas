@@ -624,8 +624,9 @@ let (|PatTyped|_|) = function
     | SynPat.Typed(p, t, _) -> Some(p, t)
     | _ -> None
 
+/// Patterns could contain active patterns sometimes
 let (|PatNamed|_|) = function
-    | SynPat.Named(p, Ident s, _, ao, _) -> Some(ao, p, s)
+    | SynPat.Named(p, Ident (OpNameFull s), _, ao, _) -> Some(ao, p, s)
     | _ -> None
 
 let (|PatLongIdent|_|) = function

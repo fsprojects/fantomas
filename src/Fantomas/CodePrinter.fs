@@ -359,7 +359,12 @@ and genExpr = function
             if isUse then "use "
             elif isRec then "let rec "
             else "let "
-        atCurrentColumn (col sepNln bs (genLetBinding prefix) +> sepNln +> genExpr e)
+        match bs with
+        | b::bs ->
+            /// and is applicable for use binding
+            atCurrentColumn (genLetBinding prefix b +> 
+                colPre sepNln sepNln bs (genLetBinding "and ") +> sepNln +> genExpr e)
+        | _ -> atCurrentColumn (col sepNln bs (genLetBinding prefix) +> sepNln +> genExpr e)
     /// Could customize a bit if e is single line
     | TryWith(e, cs) ->  
         atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e +> unindent ++ "with" 

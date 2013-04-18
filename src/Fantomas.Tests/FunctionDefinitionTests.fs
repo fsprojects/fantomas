@@ -28,7 +28,6 @@ let ``should keep mutually recursive functions in nested function``() =
     """ config
     |> should equal """let f = 
     let rec createJArray x = createJObject x
-
     and createJObject y = createJArray y
     createJArray
 """
