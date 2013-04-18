@@ -7,6 +7,18 @@ open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
 [<Test>]
+let ``recursive functions``() =
+    formatSourceString false """
+    let rec f x = g x
+    and g x = x""" config
+    |> prepend newline
+    |> should equal """
+let rec f x = g x
+
+and g x = x
+"""
+
+[<Test>]
 let ``should keep mutually recursive functions``() =
     formatSourceString false """
 let rec createJArray x = createJObject

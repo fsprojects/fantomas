@@ -7,18 +7,6 @@ open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``recursive functions``() =
-    formatSourceString false """
-    let rec f x = g x
-    and g x = x""" config
-    |> prepend newline
-    |> should equal """
-let rec f x = g x
-
-and g x = x
-"""
-
-[<Test>]
 let ``hash directives``() =
     formatSourceString false """
     #r "Fantomas.Tests.dll"
@@ -60,8 +48,6 @@ let ``enums declaration``() =
 type FontVariant = 
     | [<Description("small-caps")>] SmallCaps = 0
 """
-
-
 
 [<Test>]
 let ``typed quotations``() =
