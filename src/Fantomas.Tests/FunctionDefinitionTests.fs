@@ -33,7 +33,7 @@ let ``should keep mutually recursive functions in nested function``() =
 """
 
 [<Test>]
-let ``should keep identifiers with withespace in double backticks``() =
+let ``should keep identifiers with whitespace in double backticks``() =
     formatSourceString false """let ``should keep identifiers in double backticks``() = x
     """ config
     |> should equal """let ``should keep identifiers in double backticks``() = x

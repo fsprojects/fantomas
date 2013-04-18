@@ -15,7 +15,7 @@ module List =
 /// Check whether an expression should be broken into multiple lines
 let rec multiline = function
     | Paren e | SingleExpr(_, e) | TypedExpr(_, e, _) -> multiline e
-    | ConstExpr _ | NullExpr | Var _ -> false
+    | ConstExpr _ | NullExpr | OptVar _ -> false
     | Quote(e1, e2, _) -> multiline e1 || multiline e2
     | Tuple es -> List.exists multiline es
     /// An array or a list is multiline if there are at least two elements
@@ -335,7 +335,7 @@ and genExpr = function
         atCurrentColumn (!- "match " +> genExpr e -- " with" +> colPre sepNln sepNln cs genClause)
     | CompApp(s, e) ->
         !- s +> sepSpace +> sepOpenS +> genExpr e +> sepCloseS
-    | App(Var(OpName ".. .."), [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
+    | App(OptVar(OpName ".. ..", _), [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
     /// Separate two prefix ops by spaces
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr e
     | PrefixApp(s, e) -> !- s  +> genExpr e
@@ -385,7 +385,7 @@ and genExpr = function
     | IfThenElse(e1, e2, None) -> 
         atCurrentColumn (!- "if " +> genExpr e1 ++ "then " +> autoBreakNln e2)
     /// At this stage, all symbolic operators have been handled.
-    | Var(OpNameFull s) -> !- s
+    | OptVar(OpNameFull s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
     | DotIndexedGet(e, es) -> genExpr e -- "." +> sepOpenL +> genIndexedVars es +> sepCloseL
     | DotIndexedSet(e1, es, e2) -> genExpr e1 -- ".[" +> genIndexedVars es -- "] <- " +> genExpr e2

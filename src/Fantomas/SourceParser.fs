@@ -28,7 +28,7 @@ let inline (|OpName|) s =
     elif IsPrefixOperator s then 
         let s' = DecompileOpName s
         if s'.[0] = '~' && s'.Length >= 2 && s'.[1] <> '~' then s'.Substring(1) else s'
-    elif s.Contains " " 
+    elif not <| String.forall IsLongIdentifierPartCharacter s
     then sprintf "``%s``" (DecompileOpName s)
     else DecompileOpName s
 
@@ -40,9 +40,9 @@ let inline (|OpNameFull|) s =
         /// Use two spaces for symmetry
         if s'.StartsWith("*") && s' <> "*" then sprintf "( %s )" s'
         else sprintf "(%s)" s'
-    elif s.Contains " " 
+    elif not <| String.forall IsLongIdentifierPartCharacter s
     then
-        /// Should recognize double-backticks in a more robust way 
+        /// If s is a valid identifier, it doesn't matter to have `` or not
         sprintf "``%s``" (DecompileOpName s)
     else DecompileOpName s
 
@@ -477,10 +477,14 @@ let (|IndexedVar|_|) = function
     | SynExpr.LongIdent(_, LongIdentWithDots "Microsoft.FSharp.Core.None", _, _) -> Some None
     | _ -> None
 
-let (|Var|_|) = function
+let (|OptVar|_|) = function
+    | SynExpr.Ident(Ident s) -> Some(s, false)
+    | SynExpr.LongIdent(isOpt, LongIdentWithDots s, _, _) -> Some(s, isOpt)
+    | _ -> None
+
+let private (|Var|_|) = function
     | SynExpr.Ident(Ident s) -> Some(s)
-    | SynExpr.LongIdent(isOpt, LongIdentWithDots s, _, _) -> 
-        if isOpt then Some (sprintf "?%s" s) else Some(s)
+    | SynExpr.LongIdent(_, LongIdentWithDots s, _, _) -> Some(s)
     | _ -> None
 
 /// Get all application params at once
@@ -679,8 +683,8 @@ let (|Clause|) = function
     | SynMatchClause.Clause(p, eo, e, _, _) -> (p, e, eo)
 
 let rec (|DesugaredMatch|_|) = function
-    | SynExpr.Match(_, Var s, [Clause(PatNullary PatWild, DesugaredMatch(ss, e), None)], _, _) -> Some(s::ss, e)
-    | SynExpr.Match(_, Var s, [Clause(PatNullary PatWild, e, None)], _, _) -> Some([s], e)
+    | SynExpr.Match(_, Var(s), [Clause(PatNullary PatWild, DesugaredMatch(ss, e), None)], _, _) -> Some(s::ss, e)
+    | SynExpr.Match(_, Var(s), [Clause(PatNullary PatWild, e, None)], _, _) -> Some([s], e)
     | _ -> None
 
 // Type definitions
