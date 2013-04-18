@@ -223,40 +223,7 @@ type U =
     | U of (int * int)
 """
 
-[<Test>]
-let ``module signatures``() =
-    formatSourceString true """
-module Utils
 
-val turnTracingOn : unit -> unit
-val turnTracingOff : unit -> unit
-val isTraced : unit -> bool
-
-module Random = begin
-    val exponential : mean:float -> float
-    val nextInt : max:int -> int
-    val nextInt64 : max:int64 -> int64
-    val next : max:float -> float
-end""" config
-    |> prepend newline
-    |> should equal """
-module Utils
-
-val turnTracingOn : unit -> unit
-
-val turnTracingOff : unit -> unit
-
-val isTraced : unit -> bool
-
-module Random = 
-    val exponential : mean:float -> float
-    
-    val nextInt : max:int -> int
-    
-    val nextInt64 : max:int64 -> int64
-    
-    val next : max:float -> float
-    """
 
 [<Test>]
 let ``class signatures``() =

@@ -7,32 +7,6 @@ open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``module abbreviation``() =
-    formatSourceString false "module ES = Microsoft.FSharp.Quotations.ExprShape" config
-    |> should equal """module ES = Microsoft.FSharp.Quotations.ExprShape
-"""
-
-[<Test>]
-let ``module with functions``() =
-    formatSourceString false "module internal MyModule = let x = 42" config
-    |> prepend newline
-    |> should equal """
-module internal MyModule = 
-    let x = 42
-    """
-
-[<Test>]
-let ``open modules``() =
-    formatSourceString false """
-    open System
-    open System.IO""" config
-    |> prepend newline
-    |> should equal """
-open System
-open System.IO
-"""
-
-[<Test>]
 let ``recursive functions``() =
     formatSourceString false """
     let rec f x = g x
