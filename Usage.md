@@ -8,7 +8,7 @@ For the overview how to use the tool, you can type the command
 
 	Fantomas --help
 
-Two required parameters for the tool are input and output path. 
+You have to specify an input path and optionally an output path. 
 The output path is prompted by `--out` e.g.
 
 	Fantomas ../../../../tests/stackexchange/array.fs --out ../../../../tests/stackexchange_output/array.fs 
@@ -16,6 +16,7 @@ The output path is prompted by `--out` e.g.
 Both paths have to be files or folders at the same time. 
 If they are folders, the structure of input folder will be reflected in the output one. 
 The tool will explore the input folder recursively if you set `--recurse` option (see [Options section](#options)).
+If you omit the output path Fantomas will cleanup the inpute files in place.
 
 
 #### Options
