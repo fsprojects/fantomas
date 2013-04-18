@@ -16,3 +16,17 @@ let ``should keep parens in class definition in the right place``() =
     |> should equal """type DGMLClass() = class   
     let mutable currentState = System.String.Empty
 """
+
+// the current behavior results in a compile error since parens in (makeAsync) is moved to a wrong place
+[<Test>]
+let ``should keep parens in class inheritance in the right place``() =
+    formatSourceString false """type StateMachine(makeAsync) as this = class
+    inherit DGMLClass()
+
+    let functions = System.Collections.Generic.Dictionary<string, IState>()
+    """ config
+    |> should equal """type StateMachine(makeAsync) as this = class
+    inherit DGMLClass()
+
+    let functions = System.Collections.Generic.Dictionary<string, IState>()
+"""
