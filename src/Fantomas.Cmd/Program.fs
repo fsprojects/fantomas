@@ -26,30 +26,30 @@ open Fantomas.FormatConfig
 ///  [+|-]spaceAfterSemiColon        Enable/disable spaces after semicolons (default = true)
 ///  [+|-]indentOnTryWith            Enable/disable indentation on try/with block (default = false)
 
-let forceText = "Print the source unchanged if it cannot be parsed correctly."
-let recurseText = "Process the input folder recursively."
-let outputText = "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only."
+let [<Literal>] forceText = "Print the source unchanged if it cannot be parsed correctly."
+let [<Literal>] recurseText = "Process the input folder recursively."
+let [<Literal>] outputText = "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only."
 
-let fsiText = "Read F# source from stdin as F# signatures."
-let stdInText = "Read F# source from standard input."
-let stdOutText = " Write the formatted source code to standard output."
+let [<Literal>] fsiText = "Read F# source from stdin as F# signatures."
+let [<Literal>] stdInText = "Read F# source from standard input."
+let [<Literal>] stdOutText = " Write the formatted source code to standard output."
 
-let indentText = "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
-let widthText = "Set the column where we break to new lines (default = 80). The value should be at least 60."
+let [<Literal>] indentText = "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
+let [<Literal>] widthText = "Set the column where we break to new lines (default = 80). The value should be at least 60."
 
-let semicolonEOLText = "Disable semicolons at the end of line (default = true)."
-let argumentText = "Enable spaces before the first argument (default = false)."
-let colonText = "Disable spaces before colons (default = true)."
-let commaText = "Disable spaces after commas (default = true)."
-let semicolonText = "Disable spaces after semicolons (default = true)."
-let indentOnTryWithText = "Enable indentation on try/with block (default = false)."
+let [<Literal>] semicolonEOLText = "Disable semicolons at the end of line (default = true)."
+let [<Literal>] argumentText = "Enable spaces before the first argument (default = false)."
+let [<Literal>] colonText = "Disable spaces before colons (default = true)."
+let [<Literal>] commaText = "Disable spaces after commas (default = true)."
+let [<Literal>] semicolonText = "Disable spaces after semicolons (default = true)."
+let [<Literal>] indentOnTryWithText = "Enable indentation on try/with block (default = false)."
 
 let time f =
-  let sw = Diagnostics.Stopwatch.StartNew()
-  let res = f()
-  sw.Stop()
-  printfn "Time taken: %O s" sw.Elapsed
-  res
+    let sw = Diagnostics.Stopwatch.StartNew()
+    let res = f()
+    sw.Stop()
+    printfn "Time taken: %O s" sw.Elapsed
+    res
 
 type InputPath = 
     | File of string 
@@ -62,17 +62,17 @@ type OutputPath =
     | StdOut
     | Notknown
 
-let extensions = set [".fs"; ".fsx"; ".fsi"; ".ml"; ".mli"]
+let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli"; |]
 
 let isFSharpFile s = Set.contains (Path.GetExtension s) extensions
 
 /// Get all appropriate files, either recursively or non-recursively
 let rec allFiles isRec path =
     seq {
-        for f in Directory.GetFiles(path) do
+        for f in Directory.GetFiles path do
             if isFSharpFile f then yield f
         if isRec then
-            for d in Directory.GetDirectories(path) do
+            for d in Directory.GetDirectories path do
                 yield! allFiles isRec d    
     }
 
@@ -109,64 +109,65 @@ let main args =
             inputPath := StdIn s
         elif Directory.Exists(s) then
            inputPath := Folder s
-        elif File.Exists(s) && isFSharpFile(s) then
+        elif File.Exists s && isFSharpFile s then
            inputPath := File s
         else
-            stderr.WriteLine("Input path should be a file or a folder.")
+            eprintfn "Input path should be a file or a folder."
             exit 1
 
     let handleIndent i = 
         if i >= 1 && i <= 10 then
             indent := i
         else
-            stderr.WriteLine("Number of spaces should be between 1 and 10.")
+            eprintfn "Number of spaces should be between 1 and 10."
             exit 1
 
     let handlePageWidth i = 
         if i >= 60 then
             pageWidth := i
         else
-            stderr.WriteLine("Page width should be at least 60.")
+            eprintfn "Page width should be at least 60."
             exit 1
 
-    let fileToFile (inFile : string)  (outFile : string) config =
+    let fileToFile (inFile : string) (outFile : string) config =
         try
-            stdout.WriteLine("Processing {0}", inFile)
+            printfn "Processing %s" inFile
             use buffer = new StreamWriter(outFile)
-            time (fun () -> CodeFormatter.processSourceFile inFile buffer config)
+            time <| fun () ->
+                CodeFormatter.processSourceFile inFile buffer config
             buffer.Flush()
-            stdout.WriteLine("{0} has been written.", outFile)
+            printfn "%s has been written." outFile
         with
         | exn ->
-            stderr.WriteLine("The following exception occurs while formatting {0}: {1}", inFile, exn.ToString())
+            eprintfn "The following exception occurred while formatting %s: %O" inFile exn
             if !force then
-                File.WriteAllText(outFile, File.ReadAllText(inFile))
-                stdout.WriteLine("Force writing original contents to {0}.", outFile)
+                File.WriteAllText (outFile, File.ReadAllText inFile)
+                printfn "Force writing original contents to %s" outFile
 
     let fileToStdOut inFile config =
         try
             use buffer = new StringWriter()
-            /// Don't record running time to avoid writing to console
+            // Don't record running time to avoid writing to console
             CodeFormatter.processSourceFile inFile buffer config
             stdout.Write(buffer.ToString())
         with
         | exn ->
-            stderr.WriteLine("The following exception occurs while formatting {0}: {1}", inFile, exn.ToString())
+            eprintfn "The following exception occurred while formatting %s: %O" inFile exn
             if !force then
-                stdout.Write(File.ReadAllText(inFile))
+                stdout.Write(File.ReadAllText inFile)
 
     let stringToFile s (outFile : string) config =
         try
             use buffer = new StreamWriter(outFile)
             time (fun () -> CodeFormatter.processSourceString !fsi s buffer config)
             buffer.Flush()
-            stdout.WriteLine("{0} has been written.", outFile)
+            printfn "%s has been written." outFile
         with
         | exn ->
-            stderr.WriteLine("The following exception occurs while formatting stdin: {0}", exn.ToString())
+            eprintfn "The following exception occurs while formatting stdin: %O" exn
             if !force then
                 File.WriteAllText(outFile, s)
-                stdout.WriteLine("Force writing original contents to {0}.", outFile)
+                printfn "Force writing original contents to %s." outFile
 
     let stringToStdOut s config =
         try
@@ -175,7 +176,7 @@ let main args =
             stdout.Write(buffer.ToString())
         with
         | exn ->
-            stderr.WriteLine("The following exception occurs while formatting stdin: {0}", exn.ToString())
+            eprintfn "The following exception occurs while formatting stdin: %O" exn
             if !force then
                 stdout.Write(s)
 
@@ -202,15 +203,16 @@ let main args =
 
     ArgParser.Parse(options, handleInput, "Fantomas <input_path>")
 
-    let config = { FormatConfig.Default with 
-                    IndentSpaceNum = !indent;
-                    PageWidth = !pageWidth;
-                    SemicolonAtEndOfLine = !semicolonEOL; 
-                    SpaceBeforeArgument = !spaceBeforeArgument; 
-                    SpaceBeforeColon = !spaceBeforeColon;
-                    SpaceAfterComma = !spaceAfterComma; 
-                    SpaceAfterSemicolon = !spaceAfterSemiColon; 
-                    IndentOnTryWith = !indentOnTryWith }
+    let config =
+        { FormatConfig.Default with 
+            IndentSpaceNum = !indent;
+            PageWidth = !pageWidth;
+            SemicolonAtEndOfLine = !semicolonEOL; 
+            SpaceBeforeArgument = !spaceBeforeArgument; 
+            SpaceBeforeColon = !spaceBeforeColon;
+            SpaceAfterComma = !spaceAfterComma; 
+            SpaceAfterSemicolon = !spaceAfterSemiColon; 
+            IndentOnTryWith = !indentOnTryWith }
 
     /// Handle inputs via pipeline
     let isKeyAvailable = ref false
@@ -249,7 +251,7 @@ let main args =
 
     match !inputPath, !outputPath with
     | Unspecified, _ ->
-        stderr.WriteLine("Input path is missing.")
+        eprintfn "Input path is missing."
         exit 1
     | Folder p1, Notknown -> processFolder p1 p1
     | File p1, Notknown -> processFile p1 p1 config    
