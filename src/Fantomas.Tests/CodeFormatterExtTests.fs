@@ -162,59 +162,9 @@ let detectZeroAND point =
     | _ -> printfn "Both nonzero."
 """
 
-[<Test>]
-let ``cons and list patterns``() =
-    formatSourceString false """
-let rec printList l =
-    match l with
-    | head :: tail -> printf "%d " head; printList tail
-    | [] -> printfn ""
 
-let listLength list =
-    match list with
-    | [] -> 0
-    | [ _ ] -> 1
-    | [ _; _ ] -> 2
-    | [ _; _; _ ] -> 3
-    | _ -> List.length list"""  config
-    |> prepend newline
-    |> should equal """
-let rec printList l = 
-    match l with
-    | head :: tail -> 
-        printf "%d " head
-        printList tail
-    | [] -> printfn ""
 
-let listLength list = 
-    match list with
-    | [] -> 0
-    | [_] -> 1
-    | [_; _] -> 2
-    | [_; _; _] -> 3
-    | _ -> List.length list
-"""
 
-[<Test>]
-let ``array patterns``() =
-    formatSourceString false """
-let vectorLength vec =
-    match vec with
-    | [| var1 |] -> var1
-    | [| var1; var2 |] -> sqrt (var1*var1 + var2*var2)
-    | [| var1; var2; var3 |] -> sqrt (var1*var1 + var2*var2 + var3*var3)
-    | _ -> failwith "vectorLength called with an unsupported array size of %d." (vec.Length)""" config
-    |> prepend newline
-    |> should equal """
-let vectorLength vec = 
-    match vec with
-    | [|var1|] -> var1
-    | [|var1; var2|] -> sqrt(var1 * var1 + var2 * var2)
-    | [|var1; var2; var3|] -> sqrt(var1 * var1 + var2 * var2 + var3 * var3)
-    | _ -> 
-        failwith "vectorLength called with an unsupported array size of %d." 
-            (vec.Length)
-"""
 
 [<Test>]
 let ``paren and tuple patterns``() =
@@ -348,38 +298,6 @@ let (|ParseRegex|_|) regex str =
     then 
         Some(List.tail [for x in m.Groups -> x.Value])
     else None
-"""
-
-[<Test>]
-let ``list comprehensions``() =
-    formatSourceString false """
-let listOfSquares = [ for i in 1 .. 10 -> i*i ]
-let list0to3 = [0 .. 3]""" config
-    |> prepend newline
-    |> should equal """
-let listOfSquares = 
-    [for i in 1..10 -> i * i]
-
-let list0to3 = [0..3]
-"""
-
-[<Test>]
-let ``array comprehensions``() =
-    formatSourceString false """
-let a1 = [| for i in 1 .. 10 -> i * i |]
-let a2 = [| 0 .. 99 |]  
-let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
-    |> prepend newline
-    |> should equal """
-let a1 = 
-    [|for i in 1..10 -> i * i|]
-
-let a2 = [|0..99|]
-
-let a3 = 
-    [|for n in 1..100 do
-          if isPrime n
-          then yield n|]
 """
 
 [<Test>]

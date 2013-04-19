@@ -46,7 +46,7 @@
     <Compile Include="CodeFormatterExtExtTests.fs" />
     <Compile Include="CodeFormatterExtExtExtTests.fs" />
     <Compile Include="CodeFormatterTests.fs" />
-    <Compile Include="ListTests.fs" />
+    <Compile Include="DataStructureTests.fs" />
     <Compile Include="ComparisionTests.fs" />
     <Compile Include="ControlStructureTests.fs" />
     <Compile Include="PipingTests.fs" />

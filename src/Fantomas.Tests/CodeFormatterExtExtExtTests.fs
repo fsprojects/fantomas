@@ -36,44 +36,6 @@ let CalculateFine(ticket : SpeedingTicket) =
     else 100.0
 """
 
-[<Test>]
-let ``array indices``() =
-    formatSourceString false """
-let array1 = [| 1; 2; 3 |]
-array1.[0..2] 
-array2.[2.., 0..]
-array2.[..3, ..1] 
-array1.[1] <- 3
-    """ config
-    |> prepend newline
-    |> should equal """
-let array1 = [|1; 2; 3|]
-
-array1.[0..2]
-array2.[2.., 0..]
-array2.[..3, ..1]
-array1.[1] <- 3
-"""
-
-[<Test>]
-let ``array values``() =
-    formatSourceString false """
-let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
-  (3, 2, 6); (3, 3, 9)|]
-    """ config
-    |> prepend newline
-    |> should equal """
-let arr = 
-    [|(1, 1, 1)
-      (1, 2, 2)
-      (1, 3, 3)
-      (2, 1, 2)
-      (2, 2, 4)
-      (2, 3, 6)
-      (3, 1, 3)
-      (3, 2, 6)
-      (3, 3, 9)|]
-"""
 
 [<Test>]
 let ``comments on local let bindings``() =
