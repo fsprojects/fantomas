@@ -137,7 +137,6 @@ type public MyClass<'a> public (x, y) as this =
     member self.Method(a, b) = x + y + z + a + b
 """
 
-
 [<Test>]
 let ``struct declaration``() =
     formatSourceString false """
@@ -154,7 +153,8 @@ type Point2D =
         val X : float
         val Y : float
         new(x : float, y : float) = 
-            { X = x; Y = y }
+            { X = x;
+              Y = y }
     end
 """
 

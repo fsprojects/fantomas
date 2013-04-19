@@ -100,7 +100,8 @@ type Car =
       mutable Odometer : int }
 
 let myRecord3 = 
-    { myRecord2 with Y = 100; Z = 2 }
+    { myRecord2 with Y = 100;
+                     Z = 2 }
 """
 
 // the current behavior results in a compile error since the if is not aligned properly
@@ -128,14 +129,23 @@ let ``should not break inside of if statements in records``() =
 
     """ config
     |> should equal """let XpkgDefaults() = 
-    { ToolPath = "./tools/xpkg/xpkg.exe"; WorkingDir = "./"; 
-      TimeOut = TimeSpan.FromMinutes 5.0; Package = null; 
+    { ToolPath = "./tools/xpkg/xpkg.exe";
+      WorkingDir = "./";
+      TimeOut = TimeSpan.FromMinutes 5.0;
+      Package = null;
       Version = 
           if not isLocalBuild
           then buildVersion
-          else "0.1.0.0"; 
-      OutputPath = "./xpkg"; Project = null; Summary = null; 
-      Publisher = null; Website = null; Details = "Details.md"; 
-      License = "License.md"; GettingStarted = "GettingStarted.md"; Icons = []; 
-      Libraries = []; Samples = [] }
+          else "0.1.0.0";
+      OutputPath = "./xpkg";
+      Project = null;
+      Summary = null;
+      Publisher = null;
+      Website = null;
+      Details = "Details.md";
+      License = "License.md";
+      GettingStarted = "GettingStarted.md";
+      Icons = [];
+      Libraries = [];
+      Samples = [] }
 """

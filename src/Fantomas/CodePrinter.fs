@@ -302,7 +302,7 @@ and genExpr = function
             (sepOpenL +> atCurrentColumn (col sepSemi xs (autoNln << genExpr)) +> sepCloseL)
     | Record(xs, eo) -> 
         sepOpenS +> opt (!- " with ") eo genExpr
-        +> atCurrentColumn (col sepSemi xs (autoNln << genRecordFieldName))
+        +> atCurrentColumn (col sepSemiNln xs genRecordFieldName)
         +> sepCloseS
     | ObjExpr(t, eio, bd, ims) ->
         /// Check the role of the second part of eio
