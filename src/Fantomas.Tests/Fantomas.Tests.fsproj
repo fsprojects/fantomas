@@ -63,6 +63,7 @@
     <Compile Include="CompilerDirectivesTests.fs" />
     <Compile Include="CommentTests.fs" />
     <Compile Include="OperatorTests.fs" />
+    <Compile Include="VerboseSyntaxConversionTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Compiler">

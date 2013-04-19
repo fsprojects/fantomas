@@ -193,30 +193,6 @@ let filterNumbers =
     | a -> printfn "%d" a
 """
 
-[<Test>]
-let ``verbose syntax``() =
-    formatSourceString false """
-    #light "off"
-
-    let div2 = 2;;
-
-    let f x = 
-        let r = x % div2 in
-          if r = 1 then 
-            begin "Odd"  end 
-          else 
-            begin "Even" end
-    """ config
-    |> prepend newline
-    |> should equal """
-let div2 = 2
-
-let f x = 
-    let r = x % div2
-    if r = 1
-    then ("Odd")
-    else ("Even")
-"""
 
 [<Test>]
 let ``triple-quoted strings``() =
@@ -236,21 +212,3 @@ let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
 let str1 = "abc"
 """
 
-[<Test>]
-let ``line, file and path identifiers``() =
-    formatSourceString false """
-    let printSourceLocation() =
-        printfn "Line: %s" __LINE__
-        printfn "Source Directory: %s" __SOURCE_DIRECTORY__
-        printfn "Source File: %s" __SOURCE_FILE__
-    printSourceLocation()
-    """ config
-    |> prepend newline
-    |> should equal """
-let printSourceLocation() = 
-    printfn "Line: %s" __LINE__
-    printfn "Source Directory: %s" __SOURCE_DIRECTORY__
-    printfn "Source File: %s" __SOURCE_FILE__
-
-printSourceLocation()
-"""

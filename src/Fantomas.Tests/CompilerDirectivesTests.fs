@@ -20,3 +20,22 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
 #endif
 """
+
+[<Test>]
+let ``line, file and path identifiers``() =
+    formatSourceString false """
+    let printSourceLocation() =
+        printfn "Line: %s" __LINE__
+        printfn "Source Directory: %s" __SOURCE_DIRECTORY__
+        printfn "Source File: %s" __SOURCE_FILE__
+    printSourceLocation()
+    """ config
+    |> prepend newline
+    |> should equal """
+let printSourceLocation() = 
+    printfn "Line: %s" __LINE__
+    printfn "Source Directory: %s" __SOURCE_DIRECTORY__
+    printfn "Source File: %s" __SOURCE_FILE__
+
+printSourceLocation()
+"""
