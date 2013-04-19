@@ -592,7 +592,7 @@ and genType = function
     | TStaticConstantExpr(e) -> genExpr e
     /// Not sure about this case
     | TStaticConstantNamed(t1, t2) -> genType t1 -- "=" +> genType t2
-    | TArray(t, n) -> genType t +> rep n (!- "[]")
+    | TArray(t, n) -> genComplexType t +> rep n (!- "[]")
     | TAnon -> sepWild
     | TVar tp -> genTypar tp 
     | TFun(t1, t2) -> genType t1 +> sepArrow +> genComplexType t2
@@ -600,22 +600,22 @@ and genType = function
         let postForm = 
             match ts with
             | [] ->  genType t
-            | [t'] -> genType t' +> sepSpace +> genType t
-            | ts -> sepOpenT +> col sepComma ts genType -- ") " +> genType t
+            | [t'] -> genComplexType t' +> sepSpace +> genType t
+            | ts -> sepOpenT +> col sepComma ts genType +> sepCloseT +> genType t
         ifElse isPostfix postForm (genType t -- "<" +> col sepComma ts genType -- ">")
-    | TLongIdentApp(t, li, ts) -> genType t -- li -- "<" +> col sepComma ts genType -- ">"
+    | TLongIdentApp(t, s, ts) -> genType t -- s -- "<" +> col sepComma ts genType -- ">"
     /// The surrounding brackets aren't always neccessary
     | TTuple ts -> col sepStar ts genComplexType
     | TWithGlobalConstraints(t, tcs) -> genType t +> colPre (!- " when ") wordAnd tcs genTypeConstraint
-    | TLongIdent li -> !- li
+    | TLongIdent s -> !- s
     | t -> failwithf "Unexpected type: %O" t
 
 and genComplexType = function
     | TTuple ts -> 
         /// Inner parts should have brackets for separation
-        sepOpenT +> col sepStar ts genComplexType +> sepCloseT
+        sepOpenT +> col sepStar ts genType +> sepCloseT
     | TFun(t1, t2) -> 
-        sepOpenT +> genComplexType t1 +> sepArrow +> genComplexType t2 +> sepCloseT
+        sepOpenT +> genType t1 +> sepArrow +> genType t2 +> sepCloseT
     | t -> genType t
 
 and genTypeList = function

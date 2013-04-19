@@ -65,7 +65,7 @@ let ``should not add parens in signature``() =
 """
 
 [<Test>]
-let ``should keep the string * string * (string option) type signature``() =
+let ``should keep the string * string * string option type signature``() =
     formatSourceString false """type DGML = 
     | Node of string
     | Link of string * string * (string option)
@@ -73,7 +73,7 @@ let ``should keep the string * string * (string option) type signature``() =
     """ config
     |> should equal """type DGML = 
     | Node of string
-    | Link of string * string * (string option)
+    | Link of string * string * string option
 """
 
 [<Test>]
