@@ -27,22 +27,28 @@ type FormatConfig =
 type ColumnIndentedTextWriter(tw : TextWriter) =
     let indentWriter = new IndentedTextWriter(tw, " ")
     let mutable col = indentWriter.Indent
+
     member __.Write(s : string) =
         match s.LastIndexOf('\n') with
         | -1 -> col <- col + s.Length
         | i -> col <- s.Length - i - 1
         indentWriter.Write(s)
+
     member __.WriteLine(s : string) =
         col <- indentWriter.Indent
         indentWriter.WriteLine(s)
+
     /// Current column of the page in an absolute manner
     member __.Column 
         with get() = col
         and set i = col <- i
+
     member __.Indent 
         with get() = indentWriter.Indent
         and set i = indentWriter.Indent <- i
+
     member __.InnerWriter = indentWriter.InnerWriter
+
     interface IDisposable with
         member __.Dispose() =
             indentWriter.Dispose()    
@@ -58,6 +64,7 @@ type Context =
     static member Default = { Config = FormatConfig.Default; 
                               Writer = new ColumnIndentedTextWriter(new StringWriter());
                               Content = ""; Positions = [||] }
+
     static member createContext config (content : string) =
         let positions = 
             content.Split([|'\n'|], StringSplitOptions.None)
@@ -65,6 +72,7 @@ type Context =
             |> Seq.scan (+) 0
             |> Seq.toArray
         { Context.Default with Config = config; Content = content; Positions = positions }
+
     member x.With(writer : ColumnIndentedTextWriter) =
         writer.Indent <- x.Writer.Indent
         writer.Column <- x.Writer.Column
@@ -72,7 +80,8 @@ type Context =
         let config = { x.Config with PageWidth = Int32.MaxValue }
         { x with Writer = writer; Config = config }
 
-let dump (ctx: Context) = ctx.Writer.InnerWriter.ToString()
+let dump (ctx: Context) =
+    ctx.Writer.InnerWriter.ToString()
 
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 

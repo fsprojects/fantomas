@@ -14,74 +14,73 @@ module List =
 
 /// Check whether an expression should be broken into multiple lines
 let rec multiline = function
-    | Paren e
-    | SingleExpr(_, e)
-    | TypedExpr(_, e, _) ->
-        multiline e
     | ConstExpr _
     | NullExpr
-    | OptVar _ ->
+    | OptVar _
+    | SequentialSimple _ ->
         false
-    | Quote(e1, e2, _) ->
+
+    | ObjExpr _
+    | While _
+    | For _
+    | ForEach _
+    | MatchLambda _
+    | TryWith _
+    | TryFinally _
+    | Sequentials _
+    | IfThenElse _ ->
+        true
+
+    | Paren e
+    | SingleExpr(_, e)
+    | TypedExpr(_, e, _)
+    | CompExpr(_, e)
+    | ArrayOrListOfSeqExpr(_, e)
+    | DesugaredMatch(_, e)
+    | Lambda(e, _)
+    | TypeApp(e, _)
+    | LongIdentSet(_, e)
+    | DotGet(e, _)
+    | TraitCall(_, _, e) ->
+        multiline e
+
+    | Quote(e1, e2, _)
+    | JoinIn(e1, e2)
+    | DotSet(e1, _, e2)
+    | LetOrUseBang(_, _, e1, e2) ->
         multiline e1 || multiline e2
+
     | Tuple es ->
         List.exists multiline es
+    
+    | App(e1, es) ->
+        multiline e1 || List.exists multiline es
+    | DotIndexedGet(e, es) ->
+        multiline e || List.exists multiline es
+
+    | DotIndexedSet(e1, es, e2) ->
+        multiline e1 || multiline e2 || List.exists multiline es
+
+    | Match(e, cs) ->
+        not (List.isEmpty cs) || multiline e
+    | LetOrUse(_, _, bs, e) ->
+        not (List.isEmpty bs) || multiline e
+
     // An array or a list is multiline if there are at least two elements
     | ArrayOrList(_, es) ->
         not (List.atmostOne es)
+
     // A record is multiline if there is at least two fields present
     | Record(xs, _) ->
         let fields = xs |> List.choose ((|RecordFieldName|) >> snd) 
         not (List.atmostOne fields) || List.exists multiline fields
-    | ObjExpr _
-    | While _
-    | For _
-    | ForEach _ ->
-        true
-    | CompExpr(_, e) ->
-        multiline e
-    | ArrayOrListOfSeqExpr(_, e) ->
-        multiline e
-    | JoinIn(e1, e2) ->
-        multiline e1 || multiline e2
-    | DesugaredMatch(_, e) ->
-        multiline e
-    | Lambda(e, _) ->
-        multiline e
-    | MatchLambda _ ->
-        true
-    | Match(e, cs) ->
-        multiline e || not (List.isEmpty cs)
+
     // An infix app is multiline if it contains at least two new line infix ops
     | InfixApps(e, es) ->
         multiline e
         || not (List.atmostOne (List.filter (fst >> NewLineInfixOps.Contains) es))
         || List.exists (snd >> multiline) es
-    | App(e1, es) ->
-        multiline e1 || List.exists multiline es
-    | TypeApp(e, _) ->
-        multiline e
-    | LetOrUse(_, _, bs, e) ->
-        not (List.isEmpty bs) || multiline e
-    | SequentialSimple _ -> false
-    | TryWith _
-    | TryFinally _ ->  true
-    | Sequentials _ -> true
-    | IfThenElse _ -> true
-    | LongIdentSet(_, e) ->
-        multiline e
-    | DotIndexedGet(e, es) ->
-        multiline e || List.exists multiline es
-    | DotIndexedSet(e1, es, e2) ->
-        multiline e1 || multiline e2 || List.exists multiline es
-    | DotGet(e, _) ->
-        multiline e
-    | DotSet(e1, _, e2) ->
-        multiline e1 || multiline e2
-    | TraitCall(_, _, e) ->
-        multiline e
-    | LetOrUseBang(_, _, e1, e2) ->
-        multiline e1 || multiline e2
+
     // Default mode is single-line
     | _ -> false
 
@@ -131,26 +130,24 @@ and genSigFile(ParsedSigFileInput(hs, mns)) =
     col sepNln hs genParsedHashDirective
     +> col sepNln mns genSigModuleOrNamespace
 
-and genParsedHashDirective(ParsedHashDirective(s1, s2)) =
+and genParsedHashDirective (ParsedHashDirective (s1, s2)) =
     /// print strings with quotes
     !- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2))
 
-and genModuleOrNamespace = function
-    | ModuleOrNamespace(ats, px, ao, s, mds, isModule) -> 
-        genPreXmlDoc px
-        +> colPost sepNln sepNln ats genAttribute
-        /// Checking for Tmp is a bit fragile
-        +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
-        +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
-        +> genModuleDeclGroup mds
+and genModuleOrNamespace (ModuleOrNamespace (ats, px, ao, s, mds, isModule)) =
+    genPreXmlDoc px
+    +> colPost sepNln sepNln ats genAttribute
+    /// Checking for Tmp is a bit fragile
+    +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
+    +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
+    +> genModuleDeclGroup mds
 
-and genSigModuleOrNamespace = function
-    | SigModuleOrNamespace(ats, px, ao, s, mds, isModule) -> 
-        genPreXmlDoc px
-        +> colPost sepNln sepNln ats genAttribute
-        +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
-        +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
-        +> col sepNln mds genSigModuleDecl
+and genSigModuleOrNamespace (SigModuleOrNamespace (ats, px, ao, s, mds, isModule)) =
+    genPreXmlDoc px
+    +> colPost sepNln sepNln ats genAttribute
+    +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
+    +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
+    +> col sepNln mds genSigModuleDecl
 
 and genModuleDeclGroup = function
     | ComplexModuleDecls(ys, Empty) ->
@@ -164,41 +161,57 @@ and genModuleDeclGroup = function
     | Empty -> sepNone    
 
 and genModuleDecl = function
-    | Attributes(ats) -> col sepNln ats genAttribute +> sepNln
-    | DoExpr(e) -> genExpr e +> sepNln
-    | Exception(ex) -> genException ex +> sepNln
+    | Attributes(ats) ->
+        col sepNln ats genAttribute +> sepNln
+    | DoExpr(e) ->
+        genExpr e +> sepNln
+    | Exception(ex) ->
+        genException ex +> sepNln
     | HashDirective(p) -> 
         genParsedHashDirective p +> sepNln
     /// Add a new line after module-level let bindings
-    | Let(b) -> genLetBinding "let " b +> sepNln
+    | Let(b) ->
+        genLetBinding "let " b +> sepNln
     | LetRec(b::bs) -> 
         genLetBinding "let rec " b 
         +> colPre (rep 2 sepNln) (rep 2 sepNln) bs (genLetBinding "and ") +> sepNln
-    | ModuleAbbrev(s1, s2) -> !- "module " -- s1 +> sepEq -- s2 +> sepNln
-    | NamespaceFragment(m) -> failwithf "NamespaceFragment is not supported yet: %O" m
+    | ModuleAbbrev(s1, s2) ->
+        !- "module " -- s1 +> sepEq -- s2 +> sepNln
+    | NamespaceFragment(m) ->
+        failwithf "NamespaceFragment is not supported yet: %O" m
     | NestedModule(ats, px, ao, s, mds) -> 
         genPreXmlDoc px
         +> colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
         +> indent +> sepNln +> genModuleDeclGroup mds +> unindent
-    | Open(s) -> !- (sprintf "open %s" s) +> sepNln
+    | Open(s) ->
+        !- (sprintf "open %s" s) +> sepNln
     /// There is no nested types and they have newlines in the ends of definitions
-    | Types(t::ts) -> genTypeDefn true t +> colPre sepNln sepNln ts (genTypeDefn false)
-    | md -> failwithf "Unexpected module declaration: %O" md
+    | Types(t::ts) ->
+        genTypeDefn true t +> colPre sepNln sepNln ts (genTypeDefn false)
+    | md ->
+        failwithf "Unexpected module declaration: %O" md
 
 and genSigModuleDecl = function
-    | SigException(ex) -> genSigException ex +> sepNln
+    | SigException(ex) ->
+        genSigException ex +> sepNln
     | SigHashDirective(p) -> 
         genParsedHashDirective p +> sepNln
-    | SigVal(v) -> genVal v +> sepNln
-    | SigModuleAbbrev(s1, s2) -> !- "module " -- s1 +> sepEq -- s2 +> sepNln
-    | SigNamespaceFragment(m) -> failwithf "NamespaceFragment is not supported yet: %O" m
+    | SigVal(v) ->
+        genVal v +> sepNln
+    | SigModuleAbbrev(s1, s2) ->
+        !- "module " -- s1 +> sepEq -- s2 +> sepNln
+    | SigNamespaceFragment(m) ->
+        failwithf "NamespaceFragment is not supported yet: %O" m
     | SigNestedModule(ats, px, ao, s, mds) -> 
         genPreXmlDoc px
         +> colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
         +> indent +> sepNln +> col sepNln mds genSigModuleDecl +> unindent
-    | SigOpen(s) -> !- (sprintf "open %s" s) +> sepNln
-    | SigTypes(t::ts) -> genSigTypeDefn true t +> colPre sepNln sepNln ts (genSigTypeDefn false)
-    | md -> failwithf "Unexpected module signature declaration: %O" md
+    | SigOpen(s) ->
+        !- (sprintf "open %s" s) +> sepNln
+    | SigTypes(t::ts) ->
+        genSigTypeDefn true t +> colPre sepNln sepNln ts (genSigTypeDefn false)
+    | md ->
+        failwithf "Unexpected module signature declaration: %O" md
 
 and genAccess(Access s) = !- s
 
@@ -238,7 +251,8 @@ and genLetBinding pref = function
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
         genPreXmlDoc px
         +> colPost sepNln sepNone ats genAttribute -- prefix +> autoBreakNln e
-    | b -> failwithf "%O isn't a let binding" b
+    | b ->
+        failwithf "%O isn't a let binding" b
 
 and genMemberBinding isInterface = function
     | PropertyBinding(ats, px, ao, isInline, mf, p, e) -> 
