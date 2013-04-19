@@ -19,25 +19,6 @@ let ``hash directives``() =
 """
 
 [<Test>]
-let ``typed quotations``() =
-    formatSourceString false """
-    <@ 
-        let f x = x + 10
-        f 20
-    @>""" config
-    |> prepend newline
-    |> should equal """
-<@ let f x = x + 10
-   f 20 @>
-"""
-
-[<Test>]
-let ``untyped quotations``() =
-    formatSourceString false "<@@ 2 + 3 @@>" config
-    |> should equal """<@@ 2 + 3 @@>
-"""
-
-[<Test>]
 let ``exception declations``() =
     formatSourceString false "exception Error2 of string * int" config
     |> should equal """exception Error2 of string * int

@@ -59,6 +59,7 @@
     <Compile Include="ActivePatternTests.fs" />
     <Compile Include="InterfaceTests.fs" />
     <Compile Include="ClassTests.fs" />
+    <Compile Include="QuotationTests.fs" />
     <Compile Include="FunctionDefinitionTests.fs" />
     <Compile Include="AttributeTests.fs" />
     <Compile Include="CompilerDirectivesTests.fs" />
