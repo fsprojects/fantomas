@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Fantomas</id>
-        <version>0.8.9</version>
+        <version>0.9.0</version>
         <title>Fantomas</title>
         <authors>Anh-Dung Phan</authors>
         <owners />
@@ -10,7 +10,7 @@
         <projectUrl>https://github.com/dungpa/fantomas</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>This library aims at formatting F# source files based on a given configuration. Fantomas will ensure correct indentation and consistent spacing between elements in the source files.</description>
-        <summary>A source code formatting tool for F#.</summary>
+        <summary>Source code formatting tool for F#.</summary>
         <releaseNotes />
         <tags>F# fsharp formatting beautifier indentation indenter</tags>
     </metadata>
