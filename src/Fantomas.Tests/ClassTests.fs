@@ -144,6 +144,21 @@ type DerivedClass =
     new(str2) = { string2 = str2 }
 """
 
+[<Test>]
+let ``classes and implicit constructors``() =
+    formatSourceString false """
+    type MyClass2(dataIn) as self =
+       let data = dataIn
+       do self.PrintMessage()
+       member this.PrintMessage() =
+           printf "Creating MyClass2 with Data %d" data""" config
+    |> prepend newline
+    |> should equal """
+type MyClass2(dataIn) as self = 
+    let data = dataIn
+    do self.PrintMessage()
+    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data
+"""
 
 [<Test>]
 let ``recursive classes``() =
@@ -170,78 +185,28 @@ and File(filename : string, containingFolder : Folder) =
 """
 
 [<Test>]
-let ``type constraints simple``() =
+let ``classes and inheritance``() =
     formatSourceString false """
-type Class1<'T when 'T :> System.Exception> =
-    class end
+type MyClassBase2(x: int) =
+   let mutable z = x * x
+   do for i in 1..z do printf "%d " i
 
-type Class2<'T when 'T :> System.IComparable> = 
-    class end
-
-type Class3<'T when 'T : null> =
-    class end
-
-type Class8<'T when 'T : not struct> =
-   class end
-
-type Class9<'T when 'T : enum<uint32>> =
-   class end
-
-type Class10<'T when 'T : comparison> =
-   class end
-
-type Class11<'T when 'T : equality> =
-   class end
-
-type Class12<'T when 'T : delegate<obj * System.EventArgs, unit>> =
-   class end
-
-type Class13<'T when 'T : unmanaged> =
-   class end
-    
-type Class14<'T,'U when 'T : equality and 'U : equality> =
-    class end""" config
+type MyClassDerived2(y: int) =
+   inherit MyClassBase2(y * 2)
+   do for i in 1..y do printf "%d " i""" config
     |> prepend newline
     |> should equal """
-type Class1<'T when 'T :> System.Exception> = 
-    class
-    end
+type MyClassBase2(x : int) = 
+    let mutable z = x * x
+    do 
+        for i in 1..z do
+            printf "%d " i
 
-type Class2<'T when 'T :> System.IComparable> = 
-    class
-    end
-
-type Class3<'T when 'T : null> = 
-    class
-    end
-
-type Class8<'T when 'T : not struct> = 
-    class
-    end
-
-type Class9<'T when 'T : enum<uint32>> = 
-    class
-    end
-
-type Class10<'T when 'T : comparison> = 
-    class
-    end
-
-type Class11<'T when 'T : equality> = 
-    class
-    end
-
-type Class12<'T when 'T : delegate<obj * System.EventArgs, unit>> = 
-    class
-    end
-
-type Class13<'T when 'T : unmanaged> = 
-    class
-    end
-
-type Class14<'T, 'U when 'T : equality and 'U : equality> = 
-    class
-    end
+type MyClassDerived2(y : int) = 
+    inherit MyClassBase2(y * 2)
+    do 
+        for i in 1..y do
+            printf "%d " i
 """
 
 [<Test>]

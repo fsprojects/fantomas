@@ -7,6 +7,18 @@ open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
 [<Test>]
+let ``hash directives``() =
+    formatSourceString false """
+    #r "Fantomas.Tests.dll"
+    #load "CodeFormatterTests.fs"
+    """ config
+    |> prepend newline
+    |> should equal """
+#r "Fantomas.Tests.dll"
+#load "CodeFormatterTests.fs"
+"""
+
+[<Test>]
 let ``should keep compiler directives``() =
     formatSourceString false """﻿#if INTERACTIVE
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"

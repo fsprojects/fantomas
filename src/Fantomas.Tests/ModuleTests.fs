@@ -108,3 +108,25 @@ module Random =
     
     val next : max:float -> float
     """
+
+[<Test>]
+let ``namespace declaration``() =
+    formatSourceString false """
+namespace Widgets
+
+type MyWidget1 =
+    member this.WidgetName = "Widget1" 
+
+module WidgetsModule =
+    let widgetName = "Widget2"
+    """ config
+    |> prepend newline
+    |> should equal """
+namespace Widgets
+
+type MyWidget1 = 
+    member this.WidgetName = "Widget1"
+
+module WidgetsModule = 
+    let widgetName = "Widget2"
+    """

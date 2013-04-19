@@ -151,3 +151,63 @@ let function1 x y =
     finally
         printfn "Always print this."
 """
+
+[<Test>]
+let ``range expressions``() =
+    formatSourceString false """
+    let function2() =
+      for i in 1 .. 2 .. 10 do
+         printf "%d " i
+      printfn ""
+    function2()""" config
+    |> prepend newline
+    |> should equal """
+let function2() = 
+    for i in 1..2..10 do
+        printf "%d " i
+    printfn ""
+
+function2()
+"""
+
+[<Test>]
+let ``use binding``() =
+    formatSourceString false """
+    let writetofile filename obj =
+     use file1 = File.CreateText(filename)
+     file1.WriteLine("{0}", obj.ToString())
+    """ config
+    |> prepend newline
+    |> should equal """
+let writetofile filename obj = 
+    use file1 = File.CreateText(filename)
+    file1.WriteLine("{0}", obj.ToString())
+"""
+
+[<Test>]
+let ``access modifiers``() =
+    formatSourceString false """
+    let private myPrivateObj = new MyPrivateType()
+    let internal myInternalObj = new MyInternalType()""" config
+    |> prepend newline
+    |> should equal """
+let private myPrivateObj = new MyPrivateType()
+
+let internal myInternalObj = new MyInternalType()
+"""
+
+[<Test>]
+let ``keyworded expressions``() =
+    formatSourceString false """
+    assert (3 > 2)
+    let result = lazy (x + 10)
+    do printfn "Hello world"
+    """ config
+    |> prepend newline
+    |> should equal """
+assert (3 > 2)
+
+let result = lazy (x + 10)
+
+do printfn "Hello world"
+"""
