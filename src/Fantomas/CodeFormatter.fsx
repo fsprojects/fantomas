@@ -35,12 +35,14 @@ let XpkgDefaults() =
 """
 
 let t02 = """
-type Funcs = 
-    [<Extension>]
-    static member ToFunc (f: Action<_,_,_>) =
-        Func<_,_,_,_>(fun a b c -> f.Invoke(a,b,c))"""
+type Route = 
+    { Verb : string
+      Path : string
+      Handler : Map<string, string> -> HttpListenerContext -> string }
+    override x.ToString() = sprintf "%s %s" x.Verb x.Path
+"""
 ;;
 
 printfn "Result:\n%s" <| formatSourceString false t02 config;;
 
-printfn "Tree:\n%A" <| parse false t01;;
+printfn "Tree:\n%A" <| parse false t02;;

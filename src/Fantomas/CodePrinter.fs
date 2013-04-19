@@ -451,7 +451,7 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | Simple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS 
-        +> atCurrentColumn (col sepSemiNln fs (genField "")) +> sepCloseS
+        +> atCurrentColumn (col sepSemiNln fs (genField false "")) +> sepCloseS
         +> colPre sepNln sepNln ms (genMemberDefn false) 
         +> unindent +> sepNln 
     | Simple TDSRNone -> 
@@ -503,7 +503,7 @@ and genSigTypeDefn isFirst (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | SigSimple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS 
-        +> atCurrentColumn (col sepSemiNln fs (genField "")) +> sepCloseS
+        +> atCurrentColumn (col sepSemiNln fs (genField false "")) +> sepCloseS
         +> colPre sepNln sepNln ms genMemberSig
         +> unindent +> sepNln 
     | SigSimple TDSRNone -> 
@@ -534,7 +534,7 @@ and genMemberSig = function
                                    +> sepColon +> genTypeList ts +> unindent)
     | MSInterface t -> !- "interface " +> genType t
     | MSInherit t -> !- "inherit " +> genType t
-    | MSValField f -> genField "val " f
+    | MSValField f -> genField false "val " f
     | MSNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
 
 and genTyparDecl(TyparDecl(ats, tp)) = colPost sepSpace sepNone ats genAttribute +> genTypar tp
@@ -567,18 +567,15 @@ and genSigException(SigExceptionDef(ats, px, ao, uc, ms)) =
 and genUnionCase hasBar (UnionCase(_, px, _, s, UnionCaseType fs)) =
     genPreXmlDoc px
     +> ifElse hasBar sepBar sepNone -- s 
-    +> colPre wordOf sepStar fs (genField "")
+    +> colPre wordOf sepStar fs (genField true "")
 
 and genEnumCase hasBar (EnumCase(ats, px, s, c)) =
     genPreXmlDoc px +> ifElse hasBar sepBar sepNone 
     +> colPost sepSpace sepNone ats genAttribute -- s +> sepEq +> genConst c
 
-and genField prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) = 
-    /// Being protective on union cases of functions 
-    let t =
-        match t with
-        | TFun _ -> sepOpenT +> genComplexType t +> sepCloseT
-        | _ -> genComplexType t
+and genField isUnion prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) = 
+    /// Being protective on union case declaration
+    let t = if isUnion then genComplexType t else genType t
     genPreXmlDoc px 
     +> colPost sepSpace sepNone ats genAttribute -- prefix
     +> opt sepSpace ao genAccess +> ifElse isStatic (!- "static ") sepNone
@@ -595,7 +592,7 @@ and genType = function
     | TArray(t, n) -> genComplexType t +> rep n (!- "[]")
     | TAnon -> sepWild
     | TVar tp -> genTypar tp 
-    | TFun(t1, t2) -> genType t1 +> sepArrow +> genComplexType t2
+    | TFun(t1, t2) -> genType t1 +> sepArrow +> genType t2
     | TApp(t, ts, isPostfix) -> 
         let postForm = 
             match ts with
@@ -665,7 +662,7 @@ and genMemberDefn isInterface = function
     /// What is the role of so
     | MDImplicitInherit(t, e, _) -> !- "inherit " +> genType t +> genExpr e
     | MDInherit(t, _) -> !- "inherit " +> genType t
-    | MDValField f -> genField "val " f
+    | MDValField f -> genField false "val " f
     | MDImplicitCtor(ats, ao, ps, so) -> 
         optPre sepSpace sepSpace ao genAccess +> sepOpenT
         +> colPost sepSpace sepNone ats genAttribute +> col sepComma ps genSimplePat +> sepCloseT
