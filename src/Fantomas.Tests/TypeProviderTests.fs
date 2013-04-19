@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.CodeFormatterExtExtExtTests
+﻿module Fantomas.Tests.TypeProviderTests
 
 open NUnit.Framework
 open FsUnit
