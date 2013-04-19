@@ -403,7 +403,8 @@ and genInfixApps newline = function
     | (s, e)::es ->
         (ifElse (newline && NewLineInfixOps.Contains s) (sepNln -- s +> sepSpace +> genExpr e)
            (ifElse (NoSpaceInfixOps.Contains s) (!- s +> autoNln (genExpr e))
-              (sepSpace +> autoNln (!- s +> sepSpace +> genExpr e))))
+              (ifElse (NoBreakInfixOps.Contains s) (sepSpace -- s +> sepSpace +> genExpr e)
+                (sepSpace +> autoNln (!- s +> sepSpace +> genExpr e)))))
         +> genInfixApps newline es
     | [] -> sepNone
 

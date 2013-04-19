@@ -25,7 +25,8 @@ let ``should keep the = on the same line in record def``() =
     let doRead(reader : JsonReader) = reader.Read() |> ignore
     override x.CanConvert(typ : Type) = 
         let result = 
-            ((typ.GetInterface(typeof<System.Collections.IEnumerable>.FullName) = null) && FSharpType.IsUnion typ)
+            ((typ.GetInterface(typeof<System.Collections.IEnumerable>.FullName) = null) 
+             && FSharpType.IsUnion typ)
         result
 """
 
@@ -34,5 +35,6 @@ let ``should keep the = on the same line in record def``() =
 let ``should keep the = on the same line``() =
     formatSourceString false """trimSpecialChars(controller.ServerName.ToUpper()) = trimSpecialChars(serverFilter.ToUpper())
     """ config
-    |> should equal """trimSpecialChars(controller.ServerName.ToUpper()) = trimSpecialChars(serverFilter.ToUpper())
+    |> should equal """trimSpecialChars(controller.ServerName.ToUpper()) = trimSpecialChars
+                                                        (serverFilter.ToUpper())
 """

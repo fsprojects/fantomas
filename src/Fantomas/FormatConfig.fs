@@ -245,8 +245,12 @@ let indentOnWith(ctx : Context) =
 let unindentOnWith(ctx : Context) =
     if ctx.Config.IndentOnTryWith then unindent ctx else ctx
 
-// These should be moved into the config later
-
+/// Don't put space before and after these operators
 let NoSpaceInfixOps = set [".."]
+
+/// Always break into newlines on these operators
 let NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"]
+
+/// Never break into newlines on these operators
+let NoBreakInfixOps = set ["="; ">"; "<";]
 
