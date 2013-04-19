@@ -14,53 +14,87 @@ module List =
 
 /// Check whether an expression should be broken into multiple lines
 let rec multiline = function
-    | Paren e | SingleExpr(_, e) | TypedExpr(_, e, _) -> multiline e
-    | ConstExpr _ | NullExpr | OptVar _ -> false
-    | Quote(e1, e2, _) -> multiline e1 || multiline e2
-    | Tuple es -> List.exists multiline es
-    /// An array or a list is multiline if there are at least two elements
-    | ArrayOrList(_, es) -> 
+    | Paren e
+    | SingleExpr(_, e)
+    | TypedExpr(_, e, _) ->
+        multiline e
+    | ConstExpr _
+    | NullExpr
+    | OptVar _ ->
+        false
+    | Quote(e1, e2, _) ->
+        multiline e1 || multiline e2
+    | Tuple es ->
+        List.exists multiline es
+    // An array or a list is multiline if there are at least two elements
+    | ArrayOrList(_, es) ->
         not (List.atmostOne es)
-    /// A record is multiline if there is at least two fields present
-    | Record(xs, _) -> 
+    // A record is multiline if there is at least two fields present
+    | Record(xs, _) ->
         let fields = xs |> List.choose ((|RecordFieldName|) >> snd) 
         not (List.atmostOne fields) || List.exists multiline fields
-    | ObjExpr _ | While _ | For _ | ForEach _ -> true
-    | CompExpr(_, e) -> multiline e
-    | ArrayOrListOfSeqExpr(_, e) -> multiline e
-    | JoinIn(e1, e2) -> multiline e1 || multiline e2
-    | DesugaredMatch(_, e) -> multiline e
-    | Lambda(e, _) -> multiline e
-    | MatchLambda _ -> true
-    | Match(e, cs) -> multiline e || not (List.isEmpty cs)
-    /// An infix app is multiline if it contains at least two new line infix ops
-    | InfixApps(e, es) -> 
-        multiline e || not (List.atmostOne (List.filter (fst >> NewLineInfixOps.Contains) es)) 
-                    || List.exists (snd >> multiline) es
-    | App(e1, es) -> multiline e1 || List.exists multiline es
-    | TypeApp(e, _) -> multiline e
-    | LetOrUse(_, _, bs, e) -> not (List.isEmpty bs) || multiline e
+    | ObjExpr _
+    | While _
+    | For _
+    | ForEach _ ->
+        true
+    | CompExpr(_, e) ->
+        multiline e
+    | ArrayOrListOfSeqExpr(_, e) ->
+        multiline e
+    | JoinIn(e1, e2) ->
+        multiline e1 || multiline e2
+    | DesugaredMatch(_, e) ->
+        multiline e
+    | Lambda(e, _) ->
+        multiline e
+    | MatchLambda _ ->
+        true
+    | Match(e, cs) ->
+        multiline e || not (List.isEmpty cs)
+    // An infix app is multiline if it contains at least two new line infix ops
+    | InfixApps(e, es) ->
+        multiline e
+        || not (List.atmostOne (List.filter (fst >> NewLineInfixOps.Contains) es))
+        || List.exists (snd >> multiline) es
+    | App(e1, es) ->
+        multiline e1 || List.exists multiline es
+    | TypeApp(e, _) ->
+        multiline e
+    | LetOrUse(_, _, bs, e) ->
+        not (List.isEmpty bs) || multiline e
     | SequentialSimple _ -> false
-    | TryWith _ | TryFinally _ ->  true
+    | TryWith _
+    | TryFinally _ ->  true
     | Sequentials _ -> true
     | IfThenElse _ -> true
-    | LongIdentSet(_, e) -> multiline e
-    | DotIndexedGet(e, es) -> multiline e || List.exists multiline es
-    | DotIndexedSet(e1, es, e2) -> multiline e1 || multiline e2 || List.exists multiline es
-    | DotGet(e, _) -> multiline e
-    | DotSet(e1, _, e2) -> multiline e1 || multiline e2
-    | TraitCall(_, _, e) -> multiline e
-    | LetOrUseBang(_, _, e1, e2) -> multiline e1 || multiline e2
-    /// Default mode is single-line
+    | LongIdentSet(_, e) ->
+        multiline e
+    | DotIndexedGet(e, es) ->
+        multiline e || List.exists multiline es
+    | DotIndexedSet(e1, es, e2) ->
+        multiline e1 || multiline e2 || List.exists multiline es
+    | DotGet(e, _) ->
+        multiline e
+    | DotSet(e1, _, e2) ->
+        multiline e1 || multiline e2
+    | TraitCall(_, _, e) ->
+        multiline e
+    | LetOrUseBang(_, _, e1, e2) ->
+        multiline e1 || multiline e2
+    // Default mode is single-line
     | _ -> false
 
 /// Check if the expression already has surrounding parentheses
 let hasParenthesis = function
-    | Paren _ | ConstExpr(Const "()") | Tuple _ -> true
+    | Paren _
+    | ConstExpr(Const "()")
+    | Tuple _ -> true
     | _ -> false
 
 let hasParenInPat = function
-    | PatParen _ | PatConst(Const "()") -> true
+    | PatParen _
+    | PatConst(Const "()") -> true
     | _ -> false
 
 let inline genConst c =
