@@ -110,3 +110,10 @@ let inline heterogenousAdd(
                                                                -> ^T), 
                            value2 : ^U) = value1 + value2
 """
+
+[<Test>]
+let ``should keep whitespace after function call``() =
+    formatSourceString false """let relative = (toRelativePath fileName).TrimStart '.'
+    """ config
+    |> should equal """let relative = (toRelativePath fileName).TrimStart '.'
+"""
