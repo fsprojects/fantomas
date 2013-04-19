@@ -86,8 +86,12 @@ let ``should break on . operator``() =
     formatSourceString false """pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^").Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(").Replace(")", @"\)").Replace("+", @"\+")
 
     """ config
-    |> should equal """pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^")
-  .Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(").Replace(")", @"\)").Replace("+", @"\+")
+    |> prepend newline
+    |> should equal """
+pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^")
+                           .Replace("{", @"\{").Replace("[", @"\[")
+                           .Replace("(", @"\(").Replace(")", @"\)")
+                           .Replace("+", @"\+")
 """
 
 // the current behavior results in a compile error since the space is removed and now we made a comment

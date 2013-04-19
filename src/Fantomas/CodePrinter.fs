@@ -344,6 +344,9 @@ and genExpr = function
         /// Only put |> on the same line in a very trivial expression
         let hasNewLine = multiline e || not (List.atmostOne es)
         atCurrentColumn (genExpr e +> genInfixApps hasNewLine es)
+    /// This filters a few long examples of App
+    | DotGetApp(e, es) -> 
+        genExpr e +> atCurrentColumn (col sepNone es (fun (s, e) -> autoNln (!- (sprintf ".%s" s) +> genExpr e)))
     /// Unlike infix app, function application needs a level of indentation
     | App(e1, [e2]) -> 
         atCurrentColumn (genExpr e1 +> 

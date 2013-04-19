@@ -564,6 +564,12 @@ let (|DotGet|_|) = function
     | SynExpr.DotGet(e, _, LongIdentWithDots s, _) -> Some(e, s)
     | _ -> None
 
+/// Gather series of application for line breaking
+let rec (|DotGetApp|_|) = function
+    | SynExpr.App(_, _, DotGet(DotGetApp(e, es), s), e', _) -> Some(e, [yield! es; yield (s, e')])
+    | SynExpr.App(_, _, DotGet(e, s), e', _) -> Some(e, [(s, e')])
+    | _ -> None
+
 let (|DotSet|_|) = function
     | SynExpr.DotSet(e1, LongIdentWithDots s, e2, _) -> Some(e1, s, e2)
     | _ -> None
