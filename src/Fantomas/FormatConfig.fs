@@ -55,15 +55,16 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
 
 type Context = 
     { Config : FormatConfig; 
-      Writer: ColumnIndentedTextWriter;
+      Writer : ColumnIndentedTextWriter;
+      mutable BreakLines : bool;
       /// The original source string to query as a last resort 
       Content : string; 
       /// Positions of new lines in the original source string
       Positions : int [] }
     /// Initialize with a string writer and use space as delimiter
-    static member Default = { Config = FormatConfig.Default; 
+    static member Default = { Config = FormatConfig.Default;
                               Writer = new ColumnIndentedTextWriter(new StringWriter());
-                              Content = ""; Positions = [||] }
+                              BreakLines = true; Content = ""; Positions = [||] }
 
     static member createContext config (content : string) =
         let positions = 
@@ -144,6 +145,18 @@ let str (o : 'T) (ctx : Context) =
     ctx.Writer.Write(o.ToString())
     ctx
 
+/// Similar to col, and supply index as well
+let coli f' (c : seq<'T>) f (ctx : Context) =
+    let mutable tryPick = true
+    let mutable st = ctx
+    let mutable i = 0
+    let e = c.GetEnumerator()   
+    while (e.MoveNext()) do
+        if tryPick then tryPick <- false else st <- f' st
+        st <- f i (e.Current) st
+        i  <- i + 1
+    st
+
 /// Process collection - keeps context through the whole processing
 /// calls f for every element in sequence and f' between every two elements 
 /// as a separator. This is a variant that works on typed collections.
@@ -219,14 +232,27 @@ let sepOpenT = !- "("
 let sepCloseT = !- ")"
 
 /// Set a checkpoint to break at an appropriate column
-let autoNln f (ctx : Context) = 
-    let width = ctx.Config.PageWidth
-    /// Create a dummy context to evaluate length of current operation
-    use colWriter = new ColumnIndentedTextWriter(new StringWriter())
-    let dummyCtx = ctx.With(colWriter)
-    let col = (f dummyCtx).Writer.Column
-    /// This isn't accurate if we go to new lines
-    if col > width then f (sepNln ctx) else f ctx
+let autoNln f (ctx : Context) =
+    if ctx.BreakLines then 
+        let width = ctx.Config.PageWidth
+        /// Create a dummy context to evaluate length of current operation
+        use colWriter = new ColumnIndentedTextWriter(new StringWriter())
+        let dummyCtx = ctx.With(colWriter)
+        let col = (f dummyCtx).Writer.Column
+        /// This isn't accurate if we go to new lines
+        if col > width then f (sepNln ctx) else f ctx
+    else
+        f ctx
+
+/// Skip auto newline for index 0
+let autoNlni i = if i = 0 then id else autoNln
+
+/// Skip all auto-breaking newlines
+let noNln f (ctx : Context) : Context = 
+    ctx.BreakLines <- false
+    let res = f ctx
+    ctx.BreakLines <- true
+    res
 
 let sepColon(ctx : Context) = 
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx

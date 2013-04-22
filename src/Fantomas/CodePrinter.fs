@@ -393,11 +393,19 @@ and genExpr = function
         let hasNewLine = multiline e || not (List.atmostOne es)
         atCurrentColumn (genExpr e +> genInfixApps hasNewLine es)
     /// This filters a few long examples of App
-    | DotGetApp(e, es) -> 
-        genExpr e 
+    | DotGetAppSpecial(s, es) ->
+        !- s 
         +> atCurrentColumn 
-               (col sepNone es (fun (s, e) -> autoNln (!- (sprintf ".%s" s) 
-                                              +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e)))
+               (coli sepNone es (fun i (s, e) ->
+                                    autoNlni i (!- (sprintf ".%s" s) 
+                                        +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e)))
+    | DotGetApp(e, es) -> 
+        noNln (genExpr e)
+        +> indent 
+        +> (col sepNone es (fun (s, e) -> 
+                                autoNln (!- (sprintf ".%s" s) 
+                                    +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e)))
+        +> unindent
     /// Unlike infix app, function application needs a level of indentation
     | App(e1, [e2]) -> 
         atCurrentColumn (genExpr e1 +> 

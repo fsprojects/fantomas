@@ -647,6 +647,14 @@ let rec (|DotGetApp|_|) = function
     | SynExpr.App(_, _, DotGet(e, s), e', _) -> Some(e, [(s, e')])
     | _ -> None
 
+let (|DotGetAppSpecial|_|) = function
+    | DotGetApp(SynExpr.App(_, _, Var s, e, _), es) ->
+        let i = s.IndexOf(".")
+        if i <> -1 then
+            Some(s.[0..i-1], (s.[i+1..], e)::es)
+        else None
+    | _ -> None
+
 let (|DotSet|_|) = function
     | SynExpr.DotSet(e1, LongIdentWithDots s, e2, _) ->
         Some(e1, s, e2)

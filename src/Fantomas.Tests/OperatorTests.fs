@@ -88,23 +88,23 @@ let ``should break on . operator``() =
     |> prepend newline
     |> should equal """
 pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^")
-                           .Replace("{", @"\{").Replace("[", @"\[")
-                           .Replace("(", @"\(").Replace(")", @"\)")
-                           .Replace("+", @"\+")
+       .Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(")
+       .Replace(")", @"\)").Replace("+", @"\+")
 """
 
 // the current behavior results in a compile error since line break is before the parens and not before the .
 [<Test>]
 let ``should break on . operator and keep indentation``() =
     formatSourceString false """let pattern = 
-    pattern
+    (x + y)
       .Replace(seperator + "**" + seperator, replacementSeparator + "(.|?" + replacementSeparator + ")?" )
       .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")" )
     """ config
     |> should equal """let pattern = 
-    pattern
-      .Replace(seperator + "**" + seperator, replacementSeparator + "(.|?" + replacementSeparator + ")?" )
-      .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")" )
+    (x + y)
+        .Replace(seperator + "**" + seperator, 
+                 replacementSeparator + "(.|?" + replacementSeparator + ")?")
+        .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")")
 """
 
 [<Test>]
