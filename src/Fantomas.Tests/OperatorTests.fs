@@ -80,7 +80,6 @@ let ``should pattern match on quotation expression``() =
     | _ -> ()
 """
 
-// the current behavior results in a compile error since line break is before the parens and not before the .
 [<Test>]
 let ``should break on . operator``() =
     formatSourceString false """pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^").Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(").Replace(")", @"\)").Replace("+", @"\+")
@@ -94,7 +93,20 @@ pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^")
                            .Replace("+", @"\+")
 """
 
-// the current behavior results in a compile error since the space is removed and now we made a comment
+// the current behavior results in a compile error since line break is before the parens and not before the .
+[<Test>]
+let ``should break on . operator and keep indentation``() =
+    formatSourceString false """let pattern = 
+    pattern
+      .Replace(seperator + "**" + seperator, replacementSeparator + "(.|?" + replacementSeparator + ")?" )
+      .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")" )
+    """ config
+    |> should equal """let pattern = 
+    pattern
+      .Replace(seperator + "**" + seperator, replacementSeparator + "(.|?" + replacementSeparator + ")?" )
+      .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")" )
+"""
+
 [<Test>]
 let ``should keep space between ( and * in *** operator definition``() =
     formatSourceString false """let inline ( ***) l1 l2 = pair l2 l1
