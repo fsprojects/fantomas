@@ -658,13 +658,20 @@ and genType = function
             | [] ->  genType t
             | [t'] -> genComplexType t' +> sepSpace +> genType t
             | ts -> sepOpenT +> col sepComma ts genType +> sepCloseT +> genType t
-        ifElse isPostfix postForm (genType t -- "<" +> col sepComma ts genType -- ">")
-    | TLongIdentApp(t, s, ts) -> genType t -- s -- "<" +> col sepComma ts genType -- ">"
+        ifElse isPostfix postForm (genType t +> genPrefixTypes ts)
+    | TLongIdentApp(t, s, ts) -> genType t -- sprintf ".%s" s +> genPrefixTypes ts
     /// The surrounding brackets aren't always neccessary
     | TTuple ts -> col sepStar ts genComplexType
     | TWithGlobalConstraints(t, tcs) -> genType t +> colPre (!- " when ") wordAnd tcs genTypeConstraint
     | TLongIdent s -> !- s
     | t -> failwithf "Unexpected type: %O" t
+
+and genPrefixTypes = function
+    | [] -> sepNone
+    /// Some patterns could cause a parsing error
+    | (TStaticConstant _ | TStaticConstantExpr _ | TStaticConstantNamed _ as t)::ts -> 
+        !- "< " +> col sepComma (t::ts) genType -- " >"
+    | ts -> !- "<" +> col sepComma ts genType -- ">"
 
 and genComplexType = function
     | TTuple ts -> 
