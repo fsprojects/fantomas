@@ -46,3 +46,20 @@ let m =
     | _ -> LogMessage(msg, true)
     |> console.Write
 """
+
+[<Test>]
+let ``should break new lines on piping``() =
+    formatSourceString false """
+let runAll() =
+    urlList
+    |> Seq.map fetchAsync |> Async.Parallel 
+    |> Async.RunSynchronously |> ignore""" config
+    |> prepend newline
+    |> should equal """
+let runAll() = 
+    urlList
+    |> Seq.map fetchAsync
+    |> Async.Parallel
+    |> Async.RunSynchronously
+    |> ignore
+"""

@@ -12,7 +12,8 @@ module List =
         | [] | [_] -> true
         | _ -> false
 
-/// Check whether an expression should be broken into multiple lines
+/// Check whether an expression should be broken into multiple lines. 
+/// Notice that order of patterns matter due to non-disjoint property
 let rec multiline = function
     | ConstExpr _
     | NullExpr
@@ -52,6 +53,12 @@ let rec multiline = function
 
     | Tuple es ->
         List.exists multiline es
+
+    // An infix app is multiline if it contains at least two new line infix ops
+    | InfixApps(e, es) ->
+        multiline e
+        || not (List.atmostOne (List.filter (fst >> NewLineInfixOps.Contains) es))
+        || List.exists (snd >> multiline) es
     
     | App(e1, es) ->
         multiline e1 || List.exists multiline es
@@ -74,12 +81,6 @@ let rec multiline = function
     | Record(xs, _) ->
         let fields = xs |> List.choose ((|RecordFieldName|) >> snd) 
         not (List.atmostOne fields) || List.exists multiline fields
-
-    // An infix app is multiline if it contains at least two new line infix ops
-    | InfixApps(e, es) ->
-        multiline e
-        || not (List.atmostOne (List.filter (fst >> NewLineInfixOps.Contains) es))
-        || List.exists (snd >> multiline) es
 
     // Default mode is single-line
     | _ -> false
