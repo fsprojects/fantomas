@@ -10,7 +10,8 @@ type Comment =
 let parseComment(line : string) = 
   match line.Split(';') with
   | [|author; body|] -> 
-    Some({ Author = author; Body = body })
+    Some({ Author = author
+           Body = body })
   | _ -> None
 
 let filterOutNone maybe = 

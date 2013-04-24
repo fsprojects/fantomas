@@ -28,9 +28,9 @@ let frequencies (dna : string) (length : int) =
      d.Values
      |> Seq.map (!)
      |> Seq.sum
-   yield! [for pair in d do
-             yield pair.Key.ToUpper(), 
-                   (float(pair.Value.Value) * 100.0 / float(total))]
+   yield! [for pair in d -> 
+             pair.Key.ToUpper(), 
+             (float(pair.Value.Value) * 100.0 / float(total))]
           |> List.sortBy(snd >> (~-))
           |> List.map(fun (s, c) -> sprintf "%s %.3f" s c)
    yield ""]
@@ -52,14 +52,12 @@ let dna =
   |> Seq.skip 1
   |> String.concat ""
 
-[for len in [1; 2] do
-   yield async { return frequencies dna len }] 
+[for len in [1; 2] -> async { return frequencies dna len }] 
 @ [for str in ["ggt"
                "ggta"
                "ggtatt"
                "ggtattttaatt"
-               "ggtattttaatttatagt"] do
-     yield async { return countSubstring dna str }]
+               "ggtattttaatttatagt"] -> async { return countSubstring dna str }]
 |> List.rev
 |> Async.Parallel
 |> Async.RunSynchronously

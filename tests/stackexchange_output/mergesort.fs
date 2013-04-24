@@ -38,10 +38,10 @@ let rec merge (ar1 : 'a array) (ar2 : 'a array) =
         yield! index indexnext
       | false, false -> yield None }
   let mergeindex = index(false, -1, -1)
-  [for (formar1, i, j) in mergeindex |> Seq.choose(id) do
-     yield if formar1
-           then ar1.[i]
-           else ar2.[j]]
+  [for (formar1, i, j) in mergeindex |> Seq.choose(id) -> 
+     if formar1
+     then ar1.[i]
+     else ar2.[j]]
 
 and mergesort = 
   function 

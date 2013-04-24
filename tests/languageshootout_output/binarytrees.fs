@@ -23,10 +23,8 @@ and [<Struct>] Tree(next : Next, item : int) =
 let rec make item depth = 
   if depth > 0
   then 
-    Tree
-      (
-       { Left = make (2 * item - 1) (depth - 1); 
-         Right = make (2 * item) (depth - 1) }, item)
+    Tree({ Left = make (2 * item - 1) (depth - 1)
+           Right = make (2 * item) (depth - 1) }, item)
   else Tree(defaultof<_>, item)
 
 let inline check(tree : Tree) = tree.Check()

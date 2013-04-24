@@ -88,7 +88,7 @@ let test (initialState : State) (brickInfo : Brick[])
       else Some((rowID - 1, columnID), (rowID - 1, columnID))
     if depth < 7 && not(isDuplicated mySet) 
        && (let (_, columnLeft) = currentState.[0]
-           [|columnLeft + redLength..columnNum - 1|] 
+           [|columnLeft + redLength..columnNum - 1|]
            |> Array.forall(fun columnID -> checkVacancy(redRowNum, columnID)) 
            || horizontalBricksAll
               |> Seq.tryFind(fun elem -> 

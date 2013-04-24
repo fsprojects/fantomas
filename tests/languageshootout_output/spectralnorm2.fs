@@ -66,7 +66,7 @@ let RunGame n =
            if (i < (nthread - 1))
            then r1 + chunk
            else n
-         yield async { return Approximate(u, v, tmp, r1, r2, barrier) }] 
+         yield async { return Approximate(u, v, tmp, r1, r2, barrier) }]
     |> Async.RunSynchronously
   let vBv = aps |> Array.sumBy fst
   let vv = aps |> Array.sumBy snd
