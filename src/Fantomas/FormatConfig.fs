@@ -244,8 +244,9 @@ let autoNln f (ctx : Context) =
     else
         f ctx
 
-/// Skip auto newline for index 0
-let autoNlni i = if i = 0 then id else autoNln
+/// Similar to col, skip auto newline for index 0
+let colAutoNlnSkip0 f' (c : seq<'T>) f (ctx : Context) = 
+    coli f' c (fun i c -> if i = 0 then f c else autoNln (f c)) ctx
 
 /// Skip all auto-breaking newlines
 let noNln f (ctx : Context) : Context = 

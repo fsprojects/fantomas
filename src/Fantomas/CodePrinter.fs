@@ -344,10 +344,10 @@ and genExpr = function
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType t
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
-    | Tuple es -> atCurrentColumn (col sepComma es (autoNln << genExpr))
+    | Tuple es -> atCurrentColumn (colAutoNlnSkip0 sepComma es genExpr)
     | ArrayOrList(isArray, xs) -> 
-        ifElse isArray (sepOpenA +> atCurrentColumn (col sepSemi xs (autoNln << genExpr)) +> sepCloseA) 
-            (sepOpenL +> atCurrentColumn (col sepSemi xs (autoNln << genExpr)) +> sepCloseL)
+        ifElse isArray (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs genExpr) +> sepCloseA) 
+            (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs genExpr) +> sepCloseL)
     | Record(xs, eo) -> 
         sepOpenS +> opt (!- " with ") eo genExpr
         +> atCurrentColumn (col sepSemiNln xs genRecordFieldName)
@@ -396,9 +396,9 @@ and genExpr = function
     | DotGetAppSpecial(s, es) ->
         !- s 
         +> atCurrentColumn 
-               (coli sepNone es (fun i (s, e) ->
-                                    autoNlni i (!- (sprintf ".%s" s) 
-                                        +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e)))
+             (colAutoNlnSkip0 sepNone es (fun (s, e) ->
+                                (!- (sprintf ".%s" s) 
+                                    +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e)))
     | DotGetApp(e, es) -> 
         noNln (genExpr e)
         +> indent 
@@ -434,7 +434,7 @@ and genExpr = function
     | TryFinally(e1, e2) -> 
         atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e1 +> unindent ++ "finally" 
             +> indent +> sepNln +> genExpr e2 +> unindent)    
-    | SequentialSimple es -> atCurrentColumn (col sepSemi es (autoNln << genExpr))
+    | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemi es genExpr)
     /// It seems too annoying to use sepSemiNln
     | Sequentials es -> 
         atCurrentColumn (col sepNln es genExpr)
@@ -795,14 +795,14 @@ and genPat = function
         | [PatSeq(PatTuple, [p1; p2])] when s = "(::)" -> aoc +> genPat p1 -- " :: " +> genPat p2
         | [p] -> aoc -- s +> tpsoc +> ifElse (hasParenInPat p) (genPat p) (sepSpace +> genPat p)
         /// This pattern is potentially long
-        | ps -> atCurrentColumn (aoc -- s +> tpsoc +> sepSpace +> col sepSpace ps (autoNln << genPat))
+        | ps -> atCurrentColumn (aoc -- s +> tpsoc +> sepSpace +> colAutoNlnSkip0 sepSpace ps genPat)
     | PatParen(PatConst(c)) -> genConst c
     | PatParen(p) -> sepOpenT +> genPat p +> sepCloseT
-    | PatSeq(PatTuple, ps) -> atCurrentColumn (col sepComma ps (autoNln << genPat))
-    | PatSeq(PatList, ps) -> sepOpenL +> atCurrentColumn (col sepSemi ps (autoNln << genPat)) +> sepCloseL
-    | PatSeq(PatArray, ps) -> sepOpenA +> atCurrentColumn (col sepSemi ps (autoNln << genPat)) +> sepCloseA
+    | PatSeq(PatTuple, ps) -> atCurrentColumn (colAutoNlnSkip0 sepComma ps genPat)
+    | PatSeq(PatList, ps) -> sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps genPat) +> sepCloseL
+    | PatSeq(PatArray, ps) -> sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps genPat) +> sepCloseA
     | PatRecord(xs) -> 
-        sepOpenS +> atCurrentColumn (col sepSemi xs (autoNln << genPatRecordFieldName)) +> sepCloseS
+        sepOpenS +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs genPatRecordFieldName) +> sepCloseS
     | PatConst(c) -> genConst c
     | PatIsInst(t) -> !- ":? " +> genType t
     /// Quotes will be printed by inner expression
