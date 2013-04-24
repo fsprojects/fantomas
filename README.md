@@ -1,7 +1,7 @@
 Fantomas
 ========
 
-F# source code formatter, similar to [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://github.com/acdha/PythonTidy) for Python.
+F# source code formatter, inspired by [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://github.com/acdha/PythonTidy) for Python.
 
 ## Purpose
 This project aims at formatting F# source files based on a given configuration.
@@ -73,10 +73,16 @@ is reformulated to
 For more complex examples, please take a look at F# outputs of [20 language shootout programs](tests/languageshootout_output) and [10 CodeReview.SE source files](tests/stackexchange_output).
 
 ## How to use
-Fantomas can be used as a command line tool or as an API.
+### Command line tool / API 
 You can fork this repo and compile the project with F# 3.0/.NET framework 4.0. 
-Alternatively, there is also a [NuGet package](https://nuget.org/packages/Fantomas/) which contains the library and the command line tool.
+Alternatively, Fantomas is also available via [a NuGet package](https://nuget.org/packages/Fantomas/) which contains both the library and the command line interface.
 For detailed guidelines, please read [Fantomas: How to use](Usage.md).
+
+### Online interface
+[FantomasWeb](https://github.com/TahaHachana/FantomasWeb), implemented by [Taha Hachana](https://github.com/TahaHachana), is accessible at http://fantomasweb.apphb.com/. Please try out Fantomas on this nice website and provide feedbacks.
+
+### VS 2012 add-in
+[Ivan Itowlson](https://github.com/itowlson) is developing Fantomas add-in under [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
 
 ## Installation
 The code base is written in F# 3.0/.NET framework 4.0. 
@@ -87,7 +93,7 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ## Testing and validation
 I have tried to be careful in testing the project.
-There are 90 unit tests and 30 validated test examples, 
+There are 131 unit tests and 30 validated test examples, 
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
