@@ -179,7 +179,7 @@ and genModuleDecl = function
     | ModuleAbbrev(s1, s2) ->
         !- "module " -- s1 +> sepEq -- s2 +> sepNln
     | NamespaceFragment(m) ->
-        failwithf "NamespaceFragment is not supported yet: %O" m
+        failwithf "NamespaceFragment hasn't been implemented yet: %O" m
     | NestedModule(ats, px, ao, s, mds) -> 
         genPreXmlDoc px
         +> colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
@@ -340,7 +340,7 @@ and genExpr = function
         ifElse isRaw (!- "<@@ " +> e -- " @@>") (!- "<@ " +> e -- " @>")
     | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType t
     | TypedExpr(New, e, t) -> 
-        !- "new " +> genType t +> ifElse (hasParenthesis e) (sepBeforeArg +> genExpr e) (sepSpace +> genExpr e)
+        !- "new " +> genType t +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType t
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
@@ -409,8 +409,8 @@ and genExpr = function
     /// Unlike infix app, function application needs a level of indentation
     | App(e1, [e2]) -> 
         atCurrentColumn (genExpr e1 +> 
-            ifElse (hasParenthesis e2) (sepBeforeArg +> indent +> autoNln (genExpr e2) +> unindent) 
-                (sepSpace +> indent +> autoNln (genExpr e2) +> unindent))
+            ifElse (hasParenthesis e2) sepBeforeArg sepSpace 
+            +> indent +> autoNln (genExpr e2) +> unindent)
     /// Always spacing in multiple arguments
     | App(e, es) -> 
         atCurrentColumn 
@@ -517,14 +517,13 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName +> sepNln
     | Simple(TDSRTypeAbbrev t) -> 
         typeName +> sepEq +> genType t +> sepNln
-    /// What is this case?
-    | Simple TDSRGeneral -> id
+    | Simple TDSRGeneral -> failwith "This pattern hasn't been implemented yet"
     | ObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others)) ->
         let isInterface =
             match tdk with
             | TCSimple TCInterface -> true
             | _ -> false
-        typeName +> opt sepNone impCtor (genMemberDefn isInterface) +> sepEq 
+        typeName +> optPre sepBeforeArg sepNone impCtor (genMemberDefn isInterface) +> sepEq 
         +> indent +> sepNln +> genTypeDefKind tdk
         +> indent +> colPre sepNln sepNln others (genMemberDefn isInterface) +> unindent
         ++ "end" +> unindent +> sepNln
@@ -535,7 +534,7 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | ObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq -- "delegate of " +> genTypeList ts
     | ObjectModel(_, MemberDefnList(impCtor, others)) ->
-        typeName +> opt sepNone impCtor (genMemberDefn false) +> sepEq +> indent +> sepNln 
+        typeName +> optPre sepBeforeArg sepNone impCtor (genMemberDefn false) +> sepEq +> indent +> sepNln 
         +> col sepNln others (genMemberDefn false) +> unindent +> sepNln
 
 and genSigTypeDefn isFirst (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) = 
@@ -569,8 +568,7 @@ and genSigTypeDefn isFirst (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName +> sepNln
     | SigSimple(TDSRTypeAbbrev t) -> 
         typeName +> sepEq +> genType t +> sepNln
-    /// What is this case?
-    | SigSimple TDSRGeneral -> id
+    | SigSimple TDSRGeneral -> failwith "This pattern hasn't been implemented yet"
     | SigObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, mds) ->
         typeName +> sepEq +> indent +> sepNln +> genTypeDefKind tdk
         +> indent +> colPre sepNln sepNln mds genMemberSig +> unindent
@@ -765,14 +763,14 @@ and propertyKind = function
 
 and genSimplePat = function
     | SPId(s, isOptArg, _) -> ifElse isOptArg (!- (sprintf "?%s" s)) (!- s)
-    | SPTyped(sp, t) -> genSimplePat sp -- " : " +> genType t
+    | SPTyped(sp, t) -> genSimplePat sp +> sepColon +> genType t
     | SPAttrib(ats, sp) -> colPost sepSpace sepNone ats genAttribute +> genSimplePat sp
     
 and genSimplePats = function
     /// Remove parentheses on an extremely simple pattern
     | SimplePats [SPId _ as sp] -> genSimplePat sp
     | SimplePats ps -> sepOpenT +> col sepComma ps genSimplePat +> sepCloseT
-    | SPSTyped(ps, t) -> genSimplePats ps -- " : " +> genType t
+    | SPSTyped(ps, t) -> genSimplePats ps +> sepColon +> genType t
 
 and inline genPatRecordFieldName(PatRecordFieldName(s1, s2, p)) =
     ifElse (s1 = "") (!- (sprintf "%s = " s2)) (!- (sprintf "%s.%s = " s1 s2)) +> genPat p
@@ -793,7 +791,7 @@ and genPat = function
         match ps with
         | [] ->  aoc -- s +> tpsoc
         | [PatSeq(PatTuple, [p1; p2])] when s = "(::)" -> aoc +> genPat p1 -- " :: " +> genPat p2
-        | [p] -> aoc -- s +> tpsoc +> ifElse (hasParenInPat p) (genPat p) (sepSpace +> genPat p)
+        | [p] -> aoc -- s +> tpsoc +> ifElse (hasParenInPat p) sepBeforeArg sepSpace +> genPat p
         /// This pattern is potentially long
         | ps -> atCurrentColumn (aoc -- s +> tpsoc +> sepSpace +> colAutoNlnSkip0 sepSpace ps genPat)
     | PatParen(PatConst(c)) -> genConst c

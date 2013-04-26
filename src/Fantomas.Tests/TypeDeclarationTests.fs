@@ -481,3 +481,21 @@ let ``should keep the ? in optional parameters``() =
     static member Exec(cmd, ?args) = 
         shellExec(Shell.GetParams(cmd, ?args = args))
 """
+
+[<Test>]
+let ``should add space before argument on given config``() =
+    formatSourceString false """
+let f(x: int) = x
+
+type t(x : int) = 
+    class
+    end
+    """ { config with SpaceBeforeArgument = true; SpaceBeforeColon = false }
+    |> prepend newline
+    |> should equal """
+let f (x: int) = x
+
+type t (x: int) = 
+    class
+    end
+"""
