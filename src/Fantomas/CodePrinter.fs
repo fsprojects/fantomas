@@ -330,7 +330,6 @@ and inline genRecordFieldName(RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> autoBreakNln e)
 
 and genExpr = function
-    | Paren(ConstExpr(Const "()")) -> !- "()"
     | Paren e -> sepOpenT +> genExpr e +> sepCloseT
     | SingleExpr(kind, e) -> str kind +> genExpr e
     | ConstExpr(c) -> genConst c
@@ -787,7 +786,7 @@ and genPat = function
     | PatNullary PatWild -> sepWild
     | PatTyped(p, t) -> genPat p +> sepColon +> genType t
     | PatNamed(ao, PatNullary PatWild, s) ->  opt sepSpace ao genAccess -- s
-    | PatNamed(ao, p, s) ->  opt sepSpace ao genAccess +> genPat p -- sprintf " as %s" s 
+    | PatNamed(ao, p, s) -> opt sepSpace ao genAccess +> genPat p -- sprintf " as %s" s 
     | PatLongIdent(ao, s, ps, tpso) -> 
         let aoc = opt sepSpace ao genAccess
         let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParam tds tcs)

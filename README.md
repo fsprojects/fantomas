@@ -82,7 +82,7 @@ For detailed guidelines, please read [Fantomas: How to use](Usage.md).
 [FantomasWeb](https://github.com/TahaHachana/FantomasWeb), implemented by [Taha Hachana](https://github.com/TahaHachana), is accessible at http://fantomasweb.apphb.com/. Please try out Fantomas on this nice website and provide feedbacks.
 
 ### VS 2012 add-in
-[Ivan Itowlson](https://github.com/itowlson) is developing Fantomas add-in under [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
+[Ivan Towlson](https://github.com/itowlson) is developing Fantomas add-in under [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
 
 ## Installation
 The code base is written in F# 3.0/.NET framework 4.0. 
@@ -92,7 +92,7 @@ The [test project](src/Fantomas.Tests) depends on FsUnit and NUNit.
 However, the [library project](src/Fantomas) and [command line interface](src/Fantomas.Cmd) have no dependency on external packages.
 
 ## Testing and validation
-I have tried to be careful in testing the project.
+We have tried to be careful in testing the project.
 There are 131 unit tests and 30 validated test examples, 
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
@@ -102,7 +102,6 @@ Due to limited information in F# ASTs, beware of current drawbacks:
 
  - Inline comments and multiline comments are lost. Only XML doc comments are preserved.
  - Compiler directives are lost.
- - Multiple attributes are displayed separately.
  - Properties with both get and set are displayed separately. 
 
 ## Why the name "Fantomas"?
@@ -115,7 +114,7 @@ Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting
 Would like to contribute? Read [the formatting conventions](FormattingConventions.md) and [the Usage notes](Usage.md) and discuss on [the issues](../../issues). You can fork the GitHub repository and send a pull request.
 
 ## Acknowledgments
-I would like to gratefully thank [EricGT](https://github.com/EricGT) for his comments and feedbacks from the early stage.
+We would like to gratefully thank [EricGT](https://github.com/EricGT) for his comments and feedbacks from the early stage.
 Without his help, this project will not complete, let alone be useful.
 
 ## License
