@@ -807,7 +807,7 @@ let rec (|DesugaredMatch|_|) = function
 
 // Type definitions
 
-let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRGeneral|) = function
+let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|) = function
     | SynTypeDefnSimpleRepr.Enum(ecs, _) ->
         TDSREnum ecs
     | SynTypeDefnSimpleRepr.Union(ao, xs, _) ->
@@ -819,7 +819,7 @@ let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRGeneral|) = func
     | SynTypeDefnSimpleRepr.TypeAbbrev(_, t, _) ->
         TDSRTypeAbbrev t
     | SynTypeDefnSimpleRepr.General _ ->
-        TDSRGeneral() // expand later
+        failwith "General should not appear in the parse tree"
     | SynTypeDefnSimpleRepr.LibraryOnlyILAssembly _ ->
         failwith "LibraryOnlyILAssembly is not supported yet"
 

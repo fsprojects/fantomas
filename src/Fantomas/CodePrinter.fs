@@ -517,7 +517,6 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName +> sepNln
     | Simple(TDSRTypeAbbrev t) -> 
         typeName +> sepEq +> genType t +> sepNln
-    | Simple TDSRGeneral -> failwith "This pattern hasn't been implemented yet"
     | ObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others)) ->
         let isInterface =
             match tdk with
@@ -568,7 +567,6 @@ and genSigTypeDefn isFirst (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName +> sepNln
     | SigSimple(TDSRTypeAbbrev t) -> 
         typeName +> sepEq +> genType t +> sepNln
-    | SigSimple TDSRGeneral -> failwith "This pattern hasn't been implemented yet"
     | SigObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, mds) ->
         typeName +> sepEq +> indent +> sepNln +> genTypeDefKind tdk
         +> indent +> colPre sepNln sepNln mds genMemberSig +> unindent
