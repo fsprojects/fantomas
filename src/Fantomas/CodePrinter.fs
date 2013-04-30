@@ -281,6 +281,29 @@ and genProperty prefix ps e =
     | ps -> 
         !- prefix +> col sepSpace ps genPat +> sepEq +> autoBreakNln e
 
+/// Gather PropertyGetSet in one printing call. 
+/// Assume that PropertySet comes right after PropertyGet.
+/// Each member is separated by a new line.
+and genMemberBindingList isInterface = function
+    | [b] -> genMemberBinding isInterface b
+    | (PropertyBinding(ats, px, ao, isInline, (MFProperty PropertyGet as mf1), PatLongIdent(_, s1, ps1, _), e1) as b)::bs -> 
+        match bs with
+        | PropertyBinding(_, _, _, _, MFProperty PropertySet, PatLongIdent(_, s2, ps2, _), e2)::bs when s1 = s2 -> 
+            let prefix =
+                genPreXmlDoc px
+                +> colPost sepNln sepNone ats genAttribute +> genMemberFlags isInterface mf1
+                +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
+
+            prefix -- s1 +> sepSpace +> indent +> sepNln
+            +> genProperty "with get " ps1 e1 +> sepNln +> genProperty "and set " ps2 e2
+            +> unindent +> ifElse bs.IsEmpty sepNone (sepNln +> genMemberBindingList isInterface bs)
+
+        | _ -> 
+            genMemberBinding isInterface b +> sepNln +> genMemberBindingList isInterface bs
+    | b::bs ->
+        genMemberBinding isInterface b +> sepNln +> genMemberBindingList isInterface bs
+    | [] -> sepNone
+
 and genMemberBinding isInterface = function
     | PropertyBinding(ats, px, ao, isInline, mf, p, e) -> 
         let prefix =
@@ -319,7 +342,9 @@ and genMemberBinding isInterface = function
         match e with
         /// Handle special "then" block in constructors
         | Sequentials [e1; e2] -> 
-            prefix +> sepEq +> indent +> sepNln +> genExpr e1 ++ "then " +> autoBreakNln e2 +> unindent
+            prefix +> sepEq +> indent +> sepNln 
+            +> genExpr e1 ++ "then " +> autoBreakNln e2 +> unindent
+
         | e -> prefix +> sepEq +> autoBreakNln e
 
     | b -> failwithf "%O isn't a member binding" b
@@ -334,7 +359,8 @@ and genVal(Val(ats, px, ao, s, t, vi, _)) =
     let (FunType ts) = (t, vi)
     genPreXmlDoc px
     +> colPost sepNln sepNone ats genAttribute 
-    +> atCurrentColumn (indent -- "val " +> opt sepSpace ao genAccess -- s +> sepColon +> genTypeList ts +> unindent)
+    +> atCurrentColumn (indent -- "val " +> opt sepSpace ao genAccess -- s 
+                        +> sepColon +> genTypeList ts +> unindent)
 
 and inline genRecordFieldName(RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> autoBreakNln e)
@@ -369,7 +395,7 @@ and genExpr = function
         let param = opt sepNone (Option.map fst eio) genExpr
         sepOpenS +> 
         atCurrentColumn (!- "new " +> genType t +> param -- " with" 
-            +> indent +> sepNln +> col sepNln bd (genMemberBinding true) +> unindent
+            +> indent +> sepNln +> genMemberBindingList true bd +> unindent
             +> colPre sepNln sepNln ims genInterfaceImpl) +> sepCloseS
 
     | While(e1, e2) -> 
@@ -530,7 +556,7 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName +> sepEq 
         +> indent +> sepNln
         +> col sepNln ecs (genEnumCase true)
-        +> colPre sepNln sepNln ms (genMemberDefn false)
+        +> genMemberDefnList false ms
         /// Add newline after un-indent to be spacing-correct
         +> unindent +> sepNln 
 
@@ -538,14 +564,14 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepNln ao' genAccess 
         +> col sepNln xs (genUnionCase true)
-        +> colPre sepNln sepNln ms (genMemberDefn false)
+        +> genMemberDefnList false ms
         +> unindent +> sepNln
 
     | Simple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS 
         +> atCurrentColumn (col sepSemiNln fs (genField false "")) +> sepCloseS
-        +> colPre sepNln sepNln ms (genMemberDefn false) 
+        +> genMemberDefnList false ms 
         +> unindent +> sepNln 
 
     | Simple TDSRNone -> 
@@ -560,19 +586,19 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
 
         typeName +> optPre sepBeforeArg sepNone impCtor (genMemberDefn isInterface) +> sepEq 
         +> indent +> sepNln +> genTypeDefKind tdk
-        +> indent +> colPre sepNln sepNln others (genMemberDefn isInterface) +> unindent
+        +> indent +> genMemberDefnList isInterface others +> unindent
         ++ "end" +> unindent +> sepNln
 
     | ObjectModel(TCSimple TCAugmentation, _) ->
-        typeName -- " with" +> indent +> sepNln 
+        typeName -- " with" +> indent
         /// Remember that we use MemberDefn of parent node
-        +> col sepNln ms (genMemberDefn false) +> unindent +> sepNln
+        +> genMemberDefnList false ms +> unindent +> sepNln
 
     | ObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq -- "delegate of " +> genTypeList ts
     | ObjectModel(_, MemberDefnList(impCtor, others)) ->
-        typeName +> optPre sepBeforeArg sepNone impCtor (genMemberDefn false) +> sepEq +> indent +> sepNln 
-        +> col sepNln others (genMemberDefn false) +> unindent +> sepNln
+        typeName +> optPre sepBeforeArg sepNone impCtor (genMemberDefn false) +> sepEq +> indent
+        +> genMemberDefnList false others +> unindent +> sepNln
 
 and genSigTypeDefn isFirst (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) = 
     let typeName = 
@@ -658,7 +684,7 @@ and genException(ExceptionDef(ats, px, ao, uc, ms)) =
     genPreXmlDoc px
     +> colPost sepNln sepNone ats genAttribute  -- "exception " 
     +> opt sepSpace ao genAccess +> genUnionCase false uc
-    +> colPre sepNln sepNln ms (genMemberDefn false)
+    +> genMemberDefnList false ms
 
 and genSigException(SigExceptionDef(ats, px, ao, uc, ms)) = 
     genPreXmlDoc px
@@ -769,10 +795,18 @@ and genTypeConstraint = function
 
 and genInterfaceImpl(InterfaceImpl(t, bs)) = 
     !- "interface " +> genType t -- " with"
-    +> indent +> sepNln +> col sepNln bs (genMemberBinding true) +> unindent
+    +> indent +> sepNln +> genMemberBindingList true bs +> unindent
 
 and genClause(Clause(p, e, eo)) = 
     sepBar +> genPat p +> optPre (!- " when ") sepNone eo genExpr +> sepArrow +> autoBreakNln e
+
+/// List of member definition with a newline at the beginning and a new line between each member.
+and genMemberDefnList isInterface = function
+    | MDMember(b1)::MDMember(b2)::bs ->
+        sepNln +> genMemberBindingList isInterface [b1; b2] +> genMemberDefnList isInterface bs
+    | b::bs ->
+        sepNln +> genMemberDefn isInterface b +> genMemberDefnList isInterface bs
+    | [] -> sepNone
 
 and genMemberDefn isInterface = function
     | MDNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
@@ -793,11 +827,14 @@ and genMemberDefn isInterface = function
             elif isStatic then "static let "
             elif isRec then "let rec "
             else "let "
+
         col sepNln bs (genLetBinding prefix)
+
     | MDInterface(t, mdo) -> 
         !- "interface " +> genType t
         +> opt sepNone mdo 
-            (fun mds -> !- " with" +> indent +> sepNln +> col sepNln mds (genMemberDefn true) +> unindent)
+            (fun mds -> !- " with" +> indent +> genMemberDefnList true mds +> unindent)
+
     | MDAutoProperty(ats, px, ao, mk, e, s) -> 
         genPreXmlDoc px
         +> colPost sepSpace sepNone ats genAttribute -- "member val " 

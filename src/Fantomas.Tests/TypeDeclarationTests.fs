@@ -131,8 +131,9 @@ type public MyClass<'a> public (x, y) as this =
     static member StaticProp = PI
     static member StaticMethod a = a + 1
     member internal self.Prop1 = x
-    member self.Prop2 with get () = z
-    member self.Prop2 with set (a) = z <- a
+    member self.Prop2 
+        with get () = z
+        and set (a) = z <- a
     member self.Method(a, b) = x + y + z + a + b
 """
 
@@ -238,8 +239,9 @@ type Derived1() =
 type Derived1() = 
     inherit AbstractBase()
     let mutable value = 10
-    override this.Property1 with get () = value
-    override this.Property1 with set (v : int) = value <- v
+    override this.Property1 
+        with get () = value
+        and set (v : int) = value <- v
 """
 
 [<Test>]
@@ -308,12 +310,15 @@ type NumberStrings() =
 type NumberStrings() = 
     let mutable ordinals = [|"one"|]
     let mutable cardinals = [|"first"|]
-    member this.Item with get index = ordinals.[index]
-    member this.Item with set index value = ordinals.[index] <- value
-    member this.Ordinal with get (index) = ordinals.[index]
-    member this.Ordinal with set index value = ordinals.[index] <- value
-    member this.Cardinal with get (index) = cardinals.[index]
-    member this.Cardinal with set index value = cardinals.[index] <- value
+    member this.Item 
+        with get index = ordinals.[index]
+        and set index value = ordinals.[index] <- value
+    member this.Ordinal 
+        with get (index) = ordinals.[index]
+        and set index value = ordinals.[index] <- value
+    member this.Cardinal 
+        with get (index) = cardinals.[index]
+        and set index value = cardinals.[index] <- value
 """
 
 [<Test>]
@@ -336,8 +341,9 @@ open System.Collections.Generic
 
 type SparseMatrix() = 
     let mutable table = new Dictionary<int * int, float>()
-    member this.Item with get (key1, key2) = table.[(key1, key2)]
-    member this.Item with set (key1, key2) value = table.[(key1, key2)] <- value
+    member this.Item 
+        with get (key1, key2) = table.[(key1, key2)]
+        and set (key1, key2) value = table.[(key1, key2)] <- value
 
 let matrix1 = new SparseMatrix()
 
@@ -440,10 +446,12 @@ type Person(nameIn : string, idIn : int) =
     let mutable name = nameIn
     let mutable id = idIn
     do printfn "Created a person object."
-    member this.Name with get () = name
-    member this.Name with set (v) = name <- v
-    member this.ID with get () = id
-    member this.ID with set (v) = id <- v
+    member this.Name 
+        with get () = name
+        and set (v) = name <- v
+    member this.ID 
+        with get () = id
+        and set (v) = id <- v
     new() = 
         Person("Invalid Name", -1)
         then printfn "Created an invalid person object."

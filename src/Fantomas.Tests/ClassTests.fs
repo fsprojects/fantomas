@@ -100,10 +100,12 @@ type Shape2D(x0 : float, y0 : float) =
 type Shape2D(x0 : float, y0 : float) = 
     let mutable x, y = x0, y0
     let mutable rotAngle = 0.0
-    member this.CenterX with get () = x
-    member this.CenterX with set xval = x <- xval
-    member this.CenterY with get () = y
-    member this.CenterY with set yval = y <- yval
+    member this.CenterX 
+        with get () = x
+        and set xval = x <- xval
+    member this.CenterY 
+        with get () = y
+        and set yval = y <- yval
     abstract Area : float with get
     abstract Perimeter : float with get
     abstract Name : string with get

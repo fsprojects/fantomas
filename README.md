@@ -102,7 +102,6 @@ Due to limited information in F# ASTs, beware of current drawbacks:
 
  - Inline comments and multiline comments are lost. Only XML doc comments are preserved.
  - Compiler directives are lost.
- - Properties with both get and set are displayed separately. 
 
 ## Why the name "Fantomas"?
 There are a few reasons to choose the name as such. 
@@ -118,5 +117,5 @@ We would like to gratefully thank [EricGT](https://github.com/EricGT) for his co
 Without his help, this project will not complete, let alone be useful.
 
 ## License
-The library and tool are available under Apache 2.0. 
+The library and tool are available under Apache 2.0 license. 
 For more information see the [License file](LICENSE.md).
