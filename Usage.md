@@ -127,7 +127,7 @@ To illustrate, `(1, 2, 3)` is rewritten to `(1,2,3)`.
 
  - `--indentOnTryWith`: if being set, `with` blocks will be indented like in the following example:
 
-	```
+	```fsharp
 	try
 	    if System.DateTime.Now.Second % 3 = 0 
 		then raise(new System.Exception())

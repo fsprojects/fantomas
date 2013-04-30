@@ -81,7 +81,7 @@ For detailed guidelines, please read [Fantomas: How to use](Usage.md).
 ### Online interface
 [FantomasWeb](https://github.com/TahaHachana/FantomasWeb), implemented by [Taha Hachana](https://github.com/TahaHachana), is accessible at http://fantomasweb.apphb.com/. Please try out Fantomas on this nice website and provide feedbacks.
 
-### VS 2012 add-in
+### VS 2012 Add-In
 [Ivan Towlson](https://github.com/itowlson) is developing Fantomas add-in under [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
 
 ## Installation
@@ -93,7 +93,7 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ## Testing and validation
 We have tried to be careful in testing the project.
-There are 131 unit tests and 30 validated test examples, 
+There are 134 unit tests and 30 validated test examples, 
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
@@ -110,7 +110,7 @@ First, it starts with an "F" just like many other F# projects.
 Second, Fantomas is my favourite character in the literature. 
 Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
-## Want to help?
+## Getting involved
 Would like to contribute? Read [the formatting conventions](FormattingConventions.md) and [the Usage notes](Usage.md) and discuss on [the issues](../../issues). You can fork the GitHub repository and send a pull request.
 
 ## Acknowledgments
