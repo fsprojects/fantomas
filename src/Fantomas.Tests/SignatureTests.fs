@@ -87,3 +87,20 @@ let ``should keep the (string option * Node) list type signature``() =
     { Name : string;
       NextNodes : (string option * Node) list }
 """
+
+[<Test>]
+let ``should keep parentheses on the left of type signatures``() =
+    formatSourceString false """type IA =
+    abstract F: (unit -> Option<'T>) -> Option<'T>
+
+type A () =
+    interface IA with
+        member x.F (f: unit -> _) = f ()
+    """ config
+    |> should equal """type IA = 
+    abstract F : (unit -> Option<'T>) -> Option<'T>
+
+type A() = 
+    interface IA with
+        member x.F(f : unit -> _) = f()
+"""

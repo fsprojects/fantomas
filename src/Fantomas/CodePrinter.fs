@@ -13,7 +13,7 @@ module List =
         | _ -> false
 
 /// Check whether an expression should be broken into multiple lines. 
-/// Notice that order of patterns matter due to non-disjoint property
+/// Notice that order of patterns matters due to non-disjoint property
 let rec multiline = function
     | ConstExpr _
     | NullExpr
@@ -646,7 +646,9 @@ and genType = function
     | TStaticConstantNamed(t1, t2) -> genType t1 -- "=" +> genType t2
     | TArray(t, n) -> genComplexType t +> rep n (!- "[]")
     | TAnon -> sepWild
-    | TVar tp -> genTypar tp 
+    | TVar tp -> genTypar tp
+    /// TFun is right associative
+    | TFun(TFun _ as t1, t2) -> genComplexType t1 +> sepArrow +> genType t2
     | TFun(t1, t2) -> genType t1 +> sepArrow +> genType t2
     | TApp(t, ts, isPostfix) -> 
         let postForm = 
@@ -781,7 +783,7 @@ and genPat = function
     | PatNullary PatNull -> !- "null"
     | PatNullary PatWild -> sepWild
     | PatTyped(p, t) -> genPat p +> sepColon +> genType t
-    | PatNamed(ao, PatNullary PatWild, s) ->  opt sepSpace ao genAccess -- s
+    | PatNamed(ao, PatNullary PatWild, s) -> opt sepSpace ao genAccess -- s
     | PatNamed(ao, p, s) -> opt sepSpace ao genAccess +> genPat p -- sprintf " as %s" s 
     | PatLongIdent(ao, s, ps, tpso) -> 
         let aoc = opt sepSpace ao genAccess
