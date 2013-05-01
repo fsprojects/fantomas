@@ -192,7 +192,6 @@ let ``access modifiers``() =
     |> prepend newline
     |> should equal """
 let private myPrivateObj = new MyPrivateType()
-
 let internal myInternalObj = new MyInternalType()
 """
 

@@ -13,7 +13,7 @@ module List =
         | _ -> false
 
 /// Check whether an expression should be broken into multiple lines. 
-/// Notice that order of patterns matters due to non-disjoint property
+/// Notice that order of patterns matters due to non-disjoint property.
 let rec multiline = function
     | ConstExpr _
     | NullExpr
@@ -102,6 +102,41 @@ let inline genConst c =
     | Const c -> !- c
     | Unresolved c -> fun ctx -> str (content c ctx) ctx
 
+// A few active patterns for printing purpose
+
+let rec (|DoExprAttributesL|_|) = function
+    | DoExpr _ | Attributes _  as x::DoExprAttributesL(xs, ys) -> Some(x::xs, ys)
+    | DoExpr _ | Attributes _ as x::ys -> Some([x], ys)
+    | _ -> None
+
+let rec (|HashDirectiveL|_|) = function
+    | HashDirective _ as x::HashDirectiveL(xs, ys) -> Some(x::xs, ys)
+    | HashDirective _ as x::ys -> Some([x], ys)
+    | _ -> None
+
+let rec (|ModuleAbbrevL|_|) = function
+    | ModuleAbbrev _ as x::ModuleAbbrevL(xs, ys) -> Some(x::xs, ys)
+    | ModuleAbbrev _ as x::ys -> Some([x], ys)
+    | _ -> None
+
+let rec (|OpenL|_|) = function
+    | Open _ as x::OpenL(xs, ys) -> Some(x::xs, ys)
+    | Open _ as x::ys -> Some([x], ys)
+    | _ -> None
+
+let (|OneLinerLet|_|) b =
+    match b with
+    | Let(LetBinding([], PreXmlDoc [||], _, _, _, _, e))
+    | Let(DoBinding([], PreXmlDoc [||], e)) when not (multiline e) -> 
+        Some b
+
+    | _ -> None
+
+let rec (|OneLinerLetL|_|) = function
+    | OneLinerLet _ as x::OneLinerLetL(xs, ys) -> Some(x::xs, ys)
+    | OneLinerLet _ as x::ys -> Some([x], ys)
+    | _ -> None
+
 /// Group similar operations into a batch for processing
 let rec (|SingleModuleDecls|ComplexModuleDecls|Empty|) xs =
     match xs with
@@ -131,35 +166,45 @@ and genSigFile(ParsedSigFileInput(hs, mns)) =
     col sepNln hs genParsedHashDirective
     +> col sepNln mns genSigModuleOrNamespace
 
-and genParsedHashDirective (ParsedHashDirective (s1, s2)) =
+and genParsedHashDirective(ParsedHashDirective (s1, s2)) =
     /// print strings with quotes
     !- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2))
 
-and genModuleOrNamespace (ModuleOrNamespace (ats, px, ao, s, mds, isModule)) =
+and genModuleOrNamespace(ModuleOrNamespace (ats, px, ao, s, mds, isModule)) =
     genPreXmlDoc px
     +> colPost sepNln sepNln ats genAttribute
     /// Checking for Tmp is a bit fragile
     +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
     +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
-    +> genModuleDeclGroup mds
+    +> genModuleDeclList mds
 
-and genSigModuleOrNamespace (SigModuleOrNamespace (ats, px, ao, s, mds, isModule)) =
+and genSigModuleOrNamespace(SigModuleOrNamespace (ats, px, ao, s, mds, isModule)) =
     genPreXmlDoc px
     +> colPost sepNln sepNln ats genAttribute
     +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
     +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
     +> col sepNln mds genSigModuleDecl
 
-and genModuleDeclGroup = function
-    | ComplexModuleDecls(ys, Empty) ->
-        col sepNln ys genModuleDecl
-    | ComplexModuleDecls(ys, zs) ->
-        col sepNln ys genModuleDecl +> sepNln +> genModuleDeclGroup zs
-    | SingleModuleDecls(ys, Empty) ->
-        col sepNone ys genModuleDecl 
-    | SingleModuleDecls(ys, zs) ->
-        col sepNone ys genModuleDecl +> sepNln +> genModuleDeclGroup zs
-    | Empty -> sepNone    
+and genModuleDeclList = function
+    | DoExprAttributesL(xs, []) 
+    | HashDirectiveL(xs, []) 
+    | ModuleAbbrevL(xs, []) 
+    | OpenL(xs, []) 
+    | OneLinerLetL(xs, []) ->
+        col sepNone xs genModuleDecl
+
+    | DoExprAttributesL(xs, ys) 
+    | HashDirectiveL(xs, ys) 
+    | ModuleAbbrevL(xs, ys) 
+    | OpenL(xs, ys)
+    | OneLinerLetL(xs, ys) ->
+        col sepNone xs genModuleDecl +> sepNln +> genModuleDeclList ys
+
+    | [x] ->
+        genModuleDecl x
+    | x::xs ->
+        genModuleDecl x +> sepNln +> genModuleDeclList xs
+    | [] -> sepNone    
 
 and genModuleDecl = function
     | Attributes(ats) ->
@@ -181,11 +226,10 @@ and genModuleDecl = function
         !- "module " -- s1 +> sepEq -- s2 +> sepNln
     | NamespaceFragment(m) ->
         failwithf "NamespaceFragment hasn't been implemented yet: %O" m
-
     | NestedModule(ats, px, ao, s, mds) -> 
         genPreXmlDoc px
         +> colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
-        +> indent +> sepNln +> genModuleDeclGroup mds +> unindent
+        +> indent +> sepNln +> genModuleDeclList mds +> unindent
 
     | Open(s) ->
         !- (sprintf "open %s" s) +> sepNln

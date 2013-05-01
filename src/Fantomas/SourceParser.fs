@@ -181,8 +181,8 @@ let (|Attributes|_|) = function
     | _ -> None
 
 let (|Let|_|) = function
-    | SynModuleDecl.Let(false, xs, _) ->
-        Some (List.head xs)
+    | SynModuleDecl.Let(false, x::_, _) ->
+        Some x
     | _ -> None
 
 let (|LetRec|_|) = function
