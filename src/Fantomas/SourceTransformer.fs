@@ -125,21 +125,16 @@ let rec (|OpenL|_|) = function
 let (|OneLinerExpr|_|) e =
     if multiline e then None else Some e
 
-let (|OneLinerBinding|_|) b =
+let (|OneLinerBinding|MultilineBinding|) b =
     match b with
     | LetBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
     | DoBinding([], PreXmlDoc [||], OneLinerExpr _)
     | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
     | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _) 
     | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _) ->
-        Some b
+        OneLinerBinding b
 
-    | _ -> None
-
-let (|MultilineBinding|_|) b =
-    match b with
-    | OneLinerBinding _ -> None
-    | _ -> Some b
+    | _ -> MultilineBinding b
 
 let rec (|OneLinerLetL|_|) = function
     | Let(OneLinerBinding _) as x::OneLinerLetL(xs, ys) -> Some(x::xs, ys)
@@ -150,10 +145,10 @@ let rec (|OneLinerLetL|_|) = function
 /// Assume that PropertySet comes right after PropertyGet.
 let (|PropertyWithGetSet|_|) = function
     | PropertyBinding(_, _, _, _, MFProperty PropertyGet, PatLongIdent(_, s1, _, _), _) as b1::bs -> 
-            match bs with
-            | PropertyBinding(_, _, _, _, MFProperty PropertySet, PatLongIdent(_, s2, _, _), _) as b2::bs when s1 = s2 -> 
-                Some((b1, b2), bs)
-            | _ -> None
+        match bs with
+        | PropertyBinding(_, _, _, _, MFProperty PropertySet, PatLongIdent(_, s2, _, _), _) as b2::bs when s1 = s2 -> 
+            Some((b1, b2), bs)
+        | _ -> None
     | _ -> None 
 
 let (|PropertyWithGetSetMemberDefn|_|) = function
@@ -163,7 +158,7 @@ let (|PropertyWithGetSetMemberDefn|_|) = function
         | _ -> None
     | _ -> None
 
-let (|OneLinerMemberDefn|_|) md =
+let (|OneLinerMemberDefn|MultilineMemberDefn|) md =
     match md with
     | MDImplicitInherit(_, OneLinerExpr _, _)
     | MDOpen _
@@ -175,21 +170,16 @@ let (|OneLinerMemberDefn|_|) md =
     | MDAutoProperty([], PreXmlDoc [||], _, _, OneLinerExpr _, _)
     | MDAbstractSlot([], PreXmlDoc [||], _, _, _, _, _)
     | MDLetBindings(_, _, [OneLinerBinding _]) ->
-        Some md
+        OneLinerMemberDefn md
 
-    | _ -> None
-
-let (|MultilineMemberDefn|_|) md = 
-    match md with
-    | OneLinerMemberDefn _ -> None
-    | _ -> Some md
+    | _ -> MultilineMemberDefn md
 
 let rec (|OneLinerMemberDefnL|_|) xs = 
     match xs with
     /// This pattern prevents PropertyWithGetSet to be taken separately
     | PropertyWithGetSetMemberDefn _ -> Some([], xs)
-    | OneLinerMemberDefn _ as x::OneLinerMemberDefnL(xs, ys) -> Some(x::xs, ys)
-    | OneLinerMemberDefn _ as x::ys -> Some([x], ys)
+    | OneLinerMemberDefn x::OneLinerMemberDefnL(xs, ys) -> Some(x::xs, ys)
+    | OneLinerMemberDefn x::ys -> Some([x], ys)
     | _ -> None
 
 type Data<'a, 'b> =
@@ -201,15 +191,15 @@ type Data<'a, 'b> =
 let rec (|MultilineMemberDefnL|_|) = function
     | PropertyWithGetSetMemberDefn((x1, x2), MultilineMemberDefnL(xs, ys)) -> Some(Pair(x1, x2)::xs, ys)
     | PropertyWithGetSetMemberDefn((x1, x2), ys) -> Some([Pair(x1, x2)], ys)
-    | MultilineMemberDefn _ as x::MultilineMemberDefnL(xs, ys) -> Some(Single x::xs, ys)
-    | MultilineMemberDefn _ as x::ys -> Some([Single x], ys)
+    | MultilineMemberDefn x::MultilineMemberDefnL(xs, ys) -> Some(Single x::xs, ys)
+    | MultilineMemberDefn x::ys -> Some([Single x], ys)
     | _ -> None
 
 let rec (|OneLinerBindingL|_|) xs =
     match xs with
     | PropertyWithGetSet _ -> Some([], xs)
-    | OneLinerBinding _ as x::OneLinerBindingL(xs, ys) -> Some(x::xs, ys)
-    | OneLinerBinding _ as x::ys -> Some([x], ys)
+    | OneLinerBinding x::OneLinerBindingL(xs, ys) -> Some(x::xs, ys)
+    | OneLinerBinding x::ys -> Some([x], ys)
     | _ -> None
 
 /// Gather all multiline bindings. 
@@ -217,6 +207,6 @@ let rec (|OneLinerBindingL|_|) xs =
 let rec (|MultilineBindingL|_|) = function
     | PropertyWithGetSet((x1, x2), MultilineBindingL(xs, ys)) -> Some(Pair(x1, x2)::xs, ys)
     | PropertyWithGetSet((x1, x2), ys) -> Some([Pair(x1, x2)], ys)
-    | MultilineBinding _ as x::MultilineBindingL(xs, ys) -> Some(Single x::xs, ys)
-    | MultilineBinding _ as x::ys -> Some([Single x], ys)
+    | MultilineBinding x::MultilineBindingL(xs, ys) -> Some(Single x::xs, ys)
+    | MultilineBinding x::ys -> Some([Single x], ys)
     | _ -> None
