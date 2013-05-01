@@ -58,6 +58,7 @@ type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) =
 type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) = 
     let duplex = defaultArg duplex0 Full
     let parity = defaultArg parity0 false
+    
     let mutable rate = 
         match rate0 with
         | Some rate1 -> rate1
@@ -65,6 +66,7 @@ type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) =
             match duplex with
             | Full -> 9600
             | Half -> 4800
+    
     do printfn "Baud Rate: %d Duplex: %A Parity: %b" rate duplex parity
 """
 
@@ -123,16 +125,20 @@ type public MyClass<'a> public (x, y) as this =
     static let PI = 3.14
     static do printfn "static constructor"
     let mutable z = x + y
+    
     do 
         printfn "%s" (this.ToString())
         printfn "more constructor effects"
+    
     internal new(a) = MyClass(a, a)
     static member StaticProp = PI
     static member StaticMethod a = a + 1
     member internal self.Prop1 = x
+    
     member self.Prop2 
         with get () = z
         and set (a) = z <- a
+    
     member self.Method(a, b) = x + y + z + a + b
 """
 
@@ -238,6 +244,7 @@ type Derived1() =
 type Derived1() = 
     inherit AbstractBase()
     let mutable value = 10
+    
     override this.Property1 
         with get () = value
         and set (v : int) = value <- v
@@ -309,12 +316,15 @@ type NumberStrings() =
 type NumberStrings() = 
     let mutable ordinals = [|"one"|]
     let mutable cardinals = [|"first"|]
+    
     member this.Item 
         with get index = ordinals.[index]
         and set index value = ordinals.[index] <- value
+    
     member this.Ordinal 
         with get (index) = ordinals.[index]
         and set index value = ordinals.[index] <- value
+    
     member this.Cardinal 
         with get (index) = cardinals.[index]
         and set index value = cardinals.[index] <- value
@@ -340,6 +350,7 @@ open System.Collections.Generic
 
 type SparseMatrix() = 
     let mutable table = new Dictionary<int * int, float>()
+    
     member this.Item 
         with get (key1, key2) = table.[(key1, key2)]
         and set (key1, key2) value = table.[(key1, key2)] <- value
@@ -445,12 +456,15 @@ type Person(nameIn : string, idIn : int) =
     let mutable name = nameIn
     let mutable id = idIn
     do printfn "Created a person object."
+    
     member this.Name 
         with get () = name
         and set (v) = name <- v
+    
     member this.ID 
         with get () = id
         and set (v) = id <- v
+    
     new() = 
         Person("Invalid Name", -1)
         then printfn "Created an invalid person object."

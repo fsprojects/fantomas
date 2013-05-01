@@ -1,158 +1,8 @@
 ﻿module internal Fantomas.CodePrinter
 
-open System
-
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
-
-[<RequireQualifiedAccess>]
-module List = 
-    let inline atmostOne xs =
-        match xs with
-        | [] | [_] -> true
-        | _ -> false
-
-/// Check whether an expression should be broken into multiple lines. 
-/// Notice that order of patterns matters due to non-disjoint property.
-let rec multiline = function
-    | ConstExpr _
-    | NullExpr
-    | OptVar _
-    | SequentialSimple _ ->
-        false
-
-    | ObjExpr _
-    | While _
-    | For _
-    | ForEach _
-    | MatchLambda _
-    | TryWith _
-    | TryFinally _
-    | Sequentials _
-    | IfThenElse _ ->
-        true
-
-    | Paren e
-    | SingleExpr(_, e)
-    | TypedExpr(_, e, _)
-    | CompExpr(_, e)
-    | ArrayOrListOfSeqExpr(_, e)
-    | DesugaredMatch(_, e)
-    | Lambda(e, _)
-    | TypeApp(e, _)
-    | LongIdentSet(_, e)
-    | DotGet(e, _)
-    | TraitCall(_, _, e) ->
-        multiline e
-
-    | Quote(e1, e2, _)
-    | JoinIn(e1, e2)
-    | DotSet(e1, _, e2)
-    | LetOrUseBang(_, _, e1, e2) ->
-        multiline e1 || multiline e2
-
-    | Tuple es ->
-        List.exists multiline es
-
-    // An infix app is multiline if it contains at least two new line infix ops
-    | InfixApps(e, es) ->
-        multiline e
-        || not (List.atmostOne (List.filter (fst >> NewLineInfixOps.Contains) es))
-        || List.exists (snd >> multiline) es
-    
-    | App(e1, es) ->
-        multiline e1 || List.exists multiline es
-    | DotIndexedGet(e, es) ->
-        multiline e || List.exists multiline es
-
-    | DotIndexedSet(e1, es, e2) ->
-        multiline e1 || multiline e2 || List.exists multiline es
-
-    | Match(e, cs) ->
-        not (List.isEmpty cs) || multiline e
-    | LetOrUse(_, _, bs, e) ->
-        not (List.isEmpty bs) || multiline e
-
-    // An array or a list is multiline if there are at least two elements
-    | ArrayOrList(_, es) ->
-        not (List.atmostOne es)
-
-    // A record is multiline if there is at least two fields present
-    | Record(xs, _) ->
-        let fields = xs |> List.choose ((|RecordFieldName|) >> snd) 
-        not (List.atmostOne fields) || List.exists multiline fields
-
-    // Default mode is single-line
-    | _ -> false
-
-/// Check if the expression already has surrounding parentheses
-let hasParenthesis = function
-    | Paren _
-    | ConstExpr(Const "()")
-    | Tuple _ -> true
-    | _ -> false
-
-let hasParenInPat = function
-    | PatParen _
-    | PatConst(Const "()") -> true
-    | _ -> false
-
-let inline genConst c =
-    match c with
-    | Const c -> !- c
-    | Unresolved c -> fun ctx -> str (content c ctx) ctx
-
-// A few active patterns for printing purpose
-
-let rec (|DoExprAttributesL|_|) = function
-    | DoExpr _ | Attributes _  as x::DoExprAttributesL(xs, ys) -> Some(x::xs, ys)
-    | DoExpr _ | Attributes _ as x::ys -> Some([x], ys)
-    | _ -> None
-
-let rec (|HashDirectiveL|_|) = function
-    | HashDirective _ as x::HashDirectiveL(xs, ys) -> Some(x::xs, ys)
-    | HashDirective _ as x::ys -> Some([x], ys)
-    | _ -> None
-
-let rec (|ModuleAbbrevL|_|) = function
-    | ModuleAbbrev _ as x::ModuleAbbrevL(xs, ys) -> Some(x::xs, ys)
-    | ModuleAbbrev _ as x::ys -> Some([x], ys)
-    | _ -> None
-
-let rec (|OpenL|_|) = function
-    | Open _ as x::OpenL(xs, ys) -> Some(x::xs, ys)
-    | Open _ as x::ys -> Some([x], ys)
-    | _ -> None
-
-let (|OneLinerLet|_|) b =
-    match b with
-    | Let(LetBinding([], PreXmlDoc [||], _, _, _, _, e))
-    | Let(DoBinding([], PreXmlDoc [||], e)) when not (multiline e) -> 
-        Some b
-
-    | _ -> None
-
-let rec (|OneLinerLetL|_|) = function
-    | OneLinerLet _ as x::OneLinerLetL(xs, ys) -> Some(x::xs, ys)
-    | OneLinerLet _ as x::ys -> Some([x], ys)
-    | _ -> None
-
-/// Group similar operations into a batch for processing
-let rec (|SingleModuleDecls|ComplexModuleDecls|Empty|) xs =
-    match xs with
-    | [Attributes _ | DoExpr _ | HashDirective _ | ModuleAbbrev _ | Open _ as x] ->
-        SingleModuleDecls([x], [])
-    | (Attributes _ | DoExpr _ | HashDirective _ | ModuleAbbrev _ | Open _ as x)::SingleModuleDecls(ys, zs) ->
-        SingleModuleDecls(x::ys, zs)
-    | (Attributes _ | DoExpr _ | HashDirective _ | ModuleAbbrev _ | Open _ as x)::xs' ->
-        SingleModuleDecls([x], xs')
-    | [x] ->
-        ComplexModuleDecls([x], [])
-    | x::ComplexModuleDecls(ys, zs) ->
-        ComplexModuleDecls(x::ys, zs)
-    | x::xs' ->
-        ComplexModuleDecls([x], xs')
-    | _ -> Empty
+open Fantomas.SourceTransformer
 
 let rec genParsedInput = function
     | ImplFile im -> genImpFile im
@@ -325,34 +175,47 @@ and genProperty prefix ps e =
     | ps -> 
         !- prefix +> col sepSpace ps genPat +> sepEq +> autoBreakNln e
 
-/// Gather PropertyGetSet in one printing call. 
-/// Assume that PropertySet comes right after PropertyGet.
+and genPropertyWithGetSet inter (b1, b2) =
+    match b1, b2 with
+    | PropertyBinding(ats, px, ao, isInline, mf1, PatLongIdent(_, s1, ps1, _), e1), 
+      PropertyBinding(_, _, _, _, _, PatLongIdent(_, _, ps2, _), e2) ->
+        let prefix =
+            genPreXmlDoc px
+            +> colPost sepNln sepNone ats genAttribute +> genMemberFlags inter mf1
+            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
+
+        prefix -- s1 +> sepSpace +> indent +> sepNln
+        +> genProperty "with get " ps1 e1 +> sepNln +> genProperty "and set " ps2 e2
+        +> unindent
+    | _ -> sepNone
+
+/// Value inter indicates printing in a interface definition. 
 /// Each member is separated by a new line.
-and genMemberBindingList isInterface = function
-    | [b] -> genMemberBinding isInterface b
-    | (PropertyBinding(ats, px, ao, isInline, (MFProperty PropertyGet as mf1), PatLongIdent(_, s1, ps1, _), e1) as b)::bs -> 
-        match bs with
-        | PropertyBinding(_, _, _, _, MFProperty PropertySet, PatLongIdent(_, s2, ps2, _), e2)::bs when s1 = s2 -> 
-            let prefix =
-                genPreXmlDoc px
-                +> colPost sepNln sepNone ats genAttribute +> genMemberFlags isInterface mf1
-                +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
+and genMemberBindingList inter = function
+    | [x] -> genMemberBinding inter x
 
-            prefix -- s1 +> sepSpace +> indent +> sepNln
-            +> genProperty "with get " ps1 e1 +> sepNln +> genProperty "and set " ps2 e2
-            +> unindent +> ifElse bs.IsEmpty sepNone (sepNln +> genMemberBindingList isInterface bs)
+    | MultilineBindingL(xs, []) ->
+        sepNln +> col (rep 2 sepNln) xs (function 
+                       | Pair(x1, x2) -> genPropertyWithGetSet inter (x1, x2) 
+                       | Single x -> genMemberBinding inter x)
 
-        | _ -> 
-            genMemberBinding isInterface b +> sepNln +> genMemberBindingList isInterface bs
-    | b::bs ->
-        genMemberBinding isInterface b +> sepNln +> genMemberBindingList isInterface bs
-    | [] -> sepNone
+    | MultilineBindingL(xs, ys) ->
+        sepNln +> col (rep 2 sepNln) xs (function 
+                       | Pair(x1, x2) -> genPropertyWithGetSet inter (x1, x2) 
+                       | Single x -> genMemberBinding inter x)
+        +> rep 2 sepNln +> genMemberBindingList inter ys
 
-and genMemberBinding isInterface = function
+    | OneLinerBindingL(xs, []) ->
+        col sepNln xs (genMemberBinding inter)
+    | OneLinerBindingL(xs, ys) ->
+        col sepNln xs (genMemberBinding inter) +> sepNln +> genMemberBindingList inter ys
+    | _ -> sepNone
+
+and genMemberBinding inter = function
     | PropertyBinding(ats, px, ao, isInline, mf, p, e) -> 
         let prefix =
             genPreXmlDoc px
-            +> colPost sepNln sepNone ats genAttribute +> genMemberFlags isInterface mf
+            +> colPost sepNln sepNone ats genAttribute +> genMemberFlags inter mf
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
 
         let propertyPref =
@@ -370,7 +233,7 @@ and genMemberBinding isInterface = function
     | MemberBinding(ats, px, ao, isInline, mf, p, e) ->
         let prefix =
             genPreXmlDoc px
-            +> colPost sepNln sepNone ats genAttribute +> genMemberFlags isInterface mf
+            +> colPost sepNln sepNone ats genAttribute +> genMemberFlags inter mf
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat p
 
         match e with
@@ -393,11 +256,11 @@ and genMemberBinding isInterface = function
 
     | b -> failwithf "%O isn't a member binding" b
 
-and genMemberFlags isInterface = function
+and genMemberFlags inter = function
     | MFMember _ -> !- "member "
     | MFStaticMember _ -> !- "static member "
     | MFConstructor _ -> sepNone
-    | MFOverride _ -> ifElse isInterface (!- "member ") (!- "override ")
+    | MFOverride _ -> ifElse inter (!- "member ") (!- "override ")
 
 and genVal(Val(ats, px, ao, s, t, vi, _)) = 
     let (FunType ts) = (t, vi)
@@ -623,14 +486,14 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | Simple(TDSRTypeAbbrev t) -> 
         typeName +> sepEq +> genType t +> sepNln
     | ObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others)) ->
-        let isInterface =
+        let inter =
             match tdk with
             | TCSimple TCInterface -> true
             | _ -> false
 
-        typeName +> optPre sepBeforeArg sepNone impCtor (genMemberDefn isInterface) +> sepEq 
+        typeName +> optPre sepBeforeArg sepNone impCtor (genMemberDefn inter) +> sepEq 
         +> indent +> sepNln +> genTypeDefKind tdk
-        +> indent +> genMemberDefnList isInterface others +> unindent
+        +> indent +> genMemberDefnList inter others +> unindent
         ++ "end" +> unindent +> sepNln
 
     | ObjectModel(TCSimple TCAugmentation, _) ->
@@ -844,15 +707,28 @@ and genInterfaceImpl(InterfaceImpl(t, bs)) =
 and genClause(Clause(p, e, eo)) = 
     sepBar +> genPat p +> optPre (!- " when ") sepNone eo genExpr +> sepArrow +> autoBreakNln e
 
-/// List of member definition with a newline at the beginning and a new line between each member.
-and genMemberDefnList isInterface = function
-    | MDMember(b1)::MDMember(b2)::bs ->
-        sepNln +> genMemberBindingList isInterface [b1; b2] +> genMemberDefnList isInterface bs
-    | b::bs ->
-        sepNln +> genMemberDefn isInterface b +> genMemberDefnList isInterface bs
-    | [] -> sepNone
+/// Each multiline member definition has a pre and post new line. 
+and genMemberDefnList inter = function
+    | [x] -> sepNln +> genMemberDefn inter x
 
-and genMemberDefn isInterface = function
+    | MultilineMemberDefnL(xs, []) ->
+        rep 2 sepNln 
+        +> col (rep 2 sepNln) xs (function
+                | Pair(x1, x2) -> genPropertyWithGetSet inter (x1, x2)
+                | Single x -> genMemberDefn inter x)
+
+    | MultilineMemberDefnL(xs, ys) ->
+        rep 2 sepNln 
+        +> col (rep 2 sepNln) xs (function
+                | Pair(x1, x2) -> genPropertyWithGetSet inter (x1, x2)
+                | Single x -> genMemberDefn inter x) 
+        +> sepNln +> genMemberDefnList inter ys
+
+    | OneLinerMemberDefnL(xs, ys) ->
+        sepNln +> col sepNln xs (genMemberDefn inter) +> genMemberDefnList inter ys
+    | _ -> sepNone
+
+and genMemberDefn inter = function
     | MDNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
     | MDOpen(s) -> !- s
     /// What is the role of so
@@ -864,7 +740,7 @@ and genMemberDefn isInterface = function
         +> colPost sepSpace sepNone ats genAttribute +> col sepComma ps genSimplePat +> sepCloseT
         +> optPre (!- " as ") sepNone so (!-)
 
-    | MDMember(b) -> genMemberBinding isInterface b
+    | MDMember(b) -> genMemberBinding inter b
     | MDLetBindings(isStatic, isRec, bs) ->
         let prefix = 
             if isStatic && isRec then "static let rec "
