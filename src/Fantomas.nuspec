@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Fantomas</id>
-        <version>0.9.1</version>
+        <version>0.9.2</version>
         <title>Fantomas</title>
         <authors>Anh-Dung Phan</authors>
         <owners />
@@ -11,15 +11,17 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>This library aims at formatting F# source files based on a given configuration. Fantomas will ensure correct indentation and consistent spacing between elements in the source files.</description>
         <summary>Source code formatting tool for F#.</summary>
-        <releaseNotes>Fix issues #22, #25
-Use spaces before arguments in a systematic way</releaseNotes>
+        <releaseNotes>Fix issue #26
+Use consistent line breaks on types and module functions</releaseNotes>
         <tags>F# fsharp formatting beautifier indentation indenter</tags>
     </metadata>
     <files>
-        <file src="Example.fs.pp" target="content\Example.fs.pp" />
         <file src="Fantomas.Cmd\bin\Release\Args.dll" target="lib\Args.dll" />
+        <file src="Fantomas.Cmd\bin\Release\Args.pdb" target="lib\Args.pdb" />
         <file src="Fantomas.Cmd\bin\Release\Fantomas.exe" target="lib\Fantomas.exe" />
+        <file src="Fantomas.Cmd\bin\Release\Fantomas.pdb" target="lib\Fantomas.pdb" />
         <file src="Fantomas.Cmd\bin\Release\FantomasLib.dll" target="lib\FantomasLib.dll" />
+        <file src="Fantomas.Cmd\bin\Release\FantomasLib.pdb" target="lib\FantomasLib.pdb" />
         <file src="Fantomas.Cmd\bin\Release\FantomasLib.xml" target="lib\FantomasLib.xml" />
         <file src="Fantomas.Cmd\bin\Release\FSharp.Compiler.dll" target="lib\FSharp.Compiler.dll" />
         <file src="Fantomas.Cmd\bin\Release\FSharp.Core.dll" target="lib\FSharp.Core.dll" />
