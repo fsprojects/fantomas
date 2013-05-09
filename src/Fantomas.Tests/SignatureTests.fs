@@ -24,8 +24,7 @@ let ``should keep the (string * string) list type signature in records``() =
       MaxCpuCount : int option option;
       ToolsVersion : string option;
       Verbosity : MSBuildVerbosity option;
-      FileLoggers : MSBuildFileLoggerConfig list option }
-"""
+      FileLoggers : MSBuildFileLoggerConfig list option }"""
 
 [<Test>]
 let ``should keep the (string * string) list type signature in functions``() =
@@ -34,8 +33,7 @@ let ``should keep the (string * string) list type signature in functions``() =
 
     """ config
     |> should equal """let MSBuildWithProjectProperties outputPath (targets : string) 
-    (properties : string -> (string * string) list) projects = doingsomstuff
-"""
+    (properties : string -> (string * string) list) projects = doingsomstuff"""
 
 
 [<Test>]
@@ -45,8 +43,7 @@ let ``should keep the string * string list type signature in functions``() =
 
     """ config
     |> should equal """let MSBuildWithProjectProperties outputPath (targets : string) 
-    (properties : (string -> string) * string list) projects = doingsomstuff
-"""
+    (properties : (string -> string) * string list) projects = doingsomstuff"""
 
 [<Test>]
 let ``should not add parens in signature``() =
@@ -61,8 +58,7 @@ let ``should not add parens in signature``() =
     { Verb : string;
       Path : string;
       Handler : Map<string, string> -> HttpListenerContext -> string }
-    override x.ToString() = sprintf "%s %s" x.Verb x.Path
-"""
+    override x.ToString() = sprintf "%s %s" x.Verb x.Path"""
 
 [<Test>]
 let ``should keep the string * string * string option type signature``() =
@@ -73,8 +69,7 @@ let ``should keep the string * string * string option type signature``() =
     """ config
     |> should equal """type DGML = 
     | Node of string
-    | Link of string * string * string option
-"""
+    | Link of string * string * string option"""
 
 [<Test>]
 let ``should keep the (string option * Node) list type signature``() =
@@ -85,8 +80,7 @@ let ``should keep the (string option * Node) list type signature``() =
     """ config
     |> should equal """type Node = 
     { Name : string;
-      NextNodes : (string option * Node) list }
-"""
+      NextNodes : (string option * Node) list }"""
 
 [<Test>]
 let ``should keep parentheses on the left of type signatures``() =
@@ -102,5 +96,4 @@ type A () =
 
 type A() = 
     interface IA with
-        member x.F(f : unit -> _) = f()
-"""
+        member x.F(f : unit -> _) = f()"""

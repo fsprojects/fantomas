@@ -15,8 +15,7 @@ let ``recursive functions``() =
     |> should equal """
 let rec f x = g x
 
-and g x = x
-"""
+and g x = x"""
 
 [<Test>]
 let ``should keep mutually recursive functions``() =
@@ -27,8 +26,7 @@ and createJObject y = createJArray
     """ config
     |> should equal """let rec createJArray x = createJObject
 
-and createJObject y = createJArray
-"""
+and createJObject y = createJArray"""
 
 [<Test>]
 let ``should keep mutually recursive functions in nested function``() =
@@ -41,29 +39,25 @@ let ``should keep mutually recursive functions in nested function``() =
     |> should equal """let f = 
     let rec createJArray x = createJObject x
     and createJObject y = createJArray y
-    createJArray
-"""
+    createJArray"""
 
 [<Test>]
 let ``should keep identifiers with whitespace in double backticks``() =
     formatSourceString false """let ``should keep identifiers in double backticks``() = x
     """ config
-    |> should equal """let ``should keep identifiers in double backticks``() = x
-"""
+    |> should equal """let ``should keep identifiers in double backticks``() = x"""
 
 [<Test>]
 let ``should remove backticks from shouldn't identifier``() =
     formatSourceString false """let ``shouldn't``() = x
     """ config
-    |> should equal """let shouldn't() = x
-"""
+    |> should equal """let shouldn't() = x"""
 
 [<Test>]
 let ``should keep identifiers with + in double backticks``() =
     formatSourceString false """let ``Foo+Bar``() = x
     """ config
-    |> should equal """let ``Foo+Bar``() = x
-"""
+    |> should equal """let ``Foo+Bar``() = x"""
 
 [<Test>]
 let ``let bindings with return types``() =
@@ -89,8 +83,7 @@ let divide x y =
     finally
         writer.Flush()
         printfn "Closing stream"
-        stream.Close()
-"""
+        stream.Close()"""
 
 [<Test>]
 let ``type constraints and inline``() =
@@ -106,12 +99,10 @@ let inline add(value1 : ^T when ^T : (static member (+) : ^T * ^T -> ^T),
                value2 : ^T) = value1 + value2
 let inline heterogenousAdd(value1 : ^T when (^T or ^U) : (static member (+) : ^T * ^U
                                                                -> ^T), 
-                           value2 : ^U) = value1 + value2
-"""
+                           value2 : ^U) = value1 + value2"""
 
 [<Test>]
 let ``should keep whitespace after function call``() =
     formatSourceString false """let relative = (toRelativePath fileName).TrimStart '.'
     """ config
-    |> should equal """let relative = (toRelativePath fileName).TrimStart '.'
-"""
+    |> should equal """let relative = (toRelativePath fileName).TrimStart '.'"""

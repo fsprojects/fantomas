@@ -13,6 +13,7 @@ let ``hash directives``() =
     #load "CodeFormatterTests.fs"
     """ config
     |> prepend newline
+    |> append newline
     |> should equal """
 #r "Fantomas.Tests.dll"
 #load "CodeFormatterTests.fs"
@@ -30,8 +31,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
-#endif
-"""
+#endif"""
 
 [<Test>]
 let ``line, file and path identifiers``() =
@@ -49,5 +49,4 @@ let printSourceLocation() =
     printfn "Source Directory: %s" __SOURCE_DIRECTORY__
     printfn "Source File: %s" __SOURCE_FILE__
 
-printSourceLocation()
-"""
+printSourceLocation()"""

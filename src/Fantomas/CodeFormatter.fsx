@@ -16,24 +16,23 @@ open Fantomas.CodeFormatter
 let config = FormatConfig.Default
 
 let t01 = """
-open System.Collections.Generic
-type SparseMatrix() =
-    let mutable table = new Dictionary<int * int, float>()
-    member this.Item
-        with get(key1, key2) = table.[(key1, key2)]
-        and set (key1, key2) value = table.[(key1, key2)] <- value
+module TopLevel
 
-let matrix1 = new SparseMatrix()
-for i in 1..1000 do
-    matrix1.[i, i] <- float i * float i
+let topLevelX = 5
+
+module Inner1 =
+    let inner1X = 1
+module Inner2 =
+    let inner2X = 5
 """
 
 let t02 = """
 let x = 2 + 3
 let y = 1+2
-let z = x + y
-"""
+let z = x + y"""
 ;;
+
+printfn "Result:\n%s" <| formatSourceString false t01 config;;
 
 printfn "Result:\n%s" 
 <| formatSelectionFromString false (mkRange "/tmp.fs" (mkPos 3 8) (mkPos 3 12)) t02 config;;

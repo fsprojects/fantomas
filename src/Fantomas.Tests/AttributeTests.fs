@@ -18,8 +18,7 @@ type Funcs =
 type Funcs = 
     [<Extension>]
     static member ToFunc(f : Action<_, _, _>) = 
-        Func<_, _, _, _>(fun a b c -> f.Invoke(a, b, c))
-"""
+        Func<_, _, _, _>(fun a b c -> f.Invoke(a, b, c))"""
 
 [<Test>]
 let ``attributes on expressions``() =
@@ -29,8 +28,7 @@ let ``attributes on expressions``() =
     |> prepend newline
     |> should equal """
 [<Dependency("FSharp.Compiler", LoadHint.Always)>]
-do ()
-"""
+do ()"""
 
 [<Test>]
 let ``units of measures declaration``() =
@@ -55,8 +53,7 @@ type s
 type N = kg m * s^2
 
 [<Measure>]
-type Pa = N * m^2
-"""
+type Pa = N * m^2"""
 
 [<Test>]
 let ``type params``() =
@@ -70,5 +67,4 @@ let genericSumUnits (x : float<'u>) (y : float<'u>) = x + y
 type vector3D<[<Measure>] 'u> = 
     { x : float<'u>;
       y : float<'u>;
-      z : float<'u> }
-"""
+      z : float<'u> }"""

@@ -31,8 +31,7 @@ type SomeClass1(x : int, y : float) =
 type Interface3 = 
     inherit Interface1
     inherit Interface2
-    abstract Method3 : int -> int
-"""
+    abstract Method3 : int -> int"""
 
 [<Test>]
 let ``should not add with to inface definitions``() =
@@ -47,8 +46,7 @@ let ``should not add with to inface definitions``() =
     interface IDocument
     interface Infrastucture with
         member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
-        member this.ToXml() = v :> obj
-"""
+        member this.ToXml() = v :> obj"""
 
 [<Test>]
 let ``object expressions``() =
@@ -57,8 +55,7 @@ let ``object expressions``() =
     |> should equal """
 let obj1 = 
     { new System.Object() with
-          member x.ToString() = "F#" }
-"""
+          member x.ToString() = "F#" }"""
 
 [<Test>]
 let ``object expressions and interfaces``() =
@@ -78,5 +75,4 @@ let implementer() =
           member this.J() = ()
       interface IFirst with
           member this.F() = ()
-          member this.G() = () }
-"""
+          member this.G() = () }"""

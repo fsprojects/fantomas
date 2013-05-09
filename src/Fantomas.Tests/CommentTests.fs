@@ -10,8 +10,7 @@ open Fantomas.Tests.TestHelper
 let ``should keep // comments after nowarn directives``() =
     formatSourceString false """#nowarn "51" // address-of operator can occur in the code
     """ config
-    |> should equal """#nowarn "51" // address-of operator can occur in the code
-"""
+    |> should equal """#nowarn "51" // address-of operator can occur in the code"""
 
 [<Test>]
 let ``should keep // comments before module definition``() =
@@ -25,8 +24,7 @@ let x = 1
 // some text
 module FSharpx.TypeProviders.VectorTypeProvider
 
-let x = 1
-"""
+let x = 1"""
 
 [<Test>]
 let ``comments on local let bindings``() =
@@ -45,8 +43,7 @@ let print_30_permut() =
         Array.init n (fun i -> 
                 Console.Write(i + 1)
                 i)
-    permutation
-"""
+    permutation"""
 
 [<Test>]
 let ``xml documentation``() =
@@ -73,5 +70,4 @@ let kwm sidpp tvd omw = 1.0""" config
 let kwm sidpp tvd omw = (sidpp / 0.052 / tvd) + omw
 
 /// Kill Weight Mud
-let kwm sidpp tvd omw = 1.0
-"""
+let kwm sidpp tvd omw = 1.0"""

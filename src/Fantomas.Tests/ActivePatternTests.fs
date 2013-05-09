@@ -10,8 +10,7 @@ open Fantomas.Tests.TestHelper
 let ``should keep parens around active patterns``() =
     formatSourceString false """let (|Boolean|_|) = Boolean.parse
     """ config
-    |> should equal """let (|Boolean|_|) = Boolean.parse
-"""
+    |> should equal """let (|Boolean|_|) = Boolean.parse"""
 
 [<Test>]
 let ``should keep parens around active patterns in module``() =
@@ -21,15 +20,13 @@ let ``should keep parens around active patterns in module``() =
     |> prepend newline
     |> should equal """
 module Interpreted = 
-    let (|Match|_|) = (|Match|_|) RegexOptions.None
-    """
+    let (|Match|_|) = (|Match|_|) RegexOptions.None"""
 
 [<Test>]
 let ``should keep parens around active patterns in inlined functions``() =
     formatSourceString false """let inline (|Match|_|) x = tryMatchWithOptions x
     """ config
-    |> should equal """let inline (|Match|_|) x = tryMatchWithOptions x
-"""
+    |> should equal """let inline (|Match|_|) x = tryMatchWithOptions x"""
 
 [<Test>]
 let ``active patterns``() =
@@ -64,5 +61,4 @@ let (|ParseRegex|_|) regex str =
     if m.Success
     then 
         Some(List.tail [for x in m.Groups -> x.Value])
-    else None
-"""
+    else None"""

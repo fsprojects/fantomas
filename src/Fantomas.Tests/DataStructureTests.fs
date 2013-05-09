@@ -23,8 +23,7 @@ let array1 = [|1; 2; 3|]
 array1.[0..2]
 array2.[2.., 0..]
 array2.[..3, ..1]
-array1.[1] <- 3
-"""
+array1.[1] <- 3"""
 
 [<Test>]
 let ``array values``() =
@@ -43,8 +42,7 @@ let arr =
       (2, 3, 6)
       (3, 1, 3)
       (3, 2, 6)
-      (3, 3, 9)|]
-"""
+      (3, 3, 9)|]"""
 
 [<Test>]
 let ``cons and list patterns``() =
@@ -76,8 +74,7 @@ let listLength list =
     | [_] -> 1
     | [_; _] -> 2
     | [_; _; _] -> 3
-    | _ -> List.length list
-"""
+    | _ -> List.length list"""
 
 [<Test>]
 let ``array patterns``() =
@@ -97,8 +94,7 @@ let vectorLength vec =
     | [|var1; var2; var3|] -> sqrt(var1 * var1 + var2 * var2 + var3 * var3)
     | _ -> 
         failwith "vectorLength called with an unsupported array size of %d." 
-            (vec.Length)
-"""
+            (vec.Length)"""
 
 [<Test>]
 let ``should keep -> notation``() =
@@ -112,8 +108,7 @@ let ``should keep -> notation``() =
 let environVars target = 
     [for e in Environment.GetEnvironmentVariables target -> 
          let e1 = e :?> Collections.DictionaryEntry
-         e1.Key, e1.Value]
-"""
+         e1.Key, e1.Value]"""
 
 [<Test>]
 let ``list comprehensions``() =
@@ -125,8 +120,7 @@ let list0to3 = [0 .. 3]""" config
 let listOfSquares = 
     [for i in 1..10 -> i * i]
 
-let list0to3 = [0..3]
-"""
+let list0to3 = [0..3]"""
 
 [<Test>]
 let ``array comprehensions``() =
@@ -144,5 +138,4 @@ let a2 = [|0..99|]
 let a3 = 
     [|for n in 1..100 do
           if isPrime n
-          then yield n|]
-"""
+          then yield n|]"""

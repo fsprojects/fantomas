@@ -12,8 +12,7 @@ let ``type providers``() =
 type Northwind = ODataService<"http://services.odata.org/Northwind/Northwind.svc/">""" config
     |> prepend newline
     |> should equal """
-type Northwind = ODataService< "http://services.odata.org/Northwind/Northwind.svc/" >
-"""
+type Northwind = ODataService< "http://services.odata.org/Northwind/Northwind.svc/" >"""
 
 [<Test>]
 let ``should add space before type provider params``() =
@@ -21,5 +20,4 @@ let ``should add space before type provider params``() =
 type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >""" config
     |> prepend newline
     |> should equal """
-type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >
-"""
+type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >"""

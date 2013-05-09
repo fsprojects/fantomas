@@ -41,8 +41,7 @@ let test x y =
     else "is greater than"
 
 if age < 10
-then printfn "You are only %d years old and already learning F#? Wow!" age
-"""
+then printfn "You are only %d years old and already learning F#? Wow!" age"""
 
 [<Test>]
 let ``for loops``() =
@@ -57,6 +56,7 @@ let ``for loops``() =
       printfn ""
     """ config
     |> prepend newline
+    |> append newline
     |> should equal """
 let function1() = 
     for i = 1 to 10 do
@@ -98,8 +98,7 @@ let lookForValue value maxValue =
             printfn "\nFound a %d!" value
             continueLooping <- false
 
-lookForValue 10 20
-"""
+lookForValue 10 20"""
 
 [<Test>]
 let ``try/with block``() =
@@ -122,8 +121,7 @@ let divide1 x y =
         printfn "Division by zero!"
         None
 
-let result1 = divide1 100 0
-"""
+let result1 = divide1 100 0"""
 
 [<Test>]
 let ``try/with and finally``() =
@@ -139,6 +137,7 @@ let ``try/with and finally``() =
           printfn "Always print this."
     """ config
     |> prepend newline
+    |> append newline
     |> should equal """
 let function1 x y = 
     try 
@@ -167,8 +166,7 @@ let function2() =
         printf "%d " i
     printfn ""
 
-function2()
-"""
+function2()"""
 
 [<Test>]
 let ``use binding``() =
@@ -181,8 +179,7 @@ let ``use binding``() =
     |> should equal """
 let writetofile filename obj = 
     use file1 = File.CreateText(filename)
-    file1.WriteLine("{0}", obj.ToString())
-"""
+    file1.WriteLine("{0}", obj.ToString())"""
 
 [<Test>]
 let ``access modifiers``() =
@@ -192,8 +189,7 @@ let ``access modifiers``() =
     |> prepend newline
     |> should equal """
 let private myPrivateObj = new MyPrivateType()
-let internal myInternalObj = new MyInternalType()
-"""
+let internal myInternalObj = new MyInternalType()"""
 
 [<Test>]
 let ``keyworded expressions``() =
@@ -203,6 +199,7 @@ let ``keyworded expressions``() =
     do printfn "Hello world"
     """ config
     |> prepend newline
+    |> append newline
     |> should equal """
 assert (3 > 2)
 

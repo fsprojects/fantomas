@@ -14,8 +14,7 @@ let ``enums declaration``() =
     |> prepend newline
     |> should equal """
 type FontVariant = 
-    | [<Description("small-caps")>] SmallCaps = 0
-"""
+    | [<Description("small-caps")>] SmallCaps = 0"""
 
 [<Test>]
 let ``discriminated unions declaration``() =
@@ -25,8 +24,7 @@ let ``discriminated unions declaration``() =
 type X = 
     private
     | A of AParameters
-    | B
-"""
+    | B"""
 
 [<Test>]
 let ``enums conversion``() =
@@ -44,8 +42,7 @@ type uColor =
     | Blue = 2u
 
 let col3 = 
-    Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
-"""
+    Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)"""
 
 [<Test>]
 let ``discriminated unions with members``() =
@@ -69,5 +66,4 @@ type Type =
         match this with
         | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
         | TyVar a -> a
-        | TyCon(s, ts) -> s
-"""
+        | TyCon(s, ts) -> s"""

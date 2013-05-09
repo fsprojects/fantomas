@@ -27,8 +27,7 @@ let ``should keep the = on the same line in record def``() =
         let result = 
             ((typ.GetInterface(typeof<System.Collections.IEnumerable>.FullName) = null) 
              && FSharpType.IsUnion typ)
-        result
-"""
+        result"""
 
 // the current behavior results in a compile error since the = is moved to the next line and not correctly indented
 [<Test>]
@@ -36,5 +35,4 @@ let ``should keep the = on the same line``() =
     formatSourceString false """trimSpecialChars(controller.ServerName.ToUpper()) = trimSpecialChars(serverFilter.ToUpper())
     """ config
     |> should equal """trimSpecialChars(controller.ServerName.ToUpper()) = trimSpecialChars
-                                                        (serverFilter.ToUpper())
-"""
+                                                        (serverFilter.ToUpper())"""

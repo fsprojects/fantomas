@@ -30,8 +30,7 @@ let fetchAsync(name, url : string) =
             let! html = webClient.AsyncDownloadString(uri)
             printfn "Read %d characters for %s" html.Length name
         with
-        | ex -> printfn "%s" (ex.Message) }
-"""
+        | ex -> printfn "%s" (ex.Message) }"""
 
 [<Test>]
 let ``computation expressions``() =
@@ -46,8 +45,7 @@ let comp =
     eventually { 
         for x in 1..2 do
             printfn " x = %d" x
-        return 3 + 4 }
-"""
+        return 3 + 4 }"""
 
 [<Test>]
 let ``sequence expressions``() =
@@ -79,5 +77,4 @@ let rec inorder tree =
             yield! inorder left
             yield x
             yield! inorder right
-        | Leaf x -> yield x }
-"""
+        | Leaf x -> yield x }"""

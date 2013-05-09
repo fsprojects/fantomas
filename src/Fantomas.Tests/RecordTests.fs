@@ -12,8 +12,7 @@ let ``record declaration``() =
     |> prepend newline
     |> should equal """
 type AParameters = 
-    { a : int }
-"""
+    { a : int }"""
 
 [<Test>]
 let ``record signatures``() =
@@ -79,8 +78,7 @@ type Element =
     /// Replaces the children with a single text node.
     static member WithText : text:string -> self:Element -> Element
     /// Replaces the children with a single text node.
-    static member (--) : self:Element * text:string -> Element
-"""
+    static member (--) : self:Element * text:string -> Element"""
 
 [<Test>]
 let ``records with update``() =
@@ -101,8 +99,7 @@ type Car =
 
 let myRecord3 = 
     { myRecord2 with Y = 100;
-                     Z = 2 }
-"""
+                     Z = 2 }"""
 
 // the current behavior results in a compile error since the if is not aligned properly
 [<Test>]
@@ -147,5 +144,4 @@ let ``should not break inside of if statements in records``() =
       GettingStarted = "GettingStarted.md";
       Icons = [];
       Libraries = [];
-      Samples = [] }
-"""
+      Samples = [] }"""

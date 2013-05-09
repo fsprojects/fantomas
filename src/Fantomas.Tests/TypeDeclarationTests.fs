@@ -9,8 +9,7 @@ open Fantomas.Tests.TestHelper
 [<Test>]
 let ``exception declations``() =
     formatSourceString false "exception Error2 of string * int" config
-    |> should equal """exception Error2 of string * int
-"""
+    |> should equal """exception Error2 of string * int"""
 
 [<Test>]
 let ``type annotations``() =
@@ -27,8 +26,7 @@ let iterate1(f : unit -> seq<int>) =
 
 let iterate2(f : unit -> #seq<int>) = 
     for e in f() do
-        printfn "%d" e
-"""
+        printfn "%d" e"""
 
 [<Test>]
 let ``upcast and downcast``() =
@@ -38,8 +36,7 @@ let ``upcast and downcast``() =
     |> prepend newline
     |> should equal """
 let base1 = d1 :> Base1
-let derived1 = base1 :?> Derived1
-"""
+let derived1 = base1 :?> Derived1"""
 
 [<Test>]
 let ``optional arguments``() =
@@ -67,8 +64,7 @@ type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) =
             | Full -> 9600
             | Half -> 4800
     
-    do printfn "Baud Rate: %d Duplex: %A Parity: %b" rate duplex parity
-"""
+    do printfn "Baud Rate: %d Duplex: %A Parity: %b" rate duplex parity"""
 
 [<Test>]
 let ``method params``() =
@@ -85,8 +81,7 @@ type Test() =
 type Test() = 
     member this.Function1<'a>(x, y) = printfn "%A, %A" x y
     abstract abstractMethod<'a, 'b> : 'a * 'b -> unit
-    override this.abstractMethod<'a, 'b>(x : 'a, y : 'b) = printfn "%A, %A" x y
-"""
+    override this.abstractMethod<'a, 'b>(x : 'a, y : 'b) = printfn "%A, %A" x y"""
 
 [<Test>]
 let ``params arguments``() =
@@ -100,8 +95,7 @@ type X() =
 type X() = 
     member this.F([<ParamArray>] args : Object[]) = 
         for arg in args do
-            printfn "%A" arg
-"""
+            printfn "%A" arg"""
 
 [<Test>]
 let ``generic types``() =
@@ -139,8 +133,7 @@ type public MyClass<'a> public (x, y) as this =
         with get () = z
         and set (a) = z <- a
     
-    member self.Method(a, b) = x + y + z + a + b
-"""
+    member self.Method(a, b) = x + y + z + a + b"""
 
 [<Test>]
 let ``struct declaration``() =
@@ -160,8 +153,7 @@ type Point2D =
         new(x : float, y : float) = 
             { X = x;
               Y = y }
-    end
-"""
+    end"""
 
 [<Test>]
 let ``abstract and override keywords``() =
@@ -185,8 +177,7 @@ type MyClassBase1() =
 
 type MyClassDerived1() = 
     inherit MyClassBase1()
-    override u.function1(a : int) = a + 1
-"""
+    override u.function1(a : int) = a + 1"""
 
 [<Test>]
 let ``intrinsic type extensions``() =
@@ -202,8 +193,7 @@ type MyClass() =
     member this.F() = 100
 
 type MyClass with
-    member this.G() = 200
-"""
+    member this.G() = 200"""
 
 [<Test>]
 let ``optional type extensions``() =
@@ -216,8 +206,7 @@ type System.Int32 with
     |> should equal """
 /// Define a new member method FromString on the type Int32. 
 type System.Int32 with
-    member this.FromString(s : string) = System.Int32.Parse(s)
-"""
+    member this.FromString(s : string) = System.Int32.Parse(s)"""
 
 [<Test>]
 let ``auto property``() =
@@ -229,8 +218,7 @@ type MyClass(property1 : int) =
     |> should equal """
 type MyClass(property1 : int) = 
     member val Property1 = property1
-    member val Property2 = "" with get, set
-"""
+    member val Property2 = "" with get, set"""
 
 [<Test>]
 let ``property handling``() =
@@ -247,8 +235,7 @@ type Derived1() =
     
     override this.Property1 
         with get () = value
-        and set (v : int) = value <- v
-"""
+        and set (v : int) = value <- v"""
 
 [<Test>]
 let ``types with attributes``() =
@@ -272,8 +259,7 @@ type MyType() =
         myInt1 <- i
         this.myInt2 <- i + 1
         this.myString <- str
-        printfn "%d %d %s" myInt1 (this.myInt2) (this.myString)
-"""
+        printfn "%d %d %s" myInt1 (this.myInt2) (this.myString)"""
 
 [<Test>]
 let ``named arguments``() =
@@ -293,8 +279,7 @@ let CalculateFine(ticket : SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
     if delta < 20
     then 50.0
-    else 100.0
-"""
+    else 100.0"""
 
 [<Test>]
 let ``indexed properties``() =
@@ -327,8 +312,7 @@ type NumberStrings() =
     
     member this.Cardinal 
         with get (index) = cardinals.[index]
-        and set index value = cardinals.[index] <- value
-"""
+        and set index value = cardinals.[index] <- value"""
 
 [<Test>]
 let ``complex indexed properties``() =
@@ -358,8 +342,7 @@ type SparseMatrix() =
 let matrix1 = new SparseMatrix()
 
 for i in 1..1000 do
-    matrix1.[i, i] <- float i * float i
-"""
+    matrix1.[i, i] <- float i * float i"""
 
 [<Test>]
 let ``type constraints simple``() =
@@ -433,8 +416,7 @@ type Class13<'T when 'T : unmanaged> =
 
 type Class14<'T, 'U when 'T : equality and 'U : equality> = 
     class
-    end
-"""
+    end"""
 
 [<Test>]
 let ``then blocks after constructors``() =
@@ -451,6 +433,7 @@ type Person(nameIn : string, idIn : int) =
             printfn "Created an invalid person object."
             """ config
     |> prepend newline
+    |> append newline
     |> should equal """
 type Person(nameIn : string, idIn : int) = 
     let mutable name = nameIn
@@ -482,12 +465,15 @@ type U = U of (int * int)
     |> prepend newline
     |> should equal """
 type Delegate1 = delegate of (int * int) * (int * int) -> int
+
 type Delegate2 = delegate of int * int -> int
+
 type Delegate3 = delegate of int -> (int -> int)
+
 type Delegate4 = delegate of int -> int -> int
+
 type U = 
-    | U of (int * int)
-"""
+    | U of (int * int)"""
 
 [<Test>]
 let ``should keep the ? in optional parameters``() =
@@ -500,8 +486,7 @@ let ``should keep the ? in optional parameters``() =
     |> should equal """type Shell() = 
     static member private GetParams(cmd, ?args) = doStuff
     static member Exec(cmd, ?args) = 
-        shellExec(Shell.GetParams(cmd, ?args = args))
-"""
+        shellExec(Shell.GetParams(cmd, ?args = args))"""
 
 [<Test>]
 let ``should add space before argument on given config``() =
@@ -518,5 +503,4 @@ let f (x: int) = x
 
 type t (x: int) = 
     class
-    end
-"""
+    end"""

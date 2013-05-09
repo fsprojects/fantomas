@@ -141,6 +141,20 @@ let rec (|OneLinerLetL|_|) = function
     | Let(OneLinerBinding _) as x::ys -> Some([x], ys)
     | _ -> None
 
+let (|MultilineModuleDecl|_|) = function
+    | DoExpr _
+    | Attributes _
+    | HashDirective _
+    | ModuleAbbrev _
+    | Open _
+    | Let(OneLinerBinding _) -> None
+    | md -> Some md
+
+let rec (|MultilineModuleDeclL|_|) = function
+    | MultilineModuleDecl x::MultilineModuleDeclL(xs, ys) -> Some(x::xs, ys)
+    | MultilineModuleDecl x::ys -> Some([x], ys)
+    | _ -> None
+
 /// Gather PropertyGetSet in one printing call. 
 /// Assume that PropertySet comes right after PropertyGet.
 let (|PropertyWithGetSet|_|) = function

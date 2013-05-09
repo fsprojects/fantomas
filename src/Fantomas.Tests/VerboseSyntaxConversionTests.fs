@@ -28,5 +28,4 @@ let f x =
     let r = x % div2
     if r = 1
     then ("Odd")
-    else ("Even")
-"""
+    else ("Even")"""

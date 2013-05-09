@@ -36,44 +36,41 @@ and genSigModuleOrNamespace(SigModuleOrNamespace (ats, px, ao, s, mds, isModule)
     +> col sepNln mds genSigModuleDecl
 
 and genModuleDeclList = function
-    | DoExprAttributesL(xs, []) 
-    | HashDirectiveL(xs, []) 
-    | ModuleAbbrevL(xs, []) 
-    | OpenL(xs, []) 
-    | OneLinerLetL(xs, []) ->
-        col sepNone xs genModuleDecl
+    | [x] -> genModuleDecl x
 
     | DoExprAttributesL(xs, ys) 
     | HashDirectiveL(xs, ys) 
     | ModuleAbbrevL(xs, ys) 
-    | OpenL(xs, ys)
+    | OpenL(xs, ys) 
     | OneLinerLetL(xs, ys) ->
-        col sepNone xs genModuleDecl +> sepNln +> genModuleDeclList ys
+        match ys with
+        | [] -> col sepNln xs genModuleDecl
+        | _ -> col sepNln xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys
 
-    | [x] ->
-        genModuleDecl x
-    | x::xs ->
-        genModuleDecl x +> sepNln +> genModuleDeclList xs
-    | [] -> sepNone    
+    | MultilineModuleDeclL(xs, ys) ->
+        match ys with
+        | [] -> col (rep 2 sepNln) xs genModuleDecl
+        | _ -> col (rep 2 sepNln) xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys
+    | _ -> sepNone    
 
 and genModuleDecl = function
     | Attributes(ats) ->
-        col sepNln ats genAttribute +> sepNln
+        col sepNln ats genAttribute
     | DoExpr(e) ->
-        genExpr e +> sepNln
+        genExpr e
     | Exception(ex) ->
-        genException ex +> sepNln
+        genException ex
     | HashDirective(p) -> 
-        genParsedHashDirective p +> sepNln
+        genParsedHashDirective p
     /// Add a new line after module-level let bindings
     | Let(b) ->
-        genLetBinding "let " b +> sepNln
+        genLetBinding "let " b
     | LetRec(b::bs) -> 
         genLetBinding "let rec " b 
-        +> colPre (rep 2 sepNln) (rep 2 sepNln) bs (genLetBinding "and ") +> sepNln
+        +> colPre (rep 2 sepNln) (rep 2 sepNln) bs (genLetBinding "and ")
 
     | ModuleAbbrev(s1, s2) ->
-        !- "module " -- s1 +> sepEq -- s2 +> sepNln
+        !- "module " -- s1 +> sepEq -- s2
     | NamespaceFragment(m) ->
         failwithf "NamespaceFragment hasn't been implemented yet: %O" m
     | NestedModule(ats, px, ao, s, mds) -> 
@@ -82,22 +79,22 @@ and genModuleDecl = function
         +> indent +> sepNln +> genModuleDeclList mds +> unindent
 
     | Open(s) ->
-        !- (sprintf "open %s" s) +> sepNln
-    /// There is no nested types and they have newlines in the ends of definitions
+        !- (sprintf "open %s" s)
+    /// There is no nested types and they are recursive if there are more than one definition
     | Types(t::ts) ->
-        genTypeDefn true t +> colPre sepNln sepNln ts (genTypeDefn false)
+        genTypeDefn true t +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genTypeDefn false)
     | md ->
         failwithf "Unexpected module declaration: %O" md
 
 and genSigModuleDecl = function
     | SigException(ex) ->
-        genSigException ex +> sepNln
+        genSigException ex
     | SigHashDirective(p) -> 
-        genParsedHashDirective p +> sepNln
+        genParsedHashDirective p
     | SigVal(v) ->
-        genVal v +> sepNln
+        genVal v
     | SigModuleAbbrev(s1, s2) ->
-        !- "module " -- s1 +> sepEq -- s2 +> sepNln
+        !- "module " -- s1 +> sepEq -- s2
     | SigNamespaceFragment(m) ->
         failwithf "NamespaceFragment is not supported yet: %O" m
     | SigNestedModule(ats, px, ao, s, mds) -> 
@@ -106,9 +103,9 @@ and genSigModuleDecl = function
         +> indent +> sepNln +> col sepNln mds genSigModuleDecl +> unindent
 
     | SigOpen(s) ->
-        !- (sprintf "open %s" s) +> sepNln
+        !- (sprintf "open %s" s)
     | SigTypes(t::ts) ->
-        genSigTypeDefn true t +> colPre sepNln sepNln ts (genSigTypeDefn false)
+        genSigTypeDefn true t +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genSigTypeDefn false)
     | md ->
         failwithf "Unexpected module signature declaration: %O" md
 
@@ -194,21 +191,18 @@ and genPropertyWithGetSet inter (b1, b2) =
 and genMemberBindingList inter = function
     | [x] -> genMemberBinding inter x
 
-    | MultilineBindingL(xs, []) ->
-        sepNln +> col (rep 2 sepNln) xs (function 
-                       | Pair(x1, x2) -> genPropertyWithGetSet inter (x1, x2) 
-                       | Single x -> genMemberBinding inter x)
-
     | MultilineBindingL(xs, ys) ->
-        sepNln +> col (rep 2 sepNln) xs (function 
-                       | Pair(x1, x2) -> genPropertyWithGetSet inter (x1, x2) 
-                       | Single x -> genMemberBinding inter x)
-        +> rep 2 sepNln +> genMemberBindingList inter ys
+        let prefix = sepNln +> col (rep 2 sepNln) xs (function 
+                                   | Pair(x1, x2) -> genPropertyWithGetSet inter (x1, x2) 
+                                   | Single x -> genMemberBinding inter x)
+        match ys with
+        | [] -> prefix
+        | _ -> prefix +> rep 2 sepNln +> genMemberBindingList inter ys
 
-    | OneLinerBindingL(xs, []) ->
-        col sepNln xs (genMemberBinding inter)
     | OneLinerBindingL(xs, ys) ->
-        col sepNln xs (genMemberBinding inter) +> sepNln +> genMemberBindingList inter ys
+        match ys with
+        | [] -> col sepNln xs (genMemberBinding inter)
+        | _ -> col sepNln xs (genMemberBinding inter) +> sepNln +> genMemberBindingList inter ys
     | _ -> sepNone
 
 and genMemberBinding inter = function
@@ -465,26 +459,26 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         +> col sepNln ecs (genEnumCase true)
         +> genMemberDefnList false ms
         /// Add newline after un-indent to be spacing-correct
-        +> unindent +> sepNln 
+        +> unindent
 
     | Simple(TDSRUnion(ao', xs)) ->
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepNln ao' genAccess 
         +> col sepNln xs (genUnionCase true)
         +> genMemberDefnList false ms
-        +> unindent +> sepNln
+        +> unindent
 
     | Simple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS 
         +> atCurrentColumn (col sepSemiNln fs (genField false "")) +> sepCloseS
         +> genMemberDefnList false ms 
-        +> unindent +> sepNln 
+        +> unindent 
 
     | Simple TDSRNone -> 
-        typeName +> sepNln
+        typeName
     | Simple(TDSRTypeAbbrev t) -> 
-        typeName +> sepEq +> genType t +> sepNln
+        typeName +> sepEq +> genType t
     | ObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others)) ->
         let inter =
             match tdk with
@@ -494,18 +488,18 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName +> optPre sepBeforeArg sepNone impCtor (genMemberDefn inter) +> sepEq 
         +> indent +> sepNln +> genTypeDefKind tdk
         +> indent +> genMemberDefnList inter others +> unindent
-        ++ "end" +> unindent +> sepNln
+        ++ "end" +> unindent
 
     | ObjectModel(TCSimple TCAugmentation, _) ->
         typeName -- " with" +> indent
         /// Remember that we use MemberDefn of parent node
-        +> genMemberDefnList false ms +> unindent +> sepNln
+        +> genMemberDefnList false ms +> unindent
 
     | ObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq -- "delegate of " +> genTypeList ts
     | ObjectModel(_, MemberDefnList(impCtor, others)) ->
         typeName +> optPre sepBeforeArg sepNone impCtor (genMemberDefn false) +> sepEq +> indent
-        +> genMemberDefnList false others +> unindent +> sepNln
+        +> genMemberDefnList false others +> unindent
 
 and genSigTypeDefn isFirst (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) = 
     let typeName = 
@@ -522,42 +516,42 @@ and genSigTypeDefn isFirst (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         +> col sepNln ecs (genEnumCase true)
         +> colPre sepNln sepNln ms genMemberSig
         /// Add newline after un-indent to be spacing-correct
-        +> unindent +> sepNln
+        +> unindent
          
     | SigSimple(TDSRUnion(ao', xs)) ->
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepNln ao' genAccess 
         +> col sepNln xs (genUnionCase true)
         +> colPre sepNln sepNln ms genMemberSig
-        +> unindent +> sepNln
+        +> unindent
 
     | SigSimple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS 
         +> atCurrentColumn (col sepSemiNln fs (genField false "")) +> sepCloseS
         +> colPre sepNln sepNln ms genMemberSig
-        +> unindent +> sepNln 
+        +> unindent 
 
     | SigSimple TDSRNone -> 
-        typeName +> sepNln
+        typeName
     | SigSimple(TDSRTypeAbbrev t) -> 
-        typeName +> sepEq +> genType t +> sepNln
+        typeName +> sepEq +> genType t
     | SigObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, mds) ->
         typeName +> sepEq +> indent +> sepNln +> genTypeDefKind tdk
         +> indent +> colPre sepNln sepNln mds genMemberSig +> unindent
-        ++ "end" +> unindent +> sepNln
+        ++ "end" +> unindent
 
     | SigObjectModel(TCSimple TCAugmentation, _) ->
         typeName -- " with" +> indent +> sepNln 
         /// Remember that we use MemberSig of parent node
-        +> col sepNln ms genMemberSig +> unindent +> sepNln
+        +> col sepNln ms genMemberSig +> unindent
 
     | SigObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq -- "delegate of " +> genTypeList ts
 
     | SigObjectModel(_, mds) -> 
         typeName +> sepEq +> indent +> sepNln 
-        +> col sepNln mds genMemberSig +> unindent +> sepNln
+        +> col sepNln mds genMemberSig +> unindent
 
 and genMemberSig = function
     | MSMember(Val(ats, px, ao, s, t, vi, _), mf) -> 

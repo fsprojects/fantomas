@@ -18,8 +18,7 @@ let ``match expressions``() =
 let filter123 x = 
     match x with
     | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
-    | a -> printfn "%d" a
-"""
+    | a -> printfn "%d" a"""
 
 [<Test>]
 let ``function keyword``() =
@@ -32,8 +31,7 @@ let ``function keyword``() =
 let filterNumbers = 
     function 
     | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
-    | a -> printfn "%d" a
-"""
+    | a -> printfn "%d" a"""
 
 [<Test>]
 let ``when clauses and as patterns``() =
@@ -55,8 +53,7 @@ let rangeTest testValue mid size =
 
 let (var1, var2) as tuple1 = (1, 2)
 
-printfn "%d %d %A" var1 var2 tuple1
-"""
+printfn "%d %d %A" var1 var2 tuple1"""
 
 [<Test>]
 let ``and & or patterns``() =
@@ -74,6 +71,7 @@ let detectZeroAND point =
     | _ -> printfn "Both nonzero."
 """  config
     |> prepend newline
+    |> append newline
     |> should equal """
 let detectZeroOR point = 
     match point with
@@ -107,6 +105,7 @@ let detectZeroTuple point =
     | _ -> printfn "Both nonzero."
 """  config
     |> prepend newline
+    |> append newline
     |> should equal """
 let countValues list value = 
     let rec checkList list acc = 
@@ -162,8 +161,7 @@ let ReadFromFile(reader : System.IO.StreamReader) =
         false
     | line -> 
         printfn "%s" line
-        true
-"""
+        true"""
 
 [<Test>]
 let ``record patterns``() =
@@ -183,5 +181,4 @@ type MyRecord =
 let IsMatchByName record1 (name : string) = 
     match record1 with
     | { MyRecord.Name = nameFound; ID = _ } when nameFound = name -> true
-    | _ -> false
-"""
+    | _ -> false"""

@@ -36,8 +36,7 @@ type Heap<'T when 'T : comparison> =
         member PeekMin : unit -> 'T
         override ToString : unit -> string
         member Count : int
-    end
-"""
+    end"""
 
 [<Test>]
 let ``type constraints complex``() =
@@ -69,8 +68,7 @@ type Class6<'T when 'T : (member Property1 : int)> =
     end
 
 type Class7<'T when 'T : (new : unit -> 'T)>() = 
-    member val Field = new 'T()
-"""
+    member val Field = new 'T()"""
 
 [<Test>]
 let ``abstract classes``() =
@@ -118,8 +116,7 @@ type Shape2D(x0 : float, y0 : float) =
         y <- y + dy
     
     abstract Rotate : float -> unit
-    override this.Rotate(angle) = rotAngle <- rotAngle + angle
-"""
+    override this.Rotate(angle) = rotAngle <- rotAngle + angle"""
 
 [<Test>]
 let ``class declaration``() =
@@ -148,8 +145,7 @@ type DerivedClass =
     inherit BaseClass
     val string2 : string
     new(str1, str2) = { string2 = str2 }
-    new(str2) = { string2 = str2 }
-"""
+    new(str2) = { string2 = str2 }"""
 
 [<Test>]
 let ``classes and implicit constructors``() =
@@ -164,8 +160,7 @@ let ``classes and implicit constructors``() =
 type MyClass2(dataIn) as self = 
     let data = dataIn
     do self.PrintMessage()
-    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data
-"""
+    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data"""
 
 [<Test>]
 let ``recursive classes``() =
@@ -188,8 +183,7 @@ type Folder(pathIn : string) =
 
 and File(filename : string, containingFolder : Folder) = 
     member __.Name = filename
-    member __.ContainingFolder = containingFolder
-"""
+    member __.ContainingFolder = containingFolder"""
 
 [<Test>]
 let ``classes and inheritance``() =
@@ -213,8 +207,7 @@ type MyClassDerived2(y : int) =
     inherit MyClassBase2(y * 2)
     do 
         for i in 1..y do
-            printf "%d " i
-"""
+            printf "%d " i"""
 
 [<Test>]
 let ``should keep parens in class definition in the right place``() =
@@ -224,8 +217,7 @@ let ``should keep parens in class definition in the right place``() =
     |> should equal """type DGMLClass() = 
     class
         let mutable currentState = System.String.Empty
-    end
-"""
+    end"""
 
 [<Test>]
 let ``should keep parens in class inheritance in the right place``() =
@@ -238,5 +230,4 @@ let ``should keep parens in class inheritance in the right place``() =
     class
         inherit DGMLClass()
         let functions = System.Collections.Generic.Dictionary<string, IState>()
-    end
-"""
+    end"""

@@ -9,8 +9,7 @@ open Fantomas.Tests.TestHelper
 [<Test>]
 let ``module abbreviation``() =
     formatSourceString false "module ES = Microsoft.FSharp.Quotations.ExprShape" config
-    |> should equal """module ES = Microsoft.FSharp.Quotations.ExprShape
-"""
+    |> should equal """module ES = Microsoft.FSharp.Quotations.ExprShape"""
 
 [<Test>]
 let ``module with functions``() =
@@ -18,8 +17,7 @@ let ``module with functions``() =
     |> prepend newline
     |> should equal """
 module internal MyModule = 
-    let x = 42
-    """
+    let x = 42"""
 
 [<Test>]
 let ``open modules``() =
@@ -29,9 +27,7 @@ let ``open modules``() =
     |> prepend newline
     |> should equal """
 open System
-open System.IO
-"""
-
+open System.IO"""
 
 [<Test>]
 let ``nested modules``() =
@@ -47,8 +43,7 @@ module Y =
     let x = 1
     
     module Z = 
-        let z = 5
-        """
+        let z = 5"""
 
 [<Test>]
 let ``sibling modules``() =
@@ -69,10 +64,9 @@ let topLevelX = 5
 
 module Inner1 = 
     let inner1X = 1
-    
+
 module Inner2 = 
-    let inner2X = 5
-    """
+    let inner2X = 5"""
 
 [<Test>]
 let ``module signatures``() =
@@ -94,20 +88,13 @@ end""" config
 module Utils
 
 val turnTracingOn : unit -> unit
-
 val turnTracingOff : unit -> unit
-
 val isTraced : unit -> bool
-
 module Random = 
     val exponential : mean:float -> float
-    
     val nextInt : max:int -> int
-    
     val nextInt64 : max:int64 -> int64
-    
-    val next : max:float -> float
-    """
+    val next : max:float -> float"""
 
 [<Test>]
 let ``namespace declaration``() =
@@ -121,6 +108,7 @@ module WidgetsModule =
     let widgetName = "Widget2"
     """ config
     |> prepend newline
+    |> append newline
     |> should equal """
 namespace Widgets
 
@@ -129,4 +117,4 @@ type MyWidget1 =
 
 module WidgetsModule = 
     let widgetName = "Widget2"
-    """
+"""

@@ -26,8 +26,7 @@ let f x =
     <|> if someveryveryveryverylongexpression
         then someveryveryveryverylongexpression
         else someveryveryveryverylongexpression
-    |> f
-"""
+    |> f"""
 
 // the current behavior results in a compile error since the |> is merged to the last line 
 [<Test>]
@@ -44,8 +43,7 @@ let m =
     match x with
     | y -> ErrorMessage msg
     | _ -> LogMessage(msg, true)
-    |> console.Write
-"""
+    |> console.Write"""
 
 [<Test>]
 let ``should break new lines on piping``() =
@@ -61,5 +59,4 @@ let runAll() =
     |> Seq.map fetchAsync
     |> Async.Parallel
     |> Async.RunSynchronously
-    |> ignore
-"""
+    |> ignore"""
