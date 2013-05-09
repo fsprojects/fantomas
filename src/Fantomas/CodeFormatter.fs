@@ -66,15 +66,47 @@ let tryProcessSourceFile inFile tw config =
     with 
     _ -> None
 
-/// Format a part of source string using given config; other parts are kept unchanged. 
-/// Notice that Line indices start at 1
-/// There is an offset -1 on EndColumn
+/// Convert from range to string positions
+let internal stringPos (r : range) (content : string) =
+    let positions = 
+        content.Split([|'\n'|], StringSplitOptions.None)
+        |> Seq.map (fun s -> String.length s + 1)
+        |> Seq.scan (+) 0
+        |> Seq.toArray
+
+    let start = positions.[r.StartLine-1] + r.StartColumn
+    let finish = positions.[r.EndLine-1] + r.EndColumn - 1
+    let s = content.[start..finish]
+    if s.Contains("\n") then
+        let lastLine = content.[positions.[r.EndLine-1]..finish]
+        let offset = lastLine.Length - lastLine.TrimStart(' ').Length
+        if finish + offset >= content.Length then (start, content.Length-1)
+        else (start, finish + offset)
+    else (start, finish)
+
+
+/// Make a range from (startLine, startCol) to (endLine, endCol) for selecting some text
+let makeRange startLine startCol endLine endCol =
+    mkRange "/tmp.fs" (mkPos startLine startCol) (mkPos endLine endCol)
+
+/// Format a selected part of source string using given config; keep other parts unchanged. 
+/// Notice that Line indices in range start at 1.
 let formatSelectionFromString fsi (r : range) (s : string) config =
     let lines = s.Split([|'\n'|], StringSplitOptions.None)
+
+    /// Assume that the range is passed from VS editor. 
+    /// We subtract an offset due to an issue with last line 's ranges.
+    let r = 
+        if r.StartLine <> r.EndLine then
+            let last = lines.[r.EndLine-1]
+            let offset = last.Length - last.TrimStart(' ').Length
+            makeRange r.StartLine r.StartColumn r.EndLine (r.EndColumn - offset)
+        else r
+
     let fileName = if fsi then "/tmp.fsi" else "/tmp.fs"
     let sourceTok = SourceTokenizer([], fileName)
 
-    let tokenizer = sourceTok.CreateLineTokenizer(lines.[r.StartLine-1])
+    let startTokenizer = sourceTok.CreateLineTokenizer(lines.[r.StartLine-1])
     /// Find out the starting token
     let rec getStartCol (tokenizer : LineTokenizer) nstate = 
         match tokenizer.ScanToken(!nstate) with
@@ -85,11 +117,10 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
                 nstate := state 
                 getStartCol tokenizer nstate
         | None, _ -> r.StartColumn 
-    let startCol = getStartCol tokenizer (ref 0L)
+    let startCol = getStartCol startTokenizer (ref 0L)
 
-    let tokenizer =
-        if r.StartLine = r.EndLine 
-        then tokenizer 
+    let endTokenizer =
+        if r.StartLine = r.EndLine then startTokenizer 
         else sourceTok.CreateLineTokenizer(lines.[r.EndLine-1])
 
     /// Find out the ending token
@@ -102,23 +133,22 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
                 nstate := state 
                 getEndCol tokenizer nstate
         | None, _ -> r.EndColumn 
-    let endCol = getEndCol tokenizer (ref 0L)
+    let endCol = getEndCol endTokenizer (ref 0L)
 
-    let context = Context.createContext config s
-    let range = mkRange fileName (mkPos r.StartLine startCol) (mkPos r.EndLine endCol)
-    let (start, finish) = stringPos range context
+    let range = makeRange r.StartLine startCol r.EndLine endCol
+    let (start, finish) = stringPos range s
     let pre = s.[0..start-1]
     let selection = s.[start..finish]
-    let post = s.[finish+1..]
+    let post = if s.[finish+1]='\n' then "\r" + s.[finish+1..] else s.[finish+1..]
 
-    printfn "pre: %O" pre
-    printfn "selection: %O" selection
-    printfn "post: %O" post
+    printfn "pre:\n%O" pre
+    printfn "selection:\n%O" selection
+    printfn "post:\n%O" post
 
     let tree = parse fsi selection
-    context 
+    Context.createContext config selection 
     |> str pre
-    |> atIndentLevel startCol (genParsedInput tree)
+    |> atIndentLevel (startCol-1) (genParsedInput tree)
     |> ifElse (s.[finish] = '\n') sepNln sepNone
     |> str post
     |> dump
