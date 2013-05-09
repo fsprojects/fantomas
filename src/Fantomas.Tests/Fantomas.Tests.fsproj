@@ -45,7 +45,7 @@
     <Compile Include="StringTests.fs" />
     <Compile Include="CommentTests.fs" />
     <Compile Include="OperatorTests.fs" />
-    <Compile Include="ComparisionTests.fs" />
+    <Compile Include="ComparisonTests.fs" />
     <Compile Include="ControlStructureTests.fs" />
     <Compile Include="PipingTests.fs" />
     <Compile Include="ModuleTests.fs" />
@@ -65,6 +65,7 @@
     <Compile Include="ComputationExpressionTests.fs" />
     <Compile Include="TypeProviderTests.fs" />
     <Compile Include="VerboseSyntaxConversionTests.fs" />
+    <Compile Include="FormattingSelectionTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Compiler">

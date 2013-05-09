@@ -6,6 +6,8 @@
 #load "CodePrinter.fs"
 #load "CodeFormatter.fs"
 
+open Microsoft.FSharp.Compiler.Range
+
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
@@ -27,21 +29,13 @@ for i in 1..1000 do
 """
 
 let t02 = """
-type NumberStrings() =
-   let mutable ordinals = [| "one"; |]
-   let mutable cardinals = [| "first"; |]
-   member this.Item
-      with get index = ordinals.[index]
-      and set index value = ordinals.[index] <- value
-   member this.Ordinal
-      with get(index) = ordinals.[index]
-      and set index value = ordinals.[index] <- value
-   member this.Cardinal
-      with get(index) = cardinals.[index]
-      and set index value = cardinals.[index] <- value
+let x = 2 + 3
+let y = 1+2
+let z = x + y
 """
 ;;
 
-printfn "Result:\n%s" <| formatSourceString false t02 config;;
+printfn "Result:\n%s" 
+<| formatSelectionFromString false (mkRange "/tmp.fs" (mkPos 3 8) (mkPos 3 12)) t02 config;;
 
 printfn "Tree:\n%A" <| parse false t02;;

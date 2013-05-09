@@ -5,9 +5,7 @@ open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.PrettyNaming
 open Fantomas.FormatConfig
 
-/// Get source string content based on range value
-let inline content (sc : SynConst) (c : Context) =
-    let r = sc.Range range.Zero
+let stringPos (r : range) (c : Context) =
     if r.EndLine <= c.Positions.Length then
         let start = c.Positions.[r.StartLine-1] + r.StartColumn
         let finish = c.Positions.[r.EndLine-1] + r.EndColumn - 1
@@ -17,13 +15,20 @@ let inline content (sc : SynConst) (c : Context) =
             /// Terrible hack to compensate the offset made by F# compiler
             let lastLine = content.[c.Positions.[r.EndLine-1]..finish]
             let offset = lastLine.Length - lastLine.TrimStart(' ').Length
-            if finish + offset > content.Length then content.[start..]
-            else content.[start..finish + offset]
-        else s
-    else ""
+            if finish + offset >= content.Length then (start, content.Length-1)
+            else (start, finish + offset)
+        else (start, finish)
+    else (-1, -1)
+
+/// Get source string content based on range value
+let inline content (sc : SynConst) (c : Context) =
+    let r = sc.Range range.Zero
+    match stringPos r c with
+    | (-1, -1) -> ""
+    | (start, finish) -> c.Content.[start..finish]
 
 /// Use infix operators in the short form
-let inline (|OpName|) s =
+let (|OpName|) s =
     let s' = DecompileOpName s
     if IsActivePatternName s then
         sprintf "(%s)" s'
@@ -36,7 +41,7 @@ let inline (|OpName|) s =
     else s'
 
 /// Operators in their declaration form
-let inline (|OpNameFull|) s =
+let (|OpNameFull|) s =
     let s' = DecompileOpName s
     if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
         /// Use two spaces for symmetry

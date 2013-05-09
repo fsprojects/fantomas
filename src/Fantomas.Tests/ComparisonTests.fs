@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.ComparisionTests
+﻿module Fantomas.Tests.ComparisonTests
 
 open NUnit.Framework
 open FsUnit
