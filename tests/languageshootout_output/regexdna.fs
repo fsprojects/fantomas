@@ -9,11 +9,8 @@ open System.Text.RegularExpressions
 open System.Threading
 
 let regex s = Regex(s, RegexOptions.Compiled)
-
 let input = stdin.ReadToEnd()
-
 let withoutComments = (regex ">.*\n").Replace(input, "")
-
 let text = (regex "\n").Replace(withoutComments, "")
 
 let rec onblocks res s = 

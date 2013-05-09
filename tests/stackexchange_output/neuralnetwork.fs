@@ -2,11 +2,8 @@
 module nnbasic
 
 let mutable neuroninput = [0.0; 0.0]
-
 let mutable weight = [0.4; 0.6]
-
 let rate = 0.2
-
 let threeshold = 2.0
 
 let matrix = 
@@ -26,7 +23,6 @@ let output(_ni : float list, _wi : float list) =
   else 1.0
 
 let mutable iter = 0
-
 let mutable out = 0.0
 
 while iter < 100 do

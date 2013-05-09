@@ -15,9 +15,7 @@
 module Threadring
 
 let NumberOfThreads = 503
-
 let mutable (workers : Async<unit>[]) = null
-
 let mutable token = -1
 
 let createWorker i = 

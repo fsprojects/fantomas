@@ -8,11 +8,8 @@
 module Threadring
 
 let ringLength = 503
-
 let cells = Array.zeroCreate ringLength
-
 let threads = Array.zeroCreate ringLength
-
 let answer = ref -1
 
 let createWorker i = 

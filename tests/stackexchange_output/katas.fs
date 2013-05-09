@@ -21,10 +21,12 @@ module NaturalSortKata =
     | NumberType
     | StringType
     | Unknown
+    
     static member GetType(c : char) = 
       if System.Char.IsDigit(c)
       then NumberType
       else StringType
+    
     member this.Compare other = 
       match other with
       | ty when ty = this -> Equal

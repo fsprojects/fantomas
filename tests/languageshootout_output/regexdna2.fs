@@ -7,9 +7,7 @@ module Regexdna
 open System.Text.RegularExpressions
 
 let regex s = Regex(s, RegexOptions.Compiled)
-
 let input = stdin.ReadToEnd()
-
 let text = (regex ">.*\n|\n").Replace(input, "")
 
 ["agggtaaa|tttaccct"

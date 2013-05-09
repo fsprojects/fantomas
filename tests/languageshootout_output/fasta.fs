@@ -5,11 +5,8 @@
 module Fasta
 
 let im = 139968
-
 let ia = 3877
-
 let ic = 29573
-
 let mutable seed = 42
 
 let inline random max = 
@@ -62,11 +59,8 @@ let inline selectRandom(f : _[]) =
   find <| f.Length - 1
 
 let width = 60
-
 let stream = System.Console.OpenStandardOutput()
-
 let buffer = Array.create 1024 0uy
-
 let mutable index = 0
 
 let inline flush() = 

@@ -11,13 +11,9 @@ open System.Threading
 open System.IO
 
 let mutable N = 200
-
 let mutable width_bytes = 0
-
 let mutable data : byte array array = null
-
 let mutable nbyte_each_line : int array = null
-
 let current_line = ref -1
 
 let Calculate() = 

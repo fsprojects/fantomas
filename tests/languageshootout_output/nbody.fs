@@ -5,9 +5,7 @@
 module Nbody
 
 let pi = 3.141592654
-
 let daysPerYear = 365.24
-
 let solarMass = 4.0 * pi ** 2.0
 
 type Planet = 

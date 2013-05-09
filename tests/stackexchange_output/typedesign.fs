@@ -5,11 +5,13 @@ type Metrics =
   | Revenue
   | Volume
   | PriceAsp
+  
   member m.FormatGroupings = 
     match m with
     | Revenue -> [("revenue", """$sum: { "$Amount" }" """)]
     | Volume -> [("volume", """$sum: { "$Quantity" }" """)]
     | PriceAsp -> List.append Revenue.FormatGroupings Volume.FormatGroupings
+  
   member m.FormatProjections = 
     match m with
     | Revenue -> [("revenue", "$revenue")]

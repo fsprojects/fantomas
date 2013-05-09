@@ -124,29 +124,17 @@ let test (initialState : State) (brickInfo : Brick[])
   Console.WriteLine(solveDFS initialState (0, Right) 0)
 
 let x0 = ('a', 2)
-
 let x1 = ('b', 2)
-
 let x2 = ('c', 3)
-
 let x3 = ('d', 2)
-
 let x4 = ('e', 2)
-
 let x5 = ('f', 1)
-
 let x6 = ('g', 2)
-
 let x7 = ('h', 2)
-
 let x8 = ('i', 2)
-
 let x9 = ('j', 2)
-
 let x10 = ('k', 3)
-
 let x11 = ('l', 3)
-
 let brickInfo = [|x0; x1; x2; x3; x4; x5; x6; x7; x8; x9; x10; x11|]
 
 let horizontalBricks = 
@@ -166,33 +154,19 @@ let verticalBricks =
     [|11|]|]
 
 let rowNum = 6
-
 let columnNum = 6
-
 let p0 = (3, 0)
-
 let p1 = (5, 0)
-
 let p2 = (4, 0)
-
 let p3 = (1, 0)
-
 let p4 = (0, 0)
-
 let p5 = (0, 2)
-
 let p6 = (2, 2)
-
 let p7 = (1, 3)
-
 let p8 = (2, 4)
-
 let p9 = (4, 4)
-
 let p10 = (3, 3)
-
 let p11 = (1, 5)
-
 let initialState = [|p0; p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11|]
 
 [<EntryPoint>]

@@ -12,6 +12,7 @@ let ringLength = 503
 type AutoResetCell() = 
   let mutable value = -1
   let mutable run = None
+  
   member this.RegisterResult res = 
     let grabbed = 
       lock this (fun () -> 
@@ -25,6 +26,7 @@ type AutoResetCell() =
     match grabbed with
     | None -> ()
     | Some run -> run res
+  
   member this.AsyncResult = 
     Async.FromContinuations(fun (success, _, _) -> 
         let runNow = 

@@ -14,11 +14,8 @@ open System
 open System.Threading
 
 let mutable n = 0
-
 let mutable flip_max_arr : int array = null
-
 let remain_task = ref -1
-
 let threads = Environment.ProcessorCount
 
 /// Return next permut, by rotating elements [0 - position] one 'step'

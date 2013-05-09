@@ -25,6 +25,7 @@ type fannkuch(n) =
   let count = Array.create n 0
   let mutable flips = 0
   let mutable cksum = 0
+  
   let rec direct idx i = 
     if i > 0
     then 
@@ -37,6 +38,7 @@ type fannkuch(n) =
       for j = 0 to d - 1 do
         p.[j + i + 1 - d] <- pp.[j]
       direct (idx % F.[i]) (i - 1)
+  
   let permute() = 
     let mutable first = p.[1]
     p.[1] <- p.[0]
@@ -53,6 +55,7 @@ type fannkuch(n) =
       p.[i] <- first
       first <- next
       count.[i] <- count.[i] + 1
+  
   let fcount() = 
     let mutable flips = 1
     let mutable first = p.[0]
@@ -74,6 +77,7 @@ type fannkuch(n) =
         pp.[first] <- first
         first <- t
     flips
+  
   member x.runTask(task, chunk) = 
     let lo = int64(task) * chunk
     let hi = min F.[n] (lo + chunk)

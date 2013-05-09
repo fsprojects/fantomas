@@ -10,14 +10,10 @@ open System
 open System.Numerics
 
 let id = 1I, 0I, 0I, 1I
-
 let inline compose (q, r, s, t) (u, v, x) = 
   (q * u, q * v + r * x, s * u, s * v + t * x)
-
 let inline extract (q, r, s, t) x = BigInteger.Divide(q * x + r, s * x + t)
-
 let inline next z = extract z 3I
-
 let inline safe z y = extract z 4I = y
 
 let inline product (u, v, w, x) n = 
