@@ -82,7 +82,7 @@ For detailed guidelines, please read [Fantomas: How to use](Usage.md).
 [FantomasWeb](https://github.com/TahaHachana/FantomasWeb), implemented by [Taha Hachana](https://github.com/TahaHachana), is accessible at http://fantomasweb.apphb.com/. Please try out Fantomas on this nice website and provide feedbacks.
 
 ### VS 2012 Add-In
-[Ivan Towlson](https://github.com/itowlson) is developing Fantomas add-in under [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
+[Ivan Towlson](https://github.com/itowlson) is developing Fantomas Add-In under [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
 
 ## Installation
 The code base is written in F# 3.0/.NET framework 4.0. 
@@ -93,7 +93,7 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ## Testing and validation
 We have tried to be careful in testing the project.
-There are 134 unit tests and 30 validated test examples, 
+There are 137 unit tests and 30 validated test examples, 
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
@@ -112,9 +112,11 @@ Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting
 ## Getting involved
 Would like to contribute? Read [the formatting conventions](FormattingConventions.md) and [the Usage notes](Usage.md) and discuss on [the issues](../../issues). You can fork the GitHub repository and send a pull request.
 
-## Acknowledgments
-We would like to gratefully thank [EricGT](https://github.com/EricGT) for his comments and feedbacks from the early stage.
-Without his help, this project will not complete, let alone be useful.
+## Credits
+We would like to gratefully thank the following people for their contributions.
+ - [Eric Taucher](https://github.com/EricGT)
+ - [Steffen Forkmann](https://github.com/forki)
+ - [Jack Pappas](https://github.com/jack-pappas)
 
 ## License
 The library and tool are available under Apache 2.0 license. 
