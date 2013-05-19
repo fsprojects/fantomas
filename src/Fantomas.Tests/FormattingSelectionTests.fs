@@ -43,3 +43,14 @@ let rangeTest testValue mid size =
     | _ -> printfn "The test value is out of range."
 
 let (var1, var2) as tuple1 = (1, 2)"""
+
+[<Test>]
+let ``should format a top-level let correctly``() =
+    formatSelectionFromString false (makeRange 3 0 3 11) """
+let x = 2 + 3
+let y = 1+2
+let z = x + y""" config
+    |> should equal """
+let x = 2 + 3
+let y = 1 + 2
+let z = x + y"""

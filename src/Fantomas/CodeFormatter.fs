@@ -90,7 +90,7 @@ let makeRange startLine startCol endLine endCol =
     mkRange "/tmp.fs" (mkPos startLine startCol) (mkPos endLine endCol)
 
 /// Format a selected part of source string using given config; keep other parts unchanged. 
-/// Notice that Line indices in range start at 1.
+/// Notice that Line indices start at 1 while Column indices start at 0.
 let formatSelectionFromString fsi (r : range) (s : string) config =
     let lines = s.Split([|'\n'|], StringSplitOptions.None)
 
@@ -141,14 +141,14 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     let selection = s.[start..finish]
     let post = if s.[finish+1]='\n' then "\r" + s.[finish+1..] else s.[finish+1..]
 
-    printfn "pre:\n%O" pre
-    printfn "selection:\n%O" selection
-    printfn "post:\n%O" post
+//    printfn "pre:\n%O" pre
+//    printfn "selection:\n%O" selection
+//    printfn "post:\n%O" post
 
     let tree = parse fsi selection
     Context.createContext config selection 
     |> str pre
-    |> atIndentLevel (startCol-1) (genParsedInput tree)
+    |> atIndentLevel startCol (genParsedInput tree)
     |> ifElse (s.[finish] = '\n') sepNln sepNone
     |> str post
     |> dump
