@@ -78,26 +78,42 @@ let internal stringPos (r : range) (content : string) =
     let finish = positions.[r.EndLine-1] + r.EndColumn
     (start, finish)
 
-
 /// Make a range from (startLine, startCol) to (endLine, endCol) for selecting some text
 let makeRange startLine startCol endLine endCol =
     mkRange "/tmp.fs" (mkPos startLine startCol) (mkPos endLine endCol)
 
 /// Format a selected part of source string using given config; keep other parts unchanged. 
-/// Notice that Line indices start at 1 while Column indices start at 0.
 let formatSelectionFromString fsi (r : range) (s : string) config =
     let lines = s.Split([|'\n'|], StringSplitOptions.None)
+
+    /// Get first non-whitespace line
+    let rec getStartLine i =
+        if i = lines.Length-1 || not <| String.IsNullOrWhiteSpace(lines.[i]) then i
+        else getStartLine(i + 1)
+    let startLine = getStartLine(r.StartLine - 1)
+    let startOffset = startLine - (r.StartLine - 1)
+
+    let rec getEndLine i =
+        if i = 0 || not <| String.IsNullOrWhiteSpace(lines.[i]) then i
+        else getEndLine(i - 1)
+    let endLine = getEndLine(r.EndLine - 1)
+    let endOffset = (r.EndLine - 1) - endLine
 
     let fileName = if fsi then "/tmp.fsi" else "/tmp.fs"
     let sourceTok = SourceTokenizer([], fileName)
 
-    let startTokenizer = sourceTok.CreateLineTokenizer(lines.[r.StartLine-1])
+    let startTokenizer = sourceTok.CreateLineTokenizer(lines.[startLine])
+
+    let isStartToken (tok : TokenInformation) =
+        tok.CharClass <> TokenCharKind.WhiteSpace && 
+        tok.CharClass <> TokenCharKind.LineComment &&
+        tok.CharClass <> TokenCharKind.Comment
+
     /// Find out the starting token
     let rec getStartCol (tokenizer : LineTokenizer) nstate = 
         match tokenizer.ScanToken(!nstate) with
         | Some(tok), state ->
-            if tok.LeftColumn <= r.StartColumn && tok.RightColumn >= r.StartColumn 
-            then tok.LeftColumn
+            if tok.RightColumn >= r.StartColumn && isStartToken tok then tok.LeftColumn
             else
                 nstate := state 
                 getStartCol tokenizer nstate
@@ -105,8 +121,8 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     let startCol = getStartCol startTokenizer (ref 0L)
 
     let endTokenizer =
-        if r.StartLine = r.EndLine then startTokenizer 
-        else sourceTok.CreateLineTokenizer(lines.[r.EndLine-1])
+        if startLine = endLine then startTokenizer 
+        else sourceTok.CreateLineTokenizer(lines.[endLine])
 
     /// Find out the ending token
     let rec getEndCol (tokenizer : LineTokenizer) nstate = 
@@ -117,27 +133,27 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
             printfn "End tok:%A" tok
 #endif
 
-            if tok.RightColumn >= r.EndColumn 
-            then tok.RightColumn
+            if tok.RightColumn >= r.EndColumn then tok.RightColumn
             else
                 nstate := state 
                 getEndCol tokenizer nstate
         | None, _ -> r.EndColumn 
     let endCol = getEndCol endTokenizer (ref 0L)
 
-    let range = makeRange r.StartLine startCol r.EndLine endCol
+    /// Notice that Line indices start at 1 while Column indices start at 0.
+    let range = makeRange (startLine + 1) startCol (endLine + 1) endCol
     let (start, finish) = stringPos range s
     let pre = s.[0..start-1]
 
     /// Patch selection by an appropriate amount of whitespace
     let selection = 
         let sel = s.[start..finish]
-        if r.StartLine = r.EndLine then sel
+        if startLine = endLine then sel
         else (new String(' ', startCol)) + sel
 
     let post = 
-        if finish+1 < s.Length && s.[finish+1]='\n' then "\r" + s.[finish+1..] 
-        elif finish+1 < s.Length then s.[finish+1..]
+        if finish + 1 < s.Length && s.[finish + 1]='\n' then "\r" + s.[finish + 1..] 
+        elif finish + 1 < s.Length then s.[finish + 1..]
         else ""
 
 #if DEBUG
@@ -147,10 +163,13 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
 #endif
 
     let tree = parse fsi selection
+
     Context.createContext config selection 
     |> str pre
+    |> rep startOffset sepNln
     |> atIndentLevel startCol (genParsedInput tree)
     |> ifElse (s.[finish] = '\n') sepNln sepNone
+    |> rep endOffset sepNln
     |> str post
     |> dump
 
