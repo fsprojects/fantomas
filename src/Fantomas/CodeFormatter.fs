@@ -75,14 +75,8 @@ let internal stringPos (r : range) (content : string) =
         |> Seq.toArray
 
     let start = positions.[r.StartLine-1] + r.StartColumn
-    let finish = positions.[r.EndLine-1] + r.EndColumn - 1
-    let s = content.[start..finish]
-    if s.Contains("\n") then
-        let lastLine = content.[positions.[r.EndLine-1]..finish]
-        let offset = lastLine.Length - lastLine.TrimStart(' ').Length
-        if finish + offset >= content.Length then (start, content.Length-1)
-        else (start, finish + offset)
-    else (start, finish)
+    let finish = positions.[r.EndLine-1] + r.EndColumn
+    (start, finish)
 
 
 /// Make a range from (startLine, startCol) to (endLine, endCol) for selecting some text
@@ -94,15 +88,6 @@ let makeRange startLine startCol endLine endCol =
 let formatSelectionFromString fsi (r : range) (s : string) config =
     let lines = s.Split([|'\n'|], StringSplitOptions.None)
 
-    /// Assume that the range is passed from VS editor. 
-    /// We subtract an offset due to an issue with last line 's ranges.
-    let r = 
-        if r.StartLine <> r.EndLine then
-            let last = lines.[r.EndLine-1]
-            let offset = last.Length - last.TrimStart(' ').Length
-            makeRange r.StartLine r.StartColumn r.EndLine (r.EndColumn - offset)
-        else r
-
     let fileName = if fsi then "/tmp.fsi" else "/tmp.fs"
     let sourceTok = SourceTokenizer([], fileName)
 
@@ -111,7 +96,7 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     let rec getStartCol (tokenizer : LineTokenizer) nstate = 
         match tokenizer.ScanToken(!nstate) with
         | Some(tok), state ->
-            if tok.LeftColumn <= r.StartColumn && tok.RightColumn > r.StartColumn 
+            if tok.LeftColumn <= r.StartColumn && tok.RightColumn >= r.StartColumn 
             then tok.LeftColumn
             else
                 nstate := state 
@@ -127,7 +112,12 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     let rec getEndCol (tokenizer : LineTokenizer) nstate = 
         match tokenizer.ScanToken(!nstate) with
         | Some(tok), state ->
-            if tok.LeftColumn < r.EndColumn && tok.RightColumn >= r.EndColumn 
+
+#if DEBUG
+            printfn "End tok:%A" tok
+#endif
+
+            if tok.RightColumn >= r.EndColumn 
             then tok.RightColumn
             else
                 nstate := state 
@@ -139,11 +129,16 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     let (start, finish) = stringPos range s
     let pre = s.[0..start-1]
     let selection = s.[start..finish]
-    let post = if s.[finish+1]='\n' then "\r" + s.[finish+1..] else s.[finish+1..]
+    let post = 
+        if finish+1 < s.Length && s.[finish+1]='\n' then "\r" + s.[finish+1..] 
+        elif finish+1 < s.Length then s.[finish+1..]
+        else ""
 
-//    printfn "pre:\n%O" pre
-//    printfn "selection:\n%O" selection
-//    printfn "post:\n%O" post
+#if DEBUG
+    printfn "pre:\n%O" pre
+    printfn "selection:\n%O" selection
+    printfn "post:\n%O" post
+#endif
 
     let tree = parse fsi selection
     Context.createContext config selection 

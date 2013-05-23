@@ -28,7 +28,7 @@ let ``should format a whole line correctly and preserve indentation``() =
 
 [<Test>]
 let ``should format a few lines correctly and preserve indentation``() =
-    formatSelectionFromString false (makeRange 3 5 5 52) """
+    formatSelectionFromString false (makeRange 3 5 5 51) """
 let rangeTest testValue mid size =
     match testValue with
     | var1 when var1 >= mid - size/2 && var1 <= mid + size/2 -> printfn "The test value is in range."
@@ -54,3 +54,70 @@ let z = x + y""" config
 let x = 2 + 3
 let y = 1 + 2
 let z = x + y"""
+
+[<Test>]
+let ``should ignore whitespace at the beginning of lines``() =
+    formatSelectionFromString false (makeRange 3 3 3 27) """
+type Product' (backlogItemId) =
+    let mutable ordering = 0
+    let mutable version = 0
+    let backlogItems = []""" config
+    |> should equal """
+type Product' (backlogItemId) =
+    let mutable ordering = 0
+    let mutable version = 0
+    let backlogItems = []"""
+
+[<Test>]
+let ``should parse a complete expression correctly``() =
+    formatSelectionFromString false (makeRange 4 0 5 35) """
+open Fantomas.CodeFormatter
+
+let config = { FormatConfig.Default with 
+                IndentSpaceNum = 2 }
+
+let source = "
+    let Multiple9x9 () = 
+      for i in 1 .. 9 do
+        printf \"\\n\";
+        for j in 1 .. 9 do
+          let k = i * j in
+          printf \"%d x %d = %2d \" i j k;
+          done;
+      done;;
+    Multiple9x9 ();;"
+"""     config
+    |> should equal """
+open Fantomas.CodeFormatter
+
+let config = { FormatConfig.Default with IndentSpaceNum = 2 }
+
+let source = "
+    let Multiple9x9 () = 
+      for i in 1 .. 9 do
+        printf \"\\n\";
+        for j in 1 .. 9 do
+          let k = i * j in
+          printf \"%d x %d = %2d \" i j k;
+          done;
+      done;;
+    Multiple9x9 ();;"
+"""
+
+[<Test>]
+let ``should format the selected pipeline correctly``() =
+    formatSelectionFromString false (makeRange 3 4 7 16) """
+let r = 
+    [ "abc"
+      "a"
+      "b"
+      "" ]
+    |> List.map id""" config
+    |> should equal """
+let r = 
+    ["abc"
+     "a"
+     "b"
+     ""]
+    |> List.map id
+"""

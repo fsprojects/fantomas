@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.CompilerDirectivesests
+﻿module Fantomas.Tests.CompilerDirectiveTests
 
 open NUnit.Framework
 open FsUnit
