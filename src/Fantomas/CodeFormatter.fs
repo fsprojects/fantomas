@@ -104,7 +104,7 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
                 else getEndLine(i - 1)
             let endLine = getEndLine(r.EndLine - 1) 
             /// Notice that Line indices start at 1 while Column indices start at 0.
-            makeRange (startLine + 1) 0 (endLine + 1) (lines.[endLine].Length-1)
+            makeRange (startLine + 1) 0 (endLine + 1) (lines.[endLine].Length - 1)
 
     let startTokenizer = sourceTok.CreateLineTokenizer(lines.[r.StartLine-1])
 
@@ -113,7 +113,7 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
         tok.CharClass <> TokenCharKind.LineComment &&
         tok.CharClass <> TokenCharKind.Comment
 
-    /// Find out the starting token
+    /// Find out the start token
     let rec getStartCol (tokenizer : LineTokenizer) nstate = 
         match tokenizer.ScanToken(!nstate) with
         | Some(tok), state ->
@@ -128,7 +128,7 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
         if r.StartLine = r.EndLine then startTokenizer 
         else sourceTok.CreateLineTokenizer(lines.[r.EndLine-1])
 
-    /// Find out the ending token
+    /// Find out the end token
     let rec getEndCol (tokenizer : LineTokenizer) nstate = 
         match tokenizer.ScanToken(!nstate) with
         | Some(tok), state ->
@@ -146,7 +146,7 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     
     let range = makeRange r.StartLine startCol r.EndLine endCol
     let (start, finish) = stringPos range s
-    let pre = s.[0..start-1]
+    let pre = if start = 0 then "" else s.[0..start-1]
 
     /// Patch selection by an appropriate amount of whitespace
     let selection = 
