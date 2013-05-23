@@ -56,7 +56,7 @@ let y = 1 + 2
 let z = x + y"""
 
 [<Test>]
-let ``should ignore whitespace at the beginning of lines``() =
+let ``should skip whitespace at the beginning of lines``() =
     formatSelectionFromString false (makeRange 3 3 3 27) """
 type Product' (backlogItemId) =
     let mutable ordering = 0
@@ -120,3 +120,20 @@ let r =
      "b"
      ""]
     |> List.map id"""
+
+[<Test>]
+let ``should preserve line breaks before and after selection``() =
+    formatSelectionFromString false (makeRange 3 0 5 0) """
+assert (3 > 2)
+
+let result = lazy (x + 10)
+
+do printfn "Hello world"
+"""     config
+    |> should equal """
+assert (3 > 2)
+
+let result = lazy (x + 10)
+
+do printfn "Hello world"
+"""
