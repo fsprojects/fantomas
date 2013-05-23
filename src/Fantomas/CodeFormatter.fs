@@ -128,7 +128,13 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     let range = makeRange r.StartLine startCol r.EndLine endCol
     let (start, finish) = stringPos range s
     let pre = s.[0..start-1]
-    let selection = s.[start..finish]
+
+    /// Patch selection by an appropriate amount of whitespace
+    let selection = 
+        let sel = s.[start..finish]
+        if r.StartLine = r.EndLine then sel
+        else (new String(' ', startCol)) + sel
+
     let post = 
         if finish+1 < s.Length && s.[finish+1]='\n' then "\r" + s.[finish+1..] 
         elif finish+1 < s.Length then s.[finish+1..]

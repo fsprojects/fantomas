@@ -119,5 +119,4 @@ let r =
      "a"
      "b"
      ""]
-    |> List.map id
-"""
+    |> List.map id"""
