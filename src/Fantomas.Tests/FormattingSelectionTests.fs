@@ -137,3 +137,17 @@ let result = lazy (x + 10)
 
 do printfn "Hello world"
 """
+
+[<Test>]
+let ``should detect members and format appropriately``() =
+    formatSelectionFromString false (makeRange 4 0 5 32) """
+type T () = 
+  let items = []
+  override x.Reorder () = 
+        items |> List.iter ignore
+"""     config
+    |> should equal """
+type T () = 
+  let items = []
+  override x.Reorder() = items |> List.iter ignore
+"""

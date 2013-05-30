@@ -25,16 +25,15 @@ module Inner2 =
 """
 
 let t02 = """
-let rangeTest testValue mid size =
-    match testValue with
-    | var1 when var1 >= mid - size/2 && var1 <= mid + size/2 -> printfn "The test value is in range."
-    | _ -> printfn "The test value is out of range."
+module M
 
-let (var1, var2) as tuple1 = (1, 2)"""
+type T () = 
+    let items = []
+    member x.Reorder () = items |> List.iter ignore"""
 ;;
 
 printfn "Result:\n%s" <| formatSourceString false t01 config;;
 
-printfn "Result:\n%s" <| formatSelectionFromString false (makeRange 3 5 5 52) t02 config;;
+printfn "Result:\n%s" <| formatSelectionFromString false (makeRange 6 5 6 51) t02 config;;
 
 printfn "Tree:\n%A" <| parse false t02;;

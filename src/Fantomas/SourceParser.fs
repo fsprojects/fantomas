@@ -17,7 +17,7 @@ let inline content (sc : SynConst) (c : Context) =
             /// Terrible hack to compensate the offset made by F# compiler
             let last = content.[c.Positions.[r.EndLine-1]..finish]
             let offset = last.Length - last.TrimStart(' ').Length
-            if finish + offset > content.Length then content.[start..]
+            if finish + offset >= content.Length then content.[start..]
             else content.[start..finish + offset]
         else s
     else ""
