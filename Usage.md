@@ -173,3 +173,17 @@ val formatSourceString : fsi:bool -> s:string -> config:FormatConfig -> string
 ```
 
 When the first argument is true, the source string is parsed as an F# signature.
+
+There is a function for formatting a selected text
+
+```fsharp
+val formatSelectionFromString : fsi:bool -> r:range -> s:string -> config:FormatConfig -> string
+```
+
+where range `r` denoting the selection is often constructed from 
+
+```fsharp
+val makeRange : startLine:int -> startCol:int -> endLine:int -> endCol:int -> range
+```
+
+Note that Fantomas will expand the selection until it finds boundaries of start and end tokens. *Only parsable selection (types, members, let bindings, expressions, etc) can be formatted*. The pre- and post- texts of the selection will be kept as is.
