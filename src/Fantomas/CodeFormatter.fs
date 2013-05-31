@@ -2,6 +2,8 @@
 
 open System
 open System.IO
+open System.Text.RegularExpressions
+
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.SourceCodeServices
@@ -28,7 +30,7 @@ let parse fsi s =
 
 /// Format a source string using given config
 let formatSourceString fsi s config =
-    Context.createContext config s 
+    Context.create config s 
     |> genParsedInput (parse fsi s) 
     |> dump
 
@@ -41,7 +43,7 @@ let tryFormatSourceString fsi s config =
 
 /// Format a source string using given config and write to a text writer
 let processSourceString fsi inStr (tw : TextWriter) config =
-    Context.createContext config inStr 
+    Context.create config inStr 
     |> genParsedInput (parse fsi inStr) 
     |> dump
     |> tw.Write
@@ -81,7 +83,7 @@ let internal stringPos (r : range) (content : string) =
         if pos >= content.Length then content.Length - 1 else pos 
     (start, finish)
 
-/// Make a range from (startLine, startCol) to (endLine, endCol) for selecting some text
+/// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
 let makeRange startLine startCol endLine endCol =
     mkRange "/tmp.fs" (mkPos startLine startCol) (mkPos endLine endCol)
 
@@ -94,16 +96,17 @@ let rec internal getEndLine (lines : _ []) i =
     if i = 0 || not <| String.IsNullOrWhiteSpace(lines.[i]) then i
     else getEndLine lines (i - 1)
 
-let internal isStartToken (tok : TokenInformation) =
+let internal isDelimitToken (tok : TokenInformation) =
         tok.CharClass <> TokenCharKind.WhiteSpace && 
         tok.CharClass <> TokenCharKind.LineComment &&
-        tok.CharClass <> TokenCharKind.Comment
+        tok.CharClass <> TokenCharKind.Comment &&
+        tok.TokenName <> "STRING_TEXT"
 
 /// Find out the start token
 let rec internal getStartCol (r : range) (tokenizer : LineTokenizer) nstate = 
     match tokenizer.ScanToken(!nstate) with
     | Some(tok), state ->
-        if tok.RightColumn >= r.StartColumn && isStartToken tok then tok.LeftColumn
+        if tok.RightColumn >= r.StartColumn && isDelimitToken tok then tok.LeftColumn
         else
             nstate := state 
             getStartCol r tokenizer nstate
@@ -116,7 +119,7 @@ let rec internal getEndCol (r : range) (tokenizer : LineTokenizer) nstate =
 #if DEBUG
         printfn "End token: %A" tok
 #endif
-        if tok.RightColumn >= r.EndColumn then tok.RightColumn
+        if tok.RightColumn >= r.EndColumn && isDelimitToken tok then tok.RightColumn
         else
             nstate := state 
             getEndCol r tokenizer nstate
@@ -127,6 +130,24 @@ type internal Patch =
     | RecType
     | RecLet
     | NoPatch
+
+let internal startWithMember (sel : string) =  
+    [|"member"; "abstract"; "default"; "override"; 
+      "static"; "interface"; "new"; "val"; "inherit"|] 
+    |> Array.exists sel.StartsWith 
+
+/// Find the first type declaration or let binding at beginnings of lines
+let internal getPatch startCol (lines : string []) =
+    let rec loop i = 
+        if i < 0 then NoPatch 
+        elif Regex.Match(lines.[i], "^[\s]*type ").Success then RecType
+        else
+            /// Need to compare column to ensure that the let binding is at the same level
+            let m = Regex.Match(lines.[i], "^[\s]*let ")
+            let col = m.Index + m.Length
+            /// Value 4 accounts for length of "and "
+            if m.Success && col <= startCol + 4 then RecLet else loop (i - 1)
+    loop (lines.Length - 1)
 
 /// Format a selected part of source string using given config; keep other parts unchanged. 
 let formatSelectionFromString fsi (r : range) (s : string) config =
@@ -158,14 +179,22 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     let (start, finish) = stringPos range s
     let pre = if start = 0 then "" else s.[0..start-1]
 
-    let isTypeMember (sel : string) =   
-        Array.exists sel.StartsWith [|"member"; "abstract"; "default"; "override"; "static"; "interface"|]
-
     /// Prepend selection by an appropriate amount of whitespace
     let (selection, patch) = 
         let sel = s.[start..finish]
-        if isTypeMember sel then
-           (sprintf "type T() = \n%s" (new String(' ', startCol) + sel), TypeMember)
+        if startWithMember sel then
+           (sprintf "type T = \n%s" (new String(' ', startCol) + sel), TypeMember)
+        elif sel.StartsWith("and") then
+            let p = getPatch startCol lines.[..r.StartLine - 1]
+            let pattern = Regex("and")
+            let replacement = 
+                match p with
+                | RecType -> "type"
+                | RecLet -> "let rec"
+                | _ -> "and"
+            /// Replace "and" by "type" or "let rec"
+            if r.StartLine = r.EndLine then (pattern.Replace(sel, replacement, 1), p)
+            else (new String(' ', startCol) + pattern.Replace(sel, replacement, 1), RecType)
         elif r.StartLine = r.EndLine then (sel, NoPatch)
         else (new String(' ', startCol) + sel, NoPatch)
 
@@ -184,9 +213,9 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
 
     match patch with
     | TypeMember ->
-        /// Get formatted selection with "type T() = \n" patch
+        /// Get formatted selection with "type T = \n" patch
         let result = 
-            Context.createContext config selection
+            Context.create config selection
             |> genParsedInput tree
             |> ifElse (s.[finish] = '\n') sepNln sepNone
             |> dump
@@ -195,20 +224,34 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
         if contents = [||] then
             sprintf "%s%s%s" pre result post
         else
+            /// Due to patching, the text has at least two lines
             let first = contents.[1]
             let column = first.Length - first.TrimStart().Length
             let selections = contents.[1..] |> Seq.map (fun s -> s.[column..])
             /// Realign results on the correct column
-            Context.createContext config "" 
+            Context.create config "" 
             |> str pre
             |> atIndentLevel startCol (col sepNln selections str)
-            |> ifElse (s.[finish] = '\n') sepNln sepNone
             |> str post
             |> dump
-    | RecType
-    | RecLet
+    | RecType | RecLet ->        
+        /// Get formatted selection with "type" or "let rec" replacement for "and"
+        let result = 
+            Context.create config selection
+            |> genParsedInput tree
+            |> ifElse (s.[finish] = '\n') sepNln sepNone
+            |> dump
+        /// Substitute by old contents
+        let pattern = if patch = RecType then Regex("type") else Regex("let rec")
+        let selection = pattern.Replace(result, "and", 1)
+        /// Realign results on the correct column
+        Context.create config "" 
+        |> str pre
+        |> atIndentLevel startCol (str selection)
+        |> str post
+        |> dump
     | NoPatch ->
-        Context.createContext config selection 
+        Context.create config selection 
         |> str pre
         |> atIndentLevel startCol (genParsedInput tree)
         |> ifElse (s.[finish] = '\n') sepNln sepNone

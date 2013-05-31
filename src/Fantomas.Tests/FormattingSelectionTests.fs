@@ -151,3 +151,41 @@ type T () =
   let items = []
   override x.Reorder() = items |> List.iter ignore
 """
+
+[<Test>]
+let ``should format the and branch of recursive functions``() =
+    formatSelectionFromString false (makeRange 3 0 4 34) """
+let rec createJArray x = createJObject
+
+and createJObject y = createJArray
+"""     config
+    |> should equal """
+let rec createJArray x = createJObject
+
+and createJObject y = createJArray
+"""
+
+[<Test>]
+let ``should format recursive types correctly``() =
+    formatSelectionFromString false (makeRange 7 0 10 48) """
+type Folder(pathIn : string) = 
+    let path = pathIn
+    let filenameArray : string array = System.IO.Directory.GetFiles(path)
+    member this.FileArray = 
+        Array.map (fun elem -> new File(elem, this)) filenameArray
+
+and File(filename: string, containingFolder: Folder) = 
+   member __.Name = filename
+   member __.ContainingFolder = containingFolder
+"""     config
+    |> should equal """
+type Folder(pathIn : string) = 
+    let path = pathIn
+    let filenameArray : string array = System.IO.Directory.GetFiles(path)
+    member this.FileArray = 
+        Array.map (fun elem -> new File(elem, this)) filenameArray
+
+and File(filename : string, containingFolder : Folder) = 
+    member __.Name = filename
+    member __.ContainingFolder = containingFolder
+"""

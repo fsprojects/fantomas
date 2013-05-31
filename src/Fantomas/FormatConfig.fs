@@ -66,7 +66,7 @@ type Context =
                               Writer = new ColumnIndentedTextWriter(new StringWriter());
                               BreakLines = true; Content = ""; Positions = [||] }
 
-    static member createContext config (content : string) =
+    static member create config (content : string) =
         let positions = 
             content.Split([|'\n'|], StringSplitOptions.None)
             |> Seq.map (fun s -> String.length s + 1)
