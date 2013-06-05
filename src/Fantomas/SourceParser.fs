@@ -3,6 +3,8 @@
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.PrettyNaming
+open Microsoft.FSharp.Compiler.Lexhelp.Keywords
+
 open Fantomas.FormatConfig
 
 /// Get source string content based on range value
@@ -44,20 +46,25 @@ let (|OpNameFull|) s =
             sprintf "( %s )" s'
         else sprintf "(%s)" s'
     elif not <| String.forall IsLongIdentifierPartCharacter s then
-        /// If s is a valid identifier, it doesn't matter to have `` or not
         sprintf "``%s``" s'
     else s'
 
-let inline (|Ident|) (s: Ident) = s.idText
+let inline (|Ident|) (s : Ident) = QuoteIdentifierIfNeeded s.idText
 
-let (|LongIdent|) (li: LongIdent) =
-    let xs =
-        match li with
-        | x::xs when x.idText = MangledGlobalName -> Ident("global", x.idRange)::xs
-        | xs -> xs
-    xs |> Seq.map (fun s -> s.idText) |> String.concat "."
+let (|LongIdent|) (li : LongIdent) =
+    li 
+    |> Seq.map (fun x -> if x.idText = MangledGlobalName then "global" else (|Ident|) x) 
+    |> String.concat "."
 
 let inline (|LongIdentWithDots|) (LongIdentWithDots(LongIdent s, _)) = s    
+
+/// Different from (|Ident|), this pattern also accepts keywords
+let inline (|IdentOrKeyword|) (s : Ident) = s.idText
+
+let (|LongIdentOrKeyword|) (li : LongIdent) =
+    li 
+    |> Seq.map (fun x -> if x.idText = MangledGlobalName then "global" else x.idText) 
+    |> String.concat "."
 
 // Type params
 
@@ -540,17 +547,18 @@ let (|IndexedVar|_|) = function
     | _ -> None
 
 let (|OptVar|_|) = function
-    | SynExpr.Ident(Ident s) ->
+    | SynExpr.Ident(IdentOrKeyword s) ->
         Some(s, false)
-    | SynExpr.LongIdent(isOpt, LongIdentWithDots s, _, _) ->
+    | SynExpr.LongIdent(isOpt, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword s, _), _, _) ->
         Some(s, isOpt)
     | _ -> None
 
+/// This pattern will be escaped later by OpName*
 let private (|Var|_|) = function
-    | SynExpr.Ident(Ident s) ->
-        Some(s)
-    | SynExpr.LongIdent(_, LongIdentWithDots s, _, _) ->
-        Some(s)
+    | SynExpr.Ident(IdentOrKeyword s) ->
+        Some s
+    | SynExpr.LongIdent(_, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword s, _), _, _) ->
+        Some s
     | _ -> None
 
 /// Get all application params at once
@@ -585,7 +593,7 @@ let private (|InfixApp|_|) = function
         Some(s, e1, e2)
     | _ -> None
 
-/// Should return the whole triple for convenience check
+/// We should return the whole triple for convenience check
 let (|InfixApps|_|) e =
     let rec loop = function
         | InfixApp(s, e, e2) -> 
@@ -748,12 +756,12 @@ let (|PatTyped|_|) = function
     | _ -> None
 
 let (|PatNamed|_|) = function
-    | SynPat.Named(p, Ident (OpNameFull s), _, ao, _) ->
+    | SynPat.Named(p, IdentOrKeyword(OpNameFull s), _, ao, _) ->
         Some(ao, p, s)
     | _ -> None
 
 let (|PatLongIdent|_|) = function
-    | SynPat.LongIdent(LongIdentWithDots (OpNameFull s), _, tpso, xs, ao, _) ->
+    | SynPat.LongIdent(LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull s), _), _, tpso, xs, ao, _) ->
         Some(ao, s, xs, tpso)
     | _ -> None
 
@@ -983,7 +991,7 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
     | SynMemberSig.ValField(f, _) -> MSValField f
     | SynMemberSig.NestedType(tds, _) -> MSNestedType tds
 
-let (|Val|) (ValSpfn(ats, Ident(OpNameFull s), tds, t, vi, _, _, px, ao, _, _)) =
+let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull s), tds, t, vi, _, _, px, ao, _, _)) =
     (ats, px, ao, s, t, vi, tds)
 
 // Misc
