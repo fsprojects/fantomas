@@ -14,22 +14,21 @@ open Fantomas.CodeFormatter
 let config = FormatConfig.Default
 
 let t01 = """
-module TopLevel
-
-let topLevelX = 5
-
-module Inner1 =
-    let inner1X = 1
-module Inner2 =
-    let inner2X = 5
+type BaseClass = class
+    val string1 : string
+    new (str) = { string1 = str }
+    new () = { string1 = "" }
+end
 """
 
 let t02 = """
-namespace ``method``
+module ``method``
+
+let ``abstract`` = "abstract"
 
 type SomeType() =
-    member this.Print() = 
-        global.System.Console.WriteLine("Hello World!")
+    member this.``new``() = 
+        System.Console.WriteLine("Hello World!")
 """
 ;;
 
@@ -37,4 +36,4 @@ printfn "Result:\n%s" <| formatSourceString false t02 config;;
 
 printfn "Result:\n%s" <| formatSelectionFromString false (makeRange 6 5 6 51) t02 config;;
 
-printfn "Tree:\n%A" <| parse false t02;;
+printfn "Tree:\n%A" <| parse false t01;;

@@ -24,31 +24,6 @@ let inline content (sc : SynConst) (c : Context) =
         else s
     else ""
 
-/// Use infix operators in the short form
-let (|OpName|) s =
-    let s' = DecompileOpName s
-    if IsActivePatternName s then
-        sprintf "(%s)" s'
-    elif IsPrefixOperator s then
-        if s'.[0] = '~' && s'.Length >= 2 && s'.[1] <> '~' then
-            s'.[1..]
-        else s'
-    elif not <| String.forall IsLongIdentifierPartCharacter s then
-        sprintf "``%s``" s'
-    else s'
-
-/// Operators in their declaration form
-let (|OpNameFull|) s =
-    let s' = DecompileOpName s
-    if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
-        /// Use two spaces for symmetry
-        if s'.StartsWith "*" && s' <> "*" then
-            sprintf "( %s )" s'
-        else sprintf "(%s)" s'
-    elif not <| String.forall IsLongIdentifierPartCharacter s then
-        sprintf "``%s``" s'
-    else s'
-
 let inline (|Ident|) (s : Ident) = QuoteIdentifierIfNeeded s.idText
 
 let (|LongIdent|) (li : LongIdent) =
@@ -56,15 +31,52 @@ let (|LongIdent|) (li : LongIdent) =
     |> Seq.map (fun x -> if x.idText = MangledGlobalName then "global" else (|Ident|) x) 
     |> String.concat "."
 
-let inline (|LongIdentWithDots|) (LongIdentWithDots(LongIdent s, _)) = s    
+let inline (|LongIdentWithDots|) (LongIdentWithDots(LongIdent s, _)) = s
+
+type Identifier =
+    | Id of Ident
+    | LongId of LongIdent
+    member x.Text =
+        match x with
+        | Id x -> x.idText
+        | LongId xs -> 
+            xs 
+            |> Seq.map (fun x -> if x.idText = MangledGlobalName then "global" else x.idText) 
+            |> String.concat "."
 
 /// Different from (|Ident|), this pattern also accepts keywords
-let inline (|IdentOrKeyword|) (s : Ident) = s.idText
+let inline (|IdentOrKeyword|) (s : Ident) = Id s
 
-let (|LongIdentOrKeyword|) (li : LongIdent) =
-    li 
-    |> Seq.map (fun x -> if x.idText = MangledGlobalName then "global" else x.idText) 
-    |> String.concat "."
+let (|LongIdentOrKeyword|) (li : LongIdent) = LongId li
+
+/// Use infix operators in the short form
+let (|OpName|) (x : Identifier) =
+    let s = x.Text
+    let s' = DecompileOpName s
+    if IsActivePatternName s then
+        sprintf "(%s)" s'
+    elif IsPrefixOperator s then
+        if s'.[0] = '~' && s'.Length >= 2 && s'.[1] <> '~' then
+            s'.[1..]
+        else s'
+    else
+        match x with
+        | Id(Ident s) | LongId(LongIdent s) -> 
+            DecompileOpName s
+
+/// Operators in their declaration form
+let (|OpNameFull|) (x : Identifier) =
+    let s = x.Text
+    let s' = DecompileOpName s
+    if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
+        /// Use two spaces for symmetry
+        if s'.StartsWith "*" && s' <> "*" then
+            sprintf "( %s )" s'
+        else sprintf "(%s)" s'
+    else
+        match x with
+        | Id(Ident s) | LongId(LongIdent s) -> 
+            DecompileOpName s
 
 // Type params
 
@@ -547,17 +559,17 @@ let (|IndexedVar|_|) = function
     | _ -> None
 
 let (|OptVar|_|) = function
-    | SynExpr.Ident(IdentOrKeyword s) ->
+    | SynExpr.Ident(IdentOrKeyword(OpNameFull s)) ->
         Some(s, false)
-    | SynExpr.LongIdent(isOpt, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword s, _), _, _) ->
+    | SynExpr.LongIdent(isOpt, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull s), _), _, _) ->
         Some(s, isOpt)
     | _ -> None
 
-/// This pattern will be escaped later by OpName*
-let private (|Var|_|) = function
-    | SynExpr.Ident(IdentOrKeyword s) ->
+/// This pattern is escaped by using OpName
+let (|Var|_|) = function
+    | SynExpr.Ident(IdentOrKeyword(OpName s)) ->
         Some s
-    | SynExpr.LongIdent(_, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword s, _), _, _) ->
+    | SynExpr.LongIdent(_, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpName s), _), _, _) ->
         Some s
     | _ -> None
 
@@ -583,13 +595,13 @@ let (|CompApp|_|) = function
 let (|PrefixApp|_|) = function
     | SynExpr.App(_, _, Var s, e2, _)
         when IsPrefixOperator s ->
-        Some((|OpName|) s, e2)
+        Some(s, e2)
     | _ -> None
 
 let private (|InfixApp|_|) = function
-    | SynExpr.App(_, true, Var(OpName "::"), Tuple [e1; e2], _) ->
+    | SynExpr.App(_, true, Var "::", Tuple [e1; e2], _) ->
         Some("::", e1, e2)
-    | SynExpr.App(_, _, SynExpr.App(_, true, Var(OpName s), e1, _), e2, _) ->
+    | SynExpr.App(_, _, SynExpr.App(_, true, Var s, e1, _), e2, _) ->
         Some(s, e1, e2)
     | _ -> None
 
@@ -811,9 +823,9 @@ let (|RecordField|) = function
 let (|Clause|) (SynMatchClause.Clause(p, eo, e, _, _)) = (p, e, eo)
 
 let rec (|DesugaredMatch|_|) = function
-    | SynExpr.Match(_, Var(s), [Clause(PatNullary PatWild, DesugaredMatch(ss, e), None)], _, _) ->
+    | SynExpr.Match(_, Var s, [Clause(PatNullary PatWild, DesugaredMatch(ss, e), None)], _, _) ->
         Some(s::ss, e)
-    | SynExpr.Match(_, Var(s), [Clause(PatNullary PatWild, e, None)], _, _) ->
+    | SynExpr.Match(_, Var s, [Clause(PatNullary PatWild, e, None)], _, _) ->
         Some([s], e)
     | _ -> None
 

@@ -326,7 +326,7 @@ and genExpr = function
         atCurrentColumn (!- "match " +> genExpr e -- " with" +> colPre sepNln sepNln cs genClause)
     | CompApp(s, e) ->
         !- s +> sepSpace +> sepOpenS +> genExpr e +> sepCloseS
-    | App(OptVar(OpName ".. ..", _), [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
+    | App(Var ".. ..", [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
     /// Separate two prefix ops by spaces
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr e
     | PrefixApp(s, e) -> !- s  +> genExpr e
@@ -401,7 +401,7 @@ and genExpr = function
     | IfThenElse(e1, e2, None) -> 
         atCurrentColumn (!- "if " +> genExpr e1 ++ "then " +> autoBreakNln e2)
     /// At this stage, all symbolic operators have been handled.
-    | OptVar(OpNameFull s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
+    | OptVar(s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
     | DotIndexedGet(e, es) -> genExpr e -- "." +> sepOpenL +> genIndexedVars es +> sepCloseL
     | DotIndexedSet(e1, es, e2) -> genExpr e1 -- ".[" +> genIndexedVars es -- "] <- " +> genExpr e2
@@ -557,7 +557,8 @@ and genMemberSig = function
     | MSMember(Val(ats, px, ao, s, t, vi, _), mf) -> 
         let (FunType ts) = (t, vi)
         genPreXmlDoc px +> colPost sepSpace sepNone ats genAttribute 
-        +> atCurrentColumn (indent +> genMemberFlags false mf +> opt sepNone ao genAccess -- s 
+        +> atCurrentColumn (indent +> genMemberFlags false mf +> opt sepNone ao genAccess
+                                   +> ifElse (s = "``new``") (!- "new") (!- s) 
                                    +> sepColon +> genTypeList ts +> unindent)
 
     | MSInterface t -> !- "interface " +> genType t
@@ -796,7 +797,8 @@ and genPat = function
     | PatLongIdent(ao, s, ps, tpso) -> 
         let aoc = opt sepSpace ao genAccess
         let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParam tds tcs)
-
+        // Override escaped new keyword
+        let s = if s = "``new``" then "new" else s
         match ps with
         | [] ->  aoc -- s +> tpsoc
         | [PatSeq(PatTuple, [p1; p2])] when s = "(::)" -> aoc +> genPat p1 -- " :: " +> genPat p2
