@@ -42,6 +42,7 @@
     <Compile Include="FormatConfig.fs" />
     <Compile Include="SourceParser.fs" />
     <Compile Include="SourceTransformer.fs" />
+    <Compile Include="SourceFilter.fs" />
     <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatter.fs" />
     <None Include="CodeFormatter.fsx" />
