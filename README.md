@@ -78,8 +78,8 @@ You can fork this repo and compile the project with F# 3.0/.NET framework 4.0.
 Alternatively, Fantomas is also available via [a NuGet package](https://nuget.org/packages/Fantomas/) which contains both the library and the command line interface.
 For detailed guidelines, please read [Fantomas: How to use](Usage.md).
 
-### Try Fantomas online
-[FantomasWeb](https://github.com/TahaHachana/FantomasWeb), implemented by [Taha Hachana](https://github.com/TahaHachana), is accessible at http://fantomasweb.apphb.com/. Please try out Fantomas on this nice website and provide feedbacks.
+### Trying Fantomas online
+[FantomasWeb](https://github.com/TahaHachana/FantomasWeb), implemented by [Taha Hachana](https://github.com/TahaHachana), is accessible at http://fantomasweb.apphb.com/.
 
 ### VS 2012 extension
 [Ivan Towlson](https://github.com/itowlson) is developing Fantomas extension under [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
@@ -93,7 +93,7 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ## Testing and validation
 We have tried to be careful in testing the project.
-There are 145 unit tests and 30 validated test examples, 
+There are 147 unit tests and 30 validated test examples, 
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 

@@ -134,3 +134,23 @@ namespace global
 
 type SomeType() = 
     member this.Print() = global.System.Console.WriteLine("Hello World!")"""
+
+[<Test>]
+let ``should escape keywords correctly``() =
+    formatSourceString false """
+module ``method``
+
+let ``abstract`` = "abstract"
+
+type SomeType() =
+    member this.``new``() = 
+        System.Console.WriteLine("Hello World!")
+    """ config
+    |> prepend newline
+    |> should equal """
+module ``method``
+
+let ``abstract`` = "abstract"
+
+type SomeType() = 
+    member this.``new``() = System.Console.WriteLine("Hello World!")"""
