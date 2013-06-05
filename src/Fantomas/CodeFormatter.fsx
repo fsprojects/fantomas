@@ -25,14 +25,15 @@ module Inner2 =
 """
 
 let t02 = """
-module M
+namespace ``method``
 
-type T () = 
-    let items = []
-    member x.Reorder () = items |> List.iter ignore"""
+type SomeType() =
+    member this.Print() = 
+        global.System.Console.WriteLine("Hello World!")
+"""
 ;;
 
-printfn "Result:\n%s" <| formatSourceString false t01 config;;
+printfn "Result:\n%s" <| formatSourceString false t02 config;;
 
 printfn "Result:\n%s" <| formatSelectionFromString false (makeRange 6 5 6 51) t02 config;;
 

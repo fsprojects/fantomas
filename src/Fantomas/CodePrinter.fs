@@ -16,19 +16,19 @@ and genSigFile(ParsedSigFileInput(hs, mns)) =
     col sepNln hs genParsedHashDirective
     +> col sepNln mns genSigModuleOrNamespace
 
-and genParsedHashDirective(ParsedHashDirective (s1, s2)) =
+and genParsedHashDirective(ParsedHashDirective(s1, s2)) =
     /// print strings with quotes
     !- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2))
 
-and genModuleOrNamespace(ModuleOrNamespace (ats, px, ao, s, mds, isModule)) =
+and genModuleOrNamespace(ModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
     genPreXmlDoc px
     +> colPost sepNln sepNln ats genAttribute
     /// Checking for Tmp is a bit fragile
     +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
-    +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
+            +> opt sepSpace ao genAccess +> ifElse (s = "") (!- "global") (!- s) +> rep 2 sepNln)
     +> genModuleDeclList mds
 
-and genSigModuleOrNamespace(SigModuleOrNamespace (ats, px, ao, s, mds, isModule)) =
+and genSigModuleOrNamespace(SigModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
     genPreXmlDoc px
     +> colPost sepNln sepNln ats genAttribute
     +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")

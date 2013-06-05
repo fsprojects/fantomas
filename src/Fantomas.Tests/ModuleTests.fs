@@ -118,3 +118,19 @@ type MyWidget1 =
 module WidgetsModule = 
     let widgetName = "Widget2"
 """
+
+[<Test>]
+let ``should preserve global keyword``() =
+    formatSourceString false """
+namespace global
+
+type SomeType() =
+    member this.Print() = 
+        global.System.Console.WriteLine("Hello World!")
+    """ config
+    |> prepend newline
+    |> should equal """
+namespace global
+
+type SomeType() = 
+    member this.Print() = global.System.Console.WriteLine("Hello World!")"""

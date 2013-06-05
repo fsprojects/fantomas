@@ -50,11 +50,14 @@ let (|OpNameFull|) s =
 
 let inline (|Ident|) (s: Ident) = s.idText
 
-let inline (|LongIdent|) (li: LongIdent) =
-    li |> Seq.map (fun s -> s.idText) |> String.concat "."
+let (|LongIdent|) (li: LongIdent) =
+    let xs =
+        match li with
+        | x::xs when x.idText = MangledGlobalName -> Ident("global", x.idRange)::xs
+        | xs -> xs
+    xs |> Seq.map (fun s -> s.idText) |> String.concat "."
 
-let inline (|LongIdentWithDots|) (LongIdentWithDots(s, _)) =
-    s |> Seq.map (fun s -> s.idText) |> String.concat "."
+let inline (|LongIdentWithDots|) (LongIdentWithDots(LongIdent s, _)) = s    
 
 // Type params
 
@@ -136,11 +139,13 @@ let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(Lo
     (ats, px, ao, s, mds, isModule)
 
 // Attribute
+
 let (|Attribute|) (a : SynAttribute) =
     let (LongIdentWithDots s) = a.TypeName
     (s, a.ArgExpr, a.AppliesToGetterAndSetter)
 
 // Access modifiers
+
 let (|Access|) = function
     | SynAccess.Public -> "public"
     | SynAccess.Internal -> "internal"
@@ -356,7 +361,7 @@ let (|MFProperty|_|) (mf : MemberFlags) =
 
 let (|MFMemberFlags|) (mf : MemberFlags) = mf.MemberKind
 
-/// Find out which keyword to use
+/// This pattern finds out which keyword to use
 let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf : MemberFlags) =
     match mf.MemberKind with
     | MemberKind.ClassConstructor
@@ -742,7 +747,6 @@ let (|PatTyped|_|) = function
         Some(p, t)
     | _ -> None
 
-/// Patterns could contain active patterns sometimes
 let (|PatNamed|_|) = function
     | SynPat.Named(p, Ident (OpNameFull s), _, ao, _) ->
         Some(ao, p, s)
