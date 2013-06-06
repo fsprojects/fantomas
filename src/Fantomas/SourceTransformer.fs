@@ -1,5 +1,8 @@
 ﻿module internal Fantomas.SourceTransformer
 
+open Microsoft.FSharp.Compiler.Range
+open Microsoft.FSharp.Compiler.Ast
+
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 
@@ -99,6 +102,22 @@ let inline genConst c =
     match c with
     | Const c -> !- c
     | Unresolved c -> fun ctx -> str (content c ctx) ctx
+
+let inline genCommentsAt (r : range) (ctx : Context) =
+    match ctx.Comments.TryGetValue(r.Start) with
+    | true, s -> str s ctx
+    | _ -> ctx
+
+/// Assume that this function is called on e with Range property
+let inline genComments e ctx =
+    let r = (^T : (member Range : range) e)
+    genCommentsAt r ctx
+
+let inline genCommentsForBinding (b : SynBinding) =
+    genCommentsAt b.RangeOfBindingSansRhs
+
+let inline genCommentsForValSig (v : SynValSig) =
+    genCommentsAt v.RangeOfId
 
 // A few active patterns for printing purpose
 

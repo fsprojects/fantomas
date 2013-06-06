@@ -886,8 +886,8 @@ let (|TCSimple|TCDelegate|) = function
 let (|TypeDef|) (SynTypeDefn.TypeDefn(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent s, px, _, ao, _) , tdr, ms, _)) =
     (ats, px, ao, tds, tcs, tdr, ms, s)
 
-let (|SigTypeDef|) (SynTypeDefnSig.TypeDefnSig(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent s, px, _, ao, _) , tdr, ms, _)) =
-    (ats, px, ao, tds, tcs, tdr, ms, s)
+let (|SigTypeDef|) (SynTypeDefnSig.TypeDefnSig(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent s, px, _, ao, _) , tdr, ms, r)) =
+    (ats, px, ao, tds, tcs, tdr, ms, s, r)
 
 let (|TyparDecl|) (SynTyparDecl.TyparDecl(ats, tp)) =
     (ats, tp)
