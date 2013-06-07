@@ -112,23 +112,23 @@ let (|CommentBlock|_|) (Spaces xs) =
     | [], _ -> None
     | ts, i -> Some(ts, xs.[..i])
 
-/// Retrieve comments recursively, skip some whitespaces
+/// Retrieve comments in a list of lines, skip some whitespaces
 let rec (|CommentBlocks|_|) xs =
     let rec (|CommentBlocks|_|) = function
         | CommentBlock(ts, CommentBlocks(tss, xs)) -> Some(ts::tss, xs)
         | CommentBlock(ts, xs) -> Some([ts], xs)
         | _ -> None
     match xs with
-    | CommentBlocks(tss, xs) -> Some(tss |> List.rev |> List.concat, xs)
+    | CommentBlocks(tss, xs) -> 
+        let ts =
+            tss 
+            |> List.rev 
+            |> Seq.concat
+            |> Seq.groupBy Token.lineNumber 
+            |> Seq.map (snd >> Seq.map Token.content >> String.concat "")
+            |> Seq.map (fun s -> s.TrimEnd('\r'))
+        Some(ts, xs)
     | _ -> None
-
-/// Merge a list of token into an output string
-let mergeTokens (ts : _ list) =
-    ts 
-    |> Seq.groupBy Token.lineNumber 
-    |> Seq.map (snd >> Seq.map Token.content >> String.concat "")
-    |> Seq.map (fun s -> s.TrimEnd('\r'))
-    |> String.concat Environment.NewLine   
 
 /// Keyword and identifier tokens have attached comments
 let (|SupportedToken|_|) (Token(s, tok, n)) =
@@ -143,9 +143,9 @@ let filterComments (xs : Token []) =
             match xs.[i] with
             | SupportedToken(_, tok, n) ->
                 match xs.[..i-1] with
-                | Attributes(CommentBlocks(tss, xs))
-                | CommentBlocks(tss, xs) ->
-                    dic.Add(mkPos n tok.LeftColumn, mergeTokens tss)
+                | Attributes(CommentBlocks(ts, xs))
+                | CommentBlocks(ts, xs) ->
+                    dic.Add(mkPos n tok.LeftColumn, ts)
                     loop (xs.Length - 1) xs dic
                 | _ -> loop (i - 1) xs dic           
             | _ -> loop (i - 1) xs dic

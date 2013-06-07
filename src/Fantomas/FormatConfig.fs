@@ -66,7 +66,7 @@ type Context =
       /// Positions of new lines in the original source string
       Positions : int [] 
       /// Comments attached to appropriate locations
-      Comments : Dictionary<pos, string> }
+      Comments : Dictionary<pos, string seq> }
     /// Initialize with a string writer and use space as delimiter
     static member Default = { Config = FormatConfig.Default;
                               Writer = new ColumnIndentedTextWriter(new StringWriter());

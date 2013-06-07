@@ -93,17 +93,19 @@ type MyClass2(dataIn) as self =
 [<Test>]
 let ``should accommodate multiple kinds of comment``() =
     formatSourceString false """
-    (* Comments *)
-    // This is another comment
+module Tests = 
+        (* Comments *)
+        // This is another comment
 
-    /// This is doc comment
-[<Test>]
-let ``this is a test``() = ()
+        /// This is doc comment
+    [<Test>]
+    let ``this is a test``() = ()
     """ config
     |> prepend newline
     |> should equal """
-(* Comments *)
-// This is another comment
-/// This is doc comment
-[<Test>]
-let ``this is a test``() = ()"""
+module Tests = 
+    (* Comments *)
+    // This is another comment
+    /// This is doc comment
+    [<Test>]
+    let ``this is a test``() = ()"""

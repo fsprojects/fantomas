@@ -1,5 +1,7 @@
 ﻿module internal Fantomas.SourceTransformer
 
+open System
+
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.Ast
 
@@ -125,7 +127,7 @@ let inline genConst c =
 let inline genCommentsAt (r : range) (ctx : Context) =
     printfn "l:%O, c:%O" r.Start.Line r.Start.Column
     match ctx.Comments.TryGetValue(r.Start) with
-    | true, s -> sepNln (str s ctx)
+    | true, comments -> sepNln (col sepNln comments str ctx)
     | _ -> ctx
 
 /// Assume that this function is called on e with Range property
