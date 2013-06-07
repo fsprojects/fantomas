@@ -23,8 +23,12 @@ let ``this is a test``() = ()
 """
 
 let t02 = """
-#nowarn "51"
-"""
+type MyClass2(dataIn) as self =
+       let data = dataIn
+       do self.PrintMessage()
+       // Print a message to console
+       member this.PrintMessage() =
+           printf "Creating MyClass2 with Data %d" data"""
 ;;
 
 let xs = filterComments (tokenize false t02) 

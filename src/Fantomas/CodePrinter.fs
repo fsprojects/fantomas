@@ -16,9 +16,8 @@ and genSigFile(ParsedSigFileInput(hs, mns)) =
     col sepNln hs genParsedHashDirective
     +> col sepNln mns genSigModuleOrNamespace    
 
-and genParsedHashDirective(ParsedHashDirective(s1, s2, r)) =
-    genCommentsAt r
-    -- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2))
+and genParsedHashDirective(ParsedHashDirective(s1, s2)) =
+    !- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2))
 
 and genModuleOrNamespace(ModuleOrNamespace(ats, _, ao, s, mds, isModule, r)) =
     ifElse (s = "Tmp") sepNone (genCommentsAt r)
@@ -140,8 +139,7 @@ and genLetBinding pref b =
     match b with 
     | LetBinding(ats, _, ao, isInline, isMutable, p, e) ->
         let prefix =
-            genCommentsForBinding b
-            +> colPost sepNln sepNone ats genAttribute -- pref +> opt sepSpace ao genAccess
+            colPost sepNln sepNone ats genAttribute -- pref +> opt sepSpace ao genAccess
             +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
             +> genPat p
 
@@ -151,8 +149,7 @@ and genLetBinding pref b =
 
     | DoBinding(ats, _, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
-        genCommentsForBinding b
-        +> colPost sepNln sepNone ats genAttribute -- prefix +> autoBreakNln e
+        colPost sepNln sepNone ats genAttribute -- prefix +> autoBreakNln e
 
     | b ->
         failwithf "%O isn't a let binding" b
@@ -181,8 +178,7 @@ and genPropertyWithGetSet inter (b1, b2) =
     | PropertyBinding(ats, _, ao, isInline, mf1, PatLongIdent(_, s1, ps1, _), e1), 
       PropertyBinding(_, _, _, _, _, PatLongIdent(_, _, ps2, _), e2) ->
         let prefix =
-            genCommentsForBinding b1 +> genCommentsForBinding b2
-            +> colPost sepNln sepNone ats genAttribute +> genMemberFlags inter mf1
+            colPost sepNln sepNone ats genAttribute +> genMemberFlags inter mf1
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
 
         prefix -- s1 +> sepSpace +> indent +> sepNln
@@ -213,8 +209,7 @@ and genMemberBinding inter b =
     match b with
     | PropertyBinding(ats, _, ao, isInline, mf, p, e) -> 
         let prefix =
-            genCommentsForBinding b
-            +> colPost sepNln sepNone ats genAttribute +> genMemberFlags inter mf
+            colPost sepNln sepNone ats genAttribute +> genMemberFlags inter mf
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
 
         let propertyPref =
@@ -231,8 +226,7 @@ and genMemberBinding inter b =
 
     | MemberBinding(ats, _, ao, isInline, mf, p, e) ->
         let prefix =
-            genCommentsForBinding b
-            +> colPost sepNln sepNone ats genAttribute +> genMemberFlags inter mf
+            colPost sepNln sepNone ats genAttribute +> genMemberFlags inter mf
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat p
 
         match e with
@@ -241,8 +235,7 @@ and genMemberBinding inter b =
 
     | ExplicitCtor(ats, _, ao, p, e) ->
         let prefix =
-            genCommentsForBinding b
-            +> colPost sepNln sepNone ats genAttribute
+            colPost sepNln sepNone ats genAttribute
             +> opt sepSpace ao genAccess +> genPat p
 
         match e with
@@ -261,17 +254,17 @@ and genMemberFlags inter = function
     | MFConstructor _ -> sepNone
     | MFOverride _ -> ifElse inter (!- "member ") (!- "override ")
 
-and genVal(Val(ats, _, ao, s, t, vi, _) as v) = 
+and genVal(Val(ats, _, ao, s, t, vi, _)) = 
     let (FunType ts) = (t, vi)
-    genCommentsForValSig v
-    +> colPost sepNln sepNone ats genAttribute 
+    colPost sepNln sepNone ats genAttribute 
     +> atCurrentColumn (indent -- "val " +> opt sepSpace ao genAccess -- s 
                         +> sepColon +> genTypeList ts +> unindent)
 
 and inline genRecordFieldName(RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> autoBreakNln e)
 
-and genExpr = function
+and genExpr expr = 
+    match expr with
     | Paren e -> sepOpenT +> genExpr e +> sepCloseT
     | SingleExpr(kind, e) -> str kind +> genExpr e
     | ConstExpr(c) -> genConst c
@@ -280,9 +273,12 @@ and genExpr = function
     | Quote(_, e2, isRaw) ->         
         let e = genExpr e2
         ifElse isRaw (!- "<@@ " +> e -- " @@>") (!- "<@ " +> e -- " @>")
+
     | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType t
     | TypedExpr(New, e, t) -> 
-        !- "new " +> genType t +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e
+        genComments expr 
+        -- "new " +> genType t +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e
+
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType t
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
@@ -300,22 +296,22 @@ and genExpr = function
         /// Check the role of the second part of eio
         let param = opt sepNone (Option.map fst eio) genExpr
         sepOpenS +> 
-        atCurrentColumn (!- "new " +> genType t +> param -- " with" 
+        atCurrentColumn (genComments expr -- "new " +> genType t +> param -- " with" 
             +> indent +> sepNln +> genMemberBindingList true bd +> unindent
             +> colPre sepNln sepNln ims genInterfaceImpl) +> sepCloseS
 
     | While(e1, e2) -> 
-        atCurrentColumn (!- "while " +> genExpr e1 -- " do" 
+        atCurrentColumn (genComments expr -- "while " +> genExpr e1 -- " do" 
         +> indent +> sepNln +> genExpr e2 +> unindent)
 
     | For(s, e1, e2, e3, isUp) ->
-        atCurrentColumn (!- (sprintf "for %s = " s) +> genExpr e1 
+        atCurrentColumn (genComments expr -- (sprintf "for %s = " s) +> genExpr e1 
             +> ifElse isUp (!- " to ") (!- " downto ") +> genExpr e2 -- " do" 
             +> indent +> sepNln +> genExpr e3 +> unindent)
 
     /// Handle the form 'for i in e1 -> e2'
     | ForEach(p, e1, e2, isArrow) ->
-        atCurrentColumn (!- "for " +> genPat p -- " in " +> genExpr e1 
+        atCurrentColumn (genComments expr -- "for " +> genPat p -- " in " +> genExpr e1 
             +> ifElse isArrow (sepArrow +> autoBreakNln e2) (!- " do" +> indent +> sepNln +> genExpr e2 +> unindent))
 
     | CompExpr(isArrayOrList, e) ->
@@ -325,10 +321,10 @@ and genExpr = function
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
     | DesugaredMatch(_, e) -> genExpr e
     | Lambda(e, sps) -> 
-        !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e
-    | MatchLambda(sp, _) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
+        genComments expr -- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e
+    | MatchLambda(sp, _) -> atCurrentColumn (genComments expr -- "function " +> colPre sepNln sepNln sp genClause)
     | Match(e, cs) -> 
-        atCurrentColumn (!- "match " +> genExpr e -- " with" +> colPre sepNln sepNln cs genClause)
+        atCurrentColumn (genComments expr -- "match " +> genExpr e -- " with" +> colPre sepNln sepNln cs genClause)
     | CompApp(s, e) ->
         !- s +> sepSpace +> sepOpenS +> genExpr e +> sepCloseS
     | App(Var ".. ..", [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
@@ -378,18 +374,18 @@ and genExpr = function
         match bs with
         | b::bs ->
             /// and is applicable for use binding
-            atCurrentColumn (genLetBinding prefix b +> 
+            atCurrentColumn (genComments expr +> genLetBinding prefix b +> 
                 colPre sepNln sepNln bs (genLetBinding "and ") +> sepNln +> genExpr e)
 
-        | _ -> atCurrentColumn (col sepNln bs (genLetBinding prefix) +> sepNln +> genExpr e)
+        | _ -> atCurrentColumn (genComments expr +> col sepNln bs (genLetBinding prefix) +> sepNln +> genExpr e)
 
     /// Could customize a bit if e is single line
     | TryWith(e, cs) ->  
-        atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e +> unindent ++ "with" 
+        atCurrentColumn (genComments expr -- "try " +> indent +> sepNln +> genExpr e +> unindent ++ "with" 
             +> indentOnWith +> sepNln +> col sepNln cs genClause +> unindentOnWith)
 
     | TryFinally(e1, e2) -> 
-        atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e1 +> unindent ++ "finally" 
+        atCurrentColumn (genComments expr -- "try " +> indent +> sepNln +> genExpr e1 +> unindent ++ "finally" 
             +> indent +> sepNln +> genExpr e2 +> unindent)    
 
     | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemi es genExpr)
@@ -398,13 +394,13 @@ and genExpr = function
         atCurrentColumn (col sepNln es genExpr)
     /// A generalization of IfThenElse
     | ElIf((e1,e2)::es, en) ->
-        atCurrentColumn (!- "if " +> genExpr e1 
+        atCurrentColumn (genComments expr -- "if " +> genExpr e1 
             ++ "then " +> autoBreakNln e2
             +> col sepNone es (fun (e1, e2) -> !+ "elif " +> genExpr e1 ++ "then " +> autoBreakNln e2)
             ++ "else " +> autoBreakNln en)
 
     | IfThenElse(e1, e2, None) -> 
-        atCurrentColumn (!- "if " +> genExpr e1 ++ "then " +> autoBreakNln e2)
+        atCurrentColumn (genComments expr -- "if " +> genExpr e1 ++ "then " +> autoBreakNln e2)
     /// At this stage, all symbolic operators have been handled.
     | OptVar(s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
@@ -417,7 +413,7 @@ and genExpr = function
         +> sepSpace +> genExpr e +> sepCloseT
 
     | LetOrUseBang(isUse, p, e1, e2) ->
-        atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
+        atCurrentColumn (genComments expr +> ifElse isUse (!- "use! ") (!- "let! ") 
             +> genPat p -- " = " +> genExpr e1 +> sepNln +> genExpr e2)
 
     | e -> failwithf "Unexpected expression: %O" e
@@ -559,16 +555,16 @@ and genSigTypeDefn isFirst (SigTypeDef(ats, _, ao, tds, tcs, tdr, ms, s, r)) =
         +> col sepNln mds genMemberSig +> unindent
 
 and genMemberSig = function
-    | MSMember(Val(ats, _, ao, s, t, vi, _) as v, mf) -> 
+    | MSMember(Val(ats, _, ao, s, t, vi, _), mf, r) -> 
         let (FunType ts) = (t, vi)
-        genCommentsForValSig v +> colPost sepSpace sepNone ats genAttribute 
+        genCommentsAt r +> colPost sepSpace sepNone ats genAttribute 
         +> atCurrentColumn (indent +> genMemberFlags false mf +> opt sepNone ao genAccess
                                    +> ifElse (s = "``new``") (!- "new") (!- s) 
                                    +> sepColon +> genTypeList ts +> unindent)
 
-    | MSInterface t -> !- "interface " +> genType t
-    | MSInherit t -> !- "inherit " +> genType t
-    | MSValField f -> genField false "val " f
+    | MSInterface(t, r) -> genCommentsAt r  -- "interface " +> genType t
+    | MSInherit(t, r) -> genCommentsAt r -- "inherit " +> genType t
+    | MSValField(f, r) -> genCommentsAt r  +> genField false "val " f
     | MSNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
 
 and genTyparDecl(TyparDecl(ats, tp)) =
@@ -728,46 +724,47 @@ and genMemberDefnList inter = function
         sepNln +> col sepNln xs (genMemberDefn inter) +> genMemberDefnList inter ys
     | _ -> sepNone
 
-and genMemberDefn inter = function
-    | MDNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
-    | MDOpen(s) -> !- s
-    /// What is the role of so
-    | MDImplicitInherit(t, e, _) -> !- "inherit " +> genType t +> genExpr e
-    | MDInherit(t, _) -> !- "inherit " +> genType t
-    | MDValField f -> genField false "val " f
-    | MDImplicitCtor(ats, ao, ps, so) -> 
-        optPre sepSpace sepSpace ao genAccess +> sepOpenT
-        +> colPost sepSpace sepNone ats genAttribute +> col sepComma ps genSimplePat +> sepCloseT
-        +> optPre (!- " as ") sepNone so (!-)
+and genMemberDefn inter md =
+    let rec genMemberDefn inter = function
+        | MDNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
+        | MDOpen(s) -> !- s
+        /// What is the role of so
+        | MDImplicitInherit(t, e, _) -> !- "inherit " +> genType t +> genExpr e
+        | MDInherit(t, _) -> !- "inherit " +> genType t
+        | MDValField f -> genField false "val " f
+        | MDImplicitCtor(ats, ao, ps, so) -> 
+            optPre sepSpace sepSpace ao genAccess +> sepOpenT
+            +> colPost sepSpace sepNone ats genAttribute +> col sepComma ps genSimplePat +> sepCloseT
+            +> optPre (!- " as ") sepNone so (!-)
 
-    | MDMember(b) -> genMemberBinding inter b
-    | MDLetBindings(isStatic, isRec, bs) ->
-        let prefix = 
-            if isStatic && isRec then "static let rec "
-            elif isStatic then "static let "
-            elif isRec then "let rec "
-            else "let "
+        | MDMember(b) -> genMemberBinding inter b
+        | MDLetBindings(isStatic, isRec, bs) ->
+            let prefix = 
+                if isStatic && isRec then "static let rec "
+                elif isStatic then "static let "
+                elif isRec then "let rec "
+                else "let "
 
-        col sepNln bs (genLetBinding prefix)
+            col sepNln bs (genLetBinding prefix)
 
-    | MDInterface(t, mdo) -> 
-        !- "interface " +> genType t
-        +> opt sepNone mdo 
-            (fun mds -> !- " with" +> indent +> genMemberDefnList true mds +> unindent)
+        | MDInterface(t, mdo) -> 
+            !- "interface " +> genType t
+            +> opt sepNone mdo 
+                (fun mds -> !- " with" +> indent +> genMemberDefnList true mds +> unindent)
 
-    | MDAutoProperty(ats, px, ao, mk, e, s) -> 
-        genPreXmlDoc px
-        +> colPost sepSpace sepNone ats genAttribute -- "member val " 
-        +> opt sepSpace ao genAccess -- s +> sepEq +> genExpr e -- propertyKind mk
+        | MDAutoProperty(ats, _, ao, mk, e, s) -> 
+            colPost sepSpace sepNone ats genAttribute -- "member val " 
+            +> opt sepSpace ao genAccess -- s +> sepEq +> genExpr e -- propertyKind mk
 
-    | MDAbstractSlot(ats, px, ao, s, t, ValTyparDecls(tds, _, tcs), MFMemberFlags mk) ->
-        genPreXmlDoc px 
-        +> colPost sepSpace sepNone ats genAttribute
-        +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
-        +> genTypeParam tds tcs
-        +> sepColon +> genType t -- propertyKind mk
+        | MDAbstractSlot(ats, _, ao, s, t, ValTyparDecls(tds, _, tcs), MFMemberFlags mk) ->
+            colPost sepSpace sepNone ats genAttribute
+            +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
+            +> genTypeParam tds tcs
+            +> sepColon +> genType t -- propertyKind mk
 
-    | md -> failwithf "Unexpected member definition: %O" md
+        | md -> failwithf "Unexpected member definition: %O" md
+
+    genComments md +> genMemberDefn inter md
 
 and propertyKind = function
     | PropertyGet -> " with get"

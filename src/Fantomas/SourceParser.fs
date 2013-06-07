@@ -174,8 +174,8 @@ let (|PreXmlDoc|) (px: PreXmlDoc) =
     match px.ToXmlDoc() with
     | XmlDoc lines -> lines
 
-let (|ParsedHashDirective|) (ParsedHashDirective(s, ss, r)) =
-    (s, String.concat "." ss, r)
+let (|ParsedHashDirective|) (ParsedHashDirective(s, ss, _)) =
+    (s, String.concat "." ss)
 
 // Module declarations (10 cases)
 
@@ -997,11 +997,11 @@ let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|Typ
     | WhereTyparIsDelegate(tp, ts, _) -> TyparIsDelegate(tp, ts)
 
 let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
-    | SynMemberSig.Member(vs, mf, _) -> MSMember(vs, mf)
-    | SynMemberSig.Interface(t, _) -> MSInterface t
-    | SynMemberSig.Inherit(t, _) -> MSInherit t
-    | SynMemberSig.ValField(f, _) -> MSValField f
-    | SynMemberSig.NestedType(tds, _) -> MSNestedType tds
+    | SynMemberSig.Member(vs, mf, r) -> MSMember(vs, mf, r)
+    | SynMemberSig.Interface(t, r) -> MSInterface(t, r)
+    | SynMemberSig.Inherit(t, r) -> MSInherit(t, r)
+    | SynMemberSig.ValField(f, r) -> MSValField(f, r)
+    | SynMemberSig.NestedType(tds, r) -> MSNestedType(tds, r)
 
 let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull s), tds, t, vi, _, _, px, ao, _, _)) =
     (ats, px, ao, s, t, vi, tds)

@@ -123,35 +123,18 @@ let (|Comments|_|) (Spaces xs) =
     | [], _ -> None
     | ts, i -> Some(mergeTokens ts, xs.[..i])
 
+/// Keyword and identifier tokens have attached comments
+let (|SupportedToken|_|) (Token(s, tok, n)) =
+    if tok.CharClass = TokenCharKind.Keyword || tok.CharClass = TokenCharKind.Identifier then Some(s, tok, n)
+    else None
+
 /// Given a list of token, attach comments to appropriate positions
 let filterComments (xs : Token []) =
     let rec loop i (xs : Token []) (dic : Dictionary<_, _>)  = 
         if i <= 0 then dic
         else
-            // TODO: support and in recursive bindings
             match xs.[i] with
-            | Token("open", tok, n)
-            | Token("module", tok, n)
-            | Token("let", tok, n)
-            | Token("do", tok, n)
-            | Token("type", tok, n)
-            | Token("member", tok, n)
-            | Token("abstract", tok, n)
-            | Token("default", tok, n)
-            | Token("override", tok, n)
-            | Token("static", tok, n)
-            | Token("interface", tok, n)
-            | Token("new", tok, n)
-            | Token("val", tok, n)
-            | Token("inherit", tok, n) when tok.CharClass = TokenCharKind.Keyword ->
-                match xs.[..i-1] with
-                | Attributes(Comments(c, xs))
-                | Comments(c, xs) ->
-                    // Attach comments to the keyword
-                    dic.Add(mkPos n tok.LeftColumn, c)
-                    loop (xs.Length - 1) xs dic
-                | _ -> loop (i - 1) xs dic
-            | Token(_, tok, n) when tok.CharClass = TokenCharKind.Identifier ->
+            | SupportedToken(_, tok, n) ->
                 match xs.[..i-1] with
                 | Attributes(Comments(c, xs))
                 | Comments(c, xs) ->

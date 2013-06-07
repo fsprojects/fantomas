@@ -114,12 +114,6 @@ let inline genComments e ctx =
     let r = (^T : (member Range : range) e)
     genCommentsAt r ctx
 
-let inline genCommentsForBinding (b : SynBinding) =
-    genCommentsAt b.RangeOfBindingSansRhs
-
-let inline genCommentsForValSig (v : SynValSig) =
-    genCommentsAt v.RangeOfId
-
 // A few active patterns for printing purpose
 
 let rec (|DoExprAttributesL|_|) = function

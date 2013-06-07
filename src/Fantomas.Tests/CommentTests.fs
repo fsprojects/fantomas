@@ -14,20 +14,20 @@ let ``should keep // comments after nowarn directives``() =
 
 [<Test>]
 let ``should keep // comments before module definition``() =
-    formatSourceString false """﻿// The original idea for this typeprovider is from Ivan Towlson
+    formatSourceString false """
+// The original idea for this typeprovider is from Ivan Towlson
 // some text
 module FSharpx.TypeProviders.VectorTypeProvider
 
-let x = 1
-    """ config
-    |> should equal """﻿// The original idea for this typeprovider is from Ivan Towlson
+let x = 1""" config
+    |> should equal """// The original idea for this typeprovider is from Ivan Towlson
 // some text
 module FSharpx.TypeProviders.VectorTypeProvider
 
 let x = 1"""
 
 [<Test>]
-let ``comments on local let bindings``() =
+let ``should preserve comments on local let bindings``() =
     formatSourceString false """
 let print_30_permut() = 
 
@@ -46,7 +46,7 @@ let print_30_permut() =
     permutation"""
 
 [<Test>]
-let ``xml documentation``() =
+let ``should keep xml documentation``() =
     formatSourceString false """
 /// <summary>
 /// Kill Weight Mud
@@ -71,3 +71,21 @@ let kwm sidpp tvd omw = (sidpp / 0.052 / tvd) + omw
 
 /// Kill Weight Mud
 let kwm sidpp tvd omw = 1.0"""
+
+[<Test>]
+let ``should preserve comments on members``() =
+    formatSourceString false """
+type MyClass2(dataIn) as self =
+       let data = dataIn
+       do self.PrintMessage()
+       // Print a message to console
+       member this.PrintMessage() =
+           printf "Creating MyClass2 with Data %d" data
+    """ config
+    |> prepend newline
+    |> should equal """
+type MyClass2(dataIn) as self = 
+    let data = dataIn
+    do self.PrintMessage()
+    // Print a message to console
+    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data"""
