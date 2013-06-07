@@ -78,7 +78,7 @@ type Context =
             |> Seq.map (fun s -> String.length s + 1)
             |> Seq.scan (+) 0
             |> Seq.toArray
-        let comments = filterComments (tokenize false content)
+        let comments = filterComments (tokenize content)
         { Context.Default with Config = config; Content = content; Positions = positions; Comments = comments }
 
     member x.With(writer : ColumnIndentedTextWriter) =

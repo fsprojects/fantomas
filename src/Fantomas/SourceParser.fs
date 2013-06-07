@@ -3,28 +3,9 @@
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.PrettyNaming
-open Microsoft.FSharp.Compiler.Lexhelp.Keywords
+open Microsoft.FSharp.Compiler.Lexhelp
 
-open Fantomas.FormatConfig
-
-/// Get source string content based on range value
-let inline content (sc : SynConst) (c : Context) =
-    let r = sc.Range range.Zero
-    if r.EndLine <= c.Positions.Length then
-        let start = c.Positions.[r.StartLine-1] + r.StartColumn
-        let finish = c.Positions.[r.EndLine-1] + r.EndColumn - 1
-        let content = c.Content
-        let s = content.[start..finish]
-        if s.Contains("\n") then
-            /// Terrible hack to compensate the offset made by F# compiler
-            let last = content.[c.Positions.[r.EndLine-1]..finish]
-            let offset = last.Length - last.TrimStart(' ').Length
-            if finish + offset >= content.Length then content.[start..]
-            else content.[start..finish + offset]
-        else s
-    else ""
-
-let inline (|Ident|) (s : Ident) = QuoteIdentifierIfNeeded s.idText
+let inline (|Ident|) (s : Ident) = Keywords.QuoteIdentifierIfNeeded s.idText
 
 let (|LongIdent|) (li : LongIdent) =
     li 

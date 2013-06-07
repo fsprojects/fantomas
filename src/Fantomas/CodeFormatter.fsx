@@ -31,7 +31,7 @@ type MyClass2(dataIn) as self =
            printf "Creating MyClass2 with Data %d" data"""
 ;;
 
-let xs = filterComments (tokenize false t02) 
+let xs = filterComments (tokenize t02) 
          |> Seq.iter (fun (KeyValue(pos, s)) -> printfn "l:%O, c:%O, %s" pos.Line pos.Column s);;
 
 printfn "Result:\n%s" <| formatSourceString false t02 config;;

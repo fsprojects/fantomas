@@ -43,10 +43,10 @@ type Token =
     static member tokenInfo (Token(_, tok, _)) = tok
     static member lineNumber (Token(_, _, n)) = n
 
-let tokenize fsi (s : string) =
+let tokenize (s : string) =
     let lines = s.Split([|'\n'|], StringSplitOptions.None)
 
-    let fileName = if fsi then "/tmp.fsi" else "/tmp.fs"
+    let fileName = "/tmp.fs"
     let sourceTok = SourceTokenizer([], fileName)
 
     [| let state = ref 0L
