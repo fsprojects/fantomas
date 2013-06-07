@@ -89,3 +89,21 @@ type MyClass2(dataIn) as self =
     do self.PrintMessage()
     // Print a message to console
     member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data"""
+
+[<Test>]
+let ``should accommodate multiple kinds of comment``() =
+    formatSourceString false """
+    (* Comments *)
+    // This is another comment
+
+    /// This is doc comment
+[<Test>]
+let ``this is a test``() = ()
+    """ config
+    |> prepend newline
+    |> should equal """
+(* Comments *)
+// This is another comment
+/// This is doc comment
+[<Test>]
+let ``this is a test``() = ()"""

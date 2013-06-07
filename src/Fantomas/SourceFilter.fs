@@ -43,6 +43,7 @@ type Token =
     static member tokenInfo (Token(_, tok, _)) = tok
     static member lineNumber (Token(_, _, n)) = n
 
+/// Return a list of tokens with line and column information
 let tokenize (s : string) =
     let lines = s.Split([|'\n'|], StringSplitOptions.None)
 
@@ -97,11 +98,29 @@ let rec (|Attributes|_|) = function
     | Attribute xs -> Some xs
     | _ -> None
 
-/// Check if a token is a comment
-let (|Comment|_|) t =
-    let (Token(_, tok, _)) = t
-    if tok.CharClass = TokenCharKind.Comment || tok.CharClass = TokenCharKind.LineComment then Some t
-    else None
+/// Return a block of comments and the array fragment before the comment block
+let (|CommentBlock|_|) (Spaces xs) =
+    let rec loop i acc =
+        if i < 0 then (acc, i)
+        else
+            let (Token(_, tok, _)) = xs.[i]
+            if tok.CharClass = TokenCharKind.Comment || tok.CharClass = TokenCharKind.LineComment then
+                loop (i - 1) (xs.[i]::acc)
+            else
+                (acc, i)
+    match loop (xs.Length - 1) [] with
+    | [], _ -> None
+    | ts, i -> Some(ts, xs.[..i])
+
+/// Retrieve comments recursively, skip some whitespaces
+let rec (|CommentBlocks|_|) xs =
+    let rec (|CommentBlocks|_|) = function
+        | CommentBlock(ts, CommentBlocks(tss, xs)) -> Some(ts::tss, xs)
+        | CommentBlock(ts, xs) -> Some([ts], xs)
+        | _ -> None
+    match xs with
+    | CommentBlocks(tss, xs) -> Some(tss |> List.rev |> List.concat, xs)
+    | _ -> None
 
 /// Merge a list of token into an output string
 let mergeTokens (ts : _ list) =
@@ -109,19 +128,7 @@ let mergeTokens (ts : _ list) =
     |> Seq.groupBy Token.lineNumber 
     |> Seq.map (snd >> Seq.map Token.content >> String.concat "")
     |> Seq.map (fun s -> s.TrimEnd('\r'))
-    |> String.concat Environment.NewLine        
-
-/// Return a block of comments and the array fragment before the comment block
-let (|Comments|_|) (Spaces xs) =
-    let rec loop i acc =
-        if i < 0 then (acc, i)
-        else
-            match xs.[i] with
-            | Comment t -> loop (i - 1) (t::acc)
-            | _ -> (acc, i)
-    match loop (xs.Length - 1) [] with
-    | [], _ -> None
-    | ts, i -> Some(mergeTokens ts, xs.[..i])
+    |> String.concat Environment.NewLine   
 
 /// Keyword and identifier tokens have attached comments
 let (|SupportedToken|_|) (Token(s, tok, n)) =
@@ -136,9 +143,9 @@ let filterComments (xs : Token []) =
             match xs.[i] with
             | SupportedToken(_, tok, n) ->
                 match xs.[..i-1] with
-                | Attributes(Comments(c, xs))
-                | Comments(c, xs) ->
-                    dic.Add(mkPos n tok.LeftColumn, c)
+                | Attributes(CommentBlocks(tss, xs))
+                | CommentBlocks(tss, xs) ->
+                    dic.Add(mkPos n tok.LeftColumn, mergeTokens tss)
                     loop (xs.Length - 1) xs dic
                 | _ -> loop (i - 1) xs dic           
             | _ -> loop (i - 1) xs dic

@@ -14,10 +14,10 @@ open Fantomas.CodeFormatter
 let config = FormatConfig.Default
 
 let t01 = """
-(* Comments *)
-// This is another comment
+    (* Comments *)
+    // This is another comment
 
-/// This is doc comment
+    /// This is doc comment
 [<Test>]
 let ``this is a test``() = ()
 """
@@ -31,10 +31,10 @@ type MyClass2(dataIn) as self =
            printf "Creating MyClass2 with Data %d" data"""
 ;;
 
-let xs = filterComments (tokenize t02) 
+let xs = filterComments (tokenize t01) 
          |> Seq.iter (fun (KeyValue(pos, s)) -> printfn "l:%O, c:%O, %s" pos.Line pos.Column s);;
 
-printfn "Result:\n%s" <| formatSourceString false t02 config;;
+printfn "Result:\n%s" <| formatSourceString false t01 config;;
 
 printfn "Result:\n%s" <| formatSelectionFromString false (makeRange 6 5 6 51) t02 config;;
 
