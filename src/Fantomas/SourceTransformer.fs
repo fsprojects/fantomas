@@ -104,8 +104,9 @@ let inline genConst c =
     | Unresolved c -> fun ctx -> str (content c ctx) ctx
 
 let inline genCommentsAt (r : range) (ctx : Context) =
+    printfn "l:%O, c:%O" r.Start.Line r.Start.Column
     match ctx.Comments.TryGetValue(r.Start) with
-    | true, s -> str s ctx
+    | true, s -> sepNln (str s ctx)
     | _ -> ctx
 
 /// Assume that this function is called on e with Range property

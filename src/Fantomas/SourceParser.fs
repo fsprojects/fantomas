@@ -151,11 +151,11 @@ let (|ParsedImplFileInput|) (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _,
 let (|ParsedSigFileInput|) (ParsedSigFileInput.ParsedSigFileInput(_, _, _, hs, mns)) =
     (hs, mns)
 
-let (|ModuleOrNamespace|) (SynModuleOrNamespace.SynModuleOrNamespace(LongIdent s, isModule, mds, px, ats, ao, _)) =
-    (ats, px, ao, s, mds, isModule)
+let (|ModuleOrNamespace|) (SynModuleOrNamespace.SynModuleOrNamespace(LongIdent s, isModule, mds, px, ats, ao, r)) =
+    (ats, px, ao, s, mds, isModule, r)
 
-let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(LongIdent s, isModule, mds, px, ats, ao, _)) =
-    (ats, px, ao, s, mds, isModule)
+let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(LongIdent s, isModule, mds, px, ats, ao, r)) =
+    (ats, px, ao, s, mds, isModule, r)
 
 // Attribute
 
@@ -174,8 +174,8 @@ let (|PreXmlDoc|) (px: PreXmlDoc) =
     match px.ToXmlDoc() with
     | XmlDoc lines -> lines
 
-let (|ParsedHashDirective|) (ParsedHashDirective(s, ss, _)) =
-    (s, String.concat "." ss)
+let (|ParsedHashDirective|) (ParsedHashDirective(s, ss, r)) =
+    (s, String.concat "." ss, r)
 
 // Module declarations (10 cases)
 

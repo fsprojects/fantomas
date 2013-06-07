@@ -1,4 +1,4 @@
-﻿module internal Fantomas.SourceFilter
+﻿module Fantomas.SourceFilter
 
 // This module filters comments and compiler directives based on their locations
 // and try to reattach them to the source code while pretty-printing.
@@ -50,7 +50,7 @@ let tokenize fsi (s : string) =
     let sourceTok = SourceTokenizer([], fileName)
 
     [| let state = ref 0L
-       for n, line in lines |> Seq.zip [ 0 .. lines.Length ] do
+       for n, line in lines |> Seq.zip [ 1 .. lines.Length ] do
            let tokenizer = sourceTok.CreateLineTokenizer(line)
            let rec parseLine() = seq {
               match tokenizer.ScanToken(!state) with
@@ -82,16 +82,18 @@ let (|Spaces|) (xs : Token []) =
 
 /// Recognize an attribute and skip it
 let (|Attribute|_|) (Spaces xs) =
-    match Array.last xs with
-    | Token(">]", _, _) -> 
-        match xs |> searchBackward (fun (Token(s, tok, _)) -> s = "[<" && tok.CharClass = TokenCharKind.Delimiter) with
-        | Some i -> Some xs.[..i]
-        | None -> None
-    | _ -> None
+    if xs = [||] then None
+    else
+        match Array.last xs with
+        | Token(">]", _, _) -> 
+            match xs |> searchBackward (fun (Token(s, tok, _)) -> s = "[<" && tok.CharClass = TokenCharKind.Delimiter) with
+            | Some i -> Some xs.[..i - 1]
+            | None -> None
+        | _ -> None
 
-/// Recognize a list of attributes and skip them
+/// Recognize a list of attributes and return the array fragment before that
 let rec (|Attributes|_|) = function
-    | Attribute(Attributes xs) -> Some xs
+    | Attribute(Attributes xs)
     | Attribute xs -> Some xs
     | _ -> None
 
@@ -106,27 +108,30 @@ let mergeTokens (ts : _ list) =
     ts 
     |> Seq.groupBy Token.lineNumber 
     |> Seq.map (snd >> Seq.map Token.content >> String.concat "")
+    |> Seq.map (fun s -> s.TrimEnd('\r'))
     |> String.concat Environment.NewLine        
 
-/// Recognize a block of comments
+/// Return a block of comments and the array fragment before the comment block
 let (|Comments|_|) (Spaces xs) =
     let rec loop i acc =
-        if i < 0 then (acc, 0)
+        if i < 0 then (acc, i)
         else
             match xs.[i] with
-            | Comment t -> loop (i-1) (t::acc)
+            | Comment t -> loop (i - 1) (t::acc)
             | _ -> (acc, i)
-    match loop (xs.Length-1) [] with
+    match loop (xs.Length - 1) [] with
     | [], _ -> None
     | ts, i -> Some(mergeTokens ts, xs.[..i])
 
 /// Given a list of token, attach comments to appropriate positions
 let filterComments (xs : Token []) =
     let rec loop i (xs : Token []) (dic : Dictionary<_, _>)  = 
-        if i < 0 then dic
+        if i <= 0 then dic
         else
             // TODO: support and in recursive bindings
             match xs.[i] with
+            | Token("open", tok, n)
+            | Token("module", tok, n)
             | Token("let", tok, n)
             | Token("do", tok, n)
             | Token("type", tok, n)
@@ -139,19 +144,17 @@ let filterComments (xs : Token []) =
             | Token("new", tok, n)
             | Token("val", tok, n)
             | Token("inherit", tok, n) when tok.CharClass = TokenCharKind.Keyword ->
-                match xs.[..i] with
-                | Comments(c, Attributes xs)
-                | Comments(c, xs) -> 
-                    printfn "Found something"
+                match xs.[..i-1] with
+                | Attributes(Comments(c, xs))
+                | Comments(c, xs) ->
                     // Attach comments to the keyword
                     dic.Add(mkPos n tok.LeftColumn, c)
                     loop (xs.Length - 1) xs dic
                 | _ -> loop (i - 1) xs dic
             | Token(_, tok, n) when tok.CharClass = TokenCharKind.Identifier ->
-                match xs.[..i] with
-                | Comments(c, Attributes xs)
+                match xs.[..i-1] with
+                | Attributes(Comments(c, xs))
                 | Comments(c, xs) ->
-                    printfn "Found something"
                     dic.Add(mkPos n tok.LeftColumn, c)
                     loop (xs.Length - 1) xs dic
                 | _ -> loop (i - 1) xs dic           

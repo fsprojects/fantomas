@@ -7,10 +7,8 @@
 #load "CodePrinter.fs"
 #load "CodeFormatter.fs"
 
-open Fantomas.FormatConfig
-open Fantomas.SourceParser
 open Fantomas.SourceFilter
-open Fantomas.CodePrinter
+open Fantomas.FormatConfig
 open Fantomas.CodeFormatter
 
 let config = FormatConfig.Default
@@ -20,24 +18,17 @@ let t01 = """
 // This is another comment
 
 /// This is doc comment
-
 [<Test>]
 let ``this is a test``() = ()
 """
 
 let t02 = """
-module ``method``
-
-let ``abstract`` = "abstract"
-
-/// This is doc comment
-type SomeType() =
-    member this.``new``() = 
-        System.Console.WriteLine("Hello World!")
+#nowarn "51"
 """
 ;;
 
-let xs = tokenize false t02 |> Array.map (fun (Token(x, y, z)) -> x, y.CharClass);;
+let xs = filterComments (tokenize false t02) 
+         |> Seq.iter (fun (KeyValue(pos, s)) -> printfn "l:%O, c:%O, %s" pos.Line pos.Column s);;
 
 printfn "Result:\n%s" <| formatSourceString false t02 config;;
 

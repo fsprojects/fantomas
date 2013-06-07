@@ -16,20 +16,20 @@ and genSigFile(ParsedSigFileInput(hs, mns)) =
     col sepNln hs genParsedHashDirective
     +> col sepNln mns genSigModuleOrNamespace    
 
-and genParsedHashDirective(ParsedHashDirective(s1, s2)) =
-    /// print strings with quotes
-    !- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2))
+and genParsedHashDirective(ParsedHashDirective(s1, s2, r)) =
+    genCommentsAt r
+    -- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2))
 
-and genModuleOrNamespace(ModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
-    genPreXmlDoc px
+and genModuleOrNamespace(ModuleOrNamespace(ats, _, ao, s, mds, isModule, r)) =
+    ifElse (s = "Tmp") sepNone (genCommentsAt r)
     +> colPost sepNln sepNln ats genAttribute
-    /// Checking for Tmp is a bit fragile
+    // Checking for Tmp is a bit fragile
     +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
             +> opt sepSpace ao genAccess +> ifElse (s = "") (!- "global") (!- s) +> rep 2 sepNln)
     +> genModuleDeclList mds
 
-and genSigModuleOrNamespace(SigModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
-    genPreXmlDoc px
+and genSigModuleOrNamespace(SigModuleOrNamespace(ats, _, ao, s, mds, isModule, r)) =
+    ifElse (s = "Tmp") sepNone (genCommentsAt r)
     +> colPost sepNln sepNln ats genAttribute
     +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
     +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
@@ -53,61 +53,64 @@ and genModuleDeclList = function
         | _ -> col (rep 2 sepNln) xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys
     | _ -> sepNone    
 
-and genModuleDecl = function
-    | Attributes(ats) ->
-        col sepNln ats genAttribute
-    | DoExpr(e) ->
-        genExpr e
-    | Exception(ex) ->
-        genException ex
-    | HashDirective(p) -> 
-        genParsedHashDirective p
-    /// Add a new line after module-level let bindings
-    | Let(b) ->
-        genLetBinding "let " b
-    | LetRec(b::bs) -> 
-        genLetBinding "let rec " b 
-        +> colPre (rep 2 sepNln) (rep 2 sepNln) bs (genLetBinding "and ")
+and genModuleDecl md =
+    let rec genModuleDecl = function
+        | Attributes(ats) ->
+            col sepNln ats genAttribute
+        | DoExpr(e) ->
+            genExpr e
+        | Exception(ex) ->
+            genException ex
+        | HashDirective(p) -> 
+            genParsedHashDirective p
+        // Add a new line after module-level let bindings
+        | Let(b) ->
+            genLetBinding "let " b
+        | LetRec(b::bs) -> 
+            genLetBinding "let rec " b 
+            +> colPre (rep 2 sepNln) (rep 2 sepNln) bs (genLetBinding "and ")
 
-    | ModuleAbbrev(s1, s2) ->
-        !- "module " -- s1 +> sepEq -- s2
-    | NamespaceFragment(m) ->
-        failwithf "NamespaceFragment hasn't been implemented yet: %O" m
-    | NestedModule(ats, px, ao, s, mds) -> 
-        genPreXmlDoc px
-        +> colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
-        +> indent +> sepNln +> genModuleDeclList mds +> unindent
+        | ModuleAbbrev(s1, s2) ->
+            !- "module " -- s1 +> sepEq -- s2
+        | NamespaceFragment(m) ->
+            failwithf "NamespaceFragment hasn't been implemented yet: %O" m
+        | NestedModule(ats, _, ao, s, mds) -> 
+            colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
+            +> indent +> sepNln +> genModuleDeclList mds +> unindent
 
-    | Open(s) ->
-        !- (sprintf "open %s" s)
-    /// There is no nested types and they are recursive if there are more than one definition
-    | Types(t::ts) ->
-        genTypeDefn true t +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genTypeDefn false)
-    | md ->
-        failwithf "Unexpected module declaration: %O" md
+        | Open(s) ->
+            !- (sprintf "open %s" s)
+        // There is no nested types and they are recursive if there are more than one definition
+        | Types(t::ts) ->
+            genTypeDefn true t +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genTypeDefn false)
+        | md ->
+            failwithf "Unexpected module declaration: %O" md
+    genComments md +> genModuleDecl md
 
-and genSigModuleDecl = function
-    | SigException(ex) ->
-        genSigException ex
-    | SigHashDirective(p) -> 
-        genParsedHashDirective p
-    | SigVal(v) ->
-        genVal v
-    | SigModuleAbbrev(s1, s2) ->
-        !- "module " -- s1 +> sepEq -- s2
-    | SigNamespaceFragment(m) ->
-        failwithf "NamespaceFragment is not supported yet: %O" m
-    | SigNestedModule(ats, px, ao, s, mds) -> 
-        genPreXmlDoc px
-        +> colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
-        +> indent +> sepNln +> col sepNln mds genSigModuleDecl +> unindent
+and genSigModuleDecl md = 
+    let rec genSigModuleDec = function
+        | SigException(ex) ->
+            genSigException ex
+        | SigHashDirective(p) -> 
+            genParsedHashDirective p
+        | SigVal(v) ->
+            genVal v
+        | SigModuleAbbrev(s1, s2) ->
+            !- "module " -- s1 +> sepEq -- s2
+        | SigNamespaceFragment(m) ->
+            failwithf "NamespaceFragment is not supported yet: %O" m
+        | SigNestedModule(ats, px, ao, s, mds) -> 
+            genPreXmlDoc px
+            +> colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
+            +> indent +> sepNln +> col sepNln mds genSigModuleDecl +> unindent
 
-    | SigOpen(s) ->
-        !- (sprintf "open %s" s)
-    | SigTypes(t::ts) ->
-        genSigTypeDefn true t +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genSigTypeDefn false)
-    | md ->
-        failwithf "Unexpected module signature declaration: %O" md
+        | SigOpen(s) ->
+            !- (sprintf "open %s" s)
+        | SigTypes(t::ts) ->
+            genSigTypeDefn true t +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genSigTypeDefn false)
+        | md ->
+            failwithf "Unexpected module signature declaration: %O" md
+    genComments md +> genSigModuleDec md
 
 and genAccess(Access s) = !- s
 
