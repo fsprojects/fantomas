@@ -318,7 +318,8 @@ and genExpr = function
     | ArrayOrListOfSeqExpr(isArray, e) -> 
         ifElse isArray (sepOpenA +> genExpr e +> sepCloseA) (sepOpenL +> genExpr e +> sepCloseL)
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
-    | DesugaredMatch(_, e) -> genExpr e
+    | DesugaredLambda(cps, e) -> 
+        !- "fun " +>  col sepSpace cps genComplexPats +> sepArrow +> autoBreakNln e        
     | Lambda(e, sps) -> 
         !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e
     | MatchLambda(sp, _) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
@@ -780,6 +781,17 @@ and genSimplePats = function
     | SimplePats [SPId _ as sp] -> genSimplePat sp
     | SimplePats ps -> sepOpenT +> col sepComma ps genSimplePat +> sepCloseT
     | SPSTyped(ps, t) -> genSimplePats ps +> sepColon +> genType t
+
+and genComplexPat = function
+    | CPId p -> genPat p
+    | CPSimpleId(s, isOptArg, _) -> ifElse isOptArg (!- (sprintf "?%s" s)) (!- s)
+    | CPTyped(sp, t) -> genComplexPat sp +> sepColon +> genType t
+    | CPAttrib(ats, sp) -> colPost sepSpace sepNone ats genAttribute +> genComplexPat sp
+
+and genComplexPats = function
+    | ComplexPats [c] -> genComplexPat c
+    | ComplexPats ps -> sepOpenT +> col sepComma ps genComplexPat +> sepCloseT
+    | ComplexTyped(ps, t) -> genComplexPats ps +> sepColon +> genType t
 
 and inline genPatRecordFieldName(PatRecordFieldName(s1, s2, p)) =
     ifElse (s1 = "") (!- (sprintf "%s = " s2)) (!- (sprintf "%s.%s = " s1 s2)) +> genPat p
