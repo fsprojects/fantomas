@@ -64,10 +64,10 @@ and genModuleDecl = function
         genParsedHashDirective p
     /// Add a new line after module-level let bindings
     | Let(b) ->
-        genLetBinding "let " b
+        genLetBinding true "let " b
     | LetRec(b::bs) -> 
-        genLetBinding "let rec " b 
-        +> colPre (rep 2 sepNln) (rep 2 sepNln) bs (genLetBinding "and ")
+        genLetBinding true "let rec " b 
+        +> colPre (rep 2 sepNln) (rep 2 sepNln) bs (genLetBinding false "and ")
 
     | ModuleAbbrev(s1, s2) ->
         !- "module " -- s1 +> sepEq -- s2
@@ -133,11 +133,13 @@ and inline genTypeParam tds tcs =
     ifElse (List.isEmpty tds) sepNone
         (!- "<" +> col sepComma tds genTyparDecl +> colPre (!- " when ") wordAnd tcs genTypeConstraint -- ">")
 
-and genLetBinding pref = function
+and genLetBinding isFirst pref = function
     | LetBinding(ats, px, ao, isInline, isMutable, p, e) ->
         let prefix =
             genPreXmlDoc px
-            +> colPost sepNln sepNone ats genAttribute -- pref +> opt sepSpace ao genAccess
+            +> ifElse isFirst (colPost sepNln sepNone ats genAttribute -- pref) 
+                (!- pref +> colPost sepSpace sepNone ats genAttribute)
+            +> opt sepSpace ao genAccess
             +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
             +> genPat p
 
@@ -374,10 +376,10 @@ and genExpr = function
         match bs with
         | b::bs ->
             /// and is applicable for use binding
-            atCurrentColumn (genLetBinding prefix b +> 
-                colPre sepNln sepNln bs (genLetBinding "and ") +> sepNln +> genExpr e)
+            atCurrentColumn (genLetBinding true prefix b +> 
+                colPre sepNln sepNln bs (genLetBinding false "and ") +> sepNln +> genExpr e)
 
-        | _ -> atCurrentColumn (col sepNln bs (genLetBinding prefix) +> sepNln +> genExpr e)
+        | _ -> atCurrentColumn (col sepNln bs (genLetBinding true prefix) +> sepNln +> genExpr e)
 
     /// Could customize a bit if e is single line
     | TryWith(e, cs) ->  
@@ -737,14 +739,14 @@ and genMemberDefn inter = function
         +> optPre (!- " as ") sepNone so (!-)
 
     | MDMember(b) -> genMemberBinding inter b
-    | MDLetBindings(isStatic, isRec, bs) ->
+    | MDLetBindings(isStatic, isRec, b::bs) ->
         let prefix = 
             if isStatic && isRec then "static let rec "
             elif isStatic then "static let "
             elif isRec then "let rec "
             else "let "
 
-        col sepNln bs (genLetBinding prefix)
+        genLetBinding true prefix b +> colPre sepNln sepNln bs (genLetBinding false "and ")
 
     | MDInterface(t, mdo) -> 
         !- "interface " +> genType t
