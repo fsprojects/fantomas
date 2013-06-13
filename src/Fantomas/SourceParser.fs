@@ -28,7 +28,7 @@ type Identifier =
 /// Different from (|Ident|), this pattern also accepts keywords
 let inline (|IdentOrKeyword|) (s : Ident) = Id s
 
-let (|LongIdentOrKeyword|) (li : LongIdent) = LongId li
+let inline (|LongIdentOrKeyword|) (li : LongIdent) = LongId li
 
 /// Use infix operators in the short form
 let (|OpName|) (x : Identifier) =
@@ -112,8 +112,8 @@ let rec (|Const|Unresolved|) = function
     | SynConst.Double d -> Const(sprintf "%A" d)
     | SynConst.Char c -> Const(sprintf "%A" c)
     | SynConst.Decimal d -> Const(sprintf "%A" d)
-    | SynConst.String _ as c -> Unresolved(c)
-    | SynConst.Bytes _ as c -> Unresolved(c)
+    | SynConst.String(s, r) -> Unresolved(s, r)
+    | SynConst.Bytes(bs, r) -> Unresolved(sprintf "%A" bs, r)
     // Auto print may cut off the array
     | SynConst.UInt16s us -> Const(sprintf "%A" us)
     | _ -> invalidArg "c" "Ill-formed constants"

@@ -81,6 +81,23 @@ type Context =
         let comments = filterComments (tokenize content)
         { Context.Default with Config = config; Content = content; Positions = positions; Comments = comments }
 
+    /// Get source string content based on range value
+    member x.StringContent (r : range) =
+        let positions = x.Positions
+        if r.EndLine <= positions.Length then
+            let start = positions.[r.StartLine-1] + r.StartColumn
+            let finish = positions.[r.EndLine-1] + r.EndColumn - 1
+            let content = x.Content
+            let s = content.[start..finish]
+            if s.Contains("\n") then
+                /// Terrible hack to compensate the offset made by F# compiler
+                let last = content.[positions.[r.EndLine-1]..finish]
+                let offset = last.Length - last.TrimStart(' ').Length
+                if finish + offset >= content.Length then content.[start..]
+                else content.[start..finish + offset]
+            else s
+        else ""
+
     member x.With(writer : ColumnIndentedTextWriter) =
         writer.Indent <- x.Writer.Indent
         writer.Column <- x.Writer.Column
