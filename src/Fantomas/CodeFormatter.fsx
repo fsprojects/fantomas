@@ -23,12 +23,12 @@ let ``this is a test``() = ()
 """
 
 let t02 = """
-type MyClass2(dataIn) as self =
-       let data = dataIn
-       do self.PrintMessage()
-       // Print a message to console
-       member this.PrintMessage() =
-           printf "Creating MyClass2 with Data %d" data"""
+try 
+    fst(find (fun (s, (s', ty)) -> 
+                s' = s0 && can (type_match ty ty0) []) (!the_interface))
+with
+| Failure _ -> s0
+"""
 ;;
 
 let xs = filterComments (tokenize t01) 

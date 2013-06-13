@@ -182,3 +182,21 @@ let IsMatchByName record1 (name : string) =
     match record1 with
     | { MyRecord.Name = nameFound; ID = _ } when nameFound = name -> true
     | _ -> false"""
+
+[<Test>]
+let ``desugared lambdas``() =
+    formatSourceString false """
+try 
+    fst(find (fun (s, (s', ty): int * int) -> 
+                s' = s0 && can (type_match ty ty0) []) (!the_interface))
+with
+| Failure _ -> s0""" config
+    |> prepend newline
+    |> should equal """
+try 
+    fst
+        (find 
+             (fun (s, (s', ty) : int * int) -> 
+                 s' = s0 && can (type_match ty ty0) []) (!the_interface))
+with
+| Failure _ -> s0"""

@@ -784,8 +784,6 @@ let (|SPAttrib|SPId|SPTyped|) = function
     | SynSimplePat.Attrib(sp, ats, _) ->
         SPAttrib(ats, sp)
     /// Not sure compiler generated SPIds are used elsewhere.
-    | SynSimplePat.Id(Ident _, _, true, _, isOptArg, _) ->
-        SPId("_", isOptArg, true)
     | SynSimplePat.Id(Ident s, _, isGen, _, isOptArg, _) ->
         SPId(s, isOptArg, isGen)
     | SynSimplePat.Typed(sp, t, _) ->
@@ -803,11 +801,47 @@ let (|RecordField|) = function
 
 let (|Clause|) (SynMatchClause.Clause(p, eo, e, _, _)) = (p, e, eo)
 
-let rec (|DesugaredMatch|_|) = function
-    | SynExpr.Match(_, Var s, [Clause(PatNullary PatWild, DesugaredMatch(ss, e), None)], _, _) ->
-        Some(s::ss, e)
-    | SynExpr.Match(_, Var s, [Clause(PatNullary PatWild, e, None)], _, _) ->
-        Some([s], e)
+let rec private (|DesugaredMatch|_|) = function
+    | SynExpr.Match(_, Var s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) ->
+        Some((s, p)::ss, e)
+    | SynExpr.Match(_, Var s, [Clause(p, e, None)], _, _) ->
+        Some([(s, p)], e)
+    | _ -> None
+
+type ComplexPat =
+    | CPAttrib of SynAttributes * ComplexPat
+    | CPId of SynPat
+    | CPSimpleId of string * bool * bool
+    | CPTyped of ComplexPat * SynType
+
+type ComplexPats =
+    | ComplexPats of ComplexPat list
+    | ComplexTyped of ComplexPats * SynType
+
+/// Manipulate patterns in case the compiler generate spurious matches
+let rec transformPatterns ss = function
+    | SimplePats sps ->
+        let rec loop sp =            
+            match sp with
+            | SPAttrib(ats, sp) -> CPAttrib(ats, loop sp)
+            | SPId(s, b, true) ->
+                match List.tryPick(fun (s', p) -> if s = s' then Some p else None) ss with
+                | Some p -> 
+                    match p with
+                    | PatSeq(PatTuple, _) ->
+                        // Auto-add parentheses for correctness
+                        CPId (SynPat.Paren(p, p.Range))
+                    | _ -> CPId p
+                | None -> CPSimpleId(s, b, true)
+            | SPId(s, b, _) -> CPSimpleId(s, b, false)
+            | SPTyped(sp, t) -> CPTyped(loop sp, t)
+        List.map loop sps |> ComplexPats
+    | SPSTyped(sp, t) -> ComplexTyped(transformPatterns ss sp, t)
+
+/// Process compiler-generated matches in an appropriate way
+let (|DesugaredLambda|_|) = function
+    | Lambda(DesugaredMatch(ss, e), spss) ->
+        Some(List.map (transformPatterns ss) spss, e)
     | _ -> None
 
 // Type definitions

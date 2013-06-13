@@ -68,3 +68,15 @@ type vector3D<[<Measure>] 'u> =
     { x : float<'u>;
       y : float<'u>;
       z : float<'u> }"""
+
+[<Test>]
+let ``attributes on recursive functions``() =
+    formatSourceString false """
+let rec [<Test>] a () = 10
+and [<Test>] b () = 10""" config
+    |> prepend newline
+    |> should equal """
+[<Test>]
+let rec a() = 10
+
+and [<Test>] b() = 10"""

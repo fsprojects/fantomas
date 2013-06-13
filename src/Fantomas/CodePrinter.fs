@@ -64,10 +64,10 @@ and genModuleDecl md =
             genParsedHashDirective p
         // Add a new line after module-level let bindings
         | Let(b) ->
-            genLetBinding "let " b
+            genLetBinding true "let " b
         | LetRec(b::bs) -> 
-            genLetBinding "let rec " b 
-            +> colPre (rep 2 sepNln) (rep 2 sepNln) bs (genLetBinding "and ")
+            genLetBinding true "let rec " b 
+            +> colPre (rep 2 sepNln) (rep 2 sepNln) bs (genLetBinding false "and ")
 
         | ModuleAbbrev(s1, s2) ->
             !- "module " -- s1 +> sepEq -- s2
@@ -135,11 +135,12 @@ and inline genTypeParam tds tcs =
     ifElse (List.isEmpty tds) sepNone
         (!- "<" +> col sepComma tds genTyparDecl +> colPre (!- " when ") wordAnd tcs genTypeConstraint -- ">")
 
-and genLetBinding pref b =
-    match b with 
+and genLetBinding isFirst pref = function
     | LetBinding(ats, _, ao, isInline, isMutable, p, e) ->
         let prefix =
-            colPost sepNln sepNone ats genAttribute -- pref +> opt sepSpace ao genAccess
+            ifElse isFirst (colPost sepNln sepNone ats genAttribute -- pref) 
+                (!- pref +> colPost sepSpace sepNone ats genAttribute)
+            +> opt sepSpace ao genAccess
             +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
             +> genPat p
 
@@ -319,7 +320,8 @@ and genExpr expr =
     | ArrayOrListOfSeqExpr(isArray, e) -> 
         ifElse isArray (sepOpenA +> genExpr e +> sepCloseA) (sepOpenL +> genExpr e +> sepCloseL)
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
-    | DesugaredMatch(_, e) -> genExpr e
+    | DesugaredLambda(cps, e) -> 
+        !- "fun " +>  col sepSpace cps genComplexPats +> sepArrow +> autoBreakNln e        
     | Lambda(e, sps) -> 
         genComments expr -- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e
     | MatchLambda(sp, _) -> atCurrentColumn (genComments expr -- "function " +> colPre sepNln sepNln sp genClause)
@@ -374,10 +376,10 @@ and genExpr expr =
         match bs with
         | b::bs ->
             /// and is applicable for use binding
-            atCurrentColumn (genComments expr +> genLetBinding prefix b +> 
-                colPre sepNln sepNln bs (genLetBinding "and ") +> sepNln +> genExpr e)
+            atCurrentColumn (genComments expr +> genLetBinding true prefix b +> 
+                colPre sepNln sepNln bs (genLetBinding false "and ") +> sepNln +> genExpr e)
 
-        | _ -> atCurrentColumn (genComments expr +> col sepNln bs (genLetBinding prefix) +> sepNln +> genExpr e)
+        | _ -> atCurrentColumn (genComments expr +> col sepNln bs (genLetBinding true prefix) +> sepNln +> genExpr e)
 
     /// Could customize a bit if e is single line
     | TryWith(e, cs) ->  
@@ -738,14 +740,14 @@ and genMemberDefn inter md =
             +> optPre (!- " as ") sepNone so (!-)
 
         | MDMember(b) -> genMemberBinding inter b
-        | MDLetBindings(isStatic, isRec, bs) ->
+        | MDLetBindings(isStatic, isRec, b::bs) ->
             let prefix = 
                 if isStatic && isRec then "static let rec "
                 elif isStatic then "static let "
                 elif isRec then "let rec "
                 else "let "
 
-            col sepNln bs (genLetBinding prefix)
+            genLetBinding true prefix b +> colPre sepNln sepNln bs (genLetBinding false "and ")
 
         | MDInterface(t, mdo) -> 
             !- "interface " +> genType t
@@ -782,6 +784,17 @@ and genSimplePats = function
     | SimplePats [SPId _ as sp] -> genSimplePat sp
     | SimplePats ps -> sepOpenT +> col sepComma ps genSimplePat +> sepCloseT
     | SPSTyped(ps, t) -> genSimplePats ps +> sepColon +> genType t
+
+and genComplexPat = function
+    | CPId p -> genPat p
+    | CPSimpleId(s, isOptArg, _) -> ifElse isOptArg (!- (sprintf "?%s" s)) (!- s)
+    | CPTyped(sp, t) -> genComplexPat sp +> sepColon +> genType t
+    | CPAttrib(ats, sp) -> colPost sepSpace sepNone ats genAttribute +> genComplexPat sp
+
+and genComplexPats = function
+    | ComplexPats [c] -> genComplexPat c
+    | ComplexPats ps -> sepOpenT +> col sepComma ps genComplexPat +> sepCloseT
+    | ComplexTyped(ps, t) -> genComplexPats ps +> sepColon +> genType t
 
 and inline genPatRecordFieldName(PatRecordFieldName(s1, s2, p)) =
     ifElse (s1 = "") (!- (sprintf "%s = " s2)) (!- (sprintf "%s.%s = " s1 s2)) +> genPat p

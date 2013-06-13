@@ -40,7 +40,7 @@ let rec multiline = function
     | TypedExpr(_, e, _)
     | CompExpr(_, e)
     | ArrayOrListOfSeqExpr(_, e)
-    | DesugaredMatch(_, e)
+    | DesugaredLambda(_, e)
     | Lambda(e, _)
     | TypeApp(e, _)
     | LongIdentSet(_, e)
