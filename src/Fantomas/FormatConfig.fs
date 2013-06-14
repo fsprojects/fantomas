@@ -57,37 +57,33 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
         member __.Dispose() =
             indentWriter.Dispose()    
 
-type Context = 
-    { Config : FormatConfig; 
-      Writer : ColumnIndentedTextWriter;
-      mutable BreakLines : bool;
-      /// The original source string to query as a last resort 
-      Content : string; 
-      /// Positions of new lines in the original source string
-      Positions : int [] 
-      /// Comments attached to appropriate locations
-      Comments : Dictionary<pos, string seq> }
-    /// Initialize with a string writer and use space as delimiter
-    static member Default = { Config = FormatConfig.Default;
-                              Writer = new ColumnIndentedTextWriter(new StringWriter());
-                              BreakLines = true; Content = ""; Positions = [||] ; Comments = Dictionary() }
+[<Sealed>]
+type Context (writer : ColumnIndentedTextWriter, config : FormatConfig, 
+              ?content : string, ?positions : int [], ?comments : Dictionary<pos, string seq>) = 
+    let mutable breakLines = true
 
-    static member create config (content : string) =
-        let positions = 
-            content.Split([|'\n'|], StringSplitOptions.None)
-            |> Seq.map (fun s -> String.length s + 1)
-            |> Seq.scan (+) 0
-            |> Seq.toArray
-        let comments = filterComments (tokenize content)
-        { Context.Default with Config = config; Content = content; Positions = positions; Comments = comments }
+    /// The original source string to query as a last resort
+    let content = defaultArg content ""
+
+    /// Positions of new lines in the original source string
+    let positions = defaultArg positions [||]
+
+    /// Comments attached to appropriate locations
+    let comments = defaultArg comments (Dictionary())
+
+    member __.BreakLines
+        with get() = breakLines
+        and set b = breakLines <- b
+
+    member __.Writer = writer
+    member __.Config = config
+    member __.Comments = comments
 
     /// Get source string content based on range value
-    member x.StringContent (r : range) =
-        let positions = x.Positions
+    member __.StringContent(r : range) =
         if r.EndLine <= positions.Length then
             let start = positions.[r.StartLine-1] + r.StartColumn
             let finish = positions.[r.EndLine-1] + r.EndColumn - 1
-            let content = x.Content
             let s = content.[start..finish]
             if s.Contains("\n") then
                 /// Terrible hack to compensate the offset made by F# compiler
@@ -98,14 +94,27 @@ type Context =
             else s
         else ""
 
-    member x.With(writer : ColumnIndentedTextWriter) =
-        writer.Indent <- x.Writer.Indent
-        writer.Column <- x.Writer.Column
+    member __.With(indentWriter : ColumnIndentedTextWriter) =
+        indentWriter.Indent <- writer.Indent
+        indentWriter.Column <- writer.Column
         /// Use infinite column width to encounter worst-case scenario
-        let config = { x.Config with PageWidth = Int32.MaxValue }
-        { x with Writer = writer; Config = config }
+        let config = { config with PageWidth = Int32.MaxValue }
+        new Context(indentWriter, config, content, positions, comments)
 
-let dump (ctx: Context) =
+    static member create config (content : string) =
+        let positions = 
+            content.Split([|'\n'|], StringSplitOptions.None)
+            |> Seq.map (fun s -> String.length s + 1)
+            |> Seq.scan (+) 0
+            |> Seq.toArray
+        let comments = filterComments (tokenize content)
+        new Context(new ColumnIndentedTextWriter(new StringWriter()), config, content, positions, comments)
+
+    interface IDisposable with
+        member __.Dispose() =
+            (writer :> IDisposable).Dispose()
+
+let dump (ctx : Context) =
     ctx.Writer.InnerWriter.ToString()
 
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
@@ -131,7 +140,7 @@ let decrIndent i (ctx : Context) =
     ctx
 
 /// Apply function f at an absolute indent level (use with care)
-let atIndentLevel level (f : Context -> Context) ctx =
+let atIndentLevel level (f : _ -> Context) (ctx : Context) =
     if level < 0 then
         invalidArg "level" "The indent level cannot be negative."
     let oldLevel = ctx.Writer.Indent
@@ -145,19 +154,19 @@ let atCurrentColumn (f : _ -> Context) (ctx : Context) =
     atIndentLevel ctx.Writer.Column f ctx
 
 /// Function composition operator
-let inline (+>) (ctx : Context -> Context) (f : _ -> Context) x =
-    f (ctx x)
+let inline (+>) (f1 : Context -> _) (f2 : _ -> Context) ctx =
+    f2 (f1 ctx)
 
 /// Break-line and append specified string
-let inline (++) (ctx : Context -> Context) (str : string) x =
-    let c = ctx x
+let inline (++) (f : Context -> Context) (str : string) ctx =
+    let c = f ctx
     c.Writer.WriteLine("")
     c.Writer.Write(str)
     c
 
 /// Append specified string without line-break
-let inline (--) (ctx : Context -> Context) (str : string) x =
-    let c = ctx x
+let inline (--) (f : Context -> Context) (str : string) ctx =
+    let c = f ctx
     c.Writer.Write(str)
     c
 
@@ -220,7 +229,7 @@ let ifElse b (f1 : Context -> Context) f2 (ctx : Context) =
     if b then f1 ctx else f2 ctx
 
 /// Repeat application of a function n times
-let rep n (f : Context -> Context) (ctx : Context) =
+let rep n (f : _ -> Context) (ctx : Context) =
     [1..n] |> List.fold (fun c _ -> f c) ctx
 
 let wordAnd = !- " and "
@@ -256,7 +265,7 @@ let sepOpenT = !- "("
 let sepCloseT = !- ")"
 
 /// Set a checkpoint to break at an appropriate column
-let autoNln f (ctx : Context) =
+let autoNln (f : _ -> Context) (ctx : Context) =
     if ctx.BreakLines then 
         let width = ctx.Config.PageWidth
         /// Create a dummy context to evaluate length of current operation
@@ -273,7 +282,7 @@ let colAutoNlnSkip0 f' (c : seq<'T>) f (ctx : Context) =
     coli f' c (fun i c -> if i = 0 then f c else autoNln (f c)) ctx
 
 /// Skip all auto-breaking newlines
-let noNln f (ctx : Context) : Context = 
+let noNln (f : _ -> Context) (ctx : Context) = 
     ctx.BreakLines <- false
     let res = f ctx
     ctx.BreakLines <- true
