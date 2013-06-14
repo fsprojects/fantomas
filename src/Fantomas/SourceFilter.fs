@@ -81,7 +81,7 @@ let (|Spaces|) (xs : Token []) =
         if i < 0 then i
         else
             match xs.[i] with
-            | Token(_, tok, _) when tok.CharClass = TokenCharKind.WhiteSpace -> loop (i - 1)
+            | Token(_, tok, _) when tok.CharClass = TokenCharKind.WhiteSpace || tok.TokenName = "BAR" -> loop (i - 1)
             | _ -> i
     xs.[..loop (xs.Length - 1)]
 

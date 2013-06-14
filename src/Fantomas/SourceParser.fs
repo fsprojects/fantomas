@@ -259,11 +259,11 @@ let (|SigException|_|) = function
 
 // Exception definitions
 
-let (|ExceptionDef|) (SynExceptionDefn.ExceptionDefn(SynExceptionRepr.ExceptionDefnRepr(ats, uc, _, px, ao, _), ms, _)) =
-    (ats, px, ao, uc, ms)
+let (|ExceptionDef|) (SynExceptionDefn.ExceptionDefn(SynExceptionRepr.ExceptionDefnRepr(ats, uc, _, px, ao, _), ms, r)) =
+    (ats, px, ao, uc, ms, r)
 
-let (|SigExceptionDef|) (SynExceptionSig.ExceptionSig(SynExceptionRepr.ExceptionDefnRepr(ats, uc, _, px, ao, _), ms, _)) =
-    (ats, px, ao, uc, ms)
+let (|SigExceptionDef|) (SynExceptionSig.ExceptionSig(SynExceptionRepr.ExceptionDefnRepr(ats, uc, _, px, ao, _), ms, r)) =
+    (ats, px, ao, uc, ms, r)
 
 let (|UnionCase|) (SynUnionCase.UnionCase(ats, Ident s, uct, px, ao, _)) =
     (ats, px, ao, s, uct)

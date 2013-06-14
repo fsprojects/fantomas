@@ -113,3 +113,24 @@ module Tests =
     /// This is doc comment
     [<Test>]
     let ``this is a test``() = ()"""
+
+[<Test>]
+let ``should keep comments on union cases``() =
+    formatSourceString false """
+type DU =
+    // 1
+    | One
+    // 2
+    | Two
+    // 3
+    | Three
+    """ config
+    |> prepend newline
+    |> should equal """
+type DU = 
+    // 1
+    | One
+    // 2
+    | Two
+    // 3
+    | Three"""
