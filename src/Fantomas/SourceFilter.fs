@@ -35,7 +35,11 @@ open Microsoft.FSharp.Compiler.SourceCodeServices
 
 [<RequireQualifiedAccess>]
 module Array =
-    let inline last (xs : _ []) = xs.[xs.Length-1]
+    let inline last xs = 
+        if Array.isEmpty xs then
+            failwith "Can't get last element on an empty array"
+        else
+            xs.[xs.Length-1]
 
 type Token = 
     | Token of string * TokenInformation * int
@@ -51,7 +55,7 @@ let tokenize (s : string) =
     let sourceTok = SourceTokenizer([], fileName)
 
     [| let state = ref 0L
-       for n, line in lines |> Seq.zip [ 1 .. lines.Length ] do
+       for n, line in lines |> Seq.zip [1..lines.Length] do
            let tokenizer = sourceTok.CreateLineTokenizer(line)
            let rec parseLine() = seq {
               match tokenizer.ScanToken(!state) with
@@ -130,6 +134,21 @@ let rec (|CommentBlocks|_|) xs =
         Some(ts, xs)
     | _ -> None
 
+let (|MemberToken|_|) (Token(s, tok, n)) =
+    match s with
+    | "member" | "abstract" | "default" | "override"
+    | "static" | "interface" | "new" | "val" | "inherit" when tok.CharClass = TokenCharKind.Keyword -> Some(s, tok, n)
+    | _ -> None
+
+let (|Identifier|_|) (xs : Token []) =
+    let rec loop i =
+        if i >= xs.Length then None
+        else
+            match xs.[i] with
+            | Token(s, tok, n) when tok.CharClass = TokenCharKind.Identifier -> Some(s, tok, n)
+            | _ -> loop (i + 1)
+    loop 0
+
 /// Keyword and identifier tokens have attached comments
 let (|SupportedToken|_|) (Token(s, tok, n)) =
     if tok.CharClass = TokenCharKind.Keyword || tok.CharClass = TokenCharKind.Identifier then Some(s, tok, n)
@@ -141,6 +160,20 @@ let filterComments (xs : Token []) =
         if i <= 0 then dic
         else
             match xs.[i] with
+            // Attach comments to members
+            | MemberToken(_, tok1, n1) ->
+                match xs.[i+1..] with
+                | Identifier(_, tok2, n2) ->
+                    match xs.[..i-1] with
+                    | Attributes(CommentBlocks(ts, xs))
+                    | CommentBlocks(ts, xs) ->
+                        // This is a hack to ensure that one of the keys will be captured.
+                        // Right now members on fs and fsi files have different ranges.
+                        dic.Add(mkPos n1 tok1.LeftColumn, ts)
+                        dic.Add(mkPos n2 tok2.LeftColumn, ts)
+                        loop (xs.Length - 1) xs dic
+                    | _ -> loop (i - 1) xs dic
+                | _ -> loop (i - 1) xs dic            
             | SupportedToken(_, tok, n) ->
                 match xs.[..i-1] with
                 | Attributes(CommentBlocks(ts, xs))

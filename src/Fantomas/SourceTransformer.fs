@@ -108,7 +108,9 @@ let inline genConst c =
     | Unresolved(_, r) -> fun ctx -> str (ctx.StringContent r) ctx
 
 let inline genCommentsAt (r : range) (ctx : Context) =
+#if DEBUG
     printfn "l:%O, c:%O" r.Start.Line r.Start.Column
+#endif
     match ctx.Comments.TryGetValue(r.Start) with
     | true, comments -> sepNln (col sepNln comments str ctx)
     | _ -> ctx

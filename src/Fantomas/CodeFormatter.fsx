@@ -32,7 +32,7 @@ with
 ;;
 
 let xs = filterComments (tokenize t01) 
-         |> Seq.iter (fun (KeyValue(pos, s)) -> printfn "l:%O, c:%O, %s" pos.Line pos.Column s);;
+         |> Seq.iter (fun (KeyValue(pos, s)) -> printfn "l:%O, c:%O, %A" pos.Line pos.Column s);;
 
 printfn "Result:\n%s" <| formatSourceString false t01 config;;
 

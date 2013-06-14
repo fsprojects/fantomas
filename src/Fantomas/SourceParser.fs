@@ -273,8 +273,8 @@ let (|UnionCaseType|) = function
     | SynUnionCaseType.UnionCaseFullType _ ->
         failwith "UnionCaseFullType should be used internally only."
 
-let (|Field|) (SynField.Field(ats, isStatic, ido, t, isMutable, px, ao, _)) =
-    (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido)
+let (|Field|) (SynField.Field(ats, isStatic, ido, t, isMutable, px, ao, r)) =
+    (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido, r)
 
 let (|EnumCase|) (SynEnumCase.EnumCase(ats, Ident s, c, px, _)) =
     (ats, px, s, c)

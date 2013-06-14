@@ -81,6 +81,8 @@ type MyClass2(dataIn) as self =
        // Print a message to console
        member this.PrintMessage() =
            printf "Creating MyClass2 with Data %d" data
+       // A static member
+       static member Content = ()
     """ config
     |> prepend newline
     |> should equal """
@@ -88,7 +90,9 @@ type MyClass2(dataIn) as self =
     let data = dataIn
     do self.PrintMessage()
     // Print a message to console
-    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data"""
+    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data
+    // A static member
+    static member Content = ()"""
 
 [<Test>]
 let ``should accommodate multiple kinds of comment``() =
