@@ -2,10 +2,12 @@
 
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
+open Microsoft.FSharp.Compiler
+open Microsoft.FSharp.Compiler.Range
 
 [<RequireQualifiedAccess>]
 module List = 
-    let inline atmostOne xs =
+    let inline atMostOne xs =
         match xs with
         | [] | [_] -> true
         | _ -> false
@@ -55,7 +57,7 @@ let rec multiline = function
     // An infix app is multiline if it contains at least two new line infix ops
     | InfixApps(e, es) ->
         multiline e
-        || not (List.atmostOne (List.filter (fst >> NewLineInfixOps.Contains) es))
+        || not (List.atMostOne (List.filter (fst >> NewLineInfixOps.Contains) es))
         || List.exists (snd >> multiline) es
     
     | App(e1, es) ->
@@ -73,12 +75,12 @@ let rec multiline = function
 
     // An array or a list is multiline if there are at least two elements
     | ArrayOrList(_, es) ->
-        not (List.atmostOne es)
+        not (List.atMostOne es)
 
     // A record is multiline if there is at least two fields present
     | Record(xs, _) ->
         let fields = xs |> List.choose ((|RecordFieldName|) >> snd) 
-        not (List.atmostOne fields) || List.exists multiline fields
+        not (List.atMostOne fields) || List.exists multiline fields
 
     // Default mode is single-line
     | _ -> false
@@ -122,16 +124,24 @@ let rec (|OpenL|_|) = function
     | Open _ as x::ys -> Some([x], ys)
     | _ -> None
 
-let (|OneLinerExpr|_|) e =
-    if multiline e then None else Some e
+/// Omit a break before an expression if the expression is small and it is already one line in the text
+let checkPreserveBreakForExpr (m:range) (e:Ast.SynExpr) =
+    multiline e || m.StartLine <> e.Range.StartLine 
+
+/// Omit a break before an expression if the expression is small 
+let checkBreakForExpr (e:Ast.SynExpr) =
+    multiline e 
+
+let (|OneLinerExpr|_|) (m:range) (e:Ast.SynExpr) =
+    if checkPreserveBreakForExpr m e then None else Some e
 
 let (|OneLinerBinding|MultilineBinding|) b =
     match b with
-    | LetBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
-    | DoBinding([], PreXmlDoc [||], OneLinerExpr _)
-    | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
-    | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _) 
-    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _) ->
+    | LetBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr b.RangeOfHeadPat _)
+    | DoBinding([], PreXmlDoc [||], OneLinerExpr b.RangeOfHeadPat  _)
+    | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr b.RangeOfHeadPat  _)
+    | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr b.RangeOfHeadPat  _) 
+    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr b.RangeOfHeadPat  _)  -> 
         OneLinerBinding b
 
     | _ -> MultilineBinding b
@@ -174,15 +184,15 @@ let (|PropertyWithGetSetMemberDefn|_|) = function
 
 let (|OneLinerMemberDefn|MultilineMemberDefn|) md =
     match md with
-    | MDImplicitInherit(_, OneLinerExpr _, _)
     | MDOpen _
     | MDInherit _
     | MDValField _
     | MDImplicitCtor _
-    | MDMember(OneLinerBinding _)
     | MDInterface(_, None)
-    | MDAutoProperty([], PreXmlDoc [||], _, _, OneLinerExpr _, _)
-    | MDAbstractSlot([], PreXmlDoc [||], _, _, _, _, _)
+    | MDAbstractSlot([], PreXmlDoc [||], _, _, _, _, _) 
+    | MDImplicitInherit(_, OneLinerExpr md.Range _, _)
+    | MDMember(OneLinerBinding _)
+    | MDAutoProperty([], PreXmlDoc [||], _, _, OneLinerExpr md.Range _, _)
     | MDLetBindings(_, _, [OneLinerBinding _]) ->
         OneLinerMemberDefn md
 

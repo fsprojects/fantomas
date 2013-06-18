@@ -12,6 +12,7 @@ type FormatConfig =
       IndentSpaceNum : Num;
       /// The column where we break to new lines
       PageWidth : Num;
+      BreakOn : string -> bool;
       SemicolonAtEndOfLine : bool;
       SpaceBeforeArgument : bool;
       SpaceBeforeColon : bool;
@@ -20,6 +21,7 @@ type FormatConfig =
       IndentOnTryWith : bool }
     static member Default = 
         { IndentSpaceNum = 4; PageWidth = 80;
+          BreakOn = (fun _ -> false);
           SemicolonAtEndOfLine = true; SpaceBeforeArgument = false; SpaceBeforeColon = true;
           SpaceAfterComma = true; SpaceAfterSemicolon = true; IndentOnTryWith = false }
 
@@ -121,24 +123,34 @@ let atCurrentColumn (f : _ -> Context) (ctx : Context) =
     atIndentLevel ctx.Writer.Column f ctx
 
 /// Function composition operator
-let inline (+>) (ctx : Context -> Context) (f : _ -> Context) x =
+let (+>) (ctx : Context -> Context) (f : _ -> Context) x =
     f (ctx x)
 
 /// Break-line and append specified string
-let inline (++) (ctx : Context -> Context) (str : string) x =
+let (++) (ctx : Context -> Context) (str : string) x =
     let c = ctx x
     c.Writer.WriteLine("")
     c.Writer.Write(str)
     c
 
+/// Break-line if config says so
+let (+-) (ctx : Context -> Context) (str : string) x =
+    let c = ctx x
+    if c.Config.BreakOn str then 
+        c.Writer.WriteLine("")
+    else
+        c.Writer.Write(" ")
+    c.Writer.Write(str)
+    c
+
 /// Append specified string without line-break
-let inline (--) (ctx : Context -> Context) (str : string) x =
+let (--) (ctx : Context -> Context) (str : string) x =
     let c = ctx x
     c.Writer.Write(str)
     c
 
-let inline (!-) (str : string) = id -- str 
-let inline (!+) (str : string) = id ++ str 
+let (!-) (str : string) = id -- str 
+let (!+) (str : string) = id ++ str 
 
 /// Print object converted to string
 let str (o : 'T) (ctx : Context) =
