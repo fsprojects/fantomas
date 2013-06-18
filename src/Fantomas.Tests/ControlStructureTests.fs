@@ -28,20 +28,17 @@ then printfn "You are only %d years old and already learning F#? Wow!" age""" co
 let rec tryFindMatch pred list = 
     match list with
     | head :: tail -> 
-        if pred(head)
-        then Some(head)
+        if pred(head) then Some(head)
         else tryFindMatch pred tail
     | [] -> None
 
 let test x y = 
-    if x = y
-    then "equals"
-    elif x < y
-    then "is less than"
+    if x = y then "equals"
+    elif x < y then "is less than"
     else "is greater than"
 
-if age < 10
-then printfn "You are only %d years old and already learning F#? Wow!" age"""
+if age < 10 then 
+    printfn "You are only %d years old and already learning F#? Wow!" age"""
 
 [<Test>]
 let ``for loops``() =
@@ -93,8 +90,7 @@ let lookForValue value maxValue =
     while continueLooping do
         let rand = randomNumberGenerator.Next(maxValue)
         printf "%d " rand
-        if rand = value
-        then 
+        if rand = value then  
             printfn "\nFound a %d!" value
             continueLooping <- false
 
@@ -142,8 +138,7 @@ let ``try/with and finally``() =
 let function1 x y = 
     try 
         try 
-            if x = y
-            then raise(InnerError("inner"))
+            if x = y then raise(InnerError("inner"))
             else raise(OuterError("outer"))
         with
         | InnerError(str) -> printfn "Error1 %s" str

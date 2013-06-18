@@ -131,8 +131,7 @@ let ``should not break inside of if statements in records``() =
       TimeOut = TimeSpan.FromMinutes 5.0;
       Package = null;
       Version = 
-          if not isLocalBuild
-          then buildVersion
+          if not isLocalBuild then buildVersion
           else "0.1.0.0";
       OutputPath = "./xpkg";
       Project = null;

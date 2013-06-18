@@ -277,8 +277,7 @@ type SpeedingTicket() =
 
 let CalculateFine(ticket : SpeedingTicket) = 
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
-    if delta < 20
-    then 50.0
+    if delta < 20 then 50.0
     else 100.0"""
 
 [<Test>]
@@ -450,7 +449,8 @@ type Person(nameIn : string, idIn : int) =
     
     new() = 
         Person("Invalid Name", -1)
-        then printfn "Created an invalid person object."
+        then 
+            printfn "Created an invalid person object."
 """
 
 [<Test>]
