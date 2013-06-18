@@ -44,6 +44,7 @@
     <Compile Include="SourceTransformer.fs" />
     <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatter.fs" />
+    <Compile Include="CodeMatcher.fs" />
     <None Include="CodeFormatter.fsx" />
   </ItemGroup>
   <ItemGroup>
