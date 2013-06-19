@@ -141,7 +141,7 @@ let (|OneLinerBinding|MultilineBinding|) b =
     | DoBinding([], PreXmlDoc [||], OneLinerExpr b.RangeOfHeadPat  _)
     | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr b.RangeOfHeadPat  _)
     | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr b.RangeOfHeadPat  _) 
-    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr b.RangeOfHeadPat  _)  -> 
+    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr b.RangeOfHeadPat  _) -> 
         OneLinerBinding b
 
     | _ -> MultilineBinding b
