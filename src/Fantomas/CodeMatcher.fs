@@ -7,22 +7,25 @@ type Token =
    | EOL
    | Token of TokenInformation
 
-let tokenize (content:string) =
-    seq { let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
-          let lines = content.Replace("\r\n","\n").Split('\r', '\n')
-          let lexState = ref 0L
-          for line in lines do 
-              let lineTokenizer = sourceTokenizer.CreateLineTokenizer line
-              let finLine = ref false
-              while not !finLine do
-                  let tok, newLexState = lineTokenizer.ScanToken(!lexState)
-                  lexState := newLexState
-                  match tok with 
-                  | None -> 
-                      yield (EOL, System.Environment.NewLine) // new line
-                      finLine := true
-                  | Some t -> 
-                      yield (Token t, line.[t.LeftColumn..t.RightColumn]) }
+let tokenize (content : string) =
+    seq { 
+        let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
+        let lines = content.Replace("\r\n","\n").Split('\r', '\n')
+        let lexState = ref 0L
+        for (i, line) in lines |> Seq.zip [1..lines.Length] do 
+            let lineTokenizer = sourceTokenizer.CreateLineTokenizer line
+            let finLine = ref false
+            while not !finLine do
+                let tok, newLexState = lineTokenizer.ScanToken(!lexState)
+                lexState := newLexState
+                match tok with 
+                | None ->
+                    if i <> lines.Length then
+                        // New line except at the last token 
+                        yield (EOL, System.Environment.NewLine) 
+                    finLine := true
+                | Some t -> 
+                    yield (Token t, line.[t.LeftColumn..t.RightColumn]) }
 
 type LineCommentStickiness = | StickyLeft | StickyRight | NotApplicable
 
@@ -32,27 +35,27 @@ type MarkedToken =
 
 let (|PreprocessorKeywordToken|_|) requiredText t = 
     match t with
-    | Marked(Token (origTok:TokenInformation), origTokText, _) 
+    | Marked(Token origTok, origTokText, _) 
         when origTok.ColorClass = TokenColorKind.PreprocessorKeyword && origTokText = requiredText -> 
         Some origTokText
     | _ -> None
 
 let (|InactiveCodeToken|_|) t = 
     match t with
-    | Marked(Token (origTok:TokenInformation), origTokText, _) 
+    | Marked(Token origTok, origTokText, _) 
         when origTok.ColorClass = TokenColorKind.InactiveCode  -> Some origTokText
     | _ -> None
 
 let (|LineCommentToken|_|) wantStickyLeft t = 
     match t with
-    | Marked(Token (origTok:TokenInformation), origTokText, lcs) 
+    | Marked(Token origTok, origTokText, lcs) 
         when (not wantStickyLeft || (lcs = StickyLeft)) && 
              origTok.CharClass = TokenCharKind.LineComment -> Some origTokText
     | _ -> None
 
 let (|BlockCommentToken|_|) t = 
     match t with
-    | Marked(Token (origTok:TokenInformation), origTokText, _) when origTok.CharClass = TokenCharKind.Comment -> 
+    | Marked(Token origTok, origTokText, _) when origTok.CharClass = TokenCharKind.Comment -> 
         Some origTokText
     | _ -> None
 
@@ -149,7 +152,7 @@ let markStickiness (tokens: seq<Token * string>) =
              | Token ti when !inWhiteSpaceAtStartOfLine && ti.CharClass = TokenCharKind.WhiteSpace ->
                   // Whitespace at start of line
                   yield Marked(tio,tt,NotApplicable)
-             | Token ti ->
+             | Token _ ->
                   // Some other token on a line
                   inWhiteSpaceAtStartOfLine := false
                   yield Marked(tio,tt,NotApplicable)
@@ -196,14 +199,14 @@ let integrateComments (originalText : string) (newText : string) =
 
     let rec loop origTokens newTokens = 
         match origTokens, newTokens with 
-        | (Marked(Token origTok, origTokText, _) :: moreOrigTokens),  _ 
+        | (Marked(Token origTok, _, _) :: moreOrigTokens),  _ 
               when origTok.CharClass = TokenCharKind.WhiteSpace && origTok.ColorClass <> TokenColorKind.InactiveCode 
                    && origTok.ColorClass <> TokenColorKind.PreprocessorKeyword ->
               Debug.WriteLine "dropping whitespace from orig tokens" 
               loop moreOrigTokens newTokens 
 
 
-        | (Marked(EOL, origTokText, _) :: moreOrigTokens),  _ ->
+        | (Marked(EOL, _, _) :: moreOrigTokens),  _ ->
               Debug.WriteLine "dropping newline from orig tokens" 
               loop moreOrigTokens newTokens 
 
@@ -310,7 +313,7 @@ let integrateComments (originalText : string) (newText : string) =
             loop moreOrigTokens newTokens 
 
         // Dangling text at the end 
-        | [], ((newTok, newTokText) :: moreNewTokens) ->
+        | [], ((_, newTokText) :: moreNewTokens) ->
             Debug.WriteLine("dangling new token '{0}'", newTokText)
             addText newTokText 
             loop [] moreNewTokens 
