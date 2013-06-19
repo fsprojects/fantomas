@@ -2,6 +2,7 @@
 
 open System
 open System.IO
+open System.Diagnostics
 open System.Text.RegularExpressions
 
 open Microsoft.FSharp.Compiler.Ast
@@ -11,28 +12,7 @@ open Microsoft.FSharp.Compiler.SourceCodeServices
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
-
-type Token = 
-   | EOL
-   | Token of TokenInformation
-
-let tokenize fileName (content:string) = 
-    // Create an interactive checker instance (ignore notifications)
-    seq { let sourceTokenizer = SourceTokenizer([ ], fileName)
-          let lines = content.Replace("\r\n","\n").Split('\r', '\n')
-          let lexState = ref 0L
-          for line in lines do 
-              let lineTokenizer = sourceTokenizer.CreateLineTokenizer line
-              let finLine = ref false
-              while not finLine.Value do
-                  let tok, newLexState = lineTokenizer.ScanToken(lexState.Value)
-                  lexState := newLexState
-                  match tok with 
-                  | None -> 
-                      yield (EOL, System.Environment.NewLine) // new line
-                      finLine := true
-                  | Some t -> 
-                      yield (Token t, line.[t.LeftColumn..t.RightColumn]) }
+open Fantomas.CodeMatcher
 
 let internal parseWith fileName content = 
     // Create an interactive checker instance (ignore notifications)
@@ -52,9 +32,11 @@ let parse fsi s =
 
 /// Format a source string using given config
 let formatSourceString fsi s config =
-    Context.create config s 
-    |> genParsedInput (parse fsi s) 
-    |> dump
+    let s' =
+        Context.create config s 
+        |> genParsedInput (parse fsi s) 
+        |> dump
+    integrateComments s s'
 
 /// Format a source string using given config; return None if failed
 let tryFormatSourceString fsi s config =
@@ -138,9 +120,7 @@ let rec internal getStartCol (r : range) (tokenizer : LineTokenizer) nstate =
 let rec internal getEndCol (r : range) (tokenizer : LineTokenizer) nstate = 
     match tokenizer.ScanToken(!nstate) with
     | Some(tok), state ->
-#if DEBUG
-        printfn "End token: %A" tok
-#endif
+        Debug.WriteLine("End token: {0}", sprintf "%A" tok)
         if tok.RightColumn >= r.EndColumn && isDelimitToken tok then tok.RightColumn
         else
             nstate := state 
@@ -225,11 +205,9 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
         elif finish + 1 < s.Length then s.[finish + 1..]
         else ""
 
-#if DEBUG
-    printfn "pre:\n%O" pre
-    printfn "selection:\n%O" selection
-    printfn "post:\n%O" post
-#endif
+    Debug.WriteLine("pre:\n{0}", pre)
+    Debug.WriteLine("selection:\n{0}", selection)
+    Debug.WriteLine("post:\n{0}", post)
 
     let tree = parse fsi selection
 

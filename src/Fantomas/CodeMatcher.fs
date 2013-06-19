@@ -1,8 +1,28 @@
 ﻿module Fantomas.CodeMatcher
 
+open System.Diagnostics
 open Microsoft.FSharp.Compiler.SourceCodeServices
 
-open Fantomas.CodeFormatter
+type Token = 
+   | EOL
+   | Token of TokenInformation
+
+let tokenize fileName (content:string) =
+    seq { let sourceTokenizer = SourceTokenizer([ ], fileName)
+          let lines = content.Replace("\r\n","\n").Split('\r', '\n')
+          let lexState = ref 0L
+          for line in lines do 
+              let lineTokenizer = sourceTokenizer.CreateLineTokenizer line
+              let finLine = ref false
+              while not finLine.Value do
+                  let tok, newLexState = lineTokenizer.ScanToken(lexState.Value)
+                  lexState := newLexState
+                  match tok with 
+                  | None -> 
+                      yield (EOL, System.Environment.NewLine) // new line
+                      finLine := true
+                  | Some t -> 
+                      yield (Token t, line.[t.LeftColumn..t.RightColumn]) }
 
 type LineCommentStickiness = | StickyLeft | StickyRight | NotApplicable
 
@@ -148,8 +168,7 @@ let (|NewTokenAfterWhitespaceOrNewLine|_|) toks =
         | [] -> None
     loop toks []
                 
-let formatAndIntegrateComments fsi (originalText:string) config = 
-    let newText = formatSourceString fsi originalText config
+let integrateComments (originalText : string) (newText : string) =
     let origTokens = tokenize "UNIQUE.fsx" originalText |> markStickiness |> Seq.toList
     let newTokens = tokenize "UNIQUE.fsx" newText  |> Seq.toList
 
@@ -175,24 +194,24 @@ let formatAndIntegrateComments fsi (originalText:string) config =
         match origTokens, newTokens with 
         | (Marked(Token origTok, origTokText, _) :: moreOrigTokens),  _ 
               when  origTok.CharClass = TokenCharKind.WhiteSpace && origTok.ColorClass <> TokenColorKind.InactiveCode  && origTok.ColorClass <> TokenColorKind.PreprocessorKeyword ->
-              printfn "dropping whitespace from orig tokens" 
+              Debug.WriteLine "dropping whitespace from orig tokens" 
               loop moreOrigTokens newTokens 
 
 
         | (Marked(EOL, origTokText, _) :: moreOrigTokens),  _ ->
-              printfn "dropping newline from orig tokens" 
+              Debug.WriteLine "dropping newline from orig tokens" 
               loop moreOrigTokens newTokens 
 
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)),  _ ->
               let tokText = String.concat "" commentTokensText
-              printfn "injecting sticky-to-the-left line comment '%s'" tokText
+              Debug.WriteLine("injecting sticky-to-the-left line comment '{0}'", tokText)
               
               match newTokens with 
               // If there is a new line coming, use it up
               | ((EOL, newTokText) :: moreNewTokens) ->
                   addText " "
                   addText tokText
-                  printfn "emitting newline for end of sticky-to-left comment" 
+                  Debug.WriteLine "emitting newline for end of sticky-to-left comment" 
                   addText newTokText 
                   loop moreOrigTokens moreNewTokens 
               // Otherwise, if there is a token coming, maintain the indentation
@@ -206,26 +225,26 @@ let formatAndIntegrateComments fsi (originalText:string) config =
         //       x + x  // HERE
         // Because it is sticky-to-the-left, we do it _before_ emitting end-of-line from the newText
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)),  _ ->
-              printfn "injecting stick-to-the-left line comment '%s'" (String.concat "" commentTokensText)
+              Debug.WriteLine("injecting stick-to-the-left line comment '{0}'", String.concat "" commentTokensText)
               addText " "
               for x in commentTokensText do addText x
               loop moreOrigTokens newTokens 
 
         // Emit end-of-line from new tokens
         | _,  ((EOL, newTokText) :: moreNewTokens) ->
-              printfn "emitting newline in new tokens" 
+              Debug.WriteLine "emitting newline in new tokens" 
               addText newTokText 
               loop origTokens moreNewTokens 
 
         | _,  ((Token newTok, newTokText) :: moreNewTokens) 
               when  newTok.CharClass = TokenCharKind.WhiteSpace && newTok.ColorClass <> TokenColorKind.InactiveCode  ->
-              printfn "emitting whitespace '%s' in new tokens"  newTokText
+              Debug.WriteLine("emitting whitespace '{0}' in new tokens", newTokText)
               addText newTokText 
               loop origTokens moreNewTokens 
 
         | _,  ((_, newTokText) :: moreNewTokens) 
               when  newTokText = ";" || newTokText = "|" || newTokText = ">]"->
-              printfn "emitting non-matching '%s' in new tokens"  newTokText
+              Debug.WriteLine("emitting non-matching '{0}' in new tokens", newTokText)
               addText newTokText 
               loop origTokens moreNewTokens 
 
@@ -235,26 +254,26 @@ let formatAndIntegrateComments fsi (originalText:string) config =
         //       // HERE
         //       x + x
         | (LineCommentChunk false (commentTokensText, moreOrigTokens)),  _ ->
-              printfn "injecting line comment '%s'" (String.concat "" commentTokensText)
+              Debug.WriteLine("injecting line comment '{0}'", String.concat "" commentTokensText)
               maintainIndent (fun () -> for x in commentTokensText do addText x)
               loop moreOrigTokens newTokens 
 
         // inject block commment 
         | (BlockCommentChunk (commentTokensText, moreOrigTokens)),  _ ->
-              printfn "injecting block comment '%s'" (String.concat "" commentTokensText)
+              Debug.WriteLine("injecting block comment '{0}'", String.concat "" commentTokensText)
               maintainIndent (fun () -> for x in commentTokensText do addText x)
               loop moreOrigTokens newTokens 
 
         // inject inactive code
         | (InactiveCodeChunk (tokensText, moreOrigTokens)),  _ ->
-              printfn "injecting inactive code '%s'" (String.concat "" tokensText)
+              Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText)
               for x in tokensText do addText x
               loop moreOrigTokens newTokens 
 
         // inject #if... #else or #endif directive 
         | (PreprocessorDirectiveChunk (tokensText, moreOrigTokens)),  _ ->
               let text = (String.concat "" tokensText)
-              printfn "injecting preprocessor directive '%s'" text
+              Debug.WriteLine("injecting preprocessor directive '{0}'", text)
               if text.StartsWith "#if" then 
                   addText System.Environment.NewLine
               addText text
@@ -264,16 +283,16 @@ let formatAndIntegrateComments fsi (originalText:string) config =
 
         // Matching tokens
         | (origTok :: moreOrigTokens), (newTok :: moreNewTokens) when tokensMatch origTok newTok ->
-              printfn "matching token '%s'" origTok.Text
+              Debug.WriteLine("matching token '{0}'", origTok.Text)
               addText (snd newTok)
               loop moreOrigTokens moreNewTokens 
 
 (*
         // Matching tokens, after one new token, compensating for insertions of "|", ";" and others
         | (origTok :: moreOrigTokens), (newTok1 :: NewTokenAfterWhitespaceOrNewLine(whiteTokens, newTok2, moreNewTokens)) when tokensMatch origTok newTok2 ->
-              printfn "fresh non-matching new token '%s'" (snd newTok1)
+              Debug.WriteLine "fresh non-matching new token '%s'" (snd newTok1)
               addText (snd newTok1)
-              printfn "matching token '%s' (after one fresh new token)" (snd newTok2)
+              Debug.WriteLine("matching token '{0}' (after one fresh new token)", snd newTok2)
               for x in whiteTokens do addText x
               addText (snd newTok2)
               loop moreOrigTokens moreNewTokens 
@@ -281,18 +300,18 @@ let formatAndIntegrateComments fsi (originalText:string) config =
 
         // not a comment, drop the original token text until something matches
         | (origTok :: moreOrigTokens), _ ->
-            printfn "dropping '%s' from original text" origTok.Text
+            Debug.WriteLine("dropping '{0}' from original text", origTok.Text)
             loop moreOrigTokens newTokens 
 
         // Dangling text at the end 
         | [], ((newTok, newTokText) :: moreNewTokens) ->
-            printfn "dangling new token '%s'" newTokText
+            Debug.WriteLine("dangling new token '{0}'", newTokText)
             addText newTokText 
             loop [] moreNewTokens 
 
         // Dangling input text - extra comments or whitespace
         | (Marked(origTok, origTokText, _) :: moreOrigTokens), [] ->
-            printfn "dropping dangling old token '%s'" origTokText
+            Debug.WriteLine("dropping dangling old token '{0}'", origTokText)
             loop moreOrigTokens [] 
 
         | [], [] -> 

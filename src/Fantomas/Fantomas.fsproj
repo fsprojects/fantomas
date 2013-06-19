@@ -43,8 +43,8 @@
     <Compile Include="SourceParser.fs" />
     <Compile Include="SourceTransformer.fs" />
     <Compile Include="CodePrinter.fs" />
-    <Compile Include="CodeFormatter.fs" />
     <Compile Include="CodeMatcher.fs" />
+    <Compile Include="CodeFormatter.fs" />
     <None Include="CodeFormatter.fsx" />
   </ItemGroup>
   <ItemGroup>
