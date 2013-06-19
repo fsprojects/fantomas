@@ -90,7 +90,7 @@ let lookForValue value maxValue =
     while continueLooping do
         let rand = randomNumberGenerator.Next(maxValue)
         printf "%d " rand
-        if rand = value then  
+        if rand = value then 
             printfn "\nFound a %d!" value
             continueLooping <- false
 

@@ -125,23 +125,23 @@ let rec (|OpenL|_|) = function
     | _ -> None
 
 /// Omit a break before an expression if the expression is small and it is already one line in the text
-let checkPreserveBreakForExpr (m:range) (e:Ast.SynExpr) =
-    multiline e || m.StartLine <> e.Range.StartLine 
+let checkPreserveBreakForExpr e (ctx : Context) =
+    multiline e || ctx.Comments.ContainsKey((e.Range.StartLine, e.Range.StartColumn))
 
 /// Omit a break before an expression if the expression is small 
-let checkBreakForExpr (e:Ast.SynExpr) =
+let checkBreakForExpr e =
     multiline e 
 
-let (|OneLinerExpr|_|) (m:range) (e:Ast.SynExpr) =
-    if checkPreserveBreakForExpr m e then None else Some e
+let (|OneLinerExpr|_|) (e:Ast.SynExpr) =
+    if checkBreakForExpr e then None else Some e
 
 let (|OneLinerBinding|MultilineBinding|) b =
     match b with
-    | LetBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr b.RangeOfHeadPat _)
-    | DoBinding([], PreXmlDoc [||], OneLinerExpr b.RangeOfHeadPat  _)
-    | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr b.RangeOfHeadPat  _)
-    | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr b.RangeOfHeadPat  _) 
-    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr b.RangeOfHeadPat  _) -> 
+    | LetBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | DoBinding([], PreXmlDoc [||], OneLinerExpr _)
+    | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _) 
+    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _) -> 
         OneLinerBinding b
 
     | _ -> MultilineBinding b
@@ -190,9 +190,9 @@ let (|OneLinerMemberDefn|MultilineMemberDefn|) md =
     | MDImplicitCtor _
     | MDInterface(_, None)
     | MDAbstractSlot([], PreXmlDoc [||], _, _, _, _, _) 
-    | MDImplicitInherit(_, OneLinerExpr md.Range _, _)
+    | MDImplicitInherit(_, OneLinerExpr _, _)
     | MDMember(OneLinerBinding _)
-    | MDAutoProperty([], PreXmlDoc [||], _, _, OneLinerExpr md.Range _, _)
+    | MDAutoProperty([], PreXmlDoc [||], _, _, OneLinerExpr _, _)
     | MDLetBindings(_, _, [OneLinerBinding _]) ->
         OneLinerMemberDefn md
 

@@ -428,8 +428,7 @@ type Person(nameIn : string, idIn : int) =
     member this.ID with get() = id and set(v) = id <- v
     new() = 
         Person("Invalid Name", -1)
-        then
-            printfn "Created an invalid person object."
+        then printfn "Created an invalid person object."
             """ config
     |> prepend newline
     |> append newline
@@ -449,8 +448,7 @@ type Person(nameIn : string, idIn : int) =
     
     new() = 
         Person("Invalid Name", -1)
-        then 
-            printfn "Created an invalid person object."
+        then printfn "Created an invalid person object."
 """
 
 [<Test>]

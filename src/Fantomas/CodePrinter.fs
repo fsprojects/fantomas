@@ -130,7 +130,7 @@ and breakNln brk e =
         (indent +> autoNln (genExpr e) +> unindent)
 
 /// Preserve a break even if the expression is a one-liner
-and preserveBreakNln m e = breakNln (checkPreserveBreakForExpr m e) e
+and preserveBreakNln e ctx = breakNln (checkPreserveBreakForExpr e ctx) e ctx
 
 /// Auto break if the expression is a one-liner
 and autoBreakNln e = breakNln (checkBreakForExpr e) e
@@ -154,13 +154,13 @@ and genLetBinding isFirst pref b =
             +> genPat p
 
         match e with
-        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType t +> sepEq +> preserveBreakNln b.RangeOfBindingSansRhs e
-        | e -> prefix +> sepEq +> preserveBreakNln b.RangeOfBindingSansRhs e
+        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType t +> sepEq +> preserveBreakNln e
+        | e -> prefix +> sepEq +> preserveBreakNln e
 
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
         genPreXmlDoc px
-        +> genAttributes ats -- prefix +> preserveBreakNln b.RangeOfBindingSansRhs e
+        +> genAttributes ats -- prefix +> preserveBreakNln e
 
     | b ->
         failwithf "%O isn't a let binding" b
@@ -179,10 +179,10 @@ and genProperty m prefix ps e =
         !- prefix
         +> ifElse (List.atMostOne ps) (col sepComma ps genPat +> sepSpace) 
             (sepOpenT +> col sepComma ps genPat +> sepCloseT +> sepSpace)
-        +> genPat p +> sepEq +> preserveBreakNln m e
+        +> genPat p +> sepEq +> preserveBreakNln e
 
     | ps -> 
-        !- prefix +> col sepSpace ps genPat +> sepEq +> preserveBreakNln m e
+        !- prefix +> col sepSpace ps genPat +> sepEq +> preserveBreakNln e
 
 and genPropertyWithGetSet inter (b1, b2) =
     match b1, b2 with
@@ -244,8 +244,8 @@ and genMemberBinding inter b =
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat p
 
         match e with
-        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType t +> sepEq +> preserveBreakNln b.RangeOfBindingSansRhs  e
-        | e -> prefix +> sepEq +> preserveBreakNln b.RangeOfBindingSansRhs  e
+        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType t +> sepEq +> preserveBreakNln e
+        | e -> prefix +> sepEq +> preserveBreakNln e
 
     | ExplicitCtor(ats, px, ao, p, e) ->
         let prefix =
@@ -257,9 +257,9 @@ and genMemberBinding inter b =
         // Handle special "then" block in constructors
         | Sequentials [e1; e2] -> 
             prefix +> sepEq +> indent +> sepNln 
-            +> genExpr e1 ++ "then " +> preserveBreakNln b.RangeOfBindingSansRhs e2 +> unindent
+            +> genExpr e1 ++ "then " +> preserveBreakNln e2 +> unindent
 
-        | e -> prefix +> sepEq +> preserveBreakNln b.RangeOfBindingSansRhs e
+        | e -> prefix +> sepEq +> preserveBreakNln e
 
     | b -> failwithf "%O isn't a member binding" b
 
