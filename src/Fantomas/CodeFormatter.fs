@@ -9,10 +9,10 @@ open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.SourceCodeServices
 
+open Fantomas.TokenMatcher
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
-open Fantomas.CodeMatcher
 
 let internal parseWith fileName content = 
     // Create an interactive checker instance (ignore notifications)

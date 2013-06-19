@@ -1,4 +1,4 @@
-﻿module Fantomas.CodeMatcher
+﻿module Fantomas.TokenMatcher
 
 open System.Collections.Generic
 open System.Diagnostics
@@ -217,7 +217,7 @@ let markStickiness (tokens: seq<Token * string>) =
              | Token ti when !inWhiteSpaceAtStartOfLine && ti.CharClass = TokenCharKind.WhiteSpace ->
                   // Whitespace at start of line
                   yield Marked(tio,tt,NotApplicable)
-             | Token _ ->
+             | Tok _ ->
                   // Some other token on a line
                   inWhiteSpaceAtStartOfLine := false
                   yield Marked(tio,tt,NotApplicable)

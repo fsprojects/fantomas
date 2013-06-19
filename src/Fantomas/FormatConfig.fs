@@ -6,7 +6,7 @@ open System.Collections.Generic
 open System.Text.RegularExpressions
 open System.CodeDom.Compiler
 
-open Fantomas.CodeMatcher
+open Fantomas.TokenMatcher
 
 type Num = int
 

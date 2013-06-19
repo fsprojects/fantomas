@@ -1,21 +1,20 @@
 ﻿#r "../../lib/FSharp.Compiler.dll"
 
+#load "TokenMatcher.fs"
 #load "FormatConfig.fs"
 #load "SourceParser.fs"
 #load "SourceTransformer.fs"
 #load "CodePrinter.fs"
 #load "CodeFormatter.fs"
-#load "CodeMatcher.fs"
 
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
 open Fantomas.CodeFormatter
-open Fantomas.CodeMatcher
 
 let config = { FormatConfig.Default with PageWidth = 120;SpaceBeforeArgument=true }
 
-let test s = formatAndIntegrateComments false s config
+let test s = formatSourceString false s config
 
 test "// Comment" 
 
