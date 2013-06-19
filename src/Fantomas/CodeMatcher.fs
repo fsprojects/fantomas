@@ -1,11 +1,14 @@
 ﻿module Fantomas.CodeMatcher
 
+open System.Collections.Generic
 open System.Diagnostics
+
+open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.SourceCodeServices
 
 type Token = 
    | EOL
-   | Token of TokenInformation
+   | Tok of TokenInformation * int
 
 let tokenize (content : string) =
     seq { 
@@ -21,17 +24,63 @@ let tokenize (content : string) =
                 match tok with 
                 | None ->
                     if i <> lines.Length then
-                        // New line except at the last token 
+                        // New line except at the very last token 
                         yield (EOL, System.Environment.NewLine) 
                     finLine := true
                 | Some t -> 
-                    yield (Token t, line.[t.LeftColumn..t.RightColumn]) }
+                    yield (Tok(t, i), line.[t.LeftColumn..t.RightColumn]) }
+
+/// Create the view as if there is no attached line number
+let (|Token|_|) = function
+    | EOL -> None
+    | Tok(ti, _) -> Some ti
 
 type LineCommentStickiness = | StickyLeft | StickyRight | NotApplicable
 
 type MarkedToken = 
     | Marked of Token * string * LineCommentStickiness
     member x.Text = (let (Marked(_,t,_)) = x in t)
+
+// This part of the module takes care of annotating the AST with additional information
+// about comments
+
+let (|SpaceToken|_|) t = 
+    match t with
+    | Marked(EOL, origTokText, _) -> Some origTokText
+    | Marked(Token origTok, origTokText, _) when origTok.CharClass = TokenCharKind.WhiteSpace -> 
+        Some origTokText
+    | _ -> None
+
+let (|Spaces|_|) origTokens = 
+   match origTokens with 
+   | SpaceToken t1 :: moreOrigTokens -> 
+       let rec loop ts acc = 
+           match ts with 
+           | SpaceToken t2 :: ts2 -> loop ts2 (t2 :: acc)
+           | _ -> List.rev acc, ts
+       Some (loop moreOrigTokens [t1])
+   | _ -> None
+
+let (|Attribute|_|) origTokens = 
+   match origTokens with 
+   | Marked(Token origTok, "[<", _) :: moreOrigTokens 
+       when origTok.CharClass = TokenCharKind.Delimiter -> 
+       let rec loop ts acc = 
+           match ts with 
+           | Marked(Token ti2, ">]", _) :: ts2 
+                when ti2.CharClass = TokenCharKind.Delimiter -> Some (List.rev(">]" :: acc), ts2)
+           | Marked(_, t2, _) :: ts2 -> loop ts2 (t2 :: acc)
+           | [] -> None
+       loop moreOrigTokens ["[<"]
+   | _ -> None
+
+let rec (|Attributes|_|) = function
+    | Attribute(xs, Attributes(xss, toks)) 
+    | Attribute(xs, Spaces(_, Attributes(xss, toks))) -> Some(xs::xss, toks)
+    | Attribute(xs, toks)  -> Some([xs], toks)
+    | _ -> None
+
+// Process the token stream post- pretty printing
 
 let (|PreprocessorKeywordToken|_|) requiredText t = 
     match t with
@@ -43,7 +92,7 @@ let (|PreprocessorKeywordToken|_|) requiredText t =
 let (|InactiveCodeToken|_|) t = 
     match t with
     | Marked(Token origTok, origTokText, _) 
-        when origTok.ColorClass = TokenColorKind.InactiveCode  -> Some origTokText
+        when origTok.ColorClass = TokenColorKind.InactiveCode -> Some origTokText
     | _ -> None
 
 let (|LineCommentToken|_|) wantStickyLeft t = 
@@ -128,6 +177,22 @@ let (|BlockCommentChunk|_|) origTokens =
        Some (loop moreOrigTokens [t1])
    | _ -> None
 
+let (|PreviousCommentChunk|_|) origTokens = 
+    match origTokens with
+    | BlockCommentChunk(commentTokensText, moreOrigTokens)
+    | LineCommentChunk false (commentTokensText, moreOrigTokens) -> Some(commentTokensText, moreOrigTokens)
+    | _ -> None
+
+/// Get all comment chunks before a token 
+let (|PreviousCommentChunks|_|) origTokens = 
+   match origTokens with 
+   | PreviousCommentChunk(ts1, moreOrigTokens) -> 
+       let rec loop ts acc = 
+           match ts with 
+           | PreviousCommentChunk(ts2, ts') -> loop ts' (ts2 :: acc)
+           | _ -> List.concat (List.rev acc), ts
+       Some (loop moreOrigTokens [ts1])
+   | _ -> None        
 
 /// Add a flag into the token stream indicating if the first token in 
 /// the tokens of a line comment is sticky-to-the-left
@@ -174,6 +239,20 @@ let (|NewTokenAfterWhitespaceOrNewLine|_|) toks =
             Some(List.rev acc, newTok, more)
         | [] -> None
     loop toks []
+
+/// Given a list of tokens, attach comments to appropriate positions
+let filterComments content =
+    let rec loop ts (dic : Dictionary<_, _>) =
+        match ts with
+        | Marked(Token origTok, _, _) :: moreOrigTokens
+            when origTok.CharClass <> TokenCharKind.Comment && origTok.CharClass <> TokenCharKind.LineComment ->
+            loop moreOrigTokens dic
+        | PreviousCommentChunks(ts, Spaces (_, Marked(Tok(origTok, lineNo), _, _) :: moreOrigTokens))
+        | PreviousCommentChunks(ts,  (Marked(Tok(origTok, lineNo), _, _)) :: moreOrigTokens) ->
+            dic.Add((lineNo, origTok.LeftColumn), ts)
+            loop moreOrigTokens dic
+        | _ -> dic
+    loop (tokenize content |> markStickiness |> Seq.toList) (Dictionary())
                 
 let integrateComments (originalText : string) (newText : string) =
     let origTokens = tokenize originalText |> markStickiness |> Seq.toList

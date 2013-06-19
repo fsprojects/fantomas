@@ -2,8 +2,11 @@
 
 open System
 open System.IO
+open System.Collections.Generic
 open System.Text.RegularExpressions
 open System.CodeDom.Compiler
+
+open Fantomas.CodeMatcher
 
 type Num = int
 
@@ -62,11 +65,13 @@ type Context =
       /// The original source string to query as a last resort 
       Content : string; 
       /// Positions of new lines in the original source string
-      Positions : int [] }
+      Positions : int [] 
+      /// Comments attached to appropriate locations
+      Comments : Dictionary<int * int, string list> }
     /// Initialize with a string writer and use space as delimiter
     static member Default = { Config = FormatConfig.Default;
                               Writer = new ColumnIndentedTextWriter(new StringWriter());
-                              BreakLines = true; Content = ""; Positions = [||] }
+                              BreakLines = true; Content = ""; Positions = [||]; Comments = Dictionary() }
 
     static member create config (content : string) =
         let positions = 
@@ -74,7 +79,8 @@ type Context =
             |> Seq.map (fun s -> String.length s + 1)
             |> Seq.scan (+) 0
             |> Seq.toArray
-        { Context.Default with Config = config; Content = content; Positions = positions }
+        let comments = filterComments content
+        { Context.Default with Config = config; Content = content; Positions = positions; Comments = comments }
 
     member x.With(writer : ColumnIndentedTextWriter) =
         writer.Indent <- x.Writer.Indent
