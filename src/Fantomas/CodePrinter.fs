@@ -165,7 +165,7 @@ and genLetBinding isFirst pref b =
     | b ->
         failwithf "%O isn't a let binding" b
 
-and genProperty m prefix ps e =
+and genProperty prefix ps e =
     let tuplerize ps =
         let rec loop acc = function
             | [p] -> (List.rev acc, p)
@@ -194,7 +194,7 @@ and genPropertyWithGetSet inter (b1, b2) =
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
 
         prefix -- s1 +> sepSpace +> indent +> sepNln
-        +> genProperty b1.RangeOfBindingSansRhs "with get " ps1 e1 +> sepNln +> genProperty b2.RangeOfBindingSansRhs "and set " ps2 e2
+        +> genProperty "with get " ps1 e1 +> sepNln +> genProperty "and set " ps2 e2
         +> unindent
     | _ -> sepNone
 
@@ -234,7 +234,7 @@ and genMemberBinding inter b =
         match p with
         // Too tedious in handling property get and set
         | PatLongIdent(_, s, ps, _) ->                 
-            prefix -- s +> genProperty b.RangeOfBindingSansRhs propertyPref ps e
+            prefix -- s +> genProperty propertyPref ps e
         | p -> failwithf "Unexpected pattern: %O" p
 
     | MemberBinding(ats, px, ao, isInline, mf, p, e) ->
