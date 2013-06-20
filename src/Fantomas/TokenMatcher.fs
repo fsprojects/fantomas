@@ -1,5 +1,6 @@
 ﻿module Fantomas.TokenMatcher
 
+open System
 open System.Collections.Generic
 open System.Diagnostics
 
@@ -190,8 +191,9 @@ let (|PreviousCommentChunks|_|) origTokens =
    | PreviousCommentChunk(ts1, moreOrigTokens) -> 
        let rec loop ts acc = 
            match ts with 
-           | Spaces(ts2, PreviousCommentChunk(ts3, ts')) ->
-                loop ts' (ts3 :: ts2 :: acc)
+           | Spaces(_, PreviousCommentChunk(ts2, ts')) ->
+                // Just keep a newline between two comment chunks
+                loop ts' (ts2 :: [Environment.NewLine] :: acc)
            | PreviousCommentChunk(ts2, ts') -> 
                loop ts' (ts2 :: acc)
            | _ -> List.concat (List.rev acc), ts

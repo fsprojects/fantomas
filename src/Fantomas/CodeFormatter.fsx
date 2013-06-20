@@ -16,7 +16,18 @@ let config = { FormatConfig.Default with PageWidth = 120;SpaceBeforeArgument=tru
 
 let test s = formatSourceString false s config |> printfn "%A"
 
-test "// Comment" 
+test """
+   /// XML COMMENT A
+     // Other comment
+let f() = 
+      // COMMENT A
+    let y = 1
+      /// XML COMMENT B
+    let z = 1
+  // COMMENT B
+    x + x + x
+
+""" 
 
 // FAILS - sticky-right comment becomes sticky-left
 test """

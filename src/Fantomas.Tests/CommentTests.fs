@@ -127,7 +127,7 @@ let f() =
     |> should equal """
 /// XML COMMENT
 // Other comment
-let f () = 
+let f() = 
     // COMMENT A
     let y = 1
     // COMMENT B
@@ -151,7 +151,7 @@ let f() =
     |> should equal """
 /// XML COMMENT A
 // Other comment
-let f () = 
+let f() = 
     // COMMENT A
     let y = 1
     /// XML COMMENT B
