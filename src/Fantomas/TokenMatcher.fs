@@ -7,6 +7,10 @@ open System.Diagnostics
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.SourceCodeServices
 
+#if INTERACTIVE
+type Debug = Console
+#endif
+
 type Token = 
    | EOL
    | Tok of TokenInformation * int
@@ -192,11 +196,11 @@ let (|PreviousCommentChunks|_|) origTokens =
        let rec loop ts acc = 
            match ts with 
            | Spaces(_, PreviousCommentChunk(ts2, ts')) ->
-                // Just keep a newline between two comment chunks
-                loop ts' (ts2 :: [Environment.NewLine] :: acc)
+               // Just keep a newline between two comment chunks
+               loop ts' (ts2 :: [Environment.NewLine] :: acc)
            | PreviousCommentChunk(ts2, ts') -> 
                loop ts' (ts2 :: acc)
-           | _ -> List.concat (List.rev acc), ts
+           | _ -> (List.rev acc |> List.map (String.concat "")), ts
        Some (loop moreOrigTokens [ts1])
    | _ -> None        
 
@@ -209,29 +213,30 @@ let (|PreviousCommentChunks|_|) origTokens =
 let markStickiness (tokens: seq<Token * string>) = 
     seq { let inWhiteSpaceAtStartOfLine = ref true
           let inLineComment = ref true
-          for (tio,tt) in tokens do 
+          for (tio, tt) in tokens do 
              match tio with 
              | Token ti when ti.CharClass = TokenCharKind.LineComment ->
                   if !inLineComment then 
                       // Subsequent tokens in a line comment
-                      yield Marked(tio,tt,NotApplicable)
+                      yield Marked(tio, tt, NotApplicable)
                   else
                       // First token in a line comment. 
                       inLineComment := true
                       yield Marked(tio, tt, if !inWhiteSpaceAtStartOfLine then StickyRight else StickyLeft)
-
-             | Token ti when !inWhiteSpaceAtStartOfLine && ti.CharClass = TokenCharKind.WhiteSpace ->
+             
+             // Comments can't be attached to delimiters
+             | Token ti when !inWhiteSpaceAtStartOfLine && (ti.CharClass = TokenCharKind.WhiteSpace || ti.CharClass = TokenCharKind.Delimiter) ->
                   // Whitespace at start of line
-                  yield Marked(tio,tt,NotApplicable)
+                  yield Marked(tio, tt, NotApplicable)
              | Tok _ ->
                   // Some other token on a line
                   inWhiteSpaceAtStartOfLine := false
-                  yield Marked(tio,tt,NotApplicable)
+                  yield Marked(tio, tt, NotApplicable)
              | EOL -> 
                   // End of line marker
                  inLineComment := false
                  inWhiteSpaceAtStartOfLine := true
-                 yield Marked(tio,tt,NotApplicable) }
+                 yield Marked(tio, tt, NotApplicable) }
 
 let (|NewTokenAfterWhitespaceOrNewLine|_|) toks = 
     let rec loop toks acc = 
@@ -345,11 +350,16 @@ let integrateComments (originalText : string) (newText : string) =
         //   let f x = 
         //       // HERE
         //       x + x
-        // or inject block commment
-        | PreviousCommentChunks(commentTokensText, moreOrigTokens), _ ->
-              Debug.WriteLine("injecting line or block comment '{0}'", String.concat "" commentTokensText)
-              maintainIndent (fun () -> for x in commentTokensText do addText x)
-              loop moreOrigTokens newTokens 
+        | (LineCommentChunk false (commentTokensText, moreOrigTokens)),  _ ->
+            Debug.WriteLine("injecting line comment '{0}'", String.concat "" commentTokensText)
+            maintainIndent (fun () -> for x in commentTokensText do addText x)
+            loop moreOrigTokens newTokens 
+
+        // inject block commment 
+        | (BlockCommentChunk (commentTokensText, moreOrigTokens)),  _ ->
+            Debug.WriteLine("injecting block comment '{0}'", String.concat "" commentTokensText)
+            maintainIndent (fun () -> for x in commentTokensText do addText x)
+            loop moreOrigTokens newTokens 
         
         // inject inactive code
         | (InactiveCodeChunk (tokensText, moreOrigTokens)),  _ ->

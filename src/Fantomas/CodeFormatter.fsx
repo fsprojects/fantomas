@@ -12,22 +12,9 @@ open Fantomas.SourceParser
 open Fantomas.CodePrinter
 open Fantomas.CodeFormatter
 
-let config = { FormatConfig.Default with PageWidth = 120;SpaceBeforeArgument=true }
+let config = { FormatConfig.Default with PageWidth = 120; SpaceBeforeArgument=true }
 
 let test s = formatSourceString false s config |> printfn "%A"
-
-test """
-   /// XML COMMENT A
-     // Other comment
-let f() = 
-      // COMMENT A
-    let y = 1
-      /// XML COMMENT B
-    let z = 1
-  // COMMENT B
-    x + x + x
-
-""" 
 
 // FAILS - sticky-right comment becomes sticky-left
 test """
@@ -57,18 +44,6 @@ let f() =
 test """
 1 + (* Comment *) 1""" 
 
-test """ 1 + let x = 3 in x + x"""
-
-test """ (let x = 3 in x + x) + (let x = 3 in x + x)"""
-
-test """ (let x = 3 in x + x) + (let x = 3 in x + x)"""
-
-test """
-let f() = 
-  let x = 1     // COMMENT
-  x + x
-""" 
-
 test """
 let f() = 
     // CommentB
@@ -86,13 +61,6 @@ type X =
 
 test """
 /// XML comment
-type X = 
-   | A  // Hello
-   | B // Goodbye
-""" 
-
-test """
-/// XML comment
 type (* comment *) X = 
    | A  // Hello
    | B // Goodbye
@@ -106,15 +74,6 @@ type (* comment *)
    | B // Goodbye
 """ 
 
-// INADEQUATE: undentation not far enough
-test """
-let IsNonErasedTypar (tp:Typar) = not tp.IsErased
-let DropErasedTypars (tps:Typar list) = tps |> List.filter IsNonErasedTypar
-let DropErasedTyargs tys = tys |> List.filter (fun ty -> match ty with TType_measure _ -> false | _ -> true) 
-let AddSpecialNameFlag (mdef:ILMethodDef) = { mdef with IsSpecialName = true }
-
-"""
-
 test """
 let x = 1
 #if SILVERLIGHT
@@ -123,114 +82,6 @@ let useHiddenInitCode = false
 let useHiddenInitCode = true
 #endif
 let y = 2
-"""
-
-test """
-let iLdcZero = AI_ldc (DT_I4,ILConst.I4 0)
-let iLdcInt64 i = AI_ldc (DT_I8,ILConst.I8 i)
-let iLdcDouble i = AI_ldc (DT_R8,ILConst.R8 i)
-let iLdcSingle i = AI_ldc (DT_R4,ILConst.R4 i)
-
-"""
-
-test """
-let mkLdfldMethodDef (ilMethName,reprAccess,isStatic,ilTy,ilFieldName,ilPropType) =
-   let ilFieldSpec = mkILFieldSpecInTy(ilTy,ilFieldName,ilPropType)
-   let ilReturn = mkILReturn ilPropType
-   let ilMethodDef = 
-       if isStatic then 
-           mkILNonGenericStaticMethod (ilMethName,reprAccess,[],ilReturn,mkMethodBody(true,emptyILLocals,2,nonBranchingInstrsToCode [mkNormalLdsfld ilFieldSpec],None))
-       else 
-           mkILNonGenericInstanceMethod (ilMethName,reprAccess,[],ilReturn,mkMethodBody (true,emptyILLocals,2,nonBranchingInstrsToCode [ mkLdarg0; mkNormalLdfld ilFieldSpec],None))
-   ilMethodDef |> AddSpecialNameFlag
-"""
-
-test """
-let ChooseParamNames fieldNamesAndTypes = 
-    let takenFieldNames = fieldNamesAndTypes |> List.map p23 |> Set.ofList
-
-    fieldNamesAndTypes
-    |> List.map (fun (ilPropName,ilFieldName,ilPropType) -> 
-        let lowerPropName = String.uncapitalize ilPropName 
-        let ilParamName = if takenFieldNames.Contains(lowerPropName) then ilPropName else lowerPropName 
-        ilParamName,ilFieldName,ilPropType)
-
-"""
-
-test """
-
-let rec CheckCodeDoesSomething code = 
-    match code with 
-    | ILBasicBlock bb -> Array.fold (fun x i -> x || match i with (AI_ldnull | AI_nop | AI_pop) | I_ret |  I_seqpoint _ -> false | _ -> true) false bb.Instructions
-    | GroupBlock (_,codes) -> List.exists CheckCodeDoesSomething codes
-    | RestrictBlock (_,code) -> CheckCodeDoesSomething code
-    | TryBlock _ -> true 
-"""
-
-test """
-let ChooseFreeVarNames takenNames ts =
-    let tns = List.map (fun t -> (t,None)) ts
-    let rec chooseName names (t,nOpt) = 
-        let tn = match nOpt with None -> t | Some n -> t + string n
-        if Zset.contains tn names then
-          chooseName names (t,Some(match nOpt with None ->  0 | Some n -> (n+1)))
-        else
-          let names = Zset.add tn names
-          names,tn
-    let names    = Zset.empty String.order |> Zset.addList takenNames
-    let _names,ts = List.fmap chooseName names tns
-    ts
-
-"""
-
-
-test """
-/// Non-local information related to internals of code generation within an assembly
-type IlxGenIntraAssemblyInfo = 
-    { /// A table recording the generated name of the static backing fields for each mutable top level value where 
-      /// we may need to take the address of that value, e.g. static mutable module-bound values which are structs. These are 
-      /// only accessible intra-assembly. Across assemblies, taking the address of static mutable module-bound values is not permitted.
-      /// The key to the table is the method ref for the property getter for the value, which is a stable name for the Val's
-      /// that come from both the signature and the implementation.
-      StaticFieldInfo : Dictionary<ILMethodRef, ILFieldSpec> }
-
-"""
-
-// IMPERFECT - first sticky-to-the-left comment has only one space.
-test """
-/// Non
-type IlxGenIntraAssemblyInfo = 
-    { // A
-      // we
-      // that
-      StaticFieldInfo : int }
-
-"""
-
-test """
-[<NoEquality>]
-type IlxGenOptions = 
-    { fragName: string
-      generateFilterBlocks: bool
-      workAroundReflectionEmitBugs: bool
-      emitConstantArraysUsingStaticDataBlobs: bool
-      // If this is set, then the last module becomes the "main" module and its toplevel bindings are executed at startup 
-      mainMethodInfo: Tast.Attribs option
-      localOptimizationsAreOn: bool
-      generateDebugSymbols: bool
-      testFlagEmitFeeFeeAs100001: bool
-      ilxBackend: IlxGenBackend
-      /// Indicates the code is being generated in FSI.EXE and is executed immediately after code generation
-      /// This includes all interactively compiled code, including #load, definitions, and expressions
-      isInteractive: bool 
-      // Indicates the code generated is an interactive 'it' expression. We generate a setter to allow clearing of the underlying
-      // storage, even though 'it' is not logically mutable
-      isInteractiveItExpr: bool
-      // Indicates System.SerializableAttribute is available in the target framework
-      netFxHasSerializableAttribute : bool
-      /// Whenever possible, use callvirt instead of call
-      alwaysCallVirt: bool}
-
 """
 
 /// FAIL - attributes
@@ -271,34 +122,6 @@ type IlxClosureInfo =
       cloFreeVars: Val list; (* nb. the freevars we actually close over *)
       ilCloLambdas: IlxClosureLambdas;
     }
-"""
-
-test """
-let AddStorageForVal g (v,s) eenv = 
-    let eenv = { eenv with valsInScope = eenv.valsInScope.Add v s }
-    // If we're compiling fslib then also bind the value as a non-local path to 
-    // allow us to resolve the compiler-non-local-references that arise from env.fs
-    //
-    // Do this by generating a fake "looking from the outside in" non-local value reference for
-    // v, dereferencing it to find the corresponding signature Val, and adding an entry for the signature val.
-    //
-    // A similar code path exists in ilxgen.fs for the tables of "optimization data" for values
-    if g.compilingFslib then 
-        // Passing an empty remap is sufficient for FSharp.Core.dll because it turns out the remapped type signature can
-        // still be resolved.
-        match tryRescopeVal g.fslibCcu Remap.Empty  v with 
-        | None -> eenv
-        | Some vref -> 
-            match vref.TryDeref with
-            | None -> 
-                //let msg = sprintf "could not dereference external value reference to something in FSharp.Core.dll during code generation, v.MangledName = '%s', v.Range = %s" v.MangledName (stringOfRange v.Range)
-                //System.Diagnostics.Debug.Assert(false, msg)
-                eenv
-            | Some gv -> 
-                { eenv with valsInScope = eenv.valsInScope.Add gv s }
-    else 
-        eenv
-
 """
 
 // INADEQUATE: block comment not indented properly. Do we care?
@@ -420,18 +243,6 @@ type AssemblyBuilder(cenv:cenv) as mgbuf =
     member mgbuf.cenv = cenv
     member mgbuf.GetExplicitEntryPointInfo() = explicitEntryPointInfo
 """
-
-test """
-let FeeFee (cenv:cenv) = if cenv.opts.testFlagEmitFeeFeeAs100001 then 100001 else 0x00feefee
-let FeeFeeInstr (cenv:cenv) doc = 
-      I_seqpoint (ILSourceMarker.Create(document = doc,
-                                        line = FeeFee cenv,
-                                        column = 0,
-                                        endLine = FeeFee cenv,
-                                        endColumn = 0))
-
-"""
-
 
 // FAIL: insertion of "elif" for "else if" leads to mismatches in tokens that we never recover from....
 // TECHNIQUE : allow "elif" to "else if"

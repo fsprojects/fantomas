@@ -27,7 +27,7 @@ let ``should keep compiler directives``() =
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
 #endif
-"""    config
+"""  config
     |> should equal """
 #if INTERACTIVE
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
@@ -53,3 +53,26 @@ let printSourceLocation() =
     printfn "Source File: %s" __SOURCE_FILE__
 
 printSourceLocation()"""
+
+[<Test>]
+let ``should keep #if, #else and #endif on compiler directives``() =
+    formatSourceString false """
+let x = 1
+#if SILVERLIGHT
+let useHiddenInitCode = false
+#else
+let useHiddenInitCode = true
+#endif
+let y = 2
+"""  config
+    |> prepend newline
+    |> should equal """
+let x = 1
+
+#if SILVERLIGHT
+let useHiddenInitCode = false
+#else
+let useHiddenInitCode = true
+#endif
+
+let y = 2"""
