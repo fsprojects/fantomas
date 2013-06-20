@@ -44,6 +44,7 @@ type MarkedToken =
 // This part of the module takes care of annotating the AST with additional information
 // about comments
 
+/// Whitespace token including EOL
 let (|SpaceToken|_|) t = 
     match t with
     | Marked(EOL, origTokText, _) -> Some origTokText
@@ -189,7 +190,10 @@ let (|PreviousCommentChunks|_|) origTokens =
    | PreviousCommentChunk(ts1, moreOrigTokens) -> 
        let rec loop ts acc = 
            match ts with 
-           | PreviousCommentChunk(ts2, ts') -> loop ts' (ts2 :: acc)
+           | Spaces(ts2, PreviousCommentChunk(ts3, ts')) ->
+                loop ts' (ts3 :: ts2 :: acc)
+           | PreviousCommentChunk(ts2, ts') -> 
+               loop ts' (ts2 :: acc)
            | _ -> List.concat (List.rev acc), ts
        Some (loop moreOrigTokens [ts1])
    | _ -> None        
@@ -284,7 +288,6 @@ let integrateComments (originalText : string) (newText : string) =
               Debug.WriteLine "dropping whitespace from orig tokens" 
               loop moreOrigTokens newTokens 
 
-
         | (Marked(EOL, _, _) :: moreOrigTokens),  _ ->
               Debug.WriteLine "dropping newline from orig tokens" 
               loop moreOrigTokens newTokens 
@@ -340,17 +343,12 @@ let integrateComments (originalText : string) (newText : string) =
         //   let f x = 
         //       // HERE
         //       x + x
-        | (LineCommentChunk false (commentTokensText, moreOrigTokens)),  _ ->
-              Debug.WriteLine("injecting line comment '{0}'", String.concat "" commentTokensText)
+        // or inject block commment
+        | PreviousCommentChunks(commentTokensText, moreOrigTokens), _ ->
+              Debug.WriteLine("injecting line or block comment '{0}'", String.concat "" commentTokensText)
               maintainIndent (fun () -> for x in commentTokensText do addText x)
               loop moreOrigTokens newTokens 
-
-        // inject block commment 
-        | (BlockCommentChunk (commentTokensText, moreOrigTokens)),  _ ->
-              Debug.WriteLine("injecting block comment '{0}'", String.concat "" commentTokensText)
-              maintainIndent (fun () -> for x in commentTokensText do addText x)
-              loop moreOrigTokens newTokens 
-
+        
         // inject inactive code
         | (InactiveCodeChunk (tokensText, moreOrigTokens)),  _ ->
               Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText)

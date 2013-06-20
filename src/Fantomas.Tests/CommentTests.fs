@@ -13,13 +13,13 @@ let ``should keep // comments after nowarn directives``() =
 
 [<Test>]
 let ``should keep // comments before module definition``() =
-    formatSourceString false """﻿// The original idea for this typeprovider is from Ivan Towlson
+    formatSourceString false """
+// The original idea for this typeprovider is from Ivan Towlson
 // some text
 module FSharpx.TypeProviders.VectorTypeProvider
 
-let x = 1
-    """ config
-    |> should equal """﻿// The original idea for this typeprovider is from Ivan Towlson
+let x = 1""" config
+    |> should equal """// The original idea for this typeprovider is from Ivan Towlson
 // some text
 module FSharpx.TypeProviders.VectorTypeProvider
 
