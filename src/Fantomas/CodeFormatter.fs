@@ -85,7 +85,7 @@ let internal stringPos (r : range) (content : string) =
 
 /// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
 let makeRange startLine startCol endLine endCol =
-    mkRange "/tmp.fs" (mkPos startLine startCol) (mkPos endLine endCol)
+    mkRange "/tmp.fsx" (mkPos startLine startCol) (mkPos endLine endCol)
 
 /// Get first non-whitespace line
 let rec internal getStartLine (lines : _ []) i =
@@ -97,10 +97,10 @@ let rec internal getEndLine (lines : _ []) i =
     else getEndLine lines (i - 1)
 
 let internal isDelimitToken (tok : TokenInformation) =
-        tok.CharClass <> TokenCharKind.WhiteSpace && 
-        tok.CharClass <> TokenCharKind.LineComment &&
-        tok.CharClass <> TokenCharKind.Comment &&
-        tok.TokenName <> "STRING_TEXT"
+    tok.CharClass <> TokenCharKind.WhiteSpace && 
+    tok.CharClass <> TokenCharKind.LineComment &&
+    tok.CharClass <> TokenCharKind.Comment &&
+    tok.TokenName <> "STRING_TEXT"
 
 /// Find out the start token
 let rec internal getStartCol (r : range) (tokenizer : LineTokenizer) nstate = 
@@ -182,7 +182,7 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
         if startWithMember sel then
            (sprintf "type T = \n%s" (new String(' ', startCol) + sel), TypeMember)
         elif sel.StartsWith("and") then
-            let p = getPatch startCol lines.[..r.StartLine - 1]
+            let p = getPatch startCol lines.[..r.StartLine-1]
             let pattern = Regex("and")
             let replacement = 
                 match p with
@@ -195,9 +195,9 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
         elif r.StartLine = r.EndLine then (sel, NoPatch)
         else (new String(' ', startCol) + sel, NoPatch)
 
-    let post = 
-        if finish + 1 < s.Length && s.[finish + 1] = '\n' then "\r" + s.[finish + 1..] 
-        elif finish + 1 < s.Length then s.[finish + 1..]
+    let post =                
+        if finish + 1 < s.Length && s.[finish+1] = '\n' then Environment.NewLine + s.[finish+2..] 
+        elif finish < s.Length then s.[finish+1..]
         else ""
 
     Debug.WriteLine("pre:\n{0}", pre)
@@ -207,7 +207,7 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     let formatSelection fsi config selection =
         Context.create config selection
         |> genParsedInput (parse fsi selection)
-        |> ifElse (s.[finish] = '\n') sepNln sepNone
+        |> ifElse (selection.EndsWith "\n") sepNln sepNone
         |> dump
         |> integrateComments selection
 
