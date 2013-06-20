@@ -31,12 +31,11 @@ let parse fsi s =
     parseWith fileName s
 
 /// Format a source string using given config
-let formatSourceString fsi s config =
-    let s' =
-        Context.create config s 
-        |> genParsedInput (parse fsi s) 
-        |> dump
-    integrateComments s s'
+let formatSourceString fsi s config =    
+    Context.create config s 
+    |> genParsedInput (parse fsi s) 
+    |> dump
+    |> integrateComments s
 
 /// Format a source string using given config; return None if failed
 let tryFormatSourceString fsi s config =
@@ -46,16 +45,13 @@ let tryFormatSourceString fsi s config =
     _ -> None
 
 /// Format a source string using given config and write to a text writer
-let processSourceString fsi inStr (tw : TextWriter) config =
-    Context.create config inStr 
-    |> genParsedInput (parse fsi inStr) 
-    |> dump
-    |> tw.Write
+let processSourceString fsi s (tw : TextWriter) config =
+    tw.Write(formatSourceString fsi s config)
 
 /// Format a source string using given config and write to a text writer; return None if failed
-let tryProcessSourceString fsi inStr tw config =
+let tryProcessSourceString fsi s tw config =
     try
-        Some (processSourceString fsi inStr tw config)
+        Some (processSourceString fsi s tw config)
     with 
     _ -> None
 
@@ -81,7 +77,7 @@ let internal stringPos (r : range) (content : string) =
         |> Seq.toArray
 
     let start = positions.[r.StartLine-1] + r.StartColumn
-    /// We can't assume the range is valid, so check string boundary here
+    // We can't assume the range is valid, so check string boundary here
     let finish = 
         let pos = positions.[r.EndLine-1] + r.EndColumn
         if pos >= content.Length then content.Length - 1 else pos 
@@ -144,10 +140,10 @@ let internal getPatch startCol (lines : string []) =
         if i < 0 then NoPatch 
         elif Regex.Match(lines.[i], "^[\s]*type ").Success then RecType
         else
-            /// Need to compare column to ensure that the let binding is at the same level
+            // Need to compare column to ensure that the let binding is at the same level
             let m = Regex.Match(lines.[i], "^[\s]*let ")
             let col = m.Index + m.Length
-            /// Value 4 accounts for length of "and "
+            // Value 4 accounts for length of "and "
             if m.Success && col <= startCol + 4 then RecLet else loop (i - 1)
     loop (lines.Length - 1)
 
@@ -155,25 +151,24 @@ let internal getPatch startCol (lines : string []) =
 let formatSelectionFromString fsi (r : range) (s : string) config =
     let lines = s.Split([|'\n'|], StringSplitOptions.None)
 
-    let fileName = if fsi then "/tmp.fsi" else "/tmp.fs"
-    let sourceTok = SourceTokenizer([], fileName)
+    let sourceToken = SourceTokenizer([], "/tmp.fsx")
 
-    /// Move to the section with real contents
+    // Move to the section with real contents
     let r =
         if r.StartLine = r.EndLine then r
         else
             let startLine = getStartLine lines (r.StartLine - 1)
             let endLine = getEndLine lines (r.EndLine - 1) 
-            /// Notice that Line indices start at 1 while Column indices start at 0.
+            // Notice that Line indices start at 1 while Column indices start at 0.
             makeRange (startLine + 1) 0 (endLine + 1) (lines.[endLine].Length - 1)
 
-    let startTokenizer = sourceTok.CreateLineTokenizer(lines.[r.StartLine-1])
+    let startTokenizer = sourceToken.CreateLineTokenizer(lines.[r.StartLine-1])
 
     let startCol = getStartCol r startTokenizer (ref 0L)
 
     let endTokenizer =
         if r.StartLine = r.EndLine then startTokenizer 
-        else sourceTok.CreateLineTokenizer(lines.[r.EndLine-1])
+        else sourceToken.CreateLineTokenizer(lines.[r.EndLine-1])
 
     let endCol = getEndCol r endTokenizer (ref 0L)
     
@@ -181,7 +176,7 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     let (start, finish) = stringPos range s
     let pre = if start = 0 then "" else s.[0..start-1]
 
-    /// Prepend selection by an appropriate amount of whitespace
+    // Prepend selection by an appropriate amount of whitespace
     let (selection, patch) = 
         let sel = s.[start..finish]
         if startWithMember sel then
@@ -194,7 +189,7 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
                 | RecType -> "type"
                 | RecLet -> "let rec"
                 | _ -> "and"
-            /// Replace "and" by "type" or "let rec"
+            // Replace "and" by "type" or "let rec"
             if r.StartLine = r.EndLine then (pattern.Replace(sel, replacement, 1), p)
             else (new String(' ', startCol) + pattern.Replace(sel, replacement, 1), RecType)
         elif r.StartLine = r.EndLine then (sel, NoPatch)
@@ -209,54 +204,47 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     Debug.WriteLine("selection:\n{0}", selection)
     Debug.WriteLine("post:\n{0}", post)
 
-    let tree = parse fsi selection
+    let formatSelection fsi config selection =
+        Context.create config selection
+        |> genParsedInput (parse fsi selection)
+        |> ifElse (s.[finish] = '\n') sepNln sepNone
+        |> dump
+        |> integrateComments selection
+
+    let reconstructSourceCode startCol formatteds pre post =
+        // Realign results on the correct column
+        Context.create config "" 
+        |> str pre
+        |> atIndentLevel startCol (col sepNln formatteds str)
+        |> str post
+        |> dump
 
     match patch with
     | TypeMember ->
-        /// Get formatted selection with "type T = \n" patch
-        let result = 
-            Context.create config selection
-            |> genParsedInput tree
-            |> ifElse (s.[finish] = '\n') sepNln sepNone
-            |> dump
-        /// Remove the patch
-        let contents = result.Split([|'\n'|], StringSplitOptions.None)
+        // Get formatted selection with "type T = \n" patch
+        let result = formatSelection fsi config selection
+        // Remove the patch
+        let contents = result.Replace("\r\n","\n").Split('\r', '\n')
         if contents = [||] then
             sprintf "%s%s%s" pre result post
         else
-            /// Due to patching, the text has at least two lines
+            // Due to patching, the text has at least two lines
             let first = contents.[1]
             let column = first.Length - first.TrimStart().Length
-            let selections = contents.[1..] |> Seq.map (fun s -> s.[column..])
-            /// Realign results on the correct column
-            Context.create config "" 
-            |> str pre
-            |> atIndentLevel startCol (col sepNln selections str)
-            |> str post
-            |> dump
-    | RecType | RecLet ->        
-        /// Get formatted selection with "type" or "let rec" replacement for "and"
-        let result = 
-            Context.create config selection
-            |> genParsedInput tree
-            |> ifElse (s.[finish] = '\n') sepNln sepNone
-            |> dump
-        /// Substitute by old contents
+            let formatteds = contents.[1..] |> Seq.map (fun s -> s.[column..])
+            reconstructSourceCode startCol formatteds pre post
+    | RecType 
+    | RecLet ->        
+        // Get formatted selection with "type" or "let rec" replacement for "and"
+        let result = formatSelection fsi config selection
+        // Substitute by old contents
         let pattern = if patch = RecType then Regex("type") else Regex("let rec")
-        let selection = pattern.Replace(result, "and", 1)
-        /// Realign results on the correct column
-        Context.create config "" 
-        |> str pre
-        |> atIndentLevel startCol (str selection)
-        |> str post
-        |> dump
+        let formatteds = pattern.Replace(result, "and", 1).Replace("\r\n","\n").Split('\r', '\n')
+        reconstructSourceCode startCol formatteds pre post
     | NoPatch ->
-        Context.create config selection 
-        |> str pre
-        |> atIndentLevel startCol (genParsedInput tree)
-        |> ifElse (s.[finish] = '\n') sepNln sepNone
-        |> str post
-        |> dump
+        let result = formatSelection fsi config selection
+        let formatteds = result.Replace("\r\n","\n").Split('\r', '\n')
+        reconstructSourceCode startCol formatteds pre post
 
 /// Format selection in range r and keep other parts unchanged; return None if failed
 let tryFormatSelectionFromString fsi (r : range) (s : string) config =
