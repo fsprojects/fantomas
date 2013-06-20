@@ -14,7 +14,7 @@ open Fantomas.CodeFormatter
 
 let config = { FormatConfig.Default with PageWidth = 120;SpaceBeforeArgument=true }
 
-let test s = formatSourceString false s config
+let test s = formatSourceString false s config |> printfn "%A"
 
 test "// Comment" 
 
@@ -46,38 +46,6 @@ let f() =
 test """
 1 + (* Comment *) 1""" 
 
-test """(*
-line1
-line2
-*)
-""" 
-
-test """(*
-  line1
-  line2
-*)
-""" 
-
-test """
-let f() = 
-    // COMMENT
-    let x = 1
-    x + x
-""" 
-
-test """
-let f() = 
-  // COMMENT
-  let x = 1
-  x + x
-""" 
-
-test """
-let f() = 
-  let x = 1 // COMMENT
-  x + x
-""" 
-
 test """ 1 + let x = 3 in x + x"""
 
 test """ (let x = 3 in x + x) + (let x = 3 in x + x)"""
@@ -88,33 +56,6 @@ test """
 let f() = 
   let x = 1     // COMMENT
   x + x
-""" 
-
-
-// well-aligned comments
-test """
-/// XML COMMENT
-// Other comment
-let f() = 
-    // COMMENT A
-    let y = 1
-    // COMMENT B
-    x + x + x
-
-""" 
-
-// misaligned comments
-test """
-   /// XML COMMENT A
-     // Other comment
-let f() = 
-      // COMMENT A
-    let y = 1
-      /// XML COMMENT B
-    let z = 1
-  // COMMENT B
-    x + x + x
-
 """ 
 
 test """
@@ -153,22 +94,6 @@ type (* comment *)
    | A  // Hello
    | B // Goodbye
 """ 
-
-test """
-let f() = 
-    x
-""" 
-
-test """
-let f() = x
-""" 
-
-test "1 + 1" 
-
-test "let x = 1 in x"
-test "let x = 1 in let y = 1 in x"
-test "let x = 1 in x + x"
-test "(let x = 1 in x + x)"
 
 // INADEQUATE: undentation not far enough
 test """
