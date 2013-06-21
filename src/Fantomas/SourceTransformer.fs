@@ -104,6 +104,10 @@ let genConst c =
         let r = c.Range range.Zero
         fun ctx -> str (content r ctx) ctx
 
+/// Check whether a range starting with a specified token
+let startWith s (r : range) ctx = 
+    (content r ctx).StartsWith(s)
+
 // A few active patterns for printing purpose
 
 let rec (|DoExprAttributesL|_|) = function

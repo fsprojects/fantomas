@@ -262,3 +262,22 @@ type IlxGenOptions =
       netFxHasSerializableAttribute : bool;
       /// Whenever possible, use callvirt instead of call
       alwaysCallVirt : bool }"""
+
+[<Test>]
+let ``should keep comments on else if``() =
+    formatSourceString false  """
+if true then ()
+else
+    // Comment 1
+    if true then ()
+    // Comment 2
+    else ()
+"""  config
+    |> prepend newline
+    |> should equal """
+if true then ()
+else
+    // Comment 1
+    if true then ()
+    // Comment 2
+    else ()"""

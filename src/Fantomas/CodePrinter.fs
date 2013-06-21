@@ -407,10 +407,12 @@ and genExpr e0 =
     | Sequentials es -> 
         atCurrentColumn (col sepNln es genExpr)
     // A generalization of IfThenElse
-    | ElIf((e1,e2)::es, en) ->
+    | ElIf((e1,e2, _)::es, en) ->
         atCurrentColumn (!- "if " +> genExpr e1 +- "then" -- " " 
             +> autoBreakNln e2
-            +> col sepNone es (fun (e1, e2) -> !+ "elif " +> genExpr e1 +- "then" -- " " +> autoBreakNln e2)
+            +> fun ctx -> col sepNone es (fun (e1, e2, r) ->
+                             ifElse (startWith "elif" r ctx) (!+ "elif ") (!+ "else if ")
+                             +> genExpr e1 +- "then" -- " " +> autoBreakNln e2) ctx
             ++ "else " +> autoBreakNln en)
 
     | IfThenElse(e1, e2, None) -> 

@@ -19,7 +19,8 @@ let rec tryFindMatch pred list =
 let test x y =
   if x = y then "equals" 
   elif x < y then "is less than" 
-  else "is greater than"
+  else if x > y then "is greater than"
+  else "Don't know"
 
 if age < 10
 then printfn "You are only %d years old and already learning F#? Wow!" age""" config
@@ -35,7 +36,8 @@ let rec tryFindMatch pred list =
 let test x y = 
     if x = y then "equals"
     elif x < y then "is less than"
-    else "is greater than"
+    else if x > y then "is greater than"
+    else "Don't know"
 
 if age < 10 then 
     printfn "You are only %d years old and already learning F#? Wow!" age"""

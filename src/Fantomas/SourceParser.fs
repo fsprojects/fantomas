@@ -690,10 +690,10 @@ let (|IfThenElse|_|) = function
     | _ -> None
 
 let rec (|ElIf|_|) = function
-    | SynExpr.IfThenElse(e1, e2, Some(ElIf(es, e3)), _, _, _, _) ->
-        Some((e1, e2)::es, e3)
-    | SynExpr.IfThenElse(e1, e2, Some e3, _, _, _, _) ->
-        Some([(e1, e2)], e3)
+    | SynExpr.IfThenElse(e1, e2, Some(ElIf(es, e3)), _, _, r, _) ->
+        Some((e1, e2, r)::es, e3)
+    | SynExpr.IfThenElse(e1, e2, Some e3, _, _, r, _) ->
+        Some([(e1, e2, r)], e3)
     | _ -> None
 
 let (|Record|_|) = function
