@@ -2,10 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Fantomas</id>
-        <version>0.9.6</version>
+        <version>0.9.9</version>
         <title>Fantomas</title>
         <authors>Anh-Dung Phan</authors>
-        <owners />
         <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
         <projectUrl>https://github.com/dungpa/fantomas</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -13,7 +12,9 @@
 
 Some common use cases include (1) Reformatting a code base to conform a universal page width (2) Converting legacy code from verbose syntax to light syntax (3) Formatting auto-generated F# signatures.</description>
         <summary>Source code formatting tool for F#.</summary>
-        <releaseNotes>Support formatting members, recursive types and recursive let bindings as a selection</releaseNotes>
+        <releaseNotes>Support inline, multiline and block comments.
+Support compiler directives.
+Revise formatting of if/then/else blocks.</releaseNotes>
         <tags>F# fsharp formatting beautifier indentation indenter</tags>
     </metadata>
     <files>
