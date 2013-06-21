@@ -12,9 +12,27 @@ open Fantomas.SourceParser
 open Fantomas.CodePrinter
 open Fantomas.CodeFormatter
 
-let config = { FormatConfig.Default with PageWidth = 120; SpaceBeforeArgument=true }
+let config = FormatConfig.Default
 
 let test s = formatSourceString false s config |> printfn "%A"
+
+// FAILS - doesn't handle nested directives and line breaks are a bit off
+test """
+let [<Literal>] private assemblyConfig =
+    #if DEBUG
+    #if TRACE
+    "DEBUG;TRACE"
+    #else
+    "DEBUG"
+    #endif
+    #else
+    #if TRACE
+    "TRACE"
+    #else
+    ""
+    #endif
+    #endif
+"""
 
 // FAILS - sticky-right comment becomes sticky-left
 test """
@@ -74,44 +92,6 @@ type (* comment *)
    | B // Goodbye
 """ 
 
-test """
-let x = 1
-#if SILVERLIGHT
-let useHiddenInitCode = false
-#else
-let useHiddenInitCode = true
-#endif
-let y = 2
-"""
-
-/// FAIL - attributes
-test """
-[<NoEquality; NoComparison>]
-type IlxGenOptions = 
-    { fragName: string
-      generateFilterBlocks: bool
-      workAroundReflectionEmitBugs: bool
-      emitConstantArraysUsingStaticDataBlobs: bool
-      // If this is set, then the last module becomes the "main" module and its toplevel bindings are executed at startup 
-      mainMethodInfo: Tast.Attribs option
-      localOptimizationsAreOn: bool
-      generateDebugSymbols: bool
-      testFlagEmitFeeFeeAs100001: bool
-      ilxBackend: IlxGenBackend
-      /// Indicates the code is being generated in FSI.EXE and is executed immediately after code generation
-      /// This includes all interactively compiled code, including #load, definitions, and expressions
-      isInteractive: bool 
-      // Indicates the code generated is an interactive 'it' expression. We generate a setter to allow clearing of the underlying
-      // storage, even though 'it' is not logically mutable
-      isInteractiveItExpr: bool
-      // Indicates System.SerializableAttribute is available in the target framework
-      netFxHasSerializableAttribute : bool
-      /// Whenever possible, use callvirt instead of call
-      alwaysCallVirt: bool}
-
-"""
-
-
 /// INADEQUATE (block comment not sticky-left)
 test """
 [<NoEquality>]
@@ -141,107 +121,6 @@ let StorageForVal m v eenv =
           errorR(Error(FSComp.SR.ilUndefinedValue(showL(vspecAtBindL v)),m)); 
           notlazy (Arg 668(* random value for post-hoc diagnostic analysis on generated tree *) )
     v.Force()
-"""
-
-// INADEQUATE: undenation for "fun" not good enough
-test """
-/// Assembly generation buffers 
-type AssemblyBuilder(cenv:cenv) as mgbuf = 
-    // The Abstract IL table of types 
-    let gtdefs= new TypeDefsBuilder() 
-    // The definitions of top level values, as quotations. 
-    let mutable reflectedDefinitions : System.Collections.Generic.Dictionary<Tast.Val,(string * int * Expr)> = System.Collections.Generic.Dictionary(HashIdentity.Reference)
-    // A memoization table for generating value types for big constant arrays  
-    let vtgenerator=
-         new MemoizationTable<(CompileLocation * int) , ILTypeSpec>
-              ((fun (cloc,size) -> 
-                 let name   = CompilerGeneratedName ("T" + string(newUnique()) + "_" + string size + "Bytes") // Type names ending ...$T<unique>_37Bytes
-                 let vtdef  = mkRawDataValueTypeDef cenv.g.ilg (name,size,0us)
-                 let vtref = NestedTypeRefForCompLoc cloc vtdef.Name 
-                 let vtspec = mkILTySpec(vtref,[])
-                 let vtdef = {vtdef with Access= ComputeTypeAccess vtref true}
-                 mgbuf.AddTypeDef(vtref, vtdef, false, true);
-                 vtspec), 
-               keyComparer=HashIdentity.Structural)
-
-    let mutable explicitEntryPointInfo : ILTypeRef option  = None
-
-    /// static init fields on script modules.
-    let mutable scriptInitFspecs : (ILFieldSpec * range) list = []    
-    
-    member mgbuf.AddScriptInitFieldSpec(fieldSpec,range) =
-        scriptInitFspecs <- (fieldSpec,range) :: scriptInitFspecs
-        
-    /// This initializes the script in #load and fsc command-line order causing their
-    /// sideeffects to be executed.
-    member mgbuf.AddInitializeScriptsInOrderToEntryPoint() = 
-        // Get the entry point and intialized any scripts in order.
-        match explicitEntryPointInfo with
-        | Some tref ->
-            let IntializeCompiledScript(fspec,m) =
-                mgbuf.AddExplicitInitToSpecificMethodDef((fun md -> md.IsEntryPoint), tref, fspec, GenPossibleILSourceMarker cenv m, [], [])              
-            scriptInitFspecs |> List.iter IntializeCompiledScript
-        | None -> ()
-
-     
-
-    member mgbuf.GenerateRawDataValueType(cloc,size) = 
-        // Byte array literals require a ValueType of size the required number of bytes.
-        // With fsi.exe, S.R.Emit TypeBuilder CreateType has restrictions when a ValueType VT is nested inside a type T, and T has a field of type VT.
-        // To avoid this situation, these ValueTypes are generated under the private implementation rather than in the current cloc. [was bug 1532].
-        let cloc = CompLocForPrivateImplementationDetails cloc
-        vtgenerator.Apply((cloc,size))
-
-    member mgbuf.AddTypeDef(tref:ILTypeRef, tdef, eliminateIfEmpty, addAtEnd) = 
-        gtdefs.FindNestedTypeDefsBuilder(tref.Enclosing).AddTypeDef(tdef, eliminateIfEmpty, addAtEnd)
-
-    member mgbuf.GetCurrentFields(tref:ILTypeRef) =
-        gtdefs.FindNestedTypeDefBuilder(tref).GetCurrentFields();
-
-    member mgbuf.AddReflectedDefinition(vspec : Tast.Val,expr) = 
-        // preserve order by storing index of item
-        let n = reflectedDefinitions.Count
-        reflectedDefinitions.Add(vspec, (vspec.CompiledName, n, expr))
-   
-    member mgbuf.ReplaceNameOfReflectedDefinition(vspec, newName) = 
-        match reflectedDefinitions.TryGetValue vspec with
-        | true, (name, n, expr) when name <> newName -> reflectedDefinitions.[vspec] <- (newName, n, expr)
-        | _ -> ()
-
-    member mgbuf.AddMethodDef(tref:ILTypeRef,ilMethodDef) = 
-        gtdefs.FindNestedTypeDefBuilder(tref).AddMethodDef(ilMethodDef);
-        if ilMethodDef.IsEntryPoint then 
-            explicitEntryPointInfo <- Some(tref)
-
-    member mgbuf.AddExplicitInitToSpecificMethodDef(cond,tref,fspec,sourceOpt,feefee,seqpt) = 
-    // Authoring a .cctor with effects forces the cctor for the 'initialization' module by doing a dummy store & load of a field 
-    // Doing both a store and load keeps FxCop happier because it thinks the field is useful 
-        let instrs = 
-            [ yield! (if condition "NO_ADD_FEEFEE_TO_CCTORS" then [] elif condition "ADD_SEQPT_TO_CCTORS"  then seqpt else feefee) // mark start of hidden code
-              yield mkLdcInt32 0; 
-              yield mkNormalStsfld fspec; 
-              yield mkNormalLdsfld fspec; 
-              yield AI_pop]   
-        gtdefs.FindNestedTypeDefBuilder(tref).PrependInstructionsToSpecificMethodDef(cond,instrs,sourceOpt) 
-
-    member mgbuf.AddEventDef(tref,edef) = 
-        gtdefs.FindNestedTypeDefBuilder(tref).AddEventDef(edef)
-
-    member mgbuf.AddFieldDef(tref,ilFieldDef) = 
-        gtdefs.FindNestedTypeDefBuilder(tref).AddFieldDef(ilFieldDef)
-
-    member mgbuf.AddOrMergePropertyDef(tref,pdef,m) = 
-        gtdefs.FindNestedTypeDefBuilder(tref).AddOrMergePropertyDef(pdef,m)
-
-    member mgbuf.Close() = 
-        // old implementation adds new element to the head of list so result was accumulated in reversed order
-        let orderedReflectedDefinitions = 
-            [for (KeyValue(vspec, (name, n, expr))) in reflectedDefinitions -> n, ((name,vspec), expr)]
-            |> List.sortBy (fst >> (~-)) // invert the result to get 'order-by-descending' behavior (items in list are 0..* so we don't need to worry about int.MinValue)
-            |> List.map snd
-        gtdefs.Close(), orderedReflectedDefinitions
-    member mgbuf.cenv = cenv
-    member mgbuf.GetExplicitEntryPointInfo() = explicitEntryPointInfo
 """
 
 // FAIL: insertion of "elif" for "else if" leads to mismatches in tokens that we never recover from....

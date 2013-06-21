@@ -97,10 +97,12 @@ let hasParenInPat = function
     | PatConst(Const "()") -> true
     | _ -> false
 
-let inline genConst c =
+let genConst c =
     match c with
     | Const c -> !- c
-    | Unresolved c -> fun ctx -> str (content c ctx) ctx
+    | Unresolved c -> 
+        let r = c.Range range.Zero
+        fun ctx -> str (content r ctx) ctx
 
 // A few active patterns for printing purpose
 

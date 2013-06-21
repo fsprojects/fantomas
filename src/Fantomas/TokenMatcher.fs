@@ -251,6 +251,19 @@ let (|NewTokenAfterWhitespaceOrNewLine|_|) toks =
         | [] -> None
     loop toks []
 
+let (|RawAttribute|_|) origTokens = 
+   match origTokens with 
+   | (Token origTok, "[<") :: moreOrigTokens 
+       when origTok.CharClass = TokenCharKind.Delimiter -> 
+       let rec loop ts acc = 
+           match ts with 
+           | (Token ti2, ">]") :: ts2 
+                when ti2.CharClass = TokenCharKind.Delimiter -> Some (List.rev(">]" :: acc), ts2)
+           | (_, t2) :: ts2 -> loop ts2 (t2 :: acc)
+           | [] -> None
+       loop moreOrigTokens ["[<"]
+   | _ -> None
+
 /// Given a list of tokens, attach comments to appropriate positions
 let filterComments content =
     let rec loop ts (dic : Dictionary<_, _>) =
@@ -368,7 +381,7 @@ let integrateComments (originalText : string) (newText : string) =
               loop moreOrigTokens newTokens 
 
         // inject #if... #else or #endif directive 
-        | (PreprocessorDirectiveChunk (tokensText, moreOrigTokens)),  _ ->
+        | (PreprocessorDirectiveChunk (tokensText, moreOrigTokens)), _ ->
               let text = (String.concat "" tokensText)
               Debug.WriteLine("injecting preprocessor directive '{0}'", text)
               if text.StartsWith "#if" then 
@@ -376,7 +389,18 @@ let integrateComments (originalText : string) (newText : string) =
               addText text
               if text.StartsWith "#endif" then 
                   addText System.Environment.NewLine
-              loop moreOrigTokens newTokens 
+              loop moreOrigTokens newTokens
+
+        // Skipping attribute it the new text
+        | _, RawAttribute(newTokensText, moreNewTokens) ->
+            Debug.WriteLine("no matching of attribute tokens")
+            for x in newTokensText do addText x
+            loop origTokens moreNewTokens
+              
+        // Skipping attribute it the old text
+        | (Attribute (tokensText, moreOrigTokens)), _ ->
+            Debug.WriteLine("skip matching of attribute tokens '{0}'", tokensText)            
+            loop moreOrigTokens newTokens   
 
         // Matching tokens
         | (origTok :: moreOrigTokens), (newTok :: moreNewTokens) when tokensMatch origTok newTok ->

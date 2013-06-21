@@ -8,8 +8,7 @@ open Microsoft.FSharp.Compiler.Lexhelp.Keywords
 open Fantomas.FormatConfig
 
 /// Get source string content based on range value
-let inline content (sc : SynConst) (c : Context) =
-    let r = sc.Range range.Zero
+let inline content (r : range) (c : Context) =
     if r.EndLine <= c.Positions.Length then
         let start = c.Positions.[r.StartLine-1] + r.StartColumn
         let finish = c.Positions.[r.EndLine-1] + r.EndColumn - 1
