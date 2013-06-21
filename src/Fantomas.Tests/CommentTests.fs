@@ -197,7 +197,7 @@ let ``should keep comments on DU cases``() =
 /// XML comment
 type X = 
    /// Hello
-   | A 
+   A 
    /// Goodbye
    | B
 """  config
@@ -205,10 +205,10 @@ type X =
     |> should equal """
 /// XML comment
 type X = 
-   /// Hello
-   | A 
-   /// Goodbye
-   | B"""
+    /// Hello
+    | A
+    /// Goodbye
+    | B"""
 
 [<Test>]
 let ``should keep comments before attributes``() =

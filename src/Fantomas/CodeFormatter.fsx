@@ -77,15 +77,7 @@ let f() =
     x + x
 """ 
 
-test """
-/// XML comment
-type X = 
-   /// Hello
-   | A 
-   /// Goodbye
-   | B
-""" 
-
+// INADEQUATE: inline block comment should not emit new lines
 test """
 /// XML comment
 type (* comment *) X = 
@@ -101,7 +93,7 @@ type (* comment *)
    | B // Goodbye
 """ 
 
-/// INADEQUATE (block comment not sticky-left)
+// INADEQUATE: block comment not sticky-left
 test """
 [<NoEquality>]
 type IlxClosureInfo = 

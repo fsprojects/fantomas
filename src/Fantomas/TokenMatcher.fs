@@ -303,60 +303,60 @@ let integrateComments (originalText : string) (newText : string) =
     let rec loop origTokens newTokens = 
         match origTokens, newTokens with 
         | (Marked(Token origTok, _, _) :: moreOrigTokens),  _ 
-              when origTok.CharClass = TokenCharKind.WhiteSpace && origTok.ColorClass <> TokenColorKind.InactiveCode 
-                   && origTok.ColorClass <> TokenColorKind.PreprocessorKeyword ->
-              Debug.WriteLine "dropping whitespace from orig tokens" 
-              loop moreOrigTokens newTokens 
+            when origTok.CharClass = TokenCharKind.WhiteSpace && origTok.ColorClass <> TokenColorKind.InactiveCode 
+                && origTok.ColorClass <> TokenColorKind.PreprocessorKeyword ->
+            Debug.WriteLine "dropping whitespace from orig tokens" 
+            loop moreOrigTokens newTokens 
 
         | (Marked(EOL, _, _) :: moreOrigTokens),  _ ->
-              Debug.WriteLine "dropping newline from orig tokens" 
-              loop moreOrigTokens newTokens 
+            Debug.WriteLine "dropping newline from orig tokens" 
+            loop moreOrigTokens newTokens 
 
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)),  _ ->
-              let tokText = String.concat "" commentTokensText
-              Debug.WriteLine("injecting sticky-to-the-left line comment '{0}'", tokText)
+            let tokText = String.concat "" commentTokensText
+            Debug.WriteLine("injecting sticky-to-the-left line comment '{0}'", tokText)
               
-              match newTokens with 
-              // If there is a new line coming, use it up
-              | ((EOL, newTokText) :: moreNewTokens) ->
-                  addText " "
-                  addText tokText
-                  Debug.WriteLine "emitting newline for end of sticky-to-left comment" 
-                  addText newTokText 
-                  loop moreOrigTokens moreNewTokens 
-              // Otherwise, if there is a token coming, maintain the indentation
-              | _ -> 
-                  addText " "
-                  maintainIndent (fun () -> addText tokText)
-                  loop moreOrigTokens newTokens 
+            match newTokens with 
+            // If there is a new line coming, use it up
+            | ((EOL, newTokText) :: moreNewTokens) ->
+                addText " "
+                addText tokText
+                Debug.WriteLine "emitting newline for end of sticky-to-left comment" 
+                addText newTokText 
+                loop moreOrigTokens moreNewTokens 
+            // Otherwise, if there is a token coming, maintain the indentation
+            | _ -> 
+                addText " "
+                maintainIndent (fun () -> addText tokText)
+                loop moreOrigTokens newTokens 
 
         // Inject line commment that is sticky-to-the-left, e.g. 
         //   let f x = 
         //       x + x  // HERE
         // Because it is sticky-to-the-left, we do it _before_ emitting end-of-line from the newText
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)),  _ ->
-              Debug.WriteLine("injecting stick-to-the-left line comment '{0}'", String.concat "" commentTokensText)
-              addText " "
-              for x in commentTokensText do addText x
-              loop moreOrigTokens newTokens 
+            Debug.WriteLine("injecting stick-to-the-left line comment '{0}'", String.concat "" commentTokensText)
+            addText " "
+            for x in commentTokensText do addText x
+            loop moreOrigTokens newTokens 
 
         // Emit end-of-line from new tokens
         | _,  ((EOL, newTokText) :: moreNewTokens) ->
-              Debug.WriteLine "emitting newline in new tokens" 
-              addText newTokText 
-              loop origTokens moreNewTokens 
+            Debug.WriteLine "emitting newline in new tokens" 
+            addText newTokText 
+            loop origTokens moreNewTokens 
 
         | _,  ((Token newTok, newTokText) :: moreNewTokens) 
-              when newTok.CharClass = TokenCharKind.WhiteSpace && newTok.ColorClass <> TokenColorKind.InactiveCode ->
-              Debug.WriteLine("emitting whitespace '{0}' in new tokens", newTokText)
-              addText newTokText 
-              loop origTokens moreNewTokens 
+            when newTok.CharClass = TokenCharKind.WhiteSpace && newTok.ColorClass <> TokenColorKind.InactiveCode ->
+            Debug.WriteLine("emitting whitespace '{0}' in new tokens", newTokText)
+            addText newTokText 
+            loop origTokens moreNewTokens 
 
         | _,  ((_, newTokText) :: moreNewTokens) 
-              when newTokText = ";" || newTokText = "|" || newTokText = ">]"->
-              Debug.WriteLine("emitting non-matching '{0}' in new tokens", newTokText)
-              addText newTokText 
-              loop origTokens moreNewTokens 
+            when newTokText = ";" || newTokText = ";;" -> //|| newTokText = "|"->
+            Debug.WriteLine("emitting non-matching '{0}' in new tokens", newTokText)
+            addText newTokText 
+            loop origTokens moreNewTokens 
 
         // inject line commment, after all whitespace and newlines emitted, so
         // the line comment will appear just before the subsequent text, e.g. 
@@ -376,20 +376,20 @@ let integrateComments (originalText : string) (newText : string) =
         
         // inject inactive code
         | (InactiveCodeChunk (tokensText, moreOrigTokens)),  _ ->
-              Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText)
-              for x in tokensText do addText x
-              loop moreOrigTokens newTokens 
+            Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText)
+            for x in tokensText do addText x
+            loop moreOrigTokens newTokens 
 
         // inject #if... #else or #endif directive 
         | (PreprocessorDirectiveChunk (tokensText, moreOrigTokens)), _ ->
-              let text = (String.concat "" tokensText)
-              Debug.WriteLine("injecting preprocessor directive '{0}'", text)
-              if text.StartsWith "#if" then 
-                  addText System.Environment.NewLine
-              addText text
-              if text.StartsWith "#endif" then 
-                  addText System.Environment.NewLine
-              loop moreOrigTokens newTokens
+            let text = (String.concat "" tokensText)
+            Debug.WriteLine("injecting preprocessor directive '{0}'", text)
+            if text.StartsWith "#if" then 
+                addText System.Environment.NewLine
+            addText text
+            if text.StartsWith "#endif" then 
+                addText System.Environment.NewLine
+            loop moreOrigTokens newTokens
 
         // Skipping attribute it the new text
         | _, RawAttribute(newTokensText, moreNewTokens) ->
@@ -404,23 +404,21 @@ let integrateComments (originalText : string) (newText : string) =
 
         // Matching tokens
         | (origTok :: moreOrigTokens), (newTok :: moreNewTokens) when tokensMatch origTok newTok ->
-              Debug.WriteLine("matching token '{0}'", origTok.Text)
-              addText (snd newTok)
-              loop moreOrigTokens moreNewTokens 
+            Debug.WriteLine("matching token '{0}'", origTok.Text)
+            addText (snd newTok)
+            loop moreOrigTokens moreNewTokens 
 
-(*
         // Matching tokens, after one new token, compensating for insertions of "|", ";" and others
         | (origTok :: moreOrigTokens), (newTok1 :: NewTokenAfterWhitespaceOrNewLine(whiteTokens, newTok2, moreNewTokens)) 
-              when tokensMatch origTok newTok2 ->
-              Debug.WriteLine "fresh non-matching new token '%s'" (snd newTok1)
-              addText (snd newTok1)
-              Debug.WriteLine("matching token '{0}' (after one fresh new token)", snd newTok2)
-              for x in whiteTokens do addText x
-              addText (snd newTok2)
-              loop moreOrigTokens moreNewTokens 
-*)
+            when tokensMatch origTok newTok2 ->
+            Debug.WriteLine("fresh non-matching new token '%s'", snd newTok1)
+            addText (snd newTok1)
+            Debug.WriteLine("matching token '{0}' (after one fresh new token)", snd newTok2)
+            for x in whiteTokens do addText x
+            addText (snd newTok2)
+            loop moreOrigTokens moreNewTokens 
 
-        // not a comment, drop the original token text until something matches
+        // Not a comment, drop the original token text until something matches
         | (origTok :: moreOrigTokens), _ ->
             Debug.WriteLine("dropping '{0}' from original text", origTok.Text)
             loop moreOrigTokens newTokens 
