@@ -15,7 +15,6 @@ type FormatConfig =
       IndentSpaceNum : Num;
       /// The column where we break to new lines
       PageWidth : Num;
-      BreakOn : string -> bool;
       SemicolonAtEndOfLine : bool;
       SpaceBeforeArgument : bool;
       SpaceBeforeColon : bool;
@@ -24,7 +23,6 @@ type FormatConfig =
       IndentOnTryWith : bool }
     static member Default = 
         { IndentSpaceNum = 4; PageWidth = 80;
-          BreakOn = (fun _ -> false);
           SemicolonAtEndOfLine = true; SpaceBeforeArgument = false; SpaceBeforeColon = true;
           SpaceAfterComma = true; SpaceAfterSemicolon = true; IndentOnTryWith = false }
 
@@ -62,6 +60,7 @@ type Context =
     { Config : FormatConfig; 
       Writer : ColumnIndentedTextWriter;
       mutable BreakLines : bool;
+      BreakOn : string -> bool;
       /// The original source string to query as a last resort 
       Content : string; 
       /// Positions of new lines in the original source string
@@ -71,7 +70,8 @@ type Context =
     /// Initialize with a string writer and use space as delimiter
     static member Default = { Config = FormatConfig.Default;
                               Writer = new ColumnIndentedTextWriter(new StringWriter());
-                              BreakLines = true; Content = ""; Positions = [||]; Comments = Dictionary() }
+                              BreakLines = true; BreakOn = (fun _ -> false); 
+                              Content = ""; Positions = [||]; Comments = Dictionary() }
 
     static member create config (content : string) =
         let positions = 
@@ -142,7 +142,7 @@ let (++) (ctx : Context -> Context) (str : string) x =
 /// Break-line if config says so
 let (+-) (ctx : Context -> Context) (str : string) x =
     let c = ctx x
-    if c.Config.BreakOn str then 
+    if c.BreakOn str then 
         c.Writer.WriteLine("")
     else
         c.Writer.Write(" ")

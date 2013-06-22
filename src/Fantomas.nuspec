@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Fantomas</id>
-        <version>0.9.9</version>
+        <version>0.9.9.1</version>
         <title>Fantomas</title>
         <authors>Anh-Dung Phan</authors>
         <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
