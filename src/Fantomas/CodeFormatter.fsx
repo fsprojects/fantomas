@@ -17,12 +17,11 @@ let config = FormatConfig.Default
 let test s = formatSourceString false s config |> printfn "%A"
 
 test """
-if true then ()
-else
-    // Comment 1
-    if true then ()
-    // Comment 2
-    else ()
+let [<Literal>] private assemblyConfig =
+    #if TRACE
+    let x = 0
+    ""
+    #endif
 """
 
 // FAILS - doesn't handle nested directives and line breaks are a bit off

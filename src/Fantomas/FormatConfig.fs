@@ -6,6 +6,8 @@ open System.Collections.Generic
 open System.Text.RegularExpressions
 open System.CodeDom.Compiler
 
+open Microsoft.FSharp.Compiler.Range
+
 open Fantomas.TokenMatcher
 
 type Num = int
@@ -66,7 +68,7 @@ type Context =
       /// Positions of new lines in the original source string
       Positions : int [] 
       /// Comments attached to appropriate locations
-      Comments : Dictionary<int * int, string list> }
+      Comments : Dictionary<pos, string list> }
     /// Initialize with a string writer and use space as delimiter
     static member Default = { Config = FormatConfig.Default;
                               Writer = new ColumnIndentedTextWriter(new StringWriter());
