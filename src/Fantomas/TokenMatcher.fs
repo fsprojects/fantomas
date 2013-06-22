@@ -40,6 +40,9 @@ let (|Token|_|) = function
     | EOL -> None
     | Tok(ti, _) -> Some ti
 
+// This part of the module takes care of annotating the AST with additional information
+// about comments
+
 /// Whitespace token including EOL
 let (|Space|_|) t = 
     match t with
@@ -49,55 +52,55 @@ let (|Space|_|) t =
     | _ -> None
 
 let (|Spaces|_|) origTokens = 
-   match origTokens with 
-   | Space t1 :: moreOrigTokens -> 
-       let rec loop ts acc = 
-           match ts with 
-           | Space t2 :: ts2 -> loop ts2 (t2 :: acc)
-           | _ -> List.rev acc, ts
-       Some (loop moreOrigTokens [t1])
-   | _ -> None
+    match origTokens with 
+    | Space t1 :: moreOrigTokens -> 
+        let rec loop ts acc = 
+            match ts with 
+            | Space t2 :: ts2 -> loop ts2 (t2 :: acc)
+            | _ -> List.rev acc, ts
+        Some (loop moreOrigTokens [t1])
+    | _ -> None
 
 let (|RawAttribute|_|) origTokens = 
-   match origTokens with 
-   | (Token origTok, "[<") :: moreOrigTokens 
-       when origTok.CharClass = TokenCharKind.Delimiter -> 
-       let rec loop ts acc = 
-           match ts with 
-           | (Token ti2, ">]") :: ts2 
+    match origTokens with 
+    | (Token origTok, "[<") :: moreOrigTokens 
+        when origTok.CharClass = TokenCharKind.Delimiter -> 
+        let rec loop ts acc = 
+            match ts with 
+            | (Token ti2, ">]") :: ts2 
                 when ti2.CharClass = TokenCharKind.Delimiter -> Some (List.rev(">]" :: acc), ts2)
-           | (_, t2) :: ts2 -> loop ts2 (t2 :: acc)
-           | [] -> None
-       loop moreOrigTokens ["[<"]
-   | _ -> None
+            | (_, t2) :: ts2 -> loop ts2 (t2 :: acc)
+            | [] -> None
+        loop moreOrigTokens ["[<"]
+    | _ -> None
 
 let (|PreviousCommentChunk|_|) origTokens = 
     match origTokens with 
-   | (Token ti1, t1) :: moreOrigTokens
-       when ti1.CharClass = TokenCharKind.Comment || ti1.CharClass = TokenCharKind.LineComment -> 
-       let rec loop ts acc = 
-           match ts with 
-           | (Token _, t2) :: ts2 
-               when ti1.CharClass = TokenCharKind.Comment || ti1.CharClass = TokenCharKind.LineComment -> 
-               loop ts2 (t2 :: acc)
-           | _ -> List.rev acc, ts
-       Some (loop moreOrigTokens [t1])
-   | _ -> None
+    | (Token ti1, t1) :: moreOrigTokens
+        when ti1.CharClass = TokenCharKind.Comment || ti1.CharClass = TokenCharKind.LineComment -> 
+        let rec loop ts acc = 
+            match ts with 
+            | (Token _, t2) :: ts2 
+                when ti1.CharClass = TokenCharKind.Comment || ti1.CharClass = TokenCharKind.LineComment -> 
+                loop ts2 (t2 :: acc)
+            | _ -> List.rev acc, ts
+        Some (loop moreOrigTokens [t1])
+    | _ -> None
 
 /// Get all comment chunks before a token 
 let (|PreviousCommentChunks|_|) origTokens = 
-   match origTokens with 
-   | PreviousCommentChunk(ts1, moreOrigTokens) -> 
-       let rec loop ts acc = 
-           match ts with 
-           | Spaces(_, PreviousCommentChunk(ts2, ts')) ->
-               // Just keep a newline between two comment chunks
-               loop ts' (ts2 :: [Environment.NewLine] :: acc)
-           | PreviousCommentChunk(ts2, ts') -> 
-               loop ts' (ts2 :: acc)
-           | _ -> (List.rev acc |> List.map (String.concat "")), ts
-       Some (loop moreOrigTokens [ts1])
-   | _ -> None      
+    match origTokens with 
+    | PreviousCommentChunk(ts1, moreOrigTokens) -> 
+        let rec loop ts acc = 
+            match ts with 
+            | Spaces(_, PreviousCommentChunk(ts2, ts')) ->
+                // Just keep a newline between two comment chunks
+                loop ts' (ts2 :: [Environment.NewLine] :: acc)
+            | PreviousCommentChunk(ts2, ts') -> 
+                loop ts' (ts2 :: acc)
+            | _ -> (List.rev acc |> List.map (String.concat "")), ts
+        Some (loop moreOrigTokens [ts1])
+    | _ -> None      
 
 /// Given a list of tokens, attach comments to appropriate positions
 let filterComments content =
@@ -131,8 +134,8 @@ let filterDefines content =
     let hs = loop (tokenize content |> Seq.toList) (HashSet())
     Seq.toArray hs
 
-// This part of the module takes care of annotating the AST with additional information
-// about comments
+
+// This part processes the token stream post- pretty printing
 
 type LineCommentStickiness = | StickyLeft | StickyRight | NotApplicable
 
@@ -175,8 +178,6 @@ let rec (|Attributes|_|) = function
     | Attribute(xs, SpaceTokens(_, Attributes(xss, toks))) -> Some(xs::xss, toks)
     | Attribute(xs, toks)  -> Some([xs], toks)
     | _ -> None
-
-// Process the token stream post- pretty printing
 
 let (|PreprocessorKeywordToken|_|) requiredText t = 
     match t with

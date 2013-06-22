@@ -296,9 +296,10 @@ and genExpr e0 =
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
     | Tuple es -> atCurrentColumn (colAutoNlnSkip0 sepComma es genExpr)
-    | ArrayOrList(isArray, xs) -> 
-        ifElse isArray (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs genExpr) +> sepCloseA) 
-            (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs genExpr) +> sepCloseL)
+    | ArrayOrList(isArray, xs, isSimple) -> 
+        let sep = ifElse isSimple sepSemi sepSemiNln
+        ifElse isArray (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sep xs genExpr) +> sepCloseA) 
+            (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sep xs genExpr) +> sepCloseL)
 
     | Record(xs, eo) -> 
         sepOpenS +> opt (!- " with ") eo genExpr

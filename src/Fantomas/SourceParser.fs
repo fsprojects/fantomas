@@ -509,10 +509,10 @@ let private (|Sequential|_|) = function
     | _ -> None
 
 let rec (|Sequentials|_|) = function
-    | Sequential(e1, e2, _) ->
-        Some [e1; e2]
     | Sequential(e, Sequentials es, _) ->
         Some(e::es)
+    | Sequential(e1, e2, _) ->
+        Some [e1; e2]
     | _ -> None
 
 let (|SimpleExpr|_|) = function
@@ -524,15 +524,10 @@ let (|SimpleExpr|_|) = function
 
 /// Only recognize numbers; strings are ignored
 let rec (|SequentialSimple|_|) = function
-    | Sequential(SimpleExpr e1, SimpleExpr e2, true) ->
-        Some [e1; e2]
     | Sequential(SimpleExpr e, SequentialSimple es, true) ->
         Some(e::es)
-    | _ -> None
-
-let (|ArrayOrList|_|) = function
-    | SynExpr.ArrayOrList(isArray, xs, _) ->
-        Some(isArray, xs)
+    | Sequential(SimpleExpr e1, SimpleExpr e2, true) ->
+        Some [e1; e2]
     | _ -> None
 
 let (|CompExpr|_|) = function
@@ -543,6 +538,15 @@ let (|CompExpr|_|) = function
 let (|ArrayOrListOfSeqExpr|_|) = function
     | SynExpr.ArrayOrListOfSeqExpr(isArray, expr, _) ->
         Some(isArray, expr)
+    | _ -> None
+
+/// This pattern only includes arrays and lists in computation expressions
+let (|ArrayOrList|_|) = function
+    | ArrayOrListOfSeqExpr(isArray, CompExpr(_, SequentialSimple xs)) ->
+        Some(isArray, xs, true)
+    | SynExpr.ArrayOrList(isArray, xs, _)
+    | ArrayOrListOfSeqExpr(isArray, CompExpr(_, Sequentials xs)) ->
+        Some(isArray, xs, false)
     | _ -> None
 
 let (|Tuple|_|) = function

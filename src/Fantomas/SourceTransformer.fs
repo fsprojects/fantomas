@@ -74,7 +74,7 @@ let rec multiline = function
         not (List.isEmpty bs) || multiline e
 
     // An array or a list is multiline if there are at least two elements
-    | ArrayOrList(_, es) ->
+    | ArrayOrList(_, es, _) ->
         not (List.atMostOne es)
 
     // A record is multiline if there is at least two fields present
