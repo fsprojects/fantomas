@@ -44,10 +44,13 @@ namespace Hestia.FSharpCommands.Commands
 
                 using (var edit = buffer.CreateEdit())
                 {
+                    var setCaretPosition = GetNewCaretPositionSetter();
+
                     edit.Replace(0, text.Length, formatted);
                     edit.Apply();
 
                     // TODO: return cursor to the correct position
+                    setCaretPosition();
                 }
             }
             catch (Exception ex)
@@ -58,6 +61,8 @@ namespace Hestia.FSharpCommands.Commands
         }
 
         protected abstract string GetFormatted(bool isSignatureFile, string source, Fantomas.FormatConfig.FormatConfig config);
+
+        protected abstract Action GetNewCaretPositionSetter();
 
         private static string GetAllText(ITextBuffer buffer)
         {

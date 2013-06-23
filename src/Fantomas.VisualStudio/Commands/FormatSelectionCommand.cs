@@ -37,6 +37,46 @@ namespace Hestia.FSharpCommands.Commands
             return Fantomas.CodeFormatter.formatSelectionFromString(isSignatureFile, range, source, config);
         }
 
+        protected override Action GetNewCaretPositionSetter()
+        {
+            var caretPos = TextView.Caret.Position.BufferPosition;
+
+            if (caretPos.Equals(TextView.Selection.Start.Position))
+            {
+                // The caret is at the start of selection, its position is unchanged
+                int selStartPos = TextView.Selection.Start.Position.Position;
+                //Range.pos startPos = TextUtils.GetFSharpPos(new VirtualSnapshotPoint(caretPos));
+                //MessageBox.Show("True", String.Format("{0}:{1}", startPos.Line, startPos.Column));
+
+                Action setter = () =>
+                    {
+                        int newSelStartPos = selStartPos;
+                        var newActivePoint = new VirtualSnapshotPoint(TextView.TextBuffer.CurrentSnapshot, newSelStartPos);
+                        TextView.Caret.MoveTo(newActivePoint);
+                    };
+
+                return setter;
+            }
+            else 
+            {
+                // The caret is at the end of selection, its offset from the end of text is unchanged
+                int selOffsetFromEnd = TextView.TextBuffer.CurrentSnapshot.Length - TextView.Selection.End.Position.Position;
+
+                //Range.pos endPos = TextUtils.GetFSharpPos(TextView.Selection.End);
+                //Range.pos caret = TextUtils.GetFSharpPos(new VirtualSnapshotPoint(caretPos));
+                //MessageBox.Show("False", String.Format("{0}:{1}:{2}:{3}", endPos.Line, endPos.Column, caret.Line, caret.Column));
+
+                Action setter = () =>
+                    {
+                        int newSelEndPos = TextView.TextBuffer.CurrentSnapshot.Length - selOffsetFromEnd;
+                        var newAnchorPoint = new VirtualSnapshotPoint(TextView.TextBuffer.CurrentSnapshot, newSelEndPos);
+                        TextView.Caret.MoveTo(newAnchorPoint);
+                    };
+
+                return setter;
+            }
+        }
+
         private Action GetSelectionResetter()
         {
             // We're going to take advantage of the fact that nothing before or after the selection

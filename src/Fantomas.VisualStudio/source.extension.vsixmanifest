@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="FSharpCommands.Hestia.d4101bb1-9731-4577-bdec-7d088dce2136" Version="0.0.2.0" Language="en-US" Publisher="Ivan Towlson" />
+    <Identity Id="Fantomas.Hestia.d4101bb1-9731-4577-bdec-7d088dce2136" Version="0.0.3.0" Language="en-US" Publisher="Anh-Dung Phan, Ivan Towlson" />
     <DisplayName>Fantomas</DisplayName>
-    <Description xml:space="preserve">Provides commands for working with F# in Visual Studio.</Description>
+    <Description xml:space="preserve">Provide formatting commands for F# in Visual Studio.</Description>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="11.0" />

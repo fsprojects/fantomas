@@ -25,5 +25,10 @@ namespace Hestia.FSharpCommands.Commands
         {
             return Fantomas.CodeFormatter.formatSourceString(isSignatureFile, source, config);
         }
+
+        protected override Action GetNewCaretPositionSetter() 
+        {
+            return () => {};
+        }
     }
 }
