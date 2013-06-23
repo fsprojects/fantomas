@@ -7,6 +7,8 @@ using System.Windows;
 using Hestia.FSharpCommands.Utils;
 using Microsoft.FSharp.Compiler;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
 
 namespace Hestia.FSharpCommands.Commands
 {
@@ -43,35 +45,40 @@ namespace Hestia.FSharpCommands.Commands
 
             if (caretPos.Equals(TextView.Selection.Start.Position))
             {
-                // The caret is at the start of selection, its position is unchanged
                 int selStartPos = TextView.Selection.Start.Position.Position;
-                //Range.pos startPos = TextUtils.GetFSharpPos(new VirtualSnapshotPoint(caretPos));
-                //MessageBox.Show("True", String.Format("{0}:{1}", startPos.Line, startPos.Column));
+
+                // Get start line of scroll bar
+                var scrollBarLine = TextView.TextViewLines.FirstOrDefault(l => l.VisibilityState != VisibilityState.Hidden);
+                int scrollBarPos = (scrollBarLine == null) ? 0 : scrollBarLine.Snapshot.GetLineNumberFromPosition(scrollBarLine.Start);
 
                 Action setter = () =>
-                    {
-                        int newSelStartPos = selStartPos;
-                        var newActivePoint = new VirtualSnapshotPoint(TextView.TextBuffer.CurrentSnapshot, newSelStartPos);
-                        TextView.Caret.MoveTo(newActivePoint);
-                    };
+                {
+                    // The caret is at the start of selection, its position is unchanged
+                    int newSelStartPos = selStartPos;
+                    var newActivePoint = new VirtualSnapshotPoint(TextView.TextBuffer.CurrentSnapshot, newSelStartPos);
+                    TextView.Caret.MoveTo(newActivePoint);
+                    TextView.ViewScroller.ScrollViewportVerticallyByLines(ScrollDirection.Down, scrollBarPos);
+                };
 
                 return setter;
             }
-            else 
+            else
             {
-                // The caret is at the end of selection, its offset from the end of text is unchanged
                 int selOffsetFromEnd = TextView.TextBuffer.CurrentSnapshot.Length - TextView.Selection.End.Position.Position;
 
-                //Range.pos endPos = TextUtils.GetFSharpPos(TextView.Selection.End);
-                //Range.pos caret = TextUtils.GetFSharpPos(new VirtualSnapshotPoint(caretPos));
-                //MessageBox.Show("False", String.Format("{0}:{1}:{2}:{3}", endPos.Line, endPos.Column, caret.Line, caret.Column));
+                // Get start line of scroll bar
+                var scrollBarLine = TextView.TextViewLines.FirstOrDefault(l => l.VisibilityState != VisibilityState.Hidden);
+                int scrollBarPos = (scrollBarLine == null) ? 0 : scrollBarLine.Snapshot.GetLineNumberFromPosition(scrollBarLine.Start);
 
                 Action setter = () =>
-                    {
-                        int newSelEndPos = TextView.TextBuffer.CurrentSnapshot.Length - selOffsetFromEnd;
-                        var newAnchorPoint = new VirtualSnapshotPoint(TextView.TextBuffer.CurrentSnapshot, newSelEndPos);
-                        TextView.Caret.MoveTo(newAnchorPoint);
-                    };
+                {
+                    // The caret is at the end of selection, its offset from the end of text is unchanged
+                    int newSelEndPos = TextView.TextBuffer.CurrentSnapshot.Length - selOffsetFromEnd;
+                    var newAnchorPoint = new VirtualSnapshotPoint(TextView.TextBuffer.CurrentSnapshot, newSelEndPos);
+
+                    TextView.Caret.MoveTo(newAnchorPoint);
+                    TextView.ViewScroller.ScrollViewportVerticallyByLines(ScrollDirection.Down, scrollBarPos);
+                };
 
                 return setter;
             }
