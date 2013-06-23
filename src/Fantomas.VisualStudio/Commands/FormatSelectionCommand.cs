@@ -30,9 +30,6 @@ namespace Hestia.FSharpCommands.Commands
 
         protected override string GetFormatted(bool isSignatureFile, string source, Fantomas.FormatConfig.FormatConfig config)
         {
-            // This still seems to give "The indent level cannot be negative"
-            // in a lot of cases that feel like they should work, e.g. 'let' forms
-
             Range.pos startPos = TextUtils.GetFSharpPos(TextView.Selection.Start);
             Range.pos endPos = TextUtils.GetFSharpPos(TextView.Selection.End);
             Range.range range = Range.mkRange("fsfile", startPos, endPos);

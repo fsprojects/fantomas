@@ -16,7 +16,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Hestia.FSharpCommands</RootNamespace>
-    <AssemblyName>Hestia.FSharpCommands</AssemblyName>
+    <AssemblyName>Fantomas.VisualStudio</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

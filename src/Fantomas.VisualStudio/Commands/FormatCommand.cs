@@ -76,7 +76,8 @@ namespace Hestia.FSharpCommands.Commands
         {
             ITextDocument document = buffer.Properties.GetProperty<ITextDocument>(typeof(ITextDocument));
             var fileExtension = Path.GetExtension(document.FilePath);
-            var isSignatureFile = ".fsi".Equals(fileExtension, StringComparison.OrdinalIgnoreCase);  // There isn't a distinct content type for FSI files, so we have to use the file extension
+            // There isn't a distinct content type for FSI files, so we have to use the file extension
+            var isSignatureFile = ".fsi".Equals(fileExtension, StringComparison.OrdinalIgnoreCase);
             return isSignatureFile;
         }
     }

@@ -14,13 +14,15 @@ namespace Hestia.FSharpCommands
     {
         public FantomasOptionsPage()
         {
-            PageWidth = Fantomas.FormatConfig.FormatConfig.Default.PageWidth;
-            SemicolonAtEndOfLine = Fantomas.FormatConfig.FormatConfig.Default.SemicolonAtEndOfLine;
-            SpaceBeforeArgument = Fantomas.FormatConfig.FormatConfig.Default.SpaceBeforeArgument;
-            SpaceBeforeColon = Fantomas.FormatConfig.FormatConfig.Default.SpaceBeforeColon;
-            SpaceAfterComma = Fantomas.FormatConfig.FormatConfig.Default.SpaceAfterComma;
-            SpaceAfterSemicolon = Fantomas.FormatConfig.FormatConfig.Default.SpaceAfterSemicolon;
-            IndentOnTryWith = Fantomas.FormatConfig.FormatConfig.Default.IndentOnTryWith;
+            var config = Fantomas.FormatConfig.FormatConfig.Default;
+
+            PageWidth = config.PageWidth;
+            SemicolonAtEndOfLine = config.SemicolonAtEndOfLine;
+            SpaceBeforeArgument = config.SpaceBeforeArgument;
+            SpaceBeforeColon = config.SpaceBeforeColon;
+            SpaceAfterComma = config.SpaceAfterComma;
+            SpaceAfterSemicolon = config.SpaceAfterSemicolon;
+            IndentOnTryWith = config.IndentOnTryWith;
         }
 
         [Category("Layout")]
