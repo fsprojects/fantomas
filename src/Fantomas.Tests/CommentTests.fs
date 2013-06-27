@@ -282,3 +282,20 @@ else
     if true then ()
     // Comment 2
     else ()"""
+
+[<Test>]
+let ``should keep comments on almost-equal identifiers``() =
+    formatSourceString false  """
+let zp = p1 lxor p2
+// Comment 1
+let b = zp land (zp)
+(* Comment 2 *)
+let p = p1 land (b - 1)
+"""  config
+    |> prepend newline
+    |> should equal """
+let zp = p1 ``lxor`` p2
+// Comment 1
+let b = zp ``land`` (zp)
+(* Comment 2 *)
+let p = p1 ``land`` (b - 1)"""

@@ -345,7 +345,10 @@ let integrateComments (originalText : string) (newText : string) =
     let tokensMatch t1 t2 = 
         match t1, t2 with 
         | (Marked(Token origTok, origTokText, _), (Token newTok, newTokText)) -> 
-            origTok.CharClass = newTok.CharClass &&  origTokText = newTokText 
+            origTok.CharClass = newTok.CharClass && origTokText = newTokText
+        | (Marked(Token origTok, origTokText, _), (Token newTok, newTokText)) -> 
+            origTok.CharClass = TokenCharKind.Identifier && newTok.CharClass = TokenCharKind.Identifier 
+            && origTokText.Trim('`') = newTokText.Trim('`')
         | _ -> false
 
     let rec loop origTokens newTokens = 
