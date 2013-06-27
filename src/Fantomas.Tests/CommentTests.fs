@@ -81,7 +81,8 @@ let ``should preserve comment-only source code``() =
     |> should equal """(*
   line1
   line2
-*)"""
+*)
+"""
 
 [<Test>]
 let ``should keep sticky-to-the-right comments``() =
