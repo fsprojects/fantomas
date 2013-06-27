@@ -51,7 +51,7 @@ namespace Hestia.FSharpCommands.Commands
                 var scrollBarLine = TextView.TextViewLines.FirstOrDefault(l => l.VisibilityState != VisibilityState.Hidden);
                 int scrollBarPos = (scrollBarLine == null) ? 0 : scrollBarLine.Snapshot.GetLineNumberFromPosition(scrollBarLine.Start);
 
-                Action setter = () =>
+                Action setNewCaretPosition = () =>
                 {
                     // The caret is at the start of selection, its position is unchanged
                     int newSelStartPos = selStartPos;
@@ -60,7 +60,7 @@ namespace Hestia.FSharpCommands.Commands
                     TextView.ViewScroller.ScrollViewportVerticallyByLines(ScrollDirection.Down, scrollBarPos);
                 };
 
-                return setter;
+                return setNewCaretPosition;
             }
             else
             {
@@ -70,17 +70,17 @@ namespace Hestia.FSharpCommands.Commands
                 var scrollBarLine = TextView.TextViewLines.FirstOrDefault(l => l.VisibilityState != VisibilityState.Hidden);
                 int scrollBarPos = (scrollBarLine == null) ? 0 : scrollBarLine.Snapshot.GetLineNumberFromPosition(scrollBarLine.Start);
 
-                Action setter = () =>
-                {
-                    // The caret is at the end of selection, its offset from the end of text is unchanged
-                    int newSelEndPos = TextView.TextBuffer.CurrentSnapshot.Length - selOffsetFromEnd;
-                    var newAnchorPoint = new VirtualSnapshotPoint(TextView.TextBuffer.CurrentSnapshot, newSelEndPos);
+                Action setNewCaretPosition = () =>
+                    {
+                        // The caret is at the end of selection, its offset from the end of text is unchanged
+                        int newSelEndPos = TextView.TextBuffer.CurrentSnapshot.Length - selOffsetFromEnd;
+                        var newAnchorPoint = new VirtualSnapshotPoint(TextView.TextBuffer.CurrentSnapshot, newSelEndPos);
 
-                    TextView.Caret.MoveTo(newAnchorPoint);
-                    TextView.ViewScroller.ScrollViewportVerticallyByLines(ScrollDirection.Down, scrollBarPos);
-                };
+                        TextView.Caret.MoveTo(newAnchorPoint);
+                        TextView.ViewScroller.ScrollViewportVerticallyByLines(ScrollDirection.Down, scrollBarPos);
+                    };
 
-                return setter;
+                return setNewCaretPosition;
             }
         }
 
