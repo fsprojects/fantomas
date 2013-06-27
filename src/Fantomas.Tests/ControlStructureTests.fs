@@ -204,3 +204,24 @@ let result = lazy (x + 10)
 
 do printfn "Hello world"
 """
+
+[<Test>]
+let ``should break lines on multiline if conditions``() =
+    formatSourceString false """
+let x = 
+    if try
+        true
+       with
+       | Failure _ -> false 
+    then ()
+    else ()
+    """ config
+    |> prepend newline
+    |> should equal """
+let x = 
+    if try 
+           true
+       with
+       | Failure _ -> false
+    then ()
+    else ()"""

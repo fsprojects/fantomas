@@ -409,15 +409,17 @@ and genExpr e0 =
         atCurrentColumn (col sepNln es genExpr)
     // A generalization of IfThenElse
     | ElIf((e1,e2, _)::es, en) ->
-        atCurrentColumn (!- "if " +> genExpr e1 +- "then" -- " " 
+        atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr e1 ++ "then") (genExpr e1 +- "then") -- " " 
             +> autoBreakNln e2
             +> fun ctx -> col sepNone es (fun (e1, e2, r) ->
                              ifElse (startWith "elif" r ctx) (!+ "elif ") (!+ "else if ")
-                             +> genExpr e1 +- "then" -- " " +> autoBreakNln e2) ctx
+                             +> ifElse (checkBreakForExpr e1) (genExpr e1 ++ "then") (genExpr e1 +- "then") 
+                             -- " " +> autoBreakNln e2) ctx
             ++ "else " +> autoBreakNln en)
 
     | IfThenElse(e1, e2, None) -> 
-        atCurrentColumn (!- "if " +> genExpr e1 +- "then" -- " " +> autoBreakNln e2)
+        atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr e1 ++ "then") (genExpr e1 +- "then") 
+                         -- " " +> autoBreakNln e2)
     // At this stage, all symbolic operators have been handled.
     | OptVar(s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
