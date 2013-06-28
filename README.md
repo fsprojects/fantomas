@@ -82,7 +82,7 @@ For detailed guidelines, please read [Fantomas: How to use](Usage.md).
 [FantomasWeb](https://github.com/TahaHachana/FantomasWeb), implemented by [Taha Hachana](https://github.com/TahaHachana), is accessible at http://fantomasweb.apphb.com/.
 
 ### VS 2012 extension
-[Ivan Towlson](https://github.com/itowlson) is developing Fantomas extension under [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
+[Ivan Towlson](https://github.com/itowlson) kindly contributes [Fantomas VS extension](src/Fantomas.VisualStudio). You can also use formatting commands from his [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
 
 ## Installation
 The code base is written in F# 3.0/.NET framework 4.0. 
@@ -93,15 +93,12 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ## Testing and validation
 We have tried to be careful in testing the project.
-There are 147 unit tests and 30 validated test examples, 
+There are 165 unit tests and 30 validated test examples, 
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
 ## Limitations
-Due to limited information in F# ASTs, beware of current drawbacks:
-
- - Inline comments and multiline comments are lost. Only XML doc comments are preserved.
- - Compiler directives are lost.
+Due to limited information in F# ASTs, currently compiler directives are not preserved.
 
 ## Why the name "Fantomas"?
 There are a few reasons to choose the name as such. 
@@ -117,6 +114,7 @@ We would like to gratefully thank the following people for their contributions.
  - [Eric Taucher](https://github.com/EricGT)
  - [Steffen Forkmann](https://github.com/forki)
  - [Jack Pappas](https://github.com/jack-pappas)
+ - [Ivan Towlson](https://github.com/itowlson)
 
 ## License
 The library and tool are available under Apache 2.0 license. 
