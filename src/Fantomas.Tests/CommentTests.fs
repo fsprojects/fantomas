@@ -120,7 +120,8 @@ let ``should keep well-aligned comments``() =
 let f() = 
     // COMMENT A
     let y = 1
-    // COMMENT B
+    (* COMMENT B *)
+    (* COMMENT C *)
     x + x + x
 
 """  config
@@ -131,7 +132,8 @@ let f() =
 let f() = 
     // COMMENT A
     let y = 1
-    // COMMENT B
+    (* COMMENT B *)
+    (* COMMENT C *)
     x + x + x"""
 
 [<Test>]

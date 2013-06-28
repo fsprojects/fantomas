@@ -422,11 +422,18 @@ let integrateComments (originalText : string) (newText : string) =
         // Inject block commment 
         | (BlockCommentChunk (commentTokensText, moreOrigTokens)),  _ ->
             Debug.WriteLine("injecting block comment '{0}'", String.concat "" commentTokensText)
-            for x in commentTokensText do addText x
-            // Add a space in case the block comment isn't in the end of line
-            match List.rev commentTokensText with
-            | s :: _ when s = Environment.NewLine -> ()
-            | _ -> addText " " 
+            let comments = String.concat "" commentTokensText
+            if comments.IndexOf('\n') = -1 then
+                // This is an inline block comment
+                addText comments
+                addText " "
+            else
+                let len = List.length commentTokensText
+                maintainIndent (fun () -> 
+                    commentTokensText |> List.iteri (fun i x ->
+                        // Drop the last newline 
+                        if i = len - 1 && x = Environment.NewLine then ()
+                        else addText x))
             loop moreOrigTokens newTokens 
 
         // Inject inactive code
