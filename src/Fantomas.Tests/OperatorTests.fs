@@ -7,6 +7,14 @@ open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
 [<Test>]
+let ``should format prefix operators``() =
+    formatSourceString false """let x = -y
+let z = !!x
+    """ config
+    |> should equal """let x = -y
+let z = !!x"""
+
+[<Test>]
 let ``should keep triple ~~~ operator``() =
     formatSourceString false """x ~~~FileAttributes.ReadOnly
     """ config

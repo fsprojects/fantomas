@@ -596,9 +596,13 @@ let (|CompApp|_|) = function
         Some(s, e)
     | _ -> None
 
+/// Only process prefix operators here
 let (|PrefixApp|_|) = function
-    | SynExpr.App(_, _, Var s, e2, _) when IsPrefixOperator s ->
-        Some(s, e2)
+    // Var pattern causes a few prefix operators appear as infix operators
+    | SynExpr.App(_, false, SynExpr.Ident(IdentOrKeyword s), e2, _)
+    | SynExpr.App(_, false, SynExpr.LongIdent(_, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword s, _), _, _), e2, _) 
+        when IsPrefixOperator (DecompileOpName s.Text) ->
+        Some((|OpName|) s, e2)
     | _ -> None
 
 let private (|InfixApp|_|) = function

@@ -345,7 +345,7 @@ and genExpr e0 =
     | App(Var ".. ..", [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
     // Separate two prefix ops by spaces
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr e
-    | PrefixApp(s, e) -> !- s  +> genExpr e
+    | PrefixApp(s, e) -> !- s +> genExpr e
     // Handle spaces of infix application based on which category it belongs to
     | InfixApps(e, es) -> 
         // Only put |> on the same line in a very trivial expression
