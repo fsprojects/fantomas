@@ -200,3 +200,13 @@ try
                  s' = s0 && can (type_match ty ty0) []) (!the_interface))
 with
 | Failure _ -> s0"""
+
+[<Test>]
+let ``another case of desugared lambdas``() =
+    formatSourceString false """
+find (fun (Ident op) x y -> Combp(Combp(Varp(op,dpty),x),y)) "term after binary operator" inp
+"""  config
+    |> prepend newline
+    |> should equal """
+find (fun (Ident op) x y -> Combp(Combp(Varp(op, dpty), x), y)) 
+    "term after binary operator" inp"""

@@ -850,10 +850,12 @@ let rec transformPatterns ss = function
                 match List.tryPick(fun (s', p) -> if s = s' then Some p else None) ss with
                 | Some p -> 
                     match p with
-                    | PatSeq(PatTuple, _) ->
-                        // Auto-add parentheses for correctness
+                    | PatConst _ | PatQuoteExpr _ | PatNullary _ ->
+                        // A few patterns with delimiters
+                        CPId p
+                    | _ ->
+                        // Add parentheses to separate from other patterns
                         CPId (SynPat.Paren(p, p.Range))
-                    | _ -> CPId p
                 | None -> CPSimpleId(s, b, true)
             | SPId(s, b, _) -> CPSimpleId(s, b, false)
             | SPTyped(sp, t) -> CPTyped(loop sp, t)

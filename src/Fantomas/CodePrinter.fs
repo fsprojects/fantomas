@@ -644,6 +644,8 @@ and genType outerBracket t =
         | TVar tp -> genTypar tp
         // Drop bracket around tuples before an arrow
         | TFun(TTuple ts, t) -> sepOpenT +> col sepStar ts loop +> sepArrow +> loop t +> sepCloseT
+        // Do similar for tuples after an arrow
+        | TFun(t, TTuple ts) -> sepOpenT +> loop t +> sepArrow +> col sepStar ts loop +> sepCloseT
         | TFuns ts -> sepOpenT +> col sepArrow ts loop +> sepCloseT
         | TApp(t, ts, isPostfix) -> 
             let postForm = 
