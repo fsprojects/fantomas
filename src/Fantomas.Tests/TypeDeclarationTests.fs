@@ -502,3 +502,14 @@ let f (x: int) = x
 type t (x: int) = 
     class
     end"""
+
+[<Test>]
+let ``should keep brackets around type signatures``() =
+    formatSourceString false """
+let user_printers = ref([] : (string * (term -> unit)) list)
+let the_interface = ref([] : (string * (string * hol_type)) list)
+    """ config
+    |> prepend newline
+    |> should equal """
+let user_printers = ref([] : (string * (term -> unit)) list)
+let the_interface = ref([] : (string * (string * hol_type)) list)"""

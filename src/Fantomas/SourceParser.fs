@@ -111,7 +111,8 @@ let (|Measure|) x =
     sprintf "<%s>" <| loop x
 
 /// Lose information about kinds of literals
-let rec (|Const|Unresolved|) = function
+let rec (|Const|Unresolved|) c = 
+    match c with
     | SynConst.Measure(Const c, Measure m) -> Const(c + m)
     | SynConst.UserNum(num, ty) -> Const(num + ty)
     | SynConst.Unit -> Const "()"
@@ -130,8 +131,8 @@ let rec (|Const|Unresolved|) = function
     | SynConst.Double d -> Const(sprintf "%A" d)
     | SynConst.Char c -> Const(sprintf "%A" c)
     | SynConst.Decimal d -> Const(sprintf "%A" d)
-    | SynConst.String _ as c -> Unresolved(c)
-    | SynConst.Bytes _ as c -> Unresolved(c)
+    | SynConst.String _ -> Unresolved(c)
+    | SynConst.Bytes _ -> Unresolved(c)
     // Auto print may cut off the array
     | SynConst.UInt16s us -> Const(sprintf "%A" us)
     | _ -> invalidArg "c" "Ill-formed constants"
@@ -426,8 +427,8 @@ let (|Paren|_|) = function
     | _ -> None
 
 type ExprKind = 
-    | InferredDowncast | InferredUpcast | Lazy | Assert | AddressOfSingle | AddressOfDouble
-    | Yield | Return | YieldFrom | ReturnFrom | Do | DoBang
+    | InferredDowncast | InferredUpcast | Lazy | Assert | AddressOfSingle 
+    | AddressOfDouble | Yield | Return | YieldFrom | ReturnFrom | Do | DoBang
     override x.ToString() =
         match x with
         | InferredDowncast -> "downcast "
@@ -596,8 +597,7 @@ let (|CompApp|_|) = function
     | _ -> None
 
 let (|PrefixApp|_|) = function
-    | SynExpr.App(_, _, Var s, e2, _)
-        when IsPrefixOperator s ->
+    | SynExpr.App(_, _, Var s, e2, _) when IsPrefixOperator s ->
         Some(s, e2)
     | _ -> None
 
@@ -608,7 +608,7 @@ let private (|InfixApp|_|) = function
         Some(s, e1, e2)
     | _ -> None
 
-/// We should return the whole triple for convenience check
+/// We should return the whole triple for convenient check
 let (|InfixApps|_|) e =
     let rec loop = function
         | InfixApp(s, e, e2) -> 
@@ -679,7 +679,7 @@ let (|DotGetAppSpecial|_|) = function
     | DotGetApp(SynExpr.App(_, _, Var s, e, _), es) ->
         let i = s.IndexOf(".")
         if i <> -1 then
-            Some(s.[0..i-1], (s.[i+1..], e)::es)
+            Some(s.[..i-1], (s.[i+1..], e)::es)
         else None
     | _ -> None
 
@@ -979,6 +979,14 @@ let (|TVar|_|) = function
 let (|TFun|_|) = function 
     | SynType.Fun(t1, t2, _) ->
         Some(t1, t2)
+    | _ -> None
+
+// Arrow type is right-associative
+let rec (|TFuns|_|) = function 
+    | TFun(t1, TFuns ts) ->
+        Some[yield t1; yield! ts]
+    | TFun(t1, t2) ->
+        Some[t1; t2]
     | _ -> None
 
 let (|TApp|_|) = function 

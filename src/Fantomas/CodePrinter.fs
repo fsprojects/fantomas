@@ -154,7 +154,7 @@ and genLetBinding isFirst pref b =
             +> genPat p
 
         match e with
-        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType t +> sepEq +> preserveBreakNln e
+        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType false t +> sepEq +> preserveBreakNln e
         | e -> prefix +> sepEq +> preserveBreakNln e
 
     | DoBinding(ats, px, e) ->
@@ -244,7 +244,7 @@ and genMemberBinding inter b =
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat p
 
         match e with
-        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType t +> sepEq +> preserveBreakNln e
+        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType false t +> sepEq +> preserveBreakNln e
         | e -> prefix +> sepEq +> preserveBreakNln e
 
     | ExplicitCtor(ats, px, ao, p, e) ->
@@ -289,12 +289,12 @@ and genExpr e0 =
     | Quote(_, e2, isRaw) ->         
         let e = genExpr e2
         ifElse isRaw (!- "<@@ " +> e -- " @@>") (!- "<@ " +> e -- " @>")
-    | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType t
+    | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType false t
     | TypedExpr(New, e, t) -> 
-        !- "new " +> genType t +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e
-    | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType t
-    | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType t
-    | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType t
+        !- "new " +> genType false t +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e
+    | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType false t
+    | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType false t
+    | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType false t
     | Tuple es -> atCurrentColumn (colAutoNlnSkip0 sepComma es genExpr)
     | ArrayOrList(isArray, xs, isSimple) -> 
         let sep = ifElse isSimple sepSemi sepSemiNln
@@ -310,7 +310,7 @@ and genExpr e0 =
         // Check the role of the second part of eio
         let param = opt sepNone (Option.map fst eio) genExpr
         sepOpenS +> 
-        atCurrentColumn (!- "new " +> genType t +> param -- " with" 
+        atCurrentColumn (!- "new " +> genType false t +> param -- " with" 
             +> indent +> sepNln +> genMemberBindingList true bd +> unindent
             +> colPre sepNln sepNln ims genInterfaceImpl) +> sepCloseS
 
@@ -379,7 +379,7 @@ and genExpr e0 =
         atCurrentColumn 
             (genExpr e +> colPre sepSpace sepSpace es (fun e -> indent +> autoNln (genExpr e) +> unindent))
 
-    | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts genType -- ">"
+    | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts (genType false) -- ">"
     | LetOrUse(isRec, isUse, bs, e) ->
         let prefix = 
             if isUse then "use "
@@ -498,7 +498,7 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | Simple TDSRNone -> 
         typeName
     | Simple(TDSRTypeAbbrev t) -> 
-        typeName +> sepEq +> genType t
+        typeName +> sepEq +> genType false t
     | ObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others)) ->
         let inter =
             match tdk with
@@ -555,7 +555,7 @@ and genSigTypeDefn isFirst (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | SigSimple TDSRNone -> 
         typeName
     | SigSimple(TDSRTypeAbbrev t) -> 
-        typeName +> sepEq +> genType t
+        typeName +> sepEq +> genType false t
     | SigObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, mds) ->
         typeName +> sepEq +> indent +> sepNln +> genTypeDefKind tdk
         +> indent +> colPre sepNln sepNln mds genMemberSig +> unindent
@@ -568,7 +568,6 @@ and genSigTypeDefn isFirst (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
 
     | SigObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq -- "delegate of " +> genTypeList ts
-
     | SigObjectModel(_, mds) -> 
         typeName +> sepEq +> indent +> sepNln 
         +> col sepNln mds genMemberSig +> unindent
@@ -581,8 +580,8 @@ and genMemberSig = function
                                    +> ifElse (s = "``new``") (!- "new") (!- s) 
                                    +> sepColon +> genTypeList ts +> unindent)
 
-    | MSInterface t -> !- "interface " +> genType t
-    | MSInherit t -> !- "inherit " +> genType t
+    | MSInterface t -> !- "interface " +> genType false t
+    | MSInherit t -> !- "inherit " +> genType false t
     | MSValField f -> genField false "val " f
     | MSNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
 
@@ -590,16 +589,16 @@ and genTyparDecl(TyparDecl(ats, tp)) =
     genOneLinerAttributes ats +> genTypar tp
 
 and genTypeDefKind = function
-    | TCSimple TCUnspecified -> id
+    | TCSimple TCUnspecified -> sepNone
     | TCSimple TCClass -> !- "class"
     | TCSimple TCInterface -> !- "interface"
     | TCSimple TCStruct -> !- "struct"
-    | TCSimple TCRecord -> id
-    | TCSimple TCUnion -> id
-    | TCSimple TCAbbrev -> id
-    | TCSimple TCHiddenRepr -> id
+    | TCSimple TCRecord -> sepNone
+    | TCSimple TCUnion -> sepNone
+    | TCSimple TCAbbrev -> sepNone
+    | TCSimple TCHiddenRepr -> sepNone
     | TCSimple TCAugmentation -> sepNone
-    | TCSimple TCILAssemblyCode -> id
+    | TCSimple TCILAssemblyCode -> sepNone
     | TCDelegate _ -> sepNone
 
 and genException(ExceptionDef(ats, px, ao, uc, ms)) = 
@@ -625,79 +624,76 @@ and genEnumCase hasBar (EnumCase(ats, px, s, c)) =
 
 and genField isUnion prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) = 
     // Being protective on union case declaration
-    let t = if isUnion then genComplexType t else genType t
+    let t = genType isUnion t
 
     genPreXmlDoc px 
     +> genOneLinerAttributes ats -- prefix
     +> opt sepSpace ao genAccess +> ifElse isStatic (!- "static ") sepNone
     +> ifElse isMutable (!- "mutable ") sepNone +> opt sepColon so (!-) +> t
 
-and genType = function
-    | THashConstraint t -> !- "#" +> genType t
-    | TMeasurePower(t, n) -> genType t -- "^" +> str n
-    | TMeasureDivide(t1, t2) -> genType t1 -- " / " +> genType t2
-    | TStaticConstant(c) -> genConst c
-    | TStaticConstantExpr(e) -> genExpr e
-    // Not sure about this case
-    | TStaticConstantNamed(t1, t2) -> genType t1 -- "=" +> genType t2
-    | TArray(t, n) -> genComplexType t +> rep n (!- "[]")
-    | TAnon -> sepWild
-    | TVar tp -> genTypar tp
-    // TFun is right associative
-    | TFun(TFun _ as t1, t2) -> genComplexType t1 +> sepArrow +> genType t2
-    | TFun(t1, t2) -> genType t1 +> sepArrow +> genType t2
-    | TApp(t, ts, isPostfix) -> 
-        let postForm = 
-            match ts with
-            | [] ->  genType t
-            | [t'] -> genComplexType t' +> sepSpace +> genType t
-            | ts -> sepOpenT +> col sepComma ts genType +> sepCloseT +> genType t
+and genType outerBracket t =
+    let rec loop = function
+        | THashConstraint t -> !- "#" +> loop t
+        | TMeasurePower(t, n) -> loop t -- "^" +> str n
+        | TMeasureDivide(t1, t2) -> loop t1 -- " / " +> loop t2
+        | TStaticConstant(c) -> genConst c
+        | TStaticConstantExpr(e) -> genExpr e
+        | TStaticConstantNamed(t1, t2) -> loop t1 -- "=" +> loop t2
+        | TArray(t, n) -> loop t +> rep n (!- "[]")
+        | TAnon -> sepWild
+        | TVar tp -> genTypar tp
+        // Drop bracket around tuples before an arrow
+        | TFun(TTuple ts, t) -> sepOpenT +> col sepStar ts loop +> sepArrow +> loop t +> sepCloseT
+        | TFuns ts -> sepOpenT +> col sepArrow ts loop +> sepCloseT
+        | TApp(t, ts, isPostfix) -> 
+            let postForm = 
+                match ts with
+                | [] ->  loop t
+                | [t'] -> loop t' +> sepSpace +> loop t
+                | ts -> sepOpenT +> col sepComma ts loop +> sepCloseT +> loop t
 
-        ifElse isPostfix postForm (genType t +> genPrefixTypes ts)
+            ifElse isPostfix postForm (loop t +> genPrefixTypes ts)
 
-    | TLongIdentApp(t, s, ts) -> genType t -- sprintf ".%s" s +> genPrefixTypes ts
-    // The surrounding brackets aren't always neccessary
-    | TTuple ts -> col sepStar ts genComplexType
-    | TWithGlobalConstraints(t, tcs) -> genType t +> colPre (!- " when ") wordAnd tcs genTypeConstraint
-    | TLongIdent s -> !- s
-    | t -> failwithf "Unexpected type: %O" t
+        | TLongIdentApp(t, s, ts) -> loop t -- sprintf ".%s" s +> genPrefixTypes ts
+        | TTuple ts -> sepOpenT +> col sepStar ts loop +> sepCloseT
+        | TWithGlobalConstraints(t, tcs) -> loop t +> colPre (!- " when ") wordAnd tcs genTypeConstraint
+        | TLongIdent s -> !- s
+        | t -> failwithf "Unexpected type: %O" t
+    match t with
+    | TFun(TTuple ts, t) -> 
+        ifElse outerBracket (sepOpenT +> col sepStar ts loop +> sepArrow +> loop t +> sepCloseT)
+            (col sepStar ts loop +> sepArrow +> loop t)
+    | TFuns ts -> ifElse outerBracket (sepOpenT +> col sepArrow ts loop +> sepCloseT) (col sepArrow ts loop)
+    | TTuple ts -> ifElse outerBracket (sepOpenT +> col sepStar ts loop +> sepCloseT) (col sepStar ts loop)
+    | _ -> loop t
 
 and genPrefixTypes = function
     | [] -> sepNone
-    // Some patterns could cause a parsing error
+    // Some patterns without spaces could cause a parsing error
     | (TStaticConstant _ | TStaticConstantExpr _ | TStaticConstantNamed _ as t)::ts -> 
-        !- "< " +> col sepComma (t::ts) genType -- " >"
-    | ts -> !- "<" +> col sepComma ts genType -- ">"
-
-and genComplexType = function
-    | TTuple ts -> 
-        // Inner parts should have brackets for separation
-        sepOpenT +> col sepStar ts genType +> sepCloseT
-    | TFun(t1, t2) -> 
-        sepOpenT +> genType t1 +> sepArrow +> genType t2 +> sepCloseT
-    | t -> genType t
+        !- "< " +> col sepComma (t::ts) (genType false) -- " >"
+    | ts -> !- "<" +> col sepComma ts (genType false) -- ">"
 
 and genTypeList = function
     | [] -> sepNone
     | (t, [ArgInfo(so, isOpt)])::ts -> 
         let gt =
             match t with
-            | TTuple _ | TFun _ ->
-                // Tuple or Fun is grouped by brackets
-                sepOpenT +> optPre (ifElse isOpt (!- "?") sepNone) sepColonFixed so (!-) +> genType t +> sepCloseT
-            | _ -> opt sepColonFixed so (!-) +> genType t
-
+            | TTuple _ 
+            | TFun _ ->
+                // Tuple or Fun is grouped by brackets inside 'genType true t'
+                optPre (ifElse isOpt (!- "?") sepNone) sepColonFixed so (!-) +> genType true t
+            | _ -> opt sepColonFixed so (!-) +> genType true t
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
 
     | (TTuple ts', ais)::ts -> 
         let gt = col sepStar (Seq.zip ais ts') 
                     (fun (ArgInfo(so, isOpt), t) -> optPre (ifElse isOpt (!- "?") sepNone) 
-                                                        sepColonFixed so (!-) +> genComplexType t)
-
+                                                        sepColonFixed so (!-) +> genType true t)
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
 
     | (t, _)::ts -> 
-        let gt = genType t
+        let gt = genType true t
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
 
 and genTypar(Typar(s, isHead)) = 
@@ -706,17 +702,17 @@ and genTypar(Typar(s, isHead)) =
 
 and genTypeConstraint = function
     | TyparSingle(kind, tp) -> genTypar tp +> sepColon -- sprintf "%O" kind
-    | TyparDefaultsToType(tp, t) -> !- "default " +> genTypar tp +> sepColon +> genType t
-    | TyparSubtypeOfType(tp, t) -> genTypar tp -- " :> " +> genType t
+    | TyparDefaultsToType(tp, t) -> !- "default " +> genTypar tp +> sepColon +> genType false t
+    | TyparSubtypeOfType(tp, t) -> genTypar tp -- " :> " +> genType false t
     | TyparSupportsMember(tps, msg) -> 
         genTyparList tps +> sepColon +> sepOpenT +> genMemberSig msg +> sepCloseT
     | TyparIsEnum(tp, ts) -> 
-        genTypar tp +> sepColon -- "enum<" +> col sepComma ts genType -- ">"
+        genTypar tp +> sepColon -- "enum<" +> col sepComma ts (genType false) -- ">"
     | TyparIsDelegate(tp, ts) ->
-        genTypar tp +> sepColon -- "delegate<" +> col sepComma ts genType -- ">"
+        genTypar tp +> sepColon -- "delegate<" +> col sepComma ts (genType false) -- ">"
 
 and genInterfaceImpl(InterfaceImpl(t, bs)) = 
-    !- "interface " +> genType t -- " with"
+    !- "interface " +> genType false t -- " with"
     +> indent +> sepNln +> genMemberBindingList true bs +> unindent
 
 and genClause(Clause(p, e, eo)) = 
@@ -747,8 +743,8 @@ and genMemberDefn inter = function
     | MDNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
     | MDOpen(s) -> !- s
     /// What is the role of so
-    | MDImplicitInherit(t, e, _) -> !- "inherit " +> genType t +> genExpr e
-    | MDInherit(t, _) -> !- "inherit " +> genType t
+    | MDImplicitInherit(t, e, _) -> !- "inherit " +> genType false t +> genExpr e
+    | MDInherit(t, _) -> !- "inherit " +> genType false t
     | MDValField f -> genField false "val " f
     | MDImplicitCtor(ats, ao, ps, so) -> 
         optPre sepSpace sepSpace ao genAccess +> sepOpenT
@@ -766,7 +762,7 @@ and genMemberDefn inter = function
         genLetBinding true prefix b +> colPre sepNln sepNln bs (genLetBinding false "and")
 
     | MDInterface(t, mdo) -> 
-        !- "interface " +> genType t
+        !- "interface " +> genType false t
         +> opt sepNone mdo 
             (fun mds -> !- " with" +> indent +> genMemberDefnList true mds +> unindent)
 
@@ -780,7 +776,7 @@ and genMemberDefn inter = function
         +> genOneLinerAttributes ats
         +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
         +> genTypeParam tds tcs
-        +> sepColon +> genType t -- propertyKind mk
+        +> sepColon +> genType false t -- propertyKind mk
 
     | md -> failwithf "Unexpected member definition: %O" md
 
@@ -792,25 +788,25 @@ and propertyKind = function
 
 and genSimplePat = function
     | SPId(s, isOptArg, _) -> ifElse isOptArg (!- (sprintf "?%s" s)) (!- s)
-    | SPTyped(sp, t) -> genSimplePat sp +> sepColon +> genType t
+    | SPTyped(sp, t) -> genSimplePat sp +> sepColon +> genType false t
     | SPAttrib(ats, sp) -> genOneLinerAttributes ats +> genSimplePat sp
     
 and genSimplePats = function
     // Remove parentheses on an extremely simple pattern
     | SimplePats [SPId _ as sp] -> genSimplePat sp
     | SimplePats ps -> sepOpenT +> col sepComma ps genSimplePat +> sepCloseT
-    | SPSTyped(ps, t) -> genSimplePats ps +> sepColon +> genType t
+    | SPSTyped(ps, t) -> genSimplePats ps +> sepColon +> genType false t
 
 and genComplexPat = function
     | CPId p -> genPat p
     | CPSimpleId(s, isOptArg, _) -> ifElse isOptArg (!- (sprintf "?%s" s)) (!- s)
-    | CPTyped(sp, t) -> genComplexPat sp +> sepColon +> genType t
+    | CPTyped(sp, t) -> genComplexPat sp +> sepColon +> genType false t
     | CPAttrib(ats, sp) -> colPost sepSpace sepNone ats genAttribute +> genComplexPat sp
 
 and genComplexPats = function
     | ComplexPats [c] -> genComplexPat c
     | ComplexPats ps -> sepOpenT +> col sepComma ps genComplexPat +> sepCloseT
-    | ComplexTyped(ps, t) -> genComplexPats ps +> sepColon +> genType t
+    | ComplexTyped(ps, t) -> genComplexPats ps +> sepColon +> genType false t
 
 and genPatRecordFieldName(PatRecordFieldName(s1, s2, p)) =
     ifElse (s1 = "") (!- (sprintf "%s = " s2)) (!- (sprintf "%s.%s = " s1 s2)) +> genPat p
@@ -822,7 +818,7 @@ and genPat = function
     | PatAnds(ps) -> col (!- " & ") ps genPat
     | PatNullary PatNull -> !- "null"
     | PatNullary PatWild -> sepWild
-    | PatTyped(p, t) -> genPat p +> sepColon +> genType t
+    | PatTyped(p, t) -> genPat p +> sepColon +> genType false t
     | PatNamed(ao, PatNullary PatWild, s) -> opt sepSpace ao genAccess -- s
     | PatNamed(ao, p, s) -> opt sepSpace ao genAccess +> genPat p -- sprintf " as %s" s 
     | PatLongIdent(ao, s, ps, tpso) -> 
@@ -845,7 +841,7 @@ and genPat = function
     | PatRecord(xs) -> 
         sepOpenS +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs genPatRecordFieldName) +> sepCloseS
     | PatConst(c) -> genConst c
-    | PatIsInst(t) -> !- ":? " +> genType t
+    | PatIsInst(t) -> !- ":? " +> genType false t
     // Quotes will be printed by inner expression
     | PatQuoteExpr e -> genExpr e
     | p -> failwithf "Unexpected pattern: %O" p
