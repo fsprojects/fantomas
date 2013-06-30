@@ -854,7 +854,8 @@ let rec transformPatterns ss = function
                 match List.tryPick(fun (s', p) -> if s = s' then Some p else None) ss with
                 | Some p -> 
                     match p with
-                    | PatConst _ | PatQuoteExpr _ | PatNullary _ ->
+                    | PatConst _ | PatQuoteExpr _ | PatNullary _
+                    | PatRecord _ | PatSeq ((PatList | PatArray), _) ->
                         // A few patterns with delimiters
                         CPId p
                     | _ ->

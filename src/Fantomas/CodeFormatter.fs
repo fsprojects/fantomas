@@ -138,10 +138,10 @@ let internal startWithMember (sel : string) =
 let internal getPatch startCol (lines : string []) =
     let rec loop i = 
         if i < 0 then NoPatch 
-        elif Regex.Match(lines.[i], "^[\s]*type ").Success then RecType
+        elif Regex.Match(lines.[i], "^[\s]*type").Success then RecType
         else
             // Need to compare column to ensure that the let binding is at the same level
-            let m = Regex.Match(lines.[i], "^[\s]*let ")
+            let m = Regex.Match(lines.[i], "^[\s]*let")
             let col = m.Index + m.Length
             // Value 4 accounts for length of "and "
             if m.Success && col <= startCol + 4 then RecLet else loop (i - 1)
@@ -191,7 +191,7 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
                 | _ -> "and"
             // Replace "and" by "type" or "let rec"
             if r.StartLine = r.EndLine then (pattern.Replace(sel, replacement, 1), p)
-            else (new String(' ', startCol) + pattern.Replace(sel, replacement, 1), RecType)
+            else (new String(' ', startCol) + pattern.Replace(sel, replacement, 1), p)
         elif r.StartLine = r.EndLine then (sel, NoPatch)
         else (new String(' ', startCol) + sel, NoPatch)
 

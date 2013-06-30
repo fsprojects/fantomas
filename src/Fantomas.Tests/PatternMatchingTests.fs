@@ -210,3 +210,19 @@ find (fun (Ident op) x y -> Combp(Combp(Varp(op,dpty),x),y)) "term after binary 
     |> should equal """
 find (fun (Ident op) x y -> Combp(Combp(Varp(op, dpty), x), y)) 
     "term after binary operator" inp"""
+
+[<Test>]
+let ``yet another case of desugared lambdas``() =
+    formatSourceString false """
+let UNIFY_ACCEPT_TAC mvs th (asl, w) = 
+    let insts = term_unify mvs (concl th) w
+    ([], insts), [], 
+    let th' = INSTANTIATE insts th
+    fun i [] -> INSTANTIATE i th'""" config
+    |> prepend newline
+    |> should equal """
+let UNIFY_ACCEPT_TAC mvs th (asl, w) = 
+    let insts = term_unify mvs (concl th) w
+    ([], insts), [], 
+    let th' = INSTANTIATE insts th
+    fun i [] -> INSTANTIATE i th'"""
