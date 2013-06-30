@@ -248,12 +248,12 @@ let (|PreprocessorDirectiveChunk|_|) origTokens =
         Some ([t1; t2; t3; t4], moreOrigTokens)
 
    | PreprocessorKeywordToken "#else" t1 :: 
-     Marked(EOL, t2, _) ::
-     moreOrigTokens -> Some ([t1; t2], moreOrigTokens)
+     Marked(EOL, _, _) ::
+     moreOrigTokens -> Some ([t1], moreOrigTokens)
 
    | PreprocessorKeywordToken "#endif" t1 :: 
-     Marked(EOL, t2, _) ::
-     moreOrigTokens -> Some ([t1; t2], moreOrigTokens)
+     Marked(EOL, _, _) ::
+     moreOrigTokens -> Some ([t1], moreOrigTokens)
 
    | _ -> None
 
@@ -335,10 +335,11 @@ let integrateComments (originalText : string) (newText : string) =
 
     let buffer = System.Text.StringBuilder()
     let column = ref 0
+    let indent = ref 0
 
     let addText (text : string) = 
         buffer.Append text |> ignore
-        if text = System.Environment.NewLine then column := 0 
+        if text = System.Environment.NewLine then column := 0
         else column := !column + text.Length
 
     let maintainIndent f =  
@@ -346,6 +347,32 @@ let integrateComments (originalText : string) (newText : string) =
         f()
         addText System.Environment.NewLine
         addText (String.replicate c " ")
+
+    let saveIndent c =
+        indent := c
+
+    let restoreIndent f =
+        let c = !indent
+        Debug.WriteLine("set indent back to {0}", c)
+        addText System.Environment.NewLine
+        addText (String.replicate c " ")
+        f()
+
+    // Assume that starting whitespaces after EOL give indentation of a chunk
+    let rec getIndent newTokens =
+        match newTokens with
+        | (Token _, _) :: moreNewTokens -> getIndent moreNewTokens
+        | (EOL, _) :: moreNewTokens ->
+            match moreNewTokens with
+            | (Token origTok, origTokText) :: _ when origTok.CharClass = TokenCharKind.WhiteSpace -> 
+                String.length origTokText
+            | _ -> 0
+        | _ -> 0
+        
+    let countStartingSpaces (lines: string []) = 
+        if lines.Length = 0 then 0
+        else
+            Seq.min [ for line in lines -> line.Length - line.TrimStart(' ').Length ]
 
     let tokensMatch t1 t2 = 
         match t1, t2 with 
@@ -366,7 +393,39 @@ let integrateComments (originalText : string) (newText : string) =
 
         | (Marked(EOL, _, _) :: moreOrigTokens),  _ ->
             Debug.WriteLine "dropping newline from orig tokens" 
-            loop moreOrigTokens newTokens 
+            loop moreOrigTokens newTokens
+        
+        // Inject #if... #else or #endif directive
+        // These directives could occur inside an inactive code chunk
+        // Assume that only #endif directive follows by an EOL 
+        | (PreprocessorDirectiveChunk (tokensText, moreOrigTokens)), newTokens ->            
+            let text = String.concat "" tokensText
+            if text.StartsWith("#if") then
+                let indent = getIndent newTokens 
+                saveIndent indent
+            Debug.WriteLine("injecting preprocessor directive '{0}'", text)
+            addText System.Environment.NewLine
+            for x in tokensText do addText x
+            loop moreOrigTokens newTokens
+
+        // Inject inactive code
+        // These chunks come out from any #else branch in our scenarios
+        | (InactiveCodeChunk (tokensText, moreOrigTokens)),  _ ->
+            Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText)
+            let text = String.concat "" tokensText
+            let lines = text.Replace("\r\n", "\n").Split([|'\r'; '\n'|], StringSplitOptions.RemoveEmptyEntries)
+            // What is current indentation of this chunk
+            let numSpaces = countStartingSpaces lines
+            Debug.WriteLine("the number of starting spaces is {0}", numSpaces)
+            // Write the chunk in the same indentation with #if branch
+            for line in lines do
+                if line.[numSpaces..].StartsWith("#") then
+                    // Naive recognition of inactive preprocessors
+                    addText Environment.NewLine
+                    addText line.[numSpaces..]
+                else
+                    restoreIndent (fun () -> addText line.[numSpaces..])
+            loop moreOrigTokens newTokens
 
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)),  _ ->
             let tokText = String.concat "" commentTokensText
@@ -440,25 +499,6 @@ let integrateComments (originalText : string) (newText : string) =
                         if i = len - 1 && x = Environment.NewLine then ()
                         else addText x))
             loop moreOrigTokens newTokens 
-
-        // Inject inactive code
-        | (InactiveCodeChunk (tokensText, moreOrigTokens)),  _ ->
-            Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText)
-            for x in tokensText do addText x
-            loop moreOrigTokens newTokens
-        
-        // Inject #if... #else or #endif directive
-        // These directives could occur inside an inactive code chunk
-        // Assume that each directive follows by an EOL 
-        | (PreprocessorDirectiveChunk (tokensText, moreOrigTokens)), _ ->
-            let text = (String.concat "" tokensText)
-            Debug.WriteLine("injecting preprocessor directive '{0}'", text)
-            if text.StartsWith "#if" then 
-                addText System.Environment.NewLine
-            for x in tokensText do addText x
-            if text.StartsWith "#endif" then 
-                addText System.Environment.NewLine
-            loop moreOrigTokens newTokens
 
         // Consume attributes in the new text
         | _, RawAttribute(newTokensText, moreNewTokens) ->

@@ -17,28 +17,22 @@ let config = FormatConfig.Default
 
 let test s = formatSourceString false s config |> printfn "%A";;
 
-tokenize ["TRACE"] """
+test """
 let rec [<Literal>] private assemblyConfig() =
     #if TRACE
     let x = 0
     ""
     #else
-    ""
+      ""
     #endif
-""" |> Seq.toList
-
-test """
-let UNIFY_ACCEPT_TAC mvs th (asl,w) =
-  let insts = term_unify mvs (concl th) w in
-  ([],insts),[],
-  let th' = INSTANTIATE insts th in
-  fun i [] -> INSTANTIATE i th'"""
+"""
 
 // FAILS - doesn't handle nested directives and line breaks are a bit off
 test """
 let [<Literal>] private assemblyConfig =
     #if DEBUG
     #if TRACE
+    let x = 0
     "DEBUG;TRACE"
     #else
     "DEBUG"
