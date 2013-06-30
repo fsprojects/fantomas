@@ -15,9 +15,9 @@ type Token =
    | EOL
    | Tok of TokenInformation * int
 
-let tokenize (content : string) =
+let tokenize defines (content : string) =
     seq { 
-        let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
+        let sourceTokenizer = SourceTokenizer(defines, "/tmp.fsx")
         let lines = content.Replace("\r\n","\n").Split('\r', '\n')
         let lexState = ref 0L
         for (i, line) in lines |> Seq.zip [1..lines.Length] do 
@@ -114,10 +114,10 @@ let filterComments content =
             dic.Add(mkPos lineNo origTok.LeftColumn, ts)
             loop moreOrigTokens dic
         | _ -> dic
-    loop (tokenize content |> Seq.toList) (Dictionary())
+    loop (tokenize [] content |> Seq.toList) (Dictionary())
 
-/// Collect all define constants to be used in parsing
-let filterDefines content =
+/// Filter all constants to be used in lexing
+let filterConstants content =
     let rec loop origTokens (hs : HashSet<_>)  = 
         match origTokens with 
         | (Token ti1, "#if") :: 
@@ -127,13 +127,18 @@ let filterDefines content =
           moreOrigTokens 
             when ti1.ColorClass = TokenColorKind.PreprocessorKeyword
                  && ti2.TokenName = "WHITESPACE" && ti3.TokenName = "IDENT" -> 
-            hs.Add(sprintf "--define:%s" t3) |> ignore
+            hs.Add(t3) |> ignore
             loop moreOrigTokens hs
         | _ :: moreOrigTokens -> loop moreOrigTokens hs
         | _ -> hs
-    let hs = loop (tokenize content |> Seq.toList) (HashSet())
-    Seq.toArray hs
+    let hs = loop (tokenize [] content |> Seq.toList) (HashSet())
+    Seq.toList hs
 
+/// Filter all defined constants to be used in parsing
+let filterDefines content =
+    filterConstants content
+    |> Seq.map (sprintf "--define:%s")
+    |> Seq.toArray
 
 // This part processes the token stream post- pretty printing
 
@@ -325,8 +330,8 @@ let (|NewTokenAfterWhitespaceOrNewLine|_|) toks =
 /// Assume that originalText and newText are derived from the same AST. 
 /// Pick all comments and directives from originalText to insert into newText               
 let integrateComments (originalText : string) (newText : string) =
-    let origTokens = tokenize originalText |> markStickiness |> Seq.toList
-    let newTokens = tokenize newText |> Seq.toList
+    let origTokens = tokenize (filterConstants originalText) originalText |> markStickiness |> Seq.toList
+    let newTokens = tokenize [] newText |> Seq.toList
 
     let buffer = System.Text.StringBuilder()
     let column = ref 0

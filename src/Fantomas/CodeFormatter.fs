@@ -18,7 +18,7 @@ let internal parseWith fileName content =
     // Create an interactive checker instance (ignore notifications)
     let checker = InteractiveChecker.Create(NotifyFileTypeCheckStateIsDirty ignore)
     // Get compiler options for a single script file
-    let checkOptions = checker.GetCheckOptionsFromScriptRoot(fileName, content, DateTime.Now, [||])
+    let checkOptions = checker.GetCheckOptionsFromScriptRoot(fileName, content, DateTime.Now, filterDefines content)
     // Run the first phase (untyped parsing) of the compiler
     let untypedRes = checker.UntypedParse(fileName, content, checkOptions)
     match untypedRes.ParseTree with

@@ -7,6 +7,7 @@
 #load "CodePrinter.fs"
 #load "CodeFormatter.fs"
 
+open Fantomas.TokenMatcher
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
@@ -14,15 +15,24 @@ open Fantomas.CodeFormatter
 
 let config = FormatConfig.Default
 
-let test s = formatSourceString false s config |> printfn "%A"
+let test s = formatSourceString false s config |> printfn "%A";;
 
-test """
-let [<Literal>] private assemblyConfig =
+tokenize ["TRACE"] """
+let rec [<Literal>] private assemblyConfig() =
     #if TRACE
     let x = 0
     ""
+    #else
+    ""
     #endif
-"""
+""" |> Seq.toList
+
+test """
+let UNIFY_ACCEPT_TAC mvs th (asl,w) =
+  let insts = term_unify mvs (concl th) w in
+  ([],insts),[],
+  let th' = INSTANTIATE insts th in
+  fun i [] -> INSTANTIATE i th'"""
 
 // FAILS - doesn't handle nested directives and line breaks are a bit off
 test """
