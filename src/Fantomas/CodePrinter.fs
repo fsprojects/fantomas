@@ -132,6 +132,9 @@ and breakNln brk e =
 /// Preserve a break even if the expression is a one-liner
 and preserveBreakNln e ctx = breakNln (checkPreserveBreakForExpr e ctx) e ctx
 
+/// Break but doesn't indent the expression
+and noIndentBreakNln e ctx = ifElse (checkPreserveBreakForExpr e ctx) (sepNln +> genExpr e) (autoNln (genExpr e)) ctx
+
 and genTyparList tps = 
     ifElse (List.atMostOne tps) (col wordOr tps genTypar) (sepOpenT +> col wordOr tps genTypar +> sepCloseT)
 
@@ -276,8 +279,7 @@ and genVal(Val(ats, px, ao, s, t, vi, _)) =
 and genRecordFieldName(RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNln e)
 
-and genExpr e0 = 
-    match e0 with 
+and genExpr = function
     | Paren e -> sepOpenT +> genExpr e +> sepCloseT
     | SingleExpr(kind, e) -> str kind +> genExpr e
     | ConstExpr(c) -> genConst c
@@ -292,7 +294,7 @@ and genExpr e0 =
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType false t
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType false t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType false t
-    | Tuple es -> atCurrentColumn (colAutoNlnSkip0 sepComma es genExpr)
+    | Tuple es -> atCurrentColumn (colAutoNlnSkip0 sepComma es noIndentBreakNln)
     | ArrayOrList(isArray, xs, isSimple) -> 
         let sep = ifElse isSimple sepSemi sepSemiNln
         ifElse isArray (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sep xs genExpr) +> sepCloseA) 
