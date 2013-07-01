@@ -132,7 +132,7 @@ let rec (|OpenL|_|) = function
 
 /// Omit a break before an expression if the expression is small and it is already one line in the text
 let checkPreserveBreakForExpr e (ctx : Context) =
-    multiline e || ctx.Comments.ContainsKey(e.Range.Start)
+    multiline e || ctx.Comments.ContainsKey(e.Range.Start) || ctx.Directives.ContainsKey(e.Range.Start)
 
 /// Omit a break before an expression if the expression is small 
 let checkBreakForExpr e =

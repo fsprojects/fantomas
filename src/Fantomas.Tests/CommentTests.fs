@@ -89,14 +89,12 @@ let ``should keep sticky-to-the-right comments``() =
     formatSourceString false """
 let f() = 
     // COMMENT
-    let x = 1
     x + x
 """  config
     |> prepend newline
     |> should equal """
 let f() = 
     // COMMENT
-    let x = 1
     x + x"""
 
 [<Test>]

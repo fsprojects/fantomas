@@ -1,10 +1,11 @@
-﻿module Fantomas.TokenMatcher
+﻿module internal Fantomas.TokenMatcher
 
 open System
 open System.Collections.Generic
 open System.Diagnostics
 
 open Microsoft.FSharp.Compiler.Range
+open Microsoft.FSharp.Compiler.PrettyNaming
 open Microsoft.FSharp.Compiler.SourceCodeServices
 
 #if INTERACTIVE
@@ -15,9 +16,9 @@ type Token =
    | EOL
    | Tok of TokenInformation * int
 
-let tokenize (content : string) =
+let tokenize defines (content : string) =
     seq { 
-        let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
+        let sourceTokenizer = SourceTokenizer(defines, "/tmp.fsx")
         let lines = content.Replace("\r\n","\n").Split('\r', '\n')
         let lexState = ref 0L
         for (i, line) in lines |> Seq.zip [1..lines.Length] do 
@@ -43,19 +44,24 @@ let (|Token|_|) = function
 // This part of the module takes care of annotating the AST with additional information
 // about comments
 
-/// Whitespace token including EOL
+/// Whitespace token without EOL
 let (|Space|_|) t = 
     match t with
-    | (EOL, origTokText) -> Some origTokText
-    | (Token origTok, origTokText) when origTok.CharClass = TokenCharKind.WhiteSpace -> 
+    | (Token origTok, origTokText) when origTok.TokenName = "WHITESPACE" -> 
         Some origTokText
     | _ -> None
 
-let (|Spaces|_|) origTokens = 
+let (|NewLine|_|) t = 
+    match t with
+    | (EOL, tokText) -> Some tokText
+    | _ -> None
+
+let (|WhiteSpaces|_|) origTokens = 
     match origTokens with 
     | Space t1 :: moreOrigTokens -> 
         let rec loop ts acc = 
             match ts with 
+            | NewLine t2 :: ts2
             | Space t2 :: ts2 -> loop ts2 (t2 :: acc)
             | _ -> List.rev acc, ts
         Some (loop moreOrigTokens [t1])
@@ -74,66 +80,121 @@ let (|RawAttribute|_|) origTokens =
         loop moreOrigTokens ["[<"]
     | _ -> None
 
-let (|PreviousCommentChunk|_|) origTokens = 
+let (|Comment|_|) = function
+    | (Token ti, t) 
+        when ti.CharClass = TokenCharKind.Comment || ti.CharClass = TokenCharKind.LineComment -> 
+        Some t
+    | _ -> None
+
+let (|CommentChunk|_|) origTokens = 
     match origTokens with 
-    | (Token ti1, t1) :: moreOrigTokens
-        when ti1.CharClass = TokenCharKind.Comment || ti1.CharClass = TokenCharKind.LineComment -> 
+    | Comment t1 :: moreOrigTokens -> 
         let rec loop ts acc = 
-            match ts with 
-            | (Token _, t2) :: ts2 
-                when ti1.CharClass = TokenCharKind.Comment || ti1.CharClass = TokenCharKind.LineComment -> 
-                loop ts2 (t2 :: acc)
+            match ts with
+            | NewLine t2 :: ts2
+            | Comment t2 :: ts2
+            | Space t2 :: ts2 -> loop ts2 (t2 :: acc)
             | _ -> List.rev acc, ts
         Some (loop moreOrigTokens [t1])
     | _ -> None
 
 /// Get all comment chunks before a token 
-let (|PreviousCommentChunks|_|) origTokens = 
+let (|CommentChunks|_|) origTokens = 
     match origTokens with 
-    | PreviousCommentChunk(ts1, moreOrigTokens) -> 
+    | CommentChunk(ts1, moreOrigTokens) -> 
         let rec loop ts acc = 
             match ts with 
-            | Spaces(_, PreviousCommentChunk(ts2, ts')) ->
+            | WhiteSpaces(_, CommentChunk(ts2, ts')) ->
                 // Just keep a newline between two comment chunks
                 loop ts' (ts2 :: [Environment.NewLine] :: acc)
-            | PreviousCommentChunk(ts2, ts') -> 
+            | CommentChunk(ts2, ts') -> 
                 loop ts' (ts2 :: acc)
             | _ -> (List.rev acc |> List.map (String.concat "")), ts
         Some (loop moreOrigTokens [ts1])
     | _ -> None      
 
 /// Given a list of tokens, attach comments to appropriate positions
-let filterComments content =
-    let rec loop ts (dic : Dictionary<_, _>) =
-        match ts with
+let collectComments tokens =
+    let rec loop origTokens (dic : Dictionary<_, _>) =
+        match origTokens with
         | (Token origTok, _) :: moreOrigTokens
             when origTok.CharClass <> TokenCharKind.Comment && origTok.CharClass <> TokenCharKind.LineComment ->
             loop moreOrigTokens dic
-        | PreviousCommentChunks(ts, Spaces (_, (Tok(origTok, lineNo), _) :: moreOrigTokens))
-        | PreviousCommentChunks(ts, (Tok(origTok, lineNo), _) :: moreOrigTokens) ->
+        | NewLine _ :: moreOrigTokens -> loop moreOrigTokens dic
+        | CommentChunks(ts, WhiteSpaces(_, (Tok(origTok, lineNo), _) :: moreOrigTokens))
+        | CommentChunks(ts, (Tok(origTok, lineNo), _) :: moreOrigTokens) ->
             dic.Add(mkPos lineNo origTok.LeftColumn, ts)
             loop moreOrigTokens dic
         | _ -> dic
-    loop (tokenize content |> Seq.toList) (Dictionary())
+    loop tokens (Dictionary())
 
-/// Collect all define constants to be used in parsing
-let filterDefines content =
+let (|SkipUntilIdent|_|) origTokens =
+    let rec loop = function
+        | (Token ti, t) :: moreOrigTokens when ti.TokenName = "IDENT" ->
+            Some(t, moreOrigTokens)
+        | NewLine _ :: _ -> None
+        | (Token ti, _) :: _ when ti.ColorClass = TokenColorKind.PreprocessorKeyword -> None
+        | _ :: moreOrigTokens -> loop moreOrigTokens
+        | [] -> None
+    loop origTokens
+
+let (|SkipUntilEOL|_|) origTokens =
+    let rec loop = function
+        | NewLine t :: moreOrigTokens -> Some(t, moreOrigTokens)
+        | (Token ti, _) :: _ when ti.ColorClass = TokenColorKind.PreprocessorKeyword -> None
+        | _ :: moreOrigTokens -> loop moreOrigTokens
+        | [] -> None
+    loop origTokens
+
+/// Skip all whitespaces or comments in an active block
+let (|SkipWhiteSpaceOrComment|_|) origTokens =
+    let rec loop = function
+        | Space _ :: moreOrigTokens
+        | NewLine _ :: moreOrigTokens -> loop moreOrigTokens
+        | (Token ti, _) :: moreOrigTokens 
+            when ti.CharClass = TokenCharKind.Comment || ti.CharClass = TokenCharKind.LineComment ->
+            loop moreOrigTokens
+        | (Token ti, _) :: _ when ti.ColorClass = TokenColorKind.PreprocessorKeyword -> None
+        | t :: moreOrigTokens -> Some(t, moreOrigTokens)
+        | [] -> None
+    loop origTokens
+
+/// Filter all directives
+let collectDirectives tokens =
+    let rec loop origTokens (dic : Dictionary<_, _>)  = 
+        match origTokens with 
+        | (Token _, "#if") :: 
+          SkipUntilIdent(t, SkipUntilEOL(_, SkipWhiteSpaceOrComment((Tok(origTok, lineNo), _), moreOrigTokens))) -> 
+            dic.Add(mkPos lineNo origTok.LeftColumn, t) |> ignore
+            loop moreOrigTokens dic
+        | _ :: moreOrigTokens -> loop moreOrigTokens dic
+        | [] -> dic
+    loop tokens (Dictionary()) 
+
+/// Filter all constants to be used in lexing
+let filterConstants content =
     let rec loop origTokens (hs : HashSet<_>)  = 
         match origTokens with 
-        | (Token ti1, "#if") :: 
-          (Token ti2, _) ::
-          (Token ti3, t3) ::
-          (EOL, _) ::
-          moreOrigTokens 
-            when ti1.ColorClass = TokenColorKind.PreprocessorKeyword
-                 && ti2.TokenName = "WHITESPACE" && ti3.TokenName = "IDENT" -> 
-            hs.Add(sprintf "--define:%s" t3) |> ignore
+        | (Token _, "#if") :: 
+          SkipUntilIdent(t, SkipUntilEOL(_, moreOrigTokens)) -> 
+            hs.Add(t) |> ignore
             loop moreOrigTokens hs
         | _ :: moreOrigTokens -> loop moreOrigTokens hs
-        | _ -> hs
-    let hs = loop (tokenize content |> Seq.toList) (HashSet())
-    Seq.toArray hs
+        | [] -> hs
+    let hs = loop (tokenize [] content |> Seq.toList) (HashSet())
+    Seq.toList hs
 
+/// Filter all defined constants to be used in parsing
+let filterDefines content =
+    filterConstants content
+    |> Seq.map (sprintf "--define:%s")
+    |> Seq.toArray
+
+/// Filter all comments and directives; assuming all constants are defined
+let filterCommentsAndDirectives content =
+    let constants = filterConstants content
+    let tokens = tokenize constants content |> Seq.toList
+    (collectComments tokens, collectDirectives tokens)
 
 // This part processes the token stream post- pretty printing
 
@@ -141,20 +202,27 @@ type LineCommentStickiness = | StickyLeft | StickyRight | NotApplicable
 
 type MarkedToken = 
     | Marked of Token * string * LineCommentStickiness
-    member x.Text = (let (Marked(_,t,_)) = x in t)
+    member x.Text = 
+        let (Marked(_,t,_)) = x
+        t
 
 let (|SpaceToken|_|) t = 
     match t with
-    | Marked(EOL, origTokText, _) -> Some origTokText
-    | Marked(Token origTok, origTokText, _) when origTok.CharClass = TokenCharKind.WhiteSpace -> 
+    | Marked(Token origTok, origTokText, _) when origTok.TokenName = "WHITESPACE" -> 
         Some origTokText
     | _ -> None
 
-let (|SpaceTokens|_|) origTokens = 
+let (|NewLineToken|_|) t = 
+    match t with
+    | Marked(EOL, tokText, _) -> Some tokText
+    | _ -> None
+
+let (|WhiteSpaceTokens|_|) origTokens = 
    match origTokens with 
    | SpaceToken t1 :: moreOrigTokens -> 
        let rec loop ts acc = 
            match ts with 
+           | NewLineToken t2 :: ts2
            | SpaceToken t2 :: ts2 -> loop ts2 (t2 :: acc)
            | _ -> List.rev acc, ts
        Some (loop moreOrigTokens [t1])
@@ -175,7 +243,7 @@ let (|Attribute|_|) origTokens =
 
 let rec (|Attributes|_|) = function
     | Attribute(xs, Attributes(xss, toks)) 
-    | Attribute(xs, SpaceTokens(_, Attributes(xss, toks))) -> Some(xs::xss, toks)
+    | Attribute(xs, WhiteSpaceTokens(_, Attributes(xss, toks))) -> Some(xs::xss, toks)
     | Attribute(xs, toks)  -> Some([xs], toks)
     | _ -> None
 
@@ -203,11 +271,6 @@ let (|BlockCommentToken|_|) t =
     match t with
     | Marked(Token origTok, origTokText, _) when origTok.CharClass = TokenCharKind.Comment -> 
         Some origTokText
-    | _ -> None
-
-let (|NewLineToken|_|) t = 
-    match t with
-    | Marked(EOL, tokText, _) -> Some tokText
     | _ -> None
 
 let (|BlockCommentOrNewLineToken|_|) t = 
@@ -243,12 +306,12 @@ let (|PreprocessorDirectiveChunk|_|) origTokens =
         Some ([t1; t2; t3; t4], moreOrigTokens)
 
    | PreprocessorKeywordToken "#else" t1 :: 
-     Marked(EOL, t2, _) ::
-     moreOrigTokens -> Some ([t1; t2], moreOrigTokens)
+     Marked(EOL, _, _) ::
+     moreOrigTokens -> Some ([t1], moreOrigTokens)
 
    | PreprocessorKeywordToken "#endif" t1 :: 
-     Marked(EOL, t2, _) ::
-     moreOrigTokens -> Some ([t1; t2], moreOrigTokens)
+     Marked(EOL, _, _) ::
+     moreOrigTokens -> Some ([t1], moreOrigTokens)
 
    | _ -> None
 
@@ -325,15 +388,16 @@ let (|NewTokenAfterWhitespaceOrNewLine|_|) toks =
 /// Assume that originalText and newText are derived from the same AST. 
 /// Pick all comments and directives from originalText to insert into newText               
 let integrateComments (originalText : string) (newText : string) =
-    let origTokens = tokenize originalText |> markStickiness |> Seq.toList
-    let newTokens = tokenize newText |> Seq.toList
+    let origTokens = tokenize (filterConstants originalText) originalText |> markStickiness |> Seq.toList
+    let newTokens = tokenize [] newText |> Seq.toList
 
     let buffer = System.Text.StringBuilder()
     let column = ref 0
+    let indent = ref 0
 
     let addText (text : string) = 
         buffer.Append text |> ignore
-        if text = System.Environment.NewLine then column := 0 
+        if text = System.Environment.NewLine then column := 0
         else column := !column + text.Length
 
     let maintainIndent f =  
@@ -342,13 +406,40 @@ let integrateComments (originalText : string) (newText : string) =
         addText System.Environment.NewLine
         addText (String.replicate c " ")
 
+    let saveIndent c =
+        indent := c
+
+    let restoreIndent f =
+        let c = !indent
+        Debug.WriteLine("set indent back to {0}", c)
+        addText System.Environment.NewLine
+        addText (String.replicate c " ")
+        f()
+
+    // Assume that starting whitespaces after EOL give indentation of a chunk
+    let rec getIndent newTokens =
+        match newTokens with
+        | (Token _, _) :: moreNewTokens -> getIndent moreNewTokens
+        | (EOL, _) :: moreNewTokens ->
+            match moreNewTokens with
+            | (Token origTok, origTokText) :: _ when origTok.CharClass = TokenCharKind.WhiteSpace -> 
+                String.length origTokText
+            | _ -> 0
+        | _ -> 0
+        
+    let countStartingSpaces (lines: string []) = 
+        if lines.Length = 0 then 0
+        else
+            Seq.min [ for line in lines -> line.Length - line.TrimStart(' ').Length ]
+
     let tokensMatch t1 t2 = 
         match t1, t2 with 
         | (Marked(Token origTok, origTokText, _), (Token newTok, newTokText)) -> 
             origTok.CharClass = newTok.CharClass && origTokText = newTokText
+        // Use this pattern to avoid discrepancy between two versions of the same identifier
         | (Marked(Token origTok, origTokText, _), (Token newTok, newTokText)) -> 
             origTok.CharClass = TokenCharKind.Identifier && newTok.CharClass = TokenCharKind.Identifier 
-            && origTokText.Trim('`') = newTokText.Trim('`')
+            && DecompileOpName(origTokText.Trim('`')) = DecompileOpName(newTokText.Trim('`'))
         | _ -> false
 
     let rec loop origTokens newTokens = 
@@ -361,7 +452,39 @@ let integrateComments (originalText : string) (newText : string) =
 
         | (Marked(EOL, _, _) :: moreOrigTokens),  _ ->
             Debug.WriteLine "dropping newline from orig tokens" 
-            loop moreOrigTokens newTokens 
+            loop moreOrigTokens newTokens
+        
+        // Inject #if... #else or #endif directive
+        // These directives could occur inside an inactive code chunk
+        // Assume that only #endif directive follows by an EOL 
+        | (PreprocessorDirectiveChunk (tokensText, moreOrigTokens)), newTokens ->            
+            let text = String.concat "" tokensText
+            if text.StartsWith("#if") then
+                let indent = getIndent newTokens 
+                saveIndent indent
+            Debug.WriteLine("injecting preprocessor directive '{0}'", text)
+            addText System.Environment.NewLine
+            for x in tokensText do addText x
+            loop moreOrigTokens newTokens
+
+        // Inject inactive code
+        // These chunks come out from any #else branch in our scenarios
+        | (InactiveCodeChunk (tokensText, moreOrigTokens)),  _ ->
+            Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText)
+            let text = String.concat "" tokensText
+            let lines = text.Replace("\r\n", "\n").Split([|'\r'; '\n'|], StringSplitOptions.RemoveEmptyEntries)
+            // What is current indentation of this chunk
+            let numSpaces = countStartingSpaces lines
+            Debug.WriteLine("the number of starting spaces is {0}", numSpaces)
+            // Write the chunk in the same indentation with #if branch
+            for line in lines do
+                if line.[numSpaces..].StartsWith("#") then
+                    // Naive recognition of inactive preprocessors
+                    addText Environment.NewLine
+                    addText line.[numSpaces..]
+                else
+                    restoreIndent (fun () -> addText line.[numSpaces..])
+            loop moreOrigTokens newTokens
 
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)),  _ ->
             let tokText = String.concat "" commentTokensText
@@ -435,25 +558,6 @@ let integrateComments (originalText : string) (newText : string) =
                         if i = len - 1 && x = Environment.NewLine then ()
                         else addText x))
             loop moreOrigTokens newTokens 
-
-        // Inject inactive code
-        | (InactiveCodeChunk (tokensText, moreOrigTokens)),  _ ->
-            Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText)
-            for x in tokensText do addText x
-            loop moreOrigTokens newTokens
-        
-        // Inject #if... #else or #endif directive
-        // These directives could occur inside an inactive code chunk
-        // Assume that each directive follows by an EOL 
-        | (PreprocessorDirectiveChunk (tokensText, moreOrigTokens)), _ ->
-            let text = (String.concat "" tokensText)
-            Debug.WriteLine("injecting preprocessor directive '{0}'", text)
-            if text.StartsWith "#if" then 
-                addText System.Environment.NewLine
-            for x in tokensText do addText x
-            if text.StartsWith "#endif" then 
-                addText System.Environment.NewLine
-            loop moreOrigTokens newTokens
 
         // Consume attributes in the new text
         | _, RawAttribute(newTokensText, moreNewTokens) ->

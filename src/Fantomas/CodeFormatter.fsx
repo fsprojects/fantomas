@@ -7,6 +7,7 @@
 #load "CodePrinter.fs"
 #load "CodeFormatter.fs"
 
+open Fantomas.TokenMatcher
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
@@ -14,32 +15,25 @@ open Fantomas.CodeFormatter
 
 let config = FormatConfig.Default
 
-let test s = formatSourceString false s config |> printfn "%A"
+let test s = formatSourceString false s config |> printfn "%A";;
 
-test """
-let [<Literal>] private assemblyConfig =
+filterCommentsAndDirectives """
+let rec [<Literal>] private assemblyConfig() =    
     #if TRACE
-    let x = 0
+    /// Comments
     ""
+    #else
+      ""
     #endif
 """
 
-// FAILS - doesn't handle nested directives and line breaks are a bit off
 test """
-let [<Literal>] private assemblyConfig =
-    #if DEBUG
-    #if TRACE
-    "DEBUG;TRACE"
-    #else
-    "DEBUG"
-    #endif
-    #else
-    #if TRACE
-    "TRACE"
-    #else
-    ""
-    #endif
-    #endif
+if true then ()
+else
+    // Comment 1
+    if true then ()
+    // Comment 2
+    else ()
 """
 
 // FAILS - sticky-right comment becomes sticky-left
