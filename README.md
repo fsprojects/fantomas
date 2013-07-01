@@ -7,7 +7,7 @@ F# source code formatter, inspired by [scalariform](https://github.com/mdr/scala
 This project aims at formatting F# source files based on a given configuration.
 Fantomas will ensure correct indentation and consistent spacing between elements in the source files.
 We assume that the source files are *parsable by F# compiler* before feeding into the tool.
-Fantomas follows the formatting guideline being described in [A comprehensive guide to F# Formatting Conventions](FormattingConventions.md).
+Fantomas follows the formatting guideline being described in [A comprehensive guide to F# Formatting Conventions](docs/FormattingConventions.md).
 
 ## Use cases
 The project is developed with the following use cases in mind:
@@ -76,7 +76,7 @@ For more complex examples, please take a look at F# outputs of [20 language shoo
 ### Command line tool / API 
 You can fork this repo and compile the project with F# 3.0/.NET framework 4.0. 
 Alternatively, Fantomas is also available via [a NuGet package](https://nuget.org/packages/Fantomas/) which contains both the library and the command line interface.
-For detailed guidelines, please read [Fantomas: How to use](Usage.md).
+For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.md).
 
 ### Trying Fantomas online
 [FantomasWeb](https://github.com/TahaHachana/FantomasWeb), implemented by [Taha Hachana](https://github.com/TahaHachana), is accessible at http://fantomasweb.apphb.com/.
@@ -88,12 +88,12 @@ For detailed guidelines, please read [Fantomas: How to use](Usage.md).
 The code base is written in F# 3.0/.NET framework 4.0. 
 The solution file can be opened in Visual Studio 2012 and MonoDevelop or Xamarin Studio.
 NuGet is used to manage external packages.
-The [test project](src/Fantomas.Tests) depends on FsUnit and NUNit.
+The [test project](src/Fantomas.Tests) depends on FsUnit and NUnit.
 However, the [library project](src/Fantomas) and [command line interface](src/Fantomas.Cmd) have no dependency on external packages.
 
 ## Testing and validation
 We have tried to be careful in testing the project.
-There are 165 unit tests and 30 validated test examples, 
+There are 167 unit tests and 30 validated test examples, 
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
@@ -107,7 +107,7 @@ Second, Fantomas is my favourite character in the literature.
 Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
 ## Getting involved
-Would like to contribute? Read [the formatting conventions](FormattingConventions.md) and [the Usage notes](Usage.md) and discuss on [the issues](../../issues). You can fork the GitHub repository and send a pull request.
+Would like to contribute? Read [the formatting conventions](docs/FormattingConventions.md) and [the documentation](docs/Documentation.md) and discuss on [the issues](../../issues). You can fork the GitHub repository and send a pull request.
 
 ## Credits
 We would like to gratefully thank the following people for their contributions.

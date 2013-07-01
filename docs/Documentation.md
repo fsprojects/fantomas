@@ -1,29 +1,5 @@
 ## Fantomas: How to use
 
-### Using Visual Studio 2012 extension
----
-
-After being installed, Fantomas extension will appear under `Tools -> Extensions and Updates` menu. You can uninstall, disable or re-install the extension there.
-
-The main formatting options are under `Tools -> Options -> Fantomas`. To be consistent with Visual Studio editors, the last option, *indent size*, can be adjusted under `Tools -> Options -> Text Editor -> Indent size` option.
-
-Two main functionalities of the extension are:
- 
- - *Formatting Document*, available under **Ctrl + K D** key combination.
- - *Formatting Selection*, available under **Ctrl + K F** key combination.
-
-**N.B:**
-
-Due to technical restrictions, formatting selection feature is only guaranteed to work for:
-
- - modules
- - types
- - member declarations
- - let bindings
- - expressions
- - and any combination thereof.
-
-Any *unparsable* selection will not get meaningful results.
 
 ### Using the command line tool
 ---
