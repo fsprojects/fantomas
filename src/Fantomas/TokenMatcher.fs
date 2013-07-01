@@ -47,7 +47,7 @@ let (|Token|_|) = function
 let (|Space|_|) t = 
     match t with
     | (EOL, origTokText) -> Some origTokText
-    | (Token origTok, origTokText) when origTok.CharClass = TokenCharKind.WhiteSpace -> 
+    | (Token origTok, origTokText) when origTok.TokenName = "WHITESPACE" -> 
         Some origTokText
     | _ -> None
 
@@ -83,6 +83,7 @@ let (|PreviousCommentChunk|_|) origTokens =
             | (Token _, t2) :: ts2 
                 when ti1.CharClass = TokenCharKind.Comment || ti1.CharClass = TokenCharKind.LineComment -> 
                 loop ts2 (t2 :: acc)
+            | Space t2 :: ts2 -> loop ts2 (t2 :: acc)
             | _ -> List.rev acc, ts
         Some (loop moreOrigTokens [t1])
     | _ -> None
@@ -103,34 +104,71 @@ let (|PreviousCommentChunks|_|) origTokens =
     | _ -> None      
 
 /// Given a list of tokens, attach comments to appropriate positions
-let filterComments content =
-    let rec loop ts (dic : Dictionary<_, _>) =
-        match ts with
+let collectComments tokens =
+    let rec loop origTokens (dic : Dictionary<_, _>) =
+        match origTokens with
         | (Token origTok, _) :: moreOrigTokens
             when origTok.CharClass <> TokenCharKind.Comment && origTok.CharClass <> TokenCharKind.LineComment ->
             loop moreOrigTokens dic
-        | PreviousCommentChunks(ts, Spaces (_, (Tok(origTok, lineNo), _) :: moreOrigTokens))
+        | PreviousCommentChunks(ts, Spaces(_, (Tok(origTok, lineNo), _) :: moreOrigTokens))
         | PreviousCommentChunks(ts, (Tok(origTok, lineNo), _) :: moreOrigTokens) ->
             dic.Add(mkPos lineNo origTok.LeftColumn, ts)
             loop moreOrigTokens dic
         | _ -> dic
-    loop (tokenize [] content |> Seq.toList) (Dictionary())
+    loop tokens (Dictionary())
+
+let (|SkipUntilIdent|_|) origTokens =
+    let rec loop = function
+        | (Token ti, t) :: moreOrigTokens when ti.TokenName = "IDENT" ->
+            Some(t, moreOrigTokens)
+        | (EOL, _) :: _ -> None
+        | (Token ti, _) :: _ when ti.ColorClass = TokenColorKind.PreprocessorKeyword -> None
+        | _ :: moreOrigTokens -> loop moreOrigTokens
+        | [] -> None
+    loop origTokens
+
+let (|SkipUntilEOL|_|) origTokens =
+    let rec loop = function
+        | (EOL, t) :: moreOrigTokens -> Some(t, moreOrigTokens)
+        | (Token ti, _) :: _ when ti.ColorClass = TokenColorKind.PreprocessorKeyword -> None
+        | _ :: moreOrigTokens -> loop moreOrigTokens
+        | [] -> None
+    loop origTokens
+
+/// Skip all whitespaces or comments in an active block
+let (|SkipWhiteSpaceOrComment|_|) origTokens =
+    let rec loop = function
+        | Space _ :: moreOrigTokens -> loop moreOrigTokens
+        | (Token ti, _) :: moreOrigTokens 
+            when ti.CharClass = TokenCharKind.Comment || ti.CharClass = TokenCharKind.LineComment ->
+            loop moreOrigTokens
+        | (Token ti, _) :: _ when ti.ColorClass = TokenColorKind.PreprocessorKeyword -> None
+        | t :: moreOrigTokens -> Some(t, moreOrigTokens)
+        | [] -> None
+    loop origTokens
+
+/// Filter all directives
+let collectDirectives tokens =
+    let rec loop origTokens (dic : Dictionary<_, _>)  = 
+        match origTokens with 
+        | (Token _, "#if") :: 
+          SkipUntilIdent(t, SkipUntilEOL(_, SkipWhiteSpaceOrComment((Tok(origTok, lineNo), _), moreOrigTokens))) -> 
+            dic.Add(mkPos lineNo origTok.LeftColumn, t) |> ignore
+            loop moreOrigTokens dic
+        | _ :: moreOrigTokens -> loop moreOrigTokens dic
+        | [] -> dic
+    loop tokens (Dictionary()) 
 
 /// Filter all constants to be used in lexing
 let filterConstants content =
     let rec loop origTokens (hs : HashSet<_>)  = 
         match origTokens with 
-        | (Token ti1, "#if") :: 
-          (Token ti2, _) ::
-          (Token ti3, t3) ::
-          (EOL, _) ::
-          moreOrigTokens 
-            when ti1.ColorClass = TokenColorKind.PreprocessorKeyword
-                 && ti2.TokenName = "WHITESPACE" && ti3.TokenName = "IDENT" -> 
-            hs.Add(t3) |> ignore
+        | (Token _, "#if") :: 
+          SkipUntilIdent(t, SkipUntilEOL(_, moreOrigTokens)) -> 
+            hs.Add(t) |> ignore
             loop moreOrigTokens hs
         | _ :: moreOrigTokens -> loop moreOrigTokens hs
-        | _ -> hs
+        | [] -> hs
     let hs = loop (tokenize [] content |> Seq.toList) (HashSet())
     Seq.toList hs
 
@@ -140,18 +178,26 @@ let filterDefines content =
     |> Seq.map (sprintf "--define:%s")
     |> Seq.toArray
 
+/// Filter all comments and directives; assuming all constants are defined
+let filterCommentsAndDirectives content =
+    let constants = filterConstants content
+    let tokens = tokenize constants content |> Seq.toList
+    (collectComments tokens, collectDirectives tokens)
+
 // This part processes the token stream post- pretty printing
 
 type LineCommentStickiness = | StickyLeft | StickyRight | NotApplicable
 
 type MarkedToken = 
     | Marked of Token * string * LineCommentStickiness
-    member x.Text = (let (Marked(_,t,_)) = x in t)
+    member x.Text = 
+        let (Marked(_,t,_)) = x
+        t
 
 let (|SpaceToken|_|) t = 
     match t with
     | Marked(EOL, origTokText, _) -> Some origTokText
-    | Marked(Token origTok, origTokText, _) when origTok.CharClass = TokenCharKind.WhiteSpace -> 
+    | Marked(Token origTok, origTokText, _) when origTok.TokenName = "WHITESPACE" -> 
         Some origTokText
     | _ -> None
 

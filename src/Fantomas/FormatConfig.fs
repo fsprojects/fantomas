@@ -68,12 +68,13 @@ type Context =
       /// Positions of new lines in the original source string
       Positions : int [] 
       /// Comments attached to appropriate locations
-      Comments : Dictionary<pos, string list> }
+      Comments : Dictionary<pos, string list>
+      Directives : Dictionary<pos, string> }
     /// Initialize with a string writer and use space as delimiter
     static member Default = { Config = FormatConfig.Default;
                               Writer = new ColumnIndentedTextWriter(new StringWriter());
                               BreakLines = true; BreakOn = (fun _ -> false); 
-                              Content = ""; Positions = [||]; Comments = Dictionary() }
+                              Content = ""; Positions = [||]; Comments = Dictionary(); Directives = Dictionary() }
 
     static member create config (content : string) =
         let positions = 
@@ -81,8 +82,10 @@ type Context =
             |> Seq.map (fun s -> String.length s + 1)
             |> Seq.scan (+) 0
             |> Seq.toArray
-        let comments = filterComments content
-        { Context.Default with Config = config; Content = content; Positions = positions; Comments = comments }
+        let (comments, directives) = filterCommentsAndDirectives content
+        { Context.Default with 
+            Config = config; Content = content; Positions = positions; 
+            Comments = comments; Directives = directives }
 
     member x.With(writer : ColumnIndentedTextWriter) =
         writer.Indent <- x.Writer.Indent

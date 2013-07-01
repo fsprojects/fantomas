@@ -17,10 +17,10 @@ let config = FormatConfig.Default
 
 let test s = formatSourceString false s config |> printfn "%A";;
 
-test """
-let rec [<Literal>] private assemblyConfig() =
+filterCommentsAndDirectives """
+let rec [<Literal>] private assemblyConfig() =    
     #if TRACE
-    let x = 0
+    /// Comments
     ""
     #else
       ""
@@ -32,7 +32,6 @@ test """
 let [<Literal>] private assemblyConfig =
     #if DEBUG
     #if TRACE
-    let x = 0
     "DEBUG;TRACE"
     #else
     "DEBUG"

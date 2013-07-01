@@ -116,3 +116,24 @@ let private assemblyConfig =
     ""
 #endif
 #endif"""
+
+[<Test>]
+let ``should break lines before compiler directives``() =
+    formatSourceString false """
+let [<Literal>] private assemblyConfig() =
+    #if TRACE
+    ""
+    #else
+      ""
+    #endif
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Literal>]
+let private assemblyConfig() =
+#if TRACE
+ 
+    ""
+#else
+    ""
+#endif"""
