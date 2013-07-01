@@ -1,4 +1,4 @@
-﻿module Fantomas.TokenMatcher
+﻿module internal Fantomas.TokenMatcher
 
 open System
 open System.Collections.Generic
