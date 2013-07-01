@@ -43,19 +43,24 @@ let (|Token|_|) = function
 // This part of the module takes care of annotating the AST with additional information
 // about comments
 
-/// Whitespace token including EOL
+/// Whitespace token without EOL
 let (|Space|_|) t = 
     match t with
-    | (EOL, origTokText) -> Some origTokText
     | (Token origTok, origTokText) when origTok.TokenName = "WHITESPACE" -> 
         Some origTokText
     | _ -> None
 
-let (|Spaces|_|) origTokens = 
+let (|NewLine|_|) t = 
+    match t with
+    | (EOL, tokText) -> Some tokText
+    | _ -> None
+
+let (|WhiteSpaces|_|) origTokens = 
     match origTokens with 
     | Space t1 :: moreOrigTokens -> 
         let rec loop ts acc = 
             match ts with 
+            | NewLine t2 :: ts2
             | Space t2 :: ts2 -> loop ts2 (t2 :: acc)
             | _ -> List.rev acc, ts
         Some (loop moreOrigTokens [t1])
@@ -74,30 +79,34 @@ let (|RawAttribute|_|) origTokens =
         loop moreOrigTokens ["[<"]
     | _ -> None
 
-let (|PreviousCommentChunk|_|) origTokens = 
+let (|Comment|_|) = function
+    | (Token ti, t) 
+        when ti.CharClass = TokenCharKind.Comment || ti.CharClass = TokenCharKind.LineComment -> 
+        Some t
+    | _ -> None
+
+let (|CommentChunk|_|) origTokens = 
     match origTokens with 
-    | (Token ti1, t1) :: moreOrigTokens
-        when ti1.CharClass = TokenCharKind.Comment || ti1.CharClass = TokenCharKind.LineComment -> 
+    | Comment t1 :: moreOrigTokens -> 
         let rec loop ts acc = 
-            match ts with 
-            | (Token _, t2) :: ts2 
-                when ti1.CharClass = TokenCharKind.Comment || ti1.CharClass = TokenCharKind.LineComment -> 
-                loop ts2 (t2 :: acc)
+            match ts with
+            | NewLine t2 :: ts2
+            | Comment t2 :: ts2
             | Space t2 :: ts2 -> loop ts2 (t2 :: acc)
             | _ -> List.rev acc, ts
         Some (loop moreOrigTokens [t1])
     | _ -> None
 
 /// Get all comment chunks before a token 
-let (|PreviousCommentChunks|_|) origTokens = 
+let (|CommentChunks|_|) origTokens = 
     match origTokens with 
-    | PreviousCommentChunk(ts1, moreOrigTokens) -> 
+    | CommentChunk(ts1, moreOrigTokens) -> 
         let rec loop ts acc = 
             match ts with 
-            | Spaces(_, PreviousCommentChunk(ts2, ts')) ->
+            | WhiteSpaces(_, CommentChunk(ts2, ts')) ->
                 // Just keep a newline between two comment chunks
                 loop ts' (ts2 :: [Environment.NewLine] :: acc)
-            | PreviousCommentChunk(ts2, ts') -> 
+            | CommentChunk(ts2, ts') -> 
                 loop ts' (ts2 :: acc)
             | _ -> (List.rev acc |> List.map (String.concat "")), ts
         Some (loop moreOrigTokens [ts1])
@@ -110,8 +119,9 @@ let collectComments tokens =
         | (Token origTok, _) :: moreOrigTokens
             when origTok.CharClass <> TokenCharKind.Comment && origTok.CharClass <> TokenCharKind.LineComment ->
             loop moreOrigTokens dic
-        | PreviousCommentChunks(ts, Spaces(_, (Tok(origTok, lineNo), _) :: moreOrigTokens))
-        | PreviousCommentChunks(ts, (Tok(origTok, lineNo), _) :: moreOrigTokens) ->
+        | NewLine _ :: moreOrigTokens -> loop moreOrigTokens dic
+        | CommentChunks(ts, WhiteSpaces(_, (Tok(origTok, lineNo), _) :: moreOrigTokens))
+        | CommentChunks(ts, (Tok(origTok, lineNo), _) :: moreOrigTokens) ->
             dic.Add(mkPos lineNo origTok.LeftColumn, ts)
             loop moreOrigTokens dic
         | _ -> dic
@@ -121,7 +131,7 @@ let (|SkipUntilIdent|_|) origTokens =
     let rec loop = function
         | (Token ti, t) :: moreOrigTokens when ti.TokenName = "IDENT" ->
             Some(t, moreOrigTokens)
-        | (EOL, _) :: _ -> None
+        | NewLine _ :: _ -> None
         | (Token ti, _) :: _ when ti.ColorClass = TokenColorKind.PreprocessorKeyword -> None
         | _ :: moreOrigTokens -> loop moreOrigTokens
         | [] -> None
@@ -129,7 +139,7 @@ let (|SkipUntilIdent|_|) origTokens =
 
 let (|SkipUntilEOL|_|) origTokens =
     let rec loop = function
-        | (EOL, t) :: moreOrigTokens -> Some(t, moreOrigTokens)
+        | NewLine t :: moreOrigTokens -> Some(t, moreOrigTokens)
         | (Token ti, _) :: _ when ti.ColorClass = TokenColorKind.PreprocessorKeyword -> None
         | _ :: moreOrigTokens -> loop moreOrigTokens
         | [] -> None
@@ -138,7 +148,8 @@ let (|SkipUntilEOL|_|) origTokens =
 /// Skip all whitespaces or comments in an active block
 let (|SkipWhiteSpaceOrComment|_|) origTokens =
     let rec loop = function
-        | Space _ :: moreOrigTokens -> loop moreOrigTokens
+        | Space _ :: moreOrigTokens
+        | NewLine _ :: moreOrigTokens -> loop moreOrigTokens
         | (Token ti, _) :: moreOrigTokens 
             when ti.CharClass = TokenCharKind.Comment || ti.CharClass = TokenCharKind.LineComment ->
             loop moreOrigTokens
@@ -196,16 +207,21 @@ type MarkedToken =
 
 let (|SpaceToken|_|) t = 
     match t with
-    | Marked(EOL, origTokText, _) -> Some origTokText
     | Marked(Token origTok, origTokText, _) when origTok.TokenName = "WHITESPACE" -> 
         Some origTokText
     | _ -> None
 
-let (|SpaceTokens|_|) origTokens = 
+let (|NewLineToken|_|) t = 
+    match t with
+    | Marked(EOL, tokText, _) -> Some tokText
+    | _ -> None
+
+let (|WhiteSpaceTokens|_|) origTokens = 
    match origTokens with 
    | SpaceToken t1 :: moreOrigTokens -> 
        let rec loop ts acc = 
            match ts with 
+           | NewLineToken t2 :: ts2
            | SpaceToken t2 :: ts2 -> loop ts2 (t2 :: acc)
            | _ -> List.rev acc, ts
        Some (loop moreOrigTokens [t1])
@@ -226,7 +242,7 @@ let (|Attribute|_|) origTokens =
 
 let rec (|Attributes|_|) = function
     | Attribute(xs, Attributes(xss, toks)) 
-    | Attribute(xs, SpaceTokens(_, Attributes(xss, toks))) -> Some(xs::xss, toks)
+    | Attribute(xs, WhiteSpaceTokens(_, Attributes(xss, toks))) -> Some(xs::xss, toks)
     | Attribute(xs, toks)  -> Some([xs], toks)
     | _ -> None
 
@@ -254,11 +270,6 @@ let (|BlockCommentToken|_|) t =
     match t with
     | Marked(Token origTok, origTokText, _) when origTok.CharClass = TokenCharKind.Comment -> 
         Some origTokText
-    | _ -> None
-
-let (|NewLineToken|_|) t = 
-    match t with
-    | Marked(EOL, tokText, _) -> Some tokText
     | _ -> None
 
 let (|BlockCommentOrNewLineToken|_|) t = 

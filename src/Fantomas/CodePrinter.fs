@@ -132,9 +132,6 @@ and breakNln brk e =
 /// Preserve a break even if the expression is a one-liner
 and preserveBreakNln e ctx = breakNln (checkPreserveBreakForExpr e ctx) e ctx
 
-/// Auto break if the expression is a one-liner
-and autoBreakNln e = breakNln (checkBreakForExpr e) e
-
 and genTyparList tps = 
     ifElse (List.atMostOne tps) (col wordOr tps genTypar) (sepOpenT +> col wordOr tps genTypar +> sepCloseT)
 
@@ -277,7 +274,7 @@ and genVal(Val(ats, px, ao, s, t, vi, _)) =
                         +> sepColon +> genTypeList ts +> unindent)
 
 and genRecordFieldName(RecordFieldName(s, eo)) =
-    opt sepNone eo (fun e -> !- s +> sepEq +> autoBreakNln e)
+    opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNln e)
 
 and genExpr e0 = 
     match e0 with 
@@ -326,17 +323,17 @@ and genExpr e0 =
     // Handle the form 'for i in e1 -> e2'
     | ForEach(p, e1, e2, isArrow) ->
         atCurrentColumn (!- "for " +> genPat p -- " in " +> genExpr e1 
-            +> ifElse isArrow (sepArrow +> autoBreakNln e2) (!- " do" +> indent +> sepNln +> genExpr e2 +> unindent))
+            +> ifElse isArrow (sepArrow +> preserveBreakNln e2) (!- " do" +> indent +> sepNln +> genExpr e2 +> unindent))
 
     | CompExpr(isArrayOrList, e) ->
-        ifElse isArrayOrList (genExpr e) (autoBreakNln e) 
+        ifElse isArrayOrList (genExpr e) (preserveBreakNln e) 
     | ArrayOrListOfSeqExpr(isArray, e) -> 
         ifElse isArray (sepOpenA +> genExpr e +> sepCloseA) (sepOpenL +> genExpr e +> sepCloseL)
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
     | DesugaredLambda(cps, e) -> 
-        !- "fun " +>  col sepSpace cps genComplexPats +> sepArrow +> autoBreakNln e 
+        !- "fun " +>  col sepSpace cps genComplexPats +> sepArrow +> preserveBreakNln e 
     | Lambda(e, sps) -> 
-        !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> autoBreakNln e
+        !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> preserveBreakNln e
     | MatchLambda(sp, _) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr e -- " with" +> colPre sepNln sepNln cs genClause)
@@ -410,16 +407,16 @@ and genExpr e0 =
     // A generalization of IfThenElse
     | ElIf((e1,e2, _)::es, en) ->
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr e1 ++ "then") (genExpr e1 +- "then") -- " " 
-            +> autoBreakNln e2
+            +> preserveBreakNln e2
             +> fun ctx -> col sepNone es (fun (e1, e2, r) ->
                              ifElse (startWith "elif" r ctx) (!+ "elif ") (!+ "else if ")
                              +> ifElse (checkBreakForExpr e1) (genExpr e1 ++ "then") (genExpr e1 +- "then") 
-                             -- " " +> autoBreakNln e2) ctx
-            ++ "else " +> autoBreakNln en)
+                             -- " " +> preserveBreakNln e2) ctx
+            ++ "else " +> preserveBreakNln en)
 
     | IfThenElse(e1, e2, None) -> 
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr e1 ++ "then") (genExpr e1 +- "then") 
-                         -- " " +> autoBreakNln e2)
+                         -- " " +> preserveBreakNln e2)
     // At this stage, all symbolic operators have been handled.
     | OptVar(s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
@@ -718,7 +715,7 @@ and genInterfaceImpl(InterfaceImpl(t, bs)) =
     +> indent +> sepNln +> genMemberBindingList true bs +> unindent
 
 and genClause(Clause(p, e, eo)) = 
-    sepBar +> genPat p +> optPre (!- " when ") sepNone eo genExpr +> sepArrow +> autoBreakNln e
+    sepBar +> genPat p +> optPre (!- " when ") sepNone eo genExpr +> sepArrow +> preserveBreakNln e
 
 /// Each multiline member definition has a pre and post new line. 
 and genMemberDefnList inter = function

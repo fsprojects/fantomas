@@ -27,22 +27,13 @@ let rec [<Literal>] private assemblyConfig() =
     #endif
 """
 
-// FAILS - doesn't handle nested directives and line breaks are a bit off
 test """
-let [<Literal>] private assemblyConfig =
-    #if DEBUG
-    #if TRACE
-    "DEBUG;TRACE"
-    #else
-    "DEBUG"
-    #endif
-    #else
-    #if TRACE
-    "TRACE"
-    #else
-    ""
-    #endif
-    #endif
+if true then ()
+else
+    // Comment 1
+    if true then ()
+    // Comment 2
+    else ()
 """
 
 // FAILS - sticky-right comment becomes sticky-left
