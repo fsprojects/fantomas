@@ -75,6 +75,7 @@ let useHiddenInitCode = false
 #else
 let useHiddenInitCode = true
 #endif
+
 let y = 2"""
 
 [<Test>]
@@ -83,7 +84,6 @@ let ``should handle nested compiler directives``() =
 let [<Literal>] private assemblyConfig =
     #if DEBUG
     #if TRACE
-    let x = 0
     "DEBUG;TRACE"
     #else
     "DEBUG"
@@ -104,7 +104,6 @@ let private assemblyConfig =
 
 #if TRACE
  
-    let x = 0
     "DEBUG;TRACE"
 #else
     "DEBUG"
@@ -121,11 +120,12 @@ let private assemblyConfig =
 let ``should break lines before compiler directives``() =
     formatSourceString false """
 let [<Literal>] private assemblyConfig() =
-    #if TRACE
-    ""
-    #else
-      ""
-    #endif
+  #if TRACE
+  let x = ""
+  #else
+  let x = "x"
+  #endif
+  x
 """  config
     |> prepend newline
     |> should equal """
@@ -133,7 +133,9 @@ let [<Literal>] private assemblyConfig() =
 let private assemblyConfig() =
 #if TRACE
  
-    ""
+    let x = ""
 #else
-    ""
-#endif"""
+    let x = "x"
+#endif
+    
+    x"""

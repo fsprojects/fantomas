@@ -459,13 +459,29 @@ let integrateComments (originalText : string) (newText : string) =
         // Assume that only #endif directive follows by an EOL 
         | (PreprocessorDirectiveChunk (tokensText, moreOrigTokens)), newTokens ->            
             let text = String.concat "" tokensText
-            if text.StartsWith("#if") then
-                let indent = getIndent newTokens 
-                saveIndent indent
             Debug.WriteLine("injecting preprocessor directive '{0}'", text)
             addText System.Environment.NewLine
             for x in tokensText do addText x
-            loop moreOrigTokens newTokens
+            let moreNewTokens =
+                if text.StartsWith("#endif") then
+                    match newTokens with
+                    | WhiteSpaces(ws, moreNewTokens) ->
+                        // There are some whitespaces, use them up
+                        for s in ws do addText s
+                        moreNewTokens
+                    | _ :: _ ->
+                        // This fixes the case where newTokens advance too fast
+                        // and emit whitespaces even before #endif 
+                        restoreIndent id
+                        newTokens
+                    | [] -> []
+                else if text.StartsWith("#if") then
+                    // Save current indentation for #else branch
+                    let indent = getIndent newTokens 
+                    saveIndent indent
+                    newTokens
+                else newTokens
+            loop moreOrigTokens moreNewTokens
 
         // Inject inactive code
         // These chunks come out from any #else branch in our scenarios
