@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.Diagnostics
 
 open Microsoft.FSharp.Compiler.Range
+open Microsoft.FSharp.Compiler.PrettyNaming
 open Microsoft.FSharp.Compiler.SourceCodeServices
 
 #if INTERACTIVE
@@ -435,9 +436,10 @@ let integrateComments (originalText : string) (newText : string) =
         match t1, t2 with 
         | (Marked(Token origTok, origTokText, _), (Token newTok, newTokText)) -> 
             origTok.CharClass = newTok.CharClass && origTokText = newTokText
+        // Use this pattern to avoid discrepancy between two versions of the same identifier
         | (Marked(Token origTok, origTokText, _), (Token newTok, newTokText)) -> 
             origTok.CharClass = TokenCharKind.Identifier && newTok.CharClass = TokenCharKind.Identifier 
-            && origTokText.Trim('`') = newTokText.Trim('`')
+            && DecompileOpName(origTokText.Trim('`')) = DecompileOpName(newTokText.Trim('`'))
         | _ -> false
 
     let rec loop origTokens newTokens = 
