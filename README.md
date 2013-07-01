@@ -76,13 +76,15 @@ For more complex examples, please take a look at F# outputs of [20 language shoo
 ### Command line tool / API 
 You can fork this repo and compile the project with F# 3.0/.NET framework 4.0. 
 Alternatively, Fantomas is also available via [a NuGet package](https://nuget.org/packages/Fantomas/) which contains both the library and the command line interface.
-For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.md).
+For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.md#using-the-command-line-tool).
 
 ### Trying Fantomas online
 [FantomasWeb](https://github.com/TahaHachana/FantomasWeb), implemented by [Taha Hachana](https://github.com/TahaHachana), is accessible at http://fantomasweb.apphb.com/.
 
 ### VS 2012 extension
-[Ivan Towlson](https://github.com/itowlson) kindly contributes [Fantomas VS extension](src/Fantomas.VisualStudio). You can also use formatting commands from his [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
+[Ivan Towlson](https://github.com/itowlson) kindly contributes the initial version of [Fantomas VS extension](src/Fantomas.VisualStudio). The user guide can be found [here](docs/Documentation.md#using-visual-studio-2012-extension).
+
+You can also use Fantomas extension in Ivan's [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
 
 ## Installation
 The code base is written in F# 3.0/.NET framework 4.0. 

@@ -5,11 +5,11 @@
 
 After being installed, Fantomas extension will appear under `Tools -> Extensions and Updates` menu. You can uninstall, disable or re-install the extension there.
 
-->![Extension dialog](extension_dialog.png)<-
+![Extension dialog](extension_dialog.png)
 
 The main formatting options are under `Tools -> Options -> Fantomas`. 
 
-->![Fantomas options](fantomas_options.png)<-
+![Fantomas options](fantomas_options.png)
 
 To be consistent with Visual Studio editors, the last option, *indent size*, can be adjusted under `Tools -> Options -> Text Editor -> Indent size` option.
 
@@ -20,7 +20,7 @@ Two main functionalities of the extension are:
 
 **N.B:**
 
-Due to technical restrictions, formatting selection feature is only guaranteed to work for:
+Due to implementation details, formatting selection feature is only guaranteed to work for:
 
  - modules
  - types
