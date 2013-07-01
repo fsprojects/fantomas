@@ -29,26 +29,31 @@ namespace Hestia.FSharpCommands.Commands
 
         protected override Action GetNewCaretPositionSetter()
         {
-            var caretPos = TextView.Caret.Position.BufferPosition;
-            var caretLine = TextView.TextSnapshot.GetLineFromPosition(caretPos.Position);
-            int line = TextView.TextBuffer.CurrentSnapshot.GetLineNumberFromPosition(caretLine.Start);
-            int column = caretLine.End - caretLine.Start;
+            var currentSnapshot = TextView.TextBuffer.CurrentSnapshot;
 
+            var caretPos = TextView.Caret.Position.BufferPosition;
+            var caretLine = currentSnapshot.GetLineFromPosition(caretPos.Position);
+            int line = currentSnapshot.GetLineNumberFromPosition(caretPos);
+            int column = caretPos - caretLine.Start;
+            
             // Get start line of scroll bar
             var scrollBarLine = TextView.TextViewLines.FirstOrDefault(l => l.VisibilityState != VisibilityState.Hidden);
-            int scrollBarPos = (scrollBarLine == null) ? 0 : TextView.TextBuffer.CurrentSnapshot.GetLineNumberFromPosition(scrollBarLine.Start);
-            int length = TextView.TextBuffer.CurrentSnapshot.Length;
+            int scrollBarPos = (scrollBarLine == null) ? 0 : currentSnapshot.GetLineNumberFromPosition(scrollBarLine.Start);
+            int maxLine = currentSnapshot.LineCount;
 
             Action setNewCaretPosition = () =>
                 {
+                    var newCurrentSnapshot = TextView.TextBuffer.CurrentSnapshot;
+                    int newMaxLine = newCurrentSnapshot.LineCount;
+
                     // Scale caret positions in a linear way
-                    int newLine = line * TextView.TextBuffer.CurrentSnapshot.Length / length;
-                    var newCaretPos = TextView.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(newLine).Start.Add(column);
-                    var caretPoint = new VirtualSnapshotPoint(TextView.TextBuffer.CurrentSnapshot, newCaretPos);
+                    int newLine = (int) ((float)line * (float)newMaxLine / (float)maxLine);
+                    var newCaretPos = newCurrentSnapshot.GetLineFromLineNumber(newLine).Start.Add(column);
+                    var caretPoint = new VirtualSnapshotPoint(newCurrentSnapshot, newCaretPos);
                     TextView.Caret.MoveTo(caretPoint);
 
                     // Assume that the document scales in a linear way
-                    int newScrollBarPos = scrollBarPos * TextView.TextBuffer.CurrentSnapshot.Length / length;
+                    int newScrollBarPos = (int) ((float)scrollBarPos * (float)newMaxLine / (float)maxLine);
                     TextView.ViewScroller.ScrollViewportVerticallyByLines(ScrollDirection.Down, newScrollBarPos);
                 };
 
