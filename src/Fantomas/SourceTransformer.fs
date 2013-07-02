@@ -130,6 +130,16 @@ let rec (|OpenL|_|) = function
     | Open _ as x::ys -> Some([x], ys)
     | _ -> None
 
+let rec (|SigOpenL|_|) = function
+    | SigOpen _ as x::SigOpenL(xs, ys) -> Some(x::xs, ys)
+    | SigOpen _ as x::ys -> Some([x], ys)
+    | _ -> None
+
+let rec (|MDOpenL|_|) = function
+    | MDOpen _ as x::MDOpenL(xs, ys) -> Some(x::xs, ys)
+    | MDOpen _ as x::ys -> Some([x], ys)
+    | _ -> None
+
 /// Omit a break before an expression if the expression is small and it is already one line in the text
 let checkPreserveBreakForExpr e (ctx : Context) =
     multiline e || ctx.Comments.ContainsKey(e.Range.Start) || ctx.Directives.ContainsKey(e.Range.Start)
