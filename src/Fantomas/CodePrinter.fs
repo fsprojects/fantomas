@@ -4,6 +4,29 @@ open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
 
+let sortOpenDeclarations xs asOpenDecl =
+
+    let (|OpenDecl|_|) x : string option = asOpenDecl x
+
+    let rec groupAndSortContiguousOpenDecls decls = 
+
+        // 1 = open declartion, 2,3,4 = other declarations
+        // returns [1;1],[2;3;4] for [1;1;2;3;4]
+        // returns [],[2;1;1;2;3;4] for [2;1;1;2;3;4]
+        let rec findContiguousOpenDecls openDecls = function
+            | (OpenDecl _ as x)::xs -> findContiguousOpenDecls (x::openDecls) xs
+            | decls -> openDecls, decls
+
+        // returns [[2],[1;1];[2];[3];[1;1];[4]] for [2;1;1;2;3;1;1;4]
+        match findContiguousOpenDecls [] decls with
+        | [], [] -> []
+        | [], decl::decls -> [decl]::(groupAndSortContiguousOpenDecls decls)
+        | openDecls, decls ->
+             let openDeclsSorted = openDecls |> List.sortBy (asOpenDecl >> Option.get)
+             openDeclsSorted::(groupAndSortContiguousOpenDecls decls)
+
+    xs |> groupAndSortContiguousOpenDecls |> List.collect id
+
 let rec genParsedInput = function
     | ImplFile im -> genImpFile im
     | SigFile si -> genSigFile si
@@ -29,6 +52,7 @@ and genModuleOrNamespace(ModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
     +> genModuleDeclList mds
 
 and genSigModuleOrNamespace(SigModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
+    let mds = sortOpenDeclarations mds (|SigOpen|_|)
     genPreXmlDoc px
     +> colPost sepNln sepNln ats genAttribute
     +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
@@ -43,11 +67,13 @@ and genModuleDeclList = function
     | ModuleAbbrevL(xs, ys) 
     | OpenL(xs, ys) 
     | OneLinerLetL(xs, ys) ->
+        let xs = sortOpenDeclarations xs (|Open|_|)
         match ys with
         | [] -> col sepNln xs genModuleDecl
         | _ -> col sepNln xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys
 
     | MultilineModuleDeclL(xs, ys) ->
+        let xs = sortOpenDeclarations xs (|Open|_|)
         match ys with
         | [] -> col (rep 2 sepNln) xs genModuleDecl
         | _ -> col (rep 2 sepNln) xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys
@@ -98,6 +124,7 @@ and genSigModuleDecl = function
     | SigNamespaceFragment(m) ->
         failwithf "NamespaceFragment is not supported yet: %O" m
     | SigNestedModule(ats, px, ao, s, mds) -> 
+        let mds = sortOpenDeclarations mds (|SigOpen|_|)
         genPreXmlDoc px
         +> colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
         +> indent +> sepNln +> col sepNln mds genSigModuleDecl +> unindent
