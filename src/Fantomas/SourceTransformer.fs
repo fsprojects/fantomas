@@ -120,9 +120,19 @@ let rec (|HashDirectiveL|_|) = function
     | HashDirective _ as x::ys -> Some([x], ys)
     | _ -> None
 
+let rec (|SigHashDirectiveL|_|) = function
+    | SigHashDirective _ as x::SigHashDirectiveL(xs, ys) -> Some(x::xs, ys)
+    | SigHashDirective _ as x::ys -> Some([x], ys)
+    | _ -> None
+
 let rec (|ModuleAbbrevL|_|) = function
     | ModuleAbbrev _ as x::ModuleAbbrevL(xs, ys) -> Some(x::xs, ys)
     | ModuleAbbrev _ as x::ys -> Some([x], ys)
+    | _ -> None
+
+let rec (|SigModuleAbbrevL|_|) = function
+    | SigModuleAbbrev _ as x::SigModuleAbbrevL(xs, ys) -> Some(x::xs, ys)
+    | SigModuleAbbrev _ as x::ys -> Some([x], ys)
     | _ -> None
 
 let rec (|OpenL|_|) = function
@@ -176,9 +186,20 @@ let (|MultilineModuleDecl|_|) = function
     | Let(OneLinerBinding _) -> None
     | md -> Some md
 
+let (|SigMultilineModuleDecl|_|) = function
+    | SigHashDirective _
+    | SigModuleAbbrev _
+    | SigOpen _ -> None
+    | md -> Some md
+
 let rec (|MultilineModuleDeclL|_|) = function
     | MultilineModuleDecl x::MultilineModuleDeclL(xs, ys) -> Some(x::xs, ys)
     | MultilineModuleDecl x::ys -> Some([x], ys)
+    | _ -> None
+
+let rec (|SigMultilineModuleDeclL|_|) = function
+    | SigMultilineModuleDecl x::SigMultilineModuleDeclL(xs, ys) -> Some(x::xs, ys)
+    | SigMultilineModuleDecl x::ys -> Some([x], ys)
     | _ -> None
 
 /// Gather PropertyGetSet in one printing call. 
