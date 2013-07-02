@@ -22,8 +22,8 @@ module internal MyModule =
 [<Test>]
 let ``open modules``() =
     formatSourceString false """
-    open System
-    open System.IO""" config
+    open System.IO
+    open System""" config
     |> prepend newline
     |> should equal """
 open System
