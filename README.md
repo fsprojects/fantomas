@@ -83,6 +83,10 @@ For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.m
 
 ### VS 2012 extension
 [Ivan Towlson](https://github.com/itowlson) kindly contributes the initial version of [Fantomas VS extension](src/Fantomas.VisualStudio). The user guide can be found [here](docs/Documentation.md#using-visual-studio-2012-extension).
+This is available in the Visual Studio Gallery - search for "fantomas" in "Tools --> Extensions and Updates --> Online". 
+
+    Ctrl+K D   -- format document
+    Ctrl+K F   -- format selection
 
 You can also use Fantomas extension in Ivan's [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
 
