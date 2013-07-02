@@ -94,13 +94,20 @@ and genModuleDecl = function
 and genSigModuleDeclList = function
     | [x] -> genSigModuleDecl x
 
+    | SigHashDirectiveL(xs, ys) 
+    | SigModuleAbbrevL(xs, ys) 
     | SigOpenL(xs, ys) ->
         let xs = xs |> sortAndDedup ((|SigOpen|_|) >> Option.get)
         match ys with
         | [] -> col sepNln xs genSigModuleDecl
         | _ -> col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
 
-    | xs -> col sepNln xs genSigModuleDecl
+    | SigMultilineModuleDeclL(xs, ys) ->
+        match ys with
+        | [] -> col (rep 2 sepNln) xs genSigModuleDecl
+        | _ -> col (rep 2 sepNln) xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
+
+    | _ -> sepNone
 
 and genSigModuleDecl = function
     | SigException(ex) ->
