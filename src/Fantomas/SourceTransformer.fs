@@ -150,6 +150,11 @@ let rec (|MDOpenL|_|) = function
     | MDOpen _ as x::ys -> Some([x], ys)
     | _ -> None
 
+let rec (|SigValL|_|) = function
+    | SigVal _ as x::SigValL(xs, ys) -> Some(x::xs, ys)
+    | SigVal _ as x::ys -> Some([x], ys)
+    | _ -> None
+
 /// Omit a break before an expression if the expression is small and it is already one line in the text
 let checkPreserveBreakForExpr e (ctx : Context) =
     multiline e || ctx.Comments.ContainsKey(e.Range.Start) || ctx.Directives.ContainsKey(e.Range.Start)
@@ -189,6 +194,7 @@ let (|MultilineModuleDecl|_|) = function
 let (|SigMultilineModuleDecl|_|) = function
     | SigHashDirective _
     | SigModuleAbbrev _
+    | SigVal _
     | SigOpen _ -> None
     | md -> Some md
 
