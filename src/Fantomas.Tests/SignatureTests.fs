@@ -19,11 +19,11 @@ let ``should keep the (string * string) list type signature in records``() =
 
     """ config
     |> should equal """type MSBuildParams = 
-    { Targets : string list;
-      Properties : (string * string) list;
-      MaxCpuCount : int option option;
-      ToolsVersion : string option;
-      Verbosity : MSBuildVerbosity option;
+    { Targets : string list
+      Properties : (string * string) list
+      MaxCpuCount : int option option
+      ToolsVersion : string option
+      Verbosity : MSBuildVerbosity option
       FileLoggers : MSBuildFileLoggerConfig list option }"""
 
 [<Test>]
@@ -55,8 +55,8 @@ let ``should not add parens in signature``() =
 
     """ config
     |> should equal """type Route = 
-    { Verb : string;
-      Path : string;
+    { Verb : string
+      Path : string
       Handler : Map<string, string> -> HttpListenerContext -> string }
     override x.ToString() = sprintf "%s %s" x.Verb x.Path"""
 
@@ -77,7 +77,7 @@ let ``should keep the (string option * Node) list type signature``() =
     { Name : string;
       NextNodes : (string option * Node) list }
 
-    """ config
+    """ { config with SemicolonAtEndOfLine = true }
     |> should equal """type Node = 
     { Name : string;
       NextNodes : (string option * Node) list }"""

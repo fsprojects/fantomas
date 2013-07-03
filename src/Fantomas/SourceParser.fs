@@ -612,6 +612,11 @@ let private (|InfixApp|_|) = function
         Some(s, e1, e2)
     | _ -> None
 
+let (|TernaryApp|_|) = function
+    | SynExpr.App(_, _, SynExpr.App(_, _, SynExpr.App(_, true, Var "?<-", e1, _), e2, _), e3, _) ->
+        Some(e1, e2, e3)
+    | _ -> None
+
 /// We should return the whole triple for convenient check
 let (|InfixApps|_|) e =
     let rec loop = function

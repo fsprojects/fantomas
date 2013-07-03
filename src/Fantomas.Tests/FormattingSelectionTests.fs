@@ -112,7 +112,7 @@ let r =
       "a"
       "b"
       "" ]
-    |> List.map id""" { config with SemicolonAtEndOfLine = false }
+    |> List.map id""" config
     |> should equal """
 let r = 
     ["abc"

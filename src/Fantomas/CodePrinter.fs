@@ -383,6 +383,9 @@ and genExpr = function
         let hasNewLine = multiline e || not (List.atMostOne es)
         atCurrentColumn (genExpr e +> genInfixApps hasNewLine es)
 
+    | TernaryApp(e1,e2,e3) -> 
+        atCurrentColumn (genExpr e1 +> !- "?" +> genExpr e2 +> sepSpace +> !- "<-" +> sepSpace +> genExpr e3)
+
     // This filters a few long examples of App
     | DotGetAppSpecial(s, es) ->
         !- s 
