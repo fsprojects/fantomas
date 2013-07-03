@@ -121,3 +121,7 @@ let ``should not add space around ? operator``() =
     formatSourceString false """let x = y?z.d?c.[2]?d.xpto()""" config
     |> should equal """let x = y?z.d?c.[2]?d.xpto()"""
 
+[<Test>]
+let ``should not mess up ?<- operator``() =
+    formatSourceString false """x?v <- 2""" config
+    |> should equal """x?v <- 2"""
