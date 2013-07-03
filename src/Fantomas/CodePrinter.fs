@@ -1,8 +1,12 @@
 ﻿module internal Fantomas.CodePrinter
 
+open System.Collections.Generic
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
+
+let sortAndDedup by l =
+    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq
 
 let rec genParsedInput = function
     | ImplFile im -> genImpFile im
@@ -33,7 +37,7 @@ and genSigModuleOrNamespace(SigModuleOrNamespace(ats, px, ao, s, mds, isModule))
     +> colPost sepNln sepNln ats genAttribute
     +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
     +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
-    +> col sepNln mds genSigModuleDecl
+    +> genSigModuleDeclList mds
 
 and genModuleDeclList = function
     | [x] -> genModuleDecl x
@@ -43,6 +47,7 @@ and genModuleDeclList = function
     | ModuleAbbrevL(xs, ys) 
     | OpenL(xs, ys) 
     | OneLinerLetL(xs, ys) ->
+        let xs = xs |> sortAndDedup ((|Open|_|) >> Option.get)
         match ys with
         | [] -> col sepNln xs genModuleDecl
         | _ -> col sepNln xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys
@@ -86,6 +91,24 @@ and genModuleDecl = function
     | md ->
         failwithf "Unexpected module declaration: %O" md
 
+and genSigModuleDeclList = function
+    | [x] -> genSigModuleDecl x
+
+    | SigHashDirectiveL(xs, ys) 
+    | SigModuleAbbrevL(xs, ys) 
+    | SigOpenL(xs, ys) ->
+        let xs = xs |> sortAndDedup ((|SigOpen|_|) >> Option.get)
+        match ys with
+        | [] -> col sepNln xs genSigModuleDecl
+        | _ -> col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
+
+    | SigMultilineModuleDeclL(xs, ys) ->
+        match ys with
+        | [] -> col (rep 2 sepNln) xs genSigModuleDecl
+        | _ -> col (rep 2 sepNln) xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
+
+    | _ -> sepNone
+
 and genSigModuleDecl = function
     | SigException(ex) ->
         genSigException ex
@@ -100,7 +123,7 @@ and genSigModuleDecl = function
     | SigNestedModule(ats, px, ao, s, mds) -> 
         genPreXmlDoc px
         +> colPost sepNln sepNln ats genAttribute -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
-        +> indent +> sepNln +> col sepNln mds genSigModuleDecl +> unindent
+        +> indent +> sepNln +> genSigModuleDeclList mds +> unindent
 
     | SigOpen(s) ->
         !- (sprintf "open %s" s)
@@ -721,7 +744,14 @@ and genClause(Clause(p, e, eo)) =
 
 /// Each multiline member definition has a pre and post new line. 
 and genMemberDefnList inter = function
+
     | [x] -> sepNln +> genMemberDefn inter x
+
+    | MDOpenL(xs, ys) ->
+        let xs = xs |> sortAndDedup ((|MDOpen|_|) >> Option.get)
+        match ys with
+        | [] -> col sepNln xs (genMemberDefn inter)
+        | _ -> col sepNln xs (genMemberDefn inter) +> rep 2 sepNln +> genMemberDefnList inter ys
 
     | MultilineMemberDefnL(xs, []) ->
         rep 2 sepNln 
