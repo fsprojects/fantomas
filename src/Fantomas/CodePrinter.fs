@@ -62,6 +62,28 @@ and genModuleDeclList = function
         | _ -> col (rep 2 sepNln) xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys
     | _ -> sepNone    
 
+and genSigModuleDeclList = function
+    | [x] -> genSigModuleDecl x
+
+    | SigOpenL(xs, ys) ->
+        let xs = xs |> sortAndDedup ((|SigOpen|_|) >> Option.get)
+        match ys with
+        | [] -> col sepNln xs genSigModuleDecl
+        | _ -> col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
+
+    | SigHashDirectiveL(xs, ys) 
+    | SigModuleAbbrevL(xs, ys) ->
+        match ys with
+        | [] -> col sepNln xs genSigModuleDecl
+        | _ -> col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
+
+    | SigMultilineModuleDeclL(xs, ys) ->
+        match ys with
+        | [] -> col (rep 2 sepNln) xs genSigModuleDecl
+        | _ -> col (rep 2 sepNln) xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
+
+    | _ -> sepNone
+
 and genModuleDecl = function
     | Attributes(ats) ->
         col sepNln ats genAttribute
@@ -94,28 +116,6 @@ and genModuleDecl = function
         genTypeDefn true t +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genTypeDefn false)
     | md ->
         failwithf "Unexpected module declaration: %O" md
-
-and genSigModuleDeclList = function
-    | [x] -> genSigModuleDecl x
-
-    | SigOpenL(xs, ys) ->
-        let xs = xs |> sortAndDedup ((|SigOpen|_|) >> Option.get)
-        match ys with
-        | [] -> col sepNln xs genSigModuleDecl
-        | _ -> col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
-
-    | SigHashDirectiveL(xs, ys) 
-    | SigModuleAbbrevL(xs, ys) ->
-        match ys with
-        | [] -> col sepNln xs genSigModuleDecl
-        | _ -> col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
-
-    | SigMultilineModuleDeclL(xs, ys) ->
-        match ys with
-        | [] -> col (rep 2 sepNln) xs genSigModuleDecl
-        | _ -> col (rep 2 sepNln) xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
-
-    | _ -> sepNone
 
 and genSigModuleDecl = function
     | SigException(ex) ->
