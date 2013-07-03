@@ -7,7 +7,8 @@ open Fantomas.FormatConfig
 open Fantomas.CodeFormatter
 
 let config = FormatConfig.Default
-let newline = System.Environment.NewLine
+let newline = "\n"
+let formatSourceString fsi s config = (formatSourceString fsi s config).Replace("\r\n", "\n")
 
 let inline prepend s content = s + content
 let inline append s content = content + s
