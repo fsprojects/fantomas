@@ -72,7 +72,8 @@ and genSigModuleDeclList = function
         | _ -> col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
 
     | SigHashDirectiveL(xs, ys) 
-    | SigModuleAbbrevL(xs, ys) ->
+    | SigModuleAbbrevL(xs, ys) 
+    | SigValL(xs, ys) ->
         match ys with
         | [] -> col sepNln xs genSigModuleDecl
         | _ -> col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
