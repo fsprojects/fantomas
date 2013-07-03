@@ -42,12 +42,16 @@ and genSigModuleOrNamespace(SigModuleOrNamespace(ats, px, ao, s, mds, isModule))
 and genModuleDeclList = function
     | [x] -> genModuleDecl x
 
+    | OpenL(xs, ys) ->
+        let xs = xs |> sortAndDedup ((|Open|_|) >> Option.get)
+        match ys with
+        | [] -> col sepNln xs genModuleDecl
+        | _ -> col sepNln xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys
+
     | DoExprAttributesL(xs, ys) 
     | HashDirectiveL(xs, ys) 
     | ModuleAbbrevL(xs, ys) 
-    | OpenL(xs, ys) 
     | OneLinerLetL(xs, ys) ->
-        let xs = xs |> sortAndDedup ((|Open|_|) >> Option.get)
         match ys with
         | [] -> col sepNln xs genModuleDecl
         | _ -> col sepNln xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys
@@ -94,10 +98,14 @@ and genModuleDecl = function
 and genSigModuleDeclList = function
     | [x] -> genSigModuleDecl x
 
-    | SigHashDirectiveL(xs, ys) 
-    | SigModuleAbbrevL(xs, ys) 
     | SigOpenL(xs, ys) ->
         let xs = xs |> sortAndDedup ((|SigOpen|_|) >> Option.get)
+        match ys with
+        | [] -> col sepNln xs genSigModuleDecl
+        | _ -> col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
+
+    | SigHashDirectiveL(xs, ys) 
+    | SigModuleAbbrevL(xs, ys) ->
         match ys with
         | [] -> col sepNln xs genSigModuleDecl
         | _ -> col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
