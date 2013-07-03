@@ -237,7 +237,7 @@ type IlxGenOptions =
       /// Whenever possible, use callvirt instead of call
       alwaysCallVirt: bool}
 
-"""  config
+"""   { config with SemicolonAtEndOfLine = true }
     |> prepend newline
     |> should equal """
 [<NoEquality>]

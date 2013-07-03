@@ -175,7 +175,7 @@ let IsMatchByName record1 (name: string) =
     |> prepend newline
     |> should equal """
 type MyRecord = 
-    { Name : string;
+    { Name : string
       ID : int }
 
 let IsMatchByName record1 (name : string) = 
