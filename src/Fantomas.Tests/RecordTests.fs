@@ -51,7 +51,7 @@ type Element =
     static member WithText : text: string -> self: Element-> Element
 
     /// Replaces the children with a single text node.
-    static member ( -- ) : self: Element * text: string -> Element""" config
+    static member ( -- ) : self: Element * text: string -> Element""" { config with SemicolonAtEndOfLine = true }
     |> prepend newline
     |> should equal """
 /// Represents simple XML elements.
@@ -93,12 +93,12 @@ let myRecord3 = { myRecord2 with Y = 100; Z = 2 }""" config
     |> prepend newline
     |> should equal """
 type Car = 
-    { Make : string;
-      Model : string;
+    { Make : string
+      Model : string
       mutable Odometer : int }
 
 let myRecord3 = 
-    { myRecord2 with Y = 100;
+    { myRecord2 with Y = 100
                      Z = 2 }"""
 
 // the current behavior results in a compile error since the if is not aligned properly
@@ -124,7 +124,7 @@ let ``should not break inside of if statements in records``() =
         Samples = [];
     }
 
-    """ config
+    """ { config with SemicolonAtEndOfLine = true }
     |> should equal """let XpkgDefaults() = 
     { ToolPath = "./tools/xpkg/xpkg.exe";
       WorkingDir = "./";

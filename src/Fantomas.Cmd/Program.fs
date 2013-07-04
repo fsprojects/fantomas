@@ -19,7 +19,7 @@ open Fantomas.FormatConfig
 /// Preferences:
 ///  --indent=[1-10]                 Set number of spaces to use for indentation
 ///  --pageWidth=[60-inf]            Set the column where we break to new lines
-///  [+|-]semicolonEOL               Enable/disable semicolons at the end of line (default = true)
+///  [+|-]semicolonEOL               Enable/disable semicolons at the end of line (default = false)
 ///  [+|-]spaceBeforeArgument        Enable/disable spaces before the first argument (default = false)
 ///  [+|-]spaceBeforeColon           Enable/disable spaces before colons (default = true)
 ///  [+|-]spaceAfterComma            Enable/disable spaces after commas (default = true)
@@ -37,7 +37,7 @@ let [<Literal>] stdOutText = " Write the formatted source code to standard outpu
 let [<Literal>] indentText = "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
 let [<Literal>] widthText = "Set the column where we break to new lines (default = 80). The value should be at least 60."
 
-let [<Literal>] semicolonEOLText = "Disable semicolons at the end of line (default = true)."
+let [<Literal>] semicolonEOLText = "Enable semicolons at the end of line (default = false)."
 let [<Literal>] argumentText = "Enable spaces before the first argument (default = false)."
 let [<Literal>] colonText = "Disable spaces before colons (default = true)."
 let [<Literal>] commaText = "Disable spaces after commas (default = true)."
@@ -91,7 +91,7 @@ let main args =
     let indent = ref 4
     let pageWidth = ref 80
     
-    let semicolonEOL = ref true
+    let semicolonEOL = ref false
     let spaceBeforeArgument = ref false
     let spaceBeforeColon = ref true
     let spaceAfterComma = ref true
@@ -194,7 +194,7 @@ let main args =
            ArgInfo("--indent", ArgType.Int handleIndent, indentText);
            ArgInfo("--pageWidth", ArgType.Int handlePageWidth, widthText);
            
-           ArgInfo("--noSemicolonEOL", ArgType.Clear semicolonEOL, semicolonEOLText);
+           ArgInfo("--semicolonEOL", ArgType.Set semicolonEOL, semicolonEOLText);
            ArgInfo("--spaceBeforeArgument", ArgType.Set spaceBeforeArgument, argumentText);           
            ArgInfo("--noSpaceBeforeColon", ArgType.Clear spaceBeforeColon, colonText);
            ArgInfo("--noSpaceAfterComma", ArgType.Clear spaceAfterComma, commaText);

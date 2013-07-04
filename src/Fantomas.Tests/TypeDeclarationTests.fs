@@ -151,7 +151,7 @@ type Point2D =
         val X : float
         val Y : float
         new(x : float, y : float) = 
-            { X = x;
+            { X = x
               Y = y }
     end"""
 
