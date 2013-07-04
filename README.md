@@ -83,10 +83,10 @@ For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.m
 
 ### VS 2012 extension
 [Ivan Towlson](https://github.com/itowlson) kindly contributes the initial version of [Fantomas VS extension](src/Fantomas.VisualStudio). The user guide can be found [here](docs/Documentation.md#using-visual-studio-2012-extension).
-This is available in the Visual Studio Gallery - search for "fantomas" in "Tools --> Extensions and Updates --> Online". 
+This is available in the [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/24ef5c87-b4e3-4c3b-b126-1064cc66e148) - search for "fantomas" in "Tools --> Extensions and Updates --> Online". 
 
-    Ctrl+K D   -- format document
-    Ctrl+K F   -- format selection
+    Ctrl + K D   -- format document
+    Ctrl + K F   -- format selection
 
 You can also use Fantomas extension in Ivan's [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
 
@@ -99,12 +99,9 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ## Testing and validation
 We have tried to be careful in testing the project.
-There are 167 unit tests and 30 validated test examples, 
+There are 170 unit tests and 30 validated test examples, 
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
-
-## Limitations
-Due to limited information in F# ASTs, currently compiler directives are not preserved.
 
 ## Why the name "Fantomas"?
 There are a few reasons to choose the name as such. 
@@ -113,14 +110,17 @@ Second, Fantomas is my favourite character in the literature.
 Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
 ## Getting involved
-Would like to contribute? Read [the formatting conventions](docs/FormattingConventions.md) and [the documentation](docs/Documentation.md) and discuss on [the issues](../../issues). You can fork the GitHub repository and send a pull request.
+Would like to contribute? Discuss on [ issues](../../issues) and send pull requests. You can get started by helping us handle ["You Take It" issues](https://github.com/dungpa/fantomas/issues?labels=You+Take+It&page=1&state=open).
 
 ## Credits
-We would like to gratefully thank the following people for their contributions.
+We would like to gratefully thank the following persons for their contributions.
  - [Eric Taucher](https://github.com/EricGT)
  - [Steffen Forkmann](https://github.com/forki)
  - [Jack Pappas](https://github.com/jack-pappas)
  - [Ivan Towlson](https://github.com/itowlson)
+ - [Don Syme](https://github.com/dsyme)
+ - [Gustavo Guerra](https://github.com/ovatsus)
+ - [Jared Parsons](https://github.com/jaredpar)
 
 ## License
 The library and tool are available under Apache 2.0 license. 
