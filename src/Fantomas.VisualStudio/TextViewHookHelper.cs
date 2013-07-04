@@ -10,40 +10,37 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Hestia.FSharpCommands
 {
-    // This class doesn't actually do any mouse processing -- it exists
-    // solely as a way to hook the Visual Studio command chain.  There
-    // is undoubtedly a correct way of doing it from a simple VSIX, but
-    // it's eluded me so far.
-
-    [Export(typeof(IMouseProcessorProvider))]
+    [Export(typeof(IWpfTextViewCreationListener))]
     [Name("F# Dummy Command Hook")]
     [ContentType("F#")]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    public class TextViewHookHelper : IMouseProcessorProvider
+    public sealed class TextViewHookHelper : IWpfTextViewCreationListener
     {
-        [Import]
-        internal IVsEditorAdaptersFactoryService AdaptersFactory { get; set; }
+        private readonly IVsEditorAdaptersFactoryService _adaptersFactory;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
 
-        [Import]
-        internal IEditorOptionsFactoryService EditorOptionsFactory { get; set; }
+        [ImportingConstructor]
+        public TextViewHookHelper(IVsEditorAdaptersFactoryService adaptersFactory, IEditorOptionsFactoryService editorOptionsFactory)
+        {
+            _adaptersFactory = adaptersFactory;
+            _editorOptionsFactory = editorOptionsFactory;
+        }
 
-        public IMouseProcessor GetAssociatedProcessor(IWpfTextView wpfTextView)
+        public void TextViewCreated(IWpfTextView wpfTextView)
         {
             System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() =>
             {
-                var view = AdaptersFactory.GetViewAdapter(wpfTextView);
+                var view = _adaptersFactory.GetViewAdapter(wpfTextView);
                 if (view != null)
                 {
                     StandardCommandDispatcher.Register(view, wpfTextView, GetServices());
                 }
             }));
-
-            return null;
         }
 
         private Services GetServices()
         {
-            return new Services(EditorOptionsFactory);
+            return new Services(_editorOptionsFactory);
         }
     }
 }
