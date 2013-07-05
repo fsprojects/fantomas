@@ -513,3 +513,19 @@ let the_interface = ref([] : (string * (string * hol_type)) list)
     |> should equal """
 let user_printers = ref([] : (string * (term -> unit)) list)
 let the_interface = ref([] : (string * (string * hol_type)) list)"""
+
+[<Test>]
+let ``should print named patterns on explicit constructors``() =
+    formatSourceString false """
+type StateMachine(makeAsync) =
+    new(fileName, makeAsync, initState) as secondCtor = 
+        new StateMachine(makeAsync)
+        then
+            secondCtor.Init(fileName, initState)
+    """ config
+    |> prepend newline
+    |> should equal """
+type StateMachine(makeAsync) = 
+    new(fileName, makeAsync, initState) as secondCtor = 
+        new StateMachine(makeAsync)
+        then secondCtor.Init(fileName, initState)"""

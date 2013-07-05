@@ -17,14 +17,15 @@ let config = FormatConfig.Default
 
 let test s = formatSourceString false s config |> printfn "%A";;
 
+fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> "pos")
+fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.range) -> "range")
+
 test """
-let [<Literal>] private assemblyConfig() =
-  #if TRACE
-  let x = ""
-  #else
-  let x = "x"
-  #endif
-  x
+type StateMachine(makeAsync) =
+    new(fileName, makeAsync, initState) as secondCtor = 
+        new StateMachine(makeAsync)
+        then
+            secondCtor.Init(fileName, initState)
 """
 
 test """

@@ -279,11 +279,12 @@ and genMemberBinding inter b =
         | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType false t +> sepEq +> preserveBreakNln e
         | e -> prefix +> sepEq +> preserveBreakNln e
 
-    | ExplicitCtor(ats, px, ao, p, e) ->
+    | ExplicitCtor(ats, px, ao, p, e, so) ->
         let prefix =
             genPreXmlDoc px
             +> genAttributes ats
-            +> opt sepSpace ao genAccess +> genPat p
+            +> opt sepSpace ao genAccess +> genPat p 
+            +> opt sepNone so (sprintf " as %s" >> (!-))
 
         match e with
         // Handle special "then" block in constructors
@@ -720,14 +721,15 @@ and genTypeList = function
             | TTuple _ 
             | TFun _ ->
                 // Tuple or Fun is grouped by brackets inside 'genType true t'
-                optPre (ifElse isOpt (!- "?") sepNone) sepColonFixed so (!-) +> genType true t
+                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) +> genType true t
             | _ -> opt sepColonFixed so (!-) +> genType true t
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
 
     | (TTuple ts', ais)::ts -> 
         let gt = col sepStar (Seq.zip ais ts') 
-                    (fun (ArgInfo(so, isOpt), t) -> optPre (ifElse isOpt (!- "?") sepNone) 
-                                                        sepColonFixed so (!-) +> genType true t)
+                    (fun (ArgInfo(so, isOpt), t) ->
+                        opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
+                        +> genType true t)
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
 
     | (t, _)::ts -> 
@@ -787,7 +789,7 @@ and genMemberDefnList inter = function
 and genMemberDefn inter = function
     | MDNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
     | MDOpen(s) -> !- s
-    /// What is the role of so
+    // What is the role of so
     | MDImplicitInherit(t, e, _) -> !- "inherit " +> genType false t +> genExpr e
     | MDInherit(t, _) -> !- "inherit " +> genType false t
     | MDValField f -> genField false "val " f
