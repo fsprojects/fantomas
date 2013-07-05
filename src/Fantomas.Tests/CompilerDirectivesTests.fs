@@ -7,6 +7,17 @@ open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
 [<Test>]
+let ``should use verbatim strings on some hash directives``() =
+    formatSourceString false """
+    #r @"C:\foo\bar.dll"
+    """ config
+    |> prepend newline
+    |> append newline
+    |> should equal """
+#r @"C:\foo\bar.dll"
+"""
+
+[<Test>]
 let ``hash directives``() =
     formatSourceString false """
     #r "Fantomas.Tests.dll"

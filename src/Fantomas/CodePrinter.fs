@@ -20,9 +20,15 @@ and genSigFile(ParsedSigFileInput(hs, mns)) =
     col sepNln hs genParsedHashDirective
     +> col sepNln mns genSigModuleOrNamespace
 
-and genParsedHashDirective(ParsedHashDirective(s1, s2)) =
+and genParsedHashDirective(ParsedHashDirective(h, s)) =
     // print strings with quotes
-    !- "#" -- s1 +> sepSpace +> ifElse (s2 = "") sepNone (!- (sprintf "\"%O\"" s2))
+    let gs =
+        match s with
+        | "" -> sepNone
+        // Use verbatim string to escape '\' correctly
+        | _ when s.Contains("\\") -> !- (sprintf "@\"%O\"" s)
+        | _ -> !- (sprintf "\"%O\"" s)
+    !- "#" -- h +> sepSpace +> gs
 
 and genModuleOrNamespace(ModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
     genPreXmlDoc px
