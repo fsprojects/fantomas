@@ -8,12 +8,63 @@ using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 
 namespace Hestia.FSharpCommands.Commands
 {
     public abstract class FormatCommand : CommandBase
     {
         protected void ExecuteFormat()
+        {
+            var editorOperations = Services.EditorOperationsFactoryService.GetEditorOperations(TextView);
+            using (var textUndoTransaction = TryCreateTextUndoTransaction())
+            {
+                // Handle the special case of a null ITextUndoTransaction up here because it simplifies
+                // the rest of the method.  The implementation of operations such as 
+                // AddBeforeTextBufferUndoChangePrimitive will directly access the ITextUndoHistory of 
+                // the ITextBuffer.  If there is no history then this operation will throw a NullReferenceException
+                // instead of failing gracefully.  If we have an ITextUndoTransaction then we know that the 
+                // ITextUndoHistory exists and can call all of the methods as appropriate. 
+                if (textUndoTransaction == null)
+                {
+                    ExecuteFormatCore();
+                    return;
+                }
+
+                // This command will capture the caret position as it currently exists inside the undo 
+                // transaction.  That way the undo command will reset the caret back to this position.  
+                editorOperations.AddBeforeTextBufferChangePrimitive();
+
+                if (ExecuteFormatCore())
+                {
+                    // Capture the caret as it exists now.  This way any redo of this edit will 
+                    // reposition the caret as it exists now. 
+                    editorOperations.AddAfterTextBufferChangePrimitive();
+                    textUndoTransaction.Complete();
+                }
+                else
+                {
+                    textUndoTransaction.Cancel();
+                }
+            }
+        }
+
+        private ITextUndoTransaction TryCreateTextUndoTransaction()
+        {
+            var textBufferUndoManager = Services.TextBufferUndoManagerProvider.GetTextBufferUndoManager(TextBuffer);
+
+            // It is possible for an ITextBuffer to have a null ITextUndoManager.  This will happen in 
+            // cases like the differencing viewer.  If VS doesn't consider the document to be editable then 
+            // it won't create an undo history for it.  Need to be tolerant of this behavior. 
+            if (textBufferUndoManager == null)
+            {
+                return null;
+            }
+
+            return textBufferUndoManager.TextBufferUndoHistory.CreateTransaction("Format Code");
+        }
+
+        private bool ExecuteFormatCore()
         {
             string text = TextView.TextSnapshot.GetText();
 
@@ -51,12 +102,14 @@ namespace Hestia.FSharpCommands.Commands
 
                     // TODO: return cursor to the correct position
                     setCaretPosition();
+
+                    return true;
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Unable to format.  " + ex.Message);
-                return;
+                return false;
             }
         }
 
