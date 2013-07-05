@@ -647,13 +647,15 @@ and genSigException(SigExceptionDef(ats, px, ao, uc, ms)) =
     +> opt sepSpace ao genAccess +> genUnionCase false uc
     +> colPre sepNln sepNln ms genMemberSig
 
-and genUnionCase hasBar (UnionCase(_, px, _, s, UnionCaseType fs)) =
+and genUnionCase hasBar (UnionCase(ats, px, _, s, UnionCaseType fs)) =
     genPreXmlDoc px
-    +> ifElse hasBar sepBar sepNone -- s 
+    +> ifElse hasBar sepBar sepNone
+    +> genOneLinerAttributes ats -- s 
     +> colPre wordOf sepStar fs (genField true "")
 
 and genEnumCase hasBar (EnumCase(ats, px, s, c)) =
-    genPreXmlDoc px +> ifElse hasBar sepBar sepNone 
+    genPreXmlDoc px 
+    +> ifElse hasBar sepBar sepNone 
     +> genOneLinerAttributes ats -- s +> sepEq +> genConst c
 
 and genField isUnion prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) = 

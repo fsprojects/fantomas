@@ -67,3 +67,19 @@ type Type =
         | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
         | TyVar a -> a
         | TyCon(s, ts) -> s"""
+
+[<Test>]
+let ``should keep attributes on union cases``() =
+    formatSourceString false """
+type Argument = 
+  | [<MandatoryAttribute>] Action of string
+  | [<MandatoryAttribute>] ProjectFile of string
+  | PackageId of string
+  | Version of string""" config
+    |> prepend newline
+    |> should equal """
+type Argument = 
+    | [<MandatoryAttribute>] Action of string
+    | [<MandatoryAttribute>] ProjectFile of string
+    | PackageId of string
+    | Version of string"""
