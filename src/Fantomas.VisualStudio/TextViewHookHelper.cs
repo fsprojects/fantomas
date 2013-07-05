@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Hestia.FSharpCommands
@@ -18,12 +19,20 @@ namespace Hestia.FSharpCommands
     {
         private readonly IVsEditorAdaptersFactoryService _adaptersFactory;
         private readonly IEditorOptionsFactoryService _editorOptionsFactory;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactorySerivce;
+        private readonly ITextBufferUndoManagerProvider _textBufferUndoManagerProvider;
 
         [ImportingConstructor]
-        public TextViewHookHelper(IVsEditorAdaptersFactoryService adaptersFactory, IEditorOptionsFactoryService editorOptionsFactory)
+        public TextViewHookHelper(
+            IVsEditorAdaptersFactoryService adaptersFactory, 
+            IEditorOptionsFactoryService editorOptionsFactory,
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            ITextBufferUndoManagerProvider textBufferUndoManagerProvider)
         {
             _adaptersFactory = adaptersFactory;
             _editorOptionsFactory = editorOptionsFactory;
+            _editorOperationsFactorySerivce = editorOperationsFactoryService;
+            _textBufferUndoManagerProvider = textBufferUndoManagerProvider;
         }
 
         public void TextViewCreated(IWpfTextView wpfTextView)
@@ -40,7 +49,7 @@ namespace Hestia.FSharpCommands
 
         private Services GetServices()
         {
-            return new Services(_editorOptionsFactory);
+            return new Services(_editorOptionsFactory, _editorOperationsFactorySerivce, _textBufferUndoManagerProvider);
         }
     }
 }
