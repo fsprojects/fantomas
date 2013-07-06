@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text;
 
 namespace Hestia.FSharpCommands
 {
@@ -13,15 +14,18 @@ namespace Hestia.FSharpCommands
         private readonly IEditorOptionsFactoryService _editorOptionsFactory;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly ITextBufferUndoManagerProvider _textBufferUndoManagerProvider;
+        private readonly ITextDocumentFactoryService _textDocumentFactoryService;
 
         public Services(
             IEditorOptionsFactoryService editorOptionsFactory, 
             IEditorOperationsFactoryService editorOperatiosnFactoryService,
-            ITextBufferUndoManagerProvider textBufferUndoManagerProvider)
+            ITextBufferUndoManagerProvider textBufferUndoManagerProvider,
+            ITextDocumentFactoryService textDocumentFactoryService)
         {
             _editorOptionsFactory = editorOptionsFactory;
             _editorOperationsFactoryService = editorOperatiosnFactoryService;
             _textBufferUndoManagerProvider = textBufferUndoManagerProvider;
+            _textDocumentFactoryService = textDocumentFactoryService;
         }
 
         public IEditorOptionsFactoryService EditorOptionsFactory
@@ -37,6 +41,11 @@ namespace Hestia.FSharpCommands
         public IEditorOperationsFactoryService EditorOperationsFactoryService
         {
             get { return _editorOperationsFactoryService; }
+        }
+
+        public ITextDocumentFactoryService TextDocumentFactoryService
+        {
+            get { return _textDocumentFactoryService; }
         }
     }
 }
