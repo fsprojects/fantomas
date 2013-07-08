@@ -68,8 +68,9 @@
     <Compile Include="FormattingSelectionTests.fs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Compiler">
-      <HintPath>..\..\lib\FSharp.Compiler.dll</HintPath>
+    <Reference Include="FSharp.Compiler.Editor">
+      <HintPath>..\packages\FSharp.Compiler.Editor.1.0.1\lib\net40\FSharp.Compiler.Editor.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="FsUnit.NUnit">
       <HintPath>..\packages\FsUnit.1.1.1.0\Lib\Net40\FsUnit.NUnit.dll</HintPath>
