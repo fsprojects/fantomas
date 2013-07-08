@@ -119,15 +119,7 @@ namespace Hestia.FSharpCommands.Commands
 
         private static string GetAllText(ITextBuffer buffer)
         {
-            string source;
-
-            using (var writer = new StringWriter())
-            {
-                buffer.CurrentSnapshot.Write(writer);
-                writer.Flush();
-                source = writer.ToString();
-            }
-            return source;
+            return buffer.CurrentSnapshot.GetText();
         }
 
         private bool IsSignatureFile(ITextBuffer buffer)
