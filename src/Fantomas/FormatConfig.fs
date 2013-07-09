@@ -25,7 +25,7 @@ type FormatConfig =
       IndentOnTryWith : bool }
     static member Default = 
         { IndentSpaceNum = 4; PageWidth = 80;
-          SemicolonAtEndOfLine = false; SpaceBeforeArgument = false; SpaceBeforeColon = true;
+          SemicolonAtEndOfLine = false; SpaceBeforeArgument = true; SpaceBeforeColon = true;
           SpaceAfterComma = true; SpaceAfterSemicolon = true; IndentOnTryWith = false }
 
 /// Wrapping IndentedTextWriter with a current column position

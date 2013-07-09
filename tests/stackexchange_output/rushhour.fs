@@ -3,12 +3,12 @@ module Unblock
 
 open System
 open System.Collections.Generic
-open System.IO
 open System.Diagnostics
+open System.IO
 
-type Position = int * int
+type Position = int * int // (RowID, ColumnID)
 
-type Brick = char * int
+type Brick = char * int // (Name, Length)
 
 type State = Position[]
 
@@ -28,13 +28,14 @@ type Direction =
 
 type Move = int * Direction
 
+//module myFunction =
 let checkBoth target length current = 
-  if current > target || current + length - 1 < target
-  then true
+  if current > target || current + length - 1 < target then true
   else false
 
 let test (initialState : State) (brickInfo : Brick[]) 
     (horizontalBricks : int[][], verticalBricks : int[][]) (rowNum, columnNum) = 
+  //let sw = new StreamWriter("output.csv");
   let (redRowNum, _) = initialState.[0]
   let (_, redLength) = brickInfo.[0]
   let mySet = new HashSet<_>(HashIdentity.Structural)
@@ -45,13 +46,14 @@ let test (initialState : State) (brickInfo : Brick[])
       let nextState = currentState |> Array.copy
       nextState.[i] <- newPosition
       nextState
-    let isDuplicated(set : HashSet<_>) = 
-      if set.Contains(currentState)
-      then true
+    let isDuplicated (set : HashSet<_>) = 
+      if set.Contains(currentState) then true
       else 
-        ignore(set.Add currentState)
+        //let f = currentState |> Array.map (fun elem -> sw.Write("{0},{1} ", fst elem, snd elem))
+        //sw.WriteLine()
+        ignore (set.Add currentState)
         false
-    let checkVacancy(rowID, columnID) = 
+    let checkVacancy (rowID, columnID) = 
       let checkHorizontal i = 
         let (_, length) = brickInfo.[i]
         let (_, startColumn) = currentState.[i]
@@ -65,63 +67,64 @@ let test (initialState : State) (brickInfo : Brick[])
     let generateRight i = 
       let (_, length) = brickInfo.[i]
       let (rowID, columnID) = currentState.[i]
-      if columnID + length >= columnNum
-      then None
-      else Some((rowID, columnID + length), (rowID, columnID + 1))
+      if columnID + length >= columnNum then None
+      else Some ((rowID, columnID + length), (rowID, columnID + 1))
     let generateLeft i = 
       let (_, length) = brickInfo.[i]
       let (rowID, columnID) = currentState.[i]
-      if columnID = 0
-      then None
-      else Some((rowID, columnID - 1), (rowID, columnID - 1))
+      if columnID = 0 then None
+      else Some ((rowID, columnID - 1), (rowID, columnID - 1))
     let generateUp i = 
       let (_, length) = brickInfo.[i]
       let (rowID, columnID) = currentState.[i]
-      if rowID + length >= rowNum
-      then None
-      else Some((rowID + length, columnID), (rowID + 1, columnID))
+      if rowID + length >= rowNum then None
+      else Some ((rowID + length, columnID), (rowID + 1, columnID))
     let generateDown i = 
       let (_, length) = brickInfo.[i]
       let (rowID, columnID) = currentState.[i]
-      if rowID = 0
-      then None
-      else Some((rowID - 1, columnID), (rowID - 1, columnID))
-    if depth < 7 && not(isDuplicated mySet) 
+      if rowID = 0 then None
+      else Some ((rowID - 1, columnID), (rowID - 1, columnID))
+    if depth < 7 && not (isDuplicated mySet) 
        && (let (_, columnLeft) = currentState.[0]
            [|columnLeft + redLength..columnNum - 1|]
-           |> Array.forall(fun columnID -> checkVacancy(redRowNum, columnID)) 
+           |> Array.forall (fun columnID -> checkVacancy (redRowNum, columnID)) 
            || horizontalBricksAll
-              |> Seq.tryFind(fun elem -> 
+              |> Seq.tryFind (fun elem -> 
                      (match generateRight elem with
-                      | Some(a, b) when checkVacancy a -> 
-                        solveDFS (generateState elem b) (elem, Right) (depth + 1)
+                      | Some (a, b) when checkVacancy a -> 
+                        solveDFS (generateState elem b) (elem, Right) 
+                          (depth + 1)
                       | _ -> false) || (match generateLeft elem with
-                                        | Some(a, b) when checkVacancy a -> 
-                                          solveDFS (generateState elem b) (elem, Left) 
-                                            (depth + 1)
+                                        | Some (a, b) when checkVacancy a -> 
+                                          solveDFS (generateState elem b) 
+                                            (elem, Left) (depth + 1)
                                         | _ -> false))
               |> Option.isSome || verticalBricksAll
-                                  |> Seq.tryFind(fun elem -> 
+                                  |> Seq.tryFind (fun elem -> 
                                          (match generateUp elem with
-                                          | Some(a, b) when checkVacancy a -> 
-                                            solveDFS (generateState elem b) (elem, Up) 
-                                              (depth + 1)
-                                          | _ -> false) || (match generateDown elem with
-                                                            | Some(a, b) when checkVacancy 
-                                                                                a -> 
+                                          | Some (a, b) when checkVacancy a -> 
+                                            solveDFS (generateState elem b) 
+                                              (elem, Up) (depth + 1)
+                                          | _ -> false) || (match generateDown 
+                                                                    elem with
+                                                            | Some (a, b) when checkVacancy 
+                                                                                 a -> 
                                                               solveDFS 
-                                                                (generateState elem b) 
-                                                                (elem, Down) (depth + 1)
+                                                                (generateState 
+                                                                   elem b) 
+                                                                (elem, Down) 
+                                                                (depth + 1)
                                                             | _ -> false))
                                   |> Option.isSome)
     then 
       Console.WriteLine
-        ("Brick Name {0} Direction {1}", fst brickInfo.[lastBrick], lastDirection)
+        ("Brick Name {0} Direction {1}", fst brickInfo.[lastBrick], 
+         lastDirection)
       true
     else 
-      ignore(mySet.Remove(currentState))
+      ignore (mySet.Remove(currentState))
       false
-  Console.WriteLine(solveDFS initialState (0, Right) 0)
+  Console.WriteLine(solveDFS initialState (0, Right) 0) // the output would have an additional line of useless information (0, Right)
 
 let x0 = ('a', 2)
 let x1 = ('b', 2)
@@ -174,9 +177,10 @@ let main argv =
   printfn "%A" argv
   let sw = new Stopwatch()
   sw.Start()
-  ignore
+  ignore 
     (test (initialState) (brickInfo) (horizontalBricks, verticalBricks) 
        (rowNum, columnNum))
   sw.Stop()
   Console.WriteLine(sw.Elapsed)
-  0
+  0 // return an integer exit code
+    

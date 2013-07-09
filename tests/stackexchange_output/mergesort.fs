@@ -2,45 +2,43 @@
 module Mergesort
 
 open System
-open System.Windows
 open System.Collections.Generic
+open System.Windows
 
-let shuffle(l : 'a array) = 
-  let ileft = LinkedList<int>(seq { 0..(l.Length - 1) })
+let shuffle (l : 'a array) = 
+  let ileft = LinkedList<int> (seq { 0..(l.Length - 1) })
   let rec pick (ar : 'a array) r = 
     match ileft.Count with
     | 0 -> r
     | n -> 
-      let ik = ileft |> Seq.nth(rnd.Next(n))
+      let ik = ileft |> Seq.nth (rnd.Next(n))
       ileft.Remove(ik) |> ignore
       pick ar (ar.[ik] :: r)
   pick l []
 
 let rec merge (ar1 : 'a array) (ar2 : 'a array) = 
-  let rec index(islastfromAr1, ilast, jlast) = 
+  let rec index (islastfromAr1, ilast, jlast) = 
     seq { 
       let inext, jnext = ilast + 1, jlast + 1
       match inext < ar1.Length, jnext < ar2.Length with
       | true, true -> 
         let indexnext = 
-          if ar1.[inext] < ar2.[jnext]
-          then (true, inext, jlast)
+          if ar1.[inext] < ar2.[jnext] then (true, inext, jlast)
           else (false, ilast, jnext)
-        yield Some(indexnext)
+        yield Some (indexnext)
         yield! index indexnext
       | false, true -> 
         let indexnext = (false, ilast, jnext)
-        yield Some(indexnext)
+        yield Some (indexnext)
         yield! index indexnext
       | true, false -> 
         let indexnext = (true, inext, jlast)
-        yield Some(indexnext)
+        yield Some (indexnext)
         yield! index indexnext
       | false, false -> yield None }
-  let mergeindex = index(false, -1, -1)
-  [for (formar1, i, j) in mergeindex |> Seq.choose(id) -> 
-     if formar1
-     then ar1.[i]
+  let mergeindex = index (false, -1, -1)
+  [for (formar1, i, j) in mergeindex |> Seq.choose (id) -> 
+     if formar1 then ar1.[i]
      else ar2.[j]]
 
 and mergesort = 

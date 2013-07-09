@@ -20,7 +20,7 @@ open Fantomas.FormatConfig
 ///  --indent=[1-10]                 Set number of spaces to use for indentation
 ///  --pageWidth=[60-inf]            Set the column where we break to new lines
 ///  [+|-]semicolonEOL               Enable/disable semicolons at the end of line (default = false)
-///  [+|-]spaceBeforeArgument        Enable/disable spaces before the first argument (default = false)
+///  [+|-]spaceBeforeArgument        Enable/disable spaces before the first argument (default = true)
 ///  [+|-]spaceBeforeColon           Enable/disable spaces before colons (default = true)
 ///  [+|-]spaceAfterComma            Enable/disable spaces after commas (default = true)
 ///  [+|-]spaceAfterSemiColon        Enable/disable spaces after semicolons (default = true)
@@ -92,7 +92,7 @@ let main args =
     let pageWidth = ref 80
     
     let semicolonEOL = ref false
-    let spaceBeforeArgument = ref false
+    let spaceBeforeArgument = ref true
     let spaceBeforeColon = ref true
     let spaceAfterComma = ref true
     let spaceAfterSemiColon = ref true
@@ -195,7 +195,7 @@ let main args =
            ArgInfo("--pageWidth", ArgType.Int handlePageWidth, widthText);
            
            ArgInfo("--semicolonEOL", ArgType.Set semicolonEOL, semicolonEOLText);
-           ArgInfo("--spaceBeforeArgument", ArgType.Set spaceBeforeArgument, argumentText);           
+           ArgInfo("--noSpaceBeforeArgument", ArgType.Clear spaceBeforeArgument, argumentText);           
            ArgInfo("--noSpaceBeforeColon", ArgType.Clear spaceBeforeColon, colonText);
            ArgInfo("--noSpaceAfterComma", ArgType.Clear spaceAfterComma, commaText);
            ArgInfo("--noSpaceAfterSemiColon", ArgType.Clear spaceAfterSemiColon, semicolonText);

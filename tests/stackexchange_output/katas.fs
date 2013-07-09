@@ -11,10 +11,8 @@ module NaturalSortKata =
     | Lesser
     | Greater
     static member Compare x y = 
-      if x = y
-      then Equal
-      elif x > y
-      then Greater
+      if x = y then Equal
+      elif x > y then Greater
       else Lesser
   
   type ChunckType = 
@@ -22,9 +20,8 @@ module NaturalSortKata =
     | StringType
     | Unknown
     
-    static member GetType(c : char) = 
-      if System.Char.IsDigit(c)
-      then NumberType
+    static member GetType (c : char) = 
+      if System.Char.IsDigit(c) then NumberType
       else StringType
     
     member this.Compare other = 
@@ -36,8 +33,7 @@ module NaturalSortKata =
       | StringType -> Greater
   
   let natualCompare (left : string) (right : string) = 
-    if left = right
-    then Equal
+    if left = right then Equal
     else 
       let fix str = 
         new System.String(str
@@ -48,7 +44,7 @@ module NaturalSortKata =
           match str with
           | [] -> 
             let (ty, l) = acc
-            (ty, fix(l))
+            (ty, fix (l))
           | fistLetter :: rest -> 
             match acc with
             | (ty, _) when ty = Unknown -> 
@@ -56,16 +52,15 @@ module NaturalSortKata =
               gather rest (t, fistLetter :: [])
             | (ty, l) when ty = ChunckType.GetType(fistLetter) -> 
               gather rest (ty, fistLetter :: l)
-            | (ty, l) -> (ty, fix(l))
+            | (ty, l) -> (ty, fix (l))
         gather str (Unknown, [])
       let rec compare (left : string) (right : string) = 
-        if (not(left.Any())) || (not(right.Any()))
-        then 
+        if (not (left.Any())) || (not (right.Any())) then 
           match left.Length, right.Length with
           | llen, rlen when llen = rlen -> Equal
           | llen, rlen when llen > rlen -> Greater
           | llen, rlen when llen < rlen -> Lesser
-          | _ -> raise(InvalidException "Bad Data")
+          | _ -> raise (InvalidException "Bad Data")
         else 
           let lt, lChunk = 
             left
@@ -77,8 +72,7 @@ module NaturalSortKata =
             |> gatherChunck
           match lt.Compare rt with
           | Equal -> 
-            if lChunk = rChunk
-            then 
+            if lChunk = rChunk then 
               let lVal = left.Replace(lChunk, "")
               let rVal = right.Replace(rChunk, "")
               compare lVal rVal
@@ -90,4 +84,3 @@ module NaturalSortKata =
               | _ -> Comparison.Compare lChunk rChunk
           | _ -> lt.Compare(rt)
       compare left right
-  

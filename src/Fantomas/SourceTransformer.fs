@@ -93,8 +93,7 @@ let hasParenthesis = function
     | _ -> false
 
 let hasParenInPat = function
-    | PatParen _
-    | PatConst(Const "()") -> true
+    | PatParen _ -> true
     | _ -> false
 
 let genConst c =

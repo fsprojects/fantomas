@@ -494,7 +494,7 @@ let f(x: int) = x
 type t(x : int) = 
     class
     end
-    """ { config with SpaceBeforeArgument = true; SpaceBeforeColon = false }
+    """ { config with SpaceBeforeColon = false }
     |> prepend newline
     |> should equal """
 let f (x: int) = x
