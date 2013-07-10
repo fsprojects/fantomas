@@ -87,13 +87,13 @@ type Test() =
 let ``params arguments``() =
     formatSourceString false """
 type X() =
-    member this.F([<ParamArray>] args: Object[]) =
+    member this.F([<ParamArray>] args: Object []) =
         for arg in args do
             printfn "%A" arg""" config
     |> prepend newline
     |> should equal """
 type X() = 
-    member this.F([<ParamArray>] args : Object[]) = 
+    member this.F([<ParamArray>] args : Object []) = 
         for arg in args do
             printfn "%A" arg"""
 

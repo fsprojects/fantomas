@@ -196,6 +196,12 @@ let filterCommentsAndDirectives content =
     let tokens = tokenize constants content |> Seq.toList
     (collectComments tokens, collectDirectives tokens)
 
+let (|Delimiter|_|) t = 
+    match t with
+    | (Token origTok, origTokText) when origTok.CharClass = TokenCharKind.Delimiter -> 
+        Some origTokText
+    | _ -> None
+
 // This part processes the token stream post- pretty printing
 
 type LineCommentStickiness = | StickyLeft | StickyRight | NotApplicable
@@ -542,8 +548,9 @@ let integrateComments (originalText : string) (newText : string) =
             addText newTokText 
             loop origTokens moreNewTokens 
 
-        | _,  ((_, newTokText) :: moreNewTokens) 
-            when newTokText = ";" || newTokText = ";;" ->
+        // We emit all unmatched delimiter tokens
+        | _,  (Delimiter newTokText :: moreNewTokens) 
+            when newTokText <> "[<" && newTokText <> ">]" && newTokText <> "|" ->
             Debug.WriteLine("emitting non-matching '{0}' in new tokens", newTokText)
             addText newTokText 
             loop origTokens moreNewTokens 
