@@ -20,7 +20,7 @@ module NaturalSortKata =
     | StringType
     | Unknown
     
-    static member GetType (c : char) = 
+    static member GetType(c : char) = 
       if System.Char.IsDigit(c) then NumberType
       else StringType
     
