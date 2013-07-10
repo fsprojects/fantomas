@@ -20,11 +20,11 @@ let ``type annotations``() =
         for e in f() do printfn "%d" e""" config
     |> prepend newline
     |> should equal """
-let iterate1(f : unit -> seq<int>) = 
+let iterate1 (f : unit -> seq<int>) = 
     for e in f() do
         printfn "%d" e
 
-let iterate2(f : unit -> #seq<int>) = 
+let iterate2 (f : unit -> #seq<int>) = 
     for e in f() do
         printfn "%d" e"""
 
@@ -73,15 +73,15 @@ type Test() =
     member this.Function1<'a>(x, y) =
         printfn "%A, %A" x y
 
-    abstract abstractMethod<'a, 'b> : 'a * 'b -> unit
-    override this.abstractMethod<'a, 'b>(x:'a, y:'b) =
+    abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
+    override this.AbstractMethod<'a, 'b>(x:'a, y:'b) =
          printfn "%A, %A" x y""" config
     |> prepend newline
     |> should equal """
 type Test() = 
     member this.Function1<'a>(x, y) = printfn "%A, %A" x y
-    abstract abstractMethod<'a, 'b> : 'a * 'b -> unit
-    override this.abstractMethod<'a, 'b>(x : 'a, y : 'b) = printfn "%A, %A" x y"""
+    abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
+    override this.AbstractMethod<'a, 'b>(x : 'a, y : 'b) = printfn "%A, %A" x y"""
 
 [<Test>]
 let ``params arguments``() =
@@ -160,24 +160,24 @@ let ``abstract and override keywords``() =
     formatSourceString false """
     type MyClassBase1() =
        let mutable z = 0
-       abstract member function1 : int -> int
-       default u.function1(a : int) = z <- z + a; z
+       abstract member Function1 : int -> int
+       default u.Function1(a : int) = z <- z + a; z
 
     type MyClassDerived1() =
        inherit MyClassBase1()
-       override u.function1(a: int) = a + 1""" config
+       override u.Function1(a: int) = a + 1""" config
     |> prepend newline
     |> should equal """
 type MyClassBase1() = 
     let mutable z = 0
-    abstract function1 : int -> int
-    override u.function1(a : int) = 
+    abstract Function1 : int -> int
+    override u.Function1(a : int) = 
         z <- z + a
         z
 
 type MyClassDerived1() = 
     inherit MyClassBase1()
-    override u.function1(a : int) = a + 1"""
+    override u.Function1(a : int) = a + 1"""
 
 [<Test>]
 let ``intrinsic type extensions``() =
@@ -484,7 +484,7 @@ let ``should keep the ? in optional parameters``() =
     |> should equal """type Shell() = 
     static member private GetParams(cmd, ?args) = doStuff
     static member Exec(cmd, ?args) = 
-        shellExec(Shell.GetParams(cmd, ?args = args))"""
+        shellExec (Shell.GetParams(cmd, ?args = args))"""
 
 [<Test>]
 let ``should add space before argument on given config``() =
@@ -499,7 +499,7 @@ type t(x : int) =
     |> should equal """
 let f (x: int) = x
 
-type t (x: int) = 
+type t(x: int) = 
     class
     end"""
 
@@ -511,8 +511,8 @@ let the_interface = ref([] : (string * (string * hol_type)) list)
     """ config
     |> prepend newline
     |> should equal """
-let user_printers = ref([] : (string * (term -> unit)) list)
-let the_interface = ref([] : (string * (string * hol_type)) list)"""
+let user_printers = ref ([] : (string * (term -> unit)) list)
+let the_interface = ref ([] : (string * (string * hol_type)) list)"""
 
 [<Test>]
 let ``should print named patterns on explicit constructors``() =
