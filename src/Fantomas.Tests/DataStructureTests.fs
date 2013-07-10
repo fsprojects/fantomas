@@ -138,3 +138,15 @@ let a2 = [|0..99|]
 let a3 = 
     [|for n in 1..100 do
           if isPrime n then yield n|]"""
+
+[<Test>]
+let ``should keep Array2D``() =
+    formatSourceString false """
+let cast<'a> (A:obj[,]):'a[,] = A |> Array2D.map unbox
+let flatten (A:'a[,]) = A |> Seq.cast<'a>
+let getColumn c (A:_[,]) = flatten A.[*,c..c] |> Seq.toArray""" config
+    |> prepend newline
+    |> should equal """
+let cast<'a>(A : obj [,]) : 'a [,] = A |> Array2D.map unbox
+let flatten(A : 'a [,]) = A |> Seq.cast<'a>
+let getColumn c (A : _ [,]) = flatten A.[*, c..c] |> Seq.toArray"""

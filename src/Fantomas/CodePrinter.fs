@@ -493,13 +493,12 @@ and genIndexedVars es =
     match es with
     | IndexedVar eo1 :: es ->
         match es with
-        | [IndexedVar eo2] -> 
-            opt sepNone eo1 genExpr -- ".." +> opt sepNone eo2 genExpr
         | IndexedVar eo2 :: es -> 
-            opt sepNone eo1 genExpr -- ".." +> opt sepNone eo2 genExpr 
-            +> sepComma +> genIndexedVars es
+            ifElse (eo1.IsNone && eo2.IsNone) (!- "*") 
+                (opt sepNone eo1 genExpr -- ".." +> opt sepNone eo2 genExpr)
+            +> ifElse es.IsEmpty sepNone (sepComma +> genIndexedVars es)
         | _ -> 
-            opt sepNone eo1 genExpr +> sepComma +> genIndexedVars es
+            opt sepNone eo1 genExpr +> ifElse es.IsEmpty sepNone (sepComma +> genIndexedVars es)
 
     | [e] -> genExpr e
     | e :: es -> genExpr e +> sepComma +> genIndexedVars es
@@ -682,7 +681,7 @@ and genType outerBracket t =
         | TStaticConstant(c) -> genConst c
         | TStaticConstantExpr(e) -> genExpr e
         | TStaticConstantNamed(t1, t2) -> loop t1 -- "=" +> loop t2
-        | TArray(t, n) -> loop t +> rep n (!- "[]")
+        | TArray(t, n) -> loop t -- " [" +> rep (n - 1) (!- ",") -- "]"
         | TAnon -> sepWild
         | TVar tp -> genTypar tp
         // Drop bracket around tuples before an arrow
