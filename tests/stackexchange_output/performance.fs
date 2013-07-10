@@ -25,7 +25,7 @@ let getDateTaken file =
   try 
     dateTakenFromExif file
   with
-  | :? Exception -> File.GetLastWriteTime(file)
+  | :? Exception -> File.GetLastWriteTime(file) //Use the last write time in the event that the file was moved/copied
 
 let addToFile file n = 
   match n with
@@ -54,20 +54,22 @@ let move destinationRoot files =
     let dateTaken = getDateTaken file
     let finalPath = 
       Path.Combine
-        (destinationRoot, dateTaken.Year.ToString(), dateTaken.ToString("yyyy-MM-dd"))
-    if not(Directory.Exists(finalPath))
-    then Directory.CreateDirectory(finalPath) |> ignore
-    let newFile = getNewFilename(Path.Combine(finalPath, Path.GetFileName(file)))
+        (destinationRoot, dateTaken.Year.ToString(), 
+         dateTaken.ToString("yyyy-MM-dd"))
+    if not (Directory.Exists(finalPath)) then 
+      Directory.CreateDirectory(finalPath) |> ignore
+    let newFile = 
+      getNewFilename (Path.Combine(finalPath, Path.GetFileName(file)))
     try 
       File.Copy(file, newFile)
     with
     | :? Exception as e -> 
-      failwith(sprintf "error renaming %s to %s\n%s" file newFile e.Message)
+      failwith (sprintf "error renaming %s to %s\n%s" file newFile e.Message)
   files |> Seq.iter moveHelper
 
 let moveFrom source = 
   getAllFiles source
-  |> Seq.filter(fun f -> Path.GetExtension(f).ToLower() <> ".db")
+  |> Seq.filter (fun f -> Path.GetExtension(f).ToLower() <> ".db") //exlcude the thumbs.db files
   |> move """C:\_EXTERNAL_DRIVE\_Camera"""
   printfn "Done"
 

@@ -1,12 +1,33 @@
 ﻿module internal Fantomas.CodePrinter
 
+open System
 open System.Collections.Generic
+open Microsoft.FSharp.Compiler.Ast
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
 
 let sortAndDedup by l =
     l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq
+
+let rec addSpaceBeforeParensInFunCall functionOrMethod arg = 
+    match functionOrMethod, arg with
+    | _, ConstExpr(Const "()") -> false
+    | SynExpr.LongIdent(_, LongIdentWithDots s, _, _), _ ->
+        let parts = s.Split '.'
+        not <| Char.IsUpper parts.[parts.Length - 1].[0]
+    | SynExpr.Ident(Ident s), _ -> not <| Char.IsUpper s.[0]
+    | SynExpr.TypeApp(e, _, _, _, _, _, _), _ -> addSpaceBeforeParensInFunCall e arg
+    | _ -> true
+
+let addSpaceBeforeParensInFunDef functionOrMethod args =
+    match functionOrMethod, args with
+    | _, PatParen (PatConst SynConst.Unit) -> false
+    | "new", _ -> false
+    | (s:string), _ -> 
+        let parts = s.Split '.'
+        not <| Char.IsUpper parts.[parts.Length - 1].[0]
+    | _ -> true
 
 let rec genParsedInput = function
     | ImplFile im -> genImpFile im
@@ -329,7 +350,7 @@ and genExpr = function
         ifElse isRaw (!- "<@@ " +> e -- " @@>") (!- "<@ " +> e -- " @>")
     | TypedExpr(TypeTest, e, t) -> genExpr e -- " :? " +> genType false t
     | TypedExpr(New, e, t) -> 
-        !- "new " +> genType false t +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e
+        !- "new " +> genType false t +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr e
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType false t
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType false t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType false t
@@ -399,20 +420,20 @@ and genExpr = function
         +> atCurrentColumn 
              (colAutoNlnSkip0 sepNone es (fun (s, e) ->
                                 (!- (sprintf ".%s" s) 
-                                    +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e)))
+                                    +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr e)))
 
     | DotGetApp(e, es) -> 
         noNln (genExpr e)
         +> indent 
         +> (col sepNone es (fun (s, e) -> 
                                 autoNln (!- (sprintf ".%s" s) 
-                                    +> ifElse (hasParenthesis e) sepBeforeArg sepSpace +> genExpr e)))
+                                    +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr e)))
         +> unindent
 
     // Unlike infix app, function application needs a level of indentation
     | App(e1, [e2]) -> 
         atCurrentColumn (genExpr e1 +> 
-            ifElse (hasParenthesis e2) sepBeforeArg sepSpace 
+            ifElse (hasParenthesis e2) (ifElse (addSpaceBeforeParensInFunCall e1 e2) sepBeforeArg sepNone) sepSpace 
             +> indent +> autoNln (genExpr e2) +> unindent)
 
     // Always spacing in multiple arguments
@@ -545,7 +566,7 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
             | TCSimple TCInterface -> true
             | _ -> false
 
-        typeName +> optPre sepBeforeArg sepNone impCtor (genMemberDefn inter) +> sepEq 
+        typeName +> opt sepNone impCtor (genMemberDefn inter) +> sepEq 
         +> indent +> sepNln +> genTypeDefKind tdk
         +> indent +> genMemberDefnList inter others +> unindent
         ++ "end" +> unindent
@@ -558,7 +579,7 @@ and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | ObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq -- "delegate of " +> genTypeList ts
     | ObjectModel(_, MemberDefnList(impCtor, others)) ->
-        typeName +> optPre sepBeforeArg sepNone impCtor (genMemberDefn false) +> sepEq +> indent
+        typeName +> opt sepNone impCtor (genMemberDefn false) +> sepEq +> indent
         +> genMemberDefnList false others +> unindent
 
 and genSigTypeDefn isFirst (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) = 
@@ -882,7 +903,7 @@ and genPat = function
         match ps with
         | [] ->  aoc -- s +> tpsoc
         | [PatSeq(PatTuple, [p1; p2])] when s = "(::)" -> aoc +> genPat p1 -- " :: " +> genPat p2
-        | [p] -> aoc -- s +> tpsoc +> ifElse (hasParenInPat p) sepBeforeArg sepSpace +> genPat p
+        | [p] -> aoc -- s +> tpsoc +> ifElse (hasParenInPat p) (ifElse (addSpaceBeforeParensInFunDef s p) sepBeforeArg sepNone) sepSpace +> genPat p
         // This pattern is potentially long
         | ps -> atCurrentColumn (aoc -- s +> tpsoc +> sepSpace +> colAutoNlnSkip0 sepSpace ps genPat)
 

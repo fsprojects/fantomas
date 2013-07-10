@@ -86,7 +86,7 @@ To illustrate, here is a code fragment with `--indent 2`:
 This preference sets the column where we break F# constructs into new lines.
 The default value is 80. To see its effects, please take a look at some [output files](tests/stackexchange_output) with `--pageWidth 90` preference.
 
- - `--noSemicolonEOL`: remove all semicolons at the end of lines e.g.
+ - `--semicolonEOL`: add semicolons at the end of lines e.g.
 
 	```fsharp
 	let saturn = 
@@ -112,8 +112,8 @@ The default value is 80. To see its effects, please take a look at some [output 
 	    Mass = 0.0002858859807 * solarMass }
 	```
 
- - `--spaceBeforeArgument`: if being set, a space is inserted before a function name and its first argument. 
-For example, `Console.WriteLine("Hello World")` becomes `Console.WriteLine ("Hello World")`.
+ - `--noSpaceBeforeArgument`: if being set, no space is inserted before a function name and its first argument. 
+For example, `Seq.filter (fun x -> x > 2)` becomes `Seq.filter(fun x -> x > 2)`. This doesn't affect methods and constructors, e.g. `Console.WriteLine("Hello World")`.
 
  - `--noSpaceBeforeColon`: if being set, there is no space before `:` e.g.
 
@@ -187,7 +187,7 @@ It's often customized by augmenting a default configuration:
 ```fsharp
 let config = { FormatConfig.Default with 
                 IndentSpaceNum = 2
-				PageWidth = 120
+                PageWidth = 120
                 SemicolonAtEndOfLine = false
                 SpaceBeforeArgument = false 
                 SpaceBeforeColon = false

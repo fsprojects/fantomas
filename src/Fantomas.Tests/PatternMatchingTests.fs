@@ -194,7 +194,7 @@ with
     |> prepend newline
     |> should equal """
 try 
-    fst
+    fst 
         (find 
              (fun (s, (s', ty) : int * int) -> 
                  s' = s0 && can (type_match ty ty0) []) (!the_interface))

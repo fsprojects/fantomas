@@ -7,7 +7,7 @@ type Comment =
   { Author : string
     Body : string }
 
-let parseComment(line : string) = 
+let parseComment (line : string) = 
   match line.Split(';') with
   | [|author; body|] -> 
     Some({ Author = author

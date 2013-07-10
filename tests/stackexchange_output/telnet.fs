@@ -6,7 +6,7 @@ open System.Net.Sockets
 
 let asyncGetInput = async { return BitConverter.GetBytes(Console.Read()) }
 
-let rec asyncSendInput(stream : NetworkStream) = 
+let rec asyncSendInput (stream : NetworkStream) = 
   async { 
     let! input = asyncGetInput
     stream.WriteByte
@@ -14,10 +14,10 @@ let rec asyncSendInput(stream : NetworkStream) =
     |> ignore
     do! asyncSendInput stream }
 
-let asyncGetResponse(stream : NetworkStream) = 
+let asyncGetResponse (stream : NetworkStream) = 
   async { return Char.ConvertFromUtf32(stream.ReadByte()) }
 
-let rec asyncPrintResponse(stream : NetworkStream) = 
+let rec asyncPrintResponse (stream : NetworkStream) = 
   async { 
     let! response = asyncGetResponse stream
     Console.Write(response)

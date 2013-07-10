@@ -29,7 +29,7 @@ then printfn "You are only %d years old and already learning F#? Wow!" age""" co
 let rec tryFindMatch pred list = 
     match list with
     | head :: tail -> 
-        if pred(head) then Some(head)
+        if pred (head) then Some(head)
         else tryFindMatch pred tail
     | [] -> None
 
@@ -140,8 +140,8 @@ let ``try/with and finally``() =
 let function1 x y = 
     try 
         try 
-            if x = y then raise(InnerError("inner"))
-            else raise(OuterError("outer"))
+            if x = y then raise (InnerError("inner"))
+            else raise (OuterError("outer"))
         with
         | InnerError(str) -> printfn "Error1 %s" str
     finally

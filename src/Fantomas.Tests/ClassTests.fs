@@ -123,8 +123,8 @@ let ``class declaration``() =
     formatSourceString false """
 type BaseClass = class
     val string1 : string
-    new (str) = { string1 = str }
-    new () = { string1 = "" }
+    new(str) = { string1 = str }
+    new() = { string1 = "" }
 end
 
 type DerivedClass =
@@ -158,6 +158,21 @@ let ``classes and implicit constructors``() =
     |> prepend newline
     |> should equal """
 type MyClass2(dataIn) as self = 
+    let data = dataIn
+    do self.PrintMessage()
+    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data"""
+
+[<Test>]
+let ``classes and private implicit constructors``() =
+    formatSourceString false """
+    type MyClass2 private (dataIn) as self =
+       let data = dataIn
+       do self.PrintMessage()
+       member this.PrintMessage() =
+           printf "Creating MyClass2 with Data %d" data""" config
+    |> prepend newline
+    |> should equal """
+type MyClass2 private (dataIn) as self = 
     let data = dataIn
     do self.PrintMessage()
     member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data"""
