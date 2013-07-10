@@ -27,7 +27,7 @@ let private getNumbers todo cap =
   |> Seq.toArray
   |> reorder cap
 
-let GetEquivalentPermutation (array : int[], cap) = 
+let GetEquivalentPermutation(array : int[], cap) = 
   let rec joinParts finished todo = 
     if Seq.isEmpty todo then finished |> Seq.toArray
     else 
