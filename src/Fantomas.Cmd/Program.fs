@@ -38,7 +38,7 @@ let [<Literal>] indentText = "Set number of spaces for indentation (default = 4)
 let [<Literal>] widthText = "Set the column where we break to new lines (default = 80). The value should be at least 60."
 
 let [<Literal>] semicolonEOLText = "Enable semicolons at the end of line (default = false)."
-let [<Literal>] argumentText = "Enable spaces before the first argument (default = false)."
+let [<Literal>] argumentText = "Disable spaces before the first argument of functions when there are parenthesis (default = true). For C# methods, there are never spaces regardless of this option."
 let [<Literal>] colonText = "Disable spaces before colons (default = true)."
 let [<Literal>] commaText = "Disable spaces after commas (default = true)."
 let [<Literal>] semicolonText = "Disable spaces after semicolons (default = true)."
