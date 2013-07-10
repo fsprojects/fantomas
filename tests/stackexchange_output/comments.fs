@@ -10,18 +10,18 @@ type Comment =
 let parseComment (line : string) = 
   match line.Split(';') with
   | [|author; body|] -> 
-    Some ({ Author = author
-            Body = body })
+    Some({ Author = author
+           Body = body })
   | _ -> None
 
 let filterOutNone maybe = 
   match maybe with
-  | Some (_) -> true
+  | Some(_) -> true
   | _ -> false
 
 let makeSome some = 
   match some with
-  | Some (v) -> v
+  | Some(v) -> v
   | _ -> failwith "error"
 
 let readAllComments() = 
