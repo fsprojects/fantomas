@@ -226,3 +226,19 @@ let UNIFY_ACCEPT_TAC mvs th (asl, w) =
     ([], insts), [], 
     let th' = INSTANTIATE insts th
     fun i [] -> INSTANTIATE i th'"""
+
+[<Test>]
+let ``should consume spaces before inserting comments``() =
+    formatSourceString false """
+let f x = 
+  a || // other case
+        match n with
+        | 17 -> false
+        | _ -> true""" config
+    |> prepend newline
+    |> should equal """
+let f x = 
+    a || // other case
+         match n with
+         | 17 -> false
+         | _ -> true"""

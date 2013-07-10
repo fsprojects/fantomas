@@ -520,11 +520,11 @@ let integrateComments (originalText : string) (newText : string) =
                 Debug.WriteLine "emitting newline for end of sticky-to-left comment" 
                 addText newTokText 
                 loop moreOrigTokens moreNewTokens 
-            // Otherwise, if there is a token coming, maintain the indentation
-            | _ -> 
+            // Otherwise, skip a whitespace token and maintain the indentation
+            | Space _ :: moreNewTokens | moreNewTokens -> 
                 addText " "
                 maintainIndent (fun () -> for x in commentTokensText do addText x)
-                loop moreOrigTokens newTokens 
+                loop moreOrigTokens moreNewTokens 
 
         // Inject line commment that is sticky-to-the-left, e.g. 
         //   let f x = 
