@@ -6,7 +6,7 @@ open System.Collections.Generic
 open System.Windows
 
 let shuffle (l : 'a array) = 
-  let ileft = LinkedList<int> (seq { 0..(l.Length - 1) })
+  let ileft = LinkedList<int>(seq { 0..(l.Length - 1) })
   let rec pick (ar : 'a array) r = 
     match ileft.Count with
     | 0 -> r
@@ -25,15 +25,15 @@ let rec merge (ar1 : 'a array) (ar2 : 'a array) =
         let indexnext = 
           if ar1.[inext] < ar2.[jnext] then (true, inext, jlast)
           else (false, ilast, jnext)
-        yield Some (indexnext)
+        yield Some(indexnext)
         yield! index indexnext
       | false, true -> 
         let indexnext = (false, ilast, jnext)
-        yield Some (indexnext)
+        yield Some(indexnext)
         yield! index indexnext
       | true, false -> 
         let indexnext = (true, inext, jlast)
-        yield Some (indexnext)
+        yield Some(indexnext)
         yield! index indexnext
       | false, false -> yield None }
   let mergeindex = index (false, -1, -1)
