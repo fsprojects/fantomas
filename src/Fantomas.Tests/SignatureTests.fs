@@ -97,3 +97,18 @@ type A () =
 type A() = 
     interface IA with
         member x.F(f : unit -> _) = f()"""
+
+[<Test>]
+let ``should not add parentheses around bare tuples``() =
+    formatSourceString true """
+type C =
+    member P1 : int * string
+    /// def
+    member P2 : int
+"""  config
+    |> prepend newline
+    |> should equal """
+type C = 
+    member P1 : int * string
+    /// def
+    member P2 : int"""

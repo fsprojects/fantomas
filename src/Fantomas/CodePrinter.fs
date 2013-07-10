@@ -723,22 +723,23 @@ and genTypeList = function
     | (t, [ArgInfo(so, isOpt)])::ts -> 
         let gt =
             match t with
-            | TTuple _ 
+            | TTuple _ ->
+                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) +> genType (not ts.IsEmpty) t 
             | TFun _ ->
-                // Tuple or Fun is grouped by brackets inside 'genType true t'
+                // Fun is grouped by brackets inside 'genType true t'
                 opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) +> genType true t
-            | _ -> opt sepColonFixed so (!-) +> genType true t
+            | _ -> opt sepColonFixed so (!-) +> genType false t
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
 
     | (TTuple ts', ais)::ts -> 
         let gt = col sepStar (Seq.zip ais ts') 
                     (fun (ArgInfo(so, isOpt), t) ->
                         opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
-                        +> genType true t)
+                        +> genType (not ts.IsEmpty) t)
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
 
     | (t, _)::ts -> 
-        let gt = genType true t
+        let gt = genType false t
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
 
 and genTypar(Typar(s, isHead)) = 
