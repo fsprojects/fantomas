@@ -395,7 +395,7 @@ and genExpr = function
     | DesugaredLambda(cps, e) -> 
         !- "fun " +>  col sepSpace cps genComplexPats +> sepArrow +> preserveBreakNln e 
     | Lambda(e, sps) -> 
-        !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> preserveBreakNln e
+        !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> noIndentBreakNln e
     | MatchLambda(sp, _) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr e -- " with" +> colPre sepNln sepNln cs genClause)

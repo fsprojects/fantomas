@@ -40,9 +40,29 @@ let print_30_permut() =
     /// declare and initialize
     let permutation : int array = 
         Array.init n (fun i -> 
-                Console.Write(i + 1)
-                i)
+            Console.Write(i + 1)
+            i)
     permutation"""
+
+[<Test>]
+let ``comments on local let bindings with desugared lambda``() =
+    formatSourceString false """
+let print_30_permut() = 
+
+    /// declare and initialize
+    let permutation : int array = Array.init n (fun (i,j) -> Console.Write(i+1); i)
+    permutation
+    """ config
+    |> prepend newline
+    |> should equal """
+let print_30_permut() = 
+    /// declare and initialize
+    let permutation : int array = 
+        Array.init n (fun (i, j) -> 
+            Console.Write(i + 1)
+            i)
+    permutation"""
+
 
 [<Test>]
 let ``xml documentation``() =
