@@ -34,7 +34,7 @@ type Interface3 =
     abstract Method3 : int -> int"""
 
 [<Test>]
-let ``should not add with to inface definitions``() =
+let ``should not add with to interface definitions with no members``() =
     formatSourceString false """type Text(text : string) = 
     interface IDocument
         
@@ -76,3 +76,21 @@ let implementer() =
       interface IFirst with
           member this.F() = ()
           member this.G() = () }"""
+
+[<Test>]
+let ``should not add with to interfaces with no members in object expressions``() =
+    formatSourceString false """
+let f () =       
+    { new obj() with
+        member x.ToString() = "INotifyEnumerableInternal"
+      interface INotifyEnumerableInternal<'T>
+      interface IEnumerable<_> with
+        member x.GetEnumerator() = null }""" config
+    |> prepend newline
+    |> should equal """
+let f() = 
+    { new obj() with
+          member x.ToString() = "INotifyEnumerableInternal"
+      interface INotifyEnumerableInternal<'T>
+      interface IEnumerable<_> with
+          member x.GetEnumerator() = null }"""
