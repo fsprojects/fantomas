@@ -779,8 +779,11 @@ and genTypeConstraint = function
         genTypar tp +> sepColon -- "delegate<" +> col sepComma ts (genType false) -- ">"
 
 and genInterfaceImpl(InterfaceImpl(t, bs)) = 
-    !- "interface " +> genType false t -- " with"
-    +> indent +> sepNln +> genMemberBindingList true bs +> unindent
+    match bs with
+    | [] -> !- "interface " +> genType false t
+    | bs ->
+        !- "interface " +> genType false t -- " with"
+        +> indent +> sepNln +> genMemberBindingList true bs +> unindent
 
 and genClause(Clause(p, e, eo)) = 
     sepBar +> genPat p +> optPre (!- " when ") sepNone eo genExpr +> sepArrow +> preserveBreakNln e
