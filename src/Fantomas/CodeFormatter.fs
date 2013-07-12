@@ -38,7 +38,7 @@ let internal format fsi s config =
         |> integrateComments s
 
     // Sometimes F# parser gives a partial AST for incorrect input
-    if not <| String.IsNullOrWhiteSpace s && String.IsNullOrWhiteSpace s' then
+    if String.IsNullOrWhiteSpace s <> String.IsNullOrWhiteSpace s' then
         raise <| FormatException "This code fragment consists of illegal F# constructs."
     else s'
 
