@@ -116,7 +116,7 @@ let rec internal getStartCol (r : range) (tokenizer : LineTokenizer) nstate =
 let rec internal getEndCol (r : range) (tokenizer : LineTokenizer) nstate = 
     match tokenizer.ScanToken(!nstate) with
     | Some(tok), state ->
-        Debug.WriteLine("End token: {0}", sprintf "%A" tok)
+        Debug.WriteLine("End token: {0}", sprintf "%A" tok |> box)
         if tok.RightColumn >= r.EndColumn && isDelimitToken tok then tok.RightColumn
         else
             nstate := state 
@@ -200,9 +200,9 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
         elif finish < s.Length then s.[finish+1..]
         else ""
 
-    Debug.WriteLine("pre:\n{0}", pre)
-    Debug.WriteLine("selection:\n{0}", selection)
-    Debug.WriteLine("post:\n{0}", post)
+    Debug.WriteLine("pre:\n{0}", box pre)
+    Debug.WriteLine("selection:\n{0}", box selection)
+    Debug.WriteLine("post:\n{0}", box post)
 
     let formatSelection fsi config selection =
         Context.create config selection

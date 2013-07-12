@@ -22,12 +22,48 @@ module internal MyModule =
 [<Test>]
 let ``open modules``() =
     formatSourceString false """
+    // comment1
     open System.IO
+    // comment2
     open System""" config
     |> prepend newline
     |> should equal """
+// comment2
 open System
+// comment1
 open System.IO"""
+
+[<Test>]
+let ``sort open modules doesn't mess comments up``() =
+    formatSourceString false """
+module internal Fantomas.CodePrinter
+
+open System
+open System.Collections.Generic
+open Microsoft.FSharp.Compiler.Ast
+open Fantomas.FormatConfig
+open Fantomas.SourceParser
+open Fantomas.SourceTransformer
+
+// comment1
+let sortAndDedup by l =
+    // comment2
+    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq""" config
+    |> prepend newline
+    |> should equal """
+module internal Fantomas.CodePrinter
+
+open Fantomas.FormatConfig
+open Fantomas.SourceParser
+open Fantomas.SourceTransformer
+open Microsoft.FSharp.Compiler.Ast
+open System
+open System.Collections.Generic
+
+// comment1
+let sortAndDedup by l =
+    // comment2
+    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq"""
 
 [<Test>]
 let ``nested modules``() =
