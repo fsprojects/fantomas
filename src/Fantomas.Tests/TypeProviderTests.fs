@@ -23,3 +23,9 @@ type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >""" config
     |> should equal """
 type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >
 """
+
+[<Test; ExpectedException(typeof<Fantomas.FormatConfig.FormatException>)>]
+let ``should throw FormatException on unparsed input``() =
+    formatSourceString false """
+type GeoResults = JsonProvider<Sample= "A" + "GitHub.json" >""" config 
+    |> ignore

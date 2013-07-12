@@ -10,6 +10,9 @@ open Microsoft.FSharp.Compiler.Range
 
 open Fantomas.TokenMatcher
 
+type FormatException(msg : string) =
+    inherit Exception(msg)
+
 type Num = int
 
 type FormatConfig = 

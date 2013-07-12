@@ -497,6 +497,8 @@ and genExpr = function
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
             +> genPat p -- " = " +> genExpr e1 +> sepNln +> genExpr e2)
 
+    | ParsingError _ -> raise <| FormatException "Unable to parse the expression"
+    | UnsupportedExpr _ -> raise <| FormatException "This construct is currently not supported"
     | e -> failwithf "Unexpected expression: %O" e
 
 and genInfixApps newline = function
