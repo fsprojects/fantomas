@@ -100,15 +100,19 @@ namespace Hestia.FSharpCommands.Commands
                     edit.Replace(0, text.Length, formatted);
                     edit.Apply();
 
-                    // TODO: return cursor to the correct position
                     setCaretPosition();
 
                     return true;
                 }
             }
+            catch (Fantomas.FormatConfig.FormatException ex)
+            {
+                MessageBox.Show(ex.Message, "Fantomas");
+                return false;
+            }
             catch (Exception ex)
             {
-                MessageBox.Show("Unable to format.  " + ex.Message);
+                MessageBox.Show("Unable to format. " + ex.Message, "Fantomas");
                 return false;
             }
         }
