@@ -23,25 +23,31 @@ let internal parseWith fileName content =
     let untypedRes = checker.UntypedParse(fileName, content, checkOptions)
     match untypedRes.ParseTree with
     | Some tree -> tree
-    | None -> failwith "parseWith: Unexpected input"
+    | None -> raise <| FormatException "Unable to parse this code fragment."
 
 /// Parse a source code string
 let parse fsi s = 
     let fileName = if fsi then "/tmp.fsi" else "/tmp.fs"
     parseWith fileName s
 
-let internal format fsi s config =    
-    Context.create config s 
-    |> genParsedInput (parse fsi s) 
-    |> dump
-    |> integrateComments s
+let internal format fsi s config =
+    let s' =    
+        Context.create config s 
+        |> genParsedInput (parse fsi s) 
+        |> dump
+        |> integrateComments s
+
+    // Sometimes F# parser gives a partial AST for incorrect input
+    if String.IsNullOrWhiteSpace s <> String.IsNullOrWhiteSpace s' then
+        raise <| FormatException "This code fragment consists of illegal F# constructs."
+    else s'
 
 /// Format a source string using given config
 let formatSourceString fsi s config =    
-    let s = format fsi s config
+    let s' = format fsi s config
+        
     // When formatting the whole document, an EOL is required
-    if s.EndsWith(Environment.NewLine) then s
-    else s + Environment.NewLine
+    if s'.EndsWith(Environment.NewLine) then s' else s' + Environment.NewLine
 
 /// Format a source string using given config; return None if failed
 let tryFormatSourceString fsi s config =
@@ -210,12 +216,12 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     Debug.WriteLine("selection:\n{0}", box selection)
     Debug.WriteLine("post:\n{0}", box post)
 
-    let formatSelection fsi config selection =
-        Context.create config selection
-        |> genParsedInput (parse fsi selection)
-        |> ifElse (selection.EndsWith "\n") sepNln sepNone
-        |> dump
-        |> integrateComments selection
+    let formatSelection fsi s config =
+        let s' = format fsi s config
+        // If the input is not inline, the output should not inline as well
+        if s.EndsWith(Environment.NewLine) && not <| s'.EndsWith(Environment.NewLine) then 
+            s' + Environment.NewLine 
+        else s'
 
     let reconstructSourceCode startCol formatteds pre post =
         // Realign results on the correct column
@@ -228,7 +234,7 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     match patch with
     | TypeMember ->
         // Get formatted selection with "type T = \n" patch
-        let result = formatSelection fsi config selection
+        let result = formatSelection fsi selection config
         // Remove the patch
         let contents = result.Replace("\r\n","\n").Split('\r', '\n')
         if contents = [||] then
@@ -242,13 +248,13 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
     | RecType 
     | RecLet ->        
         // Get formatted selection with "type" or "let rec" replacement for "and"
-        let result = formatSelection fsi config selection
+        let result = formatSelection fsi selection config
         // Substitute by old contents
         let pattern = if patch = RecType then Regex("type") else Regex("let rec")
         let formatteds = pattern.Replace(result, "and", 1).Replace("\r\n","\n").Split('\r', '\n')
         reconstructSourceCode startCol formatteds pre post
     | NoPatch ->
-        let result = formatSelection fsi config selection
+        let result = formatSelection fsi selection config
         let formatteds = result.Replace("\r\n","\n").Split('\r', '\n')
         reconstructSourceCode startCol formatteds pre post
 
