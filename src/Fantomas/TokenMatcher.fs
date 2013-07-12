@@ -465,7 +465,7 @@ let integrateComments (originalText : string) (newText : string) =
         // Assume that only #endif directive follows by an EOL 
         | (PreprocessorDirectiveChunk (tokensText, moreOrigTokens)), newTokens ->            
             let text = String.concat "" tokensText
-            Debug.WriteLine("injecting preprocessor directive '{0}'", text)
+            Debug.WriteLine("injecting preprocessor directive '{0}'", box text)
             addText System.Environment.NewLine
             for x in tokensText do addText x
             let moreNewTokens =
@@ -492,7 +492,7 @@ let integrateComments (originalText : string) (newText : string) =
         // Inject inactive code
         // These chunks come out from any #else branch in our scenarios
         | (InactiveCodeChunk (tokensText, moreOrigTokens)),  _ ->
-            Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText)
+            Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText |> box)
             let text = String.concat "" tokensText
             let lines = text.Replace("\r\n", "\n").Split([|'\r'; '\n'|], StringSplitOptions.RemoveEmptyEntries)
             // What is current indentation of this chunk
@@ -510,7 +510,7 @@ let integrateComments (originalText : string) (newText : string) =
 
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)),  _ ->
             let tokText = String.concat "" commentTokensText
-            Debug.WriteLine("injecting sticky-to-the-left line comment '{0}'", tokText)
+            Debug.WriteLine("injecting sticky-to-the-left line comment '{0}'", box tokText)
               
             match newTokens with 
             // If there is a new line coming, use it up
@@ -531,7 +531,7 @@ let integrateComments (originalText : string) (newText : string) =
         //       x + x  // HERE
         // Because it is sticky-to-the-left, we do it _before_ emitting end-of-line from the newText
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)),  _ ->
-            Debug.WriteLine("injecting stick-to-the-left line comment '{0}'", String.concat "" commentTokensText)
+            Debug.WriteLine("injecting stick-to-the-left line comment '{0}'", String.concat "" commentTokensText |> box)
             addText " "
             for x in commentTokensText do addText x
             loop moreOrigTokens newTokens 
@@ -544,14 +544,14 @@ let integrateComments (originalText : string) (newText : string) =
 
         | _,  ((Token newTok, newTokText) :: moreNewTokens) 
             when newTok.CharClass = TokenCharKind.WhiteSpace && newTok.ColorClass <> TokenColorKind.InactiveCode ->
-            Debug.WriteLine("emitting whitespace '{0}' in new tokens", newTokText)
+            Debug.WriteLine("emitting whitespace '{0}' in new tokens", newTokText |> box)
             addText newTokText 
             loop origTokens moreNewTokens 
 
         // We emit all unmatched delimiter tokens
         | _,  (Delimiter newTokText :: moreNewTokens) 
             when newTokText <> "[<" && newTokText <> ">]" && newTokText <> "|" ->
-            Debug.WriteLine("emitting non-matching '{0}' in new tokens", newTokText)
+            Debug.WriteLine("emitting non-matching '{0}' in new tokens", newTokText |> box)
             addText newTokText 
             loop origTokens moreNewTokens 
 
@@ -561,13 +561,13 @@ let integrateComments (originalText : string) (newText : string) =
         //       // HERE
         //       x + x
         | (LineCommentChunk false (commentTokensText, moreOrigTokens)),  _ ->
-            Debug.WriteLine("injecting line comment '{0}'", String.concat "" commentTokensText)
+            Debug.WriteLine("injecting line comment '{0}'", String.concat "" commentTokensText |> box)
             maintainIndent (fun () -> for x in commentTokensText do addText x)
             loop moreOrigTokens newTokens 
 
         // Inject block commment 
         | (BlockCommentChunk (commentTokensText, moreOrigTokens)),  _ ->
-            Debug.WriteLine("injecting block comment '{0}'", String.concat "" commentTokensText)
+            Debug.WriteLine("injecting block comment '{0}'", String.concat "" commentTokensText |> box)
             let comments = String.concat "" commentTokensText
             if comments.IndexOf('\n') = -1 then
                 // This is an inline block comment
@@ -590,39 +590,39 @@ let integrateComments (originalText : string) (newText : string) =
               
         // Skip attributes in the old text
         | (Attribute (tokensText, moreOrigTokens)), _ ->
-            Debug.WriteLine("skip matching of attribute tokens '{0}'", tokensText)            
+            Debug.WriteLine("skip matching of attribute tokens '{0}'", box tokensText)
             loop moreOrigTokens newTokens   
 
         // Matching tokens
         | (origTok :: moreOrigTokens), (newTok :: moreNewTokens) when tokensMatch origTok newTok ->
-            Debug.WriteLine("matching token '{0}'", origTok.Text)
+            Debug.WriteLine("matching token '{0}'", box origTok.Text)
             addText (snd newTok)
             loop moreOrigTokens moreNewTokens 
 
         // Matching tokens, after one new token, compensating for insertions of "|", ";" and others
         | (origTok :: moreOrigTokens), (newTok1 :: NewTokenAfterWhitespaceOrNewLine(whiteTokens, newTok2, moreNewTokens)) 
             when tokensMatch origTok newTok2 ->
-            Debug.WriteLine("fresh non-matching new token '%s'", snd newTok1)
+            Debug.WriteLine("fresh non-matching new token '{0}'", snd newTok1 |> box)
             addText (snd newTok1)
-            Debug.WriteLine("matching token '{0}' (after one fresh new token)", snd newTok2)
+            Debug.WriteLine("matching token '{0}' (after one fresh new token)", snd newTok2 |> box)
             for x in whiteTokens do addText x
             addText (snd newTok2)
             loop moreOrigTokens moreNewTokens 
 
         // Not a comment, drop the original token text until something matches
         | (origTok :: moreOrigTokens), _ ->
-            Debug.WriteLine("dropping '{0}' from original text", origTok.Text)
+            Debug.WriteLine("dropping '{0}' from original text", box origTok.Text)
             loop moreOrigTokens newTokens 
 
         // Dangling text at the end 
         | [], ((_, newTokText) :: moreNewTokens) ->
-            Debug.WriteLine("dangling new token '{0}'", newTokText)
+            Debug.WriteLine("dangling new token '{0}'", box newTokText)
             addText newTokText 
             loop [] moreNewTokens 
 
         // Dangling input text - extra comments or whitespace
         | (Marked(origTok, origTokText, _) :: moreOrigTokens), [] ->
-            Debug.WriteLine("dropping dangling old token '{0}'", origTokText)
+            Debug.WriteLine("dropping dangling old token '{0}'", box origTokText)
             loop moreOrigTokens [] 
 
         | [], [] -> 
