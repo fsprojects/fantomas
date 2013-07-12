@@ -8,7 +8,7 @@ open Fantomas.SourceParser
 open Fantomas.SourceTransformer
 
 let sortAndDedup by l =
-    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq
+    l //|> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg = 
     match functionOrMethod, arg with
