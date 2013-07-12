@@ -9,7 +9,8 @@ open Fantomas.Tests.TestHelper
 [<Test>]
 let ``should keep // comments after nowarn directives``() =
     formatSourceString false """#nowarn "51" // address-of operator can occur in the code""" config
-    |> should equal """#nowarn "51" // address-of operator can occur in the code"""
+    |> should equal """#nowarn "51" // address-of operator can occur in the code
+"""
 
 [<Test>]
 let ``should keep // comments before module definition``() =
@@ -23,7 +24,8 @@ let x = 1""" config
 // some text
 module FSharpx.TypeProviders.VectorTypeProvider
 
-let x = 1"""
+let x = 1
+"""
 
 [<Test>]
 let ``comments on local let bindings``() =
@@ -42,7 +44,8 @@ let print_30_permut() =
         Array.init n (fun i -> 
             Console.Write(i + 1)
             i)
-    permutation"""
+    permutation
+"""
 
 [<Test>]
 let ``comments on local let bindings with desugared lambda``() =
@@ -61,7 +64,8 @@ let print_30_permut() =
         Array.init n (fun (i, j) -> 
             Console.Write(i + 1)
             i)
-    permutation"""
+    permutation
+"""
 
 
 [<Test>]
@@ -89,7 +93,8 @@ let kwm sidpp tvd omw = 1.0""" config
 let kwm sidpp tvd omw = (sidpp / 0.052 / tvd) + omw
 
 /// Kill Weight Mud
-let kwm sidpp tvd omw = 1.0"""
+let kwm sidpp tvd omw = 1.0
+"""
 
 [<Test>]
 let ``should preserve comment-only source code``() =
@@ -115,7 +120,8 @@ let f() =
     |> should equal """
 let f() = 
     // COMMENT
-    x + x"""
+    x + x
+"""
 
 [<Test>]
 let ``should keep sticky-to-the-left comments``() =
@@ -128,7 +134,8 @@ let f() =
     |> should equal """
 let f() = 
     let x = 1 // COMMENT
-    x + x""" 
+    x + x
+""" 
 
 [<Test>]
 let ``should keep well-aligned comments``() =
@@ -152,7 +159,8 @@ let f() =
     let y = 1
     (* COMMENT B *)
     (* COMMENT C *)
-    x + x + x"""
+    x + x + x
+"""
 
 [<Test>]
 let ``should align mis-aligned comments``() =
@@ -178,7 +186,8 @@ let f() =
     /// XML COMMENT B
     let z = 1
     // COMMENT B
-    x + x + x"""
+    x + x + x
+"""
 
 [<Test>]
 let ``should indent comments properly``() =
@@ -202,7 +211,8 @@ type IlxGenIntraAssemblyInfo =
       /// only accessible intra-assembly. Across assemblies, taking the address of static mutable module-bound values is not permitted.
       /// The key to the table is the method ref for the property getter for the value, which is a stable name for the Val's
       /// that come from both the signature and the implementation.
-      StaticFieldInfo : Dictionary<ILMethodRef, ILFieldSpec> }"""
+      StaticFieldInfo : Dictionary<ILMethodRef, ILFieldSpec> }
+"""
 
 [<Test>]
 let ``shouldn't break on one-line comment``() =
@@ -210,7 +220,8 @@ let ``shouldn't break on one-line comment``() =
 1 + (* Comment *) 1""" config
     |> prepend newline
     |> should equal """
-1 + (* Comment *) 1"""
+1 + (* Comment *) 1
+"""
 
 [<Test>]
 let ``should keep comments on DU cases``() =
@@ -229,7 +240,8 @@ type X =
     /// Hello
     | A
     /// Goodbye
-    | B"""
+    | B
+"""
 
 [<Test>]
 let ``should keep comments before attributes``() =
@@ -282,7 +294,8 @@ type IlxGenOptions =
       // Indicates System.SerializableAttribute is available in the target framework
       netFxHasSerializableAttribute : bool;
       /// Whenever possible, use callvirt instead of call
-      alwaysCallVirt : bool }"""
+      alwaysCallVirt : bool }
+"""
 
 [<Test>]
 let ``should keep comments on else if``() =
@@ -301,7 +314,8 @@ else
     // Comment 1
     if true then ()
     // Comment 2
-    else ()"""
+    else ()
+"""
 
 [<Test>]
 let ``should keep comments on almost-equal identifiers``() =
@@ -318,4 +332,5 @@ let zp = p1 ``lxor`` p2
 // Comment 1
 let b = zp ``land`` (zp)
 (* Comment 2 *)
-let p = p1 ``land`` (b - 1)"""
+let p = p1 ``land`` (b - 1)
+"""

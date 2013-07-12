@@ -12,7 +12,6 @@ let ``should use verbatim strings on some hash directives``() =
     #r @"C:\foo\bar.dll"
     """ config
     |> prepend newline
-    |> append newline
     |> should equal """
 #r @"C:\foo\bar.dll"
 """
@@ -24,7 +23,6 @@ let ``hash directives``() =
     #load "CodeFormatterTests.fs"
     """ config
     |> prepend newline
-    |> append newline
     |> should equal """
 #r "Fantomas.Tests.dll"
 #load "CodeFormatterTests.fs"
@@ -46,7 +44,8 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 
 #load "__setup__.fsx"
-#endif"""
+#endif
+"""
 
 [<Test>]
 let ``line, file and path identifiers``() =
@@ -64,7 +63,8 @@ let printSourceLocation() =
     printfn "Source Directory: %s" __SOURCE_DIRECTORY__
     printfn "Source File: %s" __SOURCE_FILE__
 
-printSourceLocation()"""
+printSourceLocation()
+"""
 
 [<Test>]
 let ``should keep #if, #else and #endif on compiler directives``() =
@@ -87,7 +87,8 @@ let useHiddenInitCode = false
 let useHiddenInitCode = true
 #endif
 
-let y = 2"""
+let y = 2
+"""
 
 [<Test>]
 let ``should handle nested compiler directives``() =
@@ -125,7 +126,8 @@ let private assemblyConfig =
 #else
     ""
 #endif
-#endif"""
+#endif
+"""
 
 [<Test>]
 let ``should break lines before compiler directives``() =
@@ -149,4 +151,5 @@ let private assemblyConfig() =
     let x = "x"
 #endif
     
-    x"""
+    x
+"""

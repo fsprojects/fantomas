@@ -30,12 +30,18 @@ let parse fsi s =
     let fileName = if fsi then "/tmp.fsi" else "/tmp.fs"
     parseWith fileName s
 
-/// Format a source string using given config
-let formatSourceString fsi s config =    
+let internal format fsi s config =    
     Context.create config s 
     |> genParsedInput (parse fsi s) 
     |> dump
     |> integrateComments s
+
+/// Format a source string using given config
+let formatSourceString fsi s config =    
+    let s = format fsi s config
+    // When formatting the whole document, an EOL is required
+    if s.EndsWith(Environment.NewLine) then s
+    else s + Environment.NewLine
 
 /// Format a source string using given config; return None if failed
 let tryFormatSourceString fsi s config =

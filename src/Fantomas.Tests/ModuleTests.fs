@@ -9,7 +9,8 @@ open Fantomas.Tests.TestHelper
 [<Test>]
 let ``module abbreviation``() =
     formatSourceString false "module ES = Microsoft.FSharp.Quotations.ExprShape" config
-    |> should equal """module ES = Microsoft.FSharp.Quotations.ExprShape"""
+    |> should equal """module ES = Microsoft.FSharp.Quotations.ExprShape
+"""
 
 [<Test>]
 let ``module with functions``() =
@@ -17,7 +18,8 @@ let ``module with functions``() =
     |> prepend newline
     |> should equal """
 module internal MyModule = 
-    let x = 42"""
+    let x = 42
+"""
 
 [<Test>]
 let ``open modules``() =
@@ -31,7 +33,8 @@ let ``open modules``() =
 // comment2
 open System
 // comment1
-open System.IO"""
+open System.IO
+"""
 
 [<Test>]
 let ``sort open modules doesn't mess comments up``() =
@@ -63,7 +66,8 @@ open System.Collections.Generic
 // comment1
 let sortAndDedup by l =
     // comment2
-    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq"""
+    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq
+"""
 
 [<Test>]
 let ``nested modules``() =
@@ -79,7 +83,8 @@ module Y =
     let x = 1
     
     module Z = 
-        let z = 5"""
+        let z = 5
+"""
 
 [<Test>]
 let ``sibling modules``() =
@@ -102,7 +107,8 @@ module Inner1 =
     let inner1X = 1
 
 module Inner2 = 
-    let inner2X = 5"""
+    let inner2X = 5
+"""
 
 [<Test>]
 let ``module signatures``() =
@@ -131,7 +137,8 @@ module Random =
     val exponential : mean:float -> float
     val nextInt : max:int -> int
     val nextInt64 : max:int64 -> int64
-    val next : max:float -> float"""
+    val next : max:float -> float
+"""
 
 [<Test>]
 let ``namespace declaration``() =
@@ -145,7 +152,6 @@ module WidgetsModule =
     let widgetName = "Widget2"
     """ config
     |> prepend newline
-    |> append newline
     |> should equal """
 namespace Widgets
 
@@ -170,7 +176,8 @@ type SomeType() =
 namespace global
 
 type SomeType() = 
-    member this.Print() = global.System.Console.WriteLine("Hello World!")"""
+    member this.Print() = global.System.Console.WriteLine("Hello World!")
+"""
 
 [<Test>]
 let ``should escape keywords correctly``() =
@@ -190,4 +197,5 @@ module ``method``
 let ``abstract`` = "abstract"
 
 type SomeType() = 
-    member this.``new``() = System.Console.WriteLine("Hello World!")"""
+    member this.``new``() = System.Console.WriteLine("Hello World!")
+"""

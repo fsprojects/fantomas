@@ -16,12 +16,14 @@ let ``typed quotations``() =
     |> prepend newline
     |> should equal """
 <@ let f x = x + 10
-   f 20 @>"""
+   f 20 @>
+"""
 
 [<Test>]
 let ``untyped quotations``() =
     formatSourceString false "<@@ 2 + 3 @@>" config
-    |> should equal """<@@ 2 + 3 @@>"""
+    |> should equal """<@@ 2 + 3 @@>
+"""
 
 [<Test>]
 let ``should preserve unit literal``() =
@@ -31,4 +33,5 @@ let ``should preserve unit literal``() =
     |> prepend newline
     |> should equal """
 let logger = 
-    Mock<ILogger>().Setup(fun log -> <@ log.Log(error) @>).Returns(()).Create()"""
+    Mock<ILogger>().Setup(fun log -> <@ log.Log(error) @>).Returns(()).Create()
+"""
