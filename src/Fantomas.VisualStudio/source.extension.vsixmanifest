@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="Fantomas.Hestia.d4101bb1-9731-4577-bdec-7d088dce2136" Version="0.4.1" Language="en-US" Publisher="Anh-Dung Phan, Ivan Towlson" />
+    <Identity Id="Fantomas.Hestia.d4101bb1-9731-4577-bdec-7d088dce2136" Version="0.4.3" Language="en-US" Publisher="Anh-Dung Phan, Ivan Towlson" />
     <DisplayName>Fantomas</DisplayName>
     <Description xml:space="preserve">Provides formatting commands for F# in Visual Studio</Description>
     <MoreInfo>http://github.com/dungpa/fantomas</MoreInfo>
