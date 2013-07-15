@@ -111,31 +111,33 @@ let (|Measure|) x =
     sprintf "<%s>" <| loop x
 
 /// Lose information about kinds of literals
-let rec (|Const|Unresolved|) c = 
+let rec (|Const|) c = 
     match c with
-    | SynConst.Measure(Const c, Measure m) -> Const(c + m)
-    | SynConst.UserNum(num, ty) -> Const(num + ty)
-    | SynConst.Unit -> Const "()"
-    | SynConst.Bool b -> Const(sprintf "%A" b)
-    | SynConst.SByte s -> Const(sprintf "%A" s)
-    | SynConst.Byte b -> Const(sprintf "%A" b)
-    | SynConst.Int16 i -> Const(sprintf "%A" i)
-    | SynConst.UInt16 u -> Const(sprintf "%A" u)
-    | SynConst.Int32 i -> Const(sprintf "%A" i)
-    | SynConst.UInt32 u -> Const(sprintf "%A" u)
-    | SynConst.Int64 i -> Const(sprintf "%A" i)
-    | SynConst.UInt64 u -> Const(sprintf "%A" u)
-    | SynConst.IntPtr i -> Const(sprintf "%in" i)
-    | SynConst.UIntPtr u -> Const(sprintf "%iun" u)
-    | SynConst.Single s -> Const(sprintf "%A" s)
-    | SynConst.Double d -> Const(sprintf "%A" d)
-    | SynConst.Char c -> Const(sprintf "%A" c)
-    | SynConst.Decimal d -> Const(sprintf "%A" d)
-    | SynConst.String _ -> Unresolved(c)
-    | SynConst.Bytes _ -> Unresolved(c)
+    | SynConst.Measure(Const c, Measure m) -> c + m
+    | SynConst.UserNum(num, ty) -> num + ty
+    | SynConst.Unit -> "()"
+    | SynConst.Bool b -> sprintf "%A" b
+    | SynConst.SByte s -> sprintf "%A" s
+    | SynConst.Byte b -> sprintf "%A" b
+    | SynConst.Int16 i -> sprintf "%A" i
+    | SynConst.UInt16 u -> sprintf "%A" u
+    | SynConst.Int32 i -> sprintf "%A" i
+    | SynConst.UInt32 u -> sprintf "%A" u
+    | SynConst.Int64 i -> sprintf "%A" i
+    | SynConst.UInt64 u -> sprintf "%A" u
+    | SynConst.IntPtr i -> sprintf "%in" i
+    | SynConst.UIntPtr u -> sprintf "%iun" u
+    | SynConst.Single s -> sprintf "%A" s
+    | SynConst.Double d -> sprintf "%A" d
+    | SynConst.Char c -> sprintf "%A" c
+    | SynConst.Decimal d -> sprintf "%A" d
+    | SynConst.String(s, _) -> s
+    | SynConst.Bytes(bs, _) -> sprintf "%A" bs
     // Auto print may cut off the array
-    | SynConst.UInt16s us -> Const(sprintf "%A" us)
+    | SynConst.UInt16s us -> sprintf "%A" us
     | _ -> invalidArg "c" "Ill-formed constants"
+
+let (|Unresolved|) (Const c, r) = (c, r)
 
 // File level patterns
 
@@ -295,8 +297,8 @@ let (|UnionCaseType|) = function
 let (|Field|) (SynField.Field(ats, isStatic, ido, t, isMutable, px, ao, _)) =
     (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido)
 
-let (|EnumCase|) (SynEnumCase.EnumCase(ats, Ident s, c, px, _)) =
-    (ats, px, s, c)
+let (|EnumCase|) (SynEnumCase.EnumCase(ats, Ident s, c, px, r)) =
+    (ats, px, s, (c, r))
 
 // Member definitions (11 cases)
 
@@ -491,8 +493,8 @@ let (|NullExpr|_|) = function
     | _ -> None
 
 let (|ConstExpr|_|) = function
-    | SynExpr.Const(x, _) ->
-        Some x
+    | SynExpr.Const(x, r) ->
+        Some(x, r)
     | _ -> None
 
 let (|TypeApp|_|) = function
@@ -819,7 +821,7 @@ let (|PatRecord|_|) = function
     | _ -> None
 
 let (|PatConst|_|) = function
-    | SynPat.Const(c, _) -> Some c
+    | SynPat.Const(c, r) -> Some(c, r)
     | _ -> None
 
 let (|PatIsInst|_|) = function
@@ -980,8 +982,8 @@ let (|TMeasureDivide|_|) = function
     | _ -> None
 
 let (|TStaticConstant|_|) = function
-    | SynType.StaticConstant(c, _) ->
-        Some c
+    | SynType.StaticConstant(c, r) ->
+        Some(c, r)
     | _ -> None
 
 let (|TStaticConstantExpr|_|) = function

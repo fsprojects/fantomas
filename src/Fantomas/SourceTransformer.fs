@@ -88,7 +88,7 @@ let rec multiline = function
 /// Check if the expression already has surrounding parentheses
 let hasParenthesis = function
     | Paren _
-    | ConstExpr(Const "()")
+    | ConstExpr(Const "()", _)
     | Tuple _ -> true
     | _ -> false
 
@@ -96,12 +96,8 @@ let hasParenInPat = function
     | PatParen _ -> true
     | _ -> false
 
-let genConst c =
-    match c with
-    | Const c -> !- c
-    | Unresolved c -> 
-        let r = c.Range range.Zero
-        fun ctx -> str (content r ctx) ctx
+let genConst (Unresolved(_, r)) =
+    fun ctx -> str (content r ctx) ctx
 
 /// Check whether a range starting with a specified token
 let startWith s (r : range) ctx = 

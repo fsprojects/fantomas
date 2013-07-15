@@ -12,7 +12,7 @@ let sortAndDedup by l =
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg = 
     match functionOrMethod, arg with
-    | _, ConstExpr(Const "()") -> false
+    | _, ConstExpr(Const "()", _) -> false
     | SynExpr.LongIdent(_, LongIdentWithDots s, _, _), _ ->
         let parts = s.Split '.'
         not <| Char.IsUpper parts.[parts.Length - 1].[0]
@@ -22,7 +22,7 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg =
 
 let addSpaceBeforeParensInFunDef functionOrMethod args =
     match functionOrMethod, args with
-    | _, PatParen (PatConst SynConst.Unit) -> false
+    | _, PatParen (PatConst(Const "()", _)) -> false
     | "new", _ -> false
     | (s:string), _ -> 
         let parts = s.Split '.'
@@ -173,7 +173,7 @@ and genAccess(Access s) = !- s
 and genAttribute(Attribute(s, e, _)) = 
     match e with
     // Special treatment for function application on attributes
-    | ConstExpr(Const "()") -> !- (sprintf "[<%s>]" s)
+    | ConstExpr(Const "()", _) -> !- (sprintf "[<%s>]" s)
     | e -> !- "[<" -- s +> genExpr e -- ">]"
     
 and genOneLinerAttributes ats = 
@@ -682,10 +682,10 @@ and genUnionCase hasBar (UnionCase(ats, px, _, s, UnionCaseType fs)) =
     +> genOneLinerAttributes ats -- s 
     +> colPre wordOf sepStar fs (genField true "")
 
-and genEnumCase hasBar (EnumCase(ats, px, s, c)) =
+and genEnumCase hasBar (EnumCase(ats, px, _, c)) =
     genPreXmlDoc px 
     +> ifElse hasBar sepBar sepNone 
-    +> genOneLinerAttributes ats -- s +> sepEq +> genConst c
+    +> genOneLinerAttributes ats +> genConst c
 
 and genField isUnion prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) = 
     // Being protective on union case declaration
