@@ -551,3 +551,12 @@ type StateMachine(makeAsync) =
         new StateMachine(makeAsync)
         then secondCtor.Init(fileName, initState)
 """
+
+[<Test>]
+let ``^a needs spaces when used as a type parameter``() =
+    formatSourceString false """
+let inline tryAverage(seq: seq< ^a >): ^a option =  1""" config
+    |> prepend newline
+    |> should equal """
+let inline tryAverage (seq : seq< ^a >) : ^a option = 1
+"""
