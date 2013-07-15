@@ -27,35 +27,35 @@ let makeCumulative =
   >> List.toArray
 
 let homoSapiens = 
-  makeCumulative [97uy, 0.3029549427
-                  99uy, 0.1979883005
-                  103uy, 0.1975473066
-                  116uy, 0.3015094502]
+  makeCumulative ['a'B, 0.3029549426680
+                  'c'B, 0.1979883004921
+                  'g'B, 0.1975473066391
+                  't'B, 0.3015094502008]
 
 let iub = 
-  makeCumulative [97uy, 0.27
-                  99uy, 0.12
-                  103uy, 0.12
-                  116uy, 0.27
-                  66uy, 0.02
-                  68uy, 0.02
-                  72uy, 0.02
-                  75uy, 0.02
-                  77uy, 0.02
-                  78uy, 0.02
-                  82uy, 0.02
-                  83uy, 0.02
-                  86uy, 0.02
-                  87uy, 0.02
-                  89uy, 0.02]
+  makeCumulative ['a'B, 0.27
+                  'c'B, 0.12
+                  'g'B, 0.12
+                  't'B, 0.27
+                  'B'B, 0.02
+                  'D'B, 0.02
+                  'H'B, 0.02
+                  'K'B, 0.02
+                  'M'B, 0.02
+                  'N'B, 0.02
+                  'R'B, 0.02
+                  'S'B, 0.02
+                  'V'B, 0.02
+                  'W'B, 0.02
+                  'Y'B, 0.02]
 
-let inline selectRandom(f : _[]) = 
+let inline selectRandom (f : _ []) = 
   let r = random 1.0
   let rec find = 
     function 
     | 0 -> fst f.[0]
     | n when r < snd f.[n] -> fst f.[n]
-    | n -> find(n - 1)
+    | n -> find (n - 1)
   find <| f.Length - 1
 
 let width = 60
@@ -70,26 +70,21 @@ let inline flush() =
 let inline write b = 
   buffer.[index] <- b
   index <- index + 1
-  if index = buffer.Length
-  then flush()
+  if index = buffer.Length then flush()
 
 let randomFasta desc table n = 
   Array.iter write desc
   for i in 1..n do
     write <| selectRandom table
-    if i % width = 0
-    then write 10uy
-  if n % width <> 0
-  then write 10uy
+    if i % width = 0 then write '\n'B
+  if n % width <> 0 then write '\n'B
 
-let repeatFasta desc (table : byte[]) n = 
+let repeatFasta desc (table : byte []) n = 
   Array.iter write desc
   for i in 1..n do
     write <| table.[(i - 1) % table.Length]
-    if i % width = 0
-    then write 10uy
-  if n % width <> 0
-  then write 10uy
+    if i % width = 0 then write '\n'B
+  if n % width <> 0 then write '\n'B
 
 [<EntryPoint>]
 let main args = 

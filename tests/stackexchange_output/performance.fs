@@ -25,9 +25,10 @@ let getDateTaken file =
   try 
     dateTakenFromExif file
   with
-  | :? Exception -> File.GetLastWriteTime(file) //Use the last write time in the event that the file was moved/copied
+  | :? Exception -> File.GetLastWriteTime(file)
 
-let addToFile file n = 
+ //Use the last write time in the event that the file was moved/copied
+ let addToFile file n = 
   match n with
   | 2 -> 
     let fileDir = Path.GetDirectoryName(file)
@@ -69,8 +70,9 @@ let move destinationRoot files =
 
 let moveFrom source = 
   getAllFiles source
-  |> Seq.filter (fun f -> Path.GetExtension(f).ToLower() <> ".db") //exlcude the thumbs.db files
-  |> move """C:\_EXTERNAL_DRIVE\_Camera"""
+  |> Seq.filter (fun f -> Path.GetExtension(f).ToLower() <> ".db")
+   //exlcude the thumbs.db files
+   |> move """C:\_EXTERNAL_DRIVE\_Camera"""
   printfn "Done"
 
 moveFrom """C:\Users\Mike\Pictures\To Network"""

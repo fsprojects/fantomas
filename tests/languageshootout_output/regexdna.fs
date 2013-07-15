@@ -20,23 +20,17 @@ let rec onblocks res s =
   | s when (s.Length < size) -> res @ [s]
   | s -> onblocks (res @ [s.Substring(0, size)]) (s.Substring(size))
 
-["agggtaaa|tttaccct"
- "[cgt]gggtaaa|tttaccc[acg]"
- "a[act]ggtaaa|tttacc[agt]t"
- "ag[act]gtaaa|tttac[agt]ct"
- "agg[act]taaa|ttta[agt]cct"
- "aggg[acg]aaa|ttt[cgt]ccct"
- "agggt[cgt]aa|tt[acg]accct"
- "agggta[cgt]a|t[acg]taccct"
- "agggtaa[cgt]|[acg]ttaccct"]
-|> List.map
+["agggtaaa|tttaccct"; "[cgt]gggtaaa|tttaccc[acg]"; "a[act]ggtaaa|tttacc[agt]t"; 
+ "ag[act]gtaaa|tttac[agt]ct"; "agg[act]taaa|ttta[agt]cct"; 
+ "aggg[acg]aaa|ttt[cgt]ccct"; "agggt[cgt]aa|tt[acg]accct"; 
+ "agggta[cgt]a|t[acg]taccct"; "agggtaa[cgt]|[acg]ttaccct"]
+|> List.map 
      (fun s -> 
-       async { 
-         return System.String.Format
-                  ("{0} {1}", s, ((regex s).Matches text).Count) })
+     async { 
+       return System.String.Format("{0} {1}", s, ((regex s).Matches text).Count) })
 |> Async.Parallel
 |> Async.RunSynchronously
-|> Array.iter(printfn "%s")
+|> Array.iter (printfn "%s")
 
 let newTextLength t = 
   ["B", "(c|g|t)"
@@ -56,7 +50,7 @@ let newTextLength t =
 let newText = 
   text
   |> onblocks []
-  |> Seq.map(fun s -> async { return newTextLength s })
+  |> Seq.map (fun s -> async { return newTextLength s })
   |> Async.Parallel
   |> Async.RunSynchronously
   |> Array.sum

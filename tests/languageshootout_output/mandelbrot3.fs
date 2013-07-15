@@ -19,7 +19,7 @@ let current_line = ref -1
 let Calculate() = 
   let inverse_n = 2.0 / float N
   let mutable y = Interlocked.Increment(&current_line.contents)
-  while y < N do
+  while y < N do // fetch a line
     let pdata = data.[y]
     let mutable byte_count = 0
     let mutable bit_num = 0
@@ -39,23 +39,20 @@ let Calculate() =
         Trv <- Zrv * Zrv
         Tiv <- Ziv * Ziv
         more <- (Trv + Tiv) <= 4.0
-        if more
-        then 
+        if more then 
           i <- i - 1
           more <- i > 0
       byte_acc <- byte_acc <<< 1
-      byte_acc <- byte_acc ||| (if i = 0
-                                then 1
+      byte_acc <- byte_acc ||| (if i = 0 then 1
                                 else 0)
       bit_num <- bit_num + 1
-      if bit_num = 8
-      then 
+      if bit_num = 8 then 
         pdata.[byte_count] <- byte byte_acc
         byte_count <- byte_count + 1
         bit_num <- 0
         byte_acc <- 0
-    if bit_num <> 0
-    then 
+    if bit_num <> 0 then // write left over bits
+                         
       byte_acc <- byte_acc <<< (8 - (N &&& 7))
       pdata.[byte_count] <- byte byte_acc
       byte_count <- byte_count + 1
@@ -64,12 +61,10 @@ let Calculate() =
 
 [<EntryPoint>]
 let main args = 
-  if args.Length > 0
-  then N <- int args.[0]
+  if args.Length > 0 then N <- int args.[0]
   Console.Out.WriteLine("P4\n{0} {0}", N)
   width_bytes <- N / 8
-  if width_bytes * 8 < N
-  then width_bytes <- width_bytes + 1
+  if width_bytes * 8 < N then width_bytes <- width_bytes + 1
   nbyte_each_line <- Array.zeroCreate N
   data <- Array.zeroCreate N
   for i in 0..N - 1 do

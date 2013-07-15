@@ -3,16 +3,16 @@ module Unblock
 
 open System
 open System.Collections.Generic
-open System.Diagnostics
 open System.IO
+open System.Diagnostics
 
 type Position = int * int // (RowID, ColumnID)
 
 type Brick = char * int // (Name, Length)
 
-type State = Position[]
+type State = Position []
 
-type BrickInfo = Brick[]
+type BrickInfo = Brick []
 
 type Direction = 
   | Up
@@ -33,8 +33,9 @@ let checkBoth target length current =
   if current > target || current + length - 1 < target then true
   else false
 
-let test (initialState : State) (brickInfo : Brick[]) 
-    (horizontalBricks : int[][], verticalBricks : int[][]) (rowNum, columnNum) = 
+let test (initialState : State) (brickInfo : Brick []) 
+    (horizontalBricks : int [] [], verticalBricks : int [] []) 
+    (rowNum, columnNum) = 
   //let sw = new StreamWriter("output.csv");
   let (redRowNum, _) = initialState.[0]
   let (_, redLength) = brickInfo.[0]
@@ -90,31 +91,30 @@ let test (initialState : State) (brickInfo : Brick[])
            |> Array.forall (fun columnID -> checkVacancy (redRowNum, columnID)) 
            || horizontalBricksAll
               |> Seq.tryFind (fun elem -> 
-                     (match generateRight elem with
-                      | Some(a, b) when checkVacancy a -> 
-                        solveDFS (generateState elem b) (elem, Right) 
-                          (depth + 1)
-                      | _ -> false) || (match generateLeft elem with
-                                        | Some(a, b) when checkVacancy a -> 
-                                          solveDFS (generateState elem b) 
-                                            (elem, Left) (depth + 1)
-                                        | _ -> false))
+                   (match generateRight elem with
+                    | Some(a, b) when checkVacancy a -> 
+                      solveDFS (generateState elem b) (elem, Right) (depth + 1)
+                    | _ -> false) || (match generateLeft elem with
+                                      | Some(a, b) when checkVacancy a -> 
+                                        solveDFS (generateState elem b) 
+                                          (elem, Left) (depth + 1)
+                                      | _ -> false))
               |> Option.isSome || verticalBricksAll
                                   |> Seq.tryFind (fun elem -> 
-                                         (match generateUp elem with
-                                          | Some(a, b) when checkVacancy a -> 
-                                            solveDFS (generateState elem b) 
-                                              (elem, Up) (depth + 1)
-                                          | _ -> false) || (match generateDown 
-                                                                    elem with
-                                                            | Some(a, b) when checkVacancy 
-                                                                                a -> 
-                                                              solveDFS 
-                                                                (generateState 
-                                                                   elem b) 
-                                                                (elem, Down) 
-                                                                (depth + 1)
-                                                            | _ -> false))
+                                       (match generateUp elem with
+                                        | Some(a, b) when checkVacancy a -> 
+                                          solveDFS (generateState elem b) 
+                                            (elem, Up) (depth + 1)
+                                        | _ -> false) || (match generateDown 
+                                                                  elem with
+                                                          | Some(a, b) when checkVacancy 
+                                                                              a -> 
+                                                            solveDFS 
+                                                              (generateState 
+                                                                 elem b) 
+                                                              (elem, Down) 
+                                                              (depth + 1)
+                                                          | _ -> false))
                                   |> Option.isSome)
     then 
       Console.WriteLine
@@ -124,9 +124,10 @@ let test (initialState : State) (brickInfo : Brick[])
     else 
       ignore (mySet.Remove(currentState))
       false
-  Console.WriteLine(solveDFS initialState (0, Right) 0) // the output would have an additional line of useless information (0, Right)
+  Console.WriteLine(solveDFS initialState (0, Right) 0)
 
-let x0 = ('a', 2)
+ // the output would have an additional line of useless information (0, Right)
+ let x0 = ('a', 2)
 let x1 = ('b', 2)
 let x2 = ('c', 3)
 let x3 = ('d', 2)

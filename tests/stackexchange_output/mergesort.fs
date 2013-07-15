@@ -2,8 +2,8 @@
 module Mergesort
 
 open System
-open System.Collections.Generic
 open System.Windows
+open System.Collections.Generic
 
 let shuffle (l : 'a array) = 
   let ileft = LinkedList<int>(seq { 0..(l.Length - 1) })

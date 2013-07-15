@@ -21,10 +21,10 @@ let iubvalues = [0.27; 0.12; 0.12; 0.27] @ List.replicate 12 0.02
 let iub = Seq.zip "acgtBDHKMNRSVWY"B iubvalues
 
 let homosapien = 
-  [97uy, 0.3029549427
-   99uy, 0.1979883005
-   103uy, 0.1975473066
-   116uy, 0.3015094502]
+  ['a'B, 0.3029549426680
+   'c'B, 0.1979883004921
+   'g'B, 0.1975473066391
+   't'B, 0.3015094502008]
 
 let os = new BufferedStream(Console.OpenStandardOutput(), 1 <<< 16)
 
@@ -33,10 +33,9 @@ let repeatFasta alu n =
   let s = Array.concat [alu; alu]
   for j in 0..cols..n - cols do
     os.Write(s, j % r, cols)
-    os.WriteByte(10uy)
+    os.WriteByte('\n'B)
   os.Write(s, (n / cols * cols) % r, n % cols)
-  if n % cols <> 0
-  then os.WriteByte(10uy)
+  if n % cols <> 0 then os.WriteByte('\n'B)
   os.Flush()
 
 let randomFasta src n = 
@@ -52,29 +51,26 @@ let randomFasta src n =
     let mutable j = 0
     for key, cum, i in cumuArray do
       let v = j
-      while j <= int(float(LUTLEN - 1) * cum) do
+      while j <= int (float (LUTLEN - 1) * cum) do
         arr.[j] <- key, i
         j <- j + 1
-      if j <> v
-      then arr.[j - 1] <- 0uy, i
+      if j <> v then arr.[j - 1] <- 0uy, i
     arr
   let lookup x = 
     match lut.[x * (LUTLEN - 1) / IM] with
     | 0uy, p -> 
       let a, b, c = cumuArray.[p]
       let i, j, k = cumuArray.[p + 1]
-      if float(x) / float(IM) < b
-      then a
+      if float (x) / float (IM) < b then a
       else i
     | c, p -> c
   /// write output one line at a time
-  let buf = Array.zeroCreate(cols + 1)
+  let buf = Array.zeroCreate (cols + 1)
   for x in n..(-cols)..1 do
     let e = 
-      if x < cols
-      then x
+      if x < cols then x
       else cols
-    buf.[e] <- 10uy
+    buf.[e] <- '\n'B
     for y in 0..e - 1 do
       s <- (s * IA + IC) % IM
       buf.[y] <- lookup s

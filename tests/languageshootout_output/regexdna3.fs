@@ -27,41 +27,33 @@ let onblocks overlapSize blockSize =
 
 let onProcBlocks = 
   onblocks 0 ((textSize / System.Environment.ProcessorCount) + 1)
-
 let DNAcodes = 
-  ["agggtaaa|tttaccct"
-   "[cgt]gggtaaa|tttaccc[acg]"
-   "a[act]ggtaaa|tttacc[agt]t"
-   "ag[act]gtaaa|tttac[agt]ct"
-   "agg[act]taaa|ttta[agt]cct"
-   "aggg[acg]aaa|ttt[cgt]ccct"
-   "agggt[cgt]aa|tt[acg]accct"
-   "agggta[cgt]a|t[acg]taccct"
-   "agggtaa[cgt]|[acg]ttaccct"]
+  ["agggtaaa|tttaccct"; "[cgt]gggtaaa|tttaccc[acg]"; "a[act]ggtaaa|tttacc[agt]t"; 
+   "ag[act]gtaaa|tttac[agt]ct"; "agg[act]taaa|ttta[agt]cct"; 
+   "aggg[acg]aaa|ttt[cgt]ccct"; "agggt[cgt]aa|tt[acg]accct"; 
+   "agggta[cgt]a|t[acg]taccct"; "agggtaa[cgt]|[acg]ttaccct"]
 
 /// Calculate all chunks in parallel
 let chunksCounts = 
-  let chunkedMatch(matchStr : string) = 
+  let chunkedMatch (matchStr : string) = 
     text
     |> onblocks (matchStr.Length - 1) blockSize
-    |> List.map
+    |> List.map 
          (fun t -> async { return matchStr, ((regex matchStr).Matches t).Count })
   DNAcodes
   |> List.collect chunkedMatch
   |> Async.Parallel
   |> Async.RunSynchronously
 
-DNAcodes
-|> List.map(fun key -> 
-       key, chunksCounts |> Array.fold (fun S (k, cnt) -> 
-                                match S with
-                                | S -> 
-                                  if k = key
-                                  then S + cnt
-                                  else S) 0)
-|> List.iter(fun (key, cnt) -> printfn "%s %i" key cnt)
-
 /// Gather result counts by summing them per DNA code
+DNAcodes
+|> List.map (fun key -> 
+     key, 
+     chunksCounts |> Array.fold (fun S (k, cnt) -> 
+                         if k = key then S + cnt
+                         else S) 0)
+|> List.iter (fun (key, cnt) -> printfn "%s %i" key cnt)
+
 let lengthAfterReplace text = 
   ["B", "(c|g|t)"
    "D", "(a|g|t)"
@@ -80,7 +72,7 @@ let lengthAfterReplace text =
 let replacedSize = 
   text
   |> onProcBlocks
-  |> List.map(fun chunk -> async { return lengthAfterReplace chunk })
+  |> List.map (fun chunk -> async { return lengthAfterReplace chunk })
   |> Async.Parallel
   |> Async.RunSynchronously
   |> Array.sum

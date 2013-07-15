@@ -20,9 +20,9 @@ type MyFSColorTable() =
   
   /// parse the text of the rgb.txt color table into a Name: Values: list
   static let colorinfo = 
-    loadrgb.Split([|'\010'|])
+    loadrgb.Split([|'\n'|])
     |> Seq.skip 1
-    |> Seq.map (fun line -> line.Split([|'\009'|]))
+    |> Seq.map (fun line -> line.Split([|'\t'|]))
     |> Seq.filter (fun values -> values
                                  |> Seq.length = 3)
     |> Seq.map (fun values -> string values.[0], string values.[2])
@@ -33,7 +33,7 @@ type MyFSColorTable() =
   let mutable ColorTable = []
   
   /// Euclidean distance between 2 vectors - float is overkill here
-  static let Dist (V1 : float[]) V2 = 
+  static let Dist (V1 : float []) V2 = 
     Array.zip V1 V2
     |> Array.map (fun (v1, v2) -> pown (v1 - v2) 2)
     |> Array.sum

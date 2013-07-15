@@ -20,7 +20,7 @@ let threads = Environment.ProcessorCount
 
 /// Return next permut, by rotating elements [0 - position] one 'step'
 /// next_perm('1234', 2) -> '2314'
-let next_perm(permutation : int array, position) = 
+let next_perm (permutation : int array, position) = 
   let perm0 = permutation.[0]
   for i in 0..position - 1 do
     permutation.[i] <- permutation.[i + 1]
@@ -33,8 +33,8 @@ let print_30_permut() =
   /// declare and initialize
   let permutation : int array = 
     Array.init n (fun i -> 
-        Console.Write(i + 1)
-        i)
+      Console.Write(i + 1)
+      i)
   Console.WriteLine()
   let perm_remain = Array.init n (fun i -> i + 1)
   let mutable numPermutationsPrinted = 1
@@ -43,31 +43,29 @@ let print_30_permut() =
   while not finished && pos_right <= n do
     let mutable pos_left = pos_right - 1
     while not finished && pos_left < pos_right do
-      next_perm(permutation, pos_left)
+      /// rotate down perm[0..prev] by one
+      next_perm (permutation, pos_left)
       perm_remain.[pos_left] <- perm_remain.[pos_left] - 1
-      if perm_remain.[pos_left] > 0
-      then 
+      if perm_remain.[pos_left] > 0 then 
         numPermutationsPrinted <- numPermutationsPrinted + 1
-        if numPermutationsPrinted < 31
-        then 
+        if numPermutationsPrinted < 31 then 
           for i in 0..n - 1 do
             Console.Write("{0}", (1 + permutation.[i]))
           Console.WriteLine()
         else 
           finished <- true
           pos_right <- n
-        if not finished
-        then 
+        if not finished then 
           while pos_left <> 1 do
             perm_remain.[pos_left - 1] <- pos_left
             pos_left <- pos_left - 1
       else pos_left <- pos_left + 1
     pos_right <- pos_right + 1
 
-/// rotate down perm[0..prev] by one
 /// Take a permut array, continuously flipping until first element is '1'
 /// Return flipping times
-let public count_flip(perm_flip : int array) = 
+let public count_flip (perm_flip : int array) = 
+  // cache first element, avoid swapping perm[0] and perm[k]
   let mutable v0 = perm_flip.[0]
   let mutable tmp = 0
   let mutable flip_count = 0
@@ -85,7 +83,7 @@ let public count_flip(perm_flip : int array) =
     perm_flip.[v0] <- v0
     v0 <- tmp
     flip_count <- flip_count + 1
-    finished <- v0 = 0
+    finished <- v0 = 0 // first element == '1'
   flip_count
 
 let worker() = 
@@ -103,44 +101,42 @@ let worker() =
       perm_remain.[i - 1] <- i
     let mutable pos_left = n - 2
     while pos_left < n - 1 do
-      next_perm(permutation, pos_left)
+      // rotate down perm[0..r] by one
+      next_perm (permutation, pos_left)
       perm_remain.[pos_left] <- perm_remain.[pos_left] - 1
-      if perm_remain.[pos_left] > 0
-      then 
+      if perm_remain.[pos_left] > 0 then 
         while pos_left <> 1 do
           perm_remain.[pos_left - 1] <- pos_left
           pos_left <- pos_left - 1
-        if permutation.[0] <> 0 && permutation.[n - 1] <> n - 1
-        then 
+        if permutation.[0] <> 0 && permutation.[n - 1] <> n - 1 then 
           for ip in 0..n - 1 do
             perm_flip.[ip] <- permutation.[ip]
-          let flipcount = count_flip(perm_flip)
-          if flip_max < flipcount
-          then flip_max <- flipcount
+          let flipcount = count_flip (perm_flip)
+          if flip_max < flipcount then flip_max <- flipcount
       else pos_left <- pos_left + 1
+    // update max_flip foreach flipping position
     flip_max_arr.[pos_right] <- flip_max
     pos_right <- Interlocked.Increment(&remain_task.contents)
 
 let fank_game() = 
   let th : Thread array = 
     Array.init threads (fun i -> 
-        let th = Thread(worker)
-        th.Start()
-        th)
+      let th = Thread(worker)
+      th.Start()
+      th)
   print_30_permut()
   for t in th do
     t.Join()
   let mutable mx = 0
   for i in flip_max_arr do
-    if (mx < i)
-    then mx <- i
+    if (mx < i) then mx <- i
   mx
 
 [<EntryPoint>]
 let main args = 
-  n <- if args.Length > 0
-       then int args.[0]
+  n <- if args.Length > 0 then int args.[0]
        else 7
+  // hold flip_count result for each swapping index
   flip_max_arr <- Array.zeroCreate n
   Console.WriteLine("Pfannkuchen({0}) = {1}", n, fank_game())
   0
