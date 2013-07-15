@@ -737,7 +737,7 @@ and genType outerBracket t =
 and genPrefixTypes = function
     | [] -> sepNone
     // Some patterns without spaces could cause a parsing error
-    | (TStaticConstant _ | TStaticConstantExpr _ | TStaticConstantNamed _ as t)::ts -> 
+    | (TStaticConstant _ | TStaticConstantExpr _ | TStaticConstantNamed _ | TVar(Typar(_, true)) as t)::ts -> 
         !- "< " +> col sepComma (t::ts) (genType false) -- " >"
     | ts -> !- "<" +> col sepComma ts (genType false) -- ">"
 
@@ -765,8 +765,7 @@ and genTypeList = function
         let gt = genType false t
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
 
-and genTypar(Typar(s, isHead)) = 
-    // There is a potential parser bug with "<^T..."
+and genTypar (Typar(s, isHead)) = 
     ifElse isHead (!- "^") (!-"'") -- s
 
 and genTypeConstraint = function
