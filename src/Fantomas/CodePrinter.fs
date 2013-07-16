@@ -7,9 +7,6 @@ open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
 
-let sortAndDedup by l =
-    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq
-
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg = 
     match functionOrMethod, arg with
     | _, ConstExpr(Const "()", _) -> false
@@ -70,10 +67,11 @@ and genModuleDeclList = function
     | [x] -> genModuleDecl x
 
     | OpenL(xs, ys) ->
-        let xs = xs |> sortAndDedup ((|Open|_|) >> Option.get)
-        match ys with
-        | [] -> col sepNln xs genModuleDecl
-        | _ -> col sepNln xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys
+        fun ctx ->
+            let xs = sortAndDeduplicate ((|Open|_|) >> Option.get) xs ctx
+            match ys with
+            | [] -> col sepNln xs genModuleDecl ctx
+            | _ -> (col sepNln xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys) ctx
 
     | DoExprAttributesL(xs, ys) 
     | HashDirectiveL(xs, ys) 
@@ -93,10 +91,11 @@ and genSigModuleDeclList = function
     | [x] -> genSigModuleDecl x
 
     | SigOpenL(xs, ys) ->
-        let xs = xs |> sortAndDedup ((|SigOpen|_|) >> Option.get)
-        match ys with
-        | [] -> col sepNln xs genSigModuleDecl
-        | _ -> col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys
+        fun ctx ->
+            let xs = sortAndDeduplicate ((|SigOpen|_|) >> Option.get) xs ctx
+            match ys with
+            | [] -> col sepNln xs genSigModuleDecl ctx
+            | _ -> (col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys) ctx
 
     | SigHashDirectiveL(xs, ys) 
     | SigModuleAbbrevL(xs, ys) 
@@ -791,14 +790,14 @@ and genClause(Clause(p, e, eo)) =
 
 /// Each multiline member definition has a pre and post new line. 
 and genMemberDefnList inter = function
-
     | [x] -> sepNln +> genMemberDefn inter x
 
     | MDOpenL(xs, ys) ->
-        let xs = xs |> sortAndDedup ((|MDOpen|_|) >> Option.get)
-        match ys with
-        | [] -> col sepNln xs (genMemberDefn inter)
-        | _ -> col sepNln xs (genMemberDefn inter) +> rep 2 sepNln +> genMemberDefnList inter ys
+        fun ctx ->
+            let xs = sortAndDeduplicate ((|MDOpen|_|) >> Option.get) xs ctx
+            match ys with
+            | [] -> col sepNln xs (genMemberDefn inter) ctx
+            | _ -> (col sepNln xs (genMemberDefn inter) +> rep 2 sepNln +> genMemberDefnList inter ys) ctx
 
     | MultilineMemberDefnL(xs, []) ->
         rep 2 sepNln 
@@ -819,7 +818,7 @@ and genMemberDefnList inter = function
 
 and genMemberDefn inter = function
     | MDNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
-    | MDOpen(s) -> !- s
+    | MDOpen(s) -> !- (sprintf "open %s" s)
     // What is the role of so
     | MDImplicitInherit(t, e, _) -> !- "inherit " +> genType false t +> genExpr e
     | MDInherit(t, _) -> !- "inherit " +> genType false t

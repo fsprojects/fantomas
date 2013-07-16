@@ -51,7 +51,7 @@ open Fantomas.SourceTransformer
 // comment1
 let sortAndDedup by l =
     // comment2
-    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq""" config
+    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq""" { config with ReorderOpenDeclaration = true }
     |> prepend newline
     |> should equal """
 module internal Fantomas.CodePrinter

@@ -135,7 +135,6 @@ let rec (|Const|) c =
     | SynConst.Bytes(bs, _) -> sprintf "%A" bs
     // Auto print may cut off the array
     | SynConst.UInt16s us -> sprintf "%A" us
-    | _ -> invalidArg "c" "Ill-formed constants"
 
 let (|Unresolved|) (Const c, r) = (c, r)
 
