@@ -34,7 +34,8 @@ let tokenize defines (content : string) =
                         yield (EOL, System.Environment.NewLine) 
                     finLine := true
                 | Some t -> 
-                    yield (Tok(t, i), line.[t.LeftColumn..t.RightColumn]) }
+                    yield (Tok(t, i), line.[t.LeftColumn..t.RightColumn]) 
+    }
 
 /// Create the view as if there is no attached line number
 let (|Token|_|) = function
@@ -45,19 +46,16 @@ let (|Token|_|) = function
 // about comments
 
 /// Whitespace token without EOL
-let (|Space|_|) t = 
-    match t with
+let (|Space|_|) = function
     | (Token origTok, origTokText) when origTok.TokenName = "WHITESPACE" -> 
         Some origTokText
     | _ -> None
 
-let (|NewLine|_|) t = 
-    match t with
+let (|NewLine|_|) = function
     | (EOL, tokText) -> Some tokText
     | _ -> None
 
-let (|WhiteSpaces|_|) origTokens = 
-    match origTokens with 
+let (|WhiteSpaces|_|) = function 
     | Space t1 :: moreOrigTokens -> 
         let rec loop ts acc = 
             match ts with 
@@ -67,14 +65,16 @@ let (|WhiteSpaces|_|) origTokens =
         Some (loop moreOrigTokens [t1])
     | _ -> None
 
-let (|RawAttribute|_|) origTokens = 
-    match origTokens with 
-    | (Token origTok, "[<") :: moreOrigTokens 
-        when origTok.CharClass = TokenCharKind.Delimiter -> 
+let (|RawDelimiter|_|) = function
+    | (Token origTok, origTokText) when origTok.CharClass = TokenCharKind.Delimiter -> 
+        Some origTokText
+    | _ -> None
+
+let (|RawAttribute|_|) = function
+    | RawDelimiter "[<" :: moreOrigTokens -> 
         let rec loop ts acc = 
             match ts with 
-            | (Token ti2, ">]") :: ts2 
-                when ti2.CharClass = TokenCharKind.Delimiter -> Some (List.rev(">]" :: acc), ts2)
+            | RawDelimiter ">]" :: ts2 -> Some (List.rev(">]" :: acc), ts2)
             | (_, t2) :: ts2 -> loop ts2 (t2 :: acc)
             | [] -> None
         loop moreOrigTokens ["[<"]
@@ -82,12 +82,11 @@ let (|RawAttribute|_|) origTokens =
 
 let (|Comment|_|) = function
     | (Token ti, t) 
-        when ti.CharClass = TokenCharKind.Comment || ti.CharClass = TokenCharKind.LineComment -> 
+      when ti.CharClass = TokenCharKind.Comment || ti.CharClass = TokenCharKind.LineComment -> 
         Some t
     | _ -> None
 
-let (|CommentChunk|_|) origTokens = 
-    match origTokens with 
+let (|CommentChunk|_|) = function
     | Comment t1 :: moreOrigTokens -> 
         let rec loop ts acc = 
             match ts with
@@ -99,8 +98,7 @@ let (|CommentChunk|_|) origTokens =
     | _ -> None
 
 /// Get all comment chunks before a token 
-let (|CommentChunks|_|) origTokens = 
-    match origTokens with 
+let (|CommentChunks|_|) = function
     | CommentChunk(ts1, moreOrigTokens) -> 
         let rec loop ts acc = 
             match ts with 
@@ -128,10 +126,14 @@ let collectComments tokens =
         | _ -> dic
     loop tokens (Dictionary())
 
+let (|RawIdent|_|) = function
+   | (Token ti, t) when ti.TokenName = "IDENT" -> 
+        Some t
+   | _ -> None
+
 let (|SkipUntilIdent|_|) origTokens =
     let rec loop = function
-        | (Token ti, t) :: moreOrigTokens when ti.TokenName = "IDENT" ->
-            Some(t, moreOrigTokens)
+        | RawIdent t :: moreOrigTokens -> Some(t, moreOrigTokens)
         | NewLine _ :: _ -> None
         | (Token ti, _) :: _ when ti.ColorClass = TokenColorKind.PreprocessorKeyword -> None
         | _ :: moreOrigTokens -> loop moreOrigTokens
@@ -196,11 +198,32 @@ let filterCommentsAndDirectives content =
     let tokens = tokenize constants content |> Seq.toList
     (collectComments tokens, collectDirectives tokens)
 
-let (|Delimiter|_|) t = 
-    match t with
-    | (Token origTok, origTokText) when origTok.CharClass = TokenCharKind.Delimiter -> 
-        Some origTokText
-    | _ -> None
+let rec (|RawLongIdent|_|) = function
+   | RawIdent t1 :: RawDelimiter "." :: RawLongIdent(toks, moreOrigTokens) -> 
+        Some (t1 :: "." :: toks, moreOrigTokens)
+   | RawIdent t1 :: moreOrigTokens -> 
+        Some ([t1], moreOrigTokens)
+   | _ -> None
+
+let (|RawOpenChunk|_|) = function
+   | (Token _, "open") ::
+     Space t ::
+     RawLongIdent(toks, moreOrigTokens) -> 
+        Some ("open" :: t :: toks, moreOrigTokens)
+   | _ -> None
+
+let (|NewTokenAfterWhitespaceOrNewLine|_|) toks = 
+    let rec loop toks acc = 
+        match toks with
+        | (EOL, tt) :: more -> loop more (tt::acc)
+        | (Token tok, tt) :: more 
+           when tok.CharClass = TokenCharKind.WhiteSpace && tok.ColorClass <> TokenColorKind.InactiveCode 
+                && tok.ColorClass <> TokenColorKind.PreprocessorKeyword -> 
+            loop more (tt::acc)
+        | newTok :: more -> 
+            Some(List.rev acc, newTok, more)
+        | [] -> None
+    loop toks []
 
 // This part processes the token stream post- pretty printing
 
@@ -212,19 +235,19 @@ type MarkedToken =
         let (Marked(_,t,_)) = x
         t
 
-let (|SpaceToken|_|) t = 
-    match t with
-    | Marked(Token origTok, origTokText, _) when origTok.TokenName = "WHITESPACE" -> 
-        Some origTokText
+/// Decompose a marked token to a raw token
+let (|Wrapped|) (Marked(origTok, origTokText, _)) =
+    (origTok, origTokText)
+
+let (|SpaceToken|_|) = function
+    | Wrapped(Space tokText) -> Some tokText
     | _ -> None
 
-let (|NewLineToken|_|) t = 
-    match t with
-    | Marked(EOL, tokText, _) -> Some tokText
+let (|NewLineToken|_|) = function
+    | Wrapped(NewLine tokText) -> Some tokText
     | _ -> None
 
-let (|WhiteSpaceTokens|_|) origTokens = 
-   match origTokens with 
+let (|WhiteSpaceTokens|_|) = function
    | SpaceToken t1 :: moreOrigTokens -> 
        let rec loop ts acc = 
            match ts with 
@@ -234,59 +257,48 @@ let (|WhiteSpaceTokens|_|) origTokens =
        Some (loop moreOrigTokens [t1])
    | _ -> None
 
-let (|Attribute|_|) origTokens = 
-   match origTokens with 
-   | Marked(Token origTok, "[<", _) :: moreOrigTokens 
-       when origTok.CharClass = TokenCharKind.Delimiter -> 
+let (|Delimiter|_|) = function
+    | Wrapped(RawDelimiter tokText) -> Some tokText
+    | _ -> None
+
+let (|Attribute|_|) = function 
+   | Delimiter "[<" :: moreOrigTokens -> 
        let rec loop ts acc = 
            match ts with 
-           | Marked(Token ti2, ">]", _) :: ts2 
-                when ti2.CharClass = TokenCharKind.Delimiter -> Some (List.rev(">]" :: acc), ts2)
+           | Delimiter ">]" :: ts2 -> Some (List.rev(">]" :: acc), ts2)
            | Marked(_, t2, _) :: ts2 -> loop ts2 (t2 :: acc)
            | [] -> None
        loop moreOrigTokens ["[<"]
    | _ -> None
 
-let rec (|Attributes|_|) = function
-    | Attribute(xs, Attributes(xss, toks)) 
-    | Attribute(xs, WhiteSpaceTokens(_, Attributes(xss, toks))) -> Some(xs::xss, toks)
-    | Attribute(xs, toks)  -> Some([xs], toks)
-    | _ -> None
-
-let (|PreprocessorKeywordToken|_|) requiredText t = 
-    match t with
+let (|PreprocessorKeywordToken|_|) requiredText = function
     | Marked(Token origTok, origTokText, _) 
         when origTok.ColorClass = TokenColorKind.PreprocessorKeyword && origTokText = requiredText -> 
         Some origTokText
     | _ -> None
 
-let (|InactiveCodeToken|_|) t = 
-    match t with
+let (|InactiveCodeToken|_|) = function
     | Marked(Token origTok, origTokText, _) 
         when origTok.ColorClass = TokenColorKind.InactiveCode -> Some origTokText
     | _ -> None
 
-let (|LineCommentToken|_|) wantStickyLeft t = 
-    match t with
+let (|LineCommentToken|_|) wantStickyLeft = function
     | Marked(Token origTok, origTokText, lcs) 
         when (not wantStickyLeft || (lcs = StickyLeft)) && 
              origTok.CharClass = TokenCharKind.LineComment -> Some origTokText
     | _ -> None
 
-let (|BlockCommentToken|_|) t = 
-    match t with
+let (|BlockCommentToken|_|) = function
     | Marked(Token origTok, origTokText, _) when origTok.CharClass = TokenCharKind.Comment -> 
         Some origTokText
     | _ -> None
 
-let (|BlockCommentOrNewLineToken|_|) t = 
-    match t with
+let (|BlockCommentOrNewLineToken|_|) = function
     | BlockCommentToken tokText -> Some tokText
     | NewLineToken tokText -> Some tokText
     | _ -> None
 
-let (|LineCommentChunk|_|) wantStickyLeft origTokens = 
-   match origTokens with 
+let (|LineCommentChunk|_|) wantStickyLeft = function
    | LineCommentToken wantStickyLeft t1 :: moreOrigTokens -> 
        let rec loop ts acc = 
            match ts with 
@@ -301,28 +313,29 @@ let (|LineCommentChunk|_|) wantStickyLeft origTokens =
 //      #endif // FOOBAR
 // or ones with extra whitespace at the end of line
 
-let (|PreprocessorDirectiveChunk|_|) origTokens = 
-   match origTokens with 
+let (|Ident|_|) = function
+    | Wrapped(RawIdent tokText) -> Some tokText
+    | _ -> None
+
+let (|PreprocessorDirectiveChunk|_|) = function
    | PreprocessorKeywordToken "#if" t1 :: 
-     Marked(Token ti2, t2, _) ::
-     Marked(Token ti3, t3, _) ::
-     Marked(EOL, t4, _) ::
-     moreOrigTokens 
-         when ti2.TokenName = "WHITESPACE" && ti3.TokenName = "IDENT" -> 
+     SpaceToken t2 ::
+     Ident t3 ::
+     NewLineToken t4 ::
+     moreOrigTokens -> 
         Some ([t1; t2; t3; t4], moreOrigTokens)
 
    | PreprocessorKeywordToken "#else" t1 :: 
-     Marked(EOL, _, _) ::
+     NewLineToken _ ::
      moreOrigTokens -> Some ([t1], moreOrigTokens)
 
    | PreprocessorKeywordToken "#endif" t1 :: 
-     Marked(EOL, _, _) ::
+     NewLineToken _ ::
      moreOrigTokens -> Some ([t1], moreOrigTokens)
 
    | _ -> None
 
-let (|InactiveCodeChunk|_|) origTokens = 
-   match origTokens with 
+let (|InactiveCodeChunk|_|) = function
    | InactiveCodeToken t1 :: moreOrigTokens -> 
        let rec loop ts acc = 
            match ts with 
@@ -332,8 +345,7 @@ let (|InactiveCodeChunk|_|) origTokens =
        Some (loop moreOrigTokens [t1])
    | _ -> None
 
-let (|BlockCommentChunk|_|) origTokens = 
-   match origTokens with 
+let (|BlockCommentChunk|_|) = function
    | BlockCommentToken t1 :: moreOrigTokens -> 
        let rec loop ts acc = 
            match ts with 
@@ -362,7 +374,7 @@ let markStickiness (tokens: seq<Token * string>) =
                       inLineComment := true
                       yield Marked(tio, tt, if !inWhiteSpaceAtStartOfLine then StickyRight else StickyLeft)
              
-             // Comments can't be attached to delimiters
+             // Comments can't be attached to Delimiters
              | Token ti 
                   when !inWhiteSpaceAtStartOfLine 
                        && (ti.CharClass = TokenCharKind.WhiteSpace || ti.CharClass = TokenCharKind.Delimiter) ->
@@ -378,18 +390,19 @@ let markStickiness (tokens: seq<Token * string>) =
                  inWhiteSpaceAtStartOfLine := true
                  yield Marked(tio, tt, NotApplicable) }
 
-let (|NewTokenAfterWhitespaceOrNewLine|_|) toks = 
-    let rec loop toks acc = 
-        match toks with
-        | (EOL, tt) :: more -> loop more (tt::acc)
-        | (Token tok, tt) :: more 
-           when tok.CharClass = TokenCharKind.WhiteSpace && tok.ColorClass <> TokenColorKind.InactiveCode 
-                && tok.ColorClass <> TokenColorKind.PreprocessorKeyword -> 
-            loop more (tt::acc)
-        | newTok :: more -> 
-            Some(List.rev acc, newTok, more)
-        | [] -> None
-    loop toks []
+let rec (|LongIdent|_|) = function
+   | Ident t1 :: Delimiter "." :: LongIdent(toks, moreOrigTokens) -> 
+        Some (t1 :: "." :: toks, moreOrigTokens)
+   | Ident t1 :: moreOrigTokens -> 
+        Some ([t1], moreOrigTokens)
+   | _ -> None
+
+let (|OpenChunk|_|) = function
+   | Marked(Token _, "open", _) ::
+     SpaceToken t ::
+     LongIdent(toks, moreOrigTokens) -> 
+        Some ("open" :: t :: toks, moreOrigTokens)
+   | _ -> None
  
 /// Assume that originalText and newText are derived from the same AST. 
 /// Pick all comments and directives from originalText to insert into newText               
@@ -423,13 +436,11 @@ let integrateComments (originalText : string) (newText : string) =
         f()
 
     // Assume that starting whitespaces after EOL give indentation of a chunk
-    let rec getIndent newTokens =
-        match newTokens with
+    let rec getIndent = function
         | (Token _, _) :: moreNewTokens -> getIndent moreNewTokens
-        | (EOL, _) :: moreNewTokens ->
+        | NewLine _ :: moreNewTokens ->
             match moreNewTokens with
-            | (Token origTok, origTokText) :: _ when origTok.CharClass = TokenCharKind.WhiteSpace -> 
-                String.length origTokText
+            | Space origTokText :: _ -> String.length origTokText
             | _ -> 0
         | _ -> 0
         
@@ -440,12 +451,11 @@ let integrateComments (originalText : string) (newText : string) =
 
     let tokensMatch t1 t2 = 
         match t1, t2 with 
-        | (Marked(Token origTok, origTokText, _), (Token newTok, newTokText)) -> 
+        | Marked(Token origTok, origTokText, _), (Token newTok, newTokText) -> 
             origTok.CharClass = newTok.CharClass && origTokText = newTokText
         // Use this pattern to avoid discrepancy between two versions of the same identifier
-        | (Marked(Token origTok, origTokText, _), (Token newTok, newTokText)) -> 
-            origTok.CharClass = TokenCharKind.Identifier && newTok.CharClass = TokenCharKind.Identifier 
-            && DecompileOpName(origTokText.Trim('`')) = DecompileOpName(newTokText.Trim('`'))
+        | Ident origTokText, RawIdent newTokText ->
+            DecompileOpName(origTokText.Trim('`')) = DecompileOpName(newTokText.Trim('`'))
         | _ -> false
 
     let rec loop origTokens newTokens = 
@@ -456,7 +466,7 @@ let integrateComments (originalText : string) (newText : string) =
             Debug.WriteLine "dropping whitespace from orig tokens" 
             loop moreOrigTokens newTokens 
 
-        | (Marked(EOL, _, _) :: moreOrigTokens),  _ ->
+        | (NewLineToken _ :: moreOrigTokens), _ ->
             Debug.WriteLine "dropping newline from orig tokens" 
             loop moreOrigTokens newTokens
         
@@ -537,7 +547,7 @@ let integrateComments (originalText : string) (newText : string) =
             loop moreOrigTokens newTokens 
 
         // Emit end-of-line from new tokens
-        | _,  ((EOL, newTokText) :: moreNewTokens) ->
+        | _,  (NewLine newTokText :: moreNewTokens) ->
             Debug.WriteLine "emitting newline in new tokens" 
             addText newTokText 
             loop origTokens moreNewTokens 
@@ -548,8 +558,8 @@ let integrateComments (originalText : string) (newText : string) =
             addText newTokText 
             loop origTokens moreNewTokens 
 
-        // We emit all unmatched delimiter tokens
-        | _,  (Delimiter newTokText :: moreNewTokens) 
+        // We emit all unmatched RawDelimiter tokens
+        | _,  (RawDelimiter newTokText :: moreNewTokens) 
             when newTokText <> "[<" && newTokText <> ">]" && newTokText <> "|" ->
             Debug.WriteLine("emitting non-matching '{0}' in new tokens", newTokText |> box)
             addText newTokText 
@@ -591,7 +601,13 @@ let integrateComments (originalText : string) (newText : string) =
         // Skip attributes in the old text
         | (Attribute (tokensText, moreOrigTokens)), _ ->
             Debug.WriteLine("skip matching of attribute tokens '{0}'", box tokensText)
-            loop moreOrigTokens newTokens   
+            loop moreOrigTokens newTokens
+         
+        // Open declarations may be reordered, so we match them even if two identifiers are different
+        | OpenChunk(tokensText, moreOrigTokens), RawOpenChunk(newTokensText, moreNewTokens) ->
+            Debug.WriteLine("matching two open chunks '{0}'", String.concat "" tokensText |> box)
+            for x in newTokensText do addText x
+            loop moreOrigTokens moreNewTokens    
 
         // Matching tokens
         | (origTok :: moreOrigTokens), (newTok :: moreNewTokens) when tokensMatch origTok newTok ->

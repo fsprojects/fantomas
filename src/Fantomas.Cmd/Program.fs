@@ -7,24 +7,25 @@ open Microsoft.FSharp.Text.Args
 open Fantomas
 open Fantomas.FormatConfig
 
-/// These are functionalities that should be implemented now or later.
-///
-/// Options:
-///  --force                         Print the source unchanged if it cannot be parsed correctly
-///  --help                          Show help
-///  --recurse                       If any given file is a directory, recurse it and process all fs/fsx/fsi files
-///  --stdin                         Read F# source from standard input
-///  --stdout                        Write the formatted source code to standard output
+// These are functionalities that should be implemented now or later.
+//
+// Options:
+//  --force                         Print the source unchanged if it cannot be parsed correctly
+//  --help                          Show help
+//  --recurse                       If any given file is a directory, recurse it and process all fs/fsx/fsi files
+//  --stdin                         Read F# source from standard input
+//  --stdout                        Write the formatted source code to standard output
 
-/// Preferences:
-///  --indent=[1-10]                 Set number of spaces to use for indentation
-///  --pageWidth=[60-inf]            Set the column where we break to new lines
-///  [+|-]semicolonEOL               Enable/disable semicolons at the end of line (default = false)
-///  [+|-]spaceBeforeArgument        Enable/disable spaces before the first argument (default = true)
-///  [+|-]spaceBeforeColon           Enable/disable spaces before colons (default = true)
-///  [+|-]spaceAfterComma            Enable/disable spaces after commas (default = true)
-///  [+|-]spaceAfterSemiColon        Enable/disable spaces after semicolons (default = true)
-///  [+|-]indentOnTryWith            Enable/disable indentation on try/with block (default = false)
+// Preferences:
+//  --indent=[1-10]                 Set number of spaces to use for indentation
+//  --pageWidth=[60-inf]            Set the column where we break to new lines
+//  [+|-]semicolonEOL               Enable/disable semicolons at the end of line (default = false)
+//  [+|-]spaceBeforeArgument        Enable/disable spaces before the first argument (default = true)
+//  [+|-]spaceBeforeColon           Enable/disable spaces before colons (default = true)
+//  [+|-]spaceAfterComma            Enable/disable spaces after commas (default = true)
+//  [+|-]spaceAfterSemiColon        Enable/disable spaces after semicolons (default = true)
+//  [+|-]indentOnTryWith            Enable/disable indentation on try/with block (default = false)
+//  [+|-]reorderOpenDeclaration     Enable/disable indentation on try/with block (default = false)
 
 let [<Literal>] forceText = "Print the source unchanged if it cannot be parsed correctly."
 let [<Literal>] recurseText = "Process the input folder recursively."
@@ -43,6 +44,7 @@ let [<Literal>] colonText = "Disable spaces before colons (default = true)."
 let [<Literal>] commaText = "Disable spaces after commas (default = true)."
 let [<Literal>] semicolonText = "Disable spaces after semicolons (default = true)."
 let [<Literal>] indentOnTryWithText = "Enable indentation on try/with block (default = false)."
+let [<Literal>] reorderOpenDeclarationText = "Enable reordering open declarations (default = false)."
 
 let time f =
     let sw = Diagnostics.Stopwatch.StartNew()
@@ -97,6 +99,7 @@ let main args =
     let spaceAfterComma = ref true
     let spaceAfterSemiColon = ref true
     let indentOnTryWith = ref false
+    let reorderOpenDeclaration = ref false
 
     let handleOutput s =
         outputPath := IO s
@@ -188,7 +191,7 @@ let main args =
            ArgInfo("--stdin", ArgType.Set stdIn, stdInText);
            ArgInfo("--stdout", ArgType.Unit handleStdOut, stdOutText);
            
-           /// --out doesn't matter if one specifies --stdout
+           // --out doesn't matter if one specifies --stdout
            ArgInfo("--out", ArgType.String handleOutput, outputText);
 
            ArgInfo("--indent", ArgType.Int handleIndent, indentText);
@@ -199,7 +202,8 @@ let main args =
            ArgInfo("--noSpaceBeforeColon", ArgType.Clear spaceBeforeColon, colonText);
            ArgInfo("--noSpaceAfterComma", ArgType.Clear spaceAfterComma, commaText);
            ArgInfo("--noSpaceAfterSemiColon", ArgType.Clear spaceAfterSemiColon, semicolonText);
-           ArgInfo("--indentOnTryWith", ArgType.Set indentOnTryWith, indentOnTryWithText); |]
+           ArgInfo("--indentOnTryWith", ArgType.Set indentOnTryWith, indentOnTryWithText);
+           ArgInfo("--reorderOpenDeclaration", ArgType.Set reorderOpenDeclaration, reorderOpenDeclarationText); |]
 
     ArgParser.Parse(options, handleInput, "Fantomas <input_path>")
 
@@ -212,16 +216,17 @@ let main args =
             SpaceBeforeColon = !spaceBeforeColon;
             SpaceAfterComma = !spaceAfterComma; 
             SpaceAfterSemicolon = !spaceAfterSemiColon; 
-            IndentOnTryWith = !indentOnTryWith }
+            IndentOnTryWith = !indentOnTryWith;
+            ReorderOpenDeclaration = !reorderOpenDeclaration }
 
-    /// Handle inputs via pipeline
+    // Handle inputs via pipeline
     let isKeyAvailable = ref false
 
     try
         isKeyAvailable := Console.KeyAvailable
     with
     | :? InvalidOperationException ->
-        /// Currently only support UTF8
+        // Currently only support UTF8
         Console.InputEncoding <- Text.Encoding.UTF8
         inputPath := StdIn(stdin.ReadToEnd())
 
@@ -239,13 +244,12 @@ let main args =
             Directory.CreateDirectory(outputFolder) |> ignore
         allFiles !recurse inputFolder
         |> Seq.iter (fun i ->     
-            /// s supposes to have form s1/suffix
+            // s supposes to have form s1/suffix
             let suffix = i.Substring(inputFolder.Length + 1)
             let o =
                 if inputFolder <> outputFolder then
                     Path.Combine(outputFolder, suffix)
-                else
-                    i
+                else i
 
             processFile i o config)
 

@@ -1,4 +1,4 @@
-﻿#r "../packages/FSharp.Compiler.Editor.1.0.1/lib/net40/FSharp.Compiler.Editor.dll"
+﻿#r "../packages/FSharp.Compiler.Editor.1.0.5/lib/net40/FSharp.Compiler.Editor.dll"
 
 #load "TokenMatcher.fs"
 #load "FormatConfig.fs"

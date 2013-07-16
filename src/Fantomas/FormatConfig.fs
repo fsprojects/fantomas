@@ -25,11 +25,13 @@ type FormatConfig =
       SpaceBeforeColon : bool;
       SpaceAfterComma : bool;
       SpaceAfterSemicolon : bool;
-      IndentOnTryWith : bool }
+      IndentOnTryWith : bool;
+      ReorderOpenDeclaration : bool }
     static member Default = 
         { IndentSpaceNum = 4; PageWidth = 80;
           SemicolonAtEndOfLine = false; SpaceBeforeArgument = true; SpaceBeforeColon = true;
-          SpaceAfterComma = true; SpaceAfterSemicolon = true; IndentOnTryWith = false }
+          SpaceAfterComma = true; SpaceAfterSemicolon = true; 
+          IndentOnTryWith = false; ReorderOpenDeclaration = false }
 
 /// Wrapping IndentedTextWriter with a current column position
 type internal ColumnIndentedTextWriter(tw : TextWriter) =
@@ -75,10 +77,11 @@ type internal Context =
       /// Compiler directives attached to appropriate locations
       Directives : Dictionary<pos, string> }
     /// Initialize with a string writer and use space as delimiter
-    static member Default = { Config = FormatConfig.Default;
-                              Writer = new ColumnIndentedTextWriter(new StringWriter());
-                              BreakLines = true; BreakOn = (fun _ -> false); 
-                              Content = ""; Positions = [||]; Comments = Dictionary(); Directives = Dictionary() }
+    static member Default = 
+        { Config = FormatConfig.Default;
+          Writer = new ColumnIndentedTextWriter(new StringWriter());
+          BreakLines = true; BreakOn = (fun _ -> false); 
+          Content = ""; Positions = [||]; Comments = Dictionary(); Directives = Dictionary() }
 
     static member create config (content : string) =
         let positions = 
@@ -307,6 +310,11 @@ let internal indentOnWith(ctx : Context) =
 /// Conditional unindentation on with keyword
 let internal unindentOnWith(ctx : Context) =
     if ctx.Config.IndentOnTryWith then unindent ctx else ctx
+
+let internal sortAndDeduplicate by l (ctx : Context) =
+    if ctx.Config.ReorderOpenDeclaration then
+        l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq
+    else l
 
 /// Don't put space before and after these operators
 let internal NoSpaceInfixOps = set [".."; "?"]
