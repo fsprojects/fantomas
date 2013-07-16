@@ -27,12 +27,12 @@ let ``open modules``() =
     // comment1
     open System.IO
     // comment2
-    open System""" config
+    open System""" { config with ReorderOpenDeclaration = true }
     |> prepend newline
     |> should equal """
-// comment2
-open System
 // comment1
+open System
+// comment2
 open System.IO
 """
 
@@ -41,6 +41,9 @@ let ``sort open modules doesn't mess comments up``() =
     formatSourceString false """
 module internal Fantomas.CodePrinter
 
+// comment0
+let x = 0
+
 open System
 open System.Collections.Generic
 open Microsoft.FSharp.Compiler.Ast
@@ -51,11 +54,14 @@ open Fantomas.SourceTransformer
 // comment1
 let sortAndDedup by l =
     // comment2
-    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq""" config
+    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq""" { config with ReorderOpenDeclaration = true }
     |> prepend newline
     |> should equal """
 module internal Fantomas.CodePrinter
 
+// comment0
+let x = 0
+
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
@@ -64,9 +70,12 @@ open System
 open System.Collections.Generic
 
 // comment1
-let sortAndDedup by l =
+let sortAndDedup by l = 
     // comment2
-    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq
+    l
+    |> Seq.distinctBy by
+    |> Seq.sortBy by
+    |> List.ofSeq
 """
 
 [<Test>]
