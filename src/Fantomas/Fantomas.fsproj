@@ -40,6 +40,7 @@
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
   <ItemGroup>
+    <None Include="packages.config" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="TokenMatcher.fs" />
     <Compile Include="FormatConfig.fs" />
@@ -48,11 +49,10 @@
     <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatter.fs" />
     <None Include="CodeFormatter.fsx" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Compiler.Editor">
-      <HintPath>..\packages\FSharp.Compiler.Editor.1.0.1\lib\net40\FSharp.Compiler.Editor.dll</HintPath>
+      <HintPath>..\packages\FSharp.Compiler.Editor.1.0.5\lib\net40\FSharp.Compiler.Editor.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />

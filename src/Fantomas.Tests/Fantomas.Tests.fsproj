@@ -69,7 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Compiler.Editor">
-      <HintPath>..\packages\FSharp.Compiler.Editor.1.0.1\lib\net40\FSharp.Compiler.Editor.dll</HintPath>
+      <HintPath>..\packages\FSharp.Compiler.Editor.1.0.5\lib\net40\FSharp.Compiler.Editor.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FsUnit.NUnit">
