@@ -115,11 +115,7 @@ let r =
     |> List.map id""" config
     |> should equal """
 let r = 
-    ["abc"
-     "a"
-     "b"
-     ""]
-    |> List.map id"""
+    ["abc"; "a"; "b"; ""] |> List.map id"""
 
 [<Test>]
 let ``should preserve line breaks before and after selection``() =

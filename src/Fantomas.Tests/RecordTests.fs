@@ -131,7 +131,7 @@ let ``should not break inside of if statements in records``() =
     |> should equal """let XpkgDefaults() = 
     { ToolPath = "./tools/xpkg/xpkg.exe";
       WorkingDir = "./";
-      TimeOut = TimeSpan.FromMinutes 5.0;
+      TimeOut = TimeSpan.FromMinutes 5.;
       Package = null;
       Version = 
           if not isLocalBuild then buildVersion
