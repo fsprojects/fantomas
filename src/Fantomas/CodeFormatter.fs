@@ -35,7 +35,7 @@ let internal format fsi s config =
         Context.create config s 
         |> genParsedInput (parse fsi s) 
         |> dump
-        |> integrateComments s
+        |> if config.StrictMode then id else integrateComments s
 
     // Sometimes F# parser gives a partial AST for incorrect input
     if String.IsNullOrWhiteSpace s <> String.IsNullOrWhiteSpace s' then

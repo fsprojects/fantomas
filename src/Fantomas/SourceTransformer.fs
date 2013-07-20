@@ -96,8 +96,14 @@ let hasParenInPat = function
     | PatParen _ -> true
     | _ -> false
 
-let genConst (Unresolved(_, r)) =
-    fun ctx -> str (content r ctx) ctx
+let genConst (Unresolved(c, r, s)) =
+    let r' = c.Range r
+    fun ctx -> 
+        if ctx.Config.StrictMode then
+            str s ctx
+        else
+            let s' = content r' ctx
+            str s' ctx
 
 /// Check whether a range starting with a specified token
 let startWith s (r : range) ctx = 

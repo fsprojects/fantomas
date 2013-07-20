@@ -131,12 +131,15 @@ let rec (|Const|) c =
     | SynConst.Double d -> sprintf "%A" d
     | SynConst.Char c -> sprintf "%A" c
     | SynConst.Decimal d -> sprintf "%A" d
-    | SynConst.String(s, _) -> s
+    | SynConst.String(s, _) -> 
+        // Naive check for verbatim strings
+        if s.Contains("\\") && not <| s.Contains(@"\\") then sprintf "@%A" s
+        else sprintf "%A" s
     | SynConst.Bytes(bs, _) -> sprintf "%A" bs
     // Auto print may cut off the array
     | SynConst.UInt16s us -> sprintf "%A" us
 
-let (|Unresolved|) (Const c, r) = (c, r)
+let (|Unresolved|) (Const s as c, r) = (c, r, s)
 
 // File level patterns
 
