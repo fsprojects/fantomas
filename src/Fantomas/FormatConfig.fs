@@ -26,12 +26,43 @@ type FormatConfig =
       SpaceAfterComma : bool;
       SpaceAfterSemicolon : bool;
       IndentOnTryWith : bool;
-      ReorderOpenDeclaration : bool }
+      ReorderOpenDeclaration : bool;
+      StrictMode : bool; }
+
     static member Default = 
         { IndentSpaceNum = 4; PageWidth = 80;
           SemicolonAtEndOfLine = false; SpaceBeforeArgument = true; SpaceBeforeColon = true;
           SpaceAfterComma = true; SpaceAfterSemicolon = true; 
-          IndentOnTryWith = false; ReorderOpenDeclaration = false }
+          IndentOnTryWith = false; ReorderOpenDeclaration = false; StrictMode = false }
+
+    static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
+                         spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
+                         spaceAfterSemicolon, indentOnTryWith, reorderOpenDeclaration) =
+        { FormatConfig.Default with
+              IndentSpaceNum = indentSpaceNum; 
+              PageWidth = pageWith;
+              SemicolonAtEndOfLine = semicolonAtEndOfLine; 
+              SpaceBeforeArgument = spaceBeforeArgument; 
+              SpaceBeforeColon = spaceBeforeColon;
+              SpaceAfterComma = spaceAfterComma; 
+              SpaceAfterSemicolon = spaceAfterSemicolon; 
+              IndentOnTryWith = indentOnTryWith; 
+              ReorderOpenDeclaration = reorderOpenDeclaration }
+
+    static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
+                         spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
+                         spaceAfterSemicolon, indentOnTryWith, reorderOpenDeclaration, strictMode) =
+        { FormatConfig.Default with
+              IndentSpaceNum = indentSpaceNum; 
+              PageWidth = pageWith;
+              SemicolonAtEndOfLine = semicolonAtEndOfLine; 
+              SpaceBeforeArgument = spaceBeforeArgument; 
+              SpaceBeforeColon = spaceBeforeColon;
+              SpaceAfterComma = spaceAfterComma; 
+              SpaceAfterSemicolon = spaceAfterSemicolon; 
+              IndentOnTryWith = indentOnTryWith; 
+              ReorderOpenDeclaration = reorderOpenDeclaration;
+              StrictMode = strictMode }
 
 /// Wrapping IndentedTextWriter with a current column position
 type internal ColumnIndentedTextWriter(tw : TextWriter) =
@@ -71,9 +102,9 @@ type internal Context =
       /// The original source string to query as a last resort 
       Content : string; 
       /// Positions of new lines in the original source string
-      Positions : int [] 
+      Positions : int []; 
       /// Comments attached to appropriate locations
-      Comments : Dictionary<pos, string list>
+      Comments : Dictionary<pos, string list>;
       /// Compiler directives attached to appropriate locations
       Directives : Dictionary<pos, string> }
     /// Initialize with a string writer and use space as delimiter

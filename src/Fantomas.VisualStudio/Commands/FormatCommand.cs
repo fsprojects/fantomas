@@ -78,16 +78,16 @@ namespace Hestia.FSharpCommands.Commands
 
             var isSignatureFile = IsSignatureFile(buffer);
 
-            var config = new Fantomas.FormatConfig.FormatConfig(
-                indentSpaceNum: indentSize,
-                pageWidth: customOptions.PageWidth,
-                semicolonAtEndOfLine: customOptions.SemicolonAtEndOfLine,
-                spaceBeforeArgument: customOptions.SpaceBeforeArgument,
-                spaceBeforeColon: customOptions.SpaceBeforeColon,
-                spaceAfterComma: customOptions.SpaceAfterComma,
-                spaceAfterSemicolon: customOptions.SpaceAfterSemicolon,
-                indentOnTryWith: customOptions.IndentOnTryWith,
-                reorderOpenDeclaration: customOptions.ReorderOpenDeclaration
+            var config = Fantomas.FormatConfig.FormatConfig.create(
+                            indentSize,
+                            customOptions.PageWidth,
+                            customOptions.SemicolonAtEndOfLine,
+                            customOptions.SpaceBeforeArgument,
+                            customOptions.SpaceBeforeColon,
+                            customOptions.SpaceAfterComma,
+                            customOptions.SpaceAfterSemicolon,
+                            customOptions.IndentOnTryWith,
+                            customOptions.ReorderOpenDeclaration
                 );
 
             try
