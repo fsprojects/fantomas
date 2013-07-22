@@ -26,8 +26,10 @@ type FormatConfig =
       SpaceAfterComma : bool;
       SpaceAfterSemicolon : bool;
       IndentOnTryWith : bool;
+      /// Reordering and deduplicating open statements
       ReorderOpenDeclaration : bool;
-      StrictMode : bool; }
+      /// Prettyprinting based on ASTs only
+      StrictMode : bool }
 
     static member Default = 
         { IndentSpaceNum = 4; PageWidth = 80;
@@ -64,7 +66,7 @@ type FormatConfig =
               ReorderOpenDeclaration = reorderOpenDeclaration;
               StrictMode = strictMode }
 
-/// Wrapping IndentedTextWriter with a current column position
+/// Wrapping IndentedTextWriter with current column position
 type internal ColumnIndentedTextWriter(tw : TextWriter) =
     let indentWriter = new IndentedTextWriter(tw, " ")
     let mutable col = indentWriter.Indent
@@ -107,6 +109,7 @@ type internal Context =
       Comments : Dictionary<pos, string list>;
       /// Compiler directives attached to appropriate locations
       Directives : Dictionary<pos, string> }
+
     /// Initialize with a string writer and use space as delimiter
     static member Default = 
         { Config = FormatConfig.Default;
@@ -128,7 +131,7 @@ type internal Context =
     member x.With(writer : ColumnIndentedTextWriter) =
         writer.Indent <- x.Writer.Indent
         writer.Column <- x.Writer.Column
-        /// Use infinite column width to encounter worst-case scenario
+        // Use infinite column width to encounter worst-case scenario
         let config = { x.Config with PageWidth = Int32.MaxValue }
         { x with Writer = writer; Config = config }
 
@@ -296,11 +299,11 @@ let internal sepCloseT = !- ")"
 let internal autoNln f (ctx : Context) =
     if ctx.BreakLines then 
         let width = ctx.Config.PageWidth
-        /// Create a dummy context to evaluate length of current operation
+        // Create a dummy context to evaluate length of current operation
         use colWriter = new ColumnIndentedTextWriter(new StringWriter())
         let dummyCtx = ctx.With(colWriter)
         let col = (f dummyCtx).Writer.Column
-        /// This isn't accurate if we go to new lines
+        // This isn't accurate if we go to new lines
         if col > width then f (sepNln ctx) else f ctx
     else
         f ctx
@@ -331,7 +334,7 @@ let internal sepSemi(ctx : Context) =
     if ctx.Config.SpaceAfterSemicolon then str "; " ctx else str ";" ctx
 
 let internal sepSemiNln(ctx : Context) =
-    /// sepNln part is essential to indentation
+    // sepNln part is essential to indentation
     if ctx.Config.SemicolonAtEndOfLine then (!- ";" +> sepNln) ctx else sepNln ctx
 
 let internal sepBeforeArg(ctx : Context) = 
