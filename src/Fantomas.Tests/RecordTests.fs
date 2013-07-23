@@ -148,3 +148,20 @@ let ``should not break inside of if statements in records``() =
       Libraries = [];
       Samples = [] }
 """
+
+[<Test>]
+let ``should not add redundant newlines when using a record in a DU``() =
+    formatSourceString false """
+let rec make item depth = 
+    if depth > 0 then 
+        Tree({ Left = make (2 * item - 1) (depth - 1)
+               Right = make (2 * item) (depth - 1) }, item)
+    else Tree(defaultof<_>, item)""" config
+  |> prepend newline
+  |> should equal """
+let rec make item depth = 
+    if depth > 0 then 
+        Tree({ Left = make (2 * item - 1) (depth - 1)
+               Right = make (2 * item) (depth - 1) }, item)
+    else Tree(defaultof<_>, item)
+"""
