@@ -353,7 +353,7 @@ and genExpr = function
     | TypedExpr(Downcast, e, t) -> genExpr e -- " :?> " +> genType false t
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType false t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType false t
-    | Tuple es -> atCurrentColumn (colAutoNlnSkip0 sepComma es noIndentBreakNln)
+    | Tuple es -> atCurrentColumn (colAutoNlnSkip0i sepComma es (fun i -> if i = 0 then genExpr else noIndentBreakNln))
     | ArrayOrList(isArray, xs, isSimple) -> 
         let sep = ifElse isSimple sepSemi sepSemiNln
         ifElse isArray (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sep xs genExpr) +> sepCloseA) 
