@@ -306,8 +306,11 @@ let internal autoNln f (ctx : Context) =
         f ctx
 
 /// Similar to col, skip auto newline for index 0
-let internal colAutoNlnSkip0 f' (c : seq<'T>) f (ctx : Context) = 
-    coli f' c (fun i c -> if i = 0 then f c else autoNln (f c)) ctx
+let internal colAutoNlnSkip0i f' (c : seq<'T>) f (ctx : Context) = 
+    coli f' c (fun i c -> if i = 0 then f i c else autoNln (f i c)) ctx
+
+/// Similar to col, skip auto newline for index 0
+let internal colAutoNlnSkip0 f' c f = colAutoNlnSkip0i f' c (fun _ -> f)
 
 /// Skip all auto-breaking newlines
 let internal noNln f (ctx : Context) : Context = 
