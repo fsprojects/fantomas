@@ -115,8 +115,7 @@ let result1 = divide1 100 0
 let divide1 x y = 
     try 
         Some(x / y)
-    with
-    | :? System.DivideByZeroException -> 
+    with :? System.DivideByZeroException -> 
         printfn "Division by zero!"
         None
 
@@ -132,6 +131,7 @@ let ``try/with and finally``() =
             if x = y then raise (InnerError("inner"))
             else raise (OuterError("outer"))
          with
+          | Failure _ -> ()
           | InnerError(str) -> printfn "Error1 %s" str
        finally
           printfn "Always print this."
@@ -144,6 +144,7 @@ let function1 x y =
             if x = y then raise (InnerError("inner"))
             else raise (OuterError("outer"))
         with
+        | Failure _ -> ()
         | InnerError(str) -> printfn "Error1 %s" str
     finally
         printfn "Always print this."
@@ -214,7 +215,7 @@ let ``should break lines on multiline if conditions``() =
 let x = 
     if try
         true
-       with
+       with 
        | Failure _ -> false 
     then ()
     else ()
@@ -224,8 +225,7 @@ let x =
 let x = 
     if try 
            true
-       with
-       | Failure _ -> false
+       with Failure _ -> false
     then ()
     else ()
 """

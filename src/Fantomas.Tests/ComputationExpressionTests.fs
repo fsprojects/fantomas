@@ -17,6 +17,7 @@ let fetchAsync(name, url:string) =
             let! html = webClient.AsyncDownloadString(uri)
             printfn "Read %d characters for %s" html.Length name
         with
+            | :? Exception -> ()
             | ex -> printfn "%s" (ex.Message);
     }
     """ config
@@ -30,6 +31,7 @@ let fetchAsync (name, url : string) =
             let! html = webClient.AsyncDownloadString(uri)
             printfn "Read %d characters for %s" html.Length name
         with
+        | :? Exception -> ()
         | ex -> printfn "%s" (ex.Message) }
 """
 

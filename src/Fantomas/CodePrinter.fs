@@ -395,9 +395,9 @@ and genExpr = function
         !- "fun " +>  col sepSpace cps genComplexPats +> sepArrow +> preserveBreakNln e 
     | Lambda(e, sps) -> 
         !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> noIndentBreakNln e
-    | MatchLambda(sp, _) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp genClause)
+    | MatchLambda(sp, _) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp (genClause true))
     | Match(e, cs) -> 
-        atCurrentColumn (!- "match " +> genExpr e -- " with" +> colPre sepNln sepNln cs genClause)
+        atCurrentColumn (!- "match " +> genExpr e -- " with" +> colPre sepNln sepNln cs (genClause true))
     | CompApp(s, e) ->
         !- s +> sepSpace +> sepOpenS +> genExpr e +> sepCloseS
     | App(Var ".. ..", [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
@@ -449,16 +449,20 @@ and genExpr = function
 
         match bs with
         | b::bs ->
-            // and is applicable for use binding
+            // and is also applicable for use binding
             atCurrentColumn (genLetBinding true prefix b +> 
                 colPre sepNln sepNln bs (genLetBinding false "and ") +> sepNln +> genExpr e)
 
         | _ -> atCurrentColumn (col sepNln bs (genLetBinding true prefix) +> sepNln +> genExpr e)
 
     // Could customize a bit if e is single line
-    | TryWith(e, cs) ->  
-        atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e +> unindent ++ "with" 
-            +> indentOnWith +> sepNln +> col sepNln cs genClause +> unindentOnWith)
+    | TryWith(e, cs) -> 
+        let prefix = !- "try " +> indent +> sepNln +> genExpr e +> unindent ++ "with"
+        match cs with
+        | [c] -> 
+            atCurrentColumn (prefix +> sepSpace +> genClause false c)
+        | _ -> 
+            atCurrentColumn (prefix +> indentOnWith +> sepNln +> col sepNln cs (genClause true) +> unindentOnWith)
 
     | TryFinally(e1, e2) -> 
         atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr e1 +> unindent ++ "finally" 
@@ -466,8 +470,7 @@ and genExpr = function
 
     | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemi es genExpr)
     // It seems too annoying to use sepSemiNln
-    | Sequentials es -> 
-        atCurrentColumn (col sepNln es genExpr)
+    | Sequentials es -> atCurrentColumn (col sepNln es genExpr)
     // A generalization of IfThenElse
     | ElIf((e1,e2, _)::es, en) ->
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr e1 ++ "then") (genExpr e1 +- "then") -- " " 
@@ -785,8 +788,9 @@ and genInterfaceImpl(InterfaceImpl(t, bs)) =
         !- "interface " +> genType false t -- " with"
         +> indent +> sepNln +> genMemberBindingList true bs +> unindent
 
-and genClause(Clause(p, e, eo)) = 
-    sepBar +> genPat p +> optPre (!- " when ") sepNone eo genExpr +> sepArrow +> preserveBreakNln e
+and genClause hasBar (Clause(p, e, eo)) = 
+    ifElse hasBar sepBar sepNone +> genPat p 
+    +> optPre (!- " when ") sepNone eo genExpr +> sepArrow +> preserveBreakNln e
 
 /// Each multiline member definition has a pre and post new line. 
 and genMemberDefnList inter = function
