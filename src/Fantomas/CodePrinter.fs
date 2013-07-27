@@ -354,6 +354,8 @@ and genExpr = function
     | TypedExpr(Upcast, e, t) -> genExpr e -- " :> " +> genType false t
     | TypedExpr(Typed, e, t) -> genExpr e +> sepColon +> genType false t
     | Tuple es -> atCurrentColumn (colAutoNlnSkip0i sepComma es (fun i -> if i = 0 then genExpr else noIndentBreakNln))
+    | ArrayOrList(isArray, [], _) -> 
+        ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
     | ArrayOrList(isArray, xs, isSimple) -> 
         let sep = ifElse isSimple sepSemi sepSemiNln
         ifElse isArray (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sep xs genExpr) +> sepCloseA) 
@@ -487,7 +489,7 @@ and genExpr = function
     // At this stage, all symbolic operators have been handled.
     | OptVar(s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
-    | DotIndexedGet(e, es) -> genExpr e -- "." +> sepOpenL +> genIndexedVars es +> sepCloseL
+    | DotIndexedGet(e, es) -> genExpr e -- "." +> sepOpenLFixed +> genIndexedVars es +> sepCloseLFixed
     | DotIndexedSet(e1, es, e2) -> genExpr e1 -- ".[" +> genIndexedVars es -- "] <- " +> genExpr e2
     | DotGet(e, s) -> genExpr e -- sprintf ".%s" s
     | DotSet(e1, s, e2) -> genExpr e1 -- sprintf ".%s <- " s +> genExpr e2
@@ -917,8 +919,14 @@ and genPat = function
     | PatParen(PatConst(c)) -> genConst c
     | PatParen(p) -> sepOpenT +> genPat p +> sepCloseT
     | PatSeq(PatTuple, ps) -> atCurrentColumn (colAutoNlnSkip0 sepComma ps genPat)
-    | PatSeq(PatList, ps) -> sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps genPat) +> sepCloseL
-    | PatSeq(PatArray, ps) -> sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps genPat) +> sepCloseA
+    | PatSeq(PatList, ps) -> 
+        ifElse ps.IsEmpty (sepOpenLFixed +> sepCloseLFixed) 
+            (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps genPat) +> sepCloseL)
+
+    | PatSeq(PatArray, ps) -> 
+        ifElse ps.IsEmpty (sepOpenAFixed +> sepCloseAFixed)
+            (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps genPat) +> sepCloseA)
+
     | PatRecord(xs) -> 
         sepOpenS +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs genPatRecordFieldName) +> sepCloseS
     | PatConst(c) -> genConst c

@@ -18,7 +18,7 @@ array1.[1] <- 3
     """ config
     |> prepend newline
     |> should equal """
-let array1 = [|1; 2; 3|]
+let array1 = [| 1; 2; 3 |]
 
 array1.[0..2]
 array2.[2.., 0..]
@@ -35,15 +35,15 @@ let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3
     |> prepend newline
     |> should equal """
 let arr = 
-    [|(1, 1, 1);
-      (1, 2, 2);
-      (1, 3, 3);
-      (2, 1, 2);
-      (2, 2, 4);
-      (2, 3, 6);
-      (3, 1, 3);
-      (3, 2, 6);
-      (3, 3, 9)|]
+    [| (1, 1, 1);
+       (1, 2, 2);
+       (1, 3, 3);
+       (2, 1, 2);
+       (2, 2, 4);
+       (2, 3, 6);
+       (3, 1, 3);
+       (3, 2, 6);
+       (3, 3, 9) |]
 """
 
 [<Test>]
@@ -73,9 +73,9 @@ let rec printList l =
 let listLength list = 
     match list with
     | [] -> 0
-    | [_] -> 1
-    | [_; _] -> 2
-    | [_; _; _] -> 3
+    | [ _ ] -> 1
+    | [ _; _ ] -> 2
+    | [ _; _; _ ] -> 3
     | _ -> List.length list
 """
 
@@ -92,9 +92,9 @@ let vectorLength vec =
     |> should equal """
 let vectorLength vec = 
     match vec with
-    | [|var1|] -> var1
-    | [|var1; var2|] -> sqrt (var1 * var1 + var2 * var2)
-    | [|var1; var2; var3|] -> sqrt (var1 * var1 + var2 * var2 + var3 * var3)
+    | [| var1 |] -> var1
+    | [| var1; var2 |] -> sqrt (var1 * var1 + var2 * var2)
+    | [| var1; var2; var3 |] -> sqrt (var1 * var1 + var2 * var2 + var3 * var3)
     | _ -> 
         failwith "vectorLength called with an unsupported array size of %d." 
             (vec.Length)
@@ -110,9 +110,9 @@ let ``should keep -> notation``() =
     |> prepend newline
     |> should equal """
 let environVars target = 
-    [for e in Environment.GetEnvironmentVariables target -> 
-         let e1 = e :?> Collections.DictionaryEntry
-         e1.Key, e1.Value]
+    [ for e in Environment.GetEnvironmentVariables target -> 
+          let e1 = e :?> Collections.DictionaryEntry
+          e1.Key, e1.Value ]
 """
 
 [<Test>]
@@ -123,9 +123,9 @@ let list0to3 = [0 .. 3]""" config
     |> prepend newline
     |> should equal """
 let listOfSquares = 
-    [for i in 1..10 -> i * i]
+    [ for i in 1..10 -> i * i ]
 
-let list0to3 = [0..3]
+let list0to3 = [ 0..3 ]
 """
 
 [<Test>]
@@ -137,13 +137,13 @@ let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
     |> prepend newline
     |> should equal """
 let a1 = 
-    [|for i in 1..10 -> i * i|]
+    [| for i in 1..10 -> i * i |]
 
-let a2 = [|0..99|]
+let a2 = [| 0..99 |]
 
 let a3 = 
-    [|for n in 1..100 do
-          if isPrime n then yield n|]
+    [| for n in 1..100 do
+           if isPrime n then yield n |]
 """
 
 [<Test>]

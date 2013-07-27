@@ -28,6 +28,7 @@ type FormatConfig =
       IndentOnTryWith : bool;
       /// Reordering and deduplicating open statements
       ReorderOpenDeclaration : bool;
+      SpaceAroundDelimiter : bool;
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -35,7 +36,8 @@ type FormatConfig =
         { IndentSpaceNum = 4; PageWidth = 80;
           SemicolonAtEndOfLine = false; SpaceBeforeArgument = true; SpaceBeforeColon = true;
           SpaceAfterComma = true; SpaceAfterSemicolon = true; 
-          IndentOnTryWith = false; ReorderOpenDeclaration = false; StrictMode = false }
+          IndentOnTryWith = false; ReorderOpenDeclaration = false; 
+          SpaceAroundDelimiter = true; StrictMode = false }
 
     static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
                          spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
@@ -53,7 +55,7 @@ type FormatConfig =
 
     static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
                          spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
-                         spaceAfterSemicolon, indentOnTryWith, reorderOpenDeclaration, strictMode) =
+                         spaceAfterSemicolon, indentOnTryWith, reorderOpenDeclaration, spaceAroundDelimiter) =
         { FormatConfig.Default with
               IndentSpaceNum = indentSpaceNum; 
               PageWidth = pageWith;
@@ -64,6 +66,23 @@ type FormatConfig =
               SpaceAfterSemicolon = spaceAfterSemicolon; 
               IndentOnTryWith = indentOnTryWith; 
               ReorderOpenDeclaration = reorderOpenDeclaration;
+              SpaceAroundDelimiter = spaceAroundDelimiter }
+
+    static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
+                         spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
+                         spaceAfterSemicolon, indentOnTryWith, reorderOpenDeclaration, 
+                         spaceAroundDelimiter, strictMode) =
+        { FormatConfig.Default with
+              IndentSpaceNum = indentSpaceNum; 
+              PageWidth = pageWith;
+              SemicolonAtEndOfLine = semicolonAtEndOfLine; 
+              SpaceBeforeArgument = spaceBeforeArgument; 
+              SpaceBeforeColon = spaceBeforeColon;
+              SpaceAfterComma = spaceAfterComma; 
+              SpaceAfterSemicolon = spaceAfterSemicolon; 
+              IndentOnTryWith = indentOnTryWith; 
+              ReorderOpenDeclaration = reorderOpenDeclaration;
+              SpaceAroundDelimiter = spaceAroundDelimiter;
               StrictMode = strictMode }
 
 /// Wrapping IndentedTextWriter with current column position
@@ -279,19 +298,42 @@ let internal sepNone = id
 let internal sepBar = !- "| "
 
 /// opening token of list
-let internal sepOpenL = !- "["
+let internal sepOpenL (ctx : Context) =  
+    if ctx.Config.SpaceAroundDelimiter then str "[ " ctx else str "[" ctx 
+
 /// closing token of list
-let internal sepCloseL = !- "]"
+let internal sepCloseL (ctx : Context) =
+    if ctx.Config.SpaceAroundDelimiter then str " ]" ctx else str "]" ctx 
+
+/// opening token of list
+let internal sepOpenLFixed = !- "["
+/// closing token of list
+let internal sepCloseLFixed = !- "]"
+
 /// opening token of array
-let internal sepOpenA = !- "[|"
+let internal sepOpenA (ctx : Context) =
+    if ctx.Config.SpaceAroundDelimiter then str "[| " ctx else str "[|" ctx 
+
 /// closing token of array
-let internal sepCloseA = !- "|]"
+let internal sepCloseA (ctx : Context) = 
+    if ctx.Config.SpaceAroundDelimiter then str " |]" ctx else str "|]" ctx 
+
+/// opening token of list
+let internal sepOpenAFixed = !- "[|"
+/// closing token of list
+let internal sepCloseAFixed = !- "|]"
+
 /// opening token of sequence
-let internal sepOpenS = !- "{ "
+let internal sepOpenS (ctx : Context) = 
+    if ctx.Config.SpaceAroundDelimiter then str "{ " ctx else str "{" ctx 
+
 /// closing token of sequence
-let internal sepCloseS = !- " }"
+let internal sepCloseS (ctx : Context) = 
+    if ctx.Config.SpaceAroundDelimiter then str " }" ctx else str "}" ctx
+
 /// opening token of tuple
 let internal sepOpenT = !- "("
+
 /// closing token of tuple
 let internal sepCloseT = !- ")"
 
@@ -322,30 +364,30 @@ let internal noNln f (ctx : Context) : Context =
     ctx.BreakLines <- true
     res
 
-let internal sepColon(ctx : Context) = 
+let internal sepColon (ctx : Context) = 
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx
 
 let internal sepColonFixed = !- ":"
 
-let internal sepComma(ctx : Context) = 
+let internal sepComma (ctx : Context) = 
     if ctx.Config.SpaceAfterComma then str ", " ctx else str "," ctx
 
-let internal sepSemi(ctx : Context) = 
+let internal sepSemi (ctx : Context) = 
     if ctx.Config.SpaceAfterSemicolon then str "; " ctx else str ";" ctx
 
-let internal sepSemiNln(ctx : Context) =
+let internal sepSemiNln (ctx : Context) =
     // sepNln part is essential to indentation
     if ctx.Config.SemicolonAtEndOfLine then (!- ";" +> sepNln) ctx else sepNln ctx
 
-let internal sepBeforeArg(ctx : Context) = 
+let internal sepBeforeArg (ctx : Context) = 
     if ctx.Config.SpaceBeforeArgument then str " " ctx else str "" ctx
 
 /// Conditional indentation on with keyword
-let internal indentOnWith(ctx : Context) =
+let internal indentOnWith (ctx : Context) =
     if ctx.Config.IndentOnTryWith then indent ctx else ctx
 
 /// Conditional unindentation on with keyword
-let internal unindentOnWith(ctx : Context) =
+let internal unindentOnWith (ctx : Context) =
     if ctx.Config.IndentOnTryWith then unindent ctx else ctx
 
 let internal sortAndDeduplicate by l (ctx : Context) =

@@ -313,8 +313,8 @@ type NumberStrings() =
     |> prepend newline
     |> should equal """
 type NumberStrings() = 
-    let mutable ordinals = [|"one"|]
-    let mutable cardinals = [|"first"|]
+    let mutable ordinals = [| "one" |]
+    let mutable cardinals = [| "first" |]
     
     member this.Item 
         with get index = ordinals.[index]
