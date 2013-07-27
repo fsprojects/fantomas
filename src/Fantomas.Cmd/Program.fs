@@ -47,6 +47,7 @@ let [<Literal>] indentOnTryWithText = "Enable indentation on try/with block (def
 let [<Literal>] reorderOpenDeclarationText = "Enable reordering open declarations (default = false)."
 
 let [<Literal>] spaceAroundDelimiterText = "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
+let [<Literal>] strictModeText = "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
 
 let time f =
     let sw = Diagnostics.Stopwatch.StartNew()
@@ -104,6 +105,7 @@ let main args =
     let reorderOpenDeclaration = ref false
 
     let spaceAroundDelimiter = ref true
+    let strictMode = ref false
 
     let handleOutput s =
         outputPath := IO s
@@ -209,7 +211,8 @@ let main args =
            ArgInfo("--indentOnTryWith", ArgType.Set indentOnTryWith, indentOnTryWithText);
            ArgInfo("--reorderOpenDeclaration", ArgType.Set reorderOpenDeclaration, reorderOpenDeclarationText);
            
-           ArgInfo("--noSpaceAroundDelimiter", ArgType.Clear spaceAroundDelimiter, spaceAroundDelimiterText) |]
+           ArgInfo("--noSpaceAroundDelimiter", ArgType.Clear spaceAroundDelimiter, spaceAroundDelimiterText);
+           ArgInfo("--strictMode", ArgType.Set strictMode, strictModeText) |]
 
     ArgParser.Parse(options, handleInput, "Fantomas <input_path>")
 

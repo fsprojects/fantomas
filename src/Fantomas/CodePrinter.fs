@@ -181,7 +181,10 @@ and genOneLinerAttributes ats =
 and genAttributes ats = 
     colPost sepNln sepNone ats genAttribute
 
-and genPreXmlDoc(PreXmlDoc _) =  sepNone
+and genPreXmlDoc (PreXmlDoc lines) ctx = 
+    if ctx.Config.StrictMode then
+        colPost sepNln sepNln lines (sprintf "///%s" >> (!-)) ctx
+    else ctx
 
 and breakNln brk e = 
     ifElse brk (indent +> sepNln +> genExpr e +> unindent) 
