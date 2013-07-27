@@ -87,7 +87,8 @@ namespace Hestia.FSharpCommands.Commands
                             customOptions.SpaceAfterComma,
                             customOptions.SpaceAfterSemicolon,
                             customOptions.IndentOnTryWith,
-                            customOptions.ReorderOpenDeclaration
+                            customOptions.ReorderOpenDeclaration,
+                            customOptions.SpaceAroundDelimiter
                 );
 
             try

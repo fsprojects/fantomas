@@ -24,6 +24,7 @@ namespace Hestia.FSharpCommands
             SpaceAfterSemicolon = config.SpaceAfterSemicolon;
             IndentOnTryWith = config.IndentOnTryWith;
             ReorderOpenDeclaration = config.ReorderOpenDeclaration;
+            SpaceAroundDelimiter = config.SpaceAroundDelimiter;
         }
 
         [Category("Layout")]
@@ -55,6 +56,11 @@ namespace Hestia.FSharpCommands
         [DisplayName("Space After Semicolon")]
         [Description("Insert ' ' after ';' in list, array and record elements.")]
         public bool SpaceAfterSemicolon { get; set; }
+
+        [Category("Spacing")]
+        [DisplayName("Space Around Delimiter")]
+        [Description("Insert ' ' after starting and before ending of lists, arrays, sequences and records.")]
+        public bool SpaceAroundDelimiter { get; set; }
 
         [Category("Indentation")]
         [DisplayName("Indent on Try...With")]

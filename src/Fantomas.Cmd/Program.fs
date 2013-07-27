@@ -46,6 +46,8 @@ let [<Literal>] semicolonText = "Disable spaces after semicolons (default = true
 let [<Literal>] indentOnTryWithText = "Enable indentation on try/with block (default = false)."
 let [<Literal>] reorderOpenDeclarationText = "Enable reordering open declarations (default = false)."
 
+let [<Literal>] spaceAroundDelimiterText = "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
+
 let time f =
     let sw = Diagnostics.Stopwatch.StartNew()
     let res = f()
@@ -100,6 +102,8 @@ let main args =
     let spaceAfterSemiColon = ref true
     let indentOnTryWith = ref false
     let reorderOpenDeclaration = ref false
+
+    let spaceAroundDelimiter = ref true
 
     let handleOutput s =
         outputPath := IO s
@@ -203,7 +207,9 @@ let main args =
            ArgInfo("--noSpaceAfterComma", ArgType.Clear spaceAfterComma, commaText);
            ArgInfo("--noSpaceAfterSemiColon", ArgType.Clear spaceAfterSemiColon, semicolonText);
            ArgInfo("--indentOnTryWith", ArgType.Set indentOnTryWith, indentOnTryWithText);
-           ArgInfo("--reorderOpenDeclaration", ArgType.Set reorderOpenDeclaration, reorderOpenDeclarationText); |]
+           ArgInfo("--reorderOpenDeclaration", ArgType.Set reorderOpenDeclaration, reorderOpenDeclarationText);
+           
+           ArgInfo("--noSpaceAroundDelimiter", ArgType.Clear spaceAroundDelimiter, spaceAroundDelimiterText) |]
 
     ArgParser.Parse(options, handleInput, "Fantomas <input_path>")
 
