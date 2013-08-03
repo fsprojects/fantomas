@@ -39,7 +39,6 @@ and genSigFile(ParsedSigFileInput(hs, mns)) =
     +> col sepNln mns genSigModuleOrNamespace
 
 and genParsedHashDirective(ParsedHashDirective(h, s)) =
-    // print strings with quotes
     let gs =
         match s with
         | "" -> sepNone
@@ -446,19 +445,8 @@ and genExpr = function
             (genExpr e +> colPre sepSpace sepSpace es (fun e -> indent +> autoNln (genExpr e) +> unindent))
 
     | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts (genType false) -- ">"
-    | LetOrUse(isRec, isUse, bs, e) ->
-        let prefix = 
-            if isUse then "use "
-            elif isRec then "let rec "
-            else "let "
-
-        match bs with
-        | b::bs ->
-            // and is also applicable for use binding
-            atCurrentColumn (genLetBinding true prefix b +> 
-                colPre sepNln sepNln bs (genLetBinding false "and ") +> sepNln +> genExpr e)
-
-        | _ -> atCurrentColumn (col sepNln bs (genLetBinding true prefix) +> sepNln +> genExpr e)
+    | LetOrUses(bs, e) ->
+        atCurrentColumn (genLetOrUseList bs +> sepNln +> genExpr e)
 
     // Could customize a bit if e is single line
     | TryWith(e, cs) -> 
@@ -507,6 +495,28 @@ and genExpr = function
     | ParsingError _ -> raise <| FormatException "Unable to parse this code fragment."
     | UnsupportedExpr _ -> raise <| FormatException "This code fragment consists of unsupported construct(s)."
     | e -> failwithf "Unexpected expression: %O" e
+
+and genLetOrUseList = function
+    | [p, x] -> genLetBinding true p x
+    | OneLinerLetOrUseL(xs, ys) ->
+        match ys with
+        | [] -> 
+            col sepNln xs (fun (p, x) -> genLetBinding (p <> "and ") p x)
+        | _ -> 
+            col sepNln xs (fun (p, x) -> genLetBinding (p <> "and ") p x) 
+            +> rep 2 sepNln +> genLetOrUseList ys
+
+    | MultilineLetOrUseL(xs, ys) ->
+        match ys with
+        | [] -> 
+            col (rep 2 sepNln) xs (fun (p, x) -> genLetBinding (p <> "and ") p x)
+            // Add a trailing new line to separate these with the main expression
+            +> sepNln 
+        | _ -> 
+            col (rep 2 sepNln) xs (fun (p, x) -> genLetBinding (p <> "and ") p x) 
+            +> rep 2 sepNln +> genLetOrUseList ys
+
+    | _ -> sepNone   
 
 and genInfixApps newline = function
     | (s, e)::es ->

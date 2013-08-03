@@ -121,3 +121,25 @@ let ``should keep type annotations``() =
     formatSourceString false """let empty<'T> : LazyList<'T> = EmptyValue<'T>.Value""" config
     |> should equal """let empty<'T> : LazyList<'T> = EmptyValue<'T>.Value
 """
+
+[<Test>]
+let ``should add spaces between multiline nested let bindings``() =
+    formatSourceString false """let f1 = 
+    let f2 x = 
+        let _ = ()
+        x + 1
+    let f3 y = 
+        let _ = ()
+        y + 1
+    x + y""" config
+    |> should equal """let f1 = 
+    let f2 x = 
+        let _ = ()
+        x + 1
+    
+    let f3 y = 
+        let _ = ()
+        y + 1
+    
+    x + y
+"""

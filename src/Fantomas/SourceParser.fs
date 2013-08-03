@@ -656,6 +656,25 @@ let (|LetOrUse|_|) = function
         Some(isRec, isUse, xs, e)
     | _ -> None
 
+/// Unfold a list of let bindings
+/// Recursive and use properties have to be determined at this point
+let rec (|LetOrUses|_|) = function
+    | SynExpr.LetOrUse(isRec, isUse, xs, LetOrUses(ys, e), _) -> 
+        let prefix = 
+            if isUse then "use "
+            elif isRec then "let rec "
+            else "let "
+        let xs' = List.mapi (fun i x -> if i = 0 then (prefix, x) else ("and ", x)) xs
+        Some(xs' @ ys, e)
+    | SynExpr.LetOrUse(isRec, isUse, xs, e, _) -> 
+        let prefix = 
+            if isUse then "use "
+            elif isRec then "let rec "
+            else "let "
+        let xs' = List.mapi (fun i x -> if i = 0 then (prefix, x) else ("and ", x)) xs
+        Some(xs', e)
+    | _ -> None
+
 let (|LetOrUseBang|_|) = function
     | SynExpr.LetOrUseBang(_, isUse, _, p, e1, e2, _) ->
         Some(isUse, p, e1, e2)

@@ -278,3 +278,13 @@ let rec (|MultilineBindingL|_|) = function
     | MultilineBinding x::MultilineBindingL(xs, ys) -> Some(Single x::xs, ys)
     | MultilineBinding x::ys -> Some([Single x], ys)
     | _ -> None
+
+let rec (|OneLinerLetOrUseL|_|) = function
+    | (prefix, OneLinerBinding x)::OneLinerLetOrUseL(xs, ys) -> Some((prefix, x)::xs, ys)
+    | (prefix, OneLinerBinding x)::ys -> Some([prefix, x], ys)
+    | _ -> None
+
+let rec (|MultilineLetOrUseL|_|) = function
+    | (prefix, MultilineBinding x)::MultilineLetOrUseL(xs, ys) -> Some((prefix, x)::xs, ys)
+    | (prefix, MultilineBinding x)::ys -> Some([prefix, x], ys)
+    | _ -> None
