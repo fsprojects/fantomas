@@ -248,3 +248,18 @@ let f x =
          | 17 -> false
          | _ -> true
 """
+
+[<Test>]
+let ``should not remove parentheses in patterns``() =
+    formatSourceString false """
+let x =
+    match y with
+    | Start(-1) -> true
+    | _ -> false""" config
+    |> prepend newline
+    |> should equal """
+let x = 
+    match y with
+    | Start(-1) -> true
+    | _ -> false
+"""

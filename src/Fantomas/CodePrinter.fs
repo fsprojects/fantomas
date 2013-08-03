@@ -919,7 +919,7 @@ and genPat = function
         // This pattern is potentially long
         | ps -> atCurrentColumn (aoc -- s +> tpsoc +> sepSpace +> colAutoNlnSkip0 sepSpace ps genPat)
 
-    | PatParen(PatConst(c)) -> genConst c
+    | PatParen(PatConst(Const "()", _)) -> !- "()"
     | PatParen(p) -> sepOpenT +> genPat p +> sepCloseT
     | PatSeq(PatTuple, ps) -> atCurrentColumn (colAutoNlnSkip0 sepComma ps genPat)
     | PatSeq(PatList, ps) -> 
