@@ -286,7 +286,8 @@ let internal wordAnd = !- " and "
 let internal wordOr = !- " or "
 let internal wordOf = !- " of "   
 
-// Separator functions        
+// Separator functions
+        
 let internal sepDot = !- "."
 let internal sepSpace = !- " "      
 let internal sepNln = !+ ""
@@ -307,6 +308,7 @@ let internal sepCloseL (ctx : Context) =
 
 /// opening token of list
 let internal sepOpenLFixed = !- "["
+
 /// closing token of list
 let internal sepCloseLFixed = !- "]"
 
@@ -330,6 +332,12 @@ let internal sepOpenS (ctx : Context) =
 /// closing token of sequence
 let internal sepCloseS (ctx : Context) = 
     if ctx.Config.SpaceAroundDelimiter then str " }" ctx else str "}" ctx
+
+/// opening token of sequence
+let internal sepOpenSFixed = !- "{"
+
+/// closing token of sequence
+let internal sepCloseSFixed = !- "}"
 
 /// opening token of tuple
 let internal sepOpenT = !- "("

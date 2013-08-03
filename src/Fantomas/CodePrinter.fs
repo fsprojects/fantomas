@@ -403,7 +403,9 @@ and genExpr = function
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr e -- " with" +> colPre sepNln sepNln cs (genClause true))
     | CompApp(s, e) ->
-        !- s +> sepSpace +> sepOpenS +> genExpr e +> sepCloseS
+        !- s +> sepSpace +> sepOpenS +> genExpr e 
+        +> ifElse (checkBreakForExpr e) (sepNln +> sepCloseSFixed) sepCloseS
+
     | App(Var ".. ..", [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
     // Separate two prefix ops by spaces
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr e

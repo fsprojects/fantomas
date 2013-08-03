@@ -32,7 +32,8 @@ let fetchAsync (name, url : string) =
             printfn "Read %d characters for %s" html.Length name
         with
         | :? Exception -> ()
-        | ex -> printfn "%s" (ex.Message) }
+        | ex -> printfn "%s" (ex.Message)
+    }
 """
 
 [<Test>]
@@ -48,7 +49,8 @@ let comp =
     eventually { 
         for x in 1..2 do
             printfn " x = %d" x
-        return 3 + 4 }
+        return 3 + 4
+    }
 """
 
 [<Test>]
@@ -70,7 +72,8 @@ let rec inorder tree =
     |> should equal """
 let s1 = 
     seq { 
-        for i in 1..10 -> i * i }
+        for i in 1..10 -> i * i
+    }
 
 let s2 = seq { 0..10..100 }
 
@@ -81,5 +84,6 @@ let rec inorder tree =
             yield! inorder left
             yield x
             yield! inorder right
-        | Leaf x -> yield x }
+        | Leaf x -> yield x
+    }
 """
