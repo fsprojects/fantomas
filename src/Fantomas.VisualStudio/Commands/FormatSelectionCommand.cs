@@ -14,24 +14,30 @@ namespace Hestia.FSharpCommands.Commands
 {
     public class FormatSelectionCommand : FormatCommand
     {
+        private bool isFormattingCursor;
+
         public override void Execute()
         {
-            if (TextView.Selection.IsEmpty)
-            {
-                MessageBox.Show("No selection");
-                return;
-            }
+            isFormattingCursor = TextView.Selection.IsEmpty;
 
             using (Cursor.Wait())
             {
                 var resetSelection = GetSelectionResetter();
                 ExecuteFormat();
+
                 resetSelection();
             }
         }
 
         protected override string GetFormatted(bool isSignatureFile, string source, Fantomas.FormatConfig.FormatConfig config)
         {
+            if (isFormattingCursor) 
+            {
+                var caretPos = new VirtualSnapshotPoint(TextView.TextBuffer.CurrentSnapshot, TextView.Caret.Position.BufferPosition);
+                Range.pos pos = TextUtils.GetFSharpPos(caretPos);
+                return Fantomas.CodeFormatter.formatAroundCursor(isSignatureFile, pos, source, config);
+            }
+
             Range.pos startPos = TextUtils.GetFSharpPos(TextView.Selection.Start);
             Range.pos endPos = TextUtils.GetFSharpPos(TextView.Selection.End);
             Range.range range = Range.mkRange("fsfile", startPos, endPos);
@@ -43,7 +49,7 @@ namespace Hestia.FSharpCommands.Commands
         {
             var caretPos = TextView.Caret.Position.BufferPosition;
 
-            if (caretPos.Equals(TextView.Selection.Start.Position))
+            if (isFormattingCursor || caretPos == TextView.Selection.Start.Position)
             {
                 int selStartPos = TextView.Selection.Start.Position.Position;
 
@@ -86,6 +92,9 @@ namespace Hestia.FSharpCommands.Commands
 
         private Action GetSelectionResetter()
         {
+            if (isFormattingCursor)
+                return () => { };
+
             // We're going to take advantage of the fact that nothing before or after the selection
             // should change, so the post-formatting range will start at the same point, and end at
             // the same offset from the end of the file.

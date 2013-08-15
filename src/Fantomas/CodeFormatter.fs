@@ -310,14 +310,18 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
                             Debug.WriteLine("Found opening token '{0}'", text)
                             let delimiter = openDelimiters.[text]
                             match dic.TryGetValue(delimiter) with
-                            | true, c -> dic.Add(delimiter, c + 1)
-                            | _ -> dic.Add(delimiter, 1)
+                            | true, c -> 
+                                dic.[delimiter] <- c + 1
+                            | _ -> 
+                                dic.Add(delimiter, 1)
                         | "]" | "|]" | "}" | ")" ->
                             Debug.WriteLine("Found closing token '{0}'", text)
                             let delimiter = closeDelimiters.[text]
                             match dic.TryGetValue(delimiter) with
-                            | true, 1 -> dic.Remove(delimiter) |> ignore
-                            | true, c -> dic.Add(delimiter, c - 1)
+                            | true, 1 -> 
+                                dic.Remove(delimiter) |> ignore
+                            | true, c -> 
+                                dic.[delimiter] <- c - 1
                             | _ -> 
                                 // The delimiter has count 0; record as a result
                                 Debug.WriteLine("Record closing token '{0}'", text)
@@ -357,8 +361,10 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
                             Debug.WriteLine("Found closing delimiter '{0}'", text)
                             let delimiter = closeDelimiters.[text]
                             match dic.TryGetValue(delimiter) with
-                            | true, 1 -> dic.Remove(delimiter) |> ignore
-                            | true, c -> dic.Add(delimiter, c - 1)
+                            | true, 1 -> 
+                                dic.Remove(delimiter) |> ignore
+                            | true, c -> 
+                                dic.[delimiter] <- c - 1
                             | _ -> 
                                 Debug.WriteLine("It's a dangling closing delimiter")
                                 result := None
@@ -369,7 +375,8 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
                             Debug.WriteLine("Found opening delimiter '{0}'", text)
                             let delimiter = openDelimiters.[text]
                             match dic.TryGetValue(delimiter) with
-                            | true, c -> dic.Add(delimiter, c + 1)
+                            | true, c -> 
+                                dic.[delimiter] <- c + 1
                             | _ -> 
                                 Debug.WriteLine("Record opening delimiter '{0}'", text)
                                 dic.Add(delimiter, 1)
