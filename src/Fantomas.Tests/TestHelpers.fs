@@ -9,8 +9,10 @@ open Fantomas.CodeFormatter
 
 let config = FormatConfig.Default
 let newline = "\n"
-let formatSourceString fsi s config = (formatSourceString fsi s config).Replace("\r\n", "\n")
-let formatSelectionFromString fsi r s config = (formatSelectionFromString fsi r s config).Replace("\r\n", "\n")
+let formatSourceString isFsiFile s config = (formatSourceString isFsiFile s config).Replace("\r\n", "\n")
+let formatSelectionFromString isFsiFile r s config = (formatSelectionFromString isFsiFile r s config).Replace("\r\n", "\n")
+let formatAroundCursor isFsiFile p s config = (formatAroundCursor isFsiFile p s config).Replace("\r\n", "\n")
+
 let equal x = 
     let x = 
         match box x with
