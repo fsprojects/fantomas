@@ -391,7 +391,10 @@ and genExpr = function
             +> ifElse isArrow (sepArrow +> preserveBreakNln e2) (!- " do" +> indent +> sepNln +> genExpr e2 +> unindent))
 
     | CompExpr(isArrayOrList, e) ->
-        ifElse isArrayOrList (genExpr e) (preserveBreakNln e) 
+        ifElse isArrayOrList (genExpr e) 
+            (sepOpenS +> noIndentBreakNln e 
+             +> ifElse (checkBreakForExpr e) (unindent +> sepNln +> sepCloseSFixed) sepCloseS) 
+
     | ArrayOrListOfSeqExpr(isArray, e) -> 
         ifElse isArray (sepOpenA +> genExpr e +> sepCloseA) (sepOpenL +> genExpr e +> sepCloseL)
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2

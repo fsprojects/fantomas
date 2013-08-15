@@ -236,3 +236,18 @@ let ``should format around the cursor inside an object expression``() =
 let obj1 = 
     { new System.Object() with
           member x.ToString() = "F#" }"""
+
+[<Test>]
+let ``should format around the cursor inside a computation expression``() =
+    formatAroundCursor false (makePos 4 20) """
+let comp =
+    eventually { for x in 1 .. 2 do
+                    printfn " x = %d" x
+                 return 3 + 4 }""" config
+    |> should equal """
+let comp =
+    eventually { 
+               for x in 1..2 do
+                   printfn " x = %d" x
+               return 3 + 4
+               }"""

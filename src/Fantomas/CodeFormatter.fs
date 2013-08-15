@@ -169,7 +169,7 @@ let internal formatRangeFromString isFsiFile startLine startCol endLine endCol (
     let (selection, patch) = 
         let sel = s.[start..finish]
         if startWithMember sel then
-           (sprintf "type T = \n%s" (new String(' ', startCol) + sel), TypeMember)
+           (String.Join("", "type T = \n", new String(' ', startCol), sel), TypeMember)
         elif sel.StartsWith("and") then
             let p = getPatch startCol lines.[..startLine-1]
             let pattern = Regex("and")
@@ -214,8 +214,8 @@ let internal formatRangeFromString isFsiFile startLine startCol endLine endCol (
         let result = formatSelection isFsiFile selection config
         // Remove the patch
         let contents = result.Replace("\r\n","\n").Split('\r', '\n')
-        if contents = [||] then
-            sprintf "%s%s%s" pre result post
+        if Array.isEmpty contents then
+            String.Join("", pre, result, post)
         else
             // Due to patching, the text has at least two lines
             let first = contents.[1]
@@ -292,7 +292,7 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
             None
         else
             let line = lines.[i]
-            let lineTokenizer = sourceTokenizer.CreateLineTokenizer line
+            let lineTokenizer = sourceTokenizer.CreateLineTokenizer(line)
             let finLine = ref false
             let result = ref None
             let lexState = ref 0L
@@ -340,7 +340,7 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
             acc
         else
             let line = lines.[i]
-            let lineTokenizer = sourceTokenizer.CreateLineTokenizer line
+            let lineTokenizer = sourceTokenizer.CreateLineTokenizer(line)
             let finLine = ref false
             let result = ref acc
             let lexState = ref 0L
@@ -389,11 +389,11 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
             
     match tryFindEndDelimiter (Dictionary()) (p.Line - 1) lines with
     | None -> 
-        raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor""")
+        raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor.""")
     | Some (endLine, endCol, blockType) ->
         match tryFindStartDelimiter blockType (Dictionary()) None 0 lines with
         | None ->
-            raise <| FormatException("""1Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor""")
+            raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor.""")
         | Some (startLine, startCol) ->
             formatRangeFromString isFsiFile startLine startCol endLine endCol lines s config
 
