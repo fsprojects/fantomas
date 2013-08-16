@@ -334,3 +334,19 @@ let b = zp ``land`` (zp)
 (* Comment 2 *)
 let p = p1 ``land`` (b - 1)
 """
+
+[<Test>]
+let ``should not write sticky-to-the-left comments in a new line``() =
+    formatSourceString false  """
+let moveFrom source =
+  getAllFiles source
+    |> Seq.filter (fun f -> Path.GetExtension(f).ToLower() <> ".db")  //exlcude the thumbs.db files
+    |> move @"C:\_EXTERNAL_DRIVE\_Camera"
+"""  config
+    |> prepend newline
+    |> should equal """
+let moveFrom source = 
+    getAllFiles source
+    |> Seq.filter (fun f -> Path.GetExtension(f).ToLower() <> ".db") //exlcude the thumbs.db files
+    |> move @"C:\_EXTERNAL_DRIVE\_Camera"
+"""

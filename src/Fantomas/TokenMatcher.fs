@@ -558,8 +558,14 @@ let integrateComments (originalText : string) (newText : string) =
             addText newTokText 
             loop origTokens moreNewTokens 
 
-        // We emit all unmatched RawDelimiter tokens
-        | _,  (RawDelimiter newTokText :: moreNewTokens) 
+        | (Delimiter tokText :: newTokens), (RawDelimiter newTokText :: moreNewTokens) 
+            when tokText = newTokText && newTokText <> "[<" && newTokText <> ">]" && newTokText <> "|" ->
+            Debug.WriteLine("emitting matching delimiter '{0}' in new tokens", newTokText |> box)
+            addText newTokText 
+            loop newTokens moreNewTokens 
+
+        // Emit all unmatched RawDelimiter tokens
+        | _, (RawDelimiter newTokText :: moreNewTokens) 
             when newTokText <> "[<" && newTokText <> ">]" && newTokText <> "|" ->
             Debug.WriteLine("emitting non-matching '{0}' in new tokens", newTokText |> box)
             addText newTokText 

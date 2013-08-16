@@ -13,7 +13,7 @@ open Fantomas.SourceParser
 open Fantomas.CodePrinter
 open Fantomas.CodeFormatter
 
-let config = { FormatConfig.Default with StrictMode = true }
+let config = { FormatConfig.Default with StrictMode = false }
 
 let test s = formatSourceString false s config |> printfn "%A";;
 
@@ -29,10 +29,10 @@ let comp =
  """ config;;
 
 test """
-let comp =
-    eventually { for x in 1 .. 2 do
-                    printfn " x = %d" x
-                 return 3 + 4 }
+let moveFrom source =
+  getAllFiles source
+    |> Seq.filter (fun f -> Path.GetExtension(f).ToLower() <> ".db")  //exlcude the thumbs.db files
+    |> move @"C:\_EXTERNAL_DRIVE\_Camera"
 """
 
 test """
