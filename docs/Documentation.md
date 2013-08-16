@@ -11,12 +11,16 @@ The main formatting options are under `Tools -> Options -> Fantomas`.
 
 ![Fantomas options](fantomas_options.png)
 
-To be consistent with Visual Studio editors, the last option, *indent size*, can be adjusted under `Tools -> Options -> Text Editor -> Indent size` option.
+To be consistent with Visual Studio editors, the last option, *indent size*, can be adjusted under `Tools -> Options -> Text Editor -> F# -> Tabs` (looking for `Indent size` option).
+
+![Indent size option](indent_option.png)
 
 Two main functionalities of the extension are:
  
  - *Formatting Document*, available under **Ctrl + K D** key combination.
- - *Formatting Selection*, available under **Ctrl + K F** key combination.
+ - *Formatting Selection / Formatting Cursor Position*, available under **Ctrl + K F** key combination.
+
+Using **Ctrl + K F** combination without a selection, the smallest parseable block (inside `[` and `]`, `[|` and `|]`, `{` and `}` or `(` and `)`) will be formatted.
 
 **N.B:**
 
@@ -140,10 +144,10 @@ For example, `Seq.filter (fun x -> x > 2)` becomes `Seq.filter(fun x -> x > 2)`.
 	    mutable VZ: float
 	    Mass: float }
 	```
- - `--noSpaceAfterComma`: it is useful if you would like to save spaces in tuples, arguments, etc. 
+ - `--noSpaceAfterComma`: is useful if you would like to save spaces in tuples, arguments, etc. 
 To illustrate, `(1, 2, 3)` is rewritten to `(1,2,3)`.
  
- - `--noSpaceAfterSemiColon`: it saves spaces on records, arrays, lists, etc. Now 
+ - `--noSpaceAfterSemiColon`: saves spaces on records, arrays, lists, etc. Now 
 
 	```fsharp
 	let planets = [|sun; jupiter; saturn; uranus; neptune|]
@@ -168,9 +172,25 @@ To illustrate, `(1, 2, 3)` is rewritten to `(1,2,3)`.
 	    | _ -> 
 	        printfn "A second that was a multiple of 3"
 	```
+  
+ - `--noSpaceAroundDelimiter`: saves spaces around delimiters of records, arrays, lists e.g.
+
+    ```fsharp
+	let planets = [| sun; jupiter; saturn; uranus; neptune |]
+	```
+
+	becomes
+
+	```fsharp
+	let planets = [|sun; jupiter; saturn; uranus; neptune|]
+	```
+
+ - `--reorderOpenDeclaration`: if being set, all open statements in a block will be sorted in the lexicographical order.
+
+ - `--strictMode``: if being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored. 
 
 That said, most of the preferences are very simple. 
-But they demonstrate the adaptiveness of Fantomas on a set of configurations. 
+But they demonstrate the flexibility of Fantomas on a set of configurations. 
 More preferences will be added depending on use cases.
 
 ### Using the API

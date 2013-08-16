@@ -73,6 +73,15 @@ is reformulated to
 For more complex examples, please take a look at F# outputs of [20 language shootout programs](tests/languageshootout_output) and [10 CodeReview.SE source files](tests/stackexchange_output).
 
 ## How to use
+### VS 2012 extension
+[Ivan Towlson](https://github.com/itowlson) kindly contributes the initial version of [Fantomas VS extension](src/Fantomas.VisualStudio). The user guide can be found [here](docs/Documentation.md#using-visual-studio-2012-extension).
+This is available in the [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/24ef5c87-b4e3-4c3b-b126-1064cc66e148) - search for "fantomas" in "Tools --> Extensions and Updates --> Online". 
+
+    Ctrl + K D   -- format document
+    Ctrl + K F   -- format selection / format cursor position
+
+You can also use Fantomas extension in Ivan's [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
+
 ### Command line tool / API 
 You can fork this repo and compile the project with F# 3.0/.NET framework 4.0. 
 Alternatively, Fantomas is also available via [a NuGet package](https://nuget.org/packages/Fantomas/) which contains both the library and the command line interface.
@@ -81,14 +90,8 @@ For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.m
 ### Trying Fantomas online
 [FantomasWeb](https://github.com/TahaHachana/FantomasWeb), implemented by [Taha Hachana](https://github.com/TahaHachana), is accessible at http://fantomasweb.apphb.com/.
 
-### VS 2012 extension
-[Ivan Towlson](https://github.com/itowlson) kindly contributes the initial version of [Fantomas VS extension](src/Fantomas.VisualStudio). The user guide can be found [here](docs/Documentation.md#using-visual-studio-2012-extension).
-This is available in the [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/24ef5c87-b4e3-4c3b-b126-1064cc66e148) - search for "fantomas" in "Tools --> Extensions and Updates --> Online". 
-
-    Ctrl + K D   -- format document
-    Ctrl + K F   -- format selection
-
-You can also use Fantomas extension in Ivan's [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
+### Fantomas plugin in Tsunami IDE
+Taha also wrote a [blog post](http://fsharp-code.blogspot.dk/2013/04/fantomas-support-in-tsunami-ide.html) on integrating Fantomas into Tsunami IDE.
 
 ## Installation
 The code base is written in F# 3.0/.NET framework 4.0. 
@@ -99,7 +102,7 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ## Testing and validation
 We have tried to be careful in testing the project.
-There are 170 unit tests and 30 validated test examples, 
+There are 196 unit tests and 30 validated test examples, 
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
