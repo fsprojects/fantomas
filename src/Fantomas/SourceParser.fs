@@ -15,7 +15,7 @@ let inline content (r : range) (c : Context) =
         let content = c.Content
         let s = content.[start..finish]
         if s.Contains("\n") then
-            /// Terrible hack to compensate the offset made by F# compiler
+            // Terrible hack to compensate the offset made by F# compiler
             let last = content.[c.Positions.[r.EndLine-1]..finish]
             let offset = last.Length - last.TrimStart(' ').Length
             if finish + offset >= content.Length then content.[start..]
@@ -561,7 +561,7 @@ let (|Tuple|_|) = function
     | _ -> None
 
 let (|IndexedVar|_|) = function
-    /// We might have to narrow scope of this pattern to avoid incorrect usage
+    // We might have to narrow scope of this pattern to avoid incorrect usage
     | SynExpr.App(_, _, SynExpr.LongIdent(_, LongIdentWithDots "Microsoft.FSharp.Core.Some", _, _), e, _) -> 
         Some(Some e)
     | SynExpr.LongIdent(_, LongIdentWithDots "Microsoft.FSharp.Core.None", _, _) -> Some None
@@ -585,7 +585,7 @@ let (|Var|_|) = function
 /// Get all application params at once
 let (|App|_|) e =
     let rec loop = function
-        /// function application is left-recursive
+        // function application is left-recursive
         | SynExpr.App(_, _, e, e2, _) ->
             let (e1, es) = loop e
             (e1, e2::es)
@@ -597,8 +597,6 @@ let (|App|_|) e =
 let (|CompApp|_|) = function
     | SynExpr.App(_, _, Var "seq", (SynExpr.App _ as e), _) ->
         Some("seq", e)
-    | SynExpr.App(_, _, Var s, (SynExpr.CompExpr _ as e), _) ->
-        Some(s, e)
     | _ -> None
 
 /// Only process prefix operators here
@@ -858,7 +856,7 @@ let (|PatQuoteExpr|_|) = function
 let (|SPAttrib|SPId|SPTyped|) = function
     | SynSimplePat.Attrib(sp, ats, _) ->
         SPAttrib(ats, sp)
-    /// Not sure compiler generated SPIds are used elsewhere.
+    // Not sure compiler generated SPIds are used elsewhere.
     | SynSimplePat.Id(Ident s, _, isGen, _, isOptArg, _) ->
         SPId(s, isOptArg, isGen)
     | SynSimplePat.Typed(sp, t, _) ->
@@ -947,9 +945,9 @@ let (|Simple|ObjectModel|) = function
         ObjectModel(tdk, mds)
 
 let (|MemberDefnList|) mds =
-    /// Assume that there is at most one implicit constructor
+    // Assume that there is at most one implicit constructor
     let impCtor = List.tryFind (function MDImplicitCtor _ -> true | _ -> false) mds
-    /// Might need to sort so that let and do bindings come first
+    // Might need to sort so that let and do bindings come first
     let others =  List.filter (function MDImplicitCtor _ -> false | _ -> true) mds
     (impCtor, others)
 

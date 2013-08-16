@@ -185,3 +185,83 @@ and File(filename : string, containingFolder : Folder) =
     member __.Name = filename
     member __.ContainingFolder = containingFolder
 """
+
+[<Test>]
+let ``should format around the cursor inside a list``() =
+    formatAroundCursor false (makePos 4 4) """
+let r = 
+    [ "abc"
+      "a"
+      "b"
+      "" ]
+    |> List.map id""" config
+    |> should equal """
+let r = 
+    [ "abc"; "a"; "b"; "" ]
+    |> List.map id"""
+
+[<Test>]
+let ``should format around the cursor inside a tuple``() =
+    formatAroundCursor false (makePos 4 8) """
+let r = 
+    [ ("abc",1)
+      ("a",2)
+      ("b",3)
+      ("",4) ]
+    |> List.map id""" config
+    |> should equal """
+let r = 
+    [ ("abc",1)
+      ("a", 2)
+      ("b",3)
+      ("",4) ]
+    |> List.map id"""
+
+[<Test>]
+let ``should format around the cursor inside an array``() =
+    formatAroundCursor false (makePos 3 20) """
+let a3 = 
+    [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
+    |> should equal """
+let a3 = 
+    [| for n in 1..100 do
+           if isPrime n then yield n |]"""
+
+[<Test>]
+let ``should format around the cursor inside an object expression``() =
+    formatAroundCursor false (makePos 2 20) """let obj1 = 
+    { new System.Object() with member x.ToString() = "F#" }""" config
+    |> prepend newline
+    |> should equal """
+let obj1 = 
+    { new System.Object() with
+          member x.ToString() = "F#" }"""
+
+[<Test>]
+let ``should format around the cursor inside a computation expression``() =
+    formatAroundCursor false (makePos 4 20) """
+let comp =
+    eventually { for x in 1 .. 2 do
+                    printfn " x = %d" x
+                 return 3 + 4 }""" config
+    |> should equal """
+let comp =
+    eventually { 
+        for x in 1..2 do
+            printfn " x = %d" x
+        return 3 + 4
+    }"""
+
+[<Test>]
+let ``should format around the cursor inside a record``() =
+    formatAroundCursor false (makePos 3 10) """
+type Car = {
+    Make : string;
+    Model : string;
+    mutable Odometer : int;
+    }""" config
+    |> should equal """
+type Car = 
+    { Make : string
+      Model : string
+      mutable Odometer : int }"""
