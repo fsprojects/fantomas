@@ -3,6 +3,7 @@
 open System
 open System.IO
 open System.Diagnostics
+open System.Collections.Generic
 open System.Text.RegularExpressions
 
 open Microsoft.FSharp.Compiler.Ast
@@ -26,14 +27,14 @@ let internal parseWith fileName content =
     | None -> raise <| FormatException "Unable to parse this code fragment."
 
 /// Parse a source code string
-let parse fsi s = 
-    let fileName = if fsi then "/tmp.fsi" else "/tmp.fs"
+let parse isFsiFile s = 
+    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fs"
     parseWith fileName s
 
-let internal format fsi s config =
+let internal format isFsiFile s config =
     let s' =    
         Context.create config s 
-        |> genParsedInput (parse fsi s) 
+        |> genParsedInput (parse isFsiFile s) 
         |> dump
         |> if config.StrictMode then id else integrateComments s
 
@@ -43,35 +44,35 @@ let internal format fsi s config =
     else s'
 
 /// Format a source string using given config
-let formatSourceString fsi s config =    
-    let s' = format fsi s config
+let formatSourceString isFsiFile s config =    
+    let s' = format isFsiFile s config
         
     // When formatting the whole document, an EOL is required
     if s'.EndsWith(Environment.NewLine) then s' else s' + Environment.NewLine
 
 /// Format a source string using given config; return None if failed
-let tryFormatSourceString fsi s config =
+let tryFormatSourceString isFsiFile s config =
     try
-        Some (formatSourceString fsi s config)
+        Some (formatSourceString isFsiFile s config)
     with 
     _ -> None
 
 /// Format a source string using given config and write to a text writer
-let processSourceString fsi s (tw : TextWriter) config =
-    tw.Write(formatSourceString fsi s config)
+let processSourceString isFsiFile s (tw : TextWriter) config =
+    tw.Write(formatSourceString isFsiFile s config)
 
 /// Format a source string using given config and write to a text writer; return None if failed
-let tryProcessSourceString fsi s tw config =
+let tryProcessSourceString isFsiFile s tw config =
     try
-        Some (processSourceString fsi s tw config)
+        Some (processSourceString isFsiFile s tw config)
     with 
     _ -> None
 
 /// Format inFile and write to text writer
 let processSourceFile inFile (tw : TextWriter) config = 
     let s = File.ReadAllText(inFile)
-    let fsi = inFile.EndsWith(".fsi") || inFile.EndsWith(".mli")
-    tw.Write(formatSourceString fsi s config)
+    let isFsiFile = inFile.EndsWith(".fsi") || inFile.EndsWith(".mli")
+    tw.Write(formatSourceString isFsiFile s config)
 
 /// Format inFile and write to text writer; return None if failed
 let tryProcessSourceFile inFile tw config = 
@@ -159,8 +160,83 @@ let internal getPatch startCol (lines : string []) =
             if m.Success && col <= startCol + 4 then RecLet else loop (i - 1)
     loop (lines.Length - 1)
 
+let internal formatRangeFromString isFsiFile startLine startCol endLine endCol (lines : _ []) s config =
+    let range = makeRange startLine startCol endLine endCol
+    let (start, finish) = stringPos range s
+    let pre = if start = 0 then "" else s.[0..start-1]
+
+    // Prepend selection by an appropriate amount of whitespace
+    let (selection, patch) = 
+        let sel = s.[start..finish]
+        if startWithMember sel then
+           (String.Join("", "type T = \n", new String(' ', startCol), sel), TypeMember)
+        elif sel.StartsWith("and") then
+            let p = getPatch startCol lines.[..startLine-1]
+            let pattern = Regex("and")
+            let replacement = 
+                match p with
+                | RecType -> "type"
+                | RecLet -> "let rec"
+                | _ -> "and"
+            // Replace "and" by "type" or "let rec"
+            if startLine = endLine then (pattern.Replace(sel, replacement, 1), p)
+            else (new String(' ', startCol) + pattern.Replace(sel, replacement, 1), p)
+        elif startLine = endLine then (sel, NoPatch)
+        else (new String(' ', startCol) + sel, NoPatch)
+
+    let post =                
+        if finish + 1 < s.Length && s.[finish+1] = '\n' then Environment.NewLine + s.[finish+2..] 
+        elif finish < s.Length then s.[finish+1..]
+        else ""
+
+    Debug.WriteLine("pre:\n{0}", box pre)
+    Debug.WriteLine("selection:\n{0}", box selection)
+    Debug.WriteLine("post:\n{0}", box post)
+
+    let formatSelection isFsiFile s config =
+        let s' = format isFsiFile s config
+        // If the input is not inline, the output should not inline as well
+        if s.EndsWith(Environment.NewLine) && not <| s'.EndsWith(Environment.NewLine) then 
+            s' + Environment.NewLine 
+        else s'
+
+    let reconstructSourceCode startCol formatteds pre post =
+        // Realign results on the correct column
+        Context.create config "" 
+        |> str pre
+        |> atIndentLevel startCol (col sepNln formatteds str)
+        |> str post
+        |> dump
+
+    match patch with
+    | TypeMember ->
+        // Get formatted selection with "type T = \n" patch
+        let result = formatSelection isFsiFile selection config
+        // Remove the patch
+        let contents = result.Replace("\r\n","\n").Split('\r', '\n')
+        if Array.isEmpty contents then
+            String.Join("", pre, result, post)
+        else
+            // Due to patching, the text has at least two lines
+            let first = contents.[1]
+            let column = first.Length - first.TrimStart().Length
+            let formatteds = contents.[1..] |> Seq.map (fun s -> s.[column..])
+            reconstructSourceCode startCol formatteds pre post
+    | RecType 
+    | RecLet ->        
+        // Get formatted selection with "type" or "let rec" replacement for "and"
+        let result = formatSelection isFsiFile selection config
+        // Substitute by old contents
+        let pattern = if patch = RecType then Regex("type") else Regex("let rec")
+        let formatteds = pattern.Replace(result, "and", 1).Replace("\r\n","\n").Split('\r', '\n')
+        reconstructSourceCode startCol formatteds pre post
+    | NoPatch ->
+        let result = formatSelection isFsiFile selection config
+        let formatteds = result.Replace("\r\n","\n").Split('\r', '\n')
+        reconstructSourceCode startCol formatteds pre post
+
 /// Format a selected part of source string using given config; keep other parts unchanged. 
-let formatSelectionFromString fsi (r : range) (s : string) config =
+let formatSelectionFromString isFsiFile (r : range) (s : string) config =
     let lines = s.Split([|'\n'|], StringSplitOptions.None)
 
     let sourceToken = SourceTokenizer([], "/tmp.fsx")
@@ -183,85 +259,151 @@ let formatSelectionFromString fsi (r : range) (s : string) config =
         else sourceToken.CreateLineTokenizer(lines.[r.EndLine-1])
 
     let endCol = getEndCol r endTokenizer (ref 0L)
-    
-    let range = makeRange r.StartLine startCol r.EndLine endCol
-    let (start, finish) = stringPos range s
-    let pre = if start = 0 then "" else s.[0..start-1]
-
-    // Prepend selection by an appropriate amount of whitespace
-    let (selection, patch) = 
-        let sel = s.[start..finish]
-        if startWithMember sel then
-           (sprintf "type T = \n%s" (new String(' ', startCol) + sel), TypeMember)
-        elif sel.StartsWith("and") then
-            let p = getPatch startCol lines.[..r.StartLine-1]
-            let pattern = Regex("and")
-            let replacement = 
-                match p with
-                | RecType -> "type"
-                | RecLet -> "let rec"
-                | _ -> "and"
-            // Replace "and" by "type" or "let rec"
-            if r.StartLine = r.EndLine then (pattern.Replace(sel, replacement, 1), p)
-            else (new String(' ', startCol) + pattern.Replace(sel, replacement, 1), p)
-        elif r.StartLine = r.EndLine then (sel, NoPatch)
-        else (new String(' ', startCol) + sel, NoPatch)
-
-    let post =                
-        if finish + 1 < s.Length && s.[finish+1] = '\n' then Environment.NewLine + s.[finish+2..] 
-        elif finish < s.Length then s.[finish+1..]
-        else ""
-
-    Debug.WriteLine("pre:\n{0}", box pre)
-    Debug.WriteLine("selection:\n{0}", box selection)
-    Debug.WriteLine("post:\n{0}", box post)
-
-    let formatSelection fsi s config =
-        let s' = format fsi s config
-        // If the input is not inline, the output should not inline as well
-        if s.EndsWith(Environment.NewLine) && not <| s'.EndsWith(Environment.NewLine) then 
-            s' + Environment.NewLine 
-        else s'
-
-    let reconstructSourceCode startCol formatteds pre post =
-        // Realign results on the correct column
-        Context.create config "" 
-        |> str pre
-        |> atIndentLevel startCol (col sepNln formatteds str)
-        |> str post
-        |> dump
-
-    match patch with
-    | TypeMember ->
-        // Get formatted selection with "type T = \n" patch
-        let result = formatSelection fsi selection config
-        // Remove the patch
-        let contents = result.Replace("\r\n","\n").Split('\r', '\n')
-        if contents = [||] then
-            sprintf "%s%s%s" pre result post
-        else
-            // Due to patching, the text has at least two lines
-            let first = contents.[1]
-            let column = first.Length - first.TrimStart().Length
-            let formatteds = contents.[1..] |> Seq.map (fun s -> s.[column..])
-            reconstructSourceCode startCol formatteds pre post
-    | RecType 
-    | RecLet ->        
-        // Get formatted selection with "type" or "let rec" replacement for "and"
-        let result = formatSelection fsi selection config
-        // Substitute by old contents
-        let pattern = if patch = RecType then Regex("type") else Regex("let rec")
-        let formatteds = pattern.Replace(result, "and", 1).Replace("\r\n","\n").Split('\r', '\n')
-        reconstructSourceCode startCol formatteds pre post
-    | NoPatch ->
-        let result = formatSelection fsi selection config
-        let formatteds = result.Replace("\r\n","\n").Split('\r', '\n')
-        reconstructSourceCode startCol formatteds pre post
+    formatRangeFromString isFsiFile r.StartLine startCol r.EndLine endCol lines s config    
 
 /// Format selection in range r and keep other parts unchanged; return None if failed
-let tryFormatSelectionFromString fsi (r : range) (s : string) config =
+let tryFormatSelectionFromString isFsiFile (r : range) (s : string) config =
     try
-        Some (formatSelectionFromString fsi r s config)
+        Some (formatSelectionFromString isFsiFile r s config)
     with 
     _ -> None
+
+type internal BlockType =
+   | List
+   | Array
+   | SequenceOrRecord
+   | Tuple
+
+/// Make a position from (line, col) to to denote cursor position
+let makePos line col = mkPos line col
+
+/// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
+let formatAroundCursor isFsiFile (p : pos) (s : string) config = 
+    
+    let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
+    let lines = s.Split([|'\n'|], StringSplitOptions.None)
+
+    let openDelimiters = dict ["[", List; "[|", Array; "{", SequenceOrRecord; "(", Tuple]
+    let closeDelimiters = dict ["]", List; "|]", Array; "}", SequenceOrRecord; ")", Tuple]
+
+    /// Find the delimiter at the end
+    let rec tryFindEndDelimiter (dic : Dictionary<_, _>) i (lines : _ []) =
+        if i >= lines.Length then
+            None
+        else
+            let line = lines.[i]
+            let lineTokenizer = sourceTokenizer.CreateLineTokenizer(line)
+            let finLine = ref false
+            let result = ref None
+            let lexState = ref 0L
+            while not !finLine do
+                let tok, newLexState = lineTokenizer.ScanToken(!lexState)
+                lexState := newLexState
+                match tok with 
+                | None -> 
+                    finLine := true
+                | Some t when t.CharClass = TokenCharKind.Delimiter -> 
+                    if i + 1 > p.Line || (i + 1 = p.Line && t.RightColumn >= p.Column) then
+                        let text = line.[t.LeftColumn..t.RightColumn]
+                        match text with
+                        | "[" | "[|" | "{" | "(" ->
+                            Debug.WriteLine("Found opening token '{0}'", text)
+                            let delimiter = openDelimiters.[text]
+                            match dic.TryGetValue(delimiter) with
+                            | true, c -> 
+                                dic.[delimiter] <- c + 1
+                            | _ -> 
+                                dic.Add(delimiter, 1)
+                        | "]" | "|]" | "}" | ")" ->
+                            Debug.WriteLine("Found closing token '{0}'", text)
+                            let delimiter = closeDelimiters.[text]
+                            match dic.TryGetValue(delimiter) with
+                            | true, 1 -> 
+                                dic.Remove(delimiter) |> ignore
+                            | true, c -> 
+                                dic.[delimiter] <- c - 1
+                            | _ -> 
+                                // The delimiter has count 0; record as a result
+                                Debug.WriteLine("Record closing token '{0}'", text)
+                                result := Some (i + 1, t.RightColumn, delimiter)
+                        | _ -> ()
+                | _ -> ()
+
+            if Option.isNone !result then
+                tryFindEndDelimiter dic (i + 1) lines
+            else
+                !result
+
+    /// Find the delimiter at the beginning              
+    let rec tryFindStartDelimiter blockType (dic : Dictionary<_, _>) acc i (lines : _ []) =
+        if i >= p.Line then
+            acc
+        else
+            let line = lines.[i]
+            let lineTokenizer = sourceTokenizer.CreateLineTokenizer(line)
+            let finLine = ref false
+            let result = ref acc
+            let lexState = ref 0L
+            while not !finLine do
+                let tok, newLexState = lineTokenizer.ScanToken(!lexState)
+                lexState := newLexState
+                match tok with 
+                | None -> 
+                    finLine := true
+                | Some t when t.CharClass = TokenCharKind.Delimiter -> 
+                    if i + 1 < p.Line || (i + 1 = p.Line && t.LeftColumn <= p.Column) then
+                        let text = line.[t.LeftColumn..t.RightColumn]
+                        match text, blockType with
+                        | "]", List
+                        | "|]", Array 
+                        | "}", SequenceOrRecord 
+                        | ")", Tuple ->
+                            Debug.WriteLine("Found closing delimiter '{0}'", text)
+                            let delimiter = closeDelimiters.[text]
+                            match dic.TryGetValue(delimiter) with
+                            | true, 1 -> 
+                                dic.Remove(delimiter) |> ignore
+                            | true, c -> 
+                                dic.[delimiter] <- c - 1
+                            | _ -> 
+                                Debug.WriteLine("It's a dangling closing delimiter")
+                                result := None
+                        | "[", List 
+                        | "[|", Array 
+                        | "{", SequenceOrRecord 
+                        | "(", Tuple ->
+                            Debug.WriteLine("Found opening delimiter '{0}'", text)
+                            let delimiter = openDelimiters.[text]
+                            match dic.TryGetValue(delimiter) with
+                            | true, c -> 
+                                dic.[delimiter] <- c + 1
+                            | _ -> 
+                                Debug.WriteLine("Record opening delimiter '{0}'", text)
+                                dic.Add(delimiter, 1)
+                                result := Some (i + 1, t.LeftColumn)
+                        | _ -> ()
+                | _ -> ()
+
+            // We find the last opening delimiter
+            tryFindStartDelimiter blockType dic !result (i + 1) lines
+            
+    match tryFindEndDelimiter (Dictionary()) (p.Line - 1) lines with
+    | None -> 
+        raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor.""")
+    | Some (endLine, endCol, blockType) ->
+        match tryFindStartDelimiter blockType (Dictionary()) None 0 lines with
+        | None ->
+            raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor.""")
+        | Some (startLine, startCol) ->
+            formatSelectionFromString isFsiFile (makeRange startLine startCol endLine endCol) s config
+
+/// Format around cursor position in pos p and keep other parts unchanged; return None if failed
+let tryFormatAroundCursor isFsiFile (p : pos) (s : string) config =
+    try
+        Some (formatAroundCursor isFsiFile p s config)
+    with 
+    _ -> None
+            
+        
+
 
