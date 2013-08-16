@@ -200,7 +200,7 @@ try
     fst 
         (find 
              (fun (s, (s', ty) : int * int) -> 
-                 s' = s0 && can (type_match ty ty0) []) (!the_interface))
+             s' = s0 && can (type_match ty ty0) []) (!the_interface))
 with Failure _ -> s0
 """
 
@@ -262,4 +262,17 @@ let x =
     match y with
     | Start(-1) -> true
     | _ -> false
+"""
+
+[<Test>]
+let ``should indent function keyword in function application``() =
+    formatSourceString false """
+let v =
+    List.tryPick (function 1 -> Some 1 | _ -> None) [1; 2; 3]""" config
+    |> prepend newline
+    |> should equal """
+let v = 
+    List.tryPick (function 
+        | 1 -> Some 1
+        | _ -> None) [ 1; 2; 3 ]
 """

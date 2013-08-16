@@ -25,7 +25,6 @@ let rec multiline = function
     | While _
     | For _
     | ForEach _
-    | MatchLambda _
     | TryWith _
     | TryFinally _
     | Sequentials _
@@ -68,6 +67,8 @@ let rec multiline = function
     | DotIndexedSet(e1, es, e2) ->
         multiline e1 || multiline e2 || List.exists multiline es
 
+    | MatchLambda(cs, _) ->
+        not (List.atMostOne cs)
     | Match(e, cs) ->
         not (List.isEmpty cs) || multiline e
     | LetOrUse(_, _, bs, e) ->

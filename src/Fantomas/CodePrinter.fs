@@ -341,7 +341,6 @@ and genRecordFieldName(RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNln e)
 
 and genExpr = function
-    | Paren e -> sepOpenT +> genExpr e +> sepCloseT
     | SingleExpr(kind, e) -> str kind +> genExpr e
     | ConstExpr(c) -> genConst c
     | NullExpr -> !- "null"
@@ -398,13 +397,19 @@ and genExpr = function
     | ArrayOrListOfSeqExpr(isArray, e) -> 
         ifElse isArray (sepOpenA +> genExpr e +> sepCloseA) (sepOpenL +> genExpr e +> sepCloseL)
     | JoinIn(e1, e2) -> genExpr e1 -- " in " +> genExpr e2
+    | Paren(DesugaredLambda(cps, e)) ->
+        sepOpenT -- "fun " +>  col sepSpace cps genComplexPats +> sepArrow +> noIndentBreakNln e +> sepCloseT
     | DesugaredLambda(cps, e) -> 
         !- "fun " +>  col sepSpace cps genComplexPats +> sepArrow +> preserveBreakNln e 
+    | Paren(Lambda(e, sps)) ->
+        sepOpenT -- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> noIndentBreakNln e +> sepCloseT
+    // When there are parentheses, most likely lambda will appear in function application
     | Lambda(e, sps) -> 
-        !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> noIndentBreakNln e
-    | MatchLambda(sp, _) -> atCurrentColumn (!- "function " +> colPre sepNln sepNln sp (genClause true))
+        !- "fun " +> col sepSpace sps genSimplePats +> sepArrow +> preserveBreakNln e
+    | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause true)
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr e -- " with" +> colPre sepNln sepNln cs (genClause true))
+    | Paren e -> sepOpenT +> genExpr e +> sepCloseT
     | CompApp(s, e) ->
         !- s +> sepSpace +> sepOpenS +> genExpr e 
         +> ifElse (checkBreakForExpr e) (sepNln +> sepCloseSFixed) sepCloseS
@@ -427,15 +432,15 @@ and genExpr = function
         !- s 
         +> atCurrentColumn 
              (colAutoNlnSkip0 sepNone es (fun (s, e) ->
-                                (!- (sprintf ".%s" s) 
-                                    +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr e)))
+                (!- (sprintf ".%s" s) 
+                    +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr e)))
 
     | DotGetApp(e, es) -> 
         noNln (genExpr e)
         +> indent 
         +> (col sepNone es (fun (s, e) -> 
-                                autoNln (!- (sprintf ".%s" s) 
-                                    +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr e)))
+                autoNln (!- (sprintf ".%s" s) 
+                    +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr e)))
         +> unindent
 
     // Unlike infix app, function application needs a level of indentation
@@ -446,8 +451,8 @@ and genExpr = function
 
     // Always spacing in multiple arguments
     | App(e, es) -> 
-        atCurrentColumn 
-            (genExpr e +> colPre sepSpace sepSpace es (fun e -> indent +> autoNln (genExpr e) +> unindent))
+        atCurrentColumn (genExpr e +> 
+            colPre sepSpace sepSpace es (fun e -> indent +> autoNln (genExpr e) +> unindent))
 
     | TypeApp(e, ts) -> genExpr e -- "<" +> col sepComma ts (genType false) -- ">"
     | LetOrUses(bs, e) ->
