@@ -19,19 +19,20 @@ let onblocks overlapSize blockSize =
   let rec onblocks' res = 
     function 
     | "" -> res
-    | s when s.Length <= blockSize -> res @ [s]
+    | s when s.Length <= blockSize -> res @ [ s ]
     | s -> 
-      onblocks' (res @ [s.Substring(0, blockSize)]) 
+      onblocks' (res @ [ s.Substring(0, blockSize) ]) 
         (s.Substring(blockSize - overlapSize))
   onblocks' []
 
 let onProcBlocks = 
   onblocks 0 ((textSize / System.Environment.ProcessorCount) + 1)
 let DNAcodes = 
-  ["agggtaaa|tttaccct"; "[cgt]gggtaaa|tttaccc[acg]"; "a[act]ggtaaa|tttacc[agt]t"; 
-   "ag[act]gtaaa|tttac[agt]ct"; "agg[act]taaa|ttta[agt]cct"; 
-   "aggg[acg]aaa|ttt[cgt]ccct"; "agggt[cgt]aa|tt[acg]accct"; 
-   "agggta[cgt]a|t[acg]taccct"; "agggtaa[cgt]|[acg]ttaccct"]
+  [ "agggtaaa|tttaccct"; "[cgt]gggtaaa|tttaccc[acg]"; 
+    "a[act]ggtaaa|tttacc[agt]t"; "ag[act]gtaaa|tttac[agt]ct"; 
+    "agg[act]taaa|ttta[agt]cct"; "aggg[acg]aaa|ttt[cgt]ccct"; 
+    "agggt[cgt]aa|tt[acg]accct"; "agggta[cgt]a|t[acg]taccct"; 
+    "agggtaa[cgt]|[acg]ttaccct" ]
 
 /// Calculate all chunks in parallel
 let chunksCounts = 
@@ -50,22 +51,22 @@ DNAcodes
 |> List.map (fun key -> 
      key, 
      chunksCounts |> Array.fold (fun S (k, cnt) -> 
-                         if k = key then S + cnt
-                         else S) 0)
+                       if k = key then S + cnt
+                       else S) 0)
 |> List.iter (fun (key, cnt) -> printfn "%s %i" key cnt)
 
 let lengthAfterReplace text = 
-  ["B", "(c|g|t)"
-   "D", "(a|g|t)"
-   "H", "(a|c|t)"
-   "K", "(g|t)"
-   "M", "(a|c)"
-   "N", "(a|c|g|t)"
-   "R", "(a|g)"
-   "S", "(c|g)"
-   "V", "(a|c|g)"
-   "W", "(a|t)"
-   "Y", "(c|t)"]
+  [ "B", "(c|g|t)"
+    "D", "(a|g|t)"
+    "H", "(a|c|t)"
+    "K", "(g|t)"
+    "M", "(a|c)"
+    "N", "(a|c|g|t)"
+    "R", "(a|g)"
+    "S", "(c|g)"
+    "V", "(a|c|g)"
+    "W", "(a|t)"
+    "Y", "(c|t)" ]
   |> List.fold (fun s (code, alt) -> (regex code).Replace(s, alt)) text
   |> String.length
 

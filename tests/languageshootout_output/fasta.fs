@@ -27,30 +27,31 @@ let makeCumulative =
   >> List.toArray
 
 let homoSapiens = 
-  makeCumulative ['a'B, 0.3029549426680
-                  'c'B, 0.1979883004921
-                  'g'B, 0.1975473066391
-                  't'B, 0.3015094502008]
+  makeCumulative [ 'a'B, 0.3029549426680
+                   'c'B, 0.1979883004921
+                   'g'B, 0.1975473066391
+                   't'B, 0.3015094502008 ]
 
 let iub = 
-  makeCumulative ['a'B, 0.27
-                  'c'B, 0.12
-                  'g'B, 0.12
-                  't'B, 0.27
-                  'B'B, 0.02
-                  'D'B, 0.02
-                  'H'B, 0.02
-                  'K'B, 0.02
-                  'M'B, 0.02
-                  'N'B, 0.02
-                  'R'B, 0.02
-                  'S'B, 0.02
-                  'V'B, 0.02
-                  'W'B, 0.02
-                  'Y'B, 0.02]
+  makeCumulative [ 'a'B, 0.27
+                   'c'B, 0.12
+                   'g'B, 0.12
+                   't'B, 0.27
+                   'B'B, 0.02
+                   'D'B, 0.02
+                   'H'B, 0.02
+                   'K'B, 0.02
+                   'M'B, 0.02
+                   'N'B, 0.02
+                   'R'B, 0.02
+                   'S'B, 0.02
+                   'V'B, 0.02
+                   'W'B, 0.02
+                   'Y'B, 0.02 ]
 
 let inline selectRandom (f : _ []) = 
   let r = random 1.0
+  
   let rec find = 
     function 
     | 0 -> fst f.[0]
@@ -91,8 +92,7 @@ let main args =
   let n = 
     try 
       int args.[0]
-    with
-    | _ -> 1000
+    with _ -> 1000
   repeatFasta ">ONE Homo sapiens alu\n"B alu (2 * n)
   randomFasta ">TWO IUB ambiguity codes\n"B iub (3 * n)
   randomFasta ">THREE Homo sapiens frequency\n"B homoSapiens (5 * n)

@@ -26,7 +26,8 @@ let createWorker i =
       exit 0
     else 
       token <- token - 1
-      return! workers.[next] }
+      return! workers.[next]
+  }
 
 [<EntryPoint>]
 let main args = 

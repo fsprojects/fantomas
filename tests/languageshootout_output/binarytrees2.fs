@@ -36,11 +36,13 @@ let rec loopDepths maxDepth minDepth d =
 [<EntryPoint>]
 let main args = 
   let minDepth = 4
+  
   let maxDepth = 
     let n = 
       if args.Length > 0 then int args.[0]
       else 10
     max (minDepth + 2) n
+  
   let stretchDepth = maxDepth + 1
   let c = check (make 0 stretchDepth)
   printf "stretch tree of depth %i\t check: %i\n" stretchDepth c

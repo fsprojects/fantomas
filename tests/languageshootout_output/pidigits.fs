@@ -24,11 +24,13 @@ let prod (u, v, w, x) n =
 
 let digits = 
   let z = ref id
+  
   let lfts = 
     let n = ref 0I
     fun () -> 
-    n := !n + 1I
-    !n, 4I * !n + 2I, 2I * !n + 1I
+      n := !n + 1I
+      !n, 4I * !n + 2I, 2I * !n + 1I
+  
   let rec digits() = 
     let y = next !z
     if safe !z y then 
@@ -37,6 +39,7 @@ let digits =
     else 
       z := (comp !z <| lfts())
       digits()
+  
   digits
 
 let rec loop n s total = 
@@ -53,5 +56,4 @@ let rec loop n s total =
 
 loop 10 0 <| try 
                int (System.Environment.GetCommandLineArgs().[1])
-             with
-             | _ -> 27
+             with _ -> 27

@@ -22,8 +22,7 @@ and [<Struct>] Tree(next : Next, item : int) =
 
 let rec make item depth = 
   if depth > 0 then 
-    Tree(
-         { Left = make (2 * item - 1) (depth - 1)
+    Tree({ Left = make (2 * item - 1) (depth - 1)
            Right = make (2 * item) (depth - 1) }, item)
   else Tree(defaultof<_>, item)
 
@@ -41,11 +40,13 @@ let rec loopDepths maxDepth minDepth d =
 [<EntryPoint>]
 let main args = 
   let minDepth = 4
+  
   let maxDepth = 
     let n = 
       if args.Length > 0 then int args.[0]
       else 10
     max (minDepth + 2) n
+  
   let stretchDepth = maxDepth + 1
   let c = check (make 0 stretchDepth)
   Console.WriteLine("stretch tree of depth {0}\t check: {1}", stretchDepth, c)

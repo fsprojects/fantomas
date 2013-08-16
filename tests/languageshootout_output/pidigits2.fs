@@ -42,5 +42,4 @@ let rec loop n s i z total =
 
 loop 10 0 1I id <| try 
                      int (System.Environment.GetCommandLineArgs().[1])
-                   with
-                   | _ -> 27
+                   with _ -> 27

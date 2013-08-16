@@ -21,7 +21,8 @@ let createWorker i =
     | 0 -> answer := i + 1
     | _ -> 
       cells.[next] <- value - 1
-      return! threads.[next] }
+      return! threads.[next]
+  }
 
 [<EntryPoint>]
 let main args = 

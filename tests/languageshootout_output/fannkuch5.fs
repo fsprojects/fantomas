@@ -9,6 +9,7 @@ let main (args) =
   let n = 
     if args.Length > 0 then int args.[0]
     else 7
+  
   //printfn "Pfannkuchen(%d) = %d" x (fannkuch x)
   let mutable maxFlips = 0
   let mutable permN = 0

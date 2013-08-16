@@ -7,6 +7,7 @@ open System.Collections.Generic
 
 let shuffle (l : 'a array) = 
   let ileft = LinkedList<int>(seq { 0..(l.Length - 1) })
+  
   let rec pick (ar : 'a array) r = 
     match ileft.Count with
     | 0 -> r
@@ -35,23 +36,25 @@ let rec merge (ar1 : 'a array) (ar2 : 'a array) =
         let indexnext = (true, inext, jlast)
         yield Some(indexnext)
         yield! index indexnext
-      | false, false -> yield None }
+      | false, false -> yield None
+    }
+  
   let mergeindex = index (false, -1, -1)
-  [for (formar1, i, j) in mergeindex |> Seq.choose (id) -> 
-     if formar1 then ar1.[i]
-     else ar2.[j]]
+  [ for (formar1, i, j) in mergeindex |> Seq.choose (id) -> 
+      if formar1 then ar1.[i]
+      else ar2.[j] ]
 
 and mergesort = 
   function 
   | [||] -> [||]
-  | [|a|] -> [|a|]
+  | [| a |] -> [| a |]
   | ar -> 
     let ar1 = ar.[0..ar.Length / 2 - 1]
     let ar2 = ar.[ar.Length / 2..ar.Length - 1]
     merge (mergesort ar1) (mergesort ar2) |> List.toArray
 
 let testval = 
-  ([|1..100|]
+  ([| 1..100 |]
    |> shuffle
    |> List.toArray)
 

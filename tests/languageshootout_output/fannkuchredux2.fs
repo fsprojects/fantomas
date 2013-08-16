@@ -56,7 +56,7 @@ let _ =
   let n = 
     try 
       int ((System.Environment.GetCommandLineArgs()).[1])
-    with
-    | _ -> 7
+    with _ -> 7
+  
   let (maxflips, checksum) = fannkuch n
   Printf.printf "%d\nPfannkuchen(%d) = %d\n" checksum n maxflips

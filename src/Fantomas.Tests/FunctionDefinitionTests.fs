@@ -143,3 +143,15 @@ let ``should add spaces between multiline nested let bindings``() =
     
     x + y
 """
+
+[<Test>]
+let ``should indent fun blocks``() =
+    formatSourceString false """let f =
+    fun x ->
+    let y = 1
+    x""" config
+    |> should equal """let f = 
+    fun x -> 
+        let y = 1
+        x
+"""

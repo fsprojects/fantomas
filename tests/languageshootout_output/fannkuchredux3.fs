@@ -14,7 +14,7 @@ let rec fac x =
   else (int64 x) * fac (x - 1)
 
 let F = 
-  [0..20]
+  [ 0..20 ]
   |> Seq.map fac
   |> Seq.toArray
 
@@ -93,20 +93,23 @@ type fannkuch(n) =
 
 let _ = 
   let nthreads = System.Environment.ProcessorCount
+  
   let n = 
     try 
       int ((System.Environment.GetCommandLineArgs()).[1])
-    with
-    | _ -> 7
+    with _ -> 7
+  
   let split (i : int64) = (F.[n] + i - 1L) / i
   let chunk = split (int64 (nthreads * 4))
   let ntasks = int (split chunk)
+  
   let (c, fl) = 
-    [0..ntasks]
+    [ 0..ntasks ]
     |> Seq.map (fun i -> 
          async { 
            let thread = fannkuch (n)
-           return thread.runTask (i, chunk) })
+           return thread.runTask (i, chunk)
+         })
     |> Async.Parallel
     |> Async.RunSynchronously
     |> Array.fold 

@@ -17,20 +17,20 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
     GCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGG\
     AGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCC\
     AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA"B
-let iubvalues = [0.27; 0.12; 0.12; 0.27] @ List.replicate 12 0.02
+let iubvalues = [ 0.27; 0.12; 0.12; 0.27 ] @ List.replicate 12 0.02
 let iub = Seq.zip "acgtBDHKMNRSVWY"B iubvalues
 
 let homosapien = 
-  ['a'B, 0.3029549426680
-   'c'B, 0.1979883004921
-   'g'B, 0.1975473066391
-   't'B, 0.3015094502008]
+  [ 'a'B, 0.3029549426680
+    'c'B, 0.1979883004921
+    'g'B, 0.1975473066391
+    't'B, 0.3015094502008 ]
 
 let os = new BufferedStream(Console.OpenStandardOutput(), 1 <<< 16)
 
 let repeatFasta alu n = 
   let r = Array.length alu
-  let s = Array.concat [alu; alu]
+  let s = Array.concat [ alu; alu ]
   for j in 0..cols..n - cols do
     os.Write(s, j % r, cols)
     os.WriteByte('\n'B)
@@ -45,6 +45,7 @@ let randomFasta src n =
     src
     |> Seq.scan f (0uy, 0.0, 0)
     |> Seq.toArray
+  
   /// lookup table optimization
   let lut = 
     let arr = Array.zeroCreate LUTLEN
@@ -56,6 +57,7 @@ let randomFasta src n =
         j <- j + 1
       if j <> v then arr.[j - 1] <- 0uy, i
     arr
+  
   let lookup x = 
     match lut.[x * (LUTLEN - 1) / IM] with
     | 0uy, p -> 
@@ -64,8 +66,10 @@ let randomFasta src n =
       if float (x) / float (IM) < b then a
       else i
     | c, p -> c
+  
   /// write output one line at a time
   let buf = Array.zeroCreate (cols + 1)
+  
   for x in n..(-cols)..1 do
     let e = 
       if x < cols then x
@@ -82,8 +86,7 @@ let main args =
   let n = 
     try 
       int args.[0]
-    with
-    | _ -> 2500000
+    with _ -> 2500000
   printfn ">ONE Homo sapiens alu"
   repeatFasta alu (2 * n)
   printfn ">TWO IUB ambiguity codes"

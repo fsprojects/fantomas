@@ -39,6 +39,7 @@ module NaturalSortKata =
         new System.String(str
                           |> List.rev
                           |> List.toArray)
+      
       let gatherChunck str = 
         let rec gather str acc = 
           match str with
@@ -54,6 +55,7 @@ module NaturalSortKata =
               gather rest (ty, fistLetter :: l)
             | (ty, l) -> (ty, fix (l))
         gather str (Unknown, [])
+      
       let rec compare (left : string) (right : string) = 
         if (not (left.Any())) || (not (right.Any())) then 
           match left.Length, right.Length with
@@ -66,10 +68,12 @@ module NaturalSortKata =
             left
             |> Seq.toList
             |> gatherChunck
+          
           let rt, rChunk = 
             right
             |> Seq.toList
             |> gatherChunck
+          
           match lt.Compare rt with
           | Equal -> 
             if lChunk = rChunk then 
@@ -83,4 +87,5 @@ module NaturalSortKata =
                   (System.Int64.Parse(rChunk))
               | _ -> Comparison.Compare lChunk rChunk
           | _ -> lt.Compare(rt)
+      
       compare left right

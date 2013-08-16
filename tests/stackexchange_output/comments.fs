@@ -9,7 +9,7 @@ type Comment =
 
 let parseComment (line : string) = 
   match line.Split(';') with
-  | [|author; body|] -> 
+  | [| author; body |] -> 
     Some({ Author = author
            Body = body })
   | _ -> None

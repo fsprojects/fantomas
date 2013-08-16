@@ -11,7 +11,8 @@ let rec getAllFiles baseDir =
   seq { 
     yield! Directory.EnumerateFiles(baseDir)
     for dir in Directory.EnumerateDirectories(baseDir) do
-      yield! getAllFiles dir }
+      yield! getAllFiles dir
+  }
 
 let dateTakenFromExif file = 
   let r = new Regex(":")
@@ -24,11 +25,9 @@ let dateTakenFromExif file =
 let getDateTaken file = 
   try 
     dateTakenFromExif file
-  with
-  | :? Exception -> File.GetLastWriteTime(file)
+  with :? Exception -> File.GetLastWriteTime(file) //Use the last write time in the event that the file was moved/copied
 
- //Use the last write time in the event that the file was moved/copied
- let addToFile file n = 
+let addToFile file n = 
   match n with
   | 2 -> 
     let fileDir = Path.GetDirectoryName(file)
@@ -63,16 +62,14 @@ let move destinationRoot files =
       getNewFilename (Path.Combine(finalPath, Path.GetFileName(file)))
     try 
       File.Copy(file, newFile)
-    with
-    | :? Exception as e -> 
+    with :? Exception as e -> 
       failwith (sprintf "error renaming %s to %s\n%s" file newFile e.Message)
   files |> Seq.iter moveHelper
 
 let moveFrom source = 
   getAllFiles source
-  |> Seq.filter (fun f -> Path.GetExtension(f).ToLower() <> ".db")
-   //exlcude the thumbs.db files
-   |> move """C:\_EXTERNAL_DRIVE\_Camera"""
+  |> Seq.filter (fun f -> Path.GetExtension(f).ToLower() <> ".db") //exlcude the thumbs.db files
+  |> move """C:\_EXTERNAL_DRIVE\_Camera"""
   printfn "Done"
 
 moveFrom """C:\Users\Mike\Pictures\To Network"""

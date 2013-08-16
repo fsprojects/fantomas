@@ -12,7 +12,8 @@ let rec asyncSendInput (stream : NetworkStream) =
     stream.WriteByte
     |> Array.map <| input
     |> ignore
-    do! asyncSendInput stream }
+    do! asyncSendInput stream
+  }
 
 let asyncGetResponse (stream : NetworkStream) = 
   async { return Char.ConvertFromUtf32(stream.ReadByte()) }
@@ -21,7 +22,8 @@ let rec asyncPrintResponse (stream : NetworkStream) =
   async { 
     let! response = asyncGetResponse stream
     Console.Write(response)
-    do! asyncPrintResponse stream }
+    do! asyncPrintResponse stream
+  }
 
 [<EntryPoint>]
 let main args = 
@@ -30,8 +32,8 @@ let main args =
   printfn "Connected to %A %A..." args.[0] args.[1]
   let stream = client.GetStream()
   printfn "Got stream, starting two way asynchronous communication."
-  Async.Parallel [asyncSendInput stream
-                  asyncPrintResponse stream]
+  Async.Parallel [ asyncSendInput stream
+                   asyncPrintResponse stream ]
   |> Async.RunSynchronously
   |> ignore
   0

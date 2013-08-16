@@ -96,6 +96,7 @@ let advance a t =
 let rec energy i e a = 
   if i < Array.length a then 
     let b1 = a.[i]
+    
     let rec energy' a j e = 
       if j < Array.length a then 
         let b2 = a.[j]
@@ -103,11 +104,12 @@ let rec energy i e a =
         let dist = sqrt (dx * dx + dy * dy + dz * dz)
         energy' a (j + 1) (e - b1.Mass * b2.Mass / dist)
       else e
+    
     let sq = b1.VX * b1.VX + b1.VY * b1.VY + b1.VZ * b1.VZ
     energy (i + 1) (energy' a (i + 1) (e + 0.5 * b1.Mass * sq)) a
   else e
 
-let planets = [|sun; jupiter; saturn; uranus; neptune|]
+let planets = [| sun; jupiter; saturn; uranus; neptune |]
 
 offsetMomentum planets
 
@@ -118,8 +120,7 @@ let main args =
   let n = 
     try 
       int args.[0]
-    with
-    | _ -> 20000000
+    with _ -> 20000000
   print planets
   for i in 1..n do
     advance planets 0.01
