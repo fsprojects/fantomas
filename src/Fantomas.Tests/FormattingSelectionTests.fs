@@ -247,7 +247,21 @@ let comp =
     |> should equal """
 let comp =
     eventually { 
-               for x in 1..2 do
-                   printfn " x = %d" x
-               return 3 + 4
-               }"""
+        for x in 1..2 do
+            printfn " x = %d" x
+        return 3 + 4
+    }"""
+
+[<Test>]
+let ``should format around the cursor inside a record``() =
+    formatAroundCursor false (makePos 3 10) """
+type Car = {
+    Make : string;
+    Model : string;
+    mutable Odometer : int;
+    }""" config
+    |> should equal """
+type Car = 
+    { Make : string
+      Model : string
+      mutable Odometer : int }"""

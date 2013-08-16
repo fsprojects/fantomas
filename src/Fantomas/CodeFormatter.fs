@@ -395,7 +395,7 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
         | None ->
             raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor.""")
         | Some (startLine, startCol) ->
-            formatRangeFromString isFsiFile startLine startCol endLine endCol lines s config
+            formatSelectionFromString isFsiFile (makeRange startLine startCol endLine endCol) s config
 
 /// Format around cursor position in pos p and keep other parts unchanged; return None if failed
 let tryFormatAroundCursor isFsiFile (p : pos) (s : string) config =
