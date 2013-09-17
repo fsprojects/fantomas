@@ -31,11 +31,11 @@ let rec genParsedInput = function
     | SigFile si -> genSigFile si
 
 and genImpFile(ParsedImplFileInput(hs, mns)) = 
-    col sepNln hs genParsedHashDirective
+    col sepNone hs genParsedHashDirective  +> (if hs.IsEmpty then id else sepNln)
     +> col sepNln mns genModuleOrNamespace
 
 and genSigFile(ParsedSigFileInput(hs, mns)) =
-    col sepNln hs genParsedHashDirective
+    col sepNone hs genParsedHashDirective +> (if hs.IsEmpty then id else sepNln)
     +> col sepNln mns genSigModuleOrNamespace
 
 and genParsedHashDirective(ParsedHashDirective(h, s)) =
@@ -45,7 +45,7 @@ and genParsedHashDirective(ParsedHashDirective(h, s)) =
         // Use verbatim string to escape '\' correctly
         | _ when s.Contains("\\") -> !- (sprintf "@\"%O\"" s)
         | _ -> !- (sprintf "\"%O\"" s)
-    !- "#" -- h +> sepSpace +> gs
+    !- "#" -- h +> sepSpace +> gs +> sepNln
 
 and genModuleOrNamespace(ModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
     genPreXmlDoc px
@@ -72,8 +72,12 @@ and genModuleDeclList = function
             | [] -> col sepNln xs genModuleDecl ctx
             | _ -> (col sepNln xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys) ctx
 
+    | HashDirectiveL(xs, ys) ->
+        match ys with
+        | [] -> col sepNone xs genModuleDecl
+        | _ -> col sepNone xs genModuleDecl +> sepNln +> genModuleDeclList ys
+
     | DoExprAttributesL(xs, ys) 
-    | HashDirectiveL(xs, ys) 
     | ModuleAbbrevL(xs, ys) 
     | OneLinerLetL(xs, ys) ->
         match ys with
@@ -96,7 +100,11 @@ and genSigModuleDeclList = function
             | [] -> col sepNln xs genSigModuleDecl ctx
             | _ -> (col sepNln xs genSigModuleDecl +> rep 2 sepNln +> genSigModuleDeclList ys) ctx
 
-    | SigHashDirectiveL(xs, ys) 
+    | SigHashDirectiveL(xs, ys) ->
+        match ys with
+        | [] -> col sepNone xs genSigModuleDecl
+        | _ -> col sepNone xs genSigModuleDecl +> sepNln +> genSigModuleDeclList ys
+
     | SigModuleAbbrevL(xs, ys) 
     | SigValL(xs, ys) ->
         match ys with
@@ -957,4 +965,3 @@ and genPat = function
     // Quotes will be printed by inner expression
     | PatQuoteExpr e -> genExpr e
     | p -> failwithf "Unexpected pattern: %O" p
-

@@ -321,17 +321,14 @@ let (|PreprocessorDirectiveChunk|_|) = function
    | PreprocessorKeywordToken "#if" t1 :: 
      SpaceToken t2 ::
      Ident t3 ::
-     NewLineToken t4 ::
      moreOrigTokens -> 
-        Some ([t1; t2; t3; t4], moreOrigTokens)
+        Some ([t1; t2; t3], moreOrigTokens)
 
-   | PreprocessorKeywordToken "#else" t1 :: 
-     NewLineToken _ ::
-     moreOrigTokens -> Some ([t1], moreOrigTokens)
+   | PreprocessorKeywordToken "#else" t1 :: moreOrigTokens ->
+        Some ([t1], moreOrigTokens)
 
-   | PreprocessorKeywordToken "#endif" t1 :: 
-     NewLineToken _ ::
-     moreOrigTokens -> Some ([t1], moreOrigTokens)
+   | PreprocessorKeywordToken "#endif" t1 :: moreOrigTokens -> 
+        Some ([t1], moreOrigTokens)
 
    | _ -> None
 
@@ -497,6 +494,9 @@ let integrateComments (originalText : string) (newText : string) =
                     saveIndent indent
                     newTokens
                 else newTokens
+            match moreNewTokens with
+            | (Token t, _) :: _ when t.ColorClass = TokenColorKind.PreprocessorKeyword -> addText System.Environment.NewLine
+            | _ -> ()
             loop moreOrigTokens moreNewTokens
 
         // Inject inactive code
@@ -652,6 +652,3 @@ let integrateComments (originalText : string) (newText : string) =
 
     loop origTokens newTokens 
     buffer.ToString()
-            
-
-
