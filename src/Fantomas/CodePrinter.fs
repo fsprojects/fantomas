@@ -31,11 +31,11 @@ let rec genParsedInput = function
     | SigFile si -> genSigFile si
 
 and genImpFile(ParsedImplFileInput(hs, mns)) = 
-    col sepNone hs genParsedHashDirective  +> (if hs.IsEmpty then id else sepNln)
+    col sepNone hs genParsedHashDirective  +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns genModuleOrNamespace
 
 and genSigFile(ParsedSigFileInput(hs, mns)) =
-    col sepNone hs genParsedHashDirective +> (if hs.IsEmpty then id else sepNln)
+    col sepNone hs genParsedHashDirective +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns genSigModuleOrNamespace
 
 and genParsedHashDirective(ParsedHashDirective(h, s)) =

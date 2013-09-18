@@ -65,8 +65,8 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
 #endif
-
 """
+
 [<Test>]
 let ``line, file and path identifiers``() =
     formatSourceString false """
