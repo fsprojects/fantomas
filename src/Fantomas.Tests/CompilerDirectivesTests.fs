@@ -45,8 +45,28 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 
 #load "__setup__.fsx"
 #endif
+
 """
 
+[<Test>]
+let ``should keep compiler directives 2``() =
+    formatSourceString false """
+#if INTERACTIVE
+#else
+#load "../FSharpx.TypeProviders/SetupTesting.fsx"
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+#load "__setup__.fsx"
+#endif
+"""  config
+    |> should equal """
+#if INTERACTIVE
+#else
+#load "../FSharpx.TypeProviders/SetupTesting.fsx"
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+#load "__setup__.fsx"
+#endif
+
+"""
 [<Test>]
 let ``line, file and path identifiers``() =
     formatSourceString false """
@@ -81,7 +101,6 @@ let y = 2
     |> should equal """
 let x = 1
 #if SILVERLIGHT
-
 let useHiddenInitCode = false
 #else
 let useHiddenInitCode = true
@@ -113,9 +132,7 @@ let [<Literal>] private assemblyConfig =
 [<Literal>]
 let private assemblyConfig =
 #if DEBUG
-
-#if TRACE
- 
+#if TRACE 
     "DEBUG;TRACE"
 #else
     "DEBUG"
@@ -144,12 +161,49 @@ let [<Literal>] private assemblyConfig() =
     |> should equal """
 [<Literal>]
 let private assemblyConfig() =
-#if TRACE
- 
+#if TRACE 
     let x = ""
 #else
     let x = "x"
 #endif
     
     x
+"""
+
+[<Test>]
+let ``should break line after single directive``() =
+    formatSourceString false """
+#nowarn "47"
+namespace Internal.Utilities.Text.Lexing"""  config
+    |> prepend newline
+    |> should equal """
+#nowarn "47"
+
+namespace Internal.Utilities.Text.Lexing
+
+"""
+
+[<Test>]
+let ``should handle endif directives with no newline``() =
+    formatSourceString false """
+namespace Internal.Utilities.Diagnostic
+
+#if EXTENSIBLE_DUMPER
+#if DEBUG
+
+type ExtensibleDumper = A | B
+
+#endif  
+#endif"""  config
+    |> prepend newline
+    |> should equal """
+namespace Internal.Utilities.Diagnostic
+#if EXTENSIBLE_DUMPER
+#if DEBUG
+type ExtensibleDumper = A | B
+#endif
+
+#endif
+
+
 """
