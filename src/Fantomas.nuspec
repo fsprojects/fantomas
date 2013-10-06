@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Fantomas</id>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
         <title>Fantomas</title>
         <authors>Anh-Dung Phan,Gustavo Guerra</authors>
         <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
@@ -17,7 +17,7 @@ Improve formatting of 'fun' and 'function' blocks
 Add line breaks while formatting nested let bindings</releaseNotes>
         <tags>F# fsharp formatting beautifier indentation indenter</tags>
         <dependencies>
-            <dependency id="FSharp.Compiler.Editor" version="1.0.5" />
+            <dependency id="FSharp.Compiler.Editor" version="1.0.7" />
         </dependencies>
     </metadata>
     <files>
