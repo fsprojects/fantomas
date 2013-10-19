@@ -1055,7 +1055,7 @@ let (|TLongIdentApp|_|) = function
 
 let (|TTuple|_|) = function
     | SynType.Tuple(ts, _) ->
-        Some (List.map snd ts)
+        Some ts
     | _ -> None
 
 let (|TWithGlobalConstraints|_|) = function

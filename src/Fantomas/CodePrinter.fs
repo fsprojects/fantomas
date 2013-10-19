@@ -743,9 +743,9 @@ and genType outerBracket t =
         | TAnon -> sepWild
         | TVar tp -> genTypar tp
         // Drop bracket around tuples before an arrow
-        | TFun(TTuple ts, t) -> sepOpenT +> col sepStar ts loop +> sepArrow +> loop t +> sepCloseT
+        | TFun(TTuple ts, t) -> sepOpenT +> loopTTupleList ts +> sepArrow +> loop t +> sepCloseT
         // Do similar for tuples after an arrow
-        | TFun(t, TTuple ts) -> sepOpenT +> loop t +> sepArrow +> col sepStar ts loop +> sepCloseT
+        | TFun(t, TTuple ts) -> sepOpenT +> loop t +> sepArrow +> loopTTupleList ts +> sepCloseT
         | TFuns ts -> sepOpenT +> col sepArrow ts loop +> sepCloseT
         | TApp(t, ts, isPostfix) -> 
             let postForm = 
@@ -757,17 +757,25 @@ and genType outerBracket t =
             ifElse isPostfix postForm (loop t +> genPrefixTypes ts)
 
         | TLongIdentApp(t, s, ts) -> loop t -- sprintf ".%s" s +> genPrefixTypes ts
-        | TTuple ts -> sepOpenT +> col sepStar ts loop +> sepCloseT
+        | TTuple ts -> sepOpenT +> loopTTupleList ts +> sepCloseT
         | TWithGlobalConstraints(t, tcs) -> loop t +> colPre (!- " when ") wordAnd tcs genTypeConstraint
         | TLongIdent s -> !- s
         | t -> failwithf "Unexpected type: %O" t
+    and loopTTupleList = function
+        | [] -> sepNone
+        | [(_, t)] -> loop t
+        | (isDivide, t) :: ts ->
+            loop t -- (if isDivide then " / " else " * ") +> loopTTupleList ts
+
     match t with
     | TFun(TTuple ts, t) -> 
-        ifElse outerBracket (sepOpenT +> col sepStar ts loop +> sepArrow +> loop t +> sepCloseT)
-            (col sepStar ts loop +> sepArrow +> loop t)
+        ifElse outerBracket (sepOpenT +> loopTTupleList ts +> sepArrow +> loop t +> sepCloseT)
+            (loopTTupleList ts +> sepArrow +> loop t)
     | TFuns ts -> ifElse outerBracket (sepOpenT +> col sepArrow ts loop +> sepCloseT) (col sepArrow ts loop)
-    | TTuple ts -> ifElse outerBracket (sepOpenT +> col sepStar ts loop +> sepCloseT) (col sepStar ts loop)
+    | TTuple ts -> ifElse outerBracket (sepOpenT +> loopTTupleList ts +> sepCloseT) (loopTTupleList ts)
     | _ -> loop t
+
+    
 
 and genPrefixTypes = function
     | [] -> sepNone
@@ -790,7 +798,8 @@ and genTypeList = function
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
 
     | (TTuple ts', ais)::ts -> 
-        let gt = col sepStar (Seq.zip ais ts') 
+        // The '/' separator shouldn't appear here
+        let gt = col sepStar (Seq.zip ais (Seq.map snd ts')) 
                     (fun (ArgInfo(so, isOpt), t) ->
                         opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
                         +> genType (not ts.IsEmpty) t)

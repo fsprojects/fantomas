@@ -165,3 +165,18 @@ let rec make item depth =
                Right = make (2 * item) (depth - 1) }, item)
     else Tree(defaultof<_>, item)
 """
+
+[<Test>]
+let ``should keep unit of measures in record and DU declaration``() =
+    formatSourceString false """
+type rate = {Rate:float<GBP*SGD/USD>}
+type rate2 = Rate of float<GBP/SGD*USD>
+"""  config
+  |> prepend newline
+  |> should equal """
+type rate = 
+    { Rate : float<GBP * SGD / USD> }
+
+type rate2 = 
+    | Rate of float<GBP / SGD * USD>
+"""

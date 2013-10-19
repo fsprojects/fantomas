@@ -39,7 +39,7 @@ let ``units of measures declaration``() =
     [<Measure>] type kg
     [<Measure>] type s
     [<Measure>] type N = kg m / s^2
-    [<Measure>] type Pa = N / m^2""" config
+    [<Measure>] type Pa = N * m^2""" config
     |> prepend newline
     |> should equal """
 [<Measure>]
@@ -52,7 +52,7 @@ type kg
 type s
 
 [<Measure>]
-type N = kg m * s^2
+type N = kg m / s^2
 
 [<Measure>]
 type Pa = N * m^2
