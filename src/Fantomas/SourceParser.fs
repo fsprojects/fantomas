@@ -1121,6 +1121,7 @@ let (|FunType|) (t, ValInfo(aiss, ai)) =
     let rec loop = function
         | TFun(t1, t2), ais::aiss -> 
             (t1, ais)::loop(t2, aiss)
+        | t, [ais] -> [(t, ais)]
         | t, [] -> [(t, [ai])]
         | _ -> []
     loop(t, aiss)

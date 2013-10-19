@@ -758,9 +758,11 @@ and genType outerBracket t =
 
         | TLongIdentApp(t, s, ts) -> loop t -- sprintf ".%s" s +> genPrefixTypes ts
         | TTuple ts -> sepOpenT +> loopTTupleList ts +> sepCloseT
+        | TWithGlobalConstraints(TFuns ts, tcs) -> col sepArrow ts loop +> colPre (!- " when ") wordAnd tcs genTypeConstraint        
         | TWithGlobalConstraints(t, tcs) -> loop t +> colPre (!- " when ") wordAnd tcs genTypeConstraint
         | TLongIdent s -> !- s
         | t -> failwithf "Unexpected type: %O" t
+
     and loopTTupleList = function
         | [] -> sepNone
         | [(_, t)] -> loop t
@@ -774,9 +776,7 @@ and genType outerBracket t =
     | TFuns ts -> ifElse outerBracket (sepOpenT +> col sepArrow ts loop +> sepCloseT) (col sepArrow ts loop)
     | TTuple ts -> ifElse outerBracket (sepOpenT +> loopTTupleList ts +> sepCloseT) (loopTTupleList ts)
     | _ -> loop t
-
-    
-
+  
 and genPrefixTypes = function
     | [] -> sepNone
     // Some patterns without spaces could cause a parsing error
@@ -787,10 +787,11 @@ and genPrefixTypes = function
 and genTypeList = function
     | [] -> sepNone
     | (t, [ArgInfo(so, isOpt)])::ts -> 
+        let hasBracket = not ts.IsEmpty
         let gt =
             match t with
             | TTuple _ ->
-                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) +> genType (not ts.IsEmpty) t 
+                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) +> genType hasBracket t 
             | TFun _ ->
                 // Fun is grouped by brackets inside 'genType true t'
                 opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) +> genType true t
@@ -799,10 +800,11 @@ and genTypeList = function
 
     | (TTuple ts', ais)::ts -> 
         // The '/' separator shouldn't appear here
+        let hasBracket = not ts.IsEmpty
         let gt = col sepStar (Seq.zip ais (Seq.map snd ts')) 
                     (fun (ArgInfo(so, isOpt), t) ->
                         opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
-                        +> genType (not ts.IsEmpty) t)
+                        +> genType hasBracket t)
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList ts))
 
     | (t, _)::ts -> 

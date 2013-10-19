@@ -1,4 +1,4 @@
-﻿#r "../packages/FSharp.Compiler.Editor.1.0.5/lib/net40/FSharp.Compiler.Editor.dll"
+﻿#r "../packages/FSharp.Compiler.Editor.1.0.7/lib/net40/FSharp.Compiler.Editor.dll"
 
 #load "TokenMatcher.fs"
 #load "FormatConfig.fs"
@@ -27,13 +27,6 @@ let comp =
                     printfn " x = %d" x
                  return 3 + 4 }
  """ config;;
-
-test """
-let moveFrom source =
-  getAllFiles source
-    |> Seq.filter (fun f -> Path.GetExtension(f).ToLower() <> ".db")  //exlcude the thumbs.db files
-    |> move @"C:\_EXTERNAL_DRIVE\_Camera"
-"""
 
 test """
 (new CsvFile<_>(new Func<_, _, _>(fun (parent : obj) (row : string[]) -> CommonRuntime.GetNonOptionalValue("Name", CommonRuntime.ConvertString(TextConversions.AsOption(row.[0])), TextConversions.AsOption(row.[0])), CommonRuntime.GetNonOptionalValue("Distance", CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[1])), TextConversions.AsOption(row.[1])), CommonRuntime.GetNonOptionalValue("Time", CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[2])), TextConversions.AsOption(row.[2]))), new Func<_, _>(fun (row : _ * _ * _) -> [| CommonRuntime.ConvertStringBack(CommonRuntime.GetOptionalValue((let x, _, _ = row in x))); CommonRuntime.ConvertDecimalBack("", CommonRuntime.GetOptionalValue((let _, x, _ = row in x))); CommonRuntime.ConvertDecimalBack("", CommonRuntime.GetOptionalValue((let _, _, x = row in x))) |]), (ProviderFileSystem.readTextAtRunTimeWithDesignTimeOptions @"C:\Dev\FSharp.Data-master\src\..\tests\FSharp.Data.Tests\Data" "" "SmallTest.csv"), "", '"', true, false)).Cache()
