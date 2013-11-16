@@ -23,7 +23,12 @@ let inline content (r : range) (c : Context) =
         else s
     else ""
 
-let inline (|Ident|) (s : Ident) = QuoteIdentifierIfNeeded s.idText
+let unwrappedKeywords = set [ "base"; "global" ]
+
+let (|Ident|) (s : Ident) = 
+    let ident = s.idText
+    if Set.contains ident unwrappedKeywords then ident
+    else QuoteIdentifierIfNeeded ident
 
 let (|LongIdent|) (li : LongIdent) =
     li 

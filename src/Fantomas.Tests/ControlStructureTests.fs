@@ -229,3 +229,15 @@ let x =
     then ()
     else ()
 """
+
+[<Test>]
+let ``should not escape some specific keywords``() =
+    formatSourceString false """
+base.Initializer()
+global.Test()
+    """ config
+    |> prepend newline
+    |> should equal """
+base.Initializer()
+global.Test()
+"""
