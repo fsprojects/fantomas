@@ -155,3 +155,12 @@ let ``should indent fun blocks``() =
         let y = 1
         x
 """
+
+[<Test>]
+let ``should not add spaces into a series of function application``() =
+    formatSourceString false """let f x = "d"
+f(1).Contains("3")""" config
+    |> should equal """let f x = "d"
+
+f(1).Contains("3")
+"""

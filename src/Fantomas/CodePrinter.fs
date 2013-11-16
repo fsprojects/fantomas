@@ -444,7 +444,13 @@ and genExpr = function
                     +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr e)))
 
     | DotGetApp(e, es) -> 
-        noNln (genExpr e)
+        let expr = 
+            match e with
+            | App(e1, [e2]) -> 
+                noNln (genExpr e1 +> ifElse (hasParenthesis e2) sepNone sepSpace +> genExpr e2)
+            | _ -> 
+                noNln (genExpr e)
+        expr
         +> indent 
         +> (col sepNone es (fun (s, e) -> 
                 autoNln (!- (sprintf ".%s" s) 
