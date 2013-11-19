@@ -19,6 +19,24 @@ and g x = x
 """
 
 [<Test>]
+let ``recursive functions in type definition``() =
+    formatSourceString false """
+type C () = 
+    let rec g x = h x
+    and h x = g x
+
+    member x.P = g 3""" config
+    |> prepend newline
+    |> should equal """
+type C() = 
+    
+    let rec g x = h x
+    and h x = g x
+    
+    member x.P = g 3
+"""
+
+[<Test>]
 let ``should keep mutually recursive functions``() =
     formatSourceString false """
 let rec createJArray x = createJObject
@@ -155,7 +173,6 @@ let ``should indent fun blocks``() =
         let y = 1
         x
 """
-
 [<Test>]
 let ``should not add spaces into a series of function application``() =
     formatSourceString false """let f x = "d"

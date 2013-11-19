@@ -890,7 +890,7 @@ and genMemberDefn inter = function
             elif isRec then "let rec "
             else "let "
 
-        genLetBinding true prefix b +> colPre sepNln sepNln bs (genLetBinding false "and")
+        genLetBinding true prefix b +> colPre sepNln sepNln bs (genLetBinding false "and ")
 
     | MDInterface(t, mdo) -> 
         !- "interface " +> genType false t
