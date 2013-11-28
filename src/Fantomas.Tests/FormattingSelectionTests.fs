@@ -8,7 +8,7 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``should format a part of a line correctly``() =
-    formatSelectionFromString false (makeRange 3 8 3 11) """
+    formatSelectionFromString false (makeRange 3 8 3 10) """
 let x = 2 + 3
 let y = 1+2
 let z = x + y""" config
