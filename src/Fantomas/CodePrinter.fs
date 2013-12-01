@@ -127,6 +127,11 @@ and genModuleDecl = function
         genException ex
     | HashDirective(p) -> 
         genParsedHashDirective p
+    | Extern(ats, px, ao, t, s, ps) ->
+        genPreXmlDoc px
+        +> colPost sepNln sepNln ats genAttribute
+        -- "extern " +> genType false t +> sepSpace +> opt sepSpace ao genAccess
+        -- s +> sepOpenT +> col sepComma ps (genPat true) +> sepCloseT
     // Add a new line after module-level let bindings
     | Let(b) ->
         genLetBinding true "let " b
@@ -219,7 +224,7 @@ and genLetBinding isFirst pref b =
                 (!- pref +> genOneLinerAttributes ats)
             +> opt sepSpace ao genAccess
             +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
-            +> genPat p
+            +> genPat false p
 
         match e with
         | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType false t +> sepEq +> preserveBreakNln e
@@ -245,12 +250,12 @@ and genProperty prefix ps e =
     | [PatSeq(PatTuple, ps)] -> 
         let (ps, p) = tuplerize ps
         !- prefix
-        +> ifElse (List.atMostOne ps) (col sepComma ps genPat +> sepSpace) 
-            (sepOpenT +> col sepComma ps genPat +> sepCloseT +> sepSpace)
-        +> genPat p +> sepEq +> preserveBreakNln e
+        +> ifElse (List.atMostOne ps) (col sepComma ps (genPat false) +> sepSpace) 
+            (sepOpenT +> col sepComma ps (genPat false) +> sepCloseT +> sepSpace)
+        +> genPat false p +> sepEq +> preserveBreakNln e
 
     | ps -> 
-        !- prefix +> col sepSpace ps genPat +> sepEq +> preserveBreakNln e
+        !- prefix +> col sepSpace ps (genPat false) +> sepEq +> preserveBreakNln e
 
 and genPropertyWithGetSet inter (b1, b2) =
     match b1, b2 with
@@ -309,7 +314,7 @@ and genMemberBinding inter b =
         let prefix =
             genPreXmlDoc px
             +> genAttributes ats +> genMemberFlags inter mf
-            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat p
+            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat false p
 
         match e with
         | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType false t +> sepEq +> preserveBreakNln e
@@ -319,7 +324,7 @@ and genMemberBinding inter b =
         let prefix =
             genPreXmlDoc px
             +> genAttributes ats
-            +> opt sepSpace ao genAccess +> genPat p 
+            +> opt sepSpace ao genAccess +> genPat false p 
             +> opt sepNone so (sprintf " as %s" >> (!-))
 
         match e with
@@ -394,7 +399,7 @@ and genExpr = function
 
     // Handle the form 'for i in e1 -> e2'
     | ForEach(p, e1, e2, isArrow) ->
-        atCurrentColumn (!- "for " +> genPat p -- " in " +> genExpr e1 
+        atCurrentColumn (!- "for " +> genPat false p -- " in " +> genExpr e1 
             +> ifElse isArrow (sepArrow +> preserveBreakNln e2) (!- " do" +> indent +> sepNln +> genExpr e2 +> unindent))
 
     | CompExpr(isArrayOrList, e) ->
@@ -514,7 +519,7 @@ and genExpr = function
 
     | LetOrUseBang(isUse, p, e1, e2) ->
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
-            +> genPat p -- " = " +> genExpr e1 +> sepNln +> genExpr e2)
+            +> genPat false p -- " = " +> genExpr e1 +> sepNln +> genExpr e2)
 
     | ParsingError _ -> raise <| FormatException "Unable to parse this code fragment."
     | UnsupportedExpr _ -> raise <| FormatException "This code fragment consists of unsupported construct(s)."
@@ -839,7 +844,7 @@ and genInterfaceImpl(InterfaceImpl(t, bs)) =
         +> indent +> sepNln +> genMemberBindingList true bs +> unindent
 
 and genClause hasBar (Clause(p, e, eo)) = 
-    ifElse hasBar sepBar sepNone +> genPat p 
+    ifElse hasBar sepBar sepNone +> genPat false p 
     +> optPre (!- " when ") sepNone eo genExpr +> sepArrow +> preserveBreakNln e
 
 /// Each multiline member definition has a pre and post new line. 
@@ -929,7 +934,7 @@ and genSimplePats = function
     | SPSTyped(ps, t) -> genSimplePats ps +> sepColon +> genType false t
 
 and genComplexPat = function
-    | CPId p -> genPat p
+    | CPId p -> genPat false p
     | CPSimpleId(s, isOptArg, _) -> ifElse isOptArg (!- (sprintf "?%s" s)) (!- s)
     | CPTyped(sp, t) -> genComplexPat sp +> sepColon +> genType false t
     | CPAttrib(ats, sp) -> colPost sepSpace sepNone ats genAttribute +> genComplexPat sp
@@ -940,18 +945,20 @@ and genComplexPats = function
     | ComplexTyped(ps, t) -> genComplexPats ps +> sepColon +> genType false t
 
 and genPatRecordFieldName(PatRecordFieldName(s1, s2, p)) =
-    ifElse (s1 = "") (!- (sprintf "%s = " s2)) (!- (sprintf "%s.%s = " s1 s2)) +> genPat p
+    ifElse (s1 = "") (!- (sprintf "%s = " s2)) (!- (sprintf "%s.%s = " s1 s2)) +> genPat false p
 
-and genPat = function
+and genPat isCStyle = function
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)
-    | PatAttrib(p, ats) -> genOneLinerAttributes ats +> genPat p
-    | PatOr(p1, p2) -> genPat p1 -- " | " +> genPat p2
-    | PatAnds(ps) -> col (!- " & ") ps genPat
+    | PatAttrib(p, ats) -> genOneLinerAttributes ats +> genPat isCStyle p
+    | PatOr(p1, p2) -> genPat isCStyle p1 -- " | " +> genPat isCStyle p2
+    | PatAnds(ps) -> col (!- " & ") ps (genPat isCStyle)
     | PatNullary PatNull -> !- "null"
     | PatNullary PatWild -> sepWild
-    | PatTyped(p, t) -> genPat p +> sepColon +> genType false t
+    | PatTyped(p, t) -> 
+        ifElse isCStyle (genType false t +> sepSpace +> genPat isCStyle p)
+            (genPat isCStyle p +> sepColon +> genType false t) 
     | PatNamed(ao, PatNullary PatWild, s) -> opt sepSpace ao genAccess -- s
-    | PatNamed(ao, p, s) -> opt sepSpace ao genAccess +> genPat p -- sprintf " as %s" s 
+    | PatNamed(ao, p, s) -> opt sepSpace ao genAccess +> genPat isCStyle p -- sprintf " as %s" s 
     | PatLongIdent(ao, s, ps, tpso) -> 
         let aoc = opt sepSpace ao genAccess
         let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParam tds tcs)
@@ -959,21 +966,21 @@ and genPat = function
         let s = if s = "``new``" then "new" else s
         match ps with
         | [] ->  aoc -- s +> tpsoc
-        | [PatSeq(PatTuple, [p1; p2])] when s = "(::)" -> aoc +> genPat p1 -- " :: " +> genPat p2
-        | [p] -> aoc -- s +> tpsoc +> ifElse (hasParenInPat p) (ifElse (addSpaceBeforeParensInFunDef s p) sepBeforeArg sepNone) sepSpace +> genPat p
+        | [PatSeq(PatTuple, [p1; p2])] when s = "(::)" -> aoc +> genPat isCStyle p1 -- " :: " +> genPat isCStyle p2
+        | [p] -> aoc -- s +> tpsoc +> ifElse (hasParenInPat p) (ifElse (addSpaceBeforeParensInFunDef s p) sepBeforeArg sepNone) sepSpace +> genPat false p
         // This pattern is potentially long
-        | ps -> atCurrentColumn (aoc -- s +> tpsoc +> sepSpace +> colAutoNlnSkip0 sepSpace ps genPat)
+        | ps -> atCurrentColumn (aoc -- s +> tpsoc +> sepSpace +> colAutoNlnSkip0 sepSpace ps (genPat isCStyle))
 
     | PatParen(PatConst(Const "()", _)) -> !- "()"
-    | PatParen(p) -> sepOpenT +> genPat p +> sepCloseT
-    | PatSeq(PatTuple, ps) -> atCurrentColumn (colAutoNlnSkip0 sepComma ps genPat)
+    | PatParen(p) -> sepOpenT +> genPat isCStyle p +> sepCloseT
+    | PatSeq(PatTuple, ps) -> atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat isCStyle))
     | PatSeq(PatList, ps) -> 
         ifElse ps.IsEmpty (sepOpenLFixed +> sepCloseLFixed) 
-            (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps genPat) +> sepCloseL)
+            (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps (genPat isCStyle)) +> sepCloseL)
 
     | PatSeq(PatArray, ps) -> 
         ifElse ps.IsEmpty (sepOpenAFixed +> sepCloseAFixed)
-            (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps genPat) +> sepCloseA)
+            (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps (genPat isCStyle)) +> sepCloseA)
 
     | PatRecord(xs) -> 
         sepOpenS +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs genPatRecordFieldName) +> sepCloseS

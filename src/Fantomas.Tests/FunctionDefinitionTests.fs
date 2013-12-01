@@ -181,3 +181,25 @@ f(1).Contains("3")""" config
 
 f(1).Contains("3")
 """
+
+[<Test>]
+let ``should handle external functions``() =
+    formatSourceString false """[<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
+extern ReturnCode  GetParent (System.IntPtr inRef, byref outParentRef)""" config
+    |> prepend newline
+    |> should equal """
+[<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
+extern ReturnCode GetParent(System.IntPtr inRef, byref outParentRef)
+"""
+
+[<Test>]
+let ``should handle simple external functions``() =
+    formatSourceString false """module InteropWithNative =
+        [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
+        extern IntPtr setCallbridgeSupportTarget(IntPtr newTarget)""" config
+    |> prepend newline
+    |> should equal """
+module InteropWithNative = 
+    [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
+    extern IntPtr setCallbridgeSupportTarget(IntPtr newTarget)
+"""

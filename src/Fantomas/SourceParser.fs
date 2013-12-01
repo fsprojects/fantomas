@@ -214,7 +214,7 @@ let (|Attributes|_|) = function
     | _ -> None
 
 let (|Let|_|) = function
-    | SynModuleDecl.Let(false, x::_, _) ->
+    | SynModuleDecl.Let(false, [x], _) ->
         Some x
     | _ -> None
 
@@ -1130,3 +1130,8 @@ let (|FunType|) (t, ValInfo(aiss, ai)) =
         | t, [] -> [(t, [ai])]
         | _ -> []
     loop(t, aiss)
+
+let (|Extern|_|) = function
+    | Let(LetBinding([Attribute("DllImport", _, _)] as ats, px, ao, _, _, PatLongIdent(_, s, [PatSeq(PatTuple, ps)], _), TypedExpr(Typed, _, t))) ->
+        Some(ats, px, ao, t, s, ps)
+    | _ -> None
