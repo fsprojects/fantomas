@@ -39,12 +39,15 @@ and genSigFile(ParsedSigFileInput(hs, mns)) =
     +> col sepNln mns genSigModuleOrNamespace
 
 and genParsedHashDirective(ParsedHashDirective(h, s)) =
-    let gs =
-        match s with
+    let printArgument (arg: string) =
+        match arg with
         | "" -> sepNone
         // Use verbatim string to escape '\' correctly
-        | _ when s.Contains("\\") -> !- (sprintf "@\"%O\"" s)
-        | _ -> !- (sprintf "\"%O\"" s)
+        | _ when arg.Contains("\\") -> !- (sprintf "@\"%O\"" arg)
+        | _ -> !- (sprintf "\"%O\"" arg)
+
+    let gs = col sepSpace s printArgument
+
     !- "#" -- h +> sepSpace +> gs +> sepNln
 
 and genModuleOrNamespace(ModuleOrNamespace(ats, px, ao, s, mds, isModule)) =

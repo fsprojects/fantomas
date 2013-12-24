@@ -29,6 +29,20 @@ let ``hash directives``() =
 """
 
 [<Test>]
+let ``should support load directive multiple arguments``() =
+    formatSourceString false """
+    #load "A.fs" "B.fs"
+    #load "C.fs"
+          "D.fs"
+          "E.fs"
+    """ config
+    |> prepend newline
+    |> should equal """
+#load "A.fs" "B.fs"
+#load "C.fs" "D.fs" "E.fs"
+"""
+
+[<Test>]
 let ``should keep compiler directives``() =
     formatSourceString false """
 #if INTERACTIVE
