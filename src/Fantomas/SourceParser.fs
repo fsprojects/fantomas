@@ -184,7 +184,7 @@ let (|PreXmlDoc|) (px: PreXmlDoc) =
     | XmlDoc lines -> lines
 
 let (|ParsedHashDirective|) (ParsedHashDirective(s, ss, _)) =
-    (s, String.concat "." ss)
+    (s, ss)
 
 // Module declarations (10 cases)
 
