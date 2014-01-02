@@ -73,7 +73,7 @@ is reformulated to
 For more complex examples, please take a look at F# outputs of [20 language shootout programs](tests/languageshootout_output) and [10 CodeReview.SE source files](tests/stackexchange_output).
 
 ## How to use
-### VS 2012 extension
+### VS 2012 and 2013 extension
 [Ivan Towlson](https://github.com/itowlson) kindly contributes the initial version of [Fantomas VS extension](src/Fantomas.VisualStudio). The user guide can be found [here](docs/Documentation.md#using-visual-studio-2012-extension).
 This is available in the [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/24ef5c87-b4e3-4c3b-b126-1064cc66e148) - search for "fantomas" in "Tools --> Extensions and Updates --> Online". 
 
@@ -95,14 +95,14 @@ Taha also wrote a [blog post](http://fsharp-code.blogspot.dk/2013/04/fantomas-su
 
 ## Installation
 The code base is written in F# 3.0/.NET framework 4.0. 
-The solution file can be opened in Visual Studio 2012 and MonoDevelop or Xamarin Studio.
+The solution file can be opened in Visual Studio 2012, Visual Studio 2013 and MonoDevelop/Xamarin Studio.
 NuGet is used to manage external packages.
 The [test project](src/Fantomas.Tests) depends on FsUnit and NUnit.
 However, the [library project](src/Fantomas) and [command line interface](src/Fantomas.Cmd) have no dependency on external packages.
 
 ## Testing and validation
 We have tried to be careful in testing the project.
-There are 196 unit tests and 30 validated test examples, 
+There are 209 unit tests and 30 validated test examples, 
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
@@ -124,6 +124,7 @@ We would like to gratefully thank the following persons for their contributions.
  - [Don Syme](https://github.com/dsyme)
  - [Gustavo Guerra](https://github.com/ovatsus)
  - [Jared Parsons](https://github.com/jaredpar)
+ - [Denis Ok](https://github.com/OkayX6)
 
 ## License
 The library and tool are available under Apache 2.0 license. 

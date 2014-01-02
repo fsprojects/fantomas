@@ -226,7 +226,9 @@ let main args =
             SpaceAfterComma = !spaceAfterComma; 
             SpaceAfterSemicolon = !spaceAfterSemiColon; 
             IndentOnTryWith = !indentOnTryWith;
-            ReorderOpenDeclaration = !reorderOpenDeclaration }
+            ReorderOpenDeclaration = !reorderOpenDeclaration
+            SpaceAroundDelimiter = !spaceAroundDelimiter
+            StrictMode = !strictMode }
 
     // Handle inputs via pipeline
     let isKeyAvailable = ref false
