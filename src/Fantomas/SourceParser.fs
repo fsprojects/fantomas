@@ -1,5 +1,6 @@
 ﻿module internal Fantomas.SourceParser
 
+open System
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.PrettyNaming
@@ -23,17 +24,21 @@ let inline content (r : range) (c : Context) =
         else s
     else ""
 
-let unwrappedKeywords = set [ "base"; "global" ]
-
 let (|Ident|) (s : Ident) = 
     let ident = s.idText
-    if Set.contains ident unwrappedKeywords then ident
-    else QuoteIdentifierIfNeeded ident
+    match ident with
+    | "`global`" -> "global"
+    | _ -> QuoteIdentifierIfNeeded ident
 
 let (|LongIdent|) (li : LongIdent) =
     li 
     |> Seq.map (fun x -> if x.idText = MangledGlobalName then "global" else (|Ident|) x) 
     |> String.concat "."
+    |> fun s ->
+        // Assume that if it starts with base, it's going to be the base keyword
+        if s.StartsWith "``base``." then
+            String.Join("", "base.", s.[9..])
+        else s
 
 let inline (|LongIdentWithDots|) (LongIdentWithDots(LongIdent s, _)) = s
 

@@ -208,3 +208,35 @@ let ``abstract`` = "abstract"
 type SomeType() = 
     member this.``new``() = System.Console.WriteLine("Hello World!")
 """
+
+[<Test>]
+let ``should escape base keyword correctly``() =
+    formatSourceString false """
+open System
+open RDotNet
+open RDotNet.NativeLibrary
+open RDotNet.Internals
+open RProvider
+open RProvider.``base``
+open RProvider.stats
+
+[<EntryPoint>]
+let main argv = 
+    let a = R.rnorm(1000)
+    0
+    """ config
+    |> prepend newline
+    |> should equal """
+open System
+open RDotNet
+open RDotNet.NativeLibrary
+open RDotNet.Internals
+open RProvider
+open RProvider.``base``
+open RProvider.stats
+
+[<EntryPoint>]
+let main argv = 
+    let a = R.rnorm (1000)
+    0
+"""

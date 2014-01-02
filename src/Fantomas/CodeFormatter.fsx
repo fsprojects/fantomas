@@ -28,15 +28,12 @@ let comp =
                  return 3 + 4 }
  """ config;;
 
-test """
-type CustomGraphControl() =
-    inherit UserControl()
-    [<DefaultValue(false)>]
-    static val mutable private GraphProperty : DependencyProperty
-""";;
+parse false """
+namespace ``base``
 
-test """
-let setCallbridgeSupportTarget (newTarget : IntPtr) : IntPtr = failwith ""
+type Rocket() =
+   inherit Vehicle() 
+   override this.TopSpeed() = base.TopSpeed() * 10
 """;;
 
 test """
