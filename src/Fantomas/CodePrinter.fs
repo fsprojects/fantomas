@@ -739,11 +739,10 @@ and genEnumCase hasBar (EnumCase(ats, px, _, c)) =
 and genField isUnion prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) = 
     // Being protective on union case declaration
     let t = genType isUnion t
-
     genPreXmlDoc px 
-    +> genOneLinerAttributes ats -- prefix
-    +> opt sepSpace ao genAccess +> ifElse isStatic (!- "static ") sepNone
-    +> ifElse isMutable (!- "mutable ") sepNone +> opt sepColon so (!-) +> t
+    +> genOneLinerAttributes ats +> ifElse isStatic (!- "static ") sepNone -- prefix
+    +> ifElse isMutable (!- "mutable ") sepNone +> opt sepSpace ao genAccess  
+    +> opt sepColon so (!-) +> t
 
 and genType outerBracket t =
     let rec loop = function

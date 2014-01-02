@@ -28,13 +28,11 @@ let comp =
                  return 3 + 4 }
  """ config;;
 
-test """#load "A.fs" "B.fs"
-#load "C.fs"
-      "D.fs"
-"""
-
 test """
- extern IntPtr setCallbridgeSupportTarget(IntPtr newTarget)
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue(false)>]
+    static val mutable private GraphProperty : DependencyProperty
 """;;
 
 test """

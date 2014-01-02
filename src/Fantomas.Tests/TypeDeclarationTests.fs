@@ -560,3 +560,18 @@ let inline tryAverage(seq: seq< ^a >): ^a option =  1""" config
     |> should equal """
 let inline tryAverage (seq : seq< ^a >) : ^a option = 1
 """
+
+[<Test>]
+let ``should preserve orders on field declarations``() =
+    formatSourceString false """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue(false)>]
+    static val mutable private GraphProperty : DependencyProperty
+    """ config
+    |> prepend newline
+    |> should equal """
+type CustomGraphControl() = 
+    inherit UserControl()
+    [<DefaultValue(false)>] static val mutable private GraphProperty : DependencyProperty
+"""
