@@ -24,7 +24,7 @@ let internal parseWith fileName content =
     let untypedRes = checker.UntypedParse(fileName, content, checkOptions)
     match untypedRes.ParseTree with
     | Some tree -> tree
-    | None -> raise <| FormatException "Unable to parse this code fragment."
+    | None -> raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
 
 /// Parse a source code string
 let parse isFsiFile s = 
@@ -40,7 +40,7 @@ let internal format isFsiFile s config =
 
     // Sometimes F# parser gives a partial AST for incorrect input
     if String.IsNullOrWhiteSpace s <> String.IsNullOrWhiteSpace s' then
-        raise <| FormatException "This code fragment consists of illegal F# constructs."
+        raise <| FormatException "Incomplete code fragmment. This is mostly because of parsing errors or the use of F# constructs newer than being supported."
     else s'
 
 /// Format a source string using given config

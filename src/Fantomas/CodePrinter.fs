@@ -524,8 +524,12 @@ and genExpr = function
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
             +> genPat false p -- " = " +> genExpr e1 +> sepNln +> genExpr e2)
 
-    | ParsingError _ -> raise <| FormatException "Unable to parse this code fragment."
-    | UnsupportedExpr _ -> raise <| FormatException "This code fragment consists of unsupported construct(s)."
+    | ParsingError r -> 
+        raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i" 
+            r.StartLine (r.StartColumn + 1) r.EndLine (r.EndColumn + 1))
+    | UnsupportedExpr r -> 
+        raise <| FormatException (sprintf "Unsupported construct(s) between line %i column %i and line %i column %i" 
+            r.StartLine (r.StartColumn + 1) r.EndLine (r.EndColumn + 1))
     | e -> failwithf "Unexpected expression: %O" e
 
 and genLetOrUseList = function

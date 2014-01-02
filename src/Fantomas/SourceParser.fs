@@ -761,22 +761,20 @@ let (|TryFinally|_|) = function
         Some(e1, e2)
     | _ -> None
 
-let (|ParsingError|_|) e = 
-    match e with
-    | SynExpr.ArbitraryAfterError _
-    | SynExpr.FromParseError _ 
-    | SynExpr.DiscardAfterMissingQualificationAfterDot _ ->
-        Some e
+let (|ParsingError|_|) = function
+    | SynExpr.ArbitraryAfterError(_, r)
+    | SynExpr.FromParseError(_, r)
+    | SynExpr.DiscardAfterMissingQualificationAfterDot(_, r) ->
+        Some r
     | _ -> None
 
-let (|UnsupportedExpr|_|) e = 
-    match e with
+let (|UnsupportedExpr|_|) = function
     // Temprorarily ignore these cases not often used outside FSharp.Core
-    | SynExpr.LibraryOnlyILAssembly _
-    | SynExpr.LibraryOnlyStaticOptimization _
-    | SynExpr.LibraryOnlyUnionCaseFieldGet _
-    | SynExpr.LibraryOnlyUnionCaseFieldSet _ ->
-        Some e
+    | SynExpr.LibraryOnlyILAssembly(_, _, _, _, r)
+    | SynExpr.LibraryOnlyStaticOptimization(_, _, _, r)
+    | SynExpr.LibraryOnlyUnionCaseFieldGet(_, _, _, r)
+    | SynExpr.LibraryOnlyUnionCaseFieldSet(_, _, _, _, r) ->
+        Some r
     | _ -> None
 
 // Patterns (18 cases, lacking to handle 2 cases)
