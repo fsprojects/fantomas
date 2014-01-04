@@ -62,10 +62,10 @@ let rec multiline = function
     | App(e1, es) ->
         multiline e1 || List.exists multiline es
     | DotIndexedGet(e, es) ->
-        multiline e || List.exists multiline es
+        multiline e
 
     | DotIndexedSet(e1, es, e2) ->
-        multiline e1 || multiline e2 || List.exists multiline es
+        multiline e1 || multiline e2
 
     | MatchLambda(cs, _) ->
         not (List.atMostOne cs)
@@ -103,12 +103,12 @@ let genConst (Unresolved(c, r, s)) =
         if ctx.Config.StrictMode then
             str s ctx
         else
-            let s' = content r' ctx
+            let s' = lookup r' ctx
             str s' ctx
 
 /// Check whether a range starting with a specified token
 let startWith s (r : range) ctx = 
-    (content r ctx).StartsWith(s)
+    (lookup r ctx).StartsWith(s)
 
 // A few active patterns for printing purpose
 
@@ -250,10 +250,6 @@ let rec (|OneLinerMemberDefnL|_|) xs =
     | OneLinerMemberDefn x::OneLinerMemberDefnL(xs, ys) -> Some(x::xs, ys)
     | OneLinerMemberDefn x::ys -> Some([x], ys)
     | _ -> None
-
-type Data<'a, 'b> =
-    | Pair of 'b * 'b
-    | Single of 'a
 
 /// Gather all multiline member definitions. 
 /// This should be used before one-liner pattern.
