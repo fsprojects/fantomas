@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!--This file represents the results of running a test suite-->
+<test-results name="/Users/enrico/Github/fantomas/src/Fantomas.Tests/bin/Release/Fantomas.Tests.dll" total="209" errors="0" failures="3" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2014-01-04" time="23:34:41">
+  <environment nunit-version="2.6.3.13283" clr-version="4.0.30319.17020" os-version="Unix 13.0.0.0" platform="Unix" cwd="/Users/enrico/Github/fantomas" machine-name="air.local" user="enrico" user-domain="air.local" />
+  <culture-info current-culture="" current-uiculture="" />
+  <test-suite type="Assembly" name="/Users/enrico/Github/fantomas/src/Fantomas.Tests/bin/Release/Fantomas.Tests.dll" executed="True" result="Failure" success="False" time="18.093" asserts="0">
+    <results>
+      <test-suite type="Namespace" name="Fantomas" executed="True" result="Failure" success="False" time="18.085" asserts="0">
+        <results>
+          <test-suite type="Namespace" name="Tests" executed="True" result="Failure" success="False" time="18.084" asserts="0">
+            <results>
+              <test-suite type="TestFixture" name="ActivePatternTests" executed="True" result="Success" success="True" time="3.530" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.ActivePatternTests.active patterns" executed="True" result="Success" success="True" time="3.254" asserts="1" />
+                  <test-case name="Fantomas.Tests.ActivePatternTests.should keep parens around active patterns" executed="True" result="Success" success="True" time="0.119" asserts="1" />
+                  <test-case name="Fantomas.Tests.ActivePatternTests.should keep parens around active patterns in inlined functions" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.ActivePatternTests.should keep parens around active patterns in module" executed="True" result="Success" success="True" time="0.078" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="AttributeTests" executed="True" result="Success" success="True" time="0.675" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.AttributeTests.attributes on expressions" executed="True" result="Success" success="True" time="0.072" asserts="1" />
+                  <test-case name="Fantomas.Tests.AttributeTests.attributes on recursive functions" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.AttributeTests.should keep the attribute on top of the function" executed="True" result="Success" success="True" time="0.328" asserts="1" />
+                  <test-case name="Fantomas.Tests.AttributeTests.type params" executed="True" result="Success" success="True" time="0.138" asserts="1" />
+                  <test-case name="Fantomas.Tests.AttributeTests.units of measures declaration" executed="True" result="Success" success="True" time="0.074" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="ClassTests" executed="True" result="Success" success="True" time="1.269" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.ClassTests.abstract classes" executed="True" result="Success" success="True" time="0.282" asserts="1" />
+                  <test-case name="Fantomas.Tests.ClassTests.class declaration" executed="True" result="Success" success="True" time="0.100" asserts="1" />
+                  <test-case name="Fantomas.Tests.ClassTests.class signatures" executed="True" result="Success" success="True" time="0.298" asserts="1" />
+                  <test-case name="Fantomas.Tests.ClassTests.classes and implicit constructors" executed="True" result="Success" success="True" time="0.062" asserts="1" />
+                  <test-case name="Fantomas.Tests.ClassTests.classes and inheritance" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.ClassTests.classes and private implicit constructors" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.ClassTests.recursive classes" executed="True" result="Success" success="True" time="0.061" asserts="1" />
+                  <test-case name="Fantomas.Tests.ClassTests.should keep parens in class definition in the right place" executed="True" result="Success" success="True" time="0.216" asserts="1" />
+                  <test-case name="Fantomas.Tests.ClassTests.should keep parens in class inheritance in the right place" executed="True" result="Success" success="True" time="0.053" asserts="1" />
+                  <test-case name="Fantomas.Tests.ClassTests.type constraints complex" executed="True" result="Success" success="True" time="0.068" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="CodeFormatterExtTests" executed="True" result="Success" success="True" time="0.215" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.CodeFormatterExtTests.async workflows" executed="True" result="Success" success="True" time="0.087" asserts="1" />
+                  <test-case name="Fantomas.Tests.CodeFormatterExtTests.computation expressions" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.CodeFormatterExtTests.sequence expressions" executed="True" result="Success" success="True" time="0.068" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="CommentTests" executed="True" result="Failure" success="False" time="1.239" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.CommentTests.comments on local let bindings" executed="True" result="Success" success="True" time="0.072" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.comments on local let bindings with desugared lambda" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.should align mis-aligned comments" executed="True" result="Failure" success="False" time="0.068" asserts="1">
+                    <failure>
+                      <message><![CDATA[  Expected string length 145 but was 150. Strings differ at index 82.
+  Expected: ".../ COMMENT A\n    let y = 1\n    /// XML COMMENT B\n    let z ..."
+  But was:  ".../ COMMENT A\n    let y = 1\n    \n    /// XML COMMENT B\n    l..."
+  ----------------------------------------------^
+]]></message>
+                      <stack-trace><![CDATA[at FsUnit.should[String,EqualConstraint] (Microsoft.FSharp.Core.FSharpFunc`2 f, System.String x, System.Object y) [0x00000] in <filename unknown>:0
+at Fantomas.Tests.CommentTests.should align mis-aligned comments () [0x00000] in <filename unknown>:0
+]]></stack-trace>
+                    </failure>
+                  </test-case>
+                  <test-case name="Fantomas.Tests.CommentTests.should indent comments properly" executed="True" result="Success" success="True" time="0.060" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.should keep // comments after nowarn directives" executed="True" result="Failure" success="False" time="0.067" asserts="1">
+                    <failure>
+                      <message><![CDATA[  String lengths are both 58. Strings differ at index 12.
+  Expected: "#nowarn "51" // address-of operator can occur in the code\n"
+  But was:  "#nowarn "51"\n// address-of operator can occur in the code\n"
+  -----------------------^
+]]></message>
+                      <stack-trace><![CDATA[at FsUnit.should[String,EqualConstraint] (Microsoft.FSharp.Core.FSharpFunc`2 f, System.String x, System.Object y) [0x00000] in <filename unknown>:0
+at Fantomas.Tests.CommentTests.should keep // comments after nowarn directives () [0x00000] in <filename unknown>:0
+]]></stack-trace>
+                    </failure>
+                  </test-case>
+                  <test-case name="Fantomas.Tests.CommentTests.should keep // comments before module definition" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.should keep comments before attributes" executed="True" result="Success" success="True" time="0.084" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.should keep comments on almost-equal identifiers" executed="True" result="Success" success="True" time="0.069" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.should keep comments on DU cases" executed="True" result="Success" success="True" time="0.131" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.should keep comments on else if" executed="True" result="Failure" success="False" time="0.061" asserts="1">
+                    <failure>
+                      <message><![CDATA[  Expected string length 88 but was 77. Strings differ at index 21.
+  Expected: "\nif true then ()\nelse\n    // Comment 1\n    if true then ()\n  ..."
+  But was:  "\nif true then ()\nelse // Comment 1\n     if true then ()\n// Co..."
+  ----------------------------------^
+]]></message>
+                      <stack-trace><![CDATA[at FsUnit.should[String,EqualConstraint] (Microsoft.FSharp.Core.FSharpFunc`2 f, System.String x, System.Object y) [0x00000] in <filename unknown>:0
+at Fantomas.Tests.CommentTests.should keep comments on else if () [0x00000] in <filename unknown>:0
+]]></stack-trace>
+                    </failure>
+                  </test-case>
+                  <test-case name="Fantomas.Tests.CommentTests.should keep sticky-to-the-left comments" executed="True" result="Success" success="True" time="0.053" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.should keep sticky-to-the-right comments" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.should keep well-aligned comments" executed="True" result="Success" success="True" time="0.054" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.should not write sticky-to-the-left comments in a new line" executed="True" result="Success" success="True" time="0.074" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.should preserve comment-only source code" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.shouldn't break on one-line comment" executed="True" result="Success" success="True" time="0.053" asserts="1" />
+                  <test-case name="Fantomas.Tests.CommentTests.xml documentation" executed="True" result="Success" success="True" time="0.094" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="ComparisonTests" executed="True" result="Success" success="True" time="0.122" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.ComparisonTests.should keep the = on the same line" executed="True" result="Success" success="True" time="0.052" asserts="1" />
+                  <test-case name="Fantomas.Tests.ComparisonTests.should keep the = on the same line in record def" executed="True" result="Success" success="True" time="0.068" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="CompilerDirectiveTests" executed="True" result="Success" success="True" time="0.682" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.CompilerDirectiveTests.hash directives" executed="True" result="Success" success="True" time="0.064" asserts="1" />
+                  <test-case name="Fantomas.Tests.CompilerDirectiveTests.line, file and path identifiers" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.CompilerDirectiveTests.should break line after single directive" executed="True" result="Success" success="True" time="0.060" asserts="1" />
+                  <test-case name="Fantomas.Tests.CompilerDirectiveTests.should break lines before compiler directives" executed="True" result="Success" success="True" time="0.080" asserts="1" />
+                  <test-case name="Fantomas.Tests.CompilerDirectiveTests.should handle endif directives with no newline" executed="True" result="Success" success="True" time="0.060" asserts="1" />
+                  <test-case name="Fantomas.Tests.CompilerDirectiveTests.should handle nested compiler directives" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.CompilerDirectiveTests.should keep #if, #else and #endif on compiler directives" executed="True" result="Success" success="True" time="0.063" asserts="1" />
+                  <test-case name="Fantomas.Tests.CompilerDirectiveTests.should keep compiler directives" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.CompilerDirectiveTests.should keep compiler directives 2" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                  <test-case name="Fantomas.Tests.CompilerDirectiveTests.should support load directive multiple arguments" executed="True" result="Success" success="True" time="0.067" asserts="1" />
+                  <test-case name="Fantomas.Tests.CompilerDirectiveTests.should use verbatim strings on some hash directives" executed="True" result="Success" success="True" time="0.052" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="ControlStructureTests" executed="True" result="Success" success="True" time="0.726" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.ControlStructureTests.access modifiers" executed="True" result="Success" success="True" time="0.057" asserts="1" />
+                  <test-case name="Fantomas.Tests.ControlStructureTests.for loops" executed="True" result="Success" success="True" time="0.060" asserts="1" />
+                  <test-case name="Fantomas.Tests.ControlStructureTests.if/then/else block" executed="True" result="Success" success="True" time="0.069" asserts="1" />
+                  <test-case name="Fantomas.Tests.ControlStructureTests.keyworded expressions" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.ControlStructureTests.range expressions" executed="True" result="Success" success="True" time="0.060" asserts="1" />
+                  <test-case name="Fantomas.Tests.ControlStructureTests.should break lines on multiline if conditions" executed="True" result="Success" success="True" time="0.054" asserts="1" />
+                  <test-case name="Fantomas.Tests.ControlStructureTests.should not escape some specific keywords" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                  <test-case name="Fantomas.Tests.ControlStructureTests.try/with and finally" executed="True" result="Success" success="True" time="0.071" asserts="1" />
+                  <test-case name="Fantomas.Tests.ControlStructureTests.try/with block" executed="True" result="Success" success="True" time="0.108" asserts="1" />
+                  <test-case name="Fantomas.Tests.ControlStructureTests.use binding" executed="True" result="Success" success="True" time="0.054" asserts="1" />
+                  <test-case name="Fantomas.Tests.ControlStructureTests.while loop" executed="True" result="Success" success="True" time="0.073" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="FormattingSelectionTests" executed="True" result="Success" success="True" time="1.090" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should detect members and format appropriately" executed="True" result="Success" success="True" time="0.070" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format a few lines correctly and preserve indentation" executed="True" result="Success" success="True" time="0.098" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format a part of a line correctly" executed="True" result="Success" success="True" time="0.054" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format a top-level let correctly" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format a whole line correctly and preserve indentation" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format around the cursor inside a computation expression" executed="True" result="Success" success="True" time="0.073" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format around the cursor inside a list" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format around the cursor inside a record" executed="True" result="Success" success="True" time="0.052" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format around the cursor inside a tuple" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format around the cursor inside an array" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format around the cursor inside an object expression" executed="True" result="Success" success="True" time="0.085" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format recursive types correctly" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format the and branch of recursive functions" executed="True" result="Success" success="True" time="0.057" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should format the selected pipeline correctly" executed="True" result="Success" success="True" time="0.061" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should parse a complete expression correctly" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should preserve line breaks before and after selection" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.FormattingSelectionTests.should skip whitespace at the beginning of lines" executed="True" result="Success" success="True" time="0.057" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="FunctionDefinitionTests" executed="True" result="Success" success="True" time="1.005" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.let bindings with return types" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.recursive functions" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.recursive functions in type definition" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.should add spaces between multiline nested let bindings" executed="True" result="Success" success="True" time="0.065" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.should handle external functions" executed="True" result="Success" success="True" time="0.065" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.should handle simple external functions" executed="True" result="Success" success="True" time="0.053" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.should indent fun blocks" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.should keep identifiers with + in double backticks" executed="True" result="Success" success="True" time="0.051" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.should keep identifiers with whitespace in double backticks" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.should keep mutually recursive functions" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.should keep mutually recursive functions in nested function" executed="True" result="Success" success="True" time="0.110" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.should keep type annotations" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.should keep whitespace after function call" executed="True" result="Success" success="True" time="0.052" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.should not add spaces into a series of function application" executed="True" result="Success" success="True" time="0.060" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.should remove backticks from shouldn't identifier" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.FunctionDefinitionTests.type constraints and inline" executed="True" result="Success" success="True" time="0.080" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="InterfaceTests" executed="True" result="Success" success="True" time="0.316" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.InterfaceTests.interfaces and inheritance" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.InterfaceTests.object expressions" executed="True" result="Success" success="True" time="0.057" asserts="1" />
+                  <test-case name="Fantomas.Tests.InterfaceTests.object expressions and interfaces" executed="True" result="Success" success="True" time="0.080" asserts="1" />
+                  <test-case name="Fantomas.Tests.InterfaceTests.should not add with to interface definitions with no members" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.InterfaceTests.should not add with to interfaces with no members in object expressions" executed="True" result="Success" success="True" time="0.053" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="ListTests" executed="True" result="Success" success="True" time="0.557" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.ListTests.array comprehensions" executed="True" result="Success" success="True" time="0.067" asserts="1" />
+                  <test-case name="Fantomas.Tests.ListTests.array indices" executed="True" result="Success" success="True" time="0.083" asserts="1" />
+                  <test-case name="Fantomas.Tests.ListTests.array patterns" executed="True" result="Success" success="True" time="0.057" asserts="1" />
+                  <test-case name="Fantomas.Tests.ListTests.array values" executed="True" result="Success" success="True" time="0.101" asserts="1" />
+                  <test-case name="Fantomas.Tests.ListTests.cons and list patterns" executed="True" result="Success" success="True" time="0.064" asserts="1" />
+                  <test-case name="Fantomas.Tests.ListTests.list comprehensions" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.ListTests.should keep -&gt; notation" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                  <test-case name="Fantomas.Tests.ListTests.should keep Array2D" executed="True" result="Success" success="True" time="0.063" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="ModuleTests" executed="True" result="Success" success="True" time="0.693" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.ModuleTests.module abbreviation" executed="True" result="Success" success="True" time="0.061" asserts="1" />
+                  <test-case name="Fantomas.Tests.ModuleTests.module signatures" executed="True" result="Success" success="True" time="0.105" asserts="1" />
+                  <test-case name="Fantomas.Tests.ModuleTests.module with functions" executed="True" result="Success" success="True" time="0.054" asserts="1" />
+                  <test-case name="Fantomas.Tests.ModuleTests.namespace declaration" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                  <test-case name="Fantomas.Tests.ModuleTests.nested modules" executed="True" result="Success" success="True" time="0.052" asserts="1" />
+                  <test-case name="Fantomas.Tests.ModuleTests.open modules" executed="True" result="Success" success="True" time="0.062" asserts="1" />
+                  <test-case name="Fantomas.Tests.ModuleTests.should escape base keyword correctly" executed="True" result="Success" success="True" time="0.060" asserts="1" />
+                  <test-case name="Fantomas.Tests.ModuleTests.should escape keywords correctly" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                  <test-case name="Fantomas.Tests.ModuleTests.should preserve global keyword" executed="True" result="Success" success="True" time="0.060" asserts="1" />
+                  <test-case name="Fantomas.Tests.ModuleTests.sibling modules" executed="True" result="Success" success="True" time="0.057" asserts="1" />
+                  <test-case name="Fantomas.Tests.ModuleTests.sort open modules doesn't mess comments up" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="OperatorTests" executed="True" result="Success" success="True" time="1.050" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.OperatorTests.should break on . operator" executed="True" result="Success" success="True" time="0.126" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should break on . operator and keep indentation" executed="True" result="Success" success="True" time="0.092" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should format prefix operators" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should keep parens around !+ prefix operator definition" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should keep parens around ? operator definition" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should keep parens around ?&lt;- operator definition" executed="True" result="Success" success="True" time="0.057" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should keep parens around ++ infix operator definition" executed="True" result="Success" success="True" time="0.057" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should keep parens around inlined ==&gt; operator definition" executed="True" result="Success" success="True" time="0.060" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should keep parens around inlined operator definition" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should keep single triple ~~~ operator" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should keep space between ( and * in *** operator definition" executed="True" result="Success" success="True" time="0.054" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should keep space between ( and * in *= operator definition" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should keep triple ~~~ operator" executed="True" result="Success" success="True" time="0.057" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should not add space around ? operator" executed="True" result="Success" success="True" time="0.060" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should not mess up ?&lt;- operator" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.OperatorTests.should pattern match on quotation expression" executed="True" result="Success" success="True" time="0.062" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="PatternMatchingTests" executed="True" result="Success" success="True" time="0.895" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.and &amp; or patterns" executed="True" result="Success" success="True" time="0.066" asserts="1" />
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.another case of desugared lambdas" executed="True" result="Success" success="True" time="0.083" asserts="1" />
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.desugared lambdas" executed="True" result="Success" success="True" time="0.064" asserts="1" />
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.function keyword" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.match expressions" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.paren and tuple patterns" executed="True" result="Success" success="True" time="0.068" asserts="1" />
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.record patterns" executed="True" result="Success" success="True" time="0.073" asserts="1" />
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.should consume spaces before inserting comments" executed="True" result="Success" success="True" time="0.061" asserts="1" />
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.should indent function keyword in function application" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.should not remove parentheses in patterns" executed="True" result="Success" success="True" time="0.057" asserts="1" />
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.type test and null patterns" executed="True" result="Success" success="True" time="0.068" asserts="1" />
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.when clauses and as patterns" executed="True" result="Success" success="True" time="0.105" asserts="1" />
+                  <test-case name="Fantomas.Tests.PatternMatchingTests.yet another case of desugared lambdas" executed="True" result="Success" success="True" time="0.062" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="PipingTests" executed="True" result="Success" success="True" time="0.224" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.PipingTests.should break new lines on piping" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                  <test-case name="Fantomas.Tests.PipingTests.should keep the pipe after infix operator" executed="True" result="Success" success="True" time="0.111" asserts="1" />
+                  <test-case name="Fantomas.Tests.PipingTests.should keep the pipe after pattern matching" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="QuotationTests" executed="True" result="Success" success="True" time="0.165" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.QuotationTests.should preserve unit literal" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                  <test-case name="Fantomas.Tests.QuotationTests.typed quotations" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                  <test-case name="Fantomas.Tests.QuotationTests.untyped quotations" executed="True" result="Success" success="True" time="0.053" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="RecordTests" executed="True" result="Success" success="True" time="0.442" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.RecordTests.record declaration" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.RecordTests.record signatures" executed="True" result="Success" success="True" time="0.076" asserts="1" />
+                  <test-case name="Fantomas.Tests.RecordTests.records with update" executed="True" result="Success" success="True" time="0.063" asserts="1" />
+                  <test-case name="Fantomas.Tests.RecordTests.should keep unit of measures in record and DU declaration" executed="True" result="Success" success="True" time="0.105" asserts="1" />
+                  <test-case name="Fantomas.Tests.RecordTests.should not add redundant newlines when using a record in a DU" executed="True" result="Success" success="True" time="0.070" asserts="1" />
+                  <test-case name="Fantomas.Tests.RecordTests.should not break inside of if statements in records" executed="True" result="Success" success="True" time="0.063" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="SignatureTests" executed="True" result="Success" success="True" time="0.554" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.SignatureTests.should keep global constraints in type signature" executed="True" result="Success" success="True" time="0.060" asserts="1" />
+                  <test-case name="Fantomas.Tests.SignatureTests.should keep parentheses on the left of type signatures" executed="True" result="Success" success="True" time="0.057" asserts="1" />
+                  <test-case name="Fantomas.Tests.SignatureTests.should keep the (string * string) list type signature in functions" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.SignatureTests.should keep the (string * string) list type signature in records" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.SignatureTests.should keep the (string option * Node) list type signature" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.SignatureTests.should keep the string * string * string option type signature" executed="True" result="Success" success="True" time="0.061" asserts="1" />
+                  <test-case name="Fantomas.Tests.SignatureTests.should keep the string * string list type signature in functions" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.SignatureTests.should not add parens in signature" executed="True" result="Success" success="True" time="0.067" asserts="1" />
+                  <test-case name="Fantomas.Tests.SignatureTests.should not add parentheses around bare tuples" executed="True" result="Success" success="True" time="0.067" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="StringTests" executed="True" result="Success" success="True" time="0.299" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.StringTests.multiline strings" executed="True" result="Success" success="True" time="0.099" asserts="1" />
+                  <test-case name="Fantomas.Tests.StringTests.preserve uncommon literals" executed="True" result="Success" success="True" time="0.080" asserts="1" />
+                  <test-case name="Fantomas.Tests.StringTests.string literals" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.StringTests.triple-quoted strings" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="TypeDeclarationTests" executed="True" result="Success" success="True" time="1.710" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.^a needs spaces when used as a type parameter" executed="True" result="Success" success="True" time="0.061" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.abstract and override keywords" executed="True" result="Success" success="True" time="0.062" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.associativity of types" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.auto property" executed="True" result="Success" success="True" time="0.064" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.complex indexed properties" executed="True" result="Success" success="True" time="0.071" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.exception declations" executed="True" result="Success" success="True" time="0.075" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.generic types" executed="True" result="Success" success="True" time="0.125" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.indexed properties" executed="True" result="Success" success="True" time="0.074" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.intrinsic type extensions" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.method params" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.named arguments" executed="True" result="Success" success="True" time="0.070" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.optional arguments" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.optional type extensions" executed="True" result="Success" success="True" time="0.057" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.params arguments" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.property handling" executed="True" result="Success" success="True" time="0.063" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.should add space before argument on given config" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.should keep brackets around type signatures" executed="True" result="Success" success="True" time="0.058" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.should keep the ? in optional parameters" executed="True" result="Success" success="True" time="0.061" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.should preserve orders on field declarations" executed="True" result="Success" success="True" time="0.061" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.should print named patterns on explicit constructors" executed="True" result="Success" success="True" time="0.060" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.struct declaration" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.then blocks after constructors" executed="True" result="Success" success="True" time="0.069" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.type annotations" executed="True" result="Success" success="True" time="0.054" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.type constraints simple" executed="True" result="Success" success="True" time="0.075" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.types with attributes" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeDeclarationTests.upcast and downcast" executed="True" result="Success" success="True" time="0.062" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="TypeProviderTests" executed="True" result="Success" success="True" time="0.184" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.TypeProviderTests.should add space before type provider params" executed="True" result="Success" success="True" time="0.059" asserts="1" />
+                  <test-case name="Fantomas.Tests.TypeProviderTests.should throw FormatException on unparsed input" executed="True" result="Success" success="True" time="0.067" asserts="0" />
+                  <test-case name="Fantomas.Tests.TypeProviderTests.type providers" executed="True" result="Success" success="True" time="0.055" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="UnionsTests" executed="True" result="Success" success="True" time="0.315" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.UnionsTests.discriminated unions declaration" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.UnionsTests.discriminated unions with members" executed="True" result="Success" success="True" time="0.064" asserts="1" />
+                  <test-case name="Fantomas.Tests.UnionsTests.enums conversion" executed="True" result="Success" success="True" time="0.076" asserts="1" />
+                  <test-case name="Fantomas.Tests.UnionsTests.enums declaration" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                  <test-case name="Fantomas.Tests.UnionsTests.should keep attributes on union cases" executed="True" result="Success" success="True" time="0.056" asserts="1" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="VerboseSyntaxConversionTests" executed="True" result="Success" success="True" time="0.066" asserts="0">
+                <results>
+                  <test-case name="Fantomas.Tests.VerboseSyntaxConversionTests.verbose syntax" executed="True" result="Success" success="True" time="0.066" asserts="1" />
+                </results>
+              </test-suite>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+    </results>
+  </test-suite>
+</test-results>
