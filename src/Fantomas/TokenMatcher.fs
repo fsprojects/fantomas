@@ -31,7 +31,7 @@ let tokenize defines (content : string) =
                 | None ->
                     if i <> lines.Length then
                         // New line except at the very last token 
-                        yield (EOL, System.Environment.NewLine) 
+                        yield (EOL, Environment.NewLine) 
                     finLine := true
                 | Some t -> 
                     yield (Tok(t, i), line.[t.LeftColumn..t.RightColumn]) 
@@ -422,13 +422,13 @@ let integrateComments (originalText : string) (newText : string) =
 
     let addText (text : string) = 
         buffer.Append text |> ignore
-        if text = System.Environment.NewLine then column := 0
+        if text = Environment.NewLine then column := 0
         else column := !column + text.Length
 
     let maintainIndent f =  
         let c = !column
         f()
-        addText System.Environment.NewLine
+        addText Environment.NewLine
         addText (String.replicate c " ")
 
     let saveIndent c =
@@ -437,7 +437,7 @@ let integrateComments (originalText : string) (newText : string) =
     let restoreIndent f =
         let c = !indent
         Debug.WriteLine("set indent back to {0}", c)
-        addText System.Environment.NewLine
+        addText Environment.NewLine
         addText (String.replicate c " ")
         f()
 
@@ -482,7 +482,7 @@ let integrateComments (originalText : string) (newText : string) =
         | (PreprocessorDirectiveChunk (tokensText, moreOrigTokens)), newTokens ->            
             let text = String.concat "" tokensText
             Debug.WriteLine("injecting preprocessor directive '{0}'", box text)
-            addText System.Environment.NewLine
+            addText Environment.NewLine
             for x in tokensText do addText x
             let moreNewTokens =
                 if text.StartsWith("#endif") then
@@ -504,7 +504,7 @@ let integrateComments (originalText : string) (newText : string) =
                     newTokens
                 else newTokens
             match moreNewTokens with
-            | (Token t, _) :: _ when t.ColorClass = TokenColorKind.PreprocessorKeyword -> addText System.Environment.NewLine
+            | (Token t, _) :: _ when t.ColorClass = TokenColorKind.PreprocessorKeyword -> addText Environment.NewLine
             | _ -> ()
             loop moreOrigTokens moreNewTokens
 
@@ -513,7 +513,7 @@ let integrateComments (originalText : string) (newText : string) =
         | (InactiveCodeChunk (tokensText, moreOrigTokens)),  _ ->
             Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText |> box)
             let text = String.concat "" tokensText
-            let lines = text.Replace("\r\n", "\n").Split([|'\r'; '\n'|], StringSplitOptions.RemoveEmptyEntries)
+            let lines = text.Replace("\r\n", "\n").Replace("\r", "\n").Split([|'\n'|], StringSplitOptions.RemoveEmptyEntries)
             // What is current indentation of this chunk
             let numSpaces = countStartingSpaces lines
             Debug.WriteLine("the number of starting spaces is {0}", numSpaces)
@@ -580,6 +580,15 @@ let integrateComments (originalText : string) (newText : string) =
             addText newTokText 
             loop origTokens moreNewTokens 
 
+        // Process the last line or block comments
+        | (LineCommentChunk false (commentTokensText, moreOrigTokens)), []
+        | (BlockCommentChunk (commentTokensText, moreOrigTokens)), [] ->
+            Debug.WriteLine("injecting the last line or block comment '{0}'", String.concat "" commentTokensText |> box)
+            // Until block comments can't have new line in the beginning, add two consecutive new lines
+            addText Environment.NewLine
+            for x in commentTokensText do addText x
+            loop moreOrigTokens newTokens 
+
         // Inject line commment, after all whitespace and newlines emitted, so
         // the line comment will appear just before the subsequent text, e.g. 
         //   let f x = 
@@ -587,9 +596,7 @@ let integrateComments (originalText : string) (newText : string) =
         //       x + x
         | (LineCommentChunk false (commentTokensText, moreOrigTokens)),  _ ->
             Debug.WriteLine("injecting line comment '{0}'", String.concat "" commentTokensText |> box)
-            match newTokens with
-            | [] -> for x in commentTokensText do addText x
-            | _ :: _ -> maintainIndent (fun () -> for x in commentTokensText do addText x)
+            maintainIndent (fun () -> for x in commentTokensText do addText x)
             loop moreOrigTokens newTokens 
 
         // Inject block commment 
