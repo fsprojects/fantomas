@@ -127,6 +127,7 @@ We would like to gratefully thank the following persons for their contributions.
  - [Gustavo Guerra](https://github.com/ovatsus)
  - [Jared Parsons](https://github.com/jaredpar)
  - [Denis Ok](https://github.com/OkayX6)
+ - [Enrico Sada](https://github.com/enricosada)
 
 ## License
 The library and tool are available under Apache 2.0 license. 
