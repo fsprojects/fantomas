@@ -137,9 +137,9 @@ type internal Context =
           Content = ""; Positions = [||]; Comments = Dictionary(); Directives = Dictionary() }
 
     static member create config (content : string) =
-        let content = content.Replace("\r\n", "\n")
+        let content = content.Replace("\r\n", "\n").Replace("\r", "\n")
         let positions = 
-            content.Split('\r', '\n')
+            content.Split('\n')
             |> Seq.map (fun s -> String.length s + 1)
             |> Seq.scan (+) 0
             |> Seq.toArray

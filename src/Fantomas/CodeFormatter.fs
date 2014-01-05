@@ -31,7 +31,13 @@ let parse isFsiFile s =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fs"
     parseWith fileName s
 
-let internal format isFsiFile s config =
+let internal split (s : string) =
+    s.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n')
+
+let internal format isFsiFile (s : string) config =
+    // Use '\n' as the new line delimiter consistently
+    // It would be easier for F# parser
+    let s = s.Replace("\r\n", "\n").Replace("\r", "\n")
     let s' =    
         Context.create config s 
         |> genParsedInput (parse isFsiFile s) 
@@ -144,9 +150,6 @@ let internal getPatch startCol (lines : string []) =
             // Value 4 accounts for length of "and "
             if m.Success && col <= startCol + 4 then RecLet else loop (i - 1)
     loop (lines.Length - 1)
-
-let internal split (s : string) =
-    s.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n')
 
 let internal formatRangeFromString isFsiFile startLine startCol endLine endCol (lines : _ []) (s : string) config =
     let s = s.Replace("\r\n", "\n").Replace("\r", "\n")

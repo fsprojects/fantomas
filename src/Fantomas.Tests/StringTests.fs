@@ -68,3 +68,55 @@ let e = 1.40e10f
 let f = 23.4M
 let g = '\n'
 """
+
+[<Test>]
+let ``should preserve triple-quote strings``() =
+    formatSourceString false "
+    type GetList() =
+        let switchvox_users_voicemail_getList_response = \"\"\"
+            </response>\"\"\"
+
+        let switchvox_users_voicemail_getList = \"\"\"
+            </request>\"\"\"
+
+        member self.X = switchvox_users_voicemail_getList_response
+"    config 
+    |> prepend newline
+    |> should equal "
+type GetList() = 
+    let switchvox_users_voicemail_getList_response = \"\"\"
+            </response>\"\"\"
+    let switchvox_users_voicemail_getList = \"\"\"
+            </request>\"\"\"
+    member self.X = switchvox_users_voicemail_getList_response
+"
+
+[<Test>]
+let ``should keep triple-quote strings``() =
+    formatSourceString false "
+[<EntryPoint>]
+let main argv = 
+    use fun1 = R.eval(R.parse(text = \"\"\"
+    function(i) {
+        x <- rnorm(1000)
+        y <- rnorm(1000)
+        m <- lm(y~x)
+        m$coefficients[[2]]
+    }
+    \"\"\"))
+    0
+"    config 
+    |> prepend newline
+    |> should equal "
+[<EntryPoint>]
+let main argv = 
+    use fun1 = R.eval (R.parse (text = \"\"\"
+    function(i) {
+        x <- rnorm(1000)
+        y <- rnorm(1000)
+        m <- lm(y~x)
+        m$coefficients[[2]]
+    }
+    \"\"\"))
+    0
+"

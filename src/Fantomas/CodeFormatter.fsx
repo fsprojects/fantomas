@@ -15,23 +15,36 @@ open Fantomas.CodeFormatter
 
 let config = { FormatConfig.Default with StrictMode = false }
 
-let test s = formatSourceString false s config |> printfn "%A";;
+let test (s : string) = 
+    formatSourceString false (s.Replace("\r\n", "\n")) config |> printfn "%A";;
 
 fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
-let result =
-    formatAroundCursor false (makePos 4 10) """
-let comp =
-    eventually { for x in 1 .. 2 do
-                    printfn " x = %d" x
-                 return 3 + 4 }
- """ config;;
+test "
+[<EntryPoint>]
+let main argv = 
+    use fun1 = R.eval(R.parse(text = \"\"\"
+    function(i) {
+        x <- rnorm(1000)
+        y <- rnorm(1000)
+        m <- lm(y~x)
+        m$coefficients[[2]]
+    }
+    \"\"\"))
+    0
+";;
 
-test """
-let hello() = "hello world"
+test "
+    type GetList() =
+        let switchvox_users_voicemail_getList_response = \"\"\"
+            </response>\"\"\"
 
-(* This is a comment. *)""";;
+        let switchvox_users_voicemail_getList = \"\"\"
+            </request>\"\"\"
+
+        member self.X = switchvox_users_voicemail_getList_response
+";;
 
 test """
 (new CsvFile<_>(new Func<_, _, _>(fun (parent : obj) (row : string[]) -> CommonRuntime.GetNonOptionalValue("Name", CommonRuntime.ConvertString(TextConversions.AsOption(row.[0])), TextConversions.AsOption(row.[0])), CommonRuntime.GetNonOptionalValue("Distance", CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[1])), TextConversions.AsOption(row.[1])), CommonRuntime.GetNonOptionalValue("Time", CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[2])), TextConversions.AsOption(row.[2]))), new Func<_, _>(fun (row : _ * _ * _) -> [| CommonRuntime.ConvertStringBack(CommonRuntime.GetOptionalValue((let x, _, _ = row in x))); CommonRuntime.ConvertDecimalBack("", CommonRuntime.GetOptionalValue((let _, x, _ = row in x))); CommonRuntime.ConvertDecimalBack("", CommonRuntime.GetOptionalValue((let _, _, x = row in x))) |]), (ProviderFileSystem.readTextAtRunTimeWithDesignTimeOptions @"C:\Dev\FSharp.Data-master\src\..\tests\FSharp.Data.Tests\Data" "" "SmallTest.csv"), "", '"', true, false)).Cache()

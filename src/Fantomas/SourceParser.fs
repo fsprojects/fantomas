@@ -1,6 +1,7 @@
 ﻿module internal Fantomas.SourceParser
 
 open System
+open System.Diagnostics
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.PrettyNaming
@@ -12,6 +13,10 @@ type Composite<'a, 'b> =
     | Pair of 'b * 'b
     | Single of 'a
 
+#if INTERACTIVE
+type Debug = Console
+#endif
+
 /// Get source string content based on range value
 let lookup (r : range) (c : Context) =
     if r.EndLine <= c.Positions.Length then
@@ -19,12 +24,13 @@ let lookup (r : range) (c : Context) =
         let finish = c.Positions.[r.EndLine-1] + r.EndColumn - 1
         let content = c.Content
         let s = content.[start..finish]
-        if s.Contains("\n") then
+        Debug.WriteLine("Content: {0} at start = {1}, finish = {2}", s, start, finish)
+        if s.Contains("\\\n") then
             // Terrible hack to compensate the offset made by F# compiler
             let last = content.[c.Positions.[r.EndLine-1]..finish]
-            let offset = last.Length - last.TrimStart(' ').Length
-            if finish + offset >= content.Length then content.[start..]
-            else content.[start..finish + offset]
+            let offset = min (last.Length - last.TrimStart(' ').Length) (content.Length - finish - 1)
+            Debug.WriteLine("Content after patch: {0} with offset = {1}", s, offset)
+            content.[start..finish + offset]
         else s
     else ""
 
