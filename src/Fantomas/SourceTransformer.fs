@@ -103,12 +103,12 @@ let genConst (Unresolved(c, r, s)) =
         if ctx.Config.StrictMode then
             str s ctx
         else
-            let s' = lookup r' ctx
+            let s' = defaultArg (lookup r' ctx) s
             str s' ctx
 
 /// Check whether a range starting with a specified token
-let startWith s (r : range) ctx = 
-    (lookup r ctx).StartsWith(s)
+let startWith prefix (r : range) ctx = 
+    lookup r ctx |> Option.exists (fun s -> s.StartsWith(prefix))
 
 // A few active patterns for printing purpose
 
