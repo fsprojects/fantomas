@@ -61,10 +61,10 @@ let rec multiline = function
     
     | App(e1, es) ->
         multiline e1 || List.exists multiline es
-    | DotIndexedGet(e, es) ->
+    | DotIndexedGet(e, _) ->
         multiline e
 
-    | DotIndexedSet(e1, es, e2) ->
+    | DotIndexedSet(e1, _, e2) ->
         multiline e1 || multiline e2
 
     | MatchLambda(cs, _) ->

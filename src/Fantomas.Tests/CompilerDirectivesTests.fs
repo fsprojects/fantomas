@@ -59,7 +59,6 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 
 #load "__setup__.fsx"
 #endif
-
 """
 
 [<Test>]
@@ -192,7 +191,6 @@ namespace Internal.Utilities.Text.Lexing"""  config
     |> prepend newline
     |> should equal """
 #nowarn "47"
-
 namespace Internal.Utilities.Text.Lexing
 
 """

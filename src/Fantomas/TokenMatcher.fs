@@ -227,7 +227,15 @@ let (|NewTokenAfterWhitespaceOrNewLine|_|) toks =
 
 // This part processes the token stream post- pretty printing
 
-type LineCommentStickiness = | StickyLeft | StickyRight | NotApplicable
+type LineCommentStickiness = 
+    | StickyLeft 
+    | StickyRight 
+    | NotApplicable
+    override x.ToString() =
+        match x with
+        | StickyLeft -> "left"
+        | StickyRight -> "right"
+        | NotApplicable -> "unknown"
 
 type MarkedToken = 
     | Marked of Token * string * LineCommentStickiness
@@ -359,7 +367,7 @@ let (|BlockCommentChunk|_|) = function
 ///
 let markStickiness (tokens: seq<Token * string>) = 
     seq { let inWhiteSpaceAtStartOfLine = ref true
-          let inLineComment = ref true
+          let inLineComment = ref false
           for (tio, tt) in tokens do 
              match tio with 
              | Token ti when ti.CharClass = TokenCharKind.LineComment ->
@@ -405,6 +413,7 @@ let (|OpenChunk|_|) = function
 /// Pick all comments and directives from originalText to insert into newText               
 let integrateComments (originalText : string) (newText : string) =
     let origTokens = tokenize (filterConstants originalText) originalText |> markStickiness |> Seq.toList
+    //Seq.iter (fun (Marked(_, s, t)) -> Console.WriteLine("sticky information: {0} -- {1}", s, t)) origTokens
     let newTokens = tokenize [] newText |> Seq.toList
 
     let buffer = System.Text.StringBuilder()
@@ -518,6 +527,16 @@ let integrateComments (originalText : string) (newText : string) =
                     restoreIndent (fun () -> addText line.[numSpaces..])
             loop moreOrigTokens newTokens
 
+        | (LineCommentChunk true (commentTokensText, moreOrigTokens)), [] ->
+            Debug.WriteLine("injecting the last stick-to-the-left line comment '{0}'", String.concat "" commentTokensText |> box)
+            addText " "
+            for x in commentTokensText do addText x
+            loop moreOrigTokens newTokens 
+
+        // Inject line commment that is sticky-to-the-left, e.g. 
+        //   let f x = 
+        //       x + x  // HERE
+        // Because it is sticky-to-the-left, we do it _before_ emitting end-of-line from the newText        
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)),  _ ->
             let tokText = String.concat "" commentTokensText
             Debug.WriteLine("injecting sticky-to-the-left line comment '{0}'", box tokText)
@@ -535,16 +554,6 @@ let integrateComments (originalText : string) (newText : string) =
                 addText " "
                 maintainIndent (fun () -> for x in commentTokensText do addText x)
                 loop moreOrigTokens moreNewTokens 
-
-        // Inject line commment that is sticky-to-the-left, e.g. 
-        //   let f x = 
-        //       x + x  // HERE
-        // Because it is sticky-to-the-left, we do it _before_ emitting end-of-line from the newText
-        | (LineCommentChunk true (commentTokensText, moreOrigTokens)),  _ ->
-            Debug.WriteLine("injecting stick-to-the-left line comment '{0}'", String.concat "" commentTokensText |> box)
-            addText " "
-            for x in commentTokensText do addText x
-            loop moreOrigTokens newTokens 
 
         // Emit end-of-line from new tokens
         | _,  (NewLine newTokText :: moreNewTokens) ->
@@ -578,7 +587,9 @@ let integrateComments (originalText : string) (newText : string) =
         //       x + x
         | (LineCommentChunk false (commentTokensText, moreOrigTokens)),  _ ->
             Debug.WriteLine("injecting line comment '{0}'", String.concat "" commentTokensText |> box)
-            maintainIndent (fun () -> for x in commentTokensText do addText x)
+            match newTokens with
+            | [] -> for x in commentTokensText do addText x
+            | _ :: _ -> maintainIndent (fun () -> for x in commentTokensText do addText x)
             loop moreOrigTokens newTokens 
 
         // Inject block commment 

@@ -39,16 +39,14 @@ and genSigFile(ParsedSigFileInput(hs, mns)) =
     +> col sepNln mns genSigModuleOrNamespace
 
 and genParsedHashDirective(ParsedHashDirective(h, s)) =
-    let printArgument (arg: string) =
+    let printArgument (arg : string) =
         match arg with
         | "" -> sepNone
         // Use verbatim string to escape '\' correctly
         | _ when arg.Contains("\\") -> !- (sprintf "@\"%O\"" arg)
         | _ -> !- (sprintf "\"%O\"" arg)
 
-    let gs = col sepSpace s printArgument
-
-    !- "#" -- h +> sepSpace +> gs +> sepNln
+    !- "#" -- h +> sepSpace +> col sepSpace s printArgument
 
 and genModuleOrNamespace(ModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
     genPreXmlDoc px
@@ -75,11 +73,7 @@ and genModuleDeclList = function
             | [] -> col sepNln xs genModuleDecl ctx
             | _ -> (col sepNln xs genModuleDecl +> rep 2 sepNln +> genModuleDeclList ys) ctx
 
-    | HashDirectiveL(xs, ys) ->
-        match ys with
-        | [] -> col sepNone xs genModuleDecl
-        | _ -> col sepNone xs genModuleDecl +> sepNln +> genModuleDeclList ys
-
+    | HashDirectiveL(xs, ys)
     | DoExprAttributesL(xs, ys) 
     | ModuleAbbrevL(xs, ys) 
     | OneLinerLetL(xs, ys) ->
