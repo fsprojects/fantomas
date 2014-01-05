@@ -268,7 +268,10 @@ and genPropertyWithGetSet inter (b1, b2) =
             genPreXmlDoc px
             +> genAttributes ats +> genMemberFlags inter mf1
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
-
+        assert(ps1 |> Seq.map fst |> Seq.forall Option.isNone)
+        assert(ps2 |> Seq.map fst |> Seq.forall Option.isNone)
+        let ps1 = List.map snd ps1
+        let ps2 = List.map snd ps2
         prefix -- s1 +> sepSpace +> indent +> sepNln
         +> genProperty "with get " ps1 e1 +> sepNln +> genProperty "and set " ps2 e2
         +> unindent
@@ -309,7 +312,9 @@ and genMemberBinding inter b =
 
         match p with
         // Too tedious in handling property get and set
-        | PatLongIdent(_, s, ps, _) ->                 
+        | PatLongIdent(_, s, ps, _) ->   
+            assert (ps |> Seq.map fst |> Seq.forall Option.isNone)
+            let ps = List.map snd ps              
             prefix -- s +> genProperty propertyPref ps e
         | p -> failwithf "Unexpected pattern: %O" p
 
@@ -512,8 +517,8 @@ and genExpr = function
     // At this stage, all symbolic operators have been handled.
     | OptVar(s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr e
-    | DotIndexedGet(e, es) -> genExpr e -- "." +> sepOpenLFixed +> genIndexedVars es +> sepCloseLFixed
-    | DotIndexedSet(e1, es, e2) -> genExpr e1 -- ".[" +> genIndexedVars es -- "] <- " +> genExpr e2
+    | DotIndexedGet(e, es) -> genExpr e -- "." +> sepOpenLFixed +> genIndexers es +> sepCloseLFixed
+    | DotIndexedSet(e1, es, e2) -> genExpr e1 -- ".[" +> genIndexers es -- "] <- " +> genExpr e2
     | DotGet(e, s) -> genExpr e -- sprintf ".%s" s
     | DotSet(e1, s, e2) -> genExpr e1 -- sprintf ".%s <- " s +> genExpr e2
     | TraitCall(tps, msg, e) -> 
@@ -565,20 +570,18 @@ and genInfixApps newline = function
     | [] -> sepNone
 
 /// Use in indexed set and get only
-and genIndexedVars es =
+and genIndexers es =
     match es with
-    | IndexedVar eo1 :: es ->
-        match es with
-        | IndexedVar eo2 :: es -> 
-            ifElse (eo1.IsNone && eo2.IsNone) (!- "*") 
-                (opt sepNone eo1 genExpr -- ".." +> opt sepNone eo2 genExpr)
-            +> ifElse es.IsEmpty sepNone (sepComma +> genIndexedVars es)
-        | _ -> 
-            opt sepNone eo1 genExpr +> ifElse es.IsEmpty sepNone (sepComma +> genIndexedVars es)
-
-    | [e] -> genExpr e
-    | e :: es -> genExpr e +> sepComma +> genIndexedVars es
-    | [] -> sepNone
+    | Indexer(Pair(IndexedVar eo1, IndexedVar eo2)) :: es ->
+        ifElse (eo1.IsNone && eo2.IsNone) (!- "*") 
+            (opt sepNone eo1 genExpr -- ".." +> opt sepNone eo2 genExpr)
+        +> ifElse es.IsEmpty sepNone (sepComma +> genIndexers es)
+    | Indexer(Single(IndexedVar eo)) :: es -> 
+        ifElse eo.IsNone (!- "*") (opt sepNone eo genExpr) 
+        +> ifElse es.IsEmpty sepNone (sepComma +> genIndexers es)
+    | Indexer(Single e) :: es -> 
+            genExpr e +> ifElse es.IsEmpty sepNone (sepComma +> genIndexers es)
+    | _ -> sepNone
 
 and genTypeDefn isFirst (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) = 
     let typeName = 
@@ -953,6 +956,9 @@ and genComplexPats = function
 and genPatRecordFieldName(PatRecordFieldName(s1, s2, p)) =
     ifElse (s1 = "") (!- (sprintf "%s = " s2)) (!- (sprintf "%s.%s = " s1 s2)) +> genPat false p
 
+and genPatWithIdent isCStyle (ido, p) = 
+    opt sepEq ido (!-) +> genPat isCStyle p
+
 and genPat isCStyle = function
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)
     | PatAttrib(p, ats) -> genOneLinerAttributes ats +> genPat isCStyle p
@@ -972,10 +978,19 @@ and genPat isCStyle = function
         let s = if s = "``new``" then "new" else s
         match ps with
         | [] ->  aoc -- s +> tpsoc
-        | [PatSeq(PatTuple, [p1; p2])] when s = "(::)" -> aoc +> genPat isCStyle p1 -- " :: " +> genPat isCStyle p2
-        | [p] -> aoc -- s +> tpsoc +> ifElse (hasParenInPat p) (ifElse (addSpaceBeforeParensInFunDef s p) sepBeforeArg sepNone) sepSpace +> genPat false p
+        | [_, PatSeq(PatTuple, [p1; p2])] when s = "(::)" -> 
+            aoc +> genPat isCStyle p1 -- " :: " +> genPat isCStyle p2
+        | [(ido, p) as ip] -> 
+            aoc -- s +> tpsoc +> 
+            ifElse (hasParenInPat p || Option.isSome ido) (ifElse (addSpaceBeforeParensInFunDef s p) sepBeforeArg sepNone) sepSpace 
+            +> ifElse (Option.isSome ido) (sepOpenT +> genPatWithIdent false ip +> sepCloseT) (genPatWithIdent false ip)
         // This pattern is potentially long
-        | ps -> atCurrentColumn (aoc -- s +> tpsoc +> sepSpace +> colAutoNlnSkip0 sepSpace ps (genPat isCStyle))
+        | ps -> 
+            let hasBracket = ps |> Seq.map fst |> Seq.exists Option.isSome
+            atCurrentColumn (aoc -- s +> tpsoc +> sepSpace 
+                +> ifElse hasBracket sepOpenT sepNone 
+                +> colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent isCStyle)
+                +> ifElse hasBracket sepCloseT sepNone)
 
     | PatParen(PatConst(Const "()", _)) -> !- "()"
     | PatParen(p) -> sepOpenT +> genPat isCStyle p +> sepCloseT

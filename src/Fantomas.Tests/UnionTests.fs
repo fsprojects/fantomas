@@ -88,3 +88,51 @@ type Argument =
     | PackageId of string
     | Version of string
 """
+
+[<Test>]
+let ``should be able to define named unions``() =
+    formatSourceString false """
+type Thing =
+| Human of Name:string * Age:int
+| Cat of Name:string * HoursSleptADay:int
+
+type Strategy =
+    | Adaptive
+    | Fundamental
+    | ShortAR of p:int // F# 3.1 syntax
+    | BuyHold""" config
+    |> prepend newline
+    |> should equal """
+type Thing = 
+    | Human of Name : string * Age : int
+    | Cat of Name : string * HoursSleptADay : int
+
+type Strategy = 
+    | Adaptive
+    | Fundamental
+    | ShortAR of p : int // F# 3.1 syntax
+    | BuyHold
+"""
+
+[<Test>]
+let ``should be able to pattern match on unions``() =
+    formatSourceString false """
+type TestUnion = Test of A : int * B : int
+[<EntryPoint>]
+let main argv =
+   let d = Test(B = 1, A = 2)
+   match d with
+   | Test(A = a; B = b) -> a + b
+   | _ -> 0""" config
+    |> prepend newline
+    |> should equal """
+type TestUnion = 
+    | Test of A : int * B : int
+
+[<EntryPoint>]
+let main argv = 
+    let d = Test(B = 1, A = 2)
+    match d with
+    | Test (A = a; B = b) -> a + b
+    | _ -> 0
+"""

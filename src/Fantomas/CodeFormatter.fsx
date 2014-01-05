@@ -1,4 +1,4 @@
-﻿#r "../packages/FSharp.Compiler.Editor.1.0.7/lib/net40/FSharp.Compiler.Editor.dll"
+﻿#r "../packages/FSharp.Compiler.Service.0.0.2-alpha/lib/net40/FSharp.Compiler.Service.dll"
 
 #load "TokenMatcher.fs"
 #load "FormatConfig.fs"
@@ -27,14 +27,6 @@ let comp =
                     printfn " x = %d" x
                  return 3 + 4 }
  """ config;;
-
-parse false """
-namespace ``base``
-
-type Rocket() =
-   inherit Vehicle() 
-   override this.TopSpeed() = base.TopSpeed() * 10
-""";;
 
 test """
 (new CsvFile<_>(new Func<_, _, _>(fun (parent : obj) (row : string[]) -> CommonRuntime.GetNonOptionalValue("Name", CommonRuntime.ConvertString(TextConversions.AsOption(row.[0])), TextConversions.AsOption(row.[0])), CommonRuntime.GetNonOptionalValue("Distance", CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[1])), TextConversions.AsOption(row.[1])), CommonRuntime.GetNonOptionalValue("Time", CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[2])), TextConversions.AsOption(row.[2]))), new Func<_, _>(fun (row : _ * _ * _) -> [| CommonRuntime.ConvertStringBack(CommonRuntime.GetOptionalValue((let x, _, _ = row in x))); CommonRuntime.ConvertDecimalBack("", CommonRuntime.GetOptionalValue((let _, x, _ = row in x))); CommonRuntime.ConvertDecimalBack("", CommonRuntime.GetOptionalValue((let _, _, x = row in x))) |]), (ProviderFileSystem.readTextAtRunTimeWithDesignTimeOptions @"C:\Dev\FSharp.Data-master\src\..\tests\FSharp.Data.Tests\Data" "" "SmallTest.csv"), "", '"', true, false)).Cache()

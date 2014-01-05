@@ -8,8 +8,12 @@ open Microsoft.FSharp.Compiler.Lexhelp.Keywords
 
 open Fantomas.FormatConfig
 
+type Composite<'a, 'b> =
+    | Pair of 'b * 'b
+    | Single of 'a
+
 /// Get source string content based on range value
-let inline content (r : range) (c : Context) =
+let lookup (r : range) (c : Context) =
     if r.EndLine <= c.Positions.Length then
         let start = c.Positions.[r.StartLine-1] + r.StartColumn
         let finish = c.Positions.[r.EndLine-1] + r.EndColumn - 1
@@ -577,6 +581,10 @@ let (|IndexedVar|_|) = function
     | SynExpr.LongIdent(_, LongIdentWithDots "Microsoft.FSharp.Core.None", _, _) -> Some None
     | _ -> None
 
+let (|Indexer|) = function
+    | SynIndexerArg.Two(e1, e2) -> Pair(e1, e2)
+    | SynIndexerArg.One e -> Single e
+
 let (|OptVar|_|) = function
     | SynExpr.Ident(IdentOrKeyword(OpNameFull s)) ->
         Some(s, false)
@@ -836,7 +844,11 @@ let (|PatNamed|_|) = function
 
 let (|PatLongIdent|_|) = function
     | SynPat.LongIdent(LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull s), _), _, tpso, xs, ao, _) ->
-        Some(ao, s, xs, tpso)
+        match xs with
+        | SynConstructorArgs.Pats ps -> 
+            Some(ao, s, List.map (fun p -> (None, p)) ps, tpso)
+        | SynConstructorArgs.NamePatPairs(nps, _) ->
+            Some(ao, s, List.map (fun (Ident ident, p) -> (Some ident, p)) nps, tpso)
     | _ -> None
 
 let (|PatParen|_|) = function
@@ -1135,6 +1147,6 @@ let (|FunType|) (t, ValInfo(aiss, ai)) =
     loop(t, aiss)
 
 let (|Extern|_|) = function
-    | Let(LetBinding([Attribute("DllImport", _, _)] as ats, px, ao, _, _, PatLongIdent(_, s, [PatSeq(PatTuple, ps)], _), TypedExpr(Typed, _, t))) ->
+    | Let(LetBinding([Attribute("DllImport", _, _)] as ats, px, ao, _, _, PatLongIdent(_, s, [_, PatSeq(PatTuple, ps)], _), TypedExpr(Typed, _, t))) ->
         Some(ats, px, ao, t, s, ps)
     | _ -> None

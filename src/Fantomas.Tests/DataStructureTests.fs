@@ -6,7 +6,6 @@ open FsUnit
 open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
-
 [<Test>]
 let ``array indices``() =
     formatSourceString false """
@@ -157,4 +156,15 @@ let getColumn c (A:_[,]) = flatten A.[*,c..c] |> Seq.toArray""" config
 let cast<'a> (A : obj [,]) : 'a [,] = A |> Array2D.map unbox
 let flatten (A : 'a [,]) = A |> Seq.cast<'a>
 let getColumn c (A : _ [,]) = flatten A.[*, c..c] |> Seq.toArray
+"""
+
+[<Test>]
+let ``should be able to support F# 3.1 slicing``() =
+    formatSourceString false """
+let x = matrix.[*, 3]
+let y = matrix.[3, *]""" config
+    |> prepend newline
+    |> should equal """
+let x = matrix.[*, 3]
+let y = matrix.[3, *]
 """
