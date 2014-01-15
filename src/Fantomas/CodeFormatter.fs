@@ -17,11 +17,11 @@ open Fantomas.CodePrinter
 
 let internal parseWith fileName content = 
     // Create an interactive checker instance (ignore notifications)
-    let checker = InteractiveChecker.Create(NotifyFileTypeCheckStateIsDirty ignore)
+    let checker = InteractiveChecker.Create()
     // Get compiler options for a single script file
-    let checkOptions = checker.GetCheckOptionsFromScriptRoot(fileName, content, DateTime.Now, filterDefines content)
+    let checkOptions = checker.GetProjectOptionsFromScript(fileName, content, DateTime.Now, filterDefines content)
     // Run the first phase (untyped parsing) of the compiler
-    let untypedRes = checker.UntypedParse(fileName, content, checkOptions)
+    let untypedRes = checker.ParseFileInProject(fileName, content, checkOptions)
     match untypedRes.ParseTree with
     | Some tree -> tree
     | None -> raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
