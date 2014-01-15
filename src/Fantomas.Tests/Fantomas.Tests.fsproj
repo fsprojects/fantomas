@@ -79,6 +79,7 @@
     <Compile Include="TypeProviderTests.fs" />
     <Compile Include="VerboseSyntaxConversionTests.fs" />
     <Compile Include="FormattingSelectionTests.fs" />
+    <Compile Include="FormattingSelectionOnlyTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Compiler.Service">

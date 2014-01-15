@@ -19,6 +19,10 @@ let formatSelectionFromString isFsiFile r (s : string) config =
     let s = s.Replace("\r\n", Environment.NewLine)
     (formatSelectionFromString isFsiFile r s config).Replace("\r\n", "\n")
 
+let formatSelectionOnly isFsiFile r (s : string) config = 
+    let s = s.Replace("\r\n", Environment.NewLine)
+    (formatSelectionOnly isFsiFile r s config).Replace("\r\n", "\n")
+
 let formatAroundCursor isFsiFile p (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     (formatAroundCursor isFsiFile p s config).Replace("\r\n", "\n")

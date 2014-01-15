@@ -1,6 +1,8 @@
 Fantomas
 ========
 
+![Fantomas logo](src/Fantomas.VisualStudio/fantomas_logo.png)
+
 F# source code formatter, inspired by [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://github.com/acdha/PythonTidy) for Python.
 
 [![Build Status](https://travis-ci.org/dungpa/fantomas.png)](https://travis-ci.org/dungpa/fantomas)

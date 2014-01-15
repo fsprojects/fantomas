@@ -34,20 +34,23 @@ let parse isFsiFile s =
 let internal split (s : string) =
     s.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n')
 
-let internal format isFsiFile (s : string) config =
+let internal formatWith ast (s : string) config =
     // Use '\n' as the new line delimiter consistently
     // It would be easier for F# parser
     let s = s.Replace("\r\n", "\n").Replace("\r", "\n")
     let s' =    
         Context.create config s 
-        |> genParsedInput (parse isFsiFile s) 
+        |> genParsedInput ast
         |> dump
         |> if config.StrictMode then id else integrateComments s
 
     // Sometimes F# parser gives a partial AST for incorrect input
     if String.IsNullOrWhiteSpace s <> String.IsNullOrWhiteSpace s' then
-        raise <| FormatException "Incomplete code fragmment. This is mostly because of parsing errors or the use of F# constructs newer than being supported."
+        raise <| FormatException "Incomplete code fragment. This is mostly because of parsing errors or the use of F# constructs newer than being supported."
     else s'
+
+let internal format isFsiFile (s : string) config =
+    formatWith (parse isFsiFile s) s config
 
 /// Format a source string using given config
 let formatSourceString isFsiFile s config =    
@@ -60,6 +63,20 @@ let formatSourceString isFsiFile s config =
 let tryFormatSourceString isFsiFile s config =
     try
         Some (formatSourceString isFsiFile s config)
+    with 
+    _ -> None
+
+/// Format an abstract syntax tree using given config
+let formatAST ast s config =    
+    let s' = formatWith ast s config
+        
+    // When formatting the whole document, an EOL is required
+    if s'.EndsWith(Environment.NewLine) then s' else s' + Environment.NewLine
+
+/// Format an abstract syntax tree using given config; return None if failed
+let tryFormatAST ast s config =
+    try
+        Some (formatAST ast s config)
     with 
     _ -> None
 
@@ -136,7 +153,7 @@ type internal Patch =
 let internal startWithMember (sel : string) =  
     [|"member"; "abstract"; "default"; "override"; 
       "static"; "interface"; "new"; "val"; "inherit"|] 
-    |> Array.exists sel.StartsWith 
+    |> Array.exists (sel.TrimStart().StartsWith)
 
 /// Find the first type declaration or let binding at beginnings of lines
 let internal getPatch startCol (lines : string []) =
@@ -151,7 +168,7 @@ let internal getPatch startCol (lines : string []) =
             if m.Success && col <= startCol + 4 then RecLet else loop (i - 1)
     loop (lines.Length - 1)
 
-let internal formatRangeFromString isFsiFile startLine startCol endLine endCol (lines : _ []) (s : string) config =
+let internal formatRange replaceDocument isFsiFile startLine startCol endLine endCol (lines : _ []) (s : string) config =
     let s = s.Replace("\r\n", "\n").Replace("\r", "\n")
     // Convert from range to string positions
     let stringPos (r : range) =
@@ -171,14 +188,14 @@ let internal formatRangeFromString isFsiFile startLine startCol endLine endCol (
 
     let range = makeRange startLine startCol endLine endCol
     let (start, finish) = stringPos range
-    let pre = if start = 0 then "" else s.[0..start-1]
+    let pre = if start = 0 || not replaceDocument then "" else s.[0..start-1]
 
     // Prepend selection by an appropriate amount of whitespace
     let (selection, patch) = 
         let sel = s.[start..finish]
         if startWithMember sel then
            (String.Join("", "type T = ", Environment.NewLine, new String(' ', startCol), sel), TypeMember)
-        elif sel.StartsWith("and") then
+        elif sel.TrimStart().StartsWith("and") then
             let p = getPatch startCol lines.[..startLine-1]
             let pattern = Regex("and")
             let replacement = 
@@ -193,7 +210,7 @@ let internal formatRangeFromString isFsiFile startLine startCol endLine endCol (
         else (new String(' ', startCol) + sel, NoPatch)
 
     let post =
-        if finish < s.Length then 
+        if finish < s.Length && replaceDocument then 
             s.[finish+1..].Replace("\n", Environment.NewLine)
         else ""
 
@@ -243,6 +260,18 @@ let internal formatRangeFromString isFsiFile startLine startCol endLine endCol (
         let formatteds = split result
         reconstructSourceCode startCol formatteds pre post
 
+/// Format a part of source string using given config, and return the (formatted) selected part only.
+let formatSelectionOnly isFsiFile (r : range) (s : string) config =
+    let lines = split s
+    formatRange false isFsiFile r.StartLine r.StartColumn r.EndLine r.EndColumn lines s config
+    
+/// Format and reutrn a selected part of source string using given config; return None if failed
+let tryFormatSelectionOnly isFsiFile (r : range) (s : string) config =
+    try
+        Some (formatSelectionOnly isFsiFile r s config)
+    with 
+    _ -> None
+
 /// Format a selected part of source string using given config; keep other parts unchanged. 
 let formatSelectionFromString isFsiFile (r : range) (s : string) config =
     let lines = split s
@@ -266,7 +295,7 @@ let formatSelectionFromString isFsiFile (r : range) (s : string) config =
         else sourceToken.CreateLineTokenizer(lines.[r.EndLine-1])
 
     let endCol = getEndCol r endTokenizer (ref 0L)
-    formatRangeFromString isFsiFile r.StartLine startCol r.EndLine endCol lines s config    
+    formatRange true isFsiFile r.StartLine startCol r.EndLine endCol lines s config    
 
 /// Format selection in range r and keep other parts unchanged; return None if failed
 let tryFormatSelectionFromString isFsiFile (r : range) (s : string) config =
