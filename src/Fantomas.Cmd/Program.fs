@@ -30,6 +30,7 @@ open Fantomas.FormatConfig
 let [<Literal>] forceText = "Print the source unchanged if it cannot be parsed correctly."
 let [<Literal>] recurseText = "Process the input folder recursively."
 let [<Literal>] outputText = "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only."
+let [<Literal>] profileText = "Print performance profiling information."
 
 let [<Literal>] fsiText = "Read F# source from stdin as F# signatures."
 let [<Literal>] stdInText = "Read F# source from standard input."
@@ -95,6 +96,7 @@ let processSourceFile inFile (tw : TextWriter) config =
 let main args =
     let recurse = ref false
     let force = ref false
+    let profile = ref false
 
     let outputPath = ref Notknown
     let inputPath = ref Unspecified
@@ -152,7 +154,10 @@ let main args =
         try
             printfn "Processing %s" inFile
             use buffer = new StreamWriter(outFile)
-            time <| fun () ->
+            if !profile then
+                File.ReadLines(inFile) |> Seq.length |> printfn "Line count: %i" 
+                time (fun () -> processSourceFile inFile buffer config)
+            else
                 processSourceFile inFile buffer config
             buffer.Flush()
             printfn "%s has been written." outFile
@@ -175,10 +180,14 @@ let main args =
             if !force then
                 stdout.Write(File.ReadAllText inFile)
 
-    let stringToFile s (outFile : string) config =
+    let stringToFile (s : string) (outFile : string) config =
         try
             use buffer = new StreamWriter(outFile)
-            time (fun () -> processSourceString !fsi s buffer config)
+            if !profile then
+                printfn "Line count: %i" (s.Length - s.Replace(Environment.NewLine, "").Length)
+                time (fun () -> processSourceString !fsi s buffer config)
+            else
+                processSourceString !fsi s buffer config
             buffer.Flush()
             printfn "%s has been written." outFile
         with
@@ -202,6 +211,7 @@ let main args =
     let options =
         [| ArgInfo("--recurse", ArgType.Set recurse, recurseText);
            ArgInfo("--force", ArgType.Set force, forceText);
+           ArgInfo("--profile", ArgType.Set profile, profileText);
 
            ArgInfo("--fsi", ArgType.Set fsi, fsiText);
            ArgInfo("--stdin", ArgType.Set stdIn, stdInText);
