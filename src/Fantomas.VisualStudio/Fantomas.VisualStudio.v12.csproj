@@ -48,10 +48,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Compiler.Service">      
+    <Reference Include="FSharp.Compiler.Service">
       <HintPath>..\packages\FSharp.Compiler.Service.0.0.7-alpha\lib\net40\FSharp.Compiler.Service.dll</HintPath>
-    </Reference>
-    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
     </Reference>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <Private>False</Private>
@@ -116,10 +114,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Args\Args.fsproj">
-      <Project>{10e82856-34a5-43e0-93e0-7bde89249684}</Project>
-      <Name>Args</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj">
       <Project>{919adf2d-df2e-4f4d-9f8b-0376346535c9}</Project>
       <Name>Fantomas</Name>
@@ -127,6 +121,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="fantomas_logo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="fantomas_preview.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

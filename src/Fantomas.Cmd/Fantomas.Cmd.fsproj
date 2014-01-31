@@ -50,14 +50,11 @@
   <ItemGroup>
     <None Include="app.config" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Arg.fsi" />
+    <Compile Include="Arg.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Args\Args.fsproj">
-      <Name>Args</Name>
-      <Project>{10e82856-34a5-43e0-93e0-7bde89249684}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj">
       <Name>Fantomas</Name>
       <Project>{919adf2d-df2e-4f4d-9f8b-0376346535c9}</Project>

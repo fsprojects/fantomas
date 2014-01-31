@@ -81,6 +81,16 @@ let rec allFiles isRec path =
                 yield! allFiles isRec d    
     }
 
+/// Format a source string using given config and write to a text writer
+let processSourceString isFsiFile s (tw : TextWriter) config =
+    tw.Write(CodeFormatter.formatSourceString isFsiFile s config)
+
+/// Format inFile and write to text writer
+let processSourceFile inFile (tw : TextWriter) config = 
+    let s = File.ReadAllText(inFile)
+    let isFsiFile = inFile.EndsWith(".fsi") || inFile.EndsWith(".mli")
+    tw.Write(CodeFormatter.formatSourceString isFsiFile s config)
+
 [<EntryPoint>]
 let main args =
     let recurse = ref false
@@ -143,7 +153,7 @@ let main args =
             printfn "Processing %s" inFile
             use buffer = new StreamWriter(outFile)
             time <| fun () ->
-                CodeFormatter.processSourceFile inFile buffer config
+                processSourceFile inFile buffer config
             buffer.Flush()
             printfn "%s has been written." outFile
         with
@@ -156,8 +166,8 @@ let main args =
     let fileToStdOut inFile config =
         try
             use buffer = new StringWriter()
-            // Don't record running time to avoid writing to console
-            CodeFormatter.processSourceFile inFile buffer config
+            // Don't record running time when output formatted content to console
+            processSourceFile inFile buffer config
             stdout.Write(buffer.ToString())
         with
         | exn ->
@@ -168,7 +178,7 @@ let main args =
     let stringToFile s (outFile : string) config =
         try
             use buffer = new StreamWriter(outFile)
-            time (fun () -> CodeFormatter.processSourceString !fsi s buffer config)
+            time (fun () -> processSourceString !fsi s buffer config)
             buffer.Flush()
             printfn "%s has been written." outFile
         with
@@ -181,7 +191,7 @@ let main args =
     let stringToStdOut s config =
         try
             use buffer = new StringWriter()
-            CodeFormatter.processSourceString !fsi s buffer config
+            processSourceString !fsi s buffer config
             stdout.Write(buffer.ToString())
         with
         | exn ->

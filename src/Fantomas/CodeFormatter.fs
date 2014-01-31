@@ -1,7 +1,6 @@
 ﻿module Fantomas.CodeFormatter
 
 open System
-open System.IO
 open System.Diagnostics
 open System.Collections.Generic
 open System.Text.RegularExpressions
@@ -46,7 +45,8 @@ let internal formatWith ast (s : string) config =
 
     // Sometimes F# parser gives a partial AST for incorrect input
     if String.IsNullOrWhiteSpace s <> String.IsNullOrWhiteSpace s' then
-        raise <| FormatException "Incomplete code fragment. This is mostly because of parsing errors or the use of F# constructs newer than being supported."
+        raise <| FormatException """Incomplete code fragment. 
+This is mostly because of parsing errors or the use of F# constructs newer than being supported."""
     else s'
 
 let internal format isFsiFile (s : string) config =
@@ -59,50 +59,12 @@ let formatSourceString isFsiFile s config =
     // When formatting the whole document, an EOL is required
     if s'.EndsWith(Environment.NewLine) then s' else s' + Environment.NewLine
 
-/// Format a source string using given config; return None if failed
-let tryFormatSourceString isFsiFile s config =
-    try
-        Some (formatSourceString isFsiFile s config)
-    with 
-    _ -> None
-
 /// Format an abstract syntax tree using given config
 let formatAST ast s config =    
     let s' = formatWith ast s config
         
     // When formatting the whole document, an EOL is required
     if s'.EndsWith(Environment.NewLine) then s' else s' + Environment.NewLine
-
-/// Format an abstract syntax tree using given config; return None if failed
-let tryFormatAST ast s config =
-    try
-        Some (formatAST ast s config)
-    with 
-    _ -> None
-
-/// Format a source string using given config and write to a text writer
-let processSourceString isFsiFile s (tw : TextWriter) config =
-    tw.Write(formatSourceString isFsiFile s config)
-
-/// Format a source string using given config and write to a text writer; return None if failed
-let tryProcessSourceString isFsiFile s tw config =
-    try
-        Some (processSourceString isFsiFile s tw config)
-    with 
-    _ -> None
-
-/// Format inFile and write to text writer
-let processSourceFile inFile (tw : TextWriter) config = 
-    let s = File.ReadAllText(inFile)
-    let isFsiFile = inFile.EndsWith(".fsi") || inFile.EndsWith(".mli")
-    tw.Write(formatSourceString isFsiFile s config)
-
-/// Format inFile and write to text writer; return None if failed
-let tryProcessSourceFile inFile tw config = 
-    try
-        Some (processSourceFile inFile tw config)
-    with 
-    _ -> None
 
 /// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
 let makeRange startLine startCol endLine endCol =
@@ -265,13 +227,6 @@ let formatSelectionOnly isFsiFile (r : range) (s : string) config =
     let lines = split s
     formatRange false isFsiFile r.StartLine r.StartColumn r.EndLine r.EndColumn lines s config
     
-/// Format and reutrn a selected part of source string using given config; return None if failed
-let tryFormatSelectionOnly isFsiFile (r : range) (s : string) config =
-    try
-        Some (formatSelectionOnly isFsiFile r s config)
-    with 
-    _ -> None
-
 /// Format a selected part of source string using given config; keep other parts unchanged. 
 let formatSelectionFromString isFsiFile (r : range) (s : string) config =
     let lines = split s
@@ -296,13 +251,6 @@ let formatSelectionFromString isFsiFile (r : range) (s : string) config =
 
     let endCol = getEndCol r endTokenizer (ref 0L)
     formatRange true isFsiFile r.StartLine startCol r.EndLine endCol lines s config    
-
-/// Format selection in range r and keep other parts unchanged; return None if failed
-let tryFormatSelectionFromString isFsiFile (r : range) (s : string) config =
-    try
-        Some (formatSelectionFromString isFsiFile r s config)
-    with 
-    _ -> None
 
 type internal BlockType =
    | List
@@ -430,10 +378,3 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
             raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor.""")
         | Some (startLine, startCol) ->
             formatSelectionFromString isFsiFile (makeRange startLine startCol endLine endCol) s config
-
-/// Format around cursor position in pos p and keep other parts unchanged; return None if failed
-let tryFormatAroundCursor isFsiFile (p : pos) (s : string) config =
-    try
-        Some (formatAroundCursor isFsiFile p s config)
-    with 
-    _ -> None

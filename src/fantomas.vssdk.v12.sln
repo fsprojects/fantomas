@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.20827.3
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{057B0E2F-759A-46BC-B0BB-CAB0242D96B8}"
 	ProjectSection(SolutionItems) = preProject
@@ -13,8 +13,6 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas", "Fantomas\Fantomas.fsproj", "{919ADF2D-DF2E-4F4D-9F8B-0376346535C9}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Tests", "Fantomas.Tests\Fantomas.Tests.fsproj", "{28E90D4B-75CE-48D3-ACFE-3AB37179233B}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Args", "Args\Args.fsproj", "{10E82856-34A5-43E0-93E0-7BDE89249684}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Cmd", "Fantomas.Cmd\Fantomas.Cmd.fsproj", "{1E92A842-18B8-4445-9A07-BB202501A7A4}"
 EndProject
@@ -34,10 +32,6 @@ Global
 		{28E90D4B-75CE-48D3-ACFE-3AB37179233B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28E90D4B-75CE-48D3-ACFE-3AB37179233B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28E90D4B-75CE-48D3-ACFE-3AB37179233B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{10E82856-34A5-43E0-93E0-7BDE89249684}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{10E82856-34A5-43E0-93E0-7BDE89249684}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{10E82856-34A5-43E0-93E0-7BDE89249684}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{10E82856-34A5-43E0-93E0-7BDE89249684}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1E92A842-18B8-4445-9A07-BB202501A7A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1E92A842-18B8-4445-9A07-BB202501A7A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E92A842-18B8-4445-9A07-BB202501A7A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
