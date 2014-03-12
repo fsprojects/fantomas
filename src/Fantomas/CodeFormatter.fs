@@ -20,7 +20,7 @@ let internal parseWith fileName content =
     // Get compiler options for a single script file
     let checkOptions = checker.GetProjectOptionsFromScript(fileName, content, DateTime.Now, filterDefines content)
     // Run the first phase (untyped parsing) of the compiler
-    let untypedRes = checker.ParseFileInProject(fileName, content, checkOptions)
+    let untypedRes = checker.ParseFileInProject(fileName, content, checkOptions) |> Async.RunSynchronously
     match untypedRes.ParseTree with
     | Some tree -> tree
     | None -> raise <| FormatException "Parsing failed. Please select a complete code fragment to format."

@@ -2,12 +2,12 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Fantomas</id>
-        <version>1.0.5.1</version>
+        <version>1.0.7</version>
         <title>Fantomas</title>
         <authors>Anh-Dung Phan,Gustavo Guerra</authors>
-        <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
+        <licenseUrl>http://github.com/dungpa/fantomas/blob/master/LICENSE.md</licenseUrl>
         <projectUrl>https://github.com/dungpa/fantomas</projectUrl>
-        <iconUrl>https://github.com/dungpa/fantomas/blob/master/src/Fantomas.VisualStudio/fantomas_logo.png</iconUrl>
+        <iconUrl>https://raw.github.com/dungpa/fantomas/master/src/Fantomas.VisualStudio/fantomas_logo.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>This library aims at formatting F# source files based on a given configuration. Fantomas will ensure correct indentation and consistent spacing between elements in the source files.
 
@@ -20,15 +20,13 @@ Improve support of multiline strings
 Implement various bug fixes</releaseNotes>
         <tags>F# fsharp formatting beautifier indentation indenter</tags>
         <dependencies>
-            <dependency id="FSharp.Compiler.Service" />
+            <dependency id="FSharp.Compiler.Service" version="0.0.36" />
         </dependencies>
         <references>
             <reference file="FantomasLib.dll" />
         </references>
     </metadata>
     <files>
-        <file src="Fantomas.Cmd\bin\Release\Args.dll" target="lib\Args.dll" />
-        <file src="Fantomas.Cmd\bin\Release\Args.pdb" target="lib\Args.pdb" />
         <file src="Fantomas.Cmd\bin\Release\Fantomas.exe" target="lib\Fantomas.exe" />
         <file src="Fantomas.Cmd\bin\Release\Fantomas.pdb" target="lib\Fantomas.pdb" />
         <file src="Fantomas.Cmd\bin\Release\FantomasLib.dll" target="lib\FantomasLib.dll" />

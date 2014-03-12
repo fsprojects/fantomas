@@ -16,7 +16,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Tests", "Fantomas.
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Cmd", "Fantomas.Cmd\Fantomas.Cmd.fsproj", "{1E92A842-18B8-4445-9A07-BB202501A7A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fantomas.VisualStudio.v12", "Fantomas.VisualStudio\Fantomas.VisualStudio.v12.csproj", "{0E63A4AA-D99D-41BC-8B67-DEBE33BA6344}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fantomas.VisualStudio", "Fantomas.VisualStudio\Fantomas.VisualStudio.csproj", "{0E63A4AA-D99D-41BC-8B67-DEBE33BA6344}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
