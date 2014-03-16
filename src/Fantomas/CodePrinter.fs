@@ -235,7 +235,7 @@ and genLetBinding isFirst pref b =
     | b ->
         failwithf "%O isn't a let binding" b
 
-and genProperty prefix ps e =
+and genProperty prefix ao propertyKind ps e =
     let tuplerize ps =
         let rec loop acc = function
             | [p] -> (List.rev acc, p)
@@ -246,18 +246,18 @@ and genProperty prefix ps e =
     match ps with
     | [PatSeq(PatTuple, ps)] -> 
         let (ps, p) = tuplerize ps
-        !- prefix
+        !- prefix +> opt sepSpace ao genAccess -- propertyKind
         +> ifElse (List.atMostOne ps) (col sepComma ps (genPat false) +> sepSpace) 
             (sepOpenT +> col sepComma ps (genPat false) +> sepCloseT +> sepSpace)
         +> genPat false p +> sepEq +> preserveBreakNln e
 
     | ps -> 
-        !- prefix +> col sepSpace ps (genPat false) +> sepEq +> preserveBreakNln e
+        !- prefix +> opt sepSpace ao genAccess -- propertyKind +> col sepSpace ps (genPat false) +> sepEq +> preserveBreakNln e
 
 and genPropertyWithGetSet inter (b1, b2) =
     match b1, b2 with
-    | PropertyBinding(ats, px, ao, isInline, mf1, PatLongIdent(_, s1, ps1, _), e1), 
-      PropertyBinding(_, _, _, _, _, PatLongIdent(_, _, ps2, _), e2) ->
+    | PropertyBinding(ats, px, ao, isInline, mf1, PatLongIdent(ao1, s1, ps1, _), e1), 
+      PropertyBinding(_, _, _, _, _, PatLongIdent(ao2, _, ps2, _), e2) ->
         let prefix =
             genPreXmlDoc px
             +> genAttributes ats +> genMemberFlags inter mf1
@@ -267,7 +267,7 @@ and genPropertyWithGetSet inter (b1, b2) =
         let ps1 = List.map snd ps1
         let ps2 = List.map snd ps2
         prefix -- s1 +> sepSpace +> indent +> sepNln
-        +> genProperty "with get " ps1 e1 +> sepNln +> genProperty "and set " ps2 e2
+        +> genProperty "with " ao1 "get " ps1 e1 +> sepNln +> genProperty "and " ao2 "set " ps2 e2
         +> unindent
     | _ -> sepNone
 
@@ -298,18 +298,18 @@ and genMemberBinding inter b =
             +> genAttributes ats +> genMemberFlags inter mf
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
 
-        let propertyPref =
+        let propertyKind =
             match mf with
-            | MFProperty PropertyGet -> " with get "
-            | MFProperty PropertySet -> " with set "
+            | MFProperty PropertyGet -> "get "
+            | MFProperty PropertySet -> "set "
             | mf -> failwithf "Unexpected member flags: %O" mf
 
         match p with
         // Too tedious in handling property get and set
-        | PatLongIdent(_, s, ps, _) ->   
+        | PatLongIdent(ao, s, ps, _) ->   
             assert (ps |> Seq.map fst |> Seq.forall Option.isNone)
             let ps = List.map snd ps              
-            prefix -- s +> genProperty propertyPref ps e
+            prefix -- s +> genProperty " with " ao propertyKind ps e
         | p -> failwithf "Unexpected pattern: %O" p
 
     | MemberBinding(ats, px, ao, isInline, mf, p, e) ->

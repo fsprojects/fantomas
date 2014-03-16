@@ -251,6 +251,34 @@ type Derived1() =
 """
 
 [<Test>]
+let ``access modifiers on properties``() =
+    formatSourceString false """
+type Foo() = 
+    member x.Get with internal get () = 1
+    member x.Set with private set (v : int) = value <- v
+    member x.GetSet with internal get () = value and private set (v : bool) = value <- v
+    member x.GetI with internal get (key1, key2) = false
+    member x.SetI with private set (key1, key2) value = ()
+    member x.GetSetI with internal get (key1, key2) = true and private set (key1, key2) value = ()""" config
+    |> prepend newline
+    |> should equal """
+type Foo() = 
+    member x.Get with internal get () = 1
+    member x.Set with private set (v : int) = value <- v
+    
+    member x.GetSet 
+        with internal get () = value
+        and private set (v : bool) = value <- v
+    
+    member x.GetI with internal get (key1, key2) = false
+    member x.SetI with private set (key1, key2) value = ()
+    
+    member x.GetSetI 
+        with internal get (key1, key2) = true
+        and private set (key1, key2) value = ()
+"""
+
+[<Test>]
 let ``types with attributes``() =
     formatSourceString false """
 type MyType() =
