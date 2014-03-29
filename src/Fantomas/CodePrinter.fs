@@ -718,7 +718,8 @@ and genException(ExceptionDef(ats, px, ao, uc, ms)) =
     genPreXmlDoc px
     +> genAttributes ats  -- "exception " 
     +> opt sepSpace ao genAccess +> genUnionCase false uc
-    +> genMemberDefnList false ms
+    +> ifElse ms.IsEmpty sepNone 
+        (!- " with" +> indent +> genMemberDefnList false ms +> unindent)
 
 and genSigException(SigExceptionDef(ats, px, ao, uc, ms)) = 
     genPreXmlDoc px

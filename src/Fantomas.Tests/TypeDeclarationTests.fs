@@ -7,9 +7,21 @@ open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``exception declations``() =
+let ``exception declarations``() =
     formatSourceString false "exception Error2 of string * int" config
     |> should equal """exception Error2 of string * int
+"""
+
+[<Test>]
+let ``exception declarations with members``() =
+    formatSourceString false """/// An exception type to signal build errors.
+exception BuildException of string*list<string>
+  with
+    override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)""" config
+    |> should equal """/// An exception type to signal build errors.
+exception BuildException of string * list<string> with
+    override x.ToString() = 
+        x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)
 """
 
 [<Test>]
