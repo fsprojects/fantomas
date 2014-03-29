@@ -21,11 +21,8 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
-test """
-/// An exception type to signal build errors.
-exception BuildException of string*list<string>
-  with
-    override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)
+parse false """
+let x = y?z d
 """
 
 test """

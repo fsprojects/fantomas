@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Fantomas</id>
-        <version>1.0.7</version>
+        <version>1.1.0</version>
         <title>Fantomas</title>
         <authors>Anh-Dung Phan,Gustavo Guerra</authors>
         <licenseUrl>http://github.com/dungpa/fantomas/blob/master/LICENSE.md</licenseUrl>
@@ -20,7 +20,7 @@ Improve support of multiline strings
 Implement various bug fixes</releaseNotes>
         <tags>F# fsharp formatting beautifier indentation indenter</tags>
         <dependencies>
-            <dependency id="FSharp.Compiler.Service" version="0.0.36" />
+            <dependency id="FSharp.Compiler.Service" version="0.0.41" />
         </dependencies>
         <references>
             <reference file="FantomasLib.dll" />

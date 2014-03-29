@@ -428,7 +428,8 @@ and genExpr = function
     | CompApp(s, e) ->
         !- s +> sepSpace +> sepOpenS +> genExpr e 
         +> ifElse (checkBreakForExpr e) (sepNln +> sepCloseSFixed) sepCloseS
-
+    // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
+    | App(Var "?", e::es) -> genExpr e -- "?" +> col sepSpace es genExpr
     | App(Var ".. ..", [e1; e2; e3]) -> genExpr e1 -- ".." +> genExpr e2 -- ".." +> genExpr e3
     // Separate two prefix ops by spaces
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr e

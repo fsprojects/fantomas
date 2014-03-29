@@ -137,6 +137,20 @@ let ``should not add space around ? operator``() =
 """
 
 [<Test>]
+let ``should understand ? as an infix operator``() =
+    formatSourceString false """try 
+    item.MethodInfo.Method.Invoke(null, ipa)
+    |> (fun x -> x?Invoke (true))
+    |> fun (t : Task) -> t.Wait()
+with _ -> ()""" config
+    |> should equal """try 
+    item.MethodInfo.Method.Invoke(null, ipa)
+    |> (fun x -> x?Invoke (true))
+    |> fun (t : Task) -> t.Wait()
+with _ -> ()
+"""
+
+[<Test>]
 let ``should not mess up ?<- operator``() =
     formatSourceString false """x?v <- 2""" config
     |> should equal """x?v <- 2
