@@ -105,7 +105,7 @@ type Volume =
 #### Tuples
 A tuple is parenthesized and the commas therein (delimiters) are each followed by a space e.g. `(1, 2)`, `(x, y, z)`.
 
-A *commonly accepted exception* is to omit commas in pattern matching of tuples.
+A *commonly accepted exception* is to omit parentheses in pattern matching of tuples.
 The justification is to match multiple values, not construct new tuples.
 
 ```fsharp
