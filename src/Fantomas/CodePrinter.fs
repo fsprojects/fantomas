@@ -7,20 +7,21 @@ open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
 
+/// This type consists of contextual information which is important for formatting
 type ASTContext =
     { 
       /// Current node is the first child of its parent
-      IsFirstChild: bool option
+      IsFirstChild: bool
       /// Current node is a subnode deep down in an interface
-      IsInterface: bool option 
+      IsInterface: bool 
       /// This pattern matters for formatting extern declarations
-      IsCStylePattern: bool option
+      IsCStylePattern: bool
       /// Range operators are naked in 'for..in..do' constructs
-      IsNakedRange: bool option
+      IsNakedRange: bool
     }
     static member Default =
-        { IsFirstChild = None; IsInterface = None 
-          IsCStylePattern = None; IsNakedRange = None }
+        { IsFirstChild = false; IsInterface = false 
+          IsCStylePattern = false; IsNakedRange = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg = 
     match functionOrMethod, arg with
@@ -46,14 +47,14 @@ let rec genParsedInput astContext = function
     | SigFile si -> genSigFile astContext si
 
 and genImpFile astContext (ParsedImplFileInput(hs, mns)) = 
-    col sepNone hs (genParsedHashDirective astContext) +> (if hs.IsEmpty then sepNone else sepNln)
+    col sepNone hs genParsedHashDirective +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns (genModuleOrNamespace astContext)
 
 and genSigFile astContext (ParsedSigFileInput(hs, mns)) =
-    col sepNone hs (genParsedHashDirective astContext) +> (if hs.IsEmpty then sepNone else sepNln)
+    col sepNone hs genParsedHashDirective +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns (genSigModuleOrNamespace astContext)
 
-and genParsedHashDirective _astContext (ParsedHashDirective(h, s)) =
+and genParsedHashDirective (ParsedHashDirective(h, s)) =
     let printArgument arg =
         match arg with
         | "" -> sepNone
@@ -138,7 +139,7 @@ and genModuleDecl astContext = function
     | Exception(ex) ->
         genException astContext ex
     | HashDirective(p) -> 
-        genParsedHashDirective astContext p
+        genParsedHashDirective p
     | Extern(ats, px, ao, t, s, ps) ->
         genPreXmlDoc px
         +> colPost sepNln sepNln ats (genAttribute astContext)
@@ -172,7 +173,7 @@ and genSigModuleDecl astContext = function
     | SigException(ex) ->
         genSigException astContext ex
     | SigHashDirective(p) -> 
-        genParsedHashDirective astContext p
+        genParsedHashDirective p
     | SigVal(v) ->
         genVal astContext v
     | SigModuleAbbrev(s1, s2) ->
@@ -418,15 +419,17 @@ and genExpr astContext = function
 
     // Handle the form 'for i in e1 -> e2'
     | ForEach(p, e1, e2, isArrow) ->
-        atCurrentColumn (!- "for " +> genPat astContext false p -- " in " +> genExpr astContext e1 
+        atCurrentColumn (!- "for " +> genPat astContext false p -- " in " +> genExpr { astContext with IsNakedRange = true } e1 
             +> ifElse isArrow (sepArrow +> preserveBreakNln astContext e2) (!- " do" +> indent +> sepNln +> genExpr astContext e2 +> unindent))
 
     | CompExpr(isArrayOrList, e) ->
+        let astContext = { astContext with IsNakedRange = true }
         ifElse isArrayOrList (genExpr astContext e) 
             (sepOpenS +> noIndentBreakNln astContext e 
              +> ifElse (checkBreakForExpr e) (unindent +> sepNln +> sepCloseSFixed) sepCloseS) 
 
     | ArrayOrListOfSeqExpr(isArray, e) -> 
+        let astContext = { astContext with IsNakedRange = true }
         ifElse isArray (sepOpenA +> genExpr astContext e +> sepCloseA) (sepOpenL +> genExpr astContext e +> sepCloseL)
     | JoinIn(e1, e2) -> genExpr astContext e1 -- " in " +> genExpr astContext e2
     | Paren(DesugaredLambda(cps, e)) ->
@@ -443,11 +446,16 @@ and genExpr astContext = function
         atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
     | Paren e -> sepOpenT +> genExpr astContext e +> sepCloseT
     | CompApp(s, e) ->
-        !- s +> sepSpace +> sepOpenS +> genExpr astContext e 
+        !- s +> sepSpace +> sepOpenS +> genExpr { astContext with IsNakedRange = true } e 
         +> ifElse (checkBreakForExpr e) (sepNln +> sepCloseSFixed) sepCloseS
     // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
     | App(Var "?", e::es) -> genExpr astContext e -- "?" +> col sepSpace es (genExpr astContext)
-    | App(Var ".. ..", [e1; e2; e3]) -> genExpr astContext e1 -- ".." +> genExpr astContext e2 -- ".." +> genExpr astContext e3
+    | App(Var "..", [e1; e2]) ->
+        let expr = genExpr astContext e1 -- ".." +> genExpr astContext e2
+        ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
+    | App(Var ".. ..", [e1; e2; e3]) -> 
+        let expr = genExpr astContext e1 -- ".." +> genExpr astContext e2 -- ".." +> genExpr astContext e3
+        ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
     // Separate two prefix ops by spaces
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr astContext e
     | PrefixApp(s, e) -> !- s +> genExpr astContext e

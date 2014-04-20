@@ -21,9 +21,10 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
-parse false """
-type IThing =
-    abstract Foo : name:string * age:int -> bool
+test """
+let factors number = 
+    {2L .. number / 2L}
+    |> Seq.filter (fun x -> number % x = 0L)
 """
 
 test """

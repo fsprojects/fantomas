@@ -645,7 +645,8 @@ let (|PrefixApp|_|) = function
 let private (|InfixApp|_|) = function
     | SynExpr.App(_, true, Var "::", Tuple [e1; e2], _) ->
         Some("::", e1, e2)
-    | SynExpr.App(_, _, SynExpr.App(_, true, Var s, e1, _), e2, _) ->
+    // Range operators need special treatments, so we exclude them here
+    | SynExpr.App(_, _, SynExpr.App(_, true, Var s, e1, _), e2, _) when s <> ".." ->
         Some(s, e1, e2)
     | _ -> None
 

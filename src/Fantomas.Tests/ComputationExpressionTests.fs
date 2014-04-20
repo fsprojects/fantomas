@@ -87,3 +87,15 @@ let rec inorder tree =
         | Leaf x -> yield x
     }
 """
+
+[<Test>]
+let ``range expressions``() =
+    formatSourceString false """
+let factors number = 
+    {2L .. number / 2L}
+    |> Seq.filter (fun x -> number % x = 0L)""" config
+    |> prepend newline
+    |> should equal """
+let factors number = 
+    { 2L..number / 2L } |> Seq.filter (fun x -> number % x = 0L)
+"""
