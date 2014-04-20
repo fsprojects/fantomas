@@ -41,7 +41,7 @@ let internal formatWith ast (s : string) config =
     let s = s.Replace("\r\n", "\n").Replace("\r", "\n")
     let s' =    
         Context.create config s 
-        |> genParsedInput ast
+        |> genParsedInput ASTContext.Default ast
         |> dump
         |> if config.StrictMode then id else integrateComments s
 
