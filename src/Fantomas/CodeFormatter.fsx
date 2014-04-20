@@ -22,7 +22,8 @@ fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
 parse false """
-let x = y?z d
+type IThing =
+    abstract Foo : name:string * age:int -> bool
 """
 
 test """

@@ -346,11 +346,11 @@ and genMemberFlags inter = function
     | MFOverride _ -> ifElse inter (!- "member ") (!- "override ")
 
 and genVal(Val(ats, px, ao, s, t, vi, _)) = 
-    let (FunType ts) = (t, vi)
+    let (FunType namedArgs) = (t, vi)
     genPreXmlDoc px
     +> genAttributes ats 
     +> atCurrentColumn (indent -- "val " +> opt sepSpace ao genAccess -- s 
-                        +> sepColon +> genTypeList ts +> unindent)
+                        +> sepColon +> genTypeList namedArgs +> unindent)
 
 and genRecordFieldName(RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNln e)
@@ -688,11 +688,11 @@ and genSigTypeDefn isFirst (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
 
 and genMemberSig = function
     | MSMember(Val(ats, px, ao, s, t, vi, _), mf) -> 
-        let (FunType ts) = (t, vi)
+        let (FunType namedArgs) = (t, vi)
         genPreXmlDoc px +> genOneLinerAttributes ats 
         +> atCurrentColumn (indent +> genMemberFlags false mf +> opt sepNone ao genAccess
                                    +> ifElse (s = "``new``") (!- "new") (!- s) 
-                                   +> sepColon +> genTypeList ts +> unindent)
+                                   +> sepColon +> genTypeList namedArgs +> unindent)
 
     | MSInterface t -> !- "interface " +> genType false t
     | MSInherit t -> !- "inherit " +> genType false t
@@ -913,12 +913,13 @@ and genMemberDefn inter = function
         +> opt sepSpace ao genAccess -- s +> optPre sepColon sepNone typeOpt (genType false)
          +> sepEq +> genExpr e -- propertyKind mk
 
-    | MDAbstractSlot(ats, px, ao, s, t, ValTyparDecls(tds, _, tcs), MFMemberFlags mk) ->
+    | MDAbstractSlot(ats, px, ao, s, t, vi, ValTyparDecls(tds, _, tcs), MFMemberFlags mk) ->
+        let (FunType namedArgs) = (t, vi)
         genPreXmlDoc px 
         +> genOneLinerAttributes ats
         +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
         +> genTypeParam tds tcs
-        +> sepColon +> genType false t -- propertyKind mk
+        +> sepColon +> genTypeList namedArgs -- propertyKind mk
 
     | md -> failwithf "Unexpected member definition: %O" md
 

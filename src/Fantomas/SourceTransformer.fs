@@ -234,7 +234,7 @@ let (|OneLinerMemberDefn|MultilineMemberDefn|) md =
     | MDValField _
     | MDImplicitCtor _
     | MDInterface(_, None)
-    | MDAbstractSlot([], PreXmlDoc [||], _, _, _, _, _) 
+    | MDAbstractSlot([], PreXmlDoc [||], _, _, _, _, _, _) 
     | MDImplicitInherit(_, OneLinerExpr _, _)
     | MDMember(OneLinerBinding _)
     | MDAutoProperty([], PreXmlDoc [||], _, _, OneLinerExpr _, _, _, _)

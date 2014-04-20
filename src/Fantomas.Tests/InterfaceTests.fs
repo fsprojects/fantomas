@@ -99,3 +99,12 @@ let f() =
       interface IEnumerable<_> with
           member x.GetEnumerator() = null }
 """
+
+[<Test>]
+let ``should keep named arguments on abstract members``() =
+    formatSourceString false """type IThing =
+    abstract Foo : name:string * age:int -> bool
+"""  config
+    |> should equal """type IThing = 
+    abstract Foo : name:string * age:int -> bool
+"""

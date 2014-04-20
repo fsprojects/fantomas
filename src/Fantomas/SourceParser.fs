@@ -373,8 +373,8 @@ let (|MDLetBindings|_|) = function
     | _ -> None
 
 let (|MDAbstractSlot|_|) = function
-    | SynMemberDefn.AbstractSlot(ValSpfn(ats, Ident s, tds, t, _, _, _, px, ao, _, _), mf, _) ->
-        Some(ats, px, ao, s, t, tds, mf)
+    | SynMemberDefn.AbstractSlot(ValSpfn(ats, Ident s, tds, t, vi, _, _, px, ao, _, _), mf, _) ->
+        Some(ats, px, ao, s, t, vi, tds, mf)
     | _ -> None
 
 let (|MDInterface|_|) = function
