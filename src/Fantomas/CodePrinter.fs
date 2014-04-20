@@ -907,10 +907,11 @@ and genMemberDefn inter = function
         +> opt sepNone mdo 
             (fun mds -> !- " with" +> indent +> genMemberDefnList true mds +> unindent)
 
-    | MDAutoProperty(ats, px, ao, mk, e, s) -> 
+    | MDAutoProperty(ats, px, ao, mk, e, s, isStatic, typeOpt) -> 
         genPreXmlDoc px
-        +> genOneLinerAttributes ats -- "member val " 
-        +> opt sepSpace ao genAccess -- s +> sepEq +> genExpr e -- propertyKind mk
+        +> genOneLinerAttributes ats +> ifElse isStatic (!- "static member val ") (!- "member val ")
+        +> opt sepSpace ao genAccess -- s +> optPre sepColon sepNone typeOpt (genType false)
+         +> sepEq +> genExpr e -- propertyKind mk
 
     | MDAbstractSlot(ats, px, ao, s, t, ValTyparDecls(tds, _, tcs), MFMemberFlags mk) ->
         genPreXmlDoc px 

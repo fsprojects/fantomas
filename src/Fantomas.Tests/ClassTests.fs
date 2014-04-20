@@ -256,3 +256,27 @@ let ``should keep parens in class inheritance in the right place``() =
         let functions = System.Collections.Generic.Dictionary<string, IState>()
     end
 """
+
+[<Test>]
+let ``should keep type annotations on auto properties``() =
+    formatSourceString false """type Document(id : string, library : string, name : string option) = 
+    member val ID = id
+    member val Library = library
+    member val Name = name with get, set
+    member val LibraryID : string option = None with get, set
+"""  config
+    |> should equal """type Document(id : string, library : string, name : string option) = 
+    member val ID = id
+    member val Library = library
+    member val Name = name with get, set
+    member val LibraryID : string option = None with get, set
+"""
+
+[<Test>]
+let ``should work on static auto properties``() =
+    formatSourceString false """type A() =
+    static member val LastSchema = "" with get, set
+"""  config
+    |> should equal """type A() = 
+    static member val LastSchema = "" with get, set
+"""

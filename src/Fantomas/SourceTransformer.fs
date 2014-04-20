@@ -237,7 +237,7 @@ let (|OneLinerMemberDefn|MultilineMemberDefn|) md =
     | MDAbstractSlot([], PreXmlDoc [||], _, _, _, _, _) 
     | MDImplicitInherit(_, OneLinerExpr _, _)
     | MDMember(OneLinerBinding _)
-    | MDAutoProperty([], PreXmlDoc [||], _, _, OneLinerExpr _, _)
+    | MDAutoProperty([], PreXmlDoc [||], _, _, OneLinerExpr _, _, _, _)
     | MDLetBindings(_, _, [OneLinerBinding _]) ->
         OneLinerMemberDefn md
 
