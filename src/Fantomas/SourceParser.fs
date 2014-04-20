@@ -1163,7 +1163,10 @@ let (|FunType|) (t, ValInfo(aiss, ai)) =
         | _ -> []
     loop(t, aiss)
 
+/// A rudimentary recognizer for extern functions
+/// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) = function
-    | Let(LetBinding([Attribute("DllImport", _, _)] as ats, px, ao, _, _, PatLongIdent(_, s, [_, PatSeq(PatTuple, ps)], _), TypedExpr(Typed, _, t))) ->
+    | Let(LetBinding([Attribute(name, _, _)] as ats, px, ao, _, _, PatLongIdent(_, s, [_, PatSeq(PatTuple, ps)], _), TypedExpr(Typed, _, t)))
+        when name.EndsWith("DllImport") ->
         Some(ats, px, ao, t, s, ps)
     | _ -> None

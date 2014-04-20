@@ -203,3 +203,13 @@ module InteropWithNative =
     [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
     extern IntPtr setCallbridgeSupportTarget(IntPtr newTarget)
 """
+
+[<Test>]
+let ``should handle external functions with fully-qualified attributes``() =
+    formatSourceString false """[<System.Runtime.InteropServices.DllImport("user32.dll")>]
+extern int GetWindowLong(System.IntPtr hwnd, int index)""" config
+    |> prepend newline
+    |> should equal """
+[<System.Runtime.InteropServices.DllImport("user32.dll")>]
+extern int GetWindowLong(System.IntPtr hwnd, int index)
+"""
