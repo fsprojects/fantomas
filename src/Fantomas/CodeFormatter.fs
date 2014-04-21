@@ -32,6 +32,275 @@ let parse isFsiFile s =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fs"
     parseWith fileName s
 
+/// Check whether an AST consists of parsing errors 
+let isValidAST ast = 
+    let (|IndexerArg|) = function
+        | SynIndexerArg.Two(e1, e2) -> [e1; e2]
+        | SynIndexerArg.One e -> [e]
+
+    let (|IndexerArgList|) xs =
+        List.collect (|IndexerArg|) xs
+
+    let rec validateImplFileInput (ParsedImplFileInput(_, moduleOrNamespaceList)) = 
+        List.forall validateModuleOrNamespace moduleOrNamespaceList
+
+    and validateModuleOrNamespace(SynModuleOrNamespace(_lid, _isModule, decls, _xmldoc, _attributes, _access, _range)) =
+        List.forall validateModuleDecl decls
+
+    and validateModuleDecl(decl: SynModuleDecl) =
+        match decl with
+        | SynModuleDecl.Exception(ExceptionDefn(_repr, synMembers, _defnRange), _range) -> 
+            List.forall validateMemberDefn synMembers
+        | SynModuleDecl.Let(_isRecursive, bindings, _range) ->
+            List.forall validateBinding bindings
+        | SynModuleDecl.ModuleAbbrev(_lhs, _rhs, _range) ->
+            true
+        | SynModuleDecl.NamespaceFragment(fragment) ->
+            validateModuleOrNamespace fragment
+        | SynModuleDecl.NestedModule(_componentInfo, modules, _isContinuing, _range) ->
+            List.forall validateModuleDecl modules
+        | SynModuleDecl.Types(typeDefs, _range) ->
+            List.forall validateTypeDefn typeDefs
+        | SynModuleDecl.DoExpr (_, expr, _) ->
+            validateExpr expr
+        | SynModuleDecl.Attributes _
+        | SynModuleDecl.HashDirective _
+        | SynModuleDecl.Open _ -> 
+            true
+
+    and validateTypeDefn(TypeDefn(_componentInfo, representation, members, _range)) = 
+        validateTypeDefnRepr representation && List.forall validateMemberDefn members        
+
+    and validateTypeDefnRepr(typeDefnRepr: SynTypeDefnRepr) = 
+        match typeDefnRepr with
+        | SynTypeDefnRepr.ObjectModel(_kind, members, _range) ->
+            List.forall validateMemberDefn members
+        | SynTypeDefnRepr.Simple(_repr, _range) -> 
+            true
+
+    and validateMemberDefn (memberDefn: SynMemberDefn) =
+        match memberDefn with
+        | SynMemberDefn.AbstractSlot(_synValSig, _memberFlags, _range) ->
+            true
+        | SynMemberDefn.AutoProperty(_attributes, _isStatic, _id, _type, _memberKind, _memberFlags, _xmlDoc, _access, expr, _r1, _r2) ->
+            validateExpr expr
+        | SynMemberDefn.Interface(_interfaceType, members, _range) ->
+            defaultArg (Option.map (List.forall validateMemberDefn) members) true
+        | SynMemberDefn.Member(binding, _range) ->
+            validateBinding binding
+        | SynMemberDefn.NestedType(typeDef, _access, _range) -> 
+            validateTypeDefn typeDef
+        | SynMemberDefn.ValField(_field, _range) ->
+            true
+        | SynMemberDefn.LetBindings(bindings, _isStatic, _isRec, _range) ->
+            List.forall validateBinding bindings
+        | SynMemberDefn.Open _
+        | SynMemberDefn.Inherit _
+        | SynMemberDefn.ImplicitCtor _ -> 
+            true
+        | SynMemberDefn.ImplicitInherit(_, expr, _, _) ->
+            validateExpr expr
+
+    and validateBinding (Binding(_access, _bindingKind, _isInline, _isMutable, _attrs, _xmldoc, _valData, headPat, _retTy, expr, _bindingRange, _seqPoint)) =
+        validateExpr expr && validatePattern headPat
+
+    and validateClause (Clause(pat, expr, exprOpt)) =
+        validatePattern pat && validateExpr expr && defaultArg (Option.map validateExpr exprOpt) true
+
+    and validateExpr expr =
+        match expr with
+        | SynExpr.Quote(synExpr1, _, synExpr2, _, _range) ->
+            List.forall validateExpr [synExpr1; synExpr2]
+
+        | SynExpr.Const(_synConst, _range) -> 
+            true
+
+        | SynExpr.Paren(synExpr, _, _, _parenRange) ->
+            validateExpr synExpr
+        | SynExpr.Typed(synExpr, _synType, _range) -> 
+            validateExpr synExpr
+
+        | SynExpr.Tuple(synExprList, _, _range)
+        | SynExpr.ArrayOrList(_, synExprList, _range) ->
+            List.forall validateExpr synExprList
+        | SynExpr.Record(_inheritOpt, _copyOpt, fields, _range) -> 
+            List.forall (fun (_, e, _) -> defaultArg (Option.map validateExpr e) true) fields
+
+        | SynExpr.New(_, _synType, synExpr, _range) -> 
+            validateExpr synExpr
+
+        | SynExpr.ObjExpr(_ty, _baseCallOpt, binds, _ifaces, _range1, _range2) -> 
+            List.forall validateBinding binds
+
+        | SynExpr.While(_sequencePointInfoForWhileLoop, synExpr1, synExpr2, _range) ->
+            List.forall validateExpr [synExpr1; synExpr2]
+        | SynExpr.ForEach(_sequencePointInfoForForLoop, _seqExprOnly, _isFromSource, synPat, synExpr1, synExpr2, _range) -> 
+            List.forall validateExpr [synExpr1; synExpr2] && validatePattern synPat
+
+        | SynExpr.For(_sequencePointInfoForForLoop, _ident, synExpr1, _, synExpr2, synExpr3, _range) -> 
+            List.forall validateExpr [synExpr1; synExpr2; synExpr3]
+
+        | SynExpr.ArrayOrListOfSeqExpr(_, synExpr, _range) ->
+            validateExpr synExpr
+        | SynExpr.CompExpr(_, _, synExpr, _range) ->
+            validateExpr synExpr
+        | SynExpr.Lambda(_, _, _synSimplePats, synExpr, _range) ->
+                validateExpr synExpr
+
+        | SynExpr.MatchLambda(_isExnMatch, _argm, synMatchClauseList, _spBind, _wholem) -> 
+            List.forall validateClause synMatchClauseList
+        | SynExpr.Match(_sequencePointInfoForBinding, synExpr, synMatchClauseList, _, _range) ->
+            validateExpr synExpr && List.forall validateClause synMatchClauseList
+
+        | SynExpr.Lazy(synExpr, _range) ->
+            validateExpr synExpr
+        | SynExpr.Do(synExpr, _range) ->
+            validateExpr synExpr
+        | SynExpr.Assert(synExpr, _range) -> 
+            validateExpr synExpr
+
+        | SynExpr.App(_exprAtomicFlag, _isInfix, synExpr1, synExpr2, _range) ->
+            List.forall validateExpr [synExpr1; synExpr2]
+
+        | SynExpr.TypeApp(synExpr, _, _synTypeList, _commas, _, _, _range) -> 
+            validateExpr synExpr
+
+        | SynExpr.LetOrUse(_, _, synBindingList, synExpr, _range) -> 
+            List.forall validateBinding synBindingList && validateExpr synExpr
+
+        | SynExpr.TryWith(synExpr, _range, synMatchClauseList, _range2, _range3, _sequencePointInfoForTry, _sequencePointInfoForWith) -> 
+            validateExpr synExpr && List.forall validateClause synMatchClauseList
+
+        | SynExpr.TryFinally(synExpr1, synExpr2, _range, _sequencePointInfoForTry, _sequencePointInfoForFinally) -> 
+            List.forall validateExpr [synExpr1; synExpr2]
+
+        | SynExpr.Sequential(_sequencePointInfoForSeq, _, synExpr1, synExpr2, _range) -> 
+            List.forall validateExpr [synExpr1; synExpr2]
+
+        | SynExpr.IfThenElse(synExpr1, synExpr2, synExprOpt, _sequencePointInfoForBinding, _isRecovery, _range, _range2) -> 
+            match synExprOpt with
+            | Some synExpr3 ->
+                List.forall validateExpr [synExpr1; synExpr2; synExpr3]
+            | None ->
+                List.forall validateExpr [synExpr1; synExpr2]
+
+        | SynExpr.Ident(_ident) ->
+            true
+        | SynExpr.LongIdent(_, _longIdent, _altNameRefCell, _range) -> 
+            true
+
+        | SynExpr.LongIdentSet(_longIdent, synExpr, _range) ->
+            validateExpr synExpr
+        | SynExpr.DotGet(synExpr, _dotm, _longIdent, _range) -> 
+            validateExpr synExpr
+
+        | SynExpr.DotSet(synExpr1, _longIdent, synExpr2, _range) ->
+            List.forall validateExpr [synExpr1; synExpr2]
+
+        | SynExpr.DotIndexedGet(synExpr, IndexerArgList synExprList, _range, _range2) -> 
+            validateExpr synExpr && List.forall validateExpr synExprList 
+
+        | SynExpr.DotIndexedSet(synExpr1, IndexerArgList synExprList, synExpr2, _, _range, _range2) -> 
+            [ yield synExpr1
+              yield! synExprList
+              yield synExpr2 ]
+            |> List.forall validateExpr
+
+        | SynExpr.JoinIn(synExpr1, _range, synExpr2, _range2) ->
+            List.forall validateExpr [synExpr1; synExpr2]
+        | SynExpr.NamedIndexedPropertySet(_longIdent, synExpr1, synExpr2, _range) ->
+            List.forall validateExpr [synExpr1; synExpr2]
+
+        | SynExpr.DotNamedIndexedPropertySet(synExpr1, _longIdent, synExpr2, synExpr3, _range) ->  
+            List.forall validateExpr [synExpr1; synExpr2; synExpr3]
+
+        | SynExpr.TypeTest(synExpr, _synType, _range)
+        | SynExpr.Upcast(synExpr, _synType, _range)
+        | SynExpr.Downcast(synExpr, _synType, _range) ->
+            validateExpr synExpr
+        | SynExpr.InferredUpcast(synExpr, _range)
+        | SynExpr.InferredDowncast(synExpr, _range) ->
+            validateExpr synExpr
+        | SynExpr.AddressOf(_, synExpr, _range, _range2) ->
+            validateExpr synExpr
+        | SynExpr.TraitCall(_synTyparList, _synMemberSig, synExpr, _range) ->
+            validateExpr synExpr
+
+        | SynExpr.Null(_range)
+        | SynExpr.ImplicitZero(_range) -> 
+            true
+
+        | SynExpr.YieldOrReturn(_, synExpr, _range)
+        | SynExpr.YieldOrReturnFrom(_, synExpr, _range) 
+        | SynExpr.DoBang(synExpr, _range) -> 
+            validateExpr synExpr
+
+        | SynExpr.LetOrUseBang(_sequencePointInfoForBinding, _, _, synPat, synExpr1, synExpr2, _range) -> 
+            List.forall validateExpr [synExpr1; synExpr2] && validatePattern synPat
+
+        | SynExpr.LibraryOnlyILAssembly _
+        | SynExpr.LibraryOnlyStaticOptimization _ 
+        | SynExpr.LibraryOnlyUnionCaseFieldGet _
+        | SynExpr.LibraryOnlyUnionCaseFieldSet _ ->
+            true
+
+        | SynExpr.ArbitraryAfterError(_debugStr, _range) -> 
+            false
+        | SynExpr.FromParseError(_synExpr, _range)
+        | SynExpr.DiscardAfterMissingQualificationAfterDot(_synExpr, _range) -> 
+            false
+
+    and validatePattern = function
+        | SynPat.Const(_const, _range) -> true
+        | SynPat.Wild _ 
+        | SynPat.Null _-> true
+        | SynPat.Named(pat, _ident, _isThis,  _accessOpt, _range) ->
+            validatePattern pat
+        | SynPat.Typed(pat, _typ, _range) ->
+            validatePattern pat
+        | SynPat.Attrib(pat, _attrib, _range) ->
+            validatePattern pat
+        | SynPat.Or(pat1, pat2, _range) ->
+            validatePattern pat1 && validatePattern pat2
+        | SynPat.Ands(pats, _range) ->
+            List.forall validatePattern pats
+        | SynPat.LongIdent(_, _, _, constructorArgs, _, _) -> 
+            validateConstructorArgs constructorArgs
+        | SynPat.Tuple(pats, _range) ->
+            List.forall validatePattern pats
+        | SynPat.Paren(pat, _range) ->
+            validatePattern pat
+        | SynPat.ArrayOrList(_isArray, pats, _range) ->
+            List.forall validatePattern pats
+        | SynPat.Record(identPats, _range) ->
+            List.forall (fun (_, pat) -> validatePattern pat) identPats
+        | SynPat.OptionalVal(_ident, _range) -> true
+        | SynPat.IsInst(_typ, _range) -> true
+        | SynPat.QuoteExpr(expr, _range) ->
+            validateExpr expr
+        | SynPat.DeprecatedCharRange _
+        | SynPat.InstanceMember _ -> true
+        | SynPat.FromParseError _ -> false
+
+    and validateConstructorArgs = function
+        | SynConstructorArgs.Pats pats ->
+            List.forall validatePattern pats
+        | SynConstructorArgs.NamePatPairs(identPats, _range) ->
+            List.forall (snd >> validatePattern) identPats
+
+    match ast with
+    | ParsedInput.SigFile _input ->
+        // There is not much to explore in signature files
+        true
+    | ParsedInput.ImplFile input -> 
+        validateImplFileInput input
+
+/// Check whether an input string is invalid in F# by looking for erroneous nodes in ASTs
+let isValidFSharpCode isFsiFile s =
+    try
+        isValidAST (parse isFsiFile s)
+    with _ -> false
+
 let internal split (s : string) =
     s.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n')
 
@@ -47,8 +316,7 @@ let internal formatWith ast (s : string) config =
 
     // Sometimes F# parser gives a partial AST for incorrect input
     if String.IsNullOrWhiteSpace s <> String.IsNullOrWhiteSpace s' then
-        raise <| FormatException """Incomplete code fragment. 
-This is mostly because of parsing errors or the use of F# constructs newer than being supported."""
+        raise <| FormatException "Incomplete code fragment which is most likely due to parsing errors or the use of F# constructs newer than supported."
     else s'
 
 let internal format isFsiFile (s : string) config =
