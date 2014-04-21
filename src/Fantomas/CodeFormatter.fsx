@@ -22,8 +22,9 @@ fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
 test """
-[<System.Runtime.InteropServices.DllImport("user32.dll")>]
-extern int GetWindowLong(System.IntPtr hwnd, int index)
+type A() =
+    member x.B with set v = "[<System.Runtime.InteropServices.DllImport(\"user32.dll\")>] extern int GetWindowLong(System.IntPtr hwnd, int index)"
+                            |> ignore
 """;;
 
 

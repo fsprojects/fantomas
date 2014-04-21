@@ -266,7 +266,7 @@ type Derived1() =
 let ``access modifiers on properties``() =
     formatSourceString false """
 type Foo() = 
-    member x.Get with internal get () = 1
+    member x.Get with get () = 1
     member x.Set with private set (v : int) = value <- v
     member x.GetSet with internal get () = value and private set (v : bool) = value <- v
     member x.GetI with internal get (key1, key2) = false
@@ -275,15 +275,18 @@ type Foo() =
     |> prepend newline
     |> should equal """
 type Foo() = 
-    member x.Get with internal get () = 1
-    member x.Set with private set (v : int) = value <- v
+    member x.Get = 1
+    member x.Set 
+        with private set (v : int) = value <- v
     
     member x.GetSet 
         with internal get () = value
         and private set (v : bool) = value <- v
     
-    member x.GetI with internal get (key1, key2) = false
-    member x.SetI with private set (key1, key2) value = ()
+    member x.GetI 
+        with internal get (key1, key2) = false
+    member x.SetI 
+        with private set (key1, key2) value = ()
     
     member x.GetSetI 
         with internal get (key1, key2) = true
@@ -614,4 +617,41 @@ type CustomGraphControl() =
 type CustomGraphControl() = 
     inherit UserControl()
     [<DefaultValue(false)>] static val mutable private GraphProperty : DependencyProperty
+"""
+
+[<Test>]
+let ``should indent properly on getters and setters``() =
+    formatSourceString false """
+type A() =
+    override this.Address with set v = 
+        let x =
+             match _kbytes.GetAddress(8) with
+             | Some(x) -> x
+             | None -> null
+        ignore x""" config
+    |> prepend newline
+    |> should equal """
+type A() = 
+    override this.Address 
+        with set v = 
+            let x = 
+                match _kbytes.GetAddress(8) with
+                | Some(x) -> x
+                | None -> null
+            ignore x
+"""
+
+[<Test>]
+let ``should go to new lines on long property bodies``() =
+    formatSourceString false """
+type A() =
+    member x.B with set v = "[<System.Runtime.InteropServices.DllImport(\"user32.dll\")>] extern int GetWindowLong(System.IntPtr hwnd, int index)"
+                            |> ignore""" config
+    |> prepend newline
+    |> should equal """
+type A() = 
+    member x.B 
+        with set v = 
+            "[<System.Runtime.InteropServices.DllImport(\"user32.dll\")>] extern int GetWindowLong(System.IntPtr hwnd, int index)" 
+            |> ignore
 """

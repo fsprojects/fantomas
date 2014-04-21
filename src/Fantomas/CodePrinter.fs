@@ -260,6 +260,9 @@ and genLetBinding astContext pref b =
     | b ->
         failwithf "%O isn't a let binding" b
 
+and genShortGetProperty astContext e = 
+    sepEq +> preserveBreakNln astContext e
+
 and genProperty astContext prefix ao propertyKind ps e =
     let tuplerize ps =
         let rec loop acc = function
@@ -277,7 +280,8 @@ and genProperty astContext prefix ao propertyKind ps e =
         +> genPat astContext p +> sepEq +> preserveBreakNln astContext e
 
     | ps -> 
-        !- prefix +> opt sepSpace ao genAccess -- propertyKind +> col sepSpace ps (genPat astContext) +> sepEq +> preserveBreakNln astContext e
+        !- prefix +> opt sepSpace ao genAccess -- propertyKind +> col sepSpace ps (genPat astContext) 
+        +> sepEq +> preserveBreakNln astContext e
 
 and genPropertyWithGetSet astContext (b1, b2) =
     match b1, b2 with
@@ -292,11 +296,11 @@ and genPropertyWithGetSet astContext (b1, b2) =
         let ps1 = List.map snd ps1
         let ps2 = List.map snd ps2
         prefix -- s1 +> sepSpace +> indent +> sepNln
-        +> genProperty astContext "with " ao1 "get " ps1 e1 +> sepNln +> genProperty astContext "and " ao2 "set " ps2 e2
+        +> genProperty astContext "with " ao1 "get " ps1 e1 +> sepNln 
+        +> genProperty astContext "and " ao2 "set " ps2 e2
         +> unindent
     | _ -> sepNone
 
-/// Value inter indicates printing in a interface definition. 
 /// Each member is separated by a new line.
 and genMemberBindingList astContext = function
     | [x] -> genMemberBinding astContext x
@@ -333,8 +337,15 @@ and genMemberBinding astContext b =
         // Too tedious in handling property get and set
         | PatLongIdent(ao, s, ps, _) ->   
             assert (ps |> Seq.map fst |> Seq.forall Option.isNone)
-            let ps = List.map snd ps              
-            prefix -- s +> genProperty astContext " with " ao propertyKind ps e
+            match ao, propertyKind with
+            | None, "get " ->
+                // Provide short-hand notation `x.Member = ...` for getters
+                prefix -- s +> genShortGetProperty astContext e
+            | _ ->
+                let ps = List.map snd ps              
+                prefix -- s +> sepSpace +> indent +> sepNln +> 
+                genProperty astContext "with " ao propertyKind ps e
+                +> unindent
         | p -> failwithf "Unexpected pattern: %O" p
 
     | MemberBinding(ats, px, ao, isInline, mf, p, e) ->
@@ -956,7 +967,7 @@ and genMemberDefn astContext = function
     | md -> failwithf "Unexpected member definition: %O" md
 
 and propertyKind = function
-    | PropertyGet -> " with get"
+    | PropertyGet -> ""
     | PropertySet -> " with set"
     | PropertyGetSet -> " with get, set"
     | _ -> ""
