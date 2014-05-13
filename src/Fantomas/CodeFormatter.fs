@@ -341,13 +341,13 @@ let makeRange startLine startCol endLine endCol =
     mkRange "/tmp.fsx" (mkPos startLine startCol) (mkPos endLine endCol)
 
 /// Get first non-whitespace line
-let rec internal getStartLine (lines : _ []) i =
+let rec internal getStartLineIndex (lines : _ []) i =
     if i = lines.Length-1 || not <| String.IsNullOrWhiteSpace(lines.[i]) then i
-    else getStartLine lines (i + 1)
+    else getStartLineIndex lines (i + 1)
 
-let rec internal getEndLine (lines : _ []) i =
+let rec internal getEndLineIndex (lines : _ []) i =
     if i = 0 || not <| String.IsNullOrWhiteSpace(lines.[i]) then i
-    else getEndLine lines (i - 1)
+    else getEndLineIndex lines (i - 1)
 
 let internal isDelimitToken (tok : TokenInformation) =
     tok.CharClass <> TokenCharKind.WhiteSpace && 
@@ -380,7 +380,7 @@ type internal Patch =
     | TypeMember
     | RecType
     | RecLet
-    | NoPatch
+    | Nothing
 
 let internal startWithMember (sel : string) =  
     [|"member"; "abstract"; "default"; "override"; 
@@ -390,7 +390,7 @@ let internal startWithMember (sel : string) =
 /// Find the first type declaration or let binding at beginnings of lines
 let internal getPatch startCol (lines : string []) =
     let rec loop i = 
-        if i < 0 then NoPatch 
+        if i < 0 then Nothing 
         elif Regex.Match(lines.[i], "^[\s]*type").Success then RecType
         else
             // Need to compare column to ensure that the let binding is at the same level
@@ -400,8 +400,12 @@ let internal getPatch startCol (lines : string []) =
             if m.Success && col <= startCol + 4 then RecLet else loop (i - 1)
     loop (lines.Length - 1)
 
-let internal formatRange replaceDocument isFsiFile startLine startCol endLine endCol (lines : _ []) (s : string) config =
+let internal formatRange replaceDocument isFsiFile (range : range) (lines : _ []) (s : string) config =
+    let startLine = range.StartLine
+    let startCol = range.StartColumn
+    let endLine = range.EndLine
     let s = s.Replace("\r\n", "\n").Replace("\r", "\n")
+
     // Convert from range to string positions
     let stringPos (r : range) =
         // Assume that content has been normalized (no "\r\n" anymore)
@@ -418,7 +422,7 @@ let internal formatRange replaceDocument isFsiFile startLine startCol endLine en
             if pos >= s.Length then s.Length - 1 else pos 
         (start, finish)
 
-    let range = makeRange startLine startCol endLine endCol
+    
     let (start, finish) = stringPos range
     let pre = if start = 0 || not replaceDocument then "" else s.[0..start-1]
 
@@ -438,8 +442,8 @@ let internal formatRange replaceDocument isFsiFile startLine startCol endLine en
             // Replace "and" by "type" or "let rec"
             if startLine = endLine then (pattern.Replace(sel, replacement, 1), p)
             else (new String(' ', startCol) + pattern.Replace(sel, replacement, 1), p)
-        elif startLine = endLine then (sel, NoPatch)
-        else (new String(' ', startCol) + sel, NoPatch)
+        elif startLine = endLine then (sel, Nothing)
+        else (new String(' ', startCol) + sel, Nothing)
 
     let post =
         if finish < s.Length && replaceDocument then 
@@ -487,7 +491,7 @@ let internal formatRange replaceDocument isFsiFile startLine startCol endLine en
         let pattern = if patch = RecType then Regex("type") else Regex("let rec")
         let formatteds = split (pattern.Replace(result, "and", 1))
         reconstructSourceCode startCol formatteds pre post
-    | NoPatch ->
+    | Nothing ->
         let result = formatSelection isFsiFile selection config
         let formatteds = split result
         reconstructSourceCode startCol formatteds pre post
@@ -495,32 +499,38 @@ let internal formatRange replaceDocument isFsiFile startLine startCol endLine en
 /// Format a part of source string using given config, and return the (formatted) selected part only.
 let formatSelectionOnly isFsiFile (r : range) (s : string) config =
     let lines = split s
-    formatRange false isFsiFile r.StartLine r.StartColumn r.EndLine r.EndColumn lines s config
-    
-/// Format a selected part of source string using given config; keep other parts unchanged. 
-let formatSelectionFromString isFsiFile (r : range) (s : string) config =
+    formatRange false isFsiFile r lines s config
+
+ /// Format a selected part of source string using given config; expanded selected ranges to parsable ranges. 
+let formatSelectionExpanded isFsiFile (r : range) (s : string) config =
     let lines = split s
-    let sourceToken = SourceTokenizer([], "/tmp.fsx")
+    let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
 
     // Move to the section with real contents
-    let r =
+    let contentRange =
         if r.StartLine = r.EndLine then r
         else
-            let startLine = getStartLine lines (r.StartLine - 1)
-            let endLine = getEndLine lines (r.EndLine - 1) 
+            let startLine = getStartLineIndex lines (r.StartLine - 1) + 1
+            let endLine = getEndLineIndex lines (r.EndLine - 1) + 1
             // Notice that Line indices start at 1 while Column indices start at 0.
-            makeRange (startLine + 1) 0 (endLine + 1) (lines.[endLine].Length - 1)
+            makeRange startLine 0 endLine (lines.[endLine-1].Length - 1)
 
-    let startTokenizer = sourceToken.CreateLineTokenizer(lines.[r.StartLine-1])
+    let startTokenizer = sourceTokenizer.CreateLineTokenizer(lines.[contentRange.StartLine-1])
 
-    let startCol = getStartCol r startTokenizer (ref 0L)
+    let startCol = getStartCol contentRange startTokenizer (ref 0L)
 
     let endTokenizer =
-        if r.StartLine = r.EndLine then startTokenizer 
-        else sourceToken.CreateLineTokenizer(lines.[r.EndLine-1])
+        if contentRange.StartLine = contentRange.EndLine then startTokenizer 
+        else sourceTokenizer.CreateLineTokenizer(lines.[contentRange.EndLine-1])
 
-    let endCol = getEndCol r endTokenizer (ref 0L)
-    formatRange true isFsiFile r.StartLine startCol r.EndLine endCol lines s config    
+    let endCol = getEndCol contentRange endTokenizer (ref 0L)
+
+    let expandedRange = makeRange contentRange.StartLine startCol contentRange.EndLine endCol
+    (formatRange true isFsiFile expandedRange lines s config, expandedRange)    
+   
+/// Format a selected part of source string using given config; keep other parts unchanged. 
+let formatSelectionFromString isFsiFile (r : range) (s : string) config =
+    fst (formatSelectionExpanded isFsiFile r s config)
 
 type internal BlockType =
    | List
