@@ -56,7 +56,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <ItemGroup>
-    <Compile Include="Utils.fs" />
+    <Compile Include="Resource.fs" />
     <Compile Include="CodeFormattingServices.fs" />
     <Compile Include="CodeFormattingCommands.fs" />
     <Compile Include="FormatDocumentCommand.fs" />
