@@ -9,8 +9,9 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text;
+using FSharpVSPowerTools.CodeFormatting;
 
-namespace Hestia.FSharpCommands
+namespace Fantomas.VisualStudio
 {
     [Export(typeof(IWpfTextViewCreationListener))]
     [Name("F# Dummy Command Hook")]
@@ -51,9 +52,9 @@ namespace Hestia.FSharpCommands
             }));
         }
 
-        private Services GetServices()
+        private CodeFormattingServices GetServices()
         {
-            return new Services(_editorOptionsFactory, _editorOperationsFactorySerivce, _textBufferUndoManagerProvider, _textDocumentFactoryService);
+            return new CodeFormattingServices(_editorOptionsFactory, _editorOperationsFactorySerivce, _textBufferUndoManagerProvider, _textDocumentFactoryService);
         }
     }
 }

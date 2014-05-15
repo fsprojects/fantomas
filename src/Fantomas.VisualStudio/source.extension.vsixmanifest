@@ -1,25 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
-  <Metadata>
-    <Identity Id="Fantomas.Hestia.d4101bb1-9731-4577-bdec-7d088dce2136" Version="1.2.0" Language="en-US" Publisher="Anh-Dung Phan, Gustavo Guerra, Ivan Towlson" />
-    <DisplayName>Fantomas</DisplayName>
-    <Description xml:space="preserve">Provides formatting commands for F# in Visual Studio</Description>
-    <MoreInfo>http://github.com/dungpa/fantomas</MoreInfo>
-    <License>LICENSE.txt</License>
-    <Icon>fsharp_logo.png</Icon>
-    <PreviewImage>fantomas_preview.png</PreviewImage>
-    <Tags>formatting, indentation, beautifier, fsharp, editing</Tags>
-  </Metadata>
-  <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="11.0" />
-    <InstallationTarget Version="[12.0,13.0)" Id="Microsoft.VisualStudio.Pro" />
-  </Installation>
-  <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="4.5" />
-    <Dependency Id="Microsoft.VisualStudio.MPF.11.0" DisplayName="Visual Studio MPF 11.0" d:Source="Installed" Version="11.0" />
-  </Dependencies>
-  <Assets>
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-  </Assets>
+    <Metadata>
+        <Identity Id="Fantomas.Hestia.d4101bb1-9731-4577-bdec-7d088dce2136" Version="1.2.0" Language="en-US" Publisher="Anh-Dung Phan, Gustavo Guerra, Ivan Towlson" />
+        <DisplayName>Fantomas</DisplayName>
+        <Description xml:space="preserve">Provides formatting commands for F# in Visual Studio</Description>
+        <MoreInfo>http://github.com/dungpa/fantomas</MoreInfo>
+        <License>LICENSE.txt</License>
+        <Icon>fsharp_logo.png</Icon>
+        <PreviewImage>fantomas_preview.png</PreviewImage>
+        <Tags>formatting, indentation, beautifier, fsharp, editing</Tags>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="11.0" />
+        <InstallationTarget Version="[12.0,13.0)" Id="Microsoft.VisualStudio.Pro" />
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="4.5" />
+        <Dependency Id="Microsoft.VisualStudio.MPF.11.0" DisplayName="Visual Studio MPF 11.0" d:Source="Installed" Version="11.0" />
+    </Dependencies>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Fantomas.UI" Path="|Fantomas.UI|" />
+    </Assets>
 </PackageManifest>

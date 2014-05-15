@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 
-namespace Hestia.FSharpCommands
+namespace Fantomas.VisualStudio
 {
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [ProvideOptionPage(typeof(FantomasOptionsPage), "Fantomas", "Formatting", 0, 0, false, 0)]

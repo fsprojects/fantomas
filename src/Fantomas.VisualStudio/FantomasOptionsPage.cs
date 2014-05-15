@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 
-namespace Hestia.FSharpCommands
+namespace Fantomas.VisualStudio
 {
     [Guid("9F2500E9-9A2E-4741-B13E-32FE96C01268")]
     public class FantomasOptionsPage : DialogPage

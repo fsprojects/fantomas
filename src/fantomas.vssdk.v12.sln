@@ -18,6 +18,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Cmd", "Fantomas.Cm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fantomas.VisualStudio", "Fantomas.VisualStudio\Fantomas.VisualStudio.csproj", "{0E63A4AA-D99D-41BC-8B67-DEBE33BA6344}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.UI", "Fantomas.UI\Fantomas.UI.fsproj", "{70456B75-F623-41B4-8044-ED02C265F0FF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{0E63A4AA-D99D-41BC-8B67-DEBE33BA6344}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E63A4AA-D99D-41BC-8B67-DEBE33BA6344}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E63A4AA-D99D-41BC-8B67-DEBE33BA6344}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70456B75-F623-41B4-8044-ED02C265F0FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70456B75-F623-41B4-8044-ED02C265F0FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70456B75-F623-41B4-8044-ED02C265F0FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70456B75-F623-41B4-8044-ED02C265F0FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
