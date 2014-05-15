@@ -21,7 +21,7 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
-formatSelectionOnly false (makeRange 3 0 5 0) """
+formatSelectionOnly false (makeRange 3 0 4 25) """
 assert (3 > 2)
 
 let result = lazy (x + 10)

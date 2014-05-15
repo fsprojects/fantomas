@@ -28,9 +28,9 @@ let internal parseWith fileName content =
     | None -> raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
 
 /// Parse a source code string
-let parse isFsiFile s = 
+let parse isFsiFile sourceCode = 
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fs"
-    parseWith fileName s
+    parseWith fileName sourceCode
 
 /// Check whether an AST consists of parsing errors 
 let isValidAST ast = 
@@ -107,8 +107,7 @@ let isValidAST ast =
     and validateClause (Clause(pat, expr, exprOpt)) =
         validatePattern pat && validateExpr expr && defaultArg (Option.map validateExpr exprOpt) true
 
-    and validateExpr expr =
-        match expr with
+    and validateExpr = function
         | SynExpr.Quote(synExpr1, _, synExpr2, _, _range) ->
             List.forall validateExpr [synExpr1; synExpr2]
 
@@ -296,45 +295,51 @@ let isValidAST ast =
         validateImplFileInput input
 
 /// Check whether an input string is invalid in F# by looking for erroneous nodes in ASTs
-let isValidFSharpCode isFsiFile s =
+let isValidFSharpCode isFsiFile sourceCode =
     try
-        isValidAST (parse isFsiFile s)
+        isValidAST (parse isFsiFile sourceCode)
     with _ -> false
 
-let internal split (s : string) =
-    s.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n')
+let internal split (str : string) =
+    str.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n')
 
-let internal formatWith ast (s : string) config =
+let internal formatWith ast (sourceCode : string) config =
     // Use '\n' as the new line delimiter consistently
     // It would be easier for F# parser
-    let s = s.Replace("\r\n", "\n").Replace("\r", "\n")
-    let s' =    
-        Context.create config s 
+    let normalizedSourceCode = sourceCode.Replace("\r\n", "\n").Replace("\r", "\n")
+    let formattedSourceCode =    
+        Context.create config normalizedSourceCode 
         |> genParsedInput ASTContext.Default ast
         |> dump
-        |> if config.StrictMode then id else integrateComments s
+        |> if config.StrictMode then id else integrateComments normalizedSourceCode
 
     // Sometimes F# parser gives a partial AST for incorrect input
-    if String.IsNullOrWhiteSpace s <> String.IsNullOrWhiteSpace s' then
+    if String.IsNullOrWhiteSpace normalizedSourceCode <> String.IsNullOrWhiteSpace formattedSourceCode then
         raise <| FormatException "Incomplete code fragment which is most likely due to parsing errors or the use of F# constructs newer than supported."
-    else s'
+    else formattedSourceCode
 
-let internal format isFsiFile (s : string) config =
-    formatWith (parse isFsiFile s) s config
+let internal format isFsiFile (sourceCode : string) config =
+    formatWith (parse isFsiFile sourceCode) sourceCode config
 
 /// Format a source string using given config
-let formatSourceString isFsiFile s config =    
-    let s' = format isFsiFile s config
+let formatSourceString isFsiFile sourceCode config =    
+    let formattedSourceCode = format isFsiFile sourceCode config
         
     // When formatting the whole document, an EOL is required
-    if s'.EndsWith(Environment.NewLine) then s' else s' + Environment.NewLine
+    if formattedSourceCode.EndsWith(Environment.NewLine) then 
+        formattedSourceCode 
+    else 
+        formattedSourceCode + Environment.NewLine
 
 /// Format an abstract syntax tree using given config
-let formatAST ast s config =    
-    let s' = formatWith ast s config
+let formatAST ast sourceCode config =    
+    let formattedSourceCode = formatWith ast sourceCode config
         
     // When formatting the whole document, an EOL is required
-    if s'.EndsWith(Environment.NewLine) then s' else s' + Environment.NewLine
+    if formattedSourceCode.EndsWith(Environment.NewLine) then 
+        formattedSourceCode 
+    else 
+        formattedSourceCode + Environment.NewLine
 
 /// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
 let makeRange startLine startCol endLine endCol =
@@ -356,24 +361,24 @@ let internal isSignificantToken (tok : TokenInformation) =
     tok.TokenName <> "STRING_TEXT"
 
 /// Find out the start token
-let rec internal getStartCol (r : range) (tokenizer : LineTokenizer) nstate = 
-    match tokenizer.ScanToken(!nstate) with
+let rec internal getStartCol (r : range) (tokenizer : LineTokenizer) lexState = 
+    match tokenizer.ScanToken(!lexState) with
     | Some(tok), state ->
         if tok.RightColumn >= r.StartColumn && isSignificantToken tok then tok.LeftColumn
         else
-            nstate := state 
-            getStartCol r tokenizer nstate
+            lexState := state 
+            getStartCol r tokenizer lexState
     | None, _ -> r.StartColumn 
 
 /// Find out the end token
-let rec internal getEndCol (r : range) (tokenizer : LineTokenizer) nstate = 
-    match tokenizer.ScanToken(!nstate) with
+let rec internal getEndCol (r : range) (tokenizer : LineTokenizer) lexState = 
+    match tokenizer.ScanToken(!lexState) with
     | Some(tok), state ->
         Debug.WriteLine("End token: {0}", sprintf "%A" tok |> box)
         if tok.RightColumn >= r.EndColumn && isSignificantToken tok then tok.RightColumn
         else
-            nstate := state 
-            getEndCol r tokenizer nstate
+            lexState := state 
+            getEndCol r tokenizer lexState
     | None, _ -> r.EndColumn 
 
 type internal Patch =
@@ -401,10 +406,10 @@ let internal getPatch startCol (lines : string []) =
     loop (lines.Length - 1)
 
 /// Convert from range to string positions
-let stringPos (r : range) (s : string) =
+let stringPos (r : range) (normalizedSourceCode : string) =
     // Assume that content has been normalized (no "\r\n" anymore)
     let positions = 
-        s.Split('\n')
+        normalizedSourceCode.Split('\n')
         |> Seq.map (fun s -> String.length s + 1)
         |> Seq.scan (+) 0
         |> Seq.toArray
@@ -413,23 +418,23 @@ let stringPos (r : range) (s : string) =
     // We can't assume the range is valid, so check string boundary here
     let finish = 
         let pos = positions.[r.EndLine-1] + r.EndColumn
-        if pos >= s.Length then s.Length - 1 else pos 
+        if pos >= normalizedSourceCode.Length then normalizedSourceCode.Length - 1 else pos 
     (start, finish)
 
-let internal formatRange returnSubContent isFsiFile (range : range) (lines : _ []) (s : string) config =
+let internal formatRange returnFormattedContentOnly isFsiFile (range : range) (lines : _ []) (sourceCode : string) config =
     let startLine = range.StartLine
     let startCol = range.StartColumn
     let endLine = range.EndLine
-    let s = s.Replace("\r\n", "\n").Replace("\r", "\n")
+    let normalizedSourceCode = sourceCode.Replace("\r\n", "\n").Replace("\r", "\n")
 
-    let (start, finish) = stringPos range s
-    let pre = if start = 0 || not returnSubContent then "" else s.[0..start-1]
+    let (start, finish) = stringPos range normalizedSourceCode
+    let pre = if start = 0 then String.Empty else normalizedSourceCode.[0..start-1]
 
     // Prepend selection by an appropriate amount of whitespace
     let (selection, patch) = 
-        let sel = s.[start..finish]
+        let sel = normalizedSourceCode.[start..finish]
         if startWithMember sel then
-           (String.Join("", "type T = ", Environment.NewLine, new String(' ', startCol), sel), TypeMember)
+           (String.Join(String.Empty, "type T = ", Environment.NewLine, new String(' ', startCol), sel), TypeMember)
         elif sel.TrimStart().StartsWith("and") then
             let p = getPatch startCol lines.[..startLine-1]
             let pattern = Regex("and")
@@ -445,27 +450,30 @@ let internal formatRange returnSubContent isFsiFile (range : range) (lines : _ [
         else (new String(' ', startCol) + sel, Nothing)
 
     let post =
-        if finish < s.Length && returnSubContent then 
-            s.[finish+1..].Replace("\n", Environment.NewLine)
-        else ""
+        if finish < normalizedSourceCode.Length then 
+            normalizedSourceCode.[finish+1..].Replace("\n", Environment.NewLine)
+        else String.Empty
 
     Debug.WriteLine("pre:\n{0}", box pre)
     Debug.WriteLine("selection:\n{0}", box selection)
     Debug.WriteLine("post:\n{0}", box post)
 
-    let formatSelection isFsiFile s config =
-        let s' = format isFsiFile s config
+    let formatSelection isFsiFile sourceCode config =
+        let formattedSourceCode = format isFsiFile sourceCode config
         // If the input is not inline, the output should not be inline as well
-        if s.EndsWith("\n") && not <| s'.EndsWith(Environment.NewLine) then 
-            s' + Environment.NewLine 
-        else s'
+        if sourceCode.EndsWith("\n") && not <| formattedSourceCode.EndsWith(Environment.NewLine) then 
+            formattedSourceCode + Environment.NewLine
+        elif not <| sourceCode.EndsWith("\n") && formattedSourceCode.EndsWith(Environment.NewLine) then 
+            formattedSourceCode.TrimEnd('\r', '\n') 
+        else formattedSourceCode
 
     let reconstructSourceCode startCol formatteds pre post =
+        Debug.WriteLine("Formatted parts: {0}", sprintf "%A" formatteds)
         // Realign results on the correct column
-        Context.create config "" 
-        |> str pre
+        Context.create config String.Empty
+        |> if returnFormattedContentOnly then sepNone else str pre
         |> atIndentLevel startCol (col sepNln formatteds str)
-        |> str post
+        |> if returnFormattedContentOnly then sepNone else str post
         |> dump
 
     match patch with
@@ -475,7 +483,9 @@ let internal formatRange returnSubContent isFsiFile (range : range) (lines : _ [
         // Remove the patch
         let contents = split result
         if Array.isEmpty contents then
-            String.Join("", pre, result, post)
+            if returnFormattedContentOnly then result
+            else 
+                String.Join(String.Empty, pre, result, post)
         else
             // Due to patching, the text has at least two lines
             let first = contents.[1]
@@ -496,19 +506,22 @@ let internal formatRange returnSubContent isFsiFile (range : range) (lines : _ [
         reconstructSourceCode startCol formatteds pre post
 
 /// Format a part of source string using given config, and return the (formatted) selected part only.
-let formatSelectionOnly isFsiFile (r : range) (s : string) config =
-    let lines = split s
+/// Beware that the range argument is inclusive. If the range has a trailing newline, it will appear in the formatted result.
+let formatSelectionOnly isFsiFile (range : range) (sourceCode : string) config =
+    let lines = split sourceCode
 
     // Move to the section with real contents
     let contentRange =
-        if r.StartLine = r.EndLine then r
+        if range.StartLine = range.EndLine then range
         else
-            let startLine = getStartLineIndex lines (r.StartLine - 1) + 1
-            let endLine = getEndLineIndex lines (r.EndLine - 1) + 1
-            let startCol = if startLine = r.StartLine then max r.StartColumn 0 else 0
+            let startLine = getStartLineIndex lines (range.StartLine - 1) + 1
+            let endLine = getEndLineIndex lines (range.EndLine - 1) + 1
+            Debug.Assert(startLine >= range.StartLine, "Should shrink selections only.")
+            Debug.Assert(endLine <= range.EndLine, "Should shrink selections only.")
+            let startCol = if startLine = range.StartLine then max range.StartColumn 0 else 0
             let endCol = 
-                if endLine = r.EndLine then 
-                    min r.EndColumn (lines.[endLine-1].Length - 1) 
+                if endLine = range.EndLine then 
+                    min range.EndColumn (lines.[endLine-1].Length - 1) 
                 else lines.[endLine-1].Length - 1
             // Notice that Line indices start at 1 while Column indices start at 0.
             makeRange startLine startCol endLine endCol
@@ -521,30 +534,33 @@ let formatSelectionOnly isFsiFile (r : range) (s : string) config =
         let line = lines.[contentRange.EndLine-1].[..contentRange.EndColumn]
         contentRange.EndColumn - line.Length + line.TrimEnd().Length
 
-    let modifiedRange = makeRange r.StartLine startCol r.EndLine endCol
-    Debug.WriteLine("Original range: {0} --> modified range: {1}", sprintf "%O" r, sprintf "%O" modifiedRange)
-    let formatted = formatRange false isFsiFile modifiedRange lines s config
-    let (start, finish) = stringPos r s
-    let (newStart, newFinish) = stringPos modifiedRange s
-    let pre = s.[start..newStart-1]
+    let modifiedRange = makeRange range.StartLine startCol range.EndLine endCol
+    Debug.WriteLine("Original range: {0} --> modified range: {1}", sprintf "%O" range, sprintf "%O" modifiedRange)
+    let formatted = formatRange true isFsiFile modifiedRange lines sourceCode config
+    let normalizedSourceCode = sourceCode.Replace("\r\n", "\n").Replace("\r", "\n")
+    let (start, finish) = stringPos range normalizedSourceCode
+    let (newStart, newFinish) = stringPos modifiedRange normalizedSourceCode
+    let pre = normalizedSourceCode.[start..newStart-1]
     let post = 
-        if newFinish+1 >= s.Length || newFinish >= finish then 
+        if newFinish+1 >= normalizedSourceCode.Length || newFinish >= finish then 
             String.Empty 
         else 
-            s.[newFinish+1..finish].Replace("\r", "\n")
-    String.Join("", pre, formatted, post)
+            normalizedSourceCode.[newFinish+1..finish].Replace("\r", "\n")
+    Debug.WriteLine("Original index: {0} --> modified index: {1}", sprintf "%O" (start, finish), sprintf "%O" (newStart, newFinish))
+    Debug.WriteLine("Join '{0}', '{1}' and '{2}'", pre, formatted, post)
+    String.Join(String.Empty, pre, formatted, post)
 
  /// Format a selected part of source string using given config; expanded selected ranges to parsable ranges. 
-let formatSelectionExpanded isFsiFile (r : range) (s : string) config =
-    let lines = split s
+let formatSelectionExpanded isFsiFile (range : range) (sourceCode : string) config =
+    let lines = split sourceCode
     let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
 
     // Move to the section with real contents
     let contentRange =
-        if r.StartLine = r.EndLine then r
+        if range.StartLine = range.EndLine then range
         else
-            let startLine = getStartLineIndex lines (r.StartLine - 1) + 1
-            let endLine = getEndLineIndex lines (r.EndLine - 1) + 1
+            let startLine = getStartLineIndex lines (range.StartLine - 1) + 1
+            let endLine = getEndLineIndex lines (range.EndLine - 1) + 1
             let startCol = 0
             let endCol = lines.[endLine-1].Length - 1
             // Notice that Line indices start at 1 while Column indices start at 0.
@@ -561,11 +577,11 @@ let formatSelectionExpanded isFsiFile (r : range) (s : string) config =
     let endCol = getEndCol contentRange endTokenizer (ref 0L)
 
     let expandedRange = makeRange contentRange.StartLine startCol contentRange.EndLine endCol
-    (formatRange true isFsiFile expandedRange lines s config, expandedRange)    
+    (formatRange false isFsiFile expandedRange lines sourceCode config, expandedRange)    
    
 /// Format a selected part of source string using given config; keep other parts unchanged. 
-let formatSelectionFromString isFsiFile (r : range) (s : string) config =
-    fst (formatSelectionExpanded isFsiFile r s config)
+let formatSelectionFromString isFsiFile (range : range) (sourceCode : string) config =
+    fst (formatSelectionExpanded isFsiFile range sourceCode config)
 
 type internal BlockType =
    | List
@@ -577,8 +593,8 @@ type internal BlockType =
 let makePos line col = mkPos line col
 
 /// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
-let formatAroundCursor isFsiFile (p : pos) (s : string) config = 
-    let lines = split s
+let formatAroundCursor isFsiFile (cursorPos : pos) (sourceCode : string) config = 
+    let lines = split sourceCode
     let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
     let openDelimiters = dict ["[", List; "[|", Array; "{", SequenceOrRecord; "(", Tuple]
     let closeDelimiters = dict ["]", List; "|]", Array; "}", SequenceOrRecord; ")", Tuple]
@@ -600,7 +616,7 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
                 | None -> 
                     finLine := true
                 | Some t when t.CharClass = TokenCharKind.Delimiter -> 
-                    if i + 1 > p.Line || (i + 1 = p.Line && t.RightColumn >= p.Column) then
+                    if i + 1 > cursorPos.Line || (i + 1 = cursorPos.Line && t.RightColumn >= cursorPos.Column) then
                         let text = line.[t.LeftColumn..t.RightColumn]
                         match text with
                         | "[" | "[|" | "{" | "(" ->
@@ -633,7 +649,7 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
 
     /// Find the delimiter at the beginning              
     let rec tryFindStartDelimiter blockType (dic : Dictionary<_, _>) acc i (lines : _ []) =
-        if i >= p.Line then
+        if i >= cursorPos.Line then
             acc
         else
             let line = lines.[i]
@@ -648,7 +664,7 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
                 | None -> 
                     finLine := true
                 | Some t when t.CharClass = TokenCharKind.Delimiter -> 
-                    if i + 1 < p.Line || (i + 1 = p.Line && t.LeftColumn <= p.Column) then
+                    if i + 1 < cursorPos.Line || (i + 1 = cursorPos.Line && t.LeftColumn <= cursorPos.Column) then
                         let text = line.[t.LeftColumn..t.RightColumn]
                         match text, blockType with
                         | "]", List
@@ -684,7 +700,7 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
             // We find the last opening delimiter
             tryFindStartDelimiter blockType dic !result (i + 1) lines
             
-    match tryFindEndDelimiter (Dictionary()) (p.Line - 1) lines with
+    match tryFindEndDelimiter (Dictionary()) (cursorPos.Line - 1) lines with
     | None -> 
         raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor.""")
     | Some (endLine, endCol, blockType) ->
@@ -692,4 +708,4 @@ let formatAroundCursor isFsiFile (p : pos) (s : string) config =
         | None ->
             raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor.""")
         | Some (startLine, startCol) ->
-            formatSelectionFromString isFsiFile (makeRange startLine startCol endLine endCol) s config
+            formatSelectionFromString isFsiFile (makeRange startLine startCol endLine endCol) sourceCode config

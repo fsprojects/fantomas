@@ -14,14 +14,12 @@ let y = 1+2
 let z = x + y""" config
     |> should equal """1 + 2"""
 
-[<Test; Ignore>]
+[<Test>]
 let ``should format a whole line correctly and preserve indentation``() =
-    formatSelectionOnly false (makeRange 3 4 3 34) """
+    formatSelectionOnly false (makeRange 3 0 3 36) """
     let base1 = d1 :> Base1
     let derived1 = base1 :?> Derived1""" config
-    |> should equal """
-    let base1 = d1 :> Base1
-    let derived1 = base1 :?> Derived1"""
+    |> should equal """    let derived1 = base1 :?> Derived1"""
 
 [<Test>]
 let ``should format a few lines correctly and preserve indentation``() =
@@ -90,15 +88,14 @@ let r =
 
 [<Test>]
 let ``should preserve line breaks before and after selection``() =
-    formatSelectionOnly false (makeRange 3 0 5 0) """
+    formatSelectionOnly false (makeRange 3 0 4 25) """
 assert (3 > 2)
 
 let result = lazy (x + 10)
 
 do printfn "Hello world"
 """     config
-    |> should equal """let result = lazy (x + 10)
-"""
+    |> should equal """let result = lazy (x + 10)"""
 
 [<Test>]
 let ``should detect members and format appropriately``() =
@@ -138,4 +135,22 @@ and File(filename: string, containingFolder: Folder) =
 and File(filename : string, containingFolder : Folder) = 
     member __.Name = filename
     member __.ContainingFolder = containingFolder
+"""
+
+[<Test>]
+let ``should not add trailing whitespaces and preserve indentation``() =
+    formatSelectionOnly false (makeRange 4 0 7 17) """
+module Enums = 
+    // Declaration of an enumeration. 
+    type Colour = 
+      | Red = 0
+      | Green = 1
+      | Blue = 2
+"""     config
+    |> prepend newline
+    |> should equal """
+    type Colour = 
+        | Red = 0
+        | Green = 1
+        | Blue = 2
 """
