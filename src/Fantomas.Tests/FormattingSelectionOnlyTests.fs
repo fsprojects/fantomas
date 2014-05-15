@@ -54,7 +54,7 @@ type Product' (backlogItemId) =
     let mutable ordering = 0
     let mutable version = 0
     let backlogItems = []""" config
-    |> should equal """let mutable ordering = 0"""
+    |> should equal """ let mutable ordering = 0"""
 
 [<Test>]
 let ``should parse a complete expression correctly``() =
@@ -108,7 +108,7 @@ type T () =
   override x.Reorder () = 
         items |> List.iter ignore
 """     config
-    |> should equal """override x.Reorder() = items |> List.iter ignore"""
+    |> should equal """  override x.Reorder() = items |> List.iter ignore"""
 
 [<Test>]
 let ``should format the and branch of recursive functions``() =

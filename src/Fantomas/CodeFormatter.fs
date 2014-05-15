@@ -349,7 +349,7 @@ let rec internal getEndLineIndex (lines : _ []) i =
     if i = 0 || not <| String.IsNullOrWhiteSpace(lines.[i]) then i
     else getEndLineIndex lines (i - 1)
 
-let internal isDelimitToken (tok : TokenInformation) =
+let internal isSignificantToken (tok : TokenInformation) =
     tok.CharClass <> TokenCharKind.WhiteSpace && 
     tok.CharClass <> TokenCharKind.LineComment &&
     tok.CharClass <> TokenCharKind.Comment &&
@@ -359,7 +359,7 @@ let internal isDelimitToken (tok : TokenInformation) =
 let rec internal getStartCol (r : range) (tokenizer : LineTokenizer) nstate = 
     match tokenizer.ScanToken(!nstate) with
     | Some(tok), state ->
-        if tok.RightColumn >= r.StartColumn && isDelimitToken tok then tok.LeftColumn
+        if tok.RightColumn >= r.StartColumn && isSignificantToken tok then tok.LeftColumn
         else
             nstate := state 
             getStartCol r tokenizer nstate
@@ -370,7 +370,7 @@ let rec internal getEndCol (r : range) (tokenizer : LineTokenizer) nstate =
     match tokenizer.ScanToken(!nstate) with
     | Some(tok), state ->
         Debug.WriteLine("End token: {0}", sprintf "%A" tok |> box)
-        if tok.RightColumn >= r.EndColumn && isDelimitToken tok then tok.RightColumn
+        if tok.RightColumn >= r.EndColumn && isSignificantToken tok then tok.RightColumn
         else
             nstate := state 
             getEndCol r tokenizer nstate
@@ -400,31 +400,30 @@ let internal getPatch startCol (lines : string []) =
             if m.Success && col <= startCol + 4 then RecLet else loop (i - 1)
     loop (lines.Length - 1)
 
-let internal formatRange replaceDocument isFsiFile (range : range) (lines : _ []) (s : string) config =
+/// Convert from range to string positions
+let stringPos (r : range) (s : string) =
+    // Assume that content has been normalized (no "\r\n" anymore)
+    let positions = 
+        s.Split('\n')
+        |> Seq.map (fun s -> String.length s + 1)
+        |> Seq.scan (+) 0
+        |> Seq.toArray
+
+    let start = positions.[r.StartLine-1] + r.StartColumn
+    // We can't assume the range is valid, so check string boundary here
+    let finish = 
+        let pos = positions.[r.EndLine-1] + r.EndColumn
+        if pos >= s.Length then s.Length - 1 else pos 
+    (start, finish)
+
+let internal formatRange returnSubContent isFsiFile (range : range) (lines : _ []) (s : string) config =
     let startLine = range.StartLine
     let startCol = range.StartColumn
     let endLine = range.EndLine
     let s = s.Replace("\r\n", "\n").Replace("\r", "\n")
 
-    // Convert from range to string positions
-    let stringPos (r : range) =
-        // Assume that content has been normalized (no "\r\n" anymore)
-        let positions = 
-            s.Split('\n')
-            |> Seq.map (fun s -> String.length s + 1)
-            |> Seq.scan (+) 0
-            |> Seq.toArray
-
-        let start = positions.[r.StartLine-1] + r.StartColumn
-        // We can't assume the range is valid, so check string boundary here
-        let finish = 
-            let pos = positions.[r.EndLine-1] + r.EndColumn
-            if pos >= s.Length then s.Length - 1 else pos 
-        (start, finish)
-
-    
-    let (start, finish) = stringPos range
-    let pre = if start = 0 || not replaceDocument then "" else s.[0..start-1]
+    let (start, finish) = stringPos range s
+    let pre = if start = 0 || not returnSubContent then "" else s.[0..start-1]
 
     // Prepend selection by an appropriate amount of whitespace
     let (selection, patch) = 
@@ -446,7 +445,7 @@ let internal formatRange replaceDocument isFsiFile (range : range) (lines : _ []
         else (new String(' ', startCol) + sel, Nothing)
 
     let post =
-        if finish < s.Length && replaceDocument then 
+        if finish < s.Length && returnSubContent then 
             s.[finish+1..].Replace("\n", Environment.NewLine)
         else ""
 
@@ -499,7 +498,41 @@ let internal formatRange replaceDocument isFsiFile (range : range) (lines : _ []
 /// Format a part of source string using given config, and return the (formatted) selected part only.
 let formatSelectionOnly isFsiFile (r : range) (s : string) config =
     let lines = split s
-    formatRange false isFsiFile r lines s config
+
+    // Move to the section with real contents
+    let contentRange =
+        if r.StartLine = r.EndLine then r
+        else
+            let startLine = getStartLineIndex lines (r.StartLine - 1) + 1
+            let endLine = getEndLineIndex lines (r.EndLine - 1) + 1
+            let startCol = if startLine = r.StartLine then max r.StartColumn 0 else 0
+            let endCol = 
+                if endLine = r.EndLine then 
+                    min r.EndColumn (lines.[endLine-1].Length - 1) 
+                else lines.[endLine-1].Length - 1
+            // Notice that Line indices start at 1 while Column indices start at 0.
+            makeRange startLine startCol endLine endCol
+
+    let startCol =
+        let line = lines.[contentRange.StartLine-1].[contentRange.StartColumn..]
+        contentRange.StartColumn + line.Length - line.TrimStart().Length
+
+    let endCol = 
+        let line = lines.[contentRange.EndLine-1].[..contentRange.EndColumn]
+        contentRange.EndColumn - line.Length + line.TrimEnd().Length
+
+    let modifiedRange = makeRange r.StartLine startCol r.EndLine endCol
+    Debug.WriteLine("Original range: {0} --> modified range: {1}", sprintf "%O" r, sprintf "%O" modifiedRange)
+    let formatted = formatRange false isFsiFile modifiedRange lines s config
+    let (start, finish) = stringPos r s
+    let (newStart, newFinish) = stringPos modifiedRange s
+    let pre = s.[start..newStart-1]
+    let post = 
+        if newFinish+1 >= s.Length || newFinish >= finish then 
+            String.Empty 
+        else 
+            s.[newFinish+1..finish].Replace("\r", "\n")
+    String.Join("", pre, formatted, post)
 
  /// Format a selected part of source string using given config; expanded selected ranges to parsable ranges. 
 let formatSelectionExpanded isFsiFile (r : range) (s : string) config =
@@ -512,8 +545,10 @@ let formatSelectionExpanded isFsiFile (r : range) (s : string) config =
         else
             let startLine = getStartLineIndex lines (r.StartLine - 1) + 1
             let endLine = getEndLineIndex lines (r.EndLine - 1) + 1
+            let startCol = 0
+            let endCol = lines.[endLine-1].Length - 1
             // Notice that Line indices start at 1 while Column indices start at 0.
-            makeRange startLine 0 endLine (lines.[endLine-1].Length - 1)
+            makeRange startLine startCol endLine endCol
 
     let startTokenizer = sourceTokenizer.CreateLineTokenizer(lines.[contentRange.StartLine-1])
 

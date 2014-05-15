@@ -1,4 +1,4 @@
-﻿#r "../packages/FSharp.Compiler.Service.0.0.41/lib/net40/FSharp.Compiler.Service.dll"
+﻿#r "../packages/FSharp.Compiler.Service.0.0.45/lib/net40/FSharp.Compiler.Service.dll"
 
 #load "TokenMatcher.fs"
 #load "FormatConfig.fs"
@@ -21,11 +21,13 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
-test """
-type A() =
-    member x.B with set v = "[<System.Runtime.InteropServices.DllImport(\"user32.dll\")>] extern int GetWindowLong(System.IntPtr hwnd, int index)"
-                            |> ignore
-""";;
+formatSelectionOnly false (makeRange 3 0 5 0) """
+assert (3 > 2)
+
+let result = lazy (x + 10)
+
+do printfn "Hello world"
+""" config;;
 
 
 test "
