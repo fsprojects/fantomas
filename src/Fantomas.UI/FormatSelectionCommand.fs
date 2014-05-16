@@ -6,7 +6,7 @@ open System.Linq
 open System.Text
 open System.Threading.Tasks
 open System.Windows
-open Microsoft.FSharp.Compiler
+open Microsoft.FSharp.Compiler.Range
 open Microsoft.VisualStudio.Text
 open Microsoft.VisualStudio.Text.Editor
 open Microsoft.VisualStudio.Text.Formatting
@@ -19,6 +19,7 @@ type FormatSelectionCommand(getConfig: Func<FormatConfig>) =
     let mutable isFormattingCursorPosition = false
     let mutable selStartPos = 0
     let mutable selOffsetFromEnd = 0
+    let mutable selectedRange: range option = None
     
     override x.Execute() =
         isFormattingCursorPosition <- x.TextView.Selection.IsEmpty
@@ -26,29 +27,31 @@ type FormatSelectionCommand(getConfig: Func<FormatConfig>) =
         let originalSnapshot = x.TextBuffer.CurrentSnapshot
         selStartPos <- x.TextView.Selection.Start.Position.Position
         selOffsetFromEnd <- originalSnapshot.Length - x.TextView.Selection.End.Position.Position
+        let isReversedSelection = x.TextView.Selection.IsReversed
 
         use disposable = Cursor.wait()
         x.ExecuteFormat()
 
-        if not isFormattingCursorPosition then
+        match isFormattingCursorPosition, selectedRange with
+        | false, Some selectedRange ->
             // We're going to take advantage of the fact that nothing before or after the selection
             // should change, so the post-formatting range will start at the same point, and end at
             // the same offset from the end of the file.
-            let activePointPos = x.TextView.Selection.ActivePoint.Position.Position
-            let anchorPointPos = x.TextView.Selection.AnchorPoint.Position.Position
-            // They should always be different but just in case
-            let activePointIsAtStart = activePointPos <= anchorPointPos  
+            
+            let startPos = 
+                originalSnapshot.GetLineFromLineNumber(selectedRange.StartLine-1).Start.Position 
+                    + selectedRange.StartColumn
+            
+            // F# range is inclusive, add one to mimic selection
+            let endPos = 
+                originalSnapshot.GetLineFromLineNumber(selectedRange.EndLine-1).Start.Position 
+                    + selectedRange.EndColumn + 1
 
-            let selOffsetFromStart = x.TextView.Selection.Start.Position.Position
-            let selOffsetFromEnd = originalSnapshot.Length - x.TextView.Selection.End.Position.Position
+            let newLength = endPos - startPos + x.TextBuffer.CurrentSnapshot.Length - originalSnapshot.Length
+            let newSelection = SnapshotSpan(x.TextBuffer.CurrentSnapshot, startPos, newLength)
 
-            let newSelStartPos = selOffsetFromStart
-            let newSelEndPos = x.TextBuffer.CurrentSnapshot.Length - selOffsetFromEnd
-            let newActivePointPos = if activePointIsAtStart then newSelStartPos else newSelEndPos
-            let newAnchorPointPos = if activePointIsAtStart then newSelEndPos else newSelStartPos
-            let newActivePoint = VirtualSnapshotPoint(x.TextBuffer.CurrentSnapshot, newActivePointPos) 
-            let newAnchorPoint = VirtualSnapshotPoint(x.TextBuffer.CurrentSnapshot, newAnchorPointPos)
-            x.TextView.Selection.Select(newAnchorPoint, newActivePoint)
+            x.TextView.Selection.Select(newSelection, isReversedSelection)
+        | _ -> ()
 
     override x.GetFormatted(isSignatureFile: bool, source: string, config: FormatConfig) =
         if isFormattingCursorPosition then
@@ -58,8 +61,10 @@ type FormatSelectionCommand(getConfig: Func<FormatConfig>) =
         else
             let startPos = TextUtils.getFSharpPos(x.TextView.Selection.Start)
             let endPos = TextUtils.getFSharpPos(x.TextView.Selection.End)
-            let range = Range.mkRange "/tmp.fsx" startPos endPos
-            formatSelectionFromString isSignatureFile range source config
+            let range = mkRange "/tmp.fsx" startPos endPos
+            let (formatted, modifiedRange) = formatSelectionExpanded isSignatureFile range source config
+            selectedRange <- Some modifiedRange
+            formatted
 
     override x.SetNewCaretPosition(caretPos, scrollBarPos, _originalSnapshot) =
         if isFormattingCursorPosition || caretPos = x.TextView.Selection.Start.Position then

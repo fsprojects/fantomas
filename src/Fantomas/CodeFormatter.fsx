@@ -21,13 +21,14 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
-formatSelectionOnly false (makeRange 3 0 4 25) """
-assert (3 > 2)
-
-let result = lazy (x + 10)
-
-do printfn "Hello world"
-""" config;;
+formatSelectionOnly false (makeRange 4 0 7 15) """
+module Enums = 
+    // Declaration of an enumeration. 
+    type Colour = 
+      | Red = 0
+      | Green = 1
+      | Blue = 2
+"""     config;;
 
 
 test "

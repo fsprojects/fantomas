@@ -406,10 +406,11 @@ let internal getPatch startCol (lines : string []) =
     loop (lines.Length - 1)
 
 /// Convert from range to string positions
-let stringPos (r : range) (normalizedSourceCode : string) =
+let stringPos (r : range) (sourceCode : string) =
     // Assume that content has been normalized (no "\r\n" anymore)
     let positions = 
-        normalizedSourceCode.Split('\n')
+        sourceCode.Split('\n')
+        // Skip '\r' as a new line character on Windows
         |> Seq.map (fun s -> String.length s + 1)
         |> Seq.scan (+) 0
         |> Seq.toArray
@@ -418,21 +419,20 @@ let stringPos (r : range) (normalizedSourceCode : string) =
     // We can't assume the range is valid, so check string boundary here
     let finish = 
         let pos = positions.[r.EndLine-1] + r.EndColumn
-        if pos >= normalizedSourceCode.Length then normalizedSourceCode.Length - 1 else pos 
+        if pos >= sourceCode.Length then sourceCode.Length - 1 else pos 
     (start, finish)
 
 let internal formatRange returnFormattedContentOnly isFsiFile (range : range) (lines : _ []) (sourceCode : string) config =
     let startLine = range.StartLine
     let startCol = range.StartColumn
     let endLine = range.EndLine
-    let normalizedSourceCode = sourceCode.Replace("\r\n", "\n").Replace("\r", "\n")
-
-    let (start, finish) = stringPos range normalizedSourceCode
-    let pre = if start = 0 then String.Empty else normalizedSourceCode.[0..start-1]
+    
+    let (start, finish) = stringPos range sourceCode
+    let pre = if start = 0 then String.Empty else sourceCode.[0..start-1].TrimEnd('\r')
 
     // Prepend selection by an appropriate amount of whitespace
     let (selection, patch) = 
-        let sel = normalizedSourceCode.[start..finish]
+        let sel = sourceCode.[start..finish].TrimEnd('\r')
         if startWithMember sel then
            (String.Join(String.Empty, "type T = ", Environment.NewLine, new String(' ', startCol), sel), TypeMember)
         elif sel.TrimStart().StartsWith("and") then
@@ -450,8 +450,10 @@ let internal formatRange returnFormattedContentOnly isFsiFile (range : range) (l
         else (new String(' ', startCol) + sel, Nothing)
 
     let post =
-        if finish < normalizedSourceCode.Length then 
-            normalizedSourceCode.[finish+1..].Replace("\n", Environment.NewLine)
+        if finish < sourceCode.Length then 
+            let post = sourceCode.[finish+1..]
+            if post.StartsWith("\n") then Environment.NewLine + post.[1..]
+            else post
         else String.Empty
 
     Debug.WriteLine("pre:\n{0}", box pre)
@@ -527,25 +529,25 @@ let formatSelectionOnly isFsiFile (range : range) (sourceCode : string) config =
             makeRange startLine startCol endLine endCol
 
     let startCol =
-        let line = lines.[contentRange.StartLine-1].[contentRange.StartColumn..]
+        let line = try lines.[contentRange.StartLine-1].[contentRange.StartColumn..] with _ -> String.Empty
         contentRange.StartColumn + line.Length - line.TrimStart().Length
 
     let endCol = 
-        let line = lines.[contentRange.EndLine-1].[..contentRange.EndColumn]
+        let line = try lines.[contentRange.EndLine-1].[..contentRange.EndColumn] with _ -> String.Empty
         contentRange.EndColumn - line.Length + line.TrimEnd().Length
 
     let modifiedRange = makeRange range.StartLine startCol range.EndLine endCol
     Debug.WriteLine("Original range: {0} --> modified range: {1}", sprintf "%O" range, sprintf "%O" modifiedRange)
     let formatted = formatRange true isFsiFile modifiedRange lines sourceCode config
-    let normalizedSourceCode = sourceCode.Replace("\r\n", "\n").Replace("\r", "\n")
-    let (start, finish) = stringPos range normalizedSourceCode
-    let (newStart, newFinish) = stringPos modifiedRange normalizedSourceCode
-    let pre = normalizedSourceCode.[start..newStart-1]
+    
+    let (start, finish) = stringPos range sourceCode
+    let (newStart, newFinish) = stringPos modifiedRange sourceCode
+    let pre = sourceCode.[start..newStart-1].TrimEnd('\r')
     let post = 
-        if newFinish+1 >= normalizedSourceCode.Length || newFinish >= finish then 
+        if newFinish+1 >= sourceCode.Length || newFinish >= finish then 
             String.Empty 
         else 
-            normalizedSourceCode.[newFinish+1..finish].Replace("\r", "\n")
+            sourceCode.[newFinish+1..finish].Replace("\r", "\n")
     Debug.WriteLine("Original index: {0} --> modified index: {1}", sprintf "%O" (start, finish), sprintf "%O" (newStart, newFinish))
     Debug.WriteLine("Join '{0}', '{1}' and '{2}'", pre, formatted, post)
     String.Join(String.Empty, pre, formatted, post)

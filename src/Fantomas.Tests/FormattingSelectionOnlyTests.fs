@@ -139,7 +139,7 @@ and File(filename : string, containingFolder : Folder) =
 
 [<Test>]
 let ``should not add trailing whitespaces and preserve indentation``() =
-    formatSelectionOnly false (makeRange 4 0 7 17) """
+    formatSelectionOnly false (makeRange 4 0 7 15) """
 module Enums = 
     // Declaration of an enumeration. 
     type Colour = 
@@ -152,5 +152,4 @@ module Enums =
     type Colour = 
         | Red = 0
         | Green = 1
-        | Blue = 2
-"""
+        | Blue = 2"""
