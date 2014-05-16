@@ -456,9 +456,9 @@ let internal formatRange returnFormattedContentOnly isFsiFile (range : range) (l
             else post
         else String.Empty
 
-    Debug.WriteLine("pre:\n{0}", box pre)
-    Debug.WriteLine("selection:\n{0}", box selection)
-    Debug.WriteLine("post:\n{0}", box post)
+    Debug.WriteLine("pre:\n'{0}'", box pre)
+    Debug.WriteLine("selection:\n'{0}'", box selection)
+    Debug.WriteLine("post:\n'{0}'", box post)
 
     let formatSelection isFsiFile sourceCode config =
         let formattedSourceCode = format isFsiFile sourceCode config
@@ -470,12 +470,14 @@ let internal formatRange returnFormattedContentOnly isFsiFile (range : range) (l
         else formattedSourceCode
 
     let reconstructSourceCode startCol formatteds pre post =
-        Debug.WriteLine("Formatted parts: {0}", sprintf "%A" formatteds)
+        Debug.WriteLine("Formatted parts: '{0}' at column {1}", sprintf "%A" formatteds, startCol)
         // Realign results on the correct column
         Context.create config String.Empty
-        |> if returnFormattedContentOnly then sepNone else str pre
+        // Mono version of indent text writer behaves differently from .NET one,
+        // So we add an empty string first to regularize it
+        |> if returnFormattedContentOnly then str "" else str pre
         |> atIndentLevel startCol (col sepNln formatteds str)
-        |> if returnFormattedContentOnly then sepNone else str post
+        |> if returnFormattedContentOnly then str "" else str post
         |> dump
 
     match patch with
@@ -529,15 +531,16 @@ let formatSelectionOnly isFsiFile (range : range) (sourceCode : string) config =
             makeRange startLine startCol endLine endCol
 
     let startCol =
-        let line = try lines.[contentRange.StartLine-1].[contentRange.StartColumn..] with _ -> String.Empty
+        let line = lines.[contentRange.StartLine-1].[contentRange.StartColumn..]
         contentRange.StartColumn + line.Length - line.TrimStart().Length
 
     let endCol = 
-        let line = try lines.[contentRange.EndLine-1].[..contentRange.EndColumn] with _ -> String.Empty
+        let line = lines.[contentRange.EndLine-1].[..contentRange.EndColumn]
         contentRange.EndColumn - line.Length + line.TrimEnd().Length
 
     let modifiedRange = makeRange range.StartLine startCol range.EndLine endCol
-    Debug.WriteLine("Original range: {0} --> modified range: {1}", sprintf "%O" range, sprintf "%O" modifiedRange)
+    Debug.WriteLine("Original range: {0} --> content range: {1} --> modified range: {2}", 
+        sprintf "%O" range, sprintf "%O" contentRange, sprintf "%O" modifiedRange)
     let formatted = formatRange true isFsiFile modifiedRange lines sourceCode config
     
     let (start, finish) = stringPos range sourceCode
