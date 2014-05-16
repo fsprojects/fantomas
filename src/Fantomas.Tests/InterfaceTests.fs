@@ -108,3 +108,13 @@ let ``should keep named arguments on abstract members``() =
     |> should equal """type IThing = 
     abstract Foo : name:string * age:int -> bool
 """
+
+[<Test>]
+let ``should not skip 'with get()' in indexers``() =
+    formatSourceString false """type Interface = 
+    abstract Item : int -> char with get
+"""  config
+    |> should equal """type Interface = 
+    abstract Item : int -> char with get
+"""
+

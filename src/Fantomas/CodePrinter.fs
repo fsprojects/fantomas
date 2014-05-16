@@ -334,12 +334,11 @@ and genMemberBinding astContext b =
             | mf -> failwithf "Unexpected member flags: %O" mf
 
         match p with
-        // Too tedious in handling property get and set
         | PatLongIdent(ao, s, ps, _) ->   
             assert (ps |> Seq.map fst |> Seq.forall Option.isNone)
-            match ao, propertyKind with
-            | None, "get " ->
-                // Provide short-hand notation `x.Member = ...` for getters
+            match ao, propertyKind, ps with
+            | None, "get ", [_, PatParen(PatConst(Const "()", _))] ->
+                // Provide short-hand notation `x.Member = ...` for `x.Member with get()` getters
                 prefix -- s +> genShortGetProperty astContext e
             | _ ->
                 let ps = List.map snd ps              
@@ -950,24 +949,34 @@ and genMemberDefn astContext = function
         +> opt sepNone mdo 
             (fun mds -> !- " with" +> indent +> genMemberDefnList { astContext with IsInterface = true } mds +> unindent)
 
-    | MDAutoProperty(ats, px, ao, mk, e, s, isStatic, typeOpt) -> 
+    | MDAutoProperty(ats, px, ao, mk, e, s, isStatic, typeOpt) ->
+        let isFunctionProperty =
+            match typeOpt with
+            | Some (TFun _) -> true
+            | _ -> false
         genPreXmlDoc px
         +> genOneLinerAttributes astContext ats +> ifElse isStatic (!- "static member val ") (!- "member val ")
         +> opt sepSpace ao genAccess -- s +> optPre sepColon sepNone typeOpt (genType astContext false)
-         +> sepEq +> genExpr astContext e -- propertyKind mk
+         +> sepEq +> genExpr astContext e -- genPropertyKind (not isFunctionProperty) mk
 
     | MDAbstractSlot(ats, px, ao, s, t, vi, ValTyparDecls(tds, _, tcs), MFMemberFlags mk) ->
         let (FunType namedArgs) = (t, vi)
+        let isFunctionProperty =
+            match t with
+            | TFun _ -> true
+            | _ -> false
         genPreXmlDoc px 
         +> genOneLinerAttributes astContext ats
         +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
         +> genTypeParam astContext tds tcs
-        +> sepColon +> genTypeList astContext namedArgs -- propertyKind mk
+        +> sepColon +> genTypeList astContext namedArgs -- genPropertyKind (not isFunctionProperty) mk
 
     | md -> failwithf "Unexpected member definition: %O" md
 
-and propertyKind = function
-    | PropertyGet -> ""
+and genPropertyKind useSyntacticSugar = function
+    | PropertyGet -> 
+        // Try to use syntactic sugar on real properties (not methods in disguise)
+        if useSyntacticSugar then "" else " with get"
     | PropertySet -> " with set"
     | PropertyGetSet -> " with get, set"
     | _ -> ""
