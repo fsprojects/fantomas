@@ -1,4 +1,4 @@
-﻿module internal Fantomas.Cmd.AssemblyInfo
+﻿module internal Fantomas.AssemblyInfo
 
 open System
 open System.Reflection
@@ -14,8 +14,8 @@ let [<Literal>] version = "1.3.0"
 [<assembly: AssemblyInformationalVersion(version)>]
 
 // Assembly information
-[<assembly: AssemblyTitle("Fantomas")>]
-[<assembly: AssemblyDescription("Source code formatting command line tool for F#")>]
+[<assembly: AssemblyTitle("Fantomas.UI")>]
+[<assembly: AssemblyDescription("Source code formatting for F#")>]
 [<assembly: NeutralResourcesLanguage("en-US")>]
 
 // General Information about an assembly is controlled through the following
@@ -33,5 +33,11 @@ let [<Literal>] version = "1.3.0"
 // Only allow types derived from System.Exception to be thrown --
 // any other types should be automatically wrapped.
 [<assembly: RuntimeCompatibility(WrapNonExceptionThrows = true)>]
+
+(* Dependency hints for Ngen *)
+[<assembly: DependencyAttribute("FSharp.Core", LoadHint.Always)>]
+[<assembly: DependencyAttribute("System", LoadHint.Always)>]
+[<assembly: DependencyAttribute("System.Core", LoadHint.Always)>]
+[<assembly: DefaultDependency(LoadHint.Always)>]
 
 do()
