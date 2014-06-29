@@ -1,4 +1,4 @@
-﻿#r "../packages/FSharp.Compiler.Service.0.0.45/lib/net40/FSharp.Compiler.Service.dll"
+﻿#r "../packages/FSharp.Compiler.Service.0.0.48/lib/net40/FSharp.Compiler.Service.dll"
 
 #load "TokenMatcher.fs"
 #load "FormatConfig.fs"
@@ -31,19 +31,12 @@ module Enums =
 """     config;;
 
 
-test "
-[<EntryPoint>]
-let main argv = 
-    use fun1 = R.eval(R.parse(text = \"\"\"
-    function(i) {
-        x <- rnorm(1000)
-        y <- rnorm(1000)
-        m <- lm(y~x)
-        m$coefficients[[2]]
-    }
-    \"\"\"))
-    0
-";;
+test """
+type Bar =
+    member x.Baz
+        with get(s: string) =
+            "Hello  " + s
+""";;
 
 test """
 (new CsvFile<_>(new Func<_, _, _>(fun (parent : obj) (row : string[]) -> CommonRuntime.GetNonOptionalValue("Name", CommonRuntime.ConvertString(TextConversions.AsOption(row.[0])), TextConversions.AsOption(row.[0])), CommonRuntime.GetNonOptionalValue("Distance", CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[1])), TextConversions.AsOption(row.[1])), CommonRuntime.GetNonOptionalValue("Time", CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[2])), TextConversions.AsOption(row.[2]))), new Func<_, _>(fun (row : _ * _ * _) -> [| CommonRuntime.ConvertStringBack(CommonRuntime.GetOptionalValue((let x, _, _ = row in x))); CommonRuntime.ConvertDecimalBack("", CommonRuntime.GetOptionalValue((let _, x, _ = row in x))); CommonRuntime.ConvertDecimalBack("", CommonRuntime.GetOptionalValue((let _, _, x = row in x))) |]), (ProviderFileSystem.readTextAtRunTimeWithDesignTimeOptions @"C:\Dev\FSharp.Data-master\src\..\tests\FSharp.Data.Tests\Data" "" "SmallTest.csv"), "", '"', true, false)).Cache()
