@@ -597,8 +597,8 @@ type internal BlockType =
 /// Make a position from (line, col) to to denote cursor position
 let makePos line col = mkPos line col
 
-/// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
-let formatAroundCursor isFsiFile (cursorPos : pos) (sourceCode : string) config = 
+/// Infer selection around cursor by looking for a pair of '[' and ']', '{' and '}' or '(' and ')'. 
+let inferSelectionFromCursorPos (cursorPos : pos) (sourceCode : string) = 
     let lines = split sourceCode
     let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
     let openDelimiters = dict ["[", List; "[|", Array; "{", SequenceOrRecord; "(", Tuple]
@@ -713,4 +713,10 @@ let formatAroundCursor isFsiFile (cursorPos : pos) (sourceCode : string) config 
         | None ->
             raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor.""")
         | Some (startLine, startCol) ->
-            formatSelectionFromString isFsiFile (makeRange startLine startCol endLine endCol) sourceCode config
+            makeRange startLine startCol endLine endCol
+
+/// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
+let formatAroundCursor isFsiFile (cursorPos : pos) (sourceCode : string) config = 
+    let selection = inferSelectionFromCursorPos cursorPos sourceCode
+    formatSelectionFromString isFsiFile selection sourceCode config
+    

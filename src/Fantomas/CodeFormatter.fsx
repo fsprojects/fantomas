@@ -21,14 +21,12 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
-formatSelectionOnly false (makeRange 4 0 7 15) """
-module Enums = 
-    // Declaration of an enumeration. 
-    type Colour = 
-      | Red = 0
-      | Green = 1
-      | Blue = 2
-"""     config;;
+isValidFSharpCode false """
+{new IDisposable with
+           member x.Dispose(): unit = 
+               ()
+           }
+""";;
 
 
 test """

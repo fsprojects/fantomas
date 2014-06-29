@@ -34,7 +34,11 @@ type FormatSelectionCommand(getConfig: Func<FormatConfig>) =
         if isFormattingCursorPosition then
             let caretPos = VirtualSnapshotPoint(x.TextBuffer.CurrentSnapshot, int x.TextView.Caret.Position.BufferPosition)
             let pos = TextUtils.getFSharpPos(caretPos)
-            formatAroundCursor isSignatureFile pos source config
+            let range = getSelectionFromCursorPos pos source
+            let formattedSelection = formatSelectionOnly isSignatureFile range source config
+            let startIndex = x.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(range.StartLine-1).Start.Position + range.StartColumn
+            let endIndex = x.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(range.EndLine-1).Start.Position + range.EndColumn + 1
+            String.Join(String.Empty, source.[0..startIndex-1], formattedSelection, source.[endIndex..])
         else
             let startPos = TextUtils.getFSharpPos(x.TextView.Selection.Start)
             let startIndex = x.TextView.Selection.Start.Position.Position
