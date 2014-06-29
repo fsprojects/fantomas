@@ -298,8 +298,8 @@ let ``types with attributes``() =
     formatSourceString false """
 type MyType() =
     let mutable myInt1 = 10
-    [<DefaultValue>] val mutable myInt2 : int
-    [<DefaultValue>] val mutable myString : string
+    [<DefaultValue; Test>] val mutable myInt2 : int
+    [<DefaultValue; Test>] val mutable myString : string
     member this.SetValsAndPrint( i: int, str: string) =
        myInt1 <- i
        this.myInt2 <- i + 1
@@ -309,8 +309,10 @@ type MyType() =
     |> should equal """
 type MyType() = 
     let mutable myInt1 = 10
-    [<DefaultValue>] val mutable myInt2 : int
-    [<DefaultValue>] val mutable myString : string
+    [<DefaultValue; Test>]
+    val mutable myInt2 : int
+    [<DefaultValue; Test>]
+    val mutable myString : string
     member this.SetValsAndPrint(i : int, str : string) = 
         myInt1 <- i
         this.myInt2 <- i + 1
@@ -616,7 +618,8 @@ type CustomGraphControl() =
     |> should equal """
 type CustomGraphControl() = 
     inherit UserControl()
-    [<DefaultValue(false)>] static val mutable private GraphProperty : DependencyProperty
+    [<DefaultValue(false)>]
+    static val mutable private GraphProperty : DependencyProperty
 """
 
 [<Test>]

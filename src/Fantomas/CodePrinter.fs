@@ -71,7 +71,7 @@ and genParsedHashDirective (ParsedHashDirective(h, s)) =
 
 and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
     genPreXmlDoc px
-    +> colPost sepNln sepNln ats (genAttribute astContext)
+    +> genAttributes astContext ats
     // Checking for Tmp is a bit fragile
     +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
             +> opt sepSpace ao genAccess +> ifElse (s = "") (!- "global") (!- s) +> rep 2 sepNln)
@@ -79,7 +79,7 @@ and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isMo
 
 and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
     genPreXmlDoc px
-    +> colPost sepNln sepNln ats (genAttribute astContext)
+    +> genAttributes astContext ats
     +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
     +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
     +> genSigModuleDeclList astContext mds
@@ -147,7 +147,7 @@ and genModuleDecl astContext = function
         genParsedHashDirective p
     | Extern(ats, px, ao, t, s, ps) ->
         genPreXmlDoc px
-        +> colPost sepNln sepNln ats (genAttribute astContext)
+        +> genAttributes astContext ats
         -- "extern " +> genType astContext false t +> sepSpace +> opt sepSpace ao genAccess
         -- s +> sepOpenT +> col sepComma ps (genPat { astContext with IsCStylePattern = true }) +> sepCloseT
     // Add a new line after module-level let bindings
@@ -163,7 +163,7 @@ and genModuleDecl astContext = function
         failwithf "NamespaceFragment hasn't been implemented yet: %O" m
     | NestedModule(ats, px, ao, s, mds) -> 
         genPreXmlDoc px
-        +> colPost sepNln sepNln ats (genAttribute astContext) -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
+        +> genAttributes astContext ats -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
         +> indent +> sepNln +> genModuleDeclList astContext mds +> unindent
 
     | Open(s) ->
@@ -188,7 +188,7 @@ and genSigModuleDecl astContext = function
         failwithf "NamespaceFragment is not supported yet: %O" m
     | SigNestedModule(ats, px, ao, s, mds) -> 
         genPreXmlDoc px
-        +> colPost sepNln sepNln ats (genAttribute astContext) -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
+        +> genAttributes astContext ats -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
         +> indent +> sepNln +> genSigModuleDeclList astContext mds +> unindent
 
     | SigOpen(s) ->
@@ -207,11 +207,25 @@ and genAttribute astContext (Attribute(s, e, _)) =
     | ConstExpr(Const "()", _) -> !- (sprintf "[<%s>]" s)
     | e -> !- "[<" -- s +> genExpr astContext e -- ">]"
     
-and genOneLinerAttributes astContext ats = 
-    colPost sepSpace sepNone ats (genAttribute astContext)
+and genAttributesCore astContext ats = 
+    let genAttributeExpr astContext (Attribute(s, e, _)) = 
+        match e with
+        | ConstExpr(Const "()", _) -> !- s
+        | e -> !- s +> genExpr astContext e
+    ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> col sepSemi ats (genAttributeExpr astContext) -- ">]")
 
+and genOnelinerAttributes astContext ats =
+    ifElse (Seq.isEmpty ats) sepNone (genAttributesCore astContext ats +> sepSpace)
+
+/// Try to group attributes if they are on the same line
+/// Separate same-line attributes by ';'
+/// Each bucket is printed in a different line
 and genAttributes astContext ats = 
-    colPost sepNln sepNone ats (genAttribute astContext)
+    ats
+    |> Seq.groupBy (fun at -> at.Range.StartLine)
+    |> Seq.map snd
+    |> Seq.toList
+    |> fun atss -> colPost sepNln sepNln atss (genAttributesCore astContext)
 
 and genPreXmlDoc (PreXmlDoc lines) ctx = 
     if ctx.Config.StrictMode then
@@ -243,7 +257,7 @@ and genLetBinding astContext pref b =
         let prefix =
             genPreXmlDoc px
             +> ifElse astContext.IsFirstChild (genAttributes astContext ats -- pref) 
-                (!- pref +> genOneLinerAttributes astContext ats)
+                (!- pref +> genOnelinerAttributes astContext ats)
             +> opt sepSpace ao genAccess
             +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
             +> genPat astContext p
@@ -622,8 +636,8 @@ and genIndexers astContext = function
 and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) = 
     let typeName = 
         genPreXmlDoc px 
-        +> ifElse astContext.IsFirstChild (colPost sepNln sepNln ats (genAttribute astContext) -- "type ") 
-            (!- "and " +> genOneLinerAttributes astContext ats) 
+        +> ifElse astContext.IsFirstChild (genAttributes astContext ats -- "type ") 
+            (!- "and " +> genOnelinerAttributes astContext ats) 
         +> opt sepSpace ao genAccess -- s
         +> genTypeParam astContext tds tcs
 
@@ -679,8 +693,8 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
 and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) = 
     let typeName = 
         genPreXmlDoc px 
-        +> ifElse astContext.IsFirstChild (colPost sepNln sepNln ats (genAttribute astContext) -- "type ") 
-            (!- "and " +> genOneLinerAttributes astContext ats) 
+        +> ifElse astContext.IsFirstChild (genAttributes astContext ats -- "type ") 
+            (!- "and " +> genOnelinerAttributes astContext ats) 
         +> opt sepSpace ao genAccess -- s
         +> genTypeParam astContext tds tcs
 
@@ -730,7 +744,7 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
 and genMemberSig astContext = function
     | MSMember(Val(ats, px, ao, s, t, vi, _), mf) -> 
         let (FunType namedArgs) = (t, vi)
-        genPreXmlDoc px +> genOneLinerAttributes astContext ats 
+        genPreXmlDoc px +> genAttributes astContext ats 
         +> atCurrentColumn (indent +> genMemberFlags { astContext with IsInterface = false } mf +> opt sepNone ao genAccess
                                    +> ifElse (s = "``new``") (!- "new") (!- s) 
                                    +> sepColon +> genTypeList astContext namedArgs +> unindent)
@@ -741,7 +755,7 @@ and genMemberSig astContext = function
     | MSNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
 
 and genTyparDecl astContext (TyparDecl(ats, tp)) =
-    genOneLinerAttributes astContext ats +> genTypar tp
+    genOnelinerAttributes astContext ats +> genTypar tp
 
 and genTypeDefKind = function
     | TCSimple TCUnspecified -> sepNone
@@ -772,19 +786,19 @@ and genSigException astContext (SigExceptionDef(ats, px, ao, uc, ms)) =
 and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs)) =
     genPreXmlDoc px
     +> ifElse astContext.HasVerticalBar sepBar sepNone
-    +> genOneLinerAttributes astContext ats -- s 
+    +> genOnelinerAttributes astContext ats -- s 
     +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
 
 and genEnumCase astContext (EnumCase(ats, px, _, c)) =
     genPreXmlDoc px 
     +> ifElse astContext.HasVerticalBar sepBar sepNone 
-    +> genOneLinerAttributes astContext ats +> genConst c
+    +> genOnelinerAttributes astContext ats +> genConst c
 
 and genField astContext prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) = 
     // Being protective on union case declaration
     let t = genType astContext astContext.IsUnionField t
     genPreXmlDoc px 
-    +> genOneLinerAttributes astContext ats +> ifElse isStatic (!- "static ") sepNone -- prefix
+    +> genAttributes astContext ats +> ifElse isStatic (!- "static ") sepNone -- prefix
     +> ifElse isMutable (!- "mutable ") sepNone +> opt sepSpace ao genAccess  
     +> opt sepColon so (!-) +> t
 
@@ -930,7 +944,7 @@ and genMemberDefn astContext = function
     | MDValField f -> genField astContext "val " f
     | MDImplicitCtor(ats, ao, ps, so) -> 
         optPre sepSpace sepSpace ao genAccess +> sepOpenT
-        +> genOneLinerAttributes astContext ats +> col sepComma ps (genSimplePat astContext) +> sepCloseT
+        +> genAttributes astContext ats +> col sepComma ps (genSimplePat astContext) +> sepCloseT
         +> optPre (!- " as ") sepNone so (!-)
 
     | MDMember(b) -> genMemberBinding astContext b
@@ -955,7 +969,7 @@ and genMemberDefn astContext = function
             | Some (TFun _) -> true
             | _ -> false
         genPreXmlDoc px
-        +> genOneLinerAttributes astContext ats +> ifElse isStatic (!- "static member val ") (!- "member val ")
+        +> genAttributes astContext ats +> ifElse isStatic (!- "static member val ") (!- "member val ")
         +> opt sepSpace ao genAccess -- s +> optPre sepColon sepNone typeOpt (genType astContext false)
          +> sepEq +> genExpr astContext e -- genPropertyKind (not isFunctionProperty) mk
 
@@ -966,7 +980,7 @@ and genMemberDefn astContext = function
             | TFun _ -> true
             | _ -> false
         genPreXmlDoc px 
-        +> genOneLinerAttributes astContext ats
+        +> genAttributes astContext ats
         +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
         +> genTypeParam astContext tds tcs
         +> sepColon +> genTypeList astContext namedArgs -- genPropertyKind (not isFunctionProperty) mk
@@ -984,7 +998,7 @@ and genPropertyKind useSyntacticSugar = function
 and genSimplePat astContext = function
     | SPId(s, isOptArg, _) -> ifElse isOptArg (!- (sprintf "?%s" s)) (!- s)
     | SPTyped(sp, t) -> genSimplePat astContext sp +> sepColon +> genType astContext false t
-    | SPAttrib(ats, sp) -> genOneLinerAttributes astContext ats +> genSimplePat astContext sp
+    | SPAttrib(ats, sp) -> genOnelinerAttributes astContext ats +> genSimplePat astContext sp
     
 and genSimplePats astContext = function
     // Remove parentheses on an extremely simple pattern
@@ -996,7 +1010,7 @@ and genComplexPat astContext = function
     | CPId p -> genPat astContext p
     | CPSimpleId(s, isOptArg, _) -> ifElse isOptArg (!- (sprintf "?%s" s)) (!- s)
     | CPTyped(sp, t) -> genComplexPat astContext sp +> sepColon +> genType astContext false t
-    | CPAttrib(ats, sp) -> colPost sepSpace sepNone ats (genAttribute astContext) +> genComplexPat astContext sp
+    | CPAttrib(ats, sp) -> genOnelinerAttributes astContext ats +> genComplexPat astContext sp
 
 and genComplexPats astContext = function
     | ComplexPats [c] -> genComplexPat astContext c
@@ -1011,7 +1025,7 @@ and genPatWithIdent astContext (ido, p) =
 
 and genPat astContext = function
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)
-    | PatAttrib(p, ats) -> genOneLinerAttributes astContext ats +> genPat astContext p
+    | PatAttrib(p, ats) -> genOnelinerAttributes astContext ats +> genPat astContext p
     | PatOr(p1, p2) -> genPat astContext p1 -- " | " +> genPat astContext p2
     | PatAnds(ps) -> col (!- " & ") ps (genPat astContext)
     | PatNullary PatNull -> !- "null"

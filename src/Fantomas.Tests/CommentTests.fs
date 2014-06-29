@@ -273,8 +273,7 @@ type IlxGenOptions =
 """   { config with SemicolonAtEndOfLine = true }
     |> prepend newline
     |> should equal """
-[<NoEquality>]
-[<NoComparison>]
+[<NoEquality; NoComparison>]
 type IlxGenOptions = 
     { fragName : string;
       generateFilterBlocks : bool;
