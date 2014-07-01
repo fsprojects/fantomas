@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Fantomas</id>
-        <version>1.3.0</version>
+        <version>1.4.0</version>
         <title>Fantomas</title>
         <authors>Anh-Dung Phan,Gustavo Guerra</authors>
         <licenseUrl>http://github.com/dungpa/fantomas/blob/master/LICENSE.md</licenseUrl>
@@ -16,7 +16,7 @@ Some common use cases include (1) Reformatting a code base to conform a universa
         <releaseNotes>A lot of bug fixings</releaseNotes>
         <tags>F# fsharp formatting beautifier indentation indenter</tags>
         <dependencies>
-            <dependency id="FSharp.Compiler.Service" version="0.0.48" />
+            <dependency id="FSharp.Compiler.Service" version="0.0.57" />
         </dependencies>
         <references>
             <reference file="FantomasLib.dll" />

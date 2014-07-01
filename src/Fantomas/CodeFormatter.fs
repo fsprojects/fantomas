@@ -75,8 +75,20 @@ let isValidAST ast =
         match typeDefnRepr with
         | SynTypeDefnRepr.ObjectModel(_kind, members, _range) ->
             List.forall validateMemberDefn members
-        | SynTypeDefnRepr.Simple(_repr, _range) -> 
-            true
+        | SynTypeDefnRepr.Simple(repr, _range) -> 
+            match repr with
+            | SynTypeDefnSimpleRepr.Union(_, cases, _) -> 
+                not (List.isEmpty cases)
+            | SynTypeDefnSimpleRepr.Enum(cases, _) -> 
+                not (List.isEmpty cases)
+            | SynTypeDefnSimpleRepr.Record(_, fields, _) ->
+                not (List.isEmpty fields)
+            | SynTypeDefnSimpleRepr.General(_, types, _, _, _, _, _, _) -> 
+                not (List.isEmpty types)
+            | SynTypeDefnSimpleRepr.LibraryOnlyILAssembly(_, _)
+            | SynTypeDefnSimpleRepr.TypeAbbrev(_, _, _)
+            | SynTypeDefnSimpleRepr.None(_) ->
+                true
 
     and validateMemberDefn (memberDefn: SynMemberDefn) =
         match memberDefn with
