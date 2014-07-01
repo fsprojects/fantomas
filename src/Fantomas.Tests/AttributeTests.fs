@@ -85,3 +85,23 @@ let rec a() = 10
 
 and [<Test>] b() = 10
 """
+
+[<Test>]
+let ``attributes on implicit constructors``() =
+    formatSourceString false """
+[<Export>]
+type Sample [<ImportingConstructor>] (IDependency dependency) = class end
+[<Export>]
+type Sample [<ImportingConstructor>] internal () = class end""" config
+    |> prepend newline
+    |> should equal """
+[<Export>]
+type Sample [<ImportingConstructor>] () = 
+    class
+    end
+
+[<Export>]
+type Sample [<ImportingConstructor>]  internal () = 
+    class
+    end
+"""

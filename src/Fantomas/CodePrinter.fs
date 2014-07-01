@@ -943,8 +943,10 @@ and genMemberDefn astContext = function
     | MDInherit(t, _) -> !- "inherit " +> genType astContext false t
     | MDValField f -> genField astContext "val " f
     | MDImplicitCtor(ats, ao, ps, so) -> 
-        optPre sepSpace sepSpace ao genAccess +> sepOpenT
-        +> genAttributes astContext ats +> col sepComma ps (genSimplePat astContext) +> sepCloseT
+        // In implicit constructor, attributes should come even before access qualifiers
+        ifElse ats.IsEmpty sepNone (sepSpace +> genOnelinerAttributes astContext ats)
+        +> optPre sepSpace sepSpace ao genAccess +> sepOpenT
+        +> col sepComma ps (genSimplePat astContext) +> sepCloseT
         +> optPre (!- " as ") sepNone so (!-)
 
     | MDMember(b) -> genMemberBinding astContext b
