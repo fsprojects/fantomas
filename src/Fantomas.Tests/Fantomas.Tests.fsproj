@@ -47,6 +47,7 @@
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
   <ItemGroup>
     <None Include="packages.config" />
@@ -78,8 +79,22 @@
     <Compile Include="FormattingSelectionTests.fs" />
     <Compile Include="FormattingSelectionOnlyTests.fs" />
     <Compile Include="ValidationTests.fs" />
+    <Compile Include="FsCheckAddin.fs" />
+    <Compile Include="FormattingPropertyTests.fs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FsCheck">
+      <HintPath>..\packages\FsCheck.1.0.0\lib\net45\FsCheck.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FsCheck.NUnit">
+      <HintPath>..\packages\FsCheck.Nunit.1.0.0\lib\net45\FsCheck.NUnit.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FsCheck.NUnit.Addin">
+      <HintPath>..\packages\FsCheck.Nunit.1.0.0\lib\net45\FsCheck.NUnit.Addin.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="FSharp.Compiler.Service">
       <HintPath>..\packages\FSharp.Compiler.Service.0.0.57\lib\net45\FSharp.Compiler.Service.dll</HintPath>
       <Private>True</Private>
@@ -88,12 +103,18 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="FsUnit.NUnit">
-      <HintPath>..\packages\FsUnit.1.1.1.0\Lib\Net40\FsUnit.NUnit.dll</HintPath>
+      <HintPath>..\packages\FsUnit.1.3.0.1\Lib\Net40\FsUnit.NUnit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
+    <Reference Include="nunit.core">
+      <HintPath>..\packages\NUnit.Runners.2.6.3\tools\lib\nunit.core.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.core.interfaces">
+      <HintPath>..\packages\NUnit.Runners.2.6.3\tools\lib\nunit.core.interfaces.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
+      <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
