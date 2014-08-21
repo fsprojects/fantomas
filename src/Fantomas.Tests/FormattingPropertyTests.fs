@@ -71,12 +71,17 @@ let generateSynType size =
         ]
 
 let rec generateSynPat size = 
-    let genSubSynConst = generateSynConst (size/2)
-    Gen.oneof 
-        [ 
-            Gen.constant (SynPat.Wild zero)
-            Gen.map (fun c -> SynPat.Const(c, zero)) genSubSynConst
-        ]
+    let genSubLongIdentWithDots = generateLongIdentWithDots (size/2)
+    if size <= 2 then
+        let genConstructorArgs = (Gen.constant (SynConstructorArgs.Pats []))
+        Gen.map2 (fun ident args -> SynPat.LongIdent(ident, None, None, args, None, zero)) genSubLongIdentWithDots genConstructorArgs
+    else
+        let genConstructorArgs = Gen.map SynConstructorArgs.Pats (Gen.listOf (generateSynPat (size/2)))
+        Gen.oneof 
+            [ 
+                Gen.constant (SynPat.Wild zero)
+                Gen.map2 (fun ident args -> SynPat.LongIdent(ident, None, None, args, None, zero)) genSubLongIdentWithDots genConstructorArgs
+            ]
 
 and generateSynSimplePats size =
     let genSubSynPat = generateSynPat (size/2)
@@ -90,6 +95,12 @@ and generateSynMatchClause size =
             Gen.map2 (fun pat expr -> SynMatchClause.Clause(pat, None, expr, zero, SequencePointAtTarget)) genSubSynPat genSubSynExpr
             Gen.map3 (fun pat expr1 expr2 -> SynMatchClause.Clause(pat, Some expr1, expr2, zero, SequencePointAtTarget)) genSubSynPat genSubSynExpr genSubSynExpr
         ]
+
+and generateSynBinding size =
+    let genSubSynExpr = generateSynExpr (size/2)
+    let genSubSynPat = generateSynPat (size/2)
+    Gen.map2 (fun expr pat -> SynBinding.Binding(None, SynBindingKind.NormalBinding, false, false, [], PreXmlDoc.Empty, SynInfo.emptySynValData, pat, None, expr, zero, NoSequencePointAtLetBinding)) 
+        genSubSynExpr genSubSynPat
 
 and generateIdentExpr size =
     let genSubIdent = generateIdent (size/2)
@@ -110,45 +121,47 @@ and generateSynExpr size =
         let genSubIdent = generateIdent (size/2)
         let genSubLongIdentWithDots = generateLongIdentWithDots (size/2)
         let genSubSynConst = generateSynConst (size/2)
-        Gen.oneof 
+        let generateSynBindingList = Gen.listOf (generateSynBinding (size/2))
+        Gen.frequency 
             [ 
-                Gen.map (fun c -> SynExpr.Const(c, zero)) genSubSynConst
-                Gen.map2 (fun expr typ -> SynExpr.Typed(expr, typ, zero)) genSubSynExpr genSubSynType
-                Gen.map (fun exprs -> SynExpr.Tuple(exprs, exprs |> List.map (fun _ -> zero), zero)) genSubSynExprList
-                Gen.map2 (fun b exprs -> SynExpr.ArrayOrList(b, exprs, zero)) Arb.generate<_> genSubSynExprList
-                Gen.map3 (fun b typ expr -> SynExpr.New(b, typ, SynExpr.Paren(expr, zero, None, zero), zero)) Arb.generate<_> genSubSynType genSubSynExpr
-                Gen.map2 (fun expr1 expr2 -> SynExpr.While(NoSequencePointAtWhileLoop, expr1, expr2, zero)) genSubSynExpr genSubSynExpr
-                Gen.map2 (fun b expr -> SynExpr.ArrayOrListOfSeqExpr(b, expr, zero)) Arb.generate<_> genSubSynExpr
-                Gen.map2 (fun b expr -> SynExpr.CompExpr(b, ref true, expr, zero)) Arb.generate<_> genSubSynExpr
-                Gen.map (fun expr -> SynExpr.Do(expr, zero)) genSubSynExpr
-                Gen.map (fun expr -> SynExpr.Assert(expr, zero)) genSubSynExpr
-                Gen.map (fun expr -> SynExpr.Paren(expr, zero, None, zero)) genSubSynExpr
-                genSubIdentExpr
-                Gen.map2 (fun b expr -> SynExpr.AddressOf(b, expr, zero, zero)) Arb.generate<_> genSubIdentExpr
-                Gen.constant (SynExpr.Null zero)
-                Gen.map (fun expr -> SynExpr.InferredDowncast(expr, zero)) genSubIdentExpr
-                Gen.map (fun expr -> SynExpr.InferredUpcast(expr, zero)) genSubIdentExpr
-                Gen.map2 (fun expr typ -> SynExpr.Upcast(expr, typ, zero)) genSubIdentExpr genSubSynType
-                Gen.map2 (fun expr typ -> SynExpr.Downcast(expr, typ, zero)) genSubIdentExpr genSubSynType
-                Gen.map2 (fun expr typ -> SynExpr.TypeTest(expr, typ, zero)) genSubIdentExpr genSubSynType
-                Gen.map2 (fun expr1 expr2 -> SynExpr.DotIndexedGet(expr1, [SynIndexerArg.One expr2], zero, zero)) genSubSynExpr genSubSynExpr
-                Gen.map3 (fun expr1 expr2 expr3 -> SynExpr.DotIndexedSet(expr1, [SynIndexerArg.One expr3], expr2, zero, zero, zero)) genSubSynExpr genSubSynExpr genSubSynExpr
-                Gen.map2 (fun expr longIdent -> SynExpr.DotGet(expr, zero, longIdent, zero)) genSubSynExpr genSubLongIdentWithDots
-                Gen.map3 (fun expr1 expr2 longIdent -> SynExpr.DotSet(expr1, longIdent, expr2, zero)) genSubSynExpr genSubSynExpr genSubLongIdentWithDots
-                Gen.map2 (fun expr longIdent -> SynExpr.LongIdentSet(longIdent, expr, zero)) genSubSynExpr genSubLongIdentWithDots
-                Gen.map2 (fun b longIdent -> SynExpr.LongIdent(b, longIdent, None, zero)) Arb.generate<_> genSubLongIdentWithDots
-                Gen.map3 (fun expr1 expr2 expr3 -> SynExpr.IfThenElse(expr1, expr2, Some expr3, NoSequencePointAtDoBinding, false, zero, zero)) genSubSynExpr genSubSynExpr genSubSynExpr
-                Gen.map2 (fun expr1 expr2 -> SynExpr.Sequential(SequencePointsAtSeq, true, expr1, expr2, zero)) genSubSynExpr genSubSynExpr
-                Gen.map (fun expr -> SynExpr.Lazy(expr, zero)) genSubSynExpr
-                Gen.map2 (fun expr1 expr2 -> SynExpr.TryFinally(expr1, expr2, zero, NoSequencePointAtTry, NoSequencePointAtFinally)) genSubSynExpr genSubSynExpr
-                Gen.map2 (fun expr clauses -> SynExpr.TryWith(expr, zero, clauses, zero, zero, NoSequencePointAtTry, NoSequencePointAtWith)) genSubSynExpr genSubSynMatchClauseList
-                Gen.map2 (fun expr typs -> SynExpr.TypeApp(expr, zero, typs, typs |> List.map (fun _ -> zero), None, zero, zero)) genSubSynExpr genSubSynTypeList
-                Gen.map3 (fun b expr1 expr2 -> SynExpr.App(ExprAtomicFlag.NonAtomic, b, expr1, expr2, zero)) Arb.generate<_> genSubSynExpr genSubSynExpr
-                Gen.map2 (fun expr clauses -> SynExpr.Match(NoSequencePointAtDoBinding, expr, clauses, false, zero)) genSubSynExpr genSubSynMatchClauseList
-                Gen.map2 (fun b clauses -> SynExpr.MatchLambda(b, zero, clauses, NoSequencePointAtDoBinding, zero)) Arb.generate<_> genSubSynMatchClauseList
-                Gen.map3 (fun b pat expr -> SynExpr.Lambda(b, false, pat, expr, zero)) Arb.generate<_> genSubSynSimplePats genSubSynExpr
-                Gen.map5 (fun b expr1 expr2 expr3 s -> SynExpr.For(NoSequencePointAtForLoop, Ident(s, zero), expr1, b, expr2, expr3, zero)) Arb.generate<_> genSubSynExpr genSubSynExpr genSubSynExpr genSubIdent
-                Gen.map5 (fun b1 b2 expr1 expr2 pat -> SynExpr.ForEach(NoSequencePointAtForLoop, SeqExprOnly b1, b2, pat, expr1, expr2, zero)) Arb.generate<_> Arb.generate<_> genSubSynExpr genSubSynExpr genSubSynPat
+                1, Gen.map (fun c -> SynExpr.Const(c, zero)) genSubSynConst
+                1, Gen.map2 (fun expr typ -> SynExpr.Typed(expr, typ, zero)) genSubSynExpr genSubSynType
+                2, Gen.map (fun exprs -> SynExpr.Tuple(exprs, exprs |> List.map (fun _ -> zero), zero)) genSubSynExprList
+                2, Gen.map2 (fun b exprs -> SynExpr.ArrayOrList(b, exprs, zero)) Arb.generate<_> genSubSynExprList
+                1, Gen.map3 (fun b typ expr -> SynExpr.New(b, typ, SynExpr.Paren(expr, zero, None, zero), zero)) Arb.generate<_> genSubSynType genSubSynExpr
+                1, Gen.map2 (fun expr1 expr2 -> SynExpr.While(NoSequencePointAtWhileLoop, expr1, expr2, zero)) genSubSynExpr genSubSynExpr
+                1, Gen.map2 (fun b expr -> SynExpr.ArrayOrListOfSeqExpr(b, expr, zero)) Arb.generate<_> genSubSynExpr
+                1, Gen.map2 (fun b expr -> SynExpr.CompExpr(b, ref true, expr, zero)) Arb.generate<_> genSubSynExpr
+                1, Gen.map (fun expr -> SynExpr.Do(expr, zero)) genSubSynExpr
+                1, Gen.map (fun expr -> SynExpr.Assert(expr, zero)) genSubSynExpr
+                1, Gen.map (fun expr -> SynExpr.Paren(expr, zero, None, zero)) genSubSynExpr
+                1, genSubIdentExpr
+                1, Gen.map2 (fun b expr -> SynExpr.AddressOf(b, expr, zero, zero)) Arb.generate<_> genSubIdentExpr
+                1, Gen.constant (SynExpr.Null zero)
+                1, Gen.map (fun expr -> SynExpr.InferredDowncast(expr, zero)) genSubIdentExpr
+                1, Gen.map (fun expr -> SynExpr.InferredUpcast(expr, zero)) genSubIdentExpr
+                1, Gen.map2 (fun expr typ -> SynExpr.Upcast(expr, typ, zero)) genSubIdentExpr genSubSynType
+                1, Gen.map2 (fun expr typ -> SynExpr.Downcast(expr, typ, zero)) genSubIdentExpr genSubSynType
+                1, Gen.map2 (fun expr typ -> SynExpr.TypeTest(expr, typ, zero)) genSubIdentExpr genSubSynType
+                1, Gen.map2 (fun expr1 expr2 -> SynExpr.DotIndexedGet(expr1, [SynIndexerArg.One expr2], zero, zero)) genSubSynExpr genSubSynExpr
+                1, Gen.map3 (fun expr1 expr2 expr3 -> SynExpr.DotIndexedSet(expr1, [SynIndexerArg.One expr3], expr2, zero, zero, zero)) genSubSynExpr genSubSynExpr genSubSynExpr
+                1, Gen.map2 (fun expr longIdent -> SynExpr.DotGet(expr, zero, longIdent, zero)) genSubSynExpr genSubLongIdentWithDots
+                1, Gen.map3 (fun expr1 expr2 longIdent -> SynExpr.DotSet(expr1, longIdent, expr2, zero)) genSubSynExpr genSubSynExpr genSubLongIdentWithDots
+                1, Gen.map2 (fun expr longIdent -> SynExpr.LongIdentSet(longIdent, expr, zero)) genSubSynExpr genSubLongIdentWithDots
+                1, Gen.map2 (fun b longIdent -> SynExpr.LongIdent(b, longIdent, None, zero)) Arb.generate<_> genSubLongIdentWithDots
+                2, Gen.map3 (fun expr1 expr2 expr3 -> SynExpr.IfThenElse(expr1, expr2, Some expr3, NoSequencePointAtDoBinding, false, zero, zero)) genSubSynExpr genSubSynExpr genSubSynExpr
+                2, Gen.map2 (fun expr1 expr2 -> SynExpr.Sequential(SequencePointsAtSeq, true, expr1, expr2, zero)) genSubSynExpr genSubSynExpr
+                1, Gen.map (fun expr -> SynExpr.Lazy(expr, zero)) genSubSynExpr
+                1, Gen.map2 (fun expr1 expr2 -> SynExpr.TryFinally(expr1, expr2, zero, NoSequencePointAtTry, NoSequencePointAtFinally)) genSubSynExpr genSubSynExpr
+                1, Gen.map2 (fun expr clauses -> SynExpr.TryWith(expr, zero, clauses, zero, zero, NoSequencePointAtTry, NoSequencePointAtWith)) genSubSynExpr genSubSynMatchClauseList
+                1, Gen.map2 (fun expr typs -> SynExpr.TypeApp(expr, zero, typs, typs |> List.map (fun _ -> zero), None, zero, zero)) genSubSynExpr genSubSynTypeList
+                4, Gen.map3 (fun b expr1 expr2 -> SynExpr.App(ExprAtomicFlag.NonAtomic, b, expr1, expr2, zero)) Arb.generate<_> genSubSynExpr genSubSynExpr
+                4, Gen.map2 (fun expr clauses -> SynExpr.Match(NoSequencePointAtDoBinding, expr, clauses, false, zero)) genSubSynExpr genSubSynMatchClauseList
+                2, Gen.map2 (fun b clauses -> SynExpr.MatchLambda(b, zero, clauses, NoSequencePointAtDoBinding, zero)) Arb.generate<_> genSubSynMatchClauseList
+                2, Gen.map3 (fun b pat expr -> SynExpr.Lambda(b, false, pat, expr, zero)) Arb.generate<_> genSubSynSimplePats genSubSynExpr
+                2, Gen.map5 (fun b expr1 expr2 expr3 s -> SynExpr.For(NoSequencePointAtForLoop, Ident(s, zero), expr1, b, expr2, expr3, zero)) Arb.generate<_> genSubSynExpr genSubSynExpr genSubSynExpr genSubIdent
+                2, Gen.map5 (fun b1 b2 expr1 expr2 pat -> SynExpr.ForEach(NoSequencePointAtForLoop, SeqExprOnly b1, b2, pat, expr1, expr2, zero)) Arb.generate<_> Arb.generate<_> genSubSynExpr genSubSynExpr genSubSynPat
+                8, Gen.map3 (fun b bindings expr -> SynExpr.LetOrUse(b, false, bindings, expr, zero)) Arb.generate<_> generateSynBindingList genSubSynExpr
             ]
     
 let generateParsedInput =
