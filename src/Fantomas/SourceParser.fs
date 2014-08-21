@@ -163,7 +163,7 @@ let rec (|Const|) c =
     | SynConst.Decimal d -> sprintf "%A" d
     | SynConst.String(s, _) -> 
         // Naive check for verbatim strings
-        if s.Contains("\\") && not <| s.Contains(@"\\") then sprintf "@%A" s
+        if not <| String.IsNullOrEmpty(s) && s.Contains("\\") && not <| s.Contains(@"\\") then sprintf "@%A" s
         else sprintf "%A" s
     | SynConst.Bytes(bs, _) -> sprintf "%A" bs
     // Auto print may cut off the array
