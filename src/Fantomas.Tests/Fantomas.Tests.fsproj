@@ -52,6 +52,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="app.config" />
+    <Compile Include="FsUnit.fs" />
     <Compile Include="TestHelpers.fs" />
     <Compile Include="StringTests.fs" />
     <Compile Include="CommentTests.fs" />
