@@ -198,17 +198,72 @@ type Generators =
     static member Input() = 
         { new Arbitrary<Input>() with
               member __.Generator = generateInput
-              member __.Shrinker _ = Seq.empty }
+              member __.Shrinker (Input s) =  
+                let rec shrink = function
+                    | [] -> Seq.empty
+                    | x::xs ->
+                        seq {
+                            yield [x]
+                            yield xs
+                            for xs' in shrink xs -> x::xs'
+                        }
+                        |> Seq.distinct                    
+                let lines = s.Replace('\r', '\n').Split([|'\n'|], StringSplitOptions.RemoveEmptyEntries) |> Array.toList
+                lines
+                |> shrink
+                |> Seq.map (String.concat "" >> Input)
+        }
 
 [<TestFixtureSetUp>]
 let registerFsCheckGenerators() =
     Arb.register<Generators>() |> ignore
 
-[<Property(MaxTest = 100, EndSize = 20)>]
-let ``running formatting ASTs twice should produce the same results`` ast =
-    let formatted = formatAST ast None formatConfig
-    Console.WriteLine("Tentative output:\n{0}", formatted)
-    formatAST ast None formatConfig = formatted
+/// An FsCheck runner which reports FsCheck test results to NUnit.
+type private NUnitRunner () =
+    interface IRunner with
+        member __.OnStartFixture _ = ()
+        member __.OnArguments (_,_,_) = ()
+        member __.OnShrink (_,_) = ()
+        member __.OnFinished (name, result) =
+            match result with
+            | TestResult.True _data ->
+                // TODO : Log the result data.
+                Runner.onFinishedToString name result
+                |> stdout.WriteLine
+
+            | TestResult.Exhausted _data ->
+                // TODO : Log the result data.
+                Runner.onFinishedToString name result
+                |> Assert.Inconclusive
+
+            | TestResult.False (_,_,_,_,_) ->
+                // TODO : Log more information about the test failure.
+                Runner.onFinishedToString name result
+                |> Assert.Fail
+
+let private quickConf = 
+    {
+        Config.Quick with
+            MaxTest = 100
+            EndSize = 20
+            Runner = NUnitRunner ()
+    }
+
+let private verboseConf = 
+    {
+        Config.Verbose with
+            MaxTest = 100
+            EndSize = 20
+            Runner = NUnitRunner ()
+    }
+
+[<Test>]
+let ``running formatting ASTs twice should produce the same results``() =
+    Check.One(quickConf,
+        fun ast ->
+            let formatted = formatAST ast None formatConfig
+            Console.WriteLine("Tentative output:\n{0}", formatted)
+            formatAST ast None formatConfig = formatted)
 
 let tryFormatSourceString isFsi sourceCode config =
     try
@@ -217,10 +272,12 @@ let tryFormatSourceString isFsi sourceCode config =
     with _ ->
         sourceCode
 
-[<Property(Verbose = true, MaxTest = 100, EndSize = 20)>]
-let ``running formatting twice should produce the same results`` (Input sourceCode) =    
-    let formatted = tryFormatSourceString false sourceCode formatConfig
-    tryFormatSourceString false formatted formatConfig = formatted
+[<Test>]
+let ``running formatting twice should produce the same results``() =    
+    Check.One(verboseConf,
+        fun (Input sourceCode) ->
+            let formatted = tryFormatSourceString false sourceCode formatConfig
+            tryFormatSourceString false formatted formatConfig = formatted)
 
 
 
