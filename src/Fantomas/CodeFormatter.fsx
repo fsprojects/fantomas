@@ -25,11 +25,8 @@ isValidFSharpCode false """
 type F = { Ident }
 """;;
 
-test """
-[<Export>]
-type Sample [<ImportingConstructor>] (IDependency dependency) = class end
-[<Export>]
-type Sample [<ImportingConstructor>] internal () = class end
+parse false """
+x = 0
 """;;
 
 test """

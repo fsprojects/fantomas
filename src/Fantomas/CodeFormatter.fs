@@ -315,9 +315,10 @@ let isValidFSharpCode isFsiFile sourceCode =
 let internal split (str : string) =
     str.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n')
 
-let internal formatWith ast (sourceCode : string) config =
+let internal formatWith ast input config =
     // Use '\n' as the new line delimiter consistently
     // It would be easier for F# parser
+    let sourceCode = defaultArg input ""
     let normalizedSourceCode = sourceCode.Replace("\r\n", "\n").Replace("\r", "\n")
     let formattedSourceCode =    
         Context.create config normalizedSourceCode 
@@ -326,12 +327,12 @@ let internal formatWith ast (sourceCode : string) config =
         |> if config.StrictMode then id else integrateComments normalizedSourceCode
 
     // Sometimes F# parser gives a partial AST for incorrect input
-    if String.IsNullOrWhiteSpace normalizedSourceCode <> String.IsNullOrWhiteSpace formattedSourceCode then
+    if input.IsSome && String.IsNullOrWhiteSpace normalizedSourceCode <> String.IsNullOrWhiteSpace formattedSourceCode then
         raise <| FormatException "Incomplete code fragment which is most likely due to parsing errors or the use of F# constructs newer than supported."
     else formattedSourceCode
 
 let internal format isFsiFile (sourceCode : string) config =
-    formatWith (parse isFsiFile sourceCode) sourceCode config
+    formatWith (parse isFsiFile sourceCode) (Some sourceCode) config
 
 /// Format a source string using given config
 let formatSourceString isFsiFile sourceCode config =    

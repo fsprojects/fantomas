@@ -6,7 +6,7 @@
     <Description xml:space="preserve">Provides formatting commands for F# in Visual Studio</Description>
     <MoreInfo>http://github.com/dungpa/fantomas</MoreInfo>
     <License>LICENSE.txt</License>
-    <Icon>fsharp_logo.png</Icon>
+    <Icon>fantomas_logo.png</Icon>
     <PreviewImage>fantomas_preview.png</PreviewImage>
     <Tags>formatting, indentation, beautifier, fsharp, editing</Tags>
   </Metadata>
