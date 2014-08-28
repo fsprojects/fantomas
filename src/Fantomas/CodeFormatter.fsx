@@ -21,8 +21,11 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
-isValidFSharpCode false """
-type F = { Ident }
+test """
+[<DataContract>]
+type Foo = 
+    { [<field:DataMember>]
+      Bar : string }
 """;;
 
 test """

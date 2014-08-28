@@ -105,3 +105,19 @@ type Sample [<ImportingConstructor>]  internal () =
     class
     end
 """
+
+[<Test>]
+let ``should handle targets on attributes``() =
+    formatSourceString false """
+[<DataContract>]
+type Foo = 
+    { [<field:DataMember>]
+      Bar:string }
+"""  config
+  |> prepend newline
+  |> should equal """
+[<DataContract>]
+type Foo = 
+    { [<field:DataMember>]
+      Bar : string }
+"""

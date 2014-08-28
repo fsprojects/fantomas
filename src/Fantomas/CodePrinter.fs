@@ -201,17 +201,21 @@ and genSigModuleDecl astContext = function
 
 and genAccess (Access s) = !- s
 
-and genAttribute astContext (Attribute(s, e, _)) = 
+and genAttribute astContext (Attribute(s, e, target)) = 
     match e with
     // Special treatment for function application on attributes
-    | ConstExpr(Const "()", _) -> !- (sprintf "[<%s>]" s)
-    | e -> !- "[<" -- s +> genExpr astContext e -- ">]"
+    | ConstExpr(Const "()", _) -> 
+        !- "[<" +> opt sepColonFixed target (!-) -- s -- ">]"
+    | e -> 
+        !- "[<"  +> opt sepColonFixed target (!-) -- s +> genExpr astContext e -- ">]"
     
 and genAttributesCore astContext ats = 
-    let genAttributeExpr astContext (Attribute(s, e, _)) = 
+    let genAttributeExpr astContext (Attribute(s, e, target)) = 
         match e with
-        | ConstExpr(Const "()", _) -> !- s
-        | e -> !- s +> genExpr astContext e
+        | ConstExpr(Const "()", _) -> 
+            opt sepColonFixed target (!-) -- s
+        | e -> 
+            opt sepColonFixed target (!-) -- s +> genExpr astContext e
     ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> col sepSemi ats (genAttributeExpr astContext) -- ">]")
 
 and genOnelinerAttributes astContext ats =

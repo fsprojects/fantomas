@@ -441,7 +441,7 @@ let ``running formatting twice should produce the same results``() =
             let formatted = tryFormatSourceString false sourceCode formatConfig
             tryFormatSourceString false formatted formatConfig = formatted)
 
-[<Test>]
+[<Test; Ignore>]
 let ``should be able to convert inputs to SynExpr``() =    
     "x" |> Input |> toSynExpr |> fun opt -> opt.IsSome |> should equal true
     """let rec W = M
@@ -450,7 +450,7 @@ and K = a
 for jf = d downto p do
     u""" |> Input |> toSynExpr |> fun opt -> opt.IsSome |> should equal true
 
-[<Test>]
+[<Test; Ignore>]
 let ``should be able to shrink inputs``() =    
     "fun x -> x" |> Input |> shrinkInput |> Seq.map (fun (Input x) -> x.TrimEnd('\r', '\n')) |> Seq.toArray |> should equal [|"x"|]
     """let rec W = M
