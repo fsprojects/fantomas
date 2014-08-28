@@ -213,3 +213,27 @@ extern int GetWindowLong(System.IntPtr hwnd, int index)""" config
 [<System.Runtime.InteropServices.DllImport("user32.dll")>]
 extern int GetWindowLong(System.IntPtr hwnd, int index)
 """
+
+[<Test>]
+let ``should handle external functions with special types``() =
+    formatSourceString false """open System
+open System.Runtime.InteropServices
+open Accessibility
+
+[<DllImport("oleacc.dll")>]
+extern int AccessibleChildren(
+    IAccessible paccContainer, 
+    int iChildStart, 
+    int cChildren, 
+    [<Out()>] [<MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4s)>] System.Object [] rgvarChildren, 
+    int* pcObtained)""" config
+    |> prepend newline
+    |> should equal """
+open System
+open System.Runtime.InteropServices
+open Accessibility
+
+[<DllImport("oleacc.dll")>]
+extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cChildren, [<Out; MarshalAs(UnmanagedType.LPArray, 
+                                                                                                          SizeParamIndex = 4s)>] System.Object [] rgvarChildren, int* pcObtained)
+"""

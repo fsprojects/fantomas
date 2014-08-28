@@ -1038,7 +1038,19 @@ and genPat astContext = function
     | PatNullary PatWild -> sepWild
     | PatTyped(p, t) -> 
         // CStyle patterns only occur on extern declaration so it doesn't escalate to expressions
-        ifElse astContext.IsCStylePattern (genType astContext false t +> sepSpace +> genPat astContext p)
+        // We lookup sources to get extern types since it has quite many exceptions compared to normal F# types
+        let genTypeByLookup t =
+            fun ctx -> 
+                if ctx.Config.StrictMode then
+                    genType astContext false t ctx
+                else
+                    match lookup t.Range ctx with
+                    | Some typ ->
+                        str typ ctx
+                    | None ->
+                        genType astContext false t ctx
+
+        ifElse astContext.IsCStylePattern (genTypeByLookup t +> sepSpace +> genPat astContext p)
             (genPat astContext p +> sepColon +> genType astContext false t) 
     | PatNamed(ao, PatNullary PatWild, s) -> opt sepSpace ao genAccess -- s
     | PatNamed(ao, p, s) -> opt sepSpace ao genAccess +> genPat astContext p -- sprintf " as %s" s 
