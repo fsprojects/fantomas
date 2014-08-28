@@ -237,3 +237,20 @@ open Accessibility
 extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cChildren, [<Out; MarshalAs(UnmanagedType.LPArray, 
                                                                                                           SizeParamIndex = 4s)>] System.Object [] rgvarChildren, int* pcObtained)
 """
+
+[<Test>]
+let ``should handle desugared matches correctly``() =
+    formatSourceString false """
+type U = X of int
+let f = fun x -> match x with X (x) -> x
+"""  config
+    |> prepend newline
+    |> should equal """
+type U = 
+    | X of int
+
+let f = 
+    fun x -> 
+        match x with
+        | X(x) -> x
+"""

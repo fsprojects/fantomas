@@ -912,9 +912,10 @@ let (|RecordField|) = function
 let (|Clause|) (SynMatchClause.Clause(p, eo, e, _, _)) = (p, e, eo)
 
 let rec private (|DesugaredMatch|_|) = function
-    | SynExpr.Match(_, Var s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) ->
+    // Compiler-generated patterns has "_arg" prefix
+    | SynExpr.Match(_, Var s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) when s.StartsWith "_arg" ->
         Some((s, p)::ss, e)
-    | SynExpr.Match(_, Var s, [Clause(p, e, None)], _, _) ->
+    | SynExpr.Match(_, Var s, [Clause(p, e, None)], _, _) when s.StartsWith "_arg" ->
         Some([(s, p)], e)
     | _ -> None
 

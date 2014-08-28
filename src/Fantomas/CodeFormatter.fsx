@@ -22,42 +22,9 @@ fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
 test """
-[<DataContract>]
-type Foo = 
-    { [<field:DataMember>]
-      Bar : string }
+type U = X of int
+let f = fun x -> match x with X (x) -> x
 """;;
-
-test """
-open System
-open System.Runtime.InteropServices
-open Accessibility
-
-[<DllImport("oleacc.dll")>]
-extern int AccessibleChildren(
-    IAccessible paccContainer, 
-    int iChildStart, 
-    int cChildren, 
-    [<Out()>] [<MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4s)>] System.Object [] rgvarChildren, 
-    int* pcObtained)
-"""
-
-test """
-let handle = 
-    if n<weakThreshhold then 
-        assert onStrongDiscard.IsNone; // it disappeared
-        Weak(WeakReference(v)) 
-    else 
-        Strong(v)
-"""
-
-test """
-let newDocument = //somecomment
-    { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
-    content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
-    created = document.Created.ToLocalTime() }
-    |> JsonConvert.SerializeObject
-"""
 
 // FAILS - sticky-right comment becomes sticky-left
 test """
