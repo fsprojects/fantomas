@@ -241,3 +241,22 @@ global.Test()
 base.Initializer()
 global.Test()
 """
+
+[<Test>]
+let ``should handle delimiters before comments``() =
+    formatSourceString false """
+let handle = 
+    if n<weakThreshhold then 
+        assert onStrongDiscard.IsNone; // it disappeared
+        Weak(WeakReference(v)) 
+    else 
+        Strong(v)
+    """ config
+    |> prepend newline
+    |> should equal """
+let handle = 
+    if n < weakThreshhold then 
+        assert onStrongDiscard.IsNone // it disappeared
+        Weak(WeakReference(v))
+    else Strong(v)
+"""

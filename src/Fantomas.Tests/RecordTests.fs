@@ -180,3 +180,23 @@ type rate =
 type rate2 = 
     | Rate of float<GBP / SGD * USD>
 """
+
+[<Test>]
+let ``should keep comments on records``() =
+    formatSourceString false """
+let newDocument = //somecomment
+    { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
+    content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
+    created = document.Created.ToLocalTime() }
+    |> JsonConvert.SerializeObject
+"""  config
+  |> prepend newline
+  |> should equal """
+let newDocument = //somecomment
+    { program = 
+          Encoding.Default.GetBytes(document.Program)
+          |> Encoding.UTF8.GetString content = Encoding.Default.GetBytes
+                                                   (document.Content)
+          |> Encoding.UTF8.GetString created = document.Created.ToLocalTime() }
+    |> JsonConvert.SerializeObject
+"""

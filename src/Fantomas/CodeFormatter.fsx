@@ -25,27 +25,35 @@ isValidFSharpCode false """
 type F = { Ident }
 """;;
 
-parse false """
-x = 0
-""";;
+test """
+open System
+open System.Runtime.InteropServices
+open Accessibility
+
+[<DllImport("oleacc.dll")>]
+extern int AccessibleChildren(
+    IAccessible paccContainer, 
+    int iChildStart, 
+    int cChildren, 
+    [<Out()>] [<MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4s)>] System.Object [] rgvarChildren, 
+    int* pcObtained)
+"""
 
 test """
-let [<Literal>] private assemblyConfig =
-    #if DEBUG
-    #if TRACE
-    let x = 0
-    "DEBUG;TRACE"
-    #else
-    "DEBUG"
-    #endif
-    #else
-    #if TRACE
-    "TRACE"
-    #else
-    ""
-    #endif
-    #endif
-    0
+let handle = 
+    if n<weakThreshhold then 
+        assert onStrongDiscard.IsNone; // it disappeared
+        Weak(WeakReference(v)) 
+    else 
+        Strong(v)
+"""
+
+test """
+let newDocument = //somecomment
+    { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
+    content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
+    created = document.Created.ToLocalTime() }
+    |> JsonConvert.SerializeObject
 """
 
 // FAILS - sticky-right comment becomes sticky-left

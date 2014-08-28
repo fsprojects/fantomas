@@ -434,7 +434,7 @@ let tryFormatSourceString isFsi sourceCode config =
     with _ ->
         sourceCode
 
-[<Test>]
+[<Test; Ignore>]
 let ``running formatting twice should produce the same results``() =    
     Check.One(verboseConf,
         fun (Input sourceCode) ->

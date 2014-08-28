@@ -15,6 +15,11 @@ type Debug = Console
 type Token = 
    | EOL
    | Tok of TokenInformation * int
+   override x.ToString() =
+        match x with
+        | EOL -> "<EOL>"
+        | Tok(tokInfo, l) ->
+            sprintf "Tok(%O, %O)" tokInfo.TokenName l
 
 let tokenize defines (content : string) =
     seq { 
@@ -242,6 +247,9 @@ type MarkedToken =
     member x.Text = 
         let (Marked(_,t,_)) = x
         t
+    override x.ToString() =
+        let (Marked(tok, s, stickiness)) = x
+        sprintf "Marked(%O, %A, %O)" tok s stickiness
 
 /// Decompose a marked token to a raw token
 let (|Wrapped|) (Marked(origTok, origTokText, _)) =
@@ -421,6 +429,7 @@ let integrateComments (originalText : string) (newText : string) =
     let indent = ref 0
 
     let addText (text : string) = 
+        //Debug.WriteLine("ADDING '{0}'", text)
         buffer.Append text |> ignore
         if text = Environment.NewLine then column := 0
         else column := !column + text.Length
@@ -428,6 +437,7 @@ let integrateComments (originalText : string) (newText : string) =
     let maintainIndent f =  
         let c = !column
         f()
+        Debug.WriteLine("maintain indent at {0}", c)
         addText Environment.NewLine
         addText (String.replicate c " ")
 
@@ -464,7 +474,13 @@ let integrateComments (originalText : string) (newText : string) =
             DecompileOpName(origTokText.Trim('`')) = DecompileOpName(newTokText.Trim('`'))
         | _ -> false
 
+    let tryHead xs =
+        match xs with
+        | [] -> None
+        | x :: _ -> Some x
+
     let rec loop origTokens newTokens = 
+        //Debug.WriteLine("*** Matching between {0} and {1}", sprintf "%A" <| tryHead origTokens, sprintf "%A" <| tryHead newTokens)
         match origTokens, newTokens with 
         | (Marked(Token origTok, _, _) :: moreOrigTokens),  _ 
             when origTok.CharClass = TokenCharKind.WhiteSpace && origTok.ColorClass <> TokenColorKind.InactiveCode 
@@ -476,6 +492,11 @@ let integrateComments (originalText : string) (newText : string) =
             Debug.WriteLine "dropping newline from orig tokens" 
             loop moreOrigTokens newTokens
         
+        // Not a comment, drop the original token text until something matches
+        | (Delimiter tokText :: moreOrigTokens), _ when tokText = ";" || tokText = ";;" ->
+            Debug.WriteLine("dropping '{0}' from original text", box tokText)
+            loop moreOrigTokens newTokens 
+
         // Inject #if... #else or #endif directive
         // These directives could occur inside an inactive code chunk
         // Assume that only #endif directive follows by an EOL 
@@ -543,7 +564,7 @@ let integrateComments (originalText : string) (newText : string) =
               
             match newTokens with 
             // If there is a new line coming, use it up
-            | ((EOL, newTokText) :: moreNewTokens) ->
+            | Space _ :: (EOL, newTokText) :: moreNewTokens | (EOL, newTokText) :: moreNewTokens ->
                 addText " "
                 for x in commentTokensText do addText x
                 Debug.WriteLine "emitting newline for end of sticky-to-left comment" 
@@ -552,12 +573,13 @@ let integrateComments (originalText : string) (newText : string) =
             // Otherwise, skip a whitespace token and maintain the indentation
             | Space _ :: moreNewTokens | moreNewTokens -> 
                 addText " "
-                maintainIndent (fun () -> for x in commentTokensText do addText x)
+                maintainIndent (fun () -> 
+                    for x in commentTokensText do addText x)
                 loop moreOrigTokens moreNewTokens 
 
         // Emit end-of-line from new tokens
         | _,  (NewLine newTokText :: moreNewTokens) ->
-            Debug.WriteLine "emitting newline in new tokens" 
+            Debug.WriteLine("emitting newline in new tokens '{0}'", newTokText)
             addText newTokText 
             loop origTokens moreNewTokens 
 
