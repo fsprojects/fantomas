@@ -422,7 +422,7 @@ and genExpr astContext = function
     | TypedExpr(Downcast, e, t) -> genExpr astContext e -- " :?> " +> genType astContext false t
     | TypedExpr(Upcast, e, t) -> genExpr astContext e -- " :> " +> genType astContext false t
     | TypedExpr(Typed, e, t) -> genExpr astContext e +> sepColon +> genType astContext false t
-    | Tuple es -> atCurrentColumn (colAutoNlnSkip0i sepComma es (fun i -> if i = 0 then genExpr astContext else noIndentBreakNln astContext))
+    | Tuple es -> atCurrentColumn (coli sepComma es (fun i -> if i = 0 then genExpr astContext else noIndentBreakNln astContext))
     | ArrayOrList(isArray, [], _) -> 
         ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
     | ArrayOrList(isArray, xs, isSimple) -> 

@@ -690,3 +690,22 @@ type Bar =
             | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null
 """
+
+[<Test>]
+let ``should not add dubious new line inside call chains``() =
+    formatSourceString false """
+let x = 
+    JobCollectionCreateParameters
+        (Label = "Test", 
+         IntrinsicSettings = JobCollectionIntrinsicSettings
+                                 (Plan = JobCollectionPlan.Standard, 
+                                  Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))""" { config with PageWidth = 120 }
+    |> prepend newline
+    |> should equal """
+let x = 
+    JobCollectionCreateParameters
+        (Label = "Test", 
+         IntrinsicSettings = JobCollectionIntrinsicSettings
+                                 (Plan = JobCollectionPlan.Standard, 
+                                  Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))
+"""

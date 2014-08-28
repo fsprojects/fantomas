@@ -355,7 +355,10 @@ let internal autoNln f (ctx : Context) =
         let dummyCtx = ctx.With(colWriter)
         let col = (f dummyCtx).Writer.Column
         // This isn't accurate if we go to new lines
-        if col > width then f (sepNln ctx) else f ctx
+        if col > width then 
+            f (sepNln ctx) 
+        else 
+            f ctx
     else
         f ctx
 
