@@ -497,8 +497,7 @@ and genExpr astContext = function
     // Handle spaces of infix application based on which category it belongs to
     | InfixApps(e, es) -> 
         // Only put |> on the same line in a very trivial expression
-        let hasNewLine = multiline e || not (List.atMostOne es)
-        atCurrentColumn (genExpr astContext e +> genInfixApps astContext hasNewLine es)
+        atCurrentColumn (genExpr astContext e +> genInfixApps astContext (checkNewLine e es) es)
 
     | TernaryApp(e1,e2,e3) -> 
         atCurrentColumn (genExpr astContext e1 +> !- "?" +> genExpr astContext e2 +> sepSpace +> !- "<-" +> sepSpace +> genExpr astContext e3)
@@ -614,13 +613,14 @@ and genLetOrUseList astContext = function
 
     | _ -> sepNone   
 
-and genInfixApps astContext newline = function
+/// When 'hasNewLine' is set, the operator is forced to be in a new line
+and genInfixApps astContext hasNewLine = function
     | (s, e)::es ->
-        (ifElse (newline && NewLineInfixOps.Contains s) (sepNln -- s +> sepSpace +> genExpr astContext e)
+        (ifElse hasNewLine (sepNln -- s +> sepSpace +> genExpr astContext e)
            (ifElse (NoSpaceInfixOps.Contains s) (!- s +> autoNln (genExpr astContext e))
               (ifElse (NoBreakInfixOps.Contains s) (sepSpace -- s +> sepSpace +> genExpr astContext e)
                 (sepSpace +> autoNln (!- s +> sepSpace +> genExpr astContext e)))))
-        +> genInfixApps astContext newline es
+        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
 
     | [] -> sepNone
 

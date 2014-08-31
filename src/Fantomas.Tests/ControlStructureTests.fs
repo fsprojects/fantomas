@@ -260,3 +260,21 @@ let handle =
         Weak(WeakReference(v))
     else Strong(v)
 """
+
+[<Test>]
+let ``should handle infix operators in pattern matching``() =
+    formatSourceString false """
+let url = 
+  match x with
+  | A -> "a"
+  | B -> "b"
+  + "/c"
+    """ config
+    |> prepend newline
+    |> should equal """
+let url = 
+    match x with
+    | A -> "a"
+    | B -> "b"
+    + "/c"
+"""

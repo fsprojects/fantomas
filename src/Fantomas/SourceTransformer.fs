@@ -86,6 +86,11 @@ let rec multiline = function
     // Default mode is single-line
     | _ -> false
 
+let checkNewLine e es = 
+    match es with
+    | (s, _) :: _ :: _ -> NewLineInfixOps.Contains s
+    | _ -> multiline e
+
 /// Check if the expression already has surrounding parentheses
 let hasParenthesis = function
     | Paren _
