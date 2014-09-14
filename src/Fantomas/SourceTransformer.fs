@@ -79,7 +79,7 @@ let rec multiline = function
         not (List.atMostOne es)
 
     // A record is multiline if there is at least two fields present
-    | Record(xs, _) ->
+    | Record(_, xs, _) ->
         let fields = xs |> List.choose ((|RecordFieldName|) >> snd) 
         not (List.atMostOne fields) || List.exists multiline fields
 

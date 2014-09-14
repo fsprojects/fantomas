@@ -200,3 +200,17 @@ let newDocument = //somecomment
       created = document.Created.ToLocalTime() }
     |> JsonConvert.SerializeObject
 """
+
+[<Test>]
+let ``should preserve inherit parts in records``() =
+    formatSourceString false """
+type MyExc =
+    inherit Exception
+    new(msg) = {inherit Exception(msg)}
+"""  config
+  |> prepend newline
+  |> should equal """
+type MyExc = 
+    inherit Exception
+    new(msg) = { inherit Exception(msg) }
+"""

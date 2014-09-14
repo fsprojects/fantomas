@@ -430,9 +430,11 @@ and genExpr astContext = function
         ifElse isArray (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sep xs (genExpr astContext)) +> sepCloseA) 
             (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sep xs (genExpr astContext)) +> sepCloseL)
 
-    | Record(xs, eo) -> 
-        sepOpenS +> opt (!- " with ") eo (genExpr astContext)
-        +> atCurrentColumn (col sepSemiNln xs (genRecordFieldName astContext))
+    | Record(inheritOpt, xs, eo) -> 
+        sepOpenS 
+        +> opt (if xs.IsEmpty then sepNone else sepSemi) inheritOpt 
+            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr)
+        +> opt (!- " with ") eo (genExpr astContext) +> atCurrentColumn (col sepSemiNln xs (genRecordFieldName astContext))
         +> sepCloseS
 
     | ObjExpr(t, eio, bd, ims) ->

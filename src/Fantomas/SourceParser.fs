@@ -767,8 +767,9 @@ let rec (|ElIf|_|) = function
     | _ -> None
 
 let (|Record|_|) = function
-    | SynExpr.Record(_, eo, xs, _) ->
-        Some(xs, Option.map fst eo)
+    | SynExpr.Record(inheritOpt, eo, xs, _) ->
+        let inheritOpt = inheritOpt |> Option.map (fun (typ, expr, _, _, _) -> (typ, expr))
+        Some(inheritOpt, xs, Option.map fst eo)
     | _ -> None
 
 let (|ObjExpr|_|) = function

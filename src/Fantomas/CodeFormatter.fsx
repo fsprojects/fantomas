@@ -22,11 +22,9 @@ fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
 test """
-let newDocument = //somecomment
-    { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
-      content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
-      created = document.Created.ToLocalTime() }
-    |> JsonConvert.SerializeObject
+type MyExc =
+    inherit Exception
+    new(msg) = { inherit Exception(msg) }
 """;;
 
 // FAILS - sticky-right comment becomes sticky-left
