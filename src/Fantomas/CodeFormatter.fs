@@ -5,6 +5,7 @@ open System.Diagnostics
 open System.Collections.Generic
 open System.Text.RegularExpressions
 
+open Microsoft.FSharp.Compiler
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.SourceCodeServices
@@ -23,6 +24,11 @@ let internal parseWith fileName content =
         |> Async.RunSynchronously
     // Run the first phase (untyped parsing) of the compiler
     let untypedRes = checker.ParseFileInProject(fileName, content, checkOptions) |> Async.RunSynchronously
+    if untypedRes.ParseHadErrors then
+        let errors = 
+            untypedRes.Errors
+            |> Array.filter (fun e -> e.Severity = Severity.Error)
+        raise <| FormatException (sprintf "Parsing failed with errors: %A" errors)
     match untypedRes.ParseTree with
     | Some tree -> tree
     | None -> raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
