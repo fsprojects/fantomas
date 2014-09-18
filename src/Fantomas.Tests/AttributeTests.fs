@@ -90,13 +90,13 @@ and [<Test>] b() = 10
 let ``attributes on implicit constructors``() =
     formatSourceString false """
 [<Export>]
-type Sample [<ImportingConstructor>] (IDependency dependency) = class end
+type Sample [<ImportingConstructor>] (dependency: IDependency) = class end
 [<Export>]
 type Sample [<ImportingConstructor>] internal () = class end""" config
     |> prepend newline
     |> should equal """
 [<Export>]
-type Sample [<ImportingConstructor>] () = 
+type Sample [<ImportingConstructor>] (dependency : IDependency) = 
     class
     end
 

@@ -51,7 +51,6 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
 let ``preserve uncommon literals``() =
     formatSourceString false """
 let a = 0xFFy
-let b = 0oFFuy
 let c = 0b0111101us
 let d = 0o0777
 let e = 1.40e10f
@@ -61,7 +60,6 @@ let g = '\n'
     |> prepend newline
     |> should equal """
 let a = 0xFFy
-let b = 0oFFuy
 let c = 0b0111101us
 let d = 0o0777
 let e = 1.40e10f

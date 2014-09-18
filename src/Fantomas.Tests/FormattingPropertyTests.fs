@@ -249,7 +249,7 @@ let generateParsedInput =
         let ident = Ident("Tmp", zero)
         ParsedInput.ImplFile
             (ParsedImplFileInput
-               ("/tmp.fs", false,
+               ("/tmp.fsx", false,
                 QualifiedNameOfFile ident, [], [],
                 [SynModuleOrNamespace
                    ([ident], true,
@@ -273,7 +273,7 @@ let fromSynExpr expr =
         let ident = Ident("Tmp", zero)
         ParsedInput.ImplFile
             (ParsedImplFileInput
-               ("/tmp.fs", false,
+               ("/tmp.fsx", false,
                 QualifiedNameOfFile ident, [], [],
                 [SynModuleOrNamespace
                    ([ident], true,

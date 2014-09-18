@@ -29,7 +29,7 @@ let ``untyped quotations``() =
 let ``should preserve unit literal``() =
     formatSourceString false """
     let logger = Mock<ILogger>().Setup(fun log -> <@ log.Log(error) @>).Returns(()).Create()
-    @>""" config
+    """ config
     |> prepend newline
     |> should equal """
 let logger = 

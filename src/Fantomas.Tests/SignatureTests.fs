@@ -108,6 +108,7 @@ type A() =
 [<Test>]
 let ``should not add parentheses around bare tuples``() =
     formatSourceString true """
+namespace TupleType
 type C =
     member P1 : int * string
     /// def
@@ -115,6 +116,8 @@ type C =
 """  config
     |> prepend newline
     |> should equal """
+namespace TupleType
+
 type C = 
     member P1 : int * string
     /// def
@@ -124,11 +127,12 @@ type C =
 [<Test>]
 let ``should keep global constraints in type signature``() =
     formatSourceString true """
-module Tainted =
-    val GetHashCodeTainted : (Tainted<'T> -> int) when 'T : equality
+module Tainted
+val GetHashCodeTainted : (Tainted<'T> -> int) when 'T : equality
 """  config
     |> prepend newline
     |> should equal """
-module Tainted = 
-    val GetHashCodeTainted : Tainted<'T> -> int when 'T : equality
+module Tainted
+
+val GetHashCodeTainted : Tainted<'T> -> int when 'T : equality
 """

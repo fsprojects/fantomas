@@ -35,7 +35,7 @@ let internal parseWith fileName content =
 
 /// Parse a source code string
 let parse isFsiFile sourceCode = 
-    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fs"
+    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
     parseWith fileName sourceCode
 
 /// Check whether an AST consists of parsing errors 

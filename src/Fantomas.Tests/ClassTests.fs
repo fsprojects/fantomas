@@ -236,6 +236,7 @@ type MyClassDerived2(y : int) =
 let ``should keep parens in class definition in the right place``() =
     formatSourceString false """type DGMLClass() = class   
     let mutable currentState = System.String.Empty
+    end
     """ config
     |> should equal """type DGMLClass() = 
     class
@@ -249,6 +250,7 @@ let ``should keep parens in class inheritance in the right place``() =
     inherit DGMLClass()
 
     let functions = System.Collections.Generic.Dictionary<string, IState>()
+    end
     """ config
     |> should equal """type StateMachine(makeAsync) as this = 
     class

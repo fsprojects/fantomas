@@ -18,6 +18,7 @@ type AParameters =
 [<Test>]
 let ``record signatures``() =
     formatSourceString true """
+module RecordSignature
 /// Represents simple XML elements.
 type Element =
     {
@@ -55,6 +56,8 @@ type Element =
     static member ( -- ) : self: Element * text: string -> Element""" { config with SemicolonAtEndOfLine = true }
     |> prepend newline
     |> should equal """
+module RecordSignature
+
 /// Represents simple XML elements.
 type Element = 
     { /// The attribute collection.
