@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Fantomas</id>
-        <version>1.4.0</version>
+        <version>1.5.0</version>
         <title>Fantomas</title>
         <authors>Anh-Dung Phan,Gustavo Guerra</authors>
         <licenseUrl>http://github.com/dungpa/fantomas/blob/master/LICENSE.md</licenseUrl>
