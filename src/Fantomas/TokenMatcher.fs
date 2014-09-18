@@ -474,11 +474,6 @@ let integrateComments (originalText : string) (newText : string) =
             DecompileOpName(origTokText.Trim('`')) = DecompileOpName(newTokText.Trim('`'))
         | _ -> false
 
-    let tryHead xs =
-        match xs with
-        | [] -> None
-        | x :: _ -> Some x
-
     let rec loop origTokens newTokens = 
         //Debug.WriteLine("*** Matching between {0} and {1}", sprintf "%A" <| tryHead origTokens, sprintf "%A" <| tryHead newTokens)
         match origTokens, newTokens with 

@@ -22,11 +22,14 @@ type ASTContext =
       HasVerticalBar: bool
       /// A field is rendered as union field or not
       IsUnionField: bool
+      /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
+      IsFirstTypeParam: bool
     }
     static member Default =
         { IsFirstChild = false; IsInterface = false 
           IsCStylePattern = false; IsNakedRange = false
-          HasVerticalBar = false; IsUnionField = false }
+          HasVerticalBar = false; IsUnionField = false
+          IsFirstTypeParam = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg = 
     match functionOrMethod, arg with
@@ -248,12 +251,13 @@ and preserveBreakNln astContext e ctx =
 and noIndentBreakNln astContext e ctx = 
     ifElse (checkPreserveBreakForExpr e ctx) (sepNln +> genExpr astContext e) (autoNln (genExpr astContext e)) ctx
 
-and genTyparList tps = 
-    ifElse (List.atMostOne tps) (col wordOr tps genTypar) (sepOpenT +> col wordOr tps genTypar +> sepCloseT)
+and genTyparList astContext tps = 
+    ifElse (List.atMostOne tps) (col wordOr tps (genTypar astContext)) (sepOpenT +> col wordOr tps (genTypar astContext) +> sepCloseT)
 
 and genTypeParam astContext tds tcs =
     ifElse (List.isEmpty tds) sepNone
-        (!- "<" +> col sepComma tds (genTyparDecl astContext) +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext) -- ">")
+        (!- "<" +> coli sepComma tds (fun i decl -> genTyparDecl { astContext with IsFirstTypeParam = i = 0 } decl) 
+         +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext) -- ">")
 
 and genLetBinding astContext pref b = 
     match b with 
@@ -578,7 +582,7 @@ and genExpr astContext = function
     | DotGet(e, s) -> genExpr astContext e -- sprintf ".%s" s
     | DotSet(e1, s, e2) -> genExpr astContext e1 -- sprintf ".%s <- " s +> genExpr astContext e2
     | TraitCall(tps, msg, e) -> 
-        sepOpenT +> genTyparList tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
+        sepOpenT +> genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
         +> sepSpace +> genExpr astContext e +> sepCloseT
 
     | LetOrUseBang(isUse, p, e1, e2) ->
@@ -761,7 +765,7 @@ and genMemberSig astContext = function
     | MSNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
 
 and genTyparDecl astContext (TyparDecl(ats, tp)) =
-    genOnelinerAttributes astContext ats +> genTypar tp
+    genOnelinerAttributes astContext ats +> genTypar astContext tp
 
 and genTypeDefKind = function
     | TCSimple TCUnspecified -> sepNone
@@ -818,7 +822,7 @@ and genType astContext outerBracket t =
         | TStaticConstantNamed(t1, t2) -> loop t1 -- "=" +> loop t2
         | TArray(t, n) -> loop t -- " [" +> rep (n - 1) (!- ",") -- "]"
         | TAnon -> sepWild
-        | TVar tp -> genTypar tp
+        | TVar tp -> genTypar astContext tp
         // Drop bracket around tuples before an arrow
         | TFun(TTuple ts, t) -> sepOpenT +> loopTTupleList ts +> sepArrow +> loop t +> sepCloseT
         // Do similar for tuples after an arrow
@@ -888,19 +892,19 @@ and genTypeList astContext = function
         let gt = genType astContext false t
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
 
-and genTypar (Typar(s, isHead)) = 
-    ifElse isHead (!- "^") (!-"'") -- s
-
+and genTypar astContext (Typar(s, isHead)) = 
+    ifElse isHead (ifElse astContext.IsFirstTypeParam (!- " ^") (!- "^")) (!-"'") -- s
+    
 and genTypeConstraint astContext = function
-    | TyparSingle(kind, tp) -> genTypar tp +> sepColon -- sprintf "%O" kind
-    | TyparDefaultsToType(tp, t) -> !- "default " +> genTypar tp +> sepColon +> genType astContext false t
-    | TyparSubtypeOfType(tp, t) -> genTypar tp -- " :> " +> genType astContext false t
+    | TyparSingle(kind, tp) -> genTypar astContext tp +> sepColon -- sprintf "%O" kind
+    | TyparDefaultsToType(tp, t) -> !- "default " +> genTypar astContext tp +> sepColon +> genType astContext false t
+    | TyparSubtypeOfType(tp, t) -> genTypar astContext tp -- " :> " +> genType astContext false t
     | TyparSupportsMember(tps, msg) -> 
-        genTyparList tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT
+        genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT
     | TyparIsEnum(tp, ts) -> 
-        genTypar tp +> sepColon -- "enum<" +> col sepComma ts (genType astContext false) -- ">"
+        genTypar astContext tp +> sepColon -- "enum<" +> col sepComma ts (genType astContext false) -- ">"
     | TyparIsDelegate(tp, ts) ->
-        genTypar tp +> sepColon -- "delegate<" +> col sepComma ts (genType astContext false) -- ">"
+        genTypar astContext tp +> sepColon -- "delegate<" +> col sepComma ts (genType astContext false) -- ">"
 
 and genInterfaceImpl astContext (InterfaceImpl(t, bs)) = 
     match bs with

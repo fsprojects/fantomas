@@ -254,3 +254,15 @@ let f =
         match x with
         | X(x) -> x
 """
+
+[<Test>]
+let ``should handle member constraints and generic params correctly``() =
+    formatSourceString false """
+let inline implicit< ^a,^b when ^a : (static member op_Implicit : ^b -> ^a)> arg =
+        (^a : (static member op_Implicit : ^b -> ^a) arg)
+"""  config
+    |> prepend newline
+    |> should equal """
+let inline implicit< ^a, ^b when ^a : (static member op_Implicit : ^b -> ^a)> arg = 
+    ((^a : (static member op_Implicit : ^b -> ^a) arg))
+"""
