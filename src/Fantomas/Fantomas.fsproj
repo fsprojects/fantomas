@@ -62,6 +62,7 @@
     <Compile Include="SourceTransformer.fs" />
     <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatter.fs" />
+    <Compile Include="FakeHelpers.fs" />
     <None Include="CodeFormatter.fsx" />
     <Content Include="packages.config" />
   </ItemGroup>
