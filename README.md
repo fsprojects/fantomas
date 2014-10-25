@@ -91,6 +91,38 @@ You can fork this repo and compile the project with F# 3.0/.NET framework 4.0.
 Alternatively, Fantomas is also available via [a NuGet package](https://nuget.org/packages/Fantomas/) which contains both the library and the command line interface.
 For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.md#using-the-command-line-tool).
 
+### FAKE build system
+Fantomas can be easily integrated with FAKE build system. Here is a sample `build.fsx`:
+
+```fsharp
+#r "packages/FAKE/tools/FakeLib.dll"
+#r "packages/Fantomas/lib/FantomasLib.dll"
+
+open Fake
+open Fantomas.FakeHelpers
+open Fantomas.FormatConfig
+
+// Properties
+let buildDir = "./build/"
+let fantomasConfig =
+    { FormatConfig.Default with
+            PageWidth = 120
+            ReorderOpenDeclaration = true }
+
+Target "CheckCodeFormat" (fun _ ->
+    !! "src/**/*.fs"
+      |> checkCode fantomasConfig
+)
+
+Target "FormatCode" (fun _ ->
+    !! "src/**/*.fs"
+      |> formatCode fantomasConfig
+      |> Log "Formatted files: "
+)
+
+RunTargetOrDefault "CheckCodeFormat"
+```
+
 ### Trying Fantomas online
 [FantomasWeb](https://github.com/TahaHachana/FantomasWeb), implemented by [Taha Hachana](https://github.com/TahaHachana), is accessible at http://fantomasweb.apphb.com/.
 
