@@ -17,7 +17,7 @@ open Fantomas.CodePrinter
 
 let internal parseWith fileName content = 
     // Create an interactive checker instance (ignore notifications)
-    let checker = InteractiveChecker.Create()
+    let checker = FSharpChecker.Create()
     // Get compiler options for a single script file
     let checkOptions = 
         checker.GetProjectOptionsFromScript(fileName, content, DateTime.Now, filterDefines content) 
@@ -27,7 +27,7 @@ let internal parseWith fileName content =
     if untypedRes.ParseHadErrors then
         let errors = 
             untypedRes.Errors
-            |> Array.filter (fun e -> e.Severity = Severity.Error)
+            |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
         raise <| FormatException (sprintf "Parsing failed with errors: %A" errors)
     match untypedRes.ParseTree with
     | Some tree -> tree
@@ -373,14 +373,14 @@ let rec internal getEndLineIndex (lines : _ []) i =
     if i = 0 || not <| String.IsNullOrWhiteSpace(lines.[i]) then i
     else getEndLineIndex lines (i - 1)
 
-let internal isSignificantToken (tok : TokenInformation) =
-    tok.CharClass <> TokenCharKind.WhiteSpace && 
-    tok.CharClass <> TokenCharKind.LineComment &&
-    tok.CharClass <> TokenCharKind.Comment &&
+let internal isSignificantToken (tok : FSharpTokenInfo) =
+    tok.CharClass <> FSharpTokenCharKind.WhiteSpace && 
+    tok.CharClass <> FSharpTokenCharKind.LineComment &&
+    tok.CharClass <> FSharpTokenCharKind.Comment &&
     tok.TokenName <> "STRING_TEXT"
 
 /// Find out the start token
-let rec internal getStartCol (r : range) (tokenizer : LineTokenizer) lexState = 
+let rec internal getStartCol (r : range) (tokenizer : FSharpLineTokenizer) lexState = 
     match tokenizer.ScanToken(!lexState) with
     | Some(tok), state ->
         if tok.RightColumn >= r.StartColumn && isSignificantToken tok then tok.LeftColumn
@@ -390,7 +390,7 @@ let rec internal getStartCol (r : range) (tokenizer : LineTokenizer) lexState =
     | None, _ -> r.StartColumn 
 
 /// Find out the end token
-let rec internal getEndCol (r : range) (tokenizer : LineTokenizer) lexState = 
+let rec internal getEndCol (r : range) (tokenizer : FSharpLineTokenizer) lexState = 
     match tokenizer.ScanToken(!lexState) with
     | Some(tok), state ->
         Debug.WriteLine("End token: {0}", sprintf "%A" tok |> box)
@@ -639,7 +639,7 @@ let inferSelectionFromCursorPos (cursorPos : pos) (sourceCode : string) =
                 match tok with 
                 | None -> 
                     finLine := true
-                | Some t when t.CharClass = TokenCharKind.Delimiter -> 
+                | Some t when t.CharClass = FSharpTokenCharKind.Delimiter -> 
                     if i + 1 > cursorPos.Line || (i + 1 = cursorPos.Line && t.RightColumn >= cursorPos.Column) then
                         let text = line.[t.LeftColumn..t.RightColumn]
                         match text with
@@ -687,7 +687,7 @@ let inferSelectionFromCursorPos (cursorPos : pos) (sourceCode : string) =
                 match tok with 
                 | None -> 
                     finLine := true
-                | Some t when t.CharClass = TokenCharKind.Delimiter -> 
+                | Some t when t.CharClass = FSharpTokenCharKind.Delimiter -> 
                     if i + 1 < cursorPos.Line || (i + 1 = cursorPos.Line && t.LeftColumn <= cursorPos.Column) then
                         let text = line.[t.LeftColumn..t.RightColumn]
                         match text, blockType with

@@ -14,7 +14,7 @@ type Debug = Console
 
 type Token = 
    | EOL
-   | Tok of TokenInformation * int
+   | Tok of FSharpTokenInfo * int
    override x.ToString() =
         match x with
         | EOL -> "<EOL>"
@@ -71,7 +71,7 @@ let (|WhiteSpaces|_|) = function
     | _ -> None
 
 let (|RawDelimiter|_|) = function
-    | (Token origTok, origTokText) when origTok.CharClass = TokenCharKind.Delimiter -> 
+    | (Token origTok, origTokText) when origTok.CharClass = FSharpTokenCharKind.Delimiter -> 
         Some origTokText
     | _ -> None
 
@@ -87,7 +87,7 @@ let (|RawAttribute|_|) = function
 
 let (|Comment|_|) = function
     | (Token ti, t) 
-      when ti.CharClass = TokenCharKind.Comment || ti.CharClass = TokenCharKind.LineComment -> 
+      when ti.CharClass = FSharpTokenCharKind.Comment || ti.CharClass = FSharpTokenCharKind.LineComment -> 
         Some t
     | _ -> None
 
@@ -121,7 +121,7 @@ let collectComments tokens =
     let rec loop origTokens (dic : Dictionary<_, _>) =
         match origTokens with
         | (Token origTok, _) :: moreOrigTokens
-            when origTok.CharClass <> TokenCharKind.Comment && origTok.CharClass <> TokenCharKind.LineComment ->
+            when origTok.CharClass <> FSharpTokenCharKind.Comment && origTok.CharClass <> FSharpTokenCharKind.LineComment ->
             loop moreOrigTokens dic
         | NewLine _ :: moreOrigTokens -> loop moreOrigTokens dic
         | CommentChunks(ts, WhiteSpaces(_, (Tok(origTok, lineNo), _) :: moreOrigTokens))
@@ -140,7 +140,7 @@ let (|SkipUntilIdent|_|) origTokens =
     let rec loop = function
         | RawIdent t :: moreOrigTokens -> Some(t, moreOrigTokens)
         | NewLine _ :: _ -> None
-        | (Token ti, _) :: _ when ti.ColorClass = TokenColorKind.PreprocessorKeyword -> None
+        | (Token ti, _) :: _ when ti.ColorClass = FSharpTokenColorKind.PreprocessorKeyword -> None
         | _ :: moreOrigTokens -> loop moreOrigTokens
         | [] -> None
     loop origTokens
@@ -148,7 +148,7 @@ let (|SkipUntilIdent|_|) origTokens =
 let (|SkipUntilEOL|_|) origTokens =
     let rec loop = function
         | NewLine t :: moreOrigTokens -> Some(t, moreOrigTokens)
-        | (Token ti, _) :: _ when ti.ColorClass = TokenColorKind.PreprocessorKeyword -> None
+        | (Token ti, _) :: _ when ti.ColorClass = FSharpTokenColorKind.PreprocessorKeyword -> None
         | _ :: moreOrigTokens -> loop moreOrigTokens
         | [] -> None
     loop origTokens
@@ -159,9 +159,9 @@ let (|SkipWhiteSpaceOrComment|_|) origTokens =
         | Space _ :: moreOrigTokens
         | NewLine _ :: moreOrigTokens -> loop moreOrigTokens
         | (Token ti, _) :: moreOrigTokens 
-            when ti.CharClass = TokenCharKind.Comment || ti.CharClass = TokenCharKind.LineComment ->
+            when ti.CharClass = FSharpTokenCharKind.Comment || ti.CharClass = FSharpTokenCharKind.LineComment ->
             loop moreOrigTokens
-        | (Token ti, _) :: _ when ti.ColorClass = TokenColorKind.PreprocessorKeyword -> None
+        | (Token ti, _) :: _ when ti.ColorClass = FSharpTokenColorKind.PreprocessorKeyword -> None
         | t :: moreOrigTokens -> Some(t, moreOrigTokens)
         | [] -> None
     loop origTokens
@@ -222,8 +222,8 @@ let (|NewTokenAfterWhitespaceOrNewLine|_|) toks =
         match toks with
         | (EOL, tt) :: more -> loop more (tt::acc)
         | (Token tok, tt) :: more 
-           when tok.CharClass = TokenCharKind.WhiteSpace && tok.ColorClass <> TokenColorKind.InactiveCode 
-                && tok.ColorClass <> TokenColorKind.PreprocessorKeyword -> 
+           when tok.CharClass = FSharpTokenCharKind.WhiteSpace && tok.ColorClass <> FSharpTokenColorKind.InactiveCode 
+                && tok.ColorClass <> FSharpTokenColorKind.PreprocessorKeyword -> 
             loop more (tt::acc)
         | newTok :: more -> 
             Some(List.rev acc, newTok, more)
@@ -289,23 +289,23 @@ let (|Attribute|_|) = function
 
 let (|PreprocessorKeywordToken|_|) requiredText = function
     | Marked(Token origTok, origTokText, _) 
-        when origTok.ColorClass = TokenColorKind.PreprocessorKeyword && origTokText = requiredText -> 
+        when origTok.ColorClass = FSharpTokenColorKind.PreprocessorKeyword && origTokText = requiredText -> 
         Some origTokText
     | _ -> None
 
 let (|InactiveCodeToken|_|) = function
     | Marked(Token origTok, origTokText, _) 
-        when origTok.ColorClass = TokenColorKind.InactiveCode -> Some origTokText
+        when origTok.ColorClass = FSharpTokenColorKind.InactiveCode -> Some origTokText
     | _ -> None
 
 let (|LineCommentToken|_|) wantStickyLeft = function
     | Marked(Token origTok, origTokText, lcs) 
         when (not wantStickyLeft || (lcs = StickyLeft)) && 
-             origTok.CharClass = TokenCharKind.LineComment -> Some origTokText
+             origTok.CharClass = FSharpTokenCharKind.LineComment -> Some origTokText
     | _ -> None
 
 let (|BlockCommentToken|_|) = function
-    | Marked(Token origTok, origTokText, _) when origTok.CharClass = TokenCharKind.Comment -> 
+    | Marked(Token origTok, origTokText, _) when origTok.CharClass = FSharpTokenCharKind.Comment -> 
         Some origTokText
     | _ -> None
 
@@ -378,7 +378,7 @@ let markStickiness (tokens: seq<Token * string>) =
           let inLineComment = ref false
           for (tio, tt) in tokens do 
              match tio with 
-             | Token ti when ti.CharClass = TokenCharKind.LineComment ->
+             | Token ti when ti.CharClass = FSharpTokenCharKind.LineComment ->
                   if !inLineComment then 
                       // Subsequent tokens in a line comment
                       yield Marked(tio, tt, NotApplicable)
@@ -390,7 +390,7 @@ let markStickiness (tokens: seq<Token * string>) =
              // Comments can't be attached to Delimiters
              | Token ti 
                   when !inWhiteSpaceAtStartOfLine 
-                       && (ti.CharClass = TokenCharKind.WhiteSpace || ti.CharClass = TokenCharKind.Delimiter) ->
+                       && (ti.CharClass = FSharpTokenCharKind.WhiteSpace || ti.CharClass = FSharpTokenCharKind.Delimiter) ->
                   // Whitespace at start of line
                   yield Marked(tio, tt, NotApplicable)
              | Tok _ ->
@@ -478,8 +478,8 @@ let integrateComments (originalText : string) (newText : string) =
         //Debug.WriteLine("*** Matching between {0} and {1}", sprintf "%A" <| tryHead origTokens, sprintf "%A" <| tryHead newTokens)
         match origTokens, newTokens with 
         | (Marked(Token origTok, _, _) :: moreOrigTokens),  _ 
-            when origTok.CharClass = TokenCharKind.WhiteSpace && origTok.ColorClass <> TokenColorKind.InactiveCode 
-                && origTok.ColorClass <> TokenColorKind.PreprocessorKeyword ->
+            when origTok.CharClass = FSharpTokenCharKind.WhiteSpace && origTok.ColorClass <> FSharpTokenColorKind.InactiveCode 
+                && origTok.ColorClass <> FSharpTokenColorKind.PreprocessorKeyword ->
             Debug.WriteLine "dropping whitespace from orig tokens" 
             loop moreOrigTokens newTokens 
 
@@ -520,7 +520,7 @@ let integrateComments (originalText : string) (newText : string) =
                     newTokens
                 else newTokens
             match moreNewTokens with
-            | (Token t, _) :: _ when t.ColorClass = TokenColorKind.PreprocessorKeyword -> addText Environment.NewLine
+            | (Token t, _) :: _ when t.ColorClass = FSharpTokenColorKind.PreprocessorKeyword -> addText Environment.NewLine
             | _ -> ()
             loop moreOrigTokens moreNewTokens
 
@@ -579,7 +579,7 @@ let integrateComments (originalText : string) (newText : string) =
             loop origTokens moreNewTokens 
 
         | _,  ((Token newTok, newTokText) :: moreNewTokens) 
-            when newTok.CharClass = TokenCharKind.WhiteSpace && newTok.ColorClass <> TokenColorKind.InactiveCode ->
+            when newTok.CharClass = FSharpTokenCharKind.WhiteSpace && newTok.ColorClass <> FSharpTokenColorKind.InactiveCode ->
             Debug.WriteLine("emitting whitespace '{0}' in new tokens", newTokText |> box)
             addText newTokText 
             loop origTokens moreNewTokens 
