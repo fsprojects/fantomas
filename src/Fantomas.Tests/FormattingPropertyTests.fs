@@ -254,7 +254,8 @@ let rec generateTypedSeqExpr size =
         let genSubSynType = generateSynType (size/2)
         Gen.oneof
             [
-                Gen.map2 (fun expr typ -> SynExpr.Typed(expr, typ, zero)) genSubSeqExpr genSubSynType
+                // Typed expressions should have parenthesis on the top level
+                Gen.map2 (fun expr typ -> SynExpr.Paren(SynExpr.Typed(SynExpr.Paren(expr, zero, None, zero), typ, zero), zero, None, zero)) genSubSeqExpr genSubSynType
                 genSubSeqExpr
             ]
 
@@ -269,7 +270,8 @@ and generateSeqExpr size =
         Gen.oneof
             [
                 Gen.map3 (fun b expr1 expr2 -> SynExpr.Sequential(SequencePointsAtSeq, b, expr1, expr2, zero)) Arb.generate<_> genSubDeclExpr genSubSeqExpr
-                Gen.map3 (fun b bindings expr -> SynExpr.LetOrUse(b, not b, bindings, expr, zero)) Arb.generate<_> generateSynBindingList genSubBasicExpr
+                // Should not have 'use' keywords on the top level
+                Gen.map3 (fun b bindings expr -> SynExpr.LetOrUse(b, false, bindings, expr, zero)) Arb.generate<_> generateSynBindingList genSubBasicExpr
             ]
 
 and generateDeclExpr size =
@@ -290,10 +292,10 @@ and generateDeclExpr size =
         let genSubSynSimplePats = generateSynSimplePats (size/2)
         Gen.frequency 
             [ 
-                8, Gen.map3 (fun b bindings expr -> SynExpr.LetOrUse(b, not b, bindings, expr, zero)) Arb.generate<_> generateSynBindingList genSubDeclExpr //
+                8, Gen.map3 (fun b bindings expr -> SynExpr.LetOrUse(b, false, bindings, expr, zero)) Arb.generate<_> generateSynBindingList genSubDeclExpr //
                 4, Gen.map2 (fun expr clauses -> SynExpr.Match(NoSequencePointAtDoBinding, expr, clauses, false, zero)) genSubDeclExpr genSubSynMatchClauseList //                
-                2, Gen.map2 (fun b clauses -> SynExpr.MatchLambda(b, zero, clauses, NoSequencePointAtDoBinding, zero)) Arb.generate<_> genSubSynMatchClauseList //
-                2, Gen.map3 (fun b pat expr -> SynExpr.Lambda(b, false, pat, expr, zero)) Arb.generate<_> genSubSynSimplePats genSubDeclExpr //
+                4, Gen.map2 (fun b clauses -> SynExpr.MatchLambda(b, zero, clauses, NoSequencePointAtDoBinding, zero)) Arb.generate<_> genSubSynMatchClauseList //
+                4, Gen.map3 (fun b pat expr -> SynExpr.Lambda(b, false, pat, expr, zero)) Arb.generate<_> genSubSynSimplePats genSubDeclExpr //
                 1, Gen.map2 (fun expr1 expr2 -> SynExpr.TryFinally(expr1, expr2, zero, NoSequencePointAtTry, NoSequencePointAtFinally)) genSubDeclExpr genSubDeclExpr //
                 1, Gen.map2 (fun expr clauses -> SynExpr.TryWith(expr, zero, clauses, zero, zero, NoSequencePointAtTry, NoSequencePointAtWith)) genSubDeclExpr genSubSynMatchClauseList //
                 1, Gen.map (fun c -> SynExpr.Const(c, zero)) genSubSynConst //
@@ -379,7 +381,12 @@ let fromExprRange (originalSource: string) (expr: SynExpr) =
         |> Seq.toArray
     let startIndex = positions.[r.StartLine-1] + r.StartColumn
     let endIndex = positions.[r.EndLine-1] + r.EndColumn-1
-    Input (source.[startIndex..endIndex])
+    let sample = source.[startIndex..endIndex]
+    // Avoid to recreate the same source
+    // because it may cause the shrinker to loop forever
+    if (sample.Trim()) = (originalSource.Trim()) then 
+        None
+    else Some (Input sample)
 
 let toSynExprs (Input s) =
     match (try Some (parse false s) with _ -> None) with
@@ -480,10 +487,10 @@ let shrinkInput input =
     | [] -> 
         stdout.WriteLine("Can't shrink {0}", sprintf "%A" input)
         Seq.empty
-    | exprs -> 
+    | exprs ->         
         let (Input source) = input
-        Seq.collect collectSynExpr exprs 
-        |> Seq.map (fromExprRange source)
+        Seq.collect shrinkSynExpr exprs 
+        |> Seq.choose (fromExprRange source)
         |> Seq.distinct
 
 type Generators = 
@@ -556,11 +563,11 @@ for jf = d downto p do
 
 [<Test>]
 let ``should be able to shrink inputs``() =    
-    "fun x -> x" |> Input |> shrinkInput |> Seq.map (fun (Input x) -> x.TrimEnd('\r', '\n')) |> Seq.toArray |> should equal [|"fun x -> x"; "x"|]
+    "fun x -> x" |> Input |> shrinkInput |> Seq.map (fun (Input x) -> x.TrimEnd('\r', '\n')) |> Seq.toArray |> should equal [|"x"|]
     """fun Q -> C
 C
 H
-""" |> Input |> shrinkInput |> Seq.map (fun (Input x) -> x.TrimEnd('\r', '\n')) |> Seq.toArray |> should equal [|"fun Q -> C"; "Q -> C"; "Q"; "C"; "H"|]
+""" |> Input |> shrinkInput |> Seq.map (fun (Input x) -> x.TrimEnd('\r', '\n')) |> Seq.toArray |> should equal [|"Q -> C"; "Q"; "C"|]
 
 
 
