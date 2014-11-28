@@ -1,4 +1,4 @@
-﻿#r "../packages/FSharp.Compiler.Service.0.0.57/lib/net45/FSharp.Compiler.Service.dll"
+﻿#r "../packages/FSharp.Compiler.Service.0.0.73/lib/net45/FSharp.Compiler.Service.dll"
 
 #load "TokenMatcher.fs"
 #load "FormatConfig.fs"
@@ -21,10 +21,11 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
-test """
-type MyExc =
-    inherit Exception
-    new(msg) = { inherit Exception(msg) }
+// A bug exposed by FsCheck
+parse false """
+fun P -> R
+d
+s
 """;;
 
 // FAILS - sticky-right comment becomes sticky-left
