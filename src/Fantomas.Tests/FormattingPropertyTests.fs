@@ -45,7 +45,7 @@ let generateBasicConst _ =
         ]
 
 /// Constant is not really recursive.
-/// Measure constant is only one-level deep.
+/// Unit of Measure constant is only one-level deep.
 let generateSynConst size =
     let genBasicConst = generateBasicConst size
     Gen.oneof 
@@ -193,7 +193,7 @@ and generateSynExpr size =
                 2, Gen.map3 (fun b pat expr -> SynExpr.Lambda(b, false, pat, expr, zero)) Arb.generate<_> genSubSynSimplePats genSubSynExpr
                 2, Gen.map5 (fun b expr1 expr2 expr3 s -> SynExpr.For(NoSequencePointAtForLoop, Ident(s, zero), expr1, b, expr2, expr3, zero)) Arb.generate<_> genSubBasicExpr genSubBasicExpr genSubBasicExpr genSubIdent
                 2, Gen.map4 (fun b1 expr1 expr2 pat -> SynExpr.ForEach(NoSequencePointAtForLoop, SeqExprOnly false, b1, pat, expr1, expr2, zero)) Arb.generate<_> genSubBasicExpr genSubBasicExpr genSubSynPat
-                8, Gen.map3 (fun b bindings expr -> SynExpr.LetOrUse(b, false, bindings, expr, zero)) Arb.generate<_> generateSynBindingList genSubSynExpr
+                8, Gen.map3 (fun b bindings expr -> SynExpr.LetOrUse(b, not b, bindings, expr, zero)) Arb.generate<_> generateSynBindingList genSubSynExpr
             ]
 
 and generateBasicExpr size =
@@ -243,19 +243,106 @@ and generateBasicExpr size =
                 2, Gen.map5 (fun b expr1 expr2 expr3 s -> SynExpr.For(NoSequencePointAtForLoop, Ident(s, zero), expr1, b, expr2, expr3, zero)) Arb.generate<_> genSubBasicExpr genSubBasicExpr genSubBasicExpr genSubIdent
                 2, Gen.map5 (fun b1 b2 expr1 expr2 pat -> SynExpr.ForEach(NoSequencePointAtForLoop, SeqExprOnly b1, b2, pat, expr1, expr2, zero)) Arb.generate<_> Arb.generate<_> genSubBasicExpr genSubBasicExpr genSubSynPat
             ]
-    
+
+/// Generate a subset of SynExpr that is permitted as inputs to FSI.
+/// The grammar is described at https://github.com/fsharp/FSharp.Compiler.Service/blob/21e88fea087e182b99b7658684cc6e1ae98e85d8/src/fsharp/pars.fsy#L2900
+let rec generateTypedSeqExpr size =
+    if size <= 2 then
+        generateIdentExpr size
+    else
+        let genSubSeqExpr = generateSeqExpr (size/2)
+        let genSubSynType = generateSynType (size/2)
+        Gen.oneof
+            [
+                // Typed expressions should have parenthesis on the top level
+                Gen.map2 (fun expr typ -> SynExpr.Paren(SynExpr.Typed(SynExpr.Paren(expr, zero, None, zero), typ, zero), zero, None, zero)) genSubSeqExpr genSubSynType
+                genSubSeqExpr
+            ]
+
+and generateSeqExpr size =
+    if size <= 2 then
+        generateIdentExpr size
+    else
+        let genSubSeqExpr = generateSeqExpr (size/2)
+        let genSubDeclExpr = generateDeclExpr (size/2)
+        let generateSynBindingList = Gen.listOf (generateSynBinding (size/2))
+        let genSubBasicExpr = generateBasicExpr (size/2)
+        Gen.oneof
+            [
+                Gen.map3 (fun b expr1 expr2 -> SynExpr.Sequential(SequencePointsAtSeq, b, expr1, expr2, zero)) Arb.generate<_> genSubDeclExpr genSubSeqExpr
+                // Should not have 'use' keywords on the top level
+                Gen.map3 (fun b bindings expr -> SynExpr.LetOrUse(b, false, bindings, expr, zero)) Arb.generate<_> generateSynBindingList genSubBasicExpr
+            ]
+
+and generateDeclExpr size =
+    if size <= 2 then
+        generateIdentExpr size
+    else
+        let genSubDeclExpr = generateDeclExpr (size/2)
+        let genSubDeclExprList = Gen.listOf genSubDeclExpr
+        let genSubIdentExpr = generateIdentExpr (size/2)
+        let genSubSynType = generateSynType (size/2)
+        let genSubSynTypeList = Gen.listOf genSubSynType
+        let genSubSynPat = generateSynPat (size/2)
+        let genSubIdent = generateIdent (size/2)
+        let genSubLongIdentWithDots = generateLongIdentWithDots (size/2)
+        let genSubSynConst = generateSynConst (size/2)
+        let generateSynBindingList = Gen.listOf (generateSynBinding (size/2))
+        let genSubSynMatchClauseList = Gen.listOf (generateSynMatchClause (size/2))
+        let genSubSynSimplePats = generateSynSimplePats (size/2)
+        Gen.frequency 
+            [ 
+                8, Gen.map3 (fun b bindings expr -> SynExpr.LetOrUse(b, false, bindings, expr, zero)) Arb.generate<_> generateSynBindingList genSubDeclExpr //
+                4, Gen.map2 (fun expr clauses -> SynExpr.Match(NoSequencePointAtDoBinding, expr, clauses, false, zero)) genSubDeclExpr genSubSynMatchClauseList //                
+                4, Gen.map2 (fun b clauses -> SynExpr.MatchLambda(b, zero, clauses, NoSequencePointAtDoBinding, zero)) Arb.generate<_> genSubSynMatchClauseList //
+                4, Gen.map3 (fun b pat expr -> SynExpr.Lambda(b, false, pat, expr, zero)) Arb.generate<_> genSubSynSimplePats genSubDeclExpr //
+                1, Gen.map2 (fun expr1 expr2 -> SynExpr.TryFinally(expr1, expr2, zero, NoSequencePointAtTry, NoSequencePointAtFinally)) genSubDeclExpr genSubDeclExpr //
+                1, Gen.map2 (fun expr clauses -> SynExpr.TryWith(expr, zero, clauses, zero, zero, NoSequencePointAtTry, NoSequencePointAtWith)) genSubDeclExpr genSubSynMatchClauseList //
+                1, Gen.map (fun c -> SynExpr.Const(c, zero)) genSubSynConst //
+                1, Gen.map2 (fun expr typ -> SynExpr.Typed(expr, typ, zero)) genSubDeclExpr genSubSynType
+                2, Gen.map (fun exprs -> SynExpr.Tuple(exprs, exprs |> List.map (fun _ -> zero), zero)) genSubDeclExprList //
+                2, Gen.map2 (fun b exprs -> SynExpr.ArrayOrList(b, exprs, zero)) Arb.generate<_> genSubDeclExprList
+                1, Gen.map3 (fun b typ expr -> SynExpr.New(b, typ, SynExpr.Paren(expr, zero, None, zero), zero)) Arb.generate<_> genSubSynType genSubDeclExpr
+                1, Gen.map2 (fun expr1 expr2 -> SynExpr.While(NoSequencePointAtWhileLoop, expr1, expr2, zero)) genSubDeclExpr genSubDeclExpr //
+                1, Gen.map2 (fun b expr -> SynExpr.ArrayOrListOfSeqExpr(b, expr, zero)) Arb.generate<_> genSubDeclExpr
+                1, Gen.map2 (fun b expr -> SynExpr.CompExpr(b, ref true, expr, zero)) Arb.generate<_> genSubDeclExpr
+                1, Gen.map (fun expr -> SynExpr.Do(expr, zero)) genSubDeclExpr //
+                1, Gen.map (fun expr -> SynExpr.Assert(expr, zero)) genSubDeclExpr //
+                1, Gen.map (fun expr -> SynExpr.Paren(expr, zero, None, zero)) genSubDeclExpr
+                1, genSubIdentExpr
+                1, Gen.map2 (fun b expr -> SynExpr.AddressOf(b, expr, zero, zero)) Arb.generate<_> genSubIdentExpr
+                1, Gen.constant (SynExpr.Null zero)
+                1, Gen.map (fun expr -> SynExpr.InferredDowncast(expr, zero)) genSubIdentExpr
+                1, Gen.map (fun expr -> SynExpr.InferredUpcast(expr, zero)) genSubIdentExpr
+                1, Gen.map2 (fun expr typ -> SynExpr.Upcast(expr, typ, zero)) genSubIdentExpr genSubSynType //
+                1, Gen.map2 (fun expr typ -> SynExpr.Downcast(expr, typ, zero)) genSubIdentExpr genSubSynType //
+                1, Gen.map2 (fun expr typ -> SynExpr.TypeTest(expr, typ, zero)) genSubIdentExpr genSubSynType //
+                1, Gen.map2 (fun expr1 expr2 -> SynExpr.DotIndexedGet(expr1, [SynIndexerArg.One expr2], zero, zero)) genSubDeclExpr genSubDeclExpr
+                1, Gen.map3 (fun expr1 expr2 expr3 -> SynExpr.DotIndexedSet(expr1, [SynIndexerArg.One expr3], expr2, zero, zero, zero)) genSubDeclExpr genSubDeclExpr genSubDeclExpr
+                1, Gen.map2 (fun expr longIdent -> SynExpr.DotGet(expr, zero, longIdent, zero)) genSubDeclExpr genSubLongIdentWithDots
+                1, Gen.map3 (fun expr1 expr2 longIdent -> SynExpr.DotSet(expr1, longIdent, expr2, zero)) genSubDeclExpr genSubDeclExpr genSubLongIdentWithDots
+                1, Gen.map2 (fun expr longIdent -> SynExpr.LongIdentSet(longIdent, expr, zero)) genSubDeclExpr genSubLongIdentWithDots
+                1, Gen.map2 (fun b longIdent -> SynExpr.LongIdent(b, longIdent, None, zero)) Arb.generate<_> genSubLongIdentWithDots
+                2, Gen.map2 (fun expr1 expr2 -> SynExpr.Sequential(SequencePointsAtSeq, true, expr1, expr2, zero)) genSubDeclExpr genSubDeclExpr
+                1, Gen.map (fun expr -> SynExpr.Lazy(expr, zero)) genSubDeclExpr //
+                1, Gen.map2 (fun expr typs -> SynExpr.TypeApp(expr, zero, typs, typs |> List.map (fun _ -> zero), None, zero, zero)) genSubDeclExpr genSubSynTypeList
+                4, Gen.map3 (fun b expr1 expr2 -> SynExpr.App(ExprAtomicFlag.NonAtomic, b, expr1, expr2, zero)) Arb.generate<_> genSubDeclExpr genSubDeclExpr
+                2, Gen.map5 (fun b expr1 expr2 expr3 s -> SynExpr.For(NoSequencePointAtForLoop, Ident(s, zero), expr1, b, expr2, expr3, zero)) Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubDeclExpr genSubIdent //
+                2, Gen.map5 (fun b1 b2 expr1 expr2 pat -> SynExpr.ForEach(NoSequencePointAtForLoop, SeqExprOnly b1, b2, pat, expr1, expr2, zero)) Arb.generate<_> Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubSynPat //
+            ]
+                
 let generateParsedInput =
     let generateAST expr =
         let ident = Ident("Tmp", zero)
         ParsedInput.ImplFile
             (ParsedImplFileInput
-               ("/tmp.fsx", false,
+               ("/tmp.fsx", true,
                 QualifiedNameOfFile ident, [], [],
                 [SynModuleOrNamespace
                    ([ident], true,
                     [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
-                    zero)], false))
-    Gen.sized <| fun size -> Gen.map generateAST (generateSynExpr size)
+                    zero)], true))
+    Gen.sized <| fun size -> Gen.map generateAST (generateTypedSeqExpr size)
 
 type Input = Input of string
 
@@ -268,31 +355,52 @@ let tryFormatAST ast sourceCode config =
 let generateInput = 
     Gen.map (fun ast -> Input (tryFormatAST ast None formatConfig)) generateParsedInput
 
+// Regenerate inputs from expression ASTs
+// Might suffer from bugs in formatting phase
 let fromSynExpr expr =
     let ast =
         let ident = Ident("Tmp", zero)
         ParsedInput.ImplFile
             (ParsedImplFileInput
-               ("/tmp.fsx", false,
+               ("/tmp.fsx", true,
                 QualifiedNameOfFile ident, [], [],
                 [SynModuleOrNamespace
                    ([ident], true,
                     [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
-                    zero)], false))
+                    zero)], true))
     Input (tryFormatAST ast None formatConfig)
 
-let toSynExpr (Input s) =
-    match parse false s with
-    | ParsedInput.ImplFile
+// Look up original source in order to reconstruct smaller counterexamples
+let fromExprRange (originalSource: string) (expr: SynExpr) =
+    let r = expr.Range
+    let source = originalSource.Replace("\r\n", "\n").Replace("\r", "\n")       
+    let positions =
+        source.Split('\n')
+        |> Seq.map (fun s -> String.length s + 1)
+        |> Seq.scan (+) 0
+        |> Seq.toArray
+    let startIndex = positions.[r.StartLine-1] + r.StartColumn
+    let endIndex = positions.[r.EndLine-1] + r.EndColumn-1
+    let sample = source.[startIndex..endIndex]
+    // Avoid to recreate the same source
+    // because it may cause the shrinker to loop forever
+    if (sample.Trim()) = (originalSource.Trim()) then 
+        None
+    else Some (Input sample)
+
+let toSynExprs (Input s) =
+    match (try Some (parse false s) with _ -> None) with
+    | Some 
+      (ParsedInput.ImplFile
         (ParsedImplFileInput
-            ("/tmp.fs", false,
+            ("/tmp.fsx", _,
             QualifiedNameOfFile _, [], [],
             [SynModuleOrNamespace
-                (_, true, exprs, _, _, _, _)], false)) -> 
-                List.tryPick(function (SynModuleDecl.DoExpr(_, expr, _)) -> Some expr | _ -> None) exprs
+                (_, true, exprs, _, _, _, _)], _))) -> 
+                List.choose (function (SynModuleDecl.DoExpr(_, expr, _)) -> Some expr | _ -> None) exprs
     | ast -> 
-        //stdout.WriteLine("Can't convert {0}", sprintf "%A" ast)
-        None
+        stdout.WriteLine("Can't convert {0}", sprintf "%A" ast)
+        []
 
 let rec shrinkSynExpr = function
     | SynExpr.LongIdentSet(_, expr, _)
@@ -375,20 +483,23 @@ and collectSynBinding (SynBinding.Binding(_, _, _, _, _, _, _, _, _, expr, _, _)
     collectSynExpr expr
 
 let shrinkInput input = 
-    match toSynExpr input with
-    | None -> 
+    match toSynExprs input with
+    | [] -> 
         stdout.WriteLine("Can't shrink {0}", sprintf "%A" input)
         Seq.empty
-    | Some expr -> 
-        shrinkSynExpr expr |> Seq.map fromSynExpr
+    | exprs ->         
+        let (Input source) = input
+        Seq.collect shrinkSynExpr exprs 
+        |> Seq.choose (fromExprRange source)
+        |> Seq.distinct
 
 type Generators = 
     static member range() =
         Arb.fromGen generateRange
     static member Input() = 
         Arb.fromGenShrink (generateInput, shrinkInput)
-        // Temporarily filter out bad generated inputs
-        |> Arb.filter (fun input -> (toSynExpr input).IsSome)
+        //// Temporarily filter out bad generated inputs
+        //|> Arb.filter (fun input -> not <| (toSynExprs input).IsEmpty)
 
 [<TestFixtureSetUp>]
 let registerFsCheckGenerators() =
@@ -422,7 +533,7 @@ type private NUnitRunner () =
 let private verboseConf = 
     {
         Config.Verbose with
-            MaxTest = 200
+            MaxTest = 500
             EndSize = 20
             Runner = NUnitRunner ()
     }
@@ -434,27 +545,29 @@ let tryFormatSourceString isFsi sourceCode config =
     with _ ->
         sourceCode
 
-[<Test; Ignore>]
+[<Test>]
 let ``running formatting twice should produce the same results``() =    
     Check.One(verboseConf,
         fun (Input sourceCode) ->
             let formatted = tryFormatSourceString false sourceCode formatConfig
             tryFormatSourceString false formatted formatConfig = formatted)
 
-[<Test; Ignore>]
+[<Test>]
 let ``should be able to convert inputs to SynExpr``() =    
-    "x" |> Input |> toSynExpr |> fun opt -> opt.IsSome |> should equal true
+    "x" |> Input |> toSynExprs |> fun opt -> not opt.IsEmpty |> should equal true
     """let rec W = M
 and b = V
 and K = a
 for jf = d downto p do
-    u""" |> Input |> toSynExpr |> fun opt -> opt.IsSome |> should equal true
+    u""" |> Input |> toSynExprs |> fun opt -> not opt.IsEmpty |> should equal true
 
-[<Test; Ignore>]
+[<Test>]
 let ``should be able to shrink inputs``() =    
     "fun x -> x" |> Input |> shrinkInput |> Seq.map (fun (Input x) -> x.TrimEnd('\r', '\n')) |> Seq.toArray |> should equal [|"x"|]
-    """let rec W = M
-    u""" |> Input |> shrinkInput |> Seq.map (fun (Input x) -> x.TrimEnd('\r', '\n')) |> Seq.toArray |> should equal [|"M"; "u"|]
+    """fun Q -> C
+C
+H
+""" |> Input |> shrinkInput |> Seq.map (fun (Input x) -> x.TrimEnd('\r', '\n')) |> Seq.toArray |> should equal [|"Q -> C"; "Q"; "C"|]
 
 
 

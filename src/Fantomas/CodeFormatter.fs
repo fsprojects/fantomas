@@ -28,7 +28,8 @@ let internal parseWith fileName content =
         let errors = 
             untypedRes.Errors
             |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
-        raise <| FormatException (sprintf "Parsing failed with errors: %A" errors)
+        if not <| Array.isEmpty errors then
+            raise <| FormatException (sprintf "Parsing failed with errors: %A" errors)
     match untypedRes.ParseTree with
     | Some tree -> tree
     | None -> raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
