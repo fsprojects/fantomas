@@ -552,7 +552,7 @@ General rules for indentation are referenced at ["Code Formatting Guidelines (F#
 A few conventions for syntactic constructs are adapted from ["Caml Programming Guidelines"][3].
 Other whitespace-significant rules are taken from ["PEP 8 -- Style Guide for Python Code"][4].
 
-  [1]: http://research.microsoft.com/fsharp/expert-fsharp-draft/FormattingConventions.doc
+  [1]: https://web.archive.org/web/20070306131206/http://research.microsoft.com/fsharp/expert-fsharp-draft/FormattingConventions.doc
   [2]: http://msdn.microsoft.com/en-us/library/dd233191.aspx
   [3]: http://caml.inria.fr/resources/doc/guides/guidelines.en.html
   [4]: http://www.python.org/dev/peps/pep-0008/
