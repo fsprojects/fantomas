@@ -79,7 +79,7 @@ Target "AssemblyInfo" (fun _ ->
 
 Target "Build" (fun _ ->
     // We would like to build only one solution
-    !! (solutionFile + ".sln")
+    !! ("src/" + solutionFile + ".sln")
     |> MSBuildRelease "" "Rebuild"
     |> ignore
 )
