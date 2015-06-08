@@ -32,6 +32,7 @@ Some common use cases include
 (1) Reformatting a code base to conform a universal page width 
 (2) Converting legacy code from verbose syntax to light syntax 
 (3) Formatting auto-generated F# signatures."""
+
 // List of author names (for NuGet package)
 let authors = [ "Anh-Dung Phan"; "Gustavo Guerra" ]
 // Tags for your project (for NuGet package)

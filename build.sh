@@ -1,5 +1,7 @@
 #!/bin/bash
 
-mono src/.nuget/nuget.exe install FAKE -OutputDirectory packages -ExcludeVersion
+if [ ! -e packages/FAKE/tools/FAKE.exe ]; then 
+  mono src/.nuget/NuGet.exe install FAKE -OutputDirectory packages -ExcludeVersion
+fi
 
-mono packages/FAKE/tools/FAKE.exe build.fsx $@
+mono packages/FAKE/tools/FAKE.exe $@ --fsiargs -d:MONO build.fsx
