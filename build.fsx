@@ -24,6 +24,18 @@ let project = "Fantomas"
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
 let summary = "Source code formatting tool for F#"
 
+// Longer description of the project
+// (used as a description for NuGet package; line breaks are automatically cleaned up)
+let description = """This library aims at formatting F# source files based on a given configuration. 
+Fantomas will ensure correct indentation and consistent spacing between elements in the source files. 
+Some common use cases include 
+(1) Reformatting a code base to conform a universal page width 
+(2) Converting legacy code from verbose syntax to light syntax 
+(3) Formatting auto-generated F# signatures."""
+// List of author names (for NuGet package)
+let authors = [ "Anh-Dung Phan"; "Gustavo Guerra" ]
+// Tags for your project (for NuGet package)
+let tags = "F# fsharp formatting beautifier indentation indenter"
 
 // (<solutionFile>.sln is built during the building process)
 let solutionFile  = "fantomas"
@@ -36,7 +48,7 @@ let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
 // Clean build results & restore NuGet packages
 
 Target "Clean" (fun _ ->
-    CleanDirs ["bin"]
+    CleanDirs ["bin"; "nuget"]
 )
 
 Target "RestorePackages" (fun _ ->
@@ -83,6 +95,26 @@ Target "UnitTests" (fun _ ->
 )
 
 // --------------------------------------------------------------------------------------
+// Build a NuGet package
+
+Target "PublishNuGet" (fun _ ->
+    NuGet (fun p -> 
+        { p with   
+            Authors = authors
+            Project = project
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "src/Fantomas.Cmd/bin/Release"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = true
+            Dependencies = [ "FSharp.Compiler.Service", GetPackageVersion "packages" "FSharp.Compiler.Service" ] })
+        (project + ".nuspec")
+)
+
+// --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
 Target "All" DoNothing
@@ -93,6 +125,6 @@ Target "All" DoNothing
   ==> "Build"
   ==> "UnitTests"
   ==> "All"
-
+  ==> "PublishNuGet"
 
 RunTargetOrDefault "All"
