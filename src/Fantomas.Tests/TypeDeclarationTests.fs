@@ -598,6 +598,34 @@ type StateMachine(makeAsync) =
 """
 
 [<Test>]
+let ``should not misrecognize sequential expressions as a then block``() =
+    formatSourceString false """
+type BlobHelper(Account : CloudStorageAccount) = 
+    new(configurationSettingName, hostedService) = 
+        CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher -> 
+            let connectionString = 
+                if hostedService then RoleEnvironment.GetConfigurationSettingValue(configName)
+                else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
+            configSettingPublisher.Invoke(connectionString) |> ignore)
+        BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))
+    """ config
+    |> prepend newline
+    |> should equal """
+type BlobHelper(Account : CloudStorageAccount) = 
+    new(configurationSettingName, hostedService) = 
+        CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher -> 
+            let connectionString = 
+                if hostedService then 
+                    RoleEnvironment.GetConfigurationSettingValue(configName)
+                else 
+                    ConfigurationManager.ConnectionStrings.[configName].ConnectionString
+            configSettingPublisher.Invoke(connectionString) |> ignore)
+        BlobHelper
+            (CloudStorageAccount.FromConfigurationSetting
+                 (configurationSettingName))
+"""
+
+[<Test>]
 let ``^a needs spaces when used as a type parameter``() =
     formatSourceString false """
 let inline tryAverage(seq: seq< ^a >): ^a option =  1""" config

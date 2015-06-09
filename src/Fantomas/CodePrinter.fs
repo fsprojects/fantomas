@@ -3,6 +3,8 @@
 open System
 open System.Collections.Generic
 open Microsoft.FSharp.Compiler.Ast
+
+open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
@@ -387,8 +389,8 @@ and genMemberBinding astContext b =
             +> opt sepNone so (sprintf " as %s" >> (!-))
 
         match e with
-        // Handle special "then" block in constructors
-        | Sequentials [e1; e2] -> 
+        // Handle special "then" block i.e. fake sequential expressions in constructors
+        | Sequential(e1, e2, false) -> 
             prefix +> sepEq +> indent +> sepNln 
             +> genExpr astContext e1 ++ "then " +> preserveBreakNln astContext e2 +> unindent
 

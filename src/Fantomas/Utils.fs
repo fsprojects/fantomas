@@ -1,5 +1,4 @@
-﻿[<AutoOpen>]
-module internal Fantomas.Utils
+﻿namespace Fantomas
 
 open System
 

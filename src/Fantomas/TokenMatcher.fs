@@ -3,7 +3,7 @@
 open System
 open System.Collections.Generic
 open System.Diagnostics
-
+open Fantomas
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.PrettyNaming
 open Microsoft.FSharp.Compiler.SourceCodeServices

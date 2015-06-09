@@ -10,6 +10,7 @@ open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.SourceCodeServices
 
+open Fantomas
 open Fantomas.TokenMatcher
 open Fantomas.FormatConfig
 open Fantomas.SourceParser

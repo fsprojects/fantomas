@@ -23,8 +23,22 @@ fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
 test """
-type ILogger = 
-    abstract DebugFormat : format:String * [<ParamArray>]args:Object [] -> unit
+type BlobHelper(Account : CloudStorageAccount) = 
+    new(configurationSettingName, hostedService) = 
+        CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher -> 
+            let connectionString = 
+                if hostedService then RoleEnvironment.GetConfigurationSettingValue(configName)
+                else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
+            configSettingPublisher.Invoke(connectionString) |> ignore)
+        BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))
+"""
+
+parse false """
+type StateMachine(makeAsync) =
+    new(fileName, makeAsync, initState) as secondCtor = 
+        new StateMachine(makeAsync)
+        then
+            secondCtor.Init(fileName, initState)
 """
 
 // FAILS - sticky-right comment becomes sticky-left

@@ -6,7 +6,7 @@ open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.PrettyNaming
 open Microsoft.FSharp.Compiler.Lexhelp.Keywords
-
+open Fantomas
 open Fantomas.FormatConfig
 
 type Composite<'a, 'b> =
@@ -539,7 +539,7 @@ let (|Match|_|) = function
         Some(e, cs)
     | _ -> None
 
-let private (|Sequential|_|) = function
+let (|Sequential|_|) = function
     | SynExpr.Sequential(_, isSeq, e1, e2, _) ->
         Some(e1, e2, isSeq)
     | _ -> None

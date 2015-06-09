@@ -3,6 +3,7 @@ module Fantomas.FakeHelpers
 open System
 open System.IO
 
+open Fantomas
 open Fantomas.CodeFormatter
 open Fantomas.FormatConfig
 
