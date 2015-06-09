@@ -867,24 +867,29 @@ and genPrefixTypes astContext = function
 
 and genTypeList astContext = function
     | [] -> sepNone
-    | (t, [ArgInfo(so, isOpt)])::ts -> 
+    | (t, [ArgInfo(attribs, so, isOpt)])::ts -> 
         let hasBracket = not ts.IsEmpty
         let gt =
             match t with
             | TTuple _ ->
-                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) +> genType astContext hasBracket t 
+                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) 
+                +> genType astContext hasBracket t 
             | TFun _ ->
                 // Fun is grouped by brackets inside 'genType astContext true t'
-                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) +> genType astContext true t
-            | _ -> opt sepColonFixed so (!-) +> genType astContext false t
-        gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
+                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) 
+                +> genType astContext true t
+            | _ -> 
+                opt sepColonFixed so (!-) +> genType astContext false t
+        genOnelinerAttributes astContext attribs
+        +> gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
 
     | (TTuple ts', ais)::ts -> 
         // The '/' separator shouldn't appear here
         let hasBracket = not ts.IsEmpty
         let gt = col sepStar (Seq.zip ais (Seq.map snd ts')) 
-                    (fun (ArgInfo(so, isOpt), t) ->
-                        opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
+                    (fun (ArgInfo(attribs, so, isOpt), t) ->
+                        genOnelinerAttributes astContext attribs
+                        +> opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
                         +> genType astContext hasBracket t)
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
 

@@ -1,5 +1,6 @@
 ﻿#r "../packages/FSharp.Compiler.Service.0.0.73/lib/net45/FSharp.Compiler.Service.dll"
 
+#load "Utils.fs"
 #load "TokenMatcher.fs"
 #load "FormatConfig.fs"
 #load "SourceParser.fs"
@@ -20,6 +21,11 @@ let test (s : string) =
 
 fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
+
+test """
+type ILogger = 
+    abstract DebugFormat : format:String * [<ParamArray>]args:Object [] -> unit
+"""
 
 // FAILS - sticky-right comment becomes sticky-left
 test """

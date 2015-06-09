@@ -617,7 +617,7 @@ let (|Var|_|) = function
     | _ -> None
 
 // Compiler-generated patterns often have "_arg" prefix    
-let (|ComputerGeneratedVar|_|) = function
+let (|CompilerGeneratedVar|_|) = function
     | SynExpr.Ident(IdentOrKeyword(OpName s)) when String.startsWithOrdinal "_arg" s ->
         Some s
     | SynExpr.LongIdent(_, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpName s), _), opt, _) ->
@@ -923,9 +923,9 @@ let (|RecordField|) = function
 let (|Clause|) (SynMatchClause.Clause(p, eo, e, _, _)) = (p, e, eo)
 
 let rec private (|DesugaredMatch|_|) = function
-    | SynExpr.Match(_, ComputerGeneratedVar s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) ->
+    | SynExpr.Match(_, CompilerGeneratedVar s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) ->
         Some((s, p)::ss, e)
-    | SynExpr.Match(_, ComputerGeneratedVar s, [Clause(p, e, None)], _, _) ->
+    | SynExpr.Match(_, CompilerGeneratedVar s, [Clause(p, e, None)], _, _) ->
         Some([(s, p)], e)
     | _ -> None
 
@@ -1161,8 +1161,8 @@ let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), p) = (s1, s2, p)
 
 let (|ValInfo|) (SynValInfo(aiss, ai)) = (aiss, ai)
 
-let (|ArgInfo|) (SynArgInfo(_, isOpt, ido)) =
-    (Option.map (|Ident|) ido, isOpt)
+let (|ArgInfo|) (SynArgInfo(attribs, isOpt, ido)) =
+    (attribs, Option.map (|Ident|) ido, isOpt)
 
 /// Extract function arguments with their associated info
 let (|FunType|) (t, ValInfo(aiss, ai)) = 

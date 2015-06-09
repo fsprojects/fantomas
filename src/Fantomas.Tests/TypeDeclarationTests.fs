@@ -709,3 +709,14 @@ let x =
                                  (Plan = JobCollectionPlan.Standard, 
                                   Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))
 """
+
+[<Test>]
+let ``should preserve attributes on member parameters``() =
+    formatSourceString false """
+type ILogger = 
+    abstract DebugFormat : format:String * [<ParamArray>]args:Object [] -> unit""" config
+    |> prepend newline
+    |> should equal """
+type ILogger = 
+    abstract DebugFormat : format:String * [<ParamArray>] args:Object [] -> unit
+"""
