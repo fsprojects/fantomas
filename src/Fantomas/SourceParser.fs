@@ -616,6 +616,13 @@ let (|Var|_|) = function
         Some s
     | _ -> None
 
+let (|ComputerGeneratedVar|_|) = function
+    | SynExpr.Ident(IdentOrKeyword(OpName s)) ->
+        None
+    | SynExpr.LongIdent(_, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpName s), _), opt, _) ->
+        opt |> Option.map (fun _ -> s)
+    | _ -> None
+
 /// Get all application params at once
 let (|App|_|) e =
     let rec loop = function
@@ -917,6 +924,10 @@ let rec private (|DesugaredMatch|_|) = function
     | SynExpr.Match(_, Var s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) when s.StartsWith "_arg" ->
         Some((s, p)::ss, e)
     | SynExpr.Match(_, Var s, [Clause(p, e, None)], _, _) when s.StartsWith "_arg" ->
+        Some([(s, p)], e)
+    | SynExpr.Match(_, ComputerGeneratedVar s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) ->
+        Some((s, p)::ss, e)
+    | SynExpr.Match(_, ComputerGeneratedVar s, [Clause(p, e, None)], _, _) ->
         Some([(s, p)], e)
     | _ -> None
 
