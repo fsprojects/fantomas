@@ -233,6 +233,15 @@ let UNIFY_ACCEPT_TAC mvs th (asl, w) =
 """
 
 [<Test>]
+let ``desugared lambdas again``() =
+    formatSourceString false """
+fun P -> T""" config
+    |> prepend newline
+    |> should equal """
+fun P -> T
+"""
+
+[<Test>]
 let ``should consume spaces before inserting comments``() =
     formatSourceString false """
 let f x = 

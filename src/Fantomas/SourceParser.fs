@@ -616,11 +616,12 @@ let (|Var|_|) = function
         Some s
     | _ -> None
 
+// Compiler-generated patterns often have "_arg" prefix    
 let (|ComputerGeneratedVar|_|) = function
-    | SynExpr.Ident(IdentOrKeyword(OpName s)) ->
-        None
+    | SynExpr.Ident(IdentOrKeyword(OpName s)) when s.StartsWith "_arg" ->
+        Some s
     | SynExpr.LongIdent(_, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpName s), _), opt, _) ->
-        opt |> Option.map (fun _ -> s)
+        | None -> if s.StartsWith "_arg" then Some s else None
     | _ -> None
 
 /// Get all application params at once
@@ -920,11 +921,6 @@ let (|RecordField|) = function
 let (|Clause|) (SynMatchClause.Clause(p, eo, e, _, _)) = (p, e, eo)
 
 let rec private (|DesugaredMatch|_|) = function
-    // Compiler-generated patterns has "_arg" prefix
-    | SynExpr.Match(_, Var s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) when s.StartsWith "_arg" ->
-        Some((s, p)::ss, e)
-    | SynExpr.Match(_, Var s, [Clause(p, e, None)], _, _) when s.StartsWith "_arg" ->
-        Some([(s, p)], e)
     | SynExpr.Match(_, ComputerGeneratedVar s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) ->
         Some((s, p)::ss, e)
     | SynExpr.Match(_, ComputerGeneratedVar s, [Clause(p, e, None)], _, _) ->
