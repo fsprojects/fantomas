@@ -21,13 +21,6 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
 fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
 
-// A bug exposed by FsCheck
-parse false """
-fun P -> R
-d
-s
-""";;
-
 // FAILS - sticky-right comment becomes sticky-left
 test """
 1 +

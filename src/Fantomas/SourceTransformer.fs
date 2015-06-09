@@ -113,7 +113,7 @@ let genConst (Unresolved(c, r, s)) =
 
 /// Check whether a range starting with a specified token
 let startWith prefix (r : range) ctx = 
-    lookup r ctx |> Option.exists (fun s -> s.StartsWith(prefix))
+    lookup r ctx |> Option.exists (String.startsWithOrdinal prefix)
 
 // A few active patterns for printing purpose
 

@@ -56,7 +56,7 @@ let (|LongIdent|) (li : LongIdent) =
     |> String.concat "."
     |> fun s ->
         // Assume that if it starts with base, it's going to be the base keyword
-        if s.StartsWith "``base``." then
+        if String.startsWithOrdinal "``base``." s then
             String.Join("", "base.", s.[9..])
         else s
 
@@ -99,7 +99,7 @@ let (|OpNameFull|) (x : Identifier) =
     let s' = DecompileOpName s
     if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
         /// Use two spaces for symmetry
-        if s'.StartsWith "*" && s' <> "*" then
+        if String.startsWithOrdinal "*" s' && s' <> "*" then
             sprintf "( %s )" s'
         else sprintf "(%s)" s'
     else
@@ -616,6 +616,16 @@ let (|Var|_|) = function
         Some s
     | _ -> None
 
+// Compiler-generated patterns often have "_arg" prefix    
+let (|ComputerGeneratedVar|_|) = function
+    | SynExpr.Ident(IdentOrKeyword(OpName s)) when String.startsWithOrdinal "_arg" s ->
+        Some s
+    | SynExpr.LongIdent(_, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpName s), _), opt, _) ->
+        match opt with
+        | Some _ -> Some s
+        | None -> if String.startsWithOrdinal "_arg" s then Some s else None
+    | _ -> None
+
 /// Get all application params at once
 let (|App|_|) e =
     let rec loop = function
@@ -913,10 +923,9 @@ let (|RecordField|) = function
 let (|Clause|) (SynMatchClause.Clause(p, eo, e, _, _)) = (p, e, eo)
 
 let rec private (|DesugaredMatch|_|) = function
-    // Compiler-generated patterns has "_arg" prefix
-    | SynExpr.Match(_, Var s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) when s.StartsWith "_arg" ->
+    | SynExpr.Match(_, ComputerGeneratedVar s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) ->
         Some((s, p)::ss, e)
-    | SynExpr.Match(_, Var s, [Clause(p, e, None)], _, _) when s.StartsWith "_arg" ->
+    | SynExpr.Match(_, ComputerGeneratedVar s, [Clause(p, e, None)], _, _) ->
         Some([(s, p)], e)
     | _ -> None
 

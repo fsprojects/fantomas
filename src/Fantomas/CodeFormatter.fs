@@ -319,14 +319,11 @@ let isValidFSharpCode isFsiFile sourceCode =
         isValidAST (parse isFsiFile sourceCode)
     with _ -> false
 
-let internal split (str : string) =
-    str.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n')
-
 let internal formatWith ast input config =
     // Use '\n' as the new line delimiter consistently
     // It would be easier for F# parser
     let sourceCode = defaultArg input ""
-    let normalizedSourceCode = sourceCode.Replace("\r\n", "\n").Replace("\r", "\n")
+    let normalizedSourceCode = String.normalizeNewLine sourceCode
     let formattedSourceCode =    
         Context.create config normalizedSourceCode 
         |> genParsedInput ASTContext.Default ast
@@ -455,7 +452,7 @@ let internal formatRange returnFormattedContentOnly isFsiFile (range : range) (l
         let sel = sourceCode.[start..finish].TrimEnd('\r')
         if startWithMember sel then
            (String.Join(String.Empty, "type T = ", Environment.NewLine, new String(' ', startCol), sel), TypeMember)
-        elif sel.TrimStart().StartsWith("and") then
+        elif String.startsWithOrdinal "and" (sel.TrimStart()) then
             let p = getPatch startCol lines.[..startLine-1]
             let pattern = Regex("and")
             let replacement = 
@@ -472,7 +469,7 @@ let internal formatRange returnFormattedContentOnly isFsiFile (range : range) (l
     let post =
         if finish < sourceCode.Length then 
             let post = sourceCode.[finish+1..]
-            if post.StartsWith("\n") then Environment.NewLine + post.[1..]
+            if String.startsWithOrdinal "\n" post then Environment.NewLine + post.[1..]
             else post
         else String.Empty
 
@@ -505,7 +502,7 @@ let internal formatRange returnFormattedContentOnly isFsiFile (range : range) (l
         // Get formatted selection with "type T = \n" patch
         let result = formatSelection isFsiFile selection config
         // Remove the patch
-        let contents = split result
+        let contents = String.normalizeThenSplitNewLine result
         if Array.isEmpty contents then
             if returnFormattedContentOnly then result
             else 
@@ -522,17 +519,17 @@ let internal formatRange returnFormattedContentOnly isFsiFile (range : range) (l
         let result = formatSelection isFsiFile selection config
         // Substitute by old contents
         let pattern = if patch = RecType then Regex("type") else Regex("let rec")
-        let formatteds = split (pattern.Replace(result, "and", 1))
+        let formatteds = String.normalizeThenSplitNewLine (pattern.Replace(result, "and", 1))
         reconstructSourceCode startCol formatteds pre post
     | Nothing ->
         let result = formatSelection isFsiFile selection config
-        let formatteds = split result
+        let formatteds = String.normalizeThenSplitNewLine result
         reconstructSourceCode startCol formatteds pre post
 
 /// Format a part of source string using given config, and return the (formatted) selected part only.
 /// Beware that the range argument is inclusive. If the range has a trailing newline, it will appear in the formatted result.
 let formatSelectionOnly isFsiFile (range : range) (sourceCode : string) config =
-    let lines = split sourceCode
+    let lines = String.normalizeThenSplitNewLine sourceCode
 
     // Move to the section with real contents
     let contentRange =
@@ -577,7 +574,7 @@ let formatSelectionOnly isFsiFile (range : range) (sourceCode : string) config =
 
  /// Format a selected part of source string using given config; expanded selected ranges to parsable ranges. 
 let formatSelectionExpanded isFsiFile (range : range) (sourceCode : string) config =
-    let lines = split sourceCode
+    let lines = String.normalizeThenSplitNewLine sourceCode
     let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
 
     // Move to the section with real contents
@@ -619,7 +616,7 @@ let makePos line col = mkPos line col
 
 /// Infer selection around cursor by looking for a pair of '[' and ']', '{' and '}' or '(' and ')'. 
 let inferSelectionFromCursorPos (cursorPos : pos) (sourceCode : string) = 
-    let lines = split sourceCode
+    let lines = String.normalizeThenSplitNewLine sourceCode
     let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
     let openDelimiters = dict ["[", List; "[|", Array; "{", SequenceOrRecord; "(", Tuple]
     let closeDelimiters = dict ["]", List; "|]", Array; "}", SequenceOrRecord; ")", Tuple]

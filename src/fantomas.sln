@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas", "Fantomas\Fantomas.fsproj", "{919ADF2D-DF2E-4F4D-9F8B-0376346535C9}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Tests", "Fantomas.Tests\Fantomas.Tests.fsproj", "{28E90D4B-75CE-48D3-ACFE-3AB37179233B}"

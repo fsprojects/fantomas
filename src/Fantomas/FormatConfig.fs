@@ -7,7 +7,7 @@ open System.Text.RegularExpressions
 open System.CodeDom.Compiler
 
 open Microsoft.FSharp.Compiler.Range
-
+open Fantomas
 open Fantomas.TokenMatcher
 
 type FormatException(msg : string) =
@@ -137,7 +137,7 @@ type internal Context =
           Content = ""; Positions = [||]; Comments = Dictionary(); Directives = Dictionary() }
 
     static member create config (content : string) =
-        let content = content.Replace("\r\n", "\n").Replace("\r", "\n")
+        let content = String.normalizeNewLine content
         let positions = 
             content.Split('\n')
             |> Seq.map (fun s -> String.length s + 1)
