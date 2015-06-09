@@ -56,7 +56,7 @@ let (|LongIdent|) (li : LongIdent) =
     |> String.concat "."
     |> fun s ->
         // Assume that if it starts with base, it's going to be the base keyword
-        if s.StartsWith "``base``." then
+        if String.startsWithOrdinal "``base``." s then
             String.Join("", "base.", s.[9..])
         else s
 
@@ -99,7 +99,7 @@ let (|OpNameFull|) (x : Identifier) =
     let s' = DecompileOpName s
     if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
         /// Use two spaces for symmetry
-        if s'.StartsWith "*" && s' <> "*" then
+        if String.startsWithOrdinal "*" s' && s' <> "*" then
             sprintf "( %s )" s'
         else sprintf "(%s)" s'
     else
@@ -618,10 +618,12 @@ let (|Var|_|) = function
 
 // Compiler-generated patterns often have "_arg" prefix    
 let (|ComputerGeneratedVar|_|) = function
-    | SynExpr.Ident(IdentOrKeyword(OpName s)) when s.StartsWith "_arg" ->
+    | SynExpr.Ident(IdentOrKeyword(OpName s)) when String.startsWithOrdinal "_arg" s ->
         Some s
     | SynExpr.LongIdent(_, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpName s), _), opt, _) ->
-        | None -> if s.StartsWith "_arg" then Some s else None
+        match opt with
+        | Some _ -> Some s
+        | None -> if String.startsWithOrdinal "_arg" s then Some s else None
     | _ -> None
 
 /// Get all application params at once

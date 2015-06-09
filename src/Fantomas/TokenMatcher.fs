@@ -24,7 +24,7 @@ type Token =
 let tokenize defines (content : string) =
     seq { 
         let sourceTokenizer = SourceTokenizer(defines, "/tmp.fsx")
-        let lines = content.Replace("\r\n","\n").Split('\r', '\n')
+        let lines = String.normalizeThenSplitNewLine content
         let lexState = ref 0L
         for (i, line) in lines |> Seq.zip [1..lines.Length] do 
             let lineTokenizer = sourceTokenizer.CreateLineTokenizer line
@@ -501,7 +501,7 @@ let integrateComments (originalText : string) (newText : string) =
             addText Environment.NewLine
             for x in tokensText do addText x
             let moreNewTokens =
-                if text.StartsWith("#endif") then
+                if String.startsWithOrdinal "#endif" text then
                     match newTokens with
                     | WhiteSpaces(ws, moreNewTokens) ->
                         // There are some whitespaces, use them up
@@ -513,7 +513,7 @@ let integrateComments (originalText : string) (newText : string) =
                         restoreIndent id
                         newTokens
                     | [] -> []
-                else if text.StartsWith("#if") then
+                elif String.startsWithOrdinal "#if" text then
                     // Save current indentation for #else branch
                     let indent = getIndent newTokens 
                     saveIndent indent
@@ -529,13 +529,13 @@ let integrateComments (originalText : string) (newText : string) =
         | (InactiveCodeChunk (tokensText, moreOrigTokens)),  _ ->
             Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText |> box)
             let text = String.concat "" tokensText
-            let lines = text.Replace("\r\n", "\n").Replace("\r", "\n").Split([|'\n'|], StringSplitOptions.RemoveEmptyEntries)
+            let lines = (String.normalizeNewLine text).Split([|'\n'|], StringSplitOptions.RemoveEmptyEntries)
             // What is current indentation of this chunk
             let numSpaces = countStartingSpaces lines
             Debug.WriteLine("the number of starting spaces is {0}", numSpaces)
             // Write the chunk in the same indentation with #if branch
             for line in lines do
-                if line.[numSpaces..].StartsWith("#") then
+                if String.startsWithOrdinal "#" line.[numSpaces..] then
                     // Naive recognition of inactive preprocessors
                     addText Environment.NewLine
                     addText line.[numSpaces..]

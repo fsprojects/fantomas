@@ -56,6 +56,7 @@
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Utils.fs" />
     <Compile Include="TokenMatcher.fs" />
     <Compile Include="FormatConfig.fs" />
     <Compile Include="SourceParser.fs" />
