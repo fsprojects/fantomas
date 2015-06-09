@@ -26,12 +26,14 @@ type ASTContext =
       IsUnionField: bool
       /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
       IsFirstTypeParam: bool
+      /// Check whether the context is inside DotGet to suppress whitespaces
+      IsInsideDotGet: bool
     }
     static member Default =
         { IsFirstChild = false; IsInterface = false 
           IsCStylePattern = false; IsNakedRange = false
           HasVerticalBar = false; IsUnionField = false
-          IsFirstTypeParam = false }
+          IsFirstTypeParam = false; IsInsideDotGet = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg = 
     match functionOrMethod, arg with
@@ -535,7 +537,11 @@ and genExpr astContext = function
     // Unlike infix app, function application needs a level of indentation
     | App(e1, [e2]) -> 
         atCurrentColumn (genExpr astContext e1 +> 
-            ifElse (hasParenthesis e2) (ifElse (addSpaceBeforeParensInFunCall e1 e2) sepBeforeArg sepNone) sepSpace 
+            ifElse (not astContext.IsInsideDotGet)
+                (ifElse (hasParenthesis e2) 
+                    (ifElse (addSpaceBeforeParensInFunCall e1 e2) sepBeforeArg sepNone) 
+                    sepSpace)
+                sepNone
             +> indent +> autoNln (genExpr astContext e2) +> unindent)
 
     // Always spacing in multiple arguments
@@ -581,7 +587,8 @@ and genExpr astContext = function
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr astContext e
     | DotIndexedGet(e, es) -> genExpr astContext e -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
     | DotIndexedSet(e1, es, e2) -> genExpr astContext e1 -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
-    | DotGet(e, s) -> genExpr astContext e -- sprintf ".%s" s
+    | DotGet(e, s) -> 
+        genExpr { astContext with IsInsideDotGet = true } e -- sprintf ".%s" s
     | DotSet(e1, s, e2) -> genExpr astContext e1 -- sprintf ".%s <- " s +> genExpr astContext e2
     | TraitCall(tps, msg, e) -> 
         sepOpenT +> genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
