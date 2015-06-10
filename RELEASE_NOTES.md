@@ -1,4 +1,9 @@
-#### 1.7.0 - Unreleased
+#### 1.7.0 - 10-06-2015
+* Print attributes on member arguments ([#168](https://github.com/dungpa/fantomas/pull/168))
+* Do not misrecognize "then" blocks in explicit constructors ([#168](https://github.com/dungpa/fantomas/pull/168))
+* Suppress whitespaces inside dot access ([#168](https://github.com/dungpa/fantomas/pull/168))
+* Insert brackets around tuples in type test patterns ([#168](https://github.com/dungpa/fantomas/pull/168))
+* Fix desugar patterns' bug exposed by FsCheck ([#167](https://github.com/dungpa/fantomas/pull/167))
 
 #### 1.6.0 - 25-10-2014
 * Add FAKE task helper
