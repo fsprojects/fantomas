@@ -13,25 +13,26 @@ open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
 open Fantomas.CodeFormatter
+open Microsoft.FSharp.Compiler.Range
 
 let config = { FormatConfig.Default with StrictMode = false }
 
 let test (s : string) = 
     formatSourceString false (s.Replace("\r\n", "\n")) config |> printfn "%A";;
 
-fsi.AddPrinter (fun (p : Microsoft.FSharp.Compiler.Range.pos) -> p.ToString())
-fsi.AddPrinter (fun (r : Microsoft.FSharp.Compiler.Range.range) -> r.ToString())
+fsi.AddPrinter (fun (p : pos) -> p.ToString())
+fsi.AddPrinter (fun (r : range) -> r.ToString())
 
-test """
-let f x = "foo"
-f(42).Length 
+let input = """
+match item.Item with
+| :? FSharpToolTipText as titem -> ()
+| :? (string * XmlDoc) as tip -> ()
+| _ -> ()
 """
 
-parse false """
-let f x = "foo"
+test input;;
 
-f(42).Length 
-"""
+parse false input;;
 
 // FAILS - sticky-right comment becomes sticky-left
 test """

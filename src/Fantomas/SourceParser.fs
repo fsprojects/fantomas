@@ -840,7 +840,7 @@ let (|PatAnds|_|) = function
         Some ps
     | _ -> None
 
-type PatKind = 
+type PatNullaryKind = 
     | PatNull 
     | PatWild
 
@@ -849,11 +849,14 @@ let (|PatNullary|_|) = function
     | SynPat.Wild _ -> Some PatWild
     | _ -> None
 
-type SeqPatKind = PatTuple | PatArray | PatList
+let (|PatTuple|_|) = function
+    | SynPat.Tuple(ps, _) ->
+        Some ps
+    | _ -> None
+
+type SeqPatKind = PatArray | PatList
 
 let (|PatSeq|_|) = function
-    | SynPat.Tuple(ps, _) ->
-        Some(PatTuple, ps)
     | SynPat.ArrayOrList(true, ps, _) ->
         Some(PatArray, ps)
     | SynPat.ArrayOrList(false, ps, _) ->
@@ -1177,7 +1180,7 @@ let (|FunType|) (t, ValInfo(aiss, ai)) =
 /// A rudimentary recognizer for extern functions
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) = function
-    | Let(LetBinding([Attribute(name, _, _)] as ats, px, ao, _, _, PatLongIdent(_, s, [_, PatSeq(PatTuple, ps)], _), TypedExpr(Typed, _, t)))
+    | Let(LetBinding([Attribute(name, _, _)] as ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t)))
         when name.EndsWith("DllImport") ->
         Some(ats, px, ao, t, s, ps)
     | _ -> None

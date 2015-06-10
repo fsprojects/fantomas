@@ -298,7 +298,7 @@ and genProperty astContext prefix ao propertyKind ps e =
         loop [] ps
 
     match ps with
-    | [PatSeq(PatTuple, ps)] -> 
+    | [PatTuple ps] -> 
         let (ps, p) = tuplerize ps
         !- prefix +> opt sepSpace ao genAccess -- propertyKind
         +> ifElse (List.atMostOne ps) (col sepComma ps (genPat astContext) +> sepSpace) 
@@ -1081,7 +1081,7 @@ and genPat astContext = function
         let s = if s = "``new``" then "new" else s
         match ps with
         | [] ->  aoc -- s +> tpsoc
-        | [_, PatSeq(PatTuple, [p1; p2])] when s = "(::)" -> 
+        | [(_, PatTuple [p1; p2])] when s = "(::)" -> 
             aoc +> genPat astContext p1 -- " :: " +> genPat astContext p2
         | [(ido, p) as ip] -> 
             aoc -- s +> tpsoc +> 
@@ -1097,7 +1097,8 @@ and genPat astContext = function
 
     | PatParen(PatConst(Const "()", _)) -> !- "()"
     | PatParen(p) -> sepOpenT +> genPat astContext p +> sepCloseT
-    | PatSeq(PatTuple, ps) -> atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext))
+    | PatTuple ps -> 
+        atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext))
     | PatSeq(PatList, ps) -> 
         ifElse ps.IsEmpty (sepOpenLFixed +> sepCloseLFixed) 
             (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps (genPat astContext)) +> sepCloseL)
