@@ -285,3 +285,18 @@ let v =
         | 1 -> Some 1
         | _ -> None) [ 1; 2; 3 ]
 """
+
+[<Test>]
+let ``should put brackets around tuples in type tests``() =
+    formatSourceString false """
+match item.Item with
+| :? FSharpToolTipText as titem -> ()
+| :? (string * XmlDoc) as tip -> ()
+| _ -> ()""" config
+    |> prepend newline
+    |> should equal """
+match item.Item with
+| :? FSharpToolTipText as titem -> ()
+| :? (string * XmlDoc) as tip -> ()
+| _ -> ()
+"""

@@ -1110,7 +1110,9 @@ and genPat astContext = function
     | PatRecord(xs) -> 
         sepOpenS +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs (genPatRecordFieldName astContext)) +> sepCloseS
     | PatConst(c) -> genConst c
-    | PatIsInst(t) -> !- ":? " +> genType astContext false t
+    | PatIsInst(t) -> 
+        // Should have brackets around in the type test patterns
+        !- ":? " +> genType astContext true t
     // Quotes will be printed by inner expression
     | PatQuoteExpr e -> genExpr astContext e
     | p -> failwithf "Unexpected pattern: %O" p
