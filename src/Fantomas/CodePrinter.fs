@@ -3,6 +3,8 @@
 open System
 open System.Collections.Generic
 open Microsoft.FSharp.Compiler.Ast
+
+open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
@@ -24,12 +26,14 @@ type ASTContext =
       IsUnionField: bool
       /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
       IsFirstTypeParam: bool
+      /// Check whether the context is inside DotGet to suppress whitespaces
+      IsInsideDotGet: bool
     }
     static member Default =
         { IsFirstChild = false; IsInterface = false 
           IsCStylePattern = false; IsNakedRange = false
           HasVerticalBar = false; IsUnionField = false
-          IsFirstTypeParam = false }
+          IsFirstTypeParam = false; IsInsideDotGet = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg = 
     match functionOrMethod, arg with
@@ -294,7 +298,7 @@ and genProperty astContext prefix ao propertyKind ps e =
         loop [] ps
 
     match ps with
-    | [PatSeq(PatTuple, ps)] -> 
+    | [PatTuple ps] -> 
         let (ps, p) = tuplerize ps
         !- prefix +> opt sepSpace ao genAccess -- propertyKind
         +> ifElse (List.atMostOne ps) (col sepComma ps (genPat astContext) +> sepSpace) 
@@ -387,8 +391,8 @@ and genMemberBinding astContext b =
             +> opt sepNone so (sprintf " as %s" >> (!-))
 
         match e with
-        // Handle special "then" block in constructors
-        | Sequentials [e1; e2] -> 
+        // Handle special "then" block i.e. fake sequential expressions in constructors
+        | Sequential(e1, e2, false) -> 
             prefix +> sepEq +> indent +> sepNln 
             +> genExpr astContext e1 ++ "then " +> preserveBreakNln astContext e2 +> unindent
 
@@ -533,7 +537,11 @@ and genExpr astContext = function
     // Unlike infix app, function application needs a level of indentation
     | App(e1, [e2]) -> 
         atCurrentColumn (genExpr astContext e1 +> 
-            ifElse (hasParenthesis e2) (ifElse (addSpaceBeforeParensInFunCall e1 e2) sepBeforeArg sepNone) sepSpace 
+            ifElse (not astContext.IsInsideDotGet)
+                (ifElse (hasParenthesis e2) 
+                    (ifElse (addSpaceBeforeParensInFunCall e1 e2) sepBeforeArg sepNone) 
+                    sepSpace)
+                sepNone
             +> indent +> autoNln (genExpr astContext e2) +> unindent)
 
     // Always spacing in multiple arguments
@@ -579,7 +587,8 @@ and genExpr astContext = function
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr astContext e
     | DotIndexedGet(e, es) -> genExpr astContext e -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
     | DotIndexedSet(e1, es, e2) -> genExpr astContext e1 -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
-    | DotGet(e, s) -> genExpr astContext e -- sprintf ".%s" s
+    | DotGet(e, s) -> 
+        genExpr { astContext with IsInsideDotGet = true } e -- sprintf ".%s" s
     | DotSet(e1, s, e2) -> genExpr astContext e1 -- sprintf ".%s <- " s +> genExpr astContext e2
     | TraitCall(tps, msg, e) -> 
         sepOpenT +> genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
@@ -867,24 +876,29 @@ and genPrefixTypes astContext = function
 
 and genTypeList astContext = function
     | [] -> sepNone
-    | (t, [ArgInfo(so, isOpt)])::ts -> 
+    | (t, [ArgInfo(attribs, so, isOpt)])::ts -> 
         let hasBracket = not ts.IsEmpty
         let gt =
             match t with
             | TTuple _ ->
-                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) +> genType astContext hasBracket t 
+                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) 
+                +> genType astContext hasBracket t 
             | TFun _ ->
                 // Fun is grouped by brackets inside 'genType astContext true t'
-                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) +> genType astContext true t
-            | _ -> opt sepColonFixed so (!-) +> genType astContext false t
-        gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
+                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) 
+                +> genType astContext true t
+            | _ -> 
+                opt sepColonFixed so (!-) +> genType astContext false t
+        genOnelinerAttributes astContext attribs
+        +> gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
 
     | (TTuple ts', ais)::ts -> 
         // The '/' separator shouldn't appear here
         let hasBracket = not ts.IsEmpty
         let gt = col sepStar (Seq.zip ais (Seq.map snd ts')) 
-                    (fun (ArgInfo(so, isOpt), t) ->
-                        opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
+                    (fun (ArgInfo(attribs, so, isOpt), t) ->
+                        genOnelinerAttributes astContext attribs
+                        +> opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
                         +> genType astContext hasBracket t)
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
 
@@ -1067,7 +1081,7 @@ and genPat astContext = function
         let s = if s = "``new``" then "new" else s
         match ps with
         | [] ->  aoc -- s +> tpsoc
-        | [_, PatSeq(PatTuple, [p1; p2])] when s = "(::)" -> 
+        | [(_, PatTuple [p1; p2])] when s = "(::)" -> 
             aoc +> genPat astContext p1 -- " :: " +> genPat astContext p2
         | [(ido, p) as ip] -> 
             aoc -- s +> tpsoc +> 
@@ -1083,7 +1097,8 @@ and genPat astContext = function
 
     | PatParen(PatConst(Const "()", _)) -> !- "()"
     | PatParen(p) -> sepOpenT +> genPat astContext p +> sepCloseT
-    | PatSeq(PatTuple, ps) -> atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext))
+    | PatTuple ps -> 
+        atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext))
     | PatSeq(PatList, ps) -> 
         ifElse ps.IsEmpty (sepOpenLFixed +> sepCloseLFixed) 
             (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps (genPat astContext)) +> sepCloseL)
@@ -1095,7 +1110,9 @@ and genPat astContext = function
     | PatRecord(xs) -> 
         sepOpenS +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs (genPatRecordFieldName astContext)) +> sepCloseS
     | PatConst(c) -> genConst c
-    | PatIsInst(t) -> !- ":? " +> genType astContext false t
+    | PatIsInst(t) -> 
+        // Should have brackets around in the type test patterns
+        !- ":? " +> genType astContext true t
     // Quotes will be printed by inner expression
     | PatQuoteExpr e -> genExpr astContext e
     | p -> failwithf "Unexpected pattern: %O" p

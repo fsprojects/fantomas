@@ -266,3 +266,16 @@ let inline implicit< ^a,^b when ^a : (static member op_Implicit : ^b -> ^a)> arg
 let inline implicit< ^a, ^b when ^a : (static member op_Implicit : ^b -> ^a)> arg = 
     ((^a : (static member op_Implicit : ^b -> ^a) arg))
 """
+
+[<Test>]
+let ``don't add spaces for function application inside dot access``() =
+    formatSourceString false """
+let f x = "foo"
+f(42).Length
+"""  config
+    |> prepend newline
+    |> should equal """
+let f x = "foo"
+
+f(42).Length
+"""

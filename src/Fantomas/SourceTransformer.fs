@@ -1,5 +1,6 @@
 ﻿module internal Fantomas.SourceTransformer
 
+open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Microsoft.FSharp.Compiler
