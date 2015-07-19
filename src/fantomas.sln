@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{65EF702B-6F8C-48F9-9B34-7E6387816B90}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project", "project", "{65EF702B-6F8C-48F9-9B34-7E6387816B90}"
 	ProjectSection(SolutionItems) = preProject
 		..\build.fsx = ..\build.fsx
 		..\paket.dependencies = ..\paket.dependencies

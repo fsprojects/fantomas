@@ -307,5 +307,6 @@ let ``should support rational powers on units of measures``() =
 [<Measure>] type X = cm^(1/2)/W""" config
     |> prepend newline
     |> should equal """
-[<Measure>] type X = cm^(1/2) / W
+[<Measure>]
+type X = cm^(1/2) / W
 """
