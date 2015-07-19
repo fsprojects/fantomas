@@ -20,7 +20,6 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>Fantomas.Tests</Name>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -59,9 +58,8 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="paket.references" />
     <None Include="app.config" />
     <Compile Include="FsUnit.fs" />
     <Compile Include="TestHelpers.fs" />
@@ -91,31 +89,13 @@
     <Compile Include="FormattingSelectionTests.fs" />
     <Compile Include="FormattingSelectionOnlyTests.fs" />
     <Compile Include="ValidationTests.fs" />
-    <Compile Include="FsCheckAddin.fs" />
+    <Compile Include="FsCheckAddin.fs">
+      <Paket>True</Paket>
+    </Compile>
     <Compile Include="FormattingPropertyTests.fs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FsCheck">
-      <HintPath>..\packages\FsCheck.1.0.0\lib\net45\FsCheck.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FsCheck.NUnit">
-      <HintPath>..\packages\FsCheck.Nunit.1.0.0\lib\net45\FsCheck.NUnit.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FsCheck.NUnit.Addin">
-      <HintPath>..\packages\FsCheck.Nunit.1.0.0\lib\net45\FsCheck.NUnit.Addin.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharp.Compiler.Service">
-      <HintPath>..\packages\FSharp.Compiler.Service.0.0.73\lib\net45\FSharp.Compiler.Service.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FsUnit.NUnit">
-      <HintPath>..\packages\FsUnit.1.3.0.1\Lib\Net40\FsUnit.NUnit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
@@ -124,10 +104,6 @@
     </Reference>
     <Reference Include="nunit.core.interfaces">
       <HintPath>..\packages\NUnit.Runners.2.6.3\tools\lib\nunit.core.interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -147,4 +123,65 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Import Project="..\..\.paket\paket.targets" />
+  <Choose>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
+      <ItemGroup>
+        <Reference Include="FsCheck">
+          <HintPath>..\..\packages\FsCheck\lib\net45\FsCheck.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
+      <ItemGroup>
+        <Reference Include="FsCheck.NUnit.Addin">
+          <HintPath>..\..\packages\FsCheck.Nunit\lib\net45\FsCheck.NUnit.Addin.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="FsCheck.NUnit">
+          <HintPath>..\..\packages\FsCheck.Nunit\lib\net45\FsCheck.NUnit.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
+      <ItemGroup>
+        <Reference Include="FSharp.Compiler.Service">
+          <HintPath>..\..\packages\FSharp.Compiler.Service\lib\net45\FSharp.Compiler.Service.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
+      <ItemGroup>
+        <Reference Include="FsUnit.NUnit">
+          <HintPath>..\..\packages\FsUnit\Lib\Net40\FsUnit.NUnit.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="($(TargetFrameworkIdentifier) == 'WindowsPhone') Or ($(TargetFrameworkIdentifier) == 'WindowsPhoneApp') Or ($(TargetFrameworkIdentifier) == 'Silverlight') Or ($(TargetFrameworkIdentifier) == '.NETCore') Or ($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
+      <ItemGroup>
+        <Reference Include="nunit.framework">
+          <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
 </Project>
