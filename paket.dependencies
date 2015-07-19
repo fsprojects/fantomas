@@ -1,5 +1,6 @@
 source https://www.nuget.org/api/v2/
 
+nuget FAKE
 nuget Nuget.CommandLine
 nuget FsCheck.Nunit 1.0.0 framework: >= net45
 nuget FSharp.Compiler.Service 0.0.73 framework: >= net45
