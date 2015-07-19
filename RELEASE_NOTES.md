@@ -1,3 +1,6 @@
+#### 1.8.0-beta - 19-07-2015
+* Migrate to F# 4.0 ([#170](https://github.com/dungpa/fantomas/pull/170))
+
 #### 1.7.0 - 10-06-2015
 * Print attributes on member arguments ([#168](https://github.com/dungpa/fantomas/pull/168))
 * Do not misrecognize "then" blocks in explicit constructors ([#168](https://github.com/dungpa/fantomas/pull/168))

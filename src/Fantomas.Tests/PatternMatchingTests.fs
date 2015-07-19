@@ -300,3 +300,13 @@ match item.Item with
 | :? (string * XmlDoc) as tip -> ()
 | _ -> ()
 """
+
+[<Test>]
+let ``should support rational powers on units of measures``() =
+    formatSourceString false """
+[<Measure>] type X = cm^(1/2)/W""" config
+    |> prepend newline
+    |> should equal """
+[<Measure>]
+type X = cm^(1/2) / W
+"""

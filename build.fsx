@@ -52,11 +52,6 @@ Target "Clean" (fun _ ->
     CleanDirs ["bin"; "nuget"]
 )
 
-Target "RestorePackages" (fun _ ->
-    !! "./**/packages.config"
-    |> Seq.iter (RestorePackage (fun p -> { p with OutputPath = "src/packages"; ToolPath = "src/.nuget/NuGet.exe" }))
-)
-
 Target "AssemblyInfo" (fun _ ->
   let shared =
       [ Attribute.Product project
@@ -121,7 +116,6 @@ Target "PublishNuGet" (fun _ ->
 Target "All" DoNothing
 
 "Clean"
-  ==> "RestorePackages"
   ==> "AssemblyInfo"
   ==> "Build"
   ==> "UnitTests"
