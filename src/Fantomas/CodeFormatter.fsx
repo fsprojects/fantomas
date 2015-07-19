@@ -23,12 +23,7 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : pos) -> p.ToString())
 fsi.AddPrinter (fun (r : range) -> r.ToString())
 
-let input = """
-match item.Item with
-| :? FSharpToolTipText as titem -> ()
-| :? (string * XmlDoc) as tip -> ()
-| _ -> ()
-"""
+let input = """[<Measure>] type X = cm^(1/2)/W"""
 
 test input;;
 

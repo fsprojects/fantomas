@@ -119,6 +119,14 @@ let inline (|ValTyparDecls|) (SynValTyparDecls(tds, b, tcs)) =
     
 // Literals
 
+let rec (|RationalConst|) = function
+    | SynRationalConst.Integer i ->
+        string i
+    | SynRationalConst.Rational(numerator, denominator, _) ->
+        sprintf "(%i/%i)" numerator denominator
+    | SynRationalConst.Negate (RationalConst s) ->
+        sprintf "- %s" s
+
 let (|Measure|) x =
     let rec loop = function
         | SynMeasure.Var(Typar(s, _), _) -> s
@@ -132,9 +140,9 @@ let (|Measure|) x =
             let s1 = loop m1
             let s2 = loop m2
             sprintf "%s/%s" s1 s2
-        | SynMeasure.Power(m, n, _) ->
+        | SynMeasure.Power(m, RationalConst n, _) ->
             let s = loop m
-            sprintf "%s^%i" s n
+            sprintf "%s^%s" s n
         | SynMeasure.Seq(ms, _) ->
             List.map loop ms |> String.concat " "
         | SynMeasure.Named(LongIdent s, _) -> s
@@ -1042,7 +1050,7 @@ let (|THashConstraint|_|) = function
     | _ -> None
 
 let (|TMeasurePower|_|) = function
-    | SynType.MeasurePower(t, n, _) ->
+    | SynType.MeasurePower(t, RationalConst n, _) ->
         Some(t, n)
     | _ -> None
 
