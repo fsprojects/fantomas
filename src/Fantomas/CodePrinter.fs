@@ -489,7 +489,9 @@ and genExpr astContext = function
     | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause astContext true)
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
-    | Paren e -> sepOpenT +> genExpr astContext e +> sepCloseT
+    | Paren e -> 
+        // Parentheses nullify effects of no space inside DotGet
+        sepOpenT +> genExpr { astContext with IsInsideDotGet = false } e +> sepCloseT
     | CompApp(s, e) ->
         !- s +> sepSpace +> sepOpenS +> genExpr { astContext with IsNakedRange = true } e 
         +> ifElse (checkBreakForExpr e) (sepNln +> sepCloseSFixed) sepCloseS

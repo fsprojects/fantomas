@@ -1,3 +1,6 @@
+#### 1.9.0 - 19-08-2015
+* Fix https://github.com/fsprojects/VisualFSharpPowerTools/issues/1050 ([#172](https://github.com/dungpa/fantomas/pull/172))
+
 #### 1.8.0-beta - 19-07-2015
 * Migrate to F# 4.0 ([#170](https://github.com/dungpa/fantomas/pull/170))
 
