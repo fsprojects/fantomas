@@ -155,3 +155,26 @@ let ``should not mess up ?<- operator``() =
     formatSourceString false """x?v <- 2""" config
     |> should equal """x?v <- 2
 """
+
+
+[<Test>]
+let ``should pipeline monadic bind``() =
+    formatSourceString false """
+strToInt "1"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+"""
+        config
+    |> should equal  """
+strToInt "1"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+>>= strAddLong "A long argument that is ignored" "2"
+"""

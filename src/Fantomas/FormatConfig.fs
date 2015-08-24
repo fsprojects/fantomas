@@ -411,7 +411,7 @@ let internal sortAndDeduplicate by l (ctx : Context) =
 let internal NoSpaceInfixOps = set [".."; "?"]
 
 /// Always break into newlines on these operators
-let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"]
+let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 
 /// Never break into newlines on these operators
 let internal NoBreakInfixOps = set ["="; ">"; "<";]
