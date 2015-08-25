@@ -15,7 +15,7 @@ do
     let localPath = Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath 
     let fsharpCorePath = Path.Combine(Path.GetDirectoryName(localPath), "FSharp.Core.dll")
     OverridenFSharpCorePath <- Some fsharpCorePath
-    printfn "Loading FSharp.Core from %s" fsharpCorePath
+    printfn "Loading FSharp.Core from %s..." fsharpCorePath
 
 let config = FormatConfig.Default
 let newline = "\n"

@@ -71,6 +71,13 @@ Target "AssemblyInfo" (fun _ ->
       (Attribute.Title "Fantomas.UI" :: shared) 
 )
 
+Target "CopyPrerequisites" (fun _ ->
+    let additionalFiles = 
+        ["./packages/FSharp.Core/lib/net40/FSharp.Core.sigdata";
+         "./packages/FSharp.Core/lib/net40/FSharp.Core.optdata"]
+    CopyTo "src/Fantomas.Tests/bin/Release" additionalFiles
+)
+
 // --------------------------------------------------------------------------------------
 // Build library & test project
 
@@ -120,6 +127,7 @@ Target "All" DoNothing
 "Clean"
   ==> "AssemblyInfo"
   ==> "Build"
+  ==> "CopyPrerequisites"
   ==> "UnitTests"
   ==> "All"
   ==> "PublishNuGet"

@@ -531,7 +531,7 @@ type private NUnitRunner () =
 let private verboseConf = 
     {
         Config.Verbose with
-            MaxTest = 100
+            MaxTest = 500
             EndSize = 20
             Runner = NUnitRunner ()
     }
