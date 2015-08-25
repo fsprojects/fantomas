@@ -4,8 +4,18 @@ open NUnit.Framework
 open FsUnit
 
 open System
+open System.IO
 open Fantomas.FormatConfig
 open Fantomas.CodeFormatter
+open System.Reflection
+
+// FSharp.Compiler.Service expects FSharp.Core 4.0.0.0 in a standard location
+// Since we only have FSharp.Core along with the project, we inject the custom path to project checker options.
+do
+    let localPath = Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath 
+    let fsharpCorePath = Path.Combine(Path.GetDirectoryName(localPath), "FSharp.Core.dll")
+    OverridenFSharpCorePath <- Some fsharpCorePath
+    printfn "Loading FSharp.Core from %s" fsharpCorePath
 
 let config = FormatConfig.Default
 let newline = "\n"

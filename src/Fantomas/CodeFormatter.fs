@@ -16,6 +16,8 @@ open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
 
+let mutable internal OverridenFSharpCorePath: string option = None
+
 let internal parseWith fileName content = 
     // Create an interactive checker instance (ignore notifications)
     let checker = FSharpChecker.Create()
@@ -23,6 +25,13 @@ let internal parseWith fileName content =
     let checkOptions = 
         checker.GetProjectOptionsFromScript(fileName, content, DateTime.Now, filterDefines content) 
         |> Async.RunSynchronously
+    let checkOptions =
+        match OverridenFSharpCorePath with
+        | None -> checkOptions
+        | Some fsharpCorePath -> 
+            { checkOptions with OtherOptions = 
+                                    [| yield "-r:" + fsharpCorePath
+                                       yield! checkOptions.OtherOptions |> Seq.filter (fun s -> not (s.Contains "FSharp.Core.dll")) |] }
     // Run the first phase (untyped parsing) of the compiler
     let untypedRes = checker.ParseFileInProject(fileName, content, checkOptions) |> Async.RunSynchronously
     if untypedRes.ParseHadErrors then
@@ -30,7 +39,7 @@ let internal parseWith fileName content =
             untypedRes.Errors
             |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
         if not <| Array.isEmpty errors then
-            raise <| FormatException (sprintf "Parsing failed with errors: %A" errors)
+            raise <| FormatException (sprintf "Parsing failed with errors: %A\nAnd options: %A" errors checkOptions.OtherOptions)
     match untypedRes.ParseTree with
     | Some tree -> tree
     | None -> raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
