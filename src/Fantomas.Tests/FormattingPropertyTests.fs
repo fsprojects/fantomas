@@ -399,7 +399,7 @@ let toSynExprs (Input s) =
                 (_, true, exprs, _, _, _, _)], _))) -> 
                 List.choose (function (SynModuleDecl.DoExpr(_, expr, _)) -> Some expr | _ -> None) exprs
     | ast -> 
-        stdout.WriteLine("Can't convert {0}.", sprintf "%A" ast)
+        //stdout.WriteLine("Can't convert {0}.", sprintf "%A" ast)
         []
 
 let rec shrinkSynExpr = function
@@ -485,7 +485,7 @@ and collectSynBinding (SynBinding.Binding(_, _, _, _, _, _, _, _, _, expr, _, _)
 let shrinkInput input = 
     match toSynExprs input with
     | [] -> 
-        stdout.WriteLine("Can't shrink {0} further.", sprintf "%A" input)
+        //stdout.WriteLine("Can't shrink {0} further.", sprintf "%A" input)
         Seq.empty
     | exprs ->         
         let (Input source) = input
@@ -508,9 +508,13 @@ type private NUnitRunner () =
     interface IRunner with
         member __.OnStartFixture _ = ()
         member __.OnArguments (ntest, args, every) = 
-            stdout.Write(every ntest args)
+            //stdout.Write(every ntest args)
+            ()
+
         member __.OnShrink(args, everyShrink) = 
-            stdout.Write(everyShrink args)
+            //stdout.Write(everyShrink args)
+            ()
+
         member __.OnFinished (name, result) =
             match result with
             | TestResult.True _data ->

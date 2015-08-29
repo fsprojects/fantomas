@@ -1,3 +1,6 @@
+#### 1.10.0 - 29-08-2015
+* Improve formatting of bind operator [#175](https://github.com/dungpa/fantomas/pull/175)
+
 #### 1.9.0 - 19-08-2015
 * Fix https://github.com/fsprojects/VisualFSharpPowerTools/issues/1050 ([#172](https://github.com/dungpa/fantomas/pull/172))
 
