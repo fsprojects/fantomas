@@ -9,6 +9,8 @@ open Fake.AssemblyInfoFile
 open Fake.ReleaseNotesHelper
 open System
 
+setEnvironVar "MSBuild" (ProgramFilesX86 @@ @"\MSBuild\12.0\Bin\MSBuild.exe")
+
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted 
 let gitHome = "https://github.com/dungpa"
@@ -60,13 +62,20 @@ Target "AssemblyInfo" (fun _ ->
         Attribute.FileVersion release.AssemblyVersion ] 
 
   CreateFSharpAssemblyInfo "src/Fantomas/AssemblyInfo.fs"
-      ( Attribute.Title "FantomasLib" :: shared)
+      ( Attribute.InternalsVisibleTo "Fantomas.Tests" :: Attribute.Title "FantomasLib" :: shared)
 
   CreateFSharpAssemblyInfo "src/Fantomas.Cmd/AssemblyInfo.fs"
       (Attribute.Title "Fantomas" :: shared)
 
   CreateFSharpAssemblyInfo "src/Fantomas.UI/AssemblyInfo.fs"
       (Attribute.Title "Fantomas.UI" :: shared) 
+)
+
+Target "CopyPrerequisites" (fun _ ->
+    let additionalFiles = 
+        ["./packages/FSharp.Core/lib/net40/FSharp.Core.sigdata";
+         "./packages/FSharp.Core/lib/net40/FSharp.Core.optdata"]
+    CopyTo "src/Fantomas.Tests/bin/Release" additionalFiles
 )
 
 // --------------------------------------------------------------------------------------
@@ -118,6 +127,7 @@ Target "All" DoNothing
 "Clean"
   ==> "AssemblyInfo"
   ==> "Build"
+  ==> "CopyPrerequisites"
   ==> "UnitTests"
   ==> "All"
   ==> "PublishNuGet"
