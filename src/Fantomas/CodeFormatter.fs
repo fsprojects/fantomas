@@ -15,6 +15,7 @@ open Fantomas.TokenMatcher
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
+open System.IO
 
 let mutable internal OverridenFSharpCorePath: string option = None
 
@@ -29,9 +30,18 @@ let internal parseWith fileName content =
         match OverridenFSharpCorePath with
         | None -> checkOptions
         | Some fsharpCorePath -> 
-            { checkOptions with OtherOptions = 
-                                    [| yield "-r:" + fsharpCorePath
-                                       yield! checkOptions.OtherOptions |> Seq.filter (fun s -> not (s.Contains "FSharp.Core.dll")) |] }
+            let currentFSharpCoreExists =
+                checkOptions.OtherOptions 
+                |> Seq.tryFind (fun s -> s.StartsWith"-r:" && s.Contains "FSharp.Core.dll")
+                |> Option.map (fun reference -> File.Exists reference.[3..])
+                |> fun arg -> defaultArg arg false
+            if currentFSharpCoreExists then 
+                checkOptions
+            else
+                { checkOptions with 
+                    OtherOptions = 
+                        [| yield "-r:" + fsharpCorePath
+                           yield! checkOptions.OtherOptions |> Seq.filter (fun s -> not (s.Contains "FSharp.Core.dll")) |] }
     // Run the first phase (untyped parsing) of the compiler
     let untypedRes = checker.ParseFileInProject(fileName, content, checkOptions) |> Async.RunSynchronously
     if untypedRes.ParseHadErrors then

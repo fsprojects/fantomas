@@ -894,10 +894,10 @@ and genTypeList astContext = function
         genOnelinerAttributes astContext attribs
         +> gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
 
-    | (TTuple ts', ais)::ts -> 
+    | (TTuple ts', argInfo)::ts -> 
         // The '/' separator shouldn't appear here
         let hasBracket = not ts.IsEmpty
-        let gt = col sepStar (Seq.zip ais (Seq.map snd ts')) 
+        let gt = col sepStar (Seq.zip argInfo (Seq.map snd ts')) 
                     (fun (ArgInfo(attribs, so, isOpt), t) ->
                         genOnelinerAttributes astContext attribs
                         +> opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))

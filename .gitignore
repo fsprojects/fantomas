@@ -166,3 +166,4 @@ pip-log.txt
 .DS_Store
 *.ncrunch*
 TestResults.xml
+*.xml

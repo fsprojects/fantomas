@@ -23,8 +23,9 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : pos) -> p.ToString())
 fsi.AddPrinter (fun (r : range) -> r.ToString())
 
-let input = """let inputBlah = "So, I was like, Visual Studio did wat!?"
-let someBlahing = (Blah.TryCreate inputBlah).Value"""
+let input = """type A =
+    abstract member M : (int -> int) -> int
+    abstract member M : float -> int"""
 
 test input;;
 
