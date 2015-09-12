@@ -5,9 +5,9 @@ open System.Diagnostics
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.PrettyNaming
-open Microsoft.FSharp.Compiler.Lexhelp.Keywords
 open Fantomas
 open Fantomas.FormatConfig
+open Microsoft.FSharp.Compiler.SourceCodeServices.PrettyNaming
 
 type Composite<'a, 'b> =
     | Pair of 'b * 'b
@@ -1176,14 +1176,15 @@ let (|ArgInfo|) (SynArgInfo(attribs, isOpt, ido)) =
     (attribs, Option.map (|Ident|) ido, isOpt)
 
 /// Extract function arguments with their associated info
-let (|FunType|) (t, ValInfo(aiss, ai)) = 
+let (|FunType|) (t, ValInfo(argTypes, returnType)) = 
+    // Parse arg info by attach them into relevant types.
+    // The number of arg info will determine semantics of argument types.
     let rec loop = function
-        | TFun(t1, t2), ais::aiss -> 
-            (t1, ais)::loop(t2, aiss)
-        | t, [ais] -> [(t, ais)]
-        | t, [] -> [(t, [ai])]
+        | TFun(t1, t2), argType::argTypes -> 
+            (t1, argType)::loop(t2, argTypes)
+        | t, [] -> [(t, [returnType])]
         | _ -> []
-    loop(t, aiss)
+    loop(t, argTypes)
 
 /// A rudimentary recognizer for extern functions
 /// Probably we should use lexing information to improve its accuracy

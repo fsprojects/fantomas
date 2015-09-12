@@ -1,3 +1,7 @@
+#### 1.11.0 - 13-09-2015
+* Fix https://github.com/fsprojects/VisualFSharpPowerTools/issues/366 [#177](https://github.com/dungpa/fantomas/pull/177)
+* Migrate to FCS 1.4.0.5
+
 #### 1.10.0 - 29-08-2015
 * Improve formatting of bind operator [#175](https://github.com/dungpa/fantomas/pull/175)
 

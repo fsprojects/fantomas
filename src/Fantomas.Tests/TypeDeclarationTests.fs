@@ -748,3 +748,29 @@ type ILogger =
 type ILogger = 
     abstract DebugFormat : format:String * [<ParamArray>] args:Object [] -> unit
 """
+
+[<Test>]
+let ``should preserve brackets on type signatures``() =
+    formatSourceString false """
+type A =
+    abstract member M : int -> (int -> unit)
+    abstract member M : float -> int""" config
+    |> prepend newline
+    |> should equal """
+type A = 
+    abstract M : int -> (int -> unit)
+    abstract M : float -> int
+"""
+
+[<Test>]
+let ``should preserve brackets on type signatures 2``() =
+    formatSourceString false """
+type A =
+    abstract member M : (int -> int) -> unit
+    abstract member M : float -> int""" config
+    |> prepend newline
+    |> should equal """
+type A = 
+    abstract M : (int -> int) -> unit
+    abstract M : float -> int
+"""
