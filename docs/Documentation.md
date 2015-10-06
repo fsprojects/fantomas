@@ -187,7 +187,7 @@ To illustrate, `(1, 2, 3)` is rewritten to `(1,2,3)`.
 
  - `--reorderOpenDeclaration`: if being set, all open statements in a block will be sorted in the lexicographical order.
 
- - `--strictMode``: if being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored. 
+ - `--strictMode`: if being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored. 
 
 That said, most of the preferences are very simple. 
 But they demonstrate the flexibility of Fantomas on a set of configurations. 
