@@ -2,5 +2,9 @@ language: csharp
 
 sudo: false  # use the new container-based Travis infrastructure 
 
+branches:
+  only:
+    - master
+
 script: 
   - ./build.sh All
