@@ -139,6 +139,6 @@ type ArgParser() =
               System.Console.Error.WriteLine h; 
               System.Console.Error.Flush();  
               System.Environment.Exit(1); 
-          | e -> 
+          | _ -> 
               reraise()
     #endif
