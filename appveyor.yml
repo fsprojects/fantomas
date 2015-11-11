@@ -3,5 +3,8 @@ build_script:
   - cmd: build.cmd NuGet
 test: off
 version: '{build}'
+branches:
+  only:
+    - master
 artifacts:
   - path: bin\*.nupkg
