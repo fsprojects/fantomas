@@ -79,7 +79,7 @@ let rec allFiles isRec path =
             if isFSharpFile f then yield f
         if isRec then
             for d in Directory.GetDirectories path do
-                yield! allFiles isRec d    
+                yield! allFiles isRec d
     }
 
 /// Format a source string using given config and write to a text writer
@@ -93,7 +93,7 @@ let processSourceFile inFile (tw : TextWriter) config =
     tw.Write(CodeFormatter.formatSourceString isFsiFile s config)
 
 [<EntryPoint>]
-let main args =
+let main _args =
     let recurse = ref false
     let force = ref false
     let profile = ref false
@@ -120,9 +120,11 @@ let main args =
     let strictMode = ref false
 
     let handleOutput s =
-        outputPath := IO s
+        if not !stdOut then
+            outputPath := IO s
 
     let handleStdOut() =
+        stdOut := true
         outputPath := StdOut
 
     let handleInput s = 
@@ -224,7 +226,7 @@ let main args =
            ArgInfo("--pageWidth", ArgType.Int handlePageWidth, widthText);
            
            ArgInfo("--semicolonEOL", ArgType.Set semicolonEOL, semicolonEOLText);
-           ArgInfo("--noSpaceBeforeArgument", ArgType.Clear spaceBeforeArgument, argumentText);           
+           ArgInfo("--noSpaceBeforeArgument", ArgType.Clear spaceBeforeArgument, argumentText);
            ArgInfo("--noSpaceBeforeColon", ArgType.Clear spaceBeforeColon, colonText);
            ArgInfo("--noSpaceAfterComma", ArgType.Clear spaceAfterComma, commaText);
            ArgInfo("--noSpaceAfterSemiColon", ArgType.Clear spaceAfterSemiColon, semicolonText);
@@ -265,16 +267,14 @@ let main args =
         if inputFile <> outputFile then
             fileToFile inputFile outputFile config
         else
-            let tempFile = Path.GetTempFileName()
-            fileToFile inputFile tempFile config
-            File.Delete(inputFile)
-            File.Move(tempFile,inputFile)
-
+            let content = File.ReadAllText inputFile
+            stringToFile content inputFile config
+            
     let processFolder inputFolder outputFolder =
         if not <| Directory.Exists(outputFolder) then
             Directory.CreateDirectory(outputFolder) |> ignore
         allFiles !recurse inputFolder
-        |> Seq.iter (fun i ->     
+        |> Seq.iter (fun i ->
             // s supposes to have form s1/suffix
             let suffix = i.Substring(inputFolder.Length + 1)
             let o =
@@ -289,7 +289,7 @@ let main args =
         eprintfn "Input path is missing."
         exit 1
     | Folder p1, Notknown -> processFolder p1 p1
-    | File p1, Notknown -> processFile p1 p1 config    
+    | File p1, Notknown -> processFile p1 p1 config
     | File p1, IO p2 ->
         processFile p1 p2 config
     | Folder p1, IO p2 -> processFolder p1 p2
