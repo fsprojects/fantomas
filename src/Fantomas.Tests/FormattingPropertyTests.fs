@@ -398,7 +398,7 @@ let toSynExprs (Input s) =
             [SynModuleOrNamespace
                 (_, true, exprs, _, _, _, _)], _))) -> 
                 List.choose (function (SynModuleDecl.DoExpr(_, expr, _)) -> Some expr | _ -> None) exprs
-    | ast -> 
+    | _ -> 
         //stdout.WriteLine("Can't convert {0}.", sprintf "%A" ast)
         []
 
@@ -507,11 +507,11 @@ let registerFsCheckGenerators() =
 type private NUnitRunner () =
     interface IRunner with
         member __.OnStartFixture _ = ()
-        member __.OnArguments (ntest, args, every) = 
+        member __.OnArguments (_ntest, _args, _every) = 
             //stdout.Write(every ntest args)
             ()
 
-        member __.OnShrink(args, everyShrink) = 
+        member __.OnShrink(_args, _everyShrink) = 
             //stdout.Write(everyShrink args)
             ()
 
