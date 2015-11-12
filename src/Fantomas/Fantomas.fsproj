@@ -66,6 +66,7 @@
     <Compile Include="SourceParser.fs" />
     <Compile Include="SourceTransformer.fs" />
     <Compile Include="CodePrinter.fs" />
+    <Compile Include="CodeFormatter.fsi" />
     <Compile Include="CodeFormatter.fs" />
     <Compile Include="FakeHelpers.fs" />
     <None Include="CodeFormatter.fsx" />
