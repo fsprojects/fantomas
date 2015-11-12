@@ -102,7 +102,7 @@ Target "UnitTests" (fun _ ->
 // --------------------------------------------------------------------------------------
 // Build a NuGet package
 
-Target "PublishNuGet" (fun _ ->
+Target "NuGet" (fun _ ->
     NuGet (fun p -> 
         { p with   
             Authors = authors
@@ -114,7 +114,6 @@ Target "PublishNuGet" (fun _ ->
             Tags = tags
             OutputPath = "src/Fantomas.Cmd/bin/Release"
             AccessKey = getBuildParamOrDefault "nugetkey" ""
-            Publish = true
             Dependencies = [ "FSharp.Compiler.Service", GetPackageVersion "packages" "FSharp.Compiler.Service" ] })
         (project + ".nuspec")
 )
@@ -130,6 +129,6 @@ Target "All" DoNothing
   ==> "CopyPrerequisites"
   ==> "UnitTests"
   ==> "All"
-  ==> "PublishNuGet"
+  ==> "NuGet"
 
 RunTargetOrDefault "All"
