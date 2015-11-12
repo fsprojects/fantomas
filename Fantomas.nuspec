@@ -8,7 +8,7 @@
         <summary>@summary@</summary>
         <licenseUrl>http://github.com/dungpa/fantomas/blob/master/LICENSE.md</licenseUrl>
         <projectUrl>https://github.com/dungpa/fantomas</projectUrl>
-        <iconUrl>https://raw.github.com/dungpa/fantomas/master/src/Fantomas.VisualStudio/fantomas_logo.png</iconUrl>
+        <iconUrl>https://raw.github.com/dungpa/fantomas/master/fantomas_logo.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>@description@</description>
         <releaseNotes>@releaseNotes@</releaseNotes>
