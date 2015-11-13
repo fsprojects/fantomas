@@ -1,4 +1,5 @@
-﻿module internal Fantomas.CodeFormatterImpl
+﻿[<RequireQualifiedAccess>]
+module internal Fantomas.CodeFormatterImpl
 
 open System
 open System.Diagnostics
@@ -22,7 +23,7 @@ let mutable OverridenFSharpCorePath: string option = None
 type FormatContext =
     {
         FileName : string;
-        Content : string;
+        SourceCode : string;
         ProjectOptions : FSharpProjectOptions;
         Checker : FSharpChecker;
     }
@@ -50,9 +51,9 @@ let createFormatContext fileName content =
                     OtherOptions = 
                         [| yield "-r:" + fsharpCorePath
                            yield! checkOptions.OtherOptions |> Seq.filter (fun s -> not (s.Contains "FSharp.Core.dll")) |] }
-    { FileName = fileName; Content = content; ProjectOptions = checkOptions; Checker = checker }
+    { FileName = fileName; SourceCode = content; ProjectOptions = checkOptions; Checker = checker }
 
-let parse { FileName = fileName; Content = content; ProjectOptions = checkOptions; Checker = checker } = 
+let parse { FileName = fileName; SourceCode = content; ProjectOptions = checkOptions; Checker = checker } = 
     async {
         // Run the first phase (untyped parsing) of the compiler
         let! untypedRes = checker.ParseFileInProject(fileName, content, checkOptions)
@@ -343,14 +344,14 @@ let isValidAST ast =
 
 /// Check whether an input string is invalid in F# by looking for erroneous nodes in ASTs
 let isValidFSharpCode formatContext =
-    try
-        async {
+    async {
+        try
             let! ast = parse formatContext
             return isValidAST ast
-        }
-    with _ -> 
-        async.Return false
-
+        with _ ->
+            return false
+    }
+    
 let formatWith ast input config =
     // Use '\n' as the new line delimiter consistently
     // It would be easier for F# parser
@@ -370,11 +371,11 @@ let formatWith ast input config =
 let format formatContext config =
     async {
         let! ast = parse formatContext
-        return formatWith ast (Some formatContext.Content) config
+        return formatWith ast (Some formatContext.SourceCode) config
     }
 
 /// Format a source string using given config
-let formatSourceString formatContext config =    
+let formatSourceString config formatContext =    
     async {
         let! formattedSourceCode = format formatContext config
         
@@ -481,7 +482,7 @@ let formatRange returnFormattedContentOnly (range : range) (lines : _ []) format
     let startCol = range.StartColumn
     let endLine = range.EndLine
     
-    let { FormatContext.Content = sourceCode } = formatContext
+    let { FormatContext.SourceCode = sourceCode } = formatContext
 
     let (start, finish) = stringPos range sourceCode
     let pre = if start = 0 then String.Empty else sourceCode.[0..start-1].TrimEnd('\r')
@@ -516,8 +517,10 @@ let formatRange returnFormattedContentOnly (range : range) (lines : _ []) format
     Debug.WriteLine("selection:\n'{0}'", box selection)
     Debug.WriteLine("post:\n'{0}'", box post)
 
-    let formatSelection formatContext config =
+    let formatSelection sourceCode config =
         async {
+            // From this point onwards, we focus on the current selection
+            let formatContext = { formatContext with SourceCode = sourceCode }
             let! formattedSourceCode = format formatContext config
             // If the input is not inline, the output should not be inline as well
             if sourceCode.EndsWith("\n") && not <| formattedSourceCode.EndsWith(Environment.NewLine) then 
@@ -543,7 +546,7 @@ let formatRange returnFormattedContentOnly (range : range) (lines : _ []) format
         match patch with
         | TypeMember ->
             // Get formatted selection with "type T = \n" patch
-            let! result = formatSelection formatContext config
+            let! result = formatSelection selection config
             // Remove the patch
             let contents = String.normalizeThenSplitNewLine result
             if Array.isEmpty contents then
@@ -558,15 +561,15 @@ let formatRange returnFormattedContentOnly (range : range) (lines : _ []) format
                 let formatteds = contents.[1..] |> Seq.map (fun s -> s.[column..])
                 return reconstructSourceCode startCol formatteds pre post
         | RecType 
-        | RecLet ->        
+        | RecLet ->
             // Get formatted selection with "type" or "let rec" replacement for "and"
-            let! result = formatSelection formatContext config
+            let! result = formatSelection selection config
             // Substitute by old contents
             let pattern = if patch = RecType then Regex("type") else Regex("let rec")
             let formatteds = String.normalizeThenSplitNewLine (pattern.Replace(result, "and", 1))
             return reconstructSourceCode startCol formatteds pre post
         | Nothing ->
-            let! result = formatSelection formatContext config
+            let! result = formatSelection selection config
             let formatteds = String.normalizeThenSplitNewLine result
             return reconstructSourceCode startCol formatteds pre post
     }
@@ -574,7 +577,7 @@ let formatRange returnFormattedContentOnly (range : range) (lines : _ []) format
 /// Format a part of source string using given config, and return the (formatted) selected part only.
 /// Beware that the range argument is inclusive. If the range has a trailing newline, it will appear in the formatted result.
 let formatSelectionOnly (range : range) formatContext config =
-    let { FormatContext.Content = sourceCode } = formatContext
+    let { FormatContext.SourceCode = sourceCode } = formatContext
     let lines = String.normalizeThenSplitNewLine sourceCode
 
     // Move to the section with real contents
@@ -622,8 +625,8 @@ let formatSelectionOnly (range : range) formatContext config =
     }
 
  /// Format a selected part of source string using given config; expanded selected ranges to parsable ranges. 
-let formatSelectionExpanded (range : range) formatContext config =
-    let { FormatContext.Content = sourceCode } = formatContext
+let formatSelectionExpanded (range : range) config formatContext =
+    let { FormatContext.SourceCode = sourceCode } = formatContext
     let lines = String.normalizeThenSplitNewLine sourceCode
     let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
 
@@ -650,13 +653,14 @@ let formatSelectionExpanded (range : range) formatContext config =
 
     let expandedRange = makeRange contentRange.StartLine startCol contentRange.EndLine endCol
     async {
-        let! formattedSelection = formatRange false expandedRange lines formatContext config
-        return (formattedSelection, expandedRange)    
+        let! result = formatRange false expandedRange lines formatContext config
+        return (result, expandedRange)
     }
+
 /// Format a selected part of source string using given config; keep other parts unchanged. 
-let formatSelectionFromString (range : range) formatContext config =
+let formatSelectionFromString (range : range) config formatContext =
     async {
-        let! (formatted, _) = formatSelectionExpanded range formatContext config
+        let! (formatted, _) = formatSelectionExpanded range config formatContext
         return formatted
     }
 
@@ -788,9 +792,9 @@ let inferSelectionFromCursorPos (cursorPos : pos) (sourceCode : string) =
             makeRange startLine startCol endLine endCol
 
 /// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
-let formatAroundCursor (cursorPos : pos) formatContext config = 
-    let { FormatContext.Content = sourceCode } = formatContext
+let formatAroundCursor (cursorPos : pos) config formatContext = 
+    let { FormatContext.SourceCode = sourceCode } = formatContext
     async {
         let selection = inferSelectionFromCursorPos cursorPos sourceCode
-        return! formatSelectionFromString selection formatContext config
+        return! formatSelectionFromString selection config formatContext
     }
