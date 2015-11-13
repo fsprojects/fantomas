@@ -84,13 +84,13 @@ let rec allFiles isRec path =
 
 /// Format a source string using given config and write to a text writer
 let processSourceString isFsiFile s (tw : TextWriter) config =
-    tw.Write(CodeFormatter.formatSourceString isFsiFile s config)
+    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+    tw.Write(CodeFormatter.FormatDocument(fileName, s, config))
 
 /// Format inFile and write to text writer
 let processSourceFile inFile (tw : TextWriter) config = 
     let s = File.ReadAllText(inFile)
-    let isFsiFile = inFile.EndsWith(".fsi") || inFile.EndsWith(".mli")
-    tw.Write(CodeFormatter.formatSourceString isFsiFile s config)
+    tw.Write(CodeFormatter.FormatDocument(inFile, s, config))
 
 [<EntryPoint>]
 let main _args =

@@ -8,16 +8,7 @@ open System.IO
 open Fantomas.FormatConfig
 open Fantomas.CodeFormatter
 open System.Reflection
-
-(*
-// FSharp.Compiler.Service expects FSharp.Core 4.0.0.0 in a standard location
-// Since we only have FSharp.Core along with the project, we inject the custom path to project checker options.
-do
-    let localPath = Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath 
-    let fsharpCorePath = Path.Combine(Path.GetDirectoryName(localPath), "FSharp.Core.dll")
-    OverridenFSharpCorePath <- Some fsharpCorePath
-    printfn "Loading FSharp.Core from %s..." fsharpCorePath
-*)
+open Fantomas
 
 let config = FormatConfig.Default
 let newline = "\n"
@@ -25,19 +16,30 @@ let newline = "\n"
 let formatSourceString isFsiFile (s : string) config = 
     // On Linux/Mac this will exercise different line endings
     let s = s.Replace("\r\n", Environment.NewLine)
-    (formatSourceString isFsiFile s config).Replace("\r\n", "\n")
+    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+    CodeFormatter.FormatDocument(fileName, s, config).Replace("\r\n", "\n")
 
 let formatSelectionFromString isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
-    (formatSelectionFromString isFsiFile r s config).Replace("\r\n", "\n")
+    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+    CodeFormatter.FormatSelectionInDocument(fileName, r, s, config).Replace("\r\n", "\n")
 
 let formatSelectionOnly isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
-    (formatSelectionOnly isFsiFile r s config).Replace("\r\n", "\n")
+    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+    CodeFormatter.FormatSelection(fileName, r, s, config).Replace("\r\n", "\n")
 
 let formatAroundCursor isFsiFile p (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
-    (formatAroundCursor isFsiFile p s config).Replace("\r\n", "\n")
+    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+    CodeFormatter.FormatAroundCursor(fileName, p, s, config).Replace("\r\n", "\n")
+
+let isValidFSharpCode isFsiFile s =
+    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+    CodeFormatter.IsValidFSharpCode(fileName, s)
+
+let makeRange l1 c1 l2 c2 = CodeFormatter.MakeRange(l1, c1, l2, c2)
+let makePos l1 c1 = CodeFormatter.MakePos(l1, c1)
 
 let equal x = 
     let x = 

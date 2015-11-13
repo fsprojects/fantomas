@@ -1,47 +1,66 @@
 ﻿namespace Fantomas
-open System
-open System.Diagnostics
-open System.Collections.Generic
-open System.Text.RegularExpressions
 
 open Microsoft.FSharp.Compiler
-open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
-open Microsoft.FSharp.Compiler.SourceCodeServices
-
-open Fantomas
-open Fantomas.TokenMatcher
-open Fantomas.FormatConfig
-open Fantomas.SourceParser
-open Fantomas.CodePrinter
 
 [<Sealed>]
 type CodeFormatter =
-    static member FormatDocument(fileName, source, config, projectOptions, checker) =
+    static member FormatDocumentAsync(fileName, source, config, projectOptions, checker) =
         CodeFormatterImpl.createFormatContext fileName source projectOptions checker
         |> CodeFormatterImpl.formatDocument config
+    
+    static member FormatDocument(fileName, source, config) =
+        CodeFormatterImpl.createFormatContextNoChecker fileName source
+        |> CodeFormatterImpl.formatDocument config
+        |> Async.RunSynchronously
    
-    static member FormatSelection(fileName, selection, source, config, projectOptions, checker) =
+    static member FormatSelectionAsync(fileName, selection, source, config, projectOptions, checker) =
         CodeFormatterImpl.createFormatContext fileName source projectOptions checker
         |> CodeFormatterImpl.formatSelection selection config
-   
-    static member FormatAroundCursor(fileName, cursorPos, source, config, projectOptions, checker) =
+    
+    static member FormatSelection(fileName, selection, source, config) =
+        CodeFormatterImpl.createFormatContextNoChecker fileName source
+        |> CodeFormatterImpl.formatSelection selection config
+        |> Async.RunSynchronously
+
+    static member FormatAroundCursorAsync(fileName, cursorPos, source, config, projectOptions, checker) =
         CodeFormatterImpl.createFormatContext fileName source projectOptions checker
         |> CodeFormatterImpl.formatAroundCursor cursorPos config
     
+    static member FormatAroundCursor(fileName, cursorPos, source, config) =
+        CodeFormatterImpl.createFormatContextNoChecker fileName source
+        |> CodeFormatterImpl.formatAroundCursor cursorPos config
+        |> Async.RunSynchronously
+    
+    static member internal FormatSelectionInDocument(fileName, selection, source, config) =
+        CodeFormatterImpl.createFormatContextNoChecker fileName source
+        |> CodeFormatterImpl.formatSelectionInDocument selection config
+        |> Async.RunSynchronously
+    
+
     static member FormatAST(ast, source, config) = 
         CodeFormatterImpl.formatAST ast source config
 
-    static member Parse(fileName, source, projectOptions, checker) = 
+    static member ParseAsync(fileName, source, projectOptions, checker) = 
         CodeFormatterImpl.createFormatContext fileName source projectOptions checker
         |> CodeFormatterImpl.parse
+    
+    static member Parse(fileName, source) = 
+        CodeFormatterImpl.createFormatContextNoChecker fileName source
+        |> CodeFormatterImpl.parse
+        |> Async.RunSynchronously
 
     static member IsValidAST ast = 
         CodeFormatterImpl.isValidAST ast
 
-    static member IsValidFSharpCode(fileName, source, projectOptions, checker) =
+    static member IsValidFSharpCodeAsync(fileName, source, projectOptions, checker) =
         CodeFormatterImpl.createFormatContext fileName source projectOptions checker
         |> CodeFormatterImpl.isValidFSharpCode
+
+    static member IsValidFSharpCode(fileName, source) =
+        CodeFormatterImpl.createFormatContextNoChecker fileName source
+        |> CodeFormatterImpl.isValidFSharpCode
+        |> Async.RunSynchronously
 
     static member MakePos(line, col) = 
         CodeFormatterImpl.makePos line col

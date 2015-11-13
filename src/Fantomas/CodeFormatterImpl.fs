@@ -18,8 +18,6 @@ open Fantomas.SourceParser
 open Fantomas.CodePrinter
 open System.IO
 
-let mutable OverridenFSharpCorePath: string option = None
-
 type FormatContext =
     {
         FileName : string;
@@ -28,38 +26,25 @@ type FormatContext =
         Checker : FSharpChecker;
     }
 
-let createFormatContextNoChecker fileName content =
+// Share an F# checker instance across formatting calls
+let sharedChecker = lazy(FSharpChecker.Create())
+
+let createFormatContextNoChecker fileName source =
     // Create an interactive checker instance (ignore notifications)
-    let checker = FSharpChecker.Create()
+    let checker = sharedChecker.Value
     // Get compiler options for a single script file
     let checkOptions = 
-        checker.GetProjectOptionsFromScript(fileName, content, DateTime.Now, filterDefines content) 
+        checker.GetProjectOptionsFromScript(fileName, source, DateTime.Now, filterDefines source) 
         |> Async.RunSynchronously
-    let checkOptions =
-        match OverridenFSharpCorePath with
-        | None -> checkOptions
-        | Some fsharpCorePath -> 
-            let currentFSharpCoreExists =
-                checkOptions.OtherOptions 
-                |> Seq.tryFind (fun s -> s.StartsWith"-r:" && s.Contains "FSharp.Core.dll")
-                |> Option.map (fun reference -> File.Exists reference.[3..])
-                |> fun arg -> defaultArg arg false
-            if currentFSharpCoreExists then 
-                checkOptions
-            else
-                { checkOptions with 
-                    OtherOptions = 
-                        [| yield "-r:" + fsharpCorePath
-                           yield! checkOptions.OtherOptions |> Seq.filter (fun s -> not (s.Contains "FSharp.Core.dll")) |] }
-    { FileName = fileName; Source = content; ProjectOptions = checkOptions; Checker = checker }
+    { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker }
 
-let createFormatContext fileName content projectOptions checker =
-    { FileName = fileName; Source = content; ProjectOptions = projectOptions; Checker = checker }
+let createFormatContext fileName source projectOptions checker =
+    { FileName = fileName; Source = source; ProjectOptions = projectOptions; Checker = checker }
 
-let parse { FileName = fileName; Source = content; ProjectOptions = checkOptions; Checker = checker } = 
+let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker } = 
     async {
         // Run the first phase (untyped parsing) of the compiler
-        let! untypedRes = checker.ParseFileInProject(fileName, content, checkOptions)
+        let! untypedRes = checker.ParseFileInProject(fileName, source, checkOptions)
         if untypedRes.ParseHadErrors then
             let errors = 
                 untypedRes.Errors
@@ -108,7 +93,7 @@ let isValidAST ast =
             true
 
     and validateTypeDefn(TypeDefn(_componentInfo, representation, members, _range)) = 
-        validateTypeDefnRepr representation && List.forall validateMemberDefn members        
+        validateTypeDefnRepr representation && List.forall validateMemberDefn members
 
     and validateTypeDefnRepr(typeDefnRepr: SynTypeDefnRepr) = 
         match typeDefnRepr with
@@ -625,9 +610,9 @@ let formatSelection (range : range) config ({ Source = sourceCode } as formatCon
     }
 
  /// Format a selected part of source string using given config; expanded selected ranges to parsable ranges. 
-let formatSelectionExpanded (range : range) config ({ Source = sourceCode } as formatContext) =
+let formatSelectionExpanded (range : range) config ({ FileName = fileName; Source = sourceCode } as formatContext) =
     let lines = String.normalizeThenSplitNewLine sourceCode
-    let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
+    let sourceTokenizer = SourceTokenizer([], fileName)
 
     // Move to the section with real contents
     let contentRange =
@@ -673,9 +658,9 @@ type internal BlockType =
 let makePos line col = mkPos line col
 
 /// Infer selection around cursor by looking for a pair of '[' and ']', '{' and '}' or '(' and ')'. 
-let inferSelectionFromCursorPos (cursorPos : pos) (sourceCode : string) = 
+let inferSelectionFromCursorPos (cursorPos : pos) fileName (sourceCode : string) = 
     let lines = String.normalizeThenSplitNewLine sourceCode
-    let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
+    let sourceTokenizer = SourceTokenizer([], fileName)
     let openDelimiters = dict ["[", List; "[|", Array; "{", SequenceOrRecord; "(", Tuple]
     let closeDelimiters = dict ["]", List; "|]", Array; "}", SequenceOrRecord; ")", Tuple]
 
@@ -791,8 +776,8 @@ let inferSelectionFromCursorPos (cursorPos : pos) (sourceCode : string) =
             makeRange startLine startCol endLine endCol
 
 /// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
-let formatAroundCursor (cursorPos : pos) config ({ Source = sourceCode } as formatContext) = 
+let formatAroundCursor (cursorPos : pos) config ({ FileName = fileName; Source = sourceCode } as formatContext) = 
     async {
-        let selection = inferSelectionFromCursorPos cursorPos sourceCode
+        let selection = inferSelectionFromCursorPos cursorPos fileName sourceCode
         return! formatSelectionInDocument selection config formatContext
     }
