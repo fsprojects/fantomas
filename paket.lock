@@ -4,7 +4,7 @@ NUGET
     FAKE (4.2.0)
     FsCheck (2.0.7)
       FSharp.Core (>= 3.1.2.5)
-    FSharp.Compiler.Service (1.4.0.5) - framework: >= net45
+    FSharp.Compiler.Service (1.4.0.6) - framework: >= net45
     FSharp.Core (4.0.0.1)
     FsUnit (1.3.0.1) - framework: >= net45
       NUnit (>= 2.6.3)

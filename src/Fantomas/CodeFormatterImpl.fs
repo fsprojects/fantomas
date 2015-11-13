@@ -23,12 +23,12 @@ let mutable OverridenFSharpCorePath: string option = None
 type FormatContext =
     {
         FileName : string;
-        SourceCode : string;
+        Source : string;
         ProjectOptions : FSharpProjectOptions;
         Checker : FSharpChecker;
     }
 
-let createFormatContext fileName content =
+let createFormatContextNoChecker fileName content =
     // Create an interactive checker instance (ignore notifications)
     let checker = FSharpChecker.Create()
     // Get compiler options for a single script file
@@ -51,9 +51,12 @@ let createFormatContext fileName content =
                     OtherOptions = 
                         [| yield "-r:" + fsharpCorePath
                            yield! checkOptions.OtherOptions |> Seq.filter (fun s -> not (s.Contains "FSharp.Core.dll")) |] }
-    { FileName = fileName; SourceCode = content; ProjectOptions = checkOptions; Checker = checker }
+    { FileName = fileName; Source = content; ProjectOptions = checkOptions; Checker = checker }
 
-let parse { FileName = fileName; SourceCode = content; ProjectOptions = checkOptions; Checker = checker } = 
+let createFormatContext fileName content projectOptions checker =
+    { FileName = fileName; Source = content; ProjectOptions = projectOptions; Checker = checker }
+
+let parse { FileName = fileName; Source = content; ProjectOptions = checkOptions; Checker = checker } = 
     async {
         // Run the first phase (untyped parsing) of the compiler
         let! untypedRes = checker.ParseFileInProject(fileName, content, checkOptions)
@@ -357,7 +360,7 @@ let formatWith ast input config =
     // It would be easier for F# parser
     let sourceCode = defaultArg input String.Empty
     let normalizedSourceCode = String.normalizeNewLine sourceCode
-    let formattedSourceCode =    
+    let formattedSourceCode =
         Context.create config normalizedSourceCode 
         |> genParsedInput ASTContext.Default ast
         |> dump
@@ -368,16 +371,16 @@ let formatWith ast input config =
         raise <| FormatException "Incomplete code fragment which is most likely due to parsing errors or the use of F# constructs newer than supported."
     else formattedSourceCode
 
-let format formatContext config =
+let format config ({ Source = sourceCode } as formatContext) =
     async {
         let! ast = parse formatContext
-        return formatWith ast (Some formatContext.SourceCode) config
+        return formatWith ast (Some sourceCode) config
     }
 
 /// Format a source string using given config
-let formatSourceString config formatContext =    
+let formatDocument config formatContext =
     async {
-        let! formattedSourceCode = format formatContext config
+        let! formattedSourceCode = format config formatContext
         
         // When formatting the whole document, an EOL is required
         if formattedSourceCode.EndsWith(Environment.NewLine) then 
@@ -387,7 +390,7 @@ let formatSourceString config formatContext =
     }
 
 /// Format an abstract syntax tree using given config
-let formatAST ast sourceCode config =    
+let formatAST ast sourceCode config =
     let formattedSourceCode = formatWith ast sourceCode config
         
     // When formatting the whole document, an EOL is required
@@ -436,7 +439,7 @@ let rec getEndCol (r : range) (tokenizer : FSharpLineTokenizer) lexState =
             getEndCol r tokenizer lexState
     | None, _ -> r.EndColumn 
 
-type Patch =
+type PatchKind =
     | TypeMember
     | RecType
     | RecLet
@@ -477,13 +480,11 @@ let stringPos (r : range) (sourceCode : string) =
         if pos >= sourceCode.Length then sourceCode.Length - 1 else pos 
     (start, finish)
 
-let formatRange returnFormattedContentOnly (range : range) (lines : _ []) formatContext config =
+let formatRange returnFormattedContentOnly (range : range) (lines : _ []) config ({ Source = sourceCode } as formatContext) =
     let startLine = range.StartLine
     let startCol = range.StartColumn
     let endLine = range.EndLine
     
-    let { FormatContext.SourceCode = sourceCode } = formatContext
-
     let (start, finish) = stringPos range sourceCode
     let pre = if start = 0 then String.Empty else sourceCode.[0..start-1].TrimEnd('\r')
 
@@ -520,8 +521,8 @@ let formatRange returnFormattedContentOnly (range : range) (lines : _ []) format
     let formatSelection sourceCode config =
         async {
             // From this point onwards, we focus on the current selection
-            let formatContext = { formatContext with SourceCode = sourceCode }
-            let! formattedSourceCode = format formatContext config
+            let formatContext = { formatContext with Source = sourceCode }
+            let! formattedSourceCode = format config formatContext
             // If the input is not inline, the output should not be inline as well
             if sourceCode.EndsWith("\n") && not <| formattedSourceCode.EndsWith(Environment.NewLine) then 
                 return formattedSourceCode + Environment.NewLine
@@ -576,8 +577,7 @@ let formatRange returnFormattedContentOnly (range : range) (lines : _ []) format
 
 /// Format a part of source string using given config, and return the (formatted) selected part only.
 /// Beware that the range argument is inclusive. If the range has a trailing newline, it will appear in the formatted result.
-let formatSelectionOnly (range : range) formatContext config =
-    let { FormatContext.SourceCode = sourceCode } = formatContext
+let formatSelection (range : range) config ({ Source = sourceCode } as formatContext) =
     let lines = String.normalizeThenSplitNewLine sourceCode
 
     // Move to the section with real contents
@@ -609,7 +609,7 @@ let formatSelectionOnly (range : range) formatContext config =
         sprintf "%O" range, sprintf "%O" contentRange, sprintf "%O" modifiedRange)
 
     async {
-        let! formatted = formatRange true modifiedRange lines formatContext config
+        let! formatted = formatRange true modifiedRange lines config formatContext
     
         let (start, finish) = stringPos range sourceCode
         let (newStart, newFinish) = stringPos modifiedRange sourceCode
@@ -625,8 +625,7 @@ let formatSelectionOnly (range : range) formatContext config =
     }
 
  /// Format a selected part of source string using given config; expanded selected ranges to parsable ranges. 
-let formatSelectionExpanded (range : range) config formatContext =
-    let { FormatContext.SourceCode = sourceCode } = formatContext
+let formatSelectionExpanded (range : range) config ({ Source = sourceCode } as formatContext) =
     let lines = String.normalizeThenSplitNewLine sourceCode
     let sourceTokenizer = SourceTokenizer([], "/tmp.fsx")
 
@@ -653,12 +652,12 @@ let formatSelectionExpanded (range : range) config formatContext =
 
     let expandedRange = makeRange contentRange.StartLine startCol contentRange.EndLine endCol
     async {
-        let! result = formatRange false expandedRange lines formatContext config
+        let! result = formatRange false expandedRange lines config formatContext
         return (result, expandedRange)
     }
 
 /// Format a selected part of source string using given config; keep other parts unchanged. 
-let formatSelectionFromString (range : range) config formatContext =
+let formatSelectionInDocument (range : range) config formatContext =
     async {
         let! (formatted, _) = formatSelectionExpanded range config formatContext
         return formatted
@@ -728,7 +727,7 @@ let inferSelectionFromCursorPos (cursorPos : pos) (sourceCode : string) =
             else
                 !result
 
-    /// Find the delimiter at the beginning              
+    /// Find the delimiter at the beginning
     let rec tryFindStartDelimiter blockType (dic : Dictionary<_, _>) acc i (lines : _ []) =
         if i >= cursorPos.Line then
             acc
@@ -792,9 +791,8 @@ let inferSelectionFromCursorPos (cursorPos : pos) (sourceCode : string) =
             makeRange startLine startCol endLine endCol
 
 /// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
-let formatAroundCursor (cursorPos : pos) config formatContext = 
-    let { FormatContext.SourceCode = sourceCode } = formatContext
+let formatAroundCursor (cursorPos : pos) config ({ Source = sourceCode } as formatContext) = 
     async {
         let selection = inferSelectionFromCursorPos cursorPos sourceCode
-        return! formatSelectionFromString selection config formatContext
+        return! formatSelectionInDocument selection config formatContext
     }
