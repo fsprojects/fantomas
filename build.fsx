@@ -71,13 +71,6 @@ Target "AssemblyInfo" (fun _ ->
       (Attribute.Title "Fantomas.UI" :: shared) 
 )
 
-Target "CopyPrerequisites" (fun _ ->
-    let additionalFiles = 
-        ["./packages/FSharp.Core/lib/net40/FSharp.Core.sigdata";
-         "./packages/FSharp.Core/lib/net40/FSharp.Core.optdata"]
-    CopyTo "src/Fantomas.Tests/bin/Release" additionalFiles
-)
-
 // --------------------------------------------------------------------------------------
 // Build library & test project
 
@@ -114,6 +107,8 @@ Target "NuGet" (fun _ ->
             Tags = tags
             OutputPath = "src/Fantomas.Cmd/bin/Release"
             AccessKey = getBuildParamOrDefault "nugetkey" ""
+            // Allow publishing from local build
+            Publish = isLocalBuild
             Dependencies = [ "FSharp.Compiler.Service", GetPackageVersion "packages" "FSharp.Compiler.Service" ] })
         (project + ".nuspec")
 )
@@ -126,7 +121,6 @@ Target "All" DoNothing
 "Clean"
   ==> "AssemblyInfo"
   ==> "Build"
-  ==> "CopyPrerequisites"
   ==> "UnitTests"
   ==> "All"
   ==> "NuGet"

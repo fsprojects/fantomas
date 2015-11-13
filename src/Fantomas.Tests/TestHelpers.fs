@@ -69,6 +69,14 @@ let isValidFSharpCode isFsiFile s =
     CodeFormatter.IsValidFSharpCodeAsync(fileName, s, projectOptions fileName, sharedChecker.Value)
     |> Async.RunSynchronously
 
+let parse isFsiFile s =
+    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+    CodeFormatter.ParseAsync(fileName, s, projectOptions fileName, sharedChecker.Value)
+    |> Async.RunSynchronously
+
+let formatAST a s c =
+    CodeFormatter.FormatAST(a, s, c)
+
 let makeRange l1 c1 l2 c2 = 
     CodeFormatter.MakeRange(l1, c1, l2, c2)
 

@@ -8,18 +8,7 @@ open FsCheck
 open FsUnit
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
-
-let parse isFsiFile s =
-    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.Parse(fileName, s)
-
-let formatAST a s c =
-    CodeFormatter.FormatAST(a, s, c)
-
-let formatSourceString isFsiFile (s: string) config =
-    let s = s.Replace("\r\n", Environment.NewLine)
-    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatDocument(fileName, s, config).Replace("\r\n", "\n")
+open TestHelper
 
 let formatConfig = { FormatConfig.Default with StrictMode = true }
 
