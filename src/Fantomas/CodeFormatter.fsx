@@ -6,6 +6,7 @@
 #load "SourceParser.fs"
 #load "SourceTransformer.fs"
 #load "CodePrinter.fs"
+#load "CodeFormatterImpl.fs"
 #load "CodeFormatter.fs"
 
 open Fantomas.TokenMatcher

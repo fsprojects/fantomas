@@ -4,7 +4,6 @@ open System
 open System.IO
 
 open Fantomas
-open Fantomas.CodeFormatter
 open Fantomas.FormatConfig
 
 exception CodeFormatException of (string * Option<Exception>) list with
@@ -36,13 +35,12 @@ type internal FormatResult =
     | Error of string * Exception
 
 let internal formatFile config (file : string) =
-    let isSignatureFile = file.EndsWith(".fsi") || file.EndsWith(".mli")
     let originalContent = File.ReadAllText file
 
     try
-        let formattedContent = CodeFormatter.formatSourceString isSignatureFile originalContent config
+        let formattedContent = CodeFormatter.FormatDocument(file, originalContent, config)
         if originalContent <> formattedContent then
-            if not <| isValidFSharpCode isSignatureFile formattedContent then
+            if not <| CodeFormatter.IsValidFSharpCode(file, formattedContent) then
                 raise <| FormatException "Formatted content is not valid F# code"
 
             let tempFile = Path.GetTempFileName()

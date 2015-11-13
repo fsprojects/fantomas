@@ -2,12 +2,13 @@
 
 open NUnit.Framework
 open System
-open Fantomas.CodeFormatter
+open Fantomas
 open Fantomas.FormatConfig
 open FsCheck
 open FsUnit
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
+open TestHelper
 
 let formatConfig = { FormatConfig.Default with StrictMode = true }
 
