@@ -43,8 +43,8 @@ type CodeFormatter =
    
     /// Format a selected part of source string using given config; keep other parts unchanged. 
     /// (Only use in testing.)
-    static member internal FormatSelectionInDocument : 
-        fileName:string * selection:range * source:string * config:FormatConfig -> string
+    static member internal FormatSelectionInDocumentAsync : 
+        fileName:string * selection:range * source:string * config:FormatConfig * projectOptions:FSharpProjectOptions * checker:FSharpChecker -> Async<string>
      
     /// Check whether an AST consists of parsing errors 
     static member IsValidAST : ast:ParsedInput -> bool

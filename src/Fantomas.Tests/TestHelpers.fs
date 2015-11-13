@@ -1,45 +1,79 @@
 ﻿module Fantomas.Tests.TestHelper
 
-open NUnit.Framework
 open FsUnit
 
 open System
-open System.IO
 open Fantomas.FormatConfig
-open Fantomas.CodeFormatter
-open System.Reflection
 open Fantomas
+open Microsoft.FSharp.Compiler.SourceCodeServices
 
 let config = FormatConfig.Default
 let newline = "\n"
+
+let argsDotNET451 =
+        [|"--noframework"; "--debug-"; "--optimize-"; "--tailcalls-";
+          // Some constants are used in unit tests
+          "--define:DEBUG"; "--define:TRACE"; "--define:SILVERLIGHT";
+          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.1.0\FSharp.Core.dll";
+          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\mscorlib.dll";
+          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.dll";
+          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.Core.dll";
+          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.Drawing.dll";
+          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.Numerics.dll";
+          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.Windows.Forms.dll"|]
+
+let projectOptions =
+    fun fileName ->
+        {   ProjectFileName = @"C:\Project.fsproj"
+            ProjectFileNames = [| fileName |]
+            OtherOptions = argsDotNET451
+            ReferencedProjects = Array.empty
+            IsIncompleteTypeCheckEnvironment = false
+            UseScriptResolutionRules = true
+            LoadTime = DateTime.UtcNow
+            UnresolvedReferences = None }
+
+let sharedChecker = lazy(FSharpChecker.Create())
 
 let formatSourceString isFsiFile (s : string) config = 
     // On Linux/Mac this will exercise different line endings
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatDocument(fileName, s, config).Replace("\r\n", "\n")
+    CodeFormatter.FormatDocumentAsync(fileName, s, config, projectOptions fileName, sharedChecker.Value)
+    |> Async.RunSynchronously
+    |> fun s -> s.Replace("\r\n", "\n")
 
 let formatSelectionFromString isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatSelectionInDocument(fileName, r, s, config).Replace("\r\n", "\n")
+    CodeFormatter.FormatSelectionInDocumentAsync(fileName, r, s, config, projectOptions fileName, sharedChecker.Value)
+    |> Async.RunSynchronously
+    |> fun s -> s.Replace("\r\n", "\n")
 
 let formatSelectionOnly isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatSelection(fileName, r, s, config).Replace("\r\n", "\n")
+    CodeFormatter.FormatSelectionAsync(fileName, r, s, config, projectOptions fileName, sharedChecker.Value)
+    |> Async.RunSynchronously
+    |> fun s -> s.Replace("\r\n", "\n")
 
 let formatAroundCursor isFsiFile p (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatAroundCursor(fileName, p, s, config).Replace("\r\n", "\n")
+    CodeFormatter.FormatAroundCursorAsync(fileName, p, s, config, projectOptions fileName, sharedChecker.Value)
+    |> Async.RunSynchronously
+    |> fun s -> s.Replace("\r\n", "\n")
 
 let isValidFSharpCode isFsiFile s =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.IsValidFSharpCode(fileName, s)
+    CodeFormatter.IsValidFSharpCodeAsync(fileName, s, projectOptions fileName, sharedChecker.Value)
+    |> Async.RunSynchronously
 
-let makeRange l1 c1 l2 c2 = CodeFormatter.MakeRange(l1, c1, l2, c2)
-let makePos l1 c1 = CodeFormatter.MakePos(l1, c1)
+let makeRange l1 c1 l2 c2 = 
+    CodeFormatter.MakeRange(l1, c1, l2, c2)
+
+let makePos l1 c1 = 
+    CodeFormatter.MakePos(l1, c1)
 
 let equal x = 
     let x = 

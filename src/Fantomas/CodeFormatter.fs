@@ -32,11 +32,10 @@ type CodeFormatter =
         |> CodeFormatterImpl.formatAroundCursor cursorPos config
         |> Async.RunSynchronously
     
-    static member internal FormatSelectionInDocument(fileName, selection, source, config) =
-        CodeFormatterImpl.createFormatContextNoChecker fileName source
+    static member internal FormatSelectionInDocumentAsync(fileName, selection, source, config, projectOptions, checker) =
+        CodeFormatterImpl.createFormatContext fileName source projectOptions checker
         |> CodeFormatterImpl.formatSelectionInDocument selection config
-        |> Async.RunSynchronously
-    
+        
 
     static member FormatAST(ast, source, config) = 
         CodeFormatterImpl.formatAST ast source config
