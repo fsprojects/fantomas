@@ -489,10 +489,9 @@ and genExpr astContext = function
     | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause astContext true)
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
-    | Paren(TraitCall(tps, msg, e))
     | TraitCall(tps, msg, e) -> 
-        sepOpenT +> genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
-        +> sepSpace +> genExpr astContext e +> sepCloseT
+        genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
+        +> sepSpace +> genExpr astContext e
 
     | Paren e -> 
         // Parentheses nullify effects of no space inside DotGet
