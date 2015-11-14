@@ -28,11 +28,9 @@ type CodeFormatter =
         CodeFormatterImpl.createFormatContext fileName source projectOptions checker
         |> CodeFormatterImpl.formatAroundCursor cursorPos config
     
-    static member FormatAroundCursor(fileName, cursorPos, source, config) =
-        CodeFormatterImpl.createFormatContextNoChecker fileName source
-        |> CodeFormatterImpl.formatAroundCursor cursorPos config
-        |> Async.RunSynchronously
-    
+    static member InferSelectionFromCursorPos(fileName, cursorPos, source) =
+        CodeFormatterImpl.inferSelectionFromCursorPos cursorPos fileName source
+        
     static member internal FormatSelectionInDocumentAsync(fileName, selection, source, config, projectOptions, checker) =
         CodeFormatterImpl.createFormatContext fileName source projectOptions checker
         |> CodeFormatterImpl.formatSelectionInDocument selection config
@@ -120,3 +118,6 @@ module CodeFormatter =
         createFormatContextNoFileName isFsiFile sourceCode
         |> CodeFormatterImpl.formatAroundCursor cursorPos config
         |> Async.RunSynchronously
+
+    let inferSelectionFromCursorPos (cursorPos : pos) (sourceCode : string) = 
+        CodeFormatterImpl.inferSelectionFromCursorPos cursorPos "/tmp.fsx" sourceCode

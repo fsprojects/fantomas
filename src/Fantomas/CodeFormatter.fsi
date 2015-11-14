@@ -15,12 +15,12 @@ type CodeFormatter =
     /// Format an abstract syntax tree using an optional source for looking up literals
     static member FormatAST : ast:ParsedInput * source:string option * config:FormatConfig -> string
     
-    /// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
-    static member FormatAroundCursor : 
-        fileName:string * cursorPos:pos * source:string * config:FormatConfig -> string
+    /// Infer selection around cursor by looking for a pair of '[' and ']', '{' and '}' or '(' and ')'. 
+    static member InferSelectionFromCursorPos : fileName:string * cursorPos:pos * source:string -> range
     
     /// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
-    static member FormatAroundCursorAsync : 
+    /// (Only use in testing.)
+    static member internal FormatAroundCursorAsync : 
         fileName:string * cursorPos:pos * source:string * config:FormatConfig * projectOptions:FSharpProjectOptions * checker:FSharpChecker -> Async<string>
     
     /// Format a source string using given config
@@ -99,3 +99,6 @@ module CodeFormatter =
     /// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
     [<Obsolete("Please use 'CodeFormatter.FormatAroundCursorAsync' instead.")>]
     val formatAroundCursor : isFsiFile:bool -> cursorPos:pos -> sourceCode:string -> config:FormatConfig -> string
+
+    /// Infer selection around cursor by looking for a pair of '[' and ']', '{' and '}' or '(' and ')'. 
+    val inferSelectionFromCursorPos : cursorPos:pos -> sourceCode:string -> range
