@@ -991,13 +991,13 @@ and genMemberDefn astContext = function
         +> opt sepNone mdo 
             (fun mds -> !- " with" +> indent +> genMemberDefnList { astContext with IsInterface = true } mds +> unindent)
 
-    | MDAutoProperty(ats, px, ao, mk, e, s, isStatic, typeOpt) ->
+    | MDAutoProperty(ats, px, ao, mk, e, s, _isStatic, typeOpt, memberKindToMemberFlags) ->
         let isFunctionProperty =
             match typeOpt with
             | Some (TFun _) -> true
             | _ -> false
         genPreXmlDoc px
-        +> genAttributes astContext ats +> ifElse isStatic (!- "static member val ") (!- "member val ")
+        +> genAttributes astContext ats +> genMemberFlags astContext (memberKindToMemberFlags mk) +> str "val "
         +> opt sepSpace ao genAccess -- s +> optPre sepColon sepNone typeOpt (genType astContext false)
          +> sepEq +> genExpr astContext e -- genPropertyKind (not isFunctionProperty) mk
 

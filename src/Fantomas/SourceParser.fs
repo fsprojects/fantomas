@@ -391,8 +391,8 @@ let (|MDInterface|_|) = function
     | _ -> None
 
 let (|MDAutoProperty|_|) = function
-    | SynMemberDefn.AutoProperty(ats, isStatic, Ident s, typeOpt, mk, _, px, ao, e, _ , _) ->
-        Some(ats, px, ao, mk, e, s, isStatic, typeOpt)
+    | SynMemberDefn.AutoProperty(ats, isStatic, Ident s, typeOpt, mk, memberKindToMemberFlags, px, ao, e, _ , _) ->
+        Some(ats, px, ao, mk, e, s, isStatic, typeOpt, memberKindToMemberFlags)
     | _ -> None
 
 // Interface impl

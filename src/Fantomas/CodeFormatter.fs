@@ -1,5 +1,6 @@
 ﻿namespace Fantomas
 
+open Fantomas
 open Microsoft.FSharp.Compiler
 open Microsoft.FSharp.Compiler.Range
 
