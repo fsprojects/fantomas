@@ -489,6 +489,11 @@ and genExpr astContext = function
     | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause astContext true)
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
+    | Paren(TraitCall(tps, msg, e))
+    | TraitCall(tps, msg, e) -> 
+        sepOpenT +> genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
+        +> sepSpace +> genExpr astContext e +> sepCloseT
+
     | Paren e -> 
         // Parentheses nullify effects of no space inside DotGet
         sepOpenT +> genExpr { astContext with IsInsideDotGet = false } e +> sepCloseT
@@ -592,10 +597,6 @@ and genExpr astContext = function
     | DotGet(e, s) -> 
         genExpr { astContext with IsInsideDotGet = true } e -- sprintf ".%s" s
     | DotSet(e1, s, e2) -> genExpr astContext e1 -- sprintf ".%s <- " s +> genExpr astContext e2
-    | TraitCall(tps, msg, e) -> 
-        sepOpenT +> genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
-        +> sepSpace +> genExpr astContext e +> sepCloseT
-
     | LetOrUseBang(isUse, p, e1, e2) ->
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
             +> genPat astContext p -- " = " +> genExpr astContext e1 +> sepNln +> genExpr astContext e2)

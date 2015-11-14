@@ -264,7 +264,7 @@ let inline implicit< ^a,^b when ^a : (static member op_Implicit : ^b -> ^a)> arg
     |> prepend newline
     |> should equal """
 let inline implicit< ^a, ^b when ^a : (static member op_Implicit : ^b -> ^a)> arg = 
-    ((^a : (static member op_Implicit : ^b -> ^a) arg))
+    (^a : (static member op_Implicit : ^b -> ^a) arg)
 """
 
 [<Test>]
@@ -288,4 +288,12 @@ let someBlahing = (Blah.TryCreate inputBlah).Value"""  config
     |> should equal """
 let inputBlah = "So, I was like, Visual Studio did wat!?"
 let someBlahing = (Blah.TryCreate inputBlah).Value
+"""
+
+[<Test>]
+let ``don't create redundant parentheses outside trait calls``() =
+    formatSourceString false """let f (arg : 'T) = (^T : (member Value : string) arg)"""  config
+    |> prepend newline
+    |> should equal """
+let f (arg : 'T) = (^T : (member Value : string) arg)
 """

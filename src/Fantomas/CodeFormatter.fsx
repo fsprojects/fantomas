@@ -24,9 +24,8 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : pos) -> p.ToString())
 fsi.AddPrinter (fun (r : range) -> r.ToString())
 
-let input = """type Entity() = 
-    abstract Id : int with get, set
-    override val Id = 0 with get, set
+let input = """
+let f (arg : 'T) = (^T : (member Value : string) arg)
 """
 
 test input;;
