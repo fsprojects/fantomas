@@ -1,4 +1,4 @@
-#### 2.0.1 - 14-11-2015
+#### 2.0.2 - 15-11-2015
 * Add a new public API using static members. Deprecate old functions.
 * Fix https://github.com/fsprojects/VisualFSharpPowerTools/issues/1151
 * Fix https://github.com/fsprojects/VisualFSharpPowerTools/issues/1143

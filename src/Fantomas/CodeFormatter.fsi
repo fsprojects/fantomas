@@ -64,6 +64,7 @@ module CodeFormatter =
 
     [<Obsolete("Please use 'CodeFormatter.MakePos' instead.")>]
     val makePos : line:int -> col:int -> pos
+
     [<Obsolete("Please use 'CodeFormatter.MakeRange' instead.")>]
     val makeRange : startLine:int -> startCol:int -> endLine:int -> endCol:int -> range
 
@@ -97,8 +98,9 @@ module CodeFormatter =
     val formatSelectionFromString : isFsiFile:bool -> range:range -> sourceCode:string -> config:FormatConfig -> string
 
     /// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
-    [<Obsolete("Please use 'CodeFormatter.FormatAroundCursorAsync' instead.")>]
+    [<Obsolete("Please use 'CodeFormatter.FormatSelectionAsync' instead.")>]
     val formatAroundCursor : isFsiFile:bool -> cursorPos:pos -> sourceCode:string -> config:FormatConfig -> string
 
     /// Infer selection around cursor by looking for a pair of '[' and ']', '{' and '}' or '(' and ')'. 
+    [<Obsolete("Please use 'CodeFormatter.InferSelectionFromCursorPos' instead.")>]
     val inferSelectionFromCursorPos : cursorPos:pos -> sourceCode:string -> range
