@@ -774,3 +774,16 @@ type A =
     abstract M : (int -> int) -> unit
     abstract M : float -> int
 """
+
+[<Test>]
+let ``should handle overridden auto properties``() =
+    formatSourceString false """
+type Entity() = 
+    abstract Id : int with get, set
+    default val Id = 0 with get, set""" config
+    |> prepend newline
+    |> should equal """
+type Entity() = 
+    abstract Id : int with get, set
+    override val Id = 0 with get, set
+"""

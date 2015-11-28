@@ -66,9 +66,6 @@ Target "AssemblyInfo" (fun _ ->
 
   CreateFSharpAssemblyInfo "src/Fantomas.Cmd/AssemblyInfo.fs"
       (Attribute.Title "Fantomas" :: shared)
-
-  CreateFSharpAssemblyInfo "src/Fantomas.UI/AssemblyInfo.fs"
-      (Attribute.Title "Fantomas.UI" :: shared) 
 )
 
 // --------------------------------------------------------------------------------------

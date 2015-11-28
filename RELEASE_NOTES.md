@@ -1,3 +1,8 @@
+#### 2.0.2 - 15-11-2015
+* Add a new public API using static members. Deprecate old functions.
+* Fix https://github.com/fsprojects/VisualFSharpPowerTools/issues/1151
+* Fix https://github.com/fsprojects/VisualFSharpPowerTools/issues/1143
+
 #### 1.11.0 - 13-09-2015
 * Fix https://github.com/fsprojects/VisualFSharpPowerTools/issues/366 [#177](https://github.com/dungpa/fantomas/pull/177)
 * Migrate to FCS 1.4.0.5

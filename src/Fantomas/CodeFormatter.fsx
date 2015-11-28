@@ -24,9 +24,9 @@ let test (s : string) =
 fsi.AddPrinter (fun (p : pos) -> p.ToString())
 fsi.AddPrinter (fun (r : range) -> r.ToString())
 
-let input = """type A =
-    abstract member M : (int -> int) -> int
-    abstract member M : float -> int"""
+let input = """
+let f (arg : 'T) = (^T : (member Value : string) arg)
+"""
 
 test input;;
 

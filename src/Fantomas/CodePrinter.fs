@@ -489,6 +489,10 @@ and genExpr astContext = function
     | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause astContext true)
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
+    | TraitCall(tps, msg, e) -> 
+        genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
+        +> sepSpace +> genExpr astContext e
+
     | Paren e -> 
         // Parentheses nullify effects of no space inside DotGet
         sepOpenT +> genExpr { astContext with IsInsideDotGet = false } e +> sepCloseT
@@ -592,10 +596,6 @@ and genExpr astContext = function
     | DotGet(e, s) -> 
         genExpr { astContext with IsInsideDotGet = true } e -- sprintf ".%s" s
     | DotSet(e1, s, e2) -> genExpr astContext e1 -- sprintf ".%s <- " s +> genExpr astContext e2
-    | TraitCall(tps, msg, e) -> 
-        sepOpenT +> genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
-        +> sepSpace +> genExpr astContext e +> sepCloseT
-
     | LetOrUseBang(isUse, p, e1, e2) ->
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
             +> genPat astContext p -- " = " +> genExpr astContext e1 +> sepNln +> genExpr astContext e2)
@@ -991,13 +991,13 @@ and genMemberDefn astContext = function
         +> opt sepNone mdo 
             (fun mds -> !- " with" +> indent +> genMemberDefnList { astContext with IsInterface = true } mds +> unindent)
 
-    | MDAutoProperty(ats, px, ao, mk, e, s, isStatic, typeOpt) ->
+    | MDAutoProperty(ats, px, ao, mk, e, s, _isStatic, typeOpt, memberKindToMemberFlags) ->
         let isFunctionProperty =
             match typeOpt with
             | Some (TFun _) -> true
             | _ -> false
         genPreXmlDoc px
-        +> genAttributes astContext ats +> ifElse isStatic (!- "static member val ") (!- "member val ")
+        +> genAttributes astContext ats +> genMemberFlags astContext (memberKindToMemberFlags mk) +> str "val "
         +> opt sepSpace ao genAccess -- s +> optPre sepColon sepNone typeOpt (genType astContext false)
          +> sepEq +> genExpr astContext e -- genPropertyKind (not isFunctionProperty) mk
 
