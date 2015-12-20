@@ -77,6 +77,15 @@ is reformulated to
 For more complex examples, please take a look at F# outputs of [20 language shootout programs](tests/languageshootout_output) and [10 CodeReview.SE source files](tests/stackexchange_output).
 
 ## How to use
+### VS 2015
+Fantomas is a part of [Visual F# Power Tools][vfpt] extension compatible with
+Visual Studio 2015. The extension could be installed from [Visual Studio
+Gallery][vfpt-gallery]. The usage instructions are the same as for VS 2012
+extension.
+
+[vfpt]: https://github.com/fsprojects/VisualFSharpPowerTools
+[vfpt-gallery]: https://visualstudiogallery.msdn.microsoft.com/136b942e-9f2c-4c0b-8bac-86d774189cff
+
 ### VS 2012 and 2013 extension
 [Ivan Towlson](https://github.com/itowlson) kindly contributes the initial version of [Fantomas VS extension](src/Fantomas.VisualStudio). The user guide can be found [here](docs/Documentation.md#using-visual-studio-2012-extension).
 This is available in the [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/24ef5c87-b4e3-4c3b-b126-1064cc66e148) - search for "fantomas" in "Tools --> Extensions and Updates --> Online". 
