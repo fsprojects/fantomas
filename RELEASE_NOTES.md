@@ -1,3 +1,6 @@
+#### 2.1.0 - 01-04-2016
+ * Upgrade to FCS 2.0.0.8
+
 #### 2.0.2 - 15-11-2015
 * Add a new public API using static members. Deprecate old functions.
 * Fix https://github.com/fsprojects/VisualFSharpPowerTools/issues/1151
