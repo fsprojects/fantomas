@@ -24,7 +24,7 @@ let project = "Fantomas"
 
 // Short summary of the project
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
-let summary = "Source code formatting tool for F#"
+let summary = "Source code formatter for F#"
 
 // Longer description of the project
 // (used as a description for NuGet package; line breaks are automatically cleaned up)
@@ -108,6 +108,24 @@ Target "NuGet" (fun _ ->
             Publish = isLocalBuild
             Dependencies = [ "FSharp.Compiler.Service", GetPackageVersion "packages" "FSharp.Compiler.Service" ] })
         (project + ".nuspec")
+)
+
+Target "NuGetCLI" (fun _ ->
+    NuGet (fun p -> 
+        { p with   
+            Authors = authors
+            Project = project
+            Summary = sprintf "%s (CLI tool)" summary 
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "src/Fantomas.Cmd/bin/Release"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            // Allow publishing from local build
+            Publish = isLocalBuild
+            Dependencies = [] })
+        (project + "CLI.nuspec")
 )
 
 // --------------------------------------------------------------------------------------
