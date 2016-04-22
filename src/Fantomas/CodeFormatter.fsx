@@ -18,7 +18,7 @@ open Microsoft.FSharp.Compiler.Range
 
 let config = { FormatConfig.Default with StrictMode = false }
 
-let test (s : string) = 
+let formatSrc (s : string) = 
     formatSourceString false (s.Replace("\r\n", "\n")) config |> printfn "%A";;
 
 fsi.AddPrinter (fun (p : pos) -> p.ToString())
@@ -28,53 +28,53 @@ let input = """
 let f (arg : 'T) = (^T : (member Value : string) arg)
 """
 
-test input;;
+formatSrc input;;
 
 parse false input;;
 
 // FAILS - sticky-right comment becomes sticky-left
-test """
+formatSrc """
 1 +
 // Comment
 1""" 
 
-test """
+formatSrc """
 1 + // Comment
 1""" 
 
 
 // FAILS - sticky-right comment becomes sticky-left
-test """
+formatSrc """
 1 
 // Comment
 + 1""" 
 
 // FAILS - sticky-right comment becomes sticky-left
-test """
+formatSrc """
 let f() = 
     1 
     // Comment
     + 1
 """ 
 
-test """
+formatSrc """
 1 + (* Comment *) 1""" 
 
-test """
+formatSrc """
 let f() = 
     // CommentB
     x + x
 """ 
 
 // INADEQUATE: inline block comment should not emit new lines
-test """
+formatSrc """
 /// XML comment
 type (* comment *) X = 
    | A  // Hello
    | B // Goodbye
 """ 
 
-test """
+formatSrc """
 /// XML comment
 type (* comment *) 
      X = 
@@ -83,7 +83,7 @@ type (* comment *)
 """ 
 
 // INADEQUATE: block comment not sticky-left
-test """
+formatSrc """
 [<NoEquality>]
 type IlxClosureInfo = 
     { cloILFormalRetTy: ILType;
@@ -95,7 +95,7 @@ type IlxClosureInfo =
 """
 
 // INADEQUATE: block comment not indented properly. Do we care?
-test """
+formatSrc """
 let StorageForVal m v eenv = 
     let v = 
         try eenv.valsInScope.[v]
@@ -113,7 +113,7 @@ let StorageForVal m v eenv =
     v.Force()
 """
 
-test """
+formatSrc """
 /// Buffers for IL code generation
 type CodeGenBuffer(m:range,
                    mgbuf: AssemblyBuilder,
