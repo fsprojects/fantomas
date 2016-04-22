@@ -161,8 +161,8 @@ Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting
 Would like to contribute? Discuss on [issues](../../issues) and send pull requests. You can get started by helping us handle ["You Take It" issues](https://github.com/dungpa/fantomas/issues?labels=You+Take+It&page=1&state=open).
 
 To get an understanding of the code, either:
-- start by looking at contribution examples (see **Contribution examples** section below);
-- or read the few following architectural notes & tips to help you get started playing with the code.
+- start by looking at contribution examples (see [Contribution examples](#contribution-examples) section below);
+- or read the few following [architectural notes](#architectural-notes) & tips to help you get started playing with the code.
 
 ### Architectural notes
 Fantomas' features are basically two commands: *format a document* or *format a selection* in the document.
