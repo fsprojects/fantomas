@@ -160,7 +160,9 @@ Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting
 ## How to contribute
 Would like to contribute? Discuss on [issues](../../issues) and send pull requests. You can get started by helping us handle ["You Take It" issues](https://github.com/dungpa/fantomas/issues?labels=You+Take+It&page=1&state=open).
 
-What follows next is a few notes on the architecture, some tips to help you get started playing with the code.
+To get an understanding of the code, either:
+- start by looking at contribution examples (see **Contribution examples** section below);
+- or read the few following architectures notes & tips to help you get started playing with the code.
 
 ### Architectural notes
 Fantomas' features are basically two commands: *format a document* or *format a selection* in the document.
@@ -174,6 +176,30 @@ by the FSharp.Compiler.Services library (see the `parse` function in
 
 The following sections describe the modules/function you will most likely be
 interested in looking at to get started.
+
+#### The test project: Fantomas.Tests
+The organization is really simple. For each F# language feature/constructs,
+there is a `[Feature]Test.fs` file. Examples:
+ - StringTests.fs
+ - UnionTests.fs
+ - ...
+
+Most of the tests are really simple and have this simple algorithm:
+_assert that **format \[F# CODE\]** is equal to **\[FORMATTED F# CODE\]**_.
+
+Example (from *UnionTests.fs*):
+```fsharp
+[<Test>]
+let ``discriminated unions declaration``() =
+    formatSourceString false "type X = private | A of AParameters | B" config
+    |> prepend newline
+    |> should equal """
+type X = 
+    private
+    | A of AParameters
+    | B
+"""
+```
 
 #### The `CodePrinter.genParsedInput` function: rewrites formatted code
 `CodePrinter.genParsedInput` (see [CodePrinter.fs](blob/master/src/Fantomas/CodePrinter.fs)): what it
