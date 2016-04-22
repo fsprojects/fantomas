@@ -171,7 +171,7 @@ They both consist in the same two stages:
 
 - parse the code and generate the F# AST (Abstract Syntax Tree). This is provided by the 
 by the FSharp.Compiler.Services library (see the `parse` function in
-[CodeFormatterImpl.fs](blob/master/src/Fantomas/CodeFormatterImpl.fs)).
+[CodeFormatterImpl.fs](src/Fantomas/CodeFormatterImpl.fs)).
 - rewrite the code based on the AST (previous step) and formatting settings.
 
 The following sections describe the modules/function you will most likely be
@@ -202,7 +202,7 @@ type X =
 ```
 
 #### The `CodePrinter.genParsedInput` function: rewrites formatted code
-`CodePrinter.genParsedInput` (see [CodePrinter.fs](blob/master/src/Fantomas/CodePrinter.fs)): what it
+`CodePrinter.genParsedInput` (see [CodePrinter.fs](src/Fantomas/CodePrinter.fs)): what it
 basically does is traversing the AST corresponding to the code to format, and
 rewriting it according to the provided formatting options.
 
@@ -212,10 +212,10 @@ Settings such as :
  - reorder open declarations
  - ...
 
-See [CodePrinter.fs](blob/master/src/Fantomas/CodePrinter.fs).
+See [CodePrinter.fs](src/Fantomas/CodePrinter.fs).
 
 ### How to play with fantomas on F# Interactive
-The [CodeFormatter.fsx](blob/master/src/Fantomas/CodeFormatter.fsx) script file
+The [CodeFormatter.fsx](src/Fantomas/CodeFormatter.fsx) script file
 allows you to test the code formatting behavior. See the function `formatSrc: string -> unit`
 that formats the string in input and prints it.
 
