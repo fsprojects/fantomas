@@ -680,7 +680,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
 
     | Simple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
-        +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS 
+        +> indent +> sepNln +> opt sepSpace ao' genAccess +> sepOpenS 
         +> atCurrentColumn (col sepSemiNln fs (genField astContext "")) +> sepCloseS
         +> genMemberDefnList { astContext with IsInterface = false } ms 
         +> unindent 

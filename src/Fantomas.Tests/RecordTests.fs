@@ -16,6 +16,16 @@ type AParameters =
 """
 
 [<Test>]
+let ``record declaration with implementation visibility attribute``() =
+    formatSourceString false "type AParameters = private { a : int; b: float }" config
+    |> prepend newline
+    |> should equal """
+type AParameters = 
+    private { a : int
+              b : float }
+"""
+
+[<Test>]
 let ``record signatures``() =
     formatSourceString true """
 module RecordSignature
