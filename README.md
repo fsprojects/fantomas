@@ -163,9 +163,9 @@ Would like to contribute? Discuss on [issues](../../issues) and send pull reques
 What follows next is a few notes on the architecture, some tips to help you get started playing with the code.
 
 ### Architectural notes
-Fantomas' features basically consists in two commands: *format a document* or *format a selection* in the document.
+Fantomas' features are basically two commands: *format a document* or *format a selection* in the document.
 
-There are basically two stages:
+They both consist in the same two stages:
 
 - parse the code and generate the F# AST (Abstract Syntax Tree). This is provided by the 
 by the FSharp.Compiler.Services library (see the `parse` function in
@@ -187,6 +187,11 @@ Settings such as :
  - ...
 
 See [CodePrinter.fs](blob/master/src/Fantomas/CodePrinter.fs).
+
+### How to play with fantomas on F# Interactive
+The [CodeFormatter.fsx](blob/master/src/Fantomas/CodeFormatter.fsx) script file
+allows you to test the code formatting behavior. See the function `formatSrc: string -> unit`
+that formats the string in input and prints it.
 
 ### Contribution examples
 The time it took to contribute is sometimes mentioned, as a side note.
