@@ -157,8 +157,42 @@ First, it starts with an "F" just like many other F# projects.
 Second, Fantomas is my favourite character in the literature. 
 Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
-## Getting involved
-Would like to contribute? Discuss on [ issues](../../issues) and send pull requests. You can get started by helping us handle ["You Take It" issues](https://github.com/dungpa/fantomas/issues?labels=You+Take+It&page=1&state=open).
+## How to contribute
+Would like to contribute? Discuss on [issues](../../issues) and send pull requests. You can get started by helping us handle ["You Take It" issues](https://github.com/dungpa/fantomas/issues?labels=You+Take+It&page=1&state=open).
+
+What follows next is a few notes on the architecture, some tips to help you get started playing with the code.
+
+### Architectural notes
+Fantomas' features basically consists in two commands: *format a document* or *format a selection* in the document.
+
+There are basically two stages:
+
+- parse the code and generate the F# AST (Abstract Syntax Tree). This is provided by the 
+by the FSharp.Compiler.Services library (see the `parse` function in
+[CodeFormatterImpl.fs](blob/master/src/Fantomas/CodeFormatterImpl.fs)).
+- rewrite the code based on the AST (previous step) and formatting settings.
+
+The following sections describe the modules/function you will most likely be
+interested in looking at to get started.
+
+#### The `CodePrinter.genParsedInput` function: rewrites formatted code
+`CodePrinter.genParsedInput` (see [CodePrinter.fs](blob/master/src/Fantomas/CodePrinter.fs)): what it
+basically does is traversing the AST corresponding to the code to format, and
+rewriting it according to the provided formatting options.
+
+#### The `FormatConfig` type: format settings
+Settings such as :
+ - indent values in spaces
+ - reorder open declarations
+ - ...
+
+See [CodePrinter.fs](blob/master/src/Fantomas/CodePrinter.fs).
+
+### Contribution examples
+The time it took to contribute is sometimes mentioned, as a side note.
+
+#### Fixing code generation
+ - Record type formatting generated invalid F# code in some cases ([#197](https://github.com/dungpa/fantomas/pull/197)) - (2h fix)  
 
 ## Credits
 We would like to gratefully thank the following persons for their contributions.
