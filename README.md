@@ -177,7 +177,7 @@ by the FSharp.Compiler.Services library (see the `parse` function in
 The following sections describe the modules/function you will most likely be
 interested in looking at to get started.
 
-#### The test project: Fantomas.Tests
+#### The test project: **Fantomas.Tests**
 The organization is really simple. For each F# language feature/constructs,
 there is a `[Feature]Test.fs` file. Examples:
  - StringTests.fs
