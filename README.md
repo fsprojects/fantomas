@@ -162,7 +162,7 @@ Would like to contribute? Discuss on [issues](../../issues) and send pull reques
 
 To get an understanding of the code, either:
 - start by looking at contribution examples (see **Contribution examples** section below);
-- or read the few following architectures notes & tips to help you get started playing with the code.
+- or read the few following architectural notes & tips to help you get started playing with the code.
 
 ### Architectural notes
 Fantomas' features are basically two commands: *format a document* or *format a selection* in the document.
