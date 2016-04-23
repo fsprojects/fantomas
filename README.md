@@ -157,8 +157,73 @@ First, it starts with an "F" just like many other F# projects.
 Second, Fantomas is my favourite character in the literature. 
 Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
-## Getting involved
-Would like to contribute? Discuss on [ issues](../../issues) and send pull requests. You can get started by helping us handle ["You Take It" issues](https://github.com/dungpa/fantomas/issues?labels=You+Take+It&page=1&state=open).
+## How to contribute
+Would like to contribute? Discuss on [issues](../../issues) and send pull requests. You can get started by helping us handle ["You Take It" issues](https://github.com/dungpa/fantomas/issues?labels=You+Take+It&page=1&state=open).
+
+To get an understanding of the code, either:
+- start by looking at contribution examples (see [Contribution examples](#contribution-examples) section below);
+- or read the few following [architectural notes](#architectural-notes) & tips to help you get started playing with the code.
+
+### Architectural notes
+Fantomas' features are basically two commands: *format a document* or *format a selection* in the document.
+
+They both consist in the same two stages:
+
+- parse the code and generate the F# AST (Abstract Syntax Tree). This is provided by the 
+by the FSharp.Compiler.Services library (see the `parse` function in
+[CodeFormatterImpl.fs](src/Fantomas/CodeFormatterImpl.fs)).
+- rewrite the code based on the AST (previous step) and formatting settings.
+
+The following sections describe the modules/function you will most likely be
+interested in looking at to get started.
+
+#### The test project: Fantomas.Tests
+The organization is really simple. For each F# language feature/constructs,
+there is a `[Feature]Test.fs` file. Examples:
+ - *StringTests.fs*
+ - *UnionTests.fs*
+ - ...
+
+Most of the tests are really simple and have this simple algorithm:
+_assert that **format \[F# CODE\]** is equal to **\[FORMATTED F# CODE\]**_.
+
+Example (from *UnionTests.fs*):
+```fsharp
+[<Test>]
+let ``discriminated unions declaration``() =
+    formatSourceString false "type X = private | A of AParameters | B" config
+    |> prepend newline
+    |> should equal """
+type X = 
+    private
+    | A of AParameters
+    | B
+"""
+```
+
+#### The `CodePrinter.genParsedInput` function: rewrites formatted code
+`CodePrinter.genParsedInput` (see [CodePrinter.fs](src/Fantomas/CodePrinter.fs)): what it
+basically does is traversing the AST corresponding to the code to format, and
+rewriting it according to the provided formatting options.
+
+#### The `FormatConfig` type: format settings
+Settings such as :
+ - indent values in spaces
+ - reorder open declarations
+ - ...
+
+See [CodePrinter.fs](src/Fantomas/CodePrinter.fs).
+
+### How to play with fantomas on F# Interactive
+The [CodeFormatter.fsx](src/Fantomas/CodeFormatter.fsx) script file
+allows you to test the code formatting behavior. See the function `formatSrc: string -> unit`
+that formats the string in input and prints it.
+
+### Contribution examples
+The time it took to contribute is sometimes mentioned, as a side note.
+
+#### Fixing code generation
+ - Record type formatting generated invalid F# code in some cases ([#197](https://github.com/dungpa/fantomas/pull/197)) - (2h fix)  
 
 ## Credits
 We would like to gratefully thank the following persons for their contributions.
