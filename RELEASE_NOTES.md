@@ -1,5 +1,10 @@
+#### 2.2.0 - 24-04-2016
+* Handle record types with private fields [#197](https://github.com/dungpa/fantomas/pull/197)
+* Create a separate CLI NuGet package [#196](https://github.com/dungpa/fantomas/pull/196)
+* Do not print out module names if not necessary [#196](https://github.com/dungpa/fantomas/pull/196)
+
 #### 2.1.0 - 01-04-2016
- * Upgrade to FCS 2.0.0.8
+* Upgrade to FCS 2.0.0.8
 
 #### 2.0.2 - 15-11-2015
 * Add a new public API using static members. Deprecate old functions.
