@@ -340,14 +340,14 @@ let isValidFSharpCode formatContext =
             return false
     }
     
-let formatWith ast input config =
+let formatWith ast moduleName input config =
     // Use '\n' as the new line delimiter consistently
     // It would be easier for F# parser
     let sourceCode = defaultArg input String.Empty
     let normalizedSourceCode = String.normalizeNewLine sourceCode
     let formattedSourceCode =
         Context.create config normalizedSourceCode 
-        |> genParsedInput ASTContext.Default ast
+        |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
         |> dump
         |> if config.StrictMode then id else integrateComments normalizedSourceCode
 
@@ -356,10 +356,10 @@ let formatWith ast input config =
         raise <| FormatException "Incomplete code fragment which is most likely due to parsing errors or the use of F# constructs newer than supported."
     else formattedSourceCode
 
-let format config ({ Source = sourceCode } as formatContext) =
+let format config ({ Source = sourceCode; FileName =  filePath } as formatContext) =
     async {
         let! ast = parse formatContext
-        return formatWith ast (Some sourceCode) config
+        return formatWith ast (Path.GetFileNameWithoutExtension filePath) (Some sourceCode) config
     }
 
 /// Format a source string using given config
@@ -375,8 +375,8 @@ let formatDocument config formatContext =
     }
 
 /// Format an abstract syntax tree using given config
-let formatAST ast sourceCode config =
-    let formattedSourceCode = formatWith ast sourceCode config
+let formatAST ast fileName sourceCode config =
+    let formattedSourceCode = formatWith ast fileName sourceCode config
         
     // When formatting the whole document, an EOL is required
     if formattedSourceCode.EndsWith(Environment.NewLine) then 
@@ -385,8 +385,8 @@ let formatAST ast sourceCode config =
         formattedSourceCode + Environment.NewLine
 
 /// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
-let makeRange startLine startCol endLine endCol =
-    mkRange "/tmp.fsx" (mkPos startLine startCol) (mkPos endLine endCol)
+let makeRange fileName startLine startCol endLine endCol =
+    mkRange fileName (mkPos startLine startCol) (mkPos endLine endCol)
 
 /// Get first non-whitespace line
 let rec getStartLineIndex (lines : _ []) i =
@@ -562,7 +562,7 @@ let formatRange returnFormattedContentOnly (range : range) (lines : _ []) config
 
 /// Format a part of source string using given config, and return the (formatted) selected part only.
 /// Beware that the range argument is inclusive. If the range has a trailing newline, it will appear in the formatted result.
-let formatSelection (range : range) config ({ Source = sourceCode } as formatContext) =
+let formatSelection (range : range) config ({ Source = sourceCode; FileName =  fileName } as formatContext) =
     let lines = String.normalizeThenSplitNewLine sourceCode
 
     // Move to the section with real contents
@@ -579,7 +579,7 @@ let formatSelection (range : range) config ({ Source = sourceCode } as formatCon
                     min range.EndColumn (lines.[endLine-1].Length - 1) 
                 else lines.[endLine-1].Length - 1
             // Notice that Line indices start at 1 while Column indices start at 0.
-            makeRange startLine startCol endLine endCol
+            makeRange fileName startLine startCol endLine endCol
 
     let startCol =
         let line = lines.[contentRange.StartLine-1].[contentRange.StartColumn..]
@@ -589,7 +589,7 @@ let formatSelection (range : range) config ({ Source = sourceCode } as formatCon
         let line = lines.[contentRange.EndLine-1].[..contentRange.EndColumn]
         contentRange.EndColumn - line.Length + line.TrimEnd().Length
 
-    let modifiedRange = makeRange range.StartLine startCol range.EndLine endCol
+    let modifiedRange = makeRange fileName range.StartLine startCol range.EndLine endCol
     Debug.WriteLine("Original range: {0} --> content range: {1} --> modified range: {2}", 
         sprintf "%O" range, sprintf "%O" contentRange, sprintf "%O" modifiedRange)
 
@@ -623,7 +623,7 @@ let formatSelectionExpanded (range : range) config ({ FileName = fileName; Sourc
             let startCol = 0
             let endCol = lines.[endLine-1].Length - 1
             // Notice that Line indices start at 1 while Column indices start at 0.
-            makeRange startLine startCol endLine endCol
+            makeRange fileName startLine startCol endLine endCol
 
     let startTokenizer = sourceTokenizer.CreateLineTokenizer(lines.[contentRange.StartLine-1])
 
@@ -635,7 +635,7 @@ let formatSelectionExpanded (range : range) config ({ FileName = fileName; Sourc
 
     let endCol = getEndCol contentRange endTokenizer (ref 0L)
 
-    let expandedRange = makeRange contentRange.StartLine startCol contentRange.EndLine endCol
+    let expandedRange = makeRange fileName contentRange.StartLine startCol contentRange.EndLine endCol
     async {
         let! result = formatRange false expandedRange lines config formatContext
         return (result, expandedRange)
@@ -773,7 +773,7 @@ let inferSelectionFromCursorPos (cursorPos : pos) fileName (sourceCode : string)
         | None ->
             raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor.""")
         | Some (startLine, startCol) ->
-            makeRange startLine startCol endLine endCol
+            makeRange fileName startLine startCol endLine endCol
 
 /// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
 let formatAroundCursor (cursorPos : pos) config ({ FileName = fileName; Source = sourceCode } as formatContext) = 
