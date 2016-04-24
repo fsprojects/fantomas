@@ -14,9 +14,6 @@
         <releaseNotes>@releaseNotes@</releaseNotes>
         <tags>@tags@</tags>
         @dependencies@
-        <references>
-            <reference file="FantomasLib.dll" />
-        </references>
     </metadata>
     <files>
         <file src="..\src\Fantomas.Cmd\bin\Release\Fantomas.exe" target="lib\Fantomas.exe" />

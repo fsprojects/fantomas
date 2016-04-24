@@ -114,7 +114,7 @@ Target "NuGetCLI" (fun _ ->
     NuGet (fun p -> 
         { p with   
             Authors = authors
-            Project = project
+            Project = sprintf "%sCLI" project
             Summary = sprintf "%s (CLI tool)" summary 
             Description = description
             Version = release.NugetVersion
