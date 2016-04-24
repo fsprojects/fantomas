@@ -139,5 +139,6 @@ Target "All" DoNothing
   ==> "UnitTests"
   ==> "All"
   ==> "NuGet"
+  ==> "NuGetCLI"
 
 RunTargetOrDefault "All"
