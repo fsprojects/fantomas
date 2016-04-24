@@ -13,7 +13,7 @@ type CodeFormatter =
     /// Parse a source string using given config
     static member ParseAsync : fileName:string * source:string * projectOptions:FSharpProjectOptions * checker:FSharpChecker -> Async<ParsedInput> 
     /// Format an abstract syntax tree using an optional source for looking up literals
-    static member FormatAST : ast:ParsedInput * source:string option * config:FormatConfig -> string
+    static member FormatAST : ast:ParsedInput * fileName:string * source:string option * config:FormatConfig -> string
     
     /// Infer selection around cursor by looking for a pair of '[' and ']', '{' and '}' or '(' and ')'. 
     static member InferSelectionFromCursorPos : fileName:string * cursorPos:pos * source:string -> range
@@ -54,7 +54,7 @@ type CodeFormatter =
     static member IsValidFSharpCodeAsync : fileName:string * source:string * projectOptions:FSharpProjectOptions * checker:FSharpChecker -> Async<bool>
     
     static member MakePos : line:int * col:int -> pos
-    static member MakeRange : startLine:int * startCol:int * endLine:int * endCol:int -> range
+    static member MakeRange : fileName:string * startLine:int * startCol:int * endLine:int * endCol:int -> range
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module CodeFormatter =

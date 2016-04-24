@@ -35,8 +35,8 @@ type CodeFormatter =
         CodeFormatterImpl.createFormatContext fileName source projectOptions checker
         |> CodeFormatterImpl.formatSelectionInDocument selection config
 
-    static member FormatAST(ast, source, config) = 
-        CodeFormatterImpl.formatAST ast source config
+    static member FormatAST(ast, fileName, source, config) = 
+        CodeFormatterImpl.formatAST ast fileName source config
 
     static member ParseAsync(fileName, source, projectOptions, checker) = 
         CodeFormatterImpl.createFormatContext fileName source projectOptions checker
@@ -62,8 +62,8 @@ type CodeFormatter =
     static member MakePos(line, col) = 
         CodeFormatterImpl.makePos line col
 
-    static member MakeRange(startLine, startCol, endLine, endCol) = 
-        CodeFormatterImpl.makeRange startLine startCol endLine endCol
+    static member MakeRange(fileName, startLine, startCol, endLine, endCol) = 
+        CodeFormatterImpl.makeRange fileName startLine startCol endLine endCol
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module CodeFormatter =
@@ -90,10 +90,10 @@ module CodeFormatter =
         |> Async.RunSynchronously
 
     let formatAST ast sourceCode config = 
-        CodeFormatterImpl.formatAST ast sourceCode config
+        CodeFormatterImpl.formatAST ast "/tmp.fsx" sourceCode config
  
     let makeRange startLine startCol endLine endCol = 
-        CodeFormatterImpl.makeRange startLine startCol endLine endCol
+        CodeFormatterImpl.makeRange "/tmp.fsx" startLine startCol endLine endCol
 
     let formatSelectionOnly isFsiFile (range : range) (sourceCode : string) config =
         createFormatContextNoFileName isFsiFile sourceCode

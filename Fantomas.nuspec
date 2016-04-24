@@ -19,11 +19,8 @@
         </references>
     </metadata>
     <files>
-        <file src="..\src\Fantomas.Cmd\bin\Release\Fantomas.exe" target="lib\Fantomas.exe" />
-        <file src="..\src\Fantomas.Cmd\bin\Release\Fantomas.pdb" target="lib\Fantomas.pdb" />
         <file src="..\src\Fantomas.Cmd\bin\Release\FantomasLib.dll" target="lib\FantomasLib.dll" />
         <file src="..\src\Fantomas.Cmd\bin\Release\FantomasLib.pdb" target="lib\FantomasLib.pdb" />
         <file src="..\src\Fantomas.Cmd\bin\Release\FantomasLib.xml" target="lib\FantomasLib.xml" />
-        <file src="..\src\Fantomas.Cmd\bin\Release\FSharp.Core.dll" target="lib\FSharp.Core.dll" />
     </files>
 </package>

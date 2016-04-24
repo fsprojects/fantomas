@@ -11,7 +11,9 @@ open Fantomas.SourceTransformer
 
 /// This type consists of contextual information which is important for formatting
 type ASTContext =
-    { 
+    {
+      /// Original file name without extension of the parsed AST 
+      TopLevelModuleName: string 
       /// Current node is the first child of its parent
       IsFirstChild: bool
       /// Current node is a subnode deep down in an interface
@@ -30,7 +32,8 @@ type ASTContext =
       IsInsideDotGet: bool
     }
     static member Default =
-        { IsFirstChild = false; IsInterface = false 
+        { TopLevelModuleName = "" 
+          IsFirstChild = false; IsInterface = false 
           IsCStylePattern = false; IsNakedRange = false
           HasVerticalBar = false; IsUnionField = false
           IsFirstTypeParam = false; IsInsideDotGet = false }
@@ -79,15 +82,16 @@ and genParsedHashDirective (ParsedHashDirective(h, s)) =
 and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
     genPreXmlDoc px
     +> genAttributes astContext ats
-    // Checking for Tmp is a bit fragile
-    +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
+    +> ifElse (String.Equals(s, astContext.TopLevelModuleName, StringComparison.InvariantCultureIgnoreCase)) sepNone 
+         (ifElse isModule (!- "module ") (!- "namespace ")
             +> opt sepSpace ao genAccess +> ifElse (s = "") (!- "global") (!- s) +> rep 2 sepNln)
     +> genModuleDeclList astContext mds
 
 and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> ifElse (s = "Tmp") sepNone (ifElse isModule (!- "module ") (!- "namespace ")
+    +> ifElse (String.Equals(s, astContext.TopLevelModuleName, StringComparison.InvariantCultureIgnoreCase)) sepNone 
+          (ifElse isModule (!- "module ") (!- "namespace ")
     +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
     +> genSigModuleDeclList astContext mds
 

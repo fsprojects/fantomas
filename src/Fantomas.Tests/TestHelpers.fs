@@ -38,7 +38,7 @@ let sharedChecker = lazy(FSharpChecker.Create())
 let formatSourceString isFsiFile (s : string) config = 
     // On Linux/Mac this will exercise different line endings
     let s = s.Replace("\r\n", Environment.NewLine)
-    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+    let fileName = if isFsiFile then "/src.fsi" else "/src.fsx"
     CodeFormatter.FormatDocumentAsync(fileName, s, config, projectOptions fileName, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
@@ -75,10 +75,10 @@ let parse isFsiFile s =
     |> Async.RunSynchronously
 
 let formatAST a s c =
-    CodeFormatter.FormatAST(a, s, c)
+    CodeFormatter.FormatAST(a, "/tmp.fsx",s, c)
 
 let makeRange l1 c1 l2 c2 = 
-    CodeFormatter.MakeRange(l1, c1, l2, c2)
+    CodeFormatter.MakeRange("/tmp.fsx", l1, c1, l2, c2)
 
 let makePos l1 c1 = 
     CodeFormatter.MakePos(l1, c1)
