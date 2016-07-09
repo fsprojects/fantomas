@@ -193,10 +193,10 @@ let (|ParsedImplFileInput|) (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _,
 let (|ParsedSigFileInput|) (ParsedSigFileInput.ParsedSigFileInput(_, _, _, hs, mns)) =
     (hs, mns)
 
-let (|ModuleOrNamespace|) (SynModuleOrNamespace.SynModuleOrNamespace(LongIdent s, isModule, mds, px, ats, ao, _)) =
+let (|ModuleOrNamespace|) (SynModuleOrNamespace.SynModuleOrNamespace(LongIdent s, _, isModule, mds, px, ats, ao, _)) =
     (ats, px, ao, s, mds, isModule)
 
-let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(LongIdent s, isModule, mds, px, ats, ao, _)) =
+let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(LongIdent s, _, isModule, mds, px, ats, ao, _)) =
     (ats, px, ao, s, mds, isModule)
 
 // Attribute
@@ -267,7 +267,7 @@ let (|Types|_|) = function
     | _ -> None
 
 let (|NestedModule|_|) = function
-    | SynModuleDecl.NestedModule(SynComponentInfo.ComponentInfo(ats, _, _, LongIdent s, px, _, ao, _), xs, _, _) ->
+    | SynModuleDecl.NestedModule(SynComponentInfo.ComponentInfo(ats, _, _, LongIdent s, px, _, ao, _), _, xs, _, _) ->
         Some(ats, px, ao, s, xs)
     | _ -> None
 
@@ -309,7 +309,7 @@ let (|SigTypes|_|) = function
     | _ -> None
 
 let (|SigNestedModule|_|) = function
-    | SynModuleSigDecl.NestedModule(SynComponentInfo.ComponentInfo(ats, _, _, LongIdent s, px, _, ao, _), xs, _) -> 
+    | SynModuleSigDecl.NestedModule(SynComponentInfo.ComponentInfo(ats, _, _, LongIdent s, px, _, ao, _), _, xs, _) -> 
         Some(ats, px, ao, s, xs)
     | _ -> None
 
@@ -320,10 +320,16 @@ let (|SigException|_|) = function
 
 // Exception definitions
 
-let (|ExceptionDef|) (SynExceptionDefn.ExceptionDefn(SynExceptionRepr.ExceptionDefnRepr(ats, uc, _, px, ao, _), ms, _)) =
+let (|ExceptionDefRepr|) (SynExceptionDefnRepr.SynExceptionDefnRepr(ats, uc, _, px, ao, _)) =
+    (ats, px, ao, uc)
+
+let (|SigExceptionDefRepr|) (SynExceptionDefnRepr.SynExceptionDefnRepr(ats, uc, _, px, ao, _)) =
+    (ats, px, ao, uc)
+
+let (|ExceptionDef|) (SynExceptionDefn.SynExceptionDefn(SynExceptionDefnRepr.SynExceptionDefnRepr(ats, uc, _, px, ao, _), ms, _)) =
     (ats, px, ao, uc, ms)
 
-let (|SigExceptionDef|) (SynExceptionSig.ExceptionSig(SynExceptionRepr.ExceptionDefnRepr(ats, uc, _, px, ao, _), ms, _)) =
+let (|SigExceptionDef|) (SynExceptionSig.SynExceptionSig(SynExceptionDefnRepr.SynExceptionDefnRepr(ats, uc, _, px, ao, _), ms, _)) =
     (ats, px, ao, uc, ms)
 
 let (|UnionCase|) (SynUnionCase.UnionCase(ats, Ident s, uct, px, ao, _)) =
@@ -981,7 +987,7 @@ let (|DesugaredLambda|_|) = function
 
 // Type definitions
 
-let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|) = function
+let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRException|) = function
     | SynTypeDefnSimpleRepr.Enum(ecs, _) ->
         TDSREnum ecs
     | SynTypeDefnSimpleRepr.Union(ao, xs, _) ->
@@ -996,12 +1002,16 @@ let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|) = function
         failwith "General should not appear in the parse tree"
     | SynTypeDefnSimpleRepr.LibraryOnlyILAssembly _ ->
         failwith "LibraryOnlyILAssembly is not supported yet"
+    | SynTypeDefnSimpleRepr.Exception repr ->
+        TDSRException repr
 
-let (|Simple|ObjectModel|) = function
+let (|Simple|ObjectModel|ExceptionRepr|) = function
     | SynTypeDefnRepr.Simple(tdsr, _) ->
         Simple tdsr
     | SynTypeDefnRepr.ObjectModel(tdk, mds, _) ->
         ObjectModel(tdk, mds)
+    | SynTypeDefnRepr.Exception repr ->
+        ExceptionRepr repr
 
 let (|MemberDefnList|) mds =
     // Assume that there is at most one implicit constructor
@@ -1010,11 +1020,13 @@ let (|MemberDefnList|) mds =
     let others =  List.filter (function MDImplicitCtor _ -> false | _ -> true) mds
     (impCtor, others)
 
-let (|SigSimple|SigObjectModel|) = function
+let (|SigSimple|SigObjectModel|SigExceptionRepr|) = function
     | SynTypeDefnSigRepr.Simple(tdsr, _) ->
         SigSimple tdsr
     | SynTypeDefnSigRepr.ObjectModel(tdk, mds, _) ->
         SigObjectModel(tdk, mds)
+    | SynTypeDefnSigRepr.Exception repr ->
+        SigExceptionRepr repr
 
 type TypeDefnKindSingle =
     | TCUnspecified | TCClass | TCInterface | TCStruct | TCRecord

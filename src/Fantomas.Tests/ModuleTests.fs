@@ -191,7 +191,7 @@ type SomeType() =
 [<Test>]
 let ``should escape keywords correctly``() =
     formatSourceString false """
-module ``method``
+module ``member``
 
 let ``abstract`` = "abstract"
 
@@ -201,7 +201,7 @@ type SomeType() =
     """ config
     |> prepend newline
     |> should equal """
-module ``method``
+module ``member``
 
 let ``abstract`` = "abstract"
 

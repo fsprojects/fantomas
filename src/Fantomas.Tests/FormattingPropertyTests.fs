@@ -340,9 +340,9 @@ let generateParsedInput =
                ("/tmp.fsx", true,
                 QualifiedNameOfFile ident, [], [],
                 [SynModuleOrNamespace
-                   ([ident], true,
+                   ([ident], false, true,
                     [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
-                    zero)], true))
+                    zero)], (true, true)))
     Gen.sized <| fun size -> Gen.map generateAST (generateTypedSeqExpr size)
 
 type Input = Input of string
@@ -366,9 +366,9 @@ let fromSynExpr expr =
                ("/tmp.fsx", true,
                 QualifiedNameOfFile ident, [], [],
                 [SynModuleOrNamespace
-                   ([ident], true,
+                   ([ident], false, true,
                     [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
-                    zero)], true))
+                    zero)], (true, true)))
     Input (tryFormatAST ast None formatConfig)
 
 // Look up original source in order to reconstruct smaller counterexamples
@@ -397,7 +397,7 @@ let toSynExprs (Input s) =
             ("/tmp.fsx", _,
             QualifiedNameOfFile _, [], [],
             [SynModuleOrNamespace
-                (_, true, exprs, _, _, _, _)], _))) -> 
+                (_, false, true, exprs, _, _, _, _)], _))) -> 
                 List.choose (function (SynModuleDecl.DoExpr(_, expr, _)) -> Some expr | _ -> None) exprs
     | _ -> 
         //stdout.WriteLine("Can't convert {0}.", sprintf "%A" ast)
@@ -454,23 +454,24 @@ let rec shrinkSynExpr = function
         seq { yield! collectSynExpr expr; yield! Seq.collect collectSynMatchClause clauses }
     | SynExpr.LetOrUse(_, _, bindings, expr, _) -> 
         seq { yield! Seq.collect collectSynBinding bindings; yield! collectSynExpr expr }
-    | SynExpr.Ident(_) -> Seq.empty
-    | SynExpr.LongIdent(_, _, _, _) -> Seq.empty
-    | SynExpr.Null(_) -> Seq.empty
-    | SynExpr.TraitCall(_, _, _, _) -> Seq.empty
-    | SynExpr.JoinIn(_, _, _, _) -> Seq.empty
-    | SynExpr.ImplicitZero(_) -> Seq.empty
-    | SynExpr.YieldOrReturn(_, _, _) -> Seq.empty
-    | SynExpr.YieldOrReturnFrom(_, _, _) -> Seq.empty
-    | SynExpr.LetOrUseBang(_, _, _, _, _, _, _) -> Seq.empty
-    | SynExpr.DoBang(_, _) -> Seq.empty
-    | SynExpr.LibraryOnlyILAssembly(_, _, _, _, _) -> Seq.empty
-    | SynExpr.LibraryOnlyStaticOptimization(_, _, _, _) -> Seq.empty
-    | SynExpr.LibraryOnlyUnionCaseFieldGet(_, _, _, _) -> Seq.empty
-    | SynExpr.LibraryOnlyUnionCaseFieldSet(_, _, _, _, _) -> Seq.empty
-    | SynExpr.ArbitraryAfterError(_, _) -> Seq.empty
-    | SynExpr.FromParseError(_, _) -> Seq.empty
-    | SynExpr.DiscardAfterMissingQualificationAfterDot(_, _) -> Seq.empty
+    | SynExpr.Ident _
+    | SynExpr.LongIdent _
+    | SynExpr.Null _
+    | SynExpr.TraitCall _
+    | SynExpr.JoinIn _
+    | SynExpr.ImplicitZero _
+    | SynExpr.YieldOrReturn _
+    | SynExpr.YieldOrReturnFrom _
+    | SynExpr.LetOrUseBang _
+    | SynExpr.DoBang _
+    | SynExpr.LibraryOnlyILAssembly _
+    | SynExpr.LibraryOnlyStaticOptimization _
+    | SynExpr.LibraryOnlyUnionCaseFieldGet _
+    | SynExpr.LibraryOnlyUnionCaseFieldSet _
+    | SynExpr.ArbitraryAfterError _
+    | SynExpr.FromParseError _
+    | SynExpr.DiscardAfterMissingQualificationAfterDot _
+    | SynExpr.Fixed _ -> Seq.empty
 
 and collectSynExpr expr =
     seq { yield expr 
