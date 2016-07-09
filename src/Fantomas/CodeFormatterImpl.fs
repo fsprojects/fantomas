@@ -68,12 +68,12 @@ let isValidAST ast =
     let rec validateImplFileInput (ParsedImplFileInput(_, moduleOrNamespaceList)) = 
         List.forall validateModuleOrNamespace moduleOrNamespaceList
 
-    and validateModuleOrNamespace(SynModuleOrNamespace(_lid, _isModule, decls, _xmldoc, _attributes, _access, _range)) =
+    and validateModuleOrNamespace(SynModuleOrNamespace(decls = decls)) =
         List.forall validateModuleDecl decls
 
     and validateModuleDecl(decl: SynModuleDecl) =
         match decl with
-        | SynModuleDecl.Exception(ExceptionDefn(_repr, synMembers, _defnRange), _range) -> 
+        | SynModuleDecl.Exception(SynExceptionDefn(_repr, synMembers, _defnRange), _range) -> 
             List.forall validateMemberDefn synMembers
         | SynModuleDecl.Let(_isRecursive, bindings, _range) ->
             List.forall validateBinding bindings
@@ -81,7 +81,7 @@ let isValidAST ast =
             true
         | SynModuleDecl.NamespaceFragment(fragment) ->
             validateModuleOrNamespace fragment
-        | SynModuleDecl.NestedModule(_componentInfo, modules, _isContinuing, _range) ->
+        | SynModuleDecl.NestedModule(_componentInfo, _isRec, modules, _isContinuing, _range) ->
             List.forall validateModuleDecl modules
         | SynModuleDecl.Types(typeDefs, _range) ->
             List.forall validateTypeDefn typeDefs
@@ -109,10 +109,13 @@ let isValidAST ast =
                 not (List.isEmpty fields)
             | SynTypeDefnSimpleRepr.General(_, types, _, _, _, _, _, _) -> 
                 not (List.isEmpty types)
-            | SynTypeDefnSimpleRepr.LibraryOnlyILAssembly(_, _)
-            | SynTypeDefnSimpleRepr.TypeAbbrev(_, _, _)
-            | SynTypeDefnSimpleRepr.None(_) ->
+            | SynTypeDefnSimpleRepr.LibraryOnlyILAssembly _
+            | SynTypeDefnSimpleRepr.TypeAbbrev _
+            | SynTypeDefnSimpleRepr.Exception _
+            | SynTypeDefnSimpleRepr.None _ ->
                 true
+        | SynTypeDefnRepr.Exception _ ->
+            true 
 
     and validateMemberDefn (memberDefn: SynMemberDefn) =
         match memberDefn with
@@ -284,6 +287,8 @@ let isValidAST ast =
         | SynExpr.FromParseError(_synExpr, _range)
         | SynExpr.DiscardAfterMissingQualificationAfterDot(_synExpr, _range) -> 
             false
+        | SynExpr.Fixed _ ->
+            true
 
     and validatePattern = function
         | SynPat.Const(_const, _range) -> true

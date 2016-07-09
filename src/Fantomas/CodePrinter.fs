@@ -693,6 +693,9 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName
     | Simple(TDSRTypeAbbrev t) -> 
         typeName +> sepEq +> genType astContext false t
+    | Simple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
+        genExceptionBody astContext ats px ao uc
+
     | ObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others)) ->
         let isInterface =
             match tdk with
@@ -714,6 +717,9 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | ObjectModel(_, MemberDefnList(impCtor, others)) ->
         typeName +> opt sepNone impCtor (genMemberDefn { astContext with IsInterface = false }) +> sepEq +> indent
         +> genMemberDefnList { astContext with IsInterface = false } others +> unindent
+
+    | ExceptionRepr(ExceptionDefRepr(ats, px, ao, uc)) ->
+        genExceptionBody astContext ats px ao uc
 
 and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) = 
     let typeName = 
@@ -750,6 +756,9 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName
     | SigSimple(TDSRTypeAbbrev t) -> 
         typeName +> sepEq +> genType astContext false t
+    | SigSimple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
+            genExceptionBody astContext ats px ao uc
+
     | SigObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, mds) ->
         typeName +> sepEq +> indent +> sepNln +> genTypeDefKind tdk
         +> indent +> colPre sepNln sepNln mds (genMemberSig astContext) +> unindent
@@ -765,6 +774,9 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | SigObjectModel(_, mds) -> 
         typeName +> sepEq +> indent +> sepNln 
         +> col sepNln mds (genMemberSig astContext) +> unindent
+
+    | SigExceptionRepr(SigExceptionDefRepr(ats, px, ao, uc)) ->
+        genExceptionBody astContext ats px ao uc
 
 and genMemberSig astContext = function
     | MSMember(Val(ats, px, ao, s, t, vi, _), mf) -> 
@@ -795,17 +807,18 @@ and genTypeDefKind = function
     | TCSimple TCILAssemblyCode -> sepNone
     | TCDelegate _ -> sepNone
 
-and genException astContext (ExceptionDef(ats, px, ao, uc, ms)) = 
+and genExceptionBody astContext ats px ao uc = 
     genPreXmlDoc px
     +> genAttributes astContext ats  -- "exception " 
     +> opt sepSpace ao genAccess +> genUnionCase { astContext with HasVerticalBar = false } uc
+
+and genException astContext (ExceptionDef(ats, px, ao, uc, ms)) = 
+    genExceptionBody astContext ats px ao uc 
     +> ifElse ms.IsEmpty sepNone 
         (!- " with" +> indent +> genMemberDefnList { astContext with IsInterface = false } ms +> unindent)
 
 and genSigException astContext (SigExceptionDef(ats, px, ao, uc, ms)) = 
-    genPreXmlDoc px
-    +> genAttributes astContext ats  -- "exception " 
-    +> opt sepSpace ao genAccess +> genUnionCase { astContext with HasVerticalBar = false } uc
+    genExceptionBody astContext ats px ao uc 
     +> colPre sepNln sepNln ms (genMemberSig astContext)
 
 and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs)) =

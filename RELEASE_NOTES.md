@@ -1,3 +1,6 @@
+#### 2.3.0 - 10-07-2016
+* Upgrade to FCS 5.0.0
+
 #### 2.2.0 - 24-04-2016
 * Handle record types with private fields [#197](https://github.com/dungpa/fantomas/pull/197)
 * Create a separate CLI NuGet package [#196](https://github.com/dungpa/fantomas/pull/196)
