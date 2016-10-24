@@ -471,7 +471,8 @@ let rec shrinkSynExpr = function
     | SynExpr.ArbitraryAfterError _
     | SynExpr.FromParseError _
     | SynExpr.DiscardAfterMissingQualificationAfterDot _
-    | SynExpr.Fixed _ -> Seq.empty
+    | SynExpr.Fixed _
+    | SynExpr.StructTuple _ -> Seq.empty
 
 and collectSynExpr expr =
     seq { yield expr 

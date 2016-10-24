@@ -1162,7 +1162,8 @@ let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|Typ
     | WhereTyparIsEquatable(tp, _) -> TyparSingle(TyparIsEquatable, tp)
     | WhereTyparDefaultsToType(tp, t, _) -> TyparDefaultsToType(tp, t)
     | WhereTyparSubtypeOfType(tp, t, _) -> TyparSubtypeOfType(tp, t)
-    | WhereTyparSupportsMember(tps, msg, _) -> TyparSupportsMember(tps, msg)
+    | WhereTyparSupportsMember(tps, msg, _) -> 
+        TyparSupportsMember(List.choose (function SynType.Var(tp, _) -> Some tp | _ -> None) tps, msg)
     | WhereTyparIsEnum(tp, ts, _) -> TyparIsEnum(tp, ts)
     | WhereTyparIsDelegate(tp, ts, _) -> TyparIsDelegate(tp, ts)
 
