@@ -23,7 +23,7 @@ type Token =
 
 let tokenize defines (content : string) =
     seq { 
-        let sourceTokenizer = SourceTokenizer(defines, Some "/tmp.fsx")
+        let sourceTokenizer = FSharpSourceTokenizer(defines, Some "/tmp.fsx")
         let lines = String.normalizeThenSplitNewLine content
         let lexState = ref 0L
         for (i, line) in lines |> Seq.zip [1..lines.Length] do 
