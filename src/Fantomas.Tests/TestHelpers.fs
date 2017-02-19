@@ -31,7 +31,9 @@ let projectOptions =
             IsIncompleteTypeCheckEnvironment = false
             UseScriptResolutionRules = true
             LoadTime = DateTime.UtcNow
-            UnresolvedReferences = None }
+            UnresolvedReferences = None
+            OriginalLoadReferences = List.empty
+            ExtraProjectInfo = None }
 
 let sharedChecker = lazy(FSharpChecker.Create())
 

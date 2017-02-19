@@ -619,7 +619,7 @@ let formatSelection (range : range) config ({ Source = sourceCode; FileName =  f
  /// Format a selected part of source string using given config; expanded selected ranges to parsable ranges. 
 let formatSelectionExpanded (range : range) config ({ FileName = fileName; Source = sourceCode } as formatContext) =
     let lines = String.normalizeThenSplitNewLine sourceCode
-    let sourceTokenizer = SourceTokenizer([], Some fileName)
+    let sourceTokenizer = FSharpSourceTokenizer([], Some fileName)
 
     // Move to the section with real contents
     let contentRange =
@@ -667,7 +667,7 @@ let makePos line col = mkPos line col
 /// Infer selection around cursor by looking for a pair of '[' and ']', '{' and '}' or '(' and ')'. 
 let inferSelectionFromCursorPos (cursorPos : pos) fileName (sourceCode : string) = 
     let lines = String.normalizeThenSplitNewLine sourceCode
-    let sourceTokenizer = SourceTokenizer([], Some fileName)
+    let sourceTokenizer = FSharpSourceTokenizer([], Some fileName)
     let openDelimiters = dict ["[", List; "[|", Array; "{", SequenceOrRecord; "(", Tuple]
     let closeDelimiters = dict ["]", List; "|]", Array; "}", SequenceOrRecord; ")", Tuple]
 
