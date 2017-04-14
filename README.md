@@ -29,8 +29,8 @@ To illustrate, the following example
 	            | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
 	            | TyVar a -> a
 	            | TyCon (s, ts) -> s
-	 ```
-will be rewritten to
+	```
+	will be rewritten to
 
 	```fsharp
 	type Type = 
@@ -42,7 +42,7 @@ will be rewritten to
 	        | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
 	        | TyVar a -> a
 	        | TyCon(s, ts) -> s
-	 ```
+	```
 
  - Converting from verbose syntax to light syntax. 
 Feeding a source file in verbose mode, Fantomas will format it appropriately in light mode.
@@ -60,7 +60,8 @@ For example, this code fragment
 	    done;;
 	Multiple9x9 ();;
 	```	
-is reformulated to 
+	is reformulated to 
+	
 	```fsharp
 	let Multiple9x9() = 
 	    for i in 1..9 do
