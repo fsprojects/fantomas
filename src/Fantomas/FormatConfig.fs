@@ -293,7 +293,7 @@ let internal sepDot = !- "."
 let internal sepSpace = !- " "      
 let internal sepNln = !+ ""
 let internal sepStar = !- " * "
-let internal sepEq = !- " = "
+let internal sepEq = !- " ="
 let internal sepArrow = !- " -> "
 let internal sepWild = !- "_"
 let internal sepNone = id
@@ -346,21 +346,23 @@ let internal sepOpenT = !- "("
 /// closing token of tuple
 let internal sepCloseT = !- ")"
 
+
 /// Set a checkpoint to break at an appropriate column
-let internal autoNln f (ctx : Context) =
-    if ctx.BreakLines then 
-        let width = ctx.Config.PageWidth
-        // Create a dummy context to evaluate length of current operation
-        use colWriter = new ColumnIndentedTextWriter(new StringWriter())
-        let dummyCtx = ctx.With(colWriter)
-        let col = (f dummyCtx).Writer.Column
-        // This isn't accurate if we go to new lines
-        if col > width then 
-            f (sepNln ctx) 
-        else 
-            f ctx
+let internal autoNlnOrAddSep f sep (ctx : Context) =
+    if not ctx.BreakLines then f (sep ctx) else
+    // Create a dummy context to evaluate length of current operation
+    use colWriter = new ColumnIndentedTextWriter(new StringWriter())
+    let dummyCtx = ctx.With(colWriter)
+    let col = (dummyCtx |> sep |> f).Writer.Column
+    // This isn't accurate if we go to new lines
+    if col > ctx.Config.PageWidth then
+       f (sepNln ctx)
     else
-        f ctx
+       f (sep ctx)
+
+let internal autoNln f (ctx : Context) = autoNlnOrAddSep f sepNone ctx
+
+let internal autoNlnOrSpace f (ctx : Context) = autoNlnOrAddSep f sepSpace ctx
 
 /// Similar to col, skip auto newline for index 0
 let internal colAutoNlnSkip0i f' (c : seq<'T>) f (ctx : Context) = 

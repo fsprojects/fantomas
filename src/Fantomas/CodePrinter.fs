@@ -169,7 +169,7 @@ and genModuleDecl astContext = function
         +> colPre (rep 2 sepNln) (rep 2 sepNln) bs (genLetBinding { astContext with IsFirstChild = false } "and ")
 
     | ModuleAbbrev(s1, s2) ->
-        !- "module " -- s1 +> sepEq -- s2
+        !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | NamespaceFragment(m) ->
         failwithf "NamespaceFragment hasn't been implemented yet: %O" m
     | NestedModule(ats, px, ao, s, mds) -> 
@@ -194,7 +194,7 @@ and genSigModuleDecl astContext = function
     | SigVal(v) ->
         genVal astContext v
     | SigModuleAbbrev(s1, s2) ->
-        !- "module " -- s1 +> sepEq -- s2
+        !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | SigNamespaceFragment(m) ->
         failwithf "NamespaceFragment is not supported yet: %O" m
     | SigNestedModule(ats, px, ao, s, mds) -> 
@@ -251,9 +251,16 @@ and breakNln astContext brk e =
     ifElse brk (indent +> sepNln +> genExpr astContext e +> unindent) 
         (indent +> autoNln (genExpr astContext e) +> unindent)
 
+and breakNlnOrAddSpace astContext brk e =
+    ifElse brk (indent +> sepNln +> genExpr astContext e +> unindent)
+        (indent +> autoNlnOrSpace (genExpr astContext e) +> unindent)
+
 /// Preserve a break even if the expression is a one-liner
 and preserveBreakNln astContext e ctx = 
     breakNln astContext (checkPreserveBreakForExpr e ctx) e ctx
+
+and preserveBreakNlnOrAddSpace astContext e ctx =
+    breakNlnOrAddSpace astContext (checkPreserveBreakForExpr e ctx) e ctx
 
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx = 
@@ -279,8 +286,9 @@ and genLetBinding astContext pref b =
             +> genPat astContext p
 
         match e with
-        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType astContext false t +> sepEq +> preserveBreakNln astContext e
-        | e -> prefix +> sepEq +> preserveBreakNln astContext e
+        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType astContext false t +> sepEq
+                                    +> preserveBreakNlnOrAddSpace astContext e
+        | e -> prefix +> sepEq +> preserveBreakNlnOrAddSpace astContext e
 
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
@@ -291,7 +299,7 @@ and genLetBinding astContext pref b =
         failwithf "%O isn't a let binding" b
 
 and genShortGetProperty astContext e = 
-    sepEq +> preserveBreakNln astContext e
+    sepEq +> preserveBreakNlnOrAddSpace astContext e
 
 and genProperty astContext prefix ao propertyKind ps e =
     let tuplerize ps =
@@ -307,11 +315,11 @@ and genProperty astContext prefix ao propertyKind ps e =
         !- prefix +> opt sepSpace ao genAccess -- propertyKind
         +> ifElse (List.atMostOne ps) (col sepComma ps (genPat astContext) +> sepSpace) 
             (sepOpenT +> col sepComma ps (genPat astContext) +> sepCloseT +> sepSpace)
-        +> genPat astContext p +> sepEq +> preserveBreakNln astContext e
+        +> genPat astContext p +> sepEq +> preserveBreakNlnOrAddSpace astContext e
 
     | ps -> 
         !- prefix +> opt sepSpace ao genAccess -- propertyKind +> col sepSpace ps (genPat astContext) 
-        +> sepEq +> preserveBreakNln astContext e
+        +> sepEq +> preserveBreakNlnOrAddSpace astContext e
 
 and genPropertyWithGetSet astContext (b1, b2) =
     match b1, b2 with
@@ -384,8 +392,8 @@ and genMemberBinding astContext b =
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat astContext p
 
         match e with
-        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType astContext false t +> sepEq +> preserveBreakNln astContext e
-        | e -> prefix +> sepEq +> preserveBreakNln astContext e
+        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType astContext false t +> sepEq +> preserveBreakNlnOrAddSpace astContext e
+        | e -> prefix +> sepEq +> preserveBreakNlnOrAddSpace astContext e
 
     | ExplicitCtor(ats, px, ao, p, e, so) ->
         let prefix =
@@ -400,7 +408,7 @@ and genMemberBinding astContext b =
             prefix +> sepEq +> indent +> sepNln 
             +> genExpr astContext e1 ++ "then " +> preserveBreakNln astContext e2 +> unindent
 
-        | e -> prefix +> sepEq +> preserveBreakNln astContext e
+        | e -> prefix +> sepEq +> preserveBreakNlnOrAddSpace astContext e
 
     | b -> failwithf "%O isn't a member binding" b
 
@@ -418,7 +426,7 @@ and genVal astContext (Val(ats, px, ao, s, t, vi, _)) =
                         +> sepColon +> genTypeList astContext namedArgs +> unindent)
 
 and genRecordFieldName astContext (RecordFieldName(s, eo)) =
-    opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNln astContext e)
+    opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e)
 
 and genExpr astContext = function
     | SingleExpr(kind, e) -> str kind +> genExpr astContext e
@@ -692,7 +700,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | Simple TDSRNone -> 
         typeName
     | Simple(TDSRTypeAbbrev t) -> 
-        typeName +> sepEq +> genType astContext false t
+        typeName +> sepEq +> sepSpace +> genType astContext false t
     | Simple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
         genExceptionBody astContext ats px ao uc
 
@@ -713,7 +721,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         +> genMemberDefnList { astContext with IsInterface = false } ms +> unindent
 
     | ObjectModel(TCDelegate(FunType ts), _) ->
-        typeName +> sepEq -- "delegate of " +> genTypeList astContext ts
+        typeName +> sepEq +> sepSpace -- "delegate of " +> genTypeList astContext ts
     | ObjectModel(_, MemberDefnList(impCtor, others)) ->
         typeName +> opt sepNone impCtor (genMemberDefn { astContext with IsInterface = false }) +> sepEq +> indent
         +> genMemberDefnList { astContext with IsInterface = false } others +> unindent
@@ -755,7 +763,7 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | SigSimple TDSRNone -> 
         typeName
     | SigSimple(TDSRTypeAbbrev t) -> 
-        typeName +> sepEq +> genType astContext false t
+        typeName +> sepEq +> sepSpace +> genType astContext false t
     | SigSimple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
             genExceptionBody astContext ats px ao uc
 
@@ -770,7 +778,7 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         +> col sepNln ms (genMemberSig astContext) +> unindent
 
     | SigObjectModel(TCDelegate(FunType ts), _) ->
-        typeName +> sepEq -- "delegate of " +> genTypeList astContext ts
+        typeName +> sepEq +> sepSpace -- "delegate of " +> genTypeList astContext ts
     | SigObjectModel(_, mds) -> 
         typeName +> sepEq +> indent +> sepNln 
         +> col sepNln mds (genMemberSig astContext) +> unindent
@@ -1016,7 +1024,7 @@ and genMemberDefn astContext = function
         genPreXmlDoc px
         +> genAttributes astContext ats +> genMemberFlags astContext (memberKindToMemberFlags mk) +> str "val "
         +> opt sepSpace ao genAccess -- s +> optPre sepColon sepNone typeOpt (genType astContext false)
-         +> sepEq +> genExpr astContext e -- genPropertyKind (not isFunctionProperty) mk
+         +> sepEq +> sepSpace +> genExpr astContext e -- genPropertyKind (not isFunctionProperty) mk
 
     | MDAbstractSlot(ats, px, ao, s, t, vi, ValTyparDecls(tds, _, tcs), MFMemberFlags mk) ->
         let (FunType namedArgs) = (t, vi)
@@ -1066,7 +1074,7 @@ and genPatRecordFieldName astContext (PatRecordFieldName(s1, s2, p)) =
     ifElse (s1 = "") (!- (sprintf "%s = " s2)) (!- (sprintf "%s.%s = " s1 s2)) +> genPat astContext p
 
 and genPatWithIdent astContext (ido, p) = 
-    opt sepEq ido (!-) +> genPat astContext p
+    opt (sepEq +> sepSpace) ido (!-) +> genPat astContext p
 
 and genPat astContext = function
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)

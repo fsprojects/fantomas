@@ -21,14 +21,14 @@ type Interface3 =
     abstract member Method3 : int -> int""" config
     |> prepend newline
     |> should equal """
-type IPrintable = 
+type IPrintable =
     abstract Print : unit -> unit
 
-type SomeClass1(x : int, y : float) = 
+type SomeClass1(x : int, y : float) =
     interface IPrintable with
         member this.Print() = printfn "%d %f" x y
 
-type Interface3 = 
+type Interface3 =
     inherit Interface1
     inherit Interface2
     abstract Method3 : int -> int
@@ -43,7 +43,7 @@ let ``should not add with to interface definitions with no members``() =
         member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
         member this.ToXml() = v :> obj
     """ config
-    |> should equal """type Text(text : string) = 
+    |> should equal """type Text(text : string) =
     interface IDocument
     interface Infrastucture with
         member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
@@ -55,7 +55,7 @@ let ``object expressions``() =
     formatSourceString false """let obj1 = { new System.Object() with member x.ToString() = "F#" }""" config
     |> prepend newline
     |> should equal """
-let obj1 = 
+let obj1 =
     { new System.Object() with
           member x.ToString() = "F#" }
 """
@@ -72,7 +72,7 @@ let ``object expressions and interfaces``() =
             member this.G() = () }""" config
     |> prepend newline
     |> should equal """
-let implementer() = 
+let implementer() =
     { new ISecond with
           member this.H() = ()
           member this.J() = ()
@@ -92,7 +92,7 @@ let f () =
         member x.GetEnumerator() = null }""" config
     |> prepend newline
     |> should equal """
-let f() = 
+let f() =
     { new obj() with
           member x.ToString() = "INotifyEnumerableInternal"
       interface INotifyEnumerableInternal<'T>
@@ -105,7 +105,7 @@ let ``should keep named arguments on abstract members``() =
     formatSourceString false """type IThing =
     abstract Foo : name:string * age:int -> bool
 """  config
-    |> should equal """type IThing = 
+    |> should equal """type IThing =
     abstract Foo : name:string * age:int -> bool
 """
 
@@ -114,7 +114,7 @@ let ``should not skip 'with get()' in indexers``() =
     formatSourceString false """type Interface = 
     abstract Item : int -> char with get
 """  config
-    |> should equal """type Interface = 
+    |> should equal """type Interface =
     abstract Item : int -> char with get
 """
 

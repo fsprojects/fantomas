@@ -32,6 +32,6 @@ let ``should preserve unit literal``() =
     """ config
     |> prepend newline
     |> should equal """
-let logger = 
+let logger =
     Mock<ILogger>().Setup(fun log -> <@ log.Log(error) @>).Returns(()).Create()
 """

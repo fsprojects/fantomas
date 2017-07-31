@@ -17,7 +17,7 @@ let ``module with functions``() =
     formatSourceString false "module internal MyModule = let x = 42" config
     |> prepend newline
     |> should equal """
-module internal MyModule = 
+module internal MyModule =
     let x = 42
 """
 
@@ -70,7 +70,7 @@ open System
 open System.Collections.Generic
 
 // comment1
-let sortAndDedup by l = 
+let sortAndDedup by l =
     // comment2
     l
     |> Seq.distinctBy by
@@ -88,10 +88,10 @@ module Y =
         let z = 5""" config
     |> prepend newline
     |> should equal """
-module Y = 
+module Y =
     let x = 1
     
-    module Z = 
+    module Z =
         let z = 5
 """
 
@@ -112,10 +112,10 @@ module TopLevel
 
 let topLevelX = 5
 
-module Inner1 = 
+module Inner1 =
     let inner1X = 1
 
-module Inner2 = 
+module Inner2 =
     let inner2X = 5
 """
 
@@ -142,7 +142,7 @@ val turnTracingOn : unit -> unit
 val turnTracingOff : unit -> unit
 val isTraced : unit -> bool
 
-module Random = 
+module Random =
     val exponential : mean:float -> float
     val nextInt : max:int -> int
     val nextInt64 : max:int64 -> int64
@@ -164,10 +164,10 @@ module WidgetsModule =
     |> should equal """
 namespace Widgets
 
-type MyWidget1 = 
+type MyWidget1 =
     member this.WidgetName = "Widget1"
 
-module WidgetsModule = 
+module WidgetsModule =
     let widgetName = "Widget2"
 """
 
@@ -184,7 +184,7 @@ type SomeType() =
     |> should equal """
 namespace global
 
-type SomeType() = 
+type SomeType() =
     member this.Print() = global.System.Console.WriteLine("Hello World!")
 """
 
@@ -205,7 +205,7 @@ module ``member``
 
 let ``abstract`` = "abstract"
 
-type SomeType() = 
+type SomeType() =
     member this.``new``() = System.Console.WriteLine("Hello World!")
 """
 
@@ -236,7 +236,7 @@ open RProvider.``base``
 open RProvider.stats
 
 [<EntryPoint>]
-let main argv = 
+let main argv =
     let a = R.rnorm (1000)
     0
 """

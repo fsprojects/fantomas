@@ -23,7 +23,7 @@ let fetchAsync(name, url:string) =
     """ config
     |> prepend newline
     |> should equal """
-let fetchAsync (name, url : string) = 
+let fetchAsync (name, url : string) =
     async { 
         try 
             let uri = new System.Uri(url)
@@ -45,7 +45,7 @@ let comp =
                  return 3 + 4 }""" config
     |> prepend newline
     |> should equal """
-let comp = 
+let comp =
     eventually { 
         for x in 1..2 do
             printfn " x = %d" x
@@ -70,14 +70,14 @@ let rec inorder tree =
     """ config
     |> prepend newline
     |> should equal """
-let s1 = 
+let s1 =
     seq { 
         for i in 1..10 -> i * i
     }
 
 let s2 = seq { 0..10..100 }
 
-let rec inorder tree = 
+let rec inorder tree =
     seq { 
         match tree with
         | Tree(x, left, right) -> 
@@ -96,6 +96,6 @@ let factors number =
     |> Seq.filter (fun x -> number % x = 0L)""" config
     |> prepend newline
     |> should equal """
-let factors number = 
+let factors number =
     { 2L..number / 2L } |> Seq.filter (fun x -> number % x = 0L)
 """

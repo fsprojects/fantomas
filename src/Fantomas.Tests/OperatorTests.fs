@@ -80,7 +80,7 @@ let ``should pattern match on quotation expression``() =
         printf " + "
         print exprList.Tail.Head
     | _ -> ()""" config
-    |> should equal """let rec print expr = 
+    |> should equal """let rec print expr =
     match expr with
     | SpecificCall <@@ (+) @@> (_, _, exprList) -> 
         print exprList.Head
@@ -109,7 +109,7 @@ let ``should break on . operator and keep indentation``() =
       .Replace(seperator + "**" + seperator, replacementSeparator + "(.|?" + replacementSeparator + ")?" )
       .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")" )
     """ config
-    |> should equal """let pattern = 
+    |> should equal """let pattern =
     (x + y)
         .Replace(seperator + "**" + seperator, 
                  replacementSeparator + "(.|?" + replacementSeparator + ")?")

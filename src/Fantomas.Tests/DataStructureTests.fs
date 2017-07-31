@@ -33,7 +33,7 @@ let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3
     """ { config with SemicolonAtEndOfLine = true }
     |> prepend newline
     |> should equal """
-let arr = 
+let arr =
     [| (1, 1, 1);
        (1, 2, 2);
        (1, 3, 3);
@@ -62,14 +62,14 @@ let listLength list =
     | _ -> List.length list"""  config
     |> prepend newline
     |> should equal """
-let rec printList l = 
+let rec printList l =
     match l with
     | head :: tail -> 
         printf "%d " head
         printList tail
     | [] -> printfn ""
 
-let listLength list = 
+let listLength list =
     match list with
     | [] -> 0
     | [ _ ] -> 1
@@ -89,7 +89,7 @@ let vectorLength vec =
     | _ -> failwith "vectorLength called with an unsupported array size of %d." (vec.Length)""" config
     |> prepend newline
     |> should equal """
-let vectorLength vec = 
+let vectorLength vec =
     match vec with
     | [| var1 |] -> var1
     | [| var1; var2 |] -> sqrt (var1 * var1 + var2 * var2)
@@ -108,7 +108,7 @@ let ``should keep -> notation``() =
     """ config
     |> prepend newline
     |> should equal """
-let environVars target = 
+let environVars target =
     [ for e in Environment.GetEnvironmentVariables target -> 
           let e1 = e :?> Collections.DictionaryEntry
           e1.Key, e1.Value ]
@@ -121,7 +121,7 @@ let listOfSquares = [ for i in 1 .. 10 -> i*i ]
 let list0to3 = [0 .. 3]""" config
     |> prepend newline
     |> should equal """
-let listOfSquares = 
+let listOfSquares =
     [ for i in 1..10 -> i * i ]
 
 let list0to3 = [ 0..3 ]
@@ -135,12 +135,12 @@ let a2 = [| 0 .. 99 |]
 let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
     |> prepend newline
     |> should equal """
-let a1 = 
+let a1 =
     [| for i in 1..10 -> i * i |]
 
 let a2 = [| 0..99 |]
 
-let a3 = 
+let a3 =
     [| for n in 1..100 do
            if isPrime n then yield n |]
 """

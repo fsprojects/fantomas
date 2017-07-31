@@ -77,7 +77,7 @@ let config = { FormatConfig.Default with
                 IndentSpaceNum = 2 }
 
 let source = "
-    let Multiple9x9 () = 
+    let Multiple9x9 () =
       for i in 1 .. 9 do
         printf \"\\n\";
         for j in 1 .. 9 do
@@ -93,7 +93,7 @@ open Fantomas.CodeFormatter
 let config = { FormatConfig.Default with IndentSpaceNum = 2 }
 
 let source = "
-    let Multiple9x9 () = 
+    let Multiple9x9 () =
       for i in 1 .. 9 do
         printf \"\\n\";
         for j in 1 .. 9 do
@@ -107,14 +107,14 @@ let source = "
 [<Test>]
 let ``should format the selected pipeline correctly``() =
     formatSelectionFromString false (makeRange 3 4 7 16) """
-let r = 
+let r =
     [ "abc"
       "a"
       "b"
       "" ]
     |> List.map id""" config
     |> should equal """
-let r = 
+let r =
     [ "abc"; "a"; "b"; "" ] |> List.map id"""
 
 [<Test>]
@@ -137,13 +137,13 @@ do printfn "Hello world"
 [<Test>]
 let ``should detect members and format appropriately``() =
     formatSelectionFromString false (makeRange 4 0 5 32) """
-type T () = 
+type T () =
   let items = []
   override x.Reorder () = 
         items |> List.iter ignore
 """     config
     |> should equal """
-type T () = 
+type T () =
   let items = []
   override x.Reorder() = items |> List.iter ignore
 """
@@ -164,24 +164,24 @@ and createJObject y = createJArray
 [<Test>]
 let ``should format recursive types correctly``() =
     formatSelectionFromString false (makeRange 7 0 10 48) """
-type Folder(pathIn : string) = 
+type Folder(pathIn : string) =
     let path = pathIn
     let filenameArray : string array = System.IO.Directory.GetFiles(path)
-    member this.FileArray = 
+    member this.FileArray =
         Array.map (fun elem -> new File(elem, this)) filenameArray
 
-and File(filename: string, containingFolder: Folder) = 
+and File(filename: string, containingFolder: Folder) =
    member __.Name = filename
    member __.ContainingFolder = containingFolder
 """     config
     |> should equal """
-type Folder(pathIn : string) = 
+type Folder(pathIn : string) =
     let path = pathIn
     let filenameArray : string array = System.IO.Directory.GetFiles(path)
-    member this.FileArray = 
+    member this.FileArray =
         Array.map (fun elem -> new File(elem, this)) filenameArray
 
-and File(filename : string, containingFolder : Folder) = 
+and File(filename : string, containingFolder : Folder) =
     member __.Name = filename
     member __.ContainingFolder = containingFolder
 """
@@ -189,28 +189,28 @@ and File(filename : string, containingFolder : Folder) =
 [<Test>]
 let ``should format around the cursor inside a list``() =
     formatAroundCursor false (makePos 4 4) """
-let r = 
+let r =
     [ "abc"
       "a"
       "b"
       "" ]
     |> List.map id""" config
     |> should equal """
-let r = 
+let r =
     [ "abc"; "a"; "b"; "" ]
     |> List.map id"""
 
 [<Test>]
 let ``should format around the cursor inside a tuple``() =
     formatAroundCursor false (makePos 4 8) """
-let r = 
+let r =
     [ ("abc",1)
       ("a",2)
       ("b",3)
       ("",4) ]
     |> List.map id""" config
     |> should equal """
-let r = 
+let r =
     [ ("abc",1)
       ("a", 2)
       ("b",3)
@@ -220,20 +220,20 @@ let r =
 [<Test>]
 let ``should format around the cursor inside an array``() =
     formatAroundCursor false (makePos 3 20) """
-let a3 = 
+let a3 =
     [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
     |> should equal """
-let a3 = 
+let a3 =
     [| for n in 1..100 do
            if isPrime n then yield n |]"""
 
 [<Test>]
 let ``should format around the cursor inside an object expression``() =
-    formatAroundCursor false (makePos 2 20) """let obj1 = 
+    formatAroundCursor false (makePos 2 20) """let obj1 =
     { new System.Object() with member x.ToString() = "F#" }""" config
     |> prepend newline
     |> should equal """
-let obj1 = 
+let obj1 =
     { new System.Object() with
           member x.ToString() = "F#" }"""
 
@@ -261,7 +261,7 @@ type Car = {
     mutable Odometer : int;
     }""" config
     |> should equal """
-type Car = 
+type Car =
     { Make : string
       Model : string
       mutable Odometer : int }"""

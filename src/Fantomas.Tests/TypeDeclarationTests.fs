@@ -20,7 +20,7 @@ exception BuildException of string*list<string>
     override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)""" config
     |> should equal """/// An exception type to signal build errors.
 exception BuildException of string * list<string> with
-    override x.ToString() = 
+    override x.ToString() =
         x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)
 """
 
@@ -33,11 +33,11 @@ let ``type annotations``() =
         for e in f() do printfn "%d" e""" config
     |> prepend newline
     |> should equal """
-let iterate1 (f : unit -> seq<int>) = 
+let iterate1 (f : unit -> seq<int>) =
     for e in f() do
         printfn "%d" e
 
-let iterate2 (f : unit -> #seq<int>) = 
+let iterate2 (f : unit -> #seq<int>) =
     for e in f() do
         printfn "%d" e
 """
@@ -67,11 +67,11 @@ type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) =
     do printfn "Baud Rate: %d Duplex: %A Parity: %b" rate duplex parity""" config
     |> prepend newline
     |> should equal """
-type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) = 
+type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) =
     let duplex = defaultArg duplex0 Full
     let parity = defaultArg parity0 false
     
-    let mutable rate = 
+    let mutable rate =
         match rate0 with
         | Some rate1 -> rate1
         | None -> 
@@ -94,7 +94,7 @@ type Test() =
          printfn "%A, %A" x y""" config
     |> prepend newline
     |> should equal """
-type Test() = 
+type Test() =
     member this.Function1<'a>(x, y) = printfn "%A, %A" x y
     abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
     override this.AbstractMethod<'a, 'b>(x : 'a, y : 'b) = printfn "%A, %A" x y
@@ -109,8 +109,8 @@ type X() =
             printfn "%A" arg""" config
     |> prepend newline
     |> should equal """
-type X() = 
-    member this.F([<ParamArray>] args : Object []) = 
+type X() =
+    member this.F([<ParamArray>] args : Object []) =
         for arg in args do
             printfn "%A" arg
 """
@@ -133,7 +133,7 @@ type public MyClass<'a> public (x, y) as this =
     member self.Method(a,b) = x + y + z + a + b""" config
     |> prepend newline
     |> should equal """
-type public MyClass<'a> public (x, y) as this = 
+type public MyClass<'a> public (x, y) as this =
     static let PI = 3.14
     static do printfn "static constructor"
     let mutable z = x + y
@@ -165,11 +165,11 @@ let ``struct declaration``() =
        end""" config
     |> prepend newline
     |> should equal """
-type Point2D = 
+type Point2D =
     struct
         val X : float
         val Y : float
-        new(x : float, y : float) = 
+        new(x : float, y : float) =
             { X = x
               Y = y }
     end
@@ -188,14 +188,14 @@ let ``abstract and override keywords``() =
        override u.Function1(a: int) = a + 1""" config
     |> prepend newline
     |> should equal """
-type MyClassBase1() = 
+type MyClassBase1() =
     let mutable z = 0
     abstract Function1 : int -> int
-    override u.Function1(a : int) = 
+    override u.Function1(a : int) =
         z <- z + a
         z
 
-type MyClassDerived1() = 
+type MyClassDerived1() =
     inherit MyClassBase1()
     override u.Function1(a : int) = a + 1
 """
@@ -210,7 +210,7 @@ type MyClass with
     member this.G() = 200""" config
     |> prepend newline
     |> should equal """
-type MyClass() = 
+type MyClass() =
     member this.F() = 100
 
 type MyClass with
@@ -239,7 +239,7 @@ type MyClass(property1 : int) =
     member val Property2 = "" with get, set""" config
     |> prepend newline
     |> should equal """
-type MyClass(property1 : int) = 
+type MyClass(property1 : int) =
     member val Property1 = property1
     member val Property2 = "" with get, set
 """
@@ -253,7 +253,7 @@ type Derived1() =
    override this.Property1 with get() = value and set(v : int) = value <- v""" config
     |> prepend newline
     |> should equal """
-type Derived1() = 
+type Derived1() =
     inherit AbstractBase()
     let mutable value = 10
     
@@ -274,7 +274,7 @@ type Foo() =
     member x.GetSetI with internal get (key1, key2) = true and private set (key1, key2) value = ()""" config
     |> prepend newline
     |> should equal """
-type Foo() = 
+type Foo() =
     member x.Get = 1
     member x.Set 
         with private set (v : int) = value <- v
@@ -307,13 +307,13 @@ type MyType() =
        printfn "%d %d %s" myInt1 (this.myInt2) (this.myString)""" config
     |> prepend newline
     |> should equal """
-type MyType() = 
+type MyType() =
     let mutable myInt1 = 10
     [<DefaultValue; Test>]
     val mutable myInt2 : int
     [<DefaultValue; Test>]
     val mutable myString : string
-    member this.SetValsAndPrint(i : int, str : string) = 
+    member this.SetValsAndPrint(i : int, str : string) =
         myInt1 <- i
         this.myInt2 <- i + 1
         this.myString <- str
@@ -331,10 +331,10 @@ let CalculateFine (ticket : SpeedingTicket) =
     if delta < 20 then 50.0 else 100.0""" config
     |> prepend newline
     |> should equal """
-type SpeedingTicket() = 
+type SpeedingTicket() =
     member this.GetMPHOver(speed : int, limit : int) = speed - limit
 
-let CalculateFine(ticket : SpeedingTicket) = 
+let CalculateFine(ticket : SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
     if delta < 20 then 50.0
     else 100.0
@@ -357,7 +357,7 @@ type NumberStrings() =
       and set index value = cardinals.[index] <- value""" config
     |> prepend newline
     |> should equal """
-type NumberStrings() = 
+type NumberStrings() =
     let mutable ordinals = [| "one" |]
     let mutable cardinals = [| "first" |]
     
@@ -392,7 +392,7 @@ for i in 1..1000 do
     |> should equal """
 open System.Collections.Generic
 
-type SparseMatrix() = 
+type SparseMatrix() =
     let mutable table = new Dictionary<int * int, float>()
     
     member this.Item 
@@ -439,43 +439,43 @@ type Class14<'T,'U when 'T : equality and 'U : equality> =
     class end""" config
     |> prepend newline
     |> should equal """
-type Class1<'T when 'T :> System.Exception> = 
+type Class1<'T when 'T :> System.Exception> =
     class
     end
 
-type Class2<'T when 'T :> System.IComparable> = 
+type Class2<'T when 'T :> System.IComparable> =
     class
     end
 
-type Class3<'T when 'T : null> = 
+type Class3<'T when 'T : null> =
     class
     end
 
-type Class8<'T when 'T : not struct> = 
+type Class8<'T when 'T : not struct> =
     class
     end
 
-type Class9<'T when 'T : enum<uint32>> = 
+type Class9<'T when 'T : enum<uint32>> =
     class
     end
 
-type Class10<'T when 'T : comparison> = 
+type Class10<'T when 'T : comparison> =
     class
     end
 
-type Class11<'T when 'T : equality> = 
+type Class11<'T when 'T : equality> =
     class
     end
 
-type Class12<'T when 'T : delegate<obj * System.EventArgs, unit>> = 
+type Class12<'T when 'T : delegate<obj * System.EventArgs, unit>> =
     class
     end
 
-type Class13<'T when 'T : unmanaged> = 
+type Class13<'T when 'T : unmanaged> =
     class
     end
 
-type Class14<'T, 'U when 'T : equality and 'U : equality> = 
+type Class14<'T, 'U when 'T : equality and 'U : equality> =
     class
     end
 """
@@ -495,7 +495,7 @@ type Person(nameIn : string, idIn : int) =
             """ config
     |> prepend newline
     |> should equal """
-type Person(nameIn : string, idIn : int) = 
+type Person(nameIn : string, idIn : int) =
     let mutable name = nameIn
     let mutable id = idIn
     do printfn "Created a person object."
@@ -508,7 +508,7 @@ type Person(nameIn : string, idIn : int) =
         with get () = id
         and set (v) = id <- v
     
-    new() = 
+    new() =
         Person("Invalid Name", -1)
         then printfn "Created an invalid person object."
 """
@@ -532,7 +532,7 @@ type Delegate3 = delegate of int -> (int -> int)
 
 type Delegate4 = delegate of int -> int -> int
 
-type U = 
+type U =
     | U of (int * int)
 """
 
@@ -544,9 +544,9 @@ let ``should keep the ? in optional parameters``() =
         shellExec(Shell.GetParams(cmd, ?args = args))
 
     """ config
-    |> should equal """type Shell() = 
+    |> should equal """type Shell() =
     static member private GetParams(cmd, ?args) = doStuff
-    static member Exec(cmd, ?args) = 
+    static member Exec(cmd, ?args) =
         shellExec (Shell.GetParams(cmd, ?args = args))
 """
 
@@ -563,7 +563,7 @@ type t(x : int) =
     |> should equal """
 let f (x: int) = x
 
-type t(x: int) = 
+type t(x: int) =
     class
     end
 """
@@ -591,8 +591,8 @@ type StateMachine(makeAsync) =
     """ config
     |> prepend newline
     |> should equal """
-type StateMachine(makeAsync) = 
-    new(fileName, makeAsync, initState) as secondCtor = 
+type StateMachine(makeAsync) =
+    new(fileName, makeAsync, initState) as secondCtor =
         new StateMachine(makeAsync)
         then secondCtor.Init(fileName, initState)
 """
@@ -611,10 +611,10 @@ type BlobHelper(Account : CloudStorageAccount) =
     """ config
     |> prepend newline
     |> should equal """
-type BlobHelper(Account : CloudStorageAccount) = 
-    new(configurationSettingName, hostedService) = 
+type BlobHelper(Account : CloudStorageAccount) =
+    new(configurationSettingName, hostedService) =
         CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher -> 
-            let connectionString = 
+            let connectionString =
                 if hostedService then 
                     RoleEnvironment.GetConfigurationSettingValue(configName)
                 else 
@@ -644,7 +644,7 @@ type CustomGraphControl() =
     """ config
     |> prepend newline
     |> should equal """
-type CustomGraphControl() = 
+type CustomGraphControl() =
     inherit UserControl()
     [<DefaultValue(false)>]
     static val mutable private GraphProperty : DependencyProperty
@@ -662,10 +662,10 @@ type A() =
         ignore x""" config
     |> prepend newline
     |> should equal """
-type A() = 
+type A() =
     override this.Address 
-        with set v = 
-            let x = 
+        with set v =
+            let x =
                 match _kbytes.GetAddress(8) with
                 | Some(x) -> x
                 | None -> null
@@ -680,9 +680,9 @@ type A() =
                             |> ignore""" config
     |> prepend newline
     |> should equal """
-type A() = 
+type A() =
     member x.B 
-        with set v = 
+        with set v =
             "[<System.Runtime.InteropServices.DllImport(\"user32.dll\")>] extern int GetWindowLong(System.IntPtr hwnd, int index)" 
             |> ignore
 """
@@ -704,16 +704,16 @@ type Bar =
             | _ -> null""" config
     |> prepend newline
     |> should equal """
-type Bar = 
+type Bar =
     
     member this.Item 
-        with get (i : int) = 
+        with get (i : int) =
             match mo with
             | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null
     
     member this.Item 
-        with get (i : string) = 
+        with get (i : string) =
             match mo with
             | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null
@@ -730,7 +730,7 @@ let x =
                                   Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))""" { config with PageWidth = 120 }
     |> prepend newline
     |> should equal """
-let x = 
+let x =
     JobCollectionCreateParameters
         (Label = "Test", 
          IntrinsicSettings = JobCollectionIntrinsicSettings
@@ -745,7 +745,7 @@ type ILogger =
     abstract DebugFormat : format:String * [<ParamArray>]args:Object [] -> unit""" config
     |> prepend newline
     |> should equal """
-type ILogger = 
+type ILogger =
     abstract DebugFormat : format:String * [<ParamArray>] args:Object [] -> unit
 """
 
@@ -757,7 +757,7 @@ type A =
     abstract member M : float -> int""" config
     |> prepend newline
     |> should equal """
-type A = 
+type A =
     abstract M : int -> (int -> unit)
     abstract M : float -> int
 """
@@ -770,7 +770,7 @@ type A =
     abstract member M : float -> int""" config
     |> prepend newline
     |> should equal """
-type A = 
+type A =
     abstract M : (int -> int) -> unit
     abstract M : float -> int
 """
@@ -783,7 +783,7 @@ type Entity() =
     default val Id = 0 with get, set""" config
     |> prepend newline
     |> should equal """
-type Entity() = 
+type Entity() =
     abstract Id : int with get, set
     override val Id = 0 with get, set
 """

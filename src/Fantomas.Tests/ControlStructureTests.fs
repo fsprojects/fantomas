@@ -26,14 +26,14 @@ if age < 10
 then printfn "You are only %d years old and already learning F#? Wow!" age""" config
     |> prepend newline
     |> should equal """
-let rec tryFindMatch pred list = 
+let rec tryFindMatch pred list =
     match list with
     | head :: tail -> 
         if pred (head) then Some(head)
         else tryFindMatch pred tail
     | [] -> None
 
-let test x y = 
+let test x y =
     if x = y then "equals"
     elif x < y then "is less than"
     else if x > y then "is greater than"
@@ -57,12 +57,12 @@ let ``for loops``() =
     """ config
     |> prepend newline
     |> should equal """
-let function1() = 
+let function1() =
     for i = 1 to 10 do
         printf "%d " i
     printfn ""
 
-let function2() = 
+let function2() =
     for i = 10 downto 1 do
         printf "%d " i
     printfn ""
@@ -86,7 +86,7 @@ lookForValue 10 20""" config
     |> should equal """
 open System
 
-let lookForValue value maxValue = 
+let lookForValue value maxValue =
     let mutable continueLooping = true
     let randomNumberGenerator = new Random()
     while continueLooping do
@@ -112,7 +112,7 @@ let result1 = divide1 100 0
     """ config
     |> prepend newline
     |> should equal """
-let divide1 x y = 
+let divide1 x y =
     try 
         Some(x / y)
     with :? System.DivideByZeroException -> 
@@ -138,7 +138,7 @@ let ``try/with and finally``() =
     """ config
     |> prepend newline
     |> should equal """
-let function1 x y = 
+let function1 x y =
     try 
         try 
             if x = y then raise (InnerError("inner"))
@@ -160,7 +160,7 @@ let ``range expressions``() =
     function2()""" config
     |> prepend newline
     |> should equal """
-let function2() = 
+let function2() =
     for i in 1..2..10 do
         printf "%d " i
     printfn ""
@@ -177,7 +177,7 @@ let ``use binding``() =
     """ config
     |> prepend newline
     |> should equal """
-let writetofile filename obj = 
+let writetofile filename obj =
     use file1 = File.CreateText(filename)
     file1.WriteLine("{0}", obj.ToString())
 """
@@ -222,7 +222,7 @@ let x =
     """ config
     |> prepend newline
     |> should equal """
-let x = 
+let x =
     if try 
            true
        with Failure _ -> false
@@ -254,7 +254,7 @@ let handle =
     """ config
     |> prepend newline
     |> should equal """
-let handle = 
+let handle =
     if n < weakThreshhold then 
         assert onStrongDiscard.IsNone // it disappeared
         Weak(WeakReference(v))
@@ -272,7 +272,7 @@ let url =
     """ config
     |> prepend newline
     |> should equal """
-let url = 
+let url =
     match x with
     | A -> "a"
     | B -> "b"

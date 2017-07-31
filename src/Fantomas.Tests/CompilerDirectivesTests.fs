@@ -91,7 +91,7 @@ let ``line, file and path identifiers``() =
     """ config
     |> prepend newline
     |> should equal """
-let printSourceLocation() = 
+let printSourceLocation() =
     printfn "Line: %s" __LINE__
     printfn "Source Directory: %s" __SOURCE_DIRECTORY__
     printfn "Source File: %s" __SOURCE_FILE__
@@ -145,7 +145,7 @@ let [<Literal>] private assemblyConfig =
 [<Literal>]
 let private assemblyConfig =
 #if DEBUG
-#if TRACE 
+#if TRACE
     "DEBUG;TRACE"
 #else
     "DEBUG"
@@ -174,7 +174,7 @@ let [<Literal>] private assemblyConfig() =
     |> should equal """
 [<Literal>]
 let private assemblyConfig() =
-#if TRACE 
+#if TRACE
     let x = ""
 #else
     let x = "x"

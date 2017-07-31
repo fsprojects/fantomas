@@ -81,7 +81,7 @@ let ``should preserve triple-quote strings``() =
 "    config 
     |> prepend newline
     |> should equal "
-type GetList() = 
+type GetList() =
     let switchvox_users_voicemail_getList_response = \"\"\"
             </response>\"\"\"
     let switchvox_users_voicemail_getList = \"\"\"
@@ -107,7 +107,7 @@ let main argv =
     |> prepend newline
     |> should equal "
 [<EntryPoint>]
-let main argv = 
+let main argv =
     use fun1 = R.eval (R.parse (text = \"\"\"
     function(i) {
         x <- rnorm(1000)
