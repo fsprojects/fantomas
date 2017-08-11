@@ -28,7 +28,7 @@ type C () =
     member x.P = g 3""" config
     |> prepend newline
     |> should equal """
-type C() = 
+type C() =
     
     let rec g x = h x
     and h x = g x
@@ -56,7 +56,7 @@ let ``should keep mutually recursive functions in nested function``() =
     and createJObject y = createJArray y
     createJArray
     """ config
-    |> should equal """let f = 
+    |> should equal """let f =
     let rec createJArray x = createJObject x
     and createJObject y = createJArray y
     createJArray
@@ -98,7 +98,7 @@ let ``let bindings with return types``() =
               stream.Close()""" config
     |> prepend newline
     |> should equal """
-let divide x y = 
+let divide x y =
     let stream : System.IO.FileStream = System.IO.File.Create("test.txt")
     let writer : System.IO.StreamWriter = new System.IO.StreamWriter(stream)
     try 
@@ -150,12 +150,12 @@ let ``should add spaces between multiline nested let bindings``() =
         let _ = ()
         y + 1
     x + y""" config
-    |> should equal """let f1 = 
-    let f2 x = 
+    |> should equal """let f1 =
+    let f2 x =
         let _ = ()
         x + 1
     
-    let f3 y = 
+    let f3 y =
         let _ = ()
         y + 1
     
@@ -168,7 +168,7 @@ let ``should indent fun blocks``() =
     fun x ->
     let y = 1
     x""" config
-    |> should equal """let f = 
+    |> should equal """let f =
     fun x -> 
         let y = 1
         x
@@ -199,7 +199,7 @@ let ``should handle simple external functions``() =
         extern IntPtr setCallbridgeSupportTarget(IntPtr newTarget)""" config
     |> prepend newline
     |> should equal """
-module InteropWithNative = 
+module InteropWithNative =
     [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
     extern IntPtr setCallbridgeSupportTarget(IntPtr newTarget)
 """
@@ -246,10 +246,10 @@ let f = fun x -> match x with X (x) -> x
 """  config
     |> prepend newline
     |> should equal """
-type U = 
+type U =
     | X of int
 
-let f = 
+let f =
     fun x -> 
         match x with
         | X(x) -> x
@@ -263,7 +263,7 @@ let inline implicit< ^a,^b when ^a : (static member op_Implicit : ^b -> ^a)> arg
 """  config
     |> prepend newline
     |> should equal """
-let inline implicit< ^a, ^b when ^a : (static member op_Implicit : ^b -> ^a)> arg = 
+let inline implicit< ^a, ^b when ^a : (static member op_Implicit : ^b -> ^a)> arg =
     (^a : (static member op_Implicit : ^b -> ^a) arg)
 """
 

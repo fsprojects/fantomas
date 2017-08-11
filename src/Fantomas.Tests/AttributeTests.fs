@@ -15,9 +15,9 @@ type Funcs =
         Func<_,_,_,_>(fun a b c -> f.Invoke(a,b,c))
     """ config
     |> should equal """[<Extension>]
-type Funcs = 
+type Funcs =
     [<Extension>]
-    static member ToFunc(f : Action<_, _, _>) = 
+    static member ToFunc(f : Action<_, _, _>) =
         Func<_, _, _, _>(fun a b c -> f.Invoke(a, b, c))
 """
 
@@ -67,7 +67,7 @@ type vector3D<[<Measure>] 'u> = { x : float<'u>; y : float<'u>; z : float<'u>}""
     |> should equal """
 let genericSumUnits (x : float<'u>) (y : float<'u>) = x + y
 
-type vector3D<[<Measure>] 'u> = 
+type vector3D<[<Measure>] 'u> =
     { x : float<'u>
       y : float<'u>
       z : float<'u> }
@@ -96,12 +96,12 @@ type Sample [<ImportingConstructor>] internal () = class end""" config
     |> prepend newline
     |> should equal """
 [<Export>]
-type Sample [<ImportingConstructor>] (dependency : IDependency) = 
+type Sample [<ImportingConstructor>] (dependency : IDependency) =
     class
     end
 
 [<Export>]
-type Sample [<ImportingConstructor>]  internal () = 
+type Sample [<ImportingConstructor>]  internal () =
     class
     end
 """
@@ -117,7 +117,7 @@ type Foo =
   |> prepend newline
   |> should equal """
 [<DataContract>]
-type Foo = 
+type Foo =
     { [<field:DataMember>]
       Bar : string }
 """

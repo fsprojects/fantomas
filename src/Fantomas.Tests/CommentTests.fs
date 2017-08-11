@@ -38,9 +38,9 @@ let print_30_permut() =
     """ config
     |> prepend newline
     |> should equal """
-let print_30_permut() = 
+let print_30_permut() =
     /// declare and initialize
-    let permutation : int array = 
+    let permutation : int array =
         Array.init n (fun i -> 
             Console.Write(i + 1)
             i)
@@ -58,9 +58,9 @@ let print_30_permut() =
     """ config
     |> prepend newline
     |> should equal """
-let print_30_permut() = 
+let print_30_permut() =
     /// declare and initialize
-    let permutation : int array = 
+    let permutation : int array =
         Array.init n (fun (i, j) -> 
             Console.Write(i + 1)
             i)
@@ -119,7 +119,7 @@ let f() =
 """  config
     |> prepend newline
     |> should equal """
-let f() = 
+let f() =
     // COMMENT
     x + x
 """
@@ -133,7 +133,7 @@ let f() =
 """   config
     |> prepend newline
     |> should equal """
-let f() = 
+let f() =
     let x = 1 // COMMENT
     x + x
 """ 
@@ -155,7 +155,7 @@ let f() =
     |> should equal """
 /// XML COMMENT
 // Other comment
-let f() = 
+let f() =
     // COMMENT A
     let y = 1
     (* COMMENT B *)
@@ -181,7 +181,7 @@ let f() =
     |> should equal """
 /// XML COMMENT A
 // Other comment
-let f() = 
+let f() =
     // COMMENT A
     let y = 1
     /// XML COMMENT B
@@ -206,7 +206,7 @@ type IlxGenIntraAssemblyInfo =
     |> prepend newline
     |> should equal """
 /// Non-local information related to internals of code generation within an assembly
-type IlxGenIntraAssemblyInfo = 
+type IlxGenIntraAssemblyInfo =
     { /// A table recording the generated name of the static backing fields for each mutable top level value where 
       /// we may need to take the address of that value, e.g. static mutable module-bound values which are structs. These are 
       /// only accessible intra-assembly. Across assemblies, taking the address of static mutable module-bound values is not permitted.
@@ -237,7 +237,7 @@ type X =
     |> prepend newline
     |> should equal """
 /// XML comment
-type X = 
+type X =
     /// Hello
     | A
     /// Goodbye
@@ -274,7 +274,7 @@ type IlxGenOptions =
     |> prepend newline
     |> should equal """
 [<NoEquality; NoComparison>]
-type IlxGenOptions = 
+type IlxGenOptions =
     { fragName : string;
       generateFilterBlocks : bool;
       workAroundReflectionEmitBugs : bool;
@@ -345,7 +345,7 @@ let moveFrom source =
 """  config
     |> prepend newline
     |> should equal """
-let moveFrom source = 
+let moveFrom source =
     getAllFiles source
     |> Seq.filter (fun f -> Path.GetExtension(f).ToLower() <> ".db") //exlcude the thumbs.db files
     |> move @"C:\_EXTERNAL_DRIVE\_Camera"

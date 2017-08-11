@@ -18,7 +18,7 @@ let f x =
     """ config
     |> prepend newline
     |> should equal """
-let f x = 
+let f x =
     someveryveryveryverylongexpression 
     <|> if someveryveryveryverylongexpression then 
             someveryveryveryverylongexpression
@@ -40,7 +40,7 @@ let ``should keep the pipe after pattern matching``() =
     """ config
     |> prepend newline
     |> should equal """
-let m = 
+let m =
     match x with
     | y -> ErrorMessage msg
     | _ -> LogMessage(msg, true)
@@ -56,7 +56,7 @@ let runAll() =
     |> Async.RunSynchronously |> ignore""" config
     |> prepend newline
     |> should equal """
-let runAll() = 
+let runAll() =
     urlList
     |> Seq.map fetchAsync
     |> Async.Parallel

@@ -13,7 +13,7 @@ let ``enums declaration``() =
     | [<Description("small-caps")>] SmallCaps = 0""" config
     |> prepend newline
     |> should equal """
-type FontVariant = 
+type FontVariant =
     | [<Description("small-caps")>] SmallCaps = 0
 """
 
@@ -22,7 +22,7 @@ let ``discriminated unions declaration``() =
     formatSourceString false "type X = private | A of AParameters | B" config
     |> prepend newline
     |> should equal """
-type X = 
+type X =
     private
     | A of AParameters
     | B
@@ -38,12 +38,12 @@ type uColor =
 let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)""" config
     |> prepend newline
     |> should equal """
-type uColor = 
+type uColor =
     | Red = 0u
     | Green = 1u
     | Blue = 2u
 
-let col3 = 
+let col3 =
     Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
 """
 
@@ -61,11 +61,11 @@ type Type
             | TyCon (s, ts) -> s""" config
     |> prepend newline
     |> should equal """
-type Type = 
+type Type =
     | TyLam of Type * Type
     | TyVar of string
     | TyCon of string * Type list
-    override this.ToString() = 
+    override this.ToString() =
         match this with
         | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
         | TyVar a -> a
@@ -82,7 +82,7 @@ type Argument =
   | Version of string""" config
     |> prepend newline
     |> should equal """
-type Argument = 
+type Argument =
     | [<MandatoryAttribute>] Action of string
     | [<MandatoryAttribute>] ProjectFile of string
     | PackageId of string
@@ -103,11 +103,11 @@ type Strategy =
     | BuyHold""" config
     |> prepend newline
     |> should equal """
-type Thing = 
+type Thing =
     | Human of Name : string * Age : int
     | Cat of Name : string * HoursSleptADay : int
 
-type Strategy = 
+type Strategy =
     | Adaptive
     | Fundamental
     | ShortAR of p : int // F# 3.1 syntax
@@ -126,11 +126,11 @@ let main argv =
    | _ -> 0""" config
     |> prepend newline
     |> should equal """
-type TestUnion = 
+type TestUnion =
     | Test of A : int * B : int
 
 [<EntryPoint>]
-let main argv = 
+let main argv =
     let d = Test(B = 1, A = 2)
     match d with
     | Test (A = a; B = b) -> a + b

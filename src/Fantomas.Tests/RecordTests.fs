@@ -11,7 +11,7 @@ let ``record declaration``() =
     formatSourceString false "type AParameters = { a : int }" config
     |> prepend newline
     |> should equal """
-type AParameters = 
+type AParameters =
     { a : int }
 """
 
@@ -20,7 +20,7 @@ let ``record declaration with implementation visibility attribute``() =
     formatSourceString false "type AParameters = private { a : int; b: float }" config
     |> prepend newline
     |> should equal """
-type AParameters = 
+type AParameters =
     private { a : int
               b : float }
 """
@@ -69,7 +69,7 @@ type Element =
 module RecordSignature
 
 /// Represents simple XML elements.
-type Element = 
+type Element =
     { /// The attribute collection.
       Attributes : IDictionary<Name, string>;
       /// The children collection.
@@ -107,12 +107,12 @@ type Car = {
 let myRecord3 = { myRecord2 with Y = 100; Z = 2 }""" config
     |> prepend newline
     |> should equal """
-type Car = 
+type Car =
     { Make : string
       Model : string
       mutable Odometer : int }
 
-let myRecord3 = 
+let myRecord3 =
     { myRecord2 with Y = 100
                      Z = 2 }
 """
@@ -141,12 +141,12 @@ let ``should not break inside of if statements in records``() =
     }
 
     """ { config with SemicolonAtEndOfLine = true }
-    |> should equal """let XpkgDefaults() = 
+    |> should equal """let XpkgDefaults() =
     { ToolPath = "./tools/xpkg/xpkg.exe";
       WorkingDir = "./";
       TimeOut = TimeSpan.FromMinutes 5.;
       Package = null;
-      Version = 
+      Version =
           if not isLocalBuild then buildVersion
           else "0.1.0.0";
       OutputPath = "./xpkg";
@@ -172,7 +172,7 @@ let rec make item depth =
     else Tree(defaultof<_>, item)""" config
   |> prepend newline
   |> should equal """
-let rec make item depth = 
+let rec make item depth =
     if depth > 0 then 
         Tree({ Left = make (2 * item - 1) (depth - 1)
                Right = make (2 * item) (depth - 1) }, item)
@@ -187,10 +187,10 @@ type rate2 = Rate of float<GBP/SGD*USD>
 """  config
   |> prepend newline
   |> should equal """
-type rate = 
+type rate =
     { Rate : float<GBP * SGD / USD> }
 
-type rate2 = 
+type rate2 =
     | Rate of float<GBP / SGD * USD>
 """
 
@@ -206,9 +206,9 @@ let newDocument = //somecomment
   |> prepend newline
   |> should equal """
 let newDocument = //somecomment
-    { program = 
+    { program =
           Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
-      content = 
+      content =
           Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
       created = document.Created.ToLocalTime() }
     |> JsonConvert.SerializeObject
@@ -223,7 +223,7 @@ type MyExc =
 """  config
   |> prepend newline
   |> should equal """
-type MyExc = 
+type MyExc =
     inherit Exception
     new(msg) = { inherit Exception(msg) }
 """

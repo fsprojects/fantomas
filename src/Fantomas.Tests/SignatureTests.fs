@@ -18,7 +18,7 @@ let ``should keep the (string * string) list type signature in records``() =
       FileLoggers : MSBuildFileLoggerConfig list option }
 
     """ config
-    |> should equal """type MSBuildParams = 
+    |> should equal """type MSBuildParams =
     { Targets : string list
       Properties : (string * string) list
       MaxCpuCount : int option option
@@ -57,7 +57,7 @@ let ``should not add parens in signature``() =
     override x.ToString() = sprintf "%s %s" x.Verb x.Path
 
     """ config
-    |> should equal """type Route = 
+    |> should equal """type Route =
     { Verb : string
       Path : string
       Handler : Map<string, string> -> HttpListenerContext -> string }
@@ -71,7 +71,7 @@ let ``should keep the string * string * string option type signature``() =
     | Link of string * string * (string option)
 
     """ config
-    |> should equal """type DGML = 
+    |> should equal """type DGML =
     | Node of string
     | Link of string * string * string option
 """
@@ -83,7 +83,7 @@ let ``should keep the (string option * Node) list type signature``() =
       NextNodes : (string option * Node) list }
 
     """ { config with SemicolonAtEndOfLine = true }
-    |> should equal """type Node = 
+    |> should equal """type Node =
     { Name : string;
       NextNodes : (string option * Node) list }
 """
@@ -97,10 +97,10 @@ type A () =
     interface IA with
         member x.F (f: unit -> _) = f ()
     """ config
-    |> should equal """type IA = 
+    |> should equal """type IA =
     abstract F : (unit -> Option<'T>) -> Option<'T>
 
-type A() = 
+type A() =
     interface IA with
         member x.F(f : unit -> _) = f()
 """
@@ -118,7 +118,7 @@ type C =
     |> should equal """
 namespace TupleType
 
-type C = 
+type C =
     member P1 : int * string
     /// def
     member P2 : int
