@@ -36,6 +36,7 @@ let createFormatContextNoChecker fileName source =
     let checkOptions = 
         checker.GetProjectOptionsFromScript(fileName, source, DateTime.Now, filterDefines source) 
         |> Async.RunSynchronously
+        |> fst
     { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker }
 
 let createFormatContext fileName source projectOptions checker =
@@ -44,7 +45,8 @@ let createFormatContext fileName source projectOptions checker =
 let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker } = 
     async {
         // Run the first phase (untyped parsing) of the compiler
-        let! untypedRes = checker.ParseFileInProject(fileName, source, checkOptions)
+        let parseOptions = checker.GetParsingOptionsFromProjectOptions checkOptions |> fst
+        let! untypedRes = checker.ParseFile(fileName, source, parseOptions)
         if untypedRes.ParseHadErrors then
             let errors = 
                 untypedRes.Errors

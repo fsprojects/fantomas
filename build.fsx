@@ -9,7 +9,7 @@ open Fake.AssemblyInfoFile
 open Fake.ReleaseNotesHelper
 open System
 
-setEnvironVar "MSBuild" (ProgramFilesX86 @@ @"\MSBuild\12.0\Bin\MSBuild.exe")
+// setEnvironVar "MSBuild" (ProgramFilesX86 @@ @"\MSBuild\12.0\Bin\MSBuild.exe")
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted 
