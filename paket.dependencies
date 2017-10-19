@@ -8,4 +8,4 @@ nuget Nuget.CommandLine
 nuget NUnit.Console
 nuget NUnit
 nuget FSharp.Compiler.Service
-nuget FsUnit framework: >= net45
+github fsprojects/FsUnit src/FsUnit.NUnit/FsUnit.fs

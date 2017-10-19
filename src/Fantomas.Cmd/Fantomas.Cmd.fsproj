@@ -12,6 +12,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>1e92a842-18b8-4445-9a07-bb202501a7a4</ProjectGuid>
     <OutputType>Exe</OutputType>
