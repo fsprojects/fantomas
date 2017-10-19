@@ -5,7 +5,7 @@ nuget FAKE
 nuget FSharp.Core
 nuget FsCheck
 nuget Nuget.CommandLine
-nuget NUnit.Runners 2.6.4
-nuget NUnit ~> 2
+nuget NUnit.Console
+nuget NUnit
 nuget FSharp.Compiler.Service
-nuget FsUnit 1.3.0.1 framework: >= net45
+nuget FsUnit framework: >= net45

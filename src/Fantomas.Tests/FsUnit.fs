@@ -9,9 +9,9 @@ module TopLevelOperators =
 
     let Empty = EmptyConstraint()
 
-    let EmptyString = EmptyStringConstraint()
+    let EmptyString = Empty
 
-    let NullOrEmptyString = NullOrEmptyStringConstraint()
+    let NullOrEmptyString = OrConstraint(Null, Empty)
 
     let True = TrueConstraint()
 

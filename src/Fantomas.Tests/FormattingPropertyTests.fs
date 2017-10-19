@@ -502,7 +502,7 @@ type Generators =
     static member Input() = 
         Arb.fromGenShrink (generateInput, shrinkInput)
 
-[<TestFixtureSetUp>]
+[<OneTimeSetUp>]
 let registerFsCheckGenerators() =
     Arb.register<Generators>() |> ignore
 
