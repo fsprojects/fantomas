@@ -85,7 +85,7 @@ Target "UnitTests" (fun _ ->
           { p with
               ShadowCopy = false
               TimeOut = TimeSpan.FromMinutes 20.
-              Framework = Net45
+              Framework = NUnit3Runtime.Default
               Domain = MultipleDomainModel})
 )
 
