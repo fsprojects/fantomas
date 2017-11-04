@@ -376,32 +376,32 @@ let (|BlockCommentChunk|_|) = function
 let markStickiness (tokens: seq<Token * string>) = 
     seq { let inWhiteSpaceAtStartOfLine = ref true
           let inLineComment = ref false
-          for (tio, tt) in tokens do 
-             match tio with 
-             | Token ti when ti.CharClass = FSharpTokenCharKind.LineComment ->
+          for (token, tokenString) in tokens do 
+             match token with 
+             | Token tokenInfo when tokenInfo.CharClass = FSharpTokenCharKind.LineComment ->
                   if !inLineComment then 
                       // Subsequent tokens in a line comment
-                      yield Marked(tio, tt, NotApplicable)
+                      yield Marked(token, tokenString, NotApplicable)
                   else
                       // First token in a line comment. 
                       inLineComment := true
-                      yield Marked(tio, tt, if !inWhiteSpaceAtStartOfLine then StickyRight else StickyLeft)
-             
+                      yield Marked(token, tokenString, if !inWhiteSpaceAtStartOfLine then StickyRight else StickyLeft)
+
              // Comments can't be attached to Delimiters
-             | Token ti 
+             | Token tokenInfo 
                   when !inWhiteSpaceAtStartOfLine 
-                       && (ti.CharClass = FSharpTokenCharKind.WhiteSpace || ti.CharClass = FSharpTokenCharKind.Delimiter) ->
+                       && (tokenInfo.CharClass = FSharpTokenCharKind.WhiteSpace || tokenInfo.CharClass = FSharpTokenCharKind.Delimiter) ->
                   // Whitespace at start of line
-                  yield Marked(tio, tt, NotApplicable)
+                  yield Marked(token, tokenString, NotApplicable)
              | Tok _ ->
                   // Some other token on a line
                   inWhiteSpaceAtStartOfLine := false
-                  yield Marked(tio, tt, NotApplicable)
+                  yield Marked(token, tokenString, NotApplicable)
              | EOL -> 
                   // End of line marker
                  inLineComment := false
                  inWhiteSpaceAtStartOfLine := true
-                 yield Marked(tio, tt, NotApplicable) }
+                 yield Marked(token, tokenString, NotApplicable) }
 
 let rec (|LongIdent|_|) = function
    | Ident t1 :: Delimiter "." :: LongIdent(toks, moreOrigTokens) -> 
@@ -420,7 +420,12 @@ let (|OpenChunk|_|) = function
 /// Assume that originalText and newText are derived from the same AST. 
 /// Pick all comments and directives from originalText to insert into newText               
 let integrateComments (originalText : string) (newText : string) =
-    let origTokens = tokenize (filterConstants originalText) originalText |> markStickiness |> Seq.toList
+    let origTokens = 
+        originalText 
+        |> tokenize (filterConstants originalText)  //Convert Text to Token * string pairs
+        |> markStickiness 
+        |> Seq.toList
+
     //Seq.iter (fun (Marked(_, s, t)) -> Console.WriteLine("sticky information: {0} -- {1}", s, t)) origTokens
     let newTokens = tokenize [] newText |> Seq.toList
 
@@ -459,11 +464,6 @@ let integrateComments (originalText : string) (newText : string) =
             | Space origTokText :: _ -> String.length origTokText
             | _ -> 0
         | _ -> 0
-        
-    let countStartingSpaces (lines: string []) = 
-        if lines.Length = 0 then 0
-        else
-            Seq.min [ for line in lines -> line.Length - line.TrimStart(' ').Length ]
 
     let tokensMatch t1 t2 = 
         match t1, t2 with 
@@ -530,8 +530,13 @@ let integrateComments (originalText : string) (newText : string) =
             Debug.WriteLine("injecting inactive code '{0}'", String.concat "" tokensText |> box)
             let text = String.concat "" tokensText
             let lines = (String.normalizeNewLine text).Split([|'\n'|], StringSplitOptions.RemoveEmptyEntries)
+            
             // What is current indentation of this chunk
-            let numSpaces = countStartingSpaces lines
+            let numSpaces = 
+                if lines.Length = 0 then 0
+                else
+                    Seq.min [ for line in lines -> line.Length - line.TrimStart(' ').Length ]
+
             Debug.WriteLine("the number of starting spaces is {0}", numSpaces)
             // Write the chunk in the same indentation with #if branch
             for line in lines do
@@ -678,7 +683,7 @@ let integrateComments (originalText : string) (newText : string) =
             loop [] moreNewTokens 
 
         // Dangling input text - extra comments or whitespace
-        | (Marked(origTok, origTokText, _) :: moreOrigTokens), [] ->
+        | (Marked(_, origTokText, _) :: moreOrigTokens), [] ->
             Debug.WriteLine("dropping dangling old token '{0}'", box origTokText)
             loop moreOrigTokens [] 
 
