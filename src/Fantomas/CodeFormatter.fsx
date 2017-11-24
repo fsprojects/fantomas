@@ -310,3 +310,12 @@ type CodeGenBuffer(m:range,
         ResizeArray.toList exnSpecs,
         isSome seqpoint
 """
+formatSrc """
+let x =
+    ((*comment*))
+    printf "a"
+    // another comment 1
+    printf "b"
+    // another comment 2
+    printf "c"
+"""
