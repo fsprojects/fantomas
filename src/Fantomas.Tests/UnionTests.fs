@@ -136,3 +136,22 @@ let main argv =
     | Test (A = a; B = b) -> a + b
     | _ -> 0
 """
+
+[<Test>]
+let ``enums conversion with strict mode``() =
+    formatSourceString false """
+type uColor =
+   | Red = 0u
+   | Green = 1u
+   | Blue = 2u
+let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)""" { config with StrictMode = true }
+    |> prepend newline
+    |> should equal """
+type uColor =
+    | Red = 0u
+    | Green = 1u
+    | Blue = 2u
+
+let col3 =
+    Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
+"""

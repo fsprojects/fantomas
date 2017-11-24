@@ -835,10 +835,11 @@ and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs)) =
     +> genOnelinerAttributes astContext ats -- s 
     +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
 
-and genEnumCase astContext (EnumCase(ats, px, _, c)) =
+and genEnumCase astContext (EnumCase(ats, px, s, c)) =
     genPreXmlDoc px 
     +> ifElse astContext.HasVerticalBar sepBar sepNone 
-    +> genOnelinerAttributes astContext ats +> genConst c
+    +> genOnelinerAttributes astContext ats 
+    +> (fun ctx -> (if ctx.Config.StrictMode then !- s -- " = " else !- "") ctx) +> genConst c
 
 and genField astContext prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) = 
     // Being protective on union case declaration
