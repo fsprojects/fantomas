@@ -111,6 +111,15 @@ let divide x y =
 """
 
 [<Test>]
+let ``simple subtype constraint``() =
+    formatSourceString false """
+let subtype (xs : seq<'t :> System.IDisposable>) = ()""" config
+    |> prepend newline
+    |> should equal """
+let subtype (xs : seq<'t :> System.IDisposable>) = ()
+"""
+
+[<Test>]
 let ``type constraints and inline``() =
     formatSourceString false """
 let inline add(value1 : ^T when ^T : (static member (+) : ^T * ^T -> ^T), value2: ^T) =
