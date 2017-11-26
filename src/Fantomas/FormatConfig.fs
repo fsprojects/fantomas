@@ -294,7 +294,7 @@ let internal sepSpace = !- " "
 let internal sepNln = !+ ""
 let internal sepStar = !- " * "
 let internal sepEq = !- " ="
-let internal sepArrow = !- " -> "
+let internal sepArrow = !- " ->"
 let internal sepWild = !- "_"
 let internal sepNone = id
 let internal sepBar = !- "| "
