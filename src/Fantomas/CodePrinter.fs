@@ -1070,7 +1070,8 @@ and genComplexPat astContext = function
     | CPAttrib(ats, sp) -> genOnelinerAttributes astContext ats +> genComplexPat astContext sp
 
 and genComplexPats astContext = function
-    | ComplexPats [c] -> genComplexPat astContext c
+    | ComplexPats [CPId _ as c]
+    | ComplexPats [CPSimpleId _ as c] -> genComplexPat astContext c
     | ComplexPats ps -> sepOpenT +> col sepComma ps (genComplexPat astContext) +> sepCloseT
     | ComplexTyped(ps, t) -> genComplexPats astContext ps +> sepColon +> genType astContext false t
 
