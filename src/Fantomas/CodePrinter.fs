@@ -159,7 +159,7 @@ and genModuleDecl astContext = function
     | Extern(ats, px, ao, t, s, ps) ->
         genPreXmlDoc px
         +> genAttributes astContext ats
-        -- "extern " +> genType astContext false t +> sepSpace +> opt sepSpace ao genAccess
+        -- "extern " +> genType { astContext with IsCStylePattern = true } false t +> sepSpace +> opt sepSpace ao genAccess
         -- s +> sepOpenT +> col sepComma ps (genPat { astContext with IsCStylePattern = true }) +> sepCloseT
     // Add a new line after module-level let bindings
     | Let(b) ->
@@ -849,6 +849,8 @@ and genField astContext prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) 
     +> ifElse isMutable (!- "mutable ") sepNone +> opt sepSpace ao genAccess  
     +> opt sepColon so (!-) +> t
 
+and genTypeByLookup astContext (t: SynType) = getByLookup t.Range (genType astContext false) t
+
 and genType astContext outerBracket t =
     let rec loop = function
         | THashConstraint t -> !- "#" +> loop t
@@ -879,7 +881,7 @@ and genType astContext outerBracket t =
         | TWithGlobalConstraints(TVar _, [TyparSubtypeOfType _ as tc]) -> genTypeConstraint astContext tc
         | TWithGlobalConstraints(TFuns ts, tcs) -> col sepArrow ts loop +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)        
         | TWithGlobalConstraints(t, tcs) -> loop t +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
-        | TLongIdent s -> !- s
+        | TLongIdent s -> ifElse astContext.IsCStylePattern (genTypeByLookup astContext t) (!- s)
         | t -> failwithf "Unexpected type: %O" t
 
     and loopTTupleList = function
@@ -1088,18 +1090,7 @@ and genPat astContext = function
     | PatTyped(p, t) -> 
         // CStyle patterns only occur on extern declaration so it doesn't escalate to expressions
         // We lookup sources to get extern types since it has quite many exceptions compared to normal F# types
-        let genTypeByLookup t =
-            fun ctx -> 
-                if ctx.Config.StrictMode then
-                    genType astContext false t ctx
-                else
-                    match lookup t.Range ctx with
-                    | Some typ ->
-                        str typ ctx
-                    | None ->
-                        genType astContext false t ctx
-
-        ifElse astContext.IsCStylePattern (genTypeByLookup t +> sepSpace +> genPat astContext p)
+        ifElse astContext.IsCStylePattern (genTypeByLookup astContext t +> sepSpace +> genPat astContext p)
             (genPat astContext p +> sepColon +> genType astContext false t) 
     | PatNamed(ao, PatNullary PatWild, s) -> opt sepSpace ao genAccess -- s
     | PatNamed(ao, p, s) -> opt sepSpace ao genAccess +> genPat astContext p -- sprintf " as %s" s 
