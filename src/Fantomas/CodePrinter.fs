@@ -963,7 +963,7 @@ and genInterfaceImpl astContext (InterfaceImpl(t, bs)) =
 
 and genClause astContext hasBar (Clause(p, e, eo)) = 
     ifElse hasBar sepBar sepNone +> genPat astContext p 
-    +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> preserveBreakNlnOrSpace astContext e
+    +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> preserveBreakNlnOrAddSpace astContext e
 
 /// Each multiline member definition has a pre and post new line. 
 and genMemberDefnList astContext = function
