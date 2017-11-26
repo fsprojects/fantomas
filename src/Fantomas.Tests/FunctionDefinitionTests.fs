@@ -318,3 +318,11 @@ let ``don't create redundant parentheses outside trait calls``() =
     |> should equal """
 let f (arg : 'T) = (^T : (member Value : string) arg)
 """
+
+[<Test>]
+let ``lambda with complex type``() =
+    formatSourceString false """let x = fun ((u, v):(int*int)) -> 5"""  config
+    |> prepend newline
+    |> should equal """
+let x = fun ((u, v) : int * int) -> 5
+"""
