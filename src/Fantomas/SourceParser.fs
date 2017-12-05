@@ -823,9 +823,13 @@ let (|ParsingError|_|) = function
         Some r
     | _ -> None
 
+let (|ILEmbedded|_|) = function
+    | SynExpr.LibraryOnlyILAssembly (_,_,_,_,r) ->
+        Some(r)
+    | _ -> None
+
 let (|UnsupportedExpr|_|) = function
     // Temprorarily ignore these cases not often used outside FSharp.Core
-    | SynExpr.LibraryOnlyILAssembly(_, _, _, _, r)
     | SynExpr.LibraryOnlyStaticOptimization(_, _, _, r)
     | SynExpr.LibraryOnlyUnionCaseFieldGet(_, _, _, r)
     | SynExpr.LibraryOnlyUnionCaseFieldSet(_, _, _, _, r) ->

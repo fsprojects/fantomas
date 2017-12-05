@@ -505,7 +505,7 @@ and genExpr astContext = function
         genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
         +> sepSpace +> genExpr astContext e
 
-    | Paren (SynExpr.LibraryOnlyILAssembly (_,_,_,_,r)) -> 
+    | Paren (ILEmbedded r) -> 
         // Just write out original code inside (# ... #) 
         fun ctx -> !- (defaultArg (lookup r ctx) "") ctx
     | Paren e -> 
