@@ -710,7 +710,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | Simple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
         genExceptionBody astContext ats px ao uc
 
-    | ObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others)) ->
+    | ObjectModel(TCSimple (TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others)) ->
         let isInterface =
             match tdk with
             | TCSimple TCInterface -> true
@@ -720,7 +720,15 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         +> indent +> sepNln +> genTypeDefKind tdk
         +> indent +> genMemberDefnList astContext others +> unindent
         ++ "end" +> unindent
-
+    
+    | ObjectModel(TCSimple (TCStruct) as tdk, MemberDefnList(impCtor, others)) ->
+        typeName +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq 
+        +> indent +> sepNln +> genTypeDefKind tdk
+        +> indent +> genMemberDefnList astContext others +> unindent
+        ++ "end"
+        // Prints any members outside the struct-end construct
+        +> genMemberDefnList astContext ms +> unindent
+    
     | ObjectModel(TCSimple TCAugmentation, _) ->
         typeName -- " with" +> indent
         // Remember that we use MemberDefn of parent node
