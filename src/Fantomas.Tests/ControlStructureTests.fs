@@ -278,3 +278,15 @@ let url =
     | B -> "b"
     + "/c"
 """
+
+[<Test>]
+let ``if/elif without else``() =
+    formatSourceString false """
+if true then ()
+elif true then ()
+    """ config
+    |> prepend newline
+    |> should equal """
+if true then ()
+elif true then ()
+"""

@@ -594,14 +594,14 @@ and genExpr astContext = function
     // It seems too annoying to use sepSemiNln
     | Sequentials es -> atCurrentColumn (col sepNln es (genExpr astContext))
     // A generalization of IfThenElse
-    | ElIf((e1,e2, _)::es, en) ->
+    | ElIf((e1,e2, _)::es, enOpt) ->
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") -- " " 
             +> preserveBreakNln astContext e2
             +> fun ctx -> col sepNone es (fun (e1, e2, r) ->
                              ifElse (startWith "elif" r ctx) (!+ "elif ") (!+ "else if ")
                              +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") 
                              -- " " +> preserveBreakNln astContext e2) ctx
-            ++ "else " +> preserveBreakNln astContext en)
+            +> opt sepNone enOpt (fun en -> !+ "else " +> preserveBreakNln astContext en))
 
     | IfThenElse(e1, e2, None) -> 
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") 
