@@ -81,6 +81,7 @@
     <Compile Include="TypeDeclarationTests.fs" />
     <Compile Include="InterfaceTests.fs" />
     <Compile Include="ClassTests.fs" />
+    <Compile Include="StructTests.fs" />
     <Compile Include="SignatureTests.fs" />
     <Compile Include="PatternMatchingTests.fs" />
     <Compile Include="ActivePatternTests.fs" />
@@ -96,6 +97,7 @@
     <Compile Include="FormattingSelectionOnlyTests.fs" />
     <Compile Include="ValidationTests.fs" />
     <Compile Include="FormattingPropertyTests.fs" />
+    <Compile Include="SpecialConstructsTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

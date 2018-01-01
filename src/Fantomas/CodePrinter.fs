@@ -262,6 +262,12 @@ and preserveBreakNln astContext e ctx =
 and preserveBreakNlnOrAddSpace astContext e ctx =
     breakNlnOrAddSpace astContext (checkPreserveBreakForExpr e ctx) e ctx
 
+and genExprSepEqPrependType astContext prefix e =
+    match e with
+    | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType astContext false t +> sepEq
+                                +> preserveBreakNlnOrAddSpace astContext e
+    | e -> prefix +> sepEq +> preserveBreakNlnOrAddSpace astContext e
+
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx = 
     ifElse (checkPreserveBreakForExpr e ctx) (sepNln +> genExpr astContext e) (autoNln (genExpr astContext e)) ctx
@@ -285,10 +291,7 @@ and genLetBinding astContext pref b =
             +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
             +> genPat astContext p
 
-        match e with
-        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType astContext false t +> sepEq
-                                    +> preserveBreakNlnOrAddSpace astContext e
-        | e -> prefix +> sepEq +> preserveBreakNlnOrAddSpace astContext e
+        genExprSepEqPrependType astContext prefix e
 
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
@@ -299,7 +302,7 @@ and genLetBinding astContext pref b =
         failwithf "%O isn't a let binding" b
 
 and genShortGetProperty astContext e = 
-    sepEq +> preserveBreakNlnOrAddSpace astContext e
+    genExprSepEqPrependType astContext !- "" e
 
 and genProperty astContext prefix ao propertyKind ps e =
     let tuplerize ps =
@@ -315,11 +318,11 @@ and genProperty astContext prefix ao propertyKind ps e =
         !- prefix +> opt sepSpace ao genAccess -- propertyKind
         +> ifElse (List.atMostOne ps) (col sepComma ps (genPat astContext) +> sepSpace) 
             (sepOpenT +> col sepComma ps (genPat astContext) +> sepCloseT +> sepSpace)
-        +> genPat astContext p +> sepEq +> preserveBreakNlnOrAddSpace astContext e
+        +> genPat astContext p +> genExprSepEqPrependType astContext !- "" e
 
     | ps -> 
         !- prefix +> opt sepSpace ao genAccess -- propertyKind +> col sepSpace ps (genPat astContext) 
-        +> sepEq +> preserveBreakNlnOrAddSpace astContext e
+        +> genExprSepEqPrependType astContext !- "" e
 
 and genPropertyWithGetSet astContext (b1, b2) =
     match b1, b2 with
@@ -333,7 +336,7 @@ and genPropertyWithGetSet astContext (b1, b2) =
         assert(ps2 |> Seq.map fst |> Seq.forall Option.isNone)
         let ps1 = List.map snd ps1
         let ps2 = List.map snd ps2
-        prefix -- s1 +> sepSpace +> indent +> sepNln
+        prefix -- s1 +> indent +> sepNln
         +> genProperty astContext "with " ao1 "get " ps1 e1 +> sepNln 
         +> genProperty astContext "and " ao2 "set " ps2 e2
         +> unindent
@@ -380,7 +383,7 @@ and genMemberBinding astContext b =
                 prefix -- s +> genShortGetProperty astContext e
             | _ ->
                 let ps = List.map snd ps              
-                prefix -- s +> sepSpace +> indent +> sepNln +> 
+                prefix -- s +> indent +> sepNln +> 
                 genProperty astContext "with " ao propertyKind ps e
                 +> unindent
         | p -> failwithf "Unexpected pattern: %O" p
@@ -505,6 +508,9 @@ and genExpr astContext = function
         genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
         +> sepSpace +> genExpr astContext e
 
+    | Paren (ILEmbedded r) -> 
+        // Just write out original code inside (# ... #) 
+        fun ctx -> !- (defaultArg (lookup r ctx) "") ctx
     | Paren e -> 
         // Parentheses nullify effects of no space inside DotGet
         sepOpenT +> genExpr { astContext with IsInsideDotGet = false } e +> sepCloseT
@@ -704,7 +710,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | Simple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
         genExceptionBody astContext ats px ao uc
 
-    | ObjectModel(TCSimple (TCStruct | TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others)) ->
+    | ObjectModel(TCSimple (TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others)) ->
         let isInterface =
             match tdk with
             | TCSimple TCInterface -> true
@@ -714,7 +720,15 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         +> indent +> sepNln +> genTypeDefKind tdk
         +> indent +> genMemberDefnList astContext others +> unindent
         ++ "end" +> unindent
-
+    
+    | ObjectModel(TCSimple (TCStruct) as tdk, MemberDefnList(impCtor, others)) ->
+        typeName +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq 
+        +> indent +> sepNln +> genTypeDefKind tdk
+        +> indent +> genMemberDefnList astContext others +> unindent
+        ++ "end"
+        // Prints any members outside the struct-end construct
+        +> genMemberDefnList astContext ms +> unindent
+    
     | ObjectModel(TCSimple TCAugmentation, _) ->
         typeName -- " with" +> indent
         // Remember that we use MemberDefn of parent node
