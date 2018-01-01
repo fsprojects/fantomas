@@ -96,6 +96,7 @@
     <Compile Include="FormattingSelectionOnlyTests.fs" />
     <Compile Include="ValidationTests.fs" />
     <Compile Include="FormattingPropertyTests.fs" />
+    <Compile Include="SpecialConstructsTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

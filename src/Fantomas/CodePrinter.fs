@@ -508,6 +508,9 @@ and genExpr astContext = function
         genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT 
         +> sepSpace +> genExpr astContext e
 
+    | Paren (ILEmbedded r) -> 
+        // Just write out original code inside (# ... #) 
+        fun ctx -> !- (defaultArg (lookup r ctx) "") ctx
     | Paren e -> 
         // Parentheses nullify effects of no space inside DotGet
         sepOpenT +> genExpr { astContext with IsInsideDotGet = false } e +> sepCloseT
