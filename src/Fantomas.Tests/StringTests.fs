@@ -68,6 +68,26 @@ let g = '\n'
 """
 
 [<Test>]
+let ``uncommon literals strict mode``() =
+    formatSourceString false """
+let a = 0xFFy
+let c = 0b0111101us
+let d = 0o0777
+let e = 1.40e10f
+let f = 23.4M
+let g = '\n'
+    """ { config with StrictMode=true }
+    |> prepend newline
+    |> should equal """
+let a = -1y
+let c = 61us
+let d = 511
+let e = 1.4e+10f
+let f = 23.4M
+let g = '\010'
+"""
+
+[<Test>]
 let ``should preserve triple-quote strings``() =
     formatSourceString false "
     type GetList() =

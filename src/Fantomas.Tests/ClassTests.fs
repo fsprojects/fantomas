@@ -101,11 +101,11 @@ type Shape2D(x0 : float, y0 : float) =
     let mutable x, y = x0, y0
     let mutable rotAngle = 0.0
     
-    member this.CenterX 
+    member this.CenterX
         with get () = x
         and set xval = x <- xval
     
-    member this.CenterY 
+    member this.CenterY
         with get () = y
         and set yval = y <- yval
     
@@ -281,4 +281,18 @@ let ``should work on static auto properties``() =
 """  config
     |> should equal """type A() =
     static member val LastSchema = "" with get, set
+"""
+
+[<Test>]
+let ``member properties with type annotation``() =
+    formatSourceString false """type A() =
+    member this.X with get():int = 1
+    member this.Y with get():int = 1 and set (_:int):unit = ()
+"""  config
+    |> should equal """type A() =
+    member this.X : int = 1
+    
+    member this.Y
+        with get () : int = 1
+        and set (_ : int) : unit = ()
 """

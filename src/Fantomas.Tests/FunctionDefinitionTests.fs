@@ -111,6 +111,15 @@ let divide x y =
 """
 
 [<Test>]
+let ``simple subtype constraint``() =
+    formatSourceString false """
+let subtype (xs : seq<'t :> System.IDisposable>) = ()""" config
+    |> prepend newline
+    |> should equal """
+let subtype (xs : seq<'t :> System.IDisposable>) = ()
+"""
+
+[<Test>]
 let ``type constraints and inline``() =
     formatSourceString false """
 let inline add(value1 : ^T when ^T : (static member (+) : ^T * ^T -> ^T), value2: ^T) =
@@ -205,6 +214,18 @@ module InteropWithNative =
 """
 
 [<Test>]
+let ``should handle external functions with void return type``() =
+    formatSourceString false """module InteropWithNative =
+        [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
+        extern void setCallbridgeSupportTarget(IntPtr newTarget)""" config
+    |> prepend newline
+    |> should equal """
+module InteropWithNative =
+    [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
+    extern void setCallbridgeSupportTarget(IntPtr newTarget)
+"""
+
+[<Test>]
 let ``should handle external functions with fully-qualified attributes``() =
     formatSourceString false """[<System.Runtime.InteropServices.DllImport("user32.dll")>]
 extern int GetWindowLong(System.IntPtr hwnd, int index)""" config
@@ -296,4 +317,12 @@ let ``don't create redundant parentheses outside trait calls``() =
     |> prepend newline
     |> should equal """
 let f (arg : 'T) = (^T : (member Value : string) arg)
+"""
+
+[<Test>]
+let ``lambda with complex type``() =
+    formatSourceString false """let x = fun ((u, v):(int*int)) -> 5"""  config
+    |> prepend newline
+    |> should equal """
+let x = fun ((u, v) : int * int) -> 5
 """

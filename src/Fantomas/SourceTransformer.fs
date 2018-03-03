@@ -103,14 +103,18 @@ let hasParenInPat = function
     | PatParen _ -> true
     | _ -> false
 
-let genConst (Unresolved(c, r, s)) =
-    let r' = c.Range r
+let getByLookup range f x =
     fun ctx -> 
         if ctx.Config.StrictMode then
-            str s ctx
+            f x ctx
         else
-            let s' = defaultArg (lookup r' ctx) s
-            str s' ctx
+            match lookup range ctx with
+            | Some x' ->
+                str x' ctx
+            | None ->
+                f x ctx
+
+let genConst (Unresolved(c, r, s)) = getByLookup (c.Range r) str s
 
 /// Check whether a range starting with a specified token
 let startWith prefix (r : range) ctx = 
