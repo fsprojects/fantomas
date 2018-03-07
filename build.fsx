@@ -9,7 +9,8 @@ open Fake.AssemblyInfoFile
 open Fake.ReleaseNotesHelper
 open System
 
-setEnvironVar "MSBuild" (ProgramFilesX86 @@ @"\MSBuild\12.0\Bin\MSBuild.exe")
+// setEnvironVar "MSBuild" (ProgramFilesX86 @@ @"\MSBuild\12.0\Bin\MSBuild.exe")
+setEnvironVar "MSBuild" (ProgramFilesX86 @@ @"Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe")
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted 
@@ -84,6 +85,7 @@ Target "UnitTests" (fun _ ->
           { p with
               DisableShadowCopy = true
               TimeOut = TimeSpan.FromMinutes 20.
+              ErrorOutputFile = @"C:\Temp\nunit-error.txt"
               Framework = "4.5"
               Domain = NUnitDomainModel.MultipleDomainModel
               OutputFile = "TestResults.xml" })
