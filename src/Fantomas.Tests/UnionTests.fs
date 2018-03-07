@@ -126,8 +126,7 @@ let main argv =
    | _ -> 0""" config
     |> prepend newline
     |> should equal """
-type TestUnion =
-    | Test of A : int * B : int
+type TestUnion = Test of A : int * B : int
 
 [<EntryPoint>]
 let main argv =
@@ -154,4 +153,42 @@ type uColor =
 
 let col3 =
     Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
+"""
+
+[<Test>]
+let ``Single case DUs on same line`` () =
+    formatSourceString false """
+type CustomerId = 
+    | CustomerId of int
+    """ config
+    |> prepend newline
+    |> should equal """
+type CustomerId = CustomerId of int
+"""
+
+[<Test>]
+let ``Single case DU with private access modifier`` () =
+   formatSourceString false """
+type CustomerId =
+   private 
+   | CustomerId of int
+   """ config
+   |> prepend newline
+   |> should equal """
+type CustomerId = private CustomerId of int
+"""
+
+[<Test>]
+let ``Single case DU with member should be on a newline`` () =
+    formatSourceString false """
+type CustomerId =
+    | CustomerId of int
+    member this.Test() =
+        printfn "%A" this
+    """ config
+    |> prepend newline
+    |> should equal """
+type CustomerId =
+    | CustomerId of int
+    member this.Test() = printfn "%A" this
 """
