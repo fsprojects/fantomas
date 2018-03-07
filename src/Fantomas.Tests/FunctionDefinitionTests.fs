@@ -267,8 +267,7 @@ let f = fun x -> match x with X (x) -> x
 """  config
     |> prepend newline
     |> should equal """
-type U =
-    | X of int
+type U = X of int
 
 let f =
     fun x -> 
