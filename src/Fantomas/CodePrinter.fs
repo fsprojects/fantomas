@@ -8,7 +8,6 @@ open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
-open Fantomas.SourceTransformer
 
 /// This type consists of contextual information which is important for formatting
 type ASTContext =
