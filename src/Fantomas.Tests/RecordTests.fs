@@ -190,8 +190,7 @@ type rate2 = Rate of float<GBP/SGD*USD>
 type rate =
     { Rate : float<GBP * SGD / USD> }
 
-type rate2 =
-    | Rate of float<GBP / SGD * USD>
+type rate2 = Rate of float<GBP / SGD * USD>
 """
 
 [<Test>]
