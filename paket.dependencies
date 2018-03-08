@@ -2,7 +2,7 @@ source https://api.nuget.org/v3/index.json
 
 framework: >= net40
 nuget FAKE
-nuget FSharp.Core
+nuget FSharp.Core redirects: force
 nuget FsCheck
 nuget Nuget.CommandLine
 nuget NUnit.Console
