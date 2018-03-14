@@ -627,11 +627,20 @@ type BlobHelper(Account : CloudStorageAccount) =
 [<Test>]
 let ``^a needs spaces when used as a type parameter``() =
     formatSourceString false """
-let inline tryAverage(seq: seq< ^a >): ^a option =  1""" config
+let inline tryAverage(seq: seq< ^a >): ^a option =  None""" config
     |> prepend newline
     |> should equal """
-let inline tryAverage (seq : seq< ^a >) : ^a option = 1
+let inline tryAverage (seq : seq< ^a >) : ^a option = None
 """
+
+[<Test>]
+let ``multiple hats need spaces`` () =
+    formatSourceString false """
+let inline tryAverage(map: Map< ^a,^b>): ^a option =  None""" config
+    |> prepend newline
+    |> should equal """
+let inline tryAverage (map : Map< ^a, ^b >) : ^a option = None
+"""  
 
 [<Test>]
 let ``should preserve orders on field declarations``() =

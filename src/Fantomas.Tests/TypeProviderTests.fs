@@ -12,7 +12,7 @@ let ``type providers``() =
 type Northwind = ODataService<"http://services.odata.org/Northwind/Northwind.svc/">""" config
     |> prepend newline
     |> should equal """
-type Northwind = ODataService< "http://services.odata.org/Northwind/Northwind.svc/" >
+type Northwind = ODataService<"http://services.odata.org/Northwind/Northwind.svc/">
 """
 
 [<Test>]
@@ -21,7 +21,7 @@ let ``should add space before type provider params``() =
 type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >""" config
     |> prepend newline
     |> should equal """
-type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >
+type IntegerRegex = FSharpx.Regex<@"(?<value>\d+)">
 """
 
 [<Test; ExpectedException(typeof<Fantomas.FormatConfig.FormatException>)>]
@@ -48,4 +48,13 @@ let ``should handle lines with more than 512 characters``() =
                                                                              CommonRuntime.GetOptionalValue((let _, _, x = row
                                                                                                              x))) |]), (ProviderFileSystem.readTextAtRunTimeWithDesignTimeOptions @"C:\Dev\FSharp.Data-master\src\..\tests\FSharp.Data.Tests\Data" "" "SmallTest.csv"), "", '"', true, false))
     .Cache()
+"""
+
+[<Test>]
+let ``multiple arguments in type provider``() =
+    formatSourceString false """
+type Northwind = ODataService<"http://services.odata.org/Northwind/Northwind.svc/", "password">""" config
+    |> prepend newline
+    |> should equal """
+type Northwind = ODataService<"http://services.odata.org/Northwind/Northwind.svc/", "password">
 """
