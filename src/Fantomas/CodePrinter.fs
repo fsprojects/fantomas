@@ -914,10 +914,11 @@ and genType astContext outerBracket t =
   
 and genPrefixTypes astContext = function
     | [] -> sepNone
-    // Some patterns without spaces could cause a parsing error
-    | (TStaticConstant _ | TStaticConstantExpr _ | TStaticConstantNamed _ | TVar(Typar(_, true)) as t)::ts -> 
+    // Where <  and ^ meet, we need an extra space. For example:  seq< ^a >
+    | (TVar(Typar(_, true)) as t)::ts -> 
         !- "< " +> col sepComma (t::ts) (genType astContext false) -- " >"
-    | ts -> !- "<" +> col sepComma ts (genType astContext false) -- ">"
+    | ts ->
+        !- "<" +> col sepComma ts (genType astContext false) -- ">"
 
 and genTypeList astContext = function
     | [] -> sepNone
