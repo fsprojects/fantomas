@@ -1,9 +1,11 @@
-source https://www.nuget.org/api/v2/
+source https://api.nuget.org/v3/index.json
+
 framework: >= net40
 nuget FAKE
-nuget FSharp.Core 4.0.0.1
+nuget FSharp.Core redirects: force
 nuget FsCheck
 nuget Nuget.CommandLine
-nuget NUnit.Runners
+nuget NUnit.Console
+nuget NUnit
 nuget FSharp.Compiler.Service
-nuget FsUnit 1.3.0.1 framework: >= net45
+github fsprojects/FsUnit src/FsUnit.NUnit/FsUnit.fs

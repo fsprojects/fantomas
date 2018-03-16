@@ -7,9 +7,10 @@ open Fake
 open Fake.Git
 open Fake.AssemblyInfoFile
 open Fake.ReleaseNotesHelper
+open Fake.Testing.NUnit3
 open System
 
-setEnvironVar "MSBuild" (ProgramFilesX86 @@ @"\MSBuild\12.0\Bin\MSBuild.exe")
+// setEnvironVar "MSBuild" (ProgramFilesX86 @@ @"\MSBuild\12.0\Bin\MSBuild.exe")
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted 
@@ -80,13 +81,12 @@ Target "Build" (fun _ ->
 
 Target "UnitTests" (fun _ ->
     !! testAssemblies 
-    |> NUnit (fun p ->        
+    |> NUnit3 (fun p ->        
           { p with
-              DisableShadowCopy = true
+              ShadowCopy = false
               TimeOut = TimeSpan.FromMinutes 20.
-              Framework = "4.5"
-              Domain = NUnitDomainModel.MultipleDomainModel
-              OutputFile = "TestResults.xml" })
+              Framework = NUnit3Runtime.Default
+              Domain = MultipleDomainModel})
 )
 
 // --------------------------------------------------------------------------------------

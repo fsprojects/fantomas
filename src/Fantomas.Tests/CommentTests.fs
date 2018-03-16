@@ -163,7 +163,7 @@ let f() =
     x + x + x
 """
 
-[<Test; Ignore>]
+[<Test; Ignore("The test is ignored")>]
 let ``should align mis-aligned comments``() =
     formatSourceString false  """
    /// XML COMMENT A
@@ -297,7 +297,7 @@ type IlxGenOptions =
       alwaysCallVirt : bool }
 """
 
-[<Test; Ignore>]
+[<Test; Ignore("The test is ignored")>]
 let ``should keep comments on else if``() =
     formatSourceString false  """
 if true then ()

@@ -22,18 +22,18 @@ let argsDotNET451 =
           @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.Numerics.dll";
           @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.Windows.Forms.dll"|]
 
-let projectOptions =
-    fun fileName ->
-        {   ProjectFileName = @"C:\Project.fsproj"
-            ProjectFileNames = [| fileName |]
-            OtherOptions = argsDotNET451
-            ReferencedProjects = Array.empty
-            IsIncompleteTypeCheckEnvironment = false
-            UseScriptResolutionRules = true
-            LoadTime = DateTime.UtcNow
-            UnresolvedReferences = None
-            OriginalLoadReferences = List.empty
-            ExtraProjectInfo = None }
+let projectOptions fileName =
+    {   ProjectFileName = @"C:\Project.fsproj"
+        SourceFiles = [| fileName |]
+        Stamp = None
+        OtherOptions = argsDotNET451
+        ReferencedProjects = Array.empty
+        IsIncompleteTypeCheckEnvironment = false
+        UseScriptResolutionRules = true
+        LoadTime = DateTime.UtcNow
+        UnresolvedReferences = None
+        OriginalLoadReferences = List.empty
+        ExtraProjectInfo = None }
 
 let sharedChecker = lazy(FSharpChecker.Create())
 
