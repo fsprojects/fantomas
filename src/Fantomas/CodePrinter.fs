@@ -690,9 +690,18 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         +> unindent
 
     | Simple(TDSRUnion(ao', xs)) ->
+        let unionCases =  
+            match xs with
+            | [] -> id
+            | [x] when List.isEmpty ms -> 
+                indent +> sepSpace +> opt sepSpace ao' genAccess
+                +> genUnionCase { astContext with HasVerticalBar = false } x
+            | xs ->
+                indent +> sepNln +> opt sepNln ao' genAccess 
+                +> col sepNln xs (genUnionCase { astContext with HasVerticalBar = true })
+
         typeName +> sepEq 
-        +> indent +> sepNln +> opt sepNln ao' genAccess 
-        +> col sepNln xs (genUnionCase { astContext with HasVerticalBar = true })
+        +> unionCases
         +> genMemberDefnList { astContext with IsInterface = false } ms
         +> unindent
 
