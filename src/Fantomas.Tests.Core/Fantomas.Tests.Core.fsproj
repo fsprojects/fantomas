@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Fantomas.Tests\FsUnit.fs" />
+    <Compile Include="..\Fantomas.Tests\TestHelpers.fs" />
+    <Compile Include="..\Fantomas.Tests\StringTests.fs" />
+    <Compile Include="..\Fantomas.Tests\CommentTests.fs" />
+    <Compile Include="..\Fantomas.Tests\OperatorTests.fs" />
+    <Compile Include="..\Fantomas.Tests\ComparisonTests.fs" />
+    <Compile Include="..\Fantomas.Tests\ControlStructureTests.fs" />
+    <Compile Include="..\Fantomas.Tests\PipingTests.fs" />
+    <Compile Include="..\Fantomas.Tests\ModuleTests.fs" />
+    <Compile Include="..\Fantomas.Tests\UnionTests.fs" />
+    <Compile Include="..\Fantomas.Tests\RecordTests.fs" />
+    <Compile Include="..\Fantomas.Tests\TypeDeclarationTests.fs" />
+    <Compile Include="..\Fantomas.Tests\InterfaceTests.fs" />
+    <Compile Include="..\Fantomas.Tests\ClassTests.fs" />
+    <Compile Include="..\Fantomas.Tests\StructTests.fs" />
+    <Compile Include="..\Fantomas.Tests\SignatureTests.fs" />
+    <Compile Include="..\Fantomas.Tests\PatternMatchingTests.fs" />
+    <Compile Include="..\Fantomas.Tests\ActivePatternTests.fs" />
+    <Compile Include="..\Fantomas.Tests\QuotationTests.fs" />
+    <Compile Include="..\Fantomas.Tests\FunctionDefinitionTests.fs" />
+    <Compile Include="..\Fantomas.Tests\AttributeTests.fs" />
+    <Compile Include="..\Fantomas.Tests\DataStructureTests.fs" />
+    <Compile Include="..\Fantomas.Tests\CompilerDirectivesTests.fs" />
+    <Compile Include="..\Fantomas.Tests\ComputationExpressionTests.fs" />
+    <Compile Include="..\Fantomas.Tests\TypeProviderTests.fs" />
+    <Compile Include="..\Fantomas.Tests\VerboseSyntaxConversionTests.fs" />
+    <Compile Include="..\Fantomas.Tests\FormattingSelectionTests.fs" />
+    <Compile Include="..\Fantomas.Tests\FormattingSelectionOnlyTests.fs" />
+    <Compile Include="..\Fantomas.Tests\ValidationTests.fs" />
+    <Compile Include="..\Fantomas.Tests\FormattingPropertyTests.fs" />
+    <Compile Include="..\Fantomas.Tests\SpecialConstructsTests.fs" />
+    <None Include="paket.references"></None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

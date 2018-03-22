@@ -11,7 +11,7 @@ module TopLevelOperators =
 
     let EmptyString = EmptyStringConstraint()
 
-    let NullOrEmptyString = NullOrEmptyStringConstraint()
+    let NullOrEmptyString = fun s -> Assert.That(s, Is.Null.Or.Empty)
 
     let True = TrueConstraint()
 

@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Fantomas\AssemblyInfo.fs" />
+    <Compile Include="..\Fantomas\Utils.fs" />
+    <Compile Include="..\Fantomas\TokenMatcher.fs" />
+    <Compile Include="..\Fantomas\FormatConfig.fs" />
+    <Compile Include="..\Fantomas\SourceParser.fs" />
+    <Compile Include="..\Fantomas\SourceTransformer.fs" />
+    <Compile Include="..\Fantomas\CodePrinter.fs" />
+    <Compile Include="..\Fantomas\CodeFormatterImpl.fs" />
+    <Compile Include="..\Fantomas\CodeFormatter.fsi" />
+    <Compile Include="..\Fantomas\CodeFormatter.fs" />
+    <Compile Include="..\Fantomas\FakeHelpers.fs" />
+    <None Include="..\Fantomas\CodeFormatter.fsx" />
+    <Content Include="paket.references" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

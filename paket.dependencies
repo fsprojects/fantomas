@@ -1,9 +1,11 @@
 source https://www.nuget.org/api/v2/
-framework: >= net40
+
 nuget FAKE
-nuget FSharp.Core 4.0.0.1
 nuget FsCheck
+nuget Microsoft.NET.Test.Sdk 15.6.1
 nuget Nuget.CommandLine
 nuget NUnit.Runners
 nuget FSharp.Compiler.Service
-nuget FsUnit 1.3.0.1 framework: >= net45
+nuget FsUnit
+nuget NUnit3TestAdapter 3.10.0
+nuget NUnit 3.10.1
