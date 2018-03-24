@@ -61,6 +61,11 @@ let rec genParsedInput astContext = function
     | ImplFile im -> genImpFile astContext im
     | SigFile si -> genSigFile astContext si
 
+(*
+    See https://github.com/fsharp/FSharp.Compiler.Service/blob/master/src/fsharp/ast.fs#L1518
+    hs = hashDirectives : ParsedHashDirective list 
+    mns = modules : SynModuleOrNamespace list
+*)
 and genImpFile astContext (ParsedImplFileInput(hs, mns)) = 
     col sepNone hs genParsedHashDirective +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns (genModuleOrNamespace astContext)

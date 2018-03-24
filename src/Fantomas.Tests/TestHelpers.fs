@@ -11,28 +11,11 @@ open Microsoft.FSharp.Compiler.ErrorLogger
 let config = FormatConfig.Default
 let newline = "\n"
 
-let argsDotNET451 =
-        [|"--noframework"; "--debug-"; "--optimize-"; "--tailcalls-";
-          // Some constants are used in unit tests
-          "--define:DEBUG"; "--define:TRACE"; "--define:SILVERLIGHT";
-          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.1.0\FSharp.Core.dll";
-          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\mscorlib.dll";
-          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.dll";
-          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.Core.dll";
-          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.Drawing.dll";
-          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.Numerics.dll";
-          @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.Windows.Forms.dll"|]
-
-let parsingOptions fileName:FSharpParsingOptions =
-    {   
+let parsingOptions fileName = 
+    { FSharpParsingOptions.Default with 
         SourceFiles = [| fileName |]
-        CompilingFsLib = true
-        ConditionalCompilationDefines = List.empty
-        IsExe = false
-        IsInteractive = false
-        LightSyntax = None
-        ErrorSeverityOptions = FSharpErrorSeverityOptions.Default
-    }
+        ConditionalCompilationDefines = ["DEBUG";"TRACE";"SILVERLIGHT"]
+        IsInteractive = true }
 
 let sharedChecker = lazy(FSharpChecker.Create())
 
@@ -93,3 +76,16 @@ let equal x =
 
 let inline prepend s content = s + content
 let inline append s content = content + s
+
+let printAST isFsiFile sourceCode =
+    let ast = parse isFsiFile sourceCode
+    printfn "AST:"
+    printfn "%A" ast
+    
+let printContext sourceCode =
+    let normalizedSourceCode = Fantomas.String.normalizeNewLine sourceCode
+    let context = Fantomas.FormatConfig.Context.create config normalizedSourceCode
+    printfn "directives:"
+    context.Directives
+    |> Seq.iter (fun kv -> printfn "%A %s" kv.Key kv.Value)
+    printfn "context: %A" context

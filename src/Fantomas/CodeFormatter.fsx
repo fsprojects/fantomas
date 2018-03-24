@@ -335,11 +335,28 @@ let foo =
     |> id
     |> id         
     
-formatSrc """
+
+// le nojaf
+let parseAndPrint input = 
+    CodeFormatter.Parse ("Program.fs", input)   
+    |> fun parsedInput ->
+        match parsedInput with 
+        | ImplFile implFile ->
+            match implFile with 
+            | ParsedImplFileInput (parsedHash, synModuleOrNamespace) ->
+                printfn "parsedHash:\n%A" parsedHash 
+                printfn "synModuleOrNamespace: \n%A" synModuleOrNamespace 
+        | _ -> ()
+    
+"""
 #if INTERACTIVE
-#else
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
+#else
 #endif
 """    
+|> parseAndPrint
+
+
+sprintf "%O" "meh"
