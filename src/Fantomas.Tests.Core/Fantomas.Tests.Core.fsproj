@@ -2,6 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <Version>2.6.1</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\Fantomas.Tests\FsUnit.fs" />
@@ -35,7 +36,8 @@
     <Compile Include="..\Fantomas.Tests\ValidationTests.fs" />
     <Compile Include="..\Fantomas.Tests\FormattingPropertyTests.fs" />
     <Compile Include="..\Fantomas.Tests\SpecialConstructsTests.fs" />
-    <None Include="paket.references"></None>
+    <None Include="paket.references">
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />

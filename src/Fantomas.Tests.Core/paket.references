@@ -4,3 +4,4 @@ FsCheck
 Microsoft.NET.Test.Sdk
 NUnit3TestAdapter
 NUnit
+NunitXml.TestLogger

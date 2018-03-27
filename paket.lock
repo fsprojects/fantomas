@@ -140,7 +140,8 @@ NUGET
       System.Runtime.Serialization.Primitives (>= 4.3) - restriction: || (&& (< net20) (>= netstandard1.0) (< netstandard1.3)) (&& (< net20) (>= netstandard1.3) (< netstandard2.0))
       System.Xml.XmlDocument (>= 4.3) - restriction: && (< net20) (>= netstandard1.3) (< netstandard2.0)
     NuGet.CommandLine (4.5.1)
-    NUnit (3.10.1) - restriction: || (>= net46) (>= netstandard2.0)
+    NUnit (3.10.1)
+      NETStandard.Library (>= 1.6.1) - restriction: && (< net20) (>= netstandard1.6) (< netstandard2.0)
       NETStandard.Library (>= 2.0) - restriction: && (< net20) (>= netstandard2.0)
     NUnit.ConsoleRunner (3.8)
     NUnit.Extension.NUnitProjectLoader (3.6)
@@ -165,6 +166,7 @@ NUGET
       System.Threading.Thread (>= 4.3) - restriction: >= netcoreapp1.0
       System.Xml.XmlDocument (>= 4.3) - restriction: >= netcoreapp1.0
       System.Xml.XPath.XmlDocument (>= 4.3) - restriction: >= netcoreapp1.0
+    NunitXml.TestLogger (1.1)
     runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.2) - restriction: && (< net45) (>= netstandard2.0)
     runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.2) - restriction: && (< net45) (>= netstandard2.0)
     runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.2) - restriction: && (< net45) (>= netstandard2.0)

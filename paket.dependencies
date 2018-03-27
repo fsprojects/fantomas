@@ -9,3 +9,4 @@ nuget FSharp.Compiler.Service
 nuget FsUnit
 nuget NUnit3TestAdapter 3.10.0
 nuget NUnit 3.10.1
+nuget NunitXml.TestLogger 1.1.0
