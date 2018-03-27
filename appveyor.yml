@@ -1,6 +1,6 @@
-os: Visual Studio 2013
+os: Visual Studio 2017
 build_script:
-  - cmd: build.cmd NuGet
+  - cmd: build.cmd Pack
 test: off
 version: '{build}'
 branches:
