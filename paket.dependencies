@@ -1,5 +1,6 @@
 source https://www.nuget.org/api/v2/
 
+nuget FSharp.Core
 nuget FAKE
 nuget FsCheck
 nuget Microsoft.NET.Test.Sdk 15.6.1

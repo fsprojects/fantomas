@@ -1,3 +1,7 @@
+#### 2.7.0 - 02-04-2017
+* Upgrade to .NET Core 2.0
+* Published as `clitool` 
+
 #### 2.6.1 - 22-04-2017
 * Upgrade to FCS 11.0.4
 

@@ -54,7 +54,14 @@ let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
 // Clean build results & restore NuGet packages
 
 Target "Clean" (fun _ ->
-    CleanDirs ["bin"; "nuget"]
+    CleanDirs [
+        "bin" 
+        "nuget"
+        "src/Fantomas.Core/bin"
+        "src/Fantomas.Core/obj"
+        "src/Fantomas.Cmd.Core/bin"
+        "src/Fantomas.Cmd.Core/obj"
+    ]
 )
 
 Target "AssemblyInfo" (fun _ ->
