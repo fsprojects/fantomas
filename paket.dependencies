@@ -1,5 +1,7 @@
 source https://www.nuget.org/api/v2/
 
+framework: netstandard2.0, netcoreapp2.0
+
 nuget FSharp.Core
 nuget FAKE
 nuget FsCheck
