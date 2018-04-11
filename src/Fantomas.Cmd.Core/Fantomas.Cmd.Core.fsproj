@@ -2,12 +2,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFrameworks>netcoreapp2.0;net462</TargetFrameworks>
     <Version>2.7.0</Version>
     <AssemblyName>dotnet-fantomas</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\Fantomas.Cmd\app.config" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="..\Fantomas.Cmd\Arg.fsi" />
     <Compile Include="..\Fantomas.Cmd\Arg.fs" />
