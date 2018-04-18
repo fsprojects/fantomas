@@ -103,7 +103,7 @@ Target "UnitTests" (fun _ ->
         { p with 
             Project = "src/Fantomas.Tests.Core/Fantomas.Tests.Core.fsproj"
             Configuration = configuration
-            AdditionalArgs = ["--test-adapter-path:. --logger:nunit;LogFilePath=../../TestResults.xml"]
+            AdditionalArgs = ["--no-build --no-restore --test-adapter-path:. --logger:nunit;LogFilePath=../../TestResults.xml"]
         }
     ) 
 )

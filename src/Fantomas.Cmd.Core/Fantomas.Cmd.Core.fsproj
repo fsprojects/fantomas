@@ -5,13 +5,15 @@
     <TargetFrameworks>netcoreapp2.0;net462</TargetFrameworks>
     <Version>2.7.0</Version>
     <AssemblyName>dotnet-fantomas</AssemblyName>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="..\Fantomas.Cmd\Arg.fsi" />
-    <Compile Include="..\Fantomas.Cmd\Arg.fs" />
-    <Compile Include="..\Fantomas.Cmd\Program.fs" />
+    <Compile Include="Arg.fsi" />
+    <Compile Include="Arg.fs" />
+    <Compile Include="Program.fs" />
     <None Include="paket.references" />
+    <Content Include="app.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />

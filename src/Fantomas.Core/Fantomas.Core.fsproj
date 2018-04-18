@@ -3,21 +3,23 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <Version>2.7.0</Version>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="..\Fantomas\Utils.fs" />
-    <Compile Include="..\Fantomas\TokenMatcher.fs" />
-    <Compile Include="..\Fantomas\FormatConfig.fs" />
-    <Compile Include="..\Fantomas\SourceParser.fs" />
-    <Compile Include="..\Fantomas\SourceTransformer.fs" />
-    <Compile Include="..\Fantomas\CodePrinter.fs" />
-    <Compile Include="..\Fantomas\CodeFormatterImpl.fs" />
-    <Compile Include="..\Fantomas\CodeFormatter.fsi" />
-    <Compile Include="..\Fantomas\CodeFormatter.fs" />
-    <Compile Include="..\Fantomas\FakeHelpers.fs" />
-    <None Include="..\Fantomas\CodeFormatter.fsx" />
+    <Compile Include="Utils.fs" />
+    <Compile Include="TokenMatcher.fs" />
+    <Compile Include="FormatConfig.fs" />
+    <Compile Include="SourceParser.fs" />
+    <Compile Include="SourceTransformer.fs" />
+    <Compile Include="CodePrinter.fs" />
+    <Compile Include="CodeFormatterImpl.fs" />
+    <Compile Include="CodeFormatter.fsi" />
+    <Compile Include="CodeFormatter.fs" />
+    <Compile Include="FakeHelpers.fs" />
+    <None Include="CodeFormatter.fsx" />
     <Content Include="paket.references" />
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
