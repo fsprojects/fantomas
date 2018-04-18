@@ -19,7 +19,7 @@ then
   packages/FAKE/tools/FAKE.exe $@ --fsiargs -d:MONO build.fsx 
 else
   # use mono
-  export FrameworkPathOverride=$(dirname $(which mono))/../lib/mono/4.6.2-api
+  export FrameworkPathOverride=$(dirname $(which mono))/../lib/mono/4.6.1-api
   mono .paket/paket.bootstrapper.exe prerelease
   exit_code=$?
   if [ $exit_code -ne 0 ]; then
