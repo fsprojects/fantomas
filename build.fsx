@@ -46,7 +46,7 @@ let owner = "Anh-Dung Phan"
 let tags = "F# fsharp formatting beautifier indentation indenter"
 
 // (<solutionFile>.sln is built during the building process)
-let solutionFile  = "fantomas.core"
+let solutionFile  = "fantomas"
 // Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
 
@@ -57,10 +57,10 @@ Target "Clean" (fun _ ->
     CleanDirs [
         "bin" 
         "nuget"
-        "src/Fantomas.Core/bin"
-        "src/Fantomas.Core/obj"
-        "src/Fantomas.Cmd.Core/bin"
-        "src/Fantomas.Cmd.Core/obj"
+        "src/Fantomas/bin"
+        "src/Fantomas/obj"
+        "src/Fantomas.Cmd/bin"
+        "src/Fantomas.Cmd/obj"
     ]
 )
 
@@ -71,10 +71,10 @@ Target "AssemblyInfo" (fun _ ->
         Attribute.Version release.AssemblyVersion
         Attribute.FileVersion release.AssemblyVersion ] 
 
-  CreateFSharpAssemblyInfo "src/Fantomas.Core/AssemblyInfo.fs"
-      ( Attribute.InternalsVisibleTo "Fantomas.Tests.Core" :: Attribute.Title "FantomasLib" :: shared)
+  CreateFSharpAssemblyInfo "src/Fantomas/AssemblyInfo.fs"
+      ( Attribute.InternalsVisibleTo "Fantomas.Tests" :: Attribute.Title "FantomasLib" :: shared)
 
-  CreateFSharpAssemblyInfo "src/Fantomas.Cmd.Core/AssemblyInfo.fs"
+  CreateFSharpAssemblyInfo "src/Fantomas.Cmd/AssemblyInfo.fs"
       (Attribute.Title "Fantomas" :: shared)
 )
 
@@ -82,9 +82,9 @@ Target "ProjectVersion" (fun _ ->
     let setProjectVersion project =
         XMLHelper.XmlPoke ("src/"+project+"/"+project+".fsproj")
             "Project/PropertyGroup/Version/text()" release.NugetVersion
-    setProjectVersion "Fantomas.Core"
-    setProjectVersion "Fantomas.Cmd.Core"
-    setProjectVersion "Fantomas.Tests.Core"
+    setProjectVersion "Fantomas"
+    setProjectVersion "Fantomas.Cmd"
+    setProjectVersion "Fantomas.Tests"
 )
 
 // --------------------------------------------------------------------------------------
@@ -101,7 +101,7 @@ Target "Build" (fun _ ->
 Target "UnitTests" (fun _ ->
     DotNetCli.Test (fun p ->
         { p with 
-            Project = "src/Fantomas.Tests.Core/Fantomas.Tests.Core.fsproj"
+            Project = "src/Fantomas.Tests/Fantomas.Tests.fsproj"
             Configuration = configuration
             AdditionalArgs = ["--no-build --no-restore --test-adapter-path:. --logger:nunit;LogFilePath=../../TestResults.xml"]
         }
@@ -134,8 +134,8 @@ Target "Pack" (fun _ ->
         "pack src/"+project+"/"+project+".fsproj -c "+ configuration + " -o ../../bin " + packParameters
         |> DotNetCli.RunCommand id
     
-    pack "Fantomas.Core"
-    pack "Fantomas.Cmd.Core"
+    pack "Fantomas"
+    pack "Fantomas.Cmd"
 )
 
 Target "Push" (fun _ -> Paket.Push (fun p -> { p with WorkingDir = "bin" }))

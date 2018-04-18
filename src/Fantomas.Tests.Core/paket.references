@@ -1,7 +1,0 @@
-FSharp.Compiler.Service
-FsUnit
-FsCheck
-Microsoft.NET.Test.Sdk
-NUnit3TestAdapter
-NUnit
-NunitXml.TestLogger
