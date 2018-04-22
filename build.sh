@@ -16,10 +16,10 @@ then
   	exit $exit_code
   fi
 
-  packages/FAKE/tools/FAKE.exe $@ --fsiargs -d:MONO build.fsx 
+  packages/build/FAKE/tools/FAKE.exe $@ --fsiargs -d:MONO build.fsx 
 else
   # use mono
-  export FrameworkPathOverride=$(dirname $(which mono))/../lib/mono/4.6.1-api
+  export FrameworkPathOverride=$(dirname $(which mono))/../lib/mono/4.5/
   mono .paket/paket.bootstrapper.exe prerelease
   exit_code=$?
   if [ $exit_code -ne 0 ]; then
@@ -31,5 +31,5 @@ else
   if [ $exit_code -ne 0 ]; then
   	exit $exit_code
   fi
-  mono packages/FAKE/tools/FAKE.exe $@ --fsiargs -d:MONO build.fsx 
+  mono packages/build/FAKE/tools/FAKE.exe $@ --fsiargs -d:MONO build.fsx 
 fi
