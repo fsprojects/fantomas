@@ -1,14 +1,13 @@
-redirects: on
 source https://www.nuget.org/api/v2/
 
-nuget FSharp.Core
-nuget FAKE
+nuget FSharp.Compiler.Service 22.0.3
+nuget FsUnit 3.0.0
 nuget FsCheck
-nuget Microsoft.NET.Test.Sdk 15.6.1
-nuget Nuget.CommandLine
+nuget Microsoft.NET.Test.Sdk
 nuget NUnit.Runners
-nuget FSharp.Compiler.Service
-nuget FsUnit
-nuget NUnit3TestAdapter 3.10.0
-nuget NUnit 3.10.1
-nuget NunitXml.TestLogger 1.1.0
+nuget NUnit3TestAdapter
+nuget NunitXml.TestLogger
+
+group build
+  source https://api.nuget.org/v3/index.json
+  nuget FAKE
