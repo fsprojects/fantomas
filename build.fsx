@@ -99,36 +99,13 @@ Target "Build" (fun _ ->
 )
 
 Target "UnitTests" (fun _ ->
-    if EnvironmentHelper.isLinux then
-        // dotnet core
-        DotNetCli.Test (fun p ->
-            { p with 
-                Project = "src/Fantomas.Tests/Fantomas.Tests.fsproj"
-                Configuration = configuration
-                Framework = "netcoreapp2.0"
-                AdditionalArgs = ["--no-build --no-restore --test-adapter-path:. --logger:nunit;LogFilePath=../../TestResults.xml"]
-            }
-        ) 
-
-        // net45 on with mono
-        ProcessHelper.execProcess (fun config ->
-            config.FileName <- monoPath
-            config.Arguments <- "./packages/NUnit.ConsoleRunner/tools/nunit3-console.exe \"./src/Fantomas.Tests/bin/Release/net45/Fantomas.Tests.dll\""
-        ) (TimeSpan.FromMinutes(10.0))
-        |> fun exitCodeZero ->
-            if exitCodeZero then
-                printfn "test ran with mono"
-            else
-                printfn "test failed to run with mono"
-
-    else
-        DotNetCli.Test (fun p ->
-            { p with 
-                Project = "src/Fantomas.Tests/Fantomas.Tests.fsproj"
-                Configuration = configuration
-                AdditionalArgs = ["--no-build --no-restore --test-adapter-path:. --logger:nunit;LogFilePath=../../TestResults.xml"]
-            }
-        ) 
+    DotNetCli.Test (fun p ->
+        { p with 
+            Project = "src/Fantomas.Tests/Fantomas.Tests.fsproj"
+            Configuration = configuration
+            AdditionalArgs = ["--no-build --no-restore --test-adapter-path:. --logger:nunit;LogFilePath=../../TestResults.xml"]
+        }
+    ) 
 )
 
 // --------------------------------------------------------------------------------------

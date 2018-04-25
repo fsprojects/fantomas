@@ -1,5 +1,5 @@
 language: csharp
-dotnet: 2.0.3
+dotnet: 2.1.101
 mono: latest
 
 sudo: true  # use the new container-based Travis infrastructure 
