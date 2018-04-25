@@ -105,7 +105,6 @@ Target "UnitTests" (fun _ ->
             { p with 
                 Project = "src/Fantomas.Tests/Fantomas.Tests.fsproj"
                 Configuration = configuration
-                Framework = "netappcore2.0"
                 AdditionalArgs = ["--no-build --no-restore --test-adapter-path:. --logger:nunit;LogFilePath=../../TestResults.xml"]
             }
         ) 
@@ -125,6 +124,7 @@ Target "UnitTests" (fun _ ->
         DotNetCli.Test (fun p ->
             { p with 
                 Project = "src/Fantomas.Tests/Fantomas.Tests.fsproj"
+                Framework = "netcoreapp2.0"
                 Configuration = configuration
                 AdditionalArgs = ["--no-build --no-restore --test-adapter-path:. --logger:nunit;LogFilePath=../../TestResults.xml"]
             }
