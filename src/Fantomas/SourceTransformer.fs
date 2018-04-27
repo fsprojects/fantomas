@@ -15,7 +15,8 @@ module List =
 
 /// Check whether an expression should be broken into multiple lines. 
 /// Notice that order of patterns matters due to non-disjoint property.
-let rec multiline = function
+let rec multiline synExpr = 
+    match synExpr with
     | ConstExpr _
     | NullExpr
     | OptVar _
@@ -89,7 +90,10 @@ let rec multiline = function
 
 let checkNewLine e es = 
     match es with
-    | (s, _) :: _ :: _ -> NewLineInfixOps.Contains s
+    | (s, e1) :: _  -> 
+        let containsInfix = NewLineInfixOps.Contains s
+        let isMultiline = multiline e1
+        containsInfix && isMultiline
     | _ -> multiline e
 
 /// Check if the expression already has surrounding parentheses
