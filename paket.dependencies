@@ -1,5 +1,6 @@
 source https://www.nuget.org/api/v2/
 
+nuget FSharp.Core 4.3.4
 nuget FSharp.Compiler.Service 22.0.3
 nuget FsUnit 3.0.0
 nuget FsCheck
