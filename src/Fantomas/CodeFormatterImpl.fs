@@ -22,7 +22,7 @@ type FormatContext =
     {
         FileName : string;
         Source : string;
-        ProjectOptions : FSharpProjectOptions;
+        ProjectOptions : FSharpParsingOptions;
         Checker : FSharpChecker;
     }
 
@@ -35,7 +35,8 @@ let createFormatContextNoChecker fileName source =
     // Get compiler options for a single script file
     let checkOptions = 
         checker.GetProjectOptionsFromScript(fileName, source, DateTime.Now, filterDefines source) 
-        |> Async.RunSynchronously
+        |> (Async.RunSynchronously >> fst >> checker.GetParsingOptionsFromProjectOptions >> fst)
+        
     { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker }
 
 let createFormatContext fileName source projectOptions checker =
@@ -44,13 +45,13 @@ let createFormatContext fileName source projectOptions checker =
 let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker } = 
     async {
         // Run the first phase (untyped parsing) of the compiler
-        let! untypedRes = checker.ParseFileInProject(fileName, source, checkOptions)
+        let! untypedRes = checker.ParseFile(fileName, source, checkOptions)
         if untypedRes.ParseHadErrors then
             let errors = 
                 untypedRes.Errors
                 |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
             if not <| Array.isEmpty errors then
-                raise <| FormatException (sprintf "Parsing failed with errors: %A\nAnd options: %A" errors checkOptions.OtherOptions)
+                raise <| FormatException (sprintf "Parsing failed with errors: %A\nAnd options: %A" errors checkOptions)
         match untypedRes.ParseTree with
         | Some tree -> return tree
         | None -> return raise <| FormatException "Parsing failed. Please select a complete code fragment to format."

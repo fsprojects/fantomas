@@ -502,7 +502,7 @@ type Generators =
     static member Input() = 
         Arb.fromGenShrink (generateInput, shrinkInput)
 
-[<TestFixtureSetUp>]
+[<OneTimeSetUp>]
 let registerFsCheckGenerators() =
     Arb.register<Generators>() |> ignore
 
@@ -520,7 +520,7 @@ type private NUnitRunner () =
 
         member __.OnFinished (name, result) =
             match result with
-            | TestResult.True _data ->
+            | TestResult.True(_data, _) ->
                 // TODO : Log the result data.
                 Runner.onFinishedToString name result
                 |> stdout.WriteLine

@@ -15,8 +15,13 @@ open Fantomas.SourceParser
 open Fantomas.CodePrinter
 open Fantomas.CodeFormatter
 open Microsoft.FSharp.Compiler.Range
+open Microsoft.FSharp.Compiler.Interactive.Shell
+open Microsoft.FSharp.Compiler.Interactive.Shell.Settings
+open Fantomas
 
-let config = { FormatConfig.Default with StrictMode = false }
+CodeFormatter.Parse ("Program.fs", """let plus a b = a + b""")
+
+let config = FormatConfig.Default
 
 let formatSrc (s : string) = 
     formatSourceString false (s.Replace("\r\n", "\n")) config |> printfn "%A";;
@@ -310,3 +315,36 @@ type CodeGenBuffer(m:range,
         ResizeArray.toList exnSpecs,
         isSome seqpoint
 """
+
+let list1 = ["1"]
+let list2 = ["2"]
+
+"""
+let list = 
+    list1 
+    @ list2 
+    @ ["a"; "b"] 
+    @ List.map id ["a"; "b"]
+"""
+|> formatSrc
+
+      
+let foo =
+    7
+    |> id
+    |> id
+    |> id         
+    
+
+// le nojaf
+let parseAndPrint input = 
+    CodeFormatter.Parse ("Program.fs", input)   
+    |> printfn "%A"
+
+"""
+let add a b = a + b
+"""    
+|> parseAndPrint
+
+
+sprintf "%O" "meh"

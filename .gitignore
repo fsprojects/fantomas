@@ -169,3 +169,11 @@ TestResults.xml
 *.xml
 .fake/build.fsx_*.dll
 .paket/paket.exe
+paket-files/
+.fake/
+.vs/
+
+
+# JetBrains Rider
+.idea/
+*.sln.iml

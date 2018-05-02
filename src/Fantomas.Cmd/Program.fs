@@ -286,7 +286,7 @@ let main _args =
 
     match !inputPath, !outputPath with
     | Unspecified, _ ->
-        eprintfn "Input path is missing."
+        eprintfn "Input path is missing..."
         exit 1
     | Folder p1, Notknown -> processFolder p1 p1
     | File p1, Notknown -> processFile p1 p1 config

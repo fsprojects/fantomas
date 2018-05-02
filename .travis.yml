@@ -1,6 +1,8 @@
 language: csharp
+dotnet: 2.1.101
+mono: latest
 
-sudo: false  # use the new container-based Travis infrastructure 
+sudo: true  # use the new container-based Travis infrastructure 
 
 branches:
   only:

@@ -1,3 +1,10 @@
+#### 2.7.0 - dd-MM-yyyy
+* Upgrade to .NET Core 2.0
+* Published as `clitool` 
+* Upgrade to FCS 22.0.3
+* Single case DUs on same line [#234](https://github.com/dungpa/fantomas/pull/234)
+* Removed whitespaces around type provider arguments [#235](https://github.com/dungpa/fantomas/pull/235)
+
 #### 2.6.1 - 22-04-2017
 * Upgrade to FCS 11.0.4
 
