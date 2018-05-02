@@ -89,11 +89,13 @@ let rec multiline synExpr =
     | _ -> false
 
 let checkNewLine e es = 
-    match es with
-    | (s, e1) :: _  -> 
+    match (e, es) with
+    | (Microsoft.FSharp.Compiler.Ast.SynExpr.Match(_,_,_,_,_), (s, e1) :: _)  -> 
+        true
+    | (_, (s, e1) :: _) ->
         let containsInfix = NewLineInfixOps.Contains s
         let isMultiline = multiline e1
-        containsInfix && isMultiline
+        containsInfix
     | _ -> multiline e
 
 /// Check if the expression already has surrounding parentheses
