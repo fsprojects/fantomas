@@ -1,4 +1,7 @@
-#### 2.7.0 - dd-MM-yyyy
+#### 2.7.1 - 03-05-2018
+* Hotfix for runtime problem when using dotnet cli tool
+
+#### 2.7.0 - 02-05-2018
 * Upgrade to .NET Core 2.0
 * Published as `clitool` 
 * Upgrade to FCS 22.0.3
