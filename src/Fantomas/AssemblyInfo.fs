@@ -7,8 +7,8 @@ open System.Runtime.CompilerServices
 [<assembly: AssemblyTitleAttribute("FantomasLib")>]
 [<assembly: AssemblyProductAttribute("Fantomas")>]
 [<assembly: AssemblyDescriptionAttribute("Source code formatter for F#")>]
-[<assembly: AssemblyVersionAttribute("2.7.0")>]
-[<assembly: AssemblyFileVersionAttribute("2.7.0")>]
+[<assembly: AssemblyVersionAttribute("2.7.1")>]
+[<assembly: AssemblyFileVersionAttribute("2.7.1")>]
 do ()
 
 module internal AssemblyVersionInformation =
@@ -16,5 +16,5 @@ module internal AssemblyVersionInformation =
     let [<Literal>] AssemblyTitle = "FantomasLib"
     let [<Literal>] AssemblyProduct = "Fantomas"
     let [<Literal>] AssemblyDescription = "Source code formatter for F#"
-    let [<Literal>] AssemblyVersion = "2.7.0"
-    let [<Literal>] AssemblyFileVersion = "2.7.0"
+    let [<Literal>] AssemblyVersion = "2.7.1"
+    let [<Literal>] AssemblyFileVersion = "2.7.1"
