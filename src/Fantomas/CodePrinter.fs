@@ -750,6 +750,14 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
 
     | ObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq +> sepSpace -- "delegate of " +> genTypeList astContext ts
+    
+    | ObjectModel(TCSimple TCUnspecified, MemberDefnList(impCtor, others)) when not(List.isEmpty ms) ->
+        typeName +> opt sepNone impCtor (genMemberDefn { astContext with IsInterface = false }) +> sepEq +> indent
+        +> genMemberDefnList { astContext with IsInterface = false } others +> sepNln
+        -- "with" +> indent
+        +> genMemberDefnList { astContext with IsInterface = false } ms +> unindent
+        +> unindent
+    
     | ObjectModel(_, MemberDefnList(impCtor, others)) ->
         typeName +> opt sepNone impCtor (genMemberDefn { astContext with IsInterface = false }) +> sepEq +> indent
         +> genMemberDefnList { astContext with IsInterface = false } others +> unindent
