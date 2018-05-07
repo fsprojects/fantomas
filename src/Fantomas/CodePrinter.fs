@@ -599,11 +599,15 @@ and genExpr astContext = function
     // It seems too annoying to use sepSemiNln
     | Sequentials es -> atCurrentColumn (col sepNln es (genExpr astContext))
     // A generalization of IfThenElse
-    | ElIf((e1,e2, _)::es, enOpt) ->
+    | ElIf((e1,e2, _,_)::es, enOpt) ->
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") -- " " 
             +> preserveBreakNln astContext e2
-            +> fun ctx -> col sepNone es (fun (e1, e2, r) ->
-                             ifElse (startWith "elif" r ctx) (!+ "elif ") (!+ "else if ")
+            +> fun ctx -> col sepNone es (fun (e1, e2, r, fullRange) ->
+                             let elsePart =
+                                 ifElse (ctx.Comments.ContainsKey fullRange.Start)
+                                    (!+ "else" +> indent +> sepNln -- "if ")
+                                    (!+ "else if ")                                        
+                             ifElse (startWith "elif" r ctx) (!+ "elif ") elsePart
                              +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") 
                              -- " " +> preserveBreakNln astContext e2) ctx
             +> opt sepNone enOpt (fun en -> !+ "else " +> preserveBreakNln astContext en))
