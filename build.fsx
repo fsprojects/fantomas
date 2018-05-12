@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------
-// FAKE build script 
+// FAKE build script
 // --------------------------------------------------------------------------------------
 
 #r @"packages/build/FAKE/tools/FakeLib.dll"
@@ -10,12 +10,12 @@ open System
 
 
 // Git configuration (used for publishing documentation in gh-pages branch)
-// The profile where the project is posted 
+// The profile where the project is posted
 let gitHome = "https://github.com/dungpa"
 // The name of the project on GitHub
 let gitName = "fantomas"
 
-// The name of the project 
+// The name of the project
 // (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
 let project = "Fantomas"
 
@@ -32,11 +32,11 @@ let configuration = "Release"
 
 // Longer description of the project
 // (used as a description for NuGet package; line breaks are automatically cleaned up)
-let description = """This library aims at formatting F# source files based on a given configuration. 
-Fantomas will ensure correct indentation and consistent spacing between elements in the source files. 
-Some common use cases include 
-(1) Reformatting a code base to conform a universal page width 
-(2) Converting legacy code from verbose syntax to light syntax 
+let description = """This library aims at formatting F# source files based on a given configuration.
+Fantomas will ensure correct indentation and consistent spacing between elements in the source files.
+Some common use cases include
+(1) Reformatting a code base to conform a universal page width
+(2) Converting legacy code from verbose syntax to light syntax
 (3) Formatting auto-generated F# signatures."""
 
 // List of author names (for NuGet package)
@@ -50,12 +50,24 @@ let solutionFile  = "fantomas"
 // Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
 
+type ExternalProjectInfo =
+    { GitUrl : string
+      DirectoryName : string
+      BuildScriptArguments : string }
+let externalProjectsToTest = [
+    { GitUrl = @"https://github.com/fsprojects/Argu"
+      DirectoryName = "Argu"
+      BuildScriptArguments = "Build" } ]
+
+// path of the fantomas executable to use for external project tests relative to the src/Fantomas.Cmd/bin/CONFIGURATIION/ path
+let fantomasExecutableForExternalTests = "net45/dotnet-fantomas.exe"
+
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
 
 Target "Clean" (fun _ ->
     CleanDirs [
-        "bin" 
+        "bin"
         "nuget"
         "src/Fantomas/bin"
         "src/Fantomas/obj"
@@ -69,7 +81,7 @@ Target "AssemblyInfo" (fun _ ->
       [ Attribute.Product project
         Attribute.Description summary
         Attribute.Version release.AssemblyVersion
-        Attribute.FileVersion release.AssemblyVersion ] 
+        Attribute.FileVersion release.AssemblyVersion ]
 
   CreateFSharpAssemblyInfo "src/Fantomas/AssemblyInfo.fs"
       ( Attribute.InternalsVisibleTo "Fantomas.Tests" :: Attribute.Title "FantomasLib" :: shared)
@@ -91,8 +103,8 @@ Target "ProjectVersion" (fun _ ->
 // Build library & test project
 Target "Build" (fun _ ->
     DotNetCli.Build (fun p ->
-        { p with 
-            Project = (sprintf "src/%s.sln" solutionFile) 
+        { p with
+            Project = (sprintf "src/%s.sln" solutionFile)
             Configuration = configuration
         }
     )
@@ -100,12 +112,12 @@ Target "Build" (fun _ ->
 
 Target "UnitTests" (fun _ ->
     DotNetCli.Test (fun p ->
-        { p with 
+        { p with
             Project = "src/Fantomas.Tests/Fantomas.Tests.fsproj"
             Configuration = configuration
             AdditionalArgs = ["--no-build --no-restore --test-adapter-path:. --logger:nunit;LogFilePath=../../TestResults.xml"]
         }
-    ) 
+    )
 )
 
 // --------------------------------------------------------------------------------------
@@ -133,9 +145,37 @@ Target "Pack" (fun _ ->
             ] |> String.concat " "
         "pack src/"+project+"/"+project+".fsproj -c "+ configuration + " -o ../../bin " + packParameters
         |> DotNetCli.RunCommand id
-    
+
     pack "Fantomas"
     pack "Fantomas.Cmd"
+)
+
+
+
+Target "TestExternalProjects" (fun _ ->
+    for project in externalProjectsToTest do
+        let relativeProjectDir = sprintf "external-project-tests/%s" project.DirectoryName
+        let buildCommandScript = sprintf "%s/%s/build.cmd" __SOURCE_DIRECTORY__ relativeProjectDir
+        if Fake.FileSystemHelper.directoryExists relativeProjectDir then
+            Fake.Git.Reset.ResetHard relativeProjectDir
+            Fake.Git.Branches.pull relativeProjectDir "origin" "master"
+        else
+            Fake.Git.Repository.clone "." project.GitUrl relativeProjectDir
+
+        let buildExternalProject() = ExecProcess (fun info -> info.FileName <- buildCommandScript; info.WorkingDirectory <- relativeProjectDir; info.Arguments <- project.BuildScriptArguments) (TimeSpan.FromMinutes 5.0)
+
+        //let (success, messages) = executeFSI relativeProjectDir script env
+        let cleanResult = buildExternalProject()
+        if cleanResult <> 0 then failwithf "Initial build of external project %s returned with a non-zero exit code" project.DirectoryName
+
+        let fantomasExecutable = sprintf "src/Fantomas.Cmd/bin/%s/%s" configuration fantomasExecutableForExternalTests
+        let invokeFantomas() = ExecProcess (fun info -> info.FileName <- fantomasExecutable; info.WorkingDirectory <- relativeProjectDir; info.Arguments <- "--recurse .") (TimeSpan.FromMinutes 5.0)
+        let fantomasResult = invokeFantomas()
+        if fantomasResult <> 0 then failwithf "Fantomas invokation for %s returned with a non-zero exit code" project.DirectoryName
+
+        let formattedResult = buildExternalProject()
+        if formattedResult <> 0 then failwithf "Build of external project after fantomas formatting failed for project %s" project.DirectoryName
+        ()
 )
 
 Target "Push" (fun _ -> Paket.Push (fun p -> { p with WorkingDir = "bin" }))
@@ -144,14 +184,22 @@ Target "Push" (fun _ -> Paket.Push (fun p -> { p with WorkingDir = "bin" }))
 // Run all targets by default. Invoke 'build <Target>' to override
 
 Target "All" DoNothing
+Target "Root" DoNothing
 
-"Clean"
+"Root"
+  ==> "Clean"
   ==> "AssemblyInfo"
   ==> "ProjectVersion"
   ==> "Build"
   ==> "UnitTests"
+
+"UnitTests"
+
   ==> "Pack"
   ==> "All"
   ==> "Push"
+
+"UnitTests"
+  ==> "TestExternalProjects"
 
 RunTargetOrDefault "All"
