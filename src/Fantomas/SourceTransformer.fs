@@ -88,14 +88,17 @@ let rec multiline synExpr =
     // Default mode is single-line
     | _ -> false
 
-let checkNewLine e es = 
+let checkNewLine e es =
     match (e, es) with
-    | (Microsoft.FSharp.Compiler.Ast.SynExpr.Match(_,_,_,_,_), (s, e1) :: _)  -> 
-        true
-    | (_, (s, e1) :: _) ->
-        let containsInfix = NewLineInfixOps.Contains s
-        let isMultiline = multiline e1
-        containsInfix
+    | _, [s, infixExpr] when NewLineInfixOps.Contains s -> 
+        (*
+            If s is a single infix (f.e. |> )
+            Only multiline if the whole expression is multiline
+            or the next expression is multiline
+            See test ``pipe and multiline should put pipe on newline``
+        *)
+        multiline e || multiline infixExpr
+    | _, (s, _) :: _ :: _ -> NewLineInfixOps.Contains s
     | _ -> multiline e
 
 /// Check if the expression already has surrounding parentheses
