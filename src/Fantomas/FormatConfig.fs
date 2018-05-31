@@ -20,6 +20,7 @@ type FormatConfig =
       IndentSpaceNum : Num;
       /// The column where we break to new lines
       PageWidth : Num;
+      PreserveEndOfLine : bool;
       SemicolonAtEndOfLine : bool;
       SpaceBeforeArgument : bool;
       SpaceBeforeColon : bool;
@@ -34,6 +35,7 @@ type FormatConfig =
 
     static member Default = 
         { IndentSpaceNum = 4; PageWidth = 80;
+          PreserveEndOfLine = false;
           SemicolonAtEndOfLine = false; SpaceBeforeArgument = true; SpaceBeforeColon = true;
           SpaceAfterComma = true; SpaceAfterSemicolon = true; 
           IndentOnTryWith = false; ReorderOpenDeclaration = false; 
@@ -391,7 +393,7 @@ let internal sepSemi (ctx : Context) =
 
 let internal sepSemiNln (ctx : Context) =
     // sepNln part is essential to indentation
-    if ctx.Config.SemicolonAtEndOfLine then (!- ";" +> sepNln) ctx else sepNln ctx
+    if ctx.Config.SemicolonAtEndOfLine || ctx.Config.PreserveEndOfLine then (!- ";" +> sepNln) ctx else sepNln ctx
 
 let internal sepBeforeArg (ctx : Context) = 
     if ctx.Config.SpaceBeforeArgument then str " " ctx else str "" ctx

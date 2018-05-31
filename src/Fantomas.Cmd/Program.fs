@@ -39,6 +39,7 @@ let [<Literal>] stdOutText = " Write the formatted source code to standard outpu
 let [<Literal>] indentText = "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
 let [<Literal>] widthText = "Set the column where we break to new lines (default = 80). The value should be at least 60."
 
+let [<Literal>] preserveEOLText = "Preserve original end of lines, disables auto insert/remove of blank lines (default = false)"
 let [<Literal>] semicolonEOLText = "Enable semicolons at the end of line (default = false)."
 let [<Literal>] argumentText = "Disable spaces before the first argument of functions when there are parenthesis (default = true). For methods and constructors, there are never spaces regardless of this option."
 let [<Literal>] colonText = "Disable spaces before colons (default = true)."
@@ -108,6 +109,7 @@ let main _args =
     let indent = ref 4
     let pageWidth = ref 80
     
+    let preserveEOL = ref false
     let semicolonEOL = ref false
     let spaceBeforeArgument = ref true
     let spaceBeforeColon = ref true
@@ -225,6 +227,7 @@ let main _args =
            ArgInfo("--indent", ArgType.Int handleIndent, indentText);
            ArgInfo("--pageWidth", ArgType.Int handlePageWidth, widthText);
            
+           ArgInfo("--preserveEOL", ArgType.Set preserveEOL, preserveEOLText)
            ArgInfo("--semicolonEOL", ArgType.Set semicolonEOL, semicolonEOLText);
            ArgInfo("--noSpaceBeforeArgument", ArgType.Clear spaceBeforeArgument, argumentText);
            ArgInfo("--noSpaceBeforeColon", ArgType.Clear spaceBeforeColon, colonText);
@@ -242,6 +245,7 @@ let main _args =
         { FormatConfig.Default with 
             IndentSpaceNum = !indent;
             PageWidth = !pageWidth;
+            PreserveEndOfLine = !preserveEOL;
             SemicolonAtEndOfLine = !semicolonEOL; 
             SpaceBeforeArgument = !spaceBeforeArgument; 
             SpaceBeforeColon = !spaceBeforeColon;
