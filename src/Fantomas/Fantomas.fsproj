@@ -5,7 +5,7 @@
     <Version>2.7.1</Version>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="paket.references" />
+    <None Include="paket.references" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Dbg.fs" />
     <Compile Include="Utils.fs" />
