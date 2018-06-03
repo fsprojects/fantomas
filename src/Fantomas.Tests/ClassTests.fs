@@ -298,7 +298,7 @@ let ``member properties with type annotation``() =
 """
 
 [<Test>]
-let ``augmentation``() =
+let ``class augmentation``() =
     formatSourceString false """type A () =
     let foo = () with
     let hello = "Hello"
@@ -312,7 +312,7 @@ let ``augmentation``() =
 """
 
 [<Test>]
-let ``inherit and augmentation``() =
+let ``class inherit and augmentation``() =
     formatSourceString false """type A () =
     inherit B() with
     let hello = "Hello"
