@@ -297,7 +297,7 @@ type IlxGenOptions =
       alwaysCallVirt : bool }
 """
 
-[<Test; Ignore "reason">]
+[<Test>]
 let ``should keep comments on else if``() =
     formatSourceString false  """
 if true then ()
