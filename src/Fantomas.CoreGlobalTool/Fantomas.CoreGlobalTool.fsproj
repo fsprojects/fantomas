@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <ToolCommandName>fantomas</ToolCommandName>
+    <PackAsTool>True</PackAsTool>
+    <Version>2.7.1</Version>
+    <AssemblyName>fantomas-tool</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="paket.references" />
+    <Compile Include="..\Fantomas.Cmd\AssemblyInfo.fs" />
+    <Compile Include="..\Fantomas.Cmd\Arg.fsi" />
+    <Compile Include="..\Fantomas.Cmd\Arg.fs" />
+    <Compile Include="..\Fantomas.Cmd\Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>
