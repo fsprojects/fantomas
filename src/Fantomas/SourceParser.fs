@@ -666,7 +666,8 @@ let (|PrefixApp|_|) = function
         Some((|OpName|) s, e2)
     | _ -> None
 
-let private (|InfixApp|_|) = function
+let private (|InfixApp|_|) synExpr = 
+    match synExpr with
     | SynExpr.App(_, true, Var "::", Tuple [e1; e2], _) ->
         Some("::", e1, e2)
     // Range operators need special treatments, so we exclude them here
@@ -681,7 +682,8 @@ let (|TernaryApp|_|) = function
 
 /// We should return the whole triple for convenient check
 let (|InfixApps|_|) e =
-    let rec loop = function
+    let rec loop synExpr = 
+        match synExpr with
         | InfixApp(s, e, e2) -> 
             let (e1, es) = loop e
             (e1, (s, e2)::es)

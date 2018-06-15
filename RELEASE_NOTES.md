@@ -1,3 +1,8 @@
+#### 2.7.2 - xx-05-2018
+* Wrong indentation of `else` after comment [#241](https://github.com/dungpa/fantomas/issues/241)
+* Change Content to None [#238](https://github.com/dungpa/fantomas/issues/238)
+* Formatting of code with a pipe and a lambda expression [#211](https://github.com/dungpa/fantomas/issues/211)
+
 #### 2.7.1 - 03-05-2018
 * Hotfix for runtime problem when using dotnet cli tool
 
