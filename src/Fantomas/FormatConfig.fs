@@ -393,7 +393,7 @@ let internal sepSemi (ctx : Context) =
 
 let internal sepSemiNln (ctx : Context) =
     // sepNln part is essential to indentation
-    if ctx.Config.SemicolonAtEndOfLine || ctx.Config.PreserveEndOfLine then (!- ";" +> sepNln) ctx else sepNln ctx
+    if ctx.Config.SemicolonAtEndOfLine then (!- ";" +> sepNln) ctx else sepNln ctx
 
 let internal sepBeforeArg (ctx : Context) = 
     if ctx.Config.SpaceBeforeArgument then str " " ctx else str "" ctx

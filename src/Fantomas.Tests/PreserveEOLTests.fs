@@ -428,3 +428,35 @@ with
 | :? E ->
     y := f.ReadToEnd()
 """
+
+[<Test>]
+let ``records formatting without pEOL``() =
+    formatSourceString false """
+let rainbow = 
+    { b1 = "1"
+      b2 = "2" 
+      b3 = "3" 
+    }
+    """ { config with PreserveEndOfLine = false }
+    |> should equal """let rainbow =
+    { b1 = "1"
+      b2 = "2"
+      b3 = "3" }
+"""
+
+[<Test>]
+let ``records formatting with pEOL``() =
+    formatSourceString false """
+let rainbow = 
+    { b1 = "1"
+      b2 = "2" 
+      b3 = "3" 
+    }
+    """ config
+    |> should equal """
+let rainbow =
+    { b1 = "1"
+      b2 = "2"
+      b3 = "3"
+    }
+"""

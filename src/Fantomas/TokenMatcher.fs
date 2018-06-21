@@ -532,8 +532,10 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
             loop moreOrigTokens nextNewTokens
 
         // Not a comment, drop the original token text until something matches
-        | (Delimiter tokText :: moreOrigTokens), _ when tokText = ";" || tokText = ";;" ->
+        | (Delimiter tokText :: moreOrigTokens), (_, nt)::_ when tokText = ";" || tokText = ";;" ->
             Debug.WriteLine("dropping '{0}' from original text", box tokText)
+            if isPreserveEOL && nt <> ";" then 
+                addText ";"
             loop moreOrigTokens newTokens 
 
         // Inject #if... #else or #endif directive
