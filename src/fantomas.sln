@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
@@ -8,6 +8,8 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Cmd", "Fantomas.Cmd\Fantomas.Cmd.fsproj", "{96A7F1BE-8749-422D-A82D-EC608278D208}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Tests", "Fantomas.Tests\Fantomas.Tests.fsproj", "{DED76E41-B89F-47BA-84C5-3AB0BECFA767}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.CoreGlobalTool", "Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj", "{DC08805B-C6E2-43F3-B381-E60EE88A079D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,5 +60,17 @@ Global
 		{DED76E41-B89F-47BA-84C5-3AB0BECFA767}.Release|x64.Build.0 = Release|x64
 		{DED76E41-B89F-47BA-84C5-3AB0BECFA767}.Release|x86.ActiveCfg = Release|x86
 		{DED76E41-B89F-47BA-84C5-3AB0BECFA767}.Release|x86.Build.0 = Release|x86
+		{DC08805B-C6E2-43F3-B381-E60EE88A079D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC08805B-C6E2-43F3-B381-E60EE88A079D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC08805B-C6E2-43F3-B381-E60EE88A079D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DC08805B-C6E2-43F3-B381-E60EE88A079D}.Debug|x64.Build.0 = Debug|Any CPU
+		{DC08805B-C6E2-43F3-B381-E60EE88A079D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DC08805B-C6E2-43F3-B381-E60EE88A079D}.Debug|x86.Build.0 = Debug|Any CPU
+		{DC08805B-C6E2-43F3-B381-E60EE88A079D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC08805B-C6E2-43F3-B381-E60EE88A079D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC08805B-C6E2-43F3-B381-E60EE88A079D}.Release|x64.ActiveCfg = Release|Any CPU
+		{DC08805B-C6E2-43F3-B381-E60EE88A079D}.Release|x64.Build.0 = Release|Any CPU
+		{DC08805B-C6E2-43F3-B381-E60EE88A079D}.Release|x86.ActiveCfg = Release|Any CPU
+		{DC08805B-C6E2-43F3-B381-E60EE88A079D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
