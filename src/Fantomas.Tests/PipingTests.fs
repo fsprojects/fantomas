@@ -63,3 +63,18 @@ let runAll() =
     |> Async.RunSynchronously
     |> ignore
 """
+
+[<Test>]
+let ``pipe and multiline should put pipe on newline`` () =
+    formatSourceString false """
+let prefetchImages =
+    [ playerOImage; playerXImage ]
+    |> List.map (fun img -> link [ Rel "prefetch"; Href img ])""" config
+    |> prepend newline
+    |> should equal """
+let prefetchImages =
+    [ playerOImage; playerXImage ]
+    |> List.map (fun img -> 
+           link [ Rel "prefetch"
+                  Href img ])
+"""    

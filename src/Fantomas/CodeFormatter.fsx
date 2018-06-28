@@ -30,8 +30,9 @@ fsi.AddPrinter (fun (p : pos) -> p.ToString())
 fsi.AddPrinter (fun (r : range) -> r.ToString())
 
 let input = """
-module Tmp
-let f (arg : 'T) = (^T : (member Value : string) arg)
+let prefetchImages =
+    [ playerOImage; playerXImage ]
+    |> List.map (fun img -> link [ Rel "prefetch"; Href img ])
 """
 
 formatSrc input;;
