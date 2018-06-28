@@ -73,6 +73,8 @@ Target "Clean" (fun _ ->
         "src/Fantomas/obj"
         "src/Fantomas.Cmd/bin"
         "src/Fantomas.Cmd/obj"
+        "src/Fantomas.CoreGlobalTool/bin"
+        "src/Fantomas.CoreGlobalTool/obj"
     ]
 )
 
@@ -96,6 +98,7 @@ Target "ProjectVersion" (fun _ ->
             "Project/PropertyGroup/Version/text()" release.NugetVersion
     setProjectVersion "Fantomas"
     setProjectVersion "Fantomas.Cmd"
+    setProjectVersion "Fantomas.CoreGlobalTool"
     setProjectVersion "Fantomas.Tests"
 )
 
@@ -148,6 +151,7 @@ Target "Pack" (fun _ ->
 
     pack "Fantomas"
     pack "Fantomas.Cmd"
+    pack "Fantomas.CoreGlobalTool"
 )
 
 
