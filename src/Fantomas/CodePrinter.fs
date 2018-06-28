@@ -724,13 +724,15 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepSpace ao' genAccess +> sepOpenS 
         +> atCurrentColumn (col sepSemiNln fs (genField astContext "")) +> sepCloseS
-        +> genMemberDefnList { astContext with IsInterface = false } ms 
-        +> unindent 
+        +> genMemberDefnList { astContext with IsInterface = false } ms
+        +> unindent
 
     | Simple TDSRNone -> 
         typeName
     | Simple(TDSRTypeAbbrev t) -> 
         typeName +> sepEq +> sepSpace +> genType astContext false t
+        +> ifElse (List.isEmpty ms) (!- "") 
+            (indent ++ "with" +> indent +> genMemberDefnList { astContext with IsInterface = false } ms +> unindent +> unindent)
     | Simple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
         genExceptionBody astContext ats px ao uc
 
@@ -760,6 +762,14 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
 
     | ObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq +> sepSpace -- "delegate of " +> genTypeList astContext ts
+    
+    | ObjectModel(TCSimple TCUnspecified, MemberDefnList(impCtor, others)) when not(List.isEmpty ms) ->
+        typeName +> opt sepNone impCtor (genMemberDefn { astContext with IsInterface = false }) +> sepEq +> indent
+        +> genMemberDefnList { astContext with IsInterface = false } others +> sepNln
+        -- "with" +> indent
+        +> genMemberDefnList { astContext with IsInterface = false } ms +> unindent
+        +> unindent
+    
     | ObjectModel(_, MemberDefnList(impCtor, others)) ->
         typeName +> opt sepNone impCtor (genMemberDefn { astContext with IsInterface = false }) +> sepEq +> indent
         +> genMemberDefnList { astContext with IsInterface = false } others +> unindent
