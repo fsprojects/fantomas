@@ -71,7 +71,7 @@ type OutputPath =
 
 let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli"; |]
 
-let isFSharpFile s = Set.contains (Path.GetExtension s) extensions
+let isFSharpFile (s: string) = Set.contains (Path.GetExtension s) extensions
 
 /// Get all appropriate files, either recursively or non-recursively
 let rec allFiles isRec path =
