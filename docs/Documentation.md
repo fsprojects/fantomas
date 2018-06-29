@@ -210,7 +210,7 @@ It's often customized by augmenting a default configuration:
 let config = { FormatConfig.Default with 
                 IndentSpaceNum = 2
                 PageWidth = 120
-				PreserveEndOfLine = false
+                PreserveEndOfLine = false
                 SemicolonAtEndOfLine = false
                 SpaceBeforeArgument = false 
                 SpaceBeforeColon = false
