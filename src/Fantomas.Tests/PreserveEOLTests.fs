@@ -126,28 +126,28 @@ type IlxGenOptions =
       netFxHasSerializableAttribute : bool
       /// Whenever possible, use callvirt instead of call
       alwaysCallVirt: bool}
-"""   { config with SemicolonAtEndOfLine = true }
+"""   config 
     |> should equal """
 [<NoEquality; NoComparison>]
 type IlxGenOptions =
-    { fragName : string;
-      generateFilterBlocks : bool;
-      workAroundReflectionEmitBugs : bool;
-      emitConstantArraysUsingStaticDataBlobs : bool;
+    { fragName : string
+      generateFilterBlocks : bool
+      workAroundReflectionEmitBugs : bool
+      emitConstantArraysUsingStaticDataBlobs : bool
       // If this is set, then the last module becomes the "main" module and its toplevel bindings are executed at startup
-      mainMethodInfo : Tast.Attribs option;
-      localOptimizationsAreOn : bool;
-      generateDebugSymbols : bool;
-      testFlagEmitFeeFeeAs100001 : bool;
-      ilxBackend : IlxGenBackend;
+      mainMethodInfo : Tast.Attribs option
+      localOptimizationsAreOn : bool
+      generateDebugSymbols : bool
+      testFlagEmitFeeFeeAs100001 : bool
+      ilxBackend : IlxGenBackend
       /// Indicates the code is being generated in FSI.EXE and is executed immediately after code generation
       /// This includes all interactively compiled code, including #load, definitions, and expressions
-      isInteractive : bool;
+      isInteractive : bool
       // Indicates the code generated is an interactive 'it' expression. We generate a setter to allow clearing of the underlying
       // storage, even though 'it' is not logically mutable
-      isInteractiveItExpr : bool;
+      isInteractiveItExpr : bool
       // Indicates System.SerializableAttribute is available in the target framework
-      netFxHasSerializableAttribute : bool;
+      netFxHasSerializableAttribute : bool
       /// Whenever possible, use callvirt instead of call
       alwaysCallVirt : bool }
 """
@@ -244,7 +244,7 @@ let x = [ 1
 let y = [| 3;4
            5;6|]
 let z = [7; 8]
-    """ { config with SemicolonAtEndOfLine = false }
+    """ config
     |> should equal """
 let x = [ 1;
           2 ]
@@ -258,7 +258,7 @@ let ``array values auto break``() =
     formatSourceString false """
 let arr = [|(1, 1,1); (1,2, 2); (1, 3, 3); (2, 1, 2); (2,2,4); (2, 3, 6); (3, 1, 3);
              (3, 2, 6); (3, 3, 9)|]
-    """ { config with SemicolonAtEndOfLine = false }
+    """ config
     |> should equal """
 let arr = [| (1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
              (3, 2, 6); (3, 3, 9) |]
@@ -316,47 +316,6 @@ let f1 =
     4
 """
 
-[<Test; Ignore "bug in core, indent of multiline parameters get lost">]
-let ``indentation issue 2 (core bug)``() =
-    formatSourceString false """
-    f1 p1 "
-"    config 
-    """ config
-    |> should equal """
-    f1 p1 "
-"    config 
-"""
-
-[<Test; Ignore("bug in core, IsInfixOperator says function that starts with ^=caret is a infix one")>]
-let ``indentation issue 3 (core bug)``() =
-    formatSourceString false """
-[<Test>]
-let ``^a 1``() =()
-[<Test>]
-let ``b 2`` ()= ()
-    """ config
-    |> should equal """
-[<Test>]
-let ``^a 1``() = ()
-[<Test>]
-let ``b 2``() = ()
-"""
-
-[<Test; Ignore "human failure">]
-let ``indentation issue 4``() =
-    formatSourceString false """
-type T = 
-    static member f(p1,
-                    p2) =
-        1
-    """ config
-    |> should equal """
-type T =
-    static member f (p1,
-                     p2) =
-        1
-"""
-
 [<Test; Description("core issue, no space before closing }")>]
 let ``semicolon issue 1``() =
     formatSourceString false """
@@ -409,24 +368,6 @@ D
 *)
 
 let x = 1
-"""
-
-[<Test; Ignore "bug in core, Pipe| is removed">]
-let ``core issue 1``() =
-    formatSourceString false """
-try
-    x := 1
-with
-| :? E ->
-    y := f.ReadToEnd()
-"""  { config with PreserveEndOfLine = false }
-    |> prepend newline
-    |> should equal """
-try 
-    x := 1
-with
-| :? E ->
-    y := f.ReadToEnd()
 """
 
 [<Test>]
