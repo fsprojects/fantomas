@@ -296,3 +296,31 @@ let ``member properties with type annotation``() =
         with get () : int = 1
         and set (_ : int) : unit = ()
 """
+
+[<Test>]
+let ``class augmentation``() =
+    formatSourceString false """type A () =
+    let foo = () with
+    let hello = "Hello"
+    member this.X = "Member"
+"""  config
+    |> should equal """type A() =
+    let foo = ()
+    with
+        let hello = "Hello"
+        member this.X = "Member"
+"""
+
+[<Test>]
+let ``class inherit and augmentation``() =
+    formatSourceString false """type A () =
+    inherit B() with
+    let hello = "Hello"
+    member this.X = "Member"
+"""  config
+    |> should equal """type A() =
+    inherit B()
+    with
+        let hello = "Hello"
+        member this.X = "Member"
+"""
