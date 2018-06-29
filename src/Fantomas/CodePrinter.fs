@@ -597,7 +597,7 @@ and genExpr astContext = function
 
     | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemi es (genExpr astContext))
     // It seems too annoying to use sepSemiNln
-    | Sequentials es -> atCurrentColumn (col sepNln es (genExpr astContext))
+    | Sequentials es -> atCurrentColumn (col sepSemiNln es (genExpr astContext))
     // A generalization of IfThenElse
     | ElIf((e1,e2, _, _)::es, enOpt) ->
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") -- " " 
