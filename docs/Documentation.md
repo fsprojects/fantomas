@@ -189,7 +189,7 @@ To illustrate, `(1, 2, 3)` is rewritten to `(1,2,3)`.
 
  - `--strictMode`: if being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored. 
 
- - `--preserveEOL`: preserve original end of lines, disables auto insert/remove of blank lines (default = false)"
+ - `--preserveEOL`: preserve original end of lines, disables auto insert/remove of blank lines.
 
 That said, most of the preferences are very simple. 
 But they demonstrate the flexibility of Fantomas on a set of configurations. 
