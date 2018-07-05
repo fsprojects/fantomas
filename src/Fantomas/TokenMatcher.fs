@@ -12,6 +12,7 @@ open System.Text.RegularExpressions
 #if INTERACTIVE
 type Debug = Console
 #endif
+let mutable CompilationDefines: string list = []
 
 type Token = 
    | EOL
@@ -24,7 +25,7 @@ type Token =
 
 let tokenize defines (content : string) =
     seq { 
-        let sourceTokenizer = FSharpSourceTokenizer(defines, Some "/tmp.fsx")
+        let sourceTokenizer = FSharpSourceTokenizer("INTERACTIVE" :: CompilationDefines, Some "/tmp.fsx")
         let lines = String.normalizeThenSplitNewLine content
         let lexState = ref 0L
         for (i, line) in lines |> Seq.zip [1..lines.Length] do 

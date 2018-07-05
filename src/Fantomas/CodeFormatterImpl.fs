@@ -44,6 +44,8 @@ let createFormatContext fileName source projectOptions checker =
 
 let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker } = 
     async {
+        // This defines are needed for the Tokenizer
+        TokenMatcher.CompilationDefines <- checkOptions.ConditionalCompilationDefines
         // Run the first phase (untyped parsing) of the compiler
         let! untypedRes = checker.ParseFile(fileName, source, checkOptions)
         if untypedRes.ParseHadErrors then

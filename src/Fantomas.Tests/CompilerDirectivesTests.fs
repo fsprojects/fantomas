@@ -219,3 +219,31 @@ type ExtensibleDumper = A | B
 
 
 """
+
+[<Test>]
+let ``missing inactive code if directive not defined``() =
+    formatSourceString false """
+#if NOT_DEFINED
+let x = 1
+#endif
+"""  config
+    |> should equal """
+#if NOT_DEFINED
+let x = 1
+#endif
+"""
+
+[<Test>]
+let ``don't duplicate active code if directive not defined``() =
+    formatSourceString false """
+#if NOT_DEFINED
+#else
+let x = 1
+#endif
+"""  config
+    |> should equal """
+#if NOT_DEFINED
+#else
+let x = 1
+#endif
+"""
