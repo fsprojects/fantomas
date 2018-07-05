@@ -159,7 +159,7 @@ let private assemblyConfig =
 #endif
 """
 
-[<Test>]
+[<Test; Description("inactive code is not formatted correctly")>]
 let ``should break lines before compiler directives``() =
     formatSourceString false """
 let [<Literal>] private assemblyConfig() =
@@ -177,9 +177,9 @@ let private assemblyConfig() =
 #if TRACE
     let x = ""
 #else
-    let x = "x"
+  let x = "x"
 #endif
-    
+
     x
 """
 
@@ -213,8 +213,7 @@ namespace Internal.Utilities.Diagnostic
 #if EXTENSIBLE_DUMPER
 #if DEBUG
 type ExtensibleDumper = A | B
-#endif
-
+#endif  
 #endif
 
 

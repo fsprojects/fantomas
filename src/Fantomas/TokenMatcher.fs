@@ -565,8 +565,13 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
                 if String.startsWithOrdinal "#endif" text then
                     match newTokens with
                     | WhiteSpaces(ws, moreNewTokens) ->
+                        let origIndent = 
+                            moreOrigTokens
+                            |> Seq.tryFind ((|Wrapped|) >> function Space _ -> true | _ -> false)
+                            |> Option.map (fun (Marked(_, s, _)) -> s)
+
                         // There are some whitespaces, use them up
-                        for s in ws do addText s
+                        for s in ws do addText (Option.defaultValue s origIndent)
                         moreNewTokens
                     | _ :: _ ->
                         // This fixes the case where newTokens advance too fast
@@ -593,7 +598,9 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
                     addText line.[numSpaces..]
                 else if isPreserveEOL &&  i = 0 then
                     addText line
-                else restoreIndent (fun () -> addText line.[numSpaces..])
+                else
+                    addText Environment.NewLine
+                    addText line
             ) lines 
 
             let nextNewTokens = 
