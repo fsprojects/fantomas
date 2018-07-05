@@ -487,6 +487,17 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
             addText oi
         | _ -> ()
 
+    let addNewLineToDirective newTokens moreOrigTokens = 
+        let isWhiteSpace (_, s) = String.IsNullOrWhiteSpace(s)
+        let os = moreOrigTokens |> List.skipWhile ((|Wrapped|) >> isWhiteSpace)
+        
+        match newTokens, os with
+        | (Tok(_, _), _)::_, (Marked(Tok(t, _), s, _))::_ 
+            when t.ColorClass <> FSharpTokenColorKind.InactiveCode && s <> "#else" && s <> "#endif" -> 
+
+            if not isPreserveEOL then addText Environment.NewLine
+        | _ -> ()
+
     // Assume that starting whitespaces after EOL give indentation of a chunk
     let rec getIndent = function
         | (Token _, _) :: moreNewTokens -> getIndent moreNewTokens
@@ -548,6 +559,8 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
             if not isPreserveEOL then
                 addText Environment.NewLine
             for x in tokensText do addText x
+            addNewLineToDirective newTokens moreOrigTokens
+
             let moreNewTokens =
                 if String.startsWithOrdinal "#endif" text then
                     match newTokens with
@@ -561,15 +574,7 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
                         restoreIndent id
                         newTokens
                     | [] -> []
-                elif String.startsWithOrdinal "#if" text then
-                    // Save current indentation for #else branch
-                    let indent = getIndent newTokens 
-                    saveIndent indent
-                    newTokens
                 else newTokens
-            match moreNewTokens with
-            | (Token t, _) :: _ when t.ColorClass = FSharpTokenColorKind.PreprocessorKeyword -> addText Environment.NewLine
-            | _ -> ()
             loop moreOrigTokens moreNewTokens
 
         // Inject inactive code

@@ -247,3 +247,16 @@ let x = 1
 let x = 1
 #endif
 """
+
+[<Test>]
+let ``missing line break in an active directive``() =
+    formatSourceString false """
+#if DEBUG
+let x = 1
+#endif
+"""  config
+    |> should equal """
+#if DEBUG
+let x = 1
+#endif
+"""
