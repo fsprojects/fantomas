@@ -596,24 +596,12 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
                     // Naive recognition of inactive preprocessors
                     addText Environment.NewLine
                     addText line.[numSpaces..]
-                else if isPreserveEOL &&  i = 0 then
-                    addText line
                 else
                     addText Environment.NewLine
                     addText line
             ) lines 
 
-            let nextNewTokens = 
-                if isPreserveEOL then
-                    restoreIndent id
-                    
-                    let sc = Seq.length tokensText
-                    let tc = Seq.length newTokens
-                    newTokens |> List.skip (if sc >= tc then tc else sc)
-                else
-                    newTokens
-
-            loop moreOrigTokens nextNewTokens
+            loop moreOrigTokens newTokens
 
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)), [] ->
             Debug.WriteLine("injecting the last stick-to-the-left line comment '{0}'", String.concat "" commentTokensText |> box)
