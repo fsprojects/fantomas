@@ -189,6 +189,8 @@ To illustrate, `(1, 2, 3)` is rewritten to `(1,2,3)`.
 
  - `--strictMode`: if being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored. 
 
+ - `--preserveEOL`: preserve original end of lines, disables auto insert/remove of blank lines.
+
 That said, most of the preferences are very simple. 
 But they demonstrate the flexibility of Fantomas on a set of configurations. 
 More preferences will be added depending on use cases.
@@ -208,6 +210,7 @@ It's often customized by augmenting a default configuration:
 let config = { FormatConfig.Default with 
                 IndentSpaceNum = 2
                 PageWidth = 120
+                PreserveEndOfLine = false
                 SemicolonAtEndOfLine = false
                 SpaceBeforeArgument = false 
                 SpaceBeforeColon = false
