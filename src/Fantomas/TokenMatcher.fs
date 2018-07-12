@@ -618,8 +618,9 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
                 else
                     addText Environment.NewLine
                     addText line
-            ) lines 
+            ) lines
 
+            if isPreserveEOL then addText Environment.NewLine
             loop moreOrigTokens newTokens
 
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)), [] ->
