@@ -12,6 +12,7 @@ open System.Text.RegularExpressions
 #if INTERACTIVE
 type Debug = Console
 #endif
+let mutable CompilationDefines: string list = []
 
 type Token = 
    | EOL
@@ -24,7 +25,7 @@ type Token =
 
 let tokenize defines (content : string) =
     seq { 
-        let sourceTokenizer = FSharpSourceTokenizer(defines, Some "/tmp.fsx")
+        let sourceTokenizer = FSharpSourceTokenizer("INTERACTIVE" :: CompilationDefines, Some "/tmp.fsx")
         let lines = String.normalizeThenSplitNewLine content
         let lexState = ref 0L
         for (i, line) in lines |> Seq.zip [1..lines.Length] do 
@@ -505,6 +506,17 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
         indentWithNewSpacing ots nts
         addMissingPipe ots nts
 
+    let addNewLineToDirective newTokens moreOrigTokens = 
+        let isWhiteSpace (_, s) = String.IsNullOrWhiteSpace(s)
+        let os = moreOrigTokens |> List.skipWhile ((|Wrapped|) >> isWhiteSpace)
+        
+        match newTokens, os with
+        | (Tok(_, _), _)::_, (Marked(Tok(t, _), s, _))::_ 
+            when t.ColorClass <> FSharpTokenColorKind.InactiveCode && s <> "#else" && s <> "#endif" -> 
+
+            if not isPreserveEOL then addText Environment.NewLine
+        | _ -> ()
+
     // Assume that starting whitespaces after EOL give indentation of a chunk
     let rec getIndent = function
         | (Token _, _) :: moreNewTokens -> getIndent moreNewTokens
@@ -566,12 +578,19 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
             if not isPreserveEOL then
                 addText Environment.NewLine
             for x in tokensText do addText x
+            addNewLineToDirective newTokens moreOrigTokens
+
             let moreNewTokens =
                 if String.startsWithOrdinal "#endif" text then
                     match newTokens with
                     | WhiteSpaces(ws, moreNewTokens) ->
+                        let origIndent = 
+                            moreOrigTokens
+                            |> Seq.tryFind ((|Wrapped|) >> function Space _ -> true | _ -> false)
+                            |> Option.map (fun (Marked(_, s, _)) -> s)
+
                         // There are some whitespaces, use them up
-                        for s in ws do addText s
+                        for s in ws do addText (Option.defaultValue s origIndent)
                         moreNewTokens
                     | _ :: _ ->
                         // This fixes the case where newTokens advance too fast
@@ -579,15 +598,7 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
                         restoreIndent id
                         newTokens
                     | [] -> []
-                elif String.startsWithOrdinal "#if" text then
-                    // Save current indentation for #else branch
-                    let indent = getIndent newTokens 
-                    saveIndent indent
-                    newTokens
                 else newTokens
-            match moreNewTokens with
-            | (Token t, _) :: _ when t.ColorClass = FSharpTokenColorKind.PreprocessorKeyword -> addText Environment.NewLine
-            | _ -> ()
             loop moreOrigTokens moreNewTokens
 
         // Inject inactive code
@@ -604,22 +615,12 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
                     // Naive recognition of inactive preprocessors
                     addText Environment.NewLine
                     addText line.[numSpaces..]
-                else if isPreserveEOL &&  i = 0 then
+                else
+                    addText Environment.NewLine
                     addText line
-                else restoreIndent (fun () -> addText line.[numSpaces..])
             ) lines 
 
-            let nextNewTokens = 
-                if isPreserveEOL then
-                    restoreIndent id
-                    
-                    let sc = Seq.length tokensText
-                    let tc = Seq.length newTokens
-                    newTokens |> List.skip (if sc >= tc then tc else sc)
-                else
-                    newTokens
-
-            loop moreOrigTokens nextNewTokens
+            loop moreOrigTokens newTokens
 
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)), [] ->
             Debug.WriteLine("injecting the last stick-to-the-left line comment '{0}'", String.concat "" commentTokensText |> box)
