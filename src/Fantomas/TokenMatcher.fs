@@ -465,26 +465,45 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
         addText (String.replicate c " ")
         f()
 
-    let preserveLineBreaks ots (nts:(Token * string) list) = 
-        let rec newSpacingLength  =
-            match nts with             
-            | (EOL, _)::(Space t)::(Tok(_, _), "[<")::_ -> 2
-            | (EOL, _)::(EOL, _)::(Tok(_, _), "[<")::_-> 0
-            | (EOL, _)::_ -> 1
-            | (Tok(_, _), ";")::_ -> 
+    let preserveLineBreaks ots (nts:(Token * string) list) =
+        let addMissingSemicolon xs =
+            match xs with
+            | (Tok(_, _), ";")::_ ->
                 addText ";"
-                1
-            | (Space t)::_ -> String.length t
-            | _ -> 0
+            | _ -> ()
 
+        let indentWithNewSpacing xs ys = 
+            let rec newSpacingLength zs =
+                match zs with
+                | (EOL, _)::(Space _)::(Tok(_, _), "[<")::_ -> 2
+                | (EOL, _)::(EOL, _)::(Tok(_, _), "[<")::_ -> 0
+                | (EOL, _)::(Space _)::_ -> 1
+                | (EOL, _)::rs -> newSpacingLength rs
+                | (Tok(_, _), ";")::_ -> 1
+                | (Space t)::_ -> String.length t
+                | _ -> 0
+
+            match xs with
+            | SpaceToken t::_ ->
+                let nsLen = newSpacingLength ys
+                let oi = if nsLen <= String.length t then t.Substring(nsLen) else t
+                addText oi
+            | _ -> ()
+
+        let addMissingPipe xs ys =
+            let isWhiteSpace (_, s) = String.IsNullOrWhiteSpace(s)
+            let tos = xs |> List.skipWhile ((|Wrapped|) >> isWhiteSpace)
+            let tns = ys |> List.skipWhile (isWhiteSpace)
+            match tos, tns with
+            | Marked(_, "|", _)::_, (Tok(_, _), s)::_ when s <> "|" ->
+                addText " |"
+            | _, _ -> ()
+
+        addMissingSemicolon nts
         buffer.Append Environment.NewLine |> ignore
 
-        match ots with
-        | SpaceToken t::_ -> 
-            let nsLen = newSpacingLength 
-            let oi = if nsLen <= String.length t then t.Substring(nsLen) else t
-            addText oi
-        | _ -> ()
+        indentWithNewSpacing ots nts
+        addMissingPipe ots nts
 
     // Assume that starting whitespaces after EOL give indentation of a chunk
     let rec getIndent = function
