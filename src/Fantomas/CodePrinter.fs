@@ -177,9 +177,9 @@ and genModuleDecl astContext = function
         !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | NamespaceFragment(m) ->
         failwithf "NamespaceFragment hasn't been implemented yet: %O" m
-    | NestedModule(ats, px, ao, s, mds) -> 
+    | NestedModule(ats, px, ao, s, isRec, mds) -> 
         genPreXmlDoc px
-        +> genAttributes astContext ats -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
+        +> genAttributes astContext ats +> ifElse isRec (!- "module rec ") (!- "module ") +> opt sepSpace ao genAccess -- s +> sepEq
         +> indent +> sepNln +> genModuleDeclList astContext mds +> unindent
 
     | Open(s) ->
