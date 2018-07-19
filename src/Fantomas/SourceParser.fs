@@ -267,8 +267,8 @@ let (|Types|_|) = function
     | _ -> None
 
 let (|NestedModule|_|) = function
-    | SynModuleDecl.NestedModule(SynComponentInfo.ComponentInfo(ats, _, _, LongIdent s, px, _, ao, _), _, xs, _, _) ->
-        Some(ats, px, ao, s, xs)
+    | SynModuleDecl.NestedModule(SynComponentInfo.ComponentInfo(ats, _, _, LongIdent s, px, _, ao, _), isRecursive, xs, _, _) ->
+        Some(ats, px, ao, s, isRecursive, xs)
     | _ -> None
 
 let (|Exception|_|) = function
