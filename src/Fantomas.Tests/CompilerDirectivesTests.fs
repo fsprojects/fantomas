@@ -219,3 +219,16 @@ type ExtensibleDumper = A | B
 
 
 """
+
+[<Test>]
+let ``should handle #if on the first line``() =
+    formatSourceString false """
+#if INTERACTIVE
+let x = 1
+#endif
+"""  config
+    |> should equal """
+#if INTERACTIVE
+let x = 1
+#endif
+"""

@@ -567,8 +567,8 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
                     newTokens
                 else newTokens
             match moreNewTokens with
-            | (Token t, _) :: _ when t.ColorClass = FSharpTokenColorKind.PreprocessorKeyword -> addText Environment.NewLine
-            | _ -> ()
+            | [] | (EOL, _) :: _ -> ()
+            | _ -> addText Environment.NewLine
             loop moreOrigTokens moreNewTokens
 
         // Inject inactive code
