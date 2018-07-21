@@ -579,6 +579,9 @@ let integrateComments isPreserveEOL CompilationDefines (originalText : string) (
                         newTokens
                     | [] -> []
                 else newTokens
+            match moreNewTokens with
+            | [] | (EOL, _) :: _ -> ()
+            | _ -> addText Environment.NewLine
             loop moreOrigTokens moreNewTokens
 
         // Inject inactive code
