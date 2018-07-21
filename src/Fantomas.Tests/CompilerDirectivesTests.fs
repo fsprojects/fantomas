@@ -232,3 +232,16 @@ let x = 1
 let x = 1
 #endif
 """
+
+[<Test>]
+let ``should handle combined #if``() =
+    formatSourceString false """
+#if INTERACTIVE || (FOO && BAR) || BUZZ
+let x = 1
+#endif
+"""  config
+    |> should equal """
+#if INTERACTIVE || (FOO && BAR) || BUZZ
+let x = 1
+#endif
+"""

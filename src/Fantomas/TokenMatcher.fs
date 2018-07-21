@@ -339,7 +339,17 @@ let (|Ident|_|) = function
     | Wrapped(RawIdent tokText) -> Some tokText
     | _ -> None
 
-let (|PreprocessorDirectiveChunk|_|) = function
+let (|PreprocessorDirectiveChunk|_|) tokens =
+   match tokens with
+   /// #if FOO || BAR && BUZZ
+   | PreprocessorKeywordToken "#if" t1 :: 
+     SpaceToken t2 ::
+     Ident t3 ::
+     Wrapped (Space t4) ::
+     moreOrigTokens -> 
+        Some ([t1; t2; t3 + t4], moreOrigTokens)
+   
+   // #if FOO
    | PreprocessorKeywordToken "#if" t1 :: 
      SpaceToken t2 ::
      Ident t3 ::
