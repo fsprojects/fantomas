@@ -20,6 +20,7 @@ type FormatConfig =
       IndentSpaceNum : Num;
       /// The column where we break to new lines
       PageWidth : Num;
+      PreserveEndOfLine : bool;
       SemicolonAtEndOfLine : bool;
       SpaceBeforeArgument : bool;
       SpaceBeforeColon : bool;
@@ -34,6 +35,7 @@ type FormatConfig =
 
     static member Default = 
         { IndentSpaceNum = 4; PageWidth = 80;
+          PreserveEndOfLine = false;
           SemicolonAtEndOfLine = false; SpaceBeforeArgument = true; SpaceBeforeColon = true;
           SpaceAfterComma = true; SpaceAfterSemicolon = true; 
           IndentOnTryWith = false; ReorderOpenDeclaration = false; 

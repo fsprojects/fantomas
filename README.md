@@ -5,7 +5,8 @@ Fantomas
 
 F# source code formatter, inspired by [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://github.com/acdha/PythonTidy) for Python.
 
-[![Build Status](https://travis-ci.org/dungpa/fantomas.png)](https://travis-ci.org/dungpa/fantomas)
+[![Build Status Travis](https://travis-ci.org/dungpa/fantomas.png)](https://travis-ci.org/dungpa/fantomas)
+[![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/dungpa/fantomas)](https://ci.appveyor.com/project/dungpa/fantomas)
 
 ## Purpose
 This project aims at formatting F# source files based on a given configuration.
@@ -156,7 +157,7 @@ Feel free to suggests tests if they haven't been handled correctly.
 There are a few reasons to choose the name as such. 
 First, it starts with an "F" just like many other F# projects. 
 Second, Fantomas is my favourite character in the literature. 
-Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
+Finally, Fantomas has the same Greek root as "[phantom](https://en.wiktionary.org/wiki/phantom)"; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
 ## How to contribute
 Would like to contribute? Discuss on [issues](../../issues) and send pull requests. You can get started by helping us handle ["You Take It" issues](https://github.com/dungpa/fantomas/issues?labels=You+Take+It&page=1&state=open).

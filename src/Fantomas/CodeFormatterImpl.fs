@@ -357,7 +357,7 @@ let formatWith ast moduleName input config =
         Context.create config normalizedSourceCode 
         |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
         |> dump
-        |> if config.StrictMode then id else integrateComments normalizedSourceCode
+        |> if config.StrictMode then id else integrateComments config.PreserveEndOfLine normalizedSourceCode
 
     // Sometimes F# parser gives a partial AST for incorrect input
     if input.IsSome && String.IsNullOrWhiteSpace normalizedSourceCode <> String.IsNullOrWhiteSpace formattedSourceCode then
