@@ -157,7 +157,7 @@ Feel free to suggests tests if they haven't been handled correctly.
 There are a few reasons to choose the name as such. 
 First, it starts with an "F" just like many other F# projects. 
 Second, Fantomas is my favourite character in the literature. 
-Finally, Fantomas means "ghost" in French; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
+Finally, Fantomas has the same Greek root as "[phantom](https://en.wiktionary.org/wiki/phantom)"; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
 ## How to contribute
 Would like to contribute? Discuss on [issues](../../issues) and send pull requests. You can get started by helping us handle ["You Take It" issues](https://github.com/dungpa/fantomas/issues?labels=You+Take+It&page=1&state=open).

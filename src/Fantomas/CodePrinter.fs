@@ -177,9 +177,9 @@ and genModuleDecl astContext = function
         !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | NamespaceFragment(m) ->
         failwithf "NamespaceFragment hasn't been implemented yet: %O" m
-    | NestedModule(ats, px, ao, s, mds) -> 
+    | NestedModule(ats, px, ao, s, isRec, mds) -> 
         genPreXmlDoc px
-        +> genAttributes astContext ats -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
+        +> genAttributes astContext ats +> ifElse isRec (!- "module rec ") (!- "module ") +> opt sepSpace ao genAccess -- s +> sepEq
         +> indent +> sepNln +> genModuleDeclList astContext mds +> unindent
 
     | Open(s) ->
@@ -838,7 +838,7 @@ and genMemberSig astContext = function
     | MSMember(Val(ats, px, ao, s, t, vi, _), mf) -> 
         let (FunType namedArgs) = (t, vi)
         genPreXmlDoc px +> genAttributes astContext ats 
-        +> atCurrentColumn (indent +> genMemberFlags { astContext with IsInterface = false } mf +> opt sepNone ao genAccess
+        +> atCurrentColumn (indent +> genMemberFlags { astContext with IsInterface = false } mf +> opt sepSpace ao genAccess
                                    +> ifElse (s = "``new``") (!- "new") (!- s) 
                                    +> sepColon +> genTypeList astContext namedArgs +> unindent)
 
