@@ -568,7 +568,9 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
                 else newTokens
             match moreNewTokens with
             | [] | (EOL, _) :: _ -> ()
-            | _ -> addText Environment.NewLine
+            | _ -> 
+                if not isPreserveEOL then
+                    addText Environment.NewLine
             loop moreOrigTokens moreNewTokens
 
         // Inject inactive code
