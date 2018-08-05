@@ -795,3 +795,13 @@ type Entity() =
     abstract Id : int with get, set
     override val Id = 0 with get, set
 """
+
+[<Test>]
+let ``type abbreviation augmentation``() =
+    formatSourceString false """type T2 = T2 with
+    member __.X = ()
+"""  config
+    |> should equal """type T2 = T2
+    with
+        member __.X = ()
+"""

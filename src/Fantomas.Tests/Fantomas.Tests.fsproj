@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.0;net45</TargetFrameworks>
-    <Version>2.7.1</Version>
+    <Version>2.7.2</Version>
     <NoWarn>FS0988</NoWarn>
   </PropertyGroup>
   <ItemGroup>
@@ -35,6 +35,7 @@
     <Compile Include="VerboseSyntaxConversionTests.fs" />
     <Compile Include="FormattingSelectionTests.fs" />
     <Compile Include="FormattingSelectionOnlyTests.fs" />
+    <Compile Include="PreserveEOLTests.fs" />
     <Compile Include="ValidationTests.fs" />
     <Compile Include="FormattingPropertyTests.fs" />
     <Compile Include="SpecialConstructsTests.fs" />

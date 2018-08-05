@@ -177,9 +177,9 @@ and genModuleDecl astContext = function
         !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | NamespaceFragment(m) ->
         failwithf "NamespaceFragment hasn't been implemented yet: %O" m
-    | NestedModule(ats, px, ao, s, mds) -> 
+    | NestedModule(ats, px, ao, s, isRec, mds) -> 
         genPreXmlDoc px
-        +> genAttributes astContext ats -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
+        +> genAttributes astContext ats +> ifElse isRec (!- "module rec ") (!- "module ") +> opt sepSpace ao genAccess -- s +> sepEq
         +> indent +> sepNln +> genModuleDeclList astContext mds +> unindent
 
     | Open(s) ->
@@ -597,7 +597,7 @@ and genExpr astContext = function
 
     | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemi es (genExpr astContext))
     // It seems too annoying to use sepSemiNln
-    | Sequentials es -> atCurrentColumn (col sepNln es (genExpr astContext))
+    | Sequentials es -> atCurrentColumn (col sepSemiNln es (genExpr astContext))
     // A generalization of IfThenElse
     | ElIf((e1,e2, _, _)::es, enOpt) ->
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") -- " " 
@@ -658,14 +658,20 @@ and genLetOrUseList astContext = function
     | _ -> sepNone   
 
 /// When 'hasNewLine' is set, the operator is forced to be in a new line
-and genInfixApps astContext hasNewLine = function
-    | (s, e)::es ->
-        (ifElse hasNewLine (sepNln -- s +> sepSpace +> genExpr astContext e)
-           (ifElse (NoSpaceInfixOps.Contains s) (!- s +> autoNln (genExpr astContext e))
-              (ifElse (NoBreakInfixOps.Contains s) (sepSpace -- s +> sepSpace +> genExpr astContext e)
-                (sepSpace +> autoNln (!- s +> sepSpace +> genExpr astContext e)))))
+and genInfixApps astContext hasNewLine synExprs = 
+    match synExprs with
+    | (s, e)::es when(hasNewLine) ->
+        (sepNln -- s +> sepSpace +> genExpr astContext e)
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
-
+    | (s, e)::es when(NoSpaceInfixOps.Contains s) -> 
+        (!- s +> autoNln (genExpr astContext e))
+        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+    | (s, e)::es when (NoBreakInfixOps.Contains s) -> 
+        (sepSpace -- s +> sepSpace +> genExpr astContext e)
+        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+    | (s, e)::es ->
+        (sepSpace +> autoNln (!- s +> sepSpace +> genExpr astContext e))
+        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | [] -> sepNone
 
 /// Use in indexed set and get only
@@ -718,13 +724,15 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepSpace ao' genAccess +> sepOpenS 
         +> atCurrentColumn (col sepSemiNln fs (genField astContext "")) +> sepCloseS
-        +> genMemberDefnList { astContext with IsInterface = false } ms 
-        +> unindent 
+        +> genMemberDefnList { astContext with IsInterface = false } ms
+        +> unindent
 
     | Simple TDSRNone -> 
         typeName
     | Simple(TDSRTypeAbbrev t) -> 
         typeName +> sepEq +> sepSpace +> genType astContext false t
+        +> ifElse (List.isEmpty ms) (!- "") 
+            (indent ++ "with" +> indent +> genMemberDefnList { astContext with IsInterface = false } ms +> unindent +> unindent)
     | Simple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
         genExceptionBody astContext ats px ao uc
 
@@ -754,6 +762,14 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
 
     | ObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq +> sepSpace -- "delegate of " +> genTypeList astContext ts
+    
+    | ObjectModel(TCSimple TCUnspecified, MemberDefnList(impCtor, others)) when not(List.isEmpty ms) ->
+        typeName +> opt sepNone impCtor (genMemberDefn { astContext with IsInterface = false }) +> sepEq +> indent
+        +> genMemberDefnList { astContext with IsInterface = false } others +> sepNln
+        -- "with" +> indent
+        +> genMemberDefnList { astContext with IsInterface = false } ms +> unindent
+        +> unindent
+    
     | ObjectModel(_, MemberDefnList(impCtor, others)) ->
         typeName +> opt sepNone impCtor (genMemberDefn { astContext with IsInterface = false }) +> sepEq +> indent
         +> genMemberDefnList { astContext with IsInterface = false } others +> unindent
@@ -822,7 +838,7 @@ and genMemberSig astContext = function
     | MSMember(Val(ats, px, ao, s, t, vi, _), mf) -> 
         let (FunType namedArgs) = (t, vi)
         genPreXmlDoc px +> genAttributes astContext ats 
-        +> atCurrentColumn (indent +> genMemberFlags { astContext with IsInterface = false } mf +> opt sepNone ao genAccess
+        +> atCurrentColumn (indent +> genMemberFlags { astContext with IsInterface = false } mf +> opt sepSpace ao genAccess
                                    +> ifElse (s = "``new``") (!- "new") (!- s) 
                                    +> sepColon +> genTypeList astContext namedArgs +> unindent)
 

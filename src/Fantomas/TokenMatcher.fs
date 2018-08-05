@@ -7,6 +7,7 @@ open Fantomas
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.PrettyNaming
 open Microsoft.FSharp.Compiler.SourceCodeServices
+open System.Text.RegularExpressions
 
 #if INTERACTIVE
 type Debug = Console
@@ -424,10 +425,17 @@ let (|OpenChunk|_|) = function
  
 /// Assume that originalText and newText are derived from the same AST. 
 /// Pick all comments and directives from originalText to insert into newText               
-let integrateComments (originalText : string) (newText : string) =
-    let origTokens = tokenize (filterConstants originalText) originalText |> markStickiness |> Seq.toList
+let integrateComments isPreserveEOL (originalText : string) (newText : string) =
+    let trim (txt : string) = 
+        if not isPreserveEOL then txt
+        else Regex.Replace(String.normalizeNewLine txt, @"[ \t]+$", "", RegexOptions.Multiline)
+
+    let trimOrig = trim originalText
+    let trimNew = trim newText
+
+    let origTokens = tokenize (filterConstants trimOrig) trimOrig |> markStickiness |> Seq.toList
     //Seq.iter (fun (Marked(_, s, t)) -> Console.WriteLine("sticky information: {0} -- {1}", s, t)) origTokens
-    let newTokens = tokenize [] newText |> Seq.toList
+    let newTokens = tokenize [] trimNew |> Seq.toList
 
     let buffer = System.Text.StringBuilder()
     let column = ref 0
@@ -442,9 +450,10 @@ let integrateComments (originalText : string) (newText : string) =
     let maintainIndent f =  
         let c = !column
         f()
-        Debug.WriteLine("maintain indent at {0}", c)
-        addText Environment.NewLine
-        addText (String.replicate c " ")
+        if not isPreserveEOL then
+            Debug.WriteLine("maintain indent at {0}", c)
+            addText Environment.NewLine
+            addText (String.replicate c " ")
 
     let saveIndent c =
         indent := c
@@ -455,6 +464,27 @@ let integrateComments (originalText : string) (newText : string) =
         addText Environment.NewLine
         addText (String.replicate c " ")
         f()
+
+    let preserveLineBreaks ots (nts:(Token * string) list) = 
+        let rec newSpacingLength  =
+            match nts with             
+            | (EOL, _)::(Space t)::(Tok(_, _), "[<")::_ -> 2
+            | (EOL, _)::(EOL, _)::(Tok(_, _), "[<")::_-> 0
+            | (EOL, _)::_ -> 1
+            | (Tok(_, _), ";")::_ -> 
+                addText ";"
+                1
+            | (Space t)::_ -> String.length t
+            | _ -> 0
+
+        buffer.Append Environment.NewLine |> ignore
+
+        match ots with
+        | SpaceToken t::_ -> 
+            let nsLen = newSpacingLength 
+            let oi = if nsLen <= String.length t then t.Substring(nsLen) else t
+            addText oi
+        | _ -> ()
 
     // Assume that starting whitespaces after EOL give indentation of a chunk
     let rec getIndent = function
@@ -490,11 +520,22 @@ let integrateComments (originalText : string) (newText : string) =
 
         | (NewLineToken _ :: moreOrigTokens), _ ->
             Debug.WriteLine "dropping newline from orig tokens" 
-            loop moreOrigTokens newTokens
-        
+            let nextNewTokens =
+                if isPreserveEOL then
+                    preserveLineBreaks moreOrigTokens newTokens
+                    match newTokens with 
+                    | (Tok(_, _), ";")::rs -> rs
+                    | _ -> newTokens
+                else 
+                    newTokens
+
+            loop moreOrigTokens nextNewTokens
+
         // Not a comment, drop the original token text until something matches
-        | (Delimiter tokText :: moreOrigTokens), _ when tokText = ";" || tokText = ";;" ->
+        | (Delimiter tokText :: moreOrigTokens), (_, nt)::_ when tokText = ";" || tokText = ";;" ->
             Debug.WriteLine("dropping '{0}' from original text", box tokText)
+            if isPreserveEOL && nt <> ";" then 
+                addText ";"
             loop moreOrigTokens newTokens 
 
         // Inject #if... #else or #endif directive
@@ -503,7 +544,8 @@ let integrateComments (originalText : string) (newText : string) =
         | (PreprocessorDirectiveChunk (tokensText, moreOrigTokens)), newTokens ->            
             let text = String.concat "" tokensText
             Debug.WriteLine("injecting preprocessor directive '{0}'", box text)
-            addText Environment.NewLine
+            if not isPreserveEOL then
+                addText Environment.NewLine
             for x in tokensText do addText x
             let moreNewTokens =
                 if String.startsWithOrdinal "#endif" text then
@@ -538,15 +580,27 @@ let integrateComments (originalText : string) (newText : string) =
             // What is current indentation of this chunk
             let numSpaces = countStartingSpaces lines
             Debug.WriteLine("the number of starting spaces is {0}", numSpaces)
-            // Write the chunk in the same indentation with #if branch
-            for line in lines do
+            Seq.iteri (fun i (line : string) ->
                 if String.startsWithOrdinal "#" line.[numSpaces..] then
                     // Naive recognition of inactive preprocessors
                     addText Environment.NewLine
                     addText line.[numSpaces..]
+                else if isPreserveEOL &&  i = 0 then
+                    addText line
+                else restoreIndent (fun () -> addText line.[numSpaces..])
+            ) lines 
+
+            let nextNewTokens = 
+                if isPreserveEOL then
+                    restoreIndent id
+                    
+                    let sc = Seq.length tokensText
+                    let tc = Seq.length newTokens
+                    newTokens |> List.skip (if sc >= tc then tc else sc)
                 else
-                    restoreIndent (fun () -> addText line.[numSpaces..])
-            loop moreOrigTokens newTokens
+                    newTokens
+
+            loop moreOrigTokens nextNewTokens
 
         | (LineCommentChunk true (commentTokensText, moreOrigTokens)), [] ->
             Debug.WriteLine("injecting the last stick-to-the-left line comment '{0}'", String.concat "" commentTokensText |> box)
@@ -584,8 +638,18 @@ let integrateComments (originalText : string) (newText : string) =
         // Emit end-of-line from new tokens
         | _,  (NewLine newTokText :: moreNewTokens) ->
             Debug.WriteLine("emitting newline in new tokens '{0}'", newTokText)
-            addText newTokText 
-            loop origTokens moreNewTokens 
+            let nextNewTokens =
+                if not isPreserveEOL then 
+                    addText newTokText
+                    moreNewTokens 
+                else
+                    match moreNewTokens with
+                    | Space t::rs -> 
+                        addText " "
+                        rs
+                    | _ -> moreNewTokens
+
+            loop origTokens nextNewTokens
 
         | _,  ((Token newTok, newTokText) :: moreNewTokens) 
             when newTok.CharClass = FSharpTokenCharKind.WhiteSpace && newTok.ColorClass <> FSharpTokenColorKind.InactiveCode ->
@@ -640,17 +704,26 @@ let integrateComments (originalText : string) (newText : string) =
                         // Drop the last newline 
                         if i = len - 1 && x = Environment.NewLine then ()
                         else addText x))
-            loop moreOrigTokens newTokens 
+            let nextOrigTokens = 
+                if isPreserveEOL && List.last commentTokensText = Environment.NewLine then 
+                   Marked(EOL, Environment.NewLine, LineCommentStickiness.NotApplicable)::moreOrigTokens
+                else moreOrigTokens
+
+            loop nextOrigTokens newTokens 
 
         // Consume attributes in the new text
         | _, RawAttribute(newTokensText, moreNewTokens) ->
             Debug.WriteLine("no matching of attribute tokens")
-            for x in newTokensText do addText x
+            if not isPreserveEOL then
+                for x in newTokensText do addText x
             loop origTokens moreNewTokens
               
         // Skip attributes in the old text
         | (Attribute (tokensText, moreOrigTokens)), _ ->
             Debug.WriteLine("skip matching of attribute tokens '{0}'", box tokensText)
+            if isPreserveEOL then
+                for x in tokensText do addText x
+                addText " "
             loop moreOrigTokens newTokens
          
         // Open declarations may be reordered, so we match them even if two identifiers are different
@@ -695,4 +768,6 @@ let integrateComments (originalText : string) (newText : string) =
             ()
 
     loop origTokens newTokens 
-    buffer.ToString()
+    buffer.ToString() 
+    |> trim 
+    |> fun x -> if not isPreserveEOL then x else x.Replace("\n", Environment.NewLine)

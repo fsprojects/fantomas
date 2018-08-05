@@ -1,7 +1,7 @@
 source https://www.nuget.org/api/v2/
 
-nuget FSharp.Core 4.3.4
-nuget FSharp.Compiler.Service 22.0.3
+nuget FSharp.Core
+nuget FSharp.Compiler.Service
 nuget FsUnit 3.0.0
 nuget FsCheck
 nuget Microsoft.NET.Test.Sdk
@@ -11,4 +11,4 @@ nuget NunitXml.TestLogger
 
 group build
   source https://api.nuget.org/v3/index.json
-  nuget FAKE
+  nuget FAKE 4.64.13
