@@ -96,7 +96,7 @@ let processSourceFile inFile (tw : TextWriter) config =
 [<EntryPoint>]
 let main _args =
     let recurse = ref false
-    let force = ref false
+    let force = ref true
     let profile = ref false
 
     let outputPath = ref Notknown
