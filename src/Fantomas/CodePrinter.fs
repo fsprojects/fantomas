@@ -420,11 +420,19 @@ and genMemberBinding astContext b =
 
     | b -> failwithf "%O isn't a member binding" b
 
-and genMemberFlags astContext = function
-    | MFMember _ -> !- "member "
-    | MFStaticMember _ -> !- "static member "
-    | MFConstructor _ -> sepNone
-    | MFOverride _ -> ifElse astContext.IsInterface (!- "member ") (!- "override ")
+and genMemberFlags astContext (mf:MemberFlags) = 
+    fun ctx ->
+        match mf with
+        | MFMember _ -> !- "member "
+        | MFStaticMember _ -> !- "static member "
+        | MFConstructor _ -> sepNone
+        | MFOverride _ -> 
+            let isInterface =
+                ifElse (ctx.Content.Contains("member")) (!- "member ") (!- "override ")
+                
+            ifElse astContext.IsInterface isInterface (!- "override ")
+        <| ctx
+        
 
 and genVal astContext (Val(ats, px, ao, s, t, vi, _)) = 
     let (FunType namedArgs) = (t, vi)

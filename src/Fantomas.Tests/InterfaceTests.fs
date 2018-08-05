@@ -118,3 +118,18 @@ let ``should not skip 'with get()' in indexers``() =
     abstract Item : int -> char with get
 """
 
+[<Test>]
+let ``override keyword should be preserved`` () =
+    formatSourceString false """open System
+    
+type T() =
+    interface IDisposable with
+        override x.Dispose() = ()""" config
+    |> prepend newline
+    |> should equal """
+open System
+
+type T() =
+    interface IDisposable with
+        override x.Dispose() = ()
+"""    
