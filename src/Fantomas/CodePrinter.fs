@@ -17,7 +17,7 @@ type ASTContext =
       /// Current node is the first child of its parent
       IsFirstChild: bool
       /// Current node is a subnode deep down in an interface
-      IsInterface: bool 
+      InterfaceRange: Microsoft.FSharp.Compiler.Range.range option
       /// This pattern matters for formatting extern declarations
       IsCStylePattern: bool
       /// Range operators are naked in 'for..in..do' constructs
@@ -33,7 +33,7 @@ type ASTContext =
     }
     static member Default =
         { TopLevelModuleName = "" 
-          IsFirstChild = false; IsInterface = false 
+          IsFirstChild = false; InterfaceRange = None 
           IsCStylePattern = false; IsNakedRange = false
           HasVerticalBar = false; IsUnionField = false
           IsFirstTypeParam = false; IsInsideDotGet = false }
@@ -335,7 +335,7 @@ and genPropertyWithGetSet astContext (b1, b2) =
       PropertyBinding(_, _, _, _, _, PatLongIdent(ao2, _, ps2, _), e2) ->
         let prefix =
             genPreXmlDoc px
-            +> genAttributes astContext ats +> genMemberFlags astContext mf1
+            +> genAttributes astContext ats +> genMemberFlags astContext mf1 None
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
         assert(ps1 |> Seq.map fst |> Seq.forall Option.isNone)
         assert(ps2 |> Seq.map fst |> Seq.forall Option.isNone)
@@ -370,7 +370,7 @@ and genMemberBinding astContext b =
     | PropertyBinding(ats, px, ao, isInline, mf, p, e) -> 
         let prefix =
             genPreXmlDoc px
-            +> genAttributes astContext ats +> genMemberFlags astContext mf
+            +> genAttributes astContext ats +> genMemberFlags astContext mf None
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
 
         let propertyKind =
@@ -396,7 +396,7 @@ and genMemberBinding astContext b =
     | MemberBinding(ats, px, ao, isInline, mf, p, e) ->
         let prefix =
             genPreXmlDoc px
-            +> genAttributes astContext ats +> genMemberFlags astContext mf
+            +> genAttributes astContext ats +> genMemberFlags astContext mf (Some b.RangeOfBindingAndRhs)
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat astContext p
 
         match e with
@@ -420,17 +420,28 @@ and genMemberBinding astContext b =
 
     | b -> failwithf "%O isn't a member binding" b
 
-and genMemberFlags astContext (mf:MemberFlags) = 
+and genMemberFlags astContext (mf:MemberFlags) (rangeOfBindingAndRhs:Microsoft.FSharp.Compiler.Range.range option) = 
     fun ctx ->
         match mf with
         | MFMember _ -> !- "member "
         | MFStaticMember _ -> !- "static member "
         | MFConstructor _ -> sepNone
         | MFOverride _ -> 
-            let isInterface =
-                ifElse (ctx.Content.Contains("member")) (!- "member ") (!- "override ")
+            match astContext.InterfaceRange with
+            | Some interfaceRange ->
+                let interfaceText = lookup interfaceRange ctx
+                let memberRangeText = rangeOfBindingAndRhs |> Option.bind (fun range -> lookup range ctx)
                 
-            ifElse astContext.IsInterface isInterface (!- "override ")
+                match interfaceText, memberRangeText with 
+                | Some it, Some mrt ->
+                    let index = it.IndexOf(mrt)
+                    let memberKeywordIndex = it.LastIndexOf("member", index)
+                    let overrideKeywordIndex = it.LastIndexOf("override", index)
+                    
+                    ifElse (memberKeywordIndex > overrideKeywordIndex) (!- "member ") (!- "override ")
+                    
+                | _ ->  (!- "override ")
+            | None -> (!- "override ")
         <| ctx
         
 
@@ -473,12 +484,12 @@ and genExpr astContext = function
         +> opt (!- " with ") eo (genExpr astContext) +> atCurrentColumn (col sepSemiNln xs (genRecordFieldName astContext))
         +> sepCloseS
 
-    | ObjExpr(t, eio, bd, ims) ->
+    | ObjExpr(t, eio, bd, ims, range) ->
         // Check the role of the second part of eio
         let param = opt sepNone (Option.map fst eio) (genExpr astContext)
         sepOpenS +> 
         atCurrentColumn (!- "new " +> genType astContext false t +> param -- " with" 
-            +> indent +> sepNln +> genMemberBindingList { astContext with IsInterface = true } bd +> unindent
+            +> indent +> sepNln +> genMemberBindingList { astContext with InterfaceRange = Some range } bd +> unindent
             +> colPre sepNln sepNln ims (genInterfaceImpl astContext)) +> sepCloseS
 
     | While(e1, e2) -> 
@@ -708,7 +719,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         typeName +> sepEq 
         +> indent +> sepNln
         +> col sepNln ecs (genEnumCase { astContext with HasVerticalBar = true })
-        +> genMemberDefnList { astContext with IsInterface = false } ms
+        +> genMemberDefnList { astContext with InterfaceRange = None } ms
         // Add newline after un-indent to be spacing-correct
         +> unindent
 
@@ -725,14 +736,14 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
 
         typeName +> sepEq 
         +> unionCases
-        +> genMemberDefnList { astContext with IsInterface = false } ms
+        +> genMemberDefnList { astContext with InterfaceRange = None } ms
         +> unindent
 
     | Simple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepSpace ao' genAccess +> sepOpenS 
         +> atCurrentColumn (col sepSemiNln fs (genField astContext "")) +> sepCloseS
-        +> genMemberDefnList { astContext with IsInterface = false } ms
+        +> genMemberDefnList { astContext with InterfaceRange = None } ms
         +> unindent
 
     | Simple TDSRNone -> 
@@ -740,22 +751,22 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
     | Simple(TDSRTypeAbbrev t) -> 
         typeName +> sepEq +> sepSpace +> genType astContext false t
         +> ifElse (List.isEmpty ms) (!- "") 
-            (indent ++ "with" +> indent +> genMemberDefnList { astContext with IsInterface = false } ms +> unindent +> unindent)
+            (indent ++ "with" +> indent +> genMemberDefnList { astContext with InterfaceRange = None } ms +> unindent +> unindent)
     | Simple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
         genExceptionBody astContext ats px ao uc
 
-    | ObjectModel(TCSimple (TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others)) ->
-        let isInterface =
+    | ObjectModel(TCSimple (TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others), range) ->
+        let interfaceRange =
             match tdk with
-            | TCSimple TCInterface -> true
-            | _ -> false
-        let astContext = { astContext with IsInterface = isInterface}
+            | TCSimple TCInterface -> Some range
+            | _ -> None
+        let astContext = { astContext with InterfaceRange = interfaceRange }
         typeName +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq 
         +> indent +> sepNln +> genTypeDefKind tdk
         +> indent +> genMemberDefnList astContext others +> unindent
         ++ "end" +> unindent
     
-    | ObjectModel(TCSimple (TCStruct) as tdk, MemberDefnList(impCtor, others)) ->
+    | ObjectModel(TCSimple (TCStruct) as tdk, MemberDefnList(impCtor, others), _) ->
         typeName +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq 
         +> indent +> sepNln +> genTypeDefKind tdk
         +> indent +> genMemberDefnList astContext others +> unindent
@@ -763,24 +774,24 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s)) =
         // Prints any members outside the struct-end construct
         +> genMemberDefnList astContext ms +> unindent
     
-    | ObjectModel(TCSimple TCAugmentation, _) ->
+    | ObjectModel(TCSimple TCAugmentation, _, _) ->
         typeName -- " with" +> indent
         // Remember that we use MemberDefn of parent node
-        +> genMemberDefnList { astContext with IsInterface = false } ms +> unindent
+        +> genMemberDefnList { astContext with InterfaceRange = None } ms +> unindent
 
-    | ObjectModel(TCDelegate(FunType ts), _) ->
+    | ObjectModel(TCDelegate(FunType ts), _, _) ->
         typeName +> sepEq +> sepSpace -- "delegate of " +> genTypeList astContext ts
     
-    | ObjectModel(TCSimple TCUnspecified, MemberDefnList(impCtor, others)) when not(List.isEmpty ms) ->
-        typeName +> opt sepNone impCtor (genMemberDefn { astContext with IsInterface = false }) +> sepEq +> indent
-        +> genMemberDefnList { astContext with IsInterface = false } others +> sepNln
+    | ObjectModel(TCSimple TCUnspecified, MemberDefnList(impCtor, others), _) when not(List.isEmpty ms) ->
+        typeName +> opt sepNone impCtor (genMemberDefn { astContext with InterfaceRange = None }) +> sepEq +> indent
+        +> genMemberDefnList { astContext with InterfaceRange = None } others +> sepNln
         -- "with" +> indent
-        +> genMemberDefnList { astContext with IsInterface = false } ms +> unindent
+        +> genMemberDefnList { astContext with InterfaceRange = None } ms +> unindent
         +> unindent
     
-    | ObjectModel(_, MemberDefnList(impCtor, others)) ->
-        typeName +> opt sepNone impCtor (genMemberDefn { astContext with IsInterface = false }) +> sepEq +> indent
-        +> genMemberDefnList { astContext with IsInterface = false } others +> unindent
+    | ObjectModel(_, MemberDefnList(impCtor, others), _) ->
+        typeName +> opt sepNone impCtor (genMemberDefn { astContext with InterfaceRange = None }) +> sepEq +> indent
+        +> genMemberDefnList { astContext with InterfaceRange = None } others +> unindent
 
     | ExceptionRepr(ExceptionDefRepr(ats, px, ao, uc)) ->
         genExceptionBody astContext ats px ao uc
@@ -846,7 +857,7 @@ and genMemberSig astContext = function
     | MSMember(Val(ats, px, ao, s, t, vi, _), mf) -> 
         let (FunType namedArgs) = (t, vi)
         genPreXmlDoc px +> genAttributes astContext ats 
-        +> atCurrentColumn (indent +> genMemberFlags { astContext with IsInterface = false } mf +> opt sepSpace ao genAccess
+        +> atCurrentColumn (indent +> genMemberFlags { astContext with InterfaceRange = None } mf None +> opt sepSpace ao genAccess
                                    +> ifElse (s = "``new``") (!- "new") (!- s) 
                                    +> sepColon +> genTypeList astContext namedArgs +> unindent)
 
@@ -879,7 +890,7 @@ and genExceptionBody astContext ats px ao uc =
 and genException astContext (ExceptionDef(ats, px, ao, uc, ms)) = 
     genExceptionBody astContext ats px ao uc 
     +> ifElse ms.IsEmpty sepNone 
-        (!- " with" +> indent +> genMemberDefnList { astContext with IsInterface = false } ms +> unindent)
+        (!- " with" +> indent +> genMemberDefnList { astContext with InterfaceRange = None } ms +> unindent)
 
 and genSigException astContext (SigExceptionDef(ats, px, ao, uc, ms)) = 
     genExceptionBody astContext ats px ao uc 
@@ -1008,19 +1019,19 @@ and genTypeConstraint astContext = function
     | TyparIsDelegate(tp, ts) ->
         genTypar astContext tp +> sepColon -- "delegate<" +> col sepComma ts (genType astContext false) -- ">"
 
-and genInterfaceImpl astContext (InterfaceImpl(t, bs)) = 
+and genInterfaceImpl astContext (InterfaceImpl(t, bs, range)) = 
     match bs with
     | [] -> !- "interface " +> genType astContext false t
     | bs ->
         !- "interface " +> genType astContext false t -- " with"
-        +> indent +> sepNln +> genMemberBindingList { astContext with IsInterface = true } bs +> unindent
+        +> indent +> sepNln +> genMemberBindingList { astContext with InterfaceRange = Some range } bs +> unindent
 
 and genClause astContext hasBar (Clause(p, e, eo)) = 
     ifElse hasBar sepBar sepNone +> genPat astContext p 
     +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> preserveBreakNln astContext e
 
 /// Each multiline member definition has a pre and post new line. 
-and genMemberDefnList astContext = function
+and genMemberDefnList astContext (*(interfaceRange:Microsoft.FSharp.Compiler.Range.range)*) = function
     | [x] -> sepNln +> genMemberDefn astContext x
 
     | MDOpenL(xs, ys) ->
@@ -1072,10 +1083,10 @@ and genMemberDefn astContext = function
         genLetBinding { astContext with IsFirstChild = true } prefix b 
         +> colPre sepNln sepNln bs (genLetBinding { astContext with IsFirstChild = false } "and ")
 
-    | MDInterface(t, mdo) -> 
+    | MDInterface(t, mdo, range) -> 
         !- "interface " +> genType astContext false t
         +> opt sepNone mdo 
-            (fun mds -> !- " with" +> indent +> genMemberDefnList { astContext with IsInterface = true } mds +> unindent)
+            (fun mds -> !- " with" +> indent +> genMemberDefnList { astContext with InterfaceRange = Some range } mds +> unindent)
 
     | MDAutoProperty(ats, px, ao, mk, e, s, _isStatic, typeOpt, memberKindToMemberFlags) ->
         let isFunctionProperty =
@@ -1083,7 +1094,7 @@ and genMemberDefn astContext = function
             | Some (TFun _) -> true
             | _ -> false
         genPreXmlDoc px
-        +> genAttributes astContext ats +> genMemberFlags astContext (memberKindToMemberFlags mk) +> str "val "
+        +> genAttributes astContext ats +> genMemberFlags astContext (memberKindToMemberFlags mk) None +> str "val "
         +> opt sepSpace ao genAccess -- s +> optPre sepColon sepNone typeOpt (genType astContext false)
          +> sepEq +> sepSpace +> genExpr astContext e -- genPropertyKind (not isFunctionProperty) mk
 
