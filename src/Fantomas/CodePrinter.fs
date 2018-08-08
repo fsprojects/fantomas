@@ -335,7 +335,7 @@ and genPropertyWithGetSet astContext (b1, b2) =
       PropertyBinding(_, _, _, _, _, PatLongIdent(ao2, _, ps2, _), e2) ->
         let prefix =
             genPreXmlDoc px
-            +> genAttributes astContext ats +> genMemberFlags astContext mf1 None
+            +> genAttributes astContext ats +> genMemberFlags astContext mf1
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
         assert(ps1 |> Seq.map fst |> Seq.forall Option.isNone)
         assert(ps2 |> Seq.map fst |> Seq.forall Option.isNone)
@@ -370,7 +370,7 @@ and genMemberBinding astContext b =
     | PropertyBinding(ats, px, ao, isInline, mf, p, e) -> 
         let prefix =
             genPreXmlDoc px
-            +> genAttributes astContext ats +> genMemberFlags astContext mf None
+            +> genAttributes astContext ats +> genMemberFlags astContext mf
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
 
         let propertyKind =
@@ -396,7 +396,7 @@ and genMemberBinding astContext b =
     | MemberBinding(ats, px, ao, isInline, mf, p, e) ->
         let prefix =
             genPreXmlDoc px
-            +> genAttributes astContext ats +> genMemberFlags astContext mf (Some b.RangeOfBindingAndRhs)
+            +> genAttributes astContext ats +> genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat astContext p
 
         match e with
@@ -420,29 +420,37 @@ and genMemberBinding astContext b =
 
     | b -> failwithf "%O isn't a member binding" b
 
-and genMemberFlags astContext (mf:MemberFlags) (rangeOfBindingAndRhs:Microsoft.FSharp.Compiler.Range.range option) = 
-    fun ctx ->
-        match mf with
-        | MFMember _ -> !- "member "
-        | MFStaticMember _ -> !- "static member "
-        | MFConstructor _ -> sepNone
-        | MFOverride _ -> 
-            match astContext.InterfaceRange with
-            | Some interfaceRange ->
-                let interfaceText = lookup interfaceRange ctx
-                let memberRangeText = rangeOfBindingAndRhs |> Option.bind (fun range -> lookup range ctx)
-                
-                match interfaceText, memberRangeText with 
-                | Some it, Some mrt ->
-                    let index = it.IndexOf(mrt)
-                    let memberKeywordIndex = it.LastIndexOf("member", index)
-                    let overrideKeywordIndex = it.LastIndexOf("override", index)
-                    
-                    ifElse (memberKeywordIndex > overrideKeywordIndex) (!- "member ") (!- "override ")
-                    
-                | _ ->  (!- "override ")
-            | None -> (!- "override ")
-        <| ctx
+and genMemberFlags astContext = function
+    | MFMember _ -> !- "member "
+    | MFStaticMember _ -> !- "static member "
+    | MFConstructor _ -> sepNone
+    | MFOverride _ -> ifElse astContext.InterfaceRange.IsSome (!- "member ") (!- "override ")
+        
+  and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs:Microsoft.FSharp.Compiler.Range.range) = 
+     fun ctx ->
+         match mf with
+         | MFMember _
+         | MFStaticMember _
+         | MFConstructor _ -> 
+            genMemberFlags astContext mf
+         | MFOverride _ -> 
+             match astContext.InterfaceRange with
+             | Some interfaceRange ->
+                 let interfaceText = lookup interfaceRange ctx
+                 let memberRangeText =  lookup rangeOfBindingAndRhs ctx
+                 
+                 match interfaceText, memberRangeText with 
+                 | Some it, Some mrt ->
+                     let index = it.IndexOf(mrt)
+                     let memberKeywordIndex = it.LastIndexOf("member", index)
+                     let overrideKeywordIndex = it.LastIndexOf("override", index)
+                     
+                     ifElse (memberKeywordIndex > overrideKeywordIndex) (!- "member ") (!- "override ")
+                     
+                 | _ ->  (!- "override ")
+             | None -> (!- "override ")
+         <| ctx    
+         
         
 
 and genVal astContext (Val(ats, px, ao, s, t, vi, _)) = 
@@ -857,7 +865,7 @@ and genMemberSig astContext = function
     | MSMember(Val(ats, px, ao, s, t, vi, _), mf) -> 
         let (FunType namedArgs) = (t, vi)
         genPreXmlDoc px +> genAttributes astContext ats 
-        +> atCurrentColumn (indent +> genMemberFlags { astContext with InterfaceRange = None } mf None +> opt sepSpace ao genAccess
+        +> atCurrentColumn (indent +> genMemberFlags { astContext with InterfaceRange = None } mf +> opt sepSpace ao genAccess
                                    +> ifElse (s = "``new``") (!- "new") (!- s) 
                                    +> sepColon +> genTypeList astContext namedArgs +> unindent)
 
@@ -1094,7 +1102,7 @@ and genMemberDefn astContext = function
             | Some (TFun _) -> true
             | _ -> false
         genPreXmlDoc px
-        +> genAttributes astContext ats +> genMemberFlags astContext (memberKindToMemberFlags mk) None +> str "val "
+        +> genAttributes astContext ats +> genMemberFlags astContext (memberKindToMemberFlags mk) +> str "val "
         +> opt sepSpace ao genAccess -- s +> optPre sepColon sepNone typeOpt (genType astContext false)
          +> sepEq +> sepSpace +> genExpr astContext e -- genPropertyKind (not isFunctionProperty) mk
 
