@@ -133,3 +133,41 @@ type T() =
     interface IDisposable with
         override x.Dispose() = ()
 """
+
+[<Test>]
+let ``combination of override and member`` () =
+    formatSourceString false """type LogInterface =
+    abstract member Print: string -> unit
+    abstract member GetLogFile: string -> string
+    abstract member Info: unit -> unit
+    abstract member Version: unit -> unit
+
+type MyLogInteface() =
+    interface LogInterface with
+        member x.Print msg = printfn "%s" msg
+        override x.GetLogFile environment =
+            if environment = "DEV" then 
+                "dev.log"
+            else
+                sprintf "date-%s.log" environment
+        member x.Info () = ()
+        override x.Version () = ()""" config
+    |> prepend newline
+    |> should equal """
+type LogInterface =
+    abstract Print : string -> unit
+    abstract GetLogFile : string -> string
+    abstract Info : unit -> unit
+    abstract Version : unit -> unit
+
+type MyLogInteface() =
+    interface LogInterface with
+        member x.Print msg = printfn "%s" msg
+        
+        override x.GetLogFile environment =
+            if environment = "DEV" then "dev.log"
+            else sprintf "date-%s.log" environment
+        
+        member x.Info() = ()
+        override x.Version() = ()
+"""
