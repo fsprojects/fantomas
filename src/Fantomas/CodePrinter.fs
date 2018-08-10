@@ -426,8 +426,8 @@ and genMemberFlags astContext = function
     | MFConstructor _ -> sepNone
     | MFOverride _ -> ifElse astContext.InterfaceRange.IsSome (!- "member ") (!- "override ")
         
-  and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs:Microsoft.FSharp.Compiler.Range.range) = 
-     fun ctx ->
+and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs:Microsoft.FSharp.Compiler.Range.range) = 
+    fun ctx ->
          match mf with
          | MFMember _
          | MFStaticMember _
@@ -449,10 +449,8 @@ and genMemberFlags astContext = function
                      
                  | _ ->  (!- "override ")
              | None -> (!- "override ")
-         <| ctx    
+        <| ctx
          
-        
-
 and genVal astContext (Val(ats, px, ao, s, t, vi, _)) = 
     let (FunType namedArgs) = (t, vi)
     genPreXmlDoc px
