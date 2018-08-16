@@ -240,3 +240,15 @@ let main argv =
     let a = R.rnorm (1000)
     0
 """
+
+[<Test>]
+let ``should retain rec in modules``() =
+    formatSourceString false """
+module rec Test =
+    let test = 42
+    """ config
+    |> prepend newline
+    |> should equal """
+module rec Test =
+    let test = 42
+"""
