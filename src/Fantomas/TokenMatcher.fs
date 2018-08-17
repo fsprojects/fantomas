@@ -12,7 +12,6 @@ open System.Text.RegularExpressions
 #if INTERACTIVE
 type Debug = Console
 #endif
-let mutable CompilationDefines: string list = []
 
 type Token = 
    | EOL
@@ -25,7 +24,7 @@ type Token =
 
 let tokenize defines (content : string) =
     seq { 
-        let sourceTokenizer = FSharpSourceTokenizer("INTERACTIVE" :: CompilationDefines, Some "/tmp.fsx")
+        let sourceTokenizer = FSharpSourceTokenizer("INTERACTIVE" :: defines, Some "/tmp.fsx")
         let lines = String.normalizeThenSplitNewLine content
         let lexState = ref 0L
         for (i, line) in lines |> Seq.zip [1..lines.Length] do 
@@ -426,7 +425,7 @@ let (|OpenChunk|_|) = function
  
 /// Assume that originalText and newText are derived from the same AST. 
 /// Pick all comments and directives from originalText to insert into newText               
-let integrateComments isPreserveEOL (originalText : string) (newText : string) =
+let integrateComments isPreserveEOL CompilationDefines (originalText : string) (newText : string) =
     let trim (txt : string) = 
         if not isPreserveEOL then txt
         else Regex.Replace(String.normalizeNewLine txt, @"[ \t]+$", "", RegexOptions.Multiline)
@@ -434,9 +433,9 @@ let integrateComments isPreserveEOL (originalText : string) (newText : string) =
     let trimOrig = trim originalText
     let trimNew = trim newText
 
-    let origTokens = tokenize (filterConstants trimOrig) trimOrig |> markStickiness |> Seq.toList
+    let origTokens = tokenize CompilationDefines trimOrig |> markStickiness |> Seq.toList
     //Seq.iter (fun (Marked(_, s, t)) -> Console.WriteLine("sticky information: {0} -- {1}", s, t)) origTokens
-    let newTokens = tokenize [] trimNew |> Seq.toList
+    let newTokens = tokenize CompilationDefines trimNew |> Seq.toList
 
     let buffer = System.Text.StringBuilder()
     let column = ref 0
