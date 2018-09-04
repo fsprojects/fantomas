@@ -36,7 +36,8 @@ type CodeFormatter =
         |> CodeFormatterImpl.formatSelectionInDocument selection config
 
     static member FormatAST(ast, fileName, source, config) = 
-        CodeFormatterImpl.formatAST ast fileName source config
+        let formatContext = CodeFormatterImpl.createFormatContextNoChecker fileName (Option.defaultValue "" source)
+        CodeFormatterImpl.formatAST ast formatContext config
 
     static member ParseAsync(fileName, source, projectOptions, checker) = 
         CodeFormatterImpl.createFormatContext fileName source projectOptions checker
@@ -89,8 +90,9 @@ module CodeFormatter =
         |> CodeFormatterImpl.formatDocument config
         |> Async.RunSynchronously
 
-    let formatAST ast sourceCode config = 
-        CodeFormatterImpl.formatAST ast "/tmp.fsx" sourceCode config
+    let formatAST ast (formatContext: CodeFormatterImpl.FormatContext) config = 
+        let tmpContext = { formatContext with FileName = "/tmp.fsx"; }
+        CodeFormatterImpl.formatAST ast tmpContext config
  
     let makeRange startLine startCol endLine endCol = 
         CodeFormatterImpl.makeRange "/tmp.fsx" startLine startCol endLine endCol

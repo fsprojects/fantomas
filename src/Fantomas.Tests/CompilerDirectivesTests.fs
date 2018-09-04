@@ -159,7 +159,7 @@ let private assemblyConfig =
 #endif
 """
 
-[<Test>]
+[<Test; Description("inactive code is not formatted correctly")>]
 let ``should break lines before compiler directives``() =
     formatSourceString false """
 let [<Literal>] private assemblyConfig() =
@@ -177,9 +177,9 @@ let private assemblyConfig() =
 #if TRACE
     let x = ""
 #else
-    let x = "x"
+  let x = "x"
 #endif
-    
+
     x
 """
 
@@ -213,9 +213,49 @@ namespace Internal.Utilities.Diagnostic
 #if EXTENSIBLE_DUMPER
 #if DEBUG
 type ExtensibleDumper = A | B
+#endif  
 #endif
 
+
+"""
+
+[<Test>]
+let ``missing inactive code if directive not defined``() =
+    formatSourceString false """
+#if NOT_DEFINED
+let x = 1
 #endif
+"""  config
+    |> should equal """
+#if NOT_DEFINED
+let x = 1
+#endif
+"""
 
+[<Test>]
+let ``don't duplicate active code if directive not defined``() =
+    formatSourceString false """
+#if NOT_DEFINED
+#else
+let x = 1
+#endif
+"""  config
+    |> should equal """
+#if NOT_DEFINED
+#else
+let x = 1
+#endif
+"""
 
+[<Test>]
+let ``missing line break in an active directive``() =
+    formatSourceString false """
+#if DEBUG
+let x = 1
+#endif
+"""  config
+    |> should equal """
+#if DEBUG
+let x = 1
+#endif
 """
