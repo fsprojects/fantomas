@@ -82,7 +82,7 @@ module CodeFormatter =
 
     /// Format an abstract syntax tree using given config
     [<Obsolete("Please use 'CodeFormatter.FormatAST' instead.")>]
-    val formatAST : ast:ParsedInput -> sourceCode:string option -> config:FormatConfig -> string
+    val formatAST : ast:ParsedInput -> formatContext: CodeFormatterImpl.FormatContext-> config:FormatConfig -> string
 
     /// Format a part of source string using given config, and return the (formatted) selected part only.
     /// Beware that the range argument is inclusive. If the range has a trailing newline, it will appear in the formatted result.

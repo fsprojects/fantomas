@@ -378,7 +378,7 @@ let (|MDImplicitCtor|_|) = function
     | _ -> None
 
 let (|MDMember|_|) = function
-    | SynMemberDefn.Member(b, _) -> Some b
+    | SynMemberDefn.Member(b, range) -> Some b
     | _ -> None
 
 let (|MDLetBindings|_|) = function
@@ -392,8 +392,8 @@ let (|MDAbstractSlot|_|) = function
     | _ -> None
 
 let (|MDInterface|_|) = function
-    | SynMemberDefn.Interface(t, mdo, _) ->
-        Some(t, mdo)
+    | SynMemberDefn.Interface(t, mdo, range) ->
+        Some(t, mdo, range)
     | _ -> None
 
 let (|MDAutoProperty|_|) = function
@@ -403,7 +403,7 @@ let (|MDAutoProperty|_|) = function
 
 // Interface impl
 
-let (|InterfaceImpl|) (SynInterfaceImpl.InterfaceImpl (t, bs, _)) = (t, bs)
+let (|InterfaceImpl|) (SynInterfaceImpl.InterfaceImpl (t, bs, range)) = (t, bs, range)
 
 // Bindings
 
@@ -799,8 +799,8 @@ let (|Record|_|) = function
     | _ -> None
 
 let (|ObjExpr|_|) = function
-    | SynExpr.ObjExpr(t, eio, bd, ims, _, _) ->
-        Some (t, eio, bd, ims)
+    | SynExpr.ObjExpr(t, eio, bd, ims, _, range) ->
+        Some (t, eio, bd, ims, range)
     | _ -> None
 
 let (|LongIdentSet|_|) = function
@@ -1014,8 +1014,8 @@ let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRException|) = fu
 let (|Simple|ObjectModel|ExceptionRepr|) = function
     | SynTypeDefnRepr.Simple(tdsr, _) ->
         Simple tdsr
-    | SynTypeDefnRepr.ObjectModel(tdk, mds, _) ->
-        ObjectModel(tdk, mds)
+    | SynTypeDefnRepr.ObjectModel(tdk, mds, range) ->
+        ObjectModel(tdk, mds, range)
     | SynTypeDefnRepr.Exception repr ->
         ExceptionRepr repr
 
