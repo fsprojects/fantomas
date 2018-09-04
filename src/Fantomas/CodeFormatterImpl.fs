@@ -1,5 +1,5 @@
 ﻿[<RequireQualifiedAccess>]
-module internal Fantomas.CodeFormatterImpl
+module Fantomas.CodeFormatterImpl
 
 open System
 open System.Diagnostics
@@ -348,7 +348,9 @@ let isValidFSharpCode formatContext =
             return false
     }
     
-let formatWith ast moduleName input config =
+let formatWith ast formatContext config =
+    let moduleName = Path.GetFileNameWithoutExtension formatContext.FileName
+    let input = Some formatContext.Source
     // Use '\n' as the new line delimiter consistently
     // It would be easier for F# parser
     let sourceCode = defaultArg input String.Empty
@@ -357,17 +359,18 @@ let formatWith ast moduleName input config =
         Context.create config normalizedSourceCode 
         |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
         |> dump
-        |> if config.StrictMode then id else integrateComments config.PreserveEndOfLine normalizedSourceCode
+        |> if config.StrictMode then id 
+           else integrateComments config.PreserveEndOfLine formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode
 
     // Sometimes F# parser gives a partial AST for incorrect input
     if input.IsSome && String.IsNullOrWhiteSpace normalizedSourceCode <> String.IsNullOrWhiteSpace formattedSourceCode then
         raise <| FormatException "Incomplete code fragment which is most likely due to parsing errors or the use of F# constructs newer than supported."
     else formattedSourceCode
 
-let format config ({ Source = sourceCode; FileName =  filePath } as formatContext) =
+let format config formatContext =
     async {
         let! ast = parse formatContext
-        return formatWith ast (Path.GetFileNameWithoutExtension filePath) (Some sourceCode) config
+        return formatWith ast formatContext config
     }
 
 /// Format a source string using given config
@@ -383,8 +386,8 @@ let formatDocument config formatContext =
     }
 
 /// Format an abstract syntax tree using given config
-let formatAST ast fileName sourceCode config =
-    let formattedSourceCode = formatWith ast fileName sourceCode config
+let formatAST ast formatContext config =
+    let formattedSourceCode = formatWith ast formatContext config
         
     // When formatting the whole document, an EOL is required
     if formattedSourceCode.EndsWith(Environment.NewLine) then 
