@@ -176,3 +176,12 @@ let ``should pipeline monadic bind``() =
 >>= strAddLong "A long argument that is ignored" "2"
 >>= strAddLong "A long argument that is ignored" "2"
 """
+
+[<Test>]
+let ``should keep >>.~ operator``() =
+    formatSourceString false """let (>>.~) (g : int) (h : int) : int = g + h
+let output = 2 >>.~ 3
+    """ config
+    |> should equal """let (>>.~) (g : int) (h : int) : int = g + h
+let output = 2 >>.~ 3
+"""
