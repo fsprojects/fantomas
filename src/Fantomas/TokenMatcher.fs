@@ -435,7 +435,7 @@ let (|OpenChunk|_|) = function
  
 /// Assume that originalText and newText are derived from the same AST. 
 /// Pick all comments and directives from originalText to insert into newText               
-let integrateComments isPreserveEOL CompilationDefines (originalText : string) (newText : string) =
+let integrateComments isPreserveEOL compilationDefines (originalText : string) (newText : string) =
     let trim (txt : string) = 
         if not isPreserveEOL then txt
         else Regex.Replace(String.normalizeNewLine txt, @"[ \t]+$", "", RegexOptions.Multiline)
@@ -443,9 +443,9 @@ let integrateComments isPreserveEOL CompilationDefines (originalText : string) (
     let trimOrig = trim originalText
     let trimNew = trim newText
 
-    let origTokens = tokenize CompilationDefines trimOrig |> markStickiness |> Seq.toList
+    let origTokens = tokenize compilationDefines trimOrig |> markStickiness |> Seq.toList
     //Seq.iter (fun (Marked(_, s, t)) -> Console.WriteLine("sticky information: {0} -- {1}", s, t)) origTokens
-    let newTokens = tokenize CompilationDefines trimNew |> Seq.toList
+    let newTokens = tokenize compilationDefines trimNew |> Seq.toList
 
     let buffer = System.Text.StringBuilder()
     let column = ref 0
@@ -589,11 +589,7 @@ let integrateComments isPreserveEOL CompilationDefines (originalText : string) (
                         newTokens
                     | [] -> []
                 else newTokens
-            match moreNewTokens with
-            | [] | (EOL, _) :: _ -> ()
-            | _ -> 
-                if not isPreserveEOL then
-                    addText Environment.NewLine
+                
             loop moreOrigTokens moreNewTokens
 
         // Inject inactive code
