@@ -252,7 +252,7 @@ let (|OneLinerMemberDefn|MultilineMemberDefn|) md =
     | MDInherit _
     | MDValField _
     | MDImplicitCtor _
-    | MDInterface(_, None)
+    | MDInterface(_, None, _)
     | MDAbstractSlot([], PreXmlDoc [||], _, _, _, _, _, _) 
     | MDImplicitInherit(_, OneLinerExpr _, _)
     | MDMember(OneLinerBinding _)
