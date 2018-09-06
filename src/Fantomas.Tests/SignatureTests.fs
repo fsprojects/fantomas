@@ -136,3 +136,18 @@ module Tainted
 
 val GetHashCodeTainted : Tainted<'T> -> int when 'T : equality
 """
+
+[<Test>]
+let ``should keep access modifiers in signatures seperated``() =
+    formatSourceString true """
+module Test
+type Test =
+    static member internal FormatAroundCursorAsync : fileName:string -> unit
+"""  config
+    |> prepend newline
+    |> should equal """
+module Test
+
+type Test =
+    static member internal FormatAroundCursorAsync : fileName:string -> unit
+"""
