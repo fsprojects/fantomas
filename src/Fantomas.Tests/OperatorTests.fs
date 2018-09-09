@@ -185,3 +185,10 @@ let output = 2 >>.~ 3
     |> should equal """let (>>.~) (g : int) (h : int) : int = g + h
 let output = 2 >>.~ 3
 """
+
+[<Test>]
+let ``should not add newline before = operator after |>``() =
+    formatSourceString false """1 |> max 0 = 1""" config
+    |> should equal """1
+|> max 0 = 1
+"""

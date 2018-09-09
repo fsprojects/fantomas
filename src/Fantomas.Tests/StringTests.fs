@@ -48,6 +48,21 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
 """
 
 [<Test>]
+let ``multiline string piped``() =
+    formatSourceString false """
+let f a b =
+    a "
+" |> b
+    """ config
+    |> prepend newline
+    |> should equal """
+let f a b =
+    a "
+"
+    |> b
+"""
+
+[<Test>]
 let ``preserve uncommon literals``() =
     formatSourceString false """
 let a = 0xFFy
