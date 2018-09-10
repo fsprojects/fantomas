@@ -1,4 +1,4 @@
-#### 2.8.1 09-2018
+#### 2.8.1 - 09-2018
 * Force parameter is *true* by default. [#267](https://github.com/fsprojects/fantomas/issues/267)
 * Formatting compiler directives with inactive code is incorrect. [#270](https://github.com/fsprojects/fantomas/issues/270)
 * Fix "Fantômas" mistranslation in README. [#273](https://github.com/fsprojects/fantomas/pull/273)
@@ -12,7 +12,7 @@
 * Pipe operator inside quotation expression leads to wrong indentation. [#256](https://github.com/fsprojects/fantomas/issues/256)
 * broken indent by pipe formatting. [#269](https://github.com/fsprojects/fantomas/issues/269)
 
-#### 2.8.0 07-2018
+#### 2.8.0 - 07-2018
 * Wrong indentation of `else` after comment [#241](https://github.com/dungpa/fantomas/issues/241)
 * Change Content to None [#238](https://github.com/dungpa/fantomas/issues/238)
 * Formatting of code with a pipe and a lambda expression [#211](https://github.com/dungpa/fantomas/issues/211)
