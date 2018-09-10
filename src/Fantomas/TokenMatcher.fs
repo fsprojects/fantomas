@@ -30,6 +30,7 @@ let tokenize defines (content : string) =
         for (i, line) in lines |> Seq.zip [1..lines.Length] do 
             let lineTokenizer = sourceTokenizer.CreateLineTokenizer line
             let finLine = ref false
+            let mutable lastColumn = 0
             while not !finLine do
                 let tok, newLexState = lineTokenizer.ScanToken(!lexState)
                 lexState := newLexState
@@ -40,6 +41,11 @@ let tokenize defines (content : string) =
                         yield (EOL, Environment.NewLine) 
                     finLine := true
                 | Some t -> 
+                    if lastColumn + 1 < t.LeftColumn then
+                        // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
+                        // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
+                        yield (Tok({ t with TokenName="DELAYED" }, i), line.[lastColumn+1..t.LeftColumn-1]) 
+                    lastColumn <- t.RightColumn
                     yield (Tok(t, i), line.[t.LeftColumn..t.RightColumn]) 
     }
 
