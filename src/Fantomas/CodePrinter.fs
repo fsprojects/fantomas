@@ -275,7 +275,7 @@ and genExprSepEqPrependType astContext prefix e =
 
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx = 
-    ifElse (checkPreserveBreakForExpr e ctx) (sepNln +> genExpr astContext e) (autoNln (genExpr astContext e)) ctx
+    ifElse (checkPreserveBreakForExpr e ctx) (sepNln +> genExpr astContext e) (autoNlnOrSpace (genExpr astContext e)) ctx
 
 and genTyparList astContext tps = 
     ifElse (List.atMostOne tps) (col wordOr tps (genTypar astContext)) (sepOpenT +> col wordOr tps (genTypar astContext) +> sepCloseT)
@@ -510,7 +510,7 @@ and genExpr astContext = function
     // Handle the form 'for i in e1 -> e2'
     | ForEach(p, e1, e2, isArrow) ->
         atCurrentColumn (!- "for " +> genPat astContext p -- " in " +> genExpr { astContext with IsNakedRange = true } e1 
-            +> ifElse isArrow (sepArrow +> preserveBreakNln astContext e2) (!- " do" +> indent +> sepNln +> genExpr astContext e2 +> unindent))
+            +> ifElse isArrow (sepArrow +> preserveBreakNlnOrAddSpace astContext e2) (!- " do" +> indent +> sepNln +> genExpr astContext e2 +> unindent))
 
     | CompExpr(isArrayOrList, e) ->
         let astContext = { astContext with IsNakedRange = true }
@@ -525,12 +525,12 @@ and genExpr astContext = function
     | Paren(DesugaredLambda(cps, e)) ->
         sepOpenT -- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow +> noIndentBreakNln astContext e +> sepCloseT
     | DesugaredLambda(cps, e) -> 
-        !- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow +> preserveBreakNln astContext e 
+        !- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow +> preserveBreakNlnOrAddSpace astContext e 
     | Paren(Lambda(e, sps)) ->
         sepOpenT -- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow +> noIndentBreakNln astContext e +> sepCloseT
     // When there are parentheses, most likely lambda will appear in function application
     | Lambda(e, sps) -> 
-        !- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow +> preserveBreakNln astContext e
+        !- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow +> preserveBreakNlnOrAddSpace astContext e
     | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause astContext true)
     | Match(e, cs) -> 
         atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
@@ -925,6 +925,7 @@ and genField astContext prefix (Field(ats, px, ao, isStatic, isMutable, t, so)) 
 and genTypeByLookup astContext (t: SynType) = getByLookup t.Range (genType astContext false) t
 
 and genType astContext outerBracket t =
+    let sepArrowSpace = sepArrow +> sepSpace
     let rec loop = function
         | THashConstraint t -> !- "#" +> loop t
         | TMeasurePower(t, n) -> loop t -- "^" +> str n
@@ -936,10 +937,10 @@ and genType astContext outerBracket t =
         | TAnon -> sepWild
         | TVar tp -> genTypar astContext tp
         // Drop bracket around tuples before an arrow
-        | TFun(TTuple ts, t) -> sepOpenT +> loopTTupleList ts +> sepArrow +> loop t +> sepCloseT
+        | TFun(TTuple ts, t) -> sepOpenT +> loopTTupleList ts +> sepArrowSpace +> loop t +> sepCloseT
         // Do similar for tuples after an arrow
-        | TFun(t, TTuple ts) -> sepOpenT +> loop t +> sepArrow +> loopTTupleList ts +> sepCloseT
-        | TFuns ts -> sepOpenT +> col sepArrow ts loop +> sepCloseT
+        | TFun(t, TTuple ts) -> sepOpenT +> loop t +> sepArrowSpace +> loopTTupleList ts +> sepCloseT
+        | TFuns ts -> sepOpenT +> col sepArrowSpace ts loop +> sepCloseT
         | TApp(t, ts, isPostfix) -> 
             let postForm = 
                 match ts with
@@ -952,7 +953,7 @@ and genType astContext outerBracket t =
         | TLongIdentApp(t, s, ts) -> loop t -- sprintf ".%s" s +> genPrefixTypes astContext ts
         | TTuple ts -> sepOpenT +> loopTTupleList ts +> sepCloseT
         | TWithGlobalConstraints(TVar _, [TyparSubtypeOfType _ as tc]) -> genTypeConstraint astContext tc
-        | TWithGlobalConstraints(TFuns ts, tcs) -> col sepArrow ts loop +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)        
+        | TWithGlobalConstraints(TFuns ts, tcs) -> col sepArrowSpace ts loop +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)        
         | TWithGlobalConstraints(t, tcs) -> loop t +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
         | TLongIdent s -> ifElse astContext.IsCStylePattern (genTypeByLookup astContext t) (!- s)
         | t -> failwithf "Unexpected type: %O" t
@@ -965,9 +966,9 @@ and genType astContext outerBracket t =
 
     match t with
     | TFun(TTuple ts, t) -> 
-        ifElse outerBracket (sepOpenT +> loopTTupleList ts +> sepArrow +> loop t +> sepCloseT)
-            (loopTTupleList ts +> sepArrow +> loop t)
-    | TFuns ts -> ifElse outerBracket (sepOpenT +> col sepArrow ts loop +> sepCloseT) (col sepArrow ts loop)
+        ifElse outerBracket (sepOpenT +> loopTTupleList ts +> sepArrowSpace +> loop t +> sepCloseT)
+            (loopTTupleList ts +> sepArrowSpace +> loop t)
+    | TFuns ts -> ifElse outerBracket (sepOpenT +> col sepArrowSpace ts loop +> sepCloseT) (col sepArrowSpace ts loop)
     | TTuple ts -> ifElse outerBracket (sepOpenT +> loopTTupleList ts +> sepCloseT) (loopTTupleList ts)
     | _ -> loop t
   
@@ -979,7 +980,9 @@ and genPrefixTypes astContext = function
     | ts ->
         !- "<" +> col sepComma ts (genType astContext false) -- ">"
 
-and genTypeList astContext = function
+and genTypeList astContext = 
+    let sepArrowSpace = sepArrow +> sepSpace
+    function
     | [] -> sepNone
     | (t, [ArgInfo(attribs, so, isOpt)])::ts -> 
         let hasBracket = not ts.IsEmpty
@@ -995,7 +998,7 @@ and genTypeList astContext = function
             | _ -> 
                 opt sepColonFixed so (!-) +> genType astContext false t
         genOnelinerAttributes astContext attribs
-        +> gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
+        +> gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrowSpace +> genTypeList astContext ts))
 
     | (TTuple ts', argInfo)::ts -> 
         // The '/' separator shouldn't appear here
@@ -1005,11 +1008,11 @@ and genTypeList astContext = function
                         genOnelinerAttributes astContext attribs
                         +> opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
                         +> genType astContext hasBracket t)
-        gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
+        gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrowSpace +> genTypeList astContext ts))
 
     | (t, _)::ts -> 
         let gt = genType astContext false t
-        gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
+        gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrowSpace +> genTypeList astContext ts))
 
 and genTypar astContext (Typar(s, isHead)) = 
     ifElse isHead (ifElse astContext.IsFirstTypeParam (!- " ^") (!- "^")) (!-"'") -- s
@@ -1034,7 +1037,7 @@ and genInterfaceImpl astContext (InterfaceImpl(t, bs, range)) =
 
 and genClause astContext hasBar (Clause(p, e, eo)) = 
     ifElse hasBar sepBar sepNone +> genPat astContext p 
-    +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> preserveBreakNln astContext e
+    +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> preserveBreakNlnOrAddSpace astContext e
 
 /// Each multiline member definition has a pre and post new line. 
 and genMemberDefnList astContext (*(interfaceRange:Microsoft.FSharp.Compiler.Range.range)*) = function
