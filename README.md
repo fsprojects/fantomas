@@ -5,8 +5,8 @@ Fantomas
 
 F# source code formatter, inspired by [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://github.com/acdha/PythonTidy) for Python.
 
-[![Build Status Travis](https://travis-ci.org/dungpa/fantomas.png)](https://travis-ci.org/dungpa/fantomas)
-[![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/dungpa/fantomas)](https://ci.appveyor.com/project/dungpa/fantomas)
+[![Build Status Travis](https://travis-ci.org/fsprojects/fantomas.png)](https://travis-ci.org/fsprojects/fantomas)
+[![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/nojaf/fantomas)](https://ci.appveyor.com/project/nojaf/fantomas)
 
 ## Purpose
 This project aims at formatting F# source files based on a given configuration.
