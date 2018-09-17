@@ -401,3 +401,73 @@ let rainbow =
       b3 = "3"
     }
 """
+
+
+[<Test>]
+let ``keep single pipe with pEOL``() =
+    formatSourceString false """
+    try
+        ()
+    with
+    | :? _ ->
+        ()
+    let y = 4
+    """ config
+    |> should equal """
+    try
+        ()
+    with
+    | :? _ ->
+        ()
+    let y = 4
+"""
+
+[<Test>]
+let ``remove single pipe without pEOL``() =
+    formatSourceString false """
+    try
+        ()
+    with 
+    | :? _ -> 
+        ()
+    let y = 4
+"""     { config with PreserveEndOfLine = false }
+    |> prepend newline
+    |> should equal """
+try 
+    ()
+with :? _ -> ()
+
+let y = 4
+"""
+
+[<Test>]
+let ``keep multiple pipes with pEOL``() =
+    formatSourceString false """
+    match ts with
+    | 0
+    | 1 -> 2
+    | _ -> 3
+    """ config
+    |> should equal """
+    match ts with
+    | 0
+    | 1 -> 2
+    | _ -> 3
+"""
+
+[<Test>]
+let ``newline handling in directives``() =
+    formatSourceString false """
+#if NOT_DEFINED
+let x = 1
+let y = 2
+#endif
+"""  config
+    |> should equal """
+#if NOT_DEFINED
+
+let x = 1
+let y = 2
+#endif
+"""

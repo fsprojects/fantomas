@@ -5,8 +5,8 @@ Fantomas
 
 F# source code formatter, inspired by [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://github.com/acdha/PythonTidy) for Python.
 
-[![Build Status Travis](https://travis-ci.org/dungpa/fantomas.png)](https://travis-ci.org/dungpa/fantomas)
-[![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/dungpa/fantomas)](https://ci.appveyor.com/project/dungpa/fantomas)
+[![Build Status Travis](https://travis-ci.org/fsprojects/fantomas.png)](https://travis-ci.org/fsprojects/fantomas)
+[![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/nojaf/fantomas)](https://ci.appveyor.com/project/nojaf/fantomas)
 
 ## Purpose
 This project aims at formatting F# source files based on a given configuration.
@@ -98,8 +98,12 @@ This is available in the [Visual Studio Gallery](http://visualstudiogallery.msdn
 You can also use Fantomas extension in Ivan's [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
 
 ### Command line tool / API 
-You can fork this repo and compile the project with F# 3.0/.NET framework 4.0. 
-Alternatively, Fantomas is also available via [a NuGet package](https://www.nuget.org/packages/FantomasCLI/) which contains both the library and the command line interface.
+Use this command to install Fantomas as a dotnet SDK global tool:
+
+```
+dotnet tool install -g fantomas-tool
+```
+
 For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.md#using-the-command-line-tool).
 
 ### FAKE build system

@@ -16,6 +16,8 @@ module List =
 /// Check whether an expression should be broken into multiple lines. 
 /// Notice that order of patterns matters due to non-disjoint property.
 let rec multiline synExpr = 
+    let isConstMultiline (Unresolved(_, _, s)) = String.normalizeNewLine s |> String.exists ((=)'\n')
+    
     match synExpr with
     | ConstExpr _
     | NullExpr
@@ -54,6 +56,8 @@ let rec multiline synExpr =
 
     | Tuple es ->
         List.exists multiline es
+
+    | App(e, (ConstExpr c :: _)) -> multiline e || isConstMultiline c
 
     // An infix app is multiline if it contains at least two new line infix ops
     | InfixApps(e, es) ->
@@ -252,7 +256,7 @@ let (|OneLinerMemberDefn|MultilineMemberDefn|) md =
     | MDInherit _
     | MDValField _
     | MDImplicitCtor _
-    | MDInterface(_, None)
+    | MDInterface(_, None, _)
     | MDAbstractSlot([], PreXmlDoc [||], _, _, _, _, _, _) 
     | MDImplicitInherit(_, OneLinerExpr _, _)
     | MDMember(OneLinerBinding _)

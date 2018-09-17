@@ -1,4 +1,18 @@
-#### 2.8.0 - xx-06-2018
+#### 2.8.1 - 09-2018
+* Force parameter is *true* by default. [#267](https://github.com/fsprojects/fantomas/issues/267)
+* Formatting compiler directives with inactive code is incorrect. [#270](https://github.com/fsprojects/fantomas/issues/270)
+* Fix "Fantômas" mistranslation in README. [#273](https://github.com/fsprojects/fantomas/pull/273)
+* Fix for preserve EOL feature. [#275](https://github.com/fsprojects/fantomas/pull/275)
+* rec keyword is removed from recursive modules [#274](https://github.com/fsprojects/fantomas/issues/274)
+* Access modifiers in method signatures in signature files are not formatted correctly. [#284](https://github.com/fsprojects/fantomas/issues/284)
+* `#if FOO || BAR => #if FOO` [#280](https://github.com/fsprojects/fantomas/issues/280)
+* `override` becomes `member` in interface implementations. [#263](https://github.com/fsprojects/fantomas/issues/263)
+* Operator >>.~ incorrectly formatted. [#291](https://github.com/fsprojects/fantomas/issues/291)
+* Bad choice of line break location in boolean equality expression. [#248](https://github.com/fsprojects/fantomas/issues/248)
+* Pipe operator inside quotation expression leads to wrong indentation. [#256](https://github.com/fsprojects/fantomas/issues/256)
+* broken indent by pipe formatting. [#269](https://github.com/fsprojects/fantomas/issues/269)
+
+#### 2.8.0 - 07-2018
 * Wrong indentation of `else` after comment [#241](https://github.com/dungpa/fantomas/issues/241)
 * Change Content to None [#238](https://github.com/dungpa/fantomas/issues/238)
 * Formatting of code with a pipe and a lambda expression [#211](https://github.com/dungpa/fantomas/issues/211)
