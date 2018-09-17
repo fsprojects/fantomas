@@ -8,6 +8,57 @@ F# source code formatter, inspired by [scalariform](https://github.com/mdr/scala
 [![Build Status Travis](https://travis-ci.org/fsprojects/fantomas.png)](https://travis-ci.org/fsprojects/fantomas)
 [![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/nojaf/fantomas)](https://ci.appveyor.com/project/nojaf/fantomas)
 
+## How to use
+
+### Command line tool / API 
+Use this command to install Fantomas as a dotnet SDK global tool:
+
+```
+dotnet tool install -g fantomas-tool
+```
+
+For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.md#using-the-command-line-tool).
+
+#### DotNetCliToolReference
+
+If you prefer an install per project, fantomas can also be installed as a `DotNetCliToolReference`. See [this blogpost](https://blog.nojaf.com/2018/05/03/fantomas-rejuvenated/) for more info.
+
+### FAKE build system
+Fantomas can be easily integrated with FAKE build system. Here is a sample `build.fsx`:
+
+```fsharp
+#r "packages/FAKE/tools/FakeLib.dll"
+#r "packages/Fantomas/lib/FantomasLib.dll"
+
+open Fake
+open Fantomas.FakeHelpers
+open Fantomas.FormatConfig
+
+// Properties
+let buildDir = "./build/"
+let fantomasConfig =
+    { FormatConfig.Default with
+            PageWidth = 120
+            ReorderOpenDeclaration = true }
+
+Target "CheckCodeFormat" (fun _ ->
+    !! "src/**/*.fs"
+      |> checkCode fantomasConfig
+)
+
+Target "FormatCode" (fun _ ->
+    !! "src/**/*.fs"
+      |> formatCode fantomasConfig
+      |> Log "Formatted files: "
+)
+
+RunTargetOrDefault "CheckCodeFormat"
+```
+
+### Jetbrains Rider
+
+The [fsharp-support](https://github.com/JetBrains/fsharp-support) uses fantomas under the hood to format the source code. No need for any additional plugins.
+
 ## Purpose
 This project aims at formatting F# source files based on a given configuration.
 Fantomas will ensure correct indentation and consistent spacing between elements in the source files.
@@ -78,82 +129,16 @@ For example, this code fragment
 
 For more complex examples, please take a look at F# outputs of [20 language shootout programs](tests/languageshootout_output) and [10 CodeReview.SE source files](tests/stackexchange_output).
 
-## How to use
-### VS 2015
-Fantomas is a part of [Visual F# Power Tools][vfpt] extension compatible with
-Visual Studio 2015. The extension could be installed from [Visual Studio
-Gallery][vfpt-gallery]. The usage instructions are the same as for VS 2012
-extension.
-
-[vfpt]: https://github.com/fsprojects/VisualFSharpPowerTools
-[vfpt-gallery]: https://visualstudiogallery.msdn.microsoft.com/136b942e-9f2c-4c0b-8bac-86d774189cff
-
-### VS 2012 and 2013 extension
-[Ivan Towlson](https://github.com/itowlson) kindly contributes the initial version of [Fantomas VS extension](src/Fantomas.VisualStudio). The user guide can be found [here](docs/Documentation.md#using-visual-studio-2012-extension).
-This is available in the [Visual Studio Gallery](http://visualstudiogallery.msdn.microsoft.com/24ef5c87-b4e3-4c3b-b126-1064cc66e148) - search for "fantomas" in "Tools --> Extensions and Updates --> Online". 
-
-    Ctrl + K D   -- format document
-    Ctrl + K F   -- format selection / format cursor position
-
-You can also use Fantomas extension in Ivan's [fsharp-vs-commands](https://github.com/itowlson/fsharp-vs-commands) project.
-
-### Command line tool / API 
-Use this command to install Fantomas as a dotnet SDK global tool:
-
-```
-dotnet tool install -g fantomas-tool
-```
-
-For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.md#using-the-command-line-tool).
-
-### FAKE build system
-Fantomas can be easily integrated with FAKE build system. Here is a sample `build.fsx`:
-
-```fsharp
-#r "packages/FAKE/tools/FakeLib.dll"
-#r "packages/Fantomas/lib/FantomasLib.dll"
-
-open Fake
-open Fantomas.FakeHelpers
-open Fantomas.FormatConfig
-
-// Properties
-let buildDir = "./build/"
-let fantomasConfig =
-    { FormatConfig.Default with
-            PageWidth = 120
-            ReorderOpenDeclaration = true }
-
-Target "CheckCodeFormat" (fun _ ->
-    !! "src/**/*.fs"
-      |> checkCode fantomasConfig
-)
-
-Target "FormatCode" (fun _ ->
-    !! "src/**/*.fs"
-      |> formatCode fantomasConfig
-      |> Log "Formatted files: "
-)
-
-RunTargetOrDefault "CheckCodeFormat"
-```
-
-### Trying Fantomas online
-[FantomasWeb](https://github.com/TahaHachana/FantomasWeb), implemented by [Taha Hachana](https://github.com/TahaHachana), is accessible at http://fantomasweb.apphb.com/.
-
-### Fantomas plugin in Tsunami IDE
-Taha also wrote a [blog post](http://fsharp-code.blogspot.dk/2013/04/fantomas-support-in-tsunami-ide.html) on integrating Fantomas into Tsunami IDE.
-
 ## Installation
-The code base is written in F# 3.0/.NET framework 4.0. 
-The solution file can be opened in Visual Studio 2012, Visual Studio 2013 and MonoDevelop/Xamarin Studio.
-NuGet is used to manage external packages.
+The code base is written in F# 4.X /.NET standard 2.0. 
+The solution file can be opened in Visual Studio 2017, VS Code (with the [ionide plugin](http://ionide.io/)) & [Jetbrains Rider](http://jetbrains.com/rider/).
+Paket is used to manage external packages.
 The [test project](src/Fantomas.Tests) depends on FsUnit and NUnit.
 However, the [library project](src/Fantomas) and [command line interface](src/Fantomas.Cmd) have no dependency on external packages.
 
 ## Testing and validation
 We have tried to be careful in testing the project.
-There are 209 unit tests and 30 validated test examples, 
+There are 326 unit tests and 30 validated test examples, 
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
