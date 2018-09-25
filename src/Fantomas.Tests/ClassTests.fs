@@ -324,3 +324,27 @@ let ``class inherit and augmentation``() =
         let hello = "Hello"
         member this.X = "Member"
 """
+
+[<Test>]
+let ``property long line``() =
+    formatSourceString false """type T() =
+    member __.Property = "hello"
+let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x:T) = x
+let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass = T()
+
+System.String.Concat("a", "b" + 
+                            longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun(longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass).Property)
+"""  config
+    |> should equal """type T() =
+    member __.Property = "hello"
+
+let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x : T) = x
+let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass =
+    T()
+
+System.String.Concat
+    ("a", 
+     "b" 
+     + (longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun
+            (longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass)).Property)
+"""
