@@ -646,7 +646,10 @@ and genExpr astContext = function
     | DotIndexedGet(e, es) -> genExpr astContext e -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
     | DotIndexedSet(e1, es, e2) -> genExpr astContext e1 -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
     | DotGet(e, s) -> 
-        genExpr { astContext with IsInsideDotGet = true } e -- sprintf ".%s" s
+        let addParenIfAutoNln e ctx =
+            ifElse (autoNlnCheck e sepNone ctx) (sepOpenT +> e +> sepCloseT) e ctx
+        let expr = genExpr { astContext with IsInsideDotGet = true } e 
+        addParenIfAutoNln expr -- sprintf ".%s" s
     | DotSet(e1, s, e2) -> genExpr astContext e1 -- sprintf ".%s <- " s +> genExpr astContext e2
     | LetOrUseBang(isUse, p, e1, e2) ->
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
