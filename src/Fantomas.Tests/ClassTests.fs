@@ -348,3 +348,18 @@ System.String.Concat
      + (longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun
             (longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass)).Property)
 """
+
+[<Test>]
+let ``indexed get long line``() =
+    formatSourceString false """open System
+type Exception with
+    member inline __.FirstLine = 
+        __.Message.Split([|Environment.NewLine|], StringSplitOptions.RemoveEmptyEntries).[0]
+"""  config
+    |> should equal """open System
+
+type Exception with
+    member inline __.FirstLine =
+        (__.Message.Split
+             ([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries)).[0]
+"""
