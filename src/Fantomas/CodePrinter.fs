@@ -181,7 +181,10 @@ and genModuleDecl astContext = function
         failwithf "NamespaceFragment hasn't been implemented yet: %O" m
     | NestedModule(ats, px, ao, s, isRecursive, mds) -> 
         genPreXmlDoc px
-        +> genAttributes astContext ats +> ifElse isRecursive (!- "module rec ") (!- "module ") +> opt sepSpace ao genAccess -- s +> sepEq
+        +> genAttributes astContext ats
+        +> (!- "module ")
+        +> opt sepSpace ao genAccess
+        +> ifElse isRecursive (!- "rec ") sepNone -- s +> sepEq
         +> indent +> sepNln +> genModuleDeclList astContext mds +> unindent
 
     | Open(s) ->

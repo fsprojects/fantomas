@@ -298,3 +298,15 @@ module rec Test =
 module rec Test =
     let test = 42
 """
+
+[<Test>]
+let ``should retain order when access and rec present in module declaration``() =
+    formatSourceString false """
+module private rec Test =
+    let test = 42
+    """ config
+    |> prepend newline
+    |> should equal """
+module private rec Test =
+    let test = 42
+"""
