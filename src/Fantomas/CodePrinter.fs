@@ -84,20 +84,22 @@ and genParsedHashDirective (ParsedHashDirective(h, s)) =
 
     !- "#" -- h +> sepSpace +> col sepSpace s printArgument
 
-and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
+and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule)) =
     genPreXmlDoc px
     +> genAttributes astContext ats
     +> ifElse (String.Equals(s, astContext.TopLevelModuleName, StringComparison.InvariantCultureIgnoreCase)) sepNone 
          (ifElse isModule (!- "module ") (!- "namespace ")
-            +> opt sepSpace ao genAccess +> ifElse (s = "") (!- "global") (!- s) +> rep 2 sepNln)
+            +> opt sepSpace ao genAccess
+            +> ifElse isRecursive (!- "rec ") sepNone
+            +> ifElse (s = "") (!- "global") (!- s) +> rep 2 sepNln)
     +> genModuleDeclList astContext mds
 
-and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
+and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule)) =
     genPreXmlDoc px
     +> genAttributes astContext ats
     +> ifElse (String.Equals(s, astContext.TopLevelModuleName, StringComparison.InvariantCultureIgnoreCase)) sepNone 
-          (ifElse isModule (!- "module ") (!- "namespace ")
-    +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
+            (ifElse isModule (!- "module ") (!- "namespace ")
+                +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
     +> genSigModuleDeclList astContext mds
 
 and genModuleDeclList astContext = function
@@ -177,9 +179,9 @@ and genModuleDecl astContext = function
         !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | NamespaceFragment(m) ->
         failwithf "NamespaceFragment hasn't been implemented yet: %O" m
-    | NestedModule(ats, px, ao, s, isRec, mds) -> 
+    | NestedModule(ats, px, ao, s, isRecursive, mds) -> 
         genPreXmlDoc px
-        +> genAttributes astContext ats +> ifElse isRec (!- "module rec ") (!- "module ") +> opt sepSpace ao genAccess -- s +> sepEq
+        +> genAttributes astContext ats +> ifElse isRecursive (!- "module rec ") (!- "module ") +> opt sepSpace ao genAccess -- s +> sepEq
         +> indent +> sepNln +> genModuleDeclList astContext mds +> unindent
 
     | Open(s) ->

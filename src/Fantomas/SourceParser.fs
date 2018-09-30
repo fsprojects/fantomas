@@ -193,11 +193,11 @@ let (|ParsedImplFileInput|) (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _,
 let (|ParsedSigFileInput|) (ParsedSigFileInput.ParsedSigFileInput(_, _, _, hs, mns)) =
     (hs, mns)
 
-let (|ModuleOrNamespace|) (SynModuleOrNamespace.SynModuleOrNamespace(LongIdent s, _, isModule, mds, px, ats, ao, _)) =
-    (ats, px, ao, s, mds, isModule)
+let (|ModuleOrNamespace|) (SynModuleOrNamespace.SynModuleOrNamespace(LongIdent s, isRecursive, isModule, mds, px, ats, ao, _)) =
+    (ats, px, ao, s, mds, isRecursive, isModule)
 
-let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(LongIdent s, _, isModule, mds, px, ats, ao, _)) =
-    (ats, px, ao, s, mds, isModule)
+let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(LongIdent s, isRecursive, isModule, mds, px, ats, ao, _)) =
+    (ats, px, ao, s, mds, isRecursive, isModule)
 
 // Attribute
 
