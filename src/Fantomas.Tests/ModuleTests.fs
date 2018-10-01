@@ -172,6 +172,52 @@ module WidgetsModule =
 """
 
 [<Test>]
+let ``should retain rec in namespace``() =
+    formatSourceString false """
+namespace rec Test
+
+type Add = Expr * Expr
+
+type Expr =
+    | Add of Add
+    | Value of int
+    """ config
+    |> prepend newline
+    |> should equal """
+namespace rec Test
+
+type Add = Expr * Expr
+
+type Expr =
+    | Add of Add
+    | Value of int
+"""
+
+[<Test>]
+let ``should retain rec in nested module``() =
+    formatSourceString false """
+namespace Test
+
+module rec Expression =
+    type Add = Expr * Expr
+
+    type Expr =
+        | Add of Add
+        | Value of int
+    """ config
+    |> prepend newline
+    |> should equal """
+namespace Test
+
+module rec Expression =
+    type Add = Expr * Expr
+    
+    type Expr =
+        | Add of Add
+        | Value of int
+"""
+
+[<Test>]
 let ``should preserve global keyword``() =
     formatSourceString false """
 namespace global
@@ -250,5 +296,17 @@ module rec Test =
     |> prepend newline
     |> should equal """
 module rec Test =
+    let test = 42
+"""
+
+[<Test>]
+let ``should retain order when access and rec present in module declaration``() =
+    formatSourceString false """
+module private rec Test =
+    let test = 42
+    """ config
+    |> prepend newline
+    |> should equal """
+module private rec Test =
     let test = 42
 """
