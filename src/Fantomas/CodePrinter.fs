@@ -84,20 +84,22 @@ and genParsedHashDirective (ParsedHashDirective(h, s)) =
 
     !- "#" -- h +> sepSpace +> col sepSpace s printArgument
 
-and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
+and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule)) =
     genPreXmlDoc px
     +> genAttributes astContext ats
     +> ifElse (String.Equals(s, astContext.TopLevelModuleName, StringComparison.InvariantCultureIgnoreCase)) sepNone 
          (ifElse isModule (!- "module ") (!- "namespace ")
-            +> opt sepSpace ao genAccess +> ifElse (s = "") (!- "global") (!- s) +> rep 2 sepNln)
+            +> opt sepSpace ao genAccess
+            +> ifElse isRecursive (!- "rec ") sepNone
+            +> ifElse (s = "") (!- "global") (!- s) +> rep 2 sepNln)
     +> genModuleDeclList astContext mds
 
-and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isModule)) =
+and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule)) =
     genPreXmlDoc px
     +> genAttributes astContext ats
     +> ifElse (String.Equals(s, astContext.TopLevelModuleName, StringComparison.InvariantCultureIgnoreCase)) sepNone 
-          (ifElse isModule (!- "module ") (!- "namespace ")
-    +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
+            (ifElse isModule (!- "module ") (!- "namespace ")
+                +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
     +> genSigModuleDeclList astContext mds
 
 and genModuleDeclList astContext = function
@@ -177,9 +179,12 @@ and genModuleDecl astContext = function
         !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | NamespaceFragment(m) ->
         failwithf "NamespaceFragment hasn't been implemented yet: %O" m
-    | NestedModule(ats, px, ao, s, isRec, mds) -> 
+    | NestedModule(ats, px, ao, s, isRecursive, mds) -> 
         genPreXmlDoc px
-        +> genAttributes astContext ats +> ifElse isRec (!- "module rec ") (!- "module ") +> opt sepSpace ao genAccess -- s +> sepEq
+        +> genAttributes astContext ats
+        +> (!- "module ")
+        +> opt sepSpace ao genAccess
+        +> ifElse isRecursive (!- "rec ") sepNone -- s +> sepEq
         +> indent +> sepNln +> genModuleDeclList astContext mds +> unindent
 
     | Open(s) ->
@@ -643,11 +648,12 @@ and genExpr astContext = function
     // At this stage, all symbolic operators have been handled.
     | OptVar(s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
     | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr astContext e
-    | DotIndexedGet(e, es) -> genExpr astContext e -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
-    | DotIndexedSet(e1, es, e2) -> genExpr astContext e1 -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
+    | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
+    | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
     | DotGet(e, s) -> 
-        genExpr { astContext with IsInsideDotGet = true } e -- sprintf ".%s" s
-    | DotSet(e1, s, e2) -> genExpr astContext e1 -- sprintf ".%s <- " s +> genExpr astContext e2
+        let exprF = genExpr { astContext with IsInsideDotGet = true }
+        addParenIfAutoNln e exprF -- (sprintf ".%s" s)
+    | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
     | LetOrUseBang(isUse, p, e1, e2) ->
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
             +> genPat astContext p -- " = " +> genExpr astContext e1 +> sepNln +> genExpr astContext e2)

@@ -348,16 +348,19 @@ let internal sepOpenT = !- "("
 /// closing token of tuple
 let internal sepCloseT = !- ")"
 
-
-/// Set a checkpoint to break at an appropriate column
-let internal autoNlnOrAddSep f sep (ctx : Context) =
-    if not ctx.BreakLines then f (sep ctx) else
+let internal autoNlnCheck f sep (ctx : Context) =
+    if not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
     use colWriter = new ColumnIndentedTextWriter(new StringWriter())
     let dummyCtx = ctx.With(colWriter)
     let col = (dummyCtx |> sep |> f).Writer.Column
     // This isn't accurate if we go to new lines
-    if col > ctx.Config.PageWidth then
+    col > ctx.Config.PageWidth
+
+/// Set a checkpoint to break at an appropriate column
+let internal autoNlnOrAddSep f sep (ctx : Context) =
+    let isNln = autoNlnCheck f sep ctx
+    if isNln then
        f (sepNln ctx)
     else
        f (sep ctx)

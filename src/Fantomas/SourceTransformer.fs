@@ -308,3 +308,7 @@ let rec (|MultilineLetOrUseL|_|) = function
     | (prefix, MultilineBinding x)::MultilineLetOrUseL(xs, ys) -> Some((prefix, x)::xs, ys)
     | (prefix, MultilineBinding x)::ys -> Some([prefix, x], ys)
     | _ -> None
+
+let addParenIfAutoNln synExpr f ctx =
+    let expr = f synExpr
+    ifElse (autoNlnCheck expr sepNone ctx && not (hasParenthesis synExpr)) (sepOpenT +> expr +> sepCloseT) expr ctx
