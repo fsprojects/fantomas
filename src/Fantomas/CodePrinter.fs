@@ -482,7 +482,9 @@ and genExpr astContext = function
     | TypedExpr(Typed, e, t) -> genExpr astContext e +> sepColon +> genType astContext false t
     | Tuple es -> 
         atCurrentColumn (coli sepComma es (fun i -> 
-            addParenIfMultiline (if i = 0 then genExpr astContext else noIndentBreakNln astContext)))
+            if i = 0 then genExpr astContext else noIndentBreakNln astContext
+            |> addParenWhen (function |ElIf _ -> true |_ -> false) // "if .. then .. else" have precedence over ","
+        ))
     | ArrayOrList(isArray, [], _) -> 
         ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
     | ArrayOrList(isArray, xs, isSimple) -> 
