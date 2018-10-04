@@ -312,3 +312,7 @@ let rec (|MultilineLetOrUseL|_|) = function
 let addParenIfAutoNln synExpr f ctx =
     let expr = f synExpr
     ifElse (autoNlnCheck expr sepNone ctx && not (hasParenthesis synExpr)) (sepOpenT +> expr +> sepCloseT) expr ctx
+
+let addParenIfMultiline f synExpr ctx =
+    let expr = f synExpr
+    ifElse (multiline synExpr && not (hasParenthesis synExpr)) (sepOpenT +> expr +> sepCloseT) expr ctx
