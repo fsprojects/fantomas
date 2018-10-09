@@ -188,7 +188,8 @@ let isValidAST ast =
 
         | SynExpr.MatchLambda(_isExnMatch, _argm, synMatchClauseList, _spBind, _wholem) -> 
             List.forall validateClause synMatchClauseList
-        | SynExpr.Match(_sequencePointInfoForBinding, synExpr, synMatchClauseList, _, _range) ->
+        | SynExpr.Match(_sequencePointInfoForBinding, synExpr, synMatchClauseList, _, _range)
+        | SynExpr.MatchBang(_sequencePointInfoForBinding, synExpr, synMatchClauseList, _, _range) ->
             validateExpr synExpr && List.forall validateClause synMatchClauseList
 
         | SynExpr.Lazy(synExpr, _range) ->
