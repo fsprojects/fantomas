@@ -480,7 +480,11 @@ and genExpr astContext = function
     | TypedExpr(Downcast, e, t) -> genExpr astContext e -- " :?> " +> genType astContext false t
     | TypedExpr(Upcast, e, t) -> genExpr astContext e -- " :> " +> genType astContext false t
     | TypedExpr(Typed, e, t) -> genExpr astContext e +> sepColon +> genType astContext false t
-    | Tuple es -> atCurrentColumn (coli sepComma es (fun i -> if i = 0 then genExpr astContext else noIndentBreakNln astContext))
+    | Tuple es -> 
+        atCurrentColumn (coli sepComma es (fun i -> 
+            if i = 0 then genExpr astContext else noIndentBreakNln astContext
+            |> addParenWhen (function |ElIf _ -> true |_ -> false) // "if .. then .. else" have precedence over ","
+        ))
     | ArrayOrList(isArray, [], _) -> 
         ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
     | ArrayOrList(isArray, xs, isSimple) -> 
@@ -1213,6 +1217,10 @@ and genPat astContext = function
     | PatRecord(xs) -> 
         sepOpenS +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs (genPatRecordFieldName astContext)) +> sepCloseS
     | PatConst(c) -> genConst c
+    | PatIsInst(TApp(_, [_], _) as t)
+    | PatIsInst(TArray(_) as t) -> 
+        // special case for things like ":? (int seq) ->"
+        !- ":? " +> sepOpenT +> genType astContext false t +> sepCloseT
     | PatIsInst(t) -> 
         // Should have brackets around in the type test patterns
         !- ":? " +> genType astContext true t
