@@ -302,6 +302,28 @@ match item.Item with
 """
 
 [<Test>]
+let ``should put brackets around app type tests``() =
+    formatSourceString false """
+match item.Item with
+| :? (Instruction seq) -> ()""" config
+    |> prepend newline
+    |> should equal """
+match item.Item with
+| :? (Instruction seq) -> ()
+"""
+
+[<Test>]
+let ``should put brackets around array type tests``() =
+    formatSourceString false """
+match item.Item with
+| :? (Instruction []) -> ()""" config
+    |> prepend newline
+    |> should equal """
+match item.Item with
+| :? (Instruction []) -> ()
+"""
+
+[<Test>]
 let ``should support rational powers on units of measures``() =
     formatSourceString false """
 [<Measure>] type X = cm^(1/2)/W""" config
