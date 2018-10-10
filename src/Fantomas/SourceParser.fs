@@ -604,6 +604,11 @@ let (|Tuple|_|) = function
         Some exprs
     | _ -> None
 
+let (|StructTuple|_|) = function
+    | SynExpr.StructTuple(exprs, _, _) ->
+        Some exprs
+    | _ -> None
+
 let (|IndexedVar|_|) = function
     // We might have to narrow scope of this pattern to avoid incorrect usage
     | SynExpr.App(_, _, SynExpr.LongIdent(_, LongIdentWithDots "Microsoft.FSharp.Core.Some", _, _), e, _) -> 
@@ -874,6 +879,11 @@ let (|PatTuple|_|) = function
         Some ps
     | _ -> None
 
+let (|PatStructTuple|_|) = function
+    | SynPat.StructTuple(ps, _) ->
+        Some ps
+    | _ -> None
+
 type SeqPatKind = PatArray | PatList
 
 let (|PatSeq|_|) = function
@@ -1132,6 +1142,11 @@ let (|TLongIdentApp|_|) = function
 
 let (|TTuple|_|) = function
     | SynType.Tuple(ts, _) ->
+        Some ts
+    | _ -> None
+
+let (|TStructTuple|_|) = function
+    | SynType.StructTuple(ts, _) ->
         Some ts
     | _ -> None
 
