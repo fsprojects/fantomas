@@ -351,7 +351,10 @@ let isValidFSharpCode formatContext =
     
 let formatWith ast formatContext config =
     let moduleName = Path.GetFileNameWithoutExtension formatContext.FileName
-    let input = Some formatContext.Source
+    let input =
+        if String.IsNullOrWhiteSpace formatContext.Source then None
+        else Some formatContext.Source
+        
     // Use '\n' as the new line delimiter consistently
     // It would be easier for F# parser
     let sourceCode = defaultArg input String.Empty

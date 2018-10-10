@@ -7,6 +7,8 @@ open Fantomas.FormatConfig
 open Fantomas
 open Microsoft.FSharp.Compiler.SourceCodeServices
 open Microsoft.FSharp.Compiler.ErrorLogger
+open Microsoft.FSharp.Compiler.Ast
+open Microsoft.FSharp.Compiler.Range
 
 let config = FormatConfig.Default
 let newline = "\n"
@@ -89,3 +91,44 @@ let printContext sourceCode =
     context.Directives
     |> Seq.iter (fun kv -> printfn "%A %s" kv.Key kv.Value)
     printfn "context: %A" context
+
+let zero = range.Zero   
+ 
+type Input = Input of string
+  
+let toSynExprs (Input s) =
+    match (try Some (parse false s) with _ -> None) with
+    | Some 
+      (ParsedInput.ImplFile
+        (ParsedImplFileInput
+            ("/tmp.fsx", _,
+            QualifiedNameOfFile _, [], [],
+            [SynModuleOrNamespace
+                (_, false, true, exprs, _, _, _, _)], _))) -> 
+                List.choose (function (SynModuleDecl.DoExpr(_, expr, _)) -> Some expr | _ -> None) exprs
+    | _ -> 
+        //stdout.WriteLine("Can't convert {0}.", sprintf "%A" ast)
+        []
+
+let tryFormatAST ast sourceCode config =
+    try
+        formatAST ast sourceCode config
+    with _ ->
+        ""
+        
+let formatConfig = { FormatConfig.Default with StrictMode = true }   
+             
+// Regenerate inputs from expression ASTs
+// Might suffer from bugs in formatting phase
+let fromSynExpr expr =
+    let ast =
+        let ident = Ident("Tmp", zero)
+        ParsedInput.ImplFile
+            (ParsedImplFileInput
+               ("/tmp.fsx", true,
+                QualifiedNameOfFile ident, [], [],
+                [SynModuleOrNamespace
+                   ([ident], false, true,
+                    [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
+                    zero)], (true, true)))
+    Input (tryFormatAST ast None formatConfig)
