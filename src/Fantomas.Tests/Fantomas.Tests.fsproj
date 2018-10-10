@@ -39,6 +39,7 @@
     <Compile Include="ValidationTests.fs" />
     <Compile Include="FormattingPropertyTests.fs" />
     <Compile Include="SpecialConstructsTests.fs" />
+    <Compile Include="FormatAstTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
