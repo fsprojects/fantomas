@@ -1215,6 +1215,10 @@ and genPat astContext = function
     | PatRecord(xs) -> 
         sepOpenS +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs (genPatRecordFieldName astContext)) +> sepCloseS
     | PatConst(c) -> genConst c
+    | PatIsInst(TApp(_, [_], _) as t)
+    | PatIsInst(TArray(_) as t) -> 
+        // special case for things like ":? (int seq) ->"
+        !- ":? " +> sepOpenT +> genType astContext false t +> sepCloseT
     | PatIsInst(t) -> 
         // Should have brackets around in the type test patterns
         !- ":? " +> genType astContext true t
