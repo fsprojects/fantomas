@@ -553,6 +553,11 @@ let (|Match|_|) = function
         Some(e, cs)
     | _ -> None
 
+let (|MatchBang|_|) = function
+    | SynExpr.MatchBang(_, e, cs, _, _) ->
+        Some(e, cs)
+    | _ -> None
+
 let (|Sequential|_|) = function
     | SynExpr.Sequential(_, isSeq, e1, e2, _) ->
         Some(e1, e2, isSeq)

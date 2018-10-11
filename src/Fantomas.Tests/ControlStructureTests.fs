@@ -290,3 +290,15 @@ elif true then ()
 if true then ()
 elif true then ()
 """
+
+[<Test>]
+let ``multiline if in tuple``() =
+    formatSourceString false """
+(if true then 1 else 2 
+ ,3)
+    """ config
+    |> prepend newline
+    |> should equal """
+((if true then 1
+  else 2), 3)
+"""

@@ -409,9 +409,8 @@ let rec shrinkSynExpr = function
     | SynExpr.MatchLambda(_, _, clauses, _, _) -> 
         seq { yield! Seq.collect collectSynMatchClause clauses }
     | SynExpr.TryWith(expr, _, clauses, _, _, _, _)
-    | SynExpr.Match(_, expr, clauses, _, _) ->
-    // TODO: Add include support for MatchBang, add unit test first! See https://github.com/fsprojects/fantomas/issues/262
-    //| SynExpr.MatchBang(_, expr, clauses, _, _) -> 
+    | SynExpr.Match(_, expr, clauses, _, _)
+    | SynExpr.MatchBang(_, expr, clauses, _, _) -> 
         seq { yield! collectSynExpr expr; yield! Seq.collect collectSynMatchClause clauses }
     | SynExpr.LetOrUse(_, _, bindings, expr, _) -> 
         seq { yield! Seq.collect collectSynBinding bindings; yield! collectSynExpr expr }

@@ -99,3 +99,20 @@ let factors number =
 let factors number =
     { 2L..number / 2L } |> Seq.filter (fun x -> number % x = 0L)
 """
+
+[<Test>]
+let ``match bang``() =
+    formatSourceString false """
+async { 
+    match! myAsyncFunction() with
+    | Some x -> printfn "%A" x
+    | None -> printfn "Function returned None!"
+}""" config
+    |> prepend newline
+    |> should equal """
+async { 
+    match! myAsyncFunction() with
+    | Some x -> printfn "%A" x
+    | None -> printfn "Function returned None!"
+}
+"""
