@@ -480,6 +480,10 @@ and genExpr astContext = function
     | TypedExpr(Downcast, e, t) -> genExpr astContext e -- " :?> " +> genType astContext false t
     | TypedExpr(Upcast, e, t) -> genExpr astContext e -- " :> " +> genType astContext false t
     | TypedExpr(Typed, e, t) -> genExpr astContext e +> sepColon +> genType astContext false t
+    | StructTuple es -> 
+        !- "struct " +> sepOpenT +> 
+        atCurrentColumn (coli sepComma es (fun i -> if i = 0 then genExpr astContext else noIndentBreakNln astContext))
+        +> sepCloseT
     | Tuple es -> 
         atCurrentColumn (coli sepComma es (fun i -> 
             if i = 0 then genExpr astContext else noIndentBreakNln astContext
@@ -963,6 +967,7 @@ and genType astContext outerBracket t =
 
         | TLongIdentApp(t, s, ts) -> loop t -- sprintf ".%s" s +> genPrefixTypes astContext ts
         | TTuple ts -> sepOpenT +> loopTTupleList ts +> sepCloseT
+        | TStructTuple ts -> !- "struct " +> sepOpenT +> loopTTupleList ts +> sepCloseT
         | TWithGlobalConstraints(TVar _, [TyparSubtypeOfType _ as tc]) -> genTypeConstraint astContext tc
         | TWithGlobalConstraints(TFuns ts, tcs) -> col sepArrow ts loop +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)        
         | TWithGlobalConstraints(t, tcs) -> loop t +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
@@ -1206,6 +1211,8 @@ and genPat astContext = function
     | PatParen(p) -> sepOpenT +> genPat astContext p +> sepCloseT
     | PatTuple ps -> 
         atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext))
+    | PatStructTuple ps -> 
+        !- "struct " +> sepOpenT +> atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext)) +> sepCloseT
     | PatSeq(PatList, ps) -> 
         ifElse ps.IsEmpty (sepOpenLFixed +> sepCloseLFixed) 
             (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps (genPat astContext)) +> sepCloseL)
