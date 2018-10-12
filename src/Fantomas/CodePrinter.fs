@@ -466,6 +466,12 @@ and genVal astContext (Val(ats, px, ao, s, t, vi, _)) =
 and genRecordFieldName astContext (RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e)
 
+and genTuple astContext es =
+    atCurrentColumn (coli sepComma es (fun i -> 
+            if i = 0 then genExpr astContext else noIndentBreakNln astContext
+            |> addParenWhen (function |ElIf _ -> true |_ -> false) // "if .. then .. else" have precedence over ","
+        ))
+
 and genExpr astContext = function
     | SingleExpr(kind, e) -> str kind +> genExpr astContext e
     | ConstExpr(c) -> genConst c
@@ -480,15 +486,8 @@ and genExpr astContext = function
     | TypedExpr(Downcast, e, t) -> genExpr astContext e -- " :?> " +> genType astContext false t
     | TypedExpr(Upcast, e, t) -> genExpr astContext e -- " :> " +> genType astContext false t
     | TypedExpr(Typed, e, t) -> genExpr astContext e +> sepColon +> genType astContext false t
-    | StructTuple es -> 
-        !- "struct " +> sepOpenT +> 
-        atCurrentColumn (coli sepComma es (fun i -> if i = 0 then genExpr astContext else noIndentBreakNln astContext))
-        +> sepCloseT
-    | Tuple es -> 
-        atCurrentColumn (coli sepComma es (fun i -> 
-            if i = 0 then genExpr astContext else noIndentBreakNln astContext
-            |> addParenWhen (function |ElIf _ -> true |_ -> false) // "if .. then .. else" have precedence over ","
-        ))
+    | Tuple es -> genTuple astContext es
+    | StructTuple es -> !- "struct " +> sepOpenT +> genTuple astContext es +> sepCloseT
     | ArrayOrList(isArray, [], _) -> 
         ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
     | ArrayOrList(isArray, xs, isSimple) -> 
