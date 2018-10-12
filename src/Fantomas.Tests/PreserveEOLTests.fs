@@ -471,3 +471,8 @@ let x = 1
 let y = 2
 #endif
 """
+
+[<Test>]
+let ``if no newline is present, --preserveEOL should not add new line`` () =
+    formatSourceString false "let add a b = a + b"  { config with PreserveEndOfLine = true }
+    |> should equal "let add a b = a + b"
