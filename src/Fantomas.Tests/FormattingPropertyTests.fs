@@ -10,15 +10,11 @@ open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
 open TestHelper
 
-let formatConfig = { FormatConfig.Default with StrictMode = true }
-
 let generateSynMeasure =
     Gen.constant SynMeasure.One
 
 let generateRange =
     Gen.constant range.Zero
-
-let zero = range.Zero
 
 let generateBasicConst _ =
     Gen.oneof 
@@ -345,31 +341,8 @@ let generateParsedInput =
                     zero)], (true, true)))
     Gen.sized <| fun size -> Gen.map generateAST (generateTypedSeqExpr size)
 
-type Input = Input of string
-
-let tryFormatAST ast sourceCode config =
-    try
-        formatAST ast sourceCode config
-    with _ ->
-        ""
-
 let generateInput = 
     Gen.map (fun ast -> Input (tryFormatAST ast None formatConfig)) generateParsedInput
-
-// Regenerate inputs from expression ASTs
-// Might suffer from bugs in formatting phase
-let fromSynExpr expr =
-    let ast =
-        let ident = Ident("Tmp", zero)
-        ParsedInput.ImplFile
-            (ParsedImplFileInput
-               ("/tmp.fsx", true,
-                QualifiedNameOfFile ident, [], [],
-                [SynModuleOrNamespace
-                   ([ident], false, true,
-                    [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
-                    zero)], (true, true)))
-    Input (tryFormatAST ast None formatConfig)
 
 // Look up original source in order to reconstruct smaller counterexamples
 let fromExprRange (originalSource: string) (expr: SynExpr) =
@@ -388,20 +361,6 @@ let fromExprRange (originalSource: string) (expr: SynExpr) =
     if (sample.Trim()) = (originalSource.Trim()) then 
         None
     else Some (Input sample)
-
-let toSynExprs (Input s) =
-    match (try Some (parse false s) with _ -> None) with
-    | Some 
-      (ParsedInput.ImplFile
-        (ParsedImplFileInput
-            ("/tmp.fsx", _,
-            QualifiedNameOfFile _, [], [],
-            [SynModuleOrNamespace
-                (_, false, true, exprs, _, _, _, _)], _))) -> 
-                List.choose (function (SynModuleDecl.DoExpr(_, expr, _)) -> Some expr | _ -> None) exprs
-    | _ -> 
-        //stdout.WriteLine("Can't convert {0}.", sprintf "%A" ast)
-        []
 
 let rec shrinkSynExpr = function
     | SynExpr.LongIdentSet(_, expr, _)
@@ -450,9 +409,8 @@ let rec shrinkSynExpr = function
     | SynExpr.MatchLambda(_, _, clauses, _, _) -> 
         seq { yield! Seq.collect collectSynMatchClause clauses }
     | SynExpr.TryWith(expr, _, clauses, _, _, _, _)
-    | SynExpr.Match(_, expr, clauses, _, _) ->
-    // TODO: Add include support for MatchBang, add unit test first! See https://github.com/fsprojects/fantomas/issues/262
-    //| SynExpr.MatchBang(_, expr, clauses, _, _) -> 
+    | SynExpr.Match(_, expr, clauses, _, _)
+    | SynExpr.MatchBang(_, expr, clauses, _, _) -> 
         seq { yield! collectSynExpr expr; yield! Seq.collect collectSynMatchClause clauses }
     | SynExpr.LetOrUse(_, _, bindings, expr, _) -> 
         seq { yield! Seq.collect collectSynBinding bindings; yield! collectSynExpr expr }

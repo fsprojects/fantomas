@@ -75,7 +75,8 @@ let rec multiline synExpr =
 
     | MatchLambda(cs, _) ->
         not (List.atMostOne cs)
-    | Match(e, cs) ->
+    | Match(e, cs)
+    | MatchBang(e, cs) ->
         not (List.isEmpty cs) || multiline e
     | LetOrUse(_, _, bs, e) ->
         not (List.isEmpty bs) || multiline e
@@ -308,3 +309,11 @@ let rec (|MultilineLetOrUseL|_|) = function
     | (prefix, MultilineBinding x)::MultilineLetOrUseL(xs, ys) -> Some((prefix, x)::xs, ys)
     | (prefix, MultilineBinding x)::ys -> Some([prefix, x], ys)
     | _ -> None
+
+let addParenIfAutoNln synExpr f ctx =
+    let expr = f synExpr
+    ifElse (autoNlnCheck expr sepNone ctx && not (hasParenthesis synExpr)) (sepOpenT +> expr +> sepCloseT) expr ctx
+
+let addParenWhen condition f synExpr ctx =
+    let expr = f synExpr
+    ifElse (condition synExpr) (sepOpenT +> expr +> sepCloseT) expr ctx

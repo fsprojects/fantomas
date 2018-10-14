@@ -193,11 +193,11 @@ let (|ParsedImplFileInput|) (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _,
 let (|ParsedSigFileInput|) (ParsedSigFileInput.ParsedSigFileInput(_, _, _, hs, mns)) =
     (hs, mns)
 
-let (|ModuleOrNamespace|) (SynModuleOrNamespace.SynModuleOrNamespace(LongIdent s, _, isModule, mds, px, ats, ao, _)) =
-    (ats, px, ao, s, mds, isModule)
+let (|ModuleOrNamespace|) (SynModuleOrNamespace.SynModuleOrNamespace(LongIdent s, isRecursive, isModule, mds, px, ats, ao, _)) =
+    (ats, px, ao, s, mds, isRecursive, isModule)
 
-let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(LongIdent s, _, isModule, mds, px, ats, ao, _)) =
-    (ats, px, ao, s, mds, isModule)
+let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(LongIdent s, isRecursive, isModule, mds, px, ats, ao, _)) =
+    (ats, px, ao, s, mds, isRecursive, isModule)
 
 // Attribute
 
@@ -553,6 +553,11 @@ let (|Match|_|) = function
         Some(e, cs)
     | _ -> None
 
+let (|MatchBang|_|) = function
+    | SynExpr.MatchBang(_, e, cs, _, _) ->
+        Some(e, cs)
+    | _ -> None
+
 let (|Sequential|_|) = function
     | SynExpr.Sequential(_, isSeq, e1, e2, _) ->
         Some(e1, e2, isSeq)
@@ -601,6 +606,11 @@ let (|ArrayOrList|_|) = function
 
 let (|Tuple|_|) = function
     | SynExpr.Tuple(exprs, _, _) ->
+        Some exprs
+    | _ -> None
+
+let (|StructTuple|_|) = function
+    | SynExpr.StructTuple(exprs, _, _) ->
         Some exprs
     | _ -> None
 
@@ -874,6 +884,11 @@ let (|PatTuple|_|) = function
         Some ps
     | _ -> None
 
+let (|PatStructTuple|_|) = function
+    | SynPat.StructTuple(ps, _) ->
+        Some ps
+    | _ -> None
+
 type SeqPatKind = PatArray | PatList
 
 let (|PatSeq|_|) = function
@@ -1132,6 +1147,11 @@ let (|TLongIdentApp|_|) = function
 
 let (|TTuple|_|) = function
     | SynType.Tuple(ts, _) ->
+        Some ts
+    | _ -> None
+
+let (|TStructTuple|_|) = function
+    | SynType.StructTuple(ts, _) ->
         Some ts
     | _ -> None
 

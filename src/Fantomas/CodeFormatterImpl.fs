@@ -188,7 +188,8 @@ let isValidAST ast =
 
         | SynExpr.MatchLambda(_isExnMatch, _argm, synMatchClauseList, _spBind, _wholem) -> 
             List.forall validateClause synMatchClauseList
-        | SynExpr.Match(_sequencePointInfoForBinding, synExpr, synMatchClauseList, _, _range) ->
+        | SynExpr.Match(_sequencePointInfoForBinding, synExpr, synMatchClauseList, _, _range)
+        | SynExpr.MatchBang(_sequencePointInfoForBinding, synExpr, synMatchClauseList, _, _range) ->
             validateExpr synExpr && List.forall validateClause synMatchClauseList
 
         | SynExpr.Lazy(synExpr, _range) ->
@@ -350,7 +351,10 @@ let isValidFSharpCode formatContext =
     
 let formatWith ast formatContext config =
     let moduleName = Path.GetFileNameWithoutExtension formatContext.FileName
-    let input = Some formatContext.Source
+    let input =
+        if String.IsNullOrWhiteSpace formatContext.Source then None
+        else Some formatContext.Source
+        
     // Use '\n' as the new line delimiter consistently
     // It would be easier for F# parser
     let sourceCode = defaultArg input String.Empty
