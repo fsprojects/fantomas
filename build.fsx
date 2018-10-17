@@ -80,7 +80,7 @@ let externalProjectsToTest = [
       BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }  ]
 
 // path of the fantomas executable to use for external project tests relative to the src/Fantomas.Cmd/bin/CONFIGURATIION/ path
-let fantomasExecutableForExternalTests = if Fake.EnvironmentHelper.isWindows then "net45/dotnet-fantomas.exe" else "netcoreapp2.0/dotnet-fantomas.dll"
+let fantomasExecutableForExternalTests = if Fake.EnvironmentHelper.isWindows then "net452/dotnet-fantomas.exe" else "netcoreapp2.0/dotnet-fantomas.dll"
 
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
