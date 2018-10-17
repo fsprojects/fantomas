@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <Version>2.8.1</Version>
+    <Version>2.9.0</Version>
     <AssemblyName>dotnet-fantomas</AssemblyName>
     <TargetFramework>net452</TargetFramework>
   </PropertyGroup>
