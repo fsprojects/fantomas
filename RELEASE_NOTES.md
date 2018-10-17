@@ -1,3 +1,14 @@
+#### 2.9.0 - 10-2018
+* Improved README. [#243](https://github.com/fsprojects/fantomas/issues/243)
+* Bad split of chained method call expression. [#246](https://github.com/fsprojects/fantomas/issues/246)
+* rec modifier removed for namespaces and modules. [#292](https://github.com/fsprojects/fantomas/issues/292)
+* Over-enthusiastic removal of parentheses [#249](https://github.com/fsprojects/fantomas/issues/249)
+* Broken reformat of "if" inside call (fantomas-tool 2.8.0) [#288](https://github.com/fsprojects/fantomas/issues/288)
+* Support struct tuple. [#224](https://github.com/fsprojects/fantomas/issues/224)
+* Support match! [#262](https://github.com/fsprojects/fantomas/issues/262)
+* Fix for AST formatting regression. [#321](https://github.com/fsprojects/fantomas/issues/321)
+* Upgrade to .NET 4.5.2 [#325](https://github.com/fsprojects/fantomas/pull/325)
+
 #### 2.8.1 - 09-2018
 * Force parameter is *true* by default. [#267](https://github.com/fsprojects/fantomas/issues/267)
 * Formatting compiler directives with inactive code is incorrect. [#270](https://github.com/fsprojects/fantomas/issues/270)
