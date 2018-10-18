@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>2.9.0</Version>
+    <Version>2.9.1</Version>
     <NoWarn>FS0988</NoWarn>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFrameworks>net452;netcoreapp2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
