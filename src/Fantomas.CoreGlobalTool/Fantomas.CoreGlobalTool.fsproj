@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <ToolCommandName>fantomas</ToolCommandName>
     <PackAsTool>True</PackAsTool>
-    <Version>2.8.1</Version>
+    <Version>2.9.0</Version>
     <AssemblyName>fantomas-tool</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
