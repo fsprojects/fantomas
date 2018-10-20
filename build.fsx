@@ -62,22 +62,22 @@ type ExternalProjectInfo =
       SourceSubDirectory : string
       BuildConfigurationFn : (string -> string * string) }
 let externalProjectsToTest = [
-    // Argu and FSharp.Json seem to have issues building on
-    // { GitUrl = @"https://github.com/fsprojects/Argu"
-    //   DirectoryName = "Argu"
-    //   Tag = "5.1.0"
-    //   SourceSubDirectory = "src"
-    //   BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/fsprojects/Argu"
+      DirectoryName = "Argu"
+      Tag = "5.1.0"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
     // { GitUrl = @"https://github.com/vsapronov/FSharp.Json"
     //   DirectoryName = "FSharp.Json"
     //   Tag = "0.3.2"
     //   SourceSubDirectory = "src"
     //   BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-    { GitUrl = @"https://github.com/mbraceproject/FsPickler"
-      DirectoryName = "FsPickler"
-      Tag = "5.2"
-      SourceSubDirectory = "src"
-      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }  ]
+    // { GitUrl = @"https://github.com/mbraceproject/FsPickler"
+    //   DirectoryName = "FsPickler"
+    //   Tag = "5.2"
+    //   SourceSubDirectory = "src"
+    //   BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    ]
 
 // path of the fantomas executable to use for external project tests relative to the src/Fantomas.Cmd/bin/CONFIGURATIION/ path
 let fantomasExecutableForExternalTests = if Fake.EnvironmentHelper.isWindows then "net452/dotnet-fantomas.exe" else "netcoreapp2.0/dotnet-fantomas.dll"

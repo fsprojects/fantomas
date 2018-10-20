@@ -2,7 +2,7 @@ language: csharp
 dotnet: 2.1.300
 mono: latest
 
-sudo: true  # use the new container-based Travis infrastructure
+sudo: false  # use the new container-based Travis infrastructure
 
 jobs:
   include:
