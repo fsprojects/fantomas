@@ -59,6 +59,14 @@ RunTargetOrDefault "CheckCodeFormat"
 
 The [fsharp-support](https://github.com/JetBrains/fsharp-support) uses fantomas under the hood to format the source code. No need for any additional plugins.
 
+### Visual Studio Code
+
+Install the [fantomas-fmt](https://marketplace.visualstudio.com/items?itemName=paolodellepiane.fantomas-fmt) extension.
+
+### Online
+
+Try the fantomas [online](http://ratatosk.dynu.net/fantomas/).
+
 ## Purpose
 This project aims at formatting F# source files based on a given configuration.
 Fantomas will ensure correct indentation and consistent spacing between elements in the source files.
