@@ -100,23 +100,23 @@ type Shape2D(x0 : float, y0 : float) =
 type Shape2D(x0 : float, y0 : float) =
     let mutable x, y = x0, y0
     let mutable rotAngle = 0.0
-
+    
     member this.CenterX
         with get () = x
         and set xval = x <- xval
-
+    
     member this.CenterY
         with get () = y
         and set yval = y <- yval
-
+    
     abstract Area : float
     abstract Perimeter : float
     abstract Name : string
-
+    
     member this.Move dx dy =
         x <- x + dx
         y <- y + dy
-
+    
     abstract Rotate : float -> unit
     override this.Rotate(angle) = rotAngle <- rotAngle + angle
 """
@@ -191,7 +191,7 @@ type Folder(pathIn: string) =
   let filenameArray : string array = System.IO.Directory.GetFiles(path)
   member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
 
-and File(filename: string, containingFolder: Folder) =
+and File(filename: string, containingFolder: Folder) = 
    member __.Name = filename
    member __.ContainingFolder = containingFolder""" config
     |> prepend newline
@@ -221,20 +221,20 @@ type MyClassDerived2(y: int) =
     |> should equal """
 type MyClassBase2(x : int) =
     let mutable z = x * x
-    do
+    do 
         for i in 1..z do
             printf "%d " i
 
 type MyClassDerived2(y : int) =
     inherit MyClassBase2(y * 2)
-    do
+    do 
         for i in 1..y do
             printf "%d " i
 """
 
 [<Test>]
 let ``should keep parens in class definition in the right place``() =
-    formatSourceString false """type DGMLClass() = class
+    formatSourceString false """type DGMLClass() = class   
     let mutable currentState = System.String.Empty
     end
     """ config
@@ -261,7 +261,7 @@ let ``should keep parens in class inheritance in the right place``() =
 
 [<Test>]
 let ``should keep type annotations on auto properties``() =
-    formatSourceString false """type Document(id : string, library : string, name : string option) =
+    formatSourceString false """type Document(id : string, library : string, name : string option) = 
     member val ID = id
     member val Library = library
     member val Name = name with get, set
@@ -291,7 +291,7 @@ let ``member properties with type annotation``() =
 """  config
     |> should equal """type A() =
     member this.X : int = 1
-
+    
     member this.Y
         with get () : int = 1
         and set (_ : int) : unit = ()
@@ -332,7 +332,7 @@ let ``property long line``() =
 let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x:T) = x
 let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass = T()
 
-System.String.Concat("a", "b" +
+System.String.Concat("a", "b" + 
                             longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun(longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass).Property)
 """  config
     |> should equal """type T() =
@@ -343,8 +343,8 @@ let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNa
     T()
 
 System.String.Concat
-    ("a",
-     "b"
+    ("a", 
+     "b" 
      + (longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun
             (longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass)).Property)
 """
@@ -353,7 +353,7 @@ System.String.Concat
 let ``indexed get long line``() =
     formatSourceString false """open System
 type Exception with
-    member inline __.FirstLine =
+    member inline __.FirstLine = 
         __.Message.Split([|Environment.NewLine|], StringSplitOptions.RemoveEmptyEntries).[0]
 """  config
     |> should equal """open System
