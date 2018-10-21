@@ -434,7 +434,7 @@ let ``remove single pipe without pEOL``() =
 """     { config with PreserveEndOfLine = false }
     |> prepend newline
     |> should equal """
-try 
+try
     ()
 with :? _ -> ()
 

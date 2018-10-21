@@ -12,3 +12,8 @@ module String =
 
     let startsWithOrdinal (prefix : string) (str : string) =
         str.StartsWith(prefix, StringComparison.Ordinal)
+
+    let removeTrailingSpaces (source:string) =
+        source.Split([| Environment.NewLine |], StringSplitOptions.None)
+        |> Array.map (fun line -> line.TrimEnd())
+        |> fun lines -> String.Join(Environment.NewLine, lines)

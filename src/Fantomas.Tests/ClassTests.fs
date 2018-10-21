@@ -100,23 +100,23 @@ type Shape2D(x0 : float, y0 : float) =
 type Shape2D(x0 : float, y0 : float) =
     let mutable x, y = x0, y0
     let mutable rotAngle = 0.0
-    
+
     member this.CenterX
         with get () = x
         and set xval = x <- xval
-    
+
     member this.CenterY
         with get () = y
         and set yval = y <- yval
-    
+
     abstract Area : float
     abstract Perimeter : float
     abstract Name : string
-    
+
     member this.Move dx dy =
         x <- x + dx
         y <- y + dy
-    
+
     abstract Rotate : float -> unit
     override this.Rotate(angle) = rotAngle <- rotAngle + angle
 """
@@ -221,13 +221,13 @@ type MyClassDerived2(y: int) =
     |> should equal """
 type MyClassBase2(x : int) =
     let mutable z = x * x
-    do 
+    do
         for i in 1..z do
             printf "%d " i
 
 type MyClassDerived2(y : int) =
     inherit MyClassBase2(y * 2)
-    do 
+    do
         for i in 1..y do
             printf "%d " i
 """
@@ -291,7 +291,7 @@ let ``member properties with type annotation``() =
 """  config
     |> should equal """type A() =
     member this.X : int = 1
-    
+
     member this.Y
         with get () : int = 1
         and set (_ : int) : unit = ()
@@ -343,8 +343,8 @@ let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNa
     T()
 
 System.String.Concat
-    ("a", 
-     "b" 
+    ("a",
+     "b"
      + (longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun
             (longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass)).Property)
 """

@@ -30,7 +30,7 @@ let ``function keyword``() =
     |> prepend newline
     |> should equal """
 let filterNumbers =
-    function 
+    function
     | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
     | a -> printfn "%d" a
 """
@@ -49,7 +49,7 @@ printfn "%d %d %A" var1 var2 tuple1""" config
     |> should equal """
 let rangeTest testValue mid size =
     match testValue with
-    | var1 when var1 >= mid - size / 2 && var1 <= mid + size / 2 -> 
+    | var1 when var1 >= mid - size / 2 && var1 <= mid + size / 2 ->
         printfn "The test value is in range."
     | _ -> printfn "The test value is out of range."
 
@@ -157,10 +157,10 @@ let RegisterControl(control : Control) =
 
 let ReadFromFile(reader : System.IO.StreamReader) =
     match reader.ReadLine() with
-    | null -> 
+    | null ->
         printfn "\n"
         false
-    | line -> 
+    | line ->
         printfn "%s" line
         true
 """
@@ -196,10 +196,10 @@ with
 | Failure _ -> s0""" config
     |> prepend newline
     |> should equal """
-try 
-    fst 
-        (find 
-             (fun (s, (s', ty) : int * int) -> 
+try
+    fst
+        (find
+             (fun (s, (s', ty) : int * int) ->
              s' = s0 && can (type_match ty ty0) []) (!the_interface))
 with Failure _ -> s0
 """
@@ -211,7 +211,7 @@ find (fun (Ident op) x y -> Combp(Combp(Varp(op,dpty),x),y)) "term after binary 
 """  config
     |> prepend newline
     |> should equal """
-find (fun (Ident op) x y -> Combp(Combp(Varp(op, dpty), x), y)) 
+find (fun (Ident op) x y -> Combp(Combp(Varp(op, dpty), x), y))
     "term after binary operator" inp
 """
 
@@ -227,7 +227,7 @@ let UNIFY_ACCEPT_TAC mvs th (asl, w) =
     |> should equal """
 let UNIFY_ACCEPT_TAC mvs th (asl, w) =
     let insts = term_unify mvs (concl th) w
-    ([], insts), [], 
+    ([], insts), [],
     let th' = INSTANTIATE insts th
     fun i [] -> INSTANTIATE i th'
 """
@@ -281,7 +281,7 @@ let v =
     |> prepend newline
     |> should equal """
 let v =
-    List.tryPick (function 
+    List.tryPick (function
         | 1 -> Some 1
         | _ -> None) [ 1; 2; 3 ]
 """

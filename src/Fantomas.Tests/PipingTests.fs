@@ -19,11 +19,11 @@ let f x =
     |> prepend newline
     |> should equal """
 let f x =
-    someveryveryveryverylongexpression 
-    <|> if someveryveryveryverylongexpression then 
+    someveryveryveryverylongexpression
+    <|> if someveryveryveryverylongexpression then
             someveryveryveryverylongexpression
-        else someveryveryveryverylongexpression 
-    <|> if someveryveryveryverylongexpression then 
+        else someveryveryveryverylongexpression
+    <|> if someveryveryveryverylongexpression then
             someveryveryveryverylongexpression
         else someveryveryveryverylongexpression
     |> f
@@ -74,7 +74,7 @@ let prefetchImages =
     |> should equal """
 let prefetchImages =
     [ playerOImage; playerXImage ]
-    |> List.map (fun img -> 
+    |> List.map (fun img ->
            link [ Rel "prefetch"
                   Href img ])
 """    
