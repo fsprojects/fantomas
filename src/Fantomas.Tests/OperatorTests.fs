@@ -82,7 +82,7 @@ let ``should pattern match on quotation expression``() =
     | _ -> ()""" config
     |> should equal """let rec print expr =
     match expr with
-    | SpecificCall <@@ (+) @@> (_, _, exprList) -> 
+    | SpecificCall <@@ (+) @@> (_, _, exprList) ->
         print exprList.Head
         printf " + "
         print exprList.Tail.Head
@@ -111,7 +111,7 @@ let ``should break on . operator and keep indentation``() =
     """ config
     |> should equal """let pattern =
     (x + y)
-        .Replace(seperator + "**" + seperator, 
+        .Replace(seperator + "**" + seperator,
                  replacementSeparator + "(.|?" + replacementSeparator + ")?")
         .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")")
 """
@@ -143,7 +143,7 @@ let ``should understand ? as an infix operator``() =
     |> (fun x -> x?Invoke (true))
     |> fun (t : Task) -> t.Wait()
 with _ -> ()""" config
-    |> should equal """try 
+    |> should equal """try
     item.MethodInfo.Method.Invoke(null, ipa)
     |> (fun x -> x?Invoke (true))
     |> fun (t : Task) -> t.Wait()
