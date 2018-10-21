@@ -50,17 +50,27 @@ let solutionFile  = "fantomas"
 // Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
 
+type ProcessStartInfo =
+    { ProcessName : string
+      Arguments : string list }
+
 let configureBuildCommandFromDefaultFakeBuildScripts pathToProject =
     if Fake.EnvironmentHelper.isWindows
-    then pathToProject </> "build.cmd", "Build"
-    else "sh", sprintf "%s/build.sh Build" pathToProject
+    then { ProcessName = pathToProject </> "build.cmd"; Arguments = [ "Build" ] }
+    else { ProcessName = "sh"; Arguments = [ sprintf "%s/build.sh Build" pathToProject ] }
+
+// construct the path of the fantomas executable to use for external project tests
+let fantomasExecutableForExternalTests projectdir =
+    if Fake.EnvironmentHelper.isWindows
+    then { ProcessName = sprintf "%s/src/Fantomas.Cmd/bin/%s/net452/dotnet-fantomas.exe" projectdir configuration; Arguments = [] }
+    else { ProcessName = "dotnet"; Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/netcoreapp2.1/fantomas-tool.dll" projectdir configuration ] }
 
 type ExternalProjectInfo =
     { GitUrl : string
       DirectoryName : string
       Tag : string
       SourceSubDirectory : string
-      BuildConfigurationFn : (string -> string * string) }
+      BuildConfigurationFn : (string -> ProcessStartInfo) }
 let externalProjectsToTest = [
     { GitUrl = @"https://github.com/fsprojects/Argu"
       DirectoryName = "Argu"
@@ -78,9 +88,6 @@ let externalProjectsToTest = [
     //   SourceSubDirectory = "src"
     //   BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
     ]
-
-// path of the fantomas executable to use for external project tests relative to the src/Fantomas.Cmd/bin/CONFIGURATIION/ path
-let fantomasExecutableForExternalTests = if Fake.EnvironmentHelper.isWindows then "net452/dotnet-fantomas.exe" else "netcoreapp2.0/dotnet-fantomas.dll"
 
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
@@ -189,26 +196,29 @@ Target "TestExternalProjects" (fun _ ->
             Fake.Git.CommandHelper.gitCommand "." (sprintf "clone --branch %s --depth 1 %s %s" project.Tag project.GitUrl relativeProjectDir)
 
             let fullProjectPath = sprintf "%s/%s" __SOURCE_DIRECTORY__ relativeProjectDir
-            let buildCommand, buildArguments = project.BuildConfigurationFn fullProjectPath
+            let buildStartInfo = project.BuildConfigurationFn fullProjectPath
 
             let buildExternalProject() = ExecProcess
-                                            (fun info -> info.FileName <- buildCommand
+                                            (fun info -> info.FileName <- buildStartInfo.ProcessName
                                                          info.WorkingDirectory <- relativeProjectDir
-                                                         info.Arguments <- buildArguments)
+                                                         info.Arguments <- String.Join(" ", buildStartInfo.Arguments))
                                             (TimeSpan.FromMinutes 5.0)
 
             //let (success, messages) = executeFSI relativeProjectDir script env
             let cleanResult = buildExternalProject()
             if cleanResult <> 0 then failwithf "Initial build of external project %s returned with a non-zero exit code" project.DirectoryName
 
-            let fantomasExecutable =
+            let fantomasStartInfo =
                 if Fake.EnvironmentHelper.isWindows
-                then sprintf "%s/src/Fantomas.Cmd/bin/%s/%s" __SOURCE_DIRECTORY__ configuration fantomasExecutableForExternalTests
-                else sprintf "dotnet %s/src/Fantomas.Cmd/bin/%s/%s" __SOURCE_DIRECTORY__ configuration fantomasExecutableForExternalTests
+                then fantomasExecutableForExternalTests __SOURCE_DIRECTORY__
+                else fantomasExecutableForExternalTests __SOURCE_DIRECTORY__
+            let arguments =
+                fantomasStartInfo.Arguments @ [ sprintf "--recurse %s" project.SourceSubDirectory ]
+                |> fun args -> String.Join(" ", args)
             let invokeFantomas() = ExecProcess
-                                    (fun info -> info.FileName <- fantomasExecutable
+                                    (fun info -> info.FileName <- fantomasStartInfo.ProcessName
                                                  info.WorkingDirectory <- sprintf "%s/%s" __SOURCE_DIRECTORY__ relativeProjectDir
-                                                 info.Arguments <- sprintf "--recurse %s" project.SourceSubDirectory)
+                                                 info.Arguments <- arguments)
                                     (TimeSpan.FromMinutes 5.0)
             let fantomasResult = invokeFantomas()
             if fantomasResult <> 0
