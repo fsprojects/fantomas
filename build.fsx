@@ -242,10 +242,8 @@ Target "Push" (fun _ -> Paket.Push (fun p -> { p with WorkingDir = "bin" }))
 // Run all targets by default. Invoke 'build <Target>' to override
 
 Target "All" DoNothing
-Target "Root" DoNothing
 
-"Root"
-  ==> "Clean"
+"Clean"
   ==> "AssemblyInfo"
   ==> "ProjectVersion"
   ==> "Build"
