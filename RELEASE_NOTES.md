@@ -1,3 +1,6 @@
+#### 2.9.1 - xx-2018
+* Added netcoreapp2.0 again for Fantomas.Cmd
+
 #### 2.9.0 - 10-2018
 * Improved README. [#243](https://github.com/fsprojects/fantomas/issues/243)
 * Bad split of chained method call expression. [#246](https://github.com/fsprojects/fantomas/issues/246)
