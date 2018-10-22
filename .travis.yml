@@ -10,6 +10,4 @@ jobs:
       - ./build.sh All
     - script:
       - ./build.sh TestExternalProjects
-      # Uncomment below to only run the long running external projects tests on the prerelease branch
-      # The full list of possible conditions is here: https://docs.travis-ci.com/user/conditions-v1
-      # if: branch = prerelease
+      if: branch = build-external-projects
