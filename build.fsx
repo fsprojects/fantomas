@@ -50,20 +50,10 @@ let solutionFile  = "fantomas"
 // Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
 
+// Types and helper functions for building external projects (see the TestExternalProjects target below)
 type ProcessStartInfo =
     { ProcessName : string
       Arguments : string list }
-
-let configureBuildCommandFromDefaultFakeBuildScripts pathToProject =
-    if Fake.EnvironmentHelper.isWindows
-    then { ProcessName = pathToProject </> "build.cmd"; Arguments = [ "Build" ] }
-    else { ProcessName = "sh"; Arguments = [ sprintf "%s/build.sh Build" pathToProject ] }
-
-// construct the path of the fantomas executable to use for external project tests
-let fantomasExecutableForExternalTests projectdir =
-    if Fake.EnvironmentHelper.isWindows
-    then { ProcessName = sprintf "%s/src/Fantomas.Cmd/bin/%s/net452/dotnet-fantomas.exe" projectdir configuration; Arguments = [] }
-    else { ProcessName = "dotnet"; Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/netcoreapp2.1/fantomas-tool.dll" projectdir configuration ] }
 
 type ExternalProjectInfo =
     { GitUrl : string
@@ -71,22 +61,28 @@ type ExternalProjectInfo =
       Tag : string
       SourceSubDirectory : string
       BuildConfigurationFn : (string -> ProcessStartInfo) }
+
+// Construct the commands/arguments for running an external project build script for both windows and linux
+// For linux we run this by invoking sh explicitly and passing the build.sh script as an argument as some
+// projects generated on windows don't have the executable permission set for .sh scripts. On windows we
+// treat .cmd files as executable
+let configureBuildCommandFromDefaultFakeBuildScripts pathToProject =
+    if Fake.EnvironmentHelper.isWindows
+    then { ProcessName = pathToProject </> "build.cmd"; Arguments = [ "Build" ] }
+    else { ProcessName = "sh"; Arguments = [ sprintf "%s/build.sh Build" pathToProject ] }
+
+// Construct the path of the fantomas executable to use for external project tests
+let fantomasExecutableForExternalTests projectdir =
+    if Fake.EnvironmentHelper.isWindows
+    then { ProcessName = sprintf "%s/src/Fantomas.Cmd/bin/%s/net452/dotnet-fantomas.exe" projectdir configuration; Arguments = [] }
+    else { ProcessName = "dotnet"; Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/netcoreapp2.1/fantomas-tool.dll" projectdir configuration ] }
+
 let externalProjectsToTest = [
     { GitUrl = @"https://github.com/fsprojects/Argu"
       DirectoryName = "Argu"
       Tag = "5.1.0"
       SourceSubDirectory = "src"
       BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-    // { GitUrl = @"https://github.com/vsapronov/FSharp.Json"
-    //   DirectoryName = "FSharp.Json"
-    //   Tag = "0.3.2"
-    //   SourceSubDirectory = "src"
-    //   BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-    // { GitUrl = @"https://github.com/mbraceproject/FsPickler"
-    //   DirectoryName = "FsPickler"
-    //   Tag = "5.2"
-    //   SourceSubDirectory = "src"
-    //   BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
     ]
 
 // --------------------------------------------------------------------------------------
@@ -182,10 +178,10 @@ Target "Pack" (fun _ ->
 )
 
 
-
+// This takes the list of external projects defined above, does a git checkout of the specified repo and tag,
+// tries to build the project, then reformats with fantomas and tries to build the project again. If this fails
+// then there was a regression in fantomas that mangles the source code
 Target "TestExternalProjects" (fun _ ->
-
-    //for project in externalProjectsToTest do
     let externalBuildErrors =
         externalProjectsToTest
         |> List.map (fun project ->
@@ -204,14 +200,11 @@ Target "TestExternalProjects" (fun _ ->
                                                          info.Arguments <- String.Join(" ", buildStartInfo.Arguments))
                                             (TimeSpan.FromMinutes 5.0)
 
-            //let (success, messages) = executeFSI relativeProjectDir script env
             let cleanResult = buildExternalProject()
             if cleanResult <> 0 then failwithf "Initial build of external project %s returned with a non-zero exit code" project.DirectoryName
 
             let fantomasStartInfo =
-                if Fake.EnvironmentHelper.isWindows
-                then fantomasExecutableForExternalTests __SOURCE_DIRECTORY__
-                else fantomasExecutableForExternalTests __SOURCE_DIRECTORY__
+                fantomasExecutableForExternalTests __SOURCE_DIRECTORY__
             let arguments =
                 fantomasStartInfo.Arguments @ [ sprintf "--recurse %s" project.SourceSubDirectory ]
                 |> fun args -> String.Join(" ", args)
@@ -221,6 +214,7 @@ Target "TestExternalProjects" (fun _ ->
                                                  info.Arguments <- arguments)
                                     (TimeSpan.FromMinutes 5.0)
             let fantomasResult = invokeFantomas()
+
             if fantomasResult <> 0
             then Some <| sprintf "Fantomas invokation for %s returned with a non-zero exit code" project.DirectoryName
             else
