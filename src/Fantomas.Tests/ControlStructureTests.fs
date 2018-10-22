@@ -28,7 +28,7 @@ then printfn "You are only %d years old and already learning F#? Wow!" age""" co
     |> should equal """
 let rec tryFindMatch pred list =
     match list with
-    | head :: tail -> 
+    | head :: tail ->
         if pred (head) then Some(head)
         else tryFindMatch pred tail
     | [] -> None
@@ -39,7 +39,7 @@ let test x y =
     else if x > y then "is greater than"
     else "Don't know"
 
-if age < 10 then 
+if age < 10 then
     printfn "You are only %d years old and already learning F#? Wow!" age
 """
 
@@ -92,7 +92,7 @@ let lookForValue value maxValue =
     while continueLooping do
         let rand = randomNumberGenerator.Next(maxValue)
         printf "%d " rand
-        if rand = value then 
+        if rand = value then
             printfn "\nFound a %d!" value
             continueLooping <- false
 
@@ -113,9 +113,9 @@ let result1 = divide1 100 0
     |> prepend newline
     |> should equal """
 let divide1 x y =
-    try 
+    try
         Some(x / y)
-    with :? System.DivideByZeroException -> 
+    with :? System.DivideByZeroException ->
         printfn "Division by zero!"
         None
 
@@ -139,8 +139,8 @@ let ``try/with and finally``() =
     |> prepend newline
     |> should equal """
 let function1 x y =
-    try 
-        try 
+    try
+        try
             if x = y then raise (InnerError("inner"))
             else raise (OuterError("outer"))
         with
@@ -223,7 +223,7 @@ let x =
     |> prepend newline
     |> should equal """
 let x =
-    if try 
+    if try
            true
        with Failure _ -> false
     then ()
@@ -255,7 +255,7 @@ let handle =
     |> prepend newline
     |> should equal """
 let handle =
-    if n < weakThreshhold then 
+    if n < weakThreshhold then
         assert onStrongDiscard.IsNone // it disappeared
         Weak(WeakReference(v))
     else Strong(v)

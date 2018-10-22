@@ -70,15 +70,15 @@ type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) =
 type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) =
     let duplex = defaultArg duplex0 Full
     let parity = defaultArg parity0 false
-    
+
     let mutable rate =
         match rate0 with
         | Some rate1 -> rate1
-        | None -> 
+        | None ->
             match duplex with
             | Full -> 9600
             | Half -> 4800
-    
+
     do printfn "Baud Rate: %d Duplex: %A Parity: %b" rate duplex parity
 """
 
@@ -137,20 +137,20 @@ type public MyClass<'a> public (x, y) as this =
     static let PI = 3.14
     static do printfn "static constructor"
     let mutable z = x + y
-    
-    do 
+
+    do
         printfn "%s" (this.ToString())
         printfn "more constructor effects"
-    
+
     internal new(a) = MyClass(a, a)
     static member StaticProp = PI
     static member StaticMethod a = a + 1
     member internal self.Prop1 = x
-    
+
     member self.Prop2
         with get () = z
         and set (a) = z <- a
-    
+
     member self.Method(a, b) = x + y + z + a + b
 """
 
@@ -226,7 +226,7 @@ type System.Int32 with
        System.Int32.Parse(s)""" config
     |> prepend newline
     |> should equal """
-/// Define a new member method FromString on the type Int32. 
+/// Define a new member method FromString on the type Int32.
 type System.Int32 with
     member this.FromString(s : string) = System.Int32.Parse(s)
 """
@@ -256,7 +256,7 @@ type Derived1() =
 type Derived1() =
     inherit AbstractBase()
     let mutable value = 10
-    
+
     override this.Property1
         with get () = value
         and set (v : int) = value <- v
@@ -278,16 +278,16 @@ type Foo() =
     member x.Get = 1
     member x.Set
         with private set (v : int) = value <- v
-    
+
     member x.GetSet
         with internal get () = value
         and private set (v : bool) = value <- v
-    
+
     member x.GetI
         with internal get (key1, key2) = false
     member x.SetI
         with private set (key1, key2) value = ()
-    
+
     member x.GetSetI
         with internal get (key1, key2) = true
         and private set (key1, key2) value = ()
@@ -360,15 +360,15 @@ type NumberStrings() =
 type NumberStrings() =
     let mutable ordinals = [| "one" |]
     let mutable cardinals = [| "first" |]
-    
+
     member this.Item
         with get index = ordinals.[index]
         and set index value = ordinals.[index] <- value
-    
+
     member this.Ordinal
         with get (index) = ordinals.[index]
         and set index value = ordinals.[index] <- value
-    
+
     member this.Cardinal
         with get (index) = cardinals.[index]
         and set index value = cardinals.[index] <- value
@@ -394,7 +394,7 @@ open System.Collections.Generic
 
 type SparseMatrix() =
     let mutable table = new Dictionary<int * int, float>()
-    
+
     member this.Item
         with get (key1, key2) = table.[(key1, key2)]
         and set (key1, key2) value = table.[(key1, key2)] <- value
@@ -499,15 +499,15 @@ type Person(nameIn : string, idIn : int) =
     let mutable name = nameIn
     let mutable id = idIn
     do printfn "Created a person object."
-    
+
     member this.Name
         with get () = name
         and set (v) = name <- v
-    
+
     member this.ID
         with get () = id
         and set (v) = id <- v
-    
+
     new() =
         Person("Invalid Name", -1)
         then printfn "Created an invalid person object."
@@ -612,11 +612,11 @@ type BlobHelper(Account : CloudStorageAccount) =
     |> should equal """
 type BlobHelper(Account : CloudStorageAccount) =
     new(configurationSettingName, hostedService) =
-        CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher -> 
+        CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
             let connectionString =
-                if hostedService then 
+                if hostedService then
                     RoleEnvironment.GetConfigurationSettingValue(configName)
-                else 
+                else
                     ConfigurationManager.ConnectionStrings.[configName].ConnectionString
             configSettingPublisher.Invoke(connectionString) |> ignore)
         BlobHelper
@@ -691,7 +691,7 @@ type A() =
 type A() =
     member x.B
         with set v =
-            "[<System.Runtime.InteropServices.DllImport(\"user32.dll\")>] extern int GetWindowLong(System.IntPtr hwnd, int index)" 
+            "[<System.Runtime.InteropServices.DllImport(\"user32.dll\")>] extern int GetWindowLong(System.IntPtr hwnd, int index)"
             |> ignore
 """
 
@@ -713,13 +713,13 @@ type Bar =
     |> prepend newline
     |> should equal """
 type Bar =
-    
+
     member this.Item
         with get (i : int) =
             match mo with
             | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null
-    
+
     member this.Item
         with get (i : string) =
             match mo with
@@ -740,9 +740,9 @@ let x =
     |> should equal """
 let x =
     JobCollectionCreateParameters
-        (Label = "Test", 
+        (Label = "Test",
          IntrinsicSettings = JobCollectionIntrinsicSettings
-                                 (Plan = JobCollectionPlan.Standard, 
+                                 (Plan = JobCollectionPlan.Standard,
                                   Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))
 """
 
