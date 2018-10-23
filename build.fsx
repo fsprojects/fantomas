@@ -181,6 +181,7 @@ Target "Pack" (fun _ ->
 // This takes the list of external projects defined above, does a git checkout of the specified repo and tag,
 // tries to build the project, then reformats with fantomas and tries to build the project again. If this fails
 // then there was a regression in fantomas that mangles the source code
+
 Target "TestExternalProjects" (fun _ ->
     let externalBuildErrors =
         externalProjectsToTest
