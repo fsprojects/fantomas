@@ -10,7 +10,7 @@ F# source code formatter, inspired by [scalariform](https://github.com/mdr/scala
 
 ## How to use
 
-### Command line tool / API 
+### Command line tool / API
 Use this command to install Fantomas as a dotnet SDK global tool:
 
 ```
@@ -76,7 +76,7 @@ Fantomas follows the formatting guideline being described in [A comprehensive gu
 ## Use cases
 The project is developed with the following use cases in mind:
 
- - Reformatting an unfamiliar code base. It gives readability when you are not the one originally writing the code. 
+ - Reformatting an unfamiliar code base. It gives readability when you are not the one originally writing the code.
 To illustrate, the following example
 
 	```fsharp
@@ -93,24 +93,24 @@ To illustrate, the following example
 	will be rewritten to
 
 	```fsharp
-	type Type = 
+	type Type =
 	    | TyLam of Type * Type
 	    | TyVar of string
 	    | TyCon of string * Type list
-	    override this.ToString() = 
+	    override this.ToString() =
 	        match this with
 	        | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
 	        | TyVar a -> a
 	        | TyCon(s, ts) -> s
 	```
 
- - Converting from verbose syntax to light syntax. 
+ - Converting from verbose syntax to light syntax.
 Feeding a source file in verbose mode, Fantomas will format it appropriately in light mode.
 This might be helpful for code generation since generating verbose source files is much easier.
 For example, this code fragment
 
 	```fsharp
-	let Multiple9x9 () = 
+	let Multiple9x9 () =
 	    for i in 1 .. 9 do
 	        printf "\n";
 	        for j in 1 .. 9 do
@@ -119,17 +119,17 @@ For example, this code fragment
 	        done;
 	    done;;
 	Multiple9x9 ();;
-	```	
-	is reformulated to 
-	
+	```
+	is reformulated to
+
 	```fsharp
-	let Multiple9x9() = 
+	let Multiple9x9() =
 	    for i in 1..9 do
 	        printf "\n"
 	        for j in 1..9 do
 	            let k = i * j
 	            printf "%d x %d = %2d " i j k
-	
+
 	Multiple9x9()
 	```
 
@@ -138,7 +138,7 @@ For example, this code fragment
 For more complex examples, please take a look at F# outputs of [20 language shootout programs](tests/languageshootout_output) and [10 CodeReview.SE source files](tests/stackexchange_output).
 
 ## Installation
-The code base is written in F# 4.X /.NET standard 2.0. 
+The code base is written in F# 4.X /.NET standard 2.0.
 The solution file can be opened in Visual Studio 2017, VS Code (with the [ionide plugin](http://ionide.io/)) & [Jetbrains Rider](http://jetbrains.com/rider/).
 Paket is used to manage external packages.
 The [test project](src/Fantomas.Tests) depends on FsUnit and NUnit.
@@ -146,14 +146,14 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ## Testing and validation
 We have tried to be careful in testing the project.
-There are 329 unit tests and 30 validated test examples, 
+There are 329 unit tests and 30 validated test examples,
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
 ## Why the name "Fantomas"?
-There are a few reasons to choose the name as such. 
-First, it starts with an "F" just like many other F# projects. 
-Second, Fantomas is my favourite character in the literature. 
+There are a few reasons to choose the name as such.
+First, it starts with an "F" just like many other F# projects.
+Second, Fantomas is my favourite character in the literature.
 Finally, Fantomas has the same Greek root as "[phantom](https://en.wiktionary.org/wiki/phantom)"; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
 ## How to contribute
@@ -168,7 +168,7 @@ Fantomas' features are basically two commands: *format a document* or *format a 
 
 They both consist in the same two stages:
 
-- parse the code and generate the F# AST (Abstract Syntax Tree). This is provided by the 
+- parse the code and generate the F# AST (Abstract Syntax Tree). This is provided by the
 by the FSharp.Compiler.Services library (see the `parse` function in
 [CodeFormatterImpl.fs](src/Fantomas/CodeFormatterImpl.fs)).
 - rewrite the code based on the AST (previous step) and formatting settings.
@@ -193,7 +193,7 @@ let ``discriminated unions declaration``() =
     formatSourceString false "type X = private | A of AParameters | B" config
     |> prepend newline
     |> should equal """
-type X = 
+type X =
     private
     | A of AParameters
     | B
@@ -222,7 +222,7 @@ that formats the string in input and prints it.
 The time it took to contribute is sometimes mentioned, as a side note.
 
 #### Fixing code generation
- - Record type formatting generated invalid F# code in some cases ([#197](https://github.com/dungpa/fantomas/pull/197)) - (2h fix)  
+ - Record type formatting generated invalid F# code in some cases ([#197](https://github.com/dungpa/fantomas/pull/197)) - (2h fix)
 
 ## Credits
 We would like to gratefully thank the following persons for their contributions.
@@ -237,5 +237,5 @@ We would like to gratefully thank the following persons for their contributions.
  - [Enrico Sada](https://github.com/enricosada)
 
 ## License
-The library and tool are available under Apache 2.0 license. 
+The library and tool are available under Apache 2.0 license.
 For more information see the [License file](LICENSE.md).
