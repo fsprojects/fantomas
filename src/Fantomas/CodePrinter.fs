@@ -619,7 +619,11 @@ and genExpr astContext = function
 
     | TypeApp(e, ts) -> genExpr astContext e -- "<" +> col sepComma ts (genType astContext false) -- ">"
     | LetOrUses(bs, e) ->
-        atCurrentColumn (genLetOrUseList astContext bs +> sepNln +> genExpr astContext e)
+        let isInSameLine =
+            match bs with
+            | [_, LetBinding(ats, px, ao, isInline, isMutable, p, _)] -> p.Range.EndLine = e.Range.StartLine
+            | _ -> false
+        atCurrentColumn (genLetOrUseList astContext bs +> ifElse isInSameLine (!- " in ") sepNln +> genExpr astContext e)
 
     // Could customize a bit if e is single line
     | TryWith(e, cs) -> 
