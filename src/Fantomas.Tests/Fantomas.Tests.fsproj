@@ -1,10 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>2.9.1</Version>
-    <NoWarn>FS0988</NoWarn>
     <TargetFrameworks>net452;netcoreapp2.0</TargetFrameworks>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
     <Compile Include="FsUnit.fs" />
@@ -40,9 +40,7 @@
     <Compile Include="FormattingPropertyTests.fs" />
     <Compile Include="SpecialConstructsTests.fs" />
     <Compile Include="FormatAstTests.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
+    <Compile Include="LetBindingTests.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
