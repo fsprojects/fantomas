@@ -19,7 +19,7 @@ let ``let in should be preserved with PreserveEOL option``() =
 """
 
 [<Test>]
-let ``temp`` () =
+let ``multiple let in lines, should remove in`` () =
     let codeSnippet = """
 let f () = 
   let x = 1 in   // the "in" keyword is available in F#
@@ -30,6 +30,6 @@ let f () =
     formatSourceString false codeSnippet config
     |> should equal """let f() =
     let x = 1   // the "in" keyword is available in F#
-    let y = 2 
+    let y = 2
     x + y
 """
