@@ -673,8 +673,32 @@ let integrateComments isPreserveEOL compilationDefines (originalText : string) (
             loop moreOrigTokens moreNewTokens
         
         // Emit end-of-line from new tokens
-        | _,  (NewLine newTokText :: moreNewTokens) ->
+        | (Marked(inToken,_,_)::oldTokens),  (NewLine newTokText :: moreNewTokens) ->
             Debug.WriteLine("emitting newline in new tokens '{0}'", newTokText)
+            let nextOldTokens =
+                match (inToken) with 
+                    | Tok(fsInToken,_) when (fsInToken.TokenName = "IN") ->
+                        // find tokens before newline in old source
+                        let tokensBeforeNewline =
+                            oldTokens
+                            |> List.takeWhile (fun t ->
+                                match t with
+                                | Marked(EOL,_,_) -> false
+                                | _ -> true
+                            )
+                            |> List.map (fun t ->
+                                match t with
+                                | Marked(_,tokenString,_) -> tokenString
+                                | _ -> System.String.Empty 
+                            )
+                            
+                        List.iter addText tokensBeforeNewline
+    
+                        oldTokens
+                        |> List.skip (List.length tokensBeforeNewline)
+    
+                    | _ -> origTokens
+
             let nextNewTokens =
                 if not isPreserveEOL then 
                     addText newTokText
@@ -686,7 +710,7 @@ let integrateComments isPreserveEOL compilationDefines (originalText : string) (
                         rs
                     | _ -> moreNewTokens
 
-            loop origTokens nextNewTokens
+            loop nextOldTokens nextNewTokens
 
         | _,  ((Token newTok, newTokText) :: moreNewTokens) 
             when newTok.CharClass = FSharpTokenCharKind.WhiteSpace && newTok.ColorClass <> FSharpTokenColorKind.InactiveCode ->
