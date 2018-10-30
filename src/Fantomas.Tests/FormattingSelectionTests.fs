@@ -38,7 +38,7 @@ let (var1, var2) as tuple1 = (1, 2)""" config
     |> should equal """
 let rangeTest testValue mid size =
     match testValue with
-    | var1 when var1 >= mid - size / 2 && var1 <= mid + size / 2 -> 
+    | var1 when var1 >= mid - size / 2 && var1 <= mid + size / 2 ->
         printfn "The test value is in range."
     | _ -> printfn "The test value is out of range."
 
@@ -246,7 +246,7 @@ let comp =
                  return 3 + 4 }""" config
     |> should equal """
 let comp =
-    eventually { 
+    eventually {
         for x in 1..2 do
             printfn " x = %d" x
         return 3 + 4

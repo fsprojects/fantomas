@@ -41,6 +41,10 @@
     <Compile Include="SpecialConstructsTests.fs" />
     <Compile Include="FormatAstTests.fs" />
     <Compile Include="LetBindingTests.fs" />
+    <Compile Include="NoTrailingSpacesTests.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

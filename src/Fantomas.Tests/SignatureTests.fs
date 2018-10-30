@@ -33,7 +33,7 @@ let ``should keep the (string * string) list type signature in functions``() =
     (properties : string -> (string * string) list) projects = doingsomstuff
 
     """ config
-    |> should equal """let MSBuildWithProjectProperties outputPath (targets : string) 
+    |> should equal """let MSBuildWithProjectProperties outputPath (targets : string)
     (properties : string -> (string * string) list) projects = doingsomstuff
 """
 
@@ -44,7 +44,7 @@ let ``should keep the string * string list type signature in functions``() =
     (properties : (string -> string) * string list) projects = doingsomstuff
 
     """ config
-    |> should equal """let MSBuildWithProjectProperties outputPath (targets : string) 
+    |> should equal """let MSBuildWithProjectProperties outputPath (targets : string)
     (properties : (string -> string) * string list) projects = doingsomstuff
 """
 

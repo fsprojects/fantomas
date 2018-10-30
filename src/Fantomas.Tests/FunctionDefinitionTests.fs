@@ -29,10 +29,10 @@ type C () =
     |> prepend newline
     |> should equal """
 type C() =
-    
+
     let rec g x = h x
     and h x = g x
-    
+
     member x.P = g 3
 """
 
@@ -101,7 +101,7 @@ let ``let bindings with return types``() =
 let divide x y =
     let stream : System.IO.FileStream = System.IO.File.Create("test.txt")
     let writer : System.IO.StreamWriter = new System.IO.StreamWriter(stream)
-    try 
+    try
         writer.WriteLine("test1")
         Some(x / y)
     finally
@@ -129,10 +129,10 @@ let inline heterogenousAdd(value1 : ^T when (^T or ^U) : (static member (+) : ^T
     value1 + value2""" config
     |> prepend newline
     |> should equal """
-let inline add (value1 : ^T when ^T : (static member (+) : ^T * ^T -> ^T), 
+let inline add (value1 : ^T when ^T : (static member (+) : ^T * ^T -> ^T),
                 value2 : ^T) = value1 + value2
 let inline heterogenousAdd (value1 : ^T when (^T or ^U) : (static member (+) : ^T * ^U
-                                                                -> ^T), 
+                                                                -> ^T),
                             value2 : ^U) = value1 + value2
 """
 
@@ -163,11 +163,11 @@ let ``should add spaces between multiline nested let bindings``() =
     let f2 x =
         let _ = ()
         x + 1
-    
+
     let f3 y =
         let _ = ()
         y + 1
-    
+
     x + y
 """
 
@@ -178,7 +178,7 @@ let ``should indent fun blocks``() =
     let y = 1
     x""" config
     |> should equal """let f =
-    fun x -> 
+    fun x ->
         let y = 1
         x
 """
@@ -255,7 +255,7 @@ open System.Runtime.InteropServices
 open Accessibility
 
 [<DllImport("oleacc.dll")>]
-extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cChildren, [<Out; MarshalAs(UnmanagedType.LPArray, 
+extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cChildren, [<Out; MarshalAs(UnmanagedType.LPArray,
                                                                                                           SizeParamIndex = 4s)>] System.Object [] rgvarChildren, int* pcObtained)
 """
 
@@ -270,7 +270,7 @@ let f = fun x -> match x with X (x) -> x
 type U = X of int
 
 let f =
-    fun x -> 
+    fun x ->
         match x with
         | X(x) -> x
 """
