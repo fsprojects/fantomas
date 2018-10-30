@@ -348,7 +348,7 @@ let isValidFSharpCode formatContext =
         with _ ->
             return false
     }
-    
+
 let formatWith ast formatContext config =
     let moduleName = Path.GetFileNameWithoutExtension formatContext.FileName
     let input =
@@ -370,6 +370,8 @@ let formatWith ast formatContext config =
     if input.IsSome && String.IsNullOrWhiteSpace normalizedSourceCode <> String.IsNullOrWhiteSpace formattedSourceCode then
         raise <| FormatException "Incomplete code fragment which is most likely due to parsing errors or the use of F# constructs newer than supported."
     else formattedSourceCode
+    
+    |> String.removeTrailingSpaces
 
 let format config formatContext =
     async {

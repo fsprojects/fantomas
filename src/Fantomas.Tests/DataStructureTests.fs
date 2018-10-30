@@ -64,7 +64,7 @@ let listLength list =
     |> should equal """
 let rec printList l =
     match l with
-    | head :: tail -> 
+    | head :: tail ->
         printf "%d " head
         printList tail
     | [] -> printfn ""
@@ -94,8 +94,8 @@ let vectorLength vec =
     | [| var1 |] -> var1
     | [| var1; var2 |] -> sqrt (var1 * var1 + var2 * var2)
     | [| var1; var2; var3 |] -> sqrt (var1 * var1 + var2 * var2 + var3 * var3)
-    | _ -> 
-        failwith "vectorLength called with an unsupported array size of %d." 
+    | _ ->
+        failwith "vectorLength called with an unsupported array size of %d."
             (vec.Length)
 """
 
@@ -109,7 +109,7 @@ let ``should keep -> notation``() =
     |> prepend newline
     |> should equal """
 let environVars target =
-    [ for e in Environment.GetEnvironmentVariables target -> 
+    [ for e in Environment.GetEnvironmentVariables target ->
           let e1 = e :?> Collections.DictionaryEntry
           e1.Key, e1.Value ]
 """
