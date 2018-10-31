@@ -272,6 +272,7 @@ let testExternalProjects externalProjectsToTest =
     if not (List.isEmpty externalBuildErrors)
     then failwith (String.Join("\n", externalBuildErrors) )
 
+
 Target "TestExternalProjects" (fun _ -> testExternalProjects externalProjectsToTest)
 Target "TestExternalProjectsFailing" (fun _ -> testExternalProjects externalProjectsToTestFailing)
 
