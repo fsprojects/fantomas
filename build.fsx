@@ -71,6 +71,9 @@ let configureBuildCommandFromDefaultFakeBuildScripts pathToProject =
     then { ProcessName = pathToProject </> "build.cmd"; Arguments = [ "Build" ] }
     else { ProcessName = "sh"; Arguments = [ sprintf "%s/build.sh Build" pathToProject ] }
 
+let configureBuildCommandDotnetBuild pathToProject =
+    { ProcessName = "dotnet"; Arguments = [ "build"; pathToProject ] }
+
 // Construct the path of the fantomas executable to use for external project tests
 let fantomasExecutableForExternalTests projectdir =
     if Fake.EnvironmentHelper.isWindows
@@ -81,6 +84,44 @@ let externalProjectsToTest = [
     { GitUrl = @"https://github.com/fsprojects/Argu"
       DirectoryName = "Argu"
       Tag = "5.1.0"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/fsprojects/Chessie"
+      DirectoryName = "Chessie"
+      Tag = "master"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+]
+
+let externalProjectsToTestFailing = [
+    { GitUrl = @"https://github.com/fscheck/FsCheck"
+      DirectoryName = "FsCheck"
+      Tag = "master"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/fsprojects/fantomas"
+      DirectoryName = "Fantomas"
+      Tag = "v2.9.0"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/jack-pappas/ExtCore"
+      DirectoryName = "ExtCore"
+      Tag = "master"
+      SourceSubDirectory = "."
+      BuildConfigurationFn = configureBuildCommandDotnetBuild }
+    { GitUrl = @"https://github.com/SAFE-Stack/SAFE-BookStore"
+      DirectoryName = "SAFE-BookStore"
+      Tag = "master"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/fsprojects/Paket"
+      DirectoryName = "Paket"
+      Tag = "5.181.1"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/fsprojects/FSharpPlus"
+      DirectoryName = "FSharpPlus"
+      Tag = "v1.0.0"
       SourceSubDirectory = "src"
       BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
     ]
@@ -181,10 +222,11 @@ Target "Pack" (fun _ ->
 // This takes the list of external projects defined above, does a git checkout of the specified repo and tag,
 // tries to build the project, then reformats with fantomas and tries to build the project again. If this fails
 // then there was a regression in fantomas that mangles the source code
-
-Target "TestExternalProjects" (fun _ ->
+let testExternalProjects externalProjectsToTest =
     let externalBuildErrors =
+        let project = getBuildParam "project"
         externalProjectsToTest
+        |> if project="" then id else List.filter (fun p -> p.DirectoryName = project)
         |> List.map (fun project ->
             let relativeProjectDir = sprintf "external-project-tests/%s" project.DirectoryName
 
@@ -229,7 +271,9 @@ Target "TestExternalProjects" (fun _ ->
         |> List.choose id
     if not (List.isEmpty externalBuildErrors)
     then failwith (String.Join("\n", externalBuildErrors) )
-)
+
+Target "TestExternalProjects" (fun _ -> testExternalProjects externalProjectsToTest)
+Target "TestExternalProjectsFailing" (fun _ -> testExternalProjects externalProjectsToTestFailing)
 
 Target "Push" (fun _ -> Paket.Push (fun p -> { p with WorkingDir = "bin" }))
 
