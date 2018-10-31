@@ -473,6 +473,13 @@ and genTuple astContext es =
         ))
 
 and genExpr astContext = function
+    | SingleExpr(Lazy, e) -> 
+        // Always add braces when dealing with lazy
+        let addParens = hasParenthesis e || multiline e
+        str "lazy "
+        +> ifElse addParens id sepOpenT 
+        +> breakNln astContext (multiline e) e
+        +> ifElse addParens id sepCloseT
     | SingleExpr(kind, e) -> str kind +> genExpr astContext e
     | ConstExpr(c) -> genConst c
     | NullExpr -> !- "null"

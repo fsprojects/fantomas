@@ -321,11 +321,9 @@ let list1 = ["1"]
 let list2 = ["2"]
 
 """
-let list = 
-    list1 
-    @ list2 
-    @ ["a"; "b"] 
-    @ List.map id ["a"; "b"]
+let v = // <- Lazy "1"
+    lazy
+        1 |> string
 """
 |> formatSrc
 
