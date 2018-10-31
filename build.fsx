@@ -86,14 +86,14 @@ let externalProjectsToTest = [
       Tag = "5.1.0"
       SourceSubDirectory = "src"
       BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    ]
+
+let externalProjectsToTestFailing = [
     { GitUrl = @"https://github.com/fsprojects/Chessie"
       DirectoryName = "Chessie"
       Tag = "master"
       SourceSubDirectory = "src"
       BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-]
-
-let externalProjectsToTestFailing = [
     { GitUrl = @"https://github.com/fscheck/FsCheck"
       DirectoryName = "FsCheck"
       Tag = "master"
