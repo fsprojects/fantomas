@@ -10,4 +10,4 @@ jobs:
       - ./build.sh All
     - script:
       - ./build.sh TestExternalProjects
-      if: branch = build-external-projects
+      if: branch = test-external-projects
