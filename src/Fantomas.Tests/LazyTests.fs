@@ -10,9 +10,25 @@ let ``lazy should wrap with ()``() =
 let v = // <- Lazy "1"
     lazy
         1 |> string""" config
-    |> fun x -> x
     |> prepend newline
     |> should equal """
 let v = // <- Lazy "1"
     lazy (1 |> string)
+"""
+
+[<Test>]
+let ``lazy should not wrap with () for multiline``() =
+    formatSourceString false """
+let v = // <- Lazy "1"
+    lazy
+        1
+        |> id
+        |> string""" config
+    |> prepend newline
+    |> should equal """
+let v = // <- Lazy "1"
+    lazy
+        1
+        |> id
+        |> string
 """
