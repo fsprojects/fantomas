@@ -215,8 +215,6 @@ namespace Internal.Utilities.Diagnostic
 type ExtensibleDumper = A | B
 #endif
 #endif
-
-
 """
 
 [<Test>]

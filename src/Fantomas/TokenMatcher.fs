@@ -3,11 +3,11 @@
 open System
 open System.Collections.Generic
 open System.Diagnostics
-open Fantomas
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.PrettyNaming
 open Microsoft.FSharp.Compiler.SourceCodeServices
 open System.Text.RegularExpressions
+open Fantomas
 
 #if INTERACTIVE
 type Debug = Console
@@ -594,10 +594,17 @@ let integrateComments isPreserveEOL compilationDefines (originalText : string) (
                 addText Environment.NewLine
             for x in tokensText do addText x
             addNewLineToDirective newTokens moreOrigTokens
+            
+            let isEOL (token:Token) = 
+                match token with
+                | EOL _ -> true 
+                | _ -> false
 
             let moreNewTokens =
                 if String.startsWithOrdinal "#endif" text then
                     match newTokens with
+                    | allEOL when (allEOL |> List.forall (fst >> isEOL)) ->
+                        []
                     | WhiteSpaces(ws, moreNewTokens) ->
                         let origIndent = 
                             moreOrigTokens
@@ -673,8 +680,31 @@ let integrateComments isPreserveEOL compilationDefines (originalText : string) (
             loop moreOrigTokens moreNewTokens
         
         // Emit end-of-line from new tokens
-        | _,  (NewLine newTokText :: moreNewTokens) ->
+        | (Marked(inToken,_,_)::oldTokens),  (NewLine newTokText :: moreNewTokens) ->
             Debug.WriteLine("emitting newline in new tokens '{0}'", newTokText)
+            let nextOldTokens =
+                match (inToken) with 
+                | Tok(fsInToken,_) when (fsInToken.TokenName = "IN") ->
+                    // find tokens before newline in old source
+                    let tokensBeforeNewline =
+                        oldTokens
+                        |> List.takeWhile (fun t ->
+                            match t with
+                            | Marked(EOL,_,_) -> false
+                            | _ -> true
+                        )
+                        |> List.map (fun t ->
+                            match t with
+                            | Marked(_,tokenString,_) -> tokenString
+                        )
+                        
+                    List.iter addText tokensBeforeNewline
+
+                    oldTokens
+                    |> List.skip (List.length tokensBeforeNewline)
+
+                | _ -> origTokens
+
             let nextNewTokens =
                 if not isPreserveEOL then 
                     addText newTokText
@@ -686,7 +716,7 @@ let integrateComments isPreserveEOL compilationDefines (originalText : string) (
                         rs
                     | _ -> moreNewTokens
 
-            loop origTokens nextNewTokens
+            loop nextOldTokens nextNewTokens
 
         | _,  ((Token newTok, newTokText) :: moreNewTokens) 
             when newTok.CharClass = FSharpTokenCharKind.WhiteSpace && newTok.ColorClass <> FSharpTokenColorKind.InactiveCode ->
