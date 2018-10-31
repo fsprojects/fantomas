@@ -473,6 +473,12 @@ and genTuple astContext es =
         ))
 
 and genExpr astContext = function
+    | SingleExpr(Lazy, e) -> 
+        // Always add braces when dealing with lazy
+        str "lazy "
+        +> ifElse (hasParenthesis e) id sepOpenT 
+        +> genExpr astContext e 
+        +> ifElse (hasParenthesis e) id sepCloseT
     | SingleExpr(kind, e) -> str kind +> genExpr astContext e
     | ConstExpr(c) -> genConst c
     | NullExpr -> !- "null"
