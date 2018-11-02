@@ -43,7 +43,7 @@ let rec multiline synExpr =
     | DesugaredLambda(_, e)
     | Lambda(e, _)
     | TypeApp(e, _)
-    | LongIdentSet(_, e)
+    | LongIdentSet(_, e, _)
     | DotGet(e, _)
     | TraitCall(_, _, e) ->
         multiline e

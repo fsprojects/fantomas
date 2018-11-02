@@ -472,7 +472,8 @@ and genTuple astContext es =
             |> addParenWhen (function |ElIf _ -> true |_ -> false) // "if .. then .. else" have precedence over ","
         ))
 
-and genExpr astContext = function
+and genExpr astContext synExpr = 
+    match synExpr with
     | SingleExpr(Lazy, e) -> 
         // Always add braces when dealing with lazy
         let addParens = hasParenthesis e || multiline e
@@ -596,6 +597,7 @@ and genExpr astContext = function
                     +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)))
 
     | DotGetApp(e, es) -> 
+        let dotGetExprRange = e.Range
         let expr = 
             match e with
             | App(e1, [e2]) -> 
@@ -605,7 +607,17 @@ and genExpr astContext = function
         expr
         +> indent 
         +> (col sepNone es (fun (s, e) -> 
-                autoNln (!- (sprintf ".%s" s) 
+                let currentExprRange = e.Range
+                let addNewlineIfNeeded ctx = 
+                    let willAddAutoNewline:bool = 
+                        autoNlnCheck (!- (sprintf ".%s" s) +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e) sepNone ctx
+                        
+                    let expressionOnNextLine = dotGetExprRange.StartLine < currentExprRange.StartLine
+                    
+                    ctx
+                    |> ifElse (not willAddAutoNewline && expressionOnNextLine) sepNln id
+                    
+                addNewlineIfNeeded +> autoNln (!- (sprintf ".%s" s)
                     +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)))
         +> unindent
 
@@ -667,10 +679,16 @@ and genExpr astContext = function
                          -- " " +> preserveBreakNln astContext e2)
     // At this stage, all symbolic operators have been handled.
     | OptVar(s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
-    | LongIdentSet(s, e) -> !- (sprintf "%s <- " s) +> genExpr astContext e
+    | LongIdentSet(s, e, r) -> 
+        let addNewLineIfNeeded = 
+            let necessary = e.Range.StartLine > r.StartLine
+            let spaces = [1..e.Range.StartColumn] |> List.fold (fun acc curr -> acc +> sepSpace) id
+            ifElse necessary (sepNln +> spaces) id
+        !- (sprintf "%s <- " s) +> addNewLineIfNeeded +> genExpr astContext e
     | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
     | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
     | DotGet(e, s) -> 
+        let isMultiline = e.Range.StartLine <> e.Range.EndLine
         let exprF = genExpr { astContext with IsInsideDotGet = true }
         addParenIfAutoNln e exprF -- (sprintf ".%s" s)
     | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
