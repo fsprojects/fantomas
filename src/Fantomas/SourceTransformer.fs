@@ -56,6 +56,9 @@ let rec multiline synExpr =
 
     | Tuple es ->
         List.exists multiline es
+        
+    | App(DotGet(App(DotGet(dg),_), _),_) -> 
+        true
 
     | App(e, (ConstExpr c :: _)) -> multiline e || isConstMultiline c
 
@@ -182,8 +185,11 @@ let rec (|SigValL|_|) = function
     | _ -> None
 
 /// Omit a break before an expression if the expression is small and it is already one line in the text
-let checkPreserveBreakForExpr e (ctx : Context) =
-    multiline e || ctx.Comments.ContainsKey(e.Range.Start) || ctx.Directives.ContainsKey(e.Range.Start)
+let checkPreserveBreakForExpr (e: Ast.SynExpr) (ctx : Context) =
+    let isMultiline = multiline e
+    let hasComments = ctx.Comments.ContainsKey(e.Range.Start)
+    let hasDirective = ctx.Directives.ContainsKey(e.Range.Start)
+    isMultiline || hasComments || hasDirective
 
 /// Omit a break before an expression if the expression is small 
 let checkBreakForExpr e =
