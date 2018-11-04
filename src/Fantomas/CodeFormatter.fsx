@@ -29,11 +29,17 @@ let formatSrc (s : string) =
 fsi.AddPrinter (fun (p : pos) -> p.ToString())
 fsi.AddPrinter (fun (r : range) -> r.ToString())
 
-"""let pattern = 
-    (x + y)
-      .Replace(seperator + "**" + seperator, replacementSeparator + "(.|?" + replacementSeparator + ")?" )
-      .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")" )
 """
+Log.Logger <- 
+  LoggerConfiguration() 
+   // Suave.SerilogExtensions has native destructuring mechanism
+   // this helps Serilog deserialize the fsharp types like unions/records
+   .Destructure.FSharpTypes()
+   // use package Serilog.Sinks.Console  
+   // https://github.com/serilog/serilog-sinks-console
+   .WriteTo.Console() 
+   // add more sinks etc.
+   .CreateLogger()"""
 |> formatSrc
 
 // le nojaf

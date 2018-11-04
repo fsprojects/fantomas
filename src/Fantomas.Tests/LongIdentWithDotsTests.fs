@@ -20,3 +20,30 @@ Log.Logger <-
     .WriteTo.Console()
     .CreateLogger()
 """
+
+[<Test>]
+let ``Fluent api with comments should remain on same lines`` () =
+    formatSourceString false """
+Log.Logger <- 
+  LoggerConfiguration() 
+   // Suave.SerilogExtensions has native destructuring mechanism
+   // this helps Serilog deserialize the fsharp types like unions/records
+   .Destructure.FSharpTypes()
+   // use package Serilog.Sinks.Console  
+   // https://github.com/serilog/serilog-sinks-console
+   .WriteTo.Console() 
+   // add more sinks etc.
+   .CreateLogger()""" config
+    |> prepend newline
+    |> should equal """
+Log.Logger <-
+  LoggerConfiguration()
+    // Suave.SerilogExtensions has native destructuring mechanism
+    // this helps Serilog deserialize the fsharp types like unions/records
+    .Destructure.FSharpTypes()
+    // use package Serilog.Sinks.Console
+    // https://github.com/serilog/serilog-sinks-console
+    .WriteTo.Console()
+    // add more sinks etc.
+    .CreateLogger()
+"""
