@@ -56,9 +56,6 @@ let rec multiline synExpr =
 
     | Tuple es ->
         List.exists multiline es
-        
-    | App(DotGet(App(DotGet(dg),_), _),_) -> 
-        true
 
     | App(e, (ConstExpr c :: _)) -> multiline e || isConstMultiline c
 

@@ -608,17 +608,19 @@ and genExpr astContext synExpr =
         +> indent 
         +> (col sepNone es (fun (s, e) -> 
                 let currentExprRange = e.Range
-                let addNewlineIfNeeded ctx = 
+                let writeExpr = (!- (sprintf ".%s" s) +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)
+                
+                let addNewlineIfNeeded ctx =
                     let willAddAutoNewline:bool = 
-                        autoNlnCheck (!- (sprintf ".%s" s) +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e) sepNone ctx
+                        autoNlnCheck writeExpr sepNone ctx
                         
                     let expressionOnNextLine = dotGetExprRange.StartLine < currentExprRange.StartLine
+                    let addNewline = (not willAddAutoNewline) && expressionOnNextLine
                     
                     ctx
-                    |> ifElse (not willAddAutoNewline && expressionOnNextLine) sepNln id
-                    
-                addNewlineIfNeeded +> autoNln (!- (sprintf ".%s" s)
-                    +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)))
+                    |> ifElse addNewline sepNln sepNone
+
+                addNewlineIfNeeded +> autoNln writeExpr))
         +> unindent
 
     // Unlike infix app, function application needs a level of indentation
@@ -688,7 +690,6 @@ and genExpr astContext synExpr =
     | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
     | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
     | DotGet(e, s) -> 
-        let isMultiline = e.Range.StartLine <> e.Range.EndLine
         let exprF = genExpr { astContext with IsInsideDotGet = true }
         addParenIfAutoNln e exprF -- (sprintf ".%s" s)
     | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
