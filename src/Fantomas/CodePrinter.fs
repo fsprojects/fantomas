@@ -272,11 +272,16 @@ and preserveBreakNln astContext e ctx =
 and preserveBreakNlnOrAddSpace astContext e ctx =
     breakNlnOrAddSpace astContext (checkPreserveBreakForExpr e ctx) e ctx
 
-and genExprSepEqPrependType astContext prefix e =
+and genExprSepEqPrependType astContext prefix e ctx =
+    let multilineCheck = 
+        match e with
+        | MatchLambda _ -> false
+        | _ -> futureNlnCheck (genExpr astContext e) sepNone ctx
     match e with
-    | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType astContext false t +> sepEq
-                                +> preserveBreakNlnOrAddSpace astContext e
-    | e -> prefix +> sepEq +> preserveBreakNlnOrAddSpace astContext e
+    | TypedExpr(Typed, e, t) -> (prefix +> sepColon +> genType astContext false t +> sepEq
+                                +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
+    | e -> 
+        (prefix +> sepEq +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
 
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx = 

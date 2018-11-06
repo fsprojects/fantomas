@@ -357,6 +357,19 @@ let internal autoNlnCheck f sep (ctx : Context) =
     // This isn't accurate if we go to new lines
     col > ctx.Config.PageWidth
 
+let internal futureNlnCheck f sep (ctx : Context) =
+    if not ctx.BreakLines then false else
+    // Create a dummy context to evaluate length of current operation
+    use colWriter = new ColumnIndentedTextWriter(new StringWriter())
+    let dummyCtx = ctx.With(colWriter)
+    let writer = (dummyCtx |> sep |> f).Writer
+    let str = writer.InnerWriter.ToString()
+    let withoutStringConst = 
+        str.Replace("\\\\","").Replace("\\\"", "").Split([|'"'|])
+        |> Seq.indexed |> Seq.filter (fun (i, _) -> i % 2 = 0) |> Seq.map snd |> String.concat ""
+    let lines = withoutStringConst.Split([|'\r';'\n'|]) |> Seq.filter (String.IsNullOrWhiteSpace >> not)
+    (lines |> Seq.length) > 2
+
 /// Set a checkpoint to break at an appropriate column
 let internal autoNlnOrAddSep f sep (ctx : Context) =
     let isNln = autoNlnCheck f sep ctx

@@ -68,9 +68,8 @@ let rec multiline synExpr =
     | App(e1, es) ->
         let multilineEl = multiline e1
         let anyMultilineChildren = List.exists multiline es
-        let rangeIsNowMultiline = e1.Range.StartLine <> e1.Range.EndLine
-        
-        multilineEl  || anyMultilineChildren || rangeIsNowMultiline
+        multilineEl  || anyMultilineChildren
+    
     | DotIndexedGet(e, _) ->
         multiline e
 
