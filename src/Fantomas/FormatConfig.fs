@@ -3,7 +3,6 @@
 open System
 open System.IO
 open System.Collections.Generic
-open System.Text.RegularExpressions
 open System.CodeDom.Compiler
 
 open Microsoft.FSharp.Compiler.Range

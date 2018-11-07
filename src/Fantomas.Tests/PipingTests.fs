@@ -2,8 +2,6 @@
 
 open NUnit.Framework
 open FsUnit
-
-open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
 // the current behavior results in a compile error since the |> is merged to the last line 

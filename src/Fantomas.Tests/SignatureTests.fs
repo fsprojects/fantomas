@@ -2,8 +2,6 @@
 
 open NUnit.Framework
 open FsUnit
-
-open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
 // the current behavior results in a compile error since "(string * string) list" is converted to "string * string list"

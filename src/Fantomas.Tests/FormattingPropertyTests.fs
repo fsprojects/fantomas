@@ -3,7 +3,6 @@
 open NUnit.Framework
 open System
 open Fantomas
-open Fantomas.FormatConfig
 open FsCheck
 open FsUnit
 open Microsoft.FSharp.Compiler.Ast

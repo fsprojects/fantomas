@@ -1,12 +1,10 @@
 ﻿module Fantomas.Tests.TestHelper
 
 open FsUnit
-
 open System
 open Fantomas.FormatConfig
 open Fantomas
 open Microsoft.FSharp.Compiler.SourceCodeServices
-open Microsoft.FSharp.Compiler.ErrorLogger
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
 

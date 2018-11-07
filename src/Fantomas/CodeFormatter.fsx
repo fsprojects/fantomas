@@ -9,13 +9,9 @@
 #load "CodeFormatterImpl.fs"
 #load "CodeFormatter.fs"
 
-open Fantomas.TokenMatcher
 open Fantomas.FormatConfig
-open Fantomas.SourceParser
-open Fantomas.CodePrinter
 open Fantomas.CodeFormatter
 open Microsoft.FSharp.Compiler.Range
-open Microsoft.FSharp.Compiler.Interactive.Shell
 open Microsoft.FSharp.Compiler.Interactive.Shell.Settings
 open Fantomas
 

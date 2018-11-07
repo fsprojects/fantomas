@@ -2,8 +2,6 @@
 
 open NUnit.Framework
 open FsUnit
-
-open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
 let config =  { config with PreserveEndOfLine = true; PageWidth = 20 }
