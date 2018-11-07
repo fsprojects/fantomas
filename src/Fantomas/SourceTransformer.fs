@@ -43,7 +43,7 @@ let rec multiline synExpr =
     | DesugaredLambda(_, e)
     | Lambda(e, _)
     | TypeApp(e, _)
-    | LongIdentSet(_, e)
+    | LongIdentSet(_, e, _)
     | DotGet(e, _)
     | TraitCall(_, _, e) ->
         multiline e
@@ -66,7 +66,10 @@ let rec multiline synExpr =
         || List.exists (snd >> multiline) es
     
     | App(e1, es) ->
-        multiline e1 || List.exists multiline es
+        let multilineEl = multiline e1
+        let anyMultilineChildren = List.exists multiline es
+        multilineEl  || anyMultilineChildren
+    
     | DotIndexedGet(e, _) ->
         multiline e
 
@@ -182,8 +185,11 @@ let rec (|SigValL|_|) = function
     | _ -> None
 
 /// Omit a break before an expression if the expression is small and it is already one line in the text
-let checkPreserveBreakForExpr e (ctx : Context) =
-    multiline e || ctx.Comments.ContainsKey(e.Range.Start) || ctx.Directives.ContainsKey(e.Range.Start)
+let checkPreserveBreakForExpr (e: Ast.SynExpr) (ctx : Context) =
+    let isMultiline = multiline e
+    let hasComments = ctx.Comments.ContainsKey(e.Range.Start)
+    let hasDirective = ctx.Directives.ContainsKey(e.Range.Start)
+    isMultiline || hasComments || hasDirective
 
 /// Omit a break before an expression if the expression is small 
 let checkBreakForExpr e =

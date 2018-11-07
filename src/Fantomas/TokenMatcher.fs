@@ -732,7 +732,7 @@ let integrateComments isPreserveEOL compilationDefines (originalText : string) (
 
         // Emit all unmatched RawDelimiter tokens
         | _, (RawDelimiter newTokText :: moreNewTokens) 
-            when newTokText <> "[<" && newTokText <> ">]" && newTokText <> "|" ->
+            when newTokText <> "[<" && newTokText <> ">]" && newTokText <> "|" && newTokText <> "." ->
             Debug.WriteLine("emitting non-matching '{0}' in new tokens", newTokText |> box)
             addText newTokText 
             loop origTokens moreNewTokens 

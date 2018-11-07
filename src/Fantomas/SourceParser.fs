@@ -814,8 +814,8 @@ let (|ObjExpr|_|) = function
     | _ -> None
 
 let (|LongIdentSet|_|) = function
-    | SynExpr.LongIdentSet(LongIdentWithDots s, e, _) ->
-        Some(s, e)
+    | SynExpr.LongIdentSet(LongIdentWithDots s, e, r) ->
+        Some(s, e, r)
     | _ -> None
 
 let (|TryWith|_|) = function
