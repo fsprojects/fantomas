@@ -2,11 +2,6 @@
 
 open NUnit.Framework
 open FsUnit
-
-open Fantomas.FormatConfig
-open Fantomas.CodeFormatter
-
-open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
 // the current behavior results in a compile error since the = is moved to the next line and not correctly indented

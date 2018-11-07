@@ -3,7 +3,6 @@
 open NUnit.Framework
 open FsUnit
 
-open Fantomas.CodeFormatter
 open Fantomas.Tests.TestHelper
 
 [<Test>]

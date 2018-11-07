@@ -2,9 +2,6 @@ module Fantomas.Tests.FormatAstTests
 
 open NUnit.Framework
 open FsUnit
-
-open Fantomas.CodeFormatter
-open Fantomas.FormatConfig
 open Fantomas.Tests.TestHelper
 
 [<Test>]

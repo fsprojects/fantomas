@@ -6,7 +6,6 @@ open System.Diagnostics
 open System.Collections.Generic
 open System.Text.RegularExpressions
 
-open Microsoft.FSharp.Compiler
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.SourceCodeServices

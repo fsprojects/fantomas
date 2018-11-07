@@ -1,9 +1,7 @@
 ﻿module internal Fantomas.CodePrinter
 
 open System
-open System.Collections.Generic
 open Microsoft.FSharp.Compiler.Ast
-
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
