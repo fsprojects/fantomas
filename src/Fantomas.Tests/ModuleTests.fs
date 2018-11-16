@@ -308,3 +308,25 @@ module private rec Test =
 module private rec Test =
     let test = 42
 """
+
+[<Test>]
+let ``Implicit module should not be added to code`` () =
+    let fileName = "Program.fs"
+    let sourceCode = """open System
+
+type T() =
+    interface IDisposable with
+        override x.Dispose() = ()"""
+    
+    // IsExe would introduce an implicit module, it should not be added after formatting.
+    let parsingOptions = { parsingOptions fileName with IsExe = true }
+
+    Fantomas.CodeFormatter.FormatDocumentAsync(fileName, sourceCode, config, parsingOptions, sharedChecker.Value)
+    |> Async.RunSynchronously
+    |> fun s -> s.Replace("\r\n", "\n")
+    |> should equal """open System
+
+type T() =
+    interface IDisposable with
+        override x.Dispose() = ()
+"""
