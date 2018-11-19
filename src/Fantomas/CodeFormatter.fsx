@@ -17,7 +17,7 @@ open Fantomas
 
 CodeFormatter.Parse ("Program.fs", """let plus a b = a + b""")
 
-let config = FormatConfig.Default
+let config = { FormatConfig.Default with PreserveEndOfLine = true }
 
 let formatSrc (s : string) = 
     formatSourceString false (s.Replace("\r\n", "\n")) config |> printfn "%A";;
@@ -26,16 +26,10 @@ fsi.AddPrinter (fun (p : pos) -> p.ToString())
 fsi.AddPrinter (fun (r : range) -> r.ToString())
 
 """
-Log.Logger <- 
-  LoggerConfiguration() 
-   // Suave.SerilogExtensions has native destructuring mechanism
-   // this helps Serilog deserialize the fsharp types like unions/records
-   .Destructure.FSharpTypes()
-   // use package Serilog.Sinks.Console  
-   // https://github.com/serilog/serilog-sinks-console
-   .WriteTo.Console() 
-   // add more sinks etc.
-   .CreateLogger()"""
+type T() =
+    let x = 123
+//    override private x.ToString() = ""
+"""
 |> formatSrc
 
 // le nojaf
