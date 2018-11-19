@@ -384,3 +384,51 @@ let x =
     // another comment 2
     printf "c"
 """ 
+
+[<Test>]
+let ``preserve newline should not add additional newline`` () =
+    let c = { config with PreserveEndOfLine = true }
+    let source = """
+type T() =
+    let x = 123
+//    override private x.ToString() = ""
+"""
+    
+    formatSourceString false source c
+    |> should equal """
+type T() =
+    let x = 123
+//    override private x.ToString() = ""
+"""
+
+[<Test>]
+let ``preserve newline false should not add additional newline`` () =
+    let source = """
+type T() =
+    let x = 123
+//    override private x.ToString() = ""
+"""
+    
+    formatSourceString false source config
+    |> prepend newline
+    |> should equal """
+type T() =
+    let x = 123
+//    override private x.ToString() = ""
+"""
+
+[<Test>]
+let ``preserve newline should not add additional newline II`` () =
+    let c = { config with PreserveEndOfLine = true }
+    let source = """
+let test n = [ n..-1..1 ]
+let y = ()
+// Some comments
+"""
+
+    formatSourceString false source c
+    |> should equal """
+let test n = [ n ..- 1..1 ]
+let y = ()
+// Some comments
+"""

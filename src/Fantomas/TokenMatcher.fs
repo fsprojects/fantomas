@@ -738,6 +738,11 @@ let integrateComments isPreserveEOL compilationDefines (originalText : string) (
             loop origTokens moreNewTokens 
 
         // Process the last line or block comments
+        | (LineCommentChunk false (commentTokensText, moreOrigTokens)), [] when (isPreserveEOL) ->
+            Debug.WriteLine("injecting the last line comment '{0}'", String.concat "" commentTokensText |> box)
+            for x in commentTokensText do addText x
+            loop moreOrigTokens newTokens
+
         | (LineCommentChunk false (commentTokensText, moreOrigTokens)), []
         | (BlockCommentChunk (commentTokensText, moreOrigTokens)), [] ->
             Debug.WriteLine("injecting the last line or block comment '{0}'", String.concat "" commentTokensText |> box)
