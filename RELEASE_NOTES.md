@@ -1,5 +1,17 @@
-#### 2.9.1 - xx-2018
-* Added netcoreapp2.0 again for Fantomas.Cmd
+#### 2.9.1 - 11-2018
+* Added instructions for vscode and online website. [#333](https://github.com/fsprojects/fantomas/pull/333)
+* Removed trailing spaces for each line, after formatting. [#328](https://github.com/fsprojects/fantomas/issues/328)
+* Allow easy build/format/build cycle of external projects. [#337](https://github.com/fsprojects/fantomas/pull/337)
+* Fix `in` is removed from binding when PreserveEndOfLine is true. [#340](https://github.com/fsprojects/fantomas/issues/340)
+* Fix unnecessary conversion from 'YieldOrReturn' to 'YieldOrReturnFrom', by update of FCS. [#339](https://github.com/fsprojects/fantomas/issues/339)
+* Fix Lazy<'T> is incorrectly rewritten. [#335](https://github.com/fsprojects/fantomas/issues/335)
+* Fix Fluent API with comments breaks code. [#331](https://github.com/fsprojects/fantomas/issues/331)
+* Update to .NET Core 2.1 [#350](https://github.com/fsprojects/fantomas/issues/350)
+* Removed unused open statements. [#352](https://github.com/fsprojects/fantomas/pull/352)
+* Added regression test for Implicit module is added to resulting code. [#355](https://github.com/fsprojects/fantomas/pull/355)
+* Fix wrong comment placement. [#289](https://github.com/fsprojects/fantomas/issues/289)
+
+
 
 #### 2.9.0 - 10-2018
 * Improved README. [#243](https://github.com/fsprojects/fantomas/issues/243)
