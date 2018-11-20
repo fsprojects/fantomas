@@ -8,7 +8,7 @@
 * Fix Fluent API with comments breaks code. [#331](https://github.com/fsprojects/fantomas/issues/331)
 * Update to .NET Core 2.1 [#350](https://github.com/fsprojects/fantomas/issues/350)
 * Removed unused open statements. [#352](https://github.com/fsprojects/fantomas/pull/352)
-* Added regression test foriImplicit module is added to resulting code. [#355](https://github.com/fsprojects/fantomas/pull/355)
+* Added regression test for Implicit module is added to resulting code. [#355](https://github.com/fsprojects/fantomas/pull/355)
 * Fix wrong comment placement. [#289](https://github.com/fsprojects/fantomas/issues/289)
 
 
