@@ -1,3 +1,6 @@
+#### 2.9.2 - XX-2018
+* Fix preserveEndOfLine introduces additional newlines. [#360](https://github.com/fsprojects/fantomas/issues/360) 
+
 #### 2.9.1 - 11-2018
 * Added instructions for vscode and online website. [#333](https://github.com/fsprojects/fantomas/pull/333)
 * Removed trailing spaces for each line, after formatting. [#328](https://github.com/fsprojects/fantomas/issues/328)
@@ -10,8 +13,6 @@
 * Removed unused open statements. [#352](https://github.com/fsprojects/fantomas/pull/352)
 * Added regression test for Implicit module is added to resulting code. [#355](https://github.com/fsprojects/fantomas/pull/355)
 * Fix wrong comment placement. [#289](https://github.com/fsprojects/fantomas/issues/289)
-
-
 
 #### 2.9.0 - 10-2018
 * Improved README. [#243](https://github.com/fsprojects/fantomas/issues/243)

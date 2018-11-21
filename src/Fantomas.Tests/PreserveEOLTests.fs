@@ -469,3 +469,24 @@ let x = 1
 let y = 2
 #endif
 """
+
+[<Test>]
+let ``single line comments at end of line should not added additional newline`` () =
+    let config = { config with PageWidth = 80 }
+
+    formatSourceString false """
+type QueryOption =
+    | FixedQuery of string // xpath
+    | KeywordSearch of string // keyword
+
+type MessageTypeQueryMeta =
+    { Options: QueryOption list }
+"""  config
+    |> should equal """
+type QueryOption =
+    | FixedQuery of string // xpath
+    | KeywordSearch of string // keyword
+
+type MessageTypeQueryMeta =
+    { Options : QueryOption list }
+"""
