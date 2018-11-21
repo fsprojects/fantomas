@@ -665,8 +665,9 @@ let integrateComments isPreserveEOL compilationDefines (originalText : string) (
             | Space _ :: (EOL, newTokText) :: moreNewTokens | (EOL, newTokText) :: moreNewTokens ->
                 addText " "
                 for x in commentTokensText do addText x
-                Debug.WriteLine "emitting newline for end of sticky-to-left comment" 
-                addText newTokText 
+                if not isPreserveEOL then
+                    Debug.WriteLine "emitting newline for end of sticky-to-left comment" 
+                    addText newTokText
                 loop moreOrigTokens moreNewTokens 
             // Otherwise, skip a whitespace token and maintain the indentation
             | Space _ :: moreNewTokens | moreNewTokens -> 
