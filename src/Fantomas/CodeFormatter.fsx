@@ -26,9 +26,13 @@ fsi.AddPrinter (fun (p : pos) -> p.ToString())
 fsi.AddPrinter (fun (r : range) -> r.ToString())
 
 """
-type T() =
-    let x = 123
-//    override private x.ToString() = ""
+type QueryOption =
+    | FixedQuery of string // xpath
+    | KeywordSearch of string // keyword
+
+type MessageTypeQueryMeta =
+    { Options: QueryOption list }
+
 """
 |> formatSrc
 
