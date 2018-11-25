@@ -490,3 +490,30 @@ type QueryOption =
 type MessageTypeQueryMeta =
     { Options : QueryOption list }
 """
+
+[<Test>]
+let ``indentation should be preserved when delimiter is false`` () =
+    let config: Fantomas.FormatConfig.FormatConfig =
+        { PreserveEndOfLine = true
+          SpaceAfterComma = true
+          IndentSpaceNum = 4
+          PageWidth = 80
+          SpaceBeforeArgument = false
+          IndentOnTryWith = false
+          SpaceAroundDelimiter = false
+          SemicolonAtEndOfLine = false
+          SpaceBeforeColon = false
+          SpaceAfterSemicolon = false
+          ReorderOpenDeclaration = false
+          StrictMode = false }
+        
+    formatSourceString false """
+let config =
+    [ ("n", "1")
+      ("d", "2") ]
+"""  config
+    |> should equal """
+let config =
+    [("n", "1")
+     ("d", "2")]
+"""

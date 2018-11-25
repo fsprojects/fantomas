@@ -87,7 +87,7 @@ type FormatConfig =
               StrictMode = strictMode }
 
 /// Wrapping IndentedTextWriter with current column position
-type internal ColumnIndentedTextWriter(tw : TextWriter) =
+type ColumnIndentedTextWriter(tw : TextWriter) =
     let indentWriter = new IndentedTextWriter(tw, " ")
     let mutable col = indentWriter.Indent
 
@@ -116,7 +116,7 @@ type internal ColumnIndentedTextWriter(tw : TextWriter) =
         member __.Dispose() =
             indentWriter.Dispose()    
 
-type internal Context = 
+type Context = 
     { Config : FormatConfig; 
       Writer : ColumnIndentedTextWriter;
       mutable BreakLines : bool;
