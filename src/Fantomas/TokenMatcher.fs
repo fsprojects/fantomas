@@ -445,7 +445,9 @@ let (|OpenChunk|_|) = function
  
 /// Assume that originalText and newText are derived from the same AST. 
 /// Pick all comments and directives from originalText to insert into newText               
-let integrateComments isPreserveEOL isSpaceAroundDelimiter compilationDefines (originalText : string) (newText : string) =
+let integrateComments (config:Fantomas.FormatConfig.FormatConfig) compilationDefines (originalText : string) (newText : string) =
+    let isPreserveEOL = config.PreserveEndOfLine
+
     let trim (txt : string) = 
         if not isPreserveEOL then txt
         else Regex.Replace(String.normalizeNewLine txt, @"[ \t]+$", "", RegexOptions.Multiline)
@@ -719,7 +721,7 @@ let integrateComments isPreserveEOL isSpaceAroundDelimiter compilationDefines (o
                     moreNewTokens 
                 else
                     match moreNewTokens with
-                    | Space _::LParen _::rs when (not isSpaceAroundDelimiter) ->
+                    | Space _::LParen _::rs when (not config.SpaceAroundDelimiter) ->
                         List.skip 1 moreNewTokens
                     | Space t::rs ->
                         addText " "

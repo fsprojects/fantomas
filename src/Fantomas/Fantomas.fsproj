@@ -9,8 +9,9 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Dbg.fs" />
     <Compile Include="Utils.fs" />
-    <Compile Include="TokenMatcher.fs" />
     <Compile Include="FormatConfig.fs" />
+    <Compile Include="TokenMatcher.fs" />
+    <Compile Include="Context.fs" />
     <Compile Include="SourceParser.fs" />
     <Compile Include="SourceTransformer.fs" />
     <Compile Include="CodePrinter.fs" />

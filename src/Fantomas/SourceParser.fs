@@ -6,7 +6,7 @@ open Microsoft.FSharp.Compiler.Range
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.PrettyNaming
 open Fantomas
-open Fantomas.FormatConfig
+open Fantomas.Context
 open Microsoft.FSharp.Compiler.SourceCodeServices.PrettyNaming
 
 type Composite<'a, 'b> =
