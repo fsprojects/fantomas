@@ -116,7 +116,7 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
         member __.Dispose() =
             indentWriter.Dispose()    
 
-type Context = 
+type internal Context = 
     { Config : FormatConfig; 
       Writer : ColumnIndentedTextWriter;
       mutable BreakLines : bool;
