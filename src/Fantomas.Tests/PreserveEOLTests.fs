@@ -517,3 +517,52 @@ let config =
     [("n", "1")
      ("d", "2")]
 """
+
+[<Test>]
+let ``ending with multiline comment should not introduce additional newline`` () =
+    let config: Fantomas.FormatConfig.FormatConfig =
+        { PreserveEndOfLine = true
+          SpaceAfterComma = true
+          IndentSpaceNum = 4
+          PageWidth = 80
+          SpaceBeforeArgument = false
+          IndentOnTryWith = false
+          SpaceAroundDelimiter = false
+          SemicolonAtEndOfLine = false
+          SpaceBeforeColon = false
+          SpaceAfterSemicolon = false
+          ReorderOpenDeclaration = false
+          StrictMode = false }
+        
+    formatSourceString false """
+#r "System.Xml.Linq"
+
+open System.Xml.Linq
+open System.Xml.XPath
+
+let xml = "<a>1</a>"
+
+(*
+Lorem ipsum dolor sit amet,
+consectetur adipiscing elit,
+sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Ut enim ad minim veniam
+*)
+
+"""  config
+    |> should equal """
+#r "System.Xml.Linq"
+
+open System.Xml.Linq
+open System.Xml.XPath
+
+let xml = "<a>1</a>"
+
+(*
+Lorem ipsum dolor sit amet,
+consectetur adipiscing elit,
+sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Ut enim ad minim veniam
+*)
+
+"""
