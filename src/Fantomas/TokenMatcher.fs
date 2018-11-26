@@ -750,16 +750,13 @@ let integrateComments (config:Fantomas.FormatConfig.FormatConfig) compilationDef
             loop origTokens moreNewTokens 
 
         // Process the last line or block comments
-        | (LineCommentChunk false (commentTokensText, moreOrigTokens)), [] when (isPreserveEOL) ->
-            Debug.WriteLine("injecting the last line comment '{0}'", String.concat "" commentTokensText |> box)
-            for x in commentTokensText do addText x
-            loop moreOrigTokens newTokens
-
         | (LineCommentChunk false (commentTokensText, moreOrigTokens)), []
         | (BlockCommentChunk (commentTokensText, moreOrigTokens)), [] ->
             Debug.WriteLine("injecting the last line or block comment '{0}'", String.concat "" commentTokensText |> box)
-            // Until block comments can't have new line in the beginning, add two consecutive new lines
-            addText Environment.NewLine
+            if not isPreserveEOL then
+                // Until block comments can't have new line in the beginning, add two consecutive new lines
+                addText Environment.NewLine
+            
             for x in commentTokensText do addText x
             loop moreOrigTokens newTokens 
 
