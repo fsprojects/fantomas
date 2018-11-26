@@ -359,11 +359,11 @@ let formatWith ast formatContext config =
     let sourceCode = defaultArg input String.Empty
     let normalizedSourceCode = String.normalizeNewLine sourceCode
     let formattedSourceCode =
-        Context.create config normalizedSourceCode 
+        Fantomas.Context.Context.create config normalizedSourceCode 
         |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
-        |> dump
+        |> Context.dump
         |> if config.StrictMode then id 
-           else integrateComments config.PreserveEndOfLine config.SpaceAroundDelimiter formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode
+           else integrateComments config formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode
 
     // Sometimes F# parser gives a partial AST for incorrect input
     if input.IsSome && String.IsNullOrWhiteSpace normalizedSourceCode <> String.IsNullOrWhiteSpace formattedSourceCode then
@@ -536,13 +536,13 @@ let formatRange returnFormattedContentOnly (range : range) (lines : _ []) config
     let reconstructSourceCode startCol formatteds pre post =
         Debug.WriteLine("Formatted parts: '{0}' at column {1}", sprintf "%A" formatteds, startCol)
         // Realign results on the correct column
-        Context.create config String.Empty
+        Context.Context.create config String.Empty
         // Mono version of indent text writer behaves differently from .NET one,
         // So we add an empty string first to regularize it
-        |> if returnFormattedContentOnly then str String.Empty else str pre
-        |> atIndentLevel startCol (col sepNln formatteds str)
-        |> if returnFormattedContentOnly then str String.Empty else str post
-        |> dump
+        |> if returnFormattedContentOnly then Context.str String.Empty else Context.str pre
+        |> Context.atIndentLevel startCol (Context.col Context.sepNln formatteds Context.str)
+        |> if returnFormattedContentOnly then Context.str String.Empty else Context.str post
+        |> Context.dump
 
     async {
         match patch with

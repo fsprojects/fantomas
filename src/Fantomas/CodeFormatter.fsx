@@ -1,8 +1,9 @@
 ﻿#r "../../packages/FSharp.Compiler.Service/lib/net45/FSharp.Compiler.Service.dll"
 
 #load "Utils.fs"
-#load "TokenMatcher.fs"
 #load "FormatConfig.fs"
+#load "TokenMatcher.fs"
+#load "Context.fs"
 #load "SourceParser.fs"
 #load "SourceTransformer.fs"
 #load "CodePrinter.fs"
