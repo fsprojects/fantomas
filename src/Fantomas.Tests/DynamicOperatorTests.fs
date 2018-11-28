@@ -12,6 +12,6 @@ let ``Keep () when dynamic operator is used``() =
 
 [<Test>]
 let ``Remove () when dynamic operator is string``() =
-    formatSourceString false "let memoEquals x = x?(k)" config
+    formatSourceString false "let memoEquals x = x?k" config
     |> should equal """let memoEquals x = x?k
 """

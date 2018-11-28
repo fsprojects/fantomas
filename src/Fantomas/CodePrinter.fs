@@ -576,7 +576,6 @@ and genExpr astContext synExpr =
     // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
     | App(Var "?", e::es) ->
         match es with
-        | SynExpr.Ident(_)::_
         | SynExpr.Const(SynConst.String(_,_),_)::_ ->
             genExpr astContext e -- "?" +> col sepSpace es (genExpr astContext)
         | _ ->
