@@ -574,7 +574,13 @@ and genExpr astContext synExpr =
         !- s +> sepSpace +> sepOpenS +> genExpr { astContext with IsNakedRange = true } e 
         +> ifElse (checkBreakForExpr e) (sepNln +> sepCloseSFixed) sepCloseS
     // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
-    | App(Var "?", e::es) -> genExpr astContext e -- "?" +> col sepSpace es (genExpr astContext)
+    | App(Var "?", e::es) ->
+        match es with
+        | SynExpr.Const(SynConst.String(_,_),_)::_ ->
+            genExpr astContext e -- "?" +> col sepSpace es (genExpr astContext)
+        | _ ->
+            genExpr astContext e -- "?" +> sepOpenT +> col sepSpace es (genExpr astContext) +> sepCloseT
+
     | App(Var "..", [e1; e2]) ->
         let expr = genExpr astContext e1 -- ".." +> genExpr astContext e2
         ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
