@@ -144,9 +144,15 @@ Target "Clean" (fun _ ->
 let isAppVeyor = Fake.BuildServerHelper.buildServer = BuildServerHelper.AppVeyor
 
 Target "ProjectVersion" (fun _ ->
-    let setProjectVersion project =        
+    let version =
+        if isAppVeyor then
+            sprintf "%s.%s" release.NugetVersion BuildServerHelper.appVeyorBuildVersion
+        else
+            release.NugetVersion
+
+    let setProjectVersion project =
         XMLHelper.XmlPoke ("src/"+project+"/"+project+".fsproj")
-            "Project/PropertyGroup/Version/text()" release.NugetVersion
+            "Project/PropertyGroup/Version/text()" version
     setProjectVersion "Fantomas"
     setProjectVersion "Fantomas.Cmd"
     setProjectVersion "Fantomas.CoreGlobalTool"
