@@ -10,7 +10,7 @@ open System
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted
-let gitHome = "https://github.com/dungpa"
+let gitHome = "https://github.com/fsprojects"
 // The name of the project on GitHub
 let gitName = "fantomas"
 
@@ -25,8 +25,8 @@ let projectUrl = sprintf "%s/%s" gitHome gitName
 let summary = "Source code formatter for F#"
 
 let copyright = "Copyright \169 2018"
-let iconUrl = "https://raw.githubusercontent.com/dungpa/fantomas/master/fantomas_logo.png"
-let licenceUrl = "https://github.com/dungpa/fantomas/blob/master/LICENSE.md"
+let iconUrl = "https://raw.githubusercontent.com/fsprojects/fantomas/master/fantomas_logo.png"
+let licenceUrl = "https://github.com/fsprojects/fantomas/blob/master/LICENSE.md"
 let configuration = "Release"
 
 // Longer description of the project
