@@ -76,8 +76,9 @@ To install you probably need to uninstall the current version from the official 
 
 Install from MyGet:
 
-> dotnet tool install -g fantomas-tool --add-source https://www.myget.org/F/fantomas/api/v3/index.json
+> dotnet tool install -g fantomas-tool --add-source https://www.myget.org/F/fantomas/api/v3/index.json --version 2.9.1-ci185
 
+Note that the `--version` is important, check the latest version [at MyGet](https://www.myget.org/feed/fantomas/package/nuget/dotnet-fantomas).
 Your can check your current version with `fantomas --version` (since December 2018).
 
 ## Purpose

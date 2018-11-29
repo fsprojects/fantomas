@@ -4,7 +4,6 @@
 
 #r @"packages/build/FAKE/tools/FakeLib.dll"
 open Fake
-open Fake.AssemblyInfoFile
 open Fake.ReleaseNotesHelper
 open System
 
@@ -143,26 +142,6 @@ Target "Clean" (fun _ ->
 )
 
 let isAppVeyor = Fake.BuildServerHelper.buildServer = BuildServerHelper.AppVeyor
-
-Target "AssemblyInfo" (fun _ ->
-  let version =
-    if isAppVeyor then
-        sprintf "%s.%s" release.AssemblyVersion BuildServerHelper.appVeyorBuildVersion
-    else
-        release.AssemblyVersion
-
-  let shared =
-      [ Attribute.Product project
-        Attribute.Description summary
-        Attribute.Version version
-        Attribute.FileVersion version ]
-
-  CreateFSharpAssemblyInfo "src/Fantomas/AssemblyInfo.fs"
-      ( Attribute.InternalsVisibleTo "Fantomas.Tests" :: Attribute.Title "FantomasLib" :: shared)
-
-  CreateFSharpAssemblyInfo "src/Fantomas.Cmd/AssemblyInfo.fs"
-      (Attribute.Title "Fantomas" :: shared)
-)
 
 Target "ProjectVersion" (fun _ ->
     let setProjectVersion project =        
@@ -308,7 +287,6 @@ Target "MyGet" (fun _ ->
 Target "All" DoNothing
 
 "Clean"
-  ==> "AssemblyInfo"
   ==> "ProjectVersion"
   ==> "Build"
   ==> "UnitTests"

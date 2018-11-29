@@ -9,7 +9,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <Compile Include="..\Fantomas.Cmd\AssemblyInfo.fs" />
     <Compile Include="..\Fantomas.Cmd\Arg.fsi" />
     <Compile Include="..\Fantomas.Cmd\Arg.fs" />
     <Compile Include="..\Fantomas.Cmd\Program.fs" />
