@@ -292,6 +292,16 @@ Target "TestExternalProjectsFailing" (fun _ -> testExternalProjects externalProj
 
 Target "Push" (fun _ -> Paket.Push (fun p -> { p with WorkingDir = "bin" }))
 
+Target "MyGet" (fun _ ->
+    Paket.Push (fun p ->
+        { p with
+            WorkingDir = "bin"
+            PublishUrl = "https://www.myget.org/F/fantomas/api/v2/package"
+            ApiKey = Fake.EnvironmentHelper.getBuildParam "myget-key"
+        }
+    )
+)
+
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
@@ -308,5 +318,8 @@ Target "All" DoNothing
 
 "Build"
   ==> "TestExternalProjects"
+  
+"Pack"
+  ==> "MyGet"
 
 RunTargetOrDefault "All"
