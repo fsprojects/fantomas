@@ -502,10 +502,18 @@ and genExpr astContext synExpr =
     | StructTuple es -> !- "struct " +> sepOpenT +> genTuple astContext es +> sepCloseT
     | ArrayOrList(isArray, [], _) -> 
         ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
-    | ArrayOrList(isArray, xs, isSimple) -> 
+    | ArrayOrList(isArray, xs, isSimple) ->
         let sep = ifElse isSimple sepSemi sepSemiNln
-        ifElse isArray (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sep xs (genExpr astContext)) +> sepCloseA) 
-            (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sep xs (genExpr astContext)) +> sepCloseL)
+        let sepWithPreserveEndOfLine ctx =
+            let length = List.length xs
+            let distinctLength = xs |> List.distinctBy (fun x -> x.Range.StartLine) |> List.length
+            let useNewline = ctx.Config.PreserveEndOfLine && (length = distinctLength)
+            
+            ctx
+            |> ifElse useNewline sepNln sep
+            
+        ifElse isArray (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sepWithPreserveEndOfLine xs (genExpr astContext)) +> sepCloseA) 
+            (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepWithPreserveEndOfLine xs (genExpr astContext)) +> sepCloseL)
 
     | Record(inheritOpt, xs, eo) -> 
         sepOpenS 
