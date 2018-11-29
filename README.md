@@ -67,6 +67,19 @@ Install the [fantomas-fmt](https://marketplace.visualstudio.com/items?itemName=p
 
 Try the fantomas [online](http://ratatosk.dynu.net/fantomas/).
 
+## Early builds
+
+We have our [own NuGet feed](https://www.myget.org/feed/fantomas/package/nuget/dotnet-fantomas) that contains artifacts built on the latest master branch.
+To install you probably need to uninstall the current version from the official NuGet feed.
+
+> dotnet tool uninstall -g fantomas-tool
+
+Install from MyGet:
+
+> dotnet tool install -g fantomas-tool --add-source https://www.myget.org/F/fantomas/api/v3/index.json
+
+Your can check your current version with `fantomas --version` (since December 2018).
+
 ## Purpose
 This project aims at formatting F# source files based on a given configuration.
 Fantomas will ensure correct indentation and consistent spacing between elements in the source files.

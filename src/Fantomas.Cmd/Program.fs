@@ -15,6 +15,7 @@ open Fantomas.FormatConfig
 //  --recurse                       If any given file is a directory, recurse it and process all fs/fsx/fsi files
 //  --stdin                         Read F# source from standard input
 //  --stdout                        Write the formatted source code to standard output
+//  --version                       Print the version of tool.
 
 // Preferences:
 //  --indent=[1-10]                 Set number of spaces to use for indentation
