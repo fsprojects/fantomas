@@ -158,8 +158,14 @@ Target "AssemblyInfo" (fun _ ->
 
 Target "ProjectVersion" (fun _ ->
     let setProjectVersion project =
+        let nugetVersion =
+            if Fake.BuildServerHelper.buildServer = BuildServerHelper.AppVeyor then
+                sprintf "%s-ci%s" release.NugetVersion BuildServerHelper.appVeyorBuildVersion
+            else
+                release.NugetVersion
+        
         XMLHelper.XmlPoke ("src/"+project+"/"+project+".fsproj")
-            "Project/PropertyGroup/Version/text()" release.NugetVersion
+            "Project/PropertyGroup/Version/text()" nugetVersion
     setProjectVersion "Fantomas"
     setProjectVersion "Fantomas.Cmd"
     setProjectVersion "Fantomas.CoreGlobalTool"
