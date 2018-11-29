@@ -244,7 +244,7 @@ let y = [| 3;4
 let z = [7; 8]
     """ config
     |> should equal """
-let x = [ 1;
+let x = [ 1
           2 ]
 let y = [| 3; 4;
            5; 6 |]
@@ -551,4 +551,21 @@ sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 Ut enim ad minim veniam
 *)
 
+"""
+
+[<Test>]
+let ``preserve end of line should respect semicolon`` () =
+    formatSourceString false """
+let lst = 
+    [ 5
+      6
+      7
+    ]
+"""  config
+    |> should equal """
+let lst =
+    [ 5
+      6
+      7
+    ]
 """
