@@ -142,12 +142,20 @@ Target "Clean" (fun _ ->
     ]
 )
 
+let isAppVeyor = Fake.BuildServerHelper.buildServer = BuildServerHelper.AppVeyor
+
 Target "AssemblyInfo" (fun _ ->
+  let version =
+    if isAppVeyor then
+        sprintf "%s.%s" release.AssemblyVersion BuildServerHelper.appVeyorBuildVersion
+    else
+        release.AssemblyVersion
+
   let shared =
       [ Attribute.Product project
         Attribute.Description summary
-        Attribute.Version release.AssemblyVersion
-        Attribute.FileVersion release.AssemblyVersion ]
+        Attribute.Version version
+        Attribute.FileVersion version ]
 
   CreateFSharpAssemblyInfo "src/Fantomas/AssemblyInfo.fs"
       ( Attribute.InternalsVisibleTo "Fantomas.Tests" :: Attribute.Title "FantomasLib" :: shared)
@@ -192,7 +200,7 @@ Target "UnitTests" (fun _ ->
 
 Target "Pack" (fun _ ->
     let nugetVersion =
-        if Fake.BuildServerHelper.buildServer = BuildServerHelper.AppVeyor then
+        if isAppVeyor then
             sprintf "%s-ci%s" release.NugetVersion BuildServerHelper.appVeyorBuildVersion
         else
             release.NugetVersion
