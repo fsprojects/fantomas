@@ -157,15 +157,9 @@ Target "AssemblyInfo" (fun _ ->
 )
 
 Target "ProjectVersion" (fun _ ->
-    let setProjectVersion project =
-        let nugetVersion =
-            if Fake.BuildServerHelper.buildServer = BuildServerHelper.AppVeyor then
-                sprintf "%s-ci%s" release.NugetVersion BuildServerHelper.appVeyorBuildVersion
-            else
-                release.NugetVersion
-        
+    let setProjectVersion project =        
         XMLHelper.XmlPoke ("src/"+project+"/"+project+".fsproj")
-            "Project/PropertyGroup/Version/text()" nugetVersion
+            "Project/PropertyGroup/Version/text()" release.NugetVersion
     setProjectVersion "Fantomas"
     setProjectVersion "Fantomas.Cmd"
     setProjectVersion "Fantomas.CoreGlobalTool"
@@ -197,13 +191,19 @@ Target "UnitTests" (fun _ ->
 // Build a NuGet package
 
 Target "Pack" (fun _ ->
+    let nugetVersion =
+        if Fake.BuildServerHelper.buildServer = BuildServerHelper.AppVeyor then
+            sprintf "%s-ci%s" release.NugetVersion BuildServerHelper.appVeyorBuildVersion
+        else
+            release.NugetVersion
+
     let pack project =
         let packParameters =
             [
                 "--no-build"
                 "--no-restore"
                 sprintf "/p:Title=\"%s\"" project
-                "/p:PackageVersion=" + release.NugetVersion
+                "/p:PackageVersion=" + nugetVersion
                 sprintf "/p:Authors=\"%s\"" (String.Join(" ", authors))
                 sprintf "/p:Owners=\"%s\"" owner
                 "/p:PackageRequireLicenseAcceptance=false"
