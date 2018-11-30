@@ -186,7 +186,7 @@ Target "UnitTests" (fun _ ->
 Target "Pack" (fun _ ->
     let nugetVersion =
         if isAppVeyor then
-            sprintf "%s-ci%s" release.NugetVersion BuildServerHelper.appVeyorBuildVersion
+            sprintf "%s-latest" release.NugetVersion
         else
             release.NugetVersion
 
