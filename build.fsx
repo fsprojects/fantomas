@@ -278,13 +278,18 @@ Target "TestExternalProjectsFailing" (fun _ -> testExternalProjects externalProj
 Target "Push" (fun _ -> Paket.Push (fun p -> { p with WorkingDir = "bin" }))
 
 Target "MyGet" (fun _ ->
-    Paket.Push (fun p ->
-        { p with
-            WorkingDir = "bin"
-            PublishUrl = "https://www.myget.org/F/fantomas/api/v2/package"
-            ApiKey = Fake.EnvironmentHelper.getBuildParam "myget-key"
-        }
-    )
+    let prNumber = Fake.EnvironmentHelper.getBuildParam "APPVEYOR_PULL_REQUEST_NUMBER"
+    let isPullRequest = String.IsNullOrEmpty prNumber
+        
+    if not isPullRequest then
+        Paket.Push (fun p ->
+            { p with
+                WorkingDir = "bin"
+                PublishUrl = "https://www.myget.org/F/fantomas/api/v2/package"
+                ApiKey = Fake.EnvironmentHelper.getBuildParam "myget-key" }
+        )
+    else
+        printfn "Not pushing pull request %s" prNumber
 )
 
 // --------------------------------------------------------------------------------------
