@@ -289,7 +289,7 @@ Target "MyGet" (fun _ ->
                 ApiKey = Fake.EnvironmentHelper.getBuildParam "myget-key" }
         )
     else
-        printfn "Not pushing pull request %s" prNumber
+        printfn "Not pushing pull request %s to myget" prNumber
 )
 
 // --------------------------------------------------------------------------------------
