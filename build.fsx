@@ -279,7 +279,7 @@ Target "Push" (fun _ -> Paket.Push (fun p -> { p with WorkingDir = "bin" }))
 
 Target "MyGet" (fun _ ->
     let prNumber = Fake.EnvironmentHelper.getBuildParam "APPVEYOR_PULL_REQUEST_NUMBER"
-    let isPullRequest = String.IsNullOrEmpty prNumber
+    let isPullRequest = not (String.IsNullOrEmpty prNumber)
         
     if not isPullRequest then
         Paket.Push (fun p ->
