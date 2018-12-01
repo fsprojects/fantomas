@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas", "Fantomas\Fantomas.fsproj", "{7EA16279-A5F1-4781-A343-4375A04BCE6F}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas", "src\Fantomas\Fantomas.fsproj", "{7EA16279-A5F1-4781-A343-4375A04BCE6F}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Cmd", "Fantomas.Cmd\Fantomas.Cmd.fsproj", "{96A7F1BE-8749-422D-A82D-EC608278D208}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Cmd", "src\Fantomas.Cmd\Fantomas.Cmd.fsproj", "{96A7F1BE-8749-422D-A82D-EC608278D208}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Tests", "Fantomas.Tests\Fantomas.Tests.fsproj", "{DED76E41-B89F-47BA-84C5-3AB0BECFA767}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Tests", "src\Fantomas.Tests\Fantomas.Tests.fsproj", "{DED76E41-B89F-47BA-84C5-3AB0BECFA767}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.CoreGlobalTool", "Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj", "{DC08805B-C6E2-43F3-B381-E60EE88A079D}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.CoreGlobalTool", "src\Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj", "{DC08805B-C6E2-43F3-B381-E60EE88A079D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

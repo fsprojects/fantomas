@@ -132,7 +132,6 @@ let externalProjectsToTestFailing = [
 Target "Clean" (fun _ ->
     CleanDirs [
         "bin"
-        "nuget"
         "src/Fantomas/bin"
         "src/Fantomas/obj"
         "src/Fantomas.Cmd/bin"
@@ -171,7 +170,7 @@ Target "ProjectVersion" (fun _ ->
 Target "Build" (fun _ ->
     DotNetCli.Build (fun p ->
         { p with
-            Project = (sprintf "src/%s.sln" solutionFile)
+            Project = (sprintf "%s.sln" solutionFile)
             Configuration = configuration
         }
     )
