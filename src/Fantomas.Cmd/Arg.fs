@@ -17,6 +17,7 @@ limitations under the License.
 *)
 
 namespace Microsoft.FSharp.Text.Args
+open System.Reflection
 
 type ArgType = 
   | ClearArg of bool ref
@@ -111,7 +112,11 @@ type ArgParser() =
                      incr cursor;
 
             | (_ :: more)  -> findMatchingArg more 
-            | [] -> 
+            | [] ->
+                if arg = "--version" then
+                    let version = Assembly.GetExecutingAssembly().GetName().Version
+                    raise (HelpText (sprintf "Fantomas %A" version))
+                
                 if arg = "-help" || arg = "--help" || arg = "/help" || arg = "/help" || arg = "/?" then
                     raise (HelpText (getUsage argSpecs usageText))
                 // Note: for '/abc/def' does not count as an argument

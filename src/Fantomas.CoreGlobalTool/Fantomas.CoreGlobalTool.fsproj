@@ -4,12 +4,11 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <ToolCommandName>fantomas</ToolCommandName>
     <PackAsTool>True</PackAsTool>
-    <Version>2.9.2</Version>
+    <Version>2.9.1</Version>
     <AssemblyName>fantomas-tool</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <Compile Include="..\Fantomas.Cmd\AssemblyInfo.fs" />
     <Compile Include="..\Fantomas.Cmd\Arg.fsi" />
     <Compile Include="..\Fantomas.Cmd\Arg.fs" />
     <Compile Include="..\Fantomas.Cmd\Program.fs" />
