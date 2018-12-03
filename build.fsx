@@ -4,14 +4,13 @@
 
 #r @"packages/build/FAKE/tools/FakeLib.dll"
 open Fake
-open Fake.AssemblyInfoFile
 open Fake.ReleaseNotesHelper
 open System
 
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted
-let gitHome = "https://github.com/dungpa"
+let gitHome = "https://github.com/fsprojects"
 // The name of the project on GitHub
 let gitName = "fantomas"
 
@@ -26,8 +25,8 @@ let projectUrl = sprintf "%s/%s" gitHome gitName
 let summary = "Source code formatter for F#"
 
 let copyright = "Copyright \169 2018"
-let iconUrl = "https://raw.githubusercontent.com/dungpa/fantomas/master/fantomas_logo.png"
-let licenceUrl = "https://github.com/dungpa/fantomas/blob/master/LICENSE.md"
+let iconUrl = "https://raw.githubusercontent.com/fsprojects/fantomas/master/fantomas_logo.png"
+let licenceUrl = "https://github.com/fsprojects/fantomas/blob/master/LICENSE.md"
 let configuration = "Release"
 
 // Longer description of the project
@@ -142,24 +141,18 @@ Target "Clean" (fun _ ->
     ]
 )
 
-Target "AssemblyInfo" (fun _ ->
-  let shared =
-      [ Attribute.Product project
-        Attribute.Description summary
-        Attribute.Version release.AssemblyVersion
-        Attribute.FileVersion release.AssemblyVersion ]
-
-  CreateFSharpAssemblyInfo "src/Fantomas/AssemblyInfo.fs"
-      ( Attribute.InternalsVisibleTo "Fantomas.Tests" :: Attribute.Title "FantomasLib" :: shared)
-
-  CreateFSharpAssemblyInfo "src/Fantomas.Cmd/AssemblyInfo.fs"
-      (Attribute.Title "Fantomas" :: shared)
-)
+let isAppVeyor = Fake.BuildServerHelper.buildServer = BuildServerHelper.AppVeyor
 
 Target "ProjectVersion" (fun _ ->
+    let version =
+        if isAppVeyor then
+            sprintf "%s.%s" release.NugetVersion BuildServerHelper.appVeyorBuildVersion
+        else
+            release.NugetVersion
+
     let setProjectVersion project =
         XMLHelper.XmlPoke ("src/"+project+"/"+project+".fsproj")
-            "Project/PropertyGroup/Version/text()" release.NugetVersion
+            "Project/PropertyGroup/Version/text()" version
     setProjectVersion "Fantomas"
     setProjectVersion "Fantomas.Cmd"
     setProjectVersion "Fantomas.CoreGlobalTool"
@@ -191,13 +184,19 @@ Target "UnitTests" (fun _ ->
 // Build a NuGet package
 
 Target "Pack" (fun _ ->
+    let nugetVersion =
+        if isAppVeyor then
+            sprintf "%s-latest" release.NugetVersion
+        else
+            release.NugetVersion
+
     let pack project =
         let packParameters =
             [
                 "--no-build"
                 "--no-restore"
                 sprintf "/p:Title=\"%s\"" project
-                "/p:PackageVersion=" + release.NugetVersion
+                "/p:PackageVersion=" + nugetVersion
                 sprintf "/p:Authors=\"%s\"" (String.Join(" ", authors))
                 sprintf "/p:Owners=\"%s\"" owner
                 "/p:PackageRequireLicenseAcceptance=false"
@@ -278,13 +277,27 @@ Target "TestExternalProjectsFailing" (fun _ -> testExternalProjects externalProj
 
 Target "Push" (fun _ -> Paket.Push (fun p -> { p with WorkingDir = "bin" }))
 
+Target "MyGet" (fun _ ->
+    let prNumber = Fake.EnvironmentHelper.getBuildParam "APPVEYOR_PULL_REQUEST_NUMBER"
+    let isPullRequest = not (String.IsNullOrEmpty prNumber)
+        
+    if not isPullRequest then
+        Paket.Push (fun p ->
+            { p with
+                WorkingDir = "bin"
+                PublishUrl = "https://www.myget.org/F/fantomas/api/v2/package"
+                ApiKey = Fake.EnvironmentHelper.getBuildParam "myget-key" }
+        )
+    else
+        printfn "Not pushing pull request %s to myget" prNumber
+)
+
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
 Target "All" DoNothing
 
 "Clean"
-  ==> "AssemblyInfo"
   ==> "ProjectVersion"
   ==> "Build"
   ==> "UnitTests"
@@ -294,5 +307,8 @@ Target "All" DoNothing
 
 "Build"
   ==> "TestExternalProjects"
+  
+"Pack"
+  ==> "MyGet"
 
 RunTargetOrDefault "All"
