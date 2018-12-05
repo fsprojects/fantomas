@@ -499,6 +499,7 @@ let integrateComments (config:Fantomas.FormatConfig.FormatConfig) compilationDef
         let indentWithNewSpacing xs ys = 
             let rec newSpacingLength zs =
                 match zs with
+                | (EOL, _)::(Space _)::(Tok(_, _), "[<")::_::(Tok(_, _), ">]")::(EOL, _)::(Space _)::(Tok(_, _), "[<")::_ -> 3
                 | (EOL, _)::(Space _)::(Tok(_, _), "[<")::_ -> 2
                 | (EOL, _)::(EOL, _)::(Tok(_, _), "[<")::_ -> 0
                 | (EOL, _)::(Space _)::_ -> 1
