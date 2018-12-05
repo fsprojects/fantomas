@@ -569,3 +569,18 @@ let lst =
       7
     ]
 """
+
+[<Test>]
+let ``mulitple attributes should be indented correctly`` () =
+    formatSourceString false """
+module Tests =
+    [<Theory>]
+    [<InlineData("Blah")>]
+    let x = 123
+"""  config
+    |> should equal """
+module Tests =
+    [<Theory>]
+    [<InlineData("Blah")>]
+    let x = 123
+"""
