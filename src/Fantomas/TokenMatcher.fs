@@ -26,7 +26,7 @@ let tokenize defines (content : string) =
     seq { 
         let sourceTokenizer = FSharpSourceTokenizer("INTERACTIVE" :: defines, Some "/tmp.fsx")
         let lines = String.normalizeThenSplitNewLine content
-        let lexState = ref 0L
+        let lexState = ref FSharpTokenizerLexState.Initial
         for (i, line) in lines |> Seq.zip [1..lines.Length] do 
             let lineTokenizer = sourceTokenizer.CreateLineTokenizer line
             let finLine = ref false

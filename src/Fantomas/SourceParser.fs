@@ -549,12 +549,12 @@ let (|TypeApp|_|) = function
     | _ -> None
 
 let (|Match|_|) = function
-    | SynExpr.Match(_, e, cs, _, _) ->
+    | SynExpr.Match(_, e, cs, _) ->
         Some(e, cs)
     | _ -> None
 
 let (|MatchBang|_|) = function
-    | SynExpr.MatchBang(_, e, cs, _, _) ->
+    | SynExpr.MatchBang(_, e, cs, _) ->
         Some(e, cs)
     | _ -> None
 
@@ -605,12 +605,12 @@ let (|ArrayOrList|_|) = function
     | _ -> None
 
 let (|Tuple|_|) = function
-    | SynExpr.Tuple(exprs, _, _) ->
+    | SynExpr.Tuple(false, exprs, _, _) ->
         Some exprs
     | _ -> None
 
 let (|StructTuple|_|) = function
-    | SynExpr.StructTuple(exprs, _, _) ->
+    | SynExpr.Tuple(true, exprs, _, _) ->
         Some exprs
     | _ -> None
 
@@ -880,12 +880,12 @@ let (|PatNullary|_|) = function
     | _ -> None
 
 let (|PatTuple|_|) = function
-    | SynPat.Tuple(ps, _) ->
+    | SynPat.Tuple(false, ps, _) ->
         Some ps
     | _ -> None
 
 let (|PatStructTuple|_|) = function
-    | SynPat.StructTuple(ps, _) ->
+    | SynPat.Tuple(true, ps, _) ->
         Some ps
     | _ -> None
 
@@ -961,9 +961,9 @@ let (|RecordField|) = function
 let (|Clause|) (SynMatchClause.Clause(p, eo, e, _, _)) = (p, e, eo)
 
 let rec private (|DesugaredMatch|_|) = function
-    | SynExpr.Match(_, CompilerGeneratedVar s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) ->
+    | SynExpr.Match(_, CompilerGeneratedVar s, [Clause(p, DesugaredMatch(ss, e), None)], _) ->
         Some((s, p)::ss, e)
-    | SynExpr.Match(_, CompilerGeneratedVar s, [Clause(p, e, None)], _, _) ->
+    | SynExpr.Match(_, CompilerGeneratedVar s, [Clause(p, e, None)], _) ->
         Some([(s, p)], e)
     | _ -> None
 
@@ -1146,12 +1146,12 @@ let (|TLongIdentApp|_|) = function
     | _ -> None    
 
 let (|TTuple|_|) = function
-    | SynType.Tuple(ts, _) ->
+    | SynType.Tuple(false, ts, _) ->
         Some ts
     | _ -> None
 
 let (|TStructTuple|_|) = function
-    | SynType.StructTuple(ts, _) ->
+    | SynType.Tuple(true, ts, _) ->
         Some ts
     | _ -> None
 

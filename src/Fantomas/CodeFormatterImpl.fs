@@ -158,11 +158,14 @@ let isValidAST ast =
         | SynExpr.Typed(synExpr, _synType, _range) -> 
             validateExpr synExpr
 
-        | SynExpr.Tuple(synExprList, _, _range)
+        | SynExpr.Tuple(_,synExprList, _, _range)
         | SynExpr.ArrayOrList(_, synExprList, _range) ->
             List.forall validateExpr synExprList
+
         | SynExpr.Record(_inheritOpt, _copyOpt, fields, _range) -> 
             List.forall (fun (_, e, _) -> defaultArg (Option.map validateExpr e) true) fields
+        | SynExpr.AnonRecd(_inheritOpt, _copyOpt, fields, _range) -> 
+            List.forall (fun (_, e) -> validateExpr e) fields
 
         | SynExpr.New(_, _synType, synExpr, _range) -> 
             validateExpr synExpr
@@ -187,8 +190,8 @@ let isValidAST ast =
 
         | SynExpr.MatchLambda(_isExnMatch, _argm, synMatchClauseList, _spBind, _wholem) -> 
             List.forall validateClause synMatchClauseList
-        | SynExpr.Match(_sequencePointInfoForBinding, synExpr, synMatchClauseList, _, _range)
-        | SynExpr.MatchBang(_sequencePointInfoForBinding, synExpr, synMatchClauseList, _, _range) ->
+        | SynExpr.Match(_sequencePointInfoForBinding, synExpr, synMatchClauseList, _range)
+        | SynExpr.MatchBang(_sequencePointInfoForBinding, synExpr, synMatchClauseList, _range) ->
             validateExpr synExpr && List.forall validateClause synMatchClauseList
 
         | SynExpr.Lazy(synExpr, _range) ->
@@ -289,8 +292,7 @@ let isValidAST ast =
         | SynExpr.FromParseError(_synExpr, _range)
         | SynExpr.DiscardAfterMissingQualificationAfterDot(_synExpr, _range) -> 
             false
-        | SynExpr.Fixed _
-        | SynExpr.StructTuple _ ->
+        | SynExpr.Fixed _ ->
             true
 
     and validatePattern = function
@@ -309,7 +311,7 @@ let isValidAST ast =
             List.forall validatePattern pats
         | SynPat.LongIdent(_, _, _, constructorArgs, _, _) -> 
             validateConstructorArgs constructorArgs
-        | SynPat.Tuple(pats, _range) ->
+        | SynPat.Tuple(false, pats, _range) ->
             List.forall validatePattern pats
         | SynPat.Paren(pat, _range) ->
             validatePattern pat
@@ -323,7 +325,7 @@ let isValidAST ast =
             validateExpr expr
         | SynPat.DeprecatedCharRange _
         | SynPat.InstanceMember _
-        | SynPat.StructTuple _ -> true
+        | SynPat.Tuple(true, _, _) -> true
         | SynPat.FromParseError _ -> false
 
     and validateConstructorArgs = function
@@ -644,13 +646,13 @@ let formatSelectionExpanded (range : range) config ({ FileName = fileName; Sourc
 
     let startTokenizer = sourceTokenizer.CreateLineTokenizer(lines.[contentRange.StartLine-1])
 
-    let startCol = getStartCol contentRange startTokenizer (ref 0L)
+    let startCol = getStartCol contentRange startTokenizer (ref FSharpTokenizerLexState.Initial)
 
     let endTokenizer =
         if contentRange.StartLine = contentRange.EndLine then startTokenizer 
         else sourceTokenizer.CreateLineTokenizer(lines.[contentRange.EndLine-1])
 
-    let endCol = getEndCol contentRange endTokenizer (ref 0L)
+    let endCol = getEndCol contentRange endTokenizer (ref FSharpTokenizerLexState.Initial)
 
     let expandedRange = makeRange fileName contentRange.StartLine startCol contentRange.EndLine endCol
     async {
@@ -690,7 +692,7 @@ let inferSelectionFromCursorPos (cursorPos : pos) fileName (sourceCode : string)
             let lineTokenizer = sourceTokenizer.CreateLineTokenizer(line)
             let finLine = ref false
             let result = ref None
-            let lexState = ref 0L
+            let lexState = ref FSharpTokenizerLexState.Initial
             while not !finLine do
                 let tok, newLexState = lineTokenizer.ScanToken(!lexState)
                 lexState := newLexState
@@ -738,7 +740,7 @@ let inferSelectionFromCursorPos (cursorPos : pos) fileName (sourceCode : string)
             let lineTokenizer = sourceTokenizer.CreateLineTokenizer(line)
             let finLine = ref false
             let result = ref acc
-            let lexState = ref 0L
+            let lexState = ref FSharpTokenizerLexState.Initial
             while not !finLine do
                 let tok, newLexState = lineTokenizer.ScanToken(!lexState)
                 lexState := newLexState
