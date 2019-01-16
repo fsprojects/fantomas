@@ -330,3 +330,47 @@ let ``should support rational powers on units of measures``() =
 [<Measure>]
 type X = cm^(1/2) / W
 """
+
+[<Test>]
+let ``should split constructor and function call correctly, double formatting`` () =
+    let original = """
+let update msg model =
+    let res =
+        match msg with
+        | AMessage -> { model with AFieldWithAVeryVeryVeryLooooooongName = 10 }.RecalculateTotal()
+        | AnotherMessage -> model
+    res
+"""
+
+    let afterFirstFormat = formatSourceString false original config 
+    
+    formatSourceString false afterFirstFormat config
+    |> prepend newline
+    |> should equal """
+let update msg model =
+    let res =
+        match msg with
+        | AMessage ->
+            { model with AFieldWithAVeryVeryVeryLooooooongName = 10 }
+                .RecalculateTotal()
+        | AnotherMessage -> model
+    res
+"""
+
+[<Test>]
+let ``record with with function call should be on newline, even though short`` () =
+    formatSourceString false """
+let x =  { Value = 36 }.Times(9)
+    
+match b with
+| _ -> { Value = 42 }.Times(8) 
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    { Value = 36 }.Times(9)
+
+match b with
+| _ ->
+    { Value = 42 }.Times(8)
+"""

@@ -35,6 +35,35 @@ let rec multiline synExpr =
     | IfThenElse _ ->
         true
 
+    | Ast.SynExpr.DotGet(Ast.SynExpr.Record(_, _,_,_), _, Ast.LongIdentWithDots(_,_), _) ->
+        // f.ex { model with AFieldWithAVeryVeryVeryLooooooongName = 10 }.RecalculateTotal()
+        
+    //| Ast.SynExpr.DotGet(Ast.SynExpr.Record(_, copyInfo,recordFields,_), _, Ast.LongIdentWithDots(lid,_), range) ->
+        // length record + length dotget > config.ColumnLength
+//        let lidLength =
+//            lid
+//            |> List.fold (fun acc (Ident(idt)) ->
+//                idt.Length
+//            ) 0
+//            
+//        let recordName =
+//            copyInfo
+//            |> Option.map ((fun (rexp,blck) ->
+//                match rexp with
+//                | Ast.SynExpr.Ident idt -> idt.idText.Length
+//                | _ -> 0
+//            ))
+//            
+//        let recordFieldLength =
+//            recordFields
+//            |> List.fold (fun acc rf ->
+//                match rf with
+//                | (LongIdentWithDots(idt), _), _, _ ->
+//                    idt.Length
+//            ) 0
+//            
+        true
+        
     | Paren e
     | SingleExpr(_, e)
     | TypedExpr(_, e, _)
@@ -57,7 +86,8 @@ let rec multiline synExpr =
     | Tuple es ->
         List.exists multiline es
 
-    | App(e, (ConstExpr c :: _)) -> multiline e || isConstMultiline c
+    | App(e, (ConstExpr c :: _)) ->
+        multiline e || isConstMultiline c
 
     // An infix app is multiline if it contains at least two new line infix ops
     | InfixApps(e, es) ->
