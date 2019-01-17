@@ -337,7 +337,6 @@ let ``should support rational powers on units of measures``() =
 type X = cm^(1/2) / W
 """
 
-[<Test>]
 let ``should add each case on newline`` () =
     formatSourceString false """
 let (|OneLine|MultiLine|) b =
@@ -384,4 +383,49 @@ let (|OneLinerBinding|MultilineBinding|) b =
     | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _, _) ->
         OneLinerBinding b
     | _ -> MultilineBinding b
+"""
+
+[<Test>]
+let ``should split constructor and function call correctly, double formatting`` () =
+    let config80 = { config with PageWidth = 80 }
+
+    let original = """
+let update msg model =
+    let res =
+        match msg with
+        | AMessage -> { model with AFieldWithAVeryVeryVeryLooooooongName = 10 }.RecalculateTotal()
+        | AnotherMessage -> model
+    res
+"""
+
+    let afterFirstFormat = formatSourceString false original config80 
+    
+    formatSourceString false afterFirstFormat config80
+    |> prepend newline
+    |> should equal """
+let update msg model =
+    let res =
+        match msg with
+        | AMessage ->
+            { model with AFieldWithAVeryVeryVeryLooooooongName = 10 }
+                .RecalculateTotal()
+        | AnotherMessage -> model
+    res
+"""
+
+[<Test>]
+let ``updated record with function call should be on newline, even though short`` () =
+    formatSourceString false """
+let x =  { Value = 36 }.Times(9)
+    
+match b with
+| _ -> { Value = 42 }.Times(8) 
+"""  config
+    |> prepend newline
+    |> should equal """
+let x = { Value = 36 }.Times(9)
+
+match b with
+| _ ->
+    { Value = 42 }.Times(8)
 """
