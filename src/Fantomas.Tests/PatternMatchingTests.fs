@@ -15,7 +15,9 @@ let ``match expressions``() =
     |> should equal """
 let filter123 x =
     match x with
-    | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
+    | 1
+    | 2
+    | 3 -> printfn "Found 1, 2, or 3!"
     | a -> printfn "%d" a
 """
 
@@ -29,7 +31,9 @@ let ``function keyword``() =
     |> should equal """
 let filterNumbers =
     function
-    | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
+    | 1
+    | 2
+    | 3 -> printfn "Found 1, 2, or 3!"
     | a -> printfn "%d" a
 """
 
@@ -75,7 +79,9 @@ let detectZeroAND point =
     |> should equal """
 let detectZeroOR point =
     match point with
-    | (0, 0) | (0, _) | (_, 0) -> printfn "Zero found."
+    | (0, 0)
+    | (0, _)
+    | (_, 0) -> printfn "Zero found."
     | _ -> printfn "Both nonzero."
 
 let detectZeroAND point =
@@ -331,10 +337,58 @@ let ``should support rational powers on units of measures``() =
 type X = cm^(1/2) / W
 """
 
+let ``should add each case on newline`` () =
+    formatSourceString false """
+let (|OneLine|MultiLine|) b =
+    match b with
+    | Red
+    | Green
+    | Blue -> 
+        OneLinerBinding b
+        
+    | _ -> MultilineBinding b
+"""  config
+    |> prepend newline
+    |> should equal """
+let (|OneLine|MultiLine|) b =
+    match b with
+    | Red
+    | Green
+    | Blue -> OneLinerBinding b
+    | _ -> MultilineBinding b
+"""
+
+[<Test>]
+let ``each pattern should be on newline`` () =
+    formatSourceString false """
+let (|OneLinerBinding|MultilineBinding|) b =
+    match b with
+    | LetBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | DoBinding([], PreXmlDoc [||], OneLinerExpr _)
+    | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _) 
+    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _, _) -> 
+        OneLinerBinding b
+
+    | _ -> MultilineBinding b
+"""  config
+    |> prepend newline
+    |> should equal """
+let (|OneLinerBinding|MultilineBinding|) b =
+    match b with
+    | LetBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | DoBinding([], PreXmlDoc [||], OneLinerExpr _)
+    | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _, _) ->
+        OneLinerBinding b
+    | _ -> MultilineBinding b
+"""
+
 [<Test>]
 let ``should split constructor and function call correctly, double formatting`` () =
     let config80 = { config with PageWidth = 80 }
-    
+
     let original = """
 let update msg model =
     let res =
