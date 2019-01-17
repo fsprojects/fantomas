@@ -31,3 +31,33 @@ let f () =
     let y = 2
     x + y
 """
+
+[<Test>]
+let ``multiline let in, should remove in`` () =
+    let codeSnippet = """
+let f () = 
+  let x = 1 in if true 
+               then x
+               else x
+"""
+
+    formatSourceString false codeSnippet config
+    |> should equal """let f() =
+    let x = 1 
+    if true then x else x
+"""
+
+[<Test>]
+let ``multiline let in, should remove in 2`` () =
+    let codeSnippet = """
+let f () = 
+  let x = 1 in (while true do ()
+                x)
+"""
+
+    formatSourceString false codeSnippet config
+    |> should equal """let f() =
+    let x = 1 
+    while true do ()
+    x
+"""
