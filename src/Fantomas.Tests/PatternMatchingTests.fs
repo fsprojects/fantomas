@@ -333,6 +333,8 @@ type X = cm^(1/2) / W
 
 [<Test>]
 let ``should split constructor and function call correctly, double formatting`` () =
+    let config80 = { config with PageWidth = 80 }
+    
     let original = """
 let update msg model =
     let res =
@@ -342,9 +344,9 @@ let update msg model =
     res
 """
 
-    let afterFirstFormat = formatSourceString false original config 
+    let afterFirstFormat = formatSourceString false original config80 
     
-    formatSourceString false afterFirstFormat config
+    formatSourceString false afterFirstFormat config80
     |> prepend newline
     |> should equal """
 let update msg model =
@@ -358,7 +360,7 @@ let update msg model =
 """
 
 [<Test>]
-let ``record with with function call should be on newline, even though short`` () =
+let ``updated record with function call should be on newline, even though short`` () =
     formatSourceString false """
 let x =  { Value = 36 }.Times(9)
     
@@ -367,8 +369,7 @@ match b with
 """  config
     |> prepend newline
     |> should equal """
-let x =
-    { Value = 36 }.Times(9)
+let x = { Value = 36 }.Times(9)
 
 match b with
 | _ ->
