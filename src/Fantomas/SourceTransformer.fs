@@ -57,7 +57,8 @@ let rec multiline synExpr =
     | Tuple es ->
         List.exists multiline es
 
-    | App(e, (ConstExpr c :: _)) -> multiline e || isConstMultiline c
+    | App(e, (ConstExpr c :: _)) ->
+        multiline e || isConstMultiline c
 
     // An infix app is multiline if it contains at least two new line infix ops
     | InfixApps(e, es) ->

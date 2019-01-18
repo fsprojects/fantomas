@@ -1100,7 +1100,14 @@ and genInterfaceImpl astContext (InterfaceImpl(t, bs, range)) =
 
 and genClause astContext hasBar (Clause(p, e, eo)) = 
     ifElse hasBar sepBar sepNone +> genPat astContext p 
-    +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> preserveBreakNln astContext e
+    +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> (fun ctx ->
+        let alreadyMultiline = checkPreserveBreakForExpr e ctx
+        match alreadyMultiline, e with
+        | false, SynExpr.App(_,_,SynExpr.DotGet(SynExpr.Record(_, copyInfo,recordFields,_), _, LongIdentWithDots(lid), range),_,_) ->
+            (breakNln astContext true e) ctx
+        | _ ->
+            (breakNln astContext alreadyMultiline e) ctx
+    )
 
 /// Each multiline member definition has a pre and post new line. 
 and genMemberDefnList astContext (*(interfaceRange:Microsoft.FSharp.Compiler.Range.range)*) = function
@@ -1221,10 +1228,11 @@ and genPatRecordFieldName astContext (PatRecordFieldName(s1, s2, p)) =
 and genPatWithIdent astContext (ido, p) = 
     opt (sepEq +> sepSpace) ido (!-) +> genPat astContext p
 
-and genPat astContext = function
+and genPat astContext pat =
+    match pat with
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)
     | PatAttrib(p, ats) -> genOnelinerAttributes astContext ats +> genPat astContext p
-    | PatOr(p1, p2) -> genPat astContext p1 -- " | " +> genPat astContext p2
+    | PatOr(p1, p2) -> genPat astContext p1 +> sepNln -- "| " +> genPat astContext p2
     | PatAnds(ps) -> col (!- " & ") ps (genPat astContext)
     | PatNullary PatNull -> !- "null"
     | PatNullary PatWild -> sepWild
