@@ -660,7 +660,8 @@ and genExpr astContext synExpr =
     | LetOrUses(bs, e) ->
         let isInSameLine =
             match bs with
-            | [_, LetBinding(ats, px, ao, isInline, isMutable, p, _)] -> p.Range.EndLine = e.Range.StartLine
+            | [_, LetBinding(ats, px, ao, isInline, isMutable, p, _)] -> 
+                p.Range.EndLine = e.Range.StartLine && not(checkBreakForExpr e)
             | _ -> false
         atCurrentColumn (genLetOrUseList astContext bs +> ifElse isInSameLine (!- " in ") sepNln +> genExpr astContext e)
 
