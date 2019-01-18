@@ -658,12 +658,13 @@ and genExpr astContext synExpr =
 
     | TypeApp(e, ts) -> genExpr astContext e -- "<" +> col sepComma ts (genType astContext false) -- ">"
     | LetOrUses(bs, e) ->
-        let isInSameLine =
+        let isFromAst (ctx: Context) = ctx.Content = String.Empty
+        let isInSameLine ctx =
             match bs with
             | [_, LetBinding(ats, px, ao, isInline, isMutable, p, _)] -> 
-                p.Range.EndLine = e.Range.StartLine && not(checkBreakForExpr e)
+                not (isFromAst ctx) && p.Range.EndLine = e.Range.StartLine && not(checkBreakForExpr e)
             | _ -> false
-        atCurrentColumn (genLetOrUseList astContext bs +> ifElse isInSameLine (!- " in ") sepNln +> genExpr astContext e)
+        atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") sepNln +> genExpr astContext e)
 
     // Could customize a bit if e is single line
     | TryWith(e, cs) -> 

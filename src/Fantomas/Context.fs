@@ -202,6 +202,9 @@ let internal optPre (f2 : _ -> Context) (f1 : Context -> _) o f (ctx : Context) 
 let internal ifElse b (f1 : Context -> Context) f2 (ctx : Context) =
     if b then f1 ctx else f2 ctx
 
+let internal ifElseCtx cond (f1 : Context -> Context) f2 (ctx : Context) =
+    if cond ctx then f1 ctx else f2 ctx
+
 /// Repeat application of a function n times
 let internal rep n (f : Context -> Context) (ctx : Context) =
     [1..n] |> List.fold (fun c _ -> f c) ctx
