@@ -4,13 +4,23 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-[<Test>]
-let ``Format the ast works correctly with no source code``() =
+let formatAst code =
     let inputExp =
-        "()" |> Input
+        code |> Input
         |> toSynExprs
         |> List.head
     
     fromSynExpr inputExp
     |> function Input x -> x.TrimEnd('\r', '\n')
+    |> fun s -> s.Replace("\r\n", "\n")
+
+[<Test>]
+let ``Format the ast works correctly with no source code``() =
+    formatAst "()"
     |> should equal "()"
+    
+[<Test>]
+let ``let in should not be used``() =
+    formatAst "let x = 1 in ()"
+    |> should equal """let x = 1
+()"""
