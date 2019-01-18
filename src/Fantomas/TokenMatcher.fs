@@ -694,8 +694,10 @@ let integrateComments (config:Fantomas.FormatConfig.FormatConfig) compilationDef
         | (Marked(inToken,_,_)::oldTokens),  (NewLine newTokText :: moreNewTokens) ->
             Debug.WriteLine(sprintf "emitting newline in new tokens '%s'" newTokText)
             let nextOldTokens =
-                match (inToken) with 
-                | Tok(fsInToken,_) when (fsInToken.TokenName = "IN") ->
+                match (inToken, oldTokens) with 
+                | Tok(fsInToken,_), (WhiteSpaceTokens (_, LineCommentToken false _ :: _))
+                | Tok(fsInToken,_), (WhiteSpaceTokens (_, BlockCommentToken _ :: _))
+                    when (fsInToken.TokenName = "IN") ->
                     // find tokens before newline in old source
                     let tokensBeforeNewline =
                         oldTokens
