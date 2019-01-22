@@ -101,7 +101,8 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds
                 +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
     +> genSigModuleDeclList astContext mds
 
-and genModuleDeclList astContext = function
+and genModuleDeclList astContext e =
+    match e with
     | [x] -> genModuleDecl astContext x
 
     | OpenL(xs, ys) ->
@@ -713,6 +714,10 @@ and genExpr astContext synExpr =
         let exprF = genExpr { astContext with IsInsideDotGet = true }
         addParenIfAutoNln e exprF -- (sprintf ".%s" s)
     | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
+
+    | SynExpr.Set(e1,e2, _) ->
+        addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
+        
     | LetOrUseBang(isUse, p, e1, e2) ->
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ") 
             +> genPat astContext p -- " = " +> genExpr astContext e1 +> sepNln +> genExpr astContext e2)

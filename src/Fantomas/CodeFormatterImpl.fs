@@ -233,7 +233,8 @@ let isValidAST ast =
         | SynExpr.DotGet(synExpr, _dotm, _longIdent, _range) -> 
             validateExpr synExpr
 
-        | SynExpr.DotSet(synExpr1, _longIdent, synExpr2, _range) ->
+        | SynExpr.DotSet(synExpr1, _, synExpr2, _)
+        | SynExpr.Set (synExpr1, synExpr2, _) ->
             List.forall validateExpr [synExpr1; synExpr2]
 
         | SynExpr.DotIndexedGet(synExpr, IndexerArgList synExprList, _range, _range2) -> 

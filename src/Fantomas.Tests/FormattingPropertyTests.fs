@@ -366,6 +366,7 @@ let rec shrinkSynExpr = function
     | SynExpr.DotIndexedGet(expr, _, _, _)
     | SynExpr.DotGet(expr, _, _, _)
     | SynExpr.DotSet(expr, _, _, _)
+    | SynExpr.Set(expr, _, _)
     | SynExpr.TypeTest(expr, _, _)
     | SynExpr.Upcast(expr, _, _)
     | SynExpr.Downcast(expr, _, _)
