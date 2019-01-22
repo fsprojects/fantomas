@@ -305,7 +305,7 @@ and genLetBinding astContext pref b =
             +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
             +> genPat astContext p
 
-        genExprSepEqPrependType astContext prefix e // NOJAF, fix here?
+        genExprSepEqPrependType astContext prefix e
 
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
