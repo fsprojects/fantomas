@@ -623,7 +623,7 @@ and genExpr astContext synExpr =
             | _ -> 
                 noNln (genExpr astContext e)
         expr
-        +> indent 
+        +> indent
         +> (col sepNone es (fun (s, e) -> 
                 let currentExprRange = e.Range
                 let writeExpr = (!- (sprintf ".%s" s) +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)
