@@ -266,8 +266,9 @@ and breakNlnOrAddSpace astContext brk e =
         (indent +> autoNlnOrSpace (genExpr astContext e) +> unindent)
 
 /// Preserve a break even if the expression is a one-liner
-and preserveBreakNln astContext e ctx = 
-    breakNln astContext (checkPreserveBreakForExpr e ctx) e ctx
+and preserveBreakNln astContext e ctx =
+    let brk = checkPreserveBreakForExpr e ctx || futureNlnCheck (genExpr astContext e) sepNone ctx
+    breakNln astContext brk e ctx
 
 and preserveBreakNlnOrAddSpace astContext e ctx =
     breakNlnOrAddSpace astContext (checkPreserveBreakForExpr e ctx) e ctx
@@ -1104,15 +1105,8 @@ and genInterfaceImpl astContext (InterfaceImpl(t, bs, range)) =
         +> indent +> sepNln +> genMemberBindingList { astContext with InterfaceRange = Some range } bs +> unindent
 
 and genClause astContext hasBar (Clause(p, e, eo)) = 
-    ifElse hasBar sepBar sepNone +> genPat astContext p 
-    +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> (fun ctx ->
-        let alreadyMultiline = checkPreserveBreakForExpr e ctx
-        match alreadyMultiline, e with
-        | false, SynExpr.App(_,_,SynExpr.DotGet(SynExpr.Record(_, copyInfo,recordFields,_), _, LongIdentWithDots(lid), range),_,_) ->
-            (breakNln astContext true e) ctx
-        | _ ->
-            (breakNln astContext alreadyMultiline e) ctx
-    )
+    ifElse hasBar sepBar sepNone +> genPat astContext p
+    +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> preserveBreakNln astContext e
 
 /// Each multiline member definition has a pre and post new line. 
 and genMemberDefnList astContext (*(interfaceRange:Microsoft.FSharp.Compiler.Range.range)*) = function

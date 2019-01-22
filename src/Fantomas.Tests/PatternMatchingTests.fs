@@ -414,7 +414,7 @@ let update msg model =
 """
 
 [<Test>]
-let ``updated record with function call should be on newline, even though short`` () =
+let ``updated record with function call remains be on same line, because short enough`` () =
     formatSourceString false """
 let x =  { Value = 36 }.Times(9)
     
@@ -426,6 +426,5 @@ match b with
 let x = { Value = 36 }.Times(9)
 
 match b with
-| _ ->
-    { Value = 42 }.Times(8)
+| _ -> { Value = 42 }.Times(8)
 """
