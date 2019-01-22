@@ -293,7 +293,7 @@ let internal futureNlnCheck f sep (ctx : Context) =
         |> Seq.indexed |> Seq.filter (fun (i, _) -> i % 2 = 0) |> Seq.map snd |> String.concat System.String.Empty
     let lines = withoutStringConst.Split([|Environment.NewLine|], StringSplitOptions.RemoveEmptyEntries) 
 
-    (lines |> Seq.length) > 2
+    (lines |> Seq.length) >= 2
 
 /// Set a checkpoint to break at an appropriate column
 let internal autoNlnOrAddSep f sep (ctx : Context) =

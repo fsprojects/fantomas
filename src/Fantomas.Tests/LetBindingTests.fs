@@ -83,12 +83,13 @@ let f () =
 [<Test>]
 let ``DotGet on newline should be indented far enough`` () =
     formatSourceString false """
-let n = DateTimeOffset.UtcNow
 let tomorrow =
     DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
         .AddDays(1.)
 """  config
-    |> should equal """let n = DateTimeOffset.UtcNow
-let tomorrow = DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
-                .AddDays(1.)
+    |> prepend newline
+    |> should equal """
+let tomorrow =
+    DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
+        .AddDays(1.)
 """
