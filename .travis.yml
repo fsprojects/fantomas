@@ -14,7 +14,7 @@ install:
 jobs:
   include:
     - stage: "CI"
-      script: ./build.sh -t All
+      script: ./build.sh
     - stage: "TestExternalProjects"
       script: ./build.sh -t TestExternalProjects
       if: branch = test-external-projects
