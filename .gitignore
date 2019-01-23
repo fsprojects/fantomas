@@ -183,3 +183,4 @@ paket-files/
 external-project-tests/
 .paket/.store/
 .paket/paket.exe
+.fake/
