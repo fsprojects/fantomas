@@ -158,6 +158,11 @@ Paket is used to manage external packages.
 The [test project](src/Fantomas.Tests) depends on FsUnit and NUnit.
 However, the [library project](src/Fantomas) and [command line interface](src/Fantomas.Cmd) have no dependency on external packages.
 
+### Step to build the repo
+
+- Install Paket and Fake: `.\install.cmd` or `.\install.sh`.
+- Run build: `.\build.cmd` or `./build.sh`.
+
 ## Testing and validation
 We have tried to be careful in testing the project.
 There are 329 unit tests and 30 validated test examples,
