@@ -249,7 +249,7 @@ let testExternalProjects externalProjectsToTest =
     let externalBuildErrors =
         let project = Environment.environVar "project"
         externalProjectsToTest
-        |> if project="" then id else List.filter (fun p -> p.DirectoryName = project)
+        |> if String.IsNullOrWhiteSpace(project) then id else List.filter (fun p -> p.DirectoryName = project)
         |> List.map (fun project ->
             let relativeProjectDir = sprintf "external-project-tests/%s" project.DirectoryName
 
@@ -273,7 +273,7 @@ let testExternalProjects externalProjectsToTest =
             let fantomasStartInfo =
                 fantomasExecutableForExternalTests __SOURCE_DIRECTORY__
             let arguments =
-                fantomasStartInfo.Arguments @ [ sprintf "--recurse %s" project.SourceSubDirectory ]
+                fantomasStartInfo.Arguments @ [ "--recurse"; project.SourceSubDirectory ]
                 
             let invokeFantomas() =
                 CreateProcess.fromRawCommand fantomasStartInfo.ProcessName arguments
@@ -299,6 +299,7 @@ let testExternalProjects externalProjectsToTest =
 
 
 Target.create "TestExternalProjects" (fun _ -> testExternalProjects externalProjectsToTest)
+
 Target.create "TestExternalProjectsFailing" (fun _ -> testExternalProjects externalProjectsToTestFailing)
 
 Target.create "Push" (fun _ -> Paket.push (fun p -> { p with WorkingDir = "bin" }))
