@@ -78,13 +78,10 @@ let isFSharpFile (s: string) = Set.contains (Path.GetExtension s) extensions
 
 /// Get all appropriate files, either recursively or non-recursively
 let rec allFiles isRec path =
-    seq {
-        for f in Directory.GetFiles path do
-            if isFSharpFile f then yield f
-        if isRec then
-            for d in Directory.GetDirectories path do
-                yield! allFiles isRec d
-    }
+    let searchOption = (if isRec then SearchOption.AllDirectories else SearchOption.TopDirectoryOnly)
+    let obj = sprintf "%cobj%c" Path.DirectorySeparatorChar Path.DirectorySeparatorChar
+    Directory.GetFiles(path, "*.*", searchOption)
+    |> Seq.filter (fun f -> isFSharpFile f && not (f.Contains(obj)))
 
 /// Format a source string using given config and write to a text writer
 let processSourceString isFsiFile s (tw : TextWriter) config =
