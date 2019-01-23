@@ -67,6 +67,7 @@ type ProcessStartInfo =
       Arguments : string list }
 
 [<NoComparison>]
+[<NoEquality>]
 type ExternalProjectInfo =
     { GitUrl : string
       DirectoryName : string
