@@ -1,1 +1,1 @@
-.fake\fake.exe build.fsx %*
+.fake\fake.exe run build.fsx %*
