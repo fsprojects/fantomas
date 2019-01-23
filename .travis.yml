@@ -16,5 +16,5 @@ jobs:
     - stage: "CI"
       script: ./build.sh All
     - stage: "TestExternalProjects"
-      script: ./build.sh TestExternalProjects
+      script: ./build.sh -t TestExternalProjects
       if: branch = test-external-projects
