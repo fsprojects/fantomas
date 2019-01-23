@@ -1,0 +1,1 @@
+dotnet tool install --tool-path ".paket" Paket --add-source https://api.nuget.org/v3/index.json
