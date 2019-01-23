@@ -7,6 +7,6 @@ branches:
   only:
     - master
 install:
-  - cmd .\install.cmd
+  - cmd: .\install.cmd
 artifacts:
   - path: bin\*.nupkg
