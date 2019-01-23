@@ -1,14 +1,17 @@
 language: csharp
 dotnet: 2.1.503
-mono: latest
+mono: 
+  - latest
 
-sudo: true  # as of October 2018 setting this to false is much slower as mono and dotnet are installed into the containers
+sudo: required
 
 jobs:
   include:
     - before_install: 
+        - ls -la
         - chmod a+x ./install.sh
-    - install: ./install.sh
+    - install: 
+      - ./install.sh
     - script:
       - ./build.sh All
     - script:
