@@ -1,3 +1,3 @@
 #!/bin/bash
 
-.fake/fake.exe run build.fsx
+.fake/fake run build.fsx $@
