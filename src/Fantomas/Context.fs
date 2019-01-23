@@ -291,7 +291,7 @@ let internal futureNlnCheck f sep (ctx : Context) =
     let withoutStringConst = 
         str.Replace("\\\\", System.String.Empty).Replace("\\\"", System.String.Empty).Split([|'"'|])
         |> Seq.indexed |> Seq.filter (fun (i, _) -> i % 2 = 0) |> Seq.map snd |> String.concat System.String.Empty
-    let lines = withoutStringConst.Split([|Environment.NewLine|], StringSplitOptions.RemoveEmptyEntries) 
+    let lines = withoutStringConst.Split([|Environment.NewLine|], StringSplitOptions.None) 
 
     (lines |> Seq.length) >= 2
 
