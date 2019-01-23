@@ -1,35 +1,3 @@
 #!/bin/bash
 
-if test "$OS" = "Windows_NT"
-then
-  # use .Net
-
-  .paket/paket.bootstrapper.exe prerelease
-  exit_code=$?
-  if [ $exit_code -ne 0 ]; then
-  	exit $exit_code
-  fi
-
-  .paket/paket.exe restore
-  exit_code=$?
-  if [ $exit_code -ne 0 ]; then
-  	exit $exit_code
-  fi
-
-  packages/build/FAKE/tools/FAKE.exe $@ --fsiargs -d:MONO build.fsx 
-else
-  # use mono
-  export FrameworkPathOverride=$(dirname $(which mono))/../lib/mono/4.5/
-  mono .paket/paket.bootstrapper.exe prerelease
-  exit_code=$?
-  if [ $exit_code -ne 0 ]; then
-  	exit $exit_code
-  fi
-
-  mono .paket/paket.exe restore
-  exit_code=$?
-  if [ $exit_code -ne 0 ]; then
-  	exit $exit_code
-  fi
-  mono packages/build/FAKE/tools/FAKE.exe $@ --fsiargs -d:MONO build.fsx 
-fi
+.fake/fake.exe run build.fsx
