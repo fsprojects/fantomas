@@ -93,3 +93,25 @@ let tomorrow =
     DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
         .AddDays(1.)
 """
+
+[<Test>]
+let ``DotGet on newline after empty string should be indented far enough`` () =
+    formatSourceString false """
+let x =
+    [| 1..2 |]
+    |> Array.mapi (fun _ _ ->
+        let num =
+            ""
+                .PadLeft(9)
+        num)
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    [| 1..2 |]
+    |> Array.mapi (fun _ _ ->
+        let num =
+            ""
+                .PadLeft(9)
+        num)
+"""
