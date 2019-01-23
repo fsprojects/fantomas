@@ -1,5 +1,5 @@
 language: csharp
-dotnet: 2.1.300
+dotnet: 2.1.403
 mono: latest
 
 sudo: true  # as of October 2018 setting this to false is much slower as mono and dotnet are installed into the containers

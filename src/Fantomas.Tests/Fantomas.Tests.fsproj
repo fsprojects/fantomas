@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Version>2.9.1</Version>
     <NoWarn>FS0988</NoWarn>
@@ -44,6 +44,7 @@
     <Compile Include="LazyTests.fs" />
     <Compile Include="LongIdentWithDotsTests.fs" />
     <Compile Include="DynamicOperatorTests.fs" />
+    <Compile Include="SynExprSetTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
