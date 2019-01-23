@@ -6,6 +6,7 @@ sudo: true  # as of October 2018 setting this to false is much slower as mono an
 
 jobs:
   include:
+    - install: ./install.sh
     - script:
       - ./build.sh All
     - script:

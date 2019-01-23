@@ -3,6 +3,9 @@ nuget Fake.BuildServer.AppVeyor
 nuget Fake.Core.ReleaseNotes
 nuget Fake.Core.Xml
 nuget Fake.DotNet.Cli
+nuget Fake.DotNet.Paket
+nuget Fake.Tools.Git
+nuget Fake.Core.Process
 nuget Fake.Core.Target //"
 #load "./.fake/build.fsx/intellisense.fsx"
 
@@ -12,7 +15,6 @@ nuget Fake.Core.Target //"
 
 open Fake.Core
 open Fake.IO
-open Fake.IO.Globbing.Operators
 open Fake.Core.TargetOperators
 open Fake.BuildServer
 open System
@@ -58,83 +60,90 @@ let tags = "F# fsharp formatting beautifier indentation indenter"
 let solutionFile  = "fantomas"
 //// Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 let release = Fake.Core.ReleaseNotes.parse (IO.File.ReadAllLines "RELEASE_NOTES.md")
-//
-//// Types and helper functions for building external projects (see the TestExternalProjects target below)
-//type ProcessStartInfo =
-//    { ProcessName : string
-//      Arguments : string list }
-//
-//type ExternalProjectInfo =
-//    { GitUrl : string
-//      DirectoryName : string
-//      Tag : string
-//      SourceSubDirectory : string
-//      BuildConfigurationFn : (string -> ProcessStartInfo) }
-//
-//// Construct the commands/arguments for running an external project build script for both windows and linux
-//// For linux we run this by invoking sh explicitly and passing the build.sh script as an argument as some
-//// projects generated on windows don't have the executable permission set for .sh scripts. On windows we
-//// treat .cmd files as executable
-//let configureBuildCommandFromDefaultFakeBuildScripts pathToProject =
-//    if Fake.EnvironmentHelper.isWindows
-//    then { ProcessName = pathToProject </> "build.cmd"; Arguments = [ "Build" ] }
-//    else { ProcessName = "sh"; Arguments = [ sprintf "%s/build.sh Build" pathToProject ] }
-//
-//let configureBuildCommandDotnetBuild pathToProject =
-//    { ProcessName = "dotnet"; Arguments = [ "build"; pathToProject ] }
-//
-//// Construct the path of the fantomas executable to use for external project tests
-//let fantomasExecutableForExternalTests projectdir =
-//    if Fake.EnvironmentHelper.isWindows
-//    then { ProcessName = sprintf "%s/src/Fantomas.Cmd/bin/%s/net452/dotnet-fantomas.exe" projectdir configuration; Arguments = [] }
-//    else { ProcessName = "dotnet"; Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/netcoreapp2.1/fantomas-tool.dll" projectdir configuration ] }
-//
-//let externalProjectsToTest = [
-//    { GitUrl = @"https://github.com/fsprojects/Argu"
-//      DirectoryName = "Argu"
-//      Tag = "5.1.0"
-//      SourceSubDirectory = "src"
-//      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-//    ]
-//
-//let externalProjectsToTestFailing = [
-//    { GitUrl = @"https://github.com/fsprojects/Chessie"
-//      DirectoryName = "Chessie"
-//      Tag = "master"
-//      SourceSubDirectory = "src"
-//      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-//    { GitUrl = @"https://github.com/fscheck/FsCheck"
-//      DirectoryName = "FsCheck"
-//      Tag = "master"
-//      SourceSubDirectory = "src"
-//      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-//    { GitUrl = @"https://github.com/fsprojects/fantomas"
-//      DirectoryName = "Fantomas"
-//      Tag = "v2.9.0"
-//      SourceSubDirectory = "src"
-//      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-//    { GitUrl = @"https://github.com/jack-pappas/ExtCore"
-//      DirectoryName = "ExtCore"
-//      Tag = "master"
-//      SourceSubDirectory = "."
-//      BuildConfigurationFn = configureBuildCommandDotnetBuild }
-//    { GitUrl = @"https://github.com/SAFE-Stack/SAFE-BookStore"
-//      DirectoryName = "SAFE-BookStore"
-//      Tag = "master"
-//      SourceSubDirectory = "src"
-//      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-//    { GitUrl = @"https://github.com/fsprojects/Paket"
-//      DirectoryName = "Paket"
-//      Tag = "5.181.1"
-//      SourceSubDirectory = "src"
-//      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-//    { GitUrl = @"https://github.com/fsprojects/FSharpPlus"
-//      DirectoryName = "FSharpPlus"
-//      Tag = "v1.0.0"
-//      SourceSubDirectory = "src"
-//      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-//    ]
-//
+
+// Types and helper functions for building external projects (see the TestExternalProjects target below)
+type ProcessStartInfo =
+    { ProcessName : string
+      Arguments : string list }
+
+[<NoComparison>]
+type ExternalProjectInfo =
+    { GitUrl : string
+      DirectoryName : string
+      Tag : string
+      SourceSubDirectory : string
+      BuildConfigurationFn : (string -> ProcessStartInfo) }
+
+// Construct the commands/arguments for running an external project build script for both windows and linux
+// For linux we run this by invoking sh explicitly and passing the build.sh script as an argument as some
+// projects generated on windows don't have the executable permission set for .sh scripts. On windows we
+// treat .cmd files as executable
+let configureBuildCommandFromDefaultFakeBuildScripts pathToProject =
+    if Environment.isWindows
+    then { ProcessName = Path.combine pathToProject "build.cmd"; Arguments = [ "Build" ] }
+    else { ProcessName = "sh"; Arguments = [ sprintf "%s/build.sh Build" pathToProject ] }
+
+let configureBuildCommandDotnetBuild pathToProject =
+    { ProcessName = "dotnet"; Arguments = [ "build"; pathToProject ] }
+
+// Construct the path of the fantomas executable to use for external project tests
+let fantomasExecutableForExternalTests projectdir =
+    let configuration =
+        match configuration with
+        | DotNet.BuildConfiguration.Debug -> "debug"
+        | DotNet.BuildConfiguration.Release -> "release"
+        | DotNet.BuildConfiguration.Custom s -> s
+    
+    if Environment.isWindows
+    then { ProcessName = sprintf "%s/src/Fantomas.Cmd/bin/%s/net452/dotnet-fantomas.exe" projectdir configuration; Arguments = [] }
+    else { ProcessName = "dotnet"; Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/netcoreapp2.1/fantomas-tool.dll" projectdir configuration ] }
+
+let externalProjectsToTest = [
+    { GitUrl = @"https://github.com/fsprojects/Argu"
+      DirectoryName = "Argu"
+      Tag = "5.1.0"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    ]
+
+let externalProjectsToTestFailing = [
+    { GitUrl = @"https://github.com/fsprojects/Chessie"
+      DirectoryName = "Chessie"
+      Tag = "master"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/fscheck/FsCheck"
+      DirectoryName = "FsCheck"
+      Tag = "master"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/fsprojects/fantomas"
+      DirectoryName = "Fantomas"
+      Tag = "v2.9.0"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/jack-pappas/ExtCore"
+      DirectoryName = "ExtCore"
+      Tag = "master"
+      SourceSubDirectory = "."
+      BuildConfigurationFn = configureBuildCommandDotnetBuild }
+    { GitUrl = @"https://github.com/SAFE-Stack/SAFE-BookStore"
+      DirectoryName = "SAFE-BookStore"
+      Tag = "master"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/fsprojects/Paket"
+      DirectoryName = "Paket"
+      Tag = "5.181.1"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/fsprojects/FSharpPlus"
+      DirectoryName = "FSharpPlus"
+      Tag = "v1.0.0"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    ]
+
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
 
@@ -231,81 +240,82 @@ Target.create "Pack" (fun _ ->
     pack "Fantomas.Cmd"
     pack "Fantomas.CoreGlobalTool"
 )
-//
-//
-//// This takes the list of external projects defined above, does a git checkout of the specified repo and tag,
-//// tries to build the project, then reformats with fantomas and tries to build the project again. If this fails
-//// then there was a regression in fantomas that mangles the source code
-//let testExternalProjects externalProjectsToTest =
-//    let externalBuildErrors =
-//        let project = getBuildParam "project"
-//        externalProjectsToTest
-//        |> if project="" then id else List.filter (fun p -> p.DirectoryName = project)
-//        |> List.map (fun project ->
-//            let relativeProjectDir = sprintf "external-project-tests/%s" project.DirectoryName
-//
-//            Fake.FileHelper.CleanDir relativeProjectDir
-//            // Use "shallow" clone by setting depth to 1 to only check out the one commit we want to build
-//            Fake.Git.CommandHelper.gitCommand "." (sprintf "clone --branch %s --depth 1 %s %s" project.Tag project.GitUrl relativeProjectDir)
-//
-//            let fullProjectPath = sprintf "%s/%s" __SOURCE_DIRECTORY__ relativeProjectDir
-//            let buildStartInfo = project.BuildConfigurationFn fullProjectPath
-//
-//            let buildExternalProject() = ExecProcess
-//                                            (fun info -> info.FileName <- buildStartInfo.ProcessName
-//                                                         info.WorkingDirectory <- relativeProjectDir
-//                                                         info.Arguments <- String.Join(" ", buildStartInfo.Arguments))
-//                                            (TimeSpan.FromMinutes 5.0)
-//
-//            let cleanResult = buildExternalProject()
-//            if cleanResult <> 0 then failwithf "Initial build of external project %s returned with a non-zero exit code" project.DirectoryName
-//
-//            let fantomasStartInfo =
-//                fantomasExecutableForExternalTests __SOURCE_DIRECTORY__
-//            let arguments =
-//                fantomasStartInfo.Arguments @ [ sprintf "--recurse %s" project.SourceSubDirectory ]
-//                |> fun args -> String.Join(" ", args)
-//            let invokeFantomas() = ExecProcess
-//                                    (fun info -> info.FileName <- fantomasStartInfo.ProcessName
-//                                                 info.WorkingDirectory <- sprintf "%s/%s" __SOURCE_DIRECTORY__ relativeProjectDir
-//                                                 info.Arguments <- arguments)
-//                                    (TimeSpan.FromMinutes 5.0)
-//            let fantomasResult = invokeFantomas()
-//
-//            if fantomasResult <> 0
-//            then Some <| sprintf "Fantomas invokation for %s returned with a non-zero exit code" project.DirectoryName
-//            else
-//                let formattedResult = buildExternalProject()
-//                if formattedResult <> 0
-//                then Some <| sprintf "Build of external project after fantomas formatting failed for project %s" project.DirectoryName
-//                else
-//                    printfn "Successfully built %s after reformatting" project.DirectoryName
-//                    None
-//        )
-//        |> List.choose id
-//    if not (List.isEmpty externalBuildErrors)
-//    then failwith (String.Join("\n", externalBuildErrors) )
-//
-//
-//Target "TestExternalProjects" (fun _ -> testExternalProjects externalProjectsToTest)
-//Target "TestExternalProjectsFailing" (fun _ -> testExternalProjects externalProjectsToTestFailing)
-//
-//Target "Push" (fun _ -> Paket.Push (fun p -> { p with WorkingDir = "bin" }))
 
-//Target.create "MyGet" (fun _ ->
-//    let prNumber = Fake.EnvironmentHelper.getBuildParam "APPVEYOR_PULL_REQUEST_NUMBER"
-//    let isPullRequest = not (String.IsNullOrEmpty prNumber)
-//        
-//    if not isPullRequest then
-//        Paket.Push (fun p ->
-//            { p with
-//                WorkingDir = "bin"
-//                PublishUrl = "https://www.myget.org/F/fantomas/api/v2/package"
-//                ApiKey = Fake.EnvironmentHelper.getBuildParam "myget-key" }
-//        )
-//    else
-//        printfn "Not pushing pull request %s to myget" prNumber
-//)
+// This takes the list of external projects defined above, does a git checkout of the specified repo and tag,
+// tries to build the project, then reformats with fantomas and tries to build the project again. If this fails
+// then there was a regression in fantomas that mangles the source code
+let testExternalProjects externalProjectsToTest =
+    let externalBuildErrors =
+        let project = Environment.environVar "project"
+        externalProjectsToTest
+        |> if project="" then id else List.filter (fun p -> p.DirectoryName = project)
+        |> List.map (fun project ->
+            let relativeProjectDir = sprintf "external-project-tests/%s" project.DirectoryName
+
+            Shell.cleanDir relativeProjectDir
+            // Use "shallow" clone by setting depth to 1 to only check out the one commit we want to build
+            Fake.Tools.Git.CommandHelper.gitCommand "." (sprintf "clone --branch %s --depth 1 %s %s" project.Tag project.GitUrl relativeProjectDir)
+
+            let fullProjectPath = sprintf "%s/%s" __SOURCE_DIRECTORY__ relativeProjectDir
+            let buildStartInfo = project.BuildConfigurationFn fullProjectPath
+
+            let buildExternalProject() =
+                buildStartInfo.Arguments
+                |> CreateProcess.fromRawCommand buildStartInfo.ProcessName
+                |> CreateProcess.withWorkingDirectory relativeProjectDir
+                |> CreateProcess.withTimeout (TimeSpan.FromMinutes 5.0)
+                |> Proc.run
+
+            let cleanResult = buildExternalProject()
+            if cleanResult.ExitCode <> 0 then failwithf "Initial build of external project %s returned with a non-zero exit code" project.DirectoryName
+
+            let fantomasStartInfo =
+                fantomasExecutableForExternalTests __SOURCE_DIRECTORY__
+            let arguments =
+                fantomasStartInfo.Arguments @ [ sprintf "--recurse %s" project.SourceSubDirectory ]
+                
+            let invokeFantomas() =
+                CreateProcess.fromRawCommand fantomasStartInfo.ProcessName arguments
+                |> CreateProcess.withWorkingDirectory (sprintf "%s/%s" __SOURCE_DIRECTORY__ relativeProjectDir)
+                |> CreateProcess.withTimeout (TimeSpan.FromMinutes 5.0)
+                |> Proc.run
+
+            let fantomasResult = invokeFantomas()
+
+            if fantomasResult.ExitCode <> 0
+            then Some <| sprintf "Fantomas invokation for %s returned with a non-zero exit code" project.DirectoryName
+            else
+                let formattedResult = buildExternalProject()
+                if formattedResult.ExitCode <> 0
+                then Some <| sprintf "Build of external project after fantomas formatting failed for project %s" project.DirectoryName
+                else
+                    printfn "Successfully built %s after reformatting" project.DirectoryName
+                    None
+        )
+        |> List.choose id
+    if not (List.isEmpty externalBuildErrors)
+    then failwith (String.Join("\n", externalBuildErrors) )
+
+
+Target.create "TestExternalProjects" (fun _ -> testExternalProjects externalProjectsToTest)
+Target.create "TestExternalProjectsFailing" (fun _ -> testExternalProjects externalProjectsToTestFailing)
+
+Target.create "Push" (fun _ -> Paket.push (fun p -> { p with WorkingDir = "bin" }))
+
+Target.create "MyGet" (fun _ ->
+    let prNumber = Environment.environVar "APPVEYOR_PULL_REQUEST_NUMBER"
+    let isPullRequest = not (String.IsNullOrEmpty prNumber)
+        
+    if not isPullRequest then
+        Paket.push (fun p ->
+            { p with
+                WorkingDir = "bin"
+                PublishUrl = "https://www.myget.org/F/fantomas/api/v2/package"
+                ApiKey = Environment.environVar "myget-key" }
+        )
+    else
+        printfn "Not pushing pull request %s to myget" prNumber
+)
 
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
@@ -318,10 +328,10 @@ Target.create "All" ignore
   ==> "UnitTests"
   ==> "Pack"
   ==> "All"
-//  ==> "Push"
-//
-//"Build"
-//  ==> "TestExternalProjects"
+  ==> "Push"
+
+"Build"
+  ==> "TestExternalProjects"
   
 "Pack"
   ==> "MyGet"
