@@ -5,15 +5,16 @@ mono:
 
 sudo: required
 
+before_install:
+  - ls -la
+  - chmod a+x ./install.sh
+install:
+  - ./install.sh
+
 jobs:
   include:
-    - before_install: 
-        - ls -la
-        - chmod a+x ./install.sh
-    - install: 
-      - ./install.sh
-    - script:
-      - ./build.sh All
-    - script:
-      - ./build.sh TestExternalProjects
+    - stage: "CI"
+      script: ./build.sh All
+    - stage: "TestExternalProjects"
+      script: ./build.sh TestExternalProjects
       if: branch = test-external-projects
