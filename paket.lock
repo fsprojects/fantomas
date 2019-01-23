@@ -175,7 +175,7 @@ NUGET
       NUnit.Extension.NUnitV2ResultWriter (>= 3.5)
       NUnit.Extension.TeamCityEventListener (>= 1.0.3)
       NUnit.Extension.VSProjectLoader (>= 3.8)
-    NUnit3TestAdapter (3.12)
+    NUnit3TestAdapter (3.10)
       Microsoft.DotNet.InternalAbstractions (>= 1.0) - restriction: >= netcoreapp1.0
       System.ComponentModel.EventBasedAsync (>= 4.3) - restriction: >= netcoreapp1.0
       System.ComponentModel.TypeConverter (>= 4.3) - restriction: >= netcoreapp1.0
