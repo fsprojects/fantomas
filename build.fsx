@@ -323,17 +323,17 @@ Target.create "MyGet" (fun _ ->
 Target.create "All" ignore
 
 "Clean"
-  ==> "ProjectVersion"
-  ==> "Build"
-  ==> "UnitTests"
-  ==> "Pack"
-  ==> "All"
-  ==> "Push"
+    ==> "ProjectVersion"
+    ==> "Build"
+    ==> "UnitTests"
+    ==> "Pack"
+    ==> "All"
+    ==> "Push"
 
 "Build"
-  ==> "TestExternalProjects"
-  
+    ==> "TestExternalProjects"
+
 "Pack"
-  ==> "MyGet"
+    ==> "MyGet"
 
 Target.runOrDefault "All"
