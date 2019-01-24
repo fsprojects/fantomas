@@ -18,6 +18,7 @@ open Fake.IO
 open Fake.Core.TargetOperators
 open Fake.BuildServer
 open System
+open System.IO
 open Fake.DotNet
 
 // Git configuration (used for publishing documentation in gh-pages branch)
@@ -302,19 +303,40 @@ Target.create "TestExternalProjects" (fun _ -> testExternalProjects externalProj
 
 Target.create "TestExternalProjectsFailing" (fun _ -> testExternalProjects externalProjectsToTestFailing)
 
-Target.create "Push" (fun _ -> Paket.push (fun p -> { p with WorkingDir = "bin" }))
+// Workaround for https://github.com/fsharp/FAKE/issues/2242
+let pushPackage additionalArguments =
+    let paketFile = Path.Combine(".", ".paket", (if Environment.isWindows then "paket.exe" else "paket"))
+    IO.Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
+    |> Seq.iter (fun nupkg ->
+        let args =
+            [ yield "push";
+              yield! additionalArguments
+              yield nupkg ]
+        
+        CreateProcess.fromRawCommand paketFile args
+        |> Proc.run
+        |> ignore
+    )
+
+
+Target.create "Push" (fun _ -> pushPackage [])
+    // Paket.push (fun p -> { p with WorkingDir = "bin" }))
 
 Target.create "MyGet" (fun _ ->
     let prNumber = Environment.environVar "APPVEYOR_PULL_REQUEST_NUMBER"
     let isPullRequest = not (String.IsNullOrEmpty prNumber)
         
     if not isPullRequest then
-        Paket.push (fun p ->
-            { p with
-                WorkingDir = "bin"
-                PublishUrl = "https://www.myget.org/F/fantomas/api/v2/package"
-                ApiKey = Environment.environVar "myget-key" }
-        )
+        let apiKey = Environment.environVar "myget-key"
+        let args = ["--url"; "https://www.myget.org/F/fantomas/api/v2/package"; "--api-key"; apiKey ]
+        pushPackage args
+//        Paket.push (fun p ->
+//            { p with
+//                WorkingDir = "bin"
+//                PublishUrl = "https://www.myget.org/F/fantomas/api/v2/package"
+//                ApiKey = Environment.environVar "myget-key" }
+
+        //)
     else
         printfn "Not pushing pull request %s to myget" prNumber
 )
