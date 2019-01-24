@@ -160,7 +160,6 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ### Step to build the repo
 
-- Install Paket and Fake: `.\install.cmd` or `.\install.sh`.
 - Run build: `.\build.cmd` or `./build.sh`.
 
 ## Testing and validation

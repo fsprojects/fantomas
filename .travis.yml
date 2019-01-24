@@ -12,7 +12,7 @@ before_install:
 jobs:
   include:
     - stage: "CI"
-      script: docker run -v "${PWD}:/var/fantomas" -w "/var/fantomas" dcurylo/fsharp-mono-netcore:2.1.503  bash -c "./install.sh ; ./build.sh"
+      script: docker run -v "${PWD}:/var/fantomas" -w "/var/fantomas" dcurylo/fsharp-mono-netcore:2.1.503  bash -c "./build.sh"
     - stage: "TestExternalProjects"
-      script: docker run -v "${PWD}:/var/fantomas" -w "/var/fantomas" dcurylo/fsharp-mono-netcore:2.1.503  bash -c "./install.sh ; ./build.sh -t TestExternalProjects" 
+      script: docker run -v "${PWD}:/var/fantomas" -w "/var/fantomas" dcurylo/fsharp-mono-netcore:2.1.503  bash -c "./build.sh -t TestExternalProjects" 
       if: branch = test-external-projects

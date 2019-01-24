@@ -6,7 +6,5 @@ version: '{build}'
 branches:
   only:
     - master
-install:
-  - cmd: .\install.cmd
 artifacts:
   - path: bin\*.nupkg
