@@ -13,6 +13,8 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
     let indentWriter = new IndentedTextWriter(tw, " ")
     let mutable col = indentWriter.Indent
 
+    let mutable atColumn = col
+
     member __.Write(s : string) =
         match s.LastIndexOf('\n') with
         | -1 -> col <- col + s.Length
@@ -20,8 +22,12 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
         indentWriter.Write(s)
 
     member __.WriteLine(s : string) =
+        let oldIndent = indentWriter.Indent
+        let newIndent = max indentWriter.Indent atColumn
+        indentWriter.Indent <- newIndent
         col <- indentWriter.Indent
         indentWriter.WriteLine(s)
+        indentWriter.Indent <- oldIndent
 
     /// Current column of the page in an absolute manner
     member __.Column 
@@ -31,6 +37,10 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
     member __.Indent 
         with get() = indentWriter.Indent
         and set i = indentWriter.Indent <- i
+
+    member __.AtColumn 
+        with get() = atColumn
+        and set i = atColumn <- i    
 
     member __.InnerWriter = indentWriter.InnerWriter
 
@@ -108,9 +118,9 @@ let internal atIndentLevel level (f : Context -> Context) ctx =
     if level < 0 then
         invalidArg "level" "The indent level cannot be negative."
     let oldLevel = ctx.Writer.Indent
-    ctx.Writer.Indent <- level
+    ctx.Writer.AtColumn <- level
     let result = f ctx
-    ctx.Writer.Indent <- oldLevel
+    ctx.Writer.AtColumn <- oldLevel
     result
 
 /// Write everything at current column indentation
