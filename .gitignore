@@ -181,3 +181,6 @@ paket-files/
 
 # external projects directory for extensive regression tests
 external-project-tests/
+.paket/.store/
+.paket/paket.exe
+.fake/

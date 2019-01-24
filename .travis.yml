@@ -1,13 +1,18 @@
-language: csharp
-dotnet: 2.1.403
-mono: latest
+language: minimal
 
-sudo: true  # as of October 2018 setting this to false is much slower as mono and dotnet are installed into the containers
+services:
+  - docker
+
+sudo: required
+
+before_install:
+  - docker pull dcurylo/fsharp-mono-netcore:2.1.503
+  - chmod 755 ./*.sh
 
 jobs:
   include:
-    - script:
-      - ./build.sh All
-    - script:
-      - ./build.sh TestExternalProjects
+    - stage: "CI"
+      script: docker run -v "${PWD}:/var/fantomas" -w "/var/fantomas" dcurylo/fsharp-mono-netcore:2.1.503  bash -c "./build.sh"
+    - stage: "TestExternalProjects"
+      script: docker run -v "${PWD}:/var/fantomas" -w "/var/fantomas" dcurylo/fsharp-mono-netcore:2.1.503  bash -c "./build.sh -t TestExternalProjects" 
       if: branch = test-external-projects

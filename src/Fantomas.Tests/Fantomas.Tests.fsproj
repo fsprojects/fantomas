@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\netfx.props" />
   <PropertyGroup>
     <Version>2.9.1</Version>
     <NoWarn>FS0988</NoWarn>

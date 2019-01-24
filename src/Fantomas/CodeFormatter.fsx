@@ -1,4 +1,4 @@
-﻿#r "../../packages/FSharp.Compiler.Service/lib/net45/FSharp.Compiler.Service.dll"
+﻿#r @"C:\Users\SIDFLOV\.nuget\packages\FSharp.Compiler.Service\25.0.1\lib\net45\FSharp.Compiler.Service.dll"
 
 #load "Utils.fs"
 #load "FormatConfig.fs"

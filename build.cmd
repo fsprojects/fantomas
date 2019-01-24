@@ -1,11 +1,3 @@
-.paket\paket.bootstrapper.exe
-if errorlevel 1 (
-  exit /b %errorlevel%
-)
-
-.paket\paket.exe restore
-if errorlevel 1 (
-  exit /b %errorlevel%
-)
-
-packages\build\FAKE\tools\FAKE.exe build.fsx %*
+if not exist .paket/paket.exe dotnet tool install --tool-path ".paket" Paket --add-source https://api.nuget.org/v3/index.json
+if not exist .fake/fake.exe dotnet tool install --tool-path ".fake" fake-cli --add-source https://api.nuget.org/v3/index.json
+.fake\fake.exe run build.fsx %*
