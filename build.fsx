@@ -191,9 +191,9 @@ Target.create "UnitTests" (fun _ ->
             Configuration = configuration
             NoRestore = true
             NoBuild = true
-            TestAdapterPath = Some "."
-            Logger = Some "nunit;LogFilePath=../../TestResults.xml"
-            // AdditionalArgs = ["--no-build --no-restore --test-adapter-path:. --logger:nunit;LogFilePath=../../TestResults.xml"]
+            // TestAdapterPath = Some "."
+            // Logger = Some "nunit;LogFilePath=../../TestResults.xml"
+            // Current there is an issue with NUnit reporter, https://github.com/nunit/nunit3-vs-adapter/issues/589
         }
     ) "src/Fantomas.Tests/Fantomas.Tests.fsproj"
 )
