@@ -101,7 +101,7 @@ let checkCode config files =
                 | Error(file, ex) -> Some(file, Some(ex))
                 | _ -> None)
 
-        if not <| List.isEmpty changes then
+        if List.exists (function | _, Some(_) -> true | _ -> false) changes then
             raise <| CodeFormatException changes
     finally
         results |> List.iter removeTemporaryFiles
