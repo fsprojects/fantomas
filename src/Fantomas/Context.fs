@@ -71,11 +71,12 @@ type internal Context =
             Config = config; Content = content; Positions = positions; 
             Comments = comments; Directives = directives }
 
-    member x.With(writer : ColumnIndentedTextWriter) =
+    member x.With(writer : ColumnIndentedTextWriter, ?keepPageWidth) =
+        let keepPageWidth = keepPageWidth |> Option.defaultValue false
         writer.Indent <- x.Writer.Indent
         writer.Column <- x.Writer.Column
         // Use infinite column width to encounter worst-case scenario
-        let config = { x.Config with PageWidth = Int32.MaxValue }
+        let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
         { x with Writer = writer; Config = config }
 
 let internal dump (ctx: Context) =
@@ -281,12 +282,12 @@ let internal autoNlnCheck f sep (ctx : Context) =
     // This isn't accurate if we go to new lines
     col > ctx.Config.PageWidth
 
-let internal futureNlnCheck f sep (ctx : Context) =
+let internal futureNlnCheck f (ctx : Context) =
     if not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
     use colWriter = new ColumnIndentedTextWriter(new StringWriter())
-    let dummyCtx = ctx.With(colWriter)
-    let writer = (dummyCtx |> sep |> f).Writer
+    let dummyCtx = ctx.With(colWriter, true)
+    let writer = (dummyCtx |> f).Writer
     let str = writer.InnerWriter.ToString()
     let withoutStringConst = 
         str.Replace("\\\\", System.String.Empty).Replace("\\\"", System.String.Empty).Split([|'"'|])

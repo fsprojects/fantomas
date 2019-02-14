@@ -267,7 +267,7 @@ and breakNlnOrAddSpace astContext brk e =
 
 /// Preserve a break even if the expression is a one-liner
 and preserveBreakNln astContext e ctx =
-    let brk = checkPreserveBreakForExpr e ctx || futureNlnCheck (genExpr astContext e) sepNone ctx
+    let brk = checkPreserveBreakForExpr e ctx || futureNlnCheck (genExpr astContext e) ctx
     breakNln astContext brk e ctx
 
 and preserveBreakNlnOrAddSpace astContext e ctx =
@@ -277,7 +277,7 @@ and genExprSepEqPrependType astContext prefix e ctx =
     let multilineCheck = 
         match e with
         | MatchLambda _ -> false
-        | _ -> futureNlnCheck (genExpr astContext e) sepNone ctx
+        | _ -> futureNlnCheck (genExpr astContext e) ctx
     match e with
     | TypedExpr(Typed, e, t) -> (prefix +> sepColon +> genType astContext false t +> sepEq
                                 +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
@@ -514,15 +514,20 @@ and genExpr astContext synExpr =
             ctx
             |> ifElse useNewline sepNln sep
             
-        ifElse isArray (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sepWithPreserveEndOfLine xs (genExpr astContext)) +> sepCloseA) 
-            (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepWithPreserveEndOfLine xs (genExpr astContext)) +> sepCloseL)
+        let expr = colAutoNlnSkip0 sep xs (genExpr astContext)
+        let expr = ifElseCtx (futureNlnCheck expr) (sepNln +> expr) expr
+        ifElse isArray (sepOpenA +> expr +> sepCloseA) 
+            (sepOpenL +> expr +> sepCloseL)
 
     | Record(inheritOpt, xs, eo) -> 
-        let recordExpr = opt (!- " with ") eo (genExpr astContext) +> atCurrentColumn (col sepSemiNln xs (genRecordFieldName astContext))
-        sepOpenS 
-        +> atCurrentColumn (opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr sepNone) sepNln sepSemi) inheritOpt
-            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr))
-        +> recordExpr
+        let recordExpr = 
+            let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
+            eo |> Option.map (fun e ->
+                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+            |> Option.defaultValue fieldsExpr
+        sepOpenS
+        +> atCurrentColumn (opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
+            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
         +> sepCloseS
 
     | ObjExpr(t, eio, bd, ims, range) ->
