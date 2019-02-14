@@ -13,21 +13,29 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
     let indentWriter = new IndentedTextWriter(tw, " ")
     let mutable col = indentWriter.Indent
 
-    let mutable atColumn = col
+    let mutable atColumn = None
+    
+    let applyAtColumn f =
+        let newIndent =
+            atColumn |> Option.map f
+            |> Option.defaultValue indentWriter.Indent
+        atColumn <- None
+        indentWriter.Indent <- newIndent
 
     member __.Write(s : string) =
         match s.LastIndexOf('\n') with
         | -1 -> col <- col + s.Length
-        | i -> col <- s.Length - i - 1
+        | i ->
+            applyAtColumn (fun x -> max indentWriter.Indent x)
+            col <- s.Length - i - 1
         indentWriter.Write(s)
 
     member __.WriteLine(s : string) =
-        let oldIndent = indentWriter.Indent
-        let newIndent = max indentWriter.Indent atColumn
-        indentWriter.Indent <- newIndent
+        //let oldIndent = indentWriter.Indent
+        applyAtColumn (fun x -> max indentWriter.Indent x)
         col <- indentWriter.Indent
         indentWriter.WriteLine(s)
-        indentWriter.Indent <- oldIndent
+        //indentWriter.Indent <- oldIndent
 
     /// Current column of the page in an absolute manner
     member __.Column 
@@ -84,6 +92,7 @@ type internal Context =
     member x.With(writer : ColumnIndentedTextWriter) =
         writer.Indent <- x.Writer.Indent
         writer.Column <- x.Writer.Column
+        writer.AtColumn <- x.Writer.AtColumn
         // Use infinite column width to encounter worst-case scenario
         let config = { x.Config with PageWidth = Int32.MaxValue }
         { x with Writer = writer; Config = config }
@@ -95,7 +104,12 @@ let internal dump (ctx: Context) =
 
 /// Indent one more level based on configuration
 let internal indent (ctx : Context) = 
-    ctx.Writer.Indent <- ctx.Writer.Indent + ctx.Config.IndentSpaceNum
+    let newIndent = ctx.Writer.Indent + ctx.Config.IndentSpaceNum
+    ctx.Writer.Indent <- 
+        match ctx.Writer.AtColumn with
+        | Some x when newIndent <= x -> x + ctx.Config.IndentSpaceNum
+        | _ -> newIndent
+    ctx.Writer.AtColumn <- None
     ctx
 
 /// Unindent one more level based on configuration
@@ -118,9 +132,10 @@ let internal atIndentLevel level (f : Context -> Context) ctx =
     if level < 0 then
         invalidArg "level" "The indent level cannot be negative."
     let oldLevel = ctx.Writer.Indent
-    ctx.Writer.AtColumn <- level
+    ctx.Writer.AtColumn <- Some level
     let result = f ctx
-    ctx.Writer.AtColumn <- oldLevel
+    ctx.Writer.AtColumn <- None
+    ctx.Writer.Indent <- oldLevel
     result
 
 /// Write everything at current column indentation
