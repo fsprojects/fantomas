@@ -293,8 +293,11 @@ let internal futureNlnCheck f (ctx : Context) =
         str.Replace("\\\\", System.String.Empty).Replace("\\\"", System.String.Empty).Split([|'"'|])
         |> Seq.indexed |> Seq.filter (fun (i, _) -> i % 2 = 0) |> Seq.map snd |> String.concat System.String.Empty
     let lines = withoutStringConst.Split([|Environment.NewLine|], StringSplitOptions.None) 
+    //printfn "futureNlnCheck: %i %s" writer.Column str
+    (lines |> Seq.length) >= 2 || writer.Column > ctx.Config.PageWidth
 
-    (lines |> Seq.length) >= 2
+let internal autoNlnByFuture f = ifElseCtx (futureNlnCheck f) (sepNln +> f) f
+let internal autoIndentNlnByFuture f = ifElseCtx (futureNlnCheck f) (indent +> sepNln +> f +> unindent) f
 
 /// Set a checkpoint to break at an appropriate column
 let internal autoNlnOrAddSep f sep (ctx : Context) =
