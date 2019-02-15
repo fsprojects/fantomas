@@ -651,7 +651,7 @@ and genExpr astContext synExpr =
 
     // Unlike infix app, function application needs a level of indentation
     | App(e1, [e2]) -> 
-        (genExpr astContext e1 +> 
+        atCurrentColumn (genExpr astContext e1 +> 
             ifElse (not astContext.IsInsideDotGet)
                 (ifElse (hasParenthesis e2) 
                     (ifElse (addSpaceBeforeParensInFunCall e1 e2) sepBeforeArg sepNone) 
@@ -661,7 +661,7 @@ and genExpr astContext synExpr =
 
     // Always spacing in multiple arguments
     | App(e, es) -> 
-        (genExpr astContext e +> 
+        atCurrentColumn (genExpr astContext e +> 
             colPre sepSpace sepSpace es (fun e -> indent +> autoNlnByFuture (genExpr astContext e) +> unindent))
 
     | TypeApp(e, ts) -> genExpr astContext e -- "<" +> col sepComma ts (genType astContext false) -- ">"
