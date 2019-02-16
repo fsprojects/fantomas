@@ -27,35 +27,38 @@ If you prefer an install per project, fantomas can also be installed as a `DotNe
 Fantomas can be easily integrated with FAKE build system. Here is a sample `build.fsx`:
 
 ```fsharp
-#r "packages/FAKE/tools/FakeLib.dll"
-#r "packages/Fantomas/lib/FantomasLib.dll"
+#r "paket:
+nuget FSharp.Core 4.5.0.0
+nuget Fantomas
+nuget Fake.Core.Target //"
+#load "./.fake/script.fsx/intellisense.fsx"
 
-open Fake
+open Fake.Core
+open Fake.IO.Globbing.Operators
 open Fantomas.FakeHelpers
 open Fantomas.FormatConfig
 
-// Properties
-let buildDir = "./build/"
 let fantomasConfig =
     { FormatConfig.Default with
-            PageWidth = 120
             ReorderOpenDeclaration = true }
 
-Target "CheckCodeFormat" (fun _ ->
-    !! "src/**/*.fs"
-      |> checkCode fantomasConfig
+Target.create "CheckCodeFormat" (fun _ ->
+    !! "*.fs"
+    |> checkCode fantomasConfig
 )
 
-Target "FormatCode" (fun _ ->
-    !! "src/**/*.fs"
-      |> formatCode fantomasConfig
-      |> Log "Formatted files: "
+Target.create "Format" (fun _ ->
+    !! "*.fs"
+    |> formatCode fantomasConfig
+    |> printfn "Formatted files: %A"
 )
 
-RunTargetOrDefault "CheckCodeFormat"
+Target.runOrList()
 ```
 
-### Jetbrains Rider
+Or check out the [sample](https://github.com/fsprojects/fantomas/blob/master/fake-sample/README.md).
+
+### JetBrains Rider
 
 The [fsharp-support](https://github.com/JetBrains/fsharp-support) uses fantomas under the hood to format the source code. No need for any additional plugins.
 
@@ -72,11 +75,11 @@ Try the fantomas [online](http://ratatosk.dynu.net/fantomas/).
 We have our [own NuGet feed](https://www.myget.org/feed/fantomas/package/nuget/fantomas-tool) that contains artifacts built on the latest master branch.
 To install you probably need to uninstall the current version from the official NuGet feed.
 
-> dotnet tool uninstall -g fantomas-tool
+> `dotnet tool uninstall -g fantomas-tool`
 
 Install from MyGet:
 
-> dotnet tool install -g fantomas-tool --add-source https://www.myget.org/F/fantomas/api/v3/index.json --framework netcoreapp2.1 --version 2.9.1-latest
+> `dotnet tool install -g fantomas-tool --add-source https://www.myget.org/F/fantomas/api/v3/index.json --framework netcoreapp2.1 --version 2.9.1-latest`
 
 Note that the `--version` is important, check the latest version [at MyGet](https://www.myget.org/feed/fantomas/package/nuget/fantomas-tool).
 Your can check your current version with `fantomas --version` (since December 2018).
