@@ -345,7 +345,7 @@ System.String.Concat
     ("a",
      "b"
      + (longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun
-            (longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass)).Property)
+         (longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass)).Property)
 """
 
 [<Test>]
@@ -360,5 +360,5 @@ type Exception with
 type Exception with
     member inline __.FirstLine =
         (__.Message.Split
-             ([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries)).[0]
+            ([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries)).[0]
 """
