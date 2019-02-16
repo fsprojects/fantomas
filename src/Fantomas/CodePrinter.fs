@@ -521,7 +521,7 @@ and genExpr astContext synExpr =
         sepOpenS 
         +> opt (if xs.IsEmpty then sepNone else sepSemi) inheritOpt 
             (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr)
-        +> opt (!- " with ") eo (genExpr astContext) +> atCurrentColumn (col sepSemiNln xs (genRecordFieldName astContext))
+        +> opt (!- " with ") eo (genExpr astContext) +> atCurrentColumnIndent (col sepSemiNln xs (genRecordFieldName astContext))
         +> sepCloseS
 
     | ObjExpr(t, eio, bd, ims, range) ->
