@@ -485,7 +485,7 @@ and genExpr astContext synExpr =
         | Lambda _
         | MatchLambda _
         | Paren (Lambda _)
-        | Paren (MatchLambda _) -> autoNlnOrSpace
+        | Paren (MatchLambda _) -> autoNln
         | _ -> autoNlnByFuture
     
     match synExpr with
