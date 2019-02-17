@@ -108,8 +108,8 @@ let ``should keep -> notation``() =
     |> should equal """
 let environVars target =
     [ for e in Environment.GetEnvironmentVariables target ->
-          let e1 = e :?> Collections.DictionaryEntry
-          e1.Key, e1.Value ]
+        let e1 = e :?> Collections.DictionaryEntry
+        e1.Key, e1.Value ]
 """
 
 [<Test>]
@@ -140,7 +140,7 @@ let a2 = [| 0..99 |]
 
 let a3 =
     [| for n in 1..100 do
-           if isPrime n then yield n |]
+        if isPrime n then yield n |]
 """
 
 [<Test>]

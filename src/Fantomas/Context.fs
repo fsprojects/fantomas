@@ -13,15 +13,16 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
     let indentWriter = new IndentedTextWriter(tw, " ")
     let mutable col = indentWriter.Indent
 
-    let mutable atColumn = None
+    // on newline, bigger from Indent and atColumn is selected
+    // that way we avoid bigger than indentSpace indentation when indent is used after atCurrentColumn
+    let mutable atColumn = 0
     
     let applyAtColumn f =
-        let newIndent =
-            atColumn |> Option.map f
-            |> Option.defaultValue indentWriter.Indent
-        atColumn <- None
+        let newIndent = f atColumn
         indentWriter.Indent <- newIndent
 
+    member __.ApplyAtColumn f = applyAtColumn f
+    
     member __.Write(s : string) =
         match s.LastIndexOf('\n') with
         | -1 -> col <- col + s.Length
@@ -31,11 +32,9 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
         indentWriter.Write(s)
 
     member __.WriteLine(s : string) =
-        //let oldIndent = indentWriter.Indent
         applyAtColumn (fun x -> max indentWriter.Indent x)
         col <- indentWriter.Indent
         indentWriter.WriteLine(s)
-        //indentWriter.Indent <- oldIndent
 
     /// Current column of the page in an absolute manner
     member __.Column 
@@ -105,17 +104,14 @@ let internal dump (ctx: Context) =
 
 /// Indent one more level based on configuration
 let internal indent (ctx : Context) = 
-    let newIndent = ctx.Writer.Indent + ctx.Config.IndentSpaceNum
-    ctx.Writer.Indent <- 
-        match ctx.Writer.AtColumn with
-        | Some x when newIndent <= x -> x + ctx.Config.IndentSpaceNum
-        | _ -> newIndent
-    ctx.Writer.AtColumn <- None
+    ctx.Writer.Indent <- ctx.Writer.Indent + ctx.Config.IndentSpaceNum
+    // if atColumn is bigger then after indent, then we use atColumn as base for indent
+    ctx.Writer.ApplyAtColumn (fun x -> if x >= ctx.Writer.Indent then x + ctx.Config.IndentSpaceNum else ctx.Writer.Indent)
     ctx
 
 /// Unindent one more level based on configuration
 let internal unindent (ctx : Context) = 
-    ctx.Writer.Indent <- max 0 (ctx.Writer.Indent - ctx.Config.IndentSpaceNum)
+    ctx.Writer.Indent <- max ctx.Writer.AtColumn (ctx.Writer.Indent - ctx.Config.IndentSpaceNum)
     ctx
 
 /// Increase indent by i spaces
@@ -129,19 +125,25 @@ let internal decrIndent i (ctx : Context) =
     ctx
 
 /// Apply function f at an absolute indent level (use with care)
-let internal atIndentLevel level (f : Context -> Context) ctx =
+let internal atIndentLevel alsoSetIndent level (f : Context -> Context) ctx =
     if level < 0 then
         invalidArg "level" "The indent level cannot be negative."
     let oldLevel = ctx.Writer.Indent
-    ctx.Writer.AtColumn <- Some level
+    let oldColumn = ctx.Writer.AtColumn
+    if alsoSetIndent then ctx.Writer.Indent <- level
+    ctx.Writer.AtColumn <- level
     let result = f ctx
-    ctx.Writer.AtColumn <- None
+    ctx.Writer.AtColumn <- oldColumn
     ctx.Writer.Indent <- oldLevel
     result
 
 /// Write everything at current column indentation
 let internal atCurrentColumn (f : _ -> Context) (ctx : Context) =
-    atIndentLevel ctx.Writer.Column f ctx
+    atIndentLevel false ctx.Writer.Column f ctx
+
+/// Write everything at current column indentation
+let internal atCurrentColumnIndent (f : _ -> Context) (ctx : Context) =
+    atIndentLevel true ctx.Writer.Column f ctx
 
 /// Function composition operator
 let internal (+>) (ctx : Context -> Context) (f : _ -> Context) x =
