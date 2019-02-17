@@ -9,7 +9,8 @@ open Fantomas.FormatConfig
 open Fantomas.TokenMatcher
 
 /// Wrapping IndentedTextWriter with current column position
-type ColumnIndentedTextWriter(tw : TextWriter) =
+type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
+    let isDummy = isDummy |> Option.defaultValue false
     let indentWriter = new IndentedTextWriter(tw, " ")
     let mutable col = indentWriter.Indent
 
@@ -21,6 +22,8 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
         let newIndent = f atColumn
         indentWriter.Indent <- newIndent
 
+    member __.IsDummy = isDummy
+    
     member __.ApplyAtColumn f = applyAtColumn f
     
     member __.Write(s : string) =
@@ -303,7 +306,7 @@ let internal sepCloseT = !- ")"
 let internal autoNlnCheck f sep (ctx : Context) =
     if not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
-    use colWriter = new ColumnIndentedTextWriter(new StringWriter())
+    use colWriter = new ColumnIndentedTextWriter(new StringWriter(), isDummy = true)
     let dummyCtx = ctx.With(colWriter)
     let col = (dummyCtx |> sep |> f).Writer.Column
     // This isn't accurate if we go to new lines
@@ -312,7 +315,7 @@ let internal autoNlnCheck f sep (ctx : Context) =
 let internal futureNlnCheck f (ctx : Context) =
     if not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
-    use colWriter = new ColumnIndentedTextWriter(new StringWriter())
+    use colWriter = new ColumnIndentedTextWriter(new StringWriter(), isDummy = true)
     let dummyCtx = ctx.With(colWriter, true)
     let writer = (dummyCtx |> f).Writer
     let str = writer.InnerWriter.ToString()
