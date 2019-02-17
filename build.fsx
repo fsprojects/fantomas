@@ -108,11 +108,6 @@ let externalProjectsToTest = [
       Tag = "5.1.0"
       SourceSubDirectory = "src"
       BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-    { GitUrl = @"https://github.com/MangelMaxime/fulma-demo"
-      DirectoryName = "fulma-demo"
-      Tag = "master"
-      SourceSubDirectory = "src"
-      BuildConfigurationFn = configureBuildCommandFromFakeBuildScripts "fake" "build" }  
     ]
 
 let externalProjectsToTestFailing = [
@@ -151,6 +146,11 @@ let externalProjectsToTestFailing = [
       Tag = "v1.0.0"
       SourceSubDirectory = "src"
       BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/MangelMaxime/fulma-demo"
+      DirectoryName = "fulma-demo"
+      Tag = "master"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromFakeBuildScripts "fake" "build" }  
     ]
 
 // --------------------------------------------------------------------------------------
