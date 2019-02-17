@@ -111,8 +111,9 @@ type Car =
       mutable Odometer : int }
 
 let myRecord3 =
-    { myRecord2 with Y = 100
-                     Z = 2 }
+    { myRecord2 with
+          Y = 100
+          Z = 2 }
 """
 
 // the current behavior results in a compile error since the if is not aligned properly
@@ -172,7 +173,8 @@ let rec make item depth =
   |> should equal """
 let rec make item depth =
     if depth > 0 then
-        Tree({ Left = make (2 * item - 1) (depth - 1)
+        Tree
+            ({ Left = make (2 * item - 1) (depth - 1)
                Right = make (2 * item) (depth - 1) }, item)
     else Tree(defaultof<_>, item)
 """
