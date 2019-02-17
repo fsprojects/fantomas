@@ -479,6 +479,15 @@ and genTuple astContext es =
         ))
 
 and genExpr astContext synExpr = 
+    let appNlnFun e =
+        match e with
+        | CompExpr _
+        | Lambda _
+        | MatchLambda _
+        | Paren (Lambda _)
+        | Paren (MatchLambda _) -> autoNln
+        | _ -> autoNlnByFuture
+    
     match synExpr with
     | SingleExpr(Lazy, e) -> 
         // Always add braces when dealing with lazy
@@ -657,12 +666,13 @@ and genExpr astContext synExpr =
                     (ifElse (addSpaceBeforeParensInFunCall e1 e2) sepBeforeArg sepNone) 
                     sepSpace)
                 sepNone
-            +> indent +> autoNlnByFuture (genExpr astContext e2) +> unindent)
+            +> indent +> appNlnFun e2 (genExpr astContext e2) +> unindent)
 
     // Always spacing in multiple arguments
     | App(e, es) -> 
         atCurrentColumn (genExpr astContext e +> 
-            colPre sepSpace sepSpace es (fun e -> indent +> autoNlnByFuture (genExpr astContext e) +> unindent))
+            colPre sepSpace sepSpace es (fun e ->
+                indent +> appNlnFun e (genExpr astContext e) +> unindent))
 
     | TypeApp(e, ts) -> genExpr astContext e -- "<" +> col sepComma ts (genType astContext false) -- ">"
     | LetOrUses(bs, e) ->
