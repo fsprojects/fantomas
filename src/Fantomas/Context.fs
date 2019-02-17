@@ -13,6 +13,8 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
     let indentWriter = new IndentedTextWriter(tw, " ")
     let mutable col = indentWriter.Indent
 
+    // on newline, bigger from Indent and atColumn is selected
+    // that way we avoid bigger than indentSpace indentation when indent is used after atCurrentColumn
     let mutable atColumn = 0
     
     let applyAtColumn f =
@@ -30,11 +32,9 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
         indentWriter.Write(s)
 
     member __.WriteLine(s : string) =
-        //let oldIndent = indentWriter.Indent
         applyAtColumn (fun x -> max indentWriter.Indent x)
         col <- indentWriter.Indent
         indentWriter.WriteLine(s)
-        //indentWriter.Indent <- oldIndent
 
     /// Current column of the page in an absolute manner
     member __.Column 
@@ -104,12 +104,13 @@ let internal dump (ctx: Context) =
 /// Indent one more level based on configuration
 let internal indent (ctx : Context) = 
     ctx.Writer.Indent <- ctx.Writer.Indent + ctx.Config.IndentSpaceNum
+    // if atColumn is bigger then after indent, then we use atColumn as base for indent
     ctx.Writer.ApplyAtColumn (fun x -> if x >= ctx.Writer.Indent then x + ctx.Config.IndentSpaceNum else ctx.Writer.Indent)
     ctx
 
 /// Unindent one more level based on configuration
 let internal unindent (ctx : Context) = 
-    ctx.Writer.Indent <- max 0 (ctx.Writer.Indent - ctx.Config.IndentSpaceNum)
+    ctx.Writer.Indent <- max ctx.Writer.AtColumn (ctx.Writer.Indent - ctx.Config.IndentSpaceNum)
     ctx
 
 /// Increase indent by i spaces
