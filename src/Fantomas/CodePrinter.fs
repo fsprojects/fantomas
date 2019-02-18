@@ -518,9 +518,9 @@ and genExpr astContext synExpr =
             (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepWithPreserveEndOfLine xs (genExpr astContext)) +> sepCloseL)
 
     | Record(inheritOpt, xs, eo) -> 
-        let recordExpr = opt (!- " with ") eo (genExpr astContext) +> atCurrentColumn (col sepSemiNln xs (genRecordFieldName astContext))
+        let recordExpr = opt (!- " with ") eo (genExpr astContext) +> atCurrentColumnIndent (col sepSemiNln xs (genRecordFieldName astContext))
         sepOpenS 
-        +> atCurrentColumnIndent (opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
+        +> atCurrentColumn (opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr sepNone) sepNln sepSemi) inheritOpt
             (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr))
         +> recordExpr
         +> sepCloseS
