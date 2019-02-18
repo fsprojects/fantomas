@@ -136,11 +136,23 @@ let internal atIndentLevel alsoSetIndent level (f : Context -> Context) ctx =
     ctx.Writer.Indent <- oldLevel
     result
 
-/// Write everything at current column indentation
+/// Set minimal indentation (`atColumn`) at current column position - next newline will be indented on `max indent atColumn`
+/// Example:
+/// { X = // indent=0, atColumn=2
+///     "some long string" // indent=4, atColumn=2
+///   Y = 1 // indent=0, atColumn=2
+/// }
+/// `atCurrentColumn` was called on `X`, then `indent` was called, but "some long string" have indent only 4, because it is bigger than `atColumn` (2).
 let internal atCurrentColumn (f : _ -> Context) (ctx : Context) =
     atIndentLevel false ctx.Writer.Column f ctx
 
-/// Write everything at current column indentation
+/// Write everything at current column indentation, set `indent` and `atColumn` on current column position
+/// /// Example (same as above):
+/// { X = // indent=2, atColumn=2
+///       "some long string" // indent=6, atColumn=2
+///   Y = 1 // indent=2, atColumn=2
+/// }
+/// `atCurrentColumn` was called on `X`, then `indent` was called, "some long string" have indent 6, because it is indented from `atCurrentColumn` pos (2).
 let internal atCurrentColumnIndent (f : _ -> Context) (ctx : Context) =
     atIndentLevel true ctx.Writer.Column f ctx
 
