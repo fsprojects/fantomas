@@ -94,8 +94,8 @@ let configureBuildCommandDotnetBuild pathToProject =
 let fantomasExecutableForExternalTests projectdir =
     let configuration =
         match configuration with
-        | DotNet.BuildConfiguration.Debug -> "debug"
-        | DotNet.BuildConfiguration.Release -> "release"
+        | DotNet.BuildConfiguration.Debug -> "Debug"
+        | DotNet.BuildConfiguration.Release -> "Release"
         | DotNet.BuildConfiguration.Custom s -> s
     
     if Environment.isWindows
