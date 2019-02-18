@@ -80,10 +80,12 @@ type ExternalProjectInfo =
 // For linux we run this by invoking sh explicitly and passing the build.sh script as an argument as some
 // projects generated on windows don't have the executable permission set for .sh scripts. On windows we
 // treat .cmd files as executable
-let configureBuildCommandFromDefaultFakeBuildScripts pathToProject =
+let configureBuildCommandFromFakeBuildScripts scriptPrefix argument pathToProject =
     if Environment.isWindows
-    then { ProcessName = Path.combine pathToProject "build.cmd"; Arguments = [ "Build" ] }
-    else { ProcessName = "sh"; Arguments = [ sprintf "%s/build.sh Build" pathToProject ] }
+    then { ProcessName = Path.combine pathToProject (sprintf "%s.cmd" scriptPrefix); Arguments = [ argument ] }
+    else { ProcessName = "sh"; Arguments = [ sprintf "%s/%s.sh %s" pathToProject scriptPrefix argument ] }
+let configureBuildCommandFromDefaultFakeBuildScripts pathToProject =
+    configureBuildCommandFromFakeBuildScripts "build" "Build" pathToProject
 
 let configureBuildCommandDotnetBuild pathToProject =
     { ProcessName = "dotnet"; Arguments = [ "build"; pathToProject ] }
@@ -144,6 +146,11 @@ let externalProjectsToTestFailing = [
       Tag = "v1.0.0"
       SourceSubDirectory = "src"
       BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+    { GitUrl = @"https://github.com/MangelMaxime/fulma-demo"
+      DirectoryName = "fulma-demo"
+      Tag = "master"
+      SourceSubDirectory = "src"
+      BuildConfigurationFn = configureBuildCommandFromFakeBuildScripts "fake" "build" }  
     ]
 
 // --------------------------------------------------------------------------------------
