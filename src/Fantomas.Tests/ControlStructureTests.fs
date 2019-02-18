@@ -222,7 +222,7 @@ let x =
     |> should equal """
 let x =
     if try
-           true
+        true
        with Failure _ -> false
     then ()
     else ()

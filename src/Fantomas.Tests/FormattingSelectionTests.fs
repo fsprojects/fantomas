@@ -223,7 +223,7 @@ let a3 =
     |> should equal """
 let a3 =
     [| for n in 1..100 do
-           if isPrime n then yield n |]"""
+        if isPrime n then yield n |]"""
 
 [<Test>]
 let ``should format around the cursor inside an object expression``() =
@@ -233,7 +233,7 @@ let ``should format around the cursor inside an object expression``() =
     |> should equal """
 let obj1 =
     { new System.Object() with
-          member x.ToString() = "F#" }"""
+        member x.ToString() = "F#" }"""
 
 [<Test>]
 let ``should format around the cursor inside a computation expression``() =
