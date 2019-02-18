@@ -83,7 +83,7 @@ type ExternalProjectInfo =
 let configureBuildCommandFromFakeBuildScripts scriptPrefix argument pathToProject =
     if Environment.isWindows
     then { ProcessName = Path.combine pathToProject (sprintf "%s.cmd" scriptPrefix); Arguments = [ argument ] }
-    else { ProcessName = "sh"; Arguments = [ sprintf "%s/%s.sh %s" pathToProject scriptPrefix argument ] }
+    else { ProcessName = "sh"; Arguments = [ sprintf "%s/%s.sh" pathToProject scriptPrefix; argument ] }
 let configureBuildCommandFromDefaultFakeBuildScripts pathToProject =
     configureBuildCommandFromFakeBuildScripts "build" "Build" pathToProject
 
@@ -94,8 +94,8 @@ let configureBuildCommandDotnetBuild pathToProject =
 let fantomasExecutableForExternalTests projectdir =
     let configuration =
         match configuration with
-        | DotNet.BuildConfiguration.Debug -> "debug"
-        | DotNet.BuildConfiguration.Release -> "release"
+        | DotNet.BuildConfiguration.Debug -> "Debug"
+        | DotNet.BuildConfiguration.Release -> "Release"
         | DotNet.BuildConfiguration.Custom s -> s
     
     if Environment.isWindows
