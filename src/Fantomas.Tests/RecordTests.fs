@@ -224,3 +224,37 @@ type MyExc =
     inherit Exception
     new(msg) = { inherit Exception(msg) }
 """
+
+[<Test>]
+let ``should preserve inherit parts in records with field``() =
+    formatSourceString false """
+type MyExc =
+    inherit Exception
+    new(msg) = {inherit Exception(msg)
+                X = 1}
+"""  config
+  |> prepend newline
+  |> should equal """
+type MyExc =
+    inherit Exception
+    new(msg) = { inherit Exception(msg); X = 1 }
+"""
+
+[<Test>]
+let ``should preserve inherit parts in records multiline``() =
+    formatSourceString false """
+type MyExc =
+    inherit Exception
+    new(msg) = {inherit Exception(msg)
+                X = 1
+                Y = 2}
+"""  config
+  |> prepend newline
+  |> should equal """
+type MyExc =
+    inherit Exception
+    new(msg) =
+        { inherit Exception(msg)
+          X = 1
+          Y = 2 }
+"""
