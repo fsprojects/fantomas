@@ -9,7 +9,8 @@ open Fantomas.FormatConfig
 open Fantomas.TokenMatcher
 
 /// Wrapping IndentedTextWriter with current column position
-type ColumnIndentedTextWriter(tw : TextWriter) =
+type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
+    let isDummy = isDummy |> Option.defaultValue false
     let indentWriter = new IndentedTextWriter(tw, " ")
     let mutable col = indentWriter.Indent
 
@@ -21,6 +22,8 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
         let newIndent = f atColumn
         indentWriter.Indent <- newIndent
 
+    member __.IsDummy = isDummy
+    
     member __.ApplyAtColumn f = applyAtColumn f
     
     member __.Write(s : string) =
@@ -88,12 +91,13 @@ type internal Context =
             Config = config; Content = content; Positions = positions; 
             Comments = comments; Directives = directives }
 
-    member x.With(writer : ColumnIndentedTextWriter) =
+    member x.With(writer : ColumnIndentedTextWriter, ?keepPageWidth) =
+        let keepPageWidth = keepPageWidth |> Option.defaultValue false
         writer.Indent <- x.Writer.Indent
         writer.Column <- x.Writer.Column
         writer.AtColumn <- x.Writer.AtColumn
         // Use infinite column width to encounter worst-case scenario
-        let config = { x.Config with PageWidth = Int32.MaxValue }
+        let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
         { x with Writer = writer; Config = config }
 
 let internal dump (ctx: Context) =
@@ -314,25 +318,28 @@ let internal sepCloseT = !- ")"
 let internal autoNlnCheck f sep (ctx : Context) =
     if not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
-    use colWriter = new ColumnIndentedTextWriter(new StringWriter())
+    use colWriter = new ColumnIndentedTextWriter(new StringWriter(), isDummy = true)
     let dummyCtx = ctx.With(colWriter)
     let col = (dummyCtx |> sep |> f).Writer.Column
     // This isn't accurate if we go to new lines
     col > ctx.Config.PageWidth
 
-let internal futureNlnCheck f sep (ctx : Context) =
+let internal futureNlnCheck f (ctx : Context) =
     if not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
-    use colWriter = new ColumnIndentedTextWriter(new StringWriter())
-    let dummyCtx = ctx.With(colWriter)
-    let writer = (dummyCtx |> sep |> f).Writer
+    use colWriter = new ColumnIndentedTextWriter(new StringWriter(), isDummy = true)
+    let dummyCtx = ctx.With(colWriter, true)
+    let writer = (dummyCtx |> f).Writer
     let str = writer.InnerWriter.ToString()
     let withoutStringConst = 
         str.Replace("\\\\", System.String.Empty).Replace("\\\"", System.String.Empty).Split([|'"'|])
         |> Seq.indexed |> Seq.filter (fun (i, _) -> i % 2 = 0) |> Seq.map snd |> String.concat System.String.Empty
     let lines = withoutStringConst.Split([|Environment.NewLine|], StringSplitOptions.None) 
+    //printfn "futureNlnCheck: %i %s" writer.Column str
+    (lines |> Seq.length) >= 2 || writer.Column > ctx.Config.PageWidth
 
-    (lines |> Seq.length) >= 2
+let internal autoNlnByFuture f = ifElseCtx (futureNlnCheck f) (sepNln +> f) f
+let internal autoIndentNlnByFuture f = ifElseCtx (futureNlnCheck f) (indent +> sepNln +> f +> unindent) f
 
 /// Set a checkpoint to break at an appropriate column
 let internal autoNlnOrAddSep f sep (ctx : Context) =
