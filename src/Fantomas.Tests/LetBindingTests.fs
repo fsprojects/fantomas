@@ -76,7 +76,7 @@ let f () =
     |> should equal """let f() =
     let x = 1
     (while true do
-         ()
+        ()
      x)
 """
 
@@ -110,8 +110,8 @@ let x =
 let x =
     [| 1..2 |]
     |> Array.mapi (fun _ _ ->
-           let num =
-               ""
-                   .PadLeft(9)
-           num)
+        let num =
+            ""
+                .PadLeft(9)
+        num)
 """

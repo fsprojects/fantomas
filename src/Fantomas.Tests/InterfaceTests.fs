@@ -55,7 +55,7 @@ let ``object expressions``() =
     |> should equal """
 let obj1 =
     { new System.Object() with
-          member x.ToString() = "F#" }
+        member x.ToString() = "F#" }
 """
 
 [<Test>]
@@ -72,8 +72,8 @@ let ``object expressions and interfaces``() =
     |> should equal """
 let implementer() =
     { new ISecond with
-          member this.H() = ()
-          member this.J() = ()
+        member this.H() = ()
+        member this.J() = ()
       interface IFirst with
           member this.F() = ()
           member this.G() = () }
@@ -92,7 +92,7 @@ let f () =
     |> should equal """
 let f() =
     { new obj() with
-          member x.ToString() = "INotifyEnumerableInternal"
+        member x.ToString() = "INotifyEnumerableInternal"
       interface INotifyEnumerableInternal<'T>
       interface IEnumerable<_> with
           member x.GetEnumerator() = null }

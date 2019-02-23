@@ -13,13 +13,26 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
     let indentWriter = new IndentedTextWriter(tw, " ")
     let mutable col = indentWriter.Indent
 
+    // on newline, bigger from Indent and atColumn is selected
+    // that way we avoid bigger than indentSpace indentation when indent is used after atCurrentColumn
+    let mutable atColumn = 0
+    
+    let applyAtColumn f =
+        let newIndent = f atColumn
+        indentWriter.Indent <- newIndent
+
+    member __.ApplyAtColumn f = applyAtColumn f
+    
     member __.Write(s : string) =
         match s.LastIndexOf('\n') with
         | -1 -> col <- col + s.Length
-        | i -> col <- s.Length - i - 1
+        | i ->
+            applyAtColumn (fun x -> max indentWriter.Indent x)
+            col <- s.Length - i - 1
         indentWriter.Write(s)
 
     member __.WriteLine(s : string) =
+        applyAtColumn (fun x -> max indentWriter.Indent x)
         col <- indentWriter.Indent
         indentWriter.WriteLine(s)
 
@@ -31,6 +44,10 @@ type ColumnIndentedTextWriter(tw : TextWriter) =
     member __.Indent 
         with get() = indentWriter.Indent
         and set i = indentWriter.Indent <- i
+
+    member __.AtColumn 
+        with get() = atColumn
+        and set i = atColumn <- i    
 
     member __.InnerWriter = indentWriter.InnerWriter
 
@@ -74,6 +91,7 @@ type internal Context =
     member x.With(writer : ColumnIndentedTextWriter) =
         writer.Indent <- x.Writer.Indent
         writer.Column <- x.Writer.Column
+        writer.AtColumn <- x.Writer.AtColumn
         // Use infinite column width to encounter worst-case scenario
         let config = { x.Config with PageWidth = Int32.MaxValue }
         { x with Writer = writer; Config = config }
@@ -86,11 +104,13 @@ let internal dump (ctx: Context) =
 /// Indent one more level based on configuration
 let internal indent (ctx : Context) = 
     ctx.Writer.Indent <- ctx.Writer.Indent + ctx.Config.IndentSpaceNum
+    // if atColumn is bigger then after indent, then we use atColumn as base for indent
+    ctx.Writer.ApplyAtColumn (fun x -> if x >= ctx.Writer.Indent then x + ctx.Config.IndentSpaceNum else ctx.Writer.Indent)
     ctx
 
 /// Unindent one more level based on configuration
 let internal unindent (ctx : Context) = 
-    ctx.Writer.Indent <- max 0 (ctx.Writer.Indent - ctx.Config.IndentSpaceNum)
+    ctx.Writer.Indent <- max ctx.Writer.AtColumn (ctx.Writer.Indent - ctx.Config.IndentSpaceNum)
     ctx
 
 /// Increase indent by i spaces
@@ -104,18 +124,37 @@ let internal decrIndent i (ctx : Context) =
     ctx
 
 /// Apply function f at an absolute indent level (use with care)
-let internal atIndentLevel level (f : Context -> Context) ctx =
+let internal atIndentLevel alsoSetIndent level (f : Context -> Context) ctx =
     if level < 0 then
         invalidArg "level" "The indent level cannot be negative."
     let oldLevel = ctx.Writer.Indent
-    ctx.Writer.Indent <- level
+    let oldColumn = ctx.Writer.AtColumn
+    if alsoSetIndent then ctx.Writer.Indent <- level
+    ctx.Writer.AtColumn <- level
     let result = f ctx
+    ctx.Writer.AtColumn <- oldColumn
     ctx.Writer.Indent <- oldLevel
     result
 
-/// Write everything at current column indentation
+/// Set minimal indentation (`atColumn`) at current column position - next newline will be indented on `max indent atColumn`
+/// Example:
+/// { X = // indent=0, atColumn=2
+///     "some long string" // indent=4, atColumn=2
+///   Y = 1 // indent=0, atColumn=2
+/// }
+/// `atCurrentColumn` was called on `X`, then `indent` was called, but "some long string" have indent only 4, because it is bigger than `atColumn` (2).
 let internal atCurrentColumn (f : _ -> Context) (ctx : Context) =
-    atIndentLevel ctx.Writer.Column f ctx
+    atIndentLevel false ctx.Writer.Column f ctx
+
+/// Write everything at current column indentation, set `indent` and `atColumn` on current column position
+/// /// Example (same as above):
+/// { X = // indent=2, atColumn=2
+///       "some long string" // indent=6, atColumn=2
+///   Y = 1 // indent=2, atColumn=2
+/// }
+/// `atCurrentColumn` was called on `X`, then `indent` was called, "some long string" have indent 6, because it is indented from `atCurrentColumn` pos (2).
+let internal atCurrentColumnIndent (f : _ -> Context) (ctx : Context) =
+    atIndentLevel true ctx.Writer.Column f ctx
 
 /// Function composition operator
 let internal (+>) (ctx : Context -> Context) (f : _ -> Context) x =
