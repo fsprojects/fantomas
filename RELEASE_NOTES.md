@@ -1,3 +1,6 @@
+#### 2.9.3 - 03-2019
+* Add support for .fantomas-config file. [#354](https://github.com/fsprojects/fantomas/issues/354)
+
 #### 2.9.2 - 02-2019
 * Fix PreserveEndOfLine introduces additional newlines. [#360](https://github.com/fsprojects/fantomas/issues/360)
 * Fix Extra newline is introduced when file ends with multiline comment. [#363](https://github.com/fsprojects/fantomas/issues/363)

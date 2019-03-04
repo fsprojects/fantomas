@@ -234,6 +234,28 @@ Settings such as :
 
 See [CodePrinter.fs](src/Fantomas/CodePrinter.fs).
 
+#### The `.fantomas-config` file
+When using fantomas via CLI, the application will search the inputPath recursively up the directory tree until it finds a file named `.fantomas-config`. The file should be a JSON formatted file. Missing properties will be ignored. Properties in the JSON that do not exist will output an error in the console.
+
+The default is:
+
+```json
+{
+  "IndentSpaceNum": 4,
+  "PageWidth": 80,
+  "PreserveEndOfLine": false,
+  "SemicolonAtEndOfLine": false,
+  "SpaceBeforeArgument": true,
+  "SpaceBeforeColon": true,
+  "SpaceAfterComma": true,
+  "SpaceAfterSemicolon": true,
+  "IndentOnTryWith": false,
+  "ReorderOpenDeclaration": false,
+  "SpaceAroundDelimiter": true,
+  "StrictMode": false
+}
+```
+
 ### How to play with fantomas on F# Interactive
 The [CodeFormatter.fsx](src/Fantomas/CodeFormatter.fsx) script file
 allows you to test the code formatting behavior. See the function `formatSrc: string -> unit`

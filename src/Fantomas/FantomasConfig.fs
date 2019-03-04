@@ -123,6 +123,12 @@ let load configFilename =
     | Ok x -> x
     | Error x -> failwith x
 
+/// Saves the specified config to the specified file name
+let save configFilename config =
+    let item = Dto.fromFormatConfig config
+    let json = serialize item
+    File.WriteAllText(configFilename, json)
+
 /// Recursively tries to find a config file either by a file name or directory path
 let rec tryFindConfig fileOrDirectoryPath =
     let fileName = Path.Combine(fileOrDirectoryPath, ".fantomas-config")
