@@ -241,8 +241,25 @@ let main _args =
 
     ArgParser.Parse(options, handleInput, "Fantomas <input_path>")
 
+    let loadConfig path =
+        match FantomasConfig.tryFindAndLoadConfig path with
+        | Some config -> 
+            printfn "Loaded config '%s'" config.FileName
+            config.Warnings |> Seq.iter (printfn "Warning! %s")
+            config.FormatConfig
+        | None ->
+            printfn "Unable to locate config file"
+            FormatConfig.Default
+
+    let baseConfig =
+        match !inputPath with
+        | InputPath.Unspecified -> FormatConfig.Default
+        | InputPath.StdIn f     -> loadConfig f
+        | InputPath.Folder f    -> loadConfig f
+        | InputPath.File f      -> loadConfig f
+
     let config =
-        { FormatConfig.Default with 
+        { baseConfig with 
             IndentSpaceNum = !indent;
             PageWidth = !pageWidth;
             PreserveEndOfLine = !preserveEOL;

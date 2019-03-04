@@ -2,11 +2,13 @@
 
 open FsUnit
 open System
+open System.IO
 open Fantomas.FormatConfig
 open Fantomas
 open Microsoft.FSharp.Compiler.SourceCodeServices
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
+open NUnit.Framework
 
 let config = FormatConfig.Default
 let newline = "\n"
@@ -130,3 +132,7 @@ let fromSynExpr expr =
                     [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
                     zero)], (true, true)))
     Input (tryFormatAST ast None formatConfig)
+
+/// Convenience method for getting a file relative to the WorkDirectory
+let getFile f =
+    Path.Combine(TestContext.CurrentContext.WorkDirectory, f)

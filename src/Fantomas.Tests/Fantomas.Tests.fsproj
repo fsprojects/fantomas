@@ -47,6 +47,7 @@
     <Compile Include="LongIdentWithDotsTests.fs" />
     <Compile Include="DynamicOperatorTests.fs" />
     <Compile Include="SynExprSetTests.fs" />
+    <Compile Include="FantomasConfigTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />

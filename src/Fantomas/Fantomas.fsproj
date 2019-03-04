@@ -12,6 +12,7 @@
     <Compile Include="Dbg.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="FormatConfig.fs" />
+    <Compile Include="FantomasConfig.fs" />
     <Compile Include="TokenMatcher.fs" />
     <Compile Include="Context.fs" />
     <Compile Include="SourceParser.fs" />
