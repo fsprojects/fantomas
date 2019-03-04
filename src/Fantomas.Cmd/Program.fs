@@ -32,6 +32,7 @@ let [<Literal>] forceText = "Print the source unchanged if it cannot be parsed c
 let [<Literal>] recurseText = "Process the input folder recursively."
 let [<Literal>] outputText = "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only."
 let [<Literal>] profileText = "Print performance profiling information."
+let [<Literal>] configFileText = "Give a valid path to the JSON configuration file."
 
 let [<Literal>] fsiText = "Read F# source from stdin as F# signatures."
 let [<Literal>] stdInText = "Read F# source from standard input."
@@ -109,6 +110,7 @@ let main _args =
     let indent = ref 4
     let pageWidth = ref 80
     
+    let configFile = ref ""
     let preserveEOL = ref false
     let semicolonEOL = ref false
     let spaceBeforeArgument = ref true
@@ -120,6 +122,9 @@ let main _args =
 
     let spaceAroundDelimiter = ref true
     let strictMode = ref false
+
+    let handleConfigFile s =
+        configFile := s
 
     let handleOutput s =
         if not !stdOut then
@@ -227,6 +232,7 @@ let main _args =
            ArgInfo("--indent", ArgType.Int handleIndent, indentText);
            ArgInfo("--pageWidth", ArgType.Int handlePageWidth, widthText);
            
+           ArgInfo("--configFile", ArgType.String handleConfigFile, configFileText)
            ArgInfo("--preserveEOL", ArgType.Set preserveEOL, preserveEOLText)
            ArgInfo("--semicolonEOL", ArgType.Set semicolonEOL, semicolonEOLText);
            ArgInfo("--noSpaceBeforeArgument", ArgType.Clear spaceBeforeArgument, argumentText);
@@ -252,11 +258,18 @@ let main _args =
             FormatConfig.Default
 
     let baseConfig =
-        match !inputPath with
-        | InputPath.Unspecified -> FormatConfig.Default
-        | InputPath.StdIn f     -> loadConfig f
-        | InputPath.Folder f    -> loadConfig f
-        | InputPath.File f      -> loadConfig f
+        match String.IsNullOrWhiteSpace !configFile with
+        | true ->
+            match !inputPath with
+            | InputPath.Unspecified -> FormatConfig.Default
+            | InputPath.StdIn _     -> FormatConfig.Default
+            | InputPath.Folder f    -> loadConfig f
+            | InputPath.File f      -> loadConfig f
+        | false ->
+            let config = FantomasConfig.load !configFile
+            printfn "Loaded config '%s'" config.FileName
+            config.Warnings |> Seq.iter (printfn "Warning! %s")
+            config.FormatConfig
 
     let config =
         { baseConfig with 
