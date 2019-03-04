@@ -57,14 +57,14 @@ let tryFindConfigShouldReturnSome() =
     let fileName = getFile "./tryFindConfigShouldReturnSome/.fantomas-config"
     mkDir (getFile "./tryFindConfigShouldReturnSome")
     mkDir (getFile "./tryFindConfigShouldReturnSome/Level1")
-    mkDir (getFile "./v/Level1/Level2")
+    mkDir (getFile "./tryFindConfigShouldReturnSome/Level1/Level2")
 
     let json = "{}"
     File.WriteAllText(fileName, json)
     
     Assert.AreNotEqual(None, tryFindConfig(getFile "./tryFindConfigShouldReturnSome"))
     Assert.AreNotEqual(None, tryFindConfig(getFile "./tryFindConfigShouldReturnSome/Level1"))
-    Assert.AreNotEqual(None, tryFindConfig(getFile "./tryFindConfigShouldReturnSome/Level2"))
+    Assert.AreNotEqual(None, tryFindConfig(getFile "./tryFindConfigShouldReturnSome/Level1/Level2"))
 
 [<Test>]
 let tryFindAndLoadConfigShouldWork() =
@@ -85,7 +85,7 @@ let tryFindAndLoadConfigShouldWork() =
 
     checkDir "./tryFindAndLoadConfigShouldWork"
     checkDir "./tryFindAndLoadConfigShouldWork/Level1"
-    checkDir "./tryFindAndLoadConfigShouldWork/Level2"
+    checkDir "./tryFindAndLoadConfigShouldWork/Level1/Level2"
 
 
 [<Test>]
@@ -107,4 +107,4 @@ let tryFindAndLoadConfigShouldNotCrash() =
 
     checkDir "./tryFindAndLoadConfigShouldNotCrash"
     checkDir "./tryFindAndLoadConfigShouldNotCrash/Level1"
-    checkDir "./tryFindAndLoadConfigShouldNotCrash/Level2"
+    checkDir "./tryFindAndLoadConfigShouldNotCrash/Level1/Level2"
