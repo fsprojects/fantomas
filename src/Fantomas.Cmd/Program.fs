@@ -249,10 +249,13 @@ let main _args =
 
     let loadConfig path =
         match FantomasConfig.tryFindAndLoadConfig path with
-        | Some config -> 
+        | Some (Ok config) -> 
             printfn "Loaded config '%s'" config.FileName
             config.Warnings |> Seq.iter (printfn "Warning! %s")
             config.FormatConfig
+        | Some (Error err) -> 
+            printfn "Warning! %s" err
+            FormatConfig.Default
         | None ->
             printfn "Unable to locate config file"
             FormatConfig.Default
@@ -266,7 +269,7 @@ let main _args =
             | InputPath.Folder f    -> loadConfig f
             | InputPath.File f      -> loadConfig f
         | false ->
-            let config = FantomasConfig.load !configFile
+            let config = FantomasConfig.load !configFile // this will throw an exception if there is something wrong
             printfn "Loaded config '%s'" config.FileName
             config.Warnings |> Seq.iter (printfn "Warning! %s")
             config.FormatConfig

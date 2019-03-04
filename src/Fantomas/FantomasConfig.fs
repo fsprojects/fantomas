@@ -143,4 +143,4 @@ let rec tryFindConfig fileOrDirectoryPath =
 let tryFindAndLoadConfig fileOrDirectoryPath =
     fileOrDirectoryPath
     |> tryFindConfig
-    |> Option.map load
+    |> Option.map tryLoad

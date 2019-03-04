@@ -54,14 +54,57 @@ let tryFindConfigShouldReturnNone() =
 let tryFindConfigShouldReturnSome() =
     let mkDir d = if d |> Directory.Exists |> not then d |> Directory.CreateDirectory |> ignore
 
-    let fileName = getFile "./Temp/.fantomas-config"
-    mkDir (getFile "./Temp")
-    mkDir (getFile "./Temp/Level1")
-    mkDir (getFile "./Temp/Level1/Level2")
+    let fileName = getFile "./tryFindConfigShouldReturnSome/.fantomas-config"
+    mkDir (getFile "./tryFindConfigShouldReturnSome")
+    mkDir (getFile "./tryFindConfigShouldReturnSome/Level1")
+    mkDir (getFile "./v/Level1/Level2")
 
     let json = "{}"
     File.WriteAllText(fileName, json)
     
-    Assert.AreNotEqual(None, tryFindConfig(getFile "./Temp"))
-    Assert.AreNotEqual(None, tryFindConfig(getFile "./Temp/Level1"))
-    Assert.AreNotEqual(None, tryFindConfig(getFile "./Temp/Level2"))
+    Assert.AreNotEqual(None, tryFindConfig(getFile "./tryFindConfigShouldReturnSome"))
+    Assert.AreNotEqual(None, tryFindConfig(getFile "./tryFindConfigShouldReturnSome/Level1"))
+    Assert.AreNotEqual(None, tryFindConfig(getFile "./tryFindConfigShouldReturnSome/Level2"))
+
+[<Test>]
+let tryFindAndLoadConfigShouldWork() =
+    let mkDir d = if d |> Directory.Exists |> not then d |> Directory.CreateDirectory |> ignore
+
+    let fileName = getFile "./tryFindAndLoadConfigShouldWork/.fantomas-config"
+    mkDir (getFile "./tryFindAndLoadConfigShouldWork")
+    mkDir (getFile "./tryFindAndLoadConfigShouldWork/Level1")
+    mkDir (getFile "./tryFindAndLoadConfigShouldWork/Level1/Level2")
+
+    let json = "{}"
+    File.WriteAllText(fileName, json)
+
+    let checkDir f =
+        match tryFindAndLoadConfig(getFile f) with
+        | Some (Ok _) -> ()
+        | otherwise -> failwithf "Expected Some(Ok), got: %A" otherwise
+
+    checkDir "./tryFindAndLoadConfigShouldWork"
+    checkDir "./tryFindAndLoadConfigShouldWork/Level1"
+    checkDir "./tryFindAndLoadConfigShouldWork/Level2"
+
+
+[<Test>]
+let tryFindAndLoadConfigShouldNotCrash() =
+    let mkDir d = if d |> Directory.Exists |> not then d |> Directory.CreateDirectory |> ignore
+
+    let fileName = getFile "./tryFindAndLoadConfigShouldNotCrash/.fantomas-config"
+    mkDir (getFile "./tryFindAndLoadConfigShouldNotCrash")
+    mkDir (getFile "./tryFindAndLoadConfigShouldNotCrash/Level1")
+    mkDir (getFile "./tryFindAndLoadConfigShouldNotCrash/Level1/Level2")
+
+    let json = "this is invalid json"
+    File.WriteAllText(fileName, json)
+
+    let checkDir f =
+        match tryFindAndLoadConfig(getFile f) with
+        | Some (Error _) -> ()
+        | otherwise -> failwithf "Expected Some(Error), got: %A" otherwise
+
+    checkDir "./tryFindAndLoadConfigShouldNotCrash"
+    checkDir "./tryFindAndLoadConfigShouldNotCrash/Level1"
+    checkDir "./tryFindAndLoadConfigShouldNotCrash/Level2"
