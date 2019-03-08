@@ -360,8 +360,9 @@ let formatWith ast formatContext config =
     let sourceCode = defaultArg input String.Empty
     let normalizedSourceCode = String.normalizeNewLine sourceCode
     let formattedSourceCode =
-        Fantomas.Context.Context.create config normalizedSourceCode 
-        |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
+        let context = Fantomas.Context.Context.create config normalizedSourceCode
+        let trivia = Trivia.collectTrivia context.Content ast
+        context |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
         |> Context.dump
         |> if config.StrictMode then id 
            else integrateComments config formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode
