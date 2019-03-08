@@ -70,16 +70,17 @@ type internal Context =
       /// Comments attached to appropriate locations
       Comments : Dictionary<pos, string list>;
       /// Compiler directives attached to appropriate locations
-      Directives : Dictionary<pos, string> }
+      Directives : Dictionary<pos, string>
+      Trivia : Dictionary<AstTransformer.FsAstNode, string list>}
 
     /// Initialize with a string writer and use space as delimiter
     static member Default = 
         { Config = FormatConfig.Default;
           Writer = new ColumnIndentedTextWriter(new StringWriter());
           BreakLines = true; BreakOn = (fun _ -> false); 
-          Content = ""; Positions = [||]; Comments = Dictionary(); Directives = Dictionary() }
+          Content = ""; Positions = [||]; Comments = Dictionary(); Directives = Dictionary(); Trivia = Dictionary() }
 
-    static member create config (content : string) =
+    static member create config (content : string) maybeAst =
         let content = String.normalizeNewLine content
         let positions = 
             content.Split('\n')
@@ -87,9 +88,13 @@ type internal Context =
             |> Seq.scan (+) 0
             |> Seq.toArray
         let (comments, directives) = filterCommentsAndDirectives content
+        let trivia =
+            maybeAst |> Option.map (fun ast -> Trivia.collectTrivia content ast)
+            |> Option.defaultValue Context.Default.Trivia
+
         { Context.Default with 
             Config = config; Content = content; Positions = positions; 
-            Comments = comments; Directives = directives }
+            Comments = comments; Directives = directives; Trivia = trivia }
 
     member x.With(writer : ColumnIndentedTextWriter, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false

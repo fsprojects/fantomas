@@ -17,3 +17,13 @@ module String =
         source.Split([| Environment.NewLine |], StringSplitOptions.None)
         |> Array.map (fun line -> line.TrimEnd())
         |> fun lines -> String.Join(Environment.NewLine, lines)
+        
+module Cache =
+    let alreadyVisited<'key when 'key : not struct>() =
+        let cache = System.Collections.Generic.HashSet<'key>([], HashIdentity.Reference)
+        fun key ->
+            if cache.Contains key then
+                true
+            else
+                cache.Add key |> ignore
+                false

@@ -84,7 +84,7 @@ let printAST isFsiFile sourceCode =
     
 let printContext sourceCode =
     let normalizedSourceCode = Fantomas.String.normalizeNewLine sourceCode
-    let context = Fantomas.Context.Context.create config normalizedSourceCode
+    let context = Fantomas.Context.Context.create config normalizedSourceCode None
     printfn "directives:"
     context.Directives
     |> Seq.iter (fun kv -> printfn "%A %s" kv.Key kv.Value)

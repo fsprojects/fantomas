@@ -16,7 +16,9 @@ let collectTrivia content (ast: ParsedInput) =
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _)) ->
         let node = Fantomas.AstTransformer.astToNode (mns |> List.collect (function
             (SynModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule, _)) -> s))
-        let rec visit comments (n:Fantomas.AstTransformer.Node) =
+        let rec visit comments acc =
+            match acc with
+            | (n:Fantomas.AstTransformer.Node) :: ns ->
             let (commentsBefore, comments) = 
                 match n.Range with
                 | Some r ->
@@ -24,8 +26,9 @@ let collectTrivia content (ast: ParsedInput) =
                 | None -> [], comments
             List.append
                 (commentsBefore |> List.collect snd |> function | [] -> [] | c -> [n.FsAstNode, c])
-                (n.Childs |> List.collect (visit comments))
-        visit (comments |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Seq.toList) node
+                (visit comments (n.Childs @ ns))
+            | [] -> []
+        visit (comments |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Seq.toList) [node]
         |> fun x ->
             refDict x
     | _ -> Seq.empty |> refDict
