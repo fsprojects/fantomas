@@ -267,7 +267,7 @@ and breakNlnOrAddSpace astContext brk e =
 
 /// Preserve a break even if the expression is a one-liner
 and preserveBreakNln astContext e ctx =
-    let brk = checkPreserveBreakForExpr e ctx || futureNlnCheck (genExpr astContext e) sepNone ctx
+    let brk = checkPreserveBreakForExpr e ctx || futureNlnCheck (genExpr astContext e) ctx
     breakNln astContext brk e ctx
 
 and preserveBreakNlnOrAddSpace astContext e ctx =
@@ -277,7 +277,7 @@ and genExprSepEqPrependType astContext prefix e ctx =
     let multilineCheck = 
         match e with
         | MatchLambda _ -> false
-        | _ -> futureNlnCheck (genExpr astContext e) sepNone ctx
+        | _ -> futureNlnCheck (genExpr astContext e) ctx
     match e with
     | TypedExpr(Typed, e, t) -> (prefix +> sepColon +> genType astContext false t +> sepEq
                                 +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
@@ -479,6 +479,15 @@ and genTuple astContext es =
         ))
 
 and genExpr astContext synExpr = 
+    let appNlnFun e =
+        match e with
+        | CompExpr _
+        | Lambda _
+        | MatchLambda _
+        | Paren (Lambda _)
+        | Paren (MatchLambda _) -> autoNln
+        | _ -> autoNlnByFuture
+    
     match synExpr with
     | SingleExpr(Lazy, e) -> 
         // Always add braces when dealing with lazy
@@ -514,15 +523,19 @@ and genExpr astContext synExpr =
             ctx
             |> ifElse useNewline sepNln sep
             
-        ifElse isArray (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sepWithPreserveEndOfLine xs (genExpr astContext)) +> sepCloseA) 
-            (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepWithPreserveEndOfLine xs (genExpr astContext)) +> sepCloseL)
+        let expr = atCurrentColumn <| colAutoNlnSkip0 sepWithPreserveEndOfLine xs (genExpr astContext)
+        let expr = ifElse isArray (sepOpenA +> expr +> sepCloseA) (sepOpenL +> expr +> sepCloseL)
+        expr        
 
     | Record(inheritOpt, xs, eo) -> 
-        let recordExpr = opt (!- " with ") eo (genExpr astContext) +> atCurrentColumnIndent (col sepSemiNln xs (genRecordFieldName astContext))
-        sepOpenS 
-        +> atCurrentColumn (opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr sepNone) sepNln sepSemi) inheritOpt
-            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr))
-        +> recordExpr
+        let recordExpr = 
+            let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
+            eo |> Option.map (fun e ->
+                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+            |> Option.defaultValue fieldsExpr
+        sepOpenS
+        +> atCurrentColumnIndent (opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
+            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
         +> sepCloseS
 
     | ObjExpr(t, eio, bd, ims, range) ->
@@ -555,7 +568,8 @@ and genExpr astContext synExpr =
 
     | ArrayOrListOfSeqExpr(isArray, e) -> 
         let astContext = { astContext with IsNakedRange = true }
-        ifElse isArray (sepOpenA +> genExpr astContext e +> sepCloseA) (sepOpenL +> genExpr astContext e +> sepCloseL)
+        let expr = ifElse isArray (sepOpenA +> genExpr astContext e +> sepCloseA) (sepOpenL +> genExpr astContext e +> sepCloseL)
+        expr
     | JoinIn(e1, e2) -> genExpr astContext e1 -- " in " +> genExpr astContext e2
     | Paren(DesugaredLambda(cps, e)) ->
         sepOpenT -- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow +> noIndentBreakNln astContext e +> sepCloseT
@@ -652,12 +666,13 @@ and genExpr astContext synExpr =
                     (ifElse (addSpaceBeforeParensInFunCall e1 e2) sepBeforeArg sepNone) 
                     sepSpace)
                 sepNone
-            +> indent +> autoNln (genExpr astContext e2) +> unindent)
+            +> indent +> appNlnFun e2 (genExpr astContext e2) +> unindent)
 
     // Always spacing in multiple arguments
     | App(e, es) -> 
         atCurrentColumn (genExpr astContext e +> 
-            colPre sepSpace sepSpace es (fun e -> indent +> autoNln (genExpr astContext e) +> unindent))
+            colPre sepSpace sepSpace es (fun e ->
+                indent +> appNlnFun e (genExpr astContext e) +> unindent))
 
     | TypeApp(e, ts) -> genExpr astContext e -- "<" +> col sepComma ts (genType astContext false) -- ">"
     | LetOrUses(bs, e) ->
