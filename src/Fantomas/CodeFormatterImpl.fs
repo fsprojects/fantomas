@@ -6,9 +6,9 @@ open System.Diagnostics
 open System.Collections.Generic
 open System.Text.RegularExpressions
 
-open Microsoft.FSharp.Compiler.Ast
-open Microsoft.FSharp.Compiler.Range
-open Microsoft.FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.Ast
+open FSharp.Compiler.Range
+open FSharp.Compiler.SourceCodeServices
 
 open Fantomas
 open Fantomas.TokenMatcher

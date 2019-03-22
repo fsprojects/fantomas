@@ -4,7 +4,7 @@ open System
 open System.IO
 open System.Collections.Generic
 open System.CodeDom.Compiler
-open Microsoft.FSharp.Compiler.Range
+open FSharp.Compiler.Range
 open Fantomas.FormatConfig
 open Fantomas.TokenMatcher
 

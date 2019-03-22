@@ -1,7 +1,8 @@
-﻿module internal Fantomas.CodePrinter
+module internal Fantomas.CodePrinter
 
 open System
-open Microsoft.FSharp.Compiler.Ast
+open FSharp.Compiler.Ast
+open FSharp.Compiler.Range
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
@@ -16,7 +17,7 @@ type ASTContext =
       /// Current node is the first child of its parent
       IsFirstChild: bool
       /// Current node is a subnode deep down in an interface
-      InterfaceRange: Microsoft.FSharp.Compiler.Range.range option
+      InterfaceRange: range option
       /// This pattern matters for formatting extern declarations
       IsCStylePattern: bool
       /// Range operators are naked in 'for..in..do' constructs
@@ -1125,7 +1126,7 @@ and genClause astContext hasBar (Clause(p, e, eo)) =
     +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> preserveBreakNln astContext e
 
 /// Each multiline member definition has a pre and post new line. 
-and genMemberDefnList astContext (*(interfaceRange:Microsoft.FSharp.Compiler.Range.range)*) = function
+and genMemberDefnList astContext (*(interfaceRange:range)*) = function
     | [x] -> sepNln +> genMemberDefn astContext x
 
     | MDOpenL(xs, ys) ->

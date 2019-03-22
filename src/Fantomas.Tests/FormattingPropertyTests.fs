@@ -1,12 +1,12 @@
-﻿module Fantomas.Tests.FormattingPropertyTests
+module Fantomas.Tests.FormattingPropertyTests
 
 open NUnit.Framework
 open System
 open Fantomas
 open FsCheck
 open FsUnit
-open Microsoft.FSharp.Compiler.Ast
-open Microsoft.FSharp.Compiler.Range
+open FSharp.Compiler.Ast
+open FSharp.Compiler.Range
 open TestHelper
 
 let generateSynMeasure =

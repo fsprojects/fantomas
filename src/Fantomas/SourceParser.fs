@@ -2,12 +2,12 @@
 
 open System
 open System.Diagnostics
-open Microsoft.FSharp.Compiler.Range
-open Microsoft.FSharp.Compiler.Ast
-open Microsoft.FSharp.Compiler.PrettyNaming
+open FSharp.Compiler.Range
+open FSharp.Compiler.Ast
+open FSharp.Compiler.PrettyNaming
 open Fantomas
 open Fantomas.Context
-open Microsoft.FSharp.Compiler.SourceCodeServices.PrettyNaming
+open FSharp.Compiler.SourceCodeServices.PrettyNaming
 
 type Composite<'a, 'b> =
     | Pair of 'b * 'b

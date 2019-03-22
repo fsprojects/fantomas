@@ -3,9 +3,9 @@
 open System
 open System.Collections.Generic
 open System.Diagnostics
-open Microsoft.FSharp.Compiler.Range
-open Microsoft.FSharp.Compiler.PrettyNaming
-open Microsoft.FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.Range
+open FSharp.Compiler.PrettyNaming
+open FSharp.Compiler.SourceCodeServices
 open System.Text.RegularExpressions
 open Fantomas
 
