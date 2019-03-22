@@ -1,4 +1,4 @@
-module Fantomas.Tests.TestHelper
+﻿module Fantomas.Tests.TestHelper
 
 open FsUnit
 open System
@@ -102,7 +102,7 @@ let toSynExprs (Input s) =
             ("/tmp.fsx", _,
             QualifiedNameOfFile _, [], [],
             [SynModuleOrNamespace
-                (_, false, true, exprs, _, _, _, _)], _))) -> 
+                (_, false, AnonModule, exprs, _, _, _, _)], _))) -> 
                 List.choose (function (SynModuleDecl.DoExpr(_, expr, _)) -> Some expr | _ -> None) exprs
     | _ -> 
         //stdout.WriteLine("Can't convert {0}.", sprintf "%A" ast)
@@ -126,7 +126,7 @@ let fromSynExpr expr =
                ("/tmp.fsx", true,
                 QualifiedNameOfFile ident, [], [],
                 [SynModuleOrNamespace
-                   ([ident], false, true,
+                   ([ident], false, AnonModule,
                     [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
                     zero)], (true, true)))
     Input (tryFormatAST ast None formatConfig)

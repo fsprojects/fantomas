@@ -1,4 +1,4 @@
-module Fantomas.Tests.FormattingPropertyTests
+﻿module Fantomas.Tests.FormattingPropertyTests
 
 open NUnit.Framework
 open System
@@ -335,7 +335,7 @@ let generateParsedInput =
                ("/tmp.fsx", true,
                 QualifiedNameOfFile ident, [], [],
                 [SynModuleOrNamespace
-                   ([ident], false, true,
+                   ([ident], false, AnonModule,
                     [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
                     zero)], (true, true)))
     Gen.sized <| fun size -> Gen.map generateAST (generateTypedSeqExpr size)

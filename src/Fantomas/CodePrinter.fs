@@ -1,4 +1,4 @@
-module internal Fantomas.CodePrinter
+﻿module internal Fantomas.CodePrinter
 
 open System
 open FSharp.Compiler.Ast
@@ -84,21 +84,21 @@ and genParsedHashDirective (ParsedHashDirective(h, s)) =
 
     !- "#" -- h +> sepSpace +> col sepSpace s printArgument
 
-and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule)) =
+and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind)) =
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> ifElse (String.Equals(s, astContext.TopLevelModuleName, StringComparison.InvariantCultureIgnoreCase)) sepNone 
-         (ifElse isModule (!- "module ") (!- "namespace ")
+    +> ifElse (moduleKind = AnonModule) sepNone 
+         (ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
             +> opt sepSpace ao genAccess
             +> ifElse isRecursive (!- "rec ") sepNone
             +> ifElse (s = "") (!- "global") (!- s) +> rep 2 sepNln)
     +> genModuleDeclList astContext mds
 
-and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule)) =
+and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind)) =
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> ifElse (String.Equals(s, astContext.TopLevelModuleName, StringComparison.InvariantCultureIgnoreCase)) sepNone 
-            (ifElse isModule (!- "module ") (!- "namespace ")
+    +> ifElse (moduleKind = AnonModule) sepNone 
+            (ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
                 +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
     +> genSigModuleDeclList astContext mds
 
@@ -438,7 +438,7 @@ and genMemberFlags astContext = function
     | MFConstructor _ -> sepNone
     | MFOverride _ -> ifElse astContext.InterfaceRange.IsSome (!- "member ") (!- "override ")
 
-and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs:Microsoft.FSharp.Compiler.Range.range) = 
+and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs:FSharp.Compiler.Range.range) = 
     fun ctx ->
          match mf with
          | MFMember _
