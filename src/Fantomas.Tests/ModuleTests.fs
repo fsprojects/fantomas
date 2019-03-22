@@ -60,10 +60,10 @@ module internal Fantomas.CodePrinter
 // comment0
 let x = 0
 
+open FSharp.Compiler.Ast
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
-open FSharp.Compiler.Ast
 open System
 open System.Collections.Generic
 
