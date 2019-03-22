@@ -399,7 +399,8 @@ let rec shrinkSynExpr = function
     | SynExpr.ArrayOrList(_, exprs, _)
     | SynExpr.Tuple(false, exprs, _, _) ->
         seq { yield! Seq.collect collectSynExpr exprs }
-    | SynExpr.Record(_, _, _, _) -> Seq.empty
+    | SynExpr.AnonRecd(_, _, _, _)
+    | SynExpr.Record(_, _, _, _)
     | SynExpr.ObjExpr(_, _, _, _, _, _) -> Seq.empty
 
     | SynExpr.IfThenElse(expr1, expr2, Some expr3, _, _, _, _)
