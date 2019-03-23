@@ -262,28 +262,16 @@ type MyExc =
 """
 
 [<Test>]
-let ``anon record expression``() =
-    formatSourceString false """
-let r : {| Foo : int; Bar : string |} =
-    {| Foo = 123
-       Bar = "" |}
-"""  config
-  |> prepend newline
-  |> should equal """
+let ``anon record``() =
+    shouldNotChangeAfterFormat """
 let r : {| Foo : int; Bar : string |} =
     {| Foo = 123
        Bar = "" |}
 """
 
 [<Test>]
-let `` anon record struct expression``() =
-    formatSourceString false """
-let r : struct {| Foo : int; Bar : string |} =
-    struct {| Foo = 123
-              Bar = "" |}
-"""  config
-  |> prepend newline
-  |> should equal """
+let `` anon record - struct``() =
+    shouldNotChangeAfterFormat """
 let r : struct {| Foo : int; Bar : string |} =
     struct {| Foo = 123
               Bar = "" |}
