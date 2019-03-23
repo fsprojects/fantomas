@@ -1058,6 +1058,11 @@ and genType astContext outerBracket t =
         | TWithGlobalConstraints(TFuns ts, tcs) -> col sepArrow ts loop +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)        
         | TWithGlobalConstraints(t, tcs) -> loop t +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
         | TLongIdent s -> ifElse astContext.IsCStylePattern (genTypeByLookup astContext t) (!- s)
+        | TAnonRecord(isStruct, fields) ->
+            ifElse isStruct !- "struct " sepNone
+            +> sepOpenAnonRecd
+            +> col sepSemi fields (genAnonRecordFieldType astContext)
+            +> sepCloseAnonRecd
         | t -> failwithf "Unexpected type: %O" t
 
     and loopTTupleList = function
@@ -1073,6 +1078,9 @@ and genType astContext outerBracket t =
     | TFuns ts -> ifElse outerBracket (sepOpenT +> col sepArrow ts loop +> sepCloseT) (col sepArrow ts loop)
     | TTuple ts -> ifElse outerBracket (sepOpenT +> loopTTupleList ts +> sepCloseT) (loopTTupleList ts)
     | _ -> loop t
+  
+and genAnonRecordFieldType astContext (AnonRecordFieldType(s, t)) =
+    !- s +> sepColon +> (genType astContext false t)
   
 and genPrefixTypes astContext = function
     | [] -> sepNone

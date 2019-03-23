@@ -1170,6 +1170,11 @@ let (|TLongIdent|_|) = function
         Some s
     | _ -> None
 
+let (|TAnonRecord|_|) = function
+    | SynType.AnonRecd(isStruct, fields, _) ->
+        Some(isStruct, fields)
+    | _ -> None
+
 // Type parameter
 
 type SingleTyparConstraintKind = 
@@ -1213,6 +1218,7 @@ let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull s), tds, t, vi, _, _, px, ao
 let (|RecordFieldName|) ((LongIdentWithDots s, _) : RecordFieldName, eo : SynExpr option, _) = (s, eo)
 
 let (|AnonRecordFieldName|) ((Ident s): Ident, e: SynExpr) = (s, e)
+let (|AnonRecordFieldType|) ((Ident s): Ident, t: SynType) = (s, t)
 
 let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), p) = (s1, s2, p)
 
