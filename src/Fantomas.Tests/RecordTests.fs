@@ -260,3 +260,31 @@ type MyExc =
           X = 1
           Y = 2 }
 """
+
+[<Test>]
+let ``anon record expression``() =
+    formatSourceString false """
+let r =
+    {| Foo = 123
+       Bar = "" |}
+"""  config
+  |> prepend newline
+  |> should equal """
+let r =
+    {| Foo = 123
+       Bar = "" |}
+"""
+
+[<Test>]
+let `` anon record struct expression``() =
+    formatSourceString false """
+let r =
+    struct {| Foo = 123
+              Bar = "" |}
+"""  config
+  |> prepend newline
+  |> should equal """
+let r =
+    struct {| Foo = 123
+              Bar = "" |}
+"""

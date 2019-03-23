@@ -808,6 +808,11 @@ let (|Record|_|) = function
         Some(inheritOpt, xs, Option.map fst eo)
     | _ -> None
 
+let (|AnonRecord|_|) = function
+    | SynExpr.AnonRecd(isStruct, copyInfo, fields, _) ->
+        Some(isStruct, fields, Option.map fst copyInfo)
+    | _ -> None
+
 let (|ObjExpr|_|) = function
     | SynExpr.ObjExpr(t, eio, bd, ims, _, range) ->
         Some (t, eio, bd, ims, range)
@@ -1206,6 +1211,8 @@ let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull s), tds, t, vi, _, _, px, ao
 // Misc
 
 let (|RecordFieldName|) ((LongIdentWithDots s, _) : RecordFieldName, eo : SynExpr option, _) = (s, eo)
+
+let (|AnonRecordFieldName|) ((Ident s): Ident, e: SynExpr) = (s, e)
 
 let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), p) = (s1, s2, p)
 
