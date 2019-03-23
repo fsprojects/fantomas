@@ -4,9 +4,9 @@ open FsUnit
 open System
 open Fantomas.FormatConfig
 open Fantomas
-open Microsoft.FSharp.Compiler.SourceCodeServices
-open Microsoft.FSharp.Compiler.Ast
-open Microsoft.FSharp.Compiler.Range
+open FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.Ast
+open FSharp.Compiler.Range
 
 let config = FormatConfig.Default
 let newline = "\n"
@@ -102,7 +102,7 @@ let toSynExprs (Input s) =
             ("/tmp.fsx", _,
             QualifiedNameOfFile _, [], [],
             [SynModuleOrNamespace
-                (_, false, true, exprs, _, _, _, _)], _))) -> 
+                (_, false, AnonModule, exprs, _, _, _, _)], _))) -> 
                 List.choose (function (SynModuleDecl.DoExpr(_, expr, _)) -> Some expr | _ -> None) exprs
     | _ -> 
         //stdout.WriteLine("Can't convert {0}.", sprintf "%A" ast)
@@ -126,7 +126,7 @@ let fromSynExpr expr =
                ("/tmp.fsx", true,
                 QualifiedNameOfFile ident, [], [],
                 [SynModuleOrNamespace
-                   ([ident], false, true,
+                   ([ident], false, AnonModule,
                     [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
                     zero)], (true, true)))
     Input (tryFormatAST ast None formatConfig)

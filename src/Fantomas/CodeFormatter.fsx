@@ -12,8 +12,8 @@
 
 open Fantomas.FormatConfig
 open Fantomas.CodeFormatter
-open Microsoft.FSharp.Compiler.Range
-open Microsoft.FSharp.Compiler.Interactive.Shell.Settings
+open FSharp.Compiler.Range
+open FSharp.Compiler.Interactive.Shell.Settings
 open Fantomas
 
 CodeFormatter.Parse ("Program.fs", """let plus a b = a + b""")

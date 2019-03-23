@@ -5,8 +5,8 @@ open System
 open Fantomas
 open FsCheck
 open FsUnit
-open Microsoft.FSharp.Compiler.Ast
-open Microsoft.FSharp.Compiler.Range
+open FSharp.Compiler.Ast
+open FSharp.Compiler.Range
 open TestHelper
 
 let generateSynMeasure =
@@ -154,7 +154,7 @@ and generateSynExpr size =
             [ 
                 1, Gen.map (fun c -> SynExpr.Const(c, zero)) genSubSynConst
                 1, Gen.map2 (fun expr typ -> SynExpr.Typed(expr, typ, zero)) genSubBasicExpr genSubSynType
-                2, Gen.map (fun exprs -> SynExpr.Tuple(exprs, exprs |> List.map (fun _ -> zero), zero)) genSubBasicExprList
+                2, Gen.map (fun exprs -> SynExpr.Tuple(false, exprs, exprs |> List.map (fun _ -> zero), zero)) genSubBasicExprList
                 2, Gen.map2 (fun b exprs -> SynExpr.ArrayOrList(b, exprs, zero)) Arb.generate<_> genSubBasicExprList
                 1, Gen.map3 (fun b typ expr -> SynExpr.New(b, typ, SynExpr.Paren(expr, zero, None, zero), zero)) Arb.generate<_> genSubSynType genSubBasicExpr
                 1, Gen.map2 (fun expr1 expr2 -> SynExpr.While(NoSequencePointAtWhileLoop, expr1, expr2, zero)) genSubBasicExpr genSubBasicExpr
@@ -184,7 +184,7 @@ and generateSynExpr size =
                 1, Gen.map2 (fun expr clauses -> SynExpr.TryWith(expr, zero, clauses, zero, zero, NoSequencePointAtTry, NoSequencePointAtWith)) genSubSynExpr genSubSynMatchClauseList
                 1, Gen.map2 (fun expr typs -> SynExpr.TypeApp(expr, zero, typs, typs |> List.map (fun _ -> zero), None, zero, zero)) genSubBasicExpr genSubSynTypeList
                 4, Gen.map3 (fun b expr1 expr2 -> SynExpr.App(ExprAtomicFlag.NonAtomic, b, expr1, expr2, zero)) Arb.generate<_> genSubBasicExpr genSubBasicExpr
-                4, Gen.map2 (fun expr clauses -> SynExpr.Match(NoSequencePointAtDoBinding, expr, clauses, false, zero)) genSubSynExpr genSubSynMatchClauseList
+                4, Gen.map2 (fun expr clauses -> SynExpr.Match(NoSequencePointAtDoBinding, expr, clauses, zero)) genSubSynExpr genSubSynMatchClauseList
                 2, Gen.map2 (fun b clauses -> SynExpr.MatchLambda(b, zero, clauses, NoSequencePointAtDoBinding, zero)) Arb.generate<_> genSubSynMatchClauseList
                 2, Gen.map3 (fun b pat expr -> SynExpr.Lambda(b, false, pat, expr, zero)) Arb.generate<_> genSubSynSimplePats genSubSynExpr
                 2, Gen.map5 (fun b expr1 expr2 expr3 s -> SynExpr.For(NoSequencePointAtForLoop, Ident(s, zero), expr1, b, expr2, expr3, zero)) Arb.generate<_> genSubBasicExpr genSubBasicExpr genSubBasicExpr genSubIdent
@@ -209,7 +209,7 @@ and generateBasicExpr size =
             [ 
                 1, Gen.map (fun c -> SynExpr.Const(c, zero)) genSubSynConst
                 1, Gen.map2 (fun expr typ -> SynExpr.Typed(expr, typ, zero)) genSubBasicExpr genSubSynType
-                2, Gen.map (fun exprs -> SynExpr.Tuple(exprs, exprs |> List.map (fun _ -> zero), zero)) genSubBasicExprList
+                2, Gen.map (fun exprs -> SynExpr.Tuple(false, exprs, exprs |> List.map (fun _ -> zero), zero)) genSubBasicExprList
                 2, Gen.map2 (fun b exprs -> SynExpr.ArrayOrList(b, exprs, zero)) Arb.generate<_> genSubBasicExprList
                 1, Gen.map3 (fun b typ expr -> SynExpr.New(b, typ, SynExpr.Paren(expr, zero, None, zero), zero)) Arb.generate<_> genSubSynType genSubBasicExpr
                 1, Gen.map2 (fun expr1 expr2 -> SynExpr.While(NoSequencePointAtWhileLoop, expr1, expr2, zero)) genSubBasicExpr genSubBasicExpr
@@ -289,14 +289,14 @@ and generateDeclExpr size =
         Gen.frequency 
             [ 
                 8, Gen.map3 (fun b bindings expr -> SynExpr.LetOrUse(b, false, bindings, expr, zero)) Arb.generate<_> generateSynBindingList genSubDeclExpr //
-                4, Gen.map2 (fun expr clauses -> SynExpr.Match(NoSequencePointAtDoBinding, expr, clauses, false, zero)) genSubDeclExpr genSubSynMatchClauseList //                
+                4, Gen.map2 (fun expr clauses -> SynExpr.Match(NoSequencePointAtDoBinding, expr, clauses, zero)) genSubDeclExpr genSubSynMatchClauseList //                
                 4, Gen.map2 (fun b clauses -> SynExpr.MatchLambda(b, zero, clauses, NoSequencePointAtDoBinding, zero)) Arb.generate<_> genSubSynMatchClauseList //
                 4, Gen.map3 (fun b pat expr -> SynExpr.Lambda(b, false, pat, expr, zero)) Arb.generate<_> genSubSynSimplePats genSubDeclExpr //
                 1, Gen.map2 (fun expr1 expr2 -> SynExpr.TryFinally(expr1, expr2, zero, NoSequencePointAtTry, NoSequencePointAtFinally)) genSubDeclExpr genSubDeclExpr //
                 1, Gen.map2 (fun expr clauses -> SynExpr.TryWith(expr, zero, clauses, zero, zero, NoSequencePointAtTry, NoSequencePointAtWith)) genSubDeclExpr genSubSynMatchClauseList //
                 1, Gen.map (fun c -> SynExpr.Const(c, zero)) genSubSynConst //
                 1, Gen.map2 (fun expr typ -> SynExpr.Typed(expr, typ, zero)) genSubDeclExpr genSubSynType
-                2, Gen.map (fun exprs -> SynExpr.Tuple(exprs, exprs |> List.map (fun _ -> zero), zero)) genSubDeclExprList //
+                2, Gen.map (fun exprs -> SynExpr.Tuple(false, exprs, exprs |> List.map (fun _ -> zero), zero)) genSubDeclExprList //
                 2, Gen.map2 (fun b exprs -> SynExpr.ArrayOrList(b, exprs, zero)) Arb.generate<_> genSubDeclExprList
                 1, Gen.map3 (fun b typ expr -> SynExpr.New(b, typ, SynExpr.Paren(expr, zero, None, zero), zero)) Arb.generate<_> genSubSynType genSubDeclExpr
                 1, Gen.map2 (fun expr1 expr2 -> SynExpr.While(NoSequencePointAtWhileLoop, expr1, expr2, zero)) genSubDeclExpr genSubDeclExpr //
@@ -335,7 +335,7 @@ let generateParsedInput =
                ("/tmp.fsx", true,
                 QualifiedNameOfFile ident, [], [],
                 [SynModuleOrNamespace
-                   ([ident], false, true,
+                   ([ident], false, AnonModule,
                     [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
                     zero)], (true, true)))
     Gen.sized <| fun size -> Gen.map generateAST (generateTypedSeqExpr size)
@@ -397,9 +397,10 @@ let rec shrinkSynExpr = function
         seq { yield! collectSynExpr expr1; yield! collectSynExpr expr2 }
     | SynExpr.Const(_, _) -> Seq.empty
     | SynExpr.ArrayOrList(_, exprs, _)
-    | SynExpr.Tuple(exprs, _, _) ->
+    | SynExpr.Tuple(false, exprs, _, _) ->
         seq { yield! Seq.collect collectSynExpr exprs }
-    | SynExpr.Record(_, _, _, _) -> Seq.empty
+    | SynExpr.AnonRecd(_, _, _, _)
+    | SynExpr.Record(_, _, _, _)
     | SynExpr.ObjExpr(_, _, _, _, _, _) -> Seq.empty
 
     | SynExpr.IfThenElse(expr1, expr2, Some expr3, _, _, _, _)
@@ -409,8 +410,8 @@ let rec shrinkSynExpr = function
     | SynExpr.MatchLambda(_, _, clauses, _, _) -> 
         seq { yield! Seq.collect collectSynMatchClause clauses }
     | SynExpr.TryWith(expr, _, clauses, _, _, _, _)
-    | SynExpr.Match(_, expr, clauses, _, _)
-    | SynExpr.MatchBang(_, expr, clauses, _, _) -> 
+    | SynExpr.Match(_, expr, clauses, _)
+    | SynExpr.MatchBang(_, expr, clauses, _) -> 
         seq { yield! collectSynExpr expr; yield! Seq.collect collectSynMatchClause clauses }
     | SynExpr.LetOrUse(_, _, bindings, expr, _) -> 
         seq { yield! Seq.collect collectSynBinding bindings; yield! collectSynExpr expr }
@@ -431,8 +432,8 @@ let rec shrinkSynExpr = function
     | SynExpr.ArbitraryAfterError _
     | SynExpr.FromParseError _
     | SynExpr.DiscardAfterMissingQualificationAfterDot _
-    | SynExpr.Fixed _
-    | SynExpr.StructTuple _ -> Seq.empty
+    | SynExpr.Tuple(true, _, _, _)
+    | SynExpr.Fixed _ -> Seq.empty
 
 and collectSynExpr expr =
     seq { yield expr 

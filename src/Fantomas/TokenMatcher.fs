@@ -3,9 +3,9 @@
 open System
 open System.Collections.Generic
 open System.Diagnostics
-open Microsoft.FSharp.Compiler.Range
-open Microsoft.FSharp.Compiler.PrettyNaming
-open Microsoft.FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.Range
+open FSharp.Compiler.PrettyNaming
+open FSharp.Compiler.SourceCodeServices
 open System.Text.RegularExpressions
 open Fantomas
 
@@ -26,7 +26,7 @@ let tokenize defines (content : string) =
     seq { 
         let sourceTokenizer = FSharpSourceTokenizer("INTERACTIVE" :: defines, Some "/tmp.fsx")
         let lines = String.normalizeThenSplitNewLine content
-        let lexState = ref 0L
+        let lexState = ref FSharpTokenizerLexState.Initial
         for (i, line) in lines |> Seq.zip [1..lines.Length] do 
             let lineTokenizer = sourceTokenizer.CreateLineTokenizer line
             let finLine = ref false
