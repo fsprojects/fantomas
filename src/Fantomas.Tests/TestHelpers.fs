@@ -130,3 +130,8 @@ let fromSynExpr expr =
                     [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
                     zero)], (true, true)))
     Input (tryFormatAST ast None formatConfig)
+
+let shouldNotChangeAfterFormat source =
+    formatSourceString false source config
+    |> prepend newline
+    |> should equal source

@@ -473,6 +473,9 @@ and genVal astContext (Val(ats, px, ao, s, t, vi, _)) =
 and genRecordFieldName astContext (RecordFieldName(s, eo)) =
     opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e)
 
+and genAnonRecordFieldName astContext (AnonRecordFieldName(s, e)) =
+    !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e
+
 and genTuple astContext es =
     atCurrentColumn (coli sepComma es (fun i -> 
             if i = 0 then genExpr astContext else noIndentBreakNln astContext
@@ -538,6 +541,17 @@ and genExpr astContext synExpr =
         +> atCurrentColumnIndent (opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
             (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
         +> sepCloseS
+
+    | AnonRecord(isStruct, fields, copyInfo) -> 
+        let recordExpr = 
+            let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
+            copyInfo |> Option.map (fun e ->
+                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+            |> Option.defaultValue fieldsExpr
+        ifElse isStruct !- "struct " sepNone 
+        +> sepOpenAnonRecd
+        +> atCurrentColumnIndent recordExpr
+        +> sepCloseAnonRecd
 
     | ObjExpr(t, eio, bd, ims, range) ->
         // Check the role of the second part of eio
@@ -1044,6 +1058,11 @@ and genType astContext outerBracket t =
         | TWithGlobalConstraints(TFuns ts, tcs) -> col sepArrow ts loop +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)        
         | TWithGlobalConstraints(t, tcs) -> loop t +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
         | TLongIdent s -> ifElse astContext.IsCStylePattern (genTypeByLookup astContext t) (!- s)
+        | TAnonRecord(isStruct, fields) ->
+            ifElse isStruct !- "struct " sepNone
+            +> sepOpenAnonRecd
+            +> col sepSemi fields (genAnonRecordFieldType astContext)
+            +> sepCloseAnonRecd
         | t -> failwithf "Unexpected type: %O" t
 
     and loopTTupleList = function
@@ -1059,6 +1078,9 @@ and genType astContext outerBracket t =
     | TFuns ts -> ifElse outerBracket (sepOpenT +> col sepArrow ts loop +> sepCloseT) (col sepArrow ts loop)
     | TTuple ts -> ifElse outerBracket (sepOpenT +> loopTTupleList ts +> sepCloseT) (loopTTupleList ts)
     | _ -> loop t
+  
+and genAnonRecordFieldType astContext (AnonRecordFieldType(s, t)) =
+    !- s +> sepColon +> (genType astContext false t)
   
 and genPrefixTypes astContext = function
     | [] -> sepNone
