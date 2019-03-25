@@ -44,7 +44,7 @@ let x = 0
 
 open System
 open System.Collections.Generic
-open Microsoft.FSharp.Compiler.Ast
+open FSharp.Compiler.Ast
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
@@ -60,10 +60,10 @@ module internal Fantomas.CodePrinter
 // comment0
 let x = 0
 
+open FSharp.Compiler.Ast
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
-open Microsoft.FSharp.Compiler.Ast
 open System
 open System.Collections.Generic
 

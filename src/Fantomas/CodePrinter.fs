@@ -1,7 +1,8 @@
 ﻿module internal Fantomas.CodePrinter
 
 open System
-open Microsoft.FSharp.Compiler.Ast
+open FSharp.Compiler.Ast
+open FSharp.Compiler.Range
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
@@ -16,7 +17,7 @@ type ASTContext =
       /// Current node is the first child of its parent
       IsFirstChild: bool
       /// Current node is a subnode deep down in an interface
-      InterfaceRange: Microsoft.FSharp.Compiler.Range.range option
+      InterfaceRange: range option
       /// This pattern matters for formatting extern declarations
       IsCStylePattern: bool
       /// Range operators are naked in 'for..in..do' constructs
@@ -83,21 +84,21 @@ and genParsedHashDirective (ParsedHashDirective(h, s)) =
 
     !- "#" -- h +> sepSpace +> col sepSpace s printArgument
 
-and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule)) =
+and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind)) =
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> ifElse (String.Equals(s, astContext.TopLevelModuleName, StringComparison.InvariantCultureIgnoreCase)) sepNone 
-         (ifElse isModule (!- "module ") (!- "namespace ")
+    +> ifElse (moduleKind = AnonModule) sepNone 
+         (ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
             +> opt sepSpace ao genAccess
             +> ifElse isRecursive (!- "rec ") sepNone
             +> ifElse (s = "") (!- "global") (!- s) +> rep 2 sepNln)
     +> genModuleDeclList astContext mds
 
-and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule)) =
+and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind)) =
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> ifElse (String.Equals(s, astContext.TopLevelModuleName, StringComparison.InvariantCultureIgnoreCase)) sepNone 
-            (ifElse isModule (!- "module ") (!- "namespace ")
+    +> ifElse (moduleKind = AnonModule) sepNone 
+            (ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
                 +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
     +> genSigModuleDeclList astContext mds
 
@@ -437,7 +438,7 @@ and genMemberFlags astContext = function
     | MFConstructor _ -> sepNone
     | MFOverride _ -> ifElse astContext.InterfaceRange.IsSome (!- "member ") (!- "override ")
 
-and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs:Microsoft.FSharp.Compiler.Range.range) = 
+and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs: range) = 
     fun ctx ->
          match mf with
          | MFMember _
@@ -1125,7 +1126,7 @@ and genClause astContext hasBar (Clause(p, e, eo)) =
     +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> preserveBreakNln astContext e
 
 /// Each multiline member definition has a pre and post new line. 
-and genMemberDefnList astContext (*(interfaceRange:Microsoft.FSharp.Compiler.Range.range)*) = function
+and genMemberDefnList astContext (*(interfaceRange:range)*) = function
     | [x] -> sepNln +> genMemberDefn astContext x
 
     | MDOpenL(xs, ys) ->
