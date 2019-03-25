@@ -4,7 +4,7 @@ open System
 open System.IO
 open System.Collections.Generic
 open System.CodeDom.Compiler
-open Microsoft.FSharp.Compiler.Range
+open FSharp.Compiler.Range
 open Fantomas.FormatConfig
 open Fantomas.TokenMatcher
 
@@ -300,13 +300,21 @@ let internal sepOpenAFixed = !- "[|"
 /// closing token of list
 let internal sepCloseAFixed = !- "|]"
 
-/// opening token of sequence
+/// opening token of sequence or record
 let internal sepOpenS (ctx : Context) = 
     if ctx.Config.SpaceAroundDelimiter then str "{ " ctx else str "{" ctx 
 
-/// closing token of sequence
+/// closing token of sequence or record
 let internal sepCloseS (ctx : Context) = 
     if ctx.Config.SpaceAroundDelimiter then str " }" ctx else str "}" ctx
+
+/// opening token of anon record
+let internal sepOpenAnonRecd (ctx : Context) =
+    if ctx.Config.SpaceAroundDelimiter then str "{| " ctx else str "{|" ctx 
+
+/// closing token of anon record
+let internal sepCloseAnonRecd (ctx : Context) =
+    if ctx.Config.SpaceAroundDelimiter then str " |}" ctx else str "|}" ctx
 
 /// opening token of sequence
 let internal sepOpenSFixed = !- "{"

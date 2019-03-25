@@ -260,3 +260,19 @@ type MyExc =
           X = 1
           Y = 2 }
 """
+
+[<Test>]
+let ``anon record``() =
+    shouldNotChangeAfterFormat """
+let r : {| Foo : int; Bar : string |} =
+    {| Foo = 123
+       Bar = "" |}
+"""
+
+[<Test>]
+let `` anon record - struct``() =
+    shouldNotChangeAfterFormat """
+let r : struct {| Foo : int; Bar : string |} =
+    struct {| Foo = 123
+              Bar = "" |}
+"""

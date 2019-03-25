@@ -2,12 +2,12 @@
 
 open System
 open System.Diagnostics
-open Microsoft.FSharp.Compiler.Range
-open Microsoft.FSharp.Compiler.Ast
-open Microsoft.FSharp.Compiler.PrettyNaming
+open FSharp.Compiler.Range
+open FSharp.Compiler.Ast
+open FSharp.Compiler.PrettyNaming
 open Fantomas
 open Fantomas.Context
-open Microsoft.FSharp.Compiler.SourceCodeServices.PrettyNaming
+open FSharp.Compiler.SourceCodeServices.PrettyNaming
 
 type Composite<'a, 'b> =
     | Pair of 'b * 'b
@@ -549,12 +549,12 @@ let (|TypeApp|_|) = function
     | _ -> None
 
 let (|Match|_|) = function
-    | SynExpr.Match(_, e, cs, _, _) ->
+    | SynExpr.Match(_, e, cs, _) ->
         Some(e, cs)
     | _ -> None
 
 let (|MatchBang|_|) = function
-    | SynExpr.MatchBang(_, e, cs, _, _) ->
+    | SynExpr.MatchBang(_, e, cs, _) ->
         Some(e, cs)
     | _ -> None
 
@@ -605,12 +605,12 @@ let (|ArrayOrList|_|) = function
     | _ -> None
 
 let (|Tuple|_|) = function
-    | SynExpr.Tuple(exprs, _, _) ->
+    | SynExpr.Tuple(false, exprs, _, _) ->
         Some exprs
     | _ -> None
 
 let (|StructTuple|_|) = function
-    | SynExpr.StructTuple(exprs, _, _) ->
+    | SynExpr.Tuple(true, exprs, _, _) ->
         Some exprs
     | _ -> None
 
@@ -808,6 +808,11 @@ let (|Record|_|) = function
         Some(inheritOpt, xs, Option.map fst eo)
     | _ -> None
 
+let (|AnonRecord|_|) = function
+    | SynExpr.AnonRecd(isStruct, copyInfo, fields, _) ->
+        Some(isStruct, fields, Option.map fst copyInfo)
+    | _ -> None
+
 let (|ObjExpr|_|) = function
     | SynExpr.ObjExpr(t, eio, bd, ims, _, range) ->
         Some (t, eio, bd, ims, range)
@@ -880,12 +885,12 @@ let (|PatNullary|_|) = function
     | _ -> None
 
 let (|PatTuple|_|) = function
-    | SynPat.Tuple(ps, _) ->
+    | SynPat.Tuple(false, ps, _) ->
         Some ps
     | _ -> None
 
 let (|PatStructTuple|_|) = function
-    | SynPat.StructTuple(ps, _) ->
+    | SynPat.Tuple(true, ps, _) ->
         Some ps
     | _ -> None
 
@@ -961,9 +966,9 @@ let (|RecordField|) = function
 let (|Clause|) (SynMatchClause.Clause(p, eo, e, _, _)) = (p, e, eo)
 
 let rec private (|DesugaredMatch|_|) = function
-    | SynExpr.Match(_, CompilerGeneratedVar s, [Clause(p, DesugaredMatch(ss, e), None)], _, _) ->
+    | SynExpr.Match(_, CompilerGeneratedVar s, [Clause(p, DesugaredMatch(ss, e), None)], _) ->
         Some((s, p)::ss, e)
-    | SynExpr.Match(_, CompilerGeneratedVar s, [Clause(p, e, None)], _, _) ->
+    | SynExpr.Match(_, CompilerGeneratedVar s, [Clause(p, e, None)], _) ->
         Some([(s, p)], e)
     | _ -> None
 
@@ -1146,12 +1151,12 @@ let (|TLongIdentApp|_|) = function
     | _ -> None    
 
 let (|TTuple|_|) = function
-    | SynType.Tuple(ts, _) ->
+    | SynType.Tuple(false, ts, _) ->
         Some ts
     | _ -> None
 
 let (|TStructTuple|_|) = function
-    | SynType.StructTuple(ts, _) ->
+    | SynType.Tuple(true, ts, _) ->
         Some ts
     | _ -> None
 
@@ -1163,6 +1168,11 @@ let (|TWithGlobalConstraints|_|) = function
 let (|TLongIdent|_|) = function
     | SynType.LongIdent(LongIdentWithDots s) ->
         Some s
+    | _ -> None
+
+let (|TAnonRecord|_|) = function
+    | SynType.AnonRecd(isStruct, fields, _) ->
+        Some(isStruct, fields)
     | _ -> None
 
 // Type parameter
@@ -1206,6 +1216,9 @@ let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull s), tds, t, vi, _, _, px, ao
 // Misc
 
 let (|RecordFieldName|) ((LongIdentWithDots s, _) : RecordFieldName, eo : SynExpr option, _) = (s, eo)
+
+let (|AnonRecordFieldName|) ((Ident s): Ident, e: SynExpr) = (s, e)
+let (|AnonRecordFieldType|) ((Ident s): Ident, t: SynType) = (s, t)
 
 let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), p) = (s1, s2, p)
 

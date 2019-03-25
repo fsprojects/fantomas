@@ -1,7 +1,7 @@
 ﻿namespace Fantomas
 
 open Fantomas
-open Microsoft.FSharp.Compiler.Range
+open FSharp.Compiler.Range
 
 [<Sealed>]
 type CodeFormatter =

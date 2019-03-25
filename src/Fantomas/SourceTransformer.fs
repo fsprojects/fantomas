@@ -3,8 +3,8 @@
 open Fantomas
 open Fantomas.Context
 open Fantomas.SourceParser
-open Microsoft.FSharp.Compiler
-open Microsoft.FSharp.Compiler.Range
+open FSharp.Compiler
+open FSharp.Compiler.Range
 
 [<RequireQualifiedAccess>]
 module List = 

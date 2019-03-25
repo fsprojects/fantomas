@@ -1,7 +1,8 @@
 ﻿module internal Fantomas.CodePrinter
 
 open System
-open Microsoft.FSharp.Compiler.Ast
+open FSharp.Compiler.Ast
+open FSharp.Compiler.Range
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
@@ -16,7 +17,7 @@ type ASTContext =
       /// Current node is the first child of its parent
       IsFirstChild: bool
       /// Current node is a subnode deep down in an interface
-      InterfaceRange: Microsoft.FSharp.Compiler.Range.range option
+      InterfaceRange: range option
       /// This pattern matters for formatting extern declarations
       IsCStylePattern: bool
       /// Range operators are naked in 'for..in..do' constructs
@@ -83,23 +84,23 @@ and genParsedHashDirective (ParsedHashDirective(h, s)) =
 
     !- "#" -- h +> sepSpace +> col sepSpace s printArgument
 
-and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule) as node) =
+and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind) as node) =
     genPreXmlDoc px
     +> genTrivia node
     +> genAttributes astContext ats
-    +> ifElse (String.Equals(s, astContext.TopLevelModuleName, StringComparison.InvariantCultureIgnoreCase)) sepNone 
-         (ifElse isModule (!- "module ") (!- "namespace ")
+    +> ifElse (moduleKind = AnonModule) sepNone 
+         (ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
             +> opt sepSpace ao genAccess
             +> ifElse isRecursive (!- "rec ") sepNone
             +> ifElse (s = "") (!- "global") (!- s) +> rep 2 sepNln)
     +> genModuleDeclList astContext mds
 
-and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule) as node) =
+and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind) as node) =
     genPreXmlDoc px
     +> genTrivia node
     +> genAttributes astContext ats
-    +> ifElse (String.Equals(s, astContext.TopLevelModuleName, StringComparison.InvariantCultureIgnoreCase)) sepNone 
-            (ifElse isModule (!- "module ") (!- "namespace ")
+    +> ifElse (moduleKind = AnonModule) sepNone 
+            (ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
                 +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
     +> genSigModuleDeclList astContext mds
 
@@ -455,7 +456,7 @@ and genMemberFlags astContext node =
     | MFConstructor _ -> sepNone
     | MFOverride _ -> ifElse astContext.InterfaceRange.IsSome (!- "member ") (!- "override ")
 
-and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs:Microsoft.FSharp.Compiler.Range.range) = 
+and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs: range) = 
     fun ctx ->
          match mf with
          | MFMember _
@@ -491,6 +492,9 @@ and genVal astContext (Val(ats, px, ao, s, t, vi, _) as node) =
 and genRecordFieldName astContext (RecordFieldName(s, eo) as node) =
     genTrivia node +>
     opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e)
+
+and genAnonRecordFieldName astContext (AnonRecordFieldName(s, e)) =
+    !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e
 
 and genTuple astContext es =
     atCurrentColumn (coli sepComma es (fun i -> 
@@ -558,6 +562,17 @@ and genExpr astContext synExpr =
         +> atCurrentColumnIndent (opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
             (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
         +> sepCloseS
+
+    | AnonRecord(isStruct, fields, copyInfo) -> 
+        let recordExpr = 
+            let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
+            copyInfo |> Option.map (fun e ->
+                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+            |> Option.defaultValue fieldsExpr
+        ifElse isStruct !- "struct " sepNone 
+        +> sepOpenAnonRecd
+        +> atCurrentColumnIndent recordExpr
+        +> sepCloseAnonRecd
 
     | ObjExpr(t, eio, bd, ims, range) ->
         // Check the role of the second part of eio
@@ -1078,6 +1093,11 @@ and genType astContext outerBracket t =
         | TWithGlobalConstraints(TFuns ts, tcs) -> col sepArrow ts loop +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)        
         | TWithGlobalConstraints(t, tcs) -> loop t +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
         | TLongIdent s -> ifElse astContext.IsCStylePattern (genTypeByLookup astContext t) (!- s)
+        | TAnonRecord(isStruct, fields) ->
+            ifElse isStruct !- "struct " sepNone
+            +> sepOpenAnonRecd
+            +> col sepSemi fields (genAnonRecordFieldType astContext)
+            +> sepCloseAnonRecd
         | t -> failwithf "Unexpected type: %O" t
 
     and loopTTupleList = function
@@ -1093,6 +1113,9 @@ and genType astContext outerBracket t =
     | TFuns ts -> ifElse outerBracket (sepOpenT +> col sepArrow ts loop +> sepCloseT) (col sepArrow ts loop)
     | TTuple ts -> ifElse outerBracket (sepOpenT +> loopTTupleList ts +> sepCloseT) (loopTTupleList ts)
     | _ -> loop t
+  
+and genAnonRecordFieldType astContext (AnonRecordFieldType(s, t)) =
+    !- s +> sepColon +> (genType astContext false t)
   
 and genPrefixTypes astContext node =
     genTrivia node +>
