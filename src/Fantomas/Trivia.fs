@@ -1,8 +1,8 @@
 module Fantomas.Trivia
 
 open Fantomas.AstTransformer
-open Microsoft.FSharp.Compiler.Ast
-open Microsoft.FSharp.Compiler.Range
+open FSharp.Compiler.Ast
+open FSharp.Compiler.Range
 open Fantomas.TokenMatcher
 
 let refDict xs =

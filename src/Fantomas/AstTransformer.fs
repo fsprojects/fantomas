@@ -1,6 +1,6 @@
 module Fantomas.AstTransformer
 
-open Microsoft.FSharp.Compiler.Ast
+open FSharp.Compiler.Ast
 
 type Range =
     { StartLine: int
@@ -24,7 +24,7 @@ type Node = {
 }
 
 module Helpers =
-    let r(r: Microsoft.FSharp.Compiler.Range.range): Range option =
+    let r(r: FSharp.Compiler.Range.range): Range option =
         Some
             {StartLine = r.StartLine
              StartCol = r.StartColumn
@@ -166,16 +166,10 @@ module private Ast =
              Childs =
                  [yield visitSynExpr expr
                   yield visitSynType typeName]}
-        | SynExpr.Tuple(exprs,commaRanges,range) ->
+        | SynExpr.Tuple(isStruct,exprs,commaRanges,range) ->
             {Type = "SynExpr.Tuple"
              Range = r range
-             Properties = p ["commaRanges" ==> (commaRanges |> List.map r)]
-             FsAstNode = synExpr
-             Childs = [yield! exprs |> List.map visitSynExpr]}
-        | SynExpr.StructTuple(exprs,commaRanges,range) ->
-            {Type = "SynExpr.StructTuple"
-             Range = r range
-             Properties = p ["commaRanges" ==> (commaRanges |> List.map r)]
+             Properties = p ["isStruct" ==> isStruct; "commaRanges" ==> (commaRanges |> List.map r)]
              FsAstNode = synExpr
              Childs = [yield! exprs |> List.map visitSynExpr]}
         | SynExpr.ArrayOrList(isList,exprs,range) ->
@@ -190,6 +184,12 @@ module private Ast =
              Properties = p []
              FsAstNode = synExpr
              Childs = [yield! recordFields |> List.map visitRecordField]}
+        | SynExpr.AnonRecd(_,_,recordFields,range) ->
+            {Type = "SynExpr.AnonRecd"
+             Range = r range
+             Properties = p []
+             FsAstNode = synExpr
+             Childs = [yield! recordFields |> List.map visitAnonRecordField]}
         | SynExpr.New(isProtected,typeName,expr,range) ->
             {Type = "SynExpr.New"
              Range = r range
@@ -266,10 +266,10 @@ module private Ast =
              Properties = p ["isExnMatch" ==> isExnMatch]
              FsAstNode = synExpr
              Childs = [yield! matchClaseus |> List.map visitSynMatchClause]}
-        | SynExpr.Match(_,expr,clauses,isExnMatch,range) ->
+        | SynExpr.Match(_,expr,clauses,range) ->
             {Type = "SynExpr.Match"
              Range = r range
-             Properties = p ["isExnMatch" ==> isExnMatch]
+             Properties = p []
              FsAstNode = synExpr
              Childs =
                  [yield visitSynExpr expr
@@ -539,10 +539,10 @@ module private Ast =
                  [yield visitSynPat pat
                   yield visitSynExpr rhsExpr
                   yield visitSynExpr body]}
-        | SynExpr.MatchBang(_,expr,clauses,isExnMatch,range) ->
+        | SynExpr.MatchBang(_,expr,clauses,range) ->
             {Type = "SynExpr.MatchBang"
              Range = r range
-             Properties = p ["isExnMatch" ==> isExnMatch]
+             Properties = p []
              FsAstNode = synExpr
              Childs =
                  [yield visitSynExpr expr
@@ -611,6 +611,20 @@ module private Ast =
          FsAstNode = expr
          Childs =
              [if expr.IsSome then yield visitSynExpr expr.Value]}
+    and visitAnonRecordField(ident: Ident,expr: SynExpr) =
+        {Type = "AnonRecordField"
+         Range = noRange
+         Properties = p ["ident" ==> i ident]
+         FsAstNode = expr
+         Childs =
+             [yield visitSynExpr expr]}
+    and visitAnonRecordTypeField(ident: Ident,t: SynType) =
+        {Type = "AnonRecordTypeField"
+         Range = noRange
+         Properties = p ["ident" ==> i ident]
+         FsAstNode = t
+         Childs =
+             [yield visitSynType t]}
 
     and visitSynMemberSig(ms: SynMemberSig): Node =
         match ms with
@@ -1005,16 +1019,10 @@ module private Ast =
              Childs =
                  [if svtd.IsSome then yield visitSynValTyparDecls svtd.Value
                   yield visitSynConstructorArgs ctorArgs]}
-        | SynPat.Tuple(pats,range) ->
+        | SynPat.Tuple(isStruct,pats,range) ->
             {Type = "SynPat.Tuple"
              Range = r range
-             Properties = p []
-             FsAstNode = sp
-             Childs = [yield! pats |> List.map visitSynPat]}
-        | SynPat.StructTuple(pats,range) ->
-            {Type = "SynPat.StructTuple"
-             Range = r range
-             Properties = p []
+             Properties = p ["isStruct" ==> isStruct]
              FsAstNode = sp
              Childs = [yield! pats |> List.map visitSynPat]}
         | SynPat.Paren(pat,range) ->
@@ -1378,16 +1386,10 @@ module private Ast =
              Childs =
                  [yield! typeArgs |> List.map visitSynType
                   yield visitSynType typeName]}
-        | SynType.Tuple(typeNames,range) ->
+        | SynType.Tuple(isStruct,typeNames,range) ->
             {Type = "SynType.Tuple"
              Range = r range
-             Properties = p []
-             FsAstNode = st
-             Childs = [yield! typeNames |> List.map(snd >> visitSynType)]}
-        | SynType.StructTuple(typeNames,range) ->
-            {Type = "SynType.StructTuple"
-             Range = r range
-             Properties = p []
+             Properties = p ["isStruct" ==> isStruct]
              FsAstNode = st
              Childs = [yield! typeNames |> List.map(snd >> visitSynType)]}
         | SynType.Array(_,elementType,range) ->
@@ -1462,6 +1464,12 @@ module private Ast =
              Childs =
                  [yield visitSynType expr
                   yield visitSynType typ]}
+        | SynType.AnonRecd(isStruct,typeNames,range) ->
+            {Type = "SynType.AnonRecd"
+             Range = r range
+             Properties = p ["isStruct" ==> isStruct]
+             FsAstNode = st
+             Childs = List.map visitAnonRecordTypeField typeNames}
 
     and visitSynConst(sc: SynConst) = sprintf "%A" sc
 
