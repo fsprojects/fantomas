@@ -11,7 +11,7 @@ let refDict xs =
     d
     
 let collectTrivia content (ast: ParsedInput) =
-    let (comments, directives) = filterCommentsAndDirectives content
+    let (comments, directives, keywords) = filterCommentsAndDirectives content
     match ast with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _)) ->
         let node = Fantomas.AstTransformer.astToNode (mns |> List.collect (function
@@ -28,7 +28,7 @@ let collectTrivia content (ast: ParsedInput) =
                 (commentsBefore |> List.collect snd |> function | [] -> [] | c -> [n.FsAstNode, c])
                 (visit comments (n.Childs @ ns))
             | [] -> []
-        visit (comments |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Seq.toList) [node]
+        visit (comments |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Seq.sortBy (fun (p,_) -> p.Line, p.Column) |> Seq.toList) [node]
         |> fun x ->
             refDict x
     | _ -> Seq.empty |> refDict

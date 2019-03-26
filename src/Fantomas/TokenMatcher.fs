@@ -147,6 +147,22 @@ let collectComments tokens =
         | _ -> dic
     loop tokens (Dictionary())
 
+/// Given a list of tokens, attach comments to appropriate positions
+let collectKeywords tokens =
+    let rec loop origTokens (dic : Dictionary<_, _>) =
+        match origTokens with
+        | (Token origTok, _) :: moreOrigTokens
+            when origTok.CharClass <> FSharpTokenCharKind.Keyword ->
+            loop moreOrigTokens dic
+        | NewLine _ :: moreOrigTokens -> loop moreOrigTokens dic
+        | (Tok (origTok, lineNo), ts) :: moreOrigTokens
+            when origTok.CharClass = FSharpTokenCharKind.Keyword ->
+            dic.Add(mkPos lineNo origTok.LeftColumn, ts)
+            loop moreOrigTokens dic
+        | _ -> dic
+    loop tokens (Dictionary())
+
+
 let (|RawIdent|_|) = function
    | (Token ti, t) when ti.TokenName = "IDENT" -> 
         Some t
@@ -217,7 +233,7 @@ let filterDefines content =
 let filterCommentsAndDirectives content =
     let constants = filterConstants content
     let tokens = tokenize constants content |> Seq.toList
-    (collectComments tokens, collectDirectives tokens)
+    (collectComments tokens, collectDirectives tokens, collectKeywords tokens)
 
 let rec (|RawLongIdent|_|) = function
    | RawIdent t1 :: RawDelimiter "." :: RawLongIdent(toks, moreOrigTokens) -> 

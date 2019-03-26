@@ -87,7 +87,7 @@ type internal Context =
             |> Seq.map (fun s -> String.length s + 1)
             |> Seq.scan (+) 0
             |> Seq.toArray
-        let (comments, directives) = filterCommentsAndDirectives content
+        let (comments, directives, _) = filterCommentsAndDirectives content
         let trivia =
             maybeAst |> Option.map (fun ast -> Trivia.collectTrivia content ast)
             |> Option.defaultValue Context.Default.Trivia
