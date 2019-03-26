@@ -796,10 +796,10 @@ let (|IfThenElse|_|) = function
     | _ -> None
 
 let rec (|ElIf|_|) = function
-    | SynExpr.IfThenElse(e1, e2, Some(ElIf(es, e3)), _, _, r, fullRange) ->
-        Some((e1, e2, r, fullRange)::es, e3)
-    | SynExpr.IfThenElse(e1, e2, e3, _, _, r, fullRange) ->
-        Some([(e1, e2, r, fullRange)], e3)
+    | SynExpr.IfThenElse(e1, e2, Some(ElIf(es, e3)), _, _, r, fullRange) as node ->
+        Some((e1, e2, r, fullRange, node)::es, e3)
+    | SynExpr.IfThenElse(e1, e2, e3, _, _, r, fullRange) as node ->
+        Some([(e1, e2, r, fullRange, node)], e3)
     | _ -> None
 
 let (|Record|_|) = function
