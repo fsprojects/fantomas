@@ -144,6 +144,12 @@ let collectComments tokens =
         | CommentChunks(ts, (Tok(origTok, lineNo), _) :: moreOrigTokens) ->
             dic.Add(mkPos lineNo origTok.LeftColumn, ts)
             loop moreOrigTokens dic
+        | (Comment c as t) :: moreOrigTokens -> 
+            match t with
+            | Tok(origTok, lineNo),_ ->
+                dic.Add(mkPos lineNo origTok.LeftColumn, [c])
+            | _ -> ()            
+            loop moreOrigTokens dic
         | _ -> dic
     loop tokens (Dictionary())
 
