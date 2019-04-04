@@ -10,6 +10,21 @@ let refDict xs =
     xs |> Seq.iter d.Add
     d
     
+type Comment = Comment of string
+
+type TriviaIndex = TriviaIndex of int
+
+type TriviaNodeType =
+    | MainNode
+    | Keyword of string
+    | Token of string
+    
+type TriviaNode = {
+    Type: TriviaNodeType
+    CommentsBefore: Comment list
+    CommentsAfter: Comment list
+}
+
 let collectTrivia content (ast: ParsedInput) =
     let (comments, directives, keywords) = filterCommentsAndDirectives content
     match ast with
@@ -25,10 +40,15 @@ let collectTrivia content (ast: ParsedInput) =
                     comments |> List.partition (fun ((p:pos), _) -> p.Line <= r.StartLine && p.Column <= r.StartCol)
                 | None -> [], comments
             List.append
-                (commentsBefore |> List.collect snd |> function | [] -> [] | c -> [n.FsAstNode, c])
+                (commentsBefore |> List.collect snd |> function
+                    | [] -> []
+                    | c -> [n.FsAstNode, [{ Type = MainNode; CommentsBefore = List.map Comment c; CommentsAfter = [] }]])
                 (visit comments (n.Childs @ ns))
             | [] -> []
         visit (comments |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Seq.sortBy (fun (p,_) -> p.Line, p.Column) |> Seq.toList) [node]
         |> fun x ->
             refDict x
     | _ -> Seq.empty |> refDict
+    
+let getMainNode (TriviaIndex i) (ts: TriviaNode list) =
+    ts |> List.skip i |> List.tryFind (fun t -> t.Type = TriviaNodeType.MainNode)

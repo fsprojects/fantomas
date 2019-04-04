@@ -7,6 +7,7 @@ open System.CodeDom.Compiler
 open FSharp.Compiler.Range
 open Fantomas.FormatConfig
 open Fantomas.TokenMatcher
+open Fantomas.Trivia
 
 /// Wrapping IndentedTextWriter with current column position
 type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
@@ -71,14 +72,18 @@ type internal Context =
       Comments : Dictionary<pos, string list>;
       /// Compiler directives attached to appropriate locations
       Directives : Dictionary<pos, string>
-      Trivia : Dictionary<AstTransformer.FsAstNode, string list>}
+      Trivia : Dictionary<AstTransformer.FsAstNode, TriviaNode list>
+      TriviaIndexes : list<AstTransformer.FsAstNode * Trivia.TriviaIndex> //TODO: use PersistentHashMap
+      NodePath : AstTransformer.FsAstNode list}
 
     /// Initialize with a string writer and use space as delimiter
     static member Default = 
         { Config = FormatConfig.Default;
           Writer = new ColumnIndentedTextWriter(new StringWriter());
           BreakLines = true; BreakOn = (fun _ -> false); 
-          Content = ""; Positions = [||]; Comments = Dictionary(); Directives = Dictionary(); Trivia = Dictionary() }
+          Content = ""; Positions = [||]; Comments = Dictionary();
+          Directives = Dictionary(); Trivia = Dictionary(); TriviaIndexes = [];
+          NodePath = [] }
 
     static member create config (content : string) maybeAst =
         let content = String.normalizeNewLine content
@@ -96,6 +101,8 @@ type internal Context =
             Config = config; Content = content; Positions = positions; 
             Comments = comments; Directives = directives; Trivia = trivia }
 
+    member x.CurrentNode = x.NodePath |> List.tryHead
+    
     member x.With(writer : ColumnIndentedTextWriter, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
         writer.Indent <- x.Writer.Indent
@@ -419,3 +426,41 @@ let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 
 /// Never break into newlines on these operators
 let internal NoBreakInfixOps = set ["="; ">"; "<";]
+
+let internal getTriviaIndex node (ctx: Context) =
+    ctx.TriviaIndexes |> List.tryFind (fun (n,_) -> n = node) |> Option.map snd
+    |> Option.defaultValue (TriviaIndex 0)
+
+let internal increaseTriviaIndex node (ctx: Context) =
+    let indexes =
+        if ctx.TriviaIndexes |> List.exists (fun (n,_) -> n = node) then
+            ctx.TriviaIndexes |> List.map (fun (n,TriviaIndex x) ->
+                if n = node then n, TriviaIndex (x+1) else n, TriviaIndex x)
+        else (node, TriviaIndex 1) :: ctx.TriviaIndexes
+    { ctx with TriviaIndexes = indexes }
+
+let internal printCommentsBefore node (ctx: Context) =
+    ctx.Trivia |> Dict.tryGet node
+    |> Option.bind (Trivia.getMainNode (getTriviaIndex node ctx))
+    |> Option.map (fun n -> !- (n.CommentsBefore |> List.map (fun (Comment c) -> c) |> String.concat "")
+                            +> increaseTriviaIndex node)
+    |> Option.defaultValue (!-"")
+    |> fun f -> f ctx
+
+let internal printCommentsAfter node (ctx: Context) =
+    ctx.Trivia |> Dict.tryGet node
+    |> Option.bind (Trivia.getMainNode (getTriviaIndex node ctx))
+    |> Option.map (fun n -> !- (n.CommentsAfter |> List.map (fun (Comment c) -> c) |> String.concat ""))
+    |> Option.defaultValue (!-"")
+    |> fun f -> f ctx
+
+let internal enterNode node (ctx: Context) =
+    if Some node <> ctx.CurrentNode then
+        let ctx' = { ctx with NodePath = node :: ctx.NodePath }
+        ctx.CurrentNode |> Option.map (fun n -> printCommentsBefore n ctx') |> Option.defaultValue ctx'
+    else ctx
+    
+let internal leaveNode node (ctx: Context) =
+    assert (Some node = ctx.CurrentNode)
+    let ctx' = { ctx with NodePath = List.tail ctx.NodePath }
+    ctx.CurrentNode |> Option.map (fun n -> printCommentsAfter n ctx') |> Option.defaultValue ctx'

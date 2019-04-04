@@ -27,3 +27,8 @@ module Cache =
             else
                 cache.Add key |> ignore
                 false
+
+module Dict =
+    let tryGet k (d: System.Collections.Generic.IDictionary<_,_>) =
+        let (r,x) = d.TryGetValue k
+        if r then Some x else None
