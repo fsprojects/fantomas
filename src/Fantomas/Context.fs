@@ -429,28 +429,32 @@ let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
 let internal getTriviaIndex node (ctx: Context) =
     ctx.TriviaIndexes |> List.tryFind (fun (n,_) -> n = node) |> Option.map snd
-    |> Option.defaultValue (TriviaIndex 0)
+    |> Option.defaultValue (TriviaIndex (0,0))
 
-let internal increaseTriviaIndex node (ctx: Context) =
+let internal getTriviaIndexBefore node (ctx: Context) = getTriviaIndex node ctx |> fun (TriviaIndex (i,_)) -> i
+let internal getTriviaIndexAfter node (ctx: Context) = getTriviaIndex node ctx |> fun (TriviaIndex (_,i)) -> i
+
+let internal increaseTriviaIndex node (deltaBefore, deltaAfter) (ctx: Context) =
     let indexes =
         if ctx.TriviaIndexes |> List.exists (fun (n,_) -> n = node) then
-            ctx.TriviaIndexes |> List.map (fun (n,TriviaIndex x) ->
-                if n = node then n, TriviaIndex (x+1) else n, TriviaIndex x)
-        else (node, TriviaIndex 1) :: ctx.TriviaIndexes
+            ctx.TriviaIndexes |> List.map (fun (n,TriviaIndex (i,j)) ->
+                if n = node then n, TriviaIndex (i+deltaBefore, i+deltaAfter) else n, TriviaIndex (i,j))
+        else (node, TriviaIndex (deltaBefore, deltaAfter)) :: ctx.TriviaIndexes
     { ctx with TriviaIndexes = indexes }
 
 let internal printCommentsBefore node (ctx: Context) =
     ctx.Trivia |> Dict.tryGet node
-    |> Option.bind (Trivia.getMainNode (getTriviaIndex node ctx))
+    |> Option.bind (Trivia.getMainNode (getTriviaIndexBefore node ctx))
     |> Option.map (fun n -> !- (n.CommentsBefore |> List.map (fun (Comment c) -> c) |> String.concat "")
-                            +> increaseTriviaIndex node)
+                            +> increaseTriviaIndex node (1,0))
     |> Option.defaultValue (!-"")
     |> fun f -> f ctx
 
 let internal printCommentsAfter node (ctx: Context) =
     ctx.Trivia |> Dict.tryGet node
-    |> Option.bind (Trivia.getMainNode (getTriviaIndex node ctx))
-    |> Option.map (fun n -> !- (n.CommentsAfter |> List.map (fun (Comment c) -> c) |> String.concat ""))
+    |> Option.bind (Trivia.getMainNode (getTriviaIndexAfter node ctx))
+    |> Option.map (fun n -> !- (n.CommentsAfter |> List.map (fun (Comment c) -> c) |> String.concat "")
+                            +> increaseTriviaIndex node (0,1))
     |> Option.defaultValue (!-"")
     |> fun f -> f ctx
 

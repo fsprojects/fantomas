@@ -12,7 +12,7 @@ let refDict xs =
     
 type Comment = Comment of string
 
-type TriviaIndex = TriviaIndex of int
+type TriviaIndex = TriviaIndex of int * int
 
 type TriviaNodeType =
     | MainNode
@@ -37,7 +37,8 @@ let collectTrivia content (ast: ParsedInput) =
             let (commentsBefore, comments) = 
                 match n.Range with
                 | Some r ->
-                    comments |> List.partition (fun ((p:pos), _) -> p.Line <= r.StartLine && p.Column <= r.StartCol)
+                    comments |> List.partition (fun ((p:pos), _) ->
+                        p.Line < r.StartLine || (p.Line = r.StartLine && p.Column <= r.StartCol))
                 | None -> [], comments
             List.append
                 (commentsBefore |> List.collect snd |> function
@@ -50,5 +51,5 @@ let collectTrivia content (ast: ParsedInput) =
             refDict x
     | _ -> Seq.empty |> refDict
     
-let getMainNode (TriviaIndex i) (ts: TriviaNode list) =
-    ts |> List.skip i |> List.tryFind (fun t -> t.Type = TriviaNodeType.MainNode)
+let getMainNode index (ts: TriviaNode list) =
+    ts |> List.skip index |> List.tryFind (fun t -> t.Type = TriviaNodeType.MainNode)
