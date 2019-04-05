@@ -851,10 +851,11 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
     | Simple(TDSREnum ecs) ->
         typeName +> sepEq 
         +> indent +> sepNln
-        +> col sepNln ecs (genEnumCase { astContext with HasVerticalBar = true })
-        +> genMemberDefnList { astContext with InterfaceRange = None } ms
-        // Add newline after un-indent to be spacing-correct
-        +> unindent
+        +> genTrivia tdr
+            (col sepNln ecs (genEnumCase { astContext with HasVerticalBar = true })
+            +> genMemberDefnList { astContext with InterfaceRange = None } ms
+            // Add newline after un-indent to be spacing-correct
+            +> unindent)
 
     | Simple(TDSRUnion(ao', xs)) ->
         let unionCases =  
@@ -868,25 +869,32 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
                 +> col sepNln xs (genUnionCase { astContext with HasVerticalBar = true })
 
         typeName +> sepEq 
-        +> unionCases
-        +> genMemberDefnList { astContext with InterfaceRange = None } ms
-        +> unindent
+        +> genTrivia tdr
+            (unionCases
+            +> genMemberDefnList { astContext with InterfaceRange = None } ms
+            +> unindent)
 
     | Simple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
-        +> indent +> sepNln +> opt sepSpace ao' genAccess +> sepOpenS 
-        +> atCurrentColumn (col sepSemiNln fs (genField astContext "")) +> sepCloseS
-        +> genMemberDefnList { astContext with InterfaceRange = None } ms
-        +> unindent
+        +> indent +> sepNln +> opt sepSpace ao' genAccess
+        +> genTrivia tdr
+            (sepOpenS 
+            +> atCurrentColumn (col sepSemiNln fs (genField astContext "")) +> sepCloseS
+            +> genMemberDefnList { astContext with InterfaceRange = None } ms
+            +> unindent)
 
     | Simple TDSRNone -> 
         typeName
     | Simple(TDSRTypeAbbrev t) -> 
-        typeName +> sepEq +> sepSpace +> genType astContext false t
-        +> ifElse (List.isEmpty ms) (!- "") 
-            (indent ++ "with" +> indent +> genMemberDefnList { astContext with InterfaceRange = None } ms +> unindent +> unindent)
+        typeName +> sepEq +> sepSpace
+        +> genTrivia tdr
+            (genType astContext false t
+            +> ifElse (List.isEmpty ms) (!- "") 
+                (indent ++ "with" +> indent +> genMemberDefnList { astContext with InterfaceRange = None } ms
+            +> unindent +> unindent))
     | Simple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
         genExceptionBody astContext ats px ao uc
+        |> genTrivia tdr
 
     | ObjectModel(TCSimple (TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others), range) ->
         let interfaceRange =
@@ -894,40 +902,50 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
             | TCSimple TCInterface -> Some range
             | _ -> None
         let astContext = { astContext with InterfaceRange = interfaceRange }
-        typeName +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq 
-        +> indent +> sepNln +> genTypeDefKind tdk
-        +> indent +> genMemberDefnList astContext others +> unindent
-        ++ "end" +> unindent
+        typeName +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq
+        +> indent +> sepNln
+        +> genTrivia tdr
+            (genTypeDefKind tdk
+            +> indent +> genMemberDefnList astContext others +> unindent
+            ++ "end")
+        +> unindent
     
     | ObjectModel(TCSimple (TCStruct) as tdk, MemberDefnList(impCtor, others), _) ->
         typeName +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq 
-        +> indent +> sepNln +> genTypeDefKind tdk
-        +> indent +> genMemberDefnList astContext others +> unindent
-        ++ "end"
-        // Prints any members outside the struct-end construct
-        +> genMemberDefnList astContext ms +> unindent
+        +> indent +> sepNln 
+        +> genTrivia tdr
+            (genTypeDefKind tdk
+            +> indent +> genMemberDefnList astContext others +> unindent
+            ++ "end"
+            // Prints any members outside the struct-end construct
+            +> genMemberDefnList astContext ms)
+        +> unindent
     
     | ObjectModel(TCSimple TCAugmentation, _, _) ->
         typeName -- " with" +> indent
         // Remember that we use MemberDefn of parent node
-        +> genMemberDefnList { astContext with InterfaceRange = None } ms +> unindent
+        +> genTrivia tdr (genMemberDefnList { astContext with InterfaceRange = None } ms)
+        +> unindent
 
     | ObjectModel(TCDelegate(FunType ts), _, _) ->
-        typeName +> sepEq +> sepSpace -- "delegate of " +> genTypeList astContext ts
+        typeName +> sepEq +> sepSpace +> genTrivia tdr (!- "delegate of " +> genTypeList astContext ts)
     
     | ObjectModel(TCSimple TCUnspecified, MemberDefnList(impCtor, others), _) when not(List.isEmpty ms) ->
         typeName +> opt sepNone impCtor (genMemberDefn { astContext with InterfaceRange = None }) +> sepEq +> indent
-        +> genMemberDefnList { astContext with InterfaceRange = None } others +> sepNln
-        -- "with" +> indent
-        +> genMemberDefnList { astContext with InterfaceRange = None } ms +> unindent
+        +> genTrivia tdr
+            (genMemberDefnList { astContext with InterfaceRange = None } others +> sepNln
+            -- "with" +> indent
+            +> genMemberDefnList { astContext with InterfaceRange = None } ms +> unindent)
         +> unindent
     
     | ObjectModel(_, MemberDefnList(impCtor, others), _) ->
         typeName +> opt sepNone impCtor (genMemberDefn { astContext with InterfaceRange = None }) +> sepEq +> indent
-        +> genMemberDefnList { astContext with InterfaceRange = None } others +> unindent
+        +> genTrivia tdr (genMemberDefnList { astContext with InterfaceRange = None } others)
+        +> unindent
 
     | ExceptionRepr(ExceptionDefRepr(ats, px, ao, uc)) ->
         genExceptionBody astContext ats px ao uc
+        |> genTrivia tdr
     |> genTrivia node
 
 and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) = 
