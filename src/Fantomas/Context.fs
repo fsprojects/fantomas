@@ -438,14 +438,20 @@ let internal increaseTriviaIndex node (deltaBefore, deltaAfter) (ctx: Context) =
     let indexes =
         if ctx.TriviaIndexes |> List.exists (fun (n,_) -> n = node) then
             ctx.TriviaIndexes |> List.map (fun (n,TriviaIndex (i,j)) ->
-                if n = node then n, TriviaIndex (i+deltaBefore, i+deltaAfter) else n, TriviaIndex (i,j))
+                if n = node then n, TriviaIndex (i+deltaBefore, j+deltaAfter) else n, TriviaIndex (i,j))
         else (node, TriviaIndex (deltaBefore, deltaAfter)) :: ctx.TriviaIndexes
     { ctx with TriviaIndexes = indexes }
+
+let internal printComment c =
+    match c with
+    | XmlLineComment s -> !- "///" -- s +> sepNln
+    | LineComment s -> !- "//" -- s +> sepNln
+    | BlockComment s -> !- "(*" -- s -- "*)"
 
 let internal printCommentsBefore node (ctx: Context) =
     ctx.Trivia |> Dict.tryGet node
     |> Option.bind (Trivia.getMainNode (getTriviaIndexBefore node ctx))
-    |> Option.map (fun n -> !- (n.CommentsBefore |> List.map (fun (Comment c) -> c) |> String.concat "")
+    |> Option.map (fun n -> col sepNone n.CommentsBefore printComment
                             +> increaseTriviaIndex node (1,0))
     |> Option.defaultValue (!-"")
     |> fun f -> f ctx
@@ -453,7 +459,7 @@ let internal printCommentsBefore node (ctx: Context) =
 let internal printCommentsAfter node (ctx: Context) =
     ctx.Trivia |> Dict.tryGet node
     |> Option.bind (Trivia.getMainNode (getTriviaIndexAfter node ctx))
-    |> Option.map (fun n -> !- (n.CommentsAfter |> List.map (fun (Comment c) -> c) |> String.concat "")
+    |> Option.map (fun n -> col sepNone n.CommentsAfter printComment
                             +> increaseTriviaIndex node (0,1))
     |> Option.defaultValue (!-"")
     |> fun f -> f ctx
@@ -461,10 +467,10 @@ let internal printCommentsAfter node (ctx: Context) =
 let internal enterNode node (ctx: Context) =
     if Some node <> ctx.CurrentNode then
         let ctx' = { ctx with NodePath = node :: ctx.NodePath }
-        ctx.CurrentNode |> Option.map (fun n -> printCommentsBefore n ctx') |> Option.defaultValue ctx'
+        ctx'.CurrentNode |> Option.map (fun n -> printCommentsBefore n ctx') |> Option.defaultValue ctx'
     else ctx
     
 let internal leaveNode node (ctx: Context) =
     assert (Some node = ctx.CurrentNode)
     let ctx' = { ctx with NodePath = List.tail ctx.NodePath }
-    ctx.CurrentNode |> Option.map (fun n -> printCommentsAfter n ctx') |> Option.defaultValue ctx'
+    ctx'.CurrentNode |> Option.map (fun n -> printCommentsAfter n ctx') |> Option.defaultValue ctx'
