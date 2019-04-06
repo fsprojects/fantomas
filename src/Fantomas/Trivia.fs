@@ -10,7 +10,10 @@ let refDict xs =
     xs |> Seq.iter d.Add
     d
     
-type Comment = Comment of string
+type Comment =
+    | LineComment of string
+    | XmlLineComment of string
+    | BlockComment of string
 
 type TriviaIndex = TriviaIndex of int * int
 
@@ -24,6 +27,13 @@ type TriviaNode = {
     CommentsBefore: Comment list
     CommentsAfter: Comment list
 }
+
+let parseComment (s: string) =
+    let s = s.Trim()
+    if s.StartsWith "///" then XmlLineComment (s.Substring 3)
+    elif s.StartsWith "//" then LineComment (s.Substring 2)
+    elif s.StartsWith "(*" && s.EndsWith "*)" then BlockComment (s.Substring(2, s.Length - 4))
+    else failwithf "%s is not valid comment" s
 
 let collectTrivia content (ast: ParsedInput) =
     let (comments, directives, keywords) = filterCommentsAndDirectives content
@@ -43,7 +53,7 @@ let collectTrivia content (ast: ParsedInput) =
             List.append
                 (commentsBefore |> List.collect snd |> function
                     | [] -> []
-                    | c -> [n.FsAstNode, [{ Type = MainNode; CommentsBefore = List.map Comment c; CommentsAfter = [] }]])
+                    | c -> [n.FsAstNode, [{ Type = MainNode; CommentsBefore = List.map parseComment c; CommentsAfter = [] }]])
                 (visit comments (n.Childs @ ns))
             | [] -> []
         visit (comments |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Seq.sortBy (fun (p,_) -> p.Line, p.Column) |> Seq.toList) [node]
