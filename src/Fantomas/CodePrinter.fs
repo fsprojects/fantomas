@@ -862,17 +862,19 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
             match xs with
             | [] -> id
             | [x] when List.isEmpty ms -> 
-                indent +> sepSpace +> opt sepSpace ao' genAccess
-                +> genUnionCase { astContext with HasVerticalBar = false } x
+                indent +> sepSpace
+                +> genTrivia tdr
+                    (opt sepSpace ao' genAccess
+                    +> genUnionCase { astContext with HasVerticalBar = false } x)
             | xs ->
-                indent +> sepNln +> opt sepNln ao' genAccess 
-                +> col sepNln xs (genUnionCase { astContext with HasVerticalBar = true })
+                indent +> sepNln
+                +> genTrivia tdr
+                    (opt sepNln ao' genAccess 
+                    +> col sepNln xs (genUnionCase { astContext with HasVerticalBar = true }))
 
         typeName +> sepEq 
-        +> genTrivia tdr
-            (unionCases
-            +> genMemberDefnList { astContext with InterfaceRange = None } ms
-            +> unindent)
+        +> unionCases +> genMemberDefnList { astContext with InterfaceRange = None } ms
+        +> unindent
 
     | Simple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
