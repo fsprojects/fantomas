@@ -28,20 +28,41 @@ type TriviaNode = {
     CommentsAfter: Comment list
 }
 
-let parseComment (s: string) =
-    let s = s.Trim()
-    if s.StartsWith "///" then XmlLineComment (s.Substring 3)
-    elif s.StartsWith "//" then LineComment (s.Substring 2)
-    elif s.StartsWith "(*" && s.EndsWith "*)" then BlockComment (s.Substring(2, s.Length - 4))
-    else failwithf "%s is not valid comment" s
+let rec parseComments blockAcc comments =
+    match comments with
+    | (p, s:string) :: rest ->
+        let s = s.Trim()
+        let single c = (p, c) :: parseComments None rest
+        blockAcc |> Option.map (fun (p, acc) ->
+            if s.EndsWith "*)" then
+                (p, (BlockComment (acc @ [s.Substring(2, s.Length - 2)] |> String.concat "\n"))) :: parseComments None rest
+            else parseComments (Some (p, acc @ [s])) rest)
+        |> Option.defaultWith (fun () ->
+            if s.StartsWith "///" then XmlLineComment (s.Substring 3) |> single
+            elif s.StartsWith "//" then LineComment (s.Substring 2) |> single
+            elif s.StartsWith "(*" && s.EndsWith "*)" then BlockComment (s.Substring(2, s.Length - 4)) |> single
+            elif s.StartsWith "(*" then parseComments (Some (p, [s.Substring 2])) rest
+            else failwithf "%s is not valid comment" s)
+    | [] -> []
 
 let collectTrivia content (ast: ParsedInput) =
     let (comments, directives, keywords) = filterCommentsAndDirectives content
+    let comments =
+        comments |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Seq.sortBy (fun (p,_) -> p.Line, p.Column)
+        |> Seq.collect (fun (p, cs) -> cs |> Seq.map (fun c -> p, c)) |> Seq.toList
+        |> parseComments None
+        |> List.groupBy fst |> List.map (fun (p,g) -> p, List.map snd g)
     match ast with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _)) ->
         let node = Fantomas.AstTransformer.astToNode (mns |> List.collect (function
             (SynModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule, _)) -> s))
-        let rec visit comments acc =
+        let rec visit comments acc prevNode =
+            let getComments isBefore n comments =
+                comments |> List.collect snd |> function
+                    | [] -> []
+                    | c -> [n.FsAstNode,
+                            if isBefore then [{ Type = MainNode; CommentsBefore = c; CommentsAfter = [] }]
+                            else [{ Type = MainNode; CommentsBefore = []; CommentsAfter = c }] ]
             match acc with
             | (n:Fantomas.AstTransformer.Node) :: ns ->
             let (commentsBefore, comments) = 
@@ -51,12 +72,15 @@ let collectTrivia content (ast: ParsedInput) =
                         p.Line < r.StartLine || (p.Line = r.StartLine && p.Column <= r.StartCol))
                 | None -> [], comments
             List.append
-                (commentsBefore |> List.collect snd |> function
-                    | [] -> []
-                    | c -> [n.FsAstNode, [{ Type = MainNode; CommentsBefore = List.map parseComment c; CommentsAfter = [] }]])
-                (visit comments (n.Childs @ ns))
-            | [] -> []
-        visit (comments |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Seq.sortBy (fun (p,_) -> p.Line, p.Column) |> Seq.toList) [node]
+                (getComments true n commentsBefore)
+                (visit comments (n.Childs @ ns) (Some n))
+            | [] ->
+                prevNode |> Option.map (fun n -> getComments false n comments)
+                |> Option.defaultValue []
+        visit
+            comments
+            [node]
+            None
         |> fun x ->
             refDict x
     | _ -> Seq.empty |> refDict
