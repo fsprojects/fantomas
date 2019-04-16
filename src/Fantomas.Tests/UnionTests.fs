@@ -102,13 +102,13 @@ type Strategy =
     |> prepend newline
     |> should equal """
 type Thing =
-    | Human of Name : string * Age : int
-    | Cat of Name : string * HoursSleptADay : int
+    | Human of Name: string * Age: int
+    | Cat of Name: string * HoursSleptADay: int
 
 type Strategy =
     | Adaptive
     | Fundamental
-    | ShortAR of p : int // F# 3.1 syntax
+    | ShortAR of p: int // F# 3.1 syntax
     | BuyHold
 """
 
@@ -124,7 +124,7 @@ let main argv =
    | _ -> 0""" config
     |> prepend newline
     |> should equal """
-type TestUnion = Test of A : int * B : int
+type TestUnion = Test of A: int * B: int
 
 [<EntryPoint>]
 let main argv =

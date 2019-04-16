@@ -38,7 +38,7 @@ let print_30_permut() =
     |> should equal """
 let print_30_permut() =
     /// declare and initialize
-    let permutation : int array =
+    let permutation: int array =
         Array.init n (fun i ->
             Console.Write(i + 1)
             i)
@@ -58,7 +58,7 @@ let print_30_permut() =
     |> should equal """
 let print_30_permut() =
     /// declare and initialize
-    let permutation : int array =
+    let permutation: int array =
         Array.init n (fun (i, j) ->
             Console.Write(i + 1)
             i)
@@ -210,7 +210,7 @@ type IlxGenIntraAssemblyInfo =
       /// only accessible intra-assembly. Across assemblies, taking the address of static mutable module-bound values is not permitted.
       /// The key to the table is the method ref for the property getter for the value, which is a stable name for the Val's
       /// that come from both the signature and the implementation.
-      StaticFieldInfo : Dictionary<ILMethodRef, ILFieldSpec> }
+      StaticFieldInfo: Dictionary<ILMethodRef, ILFieldSpec> }
 """
 
 [<Test>]
@@ -273,26 +273,26 @@ type IlxGenOptions =
     |> should equal """
 [<NoEquality; NoComparison>]
 type IlxGenOptions =
-    { fragName : string;
-      generateFilterBlocks : bool;
-      workAroundReflectionEmitBugs : bool;
-      emitConstantArraysUsingStaticDataBlobs : bool;
+    { fragName: string;
+      generateFilterBlocks: bool;
+      workAroundReflectionEmitBugs: bool;
+      emitConstantArraysUsingStaticDataBlobs: bool;
       // If this is set, then the last module becomes the "main" module and its toplevel bindings are executed at startup
-      mainMethodInfo : Tast.Attribs option;
-      localOptimizationsAreOn : bool;
-      generateDebugSymbols : bool;
-      testFlagEmitFeeFeeAs100001 : bool;
-      ilxBackend : IlxGenBackend;
+      mainMethodInfo: Tast.Attribs option;
+      localOptimizationsAreOn: bool;
+      generateDebugSymbols: bool;
+      testFlagEmitFeeFeeAs100001: bool;
+      ilxBackend: IlxGenBackend;
       /// Indicates the code is being generated in FSI.EXE and is executed immediately after code generation
       /// This includes all interactively compiled code, including #load, definitions, and expressions
-      isInteractive : bool;
+      isInteractive: bool;
       // Indicates the code generated is an interactive 'it' expression. We generate a setter to allow clearing of the underlying
       // storage, even though 'it' is not logically mutable
-      isInteractiveItExpr : bool;
+      isInteractiveItExpr: bool;
       // Indicates System.SerializableAttribute is available in the target framework
-      netFxHasSerializableAttribute : bool;
+      netFxHasSerializableAttribute: bool;
       /// Whenever possible, use callvirt instead of call
-      alwaysCallVirt : bool }
+      alwaysCallVirt: bool }
 """
 
 [<Test>]

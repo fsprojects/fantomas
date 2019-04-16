@@ -21,7 +21,7 @@ let fetchAsync(name, url:string) =
     """ config
     |> prepend newline
     |> should equal """
-let fetchAsync (name, url : string) =
+let fetchAsync (name, url: string) =
     async {
         try
             let uri = new System.Uri(url)

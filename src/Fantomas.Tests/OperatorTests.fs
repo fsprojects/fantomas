@@ -144,7 +144,7 @@ with _ -> ()""" config
     |> should equal """try
     item.MethodInfo.Method.Invoke(null, ipa)
     |> (fun x -> x?Invoke (true))
-    |> fun (t : Task) -> t.Wait()
+    |> fun (t: Task) -> t.Wait()
 with _ -> ()
 """
 
@@ -180,7 +180,7 @@ let ``should keep >>.~ operator``() =
     formatSourceString false """let (>>.~) (g : int) (h : int) : int = g + h
 let output = 2 >>.~ 3
     """ config
-    |> should equal """let (>>.~) (g : int) (h : int) : int = g + h
+    |> should equal """let (>>.~) (g: int) (h: int): int = g + h
 let output = 2 >>.~ 3
 """
 

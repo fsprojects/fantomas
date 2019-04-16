@@ -26,12 +26,18 @@ type FormatConfig =
       StrictMode : bool }
 
     static member Default = 
-        { IndentSpaceNum = 4; PageWidth = 80;
-          PreserveEndOfLine = false;
-          SemicolonAtEndOfLine = false; SpaceBeforeArgument = true; SpaceBeforeColon = true;
-          SpaceAfterComma = true; SpaceAfterSemicolon = true; 
-          IndentOnTryWith = false; ReorderOpenDeclaration = false; 
-          SpaceAroundDelimiter = true; StrictMode = false }
+        { IndentSpaceNum = 4
+          PageWidth = 80
+          PreserveEndOfLine = false
+          SemicolonAtEndOfLine = false
+          SpaceBeforeArgument = true
+          SpaceBeforeColon = false
+          SpaceAfterComma = true
+          SpaceAfterSemicolon = true
+          IndentOnTryWith = false
+          ReorderOpenDeclaration = false
+          SpaceAroundDelimiter = true
+          StrictMode = false }
 
     static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
                          spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
