@@ -97,8 +97,8 @@ let ``let bindings with return types``() =
     |> prepend newline
     |> should equal """
 let divide x y =
-    let stream : System.IO.FileStream = System.IO.File.Create("test.txt")
-    let writer : System.IO.StreamWriter = new System.IO.StreamWriter(stream)
+    let stream: System.IO.FileStream = System.IO.File.Create("test.txt")
+    let writer: System.IO.StreamWriter = new System.IO.StreamWriter(stream)
     try
         writer.WriteLine("test1")
         Some(x / y)
@@ -114,7 +114,7 @@ let ``simple subtype constraint``() =
 let subtype (xs : seq<'t :> System.IDisposable>) = ()""" config
     |> prepend newline
     |> should equal """
-let subtype (xs : seq<'t :> System.IDisposable>) = ()
+let subtype (xs: seq<'t :> System.IDisposable>) = ()
 """
 
 [<Test>]
@@ -127,11 +127,11 @@ let inline heterogenousAdd(value1 : ^T when (^T or ^U) : (static member (+) : ^T
     value1 + value2""" config
     |> prepend newline
     |> should equal """
-let inline add (value1 : ^T when ^T : (static member (+) : ^T * ^T -> ^T),
-                value2 : ^T) = value1 + value2
-let inline heterogenousAdd (value1 : ^T when (^T or ^U) : (static member (+) : ^T * ^U
-                                                                -> ^T),
-                            value2 : ^U) = value1 + value2
+let inline add (value1: ^T when ^T: (static member (+): ^T * ^T -> ^T),
+                value2: ^T) = value1 + value2
+let inline heterogenousAdd (value1: ^T when (^T or ^U): (static member (+): ^T * ^U
+                                                              -> ^T), value2: ^U) =
+    value1 + value2
 """
 
 [<Test>]
@@ -144,7 +144,7 @@ let ``should keep whitespace after function call``() =
 [<Test>]
 let ``should keep type annotations``() =
     formatSourceString false """let empty<'T> : LazyList<'T> = EmptyValue<'T>.Value""" config
-    |> should equal """let empty<'T> : LazyList<'T> = EmptyValue<'T>.Value
+    |> should equal """let empty<'T>: LazyList<'T> = EmptyValue<'T>.Value
 """
 
 [<Test>]
@@ -281,8 +281,8 @@ let inline implicit< ^a,^b when ^a : (static member op_Implicit : ^b -> ^a)> arg
 """  config
     |> prepend newline
     |> should equal """
-let inline implicit< ^a, ^b when ^a : (static member op_Implicit : ^b -> ^a)> arg =
-    (^a : (static member op_Implicit : ^b -> ^a) arg)
+let inline implicit< ^a, ^b when ^a: (static member op_Implicit: ^b -> ^a)> arg =
+    (^a: (static member op_Implicit: ^b -> ^a) arg)
 """
 
 [<Test>]
@@ -313,7 +313,7 @@ let ``don't create redundant parentheses outside trait calls``() =
     formatSourceString false """let f (arg : 'T) = (^T : (member Value : string) arg)"""  config
     |> prepend newline
     |> should equal """
-let f (arg : 'T) = (^T : (member Value : string) arg)
+let f (arg: 'T) = (^T: (member Value: string) arg)
 """
 
 [<Test>]
@@ -321,5 +321,5 @@ let ``lambda with complex type``() =
     formatSourceString false """let x = fun ((u, v):(int*int)) -> 5"""  config
     |> prepend newline
     |> should equal """
-let x = fun ((u, v) : int * int) -> 5
+let x = fun ((u, v): int * int) -> 5
 """

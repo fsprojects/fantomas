@@ -179,7 +179,7 @@ type Folder(pathIn : string) =
     member this.FileArray =
         Array.map (fun elem -> new File(elem, this)) filenameArray
 
-and File(filename : string, containingFolder : Folder) =
+and File(filename: string, containingFolder: Folder) =
     member __.Name = filename
     member __.ContainingFolder = containingFolder
 """
@@ -260,6 +260,6 @@ type Car = {
     }""" config
     |> should equal """
 type Car =
-    { Make : string
-      Model : string
-      mutable Odometer : int }"""
+    { Make: string
+      Model: string
+      mutable Odometer: int }"""

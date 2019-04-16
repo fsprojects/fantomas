@@ -151,15 +151,15 @@ let ReadFromFile (reader : System.IO.StreamReader) =
 let detect1 x =
     match x with
     | 1 -> printfn "Found a 1!"
-    | (var1 : int) -> printfn "%d" var1
+    | (var1: int) -> printfn "%d" var1
 
-let RegisterControl(control : Control) =
+let RegisterControl(control: Control) =
     match control with
     | :? Button as button -> button.Text <- "Registered."
     | :? CheckBox as checkbox -> checkbox.Text <- "Registered."
     | _ -> ()
 
-let ReadFromFile(reader : System.IO.StreamReader) =
+let ReadFromFile(reader: System.IO.StreamReader) =
     match reader.ReadLine() with
     | null ->
         printfn "\n"
@@ -181,10 +181,10 @@ let IsMatchByName record1 (name: string) =
     |> prepend newline
     |> should equal """
 type MyRecord =
-    { Name : string
-      ID : int }
+    { Name: string
+      ID: int }
 
-let IsMatchByName record1 (name : string) =
+let IsMatchByName record1 (name: string) =
     match record1 with
     | { MyRecord.Name = nameFound; ID = _ } when nameFound = name -> true
     | _ -> false
@@ -203,7 +203,7 @@ with
 try
     fst
         (find
-            (fun (s, (s', ty) : int * int) ->
+            (fun (s, (s', ty): int * int) ->
             s' = s0 && can (type_match ty ty0) []) (!the_interface))
 with Failure _ -> s0
 """
