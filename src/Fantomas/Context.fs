@@ -6,7 +6,6 @@ open System.Collections.Generic
 open System.CodeDom.Compiler
 open FSharp.Compiler.Range
 open Fantomas.FormatConfig
-open Fantomas.TokenMatcher
 open Fantomas.Trivia
 
 /// Wrapping IndentedTextWriter with current column position
@@ -85,21 +84,22 @@ type internal Context =
           Directives = Dictionary(); Trivia = Dictionary(); TriviaIndexes = [];
           NodePath = [] }
 
-    static member create config (content : string) maybeAst =
+    static member create config defines (content : string) maybeAst =
         let content = String.normalizeNewLine content
         let positions = 
             content.Split('\n')
             |> Seq.map (fun s -> String.length s + 1)
             |> Seq.scan (+) 0
             |> Seq.toArray
-        let (comments, directives, _) = filterCommentsAndDirectives content
+        //let (comments, directives, _) = filterCommentsAndDirectives content
+        let tokens = TokenParser.tokenize defines content
         let trivia =
-            maybeAst |> Option.map (fun ast -> Trivia.collectTrivia content ast)
+            maybeAst |> Option.map (Trivia.collectTrivia tokens)
             |> Option.defaultValue Context.Default.Trivia
 
         { Context.Default with 
             Config = config; Content = content; Positions = positions; 
-            Comments = comments; Directives = directives; Trivia = trivia }
+            Comments = null; Directives = null; Trivia = trivia }
 
     member x.CurrentNode = x.NodePath |> List.tryHead
     

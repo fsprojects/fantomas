@@ -84,7 +84,8 @@ let printAST isFsiFile sourceCode =
     
 let printContext sourceCode =
     let normalizedSourceCode = Fantomas.String.normalizeNewLine sourceCode
-    let context = Fantomas.Context.Context.create config normalizedSourceCode None
+    let defines = Fantomas.TokenParser.getDefines sourceCode |> List.ofArray
+    let context = Fantomas.Context.Context.create config defines normalizedSourceCode None
     printfn "directives:"
     context.Directives
     |> Seq.iter (fun kv -> printfn "%A %s" kv.Key kv.Value)
@@ -135,3 +136,5 @@ let shouldNotChangeAfterFormat source =
     formatSourceString false source config
     |> prepend newline
     |> should equal source
+    
+let (==) actual expected = Assert.AreEqual(expected, actual)

@@ -11,7 +11,6 @@ open FSharp.Compiler.Range
 open FSharp.Compiler.SourceCodeServices
 
 open Fantomas
-open Fantomas.TokenMatcher
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
@@ -31,9 +30,12 @@ let sharedChecker = lazy(FSharpChecker.Create())
 let createFormatContextNoChecker fileName source =
     // Create an interactive checker instance (ignore notifications)
     let checker = sharedChecker.Value
+    let defines =
+        TokenParser.getDefines source
+        |> Array.map (sprintf "--define:%s")
     // Get compiler options for a single script file
     let checkOptions = 
-        checker.GetProjectOptionsFromScript(fileName, source, DateTime.Now, filterDefines source) 
+        checker.GetProjectOptionsFromScript(fileName, source, DateTime.Now, defines) 
         |> (Async.RunSynchronously >> fst >> checker.GetParsingOptionsFromProjectOptions >> fst)
         
     { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker }
@@ -362,7 +364,7 @@ let formatWith ast formatContext config =
     let sourceCode = defaultArg input String.Empty
     let normalizedSourceCode = String.normalizeNewLine sourceCode
     let formattedSourceCode =
-        let context = Fantomas.Context.Context.create config normalizedSourceCode (Some ast)
+        let context = Fantomas.Context.Context.create config formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode (Some ast)
         context |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
         |> Context.dump
 //        |> if config.StrictMode then id 
@@ -539,7 +541,7 @@ let formatRange returnFormattedContentOnly (range : range) (lines : _ []) config
     let reconstructSourceCode startCol formatteds pre post =
         Debug.WriteLine("Formatted parts: '{0}' at column {1}", sprintf "%A" formatteds, startCol)
         // Realign results on the correct column
-        Context.Context.create config String.Empty None
+        Context.Context.create config [] String.Empty None
         // Mono version of indent text writer behaves differently from .NET one,
         // So we add an empty string first to regularize it
         |> if returnFormattedContentOnly then Context.str String.Empty else Context.str pre

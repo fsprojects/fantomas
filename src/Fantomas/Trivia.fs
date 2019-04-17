@@ -1,9 +1,9 @@
-module Fantomas.Trivia
+module internal Fantomas.Trivia
 
 open Fantomas.AstTransformer
 open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
-open Fantomas.TokenMatcher
+open Fantomas
 
 let refDict xs =
     let d = System.Collections.Generic.Dictionary(HashIdentity.Reference)
@@ -45,13 +45,18 @@ let rec parseComments blockAcc comments =
             else failwithf "%s is not valid comment" s)
     | [] -> []
 
-let collectTrivia content (ast: ParsedInput) =
-    let (comments, directives, keywords) = filterCommentsAndDirectives content
-    let comments =
-        comments |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Seq.sortBy (fun (p,_) -> p.Line, p.Column)
-        |> Seq.collect (fun (p, cs) -> cs |> Seq.map (fun c -> p, c)) |> Seq.toList
-        |> parseComments None
-        |> List.groupBy fst |> List.map (fun (p,g) -> p, List.map snd g)
+let collectTrivia tokens (ast: ParsedInput) =
+//    let (comments, directives, keywords) = filterCommentsAndDirectives content
+//    let comments =
+//        comments |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Seq.sortBy (fun (p,_) -> p.Line, p.Column)
+//        |> Seq.collect (fun (p, cs) -> cs |> Seq.map (fun c -> p, c)) |> Seq.toList
+//        |> parseComments None
+//        |> List.groupBy fst |> List.map (fun (p,g) -> p, List.map snd g)
+
+    // Extra stuff we need is already capture and has regions
+    // Now we only need to figure out what to place in what trivia node.
+    let additionalInfo = TokenParser.getAdditionalInfoFromTokens tokens []
+    
     match ast with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _)) ->
         let node = Fantomas.AstTransformer.astToNode (mns |> List.collect (function
@@ -78,7 +83,7 @@ let collectTrivia content (ast: ParsedInput) =
                 prevNode |> Option.map (fun n -> getComments false n comments)
                 |> Option.defaultValue []
         visit
-            comments
+            [] //comments
             [node]
             None
         |> fun x ->
