@@ -50,7 +50,7 @@ let (|Even|Odd|) input =
     if input % 2 = 0 then Even
     else Odd
 
-let (|Integer|_|) (str : string) =
+let (|Integer|_|) (str: string) =
     let mutable intvalue = 0
     if System.Int32.TryParse(str, &intvalue) then Some(intvalue)
     else None

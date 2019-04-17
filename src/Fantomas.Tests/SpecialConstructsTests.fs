@@ -10,5 +10,5 @@ let ``embedded IL``() =
 let inline private retype<'T, 'U> (x : 'T) : 'U = (# "" x : 'U #)""" config
     |> prepend newline
     |> should equal """
-let inline private retype<'T, 'U> (x : 'T) : 'U = (# "" x : 'U #)
+let inline private retype<'T, 'U> (x: 'T): 'U = (# "" x : 'U #)
 """

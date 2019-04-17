@@ -25,16 +25,16 @@ type Heap<'T when 'T : comparison> =
     |> should equal """
 module Heap
 
-type Heap<'T when 'T : comparison> =
+type Heap<'T when 'T: comparison> =
     class
-        new : capacity:int -> Heap<'T>
-        member Clear : unit -> unit
-        member ExtractMin : unit -> 'T
-        member Insert : k:'T -> unit
-        member IsEmpty : unit -> bool
-        member PeekMin : unit -> 'T
-        override ToString : unit -> string
-        member Count : int
+        new: capacity:int -> Heap<'T>
+        member Clear: unit -> unit
+        member ExtractMin: unit -> 'T
+        member Insert: k:'T -> unit
+        member IsEmpty: unit -> bool
+        member PeekMin: unit -> 'T
+        override ToString: unit -> string
+        member Count: int
     end
 """
 
@@ -55,19 +55,19 @@ type Class7<'T when 'T : (new : unit -> 'T)>() =
     """ config
     |> prepend newline
     |> should equal """
-type Class4<'T when 'T : (static member staticMethod1 : unit -> 'T)> =
+type Class4<'T when 'T: (static member staticMethod1: unit -> 'T)> =
     class
     end
 
-type Class5<'T when 'T : (member Method1 : 'T -> int)> =
+type Class5<'T when 'T: (member Method1: 'T -> int)> =
     class
     end
 
-type Class6<'T when 'T : (member Property1 : int)> =
+type Class6<'T when 'T: (member Property1: int)> =
     class
     end
 
-type Class7<'T when 'T : (new : unit -> 'T)>() =
+type Class7<'T when 'T: (new: unit -> 'T)>() =
     member val Field = new 'T()
 """
 
@@ -96,7 +96,7 @@ type Shape2D(x0 : float, y0 : float) =
     |> prepend newline
     |> should equal """
 [<AbstractClass>]
-type Shape2D(x0 : float, y0 : float) =
+type Shape2D(x0: float, y0: float) =
     let mutable x, y = x0, y0
     let mutable rotAngle = 0.0
 
@@ -108,15 +108,15 @@ type Shape2D(x0 : float, y0 : float) =
         with get () = y
         and set yval = y <- yval
 
-    abstract Area : float
-    abstract Perimeter : float
-    abstract Name : string
+    abstract Area: float
+    abstract Perimeter: float
+    abstract Name: string
 
     member this.Move dx dy =
         x <- x + dx
         y <- y + dy
 
-    abstract Rotate : float -> unit
+    abstract Rotate: float -> unit
     override this.Rotate(angle) = rotAngle <- rotAngle + angle
 """
 
@@ -138,14 +138,14 @@ type DerivedClass =
     |> should equal """
 type BaseClass =
     class
-        val string1 : string
+        val string1: string
         new(str) = { string1 = str }
         new() = { string1 = "" }
     end
 
 type DerivedClass =
     inherit BaseClass
-    val string2 : string
+    val string2: string
     new(str1, str2) = { inherit BaseClass(str1); string2 = str2 }
     new(str2) = { inherit BaseClass(); string2 = str2 }
 """
@@ -195,13 +195,13 @@ and File(filename: string, containingFolder: Folder) =
    member __.ContainingFolder = containingFolder""" config
     |> prepend newline
     |> should equal """
-type Folder(pathIn : string) =
+type Folder(pathIn: string) =
     let path = pathIn
-    let filenameArray : string array = System.IO.Directory.GetFiles(path)
+    let filenameArray: string array = System.IO.Directory.GetFiles(path)
     member this.FileArray =
         Array.map (fun elem -> new File(elem, this)) filenameArray
 
-and File(filename : string, containingFolder : Folder) =
+and File(filename: string, containingFolder: Folder) =
     member __.Name = filename
     member __.ContainingFolder = containingFolder
 """
@@ -218,13 +218,13 @@ type MyClassDerived2(y: int) =
    do for i in 1..y do printf "%d " i""" config
     |> prepend newline
     |> should equal """
-type MyClassBase2(x : int) =
+type MyClassBase2(x: int) =
     let mutable z = x * x
     do
         for i in 1..z do
             printf "%d " i
 
-type MyClassDerived2(y : int) =
+type MyClassDerived2(y: int) =
     inherit MyClassBase2(y * 2)
     do
         for i in 1..y do
@@ -266,11 +266,11 @@ let ``should keep type annotations on auto properties``() =
     member val Name = name with get, set
     member val LibraryID : string option = None with get, set
 """  config
-    |> should equal """type Document(id : string, library : string, name : string option) =
+    |> should equal """type Document(id: string, library: string, name: string option) =
     member val ID = id
     member val Library = library
     member val Name = name with get, set
-    member val LibraryID : string option = None with get, set
+    member val LibraryID: string option = None with get, set
 """
 
 [<Test>]
@@ -289,11 +289,11 @@ let ``member properties with type annotation``() =
     member this.Y with get():int = 1 and set (_:int):unit = ()
 """  config
     |> should equal """type A() =
-    member this.X : int = 1
+    member this.X: int = 1
 
     member this.Y
-        with get () : int = 1
-        and set (_ : int) : unit = ()
+        with get (): int = 1
+        and set (_: int): unit = ()
 """
 
 [<Test>]
@@ -337,7 +337,7 @@ System.String.Concat("a", "b" +
     |> should equal """type T() =
     member __.Property = "hello"
 
-let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x : T) = x
+let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x: T) = x
 let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass =
     T()
 
