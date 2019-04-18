@@ -2,7 +2,6 @@ module internal Fantomas.Trivia
 
 open Fantomas.AstTransformer
 open FSharp.Compiler.Ast
-open FSharp.Compiler.Range
 open Fantomas
 
 let refDict xs =
@@ -77,7 +76,7 @@ let collectTrivia tokens (ast: ParsedInput) =
 
     // Extra stuff we need is already capture and has regions
     // Now we only need to figure out what to place in what trivia node.
-    let additionalInfo = TokenParser.getAdditionalInfoFromTokens tokens []
+    let additionalInfo = TokenParser.getAdditionalInfoFromTokens tokens
     
     match ast with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _)) ->
@@ -86,7 +85,7 @@ let collectTrivia tokens (ast: ParsedInput) =
         additionalInfo
         |> List.map (fun ai ->
             match ai with
-            | { Item = TokenParser.Comment(TokenParser.LineComment(lineComment)); Range = range } when (range.Start.Column = 0) ->
+            | { Item = TokenParser.Comment(TokenParser.LineComment(lineComment)); Range = range } ->
                 // A comment that start at the begin of a line
                 let nextNodeUnder = findFirstNodeOnLine (range.StartLine + 1) node
                 Option.toList nextNodeUnder
@@ -96,7 +95,7 @@ let collectTrivia tokens (ast: ParsedInput) =
                               CommentsAfter = [] }
                     (n.FsAstNode, [t])
                 )
-
+                
             | _ -> []
         )
         |> List.collect id

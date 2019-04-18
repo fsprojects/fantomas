@@ -82,6 +82,7 @@ type Comment =
 type AdditionalInfoContent =
     | Keyword of string
     | Comment of Comment
+    | Newline
     
 type AdditionalInfo =
     { Item: AdditionalInfoContent
@@ -98,8 +99,9 @@ let private getRangeBetween name startToken endToken =
 let private appendToList items item =
     List.singleton item
     |> (@) items
-    
-let rec getAdditionalInfoFromTokens (tokens: Token list) foundTrivia =
+
+
+let rec private getAdditionalInfoFromTokensThemSelves (tokens: Token list) foundTrivia =
     match tokens with
     | headToken::rest when (headToken.TokenInfo.TokenName = "LINE_COMMENT") ->
         let lineCommentTokens =
@@ -130,7 +132,7 @@ let rec getAdditionalInfoFromTokens (tokens: Token list) foundTrivia =
             AdditionalInfo.Create (Comment(comment)) range
             |> appendToList foundTrivia
             
-        getAdditionalInfoFromTokens nextTokens info
+        getAdditionalInfoFromTokensThemSelves nextTokens info
         
     | headToken::rest when (headToken.TokenInfo.TokenName = "COMMENT") ->
         let blockCommentTokens =
@@ -160,17 +162,54 @@ let rec getAdditionalInfoFromTokens (tokens: Token list) foundTrivia =
             AdditionalInfo.Create (Comment(BlockComment(comment))) range
             |> appendToList foundTrivia
             
-        getAdditionalInfoFromTokens nextTokens info
-        
+        getAdditionalInfoFromTokensThemSelves nextTokens info
+
     | headToken::rest when (headToken.TokenInfo.ColorClass = FSharpTokenColorKind.Keyword) ->
         let keyword = headToken.Content |> AdditionalInfoContent.Keyword
         let range = getRangeBetween "keyword" headToken headToken
         let info =
             AdditionalInfo.Create keyword range
             |> appendToList foundTrivia
+
+        getAdditionalInfoFromTokensThemSelves rest info
         
-        getAdditionalInfoFromTokens rest info
-        
-    | (_)::rest -> getAdditionalInfoFromTokens rest foundTrivia
+    | (_)::rest -> getAdditionalInfoFromTokensThemSelves rest foundTrivia
     
     | [] -> foundTrivia
+
+let createNewLine lineNumber =
+    let pos = FSharp.Compiler.Range.mkPos lineNumber 0
+    let range = FSharp.Compiler.Range.mkRange "newline" pos pos
+    { Item = Newline; Range = range }
+
+let private findEmptyNewlinesInTokens (tokens: Token list) =
+    let firstLine =
+        tokens
+        |> List.map (fun t -> t.LineNumber)
+        |> List.min
+
+    let lastLine =
+        tokens
+        |> List.map (fun t -> t.LineNumber)
+        |> List.max
+
+    let completeEmptyLines =
+        [firstLine .. lastLine]
+        |> List.filter (fun line ->
+            not (List.exists (fun t -> t.LineNumber = line) tokens)
+        )
+        |> List.map (fun line -> createNewLine line)
+
+    let linesWithOnlySpaces =
+        tokens
+        |> List.groupBy (fun t -> t.LineNumber)
+        |> List.filter (fun (_, g) -> (List.length g) = 1 && (List.head g).TokenInfo.TokenName = "WHITESPACE")
+        |> List.map (fst >> createNewLine)
+        
+    completeEmptyLines @ linesWithOnlySpaces
+
+let getAdditionalInfoFromTokens (tokens: Token list) =
+    let fromTokens = getAdditionalInfoFromTokensThemSelves tokens []
+    let newLines = findEmptyNewlinesInTokens tokens
+    
+    fromTokens @ newLines

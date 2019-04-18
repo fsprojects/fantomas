@@ -72,12 +72,12 @@ let b = 9"""
 let ``simple line comment should be found in tokens`` () =
     let source = "let a = 7 // some comment"
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens []
+    let additionalInfo = getAdditionalInfoFromTokens tokens
     
     match List.tryLast additionalInfo with
     | Some({ Item = Comment(LineComment(lineComment)) ; Range = range}) ->
         lineComment == "// some comment"
-        range.Start.Line == range.End.Line
+        range.StartLine == range.EndLine
         
     | _ ->
         failwith "expected comment"
@@ -86,15 +86,15 @@ let ``simple line comment should be found in tokens`` () =
 let ``keyword should be found in tokens`` () =
     let source = "let a = 42"
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens []
+    let additionalInfo = getAdditionalInfoFromTokens tokens
     
     match List.tryHead additionalInfo with
     | Some({ Item = Keyword(keyword); Range = range }) ->
         keyword == "let"
-        range.Start.Column == 0
-        range.Start.Line == 1
-        range.End.Column == 2
-        range.End.Line == 1
+        range.StartColumn == 0
+        range.StartLine == 1
+        range.EndColumn == 2
+        range.EndLine == 1
     | _ ->
         failwith "expected keyword"
         
@@ -108,7 +108,7 @@ let getDefines sourceCode =
     |> Seq.toArray
 """
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens []
+    let additionalInfo = getAdditionalInfoFromTokens tokens
     
     match List.tryHead additionalInfo with
     | Some({ Item = Comment(XmlComment(xmlComment)) }) ->
@@ -120,7 +120,7 @@ let getDefines sourceCode =
 let ``Single line block comment should be found in tokens`` () =
     let source = "let foo (* not fonz *) = \"bar\""
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens []
+    let additionalInfo = getAdditionalInfoFromTokens tokens
     
     match List.tryLast additionalInfo with
     | Some({ Item = Comment(BlockComment(blockComment)) }) ->
@@ -137,15 +137,15 @@ let ``Multi line block comment should be found in tokens`` () =
     7
 """
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens []
+    let additionalInfo = getAdditionalInfoFromTokens tokens
     
     match List.tryLast additionalInfo with
     | Some({ Item = Comment(BlockComment(blockComment)); Range = range }) ->
         blockComment == """(* multi
    line
    comment *)"""
-        range.Start.Line == 2
-        range.End.Line == 4
+        range.StartLine == 2
+        range.EndLine == 4
     | _ ->
         failwith "expected block comment"
         
@@ -157,7 +157,7 @@ let ``Multiple line comment should be found in tokens`` () =
 let a = 9
 """
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens []
+    let additionalInfo = getAdditionalInfoFromTokens tokens
     
     match additionalInfo with
     | ({ Item = Comment(LineComment(l1)) })::({ Item = Comment(LineComment(l2)) })::rest ->
@@ -165,3 +165,35 @@ let a = 9
         l2 == "// foo"
     | _ ->
         failwith "Expected two line comments"
+        
+[<Test>]
+let ``newline should be found in tokens`` () =
+    let source = """printfn "foo"
+
+printfn "bar" """
+    
+    let tokens = tokenize [] source
+    let additionalInfo = getAdditionalInfoFromTokens tokens
+    
+    match additionalInfo with
+    | [{ Item = NewLine; Range = range }] ->
+        range.StartLine == 2
+        range.EndLine == 2
+    | _ ->
+        failwith "expected newline"
+        
+[<Test>]
+let ``Only empty spaces in line are also consider as Newline`` () =
+    let source = """printfn "foo"
+    
+printfn "bar" """ // difference is the 4 spaces on line 188
+
+    let tokens = tokenize [] source
+    let additionalInfo = getAdditionalInfoFromTokens tokens
+    
+    match additionalInfo with
+    | [{ Item = NewLine; Range = range }] ->
+        range.StartLine == 2
+        range.EndLine == 2
+    | _ ->
+        failwith "expected newline"
