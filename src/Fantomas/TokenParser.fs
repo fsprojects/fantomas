@@ -116,7 +116,13 @@ let rec getAdditionalInfoFromTokens (tokens: Token list) foundTrivia =
             getRangeBetween "line comment" headToken lastToken
             
         let info =
-            (AdditionalInfoContent.Comment(Comment.LineComment comment), range)
+            let comment =
+                if headToken.Content = "///" then
+                    Comment.XmlComment comment
+                else
+                    Comment.LineComment comment
+            
+            (AdditionalInfoContent.Comment(comment), range)
             |> appendToList foundTrivia
             
         getAdditionalInfoFromTokens nextTokens info

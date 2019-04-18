@@ -81,3 +81,21 @@ let ``keyword should be found in tokens`` () =
         range.End.Line == 0
     | _ ->
         failwith "expected keyword"
+        
+[<Test>]
+let ``Xml comment should be found in tokens`` () =
+    let source = """/// Regex alone won't cut it, good enough for now
+let getDefines sourceCode =
+    Regex.Matches(sourceCode, "#if\\s(\\S+)")
+    |> Seq.cast<Match>
+    |> Seq.map (fun mtc -> mtc.Value.Substring(4))
+    |> Seq.toArray
+"""
+    let tokens = tokenize [] source
+    let additionalInfo = getAdditionalInfoFromTokens tokens []
+    
+    match List.tryHead additionalInfo with
+    | Some(Comment(XmlComment(xmlComment)), _) ->
+        xmlComment == "/// Regex alone won't cut it, good enough for now"
+    | _ ->
+        failwith "expected xml comment"
