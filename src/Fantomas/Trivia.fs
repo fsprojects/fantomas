@@ -59,31 +59,32 @@ let collectTrivia tokens (ast: ParsedInput) =
     
     match ast with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _)) ->
-        let node = Fantomas.AstTransformer.astToNode (mns |> List.collect (function
-            (SynModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule, _)) -> s))
-        let rec visit comments acc prevNode =
-            let getComments isBefore n comments =
-                comments |> List.collect snd |> function
-                    | [] -> []
-                    | c -> [n.FsAstNode,
-                            if isBefore then [{ Type = MainNode; CommentsBefore = c; CommentsAfter = [] }]
-                            else [{ Type = MainNode; CommentsBefore = []; CommentsAfter = c }] ]
-            match acc with
-            | (n:Fantomas.AstTransformer.Node) :: ns ->
-            let (commentsBefore, comments) = 
-                match n.Range with
-                | Some r ->
-                    comments |> List.partition (fun ((p:pos), _) ->
-                        p.Line < r.StartLine || (p.Line = r.StartLine && p.Column <= r.StartCol))
-                | None -> [], comments
-            List.append
-                (getComments true n commentsBefore)
-                (visit comments (n.Childs @ ns) (Some n))
-            | [] ->
-                prevNode |> Option.map (fun n -> getComments false n comments)
-                |> Option.defaultValue []
+        let node = Fantomas.AstTransformer.astToNode (mns |> List.collect (function (SynModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule, _)) -> s))
+        let rec visit additionalInfo acc prevNode =
+            failwith "not implemented"
+
+//            let getComments isBefore n comments =
+//                comments |> List.collect snd |> function
+//                    | [] -> []
+//                    | c -> [n.FsAstNode,
+//                            if isBefore then [{ Type = MainNode; CommentsBefore = c; CommentsAfter = [] }]
+//                            else [{ Type = MainNode; CommentsBefore = []; CommentsAfter = c }] ]
+//            match acc with
+//            | (n:Fantomas.AstTransformer.Node) :: ns ->
+//                let (commentsBefore, comments) = 
+//                    match n.Range with
+//                    | Some r ->
+//                        comments |> List.partition (fun ((p:pos), _) ->
+//                            p.Line < r.StartLine || (p.Line = r.StartLine && p.Column <= r.StartCol))
+//                    | None -> [], comments
+//                List.append
+//                    (getComments true n commentsBefore)
+//                    (visit comments (n.Childs @ ns) (Some n))
+//            | [] ->
+//                prevNode |> Option.map (fun n -> getComments false n comments)
+//                |> Option.defaultValue []
         visit
-            [] //comments
+            additionalInfo
             [node]
             None
         |> fun x ->

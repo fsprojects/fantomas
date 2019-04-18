@@ -75,7 +75,7 @@ let ``simple line comment should be found in tokens`` () =
     let additionalInfo = getAdditionalInfoFromTokens tokens []
     
     match List.tryLast additionalInfo with
-    | Some(Comment(LineComment(lineComment)), range) ->
+    | Some({ Item = Comment(LineComment(lineComment)) ; Range = range}) ->
         lineComment == "// some comment"
         range.Start.Line == range.End.Line
         
@@ -89,7 +89,7 @@ let ``keyword should be found in tokens`` () =
     let additionalInfo = getAdditionalInfoFromTokens tokens []
     
     match List.tryHead additionalInfo with
-    | Some(Keyword(keyword), range) ->
+    | Some({ Item = Keyword(keyword); Range = range }) ->
         keyword == "let"
         range.Start.Column == 0
         range.Start.Line == 0
@@ -111,7 +111,7 @@ let getDefines sourceCode =
     let additionalInfo = getAdditionalInfoFromTokens tokens []
     
     match List.tryHead additionalInfo with
-    | Some(Comment(XmlComment(xmlComment)), _) ->
+    | Some({ Item = Comment(XmlComment(xmlComment)) }) ->
         xmlComment == "/// Regex alone won't cut it, good enough for now"
     | _ ->
         failwith "expected xml comment"
@@ -123,7 +123,7 @@ let ``Single line block comment should be found in tokens`` () =
     let additionalInfo = getAdditionalInfoFromTokens tokens []
     
     match List.tryLast additionalInfo with
-    | Some(Comment(BlockComment(blockComment)), _) ->
+    | Some({ Item = Comment(BlockComment(blockComment)) }) ->
         blockComment == "(* not fonz *)"
     | _ ->
         failwith "expected block comment"
@@ -140,7 +140,7 @@ let ``Multi line block comment should be found in tokens`` () =
     let additionalInfo = getAdditionalInfoFromTokens tokens []
     
     match List.tryLast additionalInfo with
-    | Some(Comment(BlockComment(blockComment)), range) ->
+    | Some({ Item = Comment(BlockComment(blockComment)); Range = range }) ->
         blockComment == """(* multi
    line
    comment *)"""
@@ -148,3 +148,20 @@ let ``Multi line block comment should be found in tokens`` () =
         range.End.Line == 3
     | _ ->
         failwith "expected block comment"
+        
+[<Test>]
+let ``Multiple line comment should be found in tokens`` () =
+    let source = """
+// meh
+// foo
+let a = 9
+"""
+    let tokens = tokenize [] source
+    let additionalInfo = getAdditionalInfoFromTokens tokens []
+    
+    match additionalInfo with
+    | ({ Item = Comment(LineComment(l1)) })::({ Item = Comment(LineComment(l2)) })::rest ->
+        l1 == "// meh"
+        l2 == "// foo"
+    | _ ->
+        failwith "Expected two line comments"

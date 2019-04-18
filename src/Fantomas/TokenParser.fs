@@ -83,7 +83,12 @@ type AdditionalInfoContent =
     | Keyword of string
     | Comment of Comment
     
-type AdditionalInfo = AdditionalInfoContent * range
+type AdditionalInfo =
+    { Item: AdditionalInfoContent
+      Range: range }
+with
+    static member Create item range : AdditionalInfo =
+        { Item = item; Range = range }
 
 let private getRangeBetween name startToken endToken =
     let start = FSharp.Compiler.Range.mkPos startToken.LineNumber startToken.TokenInfo.LeftColumn
@@ -122,7 +127,7 @@ let rec getAdditionalInfoFromTokens (tokens: Token list) foundTrivia =
                 else
                     Comment.LineComment comment
             
-            (Comment(comment), range)
+            AdditionalInfo.Create (Comment(comment)) range
             |> appendToList foundTrivia
             
         getAdditionalInfoFromTokens nextTokens info
@@ -152,7 +157,7 @@ let rec getAdditionalInfoFromTokens (tokens: Token list) foundTrivia =
             getRangeBetween "block comment" headToken lastToken
             
         let info =
-            (Comment(BlockComment(comment)), range)
+            AdditionalInfo.Create (Comment(BlockComment(comment))) range
             |> appendToList foundTrivia
             
         getAdditionalInfoFromTokens nextTokens info
@@ -161,7 +166,7 @@ let rec getAdditionalInfoFromTokens (tokens: Token list) foundTrivia =
         let keyword = headToken.Content |> AdditionalInfoContent.Keyword
         let range = getRangeBetween "keyword" headToken headToken
         let info =
-            (keyword, range)
+            AdditionalInfo.Create keyword range
             |> appendToList foundTrivia
         
         getAdditionalInfoFromTokens rest info
