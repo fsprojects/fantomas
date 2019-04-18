@@ -43,7 +43,7 @@ let ``tokenize should return correct amount`` () =
 [<Test>]
 let ``tokenize should return correct sequence of tokens`` () =
     let source = "let a = 7" // LET WHITESPACE IDENT WHITESPACE EQUALS WHITESPACE INT32
-    let tokens = tokenize [] source |> List.map (fun t -> t.TokenInfo.TokenName) 
+    let tokens = tokenize [] source |> List.map (fun t -> t.TokenInfo.TokenName)
     tokens.[0] == "LET"
     tokens.[1] == "WHITESPACE"
     tokens.[2] == "IDENT"
@@ -51,7 +51,23 @@ let ``tokenize should return correct sequence of tokens`` () =
     tokens.[4] == "EQUALS"
     tokens.[5] == "WHITESPACE"
     tokens.[6] == "INT32"
+
+[<Test>]
+let ``tokenize should work with multiple lines`` () =
+    let source = """let a = 8
+let b = 9"""
+    let tokens = tokenize [] source
+    let tokensLength = List.length tokens
+    tokensLength == 14
     
+    let aTokens = List.filter (fun t -> t.LineNumber = 0) tokens
+    let aTok = List.item 2 aTokens
+    aTok.Content == "a"
+    
+    let bTokens = List.filter (fun t -> t.LineNumber = 1) tokens
+    let bTok = List.item 2 bTokens
+    bTok.Content == "b"
+
 [<Test>]
 let ``simple line comment should be found in tokens`` () =
     let source = "let a = 7 // some comment"
@@ -99,3 +115,36 @@ let getDefines sourceCode =
         xmlComment == "/// Regex alone won't cut it, good enough for now"
     | _ ->
         failwith "expected xml comment"
+
+[<Test>]
+let ``Single line block comment should be found in tokens`` () =
+    let source = "let foo (* not fonz *) = \"bar\""
+    let tokens = tokenize [] source
+    let additionalInfo = getAdditionalInfoFromTokens tokens []
+    
+    match List.tryLast additionalInfo with
+    | Some(Comment(BlockComment(blockComment)), _) ->
+        blockComment == "(* not fonz *)"
+    | _ ->
+        failwith "expected block comment"
+        
+[<Test>]
+let ``Multi line block comment should be found in tokens`` () =
+    let source = """let bar =
+(* multi
+   line
+   comment *)
+    7
+"""
+    let tokens = tokenize [] source
+    let additionalInfo = getAdditionalInfoFromTokens tokens []
+    
+    match List.tryLast additionalInfo with
+    | Some(Comment(BlockComment(blockComment)), range) ->
+        blockComment == """(* multi
+   line
+   comment *)"""
+        range.Start.Line == 1
+        range.End.Line == 3
+    | _ ->
+        failwith "expected block comment"

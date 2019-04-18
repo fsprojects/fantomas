@@ -54,13 +54,13 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
   |> List.mapi (fun lineNumber line -> line,lineNumber) // line number is needed in tokenizeLine
   |> List.fold (fun (state, tokens) (line, lineNumber) ->
       let tokenizer = sourceTokenizer.CreateLineTokenizer(line)
-      let nextState, tokensOfLine = tokenizeLine tokenizer allLines state lineNumber tokens
+      let nextState, tokensOfLine =
+          tokenizeLine tokenizer allLines state lineNumber []
       
-      let allTokens = tokens @ tokensOfLine
+      let allTokens = List.append tokens (List.rev tokensOfLine) // tokens of line are add in reversed order
       (nextState, allTokens)
   ) (state, []) // empty tokens to start with
   |> snd // ignore the state
-  |> List.rev
 
 let tokenize defines (content : string) : Token list =
     let sourceTokenizer = FSharpSourceTokenizer("INTERACTIVE" :: defines, Some "/tmp.fsx")
@@ -122,7 +122,37 @@ let rec getAdditionalInfoFromTokens (tokens: Token list) foundTrivia =
                 else
                     Comment.LineComment comment
             
-            (AdditionalInfoContent.Comment(comment), range)
+            (Comment(comment), range)
+            |> appendToList foundTrivia
+            
+        getAdditionalInfoFromTokens nextTokens info
+        
+    | headToken::rest when (headToken.TokenInfo.TokenName = "COMMENT") ->
+        let blockCommentTokens =
+            rest
+            |> List.takeWhile (fun t -> t.TokenInfo.TokenName = "COMMENT")
+            
+        let comment =
+            blockCommentTokens
+            |> (@) (List.singleton headToken)
+            |> List.groupBy (fun t -> t.LineNumber)
+            |> List.map (fun (_, g) ->
+                g
+                |> List.map (fun t -> t.Content)
+                |> String.concat String.Empty
+            )
+            |> String.concat Environment.NewLine
+            
+        let nextTokens =
+            List.length blockCommentTokens
+            |> fun length -> List.skip length rest
+            
+        let range =
+            let lastToken = List.last blockCommentTokens
+            getRangeBetween "block comment" headToken lastToken
+            
+        let info =
+            (Comment(BlockComment(comment)), range)
             |> appendToList foundTrivia
             
         getAdditionalInfoFromTokens nextTokens info
