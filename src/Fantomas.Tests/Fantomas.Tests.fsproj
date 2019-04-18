@@ -10,6 +10,7 @@
     <Compile Include="FsUnit.fs" />
     <Compile Include="TestHelpers.fs" />
     <Compile Include="TokenParserTests.fs" />
+    <Compile Include="TriviaTests.fs" />
     <Compile Include="FakeHelpersTests.fs" />
     <Compile Include="StringTests.fs" />
     <Compile Include="CommentTests.fs" />

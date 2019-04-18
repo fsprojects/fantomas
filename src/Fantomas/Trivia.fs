@@ -28,22 +28,44 @@ type TriviaNode = {
     CommentsAfter: Comment list
 }
 
-let rec parseComments blockAcc comments =
-    match comments with
-    | (p, s:string) :: rest ->
-        let s = s.Trim()
-        let single c = (p, c) :: parseComments None rest
-        blockAcc |> Option.map (fun (p, acc) ->
-            if s.EndsWith "*)" then
-                (p, (BlockComment (acc @ [s.Substring(2, s.Length - 2)] |> String.concat "\n"))) :: parseComments None rest
-            else parseComments (Some (p, acc @ [s])) rest)
-        |> Option.defaultWith (fun () ->
-            if s.StartsWith "///" then XmlLineComment (s.Substring 3) |> single
-            elif s.StartsWith "//" then LineComment (s.Substring 2) |> single
-            elif s.StartsWith "(*" && s.EndsWith "*)" then BlockComment (s.Substring(2, s.Length - 4)) |> single
-            elif s.StartsWith "(*" then parseComments (Some (p, [s.Substring 2])) rest
-            else failwithf "%s is not valid comment" s)
-    | [] -> []
+//let rec parseComments blockAcc comments =
+//    match comments with
+//    | (p, s:string) :: rest ->
+//        let s = s.Trim()
+//        let single c = (p, c) :: parseComments None rest
+//        blockAcc |> Option.map (fun (p, acc) ->
+//            if s.EndsWith "*)" then
+//                (p, (BlockComment (acc @ [s.Substring(2, s.Length - 2)] |> String.concat "\n"))) :: parseComments None rest
+//            else parseComments (Some (p, acc @ [s])) rest)
+//        |> Option.defaultWith (fun () ->
+//            if s.StartsWith "///" then XmlLineComment (s.Substring 3) |> single
+//            elif s.StartsWith "//" then LineComment (s.Substring 2) |> single
+//            elif s.StartsWith "(*" && s.EndsWith "*)" then BlockComment (s.Substring(2, s.Length - 4)) |> single
+//            elif s.StartsWith "(*" then parseComments (Some (p, [s.Substring 2])) rest
+//            else failwithf "%s is not valid comment" s)
+//    | [] -> []
+
+let private findInChildren fn (node: Node) =
+    node.Childs
+    |> List.choose fn
+    |> List.tryHead
+
+let rec findFirstNodeOnLine lineNumber (rootNode: Node) : Node option =
+    match rootNode.Range with
+    | Some range when (range.StartLine = lineNumber) ->
+        Some rootNode
+    
+    | Some range when (range.StartLine < lineNumber) ->
+        // Check if children contain start node
+        findInChildren (findFirstNodeOnLine lineNumber) rootNode
+        
+    | None ->
+        // root of tree has no range?
+        findInChildren (findFirstNodeOnLine lineNumber) rootNode
+        
+    | _ -> None
+        
+    
 
 let collectTrivia tokens (ast: ParsedInput) =
 //    let (comments, directives, keywords) = filterCommentsAndDirectives content
@@ -60,8 +82,28 @@ let collectTrivia tokens (ast: ParsedInput) =
     match ast with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _)) ->
         let node = Fantomas.AstTransformer.astToNode (mns |> List.collect (function (SynModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule, _)) -> s))
-        let rec visit additionalInfo acc prevNode =
-            failwith "not implemented"
+        
+        additionalInfo
+        |> List.map (fun ai ->
+            match ai with
+            | { Item = TokenParser.Comment(TokenParser.LineComment(lineComment)); Range = range } when (range.Start.Column = 0) ->
+                // A comment that start at the begin of a line
+                let nextNodeUnder = findFirstNodeOnLine (range.StartLine + 1) node
+                Option.toList nextNodeUnder
+                |> List.map (fun n ->
+                    let t = { Type = MainNode
+                              CommentsBefore = [LineComment(lineComment)]
+                              CommentsAfter = [] }
+                    (n.FsAstNode, [t])
+                )
+
+            | _ -> []
+        )
+        |> List.collect id
+        |> refDict
+        
+//        let rec visit additionalInfo acc prevNode =
+//            failwith "not implemented"
 
 //            let getComments isBefore n comments =
 //                comments |> List.collect snd |> function
@@ -83,12 +125,12 @@ let collectTrivia tokens (ast: ParsedInput) =
 //            | [] ->
 //                prevNode |> Option.map (fun n -> getComments false n comments)
 //                |> Option.defaultValue []
-        visit
-            additionalInfo
-            [node]
-            None
-        |> fun x ->
-            refDict x
+//        visit
+//            additionalInfo
+//            [node]
+//            None
+//        |> fun x ->
+//            refDict x
     | _ -> Seq.empty |> refDict
     
 let getMainNode index (ts: TriviaNode list) =
