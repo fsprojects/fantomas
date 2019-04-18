@@ -60,11 +60,11 @@ let b = 9"""
     let tokensLength = List.length tokens
     tokensLength == 14
     
-    let aTokens = List.filter (fun t -> t.LineNumber = 0) tokens
+    let aTokens = List.filter (fun t -> t.LineNumber = 1) tokens
     let aTok = List.item 2 aTokens
     aTok.Content == "a"
     
-    let bTokens = List.filter (fun t -> t.LineNumber = 1) tokens
+    let bTokens = List.filter (fun t -> t.LineNumber = 2) tokens
     let bTok = List.item 2 bTokens
     bTok.Content == "b"
 
@@ -92,9 +92,9 @@ let ``keyword should be found in tokens`` () =
     | Some({ Item = Keyword(keyword); Range = range }) ->
         keyword == "let"
         range.Start.Column == 0
-        range.Start.Line == 0
+        range.Start.Line == 1
         range.End.Column == 2
-        range.End.Line == 0
+        range.End.Line == 1
     | _ ->
         failwith "expected keyword"
         
@@ -144,8 +144,8 @@ let ``Multi line block comment should be found in tokens`` () =
         blockComment == """(* multi
    line
    comment *)"""
-        range.Start.Line == 1
-        range.End.Line == 3
+        range.Start.Line == 2
+        range.End.Line == 4
     | _ ->
         failwith "expected block comment"
         

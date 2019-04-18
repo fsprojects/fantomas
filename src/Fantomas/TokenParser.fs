@@ -19,7 +19,7 @@ let private isTokenAfterGreater token (greaterToken: Token) =
     greaterToken.TokenName = "GREATER" && token.TokenName <> "GREATER" && greaterToken.RightColumn <> (token.LeftColumn + 1)
 
 let getTokenText (sourceCodeLines: string list) line (token: FSharpTokenInfo) =
-    sourceCodeLines.[line].Substring(token.LeftColumn, token.RightColumn - token.LeftColumn + 1)
+    sourceCodeLines.[line - 1].Substring(token.LeftColumn, token.RightColumn - token.LeftColumn + 1)
 
 /// Tokenize a single line of F# code
 let rec private tokenizeLine (tokenizer:FSharpLineTokenizer) sourceCodeLines state lineNumber tokens =
@@ -51,7 +51,7 @@ let rec private tokenizeLine (tokenizer:FSharpLineTokenizer) sourceCodeLines sta
   
 let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
   allLines
-  |> List.mapi (fun lineNumber line -> line,lineNumber) // line number is needed in tokenizeLine
+  |> List.mapi (fun index line -> line, (index + 1)) // line number is needed in tokenizeLine
   |> List.fold (fun (state, tokens) (line, lineNumber) ->
       let tokenizer = sourceTokenizer.CreateLineTokenizer(line)
       let nextState, tokensOfLine =
