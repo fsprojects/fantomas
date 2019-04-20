@@ -198,8 +198,7 @@ and File(filename: string, containingFolder: Folder) =
 type Folder(pathIn: string) =
     let path = pathIn
     let filenameArray: string array = System.IO.Directory.GetFiles(path)
-    member this.FileArray =
-        Array.map (fun elem -> new File(elem, this)) filenameArray
+    member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
 
 and File(filename: string, containingFolder: Folder) =
     member __.Name = filename
@@ -338,8 +337,7 @@ System.String.Concat("a", "b" +
     member __.Property = "hello"
 
 let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x: T) = x
-let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass =
-    T()
+let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass = T()
 
 System.String.Concat
     ("a",
@@ -358,7 +356,5 @@ type Exception with
     |> should equal """open System
 
 type Exception with
-    member inline __.FirstLine =
-        (__.Message.Split
-            ([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries)).[0]
+    member inline __.FirstLine = __.Message.Split([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries).[0]
 """

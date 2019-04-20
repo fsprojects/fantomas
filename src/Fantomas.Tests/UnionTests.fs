@@ -28,21 +28,13 @@ type X =
 
 [<Test>]
 let ``enums conversion``() =
-    formatSourceString false """
-type uColor =
-   | Red = 0u
-   | Green = 1u
-   | Blue = 2u
-let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)""" config
-    |> prepend newline
-    |> should equal """
+    shouldNotChangeAfterFormat """
 type uColor =
     | Red = 0u
     | Green = 1u
     | Blue = 2u
 
-let col3 =
-    Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
+let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
 """
 
 [<Test>]
@@ -149,8 +141,7 @@ type uColor =
     | Green = 1u
     | Blue = 2u
 
-let col3 =
-    Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
+let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
 """
 
 [<Test>]

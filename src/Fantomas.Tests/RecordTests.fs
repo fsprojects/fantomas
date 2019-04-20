@@ -82,8 +82,7 @@ type Element =
     /// Replaces the children.
     static member (-): self:Element * children:#seq<#INode> -> Element
     /// Replaces the attributes.
-    static member WithAttributes: attrs:#seq<string * string>
-         -> self:Element -> Element
+    static member WithAttributes: attrs:#seq<string * string> -> self:Element -> Element
     /// Replaces the attributes.
     static member (+): self:Element * attrs:#seq<string * string> -> Element
     /// Replaces the children with a single text node.
@@ -194,20 +193,10 @@ type rate2 = Rate of float<GBP / SGD * USD>
 
 [<Test>]
 let ``should keep comments on records``() =
-    formatSourceString false """
+    shouldNotChangeAfterFormat """
 let newDocument = //somecomment
     { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
       content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
-      created = document.Created.ToLocalTime() }
-    |> JsonConvert.SerializeObject
-"""  config
-  |> prepend newline
-  |> should equal """
-let newDocument = //somecomment
-    { program =
-          Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
-      content =
-          Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
       created = document.Created.ToLocalTime() }
     |> JsonConvert.SerializeObject
 """
