@@ -30,3 +30,17 @@ type Trivia =
 with
     static member Create item range : Trivia =
         { Item = item; Range = range }
+        
+type TriviaIndex = TriviaIndex of int * int
+
+type TriviaNodeType =
+    | MainNode
+//    | Keyword of string
+//    | Token of string
+    
+type TriviaNode = {
+    Type: TriviaNodeType
+    CommentsBefore: Comment list
+    CommentsAfter: Comment list
+    NewlinesBefore: int
+}

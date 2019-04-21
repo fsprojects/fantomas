@@ -73,7 +73,7 @@ type internal Context =
       /// Compiler directives attached to appropriate locations
       Directives : Dictionary<pos, string>
       Trivia : Dictionary<AstTransformer.FsAstNode, TriviaNode list>
-      TriviaIndexes : list<AstTransformer.FsAstNode * Trivia.TriviaIndex> //TODO: use PersistentHashMap
+      TriviaIndexes : list<AstTransformer.FsAstNode * TriviaTypes.TriviaIndex> //TODO: use PersistentHashMap
       NodePath : AstTransformer.FsAstNode list}
 
     /// Initialize with a string writer and use space as delimiter

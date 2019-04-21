@@ -9,41 +9,6 @@ let refDict xs =
     let d = System.Collections.Generic.Dictionary(HashIdentity.Reference)
     xs |> Seq.iter d.Add
     d
-    
-//type Comment =
-//    | LineComment of string
-//    | XmlLineComment of string
-//    | BlockComment of string
-
-type TriviaIndex = TriviaIndex of int * int
-
-type TriviaNodeType =
-    | MainNode
-//    | Keyword of string
-//    | Token of string
-    
-type TriviaNode = {
-    Type: TriviaNodeType
-    CommentsBefore: Comment list
-    CommentsAfter: Comment list
-}
-
-//let rec parseComments blockAcc comments =
-//    match comments with
-//    | (p, s:string) :: rest ->
-//        let s = s.Trim()
-//        let single c = (p, c) :: parseComments None rest
-//        blockAcc |> Option.map (fun (p, acc) ->
-//            if s.EndsWith "*)" then
-//                (p, (BlockComment (acc @ [s.Substring(2, s.Length - 2)] |> String.concat "\n"))) :: parseComments None rest
-//            else parseComments (Some (p, acc @ [s])) rest)
-//        |> Option.defaultWith (fun () ->
-//            if s.StartsWith "///" then XmlLineComment (s.Substring 3) |> single
-//            elif s.StartsWith "//" then LineComment (s.Substring 2) |> single
-//            elif s.StartsWith "(*" && s.EndsWith "*)" then BlockComment (s.Substring(2, s.Length - 4)) |> single
-//            elif s.StartsWith "(*" then parseComments (Some (p, [s.Substring 2])) rest
-//            else failwithf "%s is not valid comment" s)
-//    | [] -> []
 
 let rec private flattenNodeToList (node: Node) =
     [ yield node
@@ -91,6 +56,7 @@ let private mapTriviaToTriviaNode nodeList trivia =
         Option.toList nextNodeUnder
         |> List.map (fun n ->
             let t = { Type = MainNode
+                      NewlinesBefore = 0
                       CommentsBefore = [LineCommentOnSingleLine(lineComment)]
                       CommentsAfter = [] }
             (n.FsAstNode, [t])
@@ -101,22 +67,27 @@ let private mapTriviaToTriviaNode nodeList trivia =
         Option.toList lastNodeOnLine
         |> List.map (fun n ->
             let t = { Type = MainNode
+                      NewlinesBefore = 0
                       CommentsAfter = [LineCommentAfterSourceCode(lineComment)]
                       CommentsBefore = [] }
+            (n.FsAstNode, [t])
+        )
+        
+    | { Item = Newline; Range = range } ->
+        let nextNodeUnder = findFirstNodeOnLine (range.StartLine + 1) nodeList // TODO: this approach does not work if multiple newlines are in place.
+        Option.toList nextNodeUnder
+        |> List.map (fun n ->
+            let t = { Type = MainNode
+                      NewlinesBefore = 1
+                      CommentsBefore = []
+                      CommentsAfter = [] }
             (n.FsAstNode, [t])
         )
         
     | _ -> []
 
 let collectTrivia tokens (ast: ParsedInput) =
-//    let (comments, directives, keywords) = filterCommentsAndDirectives content
-//    let comments =
-//        comments |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Seq.sortBy (fun (p,_) -> p.Line, p.Column)
-//        |> Seq.collect (fun (p, cs) -> cs |> Seq.map (fun c -> p, c)) |> Seq.toList
-//        |> parseComments None
-//        |> List.groupBy fst |> List.map (fun (p,g) -> p, List.map snd g)
-
-    // Extra stuff we need is already capture and has regions
+    // Extra stuff we need is already captured and has regions
     // Now we only need to figure out what to place in what trivia node.
     let trivias = TokenParser.getTriviaFromTokens tokens
     
@@ -127,7 +98,7 @@ let collectTrivia tokens (ast: ParsedInput) =
 
         trivias
         |> List.map (mapTriviaToTriviaNode nodeList)
-        |> List.collect id
+        |> List.collect id // TODO: at this point it is not a perfect dictionary as multiple trivia can be linked to a same AST node
         |> refDict
 
     | _ -> Seq.empty |> refDict

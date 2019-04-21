@@ -4,7 +4,6 @@ open System.Collections.Generic
 open NUnit.Framework
 open Fantomas
 open Fantomas.Tests.TestHelper
-open Fantomas.Trivia
 open Fantomas.TriviaTypes
 open FSharp.Compiler.Ast
 
@@ -84,5 +83,29 @@ let ``Line comment on same line, is after last AST item`` () =
     match triviaNode with
     | [{CommentsAfter = [LineCommentAfterSourceCode(lineComment)]}] ->
         lineComment == "// should be 8"
+    | _ ->
+        fail()
+
+[<Test>]
+let ``Newline pick up before let binding`` () =
+    let source = """let a = 7
+
+let b = 9
+"""
+    let (astNode, triviaNode) = toTrivia source |> Seq.head |> toTuple
+    
+    match astNode with
+    | :? SynModuleDecl as smd ->
+        match smd with
+        | SynModuleDecl.Let(_,_,r) ->
+            r.StartLine == 3
+        | _ ->
+            fail()
+    | _ ->
+        fail()
+        
+    match triviaNode with
+    | [{NewlinesBefore = newLinesBefore}] ->
+        newLinesBefore == 1
     | _ ->
         fail()
