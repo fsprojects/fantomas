@@ -10,7 +10,7 @@ let ``record declaration``() =
     |> prepend newline
     |> should equal """
 type AParameters =
-    { a : int }
+    { a: int }
 """
 
 [<Test>]
@@ -19,8 +19,8 @@ let ``record declaration with implementation visibility attribute``() =
     |> prepend newline
     |> should equal """
 type AParameters =
-    private { a : int
-              b : float }
+    private { a: int
+              b: float }
 """
 
 [<Test>]
@@ -69,28 +69,27 @@ module RecordSignature
 /// Represents simple XML elements.
 type Element =
     { /// The attribute collection.
-      Attributes : IDictionary<Name, string>;
+      Attributes: IDictionary<Name, string>;
       /// The children collection.
-      Children : seq<INode>;
+      Children: seq<INode>;
       /// The qualified name.
-      Name : Name }
+      Name: Name }
     interface INode
     /// Constructs an new empty Element.
-    static member Create : name:string * ?uri:string -> Element
+    static member Create: name:string * ?uri:string -> Element
     /// Replaces the children.
-    static member WithChildren : children:#seq<#INode>
-         -> self:Element -> Element
+    static member WithChildren: children:#seq<#INode> -> self:Element -> Element
     /// Replaces the children.
-    static member (-) : self:Element * children:#seq<#INode> -> Element
+    static member (-): self:Element * children:#seq<#INode> -> Element
     /// Replaces the attributes.
-    static member WithAttributes : attrs:#seq<string * string>
+    static member WithAttributes: attrs:#seq<string * string>
          -> self:Element -> Element
     /// Replaces the attributes.
-    static member (+) : self:Element * attrs:#seq<string * string> -> Element
+    static member (+): self:Element * attrs:#seq<string * string> -> Element
     /// Replaces the children with a single text node.
-    static member WithText : text:string -> self:Element -> Element
+    static member WithText: text:string -> self:Element -> Element
     /// Replaces the children with a single text node.
-    static member (--) : self:Element * text:string -> Element
+    static member (--): self:Element * text:string -> Element
 """
 
 [<Test>]
@@ -106,9 +105,9 @@ let myRecord3 = { myRecord2 with Y = 100; Z = 2 }""" config
     |> prepend newline
     |> should equal """
 type Car =
-    { Make : string
-      Model : string
-      mutable Odometer : int }
+    { Make: string
+      Model: string
+      mutable Odometer: int }
 
 let myRecord3 =
     { myRecord2 with
@@ -188,7 +187,7 @@ type rate2 = Rate of float<GBP/SGD*USD>
   |> prepend newline
   |> should equal """
 type rate =
-    { Rate : float<GBP * SGD / USD> }
+    { Rate: float<GBP * SGD / USD> }
 
 type rate2 = Rate of float<GBP / SGD * USD>
 """
@@ -264,7 +263,7 @@ type MyExc =
 [<Test>]
 let ``anon record``() =
     shouldNotChangeAfterFormat """
-let r : {| Foo : int; Bar : string |} =
+let r: {| Foo: int; Bar: string |} =
     {| Foo = 123
        Bar = "" |}
 """
@@ -272,7 +271,7 @@ let r : {| Foo : int; Bar : string |} =
 [<Test>]
 let `` anon record - struct``() =
     shouldNotChangeAfterFormat """
-let r : struct {| Foo : int; Bar : string |} =
+let r: struct {| Foo: int; Bar: string |} =
     struct {| Foo = 123
               Bar = "" |}
 """

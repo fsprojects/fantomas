@@ -39,8 +39,8 @@ let ``should handle lines with more than 512 characters``() =
 """  config
     |> prepend newline
     |> should equal """
-(new CsvFile<string * decimal * decimal>(new Func<obj, string [], string * decimal * decimal>(fun (parent : obj) (row : string []) -> CommonRuntime.GetNonOptionalValue("Name", CommonRuntime.ConvertString(TextConversions.AsOption(row.[0])), TextConversions.AsOption(row.[0])), CommonRuntime.GetNonOptionalValue("Distance", CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[1])), TextConversions.AsOption(row.[1])), CommonRuntime.GetNonOptionalValue("Time", CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[2])), TextConversions.AsOption(row.[2]))),
-                                         new Func<string * decimal * decimal, string []>(fun (row : string * decimal * decimal) ->
+(new CsvFile<string * decimal * decimal>(new Func<obj, string [], string * decimal * decimal>(fun (parent: obj) (row: string []) -> CommonRuntime.GetNonOptionalValue("Name", CommonRuntime.ConvertString(TextConversions.AsOption(row.[0])), TextConversions.AsOption(row.[0])), CommonRuntime.GetNonOptionalValue("Distance", CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[1])), TextConversions.AsOption(row.[1])), CommonRuntime.GetNonOptionalValue("Time", CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[2])), TextConversions.AsOption(row.[2]))),
+                                         new Func<string * decimal * decimal, string []>(fun (row: string * decimal * decimal) ->
                                          [| CommonRuntime.ConvertStringBack(CommonRuntime.GetOptionalValue((let x, _, _ = row in x)))
                                             CommonRuntime.ConvertDecimalBack("",
                                                                              CommonRuntime.GetOptionalValue((let _, x, _ = row in x)))

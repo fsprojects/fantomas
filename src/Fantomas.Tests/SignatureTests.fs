@@ -17,12 +17,12 @@ let ``should keep the (string * string) list type signature in records``() =
 
     """ config
     |> should equal """type MSBuildParams =
-    { Targets : string list
-      Properties : (string * string) list
-      MaxCpuCount : int option option
-      ToolsVersion : string option
-      Verbosity : MSBuildVerbosity option
-      FileLoggers : MSBuildFileLoggerConfig list option }
+    { Targets: string list
+      Properties: (string * string) list
+      MaxCpuCount: int option option
+      ToolsVersion: string option
+      Verbosity: MSBuildVerbosity option
+      FileLoggers: MSBuildFileLoggerConfig list option }
 """
 
 [<Test>]
@@ -31,8 +31,8 @@ let ``should keep the (string * string) list type signature in functions``() =
     (properties : string -> (string * string) list) projects = doingsomstuff
 
     """ config
-    |> should equal """let MSBuildWithProjectProperties outputPath (targets : string)
-    (properties : string -> (string * string) list) projects = doingsomstuff
+    |> should equal """let MSBuildWithProjectProperties outputPath (targets: string)
+    (properties: string -> (string * string) list) projects = doingsomstuff
 """
 
 
@@ -42,8 +42,8 @@ let ``should keep the string * string list type signature in functions``() =
     (properties : (string -> string) * string list) projects = doingsomstuff
 
     """ config
-    |> should equal """let MSBuildWithProjectProperties outputPath (targets : string)
-    (properties : (string -> string) * string list) projects = doingsomstuff
+    |> should equal """let MSBuildWithProjectProperties outputPath (targets: string)
+    (properties: (string -> string) * string list) projects = doingsomstuff
 """
 
 [<Test>]
@@ -56,9 +56,9 @@ let ``should not add parens in signature``() =
 
     """ config
     |> should equal """type Route =
-    { Verb : string
-      Path : string
-      Handler : Map<string, string> -> HttpListenerContext -> string }
+    { Verb: string
+      Path: string
+      Handler: Map<string, string> -> HttpListenerContext -> string }
     override x.ToString() = sprintf "%s %s" x.Verb x.Path
 """
 
@@ -82,8 +82,8 @@ let ``should keep the (string option * Node) list type signature``() =
 
     """ { config with SemicolonAtEndOfLine = true }
     |> should equal """type Node =
-    { Name : string;
-      NextNodes : (string option * Node) list }
+    { Name: string;
+      NextNodes: (string option * Node) list }
 """
 
 [<Test>]
@@ -96,11 +96,11 @@ type A () =
         member x.F (f: unit -> _) = f ()
     """ config
     |> should equal """type IA =
-    abstract F : (unit -> Option<'T>) -> Option<'T>
+    abstract F: (unit -> Option<'T>) -> Option<'T>
 
 type A() =
     interface IA with
-        member x.F(f : unit -> _) = f()
+        member x.F(f: unit -> _) = f()
 """
 
 [<Test>]
@@ -117,9 +117,9 @@ type C =
 namespace TupleType
 
 type C =
-    member P1 : int * string
+    member P1: int * string
     /// def
-    member P2 : int
+    member P2: int
 """
 
 [<Test>]
@@ -132,7 +132,7 @@ val GetHashCodeTainted : (Tainted<'T> -> int) when 'T : equality
     |> should equal """
 module Tainted
 
-val GetHashCodeTainted : Tainted<'T> -> int when 'T : equality
+val GetHashCodeTainted: Tainted<'T> -> int when 'T: equality
 """
 
 [<Test>]
@@ -147,5 +147,5 @@ type Test =
 module Test
 
 type Test =
-    static member internal FormatAroundCursorAsync : fileName:string -> unit
+    static member internal FormatAroundCursorAsync: fileName:string -> unit
 """

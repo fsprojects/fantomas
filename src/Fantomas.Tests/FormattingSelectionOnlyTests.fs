@@ -130,7 +130,7 @@ and File(filename: string, containingFolder: Folder) =
 """     config
     |> prepend newline
     |> should equal """
-and File(filename : string, containingFolder : Folder) =
+and File(filename: string, containingFolder: Folder) =
     member __.Name = filename
     member __.ContainingFolder = containingFolder
 """

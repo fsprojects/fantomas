@@ -20,16 +20,16 @@ type Interface3 =
     |> prepend newline
     |> should equal """
 type IPrintable =
-    abstract Print : unit -> unit
+    abstract Print: unit -> unit
 
-type SomeClass1(x : int, y : float) =
+type SomeClass1(x: int, y: float) =
     interface IPrintable with
         member this.Print() = printfn "%d %f" x y
 
 type Interface3 =
     inherit Interface1
     inherit Interface2
-    abstract Method3 : int -> int
+    abstract Method3: int -> int
 """
 
 [<Test>]
@@ -41,7 +41,7 @@ let ``should not add with to interface definitions with no members``() =
         member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
         member this.ToXml() = v :> obj
     """ config
-    |> should equal """type Text(text : string) =
+    |> should equal """type Text(text: string) =
     interface IDocument
     interface Infrastucture with
         member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
@@ -104,7 +104,7 @@ let ``should keep named arguments on abstract members``() =
     abstract Foo : name:string * age:int -> bool
 """  config
     |> should equal """type IThing =
-    abstract Foo : name:string * age:int -> bool
+    abstract Foo: name:string * age:int -> bool
 """
 
 [<Test>]
@@ -113,7 +113,7 @@ let ``should not skip 'with get()' in indexers``() =
     abstract Item : int -> char with get
 """  config
     |> should equal """type Interface =
-    abstract Item : int -> char with get
+    abstract Item: int -> char with get
 """
 
 [<Test>]
@@ -153,10 +153,10 @@ type MyLogInteface() =
     |> prepend newline
     |> should equal """
 type LogInterface =
-    abstract Print : string -> unit
-    abstract GetLogFile : string -> string
-    abstract Info : unit -> unit
-    abstract Version : unit -> unit
+    abstract Print: string -> unit
+    abstract GetLogFile: string -> string
+    abstract Info: unit -> unit
+    abstract Version: unit -> unit
 
 type MyLogInteface() =
     interface LogInterface with

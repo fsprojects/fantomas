@@ -24,7 +24,7 @@ let n = new NameStruct("Hippo")""" config
     |> should equal """
 type NameStruct =
     struct
-        val Name : string
+        val Name: string
         new(name) = { Name = name }
         member x.Upper() = x.Name.ToUpper()
         member x.Lower() = x.Name.ToLower()
@@ -53,7 +53,7 @@ let n = new NameStruct("Hippo")""" config
     |> should equal """
 type NameStruct =
     struct
-        val Name : string
+        val Name: string
         new(name) = { Name = name }
     end
     member x.Upper() = x.Name.ToUpper()
@@ -75,8 +75,8 @@ match t with
     |> should equal """
 type S = S of struct (int * int)
 
-let g : struct (int * int) = struct (1, 1)
-let z = fun ((S(struct (u, v))) : S) -> u + v
+let g: struct (int * int) = struct (1, 1)
+let z = fun ((S(struct (u, v))): S) -> u + v
 let t = struct (1, 2)
 
 match t with
