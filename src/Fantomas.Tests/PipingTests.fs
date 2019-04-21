@@ -13,7 +13,7 @@ let f x =
     <|> if someveryveryveryverylongexpression then someveryveryveryverylongexpression else someveryveryveryverylongexpression
     <|> if someveryveryveryverylongexpression then someveryveryveryverylongexpression else someveryveryveryverylongexpression
     |> f
-    """ config
+    """ { config with PageWidth = 80 }
     |> prepend newline
     |> should equal """
 let f x =

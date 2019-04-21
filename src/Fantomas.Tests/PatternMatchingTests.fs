@@ -51,8 +51,7 @@ printfn "%d %d %A" var1 var2 tuple1""" config
     |> should equal """
 let rangeTest testValue mid size =
     match testValue with
-    | var1 when var1 >= mid - size / 2 && var1 <= mid + size / 2 ->
-        printfn "The test value is in range."
+    | var1 when var1 >= mid - size / 2 && var1 <= mid + size / 2 -> printfn "The test value is in range."
     | _ -> printfn "The test value is out of range."
 
 let (var1, var2) as tuple1 = (1, 2)
@@ -197,7 +196,7 @@ try
     fst(find (fun (s, (s', ty): int * int) -> 
                 s' = s0 && can (type_match ty ty0) []) (!the_interface))
 with
-| Failure _ -> s0""" config
+| Failure _ -> s0""" { config with PageWidth = 80 }
     |> prepend newline
     |> should equal """
 try
@@ -215,8 +214,7 @@ find (fun (Ident op) x y -> Combp(Combp(Varp(op,dpty),x),y)) "term after binary 
 """  config
     |> prepend newline
     |> should equal """
-find (fun (Ident op) x y -> Combp(Combp(Varp(op, dpty), x), y))
-    "term after binary operator" inp
+find (fun (Ident op) x y -> Combp(Combp(Varp(op, dpty), x), y)) "term after binary operator" inp
 """
 
 [<Test>]
@@ -380,8 +378,7 @@ let (|OneLinerBinding|MultilineBinding|) b =
     | DoBinding([], PreXmlDoc [||], OneLinerExpr _)
     | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
     | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
-    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _, _) ->
-        OneLinerBinding b
+    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _, _) -> OneLinerBinding b
     | _ -> MultilineBinding b
 """
 

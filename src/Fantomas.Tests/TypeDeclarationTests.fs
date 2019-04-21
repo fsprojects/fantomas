@@ -543,8 +543,7 @@ let ``should keep the ? in optional parameters``() =
     """ config
     |> should equal """type Shell() =
     static member private GetParams(cmd, ?args) = doStuff
-    static member Exec(cmd, ?args) =
-        shellExec (Shell.GetParams(cmd, ?args = args))
+    static member Exec(cmd, ?args) = shellExec (Shell.GetParams(cmd, ?args = args))
 """
 
 [<Test>]
@@ -612,14 +611,10 @@ type BlobHelper(Account: CloudStorageAccount) =
     new(configurationSettingName, hostedService) =
         CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
             let connectionString =
-                if hostedService then
-                    RoleEnvironment.GetConfigurationSettingValue(configName)
-                else
-                    ConfigurationManager.ConnectionStrings.[configName].ConnectionString
+                if hostedService then RoleEnvironment.GetConfigurationSettingValue(configName)
+                else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
             configSettingPublisher.Invoke(connectionString) |> ignore)
-        BlobHelper
-            (CloudStorageAccount.FromConfigurationSetting
-                (configurationSettingName))
+        BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))
 """
 
 [<Test>]
