@@ -7,6 +7,7 @@ open System.CodeDom.Compiler
 open FSharp.Compiler.Range
 open Fantomas.FormatConfig
 open Fantomas.Trivia
+open Fantomas.TriviaTypes
 
 /// Wrapping IndentedTextWriter with current column position
 type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
@@ -444,8 +445,9 @@ let internal increaseTriviaIndex node (deltaBefore, deltaAfter) (ctx: Context) =
 
 let internal printComment c =
     match c with
-    | XmlLineComment s -> !- "///" -- s +> sepNln
-    | LineComment s -> !- "//" -- s +> sepNln
+    // | XmlComment s -> !- "///" -- s +> sepNln
+    | LineCommentAfterSourceCode s
+    | LineCommentOnSingleLine s -> !- s +> sepNln
     | BlockComment s -> !- "(*" -- s -- "*)"
 
 let internal printCommentsBefore node (ctx: Context) =

@@ -5,6 +5,8 @@ open NUnit.Framework
 open Fantomas
 open Fantomas.Tests.TestHelper
 open Fantomas.Trivia
+open Fantomas.TriviaTypes
+open FSharp.Compiler.Ast
 
 let private toTuple (kv: KeyValuePair<_,_>) =
     kv.Key, kv.Value
@@ -26,14 +28,14 @@ let a = 9
     | :? FSharp.Compiler.Ast.SynModuleDecl as smd ->
         match smd with
         | FSharp.Compiler.Ast.SynModuleDecl.Let(_,_,_) ->
-            Assert.Pass()
+            pass()
         | _ ->
-            Assert.Fail()
+            fail()
     | _ ->
-        Assert.Fail()
+        fail()
     
-    match astNode, triviaNode with
-    | _ , [{ CommentsBefore = [LineComment(lineComment)];  }] ->
+    match triviaNode with
+    | [{ CommentsBefore = [LineCommentOnSingleLine(lineComment)];  }] ->
         lineComment == "// meh"
     | _ ->
         failwith "Expected line comment"
@@ -49,17 +51,38 @@ let a = 'c'
     let (astNode, triviaNode) = toTrivia source |> Seq.head |> toTuple
     
     match astNode with
-    | :? FSharp.Compiler.Ast.SynModuleDecl as smd ->
+    | :? SynModuleDecl as smd ->
         match smd with
-        | FSharp.Compiler.Ast.SynModuleDecl.Let(_,_,_) ->
-            Assert.Pass()
+        | SynModuleDecl.Let(_,_,_) ->
+            pass()
         | _ ->
-            Assert.Fail()
+            fail()
     | _ ->
-        Assert.Fail()
+        fail()
     
-    match astNode, triviaNode with
-    | _ , [{ CommentsBefore = [LineComment(lineComment)];  }] ->
+    match triviaNode with
+    | [{ CommentsBefore = [LineCommentOnSingleLine(lineComment)];  }] ->
         lineComment == "// foo"
     | _ ->
         failwith "Expected line comment"
+        
+[<Test>]
+let ``Line comment on same line, is after last AST item`` () =
+    let source = "let foo = 7 // should be 8"
+    let (astNode, triviaNode) = toTrivia source |> Seq.head |> toTuple
+    
+    match astNode with
+    | :? SynExpr as synExpr ->
+        match synExpr with
+        | SynExpr.Const(_,_) ->
+           pass()
+        | _ ->
+            fail()
+    | _ ->
+        fail()
+        
+    match triviaNode with
+    | [{CommentsAfter = [LineCommentAfterSourceCode(lineComment)]}] ->
+        lineComment == "// should be 8"
+    | _ ->
+        fail()

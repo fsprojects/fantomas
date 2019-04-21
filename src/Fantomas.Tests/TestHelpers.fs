@@ -7,6 +7,7 @@ open Fantomas
 open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
+open NUnit.Framework
 
 let config = FormatConfig.Default
 let newline = "\n"
@@ -138,3 +139,5 @@ let shouldNotChangeAfterFormat source =
     |> should equal source
     
 let (==) actual expected = Assert.AreEqual(expected, actual)
+let fail() = Assert.Fail()
+let pass() = Assert.Pass()

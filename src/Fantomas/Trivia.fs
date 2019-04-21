@@ -3,23 +3,24 @@ module internal Fantomas.Trivia
 open Fantomas.AstTransformer
 open FSharp.Compiler.Ast
 open Fantomas
+open Fantomas.TriviaTypes
 
 let refDict xs =
     let d = System.Collections.Generic.Dictionary(HashIdentity.Reference)
     xs |> Seq.iter d.Add
     d
     
-type Comment =
-    | LineComment of string
-    | XmlLineComment of string
-    | BlockComment of string
+//type Comment =
+//    | LineComment of string
+//    | XmlLineComment of string
+//    | BlockComment of string
 
 type TriviaIndex = TriviaIndex of int * int
 
 type TriviaNodeType =
     | MainNode
-    | Keyword of string
-    | Token of string
+//    | Keyword of string
+//    | Token of string
     
 type TriviaNode = {
     Type: TriviaNodeType
@@ -44,27 +45,68 @@ type TriviaNode = {
 //            else failwithf "%s is not valid comment" s)
 //    | [] -> []
 
+let rec private flattenNodeToList (node: Node) =
+    [ yield node
+      yield! (node.Childs |> List.map flattenNodeToList |> List.collect id) ]
+
 let private findInChildren fn (node: Node) =
     node.Childs
     |> List.choose fn
     |> List.tryHead
 
-let rec findFirstNodeOnLine lineNumber (rootNode: Node) : Node option =
-    match rootNode.Range with
-    | Some range when (range.StartLine = lineNumber) ->
-        Some rootNode
-    
-    | Some range when (range.StartLine < lineNumber) ->
-        // Check if children contain start node
-        findInChildren (findFirstNodeOnLine lineNumber) rootNode
+let private findFirstNodeOnLine lineNumber (nodes: Node list) : Node option =
+    nodes
+    |> List.filter (fun n ->
+        match n.Range with
+        | Some r -> r.StartLine = lineNumber
+        | _ -> false
+    )
+    |> List.sortBy (fun { Range = r } ->
+        match r with
+        | Some range -> range.StartCol
+        | None -> -1
+    )
+    |> List.tryHead
+
+
+let private findLastNodeOnLine lineNumber (nodes: Node list) : Node option =
+    nodes
+    |> List.filter (fun n ->
+        match n.Range with
+        | Some r -> r.EndLine = lineNumber && List.isEmpty n.Childs
+        | _ -> false
+    )
+    |> List.sortByDescending (fun { Range = r } ->
+        match r with
+        | Some range -> range.EndCol
+        | None -> -1
+    )
+    |> List.tryHead
+
+let private mapTriviaToTriviaNode nodeList trivia =
+    match trivia with
+    | { Item = Comment(LineCommentOnSingleLine(lineComment)); Range = range } ->
+        // A comment that start at the begin of a line, no other source code is before it on that line
+        let nextNodeUnder = findFirstNodeOnLine (range.StartLine + 1) nodeList
+        Option.toList nextNodeUnder
+        |> List.map (fun n ->
+            let t = { Type = MainNode
+                      CommentsBefore = [LineCommentOnSingleLine(lineComment)]
+                      CommentsAfter = [] }
+            (n.FsAstNode, [t])
+        )
         
-    | None ->
-        // root of tree has no range?
-        findInChildren (findFirstNodeOnLine lineNumber) rootNode
+    | { Item = Comment(LineCommentAfterSourceCode(lineComment)); Range = range } ->
+        let lastNodeOnLine = findLastNodeOnLine (range.StartLine) nodeList
+        Option.toList lastNodeOnLine
+        |> List.map (fun n ->
+            let t = { Type = MainNode
+                      CommentsAfter = [LineCommentAfterSourceCode(lineComment)]
+                      CommentsBefore = [] }
+            (n.FsAstNode, [t])
+        )
         
-    | _ -> None
-        
-    
+    | _ -> []
 
 let collectTrivia tokens (ast: ParsedInput) =
 //    let (comments, directives, keywords) = filterCommentsAndDirectives content
@@ -76,60 +118,18 @@ let collectTrivia tokens (ast: ParsedInput) =
 
     // Extra stuff we need is already capture and has regions
     // Now we only need to figure out what to place in what trivia node.
-    let additionalInfo = TokenParser.getAdditionalInfoFromTokens tokens
+    let trivias = TokenParser.getTriviaFromTokens tokens
     
     match ast with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _)) ->
         let node = Fantomas.AstTransformer.astToNode (mns |> List.collect (function (SynModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule, _)) -> s))
-        
-        additionalInfo
-        |> List.map (fun ai ->
-            match ai with
-            | { Item = TokenParser.Comment(TokenParser.LineComment(lineComment)); Range = range } ->
-                // A comment that start at the begin of a line
-                let nextNodeUnder = findFirstNodeOnLine (range.StartLine + 1) node
-                Option.toList nextNodeUnder
-                |> List.map (fun n ->
-                    let t = { Type = MainNode
-                              CommentsBefore = [LineComment(lineComment)]
-                              CommentsAfter = [] }
-                    (n.FsAstNode, [t])
-                )
-                
-            | _ -> []
-        )
+        let nodeList = flattenNodeToList node
+
+        trivias
+        |> List.map (mapTriviaToTriviaNode nodeList)
         |> List.collect id
         |> refDict
-        
-//        let rec visit additionalInfo acc prevNode =
-//            failwith "not implemented"
 
-//            let getComments isBefore n comments =
-//                comments |> List.collect snd |> function
-//                    | [] -> []
-//                    | c -> [n.FsAstNode,
-//                            if isBefore then [{ Type = MainNode; CommentsBefore = c; CommentsAfter = [] }]
-//                            else [{ Type = MainNode; CommentsBefore = []; CommentsAfter = c }] ]
-//            match acc with
-//            | (n:Fantomas.AstTransformer.Node) :: ns ->
-//                let (commentsBefore, comments) = 
-//                    match n.Range with
-//                    | Some r ->
-//                        comments |> List.partition (fun ((p:pos), _) ->
-//                            p.Line < r.StartLine || (p.Line = r.StartLine && p.Column <= r.StartCol))
-//                    | None -> [], comments
-//                List.append
-//                    (getComments true n commentsBefore)
-//                    (visit comments (n.Childs @ ns) (Some n))
-//            | [] ->
-//                prevNode |> Option.map (fun n -> getComments false n comments)
-//                |> Option.defaultValue []
-//        visit
-//            additionalInfo
-//            [node]
-//            None
-//        |> fun x ->
-//            refDict x
     | _ -> Seq.empty |> refDict
     
 let getMainNode index (ts: TriviaNode list) =

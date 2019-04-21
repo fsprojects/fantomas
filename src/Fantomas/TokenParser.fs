@@ -2,10 +2,10 @@ module internal Fantomas.TokenParser
 
 open FSharp.Compiler.AbstractIL.Internal.Library
 open System
-open FSharp.Compiler.Range
 open FSharp.Compiler.SourceCodeServices
 open System.Text.RegularExpressions
 open Fantomas
+open Fantomas.TriviaTypes
 
 type Token =
     { TokenInfo:FSharpTokenInfo
@@ -73,23 +73,6 @@ let getDefines sourceCode =
     |> Seq.cast<Match>
     |> Seq.map (fun mtc -> mtc.Value.Substring(4))
     |> Seq.toArray
-    
-type Comment =
-    | LineComment of string
-    | XmlComment of string
-    | BlockComment of string
-    
-type AdditionalInfoContent =
-    | Keyword of string
-    | Comment of Comment
-    | Newline
-    
-type AdditionalInfo =
-    { Item: AdditionalInfoContent
-      Range: range }
-with
-    static member Create item range : AdditionalInfo =
-        { Item = item; Range = range }
 
 let private getRangeBetween name startToken endToken =
     let start = FSharp.Compiler.Range.mkPos startToken.LineNumber startToken.TokenInfo.LeftColumn
@@ -101,7 +84,7 @@ let private appendToList items item =
     |> (@) items
 
 
-let rec private getAdditionalInfoFromTokensThemSelves (tokens: Token list) foundTrivia =
+let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: Token list) foundTrivia =
     match tokens with
     | headToken::rest when (headToken.TokenInfo.TokenName = "LINE_COMMENT") ->
         let lineCommentTokens =
@@ -123,16 +106,19 @@ let rec private getAdditionalInfoFromTokensThemSelves (tokens: Token list) found
             getRangeBetween "line comment" headToken lastToken
             
         let info =
-            let comment =
-                if headToken.Content = "///" then
-                    Comment.XmlComment comment
-                else
-                    Comment.LineComment comment
+            let toLineComment =
+                allTokens
+                |> List.exists (fun t -> t.LineNumber = headToken.LineNumber && t.TokenInfo.TokenName <> "WHITESPACE" && t.TokenInfo.RightColumn < headToken.TokenInfo.LeftColumn)
+                |> fun e -> if e then LineCommentAfterSourceCode else LineCommentOnSingleLine
             
-            AdditionalInfo.Create (Comment(comment)) range
+            let comment =
+                toLineComment comment
+                |> Comment
+            
+            Trivia.Create comment range
             |> appendToList foundTrivia
             
-        getAdditionalInfoFromTokensThemSelves nextTokens info
+        getTriviaFromTokensThemSelves allTokens nextTokens info
         
     | headToken::rest when (headToken.TokenInfo.TokenName = "COMMENT") ->
         let blockCommentTokens =
@@ -159,21 +145,21 @@ let rec private getAdditionalInfoFromTokensThemSelves (tokens: Token list) found
             getRangeBetween "block comment" headToken lastToken
             
         let info =
-            AdditionalInfo.Create (Comment(BlockComment(comment))) range
+            Trivia.Create (Comment(BlockComment(comment))) range
             |> appendToList foundTrivia
             
-        getAdditionalInfoFromTokensThemSelves nextTokens info
+        getTriviaFromTokensThemSelves allTokens nextTokens info
 
     | headToken::rest when (headToken.TokenInfo.ColorClass = FSharpTokenColorKind.Keyword) ->
-        let keyword = headToken.Content |> AdditionalInfoContent.Keyword
+        let keyword = headToken.Content |> TriviaContent.Keyword
         let range = getRangeBetween "keyword" headToken headToken
         let info =
-            AdditionalInfo.Create keyword range
+            Trivia.Create keyword range
             |> appendToList foundTrivia
 
-        getAdditionalInfoFromTokensThemSelves rest info
+        getTriviaFromTokensThemSelves allTokens rest info
         
-    | (_)::rest -> getAdditionalInfoFromTokensThemSelves rest foundTrivia
+    | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
     
     | [] -> foundTrivia
 
@@ -208,8 +194,8 @@ let private findEmptyNewlinesInTokens (tokens: Token list) =
         
     completeEmptyLines @ linesWithOnlySpaces
 
-let getAdditionalInfoFromTokens (tokens: Token list) =
-    let fromTokens = getAdditionalInfoFromTokensThemSelves tokens []
+let getTriviaFromTokens (tokens: Token list) =
+    let fromTokens = getTriviaFromTokensThemSelves tokens tokens []
     let newLines = findEmptyNewlinesInTokens tokens
-    
+
     fromTokens @ newLines

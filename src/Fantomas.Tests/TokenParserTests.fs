@@ -3,7 +3,13 @@ module Fantomas.Tests.TokenParserTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.TokenParser
+open Fantomas.TriviaTypes
 open Fantomas.Tests.TestHelper
+
+let private isNewline item =
+    match item with
+    | Newline -> true
+    | _ -> false
 
 [<Test>]
 let ``Simple compiler directive should be found`` () =
@@ -72,10 +78,10 @@ let b = 9"""
 let ``simple line comment should be found in tokens`` () =
     let source = "let a = 7 // some comment"
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens
+    let additionalInfo = getTriviaFromTokens tokens
     
     match List.tryLast additionalInfo with
-    | Some({ Item = Comment(LineComment(lineComment)) ; Range = range}) ->
+    | Some({ Item = Comment(LineCommentAfterSourceCode(lineComment)) ; Range = range}) ->
         lineComment == "// some comment"
         range.StartLine == range.EndLine
         
@@ -86,7 +92,7 @@ let ``simple line comment should be found in tokens`` () =
 let ``keyword should be found in tokens`` () =
     let source = "let a = 42"
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens
+    let additionalInfo = getTriviaFromTokens tokens
     
     match List.tryHead additionalInfo with
     | Some({ Item = Keyword(keyword); Range = range }) ->
@@ -98,29 +104,12 @@ let ``keyword should be found in tokens`` () =
     | _ ->
         failwith "expected keyword"
         
-[<Test>]
-let ``Xml comment should be found in tokens`` () =
-    let source = """/// Regex alone won't cut it, good enough for now
-let getDefines sourceCode =
-    Regex.Matches(sourceCode, "#if\\s(\\S+)")
-    |> Seq.cast<Match>
-    |> Seq.map (fun mtc -> mtc.Value.Substring(4))
-    |> Seq.toArray
-"""
-    let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens
-    
-    match List.tryHead additionalInfo with
-    | Some({ Item = Comment(XmlComment(xmlComment)) }) ->
-        xmlComment == "/// Regex alone won't cut it, good enough for now"
-    | _ ->
-        failwith "expected xml comment"
 
 [<Test>]
 let ``Single line block comment should be found in tokens`` () =
     let source = "let foo (* not fonz *) = \"bar\""
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens
+    let additionalInfo = getTriviaFromTokens tokens
     
     match List.tryLast additionalInfo with
     | Some({ Item = Comment(BlockComment(blockComment)) }) ->
@@ -137,7 +126,7 @@ let ``Multi line block comment should be found in tokens`` () =
     7
 """
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens
+    let additionalInfo = getTriviaFromTokens tokens
     
     match List.tryLast additionalInfo with
     | Some({ Item = Comment(BlockComment(blockComment)); Range = range }) ->
@@ -157,10 +146,10 @@ let ``Multiple line comment should be found in tokens`` () =
 let a = 9
 """
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens
+    let additionalInfo = getTriviaFromTokens tokens
     
     match additionalInfo with
-    | ({ Item = Comment(LineComment(l1)) })::({ Item = Comment(LineComment(l2)) })::rest ->
+    | ({ Item = Comment(LineCommentOnSingleLine(l1)) })::({ Item = Comment(LineCommentOnSingleLine(l2)) })::rest ->
         l1 == "// meh"
         l2 == "// foo"
     | _ ->
@@ -173,10 +162,10 @@ let ``newline should be found in tokens`` () =
 printfn "bar" """
     
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens
+    let additionalInfo = getTriviaFromTokens tokens
     
     match additionalInfo with
-    | [{ Item = NewLine; Range = range }] ->
+    | [{ Item = item; Range = range }] when (isNewline item) ->
         range.StartLine == 2
         range.EndLine == 2
     | _ ->
@@ -189,10 +178,10 @@ let ``Only empty spaces in line are also consider as Newline`` () =
 printfn "bar" """ // difference is the 4 spaces on line 188
 
     let tokens = tokenize [] source
-    let additionalInfo = getAdditionalInfoFromTokens tokens
+    let additionalInfo = getTriviaFromTokens tokens
     
     match additionalInfo with
-    | [{ Item = NewLine; Range = range }] ->
+    | [{ Item = item; Range = range }] when (isNewline item) ->
         range.StartLine == 2
         range.EndLine == 2
     | _ ->
