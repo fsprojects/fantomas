@@ -18,7 +18,7 @@ let private isTokenAfterGreater token (greaterToken: Token) =
     let greaterToken = greaterToken.TokenInfo
     greaterToken.TokenName = "GREATER" && token.TokenName <> "GREATER" && greaterToken.RightColumn <> (token.LeftColumn + 1)
 
-let getTokenText (sourceCodeLines: string list) line (token: FSharpTokenInfo) =
+let private getTokenText (sourceCodeLines: string list) line (token: FSharpTokenInfo) =
     sourceCodeLines.[line - 1].Substring(token.LeftColumn, token.RightColumn - token.LeftColumn + 1)
 
 /// Tokenize a single line of F# code
@@ -163,7 +163,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
     
     | [] -> foundTrivia
 
-let createNewLine lineNumber =
+let private createNewLine lineNumber =
     let pos = FSharp.Compiler.Range.mkPos lineNumber 0
     let range = FSharp.Compiler.Range.mkRange "newline" pos pos
     { Item = Newline; Range = range }
