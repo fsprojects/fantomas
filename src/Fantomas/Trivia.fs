@@ -32,19 +32,33 @@ let private findFirstNodeOnLine lineNumber (nodes: Node list) : Node option =
         | None -> -1
     )
     |> List.tryHead
+    
+let private findFirstNodeAfterLine lineNumber (nodes: Node list) : Node option =
+    nodes
+    |> List.filter (fun n ->
+        match n.Range with
+        | Some r -> r.StartLine > lineNumber
+        | _ -> false
+    )
+    |> List.sortBy (fun { Range = r } ->
+        match r with
+        | Some range -> range.StartCol
+        | None -> -1
+    )
+    |> List.tryHead
 
 
 let private findLastNodeOnLine lineNumber (nodes: Node list) : Node option =
     nodes
     |> List.filter (fun n ->
         match n.Range with
-        | Some r -> r.EndLine = lineNumber && List.isEmpty n.Childs
+        | Some r -> r.EndLine = lineNumber || r.StartLine = lineNumber
         | _ -> false
     )
     |> List.sortByDescending (fun { Range = r } ->
         match r with
-        | Some range -> range.EndCol
-        | None -> -1
+        | Some range -> range.EndCol, range.StartCol
+        | None -> -1, -1
     )
     |> List.tryHead
 
@@ -52,39 +66,36 @@ let private mapTriviaToTriviaNode nodeList trivia =
     match trivia with
     | { Item = Comment(LineCommentOnSingleLine(lineComment)); Range = range } ->
         // A comment that start at the begin of a line, no other source code is before it on that line
-        let nextNodeUnder = findFirstNodeOnLine (range.StartLine + 1) nodeList
-        Option.toList nextNodeUnder
-        |> List.map (fun n ->
+        findFirstNodeAfterLine range.StartLine nodeList
+        |> Option.map (fun nextNodeUnder ->
             let t = { Type = MainNode
                       NewlinesBefore = 0
                       CommentsBefore = [LineCommentOnSingleLine(lineComment)]
                       CommentsAfter = [] }
-            (n.FsAstNode, [t])
+            (nextNodeUnder.FsAstNode, t)
         )
         
     | { Item = Comment(LineCommentAfterSourceCode(lineComment)); Range = range } ->
-        let lastNodeOnLine = findLastNodeOnLine (range.StartLine) nodeList
-        Option.toList lastNodeOnLine
-        |> List.map (fun n ->
+        findLastNodeOnLine (range.StartLine) nodeList
+        |> Option.map (fun lastNodeOnLine ->
             let t = { Type = MainNode
                       NewlinesBefore = 0
                       CommentsAfter = [LineCommentAfterSourceCode(lineComment)]
                       CommentsBefore = [] }
-            (n.FsAstNode, [t])
+            (lastNodeOnLine.FsAstNode, t)
         )
         
     | { Item = Newline; Range = range } ->
-        let nextNodeUnder = findFirstNodeOnLine (range.StartLine + 1) nodeList // TODO: this approach does not work if multiple newlines are in place.
-        Option.toList nextNodeUnder
-        |> List.map (fun n ->
+        findFirstNodeOnLine (range.StartLine + 1) nodeList // TODO: this approach does not work if multiple newlines are in place.
+        |> Option.map (fun nextNodeUnder ->
             let t = { Type = MainNode
                       NewlinesBefore = 1
                       CommentsBefore = []
                       CommentsAfter = [] }
-            (n.FsAstNode, [t])
+            (nextNodeUnder.FsAstNode, t)
         )
-        
-    | _ -> []
+
+    | _ -> None
 
 let collectTrivia tokens (ast: ParsedInput) =
     // Extra stuff we need is already captured and has regions
@@ -98,7 +109,15 @@ let collectTrivia tokens (ast: ParsedInput) =
 
         trivias
         |> List.map (mapTriviaToTriviaNode nodeList)
-        |> List.collect id // TODO: at this point it is not a perfect dictionary as multiple trivia can be linked to a same AST node
+        |> List.choose id
+        |> List.groupBy fst
+        |> List.map (fun (fsAstNode,g) ->
+            let triviaNodes =
+                g
+                |> List.map snd
+                
+            fsAstNode, triviaNodes
+        )
         |> refDict
 
     | _ -> Seq.empty |> refDict

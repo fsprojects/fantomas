@@ -109,3 +109,28 @@ let b = 9
         newLinesBefore == 1
     | _ ->
         fail()
+        
+[<Test>]
+let ``Multiple comments should be linked to same AST node`` () =
+    let source = """// foo
+// bar
+let a = 7
+"""
+
+    let (_, triviaNode) = toTrivia source |> Seq.head |> toTuple
+
+    match triviaNode with
+    | [{CommentsBefore = [LineCommentOnSingleLine("// foo")]};{CommentsBefore = [LineCommentOnSingleLine("// bar")]}] ->
+        pass()
+    | _ ->
+        fail()
+        
+[<Test>]
+let ``Comments inside record`` () =
+    let source = """let a = 
+    { // foo
+    // bar
+    B = 7 }"""
+    
+    let results = toTrivia source |> Seq.toList
+    List.length results == 2
