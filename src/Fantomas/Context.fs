@@ -447,11 +447,15 @@ let internal printComment c =
     match c with
     // | XmlComment s -> !- "///" -- s +> sepNln
     | LineCommentAfterSourceCode s
-    | LineCommentOnSingleLine s -> !- s +> sepNln
+    | LineCommentOnSingleLine s
+    | LineCommentAfterLeftBrace s -> !- s +> sepNln
     | BlockComment s -> !- "(*" -- s -- "*)"
 
 let internal printCommentsBefore node (ctx: Context) =
     ctx.Trivia |> Dict.tryGet node
+    |> fun n ->
+        printfn "node: %A" n
+        n
     |> Option.bind (Trivia.getMainNode (getTriviaIndexBefore node ctx))
     |> Option.map (fun n -> col sepNone n.CommentsBefore printComment
                             +> increaseTriviaIndex node (1,0))
@@ -476,3 +480,19 @@ let internal leaveNode node (ctx: Context) =
     assert (Some node = ctx.CurrentNode)
     let ctx' = { ctx with NodePath = List.tail ctx.NodePath }
     ctx'.CurrentNode |> Option.map (fun n -> printCommentsAfter n ctx') |> Option.defaultValue ctx'
+    
+// TODO: improve
+let internal leaveLeftBrace node (ctx: Context) =
+    let printCommentAfterBrace node ctx =
+        ctx.Trivia |> Dict.tryGet node
+        |> Option.bind (Trivia.getLeftBraceNode (getTriviaIndexAfter node ctx))
+        |> Option.map (fun n ->
+                                col sepNone n.CommentsAfter printComment
+                                +> increaseTriviaIndex node (0,1))
+        |> Option.defaultValue (!-"")
+        |> fun f -> f ctx
+
+    assert (Some node = ctx.CurrentNode)
+    ctx.CurrentNode
+    |> Option.map (fun n -> printCommentAfterBrace n ctx)
+    |> Option.defaultValue ctx

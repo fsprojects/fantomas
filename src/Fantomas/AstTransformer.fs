@@ -604,11 +604,11 @@ module private Ast =
              FsAstNode = synExpr
              Childs = [yield visitSynExpr expr]}
 
-    and visitRecordField((longId,_): RecordFieldName,expr: SynExpr option,_: BlockSeparator option) =
+    and visitRecordField((longId,b): RecordFieldName,expr: SynExpr option,_: BlockSeparator option) =
         {Type = "RecordField"
-         Range = noRange
+         Range = r longId.Range
          Properties = p ["ident" ==> lid longId]
-         FsAstNode = expr
+         FsAstNode = (lid longId |> List.head |> fun i -> i.Ident) // name of the RecordField
          Childs =
              [if expr.IsSome then yield visitSynExpr expr.Value]}
     and visitAnonRecordField(ident: Ident,expr: SynExpr) =

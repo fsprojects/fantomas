@@ -124,18 +124,22 @@ let a = 7
         pass()
     | _ ->
         fail()
-        
+
+
 [<Test>]
 let ``Comments inside record`` () =
     let source = """let a = 
     { // foo
-    // bar
     B = 7 }"""
     
-    let (_, triviaNode) = toTrivia source |> Seq.head |> toTuple
+    let (record, triviaNode) = toTrivia source |> Seq.head |> toTuple
 
-    match triviaNode with
-    | [{CommentsBefore = [LineCommentAfterLeftBrace("// foo"); LineCommentOnSingleLine("// bar")]}] ->
-        pass()
+    match record with
+    | :? SynExpr as synRec ->
+        match synRec, triviaNode with
+        | SynExpr.Record _, [{ Type = LeftBrace; CommentsAfter = [LineCommentAfterLeftBrace("// foo")] }] ->
+            pass()
+        | _ ->
+            fail()
     | _ ->
         fail()

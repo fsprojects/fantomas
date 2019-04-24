@@ -40,10 +40,10 @@ let private findFirstNodeAfterLine lineNumber (nodes: Node list) : Node option =
         | Some r -> r.StartLine > lineNumber
         | _ -> false
     )
-    |> List.sortBy (fun { Range = r } ->
+    |> List.sortBy (fun { Range = r; Childs = children } ->
         match r with
-        | Some range -> range.StartCol
-        | None -> -1
+        | Some range -> range.StartCol, - (List.length children)
+        | None -> -1, 0
     )
     |> List.tryHead
 
@@ -89,6 +89,17 @@ let private mapTriviaToTriviaNode nodeList trivia =
             (lastNodeOnLine.FsAstNode, t))
         |> Option.orElseWith (fun () -> createCommentBeforeFirstNodeAfter range.StartLine lineComment)
         
+    | { Item = Comment(LineCommentAfterLeftBrace(lineComment)); Range = range } ->
+        findFirstNodeOnLine range.StartLine nodeList
+        |> Option.map (fun node ->
+            let t= { Type = LeftBrace
+                     NewlinesBefore = 0
+                     CommentsBefore = []
+                     CommentsAfter = [LineCommentAfterLeftBrace(lineComment)] }
+
+            (node.FsAstNode, t)
+        )
+        
     | { Item = Newline; Range = range } ->
         findFirstNodeOnLine (range.StartLine + 1) nodeList // TODO: this approach does not work if multiple newlines are in place.
         |> Option.map (fun nextNodeUnder ->
@@ -127,7 +138,13 @@ let collectTrivia tokens (ast: ParsedInput) =
                             CommentsAfter = xs |> List.collect (fun x -> x.CommentsAfter)
                             NewlinesBefore = xs |> Seq.sumBy (fun x -> x.NewlinesBefore)
                          }]
-                    | (_, xs) -> xs)
+                    | (LeftBrace, xs) ->
+                         [{ Type = LeftBrace
+                            CommentsBefore = xs |> List.collect (fun x -> x.CommentsBefore)
+                            CommentsAfter = xs |> List.collect (fun x -> x.CommentsAfter)
+                            NewlinesBefore = xs |> Seq.sumBy (fun x -> x.NewlinesBefore)
+                         }]
+                    )
                 
             fsAstNode, triviaNodes
         )
@@ -137,3 +154,6 @@ let collectTrivia tokens (ast: ParsedInput) =
     
 let getMainNode index (ts: TriviaNode list) =
     ts |> List.skip index |> List.tryFind (fun t -> t.Type = TriviaNodeType.MainNode)
+    
+let getLeftBraceNode index (ts: TriviaNode list) =
+    ts |> List.skip index |> List.tryFind (fun t -> t.Type = TriviaNodeType.LeftBrace)
