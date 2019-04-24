@@ -63,27 +63,31 @@ let private findLastNodeOnLine lineNumber (nodes: Node list) : Node option =
     |> List.tryHead
 
 let private mapTriviaToTriviaNode nodeList trivia =
-    match trivia with
-    | { Item = Comment(LineCommentOnSingleLine(lineComment)); Range = range } ->
-        // A comment that start at the begin of a line, no other source code is before it on that line
-        findFirstNodeAfterLine range.StartLine nodeList
+    let createCommentBeforeFirstNodeAfter startLine lineComment =
+        findFirstNodeAfterLine startLine nodeList
         |> Option.map (fun nextNodeUnder ->
             let t = { Type = MainNode
                       NewlinesBefore = 0
                       CommentsBefore = [LineCommentOnSingleLine(lineComment)]
                       CommentsAfter = [] }
-            (nextNodeUnder.FsAstNode, t)
-        )
+            (nextNodeUnder.FsAstNode, t))
+    
+    match trivia with
+    | { Item = Comment(LineCommentOnSingleLine(lineComment)); Range = range } ->
+        // A comment that start at the begin of a line, no other source code is before it on that line
+        createCommentBeforeFirstNodeAfter range.StartLine lineComment
         
     | { Item = Comment(LineCommentAfterSourceCode(lineComment)); Range = range } ->
         findLastNodeOnLine (range.StartLine) nodeList
+        |> Option.filter (fun lastNodeOnLine ->
+            lastNodeOnLine.Range |> Option.exists (fun r -> r.EndLine <= range.StartLine && r.EndCol <= range.StartColumn))
         |> Option.map (fun lastNodeOnLine ->
             let t = { Type = MainNode
                       NewlinesBefore = 0
                       CommentsAfter = [LineCommentAfterSourceCode(lineComment)]
                       CommentsBefore = [] }
-            (lastNodeOnLine.FsAstNode, t)
-        )
+            (lastNodeOnLine.FsAstNode, t))
+        |> function | Some x -> Some x | None -> createCommentBeforeFirstNodeAfter range.StartLine lineComment
         
     | { Item = Newline; Range = range } ->
         findFirstNodeOnLine (range.StartLine + 1) nodeList // TODO: this approach does not work if multiple newlines are in place.
