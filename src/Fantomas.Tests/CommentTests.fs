@@ -214,6 +214,22 @@ type IlxGenIntraAssemblyInfo =
 """
 
 [<Test>]
+let ``should add comment after { as part of property assignment`` () =
+    formatSourceString false """
+let a = 
+    { // foo
+    // bar
+    B = 7 }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    { // foo
+      // bar
+      B = 7 }
+"""
+
+[<Test>]
 let ``shouldn't break on one-line comment``() =
     formatSourceString false  """
 1 + (* Comment *) 1""" config

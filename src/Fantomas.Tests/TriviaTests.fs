@@ -132,5 +132,10 @@ let ``Comments inside record`` () =
     // bar
     B = 7 }"""
     
-    let results = toTrivia source |> Seq.toList
-    List.length results == 2
+    let (_, triviaNode) = toTrivia source |> Seq.head |> toTuple
+
+    match triviaNode with
+    | [{CommentsBefore = [LineCommentOnSingleLine("// foo"); LineCommentOnSingleLine("// bar")]}] ->
+        pass()
+    | _ ->
+        fail()
