@@ -83,6 +83,18 @@ let private appendToList items item =
     List.singleton item
     |> (@) items
 
+let hasOnlySpacesAndLineCommentsOnLine lineNumber tokens =
+    if List.isEmpty tokens then
+        false
+    else
+        tokens
+        |> List.filter (fun t -> t.LineNumber = lineNumber)
+        |> List.forall (fun t -> t.TokenInfo.TokenName = "WHITESPACE" || t.TokenInfo.TokenName = "LINE_COMMENT")
+    
+let private getContentFromTokens tokens =
+    tokens
+    |> List.map (fun t -> t.Content)
+    |> String.concat String.Empty
 
 let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: Token list) foundTrivia =
     match tokens with
@@ -94,8 +106,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
         let comment =
             lineCommentTokens
             |> (@) (List.singleton headToken)
-            |> List.map (fun t -> t.Content)
-            |> String.concat String.Empty
+            |> getContentFromTokens
             
         let nextTokens =
             List.length lineCommentTokens
@@ -129,11 +140,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             blockCommentTokens
             |> (@) (List.singleton headToken)
             |> List.groupBy (fun t -> t.LineNumber)
-            |> List.map (fun (_, g) ->
-                g
-                |> List.map (fun t -> t.Content)
-                |> String.concat String.Empty
-            )
+            |> List.map (fun (_, g) -> getContentFromTokens g)
             |> String.concat Environment.NewLine
             
         let nextTokens =
@@ -158,6 +165,32 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> appendToList foundTrivia
 
         getTriviaFromTokensThemSelves allTokens rest info
+        
+    | leftBraceToken::rest when (leftBraceToken.TokenInfo.TokenName = "LBRACE" && hasOnlySpacesAndLineCommentsOnLine leftBraceToken.LineNumber rest) ->
+        let lineCommentTokens =
+            rest
+            |> List.filter (fun t -> t.TokenInfo.TokenName <> "WHITESPACE")
+            |> List.takeWhile (fun t -> t.TokenInfo.TokenName = "LINE_COMMENT" && t.LineNumber = leftBraceToken.LineNumber)
+            
+        let comment =
+            getContentFromTokens lineCommentTokens
+            |> Comment.LineCommentAfterLeftBrace
+            |> TriviaContent.Comment
+        
+        let nextTokens =
+            rest
+            |> List.filter (fun t -> t.LineNumber <> leftBraceToken.LineNumber)
+
+        let range =
+            let firstToken = List.head lineCommentTokens
+            let lastToken = List.last lineCommentTokens
+            getRangeBetween "line comment after brace" firstToken lastToken
+            
+        let info =
+            Trivia.Create comment range
+            |> appendToList foundTrivia
+            
+        getTriviaFromTokensThemSelves allTokens nextTokens info
         
     | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
     

@@ -3,6 +3,7 @@ module Fantomas.TriviaTypes
 open FSharp.Compiler.Range
 
 type Comment =
+    | LineCommentAfterLeftBrace of comment:string
     | LineCommentAfterSourceCode of comment:string
     | LineCommentOnSingleLine of comment:string
     | BlockComment of string
@@ -35,6 +36,7 @@ type TriviaIndex = TriviaIndex of int * int
 
 type TriviaNodeType =
     | MainNode
+    | LeftBrace
 //    | Keyword of string
 //    | Token of string
     
