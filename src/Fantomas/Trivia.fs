@@ -87,7 +87,7 @@ let private mapTriviaToTriviaNode nodeList trivia =
                       CommentsAfter = [LineCommentAfterSourceCode(lineComment)]
                       CommentsBefore = [] }
             (lastNodeOnLine.FsAstNode, t))
-        |> function | Some x -> Some x | None -> createCommentBeforeFirstNodeAfter range.StartLine lineComment
+        |> Option.orElseWith (fun () -> createCommentBeforeFirstNodeAfter range.StartLine lineComment)
         
     | { Item = Newline; Range = range } ->
         findFirstNodeOnLine (range.StartLine + 1) nodeList // TODO: this approach does not work if multiple newlines are in place.
