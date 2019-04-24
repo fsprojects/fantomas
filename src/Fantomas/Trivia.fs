@@ -117,8 +117,17 @@ let collectTrivia tokens (ast: ParsedInput) =
         |> List.groupBy fst
         |> List.map (fun (fsAstNode,g) ->
             let triviaNodes =
-                g
-                |> List.map snd
+                g |> List.map snd
+                |> List.groupBy (fun t -> t.Type)
+                |> List.collect (
+                    function
+                    | (MainNode, xs) ->
+                         [{ Type = MainNode
+                            CommentsBefore = xs |> List.collect (fun x -> x.CommentsBefore)
+                            CommentsAfter = xs |> List.collect (fun x -> x.CommentsAfter)
+                            NewlinesBefore = xs |> Seq.sumBy (fun x -> x.NewlinesBefore)
+                         }]
+                    | (_, xs) -> xs)
                 
             fsAstNode, triviaNodes
         )
