@@ -19,50 +19,26 @@ let rec private flattenNodeToList (node: Node) =
 //    |> List.choose fn
 //    |> List.tryHead
 //
-//let private findFirstNodeOnLine lineNumber (nodes: Node list) : Node option =
-//    nodes
-//    |> List.filter (fun n ->
-//        match n.Range with
-//        | Some r -> r.StartLine = lineNumber
-//        | _ -> false
-//    )
-//    |> List.sortBy (fun { Range = r } ->
-//        match r with
-//        | Some range -> range.StartCol
-//        | None -> -1
-//    )
-//    |> List.tryHead
-//    
-//let private findFirstNodeAfterLine lineNumber (nodes: Node list) : Node option =
-//    nodes
-//    |> List.filter (fun n ->
-//        match n.Range with
-//        | Some r -> r.StartLine > lineNumber
-//        | _ -> false
-//    )
-//    |> List.sortBy (fun { Range = r; Childs = children } ->
-//        match r with
-//        | Some range -> range.StartCol, - (List.length children)
-//        | None -> -1, 0
-//    )
-//    |> List.tryHead
+let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
+    nodes
+    |> List.filter (fun { Range =r  } -> r.StartLine = lineNumber)
+    |> List.sortBy (fun { Range = r } -> r.StartColumn)
+    |> List.tryHead
+    
+let private findFirstNodeAfterLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
+    nodes
+    |> List.filter (fun n -> n.Range.StartLine > lineNumber)
+    |> List.sortBy (fun { Range = r } -> r.StartLine, r.StartColumn)
+    |> List.tryHead
 //
 //
-//let private findLastNodeOnLine lineNumber (nodes: Node list) : Node option =
-//    nodes
-//    |> List.filter (fun n ->
-//        match n.Range with
-//        | Some r -> r.EndLine = lineNumber || r.StartLine = lineNumber
-//        | _ -> false
-//    )
-//    |> List.sortByDescending (fun { Range = r } ->
-//        match r with
-//        | Some range -> range.EndCol, range.StartCol
-//        | None -> -1, -1
-//    )
-//    |> List.tryHead
+let private findLastNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
+    nodes
+    |> List.filter (fun { Range = r } -> r.EndLine = lineNumber)
+    |> List.sortByDescending (fun { Range = r } -> r.EndColumn, r.StartColumn)
+    |> List.tryHead
 
-let private mapTriviaToTriviaNode (node: Node) =
+let private mapNodeToTriviaNode (node: Node) =
     node.Range
     |> Option.map (fun range ->
         { Type = MainNode
@@ -123,13 +99,40 @@ let private mapTriviaToTriviaNode (node: Node) =
 //
 //    | _ -> None
 
+let private updateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =
+    match triviaNode with
+    | Some tNode ->
+        triviaNodes
+        |> List.map (fun tn -> if tn = tNode then lens tn else tn)
+    | None -> triviaNodes
+
+let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
+    match trivia with
+    | { Item = Comment(LineCommentOnSingleLine(_) as comment); Range = range } ->
+        findFirstNodeAfterLine triviaNodes range.StartLine
+        |> updateTriviaNode (fun tn -> { tn with CommentsBefore = tn.CommentsBefore @ [comment] }) triviaNodes
+
+    | { Item = Comment(LineCommentAfterSourceCode(_) as comment); Range = range } ->
+        findLastNodeOnLine triviaNodes range.EndLine
+        |> updateTriviaNode (fun tn -> { tn with CommentsAfter = tn.CommentsAfter @ [comment] }) triviaNodes
+
+    | { Item = Newline; Range = range } ->
+        findFirstNodeOnLine triviaNodes (range.StartLine + 1) // TODO: this approach does not work if multiple newlines are in place.
+        |> updateTriviaNode (fun tn -> { tn with NewlinesBefore = tn.NewlinesBefore + 1 }) triviaNodes
+
+    | _ ->
+        triviaNodes
+
+let private triviaNodeIsNotEmpty triviaNode =
+    triviaNode.NewlinesBefore > 0 || not(List.isEmpty triviaNode.CommentsAfter) || not(List.isEmpty triviaNode.CommentsBefore)
+
 let collectTrivia tokens (ast: ParsedInput) =
     match ast with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _)) ->
         let node = Fantomas.AstTransformer.astToNode (mns |> List.collect (function (SynModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule, _)) -> s))
         let triviaNodesFromAST =
             flattenNodeToList node
-            |> List.map mapTriviaToTriviaNode
+            |> List.map mapNodeToTriviaNode
             |> List.choose id
         let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
         let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens
@@ -137,8 +140,12 @@ let collectTrivia tokens (ast: ParsedInput) =
         // Extra stuff we need is already captured and has regions
         // Now we only need to figure out what to place in what trivia node.
         let trivias = TokenParser.getTriviaFromTokens tokens
+        
+        List.fold addTriviaToTriviaNode triviaNodes trivias
+        |> fun x -> x
+        |> List.filter (triviaNodeIsNotEmpty)
 
-        failwith "not implemented"
+        //failwith "not implemented"
 
         (*
         1. Collect TriviaNode from tokens and AST
@@ -175,7 +182,7 @@ let collectTrivia tokens (ast: ParsedInput) =
 //        )
 //        |> refDict
 
-    | _ -> Seq.empty |> refDict
+    | _ -> [] // Seq.empty |> refDict
     
 let getMainNode index (ts: TriviaNode list) =
     ts |> List.skip index |> List.tryFind (fun t -> t.Type = TriviaNodeType.MainNode)

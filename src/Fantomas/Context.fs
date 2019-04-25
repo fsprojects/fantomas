@@ -6,7 +6,6 @@ open System.Collections.Generic
 open System.CodeDom.Compiler
 open FSharp.Compiler.Range
 open Fantomas.FormatConfig
-open Fantomas.Trivia
 open Fantomas.TriviaTypes
 
 /// Wrapping IndentedTextWriter with current column position
@@ -72,7 +71,7 @@ type internal Context =
       Comments : Dictionary<pos, string list>;
       /// Compiler directives attached to appropriate locations
       Directives : Dictionary<pos, string>
-      Trivia : Dictionary<AstTransformer.FsAstNode, TriviaNode list>
+      Trivia : TriviaNode list // Dictionary<AstTransformer.FsAstNode, TriviaNode list>
       TriviaIndexes : list<AstTransformer.FsAstNode * TriviaTypes.TriviaIndex> //TODO: use PersistentHashMap
       NodePath : AstTransformer.FsAstNode list}
 
@@ -82,7 +81,7 @@ type internal Context =
           Writer = new ColumnIndentedTextWriter(new StringWriter());
           BreakLines = true; BreakOn = (fun _ -> false); 
           Content = ""; Positions = [||]; Comments = Dictionary();
-          Directives = Dictionary(); Trivia = Dictionary(); TriviaIndexes = [];
+          Directives = Dictionary(); Trivia = []; TriviaIndexes = [];
           NodePath = [] }
 
     static member create config defines (content : string) maybeAst =
@@ -452,20 +451,22 @@ let internal printComment c =
     | BlockComment s -> !- "(*" -- s -- "*)"
 
 let internal printCommentsBefore node (ctx: Context) =
-    ctx.Trivia |> Dict.tryGet node
-    |> Option.bind (Trivia.getMainNode (getTriviaIndexBefore node ctx))
-    |> Option.map (fun n -> col sepNone n.CommentsBefore printComment
-                            +> increaseTriviaIndex node (1,0))
-    |> Option.defaultValue (!-"")
-    |> fun f -> f ctx
+    ctx
+//    ctx.Trivia |> Dict.tryGet node
+//    |> Option.bind (Trivia.getMainNode (getTriviaIndexBefore node ctx))
+//    |> Option.map (fun n -> col sepNone n.CommentsBefore printComment
+//                            +> increaseTriviaIndex node (1,0))
+//    |> Option.defaultValue (!-"")
+//    |> fun f -> f ctx
 
 let internal printCommentsAfter node (ctx: Context) =
-    ctx.Trivia |> Dict.tryGet node
-    |> Option.bind (Trivia.getMainNode (getTriviaIndexAfter node ctx))
-    |> Option.map (fun n -> col sepNone n.CommentsAfter printComment
-                            +> increaseTriviaIndex node (0,1))
-    |> Option.defaultValue (!-"")
-    |> fun f -> f ctx
+    ctx
+//    ctx.Trivia |> Dict.tryGet node
+//    |> Option.bind (Trivia.getMainNode (getTriviaIndexAfter node ctx))
+//    |> Option.map (fun n -> col sepNone n.CommentsAfter printComment
+//                            +> increaseTriviaIndex node (0,1))
+//    |> Option.defaultValue (!-"")
+//    |> fun f -> f ctx
 
 let internal enterNode node (ctx: Context) =
     if Some node <> ctx.CurrentNode then
@@ -480,16 +481,17 @@ let internal leaveNode node (ctx: Context) =
     
 // TODO: improve
 let internal leaveLeftBrace node (ctx: Context) =
-    let printCommentAfterBrace node ctx =
-        ctx.Trivia |> Dict.tryGet node
-        |> Option.bind (fun _ -> None) //Trivia.getLeftBraceNode (getTriviaIndexAfter node ctx))
-        |> Option.map (fun n ->
-                                col sepNone n.CommentsAfter printComment
-                                +> increaseTriviaIndex node (0,1))
-        |> Option.defaultValue (!-"")
-        |> fun f -> f ctx
-
-    assert (Some node = ctx.CurrentNode)
-    ctx.CurrentNode
-    |> Option.map (fun n -> printCommentAfterBrace n ctx)
-    |> Option.defaultValue ctx
+    ctx
+//    let printCommentAfterBrace node ctx =
+//        ctx.Trivia |> Dict.tryGet node
+//        |> Option.bind (fun _ -> None) //Trivia.getLeftBraceNode (getTriviaIndexAfter node ctx))
+//        |> Option.map (fun n ->
+//                                col sepNone n.CommentsAfter printComment
+//                                +> increaseTriviaIndex node (0,1))
+//        |> Option.defaultValue (!-"")
+//        |> fun f -> f ctx
+//
+//    assert (Some node = ctx.CurrentNode)
+//    ctx.CurrentNode
+//    |> Option.map (fun n -> printCommentAfterBrace n ctx)
+//    |> Option.defaultValue ctx
