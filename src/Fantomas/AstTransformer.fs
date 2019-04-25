@@ -1,35 +1,32 @@
 module Fantomas.AstTransformer
 
 open FSharp.Compiler.Ast
+open FSharp.Compiler.Range
 
-type Range =
-    { StartLine: int
-      StartCol: int
-      EndLine: int
-      EndCol: int }
+//type Range =
+//    { StartLine: int
+//      StartCol: int
+//      EndLine: int
+//      EndCol: int }
 
 type Id = {
     Ident: string
-    Range: Range option
+    Range: range option
 }
 
 type FsAstNode = obj
 
 type Node = {
     Type: string
-    Range: Range option
+    Range: range option
     Properties: Map<string, obj>
     Childs: Node list
     FsAstNode: FsAstNode
 }
 
 module Helpers =
-    let r(r: FSharp.Compiler.Range.range): Range option =
-        Some
-            {StartLine = r.StartLine
-             StartCol = r.StartColumn
-             EndLine = r.EndLine
-             EndCol = r.EndColumn}
+    let r(r: FSharp.Compiler.Range.range): range option =
+        Some r
 
     let p = Map.ofList
     let inline (==>) a b = (a,box b)

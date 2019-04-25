@@ -448,7 +448,7 @@ let internal printComment c =
     // | XmlComment s -> !- "///" -- s +> sepNln
     | LineCommentAfterSourceCode s
     | LineCommentOnSingleLine s
-    | LineCommentAfterLeftBrace s -> !- s +> sepNln
+    (*| LineCommentAfterLeftBrace s*) -> !- s +> sepNln
     | BlockComment s -> !- "(*" -- s -- "*)"
 
 let internal printCommentsBefore node (ctx: Context) =
@@ -482,7 +482,7 @@ let internal leaveNode node (ctx: Context) =
 let internal leaveLeftBrace node (ctx: Context) =
     let printCommentAfterBrace node ctx =
         ctx.Trivia |> Dict.tryGet node
-        |> Option.bind (Trivia.getLeftBraceNode (getTriviaIndexAfter node ctx))
+        |> Option.bind (fun _ -> None) //Trivia.getLeftBraceNode (getTriviaIndexAfter node ctx))
         |> Option.map (fun n ->
                                 col sepNone n.CommentsAfter printComment
                                 +> increaseTriviaIndex node (0,1))

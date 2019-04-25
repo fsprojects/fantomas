@@ -87,22 +87,7 @@ let ``simple line comment should be found in tokens`` () =
         
     | _ ->
         failwith "expected comment"
-    
-[<Test>]
-let ``keyword should be found in tokens`` () =
-    let source = "let a = 42"
-    let tokens = tokenize [] source
-    let trivias = getTriviaFromTokens tokens
-    
-    match List.tryHead trivias with
-    | Some({ Item = Keyword(keyword); Range = range }) ->
-        keyword == "let"
-        range.StartColumn == 0
-        range.StartLine == 1
-        range.EndColumn == 2
-        range.EndLine == 1
-    | _ ->
-        failwith "expected keyword"
+
         
 
 [<Test>]
@@ -197,8 +182,38 @@ let ``Comment after left brace of record`` () =
     let trivias = getTriviaFromTokens tokens
 
     match trivias with
-    | [{ Item = Keyword(_) };{ Item = Comment(LineCommentAfterLeftBrace(comment)); Range = range }] ->
+    | [ { Item = Comment(LineCommentAfterSourceCode(comment)); Range = range }] ->
         comment == "// foo"
         range.StartLine == 2
     | _ ->
         failwith "expected line comment after left brace"
+        
+    
+//[<Test>]
+//let ``keyword should be found in tokens`` () =
+//    let source = "let a = 42"
+//    let tokens = tokenize [] source
+//    let triviaNodes = getTriviaNodesFromTokens tokens
+//    
+//    match List.tryHead triviaNodes with
+//    | Some({ Type = Keyword(keyword); Range = range }) ->
+//        keyword == "let"
+//        range.StartColumn == 0
+//        range.StartLine == 1
+//        range.EndColumn == 2
+//        range.EndLine == 1
+//    | _ ->
+//        failwith "expected keyword"
+        
+[<Test>]
+let ``left brace should be found in tokens`` () =
+    let source = "type R = { A: int }"
+    let tokens = tokenize [] source
+    let triviaNodes = getTriviaNodesFromTokens tokens
+    
+    match triviaNodes with
+    | [{Type = Token(lbrace)} ; {Type = Token(rbrace)}] ->
+        lbrace.Content == "{"
+        rbrace.Content == "}"
+    | _ ->
+        fail()
