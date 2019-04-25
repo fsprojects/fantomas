@@ -453,9 +453,6 @@ let internal printComment c =
 
 let internal printCommentsBefore node (ctx: Context) =
     ctx.Trivia |> Dict.tryGet node
-    |> fun n ->
-        printfn "node: %A" n
-        n
     |> Option.bind (Trivia.getMainNode (getTriviaIndexBefore node ctx))
     |> Option.map (fun n -> col sepNone n.CommentsBefore printComment
                             +> increaseTriviaIndex node (1,0))

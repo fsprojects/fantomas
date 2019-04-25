@@ -491,8 +491,9 @@ and genVal astContext (Val(ats, px, ao, s, t, vi, _) as node) =
     |> genTrivia node 
 
 and genRecordFieldName astContext (RecordFieldName(s, eo) as node) =
+    let (rfn,_,_) = node
     opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e)
-    |> genTrivia s
+    |> genTrivia rfn
 
 and genAnonRecordFieldName astContext (AnonRecordFieldName(s, e)) =
     !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e
