@@ -559,8 +559,8 @@ and genExpr astContext synExpr =
                 genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
             |> Option.defaultValue fieldsExpr
 
-        sepOpenS +> leaveLeftBrace synExpr
-        +> atCurrentColumnIndent (opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
+        sepOpenS
+        +> atCurrentColumnIndent (leaveLeftBrace synExpr +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
             (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
         +> sepCloseS
 
@@ -882,7 +882,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
         +> indent +> sepNln +> opt sepSpace ao' genAccess
         +> genTrivia tdr
             (sepOpenS 
-            +> atCurrentColumn (col sepSemiNln fs (genField astContext "")) +> sepCloseS
+            +> atCurrentColumn (leaveLeftBrace tdr +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
             +> genMemberDefnList { astContext with InterfaceRange = None } ms
             +> unindent)
 

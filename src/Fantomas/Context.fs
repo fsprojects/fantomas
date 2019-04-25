@@ -496,4 +496,3 @@ let internal leaveLeftBrace node (ctx: Context) =
     ctx.CurrentNode
     |> Option.map (fun n -> printCommentAfterBrace n ctx)
     |> Option.defaultValue ctx
-    |> (sepSpace +> sepSpace) // TODO: @Jindrich, super nasty please help ;)
