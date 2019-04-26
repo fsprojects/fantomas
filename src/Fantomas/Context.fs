@@ -444,54 +444,45 @@ let internal increaseTriviaIndex node (deltaBefore, deltaAfter) (ctx: Context) =
 
 let internal printComment c =
     match c with
-    // | XmlComment s -> !- "///" -- s +> sepNln
     | LineCommentAfterSourceCode s
-    | LineCommentOnSingleLine s
-    (*| LineCommentAfterLeftBrace s*) -> !- s +> sepNln
+    | LineCommentOnSingleLine s -> !- s +> sepNln
     | BlockComment s -> !- "(*" -- s -- "*)"
-
-let internal printCommentsBefore node (ctx: Context) =
-    ctx
-//    ctx.Trivia |> Dict.tryGet node
-//    |> Option.bind (Trivia.getMainNode (getTriviaIndexBefore node ctx))
-//    |> Option.map (fun n -> col sepNone n.CommentsBefore printComment
-//                            +> increaseTriviaIndex node (1,0))
-//    |> Option.defaultValue (!-"")
-//    |> fun f -> f ctx
-
-let internal printCommentsAfter node (ctx: Context) =
-    ctx
-//    ctx.Trivia |> Dict.tryGet node
-//    |> Option.bind (Trivia.getMainNode (getTriviaIndexAfter node ctx))
-//    |> Option.map (fun n -> col sepNone n.CommentsAfter printComment
-//                            +> increaseTriviaIndex node (0,1))
-//    |> Option.defaultValue (!-"")
-//    |> fun f -> f ctx
-
-let internal enterNode node (ctx: Context) =
-    if Some node <> ctx.CurrentNode then
-        let ctx' = { ctx with NodePath = node :: ctx.NodePath }
-        ctx'.CurrentNode |> Option.map (fun n -> printCommentsBefore n ctx') |> Option.defaultValue ctx'
-    else ctx
     
-let internal leaveNode node (ctx: Context) =
-    assert (Some node = ctx.CurrentNode)
-    let ctx' = { ctx with NodePath = List.tail ctx.NodePath }
-    ctx'.CurrentNode |> Option.map (fun n -> printCommentsAfter n ctx') |> Option.defaultValue ctx'
-    
-// TODO: improve
-let internal leaveLeftBrace node (ctx: Context) =
+let private removeNodeFromContext triviaNode (ctx: Context) =
+    let newNodes = List.filter (fun tn -> tn <> triviaNode) ctx.Trivia
+    { ctx with Trivia = newNodes }
+
+let internal printCommentsBefore triviaNode =
+    col sepNone triviaNode.CommentsBefore printComment
+
+let internal printCommentsAfter triviaNode =
+    col sepNone triviaNode.CommentsAfter printComment
+
+let private findTriviaMainNodeFromRange nodes range =
+        nodes
+        |> List.tryFind(fun n -> n.Range = range && n.Type = MainNode)
+
+let internal enterNode (range: range) (ctx: Context) =
+    match findTriviaMainNodeFromRange ctx.Trivia range with
+    | Some triviaNode ->
+        (printCommentsBefore triviaNode) ctx // TODO remove node if no afterComments are present
+    | None -> ctx
+
+// TODO probably ok to remove node if there is a match in range, similar to removal at leaveLeftBrace
+let internal leaveNode (range: range) (ctx: Context) =
     ctx
-//    let printCommentAfterBrace node ctx =
-//        ctx.Trivia |> Dict.tryGet node
-//        |> Option.bind (fun _ -> None) //Trivia.getLeftBraceNode (getTriviaIndexAfter node ctx))
-//        |> Option.map (fun n ->
-//                                col sepNone n.CommentsAfter printComment
-//                                +> increaseTriviaIndex node (0,1))
-//        |> Option.defaultValue (!-"")
-//        |> fun f -> f ctx
-//
-//    assert (Some node = ctx.CurrentNode)
-//    ctx.CurrentNode
-//    |> Option.map (fun n -> printCommentAfterBrace n ctx)
-//    |> Option.defaultValue ctx
+
+let internal leaveLeftBrace (range: range) (ctx: Context) =
+    ctx.Trivia
+    |> List.tryFind(fun tn ->
+        // Token is a left brace { at the beginning of the range.
+        match tn.Type with
+        | Token(tok) ->
+            tok.TokenInfo.TokenName = "LBRACE" && tn.Range.StartLine = range.StartLine && tn.Range.StartColumn = range.StartColumn
+        | _ -> false
+    )
+    |> Option.map (fun tn ->
+        printCommentsAfter tn +> removeNodeFromContext tn
+    )
+    |> Option.defaultValue id
+    <| ctx

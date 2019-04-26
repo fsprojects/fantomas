@@ -152,41 +152,6 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             
         getTriviaFromTokensThemSelves allTokens nextTokens info
 
-//    | headToken::rest when (headToken.TokenInfo.ColorClass = FSharpTokenColorKind.Keyword) ->
-//        let keyword = headToken.Content |> TriviaContent.Keyword
-//        let range = getRangeBetween "keyword" headToken headToken
-//        let info =
-//            Trivia.Create keyword range
-//            |> appendToList foundTrivia
-//
-//        getTriviaFromTokensThemSelves allTokens rest info
-        
-//    | leftBraceToken::rest when (leftBraceToken.TokenInfo.TokenName = "LBRACE" && hasOnlySpacesAndLineCommentsOnLine leftBraceToken.LineNumber rest) ->
-//        let lineCommentTokens =
-//            rest
-//            |> List.filter (fun t -> t.TokenInfo.TokenName <> "WHITESPACE")
-//            |> List.takeWhile (fun t -> t.TokenInfo.TokenName = "LINE_COMMENT" && t.LineNumber = leftBraceToken.LineNumber)
-//            
-//        let comment =
-//            getContentFromTokens lineCommentTokens
-//            |> Comment.LineCommentAfterLeftBrace
-//            |> TriviaContent.Comment
-//        
-//        let nextTokens =
-//            rest
-//            |> List.filter (fun t -> t.LineNumber <> leftBraceToken.LineNumber)
-//
-//        let range =
-//            let firstToken = List.head lineCommentTokens
-//            let lastToken = List.last lineCommentTokens
-//            getRangeBetween "line comment after brace" firstToken lastToken
-//            
-//        let info =
-//            Trivia.Create comment range
-//            |> appendToList foundTrivia
-//            
-//        getTriviaFromTokensThemSelves allTokens nextTokens info
-//        
     | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
     
     | [] -> foundTrivia
