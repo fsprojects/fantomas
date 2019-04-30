@@ -1,5 +1,6 @@
 module Fantomas.Tests.TriviaTests
 
+open System
 open NUnit.Framework
 open Fantomas
 open Fantomas.Tests.TestHelper
@@ -23,9 +24,7 @@ let a = 9
         lineComment == "// meh"
     | _ ->
         failwith "Expected line comment"
-//        
-//// TODO: discuss whether the Trivia LineComment should include the range?
-//        
+
 [<Test>]
 let ``Line comment that is alone on the single, preceded by whitespaces`` () =
     let source = """    // foo
@@ -93,5 +92,23 @@ let ``Comments inside record`` () =
     match triviaNodes with
     | [{ Type = TriviaNodeType.Token(t); CommentsAfter = [LineCommentAfterSourceCode("// foo")] }] ->
         t.Content == "{"
+    | _ ->
+        fail()
+        
+[<Test>]
+let ``Comment after all source code`` () =
+    let source = """
+type T() =
+    let x = 123
+//    override private x.ToString() = ""
+"""
+
+    let triviaNodes = toTrivia source
+    
+    match triviaNodes with
+    | [{ Type = MainNode(mn); CommentsAfter = [LineCommentOnSingleLine(lineComment)] }] ->
+        mn == "SynModuleDecl.Types"
+        lineComment == (sprintf "%s//    override private x.ToString() = \"\"" Environment.NewLine)
+        pass()
     | _ ->
         fail()

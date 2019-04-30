@@ -42,7 +42,7 @@ with
 type TriviaIndex = TriviaIndex of int * int
 
 type TriviaNodeType =
-    | MainNode
+    | MainNode of ``type``:string
     | Token of Token
     | Keyword of string
     

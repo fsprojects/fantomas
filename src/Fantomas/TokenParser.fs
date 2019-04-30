@@ -73,10 +73,6 @@ let private getRangeBetween name startToken endToken =
     let start = FSharp.Compiler.Range.mkPos startToken.LineNumber startToken.TokenInfo.LeftColumn
     let endR = FSharp.Compiler.Range.mkPos endToken.LineNumber endToken.TokenInfo.RightColumn
     FSharp.Compiler.Range.mkRange name start endR
-    
-let private appendToList items item =
-    List.singleton item
-    |> (@) items
 
 let private hasOnlySpacesAndLineCommentsOnLine lineNumber tokens =
     if List.isEmpty tokens then
@@ -99,8 +95,8 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> List.takeWhile (fun t -> t.TokenInfo.TokenName = "LINE_COMMENT" && t.LineNumber = headToken.LineNumber)
             
         let comment =
-            lineCommentTokens
-            |> (@) (List.singleton headToken)
+            headToken
+            |> List.prependItem lineCommentTokens
             |> getContentFromTokens
             
         let nextTokens =
@@ -122,7 +118,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
                 |> Comment
             
             Trivia.Create comment range
-            |> appendToList foundTrivia
+            |> List.appendItem foundTrivia
             
         getTriviaFromTokensThemSelves allTokens nextTokens info
         
@@ -132,8 +128,8 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> List.takeWhile (fun t -> t.TokenInfo.TokenName = "COMMENT")
             
         let comment =
-            blockCommentTokens
-            |> (@) (List.singleton headToken)
+            headToken
+            |> List.prependItem blockCommentTokens
             |> List.groupBy (fun t -> t.LineNumber)
             |> List.map (fun (_, g) -> getContentFromTokens g)
             |> String.concat Environment.NewLine
@@ -148,7 +144,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             
         let info =
             Trivia.Create (Comment(BlockComment(comment))) range
-            |> appendToList foundTrivia
+            |> List.prependItem foundTrivia
             
         getTriviaFromTokensThemSelves allTokens nextTokens info
 

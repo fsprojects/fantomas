@@ -134,7 +134,7 @@ let a = 9
     let trivias = getTriviaFromTokens tokens
     
     match trivias with
-    | ({ Item = Comment(LineCommentOnSingleLine(l1)) })::({ Item = Comment(LineCommentOnSingleLine(l2)) })::rest ->
+    | ({ Item = Comment(LineCommentOnSingleLine(l1)) })::({ Item = Comment(LineCommentOnSingleLine(l2)) })::_ ->
         l1 == "// meh"
         l2 == "// foo"
     | _ ->

@@ -32,3 +32,9 @@ module Dict =
     let tryGet k (d: System.Collections.Generic.IDictionary<_,_>) =
         let (r,x) = d.TryGetValue k
         if r then Some x else None
+        
+module List =
+    let appendItem l i =
+        l @ [i]
+        
+    let prependItem l i = i :: l

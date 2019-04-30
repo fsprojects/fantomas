@@ -459,8 +459,8 @@ let internal printCommentsAfter triviaNode =
     col sepNone triviaNode.CommentsAfter printComment
 
 let private findTriviaMainNodeFromRange nodes range =
-        nodes
-        |> List.tryFind(fun n -> n.Range = range && n.Type = MainNode)
+    nodes
+    |> List.tryFind(fun n -> n.Range = range && Trivia.isMainNode n)
 
 let internal enterNode (range: range) (ctx: Context) =
     match findTriviaMainNodeFromRange ctx.Trivia range with
@@ -470,7 +470,10 @@ let internal enterNode (range: range) (ctx: Context) =
 
 // TODO probably ok to remove node if there is a match in range, similar to removal at leaveLeftBrace
 let internal leaveNode (range: range) (ctx: Context) =
-    ctx
+    match findTriviaMainNodeFromRange ctx.Trivia range with
+    | Some triviaNode ->
+        (printCommentsAfter triviaNode) ctx
+    | None -> ctx
 
 let internal leaveLeftBrace (range: range) (ctx: Context) =
     ctx.Trivia
