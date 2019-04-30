@@ -46,8 +46,25 @@ module Helpers =
 module private Ast =
     open Helpers
 
-    let rec visit(ast: SynModuleDecl): Node =
-        //let fsAstNode = ast :> FsAstNode
+    let rec visit(ast: SynModuleOrNamespace ): Node =
+        visitSynModuleOrNamespace ast
+
+    and visitSynModuleOrNamespace(modOrNs: SynModuleOrNamespace): Node =
+        match modOrNs with
+        | SynModuleOrNamespace(longIdent,isRecursive,isModule,decls,_,attrs,access,range) ->
+            {Type = "SynModuleOrNamespace"
+             Range = r range
+             Properties =
+                 p [yield "isRecursive" ==> isRecursive
+                    yield "isModule" ==> isModule
+                    yield "longIdent" ==> li longIdent
+                    if access.IsSome then yield "access" ==> (access.Value |> visitSynAccess)]
+             FsAstNode = modOrNs
+             Childs =
+                 [yield! attrs |> List.map visitSynAttribute
+                  yield! (decls |> List.map visitSynModuleDecl)]}
+
+    and visitSynModuleDecl(ast: SynModuleDecl) : Node =
         match ast with
         | SynModuleDecl.ModuleAbbrev(ident,longIdent,range) ->
             {Type = "SynModuleDecl.ModuleAbbrev"
@@ -64,7 +81,7 @@ module private Ast =
              FsAstNode = ast
              Childs =
                  [yield visitSynComponentInfo sci
-                  yield! (decls |> List.map visit)]}
+                  yield! (decls |> List.map visitSynModuleDecl)]}
         | SynModuleDecl.Let(_,bindings,range) ->
             {Type = "SynModuleDecl.Let"
              Range = r range
@@ -113,22 +130,7 @@ module private Ast =
              Properties = p []
              FsAstNode = ast
              Childs = [visitSynModuleOrNamespace moduleOrNamespace]}
-
-    and visitSynModuleOrNamespace(modOrNs: SynModuleOrNamespace): Node =
-        match modOrNs with
-        | SynModuleOrNamespace(longIdent,isRecursive,isModule,decls,_,attrs,access,range) ->
-            {Type = "SynModuleOrNamespace"
-             Range = r range
-             Properties =
-                 p [yield "isRecursive" ==> isRecursive
-                    yield "isModule" ==> isModule
-                    yield "longIdent" ==> li longIdent
-                    if access.IsSome then yield "access" ==> (access.Value |> visitSynAccess)]
-             FsAstNode = modOrNs
-             Childs =
-                 [yield! attrs |> List.map visitSynAttribute
-                  yield! (decls |> List.map visit)]}
-
+    
     and visitSynExpr(synExpr: SynExpr): Node =
         match synExpr with
         | SynExpr.Paren(expr,leftParenRange,rightParenRange,range) ->
@@ -1524,10 +1526,10 @@ module private Ast =
              FsAstNode = hash
              Childs = []}
 
-let astToNode (ast: SynModuleDecls): Node =
-    let child = ast |> List.map Ast.visit
+let astToNode (ast: SynModuleOrNamespace list): Node =
+    let children = List.map Ast.visit ast
     {Type = "File"
      Range = None
      Properties = Map.empty
      FsAstNode = ast
-     Childs = child}
+     Childs = children}

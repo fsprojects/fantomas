@@ -12,12 +12,14 @@ let ``should keep sticky-to-the-left comments after nowarn directives``() =
 
 [<Test>]
 let ``should keep sticky-to-the-right comments before module definition``() =
-    formatSourceString false """
+    let source = """
 // The original idea for this typeprovider is from Ivan Towlson
 // some text
 module FSharpx.TypeProviders.VectorTypeProvider
 
-let x = 1""" config
+let x = 1"""
+
+    formatSourceString false source config
     |> should equal """// The original idea for this typeprovider is from Ivan Towlson
 // some text
 module FSharpx.TypeProviders.VectorTypeProvider

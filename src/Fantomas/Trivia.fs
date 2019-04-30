@@ -73,7 +73,7 @@ let private triviaNodeIsNotEmpty triviaNode =
 let collectTrivia tokens (ast: ParsedInput) =
     match ast with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _)) ->
-        let node = Fantomas.AstTransformer.astToNode (mns |> List.collect (function (SynModuleOrNamespace(ats, px, ao, s, mds, isRecursive, isModule, _)) -> s))
+        let node = Fantomas.AstTransformer.astToNode mns
         let triviaNodesFromAST =
             flattenNodeToList node
             |> List.map mapNodeToTriviaNode
