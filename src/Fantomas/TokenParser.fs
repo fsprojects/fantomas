@@ -57,10 +57,11 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
   ) (state, []) // empty tokens to start with
   |> snd // ignore the state
 
-let tokenize defines (content : string) : Token list =
+let tokenize defines (content : string) : Token list * int =
     let sourceTokenizer = FSharpSourceTokenizer("INTERACTIVE" :: defines, Some "/tmp.fsx")
     let lines = String.normalizeThenSplitNewLine content |> Array.toList
-    tokenizeLines sourceTokenizer lines FSharpTokenizerLexState.Initial
+    let tokens = tokenizeLines sourceTokenizer lines FSharpTokenizerLexState.Initial
+    tokens, List.length lines
     
 /// Regex alone won't cut it, good enough for now
 let getDefines sourceCode =
@@ -157,19 +158,9 @@ let private createNewLine lineNumber =
     let range = FSharp.Compiler.Range.mkRange "newline" pos pos
     { Item = Newline; Range = range }
 
-let private findEmptyNewlinesInTokens (tokens: Token list) =
-    let firstLine =
-        tokens
-        |> List.map (fun t -> t.LineNumber)
-        |> List.min
-
-    let lastLine =
-        tokens
-        |> List.map (fun t -> t.LineNumber)
-        |> List.max
-
+let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) =
     let completeEmptyLines =
-        [firstLine .. lastLine]
+        [1 .. lineCount]
         |> List.filter (fun line ->
             not (List.exists (fun t -> t.LineNumber = line) tokens)
         )
@@ -183,11 +174,12 @@ let private findEmptyNewlinesInTokens (tokens: Token list) =
         
     completeEmptyLines @ linesWithOnlySpaces
 
-let getTriviaFromTokens (tokens: Token list) =
+let getTriviaFromTokens (tokens: Token list) linesCount =
     let fromTokens = getTriviaFromTokensThemSelves tokens tokens []
-    let newLines = findEmptyNewlinesInTokens tokens
+    let newLines = findEmptyNewlinesInTokens tokens linesCount
 
     fromTokens @ newLines
+    |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
     
 let private tokenNames = ["LBRACE";"RBRACE"]
     
@@ -196,8 +188,7 @@ let getTriviaNodesFromTokens (tokens: Token list) : TriviaNode list =
     |> List.filter (fun t -> List.exists (fun tn -> tn = t.TokenInfo.TokenName) tokenNames)
     |> List.map (fun t ->
         { Type = TriviaNodeType.Token(t)
-          CommentsBefore = []
-          CommentsAfter = []
-          NewlinesBefore = 0
+          ContentBefore = []
+          ContentAfter = []
           Range = getRangeBetween t.TokenInfo.TokenName t t }
     )

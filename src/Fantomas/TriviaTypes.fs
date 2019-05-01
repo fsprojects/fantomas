@@ -46,10 +46,8 @@ type TriviaNodeType =
     | Token of Token
     | Keyword of string
     
-type TriviaNode = {
-    Type: TriviaNodeType
-    CommentsBefore: Comment list
-    CommentsAfter: Comment list
-    NewlinesBefore: int
-    Range: range
-}
+type TriviaNode =
+  { Type: TriviaNodeType
+    ContentBefore: TriviaContent list
+    ContentAfter: TriviaContent list
+    Range: range }

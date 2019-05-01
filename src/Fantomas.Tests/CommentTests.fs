@@ -39,6 +39,7 @@ let print_30_permut() =
     |> prepend newline
     |> should equal """
 let print_30_permut() =
+
     /// declare and initialize
     let permutation: int array =
         Array.init n (fun i ->
@@ -59,6 +60,7 @@ let print_30_permut() =
     |> prepend newline
     |> should equal """
 let print_30_permut() =
+
     /// declare and initialize
     let permutation: int array =
         Array.init n (fun (i, j) ->
@@ -413,6 +415,7 @@ type T() =
 """
     
     formatSourceString false source c
+    |> prepend newline
     |> should equal """
 type T() =
     let x = 123
@@ -445,6 +448,7 @@ let y = ()
 """
 
     formatSourceString false source c
+    |> prepend newline
     |> should equal """
 let test n = [ n ..- 1..1 ]
 let y = ()

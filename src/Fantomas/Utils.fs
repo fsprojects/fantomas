@@ -17,7 +17,8 @@ module String =
         source.Split([| Environment.NewLine |], StringSplitOptions.None)
         |> Array.map (fun line -> line.TrimEnd())
         |> fun lines -> String.Join(Environment.NewLine, lines)
-        
+        |> fun code -> code.TrimStart(Environment.NewLine.ToCharArray())
+
 module Cache =
     let alreadyVisited<'key when 'key : not struct>() =
         let cache = System.Collections.Generic.HashSet<'key>([], HashIdentity.Reference)

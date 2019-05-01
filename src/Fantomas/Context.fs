@@ -92,9 +92,9 @@ type internal Context =
             |> Seq.scan (+) 0
             |> Seq.toArray
         //let (comments, directives, _) = filterCommentsAndDirectives content
-        let tokens = TokenParser.tokenize defines content
+        let (tokens, lineCount) = TokenParser.tokenize defines content
         let trivia =
-            maybeAst |> Option.map (Trivia.collectTrivia tokens)
+            maybeAst |> Option.map (Trivia.collectTrivia tokens lineCount)
             |> Option.defaultValue Context.Default.Trivia
 
         { Context.Default with 
@@ -442,21 +442,22 @@ let internal increaseTriviaIndex node (deltaBefore, deltaAfter) (ctx: Context) =
         else (node, TriviaIndex (deltaBefore, deltaAfter)) :: ctx.TriviaIndexes
     { ctx with TriviaIndexes = indexes }
 
-let internal printComment c =
+let internal printTriviaContent (c: TriviaContent) =
     match c with
-    | LineCommentAfterSourceCode s
-    | LineCommentOnSingleLine s -> !- s +> sepNln
-    | BlockComment s -> !- "(*" -- s -- "*)"
+    | Comment(LineCommentAfterSourceCode s)
+    | Comment(LineCommentOnSingleLine s) -> !- s +> sepNln
+    | Comment(BlockComment s) -> !- "(*" -- s -- "*)"
+    | Newline -> sepNln
     
 let private removeNodeFromContext triviaNode (ctx: Context) =
     let newNodes = List.filter (fun tn -> tn <> triviaNode) ctx.Trivia
     { ctx with Trivia = newNodes }
 
 let internal printCommentsBefore triviaNode =
-    col sepNone triviaNode.CommentsBefore printComment
+    col sepNone triviaNode.ContentBefore printTriviaContent
 
 let internal printCommentsAfter triviaNode =
-    col sepNone triviaNode.CommentsAfter printComment
+    col sepNone triviaNode.ContentAfter printTriviaContent
 
 let private findTriviaMainNodeFromRange nodes range =
     nodes

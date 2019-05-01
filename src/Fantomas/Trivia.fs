@@ -1,6 +1,7 @@
 module internal Fantomas.Trivia
 
 open System
+open System.Linq.Expressions
 open Fantomas.AstTransformer
 open FSharp.Compiler.Ast
 open Fantomas
@@ -52,9 +53,8 @@ let private mapNodeToTriviaNode (node: Node) =
     node.Range
     |> Option.map (fun range ->
         { Type = MainNode(node.Type)
-          CommentsAfter = []
-          CommentsBefore = []
-          NewlinesBefore = 0
+          ContentAfter = []
+          ContentBefore = []
           Range = range }
     )
     
@@ -76,32 +76,33 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         // Comment on is on its own line after all Trivia nodes, most likely at the end of a module
         findLastNode triviaNodes
         |> updateTriviaNode (fun tn ->
-            match tn.CommentsAfter with
+            match tn.ContentAfter with
             | [] -> // make sure that comment ends up under the printed code
                 LineCommentOnSingleLine(sprintf "%s%s" Environment.NewLine lineComment)
+                |> Comment
                 |> List.singleton
-                |> fun ca -> { tn with CommentsAfter = ca }
+                |> fun ca -> { tn with ContentAfter = ca }
             | _ ->
-                { tn with CommentsAfter = List.appendItem tn.CommentsAfter comment }
+                { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }
         ) triviaNodes
 
     | { Item = Comment(LineCommentOnSingleLine(_) as comment); Range = range } ->
         findFirstNodeAfterLine triviaNodes range.StartLine
-        |> updateTriviaNode (fun tn -> { tn with CommentsBefore = List.appendItem  tn.CommentsBefore comment }) triviaNodes
+        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem  tn.ContentBefore (Comment(comment)) }) triviaNodes
 
     | { Item = Comment(LineCommentAfterSourceCode(_) as comment); Range = range } ->
         findLastNodeOnLine triviaNodes range.EndLine
-        |> updateTriviaNode (fun tn -> { tn with CommentsAfter = List.appendItem tn.CommentsAfter comment }) triviaNodes
+        |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }) triviaNodes
 
     | { Item = Newline; Range = range } ->
-        findFirstNodeOnLine triviaNodes (range.StartLine + 1) // TODO: this approach does not work if multiple newlines are in place.
-        |> updateTriviaNode (fun tn -> { tn with NewlinesBefore = tn.NewlinesBefore + 1 }) triviaNodes
+        findFirstNodeAfterLine triviaNodes range.StartLine // TODO: this approach does not work if multiple newlines are in place.
+        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore Newline }) triviaNodes
 
     | _ ->
         triviaNodes
 
 let private triviaNodeIsNotEmpty triviaNode =
-    triviaNode.NewlinesBefore > 0 || not(List.isEmpty triviaNode.CommentsAfter) || not(List.isEmpty triviaNode.CommentsBefore)
+    not(List.isEmpty triviaNode.ContentAfter) || not(List.isEmpty triviaNode.ContentBefore)
 
 (*
     1. Collect TriviaNode from tokens and AST
@@ -109,7 +110,7 @@ let private triviaNodeIsNotEmpty triviaNode =
     3. Merge trivias with triviaNodes
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
-let collectTrivia tokens (ast: ParsedInput) =
+let collectTrivia tokens lineCount (ast: ParsedInput) =
     match ast with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _)) ->
         let node = Fantomas.AstTransformer.astToNode mns
@@ -120,7 +121,7 @@ let collectTrivia tokens (ast: ParsedInput) =
         let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
         let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens
         
-        let trivias = TokenParser.getTriviaFromTokens tokens
+        let trivias = TokenParser.getTriviaFromTokens tokens lineCount
         
         List.fold addTriviaToTriviaNode triviaNodes trivias
         |> fun x -> x

@@ -43,13 +43,14 @@ setupServer true
 let ``tokenize should return correct amount`` () =
     let source = "let a = 7" // LET WHITESPACE IDENT WHITESPACE EQUALS WHITESPACE INT32
     tokenize [] source
+    |> fst
     |> List.length
     |> should equal 7
     
 [<Test>]
 let ``tokenize should return correct sequence of tokens`` () =
     let source = "let a = 7" // LET WHITESPACE IDENT WHITESPACE EQUALS WHITESPACE INT32
-    let tokens = tokenize [] source |> List.map (fun t -> t.TokenInfo.TokenName)
+    let tokens = tokenize [] source |> fst |> List.map (fun t -> t.TokenInfo.TokenName)
     tokens.[0] == "LET"
     tokens.[1] == "WHITESPACE"
     tokens.[2] == "IDENT"
@@ -62,7 +63,7 @@ let ``tokenize should return correct sequence of tokens`` () =
 let ``tokenize should work with multiple lines`` () =
     let source = """let a = 8
 let b = 9"""
-    let tokens = tokenize [] source
+    let (tokens,_) = tokenize [] source
     let tokensLength = List.length tokens
     tokensLength == 14
     
@@ -77,10 +78,10 @@ let b = 9"""
 [<Test>]
 let ``simple line comment should be found in tokens`` () =
     let source = "let a = 7 // some comment"
-    let tokens = tokenize [] source
-    let trivias = getTriviaFromTokens tokens
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes = getTriviaFromTokens tokens lineCount
     
-    match List.tryLast trivias with
+    match List.tryLast triviaNodes with
     | Some({ Item = Comment(LineCommentAfterSourceCode(lineComment)) ; Range = range}) ->
         lineComment == "// some comment"
         range.StartLine == range.EndLine
@@ -88,15 +89,13 @@ let ``simple line comment should be found in tokens`` () =
     | _ ->
         failwith "expected comment"
 
-        
-
 [<Test>]
 let ``Single line block comment should be found in tokens`` () =
     let source = "let foo (* not fonz *) = \"bar\""
-    let tokens = tokenize [] source
-    let trivias = getTriviaFromTokens tokens
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes = getTriviaFromTokens tokens lineCount
     
-    match List.tryLast trivias with
+    match List.tryLast triviaNodes with
     | Some({ Item = Comment(BlockComment(blockComment)) }) ->
         blockComment == "(* not fonz *)"
     | _ ->
@@ -108,12 +107,11 @@ let ``Multi line block comment should be found in tokens`` () =
 (* multi
    line
    comment *)
-    7
-"""
-    let tokens = tokenize [] source
-    let trivias = getTriviaFromTokens tokens
+    7"""
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes = getTriviaFromTokens tokens lineCount
     
-    match List.tryLast trivias with
+    match List.tryLast triviaNodes with
     | Some({ Item = Comment(BlockComment(blockComment)); Range = range }) ->
         blockComment == """(* multi
    line
@@ -130,10 +128,10 @@ let ``Multiple line comment should be found in tokens`` () =
 // foo
 let a = 9
 """
-    let tokens = tokenize [] source
-    let trivias = getTriviaFromTokens tokens
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes = getTriviaFromTokens tokens lineCount
     
-    match trivias with
+    match triviaNodes with
     | ({ Item = Comment(LineCommentOnSingleLine(l1)) })::({ Item = Comment(LineCommentOnSingleLine(l2)) })::_ ->
         l1 == "// meh"
         l2 == "// foo"
@@ -146,10 +144,10 @@ let ``newline should be found in tokens`` () =
 
 printfn "bar" """
     
-    let tokens = tokenize [] source
-    let trivias = getTriviaFromTokens tokens
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes = getTriviaFromTokens tokens lineCount
     
-    match trivias with
+    match triviaNodes with
     | [{ Item = item; Range = range }] when (isNewline item) ->
         range.StartLine == 2
         range.EndLine == 2
@@ -162,10 +160,10 @@ let ``Only empty spaces in line are also consider as Newline`` () =
     
 printfn "bar" """ // difference is the 4 spaces on line 188
 
-    let tokens = tokenize [] source
-    let trivias = getTriviaFromTokens tokens
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes = getTriviaFromTokens tokens lineCount
     
-    match trivias with
+    match triviaNodes with
     | [{ Item = item; Range = range }] when (isNewline item) ->
         range.StartLine == 2
         range.EndLine == 2
@@ -178,10 +176,10 @@ let ``Comment after left brace of record`` () =
     { // foo
     B = 7 }"""
     
-    let tokens = tokenize [] source
-    let trivias = getTriviaFromTokens tokens
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes = getTriviaFromTokens tokens lineCount
 
-    match trivias with
+    match triviaNodes with
     | [ { Item = Comment(LineCommentAfterSourceCode(comment)); Range = range }] ->
         comment == "// foo"
         range.StartLine == 2
@@ -208,12 +206,29 @@ let ``Comment after left brace of record`` () =
 [<Test>]
 let ``left brace should be found in tokens`` () =
     let source = "type R = { A: int }"
-    let tokens = tokenize [] source
+    let (tokens, _) = tokenize [] source
     let triviaNodes = getTriviaNodesFromTokens tokens
     
     match triviaNodes with
     | [{Type = Token(lbrace)} ; {Type = Token(rbrace)}] ->
         lbrace.Content == "{"
         rbrace.Content == "}"
+    | _ ->
+        fail()
+        
+[<Test>]
+let ``leading and trailing whitespaces should be found in tokens`` () =
+    let source = """
+type T() =
+    let x = 123
+"""
+
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes = getTriviaFromTokens tokens lineCount
+    
+    match triviaNodes with
+    | [{ Item = Newline; Range = rAbove }; {Item = Newline; Range = rBelow}] ->
+        rAbove.StartLine == 1
+        rBelow.EndLine == 4
     | _ ->
         fail()
