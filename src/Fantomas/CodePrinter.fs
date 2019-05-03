@@ -449,7 +449,7 @@ and genMemberBinding astContext b =
         | e -> prefix +> sepEq +> preserveBreakNlnOrAddSpace astContext e
 
     | b -> failwithf "%O isn't a member binding" b
-    |> genTrivia b.RangeOfBindingAndRhs // TODO unsure
+    |> genTrivia b.RangeOfBindingSansRhs
 
 and genMemberFlags astContext node =
     match node with
@@ -1233,7 +1233,7 @@ and genClause astContext hasBar (Clause(p, e, eo) as node) =
 /// Each multiline member definition has a pre and post new line. 
 and genMemberDefnList astContext node =
     match node with
-    | [x] -> sepNln +> genMemberDefn astContext x
+    | [x] -> sepNlnConsideringTrivaContentBefore x.Range +> genMemberDefn astContext x
 
     | MDOpenL(xs, ys) ->
         fun ctx ->

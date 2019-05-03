@@ -454,3 +454,21 @@ let test n = [ n ..- 1..1 ]
 let y = ()
 // Some comments
 """
+
+[<Test>]
+let ``comment after function in type definition should be applied to member bindings``() =
+    formatSourceString false """
+type C () = 
+    let rec g x = h x
+    and h x = g x
+
+    member x.P = g 3""" config
+    |> prepend newline
+    |> should equal """
+type C() =
+
+    let rec g x = h x
+    and h x = g x
+
+    member x.P = g 3
+"""
