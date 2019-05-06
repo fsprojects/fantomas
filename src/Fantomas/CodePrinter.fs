@@ -127,7 +127,12 @@ and genModuleDeclList astContext e =
 
     | MultilineModuleDeclL(xs, ys) ->
         match ys with
-        | [] -> col (rep 2 sepNln) xs (genModuleDecl astContext)
+        | [] ->
+            colEx (fun (mdl: SynModuleDecl) -> 
+                let r = mdl.Range
+                sepNln +> sepNlnConsideringTrivaContentBefore r
+            ) xs (genModuleDecl astContext)
+            //col (rep 2 sepNln) xs (genModuleDecl astContext) // should add single newlines if item of xs contain newline trivia
         | _ -> col (rep 2 sepNln) xs (genModuleDecl astContext) +> rep 2 sepNln +> genModuleDeclList astContext ys
     | _ -> sepNone    
     // |> genTrivia e , e is a list, genTrivia will probably need to occur after each item.

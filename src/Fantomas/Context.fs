@@ -230,6 +230,15 @@ let internal col f' (c : seq<'T>) f (ctx : Context) =
         if tryPick then tryPick <- false else st <- f' st
         st <- f (e.Current) st
     st
+    
+let internal colEx f' (c : seq<'T>) f (ctx: Context) =
+    let mutable tryPick = true
+    let mutable st = ctx
+    let e = c.GetEnumerator()   
+    while (e.MoveNext()) do
+        if tryPick then tryPick <- false else st <- f' e.Current st
+        st <- f (e.Current) st
+    st
 
 /// Similar to col, apply one more function f2 at the end if the input sequence is not empty
 let internal colPost f2 f1 (c : seq<'T>) f (ctx : Context) =
