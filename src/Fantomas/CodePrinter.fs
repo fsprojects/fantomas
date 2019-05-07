@@ -1254,14 +1254,23 @@ and genMemberDefnList astContext node =
                 | Single x -> genMemberDefn astContext x)
 
     | MultilineMemberDefnL(xs, ys) ->
-        rep 2 sepNln 
+        let sepNlnFirstExpr =
+            match List.tryHead xs with
+            | Some (Single xsh) -> sepNlnConsideringTrivaContentBefore xsh.Range
+            | _ -> sepNln
+        
+        sepNln +> sepNlnFirstExpr 
         +> col (rep 2 sepNln) xs (function
                 | Pair(x1, x2) -> genPropertyWithGetSet astContext (x1, x2)
                 | Single x -> genMemberDefn astContext x) 
         +> sepNln +> genMemberDefnList astContext ys
 
     | OneLinerMemberDefnL(xs, ys) ->
-        sepNln +> col sepNln xs (genMemberDefn astContext) +> genMemberDefnList astContext ys
+        let sepNlnFirstExpr =
+            match List.tryHead xs with
+            | Some xsh -> sepNlnConsideringTrivaContentBefore xsh.Range
+            | None -> sepNln
+        sepNlnFirstExpr +> col sepNln xs (genMemberDefn astContext) +> genMemberDefnList astContext ys
     | _ -> sepNone
     // |> genTrivia node
 

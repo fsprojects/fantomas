@@ -123,8 +123,7 @@ let ``Multi line block comment should be found in tokens`` () =
         
 [<Test>]
 let ``Multiple line comment should be found in tokens`` () =
-    let source = """
-// meh
+    let source = """// meh
 // foo
 let a = 9
 """

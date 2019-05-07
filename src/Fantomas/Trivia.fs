@@ -66,8 +66,15 @@ let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNode list) (range: 
 let private updateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =
     match triviaNode with
     | Some tNode ->
+        // There are situations where the same range can be linked to multiple different AST nodes.
+        // F.ex a getter and setter in one line.
+        // We want to be sure that one node will be projected by the lens function.
+        let index =
+            triviaNodes
+            |> List.findIndex (fun tn -> tn = tNode)
+        
         triviaNodes
-        |> List.map (fun tn -> if tn = tNode then lens tn else tn)
+        |> List.mapi (fun idx tn -> if idx = index then lens tn else tn)
     | None -> triviaNodes
 
 let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
