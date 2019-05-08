@@ -230,7 +230,8 @@ let internal col f' (c : seq<'T>) f (ctx : Context) =
         if tryPick then tryPick <- false else st <- f' st
         st <- f (e.Current) st
     st
-    
+
+// Similar to col but pass the item of 'T to f' as well
 let internal colEx f' (c : seq<'T>) f (ctx: Context) =
     let mutable tryPick = true
     let mutable st = ctx
@@ -462,10 +463,17 @@ let private removeNodeFromContext triviaNode (ctx: Context) =
     let newNodes = List.filter (fun tn -> tn <> triviaNode) ctx.Trivia
     { ctx with Trivia = newNodes }
 
-let internal printCommentsBefore triviaNode =
-    col sepNone triviaNode.ContentBefore printTriviaContent
+let internal printContentBefore triviaNode =
+    // Make sure content is not being printed twice.
+    let removeBeforeContentOfTriviaNode =
+        fun (ctx:Context) ->
+            let trivia = List.map (fun tn -> if tn = triviaNode then { tn with ContentBefore = [] } else tn) ctx.Trivia
+            { ctx with Trivia = trivia }
+        
+        
+    col sepNone triviaNode.ContentBefore printTriviaContent +> removeBeforeContentOfTriviaNode
 
-let internal printCommentsAfter triviaNode =
+let internal printContentAfter triviaNode =
     col sepNone triviaNode.ContentAfter printTriviaContent
 
 let private findTriviaMainNodeFromRange nodes range =
@@ -475,14 +483,14 @@ let private findTriviaMainNodeFromRange nodes range =
 let internal enterNode (range: range) (ctx: Context) =
     match findTriviaMainNodeFromRange ctx.Trivia range with
     | Some triviaNode ->
-        (printCommentsBefore triviaNode) ctx // TODO remove node if no afterComments are present
+        (printContentBefore triviaNode) ctx
     | None -> ctx
 
 // TODO probably ok to remove node if there is a match in range, similar to removal at leaveLeftBrace
 let internal leaveNode (range: range) (ctx: Context) =
     match findTriviaMainNodeFromRange ctx.Trivia range with
     | Some triviaNode ->
-        (printCommentsAfter triviaNode) ctx
+        (printContentAfter triviaNode) ctx
     | None -> ctx
 
 let internal leaveLeftBrace (range: range) (ctx: Context) =
@@ -495,7 +503,7 @@ let internal leaveLeftBrace (range: range) (ctx: Context) =
         | _ -> false
     )
     |> Option.map (fun tn ->
-        printCommentsAfter tn +> removeNodeFromContext tn
+        printContentAfter tn +> removeNodeFromContext tn
     )
     |> Option.defaultValue id
     <| ctx

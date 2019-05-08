@@ -121,9 +121,14 @@ and genModuleDeclList astContext e =
     | DoExprAttributesL(xs, ys) 
     | ModuleAbbrevL(xs, ys) 
     | OneLinerLetL(xs, ys) ->
+        let sepXsYs =
+            match List.tryHead ys with
+            | Some ysh -> sepNln +> sepNlnConsideringTrivaContentBefore ysh.Range
+            | None -> rep 2 sepNln
+        
         match ys with
         | [] -> col sepNln xs (genModuleDecl astContext)
-        | _ -> col sepNln xs (genModuleDecl astContext) +> rep 2 sepNln +> genModuleDeclList astContext ys
+        | _ -> col sepNln xs (genModuleDecl astContext) +> sepXsYs +> genModuleDeclList astContext ys
 
     | MultilineModuleDeclL(xs, ys) ->
         match ys with
@@ -132,8 +137,14 @@ and genModuleDeclList astContext e =
                 let r = mdl.Range
                 sepNln +> sepNlnConsideringTrivaContentBefore r
             ) xs (genModuleDecl astContext)
-            //col (rep 2 sepNln) xs (genModuleDecl astContext) // should add single newlines if item of xs contain newline trivia
-        | _ -> col (rep 2 sepNln) xs (genModuleDecl astContext) +> rep 2 sepNln +> genModuleDeclList astContext ys
+            
+        | _ ->
+            let sepXsYs =
+                match List.tryHead ys with
+                | Some ysh -> sepNln +> sepNlnConsideringTrivaContentBefore ysh.Range
+                | None -> rep 2 sepNln
+            
+            col (rep 2 sepNln) xs (genModuleDecl astContext) +> sepXsYs +> genModuleDeclList astContext ys
     | _ -> sepNone    
     // |> genTrivia e , e is a list, genTrivia will probably need to occur after each item.
 
@@ -1453,6 +1464,5 @@ and genPat astContext pat =
     | p -> failwithf "Unexpected pattern: %O" p
     |> genTrivia pat.Range
 
-//and genTriviaAlreadyVisitedCache = Cache.alreadyVisited<AstTransformer.FsAstNode>()
 and genTrivia (range: range) f =
     enterNode range +> f +> leaveNode range
