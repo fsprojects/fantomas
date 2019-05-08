@@ -1,3 +1,6 @@
+#### 3.0.0
+* Use FCS 28.0.0 and net461. [#436](https://github.com/fsprojects/fantomas/pull/436)
+
 #### 2.9.2 - 02-2019
 * Fix PreserveEndOfLine introduces additional newlines. [#360](https://github.com/fsprojects/fantomas/issues/360)
 * Fix Extra newline is introduced when file ends with multiline comment. [#363](https://github.com/fsprojects/fantomas/issues/363)
