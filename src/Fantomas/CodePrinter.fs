@@ -1264,8 +1264,13 @@ and genMemberDefnList astContext node =
             | _ -> (col sepNln xs (genMemberDefn astContext) +> rep 2 sepNln +> genMemberDefnList astContext ys) ctx
 
     | MultilineMemberDefnL(xs, []) ->
+        let sepMember (m:Composite<SynMemberDefn, SynBinding>) =
+            match m with
+            | Pair(x1,_) -> sepNln +> sepNlnConsideringTrivaContentBefore x1.RangeOfBindingSansRhs
+            | Single x -> sepNln +> sepNlnConsideringTrivaContentBefore x.Range
+        
         rep 2 sepNln 
-        +> col (rep 2 sepNln) xs (function
+        +> colEx sepMember xs (function
                 | Pair(x1, x2) -> genPropertyWithGetSet astContext (x1, x2)
                 | Single x -> genMemberDefn astContext x)
 
