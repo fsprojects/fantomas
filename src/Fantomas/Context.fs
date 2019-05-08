@@ -454,7 +454,7 @@ let internal increaseTriviaIndex node (deltaBefore, deltaAfter) (ctx: Context) =
 
 let internal printTriviaContent (c: TriviaContent) =
     match c with
-    | Comment(LineCommentAfterSourceCode s)
+    | Comment(LineCommentAfterSourceCode s) -> sepSpace +> !- s  // TODO: discuss if the space is correct here, it is opinionated for now.
     | Comment(LineCommentOnSingleLine s) -> !- s +> sepNln
     | Comment(BlockComment s) -> !- "(*" -- s -- "*)"
     | Newline -> sepNln
@@ -502,10 +502,12 @@ let internal leaveLeftBrace (range: range) (ctx: Context) =
             tok.TokenInfo.TokenName = "LBRACE" && tn.Range.StartLine = range.StartLine && tn.Range.StartColumn = range.StartColumn
         | _ -> false
     )
-    |> Option.map (fun tn ->
-        printContentAfter tn +> removeNodeFromContext tn
-    )
-    |> Option.defaultValue id
+    |> fun tn ->
+        match tn with
+        | Some({ ContentAfter = [TriviaContent.Comment(LineCommentAfterSourceCode(lineComment))] } as tn) ->
+            !- lineComment +> sepNln +> removeNodeFromContext tn
+        | _ ->
+            id
     <| ctx
 
 let internal sepNlnConsideringTrivaContentBefore (range:range) ctx =
