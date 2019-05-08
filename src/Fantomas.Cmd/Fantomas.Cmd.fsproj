@@ -3,9 +3,9 @@
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <Version>2.9.1</Version>
+    <Version>2.9.2</Version>
     <AssemblyName>dotnet-fantomas</AssemblyName>
-    <TargetFrameworks>net452;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
