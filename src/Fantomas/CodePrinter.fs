@@ -216,8 +216,13 @@ and genModuleDecl astContext node =
         !- (sprintf "open %s" s)
     // There is no nested types and they are recursive if there are more than one definition
     | Types(t::ts) ->
+        let sepTs =
+            match List.tryHead ts with
+            | Some tsh -> sepNln +> sepNlnConsideringTrivaContentBefore tsh.Range
+            | None -> rep 2 sepNln
+        
         genTypeDefn { astContext with IsFirstChild = true } t 
-        +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genTypeDefn { astContext with IsFirstChild = false })
+        +> colPre sepTs (rep 2 sepNln) ts (genTypeDefn { astContext with IsFirstChild = false })
     | md ->
         failwithf "Unexpected module declaration: %O" md
     |> genTrivia node.Range
@@ -1281,7 +1286,7 @@ and genMemberDefnList astContext node =
             match List.tryHead xs with
             | Some xsh -> sepNlnConsideringTrivaContentBefore xsh.Range
             | None -> sepNln
-        sepNlnFirstExpr +> col sepNln xs (genMemberDefn astContext) +> genMemberDefnList astContext ys
+        sepNlnFirstExpr +> colEx (fun (mdf:SynMemberDefn) -> sepNlnConsideringTrivaContentBefore mdf.Range) xs (genMemberDefn astContext) +> genMemberDefnList astContext ys
     | _ -> sepNone
     // |> genTrivia node
 
