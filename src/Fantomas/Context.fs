@@ -486,11 +486,10 @@ let internal enterNode (range: range) (ctx: Context) =
         (printContentBefore triviaNode) ctx
     | None -> ctx
 
-// TODO probably ok to remove node if there is a match in range, similar to removal at leaveLeftBrace
 let internal leaveNode (range: range) (ctx: Context) =
     match findTriviaMainNodeFromRange ctx.Trivia range with
     | Some triviaNode ->
-        (printContentAfter triviaNode) ctx
+        ((printContentAfter triviaNode) +> (removeNodeFromContext triviaNode)) ctx
     | None -> ctx
 
 let internal leaveLeftBrace (range: range) (ctx: Context) =
