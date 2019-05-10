@@ -694,7 +694,20 @@ and genExpr astContext synExpr =
                 (!- (sprintf ".%s" s) 
                     +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)))
 
-    | DotGetApp(e, es) -> 
+    | DotGetApp(e, es) as appNode ->
+        // find all the lids recursively + range of do expr
+        let dotGetFuncExprIdents =
+            let rec selectIdent appNode =
+                match appNode with
+                | SynExpr.App(_,_,(SynExpr.DotGet(_,_,LongIdentWithDots.LongIdentWithDots(lids,_),_) as dotGet), argExpr,_) ->
+                    let lids = List.map (fun lid -> (argExpr.Range, lid)) lids
+                    let childLids = selectIdent dotGet
+                    lids @ childLids
+                | SynExpr.DotGet(aExpr,_,_,_) ->
+                    selectIdent aExpr
+                | _ -> []
+            selectIdent appNode
+        
         let dotGetExprRange = e.Range
         let expr = 
             match e with
@@ -706,7 +719,13 @@ and genExpr astContext synExpr =
         +> indent
         +> (col sepNone es (fun (s, e) -> 
                 let currentExprRange = e.Range
-                let writeExpr = (!- (sprintf ".%s" s) +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)
+                let genTriviaOfIdent =
+                    dotGetFuncExprIdents
+                    |> List.tryFind (fun (er, lid) -> er = e.Range)
+                    |> Option.map (snd >> (fun lid -> genTrivia lid.idRange))
+                    |> Option.defaultValue (id)
+                    
+                let writeExpr = ((genTriviaOfIdent (!- (sprintf ".%s" s))) +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)
                 
                 let addNewlineIfNeeded ctx =
                     let willAddAutoNewline:bool = 

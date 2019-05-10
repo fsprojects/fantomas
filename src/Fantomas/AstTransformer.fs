@@ -383,13 +383,28 @@ module private Ast =
              FsAstNode = synExpr
              Childs = [yield visitSynExpr expr]}
         | SynExpr.DotGet(expr,rangeOfDot,longDotId,range) ->
+            // Idents are collected as childs here to deal with unit test ``Fluent api with comments should remain on same lines``
+            let ids =
+                match longDotId with
+                | LongIdentWithDots(ids,_) ->
+                    ids
+                    |> List.map (fun (ident) -> {
+                        Type = "Ident"
+                        Range = Some ident.idRange
+                        Properties = Map.empty
+                        FsAstNode = ident
+                        Childs = []
+                    })
             {Type = "SynExpr.DotGet"
              Range = r range
              Properties =
                  p ["rangeOfDot" ==> r rangeOfDot
                     "longDotId" ==> lid longDotId]
              FsAstNode = synExpr
-             Childs = [yield visitSynExpr expr]}
+             Childs = [
+                 yield visitSynExpr expr
+                 yield! ids
+             ]}
         | SynExpr.DotSet(expr,longDotId,e2,range) ->
             {Type = "SynExpr.DotSet"
              Range = r range
