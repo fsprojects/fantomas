@@ -115,7 +115,13 @@ and genModuleDeclList astContext e =
             let xs = sortAndDeduplicate ((|Open|_|) >> Option.get) xs ctx
             match ys with
             | [] -> col sepNln xs (genModuleDecl astContext) ctx
-            | _ -> (col sepNln xs (genModuleDecl astContext) +> rep 2 sepNln +> genModuleDeclList astContext ys) ctx
+            | _ ->
+                let sepModuleDecl =
+                    match List.tryHead ys with
+                    | Some ysh -> sepNln +> sepNlnConsideringTrivaContentBefore ysh.Range
+                    | None -> rep 2 sepNln
+                
+                (col sepNln xs (genModuleDecl astContext) +> sepModuleDecl +> genModuleDeclList astContext ys) ctx
 
     | HashDirectiveL(xs, ys)
     | DoExprAttributesL(xs, ys) 

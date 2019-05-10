@@ -31,8 +31,17 @@ let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode
 let private findFirstNodeAfterLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
     |> List.filter (fun n -> n.Range.StartLine > lineNumber)
-    |> List.sortBy (fun { Range = r } -> r.StartLine, r.StartColumn)
-    |> List.tryHead
+    |> fun filteredNodes ->
+        match filteredNodes with
+        | moduleAndOpens when (List.forall (fun t -> t.Type = MainNode("SynModuleOrNamespace") || t.Type = MainNode("SynModuleDecl.Open")) moduleAndOpens) ->
+            moduleAndOpens
+            |> List.filter (fun t -> t.Type = MainNode("SynModuleDecl.Open"))
+            |> List.sortBy (fun t -> t.Range.StartLine)
+            |> List.tryHead
+        | _ ->
+            filteredNodes
+            |> List.sortBy (fun { Range = r } -> r.StartLine, r.StartColumn)
+            |> List.tryHead
 
 let private findLastNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
