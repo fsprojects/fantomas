@@ -94,8 +94,7 @@ let factors number =
     |> Seq.filter (fun x -> number % x = 0L)""" config
     |> prepend newline
     |> should equal """
-let factors number =
-    { 2L..number / 2L } |> Seq.filter (fun x -> number % x = 0L)
+let factors number = { 2L..number / 2L } |> Seq.filter (fun x -> number % x = 0L)
 """
 
 [<Test>]

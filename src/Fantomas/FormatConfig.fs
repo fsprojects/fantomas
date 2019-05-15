@@ -27,7 +27,7 @@ type FormatConfig =
 
     static member Default = 
         { IndentSpaceNum = 4
-          PageWidth = 80
+          PageWidth = 120
           PreserveEndOfLine = false
           SemicolonAtEndOfLine = false
           SpaceBeforeArgument = true

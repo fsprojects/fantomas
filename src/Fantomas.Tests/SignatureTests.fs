@@ -27,24 +27,19 @@ let ``should keep the (string * string) list type signature in records``() =
 
 [<Test>]
 let ``should keep the (string * string) list type signature in functions``() =
-    formatSourceString false """let MSBuildWithProjectProperties outputPath (targets : string) 
-    (properties : string -> (string * string) list) projects = doingsomstuff
-
-    """ config
-    |> should equal """let MSBuildWithProjectProperties outputPath (targets: string)
-    (properties: string -> (string * string) list) projects = doingsomstuff
+    shouldNotChangeAfterFormat """
+let MSBuildWithProjectProperties outputPath (targets: string) (properties: string -> (string * string) list) projects =
+    doingsomstuff
 """
 
 
 [<Test>]
 let ``should keep the string * string list type signature in functions``() =
-    formatSourceString false """let MSBuildWithProjectProperties outputPath (targets : string) 
-    (properties : (string -> string) * string list) projects = doingsomstuff
-
-    """ config
-    |> should equal """let MSBuildWithProjectProperties outputPath (targets: string)
-    (properties: (string -> string) * string list) projects = doingsomstuff
+    shouldNotChangeAfterFormat """
+let MSBuildWithProjectProperties outputPath (targets: string) (properties: (string -> string) * string list) projects =
+    doingsomstuff
 """
+
 
 [<Test>]
 let ``should not add parens in signature``() =
