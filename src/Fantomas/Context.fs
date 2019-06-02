@@ -491,6 +491,23 @@ let internal leaveNode (range: range) (ctx: Context) =
     | Some triviaNode ->
         ((printContentAfter triviaNode) +> (removeNodeFromContext triviaNode)) ctx
     | None -> ctx
+    
+let internal leaveEqualsToken (range: range) (ctx: Context) =
+    ctx.Trivia
+    |> List.filter(fun tn ->
+        match tn.Type with
+        | Token(tok) ->
+            tok.TokenInfo.TokenName = "EQUALS" && tn.Range.StartLine = range.StartLine
+        | _ -> false
+    )
+    |> List.tryHead
+    |> fun tn ->
+        match tn with
+        | Some({ ContentAfter = [TriviaContent.Comment(LineCommentAfterSourceCode(lineComment))] } as tn) ->
+            sepSpace +> !- lineComment +> removeNodeFromContext tn
+        | _ ->
+            id
+    <| ctx
 
 let internal leaveLeftBrace (range: range) (ctx: Context) =
     ctx.Trivia

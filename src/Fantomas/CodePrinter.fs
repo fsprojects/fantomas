@@ -314,7 +314,7 @@ and preserveBreakNln astContext e ctx =
 and preserveBreakNlnOrAddSpace astContext e ctx =
     breakNlnOrAddSpace astContext (checkPreserveBreakForExpr e ctx) e ctx
 
-and genExprSepEqPrependType astContext prefix e ctx =
+and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
     let multilineCheck = 
         match e with
         | MatchLambda _ -> false
@@ -323,7 +323,7 @@ and genExprSepEqPrependType astContext prefix e ctx =
     | TypedExpr(Typed, e, t) -> (prefix +> sepColon +> genType astContext false t +> sepEq
                                 +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
     | e -> 
-        (prefix +> sepEq +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
+        (prefix +> sepEq +> leaveEqualsToken pat.Range +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
 
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx = 
@@ -348,7 +348,7 @@ and genLetBinding astContext pref b =
             +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
             +> genPat astContext p
 
-        genExprSepEqPrependType astContext prefix e
+        genExprSepEqPrependType astContext prefix p e
 
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
@@ -357,10 +357,10 @@ and genLetBinding astContext pref b =
 
     | b ->
         failwithf "%O isn't a let binding" b
-    |> genTrivia b.RangeOfBindingAndRhs // TODO: could be wrong range
+    |> genTrivia b.RangeOfBindingSansRhs // TODO: could be wrong range
 
-and genShortGetProperty astContext e = 
-    genExprSepEqPrependType astContext !- "" e
+and genShortGetProperty astContext (pat:SynPat) e = 
+    genExprSepEqPrependType astContext !- "" pat e
 
 and genProperty astContext prefix ao propertyKind ps e =
     let tuplerize ps =
@@ -376,11 +376,12 @@ and genProperty astContext prefix ao propertyKind ps e =
         !- prefix +> opt sepSpace ao genAccess -- propertyKind
         +> ifElse (List.atMostOne ps) (col sepComma ps (genPat astContext) +> sepSpace) 
             (sepOpenT +> col sepComma ps (genPat astContext) +> sepCloseT +> sepSpace)
-        +> genPat astContext p +> genExprSepEqPrependType astContext !- "" e
+        +> genPat astContext p +> genExprSepEqPrependType astContext !- "" p e
 
-    | ps -> 
+    | ps ->
+        let (_,p) = tuplerize ps
         !- prefix +> opt sepSpace ao genAccess -- propertyKind +> col sepSpace ps (genPat astContext) 
-        +> genExprSepEqPrependType astContext !- "" e
+        +> genExprSepEqPrependType astContext !- "" p e
     |> genTrivia e.Range
 
 and genPropertyWithGetSet astContext (b1, b2) =
@@ -442,7 +443,7 @@ and genMemberBinding astContext b =
             match ao, propertyKind, ps with
             | None, "get ", [_, PatParen(PatConst(Const "()", _))] ->
                 // Provide short-hand notation `x.Member = ...` for `x.Member with get()` getters
-                prefix -- s +> genShortGetProperty astContext e
+                prefix -- s +> genShortGetProperty astContext p e
             | _ ->
                 let ps = List.map snd ps              
                 prefix -- s +> indent +> sepNln +> 
