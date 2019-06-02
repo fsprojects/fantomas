@@ -202,9 +202,20 @@ and genModuleDecl astContext node =
     // Add a new line after module-level let bindings
     | Let(b) ->
         genLetBinding { astContext with IsFirstChild = true } "let " b
-    | LetRec(b::bs) -> 
-        genLetBinding { astContext with IsFirstChild = true } "let rec " b 
-        +> colPre (rep 2 sepNln) (rep 2 sepNln) bs (genLetBinding { astContext with IsFirstChild = false } "and ")
+    | LetRec(b::bs) ->
+        let sepBAndBs =
+            match List.tryHead bs with
+            | Some b' ->
+                let r = b'.RangeOfBindingSansRhs
+                sepNln +> sepNlnConsideringTrivaContentBefore r
+            | None -> id
+        
+        genLetBinding { astContext with IsFirstChild = true } "let rec " b
+        +> sepBAndBs
+        +> colEx (fun (b': SynBinding) ->
+                let r = b'.RangeOfBindingSansRhs
+                sepNln +> sepNlnConsideringTrivaContentBefore r
+            ) bs (genLetBinding { astContext with IsFirstChild = false } "and ")
 
     | ModuleAbbrev(s1, s2) ->
         !- "module " -- s1 +> sepEq +> sepSpace -- s2
@@ -357,7 +368,7 @@ and genLetBinding astContext pref b =
 
     | b ->
         failwithf "%O isn't a let binding" b
-    |> genTrivia b.RangeOfBindingSansRhs // TODO: could be wrong range
+    |> genTrivia b.RangeOfBindingSansRhs
 
 and genShortGetProperty astContext (pat:SynPat) e = 
     genExprSepEqPrependType astContext !- "" pat e
