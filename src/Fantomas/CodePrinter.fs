@@ -333,8 +333,16 @@ and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
     match e with
     | TypedExpr(Typed, e, t) -> (prefix +> sepColon +> genType astContext false t +> sepEq
                                 +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
-    | e -> 
-        (prefix +> sepEq +> leaveEqualsToken pat.Range +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
+    | e ->
+        let hasCommentAfterEqual =
+            ctx.Trivia
+            |> List.exists (fun tn ->
+                match tn.Type with
+                | TriviaTypes.Token(tok) ->
+                    tok.TokenInfo.TokenName = "EQUALS" && tn.Range.StartLine = pat.Range.StartLine
+                | _ -> false
+            )
+        (prefix +> sepEq +> leaveEqualsToken pat.Range +> breakNlnOrAddSpace astContext (hasCommentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
 
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx = 
