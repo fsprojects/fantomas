@@ -110,3 +110,17 @@ let ``Comment after all source code`` () =
         pass()
     | _ ->
         fail()
+        
+[<Test>]
+let ``if keyword before SynExpr.IfThenElse`` () =
+    let source = """if true then ()
+elif true then ()"""
+
+    let triviaNodes = toTrivia source
+    
+    match triviaNodes with
+    | [{ Type = MainNode("SynExpr.IfThenElse"); ContentBefore = [Keyword("if")] }
+       { Type = MainNode("SynExpr.IfThenElse"); ContentBefore = [Keyword("elif")]}] ->
+        pass()
+    | _ ->
+        fail()

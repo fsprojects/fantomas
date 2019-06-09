@@ -209,7 +209,8 @@ let ``left brace should be found in tokens`` () =
     let triviaNodes = getTriviaNodesFromTokens tokens
     
     match triviaNodes with
-    | [{Type = Token(lbrace)} ; {Type = Token(rbrace)}] ->
+    | [{Type = Token(equals)}; {Type = Token(lbrace)} ; {Type = Token(rbrace)}] ->
+        equals.Content == "="
         lbrace.Content == "{"
         rbrace.Content == "}"
     | _ ->
@@ -229,5 +230,20 @@ type T() =
     | [{ Item = Newline; Range = rAbove }; {Item = Newline; Range = rBelow}] ->
         rAbove.StartLine == 1
         rBelow.EndLine == 4
+    | _ ->
+        fail()
+        
+[<Test>]
+let ``if keyword should be found in tokens`` () =
+    let source = """if true then ()
+elif true then ()"""
+
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes = getTriviaFromTokens tokens lineCount
+    
+    match triviaNodes with
+    | [{Item = Keyword(``if``)}; {Item = Keyword(``elif``)}] ->
+        ``if`` == "if"
+        ``elif`` == "elif"
     | _ ->
         fail()

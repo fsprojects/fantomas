@@ -10,7 +10,6 @@ type Token =
 
 
 type Comment =
-    //| LineCommentAfterLeftBrace of comment:string
     | LineCommentAfterSourceCode of comment:string
     | LineCommentOnSingleLine of comment:string
     | BlockComment of string
@@ -28,7 +27,7 @@ let a = 7
 *)
     
 type TriviaContent =
-    //| Keyword of string
+    | Keyword of string
     | Comment of Comment
     | Newline
     
@@ -44,7 +43,6 @@ type TriviaIndex = TriviaIndex of int * int
 type TriviaNodeType =
     | MainNode of ``type``:string
     | Token of Token
-    | Keyword of string
     
 type TriviaNode =
   { Type: TriviaNodeType

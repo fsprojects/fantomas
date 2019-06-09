@@ -8,6 +8,7 @@ open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
 open Fantomas.Context
+open Fantomas.TriviaTypes
 
 /// This type consists of contextual information which is important for formatting
 type ASTContext =
@@ -808,24 +809,66 @@ and genExpr astContext synExpr =
     | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemi es (genExpr astContext))
     // It seems too annoying to use sepSemiNln
     | Sequentials es -> atCurrentColumn (col sepSemiNln es (genExpr astContext))
-    // A generalization of IfThenElse
-    | ElIf((e1,e2, _, _, _)::es, enOpt) ->
-        atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") -- " " 
-            +> preserveBreakNln astContext e2
-            +> fun ctx -> col sepNone es (fun (e1, e2, r, fullRange, node) ->
-                             let elsePart =
-                                 ifElse (ctx.Comments.ContainsKey fullRange.Start)
-                                    (!+ "else" +> indent +> sepNln -- "if ")
-                                    (!+ "else if ")                                        
-                             genTrivia node.Range
-                                (ifElse (startWith "elif" r ctx) (!+ "elif ") elsePart
-                                +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") 
-                                -- " " +> preserveBreakNln astContext e2)) ctx
-            +> opt sepNone enOpt (fun en -> !+ "else " +> preserveBreakNln astContext en))
-
+    
     | IfThenElse(e1, e2, None) -> 
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") 
                          -- " " +> preserveBreakNln astContext e2)
+    // A generalization of IfThenElse
+    | ElIf((e1,e2, r, fullRange, node)::es, enOpt) ->
+        printfn "e1: %A" e1
+        let printIfKeyword separator range (ctx:Context) =
+            ctx.Trivia
+            |> List.tryFind (fun {Range = r} -> r = range)
+            |> Option.bind (fun tv ->
+                tv.ContentBefore
+                |> List.map (function | Keyword kw -> Some kw | _ -> None)
+                |> List.choose id
+                |> List.tryHead
+            )
+            |> Option.map (fun kw -> sprintf "%s " kw |> separator)
+            |> Option.defaultValue sepNone
+            <| ctx
+        
+        atCurrentColumn (
+            printIfKeyword (!-) fullRange +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") -- " "
+            +> preserveBreakNln astContext e2
+            +> fun ctx -> col sepNone es (fun (e1, e2, r, fullRange, node) ->
+                                 let elsePart =
+                                     printIfKeyword (fun kw ctx ->
+                                         let hasContentBeforeIf =
+                                             ctx.Trivia
+                                             |> List.tryFind (fun tv -> tv.Range = fullRange)
+                                             |> Option.map (fun tv ->
+                                                 tv.ContentBefore
+                                                 |> List.exists (fun cb ->
+                                                     match cb with
+                                                     | Comment(_) ->  true
+                                                     | _ -> false
+                                                )
+                                             )
+                                             |> Option.defaultValue false
+
+                                         // Trivia knows if the keyword is "elif" or "else if"
+                                         // Next we need to be sure that the are no comments between else and if
+                                         match kw with
+                                         | "if " when hasContentBeforeIf ->
+                                             (!+ "else" +> indent +> sepNln +> genTrivia fullRange (!- "if "))
+                                         | "if " ->
+                                             (!+ "else if ")
+                                         | _ (* "elif" *) ->
+                                            !- kw
+                                        <| ctx
+                                     ) fullRange
+
+                                 elsePart +>
+                                 genTrivia node.Range (ifElse (checkBreakForExpr e1)
+                                                           (genExpr astContext e1 ++ "then")
+                                                           (genExpr astContext e1 +- "then")
+                                                       -- " " +> preserveBreakNln astContext e2)
+                            ) ctx
+            +> opt sepNone enOpt (fun en -> beforeElseKeyword fullRange en.Range +> !+ "else " +> preserveBreakNln astContext en)
+        )
+
     // At this stage, all symbolic operators have been handled.
     | OptVar(s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
     | LongIdentSet(s, e, r) -> 

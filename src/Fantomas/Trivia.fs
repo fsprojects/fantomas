@@ -58,6 +58,10 @@ let private findLastNode (nodes: TriviaNode list) : TriviaNode option =
         |> List.maxBy (fun tn -> tn.Range.EndLine)
         |> Some
 
+let private findNodeOnLineAndColumn (nodes: TriviaNode list) line column =
+    nodes
+    |> List.tryFindBack (fun { Range = range; Type = t } -> range.StartLine = line && range.StartColumn = column)
+
 let private mapNodeToTriviaNode (node: Node) =
     node.Range
     |> Option.map (fun range ->
@@ -113,6 +117,10 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     | { Item = Newline; Range = range } ->
         findFirstNodeAfterLine triviaNodes range.StartLine // TODO: this approach does not work if multiple newlines are in place.
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore Newline }) triviaNodes
+        
+    | { Item = Keyword(keyword); Range = range } ->
+        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
+        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
 
     | _ ->
         triviaNodes

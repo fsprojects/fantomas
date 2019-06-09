@@ -2,7 +2,6 @@ module Fantomas.Context
 
 open System
 open System.IO
-open System.Collections.Generic
 open System.CodeDom.Compiler
 open FSharp.Compiler.Range
 open Fantomas.FormatConfig
@@ -67,22 +66,16 @@ type internal Context =
       Content : string; 
       /// Positions of new lines in the original source string
       Positions : int []; 
-      /// Comments attached to appropriate locations
-      Comments : Dictionary<pos, string list>;
-      /// Compiler directives attached to appropriate locations
-      Directives : Dictionary<pos, string>
-      Trivia : TriviaNode list // Dictionary<AstTransformer.FsAstNode, TriviaNode list>
-      TriviaIndexes : list<AstTransformer.FsAstNode * TriviaTypes.TriviaIndex> //TODO: use PersistentHashMap
-      NodePath : AstTransformer.FsAstNode list}
+      Trivia : TriviaNode list }
 
     /// Initialize with a string writer and use space as delimiter
     static member Default = 
-        { Config = FormatConfig.Default;
-          Writer = new ColumnIndentedTextWriter(new StringWriter());
-          BreakLines = true; BreakOn = (fun _ -> false); 
-          Content = ""; Positions = [||]; Comments = Dictionary();
-          Directives = Dictionary(); Trivia = []; TriviaIndexes = [];
-          NodePath = [] }
+        { Config = FormatConfig.Default
+          Writer = new ColumnIndentedTextWriter(new StringWriter())
+          BreakLines = true; BreakOn = (fun _ -> false) 
+          Content = ""
+          Positions = [||]
+          Trivia = [] }
 
     static member create config defines (content : string) maybeAst =
         let content = String.normalizeNewLine content
@@ -98,11 +91,11 @@ type internal Context =
             |> Option.defaultValue Context.Default.Trivia
 
         { Context.Default with 
-            Config = config; Content = content; Positions = positions; 
-            Comments = null; Directives = null; Trivia = trivia }
+            Config = config
+            Content = content
+            Positions = positions 
+            Trivia = trivia }
 
-    member x.CurrentNode = x.NodePath |> List.tryHead
-    
     member x.With(writer : ColumnIndentedTextWriter, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
         writer.Indent <- x.Writer.Indent
@@ -437,27 +430,13 @@ let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 /// Never break into newlines on these operators
 let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
-let internal getTriviaIndex node (ctx: Context) =
-    ctx.TriviaIndexes |> List.tryFind (fun (n,_) -> n = node) |> Option.map snd
-    |> Option.defaultValue (TriviaIndex (0,0))
-
-let internal getTriviaIndexBefore node (ctx: Context) = getTriviaIndex node ctx |> fun (TriviaIndex (i,_)) -> i
-let internal getTriviaIndexAfter node (ctx: Context) = getTriviaIndex node ctx |> fun (TriviaIndex (_,i)) -> i
-
-let internal increaseTriviaIndex node (deltaBefore, deltaAfter) (ctx: Context) =
-    let indexes =
-        if ctx.TriviaIndexes |> List.exists (fun (n,_) -> n = node) then
-            ctx.TriviaIndexes |> List.map (fun (n,TriviaIndex (i,j)) ->
-                if n = node then n, TriviaIndex (i+deltaBefore, j+deltaAfter) else n, TriviaIndex (i,j))
-        else (node, TriviaIndex (deltaBefore, deltaAfter)) :: ctx.TriviaIndexes
-    { ctx with TriviaIndexes = indexes }
-
 let internal printTriviaContent (c: TriviaContent) =
     match c with
     | Comment(LineCommentAfterSourceCode s) -> sepSpace +> !- s  // TODO: discuss if the space is correct here, it is opinionated for now.
     | Comment(LineCommentOnSingleLine s) -> !- s +> sepNln
     | Comment(BlockComment s) -> !- "(*" -- s -- "*)"
     | Newline -> sepNln
+    | Keyword _ -> sepNone // don't print the keyword as is, find it in CodePrinter and act accordingly.
     
 let private removeNodeFromContext triviaNode (ctx: Context) =
     let newNodes = List.filter (fun tn -> tn <> triviaNode) ctx.Trivia
@@ -467,7 +446,15 @@ let internal printContentBefore triviaNode =
     // Make sure content is not being printed twice.
     let removeBeforeContentOfTriviaNode =
         fun (ctx:Context) ->
-            let trivia = List.map (fun tn -> if tn = triviaNode then { tn with ContentBefore = [] } else tn) ctx.Trivia
+            let trivia =
+                ctx.Trivia
+                |> List.map (fun tn ->
+                    let contentBefore = tn.ContentBefore |> List.filter(function | Keyword _ -> true | _ -> false)
+                    if tn = triviaNode then
+                        { tn with ContentBefore = contentBefore }
+                    else
+                        tn
+                ) 
             { ctx with Trivia = trivia }
         
         
@@ -532,3 +519,19 @@ let internal sepNlnConsideringTrivaContentBefore (range:range) ctx =
         ctx // don't add newline because triva contains a newline or a comment
         // TODO: will not work when a block comment is before the ast node.
     | _ -> sepNln ctx
+    
+let internal beforeElseKeyword (fullIfRange: range) (elseRange: range) (ctx: Context) =
+    ctx.Trivia
+    |> List.tryFind(fun tn ->
+        match tn.Type with
+        | Token(tok) ->
+            tok.TokenInfo.TokenName = "ELSE" && (fullIfRange.StartLine < tn.Range.StartLine) && (tn.Range.StartLine >= elseRange.StartLine) 
+        | _ -> false
+    )
+    |> fun tn ->
+        match tn with
+        | Some({ ContentBefore = [TriviaContent.Comment(LineCommentOnSingleLine(lineComment))] } as tn) ->
+            sepNln +> !- lineComment +> removeNodeFromContext tn
+        | _ ->
+            id
+    <| ctx

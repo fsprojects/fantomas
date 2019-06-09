@@ -87,9 +87,6 @@ let printContext sourceCode =
     let normalizedSourceCode = Fantomas.String.normalizeNewLine sourceCode
     let defines = Fantomas.TokenParser.getDefines sourceCode |> List.ofArray
     let context = Fantomas.Context.Context.create config defines normalizedSourceCode None
-    printfn "directives:"
-    context.Directives
-    |> Seq.iter (fun kv -> printfn "%A %s" kv.Key kv.Value)
     printfn "context: %A" context
 
 let zero = range.Zero   

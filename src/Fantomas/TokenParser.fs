@@ -87,6 +87,8 @@ let private getContentFromTokens tokens =
     tokens
     |> List.map (fun t -> t.Content)
     |> String.concat String.Empty
+    
+let private keywordTrivia = ["IF"; "ELIF"]
 
 let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: Token list) foundTrivia =
     match tokens with
@@ -148,6 +150,15 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> List.prependItem foundTrivia
             
         getTriviaFromTokensThemSelves allTokens nextTokens info
+        
+    | headToken::rest when (headToken.TokenInfo.CharClass = FSharp.Compiler.SourceCodeServices.FSharpTokenCharKind.Keyword &&
+                            List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia) ->
+        let range = getRangeBetween "keyword" headToken headToken
+        let info =
+            Trivia.Create (Keyword(headToken.Content)) range
+            |> List.prependItem foundTrivia
+
+        getTriviaFromTokensThemSelves allTokens rest info
 
     | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
     
@@ -181,7 +192,7 @@ let getTriviaFromTokens (tokens: Token list) linesCount =
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
     
-let private tokenNames = ["LBRACE";"RBRACE"; "EQUALS"]
+let private tokenNames = ["LBRACE";"RBRACE"; "EQUALS"; "ELSE"]
     
 let getTriviaNodesFromTokens (tokens: Token list) : TriviaNode list =
     tokens

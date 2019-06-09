@@ -318,19 +318,19 @@ type IlxGenOptions =
 [<Test>]
 let ``should keep comments on else if``() =
     formatSourceString false  """
-if true then ()
+if a then ()
 else
     // Comment 1
-    if true then ()
+    if b then ()
     // Comment 2
     else ()
 """  config
     |> prepend newline
     |> should equal """
-if true then ()
+if a then ()
 else
     // Comment 1
-    if true then ()
+    if b then ()
     // Comment 2
     else ()
 """
