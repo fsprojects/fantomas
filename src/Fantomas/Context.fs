@@ -434,7 +434,7 @@ let internal printTriviaContent (c: TriviaContent) =
     match c with
     | Comment(LineCommentAfterSourceCode s) -> sepSpace +> !- s  // TODO: discuss if the space is correct here, it is opinionated for now.
     | Comment(LineCommentOnSingleLine s) -> !- s +> sepNln
-    | Comment(BlockComment s) -> !- "(*" -- s -- "*)"
+    | Comment(BlockComment s) -> !- s
     | Newline -> sepNln
     | Keyword _ -> sepNone // don't print the keyword as is, find it in CodePrinter and act accordingly.
     

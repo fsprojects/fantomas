@@ -110,6 +110,12 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         findFirstNodeAfterLine triviaNodes range.StartLine
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem  tn.ContentBefore (Comment(comment)) }) triviaNodes
 
+    | { Item = Comment(BlockComment(_) as comment); Range = range } ->
+        findFirstNodeAfterLine triviaNodes range.StartLine
+        |> updateTriviaNode (fun tn -> 
+            let newline = if tn.Range.StartLine > range.EndLine then [Newline] else []
+            { tn with ContentBefore = tn.ContentBefore @ [Comment(comment)] @ newline }) triviaNodes    
+
     | { Item = Comment(LineCommentAfterSourceCode(_) as comment); Range = range } ->
         findLastNodeOnLine triviaNodes range.EndLine
         |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }) triviaNodes
@@ -147,8 +153,10 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
         
         let trivias = TokenParser.getTriviaFromTokens tokens lineCount
         
+        // printfn "%A" trivias
+
         List.fold addTriviaToTriviaNode triviaNodes trivias
-        |> fun x -> x
         |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.
+        // |> fun x -> printfn "%A" x; x
 
     | _ -> []
