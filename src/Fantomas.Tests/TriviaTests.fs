@@ -112,6 +112,124 @@ let ``Comment after all source code`` () =
         fail()
         
 [<Test>]
+let ``Block comment added to trivia`` () =
+    let source = """let a = (* meh *) 9"""
+
+    let triviaNodes = toTrivia source
+    
+    match triviaNodes with
+    | [{ ContentBefore = [Comment(BlockComment(comment))] }] ->
+        comment == "(* meh *)"
+    | _ ->
+        failwith "Expected block comment"
+
+[<Test>]
+let ``Block comment and newline added to trivia`` () =
+    let source = """(* meh *)
+let a =  9
+"""
+
+    let triviaNodes = toTrivia source
+    
+    match triviaNodes with
+    | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
+        comment == "(* meh *)"
+    | _ ->
+        failwith "Expected block comment"
+        
+[<Test>]
+let ``Block comment on EOF added to trivia`` () =
+    let source = """let a =  9
+(* meh *)"""
+
+    let triviaNodes = toTrivia source
+    
+    match triviaNodes with
+    | [{ ContentAfter = [Comment(BlockComment(comment))] }] ->
+        comment == "(* meh *)"
+    | _ ->
+        failwith "Expected block comment"
+
+[<Test>]
+let ``Nested block comment parsed correctly`` () =
+    let source = """(* (* meh *) *)
+let a =  9
+"""
+
+    let triviaNodes = toTrivia source
+    
+    match triviaNodes with
+    | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
+        comment == "(* (* meh *) *)"
+    | _ ->
+        failwith "Expected block comment"
+
+
+[<Test>]
+let ``Line comment inside block comment parsed correctly`` () =
+    let source = """(* // meh *)
+let a =  9
+"""
+
+    let triviaNodes = toTrivia source
+    
+    match triviaNodes with
+    | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
+        comment == "(* // meh *)"
+    | _ ->
+        failwith "Expected block comment"
+
+
+[<Test>]
+let ``Multiline block comment added to trivia`` () =
+    let source = """(* meh
+bla *)
+let a =  9
+"""
+
+    let triviaNodes = toTrivia source
+    
+    match triviaNodes with
+    | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
+        comment == """(* meh
+bla *)"""
+    | _ ->
+        failwith "Expected block comment"
+
+
+[<Test>]
+let ``Multiple block comments should be linked to same trivia node`` () =
+    let source = """let x = 1
+(* foo *)
+(* bar *)
+x
+"""
+
+    let triviaNodes = toTrivia source
+
+    match triviaNodes with
+    | [{ContentBefore = [Comment(BlockComment(fooComment)); Newline; Comment(BlockComment(barComment)); Newline]}] ->
+        fooComment == "(* foo *)"
+        barComment == "(* bar *)"
+    | _ ->
+        fail()
+
+[<Test>]
+let ``Block comment inside line comment parsed correctly`` () =
+    let source = """// (* meh *)
+let a =  9
+"""
+
+    let triviaNodes = toTrivia source
+    
+    match triviaNodes with
+    | [{ ContentBefore = [Comment(LineCommentOnSingleLine(comment))] }] ->
+        comment == "// (* meh *)"
+    | _ ->
+        failwith "Expected line comment"
+
+
+[<Test>]
 let ``if keyword before SynExpr.IfThenElse`` () =
     let source = """if true then ()
 elif true then ()"""
