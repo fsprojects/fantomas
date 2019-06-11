@@ -39,3 +39,7 @@ module List =
         l @ [i]
         
     let prependItem l i = i :: l
+    
+    let takeWhileState f state l =
+        let mutable s = state
+        l |> List.takeWhile (fun x -> let (s',r) = f s x in s <- s'; r)

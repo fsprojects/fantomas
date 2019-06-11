@@ -128,7 +128,9 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
     | headToken::rest when (headToken.TokenInfo.TokenName = "COMMENT") ->
         let blockCommentTokens =
             rest
-            |> List.takeWhile (fun t -> t.TokenInfo.TokenName = "COMMENT")
+            |> List.takeWhileState (fun depth t ->
+                let newDepth = match t.Content with | "(*" -> depth+1 | "*)" -> depth-1 | _ -> depth
+                newDepth, t.TokenInfo.TokenName = "COMMENT" && depth > 0) 1
             
         let comment =
             headToken
