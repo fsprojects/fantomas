@@ -378,7 +378,7 @@ let (|MDImplicitCtor|_|) = function
     | _ -> None
 
 let (|MDMember|_|) = function
-    | SynMemberDefn.Member(b, range) -> Some b
+    | SynMemberDefn.Member(b, _) -> Some b
     | _ -> None
 
 let (|MDLetBindings|_|) = function

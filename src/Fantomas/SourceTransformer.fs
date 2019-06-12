@@ -186,7 +186,7 @@ let rec (|SigValL|_|) = function
     | _ -> None
 
 /// Omit a break before an expression if the expression is small and it is already one line in the text
-let checkPreserveBreakForExpr (e: Ast.SynExpr) (ctx : Context) =
+let checkPreserveBreakForExpr (e: Ast.SynExpr) (_ : Context) =
     let isMultiline = multiline e
     let hasComments = false // TODO: check based on range
 //        ctx.Trivia.ContainsKey e

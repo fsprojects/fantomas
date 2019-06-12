@@ -618,7 +618,7 @@ module private Ast =
              FsAstNode = synExpr
              Childs = [yield visitSynExpr expr]}
 
-    and visitRecordField((longId,_) as rfn: RecordFieldName,expr: SynExpr option, bs: BlockSeparator option) =
+    and visitRecordField((longId,_) as rfn: RecordFieldName,expr: SynExpr option, _: BlockSeparator option) =
         {Type = "RecordField"
          Range = r longId.Range
          Properties = p ["ident" ==> lid longId]
@@ -783,7 +783,7 @@ module private Ast =
                     "isRecursive" ==> isRecursive]
              FsAstNode = mbrDef
              Childs = [yield! bindings |> List.map visitSynBinding]}
-        | SynMemberDefn.AbstractSlot(valSig,memberFlag,range) ->
+        | SynMemberDefn.AbstractSlot(valSig,_,range) ->
             {Type = "SynMemberDefn.AbstractSlot"
              Range = r range
              Properties = p []
@@ -815,7 +815,7 @@ module private Ast =
              Properties = p [if access.IsSome then yield "access" ==> (access.Value |> visitSynAccess)]
              FsAstNode = mbrDef
              Childs = [yield visitSynTypeDefn typeDefn]}
-        | SynMemberDefn.AutoProperty(attrs,isStatic,ident,typeOpt,propKind,memberFlags,xmlDoc,access,synExpr,getSetRange,range) ->
+        | SynMemberDefn.AutoProperty(attrs,isStatic,ident,typeOpt,propKind,_,_,access,synExpr,getSetRange,range) ->
             {Type = "SynMemberDefn.AutoProperty"
              Range = r range
              Properties =

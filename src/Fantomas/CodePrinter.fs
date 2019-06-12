@@ -96,7 +96,7 @@ and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRe
     +> genModuleDeclList astContext mds
     |> genTrivia node.Range
 
-and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind) as node) =
+and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, _, moduleKind) as node) =
     let range = match node with | SynModuleOrNamespaceSig(_,_,_,_,_,_,_,range) -> range
     
     genPreXmlDoc px
@@ -754,7 +754,7 @@ and genExpr astContext synExpr =
                 let currentExprRange = e.Range
                 let genTriviaOfIdent =
                     dotGetFuncExprIdents
-                    |> List.tryFind (fun (er, lid) -> er = e.Range)
+                    |> List.tryFind (fun (er, _) -> er = e.Range)
                     |> Option.map (snd >> (fun lid -> genTrivia lid.idRange))
                     |> Option.defaultValue (id)
                     
@@ -794,7 +794,7 @@ and genExpr astContext synExpr =
         let isFromAst (ctx: Context) = ctx.Content = String.Empty
         let isInSameLine ctx =
             match bs with
-            | [_, LetBinding(ats, px, ao, isInline, isMutable, p, _)] -> 
+            | [_, LetBinding(_, _, _, _, _, p, _)] -> 
                 not (isFromAst ctx) && p.Range.EndLine = e.Range.StartLine && not(checkBreakForExpr e)
             | _ -> false
         atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") sepNln +> genExpr astContext e)
@@ -820,7 +820,7 @@ and genExpr astContext synExpr =
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") 
                          -- " " +> preserveBreakNln astContext e2)
     // A generalization of IfThenElse
-    | ElIf((e1,e2, r, fullRange, node)::es, enOpt) ->
+    | ElIf((e1,e2, _, fullRange, _)::es, enOpt) ->
         let printIfKeyword separator fallback range (ctx:Context) =
             ctx.Trivia
             |> List.tryFind (fun {Range = r} -> r = range)
@@ -837,7 +837,7 @@ and genExpr astContext synExpr =
         atCurrentColumn (
             printIfKeyword (!-) "if " fullRange +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") -- " "
             +> preserveBreakNln astContext e2
-            +> fun ctx -> col sepNone es (fun (e1, e2, r, fullRange, node) ->
+            +> fun ctx -> col sepNone es (fun (e1, e2, _, fullRange, node) ->
                                  let elsePart =
                                      printIfKeyword (fun kw ctx ->
                                          let hasContentBeforeIf =
@@ -879,7 +879,7 @@ and genExpr astContext synExpr =
     | LongIdentSet(s, e, r) -> 
         let addNewLineIfNeeded = 
             let necessary = e.Range.StartLine > r.StartLine
-            let spaces = [1..e.Range.StartColumn] |> List.fold (fun acc curr -> acc +> sepSpace) id
+            let spaces = [1..e.Range.StartColumn] |> List.fold (fun acc _ -> acc +> sepSpace) id
             ifElse necessary (sepNln +> spaces) id
         !- (sprintf "%s <- " s) +> addNewLineIfNeeded +> genExpr astContext e
     | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
@@ -1331,7 +1331,7 @@ and genTypeConstraint astContext node =
         genTypar astContext tp +> sepColon -- "delegate<" +> col sepComma ts (genType astContext false) -- ">"
     // |> genTrivia node no idea
 
-and genInterfaceImpl astContext (InterfaceImpl(t, bs, range) as node) = 
+and genInterfaceImpl astContext (InterfaceImpl(t, bs, range)) = 
     match bs with
     | [] -> !- "interface " +> genType astContext false t
     | bs ->
@@ -1495,7 +1495,7 @@ and genComplexPats astContext node =
     // |> genTrivia node TODO
 
 and genPatRecordFieldName astContext (PatRecordFieldName(s1, s2, p) as node) =
-    let ((lid, idn),_) = node
+    let ((_, idn),_) = node
     ifElse (s1 = "") (!- (sprintf "%s = " s2)) (!- (sprintf "%s.%s = " s1 s2)) +> genPat astContext p
     |> genTrivia idn.idRange // TODO probably wrong
 

@@ -1,7 +1,6 @@
 module internal Fantomas.Trivia
 
 open System
-open System.Linq.Expressions
 open Fantomas.AstTransformer
 open FSharp.Compiler.Ast
 open Fantomas
@@ -60,7 +59,7 @@ let private findLastNode (nodes: TriviaNode list) : TriviaNode option =
 
 let private findNodeOnLineAndColumn (nodes: TriviaNode list) line column =
     nodes
-    |> List.tryFindBack (fun { Range = range; Type = t } -> range.StartLine = line && range.StartColumn = column)
+    |> List.tryFindBack (fun { Range = range } -> range.StartLine = line && range.StartColumn = column)
 
 let private mapNodeToTriviaNode (node: Node) =
     node.Range
@@ -142,7 +141,7 @@ let private triviaNodeIsNotEmpty triviaNode =
 *)
 let collectTrivia tokens lineCount (ast: ParsedInput) =
     match ast with
-    | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hs, mns, _)) ->
+    | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, _, mns, _)) ->
         let node = Fantomas.AstTransformer.astToNode mns
         let triviaNodesFromAST =
             flattenNodeToList node
