@@ -151,7 +151,13 @@ and genModuleDeclList astContext e =
                 | Some ysh -> sepNln +> sepNlnConsideringTrivaContentBefore ysh.Range
                 | None -> rep 2 sepNln
             
-            col (rep 2 sepNln) xs (genModuleDecl astContext) +> sepXsYs +> genModuleDeclList astContext ys
+            let sepXs =
+                colEx (fun (mdl: SynModuleDecl) ->
+                    let r = mdl.Range
+                    sepNln +> sepNlnConsideringTrivaContentBefore r
+                )
+
+            sepXs xs (genModuleDecl astContext) +> sepXsYs +> genModuleDeclList astContext ys
     | _ -> sepNone    
     // |> genTrivia e , e is a list, genTrivia will probably need to occur after each item.
 
@@ -815,8 +821,7 @@ and genExpr astContext synExpr =
                          -- " " +> preserveBreakNln astContext e2)
     // A generalization of IfThenElse
     | ElIf((e1,e2, r, fullRange, node)::es, enOpt) ->
-        printfn "e1: %A" e1
-        let printIfKeyword separator range (ctx:Context) =
+        let printIfKeyword separator fallback range (ctx:Context) =
             ctx.Trivia
             |> List.tryFind (fun {Range = r} -> r = range)
             |> Option.bind (fun tv ->
@@ -826,11 +831,11 @@ and genExpr astContext synExpr =
                 |> List.tryHead
             )
             |> Option.map (fun kw -> sprintf "%s " kw |> separator)
-            |> Option.defaultValue sepNone
+            |> Option.defaultValue (separator fallback)
             <| ctx
         
         atCurrentColumn (
-            printIfKeyword (!-) fullRange +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") -- " "
+            printIfKeyword (!-) "if " fullRange +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") -- " "
             +> preserveBreakNln astContext e2
             +> fun ctx -> col sepNone es (fun (e1, e2, r, fullRange, node) ->
                                  let elsePart =
@@ -856,9 +861,9 @@ and genExpr astContext synExpr =
                                          | "if " ->
                                              (!+ "else if ")
                                          | _ (* "elif" *) ->
-                                            !- kw
+                                            !+ kw
                                         <| ctx
-                                     ) fullRange
+                                     ) "if " fullRange
 
                                  elsePart +>
                                  genTrivia node.Range (ifElse (checkBreakForExpr e1)
