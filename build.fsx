@@ -212,7 +212,8 @@ Target.create "UnitTests" (fun _ ->
 Target.create "Pack" (fun _ ->
     let nugetVersion =
         if isAppVeyor then
-            sprintf "%s-latest" release.NugetVersion
+            let buildVersion = System.Int32.Parse(BuildServer.appVeyorBuildVersion)
+            sprintf "%s-alpha-%03d" release.NugetVersion buildVersion
         else
             release.NugetVersion
 
