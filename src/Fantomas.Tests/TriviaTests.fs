@@ -138,9 +138,21 @@ let a =  9
         failwith "Expected block comment"
         
 [<Test>]
-let ``Block comment on EOF added to trivia`` () =
+let ``Block comment on newline EOF added to trivia`` () =
     let source = """let a =  9
 (* meh *)"""
+
+    let triviaNodes = toTrivia source
+    
+    match triviaNodes with
+    | [{ ContentAfter = [Newline; Comment(BlockComment(comment))] }] ->
+        comment == "(* meh *)"
+    | _ ->
+        failwith "Expected block comment"
+
+[<Test>]
+let ``Block comment on EOF added to trivia`` () =
+    let source = """let a =  9 (* meh *)"""
 
     let triviaNodes = toTrivia source
     

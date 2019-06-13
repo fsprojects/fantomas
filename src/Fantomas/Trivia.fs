@@ -61,6 +61,14 @@ let private findNodeOnLineAndColumn (nodes: TriviaNode list) line column =
     nodes
     |> List.tryFindBack (fun { Range = range } -> range.StartLine = line && range.StartColumn = column)
 
+let private findNodeBeforeLineAndColumn (nodes: TriviaNode list) line column =
+    nodes
+    |> List.tryFindBack (fun { Range = range } -> range.StartLine <= line && range.StartColumn <= column)
+
+let private findNodeAfterLineAndColumn (nodes: TriviaNode list) line column =
+    nodes
+    |> List.tryFind (fun { Range = range } -> range.StartLine >= line && range.StartColumn >= column)
+
 let private mapNodeToTriviaNode (node: Node) =
     node.Range
     |> Option.map (fun range ->
@@ -89,6 +97,10 @@ let private updateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =
         |> List.mapi (fun idx tn -> if idx = index then lens tn else tn)
     | None -> triviaNodes
 
+/// like updateTriviaNode, but returns None when triviaNode is None
+let private tryUpdateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =
+    triviaNode |> Option.map (fun tn -> updateTriviaNode lens triviaNodes (Some tn))
+
 let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     match trivia with
     | { Item = Comment(LineCommentOnSingleLine(lineComment) as comment); Range = range } when (commentIsAfterLastTriviaNode triviaNodes range) ->
@@ -110,10 +122,16 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem  tn.ContentBefore (Comment(comment)) }) triviaNodes
 
     | { Item = Comment(BlockComment(_) as comment); Range = range } ->
-        findFirstNodeAfterLine triviaNodes range.StartLine
-        |> updateTriviaNode (fun tn -> 
+        let nodeAfter = findNodeAfterLineAndColumn triviaNodes range.StartLine range.StartColumn
+        nodeAfter |> tryUpdateTriviaNode (fun tn -> 
             let newline = if tn.Range.StartLine > range.EndLine then [Newline] else []
-            { tn with ContentBefore = tn.ContentBefore @ [Comment(comment)] @ newline }) triviaNodes    
+            { tn with ContentBefore = tn.ContentBefore @ [Comment(comment)] @ newline }) triviaNodes
+        |> Option.defaultWith (fun () ->
+            let nodeBefore = findNodeBeforeLineAndColumn triviaNodes range.StartLine range.StartColumn
+            nodeBefore |> updateTriviaNode (fun tn ->
+                let newline = if tn.Range.EndLine < range.StartLine then [Newline] else []
+                { tn with ContentAfter = tn.ContentAfter @ newline @ [Comment(comment)] }) triviaNodes
+        )
 
     | { Item = Comment(LineCommentAfterSourceCode(_) as comment); Range = range } ->
         findLastNodeOnLine triviaNodes range.EndLine
