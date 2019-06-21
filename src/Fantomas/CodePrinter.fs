@@ -105,12 +105,18 @@ and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRe
 
 and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, _, moduleKind) as node) =
     let range = match node with | SynModuleOrNamespaceSig(_,_,_,_,_,_,_,range) -> range
+    let sepModuleAndFirstDecl =
+        let firstDecl = List.tryHead mds
+        match firstDecl with
+        | None -> rep 2 sepNln
+        | Some mdl ->
+            sepNlnConsideringTrivaContentBefore mdl.Range +> sepNln
     
     genPreXmlDoc px
     +> genAttributes astContext ats
     +> ifElse (moduleKind = AnonModule) sepNone 
             (ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
-                +> opt sepSpace ao genAccess -- s +> rep 2 sepNln)
+                +> opt sepSpace ao genAccess -- s +> sepModuleAndFirstDecl)
     +> genSigModuleDeclList astContext mds
     |> genTrivia range
 
@@ -206,7 +212,12 @@ and genSigModuleDeclList astContext node =
     | SigValL(xs, ys) ->
         match ys with
         | [] -> col sepNln xs (genSigModuleDecl astContext)
-        | _ -> col sepNln xs (genSigModuleDecl astContext) +> rep 2 sepNln +> genSigModuleDeclList astContext ys
+        | _ ->
+            let sepXsYs =
+                match List.tryHead ys with
+                | Some ysh -> sepNln +> sepNlnConsideringTrivaContentBefore ysh.Range
+                | None -> rep 2 sepNln
+            col sepNln xs (genSigModuleDecl astContext) +> sepXsYs +> genSigModuleDeclList astContext ys
 
     | SigMultilineModuleDeclL(xs, ys) ->
         match ys with

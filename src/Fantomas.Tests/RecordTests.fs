@@ -65,7 +65,6 @@ type Element =
     |> prepend newline
     |> should equal """
 module RecordSignature
-
 /// Represents simple XML elements.
 type Element =
     { /// The attribute collection.
