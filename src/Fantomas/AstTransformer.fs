@@ -3,12 +3,6 @@ module Fantomas.AstTransformer
 open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 
-//type Range =
-//    { StartLine: int
-//      StartCol: int
-//      EndLine: int
-//      EndCol: int }
-
 type Id = {
     Ident: string
     Range: range option
@@ -734,14 +728,38 @@ module private Ast =
 
     and visitSynTypeDefnSig(typeDefSig: SynTypeDefnSig): Node =
         match typeDefSig with
-        | TypeDefnSig(sci,_,memeberSig,range) ->
+        | TypeDefnSig(sci, synTypeDefnSigReprs,memberSig,range) ->
             {Type = "TypeDefnSig"
              Range = r range
              Properties = p []
              FsAstNode = typeDefSig
              Childs =
                  [yield visitSynComponentInfo sci
-                  yield! (memeberSig |> List.map visitSynMemberSig)]}
+                  yield visitSynTypeDefnSigRepr synTypeDefnSigReprs
+                  yield! (memberSig |> List.map visitSynMemberSig)]}
+            
+    and visitSynTypeDefnSigRepr(stdr: SynTypeDefnSigRepr): Node =
+        match stdr with
+        | SynTypeDefnSigRepr.ObjectModel(kind,members,range) ->
+            {Type = "SynTypeDefnSigRepr.ObjectModel"
+             Range = r range
+             Properties = p []
+             FsAstNode = stdr
+             Childs =
+                 [yield visitSynTypeDefnKind kind
+                  yield! (members |> List.map visitSynMemberSig)]}
+        | SynTypeDefnSigRepr.Simple(simpleRepr,range) ->
+            {Type = "SynTypeDefnSigRepr.ObjectModel"
+             Range = r range
+             Properties = p []
+             FsAstNode = stdr
+             Childs = [yield visitSynTypeDefnSimpleRepr simpleRepr]}
+        | SynTypeDefnSigRepr.Exception(exceptionRepr) ->
+            {Type = "SynTypeDefnSigRepr.Exception"
+             Range = noRange
+             Properties = p []
+             FsAstNode = stdr
+             Childs = [yield visitSynExceptionDefnRepr exceptionRepr]}
 
     and visitSynMemberDefn(mbrDef: SynMemberDefn): Node =
         match mbrDef with
@@ -1540,10 +1558,95 @@ module private Ast =
                     "longIdent" ==> longIdent]
              FsAstNode = hash
              Childs = []}
+            
+    and visitSynModuleOrNamespaceSig(modOrNs: SynModuleOrNamespaceSig): Node =
+        match modOrNs with
+        | SynModuleOrNamespaceSig(longIdent,isRecursive,isModule,decls,_,attrs,access,range) ->
+            {Type = "SynModuleOrNamespaceSig"
+             Range = r range
+             Properties =
+                 p [yield "isRecursive" ==> isRecursive
+                    yield "isModule" ==> isModule
+                    yield "longIdent" ==> li longIdent
+                    if access.IsSome then yield "access" ==> (access.Value |> visitSynAccess)]
+             FsAstNode = modOrNs
+             Childs =
+                 [yield! attrs |> List.map visitSynAttribute
+                  yield! (decls |> List.map visitSynModuleSigDecl)]}
+            
+    and visitSynModuleSigDecl(ast: SynModuleSigDecl) : Node =
+        match ast with
+        | SynModuleSigDecl.ModuleAbbrev(ident,longIdent,range) ->
+            {Type = "SynModuleSigDecl.ModuleAbbrev"
+             Range = r range
+             Properties =
+                 p ["ident" ==> i ident
+                    "longIdent" ==> li longIdent]
+             FsAstNode = ast
+             Childs = []}
+        | SynModuleSigDecl.NestedModule(sci,isRecursive,decls,range) ->
+            {Type = "SynModuleSigDecl.NestedModule"
+             Range = r range
+             Properties = p ["isRecursive" ==> isRecursive]
+             FsAstNode = ast
+             Childs =
+                 [yield visitSynComponentInfo sci
+                  yield! (decls |> List.map visitSynModuleSigDecl)]}
+        | SynModuleSigDecl.Val(SynValSig.ValSpfn(_,_,_,_,_,_,_,_,_,_,_) as node,range) ->
+            visitSynValSig node
+        | SynModuleSigDecl.Types(typeDefs,range) ->
+            {Type = "SynModuleSigDecl.Types"
+             Range = r range
+             Properties = p []
+             FsAstNode = ast
+             Childs = typeDefs |> List.map visitSynTypeDefnSig}
+        | SynModuleSigDecl.Open(longId,range) ->
+            {Type = "SynModuleSigDecl.Open"
+             Range = r range
+             Properties = p ["longIdent" ==> li longId]
+             FsAstNode = ast
+             Childs = []}
+        | SynModuleSigDecl.HashDirective(hash,range) ->
+            {Type = "SynModuleSigDecl.HashDirective"
+             Range = r range
+             Properties = p []
+             FsAstNode = ast
+             Childs = [visitParsedHashDirective hash]}
+        | SynModuleSigDecl.NamespaceFragment(moduleOrNamespace) ->
+            {Type = "SynModuleDecl.NamespaceFragment"
+             Range = noRange
+             Properties = p []
+             FsAstNode = ast
+             Childs = [visitSynModuleOrNamespaceSig moduleOrNamespace]}
+        | SynModuleSigDecl.Exception(synExceptionSig, range) ->
+            {Type = "SynModuleSigDecl.Exception"
+             Range = r range
+             Properties = p []
+             FsAstNode = ast
+             Childs = [visitSynExceptionSig synExceptionSig]}
+            
+    and visitSynExceptionSig(exceptionDef: SynExceptionSig): Node =
+        match exceptionDef with
+        | SynExceptionSig(sedr,members,range) ->
+            {Type = "SynExceptionSig"
+             Range = r range
+             Properties = p []
+             FsAstNode = exceptionDef
+             Childs =
+                 [yield visitSynExceptionDefnRepr sedr
+                  yield! (members |> List.map visitSynMemberSig)]}
 
 let astToNode (ast: SynModuleOrNamespace list): Node =
     let children = List.map Ast.visit ast
     {Type = "File"
+     Range = None
+     Properties = Map.empty
+     FsAstNode = ast
+     Childs = children}
+
+let sigAstToNode (ast: SynModuleOrNamespaceSig list) : Node =
+    let children = List.map Ast.visitSynModuleOrNamespaceSig ast
+    {Type = "SigFile"
      Range = None
      Properties = Map.empty
      FsAstNode = ast

@@ -158,22 +158,22 @@ let private triviaNodeIsNotEmpty triviaNode =
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
 let collectTrivia tokens lineCount (ast: ParsedInput) =
-    match ast with
-    | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, _, mns, _)) ->
-        let node = Fantomas.AstTransformer.astToNode mns
-        let triviaNodesFromAST =
-            flattenNodeToList node
-            |> List.map mapNodeToTriviaNode
-            |> List.choose id
-        let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
-        let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens
-        
-        let trivias = TokenParser.getTriviaFromTokens tokens lineCount
-        
-        // printfn "%A" trivias
+    let node =
+        match ast with
+        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, _, mns, _)) ->
+            Fantomas.AstTransformer.astToNode mns
 
-        List.fold addTriviaToTriviaNode triviaNodes trivias
-        |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.
-        // |> fun x -> printfn "%A" x; x
+        | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput(_, _, _ , _, mns)) ->
+            Fantomas.AstTransformer.sigAstToNode mns
+            
+    let triviaNodesFromAST =
+        flattenNodeToList node
+        |> List.map mapNodeToTriviaNode
+        |> List.choose id
+    let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
+    let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens
+    
+    let trivias = TokenParser.getTriviaFromTokens tokens lineCount
 
-    | _ -> []
+    List.fold addTriviaToTriviaNode triviaNodes trivias
+    |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.
