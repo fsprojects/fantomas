@@ -105,8 +105,7 @@ let ``should preserve comment-only source code``() =
   line2
 *)
 """  config
-    |> should equal """
-(*
+    |> should equal """(*
   line1
   line2
 *)

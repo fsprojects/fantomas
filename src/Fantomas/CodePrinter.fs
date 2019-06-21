@@ -86,13 +86,20 @@ and genParsedHashDirective (ParsedHashDirective(h, s)) =
     !- "#" -- h +> sepSpace +> col sepSpace s printArgument
 
 and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind) as node) =
+    let sepModuleAndFirstDecl =
+        let firstDecl = List.tryHead mds
+        match firstDecl with
+        | None -> rep 2 sepNln
+        | Some mdl ->
+            sepNlnConsideringTrivaContentBefore mdl.Range +> sepNln
+    
     genPreXmlDoc px
     +> genAttributes astContext ats
     +> ifElse (moduleKind = AnonModule) sepNone 
          (ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
             +> opt sepSpace ao genAccess
             +> ifElse isRecursive (!- "rec ") sepNone
-            +> ifElse (s = "") (!- "global") (!- s) +> rep 2 sepNln)
+            +> ifElse (s = "") (!- "global") (!- s) +> sepModuleAndFirstDecl)
     +> genModuleDeclList astContext mds
     |> genTrivia node.Range
 
@@ -113,16 +120,46 @@ and genModuleDeclList astContext e =
 
     | OpenL(xs, ys) ->
         fun ctx ->
+            // Try to preserve the trivia once the open statements are sorted
+            // This approach will currently only work when the sorted result contains an equal amount of items.
+            let originalOpens =
+                xs
+                |> List.map (fun x -> x.Range, ctx.Trivia |> List.tryFind (fun t -> t.Range = x.Range))
+            
             let xs = sortAndDeduplicate ((|Open|_|) >> Option.get) xs ctx
+            
+            let ctx' =
+                if List.length xs = List.length originalOpens then
+                    List.map2 (fun (range, trivia) (sortedOpen: SynModuleDecl) ->
+                        match range <> sortedOpen.Range, trivia with
+                        | true, Some trivia ->
+                            // Create a lens that will swap the range of the trivia
+                            fun ctx ->
+                                let trivias =
+                                    ctx.Trivia
+                                    |> List.map (fun t ->
+                                        if t.Range = trivia.Range then
+                                            { t with Range = sortedOpen.Range }
+                                        else
+                                            t
+                                        )
+                                { ctx with Trivia = trivias }
+                        | _ -> id
+                            
+                    ) originalOpens xs
+                    |> List.fold (fun acc lens -> lens acc) ctx
+                else
+                    ctx
+            
             match ys with
-            | [] -> col sepNln xs (genModuleDecl astContext) ctx
+            | [] -> col sepNln xs (genModuleDecl astContext)  ctx'
             | _ ->
                 let sepModuleDecl =
                     match List.tryHead ys with
                     | Some ysh -> sepNln +> sepNlnConsideringTrivaContentBefore ysh.Range
                     | None -> rep 2 sepNln
                 
-                (col sepNln xs (genModuleDecl astContext) +> sepModuleDecl +> genModuleDeclList astContext ys) ctx
+                (col sepNln xs (genModuleDecl astContext) +> sepModuleDecl +> genModuleDeclList astContext ys)  ctx'
 
     | HashDirectiveL(xs, ys)
     | DoExprAttributesL(xs, ys) 
