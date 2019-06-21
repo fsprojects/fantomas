@@ -19,8 +19,6 @@ module internal MyModule =
     let x = 42
 """
 
-// TODO: discuss if we should keep comment1 on first line. In current implementation we link it to open System.IO
-// I change this test to match that behavior.
 [<Test>]
 let ``open modules``() =
     formatSourceString false """
@@ -30,10 +28,9 @@ let ``open modules``() =
     open System""" { config with ReorderOpenDeclaration = true }
     |> prepend newline
     |> should equal """
-// comment2
-open System
-
 // comment1
+open System
+// comment2
 open System.IO
 """
 

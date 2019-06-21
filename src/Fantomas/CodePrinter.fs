@@ -120,46 +120,34 @@ and genModuleDeclList astContext e =
 
     | OpenL(xs, ys) ->
         fun ctx ->
-            // Try to preserve the trivia once the open statements are sorted
-            // This approach will currently only work when the sorted result contains an equal amount of items.
             let originalOpens =
                 xs
                 |> List.map (fun x -> x.Range, ctx.Trivia |> List.tryFind (fun t -> t.Range = x.Range))
             
             let xs = sortAndDeduplicate ((|Open|_|) >> Option.get) xs ctx
             
-            let ctx' =
+            // Restore the range of the open statement after sorting, this way comments stay on the same place.
+            let xs' : SynModuleDecl list =
                 if List.length xs = List.length originalOpens then
                     List.map2 (fun (range, trivia) (sortedOpen: SynModuleDecl) ->
-                        match range <> sortedOpen.Range, trivia with
-                        | true, Some trivia ->
-                            // Create a lens that will swap the range of the trivia
-                            fun ctx ->
-                                let trivias =
-                                    ctx.Trivia
-                                    |> List.map (fun t ->
-                                        if t.Range = trivia.Range then
-                                            { t with Range = sortedOpen.Range }
-                                        else
-                                            t
-                                        )
-                                { ctx with Trivia = trivias }
-                        | _ -> id
+                        match range <> sortedOpen.Range, trivia, sortedOpen with
+                        | true, Some _, SynModuleDecl.Open(longDotId, _) ->
+                            SynModuleDecl.Open(longDotId, range)
+                        | _ -> sortedOpen
                             
                     ) originalOpens xs
-                    |> List.fold (fun acc lens -> lens acc) ctx
                 else
-                    ctx
+                    xs
             
             match ys with
-            | [] -> col sepNln xs (genModuleDecl astContext)  ctx'
+            | [] -> col sepNln xs' (genModuleDecl astContext) ctx
             | _ ->
                 let sepModuleDecl =
                     match List.tryHead ys with
                     | Some ysh -> sepNln +> sepNlnConsideringTrivaContentBefore ysh.Range
                     | None -> rep 2 sepNln
                 
-                (col sepNln xs (genModuleDecl astContext) +> sepModuleDecl +> genModuleDeclList astContext ys)  ctx'
+                (col sepNln xs' (genModuleDecl astContext) +> sepModuleDecl +> genModuleDeclList astContext ys) ctx
 
     | HashDirectiveL(xs, ys)
     | DoExprAttributesL(xs, ys) 
