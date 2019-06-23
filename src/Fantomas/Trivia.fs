@@ -20,6 +20,13 @@ let isMainNode (node: TriviaNode) =
 let rec private flattenNodeToList (node: Node) =
     [ yield node
       yield! (node.Childs |> List.map flattenNodeToList |> List.collect id) ]
+    
+let filterNodes nodes =
+    let filterOutNodeTypes =
+        set [
+            "SynExpr.Sequential" // some Sequential nodes are not visited in CodePrinter
+        ]
+    nodes |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
 
 let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
@@ -123,15 +130,19 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
 
     | { Item = Comment(BlockComment(_) as comment); Range = range } ->
         let nodeAfter = findNodeAfterLineAndColumn triviaNodes range.StartLine range.StartColumn
-        nodeAfter |> tryUpdateTriviaNode (fun tn -> 
-            let newline = if tn.Range.StartLine > range.EndLine then [Newline] else []
-            { tn with ContentBefore = tn.ContentBefore @ [Comment(comment)] @ newline }) triviaNodes
-        |> Option.defaultWith (fun () ->
-            let nodeBefore = findNodeBeforeLineAndColumn triviaNodes range.StartLine range.StartColumn
-            nodeBefore |> updateTriviaNode (fun tn ->
-                let newline = if tn.Range.EndLine < range.StartLine then [Newline] else []
-                { tn with ContentAfter = tn.ContentAfter @ newline @ [Comment(comment)] }) triviaNodes
-        )
+        let nodeBefore = findNodeBeforeLineAndColumn triviaNodes range.StartLine range.StartColumn
+        match nodeBefore, nodeAfter with
+        | (Some n), _ when n.Range.EndLine = range.StartLine ->
+            Some n |> updateTriviaNode (fun tn ->
+                { tn with ContentAfter = tn.ContentAfter @ [Comment(comment)] }) triviaNodes
+        | _, (Some n) ->
+            Some n |> updateTriviaNode (fun tn -> 
+                let newline = if tn.Range.StartLine > range.EndLine then [Newline] else []
+                { tn with ContentBefore = tn.ContentBefore @ [Comment(comment)] @ newline }) triviaNodes
+        | (Some n), _ ->
+            Some n |> updateTriviaNode (fun tn ->
+                { tn with ContentAfter = tn.ContentAfter @ [Newline] @ [Comment(comment)] }) triviaNodes
+        | None, None -> triviaNodes
 
     | { Item = Comment(LineCommentAfterSourceCode(_) as comment); Range = range } ->
         findLastNodeOnLine triviaNodes range.EndLine
@@ -168,12 +179,20 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
             
     let triviaNodesFromAST =
         flattenNodeToList node
+        |> filterNodes
         |> List.map mapNodeToTriviaNode
         |> List.choose id
     let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
     let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens
     
     let trivias = TokenParser.getTriviaFromTokens tokens lineCount
+    
+//    printfn "%A" tokens
+    printfn "%A" triviaNodes
+    printfn "%A" trivias
 
-    List.fold addTriviaToTriviaNode triviaNodes trivias
-    |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.
+    let r =
+        List.fold addTriviaToTriviaNode triviaNodes trivias
+        |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.
+    printfn "%A" r
+    r
