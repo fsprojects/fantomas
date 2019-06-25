@@ -63,8 +63,8 @@ let rec multiline synExpr =
     // An infix app is multiline if it contains at least two new line infix ops
     | InfixApps(e, es) ->
         multiline e
-        || not (List.atMostOne (List.filter (fst >> NewLineInfixOps.Contains) es))
-        || List.exists (snd >> multiline) es
+        || not (List.atMostOne (List.filter ((fun (x,_,_)->x) >> NewLineInfixOps.Contains) es))
+        || List.exists ((fun (_,_,x)->x) >> multiline) es
     
     | App(e1, es) ->
         let multilineEl = multiline e1
@@ -99,7 +99,7 @@ let rec multiline synExpr =
 
 let checkNewLine e es =
     match (e, es) with
-    | _, [s, infixExpr] when NewLineInfixOps.Contains s -> 
+    | _, [s, _, infixExpr] when NewLineInfixOps.Contains s -> 
         (*
             If s is a single infix (f.e. |> )
             Only multiline if the whole expression is multiline
@@ -107,7 +107,7 @@ let checkNewLine e es =
             See test ``pipe and multiline should put pipe on newline``
         *)
         multiline e || multiline infixExpr
-    | _, (s, _) :: _ :: _ -> NewLineInfixOps.Contains s
+    | _, (s, _, _) :: _ :: _ -> NewLineInfixOps.Contains s
     | _ -> multiline e
 
 /// Check if the expression already has surrounding parentheses

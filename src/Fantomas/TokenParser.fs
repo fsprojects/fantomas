@@ -71,8 +71,10 @@ let getDefines sourceCode =
     |> Seq.toArray
 
 let private getRangeBetween name startToken endToken =
-    let start = FSharp.Compiler.Range.mkPos startToken.LineNumber startToken.TokenInfo.LeftColumn
-    let endR = FSharp.Compiler.Range.mkPos endToken.LineNumber endToken.TokenInfo.RightColumn
+    let l = startToken.TokenInfo.LeftColumn
+    let r = endToken.TokenInfo.RightColumn
+    let start = FSharp.Compiler.Range.mkPos startToken.LineNumber l
+    let endR = FSharp.Compiler.Range.mkPos endToken.LineNumber (if l=r then r+1 else r)
     FSharp.Compiler.Range.mkRange name start endR
 
 let private hasOnlySpacesAndLineCommentsOnLine lineNumber tokens =
@@ -194,7 +196,7 @@ let getTriviaFromTokens (tokens: Token list) linesCount =
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
     
-let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "EQUALS"; "ELSE"]
+let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "EQUALS"; "ELSE"; "PLUS_MINUS_OP"]
     
 let getTriviaNodesFromTokens (tokens: Token list) : TriviaNode list =
     tokens

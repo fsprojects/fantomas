@@ -274,7 +274,12 @@ let internal wordOf = !- " of "
 // Separator functions
         
 let internal sepDot = !- "."
-let internal sepSpace = !- " "      
+let internal sepSpace =
+    // ignore multiple spaces, space on start of file, after newline
+    // TODO: this is inefficient - maybe remember last char written?
+    fun ctx ->
+        if (let s = dump ctx in s = "" || s.EndsWith " " || s.EndsWith Environment.NewLine) then ctx
+        else (!- " ") ctx      
 let internal sepNln = !+ ""
 let internal sepStar = !- " * "
 let internal sepEq = !- " ="
@@ -434,7 +439,7 @@ let internal printTriviaContent (c: TriviaContent) =
     match c with
     | Comment(LineCommentAfterSourceCode s) -> sepSpace +> !- s  // TODO: discuss if the space is correct here, it is opinionated for now.
     | Comment(LineCommentOnSingleLine s) -> !- s +> sepNln
-    | Comment(BlockComment s) -> !- s
+    | Comment(BlockComment s) -> sepSpace -- s +> sepSpace
     | Newline -> sepNln
     | Keyword _ -> sepNone // don't print the keyword as is, find it in CodePrinter and act accordingly.
     
@@ -463,9 +468,9 @@ let internal printContentBefore triviaNode =
 let internal printContentAfter triviaNode =
     col sepNone triviaNode.ContentAfter printTriviaContent
 
-let private findTriviaMainNodeFromRange nodes range =
+let private findTriviaMainNodeFromRange nodes (range:range) =
     nodes
-    |> List.tryFind(fun n -> n.Range = range && Trivia.isMainNode n)
+    |> List.tryFind(fun n -> n.Range.Start = range.Start && n.Range.End = range.End)
 
 let internal enterNode (range: range) (ctx: Context) =
     match findTriviaMainNodeFromRange ctx.Trivia range with

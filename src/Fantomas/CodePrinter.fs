@@ -966,17 +966,17 @@ and genLetOrUseList astContext = function
 /// When 'hasNewLine' is set, the operator is forced to be in a new line
 and genInfixApps astContext hasNewLine synExprs = 
     match synExprs with
-    | (s, e)::es when (NoBreakInfixOps.Contains s) -> 
-        (sepSpace -- s +> sepSpace +> genExpr astContext e)
+    | (s, opE, e)::es when (NoBreakInfixOps.Contains s) -> 
+        (sepSpace +> (genTrivia opE.Range (!- s)) +> sepSpace +> genExpr astContext e)
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
-    | (s, e)::es when(hasNewLine) ->
-        (sepNln -- s +> sepSpace +> genExpr astContext e)
+    | (s, opE, e)::es when(hasNewLine) ->
+        (sepNln +> (genTrivia opE.Range (!- s)) +> sepSpace +> genExpr astContext e)
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
-    | (s, e)::es when(NoSpaceInfixOps.Contains s) -> 
-        (!- s +> autoNln (genExpr astContext e))
+    | (s, opE, e)::es when(NoSpaceInfixOps.Contains s) -> 
+        ((genTrivia opE.Range (!- s)) +> autoNln (genExpr astContext e))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
-    | (s, e)::es ->
-        (sepSpace +> autoNln (!- s +> sepSpace +> genExpr astContext e))
+    | (s, opE, e)::es ->
+        (sepSpace +> autoNln ((genTrivia opE.Range (!- s)) +> sepSpace +> genExpr astContext e))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | [] -> sepNone
 

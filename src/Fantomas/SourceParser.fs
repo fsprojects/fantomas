@@ -678,11 +678,11 @@ let (|PrefixApp|_|) = function
 
 let private (|InfixApp|_|) synExpr = 
     match synExpr with
-    | SynExpr.App(_, true, Var "::", Tuple [e1; e2], _) ->
-        Some("::", e1, e2)
+    | SynExpr.App(_, true, (Var "::" as e), Tuple [e1; e2], _) ->
+        Some("::", e, e1, e2)
     // Range operators need special treatments, so we exclude them here
-    | SynExpr.App(_, _, SynExpr.App(_, true, Var s, e1, _), e2, _) when s <> ".." ->
-        Some(s, e1, e2)
+    | SynExpr.App(_, _, SynExpr.App(_, true, (Var s as e), e1, _), e2, _) when s <> ".." ->
+        Some(s, e, e1, e2)
     | _ -> None
 
 let (|TernaryApp|_|) = function
@@ -694,9 +694,9 @@ let (|TernaryApp|_|) = function
 let (|InfixApps|_|) e =
     let rec loop synExpr = 
         match synExpr with
-        | InfixApp(s, e, e2) -> 
+        | InfixApp(s, opE, e, e2) -> 
             let (e1, es) = loop e
-            (e1, (s, e2)::es)
+            (e1, (s, opE, e2)::es)
         | e -> (e, [])
     match loop e with
     | (_, []) -> None
