@@ -118,7 +118,8 @@ let ``Block comment added to trivia`` () =
     let triviaNodes = toTrivia source
     
     match triviaNodes with
-    | [{ ContentBefore = [Comment(BlockComment(comment))] }] ->
+    | [{ ContentAfter = [Comment(BlockComment(comment))]
+         Type = Token { Content = "=" } }] ->
         comment == "(* meh *)"
     | _ ->
         failwith "Expected block comment"
