@@ -967,16 +967,16 @@ and genLetOrUseList astContext = function
 and genInfixApps astContext hasNewLine synExprs = 
     match synExprs with
     | (s, opE, e)::es when (NoBreakInfixOps.Contains s) -> 
-        (sepSpace +> (genTrivia opE.Range (!- s)) +> sepSpace +> genExpr astContext e)
+        (sepSpace +> tok opE.Range s +> sepSpace +> genExpr astContext e)
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es when(hasNewLine) ->
-        (sepNln +> (genTrivia opE.Range (!- s)) +> sepSpace +> genExpr astContext e)
+        (sepNln +> tok opE.Range s +> sepSpace +> genExpr astContext e)
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es when(NoSpaceInfixOps.Contains s) -> 
-        ((genTrivia opE.Range (!- s)) +> autoNln (genExpr astContext e))
+        (tok opE.Range s +> autoNln (genExpr astContext e))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es ->
-        (sepSpace +> autoNln ((genTrivia opE.Range (!- s)) +> sepSpace +> genExpr astContext e))
+        (sepSpace +> autoNln (tok opE.Range s +> sepSpace +> genExpr astContext e))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | [] -> sepNone
 
@@ -1605,3 +1605,6 @@ and genPat astContext pat =
 
 and genTrivia (range: range) f =
     enterNode range +> f +> leaveNode range
+
+and tok (range: range) (s: string) =
+    enterNodeToken range +> (!-s) +> leaveNodeToken range

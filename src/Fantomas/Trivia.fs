@@ -16,6 +16,11 @@ let isMainNode (node: TriviaNode) =
     match node.Type with
     | MainNode(_) -> true
     | _ -> false
+    
+let isToken (node: TriviaNode) =
+    match node.Type with
+    | Token(_) -> true
+    | _ -> false
 
 let rec private flattenNodeToList (node: Node) =
     [ yield node
@@ -188,11 +193,11 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
     let trivias = TokenParser.getTriviaFromTokens tokens lineCount
     
 //    printfn "%A" tokens
-    printfn "%A" triviaNodes
-    printfn "%A" trivias
+//    printfn "%A" triviaNodes
+//    printfn "%A" trivias
 
     let r =
         List.fold addTriviaToTriviaNode triviaNodes trivias
         |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.
-    printfn "%A" r
+//    printfn "%A" r
     r

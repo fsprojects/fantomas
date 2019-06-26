@@ -470,19 +470,40 @@ let internal printContentAfter triviaNode =
 
 let private findTriviaMainNodeFromRange nodes (range:range) =
     nodes
-    |> List.tryFind(fun n -> n.Range.Start = range.Start && n.Range.End = range.End)
+    |> List.tryFind(fun n ->
+        Trivia.isMainNode n && n.Range.Start = range.Start && n.Range.End = range.End)
 
-let internal enterNode (range: range) (ctx: Context) =
-    match findTriviaMainNodeFromRange ctx.Trivia range with
+let private findTriviaMainNodeOrTokenOnStartFromRange nodes (range:range) =
+    nodes
+    |> List.tryFind(fun n ->
+        Trivia.isMainNode n && n.Range.Start = range.Start && n.Range.End = range.End
+        || Trivia.isToken n && n.Range.Start = range.Start)
+
+let private findTriviaMainNodeOrTokenOnEndFromRange nodes (range:range) =
+    nodes
+    |> List.tryFind(fun n ->
+        Trivia.isMainNode n && n.Range.Start = range.Start && n.Range.End = range.End
+        || Trivia.isToken n && n.Range.End = range.End)
+
+let private findTriviaTokenFromRange nodes (range:range) =
+    nodes
+    |> List.tryFind(fun n -> Trivia.isToken n && n.Range.Start = range.Start && n.Range.End = range.End)
+
+let internal enterNodeWith f (range: range) (ctx: Context) =
+    match f ctx.Trivia range with
     | Some triviaNode ->
         (printContentBefore triviaNode) ctx
     | None -> ctx
+let internal enterNode (range: range) (ctx: Context) = enterNodeWith findTriviaMainNodeOrTokenOnStartFromRange range ctx
+let internal enterNodeToken (range: range) (ctx: Context) = enterNodeWith findTriviaTokenFromRange range ctx
 
-let internal leaveNode (range: range) (ctx: Context) =
-    match findTriviaMainNodeFromRange ctx.Trivia range with
+let internal leaveNodeWith f (range: range) (ctx: Context) =
+    match f ctx.Trivia range with
     | Some triviaNode ->
         ((printContentAfter triviaNode) +> (removeNodeFromContext triviaNode)) ctx
     | None -> ctx
+let internal leaveNode (range: range) (ctx: Context) = leaveNodeWith findTriviaMainNodeOrTokenOnEndFromRange range ctx
+let internal leaveNodeToken (range: range) (ctx: Context) = leaveNodeWith findTriviaTokenFromRange range ctx
     
 let internal leaveEqualsToken (range: range) (ctx: Context) =
     ctx.Trivia
