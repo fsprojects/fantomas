@@ -913,11 +913,7 @@ and genExpr astContext synExpr =
     // At this stage, all symbolic operators have been handled.
     | OptVar(s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
     | LongIdentSet(s, e, r) -> 
-        let addNewLineIfNeeded = 
-            let necessary = e.Range.StartLine > r.StartLine
-            let spaces = [1..e.Range.StartColumn] |> List.fold (fun acc _ -> acc +> sepSpace) id
-            ifElse necessary (sepNln +> spaces) id
-        !- (sprintf "%s <- " s) +> addNewLineIfNeeded +> genExpr astContext e
+        !- (sprintf "%s <- " s) +> autoIndentNlnByFuture (genExpr astContext e)
     | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
     | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
     | DotGet(e, s) -> 

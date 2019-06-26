@@ -15,10 +15,10 @@ Log.Logger <-
     |> prepend newline
     |> should equal """
 Log.Logger <-
-  LoggerConfiguration()
-    .Destructure.FSharpTypes()
-    .WriteTo.Console()
-    .CreateLogger()
+    LoggerConfiguration()
+        .Destructure.FSharpTypes()
+        .WriteTo.Console()
+        .CreateLogger()
 """
 
 [<Test>]
@@ -37,13 +37,13 @@ Log.Logger <-
     |> prepend newline
     |> should equal """
 Log.Logger <-
-  LoggerConfiguration()
-    // Suave.SerilogExtensions has native destructuring mechanism
-    // this helps Serilog deserialize the fsharp types like unions/records
-    .Destructure.FSharpTypes()
-    // use package Serilog.Sinks.Console
-    // https://github.com/serilog/serilog-sinks-console
-    .WriteTo.Console()
-    // add more sinks etc.
-    .CreateLogger()
+    LoggerConfiguration()
+        // Suave.SerilogExtensions has native destructuring mechanism
+        // this helps Serilog deserialize the fsharp types like unions/records
+        .Destructure.FSharpTypes()
+        // use package Serilog.Sinks.Console
+        // https://github.com/serilog/serilog-sinks-console
+        .WriteTo.Console()
+        // add more sinks etc.
+        .CreateLogger()
 """
