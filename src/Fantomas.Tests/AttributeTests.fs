@@ -99,7 +99,7 @@ type Sample [<ImportingConstructor>] (dependency: IDependency) =
     end
 
 [<Export>]
-type Sample [<ImportingConstructor>]  internal () =
+type Sample [<ImportingConstructor>] internal () =
     class
     end
 """
