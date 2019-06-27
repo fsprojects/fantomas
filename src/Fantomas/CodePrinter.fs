@@ -1230,6 +1230,7 @@ and genSigException astContext (SigExceptionDef(ats, px, ao, uc, ms) as node) =
 
 and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs) as node) =
     genPreXmlDoc px
+    +> genTriviaBeforeClausePipe node.Range
     +> ifElse astContext.HasVerticalBar sepBar sepNone
     +> genOnelinerAttributes astContext ats -- s 
     +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
