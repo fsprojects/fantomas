@@ -748,9 +748,14 @@ and genExpr astContext synExpr =
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr astContext e
     | PrefixApp(s, e) -> !- s +> genExpr astContext e
     // Handle spaces of infix application based on which category it belongs to
-    | InfixApps(e, es) -> 
+    | InfixApps(e, es) as expr ->
+        let rangePlusInfix =
+            match expr with
+            | SynExpr.App(_, _, funcExpr, _, _) ->
+                Some funcExpr.Range
+            | _ -> None
         // Only put |> on the same line in a very trivial expression
-        atCurrentColumn (genExpr astContext e +> genInfixApps astContext (checkNewLine e es) es)
+        atCurrentColumn (genExpr astContext e +> genInfixApps astContext (checkNewLine e es) rangePlusInfix es)
 
     | TernaryApp(e1,e2,e3) -> 
         atCurrentColumn (genExpr astContext e1 +> !- "?" +> genExpr astContext e2 +> sepSpace +> !- "<-" +> sepSpace +> genExpr astContext e3)
@@ -964,20 +969,20 @@ and genLetOrUseList astContext = function
     | _ -> sepNone   
 
 /// When 'hasNewLine' is set, the operator is forced to be in a new line
-and genInfixApps astContext hasNewLine synExprs = 
+and genInfixApps astContext hasNewLine rangePlusInfix synExprs = 
     match synExprs with
     | (s, e)::es when (NoBreakInfixOps.Contains s) -> 
         (sepSpace -- s +> sepSpace +> genExpr astContext e)
-        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+        +> genInfixApps astContext (hasNewLine || checkNewLine e es) None es
     | (s, e)::es when(hasNewLine) ->
         (sepNln -- s +> sepSpace +> genExpr astContext e)
-        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+        +> genInfixApps astContext (hasNewLine || checkNewLine e es) None es
     | (s, e)::es when(NoSpaceInfixOps.Contains s) -> 
         (!- s +> autoNln (genExpr astContext e))
-        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+        +> genInfixApps astContext (hasNewLine || checkNewLine e es) None es
     | (s, e)::es ->
-        (sepSpace +> autoNln (!- s +> sepSpace +> genExpr astContext e))
-        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+        (sepSpace +> autoNln (!- s +> sepSpace +> genCommentsAfterInfix rangePlusInfix +> genExpr astContext e))
+        +> genInfixApps astContext (hasNewLine || checkNewLine e es) None es
     | [] -> sepNone
 
 /// Use in indexed set and get only
