@@ -161,6 +161,30 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves allTokens rest info
+        
+    | headToken::rest when (headToken.TokenInfo.TokenName = "HASH_IF") ->
+        let directiveTokens =
+            rest
+            |> List.filter (fun r -> r.LineNumber = headToken.LineNumber)
+            |> fun others -> List.prependItem others headToken
+            
+        let directiveContent =
+            directiveTokens
+            |> List.map (fun t -> t.Content)
+            |> String.concat System.String.Empty
+            
+        let range = getRangeBetween "directive" headToken (List.last directiveTokens)
+        let info =
+            Trivia.Create (Directive(directiveContent)) range
+            |> List.prependItem foundTrivia
+        
+        let nextRest =
+            match rest with
+            | [] -> []
+            | _ ->
+                List.skip (List.length directiveTokens - 1) rest
+
+        getTriviaFromTokensThemSelves allTokens nextRest info
 
     | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
     

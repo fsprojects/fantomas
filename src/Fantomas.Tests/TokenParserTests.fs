@@ -247,3 +247,20 @@ elif true then ()"""
         ``elif`` == "elif"
     | _ ->
         fail()
+        
+[<Test>]
+let ``directives are found in tokens`` () =
+    let source = """
+#if NOT_DEFINED
+#else
+let x = 1
+#endif
+"""
+
+    let defines = getDefines source |> List.ofArray
+    let (tokens,lineCount) = tokenize defines source
+    let triviaNodes =
+        getTriviaFromTokens tokens lineCount
+        |> List.choose (fun tv -> match tv.Item with | Directive(directive) -> Some directive | _ -> None)
+        
+    List.length triviaNodes == 3

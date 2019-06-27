@@ -156,6 +156,14 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
 
+    | { Item = Directive(_) as directive; Range = range } ->
+        match findFirstNodeAfterLine triviaNodes range.StartLine with
+        | Some _ as node ->
+            updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore directive }) triviaNodes node
+        | None ->
+            findNodeBeforeLineAndColumn triviaNodes range.StartLine 0
+            |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter directive }) triviaNodes
+    
     | _ ->
         triviaNodes
 

@@ -254,3 +254,24 @@ elif true then ()"""
         pass()
     | _ ->
         fail()
+        
+[<Test>]
+let ``directives before and after are linked to let binding`` () =
+    let source = """#if NOT_DEFINED
+#else
+let x = 1
+#endif
+"""
+
+    let triviaNodes = toTrivia source
+    
+    match triviaNodes with
+    | [{ Type = MainNode("SynModuleOrNamespace")
+         ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else")]
+         ContentAfter = [] }
+       { Type = MainNode("SynModuleDecl.Let")
+         ContentBefore = []
+         ContentAfter = [Directive("#endif")]}] ->
+        pass()
+    | _ ->
+        fail()
