@@ -186,13 +186,6 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
     let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens
     
     let trivias = TokenParser.getTriviaFromTokens tokens lineCount
-    
-//    printfn "%A" tokens
-    printfn "%A" triviaNodes
-    printfn "%A" trivias
 
-    let r =
-        List.fold addTriviaToTriviaNode triviaNodes trivias
-        |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.
-    printfn "%A" r
-    r
+    List.fold addTriviaToTriviaNode triviaNodes trivias
+    |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.

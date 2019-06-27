@@ -379,6 +379,7 @@ let (|OneLinerBinding|MultilineBinding|) b =
     | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
     | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
     | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _, _) -> OneLinerBinding b
+
     | _ -> MultilineBinding b
 """
 

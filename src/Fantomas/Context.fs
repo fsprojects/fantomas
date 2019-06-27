@@ -535,3 +535,18 @@ let internal beforeElseKeyword (fullIfRange: range) (elseRange: range) (ctx: Con
         | _ ->
             id
     <| ctx
+
+let internal genTriviaBeforeClausePipe (rangeOfClause:range) ctx =
+    ctx.Trivia
+    |> List.tryFind (fun t ->
+        match t.Type with
+        | Token({ TokenInfo = { TokenName = bar } }) ->
+            bar = "BAR" && t.Range.StartColumn < rangeOfClause.StartColumn && t.Range.StartLine = rangeOfClause.StartLine
+        | _ -> false
+    )
+    |> fun trivia ->
+        match trivia with
+        | Some trivia ->
+            printContentBefore trivia
+        | None -> id
+    <| ctx

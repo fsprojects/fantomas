@@ -1375,7 +1375,8 @@ and genInterfaceImpl astContext (InterfaceImpl(t, bs, range)) =
         +> indent +> sepNln +> genMemberBindingList { astContext with InterfaceRange = Some range } bs +> unindent
     // |> genTrivia node
 
-and genClause astContext hasBar (Clause(p, e, eo) as node) = 
+and genClause astContext hasBar (Clause(p, e, eo) as node) =
+    genTriviaBeforeClausePipe p.Range +>
     ifElse hasBar sepBar sepNone +> genPat astContext p
     +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> preserveBreakNln astContext e
     |> genTrivia node.Range
