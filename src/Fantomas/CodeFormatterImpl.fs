@@ -408,29 +408,6 @@ let formatWith ast formatContext config =
     
     |> String.removeTrailingSpaces
 
-// Merge all combinations of formatting
-let hashRegex = @"^\s*#.*"
-let private splitWhenHash (source: string) = 
-    source.Split([| Environment.NewLine; "\r\n"; "\n" |], options = StringSplitOptions.None)
-    |> Array.fold (fun acc line ->
-        if Regex.IsMatch(line, hashRegex) then
-            [line]::acc
-        else
-            acc
-            |> List.mapi (fun idx l -> if idx = 0 then (line::l) else l)
-    ) []
-    |> List.map (List.rev >> String.concat Environment.NewLine)
-    |> List.rev
-
-let private merge a b =
-    let aChunks = splitWhenHash a
-    let bChunks = splitWhenHash b
-    List.zip aChunks bChunks
-    |> List.map (fun (a', b') ->
-        if String.length a' > String.length b' then a' else b'
-    )
-    |> String.concat Environment.NewLine
-
 let format config formatContext =
     async {
         let! ast = parse formatContext
@@ -448,7 +425,7 @@ let format config formatContext =
             match results with
             | [] -> failwith "not possible"
             | [x] -> x
-            | all -> List.reduce merge all
+            | all -> List.reduce String.merge all
 
         return merged
     }

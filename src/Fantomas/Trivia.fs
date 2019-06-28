@@ -7,9 +7,9 @@ open Fantomas
 open Fantomas.TriviaTypes
 open FSharp.Compiler.Range
 
-let private isMainNodeButNotAModule (node: TriviaNode) =
+let private isMainNodeButNotAnonModule (node: TriviaNode) =
     match node.Type with
-    | MainNode(t) when (t <> "SynModuleOrNamespace") -> true
+    | MainNode(t) when (t <> "SynModuleOrNamespace.AnonModule") -> true
     | _ -> false
     
 let isMainNode (node: TriviaNode) =
@@ -34,9 +34,9 @@ let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode
     |> List.sortBy (fun { Range = r } -> r.StartColumn)
     |> List.tryHead
     
-let private nodesContainsBothModuleOrNamespaceAndOpen (nodes: TriviaNode list) =
+let private nodesContainsBothAnonModuleAndOpen (nodes: TriviaNode list) =
     let mainNodeIs name t =  t.Type = MainNode(name)
-    List.exists (mainNodeIs "SynModuleOrNamespace") nodes &&
+    List.exists (mainNodeIs "SynModuleOrNamespace.AnonModule") nodes &&
     List.exists (mainNodeIs "SynModuleDecl.Open") nodes
     
 let private findFirstNodeAfterLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
@@ -44,7 +44,7 @@ let private findFirstNodeAfterLine (nodes: TriviaNode list) lineNumber : TriviaN
     |> List.filter (fun n -> n.Range.StartLine > lineNumber)
     |> fun filteredNodes ->
         match filteredNodes with
-        | moduleAndOpens when (nodesContainsBothModuleOrNamespaceAndOpen moduleAndOpens) ->
+        | moduleAndOpens when (nodesContainsBothAnonModuleAndOpen moduleAndOpens) ->
             moduleAndOpens
             |> List.filter (fun t -> t.Type = MainNode("SynModuleDecl.Open"))
             |> List.sortBy (fun t -> t.Range.StartLine)
@@ -65,7 +65,7 @@ let private findLastNode (nodes: TriviaNode list) : TriviaNode option =
     | [] -> None
     | nodes ->
         nodes
-        |> List.filter isMainNodeButNotAModule
+        |> List.filter isMainNodeButNotAnonModule
         |> List.maxBy (fun tn -> tn.Range.EndLine)
         |> Some
 
@@ -92,7 +92,7 @@ let private mapNodeToTriviaNode (node: Node) =
     
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNode list) (range: range) =
     triviaNodes
-    |> List.filter isMainNodeButNotAModule
+    |> List.filter isMainNodeButNotAnonModule
     |> List.forall (fun tn -> tn.Range.EndLine < range.StartLine)
 
 let private updateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =

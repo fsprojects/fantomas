@@ -308,7 +308,7 @@ let x = 1
     let withoutDefine = List.last triviaNodes
 
     match withDefine with
-    | [{ Type = MainNode("SynModuleOrNamespace")
+    | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
          ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else")]
          ContentAfter = [] }
        { Type = MainNode("SynModuleDecl.Let")
@@ -319,7 +319,7 @@ let x = 1
         fail()
         
     match withoutDefine with
-    | [{ Type = MainNode("SynModuleOrNamespace")
+    | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
          ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else"); Directive("#endif")]
          ContentAfter = [] }] ->
         pass()
@@ -340,15 +340,15 @@ let x = 1
     let withDefine = List.last triviaNodes
     
     match withoutDefine with
-    | [{ Type = MainNode("SynModuleOrNamespace")
-         ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#endif")]
+    | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
+         ContentBefore = [Directive("#if NOT_DEFINED"); Newline; Directive("#endif")]
          ContentAfter = [] }] ->
         pass()
     | _ ->
         fail()
 
     match withDefine with
-    | [{ Type = MainNode("SynModuleOrNamespace")
+    | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
          ContentBefore = [Directive("#if NOT_DEFINED")]
          ContentAfter = [] }
        { Type = MainNode("SynModuleDecl.Let")

@@ -49,8 +49,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
 #endif
 """  config
-    |> should equal """
-#if INTERACTIVE
+    |> should equal """#if INTERACTIVE
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
@@ -116,7 +115,6 @@ let useHiddenInitCode = false
 #else
 let useHiddenInitCode = true
 #endif
-
 let y = 2
 """
 
@@ -280,8 +278,7 @@ let ``should handle #if on the first line``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if INTERACTIVE
+    |> should equal """#if INTERACTIVE
 let x = 1
 #endif
 """

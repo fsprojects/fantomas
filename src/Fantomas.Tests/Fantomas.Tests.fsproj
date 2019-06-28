@@ -9,6 +9,7 @@
     <None Include="paket.references" />
     <Compile Include="FsUnit.fs" />
     <Compile Include="TestHelpers.fs" />
+    <Compile Include="UtilsTests.fs" />
     <Compile Include="TokenParserTests.fs" />
     <Compile Include="TriviaTests.fs" />
     <Compile Include="FakeHelpersTests.fs" />

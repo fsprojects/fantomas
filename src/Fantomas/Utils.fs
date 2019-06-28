@@ -1,6 +1,7 @@
 ﻿namespace Fantomas
 
 open System
+open System.Text.RegularExpressions
 
 [<RequireQualifiedAccess>]
 module String =
@@ -18,6 +19,36 @@ module String =
         |> Array.map (fun line -> line.TrimEnd())
         |> fun lines -> String.Join(Environment.NewLine, lines)
         |> fun code -> code.TrimStart(Environment.NewLine.ToCharArray())
+        
+    let private lengthWithoutSpaces (str: string) =
+        normalizeNewLine str
+        |> fun s -> s.Replace("\n", String.Empty)
+        |> String.length
+        
+    // Merge all combinations of formatting
+    let hashRegex = @"^\s*#.*"
+    let private splitWhenHash (source: string) = 
+        source.Split([| Environment.NewLine; "\r\n"; "\n" |], options = StringSplitOptions.None)
+        |> Array.fold (fun acc line ->
+            if Regex.IsMatch(line, hashRegex) then
+                match acc with
+                | [[]] -> [[line]]
+                | _ -> [line]::acc
+            else
+                acc
+                |> List.mapi (fun idx l -> if idx = 0 then (line::l) else l)
+        ) [[]]
+        |> List.map (List.rev >> String.concat Environment.NewLine)
+        |> List.rev
+
+    let merge a b =
+        let aChunks = splitWhenHash a
+        let bChunks = splitWhenHash b
+        List.zip aChunks bChunks
+        |> List.map (fun (a', b') ->
+            if lengthWithoutSpaces a' > lengthWithoutSpaces b' then a' else b'
+        )
+        |> String.concat Environment.NewLine
 
 module Cache =
     let alreadyVisited<'key when 'key : not struct>() =

@@ -46,7 +46,7 @@ module private Ast =
     and visitSynModuleOrNamespace(modOrNs: SynModuleOrNamespace): Node =
         match modOrNs with
         | SynModuleOrNamespace(longIdent,isRecursive,isModule,decls,_,attrs,access,range) ->
-            {Type = "SynModuleOrNamespace"
+            {Type = sprintf "SynModuleOrNamespace.%A" isModule
              Range = r range
              Properties =
                  p [yield "isRecursive" ==> isRecursive
