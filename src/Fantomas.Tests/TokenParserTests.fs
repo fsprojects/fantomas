@@ -264,3 +264,24 @@ let x = 1
         |> List.choose (fun tv -> match tv.Item with | Directive(directive) -> Some directive | _ -> None)
         
     List.length triviaNodes == 3
+    
+[<Test>]
+let ``Inactive code is found as well`` () =
+    let source = """
+let [<Literal>] private assemblyConfig() =
+  #if TRACE
+  let x = ""
+  #else
+  let x = "x"
+  #endif
+  x
+"""
+
+    let defines = getDefines source |> List.ofArray
+    let (tokens,lineCount) = tokenize defines source
+    let triviaNode =
+        getTriviaFromTokens tokens lineCount
+        |> List.choose (fun tv -> match tv.Item with | InActiveCode(code) -> Some code | _ -> None)
+        |> List.head
+        
+    triviaNode == "  let x = \"x\""

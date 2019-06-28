@@ -75,7 +75,7 @@ and genSigFile astContext (ParsedSigFileInput(hs, mns)) =
     col sepNone hs genParsedHashDirective +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns (genSigModuleOrNamespace astContext)
 
-and genParsedHashDirective (ParsedHashDirective(h, s)) =
+and genParsedHashDirective (ParsedHashDirective(h, s, r)) =
     let printArgument arg =
         match arg with
         | "" -> sepNone
@@ -84,6 +84,7 @@ and genParsedHashDirective (ParsedHashDirective(h, s)) =
         | _ -> !- (sprintf "\"%O\"" arg)
 
     !- "#" -- h +> sepSpace +> col sepSpace s printArgument
+    |> genTrivia r
 
 and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind) as node) =
     let sepModuleAndFirstDecl =

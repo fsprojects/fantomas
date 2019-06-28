@@ -31,6 +31,7 @@ type TriviaContent =
     | Comment of Comment
     | Newline
     | Directive of string
+    | InActiveCode of string
     
 type Trivia =
     { Item: TriviaContent

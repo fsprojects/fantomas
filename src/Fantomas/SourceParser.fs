@@ -216,11 +216,7 @@ let (|PreXmlDoc|) (px: PreXmlDoc) =
     match px.ToXmlDoc() with
     | XmlDoc lines -> lines
 
-let (|ParsedHashDirective|) (ParsedHashDirective(s, ss, _)) =
-    (s, ss)
-
 // Module declarations (10 cases)
-
 let (|Open|_|) = function
     | SynModuleDecl.Open(LongIdentWithDots s, _) ->
         Some s

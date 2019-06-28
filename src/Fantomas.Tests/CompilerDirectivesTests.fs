@@ -172,7 +172,7 @@ let [<Literal>] private assemblyConfig() =
     |> should equal """
 [<Literal>]
 let private assemblyConfig() =
-#if TRACE
+    #if TRACE
     let x = ""
 #else
   let x = "x"
@@ -222,8 +222,7 @@ let ``missing inactive code if directive not defined``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if NOT_DEFINED
+    |> should equal """#if NOT_DEFINED
 let x = 1
 #endif
 """
@@ -236,8 +235,7 @@ let ``don't duplicate active code if directive not defined``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if NOT_DEFINED
+    |> should equal """#if NOT_DEFINED
 #else
 let x = 1
 #endif
@@ -250,8 +248,7 @@ let ``missing line break in an active directive``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if DEBUG
+    |> should equal """#if DEBUG
 let x = 1
 #endif
 """

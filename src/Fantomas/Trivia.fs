@@ -34,12 +34,17 @@ let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode
     |> List.sortBy (fun { Range = r } -> r.StartColumn)
     |> List.tryHead
     
+let private nodesContainsBothModuleOrNamespaceAndOpen (nodes: TriviaNode list) =
+    let mainNodeIs name t =  t.Type = MainNode(name)
+    List.exists (mainNodeIs "SynModuleOrNamespace") nodes &&
+    List.exists (mainNodeIs "SynModuleDecl") nodes
+    
 let private findFirstNodeAfterLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
     |> List.filter (fun n -> n.Range.StartLine > lineNumber)
     |> fun filteredNodes ->
         match filteredNodes with
-        | moduleAndOpens when (List.forall (fun t -> t.Type = MainNode("SynModuleOrNamespace") || t.Type = MainNode("SynModuleDecl.Open")) moduleAndOpens) ->
+        | moduleAndOpens when (nodesContainsBothModuleOrNamespaceAndOpen moduleAndOpens) ->
             moduleAndOpens
             |> List.filter (fun t -> t.Type = MainNode("SynModuleDecl.Open"))
             |> List.sortBy (fun t -> t.Range.StartLine)
@@ -156,13 +161,29 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
 
-    | { Item = Directive(_) as directive; Range = range } ->
+    | { Item = Directive(dc) as directive; Range = range } ->
         match findFirstNodeAfterLine triviaNodes range.StartLine with
         | Some _ as node ->
             updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore directive }) triviaNodes node
         | None ->
             findNodeBeforeLineAndColumn triviaNodes range.StartLine 0
-            |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter directive }) triviaNodes
+            |> updateTriviaNode (fun tn ->
+                let directive =
+                    System.String.Concat(System.Environment.NewLine, dc)
+                    |> Directive
+                { tn with ContentAfter = List.appendItem tn.ContentAfter directive }) triviaNodes
+            
+    | { Item = InActiveCode(inactiveCode) as iaTrivia; Range = range } ->
+        match findFirstNodeAfterLine triviaNodes range.StartLine with
+        | Some _ as node ->
+            updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore iaTrivia }) triviaNodes node
+        | None ->
+            findNodeBeforeLineAndColumn triviaNodes range.StartLine 0
+            |> updateTriviaNode (fun tn ->
+                let iaTrivia =
+                    System.String.Concat(System.Environment.NewLine, inactiveCode)
+                    |> InActiveCode
+                { tn with ContentAfter = List.appendItem tn.ContentAfter iaTrivia }) triviaNodes
     
     | _ ->
         triviaNodes
@@ -179,8 +200,8 @@ let private triviaNodeIsNotEmpty triviaNode =
 let collectTrivia tokens lineCount (ast: ParsedInput) =
     let node =
         match ast with
-        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, _, mns, _)) ->
-            Fantomas.AstTransformer.astToNode mns
+        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hds, mns, _)) ->            
+            Fantomas.AstTransformer.astToNode hds mns
 
         | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput(_, _, _ , _, mns)) ->
             Fantomas.AstTransformer.sigAstToNode mns

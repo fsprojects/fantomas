@@ -8,7 +8,8 @@ open Fantomas.TriviaTypes
     
 let private toTrivia source =
     let ast = parse false source
-    let (tokens, lineCount) = TokenParser.tokenize [] source
+    let defines = ["DEBUG";"TRACE";"SILVERLIGHT"] // defines are the same ones as in TestHelper.fs parstingOptions
+    let (tokens, lineCount) = TokenParser.tokenize defines source
     Trivia.collectTrivia tokens lineCount ast
 
 [<Test>]
@@ -272,6 +273,31 @@ let x = 1
        { Type = MainNode("SynModuleDecl.Let")
          ContentBefore = []
          ContentAfter = [Directive("#endif")]}] ->
+        pass()
+    | _ ->
+        fail()
+        
+[<Test>]
+let ``inactive code is linked to the nearest active code`` () =
+    let source = """let a =
+  #if TRACE
+  7
+  #else
+  8
+  #endif
+"""
+
+    let triviaNodes = toTrivia source
+    
+    match triviaNodes with
+    | [ { Type = MainNode("SynModuleDecl.Let")
+          ContentBefore = []
+          ContentAfter = [ Directive("\r\n#else")
+                           InActiveCode("\r\n  8")
+                           Directive("\r\n#endif") ] }
+        { Type = MainNode("SynExpr.Const")
+          ContentBefore = [Directive("#if TRACE");]
+          ContentAfter = [] } ] ->
         pass()
     | _ ->
         fail()

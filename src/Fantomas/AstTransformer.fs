@@ -1636,12 +1636,14 @@ module private Ast =
                  [yield visitSynExceptionDefnRepr sedr
                   yield! (members |> List.map visitSynMemberSig)]}
 
-let astToNode (ast: SynModuleOrNamespace list): Node =
-    let children = List.map Ast.visit ast
+let astToNode (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list): Node =
+    let children =
+        [ yield! List.map Ast.visit mdls
+          yield! List.map Ast.visitParsedHashDirective hds ]
     {Type = "File"
      Range = None
      Properties = Map.empty
-     FsAstNode = ast
+     FsAstNode = mdls
      Childs = children}
 
 let sigAstToNode (ast: SynModuleOrNamespaceSig list) : Node =
