@@ -174,10 +174,9 @@ let [<Literal>] private assemblyConfig() =
 let private assemblyConfig() =
     #if TRACE
     let x = ""
-#else
-  let x = "x"
-#endif
-
+    #else
+    let x = "x"
+    #endif
     x
 """
 

@@ -358,7 +358,7 @@ module private Ast =
                   if elseExpr.IsSome then yield visitSynExpr elseExpr.Value]}
         | SynExpr.Ident(id) ->
             {Type = "SynExpr.Ident"
-             Range = noRange
+             Range = (i id).Range
              Properties = p ["ident" ==> i id]
              FsAstNode = synExpr
              Childs = []}
