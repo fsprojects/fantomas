@@ -7,14 +7,10 @@ open Fantomas.Tests.TestHelper
 open Fantomas.TriviaTypes
     
 let private toTrivia source =
-    let defines =
-        TokenParser.getDefines source
-        |> List.map Some
-        |> List.append [None]
-    let ast = parse false source |> Array.toList
-    List.zip defines ast
-    |> List.map (fun (define, ast) ->
-        let defines = match define with | Some d -> [d] | None -> []
+    let astWithDefines = parse false source |> Array.toList
+    
+    astWithDefines
+    |> List.map (fun (ast, defines) ->
         let (tokens, lineCount) = TokenParser.tokenize defines source
         Trivia.collectTrivia tokens lineCount ast
     )
@@ -307,10 +303,10 @@ let x = 1
 
     let triviaNodes =
         toTrivia source
-        
+
     let withDefine = List.head triviaNodes
     let withoutDefine = List.last triviaNodes
-    
+
     match withDefine with
     | [{ Type = MainNode("SynModuleOrNamespace")
          ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else")]
@@ -329,3 +325,36 @@ let x = 1
         pass()
     | _ ->
         fail() 
+
+[<Test>]
+let ``directive without else clause`` () =
+    let source = """#if NOT_DEFINED
+let x = 1
+#endif
+"""
+    
+    let triviaNodes =
+        toTrivia source
+
+    let withoutDefine = List.head triviaNodes
+    let withDefine = List.last triviaNodes
+    
+    match withoutDefine with
+    | [{ Type = MainNode("SynModuleOrNamespace")
+         ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#endif")]
+         ContentAfter = [] }] ->
+        pass()
+    | _ ->
+        fail()
+
+    match withDefine with
+    | [{ Type = MainNode("SynModuleOrNamespace")
+         ContentBefore = [Directive("#if NOT_DEFINED")]
+         ContentAfter = [] }
+       { Type = MainNode("SynModuleDecl.Let")
+         ContentBefore = []
+         ContentAfter = [Directive("\r\n#endif")]}] ->
+        pass()
+    | _ ->
+        fail()
+        

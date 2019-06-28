@@ -60,7 +60,9 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
 let tokenize defines (content : string) : Token list * int =
     let sourceTokenizer = FSharpSourceTokenizer("INTERACTIVE" :: defines, Some "/tmp.fsx")
     let lines = String.normalizeThenSplitNewLine content |> Array.toList
-    let tokens = tokenizeLines sourceTokenizer lines FSharpTokenizerLexState.Initial
+    let tokens =
+        tokenizeLines sourceTokenizer lines FSharpTokenizerLexState.Initial
+        |> List.filter (fun t -> t.TokenInfo.TokenName <> "INACTIVECODE")
     tokens, List.length lines
     
 /// Regex alone won't cut it, good enough for now

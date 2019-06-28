@@ -60,9 +60,13 @@ let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions;
                     |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
                 if not <| Array.isEmpty errors then
                     raise <| FormatException (sprintf "Parsing failed with errors: %A\nAnd options: %A" errors checkOptions)
-            match untypedRes.ParseTree with
-            | Some tree -> return tree
-            | None -> return raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
+                    
+            let tree =
+                match untypedRes.ParseTree with
+                | Some tree -> tree
+                | None -> raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
+                
+            return (tree, conditionalCompilationDefines)
         }
     )
     |> Async.Parallel
@@ -371,7 +375,11 @@ let isValidFSharpCode formatContext =
     async {
         try
             let! ast = parse formatContext
-            return (Array.forall isValidAST ast)
+            let isValid =
+                ast
+                |> Array.map fst
+                |> Array.forall isValidAST
+            return isValid
         with _ ->
             return false
     }
@@ -428,7 +436,12 @@ let format config formatContext =
         let! ast = parse formatContext
         let results =
             ast
-            |> Array.map (fun ast' -> formatWith ast' formatContext config)
+            |> Array.map (fun (ast', defines) ->
+                let formatContext' =
+                    { formatContext with
+                        ProjectOptions = { formatContext.ProjectOptions with
+                                            ConditionalCompilationDefines = defines } }
+                formatWith ast' formatContext' config)
             |> List.ofArray
             
         let merged =

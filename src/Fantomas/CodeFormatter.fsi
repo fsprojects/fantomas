@@ -9,9 +9,9 @@ open FSharp.Compiler.SourceCodeServices
 [<Sealed>]
 type CodeFormatter =
     /// Parse a source string using given config
-    static member Parse : fileName:string * source:string -> ParsedInput array
+    static member Parse : fileName:string * source:string -> (ParsedInput * string list) array
     /// Parse a source string using given config
-    static member ParseAsync : fileName:string * source:string * projectOptions:FSharpParsingOptions * checker:FSharpChecker -> Async<ParsedInput array> 
+    static member ParseAsync : fileName:string * source:string * projectOptions:FSharpParsingOptions * checker:FSharpChecker -> Async<(ParsedInput * string list) array> 
     /// Format an abstract syntax tree using an optional source for looking up literals
     static member FormatAST : ast:ParsedInput * fileName:string * source:string option * config:FormatConfig -> string
     
