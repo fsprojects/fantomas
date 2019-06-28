@@ -180,6 +180,27 @@ let private assemblyConfig() =
     x
 """
 
+[<Test; Description("format multiple times")>]
+let multipleFormats () =
+    formatSourceStringMultipleTimes """
+let [<Literal>] private assemblyConfig() =
+  #if TRACE
+  let x = ""
+  #else
+  let x = "x"
+  #endif
+  x
+"""  config
+    |> should equal """[<Literal>]
+let private assemblyConfig() =
+    #if TRACE
+    let x = ""
+    #else
+    let x = "x"
+    #endif
+    x
+"""
+
 [<Test>]
 let ``should break line after single directive``() =
     formatSourceString false """

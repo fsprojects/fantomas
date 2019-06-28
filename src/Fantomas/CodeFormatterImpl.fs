@@ -32,7 +32,8 @@ let createFormatContextNoChecker fileName source =
     let checker = sharedChecker.Value
     let defines =
         TokenParser.getDefines source
-        |> Array.map (sprintf "--define:%s")
+        |> List.map (sprintf "--define:%s")
+        |> List.toArray
     // Get compiler options for a single script file
     let checkOptions = 
         checker.GetProjectOptionsFromScript(fileName, source, DateTime.Now, defines) 
@@ -43,20 +44,42 @@ let createFormatContextNoChecker fileName source =
 let createFormatContext fileName source projectOptions checker =
     { FileName = fileName; Source = source; ProjectOptions = projectOptions; Checker = checker }
 
-let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker } = 
-    async {
-        // Run the first phase (untyped parsing) of the compiler
-        let! untypedRes = checker.ParseFile(fileName, source, checkOptions)
-        if untypedRes.ParseHadErrors then
-            let errors = 
-                untypedRes.Errors
-                |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
-            if not <| Array.isEmpty errors then
-                raise <| FormatException (sprintf "Parsing failed with errors: %A\nAnd options: %A" errors checkOptions)
-        match untypedRes.ParseTree with
-        | Some tree -> return tree
-        | None -> return raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
-    }
+let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker } =
+    checkOptions.ConditionalCompilationDefines
+    |> List.map Some
+    |> List.append [None]
+    |> List.map (fun define ->
+        async {
+            let conditionalCompilationDefines = match define with | Some d -> [d] | None -> []
+            let projectOptions = { checkOptions with ConditionalCompilationDefines = conditionalCompilationDefines }
+            // Run the first phase (untyped parsing) of the compiler
+            let! untypedRes = checker.ParseFile(fileName, source, projectOptions)
+            if untypedRes.ParseHadErrors then
+                let errors = 
+                    untypedRes.Errors
+                    |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
+                if not <| Array.isEmpty errors then
+                    raise <| FormatException (sprintf "Parsing failed with errors: %A\nAnd options: %A" errors checkOptions)
+            match untypedRes.ParseTree with
+            | Some tree -> return tree
+            | None -> return raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
+        }
+    )
+    |> Async.Parallel
+    
+//    async {
+//        // Run the first phase (untyped parsing) of the compiler
+//        let! untypedRes = checker.ParseFile(fileName, source, checkOptions)
+//        if untypedRes.ParseHadErrors then
+//            let errors = 
+//                untypedRes.Errors
+//                |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
+//            if not <| Array.isEmpty errors then
+//                raise <| FormatException (sprintf "Parsing failed with errors: %A\nAnd options: %A" errors checkOptions)
+//        match untypedRes.ParseTree with
+//        | Some tree -> return tree
+//        | None -> return raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
+//    }
 
 /// Check whether an AST consists of parsing errors 
 let isValidAST ast = 
@@ -348,7 +371,7 @@ let isValidFSharpCode formatContext =
     async {
         try
             let! ast = parse formatContext
-            return isValidAST ast
+            return (Array.forall isValidAST ast)
         with _ ->
             return false
     }
@@ -377,10 +400,44 @@ let formatWith ast formatContext config =
     
     |> String.removeTrailingSpaces
 
+// Merge all combinations of formatting
+let hashRegex = @"^\s*#.*"
+let private splitWhenHash (source: string) = 
+    source.Split([| Environment.NewLine; "\r\n"; "\n" |], options = StringSplitOptions.None)
+    |> Array.fold (fun acc line ->
+        if Regex.IsMatch(line, hashRegex) then
+            [line]::acc
+        else
+            acc
+            |> List.mapi (fun idx l -> if idx = 0 then (line::l) else l)
+    ) []
+    |> List.map (List.rev >> String.concat Environment.NewLine)
+    |> List.rev
+
+let private merge a b =
+    let aChunks = splitWhenHash a
+    let bChunks = splitWhenHash b
+    List.zip aChunks bChunks
+    |> List.map (fun (a', b') ->
+        if String.length a' > String.length b' then a' else b'
+    )
+    |> String.concat Environment.NewLine
+
 let format config formatContext =
     async {
         let! ast = parse formatContext
-        return formatWith ast formatContext config
+        let results =
+            ast
+            |> Array.map (fun ast' -> formatWith ast' formatContext config)
+            |> List.ofArray
+            
+        let merged =
+            match results with
+            | [] -> failwith "not possible"
+            | [x] -> x
+            | all -> List.reduce merge all
+
+        return merged
     }
 
 /// Format a source string using given config

@@ -7,10 +7,17 @@ open Fantomas.Tests.TestHelper
 open Fantomas.TriviaTypes
     
 let private toTrivia source =
-    let ast = parse false source
-    let defines = ["DEBUG";"TRACE";"SILVERLIGHT"] // defines are the same ones as in TestHelper.fs parstingOptions
-    let (tokens, lineCount) = TokenParser.tokenize defines source
-    Trivia.collectTrivia tokens lineCount ast
+    let defines =
+        TokenParser.getDefines source
+        |> List.map Some
+        |> List.append [None]
+    let ast = parse false source |> Array.toList
+    List.zip defines ast
+    |> List.map (fun (define, ast) ->
+        let defines = match define with | Some d -> [d] | None -> []
+        let (tokens, lineCount) = TokenParser.tokenize defines source
+        Trivia.collectTrivia tokens lineCount ast
+    )
 
 [<Test>]
 let ``Line comment that starts at the beginning of a line added to trivia`` () =
@@ -18,7 +25,9 @@ let ``Line comment that starts at the beginning of a line added to trivia`` () =
 let a = 9
 """
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
     
     match triviaNodes with
     | [{ ContentBefore = [Comment(LineCommentOnSingleLine(lineComment))];  }] ->
@@ -32,7 +41,9 @@ let ``Line comment that is alone on the single, preceded by whitespaces`` () =
 let a = 'c'
 """
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
     
     match triviaNodes with
     | [{ ContentBefore = [Comment(LineCommentOnSingleLine(lineComment))];  }] ->
@@ -43,7 +54,9 @@ let a = 'c'
 [<Test>]
 let ``Line comment on same line, is after last AST item`` () =
     let source = "let foo = 7 // should be 8"
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
 
     match triviaNodes with
     | [{ContentAfter = [Comment(LineCommentAfterSourceCode(lineComment))]}] ->
@@ -56,7 +69,9 @@ let ``Newline pick up before let binding`` () =
     let source = """let a = 7
 
 let b = 9"""
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
 
     match triviaNodes with
     | [{ContentBefore = cb}] ->
@@ -71,7 +86,9 @@ let ``Multiple comments should be linked to same trivia node`` () =
 let a = 7
 """
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
 
     match triviaNodes with
     | [{ContentBefore = [Comment(LineCommentOnSingleLine(fooComment));Comment(LineCommentOnSingleLine(barComment))]}] ->
@@ -87,7 +104,9 @@ let ``Comments inside record`` () =
     { // foo
     B = 7 }"""
     
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
 
     match triviaNodes with
     | [{ Type = TriviaNodeType.Token(t); ContentAfter = [Comment(LineCommentAfterSourceCode("// foo"))] }] ->
@@ -102,7 +121,9 @@ let ``Comment after all source code`` () =
 //    override private x.ToString() = ""
 """
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
     
     match triviaNodes with
     | [{ Type = MainNode(mn); ContentAfter = [Comment(LineCommentOnSingleLine(lineComment))] }] ->
@@ -116,7 +137,9 @@ let ``Comment after all source code`` () =
 let ``Block comment added to trivia`` () =
     let source = """let a = (* meh *) 9"""
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
     
     match triviaNodes with
     | [{ ContentBefore = [Comment(BlockComment(comment))] }] ->
@@ -130,7 +153,9 @@ let ``Block comment and newline added to trivia`` () =
 let a =  9
 """
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
     
     match triviaNodes with
     | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
@@ -143,7 +168,9 @@ let ``Block comment on newline EOF added to trivia`` () =
     let source = """let a =  9
 (* meh *)"""
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
     
     match triviaNodes with
     | [{ ContentAfter = [Newline; Comment(BlockComment(comment))] }] ->
@@ -155,7 +182,9 @@ let ``Block comment on newline EOF added to trivia`` () =
 let ``Block comment on EOF added to trivia`` () =
     let source = """let a =  9 (* meh *)"""
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
     
     match triviaNodes with
     | [{ ContentAfter = [Comment(BlockComment(comment))] }] ->
@@ -169,7 +198,9 @@ let ``Nested block comment parsed correctly`` () =
 let a =  9
 """
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
     
     match triviaNodes with
     | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
@@ -184,7 +215,9 @@ let ``Line comment inside block comment parsed correctly`` () =
 let a =  9
 """
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
     
     match triviaNodes with
     | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
@@ -200,7 +233,9 @@ bla *)
 let a =  9
 """
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
     
     match triviaNodes with
     | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
@@ -218,7 +253,9 @@ let ``Multiple block comments should be linked to same trivia node`` () =
 x
 """
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
 
     match triviaNodes with
     | [{ContentBefore = [Comment(BlockComment(fooComment)); Newline; Comment(BlockComment(barComment)); Newline]}] ->
@@ -233,7 +270,9 @@ let ``Block comment inside line comment parsed correctly`` () =
 let a =  9
 """
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
     
     match triviaNodes with
     | [{ ContentBefore = [Comment(LineCommentOnSingleLine(comment))] }] ->
@@ -247,7 +286,9 @@ let ``if keyword before SynExpr.IfThenElse`` () =
     let source = """if true then ()
 elif true then ()"""
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        |> List.head
     
     match triviaNodes with
     | [{ Type = MainNode("SynExpr.IfThenElse"); ContentBefore = [Keyword("if")] }
@@ -264,40 +305,27 @@ let x = 1
 #endif
 """
 
-    let triviaNodes = toTrivia source
+    let triviaNodes =
+        toTrivia source
+        
+    let withDefine = List.head triviaNodes
+    let withoutDefine = List.last triviaNodes
     
-    match triviaNodes with
+    match withDefine with
     | [{ Type = MainNode("SynModuleOrNamespace")
          ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else")]
          ContentAfter = [] }
        { Type = MainNode("SynModuleDecl.Let")
          ContentBefore = []
-         ContentAfter = [Directive("#endif")]}] ->
+         ContentAfter = [Directive("\r\n#endif")]}] ->
         pass()
     | _ ->
         fail()
         
-[<Test>]
-let ``inactive code is linked to the nearest active code`` () =
-    let source = """let a =
-  #if TRACE
-  7
-  #else
-  8
-  #endif
-"""
-
-    let triviaNodes = toTrivia source
-    
-    match triviaNodes with
-    | [ { Type = MainNode("SynModuleDecl.Let")
-          ContentBefore = []
-          ContentAfter = [ Directive("\r\n#else")
-                           InActiveCode("\r\n  8")
-                           Directive("\r\n#endif") ] }
-        { Type = MainNode("SynExpr.Const")
-          ContentBefore = [Directive("#if TRACE");]
-          ContentAfter = [] } ] ->
+    match withoutDefine with
+    | [{ Type = MainNode("SynModuleOrNamespace")
+         ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else"); Directive("#endif")]
+         ContentAfter = [] }] ->
         pass()
     | _ ->
-        fail()
+        fail() 

@@ -22,7 +22,7 @@ setupServer true
 """
 
     getDefines source
-    |> Array.length
+    |> List.length
     |> should equal 1
     
 [<Test>]
@@ -36,7 +36,7 @@ setupServer true
 """
 
     getDefines source
-    |> Array.head
+    |> List.head
     |> should equal "DEBUG"
     
 [<Test>]
@@ -225,7 +225,7 @@ type T() =
 
     let (tokens,lineCount) = tokenize [] source
     let triviaNodes = getTriviaFromTokens tokens lineCount
-    
+
     match triviaNodes with
     | [{ Item = Newline; Range = rAbove }; {Item = Newline; Range = rBelow}] ->
         rAbove.StartLine == 1
@@ -257,31 +257,10 @@ let x = 1
 #endif
 """
 
-    let defines = getDefines source |> List.ofArray
+    let defines = getDefines source
     let (tokens,lineCount) = tokenize defines source
     let triviaNodes =
         getTriviaFromTokens tokens lineCount
         |> List.choose (fun tv -> match tv.Item with | Directive(directive) -> Some directive | _ -> None)
-        
-    List.length triviaNodes == 3
-    
-[<Test>]
-let ``Inactive code is found as well`` () =
-    let source = """
-let [<Literal>] private assemblyConfig() =
-  #if TRACE
-  let x = ""
-  #else
-  let x = "x"
-  #endif
-  x
-"""
 
-    let defines = getDefines source |> List.ofArray
-    let (tokens,lineCount) = tokenize defines source
-    let triviaNode =
-        getTriviaFromTokens tokens lineCount
-        |> List.choose (fun tv -> match tv.Item with | InActiveCode(code) -> Some code | _ -> None)
-        |> List.head
-        
-    triviaNode == "  let x = \"x\""
+    List.length triviaNodes == 3

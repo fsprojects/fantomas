@@ -37,7 +37,7 @@ let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode
 let private nodesContainsBothModuleOrNamespaceAndOpen (nodes: TriviaNode list) =
     let mainNodeIs name t =  t.Type = MainNode(name)
     List.exists (mainNodeIs "SynModuleOrNamespace") nodes &&
-    List.exists (mainNodeIs "SynModuleDecl") nodes
+    List.exists (mainNodeIs "SynModuleDecl.Open") nodes
     
 let private findFirstNodeAfterLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
@@ -172,19 +172,7 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
                     System.String.Concat(System.Environment.NewLine, dc)
                     |> Directive
                 { tn with ContentAfter = List.appendItem tn.ContentAfter directive }) triviaNodes
-            
-    | { Item = InActiveCode(inactiveCode) as iaTrivia; Range = range } ->
-        match findFirstNodeAfterLine triviaNodes range.StartLine with
-        | Some _ as node ->
-            updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore iaTrivia }) triviaNodes node
-        | None ->
-            findNodeBeforeLineAndColumn triviaNodes range.StartLine 0
-            |> updateTriviaNode (fun tn ->
-                let iaTrivia =
-                    System.String.Concat(System.Environment.NewLine, inactiveCode)
-                    |> InActiveCode
-                { tn with ContentAfter = List.appendItem tn.ContentAfter iaTrivia }) triviaNodes
-    
+
     | _ ->
         triviaNodes
 

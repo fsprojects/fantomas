@@ -8,6 +8,7 @@ open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 open NUnit.Framework
+open System.Text.RegularExpressions
 
 let config = FormatConfig.Default
 let newline = "\n"
@@ -15,7 +16,7 @@ let newline = "\n"
 let parsingOptions fileName = 
     { FSharpParsingOptions.Default with 
         SourceFiles = [| fileName |]
-        ConditionalCompilationDefines = ["DEBUG";"TRACE";"SILVERLIGHT"]
+        ConditionalCompilationDefines = []
         IsInteractive = true }
 
 let sharedChecker = lazy(FSharpChecker.Create())
@@ -24,9 +25,58 @@ let formatSourceString isFsiFile (s : string) config =
     // On Linux/Mac this will exercise different line endings
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/src.fsi" else "/src.fsx"
-    CodeFormatter.FormatDocumentAsync(fileName, s, config, parsingOptions fileName, sharedChecker.Value)
+    let defines = TokenParser.getDefines s
+    let parsingOptions = { (parsingOptions fileName) with ConditionalCompilationDefines = defines }
+    
+    CodeFormatter.FormatDocumentAsync(fileName, s, config, parsingOptions, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
+    
+let hashRegex = @"^\s*#.*"
+    
+let formatSourceStringX (s : string) config define = 
+    // On Linux/Mac this will exercise different line endings
+    let s = s.Replace("\r\n", Environment.NewLine)
+    let fileName = "/src.fsx"
+    let conditionalCompilationDefines = match define with | Some d -> [d] | None -> []
+    let parsingOptions = { (parsingOptions fileName) with ConditionalCompilationDefines = conditionalCompilationDefines }
+    CodeFormatter.FormatDocumentAsync(fileName, s, config, parsingOptions, sharedChecker.Value)
+    |> Async.RunSynchronously
+    |> fun s -> s.Replace("\r\n", "\n")
+    
+let private splitWhenHash (source: string) = 
+    source.Split([| Environment.NewLine; "\r\n"; "\n" |], options = StringSplitOptions.None)
+    |> Array.fold (fun acc line ->
+        if Regex.IsMatch(line, hashRegex) then
+            [line]::acc
+        else
+            acc
+            |> List.mapi (fun idx l -> if idx = 0 then (line::l) else l)
+    ) [[]]
+    |> List.map (List.rev >> String.concat Environment.NewLine)
+    |> List.rev
+
+let private merge a b =
+    let aChunks = splitWhenHash a
+    let bChunks = splitWhenHash b
+    List.zip aChunks bChunks
+    |> List.map (fun (a', b') ->
+        if String.length a' > String.length b' then a' else b'
+    )
+    |> String.concat Environment.NewLine
+
+let formatSourceStringMultipleTimes (s: string) config =
+    let defines = TokenParser.getDefines s
+    let results =
+        defines
+        |> List.map (Some)
+        |> List.append [None]
+        |> List.map (formatSourceStringX s config)
+    match results with
+    | [] -> failwith "not possible"
+    | [x] -> x
+    | all -> List.reduce merge all
+    |> fun formatted -> formatted.Replace("\r\n", "\n")
 
 let formatSelectionFromString isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
@@ -56,7 +106,9 @@ let isValidFSharpCode isFsiFile s =
 
 let parse isFsiFile s =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.ParseAsync(fileName, s, parsingOptions fileName, sharedChecker.Value)
+    let defines = TokenParser.getDefines s
+    let parsingOptions = { (parsingOptions fileName) with ConditionalCompilationDefines = defines }
+    CodeFormatter.ParseAsync(fileName, s, parsingOptions, sharedChecker.Value)
     |> Async.RunSynchronously
 
 let formatAST a s c =
@@ -85,7 +137,7 @@ let printAST isFsiFile sourceCode =
     
 let printContext sourceCode =
     let normalizedSourceCode = Fantomas.String.normalizeNewLine sourceCode
-    let defines = Fantomas.TokenParser.getDefines sourceCode |> List.ofArray
+    let defines = Fantomas.TokenParser.getDefines sourceCode
     let context = Fantomas.Context.Context.create config defines normalizedSourceCode None
     printfn "context: %A" context
 
@@ -96,12 +148,12 @@ type Input = Input of string
 let toSynExprs (Input s) =
     match (try Some (parse false s) with _ -> None) with
     | Some 
-      (ParsedInput.ImplFile
+      [|(ParsedInput.ImplFile
         (ParsedImplFileInput
             ("/tmp.fsx", _,
             QualifiedNameOfFile _, [], [],
             [SynModuleOrNamespace
-                (_, false, AnonModule, exprs, _, _, _, _)], _))) -> 
+                (_, false, AnonModule, exprs, _, _, _, _)], _)))|] -> 
                 List.choose (function (SynModuleDecl.DoExpr(_, expr, _)) -> Some expr | _ -> None) exprs
     | _ -> 
         //stdout.WriteLine("Can't convert {0}.", sprintf "%A" ast)

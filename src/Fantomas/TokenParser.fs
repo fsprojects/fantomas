@@ -68,7 +68,7 @@ let getDefines sourceCode =
     Regex.Matches(sourceCode, "#if\\s(\\S+)")
     |> Seq.cast<Match>
     |> Seq.map (fun mtc -> mtc.Value.Substring(4))
-    |> Seq.toArray
+    |> Seq.toList
 
 let private getRangeBetween name startToken endToken =
     let start = FSharp.Compiler.Range.mkPos startToken.LineNumber startToken.TokenInfo.LeftColumn
@@ -185,31 +185,6 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
                 List.skip (List.length directiveTokens - 1) rest
 
         getTriviaFromTokensThemSelves allTokens nextRest info
-
-    | headToken::rest when (headToken.TokenInfo.TokenName = "INACTIVECODE") ->
-        let inactiveCodeTokens =
-            rest
-            |> List.filter (fun r -> r.LineNumber = headToken.LineNumber)
-            |> fun others -> List.prependItem others headToken
-            
-        let inactiveCodeContent =
-            inactiveCodeTokens
-            |> List.map (fun t -> t.Content)
-            |> String.concat System.String.Empty
-            
-        let range = getRangeBetween "inactivecode" headToken (List.last inactiveCodeTokens)
-        let info =
-            Trivia.Create (InActiveCode(inactiveCodeContent)) range
-            |> List.prependItem foundTrivia
-        
-        let nextRest =
-            match rest with
-            | [] -> []
-            | _ ->
-                List.skip (List.length inactiveCodeTokens - 1) rest
-
-        getTriviaFromTokensThemSelves allTokens nextRest info
-    
 
     | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
     

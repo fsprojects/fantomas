@@ -752,8 +752,8 @@ and genExpr astContext synExpr =
     | InfixApps(e, es) as expr ->
         let rangePlusInfix =
             match expr with
-            | SynExpr.App(_, _, funcExpr, _, _) ->
-                Some funcExpr.Range
+            | SynExpr.App(_, _, SynExpr.App(_,_,opIdent, _,_), _, _) ->
+                Some opIdent.Range
             | _ -> None
         // Only put |> on the same line in a very trivial expression
         atCurrentColumn (genExpr astContext e +> genInfixApps astContext (checkNewLine e es) rangePlusInfix es)
