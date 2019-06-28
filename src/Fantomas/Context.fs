@@ -437,7 +437,7 @@ let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
 let internal printTriviaContent (c: TriviaContent) =
     match c with
-    | Comment(LineCommentAfterSourceCode s) -> sepSpace +> !- s  // TODO: discuss if the space is correct here, it is opinionated for now.
+    | Comment(LineCommentAfterSourceCode s) -> sepSpace +> !- s // TODO: discuss if the space is correct here, it is opinionated for now.
     | Comment(LineCommentOnSingleLine s) -> !- s +> sepNln
     | Comment(BlockComment s) -> sepSpace -- s +> sepSpace
     | Newline -> sepNln
@@ -560,4 +560,36 @@ let internal beforeElseKeyword (fullIfRange: range) (elseRange: range) (ctx: Con
             sepNln +> !- lineComment +> removeNodeFromContext tn
         | _ ->
             id
+    <| ctx
+
+let internal genTriviaBeforeClausePipe (rangeOfClause:range) ctx =
+    ctx.Trivia
+    |> List.tryFind (fun t ->
+        match t.Type with
+        | Token({ TokenInfo = { TokenName = bar } }) ->
+            bar = "BAR" && t.Range.StartColumn < rangeOfClause.StartColumn && t.Range.StartLine = rangeOfClause.StartLine
+        | _ -> false
+    )
+    |> fun trivia ->
+        match trivia with
+        | Some trivia ->
+            printContentBefore trivia
+        | None -> id
+    <| ctx
+    
+let internal genCommentsAfterInfix (rangePlusInfix: range option) (ctx: Context) =
+    rangePlusInfix
+    |> Option.bind (findTriviaMainNodeFromRange ctx.Trivia)
+    |> Option.bind (fun trivia ->
+        trivia.ContentAfter
+        |> List.map (fun ca ->
+            match ca with
+            | TriviaContent.Comment(Comment.LineCommentAfterSourceCode(comment)) -> Some comment
+            | _ -> None
+        )
+        |> List.choose id
+        |> List.tryHead
+    )
+    |> Option.map (fun comment -> !- comment +> sepNln)
+    |> Option.defaultValue id
     <| ctx

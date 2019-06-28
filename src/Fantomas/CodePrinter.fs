@@ -748,9 +748,14 @@ and genExpr astContext synExpr =
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr astContext e
     | PrefixApp(s, e) -> !- s +> genExpr astContext e
     // Handle spaces of infix application based on which category it belongs to
-    | InfixApps(e, es) -> 
+    | InfixApps(e, es) as expr ->
+        let rangePlusInfix =
+            match expr with
+            | SynExpr.App(_, _, funcExpr, _, _) ->
+                Some funcExpr.Range
+            | _ -> None
         // Only put |> on the same line in a very trivial expression
-        atCurrentColumn (genExpr astContext e +> genInfixApps astContext (checkNewLine e es) es)
+        atCurrentColumn (genExpr astContext e +> genInfixApps astContext (checkNewLine e es) rangePlusInfix es)
 
     | TernaryApp(e1,e2,e3) -> 
         atCurrentColumn (genExpr astContext e1 +> !- "?" +> genExpr astContext e2 +> sepSpace +> !- "<-" +> sepSpace +> genExpr astContext e3)
@@ -960,20 +965,20 @@ and genLetOrUseList astContext = function
     | _ -> sepNone   
 
 /// When 'hasNewLine' is set, the operator is forced to be in a new line
-and genInfixApps astContext hasNewLine synExprs = 
+and genInfixApps astContext hasNewLine rangePlusInfix synExprs = 
     match synExprs with
     | (s, opE, e)::es when (NoBreakInfixOps.Contains s) -> 
         (sepSpace +> tok opE.Range s +> sepSpace +> genExpr astContext e)
-        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+        +> genInfixApps astContext (hasNewLine || checkNewLine e es) None es
     | (s, opE, e)::es when(hasNewLine) ->
         (sepNln +> tok opE.Range s +> sepSpace +> genExpr astContext e)
-        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+        +> genInfixApps astContext (hasNewLine || checkNewLine e es) None es
     | (s, opE, e)::es when(NoSpaceInfixOps.Contains s) -> 
         (tok opE.Range s +> autoNln (genExpr astContext e))
-        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+        +> genInfixApps astContext (hasNewLine || checkNewLine e es) None es
     | (s, opE, e)::es ->
-        (sepSpace +> autoNln (tok opE.Range s +> sepSpace +> genExpr astContext e))
-        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+        (sepSpace +> autoNln (tok opE.Range s +> sepSpace +> genCommentsAfterInfix rangePlusInfix +> genExpr astContext e))
+        +> genInfixApps astContext (hasNewLine || checkNewLine e es) None es
     | [] -> sepNone
 
 /// Use in indexed set and get only
@@ -1221,6 +1226,7 @@ and genSigException astContext (SigExceptionDef(ats, px, ao, uc, ms) as node) =
 
 and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs) as node) =
     genPreXmlDoc px
+    +> genTriviaBeforeClausePipe node.Range
     +> ifElse astContext.HasVerticalBar sepBar sepNone
     +> genOnelinerAttributes astContext ats -- s 
     +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
@@ -1371,7 +1377,8 @@ and genInterfaceImpl astContext (InterfaceImpl(t, bs, range)) =
         +> indent +> sepNln +> genMemberBindingList { astContext with InterfaceRange = Some range } bs +> unindent
     // |> genTrivia node
 
-and genClause astContext hasBar (Clause(p, e, eo) as node) = 
+and genClause astContext hasBar (Clause(p, e, eo) as node) =
+    genTriviaBeforeClausePipe p.Range +>
     ifElse hasBar sepBar sepNone +> genPat astContext p
     +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> preserveBreakNln astContext e
     |> genTrivia node.Range

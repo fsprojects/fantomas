@@ -384,24 +384,6 @@ let rainbow =
 """
 
 [<Test>]
-let ``records formatting with pEOL``() =
-    formatSourceString false """
-let rainbow = 
-    { b1 = "1"
-      b2 = "2" 
-      b3 = "3" 
-    }
-    """ config
-    |> should equal """
-let rainbow =
-    { b1 = "1"
-      b2 = "2"
-      b3 = "3"
-    }
-"""
-
-
-[<Test>]
 let ``keep single pipe with pEOL``() =
     formatSourceString false """
     try

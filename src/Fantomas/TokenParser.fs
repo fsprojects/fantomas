@@ -196,7 +196,7 @@ let getTriviaFromTokens (tokens: Token list) linesCount =
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
     
-let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "EQUALS"; "ELSE"; "PLUS_MINUS_OP"]
+let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "EQUALS"; "ELSE"; "PLUS_MINUS_OP"; "BAR"]
     
 let getTriviaNodesFromTokens (tokens: Token list) : TriviaNode list =
     tokens
