@@ -43,7 +43,7 @@ let f () =
 
     formatSourceString false codeSnippet config
     |> should equal """let f() =
-    let x = 1   (* the "in" keyword is available in F# *)
+    let x = 1 (* the "in" keyword is available in F# *)
     let y = 2
     x + y
 """

@@ -205,7 +205,7 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
         |> List.map mapNodeToTriviaNode
         |> List.choose id
     let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
-    let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens
+    let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
     
     let trivias = TokenParser.getTriviaFromTokens tokens lineCount
 
