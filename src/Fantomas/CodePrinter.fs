@@ -973,7 +973,7 @@ and genInfixApps astContext hasNewLine synExprs =
         (tok opE.Range s +> autoNln (genExpr astContext e))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es ->
-        (sepSpace +> autoNln (tok opE.Range s +> sepSpace +> genExpr astContext e))
+        (sepSpace +> autoNln (tok opE.Range s +> sepSpace +> genCommentsAfterInfix (Some opE.Range) +> genExpr astContext e))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | [] -> sepNone
 
