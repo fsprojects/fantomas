@@ -46,7 +46,7 @@ module private Ast =
     and visitSynModuleOrNamespace(modOrNs: SynModuleOrNamespace): Node =
         match modOrNs with
         | SynModuleOrNamespace(longIdent,isRecursive,isModule,decls,_,attrs,access,range) ->
-            {Type = "SynModuleOrNamespace"
+            {Type = sprintf "SynModuleOrNamespace.%A" isModule
              Range = r range
              Properties =
                  p [yield "isRecursive" ==> isRecursive
@@ -358,7 +358,7 @@ module private Ast =
                   if elseExpr.IsSome then yield visitSynExpr elseExpr.Value]}
         | SynExpr.Ident(id) ->
             {Type = "SynExpr.Ident"
-             Range = noRange
+             Range = (i id).Range
              Properties = p ["ident" ==> i id]
              FsAstNode = synExpr
              Childs = []}
@@ -1636,12 +1636,14 @@ module private Ast =
                  [yield visitSynExceptionDefnRepr sedr
                   yield! (members |> List.map visitSynMemberSig)]}
 
-let astToNode (ast: SynModuleOrNamespace list): Node =
-    let children = List.map Ast.visit ast
+let astToNode (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list): Node =
+    let children =
+        [ yield! List.map Ast.visit mdls
+          yield! List.map Ast.visitParsedHashDirective hds ]
     {Type = "File"
      Range = None
      Properties = Map.empty
-     FsAstNode = ast
+     FsAstNode = mdls
      Childs = children}
 
 let sigAstToNode (ast: SynModuleOrNamespaceSig list) : Node =

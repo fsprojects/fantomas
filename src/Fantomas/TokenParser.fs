@@ -60,7 +60,9 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
 let tokenize defines (content : string) : Token list * int =
     let sourceTokenizer = FSharpSourceTokenizer("INTERACTIVE" :: defines, Some "/tmp.fsx")
     let lines = String.normalizeThenSplitNewLine content |> Array.toList
-    let tokens = tokenizeLines sourceTokenizer lines FSharpTokenizerLexState.Initial
+    let tokens =
+        tokenizeLines sourceTokenizer lines FSharpTokenizerLexState.Initial
+        |> List.filter (fun t -> t.TokenInfo.TokenName <> "INACTIVECODE")
     tokens, List.length lines
     
 /// Regex alone won't cut it, good enough for now
@@ -68,7 +70,7 @@ let getDefines sourceCode =
     Regex.Matches(sourceCode, "#if\\s(\\S+)")
     |> Seq.cast<Match>
     |> Seq.map (fun mtc -> mtc.Value.Substring(4))
-    |> Seq.toArray
+    |> Seq.toList
 
 let private getRangeBetween name startToken endToken =
     let l = startToken.TokenInfo.LeftColumn
@@ -163,6 +165,30 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves allTokens rest info
+        
+    | headToken::rest when (headToken.TokenInfo.TokenName = "HASH_IF") ->
+        let directiveTokens =
+            rest
+            |> List.filter (fun r -> r.LineNumber = headToken.LineNumber)
+            |> fun others -> List.prependItem others headToken
+            
+        let directiveContent =
+            directiveTokens
+            |> List.map (fun t -> t.Content)
+            |> String.concat System.String.Empty
+            
+        let range = getRangeBetween "directive" headToken (List.last directiveTokens)
+        let info =
+            Trivia.Create (Directive(directiveContent)) range
+            |> List.prependItem foundTrivia
+        
+        let nextRest =
+            match rest with
+            | [] -> []
+            | _ ->
+                List.skip (List.length directiveTokens - 1) rest
+
+        getTriviaFromTokensThemSelves allTokens nextRest info
 
     | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
     

@@ -49,8 +49,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
 #endif
 """  config
-    |> should equal """
-#if INTERACTIVE
+    |> should equal """#if INTERACTIVE
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
@@ -116,7 +115,6 @@ let useHiddenInitCode = false
 #else
 let useHiddenInitCode = true
 #endif
-
 let y = 2
 """
 
@@ -172,12 +170,32 @@ let [<Literal>] private assemblyConfig() =
     |> should equal """
 [<Literal>]
 let private assemblyConfig() =
-#if TRACE
+    #if TRACE
     let x = ""
-#else
-  let x = "x"
-#endif
+    #else
+    let x = "x"
+    #endif
+    x
+"""
 
+[<Test; Description("format multiple times")>]
+let multipleFormats () =
+    formatSourceStringMultipleTimes """
+let [<Literal>] private assemblyConfig() =
+  #if TRACE
+  let x = ""
+  #else
+  let x = "x"
+  #endif
+  x
+"""  config
+    |> should equal """[<Literal>]
+let private assemblyConfig() =
+    #if TRACE
+    let x = ""
+    #else
+    let x = "x"
+    #endif
     x
 """
 
@@ -222,8 +240,7 @@ let ``missing inactive code if directive not defined``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if NOT_DEFINED
+    |> should equal """#if NOT_DEFINED
 let x = 1
 #endif
 """
@@ -236,8 +253,7 @@ let ``don't duplicate active code if directive not defined``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if NOT_DEFINED
+    |> should equal """#if NOT_DEFINED
 #else
 let x = 1
 #endif
@@ -250,8 +266,7 @@ let ``missing line break in an active directive``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if DEBUG
+    |> should equal """#if DEBUG
 let x = 1
 #endif
 """
@@ -263,8 +278,7 @@ let ``should handle #if on the first line``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if INTERACTIVE
+    |> should equal """#if INTERACTIVE
 let x = 1
 #endif
 """

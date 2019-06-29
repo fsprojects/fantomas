@@ -75,7 +75,7 @@ and genSigFile astContext (ParsedSigFileInput(hs, mns)) =
     col sepNone hs genParsedHashDirective +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns (genSigModuleOrNamespace astContext)
 
-and genParsedHashDirective (ParsedHashDirective(h, s)) =
+and genParsedHashDirective (ParsedHashDirective(h, s, r)) =
     let printArgument arg =
         match arg with
         | "" -> sepNone
@@ -84,6 +84,7 @@ and genParsedHashDirective (ParsedHashDirective(h, s)) =
         | _ -> !- (sprintf "\"%O\"" arg)
 
     !- "#" -- h +> sepSpace +> col sepSpace s printArgument
+    |> genTrivia r
 
 and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind) as node) =
     let sepModuleAndFirstDecl =
@@ -751,8 +752,8 @@ and genExpr astContext synExpr =
     | InfixApps(e, es) as expr ->
         let rangePlusInfix =
             match expr with
-            | SynExpr.App(_, _, funcExpr, _, _) ->
-                Some funcExpr.Range
+            | SynExpr.App(_, _, SynExpr.App(_,_,opIdent, _,_), _, _) ->
+                Some opIdent.Range
             | _ -> None
         // Only put |> on the same line in a very trivial expression
         atCurrentColumn (genExpr astContext e +> genInfixApps astContext (checkNewLine e es) rangePlusInfix es)

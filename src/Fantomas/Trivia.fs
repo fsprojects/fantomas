@@ -7,9 +7,9 @@ open Fantomas
 open Fantomas.TriviaTypes
 open FSharp.Compiler.Range
 
-let private isMainNodeButNotAModule (node: TriviaNode) =
+let private isMainNodeButNotAnonModule (node: TriviaNode) =
     match node.Type with
-    | MainNode(t) when (t <> "SynModuleOrNamespace") -> true
+    | MainNode(t) when (t <> "SynModuleOrNamespace.AnonModule") -> true
     | _ -> false
     
 let isMainNode (node: TriviaNode) =
@@ -39,12 +39,17 @@ let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode
     |> List.sortBy (fun { Range = r } -> r.StartColumn)
     |> List.tryHead
     
+let private nodesContainsBothAnonModuleAndOpen (nodes: TriviaNode list) =
+    let mainNodeIs name t =  t.Type = MainNode(name)
+    List.exists (mainNodeIs "SynModuleOrNamespace.AnonModule") nodes &&
+    List.exists (mainNodeIs "SynModuleDecl.Open") nodes
+    
 let private findFirstNodeAfterLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
     |> List.filter (fun n -> n.Range.StartLine > lineNumber)
     |> fun filteredNodes ->
         match filteredNodes with
-        | moduleAndOpens when (List.forall (fun t -> t.Type = MainNode("SynModuleOrNamespace") || t.Type = MainNode("SynModuleDecl.Open")) moduleAndOpens) ->
+        | moduleAndOpens when (nodesContainsBothAnonModuleAndOpen moduleAndOpens) ->
             moduleAndOpens
             |> List.filter (fun t -> t.Type = MainNode("SynModuleDecl.Open"))
             |> List.sortBy (fun t -> t.Range.StartLine)
@@ -65,7 +70,7 @@ let private findLastNode (nodes: TriviaNode list) : TriviaNode option =
     | [] -> None
     | nodes ->
         nodes
-        |> List.filter isMainNodeButNotAModule
+        |> List.filter isMainNodeButNotAnonModule
         |> List.maxBy (fun tn -> tn.Range.EndLine)
         |> Some
 
@@ -92,7 +97,7 @@ let private mapNodeToTriviaNode (node: Node) =
     
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNode list) (range: range) =
     triviaNodes
-    |> List.filter isMainNodeButNotAModule
+    |> List.filter isMainNodeButNotAnonModule
     |> List.forall (fun tn -> tn.Range.EndLine < range.StartLine)
 
 let private updateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =
@@ -161,6 +166,18 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
 
+    | { Item = Directive(dc) as directive; Range = range } ->
+        match findFirstNodeAfterLine triviaNodes range.StartLine with
+        | Some _ as node ->
+            updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore directive }) triviaNodes node
+        | None ->
+            findNodeBeforeLineAndColumn triviaNodes range.StartLine 0
+            |> updateTriviaNode (fun tn ->
+                let directive =
+                    System.String.Concat(System.Environment.NewLine, dc)
+                    |> Directive
+                { tn with ContentAfter = List.appendItem tn.ContentAfter directive }) triviaNodes
+
     | _ ->
         triviaNodes
 
@@ -176,8 +193,8 @@ let private triviaNodeIsNotEmpty triviaNode =
 let collectTrivia tokens lineCount (ast: ParsedInput) =
     let node =
         match ast with
-        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, _, mns, _)) ->
-            Fantomas.AstTransformer.astToNode mns
+        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hds, mns, _)) ->            
+            Fantomas.AstTransformer.astToNode hds mns
 
         | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput(_, _, _ , _, mns)) ->
             Fantomas.AstTransformer.sigAstToNode mns

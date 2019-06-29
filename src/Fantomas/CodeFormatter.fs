@@ -1,7 +1,6 @@
 ﻿namespace Fantomas
 
 open Fantomas
-open FSharp.Compiler.Range
 
 [<Sealed>]
 type CodeFormatter =
@@ -64,60 +63,3 @@ type CodeFormatter =
 
     static member MakeRange(fileName, startLine, startCol, endLine, endCol) = 
         CodeFormatterImpl.makeRange fileName startLine startCol endLine endCol
-
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-module CodeFormatter =
-    let internal createFormatContextNoFileName isFsiFile sourceCode =
-        let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-        CodeFormatterImpl.createFormatContextNoChecker fileName sourceCode
-
-    let parse isFsiFile sourceCode = 
-        createFormatContextNoFileName isFsiFile sourceCode
-        |> CodeFormatterImpl.parse
-        |> Async.RunSynchronously
-
-    let isValidAST ast = 
-        CodeFormatterImpl.isValidAST ast
-
-    let isValidFSharpCode isFsiFile sourceCode =
-        createFormatContextNoFileName isFsiFile sourceCode
-        |> CodeFormatterImpl.isValidFSharpCode
-        |> Async.RunSynchronously
-
-    let formatSourceString isFsiFile sourceCode config =
-        createFormatContextNoFileName isFsiFile sourceCode
-        |> CodeFormatterImpl.formatDocument config
-        |> Async.RunSynchronously
-
-    let formatAST ast (formatContext: CodeFormatterImpl.FormatContext) config = 
-        let tmpContext = { formatContext with FileName = "/tmp.fsx"; }
-        CodeFormatterImpl.formatAST ast tmpContext config
- 
-    let makeRange startLine startCol endLine endCol = 
-        CodeFormatterImpl.makeRange "/tmp.fsx" startLine startCol endLine endCol
-
-    let formatSelectionOnly isFsiFile (range : range) (sourceCode : string) config =
-        createFormatContextNoFileName isFsiFile sourceCode
-        |> CodeFormatterImpl.formatSelection range config
-        |> Async.RunSynchronously
-
-    let formatSelectionExpanded isFsiFile (range : range) (sourceCode : string) config =
-        createFormatContextNoFileName isFsiFile sourceCode
-        |> CodeFormatterImpl.formatSelectionExpanded range config
-        |> Async.RunSynchronously
-
-    let formatSelectionFromString isFsiFile (range : range) (sourceCode : string) config =
-        createFormatContextNoFileName isFsiFile sourceCode
-        |> CodeFormatterImpl.formatSelectionInDocument range config
-        |> Async.RunSynchronously
-
-    let makePos line col = 
-        CodeFormatterImpl.makePos line col
-
-    let formatAroundCursor isFsiFile (cursorPos : pos) (sourceCode : string) config = 
-        createFormatContextNoFileName isFsiFile sourceCode
-        |> CodeFormatterImpl.formatAroundCursor cursorPos config
-        |> Async.RunSynchronously
-
-    let inferSelectionFromCursorPos (cursorPos : pos) (sourceCode : string) = 
-        CodeFormatterImpl.inferSelectionFromCursorPos cursorPos "/tmp.fsx" sourceCode

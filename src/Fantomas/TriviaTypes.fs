@@ -30,6 +30,7 @@ type TriviaContent =
     | Keyword of string
     | Comment of Comment
     | Newline
+    | Directive of string
     
 type Trivia =
     { Item: TriviaContent
