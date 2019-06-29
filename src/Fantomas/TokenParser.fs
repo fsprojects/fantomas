@@ -15,6 +15,7 @@ let private isTokenAfterGreater token (greaterToken: Token) =
 
 let private getTokenText (sourceCodeLines: string list) line (token: FSharpTokenInfo) =
     sourceCodeLines.[line - 1].Substring(token.LeftColumn, token.RightColumn - token.LeftColumn + 1)
+    |> String.normalizeNewLine
 
 /// Tokenize a single line of F# code
 let rec private tokenizeLine (tokenizer:FSharpLineTokenizer) sourceCodeLines state lineNumber tokens =
