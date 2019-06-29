@@ -8,7 +8,6 @@ open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 open NUnit.Framework
-open System.Text.RegularExpressions
 
 let config = FormatConfig.Default
 let newline = "\n"
@@ -31,52 +30,6 @@ let formatSourceString isFsiFile (s : string) config =
     CodeFormatter.FormatDocumentAsync(fileName, s, config, parsingOptions, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
-    
-let hashRegex = @"^\s*#.*"
-    
-let formatSourceStringX (s : string) config define = 
-    // On Linux/Mac this will exercise different line endings
-    let s = s.Replace("\r\n", Environment.NewLine)
-    let fileName = "/src.fsx"
-    let conditionalCompilationDefines = match define with | Some d -> [d] | None -> []
-    let parsingOptions = { (parsingOptions fileName) with ConditionalCompilationDefines = conditionalCompilationDefines }
-    CodeFormatter.FormatDocumentAsync(fileName, s, config, parsingOptions, sharedChecker.Value)
-    |> Async.RunSynchronously
-    |> fun s -> s.Replace("\r\n", "\n")
-    
-let private splitWhenHash (source: string) = 
-    source.Split([| Environment.NewLine; "\r\n"; "\n" |], options = StringSplitOptions.None)
-    |> Array.fold (fun acc line ->
-        if Regex.IsMatch(line, hashRegex) then
-            [line]::acc
-        else
-            acc
-            |> List.mapi (fun idx l -> if idx = 0 then (line::l) else l)
-    ) [[]]
-    |> List.map (List.rev >> String.concat Environment.NewLine)
-    |> List.rev
-
-let private merge a b =
-    let aChunks = splitWhenHash a
-    let bChunks = splitWhenHash b
-    List.zip aChunks bChunks
-    |> List.map (fun (a', b') ->
-        if String.length a' > String.length b' then a' else b'
-    )
-    |> String.concat Environment.NewLine
-
-let formatSourceStringMultipleTimes (s: string) config =
-    let defines = TokenParser.getDefines s
-    let results =
-        defines
-        |> List.map (Some)
-        |> List.append [None]
-        |> List.map (formatSourceStringX s config)
-    match results with
-    | [] -> failwith "not possible"
-    | [x] -> x
-    | all -> List.reduce merge all
-    |> fun formatted -> formatted.Replace("\r\n", "\n")
 
 let formatSelectionFromString isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)

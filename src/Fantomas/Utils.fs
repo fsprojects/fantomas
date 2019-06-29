@@ -24,9 +24,8 @@ module String =
         normalizeNewLine str
         |> fun s -> s.Replace("\n", String.Empty)
         |> String.length
-        
-    // Merge all combinations of formatting
-    let hashRegex = @"^\s*#.*"
+
+    let private hashRegex = @"^\s*#.*"
     let private splitWhenHash (source: string) = 
         source.Split([| Environment.NewLine; "\r\n"; "\n" |], options = StringSplitOptions.None)
         |> Array.fold (fun acc line ->
