@@ -59,7 +59,7 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
   |> snd // ignore the state
 
 let tokenize defines (content : string) : Token list * int =
-    let sourceTokenizer = FSharpSourceTokenizer("INTERACTIVE" :: defines, Some "/tmp.fsx")
+    let sourceTokenizer = FSharpSourceTokenizer(defines, Some "/tmp.fsx")
     let lines = String.normalizeThenSplitNewLine content |> Array.toList
     let tokens =
         tokenizeLines sourceTokenizer lines FSharpTokenizerLexState.Initial

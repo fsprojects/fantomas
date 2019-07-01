@@ -70,3 +70,37 @@ let private assemblyConfig() =
     x
 """
     |> mergeAndCompare a b
+    
+[<Test>]
+let ``Only split on control structure keyword`` () =
+    let a = """
+#if INTERACTIVE
+#else
+#load "../FSharpx.TypeProviders/SetupTesting.fsx"
+
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+
+#load "__setup__.fsx"
+#endif
+"""
+
+    let b = """
+#if INTERACTIVE
+#else
+
+
+
+#endif
+    """
+    
+    """
+#if INTERACTIVE
+#else
+#load "../FSharpx.TypeProviders/SetupTesting.fsx"
+
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+
+#load "__setup__.fsx"
+#endif
+"""
+    |> mergeAndCompare a b

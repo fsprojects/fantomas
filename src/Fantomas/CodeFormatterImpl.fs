@@ -51,7 +51,7 @@ let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions;
     |> List.map (fun define ->
         async {
             let conditionalCompilationDefines = match define with | Some d -> [d] | None -> []
-            let projectOptions = { checkOptions with ConditionalCompilationDefines = conditionalCompilationDefines }
+            let projectOptions = { checkOptions with ConditionalCompilationDefines = conditionalCompilationDefines; IsInteractive = false }
             // Run the first phase (untyped parsing) of the compiler
             let! untypedRes = checker.ParseFile(fileName, source, projectOptions)
             if untypedRes.ParseHadErrors then
@@ -410,9 +410,9 @@ let formatWith ast formatContext config =
 
 let format config formatContext =
     async {
-        let! ast = parse formatContext
+        let! asts = parse formatContext
         let results =
-            ast
+            asts
             |> Array.map (fun (ast', defines) ->
                 let formatContext' =
                     { formatContext with
