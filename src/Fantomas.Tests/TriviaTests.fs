@@ -314,7 +314,7 @@ let x = 1
          ContentAfter = [] }
        { Type = MainNode("SynModuleDecl.Let")
          ContentBefore = []
-         ContentAfter = [Directive("\n#endif")]}] ->
+         ContentAfter = [Directive("\r\n#endif")]}] ->
         pass()
     | _ ->
         fail()
