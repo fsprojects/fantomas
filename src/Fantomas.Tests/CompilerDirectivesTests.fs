@@ -141,19 +141,19 @@ let [<Literal>] private assemblyConfig =
     |> should equal """
 [<Literal>]
 let private assemblyConfig =
-#if DEBUG
-#if TRACE
+    #if DEBUG
+    #if TRACE
     "DEBUG;TRACE"
-#else
+    #else
     "DEBUG"
-#endif
-#else
-#if TRACE
+    #endif
+    #else
+    #if TRACE
     "TRACE"
-#else
+    #else
     ""
-#endif
-#endif
+    #endif
+    #endif
 """
 
 [<Test; Description("inactive code is not formatted correctly")>]

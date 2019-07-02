@@ -310,18 +310,18 @@ let x = 1
 
     match withDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
-         ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else")]
+         ContentBefore = [Directive("#if NOT_DEFINED", false); Directive("#else", false)]
          ContentAfter = [] }
        { Type = MainNode("SynModuleDecl.Let")
          ContentBefore = []
-         ContentAfter = [Directive("\r\n#endif")]}] ->
+         ContentAfter = [Directive("#endif", true)]}] ->
         pass()
     | _ ->
         fail()
         
     match withoutDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
-         ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else"); Directive("#endif")]
+         ContentBefore = [Directive("#if NOT_DEFINED", false); Directive("#else", false); Directive("#endif", false)]
          ContentAfter = [] }] ->
         pass()
     | _ ->
@@ -342,7 +342,7 @@ let x = 1
     
     match withoutDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
-         ContentBefore = [Directive("#if NOT_DEFINED"); Newline; Directive("#endif")]
+         ContentBefore = [Directive("#if NOT_DEFINED",false); Newline; Directive("#endif", false)]
          ContentAfter = [] }] ->
         pass()
     | _ ->
@@ -350,11 +350,11 @@ let x = 1
 
     match withDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
-         ContentBefore = [Directive("#if NOT_DEFINED")]
+         ContentBefore = [Directive("#if NOT_DEFINED", false)]
          ContentAfter = [] }
        { Type = MainNode("SynModuleDecl.Let")
          ContentBefore = []
-         ContentAfter = [Directive("\r\n#endif")]}] ->
+         ContentAfter = [Directive("#endif", true)]}] ->
         pass()
     | _ ->
         fail()

@@ -3,7 +3,6 @@ module internal Fantomas.TokenParser
 open FSharp.Compiler.AbstractIL.Internal.Library
 open System
 open FSharp.Compiler.SourceCodeServices
-open System.Text.RegularExpressions
 open Fantomas
 open Fantomas.TriviaTypes
 
@@ -246,7 +245,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             
         let range = getRangeBetween "directive" headToken (List.last directiveTokens)
         let info =
-            Trivia.Create (Directive(directiveContent)) range
+            Trivia.Create (Directive(directiveContent, false (*false for now, later determined in Trivia.fs*))) range
             |> List.prependItem foundTrivia
         
         let nextRest =
