@@ -9,7 +9,7 @@ let private mergeAndCompare a b expected =
         String.merge a b
         |> String.normalizeNewLine
 
-    expected == result
+    (String.normalizeNewLine expected) == result
 
 [<Test>]
 let ``Merging of source code that starts with a hash`` () =
