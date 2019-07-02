@@ -12,7 +12,7 @@ let private toTrivia source =
     astWithDefines
     |> List.map (fun (ast, defines) ->
         let (tokens, lineCount) = TokenParser.tokenize defines source
-        defines, Trivia.collectTrivia tokens lineCount ast
+        Trivia.collectTrivia tokens lineCount ast
     )
 
 [<Test>]
@@ -25,7 +25,7 @@ let a = 9
         toTrivia source
         |> List.head
     
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ ContentBefore = [Comment(LineCommentOnSingleLine(lineComment))];  }] ->
         lineComment == "// meh"
     | _ ->
@@ -41,7 +41,7 @@ let a = 'c'
         toTrivia source
         |> List.head
     
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ ContentBefore = [Comment(LineCommentOnSingleLine(lineComment))];  }] ->
         lineComment == "// foo"
     | _ ->
@@ -54,7 +54,7 @@ let ``Line comment on same line, is after last AST item`` () =
         toTrivia source
         |> List.head
 
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ContentAfter = [Comment(LineCommentAfterSourceCode(lineComment))]}] ->
         lineComment == "// should be 8"
     | _ ->
@@ -69,7 +69,7 @@ let b = 9"""
         toTrivia source
         |> List.head
 
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ContentBefore = cb}] ->
         List.length cb == 1
     | _ ->
@@ -86,7 +86,7 @@ let a = 7
         toTrivia source
         |> List.head
 
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ContentBefore = [Comment(LineCommentOnSingleLine(fooComment));Comment(LineCommentOnSingleLine(barComment))]}] ->
         fooComment == "// foo"
         barComment == "// bar"
@@ -104,7 +104,7 @@ let ``Comments inside record`` () =
         toTrivia source
         |> List.head
 
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ Type = TriviaNodeType.Token(t); ContentAfter = [Comment(LineCommentAfterSourceCode("// foo"))] }] ->
         t.Content == "{"
     | _ ->
@@ -121,7 +121,7 @@ let ``Comment after all source code`` () =
         toTrivia source
         |> List.head
     
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ Type = MainNode(mn); ContentAfter = [Comment(LineCommentOnSingleLine(lineComment))] }] ->
         mn == "SynModuleDecl.Types"
         lineComment == (sprintf "%s//    override private x.ToString() = \"\"" Environment.NewLine)
@@ -137,7 +137,7 @@ let ``Block comment added to trivia`` () =
         toTrivia source
         |> List.head
     
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ ContentAfter = [Comment(BlockComment(comment))]
          Type = Token { Content = "=" } }] ->
         comment == "(* meh *)"
@@ -154,7 +154,7 @@ let a =  9
         toTrivia source
         |> List.head
     
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
         comment == "(* meh *)"
     | _ ->
@@ -169,7 +169,7 @@ let ``Block comment on newline EOF added to trivia`` () =
         toTrivia source
         |> List.head
     
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ ContentAfter = [Newline; Comment(BlockComment(comment))] }] ->
         comment == "(* meh *)"
     | _ ->
@@ -183,7 +183,7 @@ let ``Block comment on EOF added to trivia`` () =
         toTrivia source
         |> List.head
     
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ ContentAfter = [Comment(BlockComment(comment))] }] ->
         comment == "(* meh *)"
     | _ ->
@@ -199,7 +199,7 @@ let a =  9
         toTrivia source
         |> List.head
     
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
         comment == "(* (* meh *) *)"
     | _ ->
@@ -216,7 +216,7 @@ let a =  9
         toTrivia source
         |> List.head
     
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
         comment == "(* // meh *)"
     | _ ->
@@ -234,7 +234,7 @@ let a =  9
         toTrivia source
         |> List.head
     
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
         comment == """(* meh
 bla *)"""
@@ -254,7 +254,7 @@ x
         toTrivia source
         |> List.head
 
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ContentBefore = [Comment(BlockComment(fooComment)); Newline; Comment(BlockComment(barComment)); Newline]}] ->
         fooComment == "(* foo *)"
         barComment == "(* bar *)"
@@ -271,7 +271,7 @@ let a =  9
         toTrivia source
         |> List.head
     
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ ContentBefore = [Comment(LineCommentOnSingleLine(comment))] }] ->
         comment == "// (* meh *)"
     | _ ->
@@ -287,7 +287,7 @@ elif true then ()"""
         toTrivia source
         |> List.head
     
-    match snd triviaNodes with
+    match triviaNodes with
     | [{ Type = MainNode("SynExpr.IfThenElse"); ContentBefore = [Keyword("if")] }
        { Type = MainNode("SynExpr.IfThenElse"); ContentBefore = [Keyword("elif")]}] ->
         pass()
@@ -305,10 +305,10 @@ let x = 1
     let triviaNodes =
         toTrivia source
 
-    let withDefine = List.find (fst >> ((=) ["NOT_DEFINED"])) triviaNodes
-    let withoutDefine = List.find (fst >> ((=) [])) triviaNodes
+    let withDefine = List.head triviaNodes
+    let withoutDefine = List.last triviaNodes
 
-    match snd withDefine with
+    match withDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
          ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else")]
          ContentAfter = [] }
@@ -319,7 +319,7 @@ let x = 1
     | _ ->
         fail()
         
-    match snd withoutDefine with
+    match withoutDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
          ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else"); Directive("#endif")]
          ContentAfter = [] }] ->
@@ -337,10 +337,10 @@ let x = 1
     let triviaNodes =
         toTrivia source
 
-    let withoutDefine = List.find (fst >> ((=) [])) triviaNodes
-    let withDefine = List.find (fst >> ((=) ["NOT_DEFINED"])) triviaNodes
+    let withoutDefine = List.head triviaNodes
+    let withDefine = List.last triviaNodes
     
-    match snd withoutDefine with
+    match withoutDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
          ContentBefore = [Directive("#if NOT_DEFINED"); Newline; Directive("#endif")]
          ContentAfter = [] }] ->
@@ -348,7 +348,7 @@ let x = 1
     | _ ->
         fail()
 
-    match snd withDefine with
+    match withDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
          ContentBefore = [Directive("#if NOT_DEFINED")]
          ContentAfter = [] }

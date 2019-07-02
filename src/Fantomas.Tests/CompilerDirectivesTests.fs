@@ -206,15 +206,11 @@ type ExtensibleDumper = A | B
     |> prepend newline
     |> should equal """
 namespace Internal.Utilities.Diagnostic
-
 #if EXTENSIBLE_DUMPER
 #if DEBUG
-
-type ExtensibleDumper =
-    | A
-    | B
-    #endif
-    #endif
+type ExtensibleDumper = A | B
+#endif
+#endif
 """
 
 [<Test>]
