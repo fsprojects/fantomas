@@ -38,7 +38,33 @@ setupServer true
     getDefines source
     |> List.head
     |> should equal "DEBUG"
-    
+
+[<Test>]
+let ``Get defines from complex statements`` () =
+    let source = """
+#if INTERACTIVE || (FOO && BAR) || BUZZ
+let x = 1
+#endif
+"""
+    getDefines source == ["INTERACTIVE";"FOO";"BAR";"BUZZ"]
+
+[<Test>]
+let ``Tokens from directive inside a directive are being added`` () =
+    let source = """#if FOO
+  #if BAR
+  #else
+  #endif
+#endif
+"""
+    getDefines source == ["FOO";"BAR"]
+
+    let (tokens,_) = tokenize [] source
+    let hashTokens =
+        tokens
+        |> List.filter (fun { TokenInfo = { TokenName = tn } } -> tn = "HASH_IF")
+
+    List.length hashTokens == 5
+
 [<Test>]
 let ``tokenize should return correct amount`` () =
     let source = "let a = 7" // LET WHITESPACE IDENT WHITESPACE EQUALS WHITESPACE INT32
@@ -184,24 +210,7 @@ let ``Comment after left brace of record`` () =
         range.StartLine == 2
     | _ ->
         failwith "expected line comment after left brace"
-        
-    
-//[<Test>]
-//let ``keyword should be found in tokens`` () =
-//    let source = "let a = 42"
-//    let tokens = tokenize [] source
-//    let triviaNodes = getTriviaNodesFromTokens tokens
-//    
-//    match List.tryHead triviaNodes with
-//    | Some({ Type = Keyword(keyword); Range = range }) ->
-//        keyword == "let"
-//        range.StartColumn == 0
-//        range.StartLine == 1
-//        range.EndColumn == 2
-//        range.EndLine == 1
-//    | _ ->
-//        failwith "expected keyword"
-        
+
 [<Test>]
 let ``left brace should be found in tokens`` () =
     let source = "type R = { A: int }"

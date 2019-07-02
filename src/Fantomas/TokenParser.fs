@@ -58,20 +58,86 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
   ) (state, []) // empty tokens to start with
   |> snd // ignore the state
 
-let tokenize defines (content : string) : Token list * int =
+let private createHashToken lineNumber content fullMatchedLength tokenAfter =
+    let (left,right) =
+        match tokenAfter with
+        | Some t -> t.TokenInfo.LeftColumn, t.TokenInfo.RightColumn
+        | None -> 1, String.length content
+
+
+    { LineNumber = lineNumber
+      Content = content
+      TokenInfo =
+          { TokenName = "HASH_IF"
+            LeftColumn = left
+            RightColumn = right
+            ColorClass = FSharpTokenColorKind.PreprocessorKeyword
+            CharClass = FSharpTokenCharKind.WhiteSpace
+            FSharpTokenTriggerClass = FSharpTokenTriggerClass.None
+            Tag = 0
+            FullMatchedLength = fullMatchedLength } }
+
+
+let rec private getTokenizedHashes sourceCode =
+    let processLine content (trimmed:string) lineNumber fullMatchedLength =
+        let contentLength = String.length content
+        tokenize [] (trimmed.Substring(contentLength))
+        |> fst
+        |> List.map (fun t -> { t with LineNumber = lineNumber })
+        |> fun rest -> (createHashToken lineNumber content fullMatchedLength (List.tryHead rest))::rest
+
+    sourceCode
+    |> String.normalizeThenSplitNewLine
+    |> Array.indexed
+    |> Array.map (fun (idx, line) ->
+        let lineNumber  = idx + 1
+        let fullMatchedLength = String.length line
+        let trimmed = line.TrimStart()
+
+        if trimmed.StartsWith("#if") then
+            processLine "#if" trimmed lineNumber fullMatchedLength
+        elif trimmed.StartsWith("#elseif") then
+            processLine "#elseif" trimmed lineNumber fullMatchedLength
+        elif trimmed.StartsWith("#else") then
+            processLine "#else" trimmed lineNumber fullMatchedLength
+        elif trimmed.StartsWith("#endif") then
+            processLine "#endif" trimmed lineNumber fullMatchedLength
+        else
+            []
+    )
+    |> Seq.collect id
+    |> Seq.toList
+
+and tokenize defines (content : string) : Token list * int =
     let sourceTokenizer = FSharpSourceTokenizer(defines, Some "/tmp.fsx")
     let lines = String.normalizeThenSplitNewLine content |> Array.toList
     let tokens =
         tokenizeLines sourceTokenizer lines FSharpTokenizerLexState.Initial
         |> List.filter (fun t -> t.TokenInfo.TokenName <> "INACTIVECODE")
-    tokens, List.length lines
+
+    let existingLines =
+        tokens
+        |> List.map (fun t -> t.LineNumber)
+        |> List.distinct
+
+    let combined =
+        if content.Contains("#") then
+            let hashes =
+                getTokenizedHashes content
+                |> List.filter (fun t -> not(List.contains t.LineNumber existingLines))
+                // filter hashes that are present in source code parsed by the Tokenizer.
+            tokens @ hashes
+            |> List.sortBy (fun t-> t.LineNumber, t.TokenInfo.LeftColumn)
+        else
+            tokens
+
+    combined, List.length lines
     
-/// Regex alone won't cut it, good enough for now
 let getDefines sourceCode =
-    Regex.Matches(sourceCode, "#if\\s(\\S+)")
-    |> Seq.cast<Match>
-    |> Seq.map (fun mtc -> mtc.Value.Substring(4))
-    |> Seq.toList
+    getTokenizedHashes sourceCode
+    |> List.filter (fun {TokenInfo = {TokenName = tn }} -> tn = "IDENT")
+    |> List.map (fun t -> t.Content)
+    |> List.distinct
 
 let private getRangeBetween name startToken endToken =
     let l = startToken.TokenInfo.LeftColumn
