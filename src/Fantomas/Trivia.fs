@@ -26,10 +26,16 @@ let rec private flattenNodeToList (node: Node) =
     [ yield node
       yield! (node.Childs |> List.map flattenNodeToList |> List.collect id) ]
     
-let filterNodes nodes =
+let private isUsefulRange (r: range option) =
+    match r with
+    | Some r when (not(r.StartLine = r.EndLine && r.StartColumn = r.EndColumn)) -> true
+    | _ -> false
+    
+let private filterNodes nodes =
     let filterOutNodeTypes =
         set [
             "SynExpr.Sequential" // some Sequential nodes are not visited in CodePrinter
+            "SynModuleOrNamespace.DeclaredNamespace" // LongIdent inside Namespace is being processed as children.
         ]
     nodes |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
 

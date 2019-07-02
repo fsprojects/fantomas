@@ -93,14 +93,24 @@ and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRe
         | None -> rep 2 sepNln
         | Some mdl ->
             sepNlnConsideringTrivaContentBefore mdl.Range +> sepNln
+            
+    let genTriviaForLongIdent (f: Context -> Context) =
+        match node with
+        | SynModuleOrNamespace.SynModuleOrNamespace(lid,_, SynModuleOrNamespaceKind.DeclaredNamespace,_,_,_,_,_) ->
+            lid
+            |> List.fold (fun (acc: Context -> Context) (ident:Ident) -> acc |> (genTrivia ident.idRange)) f
+        | _ -> f
+        
+    let moduleOrNamespace = ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
+    let recursive = ifElse isRecursive (!- "rec ") sepNone
+    let namespaceFn = ifElse (s = "") (!- "global") (!- s)
     
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> ifElse (moduleKind = AnonModule) sepNone 
-         (ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
-            +> opt sepSpace ao genAccess
-            +> ifElse isRecursive (!- "rec ") sepNone
-            +> ifElse (s = "") (!- "global") (!- s) +> sepModuleAndFirstDecl)
+    +> ifElse (moduleKind = AnonModule)
+         sepNone 
+         (genTriviaForLongIdent (moduleOrNamespace +> opt sepSpace ao genAccess +> recursive +> namespaceFn))
+    +> sepModuleAndFirstDecl
     +> genModuleDeclList astContext mds
     |> genTrivia node.Range
 
