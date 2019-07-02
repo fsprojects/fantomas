@@ -270,8 +270,7 @@ let ``should handle combined #if``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if INTERACTIVE || (FOO && BAR) || BUZZ
+    |> should equal """#if INTERACTIVE || (FOO && BAR) || BUZZ
 let x = 1
 #endif
 """
