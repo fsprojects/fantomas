@@ -45,12 +45,17 @@ let createFormatContext fileName source projectOptions checker =
     { FileName = fileName; Source = source; ProjectOptions = projectOptions; Checker = checker }
 
 let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker } =
-    checkOptions.ConditionalCompilationDefines
-    |> List.map Some
-    |> List.append [None]
-    |> List.map (fun define ->
+    let allDefineOptions =
+        checkOptions.ConditionalCompilationDefines
+        |> List.scan (fun acc n ->
+            n::acc
+        ) []
+        |> List.append (List.map List.singleton checkOptions.ConditionalCompilationDefines)
+        |> List.distinct
+    
+    allDefineOptions
+    |> List.map (fun conditionalCompilationDefines ->
         async {
-            let conditionalCompilationDefines = match define with | Some d -> [d] | None -> []
             let projectOptions = { checkOptions with ConditionalCompilationDefines = conditionalCompilationDefines; IsInteractive = false }
             // Run the first phase (untyped parsing) of the compiler
             let! untypedRes = checker.ParseFile(fileName, source, projectOptions)

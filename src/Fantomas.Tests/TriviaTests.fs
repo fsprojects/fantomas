@@ -14,6 +14,16 @@ let private toTrivia source =
         let (tokens, lineCount) = TokenParser.tokenize defines source
         Trivia.collectTrivia tokens lineCount ast
     )
+    
+let private toTriviaWithDefines source =
+    let astWithDefines = parse false source |> Array.toList
+    
+    astWithDefines
+    |> List.map (fun (ast, defines) ->
+        let (tokens, lineCount) = TokenParser.tokenize defines source
+        defines, Trivia.collectTrivia tokens lineCount ast
+    )
+    |> Map.ofList
 
 [<Test>]
 let ``Line comment that starts at the beginning of a line added to trivia`` () =
@@ -303,12 +313,12 @@ let x = 1
 """
 
     let triviaNodes =
-        toTrivia source
+        toTriviaWithDefines source
 
-    let withDefine = List.head triviaNodes
-    let withoutDefine = List.last triviaNodes
+    let withDefine = Map.find ["NOT_DEFINED"] triviaNodes
+    let withoutDefine = Map.find [] triviaNodes
 
-    match withDefine with
+    match withoutDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
          ContentBefore = [Directive("#if NOT_DEFINED", false); Directive("#else", false)]
          ContentAfter = [] }
@@ -319,7 +329,7 @@ let x = 1
     | _ ->
         fail()
         
-    match withoutDefine with
+    match withDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
          ContentBefore = [Directive("#if NOT_DEFINED", false); Directive("#else", false); Directive("#endif", false)]
          ContentAfter = [] }] ->
@@ -335,10 +345,10 @@ let x = 1
 """
     
     let triviaNodes =
-        toTrivia source
+        toTriviaWithDefines source
 
-    let withoutDefine = List.head triviaNodes
-    let withDefine = List.last triviaNodes
+    let withDefine = Map.find ["NOT_DEFINED"] triviaNodes
+    let withoutDefine = Map.find [] triviaNodes
     
     match withoutDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
