@@ -321,10 +321,7 @@ let x = 1
     match withoutDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
          ContentBefore = [Directive("#if NOT_DEFINED", false); Directive("#else", false)]
-         ContentAfter = [] }
-       { Type = MainNode("SynModuleDecl.Let")
-         ContentBefore = []
-         ContentAfter = [Directive("#endif", true)]}] ->
+         ContentAfter = [Directive("#endif", true)] }] ->
         pass()
     | _ ->
         fail()

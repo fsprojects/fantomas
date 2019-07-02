@@ -63,8 +63,13 @@ let ``Tokens from directive inside a directive are being added`` () =
         tokens
         |> List.filter (fun { TokenInfo = { TokenName = tn } } -> tn = "HASH_IF")
 
+    let furtherInwards =
+        hashTokens
+        |> List.filter (fun { TokenInfo = { LeftColumn = lc } } -> lc = 3)
+    
     List.length hashTokens == 5
-
+    List.length furtherInwards == 3
+    
 [<Test>]
 let ``tokenize should return correct amount`` () =
     let source = "let a = 7" // LET WHITESPACE IDENT WHITESPACE EQUALS WHITESPACE INT32

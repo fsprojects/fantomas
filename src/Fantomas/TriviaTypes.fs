@@ -25,7 +25,7 @@ let a = 7
 
 => LineCommentOnSingleLine("// meh", false)
 *)
-    
+
 type TriviaContent =
     | Keyword of string
     | Comment of Comment

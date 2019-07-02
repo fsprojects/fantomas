@@ -57,12 +57,8 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
   ) (state, []) // empty tokens to start with
   |> snd // ignore the state
 
-let private createHashToken lineNumber content fullMatchedLength tokenAfter =
-    let (left,right) =
-        match tokenAfter with
-        | Some t -> t.TokenInfo.LeftColumn, t.TokenInfo.RightColumn
-        | None -> 1, String.length content
-
+let private createHashToken lineNumber content fullMatchedLength offset =
+    let (left,right) = 1 + offset, String.length content + offset
 
     { LineNumber = lineNumber
       Content = content
@@ -78,12 +74,12 @@ let private createHashToken lineNumber content fullMatchedLength tokenAfter =
 
 
 let rec private getTokenizedHashes sourceCode =
-    let processLine content (trimmed:string) lineNumber fullMatchedLength =
+    let processLine content (trimmed:string) lineNumber fullMatchedLength offset =
         let contentLength = String.length content
         tokenize [] (trimmed.Substring(contentLength))
         |> fst
         |> List.map (fun t -> { t with LineNumber = lineNumber })
-        |> fun rest -> (createHashToken lineNumber content fullMatchedLength (List.tryHead rest))::rest
+        |> fun rest -> (createHashToken lineNumber content fullMatchedLength offset)::rest
 
     sourceCode
     |> String.normalizeThenSplitNewLine
@@ -92,15 +88,16 @@ let rec private getTokenizedHashes sourceCode =
         let lineNumber  = idx + 1
         let fullMatchedLength = String.length line
         let trimmed = line.TrimStart()
+        let offset = String.length line - String.length trimmed
 
         if trimmed.StartsWith("#if") then
-            processLine "#if" trimmed lineNumber fullMatchedLength
+            processLine "#if" trimmed lineNumber fullMatchedLength offset
         elif trimmed.StartsWith("#elseif") then
-            processLine "#elseif" trimmed lineNumber fullMatchedLength
+            processLine "#elseif" trimmed lineNumber fullMatchedLength offset
         elif trimmed.StartsWith("#else") then
-            processLine "#else" trimmed lineNumber fullMatchedLength
+            processLine "#else" trimmed lineNumber fullMatchedLength offset
         elif trimmed.StartsWith("#endif") then
-            processLine "#endif" trimmed lineNumber fullMatchedLength
+            processLine "#endif" trimmed lineNumber fullMatchedLength offset
         else
             []
     )
