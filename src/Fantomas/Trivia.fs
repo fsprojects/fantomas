@@ -80,7 +80,7 @@ let private findNodeOnLineAndColumn (nodes: TriviaNode list) line column =
 
 let private findNodeBeforeLineAndColumn (nodes: TriviaNode list) line column =
     nodes
-    |> List.tryFindBack (fun { Range = range } -> range.StartLine <= line && range.StartColumn <= column)
+     |> List.tryFindBack (fun { Range = range } -> range.StartLine < line || (range.StartLine <= line && range.StartColumn <= column))
 
 let private findNodeAfterLineAndColumn (nodes: TriviaNode list) line column =
     nodes
@@ -166,15 +166,19 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
 
-    | { Item = Directive(dc) as directive; Range = range } ->
+    | { Item = Directive(dc,_) as directive; Range = range } ->
         match findFirstNodeAfterLine triviaNodes range.StartLine with
         | Some _ as node ->
             updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore directive }) triviaNodes node
         | None ->
             findNodeBeforeLineAndColumn triviaNodes range.StartLine 0
             |> updateTriviaNode (fun tn ->
+                let addNewline =
+                    List.tryLast tn.ContentAfter
+                    |> Option.map (fun tnl -> match tnl with | Directive(_,_) -> false | _ -> true)
+                    |> Option.defaultValue true
                 let directive =
-                    System.String.Concat(System.Environment.NewLine, dc)
+                    (dc, addNewline)
                     |> Directive
                 { tn with ContentAfter = List.appendItem tn.ContentAfter directive }) triviaNodes
 

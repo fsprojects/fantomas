@@ -40,6 +40,32 @@ setupServer true
     |> should equal "DEBUG"
     
 [<Test>]
+let ``Get defines from complex statements`` () =
+    let source = """
+#if INTERACTIVE || (FOO && BAR) || BUZZ
+let x = 1
+#endif
+"""
+    getDefines source == ["INTERACTIVE";"FOO";"BAR";"BUZZ"]
+    
+[<Test>]
+let ``Tokens from directive inside a directive are being added`` () =
+    let source = """#if FOO
+  #if BAR
+  #else
+  #endif
+#endif
+"""
+    getDefines source == ["FOO";"BAR"]
+    
+    let (tokens,_) = tokenize [] source
+    let hashTokens =
+        tokens
+        |> List.filter (fun { TokenInfo = { TokenName = tn } } -> tn = "HASH_IF")
+        
+    List.length hashTokens == 5
+
+[<Test>]
 let ``tokenize should return correct amount`` () =
     let source = "let a = 7" // LET WHITESPACE IDENT WHITESPACE EQUALS WHITESPACE INT32
     tokenize [] source
@@ -261,6 +287,6 @@ let x = 1
     let (tokens,lineCount) = tokenize defines source
     let triviaNodes =
         getTriviaFromTokens tokens lineCount
-        |> List.choose (fun tv -> match tv.Item with | Directive(directive) -> Some directive | _ -> None)
+        |> List.choose (fun tv -> match tv.Item with | Directive(directive,_) -> Some directive | _ -> None)
 
     List.length triviaNodes == 3
