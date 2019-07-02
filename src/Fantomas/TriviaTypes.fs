@@ -30,7 +30,7 @@ type TriviaContent =
     | Keyword of string
     | Comment of Comment
     | Newline
-    | Directive of directive:string * appendNewline:bool
+    | Directive of string
     
 type Trivia =
     { Item: TriviaContent

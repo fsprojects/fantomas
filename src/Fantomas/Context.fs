@@ -442,8 +442,7 @@ let internal printTriviaContent (c: TriviaContent) =
     | Comment(BlockComment s) -> sepSpace -- s +> sepSpace
     | Newline -> sepNln
     | Keyword _ -> sepNone // don't print the keyword as is, find it in CodePrinter and act accordingly.
-    | Directive(content, addNewline) ->
-        (ifElse addNewline sepNln sepNone) +> !- content +> sepNln
+    | Directive(content) -> !- content +> sepNln
 
 let private removeNodeFromContext triviaNode (ctx: Context) =
     let newNodes = List.filter (fun tn -> tn <> triviaNode) ctx.Trivia
