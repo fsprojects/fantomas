@@ -218,6 +218,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> List.groupBy (fun t -> t.LineNumber)
             |> List.map (fun (_, g) -> getContentFromTokens g)
             |> String.concat Environment.NewLine
+            |> String.normalizeNewLine
             
         let nextTokens =
             List.length blockCommentTokens

@@ -1,5 +1,6 @@
 module Fantomas.Tests.TokenParserTests
 
+open Fantomas
 open NUnit.Framework
 open FsUnit
 open Fantomas.TokenParser
@@ -141,12 +142,16 @@ let ``Multi line block comment should be found in tokens`` () =
     7"""
     let (tokens,lineCount) = tokenize [] source
     let triviaNodes = getTriviaFromTokens tokens lineCount
+
+    let expectedComment =
+        """(* multi
+   line
+   comment *)"""
+        |> String.normalizeNewLine
     
     match List.tryLast triviaNodes with
     | Some({ Item = Comment(BlockComment(blockComment)); Range = range }) ->
-        blockComment == """(* multi
-   line
-   comment *)"""
+        blockComment == expectedComment
         range.StartLine == 2
         range.EndLine == 4
     | _ ->

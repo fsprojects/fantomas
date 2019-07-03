@@ -243,11 +243,15 @@ let a =  9
     let triviaNodes =
         toTrivia source
         |> List.head
+
+    let expectedComment =
+        """(* meh
+bla *)"""
+        |> String.normalizeNewLine
     
     match triviaNodes with
     | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
-        comment == """(* meh
-bla *)"""
+        comment == expectedComment
     | _ ->
         failwith "Expected block comment"
 
