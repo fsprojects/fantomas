@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\netfx.props" />
   <PropertyGroup>
-    <Version>2.9.2</Version>
+    <Version>3.0.0</Version>
     <NoWarn>FS0988</NoWarn>
     <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
@@ -39,7 +39,6 @@
     <Compile Include="VerboseSyntaxConversionTests.fs" />
     <Compile Include="FormattingSelectionTests.fs" />
     <Compile Include="FormattingSelectionOnlyTests.fs" />
-    <Compile Include="PreserveEOLTests.fs" />
     <Compile Include="ValidationTests.fs" />
     <Compile Include="FormattingPropertyTests.fs" />
     <Compile Include="SpecialConstructsTests.fs" />

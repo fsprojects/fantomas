@@ -645,15 +645,7 @@ and genExpr astContext synExpr =
         ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
     | ArrayOrList(isArray, xs, isSimple) ->
         let sep = ifElse isSimple sepSemi sepSemiNln
-        let sepWithPreserveEndOfLine ctx =
-            let length = List.length xs
-            let distinctLength = xs |> List.distinctBy (fun x -> x.Range.StartLine) |> List.length
-            let useNewline = ctx.Config.PreserveEndOfLine && (length = distinctLength)
-            
-            ctx
-            |> ifElse useNewline sepNln sep
-            
-        let expr = atCurrentColumn <| colAutoNlnSkip0 sepWithPreserveEndOfLine xs (genExpr astContext)
+        let expr = atCurrentColumn <| colAutoNlnSkip0 sep xs (genExpr astContext)
         let expr = ifElse isArray (sepOpenA +> expr +> sepCloseA) (sepOpenL +> expr +> sepCloseL)
         expr        
 
@@ -947,15 +939,22 @@ and genExpr astContext synExpr =
     | e -> failwithf "Unexpected expression: %O" e
     |> genTrivia synExpr.Range
 
-and genLetOrUseList astContext = function
+and genLetOrUseList astContext expr =
+    match expr with
     | [p, x] -> genLetBinding { astContext with IsFirstChild = true } p x
     | OneLinerLetOrUseL(xs, ys) ->
+        let sepXsYs =
+            match List.tryHead ys with
+            | Some (_,ysh) -> sepNln +> sepNlnConsideringTriviaContentBefore ysh.RangeOfBindingSansRhs
+            | None -> rep 2 sepNln
+
         match ys with
         | [] -> 
             col sepNln xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
-        | _ -> 
-            col sepNln xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x) 
-            +> rep 2 sepNln +> genLetOrUseList astContext ys
+        | _ ->
+            //colEx (fun (mdf:SynMemberDefn) -> sepNlnConsideringTriviaContentBefore mdf.Range) xs (genMemberDefn astContext) +> genMemberDefnList astContext ys
+            colEx (fun (_,lx:SynBinding) -> sepNlnConsideringTriviaContentBefore lx.RangeOfBindingSansRhs) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
+            +> sepXsYs +> genLetOrUseList astContext ys
 
     | MultilineLetOrUseL(xs, ys) ->
         match ys with
@@ -967,7 +966,7 @@ and genLetOrUseList astContext = function
             col (rep 2 sepNln) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x) 
             +> rep 2 sepNln +> genLetOrUseList astContext ys
 
-    | _ -> sepNone   
+    | _ -> sepNone
 
 /// When 'hasNewLine' is set, the operator is forced to be in a new line
 and genInfixApps astContext hasNewLine synExprs = 

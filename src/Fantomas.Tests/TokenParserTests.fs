@@ -65,7 +65,7 @@ let ``Tokens from directive inside a directive are being added`` () =
 
     let furtherInwards =
         hashTokens
-        |> List.filter (fun { TokenInfo = { LeftColumn = lc } } -> lc = 3)
+        |> List.filter (fun { TokenInfo = { LeftColumn = lc } } -> lc = 2)
     
     List.length hashTokens == 5
     List.length furtherInwards == 3
@@ -229,7 +229,7 @@ let ``left brace should be found in tokens`` () =
         rbrace.Content == "}"
     | _ ->
         fail()
-        
+
 [<Test>]
 let ``leading and trailing whitespaces should be found in tokens`` () =
     let source = """
@@ -241,9 +241,8 @@ type T() =
     let triviaNodes = getTriviaFromTokens tokens lineCount
 
     match triviaNodes with
-    | [{ Item = Newline; Range = rAbove }; {Item = Newline; Range = rBelow}] ->
+    | [{ Item = Newline; Range = rAbove }] ->
         rAbove.StartLine == 1
-        rBelow.EndLine == 4
     | _ ->
         fail()
         
