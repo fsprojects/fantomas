@@ -30,6 +30,7 @@ let filterNodes nodes =
     let filterOutNodeTypes =
         set [
             "SynExpr.Sequential" // some Sequential nodes are not visited in CodePrinter
+            "SynModuleOrNamespace.DeclaredNamespace" // LongIdent inside Namespace is being processed as children.
         ]
     nodes |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
 
@@ -84,6 +85,8 @@ let private findNodeBeforeLineAndColumn (nodes: TriviaNode list) line column =
 
 let private findNodeBeforeLineFromStart (nodes: TriviaNode list) line =
     nodes
+    |> List.filter (fun { Range = range } -> range.StartLine < line)
+    |> List.sortByDescending (fun { Range = range } -> range.StartLine, -range.StartColumn)
     |> List.tryFind (fun { Range = range } -> range.StartLine < line)
     
 let private findNodeBeforeLineFromEnd (nodes: TriviaNode list) line =
@@ -167,9 +170,17 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }) triviaNodes
 
     | { Item = Newline; Range = range } ->
-        findFirstNodeAfterLine triviaNodes range.StartLine // TODO: this approach does not work if multiple newlines are in place.
-        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore Newline }) triviaNodes
-        
+        let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine // TODO: this approach does not work if multiple newlines are in place.
+        match nodeAfterLine with
+        | Some _ ->
+            nodeAfterLine
+            |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore Newline }) triviaNodes
+        | None ->
+            // try and find a node above
+            findNodeBeforeLineFromStart triviaNodes range.StartLine
+            |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes
+
+
     | { Item = Keyword(keyword); Range = range } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
@@ -227,5 +238,8 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
     
     let trivias = TokenParser.getTriviaFromTokens tokens lineCount
 
-    List.fold addTriviaToTriviaNode triviaNodes trivias
-    |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.
+    match trivias with
+    | [] -> []
+    | _ ->
+        List.fold addTriviaToTriviaNode triviaNodes trivias
+        |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.

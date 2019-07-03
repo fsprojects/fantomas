@@ -58,7 +58,7 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
   |> snd // ignore the state
 
 let private createHashToken lineNumber content fullMatchedLength offset =
-    let (left,right) = 1 + offset, String.length content + offset
+    let (left,right) = offset, String.length content + offset
 
     { LineNumber = lineNumber
       Content = content
@@ -78,7 +78,15 @@ let rec private getTokenizedHashes sourceCode =
         let contentLength = String.length content
         tokenize [] (trimmed.Substring(contentLength))
         |> fst
-        |> List.map (fun t -> { t with LineNumber = lineNumber })
+        |> List.map (fun t ->
+            let info =
+                { t.TokenInfo with
+                        LeftColumn = t.TokenInfo.LeftColumn + contentLength
+                        RightColumn = t.TokenInfo.RightColumn + contentLength }
+            { t with
+                LineNumber = lineNumber
+                TokenInfo = info }
+        )
         |> fun rest -> (createHashToken lineNumber content fullMatchedLength offset)::rest
 
     sourceCode
@@ -106,7 +114,9 @@ let rec private getTokenizedHashes sourceCode =
 
 and tokenize defines (content : string) : Token list * int =
     let sourceTokenizer = FSharpSourceTokenizer(defines, Some "/tmp.fsx")
-    let lines = String.normalizeThenSplitNewLine content |> Array.toList
+    let lines =
+        String.normalizeThenSplitNewLine content
+        |> Array.toList
     let tokens =
         tokenizeLines sourceTokenizer lines FSharpTokenizerLexState.Initial
         |> List.filter (fun t -> t.TokenInfo.TokenName <> "INACTIVECODE")
@@ -120,9 +130,12 @@ and tokenize defines (content : string) : Token list * int =
         if content.Contains("#") then
             let hashes =
                 getTokenizedHashes content
+
+            let filteredHashes =
+                hashes
                 |> List.filter (fun t -> not(List.contains t.LineNumber existingLines))
                 // filter hashes that are present in source code parsed by the Tokenizer.
-            tokens @ hashes
+            tokens @ filteredHashes
             |> List.sortBy (fun t-> t.LineNumber, t.TokenInfo.LeftColumn)
         else
             tokens
@@ -263,8 +276,14 @@ let private createNewLine lineNumber =
     { Item = Newline; Range = range }
 
 let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) =
+    let lastLineWithContent =
+        tokens
+        |> List.tryFindBack (fun t -> t.TokenInfo.TokenName <> "WHITESPACE")
+        |> Option.map (fun t -> t.LineNumber)
+        |> Option.defaultValue lineCount
+
     let completeEmptyLines =
-        [1 .. lineCount]
+        [1 .. lastLineWithContent]
         |> List.filter (fun line ->
             not (List.exists (fun t -> t.LineNumber = line) tokens)
         )
@@ -273,7 +292,7 @@ let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) =
     let linesWithOnlySpaces =
         tokens
         |> List.groupBy (fun t -> t.LineNumber)
-        |> List.filter (fun (_, g) -> (List.length g) = 1 && (List.head g).TokenInfo.TokenName = "WHITESPACE")
+        |> List.filter (fun (ln, g) -> ln <= lastLineWithContent && (List.length g) = 1 && (List.head g).TokenInfo.TokenName = "WHITESPACE")
         |> List.map (fst >> createNewLine)
         
     completeEmptyLines @ linesWithOnlySpaces

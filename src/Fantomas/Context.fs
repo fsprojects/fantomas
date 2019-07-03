@@ -541,10 +541,10 @@ let internal leaveLeftBrace (range: range) (ctx: Context) =
             id
     <| ctx
 
-let internal sepNlnConsideringTrivaContentBefore (range:range) ctx =
+let internal sepNlnConsideringTriviaContentBefore (range:range) ctx =
     match findTriviaMainNodeFromRange ctx.Trivia range with
     | Some({ ContentBefore = contentBefore }) when (not (List.isEmpty contentBefore)) ->
-        ctx // don't add newline because triva contains a newline or a comment
+        ctx // don't add newline because trivia contains a newline or a comment
         // TODO: will not work when a block comment is before the ast node.
     | _ -> sepNln ctx
     

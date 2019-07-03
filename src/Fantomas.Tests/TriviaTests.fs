@@ -366,3 +366,42 @@ let x = 1
     | _ ->
         fail()
         
+[<Test>]
+let ``Unreachable directive should be present in trivia`` () =
+    let source = """namespace Internal.Utilities.Diagnostic
+#if EXTENSIBLE_DUMPER
+#if DEBUG
+type ExtensibleDumper = A | B
+#endif
+#endif"""
+
+    let triviaNodes =
+        toTriviaWithDefines source
+
+    let trivias = Map.find ["DEBUG"] triviaNodes
+
+    match trivias with
+    | [{ Type = MainNode("Ident")
+         ContentAfter = [Directive("#if EXTENSIBLE_DUMPER", true)
+                         Directive("#if DEBUG", false)
+                         Newline
+                         Directive("#endif", true)
+                         Directive("#endif", false)] }] ->
+        pass()
+    | _ ->
+        fail()
+
+[<Test>]
+let ``trailing newlines should not be picked up in trivia`` () =
+    let source = """printfn "meh"
+
+
+"""
+
+    let trivia =
+        toTrivia source
+        |> List.head
+
+    match trivia with
+    | [] -> pass()
+    | _ -> fail()

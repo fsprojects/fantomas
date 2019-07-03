@@ -92,15 +92,24 @@ and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRe
         match firstDecl with
         | None -> rep 2 sepNln
         | Some mdl ->
-            sepNlnConsideringTrivaContentBefore mdl.Range +> sepNln
-    
+            sepNlnConsideringTriviaContentBefore mdl.Range +> sepNln
+
+    let genTriviaForLongIdent (f: Context -> Context) =
+        match node with
+        | SynModuleOrNamespace.SynModuleOrNamespace(lid,_, SynModuleOrNamespaceKind.DeclaredNamespace,_,_,_,_,_) ->
+            lid
+            |> List.fold (fun (acc: Context -> Context) (ident:Ident) -> acc |> (genTrivia ident.idRange)) f
+        | _ -> f
+
+    let moduleOrNamespace = ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
+    let recursive = ifElse isRecursive (!- "rec ") sepNone
+    let namespaceFn = ifElse (s = "") (!- "global") (!- s)
+
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> ifElse (moduleKind = AnonModule) sepNone 
-         (ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
-            +> opt sepSpace ao genAccess
-            +> ifElse isRecursive (!- "rec ") sepNone
-            +> ifElse (s = "") (!- "global") (!- s) +> sepModuleAndFirstDecl)
+    +> ifElse (moduleKind = AnonModule)
+         sepNone
+         (genTriviaForLongIdent (moduleOrNamespace +> opt sepSpace ao genAccess +> recursive +> namespaceFn +> sepModuleAndFirstDecl))
     +> genModuleDeclList astContext mds
     |> genTrivia node.Range
 
@@ -111,7 +120,7 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds
         match firstDecl with
         | None -> rep 2 sepNln
         | Some mdl ->
-            sepNlnConsideringTrivaContentBefore mdl.Range +> sepNln
+            sepNlnConsideringTriviaContentBefore mdl.Range +> sepNln
     
     genPreXmlDoc px
     +> genAttributes astContext ats
@@ -151,7 +160,7 @@ and genModuleDeclList astContext e =
             | _ ->
                 let sepModuleDecl =
                     match List.tryHead ys with
-                    | Some ysh -> sepNln +> sepNlnConsideringTrivaContentBefore ysh.Range
+                    | Some ysh -> sepNln +> sepNlnConsideringTriviaContentBefore ysh.Range
                     | None -> rep 2 sepNln
                 
                 (col sepNln xs' (genModuleDecl astContext) +> sepModuleDecl +> genModuleDeclList astContext ys) ctx
@@ -162,7 +171,7 @@ and genModuleDeclList astContext e =
     | OneLinerLetL(xs, ys) ->
         let sepXsYs =
             match List.tryHead ys with
-            | Some ysh -> sepNln +> sepNlnConsideringTrivaContentBefore ysh.Range
+            | Some ysh -> sepNln +> sepNlnConsideringTriviaContentBefore ysh.Range
             | None -> rep 2 sepNln
         
         match ys with
@@ -174,19 +183,19 @@ and genModuleDeclList astContext e =
         | [] ->
             colEx (fun (mdl: SynModuleDecl) -> 
                 let r = mdl.Range
-                sepNln +> sepNlnConsideringTrivaContentBefore r
+                sepNln +> sepNlnConsideringTriviaContentBefore r
             ) xs (genModuleDecl astContext)
             
         | _ ->
             let sepXsYs =
                 match List.tryHead ys with
-                | Some ysh -> sepNln +> sepNlnConsideringTrivaContentBefore ysh.Range
+                | Some ysh -> sepNln +> sepNlnConsideringTriviaContentBefore ysh.Range
                 | None -> rep 2 sepNln
             
             let sepXs =
                 colEx (fun (mdl: SynModuleDecl) ->
                     let r = mdl.Range
-                    sepNln +> sepNlnConsideringTrivaContentBefore r
+                    sepNln +> sepNlnConsideringTriviaContentBefore r
                 )
 
             sepXs xs (genModuleDecl astContext) +> sepXsYs +> genModuleDeclList astContext ys
@@ -216,7 +225,7 @@ and genSigModuleDeclList astContext node =
         | _ ->
             let sepXsYs =
                 match List.tryHead ys with
-                | Some ysh -> sepNln +> sepNlnConsideringTrivaContentBefore ysh.Range
+                | Some ysh -> sepNln +> sepNlnConsideringTriviaContentBefore ysh.Range
                 | None -> rep 2 sepNln
             col sepNln xs (genSigModuleDecl astContext) +> sepXsYs +> genSigModuleDeclList astContext ys
 
@@ -251,14 +260,14 @@ and genModuleDecl astContext node =
             match List.tryHead bs with
             | Some b' ->
                 let r = b'.RangeOfBindingSansRhs
-                sepNln +> sepNlnConsideringTrivaContentBefore r
+                sepNln +> sepNlnConsideringTriviaContentBefore r
             | None -> id
         
         genLetBinding { astContext with IsFirstChild = true } "let rec " b
         +> sepBAndBs
         +> colEx (fun (b': SynBinding) ->
                 let r = b'.RangeOfBindingSansRhs
-                sepNln +> sepNlnConsideringTrivaContentBefore r
+                sepNln +> sepNlnConsideringTriviaContentBefore r
             ) bs (genLetBinding { astContext with IsFirstChild = false } "and ")
 
     | ModuleAbbrev(s1, s2) ->
@@ -279,7 +288,7 @@ and genModuleDecl astContext node =
     | Types(t::ts) ->
         let sepTs =
             match List.tryHead ts with
-            | Some tsh -> sepNln +> sepNlnConsideringTrivaContentBefore tsh.Range
+            | Some tsh -> sepNln +> sepNlnConsideringTriviaContentBefore tsh.Range
             | None -> rep 2 sepNln
         
         genTypeDefn { astContext with IsFirstChild = true } t 
@@ -1382,7 +1391,7 @@ and genClause astContext hasBar (Clause(p, e, eo) as node) =
 /// Each multiline member definition has a pre and post new line. 
 and genMemberDefnList astContext node =
     match node with
-    | [x] -> sepNlnConsideringTrivaContentBefore x.Range +> genMemberDefn astContext x
+    | [x] -> sepNlnConsideringTriviaContentBefore x.Range +> genMemberDefn astContext x
 
     | MDOpenL(xs, ys) ->
         fun ctx ->
@@ -1394,8 +1403,8 @@ and genMemberDefnList astContext node =
     | MultilineMemberDefnL(xs, []) ->
         let sepMember (m:Composite<SynMemberDefn, SynBinding>) =
             match m with
-            | Pair(x1,_) -> sepNln +> sepNlnConsideringTrivaContentBefore x1.RangeOfBindingSansRhs
-            | Single x -> sepNln +> sepNlnConsideringTrivaContentBefore x.Range
+            | Pair(x1,_) -> sepNln +> sepNlnConsideringTriviaContentBefore x1.RangeOfBindingSansRhs
+            | Single x -> sepNln +> sepNlnConsideringTriviaContentBefore x.Range
         
         rep 2 sepNln 
         +> colEx sepMember xs (function
@@ -1405,7 +1414,7 @@ and genMemberDefnList astContext node =
     | MultilineMemberDefnL(xs, ys) ->
         let sepNlnFirstExpr =
             match List.tryHead xs with
-            | Some (Single xsh) -> sepNlnConsideringTrivaContentBefore xsh.Range
+            | Some (Single xsh) -> sepNlnConsideringTriviaContentBefore xsh.Range
             | _ -> sepNln
         
         sepNln +> sepNlnFirstExpr 
@@ -1417,9 +1426,9 @@ and genMemberDefnList astContext node =
     | OneLinerMemberDefnL(xs, ys) ->
         let sepNlnFirstExpr =
             match List.tryHead xs with
-            | Some xsh -> sepNlnConsideringTrivaContentBefore xsh.Range
+            | Some xsh -> sepNlnConsideringTriviaContentBefore xsh.Range
             | None -> sepNln
-        sepNlnFirstExpr +> colEx (fun (mdf:SynMemberDefn) -> sepNlnConsideringTrivaContentBefore mdf.Range) xs (genMemberDefn astContext) +> genMemberDefnList astContext ys
+        sepNlnFirstExpr +> colEx (fun (mdf:SynMemberDefn) -> sepNlnConsideringTriviaContentBefore mdf.Range) xs (genMemberDefn astContext) +> genMemberDefnList astContext ys
     | _ -> sepNone
     // |> genTrivia node
 
