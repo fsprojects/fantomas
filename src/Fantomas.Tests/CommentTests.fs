@@ -164,7 +164,7 @@ let f() =
     x + x + x
 """
 
-[<Test; Ignore "reason">]
+[<Test>]
 let ``should align mis-aligned comments``() =
     formatSourceString false  """
    /// XML COMMENT A
@@ -405,23 +405,6 @@ let x =
 """ 
 
 [<Test>]
-let ``preserve newline should not add additional newline`` () =
-    let c = { config with PreserveEndOfLine = true }
-    let source = """
-type T() =
-    let x = 123
-//    override private x.ToString() = ""
-"""
-    
-    formatSourceString false source c
-    |> prepend newline
-    |> should equal """
-type T() =
-    let x = 123
-//    override private x.ToString() = ""
-"""
-
-[<Test>]
 let ``preserve newline false should not add additional newline`` () =
     let source = """
 type T() =
@@ -435,23 +418,6 @@ type T() =
 type T() =
     let x = 123
 //    override private x.ToString() = ""
-"""
-
-[<Test>]
-let ``preserve newline should not add additional newline II`` () =
-    let c = { config with PreserveEndOfLine = true }
-    let source = """
-let test n = [ n..-1..1 ]
-let y = ()
-// Some comments
-"""
-
-    formatSourceString false source c
-    |> prepend newline
-    |> should equal """
-let test n = [ n ..- 1..1 ]
-let y = ()
-// Some comments
 """
 
 [<Test>]

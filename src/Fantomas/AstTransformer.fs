@@ -46,6 +46,14 @@ module private Ast =
     and visitSynModuleOrNamespace(modOrNs: SynModuleOrNamespace): Node =
         match modOrNs with
         | SynModuleOrNamespace(longIdent,isRecursive,isModule,decls,_,attrs,access,range) ->
+            let collectIdents (idents: LongIdent) =
+                idents
+                |> List.map (fun ident ->
+                    { Type = "Ident"
+                      Range = r ident.idRange
+                      Properties = Map.empty
+                      FsAstNode = ident
+                      Childs = [] })
             {Type = sprintf "SynModuleOrNamespace.%A" isModule
              Range = r range
              Properties =
@@ -55,7 +63,8 @@ module private Ast =
                     if access.IsSome then yield "access" ==> (access.Value |> visitSynAccess)]
              FsAstNode = modOrNs
              Childs =
-                 [yield! attrs |> List.map visitSynAttribute
+                 [yield! (if isModule = SynModuleOrNamespaceKind.DeclaredNamespace then collectIdents longIdent else [])
+                  yield! attrs |> List.map visitSynAttribute
                   yield! (decls |> List.map visitSynModuleDecl)]}
 
     and visitSynModuleDecl(ast: SynModuleDecl) : Node =

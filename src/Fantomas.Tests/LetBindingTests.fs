@@ -11,12 +11,6 @@ let ``let in should be preserved``() =
 """
 
 [<Test>]
-let ``let in should be preserved with PreserveEOL option``() =
-    formatSourceString false "let x = 1 in ()" { config with PreserveEndOfLine = true }
-    |> should equal """let x = 1 in ()
-"""
-
-[<Test>]
 let ``multiple let in lines, should remove in`` () =
     let codeSnippet = """
 let f () = 
