@@ -106,20 +106,19 @@ let main _args =
     let stdIn = ref false
     let stdOut = ref false
     
-    let indent = ref 4
-    let pageWidth = ref 80
+    let indent = ref FormatConfig.Default.IndentSpaceNum
+    let pageWidth = ref FormatConfig.Default.PageWidth
     
-    let preserveEOL = ref false
-    let semicolonEOL = ref false
-    let spaceBeforeArgument = ref true
-    let spaceBeforeColon = ref true
-    let spaceAfterComma = ref true
-    let spaceAfterSemiColon = ref true
-    let indentOnTryWith = ref false
-    let reorderOpenDeclaration = ref false
-
-    let spaceAroundDelimiter = ref true
-    let strictMode = ref false
+    let preserveEOL = ref FormatConfig.Default.PreserveEndOfLine
+    let semicolonEOL = ref FormatConfig.Default.SemicolonAtEndOfLine
+    let spaceBeforeArgument = ref FormatConfig.Default.SpaceBeforeArgument
+    let spaceBeforeColon = ref FormatConfig.Default.SpaceBeforeColon
+    let spaceAfterComma = ref FormatConfig.Default.SpaceAfterComma
+    let spaceAfterSemiColon = ref FormatConfig.Default.SpaceAfterSemicolon
+    let indentOnTryWith = ref FormatConfig.Default.IndentOnTryWith
+    let reorderOpenDeclaration = ref FormatConfig.Default.ReorderOpenDeclaration
+    let spaceAroundDelimiter = ref FormatConfig.Default.SpaceAroundDelimiter
+    let strictMode = ref FormatConfig.Default.StrictMode
 
     let handleOutput s =
         if not !stdOut then
