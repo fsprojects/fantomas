@@ -87,8 +87,9 @@ type internal Context =
         //let (comments, directives, _) = filterCommentsAndDirectives content
         let (tokens, lineCount) = TokenParser.tokenize defines content
         let trivia =
-            maybeAst |> Option.map (Trivia.collectTrivia tokens lineCount)
-            |> Option.defaultValue Context.Default.Trivia
+            match maybeAst, config.StrictMode with
+            | Some ast, false -> Trivia.collectTrivia tokens lineCount ast
+            | _ -> Context.Default.Trivia
 
         { Context.Default with 
             Config = config
