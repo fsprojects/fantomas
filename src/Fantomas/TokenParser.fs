@@ -187,8 +187,8 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> fun length -> List.skip length rest
             
         let range =
-            let lastToken = List.last lineCommentTokens
-            getRangeBetween "line comment" headToken lastToken
+            let lastToken = List.tryLast lineCommentTokens
+            getRangeBetween "line comment" headToken (Option.defaultValue headToken lastToken)
             
         let info =
             let toLineComment =

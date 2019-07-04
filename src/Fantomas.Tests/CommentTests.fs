@@ -437,3 +437,16 @@ type C() =
 
     member x.P = g 3
 """
+
+
+[<Test>]
+let ``line comment with only two slashes`` () =
+    let source = """
+let foo = 7
+//
+"""
+
+    formatSourceString false source config
+    |> should equal """let foo = 7
+//
+"""
