@@ -134,10 +134,6 @@ let getByLookup range f x =
 
 let genConst (Unresolved(c, r, s)) = getByLookup (c.Range r) str s
 
-/// Check whether a range starting with a specified token
-let startWith prefix (r : range) ctx = 
-    lookup r ctx |> Option.exists (String.startsWithOrdinal prefix)
-
 // A few active patterns for printing purpose
 
 let rec (|DoExprAttributesL|_|) = function
