@@ -160,7 +160,9 @@ and genModuleDeclList astContext e =
             | _ ->
                 let sepModuleDecl =
                     match List.tryHead ys with
-                    | Some ysh -> sepNln +> sepNlnConsideringTriviaContentBefore ysh.Range
+                    | Some ysh ->
+                        let attrs = getRangesFromAttributes ysh
+                        sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes ysh.Range attrs
                     | None -> rep 2 sepNln
                 
                 (col sepNln xs' (genModuleDecl astContext) +> sepModuleDecl +> genModuleDeclList astContext ys) ctx
@@ -183,7 +185,8 @@ and genModuleDeclList astContext e =
         | [] ->
             colEx (fun (mdl: SynModuleDecl) -> 
                 let r = mdl.Range
-                sepNln +> sepNlnConsideringTriviaContentBefore r
+                let ar = getRangesFromAttributes mdl
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes r ar
             ) xs (genModuleDecl astContext)
             
         | _ ->
@@ -195,7 +198,8 @@ and genModuleDeclList astContext e =
             let sepXs =
                 colEx (fun (mdl: SynModuleDecl) ->
                     let r = mdl.Range
-                    sepNln +> sepNlnConsideringTriviaContentBefore r
+                    let ar = getRangesFromAttributes mdl
+                    sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes r ar
                 )
 
             sepXs xs (genModuleDecl astContext) +> sepXsYs +> genModuleDeclList astContext ys
@@ -334,14 +338,20 @@ and genAttribute astContext (Attribute(s, e, target)) =
         !- "[<"  +> opt sepColonFixed target (!-) -- s +> genExpr astContext e -- ">]"
     |> genTrivia e.Range
     
-and genAttributesCore astContext ats = 
-    let genAttributeExpr astContext (Attribute(s, e, target)) = 
+and genAttributesCore astContext ats =
+    let genTriviaForAttributes (f: Context -> Context) =
+        ats
+        |> Seq.fold (fun (acc: Context -> Context) (attr: SynAttribute) -> acc |> (genTrivia attr.Range)) f
+
+    let genAttributeExpr astContext (Attribute(s, e, target) as attr) =
         match e with
         | ConstExpr(Const "()", _) -> 
             opt sepColonFixed target (!-) -- s
         | e -> 
             opt sepColonFixed target (!-) -- s +> genExpr astContext e
+        |> genTrivia attr.Range
     ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> col sepSemi ats (genAttributeExpr astContext) -- ">]")
+    |> genTriviaForAttributes
 
 and genOnelinerAttributes astContext ats =
     ifElse (Seq.isEmpty ats) sepNone (genAttributesCore astContext ats +> sepSpace)
@@ -354,7 +364,7 @@ and genAttributes astContext ats =
     |> Seq.groupBy (fun at -> at.Range.StartLine)
     |> Seq.map snd
     |> Seq.toList
-    |> fun atss -> colPost sepNln sepNln atss (genAttributesCore astContext))
+    |> fun ats' -> colPost sepNln sepNln ats' (genAttributesCore astContext))
     // |> genTrivia ats, see genModuleDeclList
 
 and genPreXmlDoc (PreXmlDoc lines) ctx = 

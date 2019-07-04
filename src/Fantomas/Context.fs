@@ -547,6 +547,16 @@ let internal sepNlnConsideringTriviaContentBefore (range:range) ctx =
         ctx // don't add newline because trivia contains a newline or a comment
         // TODO: will not work when a block comment is before the ast node.
     | _ -> sepNln ctx
+
+let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range) (attributeRanges: range seq) ctx =
+    seq {
+        yield ownRange
+        yield! attributeRanges
+    }
+    |> Seq.choose (findTriviaMainNodeFromRange ctx.Trivia)
+    |> Seq.exists (fun ({ ContentBefore = contentBefore }) -> (not (List.isEmpty contentBefore)))
+    |> fun hasContentBefore ->
+        if hasContentBefore then ctx else sepNln ctx
     
 let internal beforeElseKeyword (fullIfRange: range) (elseRange: range) (ctx: Context) =
     ctx.Trivia

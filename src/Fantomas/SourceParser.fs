@@ -1241,3 +1241,12 @@ let (|Extern|_|) = function
         when name.EndsWith("DllImport") ->
         Some(ats, px, ao, t, s, ps)
     | _ -> None
+
+let getRangesFromAttributes (mdl: SynModuleDecl) =
+    match mdl with
+    | SynModuleDecl.Let(_, bindings, _) ->
+        bindings
+        |> Seq.collect (fun (Binding(_,_,_,_, attrs,_,_,_,_,_,_,_)) -> attrs)
+        |> Seq.map (fun a -> a.Range)
+    | _ -> Seq.empty
+    |> Seq.toList
