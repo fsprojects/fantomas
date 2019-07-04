@@ -189,7 +189,7 @@ let ``abstract and override keywords``() =
 type MyClassBase1() =
     let mutable z = 0
     abstract Function1: int -> int
-    override u.Function1(a: int) =
+    default u.Function1(a: int) =
         z <- z + a
         z
 

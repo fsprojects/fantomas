@@ -282,3 +282,23 @@ let x = 1
         |> List.choose (fun tv -> match tv.Item with | Directive(directive,_ ) -> Some directive | _ -> None)
 
     List.length triviaNodes == 3
+
+[<Test>]
+let ``member and override`` () =
+    let source = """
+type MyLogInteface() =
+    interface LogInterface with
+        member x.Print msg = printfn "%s" msg
+        override x.GetLogFile environment = "..."
+"""
+
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes =
+        getTriviaFromTokens tokens lineCount
+        |> List.choose (fun { Item = item } -> match item with | Keyword kw -> Some kw  | _ -> None)
+
+    match triviaNodes with
+    | ["member";"override"] ->
+        pass()
+    | _ ->
+        fail()

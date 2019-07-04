@@ -576,22 +576,21 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
          | MFStaticMember _
          | MFConstructor _ -> 
             genMemberFlags astContext mf
-         | MFOverride _ -> 
-             match astContext.InterfaceRange with
-             | Some interfaceRange ->
-                 let interfaceText = lookup interfaceRange ctx
-                 let memberRangeText =  lookup rangeOfBindingAndRhs ctx
-                 
-                 match interfaceText, memberRangeText with 
-                 | Some it, Some mrt ->
-                     let index = it.IndexOf(mrt)
-                     let memberKeywordIndex = it.LastIndexOf("member", index)
-                     let overrideKeywordIndex = it.LastIndexOf("override", index)
-                     
-                     ifElse (memberKeywordIndex > overrideKeywordIndex) (!- "member ") (!- "override ")
-                     
-                 | _ ->  (!- "override ")
-             | None -> (!- "override ")
+         | MFOverride _ ->
+             (fun (ctx: Context) ->
+                ctx.Trivia
+                |> List.tryFind(fun { Range = r}  -> r = rangeOfBindingAndRhs) //r.StartLine = rangeOfBindingAndRhs.StartLine && r.StartColumn < rangeOfBindingAndRhs.StartColumn)
+                |> Option.bind(fun tn ->
+                    tn.ContentBefore
+                    |> List.choose (fun tc ->
+                        match tc with
+                        | Keyword(kw) when (kw = "override" || kw = "default") -> Some (!- (sprintf "%s " kw))
+                        | _ -> None)
+                    |> List.tryHead
+                )
+                |> Option.defaultValue (!- "member ")
+                <| ctx
+             )
         <| ctx
 
 and genVal astContext (Val(ats, px, ao, s, t, vi, _) as node) =

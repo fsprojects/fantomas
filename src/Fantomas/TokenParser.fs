@@ -168,7 +168,7 @@ let private getContentFromTokens tokens =
     |> List.map (fun t -> t.Content)
     |> String.concat String.Empty
     
-let private keywordTrivia = ["IF"; "ELIF"]
+let private keywordTrivia = ["IF"; "ELIF"; "OVERRIDE"; "MEMBER"; "DEFAULT"]
 
 let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: Token list) foundTrivia =
     match tokens with

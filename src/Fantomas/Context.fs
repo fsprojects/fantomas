@@ -84,7 +84,7 @@ type internal Context =
             |> Seq.map (fun s -> String.length s + 1)
             |> Seq.scan (+) 0
             |> Seq.toArray
-        //let (comments, directives, _) = filterCommentsAndDirectives content
+
         let (tokens, lineCount) = TokenParser.tokenize defines content
         let trivia =
             match maybeAst, config.StrictMode with
@@ -442,7 +442,7 @@ let internal printTriviaContent (c: TriviaContent) =
     | Comment(LineCommentOnSingleLine s) -> !- s +> sepNln
     | Comment(BlockComment s) -> sepSpace -- s +> sepSpace
     | Newline -> sepNln
-    | Keyword _ -> sepNone // don't print the keyword as is, find it in CodePrinter and act accordingly.
+    | Keyword _ -> sepNone // don't print the keyword
     | Directive(content, addNewline) ->
         (ifElse addNewline sepNln sepNone) +> !- content +> sepNln
 
@@ -542,9 +542,18 @@ let internal leaveLeftBrace (range: range) (ctx: Context) =
             id
     <| ctx
 
+let private hasPrintableContent (trivia: TriviaContent list) =
+    trivia
+    |> List.filter (fun tn ->
+        match tn with
+        | Comment(_) -> true
+        | Newline -> true
+        | _ -> false)
+    |> List.isEmpty
+    |> not
 let internal sepNlnConsideringTriviaContentBefore (range:range) ctx =
     match findTriviaMainNodeFromRange ctx.Trivia range with
-    | Some({ ContentBefore = contentBefore }) when (not (List.isEmpty contentBefore)) ->
+    | Some({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) ->
         ctx // don't add newline because trivia contains a newline or a comment
         // TODO: will not work when a block comment is before the ast node.
     | _ -> sepNln ctx
@@ -555,7 +564,7 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range)
         yield! attributeRanges
     }
     |> Seq.choose (findTriviaMainNodeFromRange ctx.Trivia)
-    |> Seq.exists (fun ({ ContentBefore = contentBefore }) -> (not (List.isEmpty contentBefore)))
+    |> Seq.exists (fun ({ ContentBefore = contentBefore }) -> hasPrintableContent contentBefore)
     |> fun hasContentBefore ->
         if hasContentBefore then ctx else sepNln ctx
     

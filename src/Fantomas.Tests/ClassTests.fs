@@ -117,7 +117,7 @@ type Shape2D(x0: float, y0: float) =
         y <- y + dy
 
     abstract Rotate: float -> unit
-    override this.Rotate(angle) = rotAngle <- rotAngle + angle
+    default this.Rotate(angle) = rotAngle <- rotAngle + angle
 """
 
 [<Test>]

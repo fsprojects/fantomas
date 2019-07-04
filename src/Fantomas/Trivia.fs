@@ -80,6 +80,11 @@ let private findNodeOnLineAndColumn (nodes: TriviaNode list) line column =
     nodes
     |> List.tryFindBack (fun { Range = range } -> range.StartLine = line && range.StartColumn = column)
 
+let private findMemberDefnMemberNodeOnLine (nodes: TriviaNode list) line =
+    nodes
+    |> List.filter (fun { Type = t; Range = r } -> match t, r.StartLine = line with | MainNode("SynMemberDefn.Member"), true -> true | _ -> false)
+    |> List.tryHead
+
 let private findNodeBeforeLineAndColumn (nodes: TriviaNode list) line column =
     nodes
     |> List.tryFindBack (fun { Range = range } -> range.StartLine <= line && range.StartColumn <= column)
@@ -181,6 +186,9 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
             findNodeBeforeLineFromStart triviaNodes range.StartLine
             |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes
 
+    | { Item = Keyword(keyword); Range = range } when (keyword = "override" || keyword = "default" || keyword = "member") ->
+        findMemberDefnMemberNodeOnLine triviaNodes range.StartLine
+        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
 
     | { Item = Keyword(keyword); Range = range } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
