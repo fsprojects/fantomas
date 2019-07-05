@@ -444,6 +444,7 @@ let internal printTriviaContent (c: TriviaContent) =
     | Newline -> sepNln
     | Keyword _
     | Number _
+    | StringInfo _
          -> sepNone // don't print here but somewhere in CodePrinter
     | Directive(content, addNewline) ->
         (ifElse addNewline sepNln sepNone) +> !- content +> sepNln
@@ -464,7 +465,8 @@ let internal printContentBefore triviaNode =
                         |> List.filter(fun cb ->
                             match cb with
                             | Keyword _
-                            | Number _ ->
+                            | Number _
+                            | StringInfo _ ->
                                 true
                             | _ -> false)
                     if tn = triviaNode then

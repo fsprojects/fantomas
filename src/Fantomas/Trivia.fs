@@ -229,12 +229,8 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
                     |> Directive
                 { tn with ContentAfter = List.appendItem tn.ContentAfter directive }) triviaNodes
 
-    | { Item = StringInfo(si) as siNode; Range = range } ->
-        match si with
-        | Verbatim(_) ->
-            findConstNodeAfter triviaNodes range
-        | TripleQuote(_) ->
-            findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
+    | { Item = StringInfo(_) as siNode; Range = range } ->
+        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (siNode) }) triviaNodes
 
     | { Item = Number(_) as number; Range = range  } ->
