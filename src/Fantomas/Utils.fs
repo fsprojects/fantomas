@@ -4,6 +4,15 @@ open System
 open System.Text.RegularExpressions
 
 [<RequireQualifiedAccess>]
+module Char =
+    let escape c =
+        match c with
+        | '\r' -> @"\r"
+        | '\n' -> @"\n"
+        | '"' -> @"\"""
+        | _ -> c.ToString()
+
+[<RequireQualifiedAccess>]
 module String =
     let normalizeNewLine (str : string) =
         str.Replace("\r\n", "\n").Replace("\r", "\n")
@@ -48,6 +57,16 @@ module String =
             if lengthWithoutSpaces a' > lengthWithoutSpaces b' then a' else b'
         )
         |> String.concat Environment.NewLine
+
+    let escape (str: string) =
+        normalizeNewLine str
+        |> fun s -> s.ToCharArray()
+        |> fun t ->
+            printfn "%A" t
+            t
+        |> Array.map Char.escape
+        |> String.concat String.Empty
+
 
 module Cache =
     let alreadyVisited<'key when 'key : not struct>() =

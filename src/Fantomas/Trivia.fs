@@ -1,6 +1,7 @@
 module internal Fantomas.Trivia
 
 open System
+open System.Globalization
 open Fantomas.AstTransformer
 open FSharp.Compiler.Ast
 open Fantomas
@@ -103,6 +104,14 @@ let private findNodeAfterLineAndColumn (nodes: TriviaNode list) line column =
     nodes
     |> List.tryFind (fun { Range = range } -> range.StartLine >= line && range.StartColumn >= column)
 
+let private findConstNodeAfter (nodes: TriviaNode list) (range: range) =
+    nodes
+    |> List.tryFind (fun { Type = t; Range = r } ->
+        match t, range.StartLine = r.StartLine, range.StartColumn + 1 = r.StartColumn with
+        | MainNode("SynExpr.Const"), true, true -> true
+        | _ -> false
+    )
+
 let private mapNodeToTriviaNode (node: Node) =
     node.Range
     |> Option.map (fun range ->
@@ -186,9 +195,13 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
             findNodeBeforeLineFromStart triviaNodes range.StartLine
             |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes
 
-    | { Item = Keyword(keyword); Range = range } when (keyword = "override" || keyword = "default" || keyword = "member") ->
+    | { Item = Keyword({ Content = keyword} as kw); Range = range } when (keyword = "override" || keyword = "default" || keyword = "member") ->
         findMemberDefnMemberNodeOnLine triviaNodes range.StartLine
-        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
+        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(kw)) }) triviaNodes
+
+    | { Item = Keyword({ TokenInfo = {TokenName = tn}} as kw); Range = range } when (tn = "QMARK") ->
+        findConstNodeAfter triviaNodes range
+        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(kw)) }) triviaNodes
 
     | { Item = Keyword(keyword); Range = range } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
@@ -215,6 +228,18 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
                     (dc, addNewline)
                     |> Directive
                 { tn with ContentAfter = List.appendItem tn.ContentAfter directive }) triviaNodes
+
+    | { Item = StringInfo(si) as siNode; Range = range } ->
+        match si with
+        | Verbatim(_) ->
+            findConstNodeAfter triviaNodes range
+        | TripleQuote(_) ->
+            findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
+        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (siNode) }) triviaNodes
+
+    | { Item = Number(_) as number; Range = range  } ->
+        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
+        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore number }) triviaNodes
 
     | _ ->
         triviaNodes

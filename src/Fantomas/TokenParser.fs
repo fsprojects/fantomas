@@ -168,7 +168,14 @@ let private getContentFromTokens tokens =
     |> List.map (fun t -> t.Content)
     |> String.concat String.Empty
     
-let private keywordTrivia = ["IF"; "ELIF"; "OVERRIDE"; "MEMBER"; "DEFAULT"]
+let private keywordTrivia = ["IF"; "ELIF"; "OVERRIDE"; "MEMBER"; "DEFAULT"; "KEYWORD_STRING"; "QMARK"]
+let private numberTrivia = ["INT8";"UINT16";"INT32";"IEEE32";"DECIMAL";"IEEE64"] // TODO: add full list
+
+let private isOperatorOrKeyword ({TokenInfo = {CharClass = cc}}) =
+    cc = FSharp.Compiler.SourceCodeServices.FSharpTokenCharKind.Keyword || cc = FSharp.Compiler.SourceCodeServices.FSharpTokenCharKind.Operator
+
+let private isNumber ({TokenInfo = tn}) =
+    tn.ColorClass = FSharp.Compiler.SourceCodeServices.FSharpTokenColorKind.Number && List.contains tn.TokenName numberTrivia
 
 let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: Token list) foundTrivia =
     match tokens with
@@ -234,11 +241,11 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             
         getTriviaFromTokensThemSelves allTokens nextTokens info
         
-    | headToken::rest when (headToken.TokenInfo.CharClass = FSharp.Compiler.SourceCodeServices.FSharpTokenCharKind.Keyword &&
+    | headToken::rest when (isOperatorOrKeyword headToken &&
                             List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia) ->
         let range = getRangeBetween "keyword" headToken headToken
         let info =
-            Trivia.Create (Keyword(headToken.Content)) range
+            Trivia.Create (Keyword(headToken)) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves allTokens rest info
@@ -266,6 +273,30 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
                 List.skip (List.length directiveTokens - 1) rest
 
         getTriviaFromTokensThemSelves allTokens nextRest info
+
+    | head::quote::rest when (head.Content = "@\"" && head.TokenInfo.TokenName = "STRING_TEXT" && quote.TokenInfo.TokenName = "STRING_TEXT") ->
+        let range = getRangeBetween "verbatim string sign" head head
+        let info =
+            Trivia.Create (StringInfo(Verbatim(head))) range
+            |> List.prependItem foundTrivia
+
+        getTriviaFromTokensThemSelves allTokens rest info
+
+    | head::rest when (head.Content = "\"\"\"" && head.TokenInfo.TokenName = "STRING_TEXT") ->
+        let range = getRangeBetween "triple quote" head head
+        let info =
+            Trivia.Create (StringInfo(Verbatim(head))) range
+            |> List.prependItem foundTrivia
+
+        getTriviaFromTokensThemSelves allTokens rest info
+
+    | head::rest when (isNumber head) ->
+        let range = getRangeBetween "number" head head
+        let info =
+            Trivia.Create (Number(head.Content)) range
+            |> List.prependItem foundTrivia
+
+        getTriviaFromTokensThemSelves allTokens rest info
 
     | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
     
@@ -304,7 +335,7 @@ let getTriviaFromTokens (tokens: Token list) linesCount =
 
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
-    
+
 let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "EQUALS"; "ELSE"; "BAR"]
 let private tokenKinds = [FSharpTokenCharKind.Operator]
     

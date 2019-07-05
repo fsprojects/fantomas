@@ -149,8 +149,9 @@ let ``Multi line block comment should be found in tokens`` () =
    comment *)"""
         |> String.normalizeNewLine
     
-    match List.tryLast triviaNodes with
-    | Some({ Item = Comment(BlockComment(blockComment)); Range = range }) ->
+    match triviaNodes with
+    | [{ Item = Comment(BlockComment(blockComment)); Range = range }
+       { Item = Number("7") }] ->
         blockComment == expectedComment
         range.StartLine == 2
         range.EndLine == 4
@@ -215,7 +216,8 @@ let ``Comment after left brace of record`` () =
     let triviaNodes = getTriviaFromTokens tokens lineCount
 
     match triviaNodes with
-    | [ { Item = Comment(LineCommentAfterSourceCode(comment)); Range = range }] ->
+    | [ { Item = Comment(LineCommentAfterSourceCode(comment)); Range = range }
+        { Item = Number("7") } ] ->
         comment == "// foo"
         range.StartLine == 2
     | _ ->
@@ -260,9 +262,8 @@ elif true then ()"""
     let triviaNodes = getTriviaFromTokens tokens lineCount
     
     match triviaNodes with
-    | [{Item = Keyword(``if``)}; {Item = Keyword(``elif``)}] ->
-        ``if`` == "if"
-        ``elif`` == "elif"
+    | [{Item = Keyword({ Content = "if"})}; {Item = Keyword({ Content = "elif" })}] ->
+        pass()
     | _ ->
         fail()
         
@@ -295,10 +296,24 @@ type MyLogInteface() =
     let (tokens,lineCount) = tokenize [] source
     let triviaNodes =
         getTriviaFromTokens tokens lineCount
-        |> List.choose (fun { Item = item } -> match item with | Keyword kw -> Some kw  | _ -> None)
+        |> List.choose (fun { Item = item } -> match item with | Keyword({Content = kw}) -> Some kw  | _ -> None)
 
     match triviaNodes with
     | ["member";"override"] ->
+        pass()
+    | _ ->
+        fail()
+
+[<Test>]
+let ``at before string`` () =
+    let source = "@\"foo\""
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes =
+        getTriviaFromTokens tokens lineCount
+        |> List.choose (fun { Item = item } -> match item with | Keyword({Content = kw}) -> Some kw  | _ -> None)
+
+    match triviaNodes with
+    | ["@\""] ->
         pass()
     | _ ->
         fail()

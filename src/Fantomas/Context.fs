@@ -438,11 +438,13 @@ let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
 let internal printTriviaContent (c: TriviaContent) =
     match c with
-    | Comment(LineCommentAfterSourceCode s) -> sepSpace +> !- s // TODO: discuss if the space is correct here, it is opinionated for now.
+    | Comment(LineCommentAfterSourceCode s) -> sepSpace +> !- s
     | Comment(LineCommentOnSingleLine s) -> !- s +> sepNln
     | Comment(BlockComment s) -> sepSpace -- s +> sepSpace
     | Newline -> sepNln
-    | Keyword _ -> sepNone // don't print the keyword
+    | Keyword _
+    | Number _
+         -> sepNone // don't print here but somewhere in CodePrinter
     | Directive(content, addNewline) ->
         (ifElse addNewline sepNln sepNone) +> !- content +> sepNln
 
@@ -457,7 +459,14 @@ let internal printContentBefore triviaNode =
             let trivia =
                 ctx.Trivia
                 |> List.map (fun tn ->
-                    let contentBefore = tn.ContentBefore |> List.filter(function | Keyword _ -> true | _ -> false)
+                    let contentBefore =
+                        tn.ContentBefore
+                        |> List.filter(fun cb ->
+                            match cb with
+                            | Keyword _
+                            | Number _ ->
+                                true
+                            | _ -> false)
                     if tn = triviaNode then
                         { tn with ContentBefore = contentBefore }
                     else

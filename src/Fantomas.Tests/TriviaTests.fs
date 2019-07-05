@@ -36,7 +36,8 @@ let a = 9
         |> List.head
     
     match triviaNodes with
-    | [{ ContentBefore = [Comment(LineCommentOnSingleLine(lineComment))];  }] ->
+    | [{ ContentBefore = [Comment(LineCommentOnSingleLine(lineComment))];  }
+       {ContentBefore = [Number("9")]}] ->
         lineComment == "// meh"
     | _ ->
         failwith "Expected line comment"
@@ -80,8 +81,10 @@ let b = 9"""
         |> List.head
 
     match triviaNodes with
-    | [{ContentBefore = cb}] ->
-        List.length cb == 1
+    | [{ContentBefore = [Number("7")]}
+       {ContentBefore = [Newline]}
+       {ContentBefore = [Number("9")]}] ->
+        pass()
     | _ ->
         fail()
 
@@ -97,7 +100,8 @@ let a = 7
         |> List.head
 
     match triviaNodes with
-    | [{ContentBefore = [Comment(LineCommentOnSingleLine(fooComment));Comment(LineCommentOnSingleLine(barComment))]}] ->
+    | [{ContentBefore = [Comment(LineCommentOnSingleLine(fooComment));Comment(LineCommentOnSingleLine(barComment))]}
+       {ContentBefore = [Number("7")]}] ->
         fooComment == "// foo"
         barComment == "// bar"
     | _ ->
@@ -115,7 +119,8 @@ let ``Comments inside record`` () =
         |> List.head
 
     match triviaNodes with
-    | [{ Type = TriviaNodeType.Token(t); ContentAfter = [Comment(LineCommentAfterSourceCode("// foo"))] }] ->
+    | [{ Type = TriviaNodeType.Token(t); ContentAfter = [Comment(LineCommentAfterSourceCode("// foo"))] }
+       { ContentBefore = [Number("7")] }] ->
         t.Content == "{"
     | _ ->
         fail()
@@ -132,7 +137,8 @@ let ``Comment after all source code`` () =
         |> List.head
     
     match triviaNodes with
-    | [{ Type = MainNode(mn); ContentAfter = [Comment(LineCommentOnSingleLine(lineComment))] }] ->
+    | [{ ContentBefore = [Number("123")] }
+       { Type = MainNode(mn); ContentAfter = [Comment(LineCommentOnSingleLine(lineComment))] }] ->
         mn == "SynModuleDecl.Types"
         lineComment == (sprintf "%s//    override private x.ToString() = \"\"" Environment.NewLine)
         pass()
@@ -149,7 +155,7 @@ let ``Block comment added to trivia`` () =
     
     match triviaNodes with
     | [{ ContentAfter = [Comment(BlockComment(comment))]
-         Type = Token { Content = "=" } }] ->
+         Type = Token { Content = "=" } }; {ContentBefore = [Number("9")]}] ->
         comment == "(* meh *)"
     | _ ->
         failwith "Expected block comment"
@@ -302,8 +308,8 @@ elif true then ()"""
         |> List.head
     
     match triviaNodes with
-    | [{ Type = MainNode("SynExpr.IfThenElse"); ContentBefore = [Keyword("if")] }
-       { Type = MainNode("SynExpr.IfThenElse"); ContentBefore = [Keyword("elif")]}] ->
+    | [{ Type = MainNode("SynExpr.IfThenElse"); ContentBefore = [Keyword({Content = "if"})] }
+       { Type = MainNode("SynExpr.IfThenElse"); ContentBefore = [Keyword({Content = "elif"})]}] ->
         pass()
     | _ ->
         fail()

@@ -26,8 +26,14 @@ let a = 7
 => LineCommentOnSingleLine("// meh", false)
 *)
 
+type StringInfo =
+    | Verbatim of Token
+    | TripleQuote of Token
+
 type TriviaContent =
-    | Keyword of string
+    | Keyword of Token
+    | Number of string
+    | StringInfo of StringInfo
     | Comment of Comment
     | Newline
     | Directive of directive:string * appendNewline:bool

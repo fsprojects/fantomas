@@ -97,7 +97,7 @@ let c = 61us
 let d = 511
 let e = 1.4e+10f
 let f = 23.4M
-let g = '\010'
+let g = '\n'
 """
 
 [<Test>]

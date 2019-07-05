@@ -4,7 +4,6 @@ open Fantomas
 open Fantomas.Context
 open Fantomas.SourceParser
 open FSharp.Compiler
-open FSharp.Compiler.Range
 
 [<RequireQualifiedAccess>]
 module List = 
@@ -131,8 +130,6 @@ let getByLookup range f x =
                 str x' ctx
             | None ->
                 f x ctx
-
-let genConst (Unresolved(c, r, s)) = getByLookup (c.Range r) str s
 
 // A few active patterns for printing purpose
 

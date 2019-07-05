@@ -584,7 +584,7 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
                     tn.ContentBefore
                     |> List.choose (fun tc ->
                         match tc with
-                        | Keyword(kw) when (kw = "override" || kw = "default") -> Some (!- (sprintf "%s " kw))
+                        | Keyword({ Content = kw}) when (kw = "override" || kw = "default") -> Some (!- (sprintf "%s " kw))
                         | _ -> None)
                     |> List.tryHead
                 )
@@ -636,7 +636,7 @@ and genExpr astContext synExpr =
         +> breakNln astContext (multiline e) e
         +> ifElse addParens id sepCloseT
     | SingleExpr(kind, e) -> str kind +> genExpr astContext e
-    | ConstExpr(c) -> genConst c
+    | ConstExpr(c,r) -> genConst c r
     | NullExpr -> !- "null"
     // Not sure about the role of e1
     | Quote(_, e2, isRaw) ->         
@@ -877,7 +877,7 @@ and genExpr astContext synExpr =
                 |> List.choose id
                 |> List.tryHead
             )
-            |> Option.map (fun kw -> sprintf "%s " kw |> separator)
+            |> Option.map (fun ({Content = kw}) -> sprintf "%s " kw |> separator)
             |> Option.defaultValue (separator fallback)
             <| ctx
         
@@ -1245,11 +1245,17 @@ and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs) as node)
     +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
     |> genTrivia node.Range
 
-and genEnumCase astContext (EnumCase(ats, px, s, c) as node) =
+and genEnumCase astContext (EnumCase(ats, px, s, (c,r)) as node) =
+    let n = node
+    let genCase =
+        match node with
+        | SynEnumCase.EnumCase(_, ident, c,_,_) ->
+            !- ident.idText +> !- " = " +> genConst c r
+
     genPreXmlDoc px
     +> ifElse astContext.HasVerticalBar sepBar sepNone 
     +> genOnelinerAttributes astContext ats 
-    +> (fun ctx -> (if ctx.Config.StrictMode then !- s -- " = " else !- "") ctx) +> genConst c
+    +> genCase
     |> genTrivia node.Range
 
 and genField astContext prefix (Field(ats, px, ao, isStatic, isMutable, t, so) as node) =
@@ -1269,7 +1275,7 @@ and genType astContext outerBracket t =
         | THashConstraint t -> !- "#" +> loop t
         | TMeasurePower(t, n) -> loop t -- "^" +> str n
         | TMeasureDivide(t1, t2) -> loop t1 -- " / " +> loop t2
-        | TStaticConstant(c) -> genConst c
+        | TStaticConstant(c,r) -> genConst c r
         | TStaticConstantExpr(e) -> genExpr astContext e
         | TStaticConstantNamed(t1, t2) -> loop t1 -- "=" +> loop t2
         | TArray(t, n) -> loop t -- " [" +> rep (n - 1) (!- ",") -- "]"
@@ -1606,7 +1612,7 @@ and genPat astContext pat =
 
     | PatRecord(xs) -> 
         sepOpenS +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs (genPatRecordFieldName astContext)) +> sepCloseS
-    | PatConst(c) -> genConst c
+    | PatConst(c,r) -> genConst c r
     | PatIsInst(TApp(_, [_], _) as t)
     | PatIsInst(TArray(_) as t) -> 
         // special case for things like ":? (int seq) ->"
@@ -1618,6 +1624,90 @@ and genPat astContext pat =
     | PatQuoteExpr e -> genExpr astContext e
     | p -> failwithf "Unexpected pattern: %O" p
     |> genTrivia pat.Range
+
+and genConst (c:SynConst) (r:range) =
+    match c with
+    | SynConst.Unit ->
+            fun (ctx: Context) ->
+                let innerComments =
+                    ctx.Trivia
+                    |> List.tryFind (fun t ->
+                        let rangeMatch = t.Range.StartLine = r.StartLine && t.Range.StartColumn = r.StartColumn
+                        match rangeMatch, t.Type with
+                        | true, Token({TokenInfo = ti}) when (ti.TokenName = "LPAREN") -> true
+                        | _ -> false
+                    )
+                    |> Option.map (fun tv -> tv.ContentAfter |> List.choose(function | Comment(BlockComment(bc)) -> Some bc | _ -> None))
+                    |> Option.defaultValue []
+
+                match innerComments with
+                | [] -> !- "()"
+                | comments ->
+                    !- "(" +> !- (String.concat " " comments) +> !- ")"
+                <| ctx
+    | SynConst.Bool(b) -> !- (if b then "true" else "false")
+    | SynConst.Byte(_)
+    | SynConst.SByte(_)
+    | SynConst.Int16(_)
+    | SynConst.Int32(_)
+    | SynConst.Int64(_)
+    | SynConst.UInt16(_)
+    | SynConst.UInt32(_)
+    | SynConst.UInt64(_)
+    | SynConst.Double(_)
+    | SynConst.Single(_)
+    | SynConst.Decimal(_) -> genConstNumber c r
+    | SynConst.String(s,_) ->
+        let escapedString = String.escape s
+        fun (ctx: Context) ->
+            let trivia =
+                ctx.Trivia
+                |> List.tryFind (fun tv -> tv.Range = r)
+
+            match trivia with
+            | Some({ ContentBefore = [StringInfo(Verbatim(_))] }) ->
+                !- (sprintf "@\"%s\"" s)
+            | Some({ ContentBefore = [StringInfo(TripleQuote(_))] }) ->
+                !- (sprintf "@\"\"\"%s\"\"\"" s)
+            | Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "KEYWORD_STRING"; }; Content = kw})] }) ->
+                !- kw
+            | Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "QMARK" }})] }) ->
+                !- s
+            | _ ->
+                !- (sprintf "\"%s\"" escapedString)
+            <| ctx
+    | SynConst.Char(c) ->
+        let escapedChar = Char.escape c
+        !- (sprintf "\'%s\'" escapedChar)
+    | _ -> failwithf "not implemented const %A" c
+
+and genConstNumber (c:SynConst) (r: range) =
+    fun (ctx: Context) ->
+        ctx.Trivia
+        |> List.tryFind (fun t -> t.Range = r)
+        |> Option.bind(fun tn ->
+            tn.ContentBefore
+            |> List.choose (fun tv -> match tv with | Number(n) -> Some n | _ -> None)
+            |> List.tryExactlyOne
+        )
+        |> fun n ->
+            match n with
+            | Some n -> !- n
+            | None ->
+                match c with
+                | SynConst.Byte(v) -> !- (sprintf "%A" v)
+                | SynConst.SByte(v) -> !- (sprintf "%A" v)
+                | SynConst.Int16(v) -> !- (sprintf "%A" v)
+                | SynConst.Int32(v) -> !- (sprintf "%A" v)
+                | SynConst.Int64(v) -> !- (sprintf "%A" v)
+                | SynConst.UInt16(v) -> !- (sprintf "%A" v)
+                | SynConst.UInt32(v) -> !- (sprintf "%A" v)
+                | SynConst.UInt64(v) -> !- (sprintf "%A" v)
+                | SynConst.Double(v) -> !- (sprintf "%A" v)
+                | SynConst.Single(v) -> !- (sprintf "%A" v)
+                | SynConst.Decimal(v) -> !- (sprintf "%A" v)
+                | _ -> failwithf "Cannot generating Const number for %A" c
+        <| ctx
 
 and genTrivia (range: range) f =
     enterNode range +> f +> leaveNode range
