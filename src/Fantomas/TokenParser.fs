@@ -285,7 +285,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
     | head::rest when (head.Content = "\"\"\"" && head.TokenInfo.TokenName = "STRING_TEXT") ->
         let range = getRangeBetween "triple quote" head head
         let info =
-            Trivia.Create (StringInfo(Verbatim(head))) range
+            Trivia.Create (StringInfo(TripleQuote(head))) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves allTokens rest info

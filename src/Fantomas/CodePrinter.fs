@@ -1668,7 +1668,7 @@ and genConst (c:SynConst) (r:range) =
             | Some({ ContentBefore = [StringInfo(Verbatim(_))] }) ->
                 !- (sprintf "@\"%s\"" s)
             | Some({ ContentBefore = [StringInfo(TripleQuote(_))] }) ->
-                !- (sprintf "@\"\"\"%s\"\"\"" s)
+                !- (sprintf "\"\"\"%s\"\"\"" s)
             | Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "KEYWORD_STRING"; }; Content = kw})] }) ->
                 !- kw
             | Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "QMARK" }})] }) ->

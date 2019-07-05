@@ -248,7 +248,8 @@ type T() =
     let triviaNodes = getTriviaFromTokens tokens lineCount
 
     match triviaNodes with
-    | [{ Item = Newline; Range = rAbove }] ->
+    | [{ Item = Newline; Range = rAbove }
+       { Item = Number("123") }] ->
         rAbove.StartLine == 1
     | _ ->
         fail()
@@ -310,10 +311,6 @@ let ``at before string`` () =
     let (tokens,lineCount) = tokenize [] source
     let triviaNodes =
         getTriviaFromTokens tokens lineCount
-        |> List.choose (fun { Item = item } -> match item with | Keyword({Content = kw}) -> Some kw  | _ -> None)
+        |> List.filter (fun { Item = item } -> match item with | StringInfo(Verbatim(_)) -> true  | _ -> false)
 
-    match triviaNodes with
-    | ["@\""] ->
-        pass()
-    | _ ->
-        fail()
+    List.length triviaNodes == 1
