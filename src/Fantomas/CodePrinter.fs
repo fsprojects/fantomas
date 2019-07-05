@@ -794,7 +794,7 @@ and genExpr astContext synExpr =
             | App(e1, [e2]) -> 
                 noNln (genExpr astContext e1 +> ifElse (hasParenthesis e2) sepNone sepSpace +> genExpr astContext e2)
             | _ -> 
-                noNln (genExpr astContext e)
+                genExpr astContext e
         expr
         +> indent
         +> (col sepNone es (fun (s, e) -> 
