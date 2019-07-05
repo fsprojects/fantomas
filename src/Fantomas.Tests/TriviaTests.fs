@@ -137,8 +137,8 @@ let ``Comment after all source code`` () =
         |> List.head
     
     match triviaNodes with
-    | [{ ContentBefore = [Number("123")] }
-       { Type = MainNode(mn); ContentAfter = [Comment(LineCommentOnSingleLine(lineComment))] }] ->
+    | [ { Type = MainNode(mn); ContentAfter = [Comment(LineCommentOnSingleLine(lineComment))] }
+        { ContentBefore = [Number("123")] } ] ->
         mn == "SynModuleDecl.Types"
         lineComment == (sprintf "%s//    override private x.ToString() = \"\"" Environment.NewLine)
         pass()
@@ -163,7 +163,7 @@ let ``Block comment added to trivia`` () =
 [<Test>]
 let ``Block comment and newline added to trivia`` () =
     let source = """(* meh *)
-let a =  9
+let a =  "a"
 """
 
     let triviaNodes =
@@ -178,7 +178,7 @@ let a =  9
         
 [<Test>]
 let ``Block comment on newline EOF added to trivia`` () =
-    let source = """let a =  9
+    let source = """let a =  "a"
 (* meh *)"""
 
     let triviaNodes =
@@ -208,7 +208,7 @@ let ``Block comment on EOF added to trivia`` () =
 [<Test>]
 let ``Nested block comment parsed correctly`` () =
     let source = """(* (* meh *) *)
-let a =  9
+let a =  "test"
 """
 
     let triviaNodes =
@@ -233,7 +233,8 @@ let a =  9
         |> List.head
     
     match triviaNodes with
-    | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
+    | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }
+       { ContentBefore = [Number("9")] }] ->
         comment == "(* // meh *)"
     | _ ->
         failwith "Expected block comment"
@@ -243,7 +244,7 @@ let a =  9
 let ``Multiline block comment added to trivia`` () =
     let source = """(* meh
 bla *)
-let a =  9
+let a =  "b"
 """
 
     let triviaNodes =
@@ -264,7 +265,7 @@ bla *)"""
 
 [<Test>]
 let ``Multiple block comments should be linked to same trivia node`` () =
-    let source = """let x = 1
+    let source = """let x = "a"
 (* foo *)
 (* bar *)
 x
@@ -284,7 +285,7 @@ x
 [<Test>]
 let ``Block comment inside line comment parsed correctly`` () =
     let source = """// (* meh *)
-let a =  9
+let a =  "a"
 """
 
     let triviaNodes =
@@ -318,7 +319,7 @@ elif true then ()"""
 let ``directives before and after are linked to let binding`` () =
     let source = """#if NOT_DEFINED
 #else
-let x = 1
+doSomething()
 #endif
 """
 
