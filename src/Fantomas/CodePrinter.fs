@@ -1245,8 +1245,7 @@ and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs) as node)
     +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
     |> genTrivia node.Range
 
-and genEnumCase astContext (EnumCase(ats, px, s, (c,r)) as node) =
-    let n = node
+and genEnumCase astContext (EnumCase(ats, px, _, (_,r)) as node) =
     let genCase =
         match node with
         | SynEnumCase.EnumCase(_, ident, c,_,_) ->
@@ -1687,7 +1686,7 @@ and genConst (c:SynConst) (r:range) =
     | SynConst.Char(c) ->
         let escapedChar = Char.escape c
         !- (sprintf "\'%s\'" escapedChar)
-    | SynConst.Bytes(bytes,_) -> genConstBytes bytes
+    | SynConst.Bytes(bytes,_) -> genConstBytes bytes r
     | _ ->
         failwithf "The printing of %A is currently not supported. Please raise an issue at https://github.com/fsprojects/fantomas/issues" c
 
@@ -1719,8 +1718,23 @@ and genConstNumber (c:SynConst) (r: range) =
                 | _ -> failwithf "Cannot generating Const number for %A" c
         <| ctx
 
-and genConstBytes (bytes: byte []) =
-    failwithf "meh"
+and genConstBytes (bytes: byte []) (r: range) =
+    fun (ctx: Context) ->
+        let trivia =
+            ctx.Trivia
+            |> List.tryFind(fun t -> t.Range = r)
+            |> Option.bind (fun tv ->
+                tv.ContentBefore
+                |> List.choose (fun sc ->
+                    match sc with
+                    | StringContent(content) -> Some content
+                    | _ -> None)
+                |> List.tryExactlyOne)
+
+        match trivia with
+        | Some t -> !- t
+        | None -> !- (sprintf "%A" bytes)
+        <| ctx
 
 and genTrivia (range: range) f =
     enterNode range +> f +> leaveNode range

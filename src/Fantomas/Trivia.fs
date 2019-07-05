@@ -1,7 +1,6 @@
 module internal Fantomas.Trivia
 
 open System
-open System.Globalization
 open Fantomas.AstTransformer
 open FSharp.Compiler.Ast
 open Fantomas
