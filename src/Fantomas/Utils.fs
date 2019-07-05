@@ -1,6 +1,7 @@
 ﻿namespace Fantomas
 
 open System
+open System.Text
 open System.Text.RegularExpressions
 
 [<RequireQualifiedAccess>]
@@ -9,7 +10,6 @@ module Char =
         match c with
         | '\r' -> @"\r"
         | '\n' -> @"\n"
-        | '"' -> @"\"""
         | _ -> c.ToString()
 
 [<RequireQualifiedAccess>]
@@ -58,14 +58,53 @@ module String =
         )
         |> String.concat Environment.NewLine
 
+
     let escape (str: string) =
-        normalizeNewLine str
-        |> fun s -> s.ToCharArray()
-        |> fun t ->
-            printfn "%A" t
-            t
-        |> Array.map Char.escape
-        |> String.concat String.Empty
+        let builder = StringBuilder()
+        let result =
+            let chars =
+                str.ToCharArray()
+                |> Array.indexed
+            let totalChars = Array.length chars
+
+            let isFollowedBySlashN currentIndex =
+                let nextIndex = currentIndex + 1
+                if nextIndex = totalChars then
+                    false
+                else
+                    '\n' = (snd chars.[nextIndex])
+
+            let isPrecededBySlashR currentIndex =
+                if currentIndex = 0 then
+                    false
+                else
+                    let prevIndex = currentIndex - 1
+                    '\r' = (snd chars.[prevIndex])
+
+            chars
+            |> Array.fold (fun (b:StringBuilder, insideString) (i,c) ->
+                match c, insideString with
+                | ''', false ->
+                    b.Append("'"), false
+                | '"', _ ->
+                    b.Append("\\\""), not insideString
+                | ''', _ ->
+                    b.Append("\\\""), not insideString
+                | '\n', false when (isPrecededBySlashR i) ->
+                    b,insideString
+                | '\n', false ->
+                    b.Append("\\n"), false
+                | '\r', false when (isFollowedBySlashN i) ->
+                    b.Append("\n"), false
+                | '\r', false ->
+                    b.Append("\\r"), false
+                | c, _ ->
+                    b.Append(c), insideString
+            ) (builder, false)
+            |> fst
+            |> fun b -> b.ToString()
+
+        result
 
 
 module Cache =

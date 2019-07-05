@@ -2,6 +2,7 @@ module internal Fantomas.TokenParser
 
 open FSharp.Compiler.AbstractIL.Internal.Library
 open System
+open System.Text
 open FSharp.Compiler.SourceCodeServices
 open Fantomas
 open Fantomas.TriviaTypes
@@ -274,21 +275,40 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
 
         getTriviaFromTokensThemSelves allTokens nextRest info
 
-    | head::quote::rest when (head.Content = "@\"" && head.TokenInfo.TokenName = "STRING_TEXT" && quote.TokenInfo.TokenName = "STRING_TEXT") ->
-        let range = getRangeBetween "verbatim string sign" head head
+    | head::rest when (head.TokenInfo.TokenName = "STRING_TEXT") ->
+        let stringTokens =
+            rest
+            |> List.takeWhile (fun ({TokenInfo = {TokenName = tn}}) -> tn = "STRING_TEXT" || tn = "STRING")
+            |> fun others -> List.prependItem others head
+
+        let stringContent =
+            let builder = StringBuilder()
+            stringTokens
+            |> List.fold(fun (b: StringBuilder, currentLine) st ->
+                if currentLine <> st.LineNumber then
+                    b.Append("\n").Append(st.Content), st.LineNumber
+                else
+                    b.Append(st.Content), st.LineNumber
+            ) (builder, head.LineNumber)
+            |> fst
+            |> fun b -> b.ToString()
+
+        let lastToken =
+            List.tryLast stringTokens
+            |> Option.defaultValue head
+
+        let range = getRangeBetween "string content" head lastToken
         let info =
-            Trivia.Create (StringInfo(Verbatim(head))) range
+            Trivia.Create (StringContent(stringContent)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves allTokens rest info
+        let nextRest =
+            match rest with
+            | [] -> []
+            | _ ->
+                List.skip (List.length stringTokens - 1) rest
 
-    | head::rest when (head.Content = "\"\"\"" && head.TokenInfo.TokenName = "STRING_TEXT") ->
-        let range = getRangeBetween "triple quote" head head
-        let info =
-            Trivia.Create (StringInfo(TripleQuote(head))) range
-            |> List.prependItem foundTrivia
-
-        getTriviaFromTokensThemSelves allTokens rest info
+        getTriviaFromTokensThemSelves allTokens nextRest info
 
     | head::rest when (isNumber head) ->
         let range = getRangeBetween "number" head head

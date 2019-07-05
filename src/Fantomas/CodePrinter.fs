@@ -1664,22 +1664,36 @@ and genConst (c:SynConst) (r:range) =
                 ctx.Trivia
                 |> List.tryFind (fun tv -> tv.Range = r)
 
-            match trivia with
-            | Some({ ContentBefore = [StringInfo(Verbatim(_))] }) ->
-                !- (sprintf "@\"%s\"" s)
-            | Some({ ContentBefore = [StringInfo(TripleQuote(_))] }) ->
-                !- (sprintf "\"\"\"%s\"\"\"" s)
-            | Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "KEYWORD_STRING"; }; Content = kw})] }) ->
+            let triviaStringContent =
+                trivia
+                |> Option.bind(fun tv ->
+                    tv.ContentBefore
+                    |> List.choose (fun tv ->
+                        match tv with
+                        | StringContent(sc) -> Some sc
+                        | _ -> None  )
+                    |> List.tryExactlyOne
+                )
+
+
+            match triviaStringContent, trivia with
+            | Some stringContent, Some _ ->
+//                let replaceQuotes = s.Replace("\"", "\"\"")
+//                !- (System.String.Concat("@\"", replaceQuotes,"\""))
+                !- stringContent
+            | None, Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "KEYWORD_STRING"; }; Content = kw})] }) ->
                 !- kw
-            | Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "QMARK" }})] }) ->
+            | None, Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "QMARK" }})] }) ->
                 !- s
             | _ ->
-                !- (sprintf "\"%s\"" escapedString)
+                !- (sprintf "\"%s\"" s)
             <| ctx
     | SynConst.Char(c) ->
         let escapedChar = Char.escape c
         !- (sprintf "\'%s\'" escapedChar)
-    | _ -> failwithf "not implemented const %A" c
+    | SynConst.Bytes(bytes,_) -> genConstBytes bytes
+    | _ ->
+        failwithf "The printing of %A is currently not supported. Please raise an issue at https://github.com/fsprojects/fantomas/issues" c
 
 and genConstNumber (c:SynConst) (r: range) =
     fun (ctx: Context) ->
@@ -1708,6 +1722,9 @@ and genConstNumber (c:SynConst) (r: range) =
                 | SynConst.Decimal(v) -> !- (sprintf "%A" v)
                 | _ -> failwithf "Cannot generating Const number for %A" c
         <| ctx
+
+and genConstBytes (bytes: byte []) =
+    failwithf "meh"
 
 and genTrivia (range: range) f =
     enterNode range +> f +> leaveNode range

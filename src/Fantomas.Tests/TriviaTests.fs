@@ -163,7 +163,7 @@ let ``Block comment added to trivia`` () =
 [<Test>]
 let ``Block comment and newline added to trivia`` () =
     let source = """(* meh *)
-let a =  "a"
+let a =  b
 """
 
     let triviaNodes =
@@ -178,7 +178,7 @@ let a =  "a"
         
 [<Test>]
 let ``Block comment on newline EOF added to trivia`` () =
-    let source = """let a =  "a"
+    let source = """let a =  b
 (* meh *)"""
 
     let triviaNodes =
@@ -208,7 +208,7 @@ let ``Block comment on EOF added to trivia`` () =
 [<Test>]
 let ``Nested block comment parsed correctly`` () =
     let source = """(* (* meh *) *)
-let a =  "test"
+let a =  c + d
 """
 
     let triviaNodes =
@@ -244,7 +244,7 @@ let a =  9
 let ``Multiline block comment added to trivia`` () =
     let source = """(* meh
 bla *)
-let a =  "b"
+let a =  b
 """
 
     let triviaNodes =
@@ -265,7 +265,7 @@ bla *)"""
 
 [<Test>]
 let ``Multiple block comments should be linked to same trivia node`` () =
-    let source = """let x = "a"
+    let source = """let x = y / z
 (* foo *)
 (* bar *)
 x
@@ -285,7 +285,7 @@ x
 [<Test>]
 let ``Block comment inside line comment parsed correctly`` () =
     let source = """// (* meh *)
-let a =  "a"
+let a =  b + c
 """
 
     let triviaNodes =
@@ -404,7 +404,7 @@ type ExtensibleDumper = A | B
 
 [<Test>]
 let ``trailing newlines should not be picked up in trivia`` () =
-    let source = """printfn "meh"
+    let source = """printfn someLogMessage
 
 
 """

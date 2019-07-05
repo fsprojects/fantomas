@@ -123,7 +123,7 @@ let ``simple line comment should be found in tokens`` () =
 
 [<Test>]
 let ``Single line block comment should be found in tokens`` () =
-    let source = "let foo (* not fonz *) = \"bar\""
+    let source = "let foo (* not fonz *) = bar"
     let (tokens,lineCount) = tokenize [] source
     let triviaNodes = getTriviaFromTokens tokens lineCount
     
@@ -176,9 +176,9 @@ let a = 9
         
 [<Test>]
 let ``newline should be found in tokens`` () =
-    let source = """printfn "foo"
+    let source = """printfn foo
 
-printfn "bar" """
+printfn bar"""
     
     let (tokens,lineCount) = tokenize [] source
     let triviaNodes = getTriviaFromTokens tokens lineCount
@@ -192,9 +192,9 @@ printfn "bar" """
         
 [<Test>]
 let ``Only empty spaces in line are also consider as Newline`` () =
-    let source = """printfn "foo"
+    let source = """printfn foo
     
-printfn "bar" """ // difference is the 4 spaces on line 188
+printfn bar""" // difference is the 4 spaces on line 188
 
     let (tokens,lineCount) = tokenize [] source
     let triviaNodes = getTriviaFromTokens tokens lineCount
@@ -311,6 +311,49 @@ let ``at before string`` () =
     let (tokens,lineCount) = tokenize [] source
     let triviaNodes =
         getTriviaFromTokens tokens lineCount
-        |> List.filter (fun { Item = item } -> match item with | StringInfo(Verbatim(_)) -> true  | _ -> false)
+        |> List.filter (fun { Item = item } -> match item with | StringContent("@\"foo\"") -> true  | _ -> false)
+
+    List.length triviaNodes == 1
+
+[<Test>]
+let ``newline in string`` () =
+    let source = "\"
+\""
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes =
+        getTriviaFromTokens tokens lineCount
+        |> List.filter (fun { Item = item } -> match item with | StringContent("\"\n\"") -> true  | _ -> false)
+
+    List.length triviaNodes == 1
+
+[<Test>]
+let ``newline with slashes in string`` () =
+    let source = "\"\\r\\n\""
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes =
+        getTriviaFromTokens tokens lineCount
+        |> List.filter (fun { Item = item } -> match item with | StringContent("\"\\r\\n\"") -> true  | _ -> false)
+
+    List.length triviaNodes == 1
+
+[<Test>]
+let ``triple quotes`` () =
+    let source = "\"\"\"foo\"\"\""
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes =
+        getTriviaFromTokens tokens lineCount
+        |> List.filter (fun { Item = item } -> match item with | StringContent("\"\"\"foo\"\"\"") -> true  | _ -> false)
+
+    List.length triviaNodes == 1
+
+[<Test>]
+let ``with quotes`` () =
+    let quotes = "\\\"\\\""
+    let source = "\"" + quotes + "\""
+    let (tokens,lineCount) = tokenize [] source
+
+    let triviaNodes =
+        getTriviaFromTokens tokens lineCount
+        |> List.filter (fun { Item = item } -> match item with | StringContent(sc) when (sc = source) -> true  | _ -> false)
 
     List.length triviaNodes == 1
