@@ -1,7 +1,6 @@
 ﻿namespace Fantomas
 
 open System
-open System.Text
 open System.Text.RegularExpressions
 
 [<RequireQualifiedAccess>]
@@ -57,55 +56,6 @@ module String =
             if lengthWithoutSpaces a' > lengthWithoutSpaces b' then a' else b'
         )
         |> String.concat Environment.NewLine
-
-
-    let escape (str: string) =
-        let builder = StringBuilder()
-        let result =
-            let chars =
-                str.ToCharArray()
-                |> Array.indexed
-            let totalChars = Array.length chars
-
-            let isFollowedBySlashN currentIndex =
-                let nextIndex = currentIndex + 1
-                if nextIndex = totalChars then
-                    false
-                else
-                    '\n' = (snd chars.[nextIndex])
-
-            let isPrecededBySlashR currentIndex =
-                if currentIndex = 0 then
-                    false
-                else
-                    let prevIndex = currentIndex - 1
-                    '\r' = (snd chars.[prevIndex])
-
-            chars
-            |> Array.fold (fun (b:StringBuilder, insideString) (i,c) ->
-                match c, insideString with
-                | ''', false ->
-                    b.Append("'"), false
-                | '"', _ ->
-                    b.Append("\\\""), not insideString
-                | ''', _ ->
-                    b.Append("\\\""), not insideString
-                | '\n', false when (isPrecededBySlashR i) ->
-                    b,insideString
-                | '\n', false ->
-                    b.Append("\\n"), false
-                | '\r', false when (isFollowedBySlashN i) ->
-                    b.Append("\n"), false
-                | '\r', false ->
-                    b.Append("\\r"), false
-                | c, _ ->
-                    b.Append(c), insideString
-            ) (builder, false)
-            |> fst
-            |> fun b -> b.ToString()
-
-        result
-
 
 module Cache =
     let alreadyVisited<'key when 'key : not struct>() =

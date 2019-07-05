@@ -1658,7 +1658,6 @@ and genConst (c:SynConst) (r:range) =
     | SynConst.Single(_)
     | SynConst.Decimal(_) -> genConstNumber c r
     | SynConst.String(s,_) ->
-        let escapedString = String.escape s
         fun (ctx: Context) ->
             let trivia =
                 ctx.Trivia
@@ -1675,11 +1674,8 @@ and genConst (c:SynConst) (r:range) =
                     |> List.tryExactlyOne
                 )
 
-
             match triviaStringContent, trivia with
             | Some stringContent, Some _ ->
-//                let replaceQuotes = s.Replace("\"", "\"\"")
-//                !- (System.String.Concat("@\"", replaceQuotes,"\""))
                 !- stringContent
             | None, Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "KEYWORD_STRING"; }; Content = kw})] }) ->
                 !- kw
