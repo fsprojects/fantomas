@@ -9,6 +9,8 @@ module Char =
         match c with
         | '\r' -> @"\r"
         | '\n' -> @"\n"
+        | '\t' -> @"\t"
+        | '\\' -> @"\\"
         | _ -> c.ToString()
 
 [<RequireQualifiedAccess>]

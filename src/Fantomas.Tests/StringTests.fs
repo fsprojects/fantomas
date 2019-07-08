@@ -151,3 +151,9 @@ let main argv =
     \"\"\"))
     0
 "
+
+[<Test>]
+let ``chars should be properly escaped`` () =
+    formatSourceString false """let private peskyChars = [| '"' ; '\t' ; ' ' ; '\\' |]""" config
+    |> should equal """let private peskyChars = [| '"'; '\t'; ' '; '\\' |]
+"""
