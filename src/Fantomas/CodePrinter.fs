@@ -1552,7 +1552,6 @@ and genComplexPat astContext node =
     | CPSimpleId(s, isOptArg, _) -> ifElse isOptArg (!- (sprintf "?%s" s)) (!- s)
     | CPTyped(sp, t) -> genComplexPat astContext sp +> sepColon +> genType astContext false t
     | CPAttrib(ats, sp) -> genOnelinerAttributes astContext ats +> genComplexPat astContext sp
-    // |> genTrivia node TODO
 
 and genComplexPats astContext node =
     match node with
@@ -1560,12 +1559,11 @@ and genComplexPats astContext node =
     | ComplexPats [CPSimpleId _ as c] -> genComplexPat astContext c
     | ComplexPats ps -> sepOpenT +> col sepComma ps (genComplexPat astContext) +> sepCloseT
     | ComplexTyped(ps, t) -> genComplexPats astContext ps +> sepColon +> genType astContext false t
-    // |> genTrivia node TODO
 
 and genPatRecordFieldName astContext (PatRecordFieldName(s1, s2, p) as node) =
     let ((_, idn),_) = node
     ifElse (s1 = "") (!- (sprintf "%s = " s2)) (!- (sprintf "%s.%s = " s1 s2)) +> genPat astContext p
-    |> genTrivia idn.idRange // TODO probably wrong
+    |> genTrivia idn.idRange
 
 and genPatWithIdent astContext (ido, p) = 
     opt (sepEq +> sepSpace) ido (!-) +> genPat astContext p
@@ -1662,11 +1660,16 @@ and genConst (c:SynConst) (r:range) =
     | SynConst.Int32(_)
     | SynConst.Int64(_)
     | SynConst.UInt16(_)
+    | SynConst.UInt16s(_)
     | SynConst.UInt32(_)
     | SynConst.UInt64(_)
     | SynConst.Double(_)
     | SynConst.Single(_)
-    | SynConst.Decimal(_) -> genConstNumber c r
+    | SynConst.Decimal(_)
+    | SynConst.IntPtr(_)
+    | SynConst.UInt64(_)
+    | SynConst.UIntPtr(_)
+    | SynConst.UserNum(_,_) -> genConstNumber c r
     | SynConst.String(s,_) ->
         fun (ctx: Context) ->
             let trivia =
@@ -1698,8 +1701,15 @@ and genConst (c:SynConst) (r:range) =
         let escapedChar = Char.escape c
         !- (sprintf "\'%s\'" escapedChar)
     | SynConst.Bytes(bytes,_) -> genConstBytes bytes r
-    | _ ->
-        failwithf "The printing of %A is currently not supported. Please raise an issue at https://github.com/fsprojects/fantomas/issues" c
+    | SynConst.Measure(c, m) ->
+        let rec measure =
+            match m with
+            | SynMeasure.Seq([SynMeasure.Named([longId], _)],_)
+            | SynMeasure.Named([longId], _) ->
+                !- (sprintf "<%s>" longId.idText)
+            | _ -> sepNone
+            
+        genConstNumber c r +> measure
 
 and genConstNumber (c:SynConst) (r: range) =
     fun (ctx: Context) ->
@@ -1721,11 +1731,15 @@ and genConstNumber (c:SynConst) (r: range) =
                 | SynConst.Int32(v) -> !- (sprintf "%A" v)
                 | SynConst.Int64(v) -> !- (sprintf "%A" v)
                 | SynConst.UInt16(v) -> !- (sprintf "%A" v)
+                | SynConst.UInt16s(v) -> !- (sprintf "%A" v)
                 | SynConst.UInt32(v) -> !- (sprintf "%A" v)
                 | SynConst.UInt64(v) -> !- (sprintf "%A" v)
                 | SynConst.Double(v) -> !- (sprintf "%A" v)
                 | SynConst.Single(v) -> !- (sprintf "%A" v)
                 | SynConst.Decimal(v) -> !- (sprintf "%A" v)
+                | SynConst.IntPtr(v) -> !- (sprintf "%A" v)
+                | SynConst.UIntPtr(v) -> !- (sprintf "%A" v)
+                | SynConst.UserNum(v,s) -> !- (sprintf "%A%s" v s)
                 | _ -> failwithf "Cannot generating Const number for %A" c
         <| ctx
 

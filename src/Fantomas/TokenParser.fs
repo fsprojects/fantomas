@@ -170,7 +170,8 @@ let private getContentFromTokens tokens =
     |> String.concat String.Empty
     
 let private keywordTrivia = ["IF"; "ELIF"; "OVERRIDE"; "MEMBER"; "DEFAULT"; "KEYWORD_STRING"; "QMARK"]
-let private numberTrivia = ["INT8";"UINT16";"INT32";"IEEE32";"DECIMAL";"IEEE64"] // TODO: add full list
+let private numberTrivia = ["UINT8";"INT8";"UINT16";"INT16";"UINT32";"INT32";"UINT64";"IEEE32";
+                            "DECIMAL";"IEEE64";"BIGNUM";"NATIVEINT";"UNATIVEINT"]
 
 let private isOperatorOrKeyword ({TokenInfo = {CharClass = cc}}) =
     cc = FSharp.Compiler.SourceCodeServices.FSharpTokenCharKind.Keyword || cc = FSharp.Compiler.SourceCodeServices.FSharpTokenCharKind.Operator

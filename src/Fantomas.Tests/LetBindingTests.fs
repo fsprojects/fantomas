@@ -109,3 +109,19 @@ let x =
                 .PadLeft(9)
         num)
 """
+
+[<Test>]
+let ``newlines between let bindings should preserved`` () =
+    formatSourceString false """
+let a = 42
+
+
+
+let b = "meh"
+"""  config
+    |> should equal """let a = 42
+
+
+
+let b = "meh"
+"""

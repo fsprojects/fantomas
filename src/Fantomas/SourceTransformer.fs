@@ -180,12 +180,7 @@ let rec (|SigValL|_|) = function
 
 /// Omit a break before an expression if the expression is small and it is already one line in the text
 let checkPreserveBreakForExpr (e: Ast.SynExpr) (_ : Context) =
-    let isMultiline = multiline e
-    let hasComments = false // TODO: check based on range
-//        ctx.Trivia.ContainsKey e
-//        && ctx.Trivia.[e] |> Seq.exists (fun t -> not (List.isEmpty t.CommentsBefore) || not (List.isEmpty t.CommentsAfter))
-    let hasDirective = false //TODO //ctx.Directives.ContainsKey(e.Range.Start)
-    isMultiline || hasComments || hasDirective
+    multiline e
 
 /// Omit a break before an expression if the expression is small 
 let checkBreakForExpr e =

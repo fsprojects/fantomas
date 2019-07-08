@@ -184,7 +184,7 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }) triviaNodes
 
     | { Item = Newline; Range = range } ->
-        let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine // TODO: this approach does not work if multiple newlines are in place.
+        let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
         match nodeAfterLine with
         | Some _ ->
             nodeAfterLine

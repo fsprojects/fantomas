@@ -566,8 +566,7 @@ let private hasPrintableContent (trivia: TriviaContent list) =
 let internal sepNlnConsideringTriviaContentBefore (range:range) ctx =
     match findTriviaMainNodeFromRange ctx.Trivia range with
     | Some({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) ->
-        ctx // don't add newline because trivia contains a newline or a comment
-        // TODO: will not work when a block comment is before the ast node.
+        ctx
     | _ -> sepNln ctx
 
 let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range) (attributeRanges: range seq) ctx =
