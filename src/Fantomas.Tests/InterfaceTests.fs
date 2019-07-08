@@ -169,3 +169,18 @@ type MyLogInteface() =
         member x.Info() = ()
         override x.Version() = ()
 """
+
+
+[<Test>]
+let ``Interface with comment after equal`` () =
+    formatSourceString false """
+/// Interface that must be implemented by all Argu template types
+type IArgParserTemplate =
+    /// returns a usage string for every union case
+    abstract Usage : string
+"""  config
+    |> should equal """/// Interface that must be implemented by all Argu template types
+type IArgParserTemplate =
+    /// returns a usage string for every union case
+    abstract Usage: string
+"""

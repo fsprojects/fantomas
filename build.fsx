@@ -99,7 +99,7 @@ let fantomasExecutableForExternalTests projectdir =
         | DotNet.BuildConfiguration.Custom s -> s
     
     if Environment.isWindows
-    then { ProcessName = sprintf "%s/src/Fantomas.Cmd/bin/%s/net452/dotnet-fantomas.exe" projectdir configuration; Arguments = [] }
+    then { ProcessName = sprintf "%s/src/Fantomas.Cmd/bin/%s/net461/dotnet-fantomas.exe" projectdir configuration; Arguments = [] }
     else { ProcessName = "dotnet"; Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/netcoreapp2.1/fantomas-tool.dll" projectdir configuration ] }
 
 let externalProjectsToTest = [

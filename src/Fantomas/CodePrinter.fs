@@ -1122,8 +1122,18 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
         +> unindent
     
     | ObjectModel(_, MemberDefnList(impCtor, others), _) ->
-        typeName +> opt sepNone impCtor (genMemberDefn { astContext with InterfaceRange = None }) +> sepEq +> indent
-        +> genTrivia tdr.Range (genMemberDefnList { astContext with InterfaceRange = None } others)
+        let sepNlnIfOtherHaveTrivia (ctx: Context) =
+            let trivia =
+                ctx.Trivia
+                |> List.tryFind (fun t -> t.Range = tdr.Range && not(List.isEmpty t.ContentBefore))
+            match trivia with
+            | Some _ -> sepNln
+            | None -> sepSpace
+            <| ctx
+    
+        typeName +> opt sepNone impCtor (genMemberDefn { astContext with InterfaceRange = None }) +> sepEq
+        +> indent +> sepNlnIfOtherHaveTrivia
+        +> genMemberDefnList { astContext with InterfaceRange = None } others
         +> unindent
 
     | ExceptionRepr(ExceptionDefRepr(ats, px, ao, uc)) ->
