@@ -284,7 +284,7 @@ let x = 1
 let ``issue 382`` () =
     formatSourceString false """
 type Currency =
-    // TODO: Temporary fix until a new Thoth.Json.Net package is released
+    // Temporary fix until a new Thoth.Json.Net package is released
     // See https://github.com/MangelMaxime/Thoth/pull/70
 
 #if FABLE_COMPILER
@@ -293,7 +293,7 @@ type Currency =
     | Code of string
 """  config
     |> should equal """type Currency =
-    // TODO: Temporary fix until a new Thoth.Json.Net package is released
+    // Temporary fix until a new Thoth.Json.Net package is released
     // See https://github.com/MangelMaxime/Thoth/pull/70
 
     #if FABLE_COMPILER
