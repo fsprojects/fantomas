@@ -1513,11 +1513,17 @@ and genMemberDefn astContext node =
             match t with
             | TFun _ -> true
             | _ -> false
+
+        let sepColonX =
+            match tds with
+            | [] -> sepColon
+            | _ -> sepColonWithSpacesFixed
+            
         genPreXmlDoc px 
         +> genAttributes astContext ats
         +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
         +> genTypeParam astContext tds tcs
-        +> sepColon +> genTypeList astContext namedArgs -- genPropertyKind (not isFunctionProperty) mk
+        +> sepColonX +> genTypeList astContext namedArgs -- genPropertyKind (not isFunctionProperty) mk
 
     | md -> failwithf "Unexpected member definition: %O" md
     |> genTrivia node.Range

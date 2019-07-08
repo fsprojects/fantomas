@@ -184,3 +184,17 @@ type IArgParserTemplate =
     /// returns a usage string for every union case
     abstract Usage: string
 """
+
+
+[<Test>]
+let ``generic interface member should have space after name`` () =
+    let source = """
+type IFunc<'R> =
+    abstract Invoke<'T> : unit -> 'R // without this space the code is invalid
+"""
+
+    formatSourceString false source config
+    |> fun formatted -> formatSourceString false formatted config
+    |> should equal """type IFunc<'R> =
+    abstract Invoke<'T> : unit -> 'R // without this space the code is invalid
+"""
