@@ -331,7 +331,7 @@ Target.create "Push" (fun _ -> pushPackage [])
     // Paket.push (fun p -> { p with WorkingDir = "bin" }))
 
 Target.create "MyGet" (fun _ ->
-    let prNumber = Environment.environVar "APPVEYOR_PULL_REQUEST_NUMBER"
+    let prNumber = Environment.environVar "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH"
     let isPullRequest = not (String.IsNullOrEmpty prNumber)
     let branch = Environment.environVar "APPVEYOR_REPO_BRANCH"
     printfn "Current branch: %s" branch
