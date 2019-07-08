@@ -1027,12 +1027,23 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
             // Add newline after un-indent to be spacing-correct
             +> unindent)
 
-    | Simple(TDSRUnion(ao', xs)) ->
+    | Simple(TDSRUnion(ao', xs) as unionNode) ->
+        let sepNlnBasedOnTrivia =
+            fun (ctx: Context) ->
+                let trivia =
+                    ctx.Trivia
+                    |> List.tryFind (fun t -> t.Range = unionNode.Range && not (List.isEmpty t.ContentBefore))
+                    
+                match trivia with
+                | Some _ -> sepNln
+                | None -> sepNone
+                <| ctx
+        
         let unionCases =  
             match xs with
             | [] -> id
             | [x] when List.isEmpty ms -> 
-                indent +> sepSpace
+                indent +> sepSpace +> sepNlnBasedOnTrivia
                 +> genTrivia tdr.Range
                     (opt sepSpace ao' genAccess
                     +> genUnionCase { astContext with HasVerticalBar = false } x)
@@ -1042,7 +1053,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
                     (opt sepNln ao' genAccess 
                     +> col sepNln xs (genUnionCase { astContext with HasVerticalBar = true }))
 
-        typeName +> sepEq 
+        typeName +> sepEq
         +> unionCases +> genMemberDefnList { astContext with InterfaceRange = None } ms
         +> unindent
 

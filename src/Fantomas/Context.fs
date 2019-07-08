@@ -562,6 +562,7 @@ let private hasPrintableContent (trivia: TriviaContent list) =
         | _ -> false)
     |> List.isEmpty
     |> not
+
 let internal sepNlnConsideringTriviaContentBefore (range:range) ctx =
     match findTriviaMainNodeFromRange ctx.Trivia range with
     | Some({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) ->
@@ -606,7 +607,12 @@ let internal genTriviaBeforeClausePipe (rangeOfClause:range) ctx =
     |> fun trivia ->
         match trivia with
         | Some trivia ->
-            printContentBefore trivia
+            let containsOnlyDirectives =
+                trivia.ContentBefore
+                |> List.forall (fun tn -> match tn with | Directive(_) -> true | _ -> false)
+            
+            ifElse containsOnlyDirectives sepNln sepNone
+            +> printContentBefore trivia
         | None -> id
     <| ctx
     

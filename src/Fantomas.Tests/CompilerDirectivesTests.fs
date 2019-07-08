@@ -279,3 +279,25 @@ let x = 1
 let x = 1
 #endif
 """
+
+[<Test>]
+let ``issue 382`` () =
+    formatSourceString false """
+type Currency =
+    // TODO: Temporary fix until a new Thoth.Json.Net package is released
+    // See https://github.com/MangelMaxime/Thoth/pull/70
+
+#if FABLE_COMPILER
+    private
+#endif
+    | Code of string
+"""  config
+    |> should equal """type Currency =
+    // TODO: Temporary fix until a new Thoth.Json.Net package is released
+    // See https://github.com/MangelMaxime/Thoth/pull/70
+
+    #if FABLE_COMPILER
+    private
+    #endif
+    Code of string
+"""
