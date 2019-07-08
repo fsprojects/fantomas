@@ -333,8 +333,10 @@ Target.create "Push" (fun _ -> pushPackage [])
 Target.create "MyGet" (fun _ ->
     let prNumber = Environment.environVar "APPVEYOR_PULL_REQUEST_NUMBER"
     let isPullRequest = not (String.IsNullOrEmpty prNumber)
+    let branch = Environment.environVar "APPVEYOR_REPO_BRANCH"
+    printfn "Current branch: %s" branch
         
-    if not isPullRequest then
+    if not isPullRequest || branch = "trivia" then
         let apiKey = Environment.environVar "myget-key"
         let args = ["--url"; "https://www.myget.org/F/fantomas/api/v2/package"; "--api-key"; apiKey ]
         pushPackage args
