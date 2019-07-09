@@ -142,6 +142,17 @@ let private updateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =
 /// like updateTriviaNode, but returns None when triviaNode is None
 let private tryUpdateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =
     triviaNode |> Option.map (fun tn -> updateTriviaNode lens triviaNodes (Some tn))
+    
+let private findBindingThatStartsWith (triviaNodes: TriviaNode list) column line =
+    triviaNodes
+    |> List.tryFind (fun t ->
+        match t.Type with
+        | MainNode("Binding") when (t.Range.StartColumn = column && t.Range.StartLine = line) ->
+            true
+        | MainNode("SynPat.Named") when (t.Range.StartColumn = column && t.Range.StartLine = line) ->
+            true
+        | _ -> false
+    )
 
 let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     match trivia with
@@ -235,6 +246,10 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     | { Item = Number(_) as number; Range = range  } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore number }) triviaNodes
+        
+    | { Item = IdentOperatorAsWord(_) as ifw; Range = range } ->
+        findBindingThatStartsWith triviaNodes range.StartColumn range.StartLine
+        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore ifw }) triviaNodes
 
     | _ ->
         triviaNodes

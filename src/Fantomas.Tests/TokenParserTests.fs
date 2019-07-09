@@ -357,3 +357,15 @@ let ``with quotes`` () =
         |> List.filter (fun { Item = item } -> match item with | StringContent(sc) when (sc = source) -> true  | _ -> false)
 
     List.length triviaNodes == 1
+    
+
+[<Test>]
+let ``infix operator in full words inside an ident`` () =
+    let source = """let op_LessThan(a, b) = a < b"""
+    let (tokens,lineCount) = tokenize [] source
+    
+    let triviaNodes =
+        getTriviaFromTokens tokens lineCount
+        |> List.filter (fun { Item = item } -> match item with | IdentOperatorAsWord "op_LessThan" -> true | _ -> false)
+        
+    List.length triviaNodes == 1

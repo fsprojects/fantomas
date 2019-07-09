@@ -178,6 +178,10 @@ let private isOperatorOrKeyword ({TokenInfo = {CharClass = cc}}) =
 
 let private isNumber ({TokenInfo = tn}) =
     tn.ColorClass = FSharp.Compiler.SourceCodeServices.FSharpTokenColorKind.Number && List.contains tn.TokenName numberTrivia
+    
+let private identIsDecompiledOperator (token: Token) =
+    let decompiledName = FSharp.Compiler.PrettyNaming.DecompileOpName token.Content
+    token.TokenInfo.TokenName = "IDENT" && decompiledName <> token.Content
 
 let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: Token list) foundTrivia =
     match tokens with
@@ -317,6 +321,13 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             Trivia.Create (Number(head.Content)) range
             |> List.prependItem foundTrivia
 
+        getTriviaFromTokensThemSelves allTokens rest info
+        
+    | head::rest when (identIsDecompiledOperator head) ->
+        let range = getRangeBetween "operator as word" head head
+        let info =
+            Trivia.Create (IdentOperatorAsWord head.Content) range
+            |> List.prependItem foundTrivia
         getTriviaFromTokensThemSelves allTokens rest info
 
     | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia

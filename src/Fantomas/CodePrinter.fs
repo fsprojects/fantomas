@@ -1597,7 +1597,7 @@ and genPat astContext pat =
         // We lookup sources to get extern types since it has quite many exceptions compared to normal F# types
         ifElse astContext.IsCStylePattern (genTypeByLookup astContext t +> sepSpace +> genPat astContext p)
             (genPat astContext p +> sepColon +> genType astContext false t) 
-    | PatNamed(ao, PatNullary PatWild, s) -> opt sepSpace ao genAccess -- s
+    | PatNamed(ao, PatNullary PatWild, s) -> opt sepSpace ao genAccess +> infixOperatorFromTrivia pat.Range s
     | PatNamed(ao, p, s) -> opt sepSpace ao genAccess +> genPat astContext p -- sprintf " as %s" s 
     | PatLongIdent(ao, s, ps, tpso) -> 
         let aoc = opt sepSpace ao genAccess
@@ -1608,8 +1608,8 @@ and genPat astContext pat =
         | [] ->  aoc -- s +> tpsoc
         | [(_, PatTuple [p1; p2])] when s = "(::)" -> 
             aoc +> genPat astContext p1 -- " :: " +> genPat astContext p2
-        | [(ido, p) as ip] -> 
-            aoc -- s +> tpsoc +> 
+        | [(ido, p) as ip] ->
+            aoc +> infixOperatorFromTrivia pat.Range s +> tpsoc +> 
             ifElse (hasParenInPat p || Option.isSome ido) (ifElse (addSpaceBeforeParensInFunDef s p) sepBeforeArg sepNone) sepSpace 
             +> ifElse (Option.isSome ido) (sepOpenT +> genPatWithIdent astContext ip +> sepCloseT) (genPatWithIdent astContext ip)
         // This pattern is potentially long
@@ -1779,3 +1779,19 @@ and genTrivia (range: range) f =
 
 and tok (range: range) (s: string) =
     enterNodeToken range +> (!-s) +> leaveNodeToken range
+
+and infixOperatorFromTrivia range fallback (ctx: Context) =
+    ctx.Trivia
+    |> List.choose(fun t ->
+        match t.Range = range with
+        | true ->
+            t.ContentBefore
+            |> List.choose (fun tc -> match tc with | IdentOperatorAsWord(iiw) -> Some iiw | _ -> None)
+            |> List.tryHead
+        | _ -> None)
+    |> List.tryHead
+    |> fun iiw ->
+        match iiw with
+        | Some iiw -> !- iiw
+        | None ->  !- fallback
+    <| ctx

@@ -798,3 +798,25 @@ let ``type abbreviation augmentation``() =
     with
         member __.X = ()
 """
+
+[<Test>]
+let ``operator in words should not print to symbol, 409`` () =
+    formatSourceString false """type T() =
+    static member op_LessThan(a, b) = a < b""" config
+    |> should equal """type T() =
+    static member op_LessThan (a, b) = a < b
+"""
+
+[<Test>]
+let ``operator in words in let binding`` () =
+    formatSourceString false """let op_PipeRight2  = ()""" config
+    |> should equal """let op_PipeRight2 = ()
+"""
+
+[<Test>]
+let ``operator in words in member`` () =
+    formatSourceString false """type A() =
+    member this.B(op_Inequality : string) = ()""" config
+    |> should equal """type A() =
+    member this.B(op_Inequality: string) = ()
+"""

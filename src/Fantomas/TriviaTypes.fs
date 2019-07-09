@@ -30,6 +30,7 @@ type TriviaContent =
     | Keyword of Token
     | Number of string
     | StringContent of string
+    | IdentOperatorAsWord of string
     | Comment of Comment
     | Newline
     | Directive of directive:string * appendNewline:bool
