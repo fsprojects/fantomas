@@ -162,3 +162,28 @@ let printStackTrace(): unit = jsNative
 
 let e2e value = Props.Data("e2e", value)
 """
+
+[<Test>]
+let ``comments before attributes should be added correctly, issue 422`` () =
+    formatSourceString false """module RecordTypes = 
+
+    /// Records can also be represented as structs via the 'Struct' attribute.
+    /// This is helpful in situations where the performance of structs outweighs
+    /// the flexibility of reference types.
+    [<Struct>]
+    type ContactCardStruct = 
+        { Name     : string
+          Phone    : string
+          Verified : bool }
+"""  config
+    |> should equal """module RecordTypes =
+
+    /// Records can also be represented as structs via the 'Struct' attribute.
+    /// This is helpful in situations where the performance of structs outweighs
+    /// the flexibility of reference types.
+    [<Struct>]
+    type ContactCardStruct =
+        { Name: string
+          Phone: string
+          Verified: bool }
+"""
