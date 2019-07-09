@@ -1718,12 +1718,9 @@ and genConst (c:SynConst) (r:range) =
         !- (sprintf "\'%s\'" escapedChar)
     | SynConst.Bytes(bytes,_) -> genConstBytes bytes r
     | SynConst.Measure(c, m) ->
-        let rec measure =
+        let measure =
             match m with
-            | SynMeasure.Seq([SynMeasure.Named([longId], _)],_)
-            | SynMeasure.Named([longId], _) ->
-                !- (sprintf "<%s>" longId.idText)
-            | _ -> sepNone
+            | Measure m -> !- m
             
         genConstNumber c r +> measure
 
