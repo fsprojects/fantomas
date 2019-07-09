@@ -150,7 +150,8 @@ let ``Multi line block comment should be found in tokens`` () =
         |> String.normalizeNewLine
     
     match triviaNodes with
-    | [{ Item = Comment(BlockComment(blockComment)); Range = range }
+    | [{ Item = Newline }
+       { Item = Comment(BlockComment(blockComment)); Range = range }
        { Item = Number("7") }] ->
         blockComment == expectedComment
         range.StartLine == 2
@@ -216,7 +217,8 @@ let ``Comment after left brace of record`` () =
     let triviaNodes = getTriviaFromTokens tokens lineCount
 
     match triviaNodes with
-    | [ { Item = Comment(LineCommentAfterSourceCode(comment)); Range = range }
+    | [ { Item = Newline }
+        { Item = Comment(LineCommentAfterSourceCode(comment)); Range = range }
         { Item = Number("7") } ] ->
         comment == "// foo"
         range.StartLine == 2
@@ -249,6 +251,7 @@ type T() =
 
     match triviaNodes with
     | [{ Item = Newline; Range = rAbove }
+       { Item = Newline }
        { Item = Number("123") }] ->
         rAbove.StartLine == 1
     | _ ->

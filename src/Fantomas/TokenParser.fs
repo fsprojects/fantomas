@@ -153,7 +153,7 @@ let private getRangeBetween name startToken endToken =
     let l = startToken.TokenInfo.LeftColumn
     let r = endToken.TokenInfo.RightColumn
     let start = FSharp.Compiler.Range.mkPos startToken.LineNumber l
-    let endR = FSharp.Compiler.Range.mkPos endToken.LineNumber (if l=r then r+1 else r)
+    let endR = FSharp.Compiler.Range.mkPos endToken.LineNumber (if l=r then r+1 else r) // TODO: why the plus 1 again?
     FSharp.Compiler.Range.mkRange name start endR
 
 let private hasOnlySpacesAndLineCommentsOnLine lineNumber tokens =
@@ -329,6 +329,21 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             Trivia.Create (IdentOperatorAsWord head.Content) range
             |> List.prependItem foundTrivia
         getTriviaFromTokensThemSelves allTokens rest info
+        
+    | head::rest when (head.TokenInfo.TokenName = "EQUALS") ->
+        let restOnSameLine =
+            rest
+            |> List.filter (fun t -> (t.LineNumber = head.LineNumber && t.TokenInfo.LeftColumn > head.TokenInfo.RightColumn) && t.TokenInfo.TokenName <> "WHITESPACE")
+
+        match restOnSameLine with
+        | [] ->
+            let info =
+                Trivia.Create Newline (getRangeBetween "newline after equals" head head)
+                |> List.prependItem foundTrivia
+                
+            getTriviaFromTokensThemSelves allTokens rest info
+        | _ ->
+            getTriviaFromTokensThemSelves allTokens rest foundTrivia
 
     | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
     
