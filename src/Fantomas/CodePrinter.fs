@@ -41,12 +41,17 @@ type ASTContext =
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg = 
     match functionOrMethod, arg with
-    | _, ConstExpr(Const "()", _) -> false
+    | _, ConstExpr(Const "()", _) ->
+        false
     | SynExpr.LongIdent(_, LongIdentWithDots s, _, _), _ ->
         let parts = s.Split '.'
         not <| Char.IsUpper parts.[parts.Length - 1].[0]
-    | SynExpr.Ident(Ident s), _ -> not <| Char.IsUpper s.[0]
-    | SynExpr.TypeApp(e, _, _, _, _, _, _), _ -> addSpaceBeforeParensInFunCall e arg
+    | SynExpr.Ident(_), SynExpr.Ident(_) ->
+        true
+    | SynExpr.Ident(Ident s), _ ->
+        not <| Char.IsUpper s.[0]
+    | SynExpr.TypeApp(e, _, _, _, _, _, _), _ ->
+        addSpaceBeforeParensInFunCall e arg
     | _ -> true
 
 let addSpaceBeforeParensInFunDef functionOrMethod args =
@@ -821,14 +826,16 @@ and genExpr astContext synExpr =
         +> unindent
 
     // Unlike infix app, function application needs a level of indentation
-    | App(e1, [e2]) -> 
+    | App(e1, [e2]) ->
+        let hasPar = hasParenthesis e2
+        let addSpaceBefore = addSpaceBeforeParensInFunCall e1 e2
         atCurrentColumn (genExpr astContext e1 +> 
             ifElse (not astContext.IsInsideDotGet)
-                (ifElse (hasParenthesis e2) 
-                    (ifElse (addSpaceBeforeParensInFunCall e1 e2) sepBeforeArg sepNone) 
+                (ifElse hasPar
+                    (ifElse addSpaceBefore sepBeforeArg sepNone)
                     sepSpace)
                 sepNone
-            +> indent +> appNlnFun e2 (genExpr astContext e2) +> unindent)
+            +> indent +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone) +> appNlnFun e2 (genExpr astContext e2) +> unindent)
 
     // Always spacing in multiple arguments
     | App(e, es) -> 
