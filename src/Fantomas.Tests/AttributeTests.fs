@@ -160,8 +160,7 @@ let printModel model: unit = jsNative
 let printStackTrace(): unit = jsNative
 #endif
 
-let e2e value =
-    Props.Data("e2e", value)
+let e2e value = Props.Data("e2e", value)
 """
 
 [<Test>]

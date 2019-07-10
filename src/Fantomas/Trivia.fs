@@ -195,27 +195,15 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }) triviaNodes
 
     | { Item = Newline; Range = range } ->
-        let equalSignOnRange =
-            triviaNodes
-            |> List.tryFind (fun t ->
-                t.Range.StartColumn = range.StartColumn &&
-                t.Range.StartLine = range.StartLine &&
-                match t.Type with | Token({TokenInfo = {TokenName = "EQUALS"}}) -> true | _ -> false)
-
-        match equalSignOnRange with
+        let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
+        match nodeAfterLine with
         | Some _ ->
-            equalSignOnRange
-            |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes
+            nodeAfterLine
+            |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore Newline }) triviaNodes
         | None ->
-            let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
-            match nodeAfterLine with
-            | Some _ ->
-                nodeAfterLine
-                |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore Newline }) triviaNodes
-            | None ->
-                // try and find a node above
-                findNodeBeforeLineFromStart triviaNodes range.StartLine
-                |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes
+            // try and find a node above
+            findNodeBeforeLineFromStart triviaNodes range.StartLine
+            |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes
 
     | { Item = Keyword({ Content = keyword} as kw); Range = range } when (keyword = "override" || keyword = "default" || keyword = "member") ->
         findMemberDefnMemberNodeOnLine triviaNodes range.StartLine
@@ -291,7 +279,7 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
         |> List.choose id
     let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
     let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
-
+    
     let trivias = TokenParser.getTriviaFromTokens tokens lineCount
 
     match trivias with

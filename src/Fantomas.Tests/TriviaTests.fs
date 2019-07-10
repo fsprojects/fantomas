@@ -119,8 +119,7 @@ let ``Comments inside record`` () =
         |> List.head
 
     match triviaNodes with
-    | [{ Type = Token({TokenInfo = {TokenName = "EQUALS"}}); ContentAfter = [Newline] }
-       { Type = TriviaNodeType.Token(t); ContentAfter = [Comment(LineCommentAfterSourceCode("// foo"))] }
+    | [{ Type = TriviaNodeType.Token(t); ContentAfter = [Comment(LineCommentAfterSourceCode("// foo"))] }
        { ContentBefore = [Number("7")] }] ->
         t.Content == "{"
     | _ ->
@@ -139,7 +138,6 @@ let ``Comment after all source code`` () =
     
     match triviaNodes with
     | [ { Type = MainNode(mn); ContentAfter = [Comment(LineCommentOnSingleLine(lineComment))] }
-        { Type = Token({TokenInfo = {TokenName = "EQUALS"}}); ContentAfter = [Newline] }
         { ContentBefore = [Number("123")] } ] ->
         mn == "SynModuleDecl.Types"
         lineComment == (sprintf "%s//    override private x.ToString() = \"\"" Environment.NewLine)
