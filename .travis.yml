@@ -20,3 +20,7 @@ jobs:
       script: 
         - curl -X POST -F token=$FANTOMAS_UI_TOKEN -F ref=preview -F "variables[TRIGGER]=true" https://gitlab.com/api/v4/projects/8920076/trigger/pipeline
       if: branch = master
+    - stage: "trigger fantomas-ui preview-ng pipeline"
+      script: 
+        - curl -X POST -F token=$FANTOMAS_UI_TOKEN -F ref=preview-ng -F "variables[TRIGGER]=true" https://gitlab.com/api/v4/projects/8920076/trigger/pipeline
+      if: branch = master  
