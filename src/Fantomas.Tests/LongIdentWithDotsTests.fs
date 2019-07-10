@@ -22,7 +22,7 @@ Log.Logger <-
 """
 
 [<Test>]
-let ``Fluent api with comments should remain on same lines`` () =
+let ``fluent api with comments should remain on same lines`` () =
     formatSourceString false """
 Log.Logger <- 
   LoggerConfiguration() 
@@ -46,4 +46,20 @@ Log.Logger <-
         .WriteTo.Console()
         // add more sinks etc.
         .CreateLogger()
+"""
+
+
+[<Test>]
+let ``force newline by adding comments`` () =
+    formatSourceString false """let config = //
+    Builder()//
+        .UseCaching()//
+        .UseSql()//
+        .UseMeh()
+"""  config
+    |> should equal """let config = //
+    Builder() //
+        .UseCaching() //
+        .UseSql() //
+        .UseMeh()
 """
