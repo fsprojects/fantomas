@@ -150,7 +150,8 @@ let ``Multi line block comment should be found in tokens`` () =
         |> String.normalizeNewLine
     
     match triviaNodes with
-    | [{ Item = Comment(BlockComment(blockComment)); Range = range }
+    | [{ Item = Newline }
+       { Item = Comment(BlockComment(blockComment)); Range = range }
        { Item = Number("7") }] ->
         blockComment == expectedComment
         range.StartLine == 2
@@ -216,7 +217,8 @@ let ``Comment after left brace of record`` () =
     let triviaNodes = getTriviaFromTokens tokens lineCount
 
     match triviaNodes with
-    | [ { Item = Comment(LineCommentAfterSourceCode(comment)); Range = range }
+    | [ { Item = Newline }
+        { Item = Comment(LineCommentAfterSourceCode(comment)); Range = range }
         { Item = Number("7") } ] ->
         comment == "// foo"
         range.StartLine == 2
@@ -249,6 +251,7 @@ type T() =
 
     match triviaNodes with
     | [{ Item = Newline; Range = rAbove }
+       { Item = Newline }
        { Item = Number("123") }] ->
         rAbove.StartLine == 1
     | _ ->
@@ -356,4 +359,16 @@ let ``with quotes`` () =
         getTriviaFromTokens tokens lineCount
         |> List.filter (fun { Item = item } -> match item with | StringContent(sc) when (sc = source) -> true  | _ -> false)
 
+    List.length triviaNodes == 1
+    
+
+[<Test>]
+let ``infix operator in full words inside an ident`` () =
+    let source = """let op_LessThan(a, b) = a < b"""
+    let (tokens,lineCount) = tokenize [] source
+    
+    let triviaNodes =
+        getTriviaFromTokens tokens lineCount
+        |> List.filter (fun { Item = item } -> match item with | IdentOperatorAsWord "op_LessThan" -> true | _ -> false)
+        
     List.length triviaNodes == 1

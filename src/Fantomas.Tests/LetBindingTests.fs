@@ -125,3 +125,11 @@ let b = "meh"
 
 let b = "meh"
 """
+
+[<Test>]
+let ``preserve the newline after the equal sign`` () =
+    formatSourceString false """let add a b = 
+ a + b""" config
+    |> should equal """let add a b =
+    a + b
+"""

@@ -142,6 +142,17 @@ let private updateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =
 /// like updateTriviaNode, but returns None when triviaNode is None
 let private tryUpdateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =
     triviaNode |> Option.map (fun tn -> updateTriviaNode lens triviaNodes (Some tn))
+    
+let private findBindingThatStartsWith (triviaNodes: TriviaNode list) column line =
+    triviaNodes
+    |> List.tryFind (fun t ->
+        match t.Type with
+        | MainNode("Binding") when (t.Range.StartColumn = column && t.Range.StartLine = line) ->
+            true
+        | MainNode("SynPat.Named") when (t.Range.StartColumn = column && t.Range.StartLine = line) ->
+            true
+        | _ -> false
+    )
 
 let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     match trivia with
@@ -184,15 +195,27 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }) triviaNodes
 
     | { Item = Newline; Range = range } ->
-        let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
-        match nodeAfterLine with
+        let equalSignOnRange =
+            triviaNodes
+            |> List.tryFind (fun t ->
+                t.Range.StartColumn = range.StartColumn &&
+                t.Range.StartLine = range.StartLine &&
+                match t.Type with | Token({TokenInfo = {TokenName = "EQUALS"}}) -> true | _ -> false)
+
+        match equalSignOnRange with
         | Some _ ->
-            nodeAfterLine
-            |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore Newline }) triviaNodes
-        | None ->
-            // try and find a node above
-            findNodeBeforeLineFromStart triviaNodes range.StartLine
+            equalSignOnRange
             |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes
+        | None ->
+            let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
+            match nodeAfterLine with
+            | Some _ ->
+                nodeAfterLine
+                |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore Newline }) triviaNodes
+            | None ->
+                // try and find a node above
+                findNodeBeforeLineFromStart triviaNodes range.StartLine
+                |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes
 
     | { Item = Keyword({ Content = keyword} as kw); Range = range } when (keyword = "override" || keyword = "default" || keyword = "member") ->
         findMemberDefnMemberNodeOnLine triviaNodes range.StartLine
@@ -235,6 +258,10 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     | { Item = Number(_) as number; Range = range  } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore number }) triviaNodes
+        
+    | { Item = IdentOperatorAsWord(_) as ifw; Range = range } ->
+        findBindingThatStartsWith triviaNodes range.StartColumn range.StartLine
+        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore ifw }) triviaNodes
 
     | _ ->
         triviaNodes
@@ -264,7 +291,7 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
         |> List.choose id
     let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
     let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
-    
+
     let trivias = TokenParser.getTriviaFromTokens tokens lineCount
 
     match trivias with

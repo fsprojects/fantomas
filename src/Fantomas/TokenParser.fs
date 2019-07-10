@@ -153,7 +153,7 @@ let private getRangeBetween name startToken endToken =
     let l = startToken.TokenInfo.LeftColumn
     let r = endToken.TokenInfo.RightColumn
     let start = FSharp.Compiler.Range.mkPos startToken.LineNumber l
-    let endR = FSharp.Compiler.Range.mkPos endToken.LineNumber (if l=r then r+1 else r)
+    let endR = FSharp.Compiler.Range.mkPos endToken.LineNumber (if l=r then r+1 else r) // TODO: why the plus 1 again?
     FSharp.Compiler.Range.mkRange name start endR
 
 let private hasOnlySpacesAndLineCommentsOnLine lineNumber tokens =
@@ -178,6 +178,10 @@ let private isOperatorOrKeyword ({TokenInfo = {CharClass = cc}}) =
 
 let private isNumber ({TokenInfo = tn}) =
     tn.ColorClass = FSharp.Compiler.SourceCodeServices.FSharpTokenColorKind.Number && List.contains tn.TokenName numberTrivia
+    
+let private identIsDecompiledOperator (token: Token) =
+    let decompiledName = FSharp.Compiler.PrettyNaming.DecompileOpName token.Content
+    token.TokenInfo.TokenName = "IDENT" && decompiledName <> token.Content
 
 let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: Token list) foundTrivia =
     match tokens with
@@ -318,6 +322,28 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves allTokens rest info
+        
+    | head::rest when (identIsDecompiledOperator head) ->
+        let range = getRangeBetween "operator as word" head head
+        let info =
+            Trivia.Create (IdentOperatorAsWord head.Content) range
+            |> List.prependItem foundTrivia
+        getTriviaFromTokensThemSelves allTokens rest info
+        
+    | head::rest when (head.TokenInfo.TokenName = "EQUALS") ->
+        let restOnSameLine =
+            rest
+            |> List.filter (fun t -> (t.LineNumber = head.LineNumber && t.TokenInfo.LeftColumn > head.TokenInfo.RightColumn) && t.TokenInfo.TokenName <> "WHITESPACE")
+
+        match restOnSameLine with
+        | [] ->
+            let info =
+                Trivia.Create Newline (getRangeBetween "newline after equals" head head)
+                |> List.prependItem foundTrivia
+                
+            getTriviaFromTokensThemSelves allTokens rest info
+        | _ ->
+            getTriviaFromTokensThemSelves allTokens rest foundTrivia
 
     | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
     

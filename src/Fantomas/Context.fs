@@ -447,6 +447,7 @@ let internal printTriviaContent (c: TriviaContent) =
     | Keyword _
     | Number _
     | StringContent _
+    | IdentOperatorAsWord _
          -> sepNone // don't print here but somewhere in CodePrinter
     | Directive(content, addNewline) ->
         (ifElse addNewline sepNln sepNone) +> !- content +> sepNln
@@ -468,7 +469,8 @@ let internal printContentBefore triviaNode =
                             match cb with
                             | Keyword _
                             | Number _
-                            | StringContent _ ->
+                            | StringContent _
+                            | IdentOperatorAsWord _ ->
                                 true
                             | _ -> false)
                     if tn = triviaNode then
