@@ -187,3 +187,22 @@ let ``comments before attributes should be added correctly, issue 422`` () =
           Phone: string
           Verified: bool }
 """
+
+[<Test>]
+let ``different attributes according to defines`` () =
+    formatSourceString false """    [<
+#if NETCOREAPP2_1
+      Builder.Object;
+#else
+      Widget;
+#endif
+      DefaultValue(true)>]
+    let foo = ()"""  config
+    |> should equal """#if NETCOREAPP2_1
+[<Builder.Object>]
+#else
+[<Widget>]
+#endif
+[<DefaultValue(true)>]
+let foo = ()
+"""
