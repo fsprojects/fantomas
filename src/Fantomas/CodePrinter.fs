@@ -775,9 +775,11 @@ and genExpr astContext synExpr =
     | DotGetAppSpecial(s, es) ->
         !- s 
         +> atCurrentColumn 
-             (colAutoNlnSkip0 sepNone es (fun (s, e) ->
-                (!- (sprintf ".%s" s) 
-                    +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)))
+             (colAutoNlnSkip0 sepNone es (fun ((s,r), e) ->
+                sepNlnIfTriviaBefore r +>
+                ((!- (sprintf ".%s" s) |> genTrivia r) 
+                    +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)
+                ))
 
     | DotGetApp(e, es) as appNode ->
         // find all the lids recursively + range of do expr
@@ -802,7 +804,7 @@ and genExpr astContext synExpr =
                 genExpr astContext e
         expr
         +> indent
-        +> (col sepNone es (fun (s, e) -> 
+        +> (col sepNone es (fun ((s,_), e) -> 
                 let currentExprRange = e.Range
                 let genTriviaOfIdent =
                     dotGetFuncExprIdents
@@ -934,7 +936,7 @@ and genExpr astContext synExpr =
         !- (sprintf "%s <- " s) +> autoIndentNlnByFuture (genExpr astContext e)
     | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
     | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
-    | DotGet(e, s) -> 
+    | DotGet(e, (s,_)) -> 
         let exprF = genExpr { astContext with IsInsideDotGet = true }
         addParenIfAutoNln e exprF -- (sprintf ".%s" s)
     | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2

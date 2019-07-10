@@ -566,6 +566,15 @@ let private hasPrintableContent (trivia: TriviaContent list) =
         | _ -> false)
     |> List.isEmpty
     |> not
+    
+let private hasDirectiveBefore (trivia: TriviaContent list) =
+    trivia
+    |> List.filter (fun tn ->
+        match tn with
+        | Directive(_) -> true
+        | _ -> false)
+    |> List.isEmpty
+    |> not
 
 let internal sepNlnConsideringTriviaContentBefore (range:range) ctx =
     match findTriviaMainNodeFromRange ctx.Trivia range with
@@ -634,4 +643,12 @@ let internal genCommentsAfterInfix (rangePlusInfix: range option) (ctx: Context)
     )
     |> Option.map (fun comment -> !- comment +> sepNln)
     |> Option.defaultValue id
+    <| ctx
+    
+// Add a newline if there if trivia content before that requires it
+let internal sepNlnIfTriviaBefore (range:range) (ctx:Context) =
+    match findTriviaMainNodeFromRange ctx.Trivia range with
+    | Some({ ContentBefore = contentBefore }) when (hasDirectiveBefore contentBefore) ->
+        sepNln
+    | _ -> sepNone
     <| ctx

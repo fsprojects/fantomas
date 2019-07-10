@@ -763,8 +763,8 @@ let (|DotIndexedGet|_|) = function
     | _ -> None
 
 let (|DotGet|_|) = function
-    | SynExpr.DotGet(e, _, LongIdentWithDots s, _) ->
-        Some(e, s)
+    | SynExpr.DotGet(e, _, (LongIdentWithDots s as lid), _) ->
+        Some(e, (s, lid.Range))
     | _ -> None
 
 /// Gather series of application for line breaking
@@ -774,10 +774,10 @@ let rec (|DotGetApp|_|) = function
     | _ -> None
 
 let (|DotGetAppSpecial|_|) = function
-    | DotGetApp(SynExpr.App(_, _, Var s, e, _), es) ->
+    | DotGetApp(SynExpr.App(_, _, (Var s as sx), e, _), es) ->
         let i = s.IndexOf(".")
         if i <> -1 then
-            Some(s.[..i-1], (s.[i+1..], e)::es)
+            Some((s.[..i-1]), ((s.[i+1..], sx.Range), e)::es)
         else None
     | _ -> None
 
