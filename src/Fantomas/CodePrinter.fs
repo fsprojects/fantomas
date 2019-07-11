@@ -87,8 +87,22 @@ and genParsedHashDirective (ParsedHashDirective(h, s, r)) =
         // Use verbatim string to escape '\' correctly
         | _ when arg.Contains("\\") -> !- (sprintf "@\"%O\"" arg)
         | _ -> !- (sprintf "\"%O\"" arg)
+        
+    let printIdent (ctx:Context) =
+        ctx.Trivia
+        |> List.tryFind (fun t -> t.Range = r)
+        |> Option.bind(fun t -> t.ContentBefore
+                                |> List.choose (fun tc ->
+                                    match tc with
+                                    | Keyword({ TokenInfo = {TokenName = "KEYWORD_STRING"}; Content = c }) -> Some c
+                                    | _ -> None)
+                                |> List.tryHead)
+        |> function
+           | Some kw -> !- kw
+           | None -> col sepSpace s printArgument
+        <| ctx
 
-    !- "#" -- h +> sepSpace +> col sepSpace s printArgument
+    !- "#" -- h +> sepSpace +> printIdent
     |> genTrivia r
 
 and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind) as node) =

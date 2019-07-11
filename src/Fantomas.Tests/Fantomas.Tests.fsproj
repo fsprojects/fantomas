@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <Version>3.0.0</Version>
@@ -50,6 +50,7 @@
     <Compile Include="DynamicOperatorTests.fs" />
     <Compile Include="SynExprSetTests.fs" />
     <Compile Include="SynConstTests.fs" />
+    <Compile Include="FSharpScriptTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />

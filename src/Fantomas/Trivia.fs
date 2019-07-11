@@ -154,6 +154,15 @@ let private findBindingThatStartsWith (triviaNodes: TriviaNode list) column line
         | _ -> false
     )
 
+let private findParsedHashOnLineAndEndswith triviaNodes startLine endColumn =
+    triviaNodes
+    |> List.tryFind (fun t ->
+        match t.Type with
+        | MainNode("ParsedHashDirective") when (t.Range.StartLine = startLine && t.Range.EndColumn >= endColumn) ->
+            true
+        | _ -> false
+    )
+
 let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     match trivia with
     | { Item = Comment(LineCommentOnSingleLine(lineComment) as comment); Range = range } when (commentIsAfterLastTriviaNode triviaNodes range) ->
@@ -191,7 +200,7 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         | None, None -> triviaNodes
 
     | { Item = Comment(LineCommentAfterSourceCode(_) as comment); Range = range } ->
-        findLastNodeOnLine triviaNodes range.EndLine
+        findLastNodeOnLine  triviaNodes range.EndLine
         |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }) triviaNodes
 
     | { Item = Newline; Range = range } ->
@@ -215,7 +224,14 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
 
     | { Item = Keyword(keyword); Range = range } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
-        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
+        |> fun nodeOnLineAndColumn ->
+            match nodeOnLineAndColumn with
+            | Some _ ->
+                nodeOnLineAndColumn
+                |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
+            | None ->
+                findParsedHashOnLineAndEndswith triviaNodes range.StartLine range.EndColumn
+                |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
 
     | { Item = Directive(dc,_) as directive; Range = range } ->
         match findFirstNodeAfterLine triviaNodes range.StartLine with
