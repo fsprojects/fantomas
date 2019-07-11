@@ -364,3 +364,43 @@ let start (args: IArgs) =
     finally
         Log.CloseAndFlush()
 """
+
+[<Test>]
+let ``some spacing is still lost in and around #if blocks, 303`` () =
+    formatSourceString false """
+  let internal UpdateStrongNaming (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
+    let assemblyName = assembly.Name
+#if NETCOREAPP2_0
+    do
+#else
+    match key with
+    | None ->
+#endif
+              assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+              assemblyName.HasPublicKey <- false
+              assemblyName.PublicKey <- null
+              assemblyName.PublicKeyToken <- null
+#if NETCOREAPP2_0
+#else
+    | Some key' -> assemblyName.HasPublicKey <- true
+                   assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
+#endif
+"""  config
+    |> should equal """let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
+    let assemblyName = assembly.Name
+    #if NETCOREAPP2_0
+    #else
+    match key with
+    | None ->
+    #endif
+    do assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+       assemblyName.HasPublicKey <- false
+       assemblyName.PublicKey <- null
+       assemblyName.PublicKeyToken <- null
+    #if NETCOREAPP2_0
+    #else
+    | Some key' ->
+        assemblyName.HasPublicKey <- true
+        assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
+       #endif
+"""

@@ -32,10 +32,10 @@ module String =
         
     let private lengthWithoutSpaces (str: string) =
         normalizeNewLine str
-        |> fun s -> s.Replace("\n", String.Empty)
+        |> fun s -> s.Replace("\n", String.Empty).Replace(" ", String.Empty)
         |> String.length
 
-    let private hashRegex = @"^\s*#(if|elseif|else).*"
+    let private hashRegex = @"^\s*#(if|elseif|else|endif).*"
     let private splitWhenHash (source: string) = 
         source.Split([| Environment.NewLine; "\r\n"; "\n" |], options = StringSplitOptions.None)
         |> Array.fold (fun acc line ->
@@ -60,7 +60,12 @@ There is a problem with merging all the code back togheter. Please raise an issu
         
         List.zip aChunks bChunks
         |> List.map (fun (a', b') ->
-            if lengthWithoutSpaces a' > lengthWithoutSpaces b' then a' else b'
+            let la = lengthWithoutSpaces a'
+            let lb = lengthWithoutSpaces b'
+            if la <> lb then 
+                if la > lb then a' else b'
+            else
+                if String.length a' < String.length b' then a' else b' 
         )
         |> String.concat Environment.NewLine
 

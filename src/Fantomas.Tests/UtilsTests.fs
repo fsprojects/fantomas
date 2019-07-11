@@ -8,8 +8,8 @@ let private mergeAndCompare a b expected =
     let result =
         String.merge a b
         |> String.normalizeNewLine
-
-    (String.normalizeNewLine expected) == result
+    let normalizedExpected = String.normalizeNewLine expected
+    normalizedExpected == result
 
 [<Test>]
 let ``Merging of source code that starts with a hash`` () =
@@ -92,7 +92,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 
 #endif
     """
-    
+
     """
 #if INTERACTIVE
 #else
