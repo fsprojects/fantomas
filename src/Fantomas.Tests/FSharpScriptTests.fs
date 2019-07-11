@@ -40,7 +40,7 @@ let ``e2e script test with keyword __source__directory__`` () =
 
 [<Test>]
 let ``fantomas removes module and namespace if it is only 1 word`` () =
-    let source = """namespace Shared
+    let source = """namespace Shared   
 
 type Counter = int
 """

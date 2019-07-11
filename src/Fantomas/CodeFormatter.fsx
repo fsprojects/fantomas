@@ -1,4 +1,4 @@
-﻿//#r @"C:\Users\SIDFLOV\.nuget\packages\FSharp.Compiler.Service\25.0.1\lib\net45\FSharp.Compiler.Service.dll"
+﻿#r @"C:\Users\nojaf\.nuget\packages\FSharp.Compiler.Service\30.0.0\lib\net461\FSharp.Compiler.Service.dll"
 //
 //#load "Utils.fs"
 //#load "FormatConfig.fs"
@@ -41,3 +41,9 @@
 //let parseAndPrint input = 
 //    CodeFormatter.Parse ("Program.fs", input)   
 //    |> printfn "%A"
+
+"op_LessThanOrEqual"
+|> FSharp.Compiler.PrettyNaming.DecompileOpName
+
+"meh"
+|> FSharp.Compiler.PrettyNaming.DecompileOpName
