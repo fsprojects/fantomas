@@ -673,9 +673,29 @@ and genExpr astContext synExpr =
         ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
     | ArrayOrList(isArray, xs, isSimple) ->
         let sep = ifElse isSimple sepSemi sepSemiNln
-        let expr = atCurrentColumn <| colAutoNlnSkip0 sep xs (genExpr astContext)
+        let hasLineCommentAfter range (ctx:Context) =
+            ctx.Trivia
+            |> List.tryFind (fun t -> t.Range = range)
+            |> Option.map (fun t -> List.exists (fun tc -> match tc with | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false) t.ContentAfter)
+            |> Option.defaultValue false
+
+        let isLastItem (x:SynExpr) =
+            List.tryLast xs
+            |> Option.map (fun i -> i.Range = x.Range)
+            |> Option.defaultValue false
+
+        let expr =
+             xs
+             |> List.fold (fun acc e ->
+                 fun (ctx: Context) ->
+                    let isLastItem = isLastItem e
+                    let hasLineComment = hasLineCommentAfter e.Range ctx
+                    let afterExpr = ifElse isLastItem sepNone (ifElse hasLineComment sepNln sep)
+                    (acc +> genExpr astContext e +> afterExpr) ctx
+             ) sepNone
+             |> atCurrentColumn
         let expr = ifElse isArray (sepOpenA +> expr +> sepCloseA) (sepOpenL +> expr +> sepCloseL)
-        expr        
+        expr
 
     | Record(inheritOpt, xs, eo) -> 
         let recordExpr = 

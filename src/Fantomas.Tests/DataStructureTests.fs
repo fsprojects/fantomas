@@ -164,3 +164,15 @@ let y = matrix.[3, *]""" config
 let x = matrix.[*, 3]
 let y = matrix.[3, *]
 """
+
+[<Test>]
+let ``comment after string in list`` () =
+    formatSourceString false """let xxxxxxxxxxxx = ["yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy" //
+                    "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz" //
+                    "ffffffffffffffffffffffffffffffffffffffff"]
+"""  config
+    |> should equal """let xxxxxxxxxxxx =
+    [ "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy" //
+      "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz" //
+      "ffffffffffffffffffffffffffffffffffffffff" ]
+"""
