@@ -672,7 +672,19 @@ and genExpr astContext synExpr =
     | ArrayOrList(isArray, [], _) -> 
         ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
     | ArrayOrList(isArray, xs, isSimple) ->
+        let isMultiline (ctx:Context) =
+            xs
+            |> List.fold (fun acc e ->
+                if acc >= ctx.Config.PageWidth then
+                    acc
+                else
+                    let xLength = lengthOfExpr (genExpr astContext e) ctx
+                    acc + xLength
+            ) 0
+            |> fun aLength -> aLength >= ctx.Config.PageWidth 
+            
         let sep = ifElse isSimple sepSemi sepSemiNln
+        
         let hasLineCommentAfter range (ctx:Context) =
             ctx.Trivia
             |> List.tryFind (fun t -> t.Range = range)
@@ -684,18 +696,24 @@ and genExpr astContext synExpr =
             |> Option.map (fun i -> i.Range = x.Range)
             |> Option.defaultValue false
 
-        let expr =
-             xs
-             |> List.fold (fun acc e ->
-                 fun (ctx: Context) ->
-                    let isLastItem = isLastItem e
-                    let hasLineComment = hasLineCommentAfter e.Range ctx
-                    let afterExpr = ifElse isLastItem sepNone (ifElse hasLineComment sepNln sep)
-                    (acc +> genExpr astContext e +> afterExpr) ctx
-             ) sepNone
-             |> atCurrentColumn
-        let expr = ifElse isArray (sepOpenA +> expr +> sepCloseA) (sepOpenL +> expr +> sepCloseL)
-        expr
+        fun ctx ->
+            let isArrayOrListMultiline = isMultiline ctx
+            let expr =
+                 xs
+                 |> List.fold (fun acc e ->
+                     fun (ctx: Context) ->
+                        let isLastItem = isLastItem e
+                        if isArrayOrListMultiline then
+                            (acc +> genExpr astContext e +> ifElse isLastItem sepNone sepNln) ctx
+                        else
+                            let hasLineComment = hasLineCommentAfter e.Range ctx
+                            let afterExpr = ifElse isLastItem sepNone (ifElse hasLineComment sepNln sep)
+                            (acc +> genExpr astContext e +> afterExpr) ctx
+                 ) sepNone
+                 |> atCurrentColumn
+            ifElse isArray (sepOpenA +> expr +> sepCloseA) (sepOpenL +> expr +> sepCloseL)
+            <| ctx
+
 
     | Record(inheritOpt, xs, eo) -> 
         let recordExpr = 

@@ -176,3 +176,16 @@ let ``comment after string in list`` () =
       "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz" //
       "ffffffffffffffffffffffffffffffffffffffff" ]
 """
+
+[<Test>]
+let ``multiline list should print each item on newline`` () =
+    formatSourceString false """let xxxxxxxxxxxx = ["yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"; "ddddddddddddddddddddddddddddddddddddddddd"
+                    "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz";
+                    "ffffffffffffffffffffffffffffffffffffffff"]
+"""  config
+    |> should equal """let xxxxxxxxxxxx =
+    [ "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+      "ddddddddddddddddddddddddddddddddddddddddd"
+      "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+      "ffffffffffffffffffffffffffffffffffffffff" ]
+"""
