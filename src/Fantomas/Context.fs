@@ -364,15 +364,8 @@ let internal futureNlnCheck f (ctx : Context) =
         str.Replace("\\\\", System.String.Empty).Replace("\\\"", System.String.Empty).Split([|'"'|])
         |> Seq.indexed |> Seq.filter (fun (i, _) -> i % 2 = 0) |> Seq.map snd |> String.concat System.String.Empty
     let lines = withoutStringConst.Split([|Environment.NewLine|], StringSplitOptions.None) 
-    //printfn "futureNlnCheck: %i %s" writer.Column str
+
     (lines |> Seq.length) >= 2 || writer.Column > ctx.Config.PageWidth
-    
-let internal lengthOfExpr f (ctx: Context) =
-    use colWriter = new ColumnIndentedTextWriter(new StringWriter(), isDummy = true)
-    let dummyCtx = ctx.With(colWriter, true)
-    let writer = (dummyCtx |> f).Writer
-    let str = writer.InnerWriter.ToString()
-    String.length str
 
 let internal autoNlnByFuture f = ifElseCtx (futureNlnCheck f) (sepNln +> f) f
 let internal autoIndentNlnByFuture f = ifElseCtx (futureNlnCheck f) (indent +> sepNln +> f +> unindent) f

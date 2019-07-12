@@ -674,15 +674,14 @@ and genExpr astContext synExpr =
     | ArrayOrList(isArray, xs, isSimple) ->
         let isMultiline (ctx:Context) =
             xs
-            |> List.fold (fun acc e ->
-                if acc >= ctx.Config.PageWidth then
-                    acc
+            |> List.fold (fun (isMultiline, f) e ->
+                if isMultiline || futureNlnCheck f ctx then
+                    true, sepNone
                 else
-                    let xLength = lengthOfExpr (genExpr astContext e) ctx
-                    acc + xLength
-            ) 0
-            |> fun aLength -> aLength >= ctx.Config.PageWidth 
-            
+                    false, f +> genExpr astContext e
+            ) (false,sepNone)
+            |> fst
+
         let sep = ifElse isSimple sepSemi sepSemiNln
         
         let hasLineCommentAfter range (ctx:Context) =
