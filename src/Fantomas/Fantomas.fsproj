@@ -7,9 +7,10 @@
     <Description>Source code formatter for F#</Description>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="paket.references" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="AstTransformer.fs" />
-    <None Include="paket.references" />
+    <Compile Include="SourceOrigin.fs" />
     <Compile Include="Dbg.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="FormatConfig.fs" />

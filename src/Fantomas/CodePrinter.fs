@@ -263,6 +263,7 @@ and genSigModuleDeclList astContext node =
 and genModuleDecl astContext node =
     match node with
     | Attributes(ats) ->
+        let ats = List.collect (fun a -> a.Attributes) ats
         col sepNln ats (genAttribute astContext)
     | DoExpr(e) ->
         genExpr astContext e
@@ -348,6 +349,13 @@ and genSigModuleDecl astContext node =
 
 and genAccess (Access s) = !- s
 
+//and genAttributes astContext (ats: SynAttributes) =
+//    col sepNln ats (genAttributeList astContext)
+    
+//and genAttributeList astContext (ats: SynAttributeList) =
+//    col sepNln ats.Attributes (genAttribute astContext)
+//    |> genTrivia ats.Range
+
 and genAttribute astContext (Attribute(s, e, target)) = 
     match e with
     // Special treatment for function application on attributes
@@ -357,7 +365,8 @@ and genAttribute astContext (Attribute(s, e, target)) =
         !- "[<"  +> opt sepColonFixed target (!-) -- s +> genExpr astContext e -- ">]"
     |> genTrivia e.Range
     
-and genAttributesCore astContext ats =
+and genAttributesCore astContext (ats: SynAttribute seq) =
+
     let genTriviaForAttributes (f: Context -> Context) =
         ats
         |> Seq.fold (fun (acc: Context -> Context) (attr: SynAttribute) -> acc |> (genTrivia attr.Range)) f
@@ -373,18 +382,19 @@ and genAttributesCore astContext ats =
     |> genTriviaForAttributes
 
 and genOnelinerAttributes astContext ats =
+    let ats = List.collect (fun a -> a.Attributes) ats
     ifElse (Seq.isEmpty ats) sepNone (genAttributesCore astContext ats +> sepSpace)
 
 /// Try to group attributes if they are on the same line
 /// Separate same-line attributes by ';'
 /// Each bucket is printed in a different line
-and genAttributes astContext ats = 
+and genAttributes astContext (ats: SynAttributes) = 
     (ats
+    |> List.collect (fun a -> a.Attributes)
     |> Seq.groupBy (fun at -> at.Range.StartLine)
     |> Seq.map snd
     |> Seq.toList
     |> fun ats' -> colPost sepNln sepNln ats' (genAttributesCore astContext))
-    // |> genTrivia ats, see genModuleDeclList
 
 and genPreXmlDoc (PreXmlDoc lines) ctx = 
     if ctx.Config.StrictMode then
@@ -1420,7 +1430,7 @@ and genPrefixTypes astContext node =
 and genTypeList astContext node =
     match node with
     | [] -> sepNone
-    | (t, [ArgInfo(attribs, so, isOpt)])::ts -> 
+    | (t, [ArgInfo(ats, so, isOpt)])::ts -> 
         let hasBracket = not ts.IsEmpty
         let gt =
             match t with
@@ -1433,15 +1443,15 @@ and genTypeList astContext node =
                 +> genType astContext true t
             | _ -> 
                 opt sepColonFixed so (!-) +> genType astContext false t
-        genOnelinerAttributes astContext attribs
+        genOnelinerAttributes astContext ats
         +> gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
 
     | (TTuple ts', argInfo)::ts -> 
         // The '/' separator shouldn't appear here
         let hasBracket = not ts.IsEmpty
         let gt = col sepStar (Seq.zip argInfo (Seq.map snd ts')) 
-                    (fun (ArgInfo(attribs, so, isOpt), t) ->
-                        genOnelinerAttributes astContext attribs
+                    (fun (ArgInfo(ats, so, isOpt), t) ->
+                        genOnelinerAttributes astContext ats
                         +> opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
                         +> genType astContext hasBracket t)
         gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
@@ -1534,11 +1544,16 @@ and genMemberDefn astContext node =
     | MDImplicitInherit(t, e, _) -> !- "inherit " +> genType astContext false t +> genExpr astContext e
     | MDInherit(t, _) -> !- "inherit " +> genType astContext false t
     | MDValField f -> genField astContext "val " f
-    | MDImplicitCtor(ats, ao, ps, so) -> 
+    | MDImplicitCtor(ats, ao, ps, so) ->
+        let rec simplePats ps =
+            match ps with
+            | SynSimplePats.SimplePats(pats, _) -> pats
+            | SynSimplePats.Typed(spts, _, _) -> simplePats spts
+        
         // In implicit constructor, attributes should come even before access qualifiers
         ifElse ats.IsEmpty sepNone (sepSpace +> genOnelinerAttributes astContext ats)
         +> optPre sepSpace sepSpace ao genAccess +> sepOpenT
-        +> col sepComma ps (genSimplePat astContext) +> sepCloseT
+        +> col sepComma (simplePats ps) (genSimplePat astContext) +> sepCloseT
         +> optPre (!- " as ") sepNone so (!-)
 
     | MDMember(b) -> genMemberBinding astContext b

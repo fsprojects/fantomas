@@ -199,8 +199,6 @@ let (|ModuleOrNamespace|) (SynModuleOrNamespace.SynModuleOrNamespace(LongIdent s
 let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(LongIdent s, isRecursive, isModule, mds, px, ats, ao, _)) =
     (ats, px, ao, s, mds, isRecursive, isModule)
 
-// Attribute
-
 let (|Attribute|) (a : SynAttribute) =
     let (LongIdentWithDots s) = a.TypeName
     (s, a.ArgExpr, Option.map (|Ident|) a.Target)
@@ -239,7 +237,7 @@ let (|NamespaceFragment|_|) = function
 
 let (|Attributes|_|) = function
     | SynModuleDecl.Attributes(ats, _) ->
-        Some ats
+        Some (ats)
     | _ -> None
 
 let (|Let|_|) = function
@@ -447,8 +445,8 @@ let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) = functi
         MemberBinding(ats, px, ao, isInline, mf, pat, expr)
     | SynBinding.Binding(_, DoBinding, _, _, ats, px, _, _, _, expr, _, _) -> 
         DoBinding(ats, px, expr)
-    | SynBinding.Binding(ao, _, isInline, isMutable, ats, px, _, pat, _, expr, _, _) -> 
-        LetBinding(ats, px, ao, isInline, isMutable, pat, expr)
+    | SynBinding.Binding(ao, _, isInline, isMutable, attrs, px, _, pat, _, expr, _, _) ->
+        LetBinding(attrs, px, ao, isInline, isMutable, pat, expr)
     
 let (|BindingReturnInfo|) (SynBindingReturnInfo (t, _, ats)) = (ats, t)
 
@@ -460,7 +458,7 @@ let (|TraitCall|_|) = function
     | _ -> None
 
 /// isRaw = true with <@@ and @@>
-let (|Quote|_|) = function                                    
+let (|Quote|_|) = function
     | SynExpr.Quote(e1, isRaw, e2, _, _) ->
         Some(e1, e2, isRaw)
     | _ -> None
@@ -983,7 +981,8 @@ let rec transformPatterns ss = function
     | SimplePats sps ->
         let rec loop sp =            
             match sp with
-            | SPAttrib(ats, sp) -> CPAttrib(ats, loop sp)
+            | SPAttrib(ats, sp) ->
+                CPAttrib(ats, loop sp)
             | SPId(s, b, true) ->
                 match List.tryPick(fun (s', p) -> if s = s' then Some p else None) ss with
                 | Some p -> 
@@ -1237,7 +1236,7 @@ let (|FunType|) (t, ValInfo(argTypes, returnType)) =
 /// A rudimentary recognizer for extern functions
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) = function
-    | Let(LetBinding([Attribute(name, _, _)] as ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t)))
+    | Let(LetBinding([{ Attributes = [Attribute(name, _, _)]}] as ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t)))
         when name.EndsWith("DllImport") ->
         Some(ats, px, ao, t, s, ps)
     | _ -> None
@@ -1247,6 +1246,7 @@ let getRangesFromAttributes (mdl: SynModuleDecl) =
     | SynModuleDecl.Let(_, bindings, _) ->
         bindings
         |> Seq.collect (fun (Binding(_,_,_,_, attrs,_,_,_,_,_,_,_)) -> attrs)
+        |> Seq.collect (fun a -> a.Attributes)
         |> Seq.map (fun a -> a.Range)
     | _ -> Seq.empty
     |> Seq.toList

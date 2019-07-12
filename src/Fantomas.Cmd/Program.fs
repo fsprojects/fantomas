@@ -81,12 +81,20 @@ let rec allFiles isRec path =
 /// Format a source string using given config and write to a text writer
 let processSourceString isFsiFile s (tw : TextWriter) config =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    tw.Write(CodeFormatter.FormatDocument(fileName, s, config))
+    async {
+        let! formatted = CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config)
+        tw.Write(formatted)
+    }
+    |> Async.RunSynchronously
 
 /// Format inFile and write to text writer
 let processSourceFile inFile (tw : TextWriter) config = 
     let s = File.ReadAllText(inFile)
-    tw.Write(CodeFormatter.FormatDocument(inFile, s, config))
+    async {
+        let! formatted = CodeFormatter.FormatDocumentAsync(inFile, SourceOrigin.SourceString s, config)
+        tw.Write(formatted)
+    }
+    |> Async.RunSynchronously
 
 [<EntryPoint>]
 let main _args =

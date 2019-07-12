@@ -27,45 +27,46 @@ let formatSourceString isFsiFile (s : string) config =
     let defines = TokenParser.getDefines s
     let parsingOptions = { (parsingOptions fileName) with ConditionalCompilationDefines = defines }
     
-    CodeFormatter.FormatDocumentAsync(fileName, s, config, parsingOptions, sharedChecker.Value)
+    CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config, parsingOptions, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
 
 let formatSelectionFromString isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatSelectionInDocumentAsync(fileName, r, s, config, parsingOptions fileName, sharedChecker.Value)
+    CodeFormatter.FormatSelectionInDocumentAsync(fileName, r, SourceOrigin.SourceString s, config, parsingOptions fileName, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
 
 let formatSelectionOnly isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatSelectionAsync(fileName, r, s, config, parsingOptions fileName, sharedChecker.Value)
+    CodeFormatter.FormatSelectionAsync(fileName, r, SourceOrigin.SourceString s, config, parsingOptions fileName, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
 
 let formatAroundCursor isFsiFile p (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatAroundCursorAsync(fileName, p, s, config, parsingOptions fileName, sharedChecker.Value)
+    CodeFormatter.FormatAroundCursorAsync(fileName, p, SourceOrigin.SourceString s, config, parsingOptions fileName, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
 
 let isValidFSharpCode isFsiFile s =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.IsValidFSharpCodeAsync(fileName, s, parsingOptions fileName, sharedChecker.Value)
+    CodeFormatter.IsValidFSharpCodeAsync(fileName, SourceOrigin.SourceString s, parsingOptions fileName, sharedChecker.Value)
     |> Async.RunSynchronously
 
 let parse isFsiFile s =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
     let defines = TokenParser.getDefines s
     let parsingOptions = { (parsingOptions fileName) with ConditionalCompilationDefines = defines }
-    CodeFormatter.ParseAsync(fileName, s, parsingOptions, sharedChecker.Value)
+    CodeFormatter.ParseAsync(fileName, SourceOrigin.SourceString s, parsingOptions, sharedChecker.Value)
     |> Async.RunSynchronously
 
 let formatAST a s c =
-    CodeFormatter.FormatAST(a, "/tmp.fsx",s, c)
+    CodeFormatter.FormatASTAsync(a, "/tmp.fsx",s, c)
+    |> Async.RunSynchronously
 
 let makeRange l1 c1 l2 c2 = 
     CodeFormatter.MakeRange("/tmp.fsx", l1, c1, l2, c2)

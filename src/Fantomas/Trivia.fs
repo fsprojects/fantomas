@@ -32,6 +32,7 @@ let filterNodes nodes =
             "SynExpr.Sequential" // some Sequential nodes are not visited in CodePrinter
             "SynModuleOrNamespace.DeclaredNamespace" // LongIdent inside Namespace is being processed as children.
             "SynExpr.LetOrUse"
+            "SynAttributeList"
         ]
     nodes |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
 

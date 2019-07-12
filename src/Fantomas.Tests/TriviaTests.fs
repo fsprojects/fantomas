@@ -66,7 +66,7 @@ let ``Line comment on same line, is after last AST item`` () =
         |> List.head
 
     match triviaNodes with
-    | [{ContentAfter = [Comment(LineCommentAfterSourceCode(lineComment))]}] ->
+    | [{Type = MainNode("SynModuleOrNamespace.AnonModule") ;ContentAfter = [Comment(LineCommentAfterSourceCode(lineComment))]}; {Type = MainNode("SynExpr.Const"); ContentBefore =[Number("7")]}] ->
         lineComment == "// should be 8"
     | _ ->
         fail()
