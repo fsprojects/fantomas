@@ -65,3 +65,32 @@ type Counter = int
 
 type Counter = int
 """
+
+[<Test>]
+let ``number in the filename should not end up in the module name`` () =
+    let source = """let simplePatternMatch   =  
+    let x = "a"
+    match x with
+    | "a" -> printfn "x is a"
+    | "b" -> printfn "x is b"
+    | _ -> printfn "x is %s"   x
+"""
+
+    let file = Path.Combine(Path.GetTempPath(), "60Seconds.fsx")
+    File.WriteAllText(file, source)
+    
+    let formattedFiles = FakeHelpers.formatCode config [file]
+    
+    let formattedSource = File.ReadAllText(file)
+    List.length formattedFiles == 1
+    File.Delete(file)
+    
+    formattedSource
+    |> String.normalizeNewLine
+    |> should equal """let simplePatternMatch =
+    let x = "a"
+    match x with
+    | "a" -> printfn "x is a"
+    | "b" -> printfn "x is b"
+    | _ -> printfn "x is %s" x
+"""
