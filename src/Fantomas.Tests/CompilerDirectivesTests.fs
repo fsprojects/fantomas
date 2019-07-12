@@ -141,19 +141,19 @@ let [<Literal>] private assemblyConfig =
     |> should equal """
 [<Literal>]
 let private assemblyConfig =
-    #if DEBUG
-    #if TRACE
+#if DEBUG
+#if TRACE
     "DEBUG;TRACE"
-    #else
+#else
     "DEBUG"
-    #endif
-    #else
-    #if TRACE
+#endif
+#else
+#if TRACE
     "TRACE"
-    #else
+#else
     ""
-    #endif
-    #endif
+#endif
+#endif
 """
 
 [<Test; Description("inactive code is not formatted correctly")>]
@@ -171,11 +171,11 @@ let [<Literal>] private assemblyConfig() =
     |> should equal """
 [<Literal>]
 let private assemblyConfig() =
-    #if TRACE
+#if TRACE
     let x = ""
-    #else
+#else
     let x = "x"
-    #endif
+#endif
     x
 """
 
@@ -296,9 +296,9 @@ type Currency =
     // Temporary fix until a new Thoth.Json.Net package is released
     // See https://github.com/MangelMaxime/Thoth/pull/70
 
-    #if FABLE_COMPILER
+#if FABLE_COMPILER
     private
-    #endif
+#endif
     Code of string
 """
 
@@ -352,9 +352,9 @@ let start (args: IArgs) =
         try
             let giraffeApp = configureGiraffeApp args
             WebHost.CreateDefaultBuilder().UseWebRoot(args.ClientPath)
-                   #if DEBUG
+#if DEBUG
                    .UseContentRoot(args.ContentRoot).UseUrls(args.Host + ":" + string args.Port)
-                   #endif
+#endif
                    .UseSerilog().Configure(Action<IApplicationBuilder>(configureApp giraffeApp))
                    .ConfigureServices(configureServices args).Build().Run()
             0
@@ -388,19 +388,19 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
 """  config
     |> should equal """let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
     let assemblyName = assembly.Name
-    #if NETCOREAPP2_0
-    #else
+#if NETCOREAPP2_0
+#else
     match key with
     | None ->
-    #endif
+#endif
     do assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
        assemblyName.HasPublicKey <- false
        assemblyName.PublicKey <- null
        assemblyName.PublicKeyToken <- null
-    #if NETCOREAPP2_0
-    #else
+#if NETCOREAPP2_0
+#else
     | Some key' ->
         assemblyName.HasPublicKey <- true
         assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
-       #endif
+#endif
 """

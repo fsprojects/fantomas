@@ -40,9 +40,10 @@ module String =
         source.Split([| Environment.NewLine; "\r\n"; "\n" |], options = StringSplitOptions.None)
         |> Array.fold (fun acc line ->
             if Regex.IsMatch(line, hashRegex) then
+                let trimmmedLine = line.TrimStart()
                 match acc with
-                | [[]] -> [[line]]
-                | _ -> [line]::acc
+                | [[]] -> [[trimmmedLine]]
+                | _ -> [trimmmedLine]::acc
             else
                 acc
                 |> List.mapi (fun idx l -> if idx = 0 then (line::l) else l)
@@ -67,6 +68,7 @@ There is a problem with merging all the code back togheter. Please raise an issu
             else
                 if String.length a' < String.length b' then a' else b' 
         )
+        
         |> String.concat Environment.NewLine
 
 module Cache =

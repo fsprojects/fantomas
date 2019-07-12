@@ -62,11 +62,11 @@ let private assemblyConfig() =
     """
 [<Literal>]
 let private assemblyConfig() =
-    #if TRACE
+#if TRACE
     let x = ""
-    #else
+#else
     let x = "x"
-    #endif
+#endif
     x
 """
     |> mergeAndCompare a b
