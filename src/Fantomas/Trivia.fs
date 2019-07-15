@@ -33,6 +33,7 @@ let filterNodes nodes =
             "SynModuleOrNamespace.DeclaredNamespace" // LongIdent inside Namespace is being processed as children.
             "SynExpr.LetOrUse"
             "SynAttributeList"
+            "SynTypeDefnRepr.ObjectModel"
         ]
     nodes |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
 

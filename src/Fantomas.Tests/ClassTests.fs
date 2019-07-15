@@ -253,6 +253,7 @@ let ``should keep parens in class inheritance in the right place``() =
     |> should equal """type StateMachine(makeAsync) as this =
     class
         inherit DGMLClass()
+
         let functions = System.Collections.Generic.Dictionary<string, IState>()
     end
 """

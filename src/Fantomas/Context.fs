@@ -557,7 +557,7 @@ let internal leaveLeftBrace (range: range) (ctx: Context) =
             id
     <| ctx
 
-let private hasPrintableContent (trivia: TriviaContent list) =
+let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
     |> List.filter (fun tn ->
         match tn with

@@ -103,11 +103,16 @@ let fantomasExecutableForExternalTests projectdir =
     else { ProcessName = "dotnet"; Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/netcoreapp2.1/fantomas-tool.dll" projectdir configuration ] }
 
 let externalProjectsToTest = [
-    { GitUrl = @"https://github.com/fsprojects/Argu"
-      DirectoryName = "Argu"
-      Tag = "5.1.0"
-      SourceSubDirectory = "src"
-      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+//    { GitUrl = @"https://github.com/fsprojects/Argu"
+//      DirectoryName = "Argu"
+//      Tag = "5.1.0"
+//      SourceSubDirectory = "src"
+//      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+        { GitUrl = @"https://github.com/jack-pappas/ExtCore"
+          DirectoryName = "ExtCore"
+          Tag = "master"
+          SourceSubDirectory = "."
+          BuildConfigurationFn = configureBuildCommandDotnetBuild }
     ]
 
 let externalProjectsToTestFailing = [
@@ -126,11 +131,6 @@ let externalProjectsToTestFailing = [
       Tag = "v2.9.0"
       SourceSubDirectory = "src"
       BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-    { GitUrl = @"https://github.com/jack-pappas/ExtCore"
-      DirectoryName = "ExtCore"
-      Tag = "master"
-      SourceSubDirectory = "."
-      BuildConfigurationFn = configureBuildCommandDotnetBuild }
     { GitUrl = @"https://github.com/SAFE-Stack/SAFE-BookStore"
       DirectoryName = "SAFE-BookStore"
       Tag = "master"

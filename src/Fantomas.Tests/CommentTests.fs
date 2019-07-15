@@ -571,15 +571,15 @@ open System.Runtime.InteropServices
 [<CustomEquality; CustomComparison>]
 type substring =
     /// The underlying string for this substring.
-    val String : string
+    val String: string
     /// The position of the first character in the substring, relative to the start of the underlying string.
-    val Offset : int
+    val Offset: int
     /// The number of characters spanned by the substring.
-    val Length : int
+    val Length: int
 
     /// <summary>Create a new substring value spanning the entirety of a specified string.</summary>
     /// <param name="string">The string to use as the substring's underlying string.</param>
-    new(string : string) =
+    new(string: string) =
         checkNonNull "string" string
         { String = string
           Offset = 0
@@ -592,7 +592,7 @@ type substring =
     /// <param name="strA">The first string to compare.</param>
     /// <param name="strB">The second string to compare.</param>
     /// <returns>An integer that indicates the lexical relationship between the two comparands.</returns>
-    static member CompareOrdinal(strA : substring, strB : substring) =
+    static member CompareOrdinal(strA: substring, strB: substring) =
         // If both substrings are empty they are considered equal, regardless of their offset or underlying string.
         if strA.Length = 0 && strB.Length = 0 then 0
 

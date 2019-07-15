@@ -312,7 +312,6 @@ and genModuleDecl astContext node =
     // There is no nested types and they are recursive if there are more than one definition
     | Types(t::ts) ->
         let sepTs =
-            // NOJAF: attribute contains two newlines right?
             match List.tryHead ts with
             | Some tsh -> sepNln +> sepNlnConsideringTriviaContentBefore tsh.Range
             | None -> rep 2 sepNln
@@ -1166,12 +1165,17 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
         +> unindent
     
     | ObjectModel(TCSimple (TCStruct) as tdk, MemberDefnList(impCtor, others), _) ->
+        let sepMem =
+            match ms with
+            | [] -> sepNone
+            | _ -> sepNln
         typeName +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq 
         +> indent +> sepNln 
         +> genTrivia tdr.Range
             (genTypeDefKind tdk
             +> indent +> genMemberDefnList astContext others +> unindent
             ++ "end"
+            +> sepMem
             // Prints any members outside the struct-end construct
             +> genMemberDefnList astContext ms)
         +> unindent
@@ -1195,12 +1199,22 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
     
     | ObjectModel(_, MemberDefnList(impCtor, others), _) ->
         let sepNlnIfOtherHaveTrivia (ctx: Context) =
-            let trivia =
+            let ranges =
+                match others with
+                | mbr::_ -> [ mbr.Range; tdr.Range ]
+                | _ -> [tdr.Range]
+
+            let isThereContentBefore =
                 ctx.Trivia
-                |> List.tryFind (fun t -> t.Range = tdr.Range && not(List.isEmpty t.ContentBefore))
-            match trivia with
-            | Some _ -> sepNln
-            | None -> sepSpace
+                |> List.filter (fun t ->
+                    List.contains t.Range ranges && hasPrintableContent t.ContentBefore
+                )
+                |> List.length
+                |> (fun l -> l > 0)
+
+            match isThereContentBefore with
+            | true  -> sepNln
+            | false -> sepSpace
             <| ctx
     
         typeName +> opt sepNone impCtor (genMemberDefn { astContext with InterfaceRange = None }) +> sepEq
@@ -1534,7 +1548,8 @@ and genMemberDefnList astContext node =
             match List.tryHead xs with
             | Some xsh -> sepNlnConsideringTriviaContentBefore xsh.Range
             | None -> sepNln
-        sepNlnFirstExpr +> colEx (fun (mdf:SynMemberDefn) -> sepNlnConsideringTriviaContentBefore mdf.Range) xs (genMemberDefn astContext) +> genMemberDefnList astContext ys
+        sepNlnFirstExpr +> col sepNln xs (genMemberDefn astContext) +> genMemberDefnList astContext ys
+        //colEx (fun (mdf:SynMemberDefn) -> sepNlnConsideringTriviaContentBefore mdf.Range) xs (genMemberDefn astContext) +> genMemberDefnList astContext ys
     | _ -> sepNone
     // |> genTrivia node
 
