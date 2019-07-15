@@ -226,10 +226,23 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
                 newDepth, t.TokenInfo.TokenName = "COMMENT" && depth > 0) 1
             
         let comment =
-            headToken
-            |> List.prependItem blockCommentTokens
-            |> List.groupBy (fun t -> t.LineNumber)
-            |> List.map (fun (_, g) -> getContentFromTokens g)
+            let groupedByLineNumber =
+                headToken
+                |> List.prependItem blockCommentTokens
+                |> List.groupBy (fun t -> t.LineNumber)
+                
+            let newLines =
+                let (min,_) = List.minBy fst groupedByLineNumber
+                let (max,_) = List.maxBy fst groupedByLineNumber
+                [min .. max]
+                |> List.filter (fun l -> not (List.exists (fst >> ((=) l)) groupedByLineNumber))
+                |> List.map (fun l -> l, System.String.Empty)
+
+            groupedByLineNumber
+            |> List.map (fun (l, g) -> l, getContentFromTokens g)
+            |> (@) newLines
+            |> List.sortBy fst
+            |> List.map snd
             |> String.concat Environment.NewLine
             |> String.normalizeNewLine
             
@@ -339,7 +352,7 @@ let private createNewLine lineNumber =
     let range = FSharp.Compiler.Range.mkRange "newline" pos pos
     { Item = Newline; Range = range }
 
-let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) =
+let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) (blockComments: FSharp.Compiler.Range.range list) =
     let lastLineWithContent =
         tokens
         |> List.tryFindBack (fun t -> t.TokenInfo.TokenName <> "WHITESPACE")
@@ -349,7 +362,7 @@ let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) =
     let completeEmptyLines =
         [1 .. lastLineWithContent]
         |> List.filter (fun line ->
-            not (List.exists (fun t -> t.LineNumber = line) tokens)
+            not (List.exists (fun t -> t.LineNumber = line) tokens) && not (List.exists (fun (br:FSharp.Compiler.Range.range) -> br.StartLine < line && br.EndLine > line) blockComments)
         )
         |> List.map (fun line -> createNewLine line)
 
@@ -363,7 +376,8 @@ let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) =
 
 let getTriviaFromTokens (tokens: Token list) linesCount =
     let fromTokens = getTriviaFromTokensThemSelves tokens tokens []
-    let newLines = findEmptyNewlinesInTokens tokens linesCount
+    let blockComments = fromTokens |> List.choose (fun tc -> match tc.Item with | Comment(BlockComment(_)) -> Some tc.Range | _ -> None)
+    let newLines = findEmptyNewlinesInTokens tokens linesCount blockComments
 
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)

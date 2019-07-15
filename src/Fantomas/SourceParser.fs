@@ -1241,12 +1241,21 @@ let (|Extern|_|) = function
         Some(ats, px, ao, t, s, ps)
     | _ -> None
 
+let private collectAttributesRanges (a:SynAttributes) =
+    a
+    |> Seq.collect (fun a -> a.Attributes)
+    |> Seq.map (fun a -> a.Range)
+
 let getRangesFromAttributes (mdl: SynModuleDecl) =
     match mdl with
     | SynModuleDecl.Let(_, bindings, _) ->
         bindings
-        |> Seq.collect (fun (Binding(_,_,_,_, attrs,_,_,_,_,_,_,_)) -> attrs)
-        |> Seq.collect (fun a -> a.Attributes)
-        |> Seq.map (fun a -> a.Range)
+        |> Seq.collect (fun (Binding(_,_,_,_, attrs,_,_,_,_,_,_,_)) -> collectAttributesRanges attrs)
+    | SynModuleDecl.Types(types, _) ->
+        types
+        |> Seq.collect(fun t ->
+            match t with
+            | SynTypeDefn.TypeDefn((SynComponentInfo.ComponentInfo(attrs, _,_,_,_,_,_,_)),stdr,_,_) -> collectAttributesRanges attrs
+        )
     | _ -> Seq.empty
     |> Seq.toList

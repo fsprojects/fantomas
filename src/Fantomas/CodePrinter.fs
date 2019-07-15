@@ -312,6 +312,7 @@ and genModuleDecl astContext node =
     // There is no nested types and they are recursive if there are more than one definition
     | Types(t::ts) ->
         let sepTs =
+            // NOJAF: attribute contains two newlines right?
             match List.tryHead ts with
             | Some tsh -> sepNln +> sepNlnConsideringTriviaContentBefore tsh.Range
             | None -> rep 2 sepNln

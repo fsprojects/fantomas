@@ -298,6 +298,25 @@ let a =  b + c
     | _ ->
         failwith "Expected line comment"
 
+[<Test>]
+let ``newlines inside a block comment should not counts as newlines`` () =
+    let comment = """(*
+
+MEH
+
+*)"""
+
+    let source = sprintf "%s\nprintfn message" comment
+
+    let triviaNodes =
+        toTrivia source
+        |> List.head
+    
+    match triviaNodes with
+    | [{ ContentBefore = [Comment(BlockComment(c)); Newline] }] ->
+        c == (String.normalizeNewLine comment)
+    | _ ->
+        failwith "Expected block comment"
 
 [<Test>]
 let ``if keyword before SynExpr.IfThenElse`` () =
