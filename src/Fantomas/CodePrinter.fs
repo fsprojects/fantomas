@@ -1,6 +1,7 @@
 ﻿module internal Fantomas.CodePrinter
 
 open System
+open System.Text.RegularExpressions
 open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 open Fantomas
@@ -1786,7 +1787,8 @@ and genConst (c:SynConst) (r:range) =
             | None, Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "QMARK" }})] }) ->
                 !- s
             | _ ->
-                !- (sprintf "\"%s\"" s)
+                let escaped = Regex.Replace(s, "\"{1}", "\\\"")
+                !- (sprintf "\"%s\"" escaped)
             <| ctx
     | SynConst.Char(c) ->
         let escapedChar = Char.escape c

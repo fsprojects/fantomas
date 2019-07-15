@@ -157,3 +157,13 @@ let ``chars should be properly escaped`` () =
     formatSourceString false """let private peskyChars = [| '"' ; '\t' ; ' ' ; '\\' |]""" config
     |> should equal """let private peskyChars = [| '"'; '\t'; ' '; '\\' |]
 """
+
+[<Test>]
+let ``quotes should be escaped in strict mode`` () =
+    formatSourceString false """
+    let formatter =
+        // escape commas left in invalid entries
+        sprintf "%i,\"%s\""
+"""  ({ config with StrictMode = true })
+    |> should equal """let formatter = sprintf "%i,\"%s\""
+"""
