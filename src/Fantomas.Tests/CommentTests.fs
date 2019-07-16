@@ -452,6 +452,7 @@ let foo = 7
 """
 
 [<Test>]
+[<IgnoreAttribute("WIP unit test")>]
 let ``block comment on top of file`` () =
     formatSourceString false """
 (*
