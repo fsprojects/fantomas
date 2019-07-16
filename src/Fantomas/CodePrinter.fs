@@ -733,8 +733,20 @@ and genExpr astContext synExpr =
             |> Option.defaultValue fieldsExpr
 
         sepOpenS
+        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = (ctx.Writer.Column)::ctx.RecordBraceStart })
         +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
             (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
+        +> (fun ctx ->
+            match ctx.RecordBraceStart with
+            | rbs::rest ->
+                if ctx.Writer.Column < rbs then
+                    let offset = (if ctx.Config.SpaceAroundDelimiter then 2 else 1) + 1
+                    let delta = (rbs - ( ctx.Writer.Column)) - offset
+                    (!- System.String.Empty.PadRight(delta)) ({ctx with RecordBraceStart = rest})
+                else
+                    sepNone ({ctx with RecordBraceStart = rest})
+            | [] ->
+                    sepNone ctx)
         +> sepCloseS
 
     | AnonRecord(isStruct, fields, copyInfo) -> 

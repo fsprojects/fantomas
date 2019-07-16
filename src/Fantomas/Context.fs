@@ -66,7 +66,8 @@ type internal Context =
       Content : string; 
       /// Positions of new lines in the original source string
       Positions : int []; 
-      Trivia : TriviaNode list }
+      Trivia : TriviaNode list
+      RecordBraceStart: int list }
 
     /// Initialize with a string writer and use space as delimiter
     static member Default = 
@@ -75,7 +76,8 @@ type internal Context =
           BreakLines = true; BreakOn = (fun _ -> false) 
           Content = ""
           Positions = [||]
-          Trivia = [] }
+          Trivia = []
+          RecordBraceStart = [] }
 
     static member create config defines (content : string) maybeAst =
         let content = String.normalizeNewLine content
