@@ -70,7 +70,19 @@ let ``Tokens from directive inside a directive are being added`` () =
     
     List.length hashTokens == 5
     List.length furtherInwards == 3
-    
+
+
+[<Test>]
+let ``define with underscore`` () =
+    let source = """#if INVARIANT_CULTURE_STRING_COMPARISON
+
+#else
+
+#endif
+"""
+
+    getDefines source == ["INVARIANT_CULTURE_STRING_COMPARISON"]
+
 [<Test>]
 let ``tokenize should return correct amount`` () =
     let source = "let a = 7" // LET WHITESPACE IDENT WHITESPACE EQUALS WHITESPACE INT32

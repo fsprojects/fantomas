@@ -378,6 +378,7 @@ let hello() = "hello world"
     |> prepend newline
     |> should equal """
 let hello() = "hello world"
+
 (* This is a comment. *)
 """
 
@@ -580,7 +581,9 @@ type substring =
     /// <summary>Create a new substring value spanning the entirety of a specified string.</summary>
     /// <param name="string">The string to use as the substring's underlying string.</param>
     new(string: string) =
+        // Preconditions
         checkNonNull "string" string
+
         { String = string
           Offset = 0
           Length = string.Length }
@@ -595,11 +598,10 @@ type substring =
     static member CompareOrdinal(strA: substring, strB: substring) =
         // If both substrings are empty they are considered equal, regardless of their offset or underlying string.
         if strA.Length = 0 && strB.Length = 0 then 0
-
+        elif
         // OPTIMIZATION : If the substrings have the same (identical) underlying string
         // and offset, the comparison value will depend only on the length of the substrings.
-        else if strA.String == strB.String && strA.Offset = strB.Offset then
-            compare strA.Length strB.Length
+        strA.String == strB.String && strA.Offset = strB.Offset then compare strA.Length strB.Length
         else
             (* Structural comparison on substrings -- this uses the same comparison
                technique as the structural comparison on strings in FSharp.Core. *)
@@ -607,15 +609,12 @@ type substring =
             // NOTE: we don't have to null check here because System.String.Compare
             // gives reliable results on null values.
             System.String.Compare
-                (strA.String, strA.Offset, strB.String, strB.Offset,
-                 min strA.Length strB.Length, false,
+                (strA.String, strA.Offset, strB.String, strB.Offset, min strA.Length strB.Length, false,
                  CultureInfo.InvariantCulture)
 #else
             // NOTE: we don't have to null check here because System.String.CompareOrdinal
             // gives reliable results on null values.
-            System.String.CompareOrdinal (
-                strA.String, strA.Offset,
-                strB.String, strB.Offset,
-                min strA.Length strB.Length)
+            System.String.CompareOrdinal
+                (strA.String, strA.Offset, strB.String, strB.Offset, min strA.Length strB.Length)
 #endif
 """

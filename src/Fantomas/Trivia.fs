@@ -93,8 +93,8 @@ let private findNodeBeforeLineAndColumn (nodes: TriviaNode list) line column =
 
 let private findNodeBeforeLineFromStart (nodes: TriviaNode list) line =
     nodes
-    |> List.filter (fun { Range = range } -> range.StartLine < line)
-    |> List.sortByDescending (fun { Range = range } -> range.StartLine, -range.StartColumn)
+    |> List.filter (fun { Range = range } -> range.EndLine < line)
+    |> List.sortByDescending (fun { Range = range } -> range.EndLine, -range.StartColumn)
     |> List.tryFind (fun { Range = range } -> range.StartLine < line)
     
 let private findNodeBeforeLineFromEnd (nodes: TriviaNode list) line =
