@@ -644,7 +644,11 @@ and genAnonRecordFieldName astContext (AnonRecordFieldName(s, e)) =
 and genTuple astContext es =
     atCurrentColumn (coli sepComma es (fun i -> 
             if i = 0 then genExpr astContext else noIndentBreakNln astContext
-            |> addParenWhen (function |ElIf _ -> true |_ -> false) // "if .. then .. else" have precedence over ","
+            |> addParenWhen (fun e ->
+                match e with
+                |ElIf _
+                | SynExpr.Lambda _ -> true
+                |_ -> false) // "if .. then .. else" have precedence over ","
         ))
 
 and genExpr astContext synExpr = 
