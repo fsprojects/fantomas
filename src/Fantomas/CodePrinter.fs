@@ -1525,8 +1525,13 @@ and genMemberDefnList astContext node =
             match m with
             | Pair(x1,_) -> sepNln +> sepNlnConsideringTriviaContentBefore x1.RangeOfBindingSansRhs
             | Single x -> sepNln +> sepNlnConsideringTriviaContentBefore x.Range
+
+        let firstTwoNln =
+            match List.tryHead xs with
+            | Some xsh -> sepMember xsh
+            | None -> rep 2 sepNln
         
-        rep 2 sepNln 
+        firstTwoNln
         +> colEx sepMember xs (function
                 | Pair(x1, x2) -> genPropertyWithGetSet astContext (x1, x2)
                 | Single x -> genMemberDefn astContext x)
