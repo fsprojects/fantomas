@@ -4,6 +4,10 @@ open Fantomas
 
 [<Sealed>]
 type CodeFormatter =
+    static member ParseAsync(fileName, source) =
+        CodeFormatterImpl.createFormatContextNoChecker fileName source
+        |> CodeFormatterImpl.parse
+
     static member ParseAsync(fileName, source, projectOptions, checker) = 
         CodeFormatterImpl.createFormatContext fileName source projectOptions checker
         |> CodeFormatterImpl.parse
