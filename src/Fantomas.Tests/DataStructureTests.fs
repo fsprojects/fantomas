@@ -189,3 +189,13 @@ let ``multiline list should print each item on newline`` () =
       "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
       "ffffffffffffffffffffffffffffffffffffffff" ]
 """
+
+[<Test>]
+let ``multiline list of string should not add ;`` () =
+    formatSourceString false """
+       [ "_Binaries/AltCover/Debug+AnyCPU/AltCover.exe"
+         "_Binaries/AltCover.Shadow/Debug+AnyCPU/AltCover.Shadow.dll" ]
+"""  ({ config with PageWidth = 80 })
+    |> should equal """[ "_Binaries/AltCover/Debug+AnyCPU/AltCover.exe"
+  "_Binaries/AltCover.Shadow/Debug+AnyCPU/AltCover.Shadow.dll" ]
+"""

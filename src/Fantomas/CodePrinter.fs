@@ -690,7 +690,7 @@ and genExpr astContext synExpr =
         let isMultiline (ctx:Context) =
             xs
             |> List.fold (fun (isMultiline, f) e ->
-                if isMultiline || futureNlnCheck f ctx then
+                if isMultiline || futureNlnCheck (f +> genExpr astContext e) ctx then
                     true, sepNone
                 else
                     false, f +> genExpr astContext e
