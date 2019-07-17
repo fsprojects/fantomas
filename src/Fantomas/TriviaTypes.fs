@@ -31,6 +31,7 @@ type TriviaContent =
     | Number of string
     | StringContent of string
     | IdentOperatorAsWord of string
+    | IdentBetweenTicks of string
     | Comment of Comment
     | Newline
     | Directive of directive:string * appendNewline:bool
@@ -51,5 +52,6 @@ type TriviaNodeType =
 type TriviaNode =
   { Type: TriviaNodeType
     ContentBefore: TriviaContent list
+    ContentItself: TriviaContent option
     ContentAfter: TriviaContent list
     Range: range }

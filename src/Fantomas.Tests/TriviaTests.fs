@@ -37,7 +37,7 @@ let a = 9
     
     match triviaNodes with
     | [{ ContentBefore = [Comment(LineCommentOnSingleLine(lineComment))];  }
-       {ContentBefore = [Number("9")]}] ->
+       { ContentItself = Some(Number("9"))}] ->
         lineComment == "// meh"
     | _ ->
         failwith "Expected line comment"
@@ -66,7 +66,7 @@ let ``Line comment on same line, is after last AST item`` () =
         |> List.head
 
     match triviaNodes with
-    | [{Type = MainNode("SynModuleOrNamespace.AnonModule") ;ContentAfter = [Comment(LineCommentAfterSourceCode(lineComment))]}; {Type = MainNode("SynExpr.Const"); ContentBefore =[Number("7")]}] ->
+    | [{Type = MainNode("SynModuleOrNamespace.AnonModule") ;ContentAfter = [Comment(LineCommentAfterSourceCode(lineComment))]}; {Type = MainNode("SynExpr.Const"); ContentItself =Some(Number("7"))}] ->
         lineComment == "// should be 8"
     | _ ->
         fail()
@@ -81,9 +81,9 @@ let b = 9"""
         |> List.head
 
     match triviaNodes with
-    | [{ContentBefore = [Number("7")]}
+    | [{ContentItself = Some(Number("7"))}
        {ContentBefore = [Newline]}
-       {ContentBefore = [Number("9")]}] ->
+       {ContentItself = Some(Number("9"))}] ->
         pass()
     | _ ->
         fail()
@@ -101,7 +101,7 @@ let a = 7
 
     match triviaNodes with
     | [{ContentBefore = [Comment(LineCommentOnSingleLine(fooComment));Comment(LineCommentOnSingleLine(barComment))]}
-       {ContentBefore = [Number("7")]}] ->
+       {ContentItself = Some(Number("7"))}] ->
         fooComment == "// foo"
         barComment == "// bar"
     | _ ->
@@ -120,7 +120,7 @@ let ``Comments inside record`` () =
 
     match triviaNodes with
     | [{ Type = TriviaNodeType.Token(t); ContentAfter = [Comment(LineCommentAfterSourceCode("// foo"))] }
-       { ContentBefore = [Number("7")] }] ->
+       { ContentItself = Some(Number("7")) }] ->
         t.Content == "{"
     | _ ->
         fail()
@@ -138,7 +138,7 @@ let ``Comment after all source code`` () =
     
     match triviaNodes with
     | [ { Type = MainNode(mn); ContentAfter = [Comment(LineCommentOnSingleLine(lineComment))] }
-        { ContentBefore = [Number("123")] } ] ->
+        { ContentItself = Some(Number("123")) } ] ->
         mn == "SynModuleDecl.Types"
         lineComment == (sprintf "%s//    override private x.ToString() = \"\"" Environment.NewLine)
         pass()
@@ -155,7 +155,7 @@ let ``Block comment added to trivia`` () =
     
     match triviaNodes with
     | [{ ContentAfter = [Comment(BlockComment(comment))]
-         Type = Token { Content = "=" } }; {ContentBefore = [Number("9")]}] ->
+         Type = Token { Content = "=" } }; {ContentItself = Some(Number("9"))}] ->
         comment == "(* meh *)"
     | _ ->
         failwith "Expected block comment"
@@ -234,7 +234,7 @@ let a =  9
     
     match triviaNodes with
     | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }
-       { ContentBefore = [Number("9")] }] ->
+       { ContentItself = Some(Number("9")) }] ->
         comment == "(* // meh *)"
     | _ ->
         failwith "Expected block comment"

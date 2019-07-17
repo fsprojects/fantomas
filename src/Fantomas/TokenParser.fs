@@ -343,6 +343,13 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> List.prependItem foundTrivia
         getTriviaFromTokensThemSelves allTokens rest info
 
+    | head::rest when (head.TokenInfo.TokenName = "IDENT" && head.Content.StartsWith("``") && head.Content.EndsWith("``")) ->
+        let range = getRangeBetween "ident between ``" head head
+        let info =
+            Trivia.Create(IdentBetweenTicks(head.Content)) range
+            |> List.prependItem foundTrivia
+        getTriviaFromTokensThemSelves allTokens rest info
+
     | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
     
     | [] -> foundTrivia
@@ -391,6 +398,7 @@ let getTriviaNodesFromTokens (tokens: Token list) : TriviaNode list =
     |> List.map (fun t ->
         { Type = TriviaNodeType.Token(t)
           ContentBefore = []
+          ContentItself = None
           ContentAfter = []
           Range = getRangeBetween t.TokenInfo.TokenName t t }
     )

@@ -450,6 +450,7 @@ let internal printTriviaContent (c: TriviaContent) =
     | Number _
     | StringContent _
     | IdentOperatorAsWord _
+    | IdentBetweenTicks _
          -> sepNone // don't print here but somewhere in CodePrinter
     | Directive(content, addNewline) ->
         (ifElse addNewline sepNln sepNone) +> !- content +> sepNln

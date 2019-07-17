@@ -381,3 +381,13 @@ let ``infix operator in full words inside an ident`` () =
         |> List.filter (fun { Item = item } -> match item with | IdentOperatorAsWord "op_LessThan" -> true | _ -> false)
         
     List.length triviaNodes == 1
+
+[<Test>]
+let ``ident between tickets `` () =
+    let source = "let ``/ operator combines paths`` = ()"
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes = getTriviaFromTokens tokens lineCount
+    match triviaNodes with
+    | [{ Item = IdentBetweenTicks("``/ operator combines paths``") }] ->
+        pass()
+    | _ -> fail()

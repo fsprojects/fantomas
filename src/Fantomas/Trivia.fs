@@ -118,6 +118,7 @@ let private mapNodeToTriviaNode (node: Node) =
     |> Option.map (fun range ->
         { Type = MainNode(node.Type)
           ContentAfter = []
+          ContentItself = None
           ContentBefore = []
           Range = range }
     )
@@ -259,21 +260,33 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
 
     | { Item = StringContent(_) as siNode; Range = range } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
-        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (siNode) }) triviaNodes
+        |> updateTriviaNode (fun tn -> { tn with ContentItself = Some siNode }) triviaNodes
 
     | { Item = Number(_) as number; Range = range  } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
-        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore number }) triviaNodes
+        |> updateTriviaNode (fun tn -> { tn with ContentItself = Some number }) triviaNodes
         
     | { Item = IdentOperatorAsWord(_) as ifw; Range = range } ->
         findBindingThatStartsWith triviaNodes range.StartColumn range.StartLine
-        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore ifw }) triviaNodes
+        |> updateTriviaNode (fun tn -> { tn with ContentItself = Some ifw }) triviaNodes
+
+    | { Item = IdentBetweenTicks(_) as iNode; Range = range } ->
+        triviaNodes
+        |> List.tryFind (fun t ->
+            let isIdent =
+                match t.Type with
+                | MainNode("SynExpr.Ident")
+                | MainNode("SynPat.Named") -> true
+                | _ -> false
+            isIdent && (t.Range.StartColumn = range.StartColumn || t.Range.StartColumn = range.StartColumn + 1) && t.Range.StartLine = range.StartLine
+        )
+        |> updateTriviaNode (fun tn -> { tn with ContentItself = Some iNode }) triviaNodes
 
     | _ ->
         triviaNodes
 
 let private triviaNodeIsNotEmpty triviaNode =
-    not(List.isEmpty triviaNode.ContentAfter) || not(List.isEmpty triviaNode.ContentBefore)
+    not(List.isEmpty triviaNode.ContentAfter) || not(List.isEmpty triviaNode.ContentBefore) || Option.isSome triviaNode.ContentItself
 
 (*
     1. Collect TriviaNode from tokens and AST

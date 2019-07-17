@@ -1808,12 +1808,9 @@ and genConst (c:SynConst) (r:range) =
             let triviaStringContent =
                 trivia
                 |> Option.bind(fun tv ->
-                    tv.ContentBefore
-                    |> List.choose (fun tv ->
-                        match tv with
-                        | StringContent(sc) -> Some sc
-                        | _ -> None  )
-                    |> List.tryExactlyOne
+                    match tv.ContentItself with
+                    | Some(StringContent(sc)) -> Some sc
+                    | _ -> None
                 )
 
             match triviaStringContent, trivia with
@@ -1843,9 +1840,7 @@ and genConstNumber (c:SynConst) (r: range) =
         ctx.Trivia
         |> List.tryFind (fun t -> t.Range = r)
         |> Option.bind(fun tn ->
-            tn.ContentBefore
-            |> List.choose (fun tv -> match tv with | Number(n) -> Some n | _ -> None)
-            |> List.tryExactlyOne
+            match tn.ContentItself with | Some(Number(n)) -> Some n | _ -> None
         )
         |> fun n ->
             match n with
@@ -1876,12 +1871,10 @@ and genConstBytes (bytes: byte []) (r: range) =
             ctx.Trivia
             |> List.tryFind(fun t -> t.Range = r)
             |> Option.bind (fun tv ->
-                tv.ContentBefore
-                |> List.choose (fun sc ->
-                    match sc with
-                    | StringContent(content) -> Some content
-                    | _ -> None)
-                |> List.tryExactlyOne)
+                match tv.ContentItself with
+                | Some(StringContent(content)) -> Some content
+                | _ -> None
+            )
 
         match trivia with
         | Some t -> !- t
@@ -1899,9 +1892,10 @@ and infixOperatorFromTrivia range fallback (ctx: Context) =
     |> List.choose(fun t ->
         match t.Range = range with
         | true ->
-            t.ContentBefore
-            |> List.choose (fun tc -> match tc with | IdentOperatorAsWord(iiw) -> Some iiw | _ -> None)
-            |> List.tryHead
+            match t.ContentItself with
+            | Some(IdentOperatorAsWord(iiw)) -> Some iiw
+            | Some(IdentBetweenTicks(iiw)) -> Some iiw // Used when value between ``...``
+            | _ -> None
         | _ -> None)
     |> List.tryHead
     |> fun iiw ->
