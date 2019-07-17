@@ -404,3 +404,15 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
         assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
 """
+
+[<Test>]
+let ``should handle complex #if``() =
+    formatSourceString false """
+#if !(INTERACTIVE || !FOO || !BAR || !BUZZ)
+let x = 1
+#endif
+"""  config
+    |> should equal """#if !(INTERACTIVE || !FOO || !BAR || !BUZZ)
+let x = 1
+#endif
+"""

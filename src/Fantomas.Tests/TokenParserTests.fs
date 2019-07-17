@@ -50,6 +50,16 @@ let x = 1
     getDefines source == ["INTERACTIVE";"FOO";"BAR";"BUZZ"]
 
 [<Test>]
+let ``Get define exprs from complex statements`` () =
+    let source = """
+#if INTERACTIVE || (FOO && BAR) || BUZZ
+let x = 1
+#endif
+"""
+    getDefineExprs source == [Some (BoolExpr.Or(BoolExpr.Ident "INTERACTIVE", BoolExpr.Or(BoolExpr.And(BoolExpr.Ident "FOO", BoolExpr.Ident"BAR"), BoolExpr.Ident "BUZZ")))]
+
+
+[<Test>]
 let ``Tokens from directive inside a directive are being added`` () =
     let source = """#if FOO
   #if BAR

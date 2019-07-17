@@ -7,6 +7,69 @@ open FSharp.Compiler.SourceCodeServices
 open Fantomas
 open Fantomas.TriviaTypes
 
+[<RequireQualifiedAccess>]
+type BoolExpr =
+    | Ident of string
+    | And of BoolExpr * BoolExpr
+    | Or of BoolExpr * BoolExpr
+    | Not of BoolExpr
+
+module BoolExprParser =
+    let (|Eq|_|) x y = if x=y then Some() else None
+
+    let (|TakeUntil|_|) x xs =
+        match List.takeWhile ((<>)x) xs with
+        | y when y = xs -> None
+        | y -> Some (y, List.skipWhile ((<>)x) xs)
+
+    let (|ListSurround|_|) before after xs =
+        let rec f d acc xs =
+            // printfn "%A" (d,acc,xs)
+            match xs with
+            | _ when d < 0 -> None
+            | Eq before :: rest -> f (d+1) (before::acc) rest
+            | Eq after :: [] when d = 1 -> List.rev acc |> Some
+            | Eq after :: rest -> f (d-1) (after::acc) rest
+            | x :: rest -> f d (x::acc) rest
+            | _ -> None
+        match xs with
+        | Eq before :: rest -> f 1 [] rest
+        | _ -> None
+
+    let (|ListSplit|_|) split xs =
+        match xs with
+        | TakeUntil split (x1, (_ :: x2)) -> Some (x1, x2)
+        | _ -> None
+
+    let rec (|SubExpr|_|) = function
+        | ListSurround "(" ")" (ExprPat e) -> Some e
+        | _ -> None
+    and (|AndExpr|_|) = function
+        | ListSplit "&&" (ExprPat e1, ExprPat e2) -> Some (BoolExpr.And (e1, e2))
+        | _ -> None
+    and (|OrExpr|_|) = function
+        | ListSplit "||" (ExprPat e1, ExprPat e2) -> Some (BoolExpr.Or (e1, e2))
+        | _ -> None
+    and (|NotSubExpr|_|) = function
+        | "!" :: SubExpr e -> Some (BoolExpr.Not e)
+        | _ -> None
+    and (|NotIdentExpr|_|) = function
+        | "!" :: x :: [] -> Some (BoolExpr.Not (BoolExpr.Ident x))
+        | _ -> None
+
+    and (|ExprPat|_|) = function
+        | NotSubExpr e
+        | SubExpr e
+        | AndExpr e
+        | OrExpr e
+        | NotIdentExpr e
+            -> Some e
+        | x :: [] -> BoolExpr.Ident x |> Some
+        //| s -> failwithf "Not valid bool (sub)expr in #if: %A" s
+        | _ -> None
+        
+    let parse = function | [] -> None | ExprPat e -> Some e | s -> failwithf "Fail to parse bool expr in #if: %A" s
+    
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
 // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
 let private isTokenAfterGreater token (greaterToken: Token) =
@@ -77,8 +140,8 @@ let private createHashToken lineNumber content fullMatchedLength offset =
 let rec private getTokenizedHashes sourceCode =
     let processLine content (trimmed:string) lineNumber fullMatchedLength offset =
         let contentLength = String.length content
-        tokenize [] (trimmed.Substring(contentLength))
-        |> fst
+        let tokens = tokenize [] (trimmed.Substring(contentLength)) |> fst
+        tokens
         |> List.map (fun t ->
             let info =
                 { t.TokenInfo with
@@ -147,6 +210,18 @@ let getDefines sourceCode =
     getTokenizedHashes sourceCode
     |> List.filter (fun {TokenInfo = {TokenName = tn }} -> tn = "IDENT")
     |> List.map (fun t -> t.Content)
+    |> List.distinct
+
+let getDefineExprs sourceCode =
+    let parseHashContent tokens =
+        let allowedContent = set ["||"; "&&"; "!"; "("; ")"]
+        tokens |> Seq.filter (fun t -> t.TokenInfo.TokenName = "IDENT" || Set.contains t.Content allowedContent)
+        |> Seq.map (fun t -> t.Content) |> Seq.toList
+        |> BoolExprParser.parse
+    
+    let tokens = getTokenizedHashes sourceCode
+    tokens |> List.groupBy (fun t -> t.LineNumber)
+    |> List.map (fun (_,g) -> parseHashContent g)
     |> List.distinct
 
 let private getRangeBetween name startToken endToken =
