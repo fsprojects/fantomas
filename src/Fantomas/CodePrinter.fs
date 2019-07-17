@@ -686,7 +686,7 @@ and genExpr astContext synExpr =
     | StructTuple es -> !- "struct " +> sepOpenT +> genTuple astContext es +> sepCloseT
     | ArrayOrList(isArray, [], _) -> 
         ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
-    | ArrayOrList(isArray, xs, isSimple) ->
+    | ArrayOrList(isArray, xs, isSimple) as alNode ->
         let isMultiline (ctx:Context) =
             xs
             |> List.fold (fun (isMultiline, f) e ->
@@ -725,7 +725,7 @@ and genExpr astContext synExpr =
                             (acc +> genExpr astContext e +> afterExpr) ctx
                  ) sepNone
                  |> atCurrentColumn
-            ifElse isArray (sepOpenA +> expr +> sepCloseA) (sepOpenL +> expr +> sepCloseL)
+            ifElse isArray (sepOpenA +> expr +> sepCloseA) (sepOpenL +> expr +> enterRightBracket alNode.Range +> sepCloseL)
             <| ctx
 
 
@@ -792,9 +792,12 @@ and genExpr astContext synExpr =
             (sepOpenS +> noIndentBreakNln astContext e 
              +> ifElse (checkBreakForExpr e) (unindent +> sepNln +> sepCloseSFixed) sepCloseS) 
 
-    | ArrayOrListOfSeqExpr(isArray, e) -> 
+    | ArrayOrListOfSeqExpr(isArray, e) as aNode ->
         let astContext = { astContext with IsNakedRange = true }
-        let expr = ifElse isArray (sepOpenA +> genExpr astContext e +> sepCloseA) (sepOpenL +> genExpr astContext e +> sepCloseL)
+        let expr =
+            ifElse isArray
+                (sepOpenA +> genExpr astContext e +> enterRightBracket aNode.Range +> sepCloseA)
+                (sepOpenL +> genExpr astContext e +> enterRightBracket aNode.Range +> sepCloseL)
         expr
     | JoinIn(e1, e2) -> genExpr astContext e1 -- " in " +> genExpr astContext e2
     | Paren(DesugaredLambda(cps, e)) ->

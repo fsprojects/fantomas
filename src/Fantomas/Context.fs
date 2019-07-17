@@ -560,6 +560,35 @@ let internal leaveLeftBrace (range: range) (ctx: Context) =
             id
     <| ctx
 
+let internal enterRightBracket (range: range) (ctx: Context) =
+    ctx.Trivia
+    |> List.tryFind(fun tn ->
+        // Token is a left brace { at the beginning of the range.
+        match tn.Type with
+        | Token(tok) ->
+            (tok.TokenInfo.TokenName = "RBRACK" || tok.TokenInfo.TokenName = "BAR_RBRACK")
+            && tn.Range.EndLine = range.EndLine
+            && (tn.Range.EndColumn = range.EndColumn || tn.Range.EndColumn + 1 = range.EndColumn)
+        | _ -> false
+    )
+    |> fun tn ->
+        match tn with
+        | Some({ ContentBefore = [TriviaContent.Comment(LineCommentOnSingleLine(lineComment))] } as tn) ->
+            let spacesBeforeComment =
+                let braceSize =
+                    match tn.Type with
+                    | Token({TokenInfo = {TokenName = "BAR_RBRACK"}}) -> 2
+                    | _ -> 1
+                let spaceAround = if ctx.Config.SpaceAroundDelimiter then 1 else 0
+
+                !- String.Empty.PadLeft(braceSize + spaceAround)
+
+            let spaceAfterNewline = if ctx.Config.SpaceAroundDelimiter then sepSpace else sepNone
+            sepNln +> spacesBeforeComment +> !- lineComment +> sepNln +> spaceAfterNewline +> removeNodeFromContext tn
+        | _ ->
+            id
+    <| ctx
+
 let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
     |> List.filter (fun tn ->
