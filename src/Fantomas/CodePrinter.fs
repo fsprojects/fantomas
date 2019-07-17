@@ -1048,7 +1048,6 @@ and genLetOrUseList astContext expr =
         | [] -> 
             col sepNln xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
         | _ ->
-            //colEx (fun (mdf:SynMemberDefn) -> sepNlnConsideringTriviaContentBefore mdf.Range) xs (genMemberDefn astContext) +> genMemberDefnList astContext ys
             colEx (fun (_,lx:SynBinding) -> sepNlnConsideringTriviaContentBefore lx.RangeOfBindingSansRhs) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
             +> sepXsYs +> genLetOrUseList astContext ys
 
@@ -1058,9 +1057,14 @@ and genLetOrUseList astContext expr =
             col (rep 2 sepNln) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
             // Add a trailing new line to separate these with the main expression
             +> sepNln 
-        | _ -> 
-            col (rep 2 sepNln) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x) 
-            +> rep 2 sepNln +> genLetOrUseList astContext ys
+        | _ ->
+            let sepXsYs =
+                match List.tryHead ys with
+                | Some (_,ysh) -> sepNln +> sepNlnConsideringTriviaContentBefore ysh.RangeOfBindingSansRhs
+                | None -> rep 2 sepNln
+
+            colEx (fun (_,lx:SynBinding) -> sepNlnConsideringTriviaContentBefore lx.RangeOfBindingAndRhs) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
+            +> sepXsYs +> genLetOrUseList astContext ys
 
     | _ -> sepNone
 

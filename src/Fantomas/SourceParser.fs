@@ -1257,5 +1257,7 @@ let getRangesFromAttributes (mdl: SynModuleDecl) =
             match t with
             | SynTypeDefn.TypeDefn((SynComponentInfo.ComponentInfo(attrs, _,_,_,_,_,_,_)),_,_,_) -> collectAttributesRanges attrs
         )
+    | SynModuleDecl.NestedModule((SynComponentInfo.ComponentInfo(attrs, _,_,_,_,_,_,_)), _,_,_,_) ->
+        collectAttributesRanges attrs
     | _ -> Seq.empty
     |> Seq.toList
