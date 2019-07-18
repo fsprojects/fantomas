@@ -2,12 +2,14 @@
 
 open NUnit.Framework
 open System
+open System
 open Fantomas
 open FsCheck
 open FsUnit
 open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 open TestHelper
+open TokenParser
 
 let generateSynMeasure =
     Gen.constant SynMeasure.One
@@ -536,7 +538,36 @@ C
 H
 """ |> Input |> shrinkInput |> Seq.map (fun (Input x) -> x.TrimEnd('\r', '\n')) |> Seq.toArray |> should equal [|"Q -> C"; "Q"; "C"|]
 
+//--------------
 
+let rec internal boolExprToString = function
+    | BoolExpr.Ident x -> x
+    | BoolExpr.Not (BoolExpr.Ident x) -> "!" + x
+    | BoolExpr.Not e -> "!(" + boolExprToString e + ")"
+    | BoolExpr.And (e1, e2) -> "(" + boolExprToString e1 + " && " + boolExprToString e2 + ")"
+    | BoolExpr.Or (e1, e2) -> "(" + boolExprToString e1 + " || " + boolExprToString e2 + ")"
 
-         
+let rec internal mapBoolExpr f e =
+    match f e with
+    | Some x -> x
+    | None ->
+    match e with
+    | BoolExpr.Not e -> BoolExpr.Not (mapBoolExpr f e)
+    | BoolExpr.And (e1, e2) -> BoolExpr.And (mapBoolExpr f e1, mapBoolExpr f e2)
+    | BoolExpr.Or (e1, e2) -> BoolExpr.Or (mapBoolExpr f e1, mapBoolExpr f e2)
+    | _ -> e
 
+let internal boolExprToSource e =
+    sprintf """#if %s
+#endif""" (boolExprToString e)
+
+[<Test>]
+let ``Hash if expression parsing property``() =    
+    Check.One(verboseConf,
+        fun e ->
+            let e =
+                e |> mapBoolExpr (function
+                                  | BoolExpr.Ident x when String.IsNullOrEmpty x || x |> Seq.exists (fun c -> not(Char.IsLetter c)) -> Some (BoolExpr.Ident "empty")
+                                  | _ -> None)
+            let source = boolExprToSource e
+            getDefineExprs source |> List.choose id |> List.head |> should equal e)

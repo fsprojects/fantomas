@@ -52,11 +52,12 @@ let x = 1
 [<Test>]
 let ``Get define exprs from complex statements`` () =
     let source = """
-#if INTERACTIVE || (FOO && BAR) || BUZZ
+#if !(INTERACTIVE || !(FOO && BAR) || BUZZ)
 let x = 1
 #endif
 """
-    getDefineExprs source == [Some (BoolExpr.Or(BoolExpr.Ident "INTERACTIVE", BoolExpr.Or(BoolExpr.And(BoolExpr.Ident "FOO", BoolExpr.Ident"BAR"), BoolExpr.Ident "BUZZ")))]
+    getDefineExprs source |> List.head |> Option.get |> should equal
+        (BoolExpr.Not(BoolExpr.Or(BoolExpr.Ident "INTERACTIVE", BoolExpr.Or(BoolExpr.Not <| BoolExpr.And(BoolExpr.Ident "FOO", BoolExpr.Ident"BAR"), BoolExpr.Ident "BUZZ"))))
 
 
 [<Test>]

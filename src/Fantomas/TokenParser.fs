@@ -1,4 +1,4 @@
-module internal Fantomas.TokenParser
+module Fantomas.TokenParser
 
 open FSharp.Compiler.AbstractIL.Internal.Library
 open System
@@ -24,11 +24,11 @@ module BoolExprParser =
 
     let (|ListSurround|_|) before after xs =
         let rec f d acc xs =
-            // printfn "%A" (d,acc,xs)
             match xs with
             | _ when d < 0 -> None
             | Eq before :: rest -> f (d+1) (before::acc) rest
-            | Eq after :: [] when d = 1 -> List.rev acc |> Some
+            | Eq after :: [] when d = 1 ->
+                List.rev acc |> Some
             | Eq after :: rest -> f (d-1) (after::acc) rest
             | x :: rest -> f d (x::acc) rest
             | _ -> None
@@ -40,15 +40,28 @@ module BoolExprParser =
         match xs with
         | TakeUntil split (x1, (_ :: x2)) -> Some (x1, x2)
         | _ -> None
+        
+    let (|ListSplitPick|_|) split f xs =
+        let rec loop prev xs = seq {
+            match xs with
+            | TakeUntil split (x1, (_ :: x2)) ->
+                yield (prev @ x1, x2)
+                yield! loop (prev @ x1 @ [split]) x2
+            | _ -> () }
+        loop [] xs |> Seq.tryPick f
 
     let rec (|SubExpr|_|) = function
         | ListSurround "(" ")" (ExprPat e) -> Some e
         | _ -> None
-    and (|AndExpr|_|) = function
-        | ListSplit "&&" (ExprPat e1, ExprPat e2) -> Some (BoolExpr.And (e1, e2))
+    and (|AndExpr|_|) =
+        let chooser = function |(ExprPat e1, ExprPat e2) -> Some (e1, e2) |_ -> None
+        function
+        | ListSplitPick "&&" chooser (e1, e2) -> Some (BoolExpr.And (e1, e2))
         | _ -> None
-    and (|OrExpr|_|) = function
-        | ListSplit "||" (ExprPat e1, ExprPat e2) -> Some (BoolExpr.Or (e1, e2))
+    and (|OrExpr|_|) =
+        let chooser = function |(ExprPat e1, ExprPat e2) -> Some (e1, e2) |_ -> None
+        function
+        | ListSplitPick "||" chooser (e1, e2) -> Some (BoolExpr.Or (e1, e2))
         | _ -> None
     and (|NotSubExpr|_|) = function
         | "!" :: SubExpr e -> Some (BoolExpr.Not e)
@@ -65,7 +78,6 @@ module BoolExprParser =
         | NotIdentExpr e
             -> Some e
         | x :: [] -> BoolExpr.Ident x |> Some
-        //| s -> failwithf "Not valid bool (sub)expr in #if: %A" s
         | _ -> None
         
     let parse = function | [] -> None | ExprPat e -> Some e | s -> failwithf "Fail to parse bool expr in #if: %A" s
@@ -222,7 +234,6 @@ let getDefineExprs sourceCode =
     let tokens = getTokenizedHashes sourceCode
     tokens |> List.groupBy (fun t -> t.LineNumber)
     |> List.map (fun (_,g) -> parseHashContent g)
-    |> List.distinct
 
 let private getRangeBetween name startToken endToken =
     let l = startToken.TokenInfo.LeftColumn
