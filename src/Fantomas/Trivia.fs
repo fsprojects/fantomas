@@ -173,8 +173,8 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         findLastNode triviaNodes
         |> updateTriviaNode (fun tn ->
             match tn.ContentAfter with
-            | [] -> // make sure that comment ends up under the printed code
-                LineCommentOnSingleLine(sprintf "%s%s" Environment.NewLine lineComment)
+            | [] ->
+                LineCommentOnSingleLine(lineComment)
                 |> Comment
                 |> List.singleton
                 |> fun ca -> { tn with ContentAfter = ca }
@@ -186,20 +186,20 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         findFirstNodeAfterLine triviaNodes range.StartLine
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem  tn.ContentBefore (Comment(comment)) }) triviaNodes
 
-    | { Item = Comment(BlockComment(_) as comment); Range = range } ->
+    | { Item = Comment(BlockComment(comment, _,_)); Range = range } ->
         let nodeAfter = findNodeAfterLineAndColumn triviaNodes range.StartLine range.StartColumn
         let nodeBefore = findNodeBeforeLineAndColumn triviaNodes range.StartLine range.StartColumn
         match nodeBefore, nodeAfter with
         | (Some n), _ when n.Range.EndLine = range.StartLine ->
             Some n |> updateTriviaNode (fun tn ->
-                { tn with ContentAfter = tn.ContentAfter @ [Comment(comment)] }) triviaNodes
+                { tn with ContentAfter = tn.ContentAfter @ [Comment(BlockComment(comment,false,false))] }) triviaNodes
         | _, (Some n) ->
             Some n |> updateTriviaNode (fun tn -> 
-                let newline = if tn.Range.StartLine > range.EndLine then [Newline] else []
-                { tn with ContentBefore = tn.ContentBefore @ [Comment(comment)] @ newline }) triviaNodes
+                let newline = tn.Range.StartLine > range.EndLine
+                { tn with ContentBefore = tn.ContentBefore @ [Comment(BlockComment(comment,false, newline))] }) triviaNodes
         | (Some n), _ ->
             Some n |> updateTriviaNode (fun tn ->
-                { tn with ContentAfter = tn.ContentAfter @ [Newline] @ [Comment(comment)] }) triviaNodes
+                { tn with ContentAfter = tn.ContentAfter @ [Comment(BlockComment(comment,true,false))] }) triviaNodes
         | None, None -> triviaNodes
 
     | { Item = Comment(LineCommentAfterSourceCode(_) as comment); Range = range } ->

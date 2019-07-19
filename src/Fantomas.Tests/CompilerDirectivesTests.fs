@@ -404,3 +404,273 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
         assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
 """
+
+[<Test>]
+let ``nested directives, FABLE_COMPILER`` () =
+    formatSourceStringWithDefines ["FABLE_COMPILER"] """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement,
+                                fallback: ReactElement)
+                            : LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+        let elemType = ReactBindings.React.``lazy``(fun () ->
+            // React.lazy requires a default export
+            (importValueDynamic f).``then``(fun x -> createObj ["default" ==> x]))
+        fun props ->
+            ReactElementType.create
+                ReactBindings.React.Suspense
+                (createObj ["fallback" ==> fallback])
+                [ReactElementType.create elemType props []]
+#else
+        fun _ ->
+            div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+#endif
+#endif
+
+    static member Foo = ()
+"""  config
+    |> should equal """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+        let elemType =
+            ReactBindings.React.``lazy`` (fun () ->
+                // React.lazy requires a default export
+                (importValueDynamic f).``then``(fun x -> createObj [ "default" ==> x ]))
+        fun props ->
+            ReactElementType.create ReactBindings.React.Suspense (createObj [ "fallback" ==> fallback ])
+                [ ReactElementType.create elemType props [] ]
+#else
+
+
+#endif
+#endif
+
+    static member Foo = ()
+"""
+
+[<Test>]
+let ``nested directives, FABLE_REPL_LIB`` () =
+    formatSourceStringWithDefines ["FABLE_REPL_LIB"] """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement,
+                                fallback: ReactElement)
+                            : LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+        let elemType = ReactBindings.React.``lazy``(fun () ->
+            // React.lazy requires a default export
+            (importValueDynamic f).``then``(fun x -> createObj ["default" ==> x]))
+        fun props ->
+            ReactElementType.create
+                ReactBindings.React.Suspense
+                (createObj ["fallback" ==> fallback])
+                [ReactElementType.create elemType props []]
+#else
+        fun _ ->
+            div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+#endif
+#endif
+
+    static member Foo = ()
+"""  config
+    |> should equal """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+
+
+
+
+
+
+#if FABLE_COMPILER
+
+
+
+
+
+
+
+
+#else
+
+
+#endif
+#endif
+
+    static member Foo = ()
+"""
+
+[<Test>]
+let ``nested directives, no defines`` () =
+    formatSourceStringWithDefines [] """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement,
+                                fallback: ReactElement)
+                            : LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+        let elemType = ReactBindings.React.``lazy``(fun () ->
+            // React.lazy requires a default export
+            (importValueDynamic f).``then``(fun x -> createObj ["default" ==> x]))
+        fun props ->
+            ReactElementType.create
+                ReactBindings.React.Suspense
+                (createObj ["fallback" ==> fallback])
+                [ReactElementType.create elemType props []]
+#else
+        fun _ ->
+            div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+#endif
+#endif
+
+    static member Foo = ()
+"""  config
+    |> should equal """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+
+
+
+
+
+
+
+
+#else
+        fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+#endif
+#endif
+
+    static member Foo = ()
+"""
+
+[<Test>]
+let ``negated directive`` () =
+    formatSourceString false """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement,
+                                fallback: ReactElement)
+                            : LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+        let elemType = ReactBindings.React.``lazy``(fun () ->
+            // React.lazy requires a default export
+            (importValueDynamic f).``then``(fun x -> createObj ["default" ==> x]))
+        fun props ->
+            ReactElementType.create
+                ReactBindings.React.Suspense
+                (createObj ["fallback" ==> fallback])
+                [ReactElementType.create elemType props []]
+#else
+        fun _ ->
+            div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+#endif
+#endif
+
+    static member Foo = ()
+"""  config
+    |> should equal """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+        let elemType =
+            ReactBindings.React.``lazy`` (fun () ->
+                // React.lazy requires a default export
+                (importValueDynamic f).``then``(fun x -> createObj [ "default" ==> x ]))
+        fun props ->
+            ReactElementType.create ReactBindings.React.Suspense (createObj [ "fallback" ==> fallback ])
+                [ ReactElementType.create elemType props [] ]
+#else
+        fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+#endif
+#endif
+
+    static member Foo = ()
+"""

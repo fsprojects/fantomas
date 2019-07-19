@@ -1221,27 +1221,8 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
         +> unindent
     
     | ObjectModel(_, MemberDefnList(impCtor, others), _) ->
-        let sepNlnIfOtherHaveTrivia (ctx: Context) =
-            let ranges =
-                match others with
-                | mbr::_ -> [ mbr.Range; tdr.Range ]
-                | _ -> [tdr.Range]
-
-            let isThereContentBefore =
-                ctx.Trivia
-                |> List.filter (fun t ->
-                    List.contains t.Range ranges && hasPrintableContent t.ContentBefore
-                )
-                |> List.length
-                |> (fun l -> l > 0)
-
-            match isThereContentBefore with
-            | true  -> sepNln
-            | false -> sepSpace
-            <| ctx
-    
         typeName +> opt sepNone impCtor (genMemberDefn { astContext with InterfaceRange = None }) +> sepEq
-        +> indent +> sepNlnIfOtherHaveTrivia
+        +> indent
         +> genMemberDefnList { astContext with InterfaceRange = None } others
         +> unindent
 
@@ -1612,7 +1593,7 @@ and genMemberDefn astContext node =
         genLetBinding { astContext with IsFirstChild = true } prefix b 
         +> colPre sepNln sepNln bs (genLetBinding { astContext with IsFirstChild = false } "and ")
 
-    | MDInterface(t, mdo, range) -> 
+    | MDInterface(t, mdo, range) ->
         !- "interface " +> genType astContext false t
         +> opt sepNone mdo 
             (fun mds -> !- " with" +> indent +> genMemberDefnList { astContext with InterfaceRange = Some range } mds +> unindent)
@@ -1781,7 +1762,7 @@ and genConst (c:SynConst) (r:range) =
                         | true, Token({TokenInfo = ti}) when (ti.TokenName = "LPAREN") -> true
                         | _ -> false
                     )
-                    |> Option.map (fun tv -> tv.ContentAfter |> List.choose(function | Comment(BlockComment(bc)) -> Some bc | _ -> None))
+                    |> Option.map (fun tv -> tv.ContentAfter |> List.choose(function | Comment(BlockComment(bc,_,_)) -> Some bc | _ -> None))
                     |> Option.defaultValue []
 
                 match innerComments with

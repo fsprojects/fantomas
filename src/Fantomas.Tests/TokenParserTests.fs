@@ -140,7 +140,7 @@ let ``Single line block comment should be found in tokens`` () =
     let triviaNodes = getTriviaFromTokens tokens lineCount
     
     match List.tryLast triviaNodes with
-    | Some({ Item = Comment(BlockComment(blockComment)) }) ->
+    | Some({ Item = Comment(BlockComment(blockComment,_,_)) }) ->
         blockComment == "(* not fonz *)"
     | _ ->
         failwith "expected block comment"
@@ -162,7 +162,7 @@ let ``Multi line block comment should be found in tokens`` () =
         |> String.normalizeNewLine
     
     match triviaNodes with
-    | [{ Item = Comment(BlockComment(blockComment)); Range = range }
+    | [{ Item = Comment(BlockComment(blockComment,_,_)); Range = range }
        { Item = Number("7") }] ->
         blockComment == expectedComment
         range.StartLine == 2

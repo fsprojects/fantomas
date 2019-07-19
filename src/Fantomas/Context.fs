@@ -111,6 +111,13 @@ type internal Context =
 let internal dump (ctx: Context) =
     ctx.Writer.InnerWriter.ToString()
 
+#if DEBUG
+let internal dumpAndContinue (ctx: Context) =
+    let code = dump ctx
+    printfn "%s" code
+    ctx
+#endif
+
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
 /// Indent one more level based on configuration
@@ -440,20 +447,34 @@ let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 /// Never break into newlines on these operators
 let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
-let internal printTriviaContent (c: TriviaContent) =
+let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
+    // Some items like #if of Newline should be printed on a newline
+    // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
+    let addNewline =
+        dump ctx
+        |> String.normalizeThenSplitNewLine
+        |> Array.tryLast
+        |> Option.map (fun (line:string) -> line.Trim().Length > 1)
+        |> Option.defaultValue false
+
     match c with
     | Comment(LineCommentAfterSourceCode s) -> sepSpace +> !- s
-    | Comment(LineCommentOnSingleLine s) -> !- s +> sepNln
-    | Comment(BlockComment s) -> sepSpace -- s +> sepSpace
-    | Newline -> sepNln
+    | Comment(BlockComment(s, before, after)) ->
+        ifElse (before && addNewline) sepNln sepNone
+        +> sepSpace -- s +> sepSpace
+        +> ifElse after sepNln sepNone
+    | Newline ->
+        (ifElse addNewline (sepNln +> sepNln) sepNln)
     | Keyword _
     | Number _
     | StringContent _
     | IdentOperatorAsWord _
     | IdentBetweenTicks _
          -> sepNone // don't print here but somewhere in CodePrinter
-    | Directive(content, addNewline) ->
-        (ifElse addNewline sepNln sepNone) +> !- content +> sepNln
+    | Directive(s, _)
+    | Comment(LineCommentOnSingleLine s) ->
+        (ifElse addNewline sepNln sepNone) +> !- s +> sepNln
+    <| ctx
 
 let private removeNodeFromContext triviaNode (ctx: Context) =
     let newNodes = List.filter (fun tn -> tn <> triviaNode) ctx.Trivia

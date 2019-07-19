@@ -12,7 +12,7 @@ type Token =
 type Comment =
     | LineCommentAfterSourceCode of comment:string
     | LineCommentOnSingleLine of comment:string
-    | BlockComment of string
+    | BlockComment of string * newlineBefore:bool * newlineAfter:bool
     
 (* LineComment Examples
 

@@ -31,6 +31,29 @@ let formatSourceString isFsiFile (s : string) config =
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
 
+let formatSourceStringWithDefines defines (s : string) config =
+    // On Linux/Mac this will exercise different line endings
+    let s = s.Replace("\r\n", Environment.NewLine)
+    let fileName = "/src.fsx"
+    let projectOptions = { (parsingOptions fileName) with ConditionalCompilationDefines = defines }
+    let formatContext = CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s) projectOptions sharedChecker.Value
+
+    let result =
+        async {
+            let! asts = CodeFormatterImpl.parse formatContext
+            let ast =
+                Array.filter (fun (_,d) -> d = defines) asts
+                |> Array.head
+                |> fst
+            return CodeFormatterImpl.formatWith ast formatContext config
+        }
+        |> Async.RunSynchronously
+        |> CodeFormatterImpl.addNewlineIfNeeded
+
+    // merge with itself to make #if go on beginning of line
+    String.merge result result
+    |> String.normalizeNewLine
+
 let formatSelectionFromString isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"

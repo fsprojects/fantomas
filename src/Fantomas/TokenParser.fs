@@ -255,7 +255,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             getRangeBetween "block comment" headToken lastToken
             
         let info =
-            Trivia.Create (Comment(BlockComment(comment))) range
+            Trivia.Create (Comment(BlockComment(comment, false, false))) range
             |> List.prependItem foundTrivia
             
         getTriviaFromTokensThemSelves allTokens nextTokens info
