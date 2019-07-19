@@ -104,10 +104,10 @@ let x =
 let x =
     [| 1..2 |]
     |> Array.mapi (fun _ _ ->
-        let num =
-            ""
-                .PadLeft(9)
-        num)
+            let num =
+                ""
+                    .PadLeft(9)
+            num)
 """
 
 [<Test>]
