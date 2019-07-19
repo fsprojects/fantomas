@@ -934,7 +934,7 @@ and genExpr astContext synExpr =
             | [_, LetBinding(_, _, _, _, _, p, _)] -> 
                 not (isFromAst ctx) && p.Range.EndLine = e.Range.StartLine && not(checkBreakForExpr e)
             | _ -> false
-        atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") sepNln +> genExpr astContext e)
+        atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") (sepNlnConsideringTriviaContentBefore e.Range) +> genExpr astContext e)
 
     // Could customize a bit if e is single line
     | TryWith(e, cs) -> 
@@ -1057,9 +1057,9 @@ and genLetOrUseList astContext expr =
     | MultilineLetOrUseL(xs, ys) ->
         match ys with
         | [] -> 
-            col (rep 2 sepNln) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
+            colEx (fun (_,synB:SynBinding) -> sepNln +> sepNlnConsideringTriviaContentBefore synB.RangeOfBindingSansRhs) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
             // Add a trailing new line to separate these with the main expression
-            +> sepNln 
+            +> sepNln
         | _ ->
             let sepXsYs =
                 match List.tryHead ys with

@@ -203,3 +203,24 @@ module Card =
         let props = JS.Object.assign (createEmpty, customProps, typeProps)
         ofImport "Card" "reactstrap" props elems
 """
+
+[<Test>]
+let ``newlines inside let binding should be not duplicated`` () =
+    formatSourceString false """let foo =
+    let next _ =
+        if not animating then activeIndex.update ((activeIndex.current + 1) % itemLength)
+
+    let prev _ =
+        if not animating then activeIndex.update ((activeIndex.current + itemLength - 1) % itemLength)
+
+    ()
+"""  config
+    |> should equal """let foo =
+    let next _ =
+        if not animating then activeIndex.update ((activeIndex.current + 1) % itemLength)
+
+    let prev _ =
+        if not animating then activeIndex.update ((activeIndex.current + itemLength - 1) % itemLength)
+
+    ()
+"""

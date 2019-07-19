@@ -631,6 +631,8 @@ let private hasDirectiveBefore (trivia: TriviaContent list) =
 
 let internal sepNlnConsideringTriviaContentBefore (range:range) ctx =
     match findTriviaMainNodeFromRange ctx.Trivia range with
+    | Some({ ContentBefore = (Comment(BlockComment(_,false,_)))::_ }) ->
+        sepNln ctx
     | Some({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) ->
         ctx
     | _ -> sepNln ctx
