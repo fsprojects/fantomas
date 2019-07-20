@@ -674,3 +674,87 @@ type FunctionComponent =
 
     static member Foo = ()
 """
+
+[<Test>]
+let ``module with nested directives`` () =
+    formatSourceString false """module ReactDomBindings =
+    #if FABLE_REPL_LIB
+    [<Global("ReactDOM")>]
+    #else
+    [<Import("*", "react-dom")>]
+    #endif
+    let ReactDom: IReactDom = jsNative
+
+    #if !FABLE_REPL_LIB
+    [<Import("default", "react-dom/server")>]
+    let ReactDomServer: IReactDomServer = jsNative
+    #endif"""  config
+    |> should equal """module ReactDomBindings =
+#if FABLE_REPL_LIB
+    [<Global("ReactDOM")>]
+#else
+    [<Import("*", "react-dom")>]
+#endif
+    let ReactDom: IReactDom = jsNative
+
+#if !FABLE_REPL_LIB
+    [<Import("default", "react-dom/server")>]
+    let ReactDomServer: IReactDomServer = jsNative
+#endif
+"""
+
+[<Test>]
+let ``module with nested directives, no defines`` () =
+    formatSourceStringWithDefines [] """module ReactDomBindings =
+    #if FABLE_REPL_LIB
+    [<Global("ReactDOM")>]
+    #else
+    [<Import("*", "react-dom")>]
+    #endif
+    let ReactDom: IReactDom = jsNative
+
+    #if !FABLE_REPL_LIB
+    [<Import("default", "react-dom/server")>]
+    let ReactDomServer: IReactDomServer = jsNative
+    #endif"""  config
+    |> should equal """module ReactDomBindings =
+#if FABLE_REPL_LIB
+
+#else
+    [<Import("*", "react-dom")>]
+#endif
+    let ReactDom: IReactDom = jsNative
+
+#if !FABLE_REPL_LIB
+    [<Import("default", "react-dom/server")>]
+    let ReactDomServer: IReactDomServer = jsNative
+#endif
+"""
+
+[<Test>]
+let ``module with nested directives, FABLE_REPL_LIB`` () =
+    formatSourceStringWithDefines ["FABLE_REPL_LIB"] """module ReactDomBindings =
+    #if FABLE_REPL_LIB
+    [<Global("ReactDOM")>]
+    #else
+    [<Import("*", "react-dom")>]
+    #endif
+    let ReactDom: IReactDom = jsNative
+
+    #if !FABLE_REPL_LIB
+    [<Import("default", "react-dom/server")>]
+    let ReactDomServer: IReactDomServer = jsNative
+    #endif"""  config
+    |> should equal """module ReactDomBindings =
+#if FABLE_REPL_LIB
+    [<Global("ReactDOM")>]
+#else
+
+#endif
+    let ReactDom: IReactDom = jsNative
+
+#if !FABLE_REPL_LIB
+
+
+#endif
+"""

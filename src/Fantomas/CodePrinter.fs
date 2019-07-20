@@ -305,7 +305,8 @@ and genModuleDecl astContext node =
         +> (!- "module ")
         +> opt sepSpace ao genAccess
         +> ifElse isRecursive (!- "rec ") sepNone -- s +> sepEq
-        +> indent +> sepNln +> genModuleDeclList astContext mds +> unindent
+        +> indent +> sepNln
+        +> genModuleDeclList astContext mds +> unindent
 
     | Open(s) ->
         !- (sprintf "open %s" s)
@@ -389,13 +390,18 @@ and genOnelinerAttributes astContext ats =
 /// Try to group attributes if they are on the same line
 /// Separate same-line attributes by ';'
 /// Each bucket is printed in a different line
-and genAttributes astContext (ats: SynAttributes) = 
+and genAttributes astContext (ats: SynAttributes) =
+    let genTriviaAttributeList (f: Context -> Context) =
+        ats
+        |> Seq.fold (fun (acc: Context -> Context) (attr: SynAttributeList) -> acc |> (genTrivia attr.Range)) f
+
     (ats
     |> List.collect (fun a -> a.Attributes)
     |> Seq.groupBy (fun at -> at.Range.StartLine)
     |> Seq.map snd
     |> Seq.toList
-    |> fun ats' -> colPost sepNln sepNln ats' (genAttributesCore astContext))
+    |> fun ats' -> (colPost sepNln sepNln ats' (genAttributesCore astContext)))
+    |> genTriviaAttributeList
 
 and genPreXmlDoc (PreXmlDoc lines) ctx = 
     if ctx.Config.StrictMode then

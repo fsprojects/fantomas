@@ -504,7 +504,6 @@ let internal printContentBefore triviaNode =
                 ) 
             { ctx with Trivia = trivia }
         
-        
     col sepNone triviaNode.ContentBefore printTriviaContent +> removeBeforeContentOfTriviaNode
 
 let internal printContentAfter triviaNode =
