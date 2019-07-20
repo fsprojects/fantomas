@@ -1,4 +1,7 @@
-#### 3.0.0-beta-001 - 07/2019 
+#### 3.0.0-beta-002 - 07/2019
+* More fixes with hash directives
+
+#### 3.0.0-beta-001 - 07/2019
 * Use FCS 28.0.0 and net461. [#436](https://github.com/fsprojects/fantomas/pull/436)
 * Deprecated `PreserveEndOfLine` setting in favor of Trivia. [#434](https://github.com/fsprojects/fantomas/pull/434)
 * Added support for formatting multiple code path in defines.
