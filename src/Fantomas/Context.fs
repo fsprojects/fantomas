@@ -471,7 +471,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     | IdentOperatorAsWord _
     | IdentBetweenTicks _
          -> sepNone // don't print here but somewhere in CodePrinter
-    | Directive(s, _)
+    | Directive(s)
     | Comment(LineCommentOnSingleLine s) ->
         (ifElse addNewline sepNln sepNone) +> !- s +> sepNln
     <| ctx

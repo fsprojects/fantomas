@@ -1,6 +1,5 @@
 module internal Fantomas.Trivia
 
-open System
 open Fantomas.AstTransformer
 open FSharp.Compiler.Ast
 open Fantomas
@@ -281,7 +280,7 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
                 findParsedHashOnLineAndEndswith triviaNodes range.StartLine range.EndColumn
                 |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
 
-    | { Item = Directive(dc,_) as directive; Range = range } ->
+    | { Item = Directive(dc) as directive; Range = range } ->
         match triviaBetweenAttributeAndLetBinding triviaNodes range.StartLine with
         | Some _ as node ->
             updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter directive }) triviaNodes node
@@ -294,13 +293,7 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
 
                 findNode triviaNodes
                 |> updateTriviaNode (fun tn ->
-                    let addNewline =
-                        List.tryLast tn.ContentAfter
-                        |> Option.map (fun tnl -> match tnl with | Directive(_,_) -> false | _ -> true)
-                        |> Option.defaultValue true
-                    let directive =
-                        (dc, addNewline)
-                        |> Directive
+                    let directive = Directive dc
                     { tn with ContentAfter = List.appendItem tn.ContentAfter directive }) triviaNodes
 
     | { Item = StringContent(_) as siNode; Range = range } ->

@@ -293,7 +293,7 @@ let x = 1
     let (tokens,lineCount) = tokenize defines source
     let triviaNodes =
         getTriviaFromTokens tokens lineCount
-        |> List.choose (fun tv -> match tv.Item with | Directive(directive,_ ) -> Some directive | _ -> None)
+        |> List.choose (fun tv -> match tv.Item with | Directive(directive) -> Some directive | _ -> None)
 
     List.length triviaNodes == 3
 

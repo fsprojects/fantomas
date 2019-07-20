@@ -1,6 +1,5 @@
 module Fantomas.Tests.TriviaTests
 
-open System
 open NUnit.Framework
 open Fantomas
 open Fantomas.Tests.TestHelper
@@ -350,15 +349,15 @@ doSomething()
 
     match withoutDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
-         ContentBefore = [Directive("#if NOT_DEFINED", false); Directive("#else", false)]
-         ContentAfter = [Directive("#endif", true)] }] ->
+         ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else")]
+         ContentAfter = [Directive("#endif")] }] ->
         pass()
     | _ ->
         fail()
         
     match withDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
-         ContentBefore = [Directive("#if NOT_DEFINED", false); Directive("#else", false); Directive("#endif", false)]
+         ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else"); Directive("#endif")]
          ContentAfter = [] }] ->
         pass()
     | _ ->
@@ -379,7 +378,7 @@ let x = 1
     
     match withoutDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
-         ContentBefore = [Directive("#if NOT_DEFINED",false); Newline; Directive("#endif", false)]
+         ContentBefore = [Directive("#if NOT_DEFINED"); Newline; Directive("#endif")]
          ContentAfter = [] }] ->
         pass()
     | _ ->
@@ -387,11 +386,11 @@ let x = 1
 
     match withDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
-         ContentBefore = [Directive("#if NOT_DEFINED", false)]
+         ContentBefore = [Directive("#if NOT_DEFINED")]
          ContentAfter = [] }
        { Type = MainNode("SynModuleDecl.Let")
          ContentBefore = []
-         ContentAfter = [Directive("#endif", true)]}] ->
+         ContentAfter = [Directive("#endif")]}] ->
         pass()
     | _ ->
         fail()
@@ -412,11 +411,11 @@ type ExtensibleDumper = A | B
 
     match trivias with
     | [{ Type = MainNode("Ident")
-         ContentAfter = [Directive("#if EXTENSIBLE_DUMPER", true)
-                         Directive("#if DEBUG", false)
+         ContentAfter = [Directive("#if EXTENSIBLE_DUMPER")
+                         Directive("#if DEBUG")
                          Newline
-                         Directive("#endif", true)
-                         Directive("#endif", false)] }] ->
+                         Directive("#endif")
+                         Directive("#endif")] }] ->
         pass()
     | _ ->
         fail()

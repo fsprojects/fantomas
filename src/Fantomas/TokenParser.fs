@@ -282,7 +282,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             
         let range = getRangeBetween "directive" headToken (List.last directiveTokens)
         let info =
-            Trivia.Create (Directive(directiveContent, false (*false for now, later determined in Trivia.fs*))) range
+            Trivia.Create (Directive(directiveContent)) range
             |> List.prependItem foundTrivia
         
         let nextRest =

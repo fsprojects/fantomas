@@ -34,7 +34,7 @@ type TriviaContent =
     | IdentBetweenTicks of string
     | Comment of Comment
     | Newline
-    | Directive of directive:string * appendNewline:bool
+    | Directive of directive:string
     
 type Trivia =
     { Item: TriviaContent
