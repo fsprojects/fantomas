@@ -547,16 +547,6 @@ let rec internal boolExprToString = function
     | BoolExpr.And (e1, e2) -> "(" + boolExprToString e1 + " && " + boolExprToString e2 + ")"
     | BoolExpr.Or (e1, e2) -> "(" + boolExprToString e1 + " || " + boolExprToString e2 + ")"
 
-let rec internal mapBoolExpr f e =
-    match f e with
-    | Some x -> x
-    | None ->
-    match e with
-    | BoolExpr.Not e -> BoolExpr.Not (mapBoolExpr f e)
-    | BoolExpr.And (e1, e2) -> BoolExpr.And (mapBoolExpr f e1, mapBoolExpr f e2)
-    | BoolExpr.Or (e1, e2) -> BoolExpr.Or (mapBoolExpr f e1, mapBoolExpr f e2)
-    | _ -> e
-
 let internal boolExprToSource e =
     sprintf """#if %s
 #endif""" (boolExprToString e)
@@ -566,8 +556,27 @@ let ``Hash if expression parsing property``() =
     Check.One(verboseConf,
         fun e ->
             let e =
-                e |> mapBoolExpr (function
+                e |> BoolExpr.map (function
                                   | BoolExpr.Ident x when String.IsNullOrEmpty x || x |> Seq.exists (fun c -> not(Char.IsLetter c)) -> Some (BoolExpr.Ident "empty")
                                   | _ -> None)
             let source = boolExprToSource e
             getDefineExprs source |> List.choose id |> List.head |> should equal e)
+
+[<Test>]
+let ``Hash if expression normalize property``() =    
+    Check.One(verboseConf,
+        fun e ->
+            let e =
+                e |> BoolExpr.map (function
+                                  | BoolExpr.Ident x when String.IsNullOrEmpty x || x |> Seq.exists (fun c -> not(Char.IsLetter c)) -> Some (BoolExpr.Ident "empty")
+                                  | _ -> None)
+            let checkNormalize = function
+                | BoolExpr.Not (BoolExpr.Not _)
+                | BoolExpr.Not (BoolExpr.And _)
+                | BoolExpr.Not (BoolExpr.Or _)
+                | BoolExpr.Or (_, BoolExpr.And _)
+                | BoolExpr.Or (BoolExpr.And _, _)
+                    -> false
+                | _ -> true
+            let source = boolExprToSource e
+            getDefineExprs source |> List.choose id |> List.head |> BoolExpr.normalizeCNF |> BoolExpr.forall checkNormalize)

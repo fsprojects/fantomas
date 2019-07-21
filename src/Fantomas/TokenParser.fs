@@ -14,6 +14,40 @@ type BoolExpr =
     | Or of BoolExpr * BoolExpr
     | Not of BoolExpr
 
+module BoolExpr =
+    let rec map f e =
+        match f e with
+        | Some x -> x
+        | None ->
+        match e with
+        | BoolExpr.Not e -> BoolExpr.Not (map f e)
+        | BoolExpr.And (e1, e2) -> BoolExpr.And (map f e1, map f e2)
+        | BoolExpr.Or (e1, e2) -> BoolExpr.Or (map f e1, map f e2)
+        | _ -> e
+        
+    let rec forall f e =
+        f e &&
+        match e with
+        | BoolExpr.Not e -> forall f e
+        | BoolExpr.And (e1, e2)
+        | BoolExpr.Or (e1, e2) -> forall f e1 && forall f e2
+        | _ -> true
+    
+    let normalizeCNF expr =
+        let mapUntilNotChanged mapFunctions expr =
+            let oneStep e = mapFunctions |> Seq.fold (fun e f -> map f e) e
+            expr |> Seq.unfold (fun e -> let e' = oneStep e in if e = e' then None else Some (e',e')) |> Seq.tryLast |> Option.defaultValue expr
+        let doubleNegative = function | BoolExpr.Not(BoolExpr.Not(e)) -> Some e | _ -> None
+        let deMorgan = function
+            | BoolExpr.Not(BoolExpr.And(e1, e2)) -> Some (BoolExpr.Or(BoolExpr.Not e1, BoolExpr.Not e2))
+            | BoolExpr.Not(BoolExpr.Or(e1, e2)) -> Some (BoolExpr.And(BoolExpr.Not e1, BoolExpr.Not e2))
+            | _ -> None
+        let expandOr = function
+            | BoolExpr.Or(e1, BoolExpr.And(e2, e3))
+            | BoolExpr.Or(BoolExpr.And(e2, e3),e1) -> Some (BoolExpr.And(BoolExpr.Or(e1, e2), BoolExpr.Or(e1, e3)))
+            | _ -> None
+        expr |> mapUntilNotChanged [doubleNegative; deMorgan; expandOr]
+    
 module BoolExprParser =
     let (|Eq|_|) x y = if x=y then Some() else None
 

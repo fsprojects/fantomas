@@ -59,6 +59,16 @@ let x = 1
     getDefineExprs source |> List.head |> Option.get |> should equal
         (BoolExpr.Not(BoolExpr.Or(BoolExpr.Ident "INTERACTIVE", BoolExpr.Or(BoolExpr.Not <| BoolExpr.And(BoolExpr.Ident "FOO", BoolExpr.Ident"BAR"), BoolExpr.Ident "BUZZ"))))
 
+[<Test>]
+let ``CNF form of exprs from complex statements`` () =
+    let source = """
+#if !(INTERACTIVE || !(FOO || BAR) || BUZZ)
+let x = 1
+#endif
+"""
+    getDefineExprs source |> List.head |> Option.get |> BoolExpr.normalizeCNF |> should equal
+        (BoolExpr.And (BoolExpr.Not (BoolExpr.Ident "INTERACTIVE"), BoolExpr.And (BoolExpr.Or (BoolExpr.Ident "FOO", BoolExpr.Ident "BAR"), BoolExpr.Not (BoolExpr.Ident "BUZZ"))))
+
 
 [<Test>]
 let ``Tokens from directive inside a directive are being added`` () =
