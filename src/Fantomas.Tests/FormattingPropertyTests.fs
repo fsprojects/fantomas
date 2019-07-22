@@ -551,25 +551,23 @@ let internal boolExprToSource e =
     sprintf """#if %s
 #endif""" (boolExprToString e)
 
+type BoolExprGenerator =
+    static member SimpleIdent() =
+        {new Arbitrary<string>() with
+            override x.Generator = Gen.choose (int 'A', int 'Z') |> Gen.map (char>>string)
+            override x.Shrinker t = Seq.empty }
+
 [<Test>]
 let ``Hash if expression parsing property``() =    
-    Check.One(verboseConf,
+    Check.One({ verboseConf with Arbitrary = [typeof<BoolExprGenerator>] },
         fun e ->
-            let e =
-                e |> BoolExpr.map (function
-                                  | BoolExpr.Ident x when String.IsNullOrEmpty x || x |> Seq.exists (fun c -> not(Char.IsLetter c)) -> Some (BoolExpr.Ident "empty")
-                                  | _ -> None)
             let source = boolExprToSource e
             getDefineExprs source |> List.choose id |> List.head |> should equal e)
 
 [<Test>]
 let ``Hash if expression normalize property``() =    
-    Check.One(verboseConf,
+   Check.One({ verboseConf with Arbitrary = [typeof<BoolExprGenerator>] },
         fun e ->
-            let e =
-                e |> BoolExpr.map (function
-                                  | BoolExpr.Ident x when String.IsNullOrEmpty x || x |> Seq.exists (fun c -> not(Char.IsLetter c)) -> Some (BoolExpr.Ident "empty")
-                                  | _ -> None)
             let checkNormalize = function
                 | BoolExpr.Not (BoolExpr.Not _)
                 | BoolExpr.Not (BoolExpr.And _)
