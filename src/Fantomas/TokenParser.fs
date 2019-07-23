@@ -266,8 +266,22 @@ let getDefineExprs sourceCode =
         |> BoolExprParser.parse
     
     let tokens = getTokenizedHashes sourceCode
-    tokens |> List.groupBy (fun t -> t.LineNumber)
-    |> List.map (fun (_,g) -> parseHashContent g)
+    let tokensByLine = tokens |> List.groupBy (fun t -> t.LineNumber) |> List.sortBy fst
+    let result =
+        (([],[]), tokensByLine) ||> List.fold (fun (contextExprs, exprAcc) (_, lineTokens) ->
+            let contextExpr e = e :: contextExprs |> List.reduce (fun x y -> BoolExpr.And(x,y))
+            let t = lineTokens |> Seq.tryFind (fun x -> x.TokenInfo.TokenName = "HASH_IF")
+            match t |> Option.map (fun x -> x.Content) with
+            | Some "#if" ->
+                parseHashContent lineTokens |> Option.map (fun e -> e::contextExprs, contextExpr e :: exprAcc)
+                |> Option.defaultValue (contextExprs, exprAcc)
+            | Some "#else" ->
+                contextExprs, BoolExpr.Not (contextExprs |> List.reduce (fun x y -> BoolExpr.And(x,y))) :: exprAcc
+            | Some "#endif" ->
+                List.tail contextExprs, exprAcc
+            | _ -> contextExprs, exprAcc)
+        |> snd |> List.rev
+    result
 
 let private getRangeBetween name startToken endToken =
     let l = startToken.TokenInfo.LeftColumn

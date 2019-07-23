@@ -562,7 +562,7 @@ let ``Hash if expression parsing property``() =
     Check.One({ verboseConf with Arbitrary = [typeof<BoolExprGenerator>] },
         fun e ->
             let source = boolExprToSource e
-            getDefineExprs source |> List.choose id |> List.head |> should equal e)
+            getDefineExprs source |> List.head |> should equal e)
 
 [<Test>]
 let ``Hash if expression normalize property``() =    
@@ -577,4 +577,4 @@ let ``Hash if expression normalize property``() =
                     -> false
                 | _ -> true
             let source = boolExprToSource e
-            getDefineExprs source |> List.choose id |> List.head |> BoolExpr.normalizeCNF |> BoolExpr.forall checkNormalize)
+            getDefineExprs source |> List.head |> BoolExpr.normalizeCNF |> BoolExpr.forall checkNormalize)

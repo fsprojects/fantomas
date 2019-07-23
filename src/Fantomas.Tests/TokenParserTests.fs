@@ -56,8 +56,31 @@ let ``Get define exprs from complex statements`` () =
 let x = 1
 #endif
 """
-    getDefineExprs source |> List.head |> Option.get |> should equal
+    getDefineExprs source |> List.head |> should equal
         (BoolExpr.Not(BoolExpr.Or(BoolExpr.Ident "INTERACTIVE", BoolExpr.Or(BoolExpr.Not <| BoolExpr.And(BoolExpr.Ident "FOO", BoolExpr.Ident"BAR"), BoolExpr.Ident "BUZZ"))))
+
+[<Test>]
+let ``Simple compiler directive - else expr`` () =
+    let source = """
+#if A
+setupServer false
+#if B
+#else
+setupServer true
+#endif
+#else
+#endif
+"""
+
+    getDefineExprs source
+    |> List.toArray
+    |> should equal
+           [|BoolExpr.Ident "A"
+             BoolExpr.And (BoolExpr.Ident "B", BoolExpr.Ident "A")
+             BoolExpr.Not <| BoolExpr.And (BoolExpr.Ident "B", BoolExpr.Ident "A")
+             BoolExpr.Not <| BoolExpr.Ident "A"
+             |]
+
 
 [<Test>]
 let ``CNF form of exprs from complex statements`` () =
@@ -66,7 +89,7 @@ let ``CNF form of exprs from complex statements`` () =
 let x = 1
 #endif
 """
-    getDefineExprs source |> List.head |> Option.get |> BoolExpr.normalizeCNF |> should equal
+    getDefineExprs source |> List.head |> BoolExpr.normalizeCNF |> should equal
         (BoolExpr.And (BoolExpr.Not (BoolExpr.Ident "INTERACTIVE"), BoolExpr.And (BoolExpr.Or (BoolExpr.Ident "FOO", BoolExpr.Ident "BAR"), BoolExpr.Not (BoolExpr.Ident "BUZZ"))))
 
 
