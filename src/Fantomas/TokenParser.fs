@@ -47,6 +47,22 @@ module BoolExpr =
             | BoolExpr.Or(BoolExpr.And(e2, e3),e1) -> Some (BoolExpr.And(BoolExpr.Or(e1, e2), BoolExpr.Or(e1, e3)))
             | _ -> None
         expr |> mapUntilNotChanged [doubleNegative; deMorgan; expandOr]
+        
+    // result: list of AND-connected terms; term - OR-connected idents, represented as pair of set - (not_negated, negated)
+    let toFlatCNF expr =
+        let e = expr |> normalizeCNF
+        let rec toAndList = function
+            | BoolExpr.And (e1, e2) -> toAndList e1 @ toAndList e2
+            | e -> [e]
+        let rec toOrList = function
+            | BoolExpr.Or (e1, e2) -> toOrList e1 @ toOrList e2
+            | e -> [e]
+        let splitByNeg xs =
+            let extractIdent = List.map (function | BoolExpr.Ident x -> x | BoolExpr.Not (BoolExpr.Ident x) -> x | _ -> failwithf "Expr not in CNF: %A" e)
+            xs |> List.partition (function | BoolExpr.Not _ -> false | _ -> true)
+            |> fun (idents, negatedIdents) -> set (extractIdent idents), set (extractIdent negatedIdents)
+        e |> toAndList |> List.map toOrList |> List.map splitByNeg
+            
     
 module BoolExprParser =
     let (|Eq|_|) x y = if x=y then Some() else None

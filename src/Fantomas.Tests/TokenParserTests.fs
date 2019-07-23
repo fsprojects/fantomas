@@ -92,6 +92,16 @@ let x = 1
     getDefineExprs source |> List.head |> BoolExpr.normalizeCNF |> should equal
         (BoolExpr.And (BoolExpr.Not (BoolExpr.Ident "INTERACTIVE"), BoolExpr.And (BoolExpr.Or (BoolExpr.Ident "FOO", BoolExpr.Ident "BAR"), BoolExpr.Not (BoolExpr.Ident "BUZZ"))))
 
+[<Test>]
+let ``CNF flatten form of exprs from complex statements`` () =
+    let source = """
+#if !(INTERACTIVE || !(FOO || BAR) || BUZZ)
+let x = 1
+#endif
+"""
+    getDefineExprs source |> List.head |> BoolExpr.toFlatCNF |> List.toArray |> should equal
+        [| set[], set["INTERACTIVE"]; set["FOO"; "BAR"], set[]; set[], set["BUZZ"] |]
+
 
 [<Test>]
 let ``Tokens from directive inside a directive are being added`` () =
