@@ -48,7 +48,8 @@ module BoolExpr =
             | _ -> None
         expr |> mapUntilNotChanged [doubleNegative; deMorgan; expandOr]
         
-    // result: list of AND-connected terms; term - OR-connected idents, represented as pair of set - (not_negated, negated)
+    type Literal = Positive of string | Negative of string
+    // result: list of AND-connected terms; term - OR-connected Literals
     let toFlatCNF expr =
         let e = expr |> normalizeCNF
         let rec toAndList = function
@@ -58,11 +59,41 @@ module BoolExpr =
             | BoolExpr.Or (e1, e2) -> toOrList e1 @ toOrList e2
             | e -> [e]
         let splitByNeg xs =
-            let extractIdent = List.map (function | BoolExpr.Ident x -> x | BoolExpr.Not (BoolExpr.Ident x) -> x | _ -> failwithf "Expr not in CNF: %A" e)
-            xs |> List.partition (function | BoolExpr.Not _ -> false | _ -> true)
-            |> fun (idents, negatedIdents) -> set (extractIdent idents), set (extractIdent negatedIdents)
+            xs |> List.map (function | BoolExpr.Not (BoolExpr.Ident x) -> Negative  x | BoolExpr.Ident x -> Positive x | _ -> failwithf "Expr not in CNF: %A" e)
+            |> set
         e |> toAndList |> List.map toOrList |> List.map splitByNeg
-            
+    
+    let eval cnf vals =
+        let vals = set vals
+        let evalTerm s = Set.intersect vals s |> Set.isEmpty |> not
+        cnf |> List.forall evalTerm
+    
+    let trySolveSAT maxSteps cnf =
+        let allLiterals = cnf |> Seq.collect id |> Seq.toList
+        let groupedLiterals =
+            allLiterals |> Seq.groupBy (function | Positive x | Negative x -> x)
+            |> Seq.map (fun (key, g) -> key, g |> Seq.distinct |> Seq.toList)
+            |> Seq.toList
+        let (singletons, toSolve) = groupedLiterals |> List.partition (fun (_,g) -> List.length g = 1)
+        let singletonsLit = singletons |> List.collect snd
+        let rec solve steps vals groups =
+            match groups with
+            | _ when steps > maxSteps -> None
+            | [] -> Some <| eval cnf vals
+            | (_,g)::gs -> g |> List.map (fun x -> solve (steps+1) (x::vals) gs) |> List.reduce (Option.map2 (fun a b -> a && b))
+        solve 0 singletonsLit toSolve
+        
+    let mergeBoolExprs maxSolveSteps exprs =
+        let isPairCompatible e1 e2 = BoolExpr.And(e1, e2) |> toFlatCNF |> trySolveSAT maxSolveSteps |> Option.defaultValue false
+        let allPairs xs = xs |> Seq.mapi (fun i x -> xs |> Seq.mapi (fun j y -> if i < j then Some (x, y) else None)) |> Seq.collect id |> Seq.choose id
+        let rec f exprs =
+            let exprsIndexed = exprs |> Seq.mapi (fun i x -> i, x)
+            match exprsIndexed |> allPairs |> Seq.tryFind (fun ((_,x),(_,y)) -> isPairCompatible x y) with
+            | None -> exprs
+            | Some ((i, x), (j, y)) -> (exprsIndexed |> Seq.filter (fun (k,_) -> i<>k && j<>k) |> Seq.map snd |> Seq.toList) @ [ BoolExpr.And(x, y) ]
+        f exprs
+        
+    let getDefinesForExpr e = e |> toFlatCNF |> Seq.collect id |> Seq.choose (function | Positive x -> Some x | _ -> None) |> Seq.distinct |> Seq.toList
     
 module BoolExprParser =
     let (|Eq|_|) x y = if x=y then Some() else None
