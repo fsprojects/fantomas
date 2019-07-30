@@ -49,6 +49,7 @@ module BoolExpr =
         expr |> mapUntilNotChanged [doubleNegative; deMorgan; expandOr]
         
     type Literal = Positive of string | Negative of string
+    type SATSolveResult = Satisfiable of string list | Unsatisfiable | Unconclusive
     // result: list of AND-connected terms; term - OR-connected Literals
     let toFlatCNF expr =
         let e = expr |> normalizeCNF
@@ -67,6 +68,7 @@ module BoolExpr =
         let vals = set vals
         let evalTerm s = Set.intersect vals s |> Set.isEmpty |> not
         cnf |> List.forall evalTerm
+        |> Dbg.tee (printfn "eval %A %A %A" cnf vals)
     
     let trySolveSAT maxSteps cnf =
         let allLiterals = cnf |> Seq.collect id |> Seq.toList
@@ -77,14 +79,23 @@ module BoolExpr =
         let (singletons, toSolve) = groupedLiterals |> List.partition (fun (_,g) -> List.length g = 1)
         let singletonsLit = singletons |> List.collect snd
         let rec solve steps vals groups =
+            let satResultOr a b =
+                match a,b with
+                | Satisfiable x, Satisfiable _
+                | Satisfiable x, Unsatisfiable
+                | Unsatisfiable, Satisfiable x  -> Satisfiable x
+                | Unsatisfiable, _
+                | _, Unsatisfiable -> Unsatisfiable
+                | Unconclusive, _
+                | _, Unconclusive -> Unconclusive
             match groups with
-            | _ when steps > maxSteps -> None
-            | [] -> Some <| eval cnf vals
-            | (_,g)::gs -> g |> List.map (fun x -> solve (steps+1) (x::vals) gs) |> List.reduce (Option.map2 (fun a b -> a && b))
+            | _ when steps > maxSteps -> Unconclusive
+            | [] -> if eval cnf vals then Satisfiable (vals |> List.choose (function | Positive x -> Some x | _ -> None)) else Unsatisfiable
+            | (_,g)::gs -> g |> List.map (fun x -> solve (steps+1) (x::vals) gs) |> List.reduce satResultOr
         solve 0 singletonsLit toSolve
         
     let mergeBoolExprs maxSolveSteps exprs =
-        let isPairCompatible e1 e2 = BoolExpr.And(e1, e2) |> toFlatCNF |> trySolveSAT maxSolveSteps |> Option.defaultValue false
+        let isPairCompatible e1 e2 = BoolExpr.And(e1, e2) |> toFlatCNF |> trySolveSAT maxSolveSteps |> function | Satisfiable _ -> true | _ -> false |> Dbg.tee (fun r -> printfn "%A: %A" (BoolExpr.And(e1, e2)) r)
         let allPairs xs = xs |> Seq.mapi (fun i x -> xs |> Seq.mapi (fun j y -> if i < j then Some (x, y) else None)) |> Seq.collect id |> Seq.choose id
         let rec f exprs =
             let exprsIndexed = exprs |> Seq.mapi (fun i x -> i, x)
@@ -93,7 +104,9 @@ module BoolExpr =
             | Some ((i, x), (j, y)) -> (exprsIndexed |> Seq.filter (fun (k,_) -> i<>k && j<>k) |> Seq.map snd |> Seq.toList) @ [ BoolExpr.And(x, y) ]
         f exprs
         
-    let getDefinesForExpr e = e |> toFlatCNF |> Seq.collect id |> Seq.choose (function | Positive x -> Some x | _ -> None) |> Seq.distinct |> Seq.toList
+    let solveDefinesForExpr maxSolveSteps e =
+        printfn "%A" e
+        e |> toFlatCNF |> trySolveSAT maxSolveSteps |> function | Satisfiable x -> Some x | _ -> None 
     
 module BoolExprParser =
     let (|Eq|_|) x y = if x=y then Some() else None
