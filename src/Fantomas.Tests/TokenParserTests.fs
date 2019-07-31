@@ -116,13 +116,13 @@ let ``BoolExpr SAT solve`` () =
 let ``BoolExpr merge`` () =
     let getSource es = es |> Seq.map (fun e -> (sprintf "#if %s" e) + System.Environment.NewLine + "#endif") |> String.concat System.Environment.NewLine
     let test e x =
-        getDefineExprs (getSource e) |> BoolExpr.mergeBoolExprs 100 |> List.map (BoolExpr.solveDefinesForExpr 100 >> Option.get >> List.toArray)
+        getDefineExprs (getSource e) |> BoolExpr.mergeBoolExprs 100 |> List.map (snd >> List.toArray)
         |> List.toArray |> should equal (x |> List.map List.toArray |> List.toArray)
     test ["A && B"; "A"] [["A"; "B"]]
     test ["A && B"; "!A"] [["A"; "B"]; []]
     test ["A || B"; "!A"] [["B"]]
     test ["A || B"; "!A"; "!(A || B)"] [[];["B"]]
-
+    test ["A || B || C"; "!A"; "!C"] [["B"]]
 
 [<Test>]
 let ``Tokens from directive inside a directive are being added`` () =

@@ -95,14 +95,16 @@ module BoolExpr =
         solve 0 singletonsLit toSolve
         
     let mergeBoolExprs maxSolveSteps exprs =
-        let isPairCompatible e1 e2 = BoolExpr.And(e1, e2) |> toFlatCNF |> trySolveSAT maxSolveSteps |> function | Satisfiable _ -> true | _ -> false |> Dbg.tee (fun r -> printfn "%A: %A" (BoolExpr.And(e1, e2)) r)
+        let solve e = e |> toFlatCNF |> trySolveSAT maxSolveSteps |> function | Satisfiable x -> Some x | _ -> None
+        let pairSolve e1 e2 = BoolExpr.And(e1, e2) |> solve |> Dbg.tee (fun r -> printfn "%A: %A" (BoolExpr.And(e1, e2)) r)
         let allPairs xs = xs |> Seq.mapi (fun i x -> xs |> Seq.mapi (fun j y -> if i < j then Some (x, y) else None)) |> Seq.collect id |> Seq.choose id
+        let exprs = exprs |> List.map (fun x -> x, None)
         let rec f exprs =
             let exprsIndexed = exprs |> Seq.mapi (fun i x -> i, x)
-            match exprsIndexed |> allPairs |> Seq.tryFind (fun ((_,x),(_,y)) -> isPairCompatible x y) with
+            match exprsIndexed |> allPairs |> Seq.tryPick (fun ((i,(x,_)),(j,(y,_))) -> pairSolve x y |> Option.map (fun r -> (i, x), (j, y), r)) with
             | None -> exprs
-            | Some ((i, x), (j, y)) -> (exprsIndexed |> Seq.filter (fun (k,_) -> i<>k && j<>k) |> Seq.map snd |> Seq.toList) @ [ BoolExpr.And(x, y) ]
-        f exprs
+            | Some ((i, x), (j, y), r) -> f ((exprsIndexed |> Seq.filter (fun (k,_) -> i<>k && j<>k) |> Seq.map snd |> Seq.toList) @ [ BoolExpr.And(x, y), Some r ])
+        f exprs |> List.map (fun (e, r) -> e, r |> Option.defaultWith (fun () -> solve e |> Option.get))
         
     let solveDefinesForExpr maxSolveSteps e =
         printfn "%A" e
@@ -342,6 +344,10 @@ let getDefineExprs sourceCode =
             | _ -> contextExprs, exprAcc)
         |> snd |> List.rev
     result
+    
+let getOptimizedDefinesSets sourceCode =
+    let maxSteps = 100
+    getDefineExprs sourceCode |> BoolExpr.mergeBoolExprs maxSteps |> List.map snd
 
 let private getRangeBetween name startToken endToken =
     let l = startToken.TokenInfo.LeftColumn
