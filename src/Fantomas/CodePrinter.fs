@@ -237,7 +237,7 @@ and genAttributesCore astContext ats =
         | ConstExpr(Const "()", _) -> 
             opt sepColonFixed target (!-) -- s
         | e -> 
-            opt sepColonFixed target (!-) -- s +> genExpr astContext e
+            opt sepColonFixed target (!-) -- s +> (!- " ") +> genExpr astContext e
     ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> col sepSemi ats (genAttributeExpr astContext) -- ">]")
 
 and genOnelinerAttributes astContext ats =
