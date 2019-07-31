@@ -189,45 +189,45 @@ f(1).Contains("3")
 
 [<Test>]
 let ``should handle external functions``() =
-    formatSourceString false """[<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
+    formatSourceString false """[<DllImport (@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
 extern ReturnCode  GetParent (System.IntPtr inRef, byref outParentRef)""" config
     |> prepend newline
     |> should equal """
-[<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
+[<DllImport (@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
 extern ReturnCode GetParent(System.IntPtr inRef, byref outParentRef)
 """
 
 [<Test>]
 let ``should handle simple external functions``() =
     formatSourceString false """module InteropWithNative =
-        [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
+        [<DllImport (@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
         extern IntPtr setCallbridgeSupportTarget(IntPtr newTarget)""" config
     |> prepend newline
     |> should equal """
 module InteropWithNative =
-    [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport (@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
     extern IntPtr setCallbridgeSupportTarget(IntPtr newTarget)
 """
 
 [<Test>]
 let ``should handle external functions with void return type``() =
     formatSourceString false """module InteropWithNative =
-        [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
+        [<DllImport (@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
         extern void setCallbridgeSupportTarget(IntPtr newTarget)""" config
     |> prepend newline
     |> should equal """
 module InteropWithNative =
-    [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport (@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
     extern void setCallbridgeSupportTarget(IntPtr newTarget)
 """
 
 [<Test>]
 let ``should handle external functions with fully-qualified attributes``() =
-    formatSourceString false """[<System.Runtime.InteropServices.DllImport("user32.dll")>]
+    formatSourceString false """[<System.Runtime.InteropServices.DllImport ("user32.dll")>]
 extern int GetWindowLong(System.IntPtr hwnd, int index)""" config
     |> prepend newline
     |> should equal """
-[<System.Runtime.InteropServices.DllImport("user32.dll")>]
+[<System.Runtime.InteropServices.DllImport ("user32.dll")>]
 extern int GetWindowLong(System.IntPtr hwnd, int index)
 """
 
@@ -237,12 +237,12 @@ let ``should handle external functions with special types``() =
 open System.Runtime.InteropServices
 open Accessibility
 
-[<DllImport("oleacc.dll")>]
+[<DllImport ("oleacc.dll")>]
 extern int AccessibleChildren(
     IAccessible paccContainer, 
     int iChildStart, 
     int cChildren, 
-    [<Out()>] [<MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4s)>] System.Object [] rgvarChildren, 
+    [<Out ()>] [<MarshalAs (UnmanagedType.LPArray, SizeParamIndex = 4s)>] System.Object [] rgvarChildren, 
     int* pcObtained)""" config
     |> prepend newline
     |> should equal """
@@ -250,9 +250,9 @@ open System
 open System.Runtime.InteropServices
 open Accessibility
 
-[<DllImport("oleacc.dll")>]
-extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cChildren, [<Out; MarshalAs(UnmanagedType.LPArray,
-                                                                                                          SizeParamIndex = 4s)>] System.Object [] rgvarChildren, int* pcObtained)
+[<DllImport ("oleacc.dll")>]
+extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cChildren, [<Out; MarshalAs (UnmanagedType.LPArray,
+                                                                                                           SizeParamIndex = 4s)>] System.Object [] rgvarChildren, int* pcObtained)
 """
 
 [<Test>]
