@@ -8,6 +8,7 @@ open FsCheck
 open FsUnit
 open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
+open FsCheck.Arb
 open TestHelper
 open TokenParser
 
@@ -547,9 +548,13 @@ let rec internal boolExprToString = function
     | BoolExpr.And (e1, e2) -> "(" + boolExprToString e1 + " && " + boolExprToString e2 + ")"
     | BoolExpr.Or (e1, e2) -> "(" + boolExprToString e1 + " || " + boolExprToString e2 + ")"
 
-let internal boolExprToSource e =
-    sprintf """#if %s
-#endif""" (boolExprToString e)
+let internal boolExprsToSource es =
+    es |> Seq.mapi (fun i e ->
+        sprintf """#if %s
+let x%i = %i
+#else
+let x%i_else = %i
+#endif""" (boolExprToString e) i i i i) |> String.concat Environment.NewLine
 
 type BoolExprGenerator =
     static member SimpleIdent() =
@@ -561,7 +566,7 @@ type BoolExprGenerator =
 let ``Hash if expression parsing property``() =    
     Check.One({ verboseConf with Arbitrary = [typeof<BoolExprGenerator>] },
         fun e ->
-            let source = boolExprToSource e
+            let source = boolExprsToSource [e]
             getDefineExprs source |> List.head |> should equal e)
 
 [<Test>]
@@ -576,5 +581,18 @@ let ``Hash if expression normalize property``() =
                 | BoolExpr.Or (BoolExpr.And _, _)
                     -> false
                 | _ -> true
-            let source = boolExprToSource e
+            let source = boolExprsToSource [e]
             getDefineExprs source |> List.head |> BoolExpr.normalizeCNF |> BoolExpr.forall checkNormalize)
+
+[<Test>]
+let ``Hash ifs optimize defines property``() =    
+    Check.One({ verboseConf with Arbitrary = [typeof<BoolExprGenerator>] },
+        fun es ->
+            let source = boolExprsToSource es
+            let allDefines = getDefines source
+            let defines = getOptimizedDefinesSets source
+            let definesToLiterals ds = let s = set ds in allDefines |> List.map (fun x -> if Set.contains x s then BoolExpr.Positive x else BoolExpr.Negative x)
+            printfn "%A" (es, source, defines)
+            es |> List.filter (fun e -> match BoolExpr.trySolveSAT 5 (BoolExpr.toFlatCNF e) with | BoolExpr.Satisfiable _ -> true | _ -> false)
+            |> List.collect (fun e -> [e; BoolExpr.Not e])
+            |> List.forall (fun e -> defines |> List.exists (fun ds -> BoolExpr.toFlatCNF e |> fun cnf -> BoolExpr.eval cnf (definesToLiterals ds))))

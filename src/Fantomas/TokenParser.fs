@@ -72,12 +72,17 @@ module BoolExpr =
     
     let trySolveSAT maxSteps cnf =
         let allLiterals = cnf |> Seq.collect id |> Seq.toList
-        let groupedLiterals =
-            allLiterals |> Seq.groupBy (function | Positive x | Negative x -> x)
+        let groupedLiterals ls =
+            ls |> Seq.groupBy (function | Positive x | Negative x -> x)
             |> Seq.map (fun (key, g) -> key, g |> Seq.distinct |> Seq.toList)
             |> Seq.toList
-        let (singletons, toSolve) = groupedLiterals |> List.partition (fun (_,g) -> List.length g = 1)
+        let enforcedLit = cnf |> List.filter (fun t -> Set.count t = 1) |> List.collect Set.toList
+        if groupedLiterals enforcedLit |> Seq.exists (fun (_,g) -> List.length g > 1) then Unsatisfiable
+        else
+        let (singletons, toSolve) = groupedLiterals allLiterals |> List.partition (fun (_,g) -> List.length g = 1)
         let singletonsLit = singletons |> List.collect snd
+        let solvedSet = set (enforcedLit @ singletonsLit)
+        let toSolve = toSolve |> List.filter (fun (k,_) -> not(Set.contains (Positive k) solvedSet || Set.contains (Negative k) solvedSet))
         let rec solve steps vals groups =
             let satResultOr a b =
                 match a,b with
@@ -92,11 +97,11 @@ module BoolExpr =
             | _ when steps > maxSteps -> Unconclusive
             | [] -> if eval cnf vals then Satisfiable (vals |> List.choose (function | Positive x -> Some x | _ -> None)) else Unsatisfiable
             | (_,g)::gs -> g |> List.map (fun x -> solve (steps+1) (x::vals) gs) |> List.reduce satResultOr
-        solve 0 singletonsLit toSolve
+        solve 0 (singletonsLit @ enforcedLit) toSolve
         
     let mergeBoolExprs maxSolveSteps exprs =
         let solve e = e |> toFlatCNF |> trySolveSAT maxSolveSteps |> function | Satisfiable x -> Some x | _ -> None
-        let pairSolve e1 e2 = BoolExpr.And(e1, e2) |> solve |> Dbg.tee (fun r -> printfn "%A: %A" (BoolExpr.And(e1, e2)) r)
+        let pairSolve e1 e2 = BoolExpr.And(e1, e2) |> solve //|> Dbg.tee (fun r -> printfn "%A: %A" (BoolExpr.And(e1, e2)) r)
         let allPairs xs = xs |> Seq.mapi (fun i x -> xs |> Seq.mapi (fun j y -> if i < j then Some (x, y) else None)) |> Seq.collect id |> Seq.choose id
         let exprs = exprs |> List.map (fun x -> x, None)
         let rec f exprs =
@@ -104,10 +109,9 @@ module BoolExpr =
             match exprsIndexed |> allPairs |> Seq.tryPick (fun ((i,(x,_)),(j,(y,_))) -> pairSolve x y |> Option.map (fun r -> (i, x), (j, y), r)) with
             | None -> exprs
             | Some ((i, x), (j, y), r) -> f ((exprsIndexed |> Seq.filter (fun (k,_) -> i<>k && j<>k) |> Seq.map snd |> Seq.toList) @ [ BoolExpr.And(x, y), Some r ])
-        f exprs |> List.map (fun (e, r) -> e, r |> Option.defaultWith (fun () -> solve e |> Option.get))
+        f exprs |> List.choose (fun (e, r) -> r |> Option.orElseWith (fun () -> solve e) |> Option.map (fun x -> e, x))
         
     let solveDefinesForExpr maxSolveSteps e =
-        printfn "%A" e
         e |> toFlatCNF |> trySolveSAT maxSolveSteps |> function | Satisfiable x -> Some x | _ -> None 
     
 module BoolExprParser =
@@ -346,7 +350,7 @@ let getDefineExprs sourceCode =
     result
     
 let getOptimizedDefinesSets sourceCode =
-    let maxSteps = 100
+    let maxSteps = 5
     getDefineExprs sourceCode |> BoolExpr.mergeBoolExprs maxSteps |> List.map snd
 
 let private getRangeBetween name startToken endToken =
