@@ -229,15 +229,19 @@ and genAttribute astContext (Attribute(s, e, target)) =
     | ConstExpr(Const "()", _) -> 
         !- "[<" +> opt sepColonFixed target (!-) -- s -- ">]"
     | e -> 
-        !- "[<"  +> opt sepColonFixed target (!-) -- s +> (!- " ") +> genExpr astContext e -- ">]"
+        let argSpacing =
+            if SynExpr.isInParens e then id else (!- " ")
+        !- "[<"  +> opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e -- ">]"
     
 and genAttributesCore astContext ats = 
     let genAttributeExpr astContext (Attribute(s, e, target)) = 
         match e with
         | ConstExpr(Const "()", _) -> 
             opt sepColonFixed target (!-) -- s
-        | e -> 
-            opt sepColonFixed target (!-) -- s +> (!- " ") +> genExpr astContext e
+        | e ->
+            let argSpacing =
+                if SynExpr.isInParens e then id else (!- " ")
+            opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e
     ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> col sepSemi ats (genAttributeExpr astContext) -- ">]")
 
 and genOnelinerAttributes astContext ats =

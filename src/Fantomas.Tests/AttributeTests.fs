@@ -5,6 +5,8 @@ open FsUnit
 
 open Fantomas.Tests.TestHelper
 
+
+
 [<Test>]
 let ``should keep the attribute on top of the function``() =
     formatSourceString false """[<Extension>]
@@ -22,11 +24,22 @@ type Funcs =
 [<Test>]
 let ``attributes on expressions``() =
     formatSourceString false """
-    [<Dependency ("FSharp.Compiler", LoadHint.Always)>]
+    [<Dependency("FSharp.Compiler", LoadHint.Always)>]
     do ()""" config
     |> prepend newline
     |> should equal """
-[<Dependency ("FSharp.Compiler", LoadHint.Always)>]
+[<Dependency("FSharp.Compiler", LoadHint.Always)>]
+do ()
+"""
+
+[<Test>]
+let ``attributes without parentheses on expressions``() =
+    formatSourceString false """
+    [<MyValue 55>]
+    do ()""" config
+    |> prepend newline
+    |> should equal """
+[<MyValue 55>]
 do ()
 """
 

@@ -8,11 +8,11 @@ open Fantomas.Tests.TestHelper
 let ``enums declaration``() =
     formatSourceString false """
     type FontVariant =
-    | [<Description ("small-caps")>] SmallCaps = 0""" config
+    | [<Description("small-caps")>] SmallCaps = 0""" config
     |> prepend newline
     |> should equal """
 type FontVariant =
-    | [<Description ("small-caps")>] SmallCaps = 0
+    | [<Description("small-caps")>] SmallCaps = 0
 """
 
 [<Test>]

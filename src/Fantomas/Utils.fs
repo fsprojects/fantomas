@@ -1,6 +1,13 @@
 ﻿namespace Fantomas
 
 open System
+open FSharp.Compiler.Ast
+
+[<RequireQualifiedAccess>]
+module SynExpr =
+
+    let isInParens =
+        function | SynExpr.Paren _ -> true | _ -> false
 
 [<RequireQualifiedAccess>]
 module String =
