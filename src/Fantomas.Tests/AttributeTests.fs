@@ -5,8 +5,6 @@ open FsUnit
 
 open Fantomas.Tests.TestHelper
 
-
-
 [<Test>]
 let ``should keep the attribute on top of the function``() =
     formatSourceString false """[<Extension>]
