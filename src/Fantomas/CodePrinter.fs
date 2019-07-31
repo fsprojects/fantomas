@@ -229,7 +229,7 @@ and genAttribute astContext (Attribute(s, e, target)) =
     | ConstExpr(Const "()", _) -> 
         !- "[<" +> opt sepColonFixed target (!-) -- s -- ">]"
     | e -> 
-        !- "[<"  +> opt sepColonFixed target (!-) -- s +> genExpr astContext e -- ">]"
+        !- "[<"  +> opt sepColonFixed target (!-) -- s +> (!- " ") +> genExpr astContext e -- ">]"
     
 and genAttributesCore astContext ats = 
     let genAttributeExpr astContext (Attribute(s, e, target)) = 

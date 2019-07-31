@@ -22,11 +22,11 @@ type Funcs =
 [<Test>]
 let ``attributes on expressions``() =
     formatSourceString false """
-    [<Dependency("FSharp.Compiler", LoadHint.Always)>]
+    [<Dependency ("FSharp.Compiler", LoadHint.Always)>]
     do ()""" config
     |> prepend newline
     |> should equal """
-[<Dependency("FSharp.Compiler", LoadHint.Always)>]
+[<Dependency ("FSharp.Compiler", LoadHint.Always)>]
 do ()
 """
 
