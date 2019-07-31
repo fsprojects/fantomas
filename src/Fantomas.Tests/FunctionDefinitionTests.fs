@@ -242,7 +242,7 @@ extern int AccessibleChildren(
     IAccessible paccContainer, 
     int iChildStart, 
     int cChildren, 
-    [<Out ()>] [<MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4s)>] System.Object [] rgvarChildren, 
+    [<Out()>] [<MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4s)>] System.Object [] rgvarChildren,
     int* pcObtained)""" config
     |> prepend newline
     |> should equal """
