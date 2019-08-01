@@ -97,7 +97,7 @@ let c = 61us
 let d = 511
 let e = 1.4e+10f
 let f = 23.4M
-let g = '\010'
+let g = '\n'
 """
 
 [<Test>]
@@ -117,8 +117,10 @@ let ``should preserve triple-quote strings``() =
 type GetList() =
     let switchvox_users_voicemail_getList_response = \"\"\"
             </response>\"\"\"
+
     let switchvox_users_voicemail_getList = \"\"\"
             </request>\"\"\"
+
     member self.X = switchvox_users_voicemail_getList_response
 "
 
@@ -151,3 +153,19 @@ let main argv =
     \"\"\"))
     0
 "
+
+[<Test>]
+let ``chars should be properly escaped`` () =
+    formatSourceString false """let private peskyChars = [| '"' ; '\t' ; ' ' ; '\\' |]""" config
+    |> should equal """let private peskyChars = [| '"'; '\t'; ' '; '\\' |]
+"""
+
+[<Test>]
+let ``quotes should be escaped in strict mode`` () =
+    formatSourceString false """
+    let formatter =
+        // escape commas left in invalid entries
+        sprintf "%i,\"%s\""
+"""  ({ config with StrictMode = true })
+    |> should equal """let formatter = sprintf "%i,\"%s\""
+"""

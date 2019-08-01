@@ -24,3 +24,15 @@ let ``let in should not be used``() =
     formatAst "let x = 1 in ()"
     |> should equal """let x = 1
 ()"""
+
+[<Test>]
+let ``elif keyword is not present in raw AST`` () =
+    let source = """
+    if a then ()
+    elif b then ()
+    else ()"""
+    
+    formatAst source
+    |> should equal """if a then ()
+else if b then ()
+else ()"""

@@ -6,21 +6,21 @@ open System.IO
 open Fantomas
 open Fantomas.FormatConfig
 
-exception CodeFormatException of (string * Option<Exception>) list with
+exception CodeFormatException of (string * Option<Exception>) array with
     override x.ToString() =
         let errors =
             x.Data0
-            |> List.choose (fun z ->
+            |> Array.choose (fun z ->
                 match z with
                 | file, Some ex -> Some(file, ex)
                 | _ -> None)
-            |> List.map (fun z ->
+            |> Array.map (fun z ->
                 let file, ex = z
                 file + ":\r\n" + ex.Message + "\r\n\r\n")
 
         let files =
             x.Data0
-            |> List.map (fun z ->
+            |> Array.map (fun z ->
                 match z with
                 | file, Some _ -> file + " !"
                 | file, None -> file)
@@ -34,29 +34,33 @@ type internal FormatResult =
     | Unchanged of string
     | Error of string * Exception
 
-let internal formatFile config (file : string) =
+let internal formatFileAsync config (file : string) =
     let originalContent = File.ReadAllText file
 
-    try
-        let formattedContent = CodeFormatter.FormatDocument(file, originalContent, config)
-        if originalContent <> formattedContent then
-            if not <| CodeFormatter.IsValidFSharpCode(file, formattedContent) then
-                raise <| FormatException "Formatted content is not valid F# code"
+    async {
+        try
+            let! formattedContent = CodeFormatter.FormatDocumentAsync(file, SourceOrigin.SourceString originalContent, config)
+            if originalContent <> formattedContent then
+                let! isValid = CodeFormatter.IsValidFSharpCodeAsync(file, (SourceOrigin.SourceString(formattedContent)))
+                if not isValid  then
+                    raise <| FormatException "Formatted content is not valid F# code"
 
-            let tempFile = Path.GetTempFileName()
-            use output = new StreamWriter(tempFile)
-            output.Write formattedContent
-            output.Flush()
+                let tempFile = Path.GetTempFileName()
+                use output = new StreamWriter(tempFile)
+                output.Write formattedContent
+                output.Flush()
 
-            Formatted(file, tempFile)
-        else Unchanged file
-    with
-    | ex -> Error(file, ex)
+                return Formatted(file, tempFile)
+            else
+                return Unchanged file
+        with
+        | ex -> return Error(file, ex)
+    }
 
-let internal formatFiles config files =
+let internal formatFilesAsync config files =
     files
-    |> Seq.toList
-    |> List.map (formatFile config)
+    |> Seq.map (formatFileAsync config)
+    |> Async.Parallel
 
 let internal removeTemporaryFiles formatResult =
     match formatResult with
@@ -64,44 +68,52 @@ let internal removeTemporaryFiles formatResult =
     | _ -> ()
 
 let formatCode config files =
-    let results = files |> formatFiles config
+    async {
+        let! results = files |> formatFilesAsync config
+        
+        try
+            // Check for formatting errors:
+            let errors =
+                results
+                |> Array.choose (fun x ->
+                    match x with
+                    | Error(file, ex) -> Some(file, Some(ex))
+                    | _ -> None)
 
-    try
-        // Check for formatting errors:
-        let errors =
-            results
-            |> List.choose (fun x ->
-                match x with
-                | Error(file, ex) -> Some(file, Some(ex))
-                | _ -> None)
+            if not <| Array.isEmpty errors then
+                raise <| CodeFormatException errors
 
-        if not <| List.isEmpty errors then
-            raise <| CodeFormatException errors
+            // Overwritte source files with formatted content
+            let result =
+                results
+                |> Array.choose (fun x ->
+                    match x with
+                    | Formatted(source, tmp) ->
+                        File.Copy(tmp, source, true)
+                        Some source
+                    | _ -> None)
+                
+            return result
+        finally
+            results |> Array.iter removeTemporaryFiles
+    }
 
-        // Overwritte source files with formatted content
-        results
-        |> List.choose (fun x ->
-            match x with
-            | Formatted(source, tmp) ->
-                File.Copy(tmp, source, true)
-                Some source
-            | _ -> None)
-    finally
-        results |> List.iter removeTemporaryFiles
 
 let checkCode config files =
-    let results = files |> formatFiles config
+    async {
+        let! results = files |> formatFilesAsync config
 
-    try
-        let changes =
-            results
-            |> List.choose (fun x ->
-                match x with
-                | Formatted(file, _) -> Some(file, None)
-                | Error(file, ex) -> Some(file, Some(ex))
-                | _ -> None)
+        try
+            let changes =
+                results
+                |> Array.choose (fun x ->
+                    match x with
+                    | Formatted(file, _) -> Some(file, None)
+                    | Error(file, ex) -> Some(file, Some(ex))
+                    | _ -> None)
 
-        if List.exists (function | _, Some(_) -> true | _ -> false) changes then
-            raise <| CodeFormatException changes
-    finally
-        results |> List.iter removeTemporaryFiles
+            if Array.exists (function | _, Some(_) -> true | _ -> false) changes then
+                raise <| CodeFormatException changes
+        finally
+            results |> Array.iter removeTemporaryFiles
+    }

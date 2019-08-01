@@ -10,51 +10,99 @@ open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 open FSharp.Compiler.SourceCodeServices
 
+open FSharp.Compiler.Text
 open Fantomas
-open Fantomas.TokenMatcher
 open Fantomas.FormatConfig
+open Fantomas.SourceOrigin
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
 open System.IO
 
+let private getSourceString (source: SourceOrigin) =
+    match source with
+    | SourceString s -> s
+    | SourceText sourceText ->
+        let totalLines = sourceText.GetLineCount()
+        [0..(totalLines - 1)]
+        |> List.map sourceText.GetLineString
+        |> String.concat "\n"
+    
+let private getSourceText (source: SourceOrigin) =
+    match source with
+    | SourceString s -> FSharp.Compiler.Text.SourceText.ofString(s)
+    | SourceText st -> st
+
+let private getSourceTextAndCode source = (getSourceText source, getSourceString source)
+
 type FormatContext =
-    {
-        FileName : string;
-        Source : string;
-        ProjectOptions : FSharpParsingOptions;
-        Checker : FSharpChecker;
-    }
+    { FileName: string
+      Source: string
+      SourceText: ISourceText
+      ProjectOptions: FSharpParsingOptions
+      Checker: FSharpChecker }
 
 // Share an F# checker instance across formatting calls
 let sharedChecker = lazy(FSharpChecker.Create())
 
-let createFormatContextNoChecker fileName source =
+let createFormatContextNoChecker fileName (source:SourceOrigin) =
+    let (sourceText,sourceCode) = getSourceTextAndCode source
     // Create an interactive checker instance (ignore notifications)
     let checker = sharedChecker.Value
+    let defines =
+        TokenParser.getDefines sourceCode
+        |> List.map (sprintf "--define:%s")
+        |> List.toArray
     // Get compiler options for a single script file
     let checkOptions = 
-        checker.GetProjectOptionsFromScript(fileName, source, DateTime.Now, filterDefines source) 
+        checker.GetProjectOptionsFromScript(fileName, sourceText, DateTime.Now, defines) 
         |> (Async.RunSynchronously >> fst >> checker.GetParsingOptionsFromProjectOptions >> fst)
-        
-    { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker }
 
-let createFormatContext fileName source projectOptions checker =
-    { FileName = fileName; Source = source; ProjectOptions = projectOptions; Checker = checker }
+    { FileName = fileName
+      Source = sourceCode
+      SourceText = sourceText
+      ProjectOptions = checkOptions
+      Checker = checker }
 
-let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker } = 
-    async {
-        // Run the first phase (untyped parsing) of the compiler
-        let! untypedRes = checker.ParseFile(fileName, source, checkOptions)
-        if untypedRes.ParseHadErrors then
-            let errors = 
-                untypedRes.Errors
-                |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
-            if not <| Array.isEmpty errors then
-                raise <| FormatException (sprintf "Parsing failed with errors: %A\nAnd options: %A" errors checkOptions)
-        match untypedRes.ParseTree with
-        | Some tree -> return tree
-        | None -> return raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
-    }
+let createFormatContext fileName (source:SourceOrigin) projectOptions checker =
+    let (sourceText,sourceCode) = getSourceTextAndCode source
+    { FileName = fileName
+      Source = sourceCode
+      SourceText = sourceText
+      ProjectOptions = projectOptions
+      Checker = checker }
+
+let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker } =
+    let allDefineOptions =
+        checkOptions.ConditionalCompilationDefines
+        |> List.scan (fun acc n ->
+            n::acc
+        ) []
+        |> List.append (List.map List.singleton checkOptions.ConditionalCompilationDefines)
+        |> List.distinct
+    
+    allDefineOptions
+    |> List.map (fun conditionalCompilationDefines ->
+        async {
+            let projectOptions = { checkOptions with ConditionalCompilationDefines = conditionalCompilationDefines; IsInteractive = false }
+            // Run the first phase (untyped parsing) of the compiler
+            let sourceText = FSharp.Compiler.Text.SourceText.ofString source
+            let! untypedRes = checker.ParseFile(fileName, sourceText, projectOptions)
+            if untypedRes.ParseHadErrors then
+                let errors = 
+                    untypedRes.Errors
+                    |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
+                if not <| Array.isEmpty errors then
+                    raise <| FormatException (sprintf "Parsing failed with errors: %A\nAnd options: %A" errors checkOptions)
+                    
+            let tree =
+                match untypedRes.ParseTree with
+                | Some tree -> tree
+                | None -> raise <| FormatException "Parsing failed. Please select a complete code fragment to format."
+                
+            return (tree, conditionalCompilationDefines)
+        }
+    )
+    |> Async.Parallel
 
 /// Check whether an AST consists of parsing errors 
 let isValidAST ast = 
@@ -346,7 +394,11 @@ let isValidFSharpCode formatContext =
     async {
         try
             let! ast = parse formatContext
-            return isValidAST ast
+            let isValid =
+                ast
+                |> Array.map fst
+                |> Array.forall isValidAST
+            return isValid
         with _ ->
             return false
     }
@@ -362,11 +414,11 @@ let formatWith ast formatContext config =
     let sourceCode = defaultArg input String.Empty
     let normalizedSourceCode = String.normalizeNewLine sourceCode
     let formattedSourceCode =
-        Fantomas.Context.Context.create config normalizedSourceCode 
-        |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
+        let context = Fantomas.Context.Context.create config formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode (Some ast)
+        context |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
         |> Context.dump
-        |> if config.StrictMode then id 
-           else integrateComments config formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode
+//        |> if config.StrictMode then id 
+//           else integrateComments config formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode
 
     // Sometimes F# parser gives a partial AST for incorrect input
     if input.IsSome && String.IsNullOrWhiteSpace normalizedSourceCode <> String.IsNullOrWhiteSpace formattedSourceCode then
@@ -377,31 +429,44 @@ let formatWith ast formatContext config =
 
 let format config formatContext =
     async {
-        let! ast = parse formatContext
-        return formatWith ast formatContext config
+        let! asts = parse formatContext
+        let results =
+            asts
+            |> Array.map (fun (ast', defines) ->
+                let formatContext' =
+                    { formatContext with
+                        ProjectOptions = { formatContext.ProjectOptions with
+                                            ConditionalCompilationDefines = defines } }
+                formatWith ast' formatContext' config)
+            |> List.ofArray
+            
+        let merged =
+            match results with
+            | [] -> failwith "not possible"
+            | [x] -> x
+            | all -> List.reduce String.merge all
+
+        return merged
     }
+
+let addNewlineIfNeeded (formattedSourceCode:string) =
+    // When formatting the whole document, an EOL is required
+    if formattedSourceCode.EndsWith(Environment.NewLine) then
+        formattedSourceCode
+    else
+        formattedSourceCode + Environment.NewLine
 
 /// Format a source string using given config
 let formatDocument config formatContext =
     async {
         let! formattedSourceCode = format config formatContext
-        
-        // When formatting the whole document, an EOL is required
-        if formattedSourceCode.EndsWith(Environment.NewLine) then 
-            return formattedSourceCode 
-        else 
-            return formattedSourceCode + Environment.NewLine
+        return addNewlineIfNeeded formattedSourceCode
     }
 
 /// Format an abstract syntax tree using given config
 let formatAST ast formatContext config =
     let formattedSourceCode = formatWith ast formatContext config
-        
-    // When formatting the whole document, an EOL is required
-    if formattedSourceCode.EndsWith(Environment.NewLine) then 
-        formattedSourceCode 
-    else 
-        formattedSourceCode + Environment.NewLine
+    addNewlineIfNeeded formattedSourceCode
 
 /// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
 let makeRange fileName startLine startCol endLine endCol =
@@ -539,7 +604,7 @@ let formatRange returnFormattedContentOnly (range : range) (lines : _ []) config
     let reconstructSourceCode startCol formatteds pre post =
         Debug.WriteLine("Formatted parts: '{0}' at column {1}", sprintf "%A" formatteds, startCol)
         // Realign results on the correct column
-        Context.Context.create config String.Empty
+        Context.Context.create config [] String.Empty None
         // Mono version of indent text writer behaves differently from .NET one,
         // So we add an empty string first to regularize it
         |> if returnFormattedContentOnly then Context.str String.Empty else Context.str pre
@@ -677,7 +742,8 @@ type internal BlockType =
 let makePos line col = mkPos line col
 
 /// Infer selection around cursor by looking for a pair of '[' and ']', '{' and '}' or '(' and ')'. 
-let inferSelectionFromCursorPos (cursorPos : pos) fileName (sourceCode : string) = 
+let inferSelectionFromCursorPos (cursorPos : pos) fileName (source : SourceOrigin) =
+    let sourceCode = getSourceString source
     let lines = String.normalizeThenSplitNewLine sourceCode
     let sourceTokenizer = FSharpSourceTokenizer([], Some fileName)
     let openDelimiters = dict ["[", List; "[|", Array; "{", SequenceOrRecord; "(", Tuple]
@@ -797,6 +863,6 @@ let inferSelectionFromCursorPos (cursorPos : pos) fileName (sourceCode : string)
 /// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
 let formatAroundCursor (cursorPos : pos) config ({ FileName = fileName; Source = sourceCode } as formatContext) = 
     async {
-        let selection = inferSelectionFromCursorPos cursorPos fileName sourceCode
+        let selection = inferSelectionFromCursorPos cursorPos fileName (SourceOrigin.SourceString sourceCode)
         return! formatSelectionInDocument selection config formatContext
     }

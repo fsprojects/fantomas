@@ -199,8 +199,6 @@ let (|ModuleOrNamespace|) (SynModuleOrNamespace.SynModuleOrNamespace(LongIdent s
 let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(LongIdent s, isRecursive, isModule, mds, px, ats, ao, _)) =
     (ats, px, ao, s, mds, isRecursive, isModule)
 
-// Attribute
-
 let (|Attribute|) (a : SynAttribute) =
     let (LongIdentWithDots s) = a.TypeName
     (s, a.ArgExpr, Option.map (|Ident|) a.Target)
@@ -216,11 +214,7 @@ let (|PreXmlDoc|) (px: PreXmlDoc) =
     match px.ToXmlDoc() with
     | XmlDoc lines -> lines
 
-let (|ParsedHashDirective|) (ParsedHashDirective(s, ss, _)) =
-    (s, ss)
-
 // Module declarations (10 cases)
-
 let (|Open|_|) = function
     | SynModuleDecl.Open(LongIdentWithDots s, _) ->
         Some s
@@ -243,7 +237,7 @@ let (|NamespaceFragment|_|) = function
 
 let (|Attributes|_|) = function
     | SynModuleDecl.Attributes(ats, _) ->
-        Some ats
+        Some (ats)
     | _ -> None
 
 let (|Let|_|) = function
@@ -378,7 +372,7 @@ let (|MDImplicitCtor|_|) = function
     | _ -> None
 
 let (|MDMember|_|) = function
-    | SynMemberDefn.Member(b, range) -> Some b
+    | SynMemberDefn.Member(b, _) -> Some b
     | _ -> None
 
 let (|MDLetBindings|_|) = function
@@ -451,8 +445,8 @@ let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) = functi
         MemberBinding(ats, px, ao, isInline, mf, pat, expr)
     | SynBinding.Binding(_, DoBinding, _, _, ats, px, _, _, _, expr, _, _) -> 
         DoBinding(ats, px, expr)
-    | SynBinding.Binding(ao, _, isInline, isMutable, ats, px, _, pat, _, expr, _, _) -> 
-        LetBinding(ats, px, ao, isInline, isMutable, pat, expr)
+    | SynBinding.Binding(ao, _, isInline, isMutable, attrs, px, _, pat, _, expr, _, _) ->
+        LetBinding(attrs, px, ao, isInline, isMutable, pat, expr)
     
 let (|BindingReturnInfo|) (SynBindingReturnInfo (t, _, ats)) = (ats, t)
 
@@ -464,7 +458,7 @@ let (|TraitCall|_|) = function
     | _ -> None
 
 /// isRaw = true with <@@ and @@>
-let (|Quote|_|) = function                                    
+let (|Quote|_|) = function
     | SynExpr.Quote(e1, isRaw, e2, _, _) ->
         Some(e1, e2, isRaw)
     | _ -> None
@@ -678,11 +672,11 @@ let (|PrefixApp|_|) = function
 
 let private (|InfixApp|_|) synExpr = 
     match synExpr with
-    | SynExpr.App(_, true, Var "::", Tuple [e1; e2], _) ->
-        Some("::", e1, e2)
+    | SynExpr.App(_, true, (Var "::" as e), Tuple [e1; e2], _) ->
+        Some("::", e, e1, e2)
     // Range operators need special treatments, so we exclude them here
-    | SynExpr.App(_, _, SynExpr.App(_, true, Var s, e1, _), e2, _) when s <> ".." ->
-        Some(s, e1, e2)
+    | SynExpr.App(_, _, SynExpr.App(_, true, (Var s as e), e1, _), e2, _) when s <> ".." ->
+        Some(s, e, e1, e2)
     | _ -> None
 
 let (|TernaryApp|_|) = function
@@ -694,9 +688,9 @@ let (|TernaryApp|_|) = function
 let (|InfixApps|_|) e =
     let rec loop synExpr = 
         match synExpr with
-        | InfixApp(s, e, e2) -> 
+        | InfixApp(s, opE, e, e2) -> 
             let (e1, es) = loop e
-            (e1, (s, e2)::es)
+            (e1, (s, opE, e2)::es)
         | e -> (e, [])
     match loop e with
     | (_, []) -> None
@@ -767,8 +761,8 @@ let (|DotIndexedGet|_|) = function
     | _ -> None
 
 let (|DotGet|_|) = function
-    | SynExpr.DotGet(e, _, LongIdentWithDots s, _) ->
-        Some(e, s)
+    | SynExpr.DotGet(e, _, (LongIdentWithDots s as lid), _) ->
+        Some(e, (s, lid.Range))
     | _ -> None
 
 /// Gather series of application for line breaking
@@ -778,10 +772,10 @@ let rec (|DotGetApp|_|) = function
     | _ -> None
 
 let (|DotGetAppSpecial|_|) = function
-    | DotGetApp(SynExpr.App(_, _, Var s, e, _), es) ->
+    | DotGetApp(SynExpr.App(_, _, (Var s as sx), e, _), es) ->
         let i = s.IndexOf(".")
         if i <> -1 then
-            Some(s.[..i-1], (s.[i+1..], e)::es)
+            Some((s.[..i-1]), ((s.[i+1..], sx.Range), e)::es)
         else None
     | _ -> None
 
@@ -796,10 +790,10 @@ let (|IfThenElse|_|) = function
     | _ -> None
 
 let rec (|ElIf|_|) = function
-    | SynExpr.IfThenElse(e1, e2, Some(ElIf(es, e3)), _, _, r, fullRange) ->
-        Some((e1, e2, r, fullRange)::es, e3)
-    | SynExpr.IfThenElse(e1, e2, e3, _, _, r, fullRange) ->
-        Some([(e1, e2, r, fullRange)], e3)
+    | SynExpr.IfThenElse(e1, e2, Some(ElIf(es, e3)), _, _, r, fullRange) as node ->
+        Some((e1, e2, r, fullRange, node)::es, e3)
+    | SynExpr.IfThenElse(e1, e2, e3, _, _, r, fullRange) as node ->
+        Some([(e1, e2, r, fullRange, node)], e3)
     | _ -> None
 
 let (|Record|_|) = function
@@ -987,7 +981,8 @@ let rec transformPatterns ss = function
     | SimplePats sps ->
         let rec loop sp =            
             match sp with
-            | SPAttrib(ats, sp) -> CPAttrib(ats, loop sp)
+            | SPAttrib(ats, sp) ->
+                CPAttrib(ats, loop sp)
             | SPId(s, b, true) ->
                 match List.tryPick(fun (s', p) -> if s = s' then Some p else None) ss with
                 | Some p -> 
@@ -1241,7 +1236,29 @@ let (|FunType|) (t, ValInfo(argTypes, returnType)) =
 /// A rudimentary recognizer for extern functions
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) = function
-    | Let(LetBinding([Attribute(name, _, _)] as ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t)))
+    | Let(LetBinding([{ Attributes = [Attribute(name, _, _)]}] as ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t)))
         when name.EndsWith("DllImport") ->
         Some(ats, px, ao, t, s, ps)
     | _ -> None
+
+let private collectAttributesRanges (a:SynAttributes) =
+    seq {
+        yield! (List.map (fun al -> al.Range) a)
+        yield! (Seq.collect (fun a -> a.Attributes |> List.map (fun a -> a.Range)) a)
+    }
+
+let getRangesFromAttributes (mdl: SynModuleDecl) =
+    match mdl with
+    | SynModuleDecl.Let(_, bindings, _) ->
+        bindings
+        |> Seq.collect (fun (Binding(_,_,_,_, attrs,_,_,_,_,_,_,_)) -> collectAttributesRanges attrs)
+    | SynModuleDecl.Types(types, _) ->
+        types
+        |> Seq.collect(fun t ->
+            match t with
+            | SynTypeDefn.TypeDefn((SynComponentInfo.ComponentInfo(attrs, _,_,_,_,_,_,_)),_,_,_) -> collectAttributesRanges attrs
+        )
+    | SynModuleDecl.NestedModule((SynComponentInfo.ComponentInfo(attrs, _,_,_,_,_,_,_)), _,_,_,_) ->
+        collectAttributesRanges attrs
+    | _ -> Seq.empty
+    |> Seq.toList

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\netfx.props" />
   <PropertyGroup>
-    <Version>2.9.2</Version>
+    <Version>3.0.0-beta-002</Version>
     <NoWarn>FS0988</NoWarn>
     <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
@@ -9,6 +9,9 @@
     <None Include="paket.references" />
     <Compile Include="FsUnit.fs" />
     <Compile Include="TestHelpers.fs" />
+    <Compile Include="UtilsTests.fs" />
+    <Compile Include="TokenParserTests.fs" />
+    <Compile Include="TriviaTests.fs" />
     <Compile Include="FakeHelpersTests.fs" />
     <Compile Include="StringTests.fs" />
     <Compile Include="CommentTests.fs" />
@@ -36,7 +39,6 @@
     <Compile Include="VerboseSyntaxConversionTests.fs" />
     <Compile Include="FormattingSelectionTests.fs" />
     <Compile Include="FormattingSelectionOnlyTests.fs" />
-    <Compile Include="PreserveEOLTests.fs" />
     <Compile Include="ValidationTests.fs" />
     <Compile Include="FormattingPropertyTests.fs" />
     <Compile Include="SpecialConstructsTests.fs" />
@@ -47,6 +49,9 @@
     <Compile Include="LongIdentWithDotsTests.fs" />
     <Compile Include="DynamicOperatorTests.fs" />
     <Compile Include="SynExprSetTests.fs" />
+    <Compile Include="SynConstTests.fs" />
+    <Compile Include="FSharpScriptTests.fs" />
+    <Compile Include="TupleTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />

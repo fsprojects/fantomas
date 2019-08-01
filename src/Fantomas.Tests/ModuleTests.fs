@@ -1,5 +1,6 @@
 ﻿module Fantomas.Tests.ModuleTests
 
+open Fantomas
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
@@ -321,7 +322,7 @@ type T() =
     // IsExe would introduce an implicit module, it should not be added after formatting.
     let parsingOptions = { parsingOptions fileName with IsExe = true }
 
-    Fantomas.CodeFormatter.FormatDocumentAsync(fileName, sourceCode, config, parsingOptions, sharedChecker.Value)
+    Fantomas.CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString sourceCode, config, parsingOptions, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
     |> should equal """open System

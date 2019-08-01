@@ -32,15 +32,11 @@ let [<Literal>] forceText = "Print the source unchanged if it cannot be parsed c
 let [<Literal>] recurseText = "Process the input folder recursively."
 let [<Literal>] outputText = "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only."
 let [<Literal>] profileText = "Print performance profiling information."
-
 let [<Literal>] fsiText = "Read F# source from stdin as F# signatures."
 let [<Literal>] stdInText = "Read F# source from standard input."
 let [<Literal>] stdOutText = " Write the formatted source code to standard output."
-
 let [<Literal>] indentText = "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
 let [<Literal>] widthText = "Set the column where we break to new lines (default = 80). The value should be at least 60."
-
-let [<Literal>] preserveEOLText = "Preserve original end of lines, disables auto insert/remove of blank lines (default = false)"
 let [<Literal>] semicolonEOLText = "Enable semicolons at the end of line (default = false)."
 let [<Literal>] argumentText = "Disable spaces before the first argument of functions when there are parenthesis (default = true). For methods and constructors, there are never spaces regardless of this option."
 let [<Literal>] colonText = "Disable spaces before colons (default = true)."
@@ -48,7 +44,6 @@ let [<Literal>] commaText = "Disable spaces after commas (default = true)."
 let [<Literal>] semicolonText = "Disable spaces after semicolons (default = true)."
 let [<Literal>] indentOnTryWithText = "Enable indentation on try/with block (default = false)."
 let [<Literal>] reorderOpenDeclarationText = "Enable reordering open declarations (default = false)."
-
 let [<Literal>] spaceAroundDelimiterText = "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
 let [<Literal>] strictModeText = "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
 
@@ -86,12 +81,20 @@ let rec allFiles isRec path =
 /// Format a source string using given config and write to a text writer
 let processSourceString isFsiFile s (tw : TextWriter) config =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    tw.Write(CodeFormatter.FormatDocument(fileName, s, config))
+    async {
+        let! formatted = CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config)
+        tw.Write(formatted)
+    }
+    |> Async.RunSynchronously
 
 /// Format inFile and write to text writer
 let processSourceFile inFile (tw : TextWriter) config = 
     let s = File.ReadAllText(inFile)
-    tw.Write(CodeFormatter.FormatDocument(inFile, s, config))
+    async {
+        let! formatted = CodeFormatter.FormatDocumentAsync(inFile, SourceOrigin.SourceString s, config)
+        tw.Write(formatted)
+    }
+    |> Async.RunSynchronously
 
 [<EntryPoint>]
 let main _args =
@@ -105,11 +108,10 @@ let main _args =
     let fsi = ref false
     let stdIn = ref false
     let stdOut = ref false
-    
+
     let indent = ref FormatConfig.Default.IndentSpaceNum
     let pageWidth = ref FormatConfig.Default.PageWidth
-    
-    let preserveEOL = ref FormatConfig.Default.PreserveEndOfLine
+
     let semicolonEOL = ref FormatConfig.Default.SemicolonAtEndOfLine
     let spaceBeforeArgument = ref FormatConfig.Default.SpaceBeforeArgument
     let spaceBeforeColon = ref FormatConfig.Default.SpaceBeforeColon
@@ -226,7 +228,6 @@ let main _args =
            ArgInfo("--indent", ArgType.Int handleIndent, indentText);
            ArgInfo("--pageWidth", ArgType.Int handlePageWidth, widthText);
            
-           ArgInfo("--preserveEOL", ArgType.Set preserveEOL, preserveEOLText)
            ArgInfo("--semicolonEOL", ArgType.Set semicolonEOL, semicolonEOLText);
            ArgInfo("--noSpaceBeforeArgument", ArgType.Clear spaceBeforeArgument, argumentText);
            ArgInfo("--noSpaceBeforeColon", ArgType.Clear spaceBeforeColon, colonText);
@@ -244,7 +245,6 @@ let main _args =
         { FormatConfig.Default with 
             IndentSpaceNum = !indent;
             PageWidth = !pageWidth;
-            PreserveEndOfLine = !preserveEOL;
             SemicolonAtEndOfLine = !semicolonEOL; 
             SpaceBeforeArgument = !spaceBeforeArgument; 
             SpaceBeforeColon = !spaceBeforeColon;

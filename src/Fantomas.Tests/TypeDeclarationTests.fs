@@ -94,7 +94,8 @@ type Test() =
     |> should equal """
 type Test() =
     member this.Function1<'a>(x, y) = printfn "%A, %A" x y
-    abstract AbstractMethod<'a, 'b>: 'a * 'b -> unit
+
+    abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
     override this.AbstractMethod<'a, 'b>(x: 'a, y: 'b) = printfn "%A, %A" x y
 """
 
@@ -189,7 +190,7 @@ let ``abstract and override keywords``() =
 type MyClassBase1() =
     let mutable z = 0
     abstract Function1: int -> int
-    override u.Function1(a: int) =
+    default u.Function1(a: int) =
         z <- z + a
         z
 
@@ -813,4 +814,26 @@ let ``type abbreviation augmentation``() =
     |> should equal """type T2 = T2
     with
         member __.X = ()
+"""
+
+[<Test>]
+let ``operator in words should not print to symbol, 409`` () =
+    formatSourceString false """type T() =
+    static member op_LessThan(a, b) = a < b""" config
+    |> should equal """type T() =
+    static member op_LessThan (a, b) = a < b
+"""
+
+[<Test>]
+let ``operator in words in let binding`` () =
+    formatSourceString false """let op_PipeRight2  = ()""" config
+    |> should equal """let op_PipeRight2 = ()
+"""
+
+[<Test>]
+let ``operator in words in member`` () =
+    formatSourceString false """type A() =
+    member this.B(op_Inequality : string) = ()""" config
+    |> should equal """type A() =
+    member this.B(op_Inequality: string) = ()
 """

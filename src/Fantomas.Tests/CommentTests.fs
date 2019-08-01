@@ -12,12 +12,14 @@ let ``should keep sticky-to-the-left comments after nowarn directives``() =
 
 [<Test>]
 let ``should keep sticky-to-the-right comments before module definition``() =
-    formatSourceString false """
+    let source = """
 // The original idea for this typeprovider is from Ivan Towlson
 // some text
 module FSharpx.TypeProviders.VectorTypeProvider
 
-let x = 1""" config
+let x = 1"""
+
+    formatSourceString false source config
     |> should equal """// The original idea for this typeprovider is from Ivan Towlson
 // some text
 module FSharpx.TypeProviders.VectorTypeProvider
@@ -37,6 +39,7 @@ let print_30_permut() =
     |> prepend newline
     |> should equal """
 let print_30_permut() =
+
     /// declare and initialize
     let permutation: int array =
         Array.init n (fun i ->
@@ -57,6 +60,7 @@ let print_30_permut() =
     |> prepend newline
     |> should equal """
 let print_30_permut() =
+
     /// declare and initialize
     let permutation: int array =
         Array.init n (fun (i, j) ->
@@ -101,8 +105,7 @@ let ``should preserve comment-only source code``() =
   line2
 *)
 """  config
-    |> should equal """
-(*
+    |> should equal """(*
   line1
   line2
 *)
@@ -161,7 +164,7 @@ let f() =
     x + x + x
 """
 
-[<Test; Ignore "reason">]
+[<Test>]
 let ``should align mis-aligned comments``() =
     formatSourceString false  """
    /// XML COMMENT A
@@ -211,6 +214,22 @@ type IlxGenIntraAssemblyInfo =
       /// The key to the table is the method ref for the property getter for the value, which is a stable name for the Val's
       /// that come from both the signature and the implementation.
       StaticFieldInfo: Dictionary<ILMethodRef, ILFieldSpec> }
+"""
+
+[<Test>]
+let ``should add comment after { as part of property assignment`` () =
+    formatSourceString false """
+let a = 
+    { // foo
+    // bar
+    B = 7 }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    { // foo
+      // bar
+      B = 7 }
 """
 
 [<Test>]
@@ -298,19 +317,19 @@ type IlxGenOptions =
 [<Test>]
 let ``should keep comments on else if``() =
     formatSourceString false  """
-if true then ()
+if a then ()
 else
     // Comment 1
-    if true then ()
+    if b then ()
     // Comment 2
     else ()
 """  config
     |> prepend newline
     |> should equal """
-if true then ()
+if a then ()
 else
     // Comment 1
-    if true then ()
+    if b then ()
     // Comment 2
     else ()
 """
@@ -359,6 +378,7 @@ let hello() = "hello world"
     |> prepend newline
     |> should equal """
 let hello() = "hello world"
+
 (* This is a comment. *)
 """
 
@@ -386,22 +406,6 @@ let x =
 """ 
 
 [<Test>]
-let ``preserve newline should not add additional newline`` () =
-    let c = { config with PreserveEndOfLine = true }
-    let source = """
-type T() =
-    let x = 123
-//    override private x.ToString() = ""
-"""
-    
-    formatSourceString false source c
-    |> should equal """
-type T() =
-    let x = 123
-//    override private x.ToString() = ""
-"""
-
-[<Test>]
 let ``preserve newline false should not add additional newline`` () =
     let source = """
 type T() =
@@ -418,17 +422,246 @@ type T() =
 """
 
 [<Test>]
-let ``preserve newline should not add additional newline II`` () =
-    let c = { config with PreserveEndOfLine = true }
-    let source = """
-let test n = [ n..-1..1 ]
-let y = ()
-// Some comments
+let ``comment after function in type definition should be applied to member bindings``() =
+    formatSourceString false """
+type C () = 
+    let rec g x = h x
+    and h x = g x
+
+    member x.P = g 3""" config
+    |> prepend newline
+    |> should equal """
+type C() =
+
+    let rec g x = h x
+    and h x = g x
+
+    member x.P = g 3
 """
 
-    formatSourceString false source c
-    |> should equal """
-let test n = [ n ..- 1..1 ]
-let y = ()
-// Some comments
+
+[<Test>]
+let ``line comment with only two slashes`` () =
+    let source = """
+let foo = 7
+//
+"""
+
+    formatSourceString false source config
+    |> should equal """let foo = 7
+//
+"""
+
+[<Test>]
+let ``block comment on top of namespace`` () =
+    formatSourceString false """
+(*
+
+Copyright 2010-2012 TidePowerd Ltd.
+Copyright 2013 Jack Pappas
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*)
+
+namespace ExtCore"""  config
+    |> should equal """(*
+
+Copyright 2010-2012 TidePowerd Ltd.
+Copyright 2013 Jack Pappas
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*)
+
+namespace ExtCore
+
+"""
+
+[<Test>]
+let ``block comment on top of file`` () =
+    formatSourceString false """
+(*
+
+Copyright 2010-2012 TidePowerd Ltd.
+Copyright 2013 Jack Pappas
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*)
+
+namespace ExtCore
+
+open System
+//open System.Diagnostics.Contracts
+open System.Globalization
+open System.Runtime.InteropServices
+
+
+/// Represents a segment of a string.
+[<Struct; CompiledName("Substring")>]
+[<CustomEquality; CustomComparison>]
+type substring =
+    /// The underlying string for this substring.
+    val String : string
+    /// The position of the first character in the substring, relative to the start of the underlying string.
+    val Offset : int
+    /// The number of characters spanned by the substring.
+    val Length : int
+
+    /// <summary>Create a new substring value spanning the entirety of a specified string.</summary>
+    /// <param name="string">The string to use as the substring's underlying string.</param>
+    new (string : string) =
+        // Preconditions
+        checkNonNull "string" string
+
+        { String = string;
+          Offset = 0;
+          Length = string.Length; }
+    
+    /// <summary>
+    /// Compares two specified <see cref="substring"/> objects by evaluating the numeric values of the corresponding
+    /// <see cref="Char"/> objects in each substring.
+    /// </summary>
+    /// <param name="strA">The first string to compare.</param>
+    /// <param name="strB">The second string to compare.</param>
+    /// <returns>An integer that indicates the lexical relationship between the two comparands.</returns>
+    static member CompareOrdinal (strA : substring, strB : substring) =
+        // If both substrings are empty they are considered equal, regardless of their offset or underlying string.
+        if strA.Length = 0 && strB.Length = 0 then 0
+
+        // OPTIMIZATION : If the substrings have the same (identical) underlying string
+        // and offset, the comparison value will depend only on the length of the substrings.
+        elif strA.String == strB.String && strA.Offset = strB.Offset then
+            compare strA.Length strB.Length
+
+        else
+            (* Structural comparison on substrings -- this uses the same comparison
+               technique as the structural comparison on strings in FSharp.Core. *)
+#if INVARIANT_CULTURE_STRING_COMPARISON
+            // NOTE: we don't have to null check here because System.String.Compare
+            // gives reliable results on null values.
+            System.String.Compare (
+                strA.String, strA.Offset,
+                strB.String, strB.Offset,
+                min strA.Length strB.Length,
+                false,
+                CultureInfo.InvariantCulture)
+#else
+            // NOTE: we don't have to null check here because System.String.CompareOrdinal
+            // gives reliable results on null values.
+            System.String.CompareOrdinal (
+                strA.String, strA.Offset,
+                strB.String, strB.Offset,
+                min strA.Length strB.Length)
+#endif
+"""  config
+    |> should equal """(*
+
+Copyright 2010-2012 TidePowerd Ltd.
+Copyright 2013 Jack Pappas
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+*)
+
+namespace ExtCore
+
+open System
+//open System.Diagnostics.Contracts
+open System.Globalization
+open System.Runtime.InteropServices
+
+
+/// Represents a segment of a string.
+[<Struct; CompiledName("Substring")>]
+[<CustomEquality; CustomComparison>]
+type substring =
+    /// The underlying string for this substring.
+    val String: string
+    /// The position of the first character in the substring, relative to the start of the underlying string.
+    val Offset: int
+    /// The number of characters spanned by the substring.
+    val Length: int
+
+    /// <summary>Create a new substring value spanning the entirety of a specified string.</summary>
+    /// <param name="string">The string to use as the substring's underlying string.</param>
+    new(string: string) =
+        // Preconditions
+        checkNonNull "string" string
+
+        { String = string
+          Offset = 0
+          Length = string.Length }
+
+    /// <summary>
+    /// Compares two specified <see cref="substring"/> objects by evaluating the numeric values of the corresponding
+    /// <see cref="Char"/> objects in each substring.
+    /// </summary>
+    /// <param name="strA">The first string to compare.</param>
+    /// <param name="strB">The second string to compare.</param>
+    /// <returns>An integer that indicates the lexical relationship between the two comparands.</returns>
+    static member CompareOrdinal(strA: substring, strB: substring) =
+        // If both substrings are empty they are considered equal, regardless of their offset or underlying string.
+        if strA.Length = 0 && strB.Length = 0 then 0
+        elif
+
+        // OPTIMIZATION : If the substrings have the same (identical) underlying string
+        // and offset, the comparison value will depend only on the length of the substrings.
+        strA.String == strB.String && strA.Offset = strB.Offset then compare strA.Length strB.Length
+        else
+            (* Structural comparison on substrings -- this uses the same comparison
+               technique as the structural comparison on strings in FSharp.Core. *)
+#if INVARIANT_CULTURE_STRING_COMPARISON
+            // NOTE: we don't have to null check here because System.String.Compare
+            // gives reliable results on null values.
+            System.String.Compare
+                (strA.String, strA.Offset, strB.String, strB.Offset, min strA.Length strB.Length, false,
+                 CultureInfo.InvariantCulture)
+#else
+            // NOTE: we don't have to null check here because System.String.CompareOrdinal
+            // gives reliable results on null values.
+            System.String.CompareOrdinal
+                (strA.String, strA.Offset, strB.String, strB.Offset, min strA.Length strB.Length)
+#endif
 """

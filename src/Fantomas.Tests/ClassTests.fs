@@ -117,7 +117,7 @@ type Shape2D(x0: float, y0: float) =
         y <- y + dy
 
     abstract Rotate: float -> unit
-    override this.Rotate(angle) = rotAngle <- rotAngle + angle
+    default this.Rotate(angle) = rotAngle <- rotAngle + angle
 """
 
 [<Test>]
@@ -253,6 +253,7 @@ let ``should keep parens in class inheritance in the right place``() =
     |> should equal """type StateMachine(makeAsync) as this =
     class
         inherit DGMLClass()
+
         let functions = System.Collections.Generic.Dictionary<string, IState>()
     end
 """

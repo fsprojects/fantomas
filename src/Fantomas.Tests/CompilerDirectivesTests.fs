@@ -49,8 +49,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
 #endif
 """  config
-    |> should equal """
-#if INTERACTIVE
+    |> should equal """#if INTERACTIVE
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
@@ -69,11 +68,12 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
 #endif
 """  config
-    |> should equal """
-#if INTERACTIVE
+    |> should equal """#if INTERACTIVE
 #else
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
+
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+
 #load "__setup__.fsx"
 #endif
 """
@@ -116,7 +116,6 @@ let useHiddenInitCode = false
 #else
 let useHiddenInitCode = true
 #endif
-
 let y = 2
 """
 
@@ -175,9 +174,8 @@ let private assemblyConfig() =
 #if TRACE
     let x = ""
 #else
-  let x = "x"
+    let x = "x"
 #endif
-
     x
 """
 
@@ -208,9 +206,14 @@ type ExtensibleDumper = A | B
     |> prepend newline
     |> should equal """
 namespace Internal.Utilities.Diagnostic
+
 #if EXTENSIBLE_DUMPER
 #if DEBUG
-type ExtensibleDumper = A | B
+
+type ExtensibleDumper =
+    | A
+    | B
+
 #endif
 #endif
 """
@@ -222,8 +225,7 @@ let ``missing inactive code if directive not defined``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if NOT_DEFINED
+    |> should equal """#if NOT_DEFINED
 let x = 1
 #endif
 """
@@ -236,8 +238,7 @@ let ``don't duplicate active code if directive not defined``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if NOT_DEFINED
+    |> should equal """#if NOT_DEFINED
 #else
 let x = 1
 #endif
@@ -250,8 +251,7 @@ let ``missing line break in an active directive``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if DEBUG
+    |> should equal """#if DEBUG
 let x = 1
 #endif
 """
@@ -263,8 +263,7 @@ let ``should handle #if on the first line``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if INTERACTIVE
+    |> should equal """#if INTERACTIVE
 let x = 1
 #endif
 """
@@ -276,8 +275,486 @@ let ``should handle combined #if``() =
 let x = 1
 #endif
 """  config
-    |> should equal """
-#if INTERACTIVE || (FOO && BAR) || BUZZ
+    |> should equal """#if INTERACTIVE || (FOO && BAR) || BUZZ
 let x = 1
+#endif
+"""
+
+[<Test>]
+let ``issue 382`` () =
+    formatSourceString false """
+type Currency =
+    // Temporary fix until a new Thoth.Json.Net package is released
+    // See https://github.com/MangelMaxime/Thoth/pull/70
+
+#if FABLE_COMPILER
+    private
+#endif
+    | Code of string
+"""  config
+    |> should equal """type Currency =
+    // Temporary fix until a new Thoth.Json.Net package is released
+    // See https://github.com/MangelMaxime/Thoth/pull/70
+
+#if FABLE_COMPILER
+    private
+#endif
+    Code of string
+"""
+
+[<Test>]
+let ``indentation incorrect for code with chained fluent interface method calls`` () =
+    formatSourceString false """
+let start (args: IArgs) =
+    // Serilog configuration
+    Log.Logger <-
+        LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .WriteTo.File(Path.Combine(args.ContentRoot, "temp/log.txt"))
+            .CreateLogger()
+ 
+    try
+        try
+            let giraffeApp = configureGiraffeApp args
+            WebHost.CreateDefaultBuilder()
+                .UseWebRoot(args.ClientPath)
+                #if DEBUG
+                .UseContentRoot(args.ContentRoot)
+                .UseUrls(args.Host + ":" + string args.Port)
+                #endif
+                .UseSerilog()
+                .Configure(Action<IApplicationBuilder>(configureApp giraffeApp))
+                .ConfigureServices(configureServices args)
+                .Build()
+                .Run()
+            0
+        with ex ->
+            Log.Fatal(ex, "Host terminated unexpectedly")
+            1
+    finally
+        Log.CloseAndFlush()
+"""  config
+    |> should equal """let start (args: IArgs) =
+    // Serilog configuration
+    Log.Logger <-
+        LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .WriteTo.File(Path.Combine(args.ContentRoot, "temp/log.txt"))
+            .CreateLogger()
+
+    try
+        try
+            let giraffeApp = configureGiraffeApp args
+            WebHost.CreateDefaultBuilder().UseWebRoot(args.ClientPath)
+#if DEBUG
+                   .UseContentRoot(args.ContentRoot).UseUrls(args.Host + ":" + string args.Port)
+#endif
+                   .UseSerilog().Configure(Action<IApplicationBuilder>(configureApp giraffeApp))
+                   .ConfigureServices(configureServices args).Build().Run()
+            0
+        with ex ->
+            Log.Fatal(ex, "Host terminated unexpectedly")
+            1
+    finally
+        Log.CloseAndFlush()
+"""
+
+[<Test>]
+let ``some spacing is still lost in and around #if blocks, 303`` () =
+    formatSourceString false """
+  let internal UpdateStrongNaming (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
+    let assemblyName = assembly.Name
+#if NETCOREAPP2_0
+    do
+#else
+    match key with
+    | None ->
+#endif
+              assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+              assemblyName.HasPublicKey <- false
+              assemblyName.PublicKey <- null
+              assemblyName.PublicKeyToken <- null
+#if NETCOREAPP2_0
+#else
+    | Some key' -> assemblyName.HasPublicKey <- true
+                   assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
+#endif
+"""  config
+    |> should equal """let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
+    let assemblyName = assembly.Name
+#if NETCOREAPP2_0
+#else
+    match key with
+    | None ->
+#endif
+    do assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+       assemblyName.HasPublicKey <- false
+       assemblyName.PublicKey <- null
+       assemblyName.PublicKeyToken <- null
+#if NETCOREAPP2_0
+#else
+    | Some key' ->
+        assemblyName.HasPublicKey <- true
+        assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
+#endif
+"""
+
+[<Test>]
+let ``nested directives, FABLE_COMPILER`` () =
+    formatSourceStringWithDefines ["FABLE_COMPILER"] """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement,
+                                fallback: ReactElement)
+                            : LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+        let elemType = ReactBindings.React.``lazy``(fun () ->
+            // React.lazy requires a default export
+            (importValueDynamic f).``then``(fun x -> createObj ["default" ==> x]))
+        fun props ->
+            ReactElementType.create
+                ReactBindings.React.Suspense
+                (createObj ["fallback" ==> fallback])
+                [ReactElementType.create elemType props []]
+#else
+        fun _ ->
+            div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+#endif
+#endif
+
+    static member Foo = ()
+"""  config
+    |> should equal """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+        let elemType =
+            ReactBindings.React.``lazy`` (fun () ->
+                // React.lazy requires a default export
+                (importValueDynamic f).``then``(fun x -> createObj [ "default" ==> x ]))
+        fun props ->
+            ReactElementType.create ReactBindings.React.Suspense (createObj [ "fallback" ==> fallback ])
+                [ ReactElementType.create elemType props [] ]
+#else
+
+
+#endif
+#endif
+
+    static member Foo = ()
+"""
+
+[<Test>]
+let ``nested directives, FABLE_REPL_LIB`` () =
+    formatSourceStringWithDefines ["FABLE_REPL_LIB"] """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement,
+                                fallback: ReactElement)
+                            : LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+        let elemType = ReactBindings.React.``lazy``(fun () ->
+            // React.lazy requires a default export
+            (importValueDynamic f).``then``(fun x -> createObj ["default" ==> x]))
+        fun props ->
+            ReactElementType.create
+                ReactBindings.React.Suspense
+                (createObj ["fallback" ==> fallback])
+                [ReactElementType.create elemType props []]
+#else
+        fun _ ->
+            div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+#endif
+#endif
+
+    static member Foo = ()
+"""  config
+    |> should equal """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+
+
+
+
+
+
+#if FABLE_COMPILER
+
+
+
+
+
+
+
+
+#else
+
+
+#endif
+#endif
+
+    static member Foo = ()
+"""
+
+[<Test>]
+let ``nested directives, no defines`` () =
+    formatSourceStringWithDefines [] """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement,
+                                fallback: ReactElement)
+                            : LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+        let elemType = ReactBindings.React.``lazy``(fun () ->
+            // React.lazy requires a default export
+            (importValueDynamic f).``then``(fun x -> createObj ["default" ==> x]))
+        fun props ->
+            ReactElementType.create
+                ReactBindings.React.Suspense
+                (createObj ["fallback" ==> fallback])
+                [ReactElementType.create elemType props []]
+#else
+        fun _ ->
+            div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+#endif
+#endif
+
+    static member Foo = ()
+"""  config
+    |> should equal """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+
+
+
+
+
+
+
+
+#else
+        fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+#endif
+#endif
+
+    static member Foo = ()
+"""
+
+[<Test>]
+let ``negated directive`` () =
+    formatSourceString false """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement,
+                                fallback: ReactElement)
+                            : LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+        let elemType = ReactBindings.React.``lazy``(fun () ->
+            // React.lazy requires a default export
+            (importValueDynamic f).``then``(fun x -> createObj ["default" ==> x]))
+        fun props ->
+            ReactElementType.create
+                ReactBindings.React.Suspense
+                (createObj ["fallback" ==> fallback])
+                [ReactElementType.create elemType props []]
+#else
+        fun _ ->
+            div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+#endif
+#endif
+
+    static member Foo = ()
+"""  config
+    |> should equal """namespace Fable.React
+
+open Fable.Core
+open Fable.Core.JsInterop
+
+type FunctionComponent<'Props> = 'Props -> ReactElement
+
+type LazyFunctionComponent<'Props> = 'Props -> ReactElement
+
+type FunctionComponent =
+#if !FABLE_REPL_LIB
+    /// Creates a lazy React component from a function in another file
+    /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
+    /// directly to the argument position (avoid pipes)
+    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
+#if FABLE_COMPILER
+        let elemType =
+            ReactBindings.React.``lazy`` (fun () ->
+                // React.lazy requires a default export
+                (importValueDynamic f).``then``(fun x -> createObj [ "default" ==> x ]))
+        fun props ->
+            ReactElementType.create ReactBindings.React.Suspense (createObj [ "fallback" ==> fallback ])
+                [ ReactElementType.create elemType props [] ]
+#else
+        fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+#endif
+#endif
+
+    static member Foo = ()
+"""
+
+[<Test>]
+let ``module with nested directives`` () =
+    formatSourceString false """module ReactDomBindings =
+    #if FABLE_REPL_LIB
+    [<Global("ReactDOM")>]
+    #else
+    [<Import("*", "react-dom")>]
+    #endif
+    let ReactDom: IReactDom = jsNative
+
+    #if !FABLE_REPL_LIB
+    [<Import("default", "react-dom/server")>]
+    let ReactDomServer: IReactDomServer = jsNative
+    #endif"""  config
+    |> should equal """module ReactDomBindings =
+#if FABLE_REPL_LIB
+    [<Global("ReactDOM")>]
+#else
+    [<Import("*", "react-dom")>]
+#endif
+    let ReactDom: IReactDom = jsNative
+
+#if !FABLE_REPL_LIB
+    [<Import("default", "react-dom/server")>]
+    let ReactDomServer: IReactDomServer = jsNative
+#endif
+"""
+
+[<Test>]
+let ``module with nested directives, no defines`` () =
+    formatSourceStringWithDefines [] """module ReactDomBindings =
+    #if FABLE_REPL_LIB
+    [<Global("ReactDOM")>]
+    #else
+    [<Import("*", "react-dom")>]
+    #endif
+    let ReactDom: IReactDom = jsNative
+
+    #if !FABLE_REPL_LIB
+    [<Import("default", "react-dom/server")>]
+    let ReactDomServer: IReactDomServer = jsNative
+    #endif"""  config
+    |> should equal """module ReactDomBindings =
+#if FABLE_REPL_LIB
+
+#else
+    [<Import("*", "react-dom")>]
+#endif
+    let ReactDom: IReactDom = jsNative
+
+#if !FABLE_REPL_LIB
+    [<Import("default", "react-dom/server")>]
+    let ReactDomServer: IReactDomServer = jsNative
+#endif
+"""
+
+[<Test>]
+let ``module with nested directives, FABLE_REPL_LIB`` () =
+    formatSourceStringWithDefines ["FABLE_REPL_LIB"] """module ReactDomBindings =
+    #if FABLE_REPL_LIB
+    [<Global("ReactDOM")>]
+    #else
+    [<Import("*", "react-dom")>]
+    #endif
+    let ReactDom: IReactDom = jsNative
+
+    #if !FABLE_REPL_LIB
+    [<Import("default", "react-dom/server")>]
+    let ReactDomServer: IReactDomServer = jsNative
+    #endif"""  config
+    |> should equal """module ReactDomBindings =
+#if FABLE_REPL_LIB
+    [<Global("ReactDOM")>]
+#else
+
+#endif
+    let ReactDom: IReactDom = jsNative
+
+#if !FABLE_REPL_LIB
+
+
 #endif
 """

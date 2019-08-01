@@ -110,7 +110,7 @@ type Sample [<ImportingConstructor>] (dependency: IDependency) =
     end
 
 [<Export>]
-type Sample [<ImportingConstructor>]  internal () =
+type Sample [<ImportingConstructor>] internal () =
     class
     end
 """
@@ -129,4 +129,91 @@ type Foo =
 type Foo =
     { [<field:DataMember>]
       Bar: string }
+"""
+
+[<Test>]
+let ``print trivia linked to SynAttribute`` () =
+    let source = """
+module MyApp
+
+#if DEBUG
+[<Emit("console.log('%c' +  $1, 'color: ' + $0)")>]
+let printInColor (color:string) (msg:string):unit = jsNative
+
+[<Emit("console.log('%c' +  $1, $0)")>]
+let printInStyle (style:string) (msg): unit = jsNative
+
+[<Emit("console.info($0)")>]
+let printModel model : unit = jsNative
+
+[<Emit("console.trace()")>]
+let printStackTrace (): unit = jsNative
+#endif
+
+let e2e value =
+    Props.Data("e2e", value)
+"""
+
+    formatSourceString false source config
+    |> should equal """module MyApp
+
+#if DEBUG
+[<Emit("console.log('%c' +  $1, 'color: ' + $0)")>]
+let printInColor (color: string) (msg: string): unit = jsNative
+
+[<Emit("console.log('%c' +  $1, $0)")>]
+let printInStyle (style: string) (msg): unit = jsNative
+
+[<Emit("console.info($0)")>]
+let printModel model: unit = jsNative
+
+[<Emit("console.trace()")>]
+let printStackTrace(): unit = jsNative
+#endif
+
+let e2e value = Props.Data("e2e", value)
+"""
+
+[<Test>]
+let ``comments before attributes should be added correctly, issue 422`` () =
+    formatSourceString false """module RecordTypes = 
+
+    /// Records can also be represented as structs via the 'Struct' attribute.
+    /// This is helpful in situations where the performance of structs outweighs
+    /// the flexibility of reference types.
+    [<Struct>]
+    type ContactCardStruct = 
+        { Name     : string
+          Phone    : string
+          Verified : bool }
+"""  config
+    |> should equal """module RecordTypes =
+
+    /// Records can also be represented as structs via the 'Struct' attribute.
+    /// This is helpful in situations where the performance of structs outweighs
+    /// the flexibility of reference types.
+    [<Struct>]
+    type ContactCardStruct =
+        { Name: string
+          Phone: string
+          Verified: bool }
+"""
+
+[<Test>]
+let ``different attributes according to defines`` () =
+    formatSourceString false """    [<
+#if NETCOREAPP2_1
+      Builder.Object;
+#else
+      Widget;
+#endif
+      DefaultValue(true)>]
+    let foo = ()"""  config
+    |> should equal """#if NETCOREAPP2_1
+[<Builder.Object>]
+#else
+[<Widget>]
+#endif
+[<DefaultValue(true)>]
+let foo = ()
 """

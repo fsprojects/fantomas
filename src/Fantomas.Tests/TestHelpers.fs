@@ -7,6 +7,7 @@ open Fantomas
 open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
+open NUnit.Framework
 
 let config = FormatConfig.Default
 let newline = "\n"
@@ -14,7 +15,7 @@ let newline = "\n"
 let parsingOptions fileName = 
     { FSharpParsingOptions.Default with 
         SourceFiles = [| fileName |]
-        ConditionalCompilationDefines = ["DEBUG";"TRACE";"SILVERLIGHT"]
+        ConditionalCompilationDefines = []
         IsInteractive = true }
 
 let sharedChecker = lazy(FSharpChecker.Create())
@@ -23,43 +24,72 @@ let formatSourceString isFsiFile (s : string) config =
     // On Linux/Mac this will exercise different line endings
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/src.fsi" else "/src.fsx"
-    CodeFormatter.FormatDocumentAsync(fileName, s, config, parsingOptions fileName, sharedChecker.Value)
+    let defines = TokenParser.getDefines s
+    let parsingOptions = { (parsingOptions fileName) with ConditionalCompilationDefines = defines }
+    
+    CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config, parsingOptions, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
+
+let formatSourceStringWithDefines defines (s : string) config =
+    // On Linux/Mac this will exercise different line endings
+    let s = s.Replace("\r\n", Environment.NewLine)
+    let fileName = "/src.fsx"
+    let projectOptions = { (parsingOptions fileName) with ConditionalCompilationDefines = defines }
+    let formatContext = CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s) projectOptions sharedChecker.Value
+
+    let result =
+        async {
+            let! asts = CodeFormatterImpl.parse formatContext
+            let ast =
+                Array.filter (fun (_,d) -> d = defines) asts
+                |> Array.head
+                |> fst
+            return CodeFormatterImpl.formatWith ast formatContext config
+        }
+        |> Async.RunSynchronously
+        |> CodeFormatterImpl.addNewlineIfNeeded
+
+    // merge with itself to make #if go on beginning of line
+    String.merge result result
+    |> String.normalizeNewLine
 
 let formatSelectionFromString isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatSelectionInDocumentAsync(fileName, r, s, config, parsingOptions fileName, sharedChecker.Value)
+    CodeFormatter.FormatSelectionInDocumentAsync(fileName, r, SourceOrigin.SourceString s, config, parsingOptions fileName, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
 
 let formatSelectionOnly isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatSelectionAsync(fileName, r, s, config, parsingOptions fileName, sharedChecker.Value)
+    CodeFormatter.FormatSelectionAsync(fileName, r, SourceOrigin.SourceString s, config, parsingOptions fileName, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
 
 let formatAroundCursor isFsiFile p (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatAroundCursorAsync(fileName, p, s, config, parsingOptions fileName, sharedChecker.Value)
+    CodeFormatter.FormatAroundCursorAsync(fileName, p, SourceOrigin.SourceString s, config, parsingOptions fileName, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
 
 let isValidFSharpCode isFsiFile s =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.IsValidFSharpCodeAsync(fileName, s, parsingOptions fileName, sharedChecker.Value)
+    CodeFormatter.IsValidFSharpCodeAsync(fileName, SourceOrigin.SourceString s, parsingOptions fileName, sharedChecker.Value)
     |> Async.RunSynchronously
 
 let parse isFsiFile s =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.ParseAsync(fileName, s, parsingOptions fileName, sharedChecker.Value)
+    let defines = TokenParser.getDefines s
+    let parsingOptions = { (parsingOptions fileName) with ConditionalCompilationDefines = defines }
+    CodeFormatter.ParseAsync(fileName, SourceOrigin.SourceString s, parsingOptions, sharedChecker.Value)
     |> Async.RunSynchronously
 
 let formatAST a s c =
-    CodeFormatter.FormatAST(a, "/tmp.fsx",s, c)
+    CodeFormatter.FormatASTAsync(a, "/tmp.fsx",s, c)
+    |> Async.RunSynchronously
 
 let makeRange l1 c1 l2 c2 = 
     CodeFormatter.MakeRange("/tmp.fsx", l1, c1, l2, c2)
@@ -84,10 +114,8 @@ let printAST isFsiFile sourceCode =
     
 let printContext sourceCode =
     let normalizedSourceCode = Fantomas.String.normalizeNewLine sourceCode
-    let context = Fantomas.Context.Context.create config normalizedSourceCode
-    printfn "directives:"
-    context.Directives
-    |> Seq.iter (fun kv -> printfn "%A %s" kv.Key kv.Value)
+    let defines = Fantomas.TokenParser.getDefines sourceCode
+    let context = Fantomas.Context.Context.create config defines normalizedSourceCode None
     printfn "context: %A" context
 
 let zero = range.Zero   
@@ -97,12 +125,12 @@ type Input = Input of string
 let toSynExprs (Input s) =
     match (try Some (parse false s) with _ -> None) with
     | Some 
-      (ParsedInput.ImplFile
+      [|(ParsedInput.ImplFile
         (ParsedImplFileInput
             ("/tmp.fsx", _,
             QualifiedNameOfFile _, [], [],
             [SynModuleOrNamespace
-                (_, false, AnonModule, exprs, _, _, _, _)], _))) -> 
+                (_, false, AnonModule, exprs, _, _, _, _)], _))), _|] -> 
                 List.choose (function (SynModuleDecl.DoExpr(_, expr, _)) -> Some expr | _ -> None) exprs
     | _ -> 
         //stdout.WriteLine("Can't convert {0}.", sprintf "%A" ast)
@@ -135,3 +163,7 @@ let shouldNotChangeAfterFormat source =
     formatSourceString false source config
     |> prepend newline
     |> should equal source
+    
+let (==) actual expected = Assert.AreEqual(expected, actual)
+let fail() = Assert.Fail()
+let pass() = Assert.Pass()
