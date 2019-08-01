@@ -167,7 +167,7 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ## Testing and validation
 We have tried to be careful in testing the project.
-There are 376 unit tests and 30 validated test examples,
+There are 444 unit tests and 30 validated test examples,
 but it seems some corner cases of the language haven't been covered.
 Feel free to suggests tests if they haven't been handled correctly.
 
