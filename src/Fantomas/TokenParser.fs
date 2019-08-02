@@ -83,21 +83,19 @@ module BoolExpr =
         let singletonsLit = singletons |> List.collect snd
         let solvedSet = set (enforcedLit @ singletonsLit)
         let toSolve = toSolve |> List.filter (fun (k,_) -> not(Set.contains (Positive k) solvedSet || Set.contains (Negative k) solvedSet))
-        let rec solve steps vals groups =
-            let satResultOr a b =
-                match a,b with
-                | Satisfiable x, Satisfiable _
-                | Satisfiable x, Unsatisfiable
-                | Unsatisfiable, Satisfiable x  -> Satisfiable x
-                | Unsatisfiable, _
-                | _, Unsatisfiable -> Unsatisfiable
-                | Unconclusive, _
-                | _, Unconclusive -> Unconclusive
+        let rec genCombinations groups = seq {
             match groups with
-            | _ when steps > maxSteps -> Unconclusive
-            | [] -> if eval cnf vals then Satisfiable (vals |> List.choose (function | Positive x -> Some x | _ -> None)) else Unsatisfiable
-            | (_,g)::gs -> g |> List.map (fun x -> solve (steps+1) (x::vals) gs) |> List.reduce satResultOr
-        solve 0 (singletonsLit @ enforcedLit) toSolve
+            | [] -> yield []
+            | g::gs -> yield! genCombinations gs |> Seq.collect (fun l -> g |> Seq.map (fun x -> x :: l))
+        }
+        let solve vals groups =
+            let combinations = genCombinations (groups |> List.map snd)
+            combinations |> Seq.mapi (fun i comb -> 
+                if i > maxSteps then Some Unconclusive else
+                let vals = vals @ comb
+                if eval cnf vals then Some (Satisfiable (vals |> List.choose (function | Positive x -> Some x | _ -> None))) else None)
+            |> Seq.tryPick id |> Option.defaultValue Unsatisfiable
+        solve (singletonsLit @ enforcedLit) toSolve
         
     let mergeBoolExprs maxSolveSteps exprs =
         let solve e = e |> toFlatCNF |> trySolveSAT maxSolveSteps |> function | Satisfiable x -> Some x | _ -> None
