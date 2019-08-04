@@ -95,7 +95,7 @@ module BoolExpr =
                 let vals = vals @ comb
                 if eval cnf vals then Some (Satisfiable (vals |> List.choose (function | Positive x -> Some x | _ -> None))) else None)
             |> Seq.tryPick id |> Option.defaultValue Unsatisfiable
-        solve (singletonsLit @ enforcedLit) toSolve
+        solve (Seq.toList solvedSet) toSolve
         
     let mergeBoolExprs maxSolveSteps exprs =
         let solve e = e |> toFlatCNF |> trySolveSAT maxSolveSteps |> function | Satisfiable x -> Some x | _ -> None

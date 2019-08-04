@@ -100,17 +100,17 @@ let x = 1
 #endif
 """
     getDefineExprs source |> List.head |> BoolExpr.toFlatCNF |> List.toArray |> should equal
-        [| set[], set["INTERACTIVE"]; set["FOO"; "BAR"], set[]; set[], set["BUZZ"] |]
+        [| set[BoolExpr.Negative "INTERACTIVE"]; set[BoolExpr.Positive "FOO"; BoolExpr.Positive "BAR"]; set[BoolExpr.Negative "BUZZ"] |]
 
 
 [<Test>]
 let ``BoolExpr SAT solve`` () =
     let getSource e = (sprintf "#if %s" e) + System.Environment.NewLine + "#endif"
     let test e x = getDefineExprs (getSource e) |> List.head |> BoolExpr.toFlatCNF |> BoolExpr.trySolveSAT 100 |> should equal x
-    test "!(INTERACTIVE || !(FOO || BAR) || BUZZ)" true
-    test "A && !A" false
-    test "A && (!A || B) && (!B || !A)" false
-    test "A && (!A || B) && (!B || !A || !C)" true
+    test "!(INTERACTIVE || !(FOO || BAR) || BUZZ)" (BoolExpr.Satisfiable ["BAR"; "FOO"])
+    test "A && !A" BoolExpr.Unsatisfiable
+    test "A && (!A || B) && (!B || !A)" BoolExpr.Unsatisfiable
+    test "A && (!A || B) && (!B || !A || !C)" (BoolExpr.Satisfiable ["A"; "B"])
 
 [<Test>]
 let ``BoolExpr merge`` () =
