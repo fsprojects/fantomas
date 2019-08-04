@@ -62,7 +62,6 @@ module BoolExpr =
         let vals = set vals
         let evalTerm s = Set.intersect vals s |> Set.isEmpty |> not
         cnf |> List.forall evalTerm
-        |> Dbg.tee (printfn "eval %A %A %A" cnf vals)
     
     let trySolveSAT maxSteps cnf =
         let allLiterals = cnf |> Seq.collect id |> Seq.toList
