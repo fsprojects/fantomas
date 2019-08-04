@@ -470,35 +470,6 @@ type Generators =
 let registerFsCheckGenerators() =
     Arb.register<Generators>() |> ignore
 
-/// An FsCheck runner which reports FsCheck test results to NUnit.
-type private NUnitRunner () =
-    interface IRunner with
-        member __.OnStartFixture _ = ()
-        member __.OnArguments (_ntest, _args, _every) = 
-            //stdout.Write(every ntest args)
-            ()
-
-        member __.OnShrink(_args, _everyShrink) = 
-            //stdout.Write(everyShrink args)
-            ()
-
-        member __.OnFinished (name, result) =
-            match result with
-            | TestResult.True(_data, _) ->
-                // TODO : Log the result data.
-                Runner.onFinishedToString name result
-                |> stdout.WriteLine
-
-            | TestResult.Exhausted _data ->
-                // TODO : Log the result data.
-                Runner.onFinishedToString name result
-                |> Assert.Inconclusive
-
-            | TestResult.False (_,_,_,_,_) ->
-                // TODO : Log more information about the test failure.
-                Runner.onFinishedToString name result
-                |> Assert.Fail
-
 let private verboseConf = 
     {
         Config.Verbose with

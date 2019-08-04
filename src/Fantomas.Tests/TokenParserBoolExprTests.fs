@@ -82,6 +82,7 @@ let ``BoolExpr merge`` () =
     test ["A || B"; "!A"] [["B"]]
     test ["A || B"; "!A"; "!(A || B)"] [[];["B"]]
     test ["A || B || C"; "!A"; "!C"] [["B"]]
+    test ["A || A"; "!(A || A)"] [["A"];[]]
 
 //--------------
 // Property tests
@@ -91,7 +92,7 @@ let private verboseConf =
         Config.Verbose with
             MaxTest = 500
             EndSize = 20
-//            Runner = NUnitRunner ()
+            Runner = NUnitRunner ()
     }
 
 let rec internal boolExprToString = function
@@ -108,6 +109,7 @@ let x%i = %i
 #else
 let x%i_else = %i
 #endif""" (boolExprToString e) i i i i) |> String.concat System.Environment.NewLine
+    |> fun x -> x + System.Environment.NewLine
 
 type BoolExprGenerator =
     static member SimpleIdent() =
@@ -137,6 +139,8 @@ let ``Hash if expression normalize property``() =
             let source = boolExprsToSource [e]
             getDefineExprs source |> List.head |> BoolExpr.normalizeCNF |> BoolExpr.forall checkNormalize)
 
+let isSatisfiable e = match BoolExpr.trySolveSAT 100 (BoolExpr.toFlatCNF e) with | BoolExpr.Satisfiable _ -> true | _ -> false
+
 [<Test>]
 let ``Hash ifs optimize defines property``() =    
     Check.One({ verboseConf with Arbitrary = [typeof<BoolExprGenerator>] },
@@ -145,7 +149,16 @@ let ``Hash ifs optimize defines property``() =
             let allDefines = getDefines source
             let defines = getOptimizedDefinesSets source
             let definesToLiterals ds = let s = set ds in allDefines |> List.map (fun x -> if Set.contains x s then BoolExpr.Positive x else BoolExpr.Negative x)
-            printfn "%A" (es, source, defines)
-            es |> List.filter (fun e -> match BoolExpr.trySolveSAT 5 (BoolExpr.toFlatCNF e) with | BoolExpr.Satisfiable _ -> true | _ -> false)
-            |> List.collect (fun e -> [e; BoolExpr.Not e])
+            es |> List.collect (fun e -> [e; BoolExpr.Not e])
+            |> List.filter isSatisfiable
             |> List.forall (fun e -> defines |> List.exists (fun ds -> BoolExpr.toFlatCNF e |> fun cnf -> BoolExpr.eval cnf (definesToLiterals ds))))
+
+[<Test>]
+let ``Hash ifs source format property``() =    
+    Check.One({ verboseConf with Arbitrary = [typeof<BoolExprGenerator>] },
+        fun (es: list<_>) ->
+            (es |> List.forall (fun e -> isSatisfiable e && isSatisfiable (BoolExpr.Not e)))
+            ==> lazy (
+                let source = boolExprsToSource es
+                let result = formatSourceString false source config
+                result |> should equal source))

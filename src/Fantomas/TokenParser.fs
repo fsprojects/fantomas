@@ -176,8 +176,10 @@ let getDefineExprs sourceCode =
     result
     
 let getOptimizedDefinesSets sourceCode =
-    let maxSteps = 5
-    getDefineExprs sourceCode |> BoolExpr.mergeBoolExprs maxSteps |> List.map snd
+    let maxSteps = 100
+    match getDefineExprs sourceCode |> BoolExpr.mergeBoolExprs maxSteps |> List.map snd with
+    | [] -> [[]]
+    | xs -> xs
 
 let private getRangeBetween name startToken endToken =
     let l = startToken.TokenInfo.LeftColumn

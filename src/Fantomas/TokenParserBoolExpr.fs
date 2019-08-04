@@ -101,7 +101,8 @@ module BoolExpr =
             match exprsIndexed |> allPairs |> Seq.tryPick (fun ((i,(x,_)),(j,(y,_))) -> pairSolve x y |> Option.map (fun r -> (i, x), (j, y), r)) with
             | None -> exprs
             | Some ((i, x), (j, y), r) -> f ((exprsIndexed |> Seq.filter (fun (k,_) -> i<>k && j<>k) |> Seq.map snd |> Seq.toList) @ [ BoolExpr.And(x, y), Some r ])
-        f exprs |> List.choose (fun (e, r) -> r |> Option.orElseWith (fun () -> solve e) |> Option.map (fun x -> e, x))
+        let r = f exprs |> List.choose (fun (e, r) -> r |> Option.orElseWith (fun () -> solve e) |> Option.map (fun x -> e, x))
+        r
         
     let solveDefinesForExpr maxSolveSteps e =
         e |> toFlatCNF |> trySolveSAT maxSolveSteps |> function | Satisfiable x -> Some x | _ -> None 

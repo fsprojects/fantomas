@@ -72,13 +72,7 @@ let createFormatContext fileName (source:SourceOrigin) projectOptions checker =
       Checker = checker }
 
 let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker } =
-    let allDefineOptions =
-        checkOptions.ConditionalCompilationDefines
-        |> List.scan (fun acc n ->
-            n::acc
-        ) []
-        |> List.append (List.map List.singleton checkOptions.ConditionalCompilationDefines)
-        |> List.distinct
+    let allDefineOptions = TokenParser.getOptimizedDefinesSets source
     
     allDefineOptions
     |> List.map (fun conditionalCompilationDefines ->
