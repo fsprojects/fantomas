@@ -1,9 +1,6 @@
 module Fantomas.Tests.TokenParserBoolExprTests
 
 open Fantomas
-open Fantomas
-open Fantomas
-open Fantomas
 open NUnit.Framework
 open FsUnit
 open Fantomas.TokenParser
