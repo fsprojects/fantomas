@@ -5,6 +5,7 @@ open System
 open System.Text
 open FSharp.Compiler.SourceCodeServices
 open Fantomas
+open Fantomas
 open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
   
@@ -176,7 +177,7 @@ let getDefineExprs sourceCode =
     result
     
 let getOptimizedDefinesSets sourceCode =
-    let maxSteps = 100
+    let maxSteps = FormatConfig.SAT_SOLVE_MAX_STEPS
     match getDefineExprs sourceCode |> BoolExpr.mergeBoolExprs maxSteps |> List.map snd with
     | [] -> [[]]
     | xs -> xs

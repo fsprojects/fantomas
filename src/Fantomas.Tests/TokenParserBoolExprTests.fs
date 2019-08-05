@@ -1,6 +1,9 @@
 module Fantomas.Tests.TokenParserBoolExprTests
 
 open Fantomas
+open Fantomas
+open Fantomas
+open Fantomas
 open NUnit.Framework
 open FsUnit
 open Fantomas.TokenParser
@@ -65,7 +68,7 @@ let x = 1
 [<Test>]
 let ``BoolExpr SAT solve`` () =
     let getSource e = (sprintf "#if %s" e) + System.Environment.NewLine + "#endif"
-    let test e x = getDefineExprs (getSource e) |> List.head |> BoolExpr.toFlatCNF |> BoolExpr.trySolveSAT 100 |> should equal x
+    let test e x = getDefineExprs (getSource e) |> List.head |> BoolExpr.toFlatCNF |> BoolExpr.trySolveSAT FormatConfig.SAT_SOLVE_MAX_STEPS |> should equal x
     test "!(INTERACTIVE || !(FOO || BAR) || BUZZ)" (BoolExpr.Satisfiable ["BAR"; "FOO"])
     test "A && !A" BoolExpr.Unsatisfiable
     test "A && (!A || B) && (!B || !A)" BoolExpr.Unsatisfiable
@@ -75,7 +78,7 @@ let ``BoolExpr SAT solve`` () =
 let ``BoolExpr merge`` () =
     let getSource es = es |> Seq.map (fun e -> (sprintf "#if %s" e) + System.Environment.NewLine + "#endif") |> String.concat System.Environment.NewLine
     let test e x =
-        getDefineExprs (getSource e) |> BoolExpr.mergeBoolExprs 100 |> List.map (snd >> List.toArray)
+        getDefineExprs (getSource e) |> BoolExpr.mergeBoolExprs FormatConfig.SAT_SOLVE_MAX_STEPS |> List.map (snd >> List.toArray)
         |> List.toArray |> should equal (x |> List.map List.toArray |> List.toArray)
     test ["A && B"; "A"] [["A"; "B"]]
     test ["A && B"; "!A"] [["A"; "B"]; []]
@@ -139,7 +142,7 @@ let ``Hash if expression normalize property``() =
             let source = boolExprsToSource [e]
             getDefineExprs source |> List.head |> BoolExpr.normalizeCNF |> BoolExpr.forall checkNormalize)
 
-let isSatisfiable e = match BoolExpr.trySolveSAT 100 (BoolExpr.toFlatCNF e) with | BoolExpr.Satisfiable _ -> true | _ -> false
+let isSatisfiable e = match BoolExpr.trySolveSAT FormatConfig.SAT_SOLVE_MAX_STEPS (BoolExpr.toFlatCNF e) with | BoolExpr.Satisfiable _ -> true | _ -> false
 
 [<Test>]
 let ``Hash ifs optimize defines property``() =    

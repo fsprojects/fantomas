@@ -2,6 +2,8 @@
 
 open System
 
+let SAT_SOLVE_MAX_STEPS = 100
+
 type FormatException(msg : string) =
     inherit Exception(msg)
 
