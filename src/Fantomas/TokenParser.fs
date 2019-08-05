@@ -1,14 +1,13 @@
-module Fantomas.TokenParser
+module internal Fantomas.TokenParser
 
 open FSharp.Compiler.AbstractIL.Internal.Library
 open System
 open System.Text
 open FSharp.Compiler.SourceCodeServices
 open Fantomas
-open Fantomas
 open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
-  
+
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
 // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
 let private isTokenAfterGreater token (greaterToken: Token) =

@@ -2,15 +2,12 @@
 
 open NUnit.Framework
 open System
-open System
 open Fantomas
 open FsCheck
 open FsUnit
 open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
-open FsCheck.Arb
 open TestHelper
-open TokenParser
 
 let generateSynMeasure =
     Gen.constant SynMeasure.One
