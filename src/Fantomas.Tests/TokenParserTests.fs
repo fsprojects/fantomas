@@ -140,7 +140,7 @@ let ``Single line block comment should be found in tokens`` () =
     let triviaNodes = getTriviaFromTokens tokens lineCount
     
     match List.tryLast triviaNodes with
-    | Some({ Item = Comment(BlockComment(blockComment)) }) ->
+    | Some({ Item = Comment(BlockComment(blockComment,_,_)) }) ->
         blockComment == "(* not fonz *)"
     | _ ->
         failwith "expected block comment"
@@ -162,7 +162,7 @@ let ``Multi line block comment should be found in tokens`` () =
         |> String.normalizeNewLine
     
     match triviaNodes with
-    | [{ Item = Comment(BlockComment(blockComment)); Range = range }
+    | [{ Item = Comment(BlockComment(blockComment,_,_)); Range = range }
        { Item = Number("7") }] ->
         blockComment == expectedComment
         range.StartLine == 2
@@ -293,7 +293,7 @@ let x = 1
     let (tokens,lineCount) = tokenize defines source
     let triviaNodes =
         getTriviaFromTokens tokens lineCount
-        |> List.choose (fun tv -> match tv.Item with | Directive(directive,_ ) -> Some directive | _ -> None)
+        |> List.choose (fun tv -> match tv.Item with | Directive(directive) -> Some directive | _ -> None)
 
     List.length triviaNodes == 3
 
@@ -381,3 +381,13 @@ let ``infix operator in full words inside an ident`` () =
         |> List.filter (fun { Item = item } -> match item with | IdentOperatorAsWord "op_LessThan" -> true | _ -> false)
         
     List.length triviaNodes == 1
+
+[<Test>]
+let ``ident between tickets `` () =
+    let source = "let ``/ operator combines paths`` = ()"
+    let (tokens,lineCount) = tokenize [] source
+    let triviaNodes = getTriviaFromTokens tokens lineCount
+    match triviaNodes with
+    | [{ Item = IdentBetweenTicks("``/ operator combines paths``") }] ->
+        pass()
+    | _ -> fail()

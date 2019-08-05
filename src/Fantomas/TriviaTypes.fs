@@ -12,7 +12,7 @@ type Token =
 type Comment =
     | LineCommentAfterSourceCode of comment:string
     | LineCommentOnSingleLine of comment:string
-    | BlockComment of string
+    | BlockComment of string * newlineBefore:bool * newlineAfter:bool
     
 (* LineComment Examples
 
@@ -31,9 +31,10 @@ type TriviaContent =
     | Number of string
     | StringContent of string
     | IdentOperatorAsWord of string
+    | IdentBetweenTicks of string
     | Comment of Comment
     | Newline
-    | Directive of directive:string * appendNewline:bool
+    | Directive of directive:string
     
 type Trivia =
     { Item: TriviaContent
@@ -51,5 +52,6 @@ type TriviaNodeType =
 type TriviaNode =
   { Type: TriviaNodeType
     ContentBefore: TriviaContent list
+    ContentItself: TriviaContent option
     ContentAfter: TriviaContent list
     Range: range }

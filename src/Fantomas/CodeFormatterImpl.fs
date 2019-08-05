@@ -447,27 +447,24 @@ let format config formatContext =
         return merged
     }
 
+let addNewlineIfNeeded (formattedSourceCode:string) =
+    // When formatting the whole document, an EOL is required
+    if formattedSourceCode.EndsWith(Environment.NewLine) then
+        formattedSourceCode
+    else
+        formattedSourceCode + Environment.NewLine
+
 /// Format a source string using given config
 let formatDocument config formatContext =
     async {
         let! formattedSourceCode = format config formatContext
-        
-        // When formatting the whole document, an EOL is required
-        if formattedSourceCode.EndsWith(Environment.NewLine) then 
-            return formattedSourceCode 
-        else 
-            return formattedSourceCode + Environment.NewLine
+        return addNewlineIfNeeded formattedSourceCode
     }
 
 /// Format an abstract syntax tree using given config
 let formatAST ast formatContext config =
     let formattedSourceCode = formatWith ast formatContext config
-        
-    // When formatting the whole document, an EOL is required
-    if formattedSourceCode.EndsWith(Environment.NewLine) then 
-        formattedSourceCode 
-    else 
-        formattedSourceCode + Environment.NewLine
+    addNewlineIfNeeded formattedSourceCode
 
 /// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
 let makeRange fileName startLine startCol endLine endCol =

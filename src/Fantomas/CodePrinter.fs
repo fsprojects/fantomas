@@ -305,7 +305,8 @@ and genModuleDecl astContext node =
         +> (!- "module ")
         +> opt sepSpace ao genAccess
         +> ifElse isRecursive (!- "rec ") sepNone -- s +> sepEq
-        +> indent +> sepNln +> genModuleDeclList astContext mds +> unindent
+        +> indent +> sepNln
+        +> genModuleDeclList astContext mds +> unindent
 
     | Open(s) ->
         !- (sprintf "open %s" s)
@@ -389,13 +390,18 @@ and genOnelinerAttributes astContext ats =
 /// Try to group attributes if they are on the same line
 /// Separate same-line attributes by ';'
 /// Each bucket is printed in a different line
-and genAttributes astContext (ats: SynAttributes) = 
+and genAttributes astContext (ats: SynAttributes) =
+    let genTriviaAttributeList (f: Context -> Context) =
+        ats
+        |> Seq.fold (fun (acc: Context -> Context) (attr: SynAttributeList) -> acc |> (genTrivia attr.Range)) f
+
     (ats
     |> List.collect (fun a -> a.Attributes)
     |> Seq.groupBy (fun at -> at.Range.StartLine)
     |> Seq.map snd
     |> Seq.toList
-    |> fun ats' -> colPost sepNln sepNln ats' (genAttributesCore astContext))
+    |> fun ats' -> (colPost sepNln sepNln ats' (genAttributesCore astContext)))
+    |> genTriviaAttributeList
 
 and genPreXmlDoc (PreXmlDoc lines) ctx = 
     if ctx.Config.StrictMode then
@@ -686,11 +692,11 @@ and genExpr astContext synExpr =
     | StructTuple es -> !- "struct " +> sepOpenT +> genTuple astContext es +> sepCloseT
     | ArrayOrList(isArray, [], _) -> 
         ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
-    | ArrayOrList(isArray, xs, isSimple) ->
+    | ArrayOrList(isArray, xs, isSimple) as alNode ->
         let isMultiline (ctx:Context) =
             xs
             |> List.fold (fun (isMultiline, f) e ->
-                if isMultiline || futureNlnCheck f ctx then
+                if isMultiline || futureNlnCheck (f +> genExpr astContext e) ctx then
                     true, sepNone
                 else
                     false, f +> genExpr astContext e
@@ -725,7 +731,7 @@ and genExpr astContext synExpr =
                             (acc +> genExpr astContext e +> afterExpr) ctx
                  ) sepNone
                  |> atCurrentColumn
-            ifElse isArray (sepOpenA +> expr +> sepCloseA) (sepOpenL +> expr +> sepCloseL)
+            ifElse isArray (sepOpenA +> expr +> sepCloseA) (sepOpenL +> expr +> enterRightBracket alNode.Range +> sepCloseL)
             <| ctx
 
 
@@ -792,9 +798,12 @@ and genExpr astContext synExpr =
             (sepOpenS +> noIndentBreakNln astContext e 
              +> ifElse (checkBreakForExpr e) (unindent +> sepNln +> sepCloseSFixed) sepCloseS) 
 
-    | ArrayOrListOfSeqExpr(isArray, e) -> 
+    | ArrayOrListOfSeqExpr(isArray, e) as aNode ->
         let astContext = { astContext with IsNakedRange = true }
-        let expr = ifElse isArray (sepOpenA +> genExpr astContext e +> sepCloseA) (sepOpenL +> genExpr astContext e +> sepCloseL)
+        let expr =
+            ifElse isArray
+                (sepOpenA +> genExpr astContext e +> enterRightBracket aNode.Range +> sepCloseA)
+                (sepOpenL +> genExpr astContext e +> enterRightBracket aNode.Range +> sepCloseL)
         expr
     | JoinIn(e1, e2) -> genExpr astContext e1 -- " in " +> genExpr astContext e2
     | Paren(DesugaredLambda(cps, e)) ->
@@ -931,7 +940,7 @@ and genExpr astContext synExpr =
             | [_, LetBinding(_, _, _, _, _, p, _)] -> 
                 not (isFromAst ctx) && p.Range.EndLine = e.Range.StartLine && not(checkBreakForExpr e)
             | _ -> false
-        atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") sepNln +> genExpr astContext e)
+        atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") (sepNlnConsideringTriviaContentBefore e.Range) +> genExpr astContext e)
 
     // Could customize a bit if e is single line
     | TryWith(e, cs) -> 
@@ -1048,19 +1057,23 @@ and genLetOrUseList astContext expr =
         | [] -> 
             col sepNln xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
         | _ ->
-            //colEx (fun (mdf:SynMemberDefn) -> sepNlnConsideringTriviaContentBefore mdf.Range) xs (genMemberDefn astContext) +> genMemberDefnList astContext ys
             colEx (fun (_,lx:SynBinding) -> sepNlnConsideringTriviaContentBefore lx.RangeOfBindingSansRhs) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
             +> sepXsYs +> genLetOrUseList astContext ys
 
     | MultilineLetOrUseL(xs, ys) ->
         match ys with
         | [] -> 
-            col (rep 2 sepNln) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
+            colEx (fun (_,synB:SynBinding) -> sepNln +> sepNlnConsideringTriviaContentBefore synB.RangeOfBindingSansRhs) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
             // Add a trailing new line to separate these with the main expression
-            +> sepNln 
-        | _ -> 
-            col (rep 2 sepNln) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x) 
-            +> rep 2 sepNln +> genLetOrUseList astContext ys
+            +> sepNln
+        | _ ->
+            let sepXsYs =
+                match List.tryHead ys with
+                | Some (_,ysh) -> sepNln +> sepNlnConsideringTriviaContentBefore ysh.RangeOfBindingSansRhs
+                | None -> rep 2 sepNln
+
+            colEx (fun (_,lx:SynBinding) -> sepNlnConsideringTriviaContentBefore lx.RangeOfBindingAndRhs) xs (fun (p, x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
+            +> sepXsYs +> genLetOrUseList astContext ys
 
     | _ -> sepNone
 
@@ -1214,27 +1227,8 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
         +> unindent
     
     | ObjectModel(_, MemberDefnList(impCtor, others), _) ->
-        let sepNlnIfOtherHaveTrivia (ctx: Context) =
-            let ranges =
-                match others with
-                | mbr::_ -> [ mbr.Range; tdr.Range ]
-                | _ -> [tdr.Range]
-
-            let isThereContentBefore =
-                ctx.Trivia
-                |> List.filter (fun t ->
-                    List.contains t.Range ranges && hasPrintableContent t.ContentBefore
-                )
-                |> List.length
-                |> (fun l -> l > 0)
-
-            match isThereContentBefore with
-            | true  -> sepNln
-            | false -> sepSpace
-            <| ctx
-    
         typeName +> opt sepNone impCtor (genMemberDefn { astContext with InterfaceRange = None }) +> sepEq
-        +> indent +> sepNlnIfOtherHaveTrivia
+        +> indent
         +> genMemberDefnList { astContext with InterfaceRange = None } others
         +> unindent
 
@@ -1605,7 +1599,7 @@ and genMemberDefn astContext node =
         genLetBinding { astContext with IsFirstChild = true } prefix b 
         +> colPre sepNln sepNln bs (genLetBinding { astContext with IsFirstChild = false } "and ")
 
-    | MDInterface(t, mdo, range) -> 
+    | MDInterface(t, mdo, range) ->
         !- "interface " +> genType astContext false t
         +> opt sepNone mdo 
             (fun mds -> !- " with" +> indent +> genMemberDefnList { astContext with InterfaceRange = Some range } mds +> unindent)
@@ -1774,7 +1768,7 @@ and genConst (c:SynConst) (r:range) =
                         | true, Token({TokenInfo = ti}) when (ti.TokenName = "LPAREN") -> true
                         | _ -> false
                     )
-                    |> Option.map (fun tv -> tv.ContentAfter |> List.choose(function | Comment(BlockComment(bc)) -> Some bc | _ -> None))
+                    |> Option.map (fun tv -> tv.ContentAfter |> List.choose(function | Comment(BlockComment(bc,_,_)) -> Some bc | _ -> None))
                     |> Option.defaultValue []
 
                 match innerComments with
@@ -1808,12 +1802,9 @@ and genConst (c:SynConst) (r:range) =
             let triviaStringContent =
                 trivia
                 |> Option.bind(fun tv ->
-                    tv.ContentBefore
-                    |> List.choose (fun tv ->
-                        match tv with
-                        | StringContent(sc) -> Some sc
-                        | _ -> None  )
-                    |> List.tryExactlyOne
+                    match tv.ContentItself with
+                    | Some(StringContent(sc)) -> Some sc
+                    | _ -> None
                 )
 
             match triviaStringContent, trivia with
@@ -1843,9 +1834,7 @@ and genConstNumber (c:SynConst) (r: range) =
         ctx.Trivia
         |> List.tryFind (fun t -> t.Range = r)
         |> Option.bind(fun tn ->
-            tn.ContentBefore
-            |> List.choose (fun tv -> match tv with | Number(n) -> Some n | _ -> None)
-            |> List.tryExactlyOne
+            match tn.ContentItself with | Some(Number(n)) -> Some n | _ -> None
         )
         |> fun n ->
             match n with
@@ -1876,12 +1865,10 @@ and genConstBytes (bytes: byte []) (r: range) =
             ctx.Trivia
             |> List.tryFind(fun t -> t.Range = r)
             |> Option.bind (fun tv ->
-                tv.ContentBefore
-                |> List.choose (fun sc ->
-                    match sc with
-                    | StringContent(content) -> Some content
-                    | _ -> None)
-                |> List.tryExactlyOne)
+                match tv.ContentItself with
+                | Some(StringContent(content)) -> Some content
+                | _ -> None
+            )
 
         match trivia with
         | Some t -> !- t
@@ -1899,9 +1886,10 @@ and infixOperatorFromTrivia range fallback (ctx: Context) =
     |> List.choose(fun t ->
         match t.Range = range with
         | true ->
-            t.ContentBefore
-            |> List.choose (fun tc -> match tc with | IdentOperatorAsWord(iiw) -> Some iiw | _ -> None)
-            |> List.tryHead
+            match t.ContentItself with
+            | Some(IdentOperatorAsWord(iiw)) -> Some iiw
+            | Some(IdentBetweenTicks(iiw)) -> Some iiw // Used when value between ``...``
+            | _ -> None
         | _ -> None)
     |> List.tryHead
     |> fun iiw ->

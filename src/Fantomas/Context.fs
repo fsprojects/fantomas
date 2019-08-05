@@ -111,6 +111,13 @@ type internal Context =
 let internal dump (ctx: Context) =
     ctx.Writer.InnerWriter.ToString()
 
+#if DEBUG
+let internal dumpAndContinue (ctx: Context) =
+    let code = dump ctx
+    printfn "%s" code
+    ctx
+#endif
+
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
 /// Indent one more level based on configuration
@@ -440,19 +447,34 @@ let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 /// Never break into newlines on these operators
 let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
-let internal printTriviaContent (c: TriviaContent) =
+let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
+    // Some items like #if of Newline should be printed on a newline
+    // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
+    let addNewline =
+        dump ctx
+        |> String.normalizeThenSplitNewLine
+        |> Array.tryLast
+        |> Option.map (fun (line:string) -> line.Trim().Length > 1)
+        |> Option.defaultValue false
+
     match c with
     | Comment(LineCommentAfterSourceCode s) -> sepSpace +> !- s
-    | Comment(LineCommentOnSingleLine s) -> !- s +> sepNln
-    | Comment(BlockComment s) -> sepSpace -- s +> sepSpace
-    | Newline -> sepNln
+    | Comment(BlockComment(s, before, after)) ->
+        ifElse (before && addNewline) sepNln sepNone
+        +> sepSpace -- s +> sepSpace
+        +> ifElse after sepNln sepNone
+    | Newline ->
+        (ifElse addNewline (sepNln +> sepNln) sepNln)
     | Keyword _
     | Number _
     | StringContent _
     | IdentOperatorAsWord _
+    | IdentBetweenTicks _
          -> sepNone // don't print here but somewhere in CodePrinter
-    | Directive(content, addNewline) ->
-        (ifElse addNewline sepNln sepNone) +> !- content +> sepNln
+    | Directive(s)
+    | Comment(LineCommentOnSingleLine s) ->
+        (ifElse addNewline sepNln sepNone) +> !- s +> sepNln
+    <| ctx
 
 let private removeNodeFromContext triviaNode (ctx: Context) =
     let newNodes = List.filter (fun tn -> tn <> triviaNode) ctx.Trivia
@@ -481,7 +503,6 @@ let internal printContentBefore triviaNode =
                         tn
                 ) 
             { ctx with Trivia = trivia }
-        
         
     col sepNone triviaNode.ContentBefore printTriviaContent +> removeBeforeContentOfTriviaNode
 
@@ -559,6 +580,35 @@ let internal leaveLeftBrace (range: range) (ctx: Context) =
             id
     <| ctx
 
+let internal enterRightBracket (range: range) (ctx: Context) =
+    ctx.Trivia
+    |> List.tryFind(fun tn ->
+        // Token is a left brace { at the beginning of the range.
+        match tn.Type with
+        | Token(tok) ->
+            (tok.TokenInfo.TokenName = "RBRACK" || tok.TokenInfo.TokenName = "BAR_RBRACK")
+            && tn.Range.EndLine = range.EndLine
+            && (tn.Range.EndColumn = range.EndColumn || tn.Range.EndColumn + 1 = range.EndColumn)
+        | _ -> false
+    )
+    |> fun tn ->
+        match tn with
+        | Some({ ContentBefore = [TriviaContent.Comment(LineCommentOnSingleLine(lineComment))] } as tn) ->
+            let spacesBeforeComment =
+                let braceSize =
+                    match tn.Type with
+                    | Token({TokenInfo = {TokenName = "BAR_RBRACK"}}) -> 2
+                    | _ -> 1
+                let spaceAround = if ctx.Config.SpaceAroundDelimiter then 1 else 0
+
+                !- String.Empty.PadLeft(braceSize + spaceAround)
+
+            let spaceAfterNewline = if ctx.Config.SpaceAroundDelimiter then sepSpace else sepNone
+            sepNln +> spacesBeforeComment +> !- lineComment +> sepNln +> spaceAfterNewline +> removeNodeFromContext tn
+        | _ ->
+            id
+    <| ctx
+
 let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
     |> List.filter (fun tn ->
@@ -580,6 +630,8 @@ let private hasDirectiveBefore (trivia: TriviaContent list) =
 
 let internal sepNlnConsideringTriviaContentBefore (range:range) ctx =
     match findTriviaMainNodeFromRange ctx.Trivia range with
+    | Some({ ContentBefore = (Comment(BlockComment(_,false,_)))::_ }) ->
+        sepNln ctx
     | Some({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) ->
         ctx
     | _ -> sepNln ctx

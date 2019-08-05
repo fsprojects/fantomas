@@ -1242,9 +1242,10 @@ let (|Extern|_|) = function
     | _ -> None
 
 let private collectAttributesRanges (a:SynAttributes) =
-    a
-    |> Seq.collect (fun a -> a.Attributes)
-    |> Seq.map (fun a -> a.Range)
+    seq {
+        yield! (List.map (fun al -> al.Range) a)
+        yield! (Seq.collect (fun a -> a.Attributes |> List.map (fun a -> a.Range)) a)
+    }
 
 let getRangesFromAttributes (mdl: SynModuleDecl) =
     match mdl with
@@ -1255,7 +1256,9 @@ let getRangesFromAttributes (mdl: SynModuleDecl) =
         types
         |> Seq.collect(fun t ->
             match t with
-            | SynTypeDefn.TypeDefn((SynComponentInfo.ComponentInfo(attrs, _,_,_,_,_,_,_)),stdr,_,_) -> collectAttributesRanges attrs
+            | SynTypeDefn.TypeDefn((SynComponentInfo.ComponentInfo(attrs, _,_,_,_,_,_,_)),_,_,_) -> collectAttributesRanges attrs
         )
+    | SynModuleDecl.NestedModule((SynComponentInfo.ComponentInfo(attrs, _,_,_,_,_,_,_)), _,_,_,_) ->
+        collectAttributesRanges attrs
     | _ -> Seq.empty
     |> Seq.toList

@@ -287,7 +287,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             getRangeBetween "block comment" headToken lastToken
             
         let info =
-            Trivia.Create (Comment(BlockComment(comment))) range
+            Trivia.Create (Comment(BlockComment(comment, false, false))) range
             |> List.prependItem foundTrivia
             
         getTriviaFromTokensThemSelves allTokens nextTokens info
@@ -314,7 +314,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             
         let range = getRangeBetween "directive" headToken (List.last directiveTokens)
         let info =
-            Trivia.Create (Directive(directiveContent, false (*false for now, later determined in Trivia.fs*))) range
+            Trivia.Create (Directive(directiveContent)) range
             |> List.prependItem foundTrivia
         
         let nextRest =
@@ -375,6 +375,13 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> List.prependItem foundTrivia
         getTriviaFromTokensThemSelves allTokens rest info
 
+    | head::rest when (head.TokenInfo.TokenName = "IDENT" && head.Content.StartsWith("``") && head.Content.EndsWith("``")) ->
+        let range = getRangeBetween "ident between ``" head head
+        let info =
+            Trivia.Create(IdentBetweenTicks(head.Content)) range
+            |> List.prependItem foundTrivia
+        getTriviaFromTokensThemSelves allTokens rest info
+
     | (_)::rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
     
     | [] -> foundTrivia
@@ -414,7 +421,7 @@ let getTriviaFromTokens (tokens: Token list) linesCount =
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
 
-let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "EQUALS"; "ELSE"; "BAR"]
+let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "BAR_LBRACK"; "BAR_RBRACK"; "EQUALS"; "ELSE"; "BAR"]
 let private tokenKinds = [FSharpTokenCharKind.Operator]
     
 let getTriviaNodesFromTokens (tokens: Token list) : TriviaNode list =
@@ -423,6 +430,7 @@ let getTriviaNodesFromTokens (tokens: Token list) : TriviaNode list =
     |> List.map (fun t ->
         { Type = TriviaNodeType.Token(t)
           ContentBefore = []
+          ContentItself = None
           ContentAfter = []
           Range = getRangeBetween t.TokenInfo.TokenName t t }
     )

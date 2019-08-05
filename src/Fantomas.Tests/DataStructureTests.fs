@@ -189,3 +189,81 @@ let ``multiline list should print each item on newline`` () =
       "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
       "ffffffffffffffffffffffffffffffffffffffff" ]
 """
+
+[<Test>]
+let ``multiline list of string should not add ;`` () =
+    formatSourceString false """
+       [ "_Binaries/AltCover/Debug+AnyCPU/AltCover.exe"
+         "_Binaries/AltCover.Shadow/Debug+AnyCPU/AltCover.Shadow.dll" ]
+"""  ({ config with PageWidth = 80 })
+    |> should equal """[ "_Binaries/AltCover/Debug+AnyCPU/AltCover.exe"
+  "_Binaries/AltCover.Shadow/Debug+AnyCPU/AltCover.Shadow.dll" ]
+"""
+
+[<Test>]
+let ``line comment inside list parameter`` () =
+    formatSourceString false """
+let prismCli commando =
+    let props =
+        createObj [
+            "component" ==> "pre"
+            //"className" ==> "language-fsharp"
+        ]
+    ()
+"""  config
+    |> should equal """let prismCli commando =
+    let props =
+        createObj
+            [ "component" ==> "pre"
+              //"className" ==> "language-fsharp"
+             ]
+    ()
+"""
+
+
+[<Test>]
+let ``line comment inside array parameter`` () =
+    formatSourceString false """
+let prismCli commando =
+    let props =
+        createObj [|
+            "component" ==> "pre"
+            //"className" ==> "language-fsharp"
+        |]
+    ()
+"""  ({ config with SpaceAroundDelimiter = false })
+    |> should equal """let prismCli commando =
+    let props =
+        createObj
+            [|"component" ==> "pre"
+              //"className" ==> "language-fsharp"
+            |]
+    ()
+"""
+
+[<Test>]
+let ``line comment inside list`` () =
+    formatSourceString false """[ 7
+// foo
+]
+"""  ({ config with SpaceAroundDelimiter = false })
+    |> should equal """[7
+ // foo
+]
+"""
+
+[<Test>]
+let ``line comment inside array`` () =
+    formatSourceString false """[| 7
+// foo
+|]
+"""  config
+    |> should equal """[| 7
+   // foo
+ |]
+"""
+
+let x =
+    [| 7
+       // foo
+    |]

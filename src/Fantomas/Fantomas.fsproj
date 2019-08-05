@@ -3,7 +3,7 @@
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
-    <Version>3.0.0-beta-001</Version>
+    <Version>3.0.0-beta-002</Version>
     <Description>Source code formatter for F#</Description>
   </PropertyGroup>
   <ItemGroup>
@@ -17,6 +17,7 @@
     <!--    <Compile Include="TokenMatcher.fs" />-->
     <Compile Include="TriviaTypes.fs" />
     <Compile Include="TokenParserBoolExpr.fs" />
+    <Compile Include="TriviaHelpers.fs" />
     <Compile Include="TokenParser.fs" />
     <Compile Include="Trivia.fs" />
     <Compile Include="Context.fs" />

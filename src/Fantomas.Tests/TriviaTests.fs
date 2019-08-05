@@ -1,6 +1,5 @@
 module Fantomas.Tests.TriviaTests
 
-open System
 open NUnit.Framework
 open Fantomas
 open Fantomas.Tests.TestHelper
@@ -37,7 +36,7 @@ let a = 9
     
     match triviaNodes with
     | [{ ContentBefore = [Comment(LineCommentOnSingleLine(lineComment))];  }
-       {ContentBefore = [Number("9")]}] ->
+       { ContentItself = Some(Number("9"))}] ->
         lineComment == "// meh"
     | _ ->
         failwith "Expected line comment"
@@ -66,7 +65,7 @@ let ``Line comment on same line, is after last AST item`` () =
         |> List.head
 
     match triviaNodes with
-    | [{Type = MainNode("SynModuleOrNamespace.AnonModule") ;ContentAfter = [Comment(LineCommentAfterSourceCode(lineComment))]}; {Type = MainNode("SynExpr.Const"); ContentBefore =[Number("7")]}] ->
+    | [{Type = MainNode("SynModuleOrNamespace.AnonModule") ;ContentAfter = [Comment(LineCommentAfterSourceCode(lineComment))]}; {Type = MainNode("SynExpr.Const"); ContentItself =Some(Number("7"))}] ->
         lineComment == "// should be 8"
     | _ ->
         fail()
@@ -81,9 +80,9 @@ let b = 9"""
         |> List.head
 
     match triviaNodes with
-    | [{ContentBefore = [Number("7")]}
+    | [{ContentItself = Some(Number("7"))}
        {ContentBefore = [Newline]}
-       {ContentBefore = [Number("9")]}] ->
+       {ContentItself = Some(Number("9"))}] ->
         pass()
     | _ ->
         fail()
@@ -101,7 +100,7 @@ let a = 7
 
     match triviaNodes with
     | [{ContentBefore = [Comment(LineCommentOnSingleLine(fooComment));Comment(LineCommentOnSingleLine(barComment))]}
-       {ContentBefore = [Number("7")]}] ->
+       {ContentItself = Some(Number("7"))}] ->
         fooComment == "// foo"
         barComment == "// bar"
     | _ ->
@@ -120,7 +119,7 @@ let ``Comments inside record`` () =
 
     match triviaNodes with
     | [{ Type = TriviaNodeType.Token(t); ContentAfter = [Comment(LineCommentAfterSourceCode("// foo"))] }
-       { ContentBefore = [Number("7")] }] ->
+       { ContentItself = Some(Number("7")) }] ->
         t.Content == "{"
     | _ ->
         fail()
@@ -138,9 +137,9 @@ let ``Comment after all source code`` () =
     
     match triviaNodes with
     | [ { Type = MainNode(mn); ContentAfter = [Comment(LineCommentOnSingleLine(lineComment))] }
-        { ContentBefore = [Number("123")] } ] ->
+        { ContentItself = Some(Number("123")) } ] ->
         mn == "SynModuleDecl.Types"
-        lineComment == (sprintf "%s//    override private x.ToString() = \"\"" Environment.NewLine)
+        lineComment == "//    override private x.ToString() = \"\""
         pass()
     | _ ->
         fail()
@@ -154,8 +153,8 @@ let ``Block comment added to trivia`` () =
         |> List.head
     
     match triviaNodes with
-    | [{ ContentAfter = [Comment(BlockComment(comment))]
-         Type = Token { Content = "=" } }; {ContentBefore = [Number("9")]}] ->
+    | [{ ContentAfter = [Comment(BlockComment(comment,_,_))]
+         Type = Token { Content = "=" } }; {ContentItself = Some(Number("9"))}] ->
         comment == "(* meh *)"
     | _ ->
         failwith "Expected block comment"
@@ -171,7 +170,7 @@ let a =  b
         |> List.head
     
     match triviaNodes with
-    | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
+    | [{ ContentBefore = [Comment(BlockComment(comment,_,true))] }] ->
         comment == "(* meh *)"
     | _ ->
         failwith "Expected block comment"
@@ -186,7 +185,7 @@ let ``Block comment on newline EOF added to trivia`` () =
         |> List.head
     
     match triviaNodes with
-    | [{ ContentAfter = [Newline; Comment(BlockComment(comment))] }] ->
+    | [{ ContentAfter = [Comment(BlockComment(comment,true,_))] }] ->
         comment == "(* meh *)"
     | _ ->
         failwith "Expected block comment"
@@ -200,7 +199,7 @@ let ``Block comment on EOF added to trivia`` () =
         |> List.head
     
     match triviaNodes with
-    | [{ ContentAfter = [Comment(BlockComment(comment))] }] ->
+    | [{ ContentAfter = [Comment(BlockComment(comment,_,_))] }] ->
         comment == "(* meh *)"
     | _ ->
         failwith "Expected block comment"
@@ -216,7 +215,7 @@ let a =  c + d
         |> List.head
     
     match triviaNodes with
-    | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
+    | [{ ContentBefore = [Comment(BlockComment(comment,_,true))] }] ->
         comment == "(* (* meh *) *)"
     | _ ->
         failwith "Expected block comment"
@@ -233,8 +232,8 @@ let a =  9
         |> List.head
     
     match triviaNodes with
-    | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }
-       { ContentBefore = [Number("9")] }] ->
+    | [{ ContentBefore = [Comment(BlockComment(comment,_,true))] }
+       { ContentItself = Some(Number("9")) }] ->
         comment == "(* // meh *)"
     | _ ->
         failwith "Expected block comment"
@@ -257,7 +256,7 @@ bla *)"""
         |> String.normalizeNewLine
     
     match triviaNodes with
-    | [{ ContentBefore = [Comment(BlockComment(comment)); Newline] }] ->
+    | [{ ContentBefore = [Comment(BlockComment(comment,_,true))] }] ->
         comment == expectedComment
     | _ ->
         failwith "Expected block comment"
@@ -276,7 +275,7 @@ x
         |> List.head
 
     match triviaNodes with
-    | [{ContentBefore = [Comment(BlockComment(fooComment)); Newline; Comment(BlockComment(barComment)); Newline]}] ->
+    | [{ContentBefore = [Comment(BlockComment(fooComment,_,true)); Comment(BlockComment(barComment,_,true))]}] ->
         fooComment == "(* foo *)"
         barComment == "(* bar *)"
     | _ ->
@@ -313,7 +312,7 @@ MEH
         |> List.head
     
     match triviaNodes with
-    | [{ ContentBefore = [Comment(BlockComment(c)); Newline] }] ->
+    | [{ ContentBefore = [Comment(BlockComment(c,_,true))] }] ->
         c == (String.normalizeNewLine comment)
     | _ ->
         failwith "Expected block comment"
@@ -350,15 +349,15 @@ doSomething()
 
     match withoutDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
-         ContentBefore = [Directive("#if NOT_DEFINED", false); Directive("#else", false)]
-         ContentAfter = [Directive("#endif", true)] }] ->
+         ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else")]
+         ContentAfter = [Directive("#endif")] }] ->
         pass()
     | _ ->
         fail()
         
     match withDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
-         ContentBefore = [Directive("#if NOT_DEFINED", false); Directive("#else", false); Directive("#endif", false)]
+         ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else"); Directive("#endif")]
          ContentAfter = [] }] ->
         pass()
     | _ ->
@@ -379,7 +378,7 @@ let x = 1
     
     match withoutDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
-         ContentBefore = [Directive("#if NOT_DEFINED",false); Newline; Directive("#endif", false)]
+         ContentBefore = [Directive("#if NOT_DEFINED"); Newline; Directive("#endif")]
          ContentAfter = [] }] ->
         pass()
     | _ ->
@@ -387,11 +386,11 @@ let x = 1
 
     match withDefine with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
-         ContentBefore = [Directive("#if NOT_DEFINED", false)]
+         ContentBefore = [Directive("#if NOT_DEFINED")]
          ContentAfter = [] }
        { Type = MainNode("SynModuleDecl.Let")
          ContentBefore = []
-         ContentAfter = [Directive("#endif", true)]}] ->
+         ContentAfter = [Directive("#endif")]}] ->
         pass()
     | _ ->
         fail()
@@ -412,11 +411,11 @@ type ExtensibleDumper = A | B
 
     match trivias with
     | [{ Type = MainNode("Ident")
-         ContentAfter = [Directive("#if EXTENSIBLE_DUMPER", true)
-                         Directive("#if DEBUG", false)
+         ContentAfter = [Directive("#if EXTENSIBLE_DUMPER")
+                         Directive("#if DEBUG")
                          Newline
-                         Directive("#endif", true)
-                         Directive("#endif", false)] }] ->
+                         Directive("#endif")
+                         Directive("#endif")] }] ->
         pass()
     | _ ->
         fail()
