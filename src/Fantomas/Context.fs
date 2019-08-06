@@ -60,7 +60,7 @@ type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
 type internal Context = 
     { Config : FormatConfig; 
       Writer : ColumnIndentedTextWriter;
-      mutable BreakLines : bool;
+      BreakLines : bool;
       BreakOn : string -> bool;
       /// The original source string to query as a last resort 
       Content : string; 
@@ -400,10 +400,8 @@ let internal colAutoNlnSkip0 f' c f = colAutoNlnSkip0i f' c (fun _ -> f)
 
 /// Skip all auto-breaking newlines
 let internal noNln f (ctx : Context) : Context = 
-    ctx.BreakLines <- false
-    let res = f ctx
-    ctx.BreakLines <- true
-    res 
+    let res = f { ctx with BreakLines = false }
+    { res with BreakLines = ctx.BreakLines }
 
 let internal sepColon (ctx : Context) = 
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx

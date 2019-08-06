@@ -436,3 +436,23 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
                                            Avatar = \"guest.png\" } |] }).write()
         Logger.debug \"Database restored\"
 "
+
+[<Test>]
+let ``issue 457``() =
+    formatSourceString false """
+let x = Foo("").Goo()
+
+let r =
+    { s with
+        x = 1
+        y = 2 }
+"""  config
+  |> prepend newline
+  |> should equal """
+let x = Foo("").Goo()
+
+let r =
+    { s with
+          x = 1
+          y = 2 }
+"""
