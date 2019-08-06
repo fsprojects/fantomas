@@ -665,3 +665,39 @@ type substring =
                 (strA.String, strA.Offset, strB.String, strB.Offset, min strA.Length strB.Length)
 #endif
 """
+
+[<Test>]
+let ``line comment after "then"``() =
+    formatSourceString false """
+if true then //comment
+    1
+else 0""" config
+    |> prepend newline
+    |> should equal """
+if true then 1 //comment
+else 0
+"""
+
+[<Test>]
+let ``line comment after "if"``() =
+    formatSourceString false """
+if //comment
+    true then 1
+else 0""" config
+    |> prepend newline
+    |> should equal """
+if true then 1 //comment
+else 0
+"""
+
+[<Test>]
+let ``line comment after "else"``() =
+    formatSourceString false """
+if true then 1
+else //comment
+    0""" config
+    |> prepend newline
+    |> should equal """
+if true then 1
+else 0 //comment
+"""
