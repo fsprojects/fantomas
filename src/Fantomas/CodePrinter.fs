@@ -978,7 +978,7 @@ and genExpr astContext synExpr =
             <| ctx
         
         atCurrentColumn (
-            printIfKeyword (!-) "if " fullRange +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") -- " "
+            tokN "IF" (printIfKeyword (!-) "if " fullRange) +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +> tokN "THEN" (!- "" +- "then")) -- " "
             +> preserveBreakNln astContext e2
             +> fun ctx -> col sepNone es (fun (e1, e2, _, fullRange, node) ->
                                  let elsePart =
@@ -1010,8 +1010,8 @@ and genExpr astContext synExpr =
 
                                  elsePart +>
                                  genTrivia node.Range (ifElse (checkBreakForExpr e1)
-                                                           (genExpr astContext e1 ++ "then")
-                                                           (genExpr astContext e1 +- "then")
+                                                           (genExpr astContext e1 +> tokN "THEN" (!-"" ++ "then"))
+                                                           (genExpr astContext e1 +> tokN "THEN" (!-"" +- "then"))
                                                        -- " " +> preserveBreakNln astContext e2)
                             ) ctx
             +> opt sepNone enOpt (fun en -> beforeElseKeyword fullRange en.Range +> !+ "else " +> preserveBreakNln astContext en)
@@ -1880,6 +1880,9 @@ and genTrivia (range: range) f =
 
 and tok (range: range) (s: string) =
     enterNodeToken range +> (!-s) +> leaveNodeToken range
+
+and tokN (tokenName: string) f =
+    enterNodeTokenByName tokenName +> f +> leaveNodeTokenByName tokenName
 
 and infixOperatorFromTrivia range fallback (ctx: Context) =
     ctx.Trivia

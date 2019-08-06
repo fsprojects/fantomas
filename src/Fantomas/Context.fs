@@ -17,6 +17,8 @@ type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
     // that way we avoid bigger than indentSpace indentation when indent is used after atCurrentColumn
     let mutable atColumn = 0
     
+    let mutable toWriteBeforeNewLine = ""
+    
     let applyAtColumn f =
         let newIndent = f atColumn
         indentWriter.Indent <- newIndent
@@ -36,8 +38,12 @@ type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
     member __.WriteLine(s : string) =
         applyAtColumn (fun x -> max indentWriter.Indent x)
         col <- indentWriter.Indent
-        indentWriter.WriteLine(s)
+        indentWriter.WriteLine(s + toWriteBeforeNewLine)
+        toWriteBeforeNewLine <- ""
 
+    member __.WriteBeforeNextNewLine(s : string) =
+        toWriteBeforeNewLine <-s
+    
     /// Current column of the page in an absolute manner
     member __.Column 
         with get() = col
@@ -458,7 +464,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
         |> Option.defaultValue false
 
     match c with
-    | Comment(LineCommentAfterSourceCode s) -> sepSpace +> !- s
+    | Comment(LineCommentAfterSourceCode s) -> fun ctx -> ctx.Writer.WriteBeforeNextNewLine (" " + s); ctx
     | Comment(BlockComment(s, before, after)) ->
         ifElse (before && addNewline) sepNln sepNone
         +> sepSpace -- s +> sepSpace
@@ -530,21 +536,27 @@ let private findTriviaTokenFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n -> Trivia.isToken n && n.Range.Start = range.Start && n.Range.End = range.End)
 
-let internal enterNodeWith f (range: range) (ctx: Context) =
-    match f ctx.Trivia range with
+let private findTriviaTokenFromName nodes (tokenName:string) =
+    nodes
+    |> List.tryFind(fun n -> match n.Type with | Token(tn) when tn.TokenInfo.TokenName = tokenName -> true | _ -> false)
+
+let internal enterNodeWith f x (ctx: Context) =
+    match f ctx.Trivia x with
     | Some triviaNode ->
         (printContentBefore triviaNode) ctx
     | None -> ctx
 let internal enterNode (range: range) (ctx: Context) = enterNodeWith findTriviaMainNodeOrTokenOnStartFromRange range ctx
 let internal enterNodeToken (range: range) (ctx: Context) = enterNodeWith findTriviaTokenFromRange range ctx
+let internal enterNodeTokenByName (tokenName:string) (ctx: Context) = enterNodeWith findTriviaTokenFromName tokenName ctx
 
-let internal leaveNodeWith f (range: range) (ctx: Context) =
-    match f ctx.Trivia range with
+let internal leaveNodeWith f x (ctx: Context) =
+    match f ctx.Trivia x with
     | Some triviaNode ->
         ((printContentAfter triviaNode) +> (removeNodeFromContext triviaNode)) ctx
     | None -> ctx
 let internal leaveNode (range: range) (ctx: Context) = leaveNodeWith findTriviaMainNodeOrTokenOnEndFromRange range ctx
 let internal leaveNodeToken (range: range) (ctx: Context) = leaveNodeWith findTriviaTokenFromRange range ctx
+let internal leaveNodeTokenByName (tokenName:string) (ctx: Context) = leaveNodeWith findTriviaTokenFromName tokenName ctx
     
 let internal leaveEqualsToken (range: range) (ctx: Context) =
     ctx.Trivia
