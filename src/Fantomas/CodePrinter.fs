@@ -977,12 +977,16 @@ and genExpr astContext synExpr =
             |> Option.defaultValue (separator fallback)
             <| ctx
         
+        let ifTokenKw r f s = tokN r "IF" (printIfKeyword f s fullRange)
+        let ifToken r f = tokN r "IF" f
+        let thenToken r f = tokN r "THEN" f
+        let elseToken r f = tokN r "ELSE" f
         atCurrentColumn (
-            tokN "IF" (printIfKeyword (!-) "if " fullRange) +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +> tokN "THEN" (!- "" +- "then")) -- " "
+            ifTokenKw fullRange (!-) "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 +> thenToken fullRange !+"then") (genExpr astContext e1 +> thenToken fullRange !+-"then") -- " "
             +> preserveBreakNln astContext e2
             +> fun ctx -> col sepNone es (fun (e1, e2, _, fullRange, node) ->
                                  let elsePart =
-                                     printIfKeyword (fun kw ctx ->
+                                     ifTokenKw fullRange (fun kw ctx ->
                                          let hasContentBeforeIf =
                                              ctx.Trivia
                                              |> List.tryFind (fun tv -> tv.Range = fullRange)
@@ -1000,21 +1004,21 @@ and genExpr astContext synExpr =
                                          // Next we need to be sure that the are no comments between else and if
                                          match kw with
                                          | "if " when hasContentBeforeIf ->
-                                             (!+ "else" +> indent +> sepNln +> genTrivia fullRange (!- "if "))
+                                             (elseToken e2.Range !+"else" +> indent +> sepNln +> genTrivia fullRange (ifToken node.Range !-"if "))
                                          | "if " ->
-                                             (!+ "else if ")
+                                             (elseToken e2.Range !+"else if ")
                                          | _ (* "elif" *) ->
                                             !+ kw
                                         <| ctx
-                                     ) "if " fullRange
+                                     ) "if "
 
                                  elsePart +>
                                  genTrivia node.Range (ifElse (checkBreakForExpr e1)
-                                                           (genExpr astContext e1 +> tokN "THEN" (!-"" ++ "then"))
-                                                           (genExpr astContext e1 +> tokN "THEN" (!-"" +- "then"))
+                                                           (genExpr astContext e1 +> thenToken node.Range !+"then")
+                                                           (genExpr astContext e1 +> thenToken node.Range !+-"then")
                                                        -- " " +> preserveBreakNln astContext e2)
                             ) ctx
-            +> opt sepNone enOpt (fun en -> beforeElseKeyword fullRange en.Range +> !+ "else " +> preserveBreakNln astContext en)
+            +> opt sepNone enOpt (fun en -> beforeElseKeyword fullRange en.Range +> elseToken en.Range !+"else " +> preserveBreakNln astContext en)
         )
 
     // At this stage, all symbolic operators have been handled.
@@ -1881,8 +1885,8 @@ and genTrivia (range: range) f =
 and tok (range: range) (s: string) =
     enterNodeToken range +> (!-s) +> leaveNodeToken range
 
-and tokN (tokenName: string) f =
-    enterNodeTokenByName tokenName +> f +> leaveNodeTokenByName tokenName
+and tokN (range: range) (tokenName: string) f =
+    enterNodeTokenByName range tokenName +> f +> leaveNodeTokenByName range tokenName
 
 and infixOperatorFromTrivia range fallback (ctx: Context) =
     ctx.Trivia

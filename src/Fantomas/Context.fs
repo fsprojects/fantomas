@@ -42,7 +42,11 @@ type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
         toWriteBeforeNewLine <- ""
 
     member __.WriteBeforeNextNewLine(s : string) =
-        toWriteBeforeNewLine <-s
+        toWriteBeforeNewLine <- s
+    
+    member __.Dump() =
+        indentWriter.InnerWriter.Write toWriteBeforeNewLine
+        indentWriter.InnerWriter.ToString()
     
     /// Current column of the page in an absolute manner
     member __.Column 
@@ -115,7 +119,7 @@ type internal Context =
         { x with Writer = writer; Config = config }
 
 let internal dump (ctx: Context) =
-    ctx.Writer.InnerWriter.ToString()
+    ctx.Writer.Dump()
 
 #if DEBUG
 let internal dumpAndContinue (ctx: Context) =
@@ -210,6 +214,7 @@ let internal (--) (ctx : Context -> Context) (str : string) x =
 
 let internal (!-) (str : string) = id -- str 
 let internal (!+) (str : string) = id ++ str 
+let internal (!+-) (str : string) = id +- str 
 
 /// Print object converted to string
 let internal str (o : 'T) (ctx : Context) =
@@ -374,7 +379,7 @@ let internal futureNlnCheck f (ctx : Context) =
     use colWriter = new ColumnIndentedTextWriter(new StringWriter(), isDummy = true)
     let dummyCtx = ctx.With(colWriter, true)
     let writer = (dummyCtx |> f).Writer
-    let str = writer.InnerWriter.ToString()
+    let str = writer.Dump()
     let withoutStringConst = 
         str.Replace("\\\\", System.String.Empty).Replace("\\\"", System.String.Empty).Split([|'"'|])
         |> Seq.indexed |> Seq.filter (fun (i, _) -> i % 2 = 0) |> Seq.map snd |> String.concat System.String.Empty
@@ -536,9 +541,14 @@ let private findTriviaTokenFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n -> Trivia.isToken n && n.Range.Start = range.Start && n.Range.End = range.End)
 
-let private findTriviaTokenFromName nodes (tokenName:string) =
+let private findTriviaTokenFromName (range: range) nodes (tokenName:string) =
     nodes
-    |> List.tryFind(fun n -> match n.Type with | Token(tn) when tn.TokenInfo.TokenName = tokenName -> true | _ -> false)
+    |> List.tryFind(fun n ->
+        match n.Type with
+        | Token(tn) when tn.TokenInfo.TokenName = tokenName ->
+            (range.Start.Line, range.Start.Column) <= (n.Range.Start.Line, n.Range.Start.Column)
+            && (range.End.Line, range.End.Column) >= (n.Range.End.Line, n.Range.End.Column)
+        | _ -> false)
 
 let internal enterNodeWith f x (ctx: Context) =
     match f ctx.Trivia x with
@@ -547,7 +557,7 @@ let internal enterNodeWith f x (ctx: Context) =
     | None -> ctx
 let internal enterNode (range: range) (ctx: Context) = enterNodeWith findTriviaMainNodeOrTokenOnStartFromRange range ctx
 let internal enterNodeToken (range: range) (ctx: Context) = enterNodeWith findTriviaTokenFromRange range ctx
-let internal enterNodeTokenByName (tokenName:string) (ctx: Context) = enterNodeWith findTriviaTokenFromName tokenName ctx
+let internal enterNodeTokenByName (range: range) (tokenName:string) (ctx: Context) = enterNodeWith (findTriviaTokenFromName range) tokenName ctx
 
 let internal leaveNodeWith f x (ctx: Context) =
     match f ctx.Trivia x with
@@ -556,7 +566,7 @@ let internal leaveNodeWith f x (ctx: Context) =
     | None -> ctx
 let internal leaveNode (range: range) (ctx: Context) = leaveNodeWith findTriviaMainNodeOrTokenOnEndFromRange range ctx
 let internal leaveNodeToken (range: range) (ctx: Context) = leaveNodeWith findTriviaTokenFromRange range ctx
-let internal leaveNodeTokenByName (tokenName:string) (ctx: Context) = leaveNodeWith findTriviaTokenFromName tokenName ctx
+let internal leaveNodeTokenByName (range: range) (tokenName:string) (ctx: Context) = leaveNodeWith (findTriviaTokenFromName range) tokenName ctx
     
 let internal leaveEqualsToken (range: range) (ctx: Context) =
     ctx.Trivia
