@@ -90,7 +90,7 @@ type internal Context =
         let (tokens, lineCount) = TokenParser.tokenize defines content
         let trivia =
             match maybeAst, config.StrictMode with
-            | Some ast, false -> Trivia.collectTrivia tokens lineCount ast
+            | Some ast, false -> Trivia.collectTrivia config tokens lineCount ast
             | _ -> Context.Default.Trivia
 
         { Context.Default with 

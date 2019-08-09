@@ -12,6 +12,8 @@ let private isNewline item =
     | Newline -> true
     | _ -> false
 
+let getTriviaFromTokens = getTriviaFromTokens config
+
 [<Test>]
 let ``Simple compiler directive should be found`` () =
     let source = """

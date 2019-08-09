@@ -320,6 +320,14 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         )
         |> updateTriviaNode (fun tn -> { tn with ContentItself = Some iNode }) triviaNodes
 
+    | { Item = NewlineAfter; Range = range } ->
+        triviaNodes
+        |> List.tryFind (fun t ->
+            match t.Type with
+            | Token({ TokenInfo = {TokenName = "EQUALS"}}) -> t.Range.Start = range.Start && t.Range.End = t.Range.End
+            | _ -> false
+        )
+        |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter NewlineAfter }) triviaNodes
     | _ ->
         triviaNodes
 
@@ -332,7 +340,7 @@ let private triviaNodeIsNotEmpty triviaNode =
     3. Merge trivias with triviaNodes
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
-let collectTrivia tokens lineCount (ast: ParsedInput) =
+let collectTrivia config tokens lineCount (ast: ParsedInput) =
     let node =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hds, mns, _)) ->            
@@ -349,7 +357,7 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
     let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
     let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
     
-    let trivias = TokenParser.getTriviaFromTokens tokens lineCount
+    let trivias = TokenParser.getTriviaFromTokens config tokens lineCount
 
     match trivias with
     | [] -> []
