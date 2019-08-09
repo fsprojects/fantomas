@@ -27,6 +27,7 @@ open Fantomas.FormatConfig
 //  [+|-]spaceAfterSemiColon        Enable/disable spaces after semicolons (default = true)
 //  [+|-]indentOnTryWith            Enable/disable indentation on try/with block (default = false)
 //  [+|-]reorderOpenDeclaration     Enable/disable indentation on try/with block (default = false)
+//  [+|-]keepNewlineAfter           Enable/disable extra newline when found in sourceText (default = false)
 
 let [<Literal>] forceText = "Print the source unchanged if it cannot be parsed correctly."
 let [<Literal>] recurseText = "Process the input folder recursively."
@@ -45,6 +46,7 @@ let [<Literal>] semicolonText = "Disable spaces after semicolons (default = true
 let [<Literal>] indentOnTryWithText = "Enable indentation on try/with block (default = false)."
 let [<Literal>] reorderOpenDeclarationText = "Enable reordering open declarations (default = false)."
 let [<Literal>] spaceAroundDelimiterText = "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
+let [<Literal>] keepNewlineAfterText = "Keep newlines found after = in let bindings, -> in pattern matching and chained function calls."
 let [<Literal>] strictModeText = "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
 
 let time f =
@@ -120,6 +122,7 @@ let main _args =
     let indentOnTryWith = ref FormatConfig.Default.IndentOnTryWith
     let reorderOpenDeclaration = ref FormatConfig.Default.ReorderOpenDeclaration
     let spaceAroundDelimiter = ref FormatConfig.Default.SpaceAroundDelimiter
+    let keepNewlineAfter = ref FormatConfig.Default.KeepNewlineAfter
     let strictMode = ref FormatConfig.Default.StrictMode
 
     let handleOutput s =
@@ -235,8 +238,9 @@ let main _args =
            ArgInfo("--noSpaceAfterSemiColon", ArgType.Clear spaceAfterSemiColon, semicolonText);
            ArgInfo("--indentOnTryWith", ArgType.Set indentOnTryWith, indentOnTryWithText);
            ArgInfo("--reorderOpenDeclaration", ArgType.Set reorderOpenDeclaration, reorderOpenDeclarationText);
-           
+
            ArgInfo("--noSpaceAroundDelimiter", ArgType.Clear spaceAroundDelimiter, spaceAroundDelimiterText);
+           ArgInfo("--keepNewlineAfter", ArgType.Set keepNewlineAfter, keepNewlineAfterText);
            ArgInfo("--strictMode", ArgType.Set strictMode, strictModeText) |]
 
     ArgParser.Parse(options, handleInput, "Fantomas <input_path>")
@@ -253,7 +257,8 @@ let main _args =
             IndentOnTryWith = !indentOnTryWith;
             ReorderOpenDeclaration = !reorderOpenDeclaration
             SpaceAroundDelimiter = !spaceAroundDelimiter
-            StrictMode = !strictMode }
+            StrictMode = !strictMode
+            KeepNewlineAfter = !keepNewlineAfter }
 
     // Handle inputs via pipeline
     let isKeyAvailable = ref false
