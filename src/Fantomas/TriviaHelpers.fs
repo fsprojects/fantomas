@@ -12,3 +12,8 @@ module TriviaHelpers =
     let internal findFirstContentBeforeByRange (trivia: TriviaNode list) (range: range) =
         findByRange trivia range
         |> Option.bind (fun t -> t.ContentBefore |> List.tryHead)
+
+    let internal ``has content after after that matches`` (findTrivia: TriviaNode -> bool) (contentAfter: TriviaContent -> bool) (trivia: TriviaNode list) =
+        List.tryFind findTrivia trivia
+        |> Option.map (fun t -> t.ContentAfter |> List.exists contentAfter)
+        |> Option.defaultValue false

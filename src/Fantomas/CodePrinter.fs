@@ -869,50 +869,72 @@ and genExpr astContext synExpr =
                 ))
 
     | DotGetApp(e, es) as appNode ->
-        // find all the lids recursively + range of do expr
-        let dotGetFuncExprIdents =
-            let rec selectIdent appNode =
-                match appNode with
-                | SynExpr.App(_,_,(SynExpr.DotGet(_,_,LongIdentWithDots.LongIdentWithDots(lids,_),_) as dotGet), argExpr,_) ->
-                    let lids = List.map (fun lid -> (argExpr.Range, lid)) lids
-                    let childLids = selectIdent dotGet
-                    lids @ childLids
-                | SynExpr.DotGet(aExpr,_,_,_) ->
-                    selectIdent aExpr
-                | _ -> []
-            selectIdent appNode
-        
-        let dotGetExprRange = e.Range
-        let expr = 
-            match e with
-            | App(e1, [e2]) -> 
-                noNln (genExpr astContext e1 +> ifElse (hasParenthesis e2) sepNone sepSpace +> genExpr astContext e2)
-            | _ -> 
-                genExpr astContext e
-        expr
-        +> indent
-        +> (col sepNone es (fun ((s,_), e) -> 
-                let currentExprRange = e.Range
-                let genTriviaOfIdent =
-                    dotGetFuncExprIdents
-                    |> List.tryFind (fun (er, _) -> er = e.Range)
-                    |> Option.map (snd >> (fun lid -> genTrivia lid.idRange))
-                    |> Option.defaultValue (id)
-                    
-                let writeExpr = ((genTriviaOfIdent (!- (sprintf ".%s" s))) +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)
-                
-                let addNewlineIfNeeded ctx =
-                    let willAddAutoNewline:bool = 
-                        autoNlnCheck writeExpr sepNone ctx
-                        
-                    let expressionOnNextLine = dotGetExprRange.StartLine < currentExprRange.StartLine
-                    let addNewline = (not willAddAutoNewline) && expressionOnNextLine
-                    
-                    ctx
-                    |> ifElse addNewline sepNln sepNone
+        fun (ctx: Context) ->
+            // find all the lids recursively + range of do expr
+            let dotGetFuncExprIdents =
+                let rec selectIdent appNode =
+                    match appNode with
+                    | SynExpr.App(_,_,(SynExpr.DotGet(_,_,LongIdentWithDots.LongIdentWithDots(lids,_),_) as dotGet), argExpr,_) ->
+                        let lids = List.map (fun lid -> (argExpr.Range, lid)) lids
+                        let childLids = selectIdent dotGet
+                        lids @ childLids
+                    | SynExpr.DotGet(aExpr,_,_,_) ->
+                        selectIdent aExpr
+                    | _ -> []
+                selectIdent appNode
 
-                addNewlineIfNeeded +> autoNln writeExpr))
-        +> unindent
+            let hasLineCommentAfterExpression (currentLine) =
+                let findTrivia tn = tn.Range.EndLine = currentLine
+                let predicate = function | Comment _ -> true | _ -> false
+                TriviaHelpers.``has content after after that matches`` findTrivia predicate ctx.Trivia
+
+            let lineCommentsAfter =
+                [ yield (e.Range.EndLine, hasLineCommentAfterExpression e.Range.EndLine)
+                  yield! (es |> List.map (fun ((_,re'),_) -> re'.EndLine , hasLineCommentAfterExpression re'.EndLine)) ]
+                |> Map.ofList
+
+            let hasLineCommentOn lineNumber =
+                Map.tryFind lineNumber lineCommentsAfter
+                |> Option.defaultValue false
+
+            let dotGetExprRange = e.Range
+
+            let expr =
+                match e with
+                | App(e1, [e2]) ->
+                    noNln (genExpr astContext e1 +> ifElse (hasParenthesis e2) sepNone sepSpace +> genExpr astContext e2)
+                | _ ->
+                    genExpr astContext e
+
+            expr
+            +> indent
+            +> (col sepNone es (fun ((s,_), e) ->
+                    let currentExprRange = e.Range
+                    let genTriviaOfIdent =
+                        dotGetFuncExprIdents
+                        |> List.tryFind (fun (er, _) -> er = e.Range)
+                        |> Option.map (snd >> (fun lid -> genTrivia lid.idRange))
+                        |> Option.defaultValue (id)
+
+                    let writeExpr = ((genTriviaOfIdent (!- (sprintf ".%s" s))) +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)
+
+                    let addNewlineIfNeeded (ctx: Context) =
+                        if ctx.Config.KeepNewlineAfter then
+                            let willAddAutoNewline:bool =
+                                autoNlnCheck writeExpr sepNone ctx
+
+                            let expressionOnNextLine = dotGetExprRange.StartLine < currentExprRange.StartLine
+                            let addNewline = (not willAddAutoNewline) && expressionOnNextLine
+
+                            ctx
+                            |> ifElse addNewline sepNln sepNone
+                        else
+                            // If the line before ended with a line comment, it should add a newline
+                            (ifElse (hasLineCommentOn (currentExprRange.EndLine - 1)) sepNln sepNone) ctx
+
+                    addNewlineIfNeeded +> autoNln writeExpr))
+            +> unindent
+            <| ctx
 
     // Unlike infix app, function application needs a level of indentation
     | App(e1, [e2]) ->

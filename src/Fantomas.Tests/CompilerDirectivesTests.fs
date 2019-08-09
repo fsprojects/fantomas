@@ -340,12 +340,8 @@ let start (args: IArgs) =
     |> should equal """let start (args: IArgs) =
     // Serilog configuration
     Log.Logger <-
-        LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            .WriteTo.File(Path.Combine(args.ContentRoot, "temp/log.txt"))
+        LoggerConfiguration().MinimumLevel.Debug().MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext().WriteTo.Console().WriteTo.File(Path.Combine(args.ContentRoot, "temp/log.txt"))
             .CreateLogger()
 
     try

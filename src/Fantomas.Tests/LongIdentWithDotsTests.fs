@@ -5,7 +5,7 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``Fluent api should remain on the same lines``() =
+let ``Fluent api should not remain on the same lines``() =
     formatSourceString false """
 Log.Logger <- 
   LoggerConfiguration()
@@ -14,11 +14,7 @@ Log.Logger <-
     .CreateLogger()""" config
     |> prepend newline
     |> should equal """
-Log.Logger <-
-    LoggerConfiguration()
-        .Destructure.FSharpTypes()
-        .WriteTo.Console()
-        .CreateLogger()
+Log.Logger <- LoggerConfiguration().Destructure.FSharpTypes().WriteTo.Console().CreateLogger()
 """
 
 [<Test>]

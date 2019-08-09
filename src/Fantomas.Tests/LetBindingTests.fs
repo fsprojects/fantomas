@@ -83,9 +83,7 @@ let tomorrow =
 """  config
     |> prepend newline
     |> should equal """
-let tomorrow =
-    DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
-        .AddDays(1.)
+let tomorrow = DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset).AddDays(1.)
 """
 
 [<Test>]
@@ -104,9 +102,7 @@ let x =
 let x =
     [| 1..2 |]
     |> Array.mapi (fun _ _ ->
-        let num =
-            ""
-                .PadLeft(9)
+        let num = "".PadLeft(9)
         num)
 """
 
