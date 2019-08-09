@@ -324,7 +324,7 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         triviaNodes
         |> List.tryFind (fun t ->
             match t.Type with
-            | Token({ TokenInfo = {TokenName = "EQUALS"}}) -> t.Range.Start = range.Start && t.Range.End = t.Range.End
+            | Token(_) -> t.Range.Start = range.Start && t.Range.End = t.Range.End
             | _ -> false
         )
         |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter NewlineAfter }) triviaNodes

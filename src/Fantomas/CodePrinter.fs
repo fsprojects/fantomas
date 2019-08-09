@@ -1535,9 +1535,21 @@ and genInterfaceImpl astContext (InterfaceImpl(t, bs, range)) =
     // |> genTrivia node
 
 and genClause astContext hasBar (Clause(p, e, eo) as node) =
+    let clauseBody e (ctx: Context) =
+        let find tn =
+            match tn with
+            | ({ Type = Token({ TokenInfo = {TokenName = "RARROW" } }); Range = r  }) -> r.StartLine = p.Range.EndLine // search for `->` token after p
+            | _ -> false
+        let newlineAfter = function | NewlineAfter -> true | _ -> false
+        if TriviaHelpers.``has content after after that matches`` find newlineAfter ctx.Trivia then
+            breakNln astContext true e ctx
+        else
+            preserveBreakNln astContext e ctx
+
     genTriviaBeforeClausePipe p.Range +>
     ifElse hasBar sepBar sepNone +> genPat astContext p
-    +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> preserveBreakNln astContext e
+    +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow
+    +> clauseBody e
     |> genTrivia node.Range
 
 /// Each multiline member definition has a pre and post new line. 

@@ -164,3 +164,64 @@ Log.Logger <-
         .WriteTo.Console()
         .CreateLogger()
 """
+
+[<Test>]
+let ``newline after pattern match clauses`` () =
+    formatSourceString false """
+match meh with
+| Foo ->
+  printfn "foo"
+| Bar ->
+  printfn "bar"
+"""  configKNA
+    |> prepend newline
+    |> should equal """
+match meh with
+| Foo ->
+    printfn "foo"
+| Bar ->
+    printfn "bar"
+"""
+
+[<Test>]
+let ``newline after match lamda`` () =
+    formatSourceString false """function | Foo f ->
+    printfn "bar"
+    | _ -> ""
+"""  configKNA
+    |> should equal """function
+| Foo f ->
+    printfn "bar"
+| _ -> ""
+"""
+
+[<Test>]
+let ``elmish update`` () =
+    formatSourceString false """let update msg model =
+    match msg with
+    | Increment when model.x < 3 ->
+        { model with x = model.x + 1 }, Cmd.ofMsg Increment
+
+    | Increment ->
+        { model with x = model.x + 1 }, Cmd.ofMsg Decrement
+
+    | Decrement when model.x > 0 ->
+        { model with x = model.x - 1 }, Cmd.ofMsg Decrement
+
+    | Decrement ->
+        { model with x = model.x - 1 }, Cmd.ofMsg Increment
+"""  configKNA
+    |> should equal """let update msg model =
+    match msg with
+    | Increment when model.x < 3 ->
+        { model with x = model.x + 1 }, Cmd.ofMsg Increment
+
+    | Increment ->
+        { model with x = model.x + 1 }, Cmd.ofMsg Decrement
+
+    | Decrement when model.x > 0 ->
+        { model with x = model.x - 1 }, Cmd.ofMsg Decrement
+
+    | Decrement ->
+        { model with x = model.x - 1 }, Cmd.ofMsg Increment
+"""

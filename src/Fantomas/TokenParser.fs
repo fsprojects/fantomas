@@ -388,8 +388,11 @@ let rec private getTriviaFromTokensThemSelves (config: FormatConfig) (allTokens:
             |> List.prependItem foundTrivia
         getTriviaFromTokensThemSelves config allTokens rest info
 
-    | head::rest when(head.TokenInfo.TokenName = "EQUALS" && ``only whitespaces were found in the remainder of the line`` head.LineNumber rest && config.KeepNewlineAfter) ->
-        let range = getRangeBetween "EQUALS" head head
+    | head::rest when(
+                         (head.TokenInfo.TokenName = "EQUALS" || head.TokenInfo.TokenName = "RARROW")
+                         && ``only whitespaces were found in the remainder of the line`` head.LineNumber rest && config.KeepNewlineAfter
+                     ) ->
+        let range = getRangeBetween head.TokenInfo.TokenName head head
         let info =
             Trivia.Create(NewlineAfter) range
             |> List.prependItem foundTrivia
@@ -434,7 +437,7 @@ let getTriviaFromTokens config (tokens: Token list) linesCount =
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
 
-let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "BAR_LBRACK"; "BAR_RBRACK"; "EQUALS"; "ELSE"; "BAR"]
+let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "BAR_LBRACK"; "BAR_RBRACK"; "EQUALS"; "ELSE"; "BAR";"RARROW"]
 let private tokenKinds = [FSharpTokenCharKind.Operator]
     
 let getTriviaNodesFromTokens (tokens: Token list) : TriviaNode list =
