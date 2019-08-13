@@ -365,7 +365,7 @@ and genAttribute astContext (Attribute(s, e, target)) =
         !- "[<" +> opt sepColonFixed target (!-) -- s -- ">]"
     | e -> 
         let argSpacing =
-            if SynExpr.isInParens e then id else (!- " ")
+            if SourceTransformer.hasParenthesis e then id else sepSpace
         !- "[<"  +> opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e -- ">]"
     |> genTrivia e.Range
     
@@ -381,7 +381,7 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
             opt sepColonFixed target (!-) -- s
         | e ->
             let argSpacing =
-                if SynExpr.isInParens e then id else (!- " ")
+                if SourceTransformer.hasParenthesis e then id else sepSpace
             opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e
         |> genTrivia attr.Range
     ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> col sepSemi ats (genAttributeExpr astContext) -- ">]")

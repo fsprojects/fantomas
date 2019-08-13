@@ -2,13 +2,6 @@
 
 open System
 open System.Text.RegularExpressions
-open FSharp.Compiler.Ast
-
-[<RequireQualifiedAccess>]
-module SynExpr =
-
-    let isInParens =
-        function | SynExpr.Paren _ -> true | _ -> false
 
 [<RequireQualifiedAccess>]
 module Char =
