@@ -450,10 +450,14 @@ and noIndentBreakNln astContext e ctx =
 and genTyparList astContext tps = 
     ifElse (List.atMostOne tps) (col wordOr tps (genTypar astContext)) (sepOpenT +> col wordOr tps (genTypar astContext) +> sepCloseT)
 
-and genTypeParam astContext tds tcs =
-    ifElse (List.isEmpty tds) sepNone
-        (!- "<" +> coli sepComma tds (fun i decl -> genTyparDecl { astContext with IsFirstTypeParam = i = 0 } decl) 
-         +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext) -- ">")
+and genTypeParam astContext typeName tds tcs preferPostfix =
+    let types openSep closeSep =
+        (!- openSep +> coli sepComma tds (fun i decl -> genTyparDecl { astContext with IsFirstTypeParam = i = 0 } decl) 
+         +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext) -- closeSep)
+    if List.isEmpty tds then !- typeName
+    elif preferPostfix then !- typeName +> types "<" ">"
+    elif List.atMostOne tds then types "" "" -- " " -- typeName
+    else types "(" ")" -- " " -- typeName
 
 and genLetBinding astContext pref b = 
     match b with 
@@ -1109,13 +1113,13 @@ and genIndexers astContext node =
     | _ -> sepNone
     // |> genTrivia node, it a list
 
-and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) = 
+and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix) as node) = 
     let typeName = 
         genPreXmlDoc px 
         +> ifElse astContext.IsFirstChild (genAttributes astContext ats -- "type ") 
             (!- "and " +> genOnelinerAttributes astContext ats) 
-        +> opt sepSpace ao genAccess -- s
-        +> genTypeParam astContext tds tcs
+        +> opt sepSpace ao genAccess
+        +> genTypeParam astContext s tds tcs preferPostfix
 
     match tdr with
     | Simple(TDSREnum ecs) ->
@@ -1237,14 +1241,14 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) 
         |> genTrivia tdr.Range
     |> genTrivia node.Range
 
-and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s) as node) =
+and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix) as node) =
     let range = match node with | SynTypeDefnSig.TypeDefnSig(_,_,_,r) -> r
     let typeName = 
         genPreXmlDoc px 
         +> ifElse astContext.IsFirstChild (genAttributes astContext ats -- "type ") 
             (!- "and " +> genOnelinerAttributes astContext ats) 
-        +> opt sepSpace ao genAccess -- s
-        +> genTypeParam astContext tds tcs
+        +> opt sepSpace ao genAccess
+        +> genTypeParam astContext s tds tcs preferPostfix
 
     match tdr with
     | SigSimple(TDSREnum ecs) ->
@@ -1629,7 +1633,7 @@ and genMemberDefn astContext node =
         genPreXmlDoc px 
         +> genAttributes astContext ats
         +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
-        +> genTypeParam astContext tds tcs
+        +> genTypeParam astContext "" tds tcs true
         +> sepColonX +> genTypeList astContext namedArgs -- genPropertyKind (not isFunctionProperty) mk
 
     | md -> failwithf "Unexpected member definition: %O" md
@@ -1708,7 +1712,7 @@ and genPat astContext pat =
     | PatNamed(ao, p, s) -> opt sepSpace ao genAccess +> genPat astContext p -- sprintf " as %s" s 
     | PatLongIdent(ao, s, ps, tpso) -> 
         let aoc = opt sepSpace ao genAccess
-        let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParam astContext tds tcs)
+        let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParam astContext "" tds tcs true)
         // Override escaped new keyword
         let s = if s = "``new``" then "new" else s
         match ps with
