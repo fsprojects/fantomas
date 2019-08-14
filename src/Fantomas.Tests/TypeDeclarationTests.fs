@@ -653,6 +653,54 @@ type CustomGraphControl() =
 """
 
 [<Test>]
+let ``should preserve orders on field declarations - multiple spaces between attribute args``() =
+    formatSourceString false """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue      (false)>]
+    static val mutable private GraphProperty : DependencyProperty
+    """ config
+    |> prepend newline
+    |> should equal """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue(false)>]
+    static val mutable private GraphProperty: DependencyProperty
+"""
+
+[<Test>]
+let ``should preserve orders on field declarations - attribute without parentheses``() =
+    formatSourceString false """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue false>]
+    static val mutable private GraphProperty : DependencyProperty
+    """ config
+    |> prepend newline
+    |> should equal """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue false>]
+    static val mutable private GraphProperty: DependencyProperty
+"""
+
+[<Test>]
+let ``should preserve orders on field declarations - attribute without parentheses and multiple spaces between attribute args``() =
+    formatSourceString false """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue       false>]
+    static val mutable private GraphProperty : DependencyProperty
+    """ config
+    |> prepend newline
+    |> should equal """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue false>]
+    static val mutable private GraphProperty: DependencyProperty
+"""
+
+[<Test>]
 let ``should indent properly on getters and setters``() =
     formatSourceString false """
 type A() =

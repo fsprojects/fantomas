@@ -364,7 +364,9 @@ and genAttribute astContext (Attribute(s, e, target)) =
     | ConstExpr(Const "()", _) -> 
         !- "[<" +> opt sepColonFixed target (!-) -- s -- ">]"
     | e -> 
-        !- "[<"  +> opt sepColonFixed target (!-) -- s +> genExpr astContext e -- ">]"
+        let argSpacing =
+            if SourceTransformer.hasParenthesis e then id else sepSpace
+        !- "[<"  +> opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e -- ">]"
     |> genTrivia e.Range
     
 and genAttributesCore astContext (ats: SynAttribute seq) =
@@ -377,8 +379,10 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
         match e with
         | ConstExpr(Const "()", _) -> 
             opt sepColonFixed target (!-) -- s
-        | e -> 
-            opt sepColonFixed target (!-) -- s +> genExpr astContext e
+        | e ->
+            let argSpacing =
+                if SourceTransformer.hasParenthesis e then id else sepSpace
+            opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e
         |> genTrivia attr.Range
     ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> col sepSemi ats (genAttributeExpr astContext) -- ">]")
     |> genTriviaForAttributes
