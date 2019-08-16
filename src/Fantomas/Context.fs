@@ -437,7 +437,7 @@ let internal sortAndDeduplicate by l (ctx : Context) =
     else l
 
 /// Don't put space before and after these operators
-let internal NoSpaceInfixOps = set [".."; "?"]
+let internal NoSpaceInfixOps = set ["?"]
 
 /// Always break into newlines on these operators
 let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
