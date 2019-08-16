@@ -190,3 +190,16 @@ let ``should not add newline before = operator after |>``() =
     |> should equal """1
 |> max 0 = 1
 """
+
+[<Test>]
+let ``should add space around .. operator``() =
+    formatSourceString false """[1..10]""" config
+    |> should equal """[ 1 .. 10 ]
+"""
+
+
+[<Test>]
+let ``should add space around .. .. operators``() =
+    formatSourceString false """[10 .. -1 .. 1]""" config
+    |> should equal """[ 10 .. -1 .. 1 ]
+"""
