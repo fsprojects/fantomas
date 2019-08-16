@@ -212,9 +212,26 @@ let internal (--) (ctx : Context -> Context) (str : string) x =
     c.Writer.Write(str)
     c
 
+/// Break-line unless we are on empty line
+let internal (+~) (ctx : Context -> Context) (str : string) x =
+    let addNewline ctx =
+        dump ctx
+        |> String.normalizeThenSplitNewLine
+        |> Array.tryLast
+        |> Option.map (fun (line:string) -> line.Trim().Length > 1)
+        |> Option.defaultValue false
+    let c = ctx x
+    if addNewline c then 
+        c.Writer.WriteLine("")
+    else
+        c.Writer.Write(" ")
+    c.Writer.Write(str)
+    c
+
 let internal (!-) (str : string) = id -- str 
 let internal (!+) (str : string) = id ++ str 
 let internal (!+-) (str : string) = id +- str 
+let internal (!+~) (str : string) = id +~ str 
 
 /// Print object converted to string
 let internal str (o : 'T) (ctx : Context) =

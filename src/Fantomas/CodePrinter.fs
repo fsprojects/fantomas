@@ -977,15 +977,19 @@ and genExpr astContext synExpr =
             |> Option.defaultValue (separator fallback)
             <| ctx
         
+        printfn "%A" (fullRange, e1.Range, e2.Range)
+
         let ifTokenKw r f s = tokN r "IF" (printIfKeyword f s r)
         let ifToken r f = tokN r "IF" f
         let thenToken r f = tokN r "THEN" f
         let elseToken r f = tokN r "ELSE" f
+        let mutable indented = 0
         atCurrentColumn (
             ifToken fullRange !-"if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 +> thenToken fullRange !+"then") (genExpr astContext e1 +> thenToken fullRange !+-"then") -- " "
             +> preserveBreakNln astContext e2
-            +> fun ctx -> col sepNone es (fun (e1, e2, _, fullRangeInner, node) ->
+            +> fun ctx -> colPost (rep indented unindent) sepNone es (fun (e1, e2, _, fullRangeInner, node) ->
                                  printfn "%A" (fullRangeInner, e1.Range, e2.Range)
+                                 let rangeBeforeInner = mkRange "" fullRange.Start fullRangeInner.Start
                                  let elsePart =
                                      ifTokenKw fullRangeInner (fun kw ctx ->
                                          let hasContentBeforeIf =
@@ -1005,9 +1009,10 @@ and genExpr astContext synExpr =
                                          // Next we need to be sure that the are no comments between else and if
                                          match kw with
                                          | "if " when hasContentBeforeIf ->
-                                             (elseToken fullRange !+"else" +> indent +> sepNln +> genTrivia fullRangeInner (ifToken node.Range !-"if "))
+                                             indented <- indented + 1
+                                             (elseToken rangeBeforeInner !+"else" +> indent +> sepNln +> genTrivia fullRangeInner (ifToken node.Range !-"if "))
                                          | "if " ->
-                                             (elseToken fullRange !+"else if ")
+                                             (elseToken rangeBeforeInner !+"else if ")
                                          | _ (* "elif" *) ->
                                             !+ kw
                                         <| ctx
@@ -1019,7 +1024,7 @@ and genExpr astContext synExpr =
                                                            (genExpr astContext e1 +> thenToken node.Range !+-"then")
                                                        -- " " +> preserveBreakNln astContext e2)
                             ) ctx
-            +> opt sepNone enOpt (fun en -> elseToken fullRange !+"else " +> preserveBreakNln astContext en)
+            +> opt sepNone enOpt (fun en -> elseToken fullRange !+~"else " +> preserveBreakNln astContext en)
         )
 
     // At this stage, all symbolic operators have been handled.
