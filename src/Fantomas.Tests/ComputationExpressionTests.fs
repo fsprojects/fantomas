@@ -45,7 +45,7 @@ let comp =
     |> should equal """
 let comp =
     eventually {
-        for x in 1..2 do
+        for x in 1 .. 2 do
             printfn " x = %d" x
         return 3 + 4
     }
@@ -70,10 +70,10 @@ let rec inorder tree =
     |> should equal """
 let s1 =
     seq {
-        for i in 1..10 -> i * i
+        for i in 1 .. 10 -> i * i
     }
 
-let s2 = seq { 0..10..100 }
+let s2 = seq { 0 .. 10 .. 100 }
 
 let rec inorder tree =
     seq {
@@ -94,7 +94,7 @@ let factors number =
     |> Seq.filter (fun x -> number % x = 0L)""" config
     |> prepend newline
     |> should equal """
-let factors number = { 2L..number / 2L } |> Seq.filter (fun x -> number % x = 0L)
+let factors number = { 2L .. number / 2L } |> Seq.filter (fun x -> number % x = 0L)
 """
 
 [<Test>]

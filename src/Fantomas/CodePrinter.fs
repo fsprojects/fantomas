@@ -852,10 +852,10 @@ and genExpr astContext synExpr =
             genExpr astContext e -- "?" +> sepOpenT +> col sepSpace es (genExpr astContext) +> sepCloseT
 
     | App(Var "..", [e1; e2]) ->
-        let expr = genExpr astContext e1 -- ".." +> genExpr astContext e2
+        let expr = genExpr astContext e1 +> sepSpace -- ".." +> sepSpace +> genExpr astContext e2
         ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
     | App(Var ".. ..", [e1; e2; e3]) -> 
-        let expr = genExpr astContext e1 -- ".." +> genExpr astContext e2 -- ".." +> genExpr astContext e3
+        let expr = genExpr astContext e1 +> sepSpace -- ".." +> sepSpace +> genExpr astContext e2 +> sepSpace -- ".." +> sepSpace +> genExpr astContext e3
         ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
     // Separate two prefix ops by spaces
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr astContext e

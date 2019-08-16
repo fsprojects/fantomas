@@ -158,7 +158,7 @@ let ``range expressions``() =
     |> prepend newline
     |> should equal """
 let function2() =
-    for i in 1..2..10 do
+    for i in 1 .. 2 .. 10 do
         printf "%d " i
     printfn ""
 
