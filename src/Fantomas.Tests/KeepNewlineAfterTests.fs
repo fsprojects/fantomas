@@ -126,7 +126,7 @@ let x =
     |> prepend newline
     |> should equal """
 let x =
-    [| 1..2 |]
+    [| 1 .. 2 |]
     |> Array.mapi (fun _ _ ->
         let num =
             ""
