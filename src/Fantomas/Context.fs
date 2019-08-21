@@ -223,8 +223,6 @@ let internal (+~) (ctx : Context -> Context) (str : string) x =
     let c = ctx x
     if addNewline c then 
         c.Writer.WriteLine("")
-    else
-        c.Writer.Write(" ")
     c.Writer.Write(str)
     c
 
