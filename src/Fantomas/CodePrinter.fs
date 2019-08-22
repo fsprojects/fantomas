@@ -1489,18 +1489,14 @@ and genTypeList astContext node =
     match node with
     | [] -> sepNone
     | (t, [ArgInfo(ats, so, isOpt)])::ts -> 
-        let hasBracket = not ts.IsEmpty
         let gt =
             match t with
-            | TTuple _ ->
-                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) 
-                +> genType astContext hasBracket t 
-            | TFun _ ->
-                // Fun is grouped by brackets inside 'genType astContext true t'
-                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-)) 
-                +> genType astContext true t
-            | _ -> 
-                opt sepColonFixed so (!-) +> genType astContext false t
+            | TTuple _ -> not ts.IsEmpty
+            | TFun _ -> true // Fun is grouped by brackets inside 'genType astContext true t'
+            | _ -> false
+            |> fun hasBracket ->
+                opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
+                +> genType astContext hasBracket t
         genOnelinerAttributes astContext ats
         +> gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
 
