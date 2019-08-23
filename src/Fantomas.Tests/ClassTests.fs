@@ -121,6 +121,30 @@ type Shape2D(x0: float, y0: float) =
 """
 
 [<Test>]
+let ``abstract member declaration``() =
+    formatSourceString false """
+type A =
+    abstract B: ?p1:(float * int) -> unit
+    abstract C: ?p1:float * int -> unit
+    abstract D: ?p1:(int -> int) -> unit
+    abstract E: ?p1:float -> unit
+    abstract F: ?p1:float * ?p2:float -> unit
+    abstract G: p1:float * ?p2:float -> unit
+    abstract H: float * ?p2:float -> unit
+    """ config
+    |> prepend newline
+    |> should equal """
+type A =
+    abstract B: ?p1:(float * int) -> unit
+    abstract C: ?p1:float * int -> unit
+    abstract D: ?p1:(int -> int) -> unit
+    abstract E: ?p1:float -> unit
+    abstract F: ?p1:float * ?p2:float -> unit
+    abstract G: p1:float * ?p2:float -> unit
+    abstract H: float * ?p2:float -> unit
+"""
+
+[<Test>]
 let ``class declaration``() =
     formatSourceString false """
 type BaseClass = class
