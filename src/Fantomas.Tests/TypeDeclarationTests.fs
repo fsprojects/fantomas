@@ -869,3 +869,27 @@ let ``operator in words in member`` () =
     |> should equal """type A() =
     member this.B(op_Inequality: string) = ()
 """
+
+[<Test>]
+let ``attributes on extension methods should not add newlines, 473`` () =
+    formatSourceString false """
+[<Extension>]
+type TestExtensions =
+
+    [<Extension>]
+    static member SomeExtension(x) = ""
+
+    [<Extension>]
+    static member SomeOtherExtension(x) = ""
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Extension>]
+type TestExtensions =
+
+    [<Extension>]
+    static member SomeExtension(x) = ""
+
+    [<Extension>]
+    static member SomeOtherExtension(x) = ""
+"""

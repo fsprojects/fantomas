@@ -1247,7 +1247,7 @@ let private collectAttributesRanges (a:SynAttributes) =
         yield! (Seq.collect (fun a -> a.Attributes |> List.map (fun a -> a.Range)) a)
     }
 
-let getRangesFromAttributes (mdl: SynModuleDecl) =
+let getRangesFromAttributesFromModuleDeclaration (mdl: SynModuleDecl) =
     match mdl with
     | SynModuleDecl.Let(_, bindings, _) ->
         bindings
@@ -1262,3 +1262,14 @@ let getRangesFromAttributes (mdl: SynModuleDecl) =
         collectAttributesRanges attrs
     | _ -> Seq.empty
     |> Seq.toList
+
+let getRangesFromAttributesFromSynBinding (sb: SynBinding) =
+    match sb with
+    | SynBinding.Binding(_,_,_,_, attrs, _,_,_,_,_,_,_) ->
+        attrs
+        |> List.map (fun a -> a.Range)
+
+let getRangesFromAttributesFromSynMemberDefinition (mdn: SynMemberDefn) =
+    match mdn with
+    | SynMemberDefn.Member(mb,_) -> getRangesFromAttributesFromSynBinding mb
+    | _ -> []

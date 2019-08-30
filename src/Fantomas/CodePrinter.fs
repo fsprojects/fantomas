@@ -181,7 +181,7 @@ and genModuleDeclList astContext e =
                 let sepModuleDecl =
                     match List.tryHead ys with
                     | Some ysh ->
-                        let attrs = getRangesFromAttributes ysh
+                        let attrs = getRangesFromAttributesFromModuleDeclaration ysh
                         sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes ysh.Range attrs
                     | None -> rep 2 sepNln
                 
@@ -205,7 +205,7 @@ and genModuleDeclList astContext e =
         | [] ->
             colEx (fun (mdl: SynModuleDecl) -> 
                 let r = mdl.Range
-                let ar = getRangesFromAttributes mdl
+                let ar = getRangesFromAttributesFromModuleDeclaration mdl
                 sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes r ar
             ) xs (genModuleDecl astContext)
             
@@ -218,7 +218,7 @@ and genModuleDeclList astContext e =
             let sepXs =
                 colEx (fun (mdl: SynModuleDecl) ->
                     let r = mdl.Range
-                    let ar = getRangesFromAttributes mdl
+                    let ar = getRangesFromAttributesFromModuleDeclaration mdl
                     sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes r ar
                 )
 
@@ -1582,8 +1582,12 @@ and genMemberDefnList astContext node =
     | MultilineMemberDefnL(xs, []) ->
         let sepMember (m:Composite<SynMemberDefn, SynBinding>) =
             match m with
-            | Pair(x1,_) -> sepNln +> sepNlnConsideringTriviaContentBefore x1.RangeOfBindingSansRhs
-            | Single x -> sepNln +> sepNlnConsideringTriviaContentBefore x.Range
+            | Pair(x1,_) ->
+                let attributes = getRangesFromAttributesFromSynBinding x1
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes x1.RangeOfBindingSansRhs attributes
+            | Single x ->
+                let attributes = getRangesFromAttributesFromSynMemberDefinition x
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes x.Range attributes
 
         let firstTwoNln =
             match List.tryHead xs with
@@ -1601,9 +1605,7 @@ and genMemberDefnList astContext node =
             | Some (Single xsh) ->
                 let attributes =
                     match xsh with
-                    | SynMemberDefn.Member(SynBinding.Binding(_,_,_,_, attrs, _,_,_,_,_,_,_), _) ->
-                        attrs
-                        |> List.map (fun a -> a.Range)
+                    | SynMemberDefn.Member(SynBinding.Binding(_,_,_,_, _, _,_,_,_,_,_,_) as sb, _) -> getRangesFromAttributesFromSynBinding sb
                     | _ -> []
                 sepNlnConsideringTriviaContentBeforeWithAttributes xsh.Range attributes
             | _ -> sepNln
