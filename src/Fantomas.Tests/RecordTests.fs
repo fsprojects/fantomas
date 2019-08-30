@@ -456,3 +456,24 @@ let r =
           x = 1
           y = 2 }
 """
+
+[<Test>]
+let ``class member attributes should not introduce newline, 471`` () =
+    formatSourceString false """type Test =
+    | String of string
+
+    [<SomeAttribute>]
+    member x._Print = ""
+
+    member this.TestMember = ""
+"""  config
+    |> prepend newline
+    |> should equal """
+type Test =
+    | String of string
+
+    [<SomeAttribute>]
+    member x._Print = ""
+
+    member this.TestMember = ""
+"""

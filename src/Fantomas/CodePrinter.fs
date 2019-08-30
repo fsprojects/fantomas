@@ -1589,7 +1589,14 @@ and genMemberDefnList astContext node =
     | MultilineMemberDefnL(xs, ys) ->
         let sepNlnFirstExpr =
             match List.tryHead xs with
-            | Some (Single xsh) -> sepNlnConsideringTriviaContentBefore xsh.Range
+            | Some (Single xsh) ->
+                let attributes =
+                    match xsh with
+                    | SynMemberDefn.Member(SynBinding.Binding(_,_,_,_, attrs, _,_,_,_,_,_,_), _) ->
+                        attrs
+                        |> List.map (fun a -> a.Range)
+                    | _ -> []
+                sepNlnConsideringTriviaContentBeforeWithAttributes xsh.Range attributes
             | _ -> sepNln
         
         sepNln +> sepNlnFirstExpr 
