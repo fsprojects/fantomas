@@ -477,3 +477,60 @@ type Test =
 
     member this.TestMember = ""
 """
+
+[<Test>]
+let ``multiline record should be on new line after DU constructor, 462`` () =
+    formatSourceString false """
+let expect =
+    Result<Schema, SetError>.Ok { opts =
+                                      [ Opts.anyOf
+                                          ([ (Optional, Opt.flagTrue [ "first"; "f" ])
+                                             (Optional, Opt.value [ "second"; "s" ]) ])
+                                        Opts.oneOf
+                                            (Optional,
+                                             [ Opt.flag [ "third"; "f" ]
+                                               Opt.valueWith "new value" [ "fourth"; "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]) ]
+                                  args = []
+                                  commands = [] }
+"""  config
+    |> prepend newline
+    |> should equal """
+let expect =
+    Result<Schema, SetError>.Ok
+        { opts =
+              [ Opts.anyOf
+                  ([ (Optional, Opt.flagTrue [ "first"; "f" ])
+                     (Optional, Opt.value [ "second"; "s" ]) ])
+                Opts.oneOf
+                    (Optional,
+                     [ Opt.flag [ "third"; "f" ]
+                       Opt.valueWith "new value" [ "fourth"; "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]) ]
+          args = []
+          commands = [] }
+"""
+
+[<Test>]
+let ``short record should remain on the same line after DU constructor`` () =
+    formatSourceString false """
+let expect = Result<int,string>.Ok   7"""  config
+    |> prepend newline
+    |> should equal """
+let expect = Result<int, string>.Ok 7
+"""
+
+[<Test>]
+let ``multiline list after DU should be on new line after DU constructor`` () =
+    formatSourceString false """
+let expect =
+    Result<int,string>.Ok [ "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
+                            "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
+                            "meh"
+                          ]"""  config
+    |> prepend newline
+    |> should equal """
+let expect =
+    Result<int, string>
+        .Ok [ "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
+              "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
+              "meh" ]
+"""
