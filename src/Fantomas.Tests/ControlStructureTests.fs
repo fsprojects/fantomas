@@ -255,7 +255,8 @@ let handle =
     if n < weakThreshhold then
         assert onStrongDiscard.IsNone // it disappeared
         Weak(WeakReference(v))
-    else Strong(v)
+    else
+        Strong(v)
 """
 
 [<Test>]
@@ -298,4 +299,89 @@ let ``multiline if in tuple``() =
     |> should equal """
 ((if true then 1
   else 2), 3)
+"""
+
+// https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
+[<Test>]
+let ``else branch should be on newline in case if branch is long`` () =
+    formatSourceString false """
+if cond then
+    match foo with
+    | Some f -> ()
+    | None -> printfn "%s" "meh"
+else ()
+"""  config
+    |> prepend newline
+    |> should equal """
+if cond then
+    match foo with
+    | Some f -> ()
+    | None -> printfn "%s" "meh"
+else
+    ()
+"""
+
+[<Test>]
+let ``if branch should be on newline in case else branch is long`` () =
+    formatSourceString false """
+if not cond then
+    ()
+else
+    match foo with
+    | Some f -> ()
+    | None -> printfn "%s" "meh"
+"""  config
+    |> prepend newline
+    |> should equal """
+if not cond then
+    ()
+else
+    match foo with
+    | Some f -> ()
+    | None -> printfn "%s" "meh"
+"""
+
+[<Test>]
+let ``elif branch should on newline if else branch is long`` () =
+    formatSourceString false """
+if not cond then
+    ()
+elif false then ()
+else
+    match foo with
+    | Some f -> ()
+    | None -> printfn "%s" "meh"
+"""  config
+    |> prepend newline
+    |> should equal """
+if not cond then
+    ()
+elif false then
+    ()
+else
+    match foo with
+    | Some f -> ()
+    | None -> printfn "%s" "meh"
+"""
+
+[<Test>]
+let ``multiline elif branch should result in newline for if and else`` () =
+    formatSourceString false """
+if foo then ()
+elif bar then
+    match foo with
+    | Some f -> ()
+    | None -> printfn "%s" "meh"
+else ()
+"""  config
+    |> prepend newline
+    |> should equal """
+if foo then
+    ()
+elif bar then
+    match foo with
+    | Some f -> ()
+    | None -> printfn "%s" "meh"
+else
+    ()
 """
