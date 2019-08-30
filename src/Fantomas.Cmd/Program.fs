@@ -243,7 +243,7 @@ let main _args =
            ArgInfo("--keepNewlineAfter", ArgType.Set keepNewlineAfter, keepNewlineAfterText);
            ArgInfo("--strictMode", ArgType.Set strictMode, strictModeText) |]
 
-    ArgParser.Parse(options, handleInput, "Fantomas <input_path>")
+    ArgParser.Parse(options, handleInput, sprintf "Fantomas <input_path>%sCheck out https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#using-the-command-line-tool for more info." Environment.NewLine )
 
     let config =
         { FormatConfig.Default with 
