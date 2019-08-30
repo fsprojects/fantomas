@@ -980,7 +980,9 @@ and genExpr astContext synExpr =
     | TryWith(e, cs) -> 
         let prefix = !- "try " +> indent +> sepNln +> genExpr astContext e +> unindent ++ "with"
         match cs with
-        | [c] -> 
+        | [SynMatchClause.Clause(SynPat.Or(_,_,_),_,_,_,_) as c] ->
+            atCurrentColumn (prefix +> indentOnWith +> sepNln +> col sepNln cs (genClause astContext true) +> unindentOnWith)
+        | [c] ->
             atCurrentColumn (prefix +> sepSpace +> genClause astContext false c)
         | _ -> 
             atCurrentColumn (prefix +> indentOnWith +> sepNln +> col sepNln cs (genClause astContext true) +> unindentOnWith)
