@@ -761,7 +761,7 @@ and genExpr astContext synExpr =
             | rbs::rest ->
                 if ctx.Writer.Column < rbs then
                     let offset = (if ctx.Config.SpaceAroundDelimiter then 2 else 1) + 1
-                    let delta = (rbs - ( ctx.Writer.Column)) - offset
+                    let delta = Math.Max((rbs - ( ctx.Writer.Column)) - offset, 0)
                     (!- System.String.Empty.PadRight(delta)) ({ctx with RecordBraceStart = rest})
                 else
                     sepNone ({ctx with RecordBraceStart = rest})
