@@ -81,11 +81,13 @@ let rec allFiles isRec path =
     |> Seq.filter (fun f -> isFSharpFile f && not (f.Contains(obj)))
 
 /// Format a source string using given config and write to a text writer
-let processSourceString isFsiFile s (tw : TextWriter) config =
+let processSourceString isFsiFile s (tw : Choice<TextWriter, string>) config =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
     async {
         let! formatted = CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config)
-        tw.Write(formatted)
+        match tw with
+        | Choice1Of2 tw -> tw.Write(formatted)
+        | Choice2Of2 path -> File.WriteAllText(path, formatted)
     }
     |> Async.RunSynchronously
 
@@ -190,13 +192,11 @@ let main _args =
 
     let stringToFile (s : string) (outFile : string) config =
         try
-            use buffer = new StreamWriter(outFile)
             if !profile then
                 printfn "Line count: %i" (s.Length - s.Replace(Environment.NewLine, "").Length)
-                time (fun () -> processSourceString !fsi s buffer config)
+                time (fun () -> processSourceString !fsi s (Choice2Of2 outFile) config)
             else
-                processSourceString !fsi s buffer config
-            buffer.Flush()
+                processSourceString !fsi s (Choice2Of2 outFile) config
             printfn "%s has been written." outFile
         with
         | exn ->
@@ -207,8 +207,8 @@ let main _args =
 
     let stringToStdOut s config =
         try
-            use buffer = new StringWriter()
-            processSourceString !fsi s buffer config
+            use buffer = new StringWriter() :> TextWriter
+            processSourceString !fsi s (Choice1Of2 buffer) config
             stdout.Write(buffer.ToString())
         with
         | exn ->
