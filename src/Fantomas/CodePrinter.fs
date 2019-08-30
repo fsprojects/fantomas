@@ -1012,10 +1012,15 @@ and genExpr astContext synExpr =
             |> Option.map (fun ({Content = kw}) -> sprintf "%s " kw |> separator)
             |> Option.defaultValue (separator fallback)
             <| ctx
-        
+
+        let anyExpressIsMultiline =
+            multiline e2 || (Option.map multiline enOpt |> Option.defaultValue false) || (List.exists (fun (_, e, _, _, _) -> multiline e) es)
+
+        let printBranch prefix astContext expr = prefix +> ifElse anyExpressIsMultiline (breakNln astContext true expr) (preserveBreakNln astContext expr)
+
         atCurrentColumn (
             printIfKeyword (!-) "if " fullRange +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") -- " "
-            +> preserveBreakNln astContext e2
+            +> printBranch id astContext e2
             +> fun ctx -> col sepNone es (fun (e1, e2, _, fullRange, node) ->
                                  let elsePart =
                                      printIfKeyword (fun kw ctx ->
@@ -1048,9 +1053,9 @@ and genExpr astContext synExpr =
                                  genTrivia node.Range (ifElse (checkBreakForExpr e1)
                                                            (genExpr astContext e1 ++ "then")
                                                            (genExpr astContext e1 +- "then")
-                                                       -- " " +> preserveBreakNln astContext e2)
+                                                       -- " " +> printBranch id astContext e2)
                             ) ctx
-            +> opt sepNone enOpt (fun en -> beforeElseKeyword fullRange en.Range +> !+ "else " +> preserveBreakNln astContext en)
+            +> opt sepNone enOpt (fun en -> beforeElseKeyword fullRange en.Range +> printBranch (!+ "else ") astContext en)
         )
 
     // At this stage, all symbolic operators have been handled.
