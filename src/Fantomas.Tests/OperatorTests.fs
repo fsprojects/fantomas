@@ -109,8 +109,9 @@ let ``should break on . operator and keep indentation``() =
     """ { config with PageWidth = 80 }
     |> should equal """let pattern =
     (x + y)
-        .Replace(seperator + "**" + seperator,
-                 replacementSeparator + "(.|?" + replacementSeparator + ")?")
+        .Replace
+        (seperator + "**" + seperator,
+         replacementSeparator + "(.|?" + replacementSeparator + ")?")
         .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")")
 """
 

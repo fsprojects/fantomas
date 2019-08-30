@@ -927,7 +927,7 @@ and genExpr astContext synExpr =
                         |> Option.defaultValue (id)
 
                     let writeExpr = ((genTriviaOfIdent (!- (sprintf ".%s" s))) +> ifElse (hasParenthesis e) sepNone sepSpace
-                                     +> ifElse (multiline e) sepNln sepNone
+                                     +> (fun ctx -> ctx |> ifElse (futureNlnCheck (genExpr astContext e) ctx) sepNln sepNone)
                                      +> genExpr astContext e)
 
                     let addNewlineIfNeeded (ctx: Context) =
