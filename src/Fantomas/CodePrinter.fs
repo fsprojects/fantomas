@@ -1028,7 +1028,6 @@ and genExpr astContext synExpr =
             ifToken fullRange !-"if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 +> thenToken fullRange !+"then") (genExpr astContext e1 +> thenToken fullRange !+-"then") -- " "
             +> printBranch id astContext e2
             +> fun ctx -> colPost (rep indented unindent) sepNone es (fun (e1, e2, _, fullRangeInner, node) ->
-                                 printfn "%A" (fullRangeInner, e1.Range, e2.Range)
                                  let rangeBeforeInner = mkRange "" fullRange.Start fullRangeInner.Start
                                  let elsePart =
                                      ifTokenKw fullRangeInner (fun kw ctx ->
