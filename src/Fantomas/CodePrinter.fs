@@ -1064,7 +1064,7 @@ and genExpr astContext synExpr =
                                                            (genExpr astContext e1 +> thenToken node.Range !+-"then")
                                                        -- " " +> printBranch id astContext e2)
                             ) ctx
-            +> opt sepNone enOpt (fun en -> elseToken fullRange !+~"else " +> printBranch (!+ "else ") astContext en)
+            +> opt sepNone enOpt (fun en -> printBranch (elseToken fullRange !+~"else ") astContext en)
         )
 
     // At this stage, all symbolic operators have been handled.
