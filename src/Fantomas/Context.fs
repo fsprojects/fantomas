@@ -45,8 +45,7 @@ type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
         toWriteBeforeNewLine <- s
     
     member __.Dump() =
-        indentWriter.InnerWriter.Write toWriteBeforeNewLine
-        indentWriter.InnerWriter.ToString()
+        indentWriter.InnerWriter.ToString() + toWriteBeforeNewLine
     
     /// Current column of the page in an absolute manner
     member __.Column 
