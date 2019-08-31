@@ -1066,11 +1066,11 @@ let (|TCSimple|TCDelegate|) = function
     | TyconILAssemblyCode -> TCSimple TCILAssemblyCode
     | TyconDelegate(t, vi) -> TCDelegate(t, vi)
 
-let (|TypeDef|) (SynTypeDefn.TypeDefn(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent s, px, _, ao, _) , tdr, ms, _)) =
-    (ats, px, ao, tds, tcs, tdr, ms, s)
+let (|TypeDef|) (SynTypeDefn.TypeDefn(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _) , tdr, ms, _)) =
+    (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)
 
-let (|SigTypeDef|) (SynTypeDefnSig.TypeDefnSig(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent s, px, _, ao, _) , tdr, ms, _)) =
-    (ats, px, ao, tds, tcs, tdr, ms, s)
+let (|SigTypeDef|) (SynTypeDefnSig.TypeDefnSig(SynComponentInfo.ComponentInfo(ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _) , tdr, ms, _)) =
+    (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)
 
 let (|TyparDecl|) (SynTyparDecl.TyparDecl(ats, tp)) =
     (ats, tp)
@@ -1247,7 +1247,7 @@ let private collectAttributesRanges (a:SynAttributes) =
         yield! (Seq.collect (fun a -> a.Attributes |> List.map (fun a -> a.Range)) a)
     }
 
-let getRangesFromAttributes (mdl: SynModuleDecl) =
+let getRangesFromAttributesFromModuleDeclaration (mdl: SynModuleDecl) =
     match mdl with
     | SynModuleDecl.Let(_, bindings, _) ->
         bindings
@@ -1262,3 +1262,14 @@ let getRangesFromAttributes (mdl: SynModuleDecl) =
         collectAttributesRanges attrs
     | _ -> Seq.empty
     |> Seq.toList
+
+let getRangesFromAttributesFromSynBinding (sb: SynBinding) =
+    match sb with
+    | SynBinding.Binding(_,_,_,_, attrs, _,_,_,_,_,_,_) ->
+        attrs
+        |> List.map (fun a -> a.Range)
+
+let getRangesFromAttributesFromSynMemberDefinition (mdn: SynMemberDefn) =
+    match mdn with
+    | SynMemberDefn.Member(mb,_) -> getRangesFromAttributesFromSynBinding mb
+    | _ -> []

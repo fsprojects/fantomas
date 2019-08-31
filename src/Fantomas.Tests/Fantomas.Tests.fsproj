@@ -53,6 +53,7 @@
     <Compile Include="SynConstTests.fs" />
     <Compile Include="FSharpScriptTests.fs" />
     <Compile Include="TupleTests.fs" />
+    <Compile Include="KeepNewlineAfterTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />

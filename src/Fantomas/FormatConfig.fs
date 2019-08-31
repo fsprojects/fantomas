@@ -23,6 +23,7 @@ type FormatConfig =
       /// Reordering and deduplicating open statements
       ReorderOpenDeclaration : bool;
       SpaceAroundDelimiter : bool;
+      KeepNewlineAfter : bool
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -37,6 +38,7 @@ type FormatConfig =
           IndentOnTryWith = false
           ReorderOpenDeclaration = false
           SpaceAroundDelimiter = true
+          KeepNewlineAfter = false
           StrictMode = false }
 
     static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 

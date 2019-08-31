@@ -69,7 +69,7 @@ type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
 type internal Context = 
     { Config : FormatConfig; 
       Writer : ColumnIndentedTextWriter;
-      mutable BreakLines : bool;
+      BreakLines : bool;
       BreakOn : string -> bool;
       /// The original source string to query as a last resort 
       Content : string; 
@@ -99,7 +99,7 @@ type internal Context =
         let (tokens, lineCount) = TokenParser.tokenize defines content
         let trivia =
             match maybeAst, config.StrictMode with
-            | Some ast, false -> Trivia.collectTrivia tokens lineCount ast
+            | Some ast, false -> Trivia.collectTrivia config tokens lineCount ast
             | _ -> Context.Default.Trivia
 
         { Context.Default with 
@@ -425,10 +425,8 @@ let internal colAutoNlnSkip0 f' c f = colAutoNlnSkip0i f' c (fun _ -> f)
 
 /// Skip all auto-breaking newlines
 let internal noNln f (ctx : Context) : Context = 
-    ctx.BreakLines <- false
-    let res = f ctx
-    ctx.BreakLines <- true
-    res 
+    let res = f { ctx with BreakLines = false }
+    { res with BreakLines = ctx.BreakLines }
 
 let internal sepColon (ctx : Context) = 
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx
@@ -464,7 +462,7 @@ let internal sortAndDeduplicate by l (ctx : Context) =
     else l
 
 /// Don't put space before and after these operators
-let internal NoSpaceInfixOps = set [".."; "?"]
+let internal NoSpaceInfixOps = set ["?"]
 
 /// Always break into newlines on these operators
 let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
@@ -495,6 +493,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     | StringContent _
     | IdentOperatorAsWord _
     | IdentBetweenTicks _
+    | NewlineAfter
          -> sepNone // don't print here but somewhere in CodePrinter
     | Directive(s)
     | Comment(LineCommentOnSingleLine s) ->

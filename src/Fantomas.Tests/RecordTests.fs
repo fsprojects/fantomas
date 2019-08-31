@@ -183,7 +183,8 @@ let rec make item depth =
         Tree
             ({ Left = make (2 * item - 1) (depth - 1)
                Right = make (2 * item) (depth - 1) }, item)
-    else Tree(defaultof<_>, item)
+    else
+        Tree(defaultof<_>, item)
 """
 
 [<Test>]
@@ -435,4 +436,131 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
                                            Surname = \"\"
                                            Avatar = \"guest.png\" } |] }).write()
         Logger.debug \"Database restored\"
+"
+
+[<Test>]
+let ``issue 457``() =
+    formatSourceString false """
+let x = Foo("").Goo()
+
+let r =
+    { s with
+        x = 1
+        y = 2 }
+"""  config
+  |> prepend newline
+  |> should equal """
+let x = Foo("").Goo()
+
+let r =
+    { s with
+          x = 1
+          y = 2 }
+"""
+
+[<Test>]
+let ``class member attributes should not introduce newline, 471`` () =
+    formatSourceString false """type Test =
+    | String of string
+
+    [<SomeAttribute>]
+    member x._Print = ""
+
+    member this.TestMember = ""
+"""  config
+    |> prepend newline
+    |> should equal """
+type Test =
+    | String of string
+
+    [<SomeAttribute>]
+    member x._Print = ""
+
+    member this.TestMember = ""
+"""
+
+[<Test>]
+let ``multiline record should be on new line after DU constructor, 462`` () =
+    formatSourceString false """
+let expect =
+    Result<Schema, SetError>.Ok { opts =
+                                      [ Opts.anyOf
+                                          ([ (Optional, Opt.flagTrue [ "first"; "f" ])
+                                             (Optional, Opt.value [ "second"; "s" ]) ])
+                                        Opts.oneOf
+                                            (Optional,
+                                             [ Opt.flag [ "third"; "f" ]
+                                               Opt.valueWith "new value" [ "fourth"; "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]) ]
+                                  args = []
+                                  commands = [] }
+"""  config
+    |> prepend newline
+    |> should equal """
+let expect =
+    Result<Schema, SetError>.Ok
+        { opts =
+              [ Opts.anyOf
+                  ([ (Optional, Opt.flagTrue [ "first"; "f" ])
+                     (Optional, Opt.value [ "second"; "s" ]) ])
+                Opts.oneOf
+                    (Optional,
+                     [ Opt.flag [ "third"; "f" ]
+                       Opt.valueWith "new value" [ "fourth"; "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]) ]
+          args = []
+          commands = [] }
+"""
+
+[<Test>]
+let ``short record should remain on the same line after DU constructor`` () =
+    formatSourceString false """
+let expect = Result<int,string>.Ok   7"""  config
+    |> prepend newline
+    |> should equal """
+let expect = Result<int, string>.Ok 7
+"""
+
+[<Test>]
+let ``multiline list after DU should be on new line after DU constructor`` () =
+    formatSourceString false """
+let expect =
+    Result<int,string>.Ok [ "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
+                            "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
+                            "meh"
+                          ]"""  config
+    |> prepend newline
+    |> should equal """
+let expect =
+    Result<int, string>
+        .Ok
+        [ "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
+          "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
+          "meh" ]
+"""
+
+[<Test>]
+let ``record with long string, 472`` () =
+    formatSourceString false "
+namespace web_core
+
+open WebSharper.UI
+
+module Maintoc =
+  let Page =
+    { MyPage.Create() with body =
+                                [ Doc.Verbatim \"\"\"
+This is a very long line in a multi-line string, so long in fact that it is longer than that page width to which I am trying to constrain everything, and so it goes bang.
+\"\"\" ] }"  config
+    |> prepend newline
+    |> should equal "
+namespace web_core
+
+open WebSharper.UI
+
+module Maintoc =
+    let Page =
+        { MyPage.Create() with
+              body =
+                  [ Doc.Verbatim \"\"\"
+This is a very long line in a multi-line string, so long in fact that it is longer than that page width to which I am trying to constrain everything, and so it goes bang.
+\"\"\" ]   }
 "

@@ -181,3 +181,23 @@ type CustomerId =
     | CustomerId of int
     member this.Test() = printfn "%A" this
 """
+
+[<Test>]
+let ``Generic type style should be respected`` () =
+    formatSourceString false """
+type 'a Foo = Foo of 'a
+    """ config
+    |> prepend newline
+    |> should equal """
+type 'a Foo = Foo of 'a
+"""
+
+[<Test>]
+let ``Generic multiple param type style should be respected`` () =
+    formatSourceString false """
+type ('a, 'b) Foo = Foo of 'a
+    """ config
+    |> prepend newline
+    |> should equal """
+type ('a, 'b) Foo = Foo of 'a
+"""

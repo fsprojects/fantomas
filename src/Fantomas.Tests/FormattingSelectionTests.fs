@@ -221,7 +221,7 @@ let a3 =
     [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
     |> should equal """
 let a3 =
-    [| for n in 1..100 do
+    [| for n in 1 .. 100 do
         if isPrime n then yield n |]"""
 
 [<Test>]
@@ -244,7 +244,7 @@ let comp =
     |> should equal """
 let comp =
     eventually {
-        for x in 1..2 do
+        for x in 1 .. 2 do
             printfn " x = %d" x
         return 3 + 4
     }"""

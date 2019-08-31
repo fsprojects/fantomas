@@ -1,40 +1,5 @@
 ## Fantomas: How to use
 
-### Using Visual Studio 2012 extension
----
-
-After being installed, Fantomas extension will appear under `Tools -> Extensions and Updates` menu. You can uninstall, disable or re-install the extension there.
-
-![Extension dialog](extension_dialog.png)
-
-The main formatting options are under `Tools -> Options -> Fantomas`. 
-
-![Fantomas options](fantomas_options.png)
-
-To be consistent with Visual Studio editors, the last option, *indent size*, can be adjusted under `Tools -> Options -> Text Editor -> F# -> Tabs` (looking for `Indent size` option).
-
-![Indent size option](indent_option.png)
-
-Two main functionalities of the extension are:
- 
- - *Formatting Document*, available under **Ctrl + K D** key combination.
- - *Formatting Selection / Formatting Cursor Position*, available under **Ctrl + K F** key combination.
-
-Using **Ctrl + K F** combination without a selection, the smallest parseable block (inside `[` and `]`, `[|` and `|]`, `{` and `}` or `(` and `)`) will be formatted.
-
-**N.B:**
-
-Due to implementation details, formatting selection feature is only guaranteed to work for:
-
- - modules
- - types
- - member declarations
- - let bindings
- - expressions
- - and any combination thereof.
-
-Any *unparsable* selection will not get meaningful results.
-
 ### Using the command line tool
 ---
 
@@ -189,7 +154,34 @@ To illustrate, `(1, 2, 3)` is rewritten to `(1,2,3)`.
 
  - `--strictMode`: if being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored. 
 
- - `--preserveEOL`: preserve original end of lines, disables auto insert/remove of blank lines.
+ - `--keepNewlineAfter`: if being set, newlines found in the source text will be kept in certain conditions.
+ 
+ ```fsharp
+let a =
+    42
+```
+
+will remain the same, the newline after the `=` was detected and preserved.
+
+```fsharp
+let config =
+    Builder()
+      .A()
+      .B()
+      .C()
+```
+
+will remain the same, the newline before the `.` was detected and preserved.
+
+```fsharp
+match meh with
+| Foo ->
+  printfn "foo"
+| Bar ->
+  printfn "bar"
+```
+
+will remain the same, the newline after `->` was detected and preserved.
 
 That said, most of the preferences are very simple. 
 But they demonstrate the flexibility of Fantomas on a set of configurations. 
