@@ -327,7 +327,7 @@ elif true then ()"""
         |> List.head
     
     match triviaNodes with
-    | [{ Type = MainNode("SynExpr.IfThenElse"); ContentBefore = [Keyword({Content = "if"})] }
+    | [{ Type = Token {Content = "if"}; ContentBefore = [Keyword({Content = "if"})] }
        { Type = MainNode("SynExpr.IfThenElse"); ContentBefore = [Keyword({Content = "elif"})]}] ->
         pass()
     | _ ->
