@@ -1025,7 +1025,7 @@ and genExpr astContext synExpr =
         
         // track how many indents was called, so we can correctly unindent.
         // TODO: do it without mutable
-        let mutable indented = 0 
+        let mutable indented = 0
 
         atCurrentColumn (
             ifToken fullRange !-"if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 +> thenToken fullRange !+"then") (genExpr astContext e1 +> thenToken fullRange !+-"then") -- " "
