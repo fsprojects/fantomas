@@ -1017,12 +1017,15 @@ and genExpr astContext synExpr =
         let ifToken r f = tokN r "IF" f
         let thenToken r f = tokN r "THEN" f
         let elseToken r f = tokN r "ELSE" f
-        let mutable indented = 0
 
         let anyExpressIsMultiline =
             multiline e2 || (Option.map multiline enOpt |> Option.defaultValue false) || (List.exists (fun (_, e, _, _, _) -> multiline e) es)
 
         let printBranch prefix astContext expr = prefix +> ifElse anyExpressIsMultiline (breakNln astContext true expr) (preserveBreakNln astContext expr)
+        
+        // track how many indents was called, so we can correctly unindent.
+        // TODO: do it without mutable
+        let mutable indented = 0 
 
         atCurrentColumn (
             ifToken fullRange !-"if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 +> thenToken fullRange !+"then") (genExpr astContext e1 +> thenToken fullRange !+-"then") -- " "
