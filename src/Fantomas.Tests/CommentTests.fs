@@ -649,7 +649,7 @@ type substring =
         // OPTIMIZATION : If the substrings have the same (identical) underlying string
         // and offset, the comparison value will depend only on the length of the substrings.
         strA.String == strB.String && strA.Offset = strB.Offset then compare strA.Length strB.Length
-        
+
         else
             (* Structural comparison on substrings -- this uses the same comparison
                technique as the structural comparison on strings in FSharp.Core. *)
