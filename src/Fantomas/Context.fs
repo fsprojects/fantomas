@@ -17,6 +17,8 @@ type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
     // that way we avoid bigger than indentSpace indentation when indent is used after atCurrentColumn
     let mutable atColumn = 0
     
+    let mutable toWriteBeforeNewLine = ""
+    
     let applyAtColumn f =
         let newIndent = f atColumn
         indentWriter.Indent <- newIndent
@@ -36,8 +38,15 @@ type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
     member __.WriteLine(s : string) =
         applyAtColumn (fun x -> max indentWriter.Indent x)
         col <- indentWriter.Indent
-        indentWriter.WriteLine(s)
+        indentWriter.WriteLine(s + toWriteBeforeNewLine)
+        toWriteBeforeNewLine <- ""
 
+    member __.WriteBeforeNextNewLine(s : string) =
+        toWriteBeforeNewLine <- s
+    
+    member __.Dump() =
+        indentWriter.InnerWriter.ToString() + toWriteBeforeNewLine
+    
     /// Current column of the page in an absolute manner
     member __.Column 
         with get() = col
@@ -109,7 +118,7 @@ type internal Context =
         { x with Writer = writer; Config = config }
 
 let internal dump (ctx: Context) =
-    ctx.Writer.InnerWriter.ToString()
+    ctx.Writer.Dump()
 
 #if DEBUG
 let internal dumpAndContinue (ctx: Context) =
@@ -202,8 +211,24 @@ let internal (--) (ctx : Context -> Context) (str : string) x =
     c.Writer.Write(str)
     c
 
+/// Break-line unless we are on empty line
+let internal (+~) (ctx : Context -> Context) (str : string) x =
+    let addNewline ctx =
+        dump ctx
+        |> String.normalizeThenSplitNewLine
+        |> Array.tryLast
+        |> Option.map (fun (line:string) -> line.Trim().Length > 1)
+        |> Option.defaultValue false
+    let c = ctx x
+    if addNewline c then 
+        c.Writer.WriteLine("")
+    c.Writer.Write(str)
+    c
+
 let internal (!-) (str : string) = id -- str 
 let internal (!+) (str : string) = id ++ str 
+let internal (!+-) (str : string) = id +- str 
+let internal (!+~) (str : string) = id +~ str 
 
 /// Print object converted to string
 let internal str (o : 'T) (ctx : Context) =
@@ -368,7 +393,7 @@ let internal futureNlnCheck f (ctx : Context) =
     use colWriter = new ColumnIndentedTextWriter(new StringWriter(), isDummy = true)
     let dummyCtx = ctx.With(colWriter, true)
     let writer = (dummyCtx |> f).Writer
-    let str = writer.InnerWriter.ToString()
+    let str = writer.Dump()
     let withoutStringConst = 
         str.Replace("\\\\", System.String.Empty).Replace("\\\"", System.String.Empty).Split([|'"'|])
         |> Seq.indexed |> Seq.filter (fun (i, _) -> i % 2 = 0) |> Seq.map snd |> String.concat System.String.Empty
@@ -456,7 +481,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
         |> Option.defaultValue false
 
     match c with
-    | Comment(LineCommentAfterSourceCode s) -> sepSpace +> !- s
+    | Comment(LineCommentAfterSourceCode s) -> fun ctx -> ctx.Writer.WriteBeforeNextNewLine (" " + s); ctx
     | Comment(BlockComment(s, before, after)) ->
         ifElse (before && addNewline) sepNln sepNone
         +> sepSpace -- s +> sepSpace
@@ -529,21 +554,32 @@ let private findTriviaTokenFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n -> Trivia.isToken n && n.Range.Start = range.Start && n.Range.End = range.End)
 
-let internal enterNodeWith f (range: range) (ctx: Context) =
-    match f ctx.Trivia range with
+let private findTriviaTokenFromName (range: range) nodes (tokenName:string) =
+    nodes
+    |> List.tryFind(fun n ->
+        match n.Type with
+        | Token(tn) when tn.TokenInfo.TokenName = tokenName ->
+            (range.Start.Line, range.Start.Column) <= (n.Range.Start.Line, n.Range.Start.Column)
+            && (range.End.Line, range.End.Column) >= (n.Range.End.Line, n.Range.End.Column)
+        | _ -> false)
+
+let internal enterNodeWith f x (ctx: Context) =
+    match f ctx.Trivia x with
     | Some triviaNode ->
         (printContentBefore triviaNode) ctx
     | None -> ctx
 let internal enterNode (range: range) (ctx: Context) = enterNodeWith findTriviaMainNodeOrTokenOnStartFromRange range ctx
 let internal enterNodeToken (range: range) (ctx: Context) = enterNodeWith findTriviaTokenFromRange range ctx
+let internal enterNodeTokenByName (range: range) (tokenName:string) (ctx: Context) = enterNodeWith (findTriviaTokenFromName range) tokenName ctx
 
-let internal leaveNodeWith f (range: range) (ctx: Context) =
-    match f ctx.Trivia range with
+let internal leaveNodeWith f x (ctx: Context) =
+    match f ctx.Trivia x with
     | Some triviaNode ->
         ((printContentAfter triviaNode) +> (removeNodeFromContext triviaNode)) ctx
     | None -> ctx
 let internal leaveNode (range: range) (ctx: Context) = leaveNodeWith findTriviaMainNodeOrTokenOnEndFromRange range ctx
 let internal leaveNodeToken (range: range) (ctx: Context) = leaveNodeWith findTriviaTokenFromRange range ctx
+let internal leaveNodeTokenByName (range: range) (tokenName:string) (ctx: Context) = leaveNodeWith (findTriviaTokenFromName range) tokenName ctx
     
 let internal leaveEqualsToken (range: range) (ctx: Context) =
     ctx.Trivia

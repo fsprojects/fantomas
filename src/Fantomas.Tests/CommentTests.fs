@@ -649,6 +649,7 @@ type substring =
         // OPTIMIZATION : If the substrings have the same (identical) underlying string
         // and offset, the comparison value will depend only on the length of the substrings.
         strA.String == strB.String && strA.Offset = strB.Offset then compare strA.Length strB.Length
+
         else
             (* Structural comparison on substrings -- this uses the same comparison
                technique as the structural comparison on strings in FSharp.Core. *)
@@ -664,4 +665,40 @@ type substring =
             System.String.CompareOrdinal
                 (strA.String, strA.Offset, strB.String, strB.Offset, min strA.Length strB.Length)
 #endif
+"""
+
+[<Test>]
+let ``line comment after "then"``() =
+    formatSourceString false """
+if true then //comment
+    1
+else 0""" config
+    |> prepend newline
+    |> should equal """
+if true then 1 //comment
+else 0
+"""
+
+[<Test>]
+let ``line comment after "if"``() =
+    formatSourceString false """
+if //comment
+    true then 1
+else 0""" config
+    |> prepend newline
+    |> should equal """
+if true then 1 //comment
+else 0
+"""
+
+[<Test>]
+let ``line comment after "else"``() =
+    formatSourceString false """
+if true then 1
+else //comment
+    0""" config
+    |> prepend newline
+    |> should equal """
+if true then 1
+else 0 //comment
 """
