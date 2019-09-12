@@ -220,3 +220,35 @@ let ``newlines inside let binding should be not duplicated`` () =
 
     ()
 """
+
+[<Test>]
+let ``inner let binding should not add additional newline, #475`` () =
+    formatSourceString false "module Test =
+    let testFunc() =
+        let someObject =
+            someStaticObject.Create(
+                ((fun o ->
+                    o.SomeProperty <- \"\"
+                    o.Role <- \"Has to be at least two properties\")))
+
+        /// Comment can't be removed to reproduce bug
+        let someOtherValue = \"\"
+
+        someObject.someFunc \"can't remove any of this stuff\"
+        someMutableProperty <- \"not even this\""  config
+    |> prepend newline
+    |> should equal "
+module Test =
+    let testFunc() =
+        let someObject =
+            someStaticObject.Create
+                (((fun o ->
+                o.SomeProperty <- \"\"
+                o.Role <- \"Has to be at least two properties\")))
+
+        /// Comment can't be removed to reproduce bug
+        let someOtherValue = \"\"
+
+        someObject.someFunc \"can't remove any of this stuff\"
+        someMutableProperty <- \"not even this\"
+"

@@ -974,7 +974,13 @@ and genExpr astContext synExpr =
             | [_, LetBinding(_, _, _, _, _, p, _)] -> 
                 not (isFromAst ctx) && p.Range.EndLine = e.Range.StartLine && not(checkBreakForExpr e)
             | _ -> false
-        atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") (sepNlnConsideringTriviaContentBefore e.Range) +> genExpr astContext e)
+
+        let sepNlnBeforeExpr =
+            match e with
+            | SynExpr.Sequential(_,_,e1,_,_) -> sepNlnConsideringTriviaContentBefore e1.Range
+            | _ -> (sepNlnConsideringTriviaContentBefore e.Range)
+
+        atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") sepNlnBeforeExpr  +> genExpr astContext e)
 
     // Could customize a bit if e is single line
     | TryWith(e, cs) -> 
