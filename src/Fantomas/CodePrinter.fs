@@ -1144,8 +1144,13 @@ and genInfixApps astContext hasNewLine synExprs =
     | (s, opE, e)::es when(hasNewLine) ->
         (sepNln +> tok opE.Range s +> sepSpace +> genExpr astContext e)
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
-    | (s, opE, e)::es when(NoSpaceInfixOps.Contains s) -> 
-        (tok opE.Range s +> autoNln (genExpr astContext e))
+    | (s, opE, e)::es when(NoSpaceInfixOps.Contains s) ->
+        let wrapExpr f =
+            match synExprs with
+            | ("?", SynExpr.Ident(Ident("op_Dynamic")), SynExpr.Ident(_))::_ ->
+                sepOpenT +> f +> sepCloseT
+            | _ -> f
+        (tok opE.Range s +> autoNln (wrapExpr (genExpr astContext e)))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es ->
         (sepSpace +> autoNln (tok opE.Range s +> sepSpace +> genCommentsAfterInfix (Some opE.Range) +> genExpr astContext e))
