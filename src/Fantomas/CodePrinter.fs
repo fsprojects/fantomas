@@ -1141,12 +1141,14 @@ and genInfixApps astContext hasNewLine synExprs =
     | (s, opE, e)::es when (NoBreakInfixOps.Contains s) -> 
         (sepSpace +> tok opE.Range s
          +> (fun ctx ->
-                let futureNln = futureNlnCheck (genExpr astContext e) ctx
-                let genExpr =
+                let isEqualOperator =
                     match opE with
-                    | SynExpr.Ident(Ident("op_Equality")) when(futureNln) ->
+                    | SynExpr.Ident(Ident("op_Equality")) -> true
+                    | _ -> false
+                let genExpr =
+                    if isEqualOperator && (futureNlnCheck (genExpr astContext e) ctx) then
                         indent +> sepNln +> genExpr astContext e +> unindent
-                    | _ ->
+                    else
                         sepSpace +> genExpr astContext e
                 genExpr ctx))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
