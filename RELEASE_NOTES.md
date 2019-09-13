@@ -1,3 +1,7 @@
+#### 3.0.0-beta-003 - 09/2019
+* More trivia fixes
+* FCS 31
+
 #### 3.0.0-beta-002 - 07/2019
 * More fixes with hash directives
 
