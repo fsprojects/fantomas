@@ -89,7 +89,7 @@ let parse isFsiFile s =
     |> Async.RunSynchronously
 
 let formatAST a s c =
-    CodeFormatter.FormatASTAsync(a, "/tmp.fsx",s, c)
+    CodeFormatter.FormatASTAsync(a, "/tmp.fsx",s, (parsingOptions "/tmp.fsx"), sharedChecker.Value, c)
     |> Async.RunSynchronously
 
 let makeRange l1 c1 l2 c2 = 

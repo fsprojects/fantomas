@@ -3,6 +3,7 @@
 open System
 open System.IO
 open Microsoft.FSharp.Text.Args
+open FSharp.Compiler.SourceCodeServices
 
 open Fantomas
 open Fantomas.FormatConfig
@@ -83,8 +84,9 @@ let rec allFiles isRec path =
 /// Format a source string using given config and write to a text writer
 let processSourceString isFsiFile s (tw : Choice<TextWriter, string>) config =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+    let parsingOptions = FakeHelpers.getParsingOptions fileName s
     async {
-        let! formatted = CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config)
+        let! formatted = CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config, parsingOptions, FakeHelpers.sharedChecker.Value)
         match tw with
         | Choice1Of2 tw -> tw.Write(formatted)
         | Choice2Of2 path -> File.WriteAllText(path, formatted)
@@ -94,8 +96,9 @@ let processSourceString isFsiFile s (tw : Choice<TextWriter, string>) config =
 /// Format inFile and write to text writer
 let processSourceFile inFile (tw : TextWriter) config = 
     let s = File.ReadAllText(inFile)
+    let parsingOptions = FakeHelpers.getParsingOptions inFile s
     async {
-        let! formatted = CodeFormatter.FormatDocumentAsync(inFile, SourceOrigin.SourceString s, config)
+        let! formatted = CodeFormatter.FormatDocumentAsync(inFile, SourceOrigin.SourceString s, config, parsingOptions, FakeHelpers.sharedChecker.Value)
         tw.Write(formatted)
     }
     |> Async.RunSynchronously

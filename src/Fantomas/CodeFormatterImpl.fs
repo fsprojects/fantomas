@@ -32,7 +32,7 @@ let private getSourceText (source: SourceOrigin) =
     | SourceString s -> FSharp.Compiler.Text.SourceText.ofString(s)
     | SourceText st -> st
 
-let private getSourceTextAndCode source = (getSourceText source, getSourceString source)
+let getSourceTextAndCode source = (getSourceText source, getSourceString source)
 
 type FormatContext =
     { FileName: string
@@ -42,26 +42,26 @@ type FormatContext =
       Checker: FSharpChecker }
 
 // Share an F# checker instance across formatting calls
-let sharedChecker = lazy(FSharpChecker.Create())
-
-let createFormatContextNoChecker fileName (source:SourceOrigin) =
-    let (sourceText,sourceCode) = getSourceTextAndCode source
-    // Create an interactive checker instance (ignore notifications)
-    let checker = sharedChecker.Value
-    let defines =
-        TokenParser.getDefines sourceCode
-        |> List.map (sprintf "--define:%s")
-        |> List.toArray
-    // Get compiler options for a single script file
-    let checkOptions = 
-        checker.GetProjectOptionsFromScript(fileName, sourceText, DateTime.Now, defines) 
-        |> (Async.RunSynchronously >> fst >> checker.GetParsingOptionsFromProjectOptions >> fst)
-
-    { FileName = fileName
-      Source = sourceCode
-      SourceText = sourceText
-      ProjectOptions = checkOptions
-      Checker = checker }
+//let sharedChecker = lazy(FSharpChecker.Create())
+//
+//let createFormatContextNoChecker fileName (source:SourceOrigin) =
+//    let (sourceText,sourceCode) = getSourceTextAndCode source
+//    // Create an interactive checker instance (ignore notifications)
+//    let checker = sharedChecker.Value
+//    let defines =
+//        TokenParser.getDefines sourceCode
+//        |> List.map (sprintf "--define:%s")
+//        |> List.toArray
+//    // Get compiler options for a single script file
+//    let checkOptions =
+//        checker.GetProjectOptionsFromScript(fileName, sourceText, DateTime.Now, defines)
+//        |> (Async.RunSynchronously >> fst >> checker.GetParsingOptionsFromProjectOptions >> fst)
+//
+//    { FileName = fileName
+//      Source = sourceCode
+//      SourceText = sourceText
+//      ProjectOptions = checkOptions
+//      Checker = checker }
 
 let createFormatContext fileName (source:SourceOrigin) projectOptions checker =
     let (sourceText,sourceCode) = getSourceTextAndCode source

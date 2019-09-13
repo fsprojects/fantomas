@@ -2,9 +2,12 @@ module Fantomas.FakeHelpers
 
 open System
 open System.IO
-
+open FSharp.Compiler.SourceCodeServices
 open Fantomas
 open Fantomas.FormatConfig
+
+// Share an F# checker instance across formatting calls
+let sharedChecker = lazy(FSharpChecker.Create())
 
 exception CodeFormatException of (string * Option<Exception>) array with
     override x.ToString() =
@@ -29,19 +32,30 @@ exception CodeFormatException of (string * Option<Exception>) array with
         + "The following files aren't formatted properly:"
         + "\r\n- " + String.Join("\r\n- ", files)
 
-type internal FormatResult =
+type FormatResult =
     | Formatted of string * string
     | Unchanged of string
     | Error of string * Exception
 
-let internal formatFileAsync config (file : string) =
+let getParsingOptions fileName originalContent =
+    let sourceOrigin = SourceOrigin.SourceString originalContent
+    let sourceText,_ = CodeFormatterImpl.getSourceTextAndCode sourceOrigin
+    let defines =
+        TokenParser.getDefines originalContent
+        |> List.map (sprintf "--define:%s")
+        |> List.toArray
+    sharedChecker.Value.GetProjectOptionsFromScript(fileName, sourceText, DateTime.Now, defines)
+    |> (Async.RunSynchronously >> fst >> sharedChecker.Value.GetParsingOptionsFromProjectOptions >> fst)
+
+let formatFileAsync config (file : string) =
     let originalContent = File.ReadAllText file
 
     async {
         try
-            let! formattedContent = CodeFormatter.FormatDocumentAsync(file, SourceOrigin.SourceString originalContent, config)
+            let parsingOptions = getParsingOptions file originalContent
+            let! formattedContent = CodeFormatter.FormatDocumentAsync(file, SourceOrigin.SourceString originalContent, config, parsingOptions, sharedChecker.Value)
             if originalContent <> formattedContent then
-                let! isValid = CodeFormatter.IsValidFSharpCodeAsync(file, (SourceOrigin.SourceString(formattedContent)))
+                let! isValid = CodeFormatter.IsValidFSharpCodeAsync(file, (SourceOrigin.SourceString(formattedContent)), parsingOptions, sharedChecker.Value)
                 if not isValid  then
                     raise <| FormatException "Formatted content is not valid F# code"
 
@@ -57,7 +71,7 @@ let internal formatFileAsync config (file : string) =
         | ex -> return Error(file, ex)
     }
 
-let internal formatFilesAsync config files =
+let formatFilesAsync config files =
     files
     |> Seq.map (formatFileAsync config)
     |> Async.Parallel
