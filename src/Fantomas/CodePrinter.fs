@@ -1139,7 +1139,16 @@ and genLetOrUseList astContext expr =
 and genInfixApps astContext hasNewLine synExprs = 
     match synExprs with
     | (s, opE, e)::es when (NoBreakInfixOps.Contains s) -> 
-        (sepSpace +> tok opE.Range s +> sepSpace +> genExpr astContext e)
+        (sepSpace +> tok opE.Range s
+         +> (fun ctx ->
+                let futureNln = futureNlnCheck (genExpr astContext e) ctx
+                let genExpr =
+                    match opE with
+                    | SynExpr.Ident(Ident("op_Equality")) when(futureNln) ->
+                        indent +> sepNln +> genExpr astContext e +> unindent
+                    | _ ->
+                        sepSpace +> genExpr astContext e
+                genExpr ctx))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es when(hasNewLine) ->
         (sepNln +> tok opE.Range s +> sepSpace +> genExpr astContext e)

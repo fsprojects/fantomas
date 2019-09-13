@@ -783,9 +783,9 @@ let x =
 let x =
     JobCollectionCreateParameters
         (Label = "Test",
-         IntrinsicSettings = JobCollectionIntrinsicSettings
-                                 (Plan = JobCollectionPlan.Standard,
-                                  Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))
+         IntrinsicSettings =
+             JobCollectionIntrinsicSettings
+                 (Plan = JobCollectionPlan.Standard, Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))
 """
 
 [<Test>]
