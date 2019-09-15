@@ -34,6 +34,7 @@ type CodeFormatter =
         CodeFormatterImpl.createFormatContext fileName source parsingOptions checker
         |> CodeFormatterImpl.formatSelection selection config
 
+    // Do we still need this?? Rider uses FormatSelectionAsync
     static member internal FormatSelectionInDocumentAsync(fileName, selection, source, config, parsingOptions, checker) =
         CodeFormatterImpl.createFormatContext fileName source parsingOptions checker
         |> CodeFormatterImpl.formatSelectionInDocument selection config
