@@ -38,7 +38,7 @@ type FormatContext =
     { FileName: string
       Source: string
       SourceText: ISourceText
-      ProjectOptions: FSharpParsingOptions
+      ParsingOptions: FSharpParsingOptions
       Checker: FSharpChecker }
 
 // Share an F# checker instance across formatting calls
@@ -63,15 +63,16 @@ type FormatContext =
 //      ProjectOptions = checkOptions
 //      Checker = checker }
 
-let createFormatContext fileName (source:SourceOrigin) projectOptions checker =
+let createFormatContext fileName (source:SourceOrigin) checker =
+    let parsingOptions = { FSharpParsingOptions.Default with SourceFiles = [|fileName|] }
     let (sourceText,sourceCode) = getSourceTextAndCode source
     { FileName = fileName
       Source = sourceCode
       SourceText = sourceText
-      ProjectOptions = projectOptions
+      ParsingOptions = parsingOptions
       Checker = checker }
 
-let parse { FileName = fileName; Source = source; ProjectOptions = checkOptions; Checker = checker } =
+let parse { FileName = fileName; Source = source; ParsingOptions = checkOptions; Checker = checker } =
     let allDefineOptions =
         TokenParser.getOptimizedDefinesSets source
         @ (TokenParser.getDefines source |> List.map List.singleton)
@@ -412,7 +413,7 @@ let formatWith ast formatContext config =
     let sourceCode = defaultArg input String.Empty
     let normalizedSourceCode = String.normalizeNewLine sourceCode
     let formattedSourceCode =
-        let context = Fantomas.Context.Context.create config formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode (Some ast)
+        let context = Fantomas.Context.Context.create config formatContext.ParsingOptions.ConditionalCompilationDefines normalizedSourceCode (Some ast)
         context |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
         |> Context.dump
 //        |> if config.StrictMode then id 
@@ -433,7 +434,7 @@ let format config formatContext =
             |> Array.map (fun (ast', defines) ->
                 let formatContext' =
                     { formatContext with
-                        ProjectOptions = { formatContext.ProjectOptions with
+                        ParsingOptions = { formatContext.ParsingOptions with
                                             ConditionalCompilationDefines = defines } }
                 formatWith ast' formatContext' config)
             |> List.ofArray

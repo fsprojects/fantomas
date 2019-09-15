@@ -47,15 +47,14 @@ let ``editor format with existing AST and source code`` () =
 
 let b =   1""" |> SourceOrigin.SourceString
     let fileName = "/tmp.fsx"
-    let parsingOptions = parsingOptions fileName
     let ast =
-        CodeFormatter.ParseAsync(fileName, source, parsingOptions, sharedChecker.Value)
+        CodeFormatter.ParseAsync(fileName, source, sharedChecker.Value)
         |> Async.RunSynchronously
         |> Seq.head
         |> fst
 
     let formattedCode =
-        CodeFormatter.FormatASTAsync(ast, fileName, Some source, parsingOptions, sharedChecker.Value, config)
+        CodeFormatter.FormatASTAsync(ast, fileName, Some source, sharedChecker.Value, config)
         |> Async.RunSynchronously
         |> String.normalizeNewLine
 

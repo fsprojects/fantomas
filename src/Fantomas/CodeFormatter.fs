@@ -8,39 +8,39 @@ type CodeFormatter =
 //        CodeFormatterImpl.createFormatContextNoChecker fileName source
 //        |> CodeFormatterImpl.parse
 
-    static member ParseAsync(fileName, source, parsingOptions, checker) =
-        CodeFormatterImpl.createFormatContext fileName source parsingOptions checker
+    static member ParseAsync(fileName, source, checker) =
+        CodeFormatterImpl.createFormatContext fileName source checker
         |> CodeFormatterImpl.parse
 
-    static member FormatASTAsync(ast, fileName, source, parsingOptions, checker, config) =
+    static member FormatASTAsync(ast, fileName, source, checker, config) =
         async {
-            let formatContext = CodeFormatterImpl.createFormatContext fileName (Option.defaultValue (SourceOrigin.SourceString "") source) parsingOptions checker
+            let formatContext = CodeFormatterImpl.createFormatContext fileName (Option.defaultValue (SourceOrigin.SourceString "") source) checker
             return CodeFormatterImpl.formatAST ast formatContext config
         }
 
-    static member FormatAroundCursorAsync(fileName, cursorPos, source, config, projectOptions, checker) =
-        CodeFormatterImpl.createFormatContext fileName source projectOptions checker
+    static member FormatAroundCursorAsync(fileName, cursorPos, source, config, checker) =
+        CodeFormatterImpl.createFormatContext fileName source checker
         |> CodeFormatterImpl.formatAroundCursor cursorPos config
 
-    static member FormatDocumentAsync(fileName, source, config, parsingOptions, checker) =
-        CodeFormatterImpl.createFormatContext fileName source parsingOptions checker
+    static member FormatDocumentAsync(fileName, source, config, checker) =
+        CodeFormatterImpl.createFormatContext fileName source checker
         |> CodeFormatterImpl.formatDocument config
 
 //    static member FormatDocumentAsync(fileName, source, config) =
 //        CodeFormatterImpl.createFormatContextNoChecker fileName source
 //        |> CodeFormatterImpl.formatDocument config
 
-    static member FormatSelectionAsync(fileName, selection, source, config, parsingOptions, checker) =
-        CodeFormatterImpl.createFormatContext fileName source parsingOptions checker
+    static member FormatSelectionAsync(fileName, selection, source, config, checker) =
+        CodeFormatterImpl.createFormatContext fileName source checker
         |> CodeFormatterImpl.formatSelection selection config
 
     // Do we still need this?? Rider uses FormatSelectionAsync
-    static member internal FormatSelectionInDocumentAsync(fileName, selection, source, config, parsingOptions, checker) =
-        CodeFormatterImpl.createFormatContext fileName source parsingOptions checker
+    static member internal FormatSelectionInDocumentAsync(fileName, selection, source, config, checker) =
+        CodeFormatterImpl.createFormatContext fileName source checker
         |> CodeFormatterImpl.formatSelectionInDocument selection config
 
-    static member IsValidFSharpCodeAsync(fileName, source, parsingOptions, checker) =
-        CodeFormatterImpl.createFormatContext fileName source parsingOptions checker
+    static member IsValidFSharpCodeAsync(fileName, source, checker) =
+        CodeFormatterImpl.createFormatContext fileName source checker
         |> CodeFormatterImpl.isValidFSharpCode
 
 //    static member IsValidFSharpCodeAsync(fileName, source) =
