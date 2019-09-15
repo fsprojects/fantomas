@@ -108,6 +108,8 @@ type internal Context =
             Positions = positions 
             Trivia = trivia }
 
+    member x.MemoizeProjection = x.Writer.Column, x.Trivia, x.BreakLines, x.RecordBraceStart
+    
     member x.With(writer : ColumnIndentedTextWriter, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
         writer.Indent <- x.Writer.Indent
@@ -387,8 +389,8 @@ let internal autoNlnCheck f sep (ctx : Context) =
     // This isn't accurate if we go to new lines
     col > ctx.Config.PageWidth
 
-let internal futureNlnCheck f (ctx : Context) =
-    if not ctx.BreakLines then false else
+let internal futureNlnCheckMem = Cache.memoizeBy (fun (f, ctx : Context) -> Cache.LambdaEqByRef f, ctx.MemoizeProjection) <| fun (f, ctx) ->
+    if ctx.Writer.IsDummy || not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
     use colWriter = new ColumnIndentedTextWriter(new StringWriter(), isDummy = true)
     let dummyCtx = ctx.With(colWriter, true)
@@ -400,6 +402,8 @@ let internal futureNlnCheck f (ctx : Context) =
     let lines = withoutStringConst.Split([|Environment.NewLine|], StringSplitOptions.None) 
 
     (lines |> Seq.length) >= 2 || writer.Column > ctx.Config.PageWidth
+
+let internal futureNlnCheck f (ctx : Context) = futureNlnCheckMem (f, ctx)
 
 let internal autoNlnByFuture f = ifElseCtx (futureNlnCheck f) (sepNln +> f) f
 let internal autoIndentNlnByFuture f = ifElseCtx (futureNlnCheck f) (indent +> sepNln +> f +> unindent) f
