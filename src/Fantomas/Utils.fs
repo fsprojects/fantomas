@@ -80,7 +80,23 @@ module Cache =
             else
                 cache.Add key |> ignore
                 false
-
+                
+    let memoizeBy (g: 'a -> 'c) (f: 'a -> 'b) =
+        let cache = System.Collections.Concurrent.ConcurrentDictionary<_, _>(HashIdentity.Structural)
+        fun x ->
+            cache.GetOrAdd(Some (g x), lazy (f x)).Force()
+            
+    [<CustomEquality; NoComparison>]
+    type LambdaEqByRef<'a,'b> = LambdaEqByRef of ('a -> 'b) with
+        override this.Equals(obj) =
+            match obj with
+            | :? LambdaEqByRef<'a,'b> as y ->
+                let (LambdaEqByRef f) = this
+                let (LambdaEqByRef g) = y
+                Object.ReferenceEquals(f,g)
+            | _ -> false
+        override this.GetHashCode() = 0
+        
 module Dict =
     let tryGet k (d: System.Collections.Generic.IDictionary<_,_>) =
         let (r,x) = d.TryGetValue k
