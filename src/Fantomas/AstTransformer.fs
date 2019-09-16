@@ -3,6 +3,13 @@ module Fantomas.AstTransformer
 open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 
+let rec (|Sequentials|_|) = function
+    | SynExpr.Sequential(_, isTrueSeq, e, Sequentials es, range) ->
+        Some((isTrueSeq, e, None, range)::es)
+    | SynExpr.Sequential(_, isTrueSeq, e1, e2, range) ->
+        Some [isTrueSeq, e1, Some e2, range]
+    | _ -> None
+
 type Id = {
     Ident: string
     Range: range option
@@ -346,6 +353,19 @@ module private Ast =
              Properties = p []
              FsAstNode = synExpr
              Childs = [yield visitSynExpr ex]}
+        | Sequentials xs -> // use tail-rec active pattern to avoid stack overflow
+            let rec cons xs =
+                match xs with
+                | [] -> failwith "should not happen" // expr2Opt is always Some in last item 
+                | ((isTrueSeq,expr1,expr2Opt,range)::rest) ->
+                    {Type = "SynExpr.Sequential"
+                     Range = r range
+                     Properties = p ["isTrueSeq" ==> isTrueSeq]
+                     FsAstNode = synExpr
+                     Childs =
+                         [yield visitSynExpr expr1
+                          yield expr2Opt |> Option.map visitSynExpr |> Option.defaultWith (fun () -> cons rest)]}
+            cons xs
         | SynExpr.Sequential(_,isTrueSeq,expr1,expr2,range) ->
             {Type = "SynExpr.Sequential"
              Range = r range
