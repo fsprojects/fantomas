@@ -28,13 +28,13 @@ let formatSourceStringWithDefines defines (s : string) config =
     // On Linux/Mac this will exercise different line endings
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = "/src.fsx"
-    let formatContext = CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s) sharedChecker.Value
+    let formatContext = CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s)
     let formatContextWithDefines =
         { formatContext with ParsingOptions = { formatContext.ParsingOptions with ConditionalCompilationDefines = defines } }
 
     let result =
         async {
-            let! asts = CodeFormatterImpl.parse formatContextWithDefines
+            let! asts = CodeFormatterImpl.parse sharedChecker.Value formatContextWithDefines
             let ast =
                 Array.filter (fun (_,d) -> d = defines) asts
                 |> Array.head
@@ -80,7 +80,7 @@ let parse isFsiFile s =
     |> Async.RunSynchronously
 
 let formatAST a s c =
-    CodeFormatter.FormatASTAsync(a, "/tmp.fsx",s, sharedChecker.Value, c)
+    CodeFormatter.FormatASTAsync(a, "/tmp.fsx",s, c)
     |> Async.RunSynchronously
 
 let makeRange l1 c1 l2 c2 = 

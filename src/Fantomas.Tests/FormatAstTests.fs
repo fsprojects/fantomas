@@ -54,7 +54,7 @@ let b =   1""" |> SourceOrigin.SourceString
         |> fst
 
     let formattedCode =
-        CodeFormatter.FormatASTAsync(ast, fileName, Some source, sharedChecker.Value, config)
+        CodeFormatter.FormatASTAsync(ast, fileName, Some source, config)
         |> Async.RunSynchronously
         |> String.normalizeNewLine
 

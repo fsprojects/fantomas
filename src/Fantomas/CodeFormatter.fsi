@@ -13,7 +13,7 @@ type CodeFormatter =
     static member ParseAsync : fileName:string * source:SourceOrigin * checker:FSharpChecker -> Async<(ParsedInput * string list) array>
 
     /// Format an abstract syntax tree using an optional source for looking up literals
-    static member FormatASTAsync : ast:ParsedInput * fileName:string * source:SourceOrigin option  * checker:FSharpChecker  * config:FormatConfig -> Async<string>
+    static member FormatASTAsync : ast:ParsedInput * fileName:string * source:SourceOrigin option * config:FormatConfig -> Async<string>
 
     /// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
     /// (Only use in testing.)
