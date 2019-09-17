@@ -224,7 +224,7 @@ let ``Hash ifs optimize defines property``() =
 [<Test>]
 let ``Hash ifs source format property``() =
     Check.One
-        ({ verboseConf with Arbitrary = [ typeof<BoolExprGenerator> ] }, (
+        ({ verboseConf with MaxTest = 100; Arbitrary = [ typeof<BoolExprGenerator> ] }, (
              fun (es: list<_>) ->
                  (es |> List.forall (fun e -> isSatisfiable e && isSatisfiable (BoolExpr.Not e))) ==> lazy
                      (let source = boolExprsToSource es
