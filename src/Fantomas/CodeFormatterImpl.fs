@@ -401,6 +401,13 @@ let isValidFSharpCode formatContext =
             return false
     }
 
+let addNewlineIfNeeded (formattedSourceCode:string) =
+    // When formatting the whole document, an EOL is required
+    if formattedSourceCode.EndsWith(Environment.NewLine) then
+        formattedSourceCode
+    else
+        formattedSourceCode + Environment.NewLine
+
 let formatWith ast formatContext config =
     let moduleName = Path.GetFileNameWithoutExtension formatContext.FileName
     let input =
@@ -410,7 +417,7 @@ let formatWith ast formatContext config =
     // Use '\n' as the new line delimiter consistently
     // It would be easier for F# parser
     let sourceCode = defaultArg input String.Empty
-    let normalizedSourceCode = String.normalizeNewLine sourceCode
+    let normalizedSourceCode = String.normalizeNewLine sourceCode |> addNewlineIfNeeded
     let formattedSourceCode =
         let context = Fantomas.Context.Context.create config formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode (Some ast)
         context |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
@@ -446,13 +453,6 @@ let format config formatContext =
 
         return merged
     }
-
-let addNewlineIfNeeded (formattedSourceCode:string) =
-    // When formatting the whole document, an EOL is required
-    if formattedSourceCode.EndsWith(Environment.NewLine) then
-        formattedSourceCode
-    else
-        formattedSourceCode + Environment.NewLine
 
 /// Format a source string using given config
 let formatDocument config formatContext =
