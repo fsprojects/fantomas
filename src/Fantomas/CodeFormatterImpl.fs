@@ -417,7 +417,7 @@ let formatWith ast formatContext config =
     // Use '\n' as the new line delimiter consistently
     // It would be easier for F# parser
     let sourceCode = defaultArg input String.Empty
-    let normalizedSourceCode = String.normalizeNewLine sourceCode |> addNewlineIfNeeded
+    let normalizedSourceCode = String.normalizeNewLine sourceCode |> fun x -> if String.IsNullOrEmpty x then x else addNewlineIfNeeded x
     let formattedSourceCode =
         let context = Fantomas.Context.Context.create config formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode (Some ast)
         context |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
