@@ -766,3 +766,27 @@ let x = 1
 let x = 1
 #endif
 """
+
+[<Test>]
+let ``inactive code with no newline at EOF #480``() =
+    formatSourceString false """
+#if NOT_DEFINED
+let x = 1
+#endif
+"""  config
+    |> should equal """#if NOT_DEFINED
+let x = 1
+#endif
+"""
+
+[<Test>]
+let ``no code for inactive define`` () =
+    formatSourceString false """#if SOMETHING
+let foo = 42
+#endif"""  config
+    |> prepend newline
+    |> should equal """
+#if SOMETHING
+let foo = 42
+#endif
+"""
