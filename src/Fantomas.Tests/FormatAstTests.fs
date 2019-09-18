@@ -42,19 +42,19 @@ else ()"""
 /// The trivia (newline on line 2) is kept in tact after formatting
 
 [<Test>]
-let ``editor format with existing AST and source code`` () =
+let ``create F# code with existing AST and source code`` () =
     let source = """let a =   42
 
 let b =   1""" |> SourceOrigin.SourceString
     let fileName = "/tmp.fsx"
     let ast =
-        CodeFormatter.ParseAsync(fileName, source, sharedChecker.Value)
+        CodeFormatter.ParseAsync(fileName, source, FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
         |> Async.RunSynchronously
         |> Seq.head
         |> fst
 
     let formattedCode =
-        CodeFormatter.FormatASTAsync(ast, fileName, Some source, config)
+        CodeFormatter.FormatASTAsync(ast, fileName, [], Some source, config)
         |> Async.RunSynchronously
         |> String.normalizeNewLine
 

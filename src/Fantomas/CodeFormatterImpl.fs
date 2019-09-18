@@ -3,7 +3,6 @@ module Fantomas.CodeFormatterImpl
 
 open System
 open System.Diagnostics
-open System.Collections.Generic
 open System.Text.RegularExpressions
 
 open FSharp.Compiler.Ast
@@ -37,18 +36,15 @@ let getSourceTextAndCode source = (getSourceText source, getSourceString source)
 type FormatContext =
     { FileName: string
       Source: string
-      SourceText: ISourceText
-      ParsingOptions: FSharpParsingOptions }
+      SourceText: ISourceText }
 
 let createFormatContext fileName (source:SourceOrigin) =
-    let parsingOptions = { FSharpParsingOptions.Default with SourceFiles = [|fileName|] }
     let (sourceText,sourceCode) = getSourceTextAndCode source
     { FileName = fileName
       Source = sourceCode
-      SourceText = sourceText
-      ParsingOptions = parsingOptions }
+      SourceText = sourceText }
 
-let parse (checker: FSharpChecker) { FileName = fileName; Source = source; ParsingOptions = checkOptions } =
+let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { FileName = fileName; Source = source } =
     let allDefineOptions =
         TokenParser.getOptimizedDefinesSets source
         @ (TokenParser.getDefines source |> List.map List.singleton)
@@ -58,16 +54,16 @@ let parse (checker: FSharpChecker) { FileName = fileName; Source = source; Parsi
     allDefineOptions
     |> List.map (fun conditionalCompilationDefines ->
         async {
-            let projectOptions = { checkOptions with ConditionalCompilationDefines = conditionalCompilationDefines; IsInteractive = false }
+            let parsingOptionsWithDefines = { parsingOptions with ConditionalCompilationDefines = conditionalCompilationDefines } // IsInteractive = false
             // Run the first phase (untyped parsing) of the compiler
             let sourceText = FSharp.Compiler.Text.SourceText.ofString source
-            let! untypedRes = checker.ParseFile(fileName, sourceText, projectOptions)
+            let! untypedRes = checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
             if untypedRes.ParseHadErrors then
                 let errors = 
                     untypedRes.Errors
                     |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
                 if not <| Array.isEmpty errors then
-                    raise <| FormatException (sprintf "Parsing failed with errors: %A\nAnd options: %A" errors checkOptions)
+                    raise <| FormatException (sprintf "Parsing failed with errors: %A\nAnd options: %A" errors parsingOptionsWithDefines)
                     
             let tree =
                 match untypedRes.ParseTree with
@@ -365,10 +361,10 @@ let isValidAST ast =
         validateImplFileInput input
 
 /// Check whether an input string is invalid in F# by looking for erroneous nodes in ASTs
-let isValidFSharpCode (checker: FSharpChecker) formatContext =
+let isValidFSharpCode (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) formatContext =
     async {
         try
-            let! ast = parse checker formatContext
+            let! ast = parse checker parsingOptions formatContext
             let isValid =
                 ast
                 |> Array.map fst
@@ -385,7 +381,7 @@ let addNewlineIfNeeded (formattedSourceCode:string) =
     else
         formattedSourceCode + Environment.NewLine
 
-let formatWith ast formatContext config =
+let formatWith ast defines formatContext config =
     let moduleName = Path.GetFileNameWithoutExtension formatContext.FileName
     let input =
         if String.IsNullOrWhiteSpace formatContext.Source then None
@@ -396,7 +392,7 @@ let formatWith ast formatContext config =
     let sourceCode = defaultArg input String.Empty
     let normalizedSourceCode = String.normalizeNewLine sourceCode |> fun x -> if String.IsNullOrEmpty x then x else addNewlineIfNeeded x
     let formattedSourceCode =
-        let context = Fantomas.Context.Context.create config formatContext.ParsingOptions.ConditionalCompilationDefines normalizedSourceCode (Some ast)
+        let context = Fantomas.Context.Context.create config defines normalizedSourceCode (Some ast)
         context |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
         |> Context.dump
 //        |> if config.StrictMode then id 
@@ -409,17 +405,13 @@ let formatWith ast formatContext config =
     
     |> String.removeTrailingSpaces
 
-let format (checker: FSharpChecker) config formatContext =
+let format (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) config formatContext =
     async {
-        let! asts = parse checker formatContext
+        let! asts = parse checker parsingOptions formatContext
         let results =
             asts
             |> Array.map (fun (ast', defines) ->
-                let formatContext' =
-                    { formatContext with
-                        ParsingOptions = { formatContext.ParsingOptions with
-                                            ConditionalCompilationDefines = defines } }
-                formatWith ast' formatContext' config)
+                formatWith ast' defines formatContext config)
             |> List.ofArray
             
         let merged =
@@ -432,15 +424,15 @@ let format (checker: FSharpChecker) config formatContext =
     }
 
 /// Format a source string using given config
-let formatDocument (checker: FSharpChecker) config formatContext =
+let formatDocument (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) config formatContext =
     async {
-        let! formattedSourceCode = format checker config formatContext
+        let! formattedSourceCode = format checker parsingOptions config formatContext
         return addNewlineIfNeeded formattedSourceCode
     }
 
 /// Format an abstract syntax tree using given config
-let formatAST ast formatContext config =
-    let formattedSourceCode = formatWith ast formatContext config
+let formatAST ast defines formatContext config =
+    let formattedSourceCode = formatWith ast defines formatContext config
     addNewlineIfNeeded formattedSourceCode
 
 /// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
@@ -495,7 +487,7 @@ let startWithMember (sel : string) =
     |> Array.exists (sel.TrimStart().StartsWith)
 
 /// Find the first type declaration or let binding at beginnings of lines
-let getPatch startCol (lines : string []) =
+let private getPatch startCol (lines : string []) =
     let rec loop i = 
         if i < 0 then Nothing 
         elif Regex.Match(lines.[i], "^[\s]*type").Success then RecType
@@ -508,7 +500,7 @@ let getPatch startCol (lines : string []) =
     loop (lines.Length - 1)
 
 /// Convert from range to string positions
-let stringPos (r : range) (sourceCode : string) =
+let private stringPos (r : range) (sourceCode : string) =
     // Assume that content has been normalized (no "\r\n" anymore)
     let positions = 
         sourceCode.Split('\n')
@@ -524,7 +516,7 @@ let stringPos (r : range) (sourceCode : string) =
         if pos >= sourceCode.Length then sourceCode.Length - 1 else pos 
     (start, finish)
 
-let formatRange (checker: FSharpChecker) returnFormattedContentOnly (range : range) (lines : _ []) config ({ Source = sourceCode } as formatContext) =
+let private formatRange (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) returnFormattedContentOnly (range : range) (lines : _ []) config ({ Source = sourceCode } as formatContext) =
     let startLine = range.StartLine
     let startCol = range.StartColumn
     let endLine = range.EndLine
@@ -566,7 +558,7 @@ let formatRange (checker: FSharpChecker) returnFormattedContentOnly (range : ran
         async {
             // From this point onwards, we focus on the current selection
             let formatContext = { formatContext with Source = sourceCode }
-            let! formattedSourceCode = format checker config formatContext
+            let! formattedSourceCode = format checker parsingOptions config formatContext
             // If the input is not inline, the output should not be inline as well
             if sourceCode.EndsWith("\n") && not <| formattedSourceCode.EndsWith(Environment.NewLine) then 
                 return formattedSourceCode + Environment.NewLine
@@ -621,7 +613,7 @@ let formatRange (checker: FSharpChecker) returnFormattedContentOnly (range : ran
 
 /// Format a part of source string using given config, and return the (formatted) selected part only.
 /// Beware that the range argument is inclusive. If the range has a trailing newline, it will appear in the formatted result.
-let formatSelection (checker: FSharpChecker) (range : range) config ({ Source = sourceCode; FileName =  fileName } as formatContext) =
+let formatSelection (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) (range : range) config ({ Source = sourceCode; FileName =  fileName } as formatContext) =
     let lines = String.normalizeThenSplitNewLine sourceCode
 
     // Move to the section with real contents
@@ -653,7 +645,7 @@ let formatSelection (checker: FSharpChecker) (range : range) config ({ Source = 
         sprintf "%O" range, sprintf "%O" contentRange, sprintf "%O" modifiedRange)
 
     async {
-        let! formatted = formatRange checker true modifiedRange lines config formatContext
+        let! formatted = formatRange checker parsingOptions true modifiedRange lines config formatContext
     
         let (start, finish) = stringPos range sourceCode
         let (newStart, newFinish) = stringPos modifiedRange sourceCode
@@ -668,45 +660,6 @@ let formatSelection (checker: FSharpChecker) (range : range) config ({ Source = 
         return String.Join(String.Empty, pre, formatted, post)
     }
 
- /// Format a selected part of source string using given config; expanded selected ranges to parsable ranges. 
-let formatSelectionExpanded (checker: FSharpChecker) (range : range) config ({ FileName = fileName; Source = sourceCode } as formatContext) =
-    let lines = String.normalizeThenSplitNewLine sourceCode
-    let sourceTokenizer = FSharpSourceTokenizer([], Some fileName)
-
-    // Move to the section with real contents
-    let contentRange =
-        if range.StartLine = range.EndLine then range
-        else
-            let startLine = getStartLineIndex lines (range.StartLine - 1) + 1
-            let endLine = getEndLineIndex lines (range.EndLine - 1) + 1
-            let startCol = 0
-            let endCol = lines.[endLine-1].Length - 1
-            // Notice that Line indices start at 1 while Column indices start at 0.
-            makeRange fileName startLine startCol endLine endCol
-
-    let startTokenizer = sourceTokenizer.CreateLineTokenizer(lines.[contentRange.StartLine-1])
-
-    let startCol = getStartCol contentRange startTokenizer (ref FSharpTokenizerLexState.Initial)
-
-    let endTokenizer =
-        if contentRange.StartLine = contentRange.EndLine then startTokenizer 
-        else sourceTokenizer.CreateLineTokenizer(lines.[contentRange.EndLine-1])
-
-    let endCol = getEndCol contentRange endTokenizer (ref FSharpTokenizerLexState.Initial)
-
-    let expandedRange = makeRange fileName contentRange.StartLine startCol contentRange.EndLine endCol
-    async {
-        let! result = formatRange checker false expandedRange lines config formatContext
-        return (result, expandedRange)
-    }
-
-/// Format a selected part of source string using given config; keep other parts unchanged. 
-let formatSelectionInDocument (checker: FSharpChecker) (range : range) config formatContext =
-    async {
-        let! (formatted, _) = formatSelectionExpanded checker range config formatContext
-        return formatted
-    }
-
 type internal BlockType =
    | List
    | Array
@@ -715,129 +668,3 @@ type internal BlockType =
 
 /// Make a position at (line, col) to denote cursor position
 let makePos line col = mkPos line col
-
-/// Infer selection around cursor by looking for a pair of '[' and ']', '{' and '}' or '(' and ')'. 
-let inferSelectionFromCursorPos (cursorPos : pos) fileName (source : SourceOrigin) =
-    let sourceCode = getSourceString source
-    let lines = String.normalizeThenSplitNewLine sourceCode
-    let sourceTokenizer = FSharpSourceTokenizer([], Some fileName)
-    let openDelimiters = dict ["[", List; "[|", Array; "{", SequenceOrRecord; "(", Tuple]
-    let closeDelimiters = dict ["]", List; "|]", Array; "}", SequenceOrRecord; ")", Tuple]
-
-    /// Find the delimiter at the end
-    let rec tryFindEndDelimiter (dic : Dictionary<_, _>) i (lines : _ []) =
-        if i >= lines.Length then
-            None
-        else
-            let line = lines.[i]
-            let lineTokenizer = sourceTokenizer.CreateLineTokenizer(line)
-            let finLine = ref false
-            let result = ref None
-            let lexState = ref FSharpTokenizerLexState.Initial
-            while not !finLine do
-                let tok, newLexState = lineTokenizer.ScanToken(!lexState)
-                lexState := newLexState
-                match tok with 
-                | None -> 
-                    finLine := true
-                | Some t when t.CharClass = FSharpTokenCharKind.Delimiter -> 
-                    if i + 1 > cursorPos.Line || (i + 1 = cursorPos.Line && t.RightColumn >= cursorPos.Column) then
-                        let text = line.[t.LeftColumn..t.RightColumn]
-                        match text with
-                        | "[" | "[|" | "{" | "(" ->
-                            Debug.WriteLine("Found opening token '{0}'", text)
-                            let delimiter = openDelimiters.[text]
-                            match dic.TryGetValue(delimiter) with
-                            | true, c -> 
-                                dic.[delimiter] <- c + 1
-                            | _ -> 
-                                dic.Add(delimiter, 1)
-                        | "]" | "|]" | "}" | ")" ->
-                            Debug.WriteLine("Found closing token '{0}'", text)
-                            let delimiter = closeDelimiters.[text]
-                            match dic.TryGetValue(delimiter) with
-                            | true, 1 -> 
-                                dic.Remove(delimiter) |> ignore
-                            | true, c -> 
-                                dic.[delimiter] <- c - 1
-                            | _ -> 
-                                // The delimiter has count 0; record as a result
-                                Debug.WriteLine("Record closing token '{0}'", text)
-                                result := Some (i + 1, t.RightColumn, delimiter)
-                        | _ -> ()
-                | _ -> ()
-
-            if Option.isNone !result then
-                tryFindEndDelimiter dic (i + 1) lines
-            else
-                !result
-
-    /// Find the delimiter at the beginning
-    let rec tryFindStartDelimiter blockType (dic : Dictionary<_, _>) acc i (lines : _ []) =
-        if i >= cursorPos.Line then
-            acc
-        else
-            let line = lines.[i]
-            let lineTokenizer = sourceTokenizer.CreateLineTokenizer(line)
-            let finLine = ref false
-            let result = ref acc
-            let lexState = ref FSharpTokenizerLexState.Initial
-            while not !finLine do
-                let tok, newLexState = lineTokenizer.ScanToken(!lexState)
-                lexState := newLexState
-                match tok with 
-                | None -> 
-                    finLine := true
-                | Some t when t.CharClass = FSharpTokenCharKind.Delimiter -> 
-                    if i + 1 < cursorPos.Line || (i + 1 = cursorPos.Line && t.LeftColumn <= cursorPos.Column) then
-                        let text = line.[t.LeftColumn..t.RightColumn]
-                        match text, blockType with
-                        | "]", List
-                        | "|]", Array 
-                        | "}", SequenceOrRecord 
-                        | ")", Tuple ->
-                            Debug.WriteLine("Found closing delimiter '{0}'", text)
-                            let delimiter = closeDelimiters.[text]
-                            match dic.TryGetValue(delimiter) with
-                            | true, 1 -> 
-                                dic.Remove(delimiter) |> ignore
-                            | true, c -> 
-                                dic.[delimiter] <- c - 1
-                            | _ -> 
-                                Debug.WriteLine("It's a dangling closing delimiter")
-                                result := None
-                        | "[", List 
-                        | "[|", Array 
-                        | "{", SequenceOrRecord 
-                        | "(", Tuple ->
-                            Debug.WriteLine("Found opening delimiter '{0}'", text)
-                            let delimiter = openDelimiters.[text]
-                            match dic.TryGetValue(delimiter) with
-                            | true, c -> 
-                                dic.[delimiter] <- c + 1
-                            | _ -> 
-                                Debug.WriteLine("Record opening delimiter '{0}'", text)
-                                dic.Add(delimiter, 1)
-                                result := Some (i + 1, t.LeftColumn)
-                        | _ -> ()
-                | _ -> ()
-
-            // We find the last opening delimiter
-            tryFindStartDelimiter blockType dic !result (i + 1) lines
-            
-    match tryFindEndDelimiter (Dictionary()) (cursorPos.Line - 1) lines with
-    | None -> 
-        raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor.""")
-    | Some (endLine, endCol, blockType) ->
-        match tryFindStartDelimiter blockType (Dictionary()) None 0 lines with
-        | None ->
-            raise <| FormatException("""Found no pair of delimiters (e.g. "[ ]", "[| |]", "{ }" or "( )") around the cursor.""")
-        | Some (startLine, startCol) ->
-            makeRange fileName startLine startCol endLine endCol
-
-/// Format around cursor delimited by '[' and ']', '{' and '}' or '(' and ')' using given config; keep other parts unchanged. 
-let formatAroundCursor (checker: FSharpChecker) (cursorPos : pos) config ({ FileName = fileName; Source = sourceCode } as formatContext) =
-    async {
-        let selection = inferSelectionFromCursorPos cursorPos fileName (SourceOrigin.SourceString sourceCode)
-        return! formatSelectionInDocument checker selection config formatContext
-    }

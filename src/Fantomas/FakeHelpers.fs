@@ -37,14 +37,21 @@ type FormatResult =
     | Unchanged of string
     | Error of string * Exception
 
+let createParsingOptionsFromFile fileName =
+    { FSharpParsingOptions.Default with SourceFiles = [|fileName|] }
+
 let formatFileAsync config (file : string) =
     let originalContent = File.ReadAllText file
 
     async {
         try
-            let! formattedContent = CodeFormatter.FormatDocumentAsync(file, SourceOrigin.SourceString originalContent, config, sharedChecker.Value)
+            let! formattedContent =
+                CodeFormatter.FormatDocumentAsync(file, SourceOrigin.SourceString originalContent, config,
+                                                  createParsingOptionsFromFile file ,sharedChecker.Value)
             if originalContent <> formattedContent then
-                let! isValid = CodeFormatter.IsValidFSharpCodeAsync(file, (SourceOrigin.SourceString(formattedContent)), sharedChecker.Value)
+                let! isValid =
+                    CodeFormatter.IsValidFSharpCodeAsync(file, (SourceOrigin.SourceString(formattedContent)),
+                                                         createParsingOptionsFromFile file, sharedChecker.Value)
                 if not isValid  then
                     raise <| FormatException "Formatted content is not valid F# code"
 

@@ -319,7 +319,8 @@ type T() =
     interface IDisposable with
         override x.Dispose() = ()"""
     
-    Fantomas.CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString sourceCode, config, sharedChecker.Value)
+    Fantomas.CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString sourceCode, config,
+                                               FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
     |> should equal """open System

@@ -4,26 +4,26 @@ open Fantomas
 
 [<Sealed>]
 type CodeFormatter =
-    static member ParseAsync(fileName, source, checker) =
+    static member ParseAsync(fileName, source, parsingOptions, checker) =
         CodeFormatterImpl.createFormatContext fileName source
-        |> CodeFormatterImpl.parse checker
+        |> CodeFormatterImpl.parse checker parsingOptions
 
-    static member FormatASTAsync(ast, fileName, source, config) =
+    static member FormatASTAsync(ast, fileName, defines, source, config) =
         let formatContext = CodeFormatterImpl.createFormatContext fileName (Option.defaultValue (SourceOrigin.SourceString "") source)
-        CodeFormatterImpl.formatAST ast formatContext config
+        CodeFormatterImpl.formatAST ast defines formatContext config
         |> async.Return
 
-    static member FormatDocumentAsync(fileName, source, config, checker) =
+    static member FormatDocumentAsync(fileName, source, config, parsingOptions, checker) =
         CodeFormatterImpl.createFormatContext fileName source
-        |> CodeFormatterImpl.formatDocument checker config
+        |> CodeFormatterImpl.formatDocument checker parsingOptions config
 
-    static member FormatSelectionAsync(fileName, selection, source, config, checker) =
+    static member FormatSelectionAsync(fileName, selection, source, config, parsingOptions, checker) =
         CodeFormatterImpl.createFormatContext fileName source
-        |> CodeFormatterImpl.formatSelection checker selection config
+        |> CodeFormatterImpl.formatSelection checker parsingOptions selection config
 
-    static member IsValidFSharpCodeAsync(fileName, source, checker) =
+    static member IsValidFSharpCodeAsync(fileName, source, parsingOptions, checker) =
         CodeFormatterImpl.createFormatContext fileName source
-        |> CodeFormatterImpl.isValidFSharpCode checker
+        |> CodeFormatterImpl.isValidFSharpCode checker parsingOptions
 
     static member IsValidASTAsync ast = 
         async { return CodeFormatterImpl.isValidAST ast }
@@ -33,6 +33,3 @@ type CodeFormatter =
 
     static member MakeRange(fileName, startLine, startCol, endLine, endCol) = 
         CodeFormatterImpl.makeRange fileName startLine startCol endLine endCol
-
-    static member InferSelectionFromCursorPos(fileName, cursorPos, source) =
-        CodeFormatterImpl.inferSelectionFromCursorPos cursorPos fileName source

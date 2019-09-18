@@ -20,7 +20,8 @@ let formatSourceString isFsiFile (s : string) config =
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/src.fsi" else "/src.fsx"
 
-    CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config, sharedChecker.Value)
+    CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config,
+                                      FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
 
@@ -29,17 +30,18 @@ let formatSourceStringWithDefines defines (s : string) config =
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = "/src.fsx"
     let formatContext = CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s)
-    let formatContextWithDefines =
-        { formatContext with ParsingOptions = { formatContext.ParsingOptions with ConditionalCompilationDefines = defines } }
+    let parsingOptions =
+        FakeHelpers.createParsingOptionsFromFile fileName
+        |> fun p -> { p with ConditionalCompilationDefines = defines }
 
     let result =
         async {
-            let! asts = CodeFormatterImpl.parse sharedChecker.Value formatContextWithDefines
+            let! asts = CodeFormatterImpl.parse sharedChecker.Value parsingOptions formatContext
             let ast =
                 Array.filter (fun (_,d) -> d = defines) asts
                 |> Array.head
                 |> fst
-            return CodeFormatterImpl.formatWith ast formatContextWithDefines config
+            return CodeFormatterImpl.formatWith ast defines formatContext config
         }
         |> Async.RunSynchronously
         |> CodeFormatterImpl.addNewlineIfNeeded
@@ -51,22 +53,25 @@ let formatSourceStringWithDefines defines (s : string) config =
 let formatSelectionOnly isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatSelectionAsync(fileName, r, SourceOrigin.SourceString s, config, sharedChecker.Value)
+    CodeFormatter.FormatSelectionAsync(fileName, r, SourceOrigin.SourceString s, config,
+                                       FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
 
 let isValidFSharpCode isFsiFile s =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.IsValidFSharpCodeAsync(fileName, SourceOrigin.SourceString s, sharedChecker.Value)
+    CodeFormatter.IsValidFSharpCodeAsync(fileName, SourceOrigin.SourceString s,
+                                         FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
     |> Async.RunSynchronously
 
 let parse isFsiFile s =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.ParseAsync(fileName, SourceOrigin.SourceString s, sharedChecker.Value)
+    CodeFormatter.ParseAsync(fileName, SourceOrigin.SourceString s,
+                             FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
     |> Async.RunSynchronously
 
 let formatAST a s c =
-    CodeFormatter.FormatASTAsync(a, "/tmp.fsx",s, c)
+    CodeFormatter.FormatASTAsync(a, "/tmp.fsx", [], s, c)
     |> Async.RunSynchronously
 
 let makeRange l1 c1 l2 c2 = 
