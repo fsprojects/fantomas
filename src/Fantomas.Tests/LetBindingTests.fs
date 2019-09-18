@@ -252,3 +252,22 @@ module Test =
         someObject.someFunc \"can't remove any of this stuff\"
         someMutableProperty <- \"not even this\"
 "
+
+[<Test>]
+let ``don't add significant spacing after let binding, #478`` () =
+    formatSourceString false """let someFun someReallyLoooooooooooooooongValue =
+    let someValue = someReallyLoooooooooooooooongValue
+
+    someOtherFun 1 3
+
+    someOtherOtherFun 2 4
+"""  config
+    |> prepend newline
+    |> should equal """
+let someFun someReallyLoooooooooooooooongValue =
+    let someValue = someReallyLoooooooooooooooongValue
+
+    someOtherFun 1 3
+
+    someOtherOtherFun 2 4
+"""
