@@ -3,7 +3,7 @@
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <Version>3.0.0-beta-003</Version>
+    <Version>3.0.0-beta-004</Version>
     <AssemblyName>dotnet-fantomas</AssemblyName>
     <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>

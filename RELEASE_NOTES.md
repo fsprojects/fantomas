@@ -1,3 +1,7 @@
+#### 3.0.0-beta-004 - 09/2019
+* Restructured library API
+* Improved performance
+
 #### 3.0.0-beta-003 - 09/2019
 * More trivia fixes
 * FCS 31
