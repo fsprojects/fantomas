@@ -778,3 +778,15 @@ let x = 1
 let x = 1
 #endif
 """
+
+[<Test>]
+let ``no code for inactive define`` () =
+    formatSourceString false """#if SOMETHING
+let foo = 42
+#endif"""  config
+    |> prepend newline
+    |> should equal """
+#if SOMETHING
+let foo = 42
+#endif
+"""

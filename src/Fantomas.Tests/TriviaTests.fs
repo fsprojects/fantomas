@@ -434,3 +434,19 @@ let ``trailing newlines should not be picked up in trivia`` () =
     match trivia with
     | [] -> pass()
     | _ -> fail()
+
+
+[<Test>]
+let ``code in non-active defines should be returned in trivia`` () =
+    let source = """#if SOMETHING
+let foo = 42
+#endif"""
+
+    let trivia =
+        toTriviaWithDefines source
+        |> Map.find []
+
+    match trivia with
+    | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
+         ContentBefore = [ Directive("#if SOMETHING"); Newline; Directive("#endif") ] }] -> pass()
+    | _ -> fail()
