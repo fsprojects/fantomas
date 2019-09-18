@@ -48,24 +48,10 @@ let formatSourceStringWithDefines defines (s : string) config =
     String.merge result result
     |> String.normalizeNewLine
 
-let formatSelectionFromString isFsiFile r (s : string) config = 
-    let s = s.Replace("\r\n", Environment.NewLine)
-    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatSelectionInDocumentAsync(fileName, r, SourceOrigin.SourceString s, config, sharedChecker.Value)
-    |> Async.RunSynchronously
-    |> fun s -> s.Replace("\r\n", "\n")
-
 let formatSelectionOnly isFsiFile r (s : string) config = 
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
     CodeFormatter.FormatSelectionAsync(fileName, r, SourceOrigin.SourceString s, config, sharedChecker.Value)
-    |> Async.RunSynchronously
-    |> fun s -> s.Replace("\r\n", "\n")
-
-let formatAroundCursor isFsiFile p (s : string) config = 
-    let s = s.Replace("\r\n", Environment.NewLine)
-    let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    CodeFormatter.FormatAroundCursorAsync(fileName, p, SourceOrigin.SourceString s, config, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
 
