@@ -101,7 +101,9 @@ let private findNodeBeforeLineFromEnd (nodes: TriviaNode list) line =
 
 let private findNodeAfterLineAndColumn (nodes: TriviaNode list) line column =
     nodes
-    |> List.tryFind (fun { Range = range } -> range.StartLine >= line && range.StartColumn >= column)
+    |> List.tryFind (fun { Range = range } ->
+        (range.StartLine > line) || (range.StartLine = line && range.StartColumn > column)
+    )
 
 let private findConstNodeAfter (nodes: TriviaNode list) (range: range) =
     nodes
@@ -285,7 +287,7 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         | Some _ as node ->
             updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter directive }) triviaNodes node
         | _ ->
-            match findFirstNodeAfterLine triviaNodes range.StartLine with
+            match findNodeAfterLineAndColumn triviaNodes range.EndLine range.EndColumn with
             | Some _ as node ->
                 updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore directive }) triviaNodes node
             | None ->
