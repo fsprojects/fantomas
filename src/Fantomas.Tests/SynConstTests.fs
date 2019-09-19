@@ -1,8 +1,8 @@
 module Fantomas.Tests.SynConstTests
 
 open NUnit.Framework
-open Fantomas.Tests.TestHelper
 open FsUnit
+open Fantomas.Tests.TestHelper
 
 // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-ast-synconst.html
 [<Test>]
