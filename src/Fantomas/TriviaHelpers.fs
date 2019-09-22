@@ -17,3 +17,8 @@ module TriviaHelpers =
         List.tryFind findTrivia trivia
         |> Option.map (fun t -> t.ContentAfter |> List.exists contentAfter)
         |> Option.defaultValue false
+
+    let internal ``has content after that ends with`` (findTrivia: TriviaNode -> bool) (contentAfterEnd: TriviaContent -> bool) (trivia: TriviaNode list) =
+        List.tryFind findTrivia trivia
+        |> Option.bind (fun t -> t.ContentAfter |> List.tryLast |> Option.map contentAfterEnd)
+        |> Option.defaultValue false

@@ -264,8 +264,9 @@ and genSigModuleDeclList astContext node =
 and genModuleDecl astContext node =
     match node with
     | Attributes(ats) ->
-        let ats = List.collect (fun a -> a.Attributes) ats
-        col sepNln ats (genAttribute astContext)
+        col sepNone ats
+            (fun a -> col sepNln a.Attributes (genAttribute astContext)
+                      |> genTrivia a.Range)
     | DoExpr(e) ->
         genExpr astContext e
     | Exception(ex) ->
@@ -351,14 +352,7 @@ and genSigModuleDecl astContext node =
 
 and genAccess (Access s) = !- s
 
-//and genAttributes astContext (ats: SynAttributes) =
-//    col sepNln ats (genAttributeList astContext)
-    
-//and genAttributeList astContext (ats: SynAttributeList) =
-//    col sepNln ats.Attributes (genAttribute astContext)
-//    |> genTrivia ats.Range
-
-and genAttribute astContext (Attribute(s, e, target)) = 
+and genAttribute astContext (Attribute(s, e, target)) =
     match e with
     // Special treatment for function application on attributes
     | ConstExpr(Const "()", _) -> 
@@ -370,11 +364,6 @@ and genAttribute astContext (Attribute(s, e, target)) =
     |> genTrivia e.Range
     
 and genAttributesCore astContext (ats: SynAttribute seq) =
-
-    let genTriviaForAttributes (f: Context -> Context) =
-        ats
-        |> Seq.fold (fun (acc: Context -> Context) (attr: SynAttribute) -> acc |> (genTrivia attr.Range)) f
-
     let genAttributeExpr astContext (Attribute(s, e, target) as attr) =
         match e with
         | ConstExpr(Const "()", _) -> 
@@ -385,7 +374,6 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
             opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e
         |> genTrivia attr.Range
     ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> col sepSemi ats (genAttributeExpr astContext) -- ">]")
-    |> genTriviaForAttributes
 
 and genOnelinerAttributes astContext ats =
     let ats = List.collect (fun a -> a.Attributes) ats
@@ -395,17 +383,34 @@ and genOnelinerAttributes astContext ats =
 /// Separate same-line attributes by ';'
 /// Each bucket is printed in a different line
 and genAttributes astContext (ats: SynAttributes) =
-    let genTriviaAttributeList (f: Context -> Context) =
-        ats
-        |> Seq.fold (fun (acc: Context -> Context) (attr: SynAttributeList) -> acc |> (genTrivia attr.Range)) f
+    ats
+    |> List.fold (fun acc a ->
+        fun (ctx:Context) ->
+            let dontAddNewline =
+                TriviaHelpers.``has content after that ends with``
+                    (fun t -> t.Range = a.Range)
+                    (function | Directive(_) -> true | _ -> false)
+                    ctx.Trivia
+            let chain =
+                acc +>
+                (genAttributesCore astContext a.Attributes |> genTrivia a.Range)
+                +> ifElse dontAddNewline sepNone sepNln
+            chain ctx
+    ) sepNone
 
-    (ats
-    |> List.collect (fun a -> a.Attributes)
-    |> Seq.groupBy (fun at -> at.Range.StartLine)
-    |> Seq.map snd
-    |> Seq.toList
-    |> fun ats' -> (colPost sepNln sepNln ats' (genAttributesCore astContext)))
-    |> genTriviaAttributeList
+//    col sepNln ats
+//            (fun a -> col sepNln a.Attributes (genAttribute astContext)
+//                      |> genTrivia a.Range)
+//    let genTriviaAttributeList (f: Context -> Context) =
+//        Seq.foldBack (fun  (attr: SynAttributeList) (acc: Context -> Context) -> acc |> (genTrivia attr.Range)) ats f
+//
+//    (ats
+//    |> List.collect (fun a -> a.Attributes)
+//    |> Seq.groupBy (fun at -> at.Range.StartLine)
+//    |> Seq.map snd
+//    |> Seq.toList
+//    |> fun ats' -> (colPost sepNln sepNln ats' (genAttributesCore astContext)))
+//    |> genTriviaAttributeList
 
 and genPreXmlDoc (PreXmlDoc lines) ctx = 
     if ctx.Config.StrictMode then

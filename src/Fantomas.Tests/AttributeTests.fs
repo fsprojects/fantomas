@@ -231,11 +231,33 @@ let ``different attributes according to defines`` () =
 #endif
       DefaultValue(true)>]
     let foo = ()"""  config
-    |> should equal """#if NETCOREAPP2_1
-[<Builder.Object>]
+    |> should equal """[<
+#if NETCOREAPP2_1
+Builder.Object;
 #else
-[<Widget>]
+Widget;
 #endif
-[<DefaultValue(true)>]
+DefaultValue(true)>]
+let foo = ()
+"""
+
+
+[<Test>]
+let ``different attributes according to defines, no defines`` () =
+    formatSourceStringWithDefines [] """    [<
+#if NETCOREAPP2_1
+      Builder.Object;
+#else
+      Widget;
+#endif
+      DefaultValue(true)>]
+    let foo = ()"""  config
+    |> should equal """[<
+#if NETCOREAPP2_1
+
+#else
+Widget;
+#endif
+DefaultValue(true)>]
 let foo = ()
 """
