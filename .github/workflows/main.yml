@@ -12,6 +12,14 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+    - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+    - name: Dump matrix context
+        env:
+          MATRIX_CONTEXT: ${{ toJson(matrix) }}
+        run: echo "$MATRIX_CONTEXT"
     - uses: actions/checkout@v1
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
@@ -32,8 +40,8 @@ jobs:
         DOTNET_ROOT: ${{ runner.tool_cache }}/dncs/${{ matrix.dotnet }}/x64
         CI: true
     - name: "trigger fantomas-ui pipeline"
-      if: ${{ os }} == 'ubuntu-latest' && ${{ github.ref }} == 'master'
+      if: matrix.os == 'ubuntu-latest' && github.ref == 'master'
       run: curl -X POST -F token=$FANTOMAS_UI_TOKEN -F ref=preview -F "variables[TRIGGER]=true" https://gitlab.com/api/v4/projects/8920076/trigger/pipeline
     - name: "trigger fantomas-ui preview-ng pipeline"
-      if: ${{ os }} == 'ubuntu-latest' && ${{ github.ref }} == 'trivia'
+      if: matrix.os == 'ubuntu-latest' && github.ref == 'trivia'
       run: curl -X POST -F token=$FANTOMAS_UI_TOKEN -F ref=preview-ng -F "variables[TRIGGER]=true" https://gitlab.com/api/v4/projects/8920076/trigger/pipeline
