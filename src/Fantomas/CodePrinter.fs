@@ -682,6 +682,9 @@ and genExpr astContext synExpr =
         | Paren (MatchLambda _) -> autoNln
         | _ -> autoNlnByFuture
     
+    let sepOpenT = tokN synExpr.Range "LPAREN" sepOpenT
+    let sepCloseT = tokN synExpr.Range "RPAREN" sepCloseT
+    
     match synExpr with
     | SingleExpr(Lazy, e) -> 
         // Always add braces when dealing with lazy

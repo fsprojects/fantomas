@@ -907,3 +907,21 @@ do  ()
 [<assembly:Meh>]
 do ()
 """
+
+[<Test>]
+let ``endif in lambda`` () =
+    formatSourceStringWithDefines ["DEF"] """foo (fun x ->
+    ()
+#if DEF
+    ()
+#endif
+)
+"""  config
+    |> prepend newline
+    |> should equal """
+foo (fun x -> ();
+#if DEF
+              ()
+#endif
+    )
+"""
