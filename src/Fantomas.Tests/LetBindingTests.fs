@@ -271,3 +271,10 @@ let someFun someReallyLoooooooooooooooongValue =
 
     someOtherOtherFun 2 4
 """
+
+[<Test>]
+let ``should keep space before :`` () =
+    formatSourceString false "let refl<'a> : Teq<'a, 'a> = Teq(id,   id)" config
+    |> fun formatted -> formatSourceString false formatted config
+    |> should equal "let refl<'a> : Teq<'a, 'a> = Teq(id, id)
+"

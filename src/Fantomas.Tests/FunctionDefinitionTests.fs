@@ -144,7 +144,7 @@ let ``should keep whitespace after function call``() =
 [<Test>]
 let ``should keep type annotations``() =
     formatSourceString false """let empty<'T> : LazyList<'T> = EmptyValue<'T>.Value""" config
-    |> should equal """let empty<'T>: LazyList<'T> = EmptyValue<'T>.Value
+    |> should equal """let empty<'T> : LazyList<'T> = EmptyValue<'T>.Value
 """
 
 [<Test>]

@@ -447,8 +447,6 @@ let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) = functi
         DoBinding(ats, px, expr)
     | SynBinding.Binding(ao, _, isInline, isMutable, attrs, px, _, pat, _, expr, _, _) ->
         LetBinding(attrs, px, ao, isInline, isMutable, pat, expr)
-    
-let (|BindingReturnInfo|) (SynBindingReturnInfo (t, _, ats)) = (ats, t)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
