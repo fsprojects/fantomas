@@ -10,6 +10,7 @@ open Fantomas.SourceParser
 open Fantomas.SourceTransformer
 open Fantomas.Context
 open Fantomas.TriviaTypes
+open Fantomas.TriviaContext
 
 /// This type consists of contextual information which is important for formatting
 type ASTContext =
@@ -1012,26 +1013,7 @@ and genExpr astContext synExpr =
         // This is one of those weird situations where the newlines need to printed before atCurrentColumn
         // If the newline would be printed in a AtCurrentColumn block that code would be started too far of.
         // See https://github.com/fsprojects/fantomas/issues/478
-        let firstNewline (ctx: Context) =
-            es
-            |> List.tryHead
-            |> Option.bind (fun e -> TriviaHelpers.findByRange ctx.Trivia e.Range)
-            |> fun cb ->
-                match cb with
-                | Some ({ ContentBefore = Newline::rest } as tn)  ->
-                    let updatedTriviaNodes =
-                        ctx.Trivia
-                        |> List.map (fun t ->
-                            if t = tn then
-                                { tn with ContentBefore = rest }
-                            else t
-                        )
-
-                    let ctx' = { ctx with Trivia = updatedTriviaNodes }
-                    printTriviaContent Newline ctx'
-                | _ -> sepNone ctx
-
-        firstNewline +> atCurrentColumn (col sepSemiNln es (genExpr astContext))
+        firstNewline es +> atCurrentColumn (col sepSemiNln es (genExpr astContext))
     
     | IfThenElse(e1, e2, None) -> 
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") 
