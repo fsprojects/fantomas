@@ -216,10 +216,10 @@ let internal (--) (ctx : Context -> Context) (str : string) x =
 /// Break-line unless we are on empty line
 let internal (+~) (ctx : Context -> Context) (str : string) x =
     let addNewline ctx =
-        dump ctx
-        |> String.normalizeThenSplitNewLine
+        let lines = dump ctx |> String.normalizeThenSplitNewLine
+        lines
         |> Array.tryLast
-        |> Option.map (fun (line:string) -> line.Trim().Length > 1)
+        |> Option.map (fun (line:string) -> line.Trim().Length > 0)
         |> Option.defaultValue false
     let c = ctx x
     if addNewline c then 
