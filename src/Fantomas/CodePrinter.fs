@@ -440,8 +440,19 @@ and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
         | MatchLambda _ -> false
         | _ -> futureNlnCheck (genExpr astContext e) ctx
     match e with
-    | TypedExpr(Typed, e, t) -> (prefix +> sepColon +> genType astContext false t +> sepEq
-                                +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
+    | TypedExpr(Typed, e, t) ->
+        let addExtraSpaceBeforeGenericType (ctx: Context) =
+            match pat with
+            | SynPat.LongIdent(_, _, Some(SynValTyparDecls(_)), _, _, _) when (not ctx.Config.SpaceBeforeColon) ->
+                let dump = (dump ctx).ToCharArray()
+                match Array.tryLast dump with
+                | Some('>') -> sepSpace
+                | _ -> sepNone
+            | _ -> sepNone
+            <| ctx
+
+        (prefix +> addExtraSpaceBeforeGenericType +> sepColon +> genType astContext false t +> sepEq
+        +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
     | e ->
         let hasCommentAfterEqual =
             ctx.Trivia
@@ -481,6 +492,7 @@ and genLetBinding astContext pref b =
             +> opt sepSpace ao genAccess
             +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
             +> genPat astContext p
+            +> dumpAndContinue
 
         genExprSepEqPrependType astContext prefix p e
 
