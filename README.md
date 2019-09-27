@@ -19,10 +19,6 @@ dotnet tool install -g fantomas-tool
 
 For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.md#using-the-command-line-tool).
 
-#### DotNetCliToolReference
-
-If you prefer an install per project, fantomas can also be installed as a `DotNetCliToolReference`. See [this blogpost](https://blog.nojaf.com/2018/05/03/fantomas-rejuvenated/) for more info.
-
 ### FAKE build system
 Fantomas can be easily integrated with FAKE build system. Here is a sample `build.fsx`:
 

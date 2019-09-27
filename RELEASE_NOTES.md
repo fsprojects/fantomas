@@ -1,3 +1,8 @@
+#### 3.0.0-beta-005 - 09/2019
+* Move to .NETCore 3 global tool, deprecated net461
+* Deprecated dotnet-fantomas tool
+* Bug fixes
+
 #### 3.0.0-beta-004 - 09/2019
 * Restructured library API
 * Improved performance
@@ -14,7 +19,7 @@
 * Deprecated `PreserveEndOfLine` setting in favor of Trivia. [#434](https://github.com/fsprojects/fantomas/pull/434)
 * Added support for formatting multiple code path in defines.
 
-#### 2.9.2 - 02-2019
+#### 2.9.2 - 02-2019 
 * Fix PreserveEndOfLine introduces additional newlines. [#360](https://github.com/fsprojects/fantomas/issues/360)
 * Fix Extra newline is introduced when file ends with multiline comment. [#363](https://github.com/fsprojects/fantomas/issues/363)
 * Fix Fantomas shouldn't remove parens when using the dynamic operator (?). [#369](https://github.com/fsprojects/fantomas/issues/369)
