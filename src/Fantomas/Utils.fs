@@ -56,6 +56,7 @@ module String =
         let bChunks = splitWhenHash b
         
         if List.length aChunks <> List.length bChunks then
+            Dbg.print (aChunks, bChunks)
             failwithf """Fantomas is trying to format the input multiple times due to the detect of multiple defines.
 There is a problem with merging all the code back togheter. Please raise an issue at https://github.com/fsprojects/fantomas/issues."""
         

@@ -367,3 +367,4 @@ let collectTrivia config tokens lineCount (ast: ParsedInput) =
     | _ ->
         List.fold addTriviaToTriviaNode triviaNodes trivias
         |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.
+    |> Dbg.teePrint
