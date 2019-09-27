@@ -219,7 +219,7 @@ let internal (+~) (ctx : Context -> Context) (str : string) x =
         dump ctx
         |> String.normalizeThenSplitNewLine
         |> Array.tryLast
-        |> Option.map (fun (line:string) -> line.Trim().Length > 1)
+        |> Option.map (fun (line:string) -> not(System.String.IsNullOrWhiteSpace(line)))
         |> Option.defaultValue false
     let c = ctx x
     if addNewline c then 

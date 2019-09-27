@@ -385,3 +385,22 @@ elif bar then
 else
     ()
 """
+
+[<Test>]
+let ``else keyword should be on separate line, #483`` () =
+    formatSourceString false """  if i.OpCode = OpCodes.Switch then
+    AccumulateSwitchTargets i targets
+    c
+  else
+    let branch = i.Operand :?> Cil.Instruction
+    c + (Option.nullable branch.Previous)
+"""  config
+    |> prepend newline
+    |> should equal """
+if i.OpCode = OpCodes.Switch then
+    AccumulateSwitchTargets i targets
+    c
+else
+    let branch = i.Operand :?> Cil.Instruction
+    c + (Option.nullable branch.Previous)
+"""
