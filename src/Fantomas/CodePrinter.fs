@@ -454,7 +454,7 @@ and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
 
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx = 
-    ifElse (checkPreserveBreakForExpr e ctx) (sepNln +> genExpr astContext e) (autoNln (genExpr astContext e)) ctx
+    ifElse (checkPreserveBreakForExpr e ctx) (sepNln +> genExpr astContext e) (autoNlnByFuture (genExpr astContext e)) ctx
 
 and genTyparList astContext tps = 
     ifElse (List.atMostOne tps) (col wordOr tps (genTypar astContext)) (sepOpenT +> col wordOr tps (genTypar astContext) +> sepCloseT)

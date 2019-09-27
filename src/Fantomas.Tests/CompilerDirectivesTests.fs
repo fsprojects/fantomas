@@ -919,9 +919,10 @@ let ``endif in lambda`` () =
 """  config
     |> prepend newline
     |> should equal """
-foo (fun x -> ();
+foo (fun x ->
+    ();
 #if DEF
-              ()
+    ()
 #endif
     )
 """
