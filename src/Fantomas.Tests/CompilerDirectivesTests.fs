@@ -926,3 +926,44 @@ foo (fun x ->
 #endif
     )
 """
+
+[<Test>]
+let ``finally after endif`` () =
+    formatSourceStringWithDefines ["DEF"] """try
+    ()
+#if DEF
+    ()
+#endif
+finally
+    ()
+"""  config
+    |> prepend newline
+    |> should equal """
+try
+    ()
+#if DEF
+    ()
+#endif
+finally
+    ()
+"""
+
+[<Test>]
+let ``with after endif`` () =
+    formatSourceStringWithDefines ["DEF"] """try
+    ()
+#if DEF
+    ()
+#endif
+with
+    | _ -> ()
+"""  config
+    |> prepend newline
+    |> should equal """
+try
+    ()
+#if DEF
+    ()
+#endif
+with _ -> ()
+"""

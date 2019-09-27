@@ -682,6 +682,7 @@ and genExpr astContext synExpr =
         | Paren (MatchLambda _) -> autoNln
         | _ -> autoNlnByFuture
     
+    let kw tokenName f = tokN synExpr.Range tokenName f
     let sepOpenT = tokN synExpr.Range "LPAREN" sepOpenT
     let sepCloseT = tokN synExpr.Range "RPAREN" sepCloseT
     
@@ -992,7 +993,7 @@ and genExpr astContext synExpr =
 
     // Could customize a bit if e is single line
     | TryWith(e, cs) -> 
-        let prefix = !- "try " +> indent +> sepNln +> genExpr astContext e +> unindent ++ "with"
+        let prefix = kw "TRY" !-"try " +> indent +> sepNln +> genExpr astContext e +> unindent +> kw "WITH" !-"with"
         match cs with
         | [SynMatchClause.Clause(SynPat.Or(_,_,_),_,_,_,_)] ->
             atCurrentColumn (prefix +> indentOnWith +> sepNln +> col sepNln cs (genClause astContext true) +> unindentOnWith)
@@ -1002,7 +1003,7 @@ and genExpr astContext synExpr =
             atCurrentColumn (prefix +> indentOnWith +> sepNln +> col sepNln cs (genClause astContext true) +> unindentOnWith)
 
     | TryFinally(e1, e2) -> 
-        atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr astContext e1 +> unindent ++ "finally" 
+        atCurrentColumn (kw "TRY" !-"try " +> indent +> sepNln +> genExpr astContext e1 +> unindent +> kw "FINALLY" !-"finally" 
             +> indent +> sepNln +> genExpr astContext e2 +> unindent)    
 
     | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemiNln es (genExpr astContext))
