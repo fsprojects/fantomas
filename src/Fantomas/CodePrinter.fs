@@ -993,7 +993,7 @@ and genExpr astContext synExpr =
 
     // Could customize a bit if e is single line
     | TryWith(e, cs) -> 
-        let prefix = kw "TRY" !-"try " +> indent +> sepNln +> genExpr astContext e +> unindent +> kw "WITH" !-"with"
+        let prefix = kw "TRY" !-"try " +> indent +> sepNln +> genExpr astContext e +> unindent +> kw "WITH" !+~"with"
         match cs with
         | [SynMatchClause.Clause(SynPat.Or(_,_,_),_,_,_,_)] ->
             atCurrentColumn (prefix +> indentOnWith +> sepNln +> col sepNln cs (genClause astContext true) +> unindentOnWith)
@@ -1003,7 +1003,7 @@ and genExpr astContext synExpr =
             atCurrentColumn (prefix +> indentOnWith +> sepNln +> col sepNln cs (genClause astContext true) +> unindentOnWith)
 
     | TryFinally(e1, e2) -> 
-        atCurrentColumn (kw "TRY" !-"try " +> indent +> sepNln +> genExpr astContext e1 +> unindent +> kw "FINALLY" !-"finally" 
+        atCurrentColumn (kw "TRY" !-"try " +> indent +> sepNln +> genExpr astContext e1 +> unindent +> kw "FINALLY" !+~"finally" 
             +> indent +> sepNln +> genExpr astContext e2 +> unindent)    
 
     | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemiNln es (genExpr astContext))
