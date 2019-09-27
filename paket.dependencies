@@ -7,6 +7,5 @@ nuget FSharp.Compiler.Service 31.0.0
 nuget FsUnit 3.0.0
 nuget FsCheck
 nuget Microsoft.NET.Test.Sdk
-nuget NUnit.Runners
 nuget NUnit3TestAdapter 3.10
 nuget NunitXml.TestLogger
