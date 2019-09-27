@@ -456,6 +456,9 @@ and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx = 
     ifElse (checkPreserveBreakForExpr e ctx) (sepNln +> genExpr astContext e) (autoNlnByFuture (genExpr astContext e)) ctx
+/// Like noIndentBreakNln but instead use genExpr on expr it use provided function f
+and noIndentBreakNlnFun f expr ctx = 
+    ifElse (checkPreserveBreakForExpr expr ctx) (sepNln +> f expr) (autoNlnByFuture (f expr)) ctx
 
 and genTyparList astContext tps = 
     ifElse (List.atMostOne tps) (col wordOr tps (genTypar astContext)) (sepOpenT +> col wordOr tps (genTypar astContext) +> sepCloseT)
@@ -664,13 +667,15 @@ and genAnonRecordFieldName astContext (AnonRecordFieldName(s, e)) =
     !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e
 
 and genTuple astContext es =
-    atCurrentColumn (coli sepComma es (fun i -> 
-            if i = 0 then genExpr astContext else noIndentBreakNln astContext
-            |> addParenWhen (fun e ->
-                match e with
-                |ElIf _
-                | SynExpr.Lambda _ -> true
-                |_ -> false) // "if .. then .. else" have precedence over ","
+    atCurrentColumn (coli sepComma es (fun i e -> 
+            let f =
+                addParenWhen (fun e ->
+                    match e with
+                    |ElIf _
+                    | SynExpr.Lambda _ -> true
+                    |_ -> false) // "if .. then .. else" have precedence over ","
+                    (genExpr astContext)
+            if i = 0 then f e else noIndentBreakNlnFun f e
         ))
 
 and genExpr astContext synExpr = 

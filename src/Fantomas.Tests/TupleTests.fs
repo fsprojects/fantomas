@@ -15,3 +15,14 @@ let private carouselSample =
 """  config
     |> should equal """let private carouselSample = FunctionComponent.Of<obj>((fun _ -> fragment [] []), "CarouselSample")
 """
+
+[<Test>]
+let ``multiline item in tuple - paren on its line`` () =
+    formatSourceString false """(x,
+ if true then 1
+ else 2)
+"""  config
+    |> should equal """(x,
+ (if true then 1
+  else 2))
+"""
