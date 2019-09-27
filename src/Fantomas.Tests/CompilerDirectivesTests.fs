@@ -920,7 +920,7 @@ let ``endif in lambda`` () =
     |> prepend newline
     |> should equal """
 foo (fun x ->
-    ();
+    ()
 #if DEF
     ()
 #endif

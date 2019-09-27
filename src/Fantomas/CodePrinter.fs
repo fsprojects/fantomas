@@ -1005,7 +1005,7 @@ and genExpr astContext synExpr =
         atCurrentColumn (!- "try " +> indent +> sepNln +> genExpr astContext e1 +> unindent ++ "finally" 
             +> indent +> sepNln +> genExpr astContext e2 +> unindent)    
 
-    | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemi es (genExpr astContext))
+    | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemiNln es (genExpr astContext))
     // It seems too annoying to use sepSemiNln
     | Sequentials es ->
         // This is one of those weird situations where the newlines need to printed before atCurrentColumn
