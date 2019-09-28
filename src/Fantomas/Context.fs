@@ -122,12 +122,12 @@ type internal Context =
 let internal dump (ctx: Context) =
     ctx.Writer.Dump()
 
-#if DEBUG
 let internal dumpAndContinue (ctx: Context) =
     let code = dump ctx
+#if DEBUG
     printfn "%s" code
-    ctx
 #endif
+    ctx
 
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
