@@ -235,7 +235,8 @@ let isValidAST ast =
         | SynExpr.TryFinally(synExpr1, synExpr2, _range, _sequencePointInfoForTry, _sequencePointInfoForFinally) -> 
             List.forall validateExpr [synExpr1; synExpr2]
 
-        | SynExpr.Sequential(_sequencePointInfoForSeq, _, synExpr1, synExpr2, _range) -> 
+        | SynExpr.Sequential(_sequencePointInfoForSeq, _, synExpr1, synExpr2, _range)
+        | SynExpr.SequentialOrImplicitYield(_sequencePointInfoForSeq, synExpr1, synExpr2, _, _range) ->
             List.forall validateExpr [synExpr1; synExpr2]
 
         | SynExpr.IfThenElse(synExpr1, synExpr2, synExprOpt, _sequencePointInfoForBinding, _isRecovery, _range, _range2) -> 

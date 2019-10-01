@@ -389,6 +389,7 @@ let rec shrinkSynExpr = function
     | SynExpr.DotIndexedSet(expr1, _, expr2, _, _, _)
     | SynExpr.NamedIndexedPropertySet(_, expr1, expr2, _)
     | SynExpr.Sequential(_, _, expr1, expr2, _)
+    | SynExpr.SequentialOrImplicitYield(_, expr1, expr2,_,_)
     | SynExpr.TryFinally(expr1, expr2, _, _, _)
     | SynExpr.App(_, _, expr1, expr2, _)
     | SynExpr.ForEach(_, _, _, _, expr1, expr2, _)

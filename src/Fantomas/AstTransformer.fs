@@ -10,20 +10,18 @@ let rec (|Sequentials|_|) = function
         Some [isTrueSeq, e1, Some e2, range]
     | _ -> None
 
-type Id = {
-    Ident: string
-    Range: range option
-}
+type Id =
+    { Ident: string
+      Range: range option }
 
 type FsAstNode = obj
 
-type Node = {
-    Type: string
-    Range: range option
-    Properties: Map<string, obj>
-    Childs: Node list
-    FsAstNode: FsAstNode
-}
+type Node =
+    { Type: string
+      Range: range option
+      Properties: Map<string, obj>
+      Childs: Node list
+      FsAstNode: FsAstNode }
 
 module Helpers =
     let r(r: FSharp.Compiler.Range.range): range option =
@@ -374,6 +372,14 @@ module private Ast =
              Childs =
                  [yield visitSynExpr expr1
                   yield visitSynExpr expr2]}
+        | SynExpr.SequentialOrImplicitYield(seqPoint,expr1,expr2,ifNotStmt,range) ->
+            {Type = "SynExpr.SequentialOrImplicitYield"
+             Range = r range
+             FsAstNode = synExpr
+             Properties = p ["seqPoint" ==> seqPoint] // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-ast-sequencepointinfoforseq.html
+             Childs = [ yield visitSynExpr expr1
+                        yield visitSynExpr expr2
+                        yield visitSynExpr ifNotStmt ]}
         | SynExpr.IfThenElse(ifExpr,thenExpr,elseExpr,_,isFromErrorRecovery,ifToThenRange,range) ->
             {Type = "SynExpr.IfThenElse"
              Range = r range
