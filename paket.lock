@@ -4,7 +4,7 @@ NUGET
     FsCheck (2.14)
       FSharp.Core (>= 4.0.0.1) - restriction: && (< net452) (>= netstandard1.0) (< netstandard1.6)
       FSharp.Core (>= 4.2.3) - restriction: || (>= net452) (>= netstandard1.6)
-    FSharp.Compiler.Service (31.0)
+    FSharp.Compiler.Service (32.0)
       FSharp.Core (>= 4.6.2) - restriction: || (>= net461) (>= netstandard2.0)
       System.Collections.Immutable (>= 1.5) - restriction: || (>= net461) (>= netstandard2.0)
       System.Diagnostics.Process (>= 4.1) - restriction: && (< net461) (>= netstandard2.0)
