@@ -453,6 +453,16 @@ and preserveBreakNln astContext e ctx =
 and preserveBreakNlnOrAddSpace astContext e ctx =
     breakNlnOrAddSpace astContext (checkPreserveBreakForExpr e ctx) e ctx
 
+and addSpaceAfterGenericConstructBeforeColon ctx =
+    let dump = (dump ctx).ToCharArray()
+    if not ctx.Config.SpaceBeforeColon then
+        match Array.tryLast dump with
+        | Some('>') -> sepSpace
+        | _ -> sepNone
+    else
+        sepNone
+    <| ctx
+
 and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
     let multilineCheck = 
         match e with
@@ -460,15 +470,11 @@ and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
         | _ -> futureNlnCheck (genExpr astContext e) ctx
     match e with
     | TypedExpr(Typed, e, t) ->
-        let addExtraSpaceBeforeGenericType (ctx: Context) =
+        let addExtraSpaceBeforeGenericType =
             match pat with
-            | SynPat.LongIdent(_, _, Some(SynValTyparDecls(_)), _, _, _) when (not ctx.Config.SpaceBeforeColon) ->
-                let dump = (dump ctx).ToCharArray()
-                match Array.tryLast dump with
-                | Some('>') -> sepSpace
-                | _ -> sepNone
+            | SynPat.LongIdent(_, _, Some(SynValTyparDecls(_)), _, _, _) ->
+                addSpaceAfterGenericConstructBeforeColon
             | _ -> sepNone
-            <| ctx
 
         (prefix +> addExtraSpaceBeforeGenericType +> sepColon +> genType astContext false t +> sepEq
         +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
@@ -680,11 +686,21 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
         <| ctx
 
 and genVal astContext (Val(ats, px, ao, s, t, vi, _) as node) =
-    let range = match node with | ValSpfn(_,_,_,_,_,_,_,_,_,_,range) -> range
+    let range, synValTyparDecls  =
+        match node with
+        | ValSpfn(_,_, synValTyparDecls,_,_,_,_,_,_,_,range) -> range, synValTyparDecls
+
+    let genericParams =
+        match synValTyparDecls with
+        | SynValTyparDecls([], _, _) -> sepNone
+        | SynValTyparDecls(tpd, _, cst) -> genTypeParamPostfix astContext tpd cst
+
     let (FunType namedArgs) = (t, vi)
     genPreXmlDoc px
     +> genAttributes astContext ats 
-    +> atCurrentColumn (indent -- "val " +> opt sepSpace ao genAccess -- s 
+    +> atCurrentColumn (indent -- "val " +> opt sepSpace ao genAccess -- s
+                        +> genericParams
+                        +> addSpaceAfterGenericConstructBeforeColon
                         +> sepColon +> genTypeList astContext namedArgs +> unindent)
     |> genTrivia range
 
