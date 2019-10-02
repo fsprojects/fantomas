@@ -142,14 +142,26 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds
         | None -> rep 2 sepNln
         | Some mdl ->
             sepNlnConsideringTriviaContentBefore mdl.Range +> sepNln
-    
+
+    let genTriviaForLongIdent (f: Context -> Context) =
+        match node with
+        | SynModuleOrNamespaceSig(lid,_, SynModuleOrNamespaceKind.DeclaredNamespace,_,_,_,_,_) ->
+            lid
+            |> List.fold (fun (acc: Context -> Context) (ident:Ident) -> acc |> (genTrivia ident.idRange)) f
+        | _ -> f
+
+    let moduleOrNamespace = ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
+
+    // Don't generate trivia before in case the SynModuleOrNamespaceKind is a DeclaredNamespace
+    // The range of the namespace is not correct, see https://github.com/dotnet/fsharp/issues/7680
+    ifElse moduleKind.IsModule (enterNode range) sepNone +>
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> ifElse (moduleKind = AnonModule) sepNone 
-            (ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
-                +> opt sepSpace ao genAccess -- s +> sepModuleAndFirstDecl)
+    +> ifElse (moduleKind = AnonModule)
+            sepNone
+            (genTriviaForLongIdent (moduleOrNamespace +> opt sepSpace ao genAccess -- s +> sepModuleAndFirstDecl))
     +> genSigModuleDeclList astContext mds
-    |> genTrivia range
+    +> leaveNode range
 
 and genModuleDeclList astContext e =
     match e with

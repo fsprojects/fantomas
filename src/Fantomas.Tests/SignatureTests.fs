@@ -144,3 +144,34 @@ module Test
 type Test =
     static member internal FormatAroundCursorAsync: fileName:string -> unit
 """
+
+[<Test>]
+let ``comment should stay above type`` () =
+    formatSourceString true """namespace TypeEquality
+
+/// A type for witnessing type equality between 'a and 'b
+type Teq<'a, 'b>
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace TypeEquality
+
+/// A type for witnessing type equality between 'a and 'b
+type Teq<'a, 'b>
+"""
+
+[<Test>]
+let ``comment before namespace should be preserved`` () =
+    formatSourceString true """
+// some comment
+namespace TypeEquality
+
+type Teq<'a, 'b>
+"""  config
+    |> prepend newline
+    |> should equal """
+// some comment
+namespace TypeEquality
+
+type Teq<'a, 'b>
+"""
