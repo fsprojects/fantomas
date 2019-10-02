@@ -262,13 +262,20 @@ and genSigModuleDeclList astContext node =
         | _ ->
             let sepXsYs =
                 match List.tryHead ys with
-                | Some ysh -> sepNln +> sepNlnConsideringTriviaContentBefore ysh.Range
+                | Some ysh ->
+                    let attributeRanges = getRangesFromAttributesFromSynModuleSigDeclaration ysh
+                    sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes ysh.Range attributeRanges
                 | None -> rep 2 sepNln
             col sepNln xs (genSigModuleDecl astContext) +> sepXsYs +> genSigModuleDeclList astContext ys
 
     | SigMultilineModuleDeclL(xs, ys) ->
         match ys with
-        | [] -> col (rep 2 sepNln) xs (genSigModuleDecl astContext)
+        | [] ->
+            colEx (fun (smd: SynModuleSigDecl) ->
+                let ranges = getRangesFromAttributesFromSynModuleSigDeclaration smd
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes smd.Range ranges
+            ) xs (genSigModuleDecl astContext)
+
         | _ -> col (rep 2 sepNln) xs (genSigModuleDecl astContext) +> rep 2 sepNln +> genSigModuleDeclList astContext ys
 
     | _ -> sepNone

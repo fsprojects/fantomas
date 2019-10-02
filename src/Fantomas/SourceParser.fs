@@ -1262,6 +1262,13 @@ let getRangesFromAttributesFromModuleDeclaration (mdl: SynModuleDecl) =
     | _ -> Seq.empty
     |> Seq.toList
 
+let getRangesFromAttributesFromSynModuleSigDeclaration (sdl: SynModuleSigDecl) =
+    match sdl with
+    | SynModuleSigDecl.NestedModule((SynComponentInfo.ComponentInfo(attrs, _,_,_,_,_,_,_)), _,_,_) ->
+        collectAttributesRanges attrs
+    | _ -> Seq.empty
+    |> Seq.toList
+
 let getRangesFromAttributesFromSynBinding (sb: SynBinding) =
     match sb with
     | SynBinding.Binding(_,_,_,_, attrs, _,_,_,_,_,_,_) ->
