@@ -195,11 +195,12 @@ let main _args =
 
     let stringToFile (s : string) (outFile : string) config =
         try
+            let fsi = Path.GetExtension(outFile) = ".fsi"
             if !profile then
                 printfn "Line count: %i" (s.Length - s.Replace(Environment.NewLine, "").Length)
-                time (fun () -> processSourceString !fsi s (Choice2Of2 outFile) config)
+                time (fun () -> processSourceString fsi s (Choice2Of2 outFile) config)
             else
-                processSourceString !fsi s (Choice2Of2 outFile) config
+                processSourceString fsi s (Choice2Of2 outFile) config
             printfn "%s has been written." outFile
         with
         | exn ->
