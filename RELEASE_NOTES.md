@@ -1,3 +1,7 @@
+#### 3.0.0-beta-006 - 10/2019
+* FCS 32
+* Partial F# 4.7 support
+
 #### 3.0.0-beta-005 - 09/2019
 * Move to .NETCore 3 global tool, deprecated net461
 * Deprecated dotnet-fantomas tool
