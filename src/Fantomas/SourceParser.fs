@@ -48,6 +48,7 @@ let (|Ident|) (s : Ident) =
     let ident = s.idText
     match ident with
     | "`global`" -> "global"
+    | "_" -> "_" // workaround for https://github.com/dotnet/fsharp/issues/7681
     | _ -> QuoteIdentifierIfNeeded ident
 
 let (|LongIdent|) (li : LongIdent) =
@@ -97,6 +98,10 @@ let (|OpName|) (x : Identifier) =
 let (|OpNameFull|) (x : Identifier) =
     let s = x.Text
     let s' = DecompileOpName s
+    let ap = IsActivePatternName s
+    let iio = IsInfixOperator s
+    let ipo = IsPrefixOperator s
+    let ito = IsTernaryOperator s
     if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
         /// Use two spaces for symmetry
         if String.startsWithOrdinal "*" s' && s' <> "*" then

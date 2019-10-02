@@ -893,3 +893,15 @@ type TestExtensions =
     [<Extension>]
     static member SomeOtherExtension(x) = ""
 """
+
+[<Test>]
+let ``F# 4.7 syntax relaxation in member declaration`` () =
+    formatSourceString false """
+type C'() =
+    member _.M() = ()
+"""  config
+    |> prepend newline
+    |> should equal """
+type C'() =
+    member _.M() = ()
+"""
