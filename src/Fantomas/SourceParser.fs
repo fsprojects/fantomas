@@ -98,10 +98,6 @@ let (|OpName|) (x : Identifier) =
 let (|OpNameFull|) (x : Identifier) =
     let s = x.Text
     let s' = DecompileOpName s
-    let ap = IsActivePatternName s
-    let iio = IsInfixOperator s
-    let ipo = IsPrefixOperator s
-    let ito = IsTernaryOperator s
     if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
         /// Use two spaces for symmetry
         if String.startsWithOrdinal "*" s' && s' <> "*" then
