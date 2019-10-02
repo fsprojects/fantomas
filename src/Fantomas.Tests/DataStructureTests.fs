@@ -1337,3 +1337,43 @@ let input =
 
 let sample = [| 0; 3; 0; 1; -3 |]
 """
+
+[<Test>]
+let ``F# 4.7 implicit yield in sequence`` () =
+    formatSourceString false """seq { 1;2;3; }
+"""  config
+    |> prepend newline
+    |> should equal """
+seq {
+    1
+    2
+    3 }
+"""
+
+[<Test>]
+let ``F# 4.7 implicit yield in list`` () =
+    formatSourceString false """
+let f' includeWeekend =
+    [
+        "Monday"
+        "Tuesday"
+        "Wednesday"
+        "Thursday"
+        "Friday"
+        if includeWeekend then
+            "Saturday"
+            "Sunday"
+    ]
+"""  config
+    |> prepend newline
+    |> should equal """
+let f' includeWeekend =
+    [ "Monday"
+      "Tuesday"
+      "Wednesday"
+      "Thursday"
+      "Friday"
+      if includeWeekend then
+          "Saturday"
+          "Sunday" ]
+"""

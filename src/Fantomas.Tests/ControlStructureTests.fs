@@ -404,3 +404,14 @@ else
     let branch = i.Operand :?> Cil.Instruction
     c + (Option.nullable branch.Previous)
 """
+
+[<Test>]
+let ``relaxation in for loops`` () =
+    formatSourceString false """
+for _ in 1..10 do ()
+"""  config
+    |> prepend newline
+    |> should equal """
+for _ in 1 .. 10 do
+    ()
+"""
