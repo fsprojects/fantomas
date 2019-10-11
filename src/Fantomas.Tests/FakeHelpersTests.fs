@@ -47,5 +47,6 @@ let getTempPath () =
     
     try
         checkCode FormatConfig.Default (Seq.singleton tempPath)
+        |> Async.RunSynchronously
     finally
         File.Delete(tempPath)

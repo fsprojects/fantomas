@@ -56,6 +56,7 @@ let ``should keep mutually recursive functions in nested function``() =
     """ config
     |> should equal """let f =
     let rec createJArray x = createJObject x
+
     and createJObject y = createJArray y
     createJArray
 """
@@ -128,6 +129,7 @@ let inline heterogenousAdd(value1 : ^T when (^T or ^U) : (static member (+) : ^T
     |> prepend newline
     |> should equal """
 let inline add (value1: ^T when ^T: (static member (+): ^T * ^T -> ^T), value2: ^T) = value1 + value2
+
 let inline heterogenousAdd (value1: ^T when (^T or ^U): (static member (+): ^T * ^U -> ^T), value2: ^U) =
     value1 + value2
 """
@@ -142,7 +144,7 @@ let ``should keep whitespace after function call``() =
 [<Test>]
 let ``should keep type annotations``() =
     formatSourceString false """let empty<'T> : LazyList<'T> = EmptyValue<'T>.Value""" config
-    |> should equal """let empty<'T>: LazyList<'T> = EmptyValue<'T>.Value
+    |> should equal """let empty<'T> : LazyList<'T> = EmptyValue<'T>.Value
 """
 
 [<Test>]
@@ -242,7 +244,7 @@ extern int AccessibleChildren(
     IAccessible paccContainer, 
     int iChildStart, 
     int cChildren, 
-    [<Out()>] [<MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4s)>] System.Object [] rgvarChildren, 
+    [<Out()>] [<MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4s)>] System.Object [] rgvarChildren,
     int* pcObtained)""" config
     |> prepend newline
     |> should equal """
@@ -252,7 +254,8 @@ open Accessibility
 
 [<DllImport("oleacc.dll")>]
 extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cChildren, [<Out; MarshalAs(UnmanagedType.LPArray,
-                                                                                                          SizeParamIndex = 4s)>] System.Object [] rgvarChildren, int* pcObtained)
+                                                                                                          SizeParamIndex =
+                                                                                                              4s)>] System.Object [] rgvarChildren, int* pcObtained)
 """
 
 [<Test>]

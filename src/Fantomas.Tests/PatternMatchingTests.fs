@@ -255,9 +255,9 @@ let f x =
     |> should equal """
 let f x =
     a || // other case
-         match n with
-         | 17 -> false
-         | _ -> true
+    match n with
+    | 17 -> false
+    | _ -> true
 """
 
 [<Test>]
@@ -379,6 +379,7 @@ let (|OneLinerBinding|MultilineBinding|) b =
     | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
     | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
     | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _, _) -> OneLinerBinding b
+
     | _ -> MultilineBinding b
 """
 
@@ -424,4 +425,26 @@ let x = { Value = 36 }.Times(9)
 
 match b with
 | _ -> { Value = 42 }.Times(8)
+"""
+
+[<Test>]
+let ``with clause drop-through, 465`` () =
+    formatSourceString false """
+let internal ImageLoadResilient (f: unit -> 'a) (tidy: unit -> 'a) =
+    try
+      f()
+    with
+    | :? BadImageFormatException
+    | :? ArgumentException
+    | :? IOException -> tidy()
+"""  config
+    |> prepend newline
+    |> should equal """
+let internal ImageLoadResilient (f: unit -> 'a) (tidy: unit -> 'a) =
+    try
+        f()
+    with
+    | :? BadImageFormatException
+    | :? ArgumentException
+    | :? IOException -> tidy()
 """

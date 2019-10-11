@@ -1,7 +1,111 @@
-#### 3.0.0
-* Use FCS 28.0.0 and net461. [#436](https://github.com/fsprojects/fantomas/pull/436)
+### 3.0.0 - 10/2019
+* Use FCS 32.0.0. [490b121af427ec4f6eba94f6d6d08cf3f91e04c8](https://github.com/fsprojects/fantomas/pull/434/commits/490b121af427ec4f6eba94f6d6d08cf3f91e04c8)
+* Deprecate PreserveEndOfLine feature. [#390](https://github.com/fsprojects/fantomas/issues/390)
+* Upgrade to .NET Core 3.0 and deprecate dotnet-fantomas. [b13aa00a57541be5f6182dc65ee27dc81174ab15](https://github.com/fsprojects/fantomas/pull/434/commits/b13aa00a57541be5f6182dc65ee27dc81174ab15)
+* F# 4.7 support. [9ab8f007446d2e8311a204a9c8a73d758a189939](https://github.com/fsprojects/fantomas/pull/434/commits/9ab8f007446d2e8311a204a9c8a73d758a189939)
+* KeepNewlineAfter setting. [#449](https://github.com/fsprojects/fantomas/issues/449)
+* Refactored API [#454](https://github.com/fsprojects/fantomas/issues/454)
+* Fix Adding parentheses around expressions can lead to incorrect indentation. [#385](https://github.com/fsprojects/fantomas/issues/385)
+* Fix Indentation removed when combining comments and compiler directives. [#382](https://github.com/fsprojects/fantomas/issues/382)
+* Fix Fantomas removes module and namespace if it is only 1 word (without dots). [#380](https://github.com/fsprojects/fantomas/issues/380)
+* Fix Indentation incorrect for code with chained fluent interface method calls. [#379](https://github.com/fsprojects/fantomas/issues/379)
+* Fix Incorrect indentation when space around delimiter is false. [#362](https://github.com/fsprojects/fantomas/issues/362)
+* Fix Meaningful spaces can be collapsed in record-with expressions. [#353](https://github.com/fsprojects/fantomas/issues/353)
+* Fix CLI arguments not accepted. [#334](https://github.com/fsprojects/fantomas/issues/334)
+* Fix Calls to constructor from inherited class leads to wrong indentation (breaks build). [#326](https://github.com/fsprojects/fantomas/issues/326)
+* Fix Indent level context lost in record initialization -- causes compilation failure. [#313](https://github.com/fsprojects/fantomas/issues/313)
+* Fix Semi-colons may or may not be insterted in list literals. [#312](https://github.com/fsprojects/fantomas/issues/312) 
+* Fix Handling of blank lines is idiosyncratic. [#311](https://github.com/fsprojects/fantomas/issues/311)
+* Fix Over-length line not folded (inside #if block). [#309](https://github.com/fsprojects/fantomas/issues/309)
+* Fix With --preserverEOL, multi-line lambdas are not correctly formatted. [#307](https://github.com/fsprojects/fantomas/issues/307)
+* Fix Reformatting #if blocks controlling attributes changes the meaning of the code. [#304](https://github.com/fsprojects/fantomas/issues/304)
+* Fix Some spacing is still lost in and around #if blocks. [#303](https://github.com/fsprojects/fantomas/issues/303)      
+* Fix Weird formattiing behavior. [#287](https://github.com/fsprojects/fantomas/issues/287)
+* Fix #if blocks result in code being moved around incorrectly. [#282](https://github.com/fsprojects/fantomas/issues/282) 
+* Fix Inline replacement. [#278](https://github.com/fsprojects/fantomas/issues/278)
+* Fix No new line after long name when copying record with "with". [#155](https://github.com/fsprojects/fantomas/issues/155)
+* Fix Formatting of multi-line list literals. [#133](https://github.com/fsprojects/fantomas/issues/133)
+* Fix Problems with very long lines and/or files. [#119](https://github.com/fsprojects/fantomas/issues/119)
+* Fix Adjust default configuration to be more F# idiomatic. [#61](https://github.com/fsprojects/fantomas/issues/61)       
+* Fix Excessive line breaking. [#43](https://github.com/fsprojects/fantomas/issues/43)
+* Fix [Trivia] Line comment after `then` breaks code. [#451](https://github.com/fsprojects/fantomas/issues/451)
+* Fix Bug report from fantomas-ui. [#450](https://github.com/fsprojects/fantomas/issues/450)
+* Fix Publish 3.0.0 to NuGet.org with a preview flag. [#448](https://github.com/fsprojects/fantomas/issues/448)
+* Fix Include directive with `__SOURCE_DIRECTORY__` is removed and replace. [#447](https://github.com/fsprojects/fantomas/issues/447)
+* Fix Formatting if expressions not according to style-guide. [#446](https://github.com/fsprojects/fantomas/issues/446)   
+* Fix PreserveEndOfLine+SpaceAroundDelimiter add an unnecessary space before closing brace. [#443](https://github.com/fsprojects/fantomas/issues/443)
+* Fix Record option with attribute gets an additional space with PreserveEndOfLine. [#442](https://github.com/fsprojects/fantomas/issues/442)
+* Fix Quotation escapes removed - Bug report from fantomas-ui. [#440](https://github.com/fsprojects/fantomas/issues/440)
+* Fix Fantomas fails in Fake script. [#439](https://github.com/fsprojects/fantomas/issues/439)
+* Fix Configuration options for "Fabulous compatibility"?. [#437](https://github.com/fsprojects/fantomas/issues/437)
+* Fix Using fantomas with dotnet-format. [#430](https://github.com/fsprojects/fantomas/issues/430)
+* Fix Change space before colon default to false. [#429](https://github.com/fsprojects/fantomas/issues/429)
+* Fix global.json specifies outdated dotnet sdk. [#426](https://github.com/fsprojects/fantomas/issues/426)
+* Fix Errors after formatting secondary constructors. [#423](https://github.com/fsprojects/fantomas/issues/423)
+* Fix Wrong attribute and xml doc placement on reformat with PreserveEOL. [#422](https://github.com/fsprojects/fantomas/issues/422)
+* Fix When running the tool for a fairly large script file (1000 lines) nothing happens. [#416](https://github.com/fsprojects/fantomas/issues/416)
+* Fix Is Fantomas still supported for VS? Couldn't find it?. [#415](https://github.com/fsprojects/fantomas/issues/415)    
+* Fix the required library libhostfxr.so could not be found. [#412](https://github.com/fsprojects/fantomas/issues/412)    
+* Fix Latest FCS breaks fantomas. [#410](https://github.com/fsprojects/fantomas/issues/410)
+* Fix Compiled operators names are replaced with source names. [#409](https://github.com/fsprojects/fantomas/issues/409)  
+* Fix Wrong anon module formatting when filename starts with a digit. [#408](https://github.com/fsprojects/fantomas/issues/408)
+* Fix Raw method names with `/` are formatted improperly. [#406](https://github.com/fsprojects/fantomas/issues/406)       
+* Fix Attributes followed by unit literals aren't formatted properly. [#405](https://github.com/fsprojects/fantomas/issues/405)
+* Fix Wrongly removed "with" for member on record, PreserveEndOfLine=true. [#388](https://github.com/fsprojects/fantomas/issues/388)
+* Fix IndentSpaceNum is ignored if PreserveEndOfLine is enable. [#387](https://github.com/fsprojects/fantomas/issues/387) 
+* Fix An option to preserve empty lines between logical blocks. [#496](https://github.com/fsprojects/fantomas/issues/496) 
+* Fix Bug report from fantomas-ui. [#491](https://github.com/fsprojects/fantomas/issues/491)
+* Fix `finally` is duplicated, moved. [#487](https://github.com/fsprojects/fantomas/issues/487)
+* Fix Multiple #if cases causes failure (3.0.0 beta3 and beta4). [#484](https://github.com/fsprojects/fantomas/issues/484)
+* Fix Significant spaces lost (v3.0.0-beta4). [#483](https://github.com/fsprojects/fantomas/issues/483)
+* Fix #if/#endif lost with v3.0.0-beta-004. [#482](https://github.com/fsprojects/fantomas/issues/482)
+* Fix Exception when code for no defines is empty. [#480](https://github.com/fsprojects/fantomas/issues/480)
+* Fix Stackoverflow exception in AstTransformer. [#479](https://github.com/fsprojects/fantomas/issues/479)
+* Fix [Trivia] Significant spacing added after let binding in function. [#478](https://github.com/fsprojects/fantomas/issues/478)
+* Fix Incorrect replacement of `override` with `member`. [#477](https://github.com/fsprojects/fantomas/issues/477)        
+* Fix [Trivia] Fantomas removes the parentheses around Fable's string field access syntax. [#476](https://github.com/fsprojects/fantomas/issues/476)
+* Fix [Trivia] Additional line added after very specific case. [#475](https://github.com/fsprojects/fantomas/issues/475)  
+* Fix Multiple extension members cause additional lines to be printed. [#473](https://github.com/fsprojects/fantomas/issues/473)
+* Fix Long text lines cause out of range exception in 3.0.0-beta. [#472](https://github.com/fsprojects/fantomas/issues/472)
+* Fix Class member attributes cause additional lines. [#471](https://github.com/fsprojects/fantomas/issues/471)
+* Fix 'with' incorrectly removed. [#469](https://github.com/fsprojects/fantomas/issues/469)
+* Fix Online UI tool doesn't understand F# 4.6's {| |}. [#467](https://github.com/fsprojects/fantomas/issues/467)
+* Fix Exception handling 'with' clause using drop-through is malformed. [#465](https://github.com/fsprojects/fantomas/issues/465)
+* Fix Unicode null escapes are unescaped (v3.0.0. beta1, beta2). [#464](https://github.com/fsprojects/fantomas/issues/464)
+* Fix Multiline record not on new line after DU constructor. [#462](https://github.com/fsprojects/fantomas/issues/462)    
+* Fix Feature request: Prefix generic type parameters. [#460](https://github.com/fsprojects/fantomas/issues/460)
+* Fix Fantomas hangs indefinitely when run. [#459](https://github.com/fsprojects/fantomas/issues/459)
+* Fix record mutation: first field after `with` should be placed in a new line. [#457](https://github.com/fsprojects/fantomas/issues/457)
+* Fix for i in 1..-1..0 do: should add space before `-`. [#456](https://github.com/fsprojects/fantomas/issues/456)
+* Fix Incorrect handling of attributes in static method. [#452](https://github.com/fsprojects/fantomas/issues/452)
 
-#### 2.9.2 - 02-2019
+
+#### 3.0.0-beta-006 - 10/2019
+* FCS 32
+* Partial F# 4.7 support
+
+#### 3.0.0-beta-005 - 09/2019
+* Move to .NETCore 3 global tool, deprecated net461
+* Deprecated dotnet-fantomas tool
+* Bug fixes
+
+#### 3.0.0-beta-004 - 09/2019
+* Restructured library API
+* Improved performance
+
+#### 3.0.0-beta-003 - 09/2019
+* More trivia fixes
+* FCS 31
+
+#### 3.0.0-beta-002 - 07/2019
+* More fixes with hash directives
+
+#### 3.0.0-beta-001 - 07/2019
+* Use FCS 28.0.0 and net461. [#436](https://github.com/fsprojects/fantomas/pull/436)
+* Deprecated `PreserveEndOfLine` setting in favor of Trivia. [#434](https://github.com/fsprojects/fantomas/pull/434)
+* Added support for formatting multiple code path in defines.
+
+#### 2.9.2 - 02-2019 
 * Fix PreserveEndOfLine introduces additional newlines. [#360](https://github.com/fsprojects/fantomas/issues/360)
 * Fix Extra newline is introduced when file ends with multiline comment. [#363](https://github.com/fsprojects/fantomas/issues/363)
 * Fix Fantomas shouldn't remove parens when using the dynamic operator (?). [#369](https://github.com/fsprojects/fantomas/issues/369)

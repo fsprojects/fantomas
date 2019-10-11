@@ -4,7 +4,6 @@ open Fantomas
 open Fantomas.Context
 open Fantomas.SourceParser
 open FSharp.Compiler
-open FSharp.Compiler.Range
 
 [<RequireQualifiedAccess>]
 module List = 
@@ -63,8 +62,8 @@ let rec multiline synExpr =
     // An infix app is multiline if it contains at least two new line infix ops
     | InfixApps(e, es) ->
         multiline e
-        || not (List.atMostOne (List.filter (fst >> NewLineInfixOps.Contains) es))
-        || List.exists (snd >> multiline) es
+        || not (List.atMostOne (List.filter ((fun (x,_,_)->x) >> NewLineInfixOps.Contains) es))
+        || List.exists ((fun (_,_,x)->x) >> multiline) es
     
     | App(e1, es) ->
         let multilineEl = multiline e1
@@ -99,7 +98,7 @@ let rec multiline synExpr =
 
 let checkNewLine e es =
     match (e, es) with
-    | _, [s, infixExpr] when NewLineInfixOps.Contains s -> 
+    | _, [s, _, infixExpr] when NewLineInfixOps.Contains s -> 
         (*
             If s is a single infix (f.e. |> )
             Only multiline if the whole expression is multiline
@@ -107,7 +106,7 @@ let checkNewLine e es =
             See test ``pipe and multiline should put pipe on newline``
         *)
         multiline e || multiline infixExpr
-    | _, (s, _) :: _ :: _ -> NewLineInfixOps.Contains s
+    | _, (s, _, _) :: _ :: _ -> NewLineInfixOps.Contains s
     | _ -> multiline e
 
 /// Check if the expression already has surrounding parentheses
@@ -131,12 +130,6 @@ let getByLookup range f x =
                 str x' ctx
             | None ->
                 f x ctx
-
-let genConst (Unresolved(c, r, s)) = getByLookup (c.Range r) str s
-
-/// Check whether a range starting with a specified token
-let startWith prefix (r : range) ctx = 
-    lookup r ctx |> Option.exists (String.startsWithOrdinal prefix)
 
 // A few active patterns for printing purpose
 
@@ -186,11 +179,8 @@ let rec (|SigValL|_|) = function
     | _ -> None
 
 /// Omit a break before an expression if the expression is small and it is already one line in the text
-let checkPreserveBreakForExpr (e: Ast.SynExpr) (ctx : Context) =
-    let isMultiline = multiline e
-    let hasComments = ctx.Comments.ContainsKey(e.Range.Start)
-    let hasDirective = ctx.Directives.ContainsKey(e.Range.Start)
-    isMultiline || hasComments || hasDirective
+let checkPreserveBreakForExpr (e: Ast.SynExpr) (_ : Context) =
+    multiline e
 
 /// Omit a break before an expression if the expression is small 
 let checkBreakForExpr e =

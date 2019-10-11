@@ -5,18 +5,24 @@ services:
 
 sudo: required
 
-before_install:
-  - docker pull dcurylo/fsharp-mono-netcore:2.1.503
-  - chmod 755 ./*.sh
-
 jobs:
   include:
     - stage: "CI"
+      before_install:
+        - docker pull dcurylo/fsharp-mono-netcore:2.1.503
+        - chmod 755 ./*.sh
       script: docker run -v "${PWD}:/var/fantomas" -w "/var/fantomas" dcurylo/fsharp-mono-netcore:2.1.503  bash -c "./build.sh"
     - stage: "TestExternalProjects"
+      before_install:
+        - docker pull dcurylo/fsharp-mono-netcore:2.1.503
+        - chmod 755 ./*.sh
       script: docker run -v "${PWD}:/var/fantomas" -w "/var/fantomas" dcurylo/fsharp-mono-netcore:2.1.503  bash -c "./build.sh -t TestExternalProjects" 
       if: branch = test-external-projects
     - stage: "trigger fantomas-ui pipeline"
       script: 
         - curl -X POST -F token=$FANTOMAS_UI_TOKEN -F ref=preview -F "variables[TRIGGER]=true" https://gitlab.com/api/v4/projects/8920076/trigger/pipeline
       if: branch = master
+    - stage: "trigger fantomas-ui preview-ng pipeline"
+      script: 
+        - curl -X POST -F token=$FANTOMAS_UI_TOKEN -F ref=preview-ng -F "variables[TRIGGER]=true" https://gitlab.com/api/v4/projects/8920076/trigger/pipeline
+      if: branch = master  

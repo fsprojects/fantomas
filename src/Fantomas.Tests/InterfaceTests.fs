@@ -43,6 +43,7 @@ let ``should not add with to interface definitions with no members``() =
     """ config
     |> should equal """type Text(text: string) =
     interface IDocument
+
     interface Infrastucture with
         member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
         member this.ToXml() = v :> obj
@@ -168,4 +169,33 @@ type MyLogInteface() =
 
         member x.Info() = ()
         override x.Version() = ()
+"""
+
+
+[<Test>]
+let ``Interface with comment after equal`` () =
+    formatSourceString false """
+/// Interface that must be implemented by all Argu template types
+type IArgParserTemplate =
+    /// returns a usage string for every union case
+    abstract Usage : string
+"""  config
+    |> should equal """/// Interface that must be implemented by all Argu template types
+type IArgParserTemplate =
+    /// returns a usage string for every union case
+    abstract Usage: string
+"""
+
+
+[<Test>]
+let ``generic interface member should have space after name`` () =
+    let source = """
+type IFunc<'R> =
+    abstract Invoke<'T> : unit -> 'R // without this space the code is invalid
+"""
+
+    formatSourceString false source config
+    |> fun formatted -> formatSourceString false formatted config
+    |> should equal """type IFunc<'R> =
+    abstract Invoke<'T> : unit -> 'R // without this space the code is invalid
 """
