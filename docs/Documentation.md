@@ -188,50 +188,5 @@ But they demonstrate the flexibility of Fantomas on a set of configurations.
 More preferences will be added depending on use cases.
 
 ### Using the API
----
-The main entry point of the library is function `processSourceFile` which reads the input file and writes formatted source code to a text writer:
 
-```fsharp
-val processSourceFile : inFile:string -> tw:TextWriter -> config:FormatConfig -> unit
-```
-
-`FormatConfig` type consists of the fields described in [Preferences section](#preferences). 
-It's often customized by augmenting a default configuration:
-
-```fsharp
-let config = { FormatConfig.Default with 
-                IndentSpaceNum = 2
-                PageWidth = 120
-                SemicolonAtEndOfLine = false
-                SpaceBeforeArgument = true
-                SpaceBeforeColon = false
-                SpaceAfterComma = true
-                SpaceAfterSemicolon = true
-                IndentOnTryWith = false
-                ReorderOpenDeclaration = false
-                SpaceAroundDelimiter = true
-                KeepNewlineAfter = false
-                StrictMode = false }
-```
-
-If you would like to work with source strings, there is also function `formatSourceString`:
-
-```fsharp
-val formatSourceString : fsi:bool -> s:string -> config:FormatConfig -> string
-```
-
-When the first argument is true, the source string is parsed as an F# signature.
-
-There is a function for formatting a selected text
-
-```fsharp
-val formatSelectionFromString : fsi:bool -> r:range -> s:string -> config:FormatConfig -> string
-```
-
-where range `r` denoting the selection is often constructed from 
-
-```fsharp
-val makeRange : startLine:int -> startCol:int -> endLine:int -> endCol:int -> range
-```
-
-Note that Fantomas will expand the selection until it finds boundaries of start and end tokens. *Only parsable selection (types, members, let bindings, expressions, etc) can be formatted*. The pre- and post- texts of the selection will be kept as is.
+See [CodeFormatter.fsi](../src/Fantomas/CodeFormatter.fsi) to view the API of Fantomas.
