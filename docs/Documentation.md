@@ -84,21 +84,8 @@ The default value is 80. To see its effects, please take a look at some [output 
  - `--noSpaceBeforeArgument`: if being set, no space is inserted before a function name and its first argument. 
 For example, `Seq.filter (fun x -> x > 2)` becomes `Seq.filter(fun x -> x > 2)`. This doesn't affect methods and constructors, e.g. `Console.WriteLine("Hello World")`.
 
- - `--noSpaceBeforeColon`: if being set, there is no space before `:` e.g.
+ - `--spaceBeforeColon`: if being set, there is a space before `:` e.g.
 
-	```fsharp
-	type Planet = 
-	  { mutable X : float
-	    mutable Y : float
-	    mutable Z : float
-	    mutable VX : float
-	    mutable VY : float
-	    mutable VZ : float
-	    Mass : float }
-	```
-	
-	vs.
-	
 	```fsharp
 	type Planet = 
 	  { mutable X: float
@@ -108,6 +95,19 @@ For example, `Seq.filter (fun x -> x > 2)` becomes `Seq.filter(fun x -> x > 2)`.
 	    mutable VY: float
 	    mutable VZ: float
 	    Mass: float }
+	```
+	
+	vs.
+	
+	```fsharp
+	type Planet = 
+	  { mutable X : float
+	    mutable Y : float
+	    mutable Z : float
+	    mutable VX : float
+	    mutable VY : float
+	    mutable VZ : float
+	    Mass : float }
 	```
  - `--noSpaceAfterComma`: is useful if you would like to save spaces in tuples, arguments, etc. 
 To illustrate, `(1, 2, 3)` is rewritten to `(1,2,3)`.
@@ -202,13 +202,16 @@ It's often customized by augmenting a default configuration:
 let config = { FormatConfig.Default with 
                 IndentSpaceNum = 2
                 PageWidth = 120
-                PreserveEndOfLine = false
                 SemicolonAtEndOfLine = false
-                SpaceBeforeArgument = false 
+                SpaceBeforeArgument = true
                 SpaceBeforeColon = false
                 SpaceAfterComma = true
                 SpaceAfterSemicolon = true
-                IndentOnTryWith = true }
+                IndentOnTryWith = false
+                ReorderOpenDeclaration = false
+                SpaceAroundDelimiter = true
+                KeepNewlineAfter = false
+                StrictMode = false }
 ```
 
 If you would like to work with source strings, there is also function `formatSourceString`:

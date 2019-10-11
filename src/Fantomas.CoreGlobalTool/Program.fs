@@ -21,7 +21,7 @@ open Fantomas.FormatConfig
 //  --pageWidth=[60-inf]            Set the column where we break to new lines
 //  [+|-]semicolonEOL               Enable/disable semicolons at the end of line (default = false)
 //  [+|-]spaceBeforeArgument        Enable/disable spaces before the first argument (default = true)
-//  [+|-]spaceBeforeColon           Enable/disable spaces before colons (default = true)
+//  [+|-]spaceBeforeColon           Enable/disable spaces before colons (default = false)
 //  [+|-]spaceAfterComma            Enable/disable spaces after commas (default = true)
 //  [+|-]spaceAfterSemiColon        Enable/disable spaces after semicolons (default = true)
 //  [+|-]indentOnTryWith            Enable/disable indentation on try/with block (default = false)
@@ -39,7 +39,7 @@ let [<Literal>] indentText = "Set number of spaces for indentation (default = 4)
 let [<Literal>] widthText = "Set the column where we break to new lines (default = 80). The value should be at least 60."
 let [<Literal>] semicolonEOLText = "Enable semicolons at the end of line (default = false)."
 let [<Literal>] argumentText = "Disable spaces before the first argument of functions when there are parenthesis (default = true). For methods and constructors, there are never spaces regardless of this option."
-let [<Literal>] colonText = "Disable spaces before colons (default = true)."
+let [<Literal>] colonText = "Enable spaces before colons (default = false)."
 let [<Literal>] commaText = "Disable spaces after commas (default = true)."
 let [<Literal>] semicolonText = "Disable spaces after semicolons (default = true)."
 let [<Literal>] indentOnTryWithText = "Enable indentation on try/with block (default = false)."
@@ -237,7 +237,7 @@ let main _args =
            
            ArgInfo("--semicolonEOL", ArgType.Set semicolonEOL, semicolonEOLText);
            ArgInfo("--noSpaceBeforeArgument", ArgType.Clear spaceBeforeArgument, argumentText);
-           ArgInfo("--noSpaceBeforeColon", ArgType.Clear spaceBeforeColon, colonText);
+           ArgInfo("--spaceBeforeColon", ArgType.Set spaceBeforeColon, colonText);
            ArgInfo("--noSpaceAfterComma", ArgType.Clear spaceAfterComma, commaText);
            ArgInfo("--noSpaceAfterSemiColon", ArgType.Clear spaceAfterSemiColon, semicolonText);
            ArgInfo("--indentOnTryWith", ArgType.Set indentOnTryWith, indentOnTryWithText);
