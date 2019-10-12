@@ -176,6 +176,11 @@ let internal atIndentLevel alsoSetIndent level (f : Context -> Context) ctx =
 let internal atCurrentColumn (f : _ -> Context) (ctx : Context) =
     atIndentLevel false ctx.Writer.Column f ctx
 
+/// Like atCurrentColumn, but use current column after applying prependF
+let internal atCurrentColumnWithPrepend (prependF : _ -> Context) (f : _ -> Context) (ctx : Context) =
+    let col = ctx.Writer.Column
+    (prependF >> atIndentLevel false col f) ctx
+
 /// Write everything at current column indentation, set `indent` and `atColumn` on current column position
 /// /// Example (same as above):
 /// { X = // indent=2, atColumn=2

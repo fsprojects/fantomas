@@ -1660,10 +1660,10 @@ and genClause astContext hasBar (Clause(p, e, eo) as node) =
         else
             preserveBreakNln astContext e ctx
 
+    let pat = genPat astContext p
+    let body = optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> clauseBody e
     genTriviaBeforeClausePipe p.Range +>
-    ifElse hasBar sepBar sepNone +> genPat astContext p
-    +> optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow
-    +> clauseBody e
+    ifElse hasBar (sepBar +> atCurrentColumnWithPrepend pat body) (pat +> body)
     |> genTrivia node.Range
 
 /// Each multiline member definition has a pre and post new line. 
