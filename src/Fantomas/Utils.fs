@@ -11,6 +11,8 @@ module Char =
         | '\n' -> @"\n"
         | '\t' -> @"\t"
         | '\\' -> @"\\"
+        | '\b' -> @"\b"
+        | '\f' -> @"\f"
         | _ -> c.ToString()
 
 [<RequireQualifiedAccess>]
