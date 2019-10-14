@@ -110,8 +110,8 @@ let ``should break on . operator and keep indentation``() =
     |> should equal """let pattern =
     (x + y)
         .Replace
-        (seperator + "**" + seperator,
-         replacementSeparator + "(.|?" + replacementSeparator + ")?")
+            (seperator + "**" + seperator,
+             replacementSeparator + "(.|?" + replacementSeparator + ")?")
         .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")")
 """
 

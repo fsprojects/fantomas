@@ -59,3 +59,66 @@ let ``force newline by adding comments`` () =
         .UseSql() //
         .UseMeh()
 """
+
+[<Test>]
+let ``method call on multiple lines`` () =
+    formatSourceString false """module Program
+
+[<EntryPoint>]
+let main _ =
+    try
+        try
+            Config.Logger.configure ()
+
+            let config =
+                ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .Build()
+
+            WebHostBuilder()
+                .UseConfiguration(config)
+                .UseKestrel()
+                .UseSerilog()
+                .ConfigureAppConfiguration(Action<WebHostBuilderContext, IConfigurationBuilder> configureAppConfiguration)
+                .ConfigureServices(Action<WebHostBuilderContext, IServiceCollection> configureServices)
+                .Configure(Action<IApplicationBuilder> configureApp)
+                .Build()
+                .Run()
+                |> ignore
+
+            0
+        with
+        | ex ->
+            Log.Fatal(ex, "Service terminated unexpectedly")
+
+            1
+    finally
+        Log.CloseAndFlush()
+"""  config
+    |> prepend newline
+    |> should equal """
+module Program
+
+
+[<EntryPoint>]
+let main _ =
+    try
+        try
+            Config.Logger.configure()
+
+            let config = ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).Build()
+
+            WebHostBuilder().UseConfiguration(config).UseKestrel().UseSerilog()
+                .ConfigureAppConfiguration
+                    (Action<WebHostBuilderContext, IConfigurationBuilder> configureAppConfiguration)
+                .ConfigureServices(Action<WebHostBuilderContext, IServiceCollection> configureServices)
+                .Configure(Action<IApplicationBuilder> configureApp).Build().Run() |> ignore
+
+            0
+        with ex ->
+            Log.Fatal(ex, "Service terminated unexpectedly")
+
+            1
+    finally
+        Log.CloseAndFlush()
+"""
