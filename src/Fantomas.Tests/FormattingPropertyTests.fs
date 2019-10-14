@@ -389,6 +389,7 @@ let rec shrinkSynExpr = function
     | SynExpr.DotIndexedSet(expr1, _, expr2, _, _, _)
     | SynExpr.NamedIndexedPropertySet(_, expr1, expr2, _)
     | SynExpr.Sequential(_, _, expr1, expr2, _)
+    | SynExpr.SequentialOrImplicitYield(_, expr1, expr2,_,_)
     | SynExpr.TryFinally(expr1, expr2, _, _, _)
     | SynExpr.App(_, _, expr1, expr2, _)
     | SynExpr.ForEach(_, _, _, _, expr1, expr2, _)
@@ -467,35 +468,6 @@ type Generators =
 let registerFsCheckGenerators() =
     Arb.register<Generators>() |> ignore
 
-/// An FsCheck runner which reports FsCheck test results to NUnit.
-type private NUnitRunner () =
-    interface IRunner with
-        member __.OnStartFixture _ = ()
-        member __.OnArguments (_ntest, _args, _every) = 
-            //stdout.Write(every ntest args)
-            ()
-
-        member __.OnShrink(_args, _everyShrink) = 
-            //stdout.Write(everyShrink args)
-            ()
-
-        member __.OnFinished (name, result) =
-            match result with
-            | TestResult.True(_data, _) ->
-                // TODO : Log the result data.
-                Runner.onFinishedToString name result
-                |> stdout.WriteLine
-
-            | TestResult.Exhausted _data ->
-                // TODO : Log the result data.
-                Runner.onFinishedToString name result
-                |> Assert.Inconclusive
-
-            | TestResult.False (_,_,_,_,_) ->
-                // TODO : Log more information about the test failure.
-                Runner.onFinishedToString name result
-                |> Assert.Fail
-
 let private verboseConf = 
     {
         Config.Verbose with
@@ -512,6 +484,7 @@ let tryFormatSourceString isFsi sourceCode config =
         sourceCode
 
 [<Test>]
+[<Ignore("Not sure how this works and if it is still valuable.")>]
 let ``running formatting twice should produce the same results``() =    
     Check.One(verboseConf,
         fun (Input sourceCode) ->
@@ -534,8 +507,3 @@ let ``should be able to shrink inputs``() =
 C
 H
 """ |> Input |> shrinkInput |> Seq.map (fun (Input x) -> x.TrimEnd('\r', '\n')) |> Seq.toArray |> should equal [|"Q -> C"; "Q"; "C"|]
-
-
-
-         
-

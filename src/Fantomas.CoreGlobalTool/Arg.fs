@@ -114,7 +114,11 @@ type ArgParser() =
             | (_ :: more)  -> findMatchingArg more 
             | [] ->
                 if arg = "--version" then
-                    let version = Assembly.GetExecutingAssembly().GetName().Version
+                    let version =
+                        Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                        |> Option.ofObj
+                        |> Option.map (fun a -> a.InformationalVersion)
+                        |> Option.defaultValue (Assembly.GetExecutingAssembly().GetName().Version.ToString())
                     raise (HelpText (sprintf "Fantomas %A" version))
                 
                 if arg = "-help" || arg = "--help" || arg = "/help" || arg = "/help" || arg = "/?" then

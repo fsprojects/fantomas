@@ -2,6 +2,8 @@
 
 open System
 
+let SAT_SOLVE_MAX_STEPS = 100
+
 type FormatException(msg : string) =
     inherit Exception(msg)
 
@@ -12,7 +14,6 @@ type FormatConfig =
       IndentSpaceNum : Num;
       /// The column where we break to new lines
       PageWidth : Num;
-      PreserveEndOfLine : bool;
       SemicolonAtEndOfLine : bool;
       SpaceBeforeArgument : bool;
       SpaceBeforeColon : bool;
@@ -22,13 +23,13 @@ type FormatConfig =
       /// Reordering and deduplicating open statements
       ReorderOpenDeclaration : bool;
       SpaceAroundDelimiter : bool;
+      KeepNewlineAfter : bool
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
     static member Default = 
         { IndentSpaceNum = 4
           PageWidth = 120
-          PreserveEndOfLine = false
           SemicolonAtEndOfLine = false
           SpaceBeforeArgument = true
           SpaceBeforeColon = false
@@ -37,6 +38,7 @@ type FormatConfig =
           IndentOnTryWith = false
           ReorderOpenDeclaration = false
           SpaceAroundDelimiter = true
+          KeepNewlineAfter = false
           StrictMode = false }
 
     static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 

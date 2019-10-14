@@ -94,7 +94,8 @@ type Test() =
     |> should equal """
 type Test() =
     member this.Function1<'a>(x, y) = printfn "%A, %A" x y
-    abstract AbstractMethod<'a, 'b>: 'a * 'b -> unit
+
+    abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
     override this.AbstractMethod<'a, 'b>(x: 'a, y: 'b) = printfn "%A, %A" x y
 """
 
@@ -189,7 +190,7 @@ let ``abstract and override keywords``() =
 type MyClassBase1() =
     let mutable z = 0
     abstract Function1: int -> int
-    override u.Function1(a: int) =
+    default u.Function1(a: int) =
         z <- z + a
         z
 
@@ -399,7 +400,7 @@ type SparseMatrix() =
 
 let matrix1 = new SparseMatrix()
 
-for i in 1..1000 do
+for i in 1 .. 1000 do
     matrix1.[i, i] <- float i * float i
 """
 
@@ -652,6 +653,54 @@ type CustomGraphControl() =
 """
 
 [<Test>]
+let ``should preserve orders on field declarations - multiple spaces between attribute args``() =
+    formatSourceString false """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue      (false)>]
+    static val mutable private GraphProperty : DependencyProperty
+    """ config
+    |> prepend newline
+    |> should equal """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue(false)>]
+    static val mutable private GraphProperty: DependencyProperty
+"""
+
+[<Test>]
+let ``should preserve orders on field declarations - attribute without parentheses``() =
+    formatSourceString false """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue false>]
+    static val mutable private GraphProperty : DependencyProperty
+    """ config
+    |> prepend newline
+    |> should equal """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue false>]
+    static val mutable private GraphProperty: DependencyProperty
+"""
+
+[<Test>]
+let ``should preserve orders on field declarations - attribute without parentheses and multiple spaces between attribute args``() =
+    formatSourceString false """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue       false>]
+    static val mutable private GraphProperty : DependencyProperty
+    """ config
+    |> prepend newline
+    |> should equal """
+type CustomGraphControl() =
+    inherit UserControl()
+    [<DefaultValue false>]
+    static val mutable private GraphProperty: DependencyProperty
+"""
+
+[<Test>]
 let ``should indent properly on getters and setters``() =
     formatSourceString false """
 type A() =
@@ -734,9 +783,9 @@ let x =
 let x =
     JobCollectionCreateParameters
         (Label = "Test",
-         IntrinsicSettings = JobCollectionIntrinsicSettings
-                                 (Plan = JobCollectionPlan.Standard,
-                                  Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))
+         IntrinsicSettings =
+             JobCollectionIntrinsicSettings
+                 (Plan = JobCollectionPlan.Standard, Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))
 """
 
 [<Test>]
@@ -797,4 +846,62 @@ let ``type abbreviation augmentation``() =
     |> should equal """type T2 = T2
     with
         member __.X = ()
+"""
+
+[<Test>]
+let ``operator in words should not print to symbol, 409`` () =
+    formatSourceString false """type T() =
+    static member op_LessThan(a, b) = a < b""" config
+    |> should equal """type T() =
+    static member op_LessThan (a, b) = a < b
+"""
+
+[<Test>]
+let ``operator in words in let binding`` () =
+    formatSourceString false """let op_PipeRight2  = ()""" config
+    |> should equal """let op_PipeRight2 = ()
+"""
+
+[<Test>]
+let ``operator in words in member`` () =
+    formatSourceString false """type A() =
+    member this.B(op_Inequality : string) = ()""" config
+    |> should equal """type A() =
+    member this.B(op_Inequality: string) = ()
+"""
+
+[<Test>]
+let ``attributes on extension methods should not add newlines, 473`` () =
+    formatSourceString false """
+[<Extension>]
+type TestExtensions =
+
+    [<Extension>]
+    static member SomeExtension(x) = ""
+
+    [<Extension>]
+    static member SomeOtherExtension(x) = ""
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Extension>]
+type TestExtensions =
+
+    [<Extension>]
+    static member SomeExtension(x) = ""
+
+    [<Extension>]
+    static member SomeOtherExtension(x) = ""
+"""
+
+[<Test>]
+let ``F# 4.7 syntax relaxation in member declaration`` () =
+    formatSourceString false """
+type C'() =
+    member _.M() = ()
+"""  config
+    |> prepend newline
+    |> should equal """
+type C'() =
+    member _.M() = ()
 """

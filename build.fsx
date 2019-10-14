@@ -37,7 +37,7 @@ let projectUrl = sprintf "%s/%s" gitHome gitName
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
 let summary = "Source code formatter for F#"
 
-let copyright = "Copyright \169 2018"
+let copyright = "Copyright \169 2019"
 let iconUrl = "https://raw.githubusercontent.com/fsprojects/fantomas/master/fantomas_logo.png"
 let licenceUrl = "https://github.com/fsprojects/fantomas/blob/master/LICENSE.md"
 let configuration = DotNet.BuildConfiguration.Release
@@ -98,16 +98,19 @@ let fantomasExecutableForExternalTests projectdir =
         | DotNet.BuildConfiguration.Release -> "Release"
         | DotNet.BuildConfiguration.Custom s -> s
     
-    if Environment.isWindows
-    then { ProcessName = sprintf "%s/src/Fantomas.Cmd/bin/%s/net452/dotnet-fantomas.exe" projectdir configuration; Arguments = [] }
-    else { ProcessName = "dotnet"; Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/netcoreapp2.1/fantomas-tool.dll" projectdir configuration ] }
+    { ProcessName = "dotnet"; Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/netcoreapp3.0/fantomas-tool.dll" projectdir configuration ] }
 
 let externalProjectsToTest = [
-    { GitUrl = @"https://github.com/fsprojects/Argu"
-      DirectoryName = "Argu"
-      Tag = "5.1.0"
-      SourceSubDirectory = "src"
-      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+//    { GitUrl = @"https://github.com/fsprojects/Argu"
+//      DirectoryName = "Argu"
+//      Tag = "5.1.0"
+//      SourceSubDirectory = "src"
+//      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+        { GitUrl = @"https://github.com/jack-pappas/ExtCore"
+          DirectoryName = "ExtCore"
+          Tag = "master"
+          SourceSubDirectory = "."
+          BuildConfigurationFn = configureBuildCommandDotnetBuild }
     ]
 
 let externalProjectsToTestFailing = [
@@ -126,11 +129,6 @@ let externalProjectsToTestFailing = [
       Tag = "v2.9.0"
       SourceSubDirectory = "src"
       BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
-    { GitUrl = @"https://github.com/jack-pappas/ExtCore"
-      DirectoryName = "ExtCore"
-      Tag = "master"
-      SourceSubDirectory = "."
-      BuildConfigurationFn = configureBuildCommandDotnetBuild }
     { GitUrl = @"https://github.com/SAFE-Stack/SAFE-BookStore"
       DirectoryName = "SAFE-BookStore"
       Tag = "master"
@@ -160,8 +158,6 @@ Target.create "Clean" (fun _ ->
     [ "bin"
       "src/Fantomas/bin"
       "src/Fantomas/obj"
-      "src/Fantomas.Cmd/bin"
-      "src/Fantomas.Cmd/obj"
       "src/Fantomas.CoreGlobalTool/bin"
       "src/Fantomas.CoreGlobalTool/obj" ]
     |> List.iter Shell.cleanDir
@@ -181,7 +177,6 @@ Target.create "ProjectVersion" (fun _ ->
         Xml.poke file "Project/PropertyGroup/Version/text()" version
     
     setProjectVersion "Fantomas"
-    setProjectVersion "Fantomas.Cmd"
     setProjectVersion "Fantomas.CoreGlobalTool"
     setProjectVersion "Fantomas.Tests"
 )
@@ -242,12 +237,11 @@ Target.create "Pack" (fun _ ->
             { p with
                   NoBuild = true
                   Configuration = configuration
-                  OutputPath = Some "../../bin"
+                  OutputPath = Some "./bin"
                   MSBuildParams = args
               }) projectPath 
 
     pack "Fantomas"
-    pack "Fantomas.Cmd"
     pack "Fantomas.CoreGlobalTool"
 )
 
@@ -333,8 +327,10 @@ Target.create "Push" (fun _ -> pushPackage [])
 Target.create "MyGet" (fun _ ->
     let prNumber = Environment.environVar "APPVEYOR_PULL_REQUEST_NUMBER"
     let isPullRequest = not (String.IsNullOrEmpty prNumber)
+    let branch = Environment.environVar "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH"
+    printfn "Current branch: %s" branch
         
-    if not isPullRequest then
+    if not isPullRequest || branch = "trivia" then
         let apiKey = Environment.environVar "myget-key"
         let args = ["--url"; "https://www.myget.org/F/fantomas/api/v2/package"; "--api-key"; apiKey ]
         pushPackage args

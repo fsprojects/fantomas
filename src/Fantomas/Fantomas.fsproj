@@ -2,20 +2,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\netfx.props" />
   <PropertyGroup>
-    <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
-    <Version>2.9.2</Version>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Version>3.0.0</Version>
     <Description>Source code formatter for F#</Description>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
     <None Include="paket.references" />
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="AstTransformer.fs" />
+    <Compile Include="SourceOrigin.fs" />
     <Compile Include="Dbg.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="FormatConfig.fs" />
-    <Compile Include="TokenMatcher.fs" />
+    <Compile Include="TriviaTypes.fs" />
+    <Compile Include="TokenParserBoolExpr.fs" />
+    <Compile Include="TriviaHelpers.fs" />
+    <Compile Include="TokenParser.fs" />
+    <Compile Include="Trivia.fs" />
     <Compile Include="Context.fs" />
     <Compile Include="SourceParser.fs" />
     <Compile Include="SourceTransformer.fs" />
+    <Compile Include="TriviaContext.fs" />
     <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatterImpl.fs" />
     <Compile Include="CodeFormatter.fsi" />

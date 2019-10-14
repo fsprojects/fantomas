@@ -117,7 +117,31 @@ type Shape2D(x0: float, y0: float) =
         y <- y + dy
 
     abstract Rotate: float -> unit
-    override this.Rotate(angle) = rotAngle <- rotAngle + angle
+    default this.Rotate(angle) = rotAngle <- rotAngle + angle
+"""
+
+[<Test>]
+let ``abstract member declaration``() =
+    formatSourceString false """
+type A =
+    abstract B: ?p1:(float * int) -> unit
+    abstract C: ?p1:float * int -> unit
+    abstract D: ?p1:(int -> int) -> unit
+    abstract E: ?p1:float -> unit
+    abstract F: ?p1:float * ?p2:float -> unit
+    abstract G: p1:float * ?p2:float -> unit
+    abstract H: float * ?p2:float -> unit
+    """ config
+    |> prepend newline
+    |> should equal """
+type A =
+    abstract B: ?p1:(float * int) -> unit
+    abstract C: ?p1:float * int -> unit
+    abstract D: ?p1:(int -> int) -> unit
+    abstract E: ?p1:float -> unit
+    abstract F: ?p1:float * ?p2:float -> unit
+    abstract G: p1:float * ?p2:float -> unit
+    abstract H: float * ?p2:float -> unit
 """
 
 [<Test>]
@@ -220,13 +244,13 @@ type MyClassDerived2(y: int) =
 type MyClassBase2(x: int) =
     let mutable z = x * x
     do
-        for i in 1..z do
+        for i in 1 .. z do
             printf "%d " i
 
 type MyClassDerived2(y: int) =
     inherit MyClassBase2(y * 2)
     do
-        for i in 1..y do
+        for i in 1 .. y do
             printf "%d " i
 """
 
@@ -253,6 +277,7 @@ let ``should keep parens in class inheritance in the right place``() =
     |> should equal """type StateMachine(makeAsync) as this =
     class
         inherit DGMLClass()
+
         let functions = System.Collections.Generic.Dictionary<string, IState>()
     end
 """

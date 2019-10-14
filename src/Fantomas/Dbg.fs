@@ -70,5 +70,11 @@ module Dbg =
     let mutable private functionMap = Map.empty
     let addFun (key:string) (fn:unit->unit) = functionMap <- Map.add key fn functionMap
     let runFun (key:string) = Map.find key functionMap ()
-
+    
+    let teePrint x = tee (printfn "%A") x
+    let print x = printfn "%A" x
+#else
+module Dbg =
+    let teePrint x = x
+    let print _ = ()
 #endif

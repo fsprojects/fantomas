@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas", "src\Fantomas\Fantomas.fsproj", "{7EA16279-A5F1-4781-A343-4375A04BCE6F}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Cmd", "src\Fantomas.Cmd\Fantomas.Cmd.fsproj", "{96A7F1BE-8749-422D-A82D-EC608278D208}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Tests", "src\Fantomas.Tests\Fantomas.Tests.fsproj", "{DED76E41-B89F-47BA-84C5-3AB0BECFA767}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.CoreGlobalTool", "src\Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj", "{DC08805B-C6E2-43F3-B381-E60EE88A079D}"
@@ -36,18 +34,6 @@ Global
 		{7EA16279-A5F1-4781-A343-4375A04BCE6F}.Release|x64.Build.0 = Release|x64
 		{7EA16279-A5F1-4781-A343-4375A04BCE6F}.Release|x86.ActiveCfg = Release|x86
 		{7EA16279-A5F1-4781-A343-4375A04BCE6F}.Release|x86.Build.0 = Release|x86
-		{96A7F1BE-8749-422D-A82D-EC608278D208}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{96A7F1BE-8749-422D-A82D-EC608278D208}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{96A7F1BE-8749-422D-A82D-EC608278D208}.Debug|x64.ActiveCfg = Debug|x64
-		{96A7F1BE-8749-422D-A82D-EC608278D208}.Debug|x64.Build.0 = Debug|x64
-		{96A7F1BE-8749-422D-A82D-EC608278D208}.Debug|x86.ActiveCfg = Debug|x86
-		{96A7F1BE-8749-422D-A82D-EC608278D208}.Debug|x86.Build.0 = Debug|x86
-		{96A7F1BE-8749-422D-A82D-EC608278D208}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{96A7F1BE-8749-422D-A82D-EC608278D208}.Release|Any CPU.Build.0 = Release|Any CPU
-		{96A7F1BE-8749-422D-A82D-EC608278D208}.Release|x64.ActiveCfg = Release|x64
-		{96A7F1BE-8749-422D-A82D-EC608278D208}.Release|x64.Build.0 = Release|x64
-		{96A7F1BE-8749-422D-A82D-EC608278D208}.Release|x86.ActiveCfg = Release|x86
-		{96A7F1BE-8749-422D-A82D-EC608278D208}.Release|x86.Build.0 = Release|x86
 		{DED76E41-B89F-47BA-84C5-3AB0BECFA767}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DED76E41-B89F-47BA-84C5-3AB0BECFA767}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DED76E41-B89F-47BA-84C5-3AB0BECFA767}.Debug|x64.ActiveCfg = Debug|x64

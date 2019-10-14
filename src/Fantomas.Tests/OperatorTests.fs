@@ -109,8 +109,9 @@ let ``should break on . operator and keep indentation``() =
     """ { config with PageWidth = 80 }
     |> should equal """let pattern =
     (x + y)
-        .Replace(seperator + "**" + seperator,
-                 replacementSeparator + "(.|?" + replacementSeparator + ")?")
+        .Replace
+            (seperator + "**" + seperator,
+             replacementSeparator + "(.|?" + replacementSeparator + ")?")
         .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")")
 """
 
@@ -189,4 +190,17 @@ let ``should not add newline before = operator after |>``() =
     formatSourceString false """1 |> max 0 = 1""" config
     |> should equal """1
 |> max 0 = 1
+"""
+
+[<Test>]
+let ``should add space around .. operator``() =
+    formatSourceString false """[1..10]""" config
+    |> should equal """[ 1 .. 10 ]
+"""
+
+
+[<Test>]
+let ``should add space around .. .. operators``() =
+    formatSourceString false """[10 .. -1 .. 1]""" config
+    |> should equal """[ 10 .. -1 .. 1 ]
 """

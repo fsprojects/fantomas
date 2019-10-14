@@ -1,5 +1,6 @@
 ﻿module Fantomas.Tests.ModuleTests
 
+open Fantomas
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
@@ -311,17 +312,15 @@ module private rec Test =
 
 [<Test>]
 let ``Implicit module should not be added to code`` () =
-    let fileName = "Program.fs"
+    let fileName = "60Seconds.fsx"
     let sourceCode = """open System
 
 type T() =
     interface IDisposable with
         override x.Dispose() = ()"""
     
-    // IsExe would introduce an implicit module, it should not be added after formatting.
-    let parsingOptions = { parsingOptions fileName with IsExe = true }
-
-    Fantomas.CodeFormatter.FormatDocumentAsync(fileName, sourceCode, config, parsingOptions, sharedChecker.Value)
+    Fantomas.CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString sourceCode, config,
+                                               FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
     |> should equal """open System
@@ -329,4 +328,21 @@ type T() =
 type T() =
     interface IDisposable with
         override x.Dispose() = ()
+"""
+
+[<Test>]
+let ``attribute on module after namespace`` () =
+    formatSourceString false """namespace SomeNamespace
+
+[<AutoOpen>]
+module Types =
+    let a = 5
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace SomeNamespace
+
+[<AutoOpen>]
+module Types =
+    let a = 5
 """
