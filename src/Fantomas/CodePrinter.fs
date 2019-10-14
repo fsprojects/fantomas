@@ -989,9 +989,14 @@ and genExpr astContext synExpr =
                         |> Option.map (snd >> (fun lid -> genTrivia lid.idRange))
                         |> Option.defaultValue (id)
 
-                    let writeExpr = ((genTriviaOfIdent (!- (sprintf ".%s" s))) +> ifElse (hasParenthesis e) sepNone sepSpace
-                                     +> (fun ctx -> ctx |> ifElse (futureNlnCheck (genExpr astContext e) ctx) sepNln sepNone)
-                                     +> genExpr astContext e)
+                    let hasParenthe = hasParenthesis e
+                    let writeExpr = ((genTriviaOfIdent (!- (sprintf ".%s" s))) +> ifElse hasParenthe sepNone sepSpace
+                                     +> (fun ctx ->
+                                            let hasFutureNln = futureNlnCheck (genExpr astContext e) ctx
+                                            let whenNln = ifElse hasParenthe (indent +> sepNln +> genExpr astContext e +> unindent) (sepNln +> genExpr astContext e)
+                                            ctx
+                                            |> ifElse hasFutureNln whenNln (genExpr astContext e)
+                                     ))
 
                     let addNewlineIfNeeded (ctx: Context) =
                         if ctx.Config.KeepNewlineAfter then
