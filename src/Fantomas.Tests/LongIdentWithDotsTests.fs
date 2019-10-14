@@ -99,7 +99,6 @@ let main _ =
     |> should equal """
 module Program
 
-
 [<EntryPoint>]
 let main _ =
     try
