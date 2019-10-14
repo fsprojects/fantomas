@@ -72,3 +72,21 @@ let a2 = 1R
 let b2 = 1N
 let c2 = 1G
 """
+
+[<Test>]
+let ``unicode in characters`` () =
+    formatSourceString false """
+namespace SomeNamespace
+
+module SomeModule =
+    let backspace = '\b'
+    let formFeed = '\f'
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace SomeNamespace
+
+module SomeModule =
+    let backspace = '\b'
+    let formFeed = '\f'
+"""
