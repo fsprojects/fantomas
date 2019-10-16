@@ -1153,6 +1153,10 @@ and genExpr astContext synExpr =
         !- (sprintf "%s <- " s) +> autoIndentNlnByFuture (genExpr astContext e)
     | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
     | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
+    | NamedIndexedPropertySet(ident, e1, e2) ->
+        !- ident +> genExpr astContext e1  -- " <- "  +> genExpr astContext e2
+    | DotNamedIndexedPropertySet(e, ident, e1, e2) ->
+       genExpr astContext e -- "." -- ident +> genExpr astContext e1 -- " <- "  +> genExpr astContext e2
     | DotGet(e, (s,_)) -> 
         let exprF = genExpr { astContext with IsInsideDotGet = true }
         addParenIfAutoNln e exprF -- (sprintf ".%s" s)

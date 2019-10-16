@@ -1377,3 +1377,21 @@ let f' includeWeekend =
           "Saturday"
           "Sunday" ]
 """
+
+[<Test>]
+let ``NamedIndexedPropertySet`` () =
+    formatSourceString false """analysisKey.Headers.Item(key) <- value
+"""  config
+    |> prepend newline
+    |> should equal """
+analysisKey.Headers.Item(key) <- value
+"""
+
+[<Test>]
+let ``DotNamedIndexedPropertySet`` () =
+    formatSourceString false """(foo()).Item(key) <- value
+"""  config
+    |> prepend newline
+    |> should equal """
+(foo()).Item(key) <- value
+"""
