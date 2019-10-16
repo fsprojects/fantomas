@@ -448,3 +448,21 @@ let internal ImageLoadResilient (f: unit -> 'a) (tidy: unit -> 'a) =
     | :? ArgumentException
     | :? IOException -> tidy()
 """
+
+[<Test>]
+let ``pattern match 2 space indent`` () =
+    formatSourceString false """
+match x with
+| Some y ->
+    let z = 1
+    Some(y + z)
+| None -> None
+"""  { config with IndentSpaceNum = 2 }
+    |> prepend newline
+    |> should equal """
+match x with
+| Some y ->
+    let z = 1
+    Some(y + z)
+| None -> None
+"""
