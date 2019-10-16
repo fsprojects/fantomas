@@ -754,6 +754,16 @@ let (|DotIndexedSet|_|) = function
         Some(e1, es, e2)
     | _ -> None
 
+let (|NamedIndexedPropertySet|_|) = function
+    | SynExpr.NamedIndexedPropertySet(LongIdentWithDots ident, e1, e2, _) ->
+        Some(ident, e1, e2)
+    | _ -> None
+
+let (|DotNamedIndexedPropertySet|_|) = function
+    | SynExpr.DotNamedIndexedPropertySet(e, LongIdentWithDots ident, e1, e2, _) ->
+        Some(e, ident, e1, e2)
+    | _ -> None
+
 let (|DotIndexedGet|_|) = function
     | SynExpr.DotIndexedGet(e1, es, _, _) ->
         Some(e1, es)
