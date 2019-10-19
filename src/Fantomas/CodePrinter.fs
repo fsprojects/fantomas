@@ -1229,7 +1229,7 @@ and genInfixApps astContext hasNewLine synExprs =
                 genExpr ctx))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es when(hasNewLine) ->
-        (sepNln +> tok opE.Range s +> sepSpace +> genExpr astContext e)
+        (sepNln +> (tok opE.Range s |> genTrivia opE.Range) +> sepSpace +> genExpr astContext e)
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es when(NoSpaceInfixOps.Contains s) ->
         let wrapExpr f =
