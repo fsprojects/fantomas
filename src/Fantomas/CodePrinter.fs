@@ -338,9 +338,9 @@ and genModuleDecl astContext node =
             match List.tryHead ts with
             | Some tsh -> sepNln +> sepNlnConsideringTriviaContentBefore tsh.Range
             | None -> rep 2 sepNln
-        
+
         genTypeDefn { astContext with IsFirstChild = true } t 
-        +> colPre sepTs (rep 2 sepNln) ts (genTypeDefn { astContext with IsFirstChild = false })
+        +> colPreEx sepTs (fun (ty: SynTypeDefn) -> sepNln +> sepNlnConsideringTriviaContentBefore ty.Range) ts (genTypeDefn { astContext with IsFirstChild = false })
     | md ->
         failwithf "Unexpected module declaration: %O" md
     |> genTrivia node.Range
