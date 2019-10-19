@@ -215,16 +215,7 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     | { Item = Comment(LineCommentOnSingleLine(lineComment) as comment); Range = range } when (commentIsAfterLastTriviaNode triviaNodes range) ->
         // Comment on is on its own line after all Trivia nodes, most likely at the end of a module
         findLastNode triviaNodes
-        |> updateTriviaNode (fun tn ->
-            match tn.ContentAfter with
-            | [] ->
-                LineCommentOnSingleLine(lineComment)
-                |> Comment
-                |> List.singleton
-                |> fun ca -> { tn with ContentAfter = ca }
-            | _ ->
-                { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }
-        ) triviaNodes
+        |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }) triviaNodes
 
     | { Item = Comment(LineCommentOnSingleLine(_) as comment); Range = range } ->
         findFirstNodeAfterLine triviaNodes range.StartLine
