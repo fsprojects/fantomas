@@ -564,3 +564,33 @@ module Maintoc =
 This is a very long line in a multi-line string, so long in fact that it is longer than that page width to which I am trying to constrain everything, and so it goes bang.
 \"\"\" ]   }
 "
+
+[<Test>]
+let ``record type signature with line comment, 517`` () =
+    formatSourceString true """
+module RecordSignature
+/// Represents simple XML elements.
+type Element =
+    { /// The attribute collection.
+      Attributes: IDictionary<Name, string>;
+
+      /// The children collection.
+      Children: seq<INode>;
+
+      /// The qualified name.
+      Name: Name }
+"""  config
+    |> prepend newline
+    |> should equal """
+module RecordSignature
+/// Represents simple XML elements.
+type Element =
+    { /// The attribute collection.
+      Attributes: IDictionary<Name, string>
+
+      /// The children collection.
+      Children: seq<INode>
+
+      /// The qualified name.
+      Name: Name }
+"""

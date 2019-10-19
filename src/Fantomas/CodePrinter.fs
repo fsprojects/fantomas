@@ -338,9 +338,9 @@ and genModuleDecl astContext node =
             match List.tryHead ts with
             | Some tsh -> sepNln +> sepNlnConsideringTriviaContentBefore tsh.Range
             | None -> rep 2 sepNln
-        
+
         genTypeDefn { astContext with IsFirstChild = true } t 
-        +> colPre sepTs (rep 2 sepNln) ts (genTypeDefn { astContext with IsFirstChild = false })
+        +> colPreEx sepTs (fun (ty: SynTypeDefn) -> sepNln +> sepNlnConsideringTriviaContentBefore ty.Range) ts (genTypeDefn { astContext with IsFirstChild = false })
     | md ->
         failwithf "Unexpected module declaration: %O" md
     |> genTrivia node.Range
@@ -1229,7 +1229,7 @@ and genInfixApps astContext hasNewLine synExprs =
                 genExpr ctx))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es when(hasNewLine) ->
-        (sepNln +> tok opE.Range s +> sepSpace +> genExpr astContext e)
+        (sepNln +> (tok opE.Range s |> genTrivia opE.Range) +> sepSpace +> genExpr astContext e)
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es when(NoSpaceInfixOps.Contains s) ->
         let wrapExpr f =
@@ -1415,7 +1415,7 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
     | SigSimple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS 
-        +> atCurrentColumn (col sepSemiNln fs (genField astContext "")) +> sepCloseS
+        +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
         +> colPre sepNln sepNln ms (genMemberSig astContext)
         +> unindent 
 

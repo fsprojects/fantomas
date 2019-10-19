@@ -967,3 +967,43 @@ try
 #endif
 with _ -> ()
 """
+
+[<Test>]
+let ``preserve compile directive between piped functions (DEBUG), 512`` () =
+    formatSourceStringWithDefines ["DEBUG"] """let foo = [ 1 ]
+            |> List.sort
+#if DEBUG
+            |> List.rev
+#endif
+            |> List.sort
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo =
+    [ 1 ]
+    |> List.sort
+#if DEBUG
+    |> List.rev
+#endif
+    |> List.sort
+"""
+
+[<Test>]
+let ``preserve compile directive between piped functions, 512`` () =
+    formatSourceString false """let foo = [ 1 ]
+            |> List.sort
+#if DEBUG
+            |> List.rev
+#endif
+            |> List.sort
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo =
+    [ 1 ]
+    |> List.sort
+#if DEBUG
+    |> List.rev
+#endif
+    |> List.sort
+"""
