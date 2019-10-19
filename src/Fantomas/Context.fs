@@ -286,6 +286,10 @@ let internal colPre f2 f1 (c : seq<'T>) f (ctx : Context) =
     if Seq.isEmpty c then ctx
     else col f1 c f (f2 ctx)
 
+let internal colPreEx f2 f1 (c : seq<'T>) f (ctx : Context) =
+    if Seq.isEmpty c then ctx
+    else colEx f1 c f (f2 ctx)
+
 /// If there is a value, apply f and f' accordingly, otherwise do nothing
 let internal opt (f' : Context -> _) o f (ctx : Context) =
     match o with

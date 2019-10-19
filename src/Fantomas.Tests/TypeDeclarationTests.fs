@@ -905,3 +905,99 @@ type C'() =
 type C'() =
     member _.M() = ()
 """
+
+[<Test>]
+let ``don't add additional newlines between recursive type declarations, 520`` () =
+    formatSourceString false """module Game
+
+type Details =
+    { Name: string
+      Description: string }
+
+type Item =
+    { Details: Details }
+
+type Exit =
+    | Passable of Details * desitnation: Room
+    | Locked of Details * key: Item * next: Exit
+    | NoExit of Details option
+
+and Exits =
+    { North: Exit
+      South: Exit
+      East: Exit
+      West: Exit }
+
+and Room =
+    { Details: Details
+      Items: Item list
+      Exits: Exits }
+"""  config
+    |> prepend newline
+    |> should equal """
+module Game
+
+type Details =
+    { Name: string
+      Description: string }
+
+type Item =
+    { Details: Details }
+
+type Exit =
+    | Passable of Details * desitnation: Room
+    | Locked of Details * key: Item * next: Exit
+    | NoExit of Details option
+
+and Exits =
+    { North: Exit
+      South: Exit
+      East: Exit
+      West: Exit }
+
+and Room =
+    { Details: Details
+      Items: Item list
+      Exits: Exits }
+"""
+
+[<Test>]
+let ``don't add additional newlines between recursive type declarations with attributes, 520`` () =
+    formatSourceString false """module Game
+
+type Exit =
+    | Passable of Details * desitnation: Room
+    | Locked of Details * key: Item * next: Exit
+    | NoExit of Details option
+
+and Exits =
+    { North: Exit
+      South: Exit
+      East: Exit
+      West: Exit }
+
+and [<Marker()>] Room =
+    { Details: Details
+      Items: Item list
+      Exits: Exits }
+"""  config
+    |> prepend newline
+    |> should equal """
+module Game
+
+type Exit =
+    | Passable of Details * desitnation: Room
+    | Locked of Details * key: Item * next: Exit
+    | NoExit of Details option
+
+and Exits =
+    { North: Exit
+      South: Exit
+      East: Exit
+      West: Exit }
+
+and [<Marker>] Room =
+    { Details: Details
+      Items: Item list
+      Exits: Exits }
+"""
