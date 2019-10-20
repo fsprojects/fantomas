@@ -726,7 +726,7 @@ and genTuple astContext es =
             if i = 0 then f e else noIndentBreakNlnFun f e
         ))
 
-and genExpr astContext synExpr = 
+and genExpr astContext synExpr =
     let appNlnFun e =
         match e with
         | CompExpr _
@@ -1065,14 +1065,15 @@ and genExpr astContext synExpr =
         atCurrentColumn (kw "TRY" !-"try " +> indent +> sepNln +> genExpr astContext e1 +> unindent +> kw "FINALLY" !+~"finally" 
             +> indent +> sepNln +> genExpr astContext e2 +> unindent)    
 
-    | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemiNln es (genExpr astContext))
-    // It seems too annoying to use sepSemiNln
-    | Sequentials es ->
+    | SequentialSimple es | Sequentials es ->
         // This is one of those weird situations where the newlines need to printed before atCurrentColumn
         // If the newline would be printed in a AtCurrentColumn block that code would be started too far of.
-        // See https://github.com/fsprojects/fantomas/issues/478
+        // See :
+        // * https://github.com/fsprojects/fantomas/issues/478
+        // * https://github.com/fsprojects/fantomas/issues/513
+
         firstNewline es +> atCurrentColumn (col sepSemiNln es (genExpr astContext))
-    
+
     | IfThenElse(e1, e2, None) -> 
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") 
                          -- " " +> preserveBreakNln astContext e2)

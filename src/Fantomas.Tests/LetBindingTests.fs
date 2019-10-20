@@ -278,3 +278,19 @@ let ``should keep space before :`` () =
     |> fun formatted -> formatSourceString false formatted config
     |> should equal "let refl<'a> : Teq<'a, 'a> = Teq(id, id)
 "
+
+[<Test>]
+let ``trivia before simple sequence doesn't force remaining to get offset by last expression column index`` () =
+    // https://github.com/fsprojects/fantomas/issues/513
+    formatSourceString false """let a() =
+    let q = 1
+
+    q
+    b
+"""  config
+    |> should equal """let a() =
+    let q = 1
+
+    q
+    b
+"""
