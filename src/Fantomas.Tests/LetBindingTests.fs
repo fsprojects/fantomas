@@ -280,7 +280,7 @@ let ``should keep space before :`` () =
 "
 
 [<Test>]
-let ``trivia before simple sequence doesn't force remaining to get offset by last expression column index`` () =
+let ``NewLine trivia before simple sequence doesn't force remaining to get offset by last expression column index`` () =
     // https://github.com/fsprojects/fantomas/issues/513
     formatSourceString false """let a() =
     let q = 1
@@ -291,6 +291,22 @@ let ``trivia before simple sequence doesn't force remaining to get offset by las
     |> should equal """let a() =
     let q = 1
 
+    q
+    b
+"""
+
+[<Test>]
+let ``Comment trivia before simple sequence doesn't force remaining to get offset by last expression column index`` () =
+    // https://github.com/fsprojects/fantomas/issues/513
+    formatSourceString false """let a() =
+    let q = 1
+    // comment
+    q
+    b
+"""  config
+    |> should equal """let a() =
+    let q = 1
+    // comment
     q
     b
 """
