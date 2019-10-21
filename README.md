@@ -6,7 +6,7 @@ Fantomas
 F# source code formatter, inspired by [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://github.com/acdha/PythonTidy) for Python.
 
 [![Build Status Github Actions](https://github.com/fsprojects/fantomas/workflows/Build%20master/badge.svg)](https://github.com/fsprojects/fantomas/actions)
-[![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/nojaf/fantomas)](https://ci.appveyor.com/project/nojaf/fantomas)
+[![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/nojaf/fantomas)](https://ci.appveyor.com/project/nojaf/fantomas) [![Join the chat at https://gitter.im/fsprojects/fantomas](https://badges.gitter.im/fsprojects/fantomas.svg)](https://gitter.im/fsprojects/fantomas?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## How to use
 
