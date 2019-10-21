@@ -163,14 +163,15 @@ Target.create "Clean" (fun _ ->
     |> List.iter Shell.cleanDir
 )
 
-let isCI = Environment.environVarOrNone "GITHUB_WORKFLOW" |> Option.isSome
+let buildNumber = 
+    Environment.environVarOrNone "BUILD_NUMBER" |> Option.map (System.Int32.Parse)
 
 Target.create "ProjectVersion" (fun _ ->
     let version =
-        if isCI then
-            let buildVersion = Environment.environVar "BUILD_NUMBER"
-            sprintf "%s.%s" release.NugetVersion buildVersion
-        else
+        match buildNumber with
+        | Some n ->
+            sprintf "%s.%i" release.NugetVersion n
+        | None ->
             release.NugetVersion
 
     let setProjectVersion project =
@@ -207,10 +208,10 @@ Target.create "UnitTests" (fun _ ->
 
 Target.create "Pack" (fun _ ->
     let nugetVersion =
-        if isCI then
-            let buildVersion = Environment.environVar "BUILD_NUMBER" |> System.Int32.Parse
-            sprintf "%s-alpha-%03d" release.NugetVersion buildVersion
-        else
+        match buildNumber with
+        | Some n ->
+            sprintf "%s-alpha-%03d" release.NugetVersion n
+        | None ->
             release.NugetVersion
 
     let pack project =
