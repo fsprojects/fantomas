@@ -3,7 +3,8 @@ name: Push to MyGet
 on:
   push:
     branches:    
-      - master      
+      - master
+      - myget
 
 jobs:
   build:
