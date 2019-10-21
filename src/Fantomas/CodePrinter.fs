@@ -338,9 +338,9 @@ and genModuleDecl astContext node =
             match List.tryHead ts with
             | Some tsh -> sepNln +> sepNlnConsideringTriviaContentBefore tsh.Range
             | None -> rep 2 sepNln
-        
+
         genTypeDefn { astContext with IsFirstChild = true } t 
-        +> colPre sepTs (rep 2 sepNln) ts (genTypeDefn { astContext with IsFirstChild = false })
+        +> colPreEx sepTs (fun (ty: SynTypeDefn) -> sepNln +> sepNlnConsideringTriviaContentBefore ty.Range) ts (genTypeDefn { astContext with IsFirstChild = false })
     | md ->
         failwithf "Unexpected module declaration: %O" md
     |> genTrivia node.Range
@@ -730,10 +730,10 @@ and genExpr astContext synExpr =
     let appNlnFun e =
         match e with
         | CompExpr _
-        | Lambda _
         | MatchLambda _
-        | Paren (Lambda _)
         | Paren (MatchLambda _) -> autoNln
+        | Lambda _
+        | Paren (Lambda _) -> autoNlnByFutureLazy
         | _ -> autoNlnByFuture
     
     let kw tokenName f = tokN synExpr.Range tokenName f
@@ -1153,6 +1153,10 @@ and genExpr astContext synExpr =
         !- (sprintf "%s <- " s) +> autoIndentNlnByFuture (genExpr astContext e)
     | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
     | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
+    | NamedIndexedPropertySet(ident, e1, e2) ->
+        !- ident +> genExpr astContext e1  -- " <- "  +> genExpr astContext e2
+    | DotNamedIndexedPropertySet(e, ident, e1, e2) ->
+       genExpr astContext e -- "." -- ident +> genExpr astContext e1 -- " <- "  +> genExpr astContext e2
     | DotGet(e, (s,_)) -> 
         let exprF = genExpr { astContext with IsInsideDotGet = true }
         addParenIfAutoNln e exprF -- (sprintf ".%s" s)
@@ -1225,7 +1229,7 @@ and genInfixApps astContext hasNewLine synExprs =
                 genExpr ctx))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es when(hasNewLine) ->
-        (sepNln +> tok opE.Range s +> sepSpace +> genExpr astContext e)
+        (sepNln +> (tok opE.Range s |> genTrivia opE.Range) +> sepSpace +> genExpr astContext e)
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es when(NoSpaceInfixOps.Contains s) ->
         let wrapExpr f =
@@ -1411,7 +1415,7 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
     | SigSimple(TDSRRecord(ao', fs)) ->
         typeName +> sepEq 
         +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS 
-        +> atCurrentColumn (col sepSemiNln fs (genField astContext "")) +> sepCloseS
+        +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
         +> colPre sepNln sepNln ms (genMemberSig astContext)
         +> unindent 
 
