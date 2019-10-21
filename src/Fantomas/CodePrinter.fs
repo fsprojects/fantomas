@@ -730,10 +730,10 @@ and genExpr astContext synExpr =
     let appNlnFun e =
         match e with
         | CompExpr _
-        | Lambda _
         | MatchLambda _
-        | Paren (Lambda _)
         | Paren (MatchLambda _) -> autoNln
+        | Lambda _
+        | Paren (Lambda _) -> autoNlnByFutureLazy
         | _ -> autoNlnByFuture
     
     let kw tokenName f = tokN synExpr.Range tokenName f

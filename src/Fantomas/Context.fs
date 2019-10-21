@@ -399,7 +399,7 @@ let internal autoNlnCheck f sep (ctx : Context) =
     col > ctx.Config.PageWidth
 
 let internal futureNlnCheckMem = Cache.memoizeBy (fun (f, ctx : Context) -> Cache.LambdaEqByRef f, ctx.MemoizeProjection) <| fun (f, ctx) ->
-    if ctx.Writer.IsDummy || not ctx.BreakLines then false else
+    if ctx.Writer.IsDummy || not ctx.BreakLines then (false, false) else
     // Create a dummy context to evaluate length of current operation
     use colWriter = new ColumnIndentedTextWriter(new StringWriter(), isDummy = true)
     let dummyCtx = ctx.With(colWriter, true)
@@ -410,12 +410,21 @@ let internal futureNlnCheckMem = Cache.memoizeBy (fun (f, ctx : Context) -> Cach
         |> Seq.indexed |> Seq.filter (fun (i, _) -> i % 2 = 0) |> Seq.map snd |> String.concat System.String.Empty
     let lines = withoutStringConst.Split([|Environment.NewLine|], StringSplitOptions.None) 
 
-    (lines |> Seq.length) >= 2 || writer.Column > ctx.Config.PageWidth
+    (lines |> Seq.length) >= 2, writer.Column > ctx.Config.PageWidth
 
-let internal futureNlnCheck f (ctx : Context) = futureNlnCheckMem (f, ctx)
+let internal futureNlnCheck f (ctx : Context) =
+    let (isMultiLine, isLong) = futureNlnCheckMem (f, ctx)
+    isMultiLine || isLong
+
+let internal futureNlnCheckLazy f (ctx : Context) =
+    let (isMultiLine, isLong) = futureNlnCheckMem (f, ctx)
+    if isMultiLine then false else isLong
 
 let internal autoNlnByFuture f = ifElseCtx (futureNlnCheck f) (sepNln +> f) f
 let internal autoIndentNlnByFuture f = ifElseCtx (futureNlnCheck f) (indent +> sepNln +> f +> unindent) f
+
+/// like autoNlnByFuture but don't do nln if there is another nln inside f
+let internal autoNlnByFutureLazy f = ifElseCtx (futureNlnCheckLazy f) (sepNln +> f) f
 
 /// Set a checkpoint to break at an appropriate column
 let internal autoNlnOrAddSep f sep (ctx : Context) =
