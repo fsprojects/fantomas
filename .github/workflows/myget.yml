@@ -33,4 +33,5 @@ jobs:
         # Work around https://github.com/actions/setup-dotnet/issues/29
         DOTNET_ROOT: ${{ runner.tool_cache }}/dncs/${{ matrix.dotnet }}/x64
         CI: true
+        MYGET_KEY: ${{ secrets.MYGET_KEY }}
     
