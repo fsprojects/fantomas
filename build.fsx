@@ -320,6 +320,7 @@ let pushPackage additionalArguments =
         |> CreateProcess.disableTraceCommand
         |> CreateProcess.redirectOutput
         |> CreateProcess.withOutputEventsNotNull Trace.trace Trace.traceError
+        |> CreateProcess.ensureExitCode
         |> Proc.run
         |> ignore
     )
