@@ -163,12 +163,13 @@ Target.create "Clean" (fun _ ->
     |> List.iter Shell.cleanDir
 )
 
-let isAppVeyor = AppVeyor.detect()
+let isCI = Environment.environVarOrNone "GITHUB_WORKFLOW" |> Option.isSome
 
 Target.create "ProjectVersion" (fun _ ->
     let version =
-        if isAppVeyor then
-            sprintf "%s.%s" release.NugetVersion BuildServer.appVeyorBuildVersion
+        if isCI then
+            let buildVersion = Environment.environVar "BUILD_NUMBER"
+            sprintf "%s.%s" release.NugetVersion buildVersion
         else
             release.NugetVersion
 
@@ -206,8 +207,8 @@ Target.create "UnitTests" (fun _ ->
 
 Target.create "Pack" (fun _ ->
     let nugetVersion =
-        if isAppVeyor then
-            let buildVersion = System.Int32.Parse(BuildServer.appVeyorBuildVersion)
+        if isCI then
+            let buildVersion = Environment.environVar "BUILD_NUMBER" |> System.Int32.Parse
             sprintf "%s-alpha-%03d" release.NugetVersion buildVersion
         else
             release.NugetVersion
@@ -316,6 +317,9 @@ let pushPackage additionalArguments =
               yield nupkg ]
         
         CreateProcess.fromRawCommand paketFile args
+        |> CreateProcess.disableTraceCommand
+        |> CreateProcess.redirectOutput
+        |> CreateProcess.withOutputEventsNotNull Trace.trace Trace.traceError
         |> Proc.run
         |> ignore
     )
@@ -325,23 +329,9 @@ Target.create "Push" (fun _ -> pushPackage [])
     // Paket.push (fun p -> { p with WorkingDir = "bin" }))
 
 Target.create "MyGet" (fun _ ->
-    let prNumber = Environment.environVar "APPVEYOR_PULL_REQUEST_NUMBER"
-    let isPullRequest = not (String.IsNullOrEmpty prNumber)
-    let branch = Environment.environVar "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH"
-    printfn "Current branch: %s" branch
-        
-    if not isPullRequest || branch = "trivia" then
-        let apiKey = Environment.environVar "myget-key"
-        let args = ["--url"; "https://www.myget.org/F/fantomas/api/v2/package"; "--api-key"; apiKey ]
-        pushPackage args
-//        Paket.push (fun p ->
-//            { p with
-//                WorkingDir = "bin"
-//                PublishUrl = "https://www.myget.org/F/fantomas/api/v2/package"
-//                ApiKey = Environment.environVar "myget-key" }
-        //)
-    else
-        printfn "Not pushing pull request %s to myget" prNumber
+    let apiKey = Environment.environVarOrDefault "myget-key" "key-missing"
+    let args = ["--url"; "https://www.myget.org/F/fantomas/api/v2/package"; "--api-key"; apiKey ]
+    pushPackage args
 )
 
 // --------------------------------------------------------------------------------------
