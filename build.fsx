@@ -331,7 +331,7 @@ Target.create "Push" (fun _ -> pushPackage [])
     // Paket.push (fun p -> { p with WorkingDir = "bin" }))
 
 Target.create "MyGet" (fun _ ->
-    let apiKey = Environment.environVarOrDefault "myget-key" "key-missing"
+    let apiKey = Environment.environVarOrDefault " MYGET_KEY" "key-missing"
     let args = ["--url"; "https://www.myget.org/F/fantomas/api/v2/package"; "--api-key"; apiKey ]
     pushPackage args
 )
