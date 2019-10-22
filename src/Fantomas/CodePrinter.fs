@@ -1066,7 +1066,7 @@ and genExpr astContext synExpr =
             +> indent +> sepNln +> genExpr astContext e2 +> unindent)    
 
     | SequentialSimple es | Sequentials es ->
-        // This is one situations where the newlines/trivium need to printed before atCurrentColumn due to compiler restriction (last tested 4.7)
+        // This is one situation where the trivia needs to printed before atCurrentColumn due to compiler restriction (last tested FCS 32)
         // If the trivia would be printed in a AtCurrentColumn block that code would be started too far off,
         // and thus, engender compile errors.
         // See :
