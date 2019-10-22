@@ -1141,10 +1141,12 @@ and genExpr astContext synExpr =
                                      ) "if "
 
                                  elsePart +>
-                                 genTrivia node.Range (ifElse (checkBreakForExpr e1)
+                                 indent +> (genTrivia node.Range (
+                                                       (ifElse (checkBreakForExpr e1)
                                                            (genExpr astContext e1 +> thenToken node.Range !+"then")
                                                            (genExpr astContext e1 +> thenToken node.Range !+-"then")
-                                                       -- " " +> printBranch id astContext e2)
+                                                       -- " " +> unindent +> printBranch id astContext e2)
+                                                       ))
                             ) ctx
             +> opt sepNone enOpt (fun en -> printBranch (elseToken fullRange !+~"else ") astContext en)
         )
