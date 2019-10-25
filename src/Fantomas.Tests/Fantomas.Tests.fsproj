@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <Version>3.0.0</Version>
@@ -54,7 +54,7 @@
     <Compile Include="TupleTests.fs" />
     <Compile Include="KeepNewlineAfterTests.fs" />
     <Compile Include="ElmishTests.fs" />
-    <Compile Include="LamdaTests.fs" />
+    <Compile Include="LambdaTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />

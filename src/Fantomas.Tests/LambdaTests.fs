@@ -1,4 +1,4 @@
-module Fantomas.Tests.LamdaTests
+module Fantomas.Tests.LambdaTests
 
 open NUnit.Framework
 open FsUnit
