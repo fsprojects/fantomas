@@ -1,74 +1,61 @@
 module Fantomas.Context
 
 open System
-open System.IO
-open System.CodeDom.Compiler
 open FSharp.Compiler.Range
 open Fantomas.FormatConfig
 open Fantomas.TriviaTypes
 
-/// Wrapping IndentedTextWriter with current column position
-type ColumnIndentedTextWriter(tw : TextWriter, ?isDummy) =
-    let isDummy = isDummy |> Option.defaultValue false
-    let indentWriter = new IndentedTextWriter(tw, " ")
-    let mutable col = indentWriter.Indent
+type WriterEvent =
+    | Write of string
+    | WriteLine
+    | WriteBeforeNewline of string
+    | IndentBy of int
+    | UnIndentBy of int
+    | SetIndent of int
+    | RestoreIndent of int
+    | SetAtColumn of int
+    | RestoreAtColumn of int
 
-    // on newline, bigger from Indent and atColumn is selected
-    // that way we avoid bigger than indentSpace indentation when indent is used after atCurrentColumn
-    let mutable atColumn = 0
+type WriterModel = {
+    Lines : string list
+    Indent : int
+    AtColumn : int
+    WriteBeforeNewline : string
+    IsDummy : bool
+} with
+    member x.Column = List.head x.Lines |> String.length 
+
+module WriterModel =
+    let init = {
+        Lines = [""]
+        Indent = 0
+        AtColumn = 0
+        WriteBeforeNewline = ""
+        IsDummy = false
+    }
     
-    let mutable toWriteBeforeNewLine = ""
-    
-    let applyAtColumn f =
-        let newIndent = f atColumn
-        indentWriter.Indent <- newIndent
-
-    member __.IsDummy = isDummy
-    
-    member __.ApplyAtColumn f = applyAtColumn f
-    
-    member __.Write(s : string) =
-        match s.LastIndexOf('\n') with
-        | -1 -> col <- col + s.Length
-        | i ->
-            applyAtColumn (fun x -> max indentWriter.Indent x)
-            col <- s.Length - i - 1
-        indentWriter.Write(s)
-
-    member __.WriteLine(s : string) =
-        applyAtColumn (fun x -> max indentWriter.Indent x)
-        col <- indentWriter.Indent
-        indentWriter.WriteLine(s + toWriteBeforeNewLine)
-        toWriteBeforeNewLine <- ""
-
-    member __.WriteBeforeNextNewLine(s : string) =
-        toWriteBeforeNewLine <- s
-    
-    member __.Dump() =
-        indentWriter.InnerWriter.ToString() + toWriteBeforeNewLine
-    
-    /// Current column of the page in an absolute manner
-    member __.Column 
-        with get() = col
-        and set i = col <- i
-
-    member __.Indent 
-        with get() = indentWriter.Indent
-        and set i = indentWriter.Indent <- i
-
-    member __.AtColumn 
-        with get() = atColumn
-        and set i = atColumn <- i    
-
-    member __.InnerWriter = indentWriter.InnerWriter
-
-    interface IDisposable with
-        member __.Dispose() =
-            indentWriter.Dispose()    
+    let update cmd m =
+        match cmd with
+        | WriteLine ->
+            let m = { m with Indent = max m.Indent m.AtColumn }
+            { m with
+               Lines = String.replicate m.Indent " " :: (List.head m.Lines + m.WriteBeforeNewline) :: (List.tail m.Lines) 
+               WriteBeforeNewline = "" }
+        | Write s -> { m with Lines = (List.head m.Lines + s) :: (List.tail m.Lines) }
+        | WriteBeforeNewline s -> { m with WriteBeforeNewline = s }
+        | IndentBy x -> { m with Indent = if m.AtColumn >= m.Indent + x then m.AtColumn + x else m.Indent + x }
+        | UnIndentBy x -> { m with Indent = max m.AtColumn <| m.Indent - x }
+        | SetAtColumn c -> { m with AtColumn = c }
+        | RestoreAtColumn c -> { m with AtColumn = c }
+        | SetIndent c -> { m with Indent = c }
+        | RestoreIndent c -> { m with Indent = c }
+        
+    let updateAll cmds m = cmds |> List.fold (fun m c -> update c m) m
 
 type internal Context = 
     { Config : FormatConfig; 
-      Writer : ColumnIndentedTextWriter;
+      WriterInitModel : WriterModel
+      WriterEvents : WriterEvent list;
       BreakLines : bool;
       BreakOn : string -> bool;
       /// The original source string to query as a last resort 
@@ -81,7 +68,8 @@ type internal Context =
     /// Initialize with a string writer and use space as delimiter
     static member Default = 
         { Config = FormatConfig.Default
-          Writer = new ColumnIndentedTextWriter(new StringWriter())
+          WriterInitModel = WriterModel.init
+          WriterEvents = []
           BreakLines = true; BreakOn = (fun _ -> false) 
           Content = ""
           Positions = [||]
@@ -108,19 +96,24 @@ type internal Context =
             Positions = positions 
             Trivia = trivia }
 
-    member x.MemoizeProjection = x.Writer.Column, x.Trivia, x.BreakLines, x.RecordBraceStart
+    member x.MemoizeProjection = x.WriterInitModel, x.WriterEvents, x.Trivia, x.BreakLines, x.RecordBraceStart
     
-    member x.With(writer : ColumnIndentedTextWriter, ?keepPageWidth) =
+    member x.With(writerCommands, ?isDummy, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
-        writer.Indent <- x.Writer.Indent
-        writer.Column <- x.Writer.Column
-        writer.AtColumn <- x.Writer.AtColumn
+        let isDummy = isDummy |> Option.defaultValue false
         // Use infinite column width to encounter worst-case scenario
+        let m = WriterModel.updateAll x.WriterEvents x.WriterInitModel
+        let model = { m with IsDummy = isDummy; Lines = [String.replicate m.Column " "]; WriteBeforeNewline = "" }
         let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
-        { x with Writer = writer; Config = config }
+        { x with WriterInitModel = model; WriterEvents = writerCommands; Config = config }
 
+let internal writerEvent e ctx = { ctx with WriterEvents = ctx.WriterEvents @ [e] }
+let internal dumpModel (ctx: Context) =
+    let m = WriterModel.updateAll ctx.WriterEvents ctx.WriterInitModel
+    if m.WriteBeforeNewline <> "" then WriterModel.update (Write m.WriteBeforeNewline) m else m
 let internal dump (ctx: Context) =
-    ctx.Writer.Dump()
+    let m = dumpModel ctx
+    m.Lines |> List.rev |> String.concat Environment.NewLine
 
 let internal dumpAndContinue (ctx: Context) =
     let code = dump ctx
@@ -133,38 +126,33 @@ let internal dumpAndContinue (ctx: Context) =
 
 /// Indent one more level based on configuration
 let internal indent (ctx : Context) = 
-    ctx.Writer.Indent <- ctx.Writer.Indent + ctx.Config.IndentSpaceNum
     // if atColumn is bigger then after indent, then we use atColumn as base for indent
-    ctx.Writer.ApplyAtColumn (fun x -> if x >= ctx.Writer.Indent then x + ctx.Config.IndentSpaceNum else ctx.Writer.Indent)
-    ctx
+    writerEvent (IndentBy ctx.Config.IndentSpaceNum) ctx
 
 /// Unindent one more level based on configuration
 let internal unindent (ctx : Context) = 
-    ctx.Writer.Indent <- max ctx.Writer.AtColumn (ctx.Writer.Indent - ctx.Config.IndentSpaceNum)
-    ctx
+    writerEvent (UnIndentBy ctx.Config.IndentSpaceNum) ctx
 
 /// Increase indent by i spaces
 let internal incrIndent i (ctx : Context) = 
-    ctx.Writer.Indent <- ctx.Writer.Indent + i
-    ctx
+    writerEvent (IndentBy i) ctx
 
 /// Decrease indent by i spaces
 let internal decrIndent i (ctx : Context) = 
-    ctx.Writer.Indent <- max 0 (ctx.Writer.Indent - i)
-    ctx
+    writerEvent (UnIndentBy i) ctx
 
 /// Apply function f at an absolute indent level (use with care)
-let internal atIndentLevel alsoSetIndent level (f : Context -> Context) ctx =
+let internal atIndentLevel alsoSetIndent level (f : Context -> Context) (ctx: Context) =
     if level < 0 then
         invalidArg "level" "The indent level cannot be negative."
-    let oldLevel = ctx.Writer.Indent
-    let oldColumn = ctx.Writer.AtColumn
-    if alsoSetIndent then ctx.Writer.Indent <- level
-    ctx.Writer.AtColumn <- level
-    let result = f ctx
-    ctx.Writer.AtColumn <- oldColumn
-    ctx.Writer.Indent <- oldLevel
-    result
+    let m = dumpModel ctx
+    let oldIndent = m.Indent
+    let oldColumn = m.AtColumn
+    (writerEvent (SetAtColumn level)
+    >> if alsoSetIndent then writerEvent (SetIndent level) else id
+    >> f
+    >> writerEvent (RestoreAtColumn oldColumn)
+    >> writerEvent (RestoreIndent oldIndent)) ctx
 
 /// Set minimal indentation (`atColumn`) at current column position - next newline will be indented on `max indent atColumn`
 /// Example:
@@ -174,11 +162,11 @@ let internal atIndentLevel alsoSetIndent level (f : Context -> Context) ctx =
 /// }
 /// `atCurrentColumn` was called on `X`, then `indent` was called, but "some long string" have indent only 4, because it is bigger than `atColumn` (2).
 let internal atCurrentColumn (f : _ -> Context) (ctx : Context) =
-    atIndentLevel false ctx.Writer.Column f ctx
+    atIndentLevel false (dumpModel ctx).Column f ctx
 
 /// Like atCurrentColumn, but use current column after applying prependF
 let internal atCurrentColumnWithPrepend (prependF : _ -> Context) (f : _ -> Context) (ctx : Context) =
-    let col = ctx.Writer.Column
+    let col = (dumpModel ctx).Column
     (prependF >> atIndentLevel false col f) ctx
 
 /// Write everything at current column indentation, set `indent` and `atColumn` on current column position
@@ -189,7 +177,7 @@ let internal atCurrentColumnWithPrepend (prependF : _ -> Context) (f : _ -> Cont
 /// }
 /// `atCurrentColumn` was called on `X`, then `indent` was called, "some long string" have indent 6, because it is indented from `atCurrentColumn` pos (2).
 let internal atCurrentColumnIndent (f : _ -> Context) (ctx : Context) =
-    atIndentLevel true ctx.Writer.Column f ctx
+    atIndentLevel true (dumpModel ctx).Column f ctx
 
 /// Function composition operator
 let internal (+>) (ctx : Context -> Context) (f : _ -> Context) x =
@@ -197,26 +185,24 @@ let internal (+>) (ctx : Context -> Context) (f : _ -> Context) x =
 
 /// Break-line and append specified string
 let internal (++) (ctx : Context -> Context) (str : string) x =
-    let c = ctx x
-    c.Writer.WriteLine("")
-    c.Writer.Write(str)
-    c
+    ctx x
+    |> writerEvent WriteLine
+    |> writerEvent (Write str)
 
 /// Break-line if config says so
 let internal (+-) (ctx : Context -> Context) (str : string) x =
     let c = ctx x
-    if c.BreakOn str then 
-        c.Writer.WriteLine("")
-    else
-        c.Writer.Write(" ")
-    c.Writer.Write(str)
-    c
+    let c =
+        if c.BreakOn str then 
+            writerEvent WriteLine c
+        else
+            writerEvent (Write " ") c
+    writerEvent (Write str) c
 
 /// Append specified string without line-break
 let internal (--) (ctx : Context -> Context) (str : string) x =
-    let c = ctx x
-    c.Writer.Write(str)
-    c
+    ctx x
+    |> writerEvent (Write str)
 
 /// Break-line unless we are on empty line
 let internal (+~) (ctx : Context -> Context) (str : string) x =
@@ -227,10 +213,11 @@ let internal (+~) (ctx : Context -> Context) (str : string) x =
         |> Option.map (fun (line:string) -> not(System.String.IsNullOrWhiteSpace(line)))
         |> Option.defaultValue false
     let c = ctx x
-    if addNewline c then 
-        c.Writer.WriteLine("")
-    c.Writer.Write(str)
-    c
+    let c =
+        if addNewline c then 
+            writerEvent WriteLine c
+        else c
+    writerEvent (Write str) c
 
 let internal (!-) (str : string) = id -- str 
 let internal (!+) (str : string) = id ++ str 
@@ -239,8 +226,7 @@ let internal (!+~) (str : string) = id +~ str
 
 /// Print object converted to string
 let internal str (o : 'T) (ctx : Context) =
-    ctx.Writer.Write(o.ToString())
-    ctx
+    ctx |> writerEvent (Write (o.ToString()))
 
 /// Similar to col, and supply index as well
 let internal coli f' (c : seq<'T>) f (ctx : Context) =
@@ -324,7 +310,7 @@ let internal sepSpace =
     // ignore multiple spaces, space on start of file, after newline
     // TODO: this is inefficient - maybe remember last char written?
     fun (ctx: Context) ->
-        if (not ctx.Writer.IsDummy && let s = dump ctx in s = "" || s.EndsWith " " || s.EndsWith Environment.NewLine) then ctx
+        if (not ctx.WriterInitModel.IsDummy && let s = dump ctx in s = "" || s.EndsWith " " || s.EndsWith Environment.NewLine) then ctx
         else (!- " ") ctx      
 let internal sepNln = !+ ""
 let internal sepStar = !- " * "
@@ -392,25 +378,22 @@ let internal sepCloseT = !- ")"
 let internal autoNlnCheck f sep (ctx : Context) =
     if not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
-    use colWriter = new ColumnIndentedTextWriter(new StringWriter(), isDummy = true)
-    let dummyCtx = ctx.With(colWriter)
-    let col = (dummyCtx |> sep |> f).Writer.Column
+    let dummyCtx = ctx.With([], isDummy = true)
+    let col = (dummyCtx |> sep |> f |> dumpModel).Column
     // This isn't accurate if we go to new lines
     col > ctx.Config.PageWidth
 
 let internal futureNlnCheckMem = Cache.memoizeBy (fun (f, ctx : Context) -> Cache.LambdaEqByRef f, ctx.MemoizeProjection) <| fun (f, ctx) ->
-    if ctx.Writer.IsDummy || not ctx.BreakLines then (false, false) else
+    if ctx.WriterInitModel.IsDummy || not ctx.BreakLines then (false, false) else
     // Create a dummy context to evaluate length of current operation
-    use colWriter = new ColumnIndentedTextWriter(new StringWriter(), isDummy = true)
-    let dummyCtx = ctx.With(colWriter, true)
-    let writer = (dummyCtx |> f).Writer
-    let str = writer.Dump()
-    let withoutStringConst = 
-        str.Replace("\\\\", System.String.Empty).Replace("\\\"", System.String.Empty).Split([|'"'|])
-        |> Seq.indexed |> Seq.filter (fun (i, _) -> i % 2 = 0) |> Seq.map snd |> String.concat System.String.Empty
-    let lines = withoutStringConst.Split([|Environment.NewLine|], StringSplitOptions.None) 
-
-    (lines |> Seq.length) >= 2, writer.Column > ctx.Config.PageWidth
+    let dummyCtx = ctx.With([], isDummy = true, keepPageWidth = true)
+//    let withoutStringConst (str: string) = 
+//        str.Replace("\\\\", System.String.Empty).Replace("\\\"", System.String.Empty).Split([|'"'|])
+//        |> Seq.indexed |> Seq.filter (fun (i, _) -> i % 2 = 0) |> Seq.map snd |> String.concat System.String.Empty
+    let m = dummyCtx |> f |> dumpModel
+    //let m = { m with Lines = m.Lines |> List.map withoutStringConst }
+    let lines = m.Lines
+    (lines |> Seq.length) >= 2, m.Column > ctx.Config.PageWidth
 
 let internal futureNlnCheck f (ctx : Context) =
     let (isMultiLine, isLong) = futureNlnCheckMem (f, ctx)
@@ -503,7 +486,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
         |> Option.defaultValue false
 
     match c with
-    | Comment(LineCommentAfterSourceCode s) -> fun ctx -> ctx.Writer.WriteBeforeNextNewLine (" " + s); ctx
+    | Comment(LineCommentAfterSourceCode s) -> writerEvent (WriteBeforeNewline (" " + s))
     | Comment(BlockComment(s, before, after)) ->
         ifElse (before && addNewline) sepNln sepNone
         +> sepSpace -- s +> sepSpace
