@@ -728,14 +728,14 @@ and genTuple astContext es =
             if i = 0 then f e else noIndentBreakNlnFun f e
         ))
 
-and genExpr astContext synExpr = 
+and genExpr astContext synExpr =
     let appNlnFun e =
         match e with
         | CompExpr _
-        | Lambda _
         | MatchLambda _
-        | Paren (Lambda _)
         | Paren (MatchLambda _) -> autoNln
+        | Lambda _
+        | Paren (Lambda _) -> autoNlnByFutureLazy
         | _ -> autoNlnByFuture
     
     let kw tokenName f = tokN synExpr.Range tokenName f
@@ -1067,14 +1067,16 @@ and genExpr astContext synExpr =
         atCurrentColumn (kw "TRY" !-"try " +> indent +> sepNln +> genExpr astContext e1 +> unindent +> kw "FINALLY" !+~"finally" 
             +> indent +> sepNln +> genExpr astContext e2 +> unindent)    
 
-    | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemiNln es (genExpr astContext))
-    // It seems too annoying to use sepSemiNln
-    | Sequentials es ->
-        // This is one of those weird situations where the newlines need to printed before atCurrentColumn
-        // If the newline would be printed in a AtCurrentColumn block that code would be started too far of.
-        // See https://github.com/fsprojects/fantomas/issues/478
-        firstNewline es +> atCurrentColumn (col sepSemiNln es (genExpr astContext))
-    
+    | SequentialSimple es | Sequentials es ->
+        // This is one situation where the trivia needs to printed before atCurrentColumn due to compiler restriction (last tested FCS 32)
+        // If the trivia would be printed in a AtCurrentColumn block that code would be started too far off,
+        // and thus, engender compile errors.
+        // See :
+        // * https://github.com/fsprojects/fantomas/issues/478
+        // * https://github.com/fsprojects/fantomas/issues/513
+
+        firstNewlineOrComment es +> atCurrentColumn (col sepSemiNln es (genExpr astContext))
+
     | IfThenElse(e1, e2, None) -> 
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") 
                          -- " " +> preserveBreakNln astContext e2)
@@ -1231,7 +1233,7 @@ and genInfixApps astContext hasNewLine synExprs =
                 genExpr ctx))
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es when(hasNewLine) ->
-        (sepNln +> tok opE.Range s +> sepSpace +> genExpr astContext e)
+        (sepNln +> (tok opE.Range s |> genTrivia opE.Range) +> sepSpace +> genExpr astContext e)
         +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
     | (s, opE, e)::es when(NoSpaceInfixOps.Contains s) ->
         let wrapExpr f =
