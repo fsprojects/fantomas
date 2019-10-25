@@ -484,17 +484,27 @@ let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
-    // Some items like #if of Newline should be printed on a newline
-    // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
-    let addNewline =
+    let currentLastLine =
         dump ctx
         |> String.normalizeThenSplitNewLine
         |> Array.tryLast
-        |> Option.map (fun (line:string) -> line.Trim().Length > 1)
+
+    // Some items like #if of Newline should be printed on a newline
+    // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
+    let addNewline =
+        currentLastLine
+        |> Option.map(fun line -> line.Trim().Length > 1)
+        |> Option.defaultValue false
+
+    let addSpace =
+        currentLastLine
+        |> Option.bind(fun line -> Seq.tryLast line |> Option.map (fun lastChar -> lastChar <> ' '))
         |> Option.defaultValue false
 
     match c with
-    | Comment(LineCommentAfterSourceCode s) -> fun ctx -> ctx.Writer.WriteBeforeNextNewLine (" " + s); ctx
+    | Comment(LineCommentAfterSourceCode s) ->
+        fun ctx ->
+            ctx.Writer.WriteBeforeNextNewLine ((if addSpace then " " else System.String.Empty) + s); ctx
     | Comment(BlockComment(s, before, after)) ->
         ifElse (before && addNewline) sepNln sepNone
         +> sepSpace -- s +> sepSpace
@@ -567,7 +577,7 @@ let private findTriviaTokenFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n -> Trivia.isToken n && n.Range.Start = range.Start && n.Range.End = range.End)
 
-let private findTriviaTokenFromName (range: range) nodes (tokenName:string) =
+let internal findTriviaTokenFromName (range: range) nodes (tokenName:string) =
     nodes
     |> List.tryFind(fun n ->
         match n.Type with
