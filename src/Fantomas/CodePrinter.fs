@@ -1031,10 +1031,29 @@ and genExpr astContext synExpr =
             +> indent +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone) +> appNlnFun e2 (genExpr astContext e2) +> unindent)
 
     // Always spacing in multiple arguments
-    | App(e, es) -> 
-        atCurrentColumn (genExpr astContext e +> 
+    | App(e, es) ->
+        // https://github.com/fsprojects/fantomas/issues/545
+        // we need to make sure each expression in the function application has offset at least greater than
+        // identation of the function expression itself
+        // we replace sepSpace in such case
+        let mutable savedColumn = 0
+        let retainColumn ctx =
+            savedColumn <- ctx.Writer.Column
+            ctx
+        let indentIfNeeded ctx =
+            let savedColumn = savedColumn
+            if savedColumn > ctx.Writer.Column then
+                // missingSpaces needs to be at least one more than the column
+                // of function expression being applied upon, otherwise (as known up to F# 4.7)
+                // this would lead to a compile error for the function application
+                let missingSpaces = (savedColumn - ctx.Writer.Column + 1)
+                atIndentLevel true savedColumn (!- (String.replicate missingSpaces " ")) ctx
+            else
+                sepSpace ctx
+                
+        atCurrentColumn (retainColumn +> genExpr astContext e +>
             colPre sepSpace sepSpace es (fun e ->
-                indent +> appNlnFun e (genExpr astContext e) +> unindent))
+                indent +> appNlnFun e (indentIfNeeded +> genExpr astContext e) +> unindent))
 
     | TypeApp(e, ts) -> genExpr astContext e -- "<" +> col sepComma ts (genType astContext false) -- ">"
     | LetOrUses(bs, e) ->
