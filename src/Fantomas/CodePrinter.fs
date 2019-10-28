@@ -469,6 +469,16 @@ and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
         match e with
         | MatchLambda _ -> false
         | _ -> futureNlnCheck (genExpr astContext e) ctx
+
+    let hasTriviaContentAfterEqual =
+        ctx.Trivia
+        |> List.exists (fun tn ->
+            match tn.Type with
+            | TriviaTypes.Token(tok) ->
+                tok.TokenInfo.TokenName = "EQUALS" && tn.Range.StartLine = pat.Range.StartLine
+            | _ -> false
+        )
+
     match e with
     | TypedExpr(Typed, e, t) ->
         let addExtraSpaceBeforeGenericType =
@@ -478,17 +488,10 @@ and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
             | _ -> sepNone
 
         (prefix +> addExtraSpaceBeforeGenericType +> sepColon +> genType astContext false t +> sepEq
-        +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
+        +> breakNlnOrAddSpace astContext (hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
     | e ->
-        let hasCommentAfterEqual =
-            ctx.Trivia
-            |> List.exists (fun tn ->
-                match tn.Type with
-                | TriviaTypes.Token(tok) ->
-                    tok.TokenInfo.TokenName = "EQUALS" && tn.Range.StartLine = pat.Range.StartLine
-                | _ -> false
-            )
-        (prefix +> sepEq +> leaveEqualsToken pat.Range +> breakNlnOrAddSpace astContext (hasCommentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
+
+        (prefix +> sepEq +> leaveEqualsToken pat.Range +> breakNlnOrAddSpace astContext (hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
 
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx = 
@@ -521,7 +524,6 @@ and genLetBinding astContext pref b =
             +> opt sepSpace ao genAccess
             +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
             +> genPat astContext p
-            +> dumpAndContinue
 
         genExprSepEqPrependType astContext prefix p e
 

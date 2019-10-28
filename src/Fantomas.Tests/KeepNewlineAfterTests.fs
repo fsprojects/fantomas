@@ -225,3 +225,14 @@ let ``elmish update`` () =
     | Decrement ->
         { model with x = model.x - 1 }, Cmd.ofMsg Increment
 """
+
+[<Test>]
+let ``keep record on new line after equal, 524`` () =
+    formatSourceString false """let changeAge (person: Person) (age: int): Person =
+    { person with Age = age }
+"""  configKNA
+    |> prepend newline
+    |> should equal """
+let changeAge (person: Person) (age: int): Person =
+    { person with Age = age }
+"""
