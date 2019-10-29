@@ -1032,16 +1032,12 @@ and genExpr astContext synExpr =
 
     // Always spacing in multiple arguments
     | App(e, es) ->
-        // https://github.com/fsprojects/fantomas/issues/545
         // we need to make sure each expression in the function application has offset at least greater than
         // identation of the function expression itself
         // we replace sepSpace in such case
-        let mutable savedColumn = 0
-        let retainColumn ctx =
-            savedColumn <- ctx.Writer.Column
-            ctx
-        let indentIfNeeded ctx =
-            let savedColumn = savedColumn
+        // remarks: https://github.com/fsprojects/fantomas/issues/545
+        let indentIfNeeded (ctx: Context) =
+            let savedColumn = ctx.Writer.AtColumn
             if savedColumn > ctx.Writer.Column then
                 // missingSpaces needs to be at least one more than the column
                 // of function expression being applied upon, otherwise (as known up to F# 4.7)
@@ -1051,7 +1047,7 @@ and genExpr astContext synExpr =
             else
                 sepSpace ctx
                 
-        atCurrentColumn (retainColumn +> genExpr astContext e +>
+        atCurrentColumn (genExpr astContext e +>
             colPre sepSpace sepSpace es (fun e ->
                 indent +> appNlnFun e (indentIfNeeded +> genExpr astContext e) +> unindent))
 
