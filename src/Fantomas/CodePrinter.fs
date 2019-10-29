@@ -469,6 +469,16 @@ and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
         match e with
         | MatchLambda _ -> false
         | _ -> futureNlnCheck (genExpr astContext e) ctx
+
+    let hasTriviaContentAfterEqual =
+        ctx.Trivia
+        |> List.exists (fun tn ->
+            match tn.Type with
+            | TriviaTypes.Token(tok) ->
+                tok.TokenInfo.TokenName = "EQUALS" && tn.Range.StartLine = pat.Range.StartLine
+            | _ -> false
+        )
+
     match e with
     | TypedExpr(Typed, e, t) ->
         let addExtraSpaceBeforeGenericType =
@@ -478,17 +488,10 @@ and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
             | _ -> sepNone
 
         (prefix +> addExtraSpaceBeforeGenericType +> sepColon +> genType astContext false t +> sepEq
-        +> breakNlnOrAddSpace astContext (multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
+        +> breakNlnOrAddSpace astContext (hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
     | e ->
-        let hasCommentAfterEqual =
-            ctx.Trivia
-            |> List.exists (fun tn ->
-                match tn.Type with
-                | TriviaTypes.Token(tok) ->
-                    tok.TokenInfo.TokenName = "EQUALS" && tn.Range.StartLine = pat.Range.StartLine
-                | _ -> false
-            )
-        (prefix +> sepEq +> leaveEqualsToken pat.Range +> breakNlnOrAddSpace astContext (hasCommentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
+
+        (prefix +> sepEq +> leaveEqualsToken pat.Range +> breakNlnOrAddSpace astContext (hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
 
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx = 
@@ -521,7 +524,6 @@ and genLetBinding astContext pref b =
             +> opt sepSpace ao genAccess
             +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
             +> genPat astContext p
-            +> dumpAndContinue
 
         genExprSepEqPrependType astContext prefix p e
 
@@ -726,7 +728,7 @@ and genTuple astContext es =
             if i = 0 then f e else noIndentBreakNlnFun f e
         ))
 
-and genExpr astContext synExpr = 
+and genExpr astContext synExpr =
     let appNlnFun e =
         match e with
         | CompExpr _
@@ -1065,14 +1067,16 @@ and genExpr astContext synExpr =
         atCurrentColumn (kw "TRY" !-"try " +> indent +> sepNln +> genExpr astContext e1 +> unindent +> kw "FINALLY" !+~"finally" 
             +> indent +> sepNln +> genExpr astContext e2 +> unindent)    
 
-    | SequentialSimple es -> atCurrentColumn (colAutoNlnSkip0 sepSemiNln es (genExpr astContext))
-    // It seems too annoying to use sepSemiNln
-    | Sequentials es ->
-        // This is one of those weird situations where the newlines need to printed before atCurrentColumn
-        // If the newline would be printed in a AtCurrentColumn block that code would be started too far of.
-        // See https://github.com/fsprojects/fantomas/issues/478
-        firstNewline es +> atCurrentColumn (col sepSemiNln es (genExpr astContext))
-    
+    | SequentialSimple es | Sequentials es ->
+        // This is one situation where the trivia needs to printed before atCurrentColumn due to compiler restriction (last tested FCS 32)
+        // If the trivia would be printed in a AtCurrentColumn block that code would be started too far off,
+        // and thus, engender compile errors.
+        // See :
+        // * https://github.com/fsprojects/fantomas/issues/478
+        // * https://github.com/fsprojects/fantomas/issues/513
+
+        firstNewlineOrComment es +> atCurrentColumn (col sepSemiNln es (genExpr astContext))
+
     | IfThenElse(e1, e2, None) -> 
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") 
                          -- " " +> preserveBreakNln astContext e2)
