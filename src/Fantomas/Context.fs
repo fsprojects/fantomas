@@ -17,10 +17,15 @@ type WriterEvent =
     | RestoreAtColumn of int
 
 type WriterModel = {
+    /// lines of resulting text, in reverse order (to allow more efficient adding line to end)
     Lines : string list
+    /// current indentation
     Indent : int
+    /// helper indentation information, if AtColumn > Indent after NewLine, Indent will be set to AtColumn
     AtColumn : int
+    /// text to be written before next newline
     WriteBeforeNewline : string
+    /// dummy = "fake" writer used in `autoNln`, `autoNlnByFuture`
     IsDummy : bool
 } with
     member x.Column = List.head x.Lines |> String.length 
