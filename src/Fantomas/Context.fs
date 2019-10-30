@@ -127,11 +127,11 @@ type internal Context =
         { x with WriterInitModel = model; WriterEvents = writerCommands; Config = config }
 
 let internal writerEvent e ctx = { ctx with WriterEvents = ctx.WriterEvents @ (WriterEvents.normalize e) }
-let internal dumpModel (ctx: Context) =
+let internal applyWriterEvents (ctx: Context) =
     let m = WriterModel.updateAll ctx.WriterEvents ctx.WriterInitModel
     if m.WriteBeforeNewline <> "" then WriterModel.update (Write m.WriteBeforeNewline) m else m
 let internal dump (ctx: Context) =
-    let m = dumpModel ctx
+    let m = applyWriterEvents ctx
     m.Lines |> List.rev |> String.concat Environment.NewLine
 
 let internal dumpAndContinue (ctx: Context) =
@@ -142,7 +142,8 @@ let internal dumpAndContinue (ctx: Context) =
     ctx
     
 type Context with    
-    member x.Column = (dumpModel x).Column
+    member x.Column = (applyWriterEvents x).Column
+    member x.ApplyWriterEvents = applyWriterEvents x
 
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
@@ -167,7 +168,7 @@ let internal decrIndent i (ctx : Context) =
 let internal atIndentLevel alsoSetIndent level (f : Context -> Context) (ctx: Context) =
     if level < 0 then
         invalidArg "level" "The indent level cannot be negative."
-    let m = dumpModel ctx
+    let m = applyWriterEvents ctx
     let oldIndent = m.Indent
     let oldColumn = m.AtColumn
     (writerEvent (SetAtColumn level)
