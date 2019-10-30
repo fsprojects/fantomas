@@ -75,7 +75,7 @@ module Dbg =
     let print x = printfn "%A" x
 #else
 module Dbg =
-    let tee x = x
+    let tee f x = x
     let teePrint x = x
     let print _ = ()
 #endif
