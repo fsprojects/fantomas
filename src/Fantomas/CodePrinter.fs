@@ -1031,10 +1031,25 @@ and genExpr astContext synExpr =
             +> indent +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone) +> appNlnFun e2 (genExpr astContext e2) +> unindent)
 
     // Always spacing in multiple arguments
-    | App(e, es) -> 
-        atCurrentColumn (genExpr astContext e +> 
+    | App(e, es) ->
+        // we need to make sure each expression in the function application has offset at least greater than
+        // identation of the function expression itself
+        // we replace sepSpace in such case
+        // remarks: https://github.com/fsprojects/fantomas/issues/545
+        let indentIfNeeded (ctx: Context) =
+            let savedColumn = ctx.Writer.AtColumn
+            if savedColumn > ctx.Writer.Column then
+                // missingSpaces needs to be at least one more than the column
+                // of function expression being applied upon, otherwise (as known up to F# 4.7)
+                // this would lead to a compile error for the function application
+                let missingSpaces = (savedColumn - ctx.Writer.Column + 1)
+                atIndentLevel true savedColumn (!- (String.replicate missingSpaces " ")) ctx
+            else
+                sepSpace ctx
+                
+        atCurrentColumn (genExpr astContext e +>
             colPre sepSpace sepSpace es (fun e ->
-                indent +> appNlnFun e (genExpr astContext e) +> unindent))
+                indent +> appNlnFun e (indentIfNeeded +> genExpr astContext e) +> unindent))
 
     | TypeApp(e, ts) -> genExpr astContext e -- "<" +> col sepComma ts (genType astContext false) -- ">"
     | LetOrUses(bs, e) ->
@@ -1143,10 +1158,12 @@ and genExpr astContext synExpr =
                                      ) "if "
 
                                  elsePart +>
-                                 genTrivia node.Range (ifElse (checkBreakForExpr e1)
+                                 indent +> (genTrivia node.Range (
+                                                       (ifElse (checkBreakForExpr e1)
                                                            (genExpr astContext e1 +> thenToken node.Range !+"then")
                                                            (genExpr astContext e1 +> thenToken node.Range !+-"then")
-                                                       -- " " +> printBranch id astContext e2)
+                                                       -- " " +> unindent +> printBranch id astContext e2)
+                                                       ))
                             ) ctx
             +> opt sepNone enOpt (fun en -> printBranch (elseToken fullRange !+~"else ") astContext en)
         )
