@@ -8,6 +8,7 @@ open Fantomas.TriviaTypes
 type WriterEvent =
     | Write of string
     | WriteLine
+    | WriteLineInsideStringConst
     | WriteBeforeNewline of string
     | IndentBy of int
     | UnIndentBy of int
@@ -40,12 +41,15 @@ module WriterModel =
     }
     
     let update cmd m =
-        match cmd with
-        | WriteLine ->
+        let doNewline m =
             let m = { m with Indent = max m.Indent m.AtColumn }
             { m with
                Lines = String.replicate m.Indent " " :: (List.head m.Lines + m.WriteBeforeNewline) :: (List.tail m.Lines) 
                WriteBeforeNewline = "" }
+        match cmd with
+        | WriteLine -> doNewline m
+        | WriteLineInsideStringConst ->
+            { m with Lines = "" :: m.Lines }
         | Write s -> { m with Lines = (List.head m.Lines + s) :: (List.tail m.Lines) }
         | WriteBeforeNewline s -> { m with WriteBeforeNewline = s }
         | IndentBy x -> { m with Indent = if m.AtColumn >= m.Indent + x then m.AtColumn + x else m.Indent + x }
@@ -56,6 +60,16 @@ module WriterModel =
         | RestoreIndent c -> { m with Indent = c }
         
     let updateAll cmds m = cmds |> List.fold (fun m c -> update c m) m
+    
+module WriterEvents =
+    let normalize ev =
+        match ev with
+        | Write s when String.normalizeThenSplitNewLine s |> Array.length > 1 ->
+            String.normalizeThenSplitNewLine s |> Seq.map (fun x -> [Write x]) |> Seq.reduce (fun x y -> x @ [ WriteLineInsideStringConst] @ y) |> Seq.toList
+        | _ -> [ev]
+        
+    let isMultiline evs =
+        evs |> List.exists (function | WriteLine -> true | _ -> false)
 
 type internal Context = 
     { Config : FormatConfig; 
@@ -112,7 +126,7 @@ type internal Context =
         let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
         { x with WriterInitModel = model; WriterEvents = writerCommands; Config = config }
 
-let internal writerEvent e ctx = { ctx with WriterEvents = ctx.WriterEvents @ [e] }
+let internal writerEvent e ctx = { ctx with WriterEvents = ctx.WriterEvents @ (WriterEvents.normalize e) }
 let internal dumpModel (ctx: Context) =
     let m = WriterModel.updateAll ctx.WriterEvents ctx.WriterInitModel
     if m.WriteBeforeNewline <> "" then WriterModel.update (Write m.WriteBeforeNewline) m else m
@@ -126,6 +140,9 @@ let internal dumpAndContinue (ctx: Context) =
     printfn "%s" code
 #endif
     ctx
+    
+type Context with    
+    member x.Column = (dumpModel x).Column
 
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
@@ -167,11 +184,11 @@ let internal atIndentLevel alsoSetIndent level (f : Context -> Context) (ctx: Co
 /// }
 /// `atCurrentColumn` was called on `X`, then `indent` was called, but "some long string" have indent only 4, because it is bigger than `atColumn` (2).
 let internal atCurrentColumn (f : _ -> Context) (ctx : Context) =
-    atIndentLevel false (dumpModel ctx).Column f ctx
+    atIndentLevel false ctx.Column f ctx
 
 /// Like atCurrentColumn, but use current column after applying prependF
 let internal atCurrentColumnWithPrepend (prependF : _ -> Context) (f : _ -> Context) (ctx : Context) =
-    let col = (dumpModel ctx).Column
+    let col = ctx.Column
     (prependF >> atIndentLevel false col f) ctx
 
 /// Write everything at current column indentation, set `indent` and `atColumn` on current column position
@@ -182,7 +199,7 @@ let internal atCurrentColumnWithPrepend (prependF : _ -> Context) (f : _ -> Cont
 /// }
 /// `atCurrentColumn` was called on `X`, then `indent` was called, "some long string" have indent 6, because it is indented from `atCurrentColumn` pos (2).
 let internal atCurrentColumnIndent (f : _ -> Context) (ctx : Context) =
-    atIndentLevel true (dumpModel ctx).Column f ctx
+    atIndentLevel true ctx.Column f ctx
 
 /// Function composition operator
 let internal (+>) (ctx : Context -> Context) (f : _ -> Context) x =
@@ -379,26 +396,21 @@ let internal sepOpenT = !- "("
 
 /// closing token of tuple
 let internal sepCloseT = !- ")"
+let internal eventsWithoutMultilineWrite ctx =
+    { ctx with WriterEvents =  ctx.WriterEvents |> List.filter (function | Write s when s.Contains ("\n") -> false | _ -> true) }
 
-let internal autoNlnCheck f sep (ctx : Context) =
+let internal autoNlnCheck (f: _ -> Context) sep (ctx : Context) =
     if not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
-    let dummyCtx = ctx.With([], isDummy = true)
-    let col = (dummyCtx |> sep |> f |> dumpModel).Column
+    let dummyCtx = ctx.With([], isDummy = true) |> sep |> f 
     // This isn't accurate if we go to new lines
-    col > ctx.Config.PageWidth
+    dummyCtx.Column > ctx.Config.PageWidth
 
 let internal futureNlnCheckMem = Cache.memoizeBy (fun (f, ctx : Context) -> Cache.LambdaEqByRef f, ctx.MemoizeProjection) <| fun (f, ctx) ->
     if ctx.WriterInitModel.IsDummy || not ctx.BreakLines then (false, false) else
     // Create a dummy context to evaluate length of current operation
-    let dummyCtx = ctx.With([], isDummy = true, keepPageWidth = true)
-//    let withoutStringConst (str: string) = 
-//        str.Replace("\\\\", System.String.Empty).Replace("\\\"", System.String.Empty).Split([|'"'|])
-//        |> Seq.indexed |> Seq.filter (fun (i, _) -> i % 2 = 0) |> Seq.map snd |> String.concat System.String.Empty
-    let m = dummyCtx |> f |> dumpModel
-    //let m = { m with Lines = m.Lines |> List.map withoutStringConst }
-    let lines = m.Lines
-    (lines |> Seq.length) >= 2, m.Column > ctx.Config.PageWidth
+    let dummyCtx = ctx.With([], isDummy = true, keepPageWidth = true) |> f
+    WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.PageWidth
 
 let internal futureNlnCheck f (ctx : Context) =
     let (isMultiLine, isLong) = futureNlnCheckMem (f, ctx)

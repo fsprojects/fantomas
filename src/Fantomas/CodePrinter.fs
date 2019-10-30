@@ -818,15 +818,15 @@ and genExpr astContext synExpr =
             |> Option.defaultValue fieldsExpr
 
         sepOpenS
-        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = (dumpModel ctx).Column::ctx.RecordBraceStart })
+        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
         +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
             (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
         +> (fun ctx ->
             match ctx.RecordBraceStart with
             | rbs::rest ->
-                if (dumpModel ctx).Column < rbs then
+                if ctx.Column < rbs then
                     let offset = (if ctx.Config.SpaceAroundDelimiter then 2 else 1) + 1
-                    let delta = Math.Max((rbs - (dumpModel ctx).Column) - offset, 0)
+                    let delta = Math.Max((rbs - ctx.Column) - offset, 0)
                     (!- System.String.Empty.PadRight(delta)) ({ctx with RecordBraceStart = rest})
                 else
                     sepNone ({ctx with RecordBraceStart = rest})
