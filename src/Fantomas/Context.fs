@@ -117,12 +117,11 @@ type internal Context =
 
     member x.MemoizeProjection = x.WriterInitModel, x.WriterEvents, x.Trivia, x.BreakLines, x.RecordBraceStart
     
-    member x.With(writerCommands, ?isDummy, ?keepPageWidth) =
+    member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
-        let isDummy = isDummy |> Option.defaultValue false
         // Use infinite column width to encounter worst-case scenario
         let m = WriterModel.updateAll x.WriterEvents x.WriterInitModel
-        let model = { m with IsDummy = isDummy; Lines = [String.replicate m.Column " "]; WriteBeforeNewline = "" }
+        let model = { m with IsDummy = true; Lines = [String.replicate m.Column " "]; WriteBeforeNewline = "" }
         let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
         { x with WriterInitModel = model; WriterEvents = writerCommands; Config = config }
 
@@ -403,14 +402,14 @@ let internal eventsWithoutMultilineWrite ctx =
 let internal autoNlnCheck (f: _ -> Context) sep (ctx : Context) =
     if not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
-    let dummyCtx = ctx.With([], isDummy = true) |> sep |> f 
+    let dummyCtx = ctx.WithDummy([]) |> sep |> f 
     // This isn't accurate if we go to new lines
     dummyCtx.Column > ctx.Config.PageWidth
 
 let internal futureNlnCheckMem = Cache.memoizeBy (fun (f, ctx : Context) -> Cache.LambdaEqByRef f, ctx.MemoizeProjection) <| fun (f, ctx) ->
     if ctx.WriterInitModel.IsDummy || not ctx.BreakLines then (false, false) else
     // Create a dummy context to evaluate length of current operation
-    let dummyCtx = ctx.With([], isDummy = true, keepPageWidth = true) |> f
+    let dummyCtx = ctx.WithDummy([], keepPageWidth = true) |> f
     WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.PageWidth
 
 let internal futureNlnCheck f (ctx : Context) =
