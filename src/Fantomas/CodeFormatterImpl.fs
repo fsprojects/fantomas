@@ -388,6 +388,7 @@ let formatWith ast defines formatContext config =
     let formattedSourceCode =
         let context = Fantomas.Context.Context.create config defines normalizedSourceCode (Some ast)
         context |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
+        |> Dbg.tee (fun ctx -> printfn "%A" ctx.WriterEvents)
         |> Context.dump
 //        |> if config.StrictMode then id 
 //           else integrateComments config formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode

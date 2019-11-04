@@ -818,15 +818,15 @@ and genExpr astContext synExpr =
             |> Option.defaultValue fieldsExpr
 
         sepOpenS
-        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = (ctx.Writer.Column)::ctx.RecordBraceStart })
+        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
         +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
             (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
         +> (fun ctx ->
             match ctx.RecordBraceStart with
             | rbs::rest ->
-                if ctx.Writer.Column < rbs then
+                if ctx.Column < rbs then
                     let offset = (if ctx.Config.SpaceAroundDelimiter then 2 else 1) + 1
-                    let delta = Math.Max((rbs - ( ctx.Writer.Column)) - offset, 0)
+                    let delta = Math.Max((rbs - ctx.Column) - offset, 0)
                     (!- System.String.Empty.PadRight(delta)) ({ctx with RecordBraceStart = rest})
                 else
                     sepNone ({ctx with RecordBraceStart = rest})
@@ -1037,12 +1037,12 @@ and genExpr astContext synExpr =
         // we replace sepSpace in such case
         // remarks: https://github.com/fsprojects/fantomas/issues/545
         let indentIfNeeded (ctx: Context) =
-            let savedColumn = ctx.Writer.AtColumn
-            if savedColumn > ctx.Writer.Column then
+            let savedColumn = ctx.ApplyWriterEvents.AtColumn
+            if savedColumn > ctx.Column then
                 // missingSpaces needs to be at least one more than the column
                 // of function expression being applied upon, otherwise (as known up to F# 4.7)
                 // this would lead to a compile error for the function application
-                let missingSpaces = (savedColumn - ctx.Writer.Column + 1)
+                let missingSpaces = (savedColumn - ctx.ApplyWriterEvents.Column + 1)
                 atIndentLevel true savedColumn (!- (String.replicate missingSpaces " ")) ctx
             else
                 sepSpace ctx
