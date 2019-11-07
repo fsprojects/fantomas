@@ -43,9 +43,9 @@ type ASTContext =
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg = 
     match functionOrMethod, arg with
-    | SynExpr.LongIdent(_, LongIdentWithDots s, _, _), _ ->
-        let parts = s.Split '.'
-        not <| Char.IsUpper parts.[parts.Length - 1].[0]
+    | SynExpr.LongIdent(_, _, _, _), ConstExpr(Const "()", _) ->
+        true
+    | SynExpr.Ident(_), ConstExpr(Const "()", _)
     | SynExpr.Ident(_), SynExpr.Ident(_) ->
         true
     | SynExpr.Ident(Ident s), _ ->
@@ -57,9 +57,7 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg =
 let addSpaceBeforeParensInFunDef functionOrMethod args =
     match functionOrMethod, args with
     | "new", _ -> false
-    | (s:string), _ -> 
-        let parts = s.Split '.'
-        not <| Char.IsUpper parts.[parts.Length - 1].[0]
+    | (_:string), _ -> true
     | _ -> true
 
 let rec genParsedInput astContext = function
