@@ -43,8 +43,6 @@ type ASTContext =
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg = 
     match functionOrMethod, arg with
-    | _, ConstExpr(Const "()", _) ->
-        false
     | SynExpr.LongIdent(_, LongIdentWithDots s, _, _), _ ->
         let parts = s.Split '.'
         not <| Char.IsUpper parts.[parts.Length - 1].[0]
@@ -58,7 +56,6 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg =
 
 let addSpaceBeforeParensInFunDef functionOrMethod args =
     match functionOrMethod, args with
-    | _, PatParen (PatConst(Const "()", _)) -> false
     | "new", _ -> false
     | (s:string), _ -> 
         let parts = s.Split '.'
