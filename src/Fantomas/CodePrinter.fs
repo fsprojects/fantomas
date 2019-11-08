@@ -882,7 +882,9 @@ and genExpr astContext synExpr =
         expr
     | JoinIn(e1, e2) -> genExpr astContext e1 -- " in " +> genExpr astContext e2
     | Paren(DesugaredLambda(cps, e)) ->
-        sepOpenT -- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow +> noIndentBreakNln astContext e +> sepCloseT
+          sepOpenT -- "fun " +>  col sepSpace cps (genComplexPats astContext)
+        +> triviaAfterArrow synExpr.Range
+        +> noIndentBreakNln astContext e +> sepCloseT
     | DesugaredLambda(cps, e) -> 
         !- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow +> preserveBreakNln astContext e 
     | Paren(Lambda(e, sps)) ->
@@ -1097,76 +1099,234 @@ and genExpr astContext synExpr =
                          -- " " +> preserveBreakNln astContext e2)
     // A generalization of IfThenElse
     | ElIf((e1,e2, _, fullRange, _)::es, enOpt) ->
-        let printIfKeyword separator fallback range (ctx:Context) =
-            ctx.Trivia
-            |> List.tryFind (fun {Range = r} -> r = range)
-            |> Option.bind (fun tv ->
-                tv.ContentBefore
-                |> List.map (function | Keyword kw -> Some kw | _ -> None)
-                |> List.choose id
-                |> List.tryHead
-            )
-            |> Option.map (fun ({Content = kw}) -> sprintf "%s " kw |> separator)
-            |> Option.defaultValue (separator fallback)
-            <| ctx
-        
-        let ifTokenKw r f s = tokN r "IF" (printIfKeyword f s r)
-        let ifToken r f = tokN r "IF" f
-        let thenToken r f = tokN r "THEN" f
-        let elseToken r f = tokN r "ELSE" f
+        // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
+        fun ctx ->
+            let commentAfterKeyword keyword rangePredicate (ctx: Context) =
+                ctx.Trivia
+                |> TriviaHelpers.``has content after after that matches``
+                    (fun t ->
+                        let ttt = TriviaHelpers.``is token of type`` keyword t
+                        let rrr = rangePredicate t.Range
+                        ttt && rrr)
+                    (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
 
-        let anyExpressIsMultiline =
-            multiline e2 || (Option.map multiline enOpt |> Option.defaultValue false) || (List.exists (fun (_, e, _, _, _) -> multiline e) es)
+            let hasCommentAfterBoolExpr =
+                TriviaHelpers.``has content after after that matches``
+                    (fun tn -> tn.Range = e1.Range)
+                    (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
+                    ctx.Trivia
 
-        let printBranch prefix astContext expr = prefix +> ifElse anyExpressIsMultiline (breakNln astContext true expr) (preserveBreakNln astContext expr)
-        
-        // track how many indents was called, so we can correctly unindent.
-        // TODO: do it without mutable
-        let mutable indented = 0
+            let hasCommentAfterIfKeyword =
+                commentAfterKeyword "IF" (RangeHelpers.``have same range start`` synExpr.Range) ctx
 
-        atCurrentColumn (
-            ifToken fullRange !-"if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 +> thenToken fullRange !+"then") (genExpr astContext e1 +> thenToken fullRange !+-"then") -- " "
-            +> printBranch id astContext e2
-            +> fun ctx -> colPost (rep indented unindent) sepNone es (fun (e1, e2, _, fullRangeInner, node) ->
-                                 let rangeBeforeInner = mkRange "" fullRange.Start fullRangeInner.Start
-                                 let elsePart =
-                                     ifTokenKw fullRangeInner (fun kw ctx ->
-                                         let hasContentBeforeIf =
-                                             ctx.Trivia
-                                             |> List.tryFind (fun tv -> tv.Range = fullRangeInner)
-                                             |> Option.map (fun tv ->
-                                                 tv.ContentBefore
-                                                 |> List.exists (fun cb ->
-                                                     match cb with
-                                                     | Comment(_) ->  true
-                                                     | _ -> false
-                                                )
-                                             )
-                                             |> Option.defaultValue false
+            let hasCommentAfterIfBranchThenKeyword =
+                commentAfterKeyword "THEN" (RangeHelpers.``range contains`` synExpr.Range) ctx
 
-                                         // Trivia knows if the keyword is "elif" or "else if"
-                                         // Next we need to be sure that the are no comments between else and if
-                                         match kw with
-                                         | "if " when hasContentBeforeIf ->
-                                             indented <- indented + 1
-                                             (elseToken rangeBeforeInner !+"else" +> indent +> sepNln +> genTrivia fullRangeInner (ifToken node.Range !-"if "))
-                                         | "if " ->
-                                             (elseToken rangeBeforeInner !+"else if ")
-                                         | _ (* "elif" *) ->
-                                            !+ kw
-                                        <| ctx
-                                     ) "if "
+            let hasCommentAfterIfBranchExpr =
+                TriviaHelpers.``has content after after that matches``
+                    (fun tn -> tn.Range = e2.Range)
+                    (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
+                    ctx.Trivia
 
-                                 elsePart +>
-                                 indent +> (genTrivia node.Range (
-                                                       (ifElse (checkBreakForExpr e1)
-                                                           (genExpr astContext e1 +> thenToken node.Range !+"then")
-                                                           (genExpr astContext e1 +> thenToken node.Range !+-"then")
-                                                       -- " " +> unindent +> printBranch id astContext e2)
-                                                       ))
-                            ) ctx
-            +> opt sepNone enOpt (fun en -> printBranch (elseToken fullRange !+~"else ") astContext en)
-        )
+            let isConditionMultiline =
+                hasCommentAfterIfKeyword ||
+                hasCommentAfterBoolExpr ||
+                hasCommentAfterIfBranchThenKeyword ||
+                futureNlnCheck (!- "if " +> genExpr astContext e1) ctx
+
+            let isIfBranchMultiline =
+                hasCommentAfterIfBranchExpr || futureNlnCheck (genExpr astContext e2) ctx
+
+            let isElseBranchMultiline =
+                match enOpt with
+                | Some e3 ->
+                    commentAfterKeyword "ELSE" (RangeHelpers.``range contains`` synExpr.Range) ctx ||
+                    futureNlnCheck (!- " else " +> genExpr astContext e3) ctx
+                | None -> false
+
+            let genIf ifElseRange = tokN ifElseRange "IF" (!- "if ")
+            let genThen ifElseRange = tokN ifElseRange "THEN" (!- "then ")
+            let genElse ifElseRange = tokN ifElseRange "ELSE" (!- "else ")
+
+            let genElifOneliner (elf1, elf2, _, fullRange, _) =
+                TriviaContext.``else if / elif`` fullRange
+                +> genExpr astContext elf1 +> sepSpace
+                +> genThen fullRange
+                +> genExpr astContext elf2
+
+            let isAnyElifBranchMultiline =
+                es
+                |> List.exists (fun elf -> futureNlnCheck (genElifOneliner elf) ctx)
+
+            let isAnyExpressionIsMultiline = isConditionMultiline || isIfBranchMultiline || isElseBranchMultiline || isAnyElifBranchMultiline
+
+            let genElifMultiLine (elf1, elf2, _, fullRange, _) =
+                TriviaContext.``else if / elif`` fullRange
+                +> genExpr astContext elf1 +> sepSpace
+                +> genThen fullRange
+                +> indent +> sepNln
+                +> genExpr astContext elf2
+                +> unindent
+
+            let genOneliner =
+                let xxx = es
+                genIf synExpr.Range +> genExpr astContext e1 +> sepSpace
+                +> genThen synExpr.Range +> genExpr astContext e2
+                +> col sepNone es (fun elf -> sepSpace +> genElifOneliner elf)
+                +> opt id enOpt (fun e4 -> (sepSpace +> genElse synExpr.Range +> genExpr astContext e4))
+
+            // Is is simplistic check to see if everything fits on one line
+            let isOneLiner =
+                not isAnyExpressionIsMultiline &&
+                not (futureNlnCheck genOneliner ctx)
+
+            let formatIfElseExpr =
+                if isOneLiner then
+                    // Indentation of conditionals depends on the sizes of the expressions that make them up. If cond, e1 and e2 are short, simply write them on one line:
+                    // if cond then e1 else e2
+                    genOneliner
+
+                elif not isOneLiner && not isAnyExpressionIsMultiline then
+
+                    // if cond
+                    // then e1
+                    // else e2
+
+                    genIf synExpr.Range +> genExpr astContext e1 +> sepSpace
+                    +> genThen synExpr.Range +> genExpr astContext e2 +> sepNln
+                    +> colPost sepNln sepNln es genElifOneliner
+                    +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
+                else
+
+                    // if cond then
+                    //     e1
+                    // else
+                    //     e2
+
+                    genIf synExpr.Range
+                    // f.ex. if // meh
+                    //           x
+                    // bool expr x should be indented
+                    +> ifElse hasCommentAfterIfKeyword (indent +> sepNln) sepNone
+                    +> genExpr astContext e1
+                    +> ifElse (not hasCommentAfterBoolExpr) sepSpace sepNone
+                    // f.ex. if x // meh
+                    //       then
+                    // then keyword should be on next line
+                    +> ifElse hasCommentAfterBoolExpr sepNln sepNone
+                    +> genThen synExpr.Range
+                    // f.ex if x then // meh
+                    //          0
+                    // 0 should be indented
+                    +> ifElse hasCommentAfterIfBranchThenKeyword indent sepNone
+                    // f.ex. if x //
+                    //       then
+                    //           0
+                    // 0 should be indented
+                    +> ifElse hasCommentAfterBoolExpr indent sepNone
+                    // normal scenario
+                    // f.ex. if (longCondition
+                    //          && onMultipleLines) then
+                    //           x
+                    +> ifElse (not hasCommentAfterIfKeyword && not hasCommentAfterBoolExpr && not hasCommentAfterIfBranchThenKeyword) indent sepNone
+                    +> sepNln
+                    +> dumpAndContinue
+                    +> genExpr astContext e2 +> unindent +> sepNln
+                    +> colPost sepNln sepNln es genElifMultiLine
+                    +> opt id enOpt (fun e4 -> genElse synExpr.Range +>
+                                        indent +> sepNln +> genExpr astContext e4 +>
+                                        unindent +> sepNln)
+
+
+            (atCurrentColumn formatIfElseExpr) ctx
+//        let printIfKeyword separator fallback range (ctx:Context) =
+//            ctx.Trivia
+//            |> List.tryFind (fun {Range = r} -> r = range)
+//            |> Option.bind (fun tv ->
+//                tv.ContentItself
+//                |> Option.bind (function | Keyword kw -> Some kw | _ -> None)
+//            )
+//            |> Option.map (fun ({Content = kw}) -> sprintf "%s " kw |> separator)
+//            |> Option.defaultValue (separator fallback)
+//            <| ctx
+//
+//        let ifTokenKw r f s = tokN r "IF" (printIfKeyword f s r)
+//        let ifToken r f = tokN r "IF" f
+//        let thenToken r f = tokN r "THEN" f
+//        let elseToken r f = tokN r "ELSE" f
+//
+//        let commentAfterIfKeyword  (ctx: Context) =
+//            ctx.Trivia
+//            |> TriviaHelpers.``has content after after that matches``
+//                (fun t ->
+//                    let ttt = TriviaHelpers.``is token of type`` "IF" t
+//                    let rrr = RangeHelpers.``have same range start`` t.Range synExpr.Range
+//                    ttt && rrr)
+//                (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
+//
+//        let anyExpressIsMultiline =
+//            multiline e2 || (Option.map multiline enOpt |> Option.defaultValue false) || (List.exists (fun (_, e, _, _, _) -> multiline e) es)
+//
+//        let printBranch prefix astContext expr =
+//            prefix +> ifElse anyExpressIsMultiline (breakNln astContext true expr) (preserveBreakNln astContext expr)
+//
+//        // track how many indents was called, so we can correctly unindent.
+//        // TODO: do it without mutable
+//        let mutable indented = 0
+//
+//        let elseIfBranch (e1, e2, _, (fullRangeInner: range), (node: SynExpr)) =
+//            let rangeBeforeInner = mkRange "" fullRange.Start fullRangeInner.Start
+//            let elsePart =
+//                ifTokenKw fullRangeInner (fun kw ctx ->
+//                    let hasContentBeforeIf =
+//                        ctx.Trivia
+//                        |> List.tryFind (fun tv -> tv.Range = fullRangeInner)
+//                        |> Option.map (fun tv ->
+//                            tv.ContentBefore
+//                            |> List.exists (fun cb ->
+//                                match cb with
+//                                | Comment(_) ->  true
+//                                | _ -> false
+//                           )
+//                        )
+//                        |> Option.defaultValue false
+//                    // Trivia knows if the keyword is "elif" or "else if"
+//                    // Next we need to be sure that the are no comments between else and if
+//                    match kw with
+//                    | "if " when hasContentBeforeIf ->
+//                        indented <- indented + 1
+//                        (elseToken rangeBeforeInner !+"else" +> indent +> sepNln +> genTrivia fullRangeInner (ifToken node.Range !-"if "))
+//                    | "if " ->
+//                        (elseToken rangeBeforeInner !+"else if ")
+//                    | _ (* "elif" *) ->
+//                       !+ kw
+//                   <| ctx
+//                ) "if "
+//
+//            elsePart +>
+//            indent +> (genTrivia node.Range (
+//                                   (ifElse (checkBreakForExpr e1)
+//                                       (genExpr astContext e1 +> thenToken node.Range !+"then")
+//                                       (genExpr astContext e1 +> thenToken node.Range !+-"then")
+//                                   -- " " +> unindent +> printBranch id astContext e2)
+//                                   ))
+//
+//        atCurrentColumn (fun ctx ->
+//            let hasCommentAfterIfKeyword = commentAfterIfKeyword ctx
+//            let hasCommentAfterElseKeyword = true
+//            (ifToken fullRange !-"if "
+//            +> ifElse hasCommentAfterIfKeyword (indent +> sepNln) sepNone
+//            +> dumpAndContinue
+//            +> ifElse (checkBreakForExpr e1)
+//                   (genExpr astContext e1 +> thenToken fullRange !+"then")
+//                   (genExpr astContext e1 +> thenToken fullRange !+-"then") -- " "
+//            +> ifElse hasCommentAfterIfKeyword unindent sepNone
+//            +> printBranch id astContext e2
+//            +> colPost (rep indented unindent) sepNone es elseIfBranch
+//            +> opt sepNone enOpt (fun en -> printBranch (elseToken fullRange !+~"else "
+//                                                         +> ifElse hasCommentAfterElseKeyword (indent +> sepNln) sepNone) astContext en)
+//            ) ctx
+//        )
 
     // At this stage, all symbolic operators have been handled.
     | OptVar(s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
@@ -2065,12 +2225,6 @@ and genConstBytes (bytes: byte []) (r: range) =
 
 and genTrivia (range: range) f =
     enterNode range +> f +> leaveNode range
-
-and tok (range: range) (s: string) =
-    enterNodeToken range +> (!-s) +> leaveNodeToken range
-
-and tokN (range: range) (tokenName: string) f =
-    enterNodeTokenByName range tokenName +> f +> leaveNodeTokenByName range tokenName
 
 and infixOperatorFromTrivia range fallback (ctx: Context) =
     ctx.Trivia

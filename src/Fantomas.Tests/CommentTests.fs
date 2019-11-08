@@ -687,7 +687,8 @@ if //comment
 else 0""" config
     |> prepend newline
     |> should equal """
-if true then 1 //comment
+if //comment
+    true then 1
 else 0
 """
 

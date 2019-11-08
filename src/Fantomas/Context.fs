@@ -134,7 +134,9 @@ let internal dump (ctx: Context) =
     m.Lines |> List.rev |> String.concat Environment.NewLine
 
 let internal dumpAndContinue (ctx: Context) =
-    let code = dump ctx
+    let m = applyWriterEvents ctx
+    let lines = m.Lines |> List.rev
+    let code = String.concat Environment.NewLine lines
 #if DEBUG
     printfn "%s" code
 #endif
@@ -493,17 +495,27 @@ let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
+    let currentLastLine =
+        let m = applyWriterEvents ctx
+        m.Lines
+        |> List.tryHead
+
     // Some items like #if of Newline should be printed on a newline
     // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
     let addNewline =
-        dump ctx
-        |> String.normalizeThenSplitNewLine
-        |> Array.tryLast
-        |> Option.map (fun (line:string) -> line.Trim().Length > 1)
+        currentLastLine
+        |> Option.map(fun line -> line.Trim().Length > 1)
+        |> Option.defaultValue false
+
+    let addSpace =
+        currentLastLine
+        |> Option.bind(fun line -> Seq.tryLast line |> Option.map (fun lastChar -> lastChar <> ' '))
         |> Option.defaultValue false
 
     match c with
-    | Comment(LineCommentAfterSourceCode s) -> writerEvent (WriteBeforeNewline (" " + s))
+    | Comment(LineCommentAfterSourceCode s) ->
+        let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
+        writerEvent (WriteBeforeNewline comment)
     | Comment(BlockComment(s, before, after)) ->
         ifElse (before && addNewline) sepNln sepNone
         +> sepSpace -- s +> sepSpace
@@ -576,13 +588,12 @@ let private findTriviaTokenFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n -> Trivia.isToken n && n.Range.Start = range.Start && n.Range.End = range.End)
 
-let private findTriviaTokenFromName (range: range) nodes (tokenName:string) =
+let internal findTriviaTokenFromName (range: range) nodes (tokenName:string) =
     nodes
     |> List.tryFind(fun n ->
         match n.Type with
         | Token(tn) when tn.TokenInfo.TokenName = tokenName ->
-            (range.Start.Line, range.Start.Column) <= (n.Range.Start.Line, n.Range.Start.Column)
-            && (range.End.Line, range.End.Column) >= (n.Range.End.Line, n.Range.End.Column)
+            RangeHelpers.``range contains`` range n.Range
         | _ -> false)
 
 let internal enterNodeWith f x (ctx: Context) =

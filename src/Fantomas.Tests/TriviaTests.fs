@@ -450,3 +450,19 @@ let foo = 42
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
          ContentBefore = [ Directive("#if SOMETHING"); Newline; Directive("#endif") ] }] -> pass()
     | _ -> fail()
+
+
+[<Test>]
+let ``if keyword should be keyword itself`` () =
+    let source = "if meh then ()"
+    let trivia =
+        toTrivia source
+        |> List.head
+
+    match trivia with
+    | [{ ContentItself = Some(Keyword({ TokenInfo = { TokenName = "IF" } }))
+         Type = TriviaNodeType.Token({ TokenInfo = { TokenName = "IF" } }) }
+       { ContentItself = Some(Keyword({ TokenInfo = { TokenName = "THEN" } }))
+         Type = TriviaNodeType.Token({ TokenInfo = { TokenName = "THEN" } }) }] ->
+        pass()
+    | _ -> fail()
