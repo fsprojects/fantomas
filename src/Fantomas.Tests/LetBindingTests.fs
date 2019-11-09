@@ -54,8 +54,7 @@ let f () =
     formatSourceString false codeSnippet config
     |> should equal """let f() =
     let x = 1
-    if true then x
-    else x
+    if true then x else x
 """
 
 [<Test>]

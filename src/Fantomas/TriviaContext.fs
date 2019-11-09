@@ -52,9 +52,20 @@ let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
         | ("ELSE", elseTrivia)::("IF", ifTrivia)::_ ->
             let commentAfterElseKeyword = TriviaHelpers.``has line comment after`` elseTrivia
             let commentAfterIfKeyword = TriviaHelpers.``has line comment after`` ifTrivia
+            let triviaBeforeIfKeyword =
+                ctx.Trivia
+                |> List.filter (fun t ->
+                    match t.Type with
+                    | MainNode("SynExpr.IfThenElse") ->
+                        RangeHelpers.``range contains`` rangeOfIfThenElse t.Range
+                        && (RangeHelpers.``range after`` elseTrivia.Range t.Range)
+                    | _ -> false
+                    )
+                |> List.tryHead
 
             tokN rangeOfIfThenElse "ELSE" (!- "else") +>
             ifElse commentAfterElseKeyword sepNln sepSpace +>
+            opt sepNone triviaBeforeIfKeyword printContentBefore +>
             tokN rangeOfIfThenElse "IF" (!- "if ") +>
             ifElse commentAfterIfKeyword (indent +> sepNln) sepNone
 
@@ -63,5 +74,9 @@ let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
             let commentAfterElIfKeyword = TriviaHelpers.``has line comment after`` elifTok
             tokN rangeOfIfThenElse "ELIF" (!- "elif ")
             +> ifElse commentAfterElIfKeyword (indent +> sepNln) sepNone
+
+        | [] ->
+            // formatting from AST
+            !- "else if "
 
     resultExpr ctx

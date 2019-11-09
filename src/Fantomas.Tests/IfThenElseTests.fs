@@ -25,7 +25,9 @@ let ``single line if/then/elif/then/else`` () =
     formatSourceString false "if a then b elif c then d else e" config
     |> prepend newline
     |> should equal """
-if a then b elif c then d else e
+if a then b
+elif c then d
+else e
 """
 
 [<Test>]
@@ -33,7 +35,9 @@ let ``single line if/then/else if/then/else`` () =
     formatSourceString false "if a then b else if c then d else e" config
     |> prepend newline
     |> should equal """
-if a then b else if c then d else e
+if a then b
+else if c then d
+else e
 """
 
 [<Test>]
@@ -41,7 +45,10 @@ let ``single line if/then/else if/elif/then/else`` () =
     formatSourceString false "if a then b else if c then d elif e then f else g" config
     |> prepend newline
     |> should equal """
-if a then b else if c then d elif e then f else g
+if a then b
+else if c then d
+elif e then f
+else g
 """
 
 [<Test>]
@@ -50,7 +57,8 @@ let ``longer condition, not multi-line`` () =
 """  ({ config with PageWidth = 80 })
     |> prepend newline
     |> should equal """
-if aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg then 1
+if aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
+then 1
 else 0
 """
 
@@ -60,7 +68,8 @@ let ``longer ifBranch, not multi-line`` () =
 """  ({ config with PageWidth = 80 })
     |> prepend newline
     |> should equal """
-if x then aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
+if x
+then aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
 else 0
 """
 
@@ -70,7 +79,8 @@ let ``longer else branch, not multi-line`` () =
 """  ({ config with PageWidth = 80 })
     |> prepend newline
     |> should equal """
-if x then 1
+if x
+then 1
 else aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
 """
 
@@ -551,7 +561,9 @@ else     e
 """  config
     |> prepend newline
     |> should equal """
-if a then b else (* meh *) if c then d else e
+if a then b
+else (* meh *) if c then d
+else e
 """
 
 [<Test>]
@@ -563,7 +575,9 @@ else     e
 """  config
     |> prepend newline
     |> should equal """
-if a then b else if (* meh *) c then d else e
+if a then b
+else if (* meh *) c then d
+else e
 """
 
 [<Test>]
@@ -575,7 +589,9 @@ else     e
 """  config
     |> prepend newline
     |> should equal """
-if a then b elif (* meh *) c then d else e
+if a then b
+elif (* meh *) c then d
+else e
 """
 
 [<Test>]
@@ -587,7 +603,9 @@ else     e
 """  config
     |> prepend newline
     |> should equal """
-if a then b elif c (* meh *) then d else e
+if a then b
+elif c (* meh *) then d
+else e
 """
 
 [<Test>]
@@ -599,7 +617,9 @@ else     e
 """  config
     |> prepend newline
     |> should equal """
-if a then b else if c (* meh *) then d else e
+if a then b
+else if c (* meh *) then d
+else e
 """
 
 [<Test>]
@@ -631,3 +651,89 @@ if // c6
 else // c10
     e // c11
 """
+
+[<Test>]
+let ``newlines before comment on elif`` () =
+    formatSourceString false """
+if strA.Length = 0 && strB.Length = 0 then 0
+
+// OPTIMIZATION : If the substrings have the same (identical) underlying string
+// and offset, the comparison value will depend only on the length of the substrings.
+elif strA.String == strB.String && strA.Offset = strB.Offset then
+    compare strA.Length strB.Length
+
+else
+    -1
+"""  config
+    |> prepend newline
+    |> should equal """
+if strA.Length = 0 && strB.Length = 0 then
+    0
+
+// OPTIMIZATION : If the substrings have the same (identical) underlying string
+// and offset, the comparison value will depend only on the length of the substrings.
+elif strA.String == strB.String && strA.Offset = strB.Offset then
+    compare strA.Length strB.Length
+
+else
+    -1
+"""
+
+[<Test>]
+let ``simple if/else with long identifiers`` () =
+    formatSourceString false """
+if someveryveryveryverylongexpression then
+            someveryveryveryveryveryverylongexpression
+else someveryveryveryverylongexpression
+"""  ({ config with PageWidth = 80 })
+    |> prepend newline
+    |> should equal """
+if someveryveryveryverylongexpression
+then someveryveryveryveryveryverylongexpression
+else someveryveryveryverylongexpression
+"""
+
+[<Test>]
+let ``longer if branch, nothing multiline`` () =
+    formatSourceString false """
+   if m.Success then Some (List.tail [ for x in m.Groups -> x.Value ]) else None
+"""  config
+    |> prepend newline
+    |> should equal """
+if m.Success
+then Some(List.tail [ for x in m.Groups -> x.Value ])
+else None
+"""
+
+[<Test>]
+let ``almost longer if branch where the whole if/else is indented by letbinding`` () =
+    formatSourceString false """
+let (|Integer|_|) (str: string) =
+   let mutable intvalue = 0
+   if System.Int32.TryParse(str, &intvalue) then Some(intvalue)
+   else None
+"""  config
+    |> prepend newline
+    |> should equal """
+let (|Integer|_|) (str: string) =
+    let mutable intvalue = 0
+    if System.Int32.TryParse(str, &intvalue) then Some(intvalue) else None
+"""
+
+[<Test>]
+let ``longer elif condition`` () =
+    formatSourceString false """if a then b elif somethingABitLongerToForceDifferentStyle then c else d
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then b
+elif somethingABitLongerToForceDifferentStyle then c
+else d
+"""
+
+// TODO: use setting to determine longer fragments
+(*
+if pred(head)
+                        then Some(head)
+                        else tryFindMatch pred tail
+*)

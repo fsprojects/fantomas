@@ -1102,6 +1102,8 @@ and genExpr astContext synExpr =
     | ElIf((e1,e2, _, fullRange, _)::es, enOpt) ->
         // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
         fun ctx ->
+            let longerSetting = 40
+
             let elseKeywordRange =
                 ctx.Trivia
                 |> TriviaHelpers.``keyword tokens inside range`` ["IF"; "THEN"; "ELIF"; "ELSE"] synExpr.Range
@@ -1129,6 +1131,8 @@ and genExpr astContext synExpr =
                     else
                         (elf1, elf2, fullRange)
             )
+
+            let hasElfis = not (List.isEmpty elfis)
 
             let commentAfterKeyword keyword rangePredicate (ctx: Context) =
                 ctx.Trivia
@@ -1197,14 +1201,37 @@ and genExpr astContext synExpr =
                 +> genThen fullRange
                 +> ifElse hasCommentAfterThenKeyword sepNln sepNone
                 +> genExpr astContext elf2
+                |> genTrivia fullRange
+
+            let genElifTwoLiner ((elf1: SynExpr), (elf2: SynExpr), fullRange) =
+                let hasCommentAfterThenKeyword =
+                    commentAfterKeyword "THEN" (RangeHelpers.``range contains`` fullRange) ctx
+
+                TriviaContext.``else if / elif`` fullRange
+                +> genExpr astContext elf1 +> sepNln
+                +> genThen fullRange
+                +> ifElse hasCommentAfterThenKeyword sepNln sepNone
+                +> genExpr astContext elf2
+                |> genTrivia fullRange
 
             let isAnyElifBranchMultiline =
                 elfis
                 |> List.exists (fun elf -> futureNlnCheck (genElifOneliner elf) ctx)
 
-            let anyElseIfBranchHasCommentAfterBranchExpr =
+            let anyElifBranchHasCommentAfterBranchExpr =
                 elfis
                 |> List.exists (fun (_, e, _) -> ``has line comment after source code for range`` e.Range)
+
+            let isAnyExpressionIsLongerButNotMultiline =
+                let elseExceedsWith =
+                    match enOpt with
+                    | Some e4 -> exceedsWidth longerSetting (genExpr astContext e4) ctx
+                    | None -> false
+
+                exceedsWidth longerSetting (genExpr astContext e1) ctx ||
+                exceedsWidth longerSetting (genExpr astContext e2) ctx ||
+                elseExceedsWith
+                // elifs
 
             let isAnyExpressionIsMultiline = isConditionMultiline || isIfBranchMultiline || isElseBranchMultiline || isAnyElifBranchMultiline
 
@@ -1237,7 +1264,7 @@ and genExpr astContext synExpr =
                     +> genExpr astContext elf2
                     +> unindent
 
-                elifExpr ctx
+                (elifExpr |> genTrivia fullRange) ctx
 
             let genOneliner =
                 genIf synExpr.Range +> genExpr astContext e1 +> sepSpace
@@ -1247,9 +1274,11 @@ and genExpr astContext synExpr =
 
             // This is a simplistic check to see if everything fits on one line
             let isOneLiner =
+                not hasElfis &&
+                not isAnyExpressionIsLongerButNotMultiline &&
                 not isAnyExpressionIsMultiline &&
                 not hasCommentAfterIfBranchExpr &&
-                not anyElseIfBranchHasCommentAfterBranchExpr &&
+                not anyElifBranchHasCommentAfterBranchExpr &&
                 not (futureNlnCheck genOneliner ctx)
 
             let formatIfElseExpr =
@@ -1258,34 +1287,52 @@ and genExpr astContext synExpr =
                     // if cond then e1 else e2
                     genOneliner
 
-                elif not isOneLiner && not isAnyExpressionIsMultiline then
-
+                elif not isOneLiner && not isAnyExpressionIsMultiline
+                     && isAnyExpressionIsLongerButNotMultiline then
+                    // If either cond, e1 or e2 are longer, but not multi-line:
                     // if cond
                     // then e1
                     // else e2
+
+                    genIf synExpr.Range +> genExpr astContext e1 +> sepNln
+                    +> genThen synExpr.Range +> genExpr astContext e2 +> sepNln
+                    +> colPost sepNln sepNln elfis genElifTwoLiner
+                    +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
+
+                elif hasElfis && not isAnyExpressionIsMultiline then
+                    // Multiple conditionals with elif and else are indented at the same scope as the if:
+                    // if cond1 then e1
+                    // elif cond2 then e2
+                    // elif cond3 then e3
+                    // else e4
 
                     genIf synExpr.Range +> genExpr astContext e1 +> sepSpace
                     +> genThen synExpr.Range +> genExpr astContext e2 +> sepNln
                     +> colPost sepNln sepNln elfis genElifOneliner
                     +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
-                else
 
+                else if hasCommentAfterIfBranchExpr && not hasElfis then
+                    // f.ex
+                    // if x then 0 // meh
+                    // else 1
+                    genIf synExpr.Range +> genExpr astContext e1 +> sepSpace
+                    +> genThen synExpr.Range +> genExpr astContext e2 +> sepNln
+                    +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
+
+                else
+                    // If any of the expressions are multi-line:
                     // if cond then
                     //     e1
                     // else
                     //     e2
 
                     genIf synExpr.Range
-                    +> dumpAndContinue
                     // f.ex. if // meh
                     //           x
                     // bool expr x should be indented
                     +> ifElse hasCommentAfterIfKeyword (indent +> sepNln) sepNone
-                    +> dumpAndContinue
                     +> genExpr astContext e1
-                    +> dumpAndContinue
                     +> ifElse hasCommentAfterBoolExpr sepNln sepSpace
-                    +> dumpAndContinue
                     +> genThen synExpr.Range
                     // f.ex if x then // meh
                     //          0
@@ -1301,14 +1348,12 @@ and genExpr astContext synExpr =
                     //          && onMultipleLines) then
                     //           x
                     +> ifElse (not hasCommentAfterIfKeyword && not hasCommentAfterBoolExpr && not hasCommentAfterIfBranchThenKeyword) indent sepNone
-                    +> dumpAndContinue
                     +> sepNln
                     +> genExpr astContext e2 +> unindent +> sepNln
                     +> colPost sepNln sepNln elfis genElifMultiLine
                     +> opt id enOpt (fun e4 -> genElse synExpr.Range +>
                                         indent +> sepNln +> genExpr astContext e4 +>
-                                        unindent +> sepNln)
-
+                                        unindent)
 
             (atCurrentColumn formatIfElseExpr) ctx
 //        let printIfKeyword separator fallback range (ctx:Context) =
@@ -1388,7 +1433,7 @@ and genExpr astContext synExpr =
 //            let hasCommentAfterElseKeyword = true
 //            (ifToken fullRange !-"if "
 //            +> ifElse hasCommentAfterIfKeyword (indent +> sepNln) sepNone
-//            +> dumpAndContinue
+//            
 //            +> ifElse (checkBreakForExpr e1)
 //                   (genExpr astContext e1 +> thenToken fullRange !+"then")
 //                   (genExpr astContext e1 +> thenToken fullRange !+-"then") -- " "

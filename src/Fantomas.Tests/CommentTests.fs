@@ -326,12 +326,15 @@ else
 """  config
     |> prepend newline
     |> should equal """
-if a then ()
+if a then
+    ()
 else
-    // Comment 1
-    if b then ()
-    // Comment 2
-    else ()
+// Comment 1
+if b then
+    ()
+// Comment 2
+else
+    ()
 """
 
 [<Test>]
@@ -643,12 +646,13 @@ type substring =
     /// <returns>An integer that indicates the lexical relationship between the two comparands.</returns>
     static member CompareOrdinal(strA: substring, strB: substring) =
         // If both substrings are empty they are considered equal, regardless of their offset or underlying string.
-        if strA.Length = 0 && strB.Length = 0 then 0
-        elif
+        if strA.Length = 0 && strB.Length = 0 then
+            0
 
-            // OPTIMIZATION : If the substrings have the same (identical) underlying string
-            // and offset, the comparison value will depend only on the length of the substrings.
-            strA.String == strB.String && strA.Offset = strB.Offset then compare strA.Length strB.Length
+        // OPTIMIZATION : If the substrings have the same (identical) underlying string
+        // and offset, the comparison value will depend only on the length of the substrings.
+        elif strA.String == strB.String && strA.Offset = strB.Offset then
+            compare strA.Length strB.Length
 
         else
             (* Structural comparison on substrings -- this uses the same comparison
@@ -675,8 +679,10 @@ if true then //comment
 else 0""" config
     |> prepend newline
     |> should equal """
-if true then 1 //comment
-else 0
+if true then //comment
+    1
+else
+    0
 """
 
 [<Test>]
@@ -688,8 +694,10 @@ else 0""" config
     |> prepend newline
     |> should equal """
 if //comment
-    true then 1
-else 0
+    true then
+    1
+else
+    0
 """
 
 [<Test>]
@@ -700,6 +708,8 @@ else //comment
     0""" config
     |> prepend newline
     |> should equal """
-if true then 1
-else 0 //comment
+if true then
+    1
+else //comment
+    0
 """

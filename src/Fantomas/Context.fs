@@ -2,6 +2,7 @@ module Fantomas.Context
 
 open System
 open FSharp.Compiler.Range
+open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.TriviaTypes
 
@@ -411,7 +412,7 @@ let internal autoNlnCheck (f: _ -> Context) sep (ctx : Context) =
 let internal futureNlnCheckMem = Cache.memoizeBy (fun (f, ctx : Context) -> Cache.LambdaEqByRef f, ctx.MemoizeProjection) <| fun (f, ctx) ->
     if ctx.WriterInitModel.IsDummy || not ctx.BreakLines then (false, false) else
     // Create a dummy context to evaluate length of current operation
-    let dummyCtx = ctx.WithDummy([], keepPageWidth = true) |> f
+    let dummyCtx : Context = ctx.WithDummy([], keepPageWidth = true) |> f
     WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.PageWidth
 
 let internal futureNlnCheck f (ctx : Context) =
@@ -427,6 +428,14 @@ let internal autoIndentNlnByFuture f = ifElseCtx (futureNlnCheck f) (indent +> s
 
 /// like autoNlnByFuture but don't do nln if there is another nln inside f
 let internal autoNlnByFutureLazy f = ifElseCtx (futureNlnCheckLazy f) (sepNln +> f) f
+
+/// similar to futureNlnCheck but validates whether the expression is going over the max page width
+/// This functions is does not use any caching
+let internal exceedsWidth maxWidth f (ctx: Context) =
+    let dummyCtx : Context = ctx.WithDummy([], keepPageWidth = true)
+    let currentColumn = dummyCtx.Column
+    let ctxAfter : Context = f dummyCtx
+    (ctxAfter.Column - currentColumn) > maxWidth
 
 /// Set a checkpoint to break at an appropriate column
 let internal autoNlnOrAddSep f sep (ctx : Context) =
