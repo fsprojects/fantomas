@@ -244,3 +244,58 @@ if x then
 else
     1
 """
+
+[<Test>]
+let ``comment after else keyword`` () =
+    formatSourceString false """if  x then 0 else // meh
+    1
+"""  config
+    |> prepend newline
+    |> should equal """
+if x then
+    0
+else // meh
+    1
+"""
+
+
+[<Test>]
+let ``comment after else branch expression`` () =
+    formatSourceString false """if  x then 0 else 1 // meh
+"""  config
+    |> prepend newline
+    |> should equal """
+if x then 0 else 1 // meh
+"""
+
+[<Test>]
+let ``comment after else keyword before if keyword`` () =
+    formatSourceString false """if  a then b else // meh
+    if c then d else e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then
+    b
+else // meh
+if c then
+    d
+else
+    e
+"""
+
+[<Test>]
+let ``comment after else if keyword`` () =
+    formatSourceString false """if  a then b else if // meh
+    c then d else e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then
+    b
+else if // meh
+    c then
+    d
+else
+    e
+"""

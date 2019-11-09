@@ -32,8 +32,17 @@ module TriviaHelpers =
         trivia
         |> List.choose(fun t ->
             match t.Type with
-            | TriviaNodeType.Token({ TokenInfo = { TokenName = tn } })
+            | TriviaNodeType.Token({ TokenInfo = { TokenName = tn } as tok })
                 when ( RangeHelpers.``range contains`` range t.Range && List.contains tn keywords) ->
-                Some tn
+                Some (tok, t)
             | _ -> None
         )
+
+    let internal ``has line comment after`` triviaNode =
+        triviaNode.ContentAfter
+        |> List.filter(fun tn ->
+            match tn with
+            | Comment(LineCommentAfterSourceCode(_)) -> true
+            | _ -> false
+        )
+        |> (List.isEmpty >> not)

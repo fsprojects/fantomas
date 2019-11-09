@@ -45,14 +45,21 @@ let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
     let keywords =
         ctx.Trivia
         |> TriviaHelpers.``keyword tokens inside range`` ["ELSE";"IF";"ELIF"] rangeOfIfThenElse
+        |> List.map (fun (tok, t) -> (tok.TokenName, t))
 
     let resultExpr =
         match keywords with
-        | "ELSE"::"IF"::_ ->
+        | ("ELSE", elseTrivia)::("IF", ifTrivia)::_ ->
+            let commentAfterElseKeyword = TriviaHelpers.``has line comment after`` elseTrivia
+            let commentAfterIfKeyword = TriviaHelpers.``has line comment after`` ifTrivia
+
             tokN rangeOfIfThenElse "ELSE" (!- "else") +>
-            tokN rangeOfIfThenElse "IF" (!- " if ")
-        | "ELIF"::_
-        | ["ELIF"] ->
+            ifElse commentAfterElseKeyword sepNln sepSpace +>
+            tokN rangeOfIfThenElse "IF" (!- "if ") +>
+            ifElse commentAfterIfKeyword (indent +> sepNln) sepNone
+
+        | ("ELIF",_)::_
+        | [("ELIF",_)] ->
             tokN rangeOfIfThenElse "ELIF" (!- "elif ")
 
     resultExpr ctx
