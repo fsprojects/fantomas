@@ -141,7 +141,7 @@ let internal dumpAndContinue (ctx: Context) =
     printfn "%s" code
 #endif
     ctx
-    
+
 type Context with    
     member x.Column = (applyWriterEvents x).Column
     member x.ApplyWriterEvents = applyWriterEvents x

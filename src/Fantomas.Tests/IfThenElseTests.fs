@@ -239,10 +239,8 @@ let ``comment after if branch expression`` () =
 """  config
     |> prepend newline
     |> should equal """
-if x then
-    0 // meh
-else
-    1
+if x then 0 // meh
+else 1
 """
 
 [<Test>]
@@ -298,4 +296,338 @@ else if // meh
     d
 else
     e
+"""
+
+[<Test>]
+let ``comment after elif keyword`` () =
+    formatSourceString false """if  a then b elif // meh
+    c then d else e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then
+    b
+elif // meh
+    c then
+    d
+else
+    e
+"""
+
+[<Test>]
+let ``comment after else if boolean expression`` () =
+    formatSourceString false """if  a then b else if
+    c // meh
+    then d else e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then
+    b
+else if c // meh
+then
+    d
+else
+    e
+"""
+
+[<Test>]
+let ``comment after elif boolean expression`` () =
+    formatSourceString false """if  a then b elif
+    c // meh
+    then d else e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then
+    b
+elif c // meh
+then
+    d
+else
+    e
+"""
+
+[<Test>]
+let ``comment after else if then keyword`` () =
+    formatSourceString false """if  a then b else if
+    c  then // meh
+    d else e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then
+    b
+else if c then // meh
+    d
+else
+    e
+"""
+
+[<Test>]
+let ``comment after elif then keyword`` () =
+    formatSourceString false """if  a then b elif
+    c  then // meh
+    d else e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then
+    b
+elif c then // meh
+    d
+else
+    e
+"""
+
+[<Test>]
+let ``comment after else if branch expression`` () =
+    formatSourceString false """if  a then b else if
+    c  then
+    d // meh
+    else e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then b
+else if c then d // meh
+else e
+"""
+
+[<Test>]
+let ``comment after multi line else  branch expression`` () =
+    formatSourceString false """
+if  a then b
+else if c  then d
+else
+    e // meh
+    f
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then
+    b
+else if c then
+    d
+else
+    e // meh
+    f
+"""
+
+[<Test>]
+let ``comment after multi line elif  branch expression`` () =
+    formatSourceString false """
+if  a then b
+elif c  then
+    d
+    e // meh
+else
+    f
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then
+    b
+elif c then
+    d
+    e // meh
+else
+    f
+"""
+
+[<Test>]
+let ``comment after multi line else if  branch expression`` () =
+    formatSourceString false """
+if  a then b
+else if c  then
+    d
+    e // meh
+else
+    f
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then
+    b
+else if c then
+    d
+    e // meh
+else
+    f
+"""
+
+[<Test>]
+let ``comment after else & if keyword`` () =
+    formatSourceString false """
+if  a then b
+else // foo
+if // bar
+    c  then d else e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then
+    b
+else // foo
+if // bar
+    c then
+    d
+else
+    e
+"""
+
+[<Test>]
+let ``block comment if keyword`` () =
+    formatSourceString false """
+if (* meh *) a then b
+else c
+"""  config
+    |> prepend newline
+    |> should equal """
+if (* meh *) a then b else c
+"""
+
+[<Test>]
+let ``block comment if bool expr`` () =
+    formatSourceString false """
+if  a  (* meh *)   then b
+else c
+"""  config
+    |> prepend newline
+    |> should equal """
+if a (* meh *) then b else c
+"""
+
+[<Test>]
+let ``block comment then keyword`` () =
+    formatSourceString false """
+if  a   then (* meh *)   b
+else c
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then (* meh *) b else c
+"""
+
+[<Test>]
+let ``block comment if branch expr`` () =
+    formatSourceString false """
+if  a   then    b (* meh *)
+else c
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then b (* meh *) else c
+"""
+
+[<Test>]
+let ``block comment else keyword`` () =
+    formatSourceString false """
+if  a   then    b
+else  (* meh *)   c
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then b else (* meh *) c
+"""
+
+[<Test>]
+let ``block comment else branch expr`` () =
+    formatSourceString false """
+if  a   then    b
+else     c  (* meh *)
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then b else c (* meh *)
+"""
+
+[<Test>]
+let ``block comment between else and if keyword`` () =
+    formatSourceString false """
+if  a   then    b
+else (* meh *) if c then d
+else     e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then b else (* meh *) if c then d else e
+"""
+
+[<Test>]
+let ``block comment after else if keyword`` () =
+    formatSourceString false """
+if  a   then    b
+else  if (* meh *)   c then d
+else     e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then b else if (* meh *) c then d else e
+"""
+
+[<Test>]
+let ``block comment after elif keyword`` () =
+    formatSourceString false """
+if  a   then    b
+elif (* meh *)   c then d
+else     e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then b elif (* meh *) c then d else e
+"""
+
+[<Test>]
+let ``block comment after elif branch expr`` () =
+    formatSourceString false """
+if  a   then    b
+elif c  (* meh *)  then d
+else     e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then b elif c (* meh *) then d else e
+"""
+
+[<Test>]
+let ``block comment after else if branch expr`` () =
+    formatSourceString false """
+if  a   then    b
+else if c  (* meh *)  then d
+else     e
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then b else if c (* meh *) then d else e
+"""
+
+[<Test>]
+let ``line comment after all fragments of IfThenElse expr`` () =
+    formatSourceString false """
+if // c1
+  a // c2
+then // c3
+  b // c4
+else // c5
+if // c6
+  c // c7
+  then // c8
+  d // c9
+else // c10
+  e // c11
+"""  config
+    |> prepend newline
+    |> should equal """
+if // c1
+    a // c2
+    then // c3
+    b // c4
+else // c5
+if // c6
+    c // c7
+    then // c8
+    d // c9
+else // c10
+    e // c11
 """

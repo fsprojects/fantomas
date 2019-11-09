@@ -58,8 +58,10 @@ let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
             tokN rangeOfIfThenElse "IF" (!- "if ") +>
             ifElse commentAfterIfKeyword (indent +> sepNln) sepNone
 
-        | ("ELIF",_)::_
-        | [("ELIF",_)] ->
+        | ("ELIF",elifTok)::_
+        | [("ELIF",elifTok)] ->
+            let commentAfterElIfKeyword = TriviaHelpers.``has line comment after`` elifTok
             tokN rangeOfIfThenElse "ELIF" (!- "elif ")
+            +> ifElse commentAfterElIfKeyword (indent +> sepNln) sepNone
 
     resultExpr ctx
