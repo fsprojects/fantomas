@@ -24,7 +24,7 @@ type IPrintable =
 
 type SomeClass1(x: int, y: float) =
     interface IPrintable with
-        member this.Print() = printfn "%d %f" x y
+        member this.Print () = printfn "%d %f" x y
 
 type Interface3 =
     inherit Interface1
@@ -38,15 +38,15 @@ let ``should not add with to interface definitions with no members``() =
     interface IDocument
         
     interface Infrastucture with
-        member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
+        member this.Serialize sb = sb.AppendFormat ("\"{0}\"", escape v)
         member this.ToXml() = v :> obj
     """ config
     |> should equal """type Text(text: string) =
     interface IDocument
 
     interface Infrastucture with
-        member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
-        member this.ToXml() = v :> obj
+        member this.Serialize sb = sb.AppendFormat ("\"{0}\"", escape v)
+        member this.ToXml () = v :> obj
 """
 
 [<Test>]
@@ -56,7 +56,7 @@ let ``object expressions``() =
     |> should equal """
 let obj1 =
     { new System.Object() with
-        member x.ToString() = "F#" }
+        member x.ToString () = "F#" }
 """
 
 [<Test>]
@@ -71,13 +71,13 @@ let ``object expressions and interfaces``() =
             member this.G() = () }""" config
     |> prepend newline
     |> should equal """
-let implementer() =
+let implementer () =
     { new ISecond with
-        member this.H() = ()
-        member this.J() = ()
+        member this.H () = ()
+        member this.J () = ()
       interface IFirst with
-          member this.F() = ()
-          member this.G() = () }
+          member this.F () = ()
+          member this.G () = () }
 """
 
 [<Test>]
@@ -91,12 +91,12 @@ let f () =
         member x.GetEnumerator() = null }""" config
     |> prepend newline
     |> should equal """
-let f() =
+let f () =
     { new obj() with
-        member x.ToString() = "INotifyEnumerableInternal"
+        member x.ToString () = "INotifyEnumerableInternal"
       interface INotifyEnumerableInternal<'T>
       interface IEnumerable<_> with
-          member x.GetEnumerator() = null }
+          member x.GetEnumerator () = null }
 """
 
 [<Test>]
@@ -130,7 +130,7 @@ open System
 
 type T() =
     interface IDisposable with
-        override x.Dispose() = ()
+        override x.Dispose () = ()
 """
 
 [<Test>]
@@ -167,8 +167,8 @@ type MyLogInteface() =
             if environment = "DEV" then "dev.log"
             else sprintf "date-%s.log" environment
 
-        member x.Info() = ()
-        override x.Version() = ()
+        member x.Info () = ()
+        override x.Version () = ()
 """
 
 

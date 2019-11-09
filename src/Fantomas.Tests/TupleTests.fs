@@ -13,7 +13,7 @@ let private carouselSample =
         fragment [] []
     ,"CarouselSample")
 """  config
-    |> should equal """let private carouselSample = FunctionComponent.Of<obj>((fun _ -> fragment [] []), "CarouselSample")
+    |> should equal """let private carouselSample = FunctionComponent.Of<obj> ((fun _ -> fragment [] []), "CarouselSample")
 """
 
 [<Test>]

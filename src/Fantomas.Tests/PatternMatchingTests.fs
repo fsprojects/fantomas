@@ -152,14 +152,14 @@ let detect1 x =
     | 1 -> printfn "Found a 1!"
     | (var1: int) -> printfn "%d" var1
 
-let RegisterControl(control: Control) =
+let RegisterControl (control: Control) =
     match control with
     | :? Button as button -> button.Text <- "Registered."
     | :? CheckBox as checkbox -> checkbox.Text <- "Registered."
     | _ -> ()
 
-let ReadFromFile(reader: System.IO.StreamReader) =
-    match reader.ReadLine() with
+let ReadFromFile (reader: System.IO.StreamReader) =
+    match reader.ReadLine () with
     | null ->
         printfn "\n"
         false
@@ -270,7 +270,7 @@ let x =
     |> should equal """
 let x =
     match y with
-    | Start(-1) -> true
+    | Start (-1) -> true
     | _ -> false
 """
 
@@ -373,11 +373,11 @@ let (|OneLinerBinding|MultilineBinding|) b =
     |> should equal """
 let (|OneLinerBinding|MultilineBinding|) b =
     match b with
-    | LetBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
-    | DoBinding([], PreXmlDoc [||], OneLinerExpr _)
-    | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
-    | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
-    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _, _) -> OneLinerBinding b
+    | LetBinding ([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | DoBinding ([], PreXmlDoc [||], OneLinerExpr _)
+    | MemberBinding ([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | PropertyBinding ([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | ExplicitCtor ([], PreXmlDoc [||], _, _, OneLinerExpr _, _) -> OneLinerBinding b
 
     | _ -> MultilineBinding b
 """
@@ -441,11 +441,11 @@ let internal ImageLoadResilient (f: unit -> 'a) (tidy: unit -> 'a) =
     |> should equal """
 let internal ImageLoadResilient (f: unit -> 'a) (tidy: unit -> 'a) =
     try
-        f()
+        f ()
     with
     | :? BadImageFormatException
     | :? ArgumentException
-    | :? IOException -> tidy()
+    | :? IOException -> tidy ()
 """
 
 [<Test>]

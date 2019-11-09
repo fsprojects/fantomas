@@ -54,12 +54,12 @@ let ``for loops``() =
     """ config
     |> prepend newline
     |> should equal """
-let function1() =
+let function1 () =
     for i = 1 to 10 do
         printf "%d " i
     printfn ""
 
-let function2() =
+let function2 () =
     for i = 10 downto 1 do
         printf "%d " i
     printfn ""
@@ -87,7 +87,7 @@ let lookForValue value maxValue =
     let mutable continueLooping = true
     let randomNumberGenerator = new Random()
     while continueLooping do
-        let rand = randomNumberGenerator.Next(maxValue)
+        let rand = randomNumberGenerator.Next (maxValue)
         printf "%d " rand
         if rand = value then
             printfn "\nFound a %d!" value
@@ -142,7 +142,7 @@ let function1 x y =
             else raise (OuterError("outer"))
         with
         | Failure _ -> ()
-        | InnerError(str) -> printfn "Error1 %s" str
+        | InnerError (str) -> printfn "Error1 %s" str
     finally
         printfn "Always print this."
 """
@@ -157,12 +157,12 @@ let ``range expressions``() =
     function2()""" config
     |> prepend newline
     |> should equal """
-let function2() =
+let function2 () =
     for i in 1 .. 2 .. 10 do
         printf "%d " i
     printfn ""
 
-function2()
+function2 ()
 """
 
 [<Test>]
@@ -175,8 +175,8 @@ let ``use binding``() =
     |> prepend newline
     |> should equal """
 let writetofile filename obj =
-    use file1 = File.CreateText(filename)
-    file1.WriteLine("{0}", obj.ToString())
+    use file1 = File.CreateText (filename)
+    file1.WriteLine ("{0}", obj.ToString ())
 """
 
 [<Test>]
@@ -235,8 +235,8 @@ global.Test()
     """ config
     |> prepend newline
     |> should equal """
-base.Initializer()
-global.Test()
+base.Initializer ()
+global.Test ()
 """
 
 [<Test>]
@@ -433,11 +433,11 @@ let a ex =
     |> should equal """
 let a ex =
     if null = ex then
-        fooo()
+        fooo ()
         None
     elif
         // this was None
-        ex.GetType() = typeof<obj> then
+        ex.GetType () = typeof<obj> then
         Some ex
     else
         None

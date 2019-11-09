@@ -38,12 +38,12 @@ let print_30_permut() =
     """ config
     |> prepend newline
     |> should equal """
-let print_30_permut() =
+let print_30_permut () =
 
     /// declare and initialize
     let permutation: int array =
         Array.init n (fun i ->
-            Console.Write(i + 1)
+            Console.Write (i + 1)
             i)
     permutation
 """
@@ -59,12 +59,12 @@ let print_30_permut() =
     """ config
     |> prepend newline
     |> should equal """
-let print_30_permut() =
+let print_30_permut () =
 
     /// declare and initialize
     let permutation: int array =
         Array.init n (fun (i, j) ->
-            Console.Write(i + 1)
+            Console.Write (i + 1)
             i)
     permutation
 """
@@ -120,7 +120,7 @@ let f() =
 """  config
     |> prepend newline
     |> should equal """
-let f() =
+let f () =
     // COMMENT
     x + x
 """
@@ -134,7 +134,7 @@ let f() =
 """   config
     |> prepend newline
     |> should equal """
-let f() =
+let f () =
     let x = 1 // COMMENT
     x + x
 """ 
@@ -156,7 +156,7 @@ let f() =
     |> should equal """
 /// XML COMMENT
 // Other comment
-let f() =
+let f () =
     // COMMENT A
     let y = 1
     (* COMMENT B *)
@@ -182,7 +182,7 @@ let f() =
     |> should equal """
 /// XML COMMENT A
 // Other comment
-let f() =
+let f () =
     // COMMENT A
     let y = 1
     /// XML COMMENT B
@@ -377,7 +377,7 @@ let hello() = "hello world"
 """  config
     |> prepend newline
     |> should equal """
-let hello() = "hello world"
+let hello () = "hello world"
 
 (* This is a comment. *)
 """
@@ -641,7 +641,7 @@ type substring =
     /// <param name="strA">The first string to compare.</param>
     /// <param name="strB">The second string to compare.</param>
     /// <returns>An integer that indicates the lexical relationship between the two comparands.</returns>
-    static member CompareOrdinal(strA: substring, strB: substring) =
+    static member CompareOrdinal (strA: substring, strB: substring) =
         // If both substrings are empty they are considered equal, regardless of their offset or underlying string.
         if strA.Length = 0 && strB.Length = 0 then 0
         elif

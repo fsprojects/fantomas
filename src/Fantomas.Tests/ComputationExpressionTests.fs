@@ -26,7 +26,7 @@ let fetchAsync (name, url: string) =
         try
             let uri = new System.Uri(url)
             let webClient = new WebClient()
-            let! html = webClient.AsyncDownloadString(uri)
+            let! html = webClient.AsyncDownloadString (uri)
             printfn "Read %d characters for %s" html.Length name
         with
         | :? Exception -> ()
@@ -78,7 +78,7 @@ let s2 = seq { 0 .. 10 .. 100 }
 let rec inorder tree =
     seq {
         match tree with
-        | Tree(x, left, right) ->
+        | Tree (x, left, right) ->
             yield! inorder left
             yield x
             yield! inorder right
@@ -108,7 +108,7 @@ async {
     |> prepend newline
     |> should equal """
 async {
-    match! myAsyncFunction() with
+    match! myAsyncFunction () with
     | Some x -> printfn "%A" x
     | None -> printfn "Function returned None!"
 }

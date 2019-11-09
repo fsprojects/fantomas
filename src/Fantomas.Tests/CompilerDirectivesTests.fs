@@ -89,12 +89,12 @@ let ``line, file and path identifiers``() =
     """ config
     |> prepend newline
     |> should equal """
-let printSourceLocation() =
+let printSourceLocation () =
     printfn "Line: %s" __LINE__
     printfn "Source Directory: %s" __SOURCE_DIRECTORY__
     printfn "Source File: %s" __SOURCE_FILE__
 
-printSourceLocation()
+printSourceLocation ()
 """
 
 [<Test>]
@@ -170,7 +170,7 @@ let [<Literal>] private assemblyConfig() =
     |> prepend newline
     |> should equal """
 [<Literal>]
-let private assemblyConfig() =
+let private assemblyConfig () =
 #if TRACE
     let x = ""
 #else
@@ -341,7 +341,7 @@ let start (args: IArgs) =
     // Serilog configuration
     Log.Logger <-
         LoggerConfiguration().MinimumLevel.Debug().MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-            .Enrich.FromLogContext().WriteTo.Console().WriteTo.File(Path.Combine(args.ContentRoot, "temp/log.txt"))
+            .Enrich.FromLogContext().WriteTo.Console().WriteTo.File(Path.Combine (args.ContentRoot, "temp/log.txt"))
             .CreateLogger()
 
     try
@@ -355,10 +355,10 @@ let start (args: IArgs) =
                    .ConfigureServices(configureServices args).Build().Run()
             0
         with ex ->
-            Log.Fatal(ex, "Host terminated unexpectedly")
+            Log.Fatal (ex, "Host terminated unexpectedly")
             1
     finally
-        Log.CloseAndFlush()
+        Log.CloseAndFlush ()
 """
 
 [<Test>]
@@ -450,7 +450,7 @@ type FunctionComponent =
     /// Creates a lazy React component from a function in another file
     /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
     /// directly to the argument position (avoid pipes)
-    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
+    static member inline Lazy (f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
 #if FABLE_COMPILER
         let elemType =
             ReactBindings.React.``lazy`` (fun () ->
@@ -587,7 +587,7 @@ type FunctionComponent =
     /// Creates a lazy React component from a function in another file
     /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
     /// directly to the argument position (avoid pipes)
-    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
+    static member inline Lazy (f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
 #if FABLE_COMPILER
 
 
@@ -654,7 +654,7 @@ type FunctionComponent =
     /// Creates a lazy React component from a function in another file
     /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
     /// directly to the argument position (avoid pipes)
-    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
+    static member inline Lazy (f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
 #if FABLE_COMPILER
         let elemType =
             ReactBindings.React.``lazy`` (fun () ->

@@ -91,7 +91,7 @@ let start (args: IArgs) =
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
             .Enrich.FromLogContext()
             .WriteTo.Console()
-            .WriteTo.File(Path.Combine(args.ContentRoot, "temp/log.txt"))
+            .WriteTo.File(Path.Combine (args.ContentRoot, "temp/log.txt"))
             .CreateLogger()
 
     try
@@ -105,10 +105,10 @@ let start (args: IArgs) =
                    .ConfigureServices(configureServices args).Build().Run()
             0
         with ex ->
-            Log.Fatal(ex, "Host terminated unexpectedly")
+            Log.Fatal (ex, "Host terminated unexpectedly")
             1
     finally
-        Log.CloseAndFlush()
+        Log.CloseAndFlush ()
 """
 
 

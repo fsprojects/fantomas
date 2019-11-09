@@ -102,7 +102,7 @@ type T () =
   override x.Reorder () = 
         items |> List.iter ignore
 """     config
-    |> should equal """  override x.Reorder() = items |> List.iter ignore"""
+    |> should equal """  override x.Reorder () = items |> List.iter ignore"""
 
 [<Test>]
 let ``should format the and branch of recursive functions``() =

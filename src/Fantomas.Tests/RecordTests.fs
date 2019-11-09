@@ -147,7 +147,7 @@ let ``should not break inside of if statements in records``() =
     }
 
     """ { config with SemicolonAtEndOfLine = true }
-    |> should equal """let XpkgDefaults() =
+    |> should equal """let XpkgDefaults () =
     { ToolPath = "./tools/xpkg/xpkg.exe";
       WorkingDir = "./";
       TimeOut = TimeSpan.FromMinutes 5.;
@@ -205,9 +205,9 @@ type rate2 = Rate of float<GBP / SGD * USD>
 let ``should keep comments on records``() =
     shouldNotChangeAfterFormat """
 let newDocument = //somecomment
-    { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
-      content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
-      created = document.Created.ToLocalTime() }
+    { program = Encoding.Default.GetBytes (document.Program) |> Encoding.UTF8.GetString
+      content = Encoding.Default.GetBytes (document.Content) |> Encoding.UTF8.GetString
+      created = document.Created.ToLocalTime () }
     |> JsonConvert.SerializeObject
 """
 
@@ -374,7 +374,7 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
     |> fun formatted -> formatted
     |> should equal "type Database =
 
-    static member Default() =
+    static member Default () =
         Database.Lowdb.defaults({ Version = CurrentVersion
                                   Questions =
                                       [| { Id = 0
@@ -558,7 +558,7 @@ open WebSharper.UI
 
 module Maintoc =
     let Page =
-        { MyPage.Create() with
+        { MyPage.Create () with
               body =
                   [ Doc.Verbatim \"\"\"
 This is a very long line in a multi-line string, so long in fact that it is longer than that page width to which I am trying to constrain everything, and so it goes bang.

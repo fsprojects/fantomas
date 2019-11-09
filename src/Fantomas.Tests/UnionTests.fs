@@ -34,7 +34,7 @@ type uColor =
     | Green = 1u
     | Blue = 2u
 
-let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
+let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor> (2u)
 """
 
 [<Test>]
@@ -55,11 +55,11 @@ type Type =
     | TyLam of Type * Type
     | TyVar of string
     | TyCon of string * Type list
-    override this.ToString() =
+    override this.ToString () =
         match this with
-        | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
+        | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString ()) (t2.ToString ())
         | TyVar a -> a
-        | TyCon(s, ts) -> s
+        | TyCon (s, ts) -> s
 """
 
 [<Test>]
@@ -141,7 +141,7 @@ type uColor =
     | Green = 1u
     | Blue = 2u
 
-let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor>(2u)
+let col3 = Microsoft.FSharp.Core.LanguagePrimitives.EnumOfValue<uint32, uColor> (2u)
 """
 
 [<Test>]
@@ -179,7 +179,7 @@ type CustomerId =
     |> should equal """
 type CustomerId =
     | CustomerId of int
-    member this.Test() = printfn "%A" this
+    member this.Test () = printfn "%A" this
 """
 
 [<Test>]

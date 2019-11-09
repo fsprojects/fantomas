@@ -27,9 +27,9 @@ type NameStruct =
         val Name: string
         new(name) = { Name = name }
 
-        member x.Upper() = x.Name.ToUpper()
+        member x.Upper () = x.Name.ToUpper ()
 
-        member x.Lower() = x.Name.ToLower()
+        member x.Lower () = x.Name.ToLower ()
     end
 
 let n = new NameStruct("Hippo")
@@ -59,9 +59,9 @@ type NameStruct =
         new(name) = { Name = name }
     end
 
-    member x.Upper() = x.Name.ToUpper()
+    member x.Upper () = x.Name.ToUpper ()
 
-    member x.Lower() = x.Name.ToLower()
+    member x.Lower () = x.Name.ToLower ()
 
 let n = new NameStruct("Hippo")
 """
@@ -80,7 +80,7 @@ match t with
 type S = S of struct (int * int)
 
 let g: struct (int * int) = struct (1, 1)
-let z = fun ((S(struct (u, v))): S) -> u + v
+let z = fun ((S (struct (u, v))): S) -> u + v
 let t = struct (1, 2)
 
 match t with

@@ -103,9 +103,9 @@ module Program
 let main _ =
     try
         try
-            Config.Logger.configure()
+            Config.Logger.configure ()
 
-            let config = ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).Build()
+            let config = ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory ()).Build()
 
             WebHostBuilder().UseConfiguration(config).UseKestrel().UseSerilog()
                 .ConfigureAppConfiguration
@@ -115,9 +115,9 @@ let main _ =
 
             0
         with ex ->
-            Log.Fatal(ex, "Service terminated unexpectedly")
+            Log.Fatal (ex, "Service terminated unexpectedly")
 
             1
     finally
-        Log.CloseAndFlush()
+        Log.CloseAndFlush ()
 """

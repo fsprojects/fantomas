@@ -17,17 +17,17 @@ let ``should keep the = on the same line in record def``() =
     """ config
     |> should equal """type UnionTypeConverter() =
     inherit JsonConverter()
-    let doRead (reader: JsonReader) = reader.Read() |> ignore
-    override x.CanConvert(typ: Type) =
+    let doRead (reader: JsonReader) = reader.Read () |> ignore
+    override x.CanConvert (typ: Type) =
         let result =
-            ((typ.GetInterface(typeof<System.Collections.IEnumerable>.FullName) = null) && FSharpType.IsUnion typ)
+            ((typ.GetInterface (typeof<System.Collections.IEnumerable>.FullName) = null) && FSharpType.IsUnion typ)
         result
 """
 
 // the current behavior results in a compile error since the = is moved to the next line and not correctly indented
 [<Test>]
 let ``should keep the = on the same line``() =
-    formatSourceString false """trimSpecialChars(controller.ServerName.ToUpper()) = trimSpecialChars(serverFilter.ToUpper())
+    formatSourceString false """trimSpecialChars(controller.ServerName.ToUpper ()) = trimSpecialChars(serverFilter.ToUpper ())
     """ config
-    |> should equal """trimSpecialChars (controller.ServerName.ToUpper()) = trimSpecialChars (serverFilter.ToUpper())
+    |> should equal """trimSpecialChars (controller.ServerName.ToUpper ()) = trimSpecialChars (serverFilter.ToUpper ())
 """

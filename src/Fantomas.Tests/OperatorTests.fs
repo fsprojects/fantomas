@@ -66,7 +66,7 @@ let ``should keep parens around inlined ==> operator definition``() =
 let ``should keep parens around inlined operator definition``() =
     formatSourceString false """let inline (@@) path1 path2 = Path.Combine(path1, path2)
     """ config
-    |> should equal """let inline (@@) path1 path2 = Path.Combine(path1, path2)
+    |> should equal """let inline (@@) path1 path2 = Path.Combine (path1, path2)
 """
 
 [<Test>]
@@ -143,9 +143,9 @@ let ``should understand ? as an infix operator``() =
     |> fun (t : Task) -> t.Wait()
 with _ -> ()""" config
     |> should equal """try
-    item.MethodInfo.Method.Invoke(null, ipa)
+    item.MethodInfo.Method.Invoke (null, ipa)
     |> (fun x -> x?Invoke (true))
-    |> fun (t: Task) -> t.Wait()
+    |> fun (t: Task) -> t.Wait ()
 with _ -> ()
 """
 

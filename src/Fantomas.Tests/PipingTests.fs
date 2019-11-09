@@ -54,7 +54,7 @@ let runAll() =
     |> Async.RunSynchronously |> ignore""" config
     |> prepend newline
     |> should equal """
-let runAll() =
+let runAll () =
     urlList
     |> Seq.map fetchAsync
     |> Async.Parallel

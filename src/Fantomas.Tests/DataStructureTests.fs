@@ -1389,9 +1389,9 @@ analysisKey.Headers.Item(key) <- value
 
 [<Test>]
 let ``DotNamedIndexedPropertySet`` () =
-    formatSourceString false """(foo()).Item(key) <- value
+    formatSourceString false """(foo ()).Item (key) <- value
 """  config
     |> prepend newline
     |> should equal """
-(foo()).Item(key) <- value
+(foo ()).Item(key) <- value
 """

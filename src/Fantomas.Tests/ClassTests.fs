@@ -91,7 +91,7 @@ type Shape2D(x0 : float, y0 : float) =
        y <- y + dy
 
     abstract member Rotate: float -> unit
-    default this.Rotate(angle) = rotAngle <- rotAngle + angle
+    default this.Rotate (angle) = rotAngle <- rotAngle + angle
     """ config
     |> prepend newline
     |> should equal """
@@ -117,7 +117,7 @@ type Shape2D(x0: float, y0: float) =
         y <- y + dy
 
     abstract Rotate: float -> unit
-    default this.Rotate(angle) = rotAngle <- rotAngle + angle
+    default this.Rotate (angle) = rotAngle <- rotAngle + angle
 """
 
 [<Test>]
@@ -186,8 +186,8 @@ let ``classes and implicit constructors``() =
     |> should equal """
 type MyClass2(dataIn) as self =
     let data = dataIn
-    do self.PrintMessage()
-    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data
+    do self.PrintMessage ()
+    member this.PrintMessage () = printf "Creating MyClass2 with Data %d" data
 """
 
 [<Test>]
@@ -202,8 +202,8 @@ let ``classes and private implicit constructors``() =
     |> should equal """
 type MyClass2 private (dataIn) as self =
     let data = dataIn
-    do self.PrintMessage()
-    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data
+    do self.PrintMessage ()
+    member this.PrintMessage () = printf "Creating MyClass2 with Data %d" data
 """
 
 [<Test>]
@@ -221,7 +221,7 @@ and File(filename: string, containingFolder: Folder) =
     |> should equal """
 type Folder(pathIn: string) =
     let path = pathIn
-    let filenameArray: string array = System.IO.Directory.GetFiles(path)
+    let filenameArray: string array = System.IO.Directory.GetFiles (path)
     member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
 
 and File(filename: string, containingFolder: Folder) =
@@ -278,7 +278,7 @@ let ``should keep parens in class inheritance in the right place``() =
     class
         inherit DGMLClass()
 
-        let functions = System.Collections.Generic.Dictionary<string, IState>()
+        let functions = System.Collections.Generic.Dictionary<string, IState> ()
     end
 """
 
@@ -362,7 +362,7 @@ System.String.Concat("a", "b" +
     member __.Property = "hello"
 
 let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x: T) = x
-let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass = T()
+let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass = T ()
 
 System.String.Concat
     ("a",
@@ -381,5 +381,5 @@ type Exception with
     |> should equal """open System
 
 type Exception with
-    member inline __.FirstLine = __.Message.Split([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries).[0]
+    member inline __.FirstLine = __.Message.Split ([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries).[0]
 """

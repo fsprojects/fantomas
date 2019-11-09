@@ -65,21 +65,21 @@ let ``should keep mutually recursive functions in nested function``() =
 let ``should keep identifiers with whitespace in double backticks``() =
     formatSourceString false """let ``should keep identifiers in double backticks``() = x
     """ config
-    |> should equal """let ``should keep identifiers in double backticks``() = x
+    |> should equal """let ``should keep identifiers in double backticks`` () = x
 """
 
 [<Test>]
 let ``should remove backticks from shouldn't identifier``() =
     formatSourceString false """let ``shouldn't``() = x
     """ config
-    |> should equal """let shouldn't() = x
+    |> should equal """let shouldn't () = x
 """
 
 [<Test>]
 let ``should keep identifiers with + in double backticks``() =
     formatSourceString false """let ``Foo+Bar``() = x
     """ config
-    |> should equal """let ``Foo+Bar``() = x
+    |> should equal """let ``Foo+Bar`` () = x
 """
 
 [<Test>]
@@ -98,15 +98,15 @@ let ``let bindings with return types``() =
     |> prepend newline
     |> should equal """
 let divide x y =
-    let stream: System.IO.FileStream = System.IO.File.Create("test.txt")
+    let stream: System.IO.FileStream = System.IO.File.Create ("test.txt")
     let writer: System.IO.StreamWriter = new System.IO.StreamWriter(stream)
     try
-        writer.WriteLine("test1")
+        writer.WriteLine ("test1")
         Some(x / y)
     finally
-        writer.Flush()
+        writer.Flush ()
         printfn "Closing stream"
-        stream.Close()
+        stream.Close ()
 """
 
 [<Test>]
@@ -271,7 +271,7 @@ type U = X of int
 let f =
     fun x ->
         match x with
-        | X(x) -> x
+        | X (x) -> x
 """
 
 [<Test>]

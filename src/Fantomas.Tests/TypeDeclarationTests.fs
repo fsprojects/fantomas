@@ -18,8 +18,8 @@ exception BuildException of string*list<string>
     override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)""" config
     |> should equal """/// An exception type to signal build errors.
 exception BuildException of string * list<string> with
-    override x.ToString() =
-        x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)
+    override x.ToString () =
+        x.Data0.ToString () + "\r\n" + (separated "\r\n" x.Data1)
 """
 
 [<Test>]
@@ -32,11 +32,11 @@ let ``type annotations``() =
     |> prepend newline
     |> should equal """
 let iterate1 (f: unit -> seq<int>) =
-    for e in f() do
+    for e in f () do
         printfn "%d" e
 
 let iterate2 (f: unit -> #seq<int>) =
-    for e in f() do
+    for e in f () do
         printfn "%d" e
 """
 
@@ -93,10 +93,10 @@ type Test() =
     |> prepend newline
     |> should equal """
 type Test() =
-    member this.Function1<'a>(x, y) = printfn "%A, %A" x y
+    member this.Function1<'a> (x, y) = printfn "%A, %A" x y
 
     abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
-    override this.AbstractMethod<'a, 'b>(x: 'a, y: 'b) = printfn "%A, %A" x y
+    override this.AbstractMethod<'a, 'b> (x: 'a, y: 'b) = printfn "%A, %A" x y
 """
 
 [<Test>]
@@ -109,7 +109,7 @@ type X() =
     |> prepend newline
     |> should equal """
 type X() =
-    member this.F([<ParamArray>] args: Object []) =
+    member this.F ([<ParamArray>] args: Object []) =
         for arg in args do
             printfn "%A" arg
 """
@@ -138,7 +138,7 @@ type public MyClass<'a> public (x, y) as this =
     let mutable z = x + y
 
     do
-        printfn "%s" (this.ToString())
+        printfn "%s" (this.ToString ())
         printfn "more constructor effects"
 
     internal new(a) = MyClass(a, a)
@@ -150,7 +150,7 @@ type public MyClass<'a> public (x, y) as this =
         with get () = z
         and set (a) = z <- a
 
-    member self.Method(a, b) = x + y + z + a + b
+    member self.Method (a, b) = x + y + z + a + b
 """
 
 [<Test>]
@@ -190,13 +190,13 @@ let ``abstract and override keywords``() =
 type MyClassBase1() =
     let mutable z = 0
     abstract Function1: int -> int
-    default u.Function1(a: int) =
+    default u.Function1 (a: int) =
         z <- z + a
         z
 
 type MyClassDerived1() =
     inherit MyClassBase1()
-    override u.Function1(a: int) = a + 1
+    override u.Function1 (a: int) = a + 1
 """
 
 [<Test>]
@@ -210,10 +210,10 @@ type MyClass with
     |> prepend newline
     |> should equal """
 type MyClass() =
-    member this.F() = 100
+    member this.F () = 100
 
 type MyClass with
-    member this.G() = 200
+    member this.G () = 200
 """
 
 [<Test>]
@@ -227,7 +227,7 @@ type System.Int32 with
     |> should equal """
 /// Define a new member method FromString on the type Int32.
 type System.Int32 with
-    member this.FromString(s: string) = System.Int32.Parse(s)
+    member this.FromString (s: string) = System.Int32.Parse (s)
 """
 
 [<Test>]
@@ -312,7 +312,7 @@ type MyType() =
     val mutable myInt2: int
     [<DefaultValue; Test>]
     val mutable myString: string
-    member this.SetValsAndPrint(i: int, str: string) =
+    member this.SetValsAndPrint (i: int, str: string) =
         myInt1 <- i
         this.myInt2 <- i + 1
         this.myString <- str
@@ -331,10 +331,10 @@ let CalculateFine (ticket : SpeedingTicket) =
     |> prepend newline
     |> should equal """
 type SpeedingTicket() =
-    member this.GetMPHOver(speed: int, limit: int) = speed - limit
+    member this.GetMPHOver (speed: int, limit: int) = speed - limit
 
-let CalculateFine(ticket: SpeedingTicket) =
-    let delta = ticket.GetMPHOver(limit = 55, speed = 70)
+let CalculateFine (ticket: SpeedingTicket) =
+    let delta = ticket.GetMPHOver (limit = 55, speed = 70)
     if delta < 20 then 50.0
     else 100.0
 """
@@ -543,8 +543,8 @@ let ``should keep the ? in optional parameters``() =
 
     """ config
     |> should equal """type Shell() =
-    static member private GetParams(cmd, ?args) = doStuff
-    static member Exec(cmd, ?args) = shellExec (Shell.GetParams(cmd, ?args = args))
+    static member private GetParams (cmd, ?args) = doStuff
+    static member Exec (cmd, ?args) = shellExec (Shell.GetParams (cmd, ?args = args))
 """
 
 [<Test>]
@@ -591,7 +591,7 @@ type StateMachine(makeAsync) =
 type StateMachine(makeAsync) =
     new(fileName, makeAsync, initState) as secondCtor =
         new StateMachine(makeAsync)
-        then secondCtor.Init(fileName, initState)
+        then secondCtor.Init (fileName, initState)
 """
 
 [<Test>]
@@ -610,12 +610,12 @@ type BlobHelper(Account : CloudStorageAccount) =
     |> should equal """
 type BlobHelper(Account: CloudStorageAccount) =
     new(configurationSettingName, hostedService) =
-        CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
+        CloudStorageAccount.SetConfigurationSettingPublisher (fun configName configSettingPublisher ->
             let connectionString =
-                if hostedService then RoleEnvironment.GetConfigurationSettingValue(configName)
+                if hostedService then RoleEnvironment.GetConfigurationSettingValue (configName)
                 else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
-            configSettingPublisher.Invoke(connectionString) |> ignore)
-        BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))
+            configSettingPublisher.Invoke (connectionString) |> ignore)
+        BlobHelper(CloudStorageAccount.FromConfigurationSetting (configurationSettingName))
 """
 
 [<Test>]
@@ -716,8 +716,8 @@ type A() =
     override this.Address
         with set v =
             let x =
-                match _kbytes.GetAddress(8) with
-                | Some(x) -> x
+                match _kbytes.GetAddress (8) with
+                | Some (x) -> x
                 | None -> null
             ignore x
 """
@@ -750,7 +750,7 @@ type Bar =
     member this.Item
         with get(i : string) = 
             match mo with
-            | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
+            | Some (m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null""" config
     |> prepend newline
     |> should equal """
@@ -759,13 +759,13 @@ type Bar =
     member this.Item
         with get (i: int) =
             match mo with
-            | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
+            | Some (m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null
 
     member this.Item
         with get (i: string) =
             match mo with
-            | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
+            | Some (m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null
 """
 
@@ -867,7 +867,7 @@ let ``operator in words in member`` () =
     formatSourceString false """type A() =
     member this.B(op_Inequality : string) = ()""" config
     |> should equal """type A() =
-    member this.B(op_Inequality: string) = ()
+    member this.B (op_Inequality: string) = ()
 """
 
 [<Test>]
@@ -888,10 +888,10 @@ type TestExtensions =
 type TestExtensions =
 
     [<Extension>]
-    static member SomeExtension(x) = ""
+    static member SomeExtension (x) = ""
 
     [<Extension>]
-    static member SomeOtherExtension(x) = ""
+    static member SomeOtherExtension (x) = ""
 """
 
 [<Test>]
@@ -903,7 +903,7 @@ type C'() =
     |> prepend newline
     |> should equal """
 type C'() =
-    member _.M() = ()
+    member _.M () = ()
 """
 
 [<Test>]
