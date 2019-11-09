@@ -731,9 +731,56 @@ elif somethingABitLongerToForceDifferentStyle then c
 else d
 """
 
-// TODO: use setting to determine longer fragments
-(*
-if pred(head)
-                        then Some(head)
-                        else tryFindMatch pred tail
-*)
+[<Test>]
+let ``impact of MaxIfThenElseShortWidth setting, longer bool expression`` () =
+    let source = """if (tare + netWeight) = 10000 then a else b"""
+
+    formatSourceString false source config
+    |> prepend newline
+    |> should equal """
+if (tare + netWeight) = 10000 then a else b
+"""
+
+    formatSourceString false source ({ config with MaxIfThenElseShortWidth = 20})
+    |> prepend newline
+    |> should equal """
+if (tare + netWeight) = 10000
+then a
+else b
+"""
+
+[<Test>]
+let ``impact of MaxIfThenElseShortWidth setting, longer if branch`` () =
+    let source = """if a then (tare + netWeight) + 10000 else 0"""
+
+    formatSourceString false source config
+    |> prepend newline
+    |> should equal """
+if a then (tare + netWeight) + 10000 else 0
+"""
+
+    formatSourceString false source ({ config with MaxIfThenElseShortWidth = 20})
+    |> prepend newline
+    |> should equal """
+if a
+then (tare + netWeight) + 10000
+else 0
+"""
+
+[<Test>]
+let ``impact of MaxIfThenElseShortWidth setting, longer else branch`` () =
+    let source = """if a then 0 else (tare + netWeight) + 10000"""
+
+    formatSourceString false source config
+    |> prepend newline
+    |> should equal """
+if a then 0 else (tare + netWeight) + 10000
+"""
+
+    formatSourceString false source ({ config with MaxIfThenElseShortWidth = 20})
+    |> prepend newline
+    |> should equal """
+if a
+then 0
+else (tare + netWeight) + 10000
+"""
