@@ -79,4 +79,7 @@ let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
             // formatting from AST
             !- "else if "
 
+        | _ ->
+            failwith "Unexpected scenario when formatting else if / elif, please open an issue via https://jindraivanek.gitlab.io/fantomas-ui"
+
     resultExpr ctx

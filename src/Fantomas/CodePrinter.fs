@@ -3,7 +3,6 @@
 open System
 open System.Text.RegularExpressions
 open FSharp.Compiler.Ast
-open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 open Fantomas
 open Fantomas.FormatConfig
@@ -1099,7 +1098,7 @@ and genExpr astContext synExpr =
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") 
                          -- " " +> preserveBreakNln astContext e2)
     // A generalization of IfThenElse
-    | ElIf((e1,e2, _, fullRange, _)::es, enOpt) ->
+    | ElIf((e1,e2, _, _, _)::es, enOpt) ->
         // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
         fun ctx ->
             let elseKeywordRange =
@@ -1350,8 +1349,8 @@ and genExpr astContext synExpr =
                     +> genExpr astContext e2 +> unindent +> sepNln
                     +> colPost sepNln sepNln elfis genElifMultiLine
                     +> opt id enOpt (fun e4 -> genElse synExpr.Range +>
-                                        indent +> sepNln +> genExpr astContext e4 +>
-                                        unindent)
+                                               indent +> sepNln +> genExpr astContext e4 +>
+                                               unindent)
 
             (atCurrentColumn formatIfElseExpr) ctx
 
