@@ -159,7 +159,9 @@ However, the [library project](src/Fantomas) and [command line interface](src/Fa
 
 ### Step to build the repo
 
-- Run build: `.\build.cmd` or `./build.sh`.
+- Install local tools: `dotnet tool restore`
+- Restore .NET packages: `dotnet paket restore`
+- Run build: `dotnet fake run build.fsx`
 
 ## Testing and validation
 We have tried to be careful in testing the project.
