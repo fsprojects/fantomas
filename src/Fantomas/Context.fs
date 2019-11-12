@@ -763,3 +763,11 @@ let internal sepNlnIfTriviaBefore (range:range) (ctx:Context) =
         sepNln
     | _ -> sepNone
     <| ctx
+
+let internal lastLineOnlyContains characters (ctx: Context) =
+    let lastLine =
+        List.tryHead ctx.ApplyWriterEvents.Lines
+        |> Option.map (fun l -> l.Trim(characters).Length = 0)
+    match lastLine with
+    | Some l -> l
+    | None -> false

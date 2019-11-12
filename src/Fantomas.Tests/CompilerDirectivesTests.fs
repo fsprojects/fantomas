@@ -911,9 +911,9 @@ do ()
 [<Test>]
 let ``endif in lambda`` () =
     formatSourceStringWithDefines ["DEF"] """foo (fun x ->
-    ()
+        ()
 #if DEF
-    ()
+        ()
 #endif
 )
 """  config
