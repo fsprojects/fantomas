@@ -767,7 +767,10 @@ let internal sepNlnIfTriviaBefore (range:range) (ctx:Context) =
 let internal lastLineOnlyContains characters (ctx: Context) =
     let lastLine =
         List.tryHead ctx.ApplyWriterEvents.Lines
-        |> Option.map (fun l -> l.Trim(characters).Length = 0)
+        |> Option.map (fun l -> l.Trim(characters))
     match lastLine with
-    | Some l -> l
+    | Some l ->
+        let a = 0
+        let length = String.length l
+        length = 0 || length < ctx.Config.IndentSpaceNum
     | None -> false
