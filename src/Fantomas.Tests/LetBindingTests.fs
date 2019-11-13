@@ -243,8 +243,8 @@ module Test =
         let someObject =
             someStaticObject.Create
                 (((fun o ->
-                o.SomeProperty <- \"\"
-                o.Role <- \"Has to be at least two properties\")))
+                    o.SomeProperty <- \"\"
+                    o.Role <- \"Has to be at least two properties\")))
 
         /// Comment can't be removed to reproduce bug
         let someOtherValue = \"\"

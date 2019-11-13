@@ -818,15 +818,15 @@ and genExpr astContext synExpr =
             |> Option.defaultValue fieldsExpr
 
         sepOpenS
-        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = (ctx.Writer.Column)::ctx.RecordBraceStart })
+        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
         +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
             (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
         +> (fun ctx ->
             match ctx.RecordBraceStart with
             | rbs::rest ->
-                if ctx.Writer.Column < rbs then
+                if ctx.Column < rbs then
                     let offset = (if ctx.Config.SpaceAroundDelimiter then 2 else 1) + 1
-                    let delta = Math.Max((rbs - ( ctx.Writer.Column)) - offset, 0)
+                    let delta = Math.Max((rbs - ctx.Column) - offset, 0)
                     (!- System.String.Empty.PadRight(delta)) ({ctx with RecordBraceStart = rest})
                 else
                     sepNone ({ctx with RecordBraceStart = rest})
@@ -882,11 +882,27 @@ and genExpr astContext synExpr =
         expr
     | JoinIn(e1, e2) -> genExpr astContext e1 -- " in " +> genExpr astContext e2
     | Paren(DesugaredLambda(cps, e)) ->
-        sepOpenT -- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow +> noIndentBreakNln astContext e +> sepCloseT
+        let genLamba f =
+            sepOpenT -- "fun " +> col sepSpace cps (genComplexPats astContext) +> sepArrow
+            +> f astContext e +> sepCloseT
+
+        ifElseCtx
+            (lastLineOnlyContains [| ' ';'('|])
+            (genLamba (fun a e -> autoIndentNlnByFuture (genExpr a e)))
+            (genLamba noIndentBreakNln)
+
     | DesugaredLambda(cps, e) -> 
         !- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow +> preserveBreakNln astContext e 
     | Paren(Lambda(e, sps)) ->
-        sepOpenT -- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow +> noIndentBreakNln astContext e +> sepCloseT
+        let genLamba f =
+            sepOpenT -- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow
+            +> f astContext e +> sepCloseT
+
+        ifElseCtx
+            (lastLineOnlyContains [| ' ';'('|])
+            (genLamba (fun a e -> autoIndentNlnByFuture (genExpr a e)))
+            (genLamba noIndentBreakNln)
+
     // When there are parentheses, most likely lambda will appear in function application
     | Lambda(e, sps) -> 
         !- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow +> preserveBreakNln astContext e
@@ -1037,12 +1053,12 @@ and genExpr astContext synExpr =
         // we replace sepSpace in such case
         // remarks: https://github.com/fsprojects/fantomas/issues/545
         let indentIfNeeded (ctx: Context) =
-            let savedColumn = ctx.Writer.AtColumn
-            if savedColumn > ctx.Writer.Column then
+            let savedColumn = ctx.ApplyWriterEvents.AtColumn
+            if savedColumn > ctx.Column then
                 // missingSpaces needs to be at least one more than the column
                 // of function expression being applied upon, otherwise (as known up to F# 4.7)
                 // this would lead to a compile error for the function application
-                let missingSpaces = (savedColumn - ctx.Writer.Column + 1)
+                let missingSpaces = (savedColumn - ctx.ApplyWriterEvents.Column + 1)
                 atIndentLevel true savedColumn (!- (String.replicate missingSpaces " ")) ctx
             else
                 sepSpace ctx
@@ -2088,3 +2104,4 @@ and infixOperatorFromTrivia range fallback (ctx: Context) =
         | Some iiw -> !- iiw
         | None ->  !- fallback
     <| ctx
+
