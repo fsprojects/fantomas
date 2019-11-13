@@ -415,3 +415,30 @@ for _ in 1..10 do ()
 for _ in 1 .. 10 do
     ()
 """
+
+[<Test>]
+let ``if elif if with trivia doesn't glitch elif conditional`` () =
+    formatSourceString false """
+let a ex =
+    if null = ex then
+        fooo ()
+        None
+        // this was None
+    elif ex.GetType() = typeof<obj> then
+        Some ex
+    else
+        None
+"""  config
+    |> prepend newline
+    |> should equal """
+let a ex =
+    if null = ex then
+        fooo()
+        None
+    elif
+        // this was None
+        ex.GetType() = typeof<obj> then
+        Some ex
+    else
+        None
+"""

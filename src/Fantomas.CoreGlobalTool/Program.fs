@@ -45,7 +45,7 @@ let [<Literal>] semicolonText = "Disable spaces after semicolons (default = true
 let [<Literal>] indentOnTryWithText = "Enable indentation on try/with block (default = false)."
 let [<Literal>] reorderOpenDeclarationText = "Enable reordering open declarations (default = false)."
 let [<Literal>] spaceAroundDelimiterText = "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
-let [<Literal>] keepNewlineAfterText = "Keep newlines found after = in let bindings, -> in pattern matching and chained function calls."
+let [<Literal>] keepNewlineAfterText = "Keep newlines found after = in let bindings, -> in pattern matching and chained function calls (default = false)."
 let [<Literal>] strictModeText = "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
 
 let time f =
