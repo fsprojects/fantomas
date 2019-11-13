@@ -882,11 +882,27 @@ and genExpr astContext synExpr =
         expr
     | JoinIn(e1, e2) -> genExpr astContext e1 -- " in " +> genExpr astContext e2
     | Paren(DesugaredLambda(cps, e)) ->
-        sepOpenT -- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow +> noIndentBreakNln astContext e +> sepCloseT
+        let genLamba f =
+            sepOpenT -- "fun " +> col sepSpace cps (genComplexPats astContext) +> sepArrow
+            +> f astContext e +> sepCloseT
+
+        ifElseCtx
+            (lastLineOnlyContains [| ' ';'('|])
+            (genLamba (fun a e -> autoIndentNlnByFuture (genExpr a e)))
+            (genLamba noIndentBreakNln)
+
     | DesugaredLambda(cps, e) -> 
         !- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow +> preserveBreakNln astContext e 
     | Paren(Lambda(e, sps)) ->
-        sepOpenT -- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow +> noIndentBreakNln astContext e +> sepCloseT
+        let genLamba f =
+            sepOpenT -- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow
+            +> f astContext e +> sepCloseT
+
+        ifElseCtx
+            (lastLineOnlyContains [| ' ';'('|])
+            (genLamba (fun a e -> autoIndentNlnByFuture (genExpr a e)))
+            (genLamba noIndentBreakNln)
+
     // When there are parentheses, most likely lambda will appear in function application
     | Lambda(e, sps) -> 
         !- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow +> preserveBreakNln astContext e
@@ -2088,3 +2104,4 @@ and infixOperatorFromTrivia range fallback (ctx: Context) =
         | Some iiw -> !- iiw
         | None ->  !- fallback
     <| ctx
+

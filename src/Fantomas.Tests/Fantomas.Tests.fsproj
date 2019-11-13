@@ -55,6 +55,7 @@
     <Compile Include="TupleTests.fs" />
     <Compile Include="KeepNewlineAfterTests.fs" />
     <Compile Include="ElmishTests.fs" />
+    <Compile Include="LambdaTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
