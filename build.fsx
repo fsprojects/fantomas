@@ -309,7 +309,6 @@ Target.create "TestExternalProjectsFailing" (fun _ -> testExternalProjects exter
 
 // Workaround for https://github.com/fsharp/FAKE/issues/2242
 let pushPackage additionalArguments =
-    let paketFile = Path.Combine(".", ".paket", (if Environment.isWindows then "paket.exe" else "paket"))
     IO.Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
     |> Seq.iter (fun nupkg ->
         let args =
@@ -317,7 +316,7 @@ let pushPackage additionalArguments =
               yield! additionalArguments
               yield nupkg ]
         
-        CreateProcess.fromRawCommand paketFile args
+        CreateProcess.fromRawCommand "dotnet" ("paket" :: args)
         |> CreateProcess.disableTraceCommand
         |> CreateProcess.redirectOutput
         |> CreateProcess.withOutputEventsNotNull Trace.trace Trace.traceError
