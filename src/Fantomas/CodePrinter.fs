@@ -665,6 +665,12 @@ and genMemberFlags astContext node =
     // |> genTrivia node check each case
 
 and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs: range) = 
+    let isWithin (parent: range) (child: range) =
+        parent.StartLine <= child.StartLine
+        && parent.StartColumn <= child.StartColumn
+        && parent.EndLine = child.EndLine
+        && parent.EndColumn = child.EndColumn
+
     fun ctx ->
          match mf with
          | MFMember _
@@ -674,12 +680,12 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
          | MFOverride _ ->
              (fun (ctx: Context) ->
                 ctx.Trivia
-                |> List.tryFind(fun { Range = r}  -> r = rangeOfBindingAndRhs) //r.StartLine = rangeOfBindingAndRhs.StartLine && r.StartColumn < rangeOfBindingAndRhs.StartColumn)
+                |> List.tryFind(fun { Type = t; Range = r }  -> t = MainNode "SynMemberDefn.Member" && isWithin r rangeOfBindingAndRhs) //r.StartLine = rangeOfBindingAndRhs.StartLine && r.StartColumn < rangeOfBindingAndRhs.StartColumn)
                 |> Option.bind(fun tn ->
                     tn.ContentBefore
                     |> List.choose (fun tc ->
                         match tc with
-                        | Keyword({ Content = kw}) when (kw = "override" || kw = "default") -> Some (!- (sprintf "%s " kw))
+                        | Keyword({ Content = kw }) when (kw = "override" || kw = "default") -> Some (!- (sprintf "%s " kw))
                         | _ -> None)
                     |> List.tryHead
                 )
