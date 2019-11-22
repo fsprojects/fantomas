@@ -46,6 +46,7 @@ let [<Literal>] indentOnTryWithText = "Enable indentation on try/with block (def
 let [<Literal>] reorderOpenDeclarationText = "Enable reordering open declarations (default = false)."
 let [<Literal>] spaceAroundDelimiterText = "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
 let [<Literal>] keepNewlineAfterText = "Keep newlines found after = in let bindings, -> in pattern matching and chained function calls (default = false)."
+let [<Literal>] maxIfThenElseShortWidthText = "Set the max length of any expression in an if expression before formatting on multiple lines (default = 40)."
 let [<Literal>] strictModeText = "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
 
 let time f =
@@ -129,6 +130,7 @@ let main _args =
     let spaceAroundDelimiter = ref FormatConfig.Default.SpaceAroundDelimiter
     let keepNewlineAfter = ref FormatConfig.Default.KeepNewlineAfter
     let strictMode = ref FormatConfig.Default.StrictMode
+    let maxIfThenElseShortWidth = ref FormatConfig.Default.MaxIfThenElseShortWidth
 
     let handleOutput s =
         if not !stdOut then
@@ -161,6 +163,13 @@ let main _args =
             pageWidth := i
         else
             eprintfn "Page width should be at least 60."
+            exit 1
+
+    let handleMaxIfThenElseShortWidth i =
+        if i >= 0 then
+            maxIfThenElseShortWidth := i
+        else
+            eprintfn "Max IfThenElse short width should be greater than zero."
             exit 1
 
     let fileToFile (inFile : string) (outFile : string) config =
@@ -244,7 +253,8 @@ let main _args =
            ArgInfo("--reorderOpenDeclaration", ArgType.Set reorderOpenDeclaration, reorderOpenDeclarationText);
 
            ArgInfo("--noSpaceAroundDelimiter", ArgType.Clear spaceAroundDelimiter, spaceAroundDelimiterText);
-           ArgInfo("--keepNewlineAfter", ArgType.Set keepNewlineAfter, keepNewlineAfterText);
+           ArgInfo("--keepNewlineAfter", ArgType.Set keepNewlineAfter, keepNewlineAfterText)
+           ArgInfo("--maxIfThenElseShortWidth", ArgType.Int handleMaxIfThenElseShortWidth, maxIfThenElseShortWidthText);
            ArgInfo("--strictMode", ArgType.Set strictMode, strictModeText) |]
 
     ArgParser.Parse(options, handleInput, sprintf "Fantomas <input_path>%sCheck out https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#using-the-command-line-tool for more info." Environment.NewLine )
@@ -262,7 +272,8 @@ let main _args =
             ReorderOpenDeclaration = !reorderOpenDeclaration
             SpaceAroundDelimiter = !spaceAroundDelimiter
             StrictMode = !strictMode
-            KeepNewlineAfter = !keepNewlineAfter }
+            KeepNewlineAfter = !keepNewlineAfter
+            MaxIfThenElseShortWidth = !maxIfThenElseShortWidth }
 
     // Handle inputs via pipeline
     let isKeyAvailable = ref false

@@ -202,7 +202,7 @@ let private getContentFromTokens tokens =
     |> List.map (fun t -> t.Content)
     |> String.concat String.Empty
     
-let private keywordTrivia = ["IF"; "ELIF"; "OVERRIDE"; "MEMBER"; "DEFAULT"; "KEYWORD_STRING"; "QMARK"]
+let private keywordTrivia = ["IF"; "ELIF"; "ELSE"; "THEN"; "OVERRIDE"; "MEMBER"; "DEFAULT"; "KEYWORD_STRING"; "QMARK"]
 let private numberTrivia = ["UINT8";"INT8";"UINT16";"INT16";"UINT32";"INT32";"UINT64";"IEEE32";
                             "DECIMAL";"IEEE64";"BIGNUM";"NATIVEINT";"UNATIVEINT"]
 
@@ -316,7 +316,7 @@ let rec private getTriviaFromTokensThemSelves (config: FormatConfig) (allTokens:
         let directiveContent =
             directiveTokens
             |> List.map (fun t -> t.Content)
-            |> String.concat System.String.Empty
+            |> String.concat String.empty
             
         let range = getRangeBetween "directive" headToken (List.last directiveTokens)
         let info =
@@ -437,7 +437,7 @@ let getTriviaFromTokens config (tokens: Token list) linesCount =
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
 
-let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "BAR_LBRACK"; "BAR_RBRACK"; "EQUALS"; "IF"; "THEN"; "ELSE"; "BAR"; "RARROW"; "TRY"; "FINALLY"; "WITH"]
+let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "BAR_LBRACK"; "BAR_RBRACK"; "EQUALS"; "IF"; "THEN"; "ELSE"; "ELIF"; "BAR"; "RARROW"; "TRY"; "FINALLY"; "WITH"]
 let private tokenKinds = [FSharpTokenCharKind.Operator]
     
 let getTriviaNodesFromTokens (tokens: Token list) : TriviaNode list =

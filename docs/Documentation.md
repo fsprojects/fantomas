@@ -183,6 +183,27 @@ match meh with
 
 will remain the same, the newline after `->` was detected and preserved.
 
+
+- `--maxIfThenElseShortWidth  <number>`: `number` if being set, controls when if/then/else expressions will be formatted as single line or as multiple lines.
+
+Fantomas tries to follow [the F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions) as close as possible when formatting if expressions.
+
+The style guide says:
+
+> If either cond, e1 or e2 are longer, but not multi-line:
+
+```fsharp
+if cond
+then e1
+else e2
+```
+
+But what exactly is longer right? By default Fantomas will use 40 width to determine if the expression needs to be formatted to the example above or remain as a oneliner (`if cond then e1 else e2`).
+
+
+So if either `cond`, `e1` or `e2` is longer than `maxIfThenElseShortWidth` but not multiline, it will format on three lines.
+See [unit tests](https://github.com/fsprojects/fantomas/blob/9d4b499c09a1f06f5485835817844657cc51215b/src/Fantomas.Tests/IfThenElseTests.fs#L734) for more examples.
+
 That said, most of the preferences are very simple. 
 But they demonstrate the flexibility of Fantomas on a set of configurations. 
 More preferences will be added depending on use cases.

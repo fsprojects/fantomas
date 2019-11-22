@@ -28,7 +28,8 @@ let ``keep () when dynamic operator inside boolean expr, #476`` () =
     |> prepend newline
     |> should equal """
 let fieldColor (fieldNameX: string) =
-    if f.errors?(fieldNameY) && f.touched?(fieldNameZ) then IsDanger
+    if f.errors?(fieldNameY) && f.touched?(fieldNameZ)
+    then IsDanger
     else NoColor
     |> Input.Color
 """

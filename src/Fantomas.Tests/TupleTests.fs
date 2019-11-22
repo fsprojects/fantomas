@@ -23,6 +23,5 @@ let ``multiline item in tuple - paren on its line`` () =
  else 2)
 """  config
     |> should equal """(x,
- (if true then 1
-  else 2))
+ (if true then 1 else 2))
 """

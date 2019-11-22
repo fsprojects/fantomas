@@ -209,6 +209,13 @@ let private triviaBetweenAttributeAndLetBinding triviaNodes line =
     | Some (ai,a), Some (mdli,_) when (ai + 1 = mdli && a.Range.StartLine = a.Range.EndLine) -> Some a
     | _ -> None
 
+let private findASTNodeOfTypeThatContains (nodes: TriviaNode list) typeName range =
+    nodes
+    |> List.filter (fun t ->
+        match t.Type with
+        | TriviaNodeType.MainNode(mnt) when (mnt = typeName) -> RangeHelpers.``range contains`` t.Range range
+        | _ -> false)
+    |> List.tryHead
 
 let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     match trivia with
@@ -263,6 +270,11 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     | { Item = Keyword({ TokenInfo = {TokenName = tn}} as kw); Range = range } when (tn = "QMARK") ->
         findConstNodeAfter triviaNodes range
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(kw)) }) triviaNodes
+
+    | { Item = Keyword({ Content = keyword}); Range = range } when (keyword = "if" || keyword = "then" || keyword = "else" || keyword = "elif") ->
+        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
+        |> Option.orElseWith(fun () -> findASTNodeOfTypeThatContains triviaNodes "SynExpr.IfThenElse" range)
+        |> updateTriviaNode (fun tn -> { tn with ContentItself = Some trivia.Item }) triviaNodes
 
     | { Item = Keyword(keyword); Range = range } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn

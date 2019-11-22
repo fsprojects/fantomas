@@ -74,6 +74,8 @@ There is a problem with merging all the code back togheter. Please raise an issu
         
         |> String.concat Environment.NewLine
 
+    let empty = System.String.Empty
+
 module Cache =
     let alreadyVisited<'key when 'key : not struct>() =
         let cache = System.Collections.Generic.HashSet<'key>([], HashIdentity.Reference)

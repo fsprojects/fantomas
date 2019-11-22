@@ -277,7 +277,10 @@ elif true then ()"""
     let triviaNodes = getTriviaFromTokens tokens lineCount
     
     match triviaNodes with
-    | [{Item = Keyword({ Content = "if"})}; {Item = Keyword({ Content = "elif" })}] ->
+    | [{Item = Keyword({ Content = "if"})}
+       {Item = Keyword({ Content = "then"})}
+       {Item = Keyword({ Content = "elif" })}
+       {Item = Keyword({ Content = "then"})}] ->
         pass()
     | _ ->
         fail()
