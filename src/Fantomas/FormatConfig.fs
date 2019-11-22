@@ -11,19 +11,20 @@ type Num = int
 
 type FormatConfig = 
     { /// Number of spaces for each indentation
-      IndentSpaceNum : Num;
+      IndentSpaceNum : Num
       /// The column where we break to new lines
-      PageWidth : Num;
-      SemicolonAtEndOfLine : bool;
-      SpaceBeforeArgument : bool;
-      SpaceBeforeColon : bool;
-      SpaceAfterComma : bool;
-      SpaceAfterSemicolon : bool;
-      IndentOnTryWith : bool;
+      PageWidth : Num
+      SemicolonAtEndOfLine : bool
+      SpaceBeforeArgument : bool
+      SpaceBeforeColon : bool
+      SpaceAfterComma : bool
+      SpaceAfterSemicolon : bool
+      IndentOnTryWith : bool
       /// Reordering and deduplicating open statements
-      ReorderOpenDeclaration : bool;
-      SpaceAroundDelimiter : bool;
+      ReorderOpenDeclaration : bool
+      SpaceAroundDelimiter : bool
       KeepNewlineAfter : bool
+      MaxIfThenElseShortWidth: Num
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -39,6 +40,7 @@ type FormatConfig =
           ReorderOpenDeclaration = false
           SpaceAroundDelimiter = true
           KeepNewlineAfter = false
+          MaxIfThenElseShortWidth = 40
           StrictMode = false }
 
     static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 

@@ -22,3 +22,27 @@ module TriviaHelpers =
         List.tryFind findTrivia trivia
         |> Option.bind (fun t -> t.ContentAfter |> List.tryLast |> Option.map contentAfterEnd)
         |> Option.defaultValue false
+
+    let internal ``is token of type`` tokenName (triviaNode: TriviaNode) =
+        match triviaNode.Type with
+        | Token({ TokenInfo = ti }) -> ti.TokenName = tokenName
+        | _ -> false
+
+    let internal ``keyword tokens inside range`` keywords range (trivia: TriviaNode list) =
+        trivia
+        |> List.choose(fun t ->
+            match t.Type with
+            | TriviaNodeType.Token({ TokenInfo = { TokenName = tn } as tok })
+                when ( RangeHelpers.``range contains`` range t.Range && List.contains tn keywords) ->
+                Some (tok, t)
+            | _ -> None
+        )
+
+    let internal ``has line comment after`` triviaNode =
+        triviaNode.ContentAfter
+        |> List.filter(fun tn ->
+            match tn with
+            | Comment(LineCommentAfterSourceCode(_)) -> true
+            | _ -> false
+        )
+        |> (List.isEmpty >> not)

@@ -5,6 +5,16 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
+let ``keep comment after arrow`` () =
+    formatSourceString false """_Target "FSharpTypesDotNet" (fun _ -> // obsolete
+ ())
+"""  ({ config with IndentSpaceNum = 2; PageWidth = 90 })
+    |> prepend newline
+    |> should equal """
+_Target "FSharpTypesDotNet" (fun _ -> // obsolete
+  ())
+"""
+
 let ``indent multiline lambda in parenthesis, 523`` () =
     formatSourceString false """let square = (fun b ->
     b*b

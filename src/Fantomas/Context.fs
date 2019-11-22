@@ -2,6 +2,7 @@ module Fantomas.Context
 
 open System
 open FSharp.Compiler.Range
+open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.TriviaTypes
 
@@ -134,12 +135,14 @@ let internal dump (ctx: Context) =
     m.Lines |> List.rev |> String.concat Environment.NewLine
 
 let internal dumpAndContinue (ctx: Context) =
-    let code = dump ctx
+    let m = applyWriterEvents ctx
+    let lines = m.Lines |> List.rev
+    let code = String.concat Environment.NewLine lines
 #if DEBUG
     printfn "%s" code
 #endif
     ctx
-    
+
 type Context with    
     member x.Column = (applyWriterEvents x).Column
     member x.ApplyWriterEvents = applyWriterEvents x
@@ -409,7 +412,7 @@ let internal autoNlnCheck (f: _ -> Context) sep (ctx : Context) =
 let internal futureNlnCheckMem = Cache.memoizeBy (fun (f, ctx : Context) -> Cache.LambdaEqByRef f, ctx.MemoizeProjection) <| fun (f, ctx) ->
     if ctx.WriterInitModel.IsDummy || not ctx.BreakLines then (false, false) else
     // Create a dummy context to evaluate length of current operation
-    let dummyCtx = ctx.WithDummy([], keepPageWidth = true) |> f
+    let dummyCtx : Context = ctx.WithDummy([], keepPageWidth = true) |> f
     WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.PageWidth
 
 let internal futureNlnCheck f (ctx : Context) =
@@ -425,6 +428,14 @@ let internal autoIndentNlnByFuture f = ifElseCtx (futureNlnCheck f) (indent +> s
 
 /// like autoNlnByFuture but don't do nln if there is another nln inside f
 let internal autoNlnByFutureLazy f = ifElseCtx (futureNlnCheckLazy f) (sepNln +> f) f
+
+/// similar to futureNlnCheck but validates whether the expression is going over the max page width
+/// This functions is does not use any caching
+let internal exceedsWidth maxWidth f (ctx: Context) =
+    let dummyCtx : Context = ctx.WithDummy([], keepPageWidth = true)
+    let currentColumn = dummyCtx.Column
+    let ctxAfter : Context = f dummyCtx
+    (ctxAfter.Column - currentColumn) > maxWidth
 
 /// Set a checkpoint to break at an appropriate column
 let internal autoNlnOrAddSep f sep (ctx : Context) =
@@ -493,17 +504,27 @@ let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
+    let currentLastLine =
+        let m = applyWriterEvents ctx
+        m.Lines
+        |> List.tryHead
+
     // Some items like #if of Newline should be printed on a newline
     // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
     let addNewline =
-        dump ctx
-        |> String.normalizeThenSplitNewLine
-        |> Array.tryLast
-        |> Option.map (fun (line:string) -> line.Trim().Length > 1)
+        currentLastLine
+        |> Option.map(fun line -> line.Trim().Length > 1)
+        |> Option.defaultValue false
+
+    let addSpace =
+        currentLastLine
+        |> Option.bind(fun line -> Seq.tryLast line |> Option.map (fun lastChar -> lastChar <> ' '))
         |> Option.defaultValue false
 
     match c with
-    | Comment(LineCommentAfterSourceCode s) -> writerEvent (WriteBeforeNewline (" " + s))
+    | Comment(LineCommentAfterSourceCode s) ->
+        let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
+        writerEvent (WriteBeforeNewline comment)
     | Comment(BlockComment(s, before, after)) ->
         ifElse (before && addNewline) sepNln sepNone
         +> sepSpace -- s +> sepSpace
@@ -576,13 +597,12 @@ let private findTriviaTokenFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n -> Trivia.isToken n && n.Range.Start = range.Start && n.Range.End = range.End)
 
-let private findTriviaTokenFromName (range: range) nodes (tokenName:string) =
+let internal findTriviaTokenFromName (range: range) nodes (tokenName:string) =
     nodes
     |> List.tryFind(fun n ->
         match n.Type with
         | Token(tn) when tn.TokenInfo.TokenName = tokenName ->
-            (range.Start.Line, range.Start.Column) <= (n.Range.Start.Line, n.Range.Start.Column)
-            && (range.End.Line, range.End.Column) >= (n.Range.End.Line, n.Range.End.Column)
+            RangeHelpers.``range contains`` range n.Range
         | _ -> false)
 
 let internal enterNodeWith f x (ctx: Context) =
