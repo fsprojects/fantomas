@@ -883,7 +883,8 @@ and genExpr astContext synExpr =
     | JoinIn(e1, e2) -> genExpr astContext e1 -- " in " +> genExpr astContext e2
     | Paren(DesugaredLambda(cps, e)) ->
         let genLamba f =
-            sepOpenT -- "fun " +> col sepSpace cps (genComplexPats astContext) +> sepArrow
+            sepOpenT -- "fun " +> col sepSpace cps (genComplexPats astContext)
+            +> triviaAfterArrow synExpr.Range
             +> f astContext e +> sepCloseT
 
         ifElseCtx

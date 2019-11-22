@@ -13,6 +13,8 @@ let ``keep comment after arrow`` () =
     |> should equal """
 _Target "FSharpTypesDotNet" (fun _ -> // obsolete
   ())
+"""
+
 let ``indent multiline lambda in parenthesis, 523`` () =
     formatSourceString false """let square = (fun b ->
     b*b
