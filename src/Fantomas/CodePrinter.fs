@@ -674,12 +674,12 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
          | MFOverride _ ->
              (fun (ctx: Context) ->
                 ctx.Trivia
-                |> List.tryFind(fun { Range = r}  -> r = rangeOfBindingAndRhs) //r.StartLine = rangeOfBindingAndRhs.StartLine && r.StartColumn < rangeOfBindingAndRhs.StartColumn)
+                |> List.tryFind(fun { Type = t; Range = r }  -> t = MainNode "SynMemberDefn.Member" && RangeHelpers.``range contains`` r rangeOfBindingAndRhs)
                 |> Option.bind(fun tn ->
                     tn.ContentBefore
                     |> List.choose (fun tc ->
                         match tc with
-                        | Keyword({ Content = kw}) when (kw = "override" || kw = "default") -> Some (!- (sprintf "%s " kw))
+                        | Keyword({ Content = kw }) when (kw = "override" || kw = "default") -> Some (!- (sprintf "%s " kw))
                         | _ -> None)
                     |> List.tryHead
                 )
