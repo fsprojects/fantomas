@@ -1,5 +1,19 @@
-### 3.0.1 - 11/2019
-* In development
+### 3.1.0 - 11/2019
+* Fix invalid code generated after multiline string when other expressions exist on same line. [#545](https://github.com/fsprojects/fantomas/issues/545)
+* Fix Trivia before elif generates invalid code due to missing indentation. [#527](https://github.com/fsprojects/fantomas/issues/527)
+* Fix Don't add additional newline between two and blocks. [#520](https://github.com/fsprojects/fantomas/issues/520)
+* Fix Print line comment after `{` [#517](https://github.com/fsprojects/fantomas/issues/517)
+* Fix Formatting document removes '#if DEBUG' and '#endif'. [#512](https://github.com/fsprojects/fantomas/issues/512)
+* Fix Some unicode control characters are incorrectly formatted. [#506](https://github.com/fsprojects/fantomas/issues/506)
+* Fix New empty line inserted preceding module attribute. [#505](https://github.com/fsprojects/fantomas/issues/505)
+* Fix Weird indentation/breaks with lambda in pipeline. [#503](https://github.com/fsprojects/fantomas/issues/503)
+* Fix Sufficiently indent match case bodies for other indentation lengths than 4. [#502](https://github.com/fsprojects/fantomas/issues/502)
+* Fix `--noSpaceBeforeColon` doesn't work. [#499](https://github.com/fsprojects/fantomas/issues/499)
+* Fix Invalid code produced when wrapping method call to new line. [#498](https://github.com/fsprojects/fantomas/issues/498)
+* Fix Indexer usage fails to parse. [#497](https://github.com/fsprojects/fantomas/issues/497)
+* Use FCS 33.0.0. [pull/568](https://github.com/fsprojects/fantomas/pull/568)
+* Use dotnet tools [pull/558](https://github.com/fsprojects/fantomas/pull/558)
+* Add `--maxIfThenElseShortWidth` option, see [documentation](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md)
   
 ### 3.0.0 - 10/2019
 * Use FCS 32.0.0. [490b121af427ec4f6eba94f6d6d08cf3f91e04c8](https://github.com/fsprojects/fantomas/pull/434/commits/490b121af427ec4f6eba94f6d6d08cf3f91e04c8)
