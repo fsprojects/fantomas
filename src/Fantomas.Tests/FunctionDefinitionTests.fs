@@ -259,6 +259,16 @@ extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cC
 """
 
 [<Test>]
+let ``DllImport and Marshall return type, 574``() =
+    formatSourceString false """[<DllImport("userenv.dll", SetLastError = true)>]
+[<MarshalAs(UnmanagedType.Bool)>]
+extern bool DestroyEnvironmentBlock(IntPtr lpEnvironment)""" config
+    |> should equal """[<DllImport("userenv.dll", SetLastError = true)>]
+[<MarshalAs(UnmanagedType.Bool)>]
+extern bool DestroyEnvironmentBlock(IntPtr lpEnvironment)
+"""
+
+[<Test>]
 let ``should handle desugared matches correctly``() =
     formatSourceString false """
 type U = X of int
