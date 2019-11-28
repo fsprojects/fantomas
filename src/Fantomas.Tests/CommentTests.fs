@@ -713,3 +713,36 @@ if true then
 else //comment
     0
 """
+
+[<Test>]
+let ``comments for enum cases, 572``() =
+    formatSourceString false """type A =
+    /// Doc for CaseA
+    | CaseA = 0
+    /// Doc for CaseB
+    | CaseB = 1
+    /// Doc for CaseC
+    | CaseC = 2""" config
+    |> should equal """type A =
+    /// Doc for CaseA
+    | CaseA = 0
+    /// Doc for CaseB
+    | CaseB = 1
+    /// Doc for CaseC
+    | CaseC = 2
+"""
+    formatSourceString false """type A =
+    // Comment for CaseA
+    | CaseA = 0
+    // Comment for CaseB
+    | CaseB = 1
+    // Comment for CaseC
+    | CaseC = 2""" config
+    |> should equal """type A =
+    // Comment for CaseA
+    | CaseA = 0
+    // Comment for CaseB
+    | CaseB = 1
+    // Comment for CaseC
+    | CaseC = 2
+"""

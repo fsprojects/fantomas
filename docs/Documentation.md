@@ -53,7 +53,7 @@ To illustrate, here is a code fragment with `--indent 2`:
 	```
  - `--pageWidth <number>`: `number` has to be an integer greater or equal to 60.
 This preference sets the column where we break F# constructs into new lines.
-The default value is 80. To see its effects, please take a look at some [output files](tests/stackexchange_output) with `--pageWidth 90` preference.
+The default value is 120. To see its effects, please take a look at some [output files](tests/stackexchange_output) with `--pageWidth 90` preference.
 
  - `--semicolonEOL`: add semicolons at the end of lines e.g.
 
