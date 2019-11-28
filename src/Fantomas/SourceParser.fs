@@ -1245,10 +1245,19 @@ let (|FunType|) (t, ValInfo(argTypes, returnType)) =
 /// A rudimentary recognizer for extern functions
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) = function
-    | Let(LetBinding([{ Attributes = [Attribute(name, _, _)]}] as ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t)))
-        when name.EndsWith("DllImport") ->
-        Some(ats, px, ao, t, s, ps)
-    | _ -> None
+    | Let(LetBinding(ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t))) ->
+        let hasDllImportAttr =
+            ats
+            |> List.exists (fun { Attributes = attrs } ->
+                attrs
+                |> List.exists (fun (Attribute(name,_,_)) ->
+                    name.EndsWith("DllImport")))
+        if hasDllImportAttr then
+            Some(ats, px, ao, t, s, ps)
+        else
+            None
+    | _ ->
+        None
 
 let private collectAttributesRanges (a:SynAttributes) =
     seq {
