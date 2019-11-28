@@ -1741,6 +1741,7 @@ and genEnumCase astContext (EnumCase(ats, px, _, (_,r)) as node) =
             !- ident.idText +> !- " = " +> genConst c r
 
     genPreXmlDoc px
+    +> genTriviaBeforeClausePipe node.Range
     +> ifElse astContext.HasVerticalBar sepBar sepNone 
     +> genOnelinerAttributes astContext ats 
     +> genCase
