@@ -1950,8 +1950,17 @@ and genMemberDefnList astContext node =
                 sepNlnConsideringTriviaContentBeforeWithAttributes xsh.Range attributes
             | _ -> sepNln
         
+        let sepMember (m:Composite<SynMemberDefn, SynBinding>) =
+            match m with
+            | Pair(x1,_) ->
+                let attributes = getRangesFromAttributesFromSynBinding x1
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes x1.RangeOfBindingSansRhs attributes
+            | Single x ->
+                let attributes = getRangesFromAttributesFromSynMemberDefinition x
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes x.Range attributes
+
         sepNln +> sepNlnFirstExpr 
-        +> col (rep 2 sepNln) xs (function
+        +> colEx sepMember xs (function
                 | Pair(x1, x2) -> genPropertyWithGetSet astContext (x1, x2)
                 | Single x -> genMemberDefn astContext x) 
         +> sepNln +> genMemberDefnList astContext ys

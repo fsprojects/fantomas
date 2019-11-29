@@ -383,3 +383,18 @@ type Exception with
 type Exception with
     member inline __.FirstLine = __.Message.Split([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries).[0]
 """
+
+[<Test>]
+let ``No extra new lines between type members, 569``() =
+    let original = """type A() =
+
+    member this.MemberA =
+        if true then 0 else 1
+
+    member this.MemberB =
+        if true then 2 else 3
+
+    member this.MemberC = 0
+"""
+
+    formatSourceString false original config |> should equal original
