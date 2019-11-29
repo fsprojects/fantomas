@@ -175,22 +175,69 @@ First, it starts with an "F" just like many other F# projects.
 Second, Fantomas is my favourite character in the literature.
 Finally, Fantomas has the same Greek root as "[phantom](https://en.wiktionary.org/wiki/phantom)"; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
-## How to contribute
-Would like to contribute? Discuss on [issues](../../issues) and send pull requests. You can get started by helping us handle ["You Take It" issues](https://github.com/dungpa/fantomas/issues?labels=You+Take+It&page=1&state=open).
+## Contributing guide
 
-To get an understanding of the code, either:
-- start by looking at contribution examples (see [Contribution examples](#contribution-examples) section below);
-- or read the few following [architectural notes](#architectural-notes) & tips to help you get started playing with the code.
+Thank you for your interest in contributing to Fantomas! This guide explains everything you'll need to know to get started.
+
+### Before touching the code
+- Open an issue to propose the change you have in mind. 
+- For bugs, please create them using the [online tool](https://jindraivanek.gitlab.io/fantomas-ui/). Update the title of the issue with something meaningful instead of `Bug report from fantomas-ui`.
+- For stylistic changes, please take the time to discuss them and consider all possible outcomes of the change. Consult the [fsharp style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/) for guidance.
+New behavior should most likely be optional because a configuration flag. 
+Always keep the following train of thought: if a user upgrades Fantomas to a new version, the result of formatting with the default settings should not change.
+- For new features, the same things apply: please discuss before making a PR.  
+
+### PR checklist
+- [ ] Did you cover all new code changes with unit tests? Unit tests are extremely important for this project. 
+When we upgrade the [FSharp.Compiler.Service](https://www.nuget.org/packages/FSharp.Compiler.Service/) they are the only thing that tell us if all the existing behavior still works.
+- [ ] When writing test also consider minor variations:
+    - [ ] are `*.fsi` files impacted?
+    - [ ] does this work in nested scenarios?
+    - [ ] would strict mode enabled have an impact?
+    - [ ] multiple code paths in case of defines? (`#if DEBUG`, ...)
+
+### Conventions
+
+- Unit test names should start with a lowercase letter unless the first word is a name of any sort.
+- When creating a test that is linked to a GitHub issue, add the number at the back with a comma
+f.ex.
+```fsharp
+[<Test>]
+let ``preserve compile directive between piped functions, 512`` () = ...
+```
+
+### Tools
+
+- F# AST Viewer: https://jindraivanek.gitlab.io/ast-viewer/
+- F# Tokens: https://nojaf.github.io/fsharp-tokens/
+- Fantomas Online: https://jindraivanek.gitlab.io/fantomas-ui/
+
+### Upgrading FSharp.Compiler.Service
+
+When upgrading the [FSharp.Compiler.Service](https://www.nuget.org/packages/FSharp.Compiler.Service/) please consider the following order:
+
+- Update [AST Viewer](https://gitlab.com/jindraivanek/ast-viewer)
+- Update [F# Tokens](https://github.com/nojaf/fsharp-tokens)
+- Update Fantomas (this repository)
+- Update [Fantomas UI preview branch](https://gitlab.com/jindraivanek/fantomas-ui/tree/preview)
+- After a release on NuGet, update [Fantomas UI master branch](https://gitlab.com/jindraivanek/fantomas-ui/tree/master)
+
+This doesn't mean that one person should do all the work ;)
 
 ### Architectural notes
 Fantomas' features are basically two commands: *format a document* or *format a selection* in the document.
 
-They both consist in the same two stages:
+They both consist of these stages:
 
-- parse the code and generate the F# AST (Abstract Syntax Tree). This is provided by the
+- determine the combinations of code paths by checking the defines found in the source code.
+- for each code path:
+    - parse the code and generate the F# AST (Abstract Syntax Tree). This is provided by the
 by the FSharp.Compiler.Services library (see the `parse` function in
 [CodeFormatterImpl.fs](src/Fantomas/CodeFormatterImpl.fs)).
-- rewrite the code based on the AST (previous step) and formatting settings.
+    - parse the code for trivia items by checking the F# tokens (`Trivia.collectTrivia`). Trivia items are additional information like newlines, comments and keywords which are not part of the F# AST. 
+    Trivia items are linked to AST nodes and stored in the context.
+    - rewrite the code based on the AST, trivia and formatting settings.
+- merge the printed code of all code paths back to a single file/fragment.
 
 The following sections describe the modules/function you will most likely be
 interested in looking at to get started.
@@ -236,12 +283,6 @@ See [CodePrinter.fs](src/Fantomas/CodePrinter.fs).
 The [CodeFormatter.fsx](src/Fantomas/CodeFormatter.fsx) script file
 allows you to test the code formatting behavior. See the function `formatSrc: string -> unit`
 that formats the string in input and prints it.
-
-### Contribution examples
-The time it took to contribute is sometimes mentioned, as a side note.
-
-#### Fixing code generation
- - Record type formatting generated invalid F# code in some cases ([#197](https://github.com/dungpa/fantomas/pull/197)) - (2h fix)
 
 ## Credits
 We would like to gratefully thank the following persons for their contributions.
