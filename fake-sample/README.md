@@ -1,9 +1,14 @@
-# FAKE sample
+# FAKE sample - .NET Core 3
 
-Install FAKE locally:
+1. Restore FAKE locally:
 
-`dotnet tool install --tool-path ".fake" fake-cli --add-source https://api.nuget.org/v3/index.json --framework netcoreapp2.1`
+> dotnet tool restore
 
-Execute script:
+This was installed by:
 
-`.fake\fake.exe run script.fsx -t Format` or `.fake/fake run script.fsx -t Format`
+> dotnet new tool-manifest
+> dotnet tool install fake-cli
+
+2. Execute script:
+
+> dotnet fake run script.fsx -t Format
