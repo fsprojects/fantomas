@@ -1463,17 +1463,14 @@ and genInfixApps astContext (hasNewLine:bool) synExprs (ctx:Context) =
             (tok opE.Range s +> autoNln (wrapExpr (genExpr astContext e)))
             +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
         | (s, opE, e)::es ->
-            let hasLineCommentAfterRParen =
+            let hasLineCommentAfter =
                 TriviaHelpers.``has content after after that matches``
-                    (fun ({ Type = ty; Range = r }) ->
-                        match ty with
-                        | Token({ TokenInfo = { TokenName = "RPAREN" } }) -> r.EndLine = e.Range.EndLine && r.EndColumn = e.Range.EndColumn
-                        | _ -> false)
+                    (fun ({ Range = r }) -> r.EndLine = e.Range.EndLine && r.EndColumn = e.Range.EndColumn)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
                     ctx.Trivia
 
             (sepSpace +> autoNln (tok opE.Range s +> sepSpace +> genCommentsAfterInfix (Some opE.Range) +> genExpr astContext e))
-            +> genInfixApps astContext (hasNewLine || checkNewLine e es || hasLineCommentAfterRParen) es
+            +> genInfixApps astContext (hasNewLine || checkNewLine e es || hasLineCommentAfter) es
         | [] -> sepNone
     expr ctx
 
