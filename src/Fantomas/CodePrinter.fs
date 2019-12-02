@@ -919,7 +919,7 @@ and genExpr astContext synExpr =
     | Paren (ILEmbedded r) -> 
         // Just write out original code inside (# ... #) 
         fun ctx -> !- (defaultArg (lookup r ctx) "") ctx
-    | Paren e -> 
+    | Paren e ->
         // Parentheses nullify effects of no space inside DotGet
         sepOpenT +> genExpr { astContext with IsInsideDotGet = false } e +> sepCloseT
     | CompApp(s, e) ->
@@ -1434,37 +1434,48 @@ and genLetOrUseList astContext expr =
     | _ -> sepNone
 
 /// When 'hasNewLine' is set, the operator is forced to be in a new line
-and genInfixApps astContext hasNewLine synExprs = 
-    match synExprs with
-    | (s, opE, e)::es when (NoBreakInfixOps.Contains s) -> 
-        (sepSpace +> tok opE.Range s
-         +> (fun ctx ->
-                let isEqualOperator =
-                    match opE with
-                    | SynExpr.Ident(Ident("op_Equality")) -> true
-                    | _ -> false
-                let genExpr =
-                    if isEqualOperator && (futureNlnCheck (genExpr astContext e) ctx) then
-                        indent +> sepNln +> genExpr astContext e +> unindent
-                    else
-                        sepSpace +> genExpr astContext e
-                genExpr ctx))
-        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
-    | (s, opE, e)::es when(hasNewLine) ->
-        (sepNln +> (tok opE.Range s |> genTrivia opE.Range) +> sepSpace +> genExpr astContext e)
-        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
-    | (s, opE, e)::es when(NoSpaceInfixOps.Contains s) ->
-        let wrapExpr f =
-            match synExprs with
-            | ("?", SynExpr.Ident(Ident("op_Dynamic")), SynExpr.Ident(_))::_ ->
-                sepOpenT +> f +> sepCloseT
-            | _ -> f
-        (tok opE.Range s +> autoNln (wrapExpr (genExpr astContext e)))
-        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
-    | (s, opE, e)::es ->
-        (sepSpace +> autoNln (tok opE.Range s +> sepSpace +> genCommentsAfterInfix (Some opE.Range) +> genExpr astContext e))
-        +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
-    | [] -> sepNone
+and genInfixApps astContext (hasNewLine:bool) synExprs (ctx:Context) =
+    let expr =
+        match synExprs with
+        | (s, opE, e)::es when (NoBreakInfixOps.Contains s) ->
+            (sepSpace +> tok opE.Range s
+             +> (fun ctx ->
+                    let isEqualOperator =
+                        match opE with
+                        | SynExpr.Ident(Ident("op_Equality")) -> true
+                        | _ -> false
+                    let genExpr =
+                        if isEqualOperator && (futureNlnCheck (genExpr astContext e) ctx) then
+                            indent +> sepNln +> genExpr astContext e +> unindent
+                        else
+                            sepSpace +> genExpr astContext e
+                    genExpr ctx))
+            +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+        | (s, opE, e)::es when(hasNewLine) ->
+            (sepNln +> (tok opE.Range s |> genTrivia opE.Range) +> sepSpace +> genExpr astContext e)
+            +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+        | (s, opE, e)::es when(NoSpaceInfixOps.Contains s) ->
+            let wrapExpr f =
+                match synExprs with
+                | ("?", SynExpr.Ident(Ident("op_Dynamic")), SynExpr.Ident(_))::_ ->
+                    sepOpenT +> f +> sepCloseT
+                | _ -> f
+            (tok opE.Range s +> autoNln (wrapExpr (genExpr astContext e)))
+            +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
+        | (s, opE, e)::es ->
+            let hasLineCommentAfterRParen =
+                TriviaHelpers.``has content after after that matches``
+                    (fun ({ Type = ty; Range = r }) ->
+                        match ty with
+                        | Token({ TokenInfo = { TokenName = "RPAREN" } }) -> r.EndLine = e.Range.EndLine && r.EndColumn = e.Range.EndColumn
+                        | _ -> false)
+                    (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
+                    ctx.Trivia
+
+            (sepSpace +> autoNln (tok opE.Range s +> sepSpace +> genCommentsAfterInfix (Some opE.Range) +> genExpr astContext e))
+            +> genInfixApps astContext (hasNewLine || checkNewLine e es || hasLineCommentAfterRParen) es
+        | [] -> sepNone
+    expr ctx
 
 /// Use in indexed set and get only
 and genIndexers astContext node =

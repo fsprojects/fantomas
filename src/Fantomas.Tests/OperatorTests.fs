@@ -204,3 +204,35 @@ let ``should add space around .. .. operators``() =
     formatSourceString false """[10 .. -1 .. 1]""" config
     |> should equal """[ 10 .. -1 .. 1 ]
 """
+
+[<Test>]
+let ``line comment after infix function, 559`` () =
+    formatSourceString false """let watchFiles =
+        async {
+            printfn "after start"
+            use _ =
+                !!(serverPath </> "*.fs") ++ (serverPath </> "*.fsproj") // combines fs and fsproj
+                |> ChangeWatcher.run (fun changes ->
+                                      printfn
+                                          "FILE CHANGE %A"
+                                          changes
+                                      // stopFunc()
+                                      //Async.Start (startFunc())
+                                      )
+            ()
+        }
+"""  ({ config with KeepNewlineAfter = true })
+    |> prepend newline
+    |> should equal """
+let watchFiles =
+    async {
+        printfn "after start"
+        use _ =
+            !!(serverPath </> "*.fs") ++ (serverPath </> "*.fsproj") // combines fs and fsproj
+            |> ChangeWatcher.run (fun changes -> printfn "FILE CHANGE %A" changes
+                // stopFunc()
+                //Async.Start (startFunc())
+                )
+        ()
+    }
+"""
