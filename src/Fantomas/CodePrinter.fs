@@ -1108,8 +1108,7 @@ and genExpr astContext synExpr =
         // See :
         // * https://github.com/fsprojects/fantomas/issues/478
         // * https://github.com/fsprojects/fantomas/issues/513
-
-        firstNewlineOrComment es +> atCurrentColumn (col sepSemiNln es (genExpr astContext))
+        firstNewlineOrComment es +> atCurrentColumn (colEx (fun (e:SynExpr) -> sepConsideringTriviaContentBefore sepSemiNln e.Range) es (genExpr astContext))
 
     | IfThenElse(e1, e2, None) -> 
         atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then") 

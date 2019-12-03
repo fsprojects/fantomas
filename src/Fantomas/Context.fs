@@ -705,13 +705,15 @@ let private hasDirectiveBefore (trivia: TriviaContent list) =
     |> List.isEmpty
     |> not
 
-let internal sepNlnConsideringTriviaContentBefore (range:range) ctx =
+let internal sepConsideringTriviaContentBefore sepF (range: range) ctx =
     match findTriviaMainNodeFromRange ctx.Trivia range with
     | Some({ ContentBefore = (Comment(BlockComment(_,false,_)))::_ }) ->
-        sepNln ctx
+        sepF ctx
     | Some({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) ->
         ctx
-    | _ -> sepNln ctx
+    | _ -> sepF ctx
+
+let internal sepNlnConsideringTriviaContentBefore (range:range) = sepConsideringTriviaContentBefore sepNln range
 
 let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range) (attributeRanges: range seq) ctx =
     seq {
