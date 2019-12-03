@@ -469,3 +469,16 @@ let ``no extra new line before abstract member with attribute, 586``()=
 
     formatSourceString false original config |> should equal original
 
+[<Test>]
+let ``no extra new line between abstract members with attribute, 586``()=
+    let original = """type A =
+
+    [<Emit("a")>]
+    abstract a: Unit -> string
+
+    [<Emit("b")>]
+    abstract b: Unit -> string
+"""
+
+    formatSourceString false original config |> should equal original
+
