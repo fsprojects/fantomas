@@ -1409,7 +1409,7 @@ let nestedList: obj list = [
         "33333333bbbbbbbbbbbbbbb"
     ]
 ]
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with PageWidth = 80; KeepNewlineAfter = true })
     |> prepend newline
     |> should equal """
 let nestedList: obj list =
