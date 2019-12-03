@@ -383,3 +383,53 @@ type Exception with
 type Exception with
     member inline __.FirstLine = __.Message.Split([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries).[0]
 """
+
+[<Test>]
+let ``no extra new lines between interface members, 569``() =
+    let original = """namespace Quartz.Fsharp
+
+module Logging =
+    open Quartz.Logging
+    open System
+
+    //todo: it seems that quartz doesn't use mapped and nested context,
+    //however, check if this is the best implementation for this interface
+    type private QuartzLoggerWrapper(f) =
+        interface ILogProvider with
+
+            member this.OpenMappedContext(_, _) =
+                { new IDisposable with
+                    member this.Dispose() = () }
+
+            member this.OpenNestedContext _ =
+                { new IDisposable with
+                    member this.Dispose() = () }
+
+            member this.GetLogger _name = new Logger(f)
+
+    let SetQuartzLoggingFunction f =
+        let loggerFunction level (func: Func<string>) exc parameters =
+            let wrappedFunction = Helpers.nullValuesToOptions (fun (x: Func<string>) -> (fun () -> x.Invoke())) func
+            let wrappedException = Helpers.nullValuesToOptions id exc
+            f level wrappedFunction wrappedException (parameters |> List.ofArray)
+        LogProvider.SetCurrentLogProvider(QuartzLoggerWrapper(loggerFunction))
+
+    let SetQuartzLogger l = LogProvider.SetCurrentLogProvider(l)
+"""
+
+    formatSourceString false original config |> should equal original
+
+[<Test>]
+let ``no extra new lines between type members, 569``() =
+    let original = """type A() =
+
+    member this.MemberA =
+        if true then 0 else 1
+
+    member this.MemberB =
+        if true then 2 else 3
+
+    member this.MemberC = 0
+"""
+
+    formatSourceString false original config |> should equal original
