@@ -640,13 +640,13 @@ let internal leaveEqualsToken (range: range) (ctx: Context) =
             id
     <| ctx
 
-let internal leaveLeftBrace (range: range) (ctx: Context) =
+let internal leaveLeftToken (tokenName: string) (range: range) (ctx: Context) =
     ctx.Trivia
     |> List.tryFind(fun tn ->
         // Token is a left brace { at the beginning of the range.
         match tn.Type with
         | Token(tok) ->
-            tok.TokenInfo.TokenName = "LBRACE" && tn.Range.StartLine = range.StartLine && tn.Range.StartColumn = range.StartColumn
+            tok.TokenInfo.TokenName = tokenName && tn.Range.StartLine = range.StartLine && tn.Range.StartColumn = range.StartColumn
         | _ -> false
     )
     |> fun tn ->
@@ -657,13 +657,17 @@ let internal leaveLeftBrace (range: range) (ctx: Context) =
             id
     <| ctx
 
-let internal enterRightBracket (range: range) (ctx: Context) =
+let internal leaveLeftBrace = leaveLeftToken "LBRACE"
+let internal leaveLeftBrack = leaveLeftToken "LBRACK"
+let internal leaveLeftBrackBar = leaveLeftToken "LBRACK_BAR"
+
+let internal enterRightToken (tokenName: string) (range: range) (ctx: Context) =
     ctx.Trivia
     |> List.tryFind(fun tn ->
         // Token is a left brace { at the beginning of the range.
         match tn.Type with
         | Token(tok) ->
-            (tok.TokenInfo.TokenName = "RBRACK" || tok.TokenInfo.TokenName = "BAR_RBRACK")
+            (tok.TokenInfo.TokenName = tokenName)
             && tn.Range.EndLine = range.EndLine
             && (tn.Range.EndColumn = range.EndColumn || tn.Range.EndColumn + 1 = range.EndColumn)
         | _ -> false
@@ -672,12 +676,8 @@ let internal enterRightBracket (range: range) (ctx: Context) =
         match tn with
         | Some({ ContentBefore = [TriviaContent.Comment(LineCommentOnSingleLine(lineComment))] } as tn) ->
             let spacesBeforeComment =
-                let braceSize =
-                    match tn.Type with
-                    | Token({TokenInfo = {TokenName = "BAR_RBRACK"}}) -> 2
-                    | _ -> 1
+                let braceSize = if tokenName = "RBRACK" then 1 else 2
                 let spaceAround = if ctx.Config.SpaceAroundDelimiter then 1 else 0
-
                 !- String.Empty.PadLeft(braceSize + spaceAround)
 
             let spaceAfterNewline = if ctx.Config.SpaceAroundDelimiter then sepSpace else sepNone
@@ -686,6 +686,8 @@ let internal enterRightBracket (range: range) (ctx: Context) =
             id
     <| ctx
 
+let internal enterRightBracket = enterRightToken "RBRACK"
+let internal enterRightBracketBar = enterRightToken "BAR_RBRACK"
 let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
     |> List.filter (fun tn ->

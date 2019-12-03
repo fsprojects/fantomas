@@ -808,7 +808,9 @@ and genExpr astContext synExpr =
                             (acc +> genExpr astContext e +> afterExpr) ctx
                  ) sepNone
                  |> atCurrentColumn
-            ifElse isArray (sepOpenA +> expr +> sepCloseA) (sepOpenL +> expr +> enterRightBracket alNode.Range +> sepCloseL)
+            ifElse isArray
+                (sepOpenA +> atCurrentColumn (leaveLeftBrackBar alNode.Range +> expr) +> enterRightBracketBar alNode.Range +> sepCloseA)
+                (sepOpenL +> atCurrentColumn (leaveLeftBrack alNode.Range +> expr) +> enterRightBracket alNode.Range +> sepCloseL)
             <| ctx
 
 
@@ -879,7 +881,7 @@ and genExpr astContext synExpr =
         let astContext = { astContext with IsNakedRange = true }
         let expr =
             ifElse isArray
-                (sepOpenA +> genExpr astContext e +> enterRightBracket aNode.Range +> sepCloseA)
+                (sepOpenA +> genExpr astContext e +> enterRightBracketBar aNode.Range +> sepCloseA)
                 (sepOpenL +> genExpr astContext e +> enterRightBracket aNode.Range +> sepCloseL)
         expr
     | JoinIn(e1, e2) -> genExpr astContext e1 -- " in " +> genExpr astContext e2
