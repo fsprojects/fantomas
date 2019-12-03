@@ -386,7 +386,8 @@ type Exception with
 
 [<Test>]
 let ``no extra new lines between interface members, 569``() =
-    let original = """namespace Quartz.Fsharp
+    shouldNotChangeAfterFormat """
+namespace Quartz.Fsharp
 
 module Logging =
     open Quartz.Logging
@@ -417,11 +418,10 @@ module Logging =
     let SetQuartzLogger l = LogProvider.SetCurrentLogProvider(l)
 """
 
-    formatSourceString false original config |> should equal original
-
 [<Test>]
 let ``no extra new lines between type members, 569``() =
-    let original = """type A() =
+    shouldNotChangeAfterFormat """
+type A() =
 
     member this.MemberA =
         if true then 0 else 1
@@ -432,11 +432,10 @@ let ``no extra new lines between type members, 569``() =
     member this.MemberC = 0
 """
 
-    formatSourceString false original config |> should equal original
-
 [<Test>]
 let ``no extra new line before nested module with attribute, 586``()=
-    let original = """module A =
+    shouldNotChangeAfterFormat """
+module A =
     let x = 0
 
     [<RequireQualifiedAccess>]
@@ -444,11 +443,10 @@ let ``no extra new line before nested module with attribute, 586``()=
         let y = 1
 """
 
-    formatSourceString false original config |> should equal original
-
 [<Test>]
 let ``no extra new line before abstract member with attribute, 586``()=
-    let original = """type A =
+    shouldNotChangeAfterFormat """
+type A =
 
     [<EmitConstructor>]
     abstract Create: Unit -> A
@@ -456,11 +454,10 @@ let ``no extra new line before abstract member with attribute, 586``()=
     abstract b: Unit -> Unit
 """
 
-    formatSourceString false original config |> should equal original
-
 [<Test>]
 let ``no extra new line between abstract members with attribute, 586``()=
-    let original = """type A =
+    shouldNotChangeAfterFormat """
+type A =
 
     [<Emit("a")>]
     abstract a: Unit -> string
@@ -468,6 +465,3 @@ let ``no extra new line between abstract members with attribute, 586``()=
     [<Emit("b")>]
     abstract b: Unit -> string
 """
-
-    formatSourceString false original config |> should equal original
-
