@@ -1927,7 +1927,8 @@ and genMemberDefnList astContext node =
             | Some (Single xsh) ->
                 let attributes =
                     match xsh with
-                    | SynMemberDefn.Member(SynBinding.Binding(_,_,_,_, _, _,_,_,_,_,_,_) as sb, _) -> getRangesFromAttributesFromSynBinding sb
+                    | SynMemberDefn.Member(sb, _) -> getRangesFromAttributesFromSynBinding sb
+                    | SynMemberDefn.AbstractSlot(valSig, _, _) -> getRangesFromAttributesFromSynValSig valSig
                     | _ -> []
                 sepNlnConsideringTriviaContentBeforeWithAttributes xsh.Range attributes
             | _ -> sepNln

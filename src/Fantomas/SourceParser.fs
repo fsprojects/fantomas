@@ -1294,6 +1294,12 @@ let getRangesFromAttributesFromSynBinding (sb: SynBinding) =
         attrs
         |> List.map (fun a -> a.Range)
 
+let getRangesFromAttributesFromSynValSig (valSig: SynValSig) =
+    match valSig with
+    | SynValSig.ValSpfn(attrs,_,_,_,_,_,_,_,_,_,_) ->
+        attrs
+        |> List.map (fun a -> a.Range)
+
 let getRangesFromAttributesFromSynMemberDefinition (mdn: SynMemberDefn) =
     match mdn with
     | SynMemberDefn.Member(mb,_) -> getRangesFromAttributesFromSynBinding mb
