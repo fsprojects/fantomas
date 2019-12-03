@@ -1925,11 +1925,7 @@ and genMemberDefnList astContext node =
         let sepNlnFirstExpr =
             match List.tryHead xs with
             | Some (Single xsh) ->
-                let attributes =
-                    match xsh with
-                    | SynMemberDefn.Member(sb, _) -> getRangesFromAttributesFromSynBinding sb
-                    | SynMemberDefn.AbstractSlot(valSig, _, _) -> getRangesFromAttributesFromSynValSig valSig
-                    | _ -> []
+                let attributes = getRangesFromAttributesFromSynMemberDefinition xsh
                 sepNlnConsideringTriviaContentBeforeWithAttributes xsh.Range attributes
             | _ -> sepNln
         

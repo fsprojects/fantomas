@@ -1303,4 +1303,5 @@ let getRangesFromAttributesFromSynValSig (valSig: SynValSig) =
 let getRangesFromAttributesFromSynMemberDefinition (mdn: SynMemberDefn) =
     match mdn with
     | SynMemberDefn.Member(mb,_) -> getRangesFromAttributesFromSynBinding mb
+    | SynMemberDefn.AbstractSlot(valSig, _, _) -> getRangesFromAttributesFromSynValSig valSig
     | _ -> []
