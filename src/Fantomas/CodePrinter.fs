@@ -207,7 +207,9 @@ and genModuleDeclList astContext e =
     | OneLinerLetL(xs, ys) ->
         let sepXsYs =
             match List.tryHead ys with
-            | Some ysh -> sepNln +> sepNlnConsideringTriviaContentBefore ysh.Range
+            | Some ysh ->
+                let attrs = getRangesFromAttributesFromModuleDeclaration ysh
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes ysh.Range attrs
             | None -> rep 2 sepNln
         
         match ys with
@@ -1923,10 +1925,7 @@ and genMemberDefnList astContext node =
         let sepNlnFirstExpr =
             match List.tryHead xs with
             | Some (Single xsh) ->
-                let attributes =
-                    match xsh with
-                    | SynMemberDefn.Member(SynBinding.Binding(_,_,_,_, _, _,_,_,_,_,_,_) as sb, _) -> getRangesFromAttributesFromSynBinding sb
-                    | _ -> []
+                let attributes = getRangesFromAttributesFromSynMemberDefinition xsh
                 sepNlnConsideringTriviaContentBeforeWithAttributes xsh.Range attributes
             | _ -> sepNln
         
