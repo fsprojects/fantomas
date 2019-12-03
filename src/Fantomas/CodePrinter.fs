@@ -207,7 +207,9 @@ and genModuleDeclList astContext e =
     | OneLinerLetL(xs, ys) ->
         let sepXsYs =
             match List.tryHead ys with
-            | Some ysh -> sepNln +> sepNlnConsideringTriviaContentBefore ysh.Range
+            | Some ysh ->
+                let attrs = getRangesFromAttributesFromModuleDeclaration ysh
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes ysh.Range attrs
             | None -> rep 2 sepNln
         
         match ys with
