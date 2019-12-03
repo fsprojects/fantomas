@@ -295,8 +295,7 @@ let ``newline trivia before simple sequence doesn't force remaining to get offse
 """
 
 [<Test>]
-let ``comment trivia before simple sequence doesn't force remaining to get offset by last expression column index`` () =
-    // https://github.com/fsprojects/fantomas/issues/513
+let ``comment trivia before simple sequence doesn't force remaining to get offset by last expression column index, 513`` () =
     formatSourceString false """let a() =
     let q = 1
     // comment
@@ -308,4 +307,14 @@ let ``comment trivia before simple sequence doesn't force remaining to get offse
     // comment
     q
     b
+"""
+
+[<Test>]
+let ``no extra newline should be added between IfThenElse within Sequential, 588`` () =
+    shouldNotChangeAfterFormat """
+let x =
+    if true then printfn "a"
+    elif true then printfn "b"
+
+    if true then 1 else 0
 """
