@@ -1939,7 +1939,7 @@ and genMemberDefnList astContext node =
                 let attributes = getRangesFromAttributesFromSynMemberDefinition x
                 sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes x.Range attributes
 
-        let y =
+        let genYs =
             match ys with
             | [ ] -> sepNone
             | _ -> sepNln +> genMemberDefnList astContext ys
@@ -1948,7 +1948,7 @@ and genMemberDefnList astContext node =
         +> colEx sepMember xs (function
                 | Pair(x1, x2) -> genPropertyWithGetSet astContext (x1, x2)
                 | Single x -> genMemberDefn astContext x) 
-        +> y
+        +> genYs
 
     | OneLinerMemberDefnL(xs, ys) ->
         let sepNlnFirstExpr =
