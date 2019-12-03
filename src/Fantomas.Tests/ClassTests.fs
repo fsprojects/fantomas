@@ -447,17 +447,6 @@ let ``no extra new line before nested module with attribute, 586``()=
     formatSourceString false original config |> should equal original
 
 [<Test>]
-let ``no extra new line after elif expression, 586``()=
-    let original = """let x =
-    if true then printfn "a"
-    elif true then printfn "b"
-
-    if true then 1 else 0
-"""
-
-    formatSourceString false original config |> should equal original
-
-[<Test>]
 let ``no extra new line before abstract member with attribute, 586``()=
     let original = """type A =
 
