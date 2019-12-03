@@ -1919,26 +1919,6 @@ and genMemberDefnList astContext node =
             | [] -> col sepNln xs (genMemberDefn astContext) ctx
             | _ -> (col sepNln xs (genMemberDefn astContext) +> rep 2 sepNln +> genMemberDefnList astContext ys) ctx
 
-    | MultilineMemberDefnL(xs, []) ->
-        let sepMember (m:Composite<SynMemberDefn, SynBinding>) =
-            match m with
-            | Pair(x1,_) ->
-                let attributes = getRangesFromAttributesFromSynBinding x1
-                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes x1.RangeOfBindingSansRhs attributes
-            | Single x ->
-                let attributes = getRangesFromAttributesFromSynMemberDefinition x
-                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes x.Range attributes
-
-        let firstTwoNln =
-            match List.tryHead xs with
-            | Some xsh -> sepMember xsh
-            | None -> rep 2 sepNln
-        
-        firstTwoNln
-        +> colEx sepMember xs (function
-                | Pair(x1, x2) -> genPropertyWithGetSet astContext (x1, x2)
-                | Single x -> genMemberDefn astContext x)
-
     | MultilineMemberDefnL(xs, ys) ->
         let sepNlnFirstExpr =
             match List.tryHead xs with
@@ -1959,11 +1939,16 @@ and genMemberDefnList astContext node =
                 let attributes = getRangesFromAttributesFromSynMemberDefinition x
                 sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes x.Range attributes
 
+        let y =
+            match ys with
+            | [ ] -> sepNone
+            | _ -> sepNln +> genMemberDefnList astContext ys
+
         sepNln +> sepNlnFirstExpr 
         +> colEx sepMember xs (function
                 | Pair(x1, x2) -> genPropertyWithGetSet astContext (x1, x2)
                 | Single x -> genMemberDefn astContext x) 
-        +> sepNln +> genMemberDefnList astContext ys
+        +> y
 
     | OneLinerMemberDefnL(xs, ys) ->
         let sepNlnFirstExpr =
