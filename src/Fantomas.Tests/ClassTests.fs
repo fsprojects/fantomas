@@ -433,3 +433,39 @@ let ``no extra new lines between type members, 569``() =
 """
 
     formatSourceString false original config |> should equal original
+
+[<Test>]
+let ``no extra new line before nested module with attribute, 586``()=
+    let original = """module A =
+    let x = 0
+
+    [<RequireQualifiedAccess>]
+    module B =
+        let y = 1
+"""
+
+    formatSourceString false original config |> should equal original
+
+[<Test>]
+let ``no extra new line after elif expression, 586``()=
+    let original = """let x =
+    if true then printfn "a"
+    elif true then printfn "b"
+
+    if true then 1 else 0
+"""
+
+    formatSourceString false original config |> should equal original
+
+[<Test>]
+let ``no extra new line before abstract member with attribute, 586``()=
+    let original = """type A =
+
+    [<EmitConstructor>]
+    abstract Create: Unit -> A
+
+    abstract b: Unit -> Unit
+"""
+
+    formatSourceString false original config |> should equal original
+
