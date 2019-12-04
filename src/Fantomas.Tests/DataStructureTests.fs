@@ -1395,3 +1395,138 @@ let ``DotNamedIndexedPropertySet`` () =
     |> should equal """
 (foo()).Item(key) <- value
 """
+
+[<Test>]
+let ``comment after [ should be preserved, 551`` () =
+    formatSourceString false """
+let nestedList: obj list = [
+    "11111111aaaaaaaaa"
+    "22222222aaaaaaaaa"
+    "33333333aaaaaaaaa"
+    [ // this case looks weird but seen rarely
+        "11111111bbbbbbbbbbbbbbb"
+        "22222222bbbbbbbbbbbbbbb"
+        "33333333bbbbbbbbbbbbbbb"
+    ]
+]
+"""  ({ config with PageWidth = 80; KeepNewlineAfter = true })
+    |> prepend newline
+    |> should equal """
+let nestedList: obj list =
+    [ "11111111aaaaaaaaa"
+      "22222222aaaaaaaaa"
+      "33333333aaaaaaaaa"
+      [ // this case looks weird but seen rarely
+        "11111111bbbbbbbbbbbbbbb"
+        "22222222bbbbbbbbbbbbbbb"
+        "33333333bbbbbbbbbbbbbbb" ] ]
+"""
+
+
+[<Test>]
+let ``comment after [| should be preserved, 551`` () =
+    formatSourceString false """
+let nestedList: obj list = [|
+    "11111111aaaaaaaaa"
+    "22222222aaaaaaaaa"
+    "33333333aaaaaaaaa"
+    [| // this case looks weird but seen rarely
+        "11111111bbbbbbbbbbbbbbb"
+        "22222222bbbbbbbbbbbbbbb"
+        "33333333bbbbbbbbbbbbbbb"
+    |]
+|]
+"""  ({ config with PageWidth = 80; KeepNewlineAfter = true })
+    |> prepend newline
+    |> should equal """
+let nestedList: obj list =
+    [| "11111111aaaaaaaaa"
+       "22222222aaaaaaaaa"
+       "33333333aaaaaaaaa"
+       [| // this case looks weird but seen rarely
+          "11111111bbbbbbbbbbbbbbb"
+          "22222222bbbbbbbbbbbbbbb"
+          "33333333bbbbbbbbbbbbbbb" |] |]
+"""
+
+[<Test>]
+let ``comment after |] should be preserved, 551`` () =
+    formatSourceString false """
+let nestedList: obj list = [|
+    "11111111aaaaaaaaa"
+    "22222222aaaaaaaaa"
+    "33333333aaaaaaaaa"
+    [|  // this case looks weird but seen rarely
+        "11111111bbbbbbbbbbbbbbb"
+        "22222222bbbbbbbbbbbbbbb"
+        "33333333bbbbbbbbbbbbbbb"
+    |]
+|]
+"""  ({ config with PageWidth = 80; KeepNewlineAfter = true })
+    |> prepend newline
+    |> should equal """
+let nestedList: obj list =
+    [| "11111111aaaaaaaaa"
+       "22222222aaaaaaaaa"
+       "33333333aaaaaaaaa"
+       [| // this case looks weird but seen rarely
+          "11111111bbbbbbbbbbbbbbb"
+          "22222222bbbbbbbbbbbbbbb"
+          "33333333bbbbbbbbbbbbbbb" |] |]
+"""
+
+[<Test>]
+let ``line comment before nested ] should be preserved`` () =
+    formatSourceString false """
+let nestedList: obj list = [
+    "11111111aaaaaaaaa"
+    "22222222aaaaaaaaa"
+    "33333333aaaaaaaaa"
+    [
+        "11111111bbbbbbbbbbbbbbb"
+        "22222222bbbbbbbbbbbbbbb"
+        "33333333bbbbbbbbbbbbbbb"
+        // this case looks weird but seen rarely
+    ]
+]
+"""  ({ config with PageWidth = 80 })
+    |> prepend newline
+    |> should equal """
+let nestedList: obj list =
+    [ "11111111aaaaaaaaa"
+      "22222222aaaaaaaaa"
+      "33333333aaaaaaaaa"
+      [ "11111111bbbbbbbbbbbbbbb"
+        "22222222bbbbbbbbbbbbbbb"
+        "33333333bbbbbbbbbbbbbbb"
+        // this case looks weird but seen rarely
+       ] ]
+"""
+
+[<Test>]
+let ``line comment before nested |] should be preserved`` () =
+    formatSourceString false """
+let nestedList: obj list = [|
+    "11111111aaaaaaaaa"
+    "22222222aaaaaaaaa"
+    "33333333aaaaaaaaa"
+    [|
+        "11111111bbbbbbbbbbbbbbb"
+        "22222222bbbbbbbbbbbbbbb"
+        "33333333bbbbbbbbbbbbbbb"
+        // this case looks weird but seen rarely
+    |]
+|]
+"""  ({ config with PageWidth = 80 })
+    |> prepend newline
+    |> should equal """
+let nestedList: obj list =
+    [| "11111111aaaaaaaaa"
+       "22222222aaaaaaaaa"
+       "33333333aaaaaaaaa"
+       [| "11111111bbbbbbbbbbbbbbb"
+          "22222222bbbbbbbbbbbbbbb"
+          "33333333bbbbbbbbbbbbbbb"
+          // this case looks weird but seen rarely
+        |] |]
+"""
