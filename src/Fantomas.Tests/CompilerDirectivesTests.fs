@@ -299,7 +299,7 @@ type Currency =
 #if FABLE_COMPILER
     private
 #endif
-    Code of string
+    | Code of string
 """
 
 [<Test>]

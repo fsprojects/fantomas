@@ -1525,11 +1525,13 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         let unionCases =  
             match xs with
             | [] -> id
-            | [x] when List.isEmpty ms -> 
+            | [x] when List.isEmpty ms ->
+                let hasVerticalBar = Option.isSome ao'
+
                 indent +> sepSpace +> sepNlnBasedOnTrivia
                 +> genTrivia tdr.Range
                     (opt sepSpace ao' genAccess
-                    +> genUnionCase { astContext with HasVerticalBar = false } x)
+                    +> genUnionCase { astContext with HasVerticalBar = hasVerticalBar } x)
             | xs ->
                 indent +> sepNln
                 +> genTrivia tdr.Range
@@ -1638,10 +1640,31 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
         // Add newline after un-indent to be spacing-correct
         +> unindent
          
-    | SigSimple(TDSRUnion(ao', xs)) ->
-        typeName +> sepEq 
-        +> indent +> sepNln +> opt sepNln ao' genAccess 
-        +> col sepNln xs (genUnionCase { astContext with HasVerticalBar = true })
+    | SigSimple(TDSRUnion(ao', xs) as unionNode) ->
+        let sepNlnBasedOnTrivia =
+            fun (ctx: Context) ->
+                let trivia =
+                    ctx.Trivia
+                    |> List.tryFind (fun t -> t.Range = unionNode.Range && not (List.isEmpty t.ContentBefore))
+
+                match trivia with
+                | Some _ -> sepNln
+                | None -> sepNone
+                <| ctx
+
+        let unionCases =
+            match xs with
+            | [] -> id
+            | [x] when List.isEmpty ms ->
+                let hasVerticalBar = Option.isSome ao'
+
+                indent +> sepSpace +> sepNlnBasedOnTrivia
+                +> genTrivia tdr.Range
+                    (opt sepSpace ao' genAccess
+                    +> genUnionCase { astContext with HasVerticalBar = hasVerticalBar } x)
+
+        typeName +> sepEq
+        +> unionCases
         +> colPre sepNln sepNln ms (genMemberSig astContext)
         +> unindent
 
