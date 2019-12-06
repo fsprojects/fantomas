@@ -164,7 +164,7 @@ type CustomerId =
    """ config
    |> prepend newline
    |> should equal """
-type CustomerId = private CustomerId of int
+type CustomerId = private | CustomerId of int
 """
 
 [<Test>]
@@ -200,4 +200,21 @@ type ('a, 'b) Foo = Foo of 'a
     |> prepend newline
     |> should equal """
 type ('a, 'b) Foo = Foo of 'a
+"""
+
+[<Test>]
+let ``preserve pipe after access modified, 561`` () =
+    formatSourceString false """type Foo = private | Bar""" config
+    |> should equal """type Foo = private | Bar
+"""
+
+[<Test>]
+let ``preserve pipe after access modified in sig file, 561`` () =
+    formatSourceString true """namespace meh
+
+type internal Foo = private | Bar
+"""  config
+    |> should equal """namespace meh
+
+type internal Foo = private | Bar
 """
