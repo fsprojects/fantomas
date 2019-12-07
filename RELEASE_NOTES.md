@@ -1,3 +1,6 @@
+### 3.1.1 - ???
+* Various bug fixes
+
 ### 3.1.0 - 11/2019
 * Fix invalid code generated after multiline string when other expressions exist on same line. [#545](https://github.com/fsprojects/fantomas/issues/545)
 * Fix Trivia before elif generates invalid code due to missing indentation. [#527](https://github.com/fsprojects/fantomas/issues/527)
