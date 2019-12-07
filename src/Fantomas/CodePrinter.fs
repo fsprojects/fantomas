@@ -1794,7 +1794,8 @@ and genField astContext prefix (Field(ats, px, ao, isStatic, isMutable, t, so) a
 and genTypeByLookup astContext (t: SynType) = getByLookup t.Range (genType astContext false) t
 
 and genType astContext outerBracket t =
-    let rec loop = function
+    let rec loop current =
+        match current with
         | THashConstraint t -> !- "#" +> loop t
         | TMeasurePower(t, n) -> loop t -- "^" +> str n
         | TMeasureDivide(t1, t2) -> loop t1 -- " / " +> loop t2
@@ -1822,9 +1823,9 @@ and genType astContext outerBracket t =
         | TTuple ts -> sepOpenT +> loopTTupleList ts +> sepCloseT
         | TStructTuple ts -> !- "struct " +> sepOpenT +> loopTTupleList ts +> sepCloseT
         | TWithGlobalConstraints(TVar _, [TyparSubtypeOfType _ as tc]) -> genTypeConstraint astContext tc
-        | TWithGlobalConstraints(TFuns ts, tcs) -> col sepArrow ts loop +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)        
+        | TWithGlobalConstraints(TFuns ts, tcs) -> col sepArrow ts loop +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
         | TWithGlobalConstraints(t, tcs) -> loop t +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
-        | TLongIdent s -> ifElse astContext.IsCStylePattern (genTypeByLookup astContext t) (!- s)
+        | TLongIdent s -> ifElseCtx (fun ctx -> not ctx.Config.StrictMode && astContext.IsCStylePattern) (genTypeByLookup astContext t) (!- s)
         | TAnonRecord(isStruct, fields) ->
             ifElse isStruct !- "struct " sepNone
             +> sepOpenAnonRecd

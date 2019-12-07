@@ -261,3 +261,17 @@ Widget;
 DefaultValue(true)>]
 let foo = ()
 """
+
+[<Test>]
+let ``attribute above extern keyword, 562`` () =
+    formatSourceString false """
+module C =
+  [<DllImport("")>]
+  extern IntPtr f()
+"""  ({ config with StrictMode = true })
+    |> prepend newline
+    |> should equal """
+module C =
+    [<DllImport("")>]
+    extern IntPtr f()
+"""
