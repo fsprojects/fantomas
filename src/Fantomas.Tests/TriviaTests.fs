@@ -468,3 +468,47 @@ let ``if keyword should be keyword itself`` () =
          Type = TriviaNodeType.Token({ TokenInfo = { TokenName = "THEN" } }) }] ->
         pass()
     | _ -> fail()
+
+[<Test>]
+let ``string constant with blank lines`` () =
+    let multilineString =
+        "some
+
+content
+
+with empty lines"
+        |> String.normalizeNewLine
+    let source =
+        sprintf "let x = \"%s\"" multilineString
+
+    let trivia =
+        toTrivia source
+        |> List.head
+
+    match trivia with
+    | [{ ContentItself = Some(StringContent(sc))
+         Type = TriviaNodeType.MainNode("SynExpr.Const") }] ->
+        sc == sprintf "\"%s\"" multilineString
+    | _ -> fail()
+
+[<Test>]
+let ``triple quote string constant with blank lines`` () =
+    let multilineString =
+        "some
+
+content
+
+with empty lines"
+        |> String.normalizeNewLine
+    let source =
+        sprintf "let x = \"\"\"%s\"\"\"" multilineString
+
+    let trivia =
+        toTrivia source
+        |> List.head
+
+    match trivia with
+    | [{ ContentItself = Some(StringContent(sc))
+         Type = TriviaNodeType.MainNode("SynExpr.Const") }] ->
+        sc == sprintf "\"\"\"%s\"\"\"" multilineString
+    | _ -> fail()
