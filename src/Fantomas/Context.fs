@@ -513,7 +513,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
     let addNewline =
         currentLastLine
-        |> Option.map(fun line -> line.Trim().Length > 1)
+        |> Option.map(fun line -> line.Trim().Length > 0)
         |> Option.defaultValue false
 
     let addSpace =
