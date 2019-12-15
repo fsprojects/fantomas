@@ -230,3 +230,18 @@ let ``preserve pipe when single choice contains attribute, 596`` () =
 [<RequireQualifiedAccess>]
 type PayableFilters = | [<CompiledName "statusSelector">] Status
 """
+
+[<Test>]
+let ``preserve pipe when single choice contains attribute, sig file`` () =
+    formatSourceString true """namespace Meh
+
+type [<StringEnum>] [<RequireQualifiedAccess>] PayableFilters = | [<CompiledName "statusSelector">] Status
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Meh
+
+[<StringEnum>]
+[<RequireQualifiedAccess>]
+type PayableFilters = | [<CompiledName "statusSelector">] Status
+"""
