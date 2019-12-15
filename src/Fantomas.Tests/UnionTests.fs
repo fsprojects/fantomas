@@ -218,3 +218,15 @@ type internal Foo = private | Bar
 
 type internal Foo = private | Bar
 """
+
+[<Test>]
+let ``preserve pipe when single choice contains attribute, 596`` () =
+    formatSourceString false """type [<StringEnum>] [<RequireQualifiedAccess>] PayableFilters =
+    | [<CompiledName "statusSelector">] Status
+"""  config
+    |> prepend newline
+    |> should equal """
+[<StringEnum>]
+[<RequireQualifiedAccess>]
+type PayableFilters = | [<CompiledName "statusSelector">] Status
+"""
