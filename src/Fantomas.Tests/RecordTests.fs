@@ -612,9 +612,11 @@ module Test =
 
     let test (something: IDisposable) (somethingElse: IDisposable) =
         { new ISomething with
+
             member __.DoTheThing whatever =
-              printfn "%s" whatever
-              printfn "%s" whatever
+                printfn "%s" whatever
+                printfn "%s" whatever
+
             member __.Dispose() =
                 something.Dispose()
                 somethingElse.Dispose() }

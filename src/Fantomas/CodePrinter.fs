@@ -589,9 +589,25 @@ and genMemberBindingList astContext node =
     | [x] -> genMemberBinding astContext x
 
     | MultilineBindingL(xs, ys) ->
-        let prefix = sepNln +> col (rep 2 sepNln) xs (function 
-                                   | Pair(x1, x2) -> genPropertyWithGetSet astContext (x1, x2) 
-                                   | Single x -> genMemberBinding astContext x)
+        let prefix =
+            let genX =
+               function
+               | Pair(x1, x2) -> genPropertyWithGetSet astContext (x1, x2)
+               | Single x -> genMemberBinding astContext x
+
+            let sepNlnX (x': Composite<SynBinding, SynBinding>) =
+               match x' with
+               | Pair(x, _)
+               | Single x -> sepNln +> sepNlnConsideringTriviaContentBefore x.RangeOfBindingSansRhs
+
+            let firstSepNln =
+                match xs with
+                | (Pair(x,_))::_
+                | (Single x)::_ -> sepNlnConsideringTriviaContentBefore x.RangeOfBindingSansRhs
+                | _ -> sepNln
+
+            firstSepNln +> colEx sepNlnX xs genX
+
         match ys with
         | [] -> prefix
         | _ -> prefix +> rep 2 sepNln +> genMemberBindingList astContext ys
