@@ -598,3 +598,46 @@ type Element =
       /// The qualified name.
       Name: Name }
 """
+
+[<Test>]
+let ``don't duplicate newlines in object expression, 601`` () =
+    formatSourceString false """namespace Blah
+
+open System
+
+module Test =
+    type ISomething =
+        inherit IDisposable
+        abstract DoTheThing: string -> unit
+
+    let test (something: IDisposable) (somethingElse: IDisposable) =
+        { new ISomething with
+            member __.DoTheThing whatever =
+              printfn "%s" whatever
+              printfn "%s" whatever
+            member __.Dispose() =
+                something.Dispose()
+                somethingElse.Dispose() }
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Blah
+
+open System
+
+module Test =
+    type ISomething =
+        inherit IDisposable
+        abstract DoTheThing: string -> unit
+
+    let test (something: IDisposable) (somethingElse: IDisposable) =
+        { new ISomething with
+
+            member __.DoTheThing whatever =
+                printfn "%s" whatever
+                printfn "%s" whatever
+
+            member __.Dispose() =
+                something.Dispose()
+                somethingElse.Dispose() }
+"""
