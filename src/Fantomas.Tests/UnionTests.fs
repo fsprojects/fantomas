@@ -168,7 +168,7 @@ type CustomerId = private | CustomerId of int
 """
 
 [<Test>]
-let ``Single case DU with member should be on a newline`` () =
+let ``single case DU with member should be on a newline`` () =
     formatSourceString false """
 type CustomerId =
     | CustomerId of int
@@ -217,4 +217,17 @@ type internal Foo = private | Bar
     |> should equal """namespace meh
 
 type internal Foo = private | Bar
+"""
+
+[<Test>]
+let ``single case DU with comment above clause, 567`` () =
+    formatSourceString false """type 'a MyGenericType =
+  ///
+  Foo
+"""  config
+    |> prepend newline
+    |> should equal """
+type 'a MyGenericType =
+    ///
+    Foo
 """

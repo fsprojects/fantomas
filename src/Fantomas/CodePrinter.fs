@@ -1553,13 +1553,18 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
     | Simple TDSRNone -> 
         typeName
-    | Simple(TDSRTypeAbbrev t) -> 
-        typeName +> sepEq +> sepSpace
-        +> genTrivia tdr.Range
-            (genType astContext false t
-            +> ifElse (List.isEmpty ms) (!- "") 
+    | Simple(TDSRTypeAbbrev t) ->
+        let genTypeAbbrev = genType astContext false t
+
+        let genMembers =
+            ifElse (List.isEmpty ms)
+                (!- "")
                 (indent ++ "with" +> indent +> genMemberDefnList { astContext with InterfaceRange = None } ms
-            +> unindent +> unindent))
+            +> unindent +> unindent)
+
+        let genTypeBody =  autoIndentNlnByFuture (genTrivia tdr.Range genTypeAbbrev) +> genMembers
+
+        typeName +> sepEq +> sepSpace +> genTypeBody
     | Simple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
         genExceptionBody astContext ats px ao uc
         |> genTrivia tdr.Range
