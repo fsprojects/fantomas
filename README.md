@@ -24,8 +24,7 @@ Fantomas can be easily integrated with FAKE build system. Here is a sample `buil
 
 ```fsharp
 #r "paket:
-nuget FSharp.Core 4.5.0.0
-nuget Fantomas
+nuget Fantomas 3.1.0
 nuget Fake.Core.Target //"
 #load "./.fake/script.fsx/intellisense.fsx"
 
@@ -34,20 +33,18 @@ open Fake.IO.Globbing.Operators
 open Fantomas.FakeHelpers
 open Fantomas.FormatConfig
 
-let fantomasConfig =
-    { FormatConfig.Default with
-            ReorderOpenDeclaration = true }
+let fantomasConfig = { FormatConfig.Default with ReorderOpenDeclaration = true }
 
 Target.create "CheckCodeFormat" (fun _ ->
-    !! "*.fs"
+    !!"*.fs"
     |> checkCode fantomasConfig
-)
+    |> Async.RunSynchronously)
 
 Target.create "Format" (fun _ ->
-    !! "*.fs"
+    !!"*.fs"
     |> formatCode fantomasConfig
-    |> printfn "Formatted files: %A"
-)
+    |> Async.RunSynchronously
+    |> printfn "Formatted files: %A")
 
 Target.runOrList()
 ```
