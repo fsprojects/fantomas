@@ -1007,3 +1007,45 @@ let foo =
 #endif
     |> List.sort
 """
+
+[<Test>]
+let ``async block inside directive, 576`` () =
+    formatSourceString false """#if TEST
+let f () =
+    async {
+        let x = 2
+        return x
+    }
+#endif
+"""  config
+    |> prepend newline
+    |> should equal """
+#if TEST
+let f() =
+    async {
+        let x = 2
+        return x
+    }
+#endif
+"""
+
+[<Test>]
+let ``async block inside directive, TEST`` () =
+    formatSourceStringWithDefines ["TEST"] """#if TEST
+let f () =
+    async {
+        let x = 2
+        return x
+    }
+#endif
+"""  config
+    |> prepend newline
+    |> should equal """
+#if TEST
+let f() =
+    async {
+        let x = 2
+        return x
+    }
+#endif
+"""
