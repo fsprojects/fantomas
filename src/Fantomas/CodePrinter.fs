@@ -1541,8 +1541,8 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         let unionCases =  
             match xs with
             | [] -> id
-            | [x] when List.isEmpty ms ->
-                let hasVerticalBar = Option.isSome ao'
+            | [UnionCase(attrs, _,_,_,_) as x] when List.isEmpty ms ->
+                let hasVerticalBar = Option.isSome ao' || not (List.isEmpty attrs)
 
                 indent +> sepSpace +> sepNlnBasedOnTrivia
                 +> genTrivia tdr.Range
@@ -1676,8 +1676,8 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
         let unionCases =
             match xs with
             | [] -> id
-            | [x] when List.isEmpty ms ->
-                let hasVerticalBar = Option.isSome ao'
+            | [UnionCase(attrs, _,_,_,_) as x] when List.isEmpty ms ->
+                let hasVerticalBar = Option.isSome ao' || not (List.isEmpty attrs)
 
                 indent +> sepSpace +> sepNlnBasedOnTrivia
                 +> genTrivia tdr.Range
