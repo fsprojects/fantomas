@@ -589,9 +589,25 @@ and genMemberBindingList astContext node =
     | [x] -> genMemberBinding astContext x
 
     | MultilineBindingL(xs, ys) ->
-        let prefix = sepNln +> col (rep 2 sepNln) xs (function 
-                                   | Pair(x1, x2) -> genPropertyWithGetSet astContext (x1, x2) 
-                                   | Single x -> genMemberBinding astContext x)
+        let prefix =
+            let genX =
+               function
+               | Pair(x1, x2) -> genPropertyWithGetSet astContext (x1, x2)
+               | Single x -> genMemberBinding astContext x
+
+            let sepNlnX (x': Composite<SynBinding, SynBinding>) =
+               match x' with
+               | Pair(x, _)
+               | Single x -> sepNln +> sepNlnConsideringTriviaContentBefore x.RangeOfBindingSansRhs
+
+            let firstSepNln =
+                match xs with
+                | (Pair(x,_))::_
+                | (Single x)::_ -> sepNlnConsideringTriviaContentBefore x.RangeOfBindingSansRhs
+                | _ -> sepNln
+
+            firstSepNln +> colEx sepNlnX xs genX
+
         match ys with
         | [] -> prefix
         | _ -> prefix +> rep 2 sepNln +> genMemberBindingList astContext ys
@@ -1553,13 +1569,18 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
     | Simple TDSRNone -> 
         typeName
-    | Simple(TDSRTypeAbbrev t) -> 
-        typeName +> sepEq +> sepSpace
-        +> genTrivia tdr.Range
-            (genType astContext false t
-            +> ifElse (List.isEmpty ms) (!- "") 
+    | Simple(TDSRTypeAbbrev t) ->
+        let genTypeAbbrev = genType astContext false t
+
+        let genMembers =
+            ifElse (List.isEmpty ms)
+                (!- "")
                 (indent ++ "with" +> indent +> genMemberDefnList { astContext with InterfaceRange = None } ms
-            +> unindent +> unindent))
+            +> unindent +> unindent)
+
+        let genTypeBody =  autoIndentNlnByFuture (genTrivia tdr.Range genTypeAbbrev) +> genMembers
+
+        typeName +> sepEq +> sepSpace +> genTypeBody
     | Simple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
         genExceptionBody astContext ats px ao uc
         |> genTrivia tdr.Range
