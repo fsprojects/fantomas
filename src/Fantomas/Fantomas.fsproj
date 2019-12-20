@@ -31,6 +31,7 @@
     <Compile Include="CodeFormatter.fs" />
     <Compile Include="FakeHelpers.fs" />
     <None Include="CodeFormatter.fsx" />
+    <Content Include="schema.json" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
