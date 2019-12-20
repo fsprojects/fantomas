@@ -117,10 +117,13 @@ let ``invalid option returns a warning`` () =
     | _ -> fail()
 
 [<Test>]
-let ``non existing file should return default config`` () =
+let ``non existing file should return an error`` () =
     let path = Path.Combine(Path.GetTempPath(), uniqueString())
     let result = CodeFormatter.ReadConfiguration path
-    (FormatConfig.FormatConfigFileParseResult.Success FormatConfig.Default) == result
+    match result with
+    | Failure f ->
+        (sprintf "No configuration files were found for %s" path) == f.Message
+    | _ -> fail()
 
 [<Test>]
 let ``child configuration should overwrite parent folder`` () =

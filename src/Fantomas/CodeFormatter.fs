@@ -42,6 +42,8 @@ type CodeFormatter =
             let configurationFiles =
                 ConfigFile.findConfigurationFiles fileOrFolder
 
+            if List.isEmpty configurationFiles then failwithf "No configuration files were found for %s" fileOrFolder
+
             let (config,warnings) =
                 List.fold (fun (currentConfig, warnings) configPath ->
                     let updatedConfig, warningsForPath = ConfigFile.applyOptionsToConfig currentConfig configPath
