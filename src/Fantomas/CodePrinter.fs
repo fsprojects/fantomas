@@ -1570,7 +1570,16 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
     | Simple TDSRNone -> 
         typeName
     | Simple(TDSRTypeAbbrev t) ->
-        let genTypeAbbrev = genType astContext false t
+        let genTypeAbbrev =
+            let needsParenthesis =
+                match t with
+                | SynType.Tuple(isStruct, typeNames, _) ->
+                    (isStruct && List.length typeNames > 1)
+                | _ -> false
+
+            ifElse needsParenthesis sepOpenT sepNone +>
+            genType astContext false t +>
+            ifElse needsParenthesis sepCloseT sepNone
 
         let genMembers =
             ifElse (List.isEmpty ms)
@@ -1698,8 +1707,19 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
 
     | SigSimple TDSRNone -> 
         typeName
-    | SigSimple(TDSRTypeAbbrev t) -> 
-        typeName +> sepEq +> sepSpace +> genType astContext false t
+    | SigSimple(TDSRTypeAbbrev t) ->
+        let genTypeAbbrev =
+            let needsParenthesis =
+                match t with
+                | SynType.Tuple(isStruct, typeNames, _) ->
+                    (isStruct && List.length typeNames > 1)
+                | _ -> false
+
+            ifElse needsParenthesis sepOpenT sepNone +>
+            genType astContext false t +>
+            ifElse needsParenthesis sepCloseT sepNone
+
+        typeName +> sepEq +> sepSpace +> genTypeAbbrev
     | SigSimple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
             genExceptionBody astContext ats px ao uc
 
