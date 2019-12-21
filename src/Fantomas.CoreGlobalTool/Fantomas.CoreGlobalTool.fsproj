@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -10,8 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <Compile Include="Arg.fsi" />
-    <Compile Include="Arg.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
