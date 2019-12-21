@@ -107,6 +107,13 @@ let ``simple config file parses valid option`` () =
     [] == warnings
 
 [<Test>]
+let ``keys should not necessarily have quotes to be parsed`` () =
+    let path = mkConfigFromJson None "{KeepNewlineAfter:true}"
+    let config, warnings = ConfigFile.applyOptionsToConfig FormatConfig.Default path
+    true == config.KeepNewlineAfter
+    [] == warnings
+
+[<Test>]
 let ``invalid option returns a warning`` () =
     let path = mkConfigFromJson None "{ \"Foo\": true }"
     let config, warnings = ConfigFile.applyOptionsToConfig FormatConfig.Default path
