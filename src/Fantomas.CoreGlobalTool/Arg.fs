@@ -47,7 +47,7 @@ exception HelpText of string
 [<Sealed>]
 type ArgParser() = 
     static let getUsage specs u =  
-      let sbuf = new System.Text.StringBuilder 100  
+      let sbuf = System.Text.StringBuilder 100
       let pstring (s:string) = sbuf.Append s |> ignore 
       let pendline s = pstring s; pstring "\n" 
       pendline u;

@@ -1683,6 +1683,11 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
                 +> genTrivia tdr.Range
                     (opt sepSpace ao' genAccess
                     +> genUnionCase { astContext with HasVerticalBar = hasVerticalBar } x)
+            | xs ->
+                indent +> sepNln
+                +> genTrivia tdr.Range
+                    (opt sepNln ao' genAccess
+                    +> col sepNln xs (genUnionCase { astContext with HasVerticalBar = true }))
 
         typeName +> sepEq
         +> unionCases
