@@ -220,6 +220,33 @@ type internal Foo = private | Bar
 """
 
 [<Test>]
+let ``preserve pipe when single choice contains attribute, 596`` () =
+    formatSourceString false """type [<StringEnum>] [<RequireQualifiedAccess>] PayableFilters =
+    | [<CompiledName "statusSelector">] Status
+"""  config
+    |> prepend newline
+    |> should equal """
+[<StringEnum>]
+[<RequireQualifiedAccess>]
+type PayableFilters = | [<CompiledName "statusSelector">] Status
+"""
+
+[<Test>]
+let ``preserve pipe when single choice contains attribute, sig file`` () =
+    formatSourceString true """namespace Meh
+
+type [<StringEnum>] [<RequireQualifiedAccess>] PayableFilters = | [<CompiledName "statusSelector">] Status
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Meh
+
+[<StringEnum>]
+[<RequireQualifiedAccess>]
+type PayableFilters = | [<CompiledName "statusSelector">] Status
+"""
+
+[<Test>]
 let ``single case DU with comment above clause, 567`` () =
     formatSourceString false """type 'a MyGenericType =
   ///
