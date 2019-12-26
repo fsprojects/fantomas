@@ -1,6 +1,5 @@
 ﻿namespace Fantomas
 
-open System
 open Fantomas.FormatConfig
 open Fantomas.SourceOrigin
 open FSharp.Compiler.Ast

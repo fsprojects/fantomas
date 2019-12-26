@@ -794,7 +794,6 @@ let internal lastLineOnlyContains characters (ctx: Context) =
         |> Option.map (fun l -> l.Trim(characters))
     match lastLine with
     | Some l ->
-        let a = 0
         let length = String.length l
         length = 0 || length < ctx.Config.IndentSpaceNum
     | None -> false
