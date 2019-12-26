@@ -530,7 +530,7 @@ let private formatRange (checker: FSharpChecker) (parsingOptions: FSharpParsingO
     let (selection, patch) = 
         let sel = sourceCode.[start..finish].TrimEnd('\r')
         if startWithMember sel then
-           (String.Join(String.Empty, "type T = ", Environment.NewLine, new String(' ', startCol), sel), TypeMember)
+           (String.Join(String.Empty, "type T = ", Environment.NewLine, String(' ', startCol), sel), TypeMember)
         elif String.startsWithOrdinal "and" (sel.TrimStart()) then
             let p = getPatch startCol lines.[..startLine-1]
             let pattern = Regex("and")
@@ -541,9 +541,9 @@ let private formatRange (checker: FSharpChecker) (parsingOptions: FSharpParsingO
                 | _ -> "and"
             // Replace "and" by "type" or "let rec"
             if startLine = endLine then (pattern.Replace(sel, replacement, 1), p)
-            else (new String(' ', startCol) + pattern.Replace(sel, replacement, 1), p)
+            else (String(' ', startCol) + pattern.Replace(sel, replacement, 1), p)
         elif startLine = endLine then (sel, Nothing)
-        else (new String(' ', startCol) + sel, Nothing)
+        else (String(' ', startCol) + sel, Nothing)
 
     let post =
         if finish < sourceCode.Length then 
