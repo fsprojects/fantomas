@@ -86,3 +86,23 @@ let t = struct (1, 2)
 match t with
 | struct (x, y) -> ()
 """
+
+[<Test>]
+let ``struct tuple type abbreviation, 605`` () =
+    formatSourceString false "type TupleStruct = (struct (string * string))"  config
+    |> prepend newline
+    |> should equal """
+type TupleStruct = (struct (string * string))
+"""
+
+[<Test>]
+let ``struct tuple type abbreviation, sigfile`` () =
+    formatSourceString true """namespace meh
+
+type TupleStruct = (struct (string * string))"""  config
+    |> prepend newline
+    |> should equal """
+namespace meh
+
+type TupleStruct = (struct (string * string))
+"""

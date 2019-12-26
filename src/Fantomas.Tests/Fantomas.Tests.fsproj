@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\netfx.props" />
   <PropertyGroup>
-    <Version>3.1.1</Version>
+    <Version>3.2.0-beta-001</Version>
     <NoWarn>FS0988</NoWarn>
-    <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
@@ -57,6 +57,7 @@
     <Compile Include="ElmishTests.fs" />
     <Compile Include="LambdaTests.fs" />
     <Compile Include="IfThenElseTests.fs" />
+    <Compile Include="FormatConfigConfigurationFileTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />

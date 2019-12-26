@@ -1,5 +1,6 @@
-### 3.1.1 - ???
+### 3.2.0-beta-001 - 12/2019
 * Various bug fixes
+* Added support for settings configuration file. [#354](https://github.com/fsprojects/fantomas/issues/354)
 
 ### 3.1.0 - 11/2019
 * Fix invalid code generated after multiline string when other expressions exist on same line. [#545](https://github.com/fsprojects/fantomas/issues/545)
