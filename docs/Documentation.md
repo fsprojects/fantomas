@@ -292,7 +292,9 @@ C:\
 
 Formatting with `dotnet fantomas MyFile.fs --config "C:\Temp\MyProject"` will first apply the settings in `C:\Temp\fantomas-config.json` and then those of `C:\Temp\MyProject\fantomas-config.json`.
 
-Warnings will be giving if settings in the configuration no longer apply for the current version of Fantomas.
+If the `--config` is used in combination with other settings, the configuration is applied first and then the other arguments.
+
+Warnings will be given if settings in the configuration no longer apply for the current version of Fantomas.
 
 ### Using the API
 

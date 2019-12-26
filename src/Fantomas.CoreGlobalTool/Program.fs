@@ -5,7 +5,6 @@ open System.IO
 open Fantomas
 open Fantomas.FormatConfig
 open Argu
-open System.Reflection
 
 type Arguments =
     | [<Unique>] Recurse
@@ -28,6 +27,7 @@ type Arguments =
     | [<Unique;AltCommandLine("--keepNewlineAfter")>] KeepNewlineAfter
     | [<Unique;AltCommandLine("--maxIfThenElseShortWidth ")>] MaxIfThenElseShortWidth of int
     | [<Unique;AltCommandLine("--strictMode")>] StrictMode
+    | [<Unique;AltCommandLine("-c")>] Config of string
     | [<Unique;AltCommandLine("-v")>] Version
     | [<MainCommand>] Input of string
 with
@@ -54,6 +54,7 @@ with
             | KeepNewlineAfter -> "Keep newlines found after = in let bindings, -> in pattern matching and chained function calls (default = false)."
             | MaxIfThenElseShortWidth _ -> "Set the max length of any expression in an if expression before formatting on multiple lines (default = 40)."
             | StrictMode -> "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
+            | Config _ -> "Use configuration found in file or folder."
             | Version -> "Displays the version of Fantomas"
             | Input _ -> "Input path"
 
@@ -116,6 +117,12 @@ let processSourceFile inFile (tw : TextWriter) config =
     }
     |> Async.RunSynchronously
 
+let private writeInColor consoleColor (content:string) =
+    let currentColor = Console.ForegroundColor
+    Console.ForegroundColor <- consoleColor
+    Console.WriteLine(content)
+    Console.ForegroundColor <- currentColor
+
 [<EntryPoint>]
 let main argv =
     let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
@@ -149,6 +156,22 @@ let main argv =
     let recurse = results.Contains<@ Arguments.Recurse @>
 
     let config =
+        let defaultConfig =
+            results.TryGetResult<@ Arguments.Config @>
+            |> Option.map (fun configPath ->
+                let configResult = CodeFormatter.ReadConfiguration configPath
+                match configResult with
+                | Success s -> s
+                | PartialSuccess (ps, warnings) ->
+                    List.iter (writeInColor ConsoleColor.DarkYellow) warnings
+                    ps
+                | Failure e ->
+                    writeInColor ConsoleColor.DarkRed "Couldn't process one or more Fantomas configuration files, falling back to the default configuration"
+                    writeInColor ConsoleColor.DarkRed (e.ToString())
+                    FormatConfig.Default
+            )
+            |> Option.defaultValue FormatConfig.Default
+
         results.GetAllResults()
         |> List.fold (fun acc msg ->
             match msg with
@@ -159,6 +182,7 @@ let main argv =
             | Fsi _
             | Stdin _
             | Stdout
+            | Config _
             | Version
             | Input _ -> acc
             | Indent i -> { acc with IndentSpaceNum = i }
@@ -174,7 +198,7 @@ let main argv =
             | KeepNewlineAfter -> { acc with KeepNewlineAfter = true }
             | MaxIfThenElseShortWidth m -> { acc with MaxIfThenElseShortWidth = m }
             | StrictMode -> { acc with StrictMode = true }
-        ) FormatConfig.Default
+        ) defaultConfig
 
     let fileToFile (inFile : string) (outFile : string) config =
         try
@@ -255,11 +279,7 @@ let main argv =
                 stdout.Write(File.ReadAllText inFile)
 
     if results.Contains<@ Arguments.Version @> then
-        let version =
-            Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-            |> Option.ofObj
-            |> Option.map (fun a -> a.InformationalVersion)
-            |> Option.defaultValue (Assembly.GetExecutingAssembly().GetName().Version.ToString())
+        let version = CodeFormatter.GetVersion()
         printfn "Fantomas v%s" version
     else
         match inputPath, outputPath with
