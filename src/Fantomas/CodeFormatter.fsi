@@ -31,3 +31,10 @@ type CodeFormatter =
 
     static member MakePos : line:int * col:int -> pos
     static member MakeRange : fileName:string * startLine:int * startCol:int * endLine:int * endCol:int -> range
+
+    /// Returns the version of Fantomas found in the AssemblyInfo
+    static member GetVersion : unit -> string
+
+    /// Accepts a file or a folder and parses the found json to a FormatConfig
+    /// Configuration found in parent folders will be applied first.
+    static member ReadConfiguration : string -> FormatConfigFileParseResult
