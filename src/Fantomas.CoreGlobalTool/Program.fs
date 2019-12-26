@@ -9,24 +9,25 @@ open Fantomas.FormatConfig
 // These are functionalities that should be implemented now or later.
 //
 // Options:
-//  --force                         Print the source unchanged if it cannot be parsed correctly
-//  --help                          Show help
-//  --recurse                       If any given file is a directory, recurse it and process all fs/fsx/fsi files
-//  --stdin                         Read F# source from standard input
-//  --stdout                        Write the formatted source code to standard output
-//  --version                       Print the version of tool.
+//  --force                                  Print the source unchanged if it cannot be parsed correctly
+//  --help                                   Show help
+//  --recurse                                If any given file is a directory, recurse it and process all fs/fsx/fsi files
+//  --stdin                                  Read F# source from standard input
+//  --stdout                                 Write the formatted source code to standard output
+//  --version                                Print the version of tool.
 
 // Preferences:
-//  --indent=[1-10]                 Set number of spaces to use for indentation
-//  --pageWidth=[60-inf]            Set the column where we break to new lines
-//  [+|-]semicolonEOL               Enable/disable semicolons at the end of line (default = false)
-//  [+|-]spaceBeforeArgument        Enable/disable spaces before the first argument (default = true)
-//  [+|-]spaceBeforeColon           Enable/disable spaces before colons (default = false)
-//  [+|-]spaceAfterComma            Enable/disable spaces after commas (default = true)
-//  [+|-]spaceAfterSemiColon        Enable/disable spaces after semicolons (default = true)
-//  [+|-]indentOnTryWith            Enable/disable indentation on try/with block (default = false)
-//  [+|-]reorderOpenDeclaration     Enable/disable indentation on try/with block (default = false)
-//  [+|-]keepNewlineAfter           Enable/disable extra newline when found in sourceText (default = false)
+//  --indent=[1-10]                          Set number of spaces to use for indentation
+//  --pageWidth=[60-inf]                     Set the column where we break to new lines
+//  [+|-]semicolonEOL                        Enable/disable semicolons at the end of line (default = false)
+//  [+|-]spaceBeforeArgument                 Enable/disable spaces before the first argument (default = true)
+//  [+|-]spaceBeforeColon                    Enable/disable spaces before colons (default = false)
+//  [+|-]spaceAfterComma                     Enable/disable spaces after commas (default = true)
+//  [+|-]spaceAfterSemiColon                 Enable/disable spaces after semicolons (default = true)
+//  [+|-]indentOnTryWith                     Enable/disable indentation on try/with block (default = false)
+//  [+|-]reorderOpenDeclaration              Enable/disable indentation on try/with block (default = false)
+//  [+|-]keepNewlineAfter                    Enable/disable extra newline when found in sourceText (default = false)
+//  --config=[path/fantomas-config.json]     Use configuration found in file or folder
 
 let [<Literal>] forceText = "Print the source unchanged if it cannot be parsed correctly."
 let [<Literal>] recurseText = "Process the input folder recursively."
@@ -48,6 +49,7 @@ let [<Literal>] spaceAroundDelimiterText = "Disable spaces after starting and be
 let [<Literal>] keepNewlineAfterText = "Keep newlines found after = in let bindings, -> in pattern matching and chained function calls (default = false)."
 let [<Literal>] maxIfThenElseShortWidthText = "Set the max length of any expression in an if expression before formatting on multiple lines (default = 40)."
 let [<Literal>] strictModeText = "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
+let [<Literal>] configText = "Use configuration found in file or folder."
 
 let time f =
     let sw = Diagnostics.Stopwatch.StartNew()
@@ -108,6 +110,13 @@ let processSourceFile inFile (tw : TextWriter) config =
     }
     |> Async.RunSynchronously
 
+let private writeInColor consoleColor (content:string) =
+    let currentColor = Console.ForegroundColor
+    Console.ForegroundColor <- consoleColor
+    Console.WriteLine(content)
+    Console.ForegroundColor <- currentColor
+
+
 [<EntryPoint>]
 let main _args =
     let recurse = ref false
@@ -135,6 +144,7 @@ let main _args =
     let keepNewlineAfter = ref FormatConfig.Default.KeepNewlineAfter
     let strictMode = ref FormatConfig.Default.StrictMode
     let maxIfThenElseShortWidth = ref FormatConfig.Default.MaxIfThenElseShortWidth
+    let mutable configPath = None
 
     let handleOutput s =
         if not !stdOut then
@@ -259,25 +269,40 @@ let main _args =
            ArgInfo("--noSpaceAroundDelimiter", ArgType.Clear spaceAroundDelimiter, spaceAroundDelimiterText);
            ArgInfo("--keepNewlineAfter", ArgType.Set keepNewlineAfter, keepNewlineAfterText)
            ArgInfo("--maxIfThenElseShortWidth", ArgType.Int handleMaxIfThenElseShortWidth, maxIfThenElseShortWidthText);
-           ArgInfo("--strictMode", ArgType.Set strictMode, strictModeText) |]
+           ArgInfo("--strictMode", ArgType.Set strictMode, strictModeText)
+
+           ArgInfo("--config", ArgType.String (fun v -> configPath <- Some v), configText) |]
 
     ArgParser.Parse(options, handleInput, sprintf "Fantomas <input_path>%sCheck out https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#using-the-command-line-tool for more info." Environment.NewLine )
 
     let config =
-        { FormatConfig.Default with 
-            IndentSpaceNum = !indent;
-            PageWidth = !pageWidth;
-            SemicolonAtEndOfLine = !semicolonEOL; 
-            SpaceBeforeArgument = !spaceBeforeArgument; 
-            SpaceBeforeColon = !spaceBeforeColon;
-            SpaceAfterComma = !spaceAfterComma; 
-            SpaceAfterSemicolon = !spaceAfterSemiColon; 
-            IndentOnTryWith = !indentOnTryWith;
-            ReorderOpenDeclaration = !reorderOpenDeclaration
-            SpaceAroundDelimiter = !spaceAroundDelimiter
-            StrictMode = !strictMode
-            KeepNewlineAfter = !keepNewlineAfter
-            MaxIfThenElseShortWidth = !maxIfThenElseShortWidth }
+        match configPath with
+        | Some cp ->
+            let result = CodeFormatter.ReadConfiguration(cp)
+            match result with
+            | Success s -> s
+            | PartialSuccess (ps, warnings) ->
+                List.iter (writeInColor ConsoleColor.DarkYellow) warnings
+                ps
+            | Failure e ->
+                writeInColor ConsoleColor.DarkRed "Couldn't process one or more Fantomas configuration files, falling back to the default configuration"
+                writeInColor ConsoleColor.DarkRed (e.ToString())
+                FormatConfig.Default
+        | None ->
+            { FormatConfig.Default with
+                IndentSpaceNum = !indent;
+                PageWidth = !pageWidth;
+                SemicolonAtEndOfLine = !semicolonEOL;
+                SpaceBeforeArgument = !spaceBeforeArgument;
+                SpaceBeforeColon = !spaceBeforeColon;
+                SpaceAfterComma = !spaceAfterComma;
+                SpaceAfterSemicolon = !spaceAfterSemiColon;
+                IndentOnTryWith = !indentOnTryWith;
+                ReorderOpenDeclaration = !reorderOpenDeclaration
+                SpaceAroundDelimiter = !spaceAroundDelimiter
+                StrictMode = !strictMode
+                KeepNewlineAfter = !keepNewlineAfter
+                MaxIfThenElseShortWidth = !maxIfThenElseShortWidth }
 
     // Handle inputs via pipeline
     let isKeyAvailable = ref false
