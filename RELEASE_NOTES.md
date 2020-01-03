@@ -1,4 +1,4 @@
-### 3.2.0-beta-001 - 12/2019
+### 3.2.0-beta-002 - 01/2020
 * Various bug fixes
 * Added support for settings configuration file. [#354](https://github.com/fsprojects/fantomas/issues/354)
 
