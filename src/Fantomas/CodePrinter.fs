@@ -367,9 +367,7 @@ and genSigModuleDecl astContext node =
     | SigOpen(s) ->
         !- (sprintf "open %s" s)
     | SigTypes(t::ts) ->
-        let tsx = ts
-
-        genSigTypeDefn { astContext with IsFirstChild = true } t 
+        genSigTypeDefn { astContext with IsFirstChild = true } t
         +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genSigTypeDefn { astContext with IsFirstChild = false })
     | md ->
         failwithf "Unexpected module signature declaration: %O" md
