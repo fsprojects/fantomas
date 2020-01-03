@@ -489,7 +489,13 @@ and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
                 addSpaceAfterGenericConstructBeforeColon
             | _ -> sepNone
 
-        (prefix +> addExtraSpaceBeforeGenericType +> sepColon +> genType astContext false t +> sepEq
+        let genCommentBeforeColon ctx =
+            let hasLineComment = TriviaHelpers.``has line comment before`` t.Range ctx.Trivia
+            (ifElse hasLineComment indent sepNone +> enterNode t.Range) ctx
+
+        (prefix +> addExtraSpaceBeforeGenericType
+        +> genCommentBeforeColon
+        +> sepColon +> genType astContext false t +> sepEq
         +> breakNlnOrAddSpace astContext (hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
     | e ->
 
