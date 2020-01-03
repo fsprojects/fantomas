@@ -164,3 +164,17 @@ let ``invalid key in parent config should return partial success`` () =
     finally
         delete parentConfig
         delete childFolder
+
+[<Test>]
+let ``$schema key should not return warning`` () =
+    let path = mkConfigFromJson None """
+{
+    "$schema": "http://json.schemastore.org/fantomas",
+    "KeepNewlineAfter": true,
+    "PageWidth": 99,
+    "IndentSpaceNum": 2,
+    "IndentOnTryWith": true
+}
+"""
+    let _, warnings = ConfigFile.applyOptionsToConfig FormatConfig.Default path
+    [] == warnings
