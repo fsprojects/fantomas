@@ -6,7 +6,6 @@ open Fantomas.FormatConfig
 open NUnit.Framework
 open System.IO
 open Fantomas.Tests.TestHelper
-open NUnit.Framework
 
 let private getTempFolder () = Path.GetTempPath()
 
@@ -29,7 +28,7 @@ let private mkConfigPath folder =
     match folder with
     | Some folder ->
         let folderPath = Path.Combine(getTempFolder(), folder)
-        Directory.CreateDirectory(folderPath)
+        Directory.CreateDirectory(folderPath) |> ignore
         Path.Combine(folderPath, "fantomas-config.json")
     | None ->
         Path.Combine(getTempFolder(), "fantomas-config.json")
