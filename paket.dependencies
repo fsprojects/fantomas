@@ -9,3 +9,4 @@ nuget FsCheck
 nuget Microsoft.NET.Test.Sdk
 nuget NUnit3TestAdapter
 nuget NunitXml.TestLogger
+nuget Argu

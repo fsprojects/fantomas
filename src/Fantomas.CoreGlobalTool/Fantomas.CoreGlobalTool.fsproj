@@ -10,8 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <Compile Include="Arg.fsi" />
-    <Compile Include="Arg.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
