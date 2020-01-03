@@ -318,3 +318,20 @@ let x =
 
     if true then 1 else 0
 """
+
+[<Test>]
+let ``has symbol in signature requires paren, 564`` () =
+    formatSourceString false """module Bar =
+  let foo (_ : #(int seq)) = 1
+  let meh (_: #seq<int>) = 2
+"""  ({ config with
+            SpaceAfterComma = false
+            SpaceAfterSemicolon = false
+            SpaceAroundDelimiter = false
+            SpaceBeforeArgument = false })
+    |> prepend newline
+    |> should equal """
+module Bar =
+    let foo(_: #(int seq)) = 1
+    let meh(_: #seq<int>) = 2
+"""

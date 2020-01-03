@@ -117,6 +117,8 @@ module List =
         let mutable s = state
         l |> List.takeWhile (fun x -> let (s',r) = f s x in s <- s'; r)
 
+    let isNotEmpty l = (List.isEmpty >> not) l
+
 module Reflection =
     open FSharp.Reflection
     let inline getRecordFields x =
