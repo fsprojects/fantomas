@@ -125,163 +125,167 @@ let private writeInColor consoleColor (content:string) =
 
 [<EntryPoint>]
 let main argv =
-    let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
-    let parser = ArgumentParser.Create<Arguments>(programName = "dotnet fantomas", errorHandler = errorHandler)
-    let results = parser.ParseCommandLine argv
-
-    let outputPath =
-        let hasStdout = results.Contains<@ Arguments.Stdout @>
-        if hasStdout then
-            OutputPath.StdOut
-        else
-            match results.TryGetResult<@ Arguments.Out @> with
-            | Some output -> OutputPath.IO output
-            | None -> OutputPath.Notknown
-
-    let inputPath =
-        let input = results.GetResult<@ Arguments.Input @>
-        let hasStdin = results.Contains<@ Arguments.Stdin @>
-        if hasStdin then
-            InputPath.StdIn input
-        elif Directory.Exists(input) then
-            InputPath.Folder input
-        elif File.Exists input && isFSharpFile input then
-            InputPath.File input
-        else
-            InputPath.Unspecified
-
-    let force = results.Contains<@ Arguments.Force @>
-    let profile = results.Contains<@ Arguments.Profile @>
-    let fsi = results.Contains<@ Arguments.Fsi @>
-    let recurse = results.Contains<@ Arguments.Recurse @>
-
-    let config =
-        let defaultConfig =
-            results.TryGetResult<@ Arguments.Config @>
-            |> Option.map (fun configPath ->
-                let configResult = CodeFormatter.ReadConfiguration configPath
-                match configResult with
-                | Success s -> s
-                | PartialSuccess (ps, warnings) ->
-                    List.iter (writeInColor ConsoleColor.DarkYellow) warnings
-                    ps
-                | Failure e ->
-                    writeInColor ConsoleColor.DarkRed "Couldn't process one or more Fantomas configuration files, falling back to the default configuration"
-                    writeInColor ConsoleColor.DarkRed (e.ToString())
-                    FormatConfig.Default
-            )
-            |> Option.defaultValue FormatConfig.Default
-
-        results.GetAllResults()
-        |> List.fold (fun acc msg ->
-            match msg with
-            | Recurse
-            | Force
-            | Out _
-            | Profile
-            | Fsi _
-            | Stdin _
-            | Stdout
-            | Config _
-            | Version
-            | Input _ -> acc
-            | Indent i -> { acc with IndentSpaceNum = i }
-            | PageWidth pw -> { acc with PageWidth = pw }
-            | SemicolonEOL -> { acc with SemicolonAtEndOfLine = true }
-            | NoSpaceBeforeArgument -> { acc with SpaceBeforeArgument = false }
-            | SpaceBeforeColon -> { acc with SpaceBeforeColon = true }
-            | NoSpaceAfterComma -> { acc with SpaceAfterComma = false }
-            | NoSpaceAfterSemiColon -> { acc with SpaceAfterSemicolon = false }
-            | IndentOnTryWith -> { acc with IndentOnTryWith = true }
-            | ReorderOpenDeclaration -> { acc with ReorderOpenDeclaration = true }
-            | NoSpaceAroundDelimiter -> { acc with SpaceAroundDelimiter = false }
-            | KeepNewlineAfter -> { acc with KeepNewlineAfter = true }
-            | MaxIfThenElseShortWidth m -> { acc with MaxIfThenElseShortWidth = m }
-            | StrictMode -> { acc with StrictMode = true }
-        ) defaultConfig
-
-    let fileToFile (inFile : string) (outFile : string) config =
-        try
-            printfn "Processing %s" inFile
-            use buffer = new StreamWriter(outFile)
-            if profile then
-                File.ReadLines(inFile) |> Seq.length |> printfn "Line count: %i"
-                time (fun () -> processSourceFile inFile buffer config)
-            else
-                processSourceFile inFile buffer config
-            buffer.Flush()
-            printfn "%s has been written." outFile
-        with
-        | exn ->
-            eprintfn "The following exception occurred while formatting %s: %O" inFile exn
-            if force then
-                File.WriteAllText (outFile, File.ReadAllText inFile)
-                printfn "Force writing original contents to %s" outFile
-
-    let stringToFile (s : string) (outFile : string) config =
-        try
-            let fsi = Path.GetExtension(outFile) = ".fsi"
-            if profile then
-                printfn "Line count: %i" (s.Length - s.Replace(Environment.NewLine, "").Length)
-                time (fun () -> processSourceString fsi s (Choice2Of2 outFile) config)
-            else
-                processSourceString fsi s (Choice2Of2 outFile) config
-            printfn "%s has been written." outFile
-        with
-        | exn ->
-            eprintfn "The following exception occurs while formatting stdin: %O" exn
-            if force then
-                File.WriteAllText(outFile, s)
-                printfn "Force writing original contents to %s." outFile
-
-    let stringToStdOut s config =
-        try
-            use buffer = new StringWriter() :> TextWriter
-            processSourceString fsi s (Choice1Of2 buffer) config
-            stdout.Write(buffer.ToString())
-        with
-        | exn ->
-            eprintfn "The following exception occurs while formatting stdin: %O" exn
-            if force then
-                stdout.Write(s)
-
-    let processFile inputFile outputFile config =
-        if inputFile <> outputFile then
-            fileToFile inputFile outputFile config
-        else
-            let content = File.ReadAllText inputFile
-            stringToFile content inputFile config
-
-    let processFolder inputFolder outputFolder =
-        if not <| Directory.Exists(outputFolder) then
-            Directory.CreateDirectory(outputFolder) |> ignore
-        allFiles recurse inputFolder
-        |> Seq.iter (fun i ->
-            // s supposes to have form s1/suffix
-            let suffix = i.Substring(inputFolder.Length + 1)
-            let o =
-                if inputFolder <> outputFolder then
-                    Path.Combine(outputFolder, suffix)
-                else i
-
-            processFile i o config)
-
-    let fileToStdOut inFile config =
-        try
-            use buffer = new StringWriter()
-            // Don't record running time when output formatted content to console
-            processSourceFile inFile buffer config
-            stdout.Write(buffer.ToString())
-        with
-        | exn ->
-            eprintfn "The following exception occurred while formatting %s: %O" inFile exn
-            if force then
-                stdout.Write(File.ReadAllText inFile)
-
-    if results.Contains<@ Arguments.Version @> then
+    match argv with
+    | [|"-v"|] ->
+        // Because Arguments.Input is the main command in Argu it is always expected. In case of the version you should not pass a path to format.
+        // This workaround resolves this limitation.
         let version = CodeFormatter.GetVersion()
         printfn "Fantomas v%s" version
-    else
+        0
+    | _ ->
+        let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
+        let parser = ArgumentParser.Create<Arguments>(programName = "dotnet fantomas", errorHandler = errorHandler)
+        let results = parser.ParseCommandLine argv
+
+        let outputPath =
+            let hasStdout = results.Contains<@ Arguments.Stdout @>
+            if hasStdout then
+                OutputPath.StdOut
+            else
+                match results.TryGetResult<@ Arguments.Out @> with
+                | Some output -> OutputPath.IO output
+                | None -> OutputPath.Notknown
+
+        let inputPath =
+            let input = results.GetResult<@ Arguments.Input @>
+            let hasStdin = results.Contains<@ Arguments.Stdin @>
+            if hasStdin then
+                InputPath.StdIn input
+            elif Directory.Exists(input) then
+                InputPath.Folder input
+            elif File.Exists input && isFSharpFile input then
+                InputPath.File input
+            else
+                InputPath.Unspecified
+
+        let force = results.Contains<@ Arguments.Force @>
+        let profile = results.Contains<@ Arguments.Profile @>
+        let fsi = results.Contains<@ Arguments.Fsi @>
+        let recurse = results.Contains<@ Arguments.Recurse @>
+
+        let config =
+            let defaultConfig =
+                results.TryGetResult<@ Arguments.Config @>
+                |> Option.map (fun configPath ->
+                    let configResult = CodeFormatter.ReadConfiguration configPath
+                    match configResult with
+                    | Success s -> s
+                    | PartialSuccess (ps, warnings) ->
+                        List.iter (writeInColor ConsoleColor.DarkYellow) warnings
+                        ps
+                    | Failure e ->
+                        writeInColor ConsoleColor.DarkRed "Couldn't process one or more Fantomas configuration files, falling back to the default configuration"
+                        writeInColor ConsoleColor.DarkRed (e.ToString())
+                        FormatConfig.Default
+                )
+                |> Option.defaultValue FormatConfig.Default
+
+            results.GetAllResults()
+            |> List.fold (fun acc msg ->
+                match msg with
+                | Recurse
+                | Force
+                | Out _
+                | Profile
+                | Fsi _
+                | Stdin _
+                | Stdout
+                | Config _
+                | Version
+                | Input _ -> acc
+                | Indent i -> { acc with IndentSpaceNum = i }
+                | PageWidth pw -> { acc with PageWidth = pw }
+                | SemicolonEOL -> { acc with SemicolonAtEndOfLine = true }
+                | NoSpaceBeforeArgument -> { acc with SpaceBeforeArgument = false }
+                | SpaceBeforeColon -> { acc with SpaceBeforeColon = true }
+                | NoSpaceAfterComma -> { acc with SpaceAfterComma = false }
+                | NoSpaceAfterSemiColon -> { acc with SpaceAfterSemicolon = false }
+                | IndentOnTryWith -> { acc with IndentOnTryWith = true }
+                | ReorderOpenDeclaration -> { acc with ReorderOpenDeclaration = true }
+                | NoSpaceAroundDelimiter -> { acc with SpaceAroundDelimiter = false }
+                | KeepNewlineAfter -> { acc with KeepNewlineAfter = true }
+                | MaxIfThenElseShortWidth m -> { acc with MaxIfThenElseShortWidth = m }
+                | StrictMode -> { acc with StrictMode = true }
+            ) defaultConfig
+
+        let fileToFile (inFile : string) (outFile : string) config =
+            try
+                printfn "Processing %s" inFile
+                use buffer = new StreamWriter(outFile)
+                if profile then
+                    File.ReadLines(inFile) |> Seq.length |> printfn "Line count: %i"
+                    time (fun () -> processSourceFile inFile buffer config)
+                else
+                    processSourceFile inFile buffer config
+                buffer.Flush()
+                printfn "%s has been written." outFile
+            with
+            | exn ->
+                eprintfn "The following exception occurred while formatting %s: %O" inFile exn
+                if force then
+                    File.WriteAllText (outFile, File.ReadAllText inFile)
+                    printfn "Force writing original contents to %s" outFile
+
+        let stringToFile (s : string) (outFile : string) config =
+            try
+                let fsi = Path.GetExtension(outFile) = ".fsi"
+                if profile then
+                    printfn "Line count: %i" (s.Length - s.Replace(Environment.NewLine, "").Length)
+                    time (fun () -> processSourceString fsi s (Choice2Of2 outFile) config)
+                else
+                    processSourceString fsi s (Choice2Of2 outFile) config
+                printfn "%s has been written." outFile
+            with
+            | exn ->
+                eprintfn "The following exception occurs while formatting stdin: %O" exn
+                if force then
+                    File.WriteAllText(outFile, s)
+                    printfn "Force writing original contents to %s." outFile
+
+        let stringToStdOut s config =
+            try
+                use buffer = new StringWriter() :> TextWriter
+                processSourceString fsi s (Choice1Of2 buffer) config
+                stdout.Write(buffer.ToString())
+            with
+            | exn ->
+                eprintfn "The following exception occurs while formatting stdin: %O" exn
+                if force then
+                    stdout.Write(s)
+
+        let processFile inputFile outputFile config =
+            if inputFile <> outputFile then
+                fileToFile inputFile outputFile config
+            else
+                let content = File.ReadAllText inputFile
+                stringToFile content inputFile config
+
+        let processFolder inputFolder outputFolder =
+            if not <| Directory.Exists(outputFolder) then
+                Directory.CreateDirectory(outputFolder) |> ignore
+            allFiles recurse inputFolder
+            |> Seq.iter (fun i ->
+                // s supposes to have form s1/suffix
+                let suffix = i.Substring(inputFolder.Length + 1)
+                let o =
+                    if inputFolder <> outputFolder then
+                        Path.Combine(outputFolder, suffix)
+                    else i
+
+                processFile i o config)
+
+        let fileToStdOut inFile config =
+            try
+                use buffer = new StringWriter()
+                // Don't record running time when output formatted content to console
+                processSourceFile inFile buffer config
+                stdout.Write(buffer.ToString())
+            with
+            | exn ->
+                eprintfn "The following exception occurred while formatting %s: %O" inFile exn
+                if force then
+                    stdout.Write(File.ReadAllText inFile)
+
         match inputPath, outputPath with
         | InputPath.Unspecified, _ ->
             eprintfn "Input path is missing..."
@@ -301,4 +305,4 @@ let main argv =
         | InputPath.Folder p, OutputPath.StdOut ->
             allFiles recurse p
             |> Seq.iter (fun p -> fileToStdOut p config)
-    0
+        0
