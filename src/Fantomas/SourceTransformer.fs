@@ -116,6 +116,8 @@ let hasParenthesis = function
     | Tuple _ -> true
     | _ -> false
 
+let isArrayOrList = function | ArrayOrList _ -> true | _ -> false
+
 let hasParenInPat = function
     | PatParen _ -> true
     | _ -> false
