@@ -46,3 +46,9 @@ module TriviaHelpers =
             | _ -> false
         )
         |> (List.isEmpty >> not)
+
+    let internal ``has line comment before`` range triviaNodes =
+        triviaNodes
+        |> List.tryFind (fun tv -> tv.Range = range)
+        |> Option.map (fun tv -> tv.ContentBefore |> List.exists (function | Comment(LineCommentOnSingleLine(_)) -> true | _ -> false))
+        |> Option.defaultValue false

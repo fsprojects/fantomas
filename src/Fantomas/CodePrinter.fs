@@ -489,7 +489,13 @@ and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
                 addSpaceAfterGenericConstructBeforeColon
             | _ -> sepNone
 
-        (prefix +> addExtraSpaceBeforeGenericType +> sepColon +> genType astContext false t +> sepEq
+        let genCommentBeforeColon ctx =
+            let hasLineComment = TriviaHelpers.``has line comment before`` t.Range ctx.Trivia
+            (ifElse hasLineComment indent sepNone +> enterNode t.Range) ctx
+
+        (prefix +> addExtraSpaceBeforeGenericType
+        +> genCommentBeforeColon
+        +> sepColon +> genType astContext false t +> sepEq
         +> breakNlnOrAddSpace astContext (hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
     | e ->
 
@@ -1842,7 +1848,13 @@ and genTypeByLookup astContext (t: SynType) = getByLookup t.Range (genType astCo
 and genType astContext outerBracket t =
     let rec loop current =
         match current with
-        | THashConstraint t -> !- "#" +> loop t
+        | THashConstraint t ->
+            let wrapInParentheses f =
+                match t with
+                | TApp(_, ts, isPostfix) when (isPostfix && List.isNotEmpty ts) -> sepOpenT +> f +> sepCloseT
+                | _ -> f
+
+            !- "#" +> wrapInParentheses (loop t)
         | TMeasurePower(t, n) -> loop t -- "^" +> str n
         | TMeasureDivide(t1, t2) -> loop t1 -- " / " +> loop t2
         | TStaticConstant(c,r) -> genConst c r
