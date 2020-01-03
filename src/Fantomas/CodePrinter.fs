@@ -1848,7 +1848,13 @@ and genTypeByLookup astContext (t: SynType) = getByLookup t.Range (genType astCo
 and genType astContext outerBracket t =
     let rec loop current =
         match current with
-        | THashConstraint t -> !- "#" +> loop t
+        | THashConstraint t ->
+            let wrapInParentheses f =
+                match t with
+                | TApp(_, ts, isPostfix) when (isPostfix && List.isNotEmpty ts) -> sepOpenT +> f +> sepCloseT
+                | _ -> f
+
+            !- "#" +> wrapInParentheses (loop t)
         | TMeasurePower(t, n) -> loop t -- "^" +> str n
         | TMeasureDivide(t1, t2) -> loop t1 -- " / " +> loop t2
         | TStaticConstant(c,r) -> genConst c r
