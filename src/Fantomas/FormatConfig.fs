@@ -144,8 +144,9 @@ module internal ConfigFile =
     let private parseOptionsFromJson json =
         let results =
             Regex.Replace(json, "\s|{|}", String.Empty).Split([|','|])
-            |> Array.map (fun line ->
-                let pieces = line.Split([|':'|])
+            |> Array.map (fun line -> line, line.Split([|':'|]))
+            |> Array.filter (fun (_, pieces) -> Array.length pieces = 2 && pieces.[0] <> "$schema")
+            |> Array.map(fun (line, pieces) ->
                 match pieces with
                 | [|FantomasSetting(fs); Number(v)|]
                 | [|FantomasSetting(fs); Boolean(v)|] -> Ok (fs, v)
