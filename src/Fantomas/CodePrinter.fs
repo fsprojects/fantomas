@@ -894,7 +894,6 @@ and genExpr astContext synExpr =
             +> ifElse isArrow (sepArrow +> preserveBreakNln astContext e2) (!- " do" +> indent +> sepNln +> genExpr astContext e2 +> unindent))
 
     | CompExpr(isArrayOrList, e) ->
-        let astContext = { astContext with IsNakedRange = false }
         ifElse isArrayOrList (genExpr astContext e) 
             (sepOpenS +> noIndentBreakNln astContext e 
              +> ifElse (checkBreakForExpr e) (unindent +> sepNln +> sepCloseSFixed) sepCloseS) 
