@@ -367,7 +367,7 @@ and genSigModuleDecl astContext node =
     | SigOpen(s) ->
         !- (sprintf "open %s" s)
     | SigTypes(t::ts) ->
-        genSigTypeDefn { astContext with IsFirstChild = true } t 
+        genSigTypeDefn { astContext with IsFirstChild = true } t
         +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genSigTypeDefn { astContext with IsFirstChild = false })
     | md ->
         failwithf "Unexpected module signature declaration: %O" md
@@ -1716,8 +1716,12 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
         +> colPre sepNln sepNln ms (genMemberSig astContext)
         +> unindent 
 
-    | SigSimple TDSRNone -> 
-        typeName
+    | SigSimple TDSRNone ->
+        let genMembers =
+            match ms with
+            | [] -> sepNone
+            | _ -> !- " with" +> indent +> sepNln +> col sepNln ms (genMemberSig astContext) +> unindent
+        typeName +> genMembers
     | SigSimple(TDSRTypeAbbrev t) ->
         let genTypeAbbrev =
             let needsParenthesis =
@@ -1746,8 +1750,8 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
 
     | SigObjectModel(TCDelegate(FunType ts), _) ->
         typeName +> sepEq +> sepSpace -- "delegate of " +> genTypeList astContext ts
-    | SigObjectModel(_, mds) -> 
-        typeName +> sepEq +> indent +> sepNln 
+    | SigObjectModel(_, mds) ->
+        typeName +> sepEq +> indent +> sepNln
         +> col sepNln mds (genMemberSig astContext) +> unindent
 
     | SigExceptionRepr(SigExceptionDefRepr(ats, px, ao, uc)) ->
