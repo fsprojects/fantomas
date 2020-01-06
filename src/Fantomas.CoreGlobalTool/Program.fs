@@ -6,6 +6,8 @@ open Fantomas
 open Fantomas.FormatConfig
 open Argu
 
+let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli"; |]
+
 type Arguments =
     | [<Unique>] Recurse
     | [<Unique>] Force
@@ -56,7 +58,7 @@ with
             | StrictMode -> "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
             | Config _ -> "Use configuration found in file or folder."
             | Version -> "Displays the version of Fantomas"
-            | Input _ -> "Input path"
+            | Input _ -> sprintf "Input path: can be a folder or file with %s extension." (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
 
 let time f =
     let sw = Diagnostics.Stopwatch.StartNew()
@@ -77,8 +79,6 @@ type OutputPath =
     | IO of string
     | StdOut
     | Notknown
-
-let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli"; |]
 
 let isInExcludedDir (fullPath: string) =
     set [| "obj"; ".fable"; "node_modules" |]
