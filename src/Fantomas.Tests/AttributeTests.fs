@@ -275,3 +275,34 @@ module C =
     [<DllImport("")>]
     extern IntPtr f()
 """
+
+[<Test>]
+let ``keep single newline between attribute and let binding, 611`` () =
+    formatSourceString false """
+open System
+open Library
+
+[<EntryPoint>]
+
+let main argv =
+    printfn "Nice command-line arguments! Here's what JSON.NET has to say about them:" argv
+    |> Array.map getJsonNetJson |> Array.iter (printfn "%s")
+    0 // return an integer exit code
+"""  ({ config with
+            SpaceAfterComma = false
+            SpaceAfterSemicolon = false
+            SpaceAroundDelimiter = false
+            SpaceBeforeArgument = false })
+    |> prepend newline
+    |> should equal """
+open System
+open Library
+
+[<EntryPoint>]
+
+let main argv =
+    printfn "Nice command-line arguments! Here's what JSON.NET has to say about them:" argv
+    |> Array.map getJsonNetJson
+    |> Array.iter(printfn "%s")
+    0 // return an integer exit code
+"""
