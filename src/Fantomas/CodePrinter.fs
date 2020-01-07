@@ -969,7 +969,7 @@ and genExpr astContext synExpr =
              (colAutoNlnSkip0 sepNone es (fun ((s,r), e) ->
                 sepNlnIfTriviaBefore r +>
                 ((!- (sprintf ".%s" s) |> genTrivia r) 
-                    +> ifElse (hasParenthesis e) sepNone sepSpace +> genExpr astContext e)
+                    +> ifElse (hasParenthesis e || isArrayOrList e) sepNone sepSpace +> genExpr astContext e)
                 ))
 
     | DotGetApp(e, es) as appNode ->
@@ -1390,7 +1390,7 @@ and genExpr astContext synExpr =
         !- ident +> genExpr astContext e1  -- " <- "  +> genExpr astContext e2
     | DotNamedIndexedPropertySet(e, ident, e1, e2) ->
        genExpr astContext e -- "." -- ident +> genExpr astContext e1 -- " <- "  +> genExpr astContext e2
-    | DotGet(e, (s,_)) -> 
+    | DotGet(e, (s,_)) ->
         let exprF = genExpr { astContext with IsInsideDotGet = true }
         addParenIfAutoNln e exprF -- (sprintf ".%s" s)
     | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
