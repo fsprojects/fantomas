@@ -126,7 +126,8 @@ let private writeInColor consoleColor (content:string) =
 [<EntryPoint>]
 let main argv =
     match argv with
-    | [|"-v"|] ->
+    | [|"-v"|]
+    | [|"--version"|] ->
         // Because Arguments.Input is the main command in Argu it is always expected. In case of the version you should not pass a path to format.
         // This workaround resolves this limitation.
         let version = CodeFormatter.GetVersion()
