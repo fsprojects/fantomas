@@ -349,7 +349,7 @@ let ``has symbol in signature requires paren, 564`` () =
             SpaceAfterComma = false
             SpaceAfterSemicolon = false
             SpaceAroundDelimiter = false
-            SpaceBeforeParenthesisInLowercaseFunctionDefinition = false })
+            SpaceBeforeParenthesesInLowercaseFunctionDefinition = false })
     |> prepend newline
     |> should equal """
 module Bar =

@@ -53,31 +53,31 @@ let v1 = myFunction().Member
 let v2 = OtherFunction().Member
 """
 
-// Space before parenthesis (a+b) in Uppercase function call
+// Space before parentheses (a+b) in Uppercase function call
 
 [<Test>]
-let ``default config should not add space before parenthesis in uppercase function call`` () =
+let ``default config should not add space before parentheses in uppercase function call`` () =
     formatSourceString false "let value = MyFunction(a+b)" config
     |> should equal """let value = MyFunction(a + b)
 """
 
 [<Test>]
-let ``SpaceBeforeParenthesisArgumentInUppercaseFunctionCall should add space before parenthesis in uppercase function call`` () =
-    formatSourceString false "let value = MyFunction(a+b)" ({ config with SpaceBeforeParenthesisArgumentInUppercaseFunctionCall = true })
+let ``SpaceBeforeParenthesisArgumentInUppercaseFunctionCall should add space before parentheses in uppercase function call`` () =
+    formatSourceString false "let value = MyFunction(a+b)" ({ config with SpaceBeforeParenthesesArgumentInUppercaseFunctionCall = true })
     |> should equal """let value = MyFunction (a + b)
 """
 
-// Space before parenthesis (a+b) in lowercase function call
+// Space before parentheses (a+b) in lowercase function call
 
 [<Test>]
-let ``default config should add space before parenthesis in lowercase function call`` () =
+let ``default config should add space before parentheses in lowercase function call`` () =
     formatSourceString false "let value = myFunction(a+b)" config
     |> should equal """let value = myFunction (a + b)
 """
 
 [<Test>]
-let ``SpaceBeforeParenthesisArgumentInUppercaseFunctionCall = false, should not add space before parenthesis in lowercase function call`` () =
-    formatSourceString false "let value = myFunction(a+b)" ({ config with SpaceBeforeParenthesisArgumentInLowercaseFunctionCall = false })
+let ``SpaceBeforeParenthesisArgumentInUppercaseFunctionCall = false, should not add space before parentheses in lowercase function call`` () =
+    formatSourceString false "let value = myFunction(a+b)" ({ config with SpaceBeforeParenthesesArgumentInLowercaseFunctionCall = false })
     |> should equal """let value = myFunction(a + b)
 """
 
@@ -95,49 +95,6 @@ let ``SpaceBeforeUnitParameterInUppercaseFunctionDefinition config should not ad
     |> should equal """let Value () = x
 """
 
-[<Test>]
-let ``default config should not add space after empty constructor of class`` () =
-    formatSourceString false """type Person () =
-    class end
-"""  config
-    |> prepend newline
-    |> should equal """
-type Person() =
-    class
-    end
-"""
-
-[<Test>]
-let ``default config should not add space after constructor of class`` () =
-    formatSourceString false """type Person (a:int) =
-    class end
-"""  config
-    |> prepend newline
-    |> should equal """
-type Person(a: int) =
-    class
-    end
-"""
-
-[<Test>]
-let ``SpaceBeforeUnitParameterInUppercaseFunctionDefinition should add space after constructor of class`` () =
-    formatSourceString false """type Person () =
-    class end
-
-type Animal (length:int) =
-    class end
-"""  ({ config with SpaceBeforeUnitParameterInUppercaseFunctionDefinition = true })
-    |> prepend newline
-    |> should equal """
-type Person() =
-    class
-    end
-
-type Animal(length: int) =
-    class
-    end
-"""
-
 // Space before unit in lowercase function definition
 
 [<Test>]
@@ -152,30 +109,151 @@ let ``SpaceBeforeUnitParameterInLowercaseFunctionDefinition config should add sp
     |> should equal """let value () = x
 """
 
-// Space before parenthesis (a+b) in Uppercase function definition
+// Space before parentheses (a+b) in Uppercase function definition
 
 [<Test>]
-let ``default config should not add space before parenthesis in uppercase function definition`` () =
+let ``default config should not add space before parentheses in uppercase function definition`` () =
     formatSourceString false "let Value (a:int) = x" config
     |> should equal """let Value(a: int) = x
 """
 
 [<Test>]
-let ``SpaceBeforeParenthesisInUppercaseFunctionDefinition config should add space before parenthesis in uppercase function definition`` () =
-    formatSourceString false "let Value(a:int) = x" ({ config with SpaceBeforeParenthesisInUppercaseFunctionDefinition = true })
+let ``SpaceBeforeParenthesisInUppercaseFunctionDefinition config should add space before parentheses in uppercase function definition`` () =
+    formatSourceString false "let Value(a:int) = x" ({ config with SpaceBeforeParenthesesInUppercaseFunctionDefinition = true })
     |> should equal """let Value (a: int) = x
 """
 
-// Space before parenthesis (a+b) in lowercase function definition
+[<Test>]
+let ``SpaceBeforeParenthesisInUppercaseFunctionDefinition should add space after discrimintation union member`` () =
+    formatSourceString false """match x with
+| Zero() -> ()
+| One (o) -> ()
+| Two(o,t) -> ()
+"""  ({ config with SpaceBeforeParenthesesInUppercaseFunctionDefinition = true })
+    |> prepend newline
+    |> should equal """
+match x with
+| Zero() -> ()
+| One (o) -> ()
+| Two (o, t) -> ()
+"""
+
+// Space before parentheses (a+b) in lowercase function definition
 
 [<Test>]
-let ``default config should not add space before parenthesis in lowercase function definition`` () =
+let ``default config should not add space before parentheses in lowercase function definition`` () =
     formatSourceString false "let value (a:int) = x" config
     |> should equal """let value (a: int) = x
 """
 
 [<Test>]
-let ``SpaceBeforeParenthesisInLowercaseFunctionDefinition = false, should not add space before parenthesis in lowercase function definition`` () =
-    formatSourceString false "let value(a:int) = x" ({ config with SpaceBeforeParenthesisInLowercaseFunctionDefinition = false })
+let ``SpaceBeforeParenthesisInLowercaseFunctionDefinition = false, should not add space before parentheses in lowercase function definition`` () =
+    formatSourceString false "let value(a:int) = x" ({ config with SpaceBeforeParenthesesInLowercaseFunctionDefinition = false })
     |> should equal """let value(a: int) = x
+"""
+
+// Space before unit in Uppercase class definition
+
+[<Test>]
+let ``default config should not add space before unit in uppercase class definition`` () =
+    formatSourceString false "type Person () = class end" config
+    |> should equal """type Person() =
+    class
+    end
+"""
+
+[<Test>]
+let ``SpaceBeforeUnitParameterInUppercaseClassConstructor should add space after constructor of class`` () =
+    formatSourceString false """type Person () =
+    class end
+"""  ({ config with SpaceBeforeUnitParameterInUppercaseClassConstructor = true })
+    |> prepend newline
+    |> should equal """
+type Person () =
+    class
+    end
+"""
+
+// Space before unit in lowercase class definition
+
+[<Test>]
+let ``default config should not add space before unit in lowercase class definition`` () =
+    formatSourceString false """type t () =
+    class
+    end
+"""  config
+    |> prepend newline
+    |> should equal """
+type t() =
+    class
+    end
+"""
+
+[<Test>]
+let ``SpaceBeforeUnitParameterInLowercaseClassConstructor should add space before unit in lowercase class definition`` () =
+    formatSourceString false """type t() =
+    class
+    end
+"""  ({ config with SpaceBeforeUnitParameterInLowercaseClassConstructor = true })
+    |> prepend newline
+    |> should equal """
+type t () =
+    class
+    end
+"""
+
+// Space before parentheses in Uppercase class definition
+
+[<Test>]
+let ``default config should not add space before uppercase constructor of class`` () =
+    formatSourceString false """
+type Animal(length:int) =
+    class end
+"""  config
+    |> prepend newline
+    |> should equal """
+type Animal(length: int) =
+    class
+    end
+"""
+
+[<Test>]
+let ``SpaceBeforeParenthesisParameterInUppercaseClassConstructor should add space before uppercase constructor of class`` () =
+    formatSourceString false """
+type Animal(length:int) =
+    class end
+"""  ({ config with SpaceBeforeParenthesesParameterInUppercaseClassConstructor = true })
+    |> prepend newline
+    |> should equal """
+type Animal (length: int) =
+    class
+    end
+"""
+
+// Space before parentheses in lowercase class definition
+
+[<Test>]
+let ``default config should not add space before lowercase constructor of class`` () =
+    formatSourceString false """
+type animal(length:int) =
+    class end
+"""  config
+    |> prepend newline
+    |> should equal """
+type animal(length: int) =
+    class
+    end
+"""
+
+[<Test>]
+let ``SpaceBeforeParenthesisParameterInUppercaseClassConstructor should add space before lowercase constructor of class`` () =
+    formatSourceString false """
+type animal(length:int) =
+    class end
+"""  ({ config with SpaceBeforeParenthesesParameterInLowercaseClassConstructor = true })
+    |> prepend newline
+    |> should equal """
+type animal (length: int) =
+    class
+    end
 """

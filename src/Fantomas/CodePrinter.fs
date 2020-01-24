@@ -52,9 +52,9 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx:Context) =
     | SynExpr.Ident(_), SynExpr.Ident(_) ->
         true
     | UppercaseSynExpr, Paren(_) ->
-        ctx.Config.SpaceBeforeParenthesisArgumentInUppercaseFunctionCall
+        ctx.Config.SpaceBeforeParenthesesArgumentInUppercaseFunctionCall
     | LowercaseSynExpr, Paren(_) ->
-        ctx.Config.SpaceBeforeParenthesisArgumentInLowercaseFunctionCall
+        ctx.Config.SpaceBeforeParenthesesArgumentInLowercaseFunctionCall
     | _ -> true
 
 let addSpaceBeforeParensInFunDef (functionOrMethod:string) args (ctx:Context) =
@@ -71,8 +71,8 @@ let addSpaceBeforeParensInFunDef (functionOrMethod:string) args (ctx:Context) =
 
     | _, PatParen(_) ->
         if isLastPartUppercase
-        then ctx.Config.SpaceBeforeParenthesisInUppercaseFunctionDefinition
-        else ctx.Config.SpaceBeforeParenthesisInLowercaseFunctionDefinition
+        then ctx.Config.SpaceBeforeParenthesesInUppercaseFunctionDefinition
+        else ctx.Config.SpaceBeforeParenthesesInLowercaseFunctionDefinition
     | (_:string), _ -> not isLastPartUppercase
     | _ -> true
 
@@ -1601,12 +1601,35 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         |> genTrivia tdr.Range
 
     | ObjectModel(TCSimple (TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others), range) ->
+        let foo = s
+
         let interfaceRange =
             match tdk with
             | TCSimple TCInterface -> Some range
             | _ -> None
+
         let astContext = { astContext with InterfaceRange = interfaceRange }
-        typeName +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq
+
+        let addSpaceAfterTypeName ctx =
+            let (unitLower, unitUpper, parenLower, parenUpper) =
+                (ctx.Config.SpaceBeforeUnitParameterInLowercaseClassConstructor,
+                 ctx.Config.SpaceBeforeUnitParameterInUppercaseClassConstructor,
+                 ctx.Config.SpaceBeforeParenthesesParameterInLowercaseClassConstructor,
+                 ctx.Config.SpaceBeforeParenthesesParameterInUppercaseClassConstructor)
+            let isUpper = Char.IsUpper foo.[0]
+
+            match impCtor with
+            | Some(SynMemberDefn.ImplicitCtor(_,_, pats,_,_)) ->
+                let hasNoParameters = isEmptySynSimplePats pats
+                match hasNoParameters, isUpper with
+                | true, true -> unitUpper
+                | true, false -> unitLower
+                | false, true -> parenUpper
+                | false, false -> parenLower
+            | _ -> false
+
+
+        typeName +> ifElseCtx addSpaceAfterTypeName sepSpace sepNone +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq
         +> indent +> sepNln
         +> genTrivia tdr.Range
             (genTypeDefKind tdk

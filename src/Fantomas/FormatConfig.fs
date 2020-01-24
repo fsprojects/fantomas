@@ -17,12 +17,16 @@ type FormatConfig =
       SemicolonAtEndOfLine : bool
       SpaceBeforeUnitArgumentInUppercaseFunctionCall : bool
       SpaceBeforeUnitArgumentInLowercaseFunctionCall : bool
-      SpaceBeforeParenthesisArgumentInUppercaseFunctionCall : bool
-      SpaceBeforeParenthesisArgumentInLowercaseFunctionCall : bool
+      SpaceBeforeParenthesesArgumentInUppercaseFunctionCall : bool
+      SpaceBeforeParenthesesArgumentInLowercaseFunctionCall : bool
       SpaceBeforeUnitParameterInUppercaseFunctionDefinition : bool
       SpaceBeforeUnitParameterInLowercaseFunctionDefinition : bool
-      SpaceBeforeParenthesisInUppercaseFunctionDefinition : bool
-      SpaceBeforeParenthesisInLowercaseFunctionDefinition : bool
+      SpaceBeforeParenthesesInUppercaseFunctionDefinition : bool
+      SpaceBeforeParenthesesInLowercaseFunctionDefinition : bool
+      SpaceBeforeUnitParameterInUppercaseClassConstructor : bool
+      SpaceBeforeUnitParameterInLowercaseClassConstructor : bool
+      SpaceBeforeParenthesesParameterInUppercaseClassConstructor : bool
+      SpaceBeforeParenthesesParameterInLowercaseClassConstructor : bool
       SpaceBeforeColon : bool
       SpaceAfterComma : bool
       SpaceAfterSemicolon : bool
@@ -41,12 +45,16 @@ type FormatConfig =
           SemicolonAtEndOfLine = false
           SpaceBeforeUnitArgumentInUppercaseFunctionCall = false
           SpaceBeforeUnitArgumentInLowercaseFunctionCall = false
-          SpaceBeforeParenthesisArgumentInUppercaseFunctionCall = false
-          SpaceBeforeParenthesisArgumentInLowercaseFunctionCall = true
+          SpaceBeforeParenthesesArgumentInUppercaseFunctionCall = false
+          SpaceBeforeParenthesesArgumentInLowercaseFunctionCall = true
           SpaceBeforeUnitParameterInUppercaseFunctionDefinition = false
           SpaceBeforeUnitParameterInLowercaseFunctionDefinition = false
-          SpaceBeforeParenthesisInUppercaseFunctionDefinition = false
-          SpaceBeforeParenthesisInLowercaseFunctionDefinition = true
+          SpaceBeforeParenthesesInUppercaseFunctionDefinition = false
+          SpaceBeforeParenthesesInLowercaseFunctionDefinition = true
+          SpaceBeforeUnitParameterInUppercaseClassConstructor = false
+          SpaceBeforeUnitParameterInLowercaseClassConstructor = false
+          SpaceBeforeParenthesesParameterInUppercaseClassConstructor = false
+          SpaceBeforeParenthesesParameterInLowercaseClassConstructor = false
           SpaceBeforeColon = false
           SpaceAfterComma = true
           SpaceAfterSemicolon = true
