@@ -17,10 +17,10 @@
     "SpaceBeforeUnitArgumentInLowercaseFunctionCall": {
       "type": "boolean"
     },
-    "SpaceBeforeParenthesisArgumentInUppercaseFunctionCall": {
+    "SpaceBeforeParenthesesArgumentInUppercaseFunctionCall": {
       "type": "boolean"
     },
-    "SpaceBeforeParenthesisArgumentInLowercaseFunctionCall": {
+    "SpaceBeforeParenthesesArgumentInLowercaseFunctionCall": {
       "type": "boolean"
     },
     "SpaceBeforeUnitParameterInUppercaseFunctionDefinition": {
@@ -29,10 +29,22 @@
     "SpaceBeforeUnitParameterInLowercaseFunctionDefinition": {
       "type": "boolean"
     },
-    "SpaceBeforeParenthesisInUppercaseFunctionDefinition": {
+    "SpaceBeforeParenthesesInUppercaseFunctionDefinition": {
       "type": "boolean"
     },
-    "SpaceBeforeParenthesisInLowercaseFunctionDefinition": {
+    "SpaceBeforeParenthesesInLowercaseFunctionDefinition": {
+      "type": "boolean"
+    },
+    "SpaceBeforeUnitParameterInUppercaseClassConstructor":  {
+      "type": "boolean"
+    },
+    "SpaceBeforeUnitParameterInLowercaseClassConstructor": {
+      "type": "boolean"
+    },
+    "SpaceBeforeParenthesesParameterInUppercaseClassConstructor":  {
+      "type": "boolean"
+    },
+    "SpaceBeforeParenthesesParameterInLowercaseClassConstructor": {
       "type": "boolean"
     },
     "SpaceBeforeColon": {

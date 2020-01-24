@@ -1,6 +1,7 @@
 ## Fantomas: How to use
 
 ### Using the command line tool
+
 ---
 
 For the overview how to use the tool, you can type the command
@@ -102,11 +103,220 @@ add semicolons at the end of lines e.g.
 	    Mass = 0.0002858859807 * solarMass }
 	```
 
- ##### `--noSpaceBeforeArgument`
+##### `--noSpaceBeforeArgument`
 
-if being set, no space is inserted before a function name and its first argument. 
-For example, `Seq.filter (fun x -> x > 2)` becomes `Seq.filter(fun x -> x > 2)`. 
-This doesn't affect methods and constructors, e.g. `Console.WriteLine("Hello World")`.
+This option has been split into multiple settings.
+These can be configured by passing a `fantomas-config.json` path to the `--config` flag.
+
+###### `"SpaceBeforeUnitArgumentInUppercaseFunctionCall"`
+
+> default false
+
+Will add a whitespace before `()` argument when the function name starts with an uppercase character. e.g.
+
+```fsharp
+let value = MyFunction()
+let value = person.ToString()
+```
+
+becomes
+
+```fsharp
+let value = MyFunction ()
+let value = person.ToString ()
+```
+
+###### `"SpaceBeforeUnitArgumentInLowercaseFunctionCall"`
+
+Will add a whitespace before `()` argument when the function name starts with a lowercase character. e.g.
+
+> default false
+
+```fsharp
+let value = myFunction()
+```
+
+becomes
+
+```fsharp
+let value = myFunction ()
+```
+
+###### `"SpaceBeforeParenthesesArgumentInUppercaseFunctionCall"`
+
+> default false
+
+Will add a whitespace before an argument wrapped with parentheses when the function name starts with an uppercase character. e.g.
+
+```fsharp
+let value = MyFunction(a+b)
+```
+
+becomes
+
+```fsharp
+let value = MyFunction (a + b)
+```
+
+###### `"SpaceBeforeParenthesesArgumentInLowercaseFunctionCall"`
+
+> default true
+
+Will add a whitespace before an argument wrapped with parentheses when the function name starts with an lowercase character. e.g.
+
+```fsharp
+let value = myFunction(a+b)
+```
+
+becomes
+
+```fsharp
+let value = myFunction (a+b)
+```
+
+To remove the space, set `"SpaceBeforeParenthesesArgumentInLowercaseFunctionCall"` to `false`.
+
+###### `"SpaceBeforeUnitParameterInUppercaseFunctionDefinition"`
+
+> default false
+
+Will add a whitespace before a `()` parameter in a function definition that starts with an uppercase letter. e.g.
+
+```fsharp
+let Value() = x
+``` 
+
+becomes
+
+```fsharp
+let Value () = x
+```
+
+###### `"SpaceBeforeUnitParameterInLowercaseFunctionDefinition"`
+
+> default false
+
+Will add a whitespace before a `()` parameter in a function definition that starts with an lowercase letter. e.g.
+
+```fsharp
+let value() = x
+```
+
+becomes
+
+```fsharp
+let value () = x
+```
+
+###### `"SpaceBeforeParenthesesInUppercaseFunctionDefinition"`
+
+> default false
+
+Will add a whitespace before a parameters wrapped with parentheses that starts with an uppercase letter. e.g.
+
+```fsharp
+let Value(a:int) = x
+```
+
+becomes
+
+```fsharp
+let Value (a:int) = x
+```
+
+###### `SpaceBeforeParenthesesInLowercaseFunctionDefinition":true`
+
+> default true
+
+Will add a whitespace before a parameters wrapped with parentheses that starts with an uppercase letter. e.g.
+
+```fsharp
+let value(a:int) = x
+```
+
+becomes
+
+```fsharp
+let value (a:int) = x
+```
+
+To remove the space, set `"SpaceBeforeParenthesesInLowercaseFunctionDefinition"` to `false`.
+
+###### `"SpaceBeforeUnitParameterInUppercaseClassConstructor"`
+
+> default false
+
+Will add a whitespace before an empty constructor of class definition that starts with an uppercase letter. e.g.
+
+```fsharp
+type Person() =
+    class end
+```
+
+becomes
+
+```fsharp
+type Person () =
+    class
+    end
+```
+
+###### `"SpaceBeforeUnitParameterInLowercaseClassConstructor"`
+
+> default false
+
+Will add a whitespace before an empty constructor of class definition that starts with a lowercase letter. e.g.
+
+```fsharp
+type t() =
+    class
+    end
+```
+
+becomes
+
+```fsharp
+type t () =
+    class
+    end
+```
+
+###### `"SpaceBeforeParenthesesParameterInUppercaseClassConstructor"`
+
+> default false
+
+Will add a whitespace before an non-empty constructor of class definition that starts with an uppercase letter. e.g.
+
+```fsharp
+type Animal(length:int) =
+    class end
+```
+
+becomes
+
+```fsharp
+type Animal (length: int) =
+    class
+    end
+```
+
+###### `"SpaceBeforeParenthesesParameterInLowercaseClassConstructor"`
+
+> default false
+
+Will add a whitespace before an non-empty constructor of class definition that starts with a lowercase letter. e.g.
+
+```fsharp
+type animal(length:int) =
+    class end
+```
+
+becomes
+
+```fsharp
+type animal (length:int) =
+    class end
+```
 
 ##### `--spaceBeforeColon`
 
@@ -257,11 +467,22 @@ Use a JSON configuration file based on a [schema](../src/Fantomas/schema.json) t
 
 A default configuration file would look like
 ```json
-{
+{  
   "IndentSpaceNum":4,
   "PageWidth":120,
   "SemicolonAtEndOfLine":false,
-  "SpaceBeforeArgument":true ,
+  "SpaceBeforeUnitArgumentInUppercaseFunctionCall":false,
+  "SpaceBeforeUnitArgumentInLowercaseFunctionCall":false,
+  "SpaceBeforeParenthesesArgumentInUppercaseFunctionCall":false,
+  "SpaceBeforeParenthesesArgumentInLowercaseFunctionCall":true ,
+  "SpaceBeforeUnitParameterInUppercaseFunctionDefinition":false,
+  "SpaceBeforeUnitParameterInLowercaseFunctionDefinition":false,
+  "SpaceBeforeParenthesesInUppercaseFunctionDefinition":false,
+  "SpaceBeforeParenthesesInLowercaseFunctionDefinition":true ,
+  "SpaceBeforeUnitParameterInUppercaseClassConstructor":false,
+  "SpaceBeforeUnitParameterInLowercaseClassConstructor":false,
+  "SpaceBeforeParenthesesParameterInUppercaseClassConstructor":false,
+  "SpaceBeforeParenthesesParameterInLowercaseClassConstructor":false,
   "SpaceBeforeColon":false,
   "SpaceAfterComma":true ,
   "SpaceAfterSemicolon":true ,
@@ -270,7 +491,7 @@ A default configuration file would look like
   "SpaceAroundDelimiter":true ,
   "KeepNewlineAfter":false,
   "MaxIfThenElseShortWidth":40,
-  "StrictMode":false
+  "StrictMode":false 
 }
 ```
 
