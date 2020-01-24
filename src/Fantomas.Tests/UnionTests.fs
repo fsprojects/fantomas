@@ -258,3 +258,38 @@ type 'a MyGenericType =
     ///
     Foo
 """
+
+[<Test>]
+let ``single case DU should keep a pipe after formatting, 641`` () =
+    formatSourceString false """type Record = { Name: string }
+type DU = | Record
+"""  config
+    |> prepend newline
+    |> should equal """
+type Record =
+    { Name: string }
+
+type DU = | Record
+"""
+
+[<Test>]
+let ``single case DU with fields should not have a pipe after formatting`` () =
+    formatSourceString false """type DU = Record of string"""  config
+    |> prepend newline
+    |> should equal """
+type DU = Record of string
+"""
+
+
+[<Test>]
+let ``single case DU, no UnionCaseFields in signature file`` () =
+    formatSourceString true """namespace meh
+
+type DU = | Record
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace meh
+
+type DU = | Record
+"""
