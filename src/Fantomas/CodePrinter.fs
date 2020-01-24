@@ -1533,12 +1533,8 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         let unionCases =
             match xs with
             | [] -> id
-            | [UnionCase(attrs, _,_,_,uct) as x] when List.isEmpty ms ->
-                let hasNoUnionFields =
-                    match uct with
-                    | UnionCaseType fs -> List.isEmpty fs
-
-                let hasVerticalBar = Option.isSome ao' || not (List.isEmpty attrs) || hasNoUnionFields
+            | [UnionCase(attrs, _,_,_,(UnionCaseType fs)) as x] when List.isEmpty ms ->
+                let hasVerticalBar = Option.isSome ao' || not (List.isEmpty attrs) || List.isEmpty fs
 
                 indent +> sepSpace +> sepNlnBasedOnTrivia
                 +> genTrivia tdr.Range
@@ -1681,8 +1677,8 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
         let unionCases =
             match xs with
             | [] -> id
-            | [UnionCase(attrs, _,_,_,_) as x] when List.isEmpty ms ->
-                let hasVerticalBar = Option.isSome ao' || not (List.isEmpty attrs)
+            | [UnionCase(attrs, _,_,_, (UnionCaseType fs)) as x] when List.isEmpty ms ->
+                let hasVerticalBar = Option.isSome ao' || not (List.isEmpty attrs) || List.isEmpty fs
 
                 indent +> sepSpace +> sepNlnBasedOnTrivia
                 +> genTrivia tdr.Range

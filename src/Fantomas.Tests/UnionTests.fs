@@ -279,3 +279,17 @@ let ``single case DU with fields should not have a pipe after formatting`` () =
     |> should equal """
 type DU = Record of string
 """
+
+
+[<Test>]
+let ``single case DU, no UnionCaseFields in signature file`` () =
+    formatSourceString true """namespace meh
+
+type DU = | Record
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace meh
+
+type DU = | Record
+"""
