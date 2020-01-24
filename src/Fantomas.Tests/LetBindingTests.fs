@@ -330,8 +330,7 @@ let ``line comment before return type info should indent before colon, 565`` () 
 """  ({ config with
             SpaceAfterComma = false
             SpaceAfterSemicolon = false
-            SpaceAroundDelimiter = false
-            SpaceBeforeArgument = false })
+            SpaceAroundDelimiter = false })
     |> prepend newline
     |> should equal """
 module Bar =
@@ -350,7 +349,7 @@ let ``has symbol in signature requires paren, 564`` () =
             SpaceAfterComma = false
             SpaceAfterSemicolon = false
             SpaceAroundDelimiter = false
-            SpaceBeforeArgument = false })
+            SpaceBeforeParenthesisInLowercaseFunctionDefinition = false })
     |> prepend newline
     |> should equal """
 module Bar =

@@ -15,7 +15,14 @@ type FormatConfig =
       /// The column where we break to new lines
       PageWidth : Num
       SemicolonAtEndOfLine : bool
-      SpaceBeforeArgument : bool
+      SpaceBeforeUnitArgumentInUppercaseFunctionCall : bool
+      SpaceBeforeUnitArgumentInLowercaseFunctionCall : bool
+      SpaceBeforeParenthesisArgumentInUppercaseFunctionCall : bool
+      SpaceBeforeParenthesisArgumentInLowercaseFunctionCall : bool
+      SpaceBeforeUnitParameterInUppercaseFunctionDefinition : bool
+      SpaceBeforeUnitParameterInLowercaseFunctionDefinition : bool
+      SpaceBeforeParenthesisInUppercaseFunctionDefinition : bool
+      SpaceBeforeParenthesisInLowercaseFunctionDefinition : bool
       SpaceBeforeColon : bool
       SpaceAfterComma : bool
       SpaceAfterSemicolon : bool
@@ -32,7 +39,14 @@ type FormatConfig =
         { IndentSpaceNum = 4
           PageWidth = 120
           SemicolonAtEndOfLine = false
-          SpaceBeforeArgument = true
+          SpaceBeforeUnitArgumentInUppercaseFunctionCall = false
+          SpaceBeforeUnitArgumentInLowercaseFunctionCall = false
+          SpaceBeforeParenthesisArgumentInUppercaseFunctionCall = false
+          SpaceBeforeParenthesisArgumentInLowercaseFunctionCall = true
+          SpaceBeforeUnitParameterInUppercaseFunctionDefinition = false
+          SpaceBeforeUnitParameterInLowercaseFunctionDefinition = false
+          SpaceBeforeParenthesisInUppercaseFunctionDefinition = false
+          SpaceBeforeParenthesisInLowercaseFunctionDefinition = true
           SpaceBeforeColon = false
           SpaceAfterComma = true
           SpaceAfterSemicolon = true
@@ -42,52 +56,6 @@ type FormatConfig =
           KeepNewlineAfter = false
           MaxIfThenElseShortWidth = 40
           StrictMode = false }
-
-    static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
-                         spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
-                         spaceAfterSemicolon, indentOnTryWith, reorderOpenDeclaration) =
-        { FormatConfig.Default with
-              IndentSpaceNum = indentSpaceNum; 
-              PageWidth = pageWith;
-              SemicolonAtEndOfLine = semicolonAtEndOfLine; 
-              SpaceBeforeArgument = spaceBeforeArgument; 
-              SpaceBeforeColon = spaceBeforeColon;
-              SpaceAfterComma = spaceAfterComma; 
-              SpaceAfterSemicolon = spaceAfterSemicolon; 
-              IndentOnTryWith = indentOnTryWith; 
-              ReorderOpenDeclaration = reorderOpenDeclaration }
-
-    static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
-                         spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
-                         spaceAfterSemicolon, indentOnTryWith, reorderOpenDeclaration, spaceAroundDelimiter) =
-        { FormatConfig.Default with
-              IndentSpaceNum = indentSpaceNum; 
-              PageWidth = pageWith;
-              SemicolonAtEndOfLine = semicolonAtEndOfLine; 
-              SpaceBeforeArgument = spaceBeforeArgument; 
-              SpaceBeforeColon = spaceBeforeColon;
-              SpaceAfterComma = spaceAfterComma; 
-              SpaceAfterSemicolon = spaceAfterSemicolon; 
-              IndentOnTryWith = indentOnTryWith; 
-              ReorderOpenDeclaration = reorderOpenDeclaration;
-              SpaceAroundDelimiter = spaceAroundDelimiter }
-
-    static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
-                         spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
-                         spaceAfterSemicolon, indentOnTryWith, reorderOpenDeclaration, 
-                         spaceAroundDelimiter, strictMode) =
-        { FormatConfig.Default with
-              IndentSpaceNum = indentSpaceNum; 
-              PageWidth = pageWith;
-              SemicolonAtEndOfLine = semicolonAtEndOfLine; 
-              SpaceBeforeArgument = spaceBeforeArgument; 
-              SpaceBeforeColon = spaceBeforeColon;
-              SpaceAfterComma = spaceAfterComma; 
-              SpaceAfterSemicolon = spaceAfterSemicolon; 
-              IndentOnTryWith = indentOnTryWith; 
-              ReorderOpenDeclaration = reorderOpenDeclaration;
-              SpaceAroundDelimiter = spaceAroundDelimiter;
-              StrictMode = strictMode }
 
 type FormatConfigFileParseResult =
     | Success of FormatConfig

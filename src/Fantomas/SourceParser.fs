@@ -1305,3 +1305,19 @@ let getRangesFromAttributesFromSynMemberDefinition (mdn: SynMemberDefn) =
     | SynMemberDefn.Member(mb,_) -> getRangesFromAttributesFromSynBinding mb
     | SynMemberDefn.AbstractSlot(valSig, _, _) -> getRangesFromAttributesFromSynValSig valSig
     | _ -> []
+
+let (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr:SynExpr) =
+    let upperOrLower (v: string) =
+        let isUpper = Seq.tryHead v |> Option.map (Char.IsUpper) |> Option.defaultValue false
+        if isUpper then UppercaseSynExpr else LowercaseSynExpr
+
+    match synExpr with
+    | SynExpr.Ident(Ident(id)) -> upperOrLower id
+
+    | SynExpr.LongIdent(_, LongIdentWithDots lid, _, _) ->
+        let lastPart = Array.tryLast (lid.Split('.'))
+        match lastPart with
+        | Some lp -> upperOrLower lp
+        | None -> LowercaseSynExpr
+
+    | _ -> failwithf "cannot determine if synExpr %A is uppercase or lowercase" synExpr

@@ -58,6 +58,7 @@
     <Compile Include="LambdaTests.fs" />
     <Compile Include="IfThenElseTests.fs" />
     <Compile Include="FormatConfigConfigurationFileTests.fs" />
+    <Compile Include="SpaceBeforeArgumentsAndParametersTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
