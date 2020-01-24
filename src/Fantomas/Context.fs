@@ -336,7 +336,7 @@ let internal sepSpace =
     // TODO: this is inefficient - maybe remember last char written?
     fun (ctx: Context) ->
         if (not ctx.WriterInitModel.IsDummy && let s = dump ctx in s = "" || s.EndsWith " " || s.EndsWith Environment.NewLine) then ctx
-        else (!- " ") ctx      
+        else (!- " ") ctx
 let internal sepNln = !+ ""
 let internal sepStar = !- " * "
 let internal sepEq = !- " ="

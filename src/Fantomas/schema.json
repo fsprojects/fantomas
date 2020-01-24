@@ -11,7 +11,28 @@
     "SemicolonAtEndOfLine": {
       "type": "boolean"
     },
-    "SpaceBeforeArgument": {
+    "SpaceBeforeUnitArgumentInUppercaseFunctionCall": {
+      "type": "boolean"
+    },
+    "SpaceBeforeUnitArgumentInLowercaseFunctionCall": {
+      "type": "boolean"
+    },
+    "SpaceBeforeParenthesisArgumentInUppercaseFunctionCall": {
+      "type": "boolean"
+    },
+    "SpaceBeforeParenthesisArgumentInLowercaseFunctionCall": {
+      "type": "boolean"
+    },
+    "SpaceBeforeUnitParameterInUppercaseFunctionDefinition": {
+      "type": "boolean"
+    },
+    "SpaceBeforeUnitParameterInLowercaseFunctionDefinition": {
+      "type": "boolean"
+    },
+    "SpaceBeforeParenthesisInUppercaseFunctionDefinition": {
+      "type": "boolean"
+    },
+    "SpaceBeforeParenthesisInLowercaseFunctionDefinition": {
       "type": "boolean"
     },
     "SpaceBeforeColon": {
