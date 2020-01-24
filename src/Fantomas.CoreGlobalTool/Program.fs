@@ -122,6 +122,8 @@ let private writeInColor consoleColor (content:string) =
     Console.ForegroundColor <- consoleColor
     Console.WriteLine(content)
     Console.ForegroundColor <- currentColor
+let private writeError = writeInColor ConsoleColor.DarkRed
+let private writeWarning = writeInColor ConsoleColor.DarkYellow
 
 [<EntryPoint>]
 let main argv =
@@ -172,11 +174,11 @@ let main argv =
                     match configResult with
                     | Success s -> s
                     | PartialSuccess (ps, warnings) ->
-                        List.iter (writeInColor ConsoleColor.DarkYellow) warnings
+                        List.iter writeWarning warnings
                         ps
                     | Failure e ->
-                        writeInColor ConsoleColor.DarkRed "Couldn't process one or more Fantomas configuration files, falling back to the default configuration"
-                        writeInColor ConsoleColor.DarkRed (e.ToString())
+                        writeError "Couldn't process one or more Fantomas configuration files, falling back to the default configuration"
+                        writeError (e.ToString())
                         FormatConfig.Default
                 )
                 |> Option.defaultValue FormatConfig.Default
@@ -197,7 +199,11 @@ let main argv =
                 | Indent i -> { acc with IndentSpaceNum = i }
                 | PageWidth pw -> { acc with PageWidth = pw }
                 | SemicolonEOL -> { acc with SemicolonAtEndOfLine = true }
-                | NoSpaceBeforeArgument -> { acc with SpaceBeforeArgument = false }
+                | NoSpaceBeforeArgument ->
+                    writeWarning "--noSpaceBeforeArgument has been split up into multiple settings."
+                    writeWarning "These can be configured using a fantomas-config.json file."
+                    writeWarning "Check out https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md for more information."
+                    acc
                 | SpaceBeforeColon -> { acc with SpaceBeforeColon = true }
                 | NoSpaceAfterComma -> { acc with SpaceAfterComma = false }
                 | NoSpaceAfterSemiColon -> { acc with SpaceAfterSemicolon = false }
