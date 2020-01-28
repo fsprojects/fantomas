@@ -108,12 +108,18 @@ let processSourceString isFsiFile s (tw : Choice<TextWriter, string>) config =
 
 /// Format inFile and write to text writer
 let processSourceFile inFile (tw : TextWriter) config = 
-    let s = File.ReadAllText(inFile)
     async {
-        let! formatted = CodeFormatter.FormatDocumentAsync(inFile, SourceOrigin.SourceString s, config,
-                                                           FakeHelpers.createParsingOptionsFromFile inFile,
-                                                           FakeHelpers.sharedChecker.Value)
-        tw.Write(formatted)
+        let! formatted = inFile |> FakeHelpers.formatFileAsync config
+
+        match formatted with
+        | FakeHelpers.FormatResult.Formatted(_, tempFile) -> 
+            try
+                let content = File.ReadAllText(tempFile)
+                tw.Write(content)
+            finally
+                File.Delete(tempFile)
+        | FakeHelpers.FormatResult.Unchanged(_) -> tw.Write(formatted)
+        | FakeHelpers.FormatResult.Error(_, ex) -> raise <| ex
     }
     |> Async.RunSynchronously
 
