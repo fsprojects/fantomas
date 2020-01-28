@@ -40,9 +40,7 @@ type FormatResult =
 let createParsingOptionsFromFile fileName =
     { FSharpParsingOptions.Default with SourceFiles = [|fileName|] }
 
-let formatFileAsync config (file : string) =
-    let originalContent = File.ReadAllText file
-
+let formatContentAsync config (file: string) (originalContent: string) =
     async {
         try
             let! formattedContent =
@@ -65,6 +63,13 @@ let formatFileAsync config (file : string) =
                 return Unchanged file
         with
         | ex -> return Error(file, ex)
+    }
+
+let formatFileAsync config (file : string) =
+    let originalContent = File.ReadAllText file
+    async {
+        return! originalContent
+        |> formatContentAsync config file
     }
 
 let formatFilesAsync config files =

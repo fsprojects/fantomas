@@ -96,13 +96,24 @@ let rec allFiles isRec path =
 /// Format a source string using given config and write to a text writer
 let processSourceString isFsiFile s (tw : Choice<TextWriter, string>) config =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    async {
-        let! formatted = CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config,
-                                                           FakeHelpers.createParsingOptionsFromFile fileName,
-                                                           FakeHelpers.sharedChecker.Value)
+    let writeResult (formatted: string) =
         match tw with
         | Choice1Of2 tw -> tw.Write(formatted)
         | Choice2Of2 path -> File.WriteAllText(path, formatted)
+
+    async {
+        let! formatted = s |> FakeHelpers.formatContentAsync config fileName
+
+        match formatted with
+        | FakeHelpers.FormatResult.Formatted(_, tempFile) ->
+            try
+                File.ReadAllText(tempFile) |> writeResult
+            finally
+                File.Delete(tempFile)
+        | FakeHelpers.FormatResult.Unchanged(_) ->
+            s |> writeResult
+        | FakeHelpers.FormatResult.Error(_, ex) ->
+            raise <| ex
     }
     |> Async.RunSynchronously
 
@@ -112,14 +123,18 @@ let processSourceFile inFile (tw : TextWriter) config =
         let! formatted = inFile |> FakeHelpers.formatFileAsync config
 
         match formatted with
-        | FakeHelpers.FormatResult.Formatted(_, tempFile) -> 
+        | FakeHelpers.FormatResult.Formatted(_, tempFile) ->
             try
                 let content = File.ReadAllText(tempFile)
                 tw.Write(content)
             finally
                 File.Delete(tempFile)
-        | FakeHelpers.FormatResult.Unchanged(_) -> tw.Write(formatted)
-        | FakeHelpers.FormatResult.Error(_, ex) -> raise <| ex
+        | FakeHelpers.FormatResult.Unchanged(_) ->
+            inFile
+            |> File.ReadAllText
+            |> tw.Write
+        | FakeHelpers.FormatResult.Error(_, ex) ->
+            raise <| ex
     }
     |> Async.RunSynchronously
 
