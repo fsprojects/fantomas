@@ -13,7 +13,7 @@ type Arguments =
     | [<Unique>] Force
     | [<Unique>] Profile
     | [<Unique>] Fsi of string
-    | [<Unique>] Stdin of string
+    | [<Unique>] Stdin
     | [<Unique>] Stdout
     | [<Unique>] Out of string
     | [<Unique>] Indent of int
@@ -41,7 +41,7 @@ with
             | Out _ -> "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only."
             | Profile -> "Print performance profiling information."
             | Fsi _ -> "Read F# source from stdin as F# signatures."
-            | Stdin _ -> "Read F# source from standard input."
+            | Stdin -> "Read F# source from standard input."
             | Stdout -> " Write the formatted source code to standard output."
             | Indent _ -> "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
             | PageWidth _ -> "Set the column where we break to new lines (default = 80). The value should be at least 60."
@@ -123,6 +123,25 @@ let private writeInColor consoleColor (content:string) =
     Console.WriteLine(content)
     Console.ForegroundColor <- currentColor
 
+let [<Literal>] StdInLineLimit = 2000
+
+/// Read input from stdin, with a given line limit until EOF occurs.
+///
+/// Returns **None** if no lines were read or the stdin was not redirected through a pipe
+let readFromStdin (lineLimit:int) =
+    // The original functionality of the stdin flag, only accepted redirected input
+    if not <| Console.IsInputRedirected then
+        None
+    else
+        let isNotEof = (String.IsNullOrEmpty >> not)
+        let input =
+            Seq.initInfinite (fun _ -> Console.ReadLine())
+            |> Seq.truncate lineLimit
+            |> Seq.takeWhile isNotEof
+            |> Seq.reduce (+)
+
+        if String.IsNullOrWhiteSpace input then None else Some(input)
+
 [<EntryPoint>]
 let main argv =
     match argv with
@@ -148,16 +167,25 @@ let main argv =
                 | None -> OutputPath.Notknown
 
         let inputPath =
-            let input = results.GetResult<@ Arguments.Input @>
-            let hasStdin = results.Contains<@ Arguments.Stdin @>
-            if hasStdin then
-                InputPath.StdIn input
-            elif Directory.Exists(input) then
-                InputPath.Folder input
-            elif File.Exists input && isFSharpFile input then
-                InputPath.File input
-            else
-                InputPath.Unspecified
+            let maybeInput = results.TryGetResult<@ Arguments.Input @>
+
+            match maybeInput with
+            | Some input ->
+                if Directory.Exists(input) then
+                    InputPath.Folder input
+                elif File.Exists input && isFSharpFile input then
+                    InputPath.File input
+                else
+                    InputPath.Unspecified
+            | None ->
+                let hasStdin = results.Contains<@ Arguments.Stdin @>
+                if hasStdin then
+                    let stdInInput = readFromStdin StdInLineLimit
+                    match stdInInput with
+                    | Some input -> InputPath.StdIn input
+                    | None -> InputPath.Unspecified
+                else
+                    InputPath.Unspecified
 
         let force = results.Contains<@ Arguments.Force @>
         let profile = results.Contains<@ Arguments.Profile @>
