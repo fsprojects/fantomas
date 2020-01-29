@@ -154,12 +154,13 @@ let readFromStdin (lineLimit:int) =
     if not <| Console.IsInputRedirected then
         None
     else
-        let isNotEof = (String.IsNullOrEmpty >> not)
+        let isNotEof line = not <| isNull line
+        let appendWithNewline acc next = acc + "\n" + next
         let input =
             Seq.initInfinite (fun _ -> Console.ReadLine())
             |> Seq.truncate lineLimit
             |> Seq.takeWhile isNotEof
-            |> Seq.reduce (+)
+            |> Seq.reduce appendWithNewline
 
         if String.IsNullOrWhiteSpace input then None else Some(input)
 
