@@ -32,7 +32,11 @@ This is helpful if the tool fails on some unknown F# constructs.
 
 read input from standard input. This option is convenient to use with piping
 
-    type input.fs | Fantomas --stdin --out output.fs
+    echo 'open System;; let () = printfn "Hello World"' | Fantomas --stdin --out output.fs
+
+or
+
+    cat input.fs | Fantomas --stdin --out output.fs
 
 ##### `--stdout`
 
