@@ -68,8 +68,8 @@ let formatContentAsync config (file: string) (originalContent: string) =
 let formatFileAsync config (file : string) =
     let originalContent = File.ReadAllText file
     async {
-        return! originalContent
-        |> formatContentAsync config file
+        let! formated = originalContent |> formatContentAsync config file
+        return formated
     }
 
 let formatFilesAsync config files =
