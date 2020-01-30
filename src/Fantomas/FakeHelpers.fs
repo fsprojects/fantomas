@@ -33,9 +33,9 @@ exception CodeFormatException of (string * Option<Exception>) array with
         + "\r\n- " + String.Join("\r\n- ", files)
 
 type FormatResult =
-    | Formatted of string * string
-    | Unchanged of string
-    | Error of string * Exception
+    | Formatted of filename : string * formattedContent : string
+    | Unchanged of filename : string
+    | Error of filename : string * formattingError : Exception
 
 let createParsingOptionsFromFile fileName =
     { FSharpParsingOptions.Default with SourceFiles = [|fileName|] }
@@ -53,14 +53,9 @@ let formatContentAsync config (file: string) (originalContent: string) =
                 if not isValid  then
                     raise <| FormatException "Formatted content is not valid F# code"
 
-                let tempFile = Path.GetTempFileName()
-                use output = new StreamWriter(tempFile)
-                output.Write formattedContent
-                output.Flush()
-
-                return Formatted(file, tempFile)
+                return Formatted(filename=file, formattedContent=formattedContent)
             else
-                return Unchanged file
+                return Unchanged(filename=file)
         with
         | ex -> return Error(file, ex)
     }
@@ -77,40 +72,32 @@ let formatFilesAsync config files =
     |> Seq.map (formatFileAsync config)
     |> Async.Parallel
 
-let internal removeTemporaryFiles formatResult =
-    match formatResult with
-    | Formatted(_, tmp) -> File.Delete(tmp)
-    | _ -> ()
-
 let formatCode config files =
     async {
         let! results = files |> formatFilesAsync config
         
-        try
-            // Check for formatting errors:
-            let errors =
-                results
-                |> Array.choose (fun x ->
-                    match x with
-                    | Error(file, ex) -> Some(file, Some(ex))
-                    | _ -> None)
+        // Check for formatting errors:
+        let errors =
+            results
+            |> Array.choose (fun x ->
+                match x with
+                | Error(file, ex) -> Some(file, Some(ex))
+                | _ -> None)
 
-            if not <| Array.isEmpty errors then
-                raise <| CodeFormatException errors
+        if not <| Array.isEmpty errors then
+            raise <| CodeFormatException errors
 
-            // Overwritte source files with formatted content
-            let result =
-                results
-                |> Array.choose (fun x ->
-                    match x with
-                    | Formatted(source, tmp) ->
-                        File.Copy(tmp, source, true)
-                        Some source
-                    | _ -> None)
-                
-            return result
-        finally
-            results |> Array.iter removeTemporaryFiles
+        // Overwritte source files with formatted content
+        let result =
+            results
+            |> Array.choose (fun x ->
+                match x with
+                | Formatted(source, formatted) ->
+                    File.WriteAllText(source, formatted)
+                    Some source
+                | _ -> None)
+
+        return result
     }
 
 
@@ -118,17 +105,14 @@ let checkCode config files =
     async {
         let! results = files |> formatFilesAsync config
 
-        try
-            let changes =
-                results
-                |> Array.choose (fun x ->
-                    match x with
-                    | Formatted(file, _) -> Some(file, None)
-                    | Error(file, ex) -> Some(file, Some(ex))
-                    | _ -> None)
+        let changes =
+            results
+            |> Array.choose (fun x ->
+                match x with
+                | Formatted(file, _) -> Some(file, None)
+                | Error(file, ex) -> Some(file, Some(ex))
+                | _ -> None)
 
-            if Array.exists (function | _, Some(_) -> true | _ -> false) changes then
-                raise <| CodeFormatException changes
-        finally
-            results |> Array.iter removeTemporaryFiles
+        if Array.exists (function | _, Some(_) -> true | _ -> false) changes then
+            raise <| CodeFormatException changes
     }

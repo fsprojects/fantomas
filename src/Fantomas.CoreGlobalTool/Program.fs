@@ -105,11 +105,8 @@ let processSourceString isFsiFile s (tw : Choice<TextWriter, string>) config =
         let! formatted = s |> FakeHelpers.formatContentAsync config fileName
 
         match formatted with
-        | FakeHelpers.FormatResult.Formatted(_, tempFile) ->
-            try
-                File.ReadAllText(tempFile) |> writeResult
-            finally
-                File.Delete(tempFile)
+        | FakeHelpers.FormatResult.Formatted(_, formattedContent) ->
+            formattedContent |> writeResult
         | FakeHelpers.FormatResult.Unchanged(_) ->
             s |> writeResult
         | FakeHelpers.FormatResult.Error(_, ex) ->
@@ -123,12 +120,8 @@ let processSourceFile inFile (tw : TextWriter) config =
         let! formatted = inFile |> FakeHelpers.formatFileAsync config
 
         match formatted with
-        | FakeHelpers.FormatResult.Formatted(_, tempFile) ->
-            try
-                let content = File.ReadAllText(tempFile)
-                tw.Write(content)
-            finally
-                File.Delete(tempFile)
+        | FakeHelpers.FormatResult.Formatted(_, formattedContent) ->
+            tw.Write(formattedContent)
         | FakeHelpers.FormatResult.Unchanged(_) ->
             inFile
             |> File.ReadAllText
