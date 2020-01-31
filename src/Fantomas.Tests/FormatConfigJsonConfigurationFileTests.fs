@@ -1,4 +1,4 @@
-module Fantomas.Tests.FormatConfigConfigurationFileTests
+module Fantomas.Tests.FormatConfigJsonConfigurationFileTests
 
 open System
 open Fantomas
@@ -7,7 +7,8 @@ open NUnit.Framework
 open System.IO
 open Fantomas.Tests.TestHelper
 
-let private getTempFolder () = Path.GetTempPath()
+[<Literal>]
+let private configFileName ="fantomas-config.json"
 
 let private configToJson config =
     Reflection.getRecordFields config
@@ -24,24 +25,12 @@ let private configToJson config =
     |> String.concat ",\n  "
     |> sprintf "{ %s }"
 
-let private mkConfigPath folder =
-    match folder with
-    | Some folder ->
-        let folderPath = Path.Combine(getTempFolder(), folder)
-        Directory.CreateDirectory(folderPath) |> ignore
-        Path.Combine(folderPath, "fantomas-config.json")
-    | None ->
-        Path.Combine(getTempFolder(), "fantomas-config.json")
-let private mkConfig folder fantomasConfig =
-    let file = mkConfigPath folder
-    let content = configToJson fantomasConfig
-    File.WriteAllText(file, content)
-    file
+let private mkConfig subFolder config =
+    let json = configToJson config
+    mkConfigFromContent configFileName subFolder json
 
-let private mkConfigFromJson folder json =
-    let file = mkConfigPath folder
-    File.WriteAllText(file, json)
-    file
+let private mkConfigFromJson subFolder json =
+    mkConfigFromContent configFileName subFolder json
 
 let rec private delete fileOrFolder =
     if File.Exists(fileOrFolder) then
@@ -54,6 +43,10 @@ let rec private delete fileOrFolder =
         ()
 let private uniqueString () = System.Guid.NewGuid().ToString("N")
 
+let private applyOptionsToConfig config path =
+    let json = File.ReadAllText path
+    let options, warnings = JsonConfig.parseOptionsFromJson json
+    FormatConfig.applyOptions(config, options),warnings
 
 [<Test>]
 let ``single configuration file`` () =
@@ -101,24 +94,24 @@ let ``pointing to config in a subfolder should return parent config file as well
 [<Test>]
 let ``simple config file parses valid option`` () =
     let path = mkConfigFromJson None "{\"KeepNewlineAfter\":true}"
-    let config, warnings = ConfigFile.applyOptionsToConfig FormatConfig.Default path
+    let config, warnings = applyOptionsToConfig FormatConfig.Default path
     true == config.KeepNewlineAfter
     [] == warnings
 
 [<Test>]
 let ``keys should not necessarily have quotes to be parsed`` () =
     let path = mkConfigFromJson None "{KeepNewlineAfter:true}"
-    let config, warnings = ConfigFile.applyOptionsToConfig FormatConfig.Default path
+    let config, warnings = applyOptionsToConfig FormatConfig.Default path
     true == config.KeepNewlineAfter
     [] == warnings
 
 [<Test>]
 let ``invalid option returns a warning`` () =
     let path = mkConfigFromJson None "{ \"Foo\": true }"
-    let config, warnings = ConfigFile.applyOptionsToConfig FormatConfig.Default path
+    let config, warnings = applyOptionsToConfig FormatConfig.Default path
     config == FormatConfig.Default
     match warnings with
-    | [ error ] ->
+    | [| error |] ->
         StringAssert.IsMatch("\"Foo\":true is no valid setting for Fantomas v(.*)", error)
     | _ -> fail()
 
@@ -176,5 +169,7 @@ let ``$schema key should not return warning`` () =
     "IndentOnTryWith": true
 }
 """
-    let _, warnings = ConfigFile.applyOptionsToConfig FormatConfig.Default path
+    let options, warnings =
+        File.ReadAllText path
+        |> JsonConfig.parseOptionsFromJson
     [] == warnings
