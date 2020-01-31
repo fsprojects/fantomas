@@ -293,3 +293,14 @@ namespace meh
 
 type DU = | Record
 """
+
+[<Test>]
+let ``enum with back ticks, 626`` () =
+    formatSourceString false """type MyEnum =
+  | ``test-one`` = 0
+"""  config
+    |> prepend newline
+    |> should equal """
+type MyEnum =
+    | ``test-one`` = 0
+"""
