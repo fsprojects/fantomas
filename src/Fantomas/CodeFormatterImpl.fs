@@ -11,6 +11,7 @@ open FSharp.Compiler.SourceCodeServices
 
 open FSharp.Compiler.Text
 open Fantomas
+open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceOrigin
 open Fantomas.SourceParser
@@ -685,8 +686,10 @@ let readConfiguration fileOrFolder =
                     match System.IO.Path.GetFileName(configPath) with
                     | json when (json = ConfigFile.jsonConfigFileName) ->
                         JsonConfig.parseOptionsFromJson configContent
+                    | editorconfig when (editorconfig = ConfigFile.editorConfigFileName) ->
+                        EditorConfig.parseOptionsFromEditorConfig configContent
                     | _ ->
-                        failwithf "Filename is not support."
+                        failwithf "Filename is not supported!"
                 let updatedConfig = FormatConfig.applyOptions(currentConfig, options)
                 let locationAwareWarnings =
                     List.ofArray warningFromConfigPath
