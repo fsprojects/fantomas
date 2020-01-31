@@ -321,7 +321,8 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
             let isIdent =
                 match t.Type with
                 | MainNode("SynExpr.Ident")
-                | MainNode("SynPat.Named") -> true
+                | MainNode("SynPat.Named")
+                | MainNode("Ident") -> true
                 | _ -> false
             isIdent && (t.Range.StartColumn = range.StartColumn || t.Range.StartColumn = range.StartColumn + 1) && t.Range.StartLine = range.StartLine
         )

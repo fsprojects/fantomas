@@ -52,3 +52,11 @@ module TriviaHelpers =
         |> List.tryFind (fun tv -> tv.Range = range)
         |> Option.map (fun tv -> tv.ContentBefore |> List.exists (function | Comment(LineCommentOnSingleLine(_)) -> true | _ -> false))
         |> Option.defaultValue false
+
+    let internal ``has content itself is ident between ticks`` range (triviaNodes: TriviaNode list) =
+        triviaNodes
+        |> List.choose (fun tn ->
+            match tn.Range = range, tn.ContentItself with
+            | true, Some(IdentBetweenTicks(ident)) -> Some ident
+            | _ -> None)
+        |> List.tryHead

@@ -1381,7 +1381,10 @@ and genExpr astContext synExpr =
             (atCurrentColumn formatIfElseExpr) ctx
 
     // At this stage, all symbolic operators have been handled.
-    | OptVar(s, isOpt) -> ifElse isOpt (!- "?") sepNone -- s
+    | OptVar(s, isOpt, ranges) ->
+        // In case s is f.ex `onStrongDiscard.IsNone`, last range is the range of `IsNone`
+        let lastRange = List.tryLast ranges
+        ifElse isOpt (!- "?") sepNone -- s +> opt id lastRange (fun r ctx -> leaveNode r ctx)
     | LongIdentSet(s, e, _) ->
         !- (sprintf "%s <- " s) +> autoIndentNlnByFuture (genExpr astContext e)
     | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
@@ -1811,10 +1814,16 @@ and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs) as node)
     |> genTrivia node.Range
 
 and genEnumCase astContext (EnumCase(ats, px, _, (_,r)) as node) =
-    let genCase =
-        match node with
-        | SynEnumCase.EnumCase(_, ident, c,_,_) ->
-            !- ident.idText +> !- " = " +> genConst c r
+    let genCase (ctx: Context) =
+        let expr =
+            match node with
+            | EnumCase(_, _, identInAST, (c,r)) ->
+                let ident =
+                    match TriviaHelpers.``has content itself is ident between ticks`` r ctx.Trivia with
+                    | Some identBetweenTicks -> identBetweenTicks
+                    | None -> identInAST
+                !- ident +> !- " = " +> genConst c r
+        expr ctx
 
     genPreXmlDoc px
     +> genTriviaBeforeClausePipe node.Range
