@@ -157,7 +157,14 @@ module internal ConfigFile =
 
         let options = Array.choose (function | Ok r -> Some r | _ -> None) results
         let warnings = Array.choose (function | Error r -> Some r | _ -> None) results
-        options, warnings
+
+        let reorderOpenDeclarationWarning =
+            if Array.exists (fun (o,_) -> o = "ReorderOpenDeclaration") options then
+                Array.singleton "ReorderOpenDeclaration will be deprecated in the next major version. Using this feature can lead to compilation errors after formatting."
+            else
+                Array.empty
+
+        options, (Array.concat [|warnings; reorderOpenDeclarationWarning|])
 
     let private formatConfigType = FormatConfig.Default.GetType()
     let applyOptionsToConfig currentConfig path =
