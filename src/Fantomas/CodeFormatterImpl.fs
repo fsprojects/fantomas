@@ -11,7 +11,6 @@ open FSharp.Compiler.SourceCodeServices
 
 open FSharp.Compiler.Text
 open Fantomas
-open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceOrigin
 open Fantomas.SourceParser

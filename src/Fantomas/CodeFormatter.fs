@@ -1,8 +1,5 @@
 ﻿namespace Fantomas
 
-open Fantomas
-open FormatConfig
-
 [<Sealed>]
 type CodeFormatter =
     static member ParseAsync(fileName, source, parsingOptions, checker) =
@@ -35,6 +32,6 @@ type CodeFormatter =
     static member MakeRange(fileName, startLine, startCol, endLine, endCol) = 
         CodeFormatterImpl.makeRange fileName startLine startCol endLine endCol
 
-    static member GetVersion() = Fantomas.Version.fantomasVersion.Value
+    static member GetVersion() = Version.fantomasVersion.Value
 
     static member ReadConfiguration(fileOrFolder) = CodeFormatterImpl.readConfiguration fileOrFolder

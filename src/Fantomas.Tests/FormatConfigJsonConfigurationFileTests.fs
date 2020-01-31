@@ -169,7 +169,7 @@ let ``$schema key should not return warning`` () =
     "IndentOnTryWith": true
 }
 """
-    let options, warnings =
+    let _, warnings =
         File.ReadAllText path
         |> JsonConfig.parseOptionsFromJson
     [] == warnings
