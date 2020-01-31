@@ -36,6 +36,7 @@ type TriviaContent =
     | Newline
     | Directive of directive:string
     | NewlineAfter
+    | CharContent of string
     
 type Trivia =
     { Item: TriviaContent
