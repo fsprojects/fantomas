@@ -42,7 +42,7 @@ let a = 9
         failwith "Expected line comment"
 
 [<Test>]
-let ``Line comment that is alone on the single, preceded by whitespaces`` () =
+let ``line comment that is alone on the single, preceded by whitespaces`` () =
     let source = """    // foo
 let a = 'c'
 """
@@ -52,7 +52,8 @@ let a = 'c'
         |> List.head
     
     match triviaNodes with
-    | [{ ContentBefore = [Comment(LineCommentOnSingleLine(lineComment))];  }] ->
+    | [{ ContentBefore = [Comment(LineCommentOnSingleLine(lineComment))];  }
+       { ContentItself = Some(CharContent("\'c\'")) }] ->
         lineComment == "// foo"
     | _ ->
         failwith "Expected line comment"
@@ -511,4 +512,17 @@ with empty lines"
     | [{ ContentItself = Some(StringContent(sc))
          Type = TriviaNodeType.MainNode("SynExpr.Const") }] ->
         sc == sprintf "\"\"\"%s\"\"\"" multilineString
+    | _ -> fail()
+
+[<Test>]
+let ``char content`` () =
+    let source = "let nulchar = \'\\u0000\'"
+    let trivia =
+        toTrivia source
+        |> List.head
+
+    match trivia with
+    | [{ ContentItself = Some(CharContent("\'\\u0000\'"))
+         Type = TriviaNodeType.MainNode("SynExpr.Const") }] ->
+        pass()
     | _ -> fail()

@@ -90,3 +90,14 @@ module SomeModule =
     let backspace = '\b'
     let formFeed = '\f'
 """
+
+[<Test>]
+let ``escape unicode null, 632`` () =
+    formatSourceString false """let nulchar = '\u0000'
+let nullstr = "\u0000"
+"""  config
+    |> prepend newline
+    |> should equal """
+let nulchar = '\u0000'
+let nullstr = "\u0000"
+"""

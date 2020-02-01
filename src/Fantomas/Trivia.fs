@@ -310,6 +310,10 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     | { Item = Number(_) as number; Range = range  } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> { tn with ContentItself = Some number }) triviaNodes
+
+    | { Item = CharContent(_) as chNode; Range = range } ->
+        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
+        |> updateTriviaNode (fun tn -> { tn with ContentItself = Some chNode }) triviaNodes
         
     | { Item = IdentOperatorAsWord(_) as ifw; Range = range } ->
         findBindingThatStartsWith triviaNodes range.StartColumn range.StartLine
@@ -321,7 +325,8 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
             let isIdent =
                 match t.Type with
                 | MainNode("SynExpr.Ident")
-                | MainNode("SynPat.Named") -> true
+                | MainNode("SynPat.Named")
+                | MainNode("Ident") -> true
                 | _ -> false
             isIdent && (t.Range.StartColumn = range.StartColumn || t.Range.StartColumn = range.StartColumn + 1) && t.Range.StartLine = range.StartLine
         )

@@ -178,3 +178,18 @@ let ``$schema key should not return warning`` () =
 """
     let _, warnings = ConfigFile.applyOptionsToConfig FormatConfig.Default path
     [] == warnings
+
+/// Ok to remove test once ReorderOpenDeclaration is removed from the code-base
+
+[<Test>]
+let ``configuration with ReorderOpenDeclaration should return a warning`` () =
+    let path = mkConfigFromJson None """
+{
+    "ReorderOpenDeclaration": true
+}
+"""
+    let _, warnings = ConfigFile.applyOptionsToConfig FormatConfig.Default path
+    match warnings with
+    | [ reorderWarning ] ->
+        StringAssert.IsMatch("ReorderOpenDeclaration will be deprecated in the next major version. Using this feature can lead to compilation errors after formatting.", reorderWarning)
+    | _ -> fail()
