@@ -402,6 +402,13 @@ let rec private getTriviaFromTokensThemSelves (config: FormatConfig) (allTokens:
             |> List.prependItem foundTrivia
         getTriviaFromTokensThemSelves config allTokens rest info
 
+    | head::rest when (head.TokenInfo.TokenName = "CHAR") ->
+        let range = getRangeBetween head.TokenInfo.TokenName head head
+        let info =
+            Trivia.Create (CharContent(head.Content)) range
+            |> List.prependItem foundTrivia
+        getTriviaFromTokensThemSelves config allTokens rest info
+
     | (_)::rest -> getTriviaFromTokensThemSelves config allTokens rest foundTrivia
     
     | [] -> foundTrivia
