@@ -396,3 +396,23 @@ let ``ident between tickets `` () =
     | [{ Item = IdentBetweenTicks("``/ operator combines paths``") }] ->
         pass()
     | _ -> fail()
+
+[<Test>]
+let ``simple char content`` () =
+    let source = "let someChar = \'s\'"
+    let (tokens,lineCount) = tokenize [] source
+    let trivia = getTriviaFromTokens tokens lineCount
+    match trivia with
+    | [{ Item = CharContent("\'s\'") }] ->
+        pass()
+    | _ -> fail()
+
+[<Test>]
+let ``escaped char content`` () =
+    let source = "let nulchar = \'\\u0000\'"
+    let (tokens,lineCount) = tokenize [] source
+    let trivia = getTriviaFromTokens tokens lineCount
+    match trivia with
+    | [{ Item = CharContent("\'\\u0000\'") }] ->
+        pass()
+    | _ -> fail()

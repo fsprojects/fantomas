@@ -2292,8 +2292,15 @@ and genConst (c:SynConst) (r:range) =
                 !- (sprintf "\"%s\"" escaped)
             <| ctx
     | SynConst.Char(c) ->
-        let escapedChar = Char.escape c
-        !- (sprintf "\'%s\'" escapedChar)
+        fun (ctx: Context) ->
+            let charContentFromTrivia = TriviaHelpers.``get CharContent`` r ctx.Trivia
+            let expr =
+                match charContentFromTrivia with
+                | Some content -> !- content
+                | None ->
+                    let escapedChar = Char.escape c
+                    !- (sprintf "\'%s\'" escapedChar)
+            expr ctx
     | SynConst.Bytes(bytes,_) -> genConstBytes bytes r
     | SynConst.Measure(c, m) ->
         let measure =
@@ -2367,4 +2374,3 @@ and infixOperatorFromTrivia range fallback (ctx: Context) =
         | Some iiw -> !- iiw
         | None ->  !- fallback
     <| ctx
-
