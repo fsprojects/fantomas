@@ -73,6 +73,10 @@ type Identifier =
             xs 
             |> Seq.map (fun x -> if x.idText = MangledGlobalName then "global" else x.idText) 
             |> String.concat "."
+    member x.Ranges =
+        match x with
+        | Id x -> List.singleton x.idRange
+        | LongId xs -> List.map (fun (x:Ident) -> x.idRange) xs
 
 /// Different from (|Ident|), this pattern also accepts keywords
 let inline (|IdentOrKeyword|) (s : Ident) = Id s
@@ -96,6 +100,7 @@ let (|OpName|) (x : Identifier) =
 
 /// Operators in their declaration form
 let (|OpNameFull|) (x : Identifier) =
+    let r = x.Ranges
     let s = x.Text
     let s' = DecompileOpName s
     if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
@@ -107,6 +112,7 @@ let (|OpNameFull|) (x : Identifier) =
         match x with
         | Id(Ident s) | LongId(LongIdent s) -> 
             DecompileOpName s
+    |> fun s -> (s, r)
 
 // Type params
 
@@ -619,10 +625,10 @@ let (|Indexer|) = function
     | SynIndexerArg.One e -> Single e
 
 let (|OptVar|_|) = function
-    | SynExpr.Ident(IdentOrKeyword(OpNameFull s)) ->
-        Some(s, false)
-    | SynExpr.LongIdent(isOpt, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull s), _), _, _) ->
-        Some(s, isOpt)
+    | SynExpr.Ident(IdentOrKeyword(OpNameFull (s,r))) ->
+        Some(s, false, r)
+    | SynExpr.LongIdent(isOpt, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull (s,r)), _), _, _) ->
+        Some(s, isOpt, r)
     | _ -> None
 
 /// This pattern is escaped by using OpName
@@ -912,12 +918,12 @@ let (|PatTyped|_|) = function
     | _ -> None
 
 let (|PatNamed|_|) = function
-    | SynPat.Named(p, IdentOrKeyword(OpNameFull s), _, ao, _) ->
+    | SynPat.Named(p, IdentOrKeyword(OpNameFull (s,_)), _, ao, _) ->
         Some(ao, p, s)
     | _ -> None
 
 let (|PatLongIdent|_|) = function
-    | SynPat.LongIdent(LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull s), _), _, tpso, xs, ao, _) ->
+    | SynPat.LongIdent(LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull (s,_)), _), _, tpso, xs, ao, _) ->
         match xs with
         | SynConstructorArgs.Pats ps -> 
             Some(ao, s, List.map (fun p -> (None, p)) ps, tpso)
@@ -1214,7 +1220,7 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
     | SynMemberSig.ValField(f, _) -> MSValField f
     | SynMemberSig.NestedType(tds, _) -> MSNestedType tds
 
-let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull s), tds, t, vi, _, _, px, ao, _, _)) =
+let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull (s,_)), tds, t, vi, _, _, px, ao, _, _)) =
     (ats, px, ao, s, t, vi, tds)
 
 // Misc
