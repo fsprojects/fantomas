@@ -2,6 +2,8 @@
 
 * Added support for settings configuration file. [#354](https://github.com/fsprojects/fantomas/issues/354)
 * Use Argu for commandline argument parsing. [#607](https://github.com/fsprojects/fantomas/pull/607)
+* Fix Unicode null escapes are *still* unescaped. [#632](https://github.com/fsprojects/fantomas/issues/632)
+* Fix Back ticks are removed from enum. [#626](https://github.com/fsprojects/fantomas/issues/626)
 * Fix Pipe is removed when DU type name matches record type name. [#641](https://github.com/fsprojects/fantomas/issues/641)
 * Fix fantomas --version should return version. [#625](https://github.com/fsprojects/fantomas/issues/625)
 * Fix Extra newline between attribute and function. [#611](https://github.com/fsprojects/fantomas/issues/611)
