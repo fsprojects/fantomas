@@ -144,15 +144,6 @@ let readFromStdin (lineLimit:int) =
 
 [<EntryPoint>]
 let main argv =
-    match argv with
-    | [|"-v"|]
-    | [|"--version"|] ->
-        // Because Arguments.Input is the main command in Argu it is always expected. In case of the version you should not pass a path to format.
-        // This workaround resolves this limitation.
-        let version = CodeFormatter.GetVersion()
-        printfn "Fantomas v%s" version
-        0
-    | _ ->
         let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
         let parser = ArgumentParser.Create<Arguments>(programName = "dotnet fantomas", errorHandler = errorHandler)
         let results = parser.ParseCommandLine argv
@@ -191,6 +182,7 @@ let main argv =
         let profile = results.Contains<@ Arguments.Profile @>
         let fsi = results.Contains<@ Arguments.Fsi @>
         let recurse = results.Contains<@ Arguments.Recurse @>
+        let version = results.TryGetResult<@ Arguments.Version @>
 
         let config =
             let defaultConfig =
@@ -317,23 +309,27 @@ let main argv =
                 if force then
                     stdout.Write(File.ReadAllText inFile)
 
-        match inputPath, outputPath with
-        | InputPath.Unspecified, _ ->
-            eprintfn "Input path is missing..."
-            exit 1
-        | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
-        | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1 config
-        | InputPath.File p1, OutputPath.IO p2 ->
-            processFile p1 p2 config
-        | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
-        | InputPath.StdIn s, OutputPath.IO p ->
-            stringToFile s p config
-        | InputPath.StdIn s, OutputPath.Notknown
-        | InputPath.StdIn s, OutputPath.StdOut ->
-            stringToStdOut s config
-        | InputPath.File p, OutputPath.StdOut ->
-            fileToStdOut p config
-        | InputPath.Folder p, OutputPath.StdOut ->
-            allFiles recurse p
-            |> Seq.iter (fun p -> fileToStdOut p config)
+        if Option.isSome version then
+            let version = CodeFormatter.GetVersion()
+            printfn "Fantomas v%s" version
+        else
+            match inputPath, outputPath with
+            | InputPath.Unspecified, _ ->
+                eprintfn "Input path is missing..."
+                exit 1
+            | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
+            | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1 config
+            | InputPath.File p1, OutputPath.IO p2 ->
+                processFile p1 p2 config
+            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
+            | InputPath.StdIn s, OutputPath.IO p ->
+                stringToFile s p config
+            | InputPath.StdIn s, OutputPath.Notknown
+            | InputPath.StdIn s, OutputPath.StdOut ->
+                stringToStdOut s config
+            | InputPath.File p, OutputPath.StdOut ->
+                fileToStdOut p config
+            | InputPath.Folder p, OutputPath.StdOut ->
+                allFiles recurse p
+                |> Seq.iter (fun p -> fileToStdOut p config)
         0
