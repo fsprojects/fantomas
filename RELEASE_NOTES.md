@@ -1,4 +1,4 @@
-### 3.2.0 - 01/2020
+### 3.2.0 - 02/2020
 
 * Added support for settings configuration file. [#354](https://github.com/fsprojects/fantomas/issues/354)
 * Use Argu for commandline argument parsing. [#607](https://github.com/fsprojects/fantomas/pull/607)
