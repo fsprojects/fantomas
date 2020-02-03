@@ -534,6 +534,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     | IdentOperatorAsWord _
     | IdentBetweenTicks _
     | NewlineAfter
+    | CharContent _
          -> sepNone // don't print here but somewhere in CodePrinter
     | Directive(s)
     | Comment(LineCommentOnSingleLine s) ->

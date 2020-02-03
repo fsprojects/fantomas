@@ -1,0 +1,2 @@
+module Fantomas.Tests.FormatConfigEditorConfigurationFileTests
+

@@ -293,3 +293,58 @@ namespace meh
 
 type DU = | Record
 """
+
+[<Test>]
+let ``enum with back ticks, 626`` () =
+    formatSourceString false """type MyEnum =
+  | ``test-one`` = 0
+"""  config
+    |> prepend newline
+    |> should equal """
+type MyEnum =
+    | ``test-one`` = 0
+"""
+
+[<Test>]
+let ``enum with back ticks in signature file`` () =
+    formatSourceString true """namespace foo
+
+type MyEnum =
+  | ``test-one`` = 0
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace foo
+
+type MyEnum =
+    | ``test-one`` = 0
+"""
+
+[<Test>]
+let ``discriminated union with back ticks`` () =
+    formatSourceString false """type MyEnum =
+  | ``test-one`` of int
+  | ``test-two`` of string
+"""  config
+    |> prepend newline
+    |> should equal """
+type MyEnum =
+    | ``test-one`` of int
+    | ``test-two`` of string
+"""
+
+[<Test>]
+let ``discriminated union with back ticks in signature file`` () =
+    formatSourceString true """namespace foo
+type MyEnum =
+  | ``test-one`` of int
+  | ``test-two`` of string
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace foo
+
+type MyEnum =
+    | ``test-one`` of int
+    | ``test-two`` of string
+"""
