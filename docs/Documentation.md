@@ -398,6 +398,9 @@ saves spaces around delimiters of records, arrays, lists e.g.
  ##### `--reorderOpenDeclaration`
 
 if being set, all open statements in a block will be sorted in the lexicographical order.
+This can lead to compilation problems, see https://github.com/fsprojects/fantomas/issues/645.
+
+For that reason, this setting is considered **deprecated** and will be **removed in the next major version**.
 
 ##### `--strictMode`
 
