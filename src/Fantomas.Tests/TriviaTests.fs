@@ -42,7 +42,7 @@ let a = 9
         failwith "Expected line comment"
 
 [<Test>]
-let ``Line comment that is alone on the single, preceded by whitespaces`` () =
+let ``line comment that is alone on the single, preceded by whitespaces`` () =
     let source = """    // foo
 let a = 'c'
 """
@@ -52,7 +52,8 @@ let a = 'c'
         |> List.head
     
     match triviaNodes with
-    | [{ ContentBefore = [Comment(LineCommentOnSingleLine(lineComment))];  }] ->
+    | [{ ContentBefore = [Comment(LineCommentOnSingleLine(lineComment))];  }
+       { ContentItself = Some(CharContent("\'c\'")) }] ->
         lineComment == "// foo"
     | _ ->
         failwith "Expected line comment"
@@ -327,8 +328,10 @@ elif true then ()"""
         |> List.head
     
     match triviaNodes with
-    | [{ Type = Token {Content = "if"}; ContentBefore = [Keyword({Content = "if"})] }
-       { Type = MainNode("SynExpr.IfThenElse"); ContentBefore = [Keyword({Content = "elif"})]}] ->
+    | [{ Type = Token {Content = "if"}; ContentItself = Some(Keyword({Content = "if"})) }
+       { Type = Token {Content = "then"}; ContentItself = Some(Keyword({Content = "then"})) }
+       { Type = Token {Content = "elif"}; ContentItself = Some(Keyword({Content = "elif"})) }
+       { Type = Token {Content = "then"}; ContentItself = Some(Keyword({Content = "then"})) }] ->
         pass()
     | _ ->
         fail()
@@ -449,4 +452,77 @@ let foo = 42
     match trivia with
     | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
          ContentBefore = [ Directive("#if SOMETHING"); Newline; Directive("#endif") ] }] -> pass()
+    | _ -> fail()
+
+
+[<Test>]
+let ``if keyword should be keyword itself`` () =
+    let source = "if meh then ()"
+    let trivia =
+        toTrivia source
+        |> List.head
+
+    match trivia with
+    | [{ ContentItself = Some(Keyword({ TokenInfo = { TokenName = "IF" } }))
+         Type = TriviaNodeType.Token({ TokenInfo = { TokenName = "IF" } }) }
+       { ContentItself = Some(Keyword({ TokenInfo = { TokenName = "THEN" } }))
+         Type = TriviaNodeType.Token({ TokenInfo = { TokenName = "THEN" } }) }] ->
+        pass()
+    | _ -> fail()
+
+[<Test>]
+let ``string constant with blank lines`` () =
+    let multilineString =
+        "some
+
+content
+
+with empty lines"
+        |> String.normalizeNewLine
+    let source =
+        sprintf "let x = \"%s\"" multilineString
+
+    let trivia =
+        toTrivia source
+        |> List.head
+
+    match trivia with
+    | [{ ContentItself = Some(StringContent(sc))
+         Type = TriviaNodeType.MainNode("SynExpr.Const") }] ->
+        sc == sprintf "\"%s\"" multilineString
+    | _ -> fail()
+
+[<Test>]
+let ``triple quote string constant with blank lines`` () =
+    let multilineString =
+        "some
+
+content
+
+with empty lines"
+        |> String.normalizeNewLine
+    let source =
+        sprintf "let x = \"\"\"%s\"\"\"" multilineString
+
+    let trivia =
+        toTrivia source
+        |> List.head
+
+    match trivia with
+    | [{ ContentItself = Some(StringContent(sc))
+         Type = TriviaNodeType.MainNode("SynExpr.Const") }] ->
+        sc == sprintf "\"\"\"%s\"\"\"" multilineString
+    | _ -> fail()
+
+[<Test>]
+let ``char content`` () =
+    let source = "let nulchar = \'\\u0000\'"
+    let trivia =
+        toTrivia source
+        |> List.head
+
+    match trivia with
+    | [{ ContentItself = Some(CharContent("\'\\u0000\'"))
+         Type = TriviaNodeType.MainNode("SynExpr.Const") }] ->
+        pass()
     | _ -> fail()

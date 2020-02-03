@@ -169,3 +169,21 @@ let ``quotes should be escaped in strict mode`` () =
 """  ({ config with StrictMode = true })
     |> should equal """let formatter = sprintf "%i,\"%s\""
 """
+
+[<Test>]
+let ``empty lines in multi-line string should be preserved, 577`` () =
+    formatSourceString false "
+let x = \"\"\"some
+
+content
+
+with empty lines\"\"\"
+"      config
+    |> prepend newline
+    |> should equal "
+let x = \"\"\"some
+
+content
+
+with empty lines\"\"\"
+"

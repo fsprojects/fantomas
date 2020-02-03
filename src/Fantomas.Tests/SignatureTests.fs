@@ -457,3 +457,24 @@ module Teq =
         val pair<'fst1, 'snd1, 'fst2, 'snd2> : Teq<'fst1, 'fst2>
              -> Teq<'snd1, 'snd2> -> Teq<'fst1 * 'snd1, 'fst2 * 'snd2>
 """
+
+[<Test>]
+let ``intrinsic type extension member signature, 413`` () =
+    formatSourceString true """namespace ExtensionParts
+
+type T =
+    new: unit -> T
+
+type T with
+    member Foo: int
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace ExtensionParts
+
+type T =
+    new: unit -> T
+
+type T with
+    member Foo: int
+"""

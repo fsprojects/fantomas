@@ -3,17 +3,22 @@
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>3.0.0</Version>
+    <Version>3.2.0</Version>
     <Description>Source code formatter for F#</Description>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="RangeHelpers.fs" />
     <Compile Include="AstTransformer.fs" />
     <Compile Include="SourceOrigin.fs" />
+    <Compile Include="Version.fs" />
     <Compile Include="Dbg.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="FormatConfig.fs" />
+    <Compile Include="ConfigFile.fs" />
+    <Compile Include="JsonConfig.fs" />
+    <Compile Include="EditorConfig.fs" />
     <Compile Include="TriviaTypes.fs" />
     <Compile Include="TokenParserBoolExpr.fs" />
     <Compile Include="TriviaHelpers.fs" />
@@ -29,6 +34,7 @@
     <Compile Include="CodeFormatter.fs" />
     <Compile Include="FakeHelpers.fs" />
     <None Include="CodeFormatter.fsx" />
+    <Content Include="schema.json" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

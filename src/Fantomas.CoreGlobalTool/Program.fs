@@ -2,51 +2,63 @@
 
 open System
 open System.IO
-open Microsoft.FSharp.Text.Args
 open Fantomas
 open Fantomas.FormatConfig
+open Argu
 
-// These are functionalities that should be implemented now or later.
-//
-// Options:
-//  --force                         Print the source unchanged if it cannot be parsed correctly
-//  --help                          Show help
-//  --recurse                       If any given file is a directory, recurse it and process all fs/fsx/fsi files
-//  --stdin                         Read F# source from standard input
-//  --stdout                        Write the formatted source code to standard output
-//  --version                       Print the version of tool.
+let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli"; |]
 
-// Preferences:
-//  --indent=[1-10]                 Set number of spaces to use for indentation
-//  --pageWidth=[60-inf]            Set the column where we break to new lines
-//  [+|-]semicolonEOL               Enable/disable semicolons at the end of line (default = false)
-//  [+|-]spaceBeforeArgument        Enable/disable spaces before the first argument (default = true)
-//  [+|-]spaceBeforeColon           Enable/disable spaces before colons (default = false)
-//  [+|-]spaceAfterComma            Enable/disable spaces after commas (default = true)
-//  [+|-]spaceAfterSemiColon        Enable/disable spaces after semicolons (default = true)
-//  [+|-]indentOnTryWith            Enable/disable indentation on try/with block (default = false)
-//  [+|-]reorderOpenDeclaration     Enable/disable indentation on try/with block (default = false)
-//  [+|-]keepNewlineAfter           Enable/disable extra newline when found in sourceText (default = false)
-
-let [<Literal>] forceText = "Print the source unchanged if it cannot be parsed correctly."
-let [<Literal>] recurseText = "Process the input folder recursively."
-let [<Literal>] outputText = "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only."
-let [<Literal>] profileText = "Print performance profiling information."
-let [<Literal>] fsiText = "Read F# source from stdin as F# signatures."
-let [<Literal>] stdInText = "Read F# source from standard input."
-let [<Literal>] stdOutText = " Write the formatted source code to standard output."
-let [<Literal>] indentText = "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
-let [<Literal>] widthText = "Set the column where we break to new lines (default = 80). The value should be at least 60."
-let [<Literal>] semicolonEOLText = "Enable semicolons at the end of line (default = false)."
-let [<Literal>] argumentText = "Disable spaces before the first argument of functions when there are parenthesis (default = true). For methods and constructors, there are never spaces regardless of this option."
-let [<Literal>] colonText = "Enable spaces before colons (default = false)."
-let [<Literal>] commaText = "Disable spaces after commas (default = true)."
-let [<Literal>] semicolonText = "Disable spaces after semicolons (default = true)."
-let [<Literal>] indentOnTryWithText = "Enable indentation on try/with block (default = false)."
-let [<Literal>] reorderOpenDeclarationText = "Enable reordering open declarations (default = false)."
-let [<Literal>] spaceAroundDelimiterText = "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
-let [<Literal>] keepNewlineAfterText = "Keep newlines found after = in let bindings, -> in pattern matching and chained function calls."
-let [<Literal>] strictModeText = "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
+type Arguments =
+    | [<Unique>] Recurse
+    | [<Unique>] Force
+    | [<Unique>] Profile
+    | [<Unique>] Fsi of string
+    | [<Unique>] Stdin
+    | [<Unique>] Stdout
+    | [<Unique>] Out of string
+    | [<Unique>] Indent of int
+    | [<Unique;AltCommandLine("--pageWidth")>] PageWidth of int
+    | [<Unique;AltCommandLine("--semicolonEOL")>] SemicolonEOL
+    | [<Unique;AltCommandLine("--noSpaceBeforeArgument")>] NoSpaceBeforeArgument
+    | [<Unique;AltCommandLine("--spaceBeforeColon")>] SpaceBeforeColon
+    | [<Unique;AltCommandLine("--noSpaceAfterComma")>] NoSpaceAfterComma
+    | [<Unique;AltCommandLine("--noSpaceAfterSemiColon")>] NoSpaceAfterSemiColon
+    | [<Unique;AltCommandLine("--indentOnTryWith")>] IndentOnTryWith
+    | [<Unique;AltCommandLine("--reorderOpenDeclaration")>] ReorderOpenDeclaration
+    | [<Unique;AltCommandLine("--noSpaceAroundDelimiter")>] NoSpaceAroundDelimiter
+    | [<Unique;AltCommandLine("--keepNewlineAfter")>] KeepNewlineAfter
+    | [<Unique;AltCommandLine("--maxIfThenElseShortWidth ")>] MaxIfThenElseShortWidth of int
+    | [<Unique;AltCommandLine("--strictMode")>] StrictMode
+    | [<Unique;AltCommandLine("-c")>] Config of string
+    | [<Unique;AltCommandLine("-v")>] Version
+    | [<MainCommand>] Input of string
+with
+    interface IArgParserTemplate with
+        member s.Usage =
+            match s with
+            | Recurse -> "Process the input folder recursively."
+            | Force -> "Print the source unchanged if it cannot be parsed correctly."
+            | Out _ -> "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only."
+            | Profile -> "Print performance profiling information."
+            | Fsi _ -> "Read F# source from stdin as F# signatures."
+            | Stdin -> "Read F# source from standard input."
+            | Stdout -> " Write the formatted source code to standard output."
+            | Indent _ -> "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
+            | PageWidth _ -> "Set the column where we break to new lines (default = 80). The value should be at least 60."
+            | SemicolonEOL -> "Enable semicolons at the end of line (default = false)."
+            | NoSpaceBeforeArgument -> "Disable spaces before the first argument of functions when there are parenthesis (default = true). For methods and constructors, there are never spaces regardless of this option."
+            | SpaceBeforeColon -> "Enable spaces before colons (default = false)."
+            | NoSpaceAfterComma -> "Disable spaces after commas (default = true)."
+            | NoSpaceAfterSemiColon -> "Disable spaces after semicolons (default = true)."
+            | IndentOnTryWith -> "Enable indentation on try/with block (default = false)."
+            | ReorderOpenDeclaration -> "[DEPRECATED] Enable reordering open declarations (default = false)."
+            | NoSpaceAroundDelimiter -> "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
+            | KeepNewlineAfter -> "Keep newlines found after = in let bindings, -> in pattern matching and chained function calls (default = false)."
+            | MaxIfThenElseShortWidth _ -> "Set the max length of any expression in an if expression before formatting on multiple lines (default = 40)."
+            | StrictMode -> "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
+            | Config _ -> "Use configuration found in file or folder."
+            | Version -> "Displays the version of Fantomas"
+            | Input _ -> sprintf "Input path: can be a folder or file with %s extension." (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
 
 let time f =
     let sw = Diagnostics.Stopwatch.StartNew()
@@ -68,16 +80,18 @@ type OutputPath =
     | StdOut
     | Notknown
 
-let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli"; |]
+let isInExcludedDir (fullPath: string) =
+    set [| "obj"; ".fable"; "node_modules" |]
+    |> Set.map (fun dir -> sprintf "%c%s%c" Path.DirectorySeparatorChar dir Path.DirectorySeparatorChar)
+    |> Set.exists (fun dir -> fullPath.Contains(dir))
 
 let isFSharpFile (s: string) = Set.contains (Path.GetExtension s) extensions
 
 /// Get all appropriate files, either recursively or non-recursively
 let rec allFiles isRec path =
     let searchOption = (if isRec then SearchOption.AllDirectories else SearchOption.TopDirectoryOnly)
-    let obj = sprintf "%cobj%c" Path.DirectorySeparatorChar Path.DirectorySeparatorChar
     Directory.GetFiles(path, "*.*", searchOption)
-    |> Seq.filter (fun f -> isFSharpFile f && not (f.Contains(obj)))
+    |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
 
 /// Format a source string using given config and write to a text writer
 let processSourceString isFsiFile s (tw : Choice<TextWriter, string>) config =
@@ -103,216 +117,219 @@ let processSourceFile inFile (tw : TextWriter) config =
     }
     |> Async.RunSynchronously
 
+let private writeInColor consoleColor (content:string) =
+    let currentColor = Console.ForegroundColor
+    Console.ForegroundColor <- consoleColor
+    Console.WriteLine(content)
+    Console.ForegroundColor <- currentColor
+
+let [<Literal>] StdInLineLimit = 2000
+
+/// Read input from stdin, with a given line limit until EOF occurs.
+///
+/// Returns **None** if no lines were read or the stdin was not redirected through a pipe
+let readFromStdin (lineLimit:int) =
+    // The original functionality of the stdin flag, only accepted redirected input
+    if not <| Console.IsInputRedirected then
+        None
+    else
+        let isNotEof = (String.IsNullOrEmpty >> not)
+        let input =
+            Seq.initInfinite (fun _ -> Console.ReadLine())
+            |> Seq.truncate lineLimit
+            |> Seq.takeWhile isNotEof
+            |> Seq.reduce (+)
+
+        if String.IsNullOrWhiteSpace input then None else Some(input)
+
 [<EntryPoint>]
-let main _args =
-    let recurse = ref false
-    let force = ref true
-    let profile = ref false
+let main argv =
+        let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
+        let parser = ArgumentParser.Create<Arguments>(programName = "dotnet fantomas", errorHandler = errorHandler)
+        let results = parser.ParseCommandLine argv
 
-    let outputPath = ref OutputPath.Notknown
-    let inputPath = ref InputPath.Unspecified
-
-    let fsi = ref false
-    let stdIn = ref false
-    let stdOut = ref false
-
-    let indent = ref FormatConfig.Default.IndentSpaceNum
-    let pageWidth = ref FormatConfig.Default.PageWidth
-
-    let semicolonEOL = ref FormatConfig.Default.SemicolonAtEndOfLine
-    let spaceBeforeArgument = ref FormatConfig.Default.SpaceBeforeArgument
-    let spaceBeforeColon = ref FormatConfig.Default.SpaceBeforeColon
-    let spaceAfterComma = ref FormatConfig.Default.SpaceAfterComma
-    let spaceAfterSemiColon = ref FormatConfig.Default.SpaceAfterSemicolon
-    let indentOnTryWith = ref FormatConfig.Default.IndentOnTryWith
-    let reorderOpenDeclaration = ref FormatConfig.Default.ReorderOpenDeclaration
-    let spaceAroundDelimiter = ref FormatConfig.Default.SpaceAroundDelimiter
-    let keepNewlineAfter = ref FormatConfig.Default.KeepNewlineAfter
-    let strictMode = ref FormatConfig.Default.StrictMode
-
-    let handleOutput s =
-        if not !stdOut then
-            outputPath := OutputPath.IO s
-
-    let handleStdOut() =
-        stdOut := true
-        outputPath := OutputPath.StdOut
-
-    let handleInput s = 
-        if !stdIn then
-            inputPath := InputPath.StdIn s
-        elif Directory.Exists(s) then
-           inputPath := InputPath.Folder s
-        elif File.Exists s && isFSharpFile s then
-           inputPath := InputPath.File s
-        else
-            eprintfn "Input path should be a file or a folder."
-            exit 1
-
-    let handleIndent i = 
-        if i >= 1 && i <= 10 then
-            indent := i
-        else
-            eprintfn "Number of spaces should be between 1 and 10."
-            exit 1
-
-    let handlePageWidth i = 
-        if i >= 60 then
-            pageWidth := i
-        else
-            eprintfn "Page width should be at least 60."
-            exit 1
-
-    let fileToFile (inFile : string) (outFile : string) config =
-        try
-            printfn "Processing %s" inFile
-            use buffer = new StreamWriter(outFile)
-            if !profile then
-                File.ReadLines(inFile) |> Seq.length |> printfn "Line count: %i" 
-                time (fun () -> processSourceFile inFile buffer config)
+        let outputPath =
+            let hasStdout = results.Contains<@ Arguments.Stdout @>
+            if hasStdout then
+                OutputPath.StdOut
             else
+                match results.TryGetResult<@ Arguments.Out @> with
+                | Some output -> OutputPath.IO output
+                | None -> OutputPath.Notknown
+
+        let inputPath =
+            let maybeInput = results.TryGetResult<@ Arguments.Input @>
+
+            match maybeInput with
+            | Some input ->
+                if Directory.Exists(input) then
+                    InputPath.Folder input
+                elif File.Exists input && isFSharpFile input then
+                    InputPath.File input
+                else
+                    InputPath.Unspecified
+            | None ->
+                let hasStdin = results.Contains<@ Arguments.Stdin @>
+                if hasStdin then
+                    let stdInInput = readFromStdin StdInLineLimit
+                    match stdInInput with
+                    | Some input -> InputPath.StdIn input
+                    | None -> InputPath.Unspecified
+                else
+                    InputPath.Unspecified
+
+        let force = results.Contains<@ Arguments.Force @>
+        let profile = results.Contains<@ Arguments.Profile @>
+        let fsi = results.Contains<@ Arguments.Fsi @>
+        let recurse = results.Contains<@ Arguments.Recurse @>
+        let version = results.TryGetResult<@ Arguments.Version @>
+
+        let config =
+            let defaultConfig =
+                results.TryGetResult<@ Arguments.Config @>
+                |> Option.map (fun configPath ->
+                    let configResult = CodeFormatter.ReadConfiguration configPath
+                    match configResult with
+                    | Success s -> s
+                    | PartialSuccess (ps, warnings) ->
+                        List.iter (writeInColor ConsoleColor.DarkYellow) warnings
+                        ps
+                    | Failure e ->
+                        writeInColor ConsoleColor.DarkRed "Couldn't process one or more Fantomas configuration files, falling back to the default configuration"
+                        writeInColor ConsoleColor.DarkRed (e.ToString())
+                        FormatConfig.Default
+                )
+                |> Option.defaultValue FormatConfig.Default
+
+            results.GetAllResults()
+            |> List.fold (fun acc msg ->
+                match msg with
+                | Recurse
+                | Force
+                | Out _
+                | Profile
+                | Fsi _
+                | Stdin _
+                | Stdout
+                | Config _
+                | Version
+                | Input _ -> acc
+                | Indent i -> { acc with IndentSpaceNum = i }
+                | PageWidth pw -> { acc with PageWidth = pw }
+                | SemicolonEOL -> { acc with SemicolonAtEndOfLine = true }
+                | NoSpaceBeforeArgument -> { acc with SpaceBeforeArgument = false }
+                | SpaceBeforeColon -> { acc with SpaceBeforeColon = true }
+                | NoSpaceAfterComma -> { acc with SpaceAfterComma = false }
+                | NoSpaceAfterSemiColon -> { acc with SpaceAfterSemicolon = false }
+                | IndentOnTryWith -> { acc with IndentOnTryWith = true }
+                | ReorderOpenDeclaration ->
+                    writeInColor ConsoleColor.DarkYellow "Warning: ReorderOpenDeclaration will be removed in the next major version. Using this feature can lead to compilation errors after formatting."
+                    { acc with ReorderOpenDeclaration = true }
+                | NoSpaceAroundDelimiter -> { acc with SpaceAroundDelimiter = false }
+                | KeepNewlineAfter -> { acc with KeepNewlineAfter = true }
+                | MaxIfThenElseShortWidth m -> { acc with MaxIfThenElseShortWidth = m }
+                | StrictMode -> { acc with StrictMode = true }
+            ) defaultConfig
+
+        let fileToFile (inFile : string) (outFile : string) config =
+            try
+                printfn "Processing %s" inFile
+                use buffer = new StreamWriter(outFile)
+                if profile then
+                    File.ReadLines(inFile) |> Seq.length |> printfn "Line count: %i"
+                    time (fun () -> processSourceFile inFile buffer config)
+                else
+                    processSourceFile inFile buffer config
+                buffer.Flush()
+                printfn "%s has been written." outFile
+            with
+            | exn ->
+                eprintfn "The following exception occurred while formatting %s: %O" inFile exn
+                if force then
+                    File.WriteAllText (outFile, File.ReadAllText inFile)
+                    printfn "Force writing original contents to %s" outFile
+
+        let stringToFile (s : string) (outFile : string) config =
+            try
+                let fsi = Path.GetExtension(outFile) = ".fsi"
+                if profile then
+                    printfn "Line count: %i" (s.Length - s.Replace(Environment.NewLine, "").Length)
+                    time (fun () -> processSourceString fsi s (Choice2Of2 outFile) config)
+                else
+                    processSourceString fsi s (Choice2Of2 outFile) config
+                printfn "%s has been written." outFile
+            with
+            | exn ->
+                eprintfn "The following exception occurs while formatting stdin: %O" exn
+                if force then
+                    File.WriteAllText(outFile, s)
+                    printfn "Force writing original contents to %s." outFile
+
+        let stringToStdOut s config =
+            try
+                use buffer = new StringWriter() :> TextWriter
+                processSourceString fsi s (Choice1Of2 buffer) config
+                stdout.Write(buffer.ToString())
+            with
+            | exn ->
+                eprintfn "The following exception occurs while formatting stdin: %O" exn
+                if force then
+                    stdout.Write(s)
+
+        let processFile inputFile outputFile config =
+            if inputFile <> outputFile then
+                fileToFile inputFile outputFile config
+            else
+                let content = File.ReadAllText inputFile
+                stringToFile content inputFile config
+
+        let processFolder inputFolder outputFolder =
+            if not <| Directory.Exists(outputFolder) then
+                Directory.CreateDirectory(outputFolder) |> ignore
+            allFiles recurse inputFolder
+            |> Seq.iter (fun i ->
+                // s supposes to have form s1/suffix
+                let suffix = i.Substring(inputFolder.Length + 1)
+                let o =
+                    if inputFolder <> outputFolder then
+                        Path.Combine(outputFolder, suffix)
+                    else i
+
+                processFile i o config)
+
+        let fileToStdOut inFile config =
+            try
+                use buffer = new StringWriter()
+                // Don't record running time when output formatted content to console
                 processSourceFile inFile buffer config
-            buffer.Flush()
-            printfn "%s has been written." outFile
-        with
-        | exn ->
-            eprintfn "The following exception occurred while formatting %s: %O" inFile exn
-            if !force then
-                File.WriteAllText (outFile, File.ReadAllText inFile)
-                printfn "Force writing original contents to %s" outFile
+                stdout.Write(buffer.ToString())
+            with
+            | exn ->
+                eprintfn "The following exception occurred while formatting %s: %O" inFile exn
+                if force then
+                    stdout.Write(File.ReadAllText inFile)
 
-    let fileToStdOut inFile config =
-        try
-            use buffer = new StringWriter()
-            // Don't record running time when output formatted content to console
-            processSourceFile inFile buffer config
-            stdout.Write(buffer.ToString())
-        with
-        | exn ->
-            eprintfn "The following exception occurred while formatting %s: %O" inFile exn
-            if !force then
-                stdout.Write(File.ReadAllText inFile)
-
-    let stringToFile (s : string) (outFile : string) config =
-        try
-            let fsi = Path.GetExtension(outFile) = ".fsi"
-            if !profile then
-                printfn "Line count: %i" (s.Length - s.Replace(Environment.NewLine, "").Length)
-                time (fun () -> processSourceString fsi s (Choice2Of2 outFile) config)
-            else
-                processSourceString fsi s (Choice2Of2 outFile) config
-            printfn "%s has been written." outFile
-        with
-        | exn ->
-            eprintfn "The following exception occurs while formatting stdin: %O" exn
-            if !force then
-                File.WriteAllText(outFile, s)
-                printfn "Force writing original contents to %s." outFile
-
-    let stringToStdOut s config =
-        try
-            use buffer = new StringWriter() :> TextWriter
-            processSourceString !fsi s (Choice1Of2 buffer) config
-            stdout.Write(buffer.ToString())
-        with
-        | exn ->
-            eprintfn "The following exception occurs while formatting stdin: %O" exn
-            if !force then
-                stdout.Write(s)
-
-    let options =
-        [| ArgInfo("--recurse", ArgType.Set recurse, recurseText);
-           ArgInfo("--force", ArgType.Set force, forceText);
-           ArgInfo("--profile", ArgType.Set profile, profileText);
-
-           ArgInfo("--fsi", ArgType.Set fsi, fsiText);
-           ArgInfo("--stdin", ArgType.Set stdIn, stdInText);
-           ArgInfo("--stdout", ArgType.Unit handleStdOut, stdOutText);
-           
-           // --out doesn't matter if one specifies --stdout
-           ArgInfo("--out", ArgType.String handleOutput, outputText);
-
-           ArgInfo("--indent", ArgType.Int handleIndent, indentText);
-           ArgInfo("--pageWidth", ArgType.Int handlePageWidth, widthText);
-           
-           ArgInfo("--semicolonEOL", ArgType.Set semicolonEOL, semicolonEOLText);
-           ArgInfo("--noSpaceBeforeArgument", ArgType.Clear spaceBeforeArgument, argumentText);
-           ArgInfo("--spaceBeforeColon", ArgType.Set spaceBeforeColon, colonText);
-           ArgInfo("--noSpaceAfterComma", ArgType.Clear spaceAfterComma, commaText);
-           ArgInfo("--noSpaceAfterSemiColon", ArgType.Clear spaceAfterSemiColon, semicolonText);
-           ArgInfo("--indentOnTryWith", ArgType.Set indentOnTryWith, indentOnTryWithText);
-           ArgInfo("--reorderOpenDeclaration", ArgType.Set reorderOpenDeclaration, reorderOpenDeclarationText);
-
-           ArgInfo("--noSpaceAroundDelimiter", ArgType.Clear spaceAroundDelimiter, spaceAroundDelimiterText);
-           ArgInfo("--keepNewlineAfter", ArgType.Set keepNewlineAfter, keepNewlineAfterText);
-           ArgInfo("--strictMode", ArgType.Set strictMode, strictModeText) |]
-
-    ArgParser.Parse(options, handleInput, sprintf "Fantomas <input_path>%sCheck out https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#using-the-command-line-tool for more info." Environment.NewLine )
-
-    let config =
-        { FormatConfig.Default with 
-            IndentSpaceNum = !indent;
-            PageWidth = !pageWidth;
-            SemicolonAtEndOfLine = !semicolonEOL; 
-            SpaceBeforeArgument = !spaceBeforeArgument; 
-            SpaceBeforeColon = !spaceBeforeColon;
-            SpaceAfterComma = !spaceAfterComma; 
-            SpaceAfterSemicolon = !spaceAfterSemiColon; 
-            IndentOnTryWith = !indentOnTryWith;
-            ReorderOpenDeclaration = !reorderOpenDeclaration
-            SpaceAroundDelimiter = !spaceAroundDelimiter
-            StrictMode = !strictMode
-            KeepNewlineAfter = !keepNewlineAfter }
-
-    // Handle inputs via pipeline
-    let isKeyAvailable = ref false
-
-    try
-        isKeyAvailable := Console.KeyAvailable
-    with
-    | :? InvalidOperationException ->
-        // Currently only support UTF8
-        Console.InputEncoding <- Text.Encoding.UTF8
-        inputPath := InputPath.StdIn(stdin.ReadToEnd())
-
-    let processFile inputFile outputFile config =
-        if inputFile <> outputFile then
-            fileToFile inputFile outputFile config
+        if Option.isSome version then
+            let version = CodeFormatter.GetVersion()
+            printfn "Fantomas v%s" version
         else
-            let content = File.ReadAllText inputFile
-            stringToFile content inputFile config
-            
-    let processFolder inputFolder outputFolder =
-        if not <| Directory.Exists(outputFolder) then
-            Directory.CreateDirectory(outputFolder) |> ignore
-        allFiles !recurse inputFolder
-        |> Seq.iter (fun i ->
-            // s supposes to have form s1/suffix
-            let suffix = i.Substring(inputFolder.Length + 1)
-            let o =
-                if inputFolder <> outputFolder then
-                    Path.Combine(outputFolder, suffix)
-                else i
-
-            processFile i o config)
-
-    match !inputPath, !outputPath with
-    | InputPath.Unspecified, _ ->
-        eprintfn "Input path is missing..."
-        exit 1
-    | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
-    | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1 config
-    | InputPath.File p1, OutputPath.IO p2 ->
-        processFile p1 p2 config
-    | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
-    | InputPath.StdIn s, OutputPath.IO p ->
-        stringToFile s p config
-    | InputPath.StdIn s, OutputPath.Notknown
-    | InputPath.StdIn s, OutputPath.StdOut ->
-        stringToStdOut s config
-    | InputPath.File p, OutputPath.StdOut -> 
-        fileToStdOut p config
-    | InputPath.Folder p, OutputPath.StdOut ->
-        allFiles !recurse p
-        |> Seq.iter (fun p -> fileToStdOut p config)
-    0
+            match inputPath, outputPath with
+            | InputPath.Unspecified, _ ->
+                eprintfn "Input path is missing..."
+                exit 1
+            | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
+            | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1 config
+            | InputPath.File p1, OutputPath.IO p2 ->
+                processFile p1 p2 config
+            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
+            | InputPath.StdIn s, OutputPath.IO p ->
+                stringToFile s p config
+            | InputPath.StdIn s, OutputPath.Notknown
+            | InputPath.StdIn s, OutputPath.StdOut ->
+                stringToStdOut s config
+            | InputPath.File p, OutputPath.StdOut ->
+                fileToStdOut p config
+            | InputPath.Folder p, OutputPath.StdOut ->
+                allFiles recurse p
+                |> Seq.iter (fun p -> fileToStdOut p config)
+        0

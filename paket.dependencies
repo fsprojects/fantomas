@@ -3,9 +3,10 @@ source https://www.nuget.org/api/v2/
 storage: none
 
 nuget FSharp.Core
-nuget FSharp.Compiler.Service 32.0.0
+nuget FSharp.Compiler.Service 33.0.0
 nuget FsUnit
 nuget FsCheck
 nuget Microsoft.NET.Test.Sdk
 nuget NUnit3TestAdapter
 nuget NunitXml.TestLogger
+nuget Argu

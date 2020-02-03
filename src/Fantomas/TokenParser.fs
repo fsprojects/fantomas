@@ -202,7 +202,7 @@ let private getContentFromTokens tokens =
     |> List.map (fun t -> t.Content)
     |> String.concat String.Empty
     
-let private keywordTrivia = ["IF"; "ELIF"; "OVERRIDE"; "MEMBER"; "DEFAULT"; "KEYWORD_STRING"; "QMARK"]
+let private keywordTrivia = ["IF"; "ELIF"; "ELSE"; "THEN"; "OVERRIDE"; "MEMBER"; "DEFAULT"; "KEYWORD_STRING"; "QMARK"]
 let private numberTrivia = ["UINT8";"INT8";"UINT16";"INT16";"UINT32";"INT32";"UINT64";"IEEE32";
                             "DECIMAL";"IEEE64";"BIGNUM";"NATIVEINT";"UNATIVEINT"]
 
@@ -316,7 +316,7 @@ let rec private getTriviaFromTokensThemSelves (config: FormatConfig) (allTokens:
         let directiveContent =
             directiveTokens
             |> List.map (fun t -> t.Content)
-            |> String.concat System.String.Empty
+            |> String.concat String.empty
             
         let range = getRangeBetween "directive" headToken (List.last directiveTokens)
         let info =
@@ -342,7 +342,11 @@ let rec private getTriviaFromTokensThemSelves (config: FormatConfig) (allTokens:
             stringTokens
             |> List.fold(fun (b: StringBuilder, currentLine) st ->
                 if currentLine <> st.LineNumber then
-                    b.Append("\n").Append(st.Content), st.LineNumber
+                    let delta = st.LineNumber - currentLine
+                    [1..delta]
+                    |> List.iter (fun _ -> b.Append("\n") |> ignore)
+
+                    b.Append(st.Content), st.LineNumber
                 else
                     b.Append(st.Content), st.LineNumber
             ) (builder, head.LineNumber)
@@ -398,6 +402,13 @@ let rec private getTriviaFromTokensThemSelves (config: FormatConfig) (allTokens:
             |> List.prependItem foundTrivia
         getTriviaFromTokensThemSelves config allTokens rest info
 
+    | head::rest when (head.TokenInfo.TokenName = "CHAR") ->
+        let range = getRangeBetween head.TokenInfo.TokenName head head
+        let info =
+            Trivia.Create (CharContent(head.Content)) range
+            |> List.prependItem foundTrivia
+        getTriviaFromTokensThemSelves config allTokens rest info
+
     | (_)::rest -> getTriviaFromTokensThemSelves config allTokens rest foundTrivia
     
     | [] -> foundTrivia
@@ -407,7 +418,7 @@ let private createNewLine lineNumber =
     let range = FSharp.Compiler.Range.mkRange "newline" pos pos
     { Item = Newline; Range = range }
 
-let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) (blockComments: FSharp.Compiler.Range.range list) =
+let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) (ignoreRanges: FSharp.Compiler.Range.range list) =
     let lastLineWithContent =
         tokens
         |> List.tryFindBack (fun t -> t.TokenInfo.TokenName <> "WHITESPACE")
@@ -417,7 +428,8 @@ let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) (blockCom
     let completeEmptyLines =
         [1 .. lastLineWithContent]
         |> List.filter (fun line ->
-            not (List.exists (fun t -> t.LineNumber = line) tokens) && not (List.exists (fun (br:FSharp.Compiler.Range.range) -> br.StartLine < line && br.EndLine > line) blockComments)
+            not (List.exists (fun t -> t.LineNumber = line) tokens)
+                 && not (List.exists (fun (br:FSharp.Compiler.Range.range) -> br.StartLine < line && br.EndLine > line) ignoreRanges)
         )
         |> List.map (fun line -> createNewLine line)
 
@@ -432,12 +444,15 @@ let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) (blockCom
 let getTriviaFromTokens config (tokens: Token list) linesCount =
     let fromTokens = getTriviaFromTokensThemSelves config tokens tokens []
     let blockComments = fromTokens |> List.choose (fun tc -> match tc.Item with | Comment(BlockComment(_)) -> Some tc.Range | _ -> None)
-    let newLines = findEmptyNewlinesInTokens tokens linesCount blockComments
+    let isMultilineString s = String.split StringSplitOptions.None [|"\n"|] s |> (Seq.isEmpty >> not)
+    let multilineStrings = fromTokens |> List.choose (fun tc -> match tc.Item with | StringContent(sc) when (isMultilineString sc) -> Some tc.Range | _ -> None)
+
+    let newLines = findEmptyNewlinesInTokens tokens linesCount (blockComments @ multilineStrings)
 
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
 
-let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "BAR_LBRACK"; "BAR_RBRACK"; "EQUALS"; "IF"; "THEN"; "ELSE"; "BAR"; "RARROW"; "TRY"; "FINALLY"; "WITH"]
+let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "LBRACK_BAR"; "BAR_RBRACK"; "EQUALS"; "IF"; "THEN"; "ELSE"; "ELIF"; "BAR"; "RARROW"; "TRY"; "FINALLY"; "WITH"]
 let private tokenKinds = [FSharpTokenCharKind.Operator]
     
 let getTriviaNodesFromTokens (tokens: Token list) : TriviaNode list =
