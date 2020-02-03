@@ -16,6 +16,9 @@
     <Compile Include="Dbg.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="FormatConfig.fs" />
+    <Compile Include="ConfigFile.fs" />
+    <Compile Include="JsonConfig.fs" />
+    <Compile Include="EditorConfig.fs" />
     <Compile Include="TriviaTypes.fs" />
     <Compile Include="TokenParserBoolExpr.fs" />
     <Compile Include="TriviaHelpers.fs" />
