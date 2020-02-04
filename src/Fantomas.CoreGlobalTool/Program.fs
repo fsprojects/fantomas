@@ -70,9 +70,9 @@ let time f =
     res
 
 [<RequireQualifiedAccess>]
-type InputPath = 
-    | File of string 
-    | Folder of string 
+type InputPath =
+    | File of string
+    | Folder of string
     | StdIn of string
     | Unspecified
 
@@ -117,7 +117,7 @@ let processSourceString isFsiFile s (tw : Choice<TextWriter, string>) config =
     |> Async.RunSynchronously
 
 /// Format inFile and write to text writer
-let processSourceFile inFile (tw : TextWriter) config = 
+let processSourceFile inFile (tw : TextWriter) config =
     async {
         let! formatted = inFile |> FakeHelpers.formatFileAsync config
 
@@ -326,7 +326,7 @@ let main argv =
                 eprintfn "The following exception occurred while formatting %s: %O" inFile exn
                 if force then
                     stdout.Write(File.ReadAllText inFile)
-        
+
         if Option.isSome version then
             let version = CodeFormatter.GetVersion()
             printfn "Fantomas v%s" version
@@ -335,7 +335,6 @@ let main argv =
 
             let checkFile config file =
                 FakeHelpers.formatFileAsync config file
-                |> Async.RunSynchronously
 
             let toCheckOutput r =
                 match r with
@@ -349,48 +348,53 @@ let main argv =
                 |> Seq.iter output.WriteLine
 
             let runCheck (filenames: seq<string>) =
-                let isChange = 
-                    function
-                    | FakeHelpers.FormatResult.Unchanged(_) -> false
-                    | FakeHelpers.FormatResult.Formatted(_) | FakeHelpers.FormatResult.Error(_) -> true
+                async {
+                    let! formatted =
+                        filenames
+                        |> Seq.map (checkFile config)
+                        |> Async.Parallel
 
-                let changes =
-                    filenames
-                    |> Seq.map (checkFile config)
-                    |> Seq.filter isChange
-                
-                // always print report to StdOut
-                changes |> reportCheckResults stdout
+                    let isChange =
+                        function
+                        | FakeHelpers.FormatResult.Unchanged(_) -> false
+                        | FakeHelpers.FormatResult.Formatted(_) | FakeHelpers.FormatResult.Error(_) -> true
 
-                let isError = 
-                    function
-                    | FakeHelpers.FormatResult.Error(_) -> true 
-                    | _ -> false
+                    let changes = formatted |> Seq.filter isChange
 
-                let hasErrors = 
-                    changes 
-                    |> Seq.exists isError
+                    // always print report to StdOut
+                    changes |> reportCheckResults stdout
 
-                if hasErrors then
-                    99
-                else
-                    match changes |> Seq.length with
-                    | 0 -> 0
-                    | _ -> 1
+                    let isError =
+                        function
+                        | FakeHelpers.FormatResult.Error(_) -> true
+                        | _ -> false
+
+                    let hasErrors =
+                        changes
+                        |> Seq.exists isError
+
+                    if hasErrors then
+                        return 99
+                    else
+                        return
+                            match changes |> Seq.length with
+                            | 0 -> 0
+                            | _ -> 1
+                } |> Async.RunSynchronously
 
             if check then
                 match inputPath with
                 | InputPath.Unspecified
-                | InputPath.StdIn(_) -> 
+                | InputPath.StdIn(_) ->
                     eprintfn "No input path provided. Nothing to do."
-                | InputPath.File(path) -> 
+                | InputPath.File(path) ->
                     path
                     |> Seq.singleton
                     |> runCheck
                     |> exit
-                | InputPath.Folder(path) -> 
+                | InputPath.Folder(path) ->
                     path
-                    |> allFiles recurse 
+                    |> allFiles recurse
                     |> runCheck
                     |> exit
             else
