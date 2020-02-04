@@ -9,6 +9,7 @@ open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 open NUnit.Framework
 open FsCheck
+open System.IO
 
 let config = FormatConfig.Default
 let newline = "\n"
@@ -180,3 +181,19 @@ type NUnitRunner () =
                 // TODO : Log more information about the test failure.
                 Runner.onFinishedToString name result
                 |> Assert.Fail
+
+let private getTempFolder () = Path.GetTempPath()
+
+let private mkConfigPath fileName folder =
+    match folder with
+    | Some folder ->
+        let folderPath = Path.Combine(getTempFolder(), folder)
+        Directory.CreateDirectory(folderPath) |> ignore
+        Path.Combine(folderPath, fileName)
+    | None ->
+        Path.Combine(getTempFolder(), fileName)
+
+let mkConfigFromContent fileName folder content =
+    let file = mkConfigPath fileName folder
+    File.WriteAllText(file, content)
+    file
