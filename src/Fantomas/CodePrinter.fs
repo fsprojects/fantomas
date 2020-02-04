@@ -824,36 +824,10 @@ and genExpr astContext synExpr =
 
 
     | Record(inheritOpt, xs, eo) ->
-        let recordExpr =
-            let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
-            eo |> Option.map (fun e ->
-                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
-            |> Option.defaultValue fieldsExpr
+        ifElseCtx (fun ctx -> ctx.Config.GResearch)
+            (genRecordInstanceGResearch inheritOpt xs eo synExpr astContext)
+            (genRecordInstance inheritOpt xs eo synExpr astContext) 
             
-        let fixRecordBraceOffset ctx =
-            match ctx.RecordBraceStart with
-            | rbs::rest ->
-                if ctx.Column < rbs then
-                    let offset = (if ctx.Config.SpaceAroundDelimiter then 2 else 1) + 1
-                    let delta = Math.Max((rbs - ctx.Column) - offset, 0)
-                    (!- System.String.Empty.PadRight(delta)) ({ctx with RecordBraceStart = rest})
-                else
-                    sepNone ({ctx with RecordBraceStart = rest})
-            | [] ->
-                    sepNone ctx
-            
-        let whenGR f = ifElseCtx (fun ({ Config = { GResearch = gr} }) -> gr) f sepNone
-        let newLineBefore = whenGR (indent +> sepNln)
-        let newLineAfter = whenGR (unindent +> ifElseCtx (fun c -> c.Config.SpaceAroundDelimiter) (decrIndent 1) sepNone +> sepNln)
-            
-        sepOpenS
-        +> newLineBefore
-        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
-        +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
-            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
-        +> fixRecordBraceOffset
-        +> newLineAfter
-        +> sepCloseS
 
     | AnonRecord(isStruct, fields, copyInfo) ->
         let recordExpr =
@@ -1421,6 +1395,73 @@ and genExpr astContext synExpr =
             r.StartLine (r.StartColumn + 1) r.EndLine (r.EndColumn + 1))
     | e -> failwithf "Unexpected expression: %O" e
     |> genTrivia synExpr.Range
+
+and genRecordInstance
+    (inheritOpt:(SynType * SynExpr) option)
+    (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
+    (eo: SynExpr option)
+    synExpr astContext (ctx: Context) =
+    let recordExpr =
+        let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
+        eo |> Option.map (fun e ->
+            genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+        |> Option.defaultValue fieldsExpr
+    
+    let fixRecordBraceOffset ctx =
+        match ctx.RecordBraceStart with
+        | rbs::rest ->
+            if ctx.Column < rbs then
+                let offset = (if ctx.Config.SpaceAroundDelimiter then 2 else 1) + 1
+                let delta = Math.Max((rbs - ctx.Column) - offset, 0)
+                (!- System.String.Empty.PadRight(delta)) ({ctx with RecordBraceStart = rest})
+            else
+                sepNone ({ctx with RecordBraceStart = rest})
+        | [] ->
+                sepNone ctx
+        
+    let expr =
+        sepOpenS
+        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
+        +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
+            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
+        +> fixRecordBraceOffset
+        +> sepCloseS
+            
+    expr ctx
+
+and genRecordInstanceGResearch
+    (inheritOpt:(SynType * SynExpr) option)
+    (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
+    (eo: SynExpr option)
+    synExpr astContext (ctx: Context) =
+    let newLineAfterOpeningBrace = indent +> sepNln
+    
+    let recordExpr =
+        let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
+        eo |> Option.map (fun e ->
+            genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+        |> Option.defaultValue fieldsExpr
+    let newLineBeforeClosingBrace = unindent +> ifElseCtx (fun c -> c.Config.SpaceAroundDelimiter) (decrIndent 1) sepNone +> sepNln
+
+    let expr =
+        sepOpenS +> newLineAfterOpeningBrace +>
+        recordExpr +>
+        newLineBeforeClosingBrace +> sepCloseS
+        
+    expr ctx
+//            let recordExpr =
+//            let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
+//            eo |> Option.map (fun e ->
+//                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+//            |> Option.defaultValue fieldsExpr            
+//        sepOpenS
+//        +> newLineBefore
+//        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
+//        +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
+//            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
+//        +> fixRecordBraceOffset
+//        +> newLineAfter
+//        +> sepCloseS
 
 and genLetOrUseList astContext expr =
     match expr with
