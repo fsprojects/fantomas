@@ -50,6 +50,31 @@ this option to be used with `--stdin` to specify that we are formatting F# signa
 
     type input.fsi | Fantomas --fsi --stdin --stdout
 
+##### `--check`
+
+Checks if the files provided require formatting and:
+
+* Exits with `0` if no files require formatting
+* Exits with `1` if some files require formatting. It also outputs the path of the files that require formatting.
+* Exits with `99` if some files contain errors (e.g. parsing errors, etc.)
+
+For example:
+
+	# given an example project
+	ls src/MyProject
+	File1.fs # correctly formatted
+	File2.fs # needs formatting
+	File3.fs # has compilation errors
+
+	# running a check
+	Fantomas --check src/MyProject
+	src/MyProject/File2.fs requires formatting
+	error: Failed to format src/MyProject/File3.fs: <description of the error>
+
+	# if you check the exit code
+	echo $?
+	99
+
 #### Preferences
 
 ##### `--indent <number>`

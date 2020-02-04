@@ -1,4 +1,4 @@
-﻿module Fantomas.Cmd.Program
+module Fantomas.Cmd.Program
 
 open System
 open System.IO
