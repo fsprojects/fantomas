@@ -17,6 +17,7 @@ type Arguments =
     | [<Unique>] Stdout
     | [<Unique>] Out of string
     | [<Unique>] Indent of int
+    | [<Unique>] Check
     | [<Unique;AltCommandLine("--pageWidth")>] PageWidth of int
     | [<Unique;AltCommandLine("--semicolonEOL")>] SemicolonEOL
     | [<Unique;AltCommandLine("--noSpaceBeforeArgument")>] NoSpaceBeforeArgument
@@ -44,6 +45,7 @@ with
             | Stdin -> "Read F# source from standard input."
             | Stdout -> " Write the formatted source code to standard output."
             | Indent _ -> "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
+            | Check -> "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
             | PageWidth _ -> "Set the column where we break to new lines (default = 80). The value should be at least 60."
             | SemicolonEOL -> "Enable semicolons at the end of line (default = false)."
             | NoSpaceBeforeArgument -> "Disable spaces before the first argument of functions when there are parenthesis (default = true). For methods and constructors, there are never spaces regardless of this option."
@@ -226,6 +228,7 @@ let main argv =
                 | Fsi _
                 | Stdin _
                 | Stdout
+                | Check
                 | Config _
                 | Version
                 | Input _ -> acc
@@ -323,28 +326,91 @@ let main argv =
                 eprintfn "The following exception occurred while formatting %s: %O" inFile exn
                 if force then
                     stdout.Write(File.ReadAllText inFile)
-
+        
         if Option.isSome version then
             let version = CodeFormatter.GetVersion()
             printfn "Fantomas v%s" version
         else
-            match inputPath, outputPath with
-            | InputPath.Unspecified, _ ->
-                eprintfn "Input path is missing..."
-                exit 1
-            | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
-            | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1 config
-            | InputPath.File p1, OutputPath.IO p2 ->
-                processFile p1 p2 config
-            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
-            | InputPath.StdIn s, OutputPath.IO p ->
-                stringToFile s p config
-            | InputPath.StdIn s, OutputPath.Notknown
-            | InputPath.StdIn s, OutputPath.StdOut ->
-                stringToStdOut s config
-            | InputPath.File p, OutputPath.StdOut ->
-                fileToStdOut p config
-            | InputPath.Folder p, OutputPath.StdOut ->
-                allFiles recurse p
-                |> Seq.iter (fun p -> fileToStdOut p config)
+            let check = results.Contains<@ Arguments.Check @>
+
+            let checkFile config file =
+                FakeHelpers.formatFileAsync config file
+                |> Async.RunSynchronously
+
+            let toCheckOutput r =
+                match r with
+                | FakeHelpers.FormatResult.Formatted(filename, _) -> sprintf "%s needs formatting" filename
+                | FakeHelpers.FormatResult.Error(filename, exn) -> sprintf "error: Failed to format %s: %s" filename (exn.ToString())
+                | FakeHelpers.FormatResult.Unchanged(_) -> failwith "No unchanged file should be present at this point"
+
+            let reportCheckResults (output: TextWriter) (results: seq<FakeHelpers.FormatResult>) =
+                results
+                |> Seq.map toCheckOutput
+                |> Seq.iter output.WriteLine
+
+            let runCheck (filenames: seq<string>) =
+                let isChange = 
+                    function
+                    | FakeHelpers.FormatResult.Unchanged(_) -> false
+                    | FakeHelpers.FormatResult.Formatted(_) | FakeHelpers.FormatResult.Error(_) -> true
+
+                let changes =
+                    filenames
+                    |> Seq.map (checkFile config)
+                    |> Seq.filter isChange
+                
+                // always print report to StdOut
+                changes |> reportCheckResults stdout
+
+                let isError = 
+                    function
+                    | FakeHelpers.FormatResult.Error(_) -> true 
+                    | _ -> false
+
+                let hasErrors = 
+                    changes 
+                    |> Seq.exists isError
+
+                if hasErrors then
+                    99
+                else
+                    match changes |> Seq.length with
+                    | 0 -> 0
+                    | _ -> 1
+
+            if check then
+                match inputPath with
+                | InputPath.Unspecified
+                | InputPath.StdIn(_) -> 
+                    eprintfn "No input path provided. Nothing to do."
+                | InputPath.File(path) -> 
+                    path
+                    |> Seq.singleton
+                    |> runCheck
+                    |> exit
+                | InputPath.Folder(path) -> 
+                    path
+                    |> allFiles recurse 
+                    |> runCheck
+                    |> exit
+            else
+                match inputPath, outputPath with
+                | InputPath.Unspecified, _ ->
+                    eprintfn "Input path is missing..."
+                    exit 1
+                | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
+                | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1 config
+                | InputPath.File p1, OutputPath.IO p2 ->
+                    processFile p1 p2 config
+                | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
+                | InputPath.StdIn s, OutputPath.IO p ->
+                    stringToFile s p config
+                | InputPath.StdIn s, OutputPath.Notknown
+                | InputPath.StdIn s, OutputPath.StdOut ->
+                    stringToStdOut s config
+                | InputPath.File p, OutputPath.StdOut ->
+                    fileToStdOut p config
+                | InputPath.Folder p, OutputPath.StdOut ->
+                    allFiles recurse p
+                    |> Seq.iter (fun p -> fileToStdOut p config)
         0
