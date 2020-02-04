@@ -829,12 +829,8 @@ and genExpr astContext synExpr =
             eo |> Option.map (fun e ->
                 genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
             |> Option.defaultValue fieldsExpr
-
-        sepOpenS
-        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
-        +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
-            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
-        +> (fun ctx ->
+            
+        let fixRecordBraceOffset ctx =
             match ctx.RecordBraceStart with
             | rbs::rest ->
                 if ctx.Column < rbs then
@@ -844,7 +840,19 @@ and genExpr astContext synExpr =
                 else
                     sepNone ({ctx with RecordBraceStart = rest})
             | [] ->
-                    sepNone ctx)
+                    sepNone ctx
+            
+        let whenGR f = ifElseCtx (fun ({ Config = { GResearch = gr} }) -> gr) f sepNone
+        let newLineBefore = whenGR (indent +> sepNln)
+        let newLineAfter = whenGR (unindent +> ifElseCtx (fun c -> c.Config.SpaceAroundDelimiter) (decrIndent 1) sepNone +> sepNln)
+            
+        sepOpenS
+        +> newLineBefore
+        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
+        +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
+            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
+        +> fixRecordBraceOffset
+        +> newLineAfter
         +> sepCloseS
 
     | AnonRecord(isStruct, fields, copyInfo) ->
