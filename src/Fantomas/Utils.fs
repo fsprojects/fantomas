@@ -74,6 +74,8 @@ There is a problem with merging all the code back togheter. Please raise an issu
         
         |> String.concat Environment.NewLine
 
+    let empty = System.String.Empty
+
 module Cache =
     let alreadyVisited<'key when 'key : not struct>() =
         let cache = System.Collections.Generic.HashSet<'key>([], HashIdentity.Reference)
@@ -114,3 +116,12 @@ module List =
     let takeWhileState f state l =
         let mutable s = state
         l |> List.takeWhile (fun x -> let (s',r) = f s x in s <- s'; r)
+
+    let isNotEmpty l = (List.isEmpty >> not) l
+
+module Reflection =
+    open FSharp.Reflection
+    let inline getRecordFields x =
+        let names = FSharpType.GetRecordFields (x.GetType()) |> Seq.map (fun x -> x.Name)
+        let values = FSharpValue.GetRecordFields x
+        Seq.zip names values |> Seq.toArray

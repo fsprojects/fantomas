@@ -20,10 +20,12 @@ let f x =
     someveryveryveryverylongexpression
     <|> if someveryveryveryverylongexpression then
             someveryveryveryverylongexpression
-        else someveryveryveryverylongexpression
+        else
+            someveryveryveryverylongexpression
     <|> if someveryveryveryverylongexpression then
             someveryveryveryverylongexpression
-        else someveryveryveryverylongexpression
+        else
+            someveryveryveryverylongexpression
     |> f
 """
 

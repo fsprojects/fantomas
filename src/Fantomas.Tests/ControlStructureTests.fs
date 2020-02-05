@@ -27,8 +27,7 @@ then printfn "You are only %d years old and already learning F#? Wow!" age""" co
 let rec tryFindMatch pred list =
     match list with
     | head :: tail ->
-        if pred (head) then Some(head)
-        else tryFindMatch pred tail
+        if pred (head) then Some(head) else tryFindMatch pred tail
     | [] -> None
 
 let test x y =
@@ -138,8 +137,7 @@ let ``try/with and finally``() =
 let function1 x y =
     try
         try
-            if x = y then raise (InnerError("inner"))
-            else raise (OuterError("outer"))
+            if x = y then raise (InnerError("inner")) else raise (OuterError("outer"))
         with
         | Failure _ -> ()
         | InnerError(str) -> printfn "Error1 %s" str
@@ -222,9 +220,10 @@ let x =
 let x =
     if try
         true
-       with Failure _ -> false
-    then ()
-    else ()
+       with Failure _ -> false then
+        ()
+    else
+        ()
 """
 
 [<Test>]
@@ -297,8 +296,7 @@ let ``multiline if in tuple``() =
     """ config
     |> prepend newline
     |> should equal """
-((if true then 1
-  else 2), 3)
+((if true then 1 else 2), 3)
 """
 
 // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
@@ -414,4 +412,30 @@ for _ in 1..10 do ()
     |> should equal """
 for _ in 1 .. 10 do
     ()
+"""
+
+[<Test>]
+let ``if elif if with trivia doesn't glitch elif conditional`` () =
+    formatSourceString false """
+let a ex =
+    if null = ex then
+        fooo ()
+        None
+        // this was None
+    elif ex.GetType() = typeof<obj> then
+        Some ex
+    else
+        None
+"""  config
+    |> prepend newline
+    |> should equal """
+let a ex =
+    if null = ex then
+        fooo()
+        None
+    // this was None
+    elif ex.GetType() = typeof<obj> then
+        Some ex
+    else
+        None
 """

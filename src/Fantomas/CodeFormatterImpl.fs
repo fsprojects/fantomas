@@ -530,7 +530,7 @@ let private formatRange (checker: FSharpChecker) (parsingOptions: FSharpParsingO
     let (selection, patch) = 
         let sel = sourceCode.[start..finish].TrimEnd('\r')
         if startWithMember sel then
-           (String.Join(String.Empty, "type T = ", Environment.NewLine, new String(' ', startCol), sel), TypeMember)
+           (String.Join(String.Empty, "type T = ", Environment.NewLine, String(' ', startCol), sel), TypeMember)
         elif String.startsWithOrdinal "and" (sel.TrimStart()) then
             let p = getPatch startCol lines.[..startLine-1]
             let pattern = Regex("and")
@@ -541,9 +541,9 @@ let private formatRange (checker: FSharpChecker) (parsingOptions: FSharpParsingO
                 | _ -> "and"
             // Replace "and" by "type" or "let rec"
             if startLine = endLine then (pattern.Replace(sel, replacement, 1), p)
-            else (new String(' ', startCol) + pattern.Replace(sel, replacement, 1), p)
+            else (String(' ', startCol) + pattern.Replace(sel, replacement, 1), p)
         elif startLine = endLine then (sel, Nothing)
-        else (new String(' ', startCol) + sel, Nothing)
+        else (String(' ', startCol) + sel, Nothing)
 
     let post =
         if finish < sourceCode.Length then 
@@ -670,3 +670,35 @@ type internal BlockType =
 
 /// Make a position at (line, col) to denote cursor position
 let makePos line col = mkPos line col
+
+let readConfiguration fileOrFolder =
+    try
+        let configurationFiles =
+            ConfigFile.findConfigurationFiles fileOrFolder
+
+        if List.isEmpty configurationFiles then failwithf "No configuration files were found for %s" fileOrFolder
+
+        let (config,warnings) =
+            List.fold (fun (currentConfig, warnings) configPath ->
+                let configContent = System.IO.File.ReadAllText(configPath)
+                let options, warningFromConfigPath =
+                    match System.IO.Path.GetFileName(configPath) with
+                    | json when (json = ConfigFile.jsonConfigFileName) ->
+                        JsonConfig.parseOptionsFromJson configContent
+                    | editorconfig when (editorconfig = ConfigFile.editorConfigFileName) ->
+                        EditorConfig.parseOptionsFromEditorConfig configContent
+                    | _ ->
+                        failwithf "Filename is not supported!"
+                let updatedConfig = FormatConfig.applyOptions(currentConfig, options)
+                let locationAwareWarnings =
+                    List.ofArray warningFromConfigPath
+                    |> List.map (ConfigFile.makeWarningLocationAware configPath)
+
+                (updatedConfig, warnings @ locationAwareWarnings)
+            ) (FormatConfig.Default, []) configurationFiles
+
+        match warnings with
+        | [] -> FormatConfigFileParseResult.Success config
+        | w -> FormatConfigFileParseResult.PartialSuccess (config, w)
+    with
+    | exn -> FormatConfigFileParseResult.Failure exn

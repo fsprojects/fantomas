@@ -1,0 +1,40 @@
+name: Push to MyGet
+
+on:
+  push:
+    branches:
+      - master
+      - myget
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        dotnet: [3.1.100]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Generate build number
+      uses: einaregilsson/build-number@v1 
+      with:
+        token: ${{secrets.github_token}}
+    - name: Print new build number
+      run: echo Build number is $BUILD_NUMBER
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      # Fix for https://github.com/actions/setup-dotnet/issues/29#issuecomment-548740241
+      uses: actions/setup-dotnet@bb95ce727fd49ec1a65933419cc7c91747785302
+      with:
+        dotnet-version: ${{ matrix.dotnet }}
+    - name: Install local tools
+      run: dotnet tool restore
+    - name: Paket restore
+      run: dotnet paket restore
+    - name: MyGet
+      run: dotnet fake run build.fsx -t MyGet
+      env:
+        CI: true
+        MYGET_KEY: ${{ secrets.MYGET_KEY }}
+    
