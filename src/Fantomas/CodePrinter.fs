@@ -431,6 +431,7 @@ and breakNln astContext brk e =
         (indent +> autoNln (genExpr astContext e) +> unindent)
 
 and breakNlnOrAddSpace astContext brk e =
+    let breakx = brk
     ifElse brk (indent +> sepNln +> genExpr astContext e +> unindent)
         (indent +> autoNlnOrSpace (genExpr astContext e) +> unindent)
 
@@ -1433,7 +1434,8 @@ and genRecordInstanceGResearch
     (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
     (eo: SynExpr option)
     synExpr astContext (ctx: Context) =
-    let newLineAfterOpeningBrace = indent +> sepNln
+    let openRecord =
+        sepOpenSFixed +> indent +> sepNln
     
     let recordExpr =
         let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
@@ -1442,13 +1444,12 @@ and genRecordInstanceGResearch
             +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
         |> Option.defaultValue fieldsExpr
 
-    let newLineBeforeClosingBrace = unindent +> ifElseCtx (fun c -> c.Config.SpaceAroundDelimiter) (decrIndent 1) sepNone +> sepNln
+    let closeRecord =
+        unindent +> sepNln +> sepCloseSFixed
 
     let expr =
-        sepOpenS +> newLineAfterOpeningBrace +>
-        recordExpr +>
-        newLineBeforeClosingBrace +> sepCloseS +> dumpAndContinue
-        
+        openRecord +> recordExpr +> closeRecord +> dumpAndContinue
+
     expr ctx
 //            let recordExpr =
 //            let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
