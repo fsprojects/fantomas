@@ -515,7 +515,6 @@ and genLetBinding astContext pref b =
             genPreXmlDoc px
             +> ifElse astContext.IsFirstChild (genAttributes astContext ats -- pref)
                 (!- pref +> genOnelinerAttributes astContext ats)
-            +> dumpAndContinue
             +> opt sepSpace ao genAccess
             +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
             +> genPat astContext p
@@ -1439,14 +1438,16 @@ and genRecordInstanceGResearch
     let recordExpr =
         let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
         eo |> Option.map (fun e ->
-            genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+            genExpr astContext e
+            +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
         |> Option.defaultValue fieldsExpr
+
     let newLineBeforeClosingBrace = unindent +> ifElseCtx (fun c -> c.Config.SpaceAroundDelimiter) (decrIndent 1) sepNone +> sepNln
 
     let expr =
         sepOpenS +> newLineAfterOpeningBrace +>
         recordExpr +>
-        newLineBeforeClosingBrace +> sepCloseS
+        newLineBeforeClosingBrace +> sepCloseS +> dumpAndContinue
         
     expr ctx
 //            let recordExpr =

@@ -135,10 +135,10 @@ let internal dump (ctx: Context) =
     m.Lines |> List.rev |> String.concat Environment.NewLine
 
 let internal dumpAndContinue (ctx: Context) =
+#if DEBUG
     let m = applyWriterEvents ctx
     let lines = m.Lines |> List.rev
     let code = String.concat Environment.NewLine lines
-#if DEBUG
     printfn "%s" code
 #endif
     ctx
