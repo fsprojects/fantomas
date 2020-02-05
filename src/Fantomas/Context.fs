@@ -137,9 +137,10 @@ let internal dump (ctx: Context) =
 let internal dumpAndContinue (ctx: Context) =
 #if DEBUG
     let m = applyWriterEvents ctx
-    let lines = m.Lines |> List.rev
-    let code = String.concat Environment.NewLine lines
-    printfn "%s" code
+    if not (m.IsDummy) then
+        let lines = m.Lines |> List.rev
+        let code = String.concat Environment.NewLine lines
+        printfn "%s" code
 #endif
     ctx
 
@@ -387,6 +388,12 @@ let internal sepOpenAnonRecd (ctx : Context) =
 /// closing token of anon record
 let internal sepCloseAnonRecd (ctx : Context) =
     if ctx.Config.SpaceAroundDelimiter then str " |}" ctx else str "|}" ctx
+
+/// opening token of anon record
+let internal sepOpenAnonRecdFixed = !- "{|"
+
+/// closing token of anon record
+let internal sepCloseAnonRecdFixed = !- "|}"
 
 /// opening token of sequence
 let internal sepOpenSFixed = !- "{"

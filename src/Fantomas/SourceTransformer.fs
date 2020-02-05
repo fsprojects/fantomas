@@ -93,6 +93,10 @@ let rec multiline synExpr =
         let fields = xs |> List.choose ((|RecordFieldName|) >> snd) 
         not (List.atMostOne fields) || List.exists multiline fields
 
+    | AnonRecord(_, xs, _) ->
+        let fields = xs |> List.map ((|AnonRecordFieldName|) >> snd)
+        not (List.atMostOne fields) || List.exists multiline fields
+
     // Default mode is single-line
     | _ -> false
 

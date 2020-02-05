@@ -431,7 +431,6 @@ and breakNln astContext brk e =
         (indent +> autoNln (genExpr astContext e) +> unindent)
 
 and breakNlnOrAddSpace astContext brk e =
-    let breakx = brk
     ifElse brk (indent +> sepNln +> genExpr astContext e +> unindent)
         (indent +> autoNlnOrSpace (genExpr astContext e) +> unindent)
 
@@ -830,15 +829,9 @@ and genExpr astContext synExpr =
             
 
     | AnonRecord(isStruct, fields, copyInfo) ->
-        let recordExpr =
-            let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
-            copyInfo |> Option.map (fun e ->
-                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
-            |> Option.defaultValue fieldsExpr
-        ifElse isStruct !- "struct " sepNone
-        +> sepOpenAnonRecd
-        +> atCurrentColumnIndent recordExpr
-        +> sepCloseAnonRecd
+        ifElseCtx (fun ctx -> ctx.Config.GResearch)
+            (genAnonRecordGResearch isStruct fields copyInfo astContext)
+            (genAnonRecord isStruct fields copyInfo astContext)
 
     | ObjExpr(t, eio, bd, ims, range) ->
         // Check the role of the second part of eio
@@ -1434,36 +1427,67 @@ and genRecordInstanceGResearch
     (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
     (eo: SynExpr option)
     synExpr astContext (ctx: Context) =
-    let openRecord =
-        sepOpenSFixed +> indent +> sepNln
-    
+
     let recordExpr =
         let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
-        eo |> Option.map (fun e ->
+        match eo with
+        | Some e ->
             genExpr astContext e
-            +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
-        |> Option.defaultValue fieldsExpr
+            +> ifElseCtx (futureNlnCheck fieldsExpr)
+                   (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent)
+                   (!- " with " +> fieldsExpr)
+        | None -> fieldsExpr
 
-    let closeRecord =
-        unindent +> sepNln +> sepCloseSFixed
+    let isRecordExprMultiline = futureNlnCheck recordExpr ctx
+
+    let genInherit (typ, expr) = !- "inherit " +> genType astContext false typ +> genExpr astContext expr
 
     let expr =
-        openRecord +> recordExpr +> closeRecord +> dumpAndContinue
+        let fullRecordExpr =
+            opt (if xs.IsEmpty then sepNone
+                 elif isRecordExprMultiline then sepNln
+                 else sepSemi) inheritOpt genInherit
+            +> recordExpr
+
+        ifElseCtx (futureNlnCheck recordExpr)
+            (sepOpenSFixed +> indent +> sepNln +> fullRecordExpr +> unindent +> sepNln +> sepCloseSFixed)
+            (sepOpenS +> fullRecordExpr +> sepCloseS) // keep record on one line if small
 
     expr ctx
-//            let recordExpr =
-//            let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
-//            eo |> Option.map (fun e ->
-//                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
-//            |> Option.defaultValue fieldsExpr            
-//        sepOpenS
-//        +> newLineBefore
-//        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
-//        +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
-//            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
-//        +> fixRecordBraceOffset
-//        +> newLineAfter
-//        +> sepCloseS
+
+and genAnonRecord isStruct fields copyInfo astContext (ctx:Context) =
+    let recordExpr =
+        let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
+        copyInfo |> Option.map (fun e ->
+            genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+        |> Option.defaultValue fieldsExpr
+
+    let expr =
+        ifElse isStruct !- "struct " sepNone
+        +> sepOpenAnonRecd
+        +> atCurrentColumnIndent recordExpr
+        +> sepCloseAnonRecd
+
+    expr ctx
+
+and genAnonRecordGResearch isStruct fields copyInfo astContext (ctx:Context) =
+    let recordExpr =
+        let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
+
+        copyInfo |> Option.map (fun e ->
+            genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+        |> Option.defaultValue fieldsExpr
+
+    let isRecordExprMultiline = futureNlnCheck recordExpr ctx
+
+    let expr =
+        ifElse isStruct !- "struct " sepNone
+        +> dumpAndContinue
+        +> ifElse isRecordExprMultiline
+            (sepOpenAnonRecdFixed +> indent +> sepNln +> dumpAndContinue +> recordExpr +> unindent +> sepNln +> sepCloseAnonRecdFixed)
+            (sepOpenAnonRecd +> recordExpr +> sepCloseAnonRecd)
+
+    expr ctx
 
 and genLetOrUseList astContext expr =
     match expr with
