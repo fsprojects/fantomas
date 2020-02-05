@@ -3,7 +3,7 @@
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>3.2.0-beta-002</Version>
+    <Version>3.2.0</Version>
     <Description>Source code formatter for F#</Description>
   </PropertyGroup>
   <ItemGroup>
@@ -16,6 +16,9 @@
     <Compile Include="Dbg.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="FormatConfig.fs" />
+    <Compile Include="ConfigFile.fs" />
+    <Compile Include="JsonConfig.fs" />
+    <Compile Include="EditorConfig.fs" />
     <Compile Include="TriviaTypes.fs" />
     <Compile Include="TokenParserBoolExpr.fs" />
     <Compile Include="TriviaHelpers.fs" />
