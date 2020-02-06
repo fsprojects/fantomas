@@ -1401,9 +1401,12 @@ and genExpr astContext synExpr =
     | SynExpr.Set(e1,e2, _) ->
         addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
 
-    | LetOrUseBang(isUse, p, e1, e2) ->
+    | LetOrUseBang(isUse, p, e1, ands, e2) ->
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ")
-            +> genPat astContext p -- " = " +> genExpr astContext e1 +> sepNln +> genExpr astContext e2)
+            +> genPat astContext p -- " = " +> genExpr astContext e1 +> sepNln
+            // TODO: use ands here
+            +> genExpr astContext e2
+        )
 
     | ParsingError r ->
         raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i"

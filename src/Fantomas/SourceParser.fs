@@ -621,8 +621,8 @@ let (|IndexedVar|_|) = function
     | _ -> None
 
 let (|Indexer|) = function
-    | SynIndexerArg.Two(e1, e2) -> Pair(e1, e2)
-    | SynIndexerArg.One e -> Single e
+    | SynIndexerArg.Two(e1,_,e2,_,_,_) -> Pair(e1, e2)
+    | SynIndexerArg.One(e,_,_) -> Single e
 
 let (|OptVar|_|) = function
     | SynExpr.Ident(IdentOrKeyword(OpNameFull (s,r))) ->
@@ -744,8 +744,8 @@ let rec (|LetOrUses|_|) = function
     | _ -> None
 
 let (|LetOrUseBang|_|) = function
-    | SynExpr.LetOrUseBang(_, isUse, _, p, e1, e2, _) ->
-        Some(isUse, p, e1, e2)
+    | SynExpr.LetOrUseBang(_, isUse, _, p, e1, ands, e2, _) ->
+        Some(isUse, p, e1, ands, e2)
     | _ -> None 
         
 let (|ForEach|_|) = function
