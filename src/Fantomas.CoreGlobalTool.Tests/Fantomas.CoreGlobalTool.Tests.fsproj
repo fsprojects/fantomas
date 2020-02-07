@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -7,10 +7,11 @@
     <Version>3.2.0</Version>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="UnitTest1.fs" />
+    <ProjectReference Include="..\Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj" />
+    <Compile Include="CheckTests.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

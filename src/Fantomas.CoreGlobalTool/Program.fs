@@ -1,9 +1,8 @@
-module Fantomas.Cmd.Program
-
 open System
 open System.IO
 open Fantomas
 open Fantomas.FormatConfig
+open Fantomas.Cmd
 open Argu
 
 let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli"; |]
@@ -158,6 +157,35 @@ let readFromStdin (lineLimit:int) =
             |> Seq.reduce appendWithNewline
 
         if String.IsNullOrWhiteSpace input then None else Some(input)
+
+let runCheckCommand (config: FormatConfig) (recurse: bool) (inputPath: InputPath) : int =
+    let userReport exitCode =
+        if exitCode = 0 then
+            printfn "No changes required."
+        else
+            printfn "Check found some issues:"
+
+    let check = Check.run config stdout
+    let exitCode =
+        match inputPath with
+        | InputPath.Unspecified
+        | InputPath.StdIn(_) ->
+            eprintfn "No input path provided. Nothing to do."
+            0
+        | InputPath.File(path) ->
+            path
+            |> Seq.singleton
+            |> check
+            |> int
+        | InputPath.Folder(path) ->
+            path
+            |> allFiles recurse
+            |> check
+            |> int
+    userReport exitCode
+
+    exitCode
+
 
 [<EntryPoint>]
 let main argv =
@@ -332,71 +360,10 @@ let main argv =
             printfn "Fantomas v%s" version
         else
             let check = results.Contains<@ Arguments.Check @>
-
-            let checkFile config file =
-                FakeHelpers.formatFileAsync config file
-
-            let toCheckOutput r =
-                match r with
-                | FakeHelpers.FormatResult.Formatted(filename, _) -> sprintf "%s needs formatting" filename
-                | FakeHelpers.FormatResult.Error(filename, exn) -> sprintf "error: Failed to format %s: %s" filename (exn.ToString())
-                | FakeHelpers.FormatResult.Unchanged(_) -> failwith "No unchanged file should be present at this point"
-
-            let reportCheckResults (output: TextWriter) (results: seq<FakeHelpers.FormatResult>) =
-                results
-                |> Seq.map toCheckOutput
-                |> Seq.iter output.WriteLine
-
-            let runCheck (filenames: seq<string>) =
-                async {
-                    let! formatted =
-                        filenames
-                        |> Seq.map (checkFile config)
-                        |> Async.Parallel
-
-                    let isChange =
-                        function
-                        | FakeHelpers.FormatResult.Unchanged(_) -> false
-                        | FakeHelpers.FormatResult.Formatted(_) | FakeHelpers.FormatResult.Error(_) -> true
-
-                    let changes = formatted |> Seq.filter isChange
-
-                    // always print report to StdOut
-                    changes |> reportCheckResults stdout
-
-                    let isError =
-                        function
-                        | FakeHelpers.FormatResult.Error(_) -> true
-                        | _ -> false
-
-                    let hasErrors =
-                        changes
-                        |> Seq.exists isError
-
-                    if hasErrors then
-                        return 99
-                    else
-                        return
-                            match changes |> Seq.length with
-                            | 0 -> 0
-                            | _ -> 1
-                } |> Async.RunSynchronously
-
             if check then
-                match inputPath with
-                | InputPath.Unspecified
-                | InputPath.StdIn(_) ->
-                    eprintfn "No input path provided. Nothing to do."
-                | InputPath.File(path) ->
-                    path
-                    |> Seq.singleton
-                    |> runCheck
-                    |> exit
-                | InputPath.Folder(path) ->
-                    path
-                    |> allFiles recurse
-                    |> runCheck
-                    |> exit
+                inputPath
+                |> runCheckCommand config recurse
+                |> exit
             else
                 match inputPath, outputPath with
                 | InputPath.Unspecified, _ ->

@@ -84,6 +84,11 @@ NUGET
       System.Threading.Thread (>= 4.3) - restriction: >= netcoreapp1.0
       System.Xml.XmlDocument (>= 4.3) - restriction: >= netcoreapp1.0
       System.Xml.XPath.XmlDocument (>= 4.3) - restriction: >= netcoreapp1.0
+    NUnitLite (3.12)
+      NETStandard.Library (>= 1.6.1) - restriction: && (< net35) (>= netstandard1.4) (< netstandard2.0)
+      NETStandard.Library (>= 2.0) - restriction: && (< net35) (>= netstandard2.0)
+      NUnit (3.12) - restriction: || (&& (>= net35) (< net40) (< netstandard1.4)) (&& (< net35) (>= netstandard1.4) (< netstandard2.0)) (&& (< net35) (>= netstandard2.0)) (&& (>= net40) (< netstandard1.4)) (>= net45)
+      System.Reflection.TypeExtensions (>= 4.4) - restriction: && (< net35) (>= netstandard1.4) (< netstandard2.0)
     NunitXml.TestLogger (2.1.41)
     runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: && (< monoandroid) (< net46) (>= netstandard2.0) (< xamarinios) (< xamarinmac)
     runtime.debian.9-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: && (< monoandroid) (< net46) (>= netstandard2.0) (< xamarinios) (< xamarinmac)
