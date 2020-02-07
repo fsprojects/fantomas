@@ -57,11 +57,13 @@ The [fsharp-support](https://github.com/JetBrains/fsharp-support) uses fantomas 
 
 ### Visual Studio Code
 
-Install the [fantomas-fmt](https://marketplace.visualstudio.com/items?itemName=paolodellepiane.fantomas-fmt) extension.
+The recommended way to use Fantomas is by using the [Ionide plugin](http://ionide.io/). Fantomas is integrated in [FSAutoComplete](https://github.com/fsharp/FsAutoComplete/) which is the language server used by Ionide.
+
+Alternatively, you can install the [fantomas-fmt](https://marketplace.visualstudio.com/items?itemName=paolodellepiane.fantomas-fmt) extension.
 
 ### Online
 
-Try the fantomas [online](http://ratatosk.dynu.net/fantomas/).
+Try the Fantomas [online](https://jindraivanek.gitlab.io/fantomas-ui/#?fantomas=preview).
 
 ## Early builds
 
@@ -72,7 +74,7 @@ To install you probably need to uninstall the current version from the official 
 
 Install from MyGet:
 
-> `dotnet tool install -g fantomas-tool --add-source https://www.myget.org/F/fantomas/api/v3/index.json --framework netcoreapp3.0 --version 3.0.1-alpha-*`
+> `dotnet tool install -g fantomas-tool --add-source https://www.myget.org/F/fantomas/api/v3/index.json --framework netcoreapp3.1 --version 3.0.1-alpha-*`
 
 Note that the `--version` is important, check the latest version [at MyGet](https://www.myget.org/feed/fantomas/package/nuget/fantomas-tool).
 Your can check your current version with `fantomas --version` (since December 2018).
@@ -208,13 +210,16 @@ let ``preserve compile directive between piped functions, 512`` () = ...
 - F# AST Viewer: https://jindraivanek.gitlab.io/ast-viewer/
 - F# Tokens: https://nojaf.github.io/fsharp-tokens/
 - Fantomas Online: https://jindraivanek.gitlab.io/fantomas-ui/
+- Trivia viewer: https://nojaf.github.io/trivia-tool/
 
 ### Upgrading FSharp.Compiler.Service
 
 When upgrading the [FSharp.Compiler.Service](https://www.nuget.org/packages/FSharp.Compiler.Service/) please consider the following order:
 
+- Make sure [the latest documentation](https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-ast.html) is available.
 - Update [AST Viewer](https://gitlab.com/jindraivanek/ast-viewer)
 - Update [F# Tokens](https://github.com/nojaf/fsharp-tokens)
+- Update [Trivia Viewer](https://nojaf.github.io/trivia-tool/)
 - Update Fantomas (this repository)
 - Update [Fantomas UI preview branch](https://gitlab.com/jindraivanek/fantomas-ui/tree/preview)
 - After a release on NuGet, update [Fantomas UI master branch](https://gitlab.com/jindraivanek/fantomas-ui/tree/master)
@@ -276,10 +281,14 @@ Settings such as :
 
 See [CodePrinter.fs](src/Fantomas/CodePrinter.fs).
 
-### How to play with fantomas on F# Interactive
+### How to play with Fantomas on F# Interactive
 The [CodeFormatter.fsx](src/Fantomas/CodeFormatter.fsx) script file
 allows you to test the code formatting behavior. See the function `formatSrc: string -> unit`
 that formats the string in input and prints it.
+
+### Video series
+
+There is a [YouTube video series](https://www.youtube.com/playlist?list=PLvw_J2kfZCX3Mf6tEbIPZXbzJOD1VGl4K) on how Fantomas internally works.
 
 ## Credits
 We would like to gratefully thank the following persons for their contributions.
