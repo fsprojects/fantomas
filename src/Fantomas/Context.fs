@@ -805,3 +805,6 @@ let internal lastLineOnlyContains characters (ctx: Context) =
         let length = String.length l
         length = 0 || length < ctx.Config.IndentSpaceNum
     | None -> false
+
+let internal ifGReseach f g =
+    ifElseCtx (fun c -> c.Config.GResearch) f g

@@ -230,7 +230,30 @@ let configurations =
 """
 
 [<Test>]
-let ``object express with bracketOnSeparateLine`` () =
+let ``records in array`` () =
+    formatSourceString false """let configurations =
+    [|
+        { Build = true; Configuration = "RELEASE"; Defines = ["FOO"] }
+        { Build = true; Configuration = "DEBUG"; Defines = ["FOO";"BAR"] }
+    |]
+"""  configForGResearch
+    |> prepend newline
+    |> should equal """
+let configurations =
+    [| {
+           Build = true
+           Configuration = "RELEASE"
+           Defines = [ "FOO" ]
+       }
+       {
+           Build = true
+           Configuration = "DEBUG"
+           Defines = [ "FOO"; "BAR" ]
+       } |]
+"""
+
+[<Test>]
+let ``object expression`` () =
     formatSourceString false """
 let obj1 = { new System.Object() with member x.ToString() = "F#" }
 """  configForGResearch
@@ -241,6 +264,28 @@ let obj1 =
         new System.Object() with
             member x.ToString() = "F#"
     }
+"""
+
+[<Test>]
+let ``object expressions in list`` () =
+    formatSourceString false """
+let a =
+    [
+        { new System.Object() with member x.ToString() = "F#" }
+        { new System.Object() with member x.ToString() = "C#" }
+    ]
+"""  configForGResearch
+    |> prepend newline
+    |> should equal """
+let a =
+    [ {
+          new System.Object() with
+              member x.ToString() = "F#"
+      }
+      {
+          new System.Object() with
+              member x.ToString() = "C#"
+      } ]
 """
 
 [<Test>]
@@ -304,6 +349,30 @@ let ``record declaration`` () =
 """  configForGResearch
     |> prepend newline
     |> should equal """
+type MyRecord =
+    {
+        Level: int
+        Progress: string
+        Bar: string
+        Street: string
+        Number: int
+    }
+"""
+
+[<Test>]
+let ``record declaration in signature file`` () =
+    formatSourceString true """namespace X
+type MyRecord =
+    { Level: int
+      Progress: string
+      Bar: string
+      Street: string
+      Number: int }
+"""  configForGResearch
+    |> prepend newline
+    |> should equal """
+namespace X
+
 type MyRecord =
     {
         Level: int

@@ -823,23 +823,20 @@ and genExpr astContext synExpr =
 
 
     | Record(inheritOpt, xs, eo) ->
-        ifElseCtx (fun ctx -> ctx.Config.GResearch)
+        ifGReseach
             (genRecordInstanceGResearch inheritOpt xs eo synExpr astContext)
             (genRecordInstance inheritOpt xs eo synExpr astContext) 
             
 
     | AnonRecord(isStruct, fields, copyInfo) ->
-        ifElseCtx (fun ctx -> ctx.Config.GResearch)
+        ifGReseach
             (genAnonRecordGResearch isStruct fields copyInfo astContext)
             (genAnonRecord isStruct fields copyInfo astContext)
 
     | ObjExpr(t, eio, bd, ims, range) ->
-        // Check the role of the second part of eio
-        let param = opt sepNone (Option.map fst eio) (genExpr astContext)
-        sepOpenS +>
-        atCurrentColumn (!- "new " +> genType astContext false t +> param -- " with"
-            +> indent +> sepNln +> genMemberBindingList { astContext with InterfaceRange = Some range } bd +> unindent
-            +> colPre sepNln sepNln ims (genInterfaceImpl astContext)) +> sepCloseS
+        ifGReseach
+            (genObjExprGResearch t eio bd ims range astContext)
+            (genObjExpr t eio bd ims range astContext)
 
     | While(e1, e2) ->
         atCurrentColumn (!- "while " +> genExpr astContext e1 -- " do"
@@ -1453,6 +1450,8 @@ and genRecordInstanceGResearch
             (sepOpenSFixed +> indent +> sepNln +> fullRecordExpr +> unindent +> sepNln +> sepCloseSFixed)
             (sepOpenS +> fullRecordExpr +> sepCloseS) // keep record on one line if small
 
+        |> atCurrentColumnIndent
+
     expr ctx
 
 and genAnonRecord isStruct fields copyInfo astContext (ctx:Context) =
@@ -1480,14 +1479,35 @@ and genAnonRecordGResearch isStruct fields copyInfo astContext (ctx:Context) =
 
     let isRecordExprMultiline = futureNlnCheck recordExpr ctx
 
-    let expr =
-        ifElse isStruct !- "struct " sepNone
-        +> dumpAndContinue
-        +> ifElse isRecordExprMultiline
-            (sepOpenAnonRecdFixed +> indent +> sepNln +> dumpAndContinue +> recordExpr +> unindent +> sepNln +> sepCloseAnonRecdFixed)
+    let genAnonRecord =
+        ifElse isRecordExprMultiline
+            (sepOpenAnonRecdFixed +> indent +> sepNln +> recordExpr +> unindent +> sepNln +> sepCloseAnonRecdFixed)
             (sepOpenAnonRecd +> recordExpr +> sepCloseAnonRecd)
 
+    let expr =
+        ifElse isStruct !- "struct " sepNone
+        +> atCurrentColumnIndent genAnonRecord
+
     expr ctx
+
+and genObjExpr t eio bd ims range (astContext: ASTContext) =
+    // Check the role of the second part of eio
+    let param = opt sepNone (Option.map fst eio) (genExpr astContext)
+    sepOpenS +>
+    atCurrentColumn (!- "new " +> genType astContext false t +> param -- " with"
+        +> indent +> sepNln +> genMemberBindingList { astContext with InterfaceRange = Some range } bd +> unindent
+        +> colPre sepNln sepNln ims (genInterfaceImpl astContext)) +> sepCloseS
+
+and genObjExprGResearch t eio bd ims range (astContext: ASTContext) =
+    // Check the role of the second part of eio
+    let param = opt sepNone (Option.map fst eio) (genExpr astContext)
+    let genObjExpr =
+        atCurrentColumn (!- "new " +> genType astContext false t +> param -- " with"
+            +> indent +> sepNln +> genMemberBindingList { astContext with InterfaceRange = Some range } bd +> unindent
+            +> colPre sepNln sepNln ims (genInterfaceImpl astContext))
+
+    atCurrentColumnIndent (
+        sepOpenSFixed +> indent +> sepNln +> genObjExpr +> unindent +> sepNln +> sepCloseSFixed)
 
 and genLetOrUseList astContext expr =
     match expr with
@@ -1629,13 +1649,9 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         +> unindent
 
     | Simple(TDSRRecord(ao', fs)) ->
-        typeName +> sepEq
-        +> indent +> sepNln +> opt sepSpace ao' genAccess
-        +> genTrivia tdr.Range
-            (sepOpenS
-            +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
-            +> genMemberDefnList { astContext with InterfaceRange = None } ms
-            +> unindent)
+        ifGReseach
+            (genSimpleRecordTypeDefnGResearch typeName tdr ms ao' fs astContext)
+            (genSimpleRecordTypeDefn typeName tdr ms ao' fs astContext)
 
     | Simple TDSRNone ->
         typeName
@@ -1722,6 +1738,25 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         |> genTrivia tdr.Range
     |> genTrivia node.Range
 
+and genSimpleRecordTypeDefn typeName tdr ms ao' fs astContext =
+    typeName +> sepEq
+        +> indent +> sepNln +> opt sepSpace ao' genAccess
+        +> genTrivia tdr.Range
+            (sepOpenS
+            +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
+            +> genMemberDefnList { astContext with InterfaceRange = None } ms
+            +> unindent)
+
+and genSimpleRecordTypeDefnGResearch typeName tdr ms ao' fs astContext =
+    typeName +> sepEq
+        +> indent +> sepNln +> opt sepSpace ao' genAccess
+        +> genTrivia tdr.Range
+            (sepOpenSFixed +> indent +> sepNln
+            +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
+            +> unindent +> sepNln +> sepCloseSFixed
+            +> genMemberDefnList { astContext with InterfaceRange = None } ms
+            +> unindent)
+
 and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix) as node) =
     let range = match node with | SynTypeDefnSig.TypeDefnSig(_,_,_,r) -> r
     let typeName =
@@ -1774,11 +1809,9 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
         +> unindent
 
     | SigSimple(TDSRRecord(ao', fs)) ->
-        typeName +> sepEq
-        +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS
-        +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
-        +> colPre sepNln sepNln ms (genMemberSig astContext)
-        +> unindent
+        ifGReseach
+            (genSigSimpleRecordGResearch typeName tdr ms ao' fs astContext)
+            (genSigSimpleRecord typeName tdr ms ao' fs astContext)
 
     | SigSimple TDSRNone ->
         let genMembers =
@@ -1822,6 +1855,21 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
         genExceptionBody astContext ats px ao uc
     |> genTrivia range
 
+and genSigSimpleRecord typeName tdr ms ao' fs astContext =
+    typeName +> sepEq
+    +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS
+    +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
+    +> colPre sepNln sepNln ms (genMemberSig astContext)
+    +> unindent
+
+and genSigSimpleRecordGResearch typeName tdr ms ao' fs astContext =
+    typeName +> sepEq
+    +> indent +> sepNln +> opt sepNln ao' genAccess
+    +> sepOpenSFixed +> indent +> sepNln
+    +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
+    +> unindent +> sepNln +> sepCloseSFixed
+    +> colPre sepNln sepNln ms (genMemberSig astContext)
+    +> unindent
 and genMemberSig astContext node =
     let range =
         match node with
