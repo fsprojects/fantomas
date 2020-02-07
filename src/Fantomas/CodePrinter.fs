@@ -511,14 +511,29 @@ and genTypeParamPostfix astContext tds tcs = genTypeAndParam astContext "" tds t
 and genLetBinding astContext pref b =
     match b with
     | LetBinding(ats, px, ao, isInline, isMutable, p, e) ->
+        let genPat =
+            match e, p with
+            | TypedExpr(Typed, _, t),  PatLongIdent(ao, s, ps, tpso) when (List.length ps > 1)->
+                genPatWithReturnType ao s ps tpso (Some t) astContext
+            | _,  PatLongIdent(ao, s, ps, tpso) when (List.length ps > 1)->
+                genPatWithReturnType ao s ps tpso None astContext
+            | _ ->
+                genPat astContext p
+
         let prefix =
+            let genAttr =
+                ifElse astContext.IsFirstChild
+                    (genAttributes astContext ats -- pref)
+                    (!- pref +> genOnelinerAttributes astContext ats)
+            let afterLetKeyword =
+                opt sepSpace ao genAccess
+                +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
+
+
             genPreXmlDoc px
-            +> ifElse astContext.IsFirstChild (genAttributes astContext ats -- pref)
-                (!- pref +> genOnelinerAttributes astContext ats)
-            +> dumpAndContinue
-            +> opt sepSpace ao genAccess
-            +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
-            +> genPat astContext p
+            +> genAttr // this already contains the `let` or `and` keyword
+            +> afterLetKeyword
+            +> genPat
 
         genExprSepEqPrependType astContext prefix p e
 
@@ -2195,9 +2210,14 @@ and genPat astContext pat =
         // This pattern is potentially long
         | ps ->
             let hasBracket = ps |> Seq.map fst |> Seq.exists Option.isSome
-            atCurrentColumn (aoc -- s +> tpsoc +> sepSpace
+            let genName = aoc -- s +> tpsoc +> sepSpace
+            let genParameters = colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext) +> dumpAndContinue
+
+            let xx = ps
+            atCurrentColumn (genName +> dumpAndContinue
                 +> ifElse hasBracket sepOpenT sepNone
-                +> colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)
+                +> genParameters
+                +> dumpAndContinue
                 +> ifElse hasBracket sepCloseT sepNone)
 
     | PatParen(PatConst(Const "()", _)) -> !- "()"
@@ -2229,6 +2249,37 @@ and genPat astContext pat =
     | p -> failwithf "Unexpected pattern: %O" p
     |> genTrivia pat.Range
 
+and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext) =
+    let aoc = opt sepSpace ao genAccess
+    let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
+    // Override escaped new keyword
+    let s = if s = "``new``" then "new" else s
+
+    let hasBracket = ps |> Seq.map fst |> Seq.exists Option.isSome
+    let genName = aoc -- s +> tpsoc +> sepSpace
+    let genParametersInitial =
+        colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)
+
+
+    let genReturnType, newlineBeforeReturnType =
+        match t with
+        | Some t -> genType astContext false t, sepNln
+        | None -> sepNone, sepNone
+
+    let genParametersWithNewlines =
+        (indent +> sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType)
+
+    let isLongFunctionSignature ctx=
+        futureNlnCheck (genName +> dumpAndContinue +> genParametersInitial +> genReturnType +> dumpAndContinue) ctx
+
+    atCurrentColumn (fun ctx ->
+        let isLong = isLongFunctionSignature ctx
+        let expr =
+            genName
+            +> ifElse hasBracket sepOpenT sepNone
+            +> ifElse isLong genParametersWithNewlines genParametersInitial
+            +> ifElse hasBracket sepCloseT sepNone
+        expr ctx)
 and genConst (c:SynConst) (r:range) =
     match c with
     | SynConst.Unit ->
