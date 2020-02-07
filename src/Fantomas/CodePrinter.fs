@@ -824,7 +824,7 @@ and genExpr astContext synExpr =
 
     | Record(inheritOpt, xs, eo) ->
         ifGReseach
-            (genRecordInstanceGResearch inheritOpt xs eo synExpr astContext)
+            (genRecordInstanceGResearch inheritOpt xs eo astContext)
             (genRecordInstance inheritOpt xs eo synExpr astContext) 
             
 
@@ -1423,32 +1423,36 @@ and genRecordInstanceGResearch
     (inheritOpt:(SynType * SynExpr) option)
     (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
     (eo: SynExpr option)
-    synExpr astContext (ctx: Context) =
+    astContext (ctx: Context) =
 
-    let recordExpr =
-        let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
-        match eo with
-        | Some e ->
-            genExpr astContext e
-            +> ifElseCtx (futureNlnCheck fieldsExpr)
-                   (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent)
-                   (!- " with " +> fieldsExpr)
-        | None -> fieldsExpr
+    let genEo fieldsExpr e =
+        genExpr astContext e
+        +> ifElseCtx (futureNlnCheck fieldsExpr)
+               (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent)
+               (!- " with " +> fieldsExpr)
 
-    let isRecordExprMultiline = futureNlnCheck recordExpr ctx
-
+    let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
     let genInherit (typ, expr) = !- "inherit " +> genType astContext false typ +> genExpr astContext expr
 
-    let expr =
-        let fullRecordExpr =
-            opt (if xs.IsEmpty then sepNone
-                 elif isRecordExprMultiline then sepNln
-                 else sepSemi) inheritOpt genInherit
-            +> recordExpr
+    let isRecordExprMultiline =
+        let expr =
+            match eo with
+            | Some ci -> genEo fieldsExpr ci
+            | None -> fieldsExpr
+        Option.isSome inheritOpt || futureNlnCheck expr ctx
 
-        ifElseCtx (futureNlnCheck recordExpr)
-            (sepOpenSFixed +> indent +> sepNln +> fullRecordExpr +> unindent +> sepNln +> sepCloseSFixed)
-            (sepOpenS +> fullRecordExpr +> sepCloseS) // keep record on one line if small
+    let expr =
+        match eo, isRecordExprMultiline with
+        | Some e, false ->
+            sepOpenS +> genEo fieldsExpr e +> sepCloseS
+        | Some e, true ->
+            sepOpenS +> genEo fieldsExpr e +> sepNln +> sepCloseSFixed
+        | None, false ->
+            sepOpenS +> fieldsExpr +> sepCloseS
+        | None, true ->
+            sepOpenSFixed +> indent +> sepNln +>
+            opt sepNln inheritOpt genInherit  +> fieldsExpr
+            +> unindent +> sepNln +> sepCloseSFixed
 
         |> atCurrentColumnIndent
 
@@ -1470,19 +1474,31 @@ and genAnonRecord isStruct fields copyInfo astContext (ctx:Context) =
     expr ctx
 
 and genAnonRecordGResearch isStruct fields copyInfo astContext (ctx:Context) =
-    let recordExpr =
-        let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
+    let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
 
-        copyInfo |> Option.map (fun e ->
-            genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
-        |> Option.defaultValue fieldsExpr
+    let copyExpr fieldsExpr e =
+        genExpr astContext e +>
+            ifElseCtx (futureNlnCheck fieldsExpr)
+                (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent)
+                (!- " with " +> fieldsExpr)
 
-    let isRecordExprMultiline = futureNlnCheck recordExpr ctx
+    let isRecordExprMultiline =
+        let expr =
+            match copyInfo with
+            | Some ci -> copyExpr fieldsExpr ci
+            | None -> fieldsExpr
+        futureNlnCheck expr ctx
 
     let genAnonRecord =
-        ifElse isRecordExprMultiline
-            (sepOpenAnonRecdFixed +> indent +> sepNln +> recordExpr +> unindent +> sepNln +> sepCloseAnonRecdFixed)
-            (sepOpenAnonRecd +> recordExpr +> sepCloseAnonRecd)
+        match copyInfo, isRecordExprMultiline with
+        | Some ci, false ->
+            sepOpenAnonRecd +>  copyExpr fieldsExpr ci +> sepCloseAnonRecd
+        | Some ci, true ->
+            sepOpenAnonRecd +> copyExpr fieldsExpr ci +> sepNln +> sepCloseAnonRecdFixed
+        | None, false ->
+            sepOpenAnonRecd +> fieldsExpr +> sepCloseAnonRecd
+        | None, true ->
+            sepOpenAnonRecdFixed +> indent +> sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseAnonRecdFixed
 
     let expr =
         ifElse isStruct !- "struct " sepNone
@@ -1507,7 +1523,7 @@ and genObjExprGResearch t eio bd ims range (astContext: ASTContext) =
             +> colPre sepNln sepNln ims (genInterfaceImpl astContext))
 
     atCurrentColumnIndent (
-        sepOpenSFixed +> indent +> sepNln +> genObjExpr +> unindent +> sepNln +> sepCloseSFixed)
+        sepOpenS +> genObjExpr +> sepNln +> sepCloseSFixed)
 
 and genLetOrUseList astContext expr =
     match expr with
@@ -1936,7 +1952,7 @@ and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs) as node)
     +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
     |> genTrivia node.Range
 
-and genEnumCase astContext (EnumCase(ats, px, _, (_,r)) as node) =
+and genEnumCase astContext (EnumCase(ats, px, _, (_,_)) as node) =
     let genCase (ctx: Context) =
         let expr =
             match node with

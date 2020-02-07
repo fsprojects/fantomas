@@ -4,12 +4,12 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let configForGResearch = ({ config with GResearch = true })
+let config = ({ config with GResearch = true })
 
 [<Test>]
 let ``single member record stays on oneline`` () =
     formatSourceString false """let a = { Foo = "bar" }
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let a = { Foo = "bar" }
@@ -23,7 +23,7 @@ let ``record instance`` () =
       Bar = "bar"
       Street = "Bakerstreet"
       Number = 42 }
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let myRecord =
@@ -46,7 +46,7 @@ let ``nested record`` () =
           { Street = "Bakerstreet"
             ZipCode = "9000" }
       Number = 42 }
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let myRecord =
@@ -70,15 +70,14 @@ let ``update record`` () =
         with Level = 2
              Bar = "barry"
              Progress = "fooey" }
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let myRecord =
-    {
-        myOldRecord with
-            Level = 2
-            Bar = "barry"
-            Progress = "fooey"
+    { myOldRecord with
+        Level = 2
+        Bar = "barry"
+        Progress = "fooey"
     }
 """
 
@@ -87,10 +86,27 @@ let ``update record with single field`` () =
     formatSourceString false """let myRecord =
     { myOldRecord
         with Level = 2 }
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let myRecord = { myOldRecord with Level = 2 }
+"""
+
+[<Test>]
+let ``record instance with inherit keyword`` () =
+    formatSourceString false """let a =
+        { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
+          buildSettings = FSharpBuildSettings()
+          targetPlatformData = targetPlatformData }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    {
+        inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
+        buildSettings = FSharpBuildSettings()
+        targetPlatformData = targetPlatformData
+    }
 """
 
 [<Test>]
@@ -101,7 +117,7 @@ let ``anonymous record`` () =
        Bar = "bar"
        Street = "Bakerstreet"
        Number = 42 |}
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let meh =
@@ -114,12 +130,34 @@ let meh =
     |}
 """
 
+[<Test>]
+let ``anoynous record with single field update`` () =
+    formatSourceString false """let a = {| foo with Level = 7 |}
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = {| foo with Level = 7 |}
+"""
+
+[<Test>]
+let ``anoynous record with multiple field update`` () =
+    formatSourceString false """let a = {| foo with Level = 7; Square = 9 |}
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    {| foo with
+        Level = 7
+        Square = 9
+    |}
+"""
+
 // This is meant to be a short type alias, we format this always as one-liner.
 // TDB with G-Research
 [<Test>]
 let ``anonymous type`` () =
     formatSourceString false """type a = {| foo : string; bar : string |}
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 type a = {| foo: string; bar: string |}
@@ -128,7 +166,7 @@ type a = {| foo: string; bar: string |}
 [<Test>]
 let ``anonymous record with single field`` () =
     formatSourceString false """let a = {| A = "meh" |}
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let a = {| A = "meh" |}
@@ -142,7 +180,7 @@ let anonRecord =
        B = {| B1 = 7 |}
        C= { C1 = "foo"; C2 = "bar"}
        D = { D1 = "bar" } |}
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let anonRecord =
@@ -166,7 +204,7 @@ let anonRecord =
 let ``record as parameter to function`` () =
     formatSourceString false """let configurations =
     buildConfiguration { XXXXXXXXXXXX = "XXXXXXXXXXXXX"; YYYYYYYYYYYY = "YYYYYYYYYYYYYYY" }
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let configurations =
@@ -185,7 +223,7 @@ let ``records in list`` () =
         { Build = true; Configuration = "DEBUG"; Defines = ["FOO";"BAR"] }
         { Build = true; Configuration = "UNKNOWN"; Defines = [] }
     ]
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let configurations =
@@ -213,7 +251,7 @@ let ``anonymous records in list`` () =
         {| Build = true; Configuration = "RELEASE"; Defines = ["FOO"] |}
         {| Build = true; Configuration = "DEBUG"; Defines = ["FOO";"BAR"] |}
     ]
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let configurations =
@@ -236,7 +274,7 @@ let ``records in array`` () =
         { Build = true; Configuration = "RELEASE"; Defines = ["FOO"] }
         { Build = true; Configuration = "DEBUG"; Defines = ["FOO";"BAR"] }
     |]
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let configurations =
@@ -256,13 +294,12 @@ let configurations =
 let ``object expression`` () =
     formatSourceString false """
 let obj1 = { new System.Object() with member x.ToString() = "F#" }
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let obj1 =
-    {
-        new System.Object() with
-            member x.ToString() = "F#"
+    { new System.Object() with
+        member x.ToString() = "F#"
     }
 """
 
@@ -274,17 +311,15 @@ let a =
         { new System.Object() with member x.ToString() = "F#" }
         { new System.Object() with member x.ToString() = "C#" }
     ]
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 let a =
-    [ {
-          new System.Object() with
-              member x.ToString() = "F#"
+    [ { new System.Object() with
+          member x.ToString() = "F#"
       }
-      {
-          new System.Object() with
-              member x.ToString() = "C#"
+      { new System.Object() with
+          member x.ToString() = "C#"
       } ]
 """
 
@@ -303,7 +338,7 @@ type Element =
 
       /// The qualified name.
       Name: Name }
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 module RecordSignature
@@ -328,7 +363,7 @@ let ``SynPat.Record in pattern match with bracketOnSeparateLine`` () =
     formatSourceString false """match foo with
 | { Bar = bar; Level = 12; Vibes = plenty; Lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " } -> "7"
 | _ -> "8"
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 match foo with
@@ -346,7 +381,7 @@ let ``record declaration`` () =
       Bar: string
       Street: string
       Number: int }
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 type MyRecord =
@@ -368,7 +403,7 @@ type MyRecord =
       Bar: string
       Street: string
       Number: int }
-"""  configForGResearch
+"""  config
     |> prepend newline
     |> should equal """
 namespace X
