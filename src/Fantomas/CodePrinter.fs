@@ -2311,7 +2311,7 @@ and genConst (c:SynConst) (r:range) =
             | Measure m -> !- m
 
         genConstNumber c r +> measure
-
+    |> genTrivia r
 and genConstNumber (c:SynConst) (r: range) =
     fun (ctx: Context) ->
         ctx.Trivia
