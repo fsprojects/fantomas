@@ -78,8 +78,8 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
 /// Check whether an AST consists of parsing errors 
 let isValidAST ast = 
     let (|IndexerArg|) = function
-        | SynIndexerArg.Two(e1, e2) -> [e1; e2]
-        | SynIndexerArg.One e -> [e]
+        | SynIndexerArg.Two(e1,_,e2,_,_,_) -> [e1; e2]
+        | SynIndexerArg.One(e,_,_) -> [e]
 
     let (|IndexerArgList|) xs =
         List.collect (|IndexerArg|) xs
@@ -298,8 +298,10 @@ let isValidAST ast =
         | SynExpr.DoBang(synExpr, _range) -> 
             validateExpr synExpr
 
-        | SynExpr.LetOrUseBang(_sequencePointInfoForBinding, _, _, synPat, synExpr1, synExpr2, _range) -> 
-            List.forall validateExpr [synExpr1; synExpr2] && validatePattern synPat
+        | SynExpr.LetOrUseBang(_sequencePointInfoForBinding, _, _, synPat, synExpr1, ands, synExpr2, _range) -> 
+            List.forall validateExpr [synExpr1; synExpr2] 
+            && validatePattern synPat
+            && List.forall (fun (pat, e) -> validateExpr e && validatePattern pat) (ands |> List.map (fun (_,_,_,pat,e,_) -> pat,e))
 
         | SynExpr.LibraryOnlyILAssembly _
         | SynExpr.LibraryOnlyStaticOptimization _ 

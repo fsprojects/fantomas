@@ -562,7 +562,7 @@ module private Ast =
              Properties = p []
              FsAstNode = synExpr
              Childs = [yield visitSynExpr expr]}
-        | SynExpr.LetOrUseBang(_,isUse,isFromSource,pat,rhsExpr,body,range) ->
+        | SynExpr.LetOrUseBang(_,isUse,isFromSource,pat,rhsExpr,andBangs,body,range) ->
             {Type = "SynExpr.LetOrUseBang"
              Range = r range
              Properties =
@@ -572,6 +572,7 @@ module private Ast =
              Childs =
                  [yield visitSynPat pat
                   yield visitSynExpr rhsExpr
+                  yield! andBangs |> List.collect (fun (_,_,_,pat,body,_) -> visitSynPat pat :: [visitSynExpr body])
                   yield visitSynExpr body]}
         | SynExpr.MatchBang(_,expr,clauses,range) ->
             {Type = "SynExpr.MatchBang"
@@ -695,13 +696,13 @@ module private Ast =
 
     and visitSynIndexerArg(ia: SynIndexerArg): Node =
         match ia with
-        | SynIndexerArg.One(e) ->
+        | SynIndexerArg.One(e,fromEnd,_) ->
             {Type = "SynIndexerArg.One"
              Range = noRange
              Properties = p []
              FsAstNode = ia
              Childs = [yield visitSynExpr e]}
-        | SynIndexerArg.Two(e1,e2) ->
+        | SynIndexerArg.Two(e1,fromEnd1,e2,fromEnd2,_,_) ->
             {Type = "SynIndexerArg.Two"
              Range = noRange
              Properties = p []
