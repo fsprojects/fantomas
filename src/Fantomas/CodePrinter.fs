@@ -2267,7 +2267,7 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
         | None -> sepNone, sepNone
 
     let genParametersWithNewlines =
-        (indent +> sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType)
+        (sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType)
 
     let isLongFunctionSignature ctx=
         futureNlnCheck (genName +> dumpAndContinue +> genParametersInitial +> genReturnType +> dumpAndContinue) ctx

@@ -354,7 +354,7 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
     match anyErrors with
     | true -> Error collectedErrors
     | false -> Ok collectedOutputs
-"""  ({ config with PageWidth = 100 })
+"""  ({ config with PageWidth = 100; SpaceBeforeColon = true })
     |> prepend newline
     |> should equal """
 let fold

@@ -461,7 +461,11 @@ let internal noNln f (ctx : Context) : Context =
     let res = f { ctx with BreakLines = false }
     { res with BreakLines = ctx.BreakLines }
 
-let internal sepColon (ctx : Context) = 
+let internal sepColon (ctx : Context) =
+    let code = dump ctx
+    let lastWriteEventIsNewline =
+        List.tryHead ctx.WriterEvents
+
     if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx
 
 let internal sepColonFixed = !- ":"
