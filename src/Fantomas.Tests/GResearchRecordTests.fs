@@ -102,8 +102,7 @@ let ``record instance with inherit keyword`` () =
     |> prepend newline
     |> should equal """
 let a =
-    {
-        inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
+    { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
         buildSettings = FSharpBuildSettings()
         targetPlatformData = targetPlatformData
     }
@@ -160,7 +159,7 @@ let ``anonymous type`` () =
 """  config
     |> prepend newline
     |> should equal """
-type a = {| foo: string; bar: string |}
+type a = {| foo : string ; bar : string |}
 """
 
 [<Test>]
@@ -227,21 +226,23 @@ let ``records in list`` () =
     |> prepend newline
     |> should equal """
 let configurations =
-    [ {
-          Build = true
-          Configuration = "RELEASE"
-          Defines = [ "FOO" ]
-      }
-      {
-          Build = true
-          Configuration = "DEBUG"
-          Defines = [ "FOO"; "BAR" ]
-      }
-      {
-          Build = true
-          Configuration = "UNKNOWN"
-          Defines = []
-      } ]
+    [
+        {
+            Build = true
+            Configuration = "RELEASE"
+            Defines = [ "FOO" ]
+        }
+        {
+            Build = true
+            Configuration = "DEBUG"
+            Defines = [ "FOO" ; "BAR" ]
+        }
+        {
+            Build = true
+            Configuration = "UNKNOWN"
+            Defines = []
+        }
+    ]
 """
 
 [<Test>]
@@ -346,7 +347,7 @@ module RecordSignature
 type Element =
     {
         /// The attribute collection.
-        Attributes: IDictionary<Name, string>
+        Attributes : IDictionary<Name, string>
 
         /// The children collection.
         Children: seq<INode>
@@ -386,7 +387,7 @@ let ``record declaration`` () =
     |> should equal """
 type MyRecord =
     {
-        Level: int
+        Level : int
         Progress: string
         Bar: string
         Street: string
