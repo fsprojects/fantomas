@@ -194,6 +194,7 @@ let private triviaBetweenAttributeAndLetBinding triviaNodes line =
             match t.Type with
             | MainNode("SynModuleDecl.Let") when (t.Range.StartLine > line) -> true
             | MainNode("SynAttributeList") when (t.Range.StartLine > line) -> true
+            | MainNode("SynModuleDecl.Types") when (t.Range.StartLine > line) -> true
             | _ -> false
         )
 
