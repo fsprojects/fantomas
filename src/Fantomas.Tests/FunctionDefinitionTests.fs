@@ -358,14 +358,15 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
     |> prepend newline
     |> should equal """
 let fold
-        (funcs: ResultFunc<'Input, 'Output, 'TError> seq)
-        (input: 'Input)
-        : Result<'Output list, 'TError list> =
+    (funcs : ResultFunc<'Input, 'Output, 'TError> seq)
+    (input : 'Input)
+    : Result<'Output list, 'TError list>
+    =
     let mutable anyErrors = false
     let mutable collectedOutputs = []
     let mutable collectedErrors = []
 
-    let runValidator (validator: ResultFunc<'Input, 'Output, 'TError>) input =
+    let runValidator (validator : ResultFunc<'Input, 'Output, 'TError>) input =
         let validatorResult = validator input
         match validatorResult with
         | Error error ->
