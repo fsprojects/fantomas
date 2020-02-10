@@ -15,6 +15,7 @@
     <Compile Include="Version.fs" />
     <Compile Include="Dbg.fs" />
     <Compile Include="Utils.fs" />
+    <Compile Include="Queue.fs" />
     <Compile Include="FormatConfig.fs" />
     <Compile Include="ConfigFile.fs" />
     <Compile Include="JsonConfig.fs" />
