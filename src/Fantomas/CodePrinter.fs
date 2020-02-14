@@ -1401,9 +1401,12 @@ and genExpr astContext synExpr =
     | SynExpr.Set(e1,e2, _) ->
         addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
 
-    | LetOrUseBang(isUse, p, e1, e2) ->
+    | LetOrUseBang(isUse, p, e1, ands, e2) ->
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ")
-            +> genPat astContext p -- " = " +> genExpr astContext e1 +> sepNln +> genExpr astContext e2)
+            +> genPat astContext p -- " = " +> genExpr astContext e1 +> sepNln
+            // TODO: use ands here
+            +> genExpr astContext e2
+        )
 
     | ParsingError r ->
         raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i"
@@ -1491,14 +1494,14 @@ and genInfixApps astContext (hasNewLine:bool) synExprs (ctx:Context) =
 /// Use in indexed set and get only
 and genIndexers astContext node =
     match node with
-    | Indexer(Pair(IndexedVar eo1, IndexedVar eo2)) :: es ->
+    | Indexer(Pair((IndexedVar eo1, e1FromEnd),(IndexedVar eo2, e2FromEnd))) :: es ->
         ifElse (eo1.IsNone && eo2.IsNone) (!- "*")
             (opt sepNone eo1 (genExpr astContext) -- ".." +> opt sepNone eo2 (genExpr astContext))
         +> ifElse es.IsEmpty sepNone (sepComma +> genIndexers astContext es)
-    | Indexer(Single(IndexedVar eo)) :: es ->
+    | Indexer(Single(IndexedVar eo, fromEnd)) :: es ->
         ifElse eo.IsNone (!- "*") (opt sepNone eo (genExpr astContext))
         +> ifElse es.IsEmpty sepNone (sepComma +> genIndexers astContext es)
-    | Indexer(Single e) :: es ->
+    | Indexer(Single(e, fromEnd)) :: es ->
             genExpr astContext e +> ifElse es.IsEmpty sepNone (sepComma +> genIndexers astContext es)
     | _ -> sepNone
     // |> genTrivia node, it a list
