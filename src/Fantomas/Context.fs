@@ -541,7 +541,6 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
         let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
         writerEvent (WriteBeforeNewline comment)
     | Comment(BlockComment(s, before, after)) ->
-        let aa = addNewline,addSpace, s
         ifElse (before && addNewline) sepNln sepNone
         +> sepSpace -- s +> sepSpace
         +> ifElse after sepNln sepNone

@@ -474,29 +474,23 @@ and genExprSepEqPrependType (genPat: Context -> Context) astContext prefix (pat:
     | TypedExpr(Typed, e, t) ->
         let addExtraSpaceBeforeGenericType =
             match pat with
-            | SynPat.LongIdent(_, _, Some(SynValTyparDecls(_)), _, _, _) -> addSpaceAfterGenericConstructBeforeColon
+            | SynPat.LongIdent(_, _, Some(SynValTyparDecls(_)), _, _, _) ->
+                addSpaceAfterGenericConstructBeforeColon
             | _ -> sepNone
 
         let genCommentBeforeColon ctx =
             let hasLineComment = TriviaHelpers.``has line comment before`` t.Range ctx.Trivia
             (ifElse hasLineComment indent sepNone +> enterNode t.Range +> unindent) ctx
 
-        let isPrefixMultiline =
-            futureNlnCheck (genPat +> genType astContext false t)
-                ctx // this does not include any attributes, only the part after let/and keyword
+        let isPrefixMultiline = futureNlnCheck (genPat +> genType astContext false t) ctx
 
-        (prefix +> addExtraSpaceBeforeGenericType +> genCommentBeforeColon +> sepColon +> genType astContext false t
-         +> sepEqual isPrefixMultiline
-         +> breakNlnOrAddSpace astContext
-                (hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
+        (prefix +> addExtraSpaceBeforeGenericType
+        +> genCommentBeforeColon
+        +> sepColon +> genType astContext false t +> sepEqual isPrefixMultiline
+        +> breakNlnOrAddSpace astContext (hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
     | e ->
-        let isPrefixMultiline =
-            futureNlnCheck genPat ctx // this does not include any attributes, only the part after let/and keyword
-        (prefix +> sepEqual isPrefixMultiline +> leaveEqualsToken pat.Range
-         +> breakNlnOrAddSpace astContext
-                (isPrefixMultiline || hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e)
-            ctx
-
+        let isPrefixMultiline = futureNlnCheck genPat ctx
+        (prefix +> sepEqual isPrefixMultiline +> leaveEqualsToken pat.Range +> breakNlnOrAddSpace astContext (isPrefixMultiline || hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
 
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx =
@@ -2227,7 +2221,6 @@ and genPat astContext pat =
             let genName = aoc -- s +> tpsoc +> sepSpace
             let genParameters = colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext) +> dumpAndContinue
 
-            let xx = ps
             atCurrentColumn (genName +> dumpAndContinue
                 +> ifElse hasBracket sepOpenT sepNone
                 +> genParameters
