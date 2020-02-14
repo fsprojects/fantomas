@@ -519,16 +519,13 @@ let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
-    let currentLastLine =
-        let m = applyWriterEvents ctx
-        m.Lines
-        |> List.tryHead
+    let currentLastLine = lastWriteEventOnLastLine ctx
 
     // Some items like #if of Newline should be printed on a newline
     // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
     let addNewline =
         currentLastLine
-        |> Option.map(fun line -> line.Trim().Length > 0)
+        |> Option.map(fun line -> line.Length > 0)
         |> Option.defaultValue false
 
     let addSpace =
