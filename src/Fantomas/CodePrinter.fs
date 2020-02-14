@@ -480,7 +480,9 @@ and genExprSepEqPrependType (genPat: Context -> Context) astContext prefix (pat:
 
         let genCommentBeforeColon ctx =
             let hasLineComment = TriviaHelpers.``has line comment before`` t.Range ctx.Trivia
-            (ifElse hasLineComment indent sepNone +> enterNode t.Range +> unindent) ctx
+            (ifElse hasLineComment indent sepNone
+             +> enterNode t.Range
+             +> ifElse hasLineComment unindent sepNone) ctx
 
         let isPrefixMultiline = futureNlnCheck (genPat +> genType astContext false t) ctx
 
