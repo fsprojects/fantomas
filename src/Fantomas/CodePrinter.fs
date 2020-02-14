@@ -45,6 +45,8 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg =
     match functionOrMethod, arg with
     | _, ConstExpr(Const "()", _) ->
         false
+    | SynExpr.LongIdent(_, LongIdentWithDots _, _, _), SynExpr.Ident(_) ->
+        true
     | SynExpr.LongIdent(_, LongIdentWithDots s, _, _), _ ->
         let parts = s.Split '.'
         not <| Char.IsUpper parts.[parts.Length - 1].[0]
@@ -1395,6 +1397,9 @@ and genExpr astContext synExpr =
        genExpr astContext e -- "." -- ident +> genExpr astContext e1 -- " <- "  +> genExpr astContext e2
     | DotGet(e, (s,_)) ->
         let exprF = genExpr { astContext with IsInsideDotGet = true }
+        let a = 42
+        let ee = e
+        let ss = s
         addParenIfAutoNln e exprF -- (sprintf ".%s" s)
     | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
 
