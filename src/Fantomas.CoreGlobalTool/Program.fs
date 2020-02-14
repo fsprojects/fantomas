@@ -2,7 +2,6 @@ open System
 open System.IO
 open Fantomas
 open Fantomas.FormatConfig
-open Fantomas.Cmd
 open Argu
 
 let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli"; |]
@@ -158,33 +157,42 @@ let readFromStdin (lineLimit:int) =
 
         if String.IsNullOrWhiteSpace input then None else Some(input)
 
+let private reportCheckResults (output: TextWriter) (checkResult: FakeHelpers.CheckResult) =
+    checkResult.Errors
+    |> List.map (fun (filename, exn) -> sprintf "error: Failed to format %s: %s" filename (exn.ToString()))
+    |> Seq.iter output.WriteLine
+
+    checkResult.Formatted
+    |> List.map (fun filename -> sprintf "%s needs formatting" filename)
+    |> Seq.iter output.WriteLine
+
 let runCheckCommand (config: FormatConfig) (recurse: bool) (inputPath: InputPath) : int =
-    let userReport exitCode =
-        if exitCode = 0 then
-            printfn "No changes required."
-        else
-            printfn "Check found some issues:"
+    let check files = Async.RunSynchronously (FakeHelpers.checkCode config files)
 
-    let check = Check.run config stdout
-    let exitCode =
-        match inputPath with
-        | InputPath.Unspecified
-        | InputPath.StdIn(_) ->
-            eprintfn "No input path provided. Nothing to do."
+    let processCheckResult (checkResult: FakeHelpers.CheckResult) =
+        if checkResult.IsValid then
+            stdout.WriteLine "No changes required."
             0
-        | InputPath.File(path) ->
-            path
-            |> Seq.singleton
-            |> check
-            |> int
-        | InputPath.Folder(path) ->
-            path
-            |> allFiles recurse
-            |> check
-            |> int
-    userReport exitCode
+        else
+            reportCheckResults stdout checkResult
+            if checkResult.HasErrors then 1 else 99
 
-    exitCode
+    match inputPath with
+    | InputPath.Unspecified
+    | InputPath.StdIn(_) ->
+        eprintfn "No input path provided. Nothing to do."
+        0
+    | InputPath.File(path) ->
+        path
+        |> Seq.singleton
+        |> check
+        |> processCheckResult
+    | InputPath.Folder(path) ->
+        path
+        |> allFiles recurse
+        |> check
+        |> processCheckResult
+
 
 
 [<EntryPoint>]
@@ -354,6 +362,8 @@ let main argv =
                 eprintfn "The following exception occurred while formatting %s: %O" inFile exn
                 if force then
                     stdout.Write(File.ReadAllText inFile)
+
+
 
         if Option.isSome version then
             let version = CodeFormatter.GetVersion()

@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <Compile Include="Check.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <Import Project="..\netfx.props" />

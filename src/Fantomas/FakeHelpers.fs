@@ -100,19 +100,47 @@ let formatCode config files =
         return result
     }
 
+type CheckResult =
+    { Errors: (string * exn) list
+      Formatted: string list }
+    member this.HasErrors = List.isNotEmpty this.Errors
+    member this.NeedsFormatting = List.isNotEmpty this.Formatted
+    member this.IsValid = List.isEmpty this.Errors && List.isEmpty this.Formatted
 
-let checkCode config files =
+/// Runs a check on the given files and reports the result to the given output:
+///
+/// * It shows the paths of the files that need formatting
+/// * It shows the path and the error message of files that failed the format check
+///
+/// Returns:
+///
+/// A record with the file names that were formatted and the files that encounter problems while formatting.
+let checkCode (config: FormatConfig) (filenames: seq<string>) =
     async {
-        let! results = files |> formatFilesAsync config
+        let! formatted = filenames
+                         |> Seq.map (formatFileAsync config)
+                         |> Async.Parallel
+
+        let getChangedFile =
+            function
+            | FormatResult.Unchanged(_) -> None
+            | FormatResult.Formatted(f,_)
+            | FormatResult.Error(f,_) -> Some f
 
         let changes =
-            results
-            |> Array.choose (fun x ->
-                match x with
-                | Formatted(file, _) -> Some(file, None)
-                | Error(file, ex) -> Some(file, Some(ex))
-                | _ -> None)
+            formatted
+            |> Seq.choose getChangedFile
+            |> Seq.toList
 
-        if Array.exists (function | _, Some(_) -> true | _ -> false) changes then
-            raise <| CodeFormatException changes
+        let getErrors =
+            function
+            | FormatResult.Error(f,e) -> Some (f,e)
+            | _ -> None
+
+        let errors =
+            formatted
+            |> Seq.choose getErrors
+            |> Seq.toList
+
+        return { Errors = errors; Formatted = changes }
     }

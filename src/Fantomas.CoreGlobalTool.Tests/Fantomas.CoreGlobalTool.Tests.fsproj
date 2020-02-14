@@ -10,8 +10,9 @@
     <ProjectReference Include="..\Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CheckTests.fs" />
     <None Include="paket.references" />
+    <Compile Include="TestHelpers.fs" />
+    <Compile Include="CheckTests.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
