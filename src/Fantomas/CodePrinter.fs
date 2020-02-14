@@ -452,7 +452,8 @@ and addSpaceAfterGenericConstructBeforeColon ctx =
         sepNone
     <| ctx
 
-and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
+and genExprSepEqPrependType (genPat: Context -> Context) astContext prefix (pat:SynPat) e ctx =
+
     let multilineCheck =
         match e with
         | MatchLambda _ -> false
@@ -467,25 +468,35 @@ and genExprSepEqPrependType astContext prefix (pat:SynPat) e ctx =
             | _ -> false
         )
 
+    let sepEqual isPrefixMultiline = ifElse isPrefixMultiline (indent +> sepNln +> !- "=" +> unindent) sepEq
+
     match e with
     | TypedExpr(Typed, e, t) ->
         let addExtraSpaceBeforeGenericType =
             match pat with
-            | SynPat.LongIdent(_, _, Some(SynValTyparDecls(_)), _, _, _) ->
-                addSpaceAfterGenericConstructBeforeColon
+            | SynPat.LongIdent(_, _, Some(SynValTyparDecls(_)), _, _, _) -> addSpaceAfterGenericConstructBeforeColon
             | _ -> sepNone
 
         let genCommentBeforeColon ctx =
             let hasLineComment = TriviaHelpers.``has line comment before`` t.Range ctx.Trivia
-            (ifElse hasLineComment indent sepNone +> enterNode t.Range) ctx
+            (ifElse hasLineComment indent sepNone +> enterNode t.Range +> unindent) ctx
 
-        (prefix +> addExtraSpaceBeforeGenericType
-        +> genCommentBeforeColon
-        +> sepColon +> genType astContext false t +> sepEq
-        +> breakNlnOrAddSpace astContext (hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
+        let isPrefixMultiline =
+            futureNlnCheck (genPat +> genType astContext false t)
+                ctx // this does not include any attributes, only the part after let/and keyword
+
+        (prefix +> addExtraSpaceBeforeGenericType +> genCommentBeforeColon +> sepColon +> genType astContext false t
+         +> sepEqual isPrefixMultiline
+         +> breakNlnOrAddSpace astContext
+                (hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
     | e ->
+        let isPrefixMultiline =
+            futureNlnCheck genPat ctx // this does not include any attributes, only the part after let/and keyword
+        (prefix +> sepEqual isPrefixMultiline +> leaveEqualsToken pat.Range
+         +> breakNlnOrAddSpace astContext
+                (isPrefixMultiline || hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e)
+            ctx
 
-        (prefix +> sepEq +> leaveEqualsToken pat.Range +> breakNlnOrAddSpace astContext (hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
 
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx =
@@ -535,7 +546,7 @@ and genLetBinding astContext pref b =
             +> afterLetKeyword
             +> genPat
 
-        genExprSepEqPrependType astContext prefix p e
+        genExprSepEqPrependType genPat astContext prefix p e
 
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
@@ -547,7 +558,7 @@ and genLetBinding astContext pref b =
     |> genTrivia b.RangeOfBindingSansRhs
 
 and genShortGetProperty astContext (pat:SynPat) e =
-    genExprSepEqPrependType astContext !- "" pat e
+    genExprSepEqPrependType sepNone astContext !- "" pat e
 
 and genProperty astContext prefix ao propertyKind ps e =
     let tuplerize ps =
@@ -563,12 +574,12 @@ and genProperty astContext prefix ao propertyKind ps e =
         !- prefix +> opt sepSpace ao genAccess -- propertyKind
         +> ifElse (List.atMostOne ps) (col sepComma ps (genPat astContext) +> sepSpace)
             (sepOpenT +> col sepComma ps (genPat astContext) +> sepCloseT +> sepSpace)
-        +> genPat astContext p +> genExprSepEqPrependType astContext !- "" p e
+        +> genPat astContext p +> genExprSepEqPrependType sepNone astContext !- "" p e
 
     | ps ->
         let (_,p) = tuplerize ps
         !- prefix +> opt sepSpace ao genAccess -- propertyKind +> col sepSpace ps (genPat astContext)
-        +> genExprSepEqPrependType astContext !- "" p e
+        +> genExprSepEqPrependType sepNone astContext !- "" p e
     |> genTrivia e.Range
 
 and genPropertyWithGetSet astContext (b1, b2) =

@@ -395,22 +395,19 @@ let printInColor (color: string) (msg: string): unit = jsNative
 let ``internal keyword included in function signature length check`` () =
     formatSourceString false """
   let internal UpdateStrongNaming (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
-    let assemblyName = assembly.Name
-    assemblyName
+    assembly.Name
 
   let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
-    let assemblyName = assembly.Name
-    assemblyName
-"""  ({ config with PageWidth = 90 })
+    assembly.Name
+"""  ({ config with PageWidth = 90; SpaceBeforeColon = true })
     |> prepend newline
     |> should equal """
 let internal UpdateStrongNaming
-        (assembly: AssemblyDefinition)
-        (key: StrongNameKeyPair option) =
-    let assemblyName = assembly.Name
-    assemblyName
+    (assembly : AssemblyDefinition)
+    (key : StrongNameKeyPair option)
+    =
+    assembly.Name
 
-let UpdateStrongNamingX (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
-    let assemblyName = assembly.Name
-    assemblyName
+let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
+    assembly.Name
 """

@@ -326,20 +326,24 @@ let internal rep n (f : Context -> Context) (ctx : Context) =
 
 let internal wordAnd = !- " and "
 let internal wordOr = !- " or "
-let internal wordOf = !- " of "   
+let internal wordOf = !- " of "
+let private lastWriteEventOnLastLine ctx =
+    ctx.WriterEvents |> Queue.rev
+    |> Seq.takeWhile (function | WriteLine _ -> false | _ -> true)
+    |> Seq.choose (function | Write w when (String.length w > 0) -> Some w | _ -> None)
+    |> Seq.tryHead
 
 // Separator functions
-        
 let internal sepDot = !- "."
-let internal sepSpace (ctx: Context) =
-    let lastWriteLine = ctx.WriterEvents |> .rev
+let internal sepSpace (ctx : Context) =
+    if ctx.WriterInitModel.IsDummy then
+        (!-" ") ctx
+    else
+        match lastWriteEventOnLastLine ctx with
+        | Some w when (w.EndsWith(" ") || w.EndsWith Environment.NewLine) -> ctx
+        | None -> ctx
+        | _ -> (!-" ") ctx
 
-
-    // ignore multiple spaces, space on start of file, after newline
-    // TODO: this is inefficient - maybe remember last char written?
-    fun (ctx: Context) ->
-        if (not ctx.WriterInitModel.IsDummy && let s = dump ctx in s = "" || s.EndsWith " " || s.EndsWith Environment.NewLine) then ctx
-        else (!- " ") ctx
 let internal sepNln = !+ ""
 let internal sepStar = !- " * "
 let internal sepEq = !- " ="
@@ -465,11 +469,15 @@ let internal noNln f (ctx : Context) : Context =
     { res with BreakLines = ctx.BreakLines }
 
 let internal sepColon (ctx : Context) =
-    let code = dump ctx
-    let lastWriteEventIsNewline =
-        List.tryHead ctx.WriterEvents
+    let defaultExpr = if ctx.Config.SpaceBeforeColon then str " : " else str ": "
 
-    if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx
+    if ctx.WriterInitModel.IsDummy then
+        defaultExpr ctx
+    else
+        match lastWriteEventOnLastLine ctx with
+        | Some w when (w.EndsWith(" ")) -> str ": " ctx
+        | None -> str ": " ctx
+        | _ -> defaultExpr ctx
 
 let internal sepColonFixed = !- ":"
 
@@ -533,6 +541,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
         let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
         writerEvent (WriteBeforeNewline comment)
     | Comment(BlockComment(s, before, after)) ->
+        let aa = addNewline,addSpace, s
         ifElse (before && addNewline) sepNln sepNone
         +> sepSpace -- s +> sepSpace
         +> ifElse after sepNln sepNone
