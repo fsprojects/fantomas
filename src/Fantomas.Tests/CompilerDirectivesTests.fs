@@ -1051,13 +1051,13 @@ let f() =
 """
 
 [<Test>]
-let ``directive capturing attribute, no defines`` () =
-    formatSourceStringWithDefines [] """namespace AltCover.Recorder
+let ``directive capturing attribute, 635`` () =
+    formatSourceString false """namespace AltCover.Recorder
 
-open System.Threading
+open System
 
 #if NET2
-[<System.Runtime.InteropServices.ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
+[<ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
 #else
 [<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
 #endif
@@ -1071,7 +1071,42 @@ type internal Close =
     |> should equal """
 namespace AltCover.Recorder
 
-open System.Threading
+open System
+
+#if NET2
+[<ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
+#else
+[<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
+#endif
+type internal Close =
+  | DomainUnload
+  | ProcessExit
+  | Pause
+  | Resume
+"""
+
+[<Test>]
+let ``directive capturing attribute, no defines`` () =
+    formatSourceStringWithDefines [] """namespace AltCover.Recorder
+
+open System
+
+#if NET2
+[<ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
+#else
+[<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
+#endif
+type internal Close =
+  | DomainUnload
+  | ProcessExit
+  | Pause
+  | Resume
+"""  ({ config with IndentSpaceNum = 2 })
+    |> prepend newline
+    |> should equal """
+namespace AltCover.Recorder
+
+open System
 
 #if NET2
 
@@ -1089,10 +1124,10 @@ type internal Close =
 let ``directive capturing attribute, NET2`` () =
     formatSourceStringWithDefines ["NET2"] """namespace AltCover.Recorder
 
-open System.Threading
+open System
 
 #if NET2
-[<System.Runtime.InteropServices.ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
+[<ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
 #else
 [<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
 #endif
@@ -1106,47 +1141,12 @@ type internal Close =
     |> should equal """
 namespace AltCover.Recorder
 
-open System.Threading
+open System
 
 #if NET2
-[<System.Runtime.InteropServices.ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
+[<ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
 #else
 
-#endif
-type internal Close =
-  | DomainUnload
-  | ProcessExit
-  | Pause
-  | Resume
-"""
-
-[<Test>]
-let ``directive capturing attribute, 635`` () =
-    formatSourceString false """namespace AltCover.Recorder
-
-open System.Threading
-
-#if NET2
-[<System.Runtime.InteropServices.ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
-#else
-[<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
-#endif
-type internal Close =
-  | DomainUnload
-  | ProcessExit
-  | Pause
-  | Resume
-"""  ({ config with IndentSpaceNum = 2 })
-    |> prepend newline
-    |> should equal """
-namespace AltCover.Recorder
-
-open System.Threading
-
-#if NET2
-[<System.Runtime.InteropServices.ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
-#else
-[<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
 #endif
 type internal Close =
   | DomainUnload
