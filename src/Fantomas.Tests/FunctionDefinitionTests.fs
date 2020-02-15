@@ -334,3 +334,80 @@ let ``lambda with complex type``() =
     |> should equal """
 let x = fun ((u, v): int * int) -> 5
 """
+
+[<Test>]
+let ``respect page-width setting in function signature, 495`` () =
+    formatSourceString false """
+let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : Result<'Output list, 'TError list> =
+    let mutable anyErrors = false
+    let mutable collectedOutputs = []
+    let mutable collectedErrors = []
+
+    let runValidator (validator : ResultFunc<'Input, 'Output, 'TError>) input =
+        let validatorResult = validator input
+        match validatorResult with
+        | Error error ->
+            anyErrors <- true
+            collectedErrors <- error :: collectedErrors
+        | Ok output -> collectedOutputs <- output :: collectedOutputs
+    funcs |> Seq.iter (fun validator -> runValidator validator input)
+    match anyErrors with
+    | true -> Error collectedErrors
+    | false -> Ok collectedOutputs
+"""  ({ config with PageWidth = 100; SpaceBeforeColon = true })
+    |> prepend newline
+    |> should equal """
+let fold
+    (funcs : ResultFunc<'Input, 'Output, 'TError> seq)
+    (input : 'Input)
+    : Result<'Output list, 'TError list>
+    =
+    let mutable anyErrors = false
+    let mutable collectedOutputs = []
+    let mutable collectedErrors = []
+
+    let runValidator (validator : ResultFunc<'Input, 'Output, 'TError>) input =
+        let validatorResult = validator input
+        match validatorResult with
+        | Error error ->
+            anyErrors <- true
+            collectedErrors <- error :: collectedErrors
+        | Ok output -> collectedOutputs <- output :: collectedOutputs
+    funcs |> Seq.iter (fun validator -> runValidator validator input)
+    match anyErrors with
+    | true -> Error collectedErrors
+    | false -> Ok collectedOutputs
+"""
+
+[<Test>]
+let ``attributes above function signature should not force parameters on new line`` () =
+    formatSourceString false """
+[<Emit("console.log('%c' +  $1, 'color: ' + $0)")>]
+let printInColor (color:string) (msg:string):unit = jsNative
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Emit("console.log('%c' +  $1, 'color: ' + $0)")>]
+let printInColor (color: string) (msg: string): unit = jsNative
+"""
+
+[<Test>]
+let ``internal keyword included in function signature length check`` () =
+    formatSourceString false """
+  let internal UpdateStrongNaming (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
+    assembly.Name
+
+  let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
+    assembly.Name
+"""  ({ config with PageWidth = 90; SpaceBeforeColon = true })
+    |> prepend newline
+    |> should equal """
+let internal UpdateStrongNaming
+    (assembly : AssemblyDefinition)
+    (key : StrongNameKeyPair option)
+    =
+    assembly.Name
+
+let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
+    assembly.Name
+"""
