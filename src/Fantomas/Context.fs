@@ -326,17 +326,24 @@ let internal rep n (f : Context -> Context) (ctx : Context) =
 
 let internal wordAnd = !- " and "
 let internal wordOr = !- " or "
-let internal wordOf = !- " of "   
+let internal wordOf = !- " of "
+let private lastWriteEventOnLastLine ctx =
+    ctx.WriterEvents |> Queue.rev
+    |> Seq.takeWhile (function | WriteLine _ -> false | _ -> true)
+    |> Seq.choose (function | Write w when (String.length w > 0) -> Some w | _ -> None)
+    |> Seq.tryHead
 
 // Separator functions
-        
 let internal sepDot = !- "."
-let internal sepSpace =
-    // ignore multiple spaces, space on start of file, after newline
-    // TODO: this is inefficient - maybe remember last char written?
-    fun (ctx: Context) ->
-        if (not ctx.WriterInitModel.IsDummy && let s = dump ctx in s = "" || s.EndsWith " " || s.EndsWith Environment.NewLine) then ctx
-        else (!- " ") ctx      
+let internal sepSpace (ctx : Context) =
+    if ctx.WriterInitModel.IsDummy then
+        (!-" ") ctx
+    else
+        match lastWriteEventOnLastLine ctx with
+        | Some w when (w.EndsWith(" ") || w.EndsWith Environment.NewLine) -> ctx
+        | None -> ctx
+        | _ -> (!-" ") ctx
+
 let internal sepNln = !+ ""
 let internal sepStar = !- " * "
 let internal sepEq = !- " ="
@@ -461,8 +468,16 @@ let internal noNln f (ctx : Context) : Context =
     let res = f { ctx with BreakLines = false }
     { res with BreakLines = ctx.BreakLines }
 
-let internal sepColon (ctx : Context) = 
-    if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx
+let internal sepColon (ctx : Context) =
+    let defaultExpr = if ctx.Config.SpaceBeforeColon then str " : " else str ": "
+
+    if ctx.WriterInitModel.IsDummy then
+        defaultExpr ctx
+    else
+        match lastWriteEventOnLastLine ctx with
+        | Some w when (w.EndsWith(" ")) -> str ": " ctx
+        | None -> str ": " ctx
+        | _ -> defaultExpr ctx
 
 let internal sepColonFixed = !- ":"
 
@@ -504,16 +519,13 @@ let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
-    let currentLastLine =
-        let m = applyWriterEvents ctx
-        m.Lines
-        |> List.tryHead
+    let currentLastLine = lastWriteEventOnLastLine ctx
 
     // Some items like #if of Newline should be printed on a newline
     // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
     let addNewline =
         currentLastLine
-        |> Option.map(fun line -> line.Trim().Length > 0)
+        |> Option.map(fun line -> line.Length > 0)
         |> Option.defaultValue false
 
     let addSpace =
