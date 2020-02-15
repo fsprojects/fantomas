@@ -299,7 +299,7 @@ type Currency =
 #if FABLE_COMPILER
     private
 #endif
-    Code of string
+    | Code of string
 """
 
 [<Test>]
@@ -1006,4 +1006,151 @@ let foo =
     |> List.rev
 #endif
     |> List.sort
+"""
+
+[<Test>]
+let ``async block inside directive, 576`` () =
+    formatSourceString false """#if TEST
+let f () =
+    async {
+        let x = 2
+        return x
+    }
+#endif
+"""  config
+    |> prepend newline
+    |> should equal """
+#if TEST
+let f() =
+    async {
+        let x = 2
+        return x
+    }
+#endif
+"""
+
+[<Test>]
+let ``async block inside directive, TEST`` () =
+    formatSourceStringWithDefines ["TEST"] """#if TEST
+let f () =
+    async {
+        let x = 2
+        return x
+    }
+#endif
+"""  config
+    |> prepend newline
+    |> should equal """
+#if TEST
+let f() =
+    async {
+        let x = 2
+        return x
+    }
+#endif
+"""
+
+[<Test>]
+let ``directive capturing attribute, 635`` () =
+    formatSourceString false """namespace AltCover.Recorder
+
+open System
+
+#if NET2
+[<ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
+#else
+[<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
+#endif
+type internal Close =
+  | DomainUnload
+  | ProcessExit
+  | Pause
+  | Resume
+"""  ({ config with IndentSpaceNum = 2 })
+    |> prepend newline
+    |> should equal """
+namespace AltCover.Recorder
+
+open System
+
+#if NET2
+[<ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
+#else
+[<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
+#endif
+type internal Close =
+  | DomainUnload
+  | ProcessExit
+  | Pause
+  | Resume
+"""
+
+[<Test>]
+let ``directive capturing attribute, no defines`` () =
+    formatSourceStringWithDefines [] """namespace AltCover.Recorder
+
+open System
+
+#if NET2
+[<ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
+#else
+[<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
+#endif
+type internal Close =
+  | DomainUnload
+  | ProcessExit
+  | Pause
+  | Resume
+"""  ({ config with IndentSpaceNum = 2 })
+    |> prepend newline
+    |> should equal """
+namespace AltCover.Recorder
+
+open System
+
+#if NET2
+
+#else
+[<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
+#endif
+type internal Close =
+  | DomainUnload
+  | ProcessExit
+  | Pause
+  | Resume
+"""
+
+[<Test>]
+let ``directive capturing attribute, NET2`` () =
+    formatSourceStringWithDefines ["NET2"] """namespace AltCover.Recorder
+
+open System
+
+#if NET2
+[<ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
+#else
+[<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
+#endif
+type internal Close =
+  | DomainUnload
+  | ProcessExit
+  | Pause
+  | Resume
+"""  ({ config with IndentSpaceNum = 2 })
+    |> prepend newline
+    |> should equal """
+namespace AltCover.Recorder
+
+open System
+
+#if NET2
+[<ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
+#else
+
+#endif
+type internal Close =
+  | DomainUnload
+  | ProcessExit
+  | Pause
+  | Resume
 """

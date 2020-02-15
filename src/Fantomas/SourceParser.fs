@@ -73,6 +73,10 @@ type Identifier =
             xs 
             |> Seq.map (fun x -> if x.idText = MangledGlobalName then "global" else x.idText) 
             |> String.concat "."
+    member x.Ranges =
+        match x with
+        | Id x -> List.singleton x.idRange
+        | LongId xs -> List.map (fun (x:Ident) -> x.idRange) xs
 
 /// Different from (|Ident|), this pattern also accepts keywords
 let inline (|IdentOrKeyword|) (s : Ident) = Id s
@@ -96,6 +100,7 @@ let (|OpName|) (x : Identifier) =
 
 /// Operators in their declaration form
 let (|OpNameFull|) (x : Identifier) =
+    let r = x.Ranges
     let s = x.Text
     let s' = DecompileOpName s
     if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
@@ -107,6 +112,7 @@ let (|OpNameFull|) (x : Identifier) =
         match x with
         | Id(Ident s) | LongId(LongIdent s) -> 
             DecompileOpName s
+    |> fun s -> (s, r)
 
 // Type params
 
@@ -615,14 +621,14 @@ let (|IndexedVar|_|) = function
     | _ -> None
 
 let (|Indexer|) = function
-    | SynIndexerArg.Two(e1, e2) -> Pair(e1, e2)
-    | SynIndexerArg.One e -> Single e
+    | SynIndexerArg.Two(e1,e1FromEnd,e2,e2FromEnd,_,_) -> Pair((e1, e1FromEnd), (e2, e2FromEnd))
+    | SynIndexerArg.One(e,fromEnd,_) -> Single(e, fromEnd)
 
 let (|OptVar|_|) = function
-    | SynExpr.Ident(IdentOrKeyword(OpNameFull s)) ->
-        Some(s, false)
-    | SynExpr.LongIdent(isOpt, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull s), _), _, _) ->
-        Some(s, isOpt)
+    | SynExpr.Ident(IdentOrKeyword(OpNameFull (s,r))) ->
+        Some(s, false, r)
+    | SynExpr.LongIdent(isOpt, LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull (s,r)), _), _, _) ->
+        Some(s, isOpt, r)
     | _ -> None
 
 /// This pattern is escaped by using OpName
@@ -738,8 +744,8 @@ let rec (|LetOrUses|_|) = function
     | _ -> None
 
 let (|LetOrUseBang|_|) = function
-    | SynExpr.LetOrUseBang(_, isUse, _, p, e1, e2, _) ->
-        Some(isUse, p, e1, e2)
+    | SynExpr.LetOrUseBang(_, isUse, _, p, e1, ands, e2, _) ->
+        Some(isUse, p, e1, ands, e2)
     | _ -> None 
         
 let (|ForEach|_|) = function
@@ -912,12 +918,12 @@ let (|PatTyped|_|) = function
     | _ -> None
 
 let (|PatNamed|_|) = function
-    | SynPat.Named(p, IdentOrKeyword(OpNameFull s), _, ao, _) ->
+    | SynPat.Named(p, IdentOrKeyword(OpNameFull (s,_)), _, ao, _) ->
         Some(ao, p, s)
     | _ -> None
 
 let (|PatLongIdent|_|) = function
-    | SynPat.LongIdent(LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull s), _), _, tpso, xs, ao, _) ->
+    | SynPat.LongIdent(LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull (s,_)), _), _, tpso, xs, ao, _) ->
         match xs with
         | SynConstructorArgs.Pats ps -> 
             Some(ao, s, List.map (fun p -> (None, p)) ps, tpso)
@@ -1214,7 +1220,7 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
     | SynMemberSig.ValField(f, _) -> MSValField f
     | SynMemberSig.NestedType(tds, _) -> MSNestedType tds
 
-let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull s), tds, t, vi, _, _, px, ao, _, _)) =
+let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull (s,_)), tds, t, vi, _, _, px, ao, _, _)) =
     (ats, px, ao, s, t, vi, tds)
 
 // Misc
@@ -1245,10 +1251,19 @@ let (|FunType|) (t, ValInfo(argTypes, returnType)) =
 /// A rudimentary recognizer for extern functions
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) = function
-    | Let(LetBinding([{ Attributes = [Attribute(name, _, _)]}] as ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t)))
-        when name.EndsWith("DllImport") ->
-        Some(ats, px, ao, t, s, ps)
-    | _ -> None
+    | Let(LetBinding(ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t))) ->
+        let hasDllImportAttr =
+            ats
+            |> List.exists (fun { Attributes = attrs } ->
+                attrs
+                |> List.exists (fun (Attribute(name,_,_)) ->
+                    name.EndsWith("DllImport")))
+        if hasDllImportAttr then
+            Some(ats, px, ao, t, s, ps)
+        else
+            None
+    | _ ->
+        None
 
 let private collectAttributesRanges (a:SynAttributes) =
     seq {
@@ -1285,7 +1300,14 @@ let getRangesFromAttributesFromSynBinding (sb: SynBinding) =
         attrs
         |> List.map (fun a -> a.Range)
 
+let getRangesFromAttributesFromSynValSig (valSig: SynValSig) =
+    match valSig with
+    | SynValSig.ValSpfn(attrs,_,_,_,_,_,_,_,_,_,_) ->
+        attrs
+        |> List.map (fun a -> a.Range)
+
 let getRangesFromAttributesFromSynMemberDefinition (mdn: SynMemberDefn) =
     match mdn with
     | SynMemberDefn.Member(mb,_) -> getRangesFromAttributesFromSynBinding mb
+    | SynMemberDefn.AbstractSlot(valSig, _, _) -> getRangesFromAttributesFromSynValSig valSig
     | _ -> []

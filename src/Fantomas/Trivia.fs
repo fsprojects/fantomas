@@ -167,13 +167,16 @@ let private findParsedHashOnLineAndEndswith triviaNodes startLine endColumn =
         | _ -> false
     )
 
-// Only return the attributeList when the trivia is under it and above the module decl where the attribute is linked to
+// Only return the attributeList when the trivia is under it and above the AST node of which the attribute is a child node.
 // f.ex.
 // [Foo()]
 // #if BAR
 // let meh = ()
 // The trivia '#if BAR' should be linked to the [Foo()] attribute
-let private triviaBetweenAttributeAndLetBinding triviaNodes line =
+//
+// The reason for this is that the range of the attribute is not part of the range of the parent binding.
+// This can lead to weird results when used in CodePrinter.
+let private triviaBetweenAttributeAndParentBinding triviaNodes line =
     let filteredNodes =
         triviaNodes
         |> List.filter (fun t ->
@@ -188,12 +191,13 @@ let private triviaBetweenAttributeAndLetBinding triviaNodes line =
         )
         |> List.indexed
 
-    let letBinding =
+    let parentBinding =
         filteredNodes
         |> List.tryFind (fun (_,t) ->
             match t.Type with
             | MainNode("SynModuleDecl.Let") when (t.Range.StartLine > line) -> true
             | MainNode("SynAttributeList") when (t.Range.StartLine > line) -> true
+            | MainNode("SynModuleDecl.Types") when (t.Range.StartLine > line) -> true
             | _ -> false
         )
 
@@ -205,10 +209,17 @@ let private triviaBetweenAttributeAndLetBinding triviaNodes line =
             | _ -> false
         )
 
-    match attributeList, letBinding with
+    match attributeList, parentBinding with
     | Some (ai,a), Some (mdli,_) when (ai + 1 = mdli && a.Range.StartLine = a.Range.EndLine) -> Some a
     | _ -> None
 
+let private findASTNodeOfTypeThatContains (nodes: TriviaNode list) typeName range =
+    nodes
+    |> List.filter (fun t ->
+        match t.Type with
+        | TriviaNodeType.MainNode(mnt) when (mnt = typeName) -> RangeHelpers.``range contains`` t.Range range
+        | _ -> false)
+    |> List.tryHead
 
 let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     match trivia with
@@ -242,7 +253,7 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }) triviaNodes
 
     | { Item = Newline; Range = range } ->
-        match triviaBetweenAttributeAndLetBinding triviaNodes range.StartLine with
+        match triviaBetweenAttributeAndParentBinding triviaNodes range.StartLine with
         | Some _ as node ->
             updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes node
         | _ ->
@@ -264,6 +275,11 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         findConstNodeAfter triviaNodes range
         |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(kw)) }) triviaNodes
 
+    | { Item = Keyword({ Content = keyword}); Range = range } when (keyword = "if" || keyword = "then" || keyword = "else" || keyword = "elif") ->
+        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
+        |> Option.orElseWith(fun () -> findASTNodeOfTypeThatContains triviaNodes "SynExpr.IfThenElse" range)
+        |> updateTriviaNode (fun tn -> { tn with ContentItself = Some trivia.Item }) triviaNodes
+
     | { Item = Keyword(keyword); Range = range } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> fun nodeOnLineAndColumn ->
@@ -276,7 +292,7 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
                 |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(keyword)) }) triviaNodes
 
     | { Item = Directive(dc) as directive; Range = range } ->
-        match triviaBetweenAttributeAndLetBinding triviaNodes range.StartLine with
+        match triviaBetweenAttributeAndParentBinding triviaNodes range.StartLine with
         | Some _ as node ->
             updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter directive }) triviaNodes node
         | _ ->
@@ -298,6 +314,10 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
     | { Item = Number(_) as number; Range = range  } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> { tn with ContentItself = Some number }) triviaNodes
+
+    | { Item = CharContent(_) as chNode; Range = range } ->
+        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
+        |> updateTriviaNode (fun tn -> { tn with ContentItself = Some chNode }) triviaNodes
         
     | { Item = IdentOperatorAsWord(_) as ifw; Range = range } ->
         findBindingThatStartsWith triviaNodes range.StartColumn range.StartLine
@@ -309,7 +329,8 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
             let isIdent =
                 match t.Type with
                 | MainNode("SynExpr.Ident")
-                | MainNode("SynPat.Named") -> true
+                | MainNode("SynPat.Named")
+                | MainNode("Ident") -> true
                 | _ -> false
             isIdent && (t.Range.StartColumn = range.StartColumn || t.Range.StartColumn = range.StartColumn + 1) && t.Range.StartLine = range.StartLine
         )

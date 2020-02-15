@@ -164,11 +164,11 @@ type CustomerId =
    """ config
    |> prepend newline
    |> should equal """
-type CustomerId = private CustomerId of int
+type CustomerId = private | CustomerId of int
 """
 
 [<Test>]
-let ``Single case DU with member should be on a newline`` () =
+let ``single case DU with member should be on a newline`` () =
     formatSourceString false """
 type CustomerId =
     | CustomerId of int
@@ -200,4 +200,151 @@ type ('a, 'b) Foo = Foo of 'a
     |> prepend newline
     |> should equal """
 type ('a, 'b) Foo = Foo of 'a
+"""
+
+[<Test>]
+let ``preserve pipe after access modified, 561`` () =
+    formatSourceString false """type Foo = private | Bar""" config
+    |> should equal """type Foo = private | Bar
+"""
+
+[<Test>]
+let ``preserve pipe after access modified in sig file, 561`` () =
+    formatSourceString true """namespace meh
+
+type internal Foo = private | Bar
+"""  config
+    |> should equal """namespace meh
+
+type internal Foo = private | Bar
+"""
+
+[<Test>]
+let ``preserve pipe when single choice contains attribute, 596`` () =
+    formatSourceString false """type [<StringEnum>] [<RequireQualifiedAccess>] PayableFilters =
+    | [<CompiledName "statusSelector">] Status
+"""  config
+    |> prepend newline
+    |> should equal """
+[<StringEnum>]
+[<RequireQualifiedAccess>]
+type PayableFilters = | [<CompiledName "statusSelector">] Status
+"""
+
+[<Test>]
+let ``preserve pipe when single choice contains attribute, sig file`` () =
+    formatSourceString true """namespace Meh
+
+type [<StringEnum>] [<RequireQualifiedAccess>] PayableFilters = | [<CompiledName "statusSelector">] Status
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Meh
+
+[<StringEnum>]
+[<RequireQualifiedAccess>]
+type PayableFilters = | [<CompiledName "statusSelector">] Status
+"""
+
+[<Test>]
+let ``single case DU with comment above clause, 567`` () =
+    formatSourceString false """type 'a MyGenericType =
+  ///
+  Foo
+"""  config
+    |> prepend newline
+    |> should equal """
+type 'a MyGenericType =
+    ///
+    Foo
+"""
+
+[<Test>]
+let ``single case DU should keep a pipe after formatting, 641`` () =
+    formatSourceString false """type Record = { Name: string }
+type DU = | Record
+"""  config
+    |> prepend newline
+    |> should equal """
+type Record =
+    { Name: string }
+
+type DU = | Record
+"""
+
+[<Test>]
+let ``single case DU with fields should not have a pipe after formatting`` () =
+    formatSourceString false """type DU = Record of string"""  config
+    |> prepend newline
+    |> should equal """
+type DU = Record of string
+"""
+
+
+[<Test>]
+let ``single case DU, no UnionCaseFields in signature file`` () =
+    formatSourceString true """namespace meh
+
+type DU = | Record
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace meh
+
+type DU = | Record
+"""
+
+[<Test>]
+let ``enum with back ticks, 626`` () =
+    formatSourceString false """type MyEnum =
+  | ``test-one`` = 0
+"""  config
+    |> prepend newline
+    |> should equal """
+type MyEnum =
+    | ``test-one`` = 0
+"""
+
+[<Test>]
+let ``enum with back ticks in signature file`` () =
+    formatSourceString true """namespace foo
+
+type MyEnum =
+  | ``test-one`` = 0
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace foo
+
+type MyEnum =
+    | ``test-one`` = 0
+"""
+
+[<Test>]
+let ``discriminated union with back ticks`` () =
+    formatSourceString false """type MyEnum =
+  | ``test-one`` of int
+  | ``test-two`` of string
+"""  config
+    |> prepend newline
+    |> should equal """
+type MyEnum =
+    | ``test-one`` of int
+    | ``test-two`` of string
+"""
+
+[<Test>]
+let ``discriminated union with back ticks in signature file`` () =
+    formatSourceString true """namespace foo
+type MyEnum =
+  | ``test-one`` of int
+  | ``test-two`` of string
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace foo
+
+type MyEnum =
+    | ``test-one`` of int
+    | ``test-two`` of string
 """

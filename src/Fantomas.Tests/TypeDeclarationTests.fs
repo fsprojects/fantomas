@@ -335,8 +335,7 @@ type SpeedingTicket() =
 
 let CalculateFine(ticket: SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
-    if delta < 20 then 50.0
-    else 100.0
+    if delta < 20 then 50.0 else 100.0
 """
 
 [<Test>]
@@ -612,7 +611,8 @@ type BlobHelper(Account: CloudStorageAccount) =
     new(configurationSettingName, hostedService) =
         CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
             let connectionString =
-                if hostedService then RoleEnvironment.GetConfigurationSettingValue(configName)
+                if hostedService
+                then RoleEnvironment.GetConfigurationSettingValue(configName)
                 else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
             configSettingPublisher.Invoke(connectionString) |> ignore)
         BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))

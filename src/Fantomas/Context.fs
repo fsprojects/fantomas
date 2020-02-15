@@ -2,6 +2,7 @@ module Fantomas.Context
 
 open System
 open FSharp.Compiler.Range
+open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.TriviaTypes
 
@@ -59,7 +60,7 @@ module WriterModel =
         | SetIndent c -> { m with Indent = c }
         | RestoreIndent c -> { m with Indent = c }
         
-    let updateAll cmds m = cmds |> List.fold (fun m c -> update c m) m
+    let updateAll cmds m = cmds |> Queue.fold (fun m c -> update c m) m
     
 module WriterEvents =
     let normalize ev =
@@ -69,12 +70,12 @@ module WriterEvents =
         | _ -> [ev]
         
     let isMultiline evs =
-        evs |> List.exists (function | WriteLine -> true | _ -> false)
+        evs |> Queue.toSeq |> Seq.exists (function | WriteLine -> true | _ -> false)
 
 type internal Context = 
     { Config : FormatConfig; 
       WriterInitModel : WriterModel
-      WriterEvents : WriterEvent list;
+      WriterEvents : Queue<WriterEvent>;
       BreakLines : bool;
       BreakOn : string -> bool;
       /// The original source string to query as a last resort 
@@ -88,7 +89,7 @@ type internal Context =
     static member Default = 
         { Config = FormatConfig.Default
           WriterInitModel = WriterModel.init
-          WriterEvents = []
+          WriterEvents = Queue.empty
           BreakLines = true; BreakOn = (fun _ -> false) 
           Content = ""
           Positions = [||]
@@ -125,7 +126,7 @@ type internal Context =
         let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
         { x with WriterInitModel = model; WriterEvents = writerCommands; Config = config }
 
-let internal writerEvent e ctx = { ctx with WriterEvents = ctx.WriterEvents @ (WriterEvents.normalize e) }
+let internal writerEvent e ctx = { ctx with WriterEvents = WriterEvents.normalize e |> Seq.fold (fun q x -> Queue.conj x q) ctx.WriterEvents }
 let internal applyWriterEvents (ctx: Context) =
     let m = WriterModel.updateAll ctx.WriterEvents ctx.WriterInitModel
     if m.WriteBeforeNewline <> "" then WriterModel.update (Write m.WriteBeforeNewline) m else m
@@ -134,12 +135,14 @@ let internal dump (ctx: Context) =
     m.Lines |> List.rev |> String.concat Environment.NewLine
 
 let internal dumpAndContinue (ctx: Context) =
-    let code = dump ctx
 #if DEBUG
+    let m = applyWriterEvents ctx
+    let lines = m.Lines |> List.rev
+    let code = String.concat Environment.NewLine lines
     printfn "%s" code
 #endif
     ctx
-    
+
 type Context with    
     member x.Column = (applyWriterEvents x).Column
     member x.ApplyWriterEvents = applyWriterEvents x
@@ -397,19 +400,19 @@ let internal sepOpenT = !- "("
 /// closing token of tuple
 let internal sepCloseT = !- ")"
 let internal eventsWithoutMultilineWrite ctx =
-    { ctx with WriterEvents =  ctx.WriterEvents |> List.filter (function | Write s when s.Contains ("\n") -> false | _ -> true) }
+    { ctx with WriterEvents =  ctx.WriterEvents |> Queue.toSeq |> Seq.filter (function | Write s when s.Contains ("\n") -> false | _ -> true) |> Queue.ofSeq }
 
 let internal autoNlnCheck (f: _ -> Context) sep (ctx : Context) =
     if not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
-    let dummyCtx = ctx.WithDummy([]) |> sep |> f 
+    let dummyCtx = ctx.WithDummy(Queue.empty) |> sep |> f 
     // This isn't accurate if we go to new lines
     dummyCtx.Column > ctx.Config.PageWidth
 
 let internal futureNlnCheckMem = Cache.memoizeBy (fun (f, ctx : Context) -> Cache.LambdaEqByRef f, ctx.MemoizeProjection) <| fun (f, ctx) ->
     if ctx.WriterInitModel.IsDummy || not ctx.BreakLines then (false, false) else
     // Create a dummy context to evaluate length of current operation
-    let dummyCtx = ctx.WithDummy([], keepPageWidth = true) |> f
+    let dummyCtx : Context = ctx.WithDummy(Queue.empty, keepPageWidth = true) |> f
     WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.PageWidth
 
 let internal futureNlnCheck f (ctx : Context) =
@@ -425,6 +428,14 @@ let internal autoIndentNlnByFuture f = ifElseCtx (futureNlnCheck f) (indent +> s
 
 /// like autoNlnByFuture but don't do nln if there is another nln inside f
 let internal autoNlnByFutureLazy f = ifElseCtx (futureNlnCheckLazy f) (sepNln +> f) f
+
+/// similar to futureNlnCheck but validates whether the expression is going over the max page width
+/// This functions is does not use any caching
+let internal exceedsWidth maxWidth f (ctx: Context) =
+    let dummyCtx : Context = ctx.WithDummy(Queue.empty, keepPageWidth = true)
+    let currentColumn = dummyCtx.Column
+    let ctxAfter : Context = f dummyCtx
+    (ctxAfter.Column - currentColumn) > maxWidth
 
 /// Set a checkpoint to break at an appropriate column
 let internal autoNlnOrAddSep f sep (ctx : Context) =
@@ -493,17 +504,27 @@ let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
+    let currentLastLine =
+        let m = applyWriterEvents ctx
+        m.Lines
+        |> List.tryHead
+
     // Some items like #if of Newline should be printed on a newline
     // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
     let addNewline =
-        dump ctx
-        |> String.normalizeThenSplitNewLine
-        |> Array.tryLast
-        |> Option.map (fun (line:string) -> line.Trim().Length > 1)
+        currentLastLine
+        |> Option.map(fun line -> line.Trim().Length > 0)
+        |> Option.defaultValue false
+
+    let addSpace =
+        currentLastLine
+        |> Option.bind(fun line -> Seq.tryLast line |> Option.map (fun lastChar -> lastChar <> ' '))
         |> Option.defaultValue false
 
     match c with
-    | Comment(LineCommentAfterSourceCode s) -> writerEvent (WriteBeforeNewline (" " + s))
+    | Comment(LineCommentAfterSourceCode s) ->
+        let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
+        writerEvent (WriteBeforeNewline comment)
     | Comment(BlockComment(s, before, after)) ->
         ifElse (before && addNewline) sepNln sepNone
         +> sepSpace -- s +> sepSpace
@@ -516,6 +537,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     | IdentOperatorAsWord _
     | IdentBetweenTicks _
     | NewlineAfter
+    | CharContent _
          -> sepNone // don't print here but somewhere in CodePrinter
     | Directive(s)
     | Comment(LineCommentOnSingleLine s) ->
@@ -576,13 +598,12 @@ let private findTriviaTokenFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n -> Trivia.isToken n && n.Range.Start = range.Start && n.Range.End = range.End)
 
-let private findTriviaTokenFromName (range: range) nodes (tokenName:string) =
+let internal findTriviaTokenFromName (range: range) nodes (tokenName:string) =
     nodes
     |> List.tryFind(fun n ->
         match n.Type with
         | Token(tn) when tn.TokenInfo.TokenName = tokenName ->
-            (range.Start.Line, range.Start.Column) <= (n.Range.Start.Line, n.Range.Start.Column)
-            && (range.End.Line, range.End.Column) >= (n.Range.End.Line, n.Range.End.Column)
+            RangeHelpers.``range contains`` range n.Range
         | _ -> false)
 
 let internal enterNodeWith f x (ctx: Context) =
@@ -620,13 +641,13 @@ let internal leaveEqualsToken (range: range) (ctx: Context) =
             id
     <| ctx
 
-let internal leaveLeftBrace (range: range) (ctx: Context) =
+let internal leaveLeftToken (tokenName: string) (range: range) (ctx: Context) =
     ctx.Trivia
     |> List.tryFind(fun tn ->
         // Token is a left brace { at the beginning of the range.
         match tn.Type with
         | Token(tok) ->
-            tok.TokenInfo.TokenName = "LBRACE" && tn.Range.StartLine = range.StartLine && tn.Range.StartColumn = range.StartColumn
+            tok.TokenInfo.TokenName = tokenName && tn.Range.StartLine = range.StartLine && tn.Range.StartColumn = range.StartColumn
         | _ -> false
     )
     |> fun tn ->
@@ -637,13 +658,17 @@ let internal leaveLeftBrace (range: range) (ctx: Context) =
             id
     <| ctx
 
-let internal enterRightBracket (range: range) (ctx: Context) =
+let internal leaveLeftBrace = leaveLeftToken "LBRACE"
+let internal leaveLeftBrack = leaveLeftToken "LBRACK"
+let internal leaveLeftBrackBar = leaveLeftToken "LBRACK_BAR"
+
+let internal enterRightToken (tokenName: string) (range: range) (ctx: Context) =
     ctx.Trivia
     |> List.tryFind(fun tn ->
         // Token is a left brace { at the beginning of the range.
         match tn.Type with
         | Token(tok) ->
-            (tok.TokenInfo.TokenName = "RBRACK" || tok.TokenInfo.TokenName = "BAR_RBRACK")
+            (tok.TokenInfo.TokenName = tokenName)
             && tn.Range.EndLine = range.EndLine
             && (tn.Range.EndColumn = range.EndColumn || tn.Range.EndColumn + 1 = range.EndColumn)
         | _ -> false
@@ -652,12 +677,8 @@ let internal enterRightBracket (range: range) (ctx: Context) =
         match tn with
         | Some({ ContentBefore = [TriviaContent.Comment(LineCommentOnSingleLine(lineComment))] } as tn) ->
             let spacesBeforeComment =
-                let braceSize =
-                    match tn.Type with
-                    | Token({TokenInfo = {TokenName = "BAR_RBRACK"}}) -> 2
-                    | _ -> 1
+                let braceSize = if tokenName = "RBRACK" then 1 else 2
                 let spaceAround = if ctx.Config.SpaceAroundDelimiter then 1 else 0
-
                 !- String.Empty.PadLeft(braceSize + spaceAround)
 
             let spaceAfterNewline = if ctx.Config.SpaceAroundDelimiter then sepSpace else sepNone
@@ -666,6 +687,8 @@ let internal enterRightBracket (range: range) (ctx: Context) =
             id
     <| ctx
 
+let internal enterRightBracket = enterRightToken "RBRACK"
+let internal enterRightBracketBar = enterRightToken "BAR_RBRACK"
 let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
     |> List.filter (fun tn ->
@@ -685,13 +708,15 @@ let private hasDirectiveBefore (trivia: TriviaContent list) =
     |> List.isEmpty
     |> not
 
-let internal sepNlnConsideringTriviaContentBefore (range:range) ctx =
+let internal sepConsideringTriviaContentBefore sepF (range: range) ctx =
     match findTriviaMainNodeFromRange ctx.Trivia range with
     | Some({ ContentBefore = (Comment(BlockComment(_,false,_)))::_ }) ->
-        sepNln ctx
+        sepF ctx
     | Some({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) ->
         ctx
-    | _ -> sepNln ctx
+    | _ -> sepF ctx
+
+let internal sepNlnConsideringTriviaContentBefore (range:range) = sepConsideringTriviaContentBefore sepNln range
 
 let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range) (attributeRanges: range seq) ctx =
     seq {
@@ -770,7 +795,6 @@ let internal lastLineOnlyContains characters (ctx: Context) =
         |> Option.map (fun l -> l.Trim(characters))
     match lastLine with
     | Some l ->
-        let a = 0
         let length = String.length l
         length = 0 || length < ctx.Config.IndentSpaceNum
     | None -> false

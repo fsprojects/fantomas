@@ -277,7 +277,10 @@ elif true then ()"""
     let triviaNodes = getTriviaFromTokens tokens lineCount
     
     match triviaNodes with
-    | [{Item = Keyword({ Content = "if"})}; {Item = Keyword({ Content = "elif" })}] ->
+    | [{Item = Keyword({ Content = "if"})}
+       {Item = Keyword({ Content = "then"})}
+       {Item = Keyword({ Content = "elif" })}
+       {Item = Keyword({ Content = "then"})}] ->
         pass()
     | _ ->
         fail()
@@ -391,5 +394,25 @@ let ``ident between tickets `` () =
     let triviaNodes = getTriviaFromTokens tokens lineCount
     match triviaNodes with
     | [{ Item = IdentBetweenTicks("``/ operator combines paths``") }] ->
+        pass()
+    | _ -> fail()
+
+[<Test>]
+let ``simple char content`` () =
+    let source = "let someChar = \'s\'"
+    let (tokens,lineCount) = tokenize [] source
+    let trivia = getTriviaFromTokens tokens lineCount
+    match trivia with
+    | [{ Item = CharContent("\'s\'") }] ->
+        pass()
+    | _ -> fail()
+
+[<Test>]
+let ``escaped char content`` () =
+    let source = "let nulchar = \'\\u0000\'"
+    let (tokens,lineCount) = tokenize [] source
+    let trivia = getTriviaFromTokens tokens lineCount
+    match trivia with
+    | [{ Item = CharContent("\'\\u0000\'") }] ->
         pass()
     | _ -> fail()

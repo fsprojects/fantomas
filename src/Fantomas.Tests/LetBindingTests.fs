@@ -54,8 +54,7 @@ let f () =
     formatSourceString false codeSnippet config
     |> should equal """let f() =
     let x = 1
-    if true then x
-    else x
+    if true then x else x
 """
 
 [<Test>]
@@ -296,8 +295,7 @@ let ``newline trivia before simple sequence doesn't force remaining to get offse
 """
 
 [<Test>]
-let ``comment trivia before simple sequence doesn't force remaining to get offset by last expression column index`` () =
-    // https://github.com/fsprojects/fantomas/issues/513
+let ``comment trivia before simple sequence doesn't force remaining to get offset by last expression column index, 513`` () =
     formatSourceString false """let a() =
     let q = 1
     // comment
@@ -309,4 +307,53 @@ let ``comment trivia before simple sequence doesn't force remaining to get offse
     // comment
     q
     b
+"""
+
+[<Test>]
+let ``no extra newline should be added between IfThenElse within Sequential, 588`` () =
+    shouldNotChangeAfterFormat """
+let x =
+    if true then printfn "a"
+    elif true then printfn "b"
+
+    if true then 1 else 0
+"""
+
+[<Test>]
+let ``line comment before return type info should indent before colon, 565`` () =
+    formatSourceString false """module Bar =
+  let f a
+    // foo
+    : int
+    =
+    0
+"""  ({ config with
+            SpaceAfterComma = false
+            SpaceAfterSemicolon = false
+            SpaceAroundDelimiter = false
+            SpaceBeforeArgument = false })
+    |> prepend newline
+    |> should equal """
+module Bar =
+    let f a
+        // foo
+        : int =
+            0
+"""
+
+[<Test>]
+let ``has symbol in signature requires paren, 564`` () =
+    formatSourceString false """module Bar =
+  let foo (_ : #(int seq)) = 1
+  let meh (_: #seq<int>) = 2
+"""  ({ config with
+            SpaceAfterComma = false
+            SpaceAfterSemicolon = false
+            SpaceAroundDelimiter = false
+            SpaceBeforeArgument = false })
+    |> prepend newline
+    |> should equal """
+module Bar =
+    let foo(_: #(int seq)) = 1
+    let meh(_: #seq<int>) = 2
 """

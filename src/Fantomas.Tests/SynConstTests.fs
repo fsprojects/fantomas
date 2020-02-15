@@ -90,3 +90,41 @@ module SomeModule =
     let backspace = '\b'
     let formFeed = '\f'
 """
+
+[<Test>]
+let ``escape unicode null, 632`` () =
+    formatSourceString false """let nulchar = '\u0000'
+let nullstr = "\u0000"
+"""  config
+    |> prepend newline
+    |> should equal """
+let nulchar = '\u0000'
+let nullstr = "\u0000"
+"""
+
+[<Test>]
+let ``line comment after custom measure type, 598`` () =
+    formatSourceString false """namespace Krach
+
+module Runner =
+
+    let mPerSecond = 1000<m/second> // foo
+
+    [<Measure>]
+    type ProcessId =
+        class
+        end
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Krach
+
+module Runner =
+
+    let mPerSecond = 1000<m/second> // foo
+
+    [<Measure>]
+    type ProcessId =
+        class
+        end
+"""
