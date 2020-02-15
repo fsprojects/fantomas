@@ -59,6 +59,7 @@
     <Compile Include="FormatConfigJsonConfigurationFileTests.fs" />
     <Compile Include="FormatConfigEditorConfigurationFileTests.fs" />
     <Compile Include="CheckTests.fs" />
+    <Compile Include="ContextTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
