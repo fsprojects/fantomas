@@ -124,11 +124,10 @@ type internal Context =
     
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
+        let mkModel m = { m with IsDummy = true; Lines = [String.replicate x.WriterModel.Column " "]; WriteBeforeNewline = "" }
         // Use infinite column width to encounter worst-case scenario
-        let m = WriterModel.updateAll x.WriterEvents x.WriterInitModel
-        let model = { m with IsDummy = true; Lines = [String.replicate m.Column " "]; WriteBeforeNewline = "" }
         let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
-        { x with WriterInitModel = model; WriterEvents = writerCommands; Config = config }
+        { x with WriterInitModel = mkModel x.WriterInitModel; WriterModel = mkModel x.WriterModel; WriterEvents = writerCommands; Config = config }
 
 let internal writerEvent e ctx =
     let evs = WriterEvents.normalize e
