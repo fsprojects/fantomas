@@ -33,7 +33,7 @@ type Queue<'T> (front : list<'T>, rBack : list<'T>) =
     member this.Head = 
         match front with
         | hd::_ -> hd
-        | _ -> raise (new System.Exception("Queue is empty"))
+        | _ -> raise (System.Exception("Queue is empty"))
 
     member this.TryHead =
         match front with
@@ -51,15 +51,15 @@ type Queue<'T> (front : list<'T>, rBack : list<'T>) =
 
     member this.Tail =
         match front with
-        | hd::tl -> 
+        | _::tl ->
             match tl, rBack with
             | [], r -> Queue((List.rev r), [])
             | f, r -> Queue(f, r)
-        | _ -> raise (new System.Exception("Queue is empty"))
+        | _ -> raise (System.Exception("Queue is empty"))
             
     member this.TryTail =
         match front with
-        | hd::tl ->
+        | _::tl ->
             match tl, rBack with
             | [], r -> Some(Queue((List.rev r), []))
             | f, r -> Some(Queue(f, r))
@@ -71,7 +71,7 @@ type Queue<'T> (front : list<'T>, rBack : list<'T>) =
             hd, (match tl, rBack with
                 | [], r -> Queue((List.rev r), [])
                 | f, r -> Queue(f, r))
-        | _ -> raise (new System.Exception("Queue is empty"))
+        | _ -> raise (System.Exception("Queue is empty"))
 
     member this.TryUncons =  
         match front with
