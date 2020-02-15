@@ -1397,9 +1397,6 @@ and genExpr astContext synExpr =
        genExpr astContext e -- "." -- ident +> genExpr astContext e1 -- " <- "  +> genExpr astContext e2
     | DotGet(e, (s,_)) ->
         let exprF = genExpr { astContext with IsInsideDotGet = true }
-        let a = 42
-        let ee = e
-        let ss = s
         addParenIfAutoNln e exprF -- (sprintf ".%s" s)
     | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
 
