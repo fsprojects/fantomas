@@ -1088,12 +1088,12 @@ and genExpr astContext synExpr =
         // we replace sepSpace in such case
         // remarks: https://github.com/fsprojects/fantomas/issues/545
         let indentIfNeeded (ctx: Context) =
-            let savedColumn = ctx.ApplyWriterEvents.AtColumn
+            let savedColumn = ctx.WriterModel.AtColumn
             if savedColumn > ctx.Column then
                 // missingSpaces needs to be at least one more than the column
                 // of function expression being applied upon, otherwise (as known up to F# 4.7)
                 // this would lead to a compile error for the function application
-                let missingSpaces = (savedColumn - ctx.ApplyWriterEvents.Column + 1)
+                let missingSpaces = (savedColumn - ctx.FinalizeWriterEvents.Column + 1)
                 atIndentLevel true savedColumn (!- (String.replicate missingSpaces " ")) ctx
             else
                 sepSpace ctx

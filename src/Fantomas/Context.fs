@@ -29,8 +29,8 @@ type WriterModel = {
     WriteBeforeNewline : string
     /// dummy = "fake" writer used in `autoNln`, `autoNlnByFuture`
     IsDummy : bool
-} with
-    member x.Column = List.head x.Lines |> String.length 
+    Column : int
+}
 
 module WriterModel =
     let init = {
@@ -39,6 +39,7 @@ module WriterModel =
         AtColumn = 0
         WriteBeforeNewline = ""
         IsDummy = false
+        Column = 0
     }
     
     let update cmd m =
@@ -46,12 +47,13 @@ module WriterModel =
             let m = { m with Indent = max m.Indent m.AtColumn }
             { m with
                Lines = String.replicate m.Indent " " :: (List.head m.Lines + m.WriteBeforeNewline) :: (List.tail m.Lines) 
-               WriteBeforeNewline = "" }
+               WriteBeforeNewline = ""
+               Column = m.Indent }
         match cmd with
         | WriteLine -> doNewline m
         | WriteLineInsideStringConst ->
-            { m with Lines = "" :: m.Lines }
-        | Write s -> { m with Lines = (List.head m.Lines + s) :: (List.tail m.Lines) }
+            { m with Lines = "" :: m.Lines; Column = 0 }
+        | Write s -> { m with Lines = (List.head m.Lines + s) :: (List.tail m.Lines); Column = m.Column + (String.length s) }
         | WriteBeforeNewline s -> { m with WriteBeforeNewline = s }
         | IndentBy x -> { m with Indent = if m.AtColumn >= m.Indent + x then m.AtColumn + x else m.Indent + x }
         | UnIndentBy x -> { m with Indent = max m.AtColumn <| m.Indent - x }
@@ -75,6 +77,7 @@ module WriterEvents =
 type internal Context = 
     { Config : FormatConfig; 
       WriterInitModel : WriterModel
+      WriterModel : WriterModel
       WriterEvents : Queue<WriterEvent>;
       BreakLines : bool;
       BreakOn : string -> bool;
@@ -89,6 +92,7 @@ type internal Context =
     static member Default = 
         { Config = FormatConfig.Default
           WriterInitModel = WriterModel.init
+          WriterModel = WriterModel.init
           WriterEvents = Queue.empty
           BreakLines = true; BreakOn = (fun _ -> false) 
           Content = ""
@@ -126,13 +130,19 @@ type internal Context =
         let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
         { x with WriterInitModel = model; WriterEvents = writerCommands; Config = config }
 
-let internal writerEvent e ctx = { ctx with WriterEvents = WriterEvents.normalize e |> Seq.fold (fun q x -> Queue.conj x q) ctx.WriterEvents }
-let internal applyWriterEvents (ctx: Context) =
-    let m = WriterModel.updateAll ctx.WriterEvents ctx.WriterInitModel
-    if m.WriteBeforeNewline <> "" then WriterModel.update (Write m.WriteBeforeNewline) m else m
+let internal writerEvent e ctx =
+    let evs = WriterEvents.normalize e
+    let ctx' =
+        { ctx with
+           WriterEvents = evs |> Seq.fold (fun q x -> Queue.conj x q) ctx.WriterEvents
+           WriterModel = (ctx.WriterModel, evs) ||> Seq.fold (fun m e -> WriterModel.update e m) }
+    ctx'
+let internal finalizeWriterEvents (ctx: Context) =
+    if ctx.WriterModel.WriteBeforeNewline <> "" then writerEvent (Write ctx.WriterModel.WriteBeforeNewline) ctx else ctx
+    
 let internal dump (ctx: Context) =
-    let m = applyWriterEvents ctx
-    m.Lines |> List.rev |> String.concat Environment.NewLine
+    let ctx = finalizeWriterEvents ctx
+    ctx.WriterModel.Lines |> List.rev |> String.concat Environment.NewLine
 
 let internal dumpAndContinue (ctx: Context) =
 #if DEBUG
@@ -144,8 +154,8 @@ let internal dumpAndContinue (ctx: Context) =
     ctx
 
 type Context with    
-    member x.Column = (applyWriterEvents x).Column
-    member x.ApplyWriterEvents = applyWriterEvents x
+    member x.Column = x.WriterModel.Column
+    member x.FinalizeWriterEvents = finalizeWriterEvents x
 
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
@@ -170,7 +180,7 @@ let internal decrIndent i (ctx : Context) =
 let internal atIndentLevel alsoSetIndent level (f : Context -> Context) (ctx: Context) =
     if level < 0 then
         invalidArg "level" "The indent level cannot be negative."
-    let m = applyWriterEvents ctx
+    let m = ctx.WriterModel
     let oldIndent = m.Indent
     let oldColumn = m.AtColumn
     (writerEvent (SetAtColumn level)
@@ -803,7 +813,7 @@ let internal sepNlnIfTriviaBefore (range:range) (ctx:Context) =
 
 let internal lastLineOnlyContains characters (ctx: Context) =
     let lastLine =
-        List.tryHead ctx.ApplyWriterEvents.Lines
+        List.tryHead ctx.WriterModel.Lines
         |> Option.map (fun l -> l.Trim(characters))
     match lastLine with
     | Some l ->
