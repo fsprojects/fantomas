@@ -46,6 +46,8 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg =
     match functionOrMethod, arg with
     | _, ConstExpr(Const "()", _) ->
         false
+    | SynExpr.LongIdent(_, LongIdentWithDots _, _, _), SynExpr.Ident(_) ->
+        true
     | SynExpr.LongIdent(_, LongIdentWithDots s, _, _), _ ->
         let parts = s.Split '.'
         not <| Char.IsUpper parts.[parts.Length - 1].[0]
