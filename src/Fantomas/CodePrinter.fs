@@ -4,6 +4,7 @@ open System
 open System.Text.RegularExpressions
 open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
+open FSharp.Compiler.SourceCodeServices
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
@@ -1155,10 +1156,23 @@ and genExpr astContext synExpr =
                 |> fun tokens ->
                     // skip if .. then and take first else keyword
                     // ignore if third keyword is elif f.ex.
-                    match tokens with
-                    | ({ TokenName = "IF" },_)::({ TokenName = "THEN" }, _)::({ TokenName = "ELSE" }, et)::_ ->
-                        Some et.Range
-                    | _ -> None
+
+                    match synExpr with
+                    // elif keyword matches the start of the optional else expression
+                    | SynExpr.IfThenElse(_, _, Some(optionalExprElse), _, _, _, _)
+                        when (List.exists (fun ({ TokenName = tn }: FSharpTokenInfo,t) -> tn = "ELIF" && t.Range.Start = optionalExprElse.Range.Start) tokens) ->
+                        None
+                    // the else keyword is floating between the thenExpression and the optional elseExpression
+                    | SynExpr.IfThenElse(_, exprThen, Some(_), _, _, _, _) ->
+                        let filtered =
+                            tokens
+                            |> List.filter (fun ({ TokenName = tn }, t) -> tn = "ELSE" && RangeHelpers.``range starts after`` exprThen.Range t.Range)
+                            |> List.tryHead
+                            |> Option.map (fun (_,t) -> t.Range)
+                        filtered
+
+                    | _ ->
+                        None
 
             let elfis =
                 let lastEsIndex = (List.length es) - 1
