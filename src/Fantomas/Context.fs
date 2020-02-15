@@ -598,23 +598,23 @@ let internal printContentAfter triviaNode =
 let private findTriviaMainNodeFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n ->
-        Trivia.isMainNode n && n.Range.Start = range.Start && n.Range.End = range.End)
+        Trivia.isMainNode n && n.Range = range)
 
 let private findTriviaMainNodeOrTokenOnStartFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n ->
-        Trivia.isMainNode n && n.Range.Start = range.Start && n.Range.End = range.End
-        || Trivia.isToken n && n.Range.Start = range.Start)
+        Trivia.isMainNode n && n.Range = range
+        || Trivia.isToken n && n.Range.StartLine = range.StartLine && n.Range.StartColumn = range.StartColumn)
 
 let private findTriviaMainNodeOrTokenOnEndFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n ->
-        Trivia.isMainNode n && n.Range.Start = range.Start && n.Range.End = range.End
-        || Trivia.isToken n && n.Range.End = range.End)
+        Trivia.isMainNode n && n.Range = range
+        || Trivia.isToken n && n.Range.EndLine = range.EndLine && n.Range.EndColumn = range.EndColumn)
 
 let private findTriviaTokenFromRange nodes (range:range) =
     nodes
-    |> List.tryFind(fun n -> Trivia.isToken n && n.Range.Start = range.Start && n.Range.End = range.End)
+    |> List.tryFind(fun n -> Trivia.isToken n && n.Range = range)
 
 let internal findTriviaTokenFromName (range: range) nodes (tokenName:string) =
     nodes
