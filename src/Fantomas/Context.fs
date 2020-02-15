@@ -595,6 +595,10 @@ let internal printContentBefore triviaNode =
 let internal printContentAfter triviaNode =
     col sepNone triviaNode.ContentAfter printTriviaContent
 
+let rangeStartEq (r1: range) (r2: range) = r1.StartLine = r2.StartLine && r1.StartColumn = r2.StartColumn
+let rangeEndEq (r1: range) (r2: range) = r1.EndLine = r2.EndLine && r1.EndColumn = r2.EndColumn
+let rangeEq (r1: range) (r2: range) = rangeStartEq r1 r2 && rangeEndEq r1 r2
+
 let private findTriviaMainNodeFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n ->
