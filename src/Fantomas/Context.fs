@@ -29,6 +29,7 @@ type WriterModel = {
     WriteBeforeNewline : string
     /// dummy = "fake" writer used in `autoNln`, `autoNlnByFuture`
     IsDummy : bool
+    /// current length of last line of output
     Column : int
 }
 
