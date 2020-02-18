@@ -126,3 +126,20 @@ let y = async {
 let x = { 3 .. 7 }
 let y = async { return { 0 .. 1 } }
 """
+
+[<Test>]
+let ``and! is supported`` () =
+    formatSourceString false """
+async {
+    let! x = Async.Sleep 1.
+    and! y = Async.Sleep 2.
+    return 10
+}
+"""  config
+   |> prepend newline
+   |> should equal """
+async {
+    let! x = Async.Sleep 1.
+    and! y = Async.Sleep 2.
+    return 10 }
+"""
