@@ -596,30 +596,26 @@ let internal printContentBefore triviaNode =
 let internal printContentAfter triviaNode =
     col sepNone triviaNode.ContentAfter printTriviaContent
 
-let rangeStartEq (r1: range) (r2: range) = r1.StartLine = r2.StartLine && r1.StartColumn = r2.StartColumn
-let rangeEndEq (r1: range) (r2: range) = r1.EndLine = r2.EndLine && r1.EndColumn = r2.EndColumn
-let rangeEq (r1: range) (r2: range) = rangeStartEq r1 r2 && rangeEndEq r1 r2
-
 let private findTriviaMainNodeFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n ->
-        Trivia.isMainNode n && rangeEq n.Range range)
+        Trivia.isMainNode n && RangeHelpers.rangeEq n.Range range)
 
 let private findTriviaMainNodeOrTokenOnStartFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n ->
-        Trivia.isMainNode n && rangeEq n.Range range
-        || Trivia.isToken n && rangeStartEq n.Range range)
+        Trivia.isMainNode n && RangeHelpers.rangeEq n.Range range
+        || Trivia.isToken n && RangeHelpers.rangeStartEq n.Range range)
 
 let private findTriviaMainNodeOrTokenOnEndFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n ->
-        Trivia.isMainNode n && rangeEq n.Range range
-        || Trivia.isToken n && rangeEndEq n.Range range)
+        Trivia.isMainNode n && RangeHelpers.rangeEq n.Range range
+        || Trivia.isToken n && RangeHelpers.rangeEndEq n.Range range)
 
 let private findTriviaTokenFromRange nodes (range:range) =
     nodes
-    |> List.tryFind(fun n -> Trivia.isToken n && rangeEq n.Range range)
+    |> List.tryFind(fun n -> Trivia.isToken n && RangeHelpers.rangeEq n.Range range)
 
 let internal findTriviaTokenFromName (range: range) nodes (tokenName:string) =
     nodes
