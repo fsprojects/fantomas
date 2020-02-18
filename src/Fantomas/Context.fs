@@ -29,8 +29,9 @@ type WriterModel = {
     WriteBeforeNewline : string
     /// dummy = "fake" writer used in `autoNln`, `autoNlnByFuture`
     IsDummy : bool
-} with
-    member x.Column = List.head x.Lines |> String.length 
+    /// current length of last line of output
+    Column : int
+}
 
 module WriterModel =
     let init = {
@@ -39,6 +40,7 @@ module WriterModel =
         AtColumn = 0
         WriteBeforeNewline = ""
         IsDummy = false
+        Column = 0
     }
     
     let update cmd m =
@@ -46,12 +48,13 @@ module WriterModel =
             let m = { m with Indent = max m.Indent m.AtColumn }
             { m with
                Lines = String.replicate m.Indent " " :: (List.head m.Lines + m.WriteBeforeNewline) :: (List.tail m.Lines) 
-               WriteBeforeNewline = "" }
+               WriteBeforeNewline = ""
+               Column = m.Indent }
         match cmd with
         | WriteLine -> doNewline m
         | WriteLineInsideStringConst ->
-            { m with Lines = "" :: m.Lines }
-        | Write s -> { m with Lines = (List.head m.Lines + s) :: (List.tail m.Lines) }
+            { m with Lines = "" :: m.Lines; Column = 0 }
+        | Write s -> { m with Lines = (List.head m.Lines + s) :: (List.tail m.Lines); Column = m.Column + (String.length s) }
         | WriteBeforeNewline s -> { m with WriteBeforeNewline = s }
         | IndentBy x -> { m with Indent = if m.AtColumn >= m.Indent + x then m.AtColumn + x else m.Indent + x }
         | UnIndentBy x -> { m with Indent = max m.AtColumn <| m.Indent - x }
@@ -74,7 +77,7 @@ module WriterEvents =
 
 type internal Context = 
     { Config : FormatConfig; 
-      WriterInitModel : WriterModel
+      WriterModel : WriterModel
       WriterEvents : Queue<WriterEvent>;
       BreakLines : bool;
       BreakOn : string -> bool;
@@ -88,7 +91,7 @@ type internal Context =
     /// Initialize with a string writer and use space as delimiter
     static member Default = 
         { Config = FormatConfig.Default
-          WriterInitModel = WriterModel.init
+          WriterModel = WriterModel.init
           WriterEvents = Queue.empty
           BreakLines = true; BreakOn = (fun _ -> false) 
           Content = ""
@@ -116,27 +119,30 @@ type internal Context =
             Positions = positions 
             Trivia = trivia }
 
-    member x.MemoizeProjection = x.WriterInitModel, x.WriterEvents, x.Trivia, x.BreakLines, x.RecordBraceStart
-    
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
+        let mkModel m = { m with IsDummy = true; Lines = [String.replicate x.WriterModel.Column " "]; WriteBeforeNewline = "" }
         // Use infinite column width to encounter worst-case scenario
-        let m = WriterModel.updateAll x.WriterEvents x.WriterInitModel
-        let model = { m with IsDummy = true; Lines = [String.replicate m.Column " "]; WriteBeforeNewline = "" }
         let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
-        { x with WriterInitModel = model; WriterEvents = writerCommands; Config = config }
+        { x with WriterModel = mkModel x.WriterModel; WriterEvents = writerCommands; Config = config }
 
-let internal writerEvent e ctx = { ctx with WriterEvents = WriterEvents.normalize e |> Seq.fold (fun q x -> Queue.conj x q) ctx.WriterEvents }
-let internal applyWriterEvents (ctx: Context) =
-    let m = WriterModel.updateAll ctx.WriterEvents ctx.WriterInitModel
-    if m.WriteBeforeNewline <> "" then WriterModel.update (Write m.WriteBeforeNewline) m else m
+let internal writerEvent e ctx =
+    let evs = WriterEvents.normalize e
+    let ctx' =
+        { ctx with
+           WriterEvents = evs |> Seq.fold (fun q x -> Queue.conj x q) ctx.WriterEvents
+           WriterModel = (ctx.WriterModel, evs) ||> Seq.fold (fun m e -> WriterModel.update e m) }
+    ctx'
+let internal finalizeWriterModel (ctx: Context) =
+    if ctx.WriterModel.WriteBeforeNewline <> "" then writerEvent (Write ctx.WriterModel.WriteBeforeNewline) ctx else ctx
+    
 let internal dump (ctx: Context) =
-    let m = applyWriterEvents ctx
-    m.Lines |> List.rev |> String.concat Environment.NewLine
+    let ctx = finalizeWriterModel ctx
+    ctx.WriterModel.Lines |> List.rev |> String.concat Environment.NewLine
 
 let internal dumpAndContinue (ctx: Context) =
 #if DEBUG
-    let m = applyWriterEvents ctx
+    let m = finalizeWriterModel ctx
     let lines = m.Lines |> List.rev
     let code = String.concat Environment.NewLine lines
     printfn "%s" code
@@ -144,8 +150,18 @@ let internal dumpAndContinue (ctx: Context) =
     ctx
 
 type Context with    
-    member x.Column = (applyWriterEvents x).Column
-    member x.ApplyWriterEvents = applyWriterEvents x
+    member x.Column = x.WriterModel.Column
+    member x.FinalizeModel = finalizeWriterModel x
+
+let internal writeEventsOnLastLine ctx =
+    ctx.WriterEvents |> Queue.rev
+    |> Seq.takeWhile (function | WriteLine | WriteLineInsideStringConst -> false | _ -> true)
+    |> Seq.choose (function | Write w when (String.length w > 0) -> Some w | _ -> None)
+
+let internal lastWriteEventOnLastLine ctx = writeEventsOnLastLine ctx |> Seq.tryHead
+
+let internal forallCharsOnLastLine f ctx =
+    writeEventsOnLastLine ctx |> Seq.collect id |> Seq.forall f
 
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
@@ -170,7 +186,7 @@ let internal decrIndent i (ctx : Context) =
 let internal atIndentLevel alsoSetIndent level (f : Context -> Context) (ctx: Context) =
     if level < 0 then
         invalidArg "level" "The indent level cannot be negative."
-    let m = applyWriterEvents ctx
+    let m = ctx.WriterModel
     let oldIndent = m.Indent
     let oldColumn = m.AtColumn
     (writerEvent (SetAtColumn level)
@@ -232,11 +248,7 @@ let internal (--) (ctx : Context -> Context) (str : string) x =
 /// Break-line unless we are on empty line
 let internal (+~) (ctx : Context -> Context) (str : string) x =
     let addNewline ctx =
-        let lines = dump ctx |> String.normalizeThenSplitNewLine
-        lines
-        |> Array.tryLast
-        |> Option.map (fun (line:string) -> not(System.String.IsNullOrWhiteSpace(line)))
-        |> Option.defaultValue false
+        not (forallCharsOnLastLine Char.IsWhiteSpace ctx)
     let c = ctx x
     let c =
         if addNewline c then 
@@ -327,16 +339,11 @@ let internal rep n (f : Context -> Context) (ctx : Context) =
 let internal wordAnd = !- " and "
 let internal wordOr = !- " or "
 let internal wordOf = !- " of "
-let private lastWriteEventOnLastLine ctx =
-    ctx.WriterEvents |> Queue.rev
-    |> Seq.takeWhile (function | WriteLine _ -> false | _ -> true)
-    |> Seq.choose (function | Write w when (String.length w > 0) -> Some w | _ -> None)
-    |> Seq.tryHead
 
 // Separator functions
 let internal sepDot = !- "."
 let internal sepSpace (ctx : Context) =
-    if ctx.WriterInitModel.IsDummy then
+    if ctx.WriterModel.IsDummy then
         (!-" ") ctx
     else
         match lastWriteEventOnLastLine ctx with
@@ -416,8 +423,8 @@ let internal autoNlnCheck (f: _ -> Context) sep (ctx : Context) =
     // This isn't accurate if we go to new lines
     dummyCtx.Column > ctx.Config.PageWidth
 
-let internal futureNlnCheckMem = Cache.memoizeBy (fun (f, ctx : Context) -> Cache.LambdaEqByRef f, ctx.MemoizeProjection) <| fun (f, ctx) ->
-    if ctx.WriterInitModel.IsDummy || not ctx.BreakLines then (false, false) else
+let internal futureNlnCheckMem (f, ctx) =
+    if ctx.WriterModel.IsDummy || not ctx.BreakLines then (false, false) else
     // Create a dummy context to evaluate length of current operation
     let dummyCtx : Context = ctx.WithDummy(Queue.empty, keepPageWidth = true) |> f
     WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.PageWidth
@@ -471,7 +478,7 @@ let internal noNln f (ctx : Context) : Context =
 let internal sepColon (ctx : Context) =
     let defaultExpr = if ctx.Config.SpaceBeforeColon then str " : " else str ": "
 
-    if ctx.WriterInitModel.IsDummy then
+    if ctx.WriterModel.IsDummy then
         defaultExpr ctx
     else
         match lastWriteEventOnLastLine ctx with
@@ -592,23 +599,23 @@ let internal printContentAfter triviaNode =
 let private findTriviaMainNodeFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n ->
-        Trivia.isMainNode n && n.Range.Start = range.Start && n.Range.End = range.End)
+        Trivia.isMainNode n && RangeHelpers.rangeEq n.Range range)
 
 let private findTriviaMainNodeOrTokenOnStartFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n ->
-        Trivia.isMainNode n && n.Range.Start = range.Start && n.Range.End = range.End
-        || Trivia.isToken n && n.Range.Start = range.Start)
+        Trivia.isMainNode n && RangeHelpers.rangeEq n.Range range
+        || Trivia.isToken n && RangeHelpers.rangeStartEq n.Range range)
 
 let private findTriviaMainNodeOrTokenOnEndFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n ->
-        Trivia.isMainNode n && n.Range.Start = range.Start && n.Range.End = range.End
-        || Trivia.isToken n && n.Range.End = range.End)
+        Trivia.isMainNode n && RangeHelpers.rangeEq n.Range range
+        || Trivia.isToken n && RangeHelpers.rangeEndEq n.Range range)
 
 let private findTriviaTokenFromRange nodes (range:range) =
     nodes
-    |> List.tryFind(fun n -> Trivia.isToken n && n.Range.Start = range.Start && n.Range.End = range.End)
+    |> List.tryFind(fun n -> Trivia.isToken n && RangeHelpers.rangeEq n.Range range)
 
 let internal findTriviaTokenFromName (range: range) nodes (tokenName:string) =
     nodes
@@ -803,10 +810,6 @@ let internal sepNlnIfTriviaBefore (range:range) (ctx:Context) =
 
 let internal lastLineOnlyContains characters (ctx: Context) =
     let lastLine =
-        List.tryHead ctx.ApplyWriterEvents.Lines
-        |> Option.map (fun l -> l.Trim(characters))
-    match lastLine with
-    | Some l ->
-        let length = String.length l
-        length = 0 || length < ctx.Config.IndentSpaceNum
-    | None -> false
+        (writeEventsOnLastLine ctx |> String.concat "").Trim(characters)
+    let length = String.length lastLine
+    length = 0 || length < ctx.Config.IndentSpaceNum
