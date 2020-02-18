@@ -60,7 +60,7 @@ module WriterModel =
         | SetIndent c -> { m with Indent = c }
         | RestoreIndent c -> { m with Indent = c }
         
-    let updateAll cmds m = cmds |> List.fold (fun m c -> update c m) m
+    let updateAll cmds m = cmds |> Queue.fold (fun m c -> update c m) m
     
 module WriterEvents =
     let normalize ev =
@@ -70,12 +70,12 @@ module WriterEvents =
         | _ -> [ev]
         
     let isMultiline evs =
-        evs |> List.exists (function | WriteLine -> true | _ -> false)
+        evs |> Queue.toSeq |> Seq.exists (function | WriteLine -> true | _ -> false)
 
 type internal Context = 
     { Config : FormatConfig; 
       WriterInitModel : WriterModel
-      WriterEvents : WriterEvent list;
+      WriterEvents : Queue<WriterEvent>;
       BreakLines : bool;
       BreakOn : string -> bool;
       /// The original source string to query as a last resort 
@@ -89,7 +89,7 @@ type internal Context =
     static member Default = 
         { Config = FormatConfig.Default
           WriterInitModel = WriterModel.init
-          WriterEvents = []
+          WriterEvents = Queue.empty
           BreakLines = true; BreakOn = (fun _ -> false) 
           Content = ""
           Positions = [||]
@@ -126,7 +126,7 @@ type internal Context =
         let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
         { x with WriterInitModel = model; WriterEvents = writerCommands; Config = config }
 
-let internal writerEvent e ctx = { ctx with WriterEvents = ctx.WriterEvents @ (WriterEvents.normalize e) }
+let internal writerEvent e ctx = { ctx with WriterEvents = WriterEvents.normalize e |> Seq.fold (fun q x -> Queue.conj x q) ctx.WriterEvents }
 let internal applyWriterEvents (ctx: Context) =
     let m = WriterModel.updateAll ctx.WriterEvents ctx.WriterInitModel
     if m.WriteBeforeNewline <> "" then WriterModel.update (Write m.WriteBeforeNewline) m else m
@@ -326,17 +326,24 @@ let internal rep n (f : Context -> Context) (ctx : Context) =
 
 let internal wordAnd = !- " and "
 let internal wordOr = !- " or "
-let internal wordOf = !- " of "   
+let internal wordOf = !- " of "
+let private lastWriteEventOnLastLine ctx =
+    ctx.WriterEvents |> Queue.rev
+    |> Seq.takeWhile (function | WriteLine _ -> false | _ -> true)
+    |> Seq.choose (function | Write w when (String.length w > 0) -> Some w | _ -> None)
+    |> Seq.tryHead
 
 // Separator functions
-        
 let internal sepDot = !- "."
-let internal sepSpace =
-    // ignore multiple spaces, space on start of file, after newline
-    // TODO: this is inefficient - maybe remember last char written?
-    fun (ctx: Context) ->
-        if (not ctx.WriterInitModel.IsDummy && let s = dump ctx in s = "" || s.EndsWith " " || s.EndsWith Environment.NewLine) then ctx
-        else (!- " ") ctx      
+let internal sepSpace (ctx : Context) =
+    if ctx.WriterInitModel.IsDummy then
+        (!-" ") ctx
+    else
+        match lastWriteEventOnLastLine ctx with
+        | Some w when (w.EndsWith(" ") || w.EndsWith Environment.NewLine) -> ctx
+        | None -> ctx
+        | _ -> (!-" ") ctx
+
 let internal sepNln = !+ ""
 let internal sepStar = !- " * "
 let internal sepEq = !- " ="
@@ -400,19 +407,19 @@ let internal sepOpenT = !- "("
 /// closing token of tuple
 let internal sepCloseT = !- ")"
 let internal eventsWithoutMultilineWrite ctx =
-    { ctx with WriterEvents =  ctx.WriterEvents |> List.filter (function | Write s when s.Contains ("\n") -> false | _ -> true) }
+    { ctx with WriterEvents =  ctx.WriterEvents |> Queue.toSeq |> Seq.filter (function | Write s when s.Contains ("\n") -> false | _ -> true) |> Queue.ofSeq }
 
 let internal autoNlnCheck (f: _ -> Context) sep (ctx : Context) =
     if not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
-    let dummyCtx = ctx.WithDummy([]) |> sep |> f 
+    let dummyCtx = ctx.WithDummy(Queue.empty) |> sep |> f 
     // This isn't accurate if we go to new lines
     dummyCtx.Column > ctx.Config.PageWidth
 
 let internal futureNlnCheckMem = Cache.memoizeBy (fun (f, ctx : Context) -> Cache.LambdaEqByRef f, ctx.MemoizeProjection) <| fun (f, ctx) ->
     if ctx.WriterInitModel.IsDummy || not ctx.BreakLines then (false, false) else
     // Create a dummy context to evaluate length of current operation
-    let dummyCtx : Context = ctx.WithDummy([], keepPageWidth = true) |> f
+    let dummyCtx : Context = ctx.WithDummy(Queue.empty, keepPageWidth = true) |> f
     WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.PageWidth
 
 let internal futureNlnCheck f (ctx : Context) =
@@ -432,7 +439,7 @@ let internal autoNlnByFutureLazy f = ifElseCtx (futureNlnCheckLazy f) (sepNln +>
 /// similar to futureNlnCheck but validates whether the expression is going over the max page width
 /// This functions is does not use any caching
 let internal exceedsWidth maxWidth f (ctx: Context) =
-    let dummyCtx : Context = ctx.WithDummy([], keepPageWidth = true)
+    let dummyCtx : Context = ctx.WithDummy(Queue.empty, keepPageWidth = true)
     let currentColumn = dummyCtx.Column
     let ctxAfter : Context = f dummyCtx
     (ctxAfter.Column - currentColumn) > maxWidth
@@ -461,8 +468,16 @@ let internal noNln f (ctx : Context) : Context =
     let res = f { ctx with BreakLines = false }
     { res with BreakLines = ctx.BreakLines }
 
-let internal sepColon (ctx : Context) = 
-    if ctx.Config.SpaceBeforeColon then str " : " ctx else str ": " ctx
+let internal sepColon (ctx : Context) =
+    let defaultExpr = if ctx.Config.SpaceBeforeColon then str " : " else str ": "
+
+    if ctx.WriterInitModel.IsDummy then
+        defaultExpr ctx
+    else
+        match lastWriteEventOnLastLine ctx with
+        | Some w when (w.EndsWith(" ")) -> str ": " ctx
+        | None -> str ": " ctx
+        | _ -> defaultExpr ctx
 
 let internal sepColonFixed = !- ":"
 
@@ -504,16 +519,13 @@ let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 let internal NoBreakInfixOps = set ["="; ">"; "<";]
 
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
-    let currentLastLine =
-        let m = applyWriterEvents ctx
-        m.Lines
-        |> List.tryHead
+    let currentLastLine = lastWriteEventOnLastLine ctx
 
     // Some items like #if of Newline should be printed on a newline
     // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
     let addNewline =
         currentLastLine
-        |> Option.map(fun line -> line.Trim().Length > 0)
+        |> Option.map(fun line -> line.Length > 0)
         |> Option.defaultValue false
 
     let addSpace =

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <Version>3.2.0</Version>
@@ -59,6 +59,7 @@
     <Compile Include="IfThenElseTests.fs" />
     <Compile Include="FormatConfigJsonConfigurationFileTests.fs" />
     <Compile Include="FormatConfigEditorConfigurationFileTests.fs" />
+    <Compile Include="ContextTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />

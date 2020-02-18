@@ -784,3 +784,24 @@ if a
 then 0
 else (tare + netWeight) + 10000
 """
+[<Test>]
+let ``else if with newline in between, 675`` () =
+    formatSourceString false """namespace Fantomas
+
+module String =
+    let merge a b =
+            if la <> lb then
+                if la > lb then a' else b'
+            else
+                if String.length a' < String.length b' then a' else b'
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Fantomas
+
+module String =
+    let merge a b =
+        if la <> lb then if la > lb then a' else b'
+        else if String.length a' < String.length b' then a'
+        else b'
+"""
