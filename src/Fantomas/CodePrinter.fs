@@ -1439,9 +1439,15 @@ and genExpr astContext synExpr =
         addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
 
     | LetOrUseBang(isUse, p, e1, ands, e2) ->
+
+        let genAndList astContext (ands: list<SequencePointInfoForBinding * bool * bool * SynPat * SynExpr * range>) =
+            colPost sepNln sepNln
+                ands
+                (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> genExpr astContext expr)
+
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ")
             +> genPat astContext p -- " = " +> genExpr astContext e1 +> sepNln
-            // TODO: use ands here
+            +> genAndList astContext ands
             +> genExpr astContext e2
         )
 
@@ -1530,18 +1536,46 @@ and genInfixApps astContext (hasNewLine:bool) synExprs (ctx:Context) =
 
 /// Use in indexed set and get only
 and genIndexers astContext node =
+    // helper to generate the remaining indexer expressions
+    // (pulled out due to duplication)
+    let inline genRest astContext (es: _ list) = ifElse es.IsEmpty sepNone (sepComma +> genIndexers astContext es)
+
+    // helper to generate a single indexer expression with support for the from-end slice marker
+    let inline genSingle astContext (isFromEnd: bool) (e: SynExpr) =
+        ifElse isFromEnd (!- "^") sepNone
+        +> genExpr astContext e
+
     match node with
-    | Indexer(Pair((IndexedVar eo1, e1FromEnd),(IndexedVar eo2, e2FromEnd))) :: es ->
-        ifElse (eo1.IsNone && eo2.IsNone) (!- "*")
-            (opt sepNone eo1 (genExpr astContext) -- ".." +> opt sepNone eo2 (genExpr astContext))
-        +> ifElse es.IsEmpty sepNone (sepComma +> genIndexers astContext es)
-    | Indexer(Single(IndexedVar eo, fromEnd)) :: es ->
-        ifElse eo.IsNone (!- "*") (opt sepNone eo (genExpr astContext))
-        +> ifElse es.IsEmpty sepNone (sepComma +> genIndexers astContext es)
-    | Indexer(Single(e, fromEnd)) :: es ->
-            genExpr astContext e +> ifElse es.IsEmpty sepNone (sepComma +> genIndexers astContext es)
+    // list.[*]
+    | Indexer(Pair((IndexedVar None, _),(IndexedVar None, _))) :: es ->
+        !- "*"
+        +> genRest astContext es
+    // list.[(fromEnd)<idx>..]
+    | Indexer(Pair((IndexedVar(Some e01), e1FromEnd),(IndexedVar None, _))) :: es ->
+        genSingle astContext e1FromEnd e01
+        -- ".."
+        +> genRest astContext es
+    // list.[..(fromEnd)<idx>]
+    | Indexer(Pair((IndexedVar None, _),(IndexedVar(Some e2), e2FromEnd))) :: es ->
+        !- ".."
+        +> genSingle astContext e2FromEnd e2
+        +> genRest astContext es
+    // list.[(fromEnd)<idx>..(fromEnd)<idx>]
+    | Indexer(Pair((IndexedVar(Some e01), e1FromEnd),(IndexedVar(Some eo2), e2FromEnd))) :: es ->
+        genSingle astContext e1FromEnd e01
+        -- ".."
+        +> genSingle astContext e2FromEnd eo2
+        +> genRest astContext es
+    // list.[*]
+    | Indexer(Single(IndexedVar None, _)) :: es ->
+        !- "*"
+        +> genRest astContext es
+    // list.[(fromEnd)<idx>]
+    | Indexer(Single(eo, fromEnd)) :: es ->
+        genSingle astContext fromEnd eo
+        +> genRest astContext es
     | _ -> sepNone
-    // |> genTrivia node, it a list
+
 
 and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix) as node) =
     let typeName =
