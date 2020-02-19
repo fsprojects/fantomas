@@ -143,7 +143,7 @@ let internal dump (ctx: Context) =
 let internal dumpAndContinue (ctx: Context) =
 #if DEBUG
     let m = finalizeWriterModel ctx
-    let lines = m.Lines |> List.rev
+    let lines = m.WriterModel.Lines |> List.rev
     let code = String.concat Environment.NewLine lines
     printfn "%s" code
 #endif
