@@ -1439,9 +1439,15 @@ and genExpr astContext synExpr =
         addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
 
     | LetOrUseBang(isUse, p, e1, ands, e2) ->
+
+        let genAndList astContext (ands: list<SequencePointInfoForBinding * bool * bool * SynPat * SynExpr * range>) =
+            colPost sepNln sepNln
+                ands
+                (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> genExpr astContext expr)
+
         atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ")
             +> genPat astContext p -- " = " +> genExpr astContext e1 +> sepNln
-            // TODO: use ands here
+            +> genAndList astContext ands
             +> genExpr astContext e2
         )
 
