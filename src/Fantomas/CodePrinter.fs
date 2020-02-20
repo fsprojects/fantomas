@@ -326,13 +326,14 @@ and genModuleDecl astContext node =
         !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | NamespaceFragment(m) ->
         failwithf "NamespaceFragment hasn't been implemented yet: %O" m
-    | NestedModule(ats, px, ao, s, isRecursive, mds) ->
+    | NestedModule(ats, px, ao, moduleName, isRecursive, mds) ->
         genPreXmlDoc px
         +> genAttributes astContext ats
         +> (!- "module ")
         +> opt sepSpace ao genAccess
-        +> ifElse isRecursive (!- "rec ") sepNone -- s +> sepEq
-        +> indent +> sepNln
+        +> ifElse isRecursive (!- "rec ") sepNone -- moduleName +> sepEq
+        +> indent
+        +> sepBetweenModuleAndChildren
         +> genModuleDeclList astContext mds +> unindent
 
     | Open(s) ->
@@ -362,10 +363,12 @@ and genSigModuleDecl astContext node =
         !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | SigNamespaceFragment(m) ->
         failwithf "NamespaceFragment is not supported yet: %O" m
-    | SigNestedModule(ats, px, ao, s, mds) ->
+    | SigNestedModule(ats, px, ao, moduleName, mds) ->
         genPreXmlDoc px
-        +> genAttributes astContext ats -- "module " +> opt sepSpace ao genAccess -- s +> sepEq
-        +> indent +> sepNln +> genSigModuleDeclList astContext mds +> unindent
+        +> genAttributes astContext ats -- "module " +> opt sepSpace ao genAccess -- moduleName +> sepEq
+        +> indent
+        +> sepBetweenModuleAndChildren
+        +> genSigModuleDeclList astContext mds +> unindent
 
     | SigOpen(s) ->
         !- (sprintf "open %s" s)
@@ -1887,7 +1890,7 @@ and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs) as node)
     +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
     |> genTrivia node.Range
 
-and genEnumCase astContext (EnumCase(ats, px, _, (_,r)) as node) =
+and genEnumCase astContext (EnumCase(ats, px, _, (_, _)) as node) =
     let genCase (ctx: Context) =
         let expr =
             match node with

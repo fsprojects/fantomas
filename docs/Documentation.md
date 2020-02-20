@@ -1,6 +1,7 @@
 ## Fantomas: How to use
 
 ### Using the command line tool
+
 ---
 
 For the overview how to use the tool, you can type the command
@@ -57,16 +58,16 @@ The common values are 2 and 4.
 The same indentation is ensured to be consistent in a source file. 
 To illustrate, here is a code fragment with `--indent 2`:
 
-	```fsharp
-	let inline selectRandom(f : _[]) = 
-	  let r = random 1.0
-	  let rec find = 
-	    function 
-	    | 0 -> fst f.[0]
-	    | n when r < snd f.[n] -> fst f.[n]
-	    | n -> find(n - 1)
-	  find <| f.Length - 1
-	```
+```fsharp
+let inline selectRandom(f : _[]) = 
+  let r = random 1.0
+  let rec find = 
+    function 
+    | 0 -> fst f.[0]
+    | n when r < snd f.[n] -> fst f.[n]
+    | n -> find(n - 1)
+  find <| f.Length - 1
+```
 
 ##### `--pageWidth <number>`
 
@@ -78,29 +79,29 @@ The default value is 120. To see its effects, please take a look at some [output
 
 add semicolons at the end of lines e.g.
 
-	```fsharp
-	let saturn = 
-	  { X = 8.343366718;
-	    Y = 4.124798564;
-	    Z = -0.4035234171;
-	    VX = -0.002767425107 * daysPerYear;
-	    VY = 0.004998528012 * daysPerYear;
-	    VZ = 2.304172976e-05 * daysPerYear;
-	    Mass = 0.0002858859807 * solarMass }
-	```
+```fsharp
+let saturn = 
+  { X = 8.343366718;
+    Y = 4.124798564;
+    Z = -0.4035234171;
+    VX = -0.002767425107 * daysPerYear;
+    VY = 0.004998528012 * daysPerYear;
+    VZ = 2.304172976e-05 * daysPerYear;
+    Mass = 0.0002858859807 * solarMass }
+```
 	
-	vs.
+vs.
 	
-	```fsharp
-	let saturn = 
-	  { X = 8.343366718
-	    Y = 4.124798564
-	    Z = -0.4035234171
-	    VX = -0.002767425107 * daysPerYear
-	    VY = 0.004998528012 * daysPerYear
-	    VZ = 2.304172976e-05 * daysPerYear
-	    Mass = 0.0002858859807 * solarMass }
-	```
+```fsharp
+let saturn = 
+  { X = 8.343366718
+    Y = 4.124798564
+    Z = -0.4035234171
+    VX = -0.002767425107 * daysPerYear
+    VY = 0.004998528012 * daysPerYear
+    VZ = 2.304172976e-05 * daysPerYear
+    Mass = 0.0002858859807 * solarMass }
+```
 
  ##### `--noSpaceBeforeArgument`
 
@@ -112,29 +113,29 @@ This doesn't affect methods and constructors, e.g. `Console.WriteLine("Hello Wor
 
 if being set, there is a space before `:` e.g.
 
-	```fsharp
-	type Planet = 
-	  { mutable X: float
-	    mutable Y: float
-	    mutable Z: float
-	    mutable VX: float
-	    mutable VY: float
-	    mutable VZ: float
-	    Mass: float }
-	```
+```fsharp
+type Planet = 
+  { mutable X: float
+    mutable Y: float
+    mutable Z: float
+    mutable VX: float
+    mutable VY: float
+    mutable VZ: float
+    Mass: float }
+```
 	
-	vs.
+vs.
 	
-	```fsharp
-	type Planet = 
-	  { mutable X : float
-	    mutable Y : float
-	    mutable Z : float
-	    mutable VX : float
-	    mutable VY : float
-	    mutable VZ : float
-	    Mass : float }
-	```
+```fsharp
+type Planet = 
+  { mutable X : float
+    mutable Y : float
+    mutable Z : float
+    mutable VX : float
+    mutable VY : float
+    mutable VZ : float
+    Mass : float }
+```
 
 ##### `--noSpaceAfterComma`
 
@@ -145,45 +146,45 @@ To illustrate, `(1, 2, 3)` is rewritten to `(1,2,3)`.
 
 saves spaces on records, arrays, lists, etc. Now 
 
-	```fsharp
-	let planets = [|sun; jupiter; saturn; uranus; neptune|]
-	```
+```fsharp
+let planets = [|sun; jupiter; saturn; uranus; neptune|]
+```
 
-	becomes
+becomes
 
-	```fsharp
-	let planets = [|sun;jupiter;saturn;uranus;neptune|]
-	```
+```fsharp
+let planets = [|sun;jupiter;saturn;uranus;neptune|]
+```
 
  ##### `--indentOnTryWith`
 
 if being set, `with` blocks will be indented like in the following example:
 
-	```fsharp
-	try
-	    if System.DateTime.Now.Second % 3 = 0 
-		then raise(new System.Exception())
-	    else raise(new System.ApplicationException())
-	with
-	    | :? System.ApplicationException -> 
-	        printfn "A second that was not a multiple of 3"    
-	    | _ -> 
-	        printfn "A second that was a multiple of 3"
-	```
+```fsharp
+try
+    if System.DateTime.Now.Second % 3 = 0 
+	then raise(new System.Exception())
+    else raise(new System.ApplicationException())
+with
+    | :? System.ApplicationException -> 
+        printfn "A second that was not a multiple of 3"    
+    | _ -> 
+        printfn "A second that was a multiple of 3"
+```
 
 ##### `--noSpaceAroundDelimiter`
 
 saves spaces around delimiters of records, arrays, lists e.g.
 
-    ```fsharp
-	let planets = [| sun; jupiter; saturn; uranus; neptune |]
-	```
+```fsharp
+let planets = [| sun; jupiter; saturn; uranus; neptune |]
+```
 
-	becomes
+becomes
 
-	```fsharp
-	let planets = [|sun; jupiter; saturn; uranus; neptune|]
-	```
+```fsharp
+let planets = [|sun; jupiter; saturn; uranus; neptune|]
+```
 
  ##### `--reorderOpenDeclaration`
 
@@ -200,7 +201,7 @@ if being set, pretty printing is only done via ASTs. Compiler directives, inline
 
 if being set, newlines found in the source text will be kept in certain conditions.
  
- ```fsharp
+```fsharp
 let a =
     42
 ```
@@ -254,6 +255,22 @@ That said, most of the preferences are very simple.
 But they demonstrate the flexibility of Fantomas on a set of configurations. 
 More preferences will be added depending on use cases.
 
+##### `--newlineBetweenModuleAndChildren`
+
+if being set, adds a newline between module and its children.
+ 
+```fsharp
+module A =
+    let x = 42
+```
+
+will become
+
+```fsharp
+module A =
+    let x = 42
+```
+
 ##### `--config <Path to file or folder>`
 
 Use a JSON configuration file based on a [schema](../src/Fantomas/schema.json) to set the formatting options.
@@ -273,7 +290,8 @@ A default configuration file would look like
   "SpaceAroundDelimiter":true ,
   "KeepNewlineAfter":false,
   "MaxIfThenElseShortWidth":40,
-  "StrictMode":false
+  "StrictMode":false,
+  "NewlineBetweenModuleAndChildren":false
 }
 ```
 

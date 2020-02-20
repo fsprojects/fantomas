@@ -40,6 +40,9 @@
     },
     "StrictMode": {
       "type": "boolean"
+    },
+    "NewlineBetweenModuleAndChildren": {
+      "type": "boolean"
     }
   },
   "required": []

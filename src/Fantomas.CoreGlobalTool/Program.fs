@@ -29,6 +29,7 @@ type Arguments =
     | [<Unique;AltCommandLine("--keepNewlineAfter")>] KeepNewlineAfter
     | [<Unique;AltCommandLine("--maxIfThenElseShortWidth ")>] MaxIfThenElseShortWidth of int
     | [<Unique;AltCommandLine("--strictMode")>] StrictMode
+    | [<Unique;AltCommandLine("--newlineBetweenModuleAndChildren")>] NewlineBetweenModuleAndChildren
     | [<Unique;AltCommandLine("-c")>] Config of string
     | [<Unique;AltCommandLine("-v")>] Version
     | [<MainCommand>] Input of string
@@ -56,6 +57,7 @@ with
             | KeepNewlineAfter -> "Keep newlines found after = in let bindings, -> in pattern matching and chained function calls (default = false)."
             | MaxIfThenElseShortWidth _ -> "Set the max length of any expression in an if expression before formatting on multiple lines (default = 40)."
             | StrictMode -> "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
+            | NewlineBetweenModuleAndChildren -> "Add new line between module and its children"
             | Config _ -> "Use configuration found in file or folder."
             | Version -> "Displays the version of Fantomas"
             | Input _ -> sprintf "Input path: can be a folder or file with %s extension." (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
@@ -228,6 +230,7 @@ let main argv =
                 | NoSpaceAroundDelimiter -> { acc with SpaceAroundDelimiter = false }
                 | KeepNewlineAfter -> { acc with KeepNewlineAfter = true }
                 | MaxIfThenElseShortWidth m -> { acc with MaxIfThenElseShortWidth = m }
+                | NewlineBetweenModuleAndChildren -> { acc with NewlineBetweenModuleAndChildren = true }
                 | StrictMode -> { acc with StrictMode = true }
             ) defaultConfig
 

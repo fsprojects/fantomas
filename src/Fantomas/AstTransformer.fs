@@ -696,13 +696,13 @@ module private Ast =
 
     and visitSynIndexerArg(ia: SynIndexerArg): Node =
         match ia with
-        | SynIndexerArg.One(e,fromEnd,_) ->
+        | SynIndexerArg.One(e,_fromEnd,_) ->
             {Type = "SynIndexerArg.One"
              Range = noRange
              Properties = p []
              FsAstNode = ia
              Childs = [yield visitSynExpr e]}
-        | SynIndexerArg.Two(e1,fromEnd1,e2,fromEnd2,_,_) ->
+        | SynIndexerArg.Two(e1,_fromEnd1,e2,_fromEnd2,_,_) ->
             {Type = "SynIndexerArg.Two"
              Range = noRange
              Properties = p []

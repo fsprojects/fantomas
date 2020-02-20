@@ -26,7 +26,8 @@ type FormatConfig =
       KeepNewlineAfter : bool
       MaxIfThenElseShortWidth: Num
       /// Prettyprinting based on ASTs only
-      StrictMode : bool }
+      StrictMode : bool
+      NewlineBetweenModuleAndChildren : bool }
 
     static member Default = 
         { IndentSpaceNum = 4
@@ -41,7 +42,8 @@ type FormatConfig =
           SpaceAroundDelimiter = true
           KeepNewlineAfter = false
           MaxIfThenElseShortWidth = 40
-          StrictMode = false }
+          StrictMode = false
+          NewlineBetweenModuleAndChildren = false }
 
     static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
                          spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
