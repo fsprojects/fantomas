@@ -33,16 +33,14 @@ exception CodeFormatException of (string * Option<Exception>) array with
         + "\r\n- " + String.Join("\r\n- ", files)
 
 type FormatResult =
-    | Formatted of string * string
-    | Unchanged of string
-    | Error of string * Exception
+    | Formatted of filename : string * formattedContent : string
+    | Unchanged of filename : string
+    | Error of filename : string * formattingError : Exception
 
 let createParsingOptionsFromFile fileName =
     { FSharpParsingOptions.Default with SourceFiles = [|fileName|] }
 
-let formatFileAsync config (file : string) =
-    let originalContent = File.ReadAllText file
-
+let formatContentAsync config (file: string) (originalContent: string) =
     async {
         try
             let! formattedContent =
@@ -55,16 +53,18 @@ let formatFileAsync config (file : string) =
                 if not isValid  then
                     raise <| FormatException "Formatted content is not valid F# code"
 
-                let tempFile = Path.GetTempFileName()
-                use output = new StreamWriter(tempFile)
-                output.Write formattedContent
-                output.Flush()
-
-                return Formatted(file, tempFile)
+                return Formatted(filename=file, formattedContent=formattedContent)
             else
-                return Unchanged file
+                return Unchanged(filename=file)
         with
         | ex -> return Error(file, ex)
+    }
+
+let formatFileAsync config (file : string) =
+    let originalContent = File.ReadAllText file
+    async {
+        let! formated = originalContent |> formatContentAsync config file
+        return formated
     }
 
 let formatFilesAsync config files =
@@ -72,58 +72,75 @@ let formatFilesAsync config files =
     |> Seq.map (formatFileAsync config)
     |> Async.Parallel
 
-let internal removeTemporaryFiles formatResult =
-    match formatResult with
-    | Formatted(_, tmp) -> File.Delete(tmp)
-    | _ -> ()
-
 let formatCode config files =
     async {
         let! results = files |> formatFilesAsync config
         
-        try
-            // Check for formatting errors:
-            let errors =
-                results
-                |> Array.choose (fun x ->
-                    match x with
-                    | Error(file, ex) -> Some(file, Some(ex))
-                    | _ -> None)
+        // Check for formatting errors:
+        let errors =
+            results
+            |> Array.choose (fun x ->
+                match x with
+                | Error(file, ex) -> Some(file, Some(ex))
+                | _ -> None)
 
-            if not <| Array.isEmpty errors then
-                raise <| CodeFormatException errors
+        if not <| Array.isEmpty errors then
+            raise <| CodeFormatException errors
 
-            // Overwritte source files with formatted content
-            let result =
-                results
-                |> Array.choose (fun x ->
-                    match x with
-                    | Formatted(source, tmp) ->
-                        File.Copy(tmp, source, true)
-                        Some source
-                    | _ -> None)
-                
-            return result
-        finally
-            results |> Array.iter removeTemporaryFiles
+        // Overwritte source files with formatted content
+        let result =
+            results
+            |> Array.choose (fun x ->
+                match x with
+                | Formatted(source, formatted) ->
+                    File.WriteAllText(source, formatted)
+                    Some source
+                | _ -> None)
+
+        return result
     }
 
+type CheckResult =
+    { Errors: (string * exn) list
+      Formatted: string list }
+    member this.HasErrors = List.isNotEmpty this.Errors
+    member this.NeedsFormatting = List.isNotEmpty this.Formatted
+    member this.IsValid = List.isEmpty this.Errors && List.isEmpty this.Formatted
 
-let checkCode config files =
+/// Runs a check on the given files and reports the result to the given output:
+///
+/// * It shows the paths of the files that need formatting
+/// * It shows the path and the error message of files that failed the format check
+///
+/// Returns:
+///
+/// A record with the file names that were formatted and the files that encounter problems while formatting.
+let checkCode (config: FormatConfig) (filenames: seq<string>) =
     async {
-        let! results = files |> formatFilesAsync config
+        let! formatted = filenames
+                         |> Seq.map (formatFileAsync config)
+                         |> Async.Parallel
 
-        try
-            let changes =
-                results
-                |> Array.choose (fun x ->
-                    match x with
-                    | Formatted(file, _) -> Some(file, None)
-                    | Error(file, ex) -> Some(file, Some(ex))
-                    | _ -> None)
+        let getChangedFile =
+            function
+            | FormatResult.Unchanged(_) -> None
+            | FormatResult.Formatted(f,_)
+            | FormatResult.Error(f,_) -> Some f
 
-            if Array.exists (function | _, Some(_) -> true | _ -> false) changes then
-                raise <| CodeFormatException changes
-        finally
-            results |> Array.iter removeTemporaryFiles
+        let changes =
+            formatted
+            |> Seq.choose getChangedFile
+            |> Seq.toList
+
+        let getErrors =
+            function
+            | FormatResult.Error(f,e) -> Some (f,e)
+            | _ -> None
+
+        let errors =
+            formatted
+            |> Seq.choose getErrors
+            |> Seq.toList
+
+        return { Errors = errors; Formatted = changes }
     }
