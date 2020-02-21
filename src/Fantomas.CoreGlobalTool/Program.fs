@@ -1,5 +1,3 @@
-﻿module Fantomas.Cmd.Program
-
 open System
 open System.IO
 open Fantomas
@@ -17,6 +15,7 @@ type Arguments =
     | [<Unique>] Stdout
     | [<Unique>] Out of string
     | [<Unique>] Indent of int
+    | [<Unique>] Check
     | [<Unique;AltCommandLine("--pageWidth")>] PageWidth of int
     | [<Unique;AltCommandLine("--semicolonEOL")>] SemicolonEOL
     | [<Unique;AltCommandLine("--noSpaceBeforeArgument")>] NoSpaceBeforeArgument
@@ -45,6 +44,7 @@ with
             | Stdin -> "Read F# source from standard input."
             | Stdout -> " Write the formatted source code to standard output."
             | Indent _ -> "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
+            | Check -> "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
             | PageWidth _ -> "Set the column where we break to new lines (default = 80). The value should be at least 60."
             | SemicolonEOL -> "Enable semicolons at the end of line (default = false)."
             | NoSpaceBeforeArgument -> "Disable spaces before the first argument of functions when there are parenthesis (default = true). For methods and constructors, there are never spaces regardless of this option."
@@ -70,9 +70,9 @@ let time f =
     res
 
 [<RequireQualifiedAccess>]
-type InputPath = 
-    | File of string 
-    | Folder of string 
+type InputPath =
+    | File of string
+    | Folder of string
     | StdIn of string
     | Unspecified
 
@@ -98,24 +98,38 @@ let rec allFiles isRec path =
 /// Format a source string using given config and write to a text writer
 let processSourceString isFsiFile s (tw : Choice<TextWriter, string>) config =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
-    async {
-        let! formatted = CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config,
-                                                           FakeHelpers.createParsingOptionsFromFile fileName,
-                                                           FakeHelpers.sharedChecker.Value)
+    let writeResult (formatted: string) =
         match tw with
         | Choice1Of2 tw -> tw.Write(formatted)
         | Choice2Of2 path -> File.WriteAllText(path, formatted)
+
+    async {
+        let! formatted = s |> FakeHelpers.formatContentAsync config fileName
+
+        match formatted with
+        | FakeHelpers.FormatResult.Formatted(_, formattedContent) ->
+            formattedContent |> writeResult
+        | FakeHelpers.FormatResult.Unchanged(_) ->
+            s |> writeResult
+        | FakeHelpers.FormatResult.Error(_, ex) ->
+            raise <| ex
     }
     |> Async.RunSynchronously
 
 /// Format inFile and write to text writer
-let processSourceFile inFile (tw : TextWriter) config = 
-    let s = File.ReadAllText(inFile)
+let processSourceFile inFile (tw : TextWriter) config =
     async {
-        let! formatted = CodeFormatter.FormatDocumentAsync(inFile, SourceOrigin.SourceString s, config,
-                                                           FakeHelpers.createParsingOptionsFromFile inFile,
-                                                           FakeHelpers.sharedChecker.Value)
-        tw.Write(formatted)
+        let! formatted = inFile |> FakeHelpers.formatFileAsync config
+
+        match formatted with
+        | FakeHelpers.FormatResult.Formatted(_, formattedContent) ->
+            tw.Write(formattedContent)
+        | FakeHelpers.FormatResult.Unchanged(_) ->
+            inFile
+            |> File.ReadAllText
+            |> tw.Write
+        | FakeHelpers.FormatResult.Error(_, ex) ->
+            raise <| ex
     }
     |> Async.RunSynchronously
 
@@ -135,14 +149,53 @@ let readFromStdin (lineLimit:int) =
     if not <| Console.IsInputRedirected then
         None
     else
-        let isNotEof = (String.IsNullOrEmpty >> not)
+        let isNotEof line = not <| isNull line
+        let appendWithNewline acc next = acc + "\n" + next
         let input =
             Seq.initInfinite (fun _ -> Console.ReadLine())
             |> Seq.truncate lineLimit
             |> Seq.takeWhile isNotEof
-            |> Seq.reduce (+)
+            |> Seq.reduce appendWithNewline
 
         if String.IsNullOrWhiteSpace input then None else Some(input)
+
+let private reportCheckResults (output: TextWriter) (checkResult: FakeHelpers.CheckResult) =
+    checkResult.Errors
+    |> List.map (fun (filename, exn) -> sprintf "error: Failed to format %s: %s" filename (exn.ToString()))
+    |> Seq.iter output.WriteLine
+
+    checkResult.Formatted
+    |> List.map (fun filename -> sprintf "%s needs formatting" filename)
+    |> Seq.iter output.WriteLine
+
+let runCheckCommand (config: FormatConfig) (recurse: bool) (inputPath: InputPath) : int =
+    let check files = Async.RunSynchronously (FakeHelpers.checkCode config files)
+
+    let processCheckResult (checkResult: FakeHelpers.CheckResult) =
+        if checkResult.IsValid then
+            stdout.WriteLine "No changes required."
+            0
+        else
+            reportCheckResults stdout checkResult
+            if checkResult.HasErrors then 1 else 99
+
+    match inputPath with
+    | InputPath.Unspecified
+    | InputPath.StdIn(_) ->
+        eprintfn "No input path provided. Nothing to do."
+        0
+    | InputPath.File(path) ->
+        path
+        |> Seq.singleton
+        |> check
+        |> processCheckResult
+    | InputPath.Folder(path) ->
+        path
+        |> allFiles recurse
+        |> check
+        |> processCheckResult
+
+
 
 [<EntryPoint>]
 let main argv =
@@ -213,6 +266,7 @@ let main argv =
                 | Fsi _
                 | Stdin _
                 | Stdout
+                | Check
                 | Config _
                 | Version
                 | Input _ -> acc
@@ -312,27 +366,35 @@ let main argv =
                 if force then
                     stdout.Write(File.ReadAllText inFile)
 
+
+
         if Option.isSome version then
             let version = CodeFormatter.GetVersion()
             printfn "Fantomas v%s" version
         else
-            match inputPath, outputPath with
-            | InputPath.Unspecified, _ ->
-                eprintfn "Input path is missing..."
-                exit 1
-            | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
-            | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1 config
-            | InputPath.File p1, OutputPath.IO p2 ->
-                processFile p1 p2 config
-            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
-            | InputPath.StdIn s, OutputPath.IO p ->
-                stringToFile s p config
-            | InputPath.StdIn s, OutputPath.Notknown
-            | InputPath.StdIn s, OutputPath.StdOut ->
-                stringToStdOut s config
-            | InputPath.File p, OutputPath.StdOut ->
-                fileToStdOut p config
-            | InputPath.Folder p, OutputPath.StdOut ->
-                allFiles recurse p
-                |> Seq.iter (fun p -> fileToStdOut p config)
+            let check = results.Contains<@ Arguments.Check @>
+            if check then
+                inputPath
+                |> runCheckCommand config recurse
+                |> exit
+            else
+                match inputPath, outputPath with
+                | InputPath.Unspecified, _ ->
+                    eprintfn "Input path is missing..."
+                    exit 1
+                | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
+                | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1 config
+                | InputPath.File p1, OutputPath.IO p2 ->
+                    processFile p1 p2 config
+                | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
+                | InputPath.StdIn s, OutputPath.IO p ->
+                    stringToFile s p config
+                | InputPath.StdIn s, OutputPath.Notknown
+                | InputPath.StdIn s, OutputPath.StdOut ->
+                    stringToStdOut s config
+                | InputPath.File p, OutputPath.StdOut ->
+                    fileToStdOut p config
+                | InputPath.Folder p, OutputPath.StdOut ->
+                    allFiles recurse p
+                    |> Seq.iter (fun p -> fileToStdOut p config)
         0
