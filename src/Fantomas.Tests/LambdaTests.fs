@@ -205,3 +205,11 @@ let ``multiple braces should add indent`` () =
     printfn "meh"
     ()))))
 """
+
+[<Test>]
+let ``add space after chained ident, 676`` () =
+    formatSourceString false """let foo = Foo(fun () -> Foo.Create x).Value"""  config
+    |> prepend newline
+    |> should equal """
+let foo = Foo(fun () -> Foo.Create x).Value
+"""

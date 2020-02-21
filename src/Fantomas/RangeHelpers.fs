@@ -16,3 +16,13 @@ module RangeHelpers =
     // check if b is after a
     let ``range after`` (a: range) (b: range) =
         (a.StartLine, a.StartColumn) < (b.StartLine, b.StartColumn)
+
+    // check if b starts after end of a
+    let ``range starts after`` (a: range) (b: range) =
+        (a.EndLine, a.EndColumn) < (b.StartLine, b.StartColumn)
+        
+    let rangeStartEq (r1: range) (r2: range) = r1.StartLine = r2.StartLine && r1.StartColumn = r2.StartColumn
+    
+    let rangeEndEq (r1: range) (r2: range) = r1.EndLine = r2.EndLine && r1.EndColumn = r2.EndColumn
+    
+    let rangeEq (r1: range) (r2: range) = rangeStartEq r1 r2 && rangeEndEq r1 r2

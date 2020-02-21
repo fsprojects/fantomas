@@ -336,8 +336,9 @@ let ``line comment before return type info should indent before colon, 565`` () 
 module Bar =
     let f a
         // foo
-        : int =
-            0
+        : int
+        =
+        0
 """
 
 [<Test>]
@@ -356,3 +357,9 @@ module Bar =
     let foo(_: #(int seq)) = 1
     let meh(_: #seq<int>) = 2
 """
+
+[<Test>]
+let ``only add one space between idents in app`` () =
+    formatSourceString false "let validatorResult = validator input"  config
+    |> should equal "let validatorResult = validator input
+"

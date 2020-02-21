@@ -126,3 +126,57 @@ let y = async {
 let x = { 3 .. 7 }
 let y = async { return { 0 .. 1 } }
 """
+
+[<Test>]
+let ``and! is supported`` () =
+    formatSourceString false """
+async {
+    let! x = Async.Sleep 1.
+    and! y = Async.Sleep 2.
+    return 10
+}
+"""  config
+   |> prepend newline
+   |> should equal """
+async {
+    let! x = Async.Sleep 1.
+    and! y = Async.Sleep 2.
+    return 10 }
+"""
+[<Test>]
+let ``multiple and! is supported`` () =
+    formatSourceString false """
+// Reads the values of x, y and z concurrently, then applies f to them
+parallel {
+    let! x = slowRequestX()
+    and! y = slowRequestY()
+    and! z = slowRequestZ()
+    return f x y z
+}
+"""  config
+   |> prepend newline
+   |> should equal """
+// Reads the values of x, y and z concurrently, then applies f to them
+``parallel`` {
+    let! x = slowRequestX()
+    and! y = slowRequestY()
+    and! z = slowRequestZ()
+    return f x y z }
+"""
+
+[<Test>]
+let ``and! sample number 3`` () =
+    formatSourceString false """
+observable {
+    let! a = foo
+    and! b = bar
+    return a + b
+}
+"""  config
+   |> prepend newline
+   |> should equal """
+observable {
+    let! a = foo
+    and! b = bar
+    return a + b }
+"""
