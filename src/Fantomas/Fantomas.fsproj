@@ -3,7 +3,7 @@
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>3.2.0</Version>
+    <Version>3.3.0-beta-001</Version>
     <Description>Source code formatter for F#</Description>
   </PropertyGroup>
   <ItemGroup>
@@ -15,6 +15,7 @@
     <Compile Include="Version.fs" />
     <Compile Include="Dbg.fs" />
     <Compile Include="Utils.fs" />
+    <Compile Include="Queue.fs" />
     <Compile Include="FormatConfig.fs" />
     <Compile Include="ConfigFile.fs" />
     <Compile Include="JsonConfig.fs" />

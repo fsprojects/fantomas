@@ -1,3 +1,8 @@
+### 3.3.0-beta-001 - 02/2020
+* Partial support for FCS 34
+* Performance improvements
+* Bugfixes
+
 ### 3.2.0 - 02/2020
 
 * Added support for settings configuration file. [#354](https://github.com/fsprojects/fantomas/issues/354)

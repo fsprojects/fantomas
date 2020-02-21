@@ -49,9 +49,10 @@ let rec multiline synExpr =
 
     | Quote(e1, e2, _)
     | JoinIn(e1, e2)
-    | DotSet(e1, _, e2)
-    | LetOrUseBang(_, _, e1, e2) ->
+    | DotSet(e1, _, e2) -> 
         multiline e1 || multiline e2
+    | LetOrUseBang(_, _, e1, ands, e2) ->
+        multiline e1 || (ands |> List.exists (fun (_,_,_,_,e,_) -> multiline e)) || multiline e2
 
     | Tuple es ->
         List.exists multiline es
