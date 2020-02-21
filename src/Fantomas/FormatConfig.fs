@@ -25,7 +25,8 @@ type FormatConfig =
       SpaceAroundDelimiter : bool
       KeepNewlineAfter : bool
       MaxIfThenElseShortWidth: Num
-      GResearch : bool
+      AlignBrackets : bool
+      MaxSingleLineRecordWidth : Num
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -42,7 +43,8 @@ type FormatConfig =
           SpaceAroundDelimiter = true
           KeepNewlineAfter = false
           MaxIfThenElseShortWidth = 40
-          GResearch = false
+          AlignBrackets = false
+          MaxSingleLineRecordWidth = 40
           StrictMode = false }
 
     static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 

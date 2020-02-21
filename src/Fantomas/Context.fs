@@ -522,6 +522,8 @@ let internal sortAndDeduplicate by l (ctx : Context) =
         l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq
     else l
 
+let internal ifGReseach f g = ifElseCtx (fun ctx -> ctx.Config.AlignBrackets) f g
+
 /// Don't put space before and after these operators
 let internal NoSpaceInfixOps = set ["?"]
 

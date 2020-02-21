@@ -445,6 +445,9 @@ and preserveBreakNln astContext e ctx =
 and preserveBreakNlnOrAddSpace astContext e ctx =
     breakNlnOrAddSpace astContext (checkPreserveBreakForExpr e ctx) e ctx
 
+and preserveBreakNlnOrAddSpaceByFuture astContext e ctx =
+    breakNlnOrAddSpace astContext (futureNlnCheck (genExpr astContext e) ctx) e ctx
+
 and addSpaceAfterGenericConstructBeforeColon ctx =
     if not ctx.Config.SpaceBeforeColon then
         match Context.lastWriteEventOnLastLine ctx |> Option.bind Seq.tryLast with
@@ -745,11 +748,11 @@ and genVal astContext (Val(ats, px, ao, s, t, vi, _) as node) =
 and genRecordFieldName astContext (RecordFieldName(s, eo) as node) =
     let (rfn,_,_) = node
     let range = (fst rfn).Range
-    opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e)
+    opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNlnOrAddSpaceByFuture astContext e)
     |> genTrivia range
 
 and genAnonRecordFieldName astContext (AnonRecordFieldName(s, e)) =
-    !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e
+    !- s +> sepEq +> preserveBreakNlnOrAddSpaceByFuture astContext e
 
 and genTuple astContext es =
     atCurrentColumn (coli sepComma es (fun i e ->
@@ -1472,38 +1475,68 @@ and genRecordInstanceGResearch
     (eo: SynExpr option)
     astContext (ctx: Context) =
 
-    let genEo fieldsExpr e =
-        genExpr astContext e
-        +> ifElseCtx (futureNlnCheck fieldsExpr)
-               (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent)
-               (!- " with " +> fieldsExpr)
+    let shortExpr =
+        let fieldsExpr = col sepSemi xs (genRecordFieldName astContext)
+        match inheritOpt, eo with
+        | Some (inheritType, inheritExpr), None ->
+            sepOpenS +>
+            !- "inherit " +> genType astContext false inheritType +> genExpr astContext inheritExpr
+            +> (sepSpace +> fieldsExpr)
 
-    let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
-    let genInherit (typ, expr) = !- "inherit " +> genType astContext false typ +> genExpr astContext expr
-
-    let isRecordExprMultiline =
-        let expr =
-            match eo with
-            | Some ci -> genEo fieldsExpr ci
-            | None -> fieldsExpr
-        Option.isSome inheritOpt || futureNlnCheck expr ctx
-
-    let expr =
-        match eo, isRecordExprMultiline with
-        | Some e, false ->
-            sepOpenS +> genEo fieldsExpr e +> sepCloseS
-        | Some e, true ->
-            sepOpenS +> genEo fieldsExpr e +> sepNln +> sepCloseSFixed
-        | None, false ->
-            sepOpenS +> fieldsExpr +> sepCloseS
-        | None, true ->
-            sepOpenSFixed +> indent +> sepNln +>
-            opt sepNln inheritOpt genInherit  +> fieldsExpr
-            +> unindent +> sepNln +> sepCloseSFixed
-
+        | None, Some e ->
+            sepOpenS +> genExpr astContext e
+            +> (!- " with " +> fieldsExpr +> sepCloseS)
+        | _ ->
+            (sepOpenS +> fieldsExpr +> sepCloseS)
         |> atCurrentColumnIndent
 
-    expr ctx
+    let multilineExpr =
+        let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
+        match inheritOpt, eo with
+        | Some (inheritType, inheritExpr), None ->
+            sepOpenS +>
+            !- "inherit " +> genType astContext false inheritType +> genExpr astContext inheritExpr
+            +> (indent +> sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed)
+
+        | None, Some e ->
+            sepOpenS +> genExpr astContext e
+            +> (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed)
+
+        | _ ->
+            (sepOpenSFixed +> indent +> sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed)
+        |> atCurrentColumnIndent
+
+    // TODO: extract and move to Context module
+    // Also try and cache results
+    let isExpressionLongerThen f maxWidth ctx =
+        // create empty context
+        let dummyCtx =  f { ctx with
+                              WriterModel = WriterModel.init
+                              WriterEvents = Queue.empty }
+        let writerEvents =
+            dummyCtx.WriterEvents
+            |> Seq.takeWhile (function | WriteLine _ -> false | _ -> true)
+            |> Seq.toArray
+
+        let totalColumnSize events =
+            Seq.fold (fun acc ev ->
+                match ev with
+                | Write w -> String.length w
+                | _ -> 0
+                |> (+) acc) 0 events
+            |> fun total -> total > maxWidth
+
+        let isLonger =
+            if dummyCtx.WriterEvents.Length > writerEvents.Length
+            then true // multiple lines
+            else totalColumnSize writerEvents // checks if single line is longer then maxWidth
+
+        isLonger
+
+    let isLong (ctx: Context) =
+        isExpressionLongerThen shortExpr ctx.Config.MaxSingleLineRecordWidth ctx
+
+    (ifElseCtx isLong multilineExpr shortExpr) ctx
 
 and genAnonRecord isStruct fields copyInfo astContext (ctx:Context) =
     let recordExpr =

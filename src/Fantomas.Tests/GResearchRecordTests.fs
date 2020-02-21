@@ -4,7 +4,9 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let config = ({ config with GResearch = true })
+let config = ({ config with
+                    AlignBrackets = true
+                    SpaceBeforeColon = true })
 
 [<Test>]
 let ``single member record stays on oneline`` () =
@@ -13,6 +15,15 @@ let ``single member record stays on oneline`` () =
     |> prepend newline
     |> should equal """
 let a = { Foo = "bar" }
+"""
+
+[<Test>]
+let ``short record with multiple members record stays on oneline`` () =
+    formatSourceString false """let a = { Foo = "bar"; P = 2 }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = { Foo = "bar"; P = 2 }
 """
 
 [<Test>]
@@ -153,6 +164,7 @@ let a =
 
 // This is meant to be a short type alias, we format this always as one-liner.
 // TDB with G-Research
+// TODO: new setting space before semi colon
 [<Test>]
 let ``anonymous type`` () =
     formatSourceString false """type a = {| foo : string; bar : string |}
@@ -175,9 +187,9 @@ let a = {| A = "meh" |}
 let ``anonymous record with child records`` () =
     formatSourceString false """
 let anonRecord =
-    {| A = {| A1 = "string";A2 = "foo" |};
+    {| A = {| A1 = "string";A2LongerIdentifier = "foo" |};
        B = {| B1 = 7 |}
-       C= { C1 = "foo"; C2 = "bar"}
+       C= { C1 = "foo"; C2LongerIdentifier = "bar"}
        D = { D1 = "bar" } |}
 """  config
     |> prepend newline
@@ -187,13 +199,13 @@ let anonRecord =
         A =
             {|
                 A1 = "string"
-                A2 = "foo"
+                A2LongerIdentifier = "foo"
             |}
         B = {| B1 = 7 |}
         C =
             {
                 C1 = "foo"
-                C2 = "bar"
+                C2LongerIdentifier = "bar"
             }
         D = { D1 = "bar" }
     |}
@@ -350,10 +362,10 @@ type Element =
         Attributes : IDictionary<Name, string>
 
         /// The children collection.
-        Children: seq<INode>
+        Children : seq<INode>
 
         /// The qualified name.
-        Name: Name
+        Name : Name
     }
 """
 
@@ -388,10 +400,10 @@ let ``record declaration`` () =
 type MyRecord =
     {
         Level : int
-        Progress: string
-        Bar: string
-        Street: string
-        Number: int
+        Progress : string
+        Bar : string
+        Street : string
+        Number : int
     }
 """
 
@@ -411,10 +423,10 @@ namespace X
 
 type MyRecord =
     {
-        Level: int
-        Progress: string
-        Bar: string
-        Street: string
-        Number: int
+        Level : int
+        Progress : string
+        Bar : string
+        Street : string
+        Number : int
     }
 """

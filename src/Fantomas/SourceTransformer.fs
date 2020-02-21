@@ -89,14 +89,15 @@ let rec multiline synExpr =
     | ArrayOrList(_, es, _) ->
         not (List.atMostOne es)
 
-    // A record is multiline if there is at least two fields present
-    | Record(_, xs, _) ->
-        let fields = xs |> List.choose ((|RecordFieldName|) >> snd) 
-        not (List.atMostOne fields) || List.exists multiline fields
-
-    | AnonRecord(_, xs, _) ->
-        let fields = xs |> List.map ((|AnonRecordFieldName|) >> snd)
-        not (List.atMostOne fields) || List.exists multiline fields
+// TODO: remove code, this check you be determined by the new setting MaxShortRecordWidth
+//    // A record is multiline if there is at least two fields present
+//    | Record(_, xs, _) ->
+//        let fields = xs |> List.choose ((|RecordFieldName|) >> snd)
+//        not (List.atMostOne fields) || List.exists multiline fields
+//
+//    | AnonRecord(_, xs, _) ->
+//        let fields = xs |> List.map ((|AnonRecordFieldName|) >> snd)
+//        not (List.atMostOne fields) || List.exists multiline fields
 
     // Default mode is single-line
     | _ -> false
