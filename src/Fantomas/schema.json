@@ -11,16 +11,16 @@
     "SemicolonAtEndOfLine": {
       "type": "boolean"
     },
-    "SpaceBeforeUnitArgumentInUppercaseFunctionCall": {
+    "SpaceBeforeUnitArgumentInUppercaseInvocation": {
       "type": "boolean"
     },
-    "SpaceBeforeUnitArgumentInLowercaseFunctionCall": {
+    "SpaceBeforeUnitArgumentInLowercaseInvocation": {
       "type": "boolean"
     },
-    "SpaceBeforeParenthesesArgumentInUppercaseFunctionCall": {
+    "SpaceBeforeParenthesesInUppercaseInvocation": {
       "type": "boolean"
     },
-    "SpaceBeforeParenthesesArgumentInLowercaseFunctionCall": {
+    "SpaceBeforeParenthesesInLowercaseInvocation": {
       "type": "boolean"
     },
     "SpaceBeforeUnitParameterInUppercaseFunctionDefinition": {
@@ -35,16 +35,7 @@
     "SpaceBeforeParenthesesInLowercaseFunctionDefinition": {
       "type": "boolean"
     },
-    "SpaceBeforeUnitParameterInUppercaseClassConstructor":  {
-      "type": "boolean"
-    },
-    "SpaceBeforeUnitParameterInLowercaseClassConstructor": {
-      "type": "boolean"
-    },
-    "SpaceBeforeParenthesesParameterInUppercaseClassConstructor":  {
-      "type": "boolean"
-    },
-    "SpaceBeforeParenthesesParameterInLowercaseClassConstructor": {
+    "SpaceBeforeClassConstructor":  {
       "type": "boolean"
     },
     "SpaceBeforeColon": {

@@ -13,14 +13,14 @@ let ``default config should not add space before unit in uppercase function call
 """
 
 [<Test>]
-let ``SpaceBeforeUnitArgumentInUppercaseFunctionCall should add space before unit in uppercase function call`` () =
-    formatSourceString false "let value = MyFunction()" ({ config with SpaceBeforeUnitArgumentInUppercaseFunctionCall = true })
+let ``SpaceBeforeUnitArgumentInUppercaseInvocation should add space before unit in uppercase function call`` () =
+    formatSourceString false "let value = MyFunction()" ({ config with SpaceBeforeUnitArgumentInUppercaseInvocation = true })
     |> should equal """let value = MyFunction ()
 """
 
 [<Test>]
-let ``SpaceBeforeUnitArgumentInUppercaseFunctionCall should add space before unit in chained uppercase function call`` () =
-    formatSourceString false "let value = person.ToString()" ({ config with SpaceBeforeUnitArgumentInUppercaseFunctionCall = true })
+let ``SpaceBeforeUnitArgumentInUppercaseInvocation should add space before unit in chained uppercase function call`` () =
+    formatSourceString false "let value = person.ToString()" ({ config with SpaceBeforeUnitArgumentInUppercaseInvocation = true })
     |> should equal """let value = person.ToString ()
 """
 
@@ -33,20 +33,20 @@ let ``default config should not add space before unit in lowercase function call
 """
 
 [<Test>]
-let ``SpaceBeforeUnitArgumentInLowercaseFunctionCall should add space before unit in lowercase function call`` () =
-    formatSourceString false "let value = myFunction()" ({ config with SpaceBeforeUnitArgumentInLowercaseFunctionCall = true })
+let ``SpaceBeforeUnitArgumentInLowercaseInvocation should add space before unit in lowercase function call`` () =
+    formatSourceString false "let value = myFunction()" ({ config with SpaceBeforeUnitArgumentInLowercaseInvocation = true })
     |> should equal """let value = myFunction ()
 """
 
 // Exception to the rule
 
 [<Test>]
-let ``SpaceBeforeUnitArgumentInUppercaseFunctionCall and SpaceBeforeUnitArgumentInLowercaseFunctionCall should not have impact when member is called after unit`` () =
+let ``SpaceBeforeUnitArgumentInUppercaseInvocation and SpaceBeforeUnitArgumentInLowercaseInvocation should not have impact when member is called after unit`` () =
     formatSourceString false """let v1 = myFunction().Member
 let v2 = OtherFunction().Member
 """  ({ config with
-            SpaceBeforeUnitArgumentInUppercaseFunctionCall = true
-            SpaceBeforeUnitArgumentInLowercaseFunctionCall = true })
+            SpaceBeforeUnitArgumentInUppercaseInvocation = true
+            SpaceBeforeUnitArgumentInLowercaseInvocation = true })
     |> prepend newline
     |> should equal """
 let v1 = myFunction().Member
@@ -63,7 +63,7 @@ let ``default config should not add space before parentheses in uppercase functi
 
 [<Test>]
 let ``SpaceBeforeParenthesisArgumentInUppercaseFunctionCall should add space before parentheses in uppercase function call`` () =
-    formatSourceString false "let value = MyFunction(a+b)" ({ config with SpaceBeforeParenthesesArgumentInUppercaseFunctionCall = true })
+    formatSourceString false "let value = MyFunction(a+b)" ({ config with SpaceBeforeParenthesesInUppercaseInvocation = true })
     |> should equal """let value = MyFunction (a + b)
 """
 
@@ -77,7 +77,7 @@ let ``default config should add space before parentheses in lowercase function c
 
 [<Test>]
 let ``SpaceBeforeParenthesisArgumentInUppercaseFunctionCall = false, should not add space before parentheses in lowercase function call`` () =
-    formatSourceString false "let value = myFunction(a+b)" ({ config with SpaceBeforeParenthesesArgumentInLowercaseFunctionCall = false })
+    formatSourceString false "let value = myFunction(a+b)" ({ config with SpaceBeforeParenthesesInLowercaseInvocation = false })
     |> should equal """let value = myFunction(a + b)
 """
 
@@ -166,7 +166,7 @@ let ``default config should not add space before unit in uppercase class definit
 let ``SpaceBeforeUnitParameterInUppercaseClassConstructor should add space after constructor of class`` () =
     formatSourceString false """type Person () =
     class end
-"""  ({ config with SpaceBeforeUnitParameterInUppercaseClassConstructor = true })
+"""  ({ config with SpaceBeforeClassConstructor = true })
     |> prepend newline
     |> should equal """
 type Person () =
@@ -194,7 +194,7 @@ let ``SpaceBeforeUnitParameterInLowercaseClassConstructor should add space befor
     formatSourceString false """type t() =
     class
     end
-"""  ({ config with SpaceBeforeUnitParameterInLowercaseClassConstructor = true })
+"""  ({ config with SpaceBeforeClassConstructor = true })
     |> prepend newline
     |> should equal """
 type t () =
@@ -222,7 +222,7 @@ let ``SpaceBeforeParenthesisParameterInUppercaseClassConstructor should add spac
     formatSourceString false """
 type Animal(length:int) =
     class end
-"""  ({ config with SpaceBeforeParenthesesParameterInUppercaseClassConstructor = true })
+"""  ({ config with SpaceBeforeClassConstructor = true })
     |> prepend newline
     |> should equal """
 type Animal (length: int) =
@@ -250,7 +250,7 @@ let ``SpaceBeforeParenthesisParameterInUppercaseClassConstructor should add spac
     formatSourceString false """
 type animal(length:int) =
     class end
-"""  ({ config with SpaceBeforeParenthesesParameterInLowercaseClassConstructor = true })
+"""  ({ config with SpaceBeforeClassConstructor = true })
     |> prepend newline
     |> should equal """
 type animal (length: int) =

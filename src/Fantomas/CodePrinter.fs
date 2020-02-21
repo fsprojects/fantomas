@@ -47,15 +47,15 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx:Context) =
     | SynExpr.TypeApp(e, _, _, _, _, _, _), _ ->
         addSpaceBeforeParensInFunCall e arg ctx
     | UppercaseSynExpr, ConstExpr(Const "()", _) ->
-        ctx.Config.SpaceBeforeUnitArgumentInUppercaseFunctionCall
+        ctx.Config.SpaceBeforeUnitArgumentInUppercaseInvocation
     | LowercaseSynExpr, ConstExpr(Const "()", _) ->
-        ctx.Config.SpaceBeforeUnitArgumentInLowercaseFunctionCall
+        ctx.Config.SpaceBeforeUnitArgumentInLowercaseInvocation
     | SynExpr.Ident(_), SynExpr.Ident(_) ->
         true
     | UppercaseSynExpr, Paren(_) ->
-        ctx.Config.SpaceBeforeParenthesesArgumentInUppercaseFunctionCall
+        ctx.Config.SpaceBeforeParenthesesInUppercaseInvocation
     | LowercaseSynExpr, Paren(_) ->
-        ctx.Config.SpaceBeforeParenthesesArgumentInLowercaseFunctionCall
+        ctx.Config.SpaceBeforeParenthesesInLowercaseInvocation
     | _ -> true
 
 let addSpaceBeforeParensInFunDef (functionOrMethod:string) args (ctx:Context) =
@@ -1676,8 +1676,6 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         |> genTrivia tdr.Range
 
     | ObjectModel(TCSimple (TCInterface | TCClass) as tdk, MemberDefnList(impCtor, others), range) ->
-        let foo = s
-
         let interfaceRange =
             match tdk with
             | TCSimple TCInterface -> Some range
@@ -1685,24 +1683,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
         let astContext = { astContext with InterfaceRange = interfaceRange }
 
-        let addSpaceAfterTypeName ctx =
-            let (unitLower, unitUpper, parenLower, parenUpper) =
-                (ctx.Config.SpaceBeforeUnitParameterInLowercaseClassConstructor,
-                 ctx.Config.SpaceBeforeUnitParameterInUppercaseClassConstructor,
-                 ctx.Config.SpaceBeforeParenthesesParameterInLowercaseClassConstructor,
-                 ctx.Config.SpaceBeforeParenthesesParameterInUppercaseClassConstructor)
-            let isUpper = Char.IsUpper foo.[0]
-
-            match impCtor with
-            | Some(SynMemberDefn.ImplicitCtor(_,_, pats,_,_)) ->
-                let hasNoParameters = isEmptySynSimplePats pats
-                match hasNoParameters, isUpper with
-                | true, true -> unitUpper
-                | true, false -> unitLower
-                | false, true -> parenUpper
-                | false, false -> parenLower
-            | _ -> false
-
+        let addSpaceAfterTypeName ctx = ctx.Config.SpaceBeforeClassConstructor
 
         typeName +> ifElseCtx addSpaceAfterTypeName sepSpace sepNone +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq
         +> indent +> sepNln

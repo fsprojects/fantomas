@@ -108,7 +108,7 @@ add semicolons at the end of lines e.g.
 This option has been split into multiple settings.
 These can be configured by passing a `fantomas-config.json` path to the `--config` flag.
 
-###### `"SpaceBeforeUnitArgumentInUppercaseFunctionCall"`
+###### `"SpaceBeforeUnitArgumentInUppercaseInvocation"`
 
 > default false
 
@@ -126,7 +126,7 @@ let value = MyFunction ()
 let value = person.ToString ()
 ```
 
-###### `"SpaceBeforeUnitArgumentInLowercaseFunctionCall"`
+###### `"SpaceBeforeUnitArgumentInLowercaseInvocation"`
 
 Will add a whitespace before `()` argument when the function name starts with a lowercase character. e.g.
 
@@ -142,7 +142,7 @@ becomes
 let value = myFunction ()
 ```
 
-###### `"SpaceBeforeParenthesesArgumentInUppercaseFunctionCall"`
+###### `"SpaceBeforeParenthesesInUppercaseInvocation"`
 
 > default false
 
@@ -158,7 +158,7 @@ becomes
 let value = MyFunction (a + b)
 ```
 
-###### `"SpaceBeforeParenthesesArgumentInLowercaseFunctionCall"`
+###### `"SpaceBeforeParenthesesInLowercaseInvocation"`
 
 > default true
 
@@ -174,7 +174,7 @@ becomes
 let value = myFunction (a+b)
 ```
 
-To remove the space, set `"SpaceBeforeParenthesesArgumentInLowercaseFunctionCall"` to `false`.
+To remove the space, set `"SpaceBeforeParenthesesInLowercaseInvocation"` to `false`.
 
 ###### `"SpaceBeforeUnitParameterInUppercaseFunctionDefinition"`
 
@@ -224,7 +224,7 @@ becomes
 let Value (a:int) = x
 ```
 
-###### `SpaceBeforeParenthesesInLowercaseFunctionDefinition":true`
+###### `SpaceBeforeParenthesesInLowercaseFunctionDefinition"`
 
 > default true
 
@@ -242,11 +242,11 @@ let value (a:int) = x
 
 To remove the space, set `"SpaceBeforeParenthesesInLowercaseFunctionDefinition"` to `false`.
 
-###### `"SpaceBeforeUnitParameterInUppercaseClassConstructor"`
+###### `"SpaceBeforeClassConstructor"`
 
 > default false
 
-Will add a whitespace before an empty constructor of class definition that starts with an uppercase letter. e.g.
+Will add a whitespace before a constructor of class definition.
 
 ```fsharp
 type Person() =
@@ -259,63 +259,6 @@ becomes
 type Person () =
     class
     end
-```
-
-###### `"SpaceBeforeUnitParameterInLowercaseClassConstructor"`
-
-> default false
-
-Will add a whitespace before an empty constructor of class definition that starts with a lowercase letter. e.g.
-
-```fsharp
-type t() =
-    class
-    end
-```
-
-becomes
-
-```fsharp
-type t () =
-    class
-    end
-```
-
-###### `"SpaceBeforeParenthesesParameterInUppercaseClassConstructor"`
-
-> default false
-
-Will add a whitespace before an non-empty constructor of class definition that starts with an uppercase letter. e.g.
-
-```fsharp
-type Animal(length:int) =
-    class end
-```
-
-becomes
-
-```fsharp
-type Animal (length: int) =
-    class
-    end
-```
-
-###### `"SpaceBeforeParenthesesParameterInLowercaseClassConstructor"`
-
-> default false
-
-Will add a whitespace before an non-empty constructor of class definition that starts with a lowercase letter. e.g.
-
-```fsharp
-type animal(length:int) =
-    class end
-```
-
-becomes
-
-```fsharp
-type animal (length:int) =
-    class end
 ```
 
 ##### `--spaceBeforeColon`
@@ -474,10 +417,10 @@ A default configuration file would look like
   "IndentSpaceNum":4,
   "PageWidth":120,
   "SemicolonAtEndOfLine":false,
-  "SpaceBeforeUnitArgumentInUppercaseFunctionCall":false,
-  "SpaceBeforeUnitArgumentInLowercaseFunctionCall":false,
-  "SpaceBeforeParenthesesArgumentInUppercaseFunctionCall":false,
-  "SpaceBeforeParenthesesArgumentInLowercaseFunctionCall":true ,
+  "SpaceBeforeUnitArgumentInUppercaseInvocation":false,
+  "SpaceBeforeUnitArgumentInLowercaseInvocation":false,
+  "SpaceBeforeParenthesesInUppercaseInvocation":false,
+  "SpaceBeforeParenthesesInLowercaseInvocation":true ,
   "SpaceBeforeUnitParameterInUppercaseFunctionDefinition":false,
   "SpaceBeforeUnitParameterInLowercaseFunctionDefinition":false,
   "SpaceBeforeParenthesesInUppercaseFunctionDefinition":false,

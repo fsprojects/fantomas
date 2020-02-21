@@ -292,7 +292,7 @@ let main argv =
             SpaceAfterComma = false
             SpaceAfterSemicolon = false
             SpaceAroundDelimiter = false
-            SpaceBeforeParenthesesArgumentInLowercaseFunctionCall = false })
+            SpaceBeforeParenthesesInLowercaseInvocation = false })
     |> prepend newline
     |> should equal """
 open System

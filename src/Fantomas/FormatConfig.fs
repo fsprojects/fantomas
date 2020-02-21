@@ -15,18 +15,15 @@ type FormatConfig =
       /// The column where we break to new lines
       PageWidth : Num
       SemicolonAtEndOfLine : bool
-      SpaceBeforeUnitArgumentInUppercaseFunctionCall : bool
-      SpaceBeforeUnitArgumentInLowercaseFunctionCall : bool
-      SpaceBeforeParenthesesArgumentInUppercaseFunctionCall : bool
-      SpaceBeforeParenthesesArgumentInLowercaseFunctionCall : bool
+      SpaceBeforeUnitArgumentInUppercaseInvocation : bool
+      SpaceBeforeUnitArgumentInLowercaseInvocation : bool
+      SpaceBeforeParenthesesInUppercaseInvocation : bool
+      SpaceBeforeParenthesesInLowercaseInvocation : bool
       SpaceBeforeUnitParameterInUppercaseFunctionDefinition : bool
       SpaceBeforeUnitParameterInLowercaseFunctionDefinition : bool
       SpaceBeforeParenthesesInUppercaseFunctionDefinition : bool
       SpaceBeforeParenthesesInLowercaseFunctionDefinition : bool
-      SpaceBeforeUnitParameterInUppercaseClassConstructor : bool
-      SpaceBeforeUnitParameterInLowercaseClassConstructor : bool
-      SpaceBeforeParenthesesParameterInUppercaseClassConstructor : bool
-      SpaceBeforeParenthesesParameterInLowercaseClassConstructor : bool
+      SpaceBeforeClassConstructor : bool
       SpaceBeforeColon : bool
       SpaceAfterComma : bool
       SpaceAfterSemicolon : bool
@@ -43,18 +40,15 @@ type FormatConfig =
         { IndentSpaceNum = 4
           PageWidth = 120
           SemicolonAtEndOfLine = false
-          SpaceBeforeUnitArgumentInUppercaseFunctionCall = false
-          SpaceBeforeUnitArgumentInLowercaseFunctionCall = false
-          SpaceBeforeParenthesesArgumentInUppercaseFunctionCall = false
-          SpaceBeforeParenthesesArgumentInLowercaseFunctionCall = true
+          SpaceBeforeUnitArgumentInUppercaseInvocation = false
+          SpaceBeforeUnitArgumentInLowercaseInvocation = false
+          SpaceBeforeParenthesesInUppercaseInvocation = false
+          SpaceBeforeParenthesesInLowercaseInvocation = true
           SpaceBeforeUnitParameterInUppercaseFunctionDefinition = false
           SpaceBeforeUnitParameterInLowercaseFunctionDefinition = false
           SpaceBeforeParenthesesInUppercaseFunctionDefinition = false
           SpaceBeforeParenthesesInLowercaseFunctionDefinition = true
-          SpaceBeforeUnitParameterInUppercaseClassConstructor = false
-          SpaceBeforeUnitParameterInLowercaseClassConstructor = false
-          SpaceBeforeParenthesesParameterInUppercaseClassConstructor = false
-          SpaceBeforeParenthesesParameterInLowercaseClassConstructor = false
+          SpaceBeforeClassConstructor = false
           SpaceBeforeColon = false
           SpaceAfterComma = true
           SpaceAfterSemicolon = true
