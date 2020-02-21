@@ -22,7 +22,7 @@
     <Compile Include="PipingTests.fs" />
     <Compile Include="AppTests.fs" />
     <Compile Include="ModuleTests.fs" />
-    <Compile Include="ModuleTestsWithNewLineAfterModule.fs" />
+    <Compile Include="ModuleTestsWithEmptyLineBeforeNestedModuleBody.fs" />
     <Compile Include="UnionTests.fs" />
     <Compile Include="RecordTests.fs" />
     <Compile Include="TypeDeclarationTests.fs" />

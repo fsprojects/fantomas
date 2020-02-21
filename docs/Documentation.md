@@ -255,9 +255,9 @@ That said, most of the preferences are very simple.
 But they demonstrate the flexibility of Fantomas on a set of configurations. 
 More preferences will be added depending on use cases.
 
-##### `--newlineBetweenModuleAndChildren`
+##### `--emptyLineBeforeNestedModuleBody`
 
-if being set, adds a newline between module and its children.
+if being set, adds an empty line before the nested module body.
  
 ```fsharp
 module A =
@@ -268,6 +268,7 @@ will become
 
 ```fsharp
 module A =
+
     let x = 42
 ```
 
@@ -291,7 +292,7 @@ A default configuration file would look like
   "KeepNewlineAfter":false,
   "MaxIfThenElseShortWidth":40,
   "StrictMode":false,
-  "NewlineBetweenModuleAndChildren":false
+  "EmptyLineBeforeNestedModuleBody":false
 }
 ```
 

@@ -1,11 +1,11 @@
-﻿module Fantomas.Tests.ModuleTestsWithNewLineAfterModule
+﻿module Fantomas.Tests.ModuleTestsWithEmptyLineBeforeNestedModuleBody
 
 open Fantomas
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let config = { config with NewlineBetweenModuleAndChildren = true }
+let config = { config with EmptyLineBeforeNestedModuleBody = true }
 
 [<Test>]
 let ``module abbreviation``() =

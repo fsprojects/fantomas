@@ -512,7 +512,7 @@ let internal unindentOnWith (ctx : Context) =
     if ctx.Config.IndentOnTryWith then unindent ctx else ctx
     
 let internal sepBetweenModuleAndChildren (ctx : Context) =
-    if ctx.Config.NewlineBetweenModuleAndChildren then (rep 2 sepNln) ctx else sepNln ctx
+    if ctx.Config.EmptyLineBeforeNestedModuleBody then (rep 2 sepNln) ctx else sepNln ctx
 
 let internal sortAndDeduplicate by l (ctx : Context) =
     if ctx.Config.ReorderOpenDeclaration then
