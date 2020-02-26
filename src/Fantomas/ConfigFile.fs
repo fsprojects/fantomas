@@ -23,7 +23,7 @@ let rec findConfigurationFiles fileOrFolder : string list =
         |> List.map (fun fn -> Path.Combine(folderPath, fn))
         |> List.filter (File.Exists)
 
-    if Path.GetExtension(fileOrFolder) = "" && Directory.Exists fileOrFolder then
+    if Directory.Exists fileOrFolder then
         getParentFolders [] fileOrFolder
         |> List.collect findConfigInFolder
     elif File.Exists(fileOrFolder) then
