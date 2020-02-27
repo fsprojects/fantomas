@@ -184,6 +184,9 @@ saves spaces on records, arrays, lists, etc. Now
 	let planets = [|sun;jupiter;saturn;uranus;neptune|]
 	```
 
+Note: there is also the possibility to add a space before the semicolon.<br />
+This can be set by adding `"SpaceBeforeSemicolon": true` in a Fantomas configuration file (see below).
+
  ##### `--indentOnTryWith`
 
 if being set, `with` blocks will be indented like in the following example:
@@ -296,6 +299,7 @@ A default configuration file would look like
   "SpaceBeforeArgument":true ,
   "SpaceBeforeColon":false,
   "SpaceAfterComma":true ,
+  "SpaceBeforeSemicolon": false,
   "SpaceAfterSemicolon":true ,
   "IndentOnTryWith":false,
   "ReorderOpenDeclaration":false,
