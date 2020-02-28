@@ -286,6 +286,65 @@ That said, most of the preferences are very simple.
 But they demonstrate the flexibility of Fantomas on a set of configurations. 
 More preferences will be added depending on use cases.
 
+##### "AlignBrackets"
+
+Alternative style to format records, arrays and lists.
+If enabled, this will align the brackets (`{`, `{|`, `[`, `[|`) and (`}`, `|}`, `]`, `|]`) on the same line.
+
+```fsharp
+let myRecord = { Square = 9; Level = "Hard" }
+
+let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
+  (3, 2, 6); (3, 3, 9)|]
+
+let anonRecord =
+    {| A = {| A1 = "string";A2LongerIdentifier = "foo" |};
+       B = {| B1 = 7 |}
+       C= { C1 = "foo"; C2LongerIdentifier = "bar"}
+       D = { D1 = "bar" } |}
+```
+
+becomes
+
+```fsharp
+let myRecord =
+    {
+        Square = 9
+        Level = "Hard"
+    }
+
+let arr =
+    [|
+        (1, 1, 1)
+        (1, 2, 2)
+        (1, 3, 3)
+        (2, 1, 2)
+        (2, 2, 4)
+        (2, 3, 6)
+        (3, 1, 3)
+        (3, 2, 6)
+        (3, 3, 9)
+    |]
+
+let anonRecord =
+    {|
+        A =
+            {|
+                A1 = "string"
+                A2LongerIdentifier = "foo"
+            |}
+        B = {| B1 = 7 |}
+        C =
+            {
+                C1 = "foo"
+                C2LongerIdentifier = "bar"
+            }
+        D = { D1 = "bar" }
+    |}
+```
+
+Only available from via `fantomas-config.json` config file.
+
 ##### `--config <Path to file or folder>`
 
 Use a JSON configuration file based on a [schema](../src/Fantomas/schema.json) to set the formatting options.
@@ -306,6 +365,7 @@ A default configuration file would look like
   "SpaceAroundDelimiter":true ,
   "KeepNewlineAfter":false,
   "MaxIfThenElseShortWidth":40,
+  "AlignBrackets": false,
   "StrictMode":false
 }
 ```

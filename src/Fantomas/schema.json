@@ -41,6 +41,9 @@
     "MaxIfThenElseShortWidth": {
       "type": "integer"
     },
+    "AlignBrackets": {
+      "type": "boolean"
+    },
     "StrictMode": {
       "type": "boolean"
     }
