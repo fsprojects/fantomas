@@ -217,13 +217,6 @@ saves spaces around delimiters of records, arrays, lists e.g.
 	let planets = [|sun; jupiter; saturn; uranus; neptune|]
 	```
 
- ##### `--reorderOpenDeclaration`
-
-if being set, all open statements in a block will be sorted in the lexicographical order.
-This can lead to compilation problems, see https://github.com/fsprojects/fantomas/issues/645.
-
-For that reason, this setting is considered **deprecated** and will be **removed in the next major version**.
-
 ##### `--strictMode`
 
 if being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored. 
@@ -302,7 +295,6 @@ A default configuration file would look like
   "SpaceBeforeSemicolon": false,
   "SpaceAfterSemicolon":true ,
   "IndentOnTryWith":false,
-  "ReorderOpenDeclaration":false,
   "SpaceAroundDelimiter":true ,
   "KeepNewlineAfter":false,
   "MaxIfThenElseShortWidth":40,

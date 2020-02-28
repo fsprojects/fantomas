@@ -29,9 +29,6 @@
     "IndentOnTryWith": {
       "type": "boolean"
     },
-    "ReorderOpenDeclaration": {
-      "type": "boolean"
-    },
     "SpaceAroundDelimiter": {
       "type": "boolean"
     },

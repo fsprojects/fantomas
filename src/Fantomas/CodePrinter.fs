@@ -177,8 +177,6 @@ and genModuleDeclList astContext e =
                 xs
                 |> List.map (fun x -> x.Range, ctx.Trivia |> List.tryFind (fun t -> t.Range = x.Range))
 
-            let xs = sortAndDeduplicate ((|Open|_|) >> Option.get) xs ctx
-
             // Restore the range of the open statement after sorting, this way comments stay on the same place.
             let xs' : SynModuleDecl list =
                 if List.length xs = List.length originalOpens then
@@ -251,7 +249,6 @@ and genSigModuleDeclList astContext node =
 
     | SigOpenL(xs, ys) ->
         fun ctx ->
-            let xs = sortAndDeduplicate ((|SigOpen|_|) >> Option.get) xs ctx
             match ys with
             | [] -> col sepNln xs (genSigModuleDecl astContext) ctx
             | _ -> (col sepNln xs (genSigModuleDecl astContext) +> rep 2 sepNln +> genSigModuleDeclList astContext ys) ctx
@@ -2072,7 +2069,6 @@ and genMemberDefnList astContext node =
 
     | MDOpenL(xs, ys) ->
         fun ctx ->
-            let xs = sortAndDeduplicate ((|MDOpen|_|) >> Option.get) xs ctx
             match ys with
             | [] -> col sepNln xs (genMemberDefn astContext) ctx
             | _ -> (col sepNln xs (genMemberDefn astContext) +> rep 2 sepNln +> genMemberDefnList astContext ys) ctx

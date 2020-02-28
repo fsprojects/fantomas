@@ -21,8 +21,6 @@ type FormatConfig =
       SpaceBeforeSemicolon : bool
       SpaceAfterSemicolon : bool
       IndentOnTryWith : bool
-      /// Reordering and deduplicating open statements
-      ReorderOpenDeclaration : bool
       SpaceAroundDelimiter : bool
       KeepNewlineAfter : bool
       MaxIfThenElseShortWidth: Num
@@ -39,57 +37,10 @@ type FormatConfig =
           SpaceBeforeSemicolon = false
           SpaceAfterSemicolon = true
           IndentOnTryWith = false
-          ReorderOpenDeclaration = false
           SpaceAroundDelimiter = true
           KeepNewlineAfter = false
           MaxIfThenElseShortWidth = 40
           StrictMode = false }
-
-    static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
-                         spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
-                         spaceAfterSemicolon, indentOnTryWith, reorderOpenDeclaration) =
-        { FormatConfig.Default with
-              IndentSpaceNum = indentSpaceNum; 
-              PageWidth = pageWith;
-              SemicolonAtEndOfLine = semicolonAtEndOfLine; 
-              SpaceBeforeArgument = spaceBeforeArgument; 
-              SpaceBeforeColon = spaceBeforeColon;
-              SpaceAfterComma = spaceAfterComma; 
-              SpaceAfterSemicolon = spaceAfterSemicolon; 
-              IndentOnTryWith = indentOnTryWith; 
-              ReorderOpenDeclaration = reorderOpenDeclaration }
-
-    static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
-                         spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
-                         spaceAfterSemicolon, indentOnTryWith, reorderOpenDeclaration, spaceAroundDelimiter) =
-        { FormatConfig.Default with
-              IndentSpaceNum = indentSpaceNum; 
-              PageWidth = pageWith;
-              SemicolonAtEndOfLine = semicolonAtEndOfLine; 
-              SpaceBeforeArgument = spaceBeforeArgument; 
-              SpaceBeforeColon = spaceBeforeColon;
-              SpaceAfterComma = spaceAfterComma; 
-              SpaceAfterSemicolon = spaceAfterSemicolon; 
-              IndentOnTryWith = indentOnTryWith; 
-              ReorderOpenDeclaration = reorderOpenDeclaration;
-              SpaceAroundDelimiter = spaceAroundDelimiter }
-
-    static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 
-                         spaceBeforeArgument, spaceBeforeColon, spaceAfterComma, 
-                         spaceAfterSemicolon, indentOnTryWith, reorderOpenDeclaration, 
-                         spaceAroundDelimiter, strictMode) =
-        { FormatConfig.Default with
-              IndentSpaceNum = indentSpaceNum; 
-              PageWidth = pageWith;
-              SemicolonAtEndOfLine = semicolonAtEndOfLine; 
-              SpaceBeforeArgument = spaceBeforeArgument; 
-              SpaceBeforeColon = spaceBeforeColon;
-              SpaceAfterComma = spaceAfterComma; 
-              SpaceAfterSemicolon = spaceAfterSemicolon; 
-              IndentOnTryWith = indentOnTryWith; 
-              ReorderOpenDeclaration = reorderOpenDeclaration;
-              SpaceAroundDelimiter = spaceAroundDelimiter;
-              StrictMode = strictMode }
 
     static member applyOptions(currentConfig, options) =
         let currentValues = Reflection.getRecordFields currentConfig
