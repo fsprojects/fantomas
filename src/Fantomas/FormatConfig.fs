@@ -18,6 +18,7 @@ type FormatConfig =
       SpaceBeforeArgument : bool
       SpaceBeforeColon : bool
       SpaceAfterComma : bool
+      SpaceBeforeSemicolon : bool
       SpaceAfterSemicolon : bool
       IndentOnTryWith : bool
       /// Reordering and deduplicating open statements
@@ -36,6 +37,7 @@ type FormatConfig =
           SpaceBeforeArgument = true
           SpaceBeforeColon = false
           SpaceAfterComma = true
+          SpaceBeforeSemicolon = false
           SpaceAfterSemicolon = true
           IndentOnTryWith = false
           ReorderOpenDeclaration = false

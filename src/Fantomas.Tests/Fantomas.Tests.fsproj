@@ -61,6 +61,7 @@
     <Compile Include="GResearchRecordTests.fs" />
     <Compile Include="CheckTests.fs" />
     <Compile Include="ContextTests.fs" />
+    <Compile Include="SpaceBeforeSemicolonTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />

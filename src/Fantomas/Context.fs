@@ -499,8 +499,15 @@ let internal sepColonWithSpacesFixed = !- " : "
 let internal sepComma (ctx : Context) = 
     if ctx.Config.SpaceAfterComma then str ", " ctx else str "," ctx
 
-let internal sepSemi (ctx : Context) = 
-    if ctx.Config.SpaceAfterSemicolon then str "; " ctx else str ";" ctx
+let internal sepSemi (ctx : Context) =
+    let { Config = { SpaceBeforeSemicolon = before
+                     SpaceAfterSemicolon = after } } = ctx
+    match before, after with
+    | false, false -> str ";"
+    | true, false -> str " ;"
+    | false, true -> str "; "
+    | true, true -> str " ; "
+    <| ctx
 
 let internal sepSemiNln (ctx : Context) =
     // sepNln part is essential to indentation
