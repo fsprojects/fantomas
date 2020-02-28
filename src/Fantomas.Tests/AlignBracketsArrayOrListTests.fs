@@ -80,7 +80,7 @@ let vectorLength vec =
     | _ -> failwith "vectorLength called with an unsupported array size of %d." (vec.Length)
 """
 
-[<Test>]
+[<Test; Ignore("Awaiting feedback")>]
 let ``array comprehensions``() =
     formatSourceString false """
 let a1 = [| for i in 1 .. 10 -> i * i |]
