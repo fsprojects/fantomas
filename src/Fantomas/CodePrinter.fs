@@ -445,9 +445,6 @@ and preserveBreakNln astContext e ctx =
 and preserveBreakNlnOrAddSpace astContext e ctx =
     breakNlnOrAddSpace astContext (checkPreserveBreakForExpr e ctx) e ctx
 
-and preserveBreakNlnOrAddSpaceByFuture astContext e ctx =
-    breakNlnOrAddSpace astContext (futureNlnCheck (genExpr astContext e) ctx) e ctx
-
 and addSpaceAfterGenericConstructBeforeColon ctx =
     if not ctx.Config.SpaceBeforeColon then
         match Context.lastWriteEventOnLastLine ctx |> Option.bind Seq.tryLast with
@@ -748,11 +745,11 @@ and genVal astContext (Val(ats, px, ao, s, t, vi, _) as node) =
 and genRecordFieldName astContext (RecordFieldName(s, eo) as node) =
     let (rfn,_,_) = node
     let range = (fst rfn).Range
-    opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNlnOrAddSpaceByFuture astContext e)
+    opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e)
     |> genTrivia range
 
 and genAnonRecordFieldName astContext (AnonRecordFieldName(s, e)) =
-    !- s +> sepEq +> preserveBreakNlnOrAddSpaceByFuture astContext e
+    !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e
 
 and genTuple astContext es =
     atCurrentColumn (coli sepComma es (fun i e ->
@@ -844,11 +841,15 @@ and genExpr astContext synExpr =
                             (acc +> genExpr astContext e +> afterExpr) ctx
                  ) sepNone
                  |> atCurrentColumn
-            ifElse isArray
-                (sepOpenA +> atCurrentColumn (leaveLeftBrackBar alNode.Range +> expr) +> enterRightBracketBar alNode.Range +> sepCloseA)
-                (sepOpenL +> atCurrentColumn (leaveLeftBrack alNode.Range +> expr) +> enterRightBracket alNode.Range +> sepCloseL)
-            <| ctx
 
+            let sepOpen, sepClose, leaveLeft, leaveRight =
+                if isArray
+                then sepOpenA, sepCloseA, leaveLeftBrackBar, enterRightBracketBar
+                else sepOpenL, sepCloseL, leaveLeftBrack, enterRightBracket
+
+            (sepOpen +>
+             atCurrentColumn (leaveLeft alNode.Range +> expr) +> leaveRight alNode.Range +>
+             sepClose) ctx
 
     | Record(inheritOpt, xs, eo) ->
         ifGReseach
