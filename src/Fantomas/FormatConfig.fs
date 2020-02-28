@@ -26,7 +26,6 @@ type FormatConfig =
       KeepNewlineAfter : bool
       MaxIfThenElseShortWidth: Num
       AlignBrackets : bool
-      MaxSingleLineRecordWidth : Num
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -44,7 +43,6 @@ type FormatConfig =
           KeepNewlineAfter = false
           MaxIfThenElseShortWidth = 40
           AlignBrackets = false
-          MaxSingleLineRecordWidth = 40
           StrictMode = false }
 
     static member create(indentSpaceNum, pageWith, semicolonAtEndOfLine, 

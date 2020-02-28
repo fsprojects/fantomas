@@ -6,17 +6,17 @@ open Fantomas.SourceParser
 open FSharp.Compiler
 
 [<RequireQualifiedAccess>]
-module List = 
+module List =
     let inline atMostOne xs =
         match xs with
         | [] | [_] -> true
         | _ -> false
 
-/// Check whether an expression should be broken into multiple lines. 
+/// Check whether an expression should be broken into multiple lines.
 /// Notice that order of patterns matters due to non-disjoint property.
-let rec multiline synExpr = 
+let rec multiline synExpr =
     let isConstMultiline (Unresolved(_, _, s)) = String.normalizeNewLine s |> String.exists ((=)'\n')
-    
+
     match synExpr with
     | ConstExpr _
     | NullExpr
@@ -49,7 +49,7 @@ let rec multiline synExpr =
 
     | Quote(e1, e2, _)
     | JoinIn(e1, e2)
-    | DotSet(e1, _, e2) -> 
+    | DotSet(e1, _, e2) ->
         multiline e1 || multiline e2
     | LetOrUseBang(_, _, e1, ands, e2) ->
         multiline e1 || (ands |> List.exists (fun (_,_,_,_,e,_) -> multiline e)) || multiline e2
@@ -65,12 +65,12 @@ let rec multiline synExpr =
         multiline e
         || not (List.atMostOne (List.filter ((fun (x,_,_)->x) >> NewLineInfixOps.Contains) es))
         || List.exists ((fun (_,_,x)->x) >> multiline) es
-    
+
     | App(e1, es) ->
         let multilineEl = multiline e1
         let anyMultilineChildren = List.exists multiline es
         multilineEl  || anyMultilineChildren
-    
+
     | DotIndexedGet(e, _) ->
         multiline e
 
@@ -89,22 +89,17 @@ let rec multiline synExpr =
     | ArrayOrList(_, es, _) ->
         not (List.atMostOne es)
 
-// TODO: remove code, this check you be determined by the new setting MaxShortRecordWidth
-//    // A record is multiline if there is at least two fields present
-//    | Record(_, xs, _) ->
-//        let fields = xs |> List.choose ((|RecordFieldName|) >> snd)
-//        not (List.atMostOne fields) || List.exists multiline fields
-//
-//    | AnonRecord(_, xs, _) ->
-//        let fields = xs |> List.map ((|AnonRecordFieldName|) >> snd)
-//        not (List.atMostOne fields) || List.exists multiline fields
+    // A record is multiline if there is at least two fields present
+    | Record(_, xs, _) ->
+        let fields = xs |> List.choose ((|RecordFieldName|) >> snd)
+        not (List.atMostOne fields) || List.exists multiline fields
 
     // Default mode is single-line
     | _ -> false
 
 let checkNewLine e es =
     match (e, es) with
-    | _, [s, _, infixExpr] when NewLineInfixOps.Contains s -> 
+    | _, [s, _, infixExpr] when NewLineInfixOps.Contains s ->
         (*
             If s is a single infix (f.e. |> )
             Only multiline if the whole expression is multiline
@@ -129,7 +124,7 @@ let hasParenInPat = function
     | _ -> false
 
 let getByLookup range f x =
-    fun ctx -> 
+    fun ctx ->
         if ctx.Config.StrictMode then
             f x ctx
         else
@@ -190,9 +185,9 @@ let rec (|SigValL|_|) = function
 let checkPreserveBreakForExpr (e: Ast.SynExpr) (_ : Context) =
     multiline e
 
-/// Omit a break before an expression if the expression is small 
+/// Omit a break before an expression if the expression is small
 let checkBreakForExpr e =
-    multiline e 
+    multiline e
 
 let (|OneLinerExpr|_|) (e:Ast.SynExpr) =
     if checkBreakForExpr e then None else Some e
@@ -202,8 +197,8 @@ let (|OneLinerBinding|MultilineBinding|) b =
     | LetBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
     | DoBinding([], PreXmlDoc [||], OneLinerExpr _)
     | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
-    | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _) 
-    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _, _) -> 
+    | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _, _) ->
         OneLinerBinding b
 
     | _ -> MultilineBinding b
@@ -239,15 +234,15 @@ let rec (|SigMultilineModuleDeclL|_|) = function
     | SigMultilineModuleDecl x::ys -> Some([x], ys)
     | _ -> None
 
-/// Gather PropertyGetSet in one printing call. 
+/// Gather PropertyGetSet in one printing call.
 /// Assume that PropertySet comes right after PropertyGet.
 let (|PropertyWithGetSet|_|) = function
-    | PropertyBinding(_, _, _, _, MFProperty PropertyGet, PatLongIdent(_, s1, _, _), _) as b1::bs -> 
+    | PropertyBinding(_, _, _, _, MFProperty PropertyGet, PatLongIdent(_, s1, _, _), _) as b1::bs ->
         match bs with
-        | PropertyBinding(_, _, _, _, MFProperty PropertySet, PatLongIdent(_, s2, _, _), _) as b2::bs when s1 = s2 -> 
+        | PropertyBinding(_, _, _, _, MFProperty PropertySet, PatLongIdent(_, s2, _, _), _) as b2::bs when s1 = s2 ->
             Some((b1, b2), bs)
         | _ -> None
-    | _ -> None 
+    | _ -> None
 
 let (|PropertyWithGetSetMemberDefn|_|) = function
     | MDMember(x1)::MDMember(x2)::xs ->
@@ -263,7 +258,7 @@ let (|OneLinerMemberDefn|MultilineMemberDefn|) md =
     | MDValField _
     | MDImplicitCtor _
     | MDInterface(_, None, _)
-    | MDAbstractSlot([], PreXmlDoc [||], _, _, _, _, _, _) 
+    | MDAbstractSlot([], PreXmlDoc [||], _, _, _, _, _, _)
     | MDImplicitInherit(_, OneLinerExpr _, _)
     | MDMember(OneLinerBinding _)
     | MDAutoProperty([], PreXmlDoc [||], _, _, OneLinerExpr _, _, _, _, _)
@@ -272,7 +267,7 @@ let (|OneLinerMemberDefn|MultilineMemberDefn|) md =
 
     | _ -> MultilineMemberDefn md
 
-let rec (|OneLinerMemberDefnL|_|) xs = 
+let rec (|OneLinerMemberDefnL|_|) xs =
     match xs with
     /// This pattern prevents PropertyWithGetSet to be taken separately
     | PropertyWithGetSetMemberDefn _ -> Some([], xs)
@@ -280,7 +275,7 @@ let rec (|OneLinerMemberDefnL|_|) xs =
     | OneLinerMemberDefn x::ys -> Some([x], ys)
     | _ -> None
 
-/// Gather all multiline member definitions. 
+/// Gather all multiline member definitions.
 /// This should be used before one-liner pattern.
 let rec (|MultilineMemberDefnL|_|) = function
     | PropertyWithGetSetMemberDefn((x1, x2), MultilineMemberDefnL(xs, ys)) -> Some(Pair(x1, x2)::xs, ys)
@@ -296,7 +291,7 @@ let rec (|OneLinerBindingL|_|) xs =
     | OneLinerBinding x::ys -> Some([x], ys)
     | _ -> None
 
-/// Gather all multiline bindings. 
+/// Gather all multiline bindings.
 /// This should be used before one-liner pattern.
 let rec (|MultilineBindingL|_|) = function
     | PropertyWithGetSet((x1, x2), MultilineBindingL(xs, ys)) -> Some(Pair(x1, x2)::xs, ys)
