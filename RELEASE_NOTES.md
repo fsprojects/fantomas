@@ -1,3 +1,9 @@
+### 3.3.0-beta-002 - 02/2020
+* Support for `and!`. [#690](https://github.com/fsprojects/fantomas/issues/690)
+* Support for new slice syntax. [#691](https://github.com/fsprojects/fantomas/issues/691)
+* Support for check style flag [#642](https://github.com/fsprojects/fantomas/issues/642)
+* Bugfixes
+
 ### 3.3.0-beta-001 - 02/2020
 * Partial support for FCS 34
 * Performance improvements

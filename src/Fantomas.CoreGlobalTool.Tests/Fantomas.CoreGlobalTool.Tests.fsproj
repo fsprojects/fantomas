@@ -1,19 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <ToolCommandName>fantomas</ToolCommandName>
-    <PackAsTool>True</PackAsTool>
+    <IsPackable>false</IsPackable>
+    <GenerateProgramFile>false</GenerateProgramFile>
     <Version>3.3.0-beta-002</Version>
-    <AssemblyName>fantomas-tool</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
+    <ProjectReference Include="..\Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <Compile Include="Program.fs" />
+    <Compile Include="TestHelpers.fs" />
+    <Compile Include="CheckTests.fs" />
   </ItemGroup>
-  <Import Project="..\netfx.props" />
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

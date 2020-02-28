@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\netfx.props" />
   <PropertyGroup>
-    <Version>3.3.0-beta-001</Version>
+    <Version>3.3.0-beta-002</Version>
     <NoWarn>FS0988</NoWarn>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
@@ -13,7 +13,6 @@
     <Compile Include="TokenParserTests.fs" />
     <Compile Include="TokenParserBoolExprTests.fs" />
     <Compile Include="TriviaTests.fs" />
-    <Compile Include="FakeHelpersTests.fs" />
     <Compile Include="StringTests.fs" />
     <Compile Include="CommentTests.fs" />
     <Compile Include="OperatorTests.fs" />
@@ -60,6 +59,7 @@
     <Compile Include="FormatConfigJsonConfigurationFileTests.fs" />
     <Compile Include="FormatConfigEditorConfigurationFileTests.fs" />
     <Compile Include="GResearchRecordTests.fs" />
+    <Compile Include="CheckTests.fs" />
     <Compile Include="ContextTests.fs" />
   </ItemGroup>
   <ItemGroup>

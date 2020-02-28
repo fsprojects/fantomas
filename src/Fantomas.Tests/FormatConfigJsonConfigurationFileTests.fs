@@ -92,6 +92,34 @@ let ``pointing to config in a subfolder should return parent config file as well
         delete childFolder
 
 [<Test>]
+let ``pointing to subfolder containing dot and trailing slash returns parent config file`` () =
+    let parentFile = mkConfig None FormatConfig.Default
+    let subDir = uniqueString() + ".dir"
+    mkConfigFromContent "Test.fs" (Some(subDir)) "" |> ignore
+    let dirSep = string Path.DirectorySeparatorChar
+    let childFolder = Path.GetDirectoryName(parentFile) + dirSep + subDir + dirSep
+    try
+        let paths = ConfigFile.findConfigurationFiles childFolder
+        paths == [parentFile]
+    finally
+        delete parentFile
+        delete childFolder
+
+[<Test>]
+let ``pointing to subfolder conntaining dot without trailing slash returns parent config file`` () =
+    let parentFile = mkConfig None FormatConfig.Default
+    let subDir = uniqueString() + ".dir"
+    mkConfigFromContent "Test.fs" (Some(subDir)) "" |> ignore
+    let dirSep = string Path.DirectorySeparatorChar
+    let childFolder = Path.GetDirectoryName(parentFile) + dirSep + subDir
+    try
+        let paths = ConfigFile.findConfigurationFiles childFolder
+        paths == [parentFile]
+    finally
+        delete parentFile
+        delete childFolder
+
+[<Test>]
 let ``simple config file parses valid option`` () =
     let path = mkConfigFromJson None "{\"KeepNewlineAfter\":true}"
     let config, warnings = applyOptionsToConfig FormatConfig.Default path
