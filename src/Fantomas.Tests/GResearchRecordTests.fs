@@ -272,16 +272,18 @@ let ``anonymous records in list`` () =
     |> prepend newline
     |> should equal """
 let configurations =
-    [ {|
-          Build = true
-          Configuration = "RELEASE"
-          Defines = [ "FOO" ]
-      |}
-      {|
-          Build = true
-          Configuration = "DEBUG"
-          Defines = [ "FOO" ; "BAR" ]
-      |} ]
+    [
+        {|
+            Build = true
+            Configuration = "RELEASE"
+            Defines = [ "FOO" ]
+        |}
+        {|
+            Build = true
+            Configuration = "DEBUG"
+            Defines = [ "FOO" ; "BAR" ]
+        |}
+    ]
 """
 
 [<Test>]
@@ -295,16 +297,18 @@ let ``records in array`` () =
     |> prepend newline
     |> should equal """
 let configurations =
-    [| {
-           Build = true
-           Configuration = "RELEASE"
-           Defines = [ "FOO" ]
-       }
-       {
-           Build = true
-           Configuration = "DEBUG"
-           Defines = [ "FOO" ; "BAR" ]
-       } |]
+    [|
+        {
+            Build = true
+            Configuration = "RELEASE"
+            Defines = [ "FOO" ]
+        }
+        {
+            Build = true
+            Configuration = "DEBUG"
+            Defines = [ "FOO" ; "BAR" ]
+        }
+    |]
 """
 
 [<Test>]
@@ -332,12 +336,14 @@ let a =
     |> prepend newline
     |> should equal """
 let a =
-    [ { new System.Object() with
-          member x.ToString() = "F#"
-      }
-      { new System.Object() with
-          member x.ToString() = "C#"
-      } ]
+    [
+        { new System.Object() with
+            member x.ToString() = "F#"
+        }
+        { new System.Object() with
+            member x.ToString() = "C#"
+        }
+    ]
 """
 
 [<Test>]

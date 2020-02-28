@@ -827,14 +827,14 @@ and genExpr astContext synExpr =
             |> Option.defaultValue false
 
         fun ctx ->
-            let isArrayOrListMultiline = isMultiline ctx
+            let isArrayOrListMultiline = isMultiline ctx || multiline alNode
             let expr =
                  xs
                  |> List.fold (fun acc e ->
                      fun (ctx: Context) ->
                         let isLastItem = isLastItem e
                         if isArrayOrListMultiline then
-                            (acc +> genExpr astContext e +> ifElse isLastItem sepNone sepNln) ctx
+                            (acc +> genExpr astContext e +> ifElse isLastItem sepNone sepSemiNln) ctx
                         else
                             let hasLineComment = hasLineCommentAfter e.Range ctx
                             let afterExpr = ifElse isLastItem sepNone (ifElse hasLineComment sepNln sep)
@@ -842,13 +842,25 @@ and genExpr astContext synExpr =
                  ) sepNone
                  |> atCurrentColumn
 
+            let alignBracket = ctx.Config.AlignBrackets
+            let ifAlignBracket f g = ifElse (alignBracket && isArrayOrListMultiline) f g
+
             let sepOpen, sepClose, leaveLeft, leaveRight =
                 if isArray
-                then sepOpenA, sepCloseA, leaveLeftBrackBar, enterRightBracketBar
-                else sepOpenL, sepCloseL, leaveLeftBrack, enterRightBracket
+                then
+                    sepOpenA,
+                    ifAlignBracket sepCloseAFixed sepCloseA,
+                    leaveLeftBrackBar,
+                    enterRightBracketBar
+                else
+                    sepOpenL,
+                    ifAlignBracket sepCloseLFixed sepCloseL,
+                    leaveLeftBrack,
+                    enterRightBracket
 
-            (sepOpen +>
+            (sepOpen +> ifAlignBracket (indent +> sepNln) sepNone +>
              atCurrentColumn (leaveLeft alNode.Range +> expr) +> leaveRight alNode.Range +>
+             ifAlignBracket (unindent +> sepNln) sepNone +>
              sepClose) ctx
 
     | Record(inheritOpt, xs, eo) ->
