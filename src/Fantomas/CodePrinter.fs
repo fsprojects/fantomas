@@ -858,8 +858,18 @@ and genExpr astContext synExpr =
                     leaveLeftBrack,
                     enterRightBracket
 
-            (sepOpen +> ifAlignBracket (indent +> sepNln) sepNone +>
-             atCurrentColumn (leaveLeft alNode.Range +> expr) +> leaveRight alNode.Range +>
+            let sepNlnUnlessLineCommentAfterBracket =
+                let tokenName = if isArray then "LBRACK_BAR" else "LBRACK"
+                let hasComment = hasLineCommentAfterToken tokenName alNode.Range ctx
+                match hasComment with
+                | Some _ -> sepNone
+                | None -> sepNln
+
+            (sepOpen +>
+             ifAlignBracket indent sepNone +>
+             leaveLeft alNode.Range +> // this could potentially add a line comment after [ or [|
+             ifAlignBracket sepNlnUnlessLineCommentAfterBracket sepNone +>
+             atCurrentColumn expr +> leaveRight alNode.Range +>
              ifAlignBracket (unindent +> sepNln) sepNone +>
              sepClose) ctx
 

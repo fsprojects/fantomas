@@ -60,3 +60,72 @@ let ``short list remains on one line`` () =
     |> should equal """
 let defines = [ "FOO" ; "BAR" ]
 """
+
+[<Test>]
+let ``array patterns``() =
+    formatSourceString false """
+let vectorLength vec =
+    match vec with
+    | [| var1 |] -> var1
+    | [| var1; var2 |] -> sqrt (var1*var1 + var2*var2)
+    | [| var1; var2; var3 |] -> sqrt (var1*var1 + var2*var2 + var3*var3)
+    | _ -> failwith "vectorLength called with an unsupported array size of %d." (vec.Length)""" config
+    |> prepend newline
+    |> should equal """
+let vectorLength vec =
+    match vec with
+    | [| var1 |] -> var1
+    | [| var1 ; var2 |] -> sqrt (var1 * var1 + var2 * var2)
+    | [| var1 ; var2 ; var3 |] -> sqrt (var1 * var1 + var2 * var2 + var3 * var3)
+    | _ -> failwith "vectorLength called with an unsupported array size of %d." (vec.Length)
+"""
+
+[<Test>]
+let ``array comprehensions``() =
+    formatSourceString false """
+let a1 = [| for i in 1 .. 10 -> i * i |]
+let a2 = [| 0 .. 99 |]
+let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
+    |> prepend newline
+    |> should equal """
+let a1 =
+    [| for i in 1 .. 10 -> i * i |]
+
+let a2 = [| 0 .. 99 |]
+
+let a3 =
+    [|
+        for n in 1 .. 100 do
+            if isPrime n then yield n
+    |]
+"""
+
+[<Test>]
+let ``line comment after opening bracket`` () =
+    formatSourceString false """let a = [ // some line comment
+    (1,2,3); (4,5,6); (7,8,9) ]
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    [ // some line comment
+        (1, 2, 3)
+        (4, 5, 6)
+        (7, 8, 9)
+    ]
+"""
+
+[<Test>]
+let ``line comment after opening bracket array`` () =
+    formatSourceString false """let a = [| // some line comment
+    (1,2,3); (4,5,6); (7,8,9) |]
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    [| // some line comment
+        (1, 2, 3)
+        (4, 5, 6)
+        (7, 8, 9)
+    |]
+"""

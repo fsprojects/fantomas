@@ -675,21 +675,32 @@ let internal leaveEqualsToken (range: range) (ctx: Context) =
             id
     <| ctx
 
-let internal leaveLeftToken (tokenName: string) (range: range) (ctx: Context) =
+let internal hasLineCommentAfterToken (tokenName: string) (range: range) (ctx: Context) =
     ctx.Trivia
-    |> List.tryFind(fun tn ->
+    |> List.choose(fun tn ->
         // Token is a left brace { at the beginning of the range.
         match tn.Type with
         | Token(tok) ->
-            tok.TokenInfo.TokenName = tokenName && tn.Range.StartLine = range.StartLine && tn.Range.StartColumn = range.StartColumn
-        | _ -> false
+            if tok.TokenInfo.TokenName = tokenName
+               && tn.Range.StartLine = range.StartLine
+               && tn.Range.StartColumn = range.StartColumn then
+                match tn with
+                | { ContentAfter = [TriviaContent.Comment(LineCommentAfterSourceCode(lineComment))] } ->
+                    Some (lineComment, tn)
+                | _ -> None
+            else
+                None
+        | _ -> None
     )
-    |> fun tn ->
-        match tn with
-        | Some({ ContentAfter = [TriviaContent.Comment(LineCommentAfterSourceCode(lineComment))] } as tn) ->
-            !- lineComment +> sepNln +> removeNodeFromContext tn
-        | _ ->
-            id
+    |> List.tryHead
+
+let internal leaveLeftToken (tokenName: string) (range: range) (ctx: Context) =
+    let lineComment = hasLineCommentAfterToken tokenName range ctx
+    match lineComment with
+    | Some(lc, tn) ->
+        !- lc +> sepNln +> removeNodeFromContext tn
+    | _ ->
+        id
     <| ctx
 
 let internal leaveLeftBrace = leaveLeftToken "LBRACE"
