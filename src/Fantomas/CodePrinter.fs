@@ -1887,7 +1887,7 @@ and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs) as node)
     +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
     |> genTrivia node.Range
 
-and genEnumCase astContext (EnumCase(ats, px, _, (_,r)) as node) =
+and genEnumCase astContext (EnumCase(ats, px, _, (_,_)) as node) =
     let genCase (ctx: Context) =
         let expr =
             match node with
