@@ -852,7 +852,7 @@ and genExpr astContext synExpr =
 
     | Record(inheritOpt, xs, eo) ->
         ifGReseach
-            (genRecordInstanceGResearch inheritOpt xs eo astContext)
+            (genRecordInstanceGResearch inheritOpt xs eo synExpr astContext)
             (genRecordInstance inheritOpt xs eo synExpr astContext)
 
 
@@ -1473,6 +1473,7 @@ and genRecordInstanceGResearch
     (inheritOpt:(SynType * SynExpr) option)
     (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
     (eo: SynExpr option)
+    synExpr
     astContext (ctx: Context) =
 
     let shortExpr =
@@ -1506,37 +1507,8 @@ and genRecordInstanceGResearch
             (sepOpenSFixed +> indent +> sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed)
         |> atCurrentColumnIndent
 
-    // TODO: extract and move to Context module
-    // Also try and cache results
-    let isExpressionLongerThen f maxWidth ctx =
-        // create empty context
-        let dummyCtx =  f { ctx with
-                              WriterModel = WriterModel.init
-                              WriterEvents = Queue.empty }
-        let writerEvents =
-            dummyCtx.WriterEvents
-            |> Seq.takeWhile (function | WriteLine _ -> false | _ -> true)
-            |> Seq.toArray
-
-        let totalColumnSize events =
-            Seq.fold (fun acc ev ->
-                match ev with
-                | Write w -> String.length w
-                | _ -> 0
-                |> (+) acc) 0 events
-            |> fun total -> total > maxWidth
-
-        let isLonger =
-            if dummyCtx.WriterEvents.Length > writerEvents.Length
-            then true // multiple lines
-            else totalColumnSize writerEvents // checks if single line is longer then maxWidth
-
-        isLonger
-
-    let isLong (ctx: Context) =
-        isExpressionLongerThen shortExpr ctx.Config.MaxSingleLineRecordWidth ctx
-
-    (ifElseCtx isLong multilineExpr shortExpr) ctx
+    // TODO: replace check with outcome of https://github.com/fsprojects/fantomas/issues/697
+    (ifElse (multiline synExpr) multilineExpr shortExpr) ctx
 
 and genAnonRecord isStruct fields copyInfo astContext (ctx:Context) =
     let recordExpr =

@@ -6,7 +6,8 @@ open Fantomas.Tests.TestHelper
 
 let config = ({ config with
                     AlignBrackets = true
-                    SpaceBeforeColon = true })
+                    SpaceBeforeColon = true
+                    SpaceBeforeSemicolon = true })
 
 [<Test>]
 let ``single member record stays on oneline`` () =
@@ -18,12 +19,16 @@ let a = { Foo = "bar" }
 """
 
 [<Test>]
-let ``short record with multiple members record stays on oneline`` () =
+let ``short record with multiple members record stays on multiple lines`` () =
     formatSourceString false """let a = { Foo = "bar"; P = 2 }
 """  config
     |> prepend newline
     |> should equal """
-let a = { Foo = "bar"; P = 2 }
+let a =
+    {
+        Foo = "bar"
+        P = 2
+    }
 """
 
 [<Test>]
@@ -164,7 +169,6 @@ let a =
 
 // This is meant to be a short type alias, we format this always as one-liner.
 // TDB with G-Research
-// TODO: new setting space before semi colon
 [<Test>]
 let ``anonymous type`` () =
     formatSourceString false """type a = {| foo : string; bar : string |}
@@ -276,7 +280,7 @@ let configurations =
       {|
           Build = true
           Configuration = "DEBUG"
-          Defines = [ "FOO"; "BAR" ]
+          Defines = [ "FOO" ; "BAR" ]
       |} ]
 """
 
@@ -299,7 +303,7 @@ let configurations =
        {
            Build = true
            Configuration = "DEBUG"
-           Defines = [ "FOO"; "BAR" ]
+           Defines = [ "FOO" ; "BAR" ]
        } |]
 """
 
@@ -380,7 +384,7 @@ let ``SynPat.Record in pattern match with bracketOnSeparateLine`` () =
     |> prepend newline
     |> should equal """
 match foo with
-| { Bar = bar; Level = 12; Vibes = plenty;
+| { Bar = bar ; Level = 12 ; Vibes = plenty ;
     Lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " } ->
     "7"
 | _ -> "8"
