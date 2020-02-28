@@ -1,4 +1,4 @@
-module Fantomas.Tests.GResearchRecordTests
+module Fantomas.Tests.AlignBracketsRecordTests
 
 open NUnit.Framework
 open FsUnit
@@ -167,8 +167,6 @@ let a =
     |}
 """
 
-// This is meant to be a short type alias, we format this always as one-liner.
-// TDB with G-Research
 [<Test>]
 let ``anonymous type`` () =
     formatSourceString false """type a = {| foo : string; bar : string |}
@@ -379,8 +377,6 @@ type Element =
     }
 """
 
-// We don't add any newlines when the record is used in a pattern match
-// with G-Research
 [<Test>]
 let ``SynPat.Record in pattern match with bracketOnSeparateLine`` () =
     formatSourceString false """match foo with

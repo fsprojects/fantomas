@@ -6,6 +6,8 @@ open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 open FSharp.Compiler.SourceCodeServices
 open Fantomas
+open Fantomas
+open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
@@ -803,90 +805,24 @@ and genExpr astContext synExpr =
     | ArrayOrList(isArray, [], _) ->
         ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
     | ArrayOrList(isArray, xs, isSimple) as alNode ->
-        let isMultiline (ctx:Context) =
-            xs
-            |> List.fold (fun (isMultiline, f) e ->
-                if isMultiline || futureNlnCheck (f +> genExpr astContext e) ctx then
-                    true, sepNone
-                else
-                    false, f +> genExpr astContext e
-            ) (false,sepNone)
-            |> fst
-
-        let sep = ifElse isSimple sepSemi sepSemiNln
-
-        let hasLineCommentAfter range (ctx:Context) =
-            ctx.Trivia
-            |> List.tryFind (fun t -> t.Range = range)
-            |> Option.map (fun t -> List.exists (fun tc -> match tc with | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false) t.ContentAfter)
-            |> Option.defaultValue false
-
-        let isLastItem (x:SynExpr) =
-            List.tryLast xs
-            |> Option.map (fun i -> i.Range = x.Range)
-            |> Option.defaultValue false
-
-        fun ctx ->
-            let isArrayOrListMultiline = isMultiline ctx || multiline alNode
-            let expr =
-                 xs
-                 |> List.fold (fun acc e ->
-                     fun (ctx: Context) ->
-                        let isLastItem = isLastItem e
-                        if isArrayOrListMultiline then
-                            (acc +> genExpr astContext e +> ifElse isLastItem sepNone sepSemiNln) ctx
-                        else
-                            let hasLineComment = hasLineCommentAfter e.Range ctx
-                            let afterExpr = ifElse isLastItem sepNone (ifElse hasLineComment sepNln sep)
-                            (acc +> genExpr astContext e +> afterExpr) ctx
-                 ) sepNone
-                 |> atCurrentColumn
-
-            let alignBracket = ctx.Config.AlignBrackets
-            let ifAlignBracket f g = ifElse (alignBracket && isArrayOrListMultiline) f g
-
-            let sepOpen, sepClose, leaveLeft, leaveRight =
-                if isArray
-                then
-                    sepOpenA,
-                    ifAlignBracket sepCloseAFixed sepCloseA,
-                    leaveLeftBrackBar,
-                    enterRightBracketBar
-                else
-                    sepOpenL,
-                    ifAlignBracket sepCloseLFixed sepCloseL,
-                    leaveLeftBrack,
-                    enterRightBracket
-
-            let sepNlnUnlessLineCommentAfterBracket =
-                let tokenName = if isArray then "LBRACK_BAR" else "LBRACK"
-                let hasComment = hasLineCommentAfterToken tokenName alNode.Range ctx
-                match hasComment with
-                | Some _ -> sepNone
-                | None -> sepNln
-
-            (sepOpen +>
-             ifAlignBracket indent sepNone +>
-             leaveLeft alNode.Range +> // this could potentially add a line comment after [ or [|
-             ifAlignBracket sepNlnUnlessLineCommentAfterBracket sepNone +>
-             atCurrentColumn expr +> leaveRight alNode.Range +>
-             ifAlignBracket (unindent +> sepNln) sepNone +>
-             sepClose) ctx
+        ifAlignBrackets
+            (genArrayOrListAlignBrackets isArray xs isSimple alNode astContext)
+            (genArrayOrList isArray xs isSimple alNode astContext)
 
     | Record(inheritOpt, xs, eo) ->
-        ifGReseach
-            (genRecordInstanceGResearch inheritOpt xs eo synExpr astContext)
+        ifAlignBrackets
+            (genRecordInstanceAlignBrackets inheritOpt xs eo synExpr astContext)
             (genRecordInstance inheritOpt xs eo synExpr astContext)
 
 
     | AnonRecord(isStruct, fields, copyInfo) ->
-        ifGReseach
-            (genAnonRecordGResearch isStruct fields copyInfo astContext)
+        ifAlignBrackets
+            (genAnonRecordAlignBrackets isStruct fields copyInfo astContext)
             (genAnonRecord isStruct fields copyInfo astContext)
 
     | ObjExpr(t, eio, bd, ims, range) ->
-        ifGReseach
-            (genObjExprGResearch t eio bd ims range astContext)
+        ifAlignBrackets
+            (genObjExprAlignBrackets t eio bd ims range astContext)
             (genObjExpr t eio bd ims range astContext)
 
     | While(e1, e2) ->
@@ -1013,7 +949,7 @@ and genExpr astContext synExpr =
             let hasLineCommentAfterExpression (currentLine) =
                 let findTrivia tn = tn.Range.EndLine = currentLine
                 let predicate = function | Comment _ -> true | _ -> false
-                TriviaHelpers.``has content after after that matches`` findTrivia predicate ctx.Trivia
+                TriviaHelpers.``has content after that matches`` findTrivia predicate ctx.Trivia
 
             let lineCommentsAfter =
                 [ yield (e.Range.EndLine, hasLineCommentAfterExpression e.Range.EndLine)
@@ -1195,7 +1131,7 @@ and genExpr astContext synExpr =
 
             let commentAfterKeyword keyword rangePredicate (ctx: Context) =
                 ctx.Trivia
-                |> TriviaHelpers.``has content after after that matches``
+                |> TriviaHelpers.``has content after that matches``
                     (fun t ->
                         let ttt = TriviaHelpers.``is token of type`` keyword t
                         let rrr = rangePredicate t.Range
@@ -1203,7 +1139,7 @@ and genExpr astContext synExpr =
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
 
             let hasCommentAfterBoolExpr =
-                TriviaHelpers.``has content after after that matches``
+                TriviaHelpers.``has content after that matches``
                     (fun tn -> tn.Range = e1.Range)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
                     ctx.Trivia
@@ -1212,7 +1148,7 @@ and genExpr astContext synExpr =
                 commentAfterKeyword "IF" (RangeHelpers.``have same range start`` synExpr.Range) ctx
 
             let ``has line comment after source code for range`` range =
-                TriviaHelpers.``has content after after that matches``
+                TriviaHelpers.``has content after that matches``
                     (fun tn -> tn.Range = range)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
                     ctx.Trivia
@@ -1247,7 +1183,7 @@ and genExpr astContext synExpr =
 
             let genElifOneliner ((elf1: SynExpr), (elf2: SynExpr), fullRange) =
                 let hasCommentAfterBoolExpr =
-                    TriviaHelpers.``has content after after that matches``
+                    TriviaHelpers.``has content after that matches``
                         (fun tn -> tn.Range = elf1.Range)
                         (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
                         ctx.Trivia
@@ -1309,7 +1245,7 @@ and genExpr astContext synExpr =
                     |> Option.defaultValue indent
 
                 let hasCommentAfterBoolExpr =
-                    TriviaHelpers.``has content after after that matches``
+                    TriviaHelpers.``has content after that matches``
                         (fun tn -> tn.Range = elf1.Range)
                         (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
                         ctx.Trivia
@@ -1492,7 +1428,7 @@ and genRecordInstance
 
     expr ctx
 
-and genRecordInstanceGResearch
+and genRecordInstanceAlignBrackets
     (inheritOpt:(SynType * SynExpr) option)
     (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
     (eo: SynExpr option)
@@ -1548,7 +1484,7 @@ and genAnonRecord isStruct fields copyInfo astContext (ctx:Context) =
 
     expr ctx
 
-and genAnonRecordGResearch isStruct fields copyInfo astContext (ctx:Context) =
+and genAnonRecordAlignBrackets isStruct fields copyInfo astContext (ctx:Context) =
     let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
 
     let copyExpr fieldsExpr e =
@@ -1589,7 +1525,7 @@ and genObjExpr t eio bd ims range (astContext: ASTContext) =
         +> indent +> sepNln +> genMemberBindingList { astContext with InterfaceRange = Some range } bd +> unindent
         +> colPre sepNln sepNln ims (genInterfaceImpl astContext)) +> sepCloseS
 
-and genObjExprGResearch t eio bd ims range (astContext: ASTContext) =
+and genObjExprAlignBrackets t eio bd ims range (astContext: ASTContext) =
     // Check the role of the second part of eio
     let param = opt sepNone (Option.map fst eio) (genExpr astContext)
     let genObjExpr =
@@ -1599,6 +1535,185 @@ and genObjExprGResearch t eio bd ims range (astContext: ASTContext) =
 
     atCurrentColumnIndent (
         sepOpenS +> genObjExpr +> sepNln +> sepCloseSFixed)
+
+and genArrayOrList (isArray: bool) xs isSimple alNode astContext =
+    let isMultiline (ctx:Context) =
+        xs
+        |> List.fold (fun (isMultiline, f) e ->
+            if isMultiline || futureNlnCheck (f +> genExpr astContext e) ctx then
+                true, sepNone
+            else
+                false, f +> genExpr astContext e
+        ) (false,sepNone)
+        |> fst
+
+    let sep = ifElse isSimple sepSemi sepSemiNln
+
+    let hasLineCommentAfter range (ctx:Context) =
+        ctx.Trivia
+        |> List.tryFind (fun t -> t.Range = range)
+        |> Option.map (fun t -> List.exists (fun tc -> match tc with | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false) t.ContentAfter)
+        |> Option.defaultValue false
+
+    let isLastItem (x:SynExpr) =
+        List.tryLast xs
+        |> Option.map (fun i -> i.Range = x.Range)
+        |> Option.defaultValue false
+
+    fun ctx ->
+        let isArrayOrListMultiline = isMultiline ctx
+        let expr =
+             xs
+             |> List.fold (fun acc e ->
+                 fun (ctx: Context) ->
+                    let isLastItem = isLastItem e
+                    if isArrayOrListMultiline then
+                        (acc +> genExpr astContext e +> ifElse isLastItem sepNone sepNln) ctx
+                    else
+                        let hasLineComment = hasLineCommentAfter e.Range ctx
+                        let afterExpr = ifElse isLastItem sepNone (ifElse hasLineComment sepNln sep)
+                        (acc +> genExpr astContext e +> afterExpr) ctx
+             ) sepNone
+             |> atCurrentColumn
+        ifElse isArray
+            (sepOpenA +> atCurrentColumn (leaveLeftBrackBar alNode.Range +> expr) +> enterRightBracketBar alNode.Range +> sepCloseA)
+            (sepOpenL +> atCurrentColumn (leaveLeftBrack alNode.Range +> expr) +> enterRightBracket alNode.Range +> sepCloseL)
+        <| ctx
+
+and genArrayOrListAlignBrackets (isArray:bool) xs isSimple alNode astContext =
+    let isArrayMultiline (ctx:Context) =
+        xs
+        |> List.fold (fun (isMultiline, f) e ->
+            if isMultiline || futureNlnCheck (f +> genExpr astContext e) ctx then
+                true, sepNone
+            else
+                false, f +> genExpr astContext e
+        ) (false,sepNone)
+        |> fst
+
+    let sep = ifElse isSimple sepSemi sepSemiNln
+
+    let hasLineCommentAfter range (ctx:Context) =
+        ctx.Trivia
+        |> List.tryFind (fun t -> t.Range = range)
+        |> Option.map (fun t -> List.exists (fun tc -> match tc with | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false) t.ContentAfter)
+        |> Option.defaultValue false
+
+    let isLastItem (x:SynExpr) =
+        List.tryLast xs
+        |> Option.map (fun i -> i.Range = x.Range)
+        |> Option.defaultValue false
+
+    fun ctx ->
+        let hasCommentBeforeOpen =
+            TriviaHelpers.``has content after that matches``
+                (fun tn ->
+                    match tn.Type with
+                    | Token({ TokenInfo = ti })
+                        when (RangeHelpers.rangeStartEq tn.Range alNode.Range
+                              && (ti.TokenName = "LBRACK" || ti.TokenName = "LBRACK_BAR")) -> true
+                    | _ -> false)
+                (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
+                ctx.Trivia
+
+        let hasCommentBeforeClose =
+            TriviaHelpers.``has content before that matches``
+                (fun tn ->
+                    match tn.Type with
+                    | Token({ TokenInfo = ti })
+                        when (RangeHelpers.rangeEndEq tn.Range alNode.Range
+                              && (ti.TokenName = "RBRACK" || ti.TokenName = "BAR_RBRACK")) -> true
+                    | _ -> false)
+                (function | Comment(LineCommentOnSingleLine(_)) -> true | _ -> false)
+                ctx.Trivia
+
+        let isArrayOrListMultiline =
+            isArrayMultiline ctx ||
+            multiline alNode ||
+            hasCommentBeforeOpen ||
+            hasCommentBeforeClose
+
+        let innerExpr =
+             xs
+             |> List.fold (fun acc e ->
+                 fun (ctx: Context) ->
+                    let isLastItem = isLastItem e
+                    if isArrayOrListMultiline then
+                        (acc +> genExpr astContext e +> ifElse isLastItem sepNone sepSemiNln) ctx
+                    else
+                        let hasLineComment = hasLineCommentAfter e.Range ctx
+                        let afterExpr = ifElse isLastItem sepNone (ifElse hasLineComment sepNln sep)
+                        (acc +> genExpr astContext e +> afterExpr) ctx
+             ) sepNone
+             |> atCurrentColumn
+
+        let expr =
+            match isArray, isArrayOrListMultiline with
+            | true, false ->
+                // short array
+                sepOpenA +> innerExpr +> sepCloseA
+            | true, true ->
+                // long array
+                sepOpenAFixed +>
+                indent +>
+                leaveNodeTokenByName alNode.Range "LBRACK_BAR" +>
+                whenLastEventIsNotWriteLine sepNln +>
+                innerExpr +>
+                unindent +>
+                enterNodeTokenByName alNode.Range "BAR_RBRACK" +>
+                whenLastEventIsNotWriteLine sepNln +>
+                sepCloseAFixed
+            | false, false ->
+                // short list
+                sepOpenL +> innerExpr +> sepCloseL
+            | false, true ->
+                // long list
+                sepOpenLFixed +>
+                indent +>
+                leaveNodeTokenByName alNode.Range "LBRACK" +>
+                whenLastEventIsNotWriteLine sepNln +>
+                innerExpr +>
+                unindent +>
+                enterNodeTokenByName alNode.Range "RBRACK" +>
+                whenLastEventIsNotWriteLine sepNln +>
+                sepCloseLFixed
+
+        expr ctx
+
+//        let ifMultiline f g = ifElse isArrayOrListMultiline f g
+//        let onlyIfMultiline f = ifMultiline f sepNone
+//
+//        let sepOpen, sepClose, leaveLeft, closeTokenName =
+//            if isArray
+//            then
+//                sepOpenA,
+//                ifMultiline sepCloseAFixed sepCloseA,
+//                leaveLeftBrackBar,
+//                "BAR_RBRACK"
+//            else
+//                sepOpenL,
+//                ifMultiline sepCloseLFixed sepCloseL,
+//                leaveLeftBrack,
+//                "RBRACK"
+//
+//        // is trivia before ] or |] going to add events
+//        let hasTriviaBeforeCloseBracket =
+//            let closeBracketCtx = enterNodeTokenByName alNode.Range closeTokenName (ctx.WithDummy(Queue.empty))
+//            not (Seq.isEmpty closeBracketCtx.WriterEvents)
+//
+//        (sepOpen +>
+//         onlyIfMultiline indent +>
+//         atCurrentColumn (
+//                             leaveLeft alNode.Range +> // this could potentially add a line comment after [ or [|
+//                             onlyIfMultiline (whenLastEventIsNotWriteLine sepNln) +>
+//                             expr
+//                         ) +>
+//        // enterNodeTokenByName can potentially add a nln (f.ex when it contains a line comment)
+//        // if this is the case, unindent should already be inserted
+//        ifElse hasTriviaBeforeCloseBracket unindent sepNone +>
+//        enterNodeTokenByName alNode.Range closeTokenName +>
+//        whenLastEventIsNotWriteLine (unindent +> sepNln) +> // in case nothing before ] or |] was printed
+//        sepClose) ctx
 
 and genLetOrUseList astContext expr =
     match expr with
@@ -1664,7 +1779,7 @@ and genInfixApps astContext (hasNewLine:bool) synExprs (ctx:Context) =
             +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
         | (s, opE, e)::es ->
             let hasLineCommentAfter =
-                TriviaHelpers.``has content after after that matches``
+                TriviaHelpers.``has content after that matches``
                     (fun ({ Range = r }) -> r.EndLine = e.Range.EndLine && r.EndColumn = e.Range.EndColumn)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
                     ctx.Trivia
@@ -1768,8 +1883,8 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         +> unindent
 
     | Simple(TDSRRecord(ao', fs)) ->
-        ifGReseach
-            (genSimpleRecordTypeDefnGResearch typeName tdr ms ao' fs astContext)
+        ifAlignBrackets
+            (genSimpleRecordTypeDefnAlignBrackets typeName tdr ms ao' fs astContext)
             (genSimpleRecordTypeDefn typeName tdr ms ao' fs astContext)
 
     | Simple TDSRNone ->
@@ -1866,7 +1981,7 @@ and genSimpleRecordTypeDefn typeName tdr ms ao' fs astContext =
             +> genMemberDefnList { astContext with InterfaceRange = None } ms
             +> unindent)
 
-and genSimpleRecordTypeDefnGResearch typeName tdr ms ao' fs astContext =
+and genSimpleRecordTypeDefnAlignBrackets typeName tdr ms ao' fs astContext =
     typeName +> sepEq
         +> indent +> sepNln +> opt sepSpace ao' genAccess
         +> genTrivia tdr.Range
@@ -1928,8 +2043,8 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
         +> unindent
 
     | SigSimple(TDSRRecord(ao', fs)) ->
-        ifGReseach
-            (genSigSimpleRecordGResearch typeName tdr ms ao' fs astContext)
+        ifAlignBrackets
+            (genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext)
             (genSigSimpleRecord typeName tdr ms ao' fs astContext)
 
     | SigSimple TDSRNone ->
@@ -1981,7 +2096,7 @@ and genSigSimpleRecord typeName tdr ms ao' fs astContext =
     +> colPre sepNln sepNln ms (genMemberSig astContext)
     +> unindent
 
-and genSigSimpleRecordGResearch typeName tdr ms ao' fs astContext =
+and genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext =
     typeName +> sepEq
     +> indent +> sepNln +> opt sepNln ao' genAccess
     +> sepOpenSFixed +> indent +> sepNln
@@ -2222,7 +2337,7 @@ and genClause astContext hasBar (Clause(p, e, eo) as node) =
             | ({ Type = Token({ TokenInfo = {TokenName = "RARROW" } }); Range = r  }) -> r.StartLine = p.Range.EndLine // search for `->` token after p
             | _ -> false
         let newlineAfter = function | NewlineAfter -> true | _ -> false
-        if TriviaHelpers.``has content after after that matches`` find newlineAfter ctx.Trivia then
+        if TriviaHelpers.``has content after that matches`` find newlineAfter ctx.Trivia then
             breakNln astContext true e ctx
         else
             preserveBreakNln astContext e ctx

@@ -13,9 +13,22 @@ module internal TriviaHelpers =
         findByRange trivia range
         |> Option.bind (fun t -> t.ContentBefore |> List.tryHead)
 
-    let ``has content after after that matches`` (findTrivia: TriviaNode -> bool) (contentAfter: TriviaContent -> bool) (trivia: TriviaNode list) =
+    let ``has content after that matches``
+        (findTrivia: TriviaNode -> bool)
+        (contentAfter: TriviaContent -> bool)
+        (trivia: TriviaNode list)
+        =
         List.tryFind findTrivia trivia
         |> Option.map (fun t -> t.ContentAfter |> List.exists contentAfter)
+        |> Option.defaultValue false
+
+    let ``has content before that matches``
+        (findTrivia: TriviaNode -> bool)
+        (contentBefore: TriviaContent -> bool)
+        (trivia: TriviaNode list)
+        =
+        List.tryFind findTrivia trivia
+        |> Option.map (fun t -> t.ContentBefore |> List.exists contentBefore)
         |> Option.defaultValue false
 
     let ``has content after that ends with`` (findTrivia: TriviaNode -> bool) (contentAfterEnd: TriviaContent -> bool) (trivia: TriviaNode list) =

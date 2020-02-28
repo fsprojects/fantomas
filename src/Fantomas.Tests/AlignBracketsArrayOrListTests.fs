@@ -1,4 +1,4 @@
-module Fantomas.Tests.GResearchArrayOrListTests
+module Fantomas.Tests.AlignBracketsArrayOrListTests
 
 open NUnit.Framework
 open FsUnit
@@ -101,7 +101,7 @@ let a3 =
 """
 
 [<Test>]
-let ``line comment after opening bracket`` () =
+let ``line comment after opening bracket list`` () =
     formatSourceString false """let a = [ // some line comment
     (1,2,3); (4,5,6); (7,8,9) ]
 """  config
@@ -116,6 +116,22 @@ let a =
 """
 
 [<Test>]
+let ``line comment after opening bracket in short list`` () =
+    formatSourceString false """let a = [ // some line comment
+    a;b ]
+let bb = b
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    [ // some line comment
+        a
+        b
+    ]
+let bb = b
+"""
+
+[<Test>]
 let ``line comment after opening bracket array`` () =
     formatSourceString false """let a = [| // some line comment
     (1,2,3); (4,5,6); (7,8,9) |]
@@ -127,5 +143,41 @@ let a =
         (1, 2, 3)
         (4, 5, 6)
         (7, 8, 9)
+    |]
+"""
+
+[<Test>]
+let ``line comment before closing bracket list`` () =
+    formatSourceString false """let a = [
+    (1,2,3); (4,5,6); (7,8,9)
+    // some line comment
+    ]
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    [
+        (1, 2, 3)
+        (4, 5, 6)
+        (7, 8, 9)
+    // some line comment
+    ]
+"""
+
+[<Test>]
+let ``line comment before closing bracket array`` () =
+    formatSourceString false """let a = [|
+    (1,2,3); (4,5,6); (7,8,9)
+    // some line comment
+    |]
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    [|
+        (1, 2, 3)
+        (4, 5, 6)
+        (7, 8, 9)
+    // some line comment
     |]
 """

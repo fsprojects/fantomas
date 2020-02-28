@@ -158,6 +158,21 @@ let internal writeEventsOnLastLine ctx =
     |> Seq.takeWhile (function | WriteLine | WriteLineInsideStringConst -> false | _ -> true)
     |> Seq.choose (function | Write w when (String.length w > 0) -> Some w | _ -> None)
 
+let internal lastWriteEventIsNewline ctx =
+    ctx.WriterEvents
+    |> Queue.rev
+    |> Seq.skipWhile (function
+        | RestoreIndent _
+        | RestoreAtColumn _
+        | Write "" -> true
+        | _ -> false)
+    |> Seq.tryHead
+    |> fun xx ->
+        let y = xx
+        xx
+    |> Option.map (function | WriteLine -> true | _ -> false)
+    |> Option.defaultValue false
+
 let internal lastWriteEventOnLastLine ctx = writeEventsOnLastLine ctx |> Seq.tryHead
 
 let internal forallCharsOnLastLine f ctx =
@@ -352,6 +367,12 @@ let internal sepSpace (ctx : Context) =
         | _ -> (!-" ") ctx
 
 let internal sepNln = !+ ""
+
+let internal whenLastEventIsNotWriteLine f (ctx: Context) =
+    if lastWriteEventIsNewline ctx
+    then ctx
+    else f ctx
+
 let internal sepStar = !- " * "
 let internal sepEq = !- " ="
 let internal sepArrow = !- " -> "
@@ -529,7 +550,7 @@ let internal sortAndDeduplicate by l (ctx : Context) =
         l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq
     else l
 
-let internal ifGReseach f g = ifElseCtx (fun ctx -> ctx.Config.AlignBrackets) f g
+let internal ifAlignBrackets f g = ifElseCtx (fun ctx -> ctx.Config.AlignBrackets) f g
 
 /// Don't put space before and after these operators
 let internal NoSpaceInfixOps = set ["?"]
