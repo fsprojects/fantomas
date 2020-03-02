@@ -267,12 +267,12 @@ module private Ast =
              Childs =
                  [yield visitSynSimplePats args
                   yield visitSynExpr body]}
-        | SynExpr.MatchLambda(isExnMatch,_,matchClaseus,_,range) ->
+        | SynExpr.MatchLambda(isExnMatch,_,matchClauses,_,range) ->
             {Type = "SynExpr.MatchLambda"
              Range = r range
              Properties = p ["isExnMatch" ==> isExnMatch]
              FsAstNode = synExpr
-             Childs = [yield! matchClaseus |> List.map visitSynMatchClause]}
+             Childs = [yield! matchClauses |> List.map visitSynMatchClause]}
         | SynExpr.Match(_,expr,clauses,range) ->
             {Type = "SynExpr.Match"
              Range = r range
