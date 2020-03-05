@@ -1,3 +1,21 @@
+### 3.3.0 - 02/2020
+
+* Support for `and!`. [#690](https://github.com/fsprojects/fantomas/issues/690)
+* Support for new slice syntax. [#691](https://github.com/fsprojects/fantomas/issues/691)
+* Support for check style flag [#642](https://github.com/fsprojects/fantomas/issues/642)
+* Update FCS to 34.1 [#699](https://github.com/fsprojects/fantomas/pull/699)
+* Allow to configure spaces before and after semicolon. [#653](https://github.com/fsprojects/fantomas/issues/653)
+* Fix Problem with --config and directory names containing ".". [#694](https://github.com/fsprojects/fantomas/issues/694)
+* Fix Space is removed after Foo.Create. [#676](https://github.com/fsprojects/fantomas/issues/676)
+* Fix Error in formatting nested else if construction. [#675](https://github.com/fsprojects/fantomas/issues/675)
+* Fix Unbalanced and misplaced #if directives after formatting. [#635](https://github.com/fsprojects/fantomas/issues/635)
+* Fix Stack overflow when using fantomas 3.2.0-beta-002. [#630](https://github.com/fsprojects/fantomas/issues/630)
+* Fix --help and --version return exit code 1. [#612](https://github.com/fsprojects/fantomas/issues/612)
+* Fix Line comment disappears after format. [#598](https://github.com/fsprojects/fantomas/issues/598)
+* Fix Stack overflow for global tool on OSX. [#591](https://github.com/fsprojects/fantomas/issues/591)
+* Fix Page width is not respected when formatting a function signature. [#495](https://github.com/fsprojects/fantomas/issues/495)
+* Update README with link to YouTube videos series. [#672](https://github.com/fsprojects/fantomas/pull/672)
+
 ### 3.2.0 - 02/2020
 
 * Added support for settings configuration file. [#354](https://github.com/fsprojects/fantomas/issues/354)

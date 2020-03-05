@@ -180,6 +180,7 @@ Target.create "ProjectVersion" (fun _ ->
     
     setProjectVersion "Fantomas"
     setProjectVersion "Fantomas.CoreGlobalTool"
+    setProjectVersion "Fantomas.CoreGlobalTool.Tests"
     setProjectVersion "Fantomas.Tests"
 )
 
@@ -201,6 +202,16 @@ Target.create "UnitTests" (fun _ ->
             // Current there is an issue with NUnit reporter, https://github.com/nunit/nunit3-vs-adapter/issues/589
         }
     ) "src/Fantomas.Tests/Fantomas.Tests.fsproj"
+    DotNet.test (fun p ->
+        { p with
+            Configuration = configuration
+            NoRestore = true
+            NoBuild = true
+            // TestAdapterPath = Some "."
+            // Logger = Some "nunit;LogFilePath=../../TestResults.xml"
+            // Current there is an issue with NUnit reporter, https://github.com/nunit/nunit3-vs-adapter/issues/589
+        }
+    ) "src/Fantomas.CoreGlobalTool.Tests/Fantomas.CoreGlobalTool.Tests.fsproj"
 )
 
 // --------------------------------------------------------------------------------------
