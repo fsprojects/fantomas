@@ -26,6 +26,7 @@ type FormatConfig =
       SpaceBeforeClassConstructor : bool
       SpaceBeforeColon : bool
       SpaceAfterComma : bool
+      SpaceBeforeSemicolon : bool
       SpaceAfterSemicolon : bool
       IndentOnTryWith : bool
       /// Reordering and deduplicating open statements
@@ -51,6 +52,7 @@ type FormatConfig =
           SpaceBeforeClassConstructor = false
           SpaceBeforeColon = false
           SpaceAfterComma = true
+          SpaceBeforeSemicolon = false
           SpaceAfterSemicolon = true
           IndentOnTryWith = false
           ReorderOpenDeclaration = false

@@ -44,6 +44,9 @@
     "SpaceAfterComma": {
       "type": "boolean"
     },
+    "SpaceBeforeSemicolon": {
+      "type": "boolean"
+    },
     "SpaceAfterSemicolon": {
       "type": "boolean"
     },

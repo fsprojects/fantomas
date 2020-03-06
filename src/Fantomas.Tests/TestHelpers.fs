@@ -197,3 +197,11 @@ let mkConfigFromContent fileName folder content =
     let file = mkConfigPath fileName folder
     File.WriteAllText(file, content)
     file
+
+type TemporaryFileCodeSample internal (codeSnippet: string) =
+    let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
+    do File.WriteAllText(filename, codeSnippet)
+
+    member _.Filename: string = filename
+    interface IDisposable with
+        member this.Dispose(): unit = File.Delete(filename)

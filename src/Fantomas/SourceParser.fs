@@ -1310,6 +1310,7 @@ let getRangesFromAttributesFromSynMemberDefinition (mdn: SynMemberDefn) =
     match mdn with
     | SynMemberDefn.Member(mb,_) -> getRangesFromAttributesFromSynBinding mb
     | SynMemberDefn.AbstractSlot(valSig, _, _) -> getRangesFromAttributesFromSynValSig valSig
+    | SynMemberDefn.LetBindings(lb::_,_,_,_) -> getRangesFromAttributesFromSynBinding lb
     | _ -> []
 
 let (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr:SynExpr) =
