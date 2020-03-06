@@ -167,9 +167,6 @@ let internal lastWriteEventIsNewline ctx =
         | Write "" -> true
         | _ -> false)
     |> Seq.tryHead
-    |> fun xx ->
-        let y = xx
-        xx
     |> Option.map (function | WriteLine -> true | _ -> false)
     |> Option.defaultValue false
 
