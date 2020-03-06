@@ -1001,3 +1001,33 @@ and [<Marker>] Room =
       Items: Item list
       Exits: Exits }
 """
+
+[<Test>]
+let ``trivia newlines between letbinding of type, 709`` () =
+    formatSourceString false """
+open Xunit
+open FSharp.Core
+open Swensen.Unquote
+
+type FormattingSpecs() =
+
+    [<Fact>]
+    let ``true is true``() = test <@ true = true @>
+
+    [<Fact>]
+    let ``false is false``() = test <@ false = false @>
+"""  config
+    |> prepend newline
+    |> should equal """
+open Xunit
+open FSharp.Core
+open Swensen.Unquote
+
+type FormattingSpecs() =
+
+    [<Fact>]
+    let ``true is true``() = test <@ true = true @>
+
+    [<Fact>]
+    let ``false is false``() = test <@ false = false @>
+"""
