@@ -34,46 +34,45 @@ type ASTContext =
       IsFirstTypeParam: bool
       /// Check whether the context is inside DotGet to suppress whitespaces
       IsInsideDotGet: bool
+      /// Check whether the context is inside a SynMemberDefn.Member(memberDefn,range)
+      /// This is required to correctly detect the setting SpaceBeforeMember
+      IsMemberDefinition: bool
     }
     static member Default =
         { TopLevelModuleName = ""
           IsFirstChild = false; InterfaceRange = None
           IsCStylePattern = false; IsNakedRange = false
           HasVerticalBar = false; IsUnionField = false
-          IsFirstTypeParam = false; IsInsideDotGet = false }
+          IsFirstTypeParam = false; IsInsideDotGet = false
+          IsMemberDefinition = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx:Context) =
     match functionOrMethod, arg with
     | SynExpr.TypeApp(e, _, _, _, _, _, _), _ ->
         addSpaceBeforeParensInFunCall e arg ctx
     | UppercaseSynExpr, ConstExpr(Const "()", _) ->
-        ctx.Config.SpaceBeforeUnitArgumentInUppercaseInvocation
+        ctx.Config.SpaceBeforeUppercaseInvocation
     | LowercaseSynExpr, ConstExpr(Const "()", _) ->
-        ctx.Config.SpaceBeforeUnitArgumentInLowercaseInvocation
+        ctx.Config.SpaceBeforeLowercaseInvocation
     | SynExpr.Ident(_), SynExpr.Ident(_) ->
         true
     | UppercaseSynExpr, Paren(_) ->
-        ctx.Config.SpaceBeforeParenthesesInUppercaseInvocation
+        ctx.Config.SpaceBeforeUppercaseInvocation
     | LowercaseSynExpr, Paren(_) ->
-        ctx.Config.SpaceBeforeParenthesesInLowercaseInvocation
+        ctx.Config.SpaceBeforeLowercaseInvocation
     | _ -> true
 
-let addSpaceBeforeParensInFunDef (functionOrMethod:string) args (ctx:Context) =
+let addSpaceBeforeParensInFunDef (astContext: ASTContext) (functionOrMethod:string) args (ctx:Context) =
     let isLastPartUppercase =
         let parts = functionOrMethod.Split '.'
         Char.IsUpper parts.[parts.Length - 1].[0]
 
     match functionOrMethod, args with
     | "new", _ -> false
-    | _, PatParen (PatConst(Const "()", _)) ->
-        if isLastPartUppercase
-        then ctx.Config.SpaceBeforeUnitParameterInUppercaseFunctionDefinition
-        else ctx.Config.SpaceBeforeUnitParameterInLowercaseFunctionDefinition
-
     | _, PatParen(_) ->
-        if isLastPartUppercase
-        then ctx.Config.SpaceBeforeParenthesesInUppercaseFunctionDefinition
-        else ctx.Config.SpaceBeforeParenthesesInLowercaseFunctionDefinition
+        if astContext.IsMemberDefinition
+        then ctx.Config.SpaceBeforeMember
+        else ctx.Config.SpaceBeforeParameter
     | (_:string), _ -> not isLastPartUppercase
     | _ -> true
 
@@ -676,7 +675,7 @@ and genMemberBinding astContext b =
         let prefix =
             genPreXmlDoc px
             +> genAttributes astContext ats +> genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
-            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat astContext p
+            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat ({ astContext with IsMemberDefinition = true }) p
 
         match e with
         | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType astContext false t +> sepEq +> preserveBreakNlnOrAddSpace astContext e
@@ -2281,7 +2280,7 @@ and genPat astContext pat =
             aoc +> genPat astContext p1 -- " :: " +> genPat astContext p2
         | [(ido, p) as ip] ->
             aoc +> infixOperatorFromTrivia pat.Range s +> tpsoc +>
-            ifElse (hasParenInPat p || Option.isSome ido) (ifElseCtx (addSpaceBeforeParensInFunDef s p) sepSpace sepNone) sepSpace
+            ifElse (hasParenInPat p || Option.isSome ido) (ifElseCtx (addSpaceBeforeParensInFunDef astContext s p) sepSpace sepNone) sepSpace
             +> ifElse (Option.isSome ido) (sepOpenT +> genPatWithIdent astContext ip +> sepCloseT) (genPatWithIdent astContext ip)
         // This pattern is potentially long
         | ps ->

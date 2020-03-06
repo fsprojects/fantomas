@@ -20,7 +20,7 @@ let f () =
 """
 
     formatSourceString false codeSnippet config
-    |> should equal """let f() =
+    |> should equal """let f () =
     let x = 1 // the "in" keyword is available in F#
     let y = 2
     x + y
@@ -36,7 +36,7 @@ let f () =
 """
 
     formatSourceString false codeSnippet config
-    |> should equal """let f() =
+    |> should equal """let f () =
     let x = 1 (* the "in" keyword is available in F# *)
     let y = 2
     x + y
@@ -52,7 +52,7 @@ let f () =
 """
 
     formatSourceString false codeSnippet config
-    |> should equal """let f() =
+    |> should equal """let f () =
     let x = 1
     if true then x else x
 """
@@ -66,7 +66,7 @@ let f () =
 """
 
     formatSourceString false codeSnippet config
-    |> should equal """let f() =
+    |> should equal """let f () =
     let x = 1
     (while true do
         ()
@@ -238,7 +238,7 @@ let ``inner let binding should not add additional newline, #475`` () =
     |> prepend newline
     |> should equal "
 module Test =
-    let testFunc() =
+    let testFunc () =
         let someObject =
             someStaticObject.Create
                 (((fun o ->
@@ -287,7 +287,7 @@ let ``newline trivia before simple sequence doesn't force remaining to get offse
     q
     b
 """  config
-    |> should equal """let a() =
+    |> should equal """let a () =
     let q = 1
 
     q
@@ -302,7 +302,7 @@ let ``comment trivia before simple sequence doesn't force remaining to get offse
     q
     b
 """  config
-    |> should equal """let a() =
+    |> should equal """let a () =
     let q = 1
     // comment
     q
@@ -350,7 +350,7 @@ let ``has symbol in signature requires paren, 564`` () =
             SpaceAfterComma = false
             SpaceAfterSemicolon = false
             SpaceAroundDelimiter = false
-            SpaceBeforeParenthesesInLowercaseFunctionDefinition = false })
+            SpaceBeforeParameter = false })
     |> prepend newline
     |> should equal """
 module Bar =

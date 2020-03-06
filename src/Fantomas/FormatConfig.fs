@@ -15,15 +15,11 @@ type FormatConfig =
       /// The column where we break to new lines
       PageWidth : Num
       SemicolonAtEndOfLine : bool
-      SpaceBeforeUnitArgumentInUppercaseInvocation : bool
-      SpaceBeforeUnitArgumentInLowercaseInvocation : bool
-      SpaceBeforeParenthesesInUppercaseInvocation : bool
-      SpaceBeforeParenthesesInLowercaseInvocation : bool
-      SpaceBeforeUnitParameterInUppercaseFunctionDefinition : bool
-      SpaceBeforeUnitParameterInLowercaseFunctionDefinition : bool
-      SpaceBeforeParenthesesInUppercaseFunctionDefinition : bool
-      SpaceBeforeParenthesesInLowercaseFunctionDefinition : bool
+      SpaceBeforeParameter: bool
+      SpaceBeforeLowercaseInvocation: bool
+      SpaceBeforeUppercaseInvocation: bool
       SpaceBeforeClassConstructor : bool
+      SpaceBeforeMember : bool
       SpaceBeforeColon : bool
       SpaceAfterComma : bool
       SpaceBeforeSemicolon : bool
@@ -41,15 +37,11 @@ type FormatConfig =
         { IndentSpaceNum = 4
           PageWidth = 120
           SemicolonAtEndOfLine = false
-          SpaceBeforeUnitArgumentInUppercaseInvocation = false
-          SpaceBeforeUnitArgumentInLowercaseInvocation = false
-          SpaceBeforeParenthesesInUppercaseInvocation = false
-          SpaceBeforeParenthesesInLowercaseInvocation = true
-          SpaceBeforeUnitParameterInUppercaseFunctionDefinition = false
-          SpaceBeforeUnitParameterInLowercaseFunctionDefinition = false
-          SpaceBeforeParenthesesInUppercaseFunctionDefinition = false
-          SpaceBeforeParenthesesInLowercaseFunctionDefinition = true
+          SpaceBeforeParameter = true
+          SpaceBeforeLowercaseInvocation = true
+          SpaceBeforeUppercaseInvocation = false
           SpaceBeforeClassConstructor = false
+          SpaceBeforeMember = false
           SpaceBeforeColon = false
           SpaceAfterComma = true
           SpaceBeforeSemicolon = false
