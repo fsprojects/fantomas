@@ -286,10 +286,10 @@ That said, most of the preferences are very simple.
 But they demonstrate the flexibility of Fantomas on a set of configurations. 
 More preferences will be added depending on use cases.
 
-##### "AlignBrackets"
+##### "MultilineBlockBracketsOnSameColumn "
 
 Alternative style to format records, arrays and lists.
-If enabled, this will align the brackets (`{`, `{|`, `[`, `[|`) and (`}`, `|}`, `]`, `|]`) on the same line.
+If enabled, this will align the brackets (`{`, `{|`, `[`, `[|`) and (`}`, `|}`, `]`, `|]`) on the same column.
 
 ```fsharp
 let myRecord = { Square = 9; Level = "Hard" }

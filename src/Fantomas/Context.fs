@@ -550,7 +550,7 @@ let internal sortAndDeduplicate by l (ctx : Context) =
         l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq
     else l
 
-let internal ifAlignBrackets f g = ifElseCtx (fun ctx -> ctx.Config.AlignBrackets) f g
+let internal ifAlignBrackets f g = ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
 
 /// Don't put space before and after these operators
 let internal NoSpaceInfixOps = set ["?"]

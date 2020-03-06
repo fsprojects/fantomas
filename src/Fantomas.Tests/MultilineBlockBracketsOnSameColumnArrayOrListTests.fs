@@ -1,11 +1,11 @@
-module Fantomas.Tests.AlignBracketsArrayOrListTests
+module Fantomas.Tests.MultilineBlockBracketsOnSameColumnArrayOrListTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
 let config = ({ config with
-                    AlignBrackets = true
+                    MultilineBlockBracketsOnSameColumn = true
                     SpaceBeforeColon = true
                     SpaceBeforeSemicolon = true })
 
