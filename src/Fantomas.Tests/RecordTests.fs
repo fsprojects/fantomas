@@ -644,3 +644,51 @@ module Test =
                 something.Dispose()
                 somethingElse.Dispose() }
 """
+
+[<Test>]
+let ``short record should be a oneliner`` () =
+    formatSourceString false """let a = { B = 7 ; C = 9 }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = { B = 7; C = 9 }
+"""
+
+// This test ensures that the normal flow of Fantomas is resumed when the next expression is being written.
+[<Test>]
+let ``short record and let binding`` () =
+    formatSourceString false """
+let a = { B = 7 ; C = 9 }
+let sumOfMember = a.B + a.C
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = { B = 7; C = 9 }
+let sumOfMember = a.B + a.C
+"""
+
+[<Test>]
+let ``long record should be multiline`` () =
+    formatSourceString false """let myInstance = { FirstLongMemberName = "string value" ; SecondLongMemberName = "other value" }
+"""  config
+    |> prepend newline
+    |> should equal """
+let myInstance =
+    { FirstLongMemberName = "string value"
+      SecondLongMemberName = "other value" }
+"""
+
+[<Test>]
+let ``multiline in record field should shortcurcuit short expression check`` () =
+    formatSourceString false """
+let a =
+    { B =
+          8 // some comment
+      C = 9 }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    { B = 8 // some comment
+      C = 9 }
+"""

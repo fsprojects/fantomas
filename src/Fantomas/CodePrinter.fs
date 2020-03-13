@@ -848,28 +848,38 @@ and genExpr astContext synExpr =
 
 
     | Record(inheritOpt, xs, eo) ->
-        let recordExpr =
-            let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
-            eo |> Option.map (fun e ->
-                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
-            |> Option.defaultValue fieldsExpr
+        let shortRecordWidth = 40
 
-        sepOpenS
-        +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
-        +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
-            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
-        +> (fun ctx ->
-            match ctx.RecordBraceStart with
-            | rbs::rest ->
-                if ctx.Column < rbs then
-                    let offset = (if ctx.Config.SpaceAroundDelimiter then 2 else 1) + 1
-                    let delta = Math.Max((rbs - ctx.Column) - offset, 0)
-                    (!- System.String.Empty.PadRight(delta)) ({ctx with RecordBraceStart = rest})
-                else
-                    sepNone ({ctx with RecordBraceStart = rest})
-            | [] ->
-                    sepNone ctx)
-        +> sepCloseS
+        let shortRecordExpr =
+            sepOpenS +> col sepSemi xs (genRecordFieldName astContext) +> sepCloseS
+
+        isShortExpression shortRecordWidth shortRecordExpr (fun ctx ->
+            let recordExpr =
+                let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
+                eo |> Option.map (fun e ->
+                    genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+                |> Option.defaultValue fieldsExpr
+
+            let expr =
+                sepOpenS
+                +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
+                +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
+                    (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
+                +> (fun ctx ->
+                    match ctx.RecordBraceStart with
+                    | rbs::rest ->
+                        if ctx.Column < rbs then
+                            let offset = (if ctx.Config.SpaceAroundDelimiter then 2 else 1) + 1
+                            let delta = Math.Max((rbs - ctx.Column) - offset, 0)
+                            (!- System.String.Empty.PadRight(delta)) ({ctx with RecordBraceStart = rest})
+                        else
+                            sepNone ({ctx with RecordBraceStart = rest})
+                    | [] ->
+                            sepNone ctx)
+                +> sepCloseS
+
+            expr ctx
+        )
 
     | AnonRecord(isStruct, fields, copyInfo) ->
         let recordExpr =

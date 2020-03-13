@@ -18,20 +18,36 @@ type WriterEvent =
     | SetAtColumn of int
     | RestoreAtColumn of int
 
-type WriterModel = {
-    /// lines of resulting text, in reverse order (to allow more efficient adding line to end)
-    Lines : string list
-    /// current indentation
-    Indent : int
-    /// helper indentation information, if AtColumn > Indent after NewLine, Indent will be set to AtColumn
-    AtColumn : int
-    /// text to be written before next newline
-    WriteBeforeNewline : string
-    /// dummy = "fake" writer used in `autoNln`, `autoNlnByFuture`
-    IsDummy : bool
-    /// current length of last line of output
-    Column : int
-}
+type ShortExpressionInfo =
+    { MaxWidth: int
+      StartColumn: int
+      PreviousEventCount: int
+      ConfirmedMultiline: bool }
+    member x.IsTooLong currentColumn = currentColumn - x.StartColumn > x.MaxWidth
+
+type WriteModelMode =
+    | Standard
+    | Dummy
+    | ShortExpression of ShortExpressionInfo
+
+type WriterModel =
+    {
+      /// lines of resulting text, in reverse order (to allow more efficient adding line to end)
+      Lines: string list
+      /// current indentation
+      Indent: int
+      /// helper indentation information, if AtColumn > Indent after NewLine, Indent will be set to AtColumn
+      AtColumn: int
+      /// text to be written before next newline
+      WriteBeforeNewline: string
+      /// dummy = "fake" writer used in `autoNln`, `autoNlnByFuture`
+      Mode: WriteModelMode
+      /// current length of last line of output
+      Column: int }
+    member __.IsDummy =
+        match __.Mode with
+        | Dummy -> true
+        | _ -> false
 
 module WriterModel =
     let init = {
@@ -39,10 +55,10 @@ module WriterModel =
         Indent = 0
         AtColumn = 0
         WriteBeforeNewline = ""
-        IsDummy = false
+        Mode = Standard
         Column = 0
     }
-    
+
     let update cmd m =
         let doNewline m =
             let m = { m with Indent = max m.Indent m.AtColumn }
@@ -50,19 +66,36 @@ module WriterModel =
                Lines = String.replicate m.Indent " " :: (List.head m.Lines + m.WriteBeforeNewline) :: (List.tail m.Lines) 
                WriteBeforeNewline = ""
                Column = m.Indent }
-        match cmd with
-        | WriteLine -> doNewline m
-        | WriteLineInsideStringConst ->
-            { m with Lines = "" :: m.Lines; Column = 0 }
-        | Write s -> { m with Lines = (List.head m.Lines + s) :: (List.tail m.Lines); Column = m.Column + (String.length s) }
-        | WriteBeforeNewline s -> { m with WriteBeforeNewline = s }
-        | IndentBy x -> { m with Indent = if m.AtColumn >= m.Indent + x then m.AtColumn + x else m.Indent + x }
-        | UnIndentBy x -> { m with Indent = max m.AtColumn <| m.Indent - x }
-        | SetAtColumn c -> { m with AtColumn = c }
-        | RestoreAtColumn c -> { m with AtColumn = c }
-        | SetIndent c -> { m with Indent = c }
-        | RestoreIndent c -> { m with Indent = c }
-        
+
+        let updateCmd cmd =
+            match cmd with
+            | WriteLine -> doNewline m
+            | WriteLineInsideStringConst ->
+                { m with Lines = "" :: m.Lines; Column = 0 }
+            | Write s -> { m with Lines = (List.head m.Lines + s) :: (List.tail m.Lines); Column = m.Column + (String.length s) }
+            | WriteBeforeNewline s -> { m with WriteBeforeNewline = s }
+            | IndentBy x -> { m with Indent = if m.AtColumn >= m.Indent + x then m.AtColumn + x else m.Indent + x }
+            | UnIndentBy x -> { m with Indent = max m.AtColumn <| m.Indent - x }
+            | SetAtColumn c -> { m with AtColumn = c }
+            | RestoreAtColumn c -> { m with AtColumn = c }
+            | SetIndent c -> { m with Indent = c }
+            | RestoreIndent c -> { m with Indent = c }
+
+        match m.Mode with
+        | Dummy
+        | Standard -> updateCmd cmd
+        | ShortExpression info when (info.ConfirmedMultiline) -> m
+        | ShortExpression info ->
+            let nextCmdCausesMultiline =
+                match cmd with
+                | WriteLine
+                | WriteBeforeNewline _ -> true
+                | _ -> false
+
+            if info.IsTooLong m.Column || nextCmdCausesMultiline
+            then { m with Mode = ShortExpression({ info with ConfirmedMultiline = true }) }
+            else updateCmd cmd
+
     let updateAll cmds m = cmds |> Queue.fold (fun m c -> update c m) m
     
 module WriterEvents =
@@ -121,10 +154,18 @@ type internal Context =
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
-        let mkModel m = { m with IsDummy = true; Lines = [String.replicate x.WriterModel.Column " "]; WriteBeforeNewline = "" }
+        let mkModel m = { m with Mode = Dummy; Lines = [String.replicate x.WriterModel.Column " "]; WriteBeforeNewline = "" }
         // Use infinite column width to encounter worst-case scenario
         let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
         { x with WriterModel = mkModel x.WriterModel; WriterEvents = writerCommands; Config = config }
+
+    member x.WithShortExpression(maxWidth) =
+        let info =
+            { MaxWidth = maxWidth
+              StartColumn = x.WriterModel.Column
+              PreviousEventCount = Seq.length x.WriterEvents
+              ConfirmedMultiline = false }
+        { x with WriterModel = { x.WriterModel with Mode = ShortExpression(info) } }
 
 let internal writerEvent e ctx =
     let evs = WriterEvents.normalize e
@@ -148,6 +189,28 @@ let internal dumpAndContinue (ctx: Context) =
     printfn "%s" code
 #endif
     ctx
+
+let internal isShortExpression maxWidth (shortExpression: Context -> Context) (fallbackExpression) (ctx: Context) =
+    // create special context that will process the writer events slightly different
+    let shortExpressionContext = ctx.WithShortExpression(maxWidth)
+    let resultContext = shortExpression shortExpressionContext
+    match resultContext.WriterModel.Mode with
+    | ShortExpression info ->
+        // verify the expression is not longer than allowed
+        if info.ConfirmedMultiline
+        then fallbackExpression ctx
+        else
+            let shortExpressionEvents =
+                Seq.skip info.PreviousEventCount resultContext.WriterEvents
+                |> Queue.ofSeq
+            let events =
+                Queue.fold (fun acc event -> Queue.conj event acc) ctx.WriterEvents shortExpressionEvents
+
+            let model = WriterModel.updateAll shortExpressionEvents ctx.WriterModel
+            { ctx with WriterEvents = events; WriterModel = model }
+    | _ ->
+        // you should never hit this branch
+        fallbackExpression ctx
 
 type Context with    
     member x.Column = x.WriterModel.Column
@@ -413,6 +476,7 @@ let internal sepOpenT = !- "("
 
 /// closing token of tuple
 let internal sepCloseT = !- ")"
+
 let internal eventsWithoutMultilineWrite ctx =
     { ctx with WriterEvents =  ctx.WriterEvents |> Queue.toSeq |> Seq.filter (function | Write s when s.Contains ("\n") -> false | _ -> true) |> Queue.ofSeq }
 

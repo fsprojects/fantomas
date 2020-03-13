@@ -89,10 +89,10 @@ let rec multiline synExpr =
     | ArrayOrList(_, es, _) ->
         not (List.atMostOne es)
 
-    // A record is multiline if there is at least two fields present
-    | Record(_, xs, _) ->
-        let fields = xs |> List.choose ((|RecordFieldName|) >> snd) 
-        not (List.atMostOne fields) || List.exists multiline fields
+//    // A record is multiline if there is at least two fields present
+//    | Record(_, xs, _) ->
+//        let fields = xs |> List.choose ((|RecordFieldName|) >> snd)
+//        not (List.atMostOne fields) || List.exists multiline fields
 
     // Default mode is single-line
     | _ -> false
