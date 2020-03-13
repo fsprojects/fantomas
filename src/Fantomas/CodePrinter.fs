@@ -2120,7 +2120,13 @@ and genMemberDefn astContext node =
     | MDNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
     | MDOpen(s) -> !- (sprintf "open %s" s)
     // What is the role of so
-    | MDImplicitInherit(t, e, _) -> !- "inherit " +> genType astContext false t +> genExpr astContext e
+    | MDImplicitInherit(t, e, _) ->
+        let addSpaceAfterType =
+            match e with
+            | SynExpr.Const(SynConst.Unit, _) -> false
+            | SynExpr.Const(_, _) -> true // string, numbers, ...
+            | _ -> false
+        !- "inherit " +> genType astContext false t +> ifElse addSpaceAfterType sepSpace sepNone +> genExpr astContext e
     | MDInherit(t, _) -> !- "inherit " +> genType astContext false t
     | MDValField f -> genField astContext "val " f
     | MDImplicitCtor(ats, ao, ps, so) ->
