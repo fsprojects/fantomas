@@ -465,3 +465,36 @@ type A =
     [<Emit("b")>]
     abstract b: Unit -> string
 """
+
+[<Test>]
+let ``string parameter to inherited class, 720`` () =
+    formatSourceString false """type Child() =
+  inherit Parent ""
+"""  config
+    |> prepend newline
+    |> should equal """
+type Child() =
+    inherit Parent ""
+"""
+
+[<Test>]
+let ``float parameter to inherited class`` () =
+    formatSourceString false """type Child() =
+  inherit Parent 7.9
+"""  config
+    |> prepend newline
+    |> should equal """
+type Child() =
+    inherit Parent 7.9
+"""
+
+[<Test>]
+let ``unit parameter to inherited class`` () =
+    formatSourceString false """type Child() =
+  inherit Parent ()
+"""  config
+    |> prepend newline
+    |> should equal """
+type Child() =
+    inherit Parent()
+"""
