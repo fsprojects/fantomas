@@ -1151,46 +1151,38 @@ and genExpr astContext synExpr =
     | ElIf((e1,e2, _, _, _)::es, enOpt) ->
         // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
         fun ctx ->
-            let elseKeywordRange =
-                ctx.Trivia
-                |> TriviaHelpers.``keyword tokens inside range`` ["IF"; "THEN"; "ELIF"; "ELSE"] synExpr.Range
-                |> fun tokens ->
-                    // skip if .. then and take first else keyword
-                    // ignore if third keyword is elif f.ex.
-
-                    match synExpr with
-                    // elif keyword matches the start of the optional else expression
-                    | SynExpr.IfThenElse(_, _, Some(optionalExprElse), _, _, _, _)
-                        when (List.exists (fun ({ TokenName = tn }: FSharpTokenInfo,t) -> tn = "ELIF" && t.Range.Start = optionalExprElse.Range.Start) tokens) ->
-                        None
-                    // the else keyword is floating between the thenExpression and the optional elseExpression
-                    | SynExpr.IfThenElse(_, exprThen, Some(_), _, _, _, _) ->
-                        let filtered =
-                            tokens
-                            |> List.filter (fun ({ TokenName = tn }, t) -> tn = "ELSE" && RangeHelpers.``range starts after`` exprThen.Range t.Range)
-                            |> List.tryHead
-                            |> Option.map (fun (_,t) -> t.Range)
-                        filtered
-
+            let correctedElifRanges =
+                es
+                |> List.pairwise
+                |> List.map (fun ((_,beforeNode,_,_,_),(_,_,_,_, node)) -> (beforeNode.Range, node.Range))
+                |> fun tail ->
+                    match es with
+                    | (_,_,_,_,hn)::_ -> (e2.Range, hn.Range)::tail
+                    | _ -> tail
+                |> List.indexed
+                |> List.choose(fun (idx, (beforeRange, elseIfRange)) ->
+                    let rangeBetween = mkRange "between" beforeRange.End elseIfRange.Start
+                    let keywordsFoundInBetween = TriviaHelpers.``keyword tokens inside range`` ["ELSE"] rangeBetween ctx.Trivia
+                    match List.tryHead keywordsFoundInBetween with
+                    | Some (_, elseKeyword) ->
+                        (idx, mkRange "else if" elseKeyword.Range.Start elseIfRange.End)
+                        |> Some
                     | _ ->
                         None
+                )
+                |> Map.ofList
 
             let elfis =
-                let lastEsIndex = (List.length es) - 1
                 List.indexed es
                 |> List.map (fun (idx, (elf1, elf2, _, fullRange, _)) ->
-                    if idx = lastEsIndex then
                         // In some scenarios the last else keyword of the 'else if' combination is not included in inner IfThenElse syn expr
                         // f.ex if  a then b else // meh
                         //          if c then d else e
                         let correctedRange =
-                            match elseKeywordRange with
-                            | Some er -> mkRange "else if" er.Start fullRange.End
-                            | None -> fullRange
-                        (elf1, elf2, correctedRange)
-                    else
-                        (elf1, elf2, fullRange)
-            )
+                            Map.tryFind idx correctedElifRanges
+                            |> Option.defaultValue fullRange
+
+                        (elf1, elf2, correctedRange))
 
             let hasElfis = not (List.isEmpty elfis)
 
