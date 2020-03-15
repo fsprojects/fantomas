@@ -200,14 +200,7 @@ let internal isShortExpression maxWidth (shortExpression: Context -> Context) (f
         if info.ConfirmedMultiline
         then fallbackExpression ctx
         else
-            let shortExpressionEvents =
-                Seq.skip info.PreviousEventCount resultContext.WriterEvents
-                |> Queue.ofSeq
-            let events =
-                Queue.fold (fun acc event -> Queue.conj event acc) ctx.WriterEvents shortExpressionEvents
-
-            let model = WriterModel.updateAll shortExpressionEvents ctx.WriterModel
-            { ctx with WriterEvents = events; WriterModel = model }
+            { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
     | _ ->
         // you should never hit this branch
         fallbackExpression ctx
