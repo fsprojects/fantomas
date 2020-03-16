@@ -805,3 +805,67 @@ module String =
         else if String.length a' < String.length b' then a'
         else b'
 """
+
+[<Test>]
+let ``second else if where else and if are on separate lines, 713`` () =
+    formatSourceString false """if v1 < v2 then
+    -1
+elif v1 > v2 then
+    1
+else
+    if t1 < t2 then
+        -1
+    elif t1 > t2 then
+        1
+    else
+        0
+"""  config
+    |> prepend newline
+    |> should equal """
+if v1 < v2 then -1
+elif v1 > v2 then 1
+else if t1 < t2 then -1
+elif t1 > t2 then 1
+else 0
+"""
+
+[<Test>]
+let ``newline between else if,  prior by elif`` () =
+    formatSourceString false """
+module String =
+    let merge a b =
+            if la <> lb then
+                if la > lb then a' else b'
+            elif la = lb then a'
+            else
+                if String.length a' < String.length b' then a' else b'
+"""  config
+    |> prepend newline
+    |> should equal """
+module String =
+    let merge a b =
+        if la <> lb then if la > lb then a' else b'
+        elif la = lb then a'
+        else if String.length a' < String.length b' then a'
+        else b'
+"""
+
+[<Test>]
+let ``newline between else if, followed by else if`` () =
+    formatSourceString false """
+module String =
+    let merge a b =
+            if la <> lb then
+                if la > lb then a' else b'
+            else
+                if String.length a' < String.length b' then a' else if String.length a' > String.length b' then b' else b'
+"""  config
+    |> prepend newline
+    |> should equal """
+module String =
+    let merge a b =
+        if la <> lb then if la > lb then a' else b'
+        else if String.length a' < String.length b' then a'
+        else if String.length a' > String.length b' then b'
+        else b'
+"""
