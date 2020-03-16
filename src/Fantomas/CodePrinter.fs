@@ -1442,7 +1442,7 @@ and genExpr astContext synExpr =
         let genAndList astContext (ands: list<SequencePointInfoForBinding * bool * bool * SynPat * SynExpr * range>) =
             colPost sepNln sepNln
                 ands
-                (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> genExpr astContext expr)
+                (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> autoIndentNlnByFuture (genExpr astContext expr))
 
         ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
         +> autoIndentNlnByFuture (genExpr astContext e1)
