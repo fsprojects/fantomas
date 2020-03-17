@@ -1431,17 +1431,16 @@ and genExpr astContext synExpr =
         addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
 
     | LetOrUseBang(isUse, p, e1, ands, e2) ->
-
         let genAndList astContext (ands: list<SequencePointInfoForBinding * bool * bool * SynPat * SynExpr * range>) =
             colPost sepNln sepNln
                 ands
-                (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> genExpr astContext expr)
+                (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> autoIndentNlnByFuture (genExpr astContext expr))
 
-        atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ")
-            +> genPat astContext p -- " = " +> genExpr astContext e1 +> sepNln
-            +> genAndList astContext ands
-            +> genExpr astContext e2
-        )
+        ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
+        +> autoIndentNlnByFuture (genExpr astContext e1)
+        +> sepNln
+        +> genAndList astContext ands
+        +> genExpr astContext e2
 
     | ParsingError r ->
         raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i"
