@@ -118,10 +118,7 @@ type Car =
       Model: string
       mutable Odometer: int }
 
-let myRecord3 =
-    { myRecord2 with
-          Y = 100
-          Z = 2 }
+let myRecord3 = { myRecord2 with Y = 100; Z = 2 }
 """
 
 // the current behavior results in a compile error since the if is not aligned properly

@@ -855,6 +855,7 @@ and genExpr astContext synExpr =
             optSingle
                 (fun (inheritType, inheritExpr) -> !- "inherit " +> genType astContext false inheritType +> genExpr astContext inheritExpr +> onlyIf (List.isNotEmpty xs) sepSpace)
                 inheritOpt +>
+            optSingle (fun e -> genExpr astContext e +> !- " with ") eo +>
             col sepSemi xs (genRecordFieldName astContext) +>
             sepCloseS
 
