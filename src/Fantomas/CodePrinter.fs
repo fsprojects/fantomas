@@ -851,7 +851,12 @@ and genExpr astContext synExpr =
         let shortRecordWidth = 40
 
         let shortRecordExpr =
-            sepOpenS +> col sepSemi xs (genRecordFieldName astContext) +> sepCloseS
+            sepOpenS +>
+            optSingle
+                (fun (inheritType, inheritExpr) -> !- "inherit " +> genType astContext false inheritType +> genExpr astContext inheritExpr +> onlyIf (List.isNotEmpty xs) sepSpace)
+                inheritOpt +>
+            col sepSemi xs (genRecordFieldName astContext) +>
+            sepCloseS
 
         isShortExpression shortRecordWidth shortRecordExpr (fun ctx ->
             let recordExpr =

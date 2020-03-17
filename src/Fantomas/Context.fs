@@ -375,6 +375,12 @@ let internal opt (f' : Context -> _) o f (ctx : Context) =
     | Some x -> f' (f x ctx)
     | None -> ctx
 
+/// similar to opt, only takes a single function f to apply when there is a value
+let internal optSingle f o ctx =
+    match o with
+    | Some x -> f x ctx
+    | None -> ctx
+
 /// Similar to opt, but apply f2 at the beginning if there is a value
 let internal optPre (f2 : _ -> Context) (f1 : Context -> _) o f (ctx : Context) =
     match o with
@@ -387,6 +393,10 @@ let internal ifElse b (f1 : Context -> Context) f2 (ctx : Context) =
 
 let internal ifElseCtx cond (f1 : Context -> Context) f2 (ctx : Context) =
     if cond ctx then f1 ctx else f2 ctx
+
+/// apply f only when cond is true
+let internal onlyIf cond f ctx =
+    if cond then f ctx else id ctx
 
 /// Repeat application of a function n times
 let internal rep n (f : Context -> Context) (ctx : Context) =
