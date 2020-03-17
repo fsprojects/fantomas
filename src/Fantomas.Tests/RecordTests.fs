@@ -447,8 +447,8 @@ let x = Foo("").Goo()
 
 let r =
     { s with
-        x = 1
-        y = 2 }
+        xxxxxxxxxxxxxxxxxxxxx = 1
+        yyyyyyyyyyyyyyyyyyyyy = 2 }
 """  config
   |> prepend newline
   |> should equal """
@@ -456,8 +456,8 @@ let x = Foo("").Goo()
 
 let r =
     { s with
-          x = 1
-          y = 2 }
+          xxxxxxxxxxxxxxxxxxxxx = 1
+          yyyyyyyyyyyyyyyyyyyyy = 2 }
 """
 
 [<Test>]
