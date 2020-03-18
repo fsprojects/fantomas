@@ -159,10 +159,10 @@ type internal Context =
         let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
         { x with WriterModel = mkModel x.WriterModel; WriterEvents = writerCommands; Config = config }
 
-    member x.WithShortExpression(maxWidth) =
+    member x.WithShortExpression(maxWidth, ?startColumn) =
         let info =
             { MaxWidth = maxWidth
-              StartColumn = x.WriterModel.Column
+              StartColumn = Option.defaultValue x.WriterModel.Column startColumn
               PreviousEventCount = Seq.length x.WriterEvents
               ConfirmedMultiline = false }
         { x with WriterModel = { x.WriterModel with Mode = ShortExpression(info) } }
@@ -489,7 +489,7 @@ let internal eventsWithoutMultilineWrite ctx =
 /// try and write the expression on the remainder of the current line
 /// add an indent and newline if the expression is longer
 let internal autoNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
-    let shortExpressionContext = ctx.WithShortExpression(ctx.Config.PageWidth)
+    let shortExpressionContext = ctx.WithShortExpression(ctx.Config.PageWidth, 0)
     let resultContext = (sepSpace +> expr) shortExpressionContext
     let fallbackExpression = indent +> sepNln +> expr
 
