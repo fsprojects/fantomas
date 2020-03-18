@@ -1005,6 +1005,14 @@ and genExpr astContext synExpr =
     // Handle spaces of infix application based on which category it belongs to
     | InfixApps(e, es) ->
         // Only put |> on the same line in a very trivial expression
+
+        // checkNewLine will in some scenarios, call multiline to see if an expression is already multiline and required a newline before |>
+        // In the case of a record (see test ``|> should be on the next line if preceding expression is multiline``), that check has been remove as it only checked if the record had more than 1 field.
+        // so I think we need a construct that tells us if the previous expression was multiline
+        // something along the lines of:
+        // let precedingMultilineExpression (precedingExpression: ctx -> ctx) (f: bool -> ctx -> ctx) (ctx: Context) =
+        // ...
+
         atCurrentColumn (genExpr astContext e +> genInfixApps astContext (checkNewLine e es) es)
 
     | TernaryApp(e1,e2,e3) ->

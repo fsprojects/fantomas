@@ -209,6 +209,16 @@ let newDocument = //somecomment
 """
 
 [<Test>]
+let ``|> should be on the next line if preceding expression is multiline``() =
+    shouldNotChangeAfterFormat """
+let newDocument = //somecomment
+    { program = "Loooooooooooooooooooooooooong"
+      content = "striiiiiiiiiiiiiiiiiiinnnnnnnnnnng"
+      created = document.Created.ToLocalTime() }
+    |> JsonConvert.SerializeObject
+"""
+
+[<Test>]
 let ``should preserve inherit parts in records``() =
     formatSourceString false """
 type MyExc =
