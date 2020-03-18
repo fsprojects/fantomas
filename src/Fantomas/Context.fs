@@ -176,7 +176,7 @@ let internal writerEvent e ctx =
     ctx'
 let internal finalizeWriterModel (ctx: Context) =
     if ctx.WriterModel.WriteBeforeNewline <> "" then writerEvent (Write ctx.WriterModel.WriteBeforeNewline) ctx else ctx
-    
+
 let internal dump (ctx: Context) =
     let ctx = finalizeWriterModel ctx
     ctx.WriterModel.Lines |> List.rev |> String.concat Environment.NewLine
@@ -508,7 +508,7 @@ let internal autoNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
 let internal autoNlnCheck (f: _ -> Context) sep (ctx : Context) =
     if not ctx.BreakLines then false else
     // Create a dummy context to evaluate length of current operation
-    let dummyCtx = ctx.WithDummy(Queue.empty) |> sep |> f 
+    let dummyCtx = ctx.WithDummy(Queue.empty) |> sep |> f
     // This isn't accurate if we go to new lines
     dummyCtx.Column > ctx.Config.PageWidth
 
@@ -595,9 +595,6 @@ let internal sepSemi (ctx : Context) =
 let internal sepSemiNln (ctx : Context) =
     // sepNln part is essential to indentation
     if ctx.Config.SemicolonAtEndOfLine then (!- ";" +> sepNln) ctx else sepNln ctx
-
-let internal sepBeforeArg (ctx : Context) = 
-    if ctx.Config.SpaceBeforeArgument then str " " ctx else str "" ctx
 
 /// Conditional indentation on with keyword
 let internal indentOnWith (ctx : Context) =

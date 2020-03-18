@@ -34,38 +34,46 @@ type ASTContext =
       IsFirstTypeParam: bool
       /// Check whether the context is inside DotGet to suppress whitespaces
       IsInsideDotGet: bool
+      /// Check whether the context is inside a SynMemberDefn.Member(memberDefn,range)
+      /// This is required to correctly detect the setting SpaceBeforeMember
+      IsMemberDefinition: bool
     }
     static member Default =
         { TopLevelModuleName = ""
           IsFirstChild = false; InterfaceRange = None
           IsCStylePattern = false; IsNakedRange = false
           HasVerticalBar = false; IsUnionField = false
-          IsFirstTypeParam = false; IsInsideDotGet = false }
+          IsFirstTypeParam = false; IsInsideDotGet = false
+          IsMemberDefinition = false }
 
-let rec addSpaceBeforeParensInFunCall functionOrMethod arg =
+let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx:Context) =
     match functionOrMethod, arg with
-    | _, ConstExpr(Const "()", _) ->
-        false
-    | SynExpr.LongIdent(_, LongIdentWithDots _, _, _), SynExpr.Ident(_) ->
-        true
-    | SynExpr.LongIdent(_, LongIdentWithDots s, _, _), _ ->
-        let parts = s.Split '.'
-        not <| Char.IsUpper parts.[parts.Length - 1].[0]
+    | SynExpr.TypeApp(e, _, _, _, _, _, _), _ ->
+        addSpaceBeforeParensInFunCall e arg ctx
+    | UppercaseSynExpr, ConstExpr(Const "()", _) ->
+        ctx.Config.SpaceBeforeUppercaseInvocation
+    | LowercaseSynExpr, ConstExpr(Const "()", _) ->
+        ctx.Config.SpaceBeforeLowercaseInvocation
     | SynExpr.Ident(_), SynExpr.Ident(_) ->
         true
-    | SynExpr.Ident(Ident s), _ ->
-        not <| Char.IsUpper s.[0]
-    | SynExpr.TypeApp(e, _, _, _, _, _, _), _ ->
-        addSpaceBeforeParensInFunCall e arg
+    | UppercaseSynExpr, Paren(_) ->
+        ctx.Config.SpaceBeforeUppercaseInvocation
+    | LowercaseSynExpr, Paren(_) ->
+        ctx.Config.SpaceBeforeLowercaseInvocation
     | _ -> true
 
-let addSpaceBeforeParensInFunDef functionOrMethod args =
+let addSpaceBeforeParensInFunDef (astContext: ASTContext) (functionOrMethod:string) args (ctx:Context) =
+    let isLastPartUppercase =
+        let parts = functionOrMethod.Split '.'
+        Char.IsUpper parts.[parts.Length - 1].[0]
+
     match functionOrMethod, args with
-    | _, PatParen (PatConst(Const "()", _)) -> false
     | "new", _ -> false
-    | (s:string), _ ->
-        let parts = s.Split '.'
-        not <| Char.IsUpper parts.[parts.Length - 1].[0]
+    | _, PatParen(_) ->
+        if astContext.IsMemberDefinition
+        then ctx.Config.SpaceBeforeMember
+        else ctx.Config.SpaceBeforeParameter
+    | (_:string), _ -> not isLastPartUppercase
     | _ -> true
 
 let rec genParsedInput astContext = function
@@ -667,7 +675,7 @@ and genMemberBinding astContext b =
         let prefix =
             genPreXmlDoc px
             +> genAttributes astContext ats +> genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
-            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat astContext p
+            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat ({ astContext with IsMemberDefinition = true }) p
 
         match e with
         | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType astContext false t +> sepEq +> preserveBreakNlnOrAddSpace astContext e
@@ -1089,15 +1097,18 @@ and genExpr astContext synExpr =
 
     // Unlike infix app, function application needs a level of indentation
     | App(e1, [e2]) ->
-        let hasPar = hasParenthesis e2
-        let addSpaceBefore = addSpaceBeforeParensInFunCall e1 e2
-        atCurrentColumn (genExpr astContext e1 +>
-            ifElse (not astContext.IsInsideDotGet)
-                (ifElse hasPar
-                    (ifElse addSpaceBefore sepBeforeArg sepNone)
-                    sepSpace)
-                sepNone
-            +> indent +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone) +> appNlnFun e2 (genExpr astContext e2) +> unindent)
+        fun (ctx:Context) ->
+            let hasPar = hasParenthesis e2
+            let addSpaceBefore = addSpaceBeforeParensInFunCall e1 e2 ctx
+            let genApp =
+                atCurrentColumn (genExpr astContext e1 +>
+                    ifElse (not astContext.IsInsideDotGet)
+                        (ifElse hasPar
+                            (ifElse addSpaceBefore sepSpace sepNone)
+                            sepSpace)
+                        sepNone
+                    +> indent +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone) +> appNlnFun e2 (genExpr astContext e2) +> unindent)
+            genApp ctx
 
     // Always spacing in multiple arguments
     | App(e, es) ->
@@ -1447,17 +1458,16 @@ and genExpr astContext synExpr =
         addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
 
     | LetOrUseBang(isUse, p, e1, ands, e2) ->
-
         let genAndList astContext (ands: list<SequencePointInfoForBinding * bool * bool * SynPat * SynExpr * range>) =
             colPost sepNln sepNln
                 ands
-                (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> genExpr astContext expr)
+                (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> autoIndentNlnByFuture (genExpr astContext expr))
 
-        atCurrentColumn (ifElse isUse (!- "use! ") (!- "let! ")
-            +> genPat astContext p -- " = " +> genExpr astContext e1 +> sepNln
-            +> genAndList astContext ands
-            +> genExpr astContext e2
-        )
+        ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
+        +> autoIndentNlnByFuture (genExpr astContext e1)
+        +> sepNln
+        +> genAndList astContext ands
+        +> genExpr astContext e2
 
     | ParsingError r ->
         raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i"
@@ -1676,8 +1686,12 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
             match tdk with
             | TCSimple TCInterface -> Some range
             | _ -> None
+
         let astContext = { astContext with InterfaceRange = interfaceRange }
-        typeName +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq
+
+        let addSpaceAfterTypeName ctx = ctx.Config.SpaceBeforeClassConstructor
+
+        typeName +> ifElseCtx addSpaceAfterTypeName sepSpace sepNone +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq
         +> indent +> sepNln
         +> genTrivia tdr.Range
             (genTypeDefKind tdk
@@ -2272,13 +2286,14 @@ and genPat astContext pat =
         let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
         // Override escaped new keyword
         let s = if s = "``new``" then "new" else s
+
         match ps with
         | [] ->  aoc -- s +> tpsoc
         | [(_, PatTuple [p1; p2])] when s = "(::)" ->
             aoc +> genPat astContext p1 -- " :: " +> genPat astContext p2
         | [(ido, p) as ip] ->
             aoc +> infixOperatorFromTrivia pat.Range s +> tpsoc +>
-            ifElse (hasParenInPat p || Option.isSome ido) (ifElse (addSpaceBeforeParensInFunDef s p) sepBeforeArg sepNone) sepSpace
+            ifElse (hasParenInPat p || Option.isSome ido) (ifElseCtx (addSpaceBeforeParensInFunDef astContext s p) sepSpace sepNone) sepSpace
             +> ifElse (Option.isSome ido) (sepOpenT +> genPatWithIdent astContext ip +> sepCloseT) (genPatWithIdent astContext ip)
         // This pattern is potentially long
         | ps ->

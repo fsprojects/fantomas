@@ -18,7 +18,6 @@ type Arguments =
     | [<Unique>] Check
     | [<Unique;AltCommandLine("--pageWidth")>] PageWidth of int
     | [<Unique;AltCommandLine("--semicolonEOL")>] SemicolonEOL
-    | [<Unique;AltCommandLine("--noSpaceBeforeArgument")>] NoSpaceBeforeArgument
     | [<Unique;AltCommandLine("--spaceBeforeColon")>] SpaceBeforeColon
     | [<Unique;AltCommandLine("--noSpaceAfterComma")>] NoSpaceAfterComma
     | [<Unique;AltCommandLine("--noSpaceAfterSemiColon")>] NoSpaceAfterSemiColon
@@ -46,7 +45,6 @@ with
             | Check -> "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
             | PageWidth _ -> "Set the column where we break to new lines (default = 80). The value should be at least 60."
             | SemicolonEOL -> "Enable semicolons at the end of line (default = false)."
-            | NoSpaceBeforeArgument -> "Disable spaces before the first argument of functions when there are parenthesis (default = true). For methods and constructors, there are never spaces regardless of this option."
             | SpaceBeforeColon -> "Enable spaces before colons (default = false)."
             | NoSpaceAfterComma -> "Disable spaces after commas (default = true)."
             | NoSpaceAfterSemiColon -> "Disable spaces after semicolons (default = true)."
@@ -271,7 +269,6 @@ let main argv =
                 | Indent i -> { acc with IndentSpaceNum = i }
                 | PageWidth pw -> { acc with PageWidth = pw }
                 | SemicolonEOL -> { acc with SemicolonAtEndOfLine = true }
-                | NoSpaceBeforeArgument -> { acc with SpaceBeforeArgument = false }
                 | SpaceBeforeColon -> { acc with SpaceBeforeColon = true }
                 | NoSpaceAfterComma -> { acc with SpaceAfterComma = false }
                 | NoSpaceAfterSemiColon -> { acc with SpaceAfterSemicolon = false }

@@ -23,8 +23,7 @@ x.G[].TryFind 3
 """  ({ config with
           SpaceAfterComma = false
           SpaceAfterSemicolon = false
-          SpaceAroundDelimiter = false
-          SpaceBeforeArgument = false })
+          SpaceAroundDelimiter = false })
     |> prepend newline
     |> should equal """
 type F =

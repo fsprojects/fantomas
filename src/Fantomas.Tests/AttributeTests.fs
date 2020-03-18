@@ -112,9 +112,9 @@ and [<Test>] b () = 10""" config
     |> prepend newline
     |> should equal """
 [<Test>]
-let rec a() = 10
+let rec a () = 10
 
-and [<Test>] b() = 10
+and [<Test>] b () = 10
 """
 
 [<Test>]
@@ -190,7 +190,7 @@ let printInStyle (style: string) (msg): unit = jsNative
 let printModel model: unit = jsNative
 
 [<Emit("console.trace()")>]
-let printStackTrace(): unit = jsNative
+let printStackTrace (): unit = jsNative
 #endif
 
 let e2e value = Props.Data("e2e", value)
@@ -292,7 +292,7 @@ let main argv =
             SpaceAfterComma = false
             SpaceAfterSemicolon = false
             SpaceAroundDelimiter = false
-            SpaceBeforeArgument = false })
+            SpaceBeforeLowercaseInvocation = false })
     |> prepend newline
     |> should equal """
 open System
