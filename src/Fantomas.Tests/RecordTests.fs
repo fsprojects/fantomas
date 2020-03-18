@@ -243,8 +243,8 @@ let ``should preserve inherit parts in records multiline``() =
 type MyExc =
     inherit Exception
     new(msg) = {inherit Exception(msg)
-                X = 1
-                Y = 2}
+                XXXXXXXXXXXXXXXXXXXXXXXX = 1
+                YYYYYYYYYYYYYYYYYYYYYYYY = 2}
 """  config
   |> prepend newline
   |> should equal """
@@ -252,8 +252,8 @@ type MyExc =
     inherit Exception
     new(msg) =
         { inherit Exception(msg)
-          X = 1
-          Y = 2 }
+          XXXXXXXXXXXXXXXXXXXXXXXX = 1
+          YYYYYYYYYYYYYYYYYYYYYYYY = 2 }
 """
 
 [<Test>]

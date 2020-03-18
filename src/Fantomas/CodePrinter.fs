@@ -443,6 +443,9 @@ and preserveBreakNln astContext e ctx =
     breakNln astContext brk e ctx
 
 and preserveBreakNlnOrAddSpace astContext e ctx =
+    // TODO: change this helper function to use the new method to check if a newline is needed.
+    // so add a space and run the expression
+    // when it exists early, add the newline and run the expression again
     breakNlnOrAddSpace astContext (checkPreserveBreakForExpr e ctx) e ctx
 
 and addSpaceAfterGenericConstructBeforeColon ctx =
@@ -686,7 +689,7 @@ and genMemberBinding astContext b =
             prefix +> sepEq +> indent +> sepNln
             +> genExpr astContext e1 ++ "then " +> preserveBreakNln astContext e2 +> unindent
 
-        | e -> prefix +> sepEq +> preserveBreakNlnOrAddSpace astContext e
+        | e -> prefix +> sepEq +> autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     | b -> failwithf "%O isn't a member binding" b
     |> genTrivia b.RangeOfBindingSansRhs

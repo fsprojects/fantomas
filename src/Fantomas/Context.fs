@@ -205,6 +205,9 @@ let internal isShortExpression maxWidth (shortExpression: Context -> Context) (f
         // you should never hit this branch
         fallbackExpression ctx
 
+
+
+
 type Context with    
     member x.Column = x.WriterModel.Column
     member x.FinalizeModel = finalizeWriterModel x
@@ -482,6 +485,25 @@ let internal sepCloseT = !- ")"
 
 let internal eventsWithoutMultilineWrite ctx =
     { ctx with WriterEvents =  ctx.WriterEvents |> Queue.toSeq |> Seq.filter (function | Write s when s.Contains ("\n") -> false | _ -> true) |> Queue.ofSeq }
+
+/// try and write the expression on the remainder of the current line
+/// add an indent and newline if the expression is longer
+let internal autoNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
+    let shortExpressionContext = ctx.WithShortExpression(ctx.Config.PageWidth)
+    let resultContext = (sepSpace +> expr) shortExpressionContext
+    let fallbackExpression = indent +> sepNln +> expr
+
+    match resultContext.WriterModel.Mode with
+    | ShortExpression info ->
+        // verify the expression is not longer than allowed
+        if info.ConfirmedMultiline
+        then fallbackExpression ctx
+        else
+            { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
+    | _ ->
+        // you should never hit this branch
+        fallbackExpression ctx
+
 
 let internal autoNlnCheck (f: _ -> Context) sep (ctx : Context) =
     if not ctx.BreakLines then false else
