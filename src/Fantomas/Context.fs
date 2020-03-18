@@ -21,7 +21,6 @@ type WriterEvent =
 type ShortExpressionInfo =
     { MaxWidth: int
       StartColumn: int
-      PreviousEventCount: int
       ConfirmedMultiline: bool }
     member x.IsTooLong currentColumn = currentColumn - x.StartColumn > x.MaxWidth
 
@@ -163,7 +162,6 @@ type internal Context =
         let info =
             { MaxWidth = maxWidth
               StartColumn = Option.defaultValue x.WriterModel.Column startColumn
-              PreviousEventCount = Seq.length x.WriterEvents
               ConfirmedMultiline = false }
         { x with WriterModel = { x.WriterModel with Mode = ShortExpression(info) } }
 
