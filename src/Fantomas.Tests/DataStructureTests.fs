@@ -1393,7 +1393,7 @@ let DotNamedIndexedPropertySet () =
 """  config
     |> prepend newline
     |> should equal """
-(foo()).Item(key) <- value
+(foo ()).Item(key) <- value
 """
 
 [<Test>]
