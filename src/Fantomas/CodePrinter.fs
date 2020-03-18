@@ -861,7 +861,7 @@ and genExpr astContext synExpr =
         let shortRecordExpr =
             sepOpenS +>
             optSingle
-                (fun (inheritType, inheritExpr) -> !- "inherit " +> genType astContext false inheritType +> genExpr astContext inheritExpr +> ifElse (List.isNotEmpty xs) sepSemi sepSpace)
+                (fun (inheritType, inheritExpr) -> !- "inherit " +> genType astContext false inheritType +> genExpr astContext inheritExpr +> onlyIf (List.isNotEmpty xs) sepSemi)
                 inheritOpt +>
             optSingle (fun e -> genExpr astContext e +> !- " with ") eo +>
             col sepSemi xs (genRecordFieldName astContext) +>
