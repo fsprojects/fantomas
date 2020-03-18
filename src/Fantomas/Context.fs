@@ -491,7 +491,7 @@ let internal eventsWithoutMultilineWrite ctx =
 let internal autoNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
     let shortExpressionContext = ctx.WithShortExpression(ctx.Config.PageWidth, 0)
     let resultContext = (sepSpace +> expr) shortExpressionContext
-    let fallbackExpression = indent +> sepNln +> expr
+    let fallbackExpression = indent +> sepNln +> expr +> unindent
 
     match resultContext.WriterModel.Mode with
     | ShortExpression info ->
