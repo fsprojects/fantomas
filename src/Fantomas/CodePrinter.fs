@@ -443,9 +443,6 @@ and preserveBreakNln astContext e ctx =
     breakNln astContext brk e ctx
 
 and preserveBreakNlnOrAddSpace astContext e ctx =
-    // TODO: change this helper function to use the new method to check if a newline is needed.
-    // so add a space and run the expression
-    // when it exists early, add the newline and run the expression again
     breakNlnOrAddSpace astContext (checkPreserveBreakForExpr e ctx) e ctx
 
 and addSpaceAfterGenericConstructBeforeColon ctx =
