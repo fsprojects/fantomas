@@ -32,11 +32,11 @@ let ``type annotations``() =
     |> prepend newline
     |> should equal """
 let iterate1 (f: unit -> seq<int>) =
-    for e in f() do
+    for e in f () do
         printfn "%d" e
 
 let iterate2 (f: unit -> #seq<int>) =
-    for e in f() do
+    for e in f () do
         printfn "%d" e
 """
 
@@ -331,7 +331,7 @@ let CalculateFine (ticket : SpeedingTicket) =
 type SpeedingTicket() =
     member this.GetMPHOver(speed: int, limit: int) = speed - limit
 
-let CalculateFine(ticket: SpeedingTicket) =
+let CalculateFine (ticket: SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
     if delta < 20 then 50.0 else 100.0
 """
@@ -715,7 +715,7 @@ type A() =
         with set v =
             let x =
                 match _kbytes.GetAddress(8) with
-                | Some(x) -> x
+                | Some (x) -> x
                 | None -> null
             ignore x
 """
@@ -748,7 +748,7 @@ type Bar =
     member this.Item
         with get(i : string) = 
             match mo with
-            | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
+            | Some (m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null""" config
     |> prepend newline
     |> should equal """
@@ -757,13 +757,13 @@ type Bar =
     member this.Item
         with get (i: int) =
             match mo with
-            | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
+            | Some (m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null
 
     member this.Item
         with get (i: string) =
             match mo with
-            | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
+            | Some (m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null
 """
 
@@ -849,7 +849,7 @@ let ``type abbreviation augmentation``() =
 [<Test>]
 let ``operator in words should not print to symbol, 409`` () =
     formatSourceString false """type T() =
-    static member op_LessThan(a, b) = a < b""" config
+    static member op_LessThan(a, b) = a < b""" ({ config with SpaceBeforeMember = true })
     |> should equal """type T() =
     static member op_LessThan (a, b) = a < b
 """
@@ -1024,8 +1024,8 @@ open Swensen.Unquote
 type FormattingSpecs() =
 
     [<Fact>]
-    let ``true is true``() = test <@ true = true @>
+    let ``true is true`` () = test <@ true = true @>
 
     [<Fact>]
-    let ``false is false``() = test <@ false = false @>
+    let ``false is false`` () = test <@ false = false @>
 """

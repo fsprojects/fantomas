@@ -95,7 +95,7 @@ type A () =
 
 type A() =
     interface IA with
-        member x.F(f: unit -> _) = f()
+        member x.F(f: unit -> _) = f ()
 """
 
 [<Test>]
