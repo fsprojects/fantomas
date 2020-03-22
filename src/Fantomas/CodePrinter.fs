@@ -694,7 +694,7 @@ and genMemberBinding astContext b =
             prefix +> sepEq +> indent +> sepNln
             +> genExpr astContext e1 ++ "then " +> preserveBreakNln astContext e2 +> unindent
 
-        | e -> prefix +> sepEq +> autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        | e -> prefix +> sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     | b -> failwithf "%O isn't a member binding" b
     |> genTrivia b.RangeOfBindingSansRhs
@@ -788,11 +788,30 @@ and genExpr astContext synExpr =
     match synExpr with
     | SingleExpr(Lazy, e) ->
         // Always add braces when dealing with lazy
-        let addParens = hasParenthesis e || multiline e
+        let hasParenthesis = hasParenthesis e
+        let isInfixExpr =
+            match e with
+            | InfixApps _ -> true
+            | _ -> false
+
+        let genInfixExpr (ctx: Context) =
+            isShortExpression
+                ctx.Config.MaxInfixOperatorExpression
+                // if this fits on the rest of line right after the lazy keyword, it should be wrapped in parenthesis.
+                (sepOpenT +> genExpr astContext e +> sepCloseT)
+                // if it is multiline there is no need for parenthesis, because of the indentation
+                (indent +> sepNln +> genExpr astContext e +> unindent)
+                ctx
+
+        let genNonInfixExpr =
+            autoIndentAndNlnIfExpressionExceedsPageWidth
+                           (onlyIfNot hasParenthesis sepOpenT
+                            +> genExpr astContext e
+                            +> onlyIfNot hasParenthesis sepCloseT)
+
         str "lazy "
-        +> ifElse addParens id sepOpenT
-        +> breakNln astContext (multiline e) e
-        +> ifElse addParens id sepCloseT
+        +> ifElse isInfixExpr genInfixExpr genNonInfixExpr
+
     | SingleExpr(kind, e) -> str kind +> genExpr astContext e
     | ConstExpr(c,r) -> genConst c r
     | NullExpr -> !- "null"
@@ -854,10 +873,7 @@ and genExpr astContext synExpr =
                 (sepOpenL +> atCurrentColumn (leaveLeftBrack alNode.Range +> expr) +> enterRightBracket alNode.Range +> sepCloseL)
             <| ctx
 
-
     | Record(inheritOpt, xs, eo) ->
-        let shortRecordWidth = 40
-
         let shortRecordExpr =
             sepOpenS +>
             optSingle
@@ -867,12 +883,12 @@ and genExpr astContext synExpr =
             col sepSemi xs (genRecordFieldName astContext) +>
             sepCloseS
 
-        isShortExpression shortRecordWidth shortRecordExpr (fun ctx ->
+        let multilineRecordExpr ctx =
             let recordExpr =
-                let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
-                eo |> Option.map (fun e ->
-                    genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
-                |> Option.defaultValue fieldsExpr
+                    let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
+                    eo |> Option.map (fun e ->
+                        genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+                    |> Option.defaultValue fieldsExpr
 
             let expr =
                 sepOpenS
@@ -893,7 +909,8 @@ and genExpr astContext synExpr =
                 +> sepCloseS
 
             expr ctx
-        )
+
+        fun ctx -> isShortExpression ctx.Config.MaxRecordWidth shortRecordExpr multilineRecordExpr ctx
 
     | AnonRecord(isStruct, fields, copyInfo) ->
         let recordExpr =
@@ -1004,16 +1021,20 @@ and genExpr astContext synExpr =
     | PrefixApp(s, e) -> !- s +> genExpr astContext e
     // Handle spaces of infix application based on which category it belongs to
     | InfixApps(e, es) ->
-        // Only put |> on the same line in a very trivial expression
+        let sepAfterExpr f =
+            match es with
+            | [] -> sepNone
+            | (s,_,_)::_ when ((NoBreakInfixOps.Contains s)) -> sepSpace
+            | (s,_,_)::_ when ((NoSpaceInfixOps.Contains s)) -> sepNone
+            | _ -> f
 
-        // checkNewLine will in some scenarios, call multiline to see if an expression is already multiline and required a newline before |>
-        // In the case of a record (see test ``|> should be on the next line if preceding expression is multiline``), that check has been remove as it only checked if the record had more than 1 field.
-        // so I think we need a construct that tells us if the previous expression was multiline
-        // something along the lines of:
-        // let precedingMultilineExpression (precedingExpression: ctx -> ctx) (f: bool -> ctx -> ctx) (ctx: Context) =
-        // ...
-
-        atCurrentColumn (genExpr astContext e +> genInfixApps astContext (checkNewLine e es) es)
+        atCurrentColumn
+            (fun ctx ->
+                 isShortExpression
+                    ctx.Config.MaxInfixOperatorExpression
+                    (genExpr astContext e +> sepAfterExpr sepSpace +> genInfixAppsShort astContext es)
+                    (genExpr astContext e +> sepAfterExpr sepNln +> genInfixApps astContext es)
+                    ctx)
 
     | TernaryApp(e1,e2,e3) ->
         atCurrentColumn (genExpr astContext e1 +> !- "?" +> genExpr astContext e2 +> sepSpace +> !- "<-" +> sepSpace +> genExpr astContext e3)
@@ -1075,15 +1096,27 @@ and genExpr astContext synExpr =
                         |> List.tryFind (fun (er, _) -> er = e.Range)
                         |> Option.map (snd >> (fun lid -> genTrivia lid.idRange))
                         |> Option.defaultValue (id)
+                    let currentIdentifier = genTriviaOfIdent (!- (sprintf ".%s" s))
 
-                    let hasParenthe = hasParenthesis e
-                    let writeExpr = ((genTriviaOfIdent (!- (sprintf ".%s" s))) +> ifElse hasParenthe sepNone sepSpace
-                                     +> (fun ctx ->
-                                            let hasFutureNln = futureNlnCheck (genExpr astContext e) ctx
-                                            let whenNln = ifElse hasParenthe (indent +> sepNln +> genExpr astContext e +> unindent) (sepNln +> genExpr astContext e)
-                                            ctx
-                                            |> ifElse hasFutureNln whenNln (genExpr astContext e)
-                                     ))
+                    let hasParenthesis = hasParenthesis e
+
+                    let shortExpr =
+                        (currentIdentifier
+                         +> ifElse hasParenthesis sepNone sepSpace
+                         +> genExpr astContext e)
+
+                    let fallBackExpr =
+                        onlyIf hasParenthesis sepNln
+                        +> currentIdentifier
+                        +> ifElse hasParenthesis sepNone sepSpace
+                        +> expressionFitsOnRestOfLine
+                                (genExpr astContext e)
+                                (ifElse hasParenthesis
+                                    (indent +> sepNln +> genExpr astContext e +> unindent)
+                                    (sepNln +> genExpr astContext e))
+
+                    let writeExpr =
+                         expressionFitsOnRestOfLine shortExpr fallBackExpr
 
                     let addNewlineIfNeeded (ctx: Context) =
                         if ctx.Config.KeepNewlineAfter then
@@ -1099,7 +1132,7 @@ and genExpr astContext synExpr =
                             // If the line before ended with a line comment, it should add a newline
                             (ifElse (hasLineCommentOn (currentExprRange.EndLine - 1)) sepNln sepNone) ctx
 
-                    addNewlineIfNeeded +> autoNln writeExpr))
+                    addNewlineIfNeeded +> writeExpr))
             +> unindent
             <| ctx
 
@@ -1519,46 +1552,49 @@ and genLetOrUseList astContext expr =
 
     | _ -> sepNone
 
-/// When 'hasNewLine' is set, the operator is forced to be in a new line
-and genInfixApps astContext (hasNewLine:bool) synExprs (ctx:Context) =
-    let expr =
-        match synExprs with
-        | (s, opE, e)::es when (NoBreakInfixOps.Contains s) ->
-            (sepSpace +> tok opE.Range s
-             +> (fun ctx ->
+and genInfixAppsShort astContext synExprs =
+    col sepSpace synExprs (fun (s, opE, e) -> genInfixApp s opE e astContext)
+
+and genInfixApps astContext synExprs =
+    colEx
+        (fun (s, _, _) ->
+            if (NoBreakInfixOps.Contains s)
+            then sepSpace
+            else sepNln
+        )
+        synExprs
+        (fun (s, opE, e) -> genInfixApp s opE e astContext)
+
+and genInfixApp s (opE: SynExpr) e astContext =
+    if (NoBreakInfixOps.Contains s) then
+        (sepSpace
+         +> tok opE.Range s
+         +> (fun ctx ->
                     let isEqualOperator =
                         match opE with
                         | SynExpr.Ident(Ident("op_Equality")) -> true
                         | _ -> false
                     let genExpr =
-                        if isEqualOperator && (futureNlnCheck (genExpr astContext e) ctx) then
-                            indent +> sepNln +> genExpr astContext e +> unindent
+                        if isEqualOperator then
+                            autoIndentAndNlnIfExpressionExceedsPageWidth (sepSpace +> genExpr astContext e)
                         else
                             sepSpace +> genExpr astContext e
                     genExpr ctx))
-            +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
-        | (s, opE, e)::es when(hasNewLine) ->
-            (sepNln +> (tok opE.Range s |> genTrivia opE.Range) +> sepSpace +> genExpr astContext e)
-            +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
-        | (s, opE, e)::es when(NoSpaceInfixOps.Contains s) ->
-            let wrapExpr f =
-                match synExprs with
-                | ("?", SynExpr.Ident(Ident("op_Dynamic")), SynExpr.Ident(_))::_ ->
-                    sepOpenT +> f +> sepCloseT
-                | _ -> f
-            (tok opE.Range s +> autoNln (wrapExpr (genExpr astContext e)))
-            +> genInfixApps astContext (hasNewLine || checkNewLine e es) es
-        | (s, opE, e)::es ->
-            let hasLineCommentAfter =
-                TriviaHelpers.``has content after after that matches``
-                    (fun ({ Range = r }) -> r.EndLine = e.Range.EndLine && r.EndColumn = e.Range.EndColumn)
-                    (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
-                    ctx.Trivia
+    elif (NoSpaceInfixOps.Contains s) then
+        let wrapExpr f =
+            match (s, opE, e) with
+            | ("?", SynExpr.Ident(Ident("op_Dynamic")), SynExpr.Ident(_)) ->
+                sepOpenT +> f +> sepCloseT
+            | _ -> f
+        (tok opE.Range s +> autoNlnIfExpressionExceedsPageWidth (wrapExpr (genExpr astContext e)))
+    else
+        (fun ctx ->
+            let hasLineCommentAfterInfix = hasLineCommentAfterInfix opE.Range ctx
+            (tok opE.Range s
+             +> ifElse hasLineCommentAfterInfix sepNln sepSpace
+             +> genExpr astContext e) ctx)
 
-            (sepSpace +> autoNln (tok opE.Range s +> sepSpace +> genCommentsAfterInfix (Some opE.Range) +> genExpr astContext e))
-            +> genInfixApps astContext (hasNewLine || checkNewLine e es || hasLineCommentAfter) es
-        | [] -> sepNone
-    expr ctx
+    |> genTrivia e.Range
 
 /// Use in indexed set and get only
 and genIndexers astContext node =

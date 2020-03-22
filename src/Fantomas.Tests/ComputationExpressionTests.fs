@@ -91,7 +91,7 @@ let ``range expressions``() =
     formatSourceString false """
 let factors number = 
     {2L .. number / 2L}
-    |> Seq.filter (fun x -> number % x = 0L)""" config
+    |> Seq.filter (fun x -> number % x = 0L)""" ({ config with MaxInfixOperatorExpression = 65 })
     |> prepend newline
     |> should equal """
 let factors number = { 2L .. number / 2L } |> Seq.filter (fun x -> number % x = 0L)

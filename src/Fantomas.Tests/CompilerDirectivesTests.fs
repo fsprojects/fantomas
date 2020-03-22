@@ -381,7 +381,7 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
     | Some key' -> assemblyName.HasPublicKey <- true
                    assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
-"""  config
+"""  ({ config with MaxInfixOperatorExpression = 75 })
     |> should equal """let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
     let assemblyName = assembly.Name
 #if NETCOREAPP2_0
@@ -1004,6 +1004,26 @@ let foo =
     |> List.sort
 #if DEBUG
     |> List.rev
+#endif
+    |> List.sort
+"""
+
+[<Test>]
+let ``preserve compile directive between piped functions, DEBUG`` () =
+    formatSourceStringWithDefines [] """let foo = [ 1 ]
+            |> List.sort
+#if DEBUG
+            |> List.rev
+#endif
+            |> List.sort
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo =
+    [ 1 ]
+    |> List.sort
+#if DEBUG
+
 #endif
     |> List.sort
 """

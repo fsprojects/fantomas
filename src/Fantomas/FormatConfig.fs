@@ -30,6 +30,8 @@ type FormatConfig =
       SpaceAroundDelimiter : bool
       KeepNewlineAfter : bool
       MaxIfThenElseShortWidth: Num
+      MaxInfixOperatorExpression: Num
+      MaxRecordWidth: Num
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -51,6 +53,8 @@ type FormatConfig =
           SpaceAroundDelimiter = true
           KeepNewlineAfter = false
           MaxIfThenElseShortWidth = 40
+          MaxInfixOperatorExpression = 50
+          MaxRecordWidth =40
           StrictMode = false }
 
     static member applyOptions(currentConfig, options) =
@@ -67,4 +71,3 @@ type FormatConfigFileParseResult =
     | Success of FormatConfig
     | PartialSuccess of config: FormatConfig * warnings: string list
     | Failure of exn
-

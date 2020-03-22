@@ -693,9 +693,22 @@ let (|TernaryApp|_|) = function
 let (|InfixApps|_|) e =
     let rec loop synExpr = 
         match synExpr with
-        | InfixApp(s, opE, e, e2) -> 
+        | InfixApp(s, opE, e, e2) ->
             let (e1, es) = loop e
-            (e1, (s, opE, e2)::es)
+
+            match es with
+            | [] ->
+                let (t1, ts) = loop e2
+                match ts with
+                | [] ->
+                    (e1, (s, opE, e2)::es)
+                | ts ->
+                    // example code that leads to this:
+                    // let foo =
+                    //     a & b |> c |> d
+                    (e1, ts @ [(s, opE, t1)])
+            | _ ->
+                (e1, (s, opE, e2)::es)
         | e -> (e, [])
     match loop e with
     | (_, []) -> None

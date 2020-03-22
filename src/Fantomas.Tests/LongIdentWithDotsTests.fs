@@ -111,7 +111,8 @@ let main _ =
                 .ConfigureAppConfiguration
                     (Action<WebHostBuilderContext, IConfigurationBuilder> configureAppConfiguration)
                 .ConfigureServices(Action<WebHostBuilderContext, IServiceCollection> configureServices)
-                .Configure(Action<IApplicationBuilder> configureApp).Build().Run() |> ignore
+                .Configure(Action<IApplicationBuilder> configureApp).Build().Run()
+            |> ignore
 
             0
         with ex ->

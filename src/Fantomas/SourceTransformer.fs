@@ -60,12 +60,6 @@ let rec multiline synExpr =
     | App(e, (ConstExpr c :: _)) ->
         multiline e || isConstMultiline c
 
-    // An infix app is multiline if it contains at least two new line infix ops
-    | InfixApps(e, es) ->
-        multiline e
-        || not (List.atMostOne (List.filter ((fun (x,_,_)->x) >> NewLineInfixOps.Contains) es))
-        || List.exists ((fun (_,_,x)->x) >> multiline) es
-    
     | App(e1, es) ->
         let multilineEl = multiline e1
         let anyMultilineChildren = List.exists multiline es

@@ -253,7 +253,8 @@ let f x =
     |> prepend newline
     |> should equal """
 let f x =
-    a || // other case
+    a
+    || // other case
     match n with
     | 17 -> false
     | _ -> true

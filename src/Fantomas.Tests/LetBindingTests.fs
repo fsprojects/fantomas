@@ -209,7 +209,7 @@ let ``newlines inside let binding should be not duplicated`` () =
         if not animating then activeIndex.update ((activeIndex.current + itemLength - 1) % itemLength)
 
     ()
-"""  config
+"""  ({ config with MaxInfixOperatorExpression = 60 })
     |> should equal """let foo =
     let next _ =
         if not animating then activeIndex.update ((activeIndex.current + 1) % itemLength)

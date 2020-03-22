@@ -200,7 +200,15 @@ type rate2 = Rate of float<GBP / SGD * USD>
 
 [<Test>]
 let ``should keep comments on records``() =
-    shouldNotChangeAfterFormat """
+    formatSourceString false """
+let newDocument = //somecomment
+    { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
+      content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
+      created = document.Created.ToLocalTime() }
+    |> JsonConvert.SerializeObject
+"""  ({ config with MaxInfixOperatorExpression = 75 })
+  |> prepend newline
+  |> should equal """
 let newDocument = //somecomment
     { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
       content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
@@ -542,8 +550,7 @@ let expect =
     |> prepend newline
     |> should equal """
 let expect =
-    Result<int, string>
-        .Ok
+    Result<int, string>.Ok
         [ "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
           "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
           "meh" ]
@@ -686,7 +693,7 @@ let myInstance =
 """
 
 [<Test>]
-let ``multiline in record field should shortcurcuit short expression check`` () =
+let ``multiline in record field should short circuit short expression check`` () =
     formatSourceString false """
 let a =
     { B =

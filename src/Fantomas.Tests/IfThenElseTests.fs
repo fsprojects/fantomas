@@ -664,7 +664,7 @@ elif strA.String == strB.String && strA.Offset = strB.Offset then
 
 else
     -1
-"""  config
+"""  ({ config with MaxInfixOperatorExpression = 55 })
     |> prepend newline
     |> should equal """
 if strA.Length = 0 && strB.Length = 0 then

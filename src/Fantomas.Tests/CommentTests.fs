@@ -588,7 +588,7 @@ type substring =
                 strB.String, strB.Offset,
                 min strA.Length strB.Length)
 #endif
-"""  config
+"""  ({ config with MaxInfixOperatorExpression = 60 })
     |> should equal """(*
 
 Copyright 2010-2012 TidePowerd Ltd.
