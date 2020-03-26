@@ -291,6 +291,52 @@ that formats the string in input and prints it.
 
 There is a [YouTube video series](https://www.youtube.com/playlist?list=PLvw_J2kfZCX3Mf6tEbIPZXbzJOD1VGl4K) on how Fantomas internally works.
 
+### Ionide
+
+When you want to contribute to this project in VSCode with Ionide, there  is a trick you need to know to debug Unit tests.
+
+After checking out the repository, open a terminal and set the `VSTEST_HOST_DEBUG` environment variable to `1`.
+
+In PowerShell:
+
+> $env:VSTEST_HOST_DEBUG=1
+
+or in Bash:
+
+> VSTEST_HOST_DEBUG=1
+
+Run a single unit test with `dotnet test --filter`.
+
+> cd .\src\Fantomas.Tests\
+> dotnet test --filter "record declaration"
+
+The output looks like:
+
+```
+Test run for C:\Temp\fantomas\src\Fantomas.Tests\bin\Debug\netcoreapp3.1\Fantomas.Tests.dll(.NETCoreApp,Version=v3.1)
+Microsoft (R) Test Execution Command Line Tool Version 16.3.0
+Copyright (c) Microsoft Corporation.  All rights reserved.
+
+Starting test execution, please wait...
+
+A total of 1 test files matched the specified pattern.
+Host debugging is enabled. Please attach debugger to testhost process to continue.
+Process Id: 20312, Name: dotnet
+```
+
+And we can now attach to the unit testing process.
+
+![Run .NET Core Attach ](./docs/fantomas-debug-vscode-1.png)
+
+![Choose process id](./docs/fantomas-debug-vscode-2.png)
+
+**Press the play button once the process has been chosen!**
+This might be a bit strange but you need to press play in order for the debugger to start working.
+
+![Hit the breakpoint](./docs/fantomas-debug-vscode-3.png)
+
+Check out this [video fragment]() to see this in action.
+
 ## Credits
 We would like to gratefully thank the following persons for their contributions.
  - [Eric Taucher](https://github.com/EricGT)
