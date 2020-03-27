@@ -69,7 +69,8 @@ let private badgeSample =
                 [ h3 []
                       [ str "Heading "
                         Badge.badge [ Badge.Color Secondary ] [ str "New" ] ]
-                  Badge.badge [ Badge.Color Warning ] [ str "oh my" ] ]), "BadgeSample")
+                  Badge.badge [ Badge.Color Warning ] [ str "oh my" ] ]),
+         "BadgeSample")
 
 exportDefault badgeSample
 """

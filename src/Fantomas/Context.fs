@@ -475,23 +475,29 @@ let internal eventsWithoutMultilineWrite ctx =
     { ctx with WriterEvents =  ctx.WriterEvents |> Queue.toSeq |> Seq.filter (function | Write s when s.Contains ("\n") -> false | _ -> true) |> Queue.ofSeq }
 
 let private shortExpressionWithFallback (shortExpression: Context -> Context) (fallbackExpression) maxWidth startColumn (ctx: Context) =
-    // create special context that will process the writer events slightly different
-    let shortExpressionContext =
-        match startColumn with
-        | Some sc -> ctx.WithShortExpression(maxWidth, sc)
-        | None -> ctx.WithShortExpression(maxWidth)
-
-    let resultContext = shortExpression shortExpressionContext
-    match resultContext.WriterModel.Mode with
-    | ShortExpression info ->
-        // verify the expression is not longer than allowed
-        if info.ConfirmedMultiline || info.IsTooLong resultContext.Column
-        then fallbackExpression ctx
-        else
-            { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
+    // if the context is already inside a ShortExpression mode and tries to figure out if the expression will go over the page width,
+    // we should try the shortExpression in this case.
+    match ctx.WriterModel.Mode with
+    | ShortExpression _ when (maxWidth = ctx.Config.PageWidth) ->
+        shortExpression ctx
     | _ ->
-        // you should never hit this branch
-        fallbackExpression ctx
+        // create special context that will process the writer events slightly different
+        let shortExpressionContext =
+            match startColumn with
+            | Some sc -> ctx.WithShortExpression(maxWidth, sc)
+            | None -> ctx.WithShortExpression(maxWidth)
+
+        let resultContext = shortExpression shortExpressionContext
+        match resultContext.WriterModel.Mode with
+        | ShortExpression info ->
+            // verify the expression is not longer than allowed
+            if info.ConfirmedMultiline || info.IsTooLong resultContext.Column
+            then fallbackExpression ctx
+            else
+                { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
+        | _ ->
+            // you should never hit this branch
+            fallbackExpression ctx
 
 
 let internal isShortExpression maxWidth (shortExpression: Context -> Context) (fallbackExpression) (ctx: Context) =
@@ -509,20 +515,26 @@ let internal leadingExpressionLong threshold leadingExpression continuationExpre
 
 
 let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
-    let shortExpressionContext = ctx.WithShortExpression(ctx.Config.PageWidth, 0)
-    let resultContext = (beforeShort +> expr +> afterShort) shortExpressionContext
-    let fallbackExpression = beforeLong +> expr +> afterLong
-
-    match resultContext.WriterModel.Mode with
-    | ShortExpression info ->
-        // verify the expression is not longer than allowed
-        if info.ConfirmedMultiline
-        then fallbackExpression ctx
-        else
-            { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
+    // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
+    match ctx.WriterModel.Mode with
+    | ShortExpression _ ->
+        // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
+        (beforeShort +> expr +> afterShort) ctx
     | _ ->
-        // you should never hit this branch
-        fallbackExpression ctx
+        let shortExpressionContext = ctx.WithShortExpression(ctx.Config.PageWidth, 0)
+        let resultContext = (beforeShort +> expr +> afterShort) shortExpressionContext
+        let fallbackExpression = beforeLong +> expr +> afterLong
+
+        match resultContext.WriterModel.Mode with
+        | ShortExpression info ->
+            // verify the expression is not longer than allowed
+            if info.ConfirmedMultiline
+            then fallbackExpression ctx
+            else
+                { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
+        | _ ->
+            // you should never hit this branch
+            fallbackExpression ctx
 
 /// try and write the expression on the remainder of the current line
 /// add an indent and newline if the expression is longer

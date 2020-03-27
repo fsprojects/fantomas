@@ -18,13 +18,33 @@ let ``long named arguments should go on newline`` () =
     |> should equal """
 let view (model: Model) dispatch =
     View.ContentPage
-        (appearing = (fun () -> dispatch PageAppearing), title = model.Planet.Info.Name, backgroundColor = Color.Black,
+        (appearing = (fun () -> dispatch PageAppearing),
+         title = model.Planet.Info.Name,
+         backgroundColor = Color.Black,
          content =
              [ "....long line....................................................................................................." ])
 """
 
 [<Test>]
-[<Ignore("Something is definitely wrong here")>]
+let ``single view entry`` () =
+    formatSourceString false """
+let a =
+    View.Entry(
+                                    placeholder = "User name",
+                                    isEnabled = (not model.IsSigningIn),
+                                    textChanged = (fun args -> (dispatch (UserNameChanged args.NewTextValue))))
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    View.Entry
+        (placeholder = "User name",
+         isEnabled = (not model.IsSigningIn),
+         textChanged = (fun args -> (dispatch (UserNameChanged args.NewTextValue))))
+"""
+
+[<Test>]
+[<Ignore("tests works but takes way too long")>]
 let ``fabulous view`` () =
     formatSourceString false """
     let loginPage =
@@ -79,20 +99,24 @@ let loginPage =
                                        View.StackLayout
                                            (children =
                                                [ View.Entry
-                                                   (placeholder = "User name", isEnabled = (not model.IsSigningIn),
+                                                   (placeholder = "User name",
+                                                    isEnabled = (not model.IsSigningIn),
                                                     textChanged =
                                                         (fun args -> (dispatch (UserNameChanged args.NewTextValue))))
                                                  View.Entry
-                                                     (placeholder = "Password", isPassword = true,
+                                                     (placeholder = "Password",
+                                                      isPassword = true,
                                                       isEnabled = (not model.IsSigningIn),
                                                       textChanged =
                                                           (fun args -> (dispatch (PasswordChanged args.NewTextValue))))
                                                  View.Button
-                                                     (text = "Sign in", heightRequest = 30.0,
+                                                     (text = "Sign in",
+                                                      heightRequest = 30.0,
                                                       isVisible = (not model.IsSigningIn),
                                                       command = (fun () -> dispatch SignIn),
                                                       canExecute = model.IsCredentialsProvided)
                                                  View.ActivityIndicator
-                                                     (isRunning = true, heightRequest = 30.0,
+                                                     (isRunning = true,
+                                                      heightRequest = 30.0,
                                                       isVisible = model.IsSigningIn) ])) ])))
 """

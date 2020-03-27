@@ -299,6 +299,11 @@ let addParenIfAutoNln synExpr f ctx =
     let expr = f synExpr
     ifElse (autoNlnCheck expr sepNone ctx && not (hasParenthesis synExpr)) (sepOpenT +> expr +> sepCloseT) expr ctx
 
-let addParenWhen condition f synExpr ctx =
+let addParenForTupleWhen f synExpr ctx =
+    let condition e =
+        match e with
+        |ElIf _
+        | FSharp.Compiler.Ast.SynExpr.Lambda _ -> true
+        |_ -> false // "if .. then .. else" have precedence over ","
     let expr = f synExpr
     ifElse (condition synExpr) (sepOpenT +> expr +> sepCloseT) expr ctx

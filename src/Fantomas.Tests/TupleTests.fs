@@ -19,9 +19,11 @@ let private carouselSample =
 [<Test>]
 let ``multiline item in tuple - paren on its line`` () =
     formatSourceString false """(x,
- if true then 1
- else 2)
+ if longExpressionMakingTheIfElseMultiline && a then answerWhenTheConditionIsTrue
+ else answerWhenTheConditionIsFalse)
 """  config
     |> should equal """(x,
- (if true then 1 else 2))
+ (if longExpressionMakingTheIfElseMultiline && a
+  then answerWhenTheConditionIsTrue
+  else answerWhenTheConditionIsFalse))
 """

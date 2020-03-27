@@ -760,16 +760,11 @@ and genAnonRecordFieldName astContext (AnonRecordFieldName(s, e)) =
     !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e
 
 and genTuple astContext es =
-    atCurrentColumn (coli sepComma es (fun i e ->
-            let f =
-                addParenWhen (fun e ->
-                    match e with
-                    |ElIf _
-                    | SynExpr.Lambda _ -> true
-                    |_ -> false) // "if .. then .. else" have precedence over ","
-                    (genExpr astContext)
-            if i = 0 then f e else noIndentBreakNlnFun f e
-        ))
+    let f = addParenForTupleWhen (genExpr astContext)
+    let shortExpression = col sepComma es f
+    let longExpression = col (sepComma +> sepNln) es f
+
+    atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
 
 and genExpr astContext synExpr =
     let appNlnFun e =

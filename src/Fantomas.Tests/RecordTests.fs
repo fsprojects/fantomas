@@ -179,9 +179,23 @@ let rec make item depth =
     if depth > 0 then
         Tree
             ({ Left = make (2 * item - 1) (depth - 1)
-               Right = make (2 * item) (depth - 1) }, item)
+               Right = make (2 * item) (depth - 1) },
+             item)
     else
         Tree(defaultof<_>, item)
+"""
+
+[<Test>]
+let ``record inside DU constructor`` () =
+    formatSourceString false """let a = Tree({ Left = make (2 * item - 1) (depth - 1); Right = make (2 * item) (depth - 1) }, item)
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    Tree
+        ({ Left = make (2 * item - 1) (depth - 1)
+           Right = make (2 * item) (depth - 1) },
+         item)
 """
 
 [<Test>]
