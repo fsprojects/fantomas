@@ -32,6 +32,7 @@ type FormatConfig =
       MaxIfThenElseShortWidth: Num
       MaxInfixOperatorExpression: Num
       MaxRecordWidth: Num
+      MaxArrayOrListWidth: Num
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -54,7 +55,8 @@ type FormatConfig =
           KeepNewlineAfter = false
           MaxIfThenElseShortWidth = 40
           MaxInfixOperatorExpression = 50
-          MaxRecordWidth =40
+          MaxRecordWidth = 40
+          MaxArrayOrListWidth = 40
           StrictMode = false }
 
     static member applyOptions(currentConfig, options) =

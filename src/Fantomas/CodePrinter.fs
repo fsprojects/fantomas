@@ -829,49 +829,21 @@ and genExpr astContext synExpr =
     | StructTuple es -> !- "struct " +> sepOpenT +> genTuple astContext es +> sepCloseT
     | ArrayOrList(isArray, [], _) ->
         ifElse isArray (sepOpenAFixed +> sepCloseAFixed) (sepOpenLFixed +> sepCloseLFixed)
-    | ArrayOrList(isArray, xs, isSimple) as alNode ->
-        let isMultiline (ctx:Context) =
-            xs
-            |> List.fold (fun (isMultiline, f) e ->
-                if isMultiline || futureNlnCheck (f +> genExpr astContext e) ctx then
-                    true, sepNone
-                else
-                    false, f +> genExpr astContext e
-            ) (false,sepNone)
-            |> fst
+    | ArrayOrList(isArray, xs, _) as alNode ->
+        let shortExpression =
+            ifElse isArray sepOpenA sepOpenL
+            +> col sepSemi xs (genExpr astContext)
+            +> ifElse isArray sepCloseA sepCloseL
 
-        let sep = ifElse isSimple sepSemi sepSemiNln
+        let fallbackExpression =
+            ifElse isArray sepOpenA sepOpenL
+            +> atCurrentColumn
+                   ((ifElse isArray (leaveLeftBrackBar alNode.Range) (leaveLeftBrack alNode.Range))
+                    +> col sepSemiNln xs (genExpr astContext))
+            +> ifElse isArray (enterRightBracketBar alNode.Range) (enterRightBracket alNode.Range)
+            +> ifElse isArray sepCloseA sepCloseL
 
-        let hasLineCommentAfter range (ctx:Context) =
-            ctx.Trivia
-            |> List.tryFind (fun t -> t.Range = range)
-            |> Option.map (fun t -> List.exists (fun tc -> match tc with | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false) t.ContentAfter)
-            |> Option.defaultValue false
-
-        let isLastItem (x:SynExpr) =
-            List.tryLast xs
-            |> Option.map (fun i -> i.Range = x.Range)
-            |> Option.defaultValue false
-
-        fun ctx ->
-            let isArrayOrListMultiline = isMultiline ctx
-            let expr =
-                 xs
-                 |> List.fold (fun acc e ->
-                     fun (ctx: Context) ->
-                        let isLastItem = isLastItem e
-                        if isArrayOrListMultiline then
-                            (acc +> genExpr astContext e +> ifElse isLastItem sepNone sepNln) ctx
-                        else
-                            let hasLineComment = hasLineCommentAfter e.Range ctx
-                            let afterExpr = ifElse isLastItem sepNone (ifElse hasLineComment sepNln sep)
-                            (acc +> genExpr astContext e +> afterExpr) ctx
-                 ) sepNone
-                 |> atCurrentColumn
-            ifElse isArray
-                (sepOpenA +> atCurrentColumn (leaveLeftBrackBar alNode.Range +> expr) +> enterRightBracketBar alNode.Range +> sepCloseA)
-                (sepOpenL +> atCurrentColumn (leaveLeftBrack alNode.Range +> expr) +> enterRightBracket alNode.Range +> sepCloseL)
-            <| ctx
+        fun ctx -> isShortExpression ctx.Config.MaxArrayOrListWidth shortExpression fallbackExpression ctx
 
     | Record(inheritOpt, xs, eo) ->
         let shortRecordExpr =

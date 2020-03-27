@@ -75,7 +75,5 @@ let prefetchImages =
 let prefetchImages =
     [ playerOImage; playerXImage ]
     |> List.map (fun img ->
-        link
-            [ Rel "prefetch"
-              Href img ])
+        link [ Rel "prefetch"; Href img ])
 """    
