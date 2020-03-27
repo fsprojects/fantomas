@@ -312,11 +312,16 @@ let ``member properties with type annotation``() =
     formatSourceString false """type A() =
     member this.X with get():int = 1
     member this.Y with get():int = 1 and set (_:int):unit = ()
+    member this.Z with set (_:int):unit = () and get():int = 1
 """  config
     |> should equal """type A() =
     member this.X: int = 1
 
     member this.Y
+        with get (): int = 1
+        and set (_: int): unit = ()
+
+    member this.Z
         with get (): int = 1
         and set (_: int): unit = ()
 """
