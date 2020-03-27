@@ -462,13 +462,7 @@ and addSpaceAfterGenericConstructBeforeColon ctx =
         sepNone
     <| ctx
 
-and genExprSepEqPrependType (genPat: Context -> Context) astContext prefix (pat:SynPat) e ctx =
-
-    let multilineCheck =
-        match e with
-        | MatchLambda _ -> false
-        | _ -> futureNlnCheck (genExpr astContext e) ctx
-
+and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (isPrefixMultiline: bool) ctx =
     let hasTriviaContentAfterEqual =
         ctx.Trivia
         |> List.exists (fun tn ->
@@ -478,7 +472,7 @@ and genExprSepEqPrependType (genPat: Context -> Context) astContext prefix (pat:
             | _ -> false
         )
 
-    let sepEqual isPrefixMultiline = ifElse isPrefixMultiline (indent +> sepNln +> !- "=" +> unindent) sepEq
+    let sepEqual predicate = ifElse predicate (indent +> sepNln +> !- "=" +> unindent) (sepEq +> sepSpace)
 
     match e with
     | TypedExpr(Typed, e, t) ->
@@ -488,21 +482,34 @@ and genExprSepEqPrependType (genPat: Context -> Context) astContext prefix (pat:
                 addSpaceAfterGenericConstructBeforeColon
             | _ -> sepNone
 
+        let hasLineCommentBeforeColon = TriviaHelpers.``has line comment before`` t.Range ctx.Trivia
+
         let genCommentBeforeColon ctx =
-            let hasLineComment = TriviaHelpers.``has line comment before`` t.Range ctx.Trivia
-            (ifElse hasLineComment indent sepNone
+            (ifElse hasLineCommentBeforeColon indent sepNone
              +> enterNode t.Range
-             +> ifElse hasLineComment unindent sepNone) ctx
+             +> ifElse hasLineCommentBeforeColon unindent sepNone) ctx
 
-        let isPrefixMultiline = futureNlnCheck (genPat +> genType astContext false t) ctx
-
-        (prefix +> addExtraSpaceBeforeGenericType
-        +> genCommentBeforeColon
-        +> sepColon +> genType astContext false t +> sepEqual isPrefixMultiline
-        +> breakNlnOrAddSpace astContext (hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
+        (addExtraSpaceBeforeGenericType
+         +> genCommentBeforeColon
+         +> sepColon
+         +> genType astContext false t
+         +> sepEqual (isPrefixMultiline || hasLineCommentBeforeColon)
+         +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual || hasLineCommentBeforeColon)
+               (indent +> sepNln +> genExpr astContext e +> unindent)
+               (isShortExpressionOrAddIndentAndNewline ctx.Config.MaxLetBindingWidth (genExpr astContext e))) ctx
     | e ->
-        let isPrefixMultiline = futureNlnCheck genPat ctx
-        (prefix +> sepEqual isPrefixMultiline +> leaveEqualsToken pat.Range +> breakNlnOrAddSpace astContext (isPrefixMultiline || hasTriviaContentAfterEqual || multilineCheck || checkPreserveBreakForExpr e ctx) e) ctx
+        let genE =
+            match e with
+            | MultilineString(_)
+            | _ when (TriviaHelpers.``has content itself that is multiline string`` e.Range ctx.Trivia) ->
+                genExpr astContext e
+            | _ -> isShortExpressionOrAddIndentAndNewline ctx.Config.MaxLetBindingWidth (genExpr astContext e)
+
+        (sepEqual isPrefixMultiline
+        +> leaveEqualsToken pat.Range
+        +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual)
+               (indent +> sepNln +> genExpr astContext e +> unindent)
+               genE) ctx
 
 /// Break but doesn't indent the expression
 and noIndentBreakNln astContext e ctx =
@@ -537,22 +544,18 @@ and genLetBinding astContext pref b =
             | _ ->
                 genPat astContext p
 
-        let prefix =
-            let genAttr =
-                ifElse astContext.IsFirstChild
-                    (genAttributes astContext ats -- pref)
-                    (!- pref +> genOnelinerAttributes astContext ats)
-            let afterLetKeyword =
-                opt sepSpace ao genAccess
-                +> ifElse isMutable (!- "mutable ") sepNone +> ifElse isInline (!- "inline ") sepNone
+        let genAttr =
+            ifElse astContext.IsFirstChild
+                (genAttributes astContext ats -- pref)
+                (!- pref +> genOnelinerAttributes astContext ats)
+        let afterLetKeyword =
+            opt sepSpace ao genAccess
+            +> ifElse isMutable (!- "mutable ") sepNone
+            +> ifElse isInline (!- "inline ") sepNone
 
-
-            genPreXmlDoc px
-            +> genAttr // this already contains the `let` or `and` keyword
-            +> afterLetKeyword
-            +> genPat
-
-        genExprSepEqPrependType genPat astContext prefix p e
+        genPreXmlDoc px
+        +> genAttr // this already contains the `let` or `and` keyword
+        +> leadingExpressionIsMultiline (afterLetKeyword +> genPat) (genExprSepEqPrependType astContext p e)
 
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
@@ -564,7 +567,7 @@ and genLetBinding astContext pref b =
     |> genTrivia b.RangeOfBindingSansRhs
 
 and genShortGetProperty astContext (pat:SynPat) e =
-    genExprSepEqPrependType sepNone astContext !- "" pat e
+    genExprSepEqPrependType astContext pat e false
 
 and genProperty astContext prefix ao propertyKind ps e =
     let tuplerize ps =
@@ -580,12 +583,12 @@ and genProperty astContext prefix ao propertyKind ps e =
         !- prefix +> opt sepSpace ao genAccess -- propertyKind
         +> ifElse (List.atMostOne ps) (col sepComma ps (genPat astContext) +> sepSpace)
             (sepOpenT +> col sepComma ps (genPat astContext) +> sepCloseT +> sepSpace)
-        +> genPat astContext p +> genExprSepEqPrependType sepNone astContext !- "" p e
+        +> genPat astContext p +> genExprSepEqPrependType astContext p e false
 
     | ps ->
         let (_,p) = tuplerize ps
         !- prefix +> opt sepSpace ao genAccess -- propertyKind +> col sepSpace ps (genPat astContext)
-        +> genExprSepEqPrependType sepNone astContext !- "" p e
+        +> genExprSepEqPrependType astContext p e false
     |> genTrivia e.Range
 
 and genPropertyWithGetSet astContext (b1, b2) =
@@ -2310,12 +2313,11 @@ and genPat astContext pat =
         | ps ->
             let hasBracket = ps |> Seq.map fst |> Seq.exists Option.isSome
             let genName = aoc -- s +> tpsoc +> sepSpace
-            let genParameters = colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext) +> dumpAndContinue
+            let genParameters = colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)
 
-            atCurrentColumn (genName +> dumpAndContinue
+            atCurrentColumn (genName
                 +> ifElse hasBracket sepOpenT sepNone
                 +> genParameters
-                +> dumpAndContinue
                 +> ifElse hasBracket sepCloseT sepNone)
 
     | PatParen(PatConst(Const "()", _)) -> !- "()"
@@ -2368,7 +2370,7 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
         (sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType)
 
     let isLongFunctionSignature ctx=
-        futureNlnCheck (genName +> dumpAndContinue +> genParametersInitial +> genReturnType +> dumpAndContinue) ctx
+        futureNlnCheck (genName +> genParametersInitial +> genReturnType) ctx
 
     atCurrentColumn (fun ctx ->
         let isLong = isLongFunctionSignature ctx

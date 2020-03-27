@@ -278,7 +278,8 @@ let ``should keep parens in class inheritance in the right place``() =
     class
         inherit DGMLClass()
 
-        let functions = System.Collections.Generic.Dictionary<string, IState>()
+        let functions =
+            System.Collections.Generic.Dictionary<string, IState>()
     end
 """
 
@@ -410,7 +411,8 @@ module Logging =
 
     let SetQuartzLoggingFunction f =
         let loggerFunction level (func: Func<string>) exc parameters =
-            let wrappedFunction = Helpers.nullValuesToOptions (fun (x: Func<string>) -> (fun () -> x.Invoke())) func
+            let wrappedFunction =
+                Helpers.nullValuesToOptions (fun (x: Func<string>) -> (fun () -> x.Invoke())) func
             let wrappedException = Helpers.nullValuesToOptions id exc
             f level wrappedFunction wrappedException (parameters |> List.ofArray)
         LogProvider.SetCurrentLogProvider(QuartzLoggerWrapper(loggerFunction))

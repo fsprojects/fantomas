@@ -184,6 +184,11 @@ let rec (|Const|) c =
     // Auto print may cut off the array
     | SynConst.UInt16s us -> sprintf "%A" us
 
+let (|MultilineString|_|) e =
+    match e with
+    | SynExpr.Const(SynConst.String(s,_),_) when (String.isMultiline s) -> Some e
+    | _ -> None
+
 let (|Unresolved|) (Const s as c, r) = (c, r, s)
 
 // File level patterns

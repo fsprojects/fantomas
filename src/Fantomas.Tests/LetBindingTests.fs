@@ -35,7 +35,7 @@ let f () =
       x + y
 """
 
-    formatSourceString false codeSnippet config
+    formatSourceString false codeSnippet ({ config with MaxLetBindingWidth = 50 })
     |> should equal """let f () =
     let x = 1 (* the "in" keyword is available in F# *)
     let y = 2
@@ -79,7 +79,7 @@ let ``DotGet on newline should be indented far enough`` () =
 let tomorrow =
     DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
         .AddDays(1.)
-"""  config
+"""  ({ config with MaxLetBindingWidth = 70 })
     |> prepend newline
     |> should equal """
 let tomorrow = DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset).AddDays(1.)
@@ -195,7 +195,8 @@ module Card =
                 | prop -> Some prop)
             |> keyValueList CaseRules.LowerFirst
 
-        let props = JS.Object.assign (createEmpty, customProps, typeProps)
+        let props =
+            JS.Object.assign (createEmpty, customProps, typeProps)
         ofImport "Card" "reactstrap" props elems
 """
 
@@ -363,3 +364,31 @@ let ``only add one space between idents in app`` () =
     formatSourceString false "let validatorResult = validator input"  config
     |> should equal "let validatorResult = validator input
 "
+
+[<Test>]
+let ``multiline let binding, should be multiline based on expression, not AST composition`` () =
+    formatSourceString false """
+let foo a =
+    let b = a +   7
+    b
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo a =
+    let b = a + 7
+    b
+"""
+
+[<Test>]
+let ``multiline let binding with type signature should be multiline based on expression, not AST composition`` () =
+    formatSourceString false """
+let foo (a: int ) (b:  string):string =
+    let c = a.ToString() + b
+    sprintf "result: %s" c
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo (a: int) (b: string): string =
+    let c = a.ToString() + b
+    sprintf "result: %s" c
+"""

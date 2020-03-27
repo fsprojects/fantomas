@@ -69,7 +69,7 @@ let source = "
           done;
       done;;
     Multiple9x9 ();;"
-"""     config
+"""     ({ config with MaxLetBindingWidth = 60 })
     |> should equal """let config = { FormatConfig.Default with IndentSpaceNum = 2 }"""
 
 [<Test>]

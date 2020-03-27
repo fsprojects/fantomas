@@ -6,7 +6,7 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``triple-quoted strings``() =
-    formatSourceString false "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"" config
+    formatSourceString false "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"" ({ config with MaxLetBindingWidth = 60 })
     |> should equal "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"
 "
 
@@ -15,7 +15,7 @@ let ``string literals``() =
     formatSourceString false """
 let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
 let str1 = "abc"
-    """ config 
+    """ ({ config with MaxLetBindingWidth = 60 })
     |> prepend newline
     |> should equal """
 let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"

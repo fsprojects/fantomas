@@ -22,7 +22,9 @@ type ShortExpressionInfo =
     { MaxWidth: int
       StartColumn: int
       ConfirmedMultiline: bool }
-    member x.IsTooLong currentColumn = currentColumn - x.StartColumn > x.MaxWidth
+    member x.IsTooLong maxPageWidth currentColumn =
+        currentColumn - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
+        || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
 
 type WriteModelMode =
     | Standard
@@ -58,7 +60,7 @@ module WriterModel =
         Column = 0
     }
 
-    let update cmd m =
+    let update maxPageWidth cmd m =
         let doNewline m =
             let m = { m with Indent = max m.Indent m.AtColumn }
             { m with
@@ -97,12 +99,10 @@ module WriterModel =
             let writeBeforeNewlineNotEmpty =
                 String.isNotNullOrEmpty m.WriteBeforeNewline
 
-            if info.IsTooLong m.Column || nextCmdCausesMultiline || writeBeforeNewlineNotEmpty
+            if info.IsTooLong maxPageWidth m.Column || nextCmdCausesMultiline || writeBeforeNewlineNotEmpty
             then { m with Mode = ShortExpression({ info with ConfirmedMultiline = true }) }
             else updateCmd cmd
 
-    let updateAll cmds m = cmds |> Queue.fold (fun m c -> update c m) m
-    
 module WriterEvents =
     let normalize ev =
         match ev with
@@ -176,7 +176,7 @@ let internal writerEvent e ctx =
     let ctx' =
         { ctx with
            WriterEvents = evs |> Seq.fold (fun q x -> Queue.conj x q) ctx.WriterEvents
-           WriterModel = (ctx.WriterModel, evs) ||> Seq.fold (fun m e -> WriterModel.update e m) }
+           WriterModel = (ctx.WriterModel, evs) ||> Seq.fold (fun m e -> WriterModel.update ctx.Config.PageWidth e m) }
     ctx'
 let internal finalizeWriterModel (ctx: Context) =
     if ctx.WriterModel.WriteBeforeNewline <> "" then writerEvent (Write ctx.WriterModel.WriteBeforeNewline) ctx else ctx
@@ -491,7 +491,7 @@ let private shortExpressionWithFallback (shortExpression: Context -> Context) (f
         match resultContext.WriterModel.Mode with
         | ShortExpression info ->
             // verify the expression is not longer than allowed
-            if info.ConfirmedMultiline || info.IsTooLong resultContext.Column
+            if info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column
             then fallbackExpression ctx
             else
                 { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
@@ -499,9 +499,11 @@ let private shortExpressionWithFallback (shortExpression: Context -> Context) (f
             // you should never hit this branch
             fallbackExpression ctx
 
-
 let internal isShortExpression maxWidth (shortExpression: Context -> Context) (fallbackExpression) (ctx: Context) =
     shortExpressionWithFallback shortExpression fallbackExpression maxWidth None ctx
+
+let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
+    shortExpressionWithFallback expr (indent +> sepNln +> expr +> unindent) maxWidth None ctx
 
 let internal expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
     shortExpressionWithFallback expression fallbackExpression ctx.Config.PageWidth (Some 0) ctx
@@ -513,6 +515,11 @@ let internal leadingExpressionLong threshold leadingExpression continuationExpre
     let (lineCountAfter, columnAfter) = List.length contextAfterLeading.WriterModel.Lines, contextAfterLeading.WriterModel.Column
     continuationExpression (lineCountAfter > lineCountBefore || (columnAfter - columnBefore > threshold)) contextAfterLeading
 
+let internal leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: Context) =
+    let lineCountBefore = List.length ctx.WriterModel.Lines
+    let contextAfterLeading = leadingExpression ctx
+    let lineCountAfter = List.length contextAfterLeading.WriterModel.Lines
+    continuationExpression (lineCountAfter > lineCountBefore) contextAfterLeading
 
 let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
     // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.

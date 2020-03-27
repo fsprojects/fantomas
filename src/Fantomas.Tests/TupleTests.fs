@@ -12,7 +12,7 @@ let private carouselSample =
     FunctionComponent.Of<obj>(fun _ ->
         fragment [] []
     ,"CarouselSample")
-"""  config
+"""  ({ config with MaxLetBindingWidth = 75 })
     |> should equal """let private carouselSample = FunctionComponent.Of<obj>((fun _ -> fragment [] []), "CarouselSample")
 """
 

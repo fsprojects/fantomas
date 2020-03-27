@@ -33,6 +33,7 @@ type FormatConfig =
       MaxInfixOperatorExpression: Num
       MaxRecordWidth: Num
       MaxArrayOrListWidth: Num
+      MaxLetBindingWidth: Num
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -57,6 +58,7 @@ type FormatConfig =
           MaxInfixOperatorExpression = 50
           MaxRecordWidth = 40
           MaxArrayOrListWidth = 40
+          MaxLetBindingWidth = 40
           StrictMode = false }
 
     static member applyOptions(currentConfig, options) =

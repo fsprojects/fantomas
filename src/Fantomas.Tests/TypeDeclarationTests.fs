@@ -325,7 +325,7 @@ type SpeedingTicket() =
 
 let CalculateFine (ticket : SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
-    if delta < 20 then 50.0 else 100.0""" config
+    if delta < 20 then 50.0 else 100.0""" ({ config with MaxLetBindingWidth = 45 })
     |> prepend newline
     |> should equal """
 type SpeedingTicket() =
@@ -567,7 +567,7 @@ let ``should keep brackets around type signatures``() =
     formatSourceString false """
 let user_printers = ref([] : (string * (term -> unit)) list)
 let the_interface = ref([] : (string * (string * hol_type)) list)
-    """ config
+    """ ({ config with MaxLetBindingWidth = 50 })
     |> prepend newline
     |> should equal """
 let user_printers = ref ([]: (string * (term -> unit)) list)

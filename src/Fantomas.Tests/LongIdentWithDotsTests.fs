@@ -105,7 +105,8 @@ let main _ =
         try
             Config.Logger.configure ()
 
-            let config = ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).Build()
+            let config =
+                ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).Build()
 
             WebHostBuilder().UseConfiguration(config).UseKestrel().UseSerilog()
                 .ConfigureAppConfiguration

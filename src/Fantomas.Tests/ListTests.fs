@@ -117,8 +117,7 @@ let listOfSquares = [ for i in 1 .. 10 -> i*i ]
 let list0to3 = [0 .. 3]""" config
     |> prepend newline
     |> should equal """
-let listOfSquares =
-    [ for i in 1 .. 10 -> i * i ]
+let listOfSquares = [ for i in 1 .. 10 -> i * i ]
 
 let list0to3 = [ 0 .. 3 ]
 """
@@ -131,8 +130,7 @@ let a2 = [| 0 .. 99 |]
 let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
     |> prepend newline
     |> should equal """
-let a1 =
-    [| for i in 1 .. 10 -> i * i |]
+let a1 = [| for i in 1 .. 10 -> i * i |]
 
 let a2 = [| 0 .. 99 |]
 

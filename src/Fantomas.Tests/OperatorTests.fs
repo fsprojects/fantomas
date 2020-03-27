@@ -339,5 +339,6 @@ let ``equal sign operator should not move to next line`` () =
 """  config
     |> prepend newline
     |> should equal """
-let result = (typ.GetInterface(typeof<System.Collections.IEnumerable>.FullName) = null)
+let result =
+    (typ.GetInterface(typeof<System.Collections.IEnumerable>.FullName) = null)
 """

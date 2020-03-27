@@ -78,6 +78,8 @@ There is a problem with merging all the code back togheter. Please raise an issu
 
     let isNotNullOrEmpty = System.String.IsNullOrEmpty >> not
 
+    let isMultiline s = normalizeNewLine s |> String.exists ((=)'\n')
+
 module Cache =
     let alreadyVisited<'key when 'key : not struct>() =
         let cache = System.Collections.Generic.HashSet<'key>([], HashIdentity.Reference)

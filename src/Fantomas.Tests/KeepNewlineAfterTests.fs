@@ -7,6 +7,7 @@ open Fantomas.Tests.TestHelper
 let configKNA = { config with KeepNewlineAfter = true }
 
 [<Test>]
+[<Ignore("Consider removing KeepNewlineAfter setting")>]
 let ``after equal in let binding`` () =
     formatSourceString false """let a =
 printfn "foo: %d"   42
@@ -18,6 +19,7 @@ let a =
 """
 
 [<Test>]
+[<Ignore("Consider removing KeepNewlineAfter setting")>]
 let ``nested let binding`` () =
     formatSourceString false """let a =
     let b =
@@ -227,6 +229,7 @@ let ``elmish update`` () =
 """
 
 [<Test>]
+[<Ignore("Consider removing KeepNewlineAfter setting")>]
 let ``keep record on new line after equal, 524`` () =
     formatSourceString false """let changeAge (person: Person) (age: int): Person =
     { person with Age = age }

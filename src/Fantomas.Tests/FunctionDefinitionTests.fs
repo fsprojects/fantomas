@@ -254,7 +254,8 @@ open Accessibility
 
 [<DllImport("oleacc.dll")>]
 extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cChildren, [<Out; MarshalAs(UnmanagedType.LPArray,
-                                                                                                          SizeParamIndex = 4s)>] System.Object [] rgvarChildren, int* pcObtained)
+                                                                                                          SizeParamIndex =
+                                                                                                              4s)>] System.Object [] rgvarChildren, int* pcObtained)
 """
 
 [<Test>]
@@ -310,11 +311,11 @@ f(42).Length
 
 [<Test>]
 let ``do add spaces for function application inside parentheses inside dot access``() =
-    formatSourceString false """let inputBlah = "So, I was like, Visual Studio did wat!?"
+    formatSourceString false """let inputBlah = "So, I was like, Visual Studio did wat"
 let someBlahing = (Blah.TryCreate inputBlah).Value"""  config
     |> prepend newline
     |> should equal """
-let inputBlah = "So, I was like, Visual Studio did wat!?"
+let inputBlah = "So, I was like, Visual Studio did wat"
 let someBlahing = (Blah.TryCreate inputBlah).Value
 """
 
