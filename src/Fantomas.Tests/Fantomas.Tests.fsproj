@@ -33,7 +33,7 @@
     <Compile Include="QuotationTests.fs" />
     <Compile Include="FunctionDefinitionTests.fs" />
     <Compile Include="AttributeTests.fs" />
-    <Compile Include="DataStructureTests.fs" />
+    <Compile Include="ListTests.fs" />
     <Compile Include="CompilerDirectivesTests.fs" />
     <Compile Include="ComputationExpressionTests.fs" />
     <Compile Include="TypeProviderTests.fs" />
