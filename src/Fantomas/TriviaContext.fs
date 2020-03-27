@@ -6,8 +6,11 @@ open Fantomas
 open Fantomas.Context
 open Fantomas.TriviaTypes
 
-let tok (range: range) (s: string) =
+let node (range: range) (s: string) =
     enterNode range +> (!-s) +> leaveNode range
+
+let tok (range: range) (s: string) =
+    enterNodeToken range +> (!-s) +> leaveNodeToken range
 
 let tokN (range: range) (tokenName: string) f =
     enterNodeTokenByName range tokenName +> f +> leaveNodeTokenByName range tokenName

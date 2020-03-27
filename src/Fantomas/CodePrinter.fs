@@ -1568,7 +1568,7 @@ and genInfixApps astContext synExprs =
 and genInfixApp s (opE: SynExpr) e astContext =
     if (NoBreakInfixOps.Contains s) then
         (sepSpace
-         +> tok opE.Range s
+         +> node opE.Range s
          +> (fun ctx ->
                     let isEqualOperator =
                         match opE with
@@ -1586,11 +1586,11 @@ and genInfixApp s (opE: SynExpr) e astContext =
             | ("?", SynExpr.Ident(Ident("op_Dynamic")), SynExpr.Ident(_)) ->
                 sepOpenT +> f +> sepCloseT
             | _ -> f
-        (tok opE.Range s +> autoNlnIfExpressionExceedsPageWidth (wrapExpr (genExpr astContext e)))
+        (node opE.Range s +> autoNlnIfExpressionExceedsPageWidth (wrapExpr (genExpr astContext e)))
     else
         (fun ctx ->
             let hasLineCommentAfterInfix = hasLineCommentAfterInfix opE.Range ctx
-            (tok opE.Range s
+            (node opE.Range s
              +> ifElse hasLineCommentAfterInfix sepNln sepSpace
              +> genExpr astContext e) ctx)
 
