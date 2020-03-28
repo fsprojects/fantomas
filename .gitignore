@@ -185,3 +185,4 @@ external-project-tests/
 .paket/paket.exe
 .fake/
 .vscode/
+.ionide

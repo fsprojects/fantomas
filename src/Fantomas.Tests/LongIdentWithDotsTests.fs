@@ -103,7 +103,7 @@ module Program
 let main _ =
     try
         try
-            Config.Logger.configure()
+            Config.Logger.configure ()
 
             let config = ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).Build()
 

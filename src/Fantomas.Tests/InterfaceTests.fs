@@ -71,7 +71,7 @@ let ``object expressions and interfaces``() =
             member this.G() = () }""" config
     |> prepend newline
     |> should equal """
-let implementer() =
+let implementer () =
     { new ISecond with
         member this.H() = ()
         member this.J() = ()
@@ -91,7 +91,7 @@ let f () =
         member x.GetEnumerator() = null }""" config
     |> prepend newline
     |> should equal """
-let f() =
+let f () =
     { new obj() with
         member x.ToString() = "INotifyEnumerableInternal"
       interface INotifyEnumerableInternal<'T>
