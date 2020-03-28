@@ -988,7 +988,13 @@ and genExpr astContext synExpr =
         ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
     // Separate two prefix ops by spaces
     | PrefixApp(s1, PrefixApp(s2, e)) -> !- (sprintf "%s %s" s1 s2) +> genExpr astContext e
-    | PrefixApp(s, e) -> !- s +> genExpr astContext e
+    | PrefixApp(s, e) ->
+        let extraSpaceBeforeString =
+            match e with
+            | String(_) -> sepSpace
+            | _ -> sepNone
+
+        !- s +> extraSpaceBeforeString +> genExpr astContext e
     // Handle spaces of infix application based on which category it belongs to
     | InfixApps(e, es) ->
         let sepAfterExpr f =

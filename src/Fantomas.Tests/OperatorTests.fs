@@ -342,3 +342,12 @@ let ``equal sign operator should not move to next line`` () =
 let result =
     (typ.GetInterface(typeof<System.Collections.IEnumerable>.FullName) = null)
 """
+
+[<Test>]
+let ``operator before verbatim string add extra space, 736`` () =
+    formatSourceString false """Target M.Tools (fun _ -> !! @"Tools\Tools.sln" |> rebuild)
+"""  config
+    |> prepend newline
+    |> should equal """
+Target M.Tools (fun _ -> !! @"Tools\Tools.sln" |> rebuild)
+"""
