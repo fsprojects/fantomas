@@ -1635,7 +1635,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         +> genTrivia tdr.Range
             (sepOpenS
             +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
-            +> genMemberDefnList { astContext with InterfaceRange = None } ms
+            ++ "with" +> indent +>  genMemberDefnList { astContext with InterfaceRange = None } ms
             +> unindent)
 
     | Simple TDSRNone ->

@@ -644,3 +644,48 @@ module Test =
                 something.Dispose()
                 somethingElse.Dispose() }
 """
+
+
+[<Test>]
+let ``should preserve `with` part in record extended with member, 547``() =
+    formatSourceString false """type Range = {
+    From: float
+    To: float
+}
+with
+    member this.Length =
+            this.To - this.From
+"""  config
+  |> prepend newline
+  |> should equal """
+type Range =
+    { From: float
+      To: float }
+    with
+        member this.Length = this.To - this.From
+"""
+
+[<Test>]
+let ``should preserve `with` part in record extended with members, 547``() =
+    formatSourceString false """type Range = {
+    From: float
+    To: float
+}
+with
+    member this.Length1 =
+            this.To - this.From
+    member this.Length2 =
+            this.To - this.From
+    member this.Length3 =
+            this.To - this.From
+"""  config
+  |> prepend newline
+  |> should equal """
+type Range =
+    { From: float
+      To: float }
+    with
+        member this.Length1 = this.To - this.From
+        member this.Length2 = this.To - this.From
+        member this.Length3 = this.To - this.From
+"""
