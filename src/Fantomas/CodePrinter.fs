@@ -1630,13 +1630,19 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         +> unindent
 
     | Simple(TDSRRecord(ao', fs)) ->
-        typeName +> sepEq
-        +> indent +> sepNln +> opt sepSpace ao' genAccess
-        +> genTrivia tdr.Range
-            (sepOpenS
-            +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
-            ++ "with" +> indent +>  genMemberDefnList { astContext with InterfaceRange = None } ms
-            +> unindent)
+        let hasMembers = List.isEmpty ms |> not
+        let body = 
+            typeName +> sepEq
+            +> indent +> sepNln +> opt sepSpace ao' genAccess
+            +> genTrivia tdr.Range
+                (sepOpenS
+                +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS)
+                
+        if hasMembers then
+            body ++ "with" +> indent +>  genMemberDefnList { astContext with InterfaceRange = None } ms
+            +> unindent
+        else
+            body +> unindent
 
     | Simple TDSRNone ->
         typeName
