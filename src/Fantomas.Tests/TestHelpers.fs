@@ -4,9 +4,10 @@ open FsUnit
 open System
 open Fantomas.FormatConfig
 open Fantomas
-open FSharp.Compiler.SourceCodeServices
-open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
+open FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.SyntaxTree
+open FSharp.Compiler.XmlDoc
 open NUnit.Framework
 open FsCheck
 open System.IO
@@ -139,7 +140,7 @@ let fromSynExpr expr =
                 QualifiedNameOfFile ident, [], [],
                 [SynModuleOrNamespace
                    ([ident], false, AnonModule,
-                    [SynModuleDecl.DoExpr(NoSequencePointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
+                    [SynModuleDecl.DoExpr(NoDebugPointAtDoBinding, expr, zero)], PreXmlDocEmpty, [], None,
                     zero)], (true, true)))
     Input (tryFormatAST ast None formatConfig)
 

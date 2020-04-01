@@ -1,10 +1,10 @@
 module internal Fantomas.Trivia
 
-open Fantomas.AstTransformer
-open FSharp.Compiler.Ast
 open Fantomas
+open Fantomas.AstTransformer
 open Fantomas.TriviaTypes
 open FSharp.Compiler.Range
+open FSharp.Compiler.SyntaxTree
 
 let private isMainNodeButNotAnonModule (node: TriviaNode) =
     match node.Type with

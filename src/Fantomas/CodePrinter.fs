@@ -2,9 +2,9 @@
 
 open System
 open System.Text.RegularExpressions
-open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 open FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.SyntaxTree
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
@@ -1442,7 +1442,7 @@ and genExpr astContext synExpr =
         addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
 
     | LetOrUseBang(isUse, p, e1, ands, e2) ->
-        let genAndList astContext (ands: list<SequencePointInfoForBinding * bool * bool * SynPat * SynExpr * range>) =
+        let genAndList astContext (ands: list<DebugPointForBinding * bool * bool * SynPat * SynExpr * range>) =
             colPost sepNln sepNln
                 ands
                 (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> autoIndentNlnByFuture (genExpr astContext expr))
