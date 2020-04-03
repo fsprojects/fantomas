@@ -437,10 +437,6 @@ and genPreXmlDoc (PreXmlDoc lines) ctx =
         colPost sepNln sepNln lines (sprintf "///%s" >> (!-)) ctx
     else ctx
 
-and breakNln astContext brk e =
-    ifElse brk (indent +> sepNln +> genExpr astContext e +> unindent)
-        (indent +> autoNln (genExpr astContext e) +> unindent)
-
 and addSpaceAfterGenericConstructBeforeColon ctx =
     if not ctx.Config.SpaceBeforeColon then
         match Context.lastWriteEventOnLastLine ctx |> Option.bind Seq.tryLast with
