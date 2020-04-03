@@ -511,10 +511,6 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (isPrefixMultil
                (indent +> sepNln +> genExpr astContext e +> unindent)
                genE) ctx
 
-/// Like noIndentBreakNln but instead use genExpr on expr it use provided function f
-and noIndentBreakNlnFun f expr ctx =
-    ifElse (checkPreserveBreakForExpr expr ctx) (sepNln +> f expr) (autoNlnByFuture (f expr)) ctx
-
 and genTyparList astContext tps =
     ifElse (List.atMostOne tps) (col wordOr tps (genTypar astContext)) (sepOpenT +> col wordOr tps (genTypar astContext) +> sepCloseT)
 
