@@ -150,8 +150,7 @@ let ``should not break inside of if statements in records``() =
       WorkingDir = "./";
       TimeOut = TimeSpan.FromMinutes 5.;
       Package = null;
-      Version =
-          if not isLocalBuild then buildVersion else "0.1.0.0";
+      Version = if not isLocalBuild then buildVersion else "0.1.0.0";
       OutputPath = "./xpkg";
       Project = null;
       Summary = null;
@@ -303,6 +302,32 @@ let r: struct {| Foo: int; Bar: string |} =
     struct {| Foo = 123
               Bar = "" |}
 """
+
+[<Test>]
+let ``anon record with multiline assignments`` () =
+    formatSourceString false "
+let r =
+    {|
+        Foo =
+            a && // && b
+            c
+        Bar =
+        \"\"\"
+Fooey
+\"\"\"
+    |}
+"      config
+    |> prepend newline
+    |> should equal "
+let r =
+    {| Foo =
+           a
+           && // && b
+           c
+       Bar = \"\"\"
+Fooey
+\"\"\" |}
+"
 
 [<Test>]
 let ``meaningful space should be preserved, 353`` () =

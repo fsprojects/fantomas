@@ -445,9 +445,6 @@ and breakNlnOrAddSpace astContext brk e =
     ifElse brk (indent +> sepNln +> genExpr astContext e +> unindent)
         (indent +> autoNlnOrSpace (genExpr astContext e) +> unindent)
 
-and preserveBreakNlnOrAddSpace astContext e ctx =
-    breakNlnOrAddSpace astContext (checkPreserveBreakForExpr e ctx) e ctx
-
 and addSpaceAfterGenericConstructBeforeColon ctx =
     if not ctx.Config.SpaceBeforeColon then
         match Context.lastWriteEventOnLastLine ctx |> Option.bind Seq.tryLast with
@@ -670,8 +667,8 @@ and genMemberBinding astContext b =
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat ({ astContext with IsMemberDefinition = true }) p
 
         match e with
-        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType astContext false t +> sepEq +> preserveBreakNlnOrAddSpace astContext e
-        | e -> prefix +> sepEq +> preserveBreakNlnOrAddSpace astContext e
+        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType astContext false t +> sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        | e -> prefix +> sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     | ExplicitCtor(ats, px, ao, p, e, so) ->
         let prefix =
@@ -747,11 +744,22 @@ and genVal astContext (Val(ats, px, ao, s, t, vi, _) as node) =
 and genRecordFieldName astContext (RecordFieldName(s, eo) as node) =
     let (rfn,_,_) = node
     let range = (fst rfn).Range
-    opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e)
+    opt sepNone eo (fun e ->
+        let expr =
+            match e with
+            | MultilineString _ -> sepSpace +> genExpr astContext e
+            | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+
+        !- s +> sepEq +> expr)
     |> genTrivia range
 
 and genAnonRecordFieldName astContext (AnonRecordFieldName(s, e)) =
-    !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e
+    let expr =
+        match e with
+        | MultilineString _ -> sepSpace +> genExpr astContext e
+        | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+
+    !- s +> sepEq +> expr
 
 and genTuple astContext es =
     let f = addParenForTupleWhen (genExpr astContext)
