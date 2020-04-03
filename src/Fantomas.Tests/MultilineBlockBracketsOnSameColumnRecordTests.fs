@@ -378,6 +378,45 @@ type Element =
 """
 
 [<Test>]
+let ``record type with member definitions should align with bracket`` () =
+    formatSourceString false """
+type Range =
+    { From: float
+      To: float }
+    member this.Length = this.To - this.From
+"""  config
+    |> prepend newline
+    |> should equal """
+type Range =
+    {
+        From : float
+        To : float
+    }
+
+    member this.Length = this.To - this.From
+"""
+
+// TODO: Ask Patrick whether the newline should always be there.
+
+[<Test>]
+let ``record type with interface`` () =
+    formatSourceString false """
+type MyRecord =
+    { SomeField : int
+    }
+    interface IMyInterface
+"""  config
+    |> prepend newline
+    |> should equal """
+type MyRecord =
+    {
+        SomeField : int
+    }
+
+    interface IMyInterface
+"""
+
+[<Test>]
 let ``SynPat.Record in pattern match with bracketOnSeparateLine`` () =
     formatSourceString false """match foo with
 | { Bar = bar; Level = 12; Vibes = plenty; Lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " } -> "7"
