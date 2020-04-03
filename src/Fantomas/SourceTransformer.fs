@@ -153,10 +153,6 @@ let rec (|SigValL|_|) = function
     | SigVal _ as x::ys -> Some([x], ys)
     | _ -> None
 
-/// Omit a break before an expression if the expression is small and it is already one line in the text
-let checkPreserveBreakForExpr (e: Ast.SynExpr) (_ : Context) =
-    multiline e
-
 /// Omit a break before an expression if the expression is small 
 let checkBreakForExpr e =
     multiline e 
