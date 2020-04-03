@@ -221,7 +221,7 @@ let ``line comment after infix function with parenthesis, 559`` () =
                                       )
             ()
         }
-"""  ({ config with KeepNewlineAfter = true })
+"""  config
     |> prepend newline
     |> should equal """
 let watchFiles =
@@ -254,7 +254,7 @@ let ``line comment after infix function with string constant, 559`` () =
                                       )
             ()
         }
-"""  ({ config with KeepNewlineAfter = true })
+"""  config
     |> prepend newline
     |> should equal """
 let watchFiles =

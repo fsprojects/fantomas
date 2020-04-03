@@ -28,7 +28,6 @@ type FormatConfig =
       /// Reordering and deduplicating open statements
       ReorderOpenDeclaration : bool
       SpaceAroundDelimiter : bool
-      KeepNewlineAfter : bool
       MaxIfThenElseShortWidth: Num
       MaxInfixOperatorExpression: Num
       MaxRecordWidth: Num
@@ -53,7 +52,6 @@ type FormatConfig =
           IndentOnTryWith = false
           ReorderOpenDeclaration = false
           SpaceAroundDelimiter = true
-          KeepNewlineAfter = false
           MaxIfThenElseShortWidth = 40
           MaxInfixOperatorExpression = 50
           MaxRecordWidth = 40

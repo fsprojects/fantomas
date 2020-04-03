@@ -143,7 +143,7 @@ type internal Context =
         let (tokens, lineCount) = TokenParser.tokenize defines content
         let trivia =
             match maybeAst, config.StrictMode with
-            | Some ast, false -> Trivia.collectTrivia config tokens lineCount ast
+            | Some ast, false -> Trivia.collectTrivia tokens lineCount ast
             | _ -> Context.Default.Trivia
 
         { Context.Default with 
@@ -702,7 +702,6 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     | StringContent _
     | IdentOperatorAsWord _
     | IdentBetweenTicks _
-    | NewlineAfter
     | CharContent _
          -> sepNone // don't print here but somewhere in CodePrinter
     | Directive(s)

@@ -1065,8 +1065,6 @@ and genExpr astContext synExpr =
                 Map.tryFind lineNumber lineCommentsAfter
                 |> Option.defaultValue false
 
-            let dotGetExprRange = e.Range
-
             let expr =
                 match e with
                 | App(e1, [e2]) ->
@@ -1106,16 +1104,6 @@ and genExpr astContext synExpr =
                          expressionFitsOnRestOfLine shortExpr fallBackExpr
 
                     let addNewlineIfNeeded (ctx: Context) =
-                        if ctx.Config.KeepNewlineAfter then
-                            let willAddAutoNewline:bool =
-                                autoNlnCheck writeExpr sepNone ctx
-
-                            let expressionOnNextLine = dotGetExprRange.StartLine < currentExprRange.StartLine
-                            let addNewline = (not willAddAutoNewline) && expressionOnNextLine
-
-                            ctx
-                            |> ifElse addNewline sepNln sepNone
-                        else
                             // If the line before ended with a line comment, it should add a newline
                             (ifElse (hasLineCommentOn (currentExprRange.EndLine - 1)) sepNln sepNone) ctx
 
@@ -2121,15 +2109,7 @@ and genInterfaceImpl astContext (InterfaceImpl(t, bs, range)) =
 
 and genClause astContext hasBar (Clause(p, e, eo) as node) =
     let clauseBody e (ctx: Context) =
-        let find tn =
-            match tn with
-            | ({ Type = Token({ TokenInfo = {TokenName = "RARROW" } }); Range = r  }) -> r.StartLine = p.Range.EndLine // search for `->` token after p
-            | _ -> false
-        let newlineAfter = function | NewlineAfter -> true | _ -> false
-        if TriviaHelpers.``has content after after that matches`` find newlineAfter ctx.Trivia then
-            breakNln astContext true e ctx
-        else
-            (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)) ctx
+        (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)) ctx
 
     let pat = genPat astContext p
     let body = optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> clauseBody e

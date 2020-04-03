@@ -52,7 +52,6 @@
     <Compile Include="SynConstTests.fs" />
     <Compile Include="FSharpScriptTests.fs" />
     <Compile Include="TupleTests.fs" />
-    <Compile Include="KeepNewlineAfterTests.fs" />
     <Compile Include="ElmishTests.fs" />
     <Compile Include="LambdaTests.fs" />
     <Compile Include="IfThenElseTests.fs" />
