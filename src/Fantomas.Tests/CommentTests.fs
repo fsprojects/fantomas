@@ -38,7 +38,7 @@ let print_30_permut() =
     """ config
     |> prepend newline
     |> should equal """
-let print_30_permut() =
+let print_30_permut () =
 
     /// declare and initialize
     let permutation: int array =
@@ -59,7 +59,7 @@ let print_30_permut() =
     """ config
     |> prepend newline
     |> should equal """
-let print_30_permut() =
+let print_30_permut () =
 
     /// declare and initialize
     let permutation: int array =
@@ -120,7 +120,7 @@ let f() =
 """  config
     |> prepend newline
     |> should equal """
-let f() =
+let f () =
     // COMMENT
     x + x
 """
@@ -134,7 +134,7 @@ let f() =
 """   config
     |> prepend newline
     |> should equal """
-let f() =
+let f () =
     let x = 1 // COMMENT
     x + x
 """ 
@@ -156,7 +156,7 @@ let f() =
     |> should equal """
 /// XML COMMENT
 // Other comment
-let f() =
+let f () =
     // COMMENT A
     let y = 1
     (* COMMENT B *)
@@ -182,7 +182,7 @@ let f() =
     |> should equal """
 /// XML COMMENT A
 // Other comment
-let f() =
+let f () =
     // COMMENT A
     let y = 1
     /// XML COMMENT B
@@ -380,7 +380,7 @@ let hello() = "hello world"
 """  config
     |> prepend newline
     |> should equal """
-let hello() = "hello world"
+let hello () = "hello world"
 
 (* This is a comment. *)
 """

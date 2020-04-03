@@ -311,11 +311,16 @@ let ``member properties with type annotation``() =
     formatSourceString false """type A() =
     member this.X with get():int = 1
     member this.Y with get():int = 1 and set (_:int):unit = ()
+    member this.Z with set (_:int):unit = () and get():int = 1
 """  config
     |> should equal """type A() =
     member this.X: int = 1
 
     member this.Y
+        with get (): int = 1
+        and set (_: int): unit = ()
+
+    member this.Z
         with get (): int = 1
         and set (_: int): unit = ()
 """
@@ -464,4 +469,37 @@ type A =
 
     [<Emit("b")>]
     abstract b: Unit -> string
+"""
+
+[<Test>]
+let ``string parameter to inherited class, 720`` () =
+    formatSourceString false """type Child() =
+  inherit Parent ""
+"""  config
+    |> prepend newline
+    |> should equal """
+type Child() =
+    inherit Parent ""
+"""
+
+[<Test>]
+let ``float parameter to inherited class`` () =
+    formatSourceString false """type Child() =
+  inherit Parent 7.9
+"""  config
+    |> prepend newline
+    |> should equal """
+type Child() =
+    inherit Parent 7.9
+"""
+
+[<Test>]
+let ``unit parameter to inherited class`` () =
+    formatSourceString false """type Child() =
+  inherit Parent ()
+"""  config
+    |> prepend newline
+    |> should equal """
+type Child() =
+    inherit Parent()
 """

@@ -53,12 +53,12 @@ let ``for loops``() =
     """ config
     |> prepend newline
     |> should equal """
-let function1() =
+let function1 () =
     for i = 1 to 10 do
         printf "%d " i
     printfn ""
 
-let function2() =
+let function2 () =
     for i = 10 downto 1 do
         printf "%d " i
     printfn ""
@@ -140,7 +140,7 @@ let function1 x y =
             if x = y then raise (InnerError("inner")) else raise (OuterError("outer"))
         with
         | Failure _ -> ()
-        | InnerError(str) -> printfn "Error1 %s" str
+        | InnerError (str) -> printfn "Error1 %s" str
     finally
         printfn "Always print this."
 """
@@ -155,12 +155,12 @@ let ``range expressions``() =
     function2()""" config
     |> prepend newline
     |> should equal """
-let function2() =
+let function2 () =
     for i in 1 .. 2 .. 10 do
         printf "%d " i
     printfn ""
 
-function2()
+function2 ()
 """
 
 [<Test>]
@@ -431,7 +431,7 @@ let a ex =
     |> should equal """
 let a ex =
     if null = ex then
-        fooo()
+        fooo ()
         None
     // this was None
     elif ex.GetType() = typeof<obj> then

@@ -78,7 +78,7 @@ let s2 = seq { 0 .. 10 .. 100 }
 let rec inorder tree =
     seq {
         match tree with
-        | Tree(x, left, right) ->
+        | Tree (x, left, right) ->
             yield! inorder left
             yield x
             yield! inorder right
@@ -108,7 +108,7 @@ async {
     |> prepend newline
     |> should equal """
 async {
-    match! myAsyncFunction() with
+    match! myAsyncFunction () with
     | Some x -> printfn "%A" x
     | None -> printfn "Function returned None!"
 }
@@ -158,9 +158,9 @@ parallel {
    |> should equal """
 // Reads the values of x, y and z concurrently, then applies f to them
 ``parallel`` {
-    let! x = slowRequestX()
-    and! y = slowRequestY()
-    and! z = slowRequestZ()
+    let! x = slowRequestX ()
+    and! y = slowRequestY ()
+    and! z = slowRequestZ ()
     return f x y z }
 """
 
@@ -179,4 +179,81 @@ observable {
     let! a = foo
     and! b = bar
     return a + b }
+"""
+
+[<Test>]
+let ``let bang should be formatted as regular let, 615`` () =
+    formatSourceString false """
+let f =
+  async {
+    // Without binding newline after assignment sign preserved, which is expected behavior
+    let r =
+      match 0 with
+      | _ -> ()
+
+    return r
+  }
+
+let f2 =
+  async {
+    // When binding, newline force-removed, which makes the whole expression
+    // on the right side to be indented.
+    let! r = match 0 with
+             | _ -> () |> async.Return
+
+    return r
+  }
+"""  config
+    |> prepend newline
+    |> should equal """
+let f =
+    async {
+        // Without binding newline after assignment sign preserved, which is expected behavior
+        let r =
+            match 0 with
+            | _ -> ()
+
+        return r
+    }
+
+let f2 =
+    async {
+        // When binding, newline force-removed, which makes the whole expression
+        // on the right side to be indented.
+        let! r =
+            match 0 with
+            | _ -> () |> async.Return
+
+        return r
+    }
+"""
+
+[<Test>]
+let ``let bang, and bang should be formatted as regular let`` () =
+    formatSourceString false """
+let f2 =
+  async {
+    // When binding, newline force-removed, which makes the whole expression
+    // on the right side to be indented.
+    let! r = match 0 with
+             | _ -> () |> async.Return
+    and! s = match 0 with
+             | _ -> () |> async.Return
+    return r + s
+  }
+"""  config
+    |> prepend newline
+    |> should equal """
+let f2 =
+    async {
+        // When binding, newline force-removed, which makes the whole expression
+        // on the right side to be indented.
+        let! r =
+            match 0 with
+            | _ -> () |> async.Return
+        and! s =
+            match 0 with
+            | _ -> () |> async.Return
+        return r + s
+    }
 """

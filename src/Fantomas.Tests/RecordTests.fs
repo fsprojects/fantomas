@@ -148,7 +148,7 @@ let ``should not break inside of if statements in records``() =
     }
 
     """ { config with SemicolonAtEndOfLine = true }
-    |> should equal """let XpkgDefaults() =
+    |> should equal """let XpkgDefaults () =
     { ToolPath = "./tools/xpkg/xpkg.exe";
       WorkingDir = "./";
       TimeOut = TimeSpan.FromMinutes 5.;
@@ -284,7 +284,7 @@ let ``meaningful space should be preserved, 353`` () =
     |> should equal """to'.WithCommon(fun o' ->
     { dotnetOptions o' with
           WorkingDirectory = Path.getFullName "RegressionTesting/issue29"
-          Verbosity = SomeDotNet.Verbosity.Minimal }).WithParameters
+          Verbosity = Some DotNet.Verbosity.Minimal }).WithParameters
 """
 
 [<Test>]

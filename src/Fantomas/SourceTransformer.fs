@@ -246,6 +246,12 @@ let (|PropertyWithGetSet|_|) = function
         | PropertyBinding(_, _, _, _, MFProperty PropertySet, PatLongIdent(_, s2, _, _), _) as b2::bs when s1 = s2 ->
             Some((b1, b2), bs)
         | _ -> None
+    | PropertyBinding(_, _, _, _, MFProperty PropertySet, PatLongIdent(_, s2, _, _), _) as b2::bs ->
+        match bs with
+        | PropertyBinding(_, _, _, _, MFProperty PropertyGet, PatLongIdent(_, s1, _, _), _) as b1::bs when s1 = s2 ->
+            Some((b1, b2), bs)
+        | _ -> None
+    | _ -> None
     | _ -> None
 
 let (|PropertyWithGetSetMemberDefn|_|) = function
