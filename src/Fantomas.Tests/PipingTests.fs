@@ -74,6 +74,5 @@ let prefetchImages =
     |> should equal """
 let prefetchImages =
     [ playerOImage; playerXImage ]
-    |> List.map (fun img ->
-        link [ Rel "prefetch"; Href img ])
+    |> List.map (fun img -> link [ Rel "prefetch"; Href img ])
 """    

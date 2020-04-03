@@ -68,10 +68,7 @@ let rec inorder tree =
     """ config
     |> prepend newline
     |> should equal """
-let s1 =
-    seq {
-        for i in 1 .. 10 -> i * i
-    }
+let s1 = seq { for i in 1 .. 10 -> i * i }
 
 let s2 = seq { 0 .. 10 .. 100 }
 
@@ -143,7 +140,8 @@ async {
 async {
     let! x = Async.Sleep 1.
     and! y = Async.Sleep 2.
-    return 10 }
+    return 10
+}
 """
 [<Test>]
 let ``multiple and! is supported`` () =
@@ -163,7 +161,8 @@ parallel {
     let! x = slowRequestX ()
     and! y = slowRequestY ()
     and! z = slowRequestZ ()
-    return f x y z }
+    return f x y z
+}
 """
 
 [<Test>]
@@ -180,7 +179,8 @@ observable {
 observable {
     let! a = foo
     and! b = bar
-    return a + b }
+    return a + b
+}
 """
 
 [<Test>]

@@ -1345,7 +1345,8 @@ let ``F# 4.7 implicit yield in sequence`` () =
 seq {
     1
     2
-    3 }
+    3
+}
 """
 
 [<Test>]

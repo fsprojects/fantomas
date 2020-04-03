@@ -511,9 +511,6 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (isPrefixMultil
                (indent +> sepNln +> genExpr astContext e +> unindent)
                genE) ctx
 
-/// Break but doesn't indent the expression
-and noIndentBreakNln astContext e ctx =
-    ifElse (checkPreserveBreakForExpr e ctx) (sepNln +> genExpr astContext e) (autoNlnByFuture (genExpr astContext e)) ctx
 /// Like noIndentBreakNln but instead use genExpr on expr it use provided function f
 and noIndentBreakNlnFun f expr ctx =
     ifElse (checkPreserveBreakForExpr expr ctx) (sepNln +> f expr) (autoNlnByFuture (f expr)) ctx
@@ -916,9 +913,15 @@ and genExpr astContext synExpr =
             +> ifElse isArrow (sepArrow +> preserveBreakNln astContext e2) (!- " do" +> indent +> sepNln +> genExpr astContext e2 +> unindent))
 
     | CompExpr(isArrayOrList, e) ->
-        ifElse isArrayOrList (genExpr astContext e)
+        ifElse isArrayOrList
+            (genExpr astContext e)
+            (expressionFitsOnRestOfLine
+                (sepOpenS +> genExpr astContext e +> sepCloseS)
+                (sepOpenS +> sepNln +> genExpr astContext e +> unindent +> sepNln +> sepCloseSFixed))
+(*
             (sepOpenS +> noIndentBreakNln astContext e
              +> ifElse (checkBreakForExpr e) (unindent +> sepNln +> sepCloseSFixed) sepCloseS)
+*)
 
     | ArrayOrListOfSeqExpr(isArray, e) as aNode ->
         let astContext = { astContext with IsNakedRange = true }
@@ -929,27 +932,32 @@ and genExpr astContext synExpr =
         expr
     | JoinIn(e1, e2) -> genExpr astContext e1 -- " in " +> genExpr astContext e2
     | Paren(DesugaredLambda(cps, e)) ->
-        let genLamba f =
-            sepOpenT -- "fun " +> col sepSpace cps (genComplexPats astContext)
-            +> triviaAfterArrow synExpr.Range
-            +> f astContext e +> sepCloseT
-
-        ifElseCtx
-            (lastLineOnlyContains [| ' ';'('|])
-            (genLamba (fun a e -> autoIndentNlnByFuture (genExpr a e)))
-            (genLamba noIndentBreakNln)
+        fun (ctx: Context) ->
+            let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
+            let expr =
+                sepOpenT -- "fun " +> col sepSpace cps (genComplexPats astContext)
+                +> triviaAfterArrow synExpr.Range
+                +> ifElse
+                    lastLineOnlyContainsParenthesis
+                    (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                    (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                +> sepCloseT
+            expr ctx
 
     | DesugaredLambda(cps, e) ->
         !- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow +> preserveBreakNln astContext e
     | Paren(Lambda(e, sps)) ->
-        let genLamba f =
-            sepOpenT -- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow
-            +> f astContext e +> sepCloseT
-
-        ifElseCtx
-            (lastLineOnlyContains [| ' ';'('|])
-            (genLamba (fun a e -> autoIndentNlnByFuture (genExpr a e)))
-            (genLamba noIndentBreakNln)
+        fun (ctx: Context) ->
+            let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
+            let expr =
+                sepOpenT -- "fun " +> col sepSpace sps (genSimplePats astContext)
+                +> triviaAfterArrow synExpr.Range
+                +> ifElse
+                    lastLineOnlyContainsParenthesis
+                    (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                    (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                +> sepCloseT
+            expr ctx
 
     // When there are parentheses, most likely lambda will appear in function application
     | Lambda(e, sps) ->
