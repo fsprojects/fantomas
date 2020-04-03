@@ -218,3 +218,12 @@ let ``add space after chained ident, 676`` () =
     |> should equal """
 let foo = Foo(fun () -> Foo.Create x).Value
 """
+
+[<Test>]
+let ``line comment after lambda should not necessary make it multiline`` () =
+    formatSourceString false """let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+"""  ({ config with MaxLetBindingWidth = 150 })
+    |> prepend newline
+    |> should equal """
+let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+"""

@@ -26,8 +26,7 @@ then printfn "You are only %d years old and already learning F#? Wow!" age""" co
     |> should equal """
 let rec tryFindMatch pred list =
     match list with
-    | head :: tail ->
-        if pred (head) then Some(head) else tryFindMatch pred tail
+    | head :: tail -> if pred (head) then Some(head) else tryFindMatch pred tail
     | [] -> None
 
 let test x y =

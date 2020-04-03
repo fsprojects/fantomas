@@ -91,15 +91,10 @@ module WriterModel =
                 match cmd with
                 | WriteLine -> true
                 | WriteLineInsideStringConst -> true
+                | Write _ when (String.isNotNullOrEmpty m.WriteBeforeNewline) -> true
                 | _ -> false
 
-            // if the current cmd is WriteBeforeNewline and it is the last event
-            // it should not trigger the too long just yet
-            // That is why the property in the model should be checked instead
-            let writeBeforeNewlineNotEmpty =
-                String.isNotNullOrEmpty m.WriteBeforeNewline
-
-            if info.IsTooLong maxPageWidth m.Column || nextCmdCausesMultiline || writeBeforeNewlineNotEmpty
+            if info.IsTooLong maxPageWidth m.Column || nextCmdCausesMultiline
             then { m with Mode = ShortExpression({ info with ConfirmedMultiline = true }) }
             else updateCmd cmd
 

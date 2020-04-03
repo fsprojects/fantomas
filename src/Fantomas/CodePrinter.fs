@@ -445,11 +445,6 @@ and breakNlnOrAddSpace astContext brk e =
     ifElse brk (indent +> sepNln +> genExpr astContext e +> unindent)
         (indent +> autoNlnOrSpace (genExpr astContext e) +> unindent)
 
-/// Preserve a break even if the expression is a one-liner
-and preserveBreakNln astContext e ctx =
-    let brk = checkPreserveBreakForExpr e ctx || futureNlnCheck (genExpr astContext e) ctx
-    breakNln astContext brk e ctx
-
 and preserveBreakNlnOrAddSpace astContext e ctx =
     breakNlnOrAddSpace astContext (checkPreserveBreakForExpr e ctx) e ctx
 
@@ -553,7 +548,8 @@ and genLetBinding astContext pref b =
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
         genPreXmlDoc px
-        +> genAttributes astContext ats -- prefix +> preserveBreakNln astContext e
+        +> genAttributes astContext ats -- prefix
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     | b ->
         failwithf "%O isn't a let binding" b
@@ -688,7 +684,9 @@ and genMemberBinding astContext b =
         // Handle special "then" block i.e. fake sequential expressions in constructors
         | Sequential(e1, e2, false) ->
             prefix +> sepEq +> indent +> sepNln
-            +> genExpr astContext e1 ++ "then " +> preserveBreakNln astContext e2 +> unindent
+            +> genExpr astContext e1 ++ "then "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
+            +> unindent
 
         | e -> prefix +> sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
@@ -905,8 +903,11 @@ and genExpr astContext synExpr =
 
     // Handle the form 'for i in e1 -> e2'
     | ForEach(p, e1, e2, isArrow) ->
-        atCurrentColumn (!- "for " +> genPat astContext p -- " in " +> genExpr { astContext with IsNakedRange = true } e1
-            +> ifElse isArrow (sepArrow +> preserveBreakNln astContext e2) (!- " do" +> indent +> sepNln +> genExpr astContext e2 +> unindent))
+        atCurrentColumn (
+            !- "for " +> genPat astContext p -- " in " +> genExpr { astContext with IsNakedRange = true } e1
+            +> ifElse isArrow
+                   (sepArrow +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2))
+                   (!- " do" +> indent +> sepNln +> genExpr astContext e2 +> unindent))
 
     | CompExpr(isArrayOrList, e) ->
         ifElse isArrayOrList
@@ -941,7 +942,8 @@ and genExpr astContext synExpr =
             expr ctx
 
     | DesugaredLambda(cps, e) ->
-        !- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow +> preserveBreakNln astContext e
+        !- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
     | Paren(Lambda(e, sps)) ->
         fun (ctx: Context) ->
             let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
@@ -957,7 +959,8 @@ and genExpr astContext synExpr =
 
     // When there are parentheses, most likely lambda will appear in function application
     | Lambda(e, sps) ->
-        !- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow +> preserveBreakNln astContext e
+        !- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
     | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause astContext true)
     | Match(e, cs) ->
         atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
@@ -2122,7 +2125,7 @@ and genClause astContext hasBar (Clause(p, e, eo) as node) =
         if TriviaHelpers.``has content after after that matches`` find newlineAfter ctx.Trivia then
             breakNln astContext true e ctx
         else
-            preserveBreakNln astContext e ctx
+            (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)) ctx
 
     let pat = genPat astContext p
     let body = optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> clauseBody e
