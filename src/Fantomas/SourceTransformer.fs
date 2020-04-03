@@ -82,19 +82,6 @@ let rec multiline synExpr =
     // Default mode is single-line
     | _ -> false
 
-let checkNewLine e es =
-    match (e, es) with
-    | _, [s, _, infixExpr] when NewLineInfixOps.Contains s -> 
-        (*
-            If s is a single infix (f.e. |> )
-            Only multiline if the whole expression is multiline
-            or the next expression is multiline
-            See test ``pipe and multiline should put pipe on newline``
-        *)
-        multiline e || multiline infixExpr
-    | _, (s, _, _) :: _ :: _ -> NewLineInfixOps.Contains s
-    | _ -> multiline e
-
 /// Check if the expression already has surrounding parentheses
 let hasParenthesis = function
     | Paren _
