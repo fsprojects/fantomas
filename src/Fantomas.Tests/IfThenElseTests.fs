@@ -13,6 +13,42 @@ if foo then bar
 """
 
 [<Test>]
+let ``if without else, if is longer`` () =
+    formatSourceString false """
+if foooooooooooooooooooooooooooooooooooooooooooo
+then bar
+"""  config
+    |> prepend newline
+    |> should equal """
+if foooooooooooooooooooooooooooooooooooooooooooo
+then bar
+"""
+
+[<Test>]
+let ``if without else, then is longer`` () =
+    formatSourceString false """
+if foo then baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar
+"""  config
+    |> prepend newline
+    |> should equal """
+if foo
+then baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar
+"""
+
+[<Test>]
+let ``multiline if without else`` () =
+    formatSourceString false """
+if foo && bar && meh then aha
+"""  ({ config with MaxInfixOperatorExpression = 5 })
+    |> prepend newline
+    |> should equal """
+if foo
+   && bar
+   && meh then
+    aha
+"""
+
+[<Test>]
 let ``single line if/then/else`` () =
     formatSourceString false "if a then b else c" config
     |> prepend newline

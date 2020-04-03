@@ -36,7 +36,8 @@ let test x y =
     else if x > y then "is greater than"
     else "Don't know"
 
-if age < 10 then printfn "You are only %d years old and already learning F#? Wow!" age
+if age < 10
+then printfn "You are only %d years old and already learning F#? Wow!" age
 """
 
 [<Test>]

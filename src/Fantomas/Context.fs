@@ -508,6 +508,13 @@ let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context)
 let internal expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
     shortExpressionWithFallback expression fallbackExpression ctx.Config.PageWidth (Some 0) ctx
 
+/// provide the line and column before and after the leadingExpression to to the continuation expression
+let internal leadingExpressionResult leadingExpression continuationExpression (ctx: Context) =
+    let (lineCountBefore, columnBefore) = List.length ctx.WriterModel.Lines, ctx.WriterModel.Column
+    let contextAfterLeading = leadingExpression ctx
+    let (lineCountAfter, columnAfter) = List.length contextAfterLeading.WriterModel.Lines, contextAfterLeading.WriterModel.Column
+    continuationExpression ((lineCountBefore, columnBefore), (lineCountAfter, columnAfter)) contextAfterLeading
+
 /// combines two expression and let the second expression know if the first expression was longer than a given threshold.
 let internal leadingExpressionLong threshold leadingExpression continuationExpression (ctx: Context) =
     let (lineCountBefore, columnBefore) = List.length ctx.WriterModel.Lines, ctx.WriterModel.Column

@@ -1189,8 +1189,27 @@ and genExpr astContext synExpr =
         firstNewlineOrComment es +> atCurrentColumn (colEx (fun (e:SynExpr) -> sepConsideringTriviaContentBefore sepSemiNln e.Range) es (genExpr astContext))
 
     | IfThenElse(e1, e2, None) ->
-        atCurrentColumn (!- "if " +> ifElse (checkBreakForExpr e1) (genExpr astContext e1 ++ "then") (genExpr astContext e1 +- "then")
-                         -- " " +> preserveBreakNln astContext e2)
+        fun (ctx:Context) ->
+            let maxWidth = ctx.Config.MaxIfThenElseShortWidth
+
+            (leadingExpressionResult
+                (!- "if "+> genExpr astContext e1)
+                (fun ((lb,cb),(la,ca)) ->
+                    let thenExpressionIsMultiline = futureNlnCheck (genExpr astContext e2) ctx
+
+                    if lb < la || thenExpressionIsMultiline then // if or then expression was multiline
+                        !- " then" +> indent +> sepNln +> genExpr astContext e2 +> unindent
+                    elif (lb = la && (ca - cb) > maxWidth)
+                         && not thenExpressionIsMultiline then // if expression is longer than maxWidth but not multiline
+                        sepNln +> !- "then " +> genExpr astContext e2
+                    elif (exceedsWidth maxWidth (genExpr astContext e2) ctx)
+                         && not thenExpressionIsMultiline then // then is longer than maxWidth but not multiline
+                        sepNln +> !- "then " +> genExpr astContext e2
+                    else
+                        // write out as short expression
+                        !- " then " +> genExpr astContext e2)
+            |> atCurrentColumn) ctx
+
     // A generalization of IfThenElse
     | ElIf((e1,e2, _, _, _)::es, enOpt) ->
         // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions

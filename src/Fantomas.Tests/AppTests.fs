@@ -41,12 +41,12 @@ let a s =
     |> prepend newline
     |> should equal @"
 let a s =
-    if s <> """" then
-        printfn """"""fooo
+    if s <> """"
+    then printfn """"""fooo
 %s
 %s
 %s
-%s""""""    (llloooooooooooooooooooooooooo s) s s s
+%s""""""     (llloooooooooooooooooooooooooo s) s s s
 "
 
 // compile error due to expression starting before the beginning of the function expression
