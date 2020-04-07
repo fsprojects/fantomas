@@ -403,15 +403,15 @@ module Logging =
     type private QuartzLoggerWrapper(f) =
         interface ILogProvider with
 
-            member this.OpenMappedContext(_, _) =
+            override this.OpenMappedContext(_, _) =
                 { new IDisposable with
-                    member this.Dispose() = () }
+                    override this.Dispose() = () }
 
-            member this.OpenNestedContext _ =
+            override this.OpenNestedContext _ =
                 { new IDisposable with
-                    member this.Dispose() = () }
+                    override this.Dispose() = () }
 
-            member this.GetLogger _name = new Logger(f)
+            override this.GetLogger _name = new Logger(f)
 
     let SetQuartzLoggingFunction f =
         let loggerFunction level (func: Func<string>) exc parameters =

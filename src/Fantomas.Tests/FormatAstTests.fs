@@ -65,3 +65,30 @@ let a = 42
 
 let b = 1
 """
+
+[<Test>]
+let ``default implementations in abstract classes should be emited as override from AST without origin source, 742``() =
+    let sourceCode = """[<AbstractClass>]
+type Foo =
+    abstract foo: int
+    default __.foo = 1
+""" 
+    let fileName = "/tmp.fsx"
+    
+    let ast =
+        CodeFormatter.ParseAsync(fileName, SourceOrigin.SourceString sourceCode, FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
+        |> Async.RunSynchronously
+        |> Seq.head
+        |> fst
+
+    let formattedCode =
+        CodeFormatter.FormatASTAsync(ast, fileName, [], None, config)
+        |> Async.RunSynchronously
+        |> String.normalizeNewLine
+
+    formattedCode
+    |> should equal """[<AbstractClass>]
+type Foo =
+    abstract foo: int
+    override __.foo = 1
+""" 

@@ -24,7 +24,7 @@ type IPrintable =
 
 type SomeClass1(x: int, y: float) =
     interface IPrintable with
-        member this.Print() = printfn "%d %f" x y
+        override this.Print() = printfn "%d %f" x y
 
 type Interface3 =
     inherit Interface1
@@ -45,8 +45,8 @@ let ``should not add with to interface definitions with no members``() =
     interface IDocument
 
     interface Infrastucture with
-        member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
-        member this.ToXml() = v :> obj
+        override this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
+        override this.ToXml() = v :> obj
 """
 
 [<Test>]
@@ -56,7 +56,7 @@ let ``object expressions``() =
     |> should equal """
 let obj1 =
     { new System.Object() with
-        member x.ToString() = "F#" }
+        override x.ToString() = "F#" }
 """
 
 [<Test>]
@@ -73,11 +73,11 @@ let ``object expressions and interfaces``() =
     |> should equal """
 let implementer () =
     { new ISecond with
-        member this.H() = ()
-        member this.J() = ()
+        override this.H() = ()
+        override this.J() = ()
       interface IFirst with
-          member this.F() = ()
-          member this.G() = () }
+          override this.F() = ()
+          override this.G() = () }
 """
 
 [<Test>]
@@ -93,10 +93,10 @@ let f () =
     |> should equal """
 let f () =
     { new obj() with
-        member x.ToString() = "INotifyEnumerableInternal"
+        override x.ToString() = "INotifyEnumerableInternal"
       interface INotifyEnumerableInternal<'T>
       interface IEnumerable<_> with
-          member x.GetEnumerator() = null }
+          override x.GetEnumerator() = null }
 """
 
 [<Test>]
@@ -161,12 +161,12 @@ type LogInterface =
 
 type MyLogInteface() =
     interface LogInterface with
-        member x.Print msg = printfn "%s" msg
+        override x.Print msg = printfn "%s" msg
 
         override x.GetLogFile environment =
             if environment = "DEV" then "dev.log" else sprintf "date-%s.log" environment
 
-        member x.Info() = ()
+        override x.Info() = ()
         override x.Version() = ()
 """
 

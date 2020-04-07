@@ -726,7 +726,7 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
                         | _ -> None)
                     |> List.tryHead
                 )
-                |> Option.defaultValue (!- "member ")
+                |> Option.defaultValue (!- "override ")
                 <| ctx
              )
         <| ctx

@@ -88,14 +88,14 @@ let ``should keep parentheses on the left of type signatures``() =
 
 type A () =
     interface IA with
-        member x.F (f: unit -> _) = f ()
+        override x.F (f: unit -> _) = f ()
     """ config
     |> should equal """type IA =
     abstract F: (unit -> Option<'T>) -> Option<'T>
 
 type A() =
     interface IA with
-        member x.F(f: unit -> _) = f ()
+        override x.F(f: unit -> _) = f ()
 """
 
 [<Test>]
