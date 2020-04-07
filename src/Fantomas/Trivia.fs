@@ -83,7 +83,11 @@ let private findNodeOnLineAndColumn (nodes: TriviaNode list) line column =
 
 let private findMemberDefnMemberNodeOnLine (nodes: TriviaNode list) line =
     nodes
-    |> List.filter (fun { Type = t; Range = r } -> match t, r.StartLine = line with | MainNode("SynMemberDefn.Member"), true -> true | _ -> false)
+    |> List.filter (fun { Type = t; Range = r } ->
+        match t, r.StartLine = line with
+        | MainNode("SynMemberDefn.Member"), true
+        | Token { TokenInfo = { TokenName = "MEMBER" } }, true -> true
+        | _ -> false)
     |> List.tryHead
 
 let private findNodeBeforeLineAndColumn (nodes: TriviaNode list) line column =

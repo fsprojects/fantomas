@@ -636,11 +636,11 @@ module Test =
     let test (something: IDisposable) (somethingElse: IDisposable) =
         { new ISomething with
 
-            override __.DoTheThing whatever =
+            member __.DoTheThing whatever =
                 printfn "%s" whatever
                 printfn "%s" whatever
 
-            override __.Dispose() =
+            member __.Dispose() =
                 something.Dispose()
                 somethingElse.Dispose() }
 """

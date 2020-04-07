@@ -31,7 +31,7 @@ type F =
 
 let x: F =
     {new F with
-        override __.G _ = Map.empty}
+        member __.G _ = Map.empty}
 
 x.G[].TryFind 3
 """

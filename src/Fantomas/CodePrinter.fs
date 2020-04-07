@@ -717,12 +717,24 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
          | MFOverride _ ->
              (fun (ctx: Context) ->
                 ctx.Trivia
-                |> List.tryFind(fun { Type = t; Range = r }  -> t = MainNode "SynMemberDefn.Member" && RangeHelpers.``range contains`` r rangeOfBindingAndRhs)
+                // trying to find hints from ast trivia
+                |> List.tryFind(fun { Type = t; Range = r }  ->
+                    t = MainNode "SynMemberDefn.Member" && RangeHelpers.``range contains`` r rangeOfBindingAndRhs)
+                |> Option.orElseWith(fun _ ->
+                    // trying to find hints from token trivia
+                    ctx.Trivia
+                    |> List.tryFind(fun { Type = t; Range = r } ->
+                        match t with
+                        | Token { TokenInfo = { TokenName = "MEMBER" } } ->
+                            RangeHelpers.``range starts after`` r rangeOfBindingAndRhs
+                        | _ -> false
+                    )
+                )
                 |> Option.bind(fun tn ->
                     tn.ContentBefore
                     |> List.choose (fun tc ->
                         match tc with
-                        | Keyword({ Content = kw }) when (kw = "override" || kw = "default") -> Some (!- (sprintf "%s " kw))
+                        | Keyword({ Content = kw }) when (kw = "override" || kw = "default" || kw = "member") -> Some (!- (sprintf "%s " kw))
                         | _ -> None)
                     |> List.tryHead
                 )
