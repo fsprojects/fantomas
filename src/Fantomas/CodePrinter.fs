@@ -723,7 +723,7 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
                         RangeHelpers.``range contains`` r rangeOfBindingAndRhs
                         
                     | Token { TokenInfo = { TokenName = "MEMBER" } } -> // trying to get token trivia
-                        RangeHelpers.``range starts after`` r rangeOfBindingAndRhs
+                        r.StartLine = rangeOfBindingAndRhs.StartLine
                         
                     | _ -> false
                 )
