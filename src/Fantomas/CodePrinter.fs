@@ -729,7 +729,7 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
                 )
                 |> Option.bind(fun tn ->
                     tn.ContentBefore
-                    |> Seq.tryPick (fun tc ->
+                    |> List.tryPick (fun tc ->
                         match tc with
                         | Keyword({ Content = ("override" | "default" | "member") as kw }) -> Some (!- (kw + " "))
                         | _ -> None
