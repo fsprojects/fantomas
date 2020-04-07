@@ -101,4 +101,29 @@ type Foo =
     |> should equal """[<AbstractClass>]
 type Foo =
     abstract foo: int
-    override __.foo = 1""" 
+    override __.foo = 1"""
+  
+[<Test>]
+let ``object expression should emit override keyword on AST formatting without origin source, 742``() =
+    """{ new System.IDisposable with
+    member __.Dispose() = () }"""
+    |> formatAst
+    |> should equal """{ new System.IDisposable with
+
+    override __.Dispose() = () }"""
+    
+[<Test>]
+let ``object expression should preserve member keyword on AST formatting with origin source, 742``() =
+    """{ new System.IDisposable with
+    member __.Dispose() = () }"""
+    |> formatAstWithSourceCode
+    |> should equal """{ new System.IDisposable with
+    member __.Dispose() = () }"""
+    
+[<Test>]
+let ``object expression should preserve override keyword on AST formatting with origin source, 742``() =
+    """{ new System.IDisposable with
+    override __.Dispose() = () }"""
+    |> formatAstWithSourceCode
+    |> should equal """{ new System.IDisposable with
+    override __.Dispose() = () }"""
