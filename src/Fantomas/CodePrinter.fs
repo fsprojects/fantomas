@@ -717,18 +717,15 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
          | MFOverride _ ->
              (fun (ctx: Context) ->
                 ctx.Trivia
-                // trying to find hints from ast trivia
                 |> List.tryFind(fun { Type = t; Range = r }  ->
-                    t = MainNode "SynMemberDefn.Member" && RangeHelpers.``range contains`` r rangeOfBindingAndRhs)
-                |> Option.orElseWith(fun _ ->
-                    // trying to find hints from token trivia
-                    ctx.Trivia
-                    |> List.tryFind(fun { Type = t; Range = r } ->
-                        match t with
-                        | Token { TokenInfo = { TokenName = "MEMBER" } } ->
-                            RangeHelpers.``range starts after`` r rangeOfBindingAndRhs
-                        | _ -> false
-                    )
+                    match t with
+                    | MainNode "SynMemberDefn.Member" -> // trying to get AST trivia
+                        RangeHelpers.``range contains`` r rangeOfBindingAndRhs
+                        
+                    | Token { TokenInfo = { TokenName = "MEMBER" } } -> // trying to get token trivia
+                        RangeHelpers.``range starts after`` r rangeOfBindingAndRhs
+                        
+                    | _ -> false
                 )
                 |> Option.bind(fun tn ->
                     tn.ContentBefore
