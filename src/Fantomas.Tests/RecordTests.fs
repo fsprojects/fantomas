@@ -289,20 +289,9 @@ let ``meaningful space should be preserved, 353`` () =
 
 [<Test>]
 let ``record upsert should never cause offside, 536`` () =
-    formatSourceString false """type A =
-  { Number : int }
-
-let a = { Number = 2 }
-
-let b =
-  { a with Number = 3 }""" {config with IndentSpaceNum = 2; PageWidth = 20}
-    |> should equal """type A =
-  { Number: int }
-
-let a =
-  { Number = 2 }
-
-let b =
+    formatSourceString false """let b =
+  { a with Number = 3 }""" { config with IndentSpaceNum = 2; PageWidth = 20 }
+    |> should equal """let b =
   { a with
       Number = 3 }" })
 """
