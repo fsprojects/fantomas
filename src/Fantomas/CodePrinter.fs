@@ -721,10 +721,10 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
                     match t with
                     | MainNode "SynMemberDefn.Member" -> // trying to get AST trivia
                         RangeHelpers.``range contains`` r rangeOfBindingAndRhs
-                        
+
                     | Token { TokenInfo = { TokenName = "MEMBER" } } -> // trying to get token trivia
                         r.StartLine = rangeOfBindingAndRhs.StartLine
-                        
+
                     | _ -> false
                 )
                 |> Option.bind(fun tn ->

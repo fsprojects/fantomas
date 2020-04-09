@@ -171,8 +171,8 @@ let ``should not break inside of if statements in records``() =
 [<Test>]
 let ``should not add redundant newlines when using a record in a DU``() =
     formatSourceString false """
-let rec make item depth = 
-    if depth > 0 then 
+let rec make item depth =
+    if depth > 0 then
         Tree({ Left = make (2 * item - 1) (depth - 1)
                Right = make (2 * item) (depth - 1) }, item)
     else Tree(defaultof<_>, item)""" config
@@ -285,6 +285,26 @@ let ``meaningful space should be preserved, 353`` () =
     { dotnetOptions o' with
           WorkingDirectory = Path.getFullName "RegressionTesting/issue29"
           Verbosity = Some DotNet.Verbosity.Minimal }).WithParameters
+"""
+
+[<Test>]
+let ``record upsert should never cause offside, 536`` () =
+    formatSourceString false """type A =
+  { Number : int }
+
+let a = { Number = 2 }
+
+let b =
+  { a with Number = 3 }""" {config with IndentSpaceNum = 2; PageWidth = 20}
+    |> should equal """type A =
+  { Number: int }
+
+let a =
+  { Number = 2 }
+
+let b =
+  { a with
+      Number = 3 }" })
 """
 
 [<Test>]
