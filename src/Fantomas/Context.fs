@@ -42,12 +42,12 @@ module WriterModel =
         IsDummy = false
         Column = 0
     }
-    
+
     let update cmd m =
         let doNewline m =
             let m = { m with Indent = max m.Indent m.AtColumn }
             { m with
-               Lines = String.replicate m.Indent " " :: (List.head m.Lines + m.WriteBeforeNewline) :: (List.tail m.Lines) 
+               Lines = String.replicate m.Indent " " :: (List.head m.Lines + m.WriteBeforeNewline) :: (List.tail m.Lines)
                WriteBeforeNewline = ""
                Column = m.Indent }
         match cmd with
@@ -62,38 +62,38 @@ module WriterModel =
         | RestoreAtColumn c -> { m with AtColumn = c }
         | SetIndent c -> { m with Indent = c }
         | RestoreIndent c -> { m with Indent = c }
-        
+
     let updateAll cmds m = cmds |> Queue.fold (fun m c -> update c m) m
-    
+
 module WriterEvents =
     let normalize ev =
         match ev with
         | Write s when String.normalizeThenSplitNewLine s |> Array.length > 1 ->
             String.normalizeThenSplitNewLine s |> Seq.map (fun x -> [Write x]) |> Seq.reduce (fun x y -> x @ [ WriteLineInsideStringConst] @ y) |> Seq.toList
         | _ -> [ev]
-        
+
     let isMultiline evs =
         evs |> Queue.toSeq |> Seq.exists (function | WriteLine -> true | _ -> false)
 
-type internal Context = 
-    { Config : FormatConfig; 
+type internal Context =
+    { Config : FormatConfig;
       WriterModel : WriterModel
       WriterEvents : Queue<WriterEvent>;
       BreakLines : bool;
       BreakOn : string -> bool;
-      /// The original source string to query as a last resort 
-      Content : string; 
+      /// The original source string to query as a last resort
+      Content : string;
       /// Positions of new lines in the original source string
-      Positions : int []; 
+      Positions : int [];
       Trivia : TriviaNode list
       RecordBraceStart: int list }
 
     /// Initialize with a string writer and use space as delimiter
-    static member Default = 
+    static member Default =
         { Config = FormatConfig.Default
           WriterModel = WriterModel.init
           WriterEvents = Queue.empty
-          BreakLines = true; BreakOn = (fun _ -> false) 
+          BreakLines = true; BreakOn = (fun _ -> false)
           Content = ""
           Positions = [||]
           Trivia = []
@@ -101,7 +101,7 @@ type internal Context =
 
     static member create config defines (content : string) maybeAst =
         let content = String.normalizeNewLine content
-        let positions = 
+        let positions =
             content.Split('\n')
             |> Seq.map (fun s -> String.length s + 1)
             |> Seq.scan (+) 0
@@ -113,10 +113,10 @@ type internal Context =
             | Some ast, false -> Trivia.collectTrivia config tokens lineCount ast
             | _ -> Context.Default.Trivia
 
-        { Context.Default with 
+        { Context.Default with
             Config = config
             Content = content
-            Positions = positions 
+            Positions = positions
             Trivia = trivia }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
@@ -149,7 +149,7 @@ let internal dumpAndContinue (ctx: Context) =
 #endif
     ctx
 
-type Context with    
+type Context with
     member x.Column = x.WriterModel.Column
     member x.FinalizeModel = finalizeWriterModel x
 
@@ -166,20 +166,20 @@ let internal forallCharsOnLastLine f ctx =
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
 /// Indent one more level based on configuration
-let internal indent (ctx : Context) = 
+let internal indent (ctx : Context) =
     // if atColumn is bigger then after indent, then we use atColumn as base for indent
     writerEvent (IndentBy ctx.Config.IndentSpaceNum) ctx
 
 /// Unindent one more level based on configuration
-let internal unindent (ctx : Context) = 
+let internal unindent (ctx : Context) =
     writerEvent (UnIndentBy ctx.Config.IndentSpaceNum) ctx
 
 /// Increase indent by i spaces
-let internal incrIndent i (ctx : Context) = 
+let internal incrIndent i (ctx : Context) =
     writerEvent (IndentBy i) ctx
 
 /// Decrease indent by i spaces
-let internal decrIndent i (ctx : Context) = 
+let internal decrIndent i (ctx : Context) =
     writerEvent (UnIndentBy i) ctx
 
 /// Apply function f at an absolute indent level (use with care)
@@ -234,7 +234,7 @@ let internal (++) (ctx : Context -> Context) (str : string) x =
 let internal (+-) (ctx : Context -> Context) (str : string) x =
     let c = ctx x
     let c =
-        if c.BreakOn str then 
+        if c.BreakOn str then
             writerEvent WriteLine c
         else
             writerEvent (Write " ") c
@@ -251,15 +251,15 @@ let internal (+~) (ctx : Context -> Context) (str : string) x =
         not (forallCharsOnLastLine Char.IsWhiteSpace ctx)
     let c = ctx x
     let c =
-        if addNewline c then 
+        if addNewline c then
             writerEvent WriteLine c
         else c
     writerEvent (Write str) c
 
-let internal (!-) (str : string) = id -- str 
-let internal (!+) (str : string) = id ++ str 
-let internal (!+-) (str : string) = id +- str 
-let internal (!+~) (str : string) = id +~ str 
+let internal (!-) (str : string) = id -- str
+let internal (!+) (str : string) = id ++ str
+let internal (!+-) (str : string) = id +- str
+let internal (!+~) (str : string) = id +~ str
 
 /// Print object converted to string
 let internal str (o : 'T) (ctx : Context) =
@@ -270,7 +270,7 @@ let internal coli f' (c : seq<'T>) f (ctx : Context) =
     let mutable tryPick = true
     let mutable st = ctx
     let mutable i = 0
-    let e = c.GetEnumerator()   
+    let e = c.GetEnumerator()
     while (e.MoveNext()) do
         if tryPick then tryPick <- false else st <- f' st
         st <- f i (e.Current) st
@@ -278,12 +278,12 @@ let internal coli f' (c : seq<'T>) f (ctx : Context) =
     st
 
 /// Process collection - keeps context through the whole processing
-/// calls f for every element in sequence and f' between every two elements 
+/// calls f for every element in sequence and f' between every two elements
 /// as a separator. This is a variant that works on typed collections.
 let internal col f' (c : seq<'T>) f (ctx : Context) =
     let mutable tryPick = true
     let mutable st = ctx
-    let e = c.GetEnumerator()   
+    let e = c.GetEnumerator()
     while (e.MoveNext()) do
         if tryPick then tryPick <- false else st <- f' st
         st <- f (e.Current) st
@@ -293,7 +293,7 @@ let internal col f' (c : seq<'T>) f (ctx : Context) =
 let internal colEx f' (c : seq<'T>) f (ctx: Context) =
     let mutable tryPick = true
     let mutable st = ctx
-    let e = c.GetEnumerator()   
+    let e = c.GetEnumerator()
     while (e.MoveNext()) do
         if tryPick then tryPick <- false else st <- f' e.Current st
         st <- f (e.Current) st
@@ -351,6 +351,7 @@ let internal sepSpace (ctx : Context) =
         | None -> ctx
         | _ -> (!-" ") ctx
 
+/// Seperator Newline
 let internal sepNln = !+ ""
 let internal sepStar = !- " * "
 let internal sepEq = !- " ="
@@ -360,12 +361,12 @@ let internal sepNone = id
 let internal sepBar = !- "| "
 
 /// opening token of list
-let internal sepOpenL (ctx : Context) =  
-    if ctx.Config.SpaceAroundDelimiter then str "[ " ctx else str "[" ctx 
+let internal sepOpenL (ctx : Context) =
+    if ctx.Config.SpaceAroundDelimiter then str "[ " ctx else str "[" ctx
 
 /// closing token of list
 let internal sepCloseL (ctx : Context) =
-    if ctx.Config.SpaceAroundDelimiter then str " ]" ctx else str "]" ctx 
+    if ctx.Config.SpaceAroundDelimiter then str " ]" ctx else str "]" ctx
 
 /// opening token of list
 let internal sepOpenLFixed = !- "["
@@ -375,11 +376,11 @@ let internal sepCloseLFixed = !- "]"
 
 /// opening token of array
 let internal sepOpenA (ctx : Context) =
-    if ctx.Config.SpaceAroundDelimiter then str "[| " ctx else str "[|" ctx 
+    if ctx.Config.SpaceAroundDelimiter then str "[| " ctx else str "[|" ctx
 
 /// closing token of array
-let internal sepCloseA (ctx : Context) = 
-    if ctx.Config.SpaceAroundDelimiter then str " |]" ctx else str "|]" ctx 
+let internal sepCloseA (ctx : Context) =
+    if ctx.Config.SpaceAroundDelimiter then str " |]" ctx else str "|]" ctx
 
 /// opening token of list
 let internal sepOpenAFixed = !- "[|"
@@ -387,16 +388,16 @@ let internal sepOpenAFixed = !- "[|"
 let internal sepCloseAFixed = !- "|]"
 
 /// opening token of sequence or record
-let internal sepOpenS (ctx : Context) = 
-    if ctx.Config.SpaceAroundDelimiter then str "{ " ctx else str "{" ctx 
+let internal sepOpenS (ctx : Context) =
+    if ctx.Config.SpaceAroundDelimiter then str "{ " ctx else str "{" ctx
 
 /// closing token of sequence or record
-let internal sepCloseS (ctx : Context) = 
+let internal sepCloseS (ctx : Context) =
     if ctx.Config.SpaceAroundDelimiter then str " }" ctx else str "}" ctx
 
 /// opening token of anon record
 let internal sepOpenAnonRecd (ctx : Context) =
-    if ctx.Config.SpaceAroundDelimiter then str "{| " ctx else str "{|" ctx 
+    if ctx.Config.SpaceAroundDelimiter then str "{| " ctx else str "{|" ctx
 
 /// closing token of anon record
 let internal sepCloseAnonRecd (ctx : Context) =
@@ -427,8 +428,10 @@ let internal futureNlnCheckMem (f, ctx) =
     if ctx.WriterModel.IsDummy || not ctx.BreakLines then (false, false) else
     // Create a dummy context to evaluate length of current operation
     let dummyCtx : Context = ctx.WithDummy(Queue.empty, keepPageWidth = true) |> f
-    WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.PageWidth
+    let tooLong = dummyCtx.Column > ctx.Config.PageWidth
+    WriterEvents.isMultiline dummyCtx.WriterEvents, tooLong
 
+/// Whether the code will contain a newline (because too long, or already multilined)
 let internal futureNlnCheck f (ctx : Context) =
     let (isMultiLine, isLong) = futureNlnCheckMem (f, ctx)
     isMultiLine || isLong
@@ -464,14 +467,14 @@ let internal autoNln f (ctx : Context) = autoNlnOrAddSep f sepNone ctx
 let internal autoNlnOrSpace f (ctx : Context) = autoNlnOrAddSep f sepSpace ctx
 
 /// Similar to col, skip auto newline for index 0
-let internal colAutoNlnSkip0i f' (c : seq<'T>) f (ctx : Context) = 
+let internal colAutoNlnSkip0i f' (c : seq<'T>) f (ctx : Context) =
     coli f' c (fun i c -> if i = 0 then f i c else autoNln (f i c)) ctx
 
 /// Similar to col, skip auto newline for index 0
 let internal colAutoNlnSkip0 f' c f = colAutoNlnSkip0i f' c (fun _ -> f)
 
 /// Skip all auto-breaking newlines
-let internal noNln f (ctx : Context) : Context = 
+let internal noNln f (ctx : Context) : Context =
     let res = f { ctx with BreakLines = false }
     { res with BreakLines = ctx.BreakLines }
 
@@ -490,7 +493,7 @@ let internal sepColonFixed = !- ":"
 
 let internal sepColonWithSpacesFixed = !- " : "
 
-let internal sepComma (ctx : Context) = 
+let internal sepComma (ctx : Context) =
     if ctx.Config.SpaceAfterComma then str ", " ctx else str "," ctx
 
 let internal sepSemi (ctx : Context) =
@@ -592,9 +595,9 @@ let internal printContentBefore triviaNode =
                         { tn with ContentBefore = contentBefore }
                     else
                         tn
-                ) 
+                )
             { ctx with Trivia = trivia }
-        
+
     col sepNone triviaNode.ContentBefore printTriviaContent +> removeBeforeContentOfTriviaNode
 
 let internal printContentAfter triviaNode =
@@ -646,7 +649,7 @@ let internal leaveNodeWith f x (ctx: Context) =
 let internal leaveNode (range: range) (ctx: Context) = leaveNodeWith findTriviaMainNodeOrTokenOnEndFromRange range ctx
 let internal leaveNodeToken (range: range) (ctx: Context) = leaveNodeWith findTriviaTokenFromRange range ctx
 let internal leaveNodeTokenByName (range: range) (tokenName:string) (ctx: Context) = leaveNodeWith (findTriviaTokenFromName range) tokenName ctx
-    
+
 let internal leaveEqualsToken (range: range) (ctx: Context) =
     ctx.Trivia
     |> List.filter(fun tn ->
@@ -721,7 +724,7 @@ let internal hasPrintableContent (trivia: TriviaContent list) =
         | _ -> false)
     |> List.isEmpty
     |> not
-    
+
 let private hasDirectiveBefore (trivia: TriviaContent list) =
     trivia
     |> List.filter (fun tn ->
@@ -750,13 +753,13 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range)
     |> Seq.exists (fun ({ ContentBefore = contentBefore }) -> hasPrintableContent contentBefore)
     |> fun hasContentBefore ->
         if hasContentBefore then ctx else sepNln ctx
-    
+
 let internal beforeElseKeyword (fullIfRange: range) (elseRange: range) (ctx: Context) =
     ctx.Trivia
     |> List.tryFind(fun tn ->
         match tn.Type with
         | Token(tok) ->
-            tok.TokenInfo.TokenName = "ELSE" && (fullIfRange.StartLine < tn.Range.StartLine) && (tn.Range.StartLine >= elseRange.StartLine) 
+            tok.TokenInfo.TokenName = "ELSE" && (fullIfRange.StartLine < tn.Range.StartLine) && (tn.Range.StartLine >= elseRange.StartLine)
         | _ -> false
     )
     |> fun tn ->
@@ -781,12 +784,12 @@ let internal genTriviaBeforeClausePipe (rangeOfClause:range) ctx =
             let containsOnlyDirectives =
                 trivia.ContentBefore
                 |> List.forall (fun tn -> match tn with | Directive(_) -> true | _ -> false)
-            
+
             ifElse containsOnlyDirectives sepNln sepNone
             +> printContentBefore trivia
         | None -> id
     <| ctx
-    
+
 let internal genCommentsAfterInfix (rangePlusInfix: range option) (ctx: Context) =
     rangePlusInfix
     |> Option.bind (findTriviaMainNodeFromRange ctx.Trivia)
@@ -803,7 +806,7 @@ let internal genCommentsAfterInfix (rangePlusInfix: range option) (ctx: Context)
     |> Option.map (fun comment -> !- comment +> sepNln)
     |> Option.defaultValue id
     <| ctx
-    
+
 // Add a newline if there if trivia content before that requires it
 let internal sepNlnIfTriviaBefore (range:range) (ctx:Context) =
     match findTriviaMainNodeFromRange ctx.Trivia range with

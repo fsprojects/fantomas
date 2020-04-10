@@ -760,8 +760,8 @@ and genVal astContext (Val(ats, px, ao, s, t, vi, _) as node) =
     |> genTrivia range
 
 and genRecordFieldName astContext (RecordFieldName(s, eo) as node) =
-    let (rfn,_,_) = node
-    let range = (fst rfn).Range
+    let (recordFieldName, _, _) = node
+    let range = (fst recordFieldName).Range
     opt sepNone eo (fun e -> !- s +> sepEq +> preserveBreakNlnOrAddSpace astContext e)
     |> genTrivia range
 
@@ -867,14 +867,24 @@ and genExpr astContext synExpr =
     | Record(inheritOpt, xs, eo) ->
         let recordExpr =
             let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
+            let fieldsExprShortForm = (!- " with " +> fieldsExpr)
             eo |> Option.map (fun e ->
-                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExprShortForm)
+                                                  (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent)
+                                                  fieldsExprShortForm)
             |> Option.defaultValue fieldsExpr
 
+        let someSeparator =
+            if xs.IsEmpty then sepNone
+            else ifElseCtx (futureNlnCheck recordExpr)
+                           sepNln
+                           sepSemi
         sepOpenS
         +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
-        +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
-            (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
+        +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range
+                                  +> opt someSeparator inheritOpt (fun (typ, expr) ->
+                                      !- "inherit " +> genType astContext false typ +> genExpr astContext expr)
+                                  +> recordExpr)
         +> (fun ctx ->
             match ctx.RecordBraceStart with
             | rbs::rest ->
