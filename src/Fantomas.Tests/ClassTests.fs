@@ -109,6 +109,7 @@ type Shape2D(x0: float, y0: float) =
         and set yval = y <- yval
 
     abstract Area: float
+
     abstract Perimeter: float
     abstract Name: string
 
@@ -117,6 +118,7 @@ type Shape2D(x0: float, y0: float) =
         y <- y + dy
 
     abstract Rotate: float -> unit
+
     default this.Rotate(angle) = rotAngle <- rotAngle + angle
 """
 
@@ -243,12 +245,14 @@ type MyClassDerived2(y: int) =
     |> should equal """
 type MyClassBase2(x: int) =
     let mutable z = x * x
+
     do
         for i in 1 .. z do
             printf "%d " i
 
 type MyClassDerived2(y: int) =
     inherit MyClassBase2(y * 2)
+
     do
         for i in 1 .. y do
             printf "%d " i
@@ -420,6 +424,7 @@ module Logging =
                 Helpers.nullValuesToOptions (fun (x: Func<string>) -> (fun () -> x.Invoke())) func
             let wrappedException = Helpers.nullValuesToOptions id exc
             f level wrappedFunction wrappedException (parameters |> List.ofArray)
+
         LogProvider.SetCurrentLogProvider(QuartzLoggerWrapper(loggerFunction))
 
     let SetQuartzLogger l = LogProvider.SetCurrentLogProvider(l)

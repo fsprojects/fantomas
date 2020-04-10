@@ -526,3 +526,16 @@ let ``char content`` () =
          Type = TriviaNodeType.MainNode("SynExpr.Const") }] ->
         pass()
     | _ -> fail()
+
+[<Test>]
+let ``leading newlines should not be captured as trivia`` () =
+    let source = """
+let a = b
+"""
+    let trivia =
+        toTrivia source
+        |> List.head
+
+    match trivia with
+    | [] -> pass()
+    | _ -> fail()

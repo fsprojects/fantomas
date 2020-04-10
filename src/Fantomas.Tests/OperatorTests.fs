@@ -227,6 +227,7 @@ let ``line comment after infix function with parenthesis, 559`` () =
 let watchFiles =
     async {
         printfn "after start"
+
         use _ =
             !!(serverPath </> "*.fs")
             ++ (serverPath </> "*.fsproj") // combines fs and fsproj
@@ -234,6 +235,7 @@ let watchFiles =
                 // stopFunc()
                 //Async.Start (startFunc())
                 )
+
         ()
     }
 """
@@ -260,6 +262,7 @@ let ``line comment after infix function with string constant, 559`` () =
 let watchFiles =
     async {
         printfn "after start"
+
         use _ =
             !!(serverPath </> "*.fs")
             ++ "*.fsproj" // combines fs and fsproj
@@ -267,6 +270,7 @@ let watchFiles =
                 // stopFunc()
                 //Async.Start (startFunc())
                 )
+
         ()
     }
 """

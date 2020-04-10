@@ -281,6 +281,7 @@ type MyExc =
   |> should equal """
 type MyExc =
     inherit Exception
+
     new(msg) =
         { inherit Exception(msg)
           XXXXXXXXXXXXXXXXXXXXXXXX = 1

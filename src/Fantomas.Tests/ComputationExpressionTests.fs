@@ -69,7 +69,6 @@ let rec inorder tree =
     |> prepend newline
     |> should equal """
 let s1 = seq { for i in 1 .. 10 -> i * i }
-
 let s2 = seq { 0 .. 10 .. 100 }
 
 let rec inorder tree =

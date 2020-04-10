@@ -51,9 +51,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 """  config
     |> should equal """#if INTERACTIVE
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
-
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
-
 #load "__setup__.fsx"
 #endif
 """
@@ -71,9 +69,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
     |> should equal """#if INTERACTIVE
 #else
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
-
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
-
 #load "__setup__.fsx"
 #endif
 """
@@ -173,6 +169,29 @@ let [<Literal>] private assemblyConfig() =
 let private assemblyConfig () =
 #if TRACE
     let x = ""
+#else
+    let x = "x"
+#endif
+    x
+"""
+
+[<Test>]
+let ``should break lines before compiler directives, no defines``() =
+    formatSourceStringWithDefines [] """
+let [<Literal>] private assemblyConfig() =
+  #if TRACE
+  let x = ""
+  #else
+  let x = "x"
+  #endif
+  x
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Literal>]
+let private assemblyConfig () =
+#if TRACE
+
 #else
     let x = "x"
 #endif
@@ -442,7 +461,6 @@ open Fable.Core
 open Fable.Core.JsInterop
 
 type FunctionComponent<'Props> = 'Props -> ReactElement
-
 type LazyFunctionComponent<'Props> = 'Props -> ReactElement
 
 type FunctionComponent =
@@ -456,6 +474,7 @@ type FunctionComponent =
             ReactBindings.React.``lazy`` (fun () ->
                 // React.lazy requires a default export
                 (importValueDynamic f).``then``(fun x -> createObj [ "default" ==> x ]))
+
         fun props ->
             ReactElementType.create ReactBindings.React.Suspense (createObj [ "fallback" ==> fallback ])
                 [ ReactElementType.create elemType props [] ]
@@ -509,7 +528,6 @@ open Fable.Core
 open Fable.Core.JsInterop
 
 type FunctionComponent<'Props> = 'Props -> ReactElement
-
 type LazyFunctionComponent<'Props> = 'Props -> ReactElement
 
 type FunctionComponent =
@@ -579,7 +597,6 @@ open Fable.Core
 open Fable.Core.JsInterop
 
 type FunctionComponent<'Props> = 'Props -> ReactElement
-
 type LazyFunctionComponent<'Props> = 'Props -> ReactElement
 
 type FunctionComponent =
@@ -646,7 +663,6 @@ open Fable.Core
 open Fable.Core.JsInterop
 
 type FunctionComponent<'Props> = 'Props -> ReactElement
-
 type LazyFunctionComponent<'Props> = 'Props -> ReactElement
 
 type FunctionComponent =
@@ -660,6 +676,7 @@ type FunctionComponent =
             ReactBindings.React.``lazy`` (fun () ->
                 // React.lazy requires a default export
                 (importValueDynamic f).``then``(fun x -> createObj [ "default" ==> x ]))
+
         fun props ->
             ReactElementType.create ReactBindings.React.Suspense (createObj [ "fallback" ==> fallback ])
                 [ ReactElementType.create elemType props [] ]
@@ -886,6 +903,7 @@ do  ()
 
 #endif
 [<assembly:Meh>]
+
 do ()
 """
 
@@ -905,6 +923,7 @@ do  ()
 [<assembly:Bar>]
 #endif
 [<assembly:Meh>]
+
 do ()
 """
 

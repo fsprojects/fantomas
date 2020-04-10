@@ -46,7 +46,7 @@ let f () =
 let ``multiline let in, should remove in`` () =
     let codeSnippet = """
 let f () =
-  let x = 1 in if true 
+  let x = 1 in if longIdentifierThatWillForceThisConstructToBeMultiline
                then x
                else x
 """
@@ -54,7 +54,9 @@ let f () =
     formatSourceString false codeSnippet config
     |> should equal """let f () =
     let x = 1
-    if true then x else x
+    if longIdentifierThatWillForceThisConstructToBeMultiline
+    then x
+    else x
 """
 
 [<Test>]
@@ -197,6 +199,7 @@ module Card =
 
         let props =
             JS.Object.assign (createEmpty, customProps, typeProps)
+
         ofImport "Card" "reactstrap" props elems
 """
 

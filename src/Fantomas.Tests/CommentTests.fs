@@ -45,6 +45,7 @@ let print_30_permut () =
         Array.init n (fun i ->
             Console.Write(i + 1)
             i)
+
     permutation
 """
 
@@ -66,6 +67,7 @@ let print_30_permut () =
         Array.init n (fun (i, j) ->
             Console.Write(i + 1)
             i)
+
     permutation
 """
 
@@ -435,7 +437,6 @@ type C () =
     |> prepend newline
     |> should equal """
 type C() =
-
     let rec g x = h x
     and h x = g x
 

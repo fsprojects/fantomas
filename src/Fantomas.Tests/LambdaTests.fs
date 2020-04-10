@@ -227,3 +227,25 @@ let ``line comment after lambda should not necessary make it multiline`` () =
     |> should equal """
 let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
 """
+
+
+[<Test>]
+let ``multiline let binding in lambda`` () =
+    formatSourceString false """
+CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
+            let connectionString =
+                if hostedService then RoleEnvironment.GetConfigurationSettingValue(configName)
+                else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
+            configSettingPublisher.Invoke(connectionString) |> ignore)
+"""  config
+    |> prepend newline
+    |> should equal """
+CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
+    let connectionString =
+        if hostedService
+        then RoleEnvironment.GetConfigurationSettingValue(configName)
+        else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
+
+    configSettingPublisher.Invoke(connectionString)
+    |> ignore)
+"""

@@ -221,7 +221,7 @@ let private findASTNodeOfTypeThatContains (nodes: TriviaNode list) typeName rang
         | _ -> false)
     |> List.tryHead
 
-let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
+let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNode list) trivia =
     match trivia with
     | { Item = Comment(LineCommentOnSingleLine(_)) as comment; Range = range } when (commentIsAfterLastTriviaNode triviaNodes range) ->
         // Comment on is on its own line after all Trivia nodes, most likely at the end of a module
@@ -252,7 +252,8 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         findLastNodeOnLine  triviaNodes range.EndLine
         |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }) triviaNodes
 
-    | { Item = Newline; Range = range } ->
+    // Newlines are only relevant if they occur after the first line of source code
+    | { Item = Newline; Range = range } when (range.StartLine > startOfSourceCode) ->
         match triviaBetweenAttributeAndParentBinding triviaNodes range.StartLine with
         | Some _ as node ->
             updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes node
@@ -356,6 +357,11 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
 
         | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput(_, _, _ , _, mns)) ->
             Fantomas.AstTransformer.sigAstToNode mns
+
+    let startOfSourceCode =
+        match node.Range with
+        | Some r -> r.StartLine
+        | None -> 1
             
     let triviaNodesFromAST =
         flattenNodeToList node
@@ -370,5 +376,5 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
     match trivias with
     | [] -> []
     | _ ->
-        List.fold addTriviaToTriviaNode triviaNodes trivias
+        List.fold (addTriviaToTriviaNode startOfSourceCode) triviaNodes trivias
         |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.

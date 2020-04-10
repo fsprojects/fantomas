@@ -55,7 +55,6 @@ let rangeTest testValue mid size =
     | _ -> printfn "The test value is out of range."
 
 let (var1, var2) as tuple1 = (1, 2)
-
 printfn "%d %d %A" var1 var2 tuple1
 """
 
@@ -117,6 +116,7 @@ let countValues list value =
         | (elem1 & head) :: tail when elem1 = value -> checkList tail (acc + 1)
         | head :: tail -> checkList tail acc
         | [] -> acc
+
     checkList list 0
 
 let detectZeroTuple point =
@@ -409,6 +409,7 @@ let update msg model =
             { model with AFieldWithAVeryVeryVeryLooooooongName = 10 }
                 .RecalculateTotal()
         | AnotherMessage -> model
+
     res
 """
 

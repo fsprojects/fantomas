@@ -27,7 +27,6 @@ type C () =
     |> prepend newline
     |> should equal """
 type C() =
-
     let rec g x = h x
     and h x = g x
 
@@ -185,7 +184,6 @@ let ``should not add spaces into a series of function application``() =
     formatSourceString false """let f x = "d"
 f(1).Contains("3")""" config
     |> should equal """let f x = "d"
-
 f(1).Contains("3")
 """
 
@@ -305,7 +303,6 @@ f(42).Length
     |> prepend newline
     |> should equal """
 let f x = "foo"
-
 f(42).Length
 """
 
@@ -376,6 +373,7 @@ let fold
             anyErrors <- true
             collectedErrors <- error :: collectedErrors
         | Ok output -> collectedOutputs <- output :: collectedOutputs
+
     funcs |> Seq.iter (fun validator -> runValidator validator input)
     match anyErrors with
     | true -> Error collectedErrors
