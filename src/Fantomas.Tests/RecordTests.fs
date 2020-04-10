@@ -293,7 +293,7 @@ let ``record upsert should never cause offside, 536`` () =
   { a with Number = 3 }""" { config with IndentSpaceNum = 2; PageWidth = 20 }
     |> should equal """let b =
   { a with
-      Number = 3 }" })
+      Number = 3 }
 """
 
 [<Test>]
