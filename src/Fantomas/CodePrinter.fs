@@ -2,9 +2,9 @@
 
 open System
 open System.Text.RegularExpressions
-open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 open FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.SyntaxTree
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
@@ -717,16 +717,25 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
          | MFOverride _ ->
              (fun (ctx: Context) ->
                 ctx.Trivia
-                |> List.tryFind(fun { Type = t; Range = r }  -> t = MainNode "SynMemberDefn.Member" && RangeHelpers.``range contains`` r rangeOfBindingAndRhs)
+                |> List.tryFind(fun { Type = t; Range = r }  ->
+                    match t with
+                    | MainNode "SynMemberDefn.Member" -> // trying to get AST trivia
+                        RangeHelpers.``range contains`` r rangeOfBindingAndRhs
+                        
+                    | Token { TokenInfo = { TokenName = "MEMBER" } } -> // trying to get token trivia
+                        r.StartLine = rangeOfBindingAndRhs.StartLine
+                        
+                    | _ -> false
+                )
                 |> Option.bind(fun tn ->
                     tn.ContentBefore
-                    |> List.choose (fun tc ->
+                    |> List.tryPick (fun tc ->
                         match tc with
-                        | Keyword({ Content = kw }) when (kw = "override" || kw = "default") -> Some (!- (sprintf "%s " kw))
-                        | _ -> None)
-                    |> List.tryHead
+                        | Keyword({ Content = ("override" | "default" | "member") as kw }) -> Some (!- (kw + " "))
+                        | _ -> None
+                    )
                 )
-                |> Option.defaultValue (!- "member ")
+                |> Option.defaultValue (!- "override ")
                 <| ctx
              )
         <| ctx
@@ -1442,7 +1451,7 @@ and genExpr astContext synExpr =
         addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
 
     | LetOrUseBang(isUse, p, e1, ands, e2) ->
-        let genAndList astContext (ands: list<SequencePointInfoForBinding * bool * bool * SynPat * SynExpr * range>) =
+        let genAndList astContext (ands: list<DebugPointForBinding * bool * bool * SynPat * SynExpr * range>) =
             colPost sepNln sepNln
                 ands
                 (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> autoIndentNlnByFuture (genExpr astContext expr))
