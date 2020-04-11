@@ -123,7 +123,7 @@ let addParenForTupleWhen f synExpr ctx =
     let condition e =
         match e with
         |ElIf _
-        | FSharp.Compiler.Ast.SynExpr.Lambda _ -> true
+        | FSharp.Compiler.SyntaxTree.SynExpr.Lambda _ -> true
         |_ -> false // "if .. then .. else" have precedence over ","
     let expr = f synExpr
     ifElse (condition synExpr) (sepOpenT +> expr +> sepCloseT) expr ctx

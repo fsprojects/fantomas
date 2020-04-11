@@ -175,7 +175,7 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds
     +> genSigModuleDeclList astContext mds
     +> leaveNode range
 
-and genModuleDeclList astContext (e: SynModuleDecls) =
+and genModuleDeclList astContext e =
     match e with
     | OpenL(xs, ys) ->
         match ys with
