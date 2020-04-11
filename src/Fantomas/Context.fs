@@ -957,3 +957,58 @@ let internal lastLineOnlyContains characters (ctx: Context) =
         (writeEventsOnLastLine ctx |> String.concat "").Trim(characters)
     let length = String.length lastLine
     length = 0 || length < ctx.Config.IndentSpaceNum
+
+let private (|CommentOrDefineEvent|_|) we =
+    match we with
+    | Write (w) when (String.startsWithOrdinal "//" w) ->
+        Some we
+    | Write (w) when (String.startsWithOrdinal "#if" w) ->
+        Some we
+    | Write (w) when (String.startsWithOrdinal "#else" w) ->
+        Some we
+    | Write (w) when (String.startsWithOrdinal "#endif" w) ->
+        Some we
+    | Write (w) when (String.startsWithOrdinal "(*" w) ->
+        Some we
+    | _ -> None
+
+// Add a newline when the previous code is only one line above the current location
+// For example
+// let a = meh
+//.
+// => The dot is the current point and you want to insert an extra newline in this case
+//
+// Other example
+// let a = foo
+//
+// .
+// => Already two newline character between the dot and the previous code, no need to add an extra newline.
+//
+// Don't add an extra newline if the previous code ends with `=` or `->`
+// For example
+// type Foo =
+//     .
+// => no need for a newline here
+let internal sepNlnBeforeMultilineConstruct range rangeOfAttributes ctx =
+    let existingNewlines =
+        ctx.WriterEvents
+        |> Queue.rev
+        |> Seq.takeWhile
+               (function
+                         | Write ""
+                         // for example:
+                         // type Foo =
+                         //     static member Bar () = ...
+                         | IndentBy _
+                         | WriteLine
+                         | SetAtColumn _
+                         | Write " -> "
+                         | CommentOrDefineEvent _ -> true
+                         | _ -> false)
+        |> Seq.filter (function | WriteLine | IndentBy _ | Write " -> " | CommentOrDefineEvent _ -> true | _ -> false)
+        |> Seq.length
+    if existingNewlines >= 2 then
+        ctx // previous construct was multiline so no need to add any extra newlines
+    else
+        // previous construct was single line so add extra newline
+        sepNlnConsideringTriviaContentBeforeWithAttributes range rangeOfAttributes ctx

@@ -189,33 +189,7 @@ and genModuleDeclList astContext (e: SynModuleDecls) =
                 | None -> rep 2 sepNln
             (col sepNln xs (genModuleDecl astContext) +> sepModuleDecl +> genModuleDeclList astContext ys)
     | m::rest ->
-        let newlineBeforeMultiline ctx =
-            if Seq.isEmpty ctx.WriterEvents then
-                ctx // no write events, no need to add extra newline at the beginning of the file.
-            else
-                let existingNewlines =
-                    ctx.WriterEvents
-                    |> Queue.rev
-                    |> Seq.takeWhile
-                           (function
-                                     | CommentOrDefineEvent _ -> true
-                                     | Write ""
-                                     | WriteLine
-                                     | IndentBy _ -> true
-                                     | _ -> false)
-                    |> Seq.filter (function | WriteLine -> true
-                                            // comments above the first moduleDecl
-                                            | CommentOrDefineEvent _ -> true
-                                            // the IndentBy indicates a nested module
-                                            | IndentBy _ -> true
-                                            | _ -> false)
-                    |> Seq.length
-                if existingNewlines >= 2 then
-                    ctx // previous construct was multiline so no need to add any extra newlines
-                else
-                    // previous construct was single line so add extra newline
-                    let attrs = getRangesFromAttributesFromModuleDeclaration m
-                    sepNlnConsideringTriviaContentBeforeWithAttributes m.Range attrs ctx
+        let attrs = getRangesFromAttributesFromModuleDeclaration m
 
         let newlineAfterMultiline ctx =
             let expr =
@@ -232,7 +206,7 @@ and genModuleDeclList astContext (e: SynModuleDecls) =
         +> leadingExpressionIsMultiline
                 (expressionFitsOnRestOfLine
                      (genModuleDecl astContext m)
-                     (newlineBeforeMultiline +> genModuleDecl astContext m +> newlineAfterMultiline))
+                     (sepNlnBeforeMultilineConstruct m.Range attrs +> genModuleDecl astContext m +> newlineAfterMultiline))
                 (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) sepNln)
 
         +> genModuleDeclList astContext rest
@@ -575,73 +549,32 @@ and genPropertyWithGetSet astContext (b1, b2) =
             (genProperty astContext "and " ao2 "set " ps2 e2 +> unindent)
     | _ -> sepNone
 
-// nojaf
 /// Each member is separated by a new line.
 and genMemberBindingList astContext node =
+    let newlineAfterMultiline rest ctx =
+        let expr =
+            match List.tryHead rest with
+            | Some rm ->
+                let attrs = getRangesFromAttributesFromSynBinding rm
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes rm.RangeOfBindingSansRhs attrs
+            | None -> sepNone
+        expr ctx
+
     match node with
     | PropertyWithGetSet(gs, rest) ->
-        let newlineAfterMultiline ctx =
-            let expr =
-                match List.tryHead rest with
-                | Some rm ->
-                    let attrs = getRangesFromAttributesFromSynBinding rm
-                    sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes rm.RangeOfBindingSansRhs attrs
-                | None -> sepNone
-            expr ctx
-
         leadingExpressionIsMultiline
             (expressionFitsOnRestOfLine
                 (genPropertyWithGetSet astContext gs)
-                (sepNln +> genPropertyWithGetSet astContext gs +> newlineAfterMultiline))
+                (sepNln +> genPropertyWithGetSet astContext gs +> newlineAfterMultiline rest))
             (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) sepNln)
         +> genMemberBindingList astContext rest
     | mb::rest ->
-        let newlineAfterMultiline ctx =
-            let expr =
-                match List.tryHead rest with
-                | Some rm ->
-                    let attrs = getRangesFromAttributesFromSynBinding rm
-                    sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes rm.RangeOfBindingSansRhs attrs
-                | None -> sepNone
-            expr ctx
-
         leadingExpressionIsMultiline
             (expressionFitsOnRestOfLine
                 (genMemberBinding astContext mb)
-                (genMemberBinding astContext mb +> newlineAfterMultiline))
+                (genMemberBinding astContext mb +> newlineAfterMultiline rest))
             (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) sepNln)
         +> genMemberBindingList astContext rest
-
-//    | [x] -> genMemberBinding astContext x
-
-//    | MultilineBindingL(xs, ys) ->
-//        let prefix =
-//            let genX =
-//               function
-//               | Pair(x1, x2) -> genPropertyWithGetSet astContext (x1, x2)
-//               | Single x -> genMemberBinding astContext x
-//
-//            let sepNlnX (x': Composite<SynBinding, SynBinding>) =
-//               match x' with
-//               | Pair(x, _)
-//               | Single x -> sepNln +> sepNlnConsideringTriviaContentBefore x.RangeOfBindingSansRhs
-//
-//            let firstSepNln =
-//                match xs with
-//                | (Pair(x,_))::_
-//                | (Single x)::_ -> sepNlnConsideringTriviaContentBefore x.RangeOfBindingSansRhs
-//                | _ -> sepNln
-//
-//            firstSepNln +> colEx sepNlnX xs genX
-//
-//        match ys with
-//        | [] -> prefix
-//        | _ -> prefix +> rep 2 sepNln +> genMemberBindingList astContext ys
-//
-//    | OneLinerBindingL(xs, ys) ->
-//        match ys with
-//        | [] -> col sepNln xs (genMemberBinding astContext)
-//        | _ -> col sepNln xs (genMemberBinding astContext) +> sepNln +> genMemberBindingList astContext ys
     | _ -> sepNone
 
 and genMemberBinding astContext b =
@@ -1525,33 +1458,10 @@ and genExpr astContext synExpr =
     | e -> failwithf "Unexpected expression: %O" e
     |> genTrivia synExpr.Range
 
-// nojaf
 and genLetOrUseList astContext expr =
     match expr with
     | (p, x)::rest ->
-        let newlineBeforeMultiline ctx =
-            let existingNewlines =
-                ctx.WriterEvents
-                |> Queue.rev
-                |> Seq.takeWhile
-                       (function | Write ""
-                                 // for example:
-                                 // let f1 =
-                                 //     let f2 x = ...
-                                 | IndentBy _
-                                 | WriteLine
-                                 | Write " -> "
-                                 | SetAtColumn _
-                                 | CommentOrDefineEvent _ -> true
-                                 | _ -> false)
-                |> Seq.filter (function | WriteLine | IndentBy _ | Write " -> " | CommentOrDefineEvent _ -> true | _ -> false)
-                |> Seq.length
-            if existingNewlines >= 2 then
-                ctx // previous construct was multiline so no need to add any extra newlines
-            else
-                // previous construct was single line so add extra newline
-                let attrs = getRangesFromAttributesFromSynBinding x
-                sepNlnConsideringTriviaContentBeforeWithAttributes x.RangeOfBindingSansRhs attrs ctx
+        let attrs = getRangesFromAttributesFromSynBinding x
 
         let newlineAfter ctx =
             match List.tryHead rest with
@@ -1564,7 +1474,10 @@ and genLetOrUseList astContext expr =
         +> (leadingExpressionIsMultiline
                 (expressionFitsOnRestOfLine
                     (genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
-                    (newlineBeforeMultiline +> genLetBinding { astContext with IsFirstChild = p <> "and" } p x +> newlineAfter))
+                    (sepNlnBeforeMultilineConstruct x.RangeOfBindingSansRhs attrs
+                     +> genLetBinding { astContext with IsFirstChild = p <> "and" } p x
+                     +> onlyIf (List.isNotEmpty rest) sepNln
+                     +> newlineAfter))
                 (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) newlineAfter))
         +> genLetOrUseList astContext rest
 
@@ -2141,7 +2054,6 @@ and genClause astContext hasBar (Clause(p, e, eo) as node) =
     ifElse hasBar (sepBar +> atCurrentColumnWithPrepend pat body) (pat +> body)
     |> genTrivia node.Range
 
-// nojaf
 /// Each multiline member definition has a pre and post new line.
 and genMemberDefnList astContext node =
     match node with
@@ -2156,64 +2068,19 @@ and genMemberDefnList astContext node =
         let m = fst gs
         let attrs = getRangesFromAttributesFromSynBinding (fst gs)
 
-        let newlineBeforeMultiline ctx =
-            let existingNewlines =
-                ctx.WriterEvents
-                |> Queue.rev
-                |> Seq.takeWhile
-                       (function
-                                 | Write ""
-                                 // for example:
-                                 // type Foo =
-                                 //     static member Bar () = ...
-                                 | IndentBy _
-                                 | WriteLine
-                                 | CommentOrDefineEvent _ -> true
-                                 | _ -> false)
-                |> Seq.filter (function | WriteLine | IndentBy _ | CommentOrDefineEvent _ -> true | _ -> false)
-                |> Seq.length
-            if existingNewlines >= 2 then
-                ctx // previous construct was multiline so no need to add any extra newlines
-            else
-                // previous construct was single line so add extra newline
-                sepNlnConsideringTriviaContentBeforeWithAttributes m.RangeOfBindingSansRhs attrs ctx
-
         sepNlnConsideringTriviaContentBeforeWithAttributes m.RangeOfBindingSansRhs attrs +>
         (expressionFitsOnRestOfLine
             (genPropertyWithGetSet astContext gs)
-            (newlineBeforeMultiline +> genPropertyWithGetSet astContext gs +> onlyIf (List.isNotEmpty rest) sepNln))
+            (sepNlnBeforeMultilineConstruct m.RangeOfBindingSansRhs attrs +> genPropertyWithGetSet astContext gs +> onlyIf (List.isNotEmpty rest) sepNln))
 
         +> genMemberDefnList astContext rest
 
     | m::rest ->
-        let newlineBeforeMultiline ctx =
-            let existingNewlines =
-                ctx.WriterEvents
-                |> Queue.rev
-                |> Seq.takeWhile
-                       (function
-                                 | Write ""
-                                 // for example:
-                                 // type Foo =
-                                 //     static member Bar () = ...
-                                 | IndentBy _
-                                 | WriteLine
-                                 | CommentOrDefineEvent _ -> true
-                                 | _ -> false)
-                |> Seq.filter (function | WriteLine | IndentBy _ | CommentOrDefineEvent _ -> true | _ -> false)
-                |> Seq.length
-            if existingNewlines >= 2 then
-                ctx // previous construct was multiline so no need to add any extra newlines
-            else
-                // previous construct was single line so add extra newline
-                let attrs = getRangesFromAttributesFromSynMemberDefinition m
-                sepNlnConsideringTriviaContentBeforeWithAttributes m.Range attrs ctx
-
         let attrs = getRangesFromAttributesFromSynMemberDefinition m
         sepNlnConsideringTriviaContentBeforeWithAttributes m.Range attrs +>
         (expressionFitsOnRestOfLine
             (genMemberDefn astContext m)
-            (newlineBeforeMultiline +> genMemberDefn astContext m +> onlyIf (List.isNotEmpty rest) sepNln))
+            (sepNlnBeforeMultilineConstruct m.Range attrs +> genMemberDefn astContext m +> onlyIf (List.isNotEmpty rest) sepNln))
 
         +> genMemberDefnList astContext rest
 

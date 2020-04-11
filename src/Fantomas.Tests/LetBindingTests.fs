@@ -397,3 +397,27 @@ let foo (a: int) (b: string): string =
     let c = a.ToString() + b
     sprintf "result: %s" c
 """
+
+[<Test>]
+let ``multiline inner let binding in nested module`` () =
+    formatSourceString false """let SetQuartzLoggingFunction f =
+        let loggerFunction level (func: Func<string>) exc parameters =
+            let wrappedFunction =
+                Helpers.nullValuesToOptions (fun (x: Func<string>) -> (fun () -> x.Invoke())) func
+            let wrappedException = Helpers.nullValuesToOptions id exc
+            f level wrappedFunction wrappedException (parameters |> List.ofArray)
+
+        LogProvider.SetCurrentLogProvider(QuartzLoggerWrapper(loggerFunction))
+"""  config
+    |> prepend newline
+    |> should equal """
+let SetQuartzLoggingFunction f =
+    let loggerFunction level (func: Func<string>) exc parameters =
+        let wrappedFunction =
+            Helpers.nullValuesToOptions (fun (x: Func<string>) -> (fun () -> x.Invoke())) func
+
+        let wrappedException = Helpers.nullValuesToOptions id exc
+        f level wrappedFunction wrappedException (parameters |> List.ofArray)
+
+    LogProvider.SetCurrentLogProvider(QuartzLoggerWrapper(loggerFunction))
+"""

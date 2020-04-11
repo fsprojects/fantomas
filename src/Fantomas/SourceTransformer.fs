@@ -1,6 +1,5 @@
 ﻿module internal Fantomas.SourceTransformer
 
-open Fantomas
 open Fantomas.Context
 open Fantomas.SourceParser
 
@@ -128,17 +127,3 @@ let addParenForTupleWhen f synExpr ctx =
         |_ -> false // "if .. then .. else" have precedence over ","
     let expr = f synExpr
     ifElse (condition synExpr) (sepOpenT +> expr +> sepCloseT) expr ctx
-
-let (|CommentOrDefineEvent|_|) we =
-    match we with
-    | Write (w) when (String.startsWithOrdinal "//" w) ->
-        Some we
-    | Write (w) when (String.startsWithOrdinal "#if" w) ->
-        Some we
-    | Write (w) when (String.startsWithOrdinal "#else" w) ->
-        Some we
-    | Write (w) when (String.startsWithOrdinal "#endif" w) ->
-        Some we
-    | Write (w) when (String.startsWithOrdinal "(*" w) ->
-        Some we
-    | _ -> None
