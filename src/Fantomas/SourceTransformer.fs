@@ -182,14 +182,14 @@ let rec (|SigValL|_|) = function
     | _ -> None
 
 /// Omit a break before an expression if the expression is small and it is already one line in the text
-let checkPreserveBreakForExpr (e: Ast.SynExpr) (_ : Context) =
+let checkPreserveBreakForExpr (e: SyntaxTree.SynExpr) (_ : Context) =
     multiline e
 
 /// Omit a break before an expression if the expression is small 
 let checkBreakForExpr e =
     multiline e 
 
-let (|OneLinerExpr|_|) (e:Ast.SynExpr) =
+let (|OneLinerExpr|_|) (e:SyntaxTree.SynExpr) =
     if checkBreakForExpr e then None else Some e
 
 let (|OneLinerBinding|MultilineBinding|) b =
