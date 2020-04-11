@@ -441,7 +441,7 @@ let getTriviaFromTokens (tokens: Token list) linesCount =
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
 
-let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "LBRACK_BAR"; "BAR_RBRACK"; "EQUALS"; "IF"; "THEN"; "ELSE"; "ELIF"; "BAR"; "RARROW"; "TRY"; "FINALLY"; "WITH"]
+let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "LBRACK_BAR"; "BAR_RBRACK"; "EQUALS"; "IF"; "THEN"; "ELSE"; "ELIF"; "BAR"; "RARROW"; "TRY"; "FINALLY"; "WITH"; "MEMBER"]
 let private tokenKinds = [FSharpTokenCharKind.Operator]
     
 let getTriviaNodesFromTokens (tokens: Token list) : TriviaNode list =
