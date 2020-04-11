@@ -901,8 +901,11 @@ and genExpr astContext synExpr =
     | AnonRecord(isStruct, fields, copyInfo) ->
         let recordExpr =
             let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
+            let fieldsExprShortForm = (!- " with " +> fieldsExpr)
             copyInfo |> Option.map (fun e ->
-                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
+                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExprShortForm)
+                                                  (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent)
+                                                  fieldsExprShortForm)
             |> Option.defaultValue fieldsExpr
         ifElse isStruct !- "struct " sepNone
         +> sepOpenAnonRecd
