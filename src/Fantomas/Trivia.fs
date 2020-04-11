@@ -46,10 +46,17 @@ let private nodesContainsBothAnonModuleAndOpen (nodes: TriviaNode list) =
     let mainNodeIs name t =  t.Type = MainNode(name)
     List.exists (mainNodeIs "SynModuleOrNamespace.AnonModule") nodes &&
     List.exists (mainNodeIs "SynModuleDecl.Open") nodes
-    
+
+// the member keyword is not part of an AST node range
+// so it is not an ideal candidate node to have trivia content
+let private isNotMemberKeyword (node: TriviaNode) =
+    match node.Type with
+    | Token({ TokenInfo = ti }) when (ti.TokenName = "MEMBER") -> false
+    | _ -> true
+
 let private findFirstNodeAfterLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
-    |> List.filter (fun n -> n.Range.StartLine > lineNumber)
+    |> List.filter (fun n -> n.Range.StartLine > lineNumber && isNotMemberKeyword n)
     |> fun filteredNodes ->
         match filteredNodes with
         | moduleAndOpens when (nodesContainsBothAnonModuleAndOpen moduleAndOpens) ->

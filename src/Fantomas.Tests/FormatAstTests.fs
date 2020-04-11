@@ -62,7 +62,7 @@ let ``create F# code with existing AST and source code`` () =
     """let a =   42
 
 let b =   1"""
-    |> formatAst
+    |> formatAstWithSourceCode
     |> should equal """let a = 42
 
 let b = 1"""
@@ -109,7 +109,6 @@ let ``object expression should emit override keyword on AST formatting without o
     member __.Dispose() = () }"""
     |> formatAst
     |> should equal """{ new System.IDisposable with
-
     override __.Dispose() = () }"""
     
 [<Test>]
