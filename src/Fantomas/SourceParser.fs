@@ -2,9 +2,10 @@
 
 open System
 open System.Diagnostics
-open FSharp.Compiler.Range
-open FSharp.Compiler.Ast
 open FSharp.Compiler.PrettyNaming
+open FSharp.Compiler.Range
+open FSharp.Compiler.SyntaxTree
+open FSharp.Compiler.XmlDoc
 open Fantomas
 open Fantomas.Context
 open FSharp.Compiler.SourceCodeServices.PrettyNaming
@@ -948,9 +949,9 @@ let (|PatNamed|_|) = function
 let (|PatLongIdent|_|) = function
     | SynPat.LongIdent(LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull (s,_)), _), _, tpso, xs, ao, _) ->
         match xs with
-        | SynConstructorArgs.Pats ps -> 
+        | SynArgPats.Pats ps -> 
             Some(ao, s, List.map (fun p -> (None, p)) ps, tpso)
-        | SynConstructorArgs.NamePatPairs(nps, _) ->
+        | SynArgPats.NamePatPairs(nps, _) ->
             Some(ao, s, List.map (fun (Ident ident, p) -> (Some ident, p)) nps, tpso)
     | _ -> None
 

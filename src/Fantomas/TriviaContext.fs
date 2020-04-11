@@ -1,10 +1,10 @@
 module internal Fantomas.TriviaContext
 
-open FSharp.Compiler.Ast
-open FSharp.Compiler.Range
 open Fantomas
 open Fantomas.Context
 open Fantomas.TriviaTypes
+open FSharp.Compiler.Range
+open FSharp.Compiler.SyntaxTree
 
 let node (range: range) (s: string) =
     enterNode range +> (!-s) +> leaveNode range

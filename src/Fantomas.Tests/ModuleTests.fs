@@ -45,7 +45,7 @@ let x = 0
 
 open System
 open System.Collections.Generic
-open FSharp.Compiler.Ast
+open FSharp.Compiler.SyntaxTree
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
@@ -63,7 +63,7 @@ let x = 0
 
 open System
 open System.Collections.Generic
-open FSharp.Compiler.Ast
+open FSharp.Compiler.SyntaxTree
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer

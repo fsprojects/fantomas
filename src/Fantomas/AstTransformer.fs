@@ -1,7 +1,7 @@
 module Fantomas.AstTransformer
 
-open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
+open FSharp.Compiler.SyntaxTree
 
 let rec (|Sequentials|_|) = function
     | SynExpr.Sequential(_, isTrueSeq, e, Sequentials es, range) ->
@@ -1151,7 +1151,7 @@ module private Ast =
              FsAstNode = sp
              Childs = [visitSynPat pat]}
 
-    and visitSynConstructorArgs(ctorArgs: SynConstructorArgs): Node =
+    and visitSynConstructorArgs(ctorArgs: SynArgPats): Node =
         match ctorArgs with
         | Pats(pats) ->
             {Type = "Pats"

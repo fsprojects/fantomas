@@ -2,9 +2,9 @@
 
 open Fantomas.FormatConfig
 open Fantomas.SourceOrigin
-open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 open FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.SyntaxTree
 
 [<Sealed>]
 type CodeFormatter =
