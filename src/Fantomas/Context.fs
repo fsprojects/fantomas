@@ -537,7 +537,7 @@ let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLo
         match resultContext.WriterModel.Mode with
         | ShortExpression info ->
             // verify the expression is not longer than allowed
-            if info.ConfirmedMultiline
+            if info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column
             then fallbackExpression ctx
             else
                 { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
@@ -569,7 +569,6 @@ let internal futureNlnCheck f (ctx : Context) =
     let (isMultiLine, isLong) = futureNlnCheckMem (f, ctx)
     isMultiLine || isLong
 
-let internal autoNlnByFuture f = ifElseCtx (futureNlnCheck f) (sepNln +> f) f
 let internal autoIndentNlnByFuture f = ifElseCtx (futureNlnCheck f) (indent +> sepNln +> f +> unindent) f
 
 /// similar to futureNlnCheck but validates whether the expression is going over the max page width

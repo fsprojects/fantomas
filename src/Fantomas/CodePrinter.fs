@@ -725,12 +725,11 @@ and genTuple astContext es =
 and genExpr astContext synExpr =
     let appNlnFun e =
         match e with
-        | CompExpr _
-        | MatchLambda _ -> autoNlnIfExpressionExceedsPageWidth
+        | MultilineString _
         | Lambda _
         | Paren (Lambda _)
         | Paren (MatchLambda _) -> id
-        | _ -> autoNlnByFuture
+        | _ -> autoNlnIfExpressionExceedsPageWidth
 
     let kw tokenName f = tokN synExpr.Range tokenName f
     let sepOpenT = tokN synExpr.Range "LPAREN" sepOpenT

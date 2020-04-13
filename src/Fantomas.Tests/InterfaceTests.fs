@@ -150,7 +150,7 @@ type MyLogInteface() =
             else
                 sprintf "date-%s.log" environment
         member x.Info () = ()
-        override x.Version () = ()""" config
+        override x.Version () = ()""" ({ config with PageWidth = 119 })
     |> prepend newline
     |> should equal """
 type LogInterface =
