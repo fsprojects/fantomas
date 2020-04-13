@@ -18,7 +18,9 @@ let a =
 let a =
     b
     |> List.exists (fun p ->
-        p.a && p.b |> List.exists (fun o -> o.a = "lorem ipsum dolor sit amet"))
+        p.a
+        && p.b
+        |> List.exists (fun o -> o.a = "lorem ipsum dolor sit amet"))
 """
 
 // compile error due to expression starting before the beginning of the function expression
@@ -39,12 +41,12 @@ let a s =
     |> prepend newline
     |> should equal @"
 let a s =
-    if s <> """" then
-        printfn """"""fooo
+    if s <> """"
+    then printfn """"""fooo
 %s
 %s
 %s
-%s""""""    (llloooooooooooooooooooooooooo s) s s s
+%s""""""     (llloooooooooooooooooooooooooo s) s s s
 "
 
 // compile error due to expression starting before the beginning of the function expression

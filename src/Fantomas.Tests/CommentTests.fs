@@ -38,13 +38,14 @@ let print_30_permut() =
     """ config
     |> prepend newline
     |> should equal """
-let print_30_permut() =
+let print_30_permut () =
 
     /// declare and initialize
     let permutation: int array =
         Array.init n (fun i ->
             Console.Write(i + 1)
             i)
+
     permutation
 """
 
@@ -59,13 +60,14 @@ let print_30_permut() =
     """ config
     |> prepend newline
     |> should equal """
-let print_30_permut() =
+let print_30_permut () =
 
     /// declare and initialize
     let permutation: int array =
         Array.init n (fun (i, j) ->
             Console.Write(i + 1)
             i)
+
     permutation
 """
 
@@ -120,7 +122,7 @@ let f() =
 """  config
     |> prepend newline
     |> should equal """
-let f() =
+let f () =
     // COMMENT
     x + x
 """
@@ -134,7 +136,7 @@ let f() =
 """   config
     |> prepend newline
     |> should equal """
-let f() =
+let f () =
     let x = 1 // COMMENT
     x + x
 """ 
@@ -156,7 +158,7 @@ let f() =
     |> should equal """
 /// XML COMMENT
 // Other comment
-let f() =
+let f () =
     // COMMENT A
     let y = 1
     (* COMMENT B *)
@@ -182,7 +184,7 @@ let f() =
     |> should equal """
 /// XML COMMENT A
 // Other comment
-let f() =
+let f () =
     // COMMENT A
     let y = 1
     /// XML COMMENT B
@@ -380,7 +382,7 @@ let hello() = "hello world"
 """  config
     |> prepend newline
     |> should equal """
-let hello() = "hello world"
+let hello () = "hello world"
 
 (* This is a comment. *)
 """
@@ -435,7 +437,6 @@ type C () =
     |> prepend newline
     |> should equal """
 type C() =
-
     let rec g x = h x
     and h x = g x
 
@@ -588,7 +589,7 @@ type substring =
                 strB.String, strB.Offset,
                 min strA.Length strB.Length)
 #endif
-"""  config
+"""  ({ config with MaxInfixOperatorExpression = 60 })
     |> should equal """(*
 
 Copyright 2010-2012 TidePowerd Ltd.
@@ -661,7 +662,12 @@ type substring =
             // NOTE: we don't have to null check here because System.String.Compare
             // gives reliable results on null values.
             System.String.Compare
-                (strA.String, strA.Offset, strB.String, strB.Offset, min strA.Length strB.Length, false,
+                (strA.String,
+                 strA.Offset,
+                 strB.String,
+                 strB.Offset,
+                 min strA.Length strB.Length,
+                 false,
                  CultureInfo.InvariantCulture)
 #else
             // NOTE: we don't have to null check here because System.String.CompareOrdinal

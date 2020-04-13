@@ -56,7 +56,7 @@ let runAll() =
     |> Async.RunSynchronously |> ignore""" config
     |> prepend newline
     |> should equal """
-let runAll() =
+let runAll () =
     urlList
     |> Seq.map fetchAsync
     |> Async.Parallel
@@ -74,8 +74,5 @@ let prefetchImages =
     |> should equal """
 let prefetchImages =
     [ playerOImage; playerXImage ]
-    |> List.map (fun img ->
-        link
-            [ Rel "prefetch"
-              Href img ])
+    |> List.map (fun img -> link [ Rel "prefetch"; Href img ])
 """    

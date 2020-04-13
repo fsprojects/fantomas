@@ -27,7 +27,6 @@ type C () =
     |> prepend newline
     |> should equal """
 type C() =
-
     let rec g x = h x
     and h x = g x
 
@@ -65,21 +64,21 @@ let ``should keep mutually recursive functions in nested function``() =
 let ``should keep identifiers with whitespace in double backticks``() =
     formatSourceString false """let ``should keep identifiers in double backticks``() = x
     """ config
-    |> should equal """let ``should keep identifiers in double backticks``() = x
+    |> should equal """let ``should keep identifiers in double backticks`` () = x
 """
 
 [<Test>]
 let ``should remove backticks from shouldn't identifier``() =
-    formatSourceString false """let ``shouldn't``() = x
+    formatSourceString false """let ``shouldn't`` () = x
     """ config
-    |> should equal """let shouldn't() = x
+    |> should equal """let shouldn't () = x
 """
 
 [<Test>]
 let ``should keep identifiers with + in double backticks``() =
     formatSourceString false """let ``Foo+Bar``() = x
     """ config
-    |> should equal """let ``Foo+Bar``() = x
+    |> should equal """let ``Foo+Bar`` () = x
 """
 
 [<Test>]
@@ -185,7 +184,6 @@ let ``should not add spaces into a series of function application``() =
     formatSourceString false """let f x = "d"
 f(1).Contains("3")""" config
     |> should equal """let f x = "d"
-
 f(1).Contains("3")
 """
 
@@ -281,7 +279,7 @@ type U = X of int
 let f =
     fun x ->
         match x with
-        | X(x) -> x
+        | X (x) -> x
 """
 
 [<Test>]
@@ -305,17 +303,16 @@ f(42).Length
     |> prepend newline
     |> should equal """
 let f x = "foo"
-
 f(42).Length
 """
 
 [<Test>]
 let ``do add spaces for function application inside parentheses inside dot access``() =
-    formatSourceString false """let inputBlah = "So, I was like, Visual Studio did wat!?"
+    formatSourceString false """let inputBlah = "So, I was like, Visual Studio did wat"
 let someBlahing = (Blah.TryCreate inputBlah).Value"""  config
     |> prepend newline
     |> should equal """
-let inputBlah = "So, I was like, Visual Studio did wat!?"
+let inputBlah = "So, I was like, Visual Studio did wat"
 let someBlahing = (Blah.TryCreate inputBlah).Value
 """
 
@@ -354,7 +351,10 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
     match anyErrors with
     | true -> Error collectedErrors
     | false -> Ok collectedOutputs
-"""  ({ config with PageWidth = 100; SpaceBeforeColon = true })
+"""  ({ config with
+            PageWidth = 100
+            SpaceBeforeColon = true
+            MaxInfixOperatorExpression = 70 })
     |> prepend newline
     |> should equal """
 let fold
@@ -373,6 +373,7 @@ let fold
             anyErrors <- true
             collectedErrors <- error :: collectedErrors
         | Ok output -> collectedOutputs <- output :: collectedOutputs
+
     funcs |> Seq.iter (fun validator -> runValidator validator input)
     match anyErrors with
     | true -> Error collectedErrors

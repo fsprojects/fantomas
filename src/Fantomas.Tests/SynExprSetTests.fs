@@ -15,7 +15,6 @@ let arr = [|0|]
 (arr.[0]) <- 1
 """  config
     |> should equal """let arr = [| 0 |]
-
 (arr.[0]) <- 1
 """
 
@@ -41,6 +40,5 @@ let mutable x = 0
 (x) <- 1
 """  config
     |> should equal """let mutable x = 0
-
 (x) <- 1
 """

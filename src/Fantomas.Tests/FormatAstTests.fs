@@ -5,15 +5,31 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let formatAst code =
-    let inputExp =
-        code |> Input
-        |> toSynExprs
-        |> List.head
+let parseAndFormat sourceCode originSource =
     
-    fromSynExpr inputExp
-    |> function Input x -> x.TrimEnd('\r', '\n')
-    |> fun s -> s.Replace("\r\n", "\n")
+    let fileName = "/tmp.fsx"
+    
+    let ast =
+        CodeFormatter.ParseAsync(fileName, sourceCode, FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
+        |> Async.RunSynchronously
+        |> Seq.head
+        |> fst
+
+    let formattedCode =
+        CodeFormatter.FormatASTAsync(ast, fileName, [], originSource, config)
+        |> Async.RunSynchronously
+        |> String.normalizeNewLine
+        |> fun s -> s.TrimEnd('\n')
+    
+    formattedCode
+
+let formatAstWithSourceCode code =
+    let source = SourceOrigin.SourceString code
+    parseAndFormat source (Some source)
+
+let formatAst code =
+    let source = SourceOrigin.SourceString code
+    parseAndFormat source None
 
 [<Test>]
 let ``Format the ast works correctly with no source code``() =
@@ -43,25 +59,70 @@ else ()"""
 
 [<Test>]
 let ``create F# code with existing AST and source code`` () =
-    let source = """let a =   42
+    """let a =   42
 
-let b =   1""" |> SourceOrigin.SourceString
-    let fileName = "/tmp.fsx"
-    let ast =
-        CodeFormatter.ParseAsync(fileName, source, FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
-        |> Async.RunSynchronously
-        |> Seq.head
-        |> fst
+let b =   1"""
+    |> formatAstWithSourceCode
+    |> should equal """let a = 42
 
-    let formattedCode =
-        CodeFormatter.FormatASTAsync(ast, fileName, [], Some source, config)
-        |> Async.RunSynchronously
-        |> String.normalizeNewLine
+let b = 1"""
 
-    formattedCode
-    |> prepend newline
-    |> should equal """
-let a = 42
+[<Test>]
+let ``default implementations in abstract classes should be emited as override from AST without origin source, 742``() =
+    """[<AbstractClass>]
+type Foo =
+    abstract foo: int
+    default __.foo = 1"""
+    |> formatAst
+    |> should equal """[<AbstractClass>]
+type Foo =
+    abstract foo: int
+    override __.foo = 1"""
 
-let b = 1
-"""
+[<Test>]
+let ``default implementations in abstract classes with `default` keyword should be emited as it was before from AST with origin source, 742``() =
+    """[<AbstractClass>]
+type Foo =
+    abstract foo: int
+    default __.foo = 1"""
+    |> formatAstWithSourceCode
+    |> should equal """[<AbstractClass>]
+type Foo =
+    abstract foo: int
+    default __.foo = 1"""
+
+[<Test>]
+let ``default implementations in abstract classes with `override` keyword should be emited as it was before from AST with origin source, 742``() =
+    """[<AbstractClass>]
+type Foo =
+    abstract foo: int
+    override __.foo = 1"""
+    |> formatAstWithSourceCode
+    |> should equal """[<AbstractClass>]
+type Foo =
+    abstract foo: int
+    override __.foo = 1"""
+  
+[<Test>]
+let ``object expression should emit override keyword on AST formatting without origin source, 742``() =
+    """{ new System.IDisposable with
+    member __.Dispose() = () }"""
+    |> formatAst
+    |> should equal """{ new System.IDisposable with
+    override __.Dispose() = () }"""
+    
+[<Test>]
+let ``object expression should preserve member keyword on AST formatting with origin source, 742``() =
+    """{ new System.IDisposable with
+    member __.Dispose() = () }"""
+    |> formatAstWithSourceCode
+    |> should equal """{ new System.IDisposable with
+    member __.Dispose() = () }"""
+    
+[<Test>]
+let ``object expression should preserve override keyword on AST formatting with origin source, 742``() =
+    """{ new System.IDisposable with
+    override __.Dispose() = () }"""
+    |> formatAstWithSourceCode
+    |> should equal """{ new System.IDisposable with
+    override __.Dispose() = () }"""

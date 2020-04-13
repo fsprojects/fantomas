@@ -68,3 +68,11 @@ module internal TriviaHelpers =
             | true, Some(IdentBetweenTicks(ident)) -> Some ident
             | _ -> None)
         |> List.tryHead
+
+    let ``has content itself that is multiline string`` range (triviaNodes: TriviaNode list) =
+        triviaNodes
+        |> List.choose (fun tn ->
+            match tn.Range = range, tn.ContentItself with
+            | true, Some(StringContent(s)) when (String.isMultiline s) -> Some s
+            | _ -> None)
+        |> List.isNotEmpty

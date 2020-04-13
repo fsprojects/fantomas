@@ -13,6 +13,42 @@ if foo then bar
 """
 
 [<Test>]
+let ``if without else, if is longer`` () =
+    formatSourceString false """
+if foooooooooooooooooooooooooooooooooooooooooooo
+then bar
+"""  config
+    |> prepend newline
+    |> should equal """
+if foooooooooooooooooooooooooooooooooooooooooooo
+then bar
+"""
+
+[<Test>]
+let ``if without else, then is longer`` () =
+    formatSourceString false """
+if foo then baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar
+"""  config
+    |> prepend newline
+    |> should equal """
+if foo
+then baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar
+"""
+
+[<Test>]
+let ``multiline if without else`` () =
+    formatSourceString false """
+if foo && bar && meh then aha
+"""  ({ config with MaxInfixOperatorExpression = 5 })
+    |> prepend newline
+    |> should equal """
+if foo
+   && bar
+   && meh then
+    aha
+"""
+
+[<Test>]
 let ``single line if/then/else`` () =
     formatSourceString false "if a then b else c" config
     |> prepend newline
@@ -664,7 +700,7 @@ elif strA.String == strB.String && strA.Offset = strB.Offset then
 
 else
     -1
-"""  config
+"""  ({ config with MaxInfixOperatorExpression = 55 })
     |> prepend newline
     |> should equal """
 if strA.Length = 0 && strB.Length = 0 then
@@ -803,5 +839,69 @@ module String =
     let merge a b =
         if la <> lb then if la > lb then a' else b'
         else if String.length a' < String.length b' then a'
+        else b'
+"""
+
+[<Test>]
+let ``second else if where else and if are on separate lines, 713`` () =
+    formatSourceString false """if v1 < v2 then
+    -1
+elif v1 > v2 then
+    1
+else
+    if t1 < t2 then
+        -1
+    elif t1 > t2 then
+        1
+    else
+        0
+"""  config
+    |> prepend newline
+    |> should equal """
+if v1 < v2 then -1
+elif v1 > v2 then 1
+else if t1 < t2 then -1
+elif t1 > t2 then 1
+else 0
+"""
+
+[<Test>]
+let ``newline between else if,  prior by elif`` () =
+    formatSourceString false """
+module String =
+    let merge a b =
+            if la <> lb then
+                if la > lb then a' else b'
+            elif la = lb then a'
+            else
+                if String.length a' < String.length b' then a' else b'
+"""  config
+    |> prepend newline
+    |> should equal """
+module String =
+    let merge a b =
+        if la <> lb then if la > lb then a' else b'
+        elif la = lb then a'
+        else if String.length a' < String.length b' then a'
+        else b'
+"""
+
+[<Test>]
+let ``newline between else if, followed by else if`` () =
+    formatSourceString false """
+module String =
+    let merge a b =
+            if la <> lb then
+                if la > lb then a' else b'
+            else
+                if String.length a' < String.length b' then a' else if String.length a' > String.length b' then b' else b'
+"""  config
+    |> prepend newline
+    |> should equal """
+module String =
+    let merge a b =
+        if la <> lb then if la > lb then a' else b'
+        else if String.length a' < String.length b' then a'
+        else if String.length a' > String.length b' then b'
         else b'
 """
