@@ -12,10 +12,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Setup .NET Core
-      # Fix for https://github.com/actions/setup-dotnet/issues/29#issuecomment-548740241
-      uses: actions/setup-dotnet@bb95ce727fd49ec1a65933419cc7c91747785302
+      uses: actions/setup-dotnet@v1.4.0
       with:
         dotnet-version: ${{ matrix.dotnet }}
     - name: Install local tools

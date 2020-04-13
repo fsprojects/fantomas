@@ -15,11 +15,10 @@ let ``exception declarations with members``() =
     formatSourceString false """/// An exception type to signal build errors.
 exception BuildException of string*list<string>
   with
-    override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)""" config
+    override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)""" ({ config with MaxInfixOperatorExpression = 60 })
     |> should equal """/// An exception type to signal build errors.
 exception BuildException of string * list<string> with
-    override x.ToString() =
-        x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)
+    override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)
 """
 
 [<Test>]
@@ -32,11 +31,11 @@ let ``type annotations``() =
     |> prepend newline
     |> should equal """
 let iterate1 (f: unit -> seq<int>) =
-    for e in f() do
+    for e in f () do
         printfn "%d" e
 
 let iterate2 (f: unit -> #seq<int>) =
-    for e in f() do
+    for e in f () do
         printfn "%d" e
 """
 
@@ -96,6 +95,7 @@ type Test() =
     member this.Function1<'a>(x, y) = printfn "%A, %A" x y
 
     abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
+
     override this.AbstractMethod<'a, 'b>(x: 'a, y: 'b) = printfn "%A, %A" x y
 """
 
@@ -168,9 +168,7 @@ type Point2D =
     struct
         val X: float
         val Y: float
-        new(x: float, y: float) =
-            { X = x
-              Y = y }
+        new(x: float, y: float) = { X = x; Y = y }
     end
 """
 
@@ -190,6 +188,7 @@ let ``abstract and override keywords``() =
 type MyClassBase1() =
     let mutable z = 0
     abstract Function1: int -> int
+
     default u.Function1(a: int) =
         z <- z + a
         z
@@ -275,6 +274,7 @@ type Foo() =
     |> should equal """
 type Foo() =
     member x.Get = 1
+
     member x.Set
         with private set (v: int) = value <- v
 
@@ -284,6 +284,7 @@ type Foo() =
 
     member x.GetI
         with internal get (key1, key2) = false
+
     member x.SetI
         with private set (key1, key2) value = ()
 
@@ -308,10 +309,13 @@ type MyType() =
     |> should equal """
 type MyType() =
     let mutable myInt1 = 10
+
     [<DefaultValue; Test>]
     val mutable myInt2: int
+
     [<DefaultValue; Test>]
     val mutable myString: string
+
     member this.SetValsAndPrint(i: int, str: string) =
         myInt1 <- i
         this.myInt2 <- i + 1
@@ -327,13 +331,13 @@ type SpeedingTicket() =
 
 let CalculateFine (ticket : SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
-    if delta < 20 then 50.0 else 100.0""" config
+    if delta < 20 then 50.0 else 100.0""" ({ config with MaxLetBindingWidth = 45 })
     |> prepend newline
     |> should equal """
 type SpeedingTicket() =
     member this.GetMPHOver(speed: int, limit: int) = speed - limit
 
-let CalculateFine(ticket: SpeedingTicket) =
+let CalculateFine (ticket: SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
     if delta < 20 then 50.0 else 100.0
 """
@@ -523,13 +527,9 @@ type U = U of (int * int)
     |> prepend newline
     |> should equal """
 type Delegate1 = delegate of (int * int) * (int * int) -> int
-
 type Delegate2 = delegate of int * int -> int
-
 type Delegate3 = delegate of int -> (int -> int)
-
 type Delegate4 = delegate of int -> int -> int
-
 type U = U of (int * int)
 """
 
@@ -569,7 +569,7 @@ let ``should keep brackets around type signatures``() =
     formatSourceString false """
 let user_printers = ref([] : (string * (term -> unit)) list)
 let the_interface = ref([] : (string * (string * hol_type)) list)
-    """ config
+    """ ({ config with MaxLetBindingWidth = 50 })
     |> prepend newline
     |> should equal """
 let user_printers = ref ([]: (string * (term -> unit)) list)
@@ -614,7 +614,9 @@ type BlobHelper(Account: CloudStorageAccount) =
                 if hostedService
                 then RoleEnvironment.GetConfigurationSettingValue(configName)
                 else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
-            configSettingPublisher.Invoke(connectionString) |> ignore)
+
+            configSettingPublisher.Invoke(connectionString)
+            |> ignore)
         BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))
 """
 
@@ -648,6 +650,7 @@ type CustomGraphControl() =
     |> should equal """
 type CustomGraphControl() =
     inherit UserControl()
+
     [<DefaultValue(false)>]
     static val mutable private GraphProperty: DependencyProperty
 """
@@ -664,6 +667,7 @@ type CustomGraphControl() =
     |> should equal """
 type CustomGraphControl() =
     inherit UserControl()
+
     [<DefaultValue(false)>]
     static val mutable private GraphProperty: DependencyProperty
 """
@@ -680,6 +684,7 @@ type CustomGraphControl() =
     |> should equal """
 type CustomGraphControl() =
     inherit UserControl()
+
     [<DefaultValue false>]
     static val mutable private GraphProperty: DependencyProperty
 """
@@ -696,6 +701,7 @@ type CustomGraphControl() =
     |> should equal """
 type CustomGraphControl() =
     inherit UserControl()
+
     [<DefaultValue false>]
     static val mutable private GraphProperty: DependencyProperty
 """
@@ -717,8 +723,9 @@ type A() =
         with set v =
             let x =
                 match _kbytes.GetAddress(8) with
-                | Some(x) -> x
+                | Some (x) -> x
                 | None -> null
+
             ignore x
 """
 
@@ -750,22 +757,21 @@ type Bar =
     member this.Item
         with get(i : string) = 
             match mo with
-            | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
+            | Some (m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null""" config
     |> prepend newline
     |> should equal """
 type Bar =
-
     member this.Item
         with get (i: int) =
             match mo with
-            | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
+            | Some (m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null
 
     member this.Item
         with get (i: string) =
             match mo with
-            | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
+            | Some (m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null
 """
 
@@ -851,7 +857,7 @@ let ``type abbreviation augmentation``() =
 [<Test>]
 let ``operator in words should not print to symbol, 409`` () =
     formatSourceString false """type T() =
-    static member op_LessThan(a, b) = a < b""" config
+    static member op_LessThan(a, b) = a < b""" ({ config with SpaceBeforeMember = true })
     |> should equal """type T() =
     static member op_LessThan (a, b) = a < b
 """
@@ -937,12 +943,9 @@ and Room =
     |> should equal """
 module Game
 
-type Details =
-    { Name: string
-      Description: string }
+type Details = { Name: string; Description: string }
 
-type Item =
-    { Details: Details }
+type Item = { Details: Details }
 
 type Exit =
     | Passable of Details * desitnation: Room
@@ -1000,4 +1003,34 @@ and [<Marker>] Room =
     { Details: Details
       Items: Item list
       Exits: Exits }
+"""
+
+[<Test>]
+let ``trivia newlines between letbinding of type, 709`` () =
+    formatSourceString false """
+open Xunit
+open FSharp.Core
+open Swensen.Unquote
+
+type FormattingSpecs() =
+
+    [<Fact>]
+    let ``true is true``() = test <@ true = true @>
+
+    [<Fact>]
+    let ``false is false``() = test <@ false = false @>
+"""  config
+    |> prepend newline
+    |> should equal """
+open Xunit
+open FSharp.Core
+open Swensen.Unquote
+
+type FormattingSpecs() =
+
+    [<Fact>]
+    let ``true is true`` () = test <@ true = true @>
+
+    [<Fact>]
+    let ``false is false`` () = test <@ false = false @>
 """

@@ -45,7 +45,7 @@ let x = 0
 
 open System
 open System.Collections.Generic
-open FSharp.Compiler.Ast
+open FSharp.Compiler.SyntaxTree
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
@@ -63,7 +63,7 @@ let x = 0
 
 open System
 open System.Collections.Generic
-open FSharp.Compiler.Ast
+open FSharp.Compiler.SyntaxTree
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
@@ -345,4 +345,96 @@ namespace SomeNamespace
 [<AutoOpen>]
 module Types =
     let a = 5
+"""
+
+[<Test>]
+let ``single line and multiline module decls`` () =
+    formatSourceString false """let a =  5
+let b =  8
+type Model =
+    { ActiveTab : ActiveTab
+      Trivia : Trivia list
+      TriviaNodes: TriviaNode list
+      Exception: exn option
+      IsLoading: bool
+      ActiveByTriviaNodeIndex: int
+      ActiveByTriviaIndex: int
+      Defines: string
+      FSCVersion: string
+      IsFsi: bool
+      KeepNewlineAfter: bool }
+type UrlModel =
+    { IsFsi: bool
+      KeepNewlineAfter: bool
+      Defines: string }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = 5
+let b = 8
+
+type Model =
+    { ActiveTab: ActiveTab
+      Trivia: Trivia list
+      TriviaNodes: TriviaNode list
+      Exception: exn option
+      IsLoading: bool
+      ActiveByTriviaNodeIndex: int
+      ActiveByTriviaIndex: int
+      Defines: string
+      FSCVersion: string
+      IsFsi: bool
+      KeepNewlineAfter: bool }
+
+type UrlModel =
+    { IsFsi: bool
+      KeepNewlineAfter: bool
+      Defines: string }
+"""
+
+[<Test>]
+let ``single line and multiline module decls with newline trivia`` () =
+    formatSourceString false """let a =  5
+let b =  8
+
+type Model =
+    { ActiveTab : ActiveTab
+      Trivia : Trivia list
+      TriviaNodes: TriviaNode list
+      Exception: exn option
+      IsLoading: bool
+      ActiveByTriviaNodeIndex: int
+      ActiveByTriviaIndex: int
+      Defines: string
+      FSCVersion: string
+      IsFsi: bool
+      KeepNewlineAfter: bool }
+
+type UrlModel =
+    { IsFsi: bool
+      KeepNewlineAfter: bool
+      Defines: string }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = 5
+let b = 8
+
+type Model =
+    { ActiveTab: ActiveTab
+      Trivia: Trivia list
+      TriviaNodes: TriviaNode list
+      Exception: exn option
+      IsLoading: bool
+      ActiveByTriviaNodeIndex: int
+      ActiveByTriviaIndex: int
+      Defines: string
+      FSCVersion: string
+      IsFsi: bool
+      KeepNewlineAfter: bool }
+
+type UrlModel =
+    { IsFsi: bool
+      KeepNewlineAfter: bool
+      Defines: string }
 """

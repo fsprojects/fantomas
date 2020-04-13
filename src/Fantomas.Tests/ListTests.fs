@@ -16,7 +16,6 @@ array1.[1] <- 3
     |> prepend newline
     |> should equal """
 let array1 = [| 1; 2; 3 |]
-
 array1.[0..2]
 array2.[2.., 0..]
 array2.[..3, ..1]
@@ -117,9 +116,7 @@ let listOfSquares = [ for i in 1 .. 10 -> i*i ]
 let list0to3 = [0 .. 3]""" config
     |> prepend newline
     |> should equal """
-let listOfSquares =
-    [ for i in 1 .. 10 -> i * i ]
-
+let listOfSquares = [ for i in 1 .. 10 -> i * i ]
 let list0to3 = [ 0 .. 3 ]
 """
 
@@ -131,9 +128,7 @@ let a2 = [| 0 .. 99 |]
 let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
     |> prepend newline
     |> should equal """
-let a1 =
-    [| for i in 1 .. 10 -> i * i |]
-
+let a1 = [| for i in 1 .. 10 -> i * i |]
 let a2 = [| 0 .. 99 |]
 
 let a3 =
@@ -217,6 +212,7 @@ let prismCli commando =
             [ "component" ==> "pre"
               //"className" ==> "language-fsharp"
              ]
+
     ()
 """
 
@@ -238,6 +234,7 @@ let prismCli commando =
             [|"component" ==> "pre"
               //"className" ==> "language-fsharp"
             |]
+
     ()
 """
 
@@ -1347,7 +1344,8 @@ let ``F# 4.7 implicit yield in sequence`` () =
 seq {
     1
     2
-    3 }
+    3
+}
 """
 
 [<Test>]
@@ -1393,7 +1391,7 @@ let DotNamedIndexedPropertySet () =
 """  config
     |> prepend newline
     |> should equal """
-(foo()).Item(key) <- value
+(foo ()).Item(key) <- value
 """
 
 [<Test>]
@@ -1409,7 +1407,7 @@ let nestedList: obj list = [
         "33333333bbbbbbbbbbbbbbb"
     ]
 ]
-"""  ({ config with PageWidth = 80; KeepNewlineAfter = true })
+"""  ({ config with PageWidth = 80 })
     |> prepend newline
     |> should equal """
 let nestedList: obj list =
@@ -1436,7 +1434,7 @@ let nestedList: obj list = [|
         "33333333bbbbbbbbbbbbbbb"
     |]
 |]
-"""  ({ config with PageWidth = 80; KeepNewlineAfter = true })
+"""  ({ config with PageWidth = 80 })
     |> prepend newline
     |> should equal """
 let nestedList: obj list =
@@ -1462,7 +1460,7 @@ let nestedList: obj list = [|
         "33333333bbbbbbbbbbbbbbb"
     |]
 |]
-"""  ({ config with PageWidth = 80; KeepNewlineAfter = true })
+"""  ({ config with PageWidth = 80 })
     |> prepend newline
     |> should equal """
 let nestedList: obj list =

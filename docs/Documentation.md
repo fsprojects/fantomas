@@ -1,6 +1,7 @@
 ## Fantomas: How to use
 
 ### Using the command line tool
+
 ---
 
 For the overview how to use the tool, you can type the command
@@ -131,12 +132,6 @@ add semicolons at the end of lines e.g.
 	    Mass = 0.0002858859807 * solarMass }
 	```
 
- ##### `--noSpaceBeforeArgument`
-
-if being set, no space is inserted before a function name and its first argument. 
-For example, `Seq.filter (fun x -> x > 2)` becomes `Seq.filter(fun x -> x > 2)`. 
-This doesn't affect methods and constructors, e.g. `Console.WriteLine("Hello World")`.
-
 ##### `--spaceBeforeColon`
 
 if being set, there is a space before `:` e.g.
@@ -221,38 +216,6 @@ saves spaces around delimiters of records, arrays, lists e.g.
 
 if being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored. 
 
-##### `--keepNewlineAfter`
-
-if being set, newlines found in the source text will be kept in certain conditions.
- 
- ```fsharp
-let a =
-    42
-```
-
-will remain the same, the newline after the `=` was detected and preserved.
-
-```fsharp
-let config =
-    Builder()
-      .A()
-      .B()
-      .C()
-```
-
-will remain the same, the newline before the `.` was detected and preserved.
-
-```fsharp
-match meh with
-| Foo ->
-  printfn "foo"
-| Bar ->
-  printfn "bar"
-```
-
-will remain the same, the newline after `->` was detected and preserved.
-
-
 ##### `--maxIfThenElseShortWidth  <number>`
 
 `number` if being set, controls when if/then/else expressions will be formatted as single line or as multiple lines.
@@ -285,20 +248,27 @@ Use a JSON configuration file based on a [schema](../src/Fantomas/schema.json) t
 
 A default configuration file would look like
 ```json
-{
+{  
   "IndentSpaceNum":4,
   "PageWidth":120,
   "SemicolonAtEndOfLine":false,
-  "SpaceBeforeArgument":true ,
+  "SpaceBeforeUnitArgumentInUppercaseInvocation":false,
+  "SpaceBeforeUnitArgumentInLowercaseInvocation":false,
+  "SpaceBeforeParenthesesInUppercaseInvocation":false,
+  "SpaceBeforeParenthesesInLowercaseInvocation":true ,
+  "SpaceBeforeUnitParameterInUppercaseFunctionDefinition":false,
+  "SpaceBeforeUnitParameterInLowercaseFunctionDefinition":false,
+  "SpaceBeforeParenthesesInUppercaseFunctionDefinition":false,
+  "SpaceBeforeParenthesesInLowercaseFunctionDefinition":true ,
+  "SpaceBeforeClassConstructor":false,
   "SpaceBeforeColon":false,
   "SpaceAfterComma":true ,
   "SpaceBeforeSemicolon": false,
   "SpaceAfterSemicolon":true ,
   "IndentOnTryWith":false,
   "SpaceAroundDelimiter":true ,
-  "KeepNewlineAfter":false,
   "MaxIfThenElseShortWidth":40,
-  "StrictMode":false
+  "StrictMode":false 
 }
 ```
 

@@ -11,7 +11,19 @@
     "SemicolonAtEndOfLine": {
       "type": "boolean"
     },
-    "SpaceBeforeArgument": {
+    "SpaceBeforeParameter": {
+      "type": "boolean"
+    },
+    "SpaceBeforeLowercaseInvocation": {
+      "type": "boolean"
+    },
+    "SpaceBeforeUppercaseInvocation": {
+      "type": "boolean"
+    },
+    "SpaceBeforeClassConstructor": {
+      "type": "boolean"
+    },
+    "SpaceBeforeMember": {
       "type": "boolean"
     },
     "SpaceBeforeColon": {
@@ -30,9 +42,6 @@
       "type": "boolean"
     },
     "SpaceAroundDelimiter": {
-      "type": "boolean"
-    },
-    "KeepNewlineAfter": {
       "type": "boolean"
     },
     "MaxIfThenElseShortWidth": {

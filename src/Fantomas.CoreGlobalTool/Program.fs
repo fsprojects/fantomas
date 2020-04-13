@@ -18,13 +18,11 @@ type Arguments =
     | [<Unique>] Check
     | [<Unique;AltCommandLine("--pageWidth")>] PageWidth of int
     | [<Unique;AltCommandLine("--semicolonEOL")>] SemicolonEOL
-    | [<Unique;AltCommandLine("--noSpaceBeforeArgument")>] NoSpaceBeforeArgument
     | [<Unique;AltCommandLine("--spaceBeforeColon")>] SpaceBeforeColon
     | [<Unique;AltCommandLine("--noSpaceAfterComma")>] NoSpaceAfterComma
     | [<Unique;AltCommandLine("--noSpaceAfterSemiColon")>] NoSpaceAfterSemiColon
     | [<Unique;AltCommandLine("--indentOnTryWith")>] IndentOnTryWith
     | [<Unique;AltCommandLine("--noSpaceAroundDelimiter")>] NoSpaceAroundDelimiter
-    | [<Unique;AltCommandLine("--keepNewlineAfter")>] KeepNewlineAfter
     | [<Unique;AltCommandLine("--maxIfThenElseShortWidth ")>] MaxIfThenElseShortWidth of int
     | [<Unique;AltCommandLine("--strictMode")>] StrictMode
     | [<Unique;AltCommandLine("-c")>] Config of string
@@ -45,13 +43,11 @@ with
             | Check -> "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
             | PageWidth _ -> "Set the column where we break to new lines (default = 80). The value should be at least 60."
             | SemicolonEOL -> "Enable semicolons at the end of line (default = false)."
-            | NoSpaceBeforeArgument -> "Disable spaces before the first argument of functions when there are parenthesis (default = true). For methods and constructors, there are never spaces regardless of this option."
             | SpaceBeforeColon -> "Enable spaces before colons (default = false)."
             | NoSpaceAfterComma -> "Disable spaces after commas (default = true)."
             | NoSpaceAfterSemiColon -> "Disable spaces after semicolons (default = true)."
             | IndentOnTryWith -> "Enable indentation on try/with block (default = false)."
             | NoSpaceAroundDelimiter -> "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
-            | KeepNewlineAfter -> "Keep newlines found after = in let bindings, -> in pattern matching and chained function calls (default = false)."
             | MaxIfThenElseShortWidth _ -> "Set the max length of any expression in an if expression before formatting on multiple lines (default = 40)."
             | StrictMode -> "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
             | Config _ -> "Use configuration found in file or folder."
@@ -269,13 +265,11 @@ let main argv =
                 | Indent i -> { acc with IndentSpaceNum = i }
                 | PageWidth pw -> { acc with PageWidth = pw }
                 | SemicolonEOL -> { acc with SemicolonAtEndOfLine = true }
-                | NoSpaceBeforeArgument -> { acc with SpaceBeforeArgument = false }
                 | SpaceBeforeColon -> { acc with SpaceBeforeColon = true }
                 | NoSpaceAfterComma -> { acc with SpaceAfterComma = false }
                 | NoSpaceAfterSemiColon -> { acc with SpaceAfterSemicolon = false }
                 | IndentOnTryWith -> { acc with IndentOnTryWith = true }
                 | NoSpaceAroundDelimiter -> { acc with SpaceAroundDelimiter = false }
-                | KeepNewlineAfter -> { acc with KeepNewlineAfter = true }
                 | MaxIfThenElseShortWidth m -> { acc with MaxIfThenElseShortWidth = m }
                 | StrictMode -> { acc with StrictMode = true }
             ) defaultConfig

@@ -22,10 +22,9 @@ jobs:
         token: ${{secrets.github_token}}
     - name: Print new build number
       run: echo Build number is $BUILD_NUMBER
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Setup .NET Core
-      # Fix for https://github.com/actions/setup-dotnet/issues/29#issuecomment-548740241
-      uses: actions/setup-dotnet@bb95ce727fd49ec1a65933419cc7c91747785302
+      uses: actions/setup-dotnet@v1.4.0
       with:
         dotnet-version: ${{ matrix.dotnet }}
     - name: Install local tools

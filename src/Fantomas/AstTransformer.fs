@@ -1,7 +1,7 @@
 module Fantomas.AstTransformer
 
-open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
+open FSharp.Compiler.SyntaxTree
 
 let rec (|Sequentials|_|) = function
     | SynExpr.Sequential(_, isTrueSeq, e, Sequentials es, range) ->
@@ -267,12 +267,12 @@ module private Ast =
              Childs =
                  [yield visitSynSimplePats args
                   yield visitSynExpr body]}
-        | SynExpr.MatchLambda(isExnMatch,_,matchClaseus,_,range) ->
+        | SynExpr.MatchLambda(isExnMatch,_,matchClauses,_,range) ->
             {Type = "SynExpr.MatchLambda"
              Range = r range
              Properties = p ["isExnMatch" ==> isExnMatch]
              FsAstNode = synExpr
-             Childs = [yield! matchClaseus |> List.map visitSynMatchClause]}
+             Childs = [yield! matchClauses |> List.map visitSynMatchClause]}
         | SynExpr.Match(_,expr,clauses,range) ->
             {Type = "SynExpr.Match"
              Range = r range
@@ -696,13 +696,13 @@ module private Ast =
 
     and visitSynIndexerArg(ia: SynIndexerArg): Node =
         match ia with
-        | SynIndexerArg.One(e,fromEnd,_) ->
+        | SynIndexerArg.One(e,_fromEnd,_) ->
             {Type = "SynIndexerArg.One"
              Range = noRange
              Properties = p []
              FsAstNode = ia
              Childs = [yield visitSynExpr e]}
-        | SynIndexerArg.Two(e1,fromEnd1,e2,fromEnd2,_,_) ->
+        | SynIndexerArg.Two(e1,_fromEnd1,e2,_fromEnd2,_,_) ->
             {Type = "SynIndexerArg.Two"
              Range = noRange
              Properties = p []
@@ -1151,7 +1151,7 @@ module private Ast =
              FsAstNode = sp
              Childs = [visitSynPat pat]}
 
-    and visitSynConstructorArgs(ctorArgs: SynConstructorArgs): Node =
+    and visitSynConstructorArgs(ctorArgs: SynArgPats): Node =
         match ctorArgs with
         | Pats(pats) ->
             {Type = "Pats"

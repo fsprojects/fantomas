@@ -35,7 +35,6 @@ type TriviaContent =
     | Comment of Comment
     | Newline
     | Directive of directive:string
-    | NewlineAfter
     | CharContent of string
     
 type Trivia =

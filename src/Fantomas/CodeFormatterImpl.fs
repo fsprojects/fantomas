@@ -5,9 +5,9 @@ open System
 open System.Diagnostics
 open System.Text.RegularExpressions
 
-open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
 open FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.SyntaxTree
 
 open FSharp.Compiler.Text
 open Fantomas
@@ -351,9 +351,9 @@ let isValidAST ast =
         | SynPat.FromParseError _ -> false
 
     and validateConstructorArgs = function
-        | SynConstructorArgs.Pats pats ->
+        | SynArgPats.Pats pats ->
             List.forall validatePattern pats
-        | SynConstructorArgs.NamePatPairs(identPats, _range) ->
+        | SynArgPats.NamePatPairs(identPats, _range) ->
             List.forall (snd >> validatePattern) identPats
 
     match ast with
@@ -410,7 +410,7 @@ let format (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) confi
             |> Array.map (fun (ast', defines) ->
                 formatWith ast' defines formatContext config)
             |> List.ofArray
-            
+
         let merged =
             match results with
             | [] -> failwith "not possible"

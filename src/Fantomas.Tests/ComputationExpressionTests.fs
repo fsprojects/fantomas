@@ -68,17 +68,13 @@ let rec inorder tree =
     """ config
     |> prepend newline
     |> should equal """
-let s1 =
-    seq {
-        for i in 1 .. 10 -> i * i
-    }
-
+let s1 = seq { for i in 1 .. 10 -> i * i }
 let s2 = seq { 0 .. 10 .. 100 }
 
 let rec inorder tree =
     seq {
         match tree with
-        | Tree(x, left, right) ->
+        | Tree (x, left, right) ->
             yield! inorder left
             yield x
             yield! inorder right
@@ -91,7 +87,9 @@ let ``range expressions``() =
     formatSourceString false """
 let factors number = 
     {2L .. number / 2L}
-    |> Seq.filter (fun x -> number % x = 0L)""" config
+    |> Seq.filter (fun x -> number % x = 0L)""" ({ config with
+                                                        MaxInfixOperatorExpression = 65
+                                                        MaxLetBindingWidth = 65 })
     |> prepend newline
     |> should equal """
 let factors number = { 2L .. number / 2L } |> Seq.filter (fun x -> number % x = 0L)
@@ -108,7 +106,7 @@ async {
     |> prepend newline
     |> should equal """
 async {
-    match! myAsyncFunction() with
+    match! myAsyncFunction () with
     | Some x -> printfn "%A" x
     | None -> printfn "Function returned None!"
 }
@@ -141,7 +139,8 @@ async {
 async {
     let! x = Async.Sleep 1.
     and! y = Async.Sleep 2.
-    return 10 }
+    return 10
+}
 """
 [<Test>]
 let ``multiple and! is supported`` () =
@@ -158,10 +157,11 @@ parallel {
    |> should equal """
 // Reads the values of x, y and z concurrently, then applies f to them
 ``parallel`` {
-    let! x = slowRequestX()
-    and! y = slowRequestY()
-    and! z = slowRequestZ()
-    return f x y z }
+    let! x = slowRequestX ()
+    and! y = slowRequestY ()
+    and! z = slowRequestZ ()
+    return f x y z
+}
 """
 
 [<Test>]
@@ -178,5 +178,83 @@ observable {
 observable {
     let! a = foo
     and! b = bar
-    return a + b }
+    return a + b
+}
+"""
+
+[<Test>]
+let ``let bang should be formatted as regular let, 615`` () =
+    formatSourceString false """
+let f =
+  async {
+    // Without binding newline after assignment sign preserved, which is expected behavior
+    let r =
+      match 0 with
+      | _ -> ()
+
+    return r
+  }
+
+let f2 =
+  async {
+    // When binding, newline force-removed, which makes the whole expression
+    // on the right side to be indented.
+    let! r = match 0 with
+             | _ -> () |> async.Return
+
+    return r
+  }
+"""  config
+    |> prepend newline
+    |> should equal """
+let f =
+    async {
+        // Without binding newline after assignment sign preserved, which is expected behavior
+        let r =
+            match 0 with
+            | _ -> ()
+
+        return r
+    }
+
+let f2 =
+    async {
+        // When binding, newline force-removed, which makes the whole expression
+        // on the right side to be indented.
+        let! r =
+            match 0 with
+            | _ -> () |> async.Return
+
+        return r
+    }
+"""
+
+[<Test>]
+let ``let bang, and bang should be formatted as regular let`` () =
+    formatSourceString false """
+let f2 =
+  async {
+    // When binding, newline force-removed, which makes the whole expression
+    // on the right side to be indented.
+    let! r = match 0 with
+             | _ -> () |> async.Return
+    and! s = match 0 with
+             | _ -> () |> async.Return
+    return r + s
+  }
+"""  config
+    |> prepend newline
+    |> should equal """
+let f2 =
+    async {
+        // When binding, newline force-removed, which makes the whole expression
+        // on the right side to be indented.
+        let! r =
+            match 0 with
+            | _ -> () |> async.Return
+        and! s =
+            match 0 with
+            | _ -> () |> async.Return
+        return r + s
+    }
 """

@@ -26,8 +26,7 @@ then printfn "You are only %d years old and already learning F#? Wow!" age""" co
     |> should equal """
 let rec tryFindMatch pred list =
     match list with
-    | head :: tail ->
-        if pred (head) then Some(head) else tryFindMatch pred tail
+    | head :: tail -> if pred (head) then Some(head) else tryFindMatch pred tail
     | [] -> None
 
 let test x y =
@@ -36,7 +35,8 @@ let test x y =
     else if x > y then "is greater than"
     else "Don't know"
 
-if age < 10 then printfn "You are only %d years old and already learning F#? Wow!" age
+if age < 10
+then printfn "You are only %d years old and already learning F#? Wow!" age
 """
 
 [<Test>]
@@ -53,12 +53,12 @@ let ``for loops``() =
     """ config
     |> prepend newline
     |> should equal """
-let function1() =
+let function1 () =
     for i = 1 to 10 do
         printf "%d " i
     printfn ""
 
-let function2() =
+let function2 () =
     for i = 10 downto 1 do
         printf "%d " i
     printfn ""
@@ -140,7 +140,7 @@ let function1 x y =
             if x = y then raise (InnerError("inner")) else raise (OuterError("outer"))
         with
         | Failure _ -> ()
-        | InnerError(str) -> printfn "Error1 %s" str
+        | InnerError (str) -> printfn "Error1 %s" str
     finally
         printfn "Always print this."
 """
@@ -155,12 +155,12 @@ let ``range expressions``() =
     function2()""" config
     |> prepend newline
     |> should equal """
-let function2() =
+let function2 () =
     for i in 1 .. 2 .. 10 do
         printf "%d " i
     printfn ""
 
-function2()
+function2 ()
 """
 
 [<Test>]
@@ -198,9 +198,7 @@ let ``keyworded expressions``() =
     |> prepend newline
     |> should equal """
 assert (3 > 2)
-
 let result = lazy (x + 10)
-
 do printfn "Hello world"
 """
 
@@ -431,7 +429,7 @@ let a ex =
     |> should equal """
 let a ex =
     if null = ex then
-        fooo()
+        fooo ()
         None
     // this was None
     elif ex.GetType() = typeof<obj> then

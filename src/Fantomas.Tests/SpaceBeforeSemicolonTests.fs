@@ -5,8 +5,8 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 let beforeConfig = { config with
-                SpaceBeforeSemicolon = true
-                SpaceAfterSemicolon = false }
+                        SpaceBeforeSemicolon = true
+                        SpaceAfterSemicolon = false }
 
 [<Test>]
 let ``space before attributelist`` () =

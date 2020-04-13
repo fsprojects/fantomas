@@ -15,15 +15,22 @@ type FormatConfig =
       /// The column where we break to new lines
       PageWidth : Num
       SemicolonAtEndOfLine : bool
-      SpaceBeforeArgument : bool
+      SpaceBeforeParameter: bool
+      SpaceBeforeLowercaseInvocation: bool
+      SpaceBeforeUppercaseInvocation: bool
+      SpaceBeforeClassConstructor : bool
+      SpaceBeforeMember : bool
       SpaceBeforeColon : bool
       SpaceAfterComma : bool
       SpaceBeforeSemicolon : bool
       SpaceAfterSemicolon : bool
       IndentOnTryWith : bool
       SpaceAroundDelimiter : bool
-      KeepNewlineAfter : bool
       MaxIfThenElseShortWidth: Num
+      MaxInfixOperatorExpression: Num
+      MaxRecordWidth: Num
+      MaxArrayOrListWidth: Num
+      MaxLetBindingWidth: Num
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -31,15 +38,22 @@ type FormatConfig =
         { IndentSpaceNum = 4
           PageWidth = 120
           SemicolonAtEndOfLine = false
-          SpaceBeforeArgument = true
+          SpaceBeforeParameter = true
+          SpaceBeforeLowercaseInvocation = true
+          SpaceBeforeUppercaseInvocation = false
+          SpaceBeforeClassConstructor = false
+          SpaceBeforeMember = false
           SpaceBeforeColon = false
           SpaceAfterComma = true
           SpaceBeforeSemicolon = false
           SpaceAfterSemicolon = true
           IndentOnTryWith = false
           SpaceAroundDelimiter = true
-          KeepNewlineAfter = false
           MaxIfThenElseShortWidth = 40
+          MaxInfixOperatorExpression = 50
+          MaxRecordWidth = 40
+          MaxArrayOrListWidth = 40
+          MaxLetBindingWidth = 40
           StrictMode = false }
 
     static member applyOptions(currentConfig, options) =
@@ -56,4 +70,3 @@ type FormatConfigFileParseResult =
     | Success of FormatConfig
     | PartialSuccess of config: FormatConfig * warnings: string list
     | Failure of exn
-

@@ -20,7 +20,7 @@ let f () =
 """
 
     formatSourceString false codeSnippet config
-    |> should equal """let f() =
+    |> should equal """let f () =
     let x = 1 // the "in" keyword is available in F#
     let y = 2
     x + y
@@ -35,8 +35,8 @@ let f () =
       x + y
 """
 
-    formatSourceString false codeSnippet config
-    |> should equal """let f() =
+    formatSourceString false codeSnippet ({ config with MaxLetBindingWidth = 50 })
+    |> should equal """let f () =
     let x = 1 (* the "in" keyword is available in F# *)
     let y = 2
     x + y
@@ -46,15 +46,17 @@ let f () =
 let ``multiline let in, should remove in`` () =
     let codeSnippet = """
 let f () =
-  let x = 1 in if true 
+  let x = 1 in if longIdentifierThatWillForceThisConstructToBeMultiline
                then x
                else x
 """
 
     formatSourceString false codeSnippet config
-    |> should equal """let f() =
+    |> should equal """let f () =
     let x = 1
-    if true then x else x
+    if longIdentifierThatWillForceThisConstructToBeMultiline
+    then x
+    else x
 """
 
 [<Test>]
@@ -66,7 +68,7 @@ let f () =
 """
 
     formatSourceString false codeSnippet config
-    |> should equal """let f() =
+    |> should equal """let f () =
     let x = 1
     (while true do
         ()
@@ -79,7 +81,7 @@ let ``DotGet on newline should be indented far enough`` () =
 let tomorrow =
     DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
         .AddDays(1.)
-"""  config
+"""  ({ config with MaxLetBindingWidth = 70 })
     |> prepend newline
     |> should equal """
 let tomorrow = DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset).AddDays(1.)
@@ -195,7 +197,9 @@ module Card =
                 | prop -> Some prop)
             |> keyValueList CaseRules.LowerFirst
 
-        let props = JS.Object.assign (createEmpty, customProps, typeProps)
+        let props =
+            JS.Object.assign (createEmpty, customProps, typeProps)
+
         ofImport "Card" "reactstrap" props elems
 """
 
@@ -209,13 +213,15 @@ let ``newlines inside let binding should be not duplicated`` () =
         if not animating then activeIndex.update ((activeIndex.current + itemLength - 1) % itemLength)
 
     ()
-"""  config
+"""  ({ config with MaxInfixOperatorExpression = 60 })
     |> should equal """let foo =
     let next _ =
-        if not animating then activeIndex.update ((activeIndex.current + 1) % itemLength)
+        if not animating
+        then activeIndex.update ((activeIndex.current + 1) % itemLength)
 
     let prev _ =
-        if not animating then activeIndex.update ((activeIndex.current + itemLength - 1) % itemLength)
+        if not animating
+        then activeIndex.update ((activeIndex.current + itemLength - 1) % itemLength)
 
     ()
 """
@@ -238,7 +244,7 @@ let ``inner let binding should not add additional newline, #475`` () =
     |> prepend newline
     |> should equal "
 module Test =
-    let testFunc() =
+    let testFunc () =
         let someObject =
             someStaticObject.Create
                 (((fun o ->
@@ -287,7 +293,7 @@ let ``newline trivia before simple sequence doesn't force remaining to get offse
     q
     b
 """  config
-    |> should equal """let a() =
+    |> should equal """let a () =
     let q = 1
 
     q
@@ -302,7 +308,7 @@ let ``comment trivia before simple sequence doesn't force remaining to get offse
     q
     b
 """  config
-    |> should equal """let a() =
+    |> should equal """let a () =
     let q = 1
     // comment
     q
@@ -330,8 +336,7 @@ let ``line comment before return type info should indent before colon, 565`` () 
 """  ({ config with
             SpaceAfterComma = false
             SpaceAfterSemicolon = false
-            SpaceAroundDelimiter = false
-            SpaceBeforeArgument = false })
+            SpaceAroundDelimiter = false })
     |> prepend newline
     |> should equal """
 module Bar =
@@ -351,7 +356,7 @@ let ``has symbol in signature requires paren, 564`` () =
             SpaceAfterComma = false
             SpaceAfterSemicolon = false
             SpaceAroundDelimiter = false
-            SpaceBeforeArgument = false })
+            SpaceBeforeParameter = false })
     |> prepend newline
     |> should equal """
 module Bar =
@@ -364,3 +369,55 @@ let ``only add one space between idents in app`` () =
     formatSourceString false "let validatorResult = validator input"  config
     |> should equal "let validatorResult = validator input
 "
+
+[<Test>]
+let ``multiline let binding, should be multiline based on expression, not AST composition`` () =
+    formatSourceString false """
+let foo a =
+    let b = a +   7
+    b
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo a =
+    let b = a + 7
+    b
+"""
+
+[<Test>]
+let ``multiline let binding with type signature should be multiline based on expression, not AST composition`` () =
+    formatSourceString false """
+let foo (a: int ) (b:  string):string =
+    let c = a.ToString() + b
+    sprintf "result: %s" c
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo (a: int) (b: string): string =
+    let c = a.ToString() + b
+    sprintf "result: %s" c
+"""
+
+[<Test>]
+let ``multiline inner let binding in nested module`` () =
+    formatSourceString false """let SetQuartzLoggingFunction f =
+        let loggerFunction level (func: Func<string>) exc parameters =
+            let wrappedFunction =
+                Helpers.nullValuesToOptions (fun (x: Func<string>) -> (fun () -> x.Invoke())) func
+            let wrappedException = Helpers.nullValuesToOptions id exc
+            f level wrappedFunction wrappedException (parameters |> List.ofArray)
+
+        LogProvider.SetCurrentLogProvider(QuartzLoggerWrapper(loggerFunction))
+"""  config
+    |> prepend newline
+    |> should equal """
+let SetQuartzLoggingFunction f =
+    let loggerFunction level (func: Func<string>) exc parameters =
+        let wrappedFunction =
+            Helpers.nullValuesToOptions (fun (x: Func<string>) -> (fun () -> x.Invoke())) func
+
+        let wrappedException = Helpers.nullValuesToOptions id exc
+        f level wrappedFunction wrappedException (parameters |> List.ofArray)
+
+    LogProvider.SetCurrentLogProvider(QuartzLoggerWrapper(loggerFunction))
+"""
