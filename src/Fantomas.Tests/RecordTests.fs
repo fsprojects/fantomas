@@ -284,16 +284,26 @@ type MyExc =
 """
 
 [<Test>]
-let ``anon record``() =
-    shouldNotChangeAfterFormat """
+let ``anon record`` () =
+    formatSourceString false """let r: {| Foo: int; Bar: string |} =
+    {| Foo = 123
+       Bar = "" |}
+"""  ({ config with MaxRecordWidth = 10 })
+    |> prepend newline
+    |> should equal """
 let r: {| Foo: int; Bar: string |} =
     {| Foo = 123
        Bar = "" |}
 """
 
 [<Test>]
-let `` anon record - struct``() =
-    shouldNotChangeAfterFormat """
+let ``anon record - struct`` () =
+    formatSourceString false """let r: struct {| Foo: int; Bar: string |} =
+    struct {| Foo = 123
+              Bar = "" |}
+"""  ({ config with MaxRecordWidth = 10 })
+    |> prepend newline
+    |> should equal """
 let r: struct {| Foo: int; Bar: string |} =
     struct {| Foo = 123
               Bar = "" |}
@@ -789,4 +799,37 @@ type Foo =
     { A: int
       B: string }
     member this.Foo() = ()
+"""
+
+[<Test>]
+let ``short anonymous record with two members`` () =
+    formatSourceString false """let foo =
+    {| A = 7
+       B = 8 |}
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo = {| A = 7; B = 8 |}
+"""
+
+[<Test>]
+let ``short anonymous record with copy expression`` () =
+    formatSourceString false """let foo =
+    {| bar with A = 7 |}
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo = {| bar with A = 7 |}
+"""
+
+[<Test>]
+let ``longer anonymous record with copy expression`` () =
+    formatSourceString false """let foo =
+    {| bar with AMemberWithALongName = aValueWithAlsoALongName |}
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo =
+    {| bar with
+           AMemberWithALongName = aValueWithAlsoALongName |}
 """

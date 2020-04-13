@@ -836,15 +836,26 @@ and genExpr astContext synExpr =
         fun ctx -> isShortExpression ctx.Config.MaxRecordWidth shortRecordExpr multilineRecordExpr ctx
 
     | AnonRecord(isStruct, fields, copyInfo) ->
-        let recordExpr =
-            let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
-            copyInfo |> Option.map (fun e ->
-                genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
-            |> Option.defaultValue fieldsExpr
-        ifElse isStruct !- "struct " sepNone
-        +> sepOpenAnonRecd
-        +> atCurrentColumnIndent recordExpr
-        +> sepCloseAnonRecd
+        let shortExpression =
+            onlyIf isStruct !- "struct "
+            +> sepOpenAnonRecd
+            +> optSingle (fun e -> genExpr astContext e +> !- " with ") copyInfo
+            +> col sepSemi fields (genAnonRecordFieldName astContext)
+            +> sepCloseAnonRecd
+
+        let longExpression =
+            let recordExpr =
+                let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
+                match copyInfo with
+                | Some e -> genExpr astContext e +> (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent)
+                | None -> fieldsExpr
+
+            onlyIf isStruct !- "struct "
+            +> sepOpenAnonRecd
+            +> atCurrentColumnIndent recordExpr
+            +> sepCloseAnonRecd
+
+        fun (ctx: Context) -> isShortExpression ctx.Config.MaxRecordWidth shortExpression longExpression ctx
 
     | ObjExpr(t, eio, bd, ims, range) ->
         // Check the role of the second part of eio
