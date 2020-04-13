@@ -179,9 +179,7 @@ let IsMatchByName record1 (name: string) =
     | _ -> false """ config
     |> prepend newline
     |> should equal """
-type MyRecord =
-    { Name: string
-      ID: int }
+type MyRecord = { Name: string; ID: int }
 
 let IsMatchByName record1 (name: string) =
     match record1 with

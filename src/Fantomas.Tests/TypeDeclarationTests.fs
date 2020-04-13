@@ -943,12 +943,9 @@ and Room =
     |> should equal """
 module Game
 
-type Details =
-    { Name: string
-      Description: string }
+type Details = { Name: string; Description: string }
 
-type Item =
-    { Details: Details }
+type Item = { Details: Details }
 
 type Exit =
     | Passable of Details * desitnation: Room

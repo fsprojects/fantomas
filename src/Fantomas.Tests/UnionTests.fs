@@ -269,9 +269,7 @@ type DU = | Record
 """  config
     |> prepend newline
     |> should equal """
-type Record =
-    { Name: string }
-
+type Record = { Name: string }
 type DU = | Record
 """
 

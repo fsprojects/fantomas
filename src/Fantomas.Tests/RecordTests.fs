@@ -9,8 +9,7 @@ let ``record declaration``() =
     formatSourceString false "type AParameters = { a : int }" config
     |> prepend newline
     |> should equal """
-type AParameters =
-    { a: int }
+type AParameters = { a: int }
 """
 
 [<Test>]
@@ -18,9 +17,7 @@ let ``record declaration with implementation visibility attribute``() =
     formatSourceString false "type AParameters = private { a : int; b: float }" config
     |> prepend newline
     |> should equal """
-type AParameters =
-    private { a: int
-              b: float }
+type AParameters = private { a: int; b: float }
 """
 
 [<Test>]
@@ -205,9 +202,7 @@ type rate2 = Rate of float<GBP/SGD*USD>
 """  config
   |> prepend newline
   |> should equal """
-type rate =
-    { Rate: float<GBP * SGD / USD> }
-
+type rate = { Rate: float<GBP * SGD / USD> }
 type rate2 = Rate of float<GBP / SGD * USD>
 """
 
@@ -747,4 +742,51 @@ let a =
 let a =
     { B = 8 // some comment
       C = 9 }
+"""
+
+[<Test>]
+let ``short record type should remain single line`` () =
+    formatSourceString false "type Foo = { A: int; B:   string }" config
+    |> prepend newline
+    |> should equal """
+type Foo = { A: int; B: string }
+"""
+
+[<Test>]
+let ``short record type with comment should go to multiline`` () =
+    formatSourceString false """type Foo = { A: int;
+                    // comment
+                    B:   string }
+"""  config
+    |> prepend newline
+    |> should equal """
+type Foo =
+    { A: int
+      // comment
+      B: string }
+"""
+
+[<Test>]
+let ``short record type with comment after opening brace should go to multiline`` () =
+    formatSourceString false """type Foo = { // comment
+                    A: int;
+                    B:   string }
+"""  config
+    |> prepend newline
+    |> should equal """
+type Foo =
+    { // comment
+      A: int
+      B: string }
+"""
+
+[<Test>]
+let ``short record type with member definitions should be multi line`` () =
+    formatSourceString false "type Foo = { A: int; B:   string } with member this.Foo () = ()" config
+    |> prepend newline
+    |> should equal """
+type Foo =
+    { A: int
+      B: string }
+    member this.Foo() = ()
 """

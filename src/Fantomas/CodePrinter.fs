@@ -1630,13 +1630,27 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         +> unindent
 
     | Simple(TDSRRecord(ao', fs)) ->
-        typeName +> sepEq
-        +> indent +> sepNln +> opt sepSpace ao' genAccess
-        +> genTrivia tdr.Range
-            (sepOpenS
-            +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
-            +> genMemberDefnList { astContext with InterfaceRange = None } ms
-            +> unindent)
+        let shortExpression =
+            sepSpace +>
+            optSingle (fun ao -> genAccess ao +> sepSpace) ao' +>
+            sepOpenS +> leaveLeftBrace tdr.Range
+            +> col sepSemi fs (genField astContext "") +> sepCloseS
+
+        let multilineExpression =
+            indent +> sepNln +> opt sepSpace ao' genAccess
+            +> genTrivia tdr.Range
+                (sepOpenS
+                +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
+                +> genMemberDefnList { astContext with InterfaceRange = None } ms
+                +> unindent)
+
+        let bodyExpr (ctx:Context) =
+            if List.isEmpty ms then
+                isShortExpression  ctx.Config.MaxRecordWidth shortExpression multilineExpression ctx
+            else
+                multilineExpression ctx
+
+        typeName +> sepEq +> bodyExpr
 
     | Simple TDSRNone ->
         typeName
