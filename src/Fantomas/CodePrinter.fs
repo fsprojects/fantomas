@@ -808,14 +808,14 @@ and genExpr astContext synExpr =
         let multilineRecordExpr ctx =
             let recordExpr =
                     let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
-                    eo |> Option.map (fun e ->
-                        genExpr astContext e +> ifElseCtx (futureNlnCheck fieldsExpr) (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent) (!- " with " +> fieldsExpr))
-                    |> Option.defaultValue fieldsExpr
+                    match eo with
+                    | Some e -> genExpr astContext e +> !- " with" +> indent +> sepNln +> fieldsExpr +> unindent
+                    | None -> fieldsExpr
 
             let expr =
                 sepOpenS
                 +> (fun (ctx:Context) -> { ctx with RecordBraceStart = ctx.Column::ctx.RecordBraceStart })
-                +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else ifElseCtx (futureNlnCheck recordExpr) sepNln sepSemi) inheritOpt
+                +> atCurrentColumnIndent (leaveLeftBrace synExpr.Range +> opt (if xs.IsEmpty then sepNone else sepNln) inheritOpt
                     (fun (typ, expr) -> !- "inherit " +> genType astContext false typ +> genExpr astContext expr) +> recordExpr)
                 +> (fun ctx ->
                     match ctx.RecordBraceStart with
