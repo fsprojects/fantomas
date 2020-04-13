@@ -1451,7 +1451,8 @@ and genExpr astContext synExpr =
         let lastRange = List.tryLast ranges
         ifElse isOpt (!- "?") sepNone -- s +> opt id lastRange (fun r ctx -> leaveNode r ctx)
     | LongIdentSet(s, e, _) ->
-        !- (sprintf "%s <- " s) +> autoIndentNlnByFuture (genExpr astContext e)
+        !- (sprintf "%s <- " s)
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
     | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
     | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
     | NamedIndexedPropertySet(ident, e1, e2) ->
@@ -1470,10 +1471,10 @@ and genExpr astContext synExpr =
         let genAndList astContext (ands: list<DebugPointForBinding * bool * bool * SynPat * SynExpr * range>) =
             colPost sepNln sepNln
                 ands
-                (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> autoIndentNlnByFuture (genExpr astContext expr))
+                (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr))
 
         ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
-        +> autoIndentNlnByFuture (genExpr astContext e1)
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
         +> sepNln
         +> genAndList astContext ands
         +> genExpr astContext e2
@@ -1692,7 +1693,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
                 (indent ++ "with" +> indent +> genMemberDefnList { astContext with InterfaceRange = None } ms
             +> unindent +> unindent)
 
-        let genTypeBody =  autoIndentNlnByFuture (genTrivia tdr.Range genTypeAbbrev) +> genMembers
+        let genTypeBody =  autoIndentAndNlnIfExpressionExceedsPageWidth (genTrivia tdr.Range genTypeAbbrev) +> genMembers
 
         typeName +> sepEq +> sepSpace +> genTypeBody
     | Simple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
