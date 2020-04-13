@@ -1989,10 +1989,21 @@ and genType astContext outerBracket t =
         | TWithGlobalConstraints(t, tcs) -> loop t +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
         | TLongIdent s -> ifElseCtx (fun ctx -> not ctx.Config.StrictMode && astContext.IsCStylePattern) (genTypeByLookup astContext t) (!- s)
         | TAnonRecord(isStruct, fields) ->
-            ifElse isStruct !- "struct " sepNone
-            +> sepOpenAnonRecd
-            +> col sepSemi fields (genAnonRecordFieldType astContext)
-            +> sepCloseAnonRecd
+            let shortExpression =
+                ifElse isStruct !- "struct " sepNone
+                +> sepOpenAnonRecd
+                +> col sepSemi fields (genAnonRecordFieldType astContext)
+                +> sepCloseAnonRecd
+
+            let longExpression =
+                ifElse isStruct !- "struct " sepNone
+                +> sepOpenAnonRecd
+                +> atCurrentColumn (col sepSemiNln fields (genAnonRecordFieldType astContext))
+                +> sepCloseAnonRecd
+
+            fun (ctx:Context) ->
+                isShortExpression ctx.Config.MaxRecordWidth shortExpression longExpression ctx
+
         | t -> failwithf "Unexpected type: %O" t
 
     and loopTTupleList = function

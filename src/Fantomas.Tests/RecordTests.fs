@@ -291,7 +291,8 @@ let ``anon record`` () =
 """  ({ config with MaxRecordWidth = 10 })
     |> prepend newline
     |> should equal """
-let r: {| Foo: int; Bar: string |} =
+let r: {| Foo: int
+          Bar: string |} =
     {| Foo = 123
        Bar = "" |}
 """
@@ -304,7 +305,8 @@ let ``anon record - struct`` () =
 """  ({ config with MaxRecordWidth = 10 })
     |> prepend newline
     |> should equal """
-let r: struct {| Foo: int; Bar: string |} =
+let r: struct {| Foo: int
+                 Bar: string |} =
     struct {| Foo = 123
               Bar = "" |}
 """
@@ -832,4 +834,39 @@ let ``longer anonymous record with copy expression`` () =
 let foo =
     {| bar with
            AMemberWithALongName = aValueWithAlsoALongName |}
+"""
+
+[<Test>]
+let ``short anonymous record type alias`` () =
+    formatSourceString false """
+let useAddEntry() =
+    fun (input: {| name: string; amount: Amount |}) ->
+        // foo
+        bar ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let useAddEntry () =
+    fun (input: {| name: string; amount: Amount |}) ->
+        // foo
+        bar ()
+"""
+
+[<Test>]
+let ``long anonymous record type alias`` () =
+    formatSourceString false """
+let useAddEntry() =
+    fun (input: {| name: string; amount: Amount; isIncome: bool; created: string |}) ->
+        // foo
+        bar ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let useAddEntry () =
+    fun (input: {| name: string
+                   amount: Amount
+                   isIncome: bool
+                   created: string |}) ->
+        // foo
+        bar ()
 """
