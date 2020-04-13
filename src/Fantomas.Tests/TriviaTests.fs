@@ -11,7 +11,7 @@ let private toTrivia source =
     astWithDefines
     |> List.map (fun (ast, defines) ->
         let (tokens, lineCount) = TokenParser.tokenize defines source
-        Trivia.collectTrivia config tokens lineCount ast
+        Trivia.collectTrivia tokens lineCount ast
     )
     
 let private toTriviaWithDefines source =
@@ -20,7 +20,7 @@ let private toTriviaWithDefines source =
     astWithDefines
     |> List.map (fun (ast, defines) ->
         let (tokens, lineCount) = TokenParser.tokenize defines source
-        defines, Trivia.collectTrivia config tokens lineCount ast
+        defines, Trivia.collectTrivia tokens lineCount ast
     )
     |> Map.ofList
 
@@ -525,4 +525,17 @@ let ``char content`` () =
     | [{ ContentItself = Some(CharContent("\'\\u0000\'"))
          Type = TriviaNodeType.MainNode("SynExpr.Const") }] ->
         pass()
+    | _ -> fail()
+
+[<Test>]
+let ``leading newlines should not be captured as trivia`` () =
+    let source = """
+let a = b
+"""
+    let trivia =
+        toTrivia source
+        |> List.head
+
+    match trivia with
+    | [] -> pass()
     | _ -> fail()

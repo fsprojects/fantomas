@@ -2,9 +2,10 @@
 
 open System
 open System.Diagnostics
-open FSharp.Compiler.Range
-open FSharp.Compiler.Ast
 open FSharp.Compiler.PrettyNaming
+open FSharp.Compiler.Range
+open FSharp.Compiler.SyntaxTree
+open FSharp.Compiler.XmlDoc
 open Fantomas
 open Fantomas.Context
 open FSharp.Compiler.SourceCodeServices.PrettyNaming
@@ -183,6 +184,16 @@ let rec (|Const|) c =
     | SynConst.Bytes(bs, _) -> sprintf "%A" bs
     // Auto print may cut off the array
     | SynConst.UInt16s us -> sprintf "%A" us
+
+let (|String|_|) e =
+    match e with
+    | SynExpr.Const(SynConst.String(s,_),_) -> Some s
+    | _ -> None
+
+let (|MultilineString|_|) e =
+    match e with
+    | String(s) when (String.isMultiline s) -> Some e
+    | _ -> None
 
 let (|Unresolved|) (Const s as c, r) = (c, r, s)
 
@@ -693,9 +704,22 @@ let (|TernaryApp|_|) = function
 let (|InfixApps|_|) e =
     let rec loop synExpr = 
         match synExpr with
-        | InfixApp(s, opE, e, e2) -> 
+        | InfixApp(s, opE, e, e2) ->
             let (e1, es) = loop e
-            (e1, (s, opE, e2)::es)
+
+            match es with
+            | [] ->
+                let (t1, ts) = loop e2
+                match ts with
+                | [] ->
+                    (e1, (s, opE, e2)::es)
+                | ts ->
+                    // example code that leads to this:
+                    // let foo =
+                    //     a & b |> c |> d
+                    (e1, ts @ [(s, opE, t1)])
+            | _ ->
+                (e1, (s, opE, e2)::es)
         | e -> (e, [])
     match loop e with
     | (_, []) -> None
@@ -925,9 +949,9 @@ let (|PatNamed|_|) = function
 let (|PatLongIdent|_|) = function
     | SynPat.LongIdent(LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull (s,_)), _), _, tpso, xs, ao, _) ->
         match xs with
-        | SynConstructorArgs.Pats ps -> 
+        | SynArgPats.Pats ps -> 
             Some(ao, s, List.map (fun p -> (None, p)) ps, tpso)
-        | SynConstructorArgs.NamePatPairs(nps, _) ->
+        | SynArgPats.NamePatPairs(nps, _) ->
             Some(ao, s, List.map (fun (Ident ident, p) -> (Some ident, p)) nps, tpso)
     | _ -> None
 

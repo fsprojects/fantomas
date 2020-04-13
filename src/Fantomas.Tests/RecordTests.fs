@@ -9,8 +9,7 @@ let ``record declaration``() =
     formatSourceString false "type AParameters = { a : int }" config
     |> prepend newline
     |> should equal """
-type AParameters =
-    { a: int }
+type AParameters = { a: int }
 """
 
 [<Test>]
@@ -18,9 +17,7 @@ let ``record declaration with implementation visibility attribute``() =
     formatSourceString false "type AParameters = private { a : int; b: float }" config
     |> prepend newline
     |> should equal """
-type AParameters =
-    private { a: int
-              b: float }
+type AParameters = private { a: int; b: float }
 """
 
 [<Test>]
@@ -118,10 +115,7 @@ type Car =
       Model: string
       mutable Odometer: int }
 
-let myRecord3 =
-    { myRecord2 with
-          Y = 100
-          Z = 2 }
+let myRecord3 = { myRecord2 with Y = 100; Z = 2 }
 """
 
 // the current behavior results in a compile error since the if is not aligned properly
@@ -153,8 +147,7 @@ let ``should not break inside of if statements in records``() =
       WorkingDir = "./";
       TimeOut = TimeSpan.FromMinutes 5.;
       Package = null;
-      Version =
-          if not isLocalBuild then buildVersion else "0.1.0.0";
+      Version = if not isLocalBuild then buildVersion else "0.1.0.0";
       OutputPath = "./xpkg";
       Project = null;
       Summary = null;
@@ -182,9 +175,23 @@ let rec make item depth =
     if depth > 0 then
         Tree
             ({ Left = make (2 * item - 1) (depth - 1)
-               Right = make (2 * item) (depth - 1) }, item)
+               Right = make (2 * item) (depth - 1) },
+             item)
     else
         Tree(defaultof<_>, item)
+"""
+
+[<Test>]
+let ``record inside DU constructor`` () =
+    formatSourceString false """let a = Tree({ Left = make (2 * item - 1) (depth - 1); Right = make (2 * item) (depth - 1) }, item)
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    Tree
+        ({ Left = make (2 * item - 1) (depth - 1)
+           Right = make (2 * item) (depth - 1) },
+         item)
 """
 
 [<Test>]
@@ -195,18 +202,34 @@ type rate2 = Rate of float<GBP/SGD*USD>
 """  config
   |> prepend newline
   |> should equal """
-type rate =
-    { Rate: float<GBP * SGD / USD> }
-
+type rate = { Rate: float<GBP * SGD / USD> }
 type rate2 = Rate of float<GBP / SGD * USD>
 """
 
 [<Test>]
 let ``should keep comments on records``() =
-    shouldNotChangeAfterFormat """
+    formatSourceString false """
 let newDocument = //somecomment
     { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
       content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
+      created = document.Created.ToLocalTime() }
+    |> JsonConvert.SerializeObject
+"""  ({ config with MaxInfixOperatorExpression = 75 })
+  |> prepend newline
+  |> should equal """
+let newDocument = //somecomment
+    { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
+      content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
+      created = document.Created.ToLocalTime() }
+    |> JsonConvert.SerializeObject
+"""
+
+[<Test>]
+let ``|> should be on the next line if preceding expression is multiline``() =
+    shouldNotChangeAfterFormat """
+let newDocument = //somecomment
+    { program = "Loooooooooooooooooooooooooong"
+      content = "striiiiiiiiiiiiiiiiiiinnnnnnnnnnng"
       created = document.Created.ToLocalTime() }
     |> JsonConvert.SerializeObject
 """
@@ -246,34 +269,73 @@ let ``should preserve inherit parts in records multiline``() =
 type MyExc =
     inherit Exception
     new(msg) = {inherit Exception(msg)
-                X = 1
-                Y = 2}
+                XXXXXXXXXXXXXXXXXXXXXXXX = 1
+                YYYYYYYYYYYYYYYYYYYYYYYY = 2}
 """  config
   |> prepend newline
   |> should equal """
 type MyExc =
     inherit Exception
+
     new(msg) =
         { inherit Exception(msg)
-          X = 1
-          Y = 2 }
+          XXXXXXXXXXXXXXXXXXXXXXXX = 1
+          YYYYYYYYYYYYYYYYYYYYYYYY = 2 }
 """
 
 [<Test>]
-let ``anon record``() =
-    shouldNotChangeAfterFormat """
-let r: {| Foo: int; Bar: string |} =
+let ``anon record`` () =
+    formatSourceString false """let r: {| Foo: int; Bar: string |} =
+    {| Foo = 123
+       Bar = "" |}
+"""  ({ config with MaxRecordWidth = 10 })
+    |> prepend newline
+    |> should equal """
+let r: {| Foo: int
+          Bar: string |} =
     {| Foo = 123
        Bar = "" |}
 """
 
 [<Test>]
-let `` anon record - struct``() =
-    shouldNotChangeAfterFormat """
-let r: struct {| Foo: int; Bar: string |} =
+let ``anon record - struct`` () =
+    formatSourceString false """let r: struct {| Foo: int; Bar: string |} =
+    struct {| Foo = 123
+              Bar = "" |}
+"""  ({ config with MaxRecordWidth = 10 })
+    |> prepend newline
+    |> should equal """
+let r: struct {| Foo: int
+                 Bar: string |} =
     struct {| Foo = 123
               Bar = "" |}
 """
+
+[<Test>]
+let ``anon record with multiline assignments`` () =
+    formatSourceString false "
+let r =
+    {|
+        Foo =
+            a && // && b
+            c
+        Bar =
+        \"\"\"
+Fooey
+\"\"\"
+    |}
+"      config
+    |> prepend newline
+    |> should equal "
+let r =
+    {| Foo =
+           a
+           && // && b
+           c
+       Bar = \"\"\"
+Fooey
+\"\"\" |}
+"
 
 [<Test>]
 let ``meaningful space should be preserved, 353`` () =
@@ -468,8 +530,8 @@ let x = Foo("").Goo()
 
 let r =
     { s with
-        x = 1
-        y = 2 }
+        xxxxxxxxxxxxxxxxxxxxx = 1
+        yyyyyyyyyyyyyyyyyyyyy = 2 }
 """  config
   |> prepend newline
   |> should equal """
@@ -477,8 +539,8 @@ let x = Foo("").Goo()
 
 let r =
     { s with
-          x = 1
-          y = 2 }
+          xxxxxxxxxxxxxxxxxxxxx = 1
+          yyyyyyyyyyyyyyyyyyyyy = 2 }
 """
 
 [<Test>]
@@ -528,7 +590,9 @@ let expect =
                 Opts.oneOf
                     (Optional,
                      [ Opt.flag [ "third"; "f" ]
-                       Opt.valueWith "new value" [ "fourth"; "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]) ]
+                       Opt.valueWith "new value"
+                           [ "fourth"
+                             "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]) ]
           args = []
           commands = [] }
 """
@@ -553,8 +617,7 @@ let expect =
     |> prepend newline
     |> should equal """
 let expect =
-    Result<int, string>
-        .Ok
+    Result<int, string>.Ok
         [ "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
           "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
           "meh" ]
@@ -661,4 +724,167 @@ module Test =
             member __.Dispose() =
                 something.Dispose()
                 somethingElse.Dispose() }
+"""
+
+[<Test>]
+let ``short record should be a oneliner`` () =
+    formatSourceString false """let a = { B = 7 ; C = 9 }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = { B = 7; C = 9 }
+"""
+
+// This test ensures that the normal flow of Fantomas is resumed when the next expression is being written.
+[<Test>]
+let ``short record and let binding`` () =
+    formatSourceString false """
+let a = { B = 7 ; C = 9 }
+let sumOfMember = a.B + a.C
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = { B = 7; C = 9 }
+let sumOfMember = a.B + a.C
+"""
+
+[<Test>]
+let ``long record should be multiline`` () =
+    formatSourceString false """let myInstance = { FirstLongMemberName = "string value" ; SecondLongMemberName = "other value" }
+"""  config
+    |> prepend newline
+    |> should equal """
+let myInstance =
+    { FirstLongMemberName = "string value"
+      SecondLongMemberName = "other value" }
+"""
+
+[<Test>]
+let ``multiline in record field should short circuit short expression check`` () =
+    formatSourceString false """
+let a =
+    { B =
+          8 // some comment
+      C = 9 }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    { B = 8 // some comment
+      C = 9 }
+"""
+
+[<Test>]
+let ``short record type should remain single line`` () =
+    formatSourceString false "type Foo = { A: int; B:   string }" config
+    |> prepend newline
+    |> should equal """
+type Foo = { A: int; B: string }
+"""
+
+[<Test>]
+let ``short record type with comment should go to multiline`` () =
+    formatSourceString false """type Foo = { A: int;
+                    // comment
+                    B:   string }
+"""  config
+    |> prepend newline
+    |> should equal """
+type Foo =
+    { A: int
+      // comment
+      B: string }
+"""
+
+[<Test>]
+let ``short record type with comment after opening brace should go to multiline`` () =
+    formatSourceString false """type Foo = { // comment
+                    A: int;
+                    B:   string }
+"""  config
+    |> prepend newline
+    |> should equal """
+type Foo =
+    { // comment
+      A: int
+      B: string }
+"""
+
+[<Test>]
+let ``short record type with member definitions should be multi line`` () =
+    formatSourceString false "type Foo = { A: int; B:   string } with member this.Foo () = ()" config
+    |> prepend newline
+    |> should equal """
+type Foo =
+    { A: int
+      B: string }
+    member this.Foo() = ()
+"""
+
+[<Test>]
+let ``short anonymous record with two members`` () =
+    formatSourceString false """let foo =
+    {| A = 7
+       B = 8 |}
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo = {| A = 7; B = 8 |}
+"""
+
+[<Test>]
+let ``short anonymous record with copy expression`` () =
+    formatSourceString false """let foo =
+    {| bar with A = 7 |}
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo = {| bar with A = 7 |}
+"""
+
+[<Test>]
+let ``longer anonymous record with copy expression`` () =
+    formatSourceString false """let foo =
+    {| bar with AMemberWithALongName = aValueWithAlsoALongName |}
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo =
+    {| bar with
+           AMemberWithALongName = aValueWithAlsoALongName |}
+"""
+
+[<Test>]
+let ``short anonymous record type alias`` () =
+    formatSourceString false """
+let useAddEntry() =
+    fun (input: {| name: string; amount: Amount |}) ->
+        // foo
+        bar ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let useAddEntry () =
+    fun (input: {| name: string; amount: Amount |}) ->
+        // foo
+        bar ()
+"""
+
+[<Test>]
+let ``long anonymous record type alias`` () =
+    formatSourceString false """
+let useAddEntry() =
+    fun (input: {| name: string; amount: Amount; isIncome: bool; created: string |}) ->
+        // foo
+        bar ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let useAddEntry () =
+    fun (input: {| name: string
+                   amount: Amount
+                   isIncome: bool
+                   created: string |}) ->
+        // foo
+        bar ()
 """

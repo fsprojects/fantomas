@@ -121,16 +121,16 @@ let ``pointing to subfolder conntaining dot without trailing slash returns paren
 
 [<Test>]
 let ``simple config file parses valid option`` () =
-    let path = mkConfigFromJson None "{\"KeepNewlineAfter\":true}"
+    let path = mkConfigFromJson None "{\"IndentOnTryWith\":true}"
     let config, warnings = applyOptionsToConfig FormatConfig.Default path
-    true == config.KeepNewlineAfter
+    true == config.IndentOnTryWith
     [] == warnings
 
 [<Test>]
 let ``keys should not necessarily have quotes to be parsed`` () =
-    let path = mkConfigFromJson None "{KeepNewlineAfter:true}"
+    let path = mkConfigFromJson None "{IndentOnTryWith:true}"
     let config, warnings = applyOptionsToConfig FormatConfig.Default path
-    true == config.KeepNewlineAfter
+    true == config.IndentOnTryWith
     [] == warnings
 
 [<Test>]
@@ -191,7 +191,6 @@ let ``$schema key should not return warning`` () =
     let path = mkConfigFromJson None """
 {
     "$schema": "http://json.schemastore.org/fantomas",
-    "KeepNewlineAfter": true,
     "PageWidth": 99,
     "IndentSpaceNum": 2,
     "IndentOnTryWith": true

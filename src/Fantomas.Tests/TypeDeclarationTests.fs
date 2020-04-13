@@ -15,11 +15,10 @@ let ``exception declarations with members``() =
     formatSourceString false """/// An exception type to signal build errors.
 exception BuildException of string*list<string>
   with
-    override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)""" config
+    override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)""" ({ config with MaxInfixOperatorExpression = 60 })
     |> should equal """/// An exception type to signal build errors.
 exception BuildException of string * list<string> with
-    override x.ToString() =
-        x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)
+    override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)
 """
 
 [<Test>]
@@ -96,6 +95,7 @@ type Test() =
     member this.Function1<'a>(x, y) = printfn "%A, %A" x y
 
     abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
+
     override this.AbstractMethod<'a, 'b>(x: 'a, y: 'b) = printfn "%A, %A" x y
 """
 
@@ -168,9 +168,7 @@ type Point2D =
     struct
         val X: float
         val Y: float
-        new(x: float, y: float) =
-            { X = x
-              Y = y }
+        new(x: float, y: float) = { X = x; Y = y }
     end
 """
 
@@ -190,6 +188,7 @@ let ``abstract and override keywords``() =
 type MyClassBase1() =
     let mutable z = 0
     abstract Function1: int -> int
+
     default u.Function1(a: int) =
         z <- z + a
         z
@@ -275,6 +274,7 @@ type Foo() =
     |> should equal """
 type Foo() =
     member x.Get = 1
+
     member x.Set
         with private set (v: int) = value <- v
 
@@ -284,6 +284,7 @@ type Foo() =
 
     member x.GetI
         with internal get (key1, key2) = false
+
     member x.SetI
         with private set (key1, key2) value = ()
 
@@ -308,10 +309,13 @@ type MyType() =
     |> should equal """
 type MyType() =
     let mutable myInt1 = 10
+
     [<DefaultValue; Test>]
     val mutable myInt2: int
+
     [<DefaultValue; Test>]
     val mutable myString: string
+
     member this.SetValsAndPrint(i: int, str: string) =
         myInt1 <- i
         this.myInt2 <- i + 1
@@ -327,7 +331,7 @@ type SpeedingTicket() =
 
 let CalculateFine (ticket : SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
-    if delta < 20 then 50.0 else 100.0""" config
+    if delta < 20 then 50.0 else 100.0""" ({ config with MaxLetBindingWidth = 45 })
     |> prepend newline
     |> should equal """
 type SpeedingTicket() =
@@ -523,13 +527,9 @@ type U = U of (int * int)
     |> prepend newline
     |> should equal """
 type Delegate1 = delegate of (int * int) * (int * int) -> int
-
 type Delegate2 = delegate of int * int -> int
-
 type Delegate3 = delegate of int -> (int -> int)
-
 type Delegate4 = delegate of int -> int -> int
-
 type U = U of (int * int)
 """
 
@@ -569,7 +569,7 @@ let ``should keep brackets around type signatures``() =
     formatSourceString false """
 let user_printers = ref([] : (string * (term -> unit)) list)
 let the_interface = ref([] : (string * (string * hol_type)) list)
-    """ config
+    """ ({ config with MaxLetBindingWidth = 50 })
     |> prepend newline
     |> should equal """
 let user_printers = ref ([]: (string * (term -> unit)) list)
@@ -614,7 +614,9 @@ type BlobHelper(Account: CloudStorageAccount) =
                 if hostedService
                 then RoleEnvironment.GetConfigurationSettingValue(configName)
                 else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
-            configSettingPublisher.Invoke(connectionString) |> ignore)
+
+            configSettingPublisher.Invoke(connectionString)
+            |> ignore)
         BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))
 """
 
@@ -648,6 +650,7 @@ type CustomGraphControl() =
     |> should equal """
 type CustomGraphControl() =
     inherit UserControl()
+
     [<DefaultValue(false)>]
     static val mutable private GraphProperty: DependencyProperty
 """
@@ -664,6 +667,7 @@ type CustomGraphControl() =
     |> should equal """
 type CustomGraphControl() =
     inherit UserControl()
+
     [<DefaultValue(false)>]
     static val mutable private GraphProperty: DependencyProperty
 """
@@ -680,6 +684,7 @@ type CustomGraphControl() =
     |> should equal """
 type CustomGraphControl() =
     inherit UserControl()
+
     [<DefaultValue false>]
     static val mutable private GraphProperty: DependencyProperty
 """
@@ -696,6 +701,7 @@ type CustomGraphControl() =
     |> should equal """
 type CustomGraphControl() =
     inherit UserControl()
+
     [<DefaultValue false>]
     static val mutable private GraphProperty: DependencyProperty
 """
@@ -719,6 +725,7 @@ type A() =
                 match _kbytes.GetAddress(8) with
                 | Some (x) -> x
                 | None -> null
+
             ignore x
 """
 
@@ -755,7 +762,6 @@ type Bar =
     |> prepend newline
     |> should equal """
 type Bar =
-
     member this.Item
         with get (i: int) =
             match mo with
@@ -937,12 +943,9 @@ and Room =
     |> should equal """
 module Game
 
-type Details =
-    { Name: string
-      Description: string }
+type Details = { Name: string; Description: string }
 
-type Item =
-    { Details: Details }
+type Item = { Details: Details }
 
 type Exit =
     | Passable of Details * desitnation: Room

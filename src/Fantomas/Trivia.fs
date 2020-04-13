@@ -1,10 +1,10 @@
 module internal Fantomas.Trivia
 
-open Fantomas.AstTransformer
-open FSharp.Compiler.Ast
 open Fantomas
+open Fantomas.AstTransformer
 open Fantomas.TriviaTypes
 open FSharp.Compiler.Range
+open FSharp.Compiler.SyntaxTree
 
 let private isMainNodeButNotAnonModule (node: TriviaNode) =
     match node.Type with
@@ -46,10 +46,17 @@ let private nodesContainsBothAnonModuleAndOpen (nodes: TriviaNode list) =
     let mainNodeIs name t =  t.Type = MainNode(name)
     List.exists (mainNodeIs "SynModuleOrNamespace.AnonModule") nodes &&
     List.exists (mainNodeIs "SynModuleDecl.Open") nodes
-    
+
+// the member keyword is not part of an AST node range
+// so it is not an ideal candidate node to have trivia content
+let private isNotMemberKeyword (node: TriviaNode) =
+    match node.Type with
+    | Token({ TokenInfo = ti }) when (ti.TokenName = "MEMBER") -> false
+    | _ -> true
+
 let private findFirstNodeAfterLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
-    |> List.filter (fun n -> n.Range.StartLine > lineNumber)
+    |> List.filter (fun n -> n.Range.StartLine > lineNumber && isNotMemberKeyword n)
     |> fun filteredNodes ->
         match filteredNodes with
         | moduleAndOpens when (nodesContainsBothAnonModuleAndOpen moduleAndOpens) ->
@@ -224,7 +231,7 @@ let private findASTNodeOfTypeThatContains (nodes: TriviaNode list) typeName rang
         | _ -> false)
     |> List.tryHead
 
-let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
+let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNode list) trivia =
     match trivia with
     | { Item = Comment(LineCommentOnSingleLine(_)) as comment; Range = range } when (commentIsAfterLastTriviaNode triviaNodes range) ->
         // Comment on is on its own line after all Trivia nodes, most likely at the end of a module
@@ -255,7 +262,8 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         findLastNodeOnLine  triviaNodes range.EndLine
         |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter (Comment(comment)) }) triviaNodes
 
-    | { Item = Newline; Range = range } ->
+    // Newlines are only relevant if they occur after the first line of source code
+    | { Item = Newline; Range = range } when (range.StartLine > startOfSourceCode) ->
         match triviaBetweenAttributeAndParentBinding triviaNodes range.StartLine with
         | Some _ as node ->
             updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes node
@@ -339,14 +347,6 @@ let private addTriviaToTriviaNode (triviaNodes: TriviaNode list) trivia =
         )
         |> updateTriviaNode (fun tn -> { tn with ContentItself = Some iNode }) triviaNodes
 
-    | { Item = NewlineAfter; Range = range } ->
-        triviaNodes
-        |> List.tryFind (fun t ->
-            match t.Type with
-            | Token(_) -> t.Range.Start = range.Start && t.Range.End = t.Range.End
-            | _ -> false
-        )
-        |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter NewlineAfter }) triviaNodes
     | _ ->
         triviaNodes
 
@@ -359,7 +359,7 @@ let private triviaNodeIsNotEmpty triviaNode =
     3. Merge trivias with triviaNodes
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
-let collectTrivia config tokens lineCount (ast: ParsedInput) =
+let collectTrivia tokens lineCount (ast: ParsedInput) =
     let node =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hds, mns, _)) ->            
@@ -367,6 +367,11 @@ let collectTrivia config tokens lineCount (ast: ParsedInput) =
 
         | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput(_, _, _ , _, mns)) ->
             Fantomas.AstTransformer.sigAstToNode mns
+
+    let startOfSourceCode =
+        match node.Range with
+        | Some r -> r.StartLine
+        | None -> 1
             
     let triviaNodesFromAST =
         flattenNodeToList node
@@ -376,10 +381,10 @@ let collectTrivia config tokens lineCount (ast: ParsedInput) =
     let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
     let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
     
-    let trivias = TokenParser.getTriviaFromTokens config tokens lineCount
+    let trivias = TokenParser.getTriviaFromTokens tokens lineCount
 
     match trivias with
     | [] -> []
     | _ ->
-        List.fold addTriviaToTriviaNode triviaNodes trivias
+        List.fold (addTriviaToTriviaNode startOfSourceCode) triviaNodes trivias
         |> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.

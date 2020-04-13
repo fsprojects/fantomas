@@ -47,9 +47,6 @@
     "SpaceAroundDelimiter": {
       "type": "boolean"
     },
-    "KeepNewlineAfter": {
-      "type": "boolean"
-    },
     "MaxIfThenElseShortWidth": {
       "type": "integer"
     },
