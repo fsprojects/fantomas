@@ -559,13 +559,6 @@ let internal autoNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
         sepNln sepNone // before and after for long expressions
         expr ctx
 
-let internal autoNlnCheck (f: _ -> Context) sep (ctx : Context) =
-    if not ctx.BreakLines then false else
-    // Create a dummy context to evaluate length of current operation
-    let dummyCtx = ctx.WithDummy(Queue.empty) |> sep |> f
-    // This isn't accurate if we go to new lines
-    dummyCtx.Column > ctx.Config.PageWidth
-
 let internal futureNlnCheckMem (f, ctx) =
     if ctx.WriterModel.IsDummy || not ctx.BreakLines then (false, false) else
     // Create a dummy context to evaluate length of current operation
@@ -594,21 +587,9 @@ let internal exceedsWidth maxWidth f (ctx: Context) =
     let ctxAfter : Context = f dummyCtx
     (ctxAfter.Column - currentColumn) > maxWidth
 
-/// Set a checkpoint to break at an appropriate column
-let internal autoNlnOrAddSep f sep (ctx : Context) =
-    let isNln = autoNlnCheck f sep ctx
-    if isNln then
-       f (sepNln ctx)
-    else
-       f (sep ctx)
-
-let internal autoNln f (ctx : Context) = autoNlnOrAddSep f sepNone ctx
-
-let internal autoNlnOrSpace f (ctx : Context) = autoNlnOrAddSep f sepSpace ctx
-
 /// Similar to col, skip auto newline for index 0
 let internal colAutoNlnSkip0i f' (c : seq<'T>) f (ctx : Context) = 
-    coli f' c (fun i c -> if i = 0 then f i c else autoNln (f i c)) ctx
+    coli f' c (fun i c -> if i = 0 then f i c else autoNlnIfExpressionExceedsPageWidth (f i c)) ctx
 
 /// Similar to col, skip auto newline for index 0
 let internal colAutoNlnSkip0 f' c f = colAutoNlnSkip0i f' c (fun _ -> f)
@@ -943,14 +924,6 @@ let internal hasLineCommentAfterInfix (rangePlusInfix: range) (ctx: Context) =
     )
     |> Option.map (fun _ -> true)
     |> Option.defaultValue false
-    
-// Add a newline if there if trivia content before that requires it
-let internal sepNlnIfTriviaBefore (range:range) (ctx:Context) =
-    match findTriviaMainNodeFromRange ctx.Trivia range with
-    | Some({ ContentBefore = contentBefore }) when (hasDirectiveBefore contentBefore) ->
-        sepNln
-    | _ -> sepNone
-    <| ctx
 
 let internal lastLineOnlyContains characters (ctx: Context) =
     let lastLine =

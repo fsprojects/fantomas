@@ -726,10 +726,10 @@ and genExpr astContext synExpr =
     let appNlnFun e =
         match e with
         | CompExpr _
-        | MatchLambda _
-        | Paren (MatchLambda _) -> autoNln
+        | MatchLambda _ -> autoNlnIfExpressionExceedsPageWidth
         | Lambda _
-        | Paren (Lambda _) -> autoNlnByFutureLazy
+        | Paren (Lambda _)
+        | Paren (MatchLambda _) -> autoNlnByFutureLazy
         | _ -> autoNlnByFuture
 
     let kw tokenName f = tokN synExpr.Range tokenName f
@@ -885,9 +885,10 @@ and genExpr astContext synExpr =
     | CompExpr(isArrayOrList, e) ->
         ifElse isArrayOrList
             (genExpr astContext e)
+            // The opening { of the CompExpr is being added at the App(_,_,Ident(_),CompExr(_)) level
             (expressionFitsOnRestOfLine
-                (sepOpenS +> genExpr astContext e +> sepCloseS)
-                (sepOpenS +> sepNln +> genExpr astContext e +> unindent +> sepNln +> sepCloseSFixed))
+                (genExpr astContext e +> sepCloseS)
+                (genExpr astContext e +> unindent +> sepNln +> sepCloseSFixed))
 
     | ArrayOrListOfSeqExpr(isArray, e) as aNode ->
         let astContext = { astContext with IsNakedRange = true }
@@ -995,7 +996,6 @@ and genExpr astContext synExpr =
         !- s
         +> atCurrentColumn
              (colAutoNlnSkip0 sepNone es (fun ((s,r), e) ->
-                sepNlnIfTriviaBefore r +>
                 ((!- (sprintf ".%s" s) |> genTrivia r)
                     +> ifElse (hasParenthesis e || isArrayOrList e) sepNone sepSpace +> genExpr astContext e)
                 ))
@@ -1080,20 +1080,30 @@ and genExpr astContext synExpr =
         fun (ctx:Context) ->
             let hasPar = hasParenthesis e2
             let addSpaceBefore = addSpaceBeforeParensInFunCall e1 e2 ctx
+            let isCompExpr =
+                match e2 with
+                | CompExpr _ -> true
+                | _ -> false
             let genApp =
-                atCurrentColumn (genExpr astContext e1 +>
-                    ifElse (not astContext.IsInsideDotGet)
-                        (ifElse hasPar
-                            (ifElse addSpaceBefore sepSpace sepNone)
+                atCurrentColumn (
+                    genExpr astContext e1
+                    +> onlyIf isCompExpr (sepSpace +> sepOpenSFixed +> sepSpace)
+                    +> ifElse
+                         (not astContext.IsInsideDotGet)
+                         (ifElse hasPar
+                           (ifElse addSpaceBefore sepSpace sepNone)
                             sepSpace)
-                        sepNone
-                    +> indent +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone) +> appNlnFun e2 (genExpr astContext e2) +> unindent)
+                         sepNone
+                    +> indent
+                    +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone)
+                    +> appNlnFun e2 (genExpr astContext e2)
+                    +> unindent)
             genApp ctx
 
     // Always spacing in multiple arguments
     | App(e, es) ->
         // we need to make sure each expression in the function application has offset at least greater than
-        // identation of the function expression itself
+        // indentation of the function expression itself
         // we replace sepSpace in such case
         // remarks: https://github.com/fsprojects/fantomas/issues/545
         let indentIfNeeded (ctx: Context) =
@@ -2047,7 +2057,7 @@ and genTypeList astContext node =
                 opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
                 +> genType astContext hasBracket t
         genOnelinerAttributes astContext ats
-        +> gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
+        +> gt +> ifElse ts.IsEmpty sepNone (autoNlnIfExpressionExceedsPageWidth (sepArrow +> genTypeList astContext ts))
 
     | (TTuple ts', argInfo)::ts ->
         // The '/' separator shouldn't appear here
@@ -2057,11 +2067,11 @@ and genTypeList astContext node =
                         genOnelinerAttributes astContext ats
                         +> opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
                         +> genType astContext hasBracket t)
-        gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
+        gt +> ifElse ts.IsEmpty sepNone (autoNlnIfExpressionExceedsPageWidth (sepArrow +> genTypeList astContext ts))
 
     | (t, _)::ts ->
         let gt = genType astContext false t
-        gt +> ifElse ts.IsEmpty sepNone (autoNln (sepArrow +> genTypeList astContext ts))
+        gt +> ifElse ts.IsEmpty sepNone (autoNlnIfExpressionExceedsPageWidth (sepArrow +> genTypeList astContext ts))
     // |> genTrivia node
 
 and genTypar astContext (Typar(s, isHead) as node) =

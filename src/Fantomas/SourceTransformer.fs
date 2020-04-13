@@ -115,9 +115,11 @@ let (|PropertyWithGetSetMemberDefn|_|) = function
         | _ -> None
     | _ -> None
 
-let addParenIfAutoNln synExpr f ctx =
+let addParenIfAutoNln synExpr f =
     let expr = f synExpr
-    ifElse (autoNlnCheck expr sepNone ctx && not (hasParenthesis synExpr)) (sepOpenT +> expr +> sepCloseT) expr ctx
+    expressionFitsOnRestOfLine
+        expr
+        (ifElse (hasParenthesis synExpr) (sepOpenT +> expr +> sepCloseT) expr)
 
 let addParenForTupleWhen f synExpr ctx =
     let condition e =
