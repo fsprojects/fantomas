@@ -729,7 +729,7 @@ and genExpr astContext synExpr =
         | MatchLambda _ -> autoNlnIfExpressionExceedsPageWidth
         | Lambda _
         | Paren (Lambda _)
-        | Paren (MatchLambda _) -> autoNlnByFutureLazy
+        | Paren (MatchLambda _) -> id
         | _ -> autoNlnByFuture
 
     let kw tokenName f = tokN synExpr.Range tokenName f

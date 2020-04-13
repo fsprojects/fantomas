@@ -569,15 +569,8 @@ let internal futureNlnCheck f (ctx : Context) =
     let (isMultiLine, isLong) = futureNlnCheckMem (f, ctx)
     isMultiLine || isLong
 
-let internal futureNlnCheckLazy f (ctx : Context) =
-    let (isMultiLine, isLong) = futureNlnCheckMem (f, ctx)
-    if isMultiLine then false else isLong
-
 let internal autoNlnByFuture f = ifElseCtx (futureNlnCheck f) (sepNln +> f) f
 let internal autoIndentNlnByFuture f = ifElseCtx (futureNlnCheck f) (indent +> sepNln +> f +> unindent) f
-
-/// like autoNlnByFuture but don't do nln if there is another nln inside f
-let internal autoNlnByFutureLazy f = ifElseCtx (futureNlnCheckLazy f) (sepNln +> f) f
 
 /// similar to futureNlnCheck but validates whether the expression is going over the max page width
 /// This functions is does not use any caching
