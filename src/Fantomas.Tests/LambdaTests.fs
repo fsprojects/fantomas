@@ -69,7 +69,8 @@ let private badgeSample =
                 [ h3 []
                       [ str "Heading "
                         Badge.badge [ Badge.Color Secondary ] [ str "New" ] ]
-                  Badge.badge [ Badge.Color Warning ] [ str "oh my" ] ]), "BadgeSample")
+                  Badge.badge [ Badge.Color Warning ] [ str "oh my" ] ]),
+         "BadgeSample")
 
 exportDefault badgeSample
 """
@@ -106,7 +107,11 @@ Target.create "Clean" (fun _ ->
     |> prepend newline
     |> should equal """
 Target.create "Clean" (fun _ ->
-    [ "bin"; "src/Fantomas/bin"; "src/Fantomas/obj"; "src/Fantomas.CoreGlobalTool/bin"; "src/Fantomas.CoreGlobalTool/obj" ]
+    [ "bin"
+      "src/Fantomas/bin"
+      "src/Fantomas/obj"
+      "src/Fantomas.CoreGlobalTool/bin"
+      "src/Fantomas.CoreGlobalTool/obj" ]
     |> List.iter Shell.cleanDir)
 """
 
@@ -212,4 +217,35 @@ let ``add space after chained ident, 676`` () =
     |> prepend newline
     |> should equal """
 let foo = Foo(fun () -> Foo.Create x).Value
+"""
+
+[<Test>]
+let ``line comment after lambda should not necessary make it multiline`` () =
+    formatSourceString false """let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+"""  ({ config with MaxLetBindingWidth = 150 })
+    |> prepend newline
+    |> should equal """
+let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+"""
+
+
+[<Test>]
+let ``multiline let binding in lambda`` () =
+    formatSourceString false """
+CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
+            let connectionString =
+                if hostedService then RoleEnvironment.GetConfigurationSettingValue(configName)
+                else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
+            configSettingPublisher.Invoke(connectionString) |> ignore)
+"""  config
+    |> prepend newline
+    |> should equal """
+CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
+    let connectionString =
+        if hostedService
+        then RoleEnvironment.GetConfigurationSettingValue(configName)
+        else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
+
+    configSettingPublisher.Invoke(connectionString)
+    |> ignore)
 """

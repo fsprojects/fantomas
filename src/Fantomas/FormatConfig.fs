@@ -28,8 +28,11 @@ type FormatConfig =
       /// Reordering and deduplicating open statements
       ReorderOpenDeclaration : bool
       SpaceAroundDelimiter : bool
-      KeepNewlineAfter : bool
       MaxIfThenElseShortWidth: Num
+      MaxInfixOperatorExpression: Num
+      MaxRecordWidth: Num
+      MaxArrayOrListWidth: Num
+      MaxLetBindingWidth: Num
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -49,8 +52,11 @@ type FormatConfig =
           IndentOnTryWith = false
           ReorderOpenDeclaration = false
           SpaceAroundDelimiter = true
-          KeepNewlineAfter = false
           MaxIfThenElseShortWidth = 40
+          MaxInfixOperatorExpression = 50
+          MaxRecordWidth = 40
+          MaxArrayOrListWidth = 40
+          MaxLetBindingWidth = 40
           StrictMode = false }
 
     static member applyOptions(currentConfig, options) =
@@ -67,4 +73,3 @@ type FormatConfigFileParseResult =
     | Success of FormatConfig
     | PartialSuccess of config: FormatConfig * warnings: string list
     | Failure of exn
-

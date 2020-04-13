@@ -68,11 +68,7 @@ let rec inorder tree =
     """ config
     |> prepend newline
     |> should equal """
-let s1 =
-    seq {
-        for i in 1 .. 10 -> i * i
-    }
-
+let s1 = seq { for i in 1 .. 10 -> i * i }
 let s2 = seq { 0 .. 10 .. 100 }
 
 let rec inorder tree =
@@ -91,7 +87,9 @@ let ``range expressions``() =
     formatSourceString false """
 let factors number = 
     {2L .. number / 2L}
-    |> Seq.filter (fun x -> number % x = 0L)""" config
+    |> Seq.filter (fun x -> number % x = 0L)""" ({ config with
+                                                        MaxInfixOperatorExpression = 65
+                                                        MaxLetBindingWidth = 65 })
     |> prepend newline
     |> should equal """
 let factors number = { 2L .. number / 2L } |> Seq.filter (fun x -> number % x = 0L)
@@ -141,7 +139,8 @@ async {
 async {
     let! x = Async.Sleep 1.
     and! y = Async.Sleep 2.
-    return 10 }
+    return 10
+}
 """
 [<Test>]
 let ``multiple and! is supported`` () =
@@ -161,7 +160,8 @@ parallel {
     let! x = slowRequestX ()
     and! y = slowRequestY ()
     and! z = slowRequestZ ()
-    return f x y z }
+    return f x y z
+}
 """
 
 [<Test>]
@@ -178,7 +178,8 @@ observable {
 observable {
     let! a = foo
     and! b = bar
-    return a + b }
+    return a + b
+}
 """
 
 [<Test>]

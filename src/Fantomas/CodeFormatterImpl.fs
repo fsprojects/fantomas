@@ -410,7 +410,7 @@ let format (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) confi
             |> Array.map (fun (ast', defines) ->
                 formatWith ast' defines formatContext config)
             |> List.ofArray
-            
+
         let merged =
             match results with
             | [] -> failwith "not possible"

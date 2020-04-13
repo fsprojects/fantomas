@@ -24,7 +24,6 @@ type Arguments =
     | [<Unique;AltCommandLine("--indentOnTryWith")>] IndentOnTryWith
     | [<Unique;AltCommandLine("--reorderOpenDeclaration")>] ReorderOpenDeclaration
     | [<Unique;AltCommandLine("--noSpaceAroundDelimiter")>] NoSpaceAroundDelimiter
-    | [<Unique;AltCommandLine("--keepNewlineAfter")>] KeepNewlineAfter
     | [<Unique;AltCommandLine("--maxIfThenElseShortWidth ")>] MaxIfThenElseShortWidth of int
     | [<Unique;AltCommandLine("--strictMode")>] StrictMode
     | [<Unique;AltCommandLine("-c")>] Config of string
@@ -51,7 +50,6 @@ with
             | IndentOnTryWith -> "Enable indentation on try/with block (default = false)."
             | ReorderOpenDeclaration -> "[DEPRECATED] Enable reordering open declarations (default = false)."
             | NoSpaceAroundDelimiter -> "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
-            | KeepNewlineAfter -> "Keep newlines found after = in let bindings, -> in pattern matching and chained function calls (default = false)."
             | MaxIfThenElseShortWidth _ -> "Set the max length of any expression in an if expression before formatting on multiple lines (default = 40)."
             | StrictMode -> "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
             | Config _ -> "Use configuration found in file or folder."
@@ -277,7 +275,6 @@ let main argv =
                     writeInColor ConsoleColor.DarkYellow "Warning: ReorderOpenDeclaration will be removed in the next major version. Using this feature can lead to compilation errors after formatting."
                     { acc with ReorderOpenDeclaration = true }
                 | NoSpaceAroundDelimiter -> { acc with SpaceAroundDelimiter = false }
-                | KeepNewlineAfter -> { acc with KeepNewlineAfter = true }
                 | MaxIfThenElseShortWidth m -> { acc with MaxIfThenElseShortWidth = m }
                 | StrictMode -> { acc with StrictMode = true }
             ) defaultConfig

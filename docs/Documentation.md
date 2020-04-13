@@ -223,38 +223,6 @@ For that reason, this setting is considered **deprecated** and will be **removed
 
 if being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored. 
 
-##### `--keepNewlineAfter`
-
-if being set, newlines found in the source text will be kept in certain conditions.
- 
- ```fsharp
-let a =
-    42
-```
-
-will remain the same, the newline after the `=` was detected and preserved.
-
-```fsharp
-let config =
-    Builder()
-      .A()
-      .B()
-      .C()
-```
-
-will remain the same, the newline before the `.` was detected and preserved.
-
-```fsharp
-match meh with
-| Foo ->
-  printfn "foo"
-| Bar ->
-  printfn "bar"
-```
-
-will remain the same, the newline after `->` was detected and preserved.
-
-
 ##### `--maxIfThenElseShortWidth  <number>`
 
 `number` if being set, controls when if/then/else expressions will be formatted as single line or as multiple lines.
@@ -307,7 +275,6 @@ A default configuration file would look like
   "IndentOnTryWith":false,
   "ReorderOpenDeclaration":false,
   "SpaceAroundDelimiter":true ,
-  "KeepNewlineAfter":false,
   "MaxIfThenElseShortWidth":40,
   "StrictMode":false 
 }

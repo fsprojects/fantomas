@@ -55,7 +55,6 @@ let rangeTest testValue mid size =
     | _ -> printfn "The test value is out of range."
 
 let (var1, var2) as tuple1 = (1, 2)
-
 printfn "%d %d %A" var1 var2 tuple1
 """
 
@@ -117,6 +116,7 @@ let countValues list value =
         | (elem1 & head) :: tail when elem1 = value -> checkList tail (acc + 1)
         | head :: tail -> checkList tail acc
         | [] -> acc
+
     checkList list 0
 
 let detectZeroTuple point =
@@ -179,9 +179,7 @@ let IsMatchByName record1 (name: string) =
     | _ -> false """ config
     |> prepend newline
     |> should equal """
-type MyRecord =
-    { Name: string
-      ID: int }
+type MyRecord = { Name: string; ID: int }
 
 let IsMatchByName record1 (name: string) =
     match record1 with
@@ -228,7 +226,8 @@ let UNIFY_ACCEPT_TAC mvs th (asl, w) =
     |> should equal """
 let UNIFY_ACCEPT_TAC mvs th (asl, w) =
     let insts = term_unify mvs (concl th) w
-    ([], insts), [],
+    ([], insts),
+    [],
     let th' = INSTANTIATE insts th
     fun i [] -> INSTANTIATE i th'
 """
@@ -253,7 +252,8 @@ let f x =
     |> prepend newline
     |> should equal """
 let f x =
-    a || // other case
+    a
+    || // other case
     match n with
     | 17 -> false
     | _ -> true
@@ -404,9 +404,11 @@ let update msg model =
     let res =
         match msg with
         | AMessage ->
-            { model with AFieldWithAVeryVeryVeryLooooooongName = 10 }
+            { model with
+                  AFieldWithAVeryVeryVeryLooooooongName = 10 }
                 .RecalculateTotal()
         | AnotherMessage -> model
+
     res
 """
 
