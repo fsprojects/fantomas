@@ -219,7 +219,6 @@ and genSigModuleDeclList astContext node =
 
     | SigOpenL(xs, ys) ->
         fun ctx ->
-            let xs = sortAndDeduplicate ((|SigOpen|_|) >> Option.get) xs ctx
             match ys with
             | [] -> col sepNln xs (genSigModuleDecl astContext) ctx
             | _ -> (col sepNln xs (genSigModuleDecl astContext) +> rep 2 sepNln +> genSigModuleDeclList astContext ys) ctx
@@ -2114,7 +2113,6 @@ and genMemberDefnList astContext node =
     match node with
     | MDOpenL(xs, ys) ->
         fun ctx ->
-            let xs = sortAndDeduplicate ((|MDOpen|_|) >> Option.get) xs ctx
             match ys with
             | [] -> col sepNln xs (genMemberDefn astContext) ctx
             | _ -> (col sepNln xs (genMemberDefn astContext) +> rep 2 sepNln +> genMemberDefnList astContext ys) ctx

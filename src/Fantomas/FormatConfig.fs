@@ -25,8 +25,6 @@ type FormatConfig =
       SpaceBeforeSemicolon : bool
       SpaceAfterSemicolon : bool
       IndentOnTryWith : bool
-      /// Reordering and deduplicating open statements
-      ReorderOpenDeclaration : bool
       SpaceAroundDelimiter : bool
       MaxIfThenElseShortWidth: Num
       MaxInfixOperatorExpression: Num
@@ -50,7 +48,6 @@ type FormatConfig =
           SpaceBeforeSemicolon = false
           SpaceAfterSemicolon = true
           IndentOnTryWith = false
-          ReorderOpenDeclaration = false
           SpaceAroundDelimiter = true
           MaxIfThenElseShortWidth = 40
           MaxInfixOperatorExpression = 50
