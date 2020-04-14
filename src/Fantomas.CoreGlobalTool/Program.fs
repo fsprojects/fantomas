@@ -16,15 +16,6 @@ type Arguments =
     | [<Unique>] Out of string
     | [<Unique>] Indent of int
     | [<Unique>] Check
-    | [<Unique;AltCommandLine("--pageWidth")>] PageWidth of int
-    | [<Unique;AltCommandLine("--semicolonEOL")>] SemicolonEOL
-    | [<Unique;AltCommandLine("--spaceBeforeColon")>] SpaceBeforeColon
-    | [<Unique;AltCommandLine("--noSpaceAfterComma")>] NoSpaceAfterComma
-    | [<Unique;AltCommandLine("--noSpaceAfterSemiColon")>] NoSpaceAfterSemiColon
-    | [<Unique;AltCommandLine("--indentOnTryWith")>] IndentOnTryWith
-    | [<Unique;AltCommandLine("--noSpaceAroundDelimiter")>] NoSpaceAroundDelimiter
-    | [<Unique;AltCommandLine("--maxIfThenElseShortWidth ")>] MaxIfThenElseShortWidth of int
-    | [<Unique;AltCommandLine("--strictMode")>] StrictMode
     | [<Unique;AltCommandLine("-c")>] Config of string
     | [<Unique;AltCommandLine("-v")>] Version
     | [<MainCommand>] Input of string
@@ -41,15 +32,6 @@ with
             | Stdout -> " Write the formatted source code to standard output."
             | Indent _ -> "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
             | Check -> "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
-            | PageWidth _ -> "Set the column where we break to new lines (default = 80). The value should be at least 60."
-            | SemicolonEOL -> "Enable semicolons at the end of line (default = false)."
-            | SpaceBeforeColon -> "Enable spaces before colons (default = false)."
-            | NoSpaceAfterComma -> "Disable spaces after commas (default = true)."
-            | NoSpaceAfterSemiColon -> "Disable spaces after semicolons (default = true)."
-            | IndentOnTryWith -> "Enable indentation on try/with block (default = false)."
-            | NoSpaceAroundDelimiter -> "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
-            | MaxIfThenElseShortWidth _ -> "Set the max length of any expression in an if expression before formatting on multiple lines (default = 40)."
-            | StrictMode -> "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
             | Config _ -> "Use configuration found in file or folder."
             | Version -> "Displays the version of Fantomas"
             | Input _ -> sprintf "Input path: can be a folder or file with %s extension." (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
@@ -187,8 +169,6 @@ let runCheckCommand (config: FormatConfig) (recurse: bool) (inputPath: InputPath
         |> check
         |> processCheckResult
 
-
-
 [<EntryPoint>]
 let main argv =
         let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> Some ConsoleColor.Red)
@@ -232,47 +212,20 @@ let main argv =
         let version = results.TryGetResult<@ Arguments.Version @>
 
         let config =
-            let defaultConfig =
-                results.TryGetResult<@ Arguments.Config @>
-                |> Option.map (fun configPath ->
-                    let configResult = CodeFormatter.ReadConfiguration configPath
-                    match configResult with
-                    | Success s -> s
-                    | PartialSuccess (ps, warnings) ->
-                        List.iter (writeInColor ConsoleColor.DarkYellow) warnings
-                        ps
-                    | Failure e ->
-                        writeInColor ConsoleColor.DarkRed "Couldn't process one or more Fantomas configuration files, falling back to the default configuration"
-                        writeInColor ConsoleColor.DarkRed (e.ToString())
-                        FormatConfig.Default
-                )
-                |> Option.defaultValue FormatConfig.Default
-
-            results.GetAllResults()
-            |> List.fold (fun acc msg ->
-                match msg with
-                | Recurse
-                | Force
-                | Out _
-                | Profile
-                | Fsi _
-                | Stdin _
-                | Stdout
-                | Check
-                | Config _
-                | Version
-                | Input _ -> acc
-                | Indent i -> { acc with IndentSpaceNum = i }
-                | PageWidth pw -> { acc with PageWidth = pw }
-                | SemicolonEOL -> { acc with SemicolonAtEndOfLine = true }
-                | SpaceBeforeColon -> { acc with SpaceBeforeColon = true }
-                | NoSpaceAfterComma -> { acc with SpaceAfterComma = false }
-                | NoSpaceAfterSemiColon -> { acc with SpaceAfterSemicolon = false }
-                | IndentOnTryWith -> { acc with IndentOnTryWith = true }
-                | NoSpaceAroundDelimiter -> { acc with SpaceAroundDelimiter = false }
-                | MaxIfThenElseShortWidth m -> { acc with MaxIfThenElseShortWidth = m }
-                | StrictMode -> { acc with StrictMode = true }
-            ) defaultConfig
+            results.TryGetResult<@ Arguments.Config @>
+            |> Option.map (fun configPath ->
+                let configResult = CodeFormatter.ReadConfiguration configPath
+                match configResult with
+                | Success s -> s
+                | PartialSuccess (ps, warnings) ->
+                    List.iter (writeInColor ConsoleColor.DarkYellow) warnings
+                    ps
+                | Failure e ->
+                    writeInColor ConsoleColor.DarkRed "Couldn't process one or more Fantomas configuration files, falling back to the default configuration"
+                    writeInColor ConsoleColor.DarkRed (e.ToString())
+                    FormatConfig.Default
+            )
+            |> Option.defaultValue FormatConfig.Default
 
         let fileToFile (inFile : string) (outFile : string) config =
             try
@@ -351,8 +304,6 @@ let main argv =
                 eprintfn "The following exception occurred while formatting %s: %O" inFile exn
                 if force then
                     stdout.Write(File.ReadAllText inFile)
-
-
 
         if Option.isSome version then
             let version = CodeFormatter.GetVersion()
