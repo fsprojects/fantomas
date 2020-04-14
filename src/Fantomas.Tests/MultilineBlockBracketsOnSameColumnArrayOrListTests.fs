@@ -80,18 +80,16 @@ let vectorLength vec =
     | _ -> failwith "vectorLength called with an unsupported array size of %d." (vec.Length)
 """
 
-[<Test; Ignore("Awaiting feedback")>]
+[<Test>]
 let ``array comprehensions``() =
     formatSourceString false """
-let a1 = [| for i in 1 .. 10 -> i * i |]
-let a2 = [| 0 .. 99 |]
-let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
+let a1 = [| 0 .. 99 |]
+let a2 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
     |> prepend newline
     |> should equal """
-let a1 =
-    [| for i in 1 .. 10 -> i * i |]
-let a2 = [| 0 .. 99 |]
-let a3 =
+let a1 = [| 0 .. 99 |]
+
+let a2 =
     [|
         for n in 1 .. 100 do
             if isPrime n then yield n
@@ -126,6 +124,7 @@ let a =
         a
         b
     ]
+
 let bb = b
 """
 

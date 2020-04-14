@@ -19,19 +19,6 @@ let a = { Foo = "bar" }
 """
 
 [<Test>]
-let ``short record with multiple members record stays on multiple lines`` () =
-    formatSourceString false """let a = { Foo = "bar"; P = 2 }
-"""  config
-    |> prepend newline
-    |> should equal """
-let a =
-    {
-        Foo = "bar"
-        P = 2
-    }
-"""
-
-[<Test>]
 let ``record instance`` () =
     formatSourceString false """let myRecord =
     { Level = 1
@@ -146,7 +133,7 @@ let meh =
 """
 
 [<Test>]
-let ``anoynous record with single field update`` () =
+let ``anonymous record with single field update`` () =
     formatSourceString false """let a = {| foo with Level = 7 |}
 """  config
     |> prepend newline
@@ -155,9 +142,9 @@ let a = {| foo with Level = 7 |}
 """
 
 [<Test>]
-let ``anoynous record with multiple field update`` () =
+let ``anonymous record with multiple field update`` () =
     formatSourceString false """let a = {| foo with Level = 7; Square = 9 |}
-"""  config
+"""  ({ config with MaxRecordWidth = 35 })
     |> prepend newline
     |> should equal """
 let a =
