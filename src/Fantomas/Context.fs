@@ -629,11 +629,6 @@ let internal indentOnWith (ctx : Context) =
 let internal unindentOnWith (ctx : Context) =
     if ctx.Config.IndentOnTryWith then unindent ctx else ctx
 
-let internal sortAndDeduplicate by l (ctx : Context) =
-    if ctx.Config.ReorderOpenDeclaration then
-        l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq
-    else l
-
 /// Don't put space before and after these operators
 let internal NoSpaceInfixOps = set ["?"]
 

@@ -33,7 +33,7 @@ open Fake.IO.Globbing.Operators
 open Fantomas.FakeHelpers
 open Fantomas.FormatConfig
 
-let fantomasConfig = { FormatConfig.Default with ReorderOpenDeclaration = true }
+let fantomasConfig = { FormatConfig.Default with PageWidth = 140 }
 
 Target.create "CheckCodeFormat" (fun _ ->
     !!"*.fs"
@@ -277,7 +277,7 @@ rewriting it according to the provided formatting options.
 #### The `FormatConfig` type: format settings
 Settings such as :
  - indent values in spaces
- - reorder open declarations
+ - maximum page width
  - ...
 
 See [CodePrinter.fs](src/Fantomas/CodePrinter.fs).
