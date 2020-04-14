@@ -714,7 +714,7 @@ module private Ast =
     and visitSynMatchClause(mc: SynMatchClause): Node =
         match mc with
         | SynMatchClause.Clause(pat,e1,e2,range,_) ->
-            {Type = "RecordField"
+            {Type = "SynMatchClause.Clause"
              Range = r range
              Properties = p []
              FsAstNode = mc
