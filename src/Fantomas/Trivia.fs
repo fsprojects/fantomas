@@ -280,7 +280,7 @@ let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNo
 
     | { Item = Keyword({ Content = keyword} as kw); Range = range } when (keyword = "override" || keyword = "default" || keyword = "member") ->
         findMemberDefnMemberNodeOnLine triviaNodes range.StartLine
-        |> updateTriviaNode (fun tn -> { tn with ContentBefore = List.appendItem tn.ContentBefore (Keyword(kw)) }) triviaNodes
+        |> updateTriviaNode (fun tn -> { tn with ContentItself = Some (Keyword(kw)) }) triviaNodes
 
     | { Item = Keyword({ TokenInfo = {TokenName = tn}} as kw); Range = range } when (tn = "QMARK") ->
         findConstNodeAfter triviaNodes range
