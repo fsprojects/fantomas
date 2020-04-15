@@ -138,13 +138,26 @@ and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRe
     let recursive = ifElse isRecursive (!- "rec ") sepNone
     let namespaceFn = ifElse (s = "") (!- "global") (!- s)
 
-    genPreXmlDoc px
-    +> genAttributes astContext ats
-    +> ifElse (moduleKind = AnonModule)
-         sepNone
-         (genTriviaForLongIdent (moduleOrNamespace +> opt sepSpace ao genAccess +> recursive +> namespaceFn +> sepModuleAndFirstDecl))
-    +> genModuleDeclList astContext mds
-    |> genTrivia node.Range
+
+    if (not moduleKind.IsModule) && s = "" then
+        // namespace global
+        let sepNlnAfterNamespace =
+            sepNln +> sepNlnConsideringTriviaContentBefore node.Range
+
+        genPreXmlDoc px
+        +> genAttributes astContext ats
+        +> ifElse (moduleKind = AnonModule)
+             sepNone
+             (genTriviaForLongIdent (moduleOrNamespace +> opt sepSpace ao genAccess +> recursive +> namespaceFn +> sepNlnAfterNamespace))
+        +> genTrivia node.Range (genModuleDeclList astContext mds)
+    else
+        genPreXmlDoc px
+        +> genAttributes astContext ats
+        +> ifElse (moduleKind = AnonModule)
+             sepNone
+             (genTriviaForLongIdent (moduleOrNamespace +> opt sepSpace ao genAccess +> recursive +> namespaceFn +> sepModuleAndFirstDecl))
+        +> genModuleDeclList astContext mds
+        |> genTrivia node.Range
 
 and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, _, moduleKind) as node) =
     let range = match node with | SynModuleOrNamespaceSig(_,_,_,_,_,_,_,range) -> range
