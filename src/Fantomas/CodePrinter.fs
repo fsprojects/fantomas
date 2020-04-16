@@ -231,10 +231,18 @@ and genSigModuleDeclList astContext node =
     | [x] -> genSigModuleDecl astContext x
 
     | SigOpenL(xs, ys) ->
+        let sepXsAndYs =
+            match List.tryHead ys with
+            | Some hs ->
+                let attrs = getRangesFromAttributesFromSynModuleSigDeclaration hs
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes hs.Range attrs +> dumpAndContinue
+            | None ->
+                rep 2 sepNln
+
         fun ctx ->
             match ys with
             | [] -> col sepNln xs (genSigModuleDecl astContext) ctx
-            | _ -> (col sepNln xs (genSigModuleDecl astContext) +> rep 2 sepNln +> genSigModuleDeclList astContext ys) ctx
+            | _ -> (col sepNln xs (genSigModuleDecl astContext) +> sepXsAndYs +> genSigModuleDeclList astContext ys) ctx
 
     | SigHashDirectiveL(xs, ys) ->
         match ys with
@@ -676,8 +684,8 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
                     | _ -> false
                 )
                 |> Option.bind(fun tn ->
-                    tn.ContentBefore
-                    |> List.tryPick (fun tc ->
+                    tn.ContentItself
+                    |> Option.bind (fun tc ->
                         match tc with
                         | Keyword({ Content = ("override" | "default" | "member") as kw }) -> Some (!- (kw + " "))
                         | _ -> None
