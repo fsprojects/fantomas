@@ -44,7 +44,6 @@ let a =
 """
 
 [<Test>]
-[<Ignore("tests works but takes way too long")>]
 let ``fabulous view`` () =
     formatSourceString false """
     let loginPage =
