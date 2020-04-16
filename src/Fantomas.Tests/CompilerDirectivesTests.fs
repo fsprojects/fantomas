@@ -1193,3 +1193,175 @@ type internal Close =
   | Pause
   | Resume
 """
+
+
+[<Test>]
+let ``namespace global mixed with hash directives, no directives`` () =
+    formatSourceStringWithDefines [] """namespace global
+
+#if DEBUG
+
+module Dbg =
+
+    open System
+    open System.Text
+
+    let seq fn = Seq.iter fn
+
+    let iff condition fn = if condition() then fn()
+
+    let tee fn a =
+        fn a
+        a
+
+    let teePrint x = tee (printfn "%A") x
+    let print x = printfn "%A" x
+#else
+module Dbg =
+    let tee (f: 'a -> unit) (x: 'a) = x
+    let teePrint x = x
+    let print _ = ()
+#endif
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace global
+
+#if DEBUG
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#else
+module Dbg =
+    let tee (f: 'a -> unit) (x: 'a) = x
+    let teePrint x = x
+    let print _ = ()
+#endif
+"""
+
+[<Test>]
+let ``namespace global mixed with hash directives, DEBUG`` () =
+    formatSourceStringWithDefines ["DEBUG"] """namespace global
+
+#if DEBUG
+
+module Dbg =
+
+    open System
+    open System.Text
+
+    let seq fn = Seq.iter fn
+
+    let iff condition fn = if condition() then fn()
+
+    let tee fn a =
+        fn a
+        a
+
+    let teePrint x = tee (printfn "%A") x
+    let print x = printfn "%A" x
+#else
+module Dbg =
+    let tee (f: 'a -> unit) (x: 'a) = x
+    let teePrint x = x
+    let print _ = ()
+#endif
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace global
+
+#if DEBUG
+
+module Dbg =
+
+    open System
+    open System.Text
+
+    let seq fn = Seq.iter fn
+
+    let iff condition fn = if condition () then fn ()
+
+    let tee fn a =
+        fn a
+        a
+
+    let teePrint x = tee (printfn "%A") x
+    let print x = printfn "%A" x
+#else
+
+
+
+
+#endif
+"""
+
+[<Test>]
+let ``namespace global mixed with hash directives, 681`` () =
+    formatSourceString false """namespace global
+
+#if DEBUG
+
+module Dbg =
+
+    open System
+    open System.Text
+
+    let seq fn = Seq.iter fn
+
+    let iff condition fn = if condition() then fn()
+
+    let tee fn a =
+        fn a
+        a
+
+    let teePrint x = tee (printfn "%A") x
+    let print x = printfn "%A" x
+#else
+module Dbg =
+    let tee (f: 'a -> unit) (x: 'a) = x
+    let teePrint x = x
+    let print _ = ()
+#endif
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace global
+
+#if DEBUG
+
+module Dbg =
+
+    open System
+    open System.Text
+
+    let seq fn = Seq.iter fn
+
+    let iff condition fn = if condition () then fn ()
+
+    let tee fn a =
+        fn a
+        a
+
+    let teePrint x = tee (printfn "%A") x
+    let print x = printfn "%A" x
+#else
+module Dbg =
+    let tee (f: 'a -> unit) (x: 'a) = x
+    let teePrint x = x
+    let print _ = ()
+#endif
+"""
