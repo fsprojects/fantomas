@@ -355,3 +355,43 @@ let ``operator before verbatim string add extra space, 736`` () =
     |> should equal """
 Target M.Tools (fun _ -> !! @"Tools\Tools.sln" |> rebuild)
 """
+
+[<Test>]
+let ``function call before pipe operator, 754`` () =
+    formatSourceString false "
+[<Test>]
+let ``attribute on module after namespace`` () =
+    formatSourceString false \"\"\"namespace SomeNamespace
+
+[<AutoOpen>]
+module Types =
+    let a = 5
+\"\"\"  config
+    |> prepend newline
+    |> should equal \"\"\"
+namespace SomeNamespace
+
+[<AutoOpen>]
+module Types =
+    let a = 5
+\"\"\"
+"    config
+    |> prepend newline
+    |> should equal "
+[<Test>]
+let ``attribute on module after namespace`` () =
+    (formatSourceString false \"\"\"namespace SomeNamespace
+
+[<AutoOpen>]
+module Types =
+    let a = 5
+\"\"\"   config)
+    |> prepend newline
+    |> should equal \"\"\"
+namespace SomeNamespace
+
+[<AutoOpen>]
+module Types =
+    let a = 5
+\"\"\"
+"

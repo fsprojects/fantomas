@@ -725,6 +725,16 @@ let (|InfixApps|_|) e =
     | (_, []) -> None
     | (e, es) -> Some(e, List.rev es)
 
+let (|AppWithMultilineArgument|_|) e =
+    let isMultilineString p =
+        match p with
+        | MultilineString _ -> true
+        | _ -> false
+
+    match e with
+    | App (_, arguments) when (List.exists isMultilineString arguments) -> Some e
+    | _ -> None
+
 /// Gather all arguments in lambda
 let rec (|Lambda|_|) = function
     | SynExpr.Lambda(_, _, pats, Lambda(e, patss), _) ->
