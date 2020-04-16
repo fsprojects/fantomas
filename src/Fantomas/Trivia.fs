@@ -33,6 +33,8 @@ let filterNodes nodes =
             "SynModuleOrNamespaceSig.DeclaredNamespace"
             "SynExpr.LetOrUse"
             "SynTypeDefnRepr.ObjectModel"
+            "TypeDefnSig"
+            "SynTypeDefnSigRepr.ObjectModel"
         ]
     nodes |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
 
