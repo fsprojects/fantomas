@@ -425,7 +425,7 @@ let a = \"\"
 #endif
 "
 
-    getDefines source == ["BAR";"FOO"]
+    getDefines source == ["FOO";"BAR"]
 
 [<Test>]
 let ``open close of triple quote string on same line`` () =
