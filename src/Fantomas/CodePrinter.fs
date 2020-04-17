@@ -50,6 +50,8 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx:Context) =
     match functionOrMethod, arg with
     | SynExpr.TypeApp(e, _, _, _, _, _, _), _ ->
         addSpaceBeforeParensInFunCall e arg ctx
+    | SynExpr.Paren _, _ ->
+        true
     | UppercaseSynExpr, ConstExpr(Const "()", _) ->
         ctx.Config.SpaceBeforeUppercaseInvocation
     | LowercaseSynExpr, ConstExpr(Const "()", _) ->
