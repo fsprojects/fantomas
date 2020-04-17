@@ -232,22 +232,27 @@ let ``Hash ifs source format property``() =
                       result |> should equal source)))
 
 [<Test>]
-let ``get define exprs from unit test with defines in string`` () =
+let ``get define exprs from unit test with defines in triple quote string`` () =
     let source = "
+\"\"\"
+#if FOO
+#if BAR
+#endif
+#endif
+\"\"\"
+"
+    getDefineExprs source == List.empty
+
 [<Test>]
-let ``should keep compiler directives``() =
-    formatSourceString false \"\"\"
-#if INTERACTIVE
-#load \"../FSharpx.TypeProviders/SetupTesting.fsx\"
-SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
-#load \"__setup__.fsx\"
+let ``nested quote in triple quote string should not yield defines`` () =
+    let source = "
+\"\"\"
+\"
+#if FOO
+#if BAR
 #endif
-\"\"\"  config
-    |> should equal \"\"\"#if INTERACTIVE
-#load \"../FSharpx.TypeProviders/SetupTesting.fsx\"
-SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
-#load \"__setup__.fsx\"
 #endif
+\"
 \"\"\"
 "
     getDefineExprs source == List.empty

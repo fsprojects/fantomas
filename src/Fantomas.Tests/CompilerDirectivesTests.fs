@@ -1437,12 +1437,14 @@ let b = \"\"\"
 \"\"\"
 "     config)
     |> prepend newline
-    |> should equal """
-let a = "
+    |> should equal "
+let a = \"\"\"
+\"
 #if FOO
-"
+\"
+\"\"\"
 
-let b = "
+let b = \"\"\"
 #endif
+\"\"\"
 "
-"""

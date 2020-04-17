@@ -414,3 +414,35 @@ let ``escaped char content`` () =
     | [{ Item = CharContent("\'\\u0000\'") }] ->
         pass()
     | _ -> fail()
+
+[<Test>]
+let ``open close of string on same line`` () =
+    let source = "
+let a = \"\"
+#if FOO
+#if BAR
+#endif
+#endif
+"
+
+    getDefines source == ["BAR";"FOO"]
+
+[<Test>]
+let ``open close of triple quote string on same line`` () =
+    let source = "
+let a = \"\"\"foo\"\"\"
+#if FOO
+#endif
+"
+
+    getDefines source == ["FOO"]
+
+[<Test>]
+let ``open, quote, close of triple quote string on same line`` () =
+    let source = "
+let a = \"\"\"fo\"o\"\"\"
+#if FOO
+#endif
+"
+
+    getDefines source == ["FOO"]

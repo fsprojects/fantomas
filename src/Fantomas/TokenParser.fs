@@ -1,5 +1,6 @@
 module internal Fantomas.TokenParser
 
+open System.Text.RegularExpressions
 open FSharp.Compiler.AbstractIL.Internal.Library
 open System
 open System.Text
@@ -7,8 +8,6 @@ open FSharp.Compiler.SourceCodeServices
 open Fantomas
 open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
-open System.Linq
-open System.Text.RegularExpressions
 
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
 // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
@@ -76,6 +75,10 @@ let private createHashToken lineNumber content fullMatchedLength offset =
             Tag = 0
             FullMatchedLength = fullMatchedLength } }
 
+type private SourceCodeState =
+    | Normal
+    | InsideSingleQuoteString
+    | InsideTripleQuoteString
 
 let rec private getTokenizedHashes sourceCode =
     let processLine content (trimmed:string) lineNumber fullMatchedLength offset =
@@ -93,29 +96,7 @@ let rec private getTokenizedHashes sourceCode =
         )
         |> fun rest -> (createHashToken lineNumber content fullMatchedLength offset)::rest
 
-
-    let tripleQuoteStringPositions =
-        Regex.Matches(sourceCode, "\"\"\"").Cast<Match>()
-        |> Seq.map(fun (mc:Match) -> mc.Index)
-        |> Seq.chunkBySize 2
-        |> Seq.choose (fun group ->
-            match group with
-            | ([|start ;stop |]) -> Some [start..stop]
-            | _ -> None)
-        |> Seq.concat
-        |> Seq.toArray
-
-    let lines =
-        sourceCode
-        |> String.normalizeThenSplitNewLine
-
-    let stringLines =
-        lines
-
-
-    lines
-    |> Array.indexed
-    |> Array.map (fun (idx, line) ->
+    let findDefineInLine idx line =
         let lineNumber  = idx + 1
         let fullMatchedLength = String.length line
         let trimmed = line.TrimStart()
@@ -131,9 +112,64 @@ let rec private getTokenizedHashes sourceCode =
             processLine "#endif" trimmed lineNumber fullMatchedLength offset
         else
             []
-    )
-    |> Seq.collect id
-    |> Seq.toList
+
+    let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count) % 2 = 1
+    let singleQuoteWrappedInTriple line = Regex.Match(line, "\\\"\\\"\\\".*\\\".*\\\"\\\"\\\"").Success
+
+    sourceCode
+    |> String.normalizeThenSplitNewLine
+    |> Array.indexed
+    |> Array.fold (fun (state, defines) (idx, line) ->
+        let hasTripleQuotes = hasUnEvenAmount "\"\"\"" line
+        let hasSingleQuote =
+            (not hasTripleQuotes)
+            && (hasUnEvenAmount "\"" line)
+            && not (singleQuoteWrappedInTriple line)
+
+        match state with
+        | Normal when (hasTripleQuotes) ->
+            InsideTripleQuoteString, defines
+        | Normal when (hasSingleQuote) ->
+            InsideSingleQuoteString, defines
+        | Normal when (not hasTripleQuotes && not hasSingleQuote) ->
+            Normal, (findDefineInLine idx line)::defines
+
+        | InsideTripleQuoteString when (not hasTripleQuotes) ->
+            InsideTripleQuoteString, defines
+        | InsideTripleQuoteString when hasTripleQuotes ->
+            Normal, defines
+
+        | InsideSingleQuoteString when (not hasSingleQuote) ->
+            InsideSingleQuoteString, defines
+        | InsideSingleQuoteString when (hasSingleQuote) ->
+            Normal, defines
+
+        | _ ->
+            failwithf "unexpected %A" state
+
+    )(Normal, [])
+    |> snd
+    |> List.rev
+    |> List.concat
+//    |> Array.map (fun (idx, line) ->
+//        let lineNumber  = idx + 1
+//        let fullMatchedLength = String.length line
+//        let trimmed = line.TrimStart()
+//        let offset = String.length line - String.length trimmed
+//
+//        if trimmed.StartsWith("#if") then
+//            processLine "#if" trimmed lineNumber fullMatchedLength offset
+//        elif trimmed.StartsWith("#elseif") then
+//            processLine "#elseif" trimmed lineNumber fullMatchedLength offset
+//        elif trimmed.StartsWith("#else") then
+//            processLine "#else" trimmed lineNumber fullMatchedLength offset
+//        elif trimmed.StartsWith("#endif") then
+//            processLine "#endif" trimmed lineNumber fullMatchedLength offset
+//        else
+//            []
+//    )
+//    |> Seq.collect id
+//    |> Seq.toList
 
 and tokenize defines (content : string) : Token list * int =
     let sourceTokenizer = FSharpSourceTokenizer(defines, Some "/tmp.fsx")
