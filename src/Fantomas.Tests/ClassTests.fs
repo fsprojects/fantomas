@@ -109,7 +109,6 @@ type Shape2D(x0: float, y0: float) =
         and set yval = y <- yval
 
     abstract Area: float
-
     abstract Perimeter: float
     abstract Name: string
 
@@ -118,7 +117,6 @@ type Shape2D(x0: float, y0: float) =
         y <- y + dy
 
     abstract Rotate: float -> unit
-
     default this.Rotate(angle) = rotAngle <- rotAngle + angle
 """
 
