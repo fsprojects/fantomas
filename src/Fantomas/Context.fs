@@ -197,8 +197,19 @@ let internal writeEventsOnLastLine ctx =
     |> Seq.takeWhile (function | WriteLine | WriteLineInsideStringConst -> false | _ -> true)
     |> Seq.choose (function | Write w when (String.length w > 0) -> Some w | _ -> None)
 
-let internal lastWriteEventOnLastLine ctx = writeEventsOnLastLine ctx |> Seq.tryHead
+let internal lastWriteEventIsNewline ctx =
+    ctx.WriterEvents
+    |> Queue.rev
+    |> Seq.skipWhile (function
+        | RestoreIndent _
+        | RestoreAtColumn _
+        | Write "" -> true
+        | _ -> false)
+    |> Seq.tryHead
+    |> Option.map (function | WriteLine -> true | _ -> false)
+    |> Option.defaultValue false
 
+let internal lastWriteEventOnLastLine ctx = writeEventsOnLastLine ctx |> Seq.tryHead
 let internal forallCharsOnLastLine f ctx =
     writeEventsOnLastLine ctx |> Seq.collect id |> Seq.forall f
 
@@ -404,6 +415,12 @@ let internal sepSpace (ctx : Context) =
         | _ -> (!-" ") ctx
 
 let internal sepNln = !+ ""
+
+let internal whenLastEventIsNotWriteLine f (ctx: Context) =
+    if lastWriteEventIsNewline ctx
+    then ctx
+    else f ctx
+
 let internal sepStar = !- " * "
 let internal sepEq = !- " ="
 let internal sepArrow = !- " -> "
@@ -453,6 +470,12 @@ let internal sepOpenAnonRecd (ctx : Context) =
 /// closing token of anon record
 let internal sepCloseAnonRecd (ctx : Context) =
     if ctx.Config.SpaceAroundDelimiter then str " |}" ctx else str "|}" ctx
+
+/// opening token of anon record
+let internal sepOpenAnonRecdFixed = !- "{|"
+
+/// closing token of anon record
+let internal sepCloseAnonRecdFixed = !- "|}"
 
 /// opening token of sequence
 let internal sepOpenSFixed = !- "{"
@@ -628,6 +651,8 @@ let internal indentOnWith (ctx : Context) =
 /// Conditional unindentation on with keyword
 let internal unindentOnWith (ctx : Context) =
     if ctx.Config.IndentOnTryWith then unindent ctx else ctx
+
+let internal ifAlignBrackets f g = ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
 
 /// Don't put space before and after these operators
 let internal NoSpaceInfixOps = set ["?"]

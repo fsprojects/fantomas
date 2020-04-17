@@ -65,6 +65,8 @@
     <Compile Include="SpaceBeforeUppercaseInvocationTests.fs" />
     <Compile Include="SpaceBeforeClassConstructorTests.fs" />
     <Compile Include="SpaceBeforeMemberTests.fs" />
+    <Compile Include="MultilineBlockBracketsOnSameColumnRecordTests.fs" />
+    <Compile Include="MultilineBlockBracketsOnSameColumnArrayOrListTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
