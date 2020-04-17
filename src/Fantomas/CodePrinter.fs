@@ -137,14 +137,25 @@ and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRe
     let moduleOrNamespace = ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
     let recursive = ifElse isRecursive (!- "rec ") sepNone
     let namespaceFn = ifElse (s = "") (!- "global") (!- s)
+    let namespaceIsGlobal = not moduleKind.IsModule && s = ""
 
-    genPreXmlDoc px
-    +> genAttributes astContext ats
-    +> ifElse (moduleKind = AnonModule)
-         sepNone
-         (genTriviaForLongIdent (moduleOrNamespace +> opt sepSpace ao genAccess +> recursive +> namespaceFn +> sepModuleAndFirstDecl))
-    +> genModuleDeclList astContext mds
-    |> genTrivia node.Range
+    let sep = 
+        if namespaceIsGlobal 
+        then sepNln +> sepNlnConsideringTriviaContentBefore node.Range 
+        else sepModuleAndFirstDecl
+
+    let expr =
+        genPreXmlDoc px
+        +> genAttributes astContext ats
+        +> ifElse (moduleKind = AnonModule)
+             sepNone
+             (genTriviaForLongIdent (moduleOrNamespace +> opt sepSpace ao genAccess +> recursive +> namespaceFn +> sep))
+
+    if namespaceIsGlobal then
+        expr +> genTrivia node.Range (genModuleDeclList astContext mds)
+    else
+        expr +> genModuleDeclList astContext mds
+        |> genTrivia node.Range
 
 and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds, _, moduleKind) as node) =
     let range = match node with | SynModuleOrNamespaceSig(_,_,_,_,_,_,_,range) -> range
@@ -218,10 +229,18 @@ and genSigModuleDeclList astContext node =
     | [x] -> genSigModuleDecl astContext x
 
     | SigOpenL(xs, ys) ->
+        let sepXsAndYs =
+            match List.tryHead ys with
+            | Some hs ->
+                let attrs = getRangesFromAttributesFromSynModuleSigDeclaration hs
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes hs.Range attrs +> dumpAndContinue
+            | None ->
+                rep 2 sepNln
+
         fun ctx ->
             match ys with
             | [] -> col sepNln xs (genSigModuleDecl astContext) ctx
-            | _ -> (col sepNln xs (genSigModuleDecl astContext) +> rep 2 sepNln +> genSigModuleDeclList astContext ys) ctx
+            | _ -> (col sepNln xs (genSigModuleDecl astContext) +> sepXsAndYs +> genSigModuleDeclList astContext ys) ctx
 
     | SigHashDirectiveL(xs, ys) ->
         match ys with
@@ -663,8 +682,8 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
                     | _ -> false
                 )
                 |> Option.bind(fun tn ->
-                    tn.ContentBefore
-                    |> List.tryPick (fun tc ->
+                    tn.ContentItself
+                    |> Option.bind (fun tc ->
                         match tc with
                         | Keyword({ Content = ("override" | "default" | "member") as kw }) -> Some (!- (kw + " "))
                         | _ -> None
