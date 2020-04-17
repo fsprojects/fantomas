@@ -1365,3 +1365,84 @@ module Dbg =
     let print _ = ()
 #endif
 """
+
+[<Test>]
+let ``defines in string should be taken into account, 761`` () =
+    (formatSourceString false "
+[<Test>]
+let ``should keep compiler directives``() =
+    formatSourceString false \"\"\"
+#if INTERACTIVE
+#load \"../FSharpx.TypeProviders/SetupTesting.fsx\"
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+#load \"__setup__.fsx\"
+#endif
+\"\"\"  config
+    |> should equal \"\"\"#if INTERACTIVE
+#load \"../FSharpx.TypeProviders/SetupTesting.fsx\"
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+#load \"__setup__.fsx\"
+#endif
+\"\"\"
+" config)
+    |> prepend newline
+    |> should equal "
+[<Test>]
+let ``should keep compiler directives`` () =
+    (formatSourceString false \"\"\"
+#if INTERACTIVE
+#load \"../FSharpx.TypeProviders/SetupTesting.fsx\"
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+#load \"__setup__.fsx\"
+#endif
+\"\"\"   config)
+    |> should equal \"\"\"#if INTERACTIVE
+#load \"../FSharpx.TypeProviders/SetupTesting.fsx\"
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+#load \"__setup__.fsx\"
+#endif
+\"\"\"
+"
+
+[<Test>]
+let ``hash directive in single quote string should not have impact`` () =
+    formatSourceString false """let a = "
+#if FOO
+"
+let b = "
+#endif
+"
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = "
+#if FOO
+"
+
+let b = "
+#endif
+"
+"""
+
+[<Test>]
+let ``hash directive in triple quote string with other quotes should not have impact`` () =
+    (formatSourceString false "
+let a = \"\"\"
+\"
+#if FOO
+\"
+\"\"\"
+let b = \"\"\"
+#endif
+\"\"\"
+"     config)
+    |> prepend newline
+    |> should equal """
+let a = "
+#if FOO
+"
+
+let b = "
+#endif
+"
+"""

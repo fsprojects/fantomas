@@ -230,3 +230,24 @@ let ``Hash ifs source format property``() =
                      (let source = boolExprsToSource es
                       let result = formatSourceString false source config
                       result |> should equal source)))
+
+[<Test>]
+let ``get define exprs from unit test with defines in string`` () =
+    let source = "
+[<Test>]
+let ``should keep compiler directives``() =
+    formatSourceString false \"\"\"
+#if INTERACTIVE
+#load \"../FSharpx.TypeProviders/SetupTesting.fsx\"
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+#load \"__setup__.fsx\"
+#endif
+\"\"\"  config
+    |> should equal \"\"\"#if INTERACTIVE
+#load \"../FSharpx.TypeProviders/SetupTesting.fsx\"
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+#load \"__setup__.fsx\"
+#endif
+\"\"\"
+"
+    getDefineExprs source == List.empty

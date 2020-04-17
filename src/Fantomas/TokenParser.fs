@@ -7,6 +7,8 @@ open FSharp.Compiler.SourceCodeServices
 open Fantomas
 open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
+open System.Linq
+open System.Text.RegularExpressions
 
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
 // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
@@ -91,8 +93,27 @@ let rec private getTokenizedHashes sourceCode =
         )
         |> fun rest -> (createHashToken lineNumber content fullMatchedLength offset)::rest
 
-    sourceCode
-    |> String.normalizeThenSplitNewLine
+
+    let tripleQuoteStringPositions =
+        Regex.Matches(sourceCode, "\"\"\"").Cast<Match>()
+        |> Seq.map(fun (mc:Match) -> mc.Index)
+        |> Seq.chunkBySize 2
+        |> Seq.choose (fun group ->
+            match group with
+            | ([|start ;stop |]) -> Some [start..stop]
+            | _ -> None)
+        |> Seq.concat
+        |> Seq.toArray
+
+    let lines =
+        sourceCode
+        |> String.normalizeThenSplitNewLine
+
+    let stringLines =
+        lines
+
+
+    lines
     |> Array.indexed
     |> Array.map (fun (idx, line) ->
         let lineNumber  = idx + 1
