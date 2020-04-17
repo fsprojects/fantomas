@@ -2357,10 +2357,14 @@ and genMemberDefnList astContext node =
 
     | m::rest ->
         let attrs = getRangesFromAttributesFromSynMemberDefinition m
-        sepNlnConsideringTriviaContentBeforeWithAttributes m.Range attrs +>
-        (expressionFitsOnRestOfLine
-            (genMemberDefn astContext m)
-            (sepNlnBeforeMultilineConstruct m.Range attrs +> genMemberDefn astContext m +> onlyIf (List.isNotEmpty rest) sepNln))
+
+        sepNlnConsideringTriviaContentBeforeWithAttributes m.Range attrs
+        +> enterNode m.Range
+        +> (expressionFitsOnRestOfLine
+              (genMemberDefn astContext m)
+              (sepNlnBeforeMultilineConstruct m.Range attrs
+               +> genMemberDefn astContext m
+               +> onlyIf (List.isNotEmpty rest) sepNln))
 
         +> genMemberDefnList astContext rest
 
