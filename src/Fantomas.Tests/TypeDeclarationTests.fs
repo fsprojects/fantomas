@@ -95,7 +95,6 @@ type Test() =
     member this.Function1<'a>(x, y) = printfn "%A, %A" x y
 
     abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
-
     override this.AbstractMethod<'a, 'b>(x: 'a, y: 'b) = printfn "%A, %A" x y
 """
 
@@ -1033,4 +1032,23 @@ type FormattingSpecs() =
 
     [<Fact>]
     let ``false is false`` () = test <@ false = false @>
+"""
+
+[<Test>]
+let ``line comment above single line abstract slot should not make it multiline, 757`` () =
+    formatSourceString false """[<AllowNullLiteral>]
+type Graph2dOptions =
+    abstract zoomMin: float option with get, set
+    // abstract moment: MomentConstructor option with get, set
+    abstract maxHeight: HeightWidthType option with get, set
+    abstract zIndex: float option with get, set
+"""  config
+    |> prepend newline
+    |> should equal """
+[<AllowNullLiteral>]
+type Graph2dOptions =
+    abstract zoomMin: float option with get, set
+    // abstract moment: MomentConstructor option with get, set
+    abstract maxHeight: HeightWidthType option with get, set
+    abstract zIndex: float option with get, set
 """

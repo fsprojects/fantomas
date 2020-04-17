@@ -32,6 +32,7 @@ type FormatConfig =
       MaxArrayOrListWidth: Num
       MaxLetBindingWidth: Num
       MultilineBlockBracketsOnSameColumn : bool
+      NewlineBetweenTypeDefinitionAndMembers: bool
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -56,7 +57,8 @@ type FormatConfig =
           MaxArrayOrListWidth = 40
           MaxLetBindingWidth = 40
           MultilineBlockBracketsOnSameColumn = false
-          StrictMode = false }
+          StrictMode = false
+          NewlineBetweenTypeDefinitionAndMembers = false }
 
     static member applyOptions(currentConfig, options) =
         let currentValues = Reflection.getRecordFields currentConfig
