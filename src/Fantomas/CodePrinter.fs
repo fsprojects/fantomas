@@ -993,12 +993,17 @@ and genExpr astContext synExpr =
             | (s,_,_)::_ when ((NoSpaceInfixOps.Contains s)) -> sepNone
             | _ -> f
 
+        let expr =
+            match e with
+            | AppWithMultilineArgument _ -> sepOpenT +> genExpr astContext e +> sepCloseT
+            | _ -> genExpr astContext e
+
         atCurrentColumn
             (fun ctx ->
                  isShortExpression
                     ctx.Config.MaxInfixOperatorExpression
-                    (genExpr astContext e +> sepAfterExpr sepSpace +> genInfixAppsShort astContext es)
-                    (genExpr astContext e +> sepAfterExpr sepNln +> genInfixApps astContext es)
+                    (expr +> sepAfterExpr sepSpace +> genInfixAppsShort astContext es)
+                    (expr +> sepAfterExpr sepNln +> genInfixApps astContext es)
                     ctx)
 
     | TernaryApp(e1,e2,e3) ->
