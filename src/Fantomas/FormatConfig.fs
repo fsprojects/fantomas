@@ -31,6 +31,7 @@ type FormatConfig =
       MaxRecordWidth: Num
       MaxArrayOrListWidth: Num
       MaxLetBindingWidth: Num
+      MultilineBlockBracketsOnSameColumn : bool
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -54,6 +55,7 @@ type FormatConfig =
           MaxRecordWidth = 40
           MaxArrayOrListWidth = 40
           MaxLetBindingWidth = 40
+          MultilineBlockBracketsOnSameColumn = false
           StrictMode = false }
 
     static member applyOptions(currentConfig, options) =

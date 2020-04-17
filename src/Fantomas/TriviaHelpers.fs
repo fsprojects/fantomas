@@ -76,3 +76,15 @@ module internal TriviaHelpers =
             | true, Some(StringContent(s)) when (String.isMultiline s) -> Some s
             | _ -> None)
         |> List.isNotEmpty
+
+    let private isLineComment =
+            function
+            | Comment(LineCommentAfterSourceCode _)
+            | Comment(LineCommentOnSingleLine _) -> true
+            | _ -> false
+
+    let ``has line comments inside`` range (triviaNodes: TriviaNode list) =
+        triviaNodes
+        |> List.exists (fun tn ->
+            RangeHelpers.``range contains`` range tn.Range
+            && (List.exists isLineComment tn.ContentBefore || List.exists isLineComment tn.ContentAfter))
