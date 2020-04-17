@@ -412,3 +412,76 @@ let internal UpdateStrongNaming
 let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
     assembly.Name
 """
+
+[<Test>]
+let ``long function definition should put equals and body on a newline, 740`` () =
+    formatSourceString false """
+module FormatCode =
+
+    let private format filename code config =
+        let checker = Fantomas.FakeHelpers.sharedChecker.Force()
+        let options = Fantomas.FakeHelpers.createParsingOptionsFromFile filename
+        let source = SourceOrigin.SourceString code
+        CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
+
+    [<FunctionName("FormatCode")>]
+    let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest) (log: ILogger) = Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+"""  config
+    |> prepend newline
+    |> should equal """
+module FormatCode =
+
+    let private format filename code config =
+        let checker =
+            Fantomas.FakeHelpers.sharedChecker.Force()
+
+        let options =
+            Fantomas.FakeHelpers.createParsingOptionsFromFile filename
+
+        let source = SourceOrigin.SourceString code
+        CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
+
+    [<FunctionName("FormatCode")>]
+    let run
+        ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+        (log: ILogger)
+        =
+        Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+"""
+
+[<Test>]
+let ``long function definition with return type should have multiline signature`` () =
+    formatSourceString false """
+module FormatCode =
+
+    let private format filename code config =
+        let checker = Fantomas.FakeHelpers.sharedChecker.Force()
+        let options = Fantomas.FakeHelpers.createParsingOptionsFromFile filename
+        let source = SourceOrigin.SourceString code
+        CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
+
+    [<FunctionName("FormatCode")>]
+    let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest) (log: ILogger) : HttpResponse = Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+"""  config
+    |> prepend newline
+    |> should equal """
+module FormatCode =
+
+    let private format filename code config =
+        let checker =
+            Fantomas.FakeHelpers.sharedChecker.Force()
+
+        let options =
+            Fantomas.FakeHelpers.createParsingOptionsFromFile filename
+
+        let source = SourceOrigin.SourceString code
+        CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
+
+    [<FunctionName("FormatCode")>]
+    let run
+        ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+        (log: ILogger)
+        : HttpResponse
+        =
+        Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+"""
