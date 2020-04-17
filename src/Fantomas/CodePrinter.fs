@@ -1918,7 +1918,6 @@ and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
         (sepOpenSFixed +> indent +> sepNln
         +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
         +> unindent +> sepNln +> sepCloseSFixed
-        +> ifElse (List.isNotEmpty ms) sepNln sepNone
         +> genMemberDefnList { astContext with InterfaceRange = None } ms
         +> unindent)
 

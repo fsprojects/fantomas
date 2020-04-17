@@ -379,11 +379,8 @@ type Range =
         From : float
         To : float
     }
-
     member this.Length = this.To - this.From
 """
-
-// TODO: Ask Patrick whether the newline should always be there.
 
 [<Test>]
 let ``record type with interface`` () =
@@ -399,7 +396,6 @@ type MyRecord =
     {
         SomeField : int
     }
-
     interface IMyInterface
 """
 
