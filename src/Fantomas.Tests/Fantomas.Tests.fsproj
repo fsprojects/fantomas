@@ -67,6 +67,7 @@
     <Compile Include="SpaceBeforeMemberTests.fs" />
     <Compile Include="MultilineBlockBracketsOnSameColumnRecordTests.fs" />
     <Compile Include="MultilineBlockBracketsOnSameColumnArrayOrListTests.fs" />
+    <Compile Include="NewlineBetweenTypeDefinitionAndMembersTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />

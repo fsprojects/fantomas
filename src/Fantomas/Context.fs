@@ -883,6 +883,13 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range)
     |> Seq.exists (fun ({ ContentBefore = contentBefore }) -> hasPrintableContent contentBefore)
     |> fun hasContentBefore ->
         if hasContentBefore then ctx else sepNln ctx
+
+let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
+    match firstMemberRange with
+    | Some range when (ctx.Config.NewlineBetweenTypeDefinitionAndMembers) ->
+        sepNlnConsideringTriviaContentBefore range ctx
+    | _ ->
+        ctx
     
 let internal beforeElseKeyword (fullIfRange: range) (elseRange: range) (ctx: Context) =
     ctx.Trivia

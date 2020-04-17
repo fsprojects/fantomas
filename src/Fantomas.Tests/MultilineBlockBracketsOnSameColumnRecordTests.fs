@@ -7,7 +7,8 @@ open Fantomas.Tests.TestHelper
 let config = ({ config with
                     MultilineBlockBracketsOnSameColumn = true
                     SpaceBeforeColon = true
-                    SpaceBeforeSemicolon = true })
+                    SpaceBeforeSemicolon = true
+                    NewlineBetweenTypeDefinitionAndMembers = true })
 
 [<Test>]
 let ``single member record stays on one line`` () =
@@ -379,6 +380,7 @@ type Range =
         From : float
         To : float
     }
+
     member this.Length = this.To - this.From
 """
 
@@ -396,6 +398,7 @@ type MyRecord =
     {
         SomeField : int
     }
+
     interface IMyInterface
 """
 
@@ -457,4 +460,31 @@ type MyRecord =
         Street : string
         Number : int
     }
+"""
+
+[<Test>]
+let ``record declaration with members in signature file`` () =
+    formatSourceString true """namespace X
+type MyRecord =
+    { Level: int
+      Progress: string
+      Bar: string
+      Street: string
+      Number: int }
+    member Score : unit -> int
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace X
+
+type MyRecord =
+    {
+        Level : int
+        Progress : string
+        Bar : string
+        Street : string
+        Number : int
+    }
+
+    member Score : unit -> int
 """
