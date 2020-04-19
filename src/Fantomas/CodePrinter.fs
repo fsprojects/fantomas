@@ -821,6 +821,7 @@ and genExpr astContext synExpr =
     | Record(inheritOpt, xs, eo) ->
         let shortRecordExpr =
             sepOpenS +>
+            leaveLeftBrace synExpr.Range +>
             optSingle
                 (fun (inheritType, inheritExpr) -> !- "inherit " +> genType astContext false inheritType +> genExpr astContext inheritExpr +> onlyIf (List.isNotEmpty xs) sepSemi)
                 inheritOpt +>
@@ -1180,26 +1181,37 @@ and genExpr astContext synExpr =
         // * https://github.com/fsprojects/fantomas/issues/513
         firstNewlineOrComment es +> atCurrentColumn (colEx (fun (e:SynExpr) -> sepConsideringTriviaContentBefore sepSemiNln e.Range) es (genExpr astContext))
 
-    | IfThenElse(e1, e2, None) ->
+    | IfThenElse(e1, e2, None, mIfToThen) ->
         fun (ctx:Context) ->
             let maxWidth = ctx.Config.MaxIfThenElseShortWidth
 
+            let thenKeywordHasLineComment =
+                TriviaHelpers.``has content after after that matches``
+                    (fun tn ->
+                        match tn.Type with
+                        | Token({ TokenInfo = ti }) when (ti.TokenName = "THEN") -> true
+                        | _ -> false)
+                    (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
+                    ctx.Trivia
+
+            let thenExpr = tokN mIfToThen "THEN"
+
             (leadingExpressionResult
-                (!- "if "+> genExpr astContext e1)
+                (!- "if " +> genExpr astContext e1)
                 (fun ((lb,cb),(la,ca)) ->
-                    let thenExpressionIsMultiline = futureNlnCheck (genExpr astContext e2) ctx
+                    let thenExpressionIsMultiline = thenKeywordHasLineComment || futureNlnCheck (genExpr astContext e2) ctx
 
                     if lb < la || thenExpressionIsMultiline then // if or then expression was multiline
-                        !- " then" +> indent +> sepNln +> genExpr astContext e2 +> unindent
+                        thenExpr (!- " then") +> indent +> sepNln +> genExpr astContext e2 +> unindent
                     elif (lb = la && (ca - cb) > maxWidth)
                          && not thenExpressionIsMultiline then // if expression is longer than maxWidth but not multiline
-                        sepNln +> !- "then " +> genExpr astContext e2
+                        sepNln +> thenExpr (!- "then ") +> genExpr astContext e2
                     elif (exceedsWidth maxWidth (genExpr astContext e2) ctx)
                          && not thenExpressionIsMultiline then // then is longer than maxWidth but not multiline
-                        sepNln +> !- "then " +> genExpr astContext e2
+                        sepNln +> thenExpr (!- "then ") +> genExpr astContext e2
                     else
                         // write out as short expression
-                        !- " then " +> genExpr astContext e2)
+                        thenExpr (!- " then ") +> genExpr astContext e2)
             |> atCurrentColumn) ctx
 
     // A generalization of IfThenElse
@@ -2705,7 +2717,7 @@ and genConstNumber (c:SynConst) (r: range) =
                 | SynConst.Decimal(v) -> !- (sprintf "%A" v)
                 | SynConst.IntPtr(v) -> !- (sprintf "%A" v)
                 | SynConst.UIntPtr(v) -> !- (sprintf "%A" v)
-                | SynConst.UserNum(v,s) -> !- (sprintf "%A%s" v s)
+                | SynConst.UserNum(v,s) -> !- (sprintf "%s%s" v s)
                 | _ -> failwithf "Cannot generating Const number for %A" c
         <| ctx
 

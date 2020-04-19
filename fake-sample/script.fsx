@@ -1,14 +1,22 @@
 #r "paket:
 nuget Fantomas 3.3.0
+nuget FSharp.Compiler.Service 34.1.0
 nuget Fake.Core.Target //"
 #load "./.fake/script.fsx/intellisense.fsx"
 
 open Fake.Core
+open Fake.IO
 open Fake.IO.Globbing.Operators
 open Fantomas
 open Fantomas.FormatConfig
 
-let fantomasConfig = { FormatConfig.Default with PageWidth = 140 }
+let fantomasConfig =
+    // look for fantomas-config.json in the current directory
+    match CodeFormatter.ReadConfiguration(Shell.pwd()) with
+    | Success c -> c
+    | _ ->
+        printfn "Cannot parse fantomas-config.json, using default"
+        FormatConfig.Default
 
 Target.create "CheckCodeFormat" (fun _ ->
     let result =

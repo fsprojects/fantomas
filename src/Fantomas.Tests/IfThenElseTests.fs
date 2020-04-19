@@ -905,3 +905,14 @@ module String =
         else if String.length a' > String.length b' then b'
         else b'
 """
+
+[<Test>]
+let ``comment after then in if/then, 730`` () =
+    formatSourceString false """if true then // comment
+    ()
+"""  config
+    |> prepend newline
+    |> should equal """
+if true then // comment
+    ()
+"""
