@@ -870,3 +870,16 @@ let useAddEntry () =
         // foo
         bar ()
 """
+
+[<Test>]
+let ``line comment after { should make record multiline`` () =
+    formatSourceString false """let meh = { // this comment right
+    Name = "FOO"; Level = 78 }
+"""  config
+    |> prepend newline
+    |> should equal """
+let meh =
+    { // this comment right
+      Name = "FOO"
+      Level = 78 }
+"""
