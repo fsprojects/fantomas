@@ -128,3 +128,20 @@ module Runner =
         class
         end
 """
+
+[<Test>]
+let ``string content ends at string token, 646`` () =
+    formatSourceString false """"Yarn" ==> "Format"
+
+"Yarn" ==> "CheckCodeFormat"
+
+Target.runOrDefault "CheckCodeFormat"
+"""  config
+    |> prepend newline
+    |> should equal """
+"Yarn" ==> "Format"
+
+"Yarn" ==> "CheckCodeFormat"
+
+Target.runOrDefault "CheckCodeFormat"
+"""
