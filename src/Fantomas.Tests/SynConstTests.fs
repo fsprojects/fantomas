@@ -128,3 +128,9 @@ module Runner =
         class
         end
 """
+
+[<Test>]
+let ``array literals of BigInteger, 682`` () =
+    formatSourceString false "let input = [| 1I;0I;-1I |]"  config
+    |> should equal "let input = [| 1I; 0I; -1I |]
+"
