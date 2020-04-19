@@ -130,6 +130,12 @@ module Runner =
 """
 
 [<Test>]
+let ``array literals of BigInteger, 682`` () =
+    formatSourceString false "let input = [| 1I;0I;-1I |]"  config
+    |> should equal "let input = [| 1I; 0I; -1I |]
+"
+
+[<Test>]
 let ``string content ends at string token, 646`` () =
     formatSourceString false """"Yarn" ==> "Format"
 
