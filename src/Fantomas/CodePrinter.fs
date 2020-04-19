@@ -821,6 +821,7 @@ and genExpr astContext synExpr =
     | Record(inheritOpt, xs, eo) ->
         let shortRecordExpr =
             sepOpenS +>
+            leaveLeftBrace synExpr.Range +>
             optSingle
                 (fun (inheritType, inheritExpr) -> !- "inherit " +> genType astContext false inheritType +> genExpr astContext inheritExpr +> onlyIf (List.isNotEmpty xs) sepSemi)
                 inheritOpt +>
@@ -2705,7 +2706,7 @@ and genConstNumber (c:SynConst) (r: range) =
                 | SynConst.Decimal(v) -> !- (sprintf "%A" v)
                 | SynConst.IntPtr(v) -> !- (sprintf "%A" v)
                 | SynConst.UIntPtr(v) -> !- (sprintf "%A" v)
-                | SynConst.UserNum(v,s) -> !- (sprintf "%A%s" v s)
+                | SynConst.UserNum(v,s) -> !- (sprintf "%s%s" v s)
                 | _ -> failwithf "Cannot generating Const number for %A" c
         <| ctx
 
