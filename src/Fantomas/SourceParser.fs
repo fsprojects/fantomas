@@ -834,8 +834,8 @@ let (|DotSet|_|) = function
     | _ -> None
 
 let (|IfThenElse|_|) = function
-    | SynExpr.IfThenElse(e1, e2, e3, _, _, _, _) ->
-        Some(e1, e2, e3)
+    | SynExpr.IfThenElse(e1, e2, e3, _, _, mIfToThen, _) ->
+        Some(e1, e2, e3, mIfToThen)
     | _ -> None
 
 let rec (|ElIf|_|) = function

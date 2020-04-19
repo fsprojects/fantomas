@@ -335,7 +335,7 @@ This might be a bit strange but you need to press play in order for the debugger
 
 ![Hit the breakpoint](./docs/fantomas-debug-vscode-3.png)
 
-Check out this [video fragment]() to see this in action.
+Check out this [video fragment](https://youtu.be/axHIazqiO9E?t=65) to see this in action.
 
 ## Credits
 We would like to gratefully thank the following persons for their contributions.
