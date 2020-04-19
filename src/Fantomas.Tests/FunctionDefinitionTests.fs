@@ -485,3 +485,34 @@ module FormatCode =
         =
         Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
 """
+
+[<Test>]
+let ``long function signature, 492`` () =
+    formatSourceString false """
+let private addTaskToScheduler (scheduler : IScheduler) taskName taskCron prio (task : unit -> unit) groupName =
+        let mutable jobDataMap = JobDataMap()
+        jobDataMap.["task"] <- task
+        let job =
+            JobBuilder.Create<WrapperJob>().UsingJobData(jobDataMap)
+                .WithIdentity(taskName, groupName).Build()
+        1
+"""  ({ config with PageWidth = 100 })
+    |> prepend newline
+    |> should equal """
+let private addTaskToScheduler
+    (scheduler: IScheduler)
+    taskName
+    taskCron
+    prio
+    (task: unit -> unit)
+    groupName
+    =
+    let mutable jobDataMap = JobDataMap()
+    jobDataMap.["task"] <- task
+
+    let job =
+        JobBuilder.Create<WrapperJob>().UsingJobData(jobDataMap).WithIdentity(taskName, groupName)
+            .Build()
+
+    1
+"""
