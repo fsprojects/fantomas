@@ -915,14 +915,20 @@ and genExpr astContext synExpr =
     | Paren(DesugaredLambda(cps, e)) ->
         fun (ctx: Context) ->
             let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
+            let hasLineCommentAfterArrow =
+                findTriviaTokenFromName synExpr.Range ctx.Trivia "RARROW"
+                |> Option.isSome
+
             let expr =
-                sepOpenT -- "fun " +> col sepSpace cps (genComplexPats astContext)
+                sepOpenT
+                -- "fun "
+                +> col sepSpace cps (genComplexPats astContext)
                 +> triviaAfterArrow synExpr.Range
-                +> ifElse
-                    lastLineOnlyContainsParenthesis
-                    (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
-                    (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                +> ifElse hasLineCommentAfterArrow (genExpr astContext e)
+                       (ifElse lastLineOnlyContainsParenthesis (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                            (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
                 +> sepCloseT
+
             expr ctx
 
     | DesugaredLambda(cps, e) ->
@@ -931,14 +937,20 @@ and genExpr astContext synExpr =
     | Paren(Lambda(e, sps)) ->
         fun (ctx: Context) ->
             let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
+            let hasLineCommentAfterArrow =
+                findTriviaTokenFromName synExpr.Range ctx.Trivia "RARROW"
+                |> Option.isSome
+
             let expr =
-                sepOpenT -- "fun " +> col sepSpace sps (genSimplePats astContext)
+                sepOpenT
+                -- "fun "
+                +> col sepSpace sps (genSimplePats astContext)
                 +> triviaAfterArrow synExpr.Range
-                +> ifElse
-                    lastLineOnlyContainsParenthesis
-                    (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
-                    (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                +> ifElse hasLineCommentAfterArrow (genExpr astContext e)
+                       (ifElse lastLineOnlyContainsParenthesis (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                            (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
                 +> sepCloseT
+
             expr ctx
 
     // When there are parentheses, most likely lambda will appear in function application
