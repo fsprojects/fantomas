@@ -1861,7 +1861,10 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
         let bodyExpr ctx =
             if (List.isEmpty ms) then
-                (isShortExpression ctx.Config.MaxRecordWidth shortExpression multilineExpression) ctx
+                (isShortExpression ctx.Config.MaxRecordWidth shortExpression multilineExpression
+                +> leaveNode tdr.Range // this will only print something when there is trivia after } in the short expression
+                // Yet it cannot be part of the short expression otherwise the multiline expression would be triggered unwillingly.
+                ) ctx
             else
                 multilineExpression ctx
 
