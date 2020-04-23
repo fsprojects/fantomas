@@ -371,8 +371,11 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
     | head::rest when (head.TokenInfo.TokenName = "STRING_TEXT") ->
         let stringTokens =
             rest
-            |> List.takeWhile (fun ({TokenInfo = {TokenName = tn}}) -> tn = "STRING_TEXT" || tn = "STRING")
-            |> fun others -> List.prependItem others head
+            |> List.takeWhile (fun ({TokenInfo = {TokenName = tn}}) -> tn = "STRING_TEXT")
+            |> fun others ->
+                let length = List.length others
+                let closingQuote = rest.[length]
+                [ yield head; yield! others; yield closingQuote ]
 
         let stringContent =
             let builder = StringBuilder()
