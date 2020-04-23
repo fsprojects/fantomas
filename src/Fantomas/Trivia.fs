@@ -343,6 +343,7 @@ let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNo
                 match t.Type with
                 | MainNode("SynExpr.Ident")
                 | MainNode("SynPat.Named")
+                | MainNode("SynPat.LongIdent")
                 | MainNode("Ident") -> true
                 | _ -> false
             isIdent && (t.Range.StartColumn = range.StartColumn || t.Range.StartColumn = range.StartColumn + 1) && t.Range.StartLine = range.StartLine
