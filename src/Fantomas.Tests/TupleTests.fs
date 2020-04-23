@@ -12,16 +12,18 @@ let private carouselSample =
     FunctionComponent.Of<obj>(fun _ ->
         fragment [] []
     ,"CarouselSample")
-"""  config
+"""  ({ config with MaxLetBindingWidth = 75 })
     |> should equal """let private carouselSample = FunctionComponent.Of<obj>((fun _ -> fragment [] []), "CarouselSample")
 """
 
 [<Test>]
 let ``multiline item in tuple - paren on its line`` () =
     formatSourceString false """(x,
- if true then 1
- else 2)
+ if longExpressionMakingTheIfElseMultiline && a then answerWhenTheConditionIsTrue
+ else answerWhenTheConditionIsFalse)
 """  config
     |> should equal """(x,
- (if true then 1 else 2))
+ (if longExpressionMakingTheIfElseMultiline && a
+  then answerWhenTheConditionIsTrue
+  else answerWhenTheConditionIsFalse))
 """

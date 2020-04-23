@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1.4.0
       with:
@@ -31,3 +31,6 @@ jobs:
     - name: "trigger fantomas-ui preview-ng pipeline"
       if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/trivia'
       run: curl -X POST -F token=${{secrets.FANTOMAS_UI_TOKEN}} -F ref=preview-ng -F "variables[TRIGGER]=true" https://gitlab.com/api/v4/projects/8920076/trigger/pipeline
+    - name: "trigger fantomas-tools action"
+      if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/master'
+      run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-master\"}' https://api.github.com/repos/nojaf/fantomas-tools/dispatches"

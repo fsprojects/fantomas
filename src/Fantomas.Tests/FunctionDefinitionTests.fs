@@ -27,7 +27,6 @@ type C () =
     |> prepend newline
     |> should equal """
 type C() =
-
     let rec g x = h x
     and h x = g x
 
@@ -185,7 +184,6 @@ let ``should not add spaces into a series of function application``() =
     formatSourceString false """let f x = "d"
 f(1).Contains("3")""" config
     |> should equal """let f x = "d"
-
 f(1).Contains("3")
 """
 
@@ -305,17 +303,16 @@ f(42).Length
     |> prepend newline
     |> should equal """
 let f x = "foo"
-
 f(42).Length
 """
 
 [<Test>]
 let ``do add spaces for function application inside parentheses inside dot access``() =
-    formatSourceString false """let inputBlah = "So, I was like, Visual Studio did wat!?"
+    formatSourceString false """let inputBlah = "So, I was like, Visual Studio did wat"
 let someBlahing = (Blah.TryCreate inputBlah).Value"""  config
     |> prepend newline
     |> should equal """
-let inputBlah = "So, I was like, Visual Studio did wat!?"
+let inputBlah = "So, I was like, Visual Studio did wat"
 let someBlahing = (Blah.TryCreate inputBlah).Value
 """
 
@@ -354,7 +351,10 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
     match anyErrors with
     | true -> Error collectedErrors
     | false -> Ok collectedOutputs
-"""  ({ config with PageWidth = 100; SpaceBeforeColon = true })
+"""  ({ config with
+            PageWidth = 100
+            SpaceBeforeColon = true
+            MaxInfixOperatorExpression = 70 })
     |> prepend newline
     |> should equal """
 let fold
@@ -373,6 +373,7 @@ let fold
             anyErrors <- true
             collectedErrors <- error :: collectedErrors
         | Ok output -> collectedOutputs <- output :: collectedOutputs
+
     funcs |> Seq.iter (fun validator -> runValidator validator input)
     match anyErrors with
     | true -> Error collectedErrors
@@ -410,4 +411,108 @@ let internal UpdateStrongNaming
 
 let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
     assembly.Name
+"""
+
+[<Test>]
+let ``long function definition should put equals and body on a newline, 740`` () =
+    formatSourceString false """
+module FormatCode =
+
+    let private format filename code config =
+        let checker = Fantomas.FakeHelpers.sharedChecker.Force()
+        let options = Fantomas.FakeHelpers.createParsingOptionsFromFile filename
+        let source = SourceOrigin.SourceString code
+        CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
+
+    [<FunctionName("FormatCode")>]
+    let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest) (log: ILogger) = Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+"""  config
+    |> prepend newline
+    |> should equal """
+module FormatCode =
+
+    let private format filename code config =
+        let checker =
+            Fantomas.FakeHelpers.sharedChecker.Force()
+
+        let options =
+            Fantomas.FakeHelpers.createParsingOptionsFromFile filename
+
+        let source = SourceOrigin.SourceString code
+        CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
+
+    [<FunctionName("FormatCode")>]
+    let run
+        ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+        (log: ILogger)
+        =
+        Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+"""
+
+[<Test>]
+let ``long function definition with return type should have multiline signature`` () =
+    formatSourceString false """
+module FormatCode =
+
+    let private format filename code config =
+        let checker = Fantomas.FakeHelpers.sharedChecker.Force()
+        let options = Fantomas.FakeHelpers.createParsingOptionsFromFile filename
+        let source = SourceOrigin.SourceString code
+        CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
+
+    [<FunctionName("FormatCode")>]
+    let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest) (log: ILogger) : HttpResponse = Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+"""  config
+    |> prepend newline
+    |> should equal """
+module FormatCode =
+
+    let private format filename code config =
+        let checker =
+            Fantomas.FakeHelpers.sharedChecker.Force()
+
+        let options =
+            Fantomas.FakeHelpers.createParsingOptionsFromFile filename
+
+        let source = SourceOrigin.SourceString code
+        CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
+
+    [<FunctionName("FormatCode")>]
+    let run
+        ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+        (log: ILogger)
+        : HttpResponse
+        =
+        Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+"""
+
+[<Test>]
+let ``long function signature, 492`` () =
+    formatSourceString false """
+let private addTaskToScheduler (scheduler : IScheduler) taskName taskCron prio (task : unit -> unit) groupName =
+        let mutable jobDataMap = JobDataMap()
+        jobDataMap.["task"] <- task
+        let job =
+            JobBuilder.Create<WrapperJob>().UsingJobData(jobDataMap)
+                .WithIdentity(taskName, groupName).Build()
+        1
+"""  ({ config with PageWidth = 100 })
+    |> prepend newline
+    |> should equal """
+let private addTaskToScheduler
+    (scheduler: IScheduler)
+    taskName
+    taskCron
+    prio
+    (task: unit -> unit)
+    groupName
+    =
+    let mutable jobDataMap = JobDataMap()
+    jobDataMap.["task"] <- task
+
+    let job =
+        JobBuilder.Create<WrapperJob>().UsingJobData(jobDataMap).WithIdentity(taskName, groupName)
+            .Build()
+
+    1
 """

@@ -13,6 +13,42 @@ if foo then bar
 """
 
 [<Test>]
+let ``if without else, if is longer`` () =
+    formatSourceString false """
+if foooooooooooooooooooooooooooooooooooooooooooo
+then bar
+"""  config
+    |> prepend newline
+    |> should equal """
+if foooooooooooooooooooooooooooooooooooooooooooo
+then bar
+"""
+
+[<Test>]
+let ``if without else, then is longer`` () =
+    formatSourceString false """
+if foo then baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar
+"""  config
+    |> prepend newline
+    |> should equal """
+if foo
+then baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar
+"""
+
+[<Test>]
+let ``multiline if without else`` () =
+    formatSourceString false """
+if foo && bar && meh then aha
+"""  ({ config with MaxInfixOperatorExpression = 5 })
+    |> prepend newline
+    |> should equal """
+if foo
+   && bar
+   && meh then
+    aha
+"""
+
+[<Test>]
 let ``single line if/then/else`` () =
     formatSourceString false "if a then b else c" config
     |> prepend newline
@@ -664,7 +700,7 @@ elif strA.String == strB.String && strA.Offset = strB.Offset then
 
 else
     -1
-"""  config
+"""  ({ config with MaxInfixOperatorExpression = 55 })
     |> prepend newline
     |> should equal """
 if strA.Length = 0 && strB.Length = 0 then
@@ -868,4 +904,15 @@ module String =
         else if String.length a' < String.length b' then a'
         else if String.length a' > String.length b' then b'
         else b'
+"""
+
+[<Test>]
+let ``comment after then in if/then, 730`` () =
+    formatSourceString false """if true then // comment
+    ()
+"""  config
+    |> prepend newline
+    |> should equal """
+if true then // comment
+    ()
 """

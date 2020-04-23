@@ -1,3 +1,6 @@
+### 4.0.0-alpha-001 - xx/2020
+* Remove ReorderOpenDeclaration
+
 ### 3.3.0 - 02/2020
 
 * Support for `and!`. [#690](https://github.com/fsprojects/fantomas/issues/690)

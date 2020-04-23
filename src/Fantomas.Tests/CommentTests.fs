@@ -45,6 +45,7 @@ let print_30_permut () =
         Array.init n (fun i ->
             Console.Write(i + 1)
             i)
+
     permutation
 """
 
@@ -66,6 +67,7 @@ let print_30_permut () =
         Array.init n (fun (i, j) ->
             Console.Write(i + 1)
             i)
+
     permutation
 """
 
@@ -435,7 +437,6 @@ type C () =
     |> prepend newline
     |> should equal """
 type C() =
-
     let rec g x = h x
     and h x = g x
 
@@ -588,7 +589,7 @@ type substring =
                 strB.String, strB.Offset,
                 min strA.Length strB.Length)
 #endif
-"""  config
+"""  ({ config with MaxInfixOperatorExpression = 60 })
     |> should equal """(*
 
 Copyright 2010-2012 TidePowerd Ltd.
@@ -661,7 +662,12 @@ type substring =
             // NOTE: we don't have to null check here because System.String.Compare
             // gives reliable results on null values.
             System.String.Compare
-                (strA.String, strA.Offset, strB.String, strB.Offset, min strA.Length strB.Length, false,
+                (strA.String,
+                 strA.Offset,
+                 strB.String,
+                 strB.Offset,
+                 min strA.Length strB.Length,
+                 false,
                  CultureInfo.InvariantCulture)
 #else
             // NOTE: we don't have to null check here because System.String.CompareOrdinal

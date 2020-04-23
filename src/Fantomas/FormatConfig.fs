@@ -25,11 +25,14 @@ type FormatConfig =
       SpaceBeforeSemicolon : bool
       SpaceAfterSemicolon : bool
       IndentOnTryWith : bool
-      /// Reordering and deduplicating open statements
-      ReorderOpenDeclaration : bool
       SpaceAroundDelimiter : bool
-      KeepNewlineAfter : bool
       MaxIfThenElseShortWidth: Num
+      MaxInfixOperatorExpression: Num
+      MaxRecordWidth: Num
+      MaxArrayOrListWidth: Num
+      MaxLetBindingWidth: Num
+      MultilineBlockBracketsOnSameColumn : bool
+      NewlineBetweenTypeDefinitionAndMembers: bool
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -47,11 +50,15 @@ type FormatConfig =
           SpaceBeforeSemicolon = false
           SpaceAfterSemicolon = true
           IndentOnTryWith = false
-          ReorderOpenDeclaration = false
           SpaceAroundDelimiter = true
-          KeepNewlineAfter = false
           MaxIfThenElseShortWidth = 40
-          StrictMode = false }
+          MaxInfixOperatorExpression = 50
+          MaxRecordWidth = 40
+          MaxArrayOrListWidth = 40
+          MaxLetBindingWidth = 40
+          MultilineBlockBracketsOnSameColumn = false
+          StrictMode = false
+          NewlineBetweenTypeDefinitionAndMembers = false }
 
     static member applyOptions(currentConfig, options) =
         let currentValues = Reflection.getRecordFields currentConfig
@@ -67,4 +74,3 @@ type FormatConfigFileParseResult =
     | Success of FormatConfig
     | PartialSuccess of config: FormatConfig * warnings: string list
     | Failure of exn
-

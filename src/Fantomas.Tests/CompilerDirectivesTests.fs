@@ -51,9 +51,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 """  config
     |> should equal """#if INTERACTIVE
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
-
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
-
 #load "__setup__.fsx"
 #endif
 """
@@ -71,9 +69,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
     |> should equal """#if INTERACTIVE
 #else
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
-
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
-
 #load "__setup__.fsx"
 #endif
 """
@@ -173,6 +169,29 @@ let [<Literal>] private assemblyConfig() =
 let private assemblyConfig () =
 #if TRACE
     let x = ""
+#else
+    let x = "x"
+#endif
+    x
+"""
+
+[<Test>]
+let ``should break lines before compiler directives, no defines``() =
+    formatSourceStringWithDefines [] """
+let [<Literal>] private assemblyConfig() =
+  #if TRACE
+  let x = ""
+  #else
+  let x = "x"
+  #endif
+  x
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Literal>]
+let private assemblyConfig () =
+#if TRACE
+
 #else
     let x = "x"
 #endif
@@ -381,7 +400,7 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
     | Some key' -> assemblyName.HasPublicKey <- true
                    assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
-"""  config
+"""  ({ config with MaxInfixOperatorExpression = 75 })
     |> should equal """let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
     let assemblyName = assembly.Name
 #if NETCOREAPP2_0
@@ -442,7 +461,6 @@ open Fable.Core
 open Fable.Core.JsInterop
 
 type FunctionComponent<'Props> = 'Props -> ReactElement
-
 type LazyFunctionComponent<'Props> = 'Props -> ReactElement
 
 type FunctionComponent =
@@ -456,6 +474,7 @@ type FunctionComponent =
             ReactBindings.React.``lazy`` (fun () ->
                 // React.lazy requires a default export
                 (importValueDynamic f).``then``(fun x -> createObj [ "default" ==> x ]))
+
         fun props ->
             ReactElementType.create ReactBindings.React.Suspense (createObj [ "fallback" ==> fallback ])
                 [ ReactElementType.create elemType props [] ]
@@ -509,7 +528,6 @@ open Fable.Core
 open Fable.Core.JsInterop
 
 type FunctionComponent<'Props> = 'Props -> ReactElement
-
 type LazyFunctionComponent<'Props> = 'Props -> ReactElement
 
 type FunctionComponent =
@@ -579,7 +597,6 @@ open Fable.Core
 open Fable.Core.JsInterop
 
 type FunctionComponent<'Props> = 'Props -> ReactElement
-
 type LazyFunctionComponent<'Props> = 'Props -> ReactElement
 
 type FunctionComponent =
@@ -646,7 +663,6 @@ open Fable.Core
 open Fable.Core.JsInterop
 
 type FunctionComponent<'Props> = 'Props -> ReactElement
-
 type LazyFunctionComponent<'Props> = 'Props -> ReactElement
 
 type FunctionComponent =
@@ -660,6 +676,7 @@ type FunctionComponent =
             ReactBindings.React.``lazy`` (fun () ->
                 // React.lazy requires a default export
                 (importValueDynamic f).``then``(fun x -> createObj [ "default" ==> x ]))
+
         fun props ->
             ReactElementType.create ReactBindings.React.Suspense (createObj [ "fallback" ==> fallback ])
                 [ ReactElementType.create elemType props [] ]
@@ -886,6 +903,7 @@ do  ()
 
 #endif
 [<assembly:Meh>]
+
 do ()
 """
 
@@ -905,6 +923,7 @@ do  ()
 [<assembly:Bar>]
 #endif
 [<assembly:Meh>]
+
 do ()
 """
 
@@ -1004,6 +1023,26 @@ let foo =
     |> List.sort
 #if DEBUG
     |> List.rev
+#endif
+    |> List.sort
+"""
+
+[<Test>]
+let ``preserve compile directive between piped functions, DEBUG`` () =
+    formatSourceStringWithDefines [] """let foo = [ 1 ]
+            |> List.sort
+#if DEBUG
+            |> List.rev
+#endif
+            |> List.sort
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo =
+    [ 1 ]
+    |> List.sort
+#if DEBUG
+
 #endif
     |> List.sort
 """
@@ -1153,4 +1192,176 @@ type internal Close =
   | ProcessExit
   | Pause
   | Resume
+"""
+
+
+[<Test>]
+let ``namespace global mixed with hash directives, no directives`` () =
+    formatSourceStringWithDefines [] """namespace global
+
+#if DEBUG
+
+module Dbg =
+
+    open System
+    open System.Text
+
+    let seq fn = Seq.iter fn
+
+    let iff condition fn = if condition() then fn()
+
+    let tee fn a =
+        fn a
+        a
+
+    let teePrint x = tee (printfn "%A") x
+    let print x = printfn "%A" x
+#else
+module Dbg =
+    let tee (f: 'a -> unit) (x: 'a) = x
+    let teePrint x = x
+    let print _ = ()
+#endif
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace global
+
+#if DEBUG
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#else
+module Dbg =
+    let tee (f: 'a -> unit) (x: 'a) = x
+    let teePrint x = x
+    let print _ = ()
+#endif
+"""
+
+[<Test>]
+let ``namespace global mixed with hash directives, DEBUG`` () =
+    formatSourceStringWithDefines ["DEBUG"] """namespace global
+
+#if DEBUG
+
+module Dbg =
+
+    open System
+    open System.Text
+
+    let seq fn = Seq.iter fn
+
+    let iff condition fn = if condition() then fn()
+
+    let tee fn a =
+        fn a
+        a
+
+    let teePrint x = tee (printfn "%A") x
+    let print x = printfn "%A" x
+#else
+module Dbg =
+    let tee (f: 'a -> unit) (x: 'a) = x
+    let teePrint x = x
+    let print _ = ()
+#endif
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace global
+
+#if DEBUG
+
+module Dbg =
+
+    open System
+    open System.Text
+
+    let seq fn = Seq.iter fn
+
+    let iff condition fn = if condition () then fn ()
+
+    let tee fn a =
+        fn a
+        a
+
+    let teePrint x = tee (printfn "%A") x
+    let print x = printfn "%A" x
+#else
+
+
+
+
+#endif
+"""
+
+[<Test>]
+let ``namespace global mixed with hash directives, 681`` () =
+    formatSourceString false """namespace global
+
+#if DEBUG
+
+module Dbg =
+
+    open System
+    open System.Text
+
+    let seq fn = Seq.iter fn
+
+    let iff condition fn = if condition() then fn()
+
+    let tee fn a =
+        fn a
+        a
+
+    let teePrint x = tee (printfn "%A") x
+    let print x = printfn "%A" x
+#else
+module Dbg =
+    let tee (f: 'a -> unit) (x: 'a) = x
+    let teePrint x = x
+    let print _ = ()
+#endif
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace global
+
+#if DEBUG
+
+module Dbg =
+
+    open System
+    open System.Text
+
+    let seq fn = Seq.iter fn
+
+    let iff condition fn = if condition () then fn ()
+
+    let tee fn a =
+        fn a
+        a
+
+    let teePrint x = tee (printfn "%A") x
+    let print x = printfn "%A" x
+#else
+module Dbg =
+    let tee (f: 'a -> unit) (x: 'a) = x
+    let teePrint x = x
+    let print _ = ()
+#endif
 """

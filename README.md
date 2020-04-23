@@ -5,7 +5,7 @@ Fantomas
 
 F# source code formatter, inspired by [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://github.com/acdha/PythonTidy) for Python.
 
-[![Build Status Github Actions](https://github.com/fsprojects/fantomas/workflows/Build%20master/badge.svg)](https://github.com/fsprojects/fantomas/actions)
+[![Build Status Github Actions](https://github.com/fsprojects/fantomas/workflows/Build%20master/badge.svg?branch=master&event=push)](https://github.com/fsprojects/fantomas/actions)
 [![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/nojaf/fantomas)](https://ci.appveyor.com/project/nojaf/fantomas) [![Join the chat at https://gitter.im/fsprojects/fantomas](https://badges.gitter.im/fsprojects/fantomas.svg)](https://gitter.im/fsprojects/fantomas?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## How to use
@@ -33,7 +33,7 @@ open Fake.IO.Globbing.Operators
 open Fantomas.FakeHelpers
 open Fantomas.FormatConfig
 
-let fantomasConfig = { FormatConfig.Default with ReorderOpenDeclaration = true }
+let fantomasConfig = { FormatConfig.Default with PageWidth = 140 }
 
 Target.create "CheckCodeFormat" (fun _ ->
     !!"*.fs"
@@ -277,7 +277,7 @@ rewriting it according to the provided formatting options.
 #### The `FormatConfig` type: format settings
 Settings such as :
  - indent values in spaces
- - reorder open declarations
+ - maximum page width
  - ...
 
 See [CodePrinter.fs](src/Fantomas/CodePrinter.fs).
@@ -335,7 +335,7 @@ This might be a bit strange but you need to press play in order for the debugger
 
 ![Hit the breakpoint](./docs/fantomas-debug-vscode-3.png)
 
-Check out this [video fragment]() to see this in action.
+Check out this [video fragment](https://youtu.be/axHIazqiO9E?t=65) to see this in action.
 
 ## Credits
 We would like to gratefully thank the following persons for their contributions.

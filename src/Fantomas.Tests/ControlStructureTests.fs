@@ -26,8 +26,7 @@ then printfn "You are only %d years old and already learning F#? Wow!" age""" co
     |> should equal """
 let rec tryFindMatch pred list =
     match list with
-    | head :: tail ->
-        if pred (head) then Some(head) else tryFindMatch pred tail
+    | head :: tail -> if pred (head) then Some(head) else tryFindMatch pred tail
     | [] -> None
 
 let test x y =
@@ -36,7 +35,8 @@ let test x y =
     else if x > y then "is greater than"
     else "Don't know"
 
-if age < 10 then printfn "You are only %d years old and already learning F#? Wow!" age
+if age < 10
+then printfn "You are only %d years old and already learning F#? Wow!" age
 """
 
 [<Test>]
@@ -198,9 +198,7 @@ let ``keyworded expressions``() =
     |> prepend newline
     |> should equal """
 assert (3 > 2)
-
 let result = lazy (x + 10)
-
 do printfn "Hello world"
 """
 
