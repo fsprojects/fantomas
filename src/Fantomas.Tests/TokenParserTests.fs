@@ -446,3 +446,69 @@ let a = \"\"\"fo\"o\"\"\"
 "
 
     getDefines source == ["FOO"]
+    
+[<Test>]
+let ``defines inside string`` () =
+    let source = "
+let a = \"
+#if FOO
+#if BAR
+#endif
+#endif
+\"
+"
+
+    getDefines source == []
+
+[<Test>]
+let ``defines inside string, escaped quote`` () =
+    let source = "
+let a = \"\\\"
+#if FOO
+#if BAR
+#endif
+#endif
+\"
+"
+
+    getDefines source == []
+
+
+[<Test>]
+let ``defines inside triple quote string`` () =
+    let source = "
+let a = \"\"\"
+#if FOO
+#if BAR
+#endif
+#endif
+\"\"\"
+"
+
+    getDefines source == []
+
+[<Test>]
+let ``defines inside triple quote string, escaped quote`` () =
+    let source = "
+let a = \"\"\"\\\"
+#if FOO
+#if BAR
+#endif
+#endif
+\"\"\"
+"
+
+    getDefines source == []
+
+[<Test>]
+let ``defines inside triple quote string, escaped triple quote`` () =
+    let source = "
+let a = \"\"\"\\\"\"\"
+#if FOO
+#if BAR
+#endif
+#endif
+\"\"\"
+"
+
+    getDefines source == []

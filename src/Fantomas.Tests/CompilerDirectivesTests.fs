@@ -1448,3 +1448,23 @@ let b = \"\"\"
 #endif
 \"\"\"
 "
+
+[<Test>]
+let ``hash directive in single quote string should not have impact - escaped quote`` () =
+    formatSourceString false """let a = "
+#if FOO
+\""
+let b = "
+#endif
+"
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = "
+#if FOO
+\""
+
+let b = "
+#endif
+"
+"""
