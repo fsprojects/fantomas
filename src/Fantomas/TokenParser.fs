@@ -113,7 +113,7 @@ let rec private getTokenizedHashes sourceCode =
         else
             []
 
-    let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count) % 2 = 1
+    let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
     let singleQuoteWrappedInTriple line = Regex.Match(line, "\\\"\\\"\\\".*\\\".*\\\"\\\"\\\"").Success
 
     sourceCode
@@ -151,25 +151,6 @@ let rec private getTokenizedHashes sourceCode =
     |> snd
     |> List.rev
     |> List.concat
-//    |> Array.map (fun (idx, line) ->
-//        let lineNumber  = idx + 1
-//        let fullMatchedLength = String.length line
-//        let trimmed = line.TrimStart()
-//        let offset = String.length line - String.length trimmed
-//
-//        if trimmed.StartsWith("#if") then
-//            processLine "#if" trimmed lineNumber fullMatchedLength offset
-//        elif trimmed.StartsWith("#elseif") then
-//            processLine "#elseif" trimmed lineNumber fullMatchedLength offset
-//        elif trimmed.StartsWith("#else") then
-//            processLine "#else" trimmed lineNumber fullMatchedLength offset
-//        elif trimmed.StartsWith("#endif") then
-//            processLine "#endif" trimmed lineNumber fullMatchedLength offset
-//        else
-//            []
-//    )
-//    |> Seq.collect id
-//    |> Seq.toList
 
 and tokenize defines (content : string) : Token list * int =
     let sourceTokenizer = FSharpSourceTokenizer(defines, Some "/tmp.fsx")
