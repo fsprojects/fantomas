@@ -276,6 +276,7 @@ let main argv =
             if inputFile <> outputFile then
                 fileToFile inputFile outputFile config
             else
+                printfn "Processing %s" inputFile
                 let content = File.ReadAllText inputFile
                 stringToFile content inputFile config
 
