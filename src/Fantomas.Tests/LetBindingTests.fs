@@ -468,3 +468,32 @@ let genSigModuleDeclList astContext node =
                  +> sepXsAndYs
                  +> genSigModuleDeclList astContext ys) ctx
 """
+
+[<Test>]
+let ``determine lower or uppercase in DotGet, 729`` () =
+    formatSourceString false """namespace Foo
+
+open System.Linq
+
+module Bar =
+    let Baz () =
+        for foo in bar().OfType<SomeType>() do
+            printf "baz"
+
+        for foo in bar().meh<SomeType>() do
+            printf "baz"
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Foo
+
+open System.Linq
+
+module Bar =
+    let Baz () =
+        for foo in bar().OfType<SomeType>() do
+            printf "baz"
+
+        for foo in bar().meh<SomeType> () do
+            printf "baz"
+"""
