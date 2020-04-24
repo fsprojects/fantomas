@@ -2756,13 +2756,16 @@ and genTrivia (range: range) f =
     enterNode range +> f +> leaveNode range
 
 and infixOperatorFromTrivia range fallback (ctx: Context) =
+    // by specs, section 3.4 https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=24&zoom=auto,-137,312
+    let validIdentRegex = """^(_|\p{L}|\p{Nl})([_'0-9]|\p{L}|\p{Nl}\p{Pc}|\p{Mn}|\p{Mc}|\p{Cf})*$"""
+    let isValidIdent x = Regex.Match(x, validIdentRegex).Success
     ctx.Trivia
     |> List.choose(fun t ->
         match t.Range = range with
         | true ->
             match t.ContentItself with
             | Some(IdentOperatorAsWord(iiw)) -> Some iiw
-            | Some(IdentBetweenTicks(iiw)) -> Some iiw // Used when value between ``...``
+            | Some(IdentBetweenTicks(iiw)) when not(isValidIdent fallback) -> Some iiw // Used when value between ``...``
             | _ -> None
         | _ -> None)
     |> List.tryHead
