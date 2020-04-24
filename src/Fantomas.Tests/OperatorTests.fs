@@ -395,3 +395,14 @@ module Types =
     let a = 5
 \"\"\"
 "
+
+[<Test>]
+let ``modulo operator on same line, 780`` () =
+    formatSourceString false """let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
+"""  config
+    |> prepend newline
+    |> should equal """
+let hasUnEvenAmount regex line =
+    (Regex.Matches(line, regex).Count
+     - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
+"""
