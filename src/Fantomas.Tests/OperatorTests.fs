@@ -380,12 +380,12 @@ module Types =
     |> should equal "
 [<Test>]
 let ``attribute on module after namespace`` () =
-    (formatSourceString false \"\"\"namespace SomeNamespace
+    formatSourceString false \"\"\"namespace SomeNamespace
 
 [<AutoOpen>]
 module Types =
     let a = 5
-\"\"\"   config)
+\"\"\"  config
     |> prepend newline
     |> should equal \"\"\"
 namespace SomeNamespace
@@ -406,3 +406,41 @@ let hasUnEvenAmount regex line =
     (Regex.Matches(line, regex).Count
      - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
 """
+
+[<Test>]
+let ``parameter after multiline string, 783`` () =
+    formatSourceString false "
+let ``match bang`` () =
+    formatSourceString false \"\"\"
+async {
+    match! myAsyncFunction() with
+    | Some x -> printfn \"%A\" x
+    | None -> printfn \"Function returned None!\"
+}\"\"\"   config
+    |> prepend newline
+    |> should equal \"\"\"
+async {
+    match! myAsyncFunction () with
+    | Some x -> printfn \"%A\" x
+    | None -> printfn \"Function returned None!\"
+}
+\"\"\"
+"      config
+    |> prepend newline
+    |> should equal "
+let ``match bang`` () =
+    formatSourceString false \"\"\"
+async {
+    match! myAsyncFunction() with
+    | Some x -> printfn \"%A\" x
+    | None -> printfn \"Function returned None!\"
+}\"\"\" config
+    |> prepend newline
+    |> should equal \"\"\"
+async {
+    match! myAsyncFunction () with
+    | Some x -> printfn \"%A\" x
+    | None -> printfn \"Function returned None!\"
+}
+\"\"\"
+"
