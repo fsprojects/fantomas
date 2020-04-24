@@ -1006,10 +1006,7 @@ and genExpr astContext synExpr =
             | (s,_,_)::_ when ((NoSpaceInfixOps.Contains s)) -> sepNone
             | _ -> f
 
-        let expr =
-            match e with
-            | AppWithMultilineArgument _ -> sepOpenT +> genExpr astContext e +> sepCloseT
-            | _ -> genExpr astContext e
+        let expr = genExpr astContext e
 
         atCurrentColumn
             (fun ctx ->
@@ -1139,7 +1136,7 @@ and genExpr astContext synExpr =
         // remarks: https://github.com/fsprojects/fantomas/issues/545
         let indentIfNeeded (ctx: Context) =
             let savedColumn = ctx.WriterModel.AtColumn
-            if savedColumn > ctx.Column then
+            if savedColumn >= ctx.Column then
                 // missingSpaces needs to be at least one more than the column
                 // of function expression being applied upon, otherwise (as known up to F# 4.7)
                 // this would lead to a compile error for the function application
