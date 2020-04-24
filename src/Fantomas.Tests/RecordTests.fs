@@ -910,3 +910,29 @@ let ``line comment after short anonymous record instance syntax`` () =
 """  config
     |> should equal """let formatConfig = {| PageWidth = 70; Indent = 8 |} // The number of spaces
 """
+
+[<Test>]
+let ``no newline before first multiline member`` () =
+    formatSourceString false """
+type ShortExpressionInfo =
+    { MaxWidth: int
+      StartColumn: int
+      ConfirmedMultiline: bool }
+    member x.IsTooLong maxPageWidth currentColumn =
+        currentColumn - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
+        || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
+    member x.Foo() = ()
+"""  config
+    |> prepend newline
+    |> should equal """
+type ShortExpressionInfo =
+    { MaxWidth: int
+      StartColumn: int
+      ConfirmedMultiline: bool }
+    member x.IsTooLong maxPageWidth currentColumn =
+        currentColumn
+        - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
+        || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
+
+    member x.Foo() = ()
+"""

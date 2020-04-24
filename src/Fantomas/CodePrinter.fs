@@ -2360,8 +2360,8 @@ and genClause astContext hasBar (Clause(p, e, eo) as node) =
     |> genTrivia node.Range
 
 /// Each multiline member definition has a pre and post new line.
-and genMemberDefnList astContext node =
-    match node with
+and genMemberDefnList astContext nodes =
+    match nodes with
     | MDOpenL(xs, ys) ->
         fun ctx ->
             match ys with
@@ -2377,7 +2377,7 @@ and genMemberDefnList astContext node =
             (genPropertyWithGetSet astContext gs)
             (sepNlnBeforeMultilineConstruct m.RangeOfBindingSansRhs attrs +> genPropertyWithGetSet astContext gs +> onlyIf (List.isNotEmpty rest) sepNln))
 
-        +> genMemberDefnList astContext rest
+        +> genMemberDefnList ({ astContext with IsFirstChild = false }) rest
 
     | m::rest ->
         let attrs = getRangesFromAttributesFromSynMemberDefinition m
@@ -2386,11 +2386,11 @@ and genMemberDefnList astContext node =
         +> enterNode m.Range
         +> (expressionFitsOnRestOfLine
               (genMemberDefn astContext m)
-              (sepNlnBeforeMultilineConstruct m.Range attrs
+              (onlyIfNot astContext.IsFirstChild (sepNlnBeforeMultilineConstruct m.Range attrs)
                +> genMemberDefn astContext m
                +> onlyIf (List.isNotEmpty rest) sepNln))
 
-        +> genMemberDefnList astContext rest
+        +> genMemberDefnList ({ astContext with IsFirstChild = false }) rest
 
     | _ -> sepNone
 
