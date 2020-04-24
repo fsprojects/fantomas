@@ -1362,6 +1362,8 @@ let (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr:SynExpr) =
         | Some lp -> upperOrLower lp
         | None -> LowercaseSynExpr
 
+    | SynExpr.DotGet (_,_,LongIdentWithDots(lid),_) -> upperOrLower lid
+
     | _ -> failwithf "cannot determine if synExpr %A is uppercase or lowercase" synExpr
 
 let rec isEmptySynSimplePats (ssp:SynSimplePats) =
