@@ -661,7 +661,7 @@ let internal NoSpaceInfixOps = set ["?"]
 let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 
 /// Never break into newlines on these operators
-let internal NoBreakInfixOps = set ["="; ">"; "<";]
+let internal NoBreakInfixOps = set ["="; ">"; "<"; "%"]
 
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     let currentLastLine = lastWriteEventOnLastLine ctx
