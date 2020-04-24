@@ -1,5 +1,6 @@
 module internal Fantomas.TokenParser
 
+open System.Text.RegularExpressions
 open FSharp.Compiler.AbstractIL.Internal.Library
 open System
 open System.Text
@@ -74,6 +75,10 @@ let private createHashToken lineNumber content fullMatchedLength offset =
             Tag = 0
             FullMatchedLength = fullMatchedLength } }
 
+type private SourceCodeState =
+    | Normal
+    | InsideSingleQuoteString
+    | InsideTripleQuoteString
 
 let rec private getTokenizedHashes sourceCode =
     let processLine content (trimmed:string) lineNumber fullMatchedLength offset =
@@ -91,10 +96,7 @@ let rec private getTokenizedHashes sourceCode =
         )
         |> fun rest -> (createHashToken lineNumber content fullMatchedLength offset)::rest
 
-    sourceCode
-    |> String.normalizeThenSplitNewLine
-    |> Array.indexed
-    |> Array.map (fun (idx, line) ->
+    let findDefineInLine idx line =
         let lineNumber  = idx + 1
         let fullMatchedLength = String.length line
         let trimmed = line.TrimStart()
@@ -110,9 +112,45 @@ let rec private getTokenizedHashes sourceCode =
             processLine "#endif" trimmed lineNumber fullMatchedLength offset
         else
             []
-    )
-    |> Seq.collect id
-    |> Seq.toList
+
+    let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
+    let singleQuoteWrappedInTriple line = Regex.Match(line, "\\\"\\\"\\\".*\\\".*\\\"\\\"\\\"").Success
+
+    sourceCode
+    |> String.normalizeThenSplitNewLine
+    |> Array.indexed
+    |> Array.fold (fun (state, defines) (idx, line) ->
+        let hasTripleQuotes = hasUnEvenAmount "\"\"\"" line
+        let hasSingleQuote =
+            (not hasTripleQuotes)
+            && (hasUnEvenAmount "\"" line)
+            && not (singleQuoteWrappedInTriple line)
+
+        match state with
+        | Normal when (hasTripleQuotes) ->
+            InsideTripleQuoteString, defines
+        | Normal when (hasSingleQuote) ->
+            InsideSingleQuoteString, defines
+        | Normal when (not hasTripleQuotes && not hasSingleQuote) ->
+            Normal, (findDefineInLine idx line)::defines
+
+        | InsideTripleQuoteString when (not hasTripleQuotes) ->
+            InsideTripleQuoteString, defines
+        | InsideTripleQuoteString when hasTripleQuotes ->
+            Normal, defines
+
+        | InsideSingleQuoteString when (not hasSingleQuote) ->
+            InsideSingleQuoteString, defines
+        | InsideSingleQuoteString when (hasSingleQuote) ->
+            Normal, defines
+
+        | _ ->
+            failwithf "unexpected %A" state
+
+    )(Normal, [])
+    |> snd
+    |> List.rev
+    |> List.concat
 
 and tokenize defines (content : string) : Token list * int =
     let sourceTokenizer = FSharpSourceTokenizer(defines, Some "/tmp.fsx")

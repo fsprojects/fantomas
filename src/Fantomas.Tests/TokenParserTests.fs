@@ -414,3 +414,101 @@ let ``escaped char content`` () =
     | [{ Item = CharContent("\'\\u0000\'") }] ->
         pass()
     | _ -> fail()
+
+[<Test>]
+let ``open close of string on same line`` () =
+    let source = "
+let a = \"\"
+#if FOO
+#if BAR
+#endif
+#endif
+"
+
+    getDefines source == ["FOO";"BAR"]
+
+[<Test>]
+let ``open close of triple quote string on same line`` () =
+    let source = "
+let a = \"\"\"foo\"\"\"
+#if FOO
+#endif
+"
+
+    getDefines source == ["FOO"]
+
+[<Test>]
+let ``open, quote, close of triple quote string on same line`` () =
+    let source = "
+let a = \"\"\"fo\"o\"\"\"
+#if FOO
+#endif
+"
+
+    getDefines source == ["FOO"]
+    
+[<Test>]
+let ``defines inside string`` () =
+    let source = "
+let a = \"
+#if FOO
+#if BAR
+#endif
+#endif
+\"
+"
+
+    getDefines source == []
+
+[<Test>]
+let ``defines inside string, escaped quote`` () =
+    let source = "
+let a = \"\\\"
+#if FOO
+#if BAR
+#endif
+#endif
+\"
+"
+
+    getDefines source == []
+
+
+[<Test>]
+let ``defines inside triple quote string`` () =
+    let source = "
+let a = \"\"\"
+#if FOO
+#if BAR
+#endif
+#endif
+\"\"\"
+"
+
+    getDefines source == []
+
+[<Test>]
+let ``defines inside triple quote string, escaped quote`` () =
+    let source = "
+let a = \"\"\"\\\"
+#if FOO
+#if BAR
+#endif
+#endif
+\"\"\"
+"
+
+    getDefines source == []
+
+[<Test>]
+let ``defines inside triple quote string, escaped triple quote`` () =
+    let source = "
+let a = \"\"\"\\\"\"\"
+#if FOO
+#if BAR
+#endif
+#endif
+\"\"\"
+"
+
+    getDefines source == []
