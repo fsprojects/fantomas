@@ -217,13 +217,10 @@ let ``preserve compile directive between piped functions, 512`` () = ...
 When upgrading the [FSharp.Compiler.Service](https://www.nuget.org/packages/FSharp.Compiler.Service/) please consider the following order:
 
 - Make sure [the latest documentation](https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-ast.html) is available.
-- Update Fantomas (this repository, part 1): Update the dependency, correct any compilation errors and update [AstTransformer](.\src\Fantomas\AstTransformer.fs) if needed.
-- Update [AST Viewer](https://gitlab.com/jindraivanek/ast-viewer)
-- Update [F# Tokens](https://github.com/nojaf/fsharp-tokens)
-- Update [Trivia Viewer](https://nojaf.github.io/trivia-tool/)
-- Update [Fantomas UI preview branch](https://gitlab.com/jindraivanek/fantomas-ui/tree/preview)
-- Update Fantomas (this repository, part 2): Create issues with Fantomas UI that cover new syntax.
-- After a release on NuGet, update [Fantomas UI master branch](https://gitlab.com/jindraivanek/fantomas-ui/tree/master)
+- Update Fantomas (this repository, part 1): Update the dependency, correct any compilation errors and update [AstTransformer](src\Fantomas\AstTransformer.fs) if needed.
+- Update [Fantomas Tools, group Server](https://github.com/fsprojects/fantomas-tools)
+- Update Fantomas (this repository, part 2): Create issues with [Fantomas Online](https://fsprojects.github.io/fantomas-tools/#/fantomas/preview) that cover new syntax.
+- After a release on NuGet, update [Fantomas Tools, group Latest](https://github.com/fsprojects/fantomas-tools)
 
 This doesn't mean that one person should do all the work ;)
 
