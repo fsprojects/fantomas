@@ -3,14 +3,26 @@ module Fantomas.CoreGlobalTool.Tests.TestHelpers
 open System
 open System.Diagnostics
 open System.IO
+open System.Text
 
-type TemporaryFileCodeSample internal (codeSnippet: string) =
+type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: bool) =
+    let hasByteOrderMark = defaultArg hasByteOrderMark false
     let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
-    do File.WriteAllText(filename, codeSnippet)
+    do (if hasByteOrderMark
+        then File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
+        else File.WriteAllText(filename, codeSnippet))
 
     member _.Filename: string = filename
     interface IDisposable with
         member this.Dispose(): unit = File.Delete(filename)
+
+type OutputFile internal () =
+    let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
+    member _.Filename: string = filename
+    interface IDisposable with
+        member this.Dispose(): unit =
+            if File.Exists(filename) then
+                File.Delete(filename)
 
 let private runFantomasTool arguments =
     let pwd = Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
@@ -37,3 +49,10 @@ let private runFantomasTool arguments =
 let checkCode file =
     let arguments = sprintf "--check \"%s\"" file
     runFantomasTool arguments
+
+let formatCode file =
+    runFantomasTool file
+
+let formatCodeToFile sourceFile destinationFile =
+    sprintf "--out %s %s" destinationFile sourceFile
+    |> runFantomasTool
