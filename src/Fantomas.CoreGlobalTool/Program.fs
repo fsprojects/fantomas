@@ -70,6 +70,8 @@ let rec allFiles isRec path =
     Directory.GetFiles(path, "*.*", searchOption)
     |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
 
+/// Fantomas assumes the input files are UTF-8
+/// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
 let private hasByteOrderMark file =
     if File.Exists(file) then
         let preamble = Encoding.UTF8.GetPreamble()
