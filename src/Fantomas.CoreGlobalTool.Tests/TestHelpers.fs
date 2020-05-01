@@ -24,7 +24,7 @@ type OutputFile internal () =
             if File.Exists(filename) then
                 File.Delete(filename)
 
-let private runFantomasTool arguments =
+let runFantomasTool arguments =
     let pwd = Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
     let configuration =
         #if DEBUG
@@ -49,10 +49,3 @@ let private runFantomasTool arguments =
 let checkCode file =
     let arguments = sprintf "--check \"%s\"" file
     runFantomasTool arguments
-
-let formatCode file =
-    runFantomasTool file
-
-let formatCodeToFile sourceFile destinationFile =
-    sprintf "--out %s %s" destinationFile sourceFile
-    |> runFantomasTool
