@@ -1254,8 +1254,8 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
     | SynMemberSig.ValField(f, _) -> MSValField f
     | SynMemberSig.NestedType(tds, _) -> MSNestedType tds
 
-let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull (s,_)), tds, t, vi, _, _, px, ao, _, _)) =
-    (ats, px, ao, s, t, vi, tds)
+let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull (s,_)), tds, t, vi, isInline, _, px, ao, _, _)) =
+    (ats, px, ao, s, t, vi, isInline, tds)
 
 // Misc
 
