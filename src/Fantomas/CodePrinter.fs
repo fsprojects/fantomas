@@ -278,9 +278,25 @@ and genSigModuleDeclList astContext node =
 and genModuleDecl astContext (node: SynModuleDecl) =
     match node with
     | Attributes(ats) ->
-        col sepNone ats
-            (fun a -> col sepNln a.Attributes (genAttribute astContext)
-                      |> genTrivia a.Range)
+        fun ctx ->
+            let attributesExpr =
+                // attributes can have trivia content before or after
+                // we do extra detection to ensure no additional newline is introduced
+                // first attribute should not have a newline anyway
+                List.fold (fun (prevContentAfterPresent, prevExpr) (a: SynAttributeList) ->
+                    let expr =
+                        ifElse prevContentAfterPresent sepNone (sepNlnConsideringTriviaContentBefore a.Range)
+                        +> ((col sepNln a.Attributes (genAttribute astContext)) |> genTrivia a.Range)
+
+                    let hasContentAfter =
+                        TriviaHelpers.``has content after after that matches``
+                            (fun tn -> tn.Range = a.Range)
+                            (function | Directive(_) -> true | _ -> false)
+                            ctx.Trivia
+                    (hasContentAfter, prevExpr +> expr)
+                ) (true, sepNone) ats
+                |> snd
+            (attributesExpr +> dumpAndContinue) ctx
     | DoExpr(e) ->
         genExpr astContext e
     | Exception(ex) ->
@@ -696,7 +712,7 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
              )
         <| ctx
 
-and genVal astContext (Val(ats, px, ao, s, t, vi, _) as node) =
+and genVal astContext (Val(ats, px, ao, s, t, vi, isInline, _) as node) =
     let range, synValTyparDecls  =
         match node with
         | ValSpfn(_,_, synValTyparDecls,_,_,_,_,_,_,_,range) -> range, synValTyparDecls
@@ -709,10 +725,14 @@ and genVal astContext (Val(ats, px, ao, s, t, vi, _) as node) =
     let (FunType namedArgs) = (t, vi)
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> atCurrentColumn (indent -- "val " +> opt sepSpace ao genAccess -- s
+    +> atCurrentColumn (indent -- "val "
+                        +> onlyIf isInline (!- "inline ")
+                        +> opt sepSpace ao genAccess -- s
                         +> genericParams
                         +> addSpaceAfterGenericConstructBeforeColon
-                        +> sepColon +> genTypeList astContext namedArgs +> unindent)
+                        +> sepColon
+                        +> ifElse (List.isNotEmpty namedArgs) (genTypeList astContext namedArgs) (genConstraints astContext t)
+                        +> unindent)
     |> genTrivia range
 
 and genRecordFieldName astContext (RecordFieldName(s, eo) as node) =
@@ -2122,18 +2142,35 @@ and genMemberSig astContext node =
         | SynMemberSig.NestedType(_,r) -> r
 
     match node with
-    | MSMember(Val(ats, px, ao, s, t, vi, _), mf) ->
+    | MSMember(Val(ats, px, ao, s, t, vi, _, ValTyparDecls(tds, _, tcs)), mf) ->
         let (FunType namedArgs) = (t, vi)
+        let sepColonX =
+            match tds with
+            | [] -> sepColon
+            | _ -> sepColonWithSpacesFixed
+
         genPreXmlDoc px +> genAttributes astContext ats
         +> atCurrentColumn (indent +> genMemberFlags { astContext with InterfaceRange = None } mf +> opt sepSpace ao genAccess
                                    +> ifElse (s = "``new``") (!- "new") (!- s)
-                                   +> sepColon +> genTypeList astContext namedArgs +> unindent)
+                                   +> genTypeParamPostfix astContext tds tcs
+                                   +> sepColonX
+                                   +> genTypeList astContext namedArgs
+                                   +> genConstraints astContext t
+                                   +> unindent)
 
     | MSInterface t -> !- "interface " +> genType astContext false t
     | MSInherit t -> !- "inherit " +> genType astContext false t
     | MSValField f -> genField astContext "val " f
     | MSNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
     |> genTrivia range
+
+and genConstraints astContext (t: SynType) =
+    match t with
+    | TWithGlobalConstraints(t, tcs) ->
+        genTypeByLookup astContext t
+        +> onlyIf (List.isNotEmpty tcs) (!- " when ")
+        +> col sepSpace tcs (genTypeConstraint astContext)
+    | _ -> sepNone
 
 and genTyparDecl astContext (TyparDecl(ats, tp)) =
     genOnelinerAttributes astContext ats +> genTypar astContext tp

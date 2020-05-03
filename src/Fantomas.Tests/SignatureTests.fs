@@ -511,3 +511,30 @@ type CodeFormatter =
     static member ParseAsync: fileName:string * source:SourceOrigin * parsingOptions:FSharpParsingOptions * checker:FSharpChecker
          -> Async<(ParsedInput * string list) array>
 """
+
+[<Test>]
+let ``type restrictions, 797`` () =
+    formatSourceString true """namespace Foo
+
+type internal Foo2 =
+  abstract member Bar<'k> : unit -> unit when 'k : comparison
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Foo
+
+type internal Foo2 =
+    member Bar<'k> : unit -> unit when 'k: comparison
+"""
+
+[<Test>]
+let ``operator with constraint`` () =
+    formatSourceString true """namespace Bar
+    val inline (.+.) : x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b) : (static member (+) : ^a * ^b -> ^c)
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Bar
+
+val inline (.+.): x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b): (static member (+): ^a * ^b -> ^c)
+"""
