@@ -1548,3 +1548,22 @@ let d = list.[^1..] // 4,5
 let e = list.[^0..] // 5
 let f = list.[^2..^1] // 3,4
 """
+
+[<Test>]
+let ``calling indexed item in list, 798`` () =
+    formatSourceString false """namespace Foo
+
+type T = { A : (unit -> unit) array }
+module F =
+  let f (a : T) =
+    a.A.[0] ()
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Foo
+
+type T = { A: (unit -> unit) array }
+
+module F =
+    let f (a: T) = a.A.[0]()
+"""

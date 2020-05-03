@@ -278,9 +278,25 @@ and genSigModuleDeclList astContext node =
 and genModuleDecl astContext (node: SynModuleDecl) =
     match node with
     | Attributes(ats) ->
-        col sepNone ats
-            (fun a -> col sepNln a.Attributes (genAttribute astContext)
-                      |> genTrivia a.Range)
+        fun ctx ->
+            let attributesExpr =
+                // attributes can have trivia content before or after
+                // we do extra detection to ensure no additional newline is introduced
+                // first attribute should not have a newline anyway
+                List.fold (fun (prevContentAfterPresent, prevExpr) (a: SynAttributeList) ->
+                    let expr =
+                        ifElse prevContentAfterPresent sepNone (sepNlnConsideringTriviaContentBefore a.Range)
+                        +> ((col sepNln a.Attributes (genAttribute astContext)) |> genTrivia a.Range)
+
+                    let hasContentAfter =
+                        TriviaHelpers.``has content after after that matches``
+                            (fun tn -> tn.Range = a.Range)
+                            (function | Directive(_) -> true | _ -> false)
+                            ctx.Trivia
+                    (hasContentAfter, prevExpr +> expr)
+                ) (true, sepNone) ats
+                |> snd
+            (attributesExpr +> dumpAndContinue) ctx
     | DoExpr(e) ->
         genExpr astContext e
     | Exception(ex) ->
