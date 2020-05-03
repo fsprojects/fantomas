@@ -14,6 +14,7 @@
     <None Include="paket.references" />
     <Compile Include="TestHelpers.fs" />
     <Compile Include="CheckTests.fs" />
+    <Compile Include="ByteOrderMarkTests.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
