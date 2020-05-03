@@ -258,3 +258,22 @@ let f2 =
         return r + s
     }
 """
+
+[<Test>]
+let ``computation expression with app identifier, 806`` () =
+    formatSourceString false """
+[<Tests>]
+let tests =
+  testList "tests"
+    [
+      test "test" {
+        Expect.equal true true "unexpected"
+      }
+    ]
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Tests>]
+let tests =
+    testList "tests" [ test "test" { Expect.equal true true "unexpected" } ]
+"""
