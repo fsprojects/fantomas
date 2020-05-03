@@ -306,3 +306,31 @@ let main argv =
     |> Array.iter(printfn "%s")
     0 // return an integer exit code
 """
+
+[<Test>]
+let ``multiple assembly attributes, 796`` () =
+    formatSourceString false """namespace Foo.AssemblyInfo
+
+open System.Reflection
+open System.Runtime.CompilerServices
+open System.Runtime.InteropServices
+
+[<assembly: AssemblyTitle("Foo")>]
+[<assembly: AssemblyDescription("")>]
+
+do
+  ()
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Foo.AssemblyInfo
+
+open System.Reflection
+open System.Runtime.CompilerServices
+open System.Runtime.InteropServices
+
+[<assembly:AssemblyTitle("Foo")>]
+[<assembly:AssemblyDescription("")>]
+
+do ()
+"""
