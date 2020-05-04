@@ -118,6 +118,14 @@ let private findNodeAfterLineAndColumn (nodes: TriviaNode list) line column =
         (range.StartLine > line) || (range.StartLine = line && range.StartColumn > column)
     )
 
+let private findConstNodeOnLineAndColumn (nodes: TriviaNode list) line column =
+    nodes
+    |> List.tryFind (fun { Type = t; Range = r } ->
+        match t, line = r.StartLine, column = r.StartColumn with
+        | MainNode("SynExpr.Const"), true, true -> true
+        | _ -> false
+    )
+
 let private findConstNodeAfter (nodes: TriviaNode list) (range: range) =
     nodes
     |> List.tryFind (fun { Type = t; Range = r } ->
@@ -325,7 +333,7 @@ let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNo
         |> updateTriviaNode (fun tn -> { tn with ContentItself = Some siNode }) triviaNodes
 
     | { Item = Number(_) as number; Range = range  } ->
-        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
+        findConstNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> { tn with ContentItself = Some number }) triviaNodes
 
     | { Item = CharContent(_) as chNode; Range = range } ->
