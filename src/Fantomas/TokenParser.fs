@@ -410,6 +410,14 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
 
         getTriviaFromTokensThemSelves allTokens nextRest info
 
+    | minus::head::rest when (minus.TokenInfo.TokenName = "MINUS" && isNumber head) ->
+        let range = getRangeBetween "number" minus head
+        let info =
+            Trivia.Create (Number(minus.Content + head.Content)) range
+            |> List.prependItem foundTrivia
+
+        getTriviaFromTokensThemSelves allTokens rest info
+
     | head::rest when (isNumber head) ->
         let range = getRangeBetween "number" head head
         let info =

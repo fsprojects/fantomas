@@ -136,6 +136,12 @@ let ``array literals of BigInteger, 682`` () =
 "
 
 [<Test>]
+let ``negative single floating-point number, 785`` () =
+    formatSourceString false "let num = -3.213f"  config
+    |> should equal "let num = -3.213f
+"
+
+[<Test>]
 let ``string content ends at string token, 646`` () =
     formatSourceString false """"Yarn" ==> "Format"
 
