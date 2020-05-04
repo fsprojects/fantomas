@@ -438,3 +438,20 @@ type UrlModel =
       KeepNewlineAfter: bool
       Defines: string }
 """
+
+[<TestCase(true)>]
+[<TestCase(false)>]
+let ``comment is first trivia in module should not add newline, 784`` (isFsiFile) =
+    formatSourceString isFsiFile """
+module foo
+
+// bar
+// baz
+"""  config
+    |> prepend newline
+    |> should equal """
+module foo
+
+// bar
+// baz
+"""

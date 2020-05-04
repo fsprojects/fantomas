@@ -883,6 +883,13 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range)
     |> Seq.exists (fun ({ ContentBefore = contentBefore }) -> hasPrintableContent contentBefore)
     |> fun hasContentBefore ->
         if hasContentBefore then ctx else sepNln ctx
+        
+let internal sepNlnForEmptyModule (moduleRange:range) ctx =    
+    match findTriviaMainNodeOrTokenOnStartFromRange ctx.Trivia moduleRange with
+    | Some node when hasPrintableContent node.ContentBefore || hasPrintableContent node.ContentAfter ->
+        ctx
+    | _ ->
+        sepNln ctx
 
 let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
     match firstMemberRange with

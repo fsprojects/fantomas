@@ -541,3 +541,16 @@ let ``unit parameter to inherited class`` () =
 type Child() =
     inherit Parent()
 """
+
+[<Test>]
+let ``class let binding with attribute should not add newline, 786`` () =
+    formatSourceString false """type A() =
+
+    [<Bar>]
+    let foo = ()
+"""  config
+    |> should equal """type A() =
+
+    [<Bar>]
+    let foo = ()
+"""
