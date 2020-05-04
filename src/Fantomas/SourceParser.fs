@@ -600,6 +600,8 @@ let (|CompExpr|_|) = function
         Some(isArray, expr)
     | _ -> None
 
+let isCompExpr = function | CompExpr _ -> true | _ -> false
+
 let (|ArrayOrListOfSeqExpr|_|) = function
     | SynExpr.ArrayOrListOfSeqExpr(isArray, expr, _) ->
         Some(isArray, expr)

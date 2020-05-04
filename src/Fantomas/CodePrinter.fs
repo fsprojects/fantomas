@@ -1128,14 +1128,10 @@ and genExpr astContext synExpr =
         fun (ctx:Context) ->
             let hasPar = hasParenthesis e2
             let addSpaceBefore = addSpaceBeforeParensInFunCall e1 e2 ctx
-            let isCompExpr =
-                match e2 with
-                | CompExpr _ -> true
-                | _ -> false
             let genApp =
                 atCurrentColumn (
                     genExpr astContext e1
-                    +> onlyIf isCompExpr (sepSpace +> sepOpenSFixed +> sepSpace)
+                    +> onlyIf (isCompExpr e2) (sepSpace +> sepOpenSFixed +> sepSpace)
                     +> ifElse
                          (not astContext.IsInsideDotGet)
                          (ifElse hasPar
@@ -1165,9 +1161,15 @@ and genExpr astContext synExpr =
             else
                 sepSpace ctx
 
-        atCurrentColumn (genExpr astContext e +>
-            colPre sepSpace sepSpace es (fun e ->
-                indent +> appNlnFun e (indentIfNeeded +> genExpr astContext e) +> unindent))
+        atCurrentColumn
+            (genExpr astContext e
+             +> colPre sepSpace sepSpace es (fun e ->
+                    indent
+                    +> appNlnFun e
+                           (indentIfNeeded
+                            +> onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
+                            +> genExpr astContext e)
+                    +> unindent))
 
     | TypeApp(e, ts) -> genExpr astContext e -- "<" +> col sepComma ts (genType astContext false) -- ">"
     | LetOrUses(bs, e) ->
