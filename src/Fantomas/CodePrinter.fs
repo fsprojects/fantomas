@@ -485,7 +485,8 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (isPrefixMultil
                 genExpr astContext e
             | _ -> isShortExpressionOrAddIndentAndNewline ctx.Config.MaxLetBindingWidth (genExpr astContext e)
 
-        (sepEqual isPrefixMultiline
+        (enterEqualsToken e.Range
+        +> sepEqual isPrefixMultiline
         +> leaveEqualsToken pat.Range
         +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual)
                (indent +> sepNln +> genExpr astContext e +> unindent)
