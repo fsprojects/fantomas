@@ -771,6 +771,21 @@ let internal enterNode (range: range) (ctx: Context) = enterNodeWith findTriviaM
 let internal enterNodeToken (range: range) (ctx: Context) = enterNodeWith findTriviaTokenFromRange range ctx
 let internal enterNodeTokenByName (range: range) (tokenName:string) (ctx: Context) = enterNodeWith (findTriviaTokenFromName range) tokenName ctx
 
+let internal enterEqualsToken (range: range) (ctx: Context) =
+    ctx.Trivia
+    |> List.filter(fun tn ->
+        match tn.Type with
+        | Token(tok) ->
+            tok.TokenInfo.TokenName = "EQUALS" && tn.Range.StartLine = range.StartLine - 1
+        | _ -> false
+    )
+    |> List.tryHead
+    |> fun tn ->
+        match tn with
+        | Some tok -> enterNode tok.Range
+        | _ -> id
+    <| ctx
+
 let internal leaveNodeWith f x (ctx: Context) =
     match f ctx.Trivia x with
     | Some triviaNode ->
