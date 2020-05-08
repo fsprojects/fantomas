@@ -2154,8 +2154,6 @@ and genMemberSig astContext node =
             | [] -> sepColon
             | _ -> sepColonWithSpacesFixed
 
-        let ziggy = mf
-
         genPreXmlDoc px +> genAttributes astContext ats
         +> atCurrentColumn (indent +> genMemberFlagsForMemberBinding { astContext with InterfaceRange = None } mf range +> opt sepSpace ao genAccess
                                    +> ifElse (s = "``new``") (!- "new") (!- s)
