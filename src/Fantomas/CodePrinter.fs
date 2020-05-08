@@ -642,14 +642,29 @@ and genMemberBinding astContext b =
         | p -> failwithf "Unexpected pattern: %O" p
 
     | MemberBinding(ats, px, ao, isInline, mf, p, e) ->
-        let prefix =
+        let genAttributesAndXmlDoc =
             genPreXmlDoc px
-            +> genAttributes astContext ats +> genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
+            +> genAttributes astContext ats
+
+        let prefix =
+            genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat ({ astContext with IsMemberDefinition = true }) p
 
         match e with
-        | TypedExpr(Typed, e, t) -> prefix +> sepColon +> genType astContext false t +> sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-        | e -> prefix +> sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        | TypedExpr(Typed, e, t) ->
+            genAttributesAndXmlDoc
+            +> leadingExpressionIsMultiline prefix (fun prefixIsLong ->
+                if prefixIsLong then
+                    sepNln +> sepColon +> genType astContext false t +> sepNln +> !- "=" +> sepNln
+                else
+                    sepColon +> genType astContext false t +> sepEq)
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        | e ->
+            genAttributesAndXmlDoc
+            +> leadingExpressionIsMultiline prefix
+                (fun prefixIsLong ->
+                    ifElse prefixIsLong (sepNln +> !- "=" +> sepNln) sepEq
+                    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
 
     | ExplicitCtor(ats, px, ao, p, e, so) ->
         let prefix =
@@ -1926,9 +1941,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
         let astContext = { astContext with InterfaceRange = interfaceRange }
 
-        let addSpaceAfterTypeName ctx = ctx.Config.SpaceBeforeClassConstructor
-
-        typeName +> ifElseCtx addSpaceAfterTypeName sepSpace sepNone +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq
+        typeName +> sepSpaceBeforeClassConstructor +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq
         +> indent +> sepNln
         +> genTrivia tdr.Range
             (genTypeDefKind tdk
@@ -1970,7 +1983,11 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         +> unindent
 
     | ObjectModel(_, MemberDefnList(impCtor, others), _) ->
-        typeName +> opt sepNone impCtor (genMemberDefn { astContext with InterfaceRange = None }) +> sepEq
+        typeName
+        +> opt sepNone impCtor (fun mdf ->
+            sepSpaceBeforeClassConstructor
+            +> genMemberDefn { astContext with InterfaceRange = None } mdf)
+        +> sepEq
         +> indent
         +> genMemberDefnList { astContext with InterfaceRange = None } others
         +> unindent
@@ -2605,7 +2622,14 @@ and genPat astContext pat =
     | PatParen(PatConst(Const "()", _)) -> !- "()"
     | PatParen(p) -> sepOpenT +> genPat astContext p +> sepCloseT
     | PatTuple ps ->
-        atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext))
+        expressionFitsOnRestOfLine
+            (col sepComma ps (genPat astContext))
+            (indent +> sepNln +> col sepNln ps (genPat astContext))
+        //|> atCurrentColumn
+//        atCurrentColumn (
+//                            exceed
+//                            colAutoNlnSkip0 sepComma ps (genPat astContext)
+//                        )
     | PatStructTuple ps ->
         !- "struct " +> sepOpenT +> atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext)) +> sepCloseT
     | PatSeq(PatList, ps) ->

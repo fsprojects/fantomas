@@ -612,6 +612,12 @@ let internal noNln f (ctx : Context) : Context =
     let res = f { ctx with BreakLines = false }
     { res with BreakLines = ctx.BreakLines }
 
+let internal sepSpaceBeforeClassConstructor ctx =
+    if ctx.Config.SpaceBeforeClassConstructor then
+        sepSpace ctx
+    else
+        ctx
+
 let internal sepColon (ctx : Context) =
     let defaultExpr = if ctx.Config.SpaceBeforeColon then str " : " else str ": "
 

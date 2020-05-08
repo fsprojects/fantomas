@@ -1052,3 +1052,36 @@ type Graph2dOptions =
     abstract maxHeight: HeightWidthType option with get, set
     abstract zIndex: float option with get, set
 """
+
+[<Test>]
+let ``long type members should have parameters on separate lines, 719`` () =
+    formatSourceString false """type C () =
+    member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""  ({ config with SpaceBeforeClassConstructor = true })
+    |> prepend newline
+    |> should equal """
+type C () =
+    member __.LongMethodWithLotsOfParameters(
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
+        =
+        aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""
+
+[<Test>]
+let ``long type member with return type should have parameters on separate lines`` () =
+    formatSourceString false """type C () =
+    member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : int =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""  ({ config with SpaceBeforeClassConstructor = true })
+    |> prepend newline
+    |> should equal """
+type C () =
+    member __.LongMethodWithLotsOfParameters(
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
+        : int
+        =
+        aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""
