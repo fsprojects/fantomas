@@ -2625,11 +2625,6 @@ and genPat astContext pat =
         expressionFitsOnRestOfLine
             (col sepComma ps (genPat astContext))
             (indent +> sepNln +> col sepNln ps (genPat astContext))
-        //|> atCurrentColumn
-//        atCurrentColumn (
-//                            exceed
-//                            colAutoNlnSkip0 sepComma ps (genPat astContext)
-//                        )
     | PatStructTuple ps ->
         !- "struct " +> sepOpenT +> atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext)) +> sepCloseT
     | PatSeq(PatList, ps) ->
