@@ -1085,3 +1085,18 @@ type C () =
         =
         aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
+
+[<Test>]
+let ``long constructors should have parameters on separate lines`` () =
+    formatSourceString false """type C (aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) =
+    member this.X = 42
+"""  ({ config with SpaceBeforeClassConstructor = true })
+    |> prepend newline
+    |> should equal """
+type C (
+    aVeryLongType: AVeryLongTypeThatYouNeedToUse
+    aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse
+    aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
+    =
+    member this.X = 42
+"""
