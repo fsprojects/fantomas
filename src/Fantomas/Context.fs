@@ -541,10 +541,10 @@ let internal leadingExpressionLong threshold leadingExpression continuationExpre
     continuationExpression (lineCountAfter > lineCountBefore || (columnAfter - columnBefore > threshold)) contextAfterLeading
 
 let internal leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: Context) =
-    let lineCountBefore = List.length ctx.WriterModel.Lines
+    let eventCountBeforeExpression = Seq.length ctx.WriterEvents
     let contextAfterLeading = leadingExpression ctx
-    let lineCountAfter = List.length contextAfterLeading.WriterModel.Lines
-    continuationExpression (lineCountAfter > lineCountBefore) contextAfterLeading
+    let hasWriteLineEventsAfterExpression = contextAfterLeading.WriterEvents |>Seq.skip eventCountBeforeExpression |> Seq.exists (function | WriteLine _ -> true | _ -> false)
+    continuationExpression hasWriteLineEventsAfterExpression contextAfterLeading
 
 let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
     // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
@@ -770,21 +770,6 @@ let internal enterNodeWith f x (ctx: Context) =
 let internal enterNode (range: range) (ctx: Context) = enterNodeWith findTriviaMainNodeOrTokenOnStartFromRange range ctx
 let internal enterNodeToken (range: range) (ctx: Context) = enterNodeWith findTriviaTokenFromRange range ctx
 let internal enterNodeTokenByName (range: range) (tokenName:string) (ctx: Context) = enterNodeWith (findTriviaTokenFromName range) tokenName ctx
-
-let internal enterEqualsToken (range: range) (ctx: Context) =
-    ctx.Trivia
-    |> List.filter(fun tn ->
-        match tn.Type with
-        | Token(tok) ->
-            tok.TokenInfo.TokenName = "EQUALS" && tn.Range.StartLine = range.StartLine - 1
-        | _ -> false
-    )
-    |> List.tryHead
-    |> fun tn ->
-        match tn with
-        | Some tok -> enterNode tok.Range
-        | _ -> id
-    <| ctx
 
 let internal leaveNodeWith f x (ctx: Context) =
     match f ctx.Trivia x with

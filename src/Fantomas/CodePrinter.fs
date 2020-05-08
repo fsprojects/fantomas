@@ -235,7 +235,7 @@ and genSigModuleDeclList astContext node =
             match List.tryHead ys with
             | Some hs ->
                 let attrs = getRangesFromAttributesFromSynModuleSigDeclaration hs
-                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes hs.Range attrs +> dumpAndContinue
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes hs.Range attrs
             | None ->
                 rep 2 sepNln
 
@@ -296,7 +296,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                     (hasContentAfter, prevExpr +> expr)
                 ) (true, sepNone) ats
                 |> snd
-            (attributesExpr +> dumpAndContinue) ctx
+            (attributesExpr) ctx
     | DoExpr(e) ->
         genExpr astContext e
     | Exception(ex) ->
@@ -452,7 +452,16 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (isPrefixMultil
             | _ -> false
         )
 
-    let sepEqual predicate = ifElse predicate (indent +> sepNln +> !- "=" +> unindent) (sepEq +> sepSpace)
+    let sepEqual predicate =
+        if predicate then
+            fun ctx ->
+                let alreadyHasNewline = lastWriteEventIsNewline ctx
+                if alreadyHasNewline then
+                    (rep ctx.Config.IndentSpaceNum (!- " ") +> !- "=") ctx
+                else
+                    (indent +> sepNln +> !- "=" +> unindent) ctx
+        else
+            (sepEq +> sepSpace)
 
     match e with
     | TypedExpr(Typed, e, t) ->
@@ -485,8 +494,7 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (isPrefixMultil
                 genExpr astContext e
             | _ -> isShortExpressionOrAddIndentAndNewline ctx.Config.MaxLetBindingWidth (genExpr astContext e)
 
-        (enterEqualsToken e.Range
-        +> sepEqual isPrefixMultiline
+        (sepEqual isPrefixMultiline
         +> leaveEqualsToken pat.Range
         +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual)
                (indent +> sepNln +> genExpr astContext e +> unindent)
@@ -527,9 +535,14 @@ and genLetBinding astContext pref b =
             +> ifElse isMutable (!- "mutable ") sepNone
             +> ifElse isInline (!- "inline ") sepNone
 
+        let rangeBetweenBindingPatternAndExpression =
+            mkRange "range between binding pattern and expression" b.RangeOfBindingSansRhs.End e.Range.Start
+
         genPreXmlDoc px
         +> genAttr // this already contains the `let` or `and` keyword
-        +> leadingExpressionIsMultiline (afterLetKeyword +> genPat) (genExprSepEqPrependType astContext p e)
+        +> leadingExpressionIsMultiline
+               (afterLetKeyword +> genPat +> enterNodeTokenByName rangeBetweenBindingPatternAndExpression "EQUALS")
+               (genExprSepEqPrependType astContext p e)
 
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
