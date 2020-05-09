@@ -95,6 +95,7 @@ let private findMemberDefnMemberNodeOnLine (nodes: TriviaNode list) line =
     |> List.tryFind (fun { Type = t; Range = r } ->
         match t, r.StartLine = line with
         | MainNode("SynMemberDefn.Member"), true
+        | MainNode("SynMemberSig.Member"), true
         | Token { TokenInfo = { TokenName = "MEMBER" } }, true -> true
         | _ -> false)
 
@@ -288,7 +289,7 @@ let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNo
                 findNodeBeforeLineFromStart triviaNodes range.StartLine
                 |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes
 
-    | { Item = Keyword({ Content = keyword} as kw); Range = range } when (keyword = "override" || keyword = "default" || keyword = "member") ->
+    | { Item = Keyword({ Content = keyword} as kw); Range = range } when (keyword = "override" || keyword = "default" || keyword = "member" || keyword = "abstract") ->
         findMemberDefnMemberNodeOnLine triviaNodes range.StartLine
         |> updateTriviaNode (fun tn -> { tn with ContentItself = Some (Keyword(kw)) }) triviaNodes
 

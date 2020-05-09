@@ -235,7 +235,7 @@ and genSigModuleDeclList astContext node =
             match List.tryHead ys with
             | Some hs ->
                 let attrs = getRangesFromAttributesFromSynModuleSigDeclaration hs
-                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes hs.Range attrs +> dumpAndContinue
+                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes hs.Range attrs
             | None ->
                 rep 2 sepNln
 
@@ -296,7 +296,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                     (hasContentAfter, prevExpr +> expr)
                 ) (true, sepNone) ats
                 |> snd
-            (attributesExpr +> dumpAndContinue) ctx
+            (attributesExpr) ctx
     | DoExpr(e) ->
         genExpr astContext e
     | Exception(ex) ->
@@ -452,7 +452,16 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (isPrefixMultil
             | _ -> false
         )
 
-    let sepEqual predicate = ifElse predicate (indent +> sepNln +> !- "=" +> unindent) (sepEq +> sepSpace)
+    let sepEqual predicate =
+        if predicate then
+            fun ctx ->
+                let alreadyHasNewline = lastWriteEventIsNewline ctx
+                if alreadyHasNewline then
+                    (rep ctx.Config.IndentSpaceNum (!- " ") +> !- "=") ctx
+                else
+                    (indent +> sepNln +> !- "=" +> unindent) ctx
+        else
+            (sepEq +> sepSpace)
 
     match e with
     | TypedExpr(Typed, e, t) ->
@@ -526,9 +535,14 @@ and genLetBinding astContext pref b =
             +> ifElse isMutable (!- "mutable ") sepNone
             +> ifElse isInline (!- "inline ") sepNone
 
+        let rangeBetweenBindingPatternAndExpression =
+            mkRange "range between binding pattern and expression" b.RangeOfBindingSansRhs.End e.Range.Start
+
         genPreXmlDoc px
         +> genAttr // this already contains the `let` or `and` keyword
-        +> leadingExpressionIsMultiline (afterLetKeyword +> genPat) (genExprSepEqPrependType astContext p e)
+        +> leadingExpressionIsMultiline
+               (afterLetKeyword +> genPat +> enterNodeTokenByName rangeBetweenBindingPatternAndExpression "EQUALS")
+               (genExprSepEqPrependType astContext p e)
 
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
@@ -671,8 +685,8 @@ and genMemberBinding astContext b =
     | b -> failwithf "%O isn't a member binding" b
     |> genTrivia b.RangeOfBindingSansRhs
 
-and genMemberFlags astContext node =
-    match node with
+and genMemberFlags astContext (mf:MemberFlags) =
+    match mf with
     | MFMember _ -> !- "member "
     | MFStaticMember _ -> !- "static member "
     | MFConstructor _ -> sepNone
@@ -681,17 +695,12 @@ and genMemberFlags astContext node =
 
 and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs: range) =
     fun ctx ->
-         match mf with
-         | MFMember _
-         | MFStaticMember _
-         | MFConstructor _ ->
-            genMemberFlags astContext mf
-         | MFOverride _ ->
-             (fun (ctx: Context) ->
-                ctx.Trivia
+         let keywordFromTrivia =
+             ctx.Trivia
                 |> List.tryFind(fun { Type = t; Range = r }  ->
                     match t with
-                    | MainNode "SynMemberDefn.Member" -> // trying to get AST trivia
+                    | MainNode "SynMemberDefn.Member"
+                    | MainNode "SynMemberSig.Member" -> // trying to get AST trivia
                         RangeHelpers.``range contains`` r rangeOfBindingAndRhs
 
                     | Token { TokenInfo = { TokenName = "MEMBER" } } -> // trying to get token trivia
@@ -703,13 +712,21 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
                     tn.ContentItself
                     |> Option.bind (fun tc ->
                         match tc with
-                        | Keyword({ Content = ("override" | "default" | "member") as kw }) -> Some (!- (kw + " "))
+                        | Keyword({ Content = ("override" | "default" | "member" | "abstract") as kw }) -> Some (!- (kw + " "))
                         | _ -> None
                     )
                 )
-                |> Option.defaultValue (!- "override ")
-                <| ctx
-             )
+
+         match mf with
+         | MFStaticMember _
+         | MFConstructor _ ->
+             genMemberFlags astContext mf
+         | MFMember _ ->
+            keywordFromTrivia
+            |> Option.defaultValue (genMemberFlags astContext mf)
+         | MFOverride _ ->
+            keywordFromTrivia
+            |> Option.defaultValue (!- "override ")
         <| ctx
 
 and genVal astContext (Val(ats, px, ao, s, t, vi, isInline, _) as node) =
@@ -2176,7 +2193,7 @@ and genMemberSig astContext node =
             | _ -> sepColonWithSpacesFixed
 
         genPreXmlDoc px +> genAttributes astContext ats
-        +> atCurrentColumn (indent +> genMemberFlags { astContext with InterfaceRange = None } mf +> opt sepSpace ao genAccess
+        +> atCurrentColumn (indent +> genMemberFlagsForMemberBinding { astContext with InterfaceRange = None } mf range +> opt sepSpace ao genAccess
                                    +> ifElse (s = "``new``") (!- "new") (!- s)
                                    +> genTypeParamPostfix astContext tds tcs
                                    +> sepColonX
