@@ -239,7 +239,7 @@ let private getContentFromTokens tokens =
     |> List.map (fun t -> t.Content)
     |> String.concat String.Empty
     
-let private keywordTrivia = ["IF"; "ELIF"; "ELSE"; "THEN"; "OVERRIDE"; "MEMBER"; "DEFAULT"; "KEYWORD_STRING"; "QMARK"]
+let private keywordTrivia = ["IF"; "ELIF"; "ELSE"; "THEN"; "OVERRIDE"; "MEMBER"; "DEFAULT"; "ABSTRACT"; "KEYWORD_STRING"; "QMARK"]
 let private numberTrivia = ["UINT8";"INT8";"UINT16";"INT16";"UINT32";"INT32";"UINT64";"IEEE32";
                             "DECIMAL";"IEEE64";"BIGNUM";"NATIVEINT";"UNATIVEINT"]
 

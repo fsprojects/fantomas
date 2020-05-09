@@ -1100,3 +1100,18 @@ type C (
     =
     member this.X = 42
 """
+
+[<Test>]
+let ``preserve abstract keyword`` () =
+    formatSourceString false """namespace Foo
+
+type internal Blah =
+  abstract Baz : unit
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Foo
+
+type internal Blah =
+    abstract Baz: unit
+"""
