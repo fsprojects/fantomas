@@ -685,8 +685,8 @@ and genMemberBinding astContext b =
     | b -> failwithf "%O isn't a member binding" b
     |> genTrivia b.RangeOfBindingSansRhs
 
-and genMemberFlags astContext node =
-    match node with
+and genMemberFlags astContext (mf:MemberFlags) =
+    match mf with
     | MFMember _ -> !- "member "
     | MFStaticMember _ -> !- "static member "
     | MFConstructor _ -> sepNone
@@ -695,17 +695,12 @@ and genMemberFlags astContext node =
 
 and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs: range) =
     fun ctx ->
-         match mf with
-         | MFMember _
-         | MFStaticMember _
-         | MFConstructor _ ->
-            genMemberFlags astContext mf
-         | MFOverride _ ->
-             (fun (ctx: Context) ->
-                ctx.Trivia
+         let keywordFromTrivia =
+             ctx.Trivia
                 |> List.tryFind(fun { Type = t; Range = r }  ->
                     match t with
-                    | MainNode "SynMemberDefn.Member" -> // trying to get AST trivia
+                    | MainNode "SynMemberDefn.Member"
+                    | MainNode "SynMemberSig.Member" -> // trying to get AST trivia
                         RangeHelpers.``range contains`` r rangeOfBindingAndRhs
 
                     | Token { TokenInfo = { TokenName = "MEMBER" } } -> // trying to get token trivia
@@ -717,13 +712,21 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
                     tn.ContentItself
                     |> Option.bind (fun tc ->
                         match tc with
-                        | Keyword({ Content = ("override" | "default" | "member") as kw }) -> Some (!- (kw + " "))
+                        | Keyword({ Content = ("override" | "default" | "member" | "abstract") as kw }) -> Some (!- (kw + " "))
                         | _ -> None
                     )
                 )
-                |> Option.defaultValue (!- "override ")
-                <| ctx
-             )
+
+         match mf with
+         | MFStaticMember _
+         | MFConstructor _ ->
+             genMemberFlags astContext mf
+         | MFMember _ ->
+            keywordFromTrivia
+            |> Option.defaultValue (genMemberFlags astContext mf)
+         | MFOverride _ ->
+            keywordFromTrivia
+            |> Option.defaultValue (!- "override ")
         <| ctx
 
 and genVal astContext (Val(ats, px, ao, s, t, vi, isInline, _) as node) =
@@ -2166,7 +2169,7 @@ and genMemberSig astContext node =
             | _ -> sepColonWithSpacesFixed
 
         genPreXmlDoc px +> genAttributes astContext ats
-        +> atCurrentColumn (indent +> genMemberFlags { astContext with InterfaceRange = None } mf +> opt sepSpace ao genAccess
+        +> atCurrentColumn (indent +> genMemberFlagsForMemberBinding { astContext with InterfaceRange = None } mf range +> opt sepSpace ao genAccess
                                    +> ifElse (s = "``new``") (!- "new") (!- s)
                                    +> genTypeParamPostfix astContext tds tcs
                                    +> sepColonX
