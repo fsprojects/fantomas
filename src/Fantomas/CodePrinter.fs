@@ -1530,19 +1530,40 @@ and genExpr astContext synExpr =
         addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
 
     | LetOrUseBang(isUse, p, e1, ands, e2) ->
-        let genAndList astContext (ands: list<DebugPointForBinding * bool * bool * SynPat * SynExpr * range>) =
-            colPost sepNln sepNln
-                ands
-                (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr))
+        let genLetBang =
+            ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
 
-        leadingExpressionIsMultiline
-            (ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
-             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
-             +> sepNln
-             +> genAndList astContext ands)
-            (fun letBangMultiline ->
-                onlyIf (List.isEmpty ands && letBangMultiline) (sepNlnConsideringTriviaContentBefore e2.Range)
-                +> genExpr astContext e2)
+        let genAnd astContext ((_,_,_,pat,expr,_): (DebugPointForBinding * bool * bool * SynPat * SynExpr * range)) =
+            !- "and! " +> genPat astContext pat -- " = " +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+
+        let addExtraNewlineIfLeadingWasMultiline leading continuation continuationRange =
+            leadingExpressionIsMultiline
+                leading
+                (fun ml -> sepNln +> onlyIf ml (sepNlnConsideringTriviaContentBefore continuationRange) +> continuation)
+
+        let andLength = List.length ands
+        let andsWithPrevRange =
+            List.mapi (fun idx a ->
+                if idx = (andLength - 1) then
+                    (a, e2.Range)
+                else
+                    let (_,_,_,_,_,r) = ands.[idx + 1]
+                    (a, r)) ands
+            |> List.rev
+
+        // we construct an expression were we constantly are aware whether the leading expression was multiline
+        // written in full this would translate to
+        // addExtraNewlineIfLeadingWasMultiline genE1 (addExtraNewlineIfLeadingWasMultiline genA1 (addExtraNewlineIfLeadingWasMultiline genA2 (addExtraNewlineIfLeadingWasMultiline genE2 e2.Range) a2.Range) a1.Range) e1.Range
+
+        let genAnds =
+            List.fold
+                (fun acc (a,r) -> fun leading -> addExtraNewlineIfLeadingWasMultiline leading (acc (genAnd astContext a)) r)
+                (fun leadingExpr -> addExtraNewlineIfLeadingWasMultiline leadingExpr (genExpr astContext e2) e2.Range)
+                andsWithPrevRange
+
+        genAnds genLetBang
+
 
     | ParsingError r ->
         raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i"

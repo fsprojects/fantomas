@@ -348,3 +348,27 @@ let z =
 
     bar
 """
+
+[<Test>]
+let ``normal let bindings before and after let bang`` () =
+    formatSourceString false """
+let fetchAsync(name, url:string) =
+    async {
+        let uri = new System.Uri(url)
+        let webClient = new WebClient()
+        let! html = webClient.AsyncDownloadString(uri)
+        let title = html.CssSelect("title")
+        return title
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let fetchAsync (name, url: string) =
+    async {
+        let uri = new System.Uri(url)
+        let webClient = new WebClient()
+        let! html = webClient.AsyncDownloadString(uri)
+        let title = html.CssSelect("title")
+        return title
+    }
+"""
