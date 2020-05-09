@@ -252,9 +252,11 @@ let f2 =
         let! r =
             match 0 with
             | _ -> () |> async.Return
+
         and! s =
             match 0 with
             | _ -> () |> async.Return
+
         return r + s
     }
 """
@@ -276,4 +278,73 @@ let tests =
 [<Tests>]
 let tests =
     testList "tests" [ test "test" { Expect.equal true true "unexpected" } ]
+"""
+
+[<Test>]
+let ``new line after multiline let bang, 819`` () =
+    formatSourceString false """
+let x data =
+    async {
+        let! bar =
+            data
+            |> Array.map id
+            |> Array.filter ((=) 1)
+            |> Array.countBy id
+            |> async.Return
+        return bar
+    }
+
+let y data =
+    async {
+        let bar =
+            data
+            |> Array.map id
+            |> Array.filter ((=) 1)
+            |> Array.countBy id
+            |> async.Return
+        return bar
+    }
+
+let z =
+    let bar =
+        data
+        |> Array.map id
+        |> Array.filter ((=) 1)
+        |> Array.countBy id
+    bar
+"""  config
+    |> prepend newline
+    |> should equal """
+let x data =
+    async {
+        let! bar =
+            data
+            |> Array.map id
+            |> Array.filter ((=) 1)
+            |> Array.countBy id
+            |> async.Return
+
+        return bar
+    }
+
+let y data =
+    async {
+        let bar =
+            data
+            |> Array.map id
+            |> Array.filter ((=) 1)
+            |> Array.countBy id
+            |> async.Return
+
+        return bar
+    }
+
+let z =
+    let bar =
+        data
+        |> Array.map id
+        |> Array.filter ((=) 1)
+        |> Array.countBy id
+
+    bar
 """

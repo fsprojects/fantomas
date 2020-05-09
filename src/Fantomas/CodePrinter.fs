@@ -1535,11 +1535,14 @@ and genExpr astContext synExpr =
                 ands
                 (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr))
 
-        ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
-        +> sepNln
-        +> genAndList astContext ands
-        +> genExpr astContext e2
+        leadingExpressionIsMultiline
+            (ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
+             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
+             +> sepNln
+             +> genAndList astContext ands)
+            (fun letBangMultiline ->
+                onlyIf (List.isEmpty ands && letBangMultiline) (sepNlnConsideringTriviaContentBefore e2.Range)
+                +> genExpr astContext e2)
 
     | ParsingError r ->
         raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i"
