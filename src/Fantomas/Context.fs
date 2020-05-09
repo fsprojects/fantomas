@@ -541,10 +541,10 @@ let internal leadingExpressionLong threshold leadingExpression continuationExpre
     continuationExpression (lineCountAfter > lineCountBefore || (columnAfter - columnBefore > threshold)) contextAfterLeading
 
 let internal leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: Context) =
-    let lineCountBefore = List.length ctx.WriterModel.Lines
+    let eventCountBeforeExpression = Seq.length ctx.WriterEvents
     let contextAfterLeading = leadingExpression ctx
-    let lineCountAfter = List.length contextAfterLeading.WriterModel.Lines
-    continuationExpression (lineCountAfter > lineCountBefore) contextAfterLeading
+    let hasWriteLineEventsAfterExpression = contextAfterLeading.WriterEvents |>Seq.skip eventCountBeforeExpression |> Seq.exists (function | WriteLine _ -> true | _ -> false)
+    continuationExpression hasWriteLineEventsAfterExpression contextAfterLeading
 
 let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
     // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
