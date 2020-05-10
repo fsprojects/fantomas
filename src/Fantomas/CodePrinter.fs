@@ -1535,7 +1535,8 @@ and genExpr astContext synExpr =
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
 
         let genAnd astContext ((_,_,_,pat,expr,_): (DebugPointForBinding * bool * bool * SynPat * SynExpr * range)) =
-            !- "and! " +> genPat astContext pat -- " = " +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+            genTrivia pat.Range (!- "and! " +> genPat astContext pat) -- " = "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
 
         let addExtraNewlineIfLeadingWasMultiline leading continuation continuationRange =
             leadingExpressionIsMultiline
@@ -1548,8 +1549,8 @@ and genExpr astContext synExpr =
                 if idx = (andLength - 1) then
                     (a, e2.Range)
                 else
-                    let (_,_,_,_,_,r) = ands.[idx + 1]
-                    (a, r)) ands
+                    let (_,_,_,pat,_,_) = ands.[idx + 1]
+                    (a, pat.Range)) ands
             |> List.rev
 
         // we construct an expression were we constantly are aware whether the leading expression was multiline

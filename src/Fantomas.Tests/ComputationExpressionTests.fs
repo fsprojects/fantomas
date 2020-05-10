@@ -372,3 +372,29 @@ let fetchAsync (name, url: string) =
         return title
     }
 """
+
+[<Test>]
+let ``short expression with intertwined with newlines`` () =
+    formatSourceString false """
+async {
+    let! a = aa
+
+    and! b = bb
+
+    and! c = cc
+
+    return (a + b + c)
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let! a = aa
+
+    and! b = bb
+
+    and! c = cc
+
+    return (a + b + c)
+}
+"""
