@@ -8,6 +8,10 @@ module internal TriviaHelpers =
     let findByRange (trivia: TriviaNode list) (range: range) =
         trivia
         |> List.tryFind (fun t -> t.Range = range)
+    
+    let findInRange (trivia: TriviaNode list) (range:range) =
+        trivia
+        |> List.tryFind (fun t -> RangeHelpers.``range contains`` range t.Range)
 
     let findFirstContentBeforeByRange (trivia: TriviaNode list) (range: range) =
         findByRange trivia range

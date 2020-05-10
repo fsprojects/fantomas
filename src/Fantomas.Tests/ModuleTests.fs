@@ -439,10 +439,9 @@ type UrlModel =
       Defines: string }
 """
 
-[<TestCase(true)>]
-[<TestCase(false)>]
-let ``comment is first trivia in module should not add newline, 784`` (isFsiFile) =
-    formatSourceString isFsiFile """
+[<Test>]
+let ``comment is first trivia in module should not add newline, 784`` () =
+    formatSourceString false """
 module foo
 
 // bar
@@ -451,6 +450,54 @@ module foo
     |> prepend newline
     |> should equal """
 module foo
+
+// bar
+// baz
+"""
+
+[<Test>]
+let ``comment is first trivia in module in signature file should not add newline, 784`` () =
+    formatSourceString true """
+module foo
+
+// bar
+// baz
+"""  config
+    |> prepend newline
+    |> should equal """
+module foo
+
+// bar
+// baz
+"""
+
+[<Test>]
+let ``comment is first trivia in namespace should not add newline, 784`` () =
+    formatSourceString false """
+namespace foo.quz
+
+// bar
+// baz
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace foo.quz
+
+// bar
+// baz
+"""
+
+[<Test>]
+let ``comment is first trivia in namespace in signature file should not add newline, 784`` () =
+    formatSourceString true """
+namespace foo.quz
+
+// bar
+// baz
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace foo.quz
 
 // bar
 // baz

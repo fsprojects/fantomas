@@ -891,6 +891,14 @@ let internal sepNlnForEmptyModule (moduleRange:range) ctx =
     | _ ->
         sepNln ctx
 
+let internal sepNlnForEmptyNamespace (namespaceRange:range) ctx =
+    let emptyNamespaceRange = mkRange namespaceRange.FileName (mkPos 0 0) namespaceRange.End
+    match TriviaHelpers.findInRange ctx.Trivia emptyNamespaceRange with
+    | Some node when hasPrintableContent node.ContentBefore || hasPrintableContent node.ContentAfter ->
+        ctx
+    | _ ->
+        sepNln ctx
+
 let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
     match firstMemberRange with
     | Some range when (ctx.Config.NewlineBetweenTypeDefinitionAndMembers) ->
