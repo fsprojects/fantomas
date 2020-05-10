@@ -497,3 +497,53 @@ module Bar =
         for foo in bar().meh<SomeType> () do
             printf "baz"
 """
+
+[<Test>]
+let ``handle hash directives before equals, 728`` () = 
+    formatSourceString false """let Baz (firstParam: string)
+#if DEBUG
+            (_         : int)
+#else
+            (secndParam: int)
+#endif
+                =
+        ()
+
+    """ config
+    |> should equal """let Baz
+    (firstParam: string)
+#if DEBUG
+    (_: int)
+#else
+    (secndParam: int)
+#endif
+    =
+    ()
+"""
+
+[<Test>]
+let ``multiple empty lines between equals and expression`` () =
+    formatSourceString false """let Baz (firstParam: string)
+#if DEBUG
+            (_         : int)
+#else
+            (secndParam: int)
+#endif
+                =
+
+
+        ()
+
+    """ config
+    |> should equal """let Baz
+    (firstParam: string)
+#if DEBUG
+    (_: int)
+#else
+    (secndParam: int)
+#endif
+    =
+
+
+    ()
+"""

@@ -1052,3 +1052,18 @@ type Graph2dOptions =
     abstract maxHeight: HeightWidthType option with get, set
     abstract zIndex: float option with get, set
 """
+
+[<Test>]
+let ``preserve abstract keyword`` () =
+    formatSourceString false """namespace Foo
+
+type internal Blah =
+  abstract Baz : unit
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Foo
+
+type internal Blah =
+    abstract Baz: unit
+"""
