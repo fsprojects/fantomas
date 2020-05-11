@@ -33,6 +33,7 @@ type FormatConfig =
       MaxLetBindingWidth: Num
       MultilineBlockBracketsOnSameColumn : bool
       NewlineBetweenTypeDefinitionAndMembers: bool
+      KeepIfThenInSameLine : bool
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -57,6 +58,7 @@ type FormatConfig =
           MaxArrayOrListWidth = 40
           MaxLetBindingWidth = 40
           MultilineBlockBracketsOnSameColumn = false
+          KeepIfThenInSameLine = false
           StrictMode = false
           NewlineBetweenTypeDefinitionAndMembers = false }
 

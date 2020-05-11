@@ -1232,6 +1232,7 @@ and genExpr astContext synExpr =
     | IfThenElse(e1, e2, None, mIfToThen) ->
         fun (ctx:Context) ->
             let maxWidth = ctx.Config.MaxIfThenElseShortWidth
+            let keepIfThenInSameLine = ctx.Config.KeepIfThenInSameLine
 
             let thenKeywordHasLineComment =
                 TriviaHelpers.``has content after after that matches``
@@ -1249,7 +1250,7 @@ and genExpr astContext synExpr =
                 (fun ((lb,cb),(la,ca)) ->
                     let thenExpressionIsMultiline = thenKeywordHasLineComment || futureNlnCheck (genExpr astContext e2) ctx
 
-                    if lb < la || thenExpressionIsMultiline then // if or then expression was multiline
+                    if lb < la || thenExpressionIsMultiline || keepIfThenInSameLine then // if or then expression was multiline
                         thenExpr (!- " then") +> indent +> sepNln +> genExpr astContext e2 +> unindent
                     elif (lb = la && (ca - cb) > maxWidth)
                          && not thenExpressionIsMultiline then // if expression is longer than maxWidth but not multiline

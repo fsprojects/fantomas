@@ -916,3 +916,35 @@ let ``comment after then in if/then, 730`` () =
 if true then // comment
     ()
 """
+
+[<Test>]
+let ``keep then in same line as if, 825`` () =
+
+    let c = { config with
+               KeepIfThenInSameLine = true
+               PageWidth = 80
+               MaxIfThenElseShortWidth = 0
+               MaxInfixOperatorExpression = 80
+               MaxLetBindingWidth = 0
+               MultilineBlockBracketsOnSameColumn = true }
+
+    formatSourceString false """type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =
+    do
+        if balanceAtTheMomentOfSending < valueToSend then
+            invalidArg "balanceAtTheMomentOfSending"
+                "some very very long error message"
+        if valueToSend <= 0m then
+            invalidArg "valueToSend" "Amount has to be above zero"
+"""  c
+    |> prepend newline
+    |> should equal """
+type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =
+    do
+        if balanceAtTheMomentOfSending < valueToSend then
+            invalidArg "balanceAtTheMomentOfSending"
+                "some very very long error message"
+        if valueToSend <= 0m then
+            invalidArg "valueToSend" "Amount has to be above zero"
+"""
+
+       
