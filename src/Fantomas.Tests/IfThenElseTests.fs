@@ -923,10 +923,7 @@ let ``keep then in same line as if, 825`` () =
     let c = { config with
                KeepIfThenInSameLine = true
                PageWidth = 80
-               MaxIfThenElseShortWidth = 0
-               MaxInfixOperatorExpression = 80
-               MaxLetBindingWidth = 0
-               MultilineBlockBracketsOnSameColumn = true }
+               MaxIfThenElseShortWidth = 0 }
 
     formatSourceString false """type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =
     do
@@ -947,4 +944,128 @@ type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) 
             invalidArg "valueToSend" "Amount has to be above zero"
 """
 
-       
+[<Test>]
+let ``keep then in same line as if with comments, 825`` () =
+
+    let c = { config with
+               KeepIfThenInSameLine = true
+               PageWidth = 80
+               MaxIfThenElseShortWidth = 0 }
+
+    formatSourceString false """type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =
+    do
+        // comment
+        if balanceAtTheMomentOfSending < valueToSend then // comment
+            invalidArg "balanceAtTheMomentOfSending" // comment
+                "some very very long error message" // comment
+        if valueToSend <= 0m then // comment
+            invalidArg "valueToSend" "Amount has to be above zero" // comment
+"""  c
+    |> prepend newline
+    |> should equal """
+type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =
+    do
+        // comment
+        if balanceAtTheMomentOfSending < valueToSend then // comment
+            invalidArg "balanceAtTheMomentOfSending"  // comment
+                "some very very long error message" // comment
+        if valueToSend <= 0m then // comment
+            invalidArg "valueToSend" "Amount has to be above zero" // comment
+"""
+
+[<Test>]
+let ``keep then in same line as if, else if, else, 825`` () =
+
+    let c = { config with
+               KeepIfThenInSameLine = true
+               PageWidth = 80
+               MaxIfThenElseShortWidth = 0 }
+
+    formatSourceString false """if foooooooooooooooooooooooooooooooooooooooo then
+    a
+else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
+    b
+else if caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
+    c
+else
+    d
+"""  c
+    |> prepend newline
+    |> should equal """
+if foooooooooooooooooooooooooooooooooooooooo then
+    a
+else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
+    b
+else if caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
+    c
+else
+    d
+"""
+
+[<Test>]
+let ``keep then in same line as if, else if, else, with comments 825`` () =
+
+    let c = { config with
+               KeepIfThenInSameLine = true
+               PageWidth = 80
+               MaxIfThenElseShortWidth = 0 }
+
+    formatSourceString false """// comment
+if foooooooooooooooooooooooooooooooooooooooo then // comment
+    a // comment
+else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
+    b // comment
+else if caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
+    c // comment
+else // comment
+    d // comment
+"""  c
+    |> prepend newline
+    |> should equal """
+// comment
+if foooooooooooooooooooooooooooooooooooooooo then // comment
+    a // comment
+else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
+    b // comment
+else if caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
+    c // comment
+else // comment
+    d // comment
+"""
+
+[<Test>]
+let ``keep then in same line as if, else if, else, multiline, 825`` () =
+
+    let c = { config with
+               KeepIfThenInSameLine = true
+               PageWidth = 80
+               MaxIfThenElseShortWidth = 0 }
+
+    formatSourceString false """if foooooooooooooooooooooooooooooooooooooooo then
+    multi
+    line
+else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
+    multi
+    line
+else if caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
+    multi
+    line
+else
+    multi
+    line
+"""  c
+    |> prepend newline
+    |> should equal """
+if foooooooooooooooooooooooooooooooooooooooo then
+    multi
+    line
+else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
+    multi
+    line
+else if caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
+    multi
+    line
+else
+    multi
+    line
+"""

@@ -1449,6 +1449,8 @@ and genExpr astContext synExpr =
                 not anyElifBranchHasCommentAfterBranchExpr &&
                 not (futureNlnCheck genOneliner ctx)
 
+            let keepIfThenInSameLine = ctx.Config.KeepIfThenInSameLine
+
             let formatIfElseExpr =
                 if isOneLiner then
                     // Indentation of conditionals depends on the sizes of the expressions that make them up. If cond, e1 and e2 are short, simply write them on one line:
@@ -1456,7 +1458,8 @@ and genExpr astContext synExpr =
                     genOneliner
 
                 elif not isOneLiner && not isAnyExpressionIsMultiline
-                     && isAnyExpressionIsLongerButNotMultiline then
+                     && isAnyExpressionIsLongerButNotMultiline
+                     && not keepIfThenInSameLine then
                     // If either cond, e1 or e2 are longer, but not multi-line:
                     // if cond
                     // then e1
@@ -1467,7 +1470,9 @@ and genExpr astContext synExpr =
                     +> colPost sepNln sepNln elfis genElifTwoLiner
                     +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
 
-                elif hasElfis && not isAnyExpressionIsMultiline then
+                elif hasElfis 
+                     && not isAnyExpressionIsMultiline
+                     && not isAnyExpressionIsLongerButNotMultiline then
                     // Multiple conditionals with elif and else are indented at the same scope as the if:
                     // if cond1 then e1
                     // elif cond2 then e2
