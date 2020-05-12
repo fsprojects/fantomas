@@ -131,3 +131,25 @@ else
     multi
     line
 """
+
+[<Test>]
+let ``MaxIfThenElseShortWidth not exceeded, 825`` () =
+    let c = { config with
+               MaxIfThenElseShortWidth = 100 }
+               
+    formatSourceString false """if foo then
+    bar
+else if fooo then
+    bar
+else if foooo then
+    bar
+else
+    bar
+"""  c
+    |> prepend newline
+    |> should equal """
+if foo then bar
+else if fooo then bar
+else if foooo then bar
+else bar
+"""
