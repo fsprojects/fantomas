@@ -146,9 +146,9 @@ let private mapNodeToTriviaNode (node: Node) =
     )
     
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNode list) (range: range) =
-    triviaNodes
-    |> List.filter isMainNodeButNotAnonModule
-    |> List.forall (fun tn -> tn.Range.EndLine < range.StartLine)
+    match List.filter isMainNodeButNotAnonModule triviaNodes with
+    | [{ Type = MainNode("SynModuleOrNamespaceSig.NamedModule") }] -> true
+    | mainNodes -> mainNodes |> List.forall (fun tn -> tn.Range.EndLine < range.StartLine)
 
 let private updateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =
     match triviaNode with
