@@ -59,7 +59,7 @@ let ``if, else if, else, 825`` () =
     a
 else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
     b
-else if caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
+elif caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
     c
 else
     d
@@ -70,7 +70,7 @@ if foooooooooooooooooooooooooooooooooooooooo then
     a
 else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
     b
-else if caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
+elif caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
     c
 else
     d
@@ -83,7 +83,7 @@ if foooooooooooooooooooooooooooooooooooooooo then // comment
     a // comment
 else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
     b // comment
-else if caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
+elif caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
     c // comment
 else // comment
     d // comment
@@ -95,7 +95,7 @@ if foooooooooooooooooooooooooooooooooooooooo then // comment
     a // comment
 else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
     b // comment
-else if caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
+elif caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
     c // comment
 else // comment
     d // comment
@@ -109,7 +109,7 @@ let ``if, else if, else, multiline, 825`` () =
 else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
     multi
     line
-else if caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
+elif caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
     multi
     line
 else
@@ -124,7 +124,7 @@ if foooooooooooooooooooooooooooooooooooooooo then
 else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
     multi
     line
-else if caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
+elif caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
     multi
     line
 else
@@ -141,7 +141,7 @@ let ``MaxIfThenElseShortWidth not exceeded, 825`` () =
     bar
 else if fooo then
     bar
-else if foooo then
+elif foooo then
     bar
 else
     bar
@@ -150,6 +150,6 @@ else
     |> should equal """
 if foo then bar
 else if fooo then bar
-else if foooo then bar
+elif foooo then bar
 else bar
 """
