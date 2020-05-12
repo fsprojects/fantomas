@@ -268,6 +268,7 @@ A default configuration file would look like
   "IndentOnTryWith":false,
   "SpaceAroundDelimiter":true ,
   "MaxIfThenElseShortWidth":40,
+  "KeepIfThenInSameLine":false,
   "StrictMode":false 
 }
 ```
