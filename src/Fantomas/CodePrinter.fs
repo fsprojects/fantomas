@@ -2592,9 +2592,12 @@ and genPat astContext pat =
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)
     | PatAttrib(p, ats) -> genOnelinerAttributes astContext ats +> genPat astContext p
     | PatOr(p1, p2) ->
+        let sepNlnUnlessLastEventIsNewline ctx =
+             let alreadyHasNewline = lastWriteEventIsNewline ctx
+             (if alreadyHasNewline then sepNone else sepNln) ctx
         genPat astContext p1
         +> enterNodeTokenByName pat.Range "BAR"
-        +> sepNone -- "| "
+        +> sepNlnUnlessLastEventIsNewline -- "| "
         +> genPat astContext p2
     | PatAnds(ps) -> col (!- " & ") ps (genPat astContext)
     | PatNullary PatNull -> !- "null"
