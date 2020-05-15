@@ -9,6 +9,8 @@ type FormatException(msg : string) =
 
 type Num = int
 
+// NOTE: try to keep this list below in sync with the schema.json
+//       and the docs (e.g. Documentation.md)
 type FormatConfig = 
     { /// Number of spaces for each indentation
       IndentSpaceNum : Num
