@@ -146,9 +146,9 @@ let private mapNodeToTriviaNode (node: Node) =
     )
     
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNode list) (range: range) =
-    triviaNodes
-    |> List.filter isMainNodeButNotAnonModule
-    |> List.forall (fun tn -> tn.Range.EndLine < range.StartLine)
+    match List.filter isMainNodeButNotAnonModule triviaNodes with
+    | [{ Type = MainNode("SynModuleOrNamespaceSig.NamedModule") }] -> true
+    | mainNodes -> mainNodes |> List.forall (fun tn -> tn.Range.EndLine < range.StartLine)
 
 let private updateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =
     match triviaNode with
@@ -264,6 +264,10 @@ let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNo
             Some n |> updateTriviaNode (fun tn -> 
                 let newline = tn.Range.StartLine > range.EndLine
                 { tn with ContentBefore = tn.ContentBefore @ [Comment(BlockComment(comment,false, newline))] }) triviaNodes
+        | (Some n), _ when (commentIsAfterLastTriviaNode triviaNodes range) ->
+            findLastNode triviaNodes
+            |> updateTriviaNode (fun tn ->
+                { tn with ContentAfter = tn.ContentAfter @ [Comment(BlockComment(comment, true, false))] }) triviaNodes
         | (Some n), _ ->
             Some n |> updateTriviaNode (fun tn ->
                 { tn with ContentAfter = tn.ContentAfter @ [Comment(BlockComment(comment,true,false))] }) triviaNodes
