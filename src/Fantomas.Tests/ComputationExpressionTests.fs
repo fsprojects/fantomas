@@ -277,3 +277,51 @@ let tests =
 let tests =
     testList "tests" [ test "test" { Expect.equal true true "unexpected" } ]
 """
+
+[<Test>]
+let ``multiline computation expression with SynExpr.App identifier, 835`` () =
+    formatSourceString false """let meh =
+    create [] {
+        // foo
+        // bar
+        return 42
+    }"""  config
+    |> prepend newline
+    |> should equal """
+let meh =
+    create [] {
+        // foo
+        // bar
+        return 42
+    }
+"""
+
+[<Test>]
+let ``multiline computation expression with SynExpr.App identifier and multiple expressions`` () =
+    formatSourceString false """
+let private validateLocation =
+    createValidatorFor<LocationAdded> () {
+        validate (fun l -> l.Id) [ isNotEmptyGuid ]
+        validate (fun l -> l.Name)
+            [ isNotEmpty
+              hasMinLengthOf 3 ]
+        validate (fun l -> fst l.Location) [ isValidLatitude ]
+        validate (fun l -> snd l.Location) [ isValidLongitude ]
+        validate (fun l -> l.Price) [ isGreaterThan 0. ]
+        validate (fun l -> l.Date) [ isNotMinDate ]
+        validate (fun l -> l.Creator) [ isNotEmpty ]
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let private validateLocation =
+    createValidatorFor<LocationAdded> () {
+        validate (fun l -> l.Id) [ isNotEmptyGuid ]
+        validate (fun l -> l.Name) [ isNotEmpty; hasMinLengthOf 3 ]
+        validate (fun l -> fst l.Location) [ isValidLatitude ]
+        validate (fun l -> snd l.Location) [ isValidLongitude ]
+        validate (fun l -> l.Price) [ isGreaterThan 0. ]
+        validate (fun l -> l.Date) [ isNotMinDate ]
+        validate (fun l -> l.Creator) [ isNotEmpty ]
+    }
+"""
