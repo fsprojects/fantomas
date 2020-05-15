@@ -388,6 +388,18 @@ let hello () = "hello world"
 """
 
 [<Test>]
+let ``should handle block comments at the end of file, 810`` () =
+    formatSourceString false """
+printfn "hello world"
+(* This is a comment. *)
+"""  config
+    |> prepend newline
+    |> should equal """
+printfn "hello world"
+(* This is a comment. *)
+"""
+
+[<Test>]
 let ``should keep comments inside unit``() =
     formatSourceString false """
 let x =
