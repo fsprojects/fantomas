@@ -2017,13 +2017,14 @@ and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
 
 and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
     // the typeName is already printed
-    indent +> sepNln +> opt sepSpace ao' genAccess
+    indent +> sepNln +> opt (indent +> sepNln) ao' genAccess
     +> genTrivia tdr.Range
         (sepOpenSFixed +> indent +> sepNln
         +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
         +> unindent +> sepNln +> sepCloseSFixed
         +> sepNlnBetweenTypeAndMembers ms
         +> genMemberDefnList { astContext with InterfaceRange = None } ms
+        +> onlyIf (Option.isSome ao') unindent
         +> unindent)
 
 and sepNlnBetweenSigTypeAndMembers (ms: SynMemberSig list) =
@@ -2091,9 +2092,18 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
         +> unindent
 
     | SigSimple(TDSRRecord(ao', fs)) ->
-        ifAlignBrackets
-            (genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext)
-            (genSigSimpleRecord typeName tdr ms ao' fs astContext)
+        let shortExpr =
+            typeName +> sepEq +> sepSpace +>
+            optSingle (fun ao -> genAccess ao +> sepSpace) ao' +>
+            sepOpenS +> leaveLeftBrace tdr.Range
+            +> col sepSemi fs (genField astContext "") +> sepCloseS
+
+        let longExpr =
+            ifAlignBrackets
+                (genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext)
+                (genSigSimpleRecord typeName tdr ms ao' fs astContext)
+        fun ctx ->
+            isShortExpression ctx.Config.MaxRecordWidth shortExpr longExpr ctx
 
     | SigSimple TDSRNone ->
         let genMembers =
@@ -2143,7 +2153,7 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
 
 and genSigSimpleRecord typeName tdr ms ao' fs astContext =
     typeName +> sepEq
-    +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS
+    +> indent +> sepNln +> opt sepSpace ao' genAccess +> sepOpenS
     +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
     +> sepNlnBetweenSigTypeAndMembers ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)
@@ -2151,12 +2161,13 @@ and genSigSimpleRecord typeName tdr ms ao' fs astContext =
 
 and genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext =
     typeName +> sepEq
-    +> indent +> sepNln +> opt sepNln ao' genAccess
+    +> indent +> sepNln +> opt (indent +> sepNln) ao' genAccess
     +> sepOpenSFixed +> indent +> sepNln
     +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
     +> unindent +> sepNln +> sepCloseSFixed
     +> sepNlnBetweenSigTypeAndMembers ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)
+    +> onlyIf (Option.isSome ao') unindent
     +> unindent
 
 and genMemberSig astContext node =
