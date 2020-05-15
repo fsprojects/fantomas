@@ -1555,33 +1555,21 @@ and genExpr astContext synExpr =
             genTrivia pat.Range (!- "and! " +> genPat astContext pat) -- " = "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
 
-        let addExtraNewlineIfLeadingWasMultiline leading continuation continuationRange =
-            leadingExpressionIsMultiline
-                leading
-                (fun ml -> sepNln +> onlyIf ml (sepNlnConsideringTriviaContentBefore continuationRange) +> continuation)
-
+        let genReturn = genExpr astContext e2
         let andLength = List.length ands
-        let andsWithPrevRange =
+
+        let andNodes =
             List.mapi (fun idx a ->
                 if idx = (andLength - 1) then
-                    (a, e2.Range)
+                    (genAnd astContext a, e2.Range)
                 else
                     let (_,_,_,pat,_,_) = ands.[idx + 1]
-                    (a, pat.Range)) ands
-            |> List.rev
+                    (genAnd astContext a, pat.Range)) ands
 
-        // we construct an expression were we constantly are aware whether the leading expression was multiline
-        // written in full this would translate to
-        // addExtraNewlineIfLeadingWasMultiline genE1 (addExtraNewlineIfLeadingWasMultiline genA1 (addExtraNewlineIfLeadingWasMultiline genA2 (addExtraNewlineIfLeadingWasMultiline genE2 e2.Range) a2.Range) a1.Range) e1.Range
-
-        let genAnds =
-            List.fold
-                (fun acc (a,r) -> fun leading -> addExtraNewlineIfLeadingWasMultiline leading (acc (genAnd astContext a)) r)
-                (fun leadingExpr -> addExtraNewlineIfLeadingWasMultiline leadingExpr (genExpr astContext e2) e2.Range)
-                andsWithPrevRange
-
-        genAnds genLetBang
-
+        colWithNlnWhenLeadingWasMultiline
+            [ yield (genLetBang, e1.Range)
+              yield! andNodes
+              yield (genReturn, e2.Range)]
 
     | ParsingError r ->
         raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i"
