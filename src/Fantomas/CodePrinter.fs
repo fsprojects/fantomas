@@ -2591,7 +2591,11 @@ and genPat astContext pat =
     match pat with
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)
     | PatAttrib(p, ats) -> genOnelinerAttributes astContext ats +> genPat astContext p
-    | PatOr(p1, p2) -> genPat astContext p1 +> sepNln -- "| " +> genPat astContext p2
+    | PatOr(p1, p2) ->
+        genPat astContext p1
+        +> enterNodeTokenByName pat.Range "BAR"
+        +> sepNone -- "| "
+        +> genPat astContext p2
     | PatAnds(ps) -> col (!- " & ") ps (genPat astContext)
     | PatNullary PatNull -> !- "null"
     | PatNullary PatWild -> sepWild
