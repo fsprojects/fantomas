@@ -287,7 +287,7 @@ module BoolExprParser =
 
     and (|NotIdentExpr|_|) =
         function
-        | "!" :: x :: [] -> Some(BoolExpr.Not(BoolExpr.Ident x))
+        | "!" :: [x] -> Some(BoolExpr.Not(BoolExpr.Ident x))
         | _ -> None
 
     and (|ExprPat|_|) =
@@ -297,7 +297,7 @@ module BoolExprParser =
         | AndExpr e
         | OrExpr e
         | NotIdentExpr e -> Some e
-        | x :: [] -> BoolExpr.Ident x |> Some
+        | [x] -> BoolExpr.Ident x |> Some
         | _ -> None
 
     let parse =

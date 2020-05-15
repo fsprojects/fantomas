@@ -100,7 +100,7 @@ let printAST isFsiFile sourceCode =
 let printContext sourceCode =
     let normalizedSourceCode = Fantomas.String.normalizeNewLine sourceCode
     let defines = Fantomas.TokenParser.getDefines sourceCode
-    let context = Fantomas.Context.Context.create config defines normalizedSourceCode None
+    let context = Fantomas.Context.Context.Create config defines normalizedSourceCode None
     printfn "context: %A" context
 
 let zero = range.Zero   

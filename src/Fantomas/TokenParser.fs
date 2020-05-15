@@ -255,8 +255,8 @@ let private identIsDecompiledOperator (token: Token) =
 
 let ``only whitespaces were found in the remainder of the line`` lineNumber tokens =
     tokens
-    |> List.filter (fun t -> t.LineNumber = lineNumber && t.TokenInfo.TokenName <> "WHITESPACE")
-    |> List.isEmpty
+    |> List.exists (fun t -> t.LineNumber = lineNumber && t.TokenInfo.TokenName <> "WHITESPACE")
+    |> not
 
 let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: Token list) foundTrivia =
     match tokens with
@@ -469,7 +469,7 @@ let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) (ignoreRa
             not (List.exists (fun t -> t.LineNumber = line) tokens)
                  && not (List.exists (fun (br:FSharp.Compiler.Range.range) -> br.StartLine < line && br.EndLine > line) ignoreRanges)
         )
-        |> List.map (fun line -> createNewLine line)
+        |> List.map createNewLine
 
     let linesWithOnlySpaces =
         tokens

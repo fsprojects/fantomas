@@ -388,7 +388,7 @@ let formatWith ast defines formatContext config =
     let sourceCode = defaultArg input String.Empty
     let normalizedSourceCode = String.normalizeNewLine sourceCode
     let formattedSourceCode =
-        let context = Fantomas.Context.Context.create config defines normalizedSourceCode (Some ast)
+        let context = Fantomas.Context.Context.Create config defines normalizedSourceCode (Some ast)
         context |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
         |> Dbg.tee (fun ctx -> printfn "%A" ctx.WriterEvents)
         |> Context.dump
@@ -575,7 +575,7 @@ let private formatRange (checker: FSharpChecker) (parsingOptions: FSharpParsingO
     let reconstructSourceCode startCol formatteds pre post =
         Debug.WriteLine("Formatted parts: '{0}' at column {1}", sprintf "%A" formatteds, startCol)
         // Realign results on the correct column
-        Context.Context.create config [] String.Empty None
+        Context.Context.Create config [] String.Empty None
         // Mono version of indent text writer behaves differently from .NET one,
         // So we add an empty string first to regularize it
         |> if returnFormattedContentOnly then Context.str String.Empty else Context.str pre
