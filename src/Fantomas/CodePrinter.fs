@@ -124,7 +124,11 @@ and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRe
     let sepModuleAndFirstDecl =
         let firstDecl = List.tryHead mds
         match firstDecl with
-        | None -> rep 2 sepNln
+        | None ->
+            if moduleKind.IsModule then
+                sepNlnForEmptyModule node.Range +> sepNln
+            else
+                sepNlnForEmptyNamespace node.Range +> sepNln
         | Some mdl ->
             let attrRanges = getRangesFromAttributesFromModuleDeclaration mdl
             sepNlnConsideringTriviaContentBeforeWithAttributes mdl.Range attrRanges +> sepNln
@@ -164,7 +168,11 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds
     let sepModuleAndFirstDecl =
         let firstDecl = List.tryHead mds
         match firstDecl with
-        | None -> rep 2 sepNln
+        | None ->
+            if moduleKind.IsModule then
+                sepNlnForEmptyModule range +> rep 2 sepNln
+            else
+                sepNlnForEmptyNamespace range +> sepNln
         | Some mdl ->
             sepNlnConsideringTriviaContentBefore mdl.Range +> sepNln
 
