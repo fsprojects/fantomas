@@ -178,7 +178,7 @@ type NUnitRunner () =
                 Runner.onFinishedToString name result
                 |> Assert.Inconclusive
 
-            | TestResult.False (_,_,_,_,_) ->
+            | TestResult.False _ ->
                 // TODO : Log more information about the test failure.
                 Runner.onFinishedToString name result
                 |> Assert.Fail
