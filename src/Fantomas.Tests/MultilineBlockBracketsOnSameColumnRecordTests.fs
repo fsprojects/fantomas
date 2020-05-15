@@ -517,3 +517,36 @@ type ShortExpressionInfo =
 
     member x.Foo() = ()
 """
+
+[<Test>]
+let ``indent update record fields far enough, 817`` () =
+    formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" ({ config with IndentSpaceNum = 2 })
+    |> prepend newline
+    |> should equal """
+let expected =
+  { ThisIsAThing.Empty with
+      TheNewValue = 1
+  }
+"""
+
+[<Test>]
+let ``indent update anonymous record fields far enough`` () =
+    formatSourceString false "let expected = {| ThisIsAThing.Empty with TheNewValue = 1 |}" ({ config with IndentSpaceNum = 2 })
+    |> prepend newline
+    |> should equal """
+let expected =
+  {| ThisIsAThing.Empty with
+      TheNewValue = 1
+  |}
+"""
+
+[<Test>]
+let ``update record with standard indent`` () =
+    formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" config
+    |> prepend newline
+    |> should equal """
+let expected =
+    { ThisIsAThing.Empty with
+        TheNewValue = 1
+    }
+"""

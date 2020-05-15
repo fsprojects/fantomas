@@ -1622,7 +1622,7 @@ and genMultilineRecordInstanceAlignBrackets
 
     | None, Some e ->
         sepOpenS +> genExpr astContext e
-        +> (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed)
+        +> (!- " with" +> indent +> whenShortIndent indent +> sepNln +> fieldsExpr +> unindent +> whenShortIndent unindent +> sepNln +> sepCloseSFixed)
 
     | _ ->
         (sepOpenSFixed +> indent +> sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed)
@@ -1644,10 +1644,7 @@ and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo astCont
     let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
 
     let copyExpr fieldsExpr e =
-        genExpr astContext e +>
-            ifElseCtx (futureNlnCheck fieldsExpr)
-                (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent)
-                (!- " with " +> fieldsExpr)
+        genExpr astContext e +> (!- " with" +> indent +> whenShortIndent indent +> sepNln +> fieldsExpr +>  whenShortIndent unindent +> unindent)
 
     let genAnonRecord =
         match copyInfo with
