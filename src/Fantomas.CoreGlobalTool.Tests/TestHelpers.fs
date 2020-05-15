@@ -4,6 +4,7 @@ open System
 open System.Diagnostics
 open System.IO
 open System.Text
+open Fantomas
 
 type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: bool) =
     let hasByteOrderMark = defaultArg hasByteOrderMark false
@@ -18,6 +19,16 @@ type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: b
 
 type OutputFile internal () =
     let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
+    member _.Filename: string = filename
+    interface IDisposable with
+        member this.Dispose(): unit =
+            if File.Exists(filename) then
+                File.Delete(filename)
+
+type ConfigurationFile internal (config: Fantomas.FormatConfig.FormatConfig) =
+    let filename = Path.Join(Path.GetTempPath(), "fantomas-config.json")
+    let content = Config.configToJson config
+    do File.WriteAllText(filename, content)
     member _.Filename: string = filename
     interface IDisposable with
         member this.Dispose(): unit =
@@ -42,9 +53,12 @@ let runFantomasTool arguments =
     p.StartInfo.UseShellExecute <- false
     p.StartInfo.FileName <- @"dotnet"
     p.StartInfo.Arguments <- sprintf "%s %s" fantomasDll arguments
+    p.StartInfo.WorkingDirectory <- Path.GetTempPath()
+    p.StartInfo.RedirectStandardOutput <- true
     p.Start() |> ignore
+    let output = p.StandardOutput.ReadToEnd()
     p.WaitForExit()
-    p.ExitCode
+    (p.ExitCode, output)
 
 let checkCode file =
     let arguments = sprintf "--check \"%s\"" file
