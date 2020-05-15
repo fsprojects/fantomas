@@ -214,7 +214,7 @@ let getDefineExprs sourceCode =
     result
     
 let getOptimizedDefinesSets sourceCode =
-    let maxSteps = FormatConfig.SAT_SOLVE_MAX_STEPS
+    let maxSteps = FormatConfig.satSolveMaxStepsMaxSteps
     match getDefineExprs sourceCode |> BoolExpr.mergeBoolExprs maxSteps |> List.map snd with
     | [] -> [[]]
     | xs -> xs

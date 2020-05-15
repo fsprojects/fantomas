@@ -46,7 +46,7 @@ let private uniqueString () = System.Guid.NewGuid().ToString("N")
 let private applyOptionsToConfig config path =
     let json = File.ReadAllText path
     let options, warnings = JsonConfig.parseOptionsFromJson json
-    FormatConfig.applyOptions(config, options),warnings
+    FormatConfig.ApplyOptions(config, options),warnings
 
 [<Test>]
 let ``single configuration file`` () =

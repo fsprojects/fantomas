@@ -691,7 +691,7 @@ let readConfiguration fileOrFolder =
                         EditorConfig.parseOptionsFromEditorConfig configContent
                     | _ ->
                         failwithf "Filename is not supported!"
-                let updatedConfig = FormatConfig.applyOptions(currentConfig, options)
+                let updatedConfig = FormatConfig.ApplyOptions(currentConfig, options)
                 let locationAwareWarnings =
                     List.ofArray warningFromConfigPath
                     |> List.map (ConfigFile.makeWarningLocationAware configPath)
