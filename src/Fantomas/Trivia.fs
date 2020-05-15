@@ -264,6 +264,10 @@ let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNo
             Some n |> updateTriviaNode (fun tn -> 
                 let newline = tn.Range.StartLine > range.EndLine
                 { tn with ContentBefore = tn.ContentBefore @ [Comment(BlockComment(comment,false, newline))] }) triviaNodes
+        | (Some n), _ when (commentIsAfterLastTriviaNode triviaNodes range) ->
+            findLastNode triviaNodes
+            |> updateTriviaNode (fun tn ->
+                { tn with ContentAfter = tn.ContentAfter @ [Comment(BlockComment(comment, true, false))] }) triviaNodes
         | (Some n), _ ->
             Some n |> updateTriviaNode (fun tn ->
                 { tn with ContentAfter = tn.ContentAfter @ [Comment(BlockComment(comment,true,false))] }) triviaNodes
