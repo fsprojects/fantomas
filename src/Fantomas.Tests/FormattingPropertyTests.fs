@@ -398,13 +398,13 @@ let rec shrinkSynExpr = function
     | SynExpr.While(_, expr1, expr2, _)
     | SynExpr.Quote(expr1, _, expr2, _, _) -> 
         seq { yield! collectSynExpr expr1; yield! collectSynExpr expr2 }
-    | SynExpr.Const(_, _) -> Seq.empty
+    | SynExpr.Const _ -> Seq.empty
     | SynExpr.ArrayOrList(_, exprs, _)
     | SynExpr.Tuple(false, exprs, _, _) ->
         seq { yield! Seq.collect collectSynExpr exprs }
-    | SynExpr.AnonRecd(_, _, _, _)
-    | SynExpr.Record(_, _, _, _)
-    | SynExpr.ObjExpr(_, _, _, _, _, _) -> Seq.empty
+    | SynExpr.AnonRecd _
+    | SynExpr.Record _
+    | SynExpr.ObjExpr _ -> Seq.empty
 
     | SynExpr.IfThenElse(expr1, expr2, Some expr3, _, _, _, _)
     | SynExpr.DotNamedIndexedPropertySet(expr1, _, expr2, expr3, _)
@@ -461,7 +461,7 @@ let shrinkInput input =
         |> Seq.distinct
 
 type Generators = 
-    static member range() =
+    static member Range() =
         Arb.fromGen generateRange
     static member Input() = 
         Arb.fromGenShrink (generateInput, shrinkInput)
@@ -480,7 +480,7 @@ let private verboseConf =
 
 let tryFormatSourceString isFsi sourceCode config =
     try
-        if sourceCode = null then sourceCode
+        if isNull sourceCode then sourceCode
         else formatSourceString isFsi sourceCode config
     with _ ->
         sourceCode
