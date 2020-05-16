@@ -951,6 +951,37 @@ and genExpr astContext synExpr =
                 (genExpr astContext e +> sepCloseS)
                 (genExpr astContext e +> unindent +> sepNln +> sepCloseSFixed))
 
+    | CompExprBody(expr) ->
+        let statements = collectComputationExpressionStatements expr
+
+        let genCompExprStatement astContext ces =
+            match ces with
+            | LetStatement(isRecursive, binding) ->
+                let prefix = if isRecursive then "let rec " else "let "
+                genLetBinding astContext prefix binding
+            | LetBangStatement(pat, expr, _) ->
+                (!- "let! ") +> genPat astContext pat -- " = "
+                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+            | ReturnStatement (expr) ->
+                genExpr astContext expr
+            | AndBangStatement(pat, expr) ->
+                genTrivia pat.Range (!- "and! " +> genPat astContext pat) -- " = "
+                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+            | OtherExpr expr -> genExpr astContext expr
+            | _ -> sepNone
+
+        let getRangeOfCompExprStatement ces =
+            match ces with
+            | LetBangStatement(_, _, r) -> r
+            | ReturnStatement expr -> expr.Range
+            | OtherExpr expr -> expr.Range
+            | AndBangStatement (pat, _) -> pat.Range
+            | _ -> range.Zero
+
+        statements
+        |> List.map (fun ces -> genCompExprStatement astContext ces, getRangeOfCompExprStatement ces)
+        |> colWithNlnWhenItemIsMultiline
+
     | ArrayOrListOfSeqExpr(isArray, e) as aNode ->
         let astContext = { astContext with IsNakedRange = true }
 
@@ -1567,38 +1598,38 @@ and genExpr astContext synExpr =
     | SynExpr.Set(e1,e2, _) ->
         addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
 
-    | LetOrUseBang(isUse, p, e1, ands, e2) ->
-        let genLetBang =
-            ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
-
-        let genAnd astContext  (_, _, _, pat: SynPat, expr: SynExpr, _) =
-            genTrivia pat.Range (!- "and! " +> genPat astContext pat) -- " = "
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
-
-        let genReturn =
-            match e2 with
-            | SynExpr.LetOrUse(_,_, bindings, body, _) ->
-                let bindings =
-                    bindings
-                    |> List.map (fun b -> genLetBinding astContext "let " b, b.RangeOfBindingAndRhs)
-                [ yield! bindings; yield (genExpr astContext body, body.Range) ]
-            | _ ->  [(genExpr astContext e2, e2.Range)]
-
-        let andLength = List.length ands
-
-        let andNodes =
-            List.mapi (fun idx a ->
-                if idx = (andLength - 1) then
-                    (genAnd astContext a, e2.Range)
-                else
-                    let (_,_,_,pat,_,_) = ands.[idx + 1]
-                    (genAnd astContext a, pat.Range)) ands
-
-        colWithNlnWhenItemIsMultiline
-            [ yield (genLetBang, e1.Range)
-              yield! andNodes
-              yield! genReturn ]
+//    | LetOrUseBang(isUse, p, e1, ands, e2) ->
+//        let genLetBang =
+//            ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
+//            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
+//
+//        let genAnd astContext  (_, _, _, pat: SynPat, expr: SynExpr, _) =
+//            genTrivia pat.Range (!- "and! " +> genPat astContext pat) -- " = "
+//            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+//
+//        let genReturn =
+//            match e2 with
+//            | SynExpr.LetOrUse(_,_, bindings, body, _) ->
+//                let bindings =
+//                    bindings
+//                    |> List.map (fun b -> genLetBinding astContext "let " b, b.RangeOfBindingAndRhs)
+//                [ yield! bindings; yield (genExpr astContext body, body.Range) ]
+//            | _ ->  [(genExpr astContext e2, e2.Range)]
+//
+//        let andLength = List.length ands
+//
+//        let andNodes =
+//            List.mapi (fun idx a ->
+//                if idx = (andLength - 1) then
+//                    (genAnd astContext a, e2.Range)
+//                else
+//                    let (_,_,_,pat,_,_) = ands.[idx + 1]
+//                    (genAnd astContext a, pat.Range)) ands
+//
+//        colWithNlnWhenItemIsMultiline
+//            [ yield (genLetBang, e1.Range)
+//              yield! andNodes
+//              yield! genReturn ]
 
     | ParsingError r ->
         raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i"

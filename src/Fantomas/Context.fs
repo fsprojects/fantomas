@@ -209,6 +209,24 @@ let internal lastWriteEventIsNewline ctx =
     |> Option.map (function | WriteLine -> true | _ -> false)
     |> Option.defaultValue false
 
+/// Validate if there is a complete blank line between the last write event and the last event
+let internal newlineBetweenLastWriteEvent ctx =
+    ctx.WriterEvents
+    |> Queue.rev
+    |> Seq.takeWhile (function
+        | Write ""
+        | WriteLine
+        | IndentBy _
+        | UnIndentBy _
+        | SetIndent _
+        | RestoreIndent _
+        | SetAtColumn _
+        | RestoreAtColumn _ -> true
+        | _ -> false)
+    |> Seq.filter (function | WriteLine _ -> true | _ -> false)
+    |> Seq.length
+    |> fun writeLines -> writeLines > 1
+
 let internal lastWriteEventOnLastLine ctx = writeEventsOnLastLine ctx |> Seq.tryHead
 let internal forallCharsOnLastLine f ctx =
     writeEventsOnLastLine ctx |> Seq.collect id |> Seq.forall f
@@ -951,7 +969,12 @@ let internal colWithNlnWhenItemIsMultiline items =
             let f1Expr =
                 match firstItemRange with
                 | Some (fr1) when (fr1 = r1) -> f1
-                | _ -> ifElseCtx (lastWriteEventIsNewline) f1 (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f1 r1)
+                | _ ->
+                    ifElseCtx
+                        newlineBetweenLastWriteEvent
+                        f1
+                        (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f1 r1)
+
             addExtraNewlineIfLeadingWasMultiline f1Expr (impl (List.skip 1 items)) r2
         | [(f,r)] ->
             match firstItemRange with

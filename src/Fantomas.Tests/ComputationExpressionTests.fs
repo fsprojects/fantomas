@@ -47,6 +47,7 @@ let comp =
     eventually {
         for x in 1 .. 2 do
             printfn " x = %d" x
+
         return 3 + 4
     }
 """
@@ -507,4 +508,222 @@ let AddEventsX (req: HttpRequest, log: ILogger) =
         |> Result.either
 
     response
+"""
+
+[<Test>]
+let ``mix of let and let! single line expressions`` () =
+    formatSourceString false """let foo () =
+    async {
+        let! a = callA()
+        let b = callB()
+        let! c = callC()
+        let d = callD()
+        let! e = callE()
+        return (a + b + c - e * d) }
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo () =
+    async {
+        let! a = callA ()
+        let b = callB ()
+        let! c = callC ()
+        let d = callD ()
+        let! e = callE ()
+        return (a + b + c - e * d)
+    }
+"""
+
+[<Test>]
+let ``return from computation expression`` () =
+    formatSourceString false """async { return 42 }
+"""  config
+    |> prepend newline
+    |> should equal """
+async { return 42 }
+"""
+
+[<Test>]
+let ``return from multiline computation expression`` () =
+    formatSourceString false """async {
+    // foo
+    return 42 }
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    // foo
+    return 42
+}
+"""
+
+[<Test>]
+let ``let + return from ce`` () =
+    formatSourceString false """async {
+    let a = getA()
+    return a
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let a = getA ()
+    return a
+}
+"""
+
+[<Test>]
+let ``let rec + return from ce`` () =
+    formatSourceString false """async {
+    let rec a = getA()
+    return a
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let rec a = getA ()
+    return a
+}
+"""
+
+[<Test>]
+let ``two let + return from ce`` () =
+    formatSourceString false """async {
+    let a = getA()
+    let b = getB ()
+    return a
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let a = getA ()
+    let b = getB ()
+    return a
+}
+"""
+
+[<Test>]
+let ``let + let rec + let + return from ce`` () =
+    formatSourceString false """async {
+    let a = getA ()
+    let rec b = getB ()
+    let c = getC ()
+    return a
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let a = getA ()
+    let rec b = getB ()
+    let c = getC ()
+    return a
+}
+"""
+
+[<Test>]
+let ``multiline let + return from ce`` () =
+    formatSourceString false """async {
+    let a =
+        // foo
+        getA()
+    return a
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let a =
+        // foo
+        getA ()
+
+    return a
+}
+"""
+
+[<Test>]
+let ``do + return from ce`` () =
+    formatSourceString false """async {
+    do foo
+    return bar
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    do foo
+    return bar
+}
+"""
+
+[<Test>]
+let ``do! + return from ce`` () =
+    formatSourceString false """async {
+    do! foo
+    return bar
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    do! foo
+    return bar
+}
+"""
+
+[<Test>]
+let ``do! + let + return from ce`` () =
+    formatSourceString false """async {
+    do! foo
+    let bar = getBar ()
+    return bar
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    do! foo
+    let bar = getBar ()
+    return bar
+}
+"""
+
+[<Test>]
+let ``let bang + newline + return`` () =
+    formatSourceString false """async {
+    let! bar = getBar ()
+
+    return bar
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let! bar = getBar ()
+
+    return bar
+}
+"""
+
+[<Test>]
+let ``let bang + and bang + newline + return`` () =
+    formatSourceString false """async {
+    let! bar = getBar ()
+
+    and! foo = getFoo ()
+
+    return bar
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let! bar = getBar ()
+
+    and! foo = getFoo ()
+
+    return bar
+}
 """
