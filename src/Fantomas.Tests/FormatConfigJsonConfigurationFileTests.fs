@@ -12,7 +12,7 @@ let private ConfigFileName ="fantomas-config.json"
 
 let private mkConfig subFolder config =
     let json = Config.configToJson config
-    mkConfigFromContent configFileName subFolder json
+    mkConfigFromContent ConfigFileName subFolder json
 
 let private mkConfigFromJson subFolder json =
     mkConfigFromContent ConfigFileName subFolder json
