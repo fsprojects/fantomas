@@ -433,7 +433,6 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
         Logger.debug \"Database restored\"
 
 "      config
-    |> fun formatted -> formatted
     |> should equal "type Database =
 
     static member Default() =

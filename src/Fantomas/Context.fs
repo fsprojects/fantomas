@@ -132,7 +132,7 @@ type internal Context =
           Trivia = []
           RecordBraceStart = [] }
 
-    static member create config defines (content : string) maybeAst =
+    static member Create config defines (content : string) maybeAst =
         let content = String.normalizeNewLine content
         let positions = 
             content.Split('\n')
@@ -390,10 +390,10 @@ let internal ifElseCtx cond (f1 : Context -> Context) f2 (ctx : Context) =
 
 /// apply f only when cond is true
 let internal onlyIf cond f ctx =
-    if cond then f ctx else id ctx
+    if cond then f ctx else ctx
 
 let internal onlyIfNot cond f ctx =
-    if cond then id ctx  else f ctx
+    if cond then ctx else f ctx
 
 /// Repeat application of a function n times
 let internal rep n (f : Context -> Context) (ctx : Context) =
@@ -612,6 +612,12 @@ let internal noNln f (ctx : Context) : Context =
     let res = f { ctx with BreakLines = false }
     { res with BreakLines = ctx.BreakLines }
 
+let internal sepSpaceBeforeClassConstructor ctx =
+    if ctx.Config.SpaceBeforeClassConstructor then
+        sepSpace ctx
+    else
+        ctx
+
 let internal sepColon (ctx : Context) =
     let defaultExpr = if ctx.Config.SpaceBeforeColon then str " : " else str ": "
 
@@ -655,13 +661,13 @@ let internal unindentOnWith (ctx : Context) =
 let internal ifAlignBrackets f g = ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
 
 /// Don't put space before and after these operators
-let internal NoSpaceInfixOps = set ["?"]
+let internal noSpaceInfixOps = set ["?"]
 
 /// Always break into newlines on these operators
-let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
+let internal newLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 
 /// Never break into newlines on these operators
-let internal NoBreakInfixOps = set ["="; ">"; "<"; "%"]
+let internal noBreakInfixOps = set ["="; ">"; "<"; "%"]
 
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     let currentLastLine = lastWriteEventOnLastLine ctx
@@ -847,22 +853,18 @@ let internal enterRightBracket = enterRightToken "RBRACK"
 let internal enterRightBracketBar = enterRightToken "BAR_RBRACK"
 let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
-    |> List.filter (fun tn ->
+    |> List.exists (fun tn ->
         match tn with
         | Comment(_) -> true
         | Newline -> true
         | _ -> false)
-    |> List.isEmpty
-    |> not
     
 let private hasDirectiveBefore (trivia: TriviaContent list) =
     trivia
-    |> List.filter (fun tn ->
+    |> List.exists (fun tn ->
         match tn with
         | Directive(_) -> true
         | _ -> false)
-    |> List.isEmpty
-    |> not
 
 let internal sepConsideringTriviaContentBefore sepF (range: range) ctx =
     match findTriviaMainNodeFromRange ctx.Trivia range with
