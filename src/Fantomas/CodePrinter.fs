@@ -1576,7 +1576,15 @@ and genExpr astContext synExpr =
             genTrivia pat.Range (!- "and! " +> genPat astContext pat) -- " = "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
 
-        let genReturn = genExpr astContext e2
+        let genReturn =
+            match e2 with
+            | SynExpr.LetOrUse(_,_, bindings, body, _) ->
+                let bindings =
+                    bindings
+                    |> List.map (fun b -> genLetBinding astContext "let " b, b.RangeOfBindingAndRhs)
+                [ yield! bindings; yield (genExpr astContext body, body.Range) ]
+            | _ ->  [(genExpr astContext e2, e2.Range)]
+
         let andLength = List.length ands
 
         let andNodes =
@@ -1587,10 +1595,10 @@ and genExpr astContext synExpr =
                     let (_,_,_,pat,_,_) = ands.[idx + 1]
                     (genAnd astContext a, pat.Range)) ands
 
-        colWithNlnWhenLeadingWasMultiline
+        colWithNlnWhenItemIsMultiline
             [ yield (genLetBang, e1.Range)
               yield! andNodes
-              yield (genReturn, e2.Range)]
+              yield! genReturn ]
 
     | ParsingError r ->
         raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i"
