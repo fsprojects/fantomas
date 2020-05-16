@@ -1204,11 +1204,9 @@ and genExpr astContext synExpr =
         atCurrentColumn
             (genExpr astContext e
              +> colPre sepSpace sepSpace es (fun e ->
-                    indent
-                    +> appNlnFun e
-                           (indentIfNeeded
-                            +> onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
-                            +> genExpr astContext e)
+                    onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
+                    +> indent
+                    +> appNlnFun e (indentIfNeeded +> genExpr astContext e)
                     +> unindent))
 
     | TypeApp(e, ts) -> genExpr astContext e -- "<" +> col sepComma ts (genType astContext false) -- ">"

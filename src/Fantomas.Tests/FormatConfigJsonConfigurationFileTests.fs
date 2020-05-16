@@ -1,6 +1,5 @@
 module Fantomas.Tests.FormatConfigJsonConfigurationFileTests
 
-open System
 open Fantomas
 open Fantomas.FormatConfig
 open NUnit.Framework
@@ -8,7 +7,7 @@ open System.IO
 open Fantomas.Tests.TestHelper
 
 [<Literal>]
-let private ConfigFileName ="fantomas-config.json"
+let private ConfigFileName = "fantomas-config.json"
 
 let private mkConfig subFolder config =
     let json = Config.configToJson config
