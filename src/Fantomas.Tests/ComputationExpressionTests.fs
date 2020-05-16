@@ -252,9 +252,11 @@ let f2 =
         let! r =
             match 0 with
             | _ -> () |> async.Return
+
         and! s =
             match 0 with
             | _ -> () |> async.Return
+
         return r + s
     }
 """
@@ -276,4 +278,123 @@ let tests =
 [<Tests>]
 let tests =
     testList "tests" [ test "test" { Expect.equal true true "unexpected" } ]
+"""
+
+[<Test>]
+let ``new line after multiline let bang, 819`` () =
+    formatSourceString false """
+let x data =
+    async {
+        let! bar =
+            data
+            |> Array.map id
+            |> Array.filter ((=) 1)
+            |> Array.countBy id
+            |> async.Return
+        return bar
+    }
+
+let y data =
+    async {
+        let bar =
+            data
+            |> Array.map id
+            |> Array.filter ((=) 1)
+            |> Array.countBy id
+            |> async.Return
+        return bar
+    }
+
+let z =
+    let bar =
+        data
+        |> Array.map id
+        |> Array.filter ((=) 1)
+        |> Array.countBy id
+    bar
+"""  config
+    |> prepend newline
+    |> should equal """
+let x data =
+    async {
+        let! bar =
+            data
+            |> Array.map id
+            |> Array.filter ((=) 1)
+            |> Array.countBy id
+            |> async.Return
+
+        return bar
+    }
+
+let y data =
+    async {
+        let bar =
+            data
+            |> Array.map id
+            |> Array.filter ((=) 1)
+            |> Array.countBy id
+            |> async.Return
+
+        return bar
+    }
+
+let z =
+    let bar =
+        data
+        |> Array.map id
+        |> Array.filter ((=) 1)
+        |> Array.countBy id
+
+    bar
+"""
+
+[<Test>]
+let ``normal let bindings before and after let bang`` () =
+    formatSourceString false """
+let fetchAsync(name, url:string) =
+    async {
+        let uri = new System.Uri(url)
+        let webClient = new WebClient()
+        let! html = webClient.AsyncDownloadString(uri)
+        let title = html.CssSelect("title")
+        return title
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let fetchAsync (name, url: string) =
+    async {
+        let uri = new System.Uri(url)
+        let webClient = new WebClient()
+        let! html = webClient.AsyncDownloadString(uri)
+        let title = html.CssSelect("title")
+        return title
+    }
+"""
+
+[<Test>]
+let ``short expression with intertwined with newlines`` () =
+    formatSourceString false """
+async {
+    let! a = aa
+
+    and! b = bb
+
+    and! c = cc
+
+    return (a + b + c)
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let! a = aa
+
+    and! b = bb
+
+    and! c = cc
+
+    return (a + b + c)
+}
 """
