@@ -1559,7 +1559,7 @@ and genExpr astContext synExpr =
             ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
 
-        let genAnd astContext ((_,_,_,pat,expr,_): (DebugPointForBinding * bool * bool * SynPat * SynExpr * range)) =
+        let genAnd astContext  (_, _, _, pat: SynPat, expr: SynExpr, _) =
             genTrivia pat.Range (!- "and! " +> genPat astContext pat) -- " = "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
 
