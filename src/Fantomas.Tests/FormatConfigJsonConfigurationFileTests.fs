@@ -1,6 +1,5 @@
 module Fantomas.Tests.FormatConfigJsonConfigurationFileTests
 
-open System
 open Fantomas
 open Fantomas.FormatConfig
 open NUnit.Framework
@@ -8,29 +7,14 @@ open System.IO
 open Fantomas.Tests.TestHelper
 
 [<Literal>]
-let private configFileName ="fantomas-config.json"
-
-let private configToJson config =
-    Reflection.getRecordFields config
-    |> Array.choose (fun (k,v) ->
-        match v with
-        | :? System.Boolean as b ->
-            sprintf "\"%s\":%s" k (if b then "true " else "false")
-            |> Some
-        | :? System.Int32 as i ->
-            sprintf " \"%s\":%d" k i
-            |> Some
-        | _ -> None
-    )
-    |> String.concat ",\n  "
-    |> sprintf "{ %s }"
+let private ConfigFileName = "fantomas-config.json"
 
 let private mkConfig subFolder config =
-    let json = configToJson config
-    mkConfigFromContent configFileName subFolder json
+    let json = Config.configToJson config
+    mkConfigFromContent ConfigFileName subFolder json
 
 let private mkConfigFromJson subFolder json =
-    mkConfigFromContent configFileName subFolder json
+    mkConfigFromContent ConfigFileName subFolder json
 
 let rec private delete fileOrFolder =
     if File.Exists(fileOrFolder) then
@@ -46,7 +30,7 @@ let private uniqueString () = System.Guid.NewGuid().ToString("N")
 let private applyOptionsToConfig config path =
     let json = File.ReadAllText path
     let options, warnings = JsonConfig.parseOptionsFromJson json
-    FormatConfig.applyOptions(config, options),warnings
+    FormatConfig.ApplyOptions(config, options),warnings
 
 [<Test>]
 let ``single configuration file`` () =
