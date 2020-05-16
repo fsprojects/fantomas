@@ -416,10 +416,10 @@ let internal sepSpace (ctx : Context) =
 
 let internal sepNln = !+ ""
 
-let internal whenLastEventIsNotWriteLine f (ctx: Context) =
+let internal sepNlnUnlessLastEventIsNewline (ctx: Context) =
     if lastWriteEventIsNewline ctx
     then ctx
-    else f ctx
+    else sepNln ctx
 
 let internal sepStar = !- " * "
 let internal sepEq = !- " ="

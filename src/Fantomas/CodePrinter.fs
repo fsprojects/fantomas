@@ -1721,21 +1721,21 @@ and genMultiLineArrayOrListAlignBrackets (isArray:bool) xs alNode astContext =
                 sepOpenAFixed +>
                 indent +>
                 leaveNodeTokenByName alNode.Range "LBRACK_BAR" +>
-                whenLastEventIsNotWriteLine sepNln +>
+                sepNlnUnlessLastEventIsNewline +>
                 innerExpr +>
                 unindent +>
                 enterNodeTokenByName alNode.Range "BAR_RBRACK" +>
-                whenLastEventIsNotWriteLine sepNln +>
+                sepNlnUnlessLastEventIsNewline +>
                 sepCloseAFixed
             else
                 sepOpenLFixed +>
                 indent +>
                 leaveNodeTokenByName alNode.Range "LBRACK" +>
-                whenLastEventIsNotWriteLine sepNln +>
+                sepNlnUnlessLastEventIsNewline +>
                 innerExpr +>
                 unindent +>
                 enterNodeTokenByName alNode.Range "RBRACK" +>
-                whenLastEventIsNotWriteLine sepNln +>
+                sepNlnUnlessLastEventIsNewline +>
                 sepCloseLFixed
 
         expr ctx
@@ -2617,9 +2617,6 @@ and genPat astContext pat =
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)
     | PatAttrib(p, ats) -> genOnelinerAttributes astContext ats +> genPat astContext p
     | PatOr(p1, p2) ->
-        let sepNlnUnlessLastEventIsNewline ctx =
-             let alreadyHasNewline = lastWriteEventIsNewline ctx
-             (if alreadyHasNewline then sepNone else sepNln) ctx
         genPat astContext p1
         +> enterNodeTokenByName pat.Range "BAR"
         +> sepNlnUnlessLastEventIsNewline -- "| "

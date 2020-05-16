@@ -815,3 +815,24 @@ let f x =
     | B -> Some()
     | _ -> None
 """
+
+[<Test>]
+let ``block comments in multi-pattern case matching should not be removed``() =
+    formatSourceString false """
+let f x =
+    match x with
+    | A
+    (* multi-line
+       block comment *)
+    | B -> Some()
+    | _ -> None""" config
+    |> prepend newline
+    |> should equal """
+let f x =
+    match x with
+    | A
+    (* multi-line
+       block comment *)
+    | B -> Some()
+    | _ -> None
+"""
