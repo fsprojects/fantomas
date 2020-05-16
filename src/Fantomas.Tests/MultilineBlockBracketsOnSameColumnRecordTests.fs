@@ -519,6 +519,37 @@ type ShortExpressionInfo =
 """
 
 [<Test>]
+let ``internal keyword before multiline record type`` () =
+    formatSourceString false """
+    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }""" config
+    |> prepend newline
+    |> should equal """
+type A =
+    internal
+        {
+            ALongIdentifier : string
+            YetAnotherLongIdentifier : bool
+        }
+"""
+
+[<Test>]
+let ``internal keyword before multiline record type in signature file`` () =
+    formatSourceString true """namespace Bar
+
+    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }""" config
+    |> prepend newline
+    |> should equal """
+namespace Bar
+
+type A =
+    internal
+        {
+            ALongIdentifier : string
+            YetAnotherLongIdentifier : bool
+        }
+"""
+
+[<Test>]
 let ``indent update record fields far enough, 817`` () =
     formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" ({ config with IndentSpaceNum = 2 })
     |> prepend newline

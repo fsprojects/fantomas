@@ -553,3 +553,32 @@ namespace Foo
 type internal Blah =
     abstract Baz: unit
 """
+
+[<Test>]
+let ``internal keyword before short record type, 830`` () =
+    formatSourceString true """namespace Bar
+type 'a Baz =
+    internal {
+        Value : 'a
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Bar
+
+type 'a Baz = internal { Value: 'a }
+"""
+
+[<Test>]
+let ``internal keyword before long record type`` () =
+    formatSourceString true """namespace Bar
+
+    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }""" config
+    |> prepend newline
+    |> should equal """
+namespace Bar
+
+type A =
+    internal { ALongIdentifier: string
+               YetAnotherLongIdentifier: bool }
+"""
