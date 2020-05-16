@@ -8,7 +8,7 @@ open System.IO
 open Fantomas.Tests.TestHelper
 
 [<Literal>]
-let private configFileName ="fantomas-config.json"
+let private ConfigFileName ="fantomas-config.json"
 
 let private configToJson config =
     Reflection.getRecordFields config
@@ -27,10 +27,10 @@ let private configToJson config =
 
 let private mkConfig subFolder config =
     let json = configToJson config
-    mkConfigFromContent configFileName subFolder json
+    mkConfigFromContent ConfigFileName subFolder json
 
 let private mkConfigFromJson subFolder json =
-    mkConfigFromContent configFileName subFolder json
+    mkConfigFromContent ConfigFileName subFolder json
 
 let rec private delete fileOrFolder =
     if File.Exists(fileOrFolder) then
@@ -46,7 +46,7 @@ let private uniqueString () = System.Guid.NewGuid().ToString("N")
 let private applyOptionsToConfig config path =
     let json = File.ReadAllText path
     let options, warnings = JsonConfig.parseOptionsFromJson json
-    FormatConfig.applyOptions(config, options),warnings
+    FormatConfig.ApplyOptions(config, options),warnings
 
 [<Test>]
 let ``single configuration file`` () =

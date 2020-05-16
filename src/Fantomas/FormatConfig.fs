@@ -2,7 +2,7 @@
 
 open System
 
-let SAT_SOLVE_MAX_STEPS = 100
+let satSolveMaxStepsMaxSteps = 100
 
 type FormatException(msg : string) =
     inherit Exception(msg)
@@ -62,7 +62,7 @@ type FormatConfig =
           StrictMode = false
           NewlineBetweenTypeDefinitionAndMembers = false }
 
-    static member applyOptions(currentConfig, options) =
+    static member ApplyOptions(currentConfig, options) =
         let currentValues = Reflection.getRecordFields currentConfig
         let newValues =
             Array.fold (fun acc (k,v) ->
