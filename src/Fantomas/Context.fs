@@ -395,6 +395,9 @@ let internal onlyIf cond f ctx =
 let internal onlyIfNot cond f ctx =
     if cond then ctx else f ctx
 
+let internal whenShortIndent f ctx =
+    onlyIf (ctx.Config.IndentSpaceNum < 3) f ctx
+
 /// Repeat application of a function n times
 let internal rep n (f : Context -> Context) (ctx : Context) =
     [1..n] |> List.fold (fun c _ -> f c) ctx
