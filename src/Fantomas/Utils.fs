@@ -129,3 +129,19 @@ module Reflection =
         let names = FSharpType.GetRecordFields (x.GetType()) |> Seq.map (fun x -> x.Name)
         let values = FSharpValue.GetRecordFields x
         Seq.zip names values |> Seq.toArray
+
+module Config =
+    let configToJson config =
+        Reflection.getRecordFields config
+        |> Array.choose (fun (k,v) ->
+            match v with
+            | :? System.Boolean as b ->
+                sprintf "\"%s\":%s" k (if b then "true " else "false")
+                |> Some
+            | :? System.Int32 as i ->
+                sprintf " \"%s\":%d" k i
+                |> Some
+            | _ -> None
+        )
+        |> String.concat ",\n  "
+        |> sprintf "{ %s }"
