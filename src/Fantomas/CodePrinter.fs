@@ -1037,7 +1037,7 @@ and genExpr astContext synExpr =
     // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
     | App(Var "?", e::es) ->
         match es with
-        | SynExpr.Const(SynConst.String(_,_),_)::_ ->
+        | SynExpr.Const(SynConst.String(_),_)::_ ->
             genExpr astContext e -- "?" +> col sepSpace es (genExpr astContext)
         | _ ->
             genExpr astContext e -- "?" +> sepOpenT +> col sepSpace es (genExpr astContext) +> sepCloseT
@@ -1062,8 +1062,8 @@ and genExpr astContext synExpr =
         let sepAfterExpr f =
             match es with
             | [] -> sepNone
-            | (s,_,_)::_ when ((NoBreakInfixOps.Contains s)) -> sepSpace
-            | (s,_,_)::_ when ((NoSpaceInfixOps.Contains s)) -> sepNone
+            | (s,_,_)::_ when ((noBreakInfixOps.Contains s)) -> sepSpace
+            | (s,_,_)::_ when ((noSpaceInfixOps.Contains s)) -> sepNone
             | _ -> f
 
         let expr = genExpr astContext e
@@ -1232,7 +1232,7 @@ and genExpr astContext synExpr =
     | TryWith(e, cs) ->
         let prefix = kw "TRY" !-"try " +> indent +> sepNln +> genExpr astContext e +> unindent +> kw "WITH" !+~"with"
         match cs with
-        | [SynMatchClause.Clause(SynPat.Or(_,_,_),_,_,_,_)] ->
+        | [SynMatchClause.Clause(SynPat.Or(_),_,_,_,_)] ->
             atCurrentColumn (prefix +> indentOnWith +> sepNln +> col sepNln cs (genClause astContext true) +> unindentOnWith)
         | [c] ->
             atCurrentColumn (prefix +> sepSpace +> genClause astContext false c)
@@ -1551,7 +1551,7 @@ and genExpr astContext synExpr =
     | OptVar(s, isOpt, ranges) ->
         // In case s is f.ex `onStrongDiscard.IsNone`, last range is the range of `IsNone`
         let lastRange = List.tryLast ranges
-        ifElse isOpt (!- "?") sepNone -- s +> opt id lastRange (fun r ctx -> leaveNode r ctx)
+        ifElse isOpt (!- "?") sepNone -- s +> opt id lastRange leaveNode
     | LongIdentSet(s, e, _) ->
         !- (sprintf "%s <- " s)
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
@@ -1771,7 +1771,7 @@ and genInfixAppsShort astContext synExprs =
 and genInfixApps astContext synExprs =
     colEx
         (fun (s, _, _) ->
-            if (NoBreakInfixOps.Contains s)
+            if (noBreakInfixOps.Contains s)
             then sepSpace
             else sepNln
         )
@@ -1779,7 +1779,7 @@ and genInfixApps astContext synExprs =
         (fun (s, opE, e) -> genInfixApp s opE e astContext)
 
 and genInfixApp s (opE: SynExpr) e astContext =
-    if (NoBreakInfixOps.Contains s) then
+    if (noBreakInfixOps.Contains s) then
         (sepSpace
          +> node opE.Range s
          +> (fun ctx ->
@@ -1793,7 +1793,7 @@ and genInfixApp s (opE: SynExpr) e astContext =
                         else
                             sepSpace +> genExpr astContext e
                     genExpr ctx))
-    elif (NoSpaceInfixOps.Contains s) then
+    elif (noSpaceInfixOps.Contains s) then
         let wrapExpr f =
             match (s, opE, e) with
             | ("?", SynExpr.Ident(Ident("op_Dynamic")), SynExpr.Ident(_)) ->
@@ -2485,7 +2485,7 @@ and genMemberDefn astContext node =
         let addSpaceAfterType =
             match e with
             | SynExpr.Const(SynConst.Unit, _) -> false
-            | SynExpr.Const(_, _) -> true // string, numbers, ...
+            | SynExpr.Const _ -> true // string, numbers, ...
             | _ -> false
         !- "inherit " +> genType astContext false t +> ifElse addSpaceAfterType sepSpace sepNone +> genExpr astContext e
     | MDInherit(t, _) -> !- "inherit " +> genType astContext false t
@@ -2750,7 +2750,7 @@ and genConst (c:SynConst) (r:range) =
     | SynConst.IntPtr(_)
     | SynConst.UInt64(_)
     | SynConst.UIntPtr(_)
-    | SynConst.UserNum(_,_) -> genConstNumber c r
+    | SynConst.UserNum _ -> genConstNumber c r
     | SynConst.String(s,_) ->
         fun (ctx: Context) ->
             let trivia =
