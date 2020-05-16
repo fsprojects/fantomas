@@ -1628,7 +1628,7 @@ module private Ast =
              Childs =
                  [yield visitSynComponentInfo sci
                   yield! (decls |> List.map visitSynModuleSigDecl)]}
-        | SynModuleSigDecl.Val(SynValSig.ValSpfn(_,_,_,_,_,_,_,_,_,_,_) as node, _) ->
+        | SynModuleSigDecl.Val(SynValSig.ValSpfn _ as node, _) ->
             visitSynValSig node
         | SynModuleSigDecl.Types(typeDefs,range) ->
             {Type = "SynModuleSigDecl.Types"
