@@ -781,12 +781,9 @@ let rec (|LetOrUses|_|) = function
 
 type ComputationExpressionStatement =
     | LetStatement of recursive:bool * SynBinding
-    | LetBangStatement of SynPat * SynExpr * range
-    | AndStatement of SynExpr
+    | LetOrUseBangStatement of isUse:bool * SynPat * SynExpr * range
     | AndBangStatement of SynPat * SynExpr
-    | ReturnStatement of SynExpr
-    | UseStatement of SynExpr
-    | OtherExpr of SynExpr
+    | OtherStatement of SynExpr
 
 let rec collectComputationExpressionStatements e : ComputationExpressionStatement list =
     match e with
@@ -796,17 +793,15 @@ let rec collectComputationExpressionStatements e : ComputationExpressionStatemen
             |> List.map (fun b -> LetStatement(isRecursive, b))
         let returnExpr = collectComputationExpressionStatements body
         [yield! bindings; yield! returnExpr]
-    | SynExpr.YieldOrReturn((_,isReturn), _, _) as expr when isReturn ->
-        [ ReturnStatement(expr) ]
-    | SynExpr.LetOrUseBang(_,isUse,_,pat,expr, andBangs, body, r) when (not isUse) ->
-        let letBang = LetBangStatement(pat, expr, r)
+    | SynExpr.LetOrUseBang(_,isUse,_,pat,expr, andBangs, body, r) ->
+        let letOrUseBang = LetOrUseBangStatement(isUse, pat, expr, r)
         let andBangs = andBangs |> List.map (fun (_,_,_, ap,ae,_) -> AndBangStatement(ap,ae))
         let bodyStatements = collectComputationExpressionStatements body
-        [letBang; yield! andBangs; yield! bodyStatements]
+        [letOrUseBang; yield! andBangs; yield! bodyStatements]
     | SynExpr.Sequential(_,_, e1,  e2, _) ->
         [ yield! collectComputationExpressionStatements e1
           yield! collectComputationExpressionStatements e2 ]
-    | expr -> [ OtherExpr expr ]
+    | expr -> [ OtherStatement expr ]
 
 /// Matches if the SynExpr has some or of computation expression member call inside.
 let (|CompExprBody|_|) expr =

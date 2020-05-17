@@ -959,24 +959,21 @@ and genExpr astContext synExpr =
             | LetStatement(isRecursive, binding) ->
                 let prefix = if isRecursive then "let rec " else "let "
                 genLetBinding astContext prefix binding
-            | LetBangStatement(pat, expr, _) ->
-                (!- "let! ") +> genPat astContext pat -- " = "
+            | LetOrUseBangStatement(isUse, pat, expr, _) ->
+                ifElse isUse (!- "use! ") (!- "let! ")
+                +> genPat astContext pat -- " = "
                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
-            | ReturnStatement (expr) ->
-                genExpr astContext expr
             | AndBangStatement(pat, expr) ->
                 genTrivia pat.Range (!- "and! " +> genPat astContext pat) -- " = "
                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
-            | OtherExpr expr -> genExpr astContext expr
-            | _ -> sepNone
+            | OtherStatement expr -> genExpr astContext expr
 
         let getRangeOfCompExprStatement ces =
             match ces with
-            | LetBangStatement(_, _, r) -> r
-            | ReturnStatement expr -> expr.Range
-            | OtherExpr expr -> expr.Range
+            | LetStatement(_, binding) -> binding.RangeOfBindingSansRhs
+            | LetOrUseBangStatement(_, _, _, r) -> r
             | AndBangStatement (pat, _) -> pat.Range
-            | _ -> range.Zero
+            | OtherStatement expr -> expr.Range
 
         statements
         |> List.map (fun ces -> genCompExprStatement astContext ces, getRangeOfCompExprStatement ces)

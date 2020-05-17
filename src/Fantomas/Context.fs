@@ -968,8 +968,12 @@ let internal colWithNlnWhenItemIsMultiline items =
         | (f1,r1)::(_,r2)::_ ->
             let f1Expr =
                 match firstItemRange with
-                | Some (fr1) when (fr1 = r1) -> f1
+                | Some (fr1) when (fr1 = r1) ->
+                    // first expression should always be executed as is.
+                    f1
                 | _ ->
+                    // Maybe the previous statement already introduced a complete blank line.
+                    // If not add a new line but consider trivia.
                     ifElseCtx
                         newlineBetweenLastWriteEvent
                         f1
@@ -978,8 +982,14 @@ let internal colWithNlnWhenItemIsMultiline items =
             addExtraNewlineIfLeadingWasMultiline f1Expr (impl (List.skip 1 items)) r2
         | [(f,r)] ->
             match firstItemRange with
-            | Some (fr1) when (fr1 = r) -> f
-            | _ -> autoNlnConsideringTriviaIfExpressionExceedsPageWidth f r
+            | Some (fr1) when (fr1 = r) ->
+                // this can only happen when there is only one item in items
+                f
+            | _ ->
+                ifElseCtx
+                    newlineBetweenLastWriteEvent
+                    f
+                    (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f r)
         | [] -> sepNone
     impl items
 

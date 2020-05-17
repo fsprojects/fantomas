@@ -727,3 +727,390 @@ async {
     return bar
 }
 """
+
+[<Test>]
+let ``custom method names`` () =
+    formatSourceString false """let indexMachine =
+    freyaMachine {
+        methods [GET; HEAD; OPTIONS]
+        handleOk Pages.home }
+"""  config
+    |> prepend newline
+    |> should equal """
+let indexMachine =
+    freyaMachine {
+        methods [ GET; HEAD; OPTIONS ]
+        handleOk Pages.home
+    }
+"""
+
+[<Test>]
+let ``let bang + multiline match in ce`` () =
+    formatSourceString false """
+let rec runPendingJobs () =
+    task {
+        let! jobToRun = checkForJob ()
+        match jobToRun with
+        | None -> return ()
+        | Some pendingJob ->
+            do! pendingJob ()
+            return! runPendingJobs ()
+    }
+
+"""  config
+    |> prepend newline
+    |> should equal """
+let rec runPendingJobs () =
+    task {
+        let! jobToRun = checkForJob ()
+
+        match jobToRun with
+        | None -> return ()
+        | Some pendingJob ->
+            do! pendingJob ()
+            return! runPendingJobs ()
+    }
+"""
+
+[<Test>]
+let ``let + let + let bang + if/then/else in ce`` () =
+    formatSourceString false """let rec private appendToAzureTableStorage (cosmoEvents: EventWrite<JsonValue> seq) =
+    task {
+        let moreThanBatchLimit = Seq.length cosmoEvents > BatchLimit
+
+        let batch =
+            if moreThanBatchLimit then Seq.take BatchLimit cosmoEvents else cosmoEvents
+            |> List.ofSeq
+
+        let! _ = eventStore.AppendEvents EventStream Any batch
+
+        if moreThanBatchLimit then
+            let rest = Seq.skip BatchLimit cosmoEvents
+            return! appendToAzureTableStorage rest
+        else
+            return ()
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let rec private appendToAzureTableStorage (cosmoEvents: EventWrite<JsonValue> seq) =
+    task {
+        let moreThanBatchLimit = Seq.length cosmoEvents > BatchLimit
+
+        let batch =
+            if moreThanBatchLimit then Seq.take BatchLimit cosmoEvents else cosmoEvents
+            |> List.ofSeq
+
+        let! _ = eventStore.AppendEvents EventStream Any batch
+
+        if moreThanBatchLimit then
+            let rest = Seq.skip BatchLimit cosmoEvents
+            return! appendToAzureTableStorage rest
+        else
+            return ()
+    }
+"""
+
+[<Test>]
+let ``short do bang in ce`` () =
+    formatSourceString false """let appendEvents userId (events: Event list) =
+    let cosmoEvents = List.map (createEvent userId) events
+    task { do! appendToAzureTableStorage cosmoEvents }
+"""  config
+    |> prepend newline
+    |> should equal """
+let appendEvents userId (events: Event list) =
+    let cosmoEvents = List.map (createEvent userId) events
+    task { do! appendToAzureTableStorage cosmoEvents }
+"""
+
+[<Test>]
+let ``let bang + let + return in ce`` () =
+    formatSourceString false """let getEvents() =
+    task {
+        let! cosmoEvents = eventStore.GetEvents EventStream AllEvents
+        let events = List.map (fun (ce: EventRead<JsonValue, _>) -> ce.Data) cosmoEvents
+        return events
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let getEvents () =
+    task {
+        let! cosmoEvents = eventStore.GetEvents EventStream AllEvents
+
+        let events =
+            List.map (fun (ce: EventRead<JsonValue, _>) -> ce.Data) cosmoEvents
+
+        return events
+    }
+"""
+
+[<Test>]
+let ``let bang + do expression + let + return in ce`` () =
+    formatSourceString false """
+    task {
+        let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
+        parameters.IssuerSigningKeys <- config.SigningKeys
+        let user, _ = handler.ValidateToken((token: string), parameters)
+        return Ok(user.Identity.Name, collectClaims user)
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+task {
+    let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
+    parameters.IssuerSigningKeys <- config.SigningKeys
+
+    let user, _ =
+        handler.ValidateToken((token: string), parameters)
+
+    return Ok(user.Identity.Name, collectClaims user)
+}
+"""
+
+[<Test>]
+let ``do bang + return in ce`` () =
+    formatSourceString false """    let ((userId, _), events) = request
+    task {
+        do! EventStore.appendEvents userId events
+        return sendText "Events persisted"
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let ((userId, _), events) = request
+
+task {
+    do! EventStore.appendEvents userId events
+    return sendText "Events persisted"
+}
+"""
+
+[<Test>]
+let ``yield bang + yield bang in ce`` () =
+    formatSourceString false """
+let squares =
+    seq {
+        for i in 1..3 -> i * i
+    }
+
+let cubes =
+    seq {
+        for i in 1..3 -> i * i * i
+    }
+
+let squaresAndCubes =
+    seq {
+        yield! squares
+        yield! cubes
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let squares = seq { for i in 1 .. 3 -> i * i }
+
+let cubes = seq { for i in 1 .. 3 -> i * i * i }
+
+let squaresAndCubes =
+    seq {
+        yield! squares
+        yield! cubes
+    }
+"""
+
+[<Test>]
+let ``let bang + yield bang in ce`` () =
+    formatSourceString false """let myCollection = seq {
+    let! squares = getSquares()
+    yield! (squares * level) }
+"""  config
+    |> prepend newline
+    |> should equal """
+let myCollection =
+    seq {
+        let! squares = getSquares ()
+        yield! (squares * level)
+    }
+"""
+
+[<Test>]
+let ``return bang in ce`` () =
+    formatSourceString false """let req = // 'req' is of type is 'Async<data>'
+    async {
+        return! fetch url
+    }
+
+"""  config
+    |> prepend newline
+    |> should equal """
+let req = // 'req' is of type is 'Async<data>'
+    async { return! fetch url }
+"""
+
+[<Test>]
+let ``saturn router`` () =
+    formatSourceString false """
+module Router
+
+open Saturn
+open Giraffe.Core
+open Giraffe.ResponseWriters
+
+
+let browser = pipeline {
+    plug acceptHtml
+    plug putSecureBrowserHeaders
+    plug fetchSession
+    set_header "x-pipeline-type" "Browser"
+}
+
+let defaultView = router {
+    get "/" (htmlView Index.layout)
+    get "/index.html" (redirectTo false "/")
+    get "/default.html" (redirectTo false "/")
+}
+
+let browserRouter = router {
+    not_found_handler (htmlView NotFound.layout) //Use the default 404 webpage
+    pipe_through browser //Use the default browser pipeline
+
+    forward "" defaultView //Use the default view
+}
+
+let appRouter = router {
+    // forward "/api" apiRouter
+    forward "" browserRouter
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+module Router
+
+open Saturn
+open Giraffe.Core
+open Giraffe.ResponseWriters
+
+
+let browser =
+    pipeline {
+        plug acceptHtml
+        plug putSecureBrowserHeaders
+        plug fetchSession
+        set_header "x-pipeline-type" "Browser"
+    }
+
+let defaultView =
+    router {
+        get "/" (htmlView Index.layout)
+        get "/index.html" (redirectTo false "/")
+        get "/default.html" (redirectTo false "/")
+    }
+
+let browserRouter =
+    router {
+        not_found_handler (htmlView NotFound.layout) //Use the default 404 webpage
+        pipe_through browser //Use the default browser pipeline
+
+        forward "" defaultView //Use the default view
+    }
+
+let appRouter =
+    router {
+        // forward "/api" apiRouter
+        forward "" browserRouter
+    }
+"""
+
+[<Test>]
+let ``freya api file`` () =
+    formatSourceString false """module Api
+
+open Freya.Core
+open Freya.Machines.Http
+open Freya.Types.Http
+open Freya.Routers.Uri.Template
+
+let name_ = Route.atom_ "name"
+
+let name =
+    freya {
+        let! name = Freya.Optic.get name_
+
+        match name with
+        | Some name -> return name
+        | None -> return "World" }
+
+let sayHello =
+    freya {
+        let! name = name
+
+        return Represent.text (sprintf "Hello, %s!" name) }
+
+let helloMachine =
+    freyaMachine {
+        methods [GET; HEAD; OPTIONS]
+        handleOk sayHello }
+
+let root =
+    freyaRouter {
+        resource "/hello{/name}" helloMachine }
+"""  config
+    |> prepend newline
+    |> should equal """
+module Api
+
+open Freya.Core
+open Freya.Machines.Http
+open Freya.Types.Http
+open Freya.Routers.Uri.Template
+
+let name_ = Route.atom_ "name"
+
+let name =
+    freya {
+        let! name = Freya.Optic.get name_
+
+        match name with
+        | Some name -> return name
+        | None -> return "World"
+    }
+
+let sayHello =
+    freya {
+        let! name = name
+
+        return Represent.text (sprintf "Hello, %s!" name)
+    }
+
+let helloMachine =
+    freyaMachine {
+        methods [ GET; HEAD; OPTIONS ]
+        handleOk sayHello
+    }
+
+let root =
+    freyaRouter { resource "/hello{/name}" helloMachine }
+"""
+
+[<Test>]
+let ``use bang`` () =
+    formatSourceString false """
+let resource = promise {
+    return new DisposableAction(fun () -> isDisposed := true)
+}
+promise {
+    use! r = resource
+    step1ok := not !isDisposed
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+let resource =
+    promise { return new DisposableAction(fun () -> isDisposed := true) }
+
+promise {
+    use! r = resource
+    step1ok := not !isDisposed
+}
+"""
