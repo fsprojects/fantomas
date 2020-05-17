@@ -1114,3 +1114,114 @@ promise {
     step1ok := not !isDisposed
 }
 """
+
+[<Test>]
+let ``multiline let bang + return in ce`` () =
+    formatSourceString false """
+   let divideByWorkflow x y w z =
+        maybe
+            {
+            let! a = x |> divideBy y
+            let! b = a |> divideBy w
+            let! c = b |> divideBy z
+            return c
+            }
+"""  config
+    |> prepend newline
+    |> should equal """
+let divideByWorkflow x y w z =
+    maybe {
+        let! a = x |> divideBy y
+        let! b = a |> divideBy w
+        let! c = b |> divideBy z
+        return c
+    }
+"""
+
+[<Test>]
+let ``giraffe handler example`` () =
+    formatSourceString false """
+let loginHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let issuer = "http://localhost:5000"
+            let claims =
+                [
+                    Claim(ClaimTypes.Name,      "John",  ClaimValueTypes.String, issuer)
+                    Claim(ClaimTypes.Surname,   "Doe",   ClaimValueTypes.String, issuer)
+                    Claim(ClaimTypes.Role,      "Admin", ClaimValueTypes.String, issuer)
+                ]
+            let identity = ClaimsIdentity(claims, authScheme)
+            let user     = ClaimsPrincipal(identity)
+
+            do! ctx.SignInAsync(authScheme, user)
+
+            return! text "Successfully logged in" next ctx
+        }
+"""  config
+    |> prepend newline
+    |> should equal """
+let loginHandler =
+    fun (next: HttpFunc) (ctx: HttpContext) ->
+        task {
+            let issuer = "http://localhost:5000"
+
+            let claims =
+                [ Claim(ClaimTypes.Name, "John", ClaimValueTypes.String, issuer)
+                  Claim(ClaimTypes.Surname, "Doe", ClaimValueTypes.String, issuer)
+                  Claim(ClaimTypes.Role, "Admin", ClaimValueTypes.String, issuer) ]
+
+            let identity = ClaimsIdentity(claims, authScheme)
+            let user = ClaimsPrincipal(identity)
+
+            do! ctx.SignInAsync(authScheme, user)
+
+            return! text "Successfully logged in" next ctx
+        }
+"""
+
+[<Test>]
+let ``all keywords`` () =
+    formatSourceString false """
+let valueOne =
+    myCe {
+        let a = getA()
+        let! b= getB()
+        and! bb = getBB()
+        do c
+        do! d
+        return 42
+    }
+
+let valueTwo =
+    myCe {
+        let a = getA()
+        let! b= getB()
+        and! bb = getBB()
+        do c
+        do! d
+        return! getE()
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let valueOne =
+    myCe {
+        let a = getA ()
+        let! b = getB ()
+        and! bb = getBB ()
+        do c
+        do! d
+        return 42
+    }
+
+let valueTwo =
+    myCe {
+        let a = getA ()
+        let! b = getB ()
+        and! bb = getBB ()
+        do c
+        do! d
+        return! getE ()
+    }
+"""
