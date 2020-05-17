@@ -489,7 +489,7 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
         let genMetadataAttributes ctx =
             match valInfo with
             | Some(SynValInfo(_, SynArgInfo(attributes, _, _))) -> genOnelinerAttributes astContext attributes ctx
-            | None -> sepNone ctx
+            | None -> ctx
 
         (addExtraSpaceBeforeGenericType
          +> genCommentBeforeColon
