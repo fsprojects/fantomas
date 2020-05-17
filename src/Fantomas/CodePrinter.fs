@@ -2618,8 +2618,8 @@ and genPat astContext pat =
     | PatAttrib(p, ats) -> genOnelinerAttributes astContext ats +> genPat astContext p
     | PatOr(p1, p2) ->
         genPat astContext p1
-        +> enterNodeTokenByName pat.Range "BAR"
-        +> sepNlnUnlessLastEventIsNewline -- "| "
+        +> sepNlnConsideringTriviaContentBefore pat.Range
+        +> enterNodeTokenByName pat.Range "BAR" -- "| "
         +> genPat astContext p2
     | PatAnds(ps) -> col (!- " & ") ps (genPat astContext)
     | PatNullary PatNull -> !- "null"
