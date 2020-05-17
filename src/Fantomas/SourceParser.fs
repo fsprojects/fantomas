@@ -19,7 +19,7 @@ type Debug = Console
 #endif
 
 [<Literal>]
-let maxLength = 512
+let MaxLength = 512
 
 /// Get source string content based on range value
 let lookup (r : range) (c : Context) =
@@ -30,7 +30,7 @@ let lookup (r : range) (c : Context) =
         let finishLength = c.Positions.[r.EndLine] - c.Positions.[r.EndLine-1]
         let content = c.Content
         // Any line with more than 512 characters isn't reliable for querying
-        if start > finish || startLength >= maxLength || finishLength >= maxLength then
+        if start > finish || startLength >= MaxLength || finishLength >= MaxLength then
             Debug.WriteLine("Can't lookup between start = {0} and finish = {1}", start, finish)
             None
         else

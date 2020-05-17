@@ -517,3 +517,67 @@ type ShortExpressionInfo =
 
     member x.Foo() = ()
 """
+
+[<Test>]
+let ``internal keyword before multiline record type`` () =
+    formatSourceString false """
+    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }""" config
+    |> prepend newline
+    |> should equal """
+type A =
+    internal
+        {
+            ALongIdentifier : string
+            YetAnotherLongIdentifier : bool
+        }
+"""
+
+[<Test>]
+let ``internal keyword before multiline record type in signature file`` () =
+    formatSourceString true """namespace Bar
+
+    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }""" config
+    |> prepend newline
+    |> should equal """
+namespace Bar
+
+type A =
+    internal
+        {
+            ALongIdentifier : string
+            YetAnotherLongIdentifier : bool
+        }
+"""
+
+[<Test>]
+let ``indent update record fields far enough, 817`` () =
+    formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" ({ config with IndentSpaceNum = 2 })
+    |> prepend newline
+    |> should equal """
+let expected =
+  { ThisIsAThing.Empty with
+      TheNewValue = 1
+  }
+"""
+
+[<Test>]
+let ``indent update anonymous record fields far enough`` () =
+    formatSourceString false "let expected = {| ThisIsAThing.Empty with TheNewValue = 1 |}" ({ config with IndentSpaceNum = 2 })
+    |> prepend newline
+    |> should equal """
+let expected =
+  {| ThisIsAThing.Empty with
+      TheNewValue = 1
+  |}
+"""
+
+[<Test>]
+let ``update record with standard indent`` () =
+    formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" config
+    |> prepend newline
+    |> should equal """
+let expected =
+    { ThisIsAThing.Empty with
+        TheNewValue = 1
+    }
+"""
