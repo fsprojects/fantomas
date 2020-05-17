@@ -395,6 +395,9 @@ let internal onlyIf cond f ctx =
 let internal onlyIfNot cond f ctx =
     if cond then ctx else f ctx
 
+let internal whenShortIndent f ctx =
+    onlyIf (ctx.Config.IndentSpaceNum < 3) f ctx
+
 /// Repeat application of a function n times
 let internal rep n (f : Context -> Context) (ctx : Context) =
     [1..n] |> List.fold (fun c _ -> f c) ctx
@@ -907,7 +910,20 @@ let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
         sepNlnConsideringTriviaContentBefore range ctx
     | _ ->
         ctx
-    
+
+let internal addExtraNewlineIfLeadingWasMultiline leading continuation continuationRange =
+    leadingExpressionIsMultiline
+        leading
+        (fun ml -> sepNln +> onlyIf ml (sepNlnConsideringTriviaContentBefore continuationRange) +> continuation)
+
+let internal colWithNlnWhenLeadingWasMultiline items =
+    let rec impl items =
+        match items with
+        | (f1,_)::(_,r2)::_ -> addExtraNewlineIfLeadingWasMultiline f1 (impl (List.skip 1 items)) r2
+        | [(f,_)] -> f
+        | [] -> sepNone
+    impl items
+
 let internal beforeElseKeyword (fullIfRange: range) (elseRange: range) (ctx: Context) =
     ctx.Trivia
     |> List.tryFind(fun tn ->

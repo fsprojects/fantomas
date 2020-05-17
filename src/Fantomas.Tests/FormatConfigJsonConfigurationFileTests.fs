@@ -1,6 +1,5 @@
 module Fantomas.Tests.FormatConfigJsonConfigurationFileTests
 
-open System
 open Fantomas
 open Fantomas.FormatConfig
 open NUnit.Framework
@@ -8,25 +7,10 @@ open System.IO
 open Fantomas.Tests.TestHelper
 
 [<Literal>]
-let private ConfigFileName ="fantomas-config.json"
-
-let private configToJson config =
-    Reflection.getRecordFields config
-    |> Array.choose (fun (k,v) ->
-        match v with
-        | :? System.Boolean as b ->
-            sprintf "\"%s\":%s" k (if b then "true " else "false")
-            |> Some
-        | :? System.Int32 as i ->
-            sprintf " \"%s\":%d" k i
-            |> Some
-        | _ -> None
-    )
-    |> String.concat ",\n  "
-    |> sprintf "{ %s }"
+let private ConfigFileName = "fantomas-config.json"
 
 let private mkConfig subFolder config =
-    let json = configToJson config
+    let json = Config.configToJson config
     mkConfigFromContent ConfigFileName subFolder json
 
 let private mkConfigFromJson subFolder json =

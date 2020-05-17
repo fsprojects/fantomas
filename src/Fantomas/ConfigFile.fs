@@ -1,5 +1,6 @@
 module internal Fantomas.ConfigFile
 
+open System
 open System.IO
 open Fantomas.FormatConfig
 open Fantomas.Version
@@ -28,8 +29,14 @@ let rec findConfigurationFiles fileOrFolder : string list =
         |> List.collect findConfigInFolder
     elif File.Exists(fileOrFolder) then
         let parentFolder =
-            Directory.GetParent(Path.GetDirectoryName(fileOrFolder))
-            |> Option.ofObj
+            if String.IsNullOrWhiteSpace(Path.GetDirectoryName(fileOrFolder)) then
+                Directory.GetCurrentDirectory()
+                |> DirectoryInfo
+                |> Some
+            else
+                Directory.GetParent(Path.GetDirectoryName(fileOrFolder))
+                |> Option.ofObj
+
         match parentFolder with
         | Some pf -> findConfigurationFiles pf.FullName @ [fileOrFolder]
         | None -> [fileOrFolder]

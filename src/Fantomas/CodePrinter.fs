@@ -1204,11 +1204,9 @@ and genExpr astContext synExpr =
         atCurrentColumn
             (genExpr astContext e
              +> colPre sepSpace sepSpace es (fun e ->
-                    indent
-                    +> appNlnFun e
-                           (indentIfNeeded
-                            +> onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
-                            +> genExpr astContext e)
+                    onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
+                    +> indent
+                    +> appNlnFun e (indentIfNeeded +> genExpr astContext e)
                     +> unindent))
 
     | TypeApp(e, ts) -> genExpr astContext e -- "<" +> col sepComma ts (genType astContext false) -- ">"
@@ -1570,16 +1568,29 @@ and genExpr astContext synExpr =
         addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
 
     | LetOrUseBang(isUse, p, e1, ands, e2) ->
-        let genAndList astContext (ands: list<DebugPointForBinding * bool * bool * SynPat * SynExpr * range>) =
-            colPost sepNln sepNln
-                ands
-                (fun (_,_,_,pat,expr,_) -> !- "and! " +> genPat astContext pat -- " = " +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr))
+        let genLetBang =
+            ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
 
-        ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
-        +> sepNln
-        +> genAndList astContext ands
-        +> genExpr astContext e2
+        let genAnd astContext  (_, _, _, pat: SynPat, expr: SynExpr, _) =
+            genTrivia pat.Range (!- "and! " +> genPat astContext pat) -- " = "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+
+        let genReturn = genExpr astContext e2
+        let andLength = List.length ands
+
+        let andNodes =
+            List.mapi (fun idx a ->
+                if idx = (andLength - 1) then
+                    (genAnd astContext a, e2.Range)
+                else
+                    let (_,_,_,pat,_,_) = ands.[idx + 1]
+                    (genAnd astContext a, pat.Range)) ands
+
+        colWithNlnWhenLeadingWasMultiline
+            [ yield (genLetBang, e1.Range)
+              yield! andNodes
+              yield (genReturn, e2.Range)]
 
     | ParsingError r ->
         raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i"
@@ -1637,7 +1648,7 @@ and genMultilineRecordInstanceAlignBrackets
 
     | None, Some e ->
         sepOpenS +> genExpr astContext e
-        +> (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed)
+        +> (!- " with" +> indent +> whenShortIndent indent +> sepNln +> fieldsExpr +> unindent +> whenShortIndent unindent +> sepNln +> sepCloseSFixed)
 
     | _ ->
         (sepOpenSFixed +> indent +> sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed)
@@ -1659,10 +1670,7 @@ and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo astCont
     let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
 
     let copyExpr fieldsExpr e =
-        genExpr astContext e +>
-            ifElseCtx (futureNlnCheck fieldsExpr)
-                (!- " with" +> indent +> sepNln +> fieldsExpr +> unindent)
-                (!- " with " +> fieldsExpr)
+        genExpr astContext e +> (!- " with" +> indent +> whenShortIndent indent +> sepNln +> fieldsExpr +>  whenShortIndent unindent +> unindent)
 
     let genAnonRecord =
         match copyInfo with
@@ -2035,13 +2043,14 @@ and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
 
 and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
     // the typeName is already printed
-    indent +> sepNln +> opt sepSpace ao' genAccess
+    indent +> sepNln +> opt (indent +> sepNln) ao' genAccess
     +> genTrivia tdr.Range
         (sepOpenSFixed +> indent +> sepNln
         +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
         +> unindent +> sepNln +> sepCloseSFixed
         +> sepNlnBetweenTypeAndMembers ms
         +> genMemberDefnList { astContext with InterfaceRange = None } ms
+        +> onlyIf (Option.isSome ao') unindent
         +> unindent)
 
 and sepNlnBetweenSigTypeAndMembers (ms: SynMemberSig list) =
@@ -2109,9 +2118,18 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
         +> unindent
 
     | SigSimple(TDSRRecord(ao', fs)) ->
-        ifAlignBrackets
-            (genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext)
-            (genSigSimpleRecord typeName tdr ms ao' fs astContext)
+        let shortExpr =
+            typeName +> sepEq +> sepSpace +>
+            optSingle (fun ao -> genAccess ao +> sepSpace) ao' +>
+            sepOpenS +> leaveLeftBrace tdr.Range
+            +> col sepSemi fs (genField astContext "") +> sepCloseS
+
+        let longExpr =
+            ifAlignBrackets
+                (genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext)
+                (genSigSimpleRecord typeName tdr ms ao' fs astContext)
+        fun ctx ->
+            isShortExpression ctx.Config.MaxRecordWidth shortExpr longExpr ctx
 
     | SigSimple TDSRNone ->
         let genMembers =
@@ -2161,7 +2179,7 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
 
 and genSigSimpleRecord typeName tdr ms ao' fs astContext =
     typeName +> sepEq
-    +> indent +> sepNln +> opt sepNln ao' genAccess +> sepOpenS
+    +> indent +> sepNln +> opt sepSpace ao' genAccess +> sepOpenS
     +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
     +> sepNlnBetweenSigTypeAndMembers ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)
@@ -2169,12 +2187,13 @@ and genSigSimpleRecord typeName tdr ms ao' fs astContext =
 
 and genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext =
     typeName +> sepEq
-    +> indent +> sepNln +> opt sepNln ao' genAccess
+    +> indent +> sepNln +> opt (indent +> sepNln) ao' genAccess
     +> sepOpenSFixed +> indent +> sepNln
     +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
     +> unindent +> sepNln +> sepCloseSFixed
     +> sepNlnBetweenSigTypeAndMembers ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)
+    +> onlyIf (Option.isSome ao') unindent
     +> unindent
 
 and genMemberSig astContext node =
