@@ -1729,21 +1729,21 @@ and genMultiLineArrayOrListAlignBrackets (isArray:bool) xs alNode astContext =
                 sepOpenAFixed +>
                 indent +>
                 leaveNodeTokenByName alNode.Range "LBRACK_BAR" +>
-                whenLastEventIsNotWriteLine sepNln +>
+                sepNlnUnlessLastEventIsNewline +>
                 innerExpr +>
                 unindent +>
                 enterNodeTokenByName alNode.Range "BAR_RBRACK" +>
-                whenLastEventIsNotWriteLine sepNln +>
+                sepNlnUnlessLastEventIsNewline +>
                 sepCloseAFixed
             else
                 sepOpenLFixed +>
                 indent +>
                 leaveNodeTokenByName alNode.Range "LBRACK" +>
-                whenLastEventIsNotWriteLine sepNln +>
+                sepNlnUnlessLastEventIsNewline +>
                 innerExpr +>
                 unindent +>
                 enterNodeTokenByName alNode.Range "RBRACK" +>
-                whenLastEventIsNotWriteLine sepNln +>
+                sepNlnUnlessLastEventIsNewline +>
                 sepCloseLFixed
 
         expr ctx
@@ -2635,7 +2635,11 @@ and genPat astContext pat =
     match pat with
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)
     | PatAttrib(p, ats) -> genOnelinerAttributes astContext ats +> genPat astContext p
-    | PatOr(p1, p2) -> genPat astContext p1 +> sepNln -- "| " +> genPat astContext p2
+    | PatOr(p1, p2) ->
+        genPat astContext p1
+        +> sepNlnConsideringTriviaContentBefore pat.Range
+        +> enterNodeTokenByName pat.Range "BAR" -- "| "
+        +> genPat astContext p2
     | PatAnds(ps) -> col (!- " & ") ps (genPat astContext)
     | PatNullary PatNull -> !- "null"
     | PatNullary PatWild -> sepWild
