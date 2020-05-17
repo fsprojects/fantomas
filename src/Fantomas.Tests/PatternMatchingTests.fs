@@ -467,3 +467,29 @@ match x with
     Some(y + z)
 | None -> None
 """
+
+[<Test>]
+let ``should preserve a new line between single and multi-pattern cases`` () =
+    formatSourceString false """
+let f x =
+    match x with
+    | A
+
+    | B -> Some()
+
+    | C -> None
+
+    | _ -> None
+"""  config
+    |> prepend newline
+    |> should equal """
+let f x =
+    match x with
+    | A
+
+    | B -> Some()
+
+    | C -> None
+
+    | _ -> None
+"""
