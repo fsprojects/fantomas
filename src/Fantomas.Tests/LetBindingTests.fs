@@ -547,9 +547,3 @@ let ``multiple empty lines between equals and expression`` () =
 
     ()
 """
-
-[<Test>]
-let ``should preserve return attributes`` () =
-    formatSourceString false """let f x : [<return: MyCustomAttributeThatWorksOnReturns>] int = x""" config
-    |> should equal """let f x: [<return: MyCustomAttributeThatWorksOnReturns>] int = x
-"""

@@ -219,7 +219,7 @@ let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(Lo
 
 let (|Attribute|) (a : SynAttribute) =
     let (LongIdentWithDots s) = a.TypeName
-    (s, a.ArgExpr, Option.map (|Ident|) a.Target)
+    (s, a.ArgExpr, Option.map (fun (i:Ident) -> i.idText) a.Target)
 
 // Access modifiers
 
