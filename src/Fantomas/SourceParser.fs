@@ -812,11 +812,6 @@ let (|CompExprBody|_|) expr =
     | SynExpr.Sequential(_,_, _, SynExpr.YieldOrReturn(_), _) -> Some expr
     | _ -> None
 
-//let rec (|LetOrUseBang|_|) = function
-//    | SynExpr.LetOrUseBang(_, isUse, _, p, e1, ands, e2, _) ->
-//        Some(isUse, p, e1, ands, e2)
-//    | _ -> None
-        
 let (|ForEach|_|) = function
     | SynExpr.ForEach(_, SeqExprOnly true, _, pat, e1, SingleExpr(Yield, e2) ,_) ->
         Some (pat, e1, e2, true)
