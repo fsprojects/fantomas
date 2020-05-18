@@ -90,8 +90,7 @@ module BoolExpr =
 
         e
         |> toAndList
-        |> List.map toOrList
-        |> List.map splitByNeg
+        |> List.map (toOrList >> splitByNeg)
 
     let eval cnf vals =
         let vals = set vals
@@ -234,7 +233,7 @@ module BoolExprParser =
             match xs with
             | _ when d < 0 -> None
             | Eq before :: rest -> f (d + 1) (before :: acc) rest
-            | Eq after :: [] when d = 1 -> List.rev acc |> Some
+            | [ Eq after ] when d = 1 -> List.rev acc |> Some
             | Eq after :: rest -> f (d - 1) (after :: acc) rest
             | x :: rest -> f d (x :: acc) rest
             | _ -> None
@@ -288,7 +287,7 @@ module BoolExprParser =
 
     and (|NotIdentExpr|_|) =
         function
-        | "!" :: x :: [] -> Some(BoolExpr.Not(BoolExpr.Ident x))
+        | "!" :: [x] -> Some(BoolExpr.Not(BoolExpr.Ident x))
         | _ -> None
 
     and (|ExprPat|_|) =
@@ -298,7 +297,7 @@ module BoolExprParser =
         | AndExpr e
         | OrExpr e
         | NotIdentExpr e -> Some e
-        | x :: [] -> BoolExpr.Ident x |> Some
+        | [x] -> BoolExpr.Ident x |> Some
         | _ -> None
 
     let parse =

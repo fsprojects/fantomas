@@ -3,8 +3,8 @@ namespace Fantomas
 /// FIFO queue, from https://github.com/fsprojects/FSharpx.Collections/blob/master/src/FSharpx.Collections/Queue.fs        
 type Queue<'T> (front : list<'T>, rBack : list<'T>) = 
     let mutable hashCode = None
-    member internal this.front = front
-    member internal this.rBack = rBack
+    member internal this.Front = front
+    member internal this.RBack = rBack
 
     override this.GetHashCode() =
         match hashCode with
@@ -101,12 +101,12 @@ module Queue =
     let empty<'T> : Queue<'T> = Queue<_>([], []) 
 
     let fold (f : ('State -> 'T -> 'State)) (state : 'State) (q : Queue<'T>) = 
-        let s = List.fold f state q.front
-        List.fold f s (List.rev q.rBack)
+        let s = List.fold f state q.Front
+        List.fold f s (List.rev q.RBack)
 
     let foldBack (f : ('T -> 'State -> 'State)) (q : Queue<'T>) (state : 'State) =  
-        let s = List.foldBack f (List.rev q.rBack) state 
-        (List.foldBack f q.front s)
+        let s = List.foldBack f (List.rev q.RBack) state
+        (List.foldBack f q.Front s)
 
     let inline head (q : Queue<'T>) = q.Head
 
