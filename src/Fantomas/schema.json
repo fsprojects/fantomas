@@ -47,6 +47,9 @@
     "MaxIfThenElseShortWidth": {
       "type": "integer"
     },
+    "KeepIfThenInSameLine": {
+      "type": "boolean"
+    },
     "MaxInfixOperatorExpression": {
       "type": "integer"
     },
