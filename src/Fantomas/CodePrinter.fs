@@ -1249,7 +1249,7 @@ and genExpr astContext synExpr =
         // See :
         // * https://github.com/fsprojects/fantomas/issues/478
         // * https://github.com/fsprojects/fantomas/issues/513
-        dumpAndContinue +> firstNewlineOrComment es +> atCurrentColumn (colEx (fun (e:SynExpr) -> sepConsideringTriviaContentBefore sepSemiNln e.Range) es (genExpr astContext))
+        firstNewlineOrComment es +> atCurrentColumn (colEx (fun (e:SynExpr) -> sepConsideringTriviaContentBefore sepSemiNln e.Range) es (genExpr astContext))
 
     | IfThenElse(e1, e2, None, mIfToThen) ->
         fun (ctx:Context) ->
