@@ -1117,7 +1117,7 @@ type internal Blah =
 """
 
 [<Test>]
-let ``keep correct indentation after multiline member definition`` () =
+let ``keep correct indentation after multiline member definition, 845`` () =
     formatSourceString false """type SomeType() =
     member SomeMember(looooooooooooooooooooooooooooooooooong1: A, looooooooooooooooooooooooooooooooooong2: A) =
         printfn "a"
@@ -1132,6 +1132,30 @@ type SomeType() =
     member SomeMember(
         looooooooooooooooooooooooooooooooooong1: A,
         looooooooooooooooooooooooooooooooooong2: A)
+        =
+        printfn "a"
+        "a"
+
+    member SomeOtherMember() = printfn "b"
+"""
+
+[<Test>]
+let ``keep correct indentation after multiline typed member definition`` () =
+    formatSourceString false """type SomeType() =
+    member SomeMember(looooooooooooooooooooooooooooooooooong1: A, looooooooooooooooooooooooooooooooooong2: A) : string =
+        printfn "a"
+        "a"
+
+    member SomeOtherMember () =
+        printfn "b"
+"""  ({ config with PageWidth = 80 })
+    |> prepend newline
+    |> should equal """
+type SomeType() =
+    member SomeMember(
+        looooooooooooooooooooooooooooooooooong1: A,
+        looooooooooooooooooooooooooooooooooong2: A)
+        : string
         =
         printfn "a"
         "a"
