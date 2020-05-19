@@ -2524,7 +2524,7 @@ and genMemberDefn astContext node =
         let ctorPats =
             expressionFitsOnRestOfLine
                 (col sepComma (simplePats ps) (genSimplePat astContext))
-                (indent +> sepNln +> col sepNln (simplePats ps) (genSimplePat astContext) +> unindent)
+                (indent +> sepNln +> col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext) +> unindent)
 
         // In implicit constructor, attributes should come even before access qualifiers
         ifElse ats.IsEmpty sepNone (sepSpace +> genOnelinerAttributes astContext ats)
@@ -2686,7 +2686,7 @@ and genPat astContext pat =
     | PatTuple ps ->
         expressionFitsOnRestOfLine
             (col sepComma ps (genPat astContext))
-            (indent +> sepNln +> col sepNln ps (genPat astContext))
+            (indent +> sepNln +> col (sepComma +> sepNln) ps (genPat astContext))
     | PatStructTuple ps ->
         !- "struct " +> sepOpenT +> atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext)) +> sepCloseT
     | PatSeq(PatList, ps) ->
