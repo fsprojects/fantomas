@@ -685,8 +685,10 @@ and genMemberBinding astContext b =
             genAttributesAndXmlDoc
             +> leadingExpressionIsMultiline prefix
                 (fun prefixIsLong ->
-                    ifElse prefixIsLong (sepNln +> !- "=" +> sepNln) sepEq
-                    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                    ifElse
+                        prefixIsLong
+                        (sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
+                        (sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
 
     | ExplicitCtor(ats, px, ao, p, e, so) ->
         let prefix =
@@ -1248,7 +1250,7 @@ and genExpr astContext synExpr =
         // See :
         // * https://github.com/fsprojects/fantomas/issues/478
         // * https://github.com/fsprojects/fantomas/issues/513
-        firstNewlineOrComment es +> atCurrentColumn (colEx (fun (e:SynExpr) -> sepConsideringTriviaContentBefore sepSemiNln e.Range) es (genExpr astContext))
+        dumpAndContinue +> firstNewlineOrComment es +> atCurrentColumn (colEx (fun (e:SynExpr) -> sepConsideringTriviaContentBefore sepSemiNln e.Range) es (genExpr astContext))
 
     | IfThenElse(e1, e2, None, mIfToThen) ->
         fun (ctx:Context) ->

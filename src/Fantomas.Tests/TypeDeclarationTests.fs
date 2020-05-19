@@ -1115,3 +1115,26 @@ namespace Foo
 type internal Blah =
     abstract Baz: unit
 """
+
+[<Test>]
+let ``keep correct indentation after multiline member definition`` () =
+    formatSourceString false """type SomeType() =
+    member SomeMember(looooooooooooooooooooooooooooooooooong1: A, looooooooooooooooooooooooooooooooooong2: A) =
+        printfn "a"
+        "a"
+
+    member SomeOtherMember () =
+        printfn "b"
+"""  ({ config with PageWidth = 80 })
+    |> prepend newline
+    |> should equal """
+type SomeType() =
+    member SomeMember(
+        looooooooooooooooooooooooooooooooooong1: A,
+        looooooooooooooooooooooooooooooooooong2: A)
+        =
+        printfn "a"
+        "a"
+
+    member SomeOtherMember() = printfn "b"
+"""
