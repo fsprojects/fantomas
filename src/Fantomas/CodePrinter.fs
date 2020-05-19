@@ -676,17 +676,18 @@ and genMemberBinding astContext b =
         | TypedExpr(Typed, e, t) ->
             genAttributesAndXmlDoc
             +> leadingExpressionIsMultiline prefix (fun prefixIsLong ->
-                if prefixIsLong then
-                    sepNln +> sepColon +> genType astContext false t +> sepNln +> !- "=" +> sepNln
-                else
-                    sepColon +> genType astContext false t +> sepEq)
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+                ifElse
+                    prefixIsLong
+                    (sepNln +> sepColon +> genType astContext false t +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
+                    (sepColon +> genType astContext false t +> sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
         | e ->
             genAttributesAndXmlDoc
             +> leadingExpressionIsMultiline prefix
                 (fun prefixIsLong ->
-                    ifElse prefixIsLong (sepNln +> !- "=" +> sepNln) sepEq
-                    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                    ifElse
+                        prefixIsLong
+                        (sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
+                        (sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
 
     | ExplicitCtor(ats, px, ao, p, e, so) ->
         let prefix =
