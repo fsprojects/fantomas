@@ -1062,8 +1062,8 @@ let ``long type members should have parameters on separate lines, 719`` () =
     |> should equal """
 type C () =
     member __.LongMethodWithLotsOfParameters(
-        aVeryLongType: AVeryLongTypeThatYouNeedToUse
-        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
         aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
         =
         aVeryLongType aSecondVeryLongType aThirdVeryLongType
@@ -1078,8 +1078,8 @@ let ``long type member with return type should have parameters on separate lines
     |> should equal """
 type C () =
     member __.LongMethodWithLotsOfParameters(
-        aVeryLongType: AVeryLongTypeThatYouNeedToUse
-        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
         aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
         : int
         =
@@ -1094,8 +1094,8 @@ let ``long constructors should have parameters on separate lines`` () =
     |> prepend newline
     |> should equal """
 type C (
-    aVeryLongType: AVeryLongTypeThatYouNeedToUse
-    aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse
+    aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+    aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
     aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
     =
     member this.X = 42
