@@ -1164,7 +1164,7 @@ type SomeType() =
 """
 
 [<Test>]
-let ``return type and equals sign in correct line when member has multiple parameters`` () =
+let ``split multiple parameters over multiple lines`` () =
     formatSourceString false """type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string) (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string) : string =
     printfn "a"
@@ -1178,6 +1178,59 @@ type SomeType =
         (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
         : string
         =
+        printfn "a"
+        "b"
+"""
+
+[<Test>]
+let ``split multiple parameters over multiple lines and have correct indentation afterwards`` () =
+    formatSourceString false """type SomeType =
+    static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string) (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string) : string =
+    printfn "a"
+    "b"
+
+    static member SomeOtherMember () = printfn "c"
+"""  config
+    |> prepend newline
+    |> should equal """
+type SomeType =
+    static member SomeMember
+        (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
+        (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
+        : string
+        =
+        printfn "a"
+        "b"
+
+    static member SomeOtherMember() = printfn "c"
+"""
+
+[<Test>]
+let ``member with one long parameter and return type`` () =
+    formatSourceString false """type SomeType =
+    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 : string =
+    printfn "a"
+    "b"
+"""  config
+    |> prepend newline
+    |> should equal """
+type SomeType =
+    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string =
+        printfn "a"
+        "b"
+"""
+
+[<Test>]
+let ``member with one long parameter and no return type`` () =
+    formatSourceString false """type SomeType =
+    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
+    printfn "a"
+    "b"
+"""  config
+    |> prepend newline
+    |> should equal """
+type SomeType =
+    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
         printfn "a"
         "b"
 """
