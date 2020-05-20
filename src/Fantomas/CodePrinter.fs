@@ -678,16 +678,16 @@ and genMemberBinding astContext b =
             +> leadingExpressionIsMultiline prefix (fun prefixIsLong ->
                 ifElse
                     prefixIsLong
-                    (sepNln +> sepColon +> genType astContext false t +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
-                    (sepColon +> genType astContext false t +> sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
+                    (indent +> sepNln +> sepColon +> genType astContext false t +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
+                    (sepColon +> genType astContext false t +> sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
         | e ->
             genAttributesAndXmlDoc
             +> leadingExpressionIsMultiline prefix
                 (fun prefixIsLong ->
                     ifElse
                         prefixIsLong
-                        (sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
-                        (sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
+                        (indent +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
+                        (sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
 
     | ExplicitCtor(ats, px, ao, p, e, so) ->
         let prefix =
@@ -704,7 +704,7 @@ and genMemberBinding astContext b =
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
             +> unindent
 
-        | e -> prefix +> sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        | e -> prefix +> sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     | b -> failwithf "%O isn't a member binding" b
     |> genTrivia b.RangeOfBindingSansRhs
@@ -783,7 +783,7 @@ and genRecordFieldName astContext (RecordFieldName(s, eo) as node) =
         let expr =
             match e with
             | MultilineString _ -> sepSpace +> genExpr astContext e
-            | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            | _ -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
         !- s +> sepEq +> expr)
     |> genTrivia range
@@ -792,7 +792,7 @@ and genAnonRecordFieldName astContext (AnonRecordFieldName(s, e)) =
     let expr =
         match e with
         | MultilineString _ -> sepSpace +> genExpr astContext e
-        | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        | _ -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     !- s +> sepEq +> expr
 
@@ -2655,7 +2655,8 @@ and genPat astContext pat =
         // We lookup sources to get extern types since it has quite many exceptions compared to normal F# types
         ifElse astContext.IsCStylePattern (genTypeByLookup astContext t +> sepSpace +> genPat astContext p)
             (genPat astContext p +> sepColon +> genType astContext false t)
-    | PatNamed(ao, PatNullary PatWild, s) -> opt sepSpace ao genAccess +> infixOperatorFromTrivia pat.Range s
+    | PatNamed(ao, PatNullary PatWild, s) ->
+         autoIndentAndNlnIfExpressionExceedsPageWidth (opt sepSpace ao genAccess +> infixOperatorFromTrivia pat.Range s)
     | PatNamed(ao, p, s) -> opt sepSpace ao genAccess +> genPat astContext p -- sprintf " as %s" s
     | PatLongIdent(ao, s, ps, tpso) ->
         let aoc = opt sepSpace ao genAccess
@@ -2678,9 +2679,8 @@ and genPat astContext pat =
 
             let genParameters = 
                 (expressionFitsOnRestOfLine
-                (atCurrentColumn (col (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)))
-                (indent +> sepNln +> col sepNln ps (genPatWithIdent astContext)))
-
+                (atCurrentColumn (col (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)) +> indent)
+                (indent +> sepNln +> col sepNln ps (genPatWithIdent astContext)) +> unindent)
 
             genName
             +> ifElse hasBracket sepOpenT sepNone
@@ -2692,7 +2692,7 @@ and genPat astContext pat =
     | PatTuple ps ->
         expressionFitsOnRestOfLine
             (col sepComma ps (genPat astContext))
-            (indent +> sepNln +> col (sepComma +> sepNln) ps (genPat astContext))
+            (autoIndentAndNlnIfExpressionExceedsPageWidth (col (sepComma +> sepNln) ps (genPat astContext)))
     | PatStructTuple ps ->
         !- "struct " +> sepOpenT +> atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext)) +> sepCloseT
     | PatSeq(PatList, ps) ->

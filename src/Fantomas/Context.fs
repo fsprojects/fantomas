@@ -575,6 +575,12 @@ let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLo
 /// add an indent and newline if the expression is longer
 let internal autoIndentAndNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
     expressionExceedsPageWidth
+        sepNone sepNone // before and after for short expressions
+        (indent +> sepNln) unindent // before and after for long expressions
+        expr ctx
+
+let internal sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
+    expressionExceedsPageWidth
         sepSpace sepNone // before and after for short expressions
         (indent +> sepNln) unindent // before and after for long expressions
         expr ctx
