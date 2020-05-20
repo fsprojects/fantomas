@@ -672,18 +672,12 @@ and genMemberBinding astContext b =
             genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat ({ astContext with IsMemberDefinition = true }) p
 
-        let hasMultipleParameters =
-            match p with 
-            | PatLongIdent(_, _, ps, _) ->
-                ps.Length > 1
-            | _ -> false
-
         match e with
         | TypedExpr(Typed, e, t) ->
             genAttributesAndXmlDoc
             +> leadingExpressionIsMultiline prefix (fun prefixIsLong ->
                 ifElse
-                    (prefixIsLong && not hasMultipleParameters)
+                    prefixIsLong
                     (sepNln +> sepColon +> genType astContext false t +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
                     (sepColon +> genType astContext false t +> sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
         | e ->
@@ -2670,7 +2664,7 @@ and genPat astContext pat =
         let s = if s = "``new``" then "new" else s
 
         match ps with
-        | [] ->  aoc -- s +> tpsoc
+        | [] -> aoc -- s +> tpsoc
         | [(_, PatTuple [p1; p2])] when s = "(::)" ->
             aoc +> genPat astContext p1 -- " :: " +> genPat astContext p2
         | [(ido, p) as ip] ->
@@ -2681,7 +2675,13 @@ and genPat astContext pat =
         | ps ->
             let hasBracket = ps |> Seq.map fst |> Seq.exists Option.isSome
             let genName = aoc -- s +> tpsoc +> sepSpace
-            let genParameters = colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)
+            // let genParameters = colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)
+
+            let genParameters = 
+                (expressionFitsOnRestOfLine
+                (col (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext))
+                (sepNln +> col sepNln ps (genPatWithIdent astContext)))
+
 
             atCurrentColumn (genName
                 +> ifElse hasBracket sepOpenT sepNone
