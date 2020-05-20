@@ -1174,10 +1174,10 @@ let ``return type and equals sign in correct line when member has multiple param
     |> should equal """
 type SomeType =
     static member SomeMember
-                  (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
-                  (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
-    : string
-    =
-    printfn "a"
-    "b"
+        (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
+        (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
+        : string
+        =
+        printfn "a"
+        "b"
 """
