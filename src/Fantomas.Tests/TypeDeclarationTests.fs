@@ -1162,3 +1162,19 @@ type SomeType() =
 
     member SomeOtherMember() = printfn "b"
 """
+
+[<Test>]
+let ``return type and equals sign in correct line when member has multiple parameters`` () =
+    formatSourceString false """type SomeType =
+    static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string) (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string) : string =
+    printfn "a"
+    "b"
+"""  config
+    |> prepend newline
+    |> should equal """
+type SomeType =
+    static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
+                  (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string): string =
+        printfn "a"
+        "b"
+"""

@@ -672,12 +672,18 @@ and genMemberBinding astContext b =
             genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
             +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat ({ astContext with IsMemberDefinition = true }) p
 
+        let hasMultipleParameters =
+            match p with 
+            | PatLongIdent(_, _, ps, _) ->
+                ps.Length > 1
+            | _ -> false
+
         match e with
         | TypedExpr(Typed, e, t) ->
             genAttributesAndXmlDoc
             +> leadingExpressionIsMultiline prefix (fun prefixIsLong ->
                 ifElse
-                    prefixIsLong
+                    (prefixIsLong && not hasMultipleParameters)
                     (sepNln +> sepColon +> genType astContext false t +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
                     (sepColon +> genType astContext false t +> sepEq +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
         | e ->
