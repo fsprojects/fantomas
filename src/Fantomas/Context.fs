@@ -209,6 +209,24 @@ let internal lastWriteEventIsNewline ctx =
     |> Option.map (function | WriteLine -> true | _ -> false)
     |> Option.defaultValue false
 
+/// Validate if there is a complete blank line between the last write event and the last event
+let internal newlineBetweenLastWriteEvent ctx =
+    ctx.WriterEvents
+    |> Queue.rev
+    |> Seq.takeWhile (function
+        | Write ""
+        | WriteLine
+        | IndentBy _
+        | UnIndentBy _
+        | SetIndent _
+        | RestoreIndent _
+        | SetAtColumn _
+        | RestoreAtColumn _ -> true
+        | _ -> false)
+    |> Seq.filter (function | WriteLine _ -> true | _ -> false)
+    |> Seq.length
+    |> fun writeLines -> writeLines > 1
+
 let internal lastWriteEventOnLastLine ctx = writeEventsOnLastLine ctx |> Seq.tryHead
 let internal forallCharsOnLastLine f ctx =
     writeEventsOnLastLine ctx |> Seq.collect id |> Seq.forall f
@@ -917,16 +935,67 @@ let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
     | _ ->
         ctx
 
+let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth expr range (ctx: Context) =
+    expressionExceedsPageWidth
+        sepNone sepNone // before and after for short expressions
+        (sepNlnConsideringTriviaContentBefore range) sepNone // before and after for long expressions
+        expr ctx
+
 let internal addExtraNewlineIfLeadingWasMultiline leading continuation continuationRange =
     leadingExpressionIsMultiline
         leading
         (fun ml -> sepNln +> onlyIf ml (sepNlnConsideringTriviaContentBefore continuationRange) +> continuation)
 
-let internal colWithNlnWhenLeadingWasMultiline items =
+/// This helper function takes a list of expressions and ranges.
+/// If the expression is multiline it will add a newline before and after the expression.
+/// Unless it is the first expression in the list, that will never have a leading new line.
+/// F.ex.
+/// let a = AAAA
+/// let b =
+///     BBBB
+///     BBBB
+/// let c = CCCC
+///
+/// will be formatted as:
+/// let a = AAAA
+///
+/// let b =
+///     BBBB
+///     BBBBB
+///
+/// let c = CCCC
+///
+/// The range in the tuple is the range of expression
+
+let internal colWithNlnWhenItemIsMultiline items =
+    let firstItemRange = List.tryHead items |> Option.map snd
     let rec impl items =
         match items with
-        | (f1,_)::(_,r2)::_ -> addExtraNewlineIfLeadingWasMultiline f1 (impl (List.skip 1 items)) r2
-        | [(f,_)] -> f
+        | (f1,r1)::(_,r2)::_ ->
+            let f1Expr =
+                match firstItemRange with
+                | Some (fr1) when (fr1 = r1) ->
+                    // first expression should always be executed as is.
+                    f1
+                | _ ->
+                    // Maybe the previous statement already introduced a complete blank line.
+                    // If not add a new line but consider trivia.
+                    ifElseCtx
+                        newlineBetweenLastWriteEvent
+                        f1
+                        (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f1 r1)
+
+            addExtraNewlineIfLeadingWasMultiline f1Expr (impl (List.skip 1 items)) r2
+        | [(f,r)] ->
+            match firstItemRange with
+            | Some (fr1) when (fr1 = r) ->
+                // this can only happen when there is only one item in items
+                f
+            | _ ->
+                ifElseCtx
+                    newlineBetweenLastWriteEvent
+                    f
+                    (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f r)
         | [] -> sepNone
     impl items
 

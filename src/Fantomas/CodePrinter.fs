@@ -952,6 +952,34 @@ and genExpr astContext synExpr =
                 (genExpr astContext e +> sepCloseS)
                 (genExpr astContext e +> unindent +> sepNln +> sepCloseSFixed))
 
+    | CompExprBody(expr) ->
+        let statements = collectComputationExpressionStatements expr
+
+        let genCompExprStatement astContext ces =
+            match ces with
+            | LetStatement(isRecursive, binding) ->
+                let prefix = if isRecursive then "let rec " else "let "
+                genLetBinding astContext prefix binding
+            | LetOrUseBangStatement(isUse, pat, expr, _) ->
+                ifElse isUse (!- "use! ") (!- "let! ")
+                +> genPat astContext pat -- " = "
+                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+            | AndBangStatement(pat, expr) ->
+                genTrivia pat.Range (!- "and! " +> genPat astContext pat) -- " = "
+                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+            | OtherStatement expr -> genExpr astContext expr
+
+        let getRangeOfCompExprStatement ces =
+            match ces with
+            | LetStatement(_, binding) -> binding.RangeOfBindingSansRhs
+            | LetOrUseBangStatement(_, _, _, r) -> r
+            | AndBangStatement (pat, _) -> pat.Range
+            | OtherStatement expr -> expr.Range
+
+        statements
+        |> List.map (fun ces -> genCompExprStatement astContext ces, getRangeOfCompExprStatement ces)
+        |> colWithNlnWhenItemIsMultiline
+
     | ArrayOrListOfSeqExpr(isArray, e) as aNode ->
         let astContext = { astContext with IsNakedRange = true }
 
@@ -1573,31 +1601,6 @@ and genExpr astContext synExpr =
 
     | SynExpr.Set(e1,e2, _) ->
         addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
-
-    | LetOrUseBang(isUse, p, e1, ands, e2) ->
-        let genLetBang =
-            ifElse isUse (!- "use! ") (!- "let! ") +> genPat astContext p -- " = "
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
-
-        let genAnd astContext  (_, _, _, pat: SynPat, expr: SynExpr, _) =
-            genTrivia pat.Range (!- "and! " +> genPat astContext pat) -- " = "
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
-
-        let genReturn = genExpr astContext e2
-        let andLength = List.length ands
-
-        let andNodes =
-            List.mapi (fun idx a ->
-                if idx = (andLength - 1) then
-                    (genAnd astContext a, e2.Range)
-                else
-                    let (_,_,_,pat,_,_) = ands.[idx + 1]
-                    (genAnd astContext a, pat.Range)) ands
-
-        colWithNlnWhenLeadingWasMultiline
-            [ yield (genLetBang, e1.Range)
-              yield! andNodes
-              yield (genReturn, e2.Range)]
 
     | ParsingError r ->
         raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i"
