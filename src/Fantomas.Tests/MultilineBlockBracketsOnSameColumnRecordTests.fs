@@ -106,7 +106,8 @@ let ``record instance with inherit keyword`` () =
     |> prepend newline
     |> should equal """
 let a =
-    { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
+    {
+        inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
         buildSettings = FSharpBuildSettings()
         targetPlatformData = targetPlatformData
     }

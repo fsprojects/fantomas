@@ -1649,9 +1649,9 @@ and genMultilineRecordInstanceAlignBrackets
 
     match inheritOpt, eo with
     | Some (inheritType, inheritExpr), None ->
-        sepOpenS +>
+        sepOpenS +> indent +> sepNln +>
         !- "inherit " +> genType astContext false inheritType +> genExpr astContext inheritExpr
-        +> (indent +> sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed)
+        +> (sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed)
 
     | None, Some e ->
         sepOpenS +> genExpr astContext e
