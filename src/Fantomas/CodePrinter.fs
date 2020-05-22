@@ -2525,17 +2525,34 @@ and genMemberDefn astContext node =
             | SynSimplePats.SimplePats(pats, _) -> pats
             | SynSimplePats.Typed(spts, _, _) -> simplePats spts
 
-        let ctorPats =
+        let genCtor =
             expressionFitsOnRestOfLine
-                (col sepComma (simplePats ps) (genSimplePat astContext))
-                (indent +> sepNln +> col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext) +> unindent)
+                (optPre sepSpace sepSpace ao genAccess
+                 +> sepOpenT
+                 +> col sepComma (simplePats ps) (genSimplePat astContext)
+                 +> sepCloseT)
+                (match ao with
+                 | Some ao ->
+                     indent
+                     +> sepNln
+                     +> sepSpace
+                     +> genAccess ao
+                     +> sepSpace
+                     +> sepOpenT
+                     +> atCurrentColumn (col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext))
+                     +> sepCloseT
+                     +> unindent
+                 | None ->
+                     sepOpenT
+                     +> indent
+                     +> sepNln
+                     +> col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext)
+                     +> unindent
+                     +> sepCloseT)
 
         // In implicit constructor, attributes should come even before access qualifiers
         ifElse ats.IsEmpty sepNone (sepSpace +> genOnelinerAttributes astContext ats)
-        +> optPre sepSpace sepSpace ao genAccess
-        +> sepOpenT
-        +> ctorPats
-        +> sepCloseT
+        +> genCtor
         +> optPre (!- " as ") sepNone so (!-)
 
     | MDMember(b) -> genMemberBinding astContext b
