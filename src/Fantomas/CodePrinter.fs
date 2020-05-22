@@ -486,10 +486,10 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
              +> enterNode t.Range
              +> ifElse hasLineCommentBeforeColon unindent sepNone) ctx
 
-        let genMetadataAttributes ctx =
+        let genMetadataAttributes =
             match valInfo with
-            | Some(SynValInfo(_, SynArgInfo(attributes, _, _))) -> genOnelinerAttributes astContext attributes ctx
-            | None -> ctx
+            | Some(SynValInfo(_, SynArgInfo(attributes, _, _))) -> genOnelinerAttributes astContext attributes
+            | None -> sepNone
 
         (addExtraSpaceBeforeGenericType
          +> genCommentBeforeColon
