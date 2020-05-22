@@ -450,7 +450,7 @@ and addSpaceAfterGenericConstructBeforeColon ctx =
         sepNone
     <| ctx
 
-and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (isPrefixMultiline: bool) ctx =
+and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynValInfo option) (isPrefixMultiline: bool) ctx =
     let hasTriviaContentAfterEqual =
         ctx.Trivia
         |> List.exists (fun tn ->
@@ -486,9 +486,15 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (isPrefixMultil
              +> enterNode t.Range
              +> ifElse hasLineCommentBeforeColon unindent sepNone) ctx
 
+        let genMetadataAttributes =
+            match valInfo with
+            | Some(SynValInfo(_, SynArgInfo(attributes, _, _))) -> genOnelinerAttributes astContext attributes
+            | None -> sepNone
+
         (addExtraSpaceBeforeGenericType
          +> genCommentBeforeColon
          +> sepColon
+         +> genMetadataAttributes
          +> genType astContext false t
          +> sepEqual (isPrefixMultiline || hasLineCommentBeforeColon)
          +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual || hasLineCommentBeforeColon)
@@ -524,7 +530,7 @@ and genTypeParamPostfix astContext tds tcs = genTypeAndParam astContext "" tds t
 
 and genLetBinding astContext pref b =
     match b with
-    | LetBinding(ats, px, ao, isInline, isMutable, p, e) ->
+    | LetBinding(ats, px, ao, isInline, isMutable, p, e, valInfo) ->
         let genPat =
             match e, p with
             | TypedExpr(Typed, _, t),  PatLongIdent(ao, s, ps, tpso) when (List.length ps > 1)->
@@ -550,7 +556,7 @@ and genLetBinding astContext pref b =
         +> genAttr // this already contains the `let` or `and` keyword
         +> leadingExpressionIsMultiline
                (afterLetKeyword +> genPat +> enterNodeTokenByName rangeBetweenBindingPatternAndExpression "EQUALS")
-               (genExprSepEqPrependType astContext p e)
+               (genExprSepEqPrependType astContext p e (Some(valInfo)))
 
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
@@ -563,7 +569,7 @@ and genLetBinding astContext pref b =
     |> genTrivia b.RangeOfBindingSansRhs
 
 and genShortGetProperty astContext (pat:SynPat) e =
-    genExprSepEqPrependType astContext pat e false
+    genExprSepEqPrependType astContext pat e None false
 
 and genProperty astContext prefix ao propertyKind ps e =
     let tuplerize ps =
@@ -579,12 +585,12 @@ and genProperty astContext prefix ao propertyKind ps e =
         !- prefix +> opt sepSpace ao genAccess -- propertyKind
         +> ifElse (List.atMostOne ps) (col sepComma ps (genPat astContext) +> sepSpace)
             (sepOpenT +> col sepComma ps (genPat astContext) +> sepCloseT +> sepSpace)
-        +> genPat astContext p +> genExprSepEqPrependType astContext p e false
+        +> genPat astContext p +> genExprSepEqPrependType astContext p e None false
 
     | ps ->
         let (_,p) = tuplerize ps
         !- prefix +> opt sepSpace ao genAccess -- propertyKind +> col sepSpace ps (genPat astContext)
-        +> genExprSepEqPrependType astContext p e false
+        +> genExprSepEqPrependType astContext p e None false
     |> genTrivia e.Range
 
 and genPropertyWithGetSet astContext (b1, b2) =
@@ -1243,7 +1249,7 @@ and genExpr astContext synExpr =
         let isFromAst (ctx: Context) = ctx.Content = String.Empty
         let isInSameLine ctx =
             match bs with
-            | [_, LetBinding(_, _, _, _, _, p, _)] ->
+            | [_, LetBinding(_, _, _, _, _, p, _, _)] ->
                 // the `in` keyword should be a trivia thing
                 not (isFromAst ctx) && p.Range.EndLine = e.Range.StartLine && not (futureNlnCheck (genExpr astContext e) ctx)
             | _ -> false
