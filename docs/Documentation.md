@@ -264,6 +264,7 @@ A default configuration file would look like
   "IndentOnTryWith":false,
   "SpaceAroundDelimiter":true ,
   "MaxIfThenElseShortWidth":40,
+  "KeepIfThenInSameLine":false,
   "MaxInfixOperatorExpression":50,
   "MaxRecordWidth":40,
   "MaxArrayOrListWidth":40,

@@ -47,6 +47,7 @@ let comp =
     eventually {
         for x in 1 .. 2 do
             printfn " x = %d" x
+
         return 3 + 4
     }
 """
@@ -445,4 +446,782 @@ async {
 
     return (a + b + c)
 }
+"""
+
+[<Test>]
+let ``add new line between one-liner and multiline expression, 838`` () =
+    formatSourceString false """
+let AddEvents (req: HttpRequest, log: ILogger) =
+    task {
+        let! user = req.Authenticate(log)
+        let! response =
+            user
+            |> Result.mapError sendUnAuthorizedRequest
+            |> Result.bind (decodeEvents req.Body)
+            |> Result.bind (validateEvents)
+            |> Result.bind (authenticateEvents)
+            |> Result.map (persistEvents)
+            |> Result.either
+        return response
+    }
+
+let AddEventsX (req: HttpRequest, log: ILogger) =
+        let user = req.Authenticate(log)
+        let response =
+            user
+            |> Result.mapError sendUnAuthorizedRequest
+            |> Result.bind (decodeEvents req.Body)
+            |> Result.bind (validateEvents)
+            |> Result.bind (authenticateEvents)
+            |> Result.map (persistEvents)
+            |> Result.either
+        response
+"""  config
+    |> prepend newline
+    |> should equal """
+let AddEvents (req: HttpRequest, log: ILogger) =
+    task {
+        let! user = req.Authenticate(log)
+
+        let! response =
+            user
+            |> Result.mapError sendUnAuthorizedRequest
+            |> Result.bind (decodeEvents req.Body)
+            |> Result.bind (validateEvents)
+            |> Result.bind (authenticateEvents)
+            |> Result.map (persistEvents)
+            |> Result.either
+
+        return response
+    }
+
+let AddEventsX (req: HttpRequest, log: ILogger) =
+    let user = req.Authenticate(log)
+
+    let response =
+        user
+        |> Result.mapError sendUnAuthorizedRequest
+        |> Result.bind (decodeEvents req.Body)
+        |> Result.bind (validateEvents)
+        |> Result.bind (authenticateEvents)
+        |> Result.map (persistEvents)
+        |> Result.either
+
+    response
+"""
+
+[<Test>]
+let ``mix of let and let! single line expressions`` () =
+    formatSourceString false """let foo () =
+    async {
+        let! a = callA()
+        let b = callB()
+        let! c = callC()
+        let d = callD()
+        let! e = callE()
+        return (a + b + c - e * d) }
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo () =
+    async {
+        let! a = callA ()
+        let b = callB ()
+        let! c = callC ()
+        let d = callD ()
+        let! e = callE ()
+        return (a + b + c - e * d)
+    }
+"""
+
+[<Test>]
+let ``return from computation expression`` () =
+    formatSourceString false """async { return 42 }
+"""  config
+    |> prepend newline
+    |> should equal """
+async { return 42 }
+"""
+
+[<Test>]
+let ``return from multiline computation expression`` () =
+    formatSourceString false """async {
+    // foo
+    return 42 }
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    // foo
+    return 42
+}
+"""
+
+[<Test>]
+let ``let + return from ce`` () =
+    formatSourceString false """async {
+    let a = getA()
+    return a
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let a = getA ()
+    return a
+}
+"""
+
+[<Test>]
+let ``let rec + return from ce`` () =
+    formatSourceString false """async {
+    let rec a = getA()
+    return a
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let rec a = getA ()
+    return a
+}
+"""
+
+[<Test>]
+let ``two let + return from ce`` () =
+    formatSourceString false """async {
+    let a = getA()
+    let b = getB ()
+    return a
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let a = getA ()
+    let b = getB ()
+    return a
+}
+"""
+
+[<Test>]
+let ``let + let rec + let + return from ce`` () =
+    formatSourceString false """async {
+    let a = getA ()
+    let rec b = getB ()
+    let c = getC ()
+    return a
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let a = getA ()
+    let rec b = getB ()
+    let c = getC ()
+    return a
+}
+"""
+
+[<Test>]
+let ``multiline let + return from ce`` () =
+    formatSourceString false """async {
+    let a =
+        // foo
+        getA()
+    return a
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let a =
+        // foo
+        getA ()
+
+    return a
+}
+"""
+
+[<Test>]
+let ``do + return from ce`` () =
+    formatSourceString false """async {
+    do foo
+    return bar
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    do foo
+    return bar
+}
+"""
+
+[<Test>]
+let ``do! + return from ce`` () =
+    formatSourceString false """async {
+    do! foo
+    return bar
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    do! foo
+    return bar
+}
+"""
+
+[<Test>]
+let ``do! + let + return from ce`` () =
+    formatSourceString false """async {
+    do! foo
+    let bar = getBar ()
+    return bar
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    do! foo
+    let bar = getBar ()
+    return bar
+}
+"""
+
+[<Test>]
+let ``let bang + newline + return`` () =
+    formatSourceString false """async {
+    let! bar = getBar ()
+
+    return bar
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let! bar = getBar ()
+
+    return bar
+}
+"""
+
+[<Test>]
+let ``let bang + and bang + newline + return`` () =
+    formatSourceString false """async {
+    let! bar = getBar ()
+
+    and! foo = getFoo ()
+
+    return bar
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let! bar = getBar ()
+
+    and! foo = getFoo ()
+
+    return bar
+}
+"""
+
+[<Test>]
+let ``custom method names`` () =
+    formatSourceString false """let indexMachine =
+    freyaMachine {
+        methods [GET; HEAD; OPTIONS]
+        handleOk Pages.home }
+"""  config
+    |> prepend newline
+    |> should equal """
+let indexMachine =
+    freyaMachine {
+        methods [ GET; HEAD; OPTIONS ]
+        handleOk Pages.home
+    }
+"""
+
+[<Test>]
+let ``let bang + multiline match in ce`` () =
+    formatSourceString false """
+let rec runPendingJobs () =
+    task {
+        let! jobToRun = checkForJob ()
+        match jobToRun with
+        | None -> return ()
+        | Some pendingJob ->
+            do! pendingJob ()
+            return! runPendingJobs ()
+    }
+
+"""  config
+    |> prepend newline
+    |> should equal """
+let rec runPendingJobs () =
+    task {
+        let! jobToRun = checkForJob ()
+
+        match jobToRun with
+        | None -> return ()
+        | Some pendingJob ->
+            do! pendingJob ()
+            return! runPendingJobs ()
+    }
+"""
+
+[<Test>]
+let ``let + let + let bang + if/then/else in ce`` () =
+    formatSourceString false """let rec private appendToAzureTableStorage (cosmoEvents: EventWrite<JsonValue> seq) =
+    task {
+        let moreThanBatchLimit = Seq.length cosmoEvents > BatchLimit
+
+        let batch =
+            if moreThanBatchLimit then Seq.take BatchLimit cosmoEvents else cosmoEvents
+            |> List.ofSeq
+
+        let! _ = eventStore.AppendEvents EventStream Any batch
+
+        if moreThanBatchLimit then
+            let rest = Seq.skip BatchLimit cosmoEvents
+            return! appendToAzureTableStorage rest
+        else
+            return ()
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let rec private appendToAzureTableStorage (cosmoEvents: EventWrite<JsonValue> seq) =
+    task {
+        let moreThanBatchLimit = Seq.length cosmoEvents > BatchLimit
+
+        let batch =
+            if moreThanBatchLimit then Seq.take BatchLimit cosmoEvents else cosmoEvents
+            |> List.ofSeq
+
+        let! _ = eventStore.AppendEvents EventStream Any batch
+
+        if moreThanBatchLimit then
+            let rest = Seq.skip BatchLimit cosmoEvents
+            return! appendToAzureTableStorage rest
+        else
+            return ()
+    }
+"""
+
+[<Test>]
+let ``short do bang in ce`` () =
+    formatSourceString false """let appendEvents userId (events: Event list) =
+    let cosmoEvents = List.map (createEvent userId) events
+    task { do! appendToAzureTableStorage cosmoEvents }
+"""  config
+    |> prepend newline
+    |> should equal """
+let appendEvents userId (events: Event list) =
+    let cosmoEvents = List.map (createEvent userId) events
+    task { do! appendToAzureTableStorage cosmoEvents }
+"""
+
+[<Test>]
+let ``let bang + let + return in ce`` () =
+    formatSourceString false """let getEvents() =
+    task {
+        let! cosmoEvents = eventStore.GetEvents EventStream AllEvents
+        let events = List.map (fun (ce: EventRead<JsonValue, _>) -> ce.Data) cosmoEvents
+        return events
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let getEvents () =
+    task {
+        let! cosmoEvents = eventStore.GetEvents EventStream AllEvents
+
+        let events =
+            List.map (fun (ce: EventRead<JsonValue, _>) -> ce.Data) cosmoEvents
+
+        return events
+    }
+"""
+
+[<Test>]
+let ``let bang + do expression + let + return in ce`` () =
+    formatSourceString false """
+    task {
+        let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
+        parameters.IssuerSigningKeys <- config.SigningKeys
+        let user, _ = handler.ValidateToken((token: string), parameters)
+        return Ok(user.Identity.Name, collectClaims user)
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+task {
+    let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
+    parameters.IssuerSigningKeys <- config.SigningKeys
+
+    let user, _ =
+        handler.ValidateToken((token: string), parameters)
+
+    return Ok(user.Identity.Name, collectClaims user)
+}
+"""
+
+[<Test>]
+let ``do bang + return in ce`` () =
+    formatSourceString false """    let ((userId, _), events) = request
+    task {
+        do! EventStore.appendEvents userId events
+        return sendText "Events persisted"
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let ((userId, _), events) = request
+
+task {
+    do! EventStore.appendEvents userId events
+    return sendText "Events persisted"
+}
+"""
+
+[<Test>]
+let ``yield bang + yield bang in ce`` () =
+    formatSourceString false """
+let squares =
+    seq {
+        for i in 1..3 -> i * i
+    }
+
+let cubes =
+    seq {
+        for i in 1..3 -> i * i * i
+    }
+
+let squaresAndCubes =
+    seq {
+        yield! squares
+        yield! cubes
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let squares = seq { for i in 1 .. 3 -> i * i }
+
+let cubes = seq { for i in 1 .. 3 -> i * i * i }
+
+let squaresAndCubes =
+    seq {
+        yield! squares
+        yield! cubes
+    }
+"""
+
+[<Test>]
+let ``let bang + yield bang in ce`` () =
+    formatSourceString false """let myCollection = seq {
+    let! squares = getSquares()
+    yield! (squares * level) }
+"""  config
+    |> prepend newline
+    |> should equal """
+let myCollection =
+    seq {
+        let! squares = getSquares ()
+        yield! (squares * level)
+    }
+"""
+
+[<Test>]
+let ``return bang in ce`` () =
+    formatSourceString false """let req = // 'req' is of type is 'Async<data>'
+    async {
+        return! fetch url
+    }
+
+"""  config
+    |> prepend newline
+    |> should equal """
+let req = // 'req' is of type is 'Async<data>'
+    async { return! fetch url }
+"""
+
+[<Test>]
+let ``saturn router`` () =
+    formatSourceString false """
+module Router
+
+open Saturn
+open Giraffe.Core
+open Giraffe.ResponseWriters
+
+
+let browser = pipeline {
+    plug acceptHtml
+    plug putSecureBrowserHeaders
+    plug fetchSession
+    set_header "x-pipeline-type" "Browser"
+}
+
+let defaultView = router {
+    get "/" (htmlView Index.layout)
+    get "/index.html" (redirectTo false "/")
+    get "/default.html" (redirectTo false "/")
+}
+
+let browserRouter = router {
+    not_found_handler (htmlView NotFound.layout) //Use the default 404 webpage
+    pipe_through browser //Use the default browser pipeline
+
+    forward "" defaultView //Use the default view
+}
+
+let appRouter = router {
+    // forward "/api" apiRouter
+    forward "" browserRouter
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+module Router
+
+open Saturn
+open Giraffe.Core
+open Giraffe.ResponseWriters
+
+
+let browser =
+    pipeline {
+        plug acceptHtml
+        plug putSecureBrowserHeaders
+        plug fetchSession
+        set_header "x-pipeline-type" "Browser"
+    }
+
+let defaultView =
+    router {
+        get "/" (htmlView Index.layout)
+        get "/index.html" (redirectTo false "/")
+        get "/default.html" (redirectTo false "/")
+    }
+
+let browserRouter =
+    router {
+        not_found_handler (htmlView NotFound.layout) //Use the default 404 webpage
+        pipe_through browser //Use the default browser pipeline
+
+        forward "" defaultView //Use the default view
+    }
+
+let appRouter =
+    router {
+        // forward "/api" apiRouter
+        forward "" browserRouter
+    }
+"""
+
+[<Test>]
+let ``freya api file`` () =
+    formatSourceString false """module Api
+
+open Freya.Core
+open Freya.Machines.Http
+open Freya.Types.Http
+open Freya.Routers.Uri.Template
+
+let name_ = Route.atom_ "name"
+
+let name =
+    freya {
+        let! name = Freya.Optic.get name_
+
+        match name with
+        | Some name -> return name
+        | None -> return "World" }
+
+let sayHello =
+    freya {
+        let! name = name
+
+        return Represent.text (sprintf "Hello, %s!" name) }
+
+let helloMachine =
+    freyaMachine {
+        methods [GET; HEAD; OPTIONS]
+        handleOk sayHello }
+
+let root =
+    freyaRouter {
+        resource "/hello{/name}" helloMachine }
+"""  config
+    |> prepend newline
+    |> should equal """
+module Api
+
+open Freya.Core
+open Freya.Machines.Http
+open Freya.Types.Http
+open Freya.Routers.Uri.Template
+
+let name_ = Route.atom_ "name"
+
+let name =
+    freya {
+        let! name = Freya.Optic.get name_
+
+        match name with
+        | Some name -> return name
+        | None -> return "World"
+    }
+
+let sayHello =
+    freya {
+        let! name = name
+
+        return Represent.text (sprintf "Hello, %s!" name)
+    }
+
+let helloMachine =
+    freyaMachine {
+        methods [ GET; HEAD; OPTIONS ]
+        handleOk sayHello
+    }
+
+let root =
+    freyaRouter { resource "/hello{/name}" helloMachine }
+"""
+
+[<Test>]
+let ``use bang`` () =
+    formatSourceString false """
+let resource = promise {
+    return new DisposableAction(fun () -> isDisposed := true)
+}
+promise {
+    use! r = resource
+    step1ok := not !isDisposed
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+let resource =
+    promise { return new DisposableAction(fun () -> isDisposed := true) }
+
+promise {
+    use! r = resource
+    step1ok := not !isDisposed
+}
+"""
+
+[<Test>]
+let ``multiline let bang + return in ce`` () =
+    formatSourceString false """
+   let divideByWorkflow x y w z =
+        maybe
+            {
+            let! a = x |> divideBy y
+            let! b = a |> divideBy w
+            let! c = b |> divideBy z
+            return c
+            }
+"""  config
+    |> prepend newline
+    |> should equal """
+let divideByWorkflow x y w z =
+    maybe {
+        let! a = x |> divideBy y
+        let! b = a |> divideBy w
+        let! c = b |> divideBy z
+        return c
+    }
+"""
+
+[<Test>]
+let ``giraffe handler example`` () =
+    formatSourceString false """
+let loginHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let issuer = "http://localhost:5000"
+            let claims =
+                [
+                    Claim(ClaimTypes.Name,      "John",  ClaimValueTypes.String, issuer)
+                    Claim(ClaimTypes.Surname,   "Doe",   ClaimValueTypes.String, issuer)
+                    Claim(ClaimTypes.Role,      "Admin", ClaimValueTypes.String, issuer)
+                ]
+            let identity = ClaimsIdentity(claims, authScheme)
+            let user     = ClaimsPrincipal(identity)
+
+            do! ctx.SignInAsync(authScheme, user)
+
+            return! text "Successfully logged in" next ctx
+        }
+"""  config
+    |> prepend newline
+    |> should equal """
+let loginHandler =
+    fun (next: HttpFunc) (ctx: HttpContext) ->
+        task {
+            let issuer = "http://localhost:5000"
+
+            let claims =
+                [ Claim(ClaimTypes.Name, "John", ClaimValueTypes.String, issuer)
+                  Claim(ClaimTypes.Surname, "Doe", ClaimValueTypes.String, issuer)
+                  Claim(ClaimTypes.Role, "Admin", ClaimValueTypes.String, issuer) ]
+
+            let identity = ClaimsIdentity(claims, authScheme)
+            let user = ClaimsPrincipal(identity)
+
+            do! ctx.SignInAsync(authScheme, user)
+
+            return! text "Successfully logged in" next ctx
+        }
+"""
+
+[<Test>]
+let ``all keywords`` () =
+    formatSourceString false """
+let valueOne =
+    myCe {
+        let a = getA()
+        let! b= getB()
+        and! bb = getBB()
+        do c
+        do! d
+        return 42
+    }
+
+let valueTwo =
+    myCe {
+        let a = getA()
+        let! b= getB()
+        and! bb = getBB()
+        do c
+        do! d
+        return! getE()
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let valueOne =
+    myCe {
+        let a = getA ()
+        let! b = getB ()
+        and! bb = getBB ()
+        do c
+        do! d
+        return 42
+    }
+
+let valueTwo =
+    myCe {
+        let a = getA ()
+        let! b = getB ()
+        and! bb = getBB ()
+        do c
+        do! d
+        return! getE ()
+    }
 """
