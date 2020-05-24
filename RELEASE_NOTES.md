@@ -1,5 +1,5 @@
-### 4.0.0-alpha-001 - xx/2020
-* Remove ReorderOpenDeclaration
+### 4.0.0-alpha-006 - 05/2020
+* WIP for [#705](https://github.com/fsprojects/fantomas/issues/705)
 
 ### 3.3.0 - 02/2020
 
