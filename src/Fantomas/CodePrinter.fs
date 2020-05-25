@@ -37,6 +37,8 @@ type ASTContext =
       /// Check whether the context is inside a SynMemberDefn.Member(memberDefn,range)
       /// This is required to correctly detect the setting SpaceBeforeMember
       IsMemberDefinition: bool
+      /// Check whether the context is inside a let binding which defines a function
+      IsInsideFunctionBinding: bool
     }
     static member Default =
         { TopLevelModuleName = ""
@@ -44,7 +46,7 @@ type ASTContext =
           IsCStylePattern = false; IsNakedRange = false
           HasVerticalBar = false; IsUnionField = false
           IsFirstTypeParam = false; IsInsideDotGet = false
-          IsMemberDefinition = false }
+          IsMemberDefinition = false; IsInsideFunctionBinding = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx:Context) =
     match functionOrMethod, arg with
@@ -470,6 +472,11 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
                     (indent +> sepNln +> !- "=" +> unindent) ctx
         else
             (sepEq +> sepSpace)
+   
+    let maxBindingWidth = 
+        match astContext.IsInsideFunctionBinding with
+        | true -> ctx.Config.MaxFunctionBindingWidth
+        | false -> ctx.Config.MaxValueBindingWidth
 
     match e with
     | TypedExpr(Typed, e, t) ->
@@ -499,14 +506,14 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
          +> sepEqual (isPrefixMultiline || hasLineCommentBeforeColon)
          +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual || hasLineCommentBeforeColon)
                (indent +> sepNln +> genExpr astContext e +> unindent)
-               (isShortExpressionOrAddIndentAndNewline ctx.Config.MaxLetBindingWidth (genExpr astContext e))) ctx
+               (isShortExpressionOrAddIndentAndNewline maxBindingWidth (genExpr astContext e))) ctx
     | e ->
         let genE =
             match e with
             | MultilineString(_)
             | _ when (TriviaHelpers.``has content itself that is multiline string`` e.Range ctx.Trivia) ->
                 genExpr astContext e
-            | _ -> isShortExpressionOrAddIndentAndNewline ctx.Config.MaxLetBindingWidth (genExpr astContext e)
+            | _ -> isShortExpressionOrAddIndentAndNewline maxBindingWidth (genExpr astContext e)
 
         (sepEqual isPrefixMultiline
         +> leaveEqualsToken pat.Range
@@ -540,6 +547,11 @@ and genLetBinding astContext pref b =
             | _ ->
                 genPat astContext p
 
+        let isFunctionBinding =
+            match p with
+            | PatLongIdent(_, _, ps, _) when (List.length ps > 0) -> true
+            | _ -> false
+
         let genAttr =
             ifElse astContext.IsFirstChild
                 (genAttributes astContext ats -- pref)
@@ -556,7 +568,7 @@ and genLetBinding astContext pref b =
         +> genAttr // this already contains the `let` or `and` keyword
         +> leadingExpressionIsMultiline
                (afterLetKeyword +> genPat +> enterNodeTokenByName rangeBetweenBindingPatternAndExpression "EQUALS")
-               (genExprSepEqPrependType astContext p e (Some(valInfo)))
+               (genExprSepEqPrependType { astContext with IsInsideFunctionBinding = isFunctionBinding } p e (Some(valInfo)))
 
     | DoBinding(ats, px, e) ->
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "

@@ -59,7 +59,10 @@
     "MaxArrayOrListWidth": {
       "type": "integer"
     },
-    "MaxLetBindingWidth": {
+    "MaxFunctionBindingWidth": {
+      "type": "integer"
+    },
+    "MaxValueBindingWidth": {
       "type": "integer"
     },
     "MultilineBlockBracketsOnSameColumn": {

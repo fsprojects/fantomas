@@ -35,7 +35,7 @@ let f () =
       x + y
 """
 
-    formatSourceString false codeSnippet ({ config with MaxLetBindingWidth = 50 })
+    formatSourceString false codeSnippet ({ config with MaxFunctionBindingWidth = 50; MaxValueBindingWidth = 50 })
     |> should equal """let f () =
     let x = 1 (* the "in" keyword is available in F# *)
     let y = 2
@@ -81,7 +81,7 @@ let ``DotGet on newline should be indented far enough`` () =
 let tomorrow =
     DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
         .AddDays(1.)
-"""  ({ config with MaxLetBindingWidth = 70 })
+"""  ({ config with MaxValueBindingWidth = 70 })
     |> prepend newline
     |> should equal """
 let tomorrow = DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset).AddDays(1.)
