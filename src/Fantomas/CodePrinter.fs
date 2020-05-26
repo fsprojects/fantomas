@@ -1655,7 +1655,7 @@ and genMultilineRecordInstanceAlignBrackets
     astContext
     =
     let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
-    let hasFields = List.length xs > 0
+    let hasFields = List.isNotEmpty xs
 
     match inheritOpt, eo with
     | Some (inheritType, inheritExpr), None ->
