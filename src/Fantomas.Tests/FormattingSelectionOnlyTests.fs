@@ -102,7 +102,8 @@ type T () =
   override x.Reorder () = 
         items |> List.iter ignore
 """     config
-    |> should equal """  override x.Reorder() = items |> List.iter ignore"""
+    |> should equal """  override x.Reorder() =
+      items |> List.iter ignore"""
 
 [<Test>]
 let ``should format the and branch of recursive functions``() =
@@ -131,7 +132,9 @@ and File(filename: string, containingFolder: Folder) =
     |> should equal """
 and File(filename: string, containingFolder: Folder) =
     member __.Name = filename
-    member __.ContainingFolder = containingFolder
+
+    member __.ContainingFolder =
+        containingFolder
 """
 
 [<Test>]

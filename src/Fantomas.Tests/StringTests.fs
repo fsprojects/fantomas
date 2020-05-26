@@ -121,7 +121,8 @@ type GetList() =
     let switchvox_users_voicemail_getList = \"\"\"
             </request>\"\"\"
 
-    member self.X = switchvox_users_voicemail_getList_response
+    member self.X =
+        switchvox_users_voicemail_getList_response
 "
 
 // either this test needs to be changed or

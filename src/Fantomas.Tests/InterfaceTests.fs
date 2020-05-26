@@ -24,7 +24,8 @@ type IPrintable =
 
 type SomeClass1(x: int, y: float) =
     interface IPrintable with
-        member this.Print() = printfn "%d %f" x y
+        member this.Print() =
+            printfn "%d %f" x y
 
 type Interface3 =
     inherit Interface1
@@ -45,7 +46,9 @@ let ``should not add with to interface definitions with no members``() =
     interface IDocument
 
     interface Infrastucture with
-        member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
+        member this.Serialize sb =
+            sb.AppendFormat("\"{0}\"", escape v)
+
         member this.ToXml() = v :> obj
 """
 
@@ -93,10 +96,12 @@ let f () =
     |> should equal """
 let f () =
     { new obj() with
-        member x.ToString() = "INotifyEnumerableInternal"
+        member x.ToString() =
+            "INotifyEnumerableInternal"
       interface INotifyEnumerableInternal<'T>
       interface IEnumerable<_> with
-          member x.GetEnumerator() = null }
+          member x.GetEnumerator() =
+              null }
 """
 
 [<Test>]
@@ -161,7 +166,8 @@ type LogInterface =
 
 type MyLogInteface() =
     interface LogInterface with
-        member x.Print msg = printfn "%s" msg
+        member x.Print msg =
+            printfn "%s" msg
 
         override x.GetLogFile environment =
             if environment = "DEV" then "dev.log" else sprintf "date-%s.log" environment

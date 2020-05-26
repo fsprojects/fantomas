@@ -21,7 +21,8 @@ type Range =
       To: float
       Name: string }
 
-    member this.Length = this.To - this.From
+    member this.Length =
+        this.To - this.From
 """
 
 [<Test>]
@@ -40,7 +41,8 @@ type Range =
       To: float
       Name: string }
 
-    member this.Length = this.To - this.From
+    member this.Length =
+        this.To - this.From
 """
 
 [<Test>]

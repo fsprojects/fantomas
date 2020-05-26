@@ -567,21 +567,21 @@ let internal leadingExpressionIsMultiline leadingExpression continuationExpressi
     let hasWriteLineEventsAfterExpression = contextAfterLeading.WriterEvents |>Seq.skip eventCountBeforeExpression |> Seq.exists (function | WriteLine _ -> true | _ -> false)
     continuationExpression hasWriteLineEventsAfterExpression contextAfterLeading
 
-let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
+let private expressionExceedsWidth width ignoreShort beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
     // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
-    | ShortExpression _ ->
+    | ShortExpression _ when not ignoreShort ->
         // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
         (beforeShort +> expr +> afterShort) ctx
     | _ ->
-        let shortExpressionContext = ctx.WithShortExpression(ctx.Config.PageWidth, 0)
+        let shortExpressionContext = ctx.WithShortExpression(width, 0)
         let resultContext = (beforeShort +> expr +> afterShort) shortExpressionContext
         let fallbackExpression = beforeLong +> expr +> afterLong
 
         match resultContext.WriterModel.Mode with
         | ShortExpression info ->
             // verify the expression is not longer than allowed
-            if info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column
+            if info.ConfirmedMultiline || info.IsTooLong width resultContext.Column
             then fallbackExpression ctx
             else
                 { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
@@ -592,19 +592,32 @@ let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLo
 /// try and write the expression on the remainder of the current line
 /// add an indent and newline if the expression is longer
 let internal autoIndentAndNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
-    expressionExceedsPageWidth
+    expressionExceedsWidth
+        ctx.Config.PageWidth false
         sepNone sepNone // before and after for short expressions
         (indent +> sepNln) unindent // before and after for long expressions
         expr ctx
 
-let internal sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
-    expressionExceedsPageWidth
+let internal sepSpaceOrIndentAndNlnIfExpressionExceedsWidth width expr (ctx:Context) =
+    expressionExceedsWidth
+        width false
         sepSpace sepNone // before and after for short expressions
         (indent +> sepNln) unindent // before and after for long expressions
         expr ctx
 
+let internal sepSpaceOrIndentAndNlnIfExpressionExceedsMaxBindingWidthIgnoreShort expr (ctx:Context) =
+    expressionExceedsWidth
+        ctx.Config.MaxBindingWidth true
+        sepSpace sepNone // before and after for short expressions
+        (indent +> sepNln) unindent // before and after for long expressions
+        expr ctx
+
+let internal sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
+    sepSpaceOrIndentAndNlnIfExpressionExceedsWidth ctx.Config.PageWidth expr ctx
+
 let internal autoNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
-    expressionExceedsPageWidth
+    expressionExceedsWidth
+        ctx.Config.PageWidth false
         sepNone sepNone // before and after for short expressions
         sepNln sepNone // before and after for long expressions
         expr ctx
@@ -936,7 +949,8 @@ let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
         ctx
 
 let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth expr range (ctx: Context) =
-    expressionExceedsPageWidth
+    expressionExceedsWidth
+        ctx.Config.PageWidth false
         sepNone sepNone // before and after for short expressions
         (sepNlnConsideringTriviaContentBefore range) sepNone // before and after for long expressions
         expr ctx

@@ -207,7 +207,8 @@ type CustomerId =
     |> should equal """
 type CustomerId =
     | CustomerId of int
-    member this.Test() = printfn "%A" this
+    member this.Test() =
+        printfn "%A" this
 """
 
 [<Test>]

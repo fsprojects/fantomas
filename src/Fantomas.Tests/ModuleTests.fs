@@ -230,7 +230,8 @@ type SomeType() =
 namespace global
 
 type SomeType() =
-    member this.Print() = global.System.Console.WriteLine("Hello World!")
+    member this.Print() =
+        global.System.Console.WriteLine("Hello World!")
 """
 
 [<Test>]
@@ -251,7 +252,8 @@ module ``member``
 let ``abstract`` = "abstract"
 
 type SomeType() =
-    member this.``new``() = System.Console.WriteLine("Hello World!")
+    member this.``new``() =
+        System.Console.WriteLine("Hello World!")
 """
 
 [<Test>]

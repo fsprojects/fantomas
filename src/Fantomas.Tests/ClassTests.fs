@@ -117,7 +117,9 @@ type Shape2D(x0: float, y0: float) =
         y <- y + dy
 
     abstract Rotate: float -> unit
-    default this.Rotate(angle) = rotAngle <- rotAngle + angle
+
+    default this.Rotate(angle) =
+        rotAngle <- rotAngle + angle
 """
 
 [<Test>]
@@ -187,7 +189,9 @@ let ``classes and implicit constructors``() =
 type MyClass2(dataIn) as self =
     let data = dataIn
     do self.PrintMessage()
-    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data
+
+    member this.PrintMessage() =
+        printf "Creating MyClass2 with Data %d" data
 """
 
 [<Test>]
@@ -203,7 +207,9 @@ let ``classes and private implicit constructors``() =
 type MyClass2 private (dataIn) as self =
     let data = dataIn
     do self.PrintMessage()
-    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data
+
+    member this.PrintMessage() =
+        printf "Creating MyClass2 with Data %d" data
 """
 
 [<Test>]
@@ -222,11 +228,15 @@ and File(filename: string, containingFolder: Folder) =
 type Folder(pathIn: string) =
     let path = pathIn
     let filenameArray: string array = System.IO.Directory.GetFiles(path)
-    member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
+
+    member this.FileArray =
+        Array.map (fun elem -> new File(elem, this)) filenameArray
 
 and File(filename: string, containingFolder: Folder) =
     member __.Name = filename
-    member __.ContainingFolder = containingFolder
+
+    member __.ContainingFolder =
+        containingFolder
 """
 
 [<Test>]
@@ -389,7 +399,8 @@ type Exception with
     |> should equal """open System
 
 type Exception with
-    member inline __.FirstLine = __.Message.Split([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries).[0]
+    member inline __.FirstLine =
+        __.Message.Split([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries).[0]
 """
 
 [<Test>]
@@ -442,13 +453,16 @@ module Logging =
 
             member this.OpenMappedContext(_, _) =
                 { new IDisposable with
-                    member this.Dispose() = () }
+                    member this.Dispose() =
+                        () }
 
             member this.OpenNestedContext _ =
                 { new IDisposable with
-                    member this.Dispose() = () }
+                    member this.Dispose() =
+                        () }
 
-            member this.GetLogger _name = new Logger(f)
+            member this.GetLogger _name =
+                new Logger(f)
 
     let SetQuartzLoggingFunction f =
         let loggerFunction level (func: Func<string>) exc parameters =
@@ -465,12 +479,21 @@ module Logging =
 
 [<Test>]
 let ``no extra new lines between type members, 569``() =
-    shouldNotChangeAfterFormat """
+    formatSourceString false """
 type A() =
 
     member this.MemberA = if true then 0 else 1
 
     member this.MemberB = if true then 2 else 3
+
+    member this.MemberC = 0""" config
+    |> should equal """type A() =
+
+    member this.MemberA =
+        if true then 0 else 1
+
+    member this.MemberB =
+        if true then 2 else 3
 
     member this.MemberC = 0
 """

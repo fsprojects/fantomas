@@ -381,7 +381,8 @@ type Range =
         To : float
     }
 
-    member this.Length = this.To - this.From
+    member this.Length =
+        this.To - this.From
 """
 
 [<Test>]

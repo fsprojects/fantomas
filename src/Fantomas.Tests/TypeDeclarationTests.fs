@@ -18,7 +18,8 @@ exception BuildException of string*list<string>
     override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)""" ({ config with MaxInfixOperatorExpression = 60 })
     |> should equal """/// An exception type to signal build errors.
 exception BuildException of string * list<string> with
-    override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)
+    override x.ToString() =
+        x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)
 """
 
 [<Test>]
@@ -92,10 +93,13 @@ type Test() =
     |> prepend newline
     |> should equal """
 type Test() =
-    member this.Function1<'a>(x, y) = printfn "%A, %A" x y
+    member this.Function1<'a>(x, y) =
+        printfn "%A, %A" x y
 
     abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
-    override this.AbstractMethod<'a, 'b>(x: 'a, y: 'b) = printfn "%A, %A" x y
+
+    override this.AbstractMethod<'a, 'b>(x: 'a, y: 'b) =
+        printfn "%A, %A" x y
 """
 
 [<Test>]
@@ -149,7 +153,8 @@ type public MyClass<'a> public (x, y) as this =
         with get () = z
         and set (a) = z <- a
 
-    member self.Method(a, b) = x + y + z + a + b
+    member self.Method(a, b) =
+        x + y + z + a + b
 """
 
 [<Test>]
@@ -225,7 +230,8 @@ type System.Int32 with
     |> should equal """
 /// Define a new member method FromString on the type Int32.
 type System.Int32 with
-    member this.FromString(s: string) = System.Int32.Parse(s)
+    member this.FromString(s: string) =
+        System.Int32.Parse(s)
 """
 
 [<Test>]
@@ -334,7 +340,8 @@ let CalculateFine (ticket : SpeedingTicket) =
     |> prepend newline
     |> should equal """
 type SpeedingTicket() =
-    member this.GetMPHOver(speed: int, limit: int) = speed - limit
+    member this.GetMPHOver(speed: int, limit: int) =
+        speed - limit
 
 let CalculateFine (ticket: SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
@@ -541,8 +548,11 @@ let ``should keep the ? in optional parameters``() =
 
     """ config
     |> should equal """type Shell() =
-    static member private GetParams(cmd, ?args) = doStuff
-    static member Exec(cmd, ?args) = shellExec (Shell.GetParams(cmd, ?args = args))
+    static member private GetParams(cmd, ?args) =
+        doStuff
+
+    static member Exec(cmd, ?args) =
+        shellExec (Shell.GetParams(cmd, ?args = args))
 """
 
 [<Test>]
@@ -858,7 +868,8 @@ let ``operator in words should not print to symbol, 409`` () =
     formatSourceString false """type T() =
     static member op_LessThan(a, b) = a < b""" ({ config with SpaceBeforeMember = true })
     |> should equal """type T() =
-    static member op_LessThan (a, b) = a < b
+    static member op_LessThan (a, b) =
+        a < b
 """
 
 [<Test>]
@@ -872,7 +883,8 @@ let ``operator in words in member`` () =
     formatSourceString false """type A() =
     member this.B(op_Inequality : string) = ()""" config
     |> should equal """type A() =
-    member this.B(op_Inequality: string) = ()
+    member this.B(op_Inequality: string) =
+        ()
 """
 
 [<Test>]
@@ -896,7 +908,8 @@ type TestExtensions =
     static member SomeExtension(x) = ""
 
     [<Extension>]
-    static member SomeOtherExtension(x) = ""
+    static member SomeOtherExtension(x) =
+        ""
 """
 
 [<Test>]
@@ -1136,7 +1149,8 @@ type SomeType() =
         printfn "a"
         "a"
 
-    member SomeOtherMember() = printfn "b"
+    member SomeOtherMember() =
+        printfn "b"
 """
 
 [<Test>]
@@ -1160,7 +1174,8 @@ type SomeType() =
         printfn "a"
         "a"
 
-    member SomeOtherMember() = printfn "b"
+    member SomeOtherMember() =
+        printfn "b"
 """
 
 [<Test>]
@@ -1202,7 +1217,8 @@ type SomeType =
         printfn "a"
         "b"
 
-    static member SomeOtherMember() = printfn "c"
+    static member SomeOtherMember() =
+        printfn "c"
 """
 
 [<Test>]

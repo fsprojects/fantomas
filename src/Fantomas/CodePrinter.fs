@@ -685,7 +685,7 @@ and genMemberBinding astContext b =
                 ifElse
                     prefixIsLong
                     (indent +> sepNln +> sepColon +> genType astContext false t +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
-                    (sepColon +> genType astContext false t +> sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
+                    (sepColon +> genType astContext false t +> sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsMaxBindingWidthIgnoreShort (genExpr astContext e)))
         | e ->
             genAttributesAndXmlDoc
             +> leadingExpressionIsMultiline prefix
@@ -693,7 +693,7 @@ and genMemberBinding astContext b =
                     ifElse
                         prefixIsLong
                         (indent +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
-                        (sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
+                        (sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsMaxBindingWidthIgnoreShort (genExpr astContext e)))
 
     | ExplicitCtor(ats, px, ao, p, e, so) ->
         let prefix =
