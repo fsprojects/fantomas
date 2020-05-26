@@ -114,6 +114,17 @@ let a =
 """
 
 [<Test>]
+let ``record instance with inherit keyword and no fields`` () =
+    formatSourceString false """let a =
+        { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK) }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK) }
+"""
+
+[<Test>]
 let ``anonymous record`` () =
     formatSourceString false """let meh =
     {| Level = 1
