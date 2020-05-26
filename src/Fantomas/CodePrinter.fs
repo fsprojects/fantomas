@@ -499,14 +499,14 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
          +> sepEqual (isPrefixMultiline || hasLineCommentBeforeColon)
          +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual || hasLineCommentBeforeColon)
                (indent +> sepNln +> genExpr astContext e +> unindent)
-               (isShortExpressionOrAddIndentAndNewline ctx.Config.MaxLetBindingWidth (genExpr astContext e))) ctx
+               (isShortExpressionOrAddIndentAndNewline ctx.Config.MaxBindingWidth (genExpr astContext e))) ctx
     | e ->
         let genE =
             match e with
             | MultilineString(_)
             | _ when (TriviaHelpers.``has content itself that is multiline string`` e.Range ctx.Trivia) ->
                 genExpr astContext e
-            | _ -> isShortExpressionOrAddIndentAndNewline ctx.Config.MaxLetBindingWidth (genExpr astContext e)
+            | _ -> isShortExpressionOrAddIndentAndNewline ctx.Config.MaxBindingWidth (genExpr astContext e)
 
         (sepEqual isPrefixMultiline
         +> leaveEqualsToken pat.Range
