@@ -334,3 +334,15 @@ open System.Runtime.InteropServices
 
 do ()
 """
+
+[<Test>]
+let ``should preserve single return type attribute`` () =
+    formatSourceString false """let f x : [<return: Attribute>] int = x""" config
+    |> should equal """let f x: [<return:Attribute>] int = x
+"""
+
+[<Test>]
+let ``should preserve multiple return type attributes`` () =
+    formatSourceString false """let f x : [<return: AttributeOne;AttributeTwo;AttributeThree("foo")>] int = x""" config
+    |> should equal """let f x: [<return:AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
+"""

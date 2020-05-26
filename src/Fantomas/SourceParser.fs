@@ -219,7 +219,7 @@ let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(Lo
 
 let (|Attribute|) (a : SynAttribute) =
     let (LongIdentWithDots s) = a.TypeName
-    (s, a.ArgExpr, Option.map (|Ident|) a.Target)
+    (s, a.ArgExpr, Option.map (fun (i:Ident) -> i.idText) a.Target)
 
 // Access modifiers
 
@@ -463,8 +463,8 @@ let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) = functi
         MemberBinding(ats, px, ao, isInline, mf, pat, expr)
     | SynBinding.Binding(_, DoBinding, _, _, ats, px, _, _, _, expr, _, _) -> 
         DoBinding(ats, px, expr)
-    | SynBinding.Binding(ao, _, isInline, isMutable, attrs, px, _, pat, _, expr, _, _) ->
-        LetBinding(attrs, px, ao, isInline, isMutable, pat, expr)
+    | SynBinding.Binding(ao, _, isInline, isMutable, attrs, px, SynValData(_, valInfo, _), pat, _, expr, _, _) ->
+        LetBinding(attrs, px, ao, isInline, isMutable, pat, expr, valInfo)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
@@ -779,11 +779,39 @@ let rec (|LetOrUses|_|) = function
         Some(xs', e)
     | _ -> None
 
-let (|LetOrUseBang|_|) = function
-    | SynExpr.LetOrUseBang(_, isUse, _, p, e1, ands, e2, _) ->
-        Some(isUse, p, e1, ands, e2)
-    | _ -> None 
-        
+type ComputationExpressionStatement =
+    | LetStatement of recursive:bool * SynBinding
+    | LetOrUseBangStatement of isUse:bool * SynPat * SynExpr * range
+    | AndBangStatement of SynPat * SynExpr
+    | OtherStatement of SynExpr
+
+let rec collectComputationExpressionStatements e : ComputationExpressionStatement list =
+    match e with
+    | SynExpr.LetOrUse(isRecursive, isUse, bindings, body, _) when (not(isUse)) ->
+        let bindings =
+            bindings
+            |> List.map (fun b -> LetStatement(isRecursive, b))
+        let returnExpr = collectComputationExpressionStatements body
+        [yield! bindings; yield! returnExpr]
+    | SynExpr.LetOrUseBang(_,isUse,_,pat,expr, andBangs, body, r) ->
+        let letOrUseBang = LetOrUseBangStatement(isUse, pat, expr, r)
+        let andBangs = andBangs |> List.map (fun (_,_,_, ap,ae,_) -> AndBangStatement(ap,ae))
+        let bodyStatements = collectComputationExpressionStatements body
+        [letOrUseBang; yield! andBangs; yield! bodyStatements]
+    | SynExpr.Sequential(_,_, e1,  e2, _) ->
+        [ yield! collectComputationExpressionStatements e1
+          yield! collectComputationExpressionStatements e2 ]
+    | expr -> [ OtherStatement expr ]
+
+/// Matches if the SynExpr has some or of computation expression member call inside.
+let (|CompExprBody|_|) expr =
+    match expr with
+    | SynExpr.LetOrUse(_,_,_, SynExpr.LetOrUseBang(_), _) ->
+        Some expr
+    | SynExpr.LetOrUseBang _ -> Some expr
+    | SynExpr.Sequential(_,_, _, SynExpr.YieldOrReturn(_), _) -> Some expr
+    | _ -> None
+
 let (|ForEach|_|) = function
     | SynExpr.ForEach(_, SeqExprOnly true, _, pat, e1, SingleExpr(Yield, e2) ,_) ->
         Some (pat, e1, e2, true)
@@ -1287,7 +1315,7 @@ let (|FunType|) (t, ValInfo(argTypes, returnType)) =
 /// A rudimentary recognizer for extern functions
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) = function
-    | Let(LetBinding(ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t))) ->
+    | Let(LetBinding(ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t), _)) ->
         let hasDllImportAttr =
             ats
             |> List.exists (fun { Attributes = attrs } ->

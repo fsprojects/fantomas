@@ -1206,7 +1206,7 @@ type SomeType =
 """
 
 [<Test>]
-let ``member with one long parameter and return type`` () =
+let ``member with one long parameter and return type, 850`` () =
     formatSourceString false """type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 : string =
     printfn "a"
@@ -1215,13 +1215,16 @@ let ``member with one long parameter and return type`` () =
     |> prepend newline
     |> should equal """
 type SomeType =
-    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string =
+    static member SomeMember
+        loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
+        : string
+        =
         printfn "a"
         "b"
 """
 
 [<Test>]
-let ``member with one long parameter and no return type`` () =
+let ``member with one long parameter and no return type, 850`` () =
     formatSourceString false """type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
     printfn "a"
@@ -1230,7 +1233,63 @@ let ``member with one long parameter and no return type`` () =
     |> prepend newline
     |> should equal """
 type SomeType =
-    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
+    static member SomeMember
+        loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
+        =
         printfn "a"
         "b"
+"""
+
+[<Test>]
+let ``multiple members with one long parameter`` () =
+    formatSourceString false """type SomeType =
+    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
+    printfn "a"
+    "b"
+
+    static member Serialize (loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType) = Encode.string v.Meh
+    static member Deserialize (loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee) : SomeType = Decode.SomeType loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee
+"""  config
+    |> prepend newline
+    |> should equal """
+type SomeType =
+    static member SomeMember
+        loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
+        =
+        printfn "a"
+        "b"
+
+    static member Serialize(
+        loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType)
+        =
+        Encode.string v.Meh
+
+    static member Deserialize(
+        loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee)
+        : SomeType
+        =
+        Decode.SomeType
+            loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee
+"""
+
+[<Test>]
+let ``access modifier before long constructor`` () =
+    formatSourceString false """type INotifications<'a,'b,'c,'d,'e> = 
+    class
+    end
+type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData> private (client: INotifications<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>, callbackId: 'CallbackId, validateUnregisterOutputData: 'UnregisterOutputData -> unit) =
+    let a = 5
+"""  config
+    |> prepend newline
+    |> should equal """
+type INotifications<'a, 'b, 'c, 'd, 'e> =
+    class
+    end
+
+type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>
+    private (client: INotifications<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>,
+             callbackId: 'CallbackId,
+             validateUnregisterOutputData: 'UnregisterOutputData -> unit)
+    =
+    let a = 5
 """
