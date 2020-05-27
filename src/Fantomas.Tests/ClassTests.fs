@@ -92,7 +92,7 @@ type Shape2D(x0 : float, y0 : float) =
 
     abstract member Rotate: float -> unit
     default this.Rotate(angle) = rotAngle <- rotAngle + angle
-    """ config
+    """ { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 [<AbstractClass>]
@@ -117,9 +117,7 @@ type Shape2D(x0: float, y0: float) =
         y <- y + dy
 
     abstract Rotate: float -> unit
-
-    default this.Rotate(angle) =
-        rotAngle <- rotAngle + angle
+    default this.Rotate(angle) = rotAngle <- rotAngle + angle
 """
 
 [<Test>]
@@ -183,15 +181,13 @@ let ``classes and implicit constructors``() =
        let data = dataIn
        do self.PrintMessage()
        member this.PrintMessage() =
-           printf "Creating MyClass2 with Data %d" data""" config
+           printf "Creating MyClass2 with Data %d" data""" { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type MyClass2(dataIn) as self =
     let data = dataIn
     do self.PrintMessage()
-
-    member this.PrintMessage() =
-        printf "Creating MyClass2 with Data %d" data
+    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data
 """
 
 [<Test>]
@@ -201,15 +197,13 @@ let ``classes and private implicit constructors``() =
        let data = dataIn
        do self.PrintMessage()
        member this.PrintMessage() =
-           printf "Creating MyClass2 with Data %d" data""" config
+           printf "Creating MyClass2 with Data %d" data""" { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type MyClass2 private (dataIn) as self =
     let data = dataIn
     do self.PrintMessage()
-
-    member this.PrintMessage() =
-        printf "Creating MyClass2 with Data %d" data
+    member this.PrintMessage() = printf "Creating MyClass2 with Data %d" data
 """
 
 [<Test>]
@@ -222,21 +216,17 @@ type Folder(pathIn: string) =
 
 and File(filename: string, containingFolder: Folder) = 
    member __.Name = filename
-   member __.ContainingFolder = containingFolder""" config
+   member __.ContainingFolder = containingFolder""" { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Folder(pathIn: string) =
     let path = pathIn
     let filenameArray: string array = System.IO.Directory.GetFiles(path)
-
-    member this.FileArray =
-        Array.map (fun elem -> new File(elem, this)) filenameArray
+    member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
 
 and File(filename: string, containingFolder: Folder) =
     member __.Name = filename
-
-    member __.ContainingFolder =
-        containingFolder
+    member __.ContainingFolder = containingFolder
 """
 
 [<Test>]
@@ -395,12 +385,11 @@ let ``indexed get long line``() =
 type Exception with
     member inline __.FirstLine = 
         __.Message.Split([|Environment.NewLine|], StringSplitOptions.RemoveEmptyEntries).[0]
-"""  config
+"""  { config with MaxBindingWidth = 120 }
     |> should equal """open System
 
 type Exception with
-    member inline __.FirstLine =
-        __.Message.Split([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries).[0]
+    member inline __.FirstLine = __.Message.Split([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries).[0]
 """
 
 [<Test>]
@@ -437,7 +426,7 @@ module Logging =
         LogProvider.SetCurrentLogProvider(QuartzLoggerWrapper(loggerFunction))
 
     let SetQuartzLogger l = LogProvider.SetCurrentLogProvider(l)
-"""  config
+"""  { config with MaxBindingWidth = 80 }
     |> prepend newline
     |> should equal """
 namespace Quartz.Fsharp
@@ -453,16 +442,13 @@ module Logging =
 
             member this.OpenMappedContext(_, _) =
                 { new IDisposable with
-                    member this.Dispose() =
-                        () }
+                    member this.Dispose() = () }
 
             member this.OpenNestedContext _ =
                 { new IDisposable with
-                    member this.Dispose() =
-                        () }
+                    member this.Dispose() = () }
 
-            member this.GetLogger _name =
-                new Logger(f)
+            member this.GetLogger _name = new Logger(f)
 
     let SetQuartzLoggingFunction f =
         let loggerFunction level (func: Func<string>) exc parameters =
@@ -486,14 +472,14 @@ type A() =
 
     member this.MemberB = if true then 2 else 3
 
-    member this.MemberC = 0""" config
-    |> should equal """type A() =
+    member this.MemberC = 0""" { config with MaxBindingWidth = 120 }
+    |> prepend newline
+    |> should equal """
+type A() =
 
-    member this.MemberA =
-        if true then 0 else 1
+    member this.MemberA = if true then 0 else 1
 
-    member this.MemberB =
-        if true then 2 else 3
+    member this.MemberB = if true then 2 else 3
 
     member this.MemberC = 0
 """

@@ -14,16 +14,14 @@ type Person() =
     member this.Sleep() = ignore
     member __.singAlong () = ()
     member __.swim (duration:TimeSpan) = ()
-"""  config
+"""  { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Person() =
     member this.Walk(distance: int) = ()
     member this.Sleep() = ignore
     member __.singAlong() = ()
-
-    member __.swim(duration: TimeSpan) =
-        ()
+    member __.swim(duration: TimeSpan) = ()
 """
 
 [<Test>]
@@ -34,16 +32,12 @@ type Person() =
     member this.Sleep() = ignore
     member __.singAlong () = ()
     member __.swim (duration:TimeSpan) = ()
-"""  spaceBeforeConfig
+"""  { spaceBeforeConfig with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Person() =
-    member this.Walk (distance: int) =
-        ()
-
+    member this.Walk (distance: int) = ()
     member this.Sleep () = ignore
     member __.singAlong () = ()
-
-    member __.swim (duration: TimeSpan) =
-        ()
+    member __.swim (duration: TimeSpan) = ()
 """

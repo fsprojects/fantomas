@@ -224,14 +224,13 @@ namespace global
 type SomeType() =
     member this.Print() = 
         global.System.Console.WriteLine("Hello World!")
-    """ config
+    """ { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 namespace global
 
 type SomeType() =
-    member this.Print() =
-        global.System.Console.WriteLine("Hello World!")
+    member this.Print() = global.System.Console.WriteLine("Hello World!")
 """
 
 [<Test>]
@@ -244,7 +243,7 @@ let ``abstract`` = "abstract"
 type SomeType() =
     member this.``new``() = 
         System.Console.WriteLine("Hello World!")
-    """ config
+    """ { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 module ``member``
@@ -252,8 +251,7 @@ module ``member``
 let ``abstract`` = "abstract"
 
 type SomeType() =
-    member this.``new``() =
-        System.Console.WriteLine("Hello World!")
+    member this.``new``() = System.Console.WriteLine("Hello World!")
 """
 
 [<Test>]

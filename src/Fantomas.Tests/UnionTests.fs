@@ -202,13 +202,12 @@ type CustomerId =
     | CustomerId of int
     member this.Test() =
         printfn "%A" this
-    """ config
+    """ { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type CustomerId =
     | CustomerId of int
-    member this.Test() =
-        printfn "%A" this
+    member this.Test() = printfn "%A" this
 """
 
 [<Test>]

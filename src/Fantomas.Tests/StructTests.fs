@@ -19,7 +19,7 @@ type NameStruct =
             x.Name.ToLower()
     end
 
-let n = new NameStruct("Hippo")""" config
+let n = new NameStruct("Hippo")""" { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type NameStruct =
@@ -27,11 +27,9 @@ type NameStruct =
         val Name: string
         new(name) = { Name = name }
 
-        member x.Upper() =
-            x.Name.ToUpper()
+        member x.Upper() = x.Name.ToUpper()
 
-        member x.Lower() =
-            x.Name.ToLower()
+        member x.Lower() = x.Name.ToLower()
     end
 
 let n = new NameStruct("Hippo")

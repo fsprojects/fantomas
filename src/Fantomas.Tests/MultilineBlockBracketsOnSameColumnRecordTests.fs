@@ -372,7 +372,7 @@ type Range =
     { From: float
       To: float }
     member this.Length = this.To - this.From
-"""  config
+"""  { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Range =
@@ -381,8 +381,7 @@ type Range =
         To : float
     }
 
-    member this.Length =
-        this.To - this.From
+    member this.Length = this.To - this.From
 """
 
 [<Test>]

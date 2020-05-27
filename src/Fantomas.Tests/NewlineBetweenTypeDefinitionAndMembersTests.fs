@@ -13,7 +13,7 @@ let ``newline between record type and members`` () =
       To : float
       Name: string }
     member this.Length = this.To - this.From
-"""  config
+"""  { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Range =
@@ -21,8 +21,7 @@ type Range =
       To: float
       Name: string }
 
-    member this.Length =
-        this.To - this.From
+    member this.Length = this.To - this.From
 """
 
 [<Test>]
@@ -33,7 +32,7 @@ let ``existing newline between record type and members should not be duplicate``
       Name: string }
 
     member this.Length = this.To - this.From
-"""  config
+"""  { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Range =
@@ -41,8 +40,7 @@ type Range =
       To: float
       Name: string }
 
-    member this.Length =
-        this.To - this.From
+    member this.Length = this.To - this.From
 """
 
 [<Test>]

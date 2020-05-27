@@ -110,8 +110,7 @@ let ``should preserve triple-quote strings``() =
         let switchvox_users_voicemail_getList = \"\"\"
             </request>\"\"\"
 
-        member self.X = switchvox_users_voicemail_getList_response
-"    config 
+        member self.X = switchvox_users_voicemail_getList_response" { config with MaxBindingWidth = 120 } 
     |> prepend newline
     |> should equal "
 type GetList() =
@@ -121,8 +120,7 @@ type GetList() =
     let switchvox_users_voicemail_getList = \"\"\"
             </request>\"\"\"
 
-    member self.X =
-        switchvox_users_voicemail_getList_response
+    member self.X = switchvox_users_voicemail_getList_response
 "
 
 // either this test needs to be changed or

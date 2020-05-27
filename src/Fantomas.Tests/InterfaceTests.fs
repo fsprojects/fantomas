@@ -16,7 +16,7 @@ type SomeClass1(x: int, y: float) =
 type Interface3 =
     inherit Interface1
     inherit Interface2
-    abstract member Method3 : int -> int""" config
+    abstract member Method3 : int -> int""" { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type IPrintable =
@@ -24,8 +24,7 @@ type IPrintable =
 
 type SomeClass1(x: int, y: float) =
     interface IPrintable with
-        member this.Print() =
-            printfn "%d %f" x y
+        member this.Print() = printfn "%d %f" x y
 
 type Interface3 =
     inherit Interface1
@@ -41,14 +40,12 @@ let ``should not add with to interface definitions with no members``() =
     interface Infrastucture with
         member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
         member this.ToXml() = v :> obj
-    """ config
+    """ { config with MaxBindingWidth = 120 }
     |> should equal """type Text(text: string) =
     interface IDocument
 
     interface Infrastucture with
-        member this.Serialize sb =
-            sb.AppendFormat("\"{0}\"", escape v)
-
+        member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
         member this.ToXml() = v :> obj
 """
 
@@ -91,17 +88,15 @@ let f () =
         member x.ToString() = "INotifyEnumerableInternal"
       interface INotifyEnumerableInternal<'T>
       interface IEnumerable<_> with
-        member x.GetEnumerator() = null }""" config
+        member x.GetEnumerator() = null }""" { config with MaxBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 let f () =
     { new obj() with
-        member x.ToString() =
-            "INotifyEnumerableInternal"
+        member x.ToString() = "INotifyEnumerableInternal"
       interface INotifyEnumerableInternal<'T>
       interface IEnumerable<_> with
-          member x.GetEnumerator() =
-              null }
+          member x.GetEnumerator() = null }
 """
 
 [<Test>]
@@ -155,7 +150,7 @@ type MyLogInteface() =
             else
                 sprintf "date-%s.log" environment
         member x.Info () = ()
-        override x.Version () = ()""" ({ config with PageWidth = 119 })
+        override x.Version () = ()""" ({ config with PageWidth = 119; MaxBindingWidth = 120 })
     |> prepend newline
     |> should equal """
 type LogInterface =
@@ -166,8 +161,7 @@ type LogInterface =
 
 type MyLogInteface() =
     interface LogInterface with
-        member x.Print msg =
-            printfn "%s" msg
+        member x.Print msg = printfn "%s" msg
 
         override x.GetLogFile environment =
             if environment = "DEV" then "dev.log" else sprintf "date-%s.log" environment
