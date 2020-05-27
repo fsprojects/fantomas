@@ -125,6 +125,21 @@ let a =
 """
 
 [<Test>]
+let ``type with record instance with inherit keyword`` () =
+    formatSourceString false """type ServerCannotBeResolvedException =
+    inherit CommunicationUnsuccessfulException
+
+    new(message) =
+        { inherit CommunicationUnsuccessfulException(message) }"""  config
+    |> prepend newline
+    |> should equal """
+type ServerCannotBeResolvedException =
+    inherit CommunicationUnsuccessfulException
+
+    new(message) = { inherit CommunicationUnsuccessfulException(message) }
+"""
+
+[<Test>]
 let ``anonymous record`` () =
     formatSourceString false """let meh =
     {| Level = 1
