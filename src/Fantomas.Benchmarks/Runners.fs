@@ -13,7 +13,7 @@ let config = Fantomas.FormatConfig.FormatConfig.Default
 type CodePrinterTest() =
     [<Benchmark>]
     member _.Format() =
-        let path = "./paket-files/fsprojects/fantomas/src/Fantomas/CodePrinter.fs"
+        let path = __SOURCE_DIRECTORY__ + "/../../paket-files/fsprojects/fantomas/src/Fantomas/CodePrinter.fs"
         let fileName = Path.GetFileName(path)
         let parsingOptions = FakeHelpers.createParsingOptionsFromFile fileName
         let content = File.ReadAllText(path) |> SourceOrigin.SourceString
