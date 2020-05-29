@@ -1050,8 +1050,11 @@ and genExpr astContext synExpr =
 
     // When there are parentheses, most likely lambda will appear in function application
     | Lambda(e, sps) ->
-        !- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        atCurrentColumn
+            (!- "fun "
+             +> col sepSpace sps (genSimplePats astContext)
+             +> sepArrow
+             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
     | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause astContext true)
     | Match(e, cs) ->
         atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
