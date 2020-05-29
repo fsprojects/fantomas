@@ -106,10 +106,37 @@ let ``record instance with inherit keyword`` () =
     |> prepend newline
     |> should equal """
 let a =
-    { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
+    {
+        inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
         buildSettings = FSharpBuildSettings()
         targetPlatformData = targetPlatformData
     }
+"""
+
+[<Test>]
+let ``record instance with inherit keyword and no fields`` () =
+    formatSourceString false """let a =
+        { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK) }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK) }
+"""
+
+[<Test>]
+let ``type with record instance with inherit keyword`` () =
+    formatSourceString false """type ServerCannotBeResolvedException =
+    inherit CommunicationUnsuccessfulException
+
+    new(message) =
+        { inherit CommunicationUnsuccessfulException(message) }"""  config
+    |> prepend newline
+    |> should equal """
+type ServerCannotBeResolvedException =
+    inherit CommunicationUnsuccessfulException
+
+    new(message) = { inherit CommunicationUnsuccessfulException(message) }
 """
 
 [<Test>]
