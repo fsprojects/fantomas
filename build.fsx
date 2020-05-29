@@ -15,6 +15,7 @@ nuget Fake.Core.Target //"
 
 open Fake.Core
 open Fake.IO
+open Fake.IO.FileSystemOperators
 open Fake.Core.TargetOperators
 open Fake.BuildServer
 open System
@@ -346,6 +347,11 @@ Target.create "MyGet" (fun _ ->
     pushPackage args
 )
 
+Target.create "Benchmark" (fun _ ->
+    DotNet.exec id ("src" </> "Fantomas.Benchmarks" </> "bin" </> "Release" </> "netcoreapp3.1" </> "Fantomas.Benchmarks.dll") ""
+    |> ignore
+)
+
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
@@ -361,6 +367,9 @@ Target.create "All" ignore
 
 "Build"
     ==> "TestExternalProjects"
+
+"Build"
+    ==> "Benchmark"
 
 "Pack"
     ==> "MyGet"
