@@ -1163,13 +1163,14 @@ and genExpr astContext synExpr =
             +> indent
             +> (col sepNone es (fun ((s,_), e) ->
                     let currentExprRange = e.Range
+
                     let genTriviaOfIdent =
                         dotGetFuncExprIdents
                         |> List.tryFind (fun (er, _) -> er = e.Range)
                         |> Option.map (snd >> (fun lid -> genTrivia lid.idRange))
                         |> Option.defaultValue (id)
-                    let currentIdentifier = genTriviaOfIdent (!- (sprintf ".%s" s))
 
+                    let currentIdentifier = genTriviaOfIdent (!- (sprintf ".%s" s))
                     let hasParenthesis = hasParenthesis e
 
                     let shortExpr =
@@ -1177,15 +1178,21 @@ and genExpr astContext synExpr =
                          +> ifElse hasParenthesis sepNone sepSpace
                          +> genExpr astContext e)
 
+                    let genMultilineExpr =
+                        match e with
+                        | Paren(Lambda(_)) -> atCurrentColumnIndent(genExpr astContext e)
+                        | _ ->
+                            ifElse hasParenthesis
+                                    (indent +> sepNln +> genExpr astContext e +> unindent)
+                                    (sepNln +> genExpr astContext e)
+
                     let fallBackExpr =
                         onlyIf hasParenthesis sepNln
                         +> currentIdentifier
                         +> ifElse hasParenthesis sepNone sepSpace
                         +> expressionFitsOnRestOfLine
                                 (genExpr astContext e)
-                                (ifElse hasParenthesis
-                                    (indent +> sepNln +> genExpr astContext e +> unindent)
-                                    (sepNln +> genExpr astContext e))
+                                genMultilineExpr
 
                     let writeExpr =
                          expressionFitsOnRestOfLine shortExpr fallBackExpr
