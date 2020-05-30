@@ -965,7 +965,7 @@ and genExpr astContext synExpr =
             match ces with
             | LetOrUseStatement(isRecursive, isUse, binding) ->
                 let prefix =
-                    sprintf "%s%s" (if isUse then "use " else "let ") (if isRecursive then "rec" else "")
+                    sprintf "%s%s" (if isUse then "use " else "let ") (if isRecursive then "rec " else "")
 
                 genLetBinding astContext prefix binding
             | LetOrUseBangStatement(isUse, pat, expr, _) ->

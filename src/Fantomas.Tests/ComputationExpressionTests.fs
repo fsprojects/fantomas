@@ -1297,3 +1297,22 @@ let private getAST log (req: HttpRequest) =
         | Error err -> return sendInternalError (sprintf "%A" err)
     }
 """
+
+[<Test>]
+let ``let rec + let bang`` () =
+    formatSourceString false """let a =
+    async {
+        let rec foo a = foo a
+        let! bar = async { return foo a }
+        return bar
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    async {
+        let rec foo a = foo a
+        let! bar = async { return foo a }
+        return bar
+    }
+"""
