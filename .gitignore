@@ -186,3 +186,4 @@ external-project-tests/
 .fake/
 .vscode/
 .ionide
+BenchmarkDotNet.Artifacts/
