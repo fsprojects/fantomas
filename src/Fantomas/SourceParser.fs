@@ -780,17 +780,17 @@ let rec (|LetOrUses|_|) = function
     | _ -> None
 
 type ComputationExpressionStatement =
-    | LetStatement of recursive:bool * SynBinding
+    | LetOrUseStatement of recursive:bool * isUse:bool * SynBinding
     | LetOrUseBangStatement of isUse:bool * SynPat * SynExpr * range
     | AndBangStatement of SynPat * SynExpr
     | OtherStatement of SynExpr
 
 let rec collectComputationExpressionStatements e : ComputationExpressionStatement list =
     match e with
-    | SynExpr.LetOrUse(isRecursive, isUse, bindings, body, _) when (not(isUse)) ->
+    | SynExpr.LetOrUse(isRecursive, isUse, bindings, body, _) ->
         let bindings =
             bindings
-            |> List.map (fun b -> LetStatement(isRecursive, b))
+            |> List.map (fun b -> LetOrUseStatement(isRecursive, isUse, b))
         let returnExpr = collectComputationExpressionStatements body
         [yield! bindings; yield! returnExpr]
     | SynExpr.LetOrUseBang(_,isUse,_,pat,expr, andBangs, body, r) ->

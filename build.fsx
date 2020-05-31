@@ -1,4 +1,8 @@
+
+open Fake.Core
+
 #r "paket:
+nuget Microsoft.Azure.Cosmos.Table
 nuget Fake.BuildServer.AppVeyor
 nuget Fake.Core.ReleaseNotes
 nuget Fake.Core.Xml
@@ -15,6 +19,7 @@ nuget Fake.Core.Target //"
 
 open Fake.Core
 open Fake.IO
+open Fake.IO.FileSystemOperators
 open Fake.Core.TargetOperators
 open Fake.BuildServer
 open System
@@ -346,6 +351,70 @@ Target.create "MyGet" (fun _ ->
     pushPackage args
 )
 
+let git command =
+    CreateProcess.fromRawCommandLine "git" command
+    |> CreateProcess.redirectOutput
+    |> Proc.run
+    |> fun p -> p.Result.Output.Trim()
+
+open Microsoft.Azure.Cosmos.Table
+open Microsoft.Azure.Documents
+
+Target.create "Benchmark" (fun _ ->
+    DotNet.exec id ("src" </> "Fantomas.Benchmarks" </> "bin" </> "Release" </> "netcoreapp3.1" </> "Fantomas.Benchmarks.dll") ""
+    |> ignore
+
+    match Environment.environVarOrNone "TABLE_STORAGE_CONNECTION_STRING" with
+    | Some conn ->
+        let branchName =  git "rev-parse --abbrev-ref HEAD"
+        let commit = git "rev-parse HEAD"
+        let operatingSystem = Environment.environVar "RUNNER_OS"
+
+        let results =
+            System.IO.File.ReadLines("./BenchmarkDotNet.Artifacts/results/Fantomas.Benchmarks.Runners.CodePrinterTest-report.csv")
+            |> Seq.map (fun line -> line.Split(',') |> Array.toList)
+            |> Seq.toList
+            |> fun lineGroups ->
+                match lineGroups with
+                | [ header; values ] ->
+                    let csvValues = List.zip header values
+
+                    let buildNumber =
+                        match buildNumber with
+                        |Some i -> [ "BuildNumber", i.ToString() ]
+                        | None -> []
+
+                    let metaData =
+                        [ "Branch", branchName
+                          "Commit", commit
+                          "Operating System", operatingSystem
+                          yield! buildNumber ]
+
+                    [ yield! csvValues; yield! metaData ]
+                | _ ->
+                    []
+
+        let storageAccount = CloudStorageAccount.Parse(conn)
+        let tableClient = storageAccount.CreateCloudTableClient()
+        let table = tableClient.GetTableReference("FantomasBenchmarks")
+        let entry = DynamicTableEntity()
+        entry.PartitionKey <- "GithubActions"
+        entry.RowKey <- (sprintf "%s|%s|%s" branchName commit operatingSystem).ToLower()
+
+        results
+        |> List.iter (fun (k,v) ->
+                let key = k.Replace(' ','_')
+                if not (isNull v) then
+                    entry.Properties.Add(key, EntityProperty.CreateEntityPropertyFromObject(v)))
+
+        let tableOperation = TableOperation.InsertOrReplace(entry)
+
+        table.Execute(tableOperation)
+        |> printfn "%O"
+    | None ->
+        printfn "Not saving benchmark results to the cloud"
+)
+
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
@@ -355,6 +424,7 @@ Target.create "All" ignore
     ==> "ProjectVersion"
     ==> "Build"
     ==> "UnitTests"
+    ==> "Benchmark"
     ==> "Pack"
     ==> "All"
     ==> "Push"

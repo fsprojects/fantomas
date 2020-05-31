@@ -963,8 +963,10 @@ and genExpr astContext synExpr =
 
         let genCompExprStatement astContext ces =
             match ces with
-            | LetStatement(isRecursive, binding) ->
-                let prefix = if isRecursive then "let rec " else "let "
+            | LetOrUseStatement(isRecursive, isUse, binding) ->
+                let prefix =
+                    sprintf "%s%s" (if isUse then "use " else "let ") (if isRecursive then "rec " else "")
+
                 genLetBinding astContext prefix binding
             | LetOrUseBangStatement(isUse, pat, expr, _) ->
                 ifElse isUse (!- "use! ") (!- "let! ")
@@ -977,7 +979,7 @@ and genExpr astContext synExpr =
 
         let getRangeOfCompExprStatement ces =
             match ces with
-            | LetStatement(_, binding) -> binding.RangeOfBindingSansRhs
+            | LetOrUseStatement(_, _, binding) -> binding.RangeOfBindingSansRhs
             | LetOrUseBangStatement(_, _, _, r) -> r
             | AndBangStatement (pat, _) -> pat.Range
             | OtherStatement expr -> expr.Range

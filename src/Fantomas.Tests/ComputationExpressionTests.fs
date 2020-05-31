@@ -1225,3 +1225,94 @@ let valueTwo =
         return! getE ()
     }
 """
+
+[<Test>]
+let ``use and let bang, 876`` () =
+    formatSourceString false """let private getAST log (req: HttpRequest) =
+        async {
+            use stream = new StreamReader(req.Body)
+            let! json = stream.ReadToEndAsync() |> Async.AwaitTask
+            let parseRequest = Decoders.decodeInputRequest json
+
+            match parseRequest with
+            | Result.Ok input when (input.SourceCode.Length < Const.sourceSizeLimit) ->
+                let! astResult = parseAST log input
+                match astResult with
+                | Result.Ok ast ->
+                    let node =
+                        match ast with
+                        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _, hds, mns, _)) ->
+                            Fantomas.AstTransformer.astToNode hds mns
+
+                        | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput (_, _, _, _, mns)) ->
+                            Fantomas.AstTransformer.sigAstToNode mns
+                        |> Encoders.nodeEncoder
+
+                    let responseJson =
+                        Encoders.encodeResponse node (sprintf "%A" ast)
+                        |> Thoth.Json.Net.Encode.toString 2
+
+                    return sendJson responseJson
+
+                | Error error -> return sendBadRequest (sprintf "%A" error)
+
+            | Result.Ok _ -> return sendTooLargeError ()
+
+            | Error err -> return sendInternalError (sprintf "%A" err)
+        }
+"""  config
+    |> prepend newline
+    |> should equal """
+let private getAST log (req: HttpRequest) =
+    async {
+        use stream = new StreamReader(req.Body)
+        let! json = stream.ReadToEndAsync() |> Async.AwaitTask
+        let parseRequest = Decoders.decodeInputRequest json
+
+        match parseRequest with
+        | Result.Ok input when (input.SourceCode.Length < Const.sourceSizeLimit) ->
+            let! astResult = parseAST log input
+
+            match astResult with
+            | Result.Ok ast ->
+                let node =
+                    match ast with
+                    | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _, hds, mns, _)) ->
+                        Fantomas.AstTransformer.astToNode hds mns
+
+                    | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput (_, _, _, _, mns)) ->
+                        Fantomas.AstTransformer.sigAstToNode mns
+                    |> Encoders.nodeEncoder
+
+                let responseJson =
+                    Encoders.encodeResponse node (sprintf "%A" ast)
+                    |> Thoth.Json.Net.Encode.toString 2
+
+                return sendJson responseJson
+
+            | Error error -> return sendBadRequest (sprintf "%A" error)
+
+        | Result.Ok _ -> return sendTooLargeError ()
+
+        | Error err -> return sendInternalError (sprintf "%A" err)
+    }
+"""
+
+[<Test>]
+let ``let rec + let bang`` () =
+    formatSourceString false """let a =
+    async {
+        let rec foo a = foo a
+        let! bar = async { return foo a }
+        return bar
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    async {
+        let rec foo a = foo a
+        let! bar = async { return foo a }
+        return bar
+    }
+"""
