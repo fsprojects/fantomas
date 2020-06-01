@@ -43,13 +43,17 @@ let createParsingOptionsFromFile fileName =
 let formatContentAsync config (file: string) (originalContent: string) =
     async {
         try
+            let fileName =
+                if Path.GetExtension(file) = ".fsi" then "tmp.fsi" else "tmp.fsx"
+
             let! formattedContent =
-                CodeFormatter.FormatDocumentAsync(file, SourceOrigin.SourceString originalContent, config,
-                                                  createParsingOptionsFromFile file ,sharedChecker.Value)
+                CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString originalContent, config,
+                                                  createParsingOptionsFromFile fileName ,sharedChecker.Value)
+
             if originalContent <> formattedContent then
                 let! isValid =
-                    CodeFormatter.IsValidFSharpCodeAsync(file, (SourceOrigin.SourceString(formattedContent)),
-                                                         createParsingOptionsFromFile file, sharedChecker.Value)
+                    CodeFormatter.IsValidFSharpCodeAsync(fileName, (SourceOrigin.SourceString(formattedContent)),
+                                                         createParsingOptionsFromFile fileName, sharedChecker.Value)
                 if not isValid  then
                     raise <| FormatException "Formatted content is not valid F# code"
 
@@ -63,8 +67,8 @@ let formatContentAsync config (file: string) (originalContent: string) =
 let formatFileAsync config (file : string) =
     let originalContent = File.ReadAllText file
     async {
-        let! formated = originalContent |> formatContentAsync config file
-        return formated
+        let! formatted = originalContent |> formatContentAsync config file
+        return formatted
     }
 
 let formatFilesAsync config files =

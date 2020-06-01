@@ -12,7 +12,7 @@ let b= a +      123
 """
 
 [<Literal>]
-let WithErrors = """le a 2"""
+let WithErrors = """let a ="""
 
 [<Literal>]
 let CorrectlyFormatted = """module A
@@ -28,7 +28,7 @@ let ``formatted files should report exit code 0``() =
 [<Test>]
 let ``invalid files should report exit code 1``() =
     use fileFixture = new TemporaryFileCodeSample(WithErrors)
-    let (exitCode,_) = checkCode fileFixture.Filename
+    let (exitCode, _) = checkCode fileFixture.Filename
     exitCode |> should equal 1
 
 [<Test>]
@@ -36,3 +36,15 @@ let ``files that need formatting should report exit code 99``() =
     use fileFixture = new TemporaryFileCodeSample(NeedsFormatting)
     let (exitCode,_) = checkCode fileFixture.Filename
     exitCode |> should equal 99
+
+[<Test>]
+let ``check with Program.fs file`` () =
+    let codeSnippet = """[<EntryPoint>]
+let main _ = 0
+"""
+
+    use fileFixture =
+        new TemporaryFileCodeSample(codeSnippet, fileName = "Program")
+
+    let (exitCode, _) = checkCode fileFixture.Filename
+    exitCode |> should equal 0
