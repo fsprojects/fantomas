@@ -968,8 +968,9 @@ and genExpr astContext synExpr =
                     sprintf "%s%s" (if isUse then "use " else "let ") (if isRecursive then "rec " else "")
 
                 genLetBinding astContext prefix binding
-            | LetOrUseBangStatement(isUse, pat, expr, _) ->
-                ifElse isUse (!- "use! ") (!- "let! ")
+            | LetOrUseBangStatement(isUse, pat, expr, r) ->
+                enterNode r // print Trivia before entire LetBang expression
+                +> ifElse isUse (!- "use! ") (!- "let! ")
                 +> genPat astContext pat -- " = "
                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
             | AndBangStatement(pat, expr) ->
