@@ -16,6 +16,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.CoreGlobalTool", "
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.CoreGlobalTool.Tests", "src\Fantomas.CoreGlobalTool.Tests\Fantomas.CoreGlobalTool.Tests.fsproj", "{DEDE6968-0BE8-4415-9262-8355B82AF2C0}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Benchmarks", "src\Fantomas.Benchmarks\Fantomas.Benchmarks.fsproj", "{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,18 @@ Global
 		{DEDE6968-0BE8-4415-9262-8355B82AF2C0}.Release|x64.Build.0 = Release|Any CPU
 		{DEDE6968-0BE8-4415-9262-8355B82AF2C0}.Release|x86.ActiveCfg = Release|Any CPU
 		{DEDE6968-0BE8-4415-9262-8355B82AF2C0}.Release|x86.Build.0 = Release|Any CPU
+		{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}.Debug|x64.Build.0 = Debug|Any CPU
+		{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}.Debug|x86.Build.0 = Debug|Any CPU
+		{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}.Release|x64.ActiveCfg = Release|Any CPU
+		{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}.Release|x64.Build.0 = Release|Any CPU
+		{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}.Release|x86.ActiveCfg = Release|Any CPU
+		{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection

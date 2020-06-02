@@ -685,7 +685,7 @@ and genMemberBinding astContext b =
                 ifElse
                     prefixIsLong
                     (indent +> sepNln +> sepColon +> genType astContext false t +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
-                    (sepColon +> genType astContext false t +> sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsMaxBindingWidthIgnoreShort (genExpr astContext e)))
+                    (sepColon +> genType astContext false t +> sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
         | e ->
             genAttributesAndXmlDoc
             +> leadingExpressionIsMultiline prefix
@@ -693,7 +693,7 @@ and genMemberBinding astContext b =
                     ifElse
                         prefixIsLong
                         (indent +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
-                        (sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsMaxBindingWidthIgnoreShort (genExpr astContext e)))
+                        (sepEq +> (fun ctx -> (sepSpace +> isShortExpressionOrAddIndentAndNewline ctx.Config.MaxBindingWidth (genExpr astContext e)) ctx)))
 
     | ExplicitCtor(ats, px, ao, p, e, so) ->
         let prefix =
@@ -963,8 +963,10 @@ and genExpr astContext synExpr =
 
         let genCompExprStatement astContext ces =
             match ces with
-            | LetStatement(isRecursive, binding) ->
-                let prefix = if isRecursive then "let rec " else "let "
+            | LetOrUseStatement(isRecursive, isUse, binding) ->
+                let prefix =
+                    sprintf "%s%s" (if isUse then "use " else "let ") (if isRecursive then "rec " else "")
+
                 genLetBinding astContext prefix binding
             | LetOrUseBangStatement(isUse, pat, expr, _) ->
                 ifElse isUse (!- "use! ") (!- "let! ")
@@ -977,7 +979,7 @@ and genExpr astContext synExpr =
 
         let getRangeOfCompExprStatement ces =
             match ces with
-            | LetStatement(_, binding) -> binding.RangeOfBindingSansRhs
+            | LetOrUseStatement(_, _, binding) -> binding.RangeOfBindingSansRhs
             | LetOrUseBangStatement(_, _, _, r) -> r
             | AndBangStatement (pat, _) -> pat.Range
             | OtherStatement expr -> expr.Range
@@ -1050,8 +1052,11 @@ and genExpr astContext synExpr =
 
     // When there are parentheses, most likely lambda will appear in function application
     | Lambda(e, sps) ->
-        !- "fun " +> col sepSpace sps (genSimplePats astContext) +> sepArrow
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        atCurrentColumn
+            (!- "fun "
+             +> col sepSpace sps (genSimplePats astContext)
+             +> sepArrow
+             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
     | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause astContext true)
     | Match(e, cs) ->
         atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
@@ -1163,13 +1168,14 @@ and genExpr astContext synExpr =
             +> indent
             +> (col sepNone es (fun ((s,_), e) ->
                     let currentExprRange = e.Range
+
                     let genTriviaOfIdent =
                         dotGetFuncExprIdents
                         |> List.tryFind (fun (er, _) -> er = e.Range)
                         |> Option.map (snd >> (fun lid -> genTrivia lid.idRange))
                         |> Option.defaultValue (id)
-                    let currentIdentifier = genTriviaOfIdent (!- (sprintf ".%s" s))
 
+                    let currentIdentifier = genTriviaOfIdent (!- (sprintf ".%s" s))
                     let hasParenthesis = hasParenthesis e
 
                     let shortExpr =
@@ -1177,15 +1183,21 @@ and genExpr astContext synExpr =
                          +> ifElse hasParenthesis sepNone sepSpace
                          +> genExpr astContext e)
 
+                    let genMultilineExpr =
+                        match e with
+                        | Paren(Lambda(_)) -> atCurrentColumnIndent(genExpr astContext e)
+                        | _ ->
+                            ifElse hasParenthesis
+                                    (indent +> sepNln +> genExpr astContext e +> unindent)
+                                    (sepNln +> genExpr astContext e)
+
                     let fallBackExpr =
                         onlyIf hasParenthesis sepNln
                         +> currentIdentifier
                         +> ifElse hasParenthesis sepNone sepSpace
                         +> expressionFitsOnRestOfLine
                                 (genExpr astContext e)
-                                (ifElse hasParenthesis
-                                    (indent +> sepNln +> genExpr astContext e +> unindent)
-                                    (sepNln +> genExpr astContext e))
+                                genMultilineExpr
 
                     let writeExpr =
                          expressionFitsOnRestOfLine shortExpr fallBackExpr
@@ -1655,12 +1667,14 @@ and genMultilineRecordInstanceAlignBrackets
     astContext
     =
     let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
+    let hasFields = List.isNotEmpty xs
 
     match inheritOpt, eo with
     | Some (inheritType, inheritExpr), None ->
-        sepOpenS +>
-        !- "inherit " +> genType astContext false inheritType +> genExpr astContext inheritExpr
-        +> (indent +> sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed)
+        sepOpenS
+        +> ifElse hasFields (indent +> sepNln) sepNone
+        +> !- "inherit " +> genType astContext false inheritType +> genExpr astContext inheritExpr
+        +> ifElse hasFields (sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed) (sepSpace +> sepCloseSFixed)
 
     | None, Some e ->
         sepOpenS +> genExpr astContext e

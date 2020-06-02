@@ -305,3 +305,61 @@ List.tryFind (fun { Type = t; Range = r } -> // foo
     let a = 8
     a + 9)
 """
+
+[<Test>]
+let ``lambda body should be indented far enough, 870`` () =
+    formatSourceString false """  let projectIntoMap projection =
+    fun state eventEnvelope ->
+      state
+      |> Map.tryFind eventEnvelope.Metadata.Source
+      |> Option.defaultValue projection.Init
+      |> fun projectionState -> eventEnvelope.Event |> projection.Update projectionState
+      |> fun newState -> state |> Map.add eventEnvelope.Metadata.Source newState
+
+let projectIntoMap projection =
+  fun state eventEnvelope ->
+    state
+    |> Map.tryFind eventEnvelope.Metadata.Source
+    |> Option.defaultValue projection.Init
+    |> fun projectionState ->
+         eventEnvelope.Event
+         |> projection.Update projectionState
+    |> fun newState ->
+         state
+         |> Map.add eventEnvelope.Metadata.Source newState
+"""
+        ({ config with
+               IndentSpaceNum = 2
+               SpaceBeforeUppercaseInvocation = true
+               SpaceBeforeColon = true
+               SpaceAfterComma = false
+               SpaceAroundDelimiter = false
+               MaxInfixOperatorExpression = 40
+               MaxBindingWidth = 60
+               MultilineBlockBracketsOnSameColumn = true })
+    |> prepend newline
+    |> should equal """
+let projectIntoMap projection =
+  fun state eventEnvelope ->
+    state
+    |> Map.tryFind eventEnvelope.Metadata.Source
+    |> Option.defaultValue projection.Init
+    |> fun projectionState ->
+         eventEnvelope.Event
+         |> projection.Update projectionState
+    |> fun newState ->
+         state
+         |> Map.add eventEnvelope.Metadata.Source newState
+
+let projectIntoMap projection =
+  fun state eventEnvelope ->
+    state
+    |> Map.tryFind eventEnvelope.Metadata.Source
+    |> Option.defaultValue projection.Init
+    |> fun projectionState ->
+         eventEnvelope.Event
+         |> projection.Update projectionState
+    |> fun newState ->
+         state
+         |> Map.add eventEnvelope.Metadata.Source newState
+"""

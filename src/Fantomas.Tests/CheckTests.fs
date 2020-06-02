@@ -16,16 +16,16 @@ let b= a +      123
 """
 
 [<Literal>]
-let WithErrors = """le a 2"""
+let WithErrors = """let a"""
 
 [<Literal>]
-let CorrectlyFormated = """module A
+let CorrectlyFormatted = """module A
 
 """
 
 [<Test>]
 let ``formatted files should report no changes``() =
-    use fileFixture = new TemporaryFileCodeSample(CorrectlyFormated)
+    use fileFixture = new TemporaryFileCodeSample(CorrectlyFormatted)
 
     let result =
         fileFixture.Filename

@@ -6,9 +6,17 @@ open System.IO
 open System.Text
 open Fantomas
 
-type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: bool) =
+type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: bool, ?fileName: string) =
     let hasByteOrderMark = defaultArg hasByteOrderMark false
-    let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
+
+    let filename =
+        let name =
+            match fileName with
+            | Some fn -> fn
+            | None -> Guid.NewGuid().ToString()
+
+        Path.Join(Path.GetTempPath(), sprintf "%s.fs" name)
+
     do (if hasByteOrderMark
         then File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
         else File.WriteAllText(filename, codeSnippet))
