@@ -1316,3 +1316,60 @@ let a =
         return bar
     }
 """
+
+[<Test>]
+let ``new line between let and let bang, 879`` () =
+    formatSourceString false """let rec loop () =
+        async {
+          let! msg = inbox.Receive()
+
+          match msg with
+          | Handle (eventSource,command,reply) ->
+              let! stream = eventSource |> eventStore.GetStream
+
+              let newEvents =
+                stream |> Result.map (asEvents >> behaviour command >> enveloped eventSource)
+
+              let! result =
+                newEvents
+                |> function
+                    | Ok events -> eventStore.Append events
+                    | Error err -> async { return Error err }
+
+              do reply.Reply result
+
+              return! loop ()
+        }
+"""  ({ config with
+            SpaceBeforeUppercaseInvocation = true
+            IndentSpaceNum = 2
+            SpaceAroundDelimiter = false
+            MultilineBlockBracketsOnSameColumn = true })
+    |> prepend newline
+    |> should equal """
+let rec loop () =
+  async {
+    let! msg = inbox.Receive ()
+
+    match msg with
+    | Handle (eventSource, command, reply) ->
+        let! stream = eventSource |> eventStore.GetStream
+
+        let newEvents =
+          stream
+          |> Result.map
+               (asEvents
+                >> behaviour command
+                >> enveloped eventSource)
+
+        let! result =
+          newEvents
+          |> function
+          | Ok events -> eventStore.Append events
+          | Error err -> async { return Error err}
+
+        do reply.Reply result
+
+        return! loop ()
+  }
+"""
