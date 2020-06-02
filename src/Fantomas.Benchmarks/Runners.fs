@@ -18,6 +18,7 @@ type CodePrinterTest() =
         let fileName = Path.GetFileName(path)
         let parsingOptions = FakeHelpers.createParsingOptionsFromFile fileName
         let content = File.ReadAllText(path) |> SourceOrigin.SourceString
+        let config = { config with StrictMode = true }
         CodeFormatter.FormatDocumentAsync(fileName, content, config, parsingOptions, sharedChecker.Value)
         |> Async.RunSynchronously
         |> ignore
