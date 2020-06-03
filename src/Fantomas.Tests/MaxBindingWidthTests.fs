@@ -47,6 +47,20 @@ let ``should apply to member value definition``() =
 """
 
 [<Test>]
+let ``should apply to typed member value definition``() =
+    formatSourceString false """type T =
+    let aaaaaaaaaaaaaaaaaaaa = bbbbbbbbbbbbbbbbbbb + 1
+    member (this.ccccccccccccccccccccccccccccccc: int)= dddddddddddddddddddddddddddd + 2
+    """ config
+    |> should equal """type T =
+    let aaaaaaaaaaaaaaaaaaaa =
+        bbbbbbbbbbbbbbbbbbb + 1
+
+    member (this.ccccccccccccccccccccccccccccccc: int) =
+        dddddddddddddddddddddddddddd + 2
+"""
+
+[<Test>]
 let ``should not apply to short member value definition``() =
     formatSourceString false """type T =
     let a = b + 1
@@ -68,6 +82,19 @@ let ``should apply to member function definition``() =
         bbbbbbbbbbbbbbbbbbb + 1
 
     member this.cccccccccccccc dddddddddddddd = dddddddddddddd + 2
+"""
+
+[<Test>]
+let ``should apply to typed member function definition``() =
+    formatSourceString false """type T =
+    let aaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbbbb = bbbbbbbbbbbbbbbbbbb + 1
+    member this.cccccccccccccc dddddddddddddd: int = dddddddddddddd + 2
+    """ config
+    |> should equal """type T =
+    let aaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbbbb =
+        bbbbbbbbbbbbbbbbbbb + 1
+
+    member this.cccccccccccccc dddddddddddddd: int = dddddddddddddd + 2
 """
 
 [<Test>]
