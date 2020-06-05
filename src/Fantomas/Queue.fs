@@ -81,6 +81,12 @@ type Queue<'T> (front : list<'T>, rBack : list<'T>) =
             | f, r -> Some(hd, Queue(f, r))
         | _ -> None
 
+    member this.Append xs = 
+        match front, rBack with
+        | [], [] -> Queue(xs, [])
+        | [], r -> Queue((List.rev r) @ xs, [])
+        | f, r -> Queue(f, (List.rev xs) @ r)
+
     interface System.Collections.Generic.IReadOnlyCollection<'T> with
         member this.Count = this.Length
         member this.GetEnumerator() = 
@@ -131,3 +137,5 @@ module Queue =
     let inline uncons (q : Queue<'T>) = q.Uncons
 
     let inline tryUncons (q : Queue<'T>) = q.TryUncons
+
+    let inline append (q : Queue<'T>) xs = q.Append xs
