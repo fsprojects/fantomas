@@ -1,15 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\netfx.props" />
   <PropertyGroup>
-    <Version>4.0.0-alpha-008</Version>
-    <NoWarn>FS0988</NoWarn>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
     <Compile Include="FsUnit.fs" />
     <Compile Include="TestHelpers.fs" />
     <Compile Include="UtilsTests.fs" />
+    <Compile Include="QueueTests.fs" />
     <Compile Include="TokenParserTests.fs" />
     <Compile Include="TokenParserBoolExprTests.fs" />
     <Compile Include="TriviaTests.fs" />
@@ -70,8 +71,6 @@
     <Compile Include="NewlineBetweenTypeDefinitionAndMembersTests.fs" />
     <Compile Include="KeepIfThenInSameLineTests.fs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
-  </ItemGroup>
+  <Import Project="..\netfx.props" />
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
