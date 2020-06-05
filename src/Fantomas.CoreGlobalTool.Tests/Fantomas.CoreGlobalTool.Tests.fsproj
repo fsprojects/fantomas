@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
-    <Version>4.0.0-alpha-001</Version>
+    <Version>4.0.0-alpha-008</Version>
     <NoWarn>FS0988</NoWarn>
   </PropertyGroup>
   <ItemGroup>
@@ -14,6 +14,8 @@
     <None Include="paket.references" />
     <Compile Include="TestHelpers.fs" />
     <Compile Include="CheckTests.fs" />
+    <Compile Include="ByteOrderMarkTests.fs" />
+    <Compile Include="ConfigTests.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

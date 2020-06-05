@@ -82,6 +82,33 @@ let ``should keep identifiers with + in double backticks``() =
 """
 
 [<Test>]
+let ``double backticks with non-alphanum character, 776``() =
+    formatSourceString false """let ``!foo hoo`` () = ()
+let ``@foo hoo`` () = ()
+let ``$foo hoo`` () = ()
+let ``%foo hoo`` () = ()
+let ``^foo hoo`` () = ()
+let ``&foo hoo`` () = ()
+let ``*foo hoo`` () = ()
+let ``<foo hoo`` () = ()
+let ``>foo hoo`` () = ()
+let ``=foo hoo`` () = ()
+let ``-foo hoo`` () = ()
+    """ config
+    |> should equal """let ``!foo hoo`` () = ()
+let ``@foo hoo`` () = ()
+let ``$foo hoo`` () = ()
+let ``%foo hoo`` () = ()
+let ``^foo hoo`` () = ()
+let ``&foo hoo`` () = ()
+let ``*foo hoo`` () = ()
+let ``<foo hoo`` () = ()
+let ``>foo hoo`` () = ()
+let ``=foo hoo`` () = ()
+let ``-foo hoo`` () = ()
+"""
+
+[<Test>]
 let ``let bindings with return types``() =
     formatSourceString false """
        let divide x y =
@@ -253,7 +280,8 @@ open Accessibility
 [<DllImport("oleacc.dll")>]
 extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cChildren, [<Out; MarshalAs(UnmanagedType.LPArray,
                                                                                                           SizeParamIndex =
-                                                                                                              4s)>] System.Object [] rgvarChildren, int* pcObtained)
+                                                                                                              4s)>] System.Object []
+    rgvarChildren, int* pcObtained)
 """
 
 [<Test>]

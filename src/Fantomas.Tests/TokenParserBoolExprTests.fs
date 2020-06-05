@@ -89,7 +89,7 @@ let ``BoolExpr SAT solve``() =
         getDefineExprs (getSource e)
         |> List.head
         |> BoolExpr.toFlatCNF
-        |> BoolExpr.trySolveSAT FormatConfig.SAT_SOLVE_MAX_STEPS
+        |> BoolExpr.trySolveSAT FormatConfig.satSolveMaxStepsMaxSteps
         |> should equal x
     test "!(INTERACTIVE || !(FOO || BAR) || BUZZ)" (BoolExpr.Satisfiable [ "BAR"; "FOO" ])
     test "A && !A" BoolExpr.Unsatisfiable
@@ -105,7 +105,7 @@ let ``BoolExpr merge``() =
 
     let test e x =
         getDefineExprs (getSource e)
-        |> BoolExpr.mergeBoolExprs FormatConfig.SAT_SOLVE_MAX_STEPS
+        |> BoolExpr.mergeBoolExprs FormatConfig.satSolveMaxStepsMaxSteps
         |> List.map (snd >> List.toArray)
         |> List.toArray
         |> should equal
@@ -191,7 +191,7 @@ let ``Hash if expression normalize property``() =
                  |> BoolExpr.forall checkNormalize))
 
 let isSatisfiable e =
-    match BoolExpr.trySolveSAT FormatConfig.SAT_SOLVE_MAX_STEPS (BoolExpr.toFlatCNF e) with
+    match BoolExpr.trySolveSAT FormatConfig.satSolveMaxStepsMaxSteps (BoolExpr.toFlatCNF e) with
     | BoolExpr.Satisfiable _ -> true
     | _ -> false
 
@@ -230,3 +230,29 @@ let ``Hash ifs source format property``() =
                      (let source = boolExprsToSource es
                       let result = formatSourceString false source config
                       result |> should equal source)))
+
+[<Test>]
+let ``get define exprs from unit test with defines in triple quote string`` () =
+    let source = "
+\"\"\"
+#if FOO
+#if BAR
+#endif
+#endif
+\"\"\"
+"
+    getDefineExprs source == List.empty
+
+[<Test>]
+let ``nested quote in triple quote string should not yield defines`` () =
+    let source = "
+\"\"\"
+\"
+#if FOO
+#if BAR
+#endif
+#endif
+\"
+\"\"\"
+"
+    getDefineExprs source == List.empty

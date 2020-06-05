@@ -433,7 +433,6 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
         Logger.debug \"Database restored\"
 
 "      config
-    |> fun formatted -> formatted
     |> should equal "type Database =
 
     static member Default() =
@@ -882,4 +881,57 @@ let meh =
     { // this comment right
       Name = "FOO"
       Level = 78 }
+"""
+
+[<Test>]
+let ``line comment after short syntax record type, 774`` () =
+    formatSourceString false """type FormatConfig = {
+    PageWidth: int
+    Indent: int } // The number of spaces
+"""  config
+    |> should equal """type FormatConfig = { PageWidth: int; Indent: int } // The number of spaces
+"""
+
+[<Test>]
+let ``line comment after short record instance syntax`` () =
+    formatSourceString false """let formatConfig = {
+    PageWidth = 70
+    Indent = 8 } // The number of spaces
+"""  config
+    |> should equal """let formatConfig = { PageWidth = 70; Indent = 8 } // The number of spaces
+"""
+
+[<Test>]
+let ``line comment after short anonymous record instance syntax`` () =
+    formatSourceString false """let formatConfig = {|
+    PageWidth = 70
+    Indent = 8 |} // The number of spaces
+"""  config
+    |> should equal """let formatConfig = {| PageWidth = 70; Indent = 8 |} // The number of spaces
+"""
+
+[<Test>]
+let ``no newline before first multiline member`` () =
+    formatSourceString false """
+type ShortExpressionInfo =
+    { MaxWidth: int
+      StartColumn: int
+      ConfirmedMultiline: bool }
+    member x.IsTooLong maxPageWidth currentColumn =
+        currentColumn - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
+        || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
+    member x.Foo() = ()
+"""  config
+    |> prepend newline
+    |> should equal """
+type ShortExpressionInfo =
+    { MaxWidth: int
+      StartColumn: int
+      ConfirmedMultiline: bool }
+    member x.IsTooLong maxPageWidth currentColumn =
+        currentColumn
+        - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
+        || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
+
+    member x.Foo() = ()
 """

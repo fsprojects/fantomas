@@ -3,6 +3,7 @@ open System.IO
 open Fantomas
 open Fantomas.FormatConfig
 open Argu
+open System.Text
 
 let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli"; |]
 
@@ -69,13 +70,29 @@ let rec allFiles isRec path =
     Directory.GetFiles(path, "*.*", searchOption)
     |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
 
+/// Fantomas assumes the input files are UTF-8
+/// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
+let private hasByteOrderMark file =
+    if File.Exists(file) then
+        let preamble = Encoding.UTF8.GetPreamble()
+        use file = new FileStream(file, FileMode.Open, FileAccess.Read)
+        let mutable bom = Array.zeroCreate 3
+        file.Read(bom, 0, 3) |> ignore
+        bom = preamble
+    else
+        false
+
 /// Format a source string using given config and write to a text writer
 let processSourceString isFsiFile s (tw : Choice<TextWriter, string>) config =
     let fileName = if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
     let writeResult (formatted: string) =
         match tw with
         | Choice1Of2 tw -> tw.Write(formatted)
-        | Choice2Of2 path -> File.WriteAllText(path, formatted)
+        | Choice2Of2 path ->
+            if hasByteOrderMark path then
+                File.WriteAllText(path, formatted, Encoding.UTF8)
+            else
+                File.WriteAllText(path, formatted)
 
     async {
         let! formatted = s |> FakeHelpers.formatContentAsync config fileName
@@ -230,7 +247,15 @@ let main argv =
         let fileToFile (inFile : string) (outFile : string) config =
             try
                 printfn "Processing %s" inFile
-                use buffer = new StreamWriter(outFile)
+                let hasByteOrderMark = hasByteOrderMark inFile
+
+                use buffer =
+                    if hasByteOrderMark then
+                        new StreamWriter(new FileStream(outFile, FileMode.OpenOrCreate, FileAccess.ReadWrite)
+                                         ,Encoding.UTF8)
+                    else
+                        new StreamWriter(outFile)
+
                 if profile then
                     File.ReadLines(inFile) |> Seq.length |> printfn "Line count: %i"
                     time (fun () -> processSourceFile inFile buffer config)
@@ -276,6 +301,7 @@ let main argv =
             if inputFile <> outputFile then
                 fileToFile inputFile outputFile config
             else
+                printfn "Processing %s" inputFile
                 let content = File.ReadAllText inputFile
                 stringToFile content inputFile config
 

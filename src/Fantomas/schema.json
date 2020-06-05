@@ -47,6 +47,27 @@
     "MaxIfThenElseShortWidth": {
       "type": "integer"
     },
+    "KeepIfThenInSameLine": {
+      "type": "boolean"
+    },
+    "MaxInfixOperatorExpression": {
+      "type": "integer"
+    },
+    "MaxRecordWidth": {
+      "type": "integer"
+    },
+    "MaxArrayOrListWidth": {
+      "type": "integer"
+    },
+    "MaxLetBindingWidth": {
+      "type": "integer"
+    },
+    "MultilineBlockBracketsOnSameColumn": {
+      "type": "boolean"
+    },
+    "NewlineBetweenTypeDefinitionAndMembers": {
+      "type": "boolean"
+    },
     "StrictMode": {
       "type": "boolean"
     }

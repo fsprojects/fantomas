@@ -306,3 +306,43 @@ let main argv =
     |> Array.iter(printfn "%s")
     0 // return an integer exit code
 """
+
+[<Test>]
+let ``multiple assembly attributes, 796`` () =
+    formatSourceString false """namespace Foo.AssemblyInfo
+
+open System.Reflection
+open System.Runtime.CompilerServices
+open System.Runtime.InteropServices
+
+[<assembly: AssemblyTitle("Foo")>]
+[<assembly: AssemblyDescription("")>]
+
+do
+  ()
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Foo.AssemblyInfo
+
+open System.Reflection
+open System.Runtime.CompilerServices
+open System.Runtime.InteropServices
+
+[<assembly:AssemblyTitle("Foo")>]
+[<assembly:AssemblyDescription("")>]
+
+do ()
+"""
+
+[<Test>]
+let ``should preserve single return type attribute`` () =
+    formatSourceString false """let f x : [<return: Attribute>] int = x""" config
+    |> should equal """let f x: [<return:Attribute>] int = x
+"""
+
+[<Test>]
+let ``should preserve multiple return type attributes`` () =
+    formatSourceString false """let f x : [<return: AttributeOne;AttributeTwo;AttributeThree("foo")>] int = x""" config
+    |> should equal """let f x: [<return:AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
+"""

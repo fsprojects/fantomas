@@ -2,13 +2,15 @@
 
 open System
 
-let SAT_SOLVE_MAX_STEPS = 100
+let satSolveMaxStepsMaxSteps = 100
 
 type FormatException(msg : string) =
     inherit Exception(msg)
 
 type Num = int
 
+// NOTE: try to keep this list below in sync with the schema.json
+//       and the docs (e.g. Documentation.md)
 type FormatConfig = 
     { /// Number of spaces for each indentation
       IndentSpaceNum : Num
@@ -33,6 +35,7 @@ type FormatConfig =
       MaxLetBindingWidth: Num
       MultilineBlockBracketsOnSameColumn : bool
       NewlineBetweenTypeDefinitionAndMembers: bool
+      KeepIfThenInSameLine : bool
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -57,10 +60,11 @@ type FormatConfig =
           MaxArrayOrListWidth = 40
           MaxLetBindingWidth = 40
           MultilineBlockBracketsOnSameColumn = false
+          KeepIfThenInSameLine = false
           StrictMode = false
           NewlineBetweenTypeDefinitionAndMembers = false }
 
-    static member applyOptions(currentConfig, options) =
+    static member ApplyOptions(currentConfig, options) =
         let currentValues = Reflection.getRecordFields currentConfig
         let newValues =
             Array.fold (fun acc (k,v) ->

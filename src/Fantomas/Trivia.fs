@@ -95,6 +95,7 @@ let private findMemberDefnMemberNodeOnLine (nodes: TriviaNode list) line =
     |> List.tryFind (fun { Type = t; Range = r } ->
         match t, r.StartLine = line with
         | MainNode("SynMemberDefn.Member"), true
+        | MainNode("SynMemberSig.Member"), true
         | Token { TokenInfo = { TokenName = "MEMBER" } }, true -> true
         | _ -> false)
 
@@ -118,6 +119,14 @@ let private findNodeAfterLineAndColumn (nodes: TriviaNode list) line column =
         (range.StartLine > line) || (range.StartLine = line && range.StartColumn > column)
     )
 
+let private findConstNodeOnLineAndColumn (nodes: TriviaNode list) line column =
+    nodes
+    |> List.tryFind (fun { Type = t; Range = r } ->
+        match t, line = r.StartLine, column = r.StartColumn with
+        | MainNode("SynExpr.Const"), true, true -> true
+        | _ -> false
+    )
+
 let private findConstNodeAfter (nodes: TriviaNode list) (range: range) =
     nodes
     |> List.tryFind (fun { Type = t; Range = r } ->
@@ -137,9 +146,9 @@ let private mapNodeToTriviaNode (node: Node) =
     )
     
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNode list) (range: range) =
-    triviaNodes
-    |> List.filter isMainNodeButNotAnonModule
-    |> List.forall (fun tn -> tn.Range.EndLine < range.StartLine)
+    match List.filter isMainNodeButNotAnonModule triviaNodes with
+    | [{ Type = MainNode("SynModuleOrNamespaceSig.NamedModule") }] -> true
+    | mainNodes -> mainNodes |> List.forall (fun tn -> tn.Range.EndLine < range.StartLine)
 
 let private updateTriviaNode lens (triviaNodes: TriviaNode list) triviaNode =
     match triviaNode with
@@ -255,6 +264,10 @@ let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNo
             Some n |> updateTriviaNode (fun tn -> 
                 let newline = tn.Range.StartLine > range.EndLine
                 { tn with ContentBefore = tn.ContentBefore @ [Comment(BlockComment(comment,false, newline))] }) triviaNodes
+        | (Some _), _ when (commentIsAfterLastTriviaNode triviaNodes range) ->
+            findLastNode triviaNodes
+            |> updateTriviaNode (fun tn ->
+                { tn with ContentAfter = tn.ContentAfter @ [Comment(BlockComment(comment, true, false))] }) triviaNodes
         | (Some n), _ ->
             Some n |> updateTriviaNode (fun tn ->
                 { tn with ContentAfter = tn.ContentAfter @ [Comment(BlockComment(comment,true,false))] }) triviaNodes
@@ -280,7 +293,7 @@ let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNo
                 findNodeBeforeLineFromStart triviaNodes range.StartLine
                 |> updateTriviaNode (fun tn -> { tn with ContentAfter = List.appendItem tn.ContentAfter Newline }) triviaNodes
 
-    | { Item = Keyword({ Content = keyword} as kw); Range = range } when (keyword = "override" || keyword = "default" || keyword = "member") ->
+    | { Item = Keyword({ Content = keyword} as kw); Range = range } when (keyword = "override" || keyword = "default" || keyword = "member" || keyword = "abstract") ->
         findMemberDefnMemberNodeOnLine triviaNodes range.StartLine
         |> updateTriviaNode (fun tn -> { tn with ContentItself = Some (Keyword(kw)) }) triviaNodes
 
@@ -325,7 +338,7 @@ let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNo
         |> updateTriviaNode (fun tn -> { tn with ContentItself = Some siNode }) triviaNodes
 
     | { Item = Number(_) as number; Range = range  } ->
-        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
+        findConstNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> { tn with ContentItself = Some number }) triviaNodes
 
     | { Item = CharContent(_) as chNode; Range = range } ->
@@ -343,6 +356,7 @@ let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNo
                 match t.Type with
                 | MainNode("SynExpr.Ident")
                 | MainNode("SynPat.Named")
+                | MainNode("SynPat.LongIdent")
                 | MainNode("Ident") -> true
                 | _ -> false
             isIdent && (t.Range.StartColumn = range.StartColumn || t.Range.StartColumn = range.StartColumn + 1) && t.Range.StartLine = range.StartLine

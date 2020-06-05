@@ -1,5 +1,6 @@
 module internal Fantomas.TokenParser
 
+open System.Text.RegularExpressions
 open FSharp.Compiler.AbstractIL.Internal.Library
 open System
 open System.Text
@@ -74,6 +75,10 @@ let private createHashToken lineNumber content fullMatchedLength offset =
             Tag = 0
             FullMatchedLength = fullMatchedLength } }
 
+type private SourceCodeState =
+    | Normal
+    | InsideSingleQuoteString
+    | InsideTripleQuoteString
 
 let rec private getTokenizedHashes sourceCode =
     let processLine content (trimmed:string) lineNumber fullMatchedLength offset =
@@ -91,10 +96,7 @@ let rec private getTokenizedHashes sourceCode =
         )
         |> fun rest -> (createHashToken lineNumber content fullMatchedLength offset)::rest
 
-    sourceCode
-    |> String.normalizeThenSplitNewLine
-    |> Array.indexed
-    |> Array.map (fun (idx, line) ->
+    let findDefineInLine idx line =
         let lineNumber  = idx + 1
         let fullMatchedLength = String.length line
         let trimmed = line.TrimStart()
@@ -110,9 +112,45 @@ let rec private getTokenizedHashes sourceCode =
             processLine "#endif" trimmed lineNumber fullMatchedLength offset
         else
             []
-    )
-    |> Seq.collect id
-    |> Seq.toList
+
+    let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
+    let singleQuoteWrappedInTriple line = Regex.Match(line, "\\\"\\\"\\\".*\\\".*\\\"\\\"\\\"").Success
+
+    sourceCode
+    |> String.normalizeThenSplitNewLine
+    |> Array.indexed
+    |> Array.fold (fun (state, defines) (idx, line) ->
+        let hasTripleQuotes = hasUnEvenAmount "\"\"\"" line
+        let hasSingleQuote =
+            (not hasTripleQuotes)
+            && (hasUnEvenAmount "\"" line)
+            && not (singleQuoteWrappedInTriple line)
+
+        match state with
+        | Normal when (hasTripleQuotes) ->
+            InsideTripleQuoteString, defines
+        | Normal when (hasSingleQuote) ->
+            InsideSingleQuoteString, defines
+        | Normal when (not hasTripleQuotes && not hasSingleQuote) ->
+            Normal, (findDefineInLine idx line)::defines
+
+        | InsideTripleQuoteString when (not hasTripleQuotes) ->
+            InsideTripleQuoteString, defines
+        | InsideTripleQuoteString when hasTripleQuotes ->
+            Normal, defines
+
+        | InsideSingleQuoteString when (not hasSingleQuote) ->
+            InsideSingleQuoteString, defines
+        | InsideSingleQuoteString when (hasSingleQuote) ->
+            Normal, defines
+
+        | _ ->
+            failwithf "unexpected %A" state
+
+    )(Normal, [])
+    |> snd
+    |> List.rev
+    |> List.concat
 
 and tokenize defines (content : string) : Token list * int =
     let sourceTokenizer = FSharpSourceTokenizer(defines, Some "/tmp.fsx")
@@ -176,7 +214,7 @@ let getDefineExprs sourceCode =
     result
     
 let getOptimizedDefinesSets sourceCode =
-    let maxSteps = FormatConfig.SAT_SOLVE_MAX_STEPS
+    let maxSteps = FormatConfig.satSolveMaxStepsMaxSteps
     match getDefineExprs sourceCode |> BoolExpr.mergeBoolExprs maxSteps |> List.map snd with
     | [] -> [[]]
     | xs -> xs
@@ -201,7 +239,7 @@ let private getContentFromTokens tokens =
     |> List.map (fun t -> t.Content)
     |> String.concat String.Empty
     
-let private keywordTrivia = ["IF"; "ELIF"; "ELSE"; "THEN"; "OVERRIDE"; "MEMBER"; "DEFAULT"; "KEYWORD_STRING"; "QMARK"]
+let private keywordTrivia = ["IF"; "ELIF"; "ELSE"; "THEN"; "OVERRIDE"; "MEMBER"; "DEFAULT"; "ABSTRACT"; "KEYWORD_STRING"; "QMARK"]
 let private numberTrivia = ["UINT8";"INT8";"UINT16";"INT16";"UINT32";"INT32";"UINT64";"IEEE32";
                             "DECIMAL";"IEEE64";"BIGNUM";"NATIVEINT";"UNATIVEINT"]
 
@@ -217,8 +255,8 @@ let private identIsDecompiledOperator (token: Token) =
 
 let ``only whitespaces were found in the remainder of the line`` lineNumber tokens =
     tokens
-    |> List.filter (fun t -> t.LineNumber = lineNumber && t.TokenInfo.TokenName <> "WHITESPACE")
-    |> List.isEmpty
+    |> List.exists (fun t -> t.LineNumber = lineNumber && t.TokenInfo.TokenName <> "WHITESPACE")
+    |> not
 
 let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: Token list) foundTrivia =
     match tokens with
@@ -372,6 +410,14 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
 
         getTriviaFromTokensThemSelves allTokens nextRest info
 
+    | minus::head::rest when (minus.TokenInfo.TokenName = "MINUS" && isNumber head) ->
+        let range = getRangeBetween "number" minus head
+        let info =
+            Trivia.Create (Number(minus.Content + head.Content)) range
+            |> List.prependItem foundTrivia
+
+        getTriviaFromTokensThemSelves allTokens rest info
+
     | head::rest when (isNumber head) ->
         let range = getRangeBetween "number" head head
         let info =
@@ -423,7 +469,7 @@ let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) (ignoreRa
             not (List.exists (fun t -> t.LineNumber = line) tokens)
                  && not (List.exists (fun (br:FSharp.Compiler.Range.range) -> br.StartLine < line && br.EndLine > line) ignoreRanges)
         )
-        |> List.map (fun line -> createNewLine line)
+        |> List.map createNewLine
 
     let linesWithOnlySpaces =
         tokens

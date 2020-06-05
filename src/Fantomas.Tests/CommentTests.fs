@@ -388,6 +388,50 @@ let hello () = "hello world"
 """
 
 [<Test>]
+let ``should handle block comments at the end of file, 810`` () =
+    formatSourceString false """
+printfn "hello world"
+(* This is a comment. *)
+"""  config
+    |> prepend newline
+    |> should equal """
+printfn "hello world"
+(* This is a comment. *)
+"""
+
+[<Test>]
+let ``preserve block comment after record, 516`` () =
+    formatSourceString false """module TriviaModule =
+
+let env = "DEBUG"
+
+type Config = {
+    Name: string
+    Level: int
+}
+
+let meh = { // this comment right
+    Name = "FOO"; Level = 78 }
+
+(* ending with block comment *)
+"""  config
+    |> prepend newline
+    |> should equal """
+module TriviaModule =
+
+    let env = "DEBUG"
+
+    type Config = { Name: string; Level: int }
+
+    let meh =
+        { // this comment right
+          Name = "FOO"
+          Level = 78 }
+
+(* ending with block comment *)
+"""
+
+[<Test>]
 let ``should keep comments inside unit``() =
     formatSourceString false """
 let x =
@@ -751,4 +795,44 @@ let ``comments for enum cases, 572``() =
     | CaseB = 1
     // Comment for CaseC
     | CaseC = 2
+"""
+
+[<Test>]
+let ``comments in multi-pattern case matching should not be removed, 813``() =
+    formatSourceString false """
+let f x =
+    match x with
+    | A // inline comment
+    // line comment
+    | B -> Some()
+    | _ -> None""" config
+    |> prepend newline
+    |> should equal """
+let f x =
+    match x with
+    | A // inline comment
+    // line comment
+    | B -> Some()
+    | _ -> None
+"""
+
+[<Test>]
+let ``block comments in multi-pattern case matching should not be removed``() =
+    formatSourceString false """
+let f x =
+    match x with
+    | A
+    (* multi-line
+       block comment *)
+    | B -> Some()
+    | _ -> None""" config
+    |> prepend newline
+    |> should equal """
+let f x =
+    match x with
+    | A
+    (* multi-line
+       block comment *)
+    | B -> Some()
+    | _ -> None
 """

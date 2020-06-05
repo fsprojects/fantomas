@@ -3,16 +3,47 @@ module Fantomas.CoreGlobalTool.Tests.TestHelpers
 open System
 open System.Diagnostics
 open System.IO
+open System.Text
+open Fantomas
 
-type TemporaryFileCodeSample internal (codeSnippet: string) =
-    let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
-    do File.WriteAllText(filename, codeSnippet)
+type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: bool, ?fileName: string) =
+    let hasByteOrderMark = defaultArg hasByteOrderMark false
+
+    let filename =
+        let name =
+            match fileName with
+            | Some fn -> fn
+            | None -> Guid.NewGuid().ToString()
+
+        Path.Join(Path.GetTempPath(), sprintf "%s.fs" name)
+
+    do (if hasByteOrderMark
+        then File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
+        else File.WriteAllText(filename, codeSnippet))
 
     member _.Filename: string = filename
     interface IDisposable with
         member this.Dispose(): unit = File.Delete(filename)
 
-let private runFantomasTool arguments =
+type OutputFile internal () =
+    let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
+    member _.Filename: string = filename
+    interface IDisposable with
+        member this.Dispose(): unit =
+            if File.Exists(filename) then
+                File.Delete(filename)
+
+type ConfigurationFile internal (config: Fantomas.FormatConfig.FormatConfig) =
+    let filename = Path.Join(Path.GetTempPath(), "fantomas-config.json")
+    let content = Config.configToJson config
+    do File.WriteAllText(filename, content)
+    member _.Filename: string = filename
+    interface IDisposable with
+        member this.Dispose(): unit =
+            if File.Exists(filename) then
+                File.Delete(filename)
+
+let runFantomasTool arguments =
     let pwd = Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
     let configuration =
         #if DEBUG
@@ -30,9 +61,12 @@ let private runFantomasTool arguments =
     p.StartInfo.UseShellExecute <- false
     p.StartInfo.FileName <- @"dotnet"
     p.StartInfo.Arguments <- sprintf "%s %s" fantomasDll arguments
+    p.StartInfo.WorkingDirectory <- Path.GetTempPath()
+    p.StartInfo.RedirectStandardOutput <- true
     p.Start() |> ignore
+    let output = p.StandardOutput.ReadToEnd()
     p.WaitForExit()
-    p.ExitCode
+    (p.ExitCode, output)
 
 let checkCode file =
     let arguments = sprintf "--check \"%s\"" file

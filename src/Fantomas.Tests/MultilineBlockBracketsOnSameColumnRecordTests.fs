@@ -106,10 +106,37 @@ let ``record instance with inherit keyword`` () =
     |> prepend newline
     |> should equal """
 let a =
-    { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
+    {
+        inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
         buildSettings = FSharpBuildSettings()
         targetPlatformData = targetPlatformData
     }
+"""
+
+[<Test>]
+let ``record instance with inherit keyword and no fields`` () =
+    formatSourceString false """let a =
+        { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK) }
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK) }
+"""
+
+[<Test>]
+let ``type with record instance with inherit keyword`` () =
+    formatSourceString false """type ServerCannotBeResolvedException =
+    inherit CommunicationUnsuccessfulException
+
+    new(message) =
+        { inherit CommunicationUnsuccessfulException(message) }"""  config
+    |> prepend newline
+    |> should equal """
+type ServerCannotBeResolvedException =
+    inherit CommunicationUnsuccessfulException
+
+    new(message) = { inherit CommunicationUnsuccessfulException(message) }
 """
 
 [<Test>]
@@ -487,4 +514,97 @@ type MyRecord =
     }
 
     member Score : unit -> int
+"""
+
+
+[<Test>]
+let ``no newline before first multiline member`` () =
+    formatSourceString false """
+type ShortExpressionInfo =
+    { MaxWidth: int
+      StartColumn: int
+      ConfirmedMultiline: bool }
+    member x.IsTooLong maxPageWidth currentColumn =
+        currentColumn - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
+        || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
+    member x.Foo() = ()
+"""  ({ config with NewlineBetweenTypeDefinitionAndMembers = false })
+    |> prepend newline
+    |> should equal """
+type ShortExpressionInfo =
+    {
+        MaxWidth : int
+        StartColumn : int
+        ConfirmedMultiline : bool
+    }
+    member x.IsTooLong maxPageWidth currentColumn =
+        currentColumn
+        - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
+        || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
+
+    member x.Foo() = ()
+"""
+
+[<Test>]
+let ``internal keyword before multiline record type`` () =
+    formatSourceString false """
+    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }""" config
+    |> prepend newline
+    |> should equal """
+type A =
+    internal
+        {
+            ALongIdentifier : string
+            YetAnotherLongIdentifier : bool
+        }
+"""
+
+[<Test>]
+let ``internal keyword before multiline record type in signature file`` () =
+    formatSourceString true """namespace Bar
+
+    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }""" config
+    |> prepend newline
+    |> should equal """
+namespace Bar
+
+type A =
+    internal
+        {
+            ALongIdentifier : string
+            YetAnotherLongIdentifier : bool
+        }
+"""
+
+[<Test>]
+let ``indent update record fields far enough, 817`` () =
+    formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" ({ config with IndentSpaceNum = 2 })
+    |> prepend newline
+    |> should equal """
+let expected =
+  { ThisIsAThing.Empty with
+      TheNewValue = 1
+  }
+"""
+
+[<Test>]
+let ``indent update anonymous record fields far enough`` () =
+    formatSourceString false "let expected = {| ThisIsAThing.Empty with TheNewValue = 1 |}" ({ config with IndentSpaceNum = 2 })
+    |> prepend newline
+    |> should equal """
+let expected =
+  {| ThisIsAThing.Empty with
+      TheNewValue = 1
+  |}
+"""
+
+[<Test>]
+let ``update record with standard indent`` () =
+    formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" config
+    |> prepend newline
+    |> should equal """
+let expected =
+    { ThisIsAThing.Empty with
+        TheNewValue = 1
+    }
 """

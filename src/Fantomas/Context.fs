@@ -132,7 +132,7 @@ type internal Context =
           Trivia = []
           RecordBraceStart = [] }
 
-    static member create config defines (content : string) maybeAst =
+    static member Create config defines (content : string) maybeAst =
         let content = String.normalizeNewLine content
         let positions = 
             content.Split('\n')
@@ -208,6 +208,24 @@ let internal lastWriteEventIsNewline ctx =
     |> Seq.tryHead
     |> Option.map (function | WriteLine -> true | _ -> false)
     |> Option.defaultValue false
+
+/// Validate if there is a complete blank line between the last write event and the last event
+let internal newlineBetweenLastWriteEvent ctx =
+    ctx.WriterEvents
+    |> Queue.rev
+    |> Seq.takeWhile (function
+        | Write ""
+        | WriteLine
+        | IndentBy _
+        | UnIndentBy _
+        | SetIndent _
+        | RestoreIndent _
+        | SetAtColumn _
+        | RestoreAtColumn _ -> true
+        | _ -> false)
+    |> Seq.filter (function | WriteLine _ -> true | _ -> false)
+    |> Seq.length
+    |> fun writeLines -> writeLines > 1
 
 let internal lastWriteEventOnLastLine ctx = writeEventsOnLastLine ctx |> Seq.tryHead
 let internal forallCharsOnLastLine f ctx =
@@ -390,10 +408,13 @@ let internal ifElseCtx cond (f1 : Context -> Context) f2 (ctx : Context) =
 
 /// apply f only when cond is true
 let internal onlyIf cond f ctx =
-    if cond then f ctx else id ctx
+    if cond then f ctx else ctx
 
 let internal onlyIfNot cond f ctx =
-    if cond then id ctx  else f ctx
+    if cond then ctx else f ctx
+
+let internal whenShortIndent f ctx =
+    onlyIf (ctx.Config.IndentSpaceNum < 3) f ctx
 
 /// Repeat application of a function n times
 let internal rep n (f : Context -> Context) (ctx : Context) =
@@ -416,10 +437,10 @@ let internal sepSpace (ctx : Context) =
 
 let internal sepNln = !+ ""
 
-let internal whenLastEventIsNotWriteLine f (ctx: Context) =
+let internal sepNlnUnlessLastEventIsNewline (ctx: Context) =
     if lastWriteEventIsNewline ctx
     then ctx
-    else f ctx
+    else sepNln ctx
 
 let internal sepStar = !- " * "
 let internal sepEq = !- " ="
@@ -541,10 +562,10 @@ let internal leadingExpressionLong threshold leadingExpression continuationExpre
     continuationExpression (lineCountAfter > lineCountBefore || (columnAfter - columnBefore > threshold)) contextAfterLeading
 
 let internal leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: Context) =
-    let lineCountBefore = List.length ctx.WriterModel.Lines
+    let eventCountBeforeExpression = Seq.length ctx.WriterEvents
     let contextAfterLeading = leadingExpression ctx
-    let lineCountAfter = List.length contextAfterLeading.WriterModel.Lines
-    continuationExpression (lineCountAfter > lineCountBefore) contextAfterLeading
+    let hasWriteLineEventsAfterExpression = contextAfterLeading.WriterEvents |>Seq.skip eventCountBeforeExpression |> Seq.exists (function | WriteLine _ -> true | _ -> false)
+    continuationExpression hasWriteLineEventsAfterExpression contextAfterLeading
 
 let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
     // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
@@ -571,6 +592,12 @@ let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLo
 /// try and write the expression on the remainder of the current line
 /// add an indent and newline if the expression is longer
 let internal autoIndentAndNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
+    expressionExceedsPageWidth
+        sepNone sepNone // before and after for short expressions
+        (indent +> sepNln) unindent // before and after for long expressions
+        expr ctx
+
+let internal sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
     expressionExceedsPageWidth
         sepSpace sepNone // before and after for short expressions
         (indent +> sepNln) unindent // before and after for long expressions
@@ -611,6 +638,12 @@ let internal colAutoNlnSkip0 f' c f = colAutoNlnSkip0i f' c (fun _ -> f)
 let internal noNln f (ctx : Context) : Context = 
     let res = f { ctx with BreakLines = false }
     { res with BreakLines = ctx.BreakLines }
+
+let internal sepSpaceBeforeClassConstructor ctx =
+    if ctx.Config.SpaceBeforeClassConstructor then
+        sepSpace ctx
+    else
+        ctx
 
 let internal sepColon (ctx : Context) =
     let defaultExpr = if ctx.Config.SpaceBeforeColon then str " : " else str ": "
@@ -655,13 +688,13 @@ let internal unindentOnWith (ctx : Context) =
 let internal ifAlignBrackets f g = ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
 
 /// Don't put space before and after these operators
-let internal NoSpaceInfixOps = set ["?"]
+let internal noSpaceInfixOps = set ["?"]
 
 /// Always break into newlines on these operators
-let internal NewLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
+let internal newLineInfixOps = set ["|>"; "||>"; "|||>"; ">>"; ">>="]
 
 /// Never break into newlines on these operators
-let internal NoBreakInfixOps = set ["="; ">"; "<";]
+let internal noBreakInfixOps = set ["="; ">"; "<"; "%"]
 
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     let currentLastLine = lastWriteEventOnLastLine ctx
@@ -847,22 +880,18 @@ let internal enterRightBracket = enterRightToken "RBRACK"
 let internal enterRightBracketBar = enterRightToken "BAR_RBRACK"
 let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
-    |> List.filter (fun tn ->
+    |> List.exists (fun tn ->
         match tn with
         | Comment(_) -> true
         | Newline -> true
         | _ -> false)
-    |> List.isEmpty
-    |> not
     
 let private hasDirectiveBefore (trivia: TriviaContent list) =
     trivia
-    |> List.filter (fun tn ->
+    |> List.exists (fun tn ->
         match tn with
         | Directive(_) -> true
         | _ -> false)
-    |> List.isEmpty
-    |> not
 
 let internal sepConsideringTriviaContentBefore sepF (range: range) ctx =
     match findTriviaMainNodeFromRange ctx.Trivia range with
@@ -883,6 +912,21 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range)
     |> Seq.exists (fun ({ ContentBefore = contentBefore }) -> hasPrintableContent contentBefore)
     |> fun hasContentBefore ->
         if hasContentBefore then ctx else sepNln ctx
+        
+let internal sepNlnForEmptyModule (moduleRange:range) ctx =    
+    match findTriviaMainNodeOrTokenOnStartFromRange ctx.Trivia moduleRange with
+    | Some node when hasPrintableContent node.ContentBefore || hasPrintableContent node.ContentAfter ->
+        ctx
+    | _ ->
+        sepNln ctx
+
+let internal sepNlnForEmptyNamespace (namespaceRange:range) ctx =
+    let emptyNamespaceRange = mkRange namespaceRange.FileName (mkPos 0 0) namespaceRange.End
+    match TriviaHelpers.findInRange ctx.Trivia emptyNamespaceRange with
+    | Some node when hasPrintableContent node.ContentBefore || hasPrintableContent node.ContentAfter ->
+        ctx
+    | _ ->
+        sepNln ctx
 
 let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
     match firstMemberRange with
@@ -890,7 +934,71 @@ let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
         sepNlnConsideringTriviaContentBefore range ctx
     | _ ->
         ctx
-    
+
+let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth expr range (ctx: Context) =
+    expressionExceedsPageWidth
+        sepNone sepNone // before and after for short expressions
+        (sepNlnConsideringTriviaContentBefore range) sepNone // before and after for long expressions
+        expr ctx
+
+let internal addExtraNewlineIfLeadingWasMultiline leading continuation continuationRange =
+    leadingExpressionIsMultiline
+        leading
+        (fun ml -> sepNln +> onlyIf ml (sepNlnConsideringTriviaContentBefore continuationRange) +> continuation)
+
+/// This helper function takes a list of expressions and ranges.
+/// If the expression is multiline it will add a newline before and after the expression.
+/// Unless it is the first expression in the list, that will never have a leading new line.
+/// F.ex.
+/// let a = AAAA
+/// let b =
+///     BBBB
+///     BBBB
+/// let c = CCCC
+///
+/// will be formatted as:
+/// let a = AAAA
+///
+/// let b =
+///     BBBB
+///     BBBBB
+///
+/// let c = CCCC
+///
+/// The range in the tuple is the range of expression
+
+let internal colWithNlnWhenItemIsMultiline items =
+    let firstItemRange = List.tryHead items |> Option.map snd
+    let rec impl items =
+        match items with
+        | (f1,r1)::(_,r2)::_ ->
+            let f1Expr =
+                match firstItemRange with
+                | Some (fr1) when (fr1 = r1) ->
+                    // first expression should always be executed as is.
+                    f1
+                | _ ->
+                    // Maybe the previous statement already introduced a complete blank line.
+                    // If not add a new line but consider trivia.
+                    ifElseCtx
+                        newlineBetweenLastWriteEvent
+                        f1
+                        (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f1 r1)
+
+            addExtraNewlineIfLeadingWasMultiline f1Expr (impl (List.skip 1 items)) r2
+        | [(f,r)] ->
+            match firstItemRange with
+            | Some (fr1) when (fr1 = r) ->
+                // this can only happen when there is only one item in items
+                f
+            | _ ->
+                ifElseCtx
+                    newlineBetweenLastWriteEvent
+                    f
+                    (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f r)
+        | [] -> sepNone
+    impl items
+
 let internal beforeElseKeyword (fullIfRange: range) (elseRange: range) (ctx: Context) =
     ctx.Trivia
     |> List.tryFind(fun tn ->

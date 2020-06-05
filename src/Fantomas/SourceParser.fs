@@ -19,7 +19,7 @@ type Debug = Console
 #endif
 
 [<Literal>]
-let maxLength = 512
+let MaxLength = 512
 
 /// Get source string content based on range value
 let lookup (r : range) (c : Context) =
@@ -30,7 +30,7 @@ let lookup (r : range) (c : Context) =
         let finishLength = c.Positions.[r.EndLine] - c.Positions.[r.EndLine-1]
         let content = c.Content
         // Any line with more than 512 characters isn't reliable for querying
-        if start > finish || startLength >= maxLength || finishLength >= maxLength then
+        if start > finish || startLength >= MaxLength || finishLength >= MaxLength then
             Debug.WriteLine("Can't lookup between start = {0} and finish = {1}", start, finish)
             None
         else
@@ -219,7 +219,7 @@ let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig(Lo
 
 let (|Attribute|) (a : SynAttribute) =
     let (LongIdentWithDots s) = a.TypeName
-    (s, a.ArgExpr, Option.map (|Ident|) a.Target)
+    (s, a.ArgExpr, Option.map (fun (i:Ident) -> i.idText) a.Target)
 
 // Access modifiers
 
@@ -463,8 +463,8 @@ let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) = functi
         MemberBinding(ats, px, ao, isInline, mf, pat, expr)
     | SynBinding.Binding(_, DoBinding, _, _, ats, px, _, _, _, expr, _, _) -> 
         DoBinding(ats, px, expr)
-    | SynBinding.Binding(ao, _, isInline, isMutable, attrs, px, _, pat, _, expr, _, _) ->
-        LetBinding(attrs, px, ao, isInline, isMutable, pat, expr)
+    | SynBinding.Binding(ao, _, isInline, isMutable, attrs, px, SynValData(_, valInfo, _), pat, _, expr, _, _) ->
+        LetBinding(attrs, px, ao, isInline, isMutable, pat, expr, valInfo)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
@@ -599,6 +599,8 @@ let (|CompExpr|_|) = function
     | SynExpr.CompExpr(isArray, _, expr, _) ->
         Some(isArray, expr)
     | _ -> None
+
+let isCompExpr = function | CompExpr _ -> true | _ -> false
 
 let (|ArrayOrListOfSeqExpr|_|) = function
     | SynExpr.ArrayOrListOfSeqExpr(isArray, expr, _) ->
@@ -777,11 +779,39 @@ let rec (|LetOrUses|_|) = function
         Some(xs', e)
     | _ -> None
 
-let (|LetOrUseBang|_|) = function
-    | SynExpr.LetOrUseBang(_, isUse, _, p, e1, ands, e2, _) ->
-        Some(isUse, p, e1, ands, e2)
-    | _ -> None 
-        
+type ComputationExpressionStatement =
+    | LetOrUseStatement of recursive:bool * isUse:bool * SynBinding
+    | LetOrUseBangStatement of isUse:bool * SynPat * SynExpr * range
+    | AndBangStatement of SynPat * SynExpr
+    | OtherStatement of SynExpr
+
+let rec collectComputationExpressionStatements e : ComputationExpressionStatement list =
+    match e with
+    | SynExpr.LetOrUse(isRecursive, isUse, bindings, body, _) ->
+        let bindings =
+            bindings
+            |> List.map (fun b -> LetOrUseStatement(isRecursive, isUse, b))
+        let returnExpr = collectComputationExpressionStatements body
+        [yield! bindings; yield! returnExpr]
+    | SynExpr.LetOrUseBang(_,isUse,_,pat,expr, andBangs, body, r) ->
+        let letOrUseBang = LetOrUseBangStatement(isUse, pat, expr, r)
+        let andBangs = andBangs |> List.map (fun (_,_,_, ap,ae,_) -> AndBangStatement(ap,ae))
+        let bodyStatements = collectComputationExpressionStatements body
+        [letOrUseBang; yield! andBangs; yield! bodyStatements]
+    | SynExpr.Sequential(_,_, e1,  e2, _) ->
+        [ yield! collectComputationExpressionStatements e1
+          yield! collectComputationExpressionStatements e2 ]
+    | expr -> [ OtherStatement expr ]
+
+/// Matches if the SynExpr has some or of computation expression member call inside.
+let (|CompExprBody|_|) expr =
+    match expr with
+    | SynExpr.LetOrUse(_,_,_, SynExpr.LetOrUseBang(_), _) ->
+        Some expr
+    | SynExpr.LetOrUseBang _ -> Some expr
+    | SynExpr.Sequential(_,_, _, SynExpr.YieldOrReturn(_), _) -> Some expr
+    | _ -> None
+
 let (|ForEach|_|) = function
     | SynExpr.ForEach(_, SeqExprOnly true, _, pat, e1, SingleExpr(Yield, e2) ,_) ->
         Some (pat, e1, e2, true)
@@ -1254,8 +1284,8 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
     | SynMemberSig.ValField(f, _) -> MSValField f
     | SynMemberSig.NestedType(tds, _) -> MSNestedType tds
 
-let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull (s,_)), tds, t, vi, _, _, px, ao, _, _)) =
-    (ats, px, ao, s, t, vi, tds)
+let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull (s,_)), tds, t, vi, isInline, _, px, ao, _, _)) =
+    (ats, px, ao, s, t, vi, isInline, tds)
 
 // Misc
 
@@ -1285,7 +1315,7 @@ let (|FunType|) (t, ValInfo(argTypes, returnType)) =
 /// A rudimentary recognizer for extern functions
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) = function
-    | Let(LetBinding(ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t))) ->
+    | Let(LetBinding(ats, px, ao, _, _, PatLongIdent(_, s, [_, PatTuple ps], _), TypedExpr(Typed, _, t), _)) ->
         let hasDllImportAttr =
             ats
             |> List.exists (fun { Attributes = attrs } ->
@@ -1348,7 +1378,7 @@ let getRangesFromAttributesFromSynMemberDefinition (mdn: SynMemberDefn) =
     | SynMemberDefn.LetBindings(lb::_,_,_,_) -> getRangesFromAttributesFromSynBinding lb
     | _ -> []
 
-let (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr:SynExpr) =
+let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr:SynExpr) =
     let upperOrLower (v: string) =
         let isUpper = Seq.tryHead v |> Option.map (Char.IsUpper) |> Option.defaultValue false
         if isUpper then UppercaseSynExpr else LowercaseSynExpr
@@ -1361,6 +1391,12 @@ let (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr:SynExpr) =
         match lastPart with
         | Some lp -> upperOrLower lp
         | None -> LowercaseSynExpr
+
+    | SynExpr.DotGet (_,_,LongIdentWithDots(lid),_) ->
+        upperOrLower lid
+
+    | SynExpr.DotIndexedGet(expr, _, _,_) ->
+        (|UppercaseSynExpr|LowercaseSynExpr|) expr
 
     | _ -> failwithf "cannot determine if synExpr %A is uppercase or lowercase" synExpr
 
