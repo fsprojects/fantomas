@@ -46,6 +46,8 @@ type ASTContext =
           IsFirstTypeParam = false; IsInsideDotGet = false
           IsMemberDefinition = false }
 
+let mutable expressionVisitor : SynExpr -> SynExpr = id
+
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx:Context) =
     match functionOrMethod, arg with
     | SynExpr.TypeApp(e, _, _, _, _, _, _), _ ->
@@ -821,8 +823,8 @@ and genExpr astContext synExpr =
     let kw tokenName f = tokN synExpr.Range tokenName f
     let sepOpenT = tokN synExpr.Range "LPAREN" sepOpenT
     let sepCloseT = tokN synExpr.Range "RPAREN" sepCloseT
-
-    match synExpr with
+    
+    match expressionVisitor(synExpr) with
     | SingleExpr(Lazy, e) ->
         // Always add braces when dealing with lazy
         let hasParenthesis = hasParenthesis e

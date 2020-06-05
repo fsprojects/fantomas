@@ -35,3 +35,8 @@ type CodeFormatter =
     static member GetVersion() = Version.fantomasVersion.Value
 
     static member ReadConfiguration(fileOrFolder) = CodeFormatterImpl.readConfiguration fileOrFolder
+
+    static member SetVisitorExpression(astExpressionVisitor) =
+        CodePrinter.expressionVisitor <- astExpressionVisitor
+        
+        

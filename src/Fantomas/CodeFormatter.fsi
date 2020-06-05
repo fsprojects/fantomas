@@ -37,3 +37,7 @@ type CodeFormatter =
     /// Accepts a file or a folder and parses the found json to a FormatConfig
     /// Configuration found in parent folders will be applied first.
     static member ReadConfiguration : string -> FormatConfigFileParseResult
+
+    /// SynExpr syntax visitor, to create AST-visitor that is called
+    /// when the AST is formated back to the source code
+    static member SetVisitorExpression : (SynExpr -> SynExpr) -> unit
