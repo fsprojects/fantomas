@@ -83,8 +83,7 @@ type Queue<'T> (front : list<'T>, rBack : list<'T>) =
 
     member this.Append xs = 
         match front, rBack with
-        | [], [] -> Queue(xs, [])
-        | [], r -> Queue((List.rev r) @ xs, [])
+        | f, [] -> Queue(f @ xs, [])
         | f, r -> Queue(f, (List.rev xs) @ r)
 
     interface System.Collections.Generic.IReadOnlyCollection<'T> with
