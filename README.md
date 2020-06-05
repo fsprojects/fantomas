@@ -63,7 +63,7 @@ Alternatively, you can install the [fantomas-fmt](https://marketplace.visualstud
 
 ### Online
 
-Try the Fantomas [online](https://jindraivanek.gitlab.io/fantomas-ui/#?fantomas=preview).
+Try the Fantomas [online](https://fsprojects.github.io/fantomas-tools/#/fantomas/preview).
 
 ## Early builds
 
