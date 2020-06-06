@@ -517,6 +517,8 @@ let private shortExpressionWithFallback (shortExpression: Context -> Context) (f
     // if the context is already inside a ShortExpression mode and tries to figure out if the expression will go over the page width,
     // we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
+    | ShortExpression info when info.ConfirmedMultiline ->
+        ctx
     | ShortExpression _ when (maxWidth = ctx.Config.PageWidth) ->
         shortExpression ctx
     | _ ->
