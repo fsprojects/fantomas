@@ -2780,8 +2780,20 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
     let genParametersWithNewlines =
         (sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType)
 
-    let isLongFunctionSignature ctx=
-        futureNlnCheck (genName +> genParametersInitial +> genReturnType) ctx
+    let isLongFunctionSignature (ctx: Context) =
+        let space = 1
+        let colon = if ctx.Config.SpaceBeforeColon then 3 else 2
+        let lengthByAST =
+            getSynAccessLength ao
+            + lengthWhenSome (fun _ -> space) ao
+            + s.Length
+            + space
+            + List.sumBy (snd >> getSynPatLength >> (+) space) ps
+            + lengthWhenSome (fun _ -> colon) t
+            + lengthWhenSome getSynTypeLength t
+
+        (ctx.Column + lengthByAST > ctx.Config.PageWidth)
+        || futureNlnCheck (genName +> genParametersInitial +> genReturnType) ctx
 
     fun ctx ->
         let isLong = isLongFunctionSignature ctx
