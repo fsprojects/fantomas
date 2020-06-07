@@ -1249,6 +1249,9 @@ let (|TAnonRecord|_|) = function
         Some(isStruct, fields)
     | _ -> None
 
+let (|TParen|_|) = function
+    | SynType.Paren(innerType, _) -> Some(innerType)
+    | _ -> None
 // Type parameter
 
 type SingleTyparConstraintKind = 

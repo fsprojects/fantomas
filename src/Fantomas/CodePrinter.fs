@@ -2395,7 +2395,10 @@ and genType astContext outerBracket t =
 
             fun (ctx:Context) ->
                 isShortExpression ctx.Config.MaxRecordWidth shortExpression longExpression ctx
-
+        | TParen(innerT) ->
+            // sepOpenT +>
+            loop innerT
+            // +> sepCloseT
         | t -> failwithf "Unexpected type: %O" t
 
     and loopTTupleList = function
