@@ -544,6 +544,7 @@ and genLetBinding astContext pref b =
             ifElse astContext.IsFirstChild
                 (genAttributes astContext ats -- pref)
                 (!- pref +> genOnelinerAttributes astContext ats)
+
         let afterLetKeyword =
             opt sepSpace ao genAccess
             +> ifElse isMutable (!- "mutable ") sepNone
@@ -2767,9 +2768,9 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
 
     let hasBracket = ps |> Seq.map fst |> Seq.exists Option.isSome
     let genName = aoc -- s +> tpsoc +> sepSpace
+
     let genParametersInitial =
         colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)
-
 
     let genReturnType, newlineBeforeReturnType =
         match t with
@@ -2782,14 +2783,17 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
     let isLongFunctionSignature ctx=
         futureNlnCheck (genName +> genParametersInitial +> genReturnType) ctx
 
-    atCurrentColumn (fun ctx ->
+    fun ctx ->
         let isLong = isLongFunctionSignature ctx
+
         let expr =
             genName
             +> ifElse hasBracket sepOpenT sepNone
-            +> ifElse isLong genParametersWithNewlines genParametersInitial
+            +> ifElse isLong (indent +> genParametersWithNewlines  +> unindent) genParametersInitial
             +> ifElse hasBracket sepCloseT sepNone
-        expr ctx)
+
+        expr ctx
+
 and genConst (c:SynConst) (r:range) =
     match c with
     | SynConst.Unit ->
