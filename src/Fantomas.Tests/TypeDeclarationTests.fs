@@ -1061,11 +1061,9 @@ let ``long type members should have parameters on separate lines, 719`` () =
     |> prepend newline
     |> should equal """
 type C () =
-    member __.LongMethodWithLotsOfParameters(
-        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
-        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
-        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
-        =
+    member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+                                             aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+                                             aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
         aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
@@ -1077,12 +1075,9 @@ let ``long type member with return type should have parameters on separate lines
     |> prepend newline
     |> should equal """
 type C () =
-    member __.LongMethodWithLotsOfParameters(
-        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
-        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
-        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
-        : int
-        =
+    member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+                                             aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+                                             aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse): int =
         aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
@@ -1093,11 +1088,9 @@ let ``long constructors should have parameters on separate lines`` () =
 """  ({ config with SpaceBeforeClassConstructor = true })
     |> prepend newline
     |> should equal """
-type C (
-    aVeryLongType: AVeryLongTypeThatYouNeedToUse,
-    aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
-    aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
-    =
+type C (aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
     member this.X = 42
 """
 
@@ -1129,10 +1122,8 @@ let ``keep correct indentation after multiline member definition, 845`` () =
     |> prepend newline
     |> should equal """
 type SomeType() =
-    member SomeMember(
-        looooooooooooooooooooooooooooooooooong1: A,
-        looooooooooooooooooooooooooooooooooong2: A)
-        =
+    member SomeMember(looooooooooooooooooooooooooooooooooong1: A,
+                      looooooooooooooooooooooooooooooooooong2: A) =
         printfn "a"
         "a"
 
@@ -1152,11 +1143,8 @@ let ``keep correct indentation after multiline typed member definition`` () =
     |> prepend newline
     |> should equal """
 type SomeType() =
-    member SomeMember(
-        looooooooooooooooooooooooooooooooooong1: A,
-        looooooooooooooooooooooooooooooooooong2: A)
-        : string
-        =
+    member SomeMember(looooooooooooooooooooooooooooooooooong1: A,
+                      looooooooooooooooooooooooooooooooooong2: A): string =
         printfn "a"
         "a"
 
@@ -1173,11 +1161,8 @@ let ``split multiple parameters over multiple lines`` () =
     |> prepend newline
     |> should equal """
 type SomeType =
-    static member SomeMember
-        (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
-        (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
-        : string
-        =
+    static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
+                             (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string): string =
         printfn "a"
         "b"
 """
@@ -1194,11 +1179,8 @@ let ``split multiple parameters over multiple lines and have correct indentation
     |> prepend newline
     |> should equal """
 type SomeType =
-    static member SomeMember
-        (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
-        (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
-        : string
-        =
+    static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
+                             (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string): string =
         printfn "a"
         "b"
 
@@ -1215,10 +1197,7 @@ let ``member with one long parameter and return type, 850`` () =
     |> prepend newline
     |> should equal """
 type SomeType =
-    static member SomeMember
-        loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
-        : string
-        =
+    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string =
         printfn "a"
         "b"
 """
@@ -1233,9 +1212,7 @@ let ``member with one long parameter and no return type, 850`` () =
     |> prepend newline
     |> should equal """
 type SomeType =
-    static member SomeMember
-        loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
-        =
+    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
         printfn "a"
         "b"
 """
@@ -1253,21 +1230,14 @@ let ``multiple members with one long parameter`` () =
     |> prepend newline
     |> should equal """
 type SomeType =
-    static member SomeMember
-        loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
-        =
+    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
         printfn "a"
         "b"
 
-    static member Serialize(
-        loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType)
-        =
+    static member Serialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType) =
         Encode.string v.Meh
 
-    static member Deserialize(
-        loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee)
-        : SomeType
-        =
+    static member Deserialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee): SomeType =
         Decode.SomeType
             loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee
 """
@@ -1286,10 +1256,54 @@ type INotifications<'a, 'b, 'c, 'd, 'e> =
     class
     end
 
-type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>
-    private (client: INotifications<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>,
-             callbackId: 'CallbackId,
-             validateUnregisterOutputData: 'UnregisterOutputData -> unit)
-    =
+type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData> private (client: INotifications<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>,
+                                                                                                                                    callbackId: 'CallbackId,
+                                                                                                                                    validateUnregisterOutputData: 'UnregisterOutputData -> unit) =
     let a = 5
+"""
+
+
+[<Test>]
+let ``long type members should be in multiple lines, 868`` () =
+    formatSourceString false """
+type C() =
+    member _.LongMethodWithLotsOfParameters(aVeryLongType: int, aSecondVeryLongType: int, aThirdVeryLongType: int) : int =
+        aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
+"""  { config with PageWidth = 80; SpaceBeforeColon = true; MaxInfixOperatorExpression = 80 }
+    |> prepend newline
+    |> should equal """
+type C() =
+    member _.LongMethodWithLotsOfParameters(aVeryLongType : int,
+                                            aSecondVeryLongType : int,
+                                            aThirdVeryLongType : int) : int =
+        aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
+"""
+
+[<Test>]
+let ``long type members should be in multiple lines, no return type`` () =
+    formatSourceString false """
+type C() =
+    member _.LongMethodWithLotsOfParameters(aVeryLongType: int, aSecondVeryLongType: int, aThirdVeryLongType: int) =
+        aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
+"""  { config with PageWidth = 80; SpaceBeforeColon = true; MaxInfixOperatorExpression = 80 }
+    |> prepend newline
+    |> should equal """
+type C() =
+    member _.LongMethodWithLotsOfParameters(aVeryLongType : int,
+                                            aSecondVeryLongType : int,
+                                            aThirdVeryLongType : int) =
+        aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
+"""
+
+[<Test>]
+let ``long type constructors should be in multiple lines, 868`` () =
+    formatSourceString false """
+type VersionMismatchDuringDeserializationException(message: string, innerException: System.Exception) =
+    inherit System.Exception(message, innerException)
+"""  { config with PageWidth = 80; SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+type VersionMismatchDuringDeserializationException(message : string,
+                                                   innerException : System.Exception) =
+    inherit System.Exception(message, innerException)
 """
