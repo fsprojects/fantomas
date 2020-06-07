@@ -37,7 +37,7 @@ let rec private tokenizeLine (tokenizer:FSharpLineTokenizer) sourceCodeLines sta
       let token =
           { TokenInfo = tok; LineNumber = lineNumber; Content = getTokenText sourceCodeLines lineNumber tok }
       
-      tokenizeLine tokenizer sourceCodeLines state lineNumber ([token;extraToken] @ tokens)
+      tokenizeLine tokenizer sourceCodeLines state lineNumber (token::extraToken::tokens)
       
   | (Some tok, state), _ ->
       let token: Token = { TokenInfo = tok; LineNumber = lineNumber; Content = getTokenText sourceCodeLines lineNumber tok }
@@ -493,13 +493,9 @@ let getTriviaFromTokens (tokens: Token list) linesCount =
 let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "LBRACK_BAR"; "BAR_RBRACK"; "EQUALS"; "IF"; "THEN"; "ELSE"; "ELIF"; "BAR"; "RARROW"; "TRY"; "FINALLY"; "WITH"; "MEMBER"]
 let private tokenKinds = [FSharpTokenCharKind.Operator]
     
-let getTriviaNodesFromTokens (tokens: Token list) : TriviaNode list =
+let getTriviaNodesFromTokens (tokens: Token list) =
     tokens
     |> List.filter (fun t -> List.exists (fun tn -> tn = t.TokenInfo.TokenName) tokenNames || List.exists (fun tk -> tk = t.TokenInfo.CharClass) tokenKinds)
     |> List.map (fun t ->
-        { Type = TriviaNodeType.Token(t)
-          ContentBefore = []
-          ContentItself = None
-          ContentAfter = []
-          Range = getRangeBetween t.TokenInfo.TokenName t t }
-    )
+        let range = getRangeBetween t.TokenInfo.TokenName t t
+        TriviaNodeAssigner(TriviaNodeType.Token(t), range))

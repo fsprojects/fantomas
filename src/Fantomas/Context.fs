@@ -29,7 +29,7 @@ type ShortExpressionInfo =
 type WriteModelMode =
     | Standard
     | Dummy
-    | ShortExpression of ShortExpressionInfo
+    | ShortExpression of ShortExpressionInfo list
 
 type WriterModel =
     {
@@ -85,8 +85,8 @@ module WriterModel =
         match m.Mode with
         | Dummy
         | Standard -> updateCmd cmd
-        | ShortExpression info when (info.ConfirmedMultiline) -> m
-        | ShortExpression info ->
+        | ShortExpression infos when (List.exists (fun info -> info.ConfirmedMultiline) infos) -> m
+        | ShortExpression infos ->
             let nextCmdCausesMultiline =
                 match cmd with
                 | WriteLine -> true
@@ -94,9 +94,16 @@ module WriterModel =
                 | Write _ when (String.isNotNullOrEmpty m.WriteBeforeNewline) -> true
                 | _ -> false
 
-            if info.IsTooLong maxPageWidth m.Column || nextCmdCausesMultiline
-            then { m with Mode = ShortExpression({ info with ConfirmedMultiline = true }) }
-            else updateCmd cmd
+            let updatedInfos =
+                infos
+                |> List.map (fun info ->
+                    let tooLong = info.IsTooLong maxPageWidth m.Column
+                    { info with ConfirmedMultiline = tooLong || nextCmdCausesMultiline })
+
+            if List.exists (fun i -> i.ConfirmedMultiline) updatedInfos then
+                { m with Mode = ShortExpression(updatedInfos) }
+            else
+                updateCmd cmd
 
 module WriterEvents =
     let normalize ev =
@@ -164,7 +171,14 @@ type internal Context =
             { MaxWidth = maxWidth
               StartColumn = Option.defaultValue x.WriterModel.Column startColumn
               ConfirmedMultiline = false }
-        { x with WriterModel = { x.WriterModel with Mode = ShortExpression(info) } }
+        match x.WriterModel.Mode with
+        | ShortExpression infos ->
+            if List.exists (fun i -> i = info) infos then
+                x
+            else
+                { x with WriterModel = { x.WriterModel with Mode = ShortExpression(info::infos) } }
+        | _ ->
+            { x with WriterModel = { x.WriterModel with Mode = ShortExpression([info]) } }
 
 let internal writerEvent e ctx =
     let evs = WriterEvents.normalize e
@@ -517,10 +531,8 @@ let private shortExpressionWithFallback (shortExpression: Context -> Context) (f
     // if the context is already inside a ShortExpression mode and tries to figure out if the expression will go over the page width,
     // we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
-    | ShortExpression info when info.ConfirmedMultiline ->
+    | ShortExpression infos when (List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth ctx.Column) infos) ->
         ctx
-    | ShortExpression _ when (maxWidth = ctx.Config.PageWidth) ->
-        shortExpression ctx
     | _ ->
         // create special context that will process the writer events slightly different
         let shortExpressionContext =
@@ -530,9 +542,9 @@ let private shortExpressionWithFallback (shortExpression: Context -> Context) (f
 
         let resultContext = shortExpression shortExpressionContext
         match resultContext.WriterModel.Mode with
-        | ShortExpression info ->
+        | ShortExpression infos ->
             // verify the expression is not longer than allowed
-            if info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column
+            if List.exists(fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column) infos
             then fallbackExpression ctx
             else
                 { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
@@ -572,6 +584,8 @@ let internal leadingExpressionIsMultiline leadingExpression continuationExpressi
 let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
     // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
+    | ShortExpression infos when (List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth ctx.Column) infos) ->
+        ctx
     | ShortExpression _ ->
         // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
         (beforeShort +> expr +> afterShort) ctx
@@ -581,10 +595,10 @@ let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLo
         let fallbackExpression = beforeLong +> expr +> afterLong
 
         match resultContext.WriterModel.Mode with
-        | ShortExpression info ->
+        | ShortExpression infos ->
             // verify the expression is not longer than allowed
-            if info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column
-            then fallbackExpression ctx
+            if List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column) infos then
+                fallbackExpression ctx
             else
                 { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
         | _ ->
