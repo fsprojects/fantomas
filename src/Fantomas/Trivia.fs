@@ -145,12 +145,6 @@ let private findConstNodeAfter (nodes: TriviaNodeAssigner list) (range: range) =
 let private mapNodeToTriviaNode (node: Node) =
     node.Range
     |> Option.map (fun range -> TriviaNodeAssigner(MainNode(node.Type), range))
-//        { Type = MainNode(node.Type)
-//          ContentAfter = []
-//          ContentItself = None
-//          ContentBefore = []
-//          Range = range }
-//    )
 
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: range) =
     match List.filter isMainNodeButNotAnonModule triviaNodes with
@@ -417,4 +411,3 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
                 |> Some
             else
                 None)
-        //|> List.filter (triviaNodeIsNotEmpty) // only keep nodes where something special needs to happen.
