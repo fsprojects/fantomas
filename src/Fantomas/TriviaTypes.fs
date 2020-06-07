@@ -56,3 +56,10 @@ type TriviaNode =
     ContentItself: TriviaContent option
     ContentAfter: TriviaContent list
     Range: range }
+
+type internal TriviaNodeAssigner(nodeType: TriviaNodeType, range: range) =
+    member this.Type = nodeType
+    member this.Range = range
+    member val ContentBefore = ResizeArray<TriviaContent>() with get,set
+    member val ContentItself = Option<TriviaContent>.None with get,set
+    member val ContentAfter = ResizeArray<TriviaContent>() with get,set

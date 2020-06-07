@@ -239,10 +239,11 @@ let ``Comment after left brace of record`` () =
 let ``left brace should be found in tokens`` () =
     let source = "type R = { A: int }"
     let (tokens, _) = tokenize [] source
-    let triviaNodes = getTriviaNodesFromTokens tokens
+    let triviaNodes =
+        getTriviaNodesFromTokens tokens
     
-    match triviaNodes with
-    | [{Type = Token(equals)}; {Type = Token(lbrace)} ; {Type = Token(rbrace)}] ->
+    match triviaNodes.[0].Type, triviaNodes.[1].Type, triviaNodes.[2].Type with
+    | Token(equals), Token(lbrace), Token(rbrace) ->
         equals.Content == "="
         lbrace.Content == "{"
         rbrace.Content == "}"

@@ -1,10 +1,8 @@
 module Fantomas.Tests.QueueTests
 
-open FSharp.Compiler.AbstractIL.Internal
 open Fantomas
 open NUnit.Framework
 open FsUnit
-open Fantomas.Tests.TestHelper
 open FsCheck
 
 [<Test>]
