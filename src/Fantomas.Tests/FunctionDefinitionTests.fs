@@ -543,3 +543,32 @@ let private addTaskToScheduler
 
     1
 """
+
+[<Test>]
+let ``long function signature should align with equal sign, 883`` () =
+    formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) : ReadModel<'Event, 'State> =
+    ()
+"""  { config with IndentSpaceNum = 2; SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+let readModel
+  (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
+  (initState : 'State)
+  : ReadModel<'Event, 'State>
+  =
+  ()
+"""
+
+[<Test>]
+let ``long function signature should align with equal sign, no return type`` () =
+    formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) =
+    ()
+"""  { config with IndentSpaceNum = 2; SpaceBeforeColon = true; PageWidth = 80 }
+    |> prepend newline
+    |> should equal """
+let readModel
+  (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
+  (initState : 'State)
+  =
+  ()
+"""

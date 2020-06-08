@@ -544,6 +544,7 @@ and genLetBinding astContext pref b =
             ifElse astContext.IsFirstChild
                 (genAttributes astContext ats -- pref)
                 (!- pref +> genOnelinerAttributes astContext ats)
+
         let afterLetKeyword =
             opt sepSpace ao genAccess
             +> ifElse isMutable (!- "mutable ") sepNone
@@ -2748,9 +2749,9 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
 
     let hasBracket = ps |> Seq.map fst |> Seq.exists Option.isSome
     let genName = aoc -- s +> tpsoc +> sepSpace
+
     let genParametersInitial =
         colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)
-
 
     let genReturnType, newlineBeforeReturnType =
         match t with
@@ -2760,17 +2761,32 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
     let genParametersWithNewlines =
         (sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType)
 
-    let isLongFunctionSignature ctx=
-        futureNlnCheck (genName +> genParametersInitial +> genReturnType) ctx
+    let isLongFunctionSignature (ctx: Context) =
+        let space = 1
+        let colon = if ctx.Config.SpaceBeforeColon then 3 else 2
+        let lengthByAST =
+            getSynAccessLength ao
+            + lengthWhenSome (fun _ -> space) ao
+            + s.Length
+            + space
+            + List.sumBy (snd >> getSynPatLength >> (+) space) ps
+            + lengthWhenSome (fun _ -> colon) t
+            + lengthWhenSome getSynTypeLength t
 
-    atCurrentColumn (fun ctx ->
+        (ctx.Column + lengthByAST > ctx.Config.PageWidth)
+        || futureNlnCheck (genName +> genParametersInitial +> genReturnType) ctx
+
+    fun ctx ->
         let isLong = isLongFunctionSignature ctx
+
         let expr =
             genName
             +> ifElse hasBracket sepOpenT sepNone
-            +> ifElse isLong genParametersWithNewlines genParametersInitial
+            +> ifElse isLong (indent +> genParametersWithNewlines  +> unindent) genParametersInitial
             +> ifElse hasBracket sepCloseT sepNone
-        expr ctx)
+
+        expr ctx
+
 and genConst (c:SynConst) (r:range) =
     match c with
     | SynConst.Unit ->
