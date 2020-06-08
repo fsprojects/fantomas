@@ -2918,8 +2918,11 @@ and genConstBytes (bytes: byte []) (r: range) =
         | None -> !- (sprintf "%A" bytes)
         <| ctx
 
-and genTrivia (range: range) f =
-    enterNode range +> f +> leaveNode range
+and genTrivia (range: range) f ctx =
+    if List.isEmpty ctx.Trivia then
+        f ctx
+    else
+        (enterNode range +> f +> leaveNode range) ctx
 
 and infixOperatorFromTrivia range fallback (ctx: Context) =
     // by specs, section 3.4 https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=24&zoom=auto,-137,312
