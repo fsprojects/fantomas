@@ -1407,5 +1407,5 @@ let rec isEmptySynSimplePats (ssp:SynSimplePats) =
 
 let isFunctionBinding (p: SynPat) =
     match p with
-    | PatLongIdent(_, _, ps, _) when (List.length ps > 0) -> true
+    | PatLongIdent(_, _, ps, _) when (List.isNotEmpty ps) -> true
     | _ -> false
