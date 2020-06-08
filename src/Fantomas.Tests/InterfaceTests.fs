@@ -16,7 +16,7 @@ type SomeClass1(x: int, y: float) =
 type Interface3 =
     inherit Interface1
     inherit Interface2
-    abstract member Method3 : int -> int""" { config with MaxBindingWidth = 120 }
+    abstract member Method3 : int -> int""" { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type IPrintable =
@@ -40,7 +40,7 @@ let ``should not add with to interface definitions with no members``() =
     interface Infrastucture with
         member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
         member this.ToXml() = v :> obj
-    """ { config with MaxBindingWidth = 120 }
+    """ { config with MaxValueBindingWidth = 120 }
     |> should equal """type Text(text: string) =
     interface IDocument
 
@@ -88,7 +88,7 @@ let f () =
         member x.ToString() = "INotifyEnumerableInternal"
       interface INotifyEnumerableInternal<'T>
       interface IEnumerable<_> with
-        member x.GetEnumerator() = null }""" { config with MaxBindingWidth = 120 }
+        member x.GetEnumerator() = null }""" { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 let f () =
@@ -150,7 +150,7 @@ type MyLogInteface() =
             else
                 sprintf "date-%s.log" environment
         member x.Info () = ()
-        override x.Version () = ()""" ({ config with PageWidth = 119; MaxBindingWidth = 120 })
+        override x.Version () = ()""" ({ config with PageWidth = 119; MaxFunctionBindingWidth = 120 })
     |> prepend newline
     |> should equal """
 type LogInterface =

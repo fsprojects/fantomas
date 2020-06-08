@@ -92,7 +92,7 @@ type Shape2D(x0 : float, y0 : float) =
 
     abstract member Rotate: float -> unit
     default this.Rotate(angle) = rotAngle <- rotAngle + angle
-    """ { config with MaxBindingWidth = 120 }
+    """ { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 [<AbstractClass>]
@@ -181,7 +181,7 @@ let ``classes and implicit constructors``() =
        let data = dataIn
        do self.PrintMessage()
        member this.PrintMessage() =
-           printf "Creating MyClass2 with Data %d" data""" { config with MaxBindingWidth = 120 }
+           printf "Creating MyClass2 with Data %d" data""" { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type MyClass2(dataIn) as self =
@@ -197,7 +197,7 @@ let ``classes and private implicit constructors``() =
        let data = dataIn
        do self.PrintMessage()
        member this.PrintMessage() =
-           printf "Creating MyClass2 with Data %d" data""" { config with MaxBindingWidth = 120 }
+           printf "Creating MyClass2 with Data %d" data""" { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type MyClass2 private (dataIn) as self =
@@ -216,7 +216,7 @@ type Folder(pathIn: string) =
 
 and File(filename: string, containingFolder: Folder) = 
    member __.Name = filename
-   member __.ContainingFolder = containingFolder""" { config with MaxBindingWidth = 120 }
+   member __.ContainingFolder = containingFolder""" { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Folder(pathIn: string) =
@@ -385,7 +385,7 @@ let ``indexed get long line``() =
 type Exception with
     member inline __.FirstLine = 
         __.Message.Split([|Environment.NewLine|], StringSplitOptions.RemoveEmptyEntries).[0]
-"""  { config with MaxBindingWidth = 120 }
+"""  { config with MaxValueBindingWidth = 120 }
     |> should equal """open System
 
 type Exception with
@@ -426,7 +426,7 @@ module Logging =
         LogProvider.SetCurrentLogProvider(QuartzLoggerWrapper(loggerFunction))
 
     let SetQuartzLogger l = LogProvider.SetCurrentLogProvider(l)
-"""  { config with MaxBindingWidth = 80 }
+"""  { config with MaxFunctionBindingWidth = 80 }
     |> prepend newline
     |> should equal """
 namespace Quartz.Fsharp
@@ -472,7 +472,7 @@ type A() =
 
     member this.MemberB = if true then 2 else 3
 
-    member this.MemberC = 0""" { config with MaxBindingWidth = 120 }
+    member this.MemberC = 0""" { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type A() =

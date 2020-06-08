@@ -15,7 +15,7 @@ let ``exception declarations with members``() =
     formatSourceString false """/// An exception type to signal build errors.
 exception BuildException of string*list<string>
   with
-    override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)""" ({ config with MaxInfixOperatorExpression = 60; MaxBindingWidth = 120 })
+    override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)""" ({ config with MaxInfixOperatorExpression = 60; MaxFunctionBindingWidth = 120 })
     |> should equal """/// An exception type to signal build errors.
 exception BuildException of string * list<string> with
     override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)
@@ -88,7 +88,7 @@ type Test() =
 
     abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
     override this.AbstractMethod<'a, 'b>(x:'a, y:'b) =
-         printfn "%A, %A" x y""" { config with MaxBindingWidth = 120 }
+         printfn "%A, %A" x y""" { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Test() =
@@ -128,7 +128,7 @@ type public MyClass<'a> public (x, y) as this =
     member internal self.Prop1 = x 
     member self.Prop2 with get() = z 
                       and set(a) = z <- a 
-    member self.Method(a,b) = x + y + z + a + b""" { config with MaxBindingWidth = 120 }
+    member self.Method(a,b) = x + y + z + a + b""" { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type public MyClass<'a> public (x, y) as this =
@@ -220,7 +220,7 @@ let ``optional type extensions``() =
 /// Define a new member method FromString on the type Int32. 
 type System.Int32 with 
     member this.FromString( s : string ) =
-       System.Int32.Parse(s)""" { config with MaxBindingWidth = 120 }
+       System.Int32.Parse(s)""" { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 /// Define a new member method FromString on the type Int32.
@@ -330,7 +330,7 @@ type SpeedingTicket() =
 
 let CalculateFine (ticket : SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
-    if delta < 20 then 50.0 else 100.0""" ({ config with MaxBindingWidth = 120 })
+    if delta < 20 then 50.0 else 100.0""" ({ config with MaxValueBindingWidth = 120 })
     |> prepend newline
     |> should equal """
 type SpeedingTicket() =
@@ -539,7 +539,7 @@ let ``should keep the ? in optional parameters``() =
     static member Exec(cmd, ?args) = 
         shellExec(Shell.GetParams(cmd, ?args = args))
 
-    """ { config with MaxBindingWidth = 120 }
+    """ { config with MaxFunctionBindingWidth = 120 }
     |> should equal """type Shell() =
     static member private GetParams(cmd, ?args) = doStuff
     static member Exec(cmd, ?args) = shellExec (Shell.GetParams(cmd, ?args = args))
@@ -568,7 +568,7 @@ let ``should keep brackets around type signatures``() =
     formatSourceString false """
 let user_printers = ref([] : (string * (term -> unit)) list)
 let the_interface = ref([] : (string * (string * hol_type)) list)
-    """ ({ config with MaxBindingWidth = 50 })
+    """ ({ config with MaxValueBindingWidth = 50 })
     |> prepend newline
     |> should equal """
 let user_printers = ref ([]: (string * (term -> unit)) list)
@@ -856,7 +856,7 @@ let ``type abbreviation augmentation``() =
 [<Test>]
 let ``operator in words should not print to symbol, 409`` () =
     formatSourceString false """type T() =
-    static member op_LessThan(a, b) = a < b""" ({ config with SpaceBeforeMember = true; MaxBindingWidth = 120 })
+    static member op_LessThan(a, b) = a < b""" ({ config with SpaceBeforeMember = true; MaxFunctionBindingWidth = 120 })
     |> should equal """type T() =
     static member op_LessThan (a, b) = a < b
 """
@@ -870,7 +870,7 @@ let ``operator in words in let binding`` () =
 [<Test>]
 let ``operator in words in member`` () =
     formatSourceString false """type A() =
-    member this.B(op_Inequality : string) = ()""" { config with MaxBindingWidth = 120 }
+    member this.B(op_Inequality : string) = ()""" { config with MaxFunctionBindingWidth = 120 }
     |> should equal """type A() =
     member this.B(op_Inequality: string) = ()
 """
@@ -886,7 +886,7 @@ type TestExtensions =
 
     [<Extension>]
     static member SomeOtherExtension(x) = ""
-"""  { config with MaxBindingWidth = 120 }
+"""  { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 [<Extension>]
@@ -1125,7 +1125,7 @@ let ``keep correct indentation after multiline member definition, 845`` () =
 
     member SomeOtherMember () =
         printfn "b"
-"""  ({ config with PageWidth = 80; MaxBindingWidth = 120 })
+"""  ({ config with PageWidth = 80; MaxFunctionBindingWidth = 120 })
     |> prepend newline
     |> should equal """
 type SomeType() =
@@ -1148,7 +1148,7 @@ let ``keep correct indentation after multiline typed member definition`` () =
 
     member SomeOtherMember () =
         printfn "b"
-"""  ({ config with PageWidth = 80; MaxBindingWidth = 120 })
+"""  ({ config with PageWidth = 80; MaxFunctionBindingWidth = 120 })
     |> prepend newline
     |> should equal """
 type SomeType() =
@@ -1190,7 +1190,7 @@ let ``split multiple parameters over multiple lines and have correct indentation
     "b"
 
     static member SomeOtherMember () = printfn "c"
-"""  { config with MaxBindingWidth = 120 }
+"""  { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type SomeType =

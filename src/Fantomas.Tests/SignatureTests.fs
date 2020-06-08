@@ -49,7 +49,7 @@ let ``should not add parens in signature``() =
       Handler : Map<string, string> -> HttpListenerContext -> string }
     override x.ToString() = sprintf "%s %s" x.Verb x.Path
 
-    """ { config with MaxBindingWidth = 120 }
+    """ { config with MaxFunctionBindingWidth = 120 }
     |> should equal """type Route =
     { Verb: string
       Path: string

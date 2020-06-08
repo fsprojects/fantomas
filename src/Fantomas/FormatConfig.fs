@@ -32,7 +32,8 @@ type FormatConfig =
       MaxInfixOperatorExpression: Num
       MaxRecordWidth: Num
       MaxArrayOrListWidth: Num
-      MaxBindingWidth: Num
+      MaxValueBindingWidth: Num
+      MaxFunctionBindingWidth: Num
       MultilineBlockBracketsOnSameColumn : bool
       NewlineBetweenTypeDefinitionAndMembers: bool
       KeepIfThenInSameLine : bool
@@ -58,7 +59,8 @@ type FormatConfig =
           MaxInfixOperatorExpression = 50
           MaxRecordWidth = 40
           MaxArrayOrListWidth = 40
-          MaxBindingWidth = 40
+          MaxValueBindingWidth = 40
+          MaxFunctionBindingWidth = 40
           MultilineBlockBracketsOnSameColumn = false
           KeepIfThenInSameLine = false
           StrictMode = false

@@ -19,7 +19,7 @@ type NameStruct =
             x.Name.ToLower()
     end
 
-let n = new NameStruct("Hippo")""" { config with MaxBindingWidth = 120 }
+let n = new NameStruct("Hippo")""" { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type NameStruct =

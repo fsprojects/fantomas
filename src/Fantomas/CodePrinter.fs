@@ -471,6 +471,8 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
         else
             (sepEq +> sepSpace)
 
+    let maxWidth = if isFunctionBinding pat then ctx.Config.MaxFunctionBindingWidth else ctx.Config.MaxValueBindingWidth
+
     match e with
     | TypedExpr(Typed, e, t) ->
         let addExtraSpaceBeforeGenericType =
@@ -499,14 +501,14 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
          +> sepEqual (isPrefixMultiline || hasLineCommentBeforeColon)
          +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual || hasLineCommentBeforeColon)
                (indent +> sepNln +> genExpr astContext e +> unindent)
-               (isShortExpressionOrAddIndentAndNewline ctx.Config.MaxBindingWidth (genExpr astContext e))) ctx
+               (isShortExpressionOrAddIndentAndNewline maxWidth (genExpr astContext e))) ctx
     | e ->
         let genE =
             match e with
             | MultilineString(_)
             | _ when (TriviaHelpers.``has content itself that is multiline string`` e.Range ctx.Trivia) ->
                 genExpr astContext e
-            | _ -> isShortExpressionOrAddIndentAndNewline ctx.Config.MaxBindingWidth (genExpr astContext e)
+            | _ -> isShortExpressionOrAddIndentAndNewline maxWidth (genExpr astContext e)
 
         (sepEqual isPrefixMultiline
         +> leaveEqualsToken pat.Range
@@ -693,7 +695,7 @@ and genMemberBinding astContext b =
                     ifElse
                         prefixIsLong
                         (indent +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
-                        (sepEq +> (fun ctx -> (sepSpace +> isShortExpressionOrAddIndentAndNewline ctx.Config.MaxBindingWidth (genExpr astContext e)) ctx)))
+                        (sepEq +> (fun ctx -> (sepSpace +> isShortExpressionOrAddIndentAndNewline (if isFunctionBinding p then ctx.Config.MaxFunctionBindingWidth else ctx.Config.MaxValueBindingWidth) (genExpr astContext e)) ctx)))
 
     | ExplicitCtor(ats, px, ao, p, e, so) ->
         let prefix =

@@ -202,7 +202,7 @@ type CustomerId =
     | CustomerId of int
     member this.Test() =
         printfn "%A" this
-    """ { config with MaxBindingWidth = 120 }
+    """ { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type CustomerId =
