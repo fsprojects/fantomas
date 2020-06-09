@@ -46,15 +46,17 @@ type Queue<'T> (data : list<'T[]>, length : int) =
     
     /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.exists f, optimized for speed
     member this.SkipExists n f =
-        if n > length then false else
-        let mutable i = length - n
+        if n >= length then false else
+        let mutable i = length - n // how nany items at end
         let mutable r = false
         let rec dataToEnd acc = function
             | (hd: _[]) :: tl -> 
-                if i >= hd.Length then
+                if i > hd.Length then
                     i <- i - hd.Length
                     dataToEnd (hd::acc) tl
-                else hd::acc
+                else 
+                    i <- hd.Length - i // index in first array
+                    hd::acc
             | [] -> acc
         let rec exists xs =
             match xs with

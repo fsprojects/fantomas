@@ -52,11 +52,13 @@ let ``Queue.toSeq``() =
 
 [<Test>]
 let ``Queue.skipExists``() =
-    Check.One (Config.Default, fun xss n f ->
+    Check.One (Config.Default, fun xss n ->
+        let f = id
         n <= List.sumBy List.length xss ==>
-        let result = Queue.ofLists xss |> Queue.skipExists n f
-        let expected = xss |> List.collect id |> Seq.skip n |> Seq.exists f
-        result |> should equal expected
+            lazy
+                (let result = Queue.ofLists xss |> Queue.skipExists n f
+                 let expected = xss |> List.collect id |> Seq.skip n |> Seq.exists f
+                 result |> should equal expected)
         )
 
 
