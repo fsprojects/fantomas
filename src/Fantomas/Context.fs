@@ -578,8 +578,7 @@ let internal leadingExpressionLong threshold leadingExpression continuationExpre
 let internal leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: Context) =
     let eventCountBeforeExpression = Queue.length ctx.WriterEvents
     let contextAfterLeading = leadingExpression ctx
-    // let hasWriteLineEventsAfterExpression = contextAfterLeading.WriterEvents |>Seq.skip eventCountBeforeExpression |> Seq.exists (function | WriteLine _ -> true | _ -> false)
-    let hasWriteLineEventsAfterExpression = contextAfterLeading.WriterEvents.SkipExists eventCountBeforeExpression (function | WriteLine _ -> true | _ -> false)
+    let hasWriteLineEventsAfterExpression = contextAfterLeading.WriterEvents |> Queue.skipExists eventCountBeforeExpression (function | WriteLine _ -> true | _ -> false)
 
     continuationExpression hasWriteLineEventsAfterExpression contextAfterLeading
 

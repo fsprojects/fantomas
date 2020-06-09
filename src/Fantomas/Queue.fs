@@ -1,11 +1,10 @@
 namespace Fantomas
 
-/// FIFO queue, from https://github.com/fsprojects/FSharpx.Collections/blob/master/src/FSharpx.Collections/Queue.fs        
-//[<CustomEquality; NoComparison>]
+/// append only collection optimized for quick append of block of data and query operations
+/// data - list of blocks in reverse order
 type Queue<'T> (data : list<'T[]>, length : int) = 
     let mutable hashCode = None
-    member internal this.Data = data
-
+    
     override this.GetHashCode() =
         match hashCode with
         | None ->
@@ -25,10 +24,6 @@ type Queue<'T> (data : list<'T[]>, length : int) =
                 else Seq.forall2 (Unchecked.equals) this y
         | _ -> false
 
-    // member this.Conj x = 
-    //     front.Insert(length, x)
-    //     Queue(front, length + 1)
-
     member this.Head = 
         if length > 0 then (List.head data).[0]
         else raise (System.Exception("Queue is empty"))
@@ -46,67 +41,32 @@ type Queue<'T> (data : list<'T[]>, length : int) =
     member this.Rev() = 
         data |> Seq.collect (fun arr -> seq{arr.Length-1 .. -1 .. 0} |> Seq.map (fun i -> arr.[i]))
 
-    // // member this.Tail =
-    //     match front with
-    //     | _::tl ->
-    //         match tl, rBack with
-    //         | [], r -> Queue((List.rev r), [])
-    //         | f, r -> Queue(f, r)
-    //     | _ -> raise (System.Exception("Queue is empty"))
-            
-    // member this.TryTail =
-    //     match front with
-    //     | _::tl ->
-    //         match tl, rBack with
-    //         | [], r -> Some(Queue((List.rev r), []))
-    //         | f, r -> Some(Queue(f, r))
-    //     | _ -> None
-
-    // member this.Uncons =  
-    //     match front with
-    //     | hd::tl -> 
-    //         hd, (match tl, rBack with
-    //             | [], r -> Queue((List.rev r), [])
-    //             | f, r -> Queue(f, r))
-    //     | _ -> raise (System.Exception("Queue is empty"))
-
-    // member this.TryUncons =  
-    //     match front with
-    //     | hd::tl -> 
-    //         match tl, rBack with
-    //         | [], r -> Some(hd, Queue((List.rev r), []))
-    //         | f, r -> Some(hd, Queue(f, r))
-    //     | _ -> None
-
     member this.Append xs = 
         Queue(Array.ofList xs :: data, length + List.length xs)
-
+    
+    /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.exists f, optimized for speed
     member this.SkipExists n f =
-        // let l = front.Length
-        // if l > n then
-        //     (front |> List.skip n |> List.exists f) || (rBack |> List.rev |> List.exists f)
-        // else rBack |> List.rev |> List.skip (n - l) |> List.exists f
-        let data = data |> List.toArray
-        let dataLen = data.Length
+        if n > length then false else
+        let mutable i = length - n
         let mutable r = false
-        let mutable i = n 
-        let mutable k = dataLen-1
-        while k >= 0 && i >= data.[k].Length do
-            i <- i - data.[k].Length
-            k <- k - 1
-        while k >= 0 && r=false && i < data.[k].Length do
-            if f data.[k].[i] then r <- true
-            if i < data.[k].Length-1 then i <- i + 1
-            else
+        let rec dataToEnd acc = function
+            | (hd: _[]) :: tl -> 
+                if i >= hd.Length then
+                    i <- i - hd.Length
+                    dataToEnd (hd::acc) tl
+                else hd::acc
+            | [] -> acc
+        let rec exists xs =
+            match xs with
+            | (arr: _[]) :: tl ->
+                while r = false && i < arr.Length do
+                    if f arr.[i] then r <- true
+                    i <- i + 1
                 i <- 0
-                k <- k - 1
-        r
-
-    // member this.RevTakeWhile f =
-    //     seq{length .. -1 .. 0} |> Seq.map (fun i -> front.[i]) |> Seq.takeWhile f
-
-    // member this.RevSkipWhileTryHead f =
-    //     seq{length .. -1 .. 0} |> Seq.map (fun i -> front.[i]) |> Seq.skipWhile f |> Seq.tryHead
+                if r then true else exists tl
+            | [] -> r
+        let d = dataToEnd [] data
+        d |> exists
 
     interface System.Collections.Generic.IReadOnlyCollection<'T> with
         member this.Count = this.Length
@@ -118,19 +78,7 @@ type Queue<'T> (data : list<'T[]>, length : int) =
 
 [<RequireQualifiedAccess>]
 module Queue =
-    //pattern discriminators  (active pattern)
-    //let (|Cons|Nil|) (q : Queue<'T>) = match q.TryUncons with Some(a,b) -> Cons(a,b) | None -> Nil
-
-    // let inline conj (x : 'T) (q : Queue<'T>) = (q.Conj x) 
-
     let empty<'T> : Queue<'T> = Queue<_>([[||]], 0) 
-
-    // let fold (f : ('State -> 'T -> 'State)) (state : 'State) (q : Queue<'T>) = 
-    //     let s = Seq.fold f state q.Front
-    //     s
-
-    // let foldBack (f : ('T -> 'State -> 'State)) (q : Queue<'T>) (state : 'State) =  
-    //     (Seq.foldBack f q.Front state)
 
     let inline head (q : Queue<'T>) = q.Head
 
@@ -146,20 +94,9 @@ module Queue =
 
     let inline rev (q : Queue<'T>) = q.Rev()
 
-    // let inline tail (q : Queue<'T>) = q.Tail
-
-    // let inline tryTail (q : Queue<'T>) = q.TryTail
-
     let inline toSeq (q: Queue<'T>) = q :> seq<'T>
-
-    // let inline uncons (q : Queue<'T>) = q.Uncons
-
-    // let inline tryUncons (q : Queue<'T>) = q.TryUncons
 
     let inline append (q : Queue<'T>) xs = q.Append xs
 
     /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.exists f
     let inline skipExists n f (q : Queue<'T>) = q.SkipExists n f
-
-    // let revTakeWhile f (q : Queue<'T>) =
-    //     q.RevTakeWhile f

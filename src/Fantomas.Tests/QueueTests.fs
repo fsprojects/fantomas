@@ -18,14 +18,6 @@ let ``Queue.append``() =
         result (Queue.rev q |> Queue.ofSeq) |> should equivalent (expected (List.rev xs))
         )
 
-// [<Test>]
-// let ``Queue.conj``() =
-//     Check.One (Config.Default, fun xs ys ->
-//         let result = Queue.ofList (xs @ ys)
-//         let expected = (Queue.ofList xs, ys) ||> List.fold (fun q y -> Queue.conj y q) |> Queue.toSeq |> Seq.toList
-//         result |> should equivalent expected
-//         )
-
 [<Test>]
 let ``Queue.tryHead``() =
     Check.One (Config.Default, fun xs ->
