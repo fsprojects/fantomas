@@ -184,7 +184,7 @@ let internal writerEvent e ctx =
     let evs = WriterEvents.normalize e
     let ctx' =
         { ctx with
-           WriterEvents = evs |> Seq.fold (fun q x -> Queue.conj x q) ctx.WriterEvents
+           WriterEvents = Queue.append ctx.WriterEvents evs
            WriterModel = (ctx.WriterModel, evs) ||> Seq.fold (fun m e -> WriterModel.update ctx.Config.PageWidth e m) }
     ctx'
 let internal finalizeWriterModel (ctx: Context) =
@@ -578,7 +578,9 @@ let internal leadingExpressionLong threshold leadingExpression continuationExpre
 let internal leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: Context) =
     let eventCountBeforeExpression = Queue.length ctx.WriterEvents
     let contextAfterLeading = leadingExpression ctx
-    let hasWriteLineEventsAfterExpression = contextAfterLeading.WriterEvents |>Seq.skip eventCountBeforeExpression |> Seq.exists (function | WriteLine _ -> true | _ -> false)
+    // let hasWriteLineEventsAfterExpression = contextAfterLeading.WriterEvents |>Seq.skip eventCountBeforeExpression |> Seq.exists (function | WriteLine _ -> true | _ -> false)
+    let hasWriteLineEventsAfterExpression = contextAfterLeading.WriterEvents.SkipExists eventCountBeforeExpression (function | WriteLine _ -> true | _ -> false)
+
     continuationExpression hasWriteLineEventsAfterExpression contextAfterLeading
 
 let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
