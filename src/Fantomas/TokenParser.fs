@@ -263,12 +263,14 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
     | headToken::rest when (headToken.TokenInfo.TokenName = "LINE_COMMENT") ->
         let lineCommentTokens =
             rest
-            |> List.takeWhile (fun t -> t.TokenInfo.TokenName = "LINE_COMMENT" && t.LineNumber = headToken.LineNumber)
+            |> List.takeWhile (fun t -> t.TokenInfo.TokenName = "LINE_COMMENT") // && t.LineNumber = headToken.LineNumber)
             
         let comment =
             headToken
             |> List.prependItem lineCommentTokens
-            |> getContentFromTokens
+            |> List.groupBy (fun t -> t.LineNumber)
+            |> List.map (snd >> getContentFromTokens)
+            |> String.concat "\n"
             
         let nextTokens =
             List.length lineCommentTokens
