@@ -1,5 +1,6 @@
 ﻿module internal Fantomas.SourceTransformer
 
+open FSharp.Compiler.SyntaxTree
 open Fantomas.Context
 open Fantomas.SourceParser
 
@@ -129,3 +130,46 @@ let addParenForTupleWhen f synExpr ctx =
         |_ -> false // "if .. then .. else" have precedence over ","
     let expr = f synExpr
     ifElse (condition synExpr) (sepOpenT +> expr +> sepCloseT) expr ctx
+
+let lengthWhenSome f o =
+    match o with
+    | Some x -> f x
+    | None -> 0
+
+let getSynAccessLength ao =
+    lengthWhenSome (function | SynAccess.Internal -> 8 | SynAccess.Private -> 7 | SynAccess.Public -> 6) ao
+
+let rec getSynTypeLength (synType: SynType) =
+    match synType with
+    | TFun (t1, t2) ->
+        getSynTypeLength t1 + (* -> *) 2 + getSynTypeLength t2
+    | TVar(Typar(id, _)) ->
+        id.Length
+    | TApp(t, ts, _) ->
+        getSynTypeLength t + List.sumBy getSynTypeLength ts
+    | TLongIdent s ->
+        s.Length
+    | _ ->
+        0
+
+let rec getSynPatLength (synPat: SynPat) =
+    match synPat with
+    | PatLongIdent(ao, s, ps, _) ->
+        let accessLength = getSynAccessLength ao
+        let patternLength =
+            ps
+            |> List.sumBy (fun (ident, pat) ->
+                let identLength = lengthWhenSome String.length ident
+                identLength + getSynPatLength pat)
+        accessLength + patternLength + s.Length
+
+    | PatParen pat -> 2 + getSynPatLength pat
+
+    | PatNamed(ao,p,s) ->
+        let accessLength = getSynAccessLength ao
+        accessLength + getSynPatLength p + s.Length
+
+    | PatTyped (p,t) ->
+        getSynPatLength p + getSynTypeLength t
+
+    | _ -> 0
