@@ -268,7 +268,8 @@ A default configuration file would look like
   "MaxInfixOperatorExpression":50,
   "MaxRecordWidth":40,
   "MaxArrayOrListWidth":40,
-  "MaxLetBindingWidth":40,
+  "MaxValueBindingWidth":40,
+  "MaxFunctionBindingWidth":40,
   "MultilineBlockBracketsOnSameColumn":false,
   "NewlineBetweenTypeDefinitionAndMembers":false,
   "StrictMode":false 

@@ -222,7 +222,7 @@ let foo = Foo(fun () -> Foo.Create x).Value
 [<Test>]
 let ``line comment after lambda should not necessary make it multiline`` () =
     formatSourceString false """let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
-"""  ({ config with MaxLetBindingWidth = 150 })
+"""  ({ config with MaxFunctionBindingWidth = 150 })
     |> prepend newline
     |> should equal """
 let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
@@ -335,7 +335,7 @@ let projectIntoMap projection =
                SpaceAfterComma = false
                SpaceAroundDelimiter = false
                MaxInfixOperatorExpression = 40
-               MaxLetBindingWidth = 60
+               MaxFunctionBindingWidth = 60
                MultilineBlockBracketsOnSameColumn = true })
     |> prepend newline
     |> should equal """
