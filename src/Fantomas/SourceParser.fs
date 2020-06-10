@@ -1400,11 +1400,6 @@ let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr:SynExpr) =
 
     | _ -> failwithf "cannot determine if synExpr %A is uppercase or lowercase" synExpr
 
-let rec isEmptySynSimplePats (ssp:SynSimplePats) =
-    match ssp with
-    | SynSimplePats.SimplePats(pats,_) -> List.isEmpty pats
-    | SynSimplePats.Typed (ssp,_,_) -> isEmptySynSimplePats ssp
-
 let isFunctionBinding (p: SynPat) =
     match p with
     | PatLongIdent(_, _, ps, _) when (List.isNotEmpty ps) -> true
