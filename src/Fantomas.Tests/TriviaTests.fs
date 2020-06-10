@@ -25,7 +25,7 @@ let private toTriviaWithDefines source =
     |> Map.ofList
 
 [<Test>]
-let ``Line comment that starts at the beginning of a line added to trivia`` () =
+let ``line comment that starts at the beginning of a line added to trivia`` () =
     let source = """// meh
 let a = 9
 """
@@ -59,7 +59,7 @@ let a = 'c'
         failwith "Expected line comment"
         
 [<Test>]
-let ``Line comment on same line, is after last AST item`` () =
+let ``line comment on same line, is after last AST item`` () =
     let source = "let foo = 7 // should be 8"
     let triviaNodes =
         toTrivia source
@@ -72,7 +72,7 @@ let ``Line comment on same line, is after last AST item`` () =
         fail()
 
 [<Test>]
-let ``Newline pick up before let binding`` () =
+let ``newline pick up before let binding`` () =
     let source = """let a = 7
 
 let b = 9"""
@@ -89,7 +89,7 @@ let b = 9"""
         fail()
 
 [<Test>]
-let ``Multiple comments should be linked to same trivia node`` () =
+let ``multiple comments should be linked to same trivia node`` () =
     let source = """// foo
 // bar
 let a = 7
@@ -99,17 +99,19 @@ let a = 7
         toTrivia source
         |> List.head
 
+    let expectedComment = String.normalizeNewLine """// foo
+// bar"""
+
     match triviaNodes with
-    | [{ContentBefore = [Comment(LineCommentOnSingleLine(fooComment));Comment(LineCommentOnSingleLine(barComment))]}
+    | [{ContentBefore = [Comment(LineCommentOnSingleLine(comments))]}
        {ContentItself = Some(Number("7"))}] ->
-        fooComment == "// foo"
-        barComment == "// bar"
+        String.normalizeNewLine comments == expectedComment
     | _ ->
         fail()
 
 
 [<Test>]
-let ``Comments inside record`` () =
+let ``comments inside record`` () =
     let source = """let a = 
     { // foo
     B = 7 }"""
@@ -126,7 +128,7 @@ let ``Comments inside record`` () =
         fail()
         
 [<Test>]
-let ``Comment after all source code`` () =
+let ``comment after all source code`` () =
     let source = """type T() =
     let x = 123
 //    override private x.ToString() = ""
@@ -146,7 +148,7 @@ let ``Comment after all source code`` () =
         fail()
         
 [<Test>]
-let ``Block comment added to trivia`` () =
+let ``block comment added to trivia`` () =
     let source = """let a = (* meh *) 9"""
 
     let triviaNodes =
@@ -161,7 +163,7 @@ let ``Block comment added to trivia`` () =
         failwith "Expected block comment"
 
 [<Test>]
-let ``Block comment and newline added to trivia`` () =
+let ``block comment and newline added to trivia`` () =
     let source = """(* meh *)
 let a =  b
 """
@@ -177,7 +179,7 @@ let a =  b
         failwith "Expected block comment"
         
 [<Test>]
-let ``Block comment on newline EOF added to trivia`` () =
+let ``block comment on newline EOF added to trivia`` () =
     let source = """let a =  b
 (* meh *)"""
 
@@ -192,7 +194,7 @@ let ``Block comment on newline EOF added to trivia`` () =
         failwith "Expected block comment"
 
 [<Test>]
-let ``Block comment on EOF added to trivia`` () =
+let ``block comment on EOF added to trivia`` () =
     let source = """let a =  9 (* meh *)"""
 
     let triviaNodes =
@@ -206,7 +208,7 @@ let ``Block comment on EOF added to trivia`` () =
         failwith "Expected block comment"
 
 [<Test>]
-let ``Nested block comment parsed correctly`` () =
+let ``nested block comment parsed correctly`` () =
     let source = """(* (* meh *) *)
 let a =  c + d
 """
@@ -223,7 +225,7 @@ let a =  c + d
 
 
 [<Test>]
-let ``Line comment inside block comment parsed correctly`` () =
+let ``line comment inside block comment parsed correctly`` () =
     let source = """(* // meh *)
 let a =  9
 """
@@ -241,7 +243,7 @@ let a =  9
 
 
 [<Test>]
-let ``Multiline block comment added to trivia`` () =
+let ``multiline block comment added to trivia`` () =
     let source = """(* meh
 bla *)
 let a =  b
@@ -264,7 +266,7 @@ bla *)"""
 
 
 [<Test>]
-let ``Multiple block comments should be linked to same trivia node`` () =
+let ``multiple block comments should be linked to same trivia node`` () =
     let source = """let x = y / z
 (* foo *)
 (* bar *)
@@ -283,7 +285,7 @@ x
         fail()
 
 [<Test>]
-let ``Block comment inside line comment parsed correctly`` () =
+let ``block comment inside line comment parsed correctly`` () =
     let source = """// (* meh *)
 let a =  b + c
 """
@@ -399,7 +401,7 @@ let x = 1
         fail()
         
 [<Test>]
-let ``Unreachable directive should be present in trivia`` () =
+let ``unreachable directive should be present in trivia`` () =
     let source = """namespace Internal.Utilities.Diagnostic
 #if EXTENSIBLE_DUMPER
 #if DEBUG
@@ -538,4 +540,34 @@ let a = b
 
     match trivia with
     | [] -> pass()
+    | _ -> fail()
+
+[<Test>]
+let ``multiple line comments form a single trivia`` () =
+    let source = """
+/// Represents a long identifier with possible '.' at end.
+///
+/// Typically dotms.Length = lid.Length-1, but they may be same if (incomplete) code ends in a dot, e.g. "Foo.Bar."
+/// The dots mostly matter for parsing, and are typically ignored by the typechecker, but
+/// if dotms.Length = lid.Length, then the parser must have reported an error, so the typechecker is allowed
+/// more freedom about typechecking these expressions.
+/// LongIdent can be empty list - it is used to denote that name of some AST element is absent (i.e. empty type name in inherit)
+type LongIdentWithDots =
+    | LongIdentWithDots of id: LongIdent * dotms: range list
+"""
+    let trivia =
+        toTrivia source
+        |> List.head
+
+    let expectedComment = String.normalizeNewLine """/// Represents a long identifier with possible '.' at end.
+///
+/// Typically dotms.Length = lid.Length-1, but they may be same if (incomplete) code ends in a dot, e.g. "Foo.Bar."
+/// The dots mostly matter for parsing, and are typically ignored by the typechecker, but
+/// if dotms.Length = lid.Length, then the parser must have reported an error, so the typechecker is allowed
+/// more freedom about typechecking these expressions.
+/// LongIdent can be empty list - it is used to denote that name of some AST element is absent (i.e. empty type name in inherit)"""
+
+    match trivia with
+    | [{ ContentBefore = [Comment(LineCommentOnSingleLine(comment)) ] }] ->
+        String.normalizeNewLine comment == expectedComment
     | _ -> fail()
