@@ -104,7 +104,13 @@ let (|OpNameFull|) (x : Identifier) =
     let r = x.Ranges
     let s = x.Text
     let s' = DecompileOpName s
-    if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
+    //  IsActivePatternName s ||
+    let xx = IsInfixOperator s
+    let yx = IsPrefixOperator s
+    let zx = IsTernaryOperator s
+    if IsActivePatternName s then
+        s
+    elif IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
         /// Use two spaces for symmetry
         if String.startsWithOrdinal "*" s' && s' <> "*" then
             sprintf "( %s )" s'
@@ -637,6 +643,7 @@ let (|Indexer|) = function
     | SynIndexerArg.Two(e1,e1FromEnd,e2,e2FromEnd,_,_) -> Pair((e1, e1FromEnd), (e2, e2FromEnd))
     | SynIndexerArg.One(e,fromEnd,_) -> Single(e, fromEnd)
 
+// hier ergens
 let (|OptVar|_|) = function
     | SynExpr.Ident(IdentOrKeyword(OpNameFull (s,r))) ->
         Some(s, false, r)
@@ -981,6 +988,7 @@ let (|PatTyped|_|) = function
         Some(p, t)
     | _ -> None
 
+// of hier
 let (|PatNamed|_|) = function
     | SynPat.Named(p, IdentOrKeyword(OpNameFull (s,_)), _, ao, _) ->
         Some(ao, p, s)
