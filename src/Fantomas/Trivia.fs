@@ -41,7 +41,6 @@ let filterNodes nodes =
 let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
     |> List.filter (fun { Range =r  } -> r.StartLine = lineNumber)
-    |> List.sortBy (fun { Range = r } -> r.StartColumn)
     |> List.tryHead
 
 let private mainNodeIs name (t:TriviaNodeAssigner) =
@@ -68,11 +67,9 @@ let private findFirstNodeAfterLine (nodes: TriviaNodeAssigner list) lineNumber :
         | moduleAndOpens when (nodesContainsBothAnonModuleAndOpen moduleAndOpens) ->
             moduleAndOpens
             |> List.filter (fun t -> t.Type = MainNode("SynModuleDecl.Open"))
-            |> List.sortBy (fun t -> t.Range.StartLine)
             |> List.tryHead
         | _ ->
             filteredNodes
-            |> List.sortBy (fun tn -> tn.Range.StartLine, tn.Range.StartColumn)
             |> List.tryHead
 
 let private findLastNodeOnLine (nodes: TriviaNodeAssigner list) lineNumber : TriviaNodeAssigner option =
