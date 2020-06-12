@@ -2262,8 +2262,9 @@ and genConstraints astContext (t: SynType) =
     match t with
     | TWithGlobalConstraints(t, tcs) ->
         genTypeByLookup astContext t
-        +> onlyIf (List.isNotEmpty tcs) (!- " when ")
-        +> col sepSpace tcs (genTypeConstraint astContext)
+        +> sepSpaceOrNlnIfExpressionExceedsPageWidth
+            (ifElse (List.isNotEmpty tcs) (!- "when ") sepSpace
+            +> col wordAnd tcs (genTypeConstraint astContext))
     | _ -> sepNone
 
 and genTyparDecl astContext (TyparDecl(ats, tp)) =

@@ -620,6 +620,12 @@ let internal sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx:Contex
         (indent +> sepNln) unindent // before and after for long expressions
         expr ctx
 
+let internal sepSpaceOrNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
+    expressionExceedsPageWidth
+        sepSpace sepNone // before and after for short expressions
+        sepNln unindent // before and after for long expressions
+        expr ctx
+
 let internal autoNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
         sepNone sepNone // before and after for short expressions
