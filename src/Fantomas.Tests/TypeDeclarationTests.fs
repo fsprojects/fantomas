@@ -1345,3 +1345,18 @@ type Message =
     { [<JsonProperty("body")>]
       Body: string }
 """
+
+[<Test>]
+let ``type constraint on type definition, 887`` () =
+    formatSourceString false """
+type OuterType =
+    abstract Apply<'r>
+        : InnerType<'r>
+        -> 'r when 'r : comparison
+"""  { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+type OuterType =
+    abstract Apply<'r> : InnerType<'r>
+        -> 'r when 'r : comparison
+"""

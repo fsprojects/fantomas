@@ -2605,6 +2605,7 @@ and genMemberDefn astContext node =
         +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
         +> genTypeParamPostfix astContext tds tcs
         +> sepColonX +> genTypeList astContext namedArgs -- genPropertyKind (not isFunctionProperty) mk
+        +> genConstraints astContext t
 
     | md -> failwithf "Unexpected member definition: %O" md
     |> genTrivia node.Range
