@@ -356,7 +356,7 @@ let ``lambda with complex type``() =
     formatSourceString false """let x = fun ((u, v):(int*int)) -> 5"""  config
     |> prepend newline
     |> should equal """
-let x = fun ((u, v): int * int) -> 5
+let x = fun ((u, v): (int * int)) -> 5
 """
 
 [<Test>]

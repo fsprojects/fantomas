@@ -2362,7 +2362,7 @@ and genType astContext outerBracket t =
         | TFun(TTuple ts, t) -> sepOpenT +> loopTTupleList ts +> sepArrow +> loop t +> sepCloseT
         // Do similar for tuples after an arrow
         | TFun(t, TTuple ts) -> sepOpenT +> loop t +> sepArrow +> loopTTupleList ts +> sepCloseT
-        | TFuns ts -> sepOpenT +> col sepArrow ts loop +> sepCloseT
+        | TFuns ts -> col sepArrow ts loop
         | TApp(t, ts, isPostfix) ->
             let postForm =
                 match ts with
@@ -2373,7 +2373,7 @@ and genType astContext outerBracket t =
             ifElse isPostfix postForm (loop t +> genPrefixTypes astContext ts)
 
         | TLongIdentApp(t, s, ts) -> loop t -- sprintf ".%s" s +> genPrefixTypes astContext ts
-        | TTuple ts -> sepOpenT +> loopTTupleList ts +> sepCloseT
+        | TTuple ts -> loopTTupleList ts
         | TStructTuple ts -> !- "struct " +> sepOpenT +> loopTTupleList ts +> sepCloseT
         | TWithGlobalConstraints(TVar _, [TyparSubtypeOfType _ as tc]) -> genTypeConstraint astContext tc
         | TWithGlobalConstraints(TFuns ts, tcs) -> col sepArrow ts loop +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)

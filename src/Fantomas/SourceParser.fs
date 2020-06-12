@@ -99,22 +99,32 @@ let (|OpName|) (x : Identifier) =
         | Id(Ident s) | LongId(LongIdent s) -> 
             DecompileOpName s
 
+let (|OpNameFullInPattern|) (x: Identifier) =
+    let r = x.Ranges
+    let s = x.Text
+    let s' = DecompileOpName s
+    if IsActivePatternName s || IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
+        /// Use two spaces for symmetry
+        if String.startsWithOrdinal "*" s' && s' <> "*" then
+            sprintf "( %s )" s'
+        else sprintf "(%s)" s'
+    else
+        match x with
+        | Id(Ident s) | LongId(LongIdent s) ->
+            DecompileOpName s
+    |> fun s -> (s, r)
+
+
 /// Operators in their declaration form
 let (|OpNameFull|) (x : Identifier) =
     let r = x.Ranges
     let s = x.Text
     let s' = DecompileOpName s
-    //  IsActivePatternName s ||
-    let xx = IsInfixOperator s
-    let yx = IsPrefixOperator s
-    let zx = IsTernaryOperator s
+
     if IsActivePatternName s then
         s
-    elif IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic" then
-        /// Use two spaces for symmetry
-        if String.startsWithOrdinal "*" s' && s' <> "*" then
-            sprintf "( %s )" s'
-        else sprintf "(%s)" s'
+    elif IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic"  then
+        s'
     else
         match x with
         | Id(Ident s) | LongId(LongIdent s) -> 
@@ -990,12 +1000,12 @@ let (|PatTyped|_|) = function
 
 // of hier
 let (|PatNamed|_|) = function
-    | SynPat.Named(p, IdentOrKeyword(OpNameFull (s,_)), _, ao, _) ->
+    | SynPat.Named(p, IdentOrKeyword(OpNameFullInPattern (s,_)), _, ao, _) ->
         Some(ao, p, s)
     | _ -> None
 
 let (|PatLongIdent|_|) = function
-    | SynPat.LongIdent(LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull (s,_)), _), _, tpso, xs, ao, _) ->
+    | SynPat.LongIdent(LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFullInPattern (s,_)), _), _, tpso, xs, ao, _) ->
         match xs with
         | SynArgPats.Pats ps -> 
             Some(ao, s, List.map (fun p -> (None, p)) ps, tpso)
@@ -1295,7 +1305,7 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
     | SynMemberSig.ValField(f, _) -> MSValField f
     | SynMemberSig.NestedType(tds, _) -> MSNestedType tds
 
-let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull (s,_)), tds, t, vi, isInline, _, px, ao, _, _)) =
+let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFullInPattern (s,_)), tds, t, vi, isInline, _, px, ao, _, _)) =
     (ats, px, ao, s, t, vi, isInline, tds)
 
 // Misc

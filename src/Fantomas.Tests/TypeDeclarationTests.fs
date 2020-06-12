@@ -1307,3 +1307,21 @@ type VersionMismatchDuringDeserializationException(message : string,
                                                    innerException : System.Exception) =
     inherit System.Exception(message, innerException)
 """
+
+[<Test>]
+let ``tuple typed abbreviation`` () =
+    formatSourceString false """type A = (int * int)
+"""  config
+    |> prepend newline
+    |> should equal """
+type A = (int * int)
+"""
+
+[<Test>]
+let ``function signature type abbreviation`` () =
+    formatSourceString false """type A = (int -> int -> int)
+"""  config
+    |> prepend newline
+    |> should equal """
+type A = (int -> int -> int)
+"""

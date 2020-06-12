@@ -444,3 +444,12 @@ async {
 }
 \"\"\"
 "
+
+[<Test>]
+let ``addition via function`` () =
+    formatSourceString false """let a = (+) 7 8
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = (+) 7 8
+"""
