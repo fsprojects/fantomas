@@ -66,7 +66,7 @@ let ``should keep the string * string * string option type signature``() =
     """ config
     |> should equal """type DGML =
     | Node of string
-    | Link of string * string * string option
+    | Link of string * string * (string option)
 """
 
 [<Test>]
@@ -127,7 +127,7 @@ val GetHashCodeTainted : (Tainted<'T> -> int) when 'T : equality
     |> should equal """
 module Tainted
 
-val GetHashCodeTainted: Tainted<'T> -> int when 'T: equality
+val GetHashCodeTainted: (Tainted<'T> -> int) when 'T: equality
 """
 
 [<Test>]

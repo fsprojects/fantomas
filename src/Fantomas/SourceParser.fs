@@ -99,8 +99,7 @@ let (|OpName|) (x : Identifier) =
         | Id(Ident s) | LongId(LongIdent s) -> 
             DecompileOpName s
 
-/// Operators in their declaration form
-let (|OpNameFull|) (x : Identifier) =
+let (|OpNameFullInPattern|) (x: Identifier) =
     let r = x.Ranges
     let s = x.Text
     let s' = DecompileOpName s
@@ -109,6 +108,23 @@ let (|OpNameFull|) (x : Identifier) =
         if String.startsWithOrdinal "*" s' && s' <> "*" then
             sprintf "( %s )" s'
         else sprintf "(%s)" s'
+    else
+        match x with
+        | Id(Ident s) | LongId(LongIdent s) ->
+            DecompileOpName s
+    |> fun s -> (s, r)
+
+
+/// Operators in their declaration form
+let (|OpNameFull|) (x : Identifier) =
+    let r = x.Ranges
+    let s = x.Text
+    let s' = DecompileOpName s
+
+    if IsActivePatternName s then
+        s
+    elif IsInfixOperator s || IsPrefixOperator s || IsTernaryOperator s || s = "op_Dynamic"  then
+        s'
     else
         match x with
         | Id(Ident s) | LongId(LongIdent s) -> 
@@ -637,6 +653,7 @@ let (|Indexer|) = function
     | SynIndexerArg.Two(e1,e1FromEnd,e2,e2FromEnd,_,_) -> Pair((e1, e1FromEnd), (e2, e2FromEnd))
     | SynIndexerArg.One(e,fromEnd,_) -> Single(e, fromEnd)
 
+// hier ergens
 let (|OptVar|_|) = function
     | SynExpr.Ident(IdentOrKeyword(OpNameFull (s,r))) ->
         Some(s, false, r)
@@ -981,13 +998,14 @@ let (|PatTyped|_|) = function
         Some(p, t)
     | _ -> None
 
+// of hier
 let (|PatNamed|_|) = function
-    | SynPat.Named(p, IdentOrKeyword(OpNameFull (s,_)), _, ao, _) ->
+    | SynPat.Named(p, IdentOrKeyword(OpNameFullInPattern (s,_)), _, ao, _) ->
         Some(ao, p, s)
     | _ -> None
 
 let (|PatLongIdent|_|) = function
-    | SynPat.LongIdent(LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFull (s,_)), _), _, tpso, xs, ao, _) ->
+    | SynPat.LongIdent(LongIdentWithDots.LongIdentWithDots(LongIdentOrKeyword(OpNameFullInPattern (s,_)), _), _, tpso, xs, ao, _) ->
         match xs with
         | SynArgPats.Pats ps -> 
             Some(ao, s, List.map (fun p -> (None, p)) ps, tpso)
@@ -1249,6 +1267,9 @@ let (|TAnonRecord|_|) = function
         Some(isStruct, fields)
     | _ -> None
 
+let (|TParen|_|) = function
+    | SynType.Paren(innerType, _) -> Some(innerType)
+    | _ -> None
 // Type parameter
 
 type SingleTyparConstraintKind = 
@@ -1284,7 +1305,7 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) = function
     | SynMemberSig.ValField(f, _) -> MSValField f
     | SynMemberSig.NestedType(tds, _) -> MSNestedType tds
 
-let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFull (s,_)), tds, t, vi, isInline, _, px, ao, _, _)) =
+let (|Val|) (ValSpfn(ats, IdentOrKeyword(OpNameFullInPattern (s,_)), tds, t, vi, isInline, _, px, ao, _, _)) =
     (ats, px, ao, s, t, vi, isInline, tds)
 
 // Misc

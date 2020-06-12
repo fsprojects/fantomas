@@ -1309,6 +1309,23 @@ type VersionMismatchDuringDeserializationException(message : string,
 """
 
 [<Test>]
+let ``tuple typed abbreviation`` () =
+    formatSourceString false """type A = (int * int)
+"""  config
+    |> prepend newline
+    |> should equal """
+type A = (int * int)
+"""
+
+[<Test>]
+let ``function signature type abbreviation`` () =
+    formatSourceString false """type A = (int -> int -> int)
+"""  config
+    |> prepend newline
+    |> should equal """
+type A = (int -> int -> int)
+"""
+
 let ``type record declaration with attributes, 910`` () =
     formatSourceString false """type Commenter =
     { [<JsonProperty("display_name")>]

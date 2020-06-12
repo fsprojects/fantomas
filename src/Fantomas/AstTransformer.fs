@@ -1537,6 +1537,12 @@ module private Ast =
              Properties = p ["isStruct" ==> isStruct]
              FsAstNode = st
              Childs = List.map visitAnonRecordTypeField typeNames}
+        | SynType.Paren(innerType,range) ->
+            {Type = "SynType.Paren"
+             Range = r range
+             Properties = p []
+             FsAstNode = st
+             Childs = [yield visitSynType innerType]}
 
     and visitSynConst(sc: SynConst) = sprintf "%A" sc
 
