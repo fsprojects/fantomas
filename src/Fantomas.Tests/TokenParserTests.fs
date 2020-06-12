@@ -171,18 +171,20 @@ let ``Multi line block comment should be found in tokens`` () =
         failwith "expected block comment"
         
 [<Test>]
-let ``Multiple line comment should be found in tokens`` () =
+let ``multiple line comment should be found in tokens`` () =
     let source = """// meh
 // foo
 let a = 9
 """
     let (tokens,lineCount) = tokenize [] source
     let triviaNodes = getTriviaFromTokens tokens lineCount
+
+    let expectedComment = String.normalizeNewLine """// meh
+// foo"""
     
     match triviaNodes with
-    | ({ Item = Comment(LineCommentOnSingleLine(l1)) })::({ Item = Comment(LineCommentOnSingleLine(l2)) })::_ ->
-        l1 == "// meh"
-        l2 == "// foo"
+    | ({ Item = Comment(LineCommentOnSingleLine(l1)) })::_ ->
+        String.normalizeNewLine l1 == expectedComment
     | _ ->
         failwith "Expected two line comments"
         

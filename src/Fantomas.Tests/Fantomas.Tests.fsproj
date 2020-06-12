@@ -70,6 +70,8 @@
     <Compile Include="MultilineBlockBracketsOnSameColumnArrayOrListTests.fs" />
     <Compile Include="NewlineBetweenTypeDefinitionAndMembersTests.fs" />
     <Compile Include="KeepIfThenInSameLineTests.fs" />
+    <Compile Include="MaxValueBindingWidthTests.fs" />
+    <Compile Include="MaxFunctionBindingWidthTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />

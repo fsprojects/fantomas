@@ -471,6 +471,8 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
         else
             (sepEq +> sepSpace)
 
+    let maxWidth = if isFunctionBinding pat then ctx.Config.MaxFunctionBindingWidth else ctx.Config.MaxValueBindingWidth
+
     match e with
     | TypedExpr(Typed, e, t) ->
         let addExtraSpaceBeforeGenericType =
@@ -499,14 +501,14 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
          +> sepEqual (isPrefixMultiline || hasLineCommentBeforeColon)
          +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual || hasLineCommentBeforeColon)
                (indent +> sepNln +> genExpr astContext e +> unindent)
-               (isShortExpressionOrAddIndentAndNewline ctx.Config.MaxLetBindingWidth (genExpr astContext e))) ctx
+               (isShortExpressionOrAddIndentAndNewline maxWidth (genExpr astContext e))) ctx
     | e ->
         let genE =
             match e with
             | MultilineString(_)
             | _ when (TriviaHelpers.``has content itself that is multiline string`` e.Range ctx.Trivia) ->
                 genExpr astContext e
-            | _ -> isShortExpressionOrAddIndentAndNewline ctx.Config.MaxLetBindingWidth (genExpr astContext e)
+            | _ -> isShortExpressionOrAddIndentAndNewline maxWidth (genExpr astContext e)
 
         (sepEqual isPrefixMultiline
         +> leaveEqualsToken pat.Range
@@ -544,6 +546,7 @@ and genLetBinding astContext pref b =
             ifElse astContext.IsFirstChild
                 (genAttributes astContext ats -- pref)
                 (!- pref +> genOnelinerAttributes astContext ats)
+
         let afterLetKeyword =
             opt sepSpace ao genAccess
             +> ifElse isMutable (!- "mutable ") sepNone
@@ -681,19 +684,18 @@ and genMemberBinding astContext b =
         match e with
         | TypedExpr(Typed, e, t) ->
             genAttributesAndXmlDoc
-            +> leadingExpressionIsMultiline prefix (fun prefixIsLong ->
-                ifElse
-                    prefixIsLong
-                    (indent +> sepNln +> sepColon +> genType astContext false t +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
-                    (sepColon +> genType astContext false t +> sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
+            +> prefix
+            +> sepColon
+            +> genType astContext false t
+            +> sepEq
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+
         | e ->
             genAttributesAndXmlDoc
-            +> leadingExpressionIsMultiline prefix
-                (fun prefixIsLong ->
-                    ifElse
-                        prefixIsLong
-                        (indent +> sepNln +> !- "=" +> sepNln +> genExpr astContext e +> unindent)
-                        (sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
+            +> prefix
+            +> sepEq
+            +> sepSpace
+            +> (fun ctx -> (isShortExpressionOrAddIndentAndNewline (if isFunctionBinding p then ctx.Config.MaxFunctionBindingWidth else ctx.Config.MaxValueBindingWidth) (genExpr astContext e)) ctx)
 
     | ExplicitCtor(ats, px, ao, p, e, so) ->
         let prefix =
@@ -2048,11 +2050,8 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
     | ObjectModel(_, MemberDefnList(impCtor, others), _) ->
         typeName
-        +> leadingExpressionIsMultiline
-               (opt sepNone impCtor (fun mdf ->
-                    sepSpaceBeforeClassConstructor
-                    +> genMemberDefn { astContext with InterfaceRange = None } mdf))
-                (fun longCtor -> ifElse longCtor (indent +> sepNln +> !- "=" +> unindent) sepEq)
+        +> opt sepNone impCtor (fun mdf -> sepSpaceBeforeClassConstructor +> genMemberDefn { astContext with InterfaceRange = None } mdf)
+        +> sepEq
         +> indent
         +> genMemberDefnList { astContext with InterfaceRange = None } others
         +> unindent
@@ -2555,24 +2554,10 @@ and genMemberDefn astContext node =
                  +> sepOpenT
                  +> col sepComma (simplePats ps) (genSimplePat astContext)
                  +> sepCloseT)
-                (match ao with
-                 | Some ao ->
-                     indent
-                     +> sepNln
-                     +> sepSpace
-                     +> genAccess ao
-                     +> sepSpace
-                     +> sepOpenT
-                     +> atCurrentColumn (col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext))
-                     +> sepCloseT
-                     +> unindent
-                 | None ->
-                     sepOpenT
-                     +> indent
-                     +> sepNln
-                     +> col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext)
-                     +> unindent
-                     +> sepCloseT)
+                (optPre sepSpace sepSpace ao genAccess
+                 +> sepOpenT
+                 +> atCurrentColumn (col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext))
+                 +> sepCloseT)
 
         // In implicit constructor, attributes should come even before access qualifiers
         ifElse ats.IsEmpty sepNone (sepSpace +> genOnelinerAttributes astContext ats)
@@ -2700,7 +2685,7 @@ and genPat astContext pat =
         ifElse astContext.IsCStylePattern (genTypeByLookup astContext t +> sepSpace +> genPat astContext p)
             (genPat astContext p +> sepColon +> genType astContext false t)
     | PatNamed(ao, PatNullary PatWild, s) ->
-         autoIndentAndNlnIfExpressionExceedsPageWidth (opt sepSpace ao genAccess +> infixOperatorFromTrivia pat.Range s)
+         opt sepSpace ao genAccess +> infixOperatorFromTrivia pat.Range s
     | PatNamed(ao, p, s) -> opt sepSpace ao genAccess +> genPat astContext p -- sprintf " as %s" s
     | PatLongIdent(ao, s, ps, tpso) ->
         let aoc = opt sepSpace ao genAccess
@@ -2722,9 +2707,9 @@ and genPat astContext pat =
             let genName = aoc -- s +> tpsoc +> sepSpace
 
             let genParameters = 
-                (expressionFitsOnRestOfLine
-                (atCurrentColumn (col (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)) +> indent)
-                (indent +> sepNln +> col sepNln ps (genPatWithIdent astContext)) +> unindent)
+                expressionFitsOnRestOfLine
+                    (atCurrentColumn (col (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)))
+                    (atCurrentColumn (col sepNln ps (genPatWithIdent astContext)))
 
             genName
             +> ifElse hasBracket sepOpenT sepNone
@@ -2736,7 +2721,7 @@ and genPat astContext pat =
     | PatTuple ps ->
         expressionFitsOnRestOfLine
             (col sepComma ps (genPat astContext))
-            (autoIndentAndNlnIfExpressionExceedsPageWidth (col (sepComma +> sepNln) ps (genPat astContext)))
+            (atCurrentColumn (col (sepComma +> sepNln) ps (genPat astContext)))
     | PatStructTuple ps ->
         !- "struct " +> sepOpenT +> atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext)) +> sepCloseT
     | PatSeq(PatList, ps) ->
@@ -2770,9 +2755,9 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
 
     let hasBracket = ps |> Seq.map fst |> Seq.exists Option.isSome
     let genName = aoc -- s +> tpsoc +> sepSpace
+
     let genParametersInitial =
         colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)
-
 
     let genReturnType, newlineBeforeReturnType =
         match t with
@@ -2782,17 +2767,32 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
     let genParametersWithNewlines =
         (sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType)
 
-    let isLongFunctionSignature ctx=
-        futureNlnCheck (genName +> genParametersInitial +> genReturnType) ctx
+    let isLongFunctionSignature (ctx: Context) =
+        let space = 1
+        let colon = if ctx.Config.SpaceBeforeColon then 3 else 2
+        let lengthByAST =
+            getSynAccessLength ao
+            + lengthWhenSome (fun _ -> space) ao
+            + s.Length
+            + space
+            + List.sumBy (snd >> getSynPatLength >> (+) space) ps
+            + lengthWhenSome (fun _ -> colon) t
+            + lengthWhenSome getSynTypeLength t
 
-    atCurrentColumn (fun ctx ->
+        (ctx.Column + lengthByAST > ctx.Config.PageWidth)
+        || futureNlnCheck (genName +> genParametersInitial +> genReturnType) ctx
+
+    fun ctx ->
         let isLong = isLongFunctionSignature ctx
+
         let expr =
             genName
             +> ifElse hasBracket sepOpenT sepNone
-            +> ifElse isLong genParametersWithNewlines genParametersInitial
+            +> ifElse isLong (indent +> genParametersWithNewlines  +> unindent) genParametersInitial
             +> ifElse hasBracket sepCloseT sepNone
-        expr ctx)
+
+        expr ctx
+
 and genConst (c:SynConst) (r:range) =
     match c with
     | SynConst.Unit ->
@@ -2919,8 +2919,11 @@ and genConstBytes (bytes: byte []) (r: range) =
         | None -> !- (sprintf "%A" bytes)
         <| ctx
 
-and genTrivia (range: range) f =
-    enterNode range +> f +> leaveNode range
+and genTrivia (range: range) f ctx =
+    if List.isEmpty ctx.Trivia then
+        f ctx
+    else
+        (enterNode range +> f +> leaveNode range) ctx
 
 and infixOperatorFromTrivia range fallback (ctx: Context) =
     // by specs, section 3.4 https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=24&zoom=auto,-137,312

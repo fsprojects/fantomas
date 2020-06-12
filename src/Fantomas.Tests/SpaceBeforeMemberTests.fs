@@ -14,7 +14,7 @@ type Person() =
     member this.Sleep() = ignore
     member __.singAlong () = ()
     member __.swim (duration:TimeSpan) = ()
-"""  config
+"""  { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Person() =
@@ -32,7 +32,7 @@ type Person() =
     member this.Sleep() = ignore
     member __.singAlong () = ()
     member __.swim (duration:TimeSpan) = ()
-"""  spaceBeforeConfig
+"""  { spaceBeforeConfig with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Person() =

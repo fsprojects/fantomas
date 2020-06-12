@@ -280,8 +280,7 @@ open Accessibility
 [<DllImport("oleacc.dll")>]
 extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cChildren, [<Out; MarshalAs(UnmanagedType.LPArray,
                                                                                                           SizeParamIndex =
-                                                                                                              4s)>] System.Object []
-    rgvarChildren, int* pcObtained)
+                                                                                                              4s)>] System.Object [] rgvarChildren, int* pcObtained)
 """
 
 [<Test>]
@@ -543,4 +542,33 @@ let private addTaskToScheduler
             .Build()
 
     1
+"""
+
+[<Test>]
+let ``long function signature should align with equal sign, 883`` () =
+    formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) : ReadModel<'Event, 'State> =
+    ()
+"""  { config with IndentSpaceNum = 2; SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+let readModel
+  (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
+  (initState : 'State)
+  : ReadModel<'Event, 'State>
+  =
+  ()
+"""
+
+[<Test>]
+let ``long function signature should align with equal sign, no return type`` () =
+    formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) =
+    ()
+"""  { config with IndentSpaceNum = 2; SpaceBeforeColon = true; PageWidth = 80 }
+    |> prepend newline
+    |> should equal """
+let readModel
+  (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
+  (initState : 'State)
+  =
+  ()
 """

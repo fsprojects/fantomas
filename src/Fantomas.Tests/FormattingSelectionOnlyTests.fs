@@ -69,7 +69,7 @@ let source = "
           done;
       done;;
     Multiple9x9 ();;"
-"""     ({ config with MaxLetBindingWidth = 60; MaxRecordWidth = 50 })
+"""     ({ config with MaxValueBindingWidth = 120; MaxRecordWidth = 50 })
     |> should equal """let config = { FormatConfig.Default with IndentSpaceNum = 2 }"""
 
 [<Test>]
@@ -100,8 +100,7 @@ let ``should detect members and format appropriately``() =
 type T () = 
   let items = []
   override x.Reorder () = 
-        items |> List.iter ignore
-"""     config
+        items |> List.iter ignore""" { config with MaxFunctionBindingWidth = 120 }
     |> should equal """  override x.Reorder() = items |> List.iter ignore"""
 
 [<Test>]
@@ -125,14 +124,12 @@ type Folder(pathIn : string) =
 
 and File(filename: string, containingFolder: Folder) = 
    member __.Name = filename
-   member __.ContainingFolder = containingFolder
-"""     config
+   member __.ContainingFolder = containingFolder""" { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 and File(filename: string, containingFolder: Folder) =
     member __.Name = filename
-    member __.ContainingFolder = containingFolder
-"""
+    member __.ContainingFolder = containingFolder"""
 
 [<Test>]
 let ``should not add trailing whitespaces and preserve indentation``() =
