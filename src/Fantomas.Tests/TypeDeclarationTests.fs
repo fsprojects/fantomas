@@ -1325,3 +1325,23 @@ let ``function signature type abbreviation`` () =
     |> should equal """
 type A = (int -> int -> int)
 """
+
+let ``type record declaration with attributes, 910`` () =
+    formatSourceString false """type Commenter =
+    { [<JsonProperty("display_name")>]
+      DisplayName: string }
+
+type Message =
+    { [<JsonProperty("body")>]
+      Body: string }
+"""  config
+    |> prepend newline
+    |> should equal """
+type Commenter =
+    { [<JsonProperty("display_name")>]
+      DisplayName: string }
+
+type Message =
+    { [<JsonProperty("body")>]
+      Body: string }
+"""

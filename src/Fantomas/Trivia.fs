@@ -204,11 +204,17 @@ let private triviaBetweenAttributeAndParentBinding (triviaNodes: TriviaNodeAssig
             | MainNode("SynModuleSigDecl.NestedModule")
             | MainNode("ValSpfn")
             | MainNode("SynMemberDefn.Member")
-            | MainNode("SynMemberDefn.LetBindings") -> true
+            | MainNode("SynMemberDefn.LetBindings")
+            | MainNode("Field") -> true
             | _ -> false
         )
         |> List.pairwise
+
     filteredNodes |> List.tryFind (function
+        | f, a when (f.Type = MainNode("Field")
+                     && a.Type = MainNode("SynAttributeList")
+                     && f.Range.StartLine = a.Range.StartLine
+                     && a.Range.StartLine + 1 = f.Range.EndLine) -> true
         | a, p when (a.Type = MainNode("SynAttributeList") && a.Range.StartLine < line && a.Range.StartLine = a.Range.EndLine) ->
             match p.Type with
               | MainNode("SynModuleDecl.Let") when (p.Range.StartLine > line) -> true
@@ -216,7 +222,7 @@ let private triviaBetweenAttributeAndParentBinding (triviaNodes: TriviaNodeAssig
               | MainNode("SynModuleDecl.Types") when (p.Range.StartLine > line) -> true
               | _ -> false
         | _ -> false)
-    |> Option.map fst
+    |> Option.bind (fun (a,_) -> if a.Type = MainNode("SynAttributeList") then Some a else None)
 
 let private findASTNodeOfTypeThatContains (nodes: TriviaNodeAssigner list) typeName range =
     nodes
