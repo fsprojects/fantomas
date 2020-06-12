@@ -41,7 +41,6 @@ let filterNodes nodes =
 let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
     |> List.filter (fun { Range =r  } -> r.StartLine = lineNumber)
-    |> List.sortBy (fun { Range = r } -> r.StartColumn)
     |> List.tryHead
 
 let private mainNodeIs name (t:TriviaNodeAssigner) =
@@ -68,11 +67,9 @@ let private findFirstNodeAfterLine (nodes: TriviaNodeAssigner list) lineNumber :
         | moduleAndOpens when (nodesContainsBothAnonModuleAndOpen moduleAndOpens) ->
             moduleAndOpens
             |> List.filter (fun t -> t.Type = MainNode("SynModuleDecl.Open"))
-            |> List.sortBy (fun t -> t.Range.StartLine)
             |> List.tryHead
         | _ ->
             filteredNodes
-            |> List.sortBy (fun tn -> tn.Range.StartLine, tn.Range.StartColumn)
             |> List.tryHead
 
 let private findLastNodeOnLine (nodes: TriviaNodeAssigner list) lineNumber : TriviaNodeAssigner option =
@@ -189,10 +186,10 @@ let private findParsedHashOnLineAndEndswith (triviaNodes: TriviaNodeAssigner lis
 
 // Only return the attributeList when the trivia is under it and above the AST node of which the attribute is a child node.
 // f.ex.
-// [Foo()]
+// [<Foo()>]
 // #if BAR
 // let meh = ()
-// The trivia '#if BAR' should be linked to the [Foo()] attribute
+// The trivia '#if BAR' should be linked to the [<Foo()>] attribute
 //
 // The reason for this is that the range of the attribute is not part of the range of the parent binding.
 // This can lead to weird results when used in CodePrinter.
@@ -201,37 +198,25 @@ let private triviaBetweenAttributeAndParentBinding (triviaNodes: TriviaNodeAssig
         triviaNodes
         |> List.filter (fun t ->
             match t.Type with
-            | MainNode("SynAttribute")
-            | MainNode("SynExpr.Paren")
-            | MainNode("SynExpr.Tuple")
-            | MainNode("SynExpr.Const") ->
-                false
-            | MainNode(_) -> true
+            | MainNode("SynAttributeList")
+            | MainNode("SynModuleDecl.Let")
+            | MainNode("SynModuleDecl.Types")
+            | MainNode("SynModuleSigDecl.NestedModule")
+            | MainNode("ValSpfn")
+            | MainNode("SynMemberDefn.Member")
+            | MainNode("SynMemberDefn.LetBindings") -> true
             | _ -> false
         )
-        |> List.indexed
-
-    let parentBinding =
-        filteredNodes
-        |> List.tryFind (fun (_,t) ->
-            match t.Type with
-            | MainNode("SynModuleDecl.Let") when (t.Range.StartLine > line) -> true
-            | MainNode("SynAttributeList") when (t.Range.StartLine > line) -> true
-            | MainNode("SynModuleDecl.Types") when (t.Range.StartLine > line) -> true
-            | _ -> false
-        )
-
-    let attributeList =
-        filteredNodes
-        |> List.tryFind (fun (_,t) ->
-            match t.Type with
-            | MainNode("SynAttributeList") when (t.Range.StartLine < line) -> true
-            | _ -> false
-        )
-
-    match attributeList, parentBinding with
-    | Some (ai,a), Some (mdli,_) when (ai + 1 = mdli && a.Range.StartLine = a.Range.EndLine) -> Some a
-    | _ -> None
+        |> List.pairwise
+    filteredNodes |> List.tryFind (function
+        | a, p when (a.Type = MainNode("SynAttributeList") && a.Range.StartLine < line && a.Range.StartLine = a.Range.EndLine) ->
+            match p.Type with
+              | MainNode("SynModuleDecl.Let") when (p.Range.StartLine > line) -> true
+              | MainNode("SynAttributeList") when (p.Range.StartLine > line) -> true
+              | MainNode("SynModuleDecl.Types") when (p.Range.StartLine > line) -> true
+              | _ -> false
+        | _ -> false)
+    |> Option.map fst
 
 let private findASTNodeOfTypeThatContains (nodes: TriviaNodeAssigner list) typeName range =
     nodes
