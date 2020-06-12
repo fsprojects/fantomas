@@ -180,7 +180,7 @@ Thank you for your interest in contributing to Fantomas! This guide explains eve
 
 ### Before touching the code
 - Open an issue to propose the change you have in mind. 
-- For bugs, please create them using the [online tool](https://jindraivanek.gitlab.io/fantomas-ui/). Update the title of the issue with something meaningful instead of `Bug report from fantomas-ui`.
+- For bugs, please create them using the [online tool](https://fsprojects.github.io/fantomas-tools/). Update the title of the issue with something meaningful instead of `Bug report from fantomas-ui`.
 - For stylistic changes, please take the time to discuss them and consider all possible outcomes of the change. Consult the [fsharp style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/) for guidance.
 New behavior should most likely be optional because a configuration flag. 
 Always keep the following train of thought: if a user upgrades Fantomas to a new version, the result of formatting with the default settings should not change.
