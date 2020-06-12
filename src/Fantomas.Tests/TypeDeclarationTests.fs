@@ -1307,3 +1307,24 @@ type VersionMismatchDuringDeserializationException(message : string,
                                                    innerException : System.Exception) =
     inherit System.Exception(message, innerException)
 """
+
+[<Test>]
+let ``type record declaration with attributes, 910`` () =
+    formatSourceString false """type Commenter =
+    { [<JsonProperty("display_name")>]
+      DisplayName: string }
+
+type Message =
+    { [<JsonProperty("body")>]
+      Body: string }
+"""  config
+    |> prepend newline
+    |> should equal """
+type Commenter =
+    { [<JsonProperty("display_name")>]
+      DisplayName: string }
+
+type Message =
+    { [<JsonProperty("body")>]
+      Body: string }
+"""
