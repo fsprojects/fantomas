@@ -232,7 +232,7 @@ let private findASTNodeOfTypeThatContains (nodes: TriviaNodeAssigner list) typeN
         | _ -> false)
     |> List.tryHead
 
-let private addTriviaToTriviaNode (startOfSourceCode:int) (triviaNodes: TriviaNodeAssigner list) trivia =
+let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding (startOfSourceCode:int) (triviaNodes: TriviaNodeAssigner list) trivia =
     match trivia with
     | { Item = Comment(LineCommentOnSingleLine(_)) as comment; Range = range } when (commentIsAfterLastTriviaNode triviaNodes range) ->
         // Comment on is on its own line after all Trivia nodes, most likely at the end of a module
@@ -381,8 +381,10 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
     let triviaNodesFromAST =
         flattenNodeToList node
         |> filterNodes
-        |> List.map mapNodeToTriviaNode
-        |> List.choose id
+        |> List.choose mapNodeToTriviaNode
+
+    let hasAnyAttributes = List.exists (fun (tn:TriviaNodeAssigner) -> match tn.Type with | MainNode("SynAttributeList") -> true | _ -> false) triviaNodesFromAST
+    let triviaBetweenAttributeAndParentBinding = if hasAnyAttributes then triviaBetweenAttributeAndParentBinding else (fun _ _ -> None)
     let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
     let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
     
@@ -391,7 +393,7 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
     match trivias with
     | [] -> []
     | _ ->
-        List.fold (addTriviaToTriviaNode startOfSourceCode) triviaNodes trivias
+        List.fold (addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding startOfSourceCode) triviaNodes trivias
         |> List.choose (fun tn ->
             if triviaNodeIsNotEmpty tn then
                 { Type = tn.Type
