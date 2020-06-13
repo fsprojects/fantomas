@@ -304,7 +304,11 @@ let internal atCurrentColumnIndent (f : _ -> Context) (ctx : Context) =
 
 /// Function composition operator
 let internal (+>) (ctx : Context -> Context) (f : _ -> Context) x =
-    f (ctx x)
+    let y = ctx x
+    match y.WriterModel.Mode with
+    | ShortExpression infos when infos |> Seq.exists (fun x -> x.ConfirmedMultiline) -> y
+    | _ -> f y
+    //f (ctx x)
 
 /// Break-line and append specified string
 let internal (++) (ctx : Context -> Context) (str : string) x =
