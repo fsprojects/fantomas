@@ -81,7 +81,6 @@
         })
             .then(result => result.json())
             .then(data => {
-                console.log(`data`, data);
                 createCharts(data.value)
             });
     })
