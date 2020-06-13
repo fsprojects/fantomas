@@ -43,7 +43,7 @@ let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode
     |> List.filter (fun { Range =r  } -> r.StartLine = lineNumber)
     |> List.tryHead
 
-let private mainNodeIs name (t:TriviaNodeAssigner) =
+let inline private mainNodeIs name (t:TriviaNodeAssigner) =
     match t.Type with
     | MainNode(mn) -> mn = name
     | _ -> false
@@ -54,7 +54,7 @@ let private nodesContainsBothAnonModuleAndOpen (nodes: TriviaNodeAssigner list) 
 
 // the member keyword is not part of an AST node range
 // so it is not an ideal candidate node to have trivia content
-let private isNotMemberKeyword (node: TriviaNodeAssigner) =
+let inline private isNotMemberKeyword (node: TriviaNodeAssigner) =
     match node.Type with
     | Token({ TokenInfo = ti }) when (ti.TokenName = "MEMBER") -> false
     | _ -> true
