@@ -825,6 +825,62 @@ and genExpr astContext synExpr =
     let sepCloseT = tokN synExpr.Range "RPAREN" sepCloseT
 
     match synExpr with
+    | ElmishReactWithoutChildren(identifier, attributes) ->
+        fun ctx ->
+            // TODO consider max elmish oneliner setting
+            let maxRemainingArrayLength = ctx.Config.MaxArrayOrListWidth - identifier.Length
+            let ctx' =
+                { ctx with Config = { ctx.Config with MaxArrayOrListWidth = maxRemainingArrayLength } }
+            (!- identifier +> sepSpace +> genExpr astContext attributes) ctx'
+
+    | ElmishReactWithChildren((identifier,_,_), attributes, (_isArray,children)) ->
+        let genChildren isShort =
+            match children with
+            | [] -> onlyIfNot isShort sepNln +> sepOpenLFixed +> sepCloseLFixed
+            | [ElmishReactWithoutChildren(_) as singleChild]
+            | [ElmishReactWithChildren(_) as singleChild] ->
+                fun ctx ->
+                    leadingExpressionLong
+                        // TODO consider max elmish oneliner setting
+                        ctx.Config.MaxArrayOrListWidth
+                        (sepOpenL +> genExpr astContext singleChild)
+                        (fun isLong -> ifElse isLong (sepNln +> sepCloseLFixed) sepCloseL)
+                        ctx
+            | [singleChild] ->
+                sepOpenL +> genExpr astContext singleChild +> sepCloseL
+            | children ->
+                if isShort then
+                    sepOpenL
+                    +> col sepSemi children (genExpr astContext)
+                    +> sepCloseL
+                else
+                    sepOpenL
+                    +> atCurrentColumn (col sepNln children (genExpr astContext))
+                    +> sepNln
+                    +> sepCloseLFixed
+
+        let shortExpression =
+            !- identifier
+            +> sepSpace
+            +> genExpr astContext attributes
+            +> sepSpace
+            +> genChildren true
+
+        let longExpression =
+            !- identifier
+            +> sepSpace
+            +> atCurrentColumn (genExpr astContext attributes
+                                +> ifElse (List.isEmpty children) sepSpace sepNln
+                                +> genChildren false)
+
+        fun ctx ->
+            isShortExpression
+                // TODO consider max elmish oneliner setting
+                ctx.Config.MaxArrayOrListWidth
+                shortExpression
+                longExpression
+                ctx
+
     | SingleExpr(Lazy, e) ->
         // Always add braces when dealing with lazy
         let hasParenthesis = hasParenthesis e
