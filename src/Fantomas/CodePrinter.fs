@@ -830,24 +830,36 @@ and genExpr astContext synExpr =
             // TODO consider max elmish oneliner setting
             let maxRemainingArrayLength = ctx.Config.MaxArrayOrListWidth - identifier.Length
             let ctx' =
-                { ctx with Config = { ctx.Config with MaxArrayOrListWidth = maxRemainingArrayLength } }
-            (!- identifier +> sepSpace +> genExpr astContext attributes) ctx'
+                { ctx with Config = { ctx.Config with
+                                        MaxArrayOrListWidth = maxRemainingArrayLength
+                                        // override user setting to get original fantomas formatting
+                                        MultilineBlockBracketsOnSameColumn = false } }
+            (!- identifier
+             +> sepSpace
+             +> genExpr astContext attributes
+             +> fun cty ->
+                 // reset the config with original values
+                 { cty with Config = { cty.Config with
+                                         MaxArrayOrListWidth = ctx.Config.MaxArrayOrListWidth
+                                         MultilineBlockBracketsOnSameColumn = ctx.Config.MultilineBlockBracketsOnSameColumn } }) ctx'
+
 
     | ElmishReactWithChildren((identifier,_,_), attributes, (_isArray,children)) ->
         let genChildren isShort =
             match children with
-            | [] -> onlyIfNot isShort sepNln +> sepOpenLFixed +> sepCloseLFixed
-            | [ElmishReactWithoutChildren(_) as singleChild]
-            | [ElmishReactWithChildren(_) as singleChild] ->
-                fun ctx ->
-                    leadingExpressionLong
-                        // TODO consider max elmish oneliner setting
-                        ctx.Config.MaxArrayOrListWidth
-                        (sepOpenL +> genExpr astContext singleChild)
-                        (fun isLong -> ifElse isLong (sepNln +> sepCloseLFixed) sepCloseL)
-                        ctx
+            | [] -> sepOpenLFixed +> sepCloseLFixed
             | [singleChild] ->
-                sepOpenL +> genExpr astContext singleChild +> sepCloseL
+                if isShort then
+                    sepOpenL +> genExpr astContext singleChild +> sepCloseL
+                else
+                    sepOpenL
+                    +> indent
+                    +> sepNln
+                    +> genExpr astContext singleChild
+                    +> unindent
+                    +> sepNln
+                    +> sepCloseLFixed
+
             | children ->
                 if isShort then
                     sepOpenL
@@ -855,7 +867,10 @@ and genExpr astContext synExpr =
                     +> sepCloseL
                 else
                     sepOpenL
-                    +> atCurrentColumn (col sepNln children (genExpr astContext))
+                    +> indent
+                    +> sepNln
+                    +> col sepNln children (genExpr astContext)
+                    +> unindent
                     +> sepNln
                     +> sepCloseLFixed
 
@@ -867,12 +882,11 @@ and genExpr astContext synExpr =
             +> genChildren true
 
         let longExpression =
-            !- identifier
-            +> sepSpace
-            +> atCurrentColumn (genExpr astContext attributes
-                                +> ifElse (List.isEmpty children) sepSpace sepNln
-                                +> genChildren false)
-
+            atCurrentColumn(!- identifier
+                            +> sepSpace
+                            +> atCurrentColumn (genExpr astContext attributes)
+                            +> sepSpace
+                            +> genChildren false)
         fun ctx ->
             isShortExpression
                 // TODO consider max elmish oneliner setting

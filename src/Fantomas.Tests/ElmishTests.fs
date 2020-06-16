@@ -165,31 +165,13 @@ Some general rules:
       a2
       a3 ]
   While multiline children are formatted:
-  [ c1
-    c2
-    c3
+  identifier attributes [ c1
+      c2
+      c3
   ]
 
-  Again to quickly identify what is what.
-- A lot of the test start with something like:
-    div [] [
-      ...
-    ]
+  the closing ] aligns with the identifier, children have one indent.
 
-    Why wasn't this style considered?
-    Well that would break stylistic significantly with how lists are formatted in Fantomas
-    Lists now are either:
-    [ e1
-      e2 ]
-
-      or
-    [
-      e1
-      e2
-    ]
-
-    so I chose those two constructs to format both attributes and children.
-    It remains a bit closer to the rest.
 *)
 
 // everything is short, so single line
@@ -251,8 +233,7 @@ let d = div [ ClassName "mt-4" ] []
 """
 
 // here, it is immediately visible that the div has no children
-// another option was to put the empty list [] right after the attributes
-// however, that felt like an unnecessary exception
+// the empty list is placed next to the closing ] of the attributes
 
 [<Test>]
 let ``div with multiline attributes`` () =
@@ -262,8 +243,7 @@ let ``div with multiline attributes`` () =
     |> should equal """
 let d =
     div [ ClassName "container"
-          OnClick(fun _ -> printfn "meh") ]
-        []
+          OnClick(fun _ -> printfn "meh") ] []
 """
 
 // everything is short, so single line
@@ -277,8 +257,8 @@ let ``div with no attributes and short no-elmish children`` () =
 let d = div [] [ str "meh" ]
 """
 
-// multiple children, the fact the the opening [ and closing ] of the children list align prevents some confusion.
-// it is clear where the second span stops and where the div stops.
+// multiple children
+// one indent further than the start of the parent identifier
 
 [<Test>]
 let ``div with not attributes and multiple elmish children`` () =
@@ -291,10 +271,10 @@ let ``div with not attributes and multiple elmish children`` () =
     |> prepend newline
     |> should equal """
 let d =
-    div []
-        [ span [] [ str "a" ]
-          span [] [ str "b" ]
-        ]
+    div [] [
+        span [] [ str "a" ]
+        span [] [ str "b" ]
+    ]
 """
 
 // same example as above but with short attributes
@@ -310,14 +290,13 @@ let ``div with single attribute and children`` () =
     |> prepend newline
     |> should equal """
 let view =
-    div [ ClassName "container" ]
-        [ h1 [] [ str "A heading 1" ]
-          p [] [ str "A paragraph" ]
-        ]
+    div [ ClassName "container" ] [
+        h1 [] [ str "A heading 1" ]
+        p [] [ str "A paragraph" ]
+    ]
 """
 
 // long attributes and long children
-// the fact that the attributes have a different closing as to the children helps identify which is what.
 
 [<Test>]
 let ``div with multiple attributes and children`` () =
@@ -331,10 +310,10 @@ div [ ClassName "container"; OnClick (fun _ -> printfn "meh") ] [
     |> should equal """
 let d =
     div [ ClassName "container"
-          OnClick(fun _ -> printfn "meh") ]
-        [ span [] [ str "foo" ]
-          code [] [ str "bar" ]
-        ]
+          OnClick(fun _ -> printfn "meh") ] [
+        span [] [ str "foo" ]
+        code [] [ str "bar" ]
+    ]
 """
 
 // if there is a single child that is short, keep it on one line
@@ -389,11 +368,12 @@ let ``short div with slightly longer p`` () =
     |> prepend newline
     |> should equal """
 let d =
-    div []
-        [ p [] [ str "meeeeeeeeeeeeeeeeeeeeeh" ] ]
+    div [] [
+        p [] [ str "meeeeeeeeeeeeeeeeeeeeeh" ]
+    ]
 """
 
-// here is it is easier to spot there the div ends because the closing ] aligns with the opening ]
+// here is it is easier to spot there the div ends and where the p ends because of the extra indent.
 
 [<Test>]
 let ``short div with longer p`` () =
@@ -403,10 +383,11 @@ let ``short div with longer p`` () =
     |> prepend newline
     |> should equal """
 let d =
-    div []
-        [ p []
-            [ str "meeeeeeeeeeeeeeeeeeeeehhhh" ]
+    div [] [
+        p [] [
+            str "meeeeeeeeeeeeeeeeeeeeehhhh"
         ]
+    ]
 """
 
 [<Test>]
@@ -428,13 +409,15 @@ let view model dispatch =
     |> prepend newline
     |> should equal """
 let view model dispatch =
-    div []
-        [ button [ OnClick(fun _ -> dispatch Decrement) ]
-                 [ str "-" ]
-          div [] [ str (sprintf "%A" model) ]
-          button [ OnClick(fun _ -> dispatch Increment) ]
-                 [ str "+" ]
+    div [] [
+        button [ OnClick(fun _ -> dispatch Decrement) ] [
+            str "-"
         ]
+        div [] [ str (sprintf "%A" model) ]
+        button [ OnClick(fun _ -> dispatch Increment) ] [
+            str "+"
+        ]
+    ]
 """
 
 [<Test>]
@@ -466,28 +449,28 @@ let viewEntry todo dispatch =
     |> should equal """
 let viewEntry todo dispatch =
     li [ classList [ ("completed", todo.completed)
-                     ("editing", todo.editing) ] ]
-       [ div [ ClassName "view" ]
-             [ input [ ClassName "toggle"
-                       Type "checkbox"
-                       Checked todo.completed
-                       OnChange(fun _ -> Check(todo.id, (not todo.completed)) |> dispatch) ]
-               label [ OnDoubleClick(fun _ -> EditingEntry(todo.id, true) |> dispatch) ]
-                     [ str todo.description ]
-               button [ ClassName "destroy"
-                        OnClick(fun _ -> Delete todo.id |> dispatch) ]
-                      []
-             ]
-         input [ ClassName "edit"
-                 valueOrDefault todo.description
-                 Name "title"
-                 Id("todo-" + (string todo.id))
-                 OnInput(fun ev ->
-                     UpdateEntry(todo.id, !!ev.target?value)
-                     |> dispatch)
-                 OnBlur(fun _ -> EditingEntry(todo.id, false) |> dispatch)
-                 onEnter (EditingEntry(todo.id, false)) dispatch ]
-       ]
+                     ("editing", todo.editing) ] ] [
+        div [ ClassName "view" ] [
+            input [ ClassName "toggle"
+                    Type "checkbox"
+                    Checked todo.completed
+                    OnChange(fun _ -> Check(todo.id, (not todo.completed)) |> dispatch) ]
+            label [ OnDoubleClick(fun _ -> EditingEntry(todo.id, true) |> dispatch) ] [
+                str todo.description
+            ]
+            button [ ClassName "destroy"
+                     OnClick(fun _ -> Delete todo.id |> dispatch) ] []
+        ]
+        input [ ClassName "edit"
+                valueOrDefault todo.description
+                Name "title"
+                Id("todo-" + (string todo.id))
+                OnInput(fun ev ->
+                    UpdateEntry(todo.id, !!ev.target?value)
+                    |> dispatch)
+                OnBlur(fun _ -> EditingEntry(todo.id, false) |> dispatch)
+                onEnter (EditingEntry(todo.id, false)) dispatch ]
+    ]
 """
 
 [<Test>]
@@ -501,8 +484,7 @@ let ``multiline attributes, no children`` () =
     |> should equal """
 let a =
     button [ ClassName "destroy"
-             OnClick(fun _ -> Delete todo.id |> dispatch) ]
-           []
+             OnClick(fun _ -> Delete todo.id |> dispatch) ] []
 """
 
 [<Test>]
@@ -522,20 +504,21 @@ table [ ClassName "table table-striped table-hover mb-0" ]
 """  config
     |> prepend newline
     |> should equal """
-table [ ClassName "table table-striped table-hover mb-0" ]
-      [ tbody []
-              [ tokenDetailRow "TokenName" (str tokenName)
-                tokenDetailRow "LeftColumn" (ofInt leftColumn)
-                tokenDetailRow "RightColumn" (ofInt rightColumn)
-                tokenDetailRow "Content" (pre [] [ code [] [ str token.Content ] ])
-                tokenDetailRow "ColorClass" (str colorClass)
-                tokenDetailRow "CharClass" (str charClass)
-                tokenDetailRow "Tag" (ofInt tag)
-                tokenDetailRow "FullMatchedLength"
-                    (span [ ClassName "has-text-weight-semibold" ]
-                          [ ofInt fullMatchedLength ])
-              ]
-      ]
+table [ ClassName "table table-striped table-hover mb-0" ] [
+    tbody [] [
+        tokenDetailRow "TokenName" (str tokenName)
+        tokenDetailRow "LeftColumn" (ofInt leftColumn)
+        tokenDetailRow "RightColumn" (ofInt rightColumn)
+        tokenDetailRow "Content" (pre [] [ code [] [ str token.Content ] ])
+        tokenDetailRow "ColorClass" (str colorClass)
+        tokenDetailRow "CharClass" (str charClass)
+        tokenDetailRow "Tag" (ofInt tag)
+        tokenDetailRow "FullMatchedLength"
+            (span [ ClassName "has-text-weight-semibold" ] [
+                ofInt fullMatchedLength
+             ])
+    ]
+]
 """
 
 [<Test>]
@@ -545,10 +528,11 @@ div [] [ p [] [ str "meh" ] ]
 """  { config with MaxArrayOrListWidth = 5 }
     |> prepend newline
     |> should equal """
-div []
-    [ p []
-        [ str "meh" ]
+div [] [
+    p [] [
+        str "meh"
     ]
+]
 """
 
 [<Test>]
@@ -577,9 +561,86 @@ let commands dispatch =
 let commands dispatch =
     Button.button [ Button.Color Primary
                     Button.Custom [ ClassName "rounded-0"
-                                    OnClick(fun _ -> dispatch GetTrivia) ] ]
-                  [ i [ ClassName "fas fa-code mr-1" ]
-                      []
-                    str "Get trivia"
-                  ]
+                                    OnClick(fun _ -> dispatch GetTrivia) ] ] [
+        i [ ClassName "fas fa-code mr-1" ] []
+        str "Get trivia"
+    ]
+"""
+
+[<Test>]
+let ``clock with two spaces`` () =
+    formatSourceString false """
+let view (CurrentTime time) dispatch =
+    svg
+      [ ViewBox "0 0 100 100"
+        SVG.Width "350px" ]
+      [ circle
+          [ Cx "50"
+            Cy "50"
+            R "45"
+            SVG.Fill "#0B79CE" ] []
+        // Hours
+        clockHand (Hour time.Hour) "lightgreen" "2" 25.0
+        handTop time.Hour "lightgreen" 25.0 12.0
+        // Minutes
+        clockHand (Minute time.Minute) "white" "2" 35.0
+        handTop time.Minute "white" 35.0 60.0
+        // Seconds
+        clockHand (Second time.Second) "#023963" "1" 40.0
+        handTop time.Second "#023963" 40.0 60.0
+        // circle in the center
+        circle
+          [ Cx "50"
+            Cy "50"
+            R "3"
+            SVG.Fill "#0B79CE"
+            SVG.Stroke "#023963"
+            SVG.StrokeWidth 1.0 ] []
+      ]
+"""  { config with IndentSpaceNum = 2 }
+    |> prepend newline
+    |> should equal """
+let view (CurrentTime time) dispatch =
+  svg [ ViewBox "0 0 100 100"
+        SVG.Width "350px" ] [
+    circle [ Cx "50"
+             Cy "50"
+             R "45"
+             SVG.Fill "#0B79CE" ] []
+    // Hours
+    clockHand (Hour time.Hour) "lightgreen" "2" 25.0
+    handTop time.Hour "lightgreen" 25.0 12.0
+    // Minutes
+    clockHand (Minute time.Minute) "white" "2" 35.0
+    handTop time.Minute "white" 35.0 60.0
+    // Seconds
+    clockHand (Second time.Second) "#023963" "1" 40.0
+    handTop time.Second "#023963" 40.0 60.0
+    // circle in the center
+    circle [ Cx "50"
+             Cy "50"
+             R "3"
+             SVG.Fill "#0B79CE"
+             SVG.Stroke "#023963"
+             SVG.StrokeWidth 1.0 ] []
+  ]
+"""
+
+[<Test>]
+let ``mehh`` () =
+    formatSourceString false """let x =
+Opts.oneOf
+                                            (Optional,
+                                             [ Opt.flag [ "third"; "f" ]
+                                               Opt.valueWith "new value" [ "fourth"; "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ])
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    Opts.oneOf
+        (Optional,
+         [ Opt.flag [ "third"; "f" ]
+           Opt.valueWith "new value"
+               [ "fourth"
+                 "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ])
 """
