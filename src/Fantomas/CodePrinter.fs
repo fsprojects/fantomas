@@ -827,8 +827,7 @@ and genExpr astContext synExpr =
     match synExpr with
     | ElmishReactWithoutChildren(identifier, attributes) ->
         fun ctx ->
-            // TODO consider max elmish oneliner setting
-            let maxRemainingArrayLength = ctx.Config.MaxArrayOrListWidth - identifier.Length
+            let maxRemainingArrayLength = ctx.Config.MaxElmishWidth - identifier.Length
             let ctx' =
                 { ctx with Config = { ctx.Config with
                                         MaxArrayOrListWidth = maxRemainingArrayLength
@@ -844,35 +843,38 @@ and genExpr astContext synExpr =
                                          MultilineBlockBracketsOnSameColumn = ctx.Config.MultilineBlockBracketsOnSameColumn } }) ctx'
 
 
-    | ElmishReactWithChildren((identifier,_,_), attributes, (_isArray,children)) ->
+    | ElmishReactWithChildren((identifier,_,_), attributes, (isArray,children)) ->
         let genChildren isShort =
             match children with
-            | [] -> sepOpenLFixed +> sepCloseLFixed
+            | [] when (not isArray) -> sepOpenLFixed +> sepCloseLFixed
+            | [] when isArray -> sepOpenAFixed +> sepCloseAFixed
             | [singleChild] ->
                 if isShort then
-                    sepOpenL +> genExpr astContext singleChild +> sepCloseL
+                    ifElse isArray sepOpenA sepOpenL
+                    +> genExpr astContext singleChild
+                    +> ifElse isArray sepCloseA sepCloseL
                 else
-                    sepOpenL
+                    ifElse isArray sepOpenA sepOpenL
                     +> indent
                     +> sepNln
                     +> genExpr astContext singleChild
                     +> unindent
                     +> sepNln
-                    +> sepCloseLFixed
+                    +> ifElse isArray sepCloseAFixed sepCloseLFixed
 
             | children ->
                 if isShort then
-                    sepOpenL
+                    ifElse isArray sepOpenA sepOpenL
                     +> col sepSemi children (genExpr astContext)
-                    +> sepCloseL
+                    +> ifElse isArray sepCloseA sepCloseL
                 else
-                    sepOpenL
+                    ifElse isArray sepOpenA sepOpenL
                     +> indent
                     +> sepNln
                     +> col sepNln children (genExpr astContext)
                     +> unindent
                     +> sepNln
-                    +> sepCloseLFixed
+                    +> ifElse isArray sepCloseAFixed sepCloseLFixed
 
         let shortExpression =
             !- identifier
@@ -889,8 +891,7 @@ and genExpr astContext synExpr =
                             +> genChildren false)
         fun ctx ->
             isShortExpression
-                // TODO consider max elmish oneliner setting
-                ctx.Config.MaxArrayOrListWidth
+                ctx.Config.MaxElmishWidth
                 shortExpression
                 longExpression
                 ctx

@@ -121,61 +121,6 @@ let loginPage =
                                                       isVisible = model.IsSigningIn) ])) ])))
 """
 
-(*
-Formatting Elmish Code ~ An attempt by Florian Verdonck
-
-So people have been asking for alternative way of formatting Elmish code.
-At best, they dictate that is should be better. While agreeing it should, the main question remains: how?
-
-In the following unit tests, I tried to come up with something that makes sense.
-This is by all means not the final outcome, this merely serves as a starting point.
-And I hope it triggers the correct conversation about the topic.
-
-To keep things focused, I limited the scope to the Fable.React bindings:
-- https://github.com/fable-compiler/fable-react/blob/master/src/Fable.React.Standard.fs
-- https://github.com/fable-compiler/fable-react/blob/master/src/Fable.React.Props.fs
-
-I would also like to tackle variants like Feliz and Fabulous, however, all in good time.
-Initially, I want to tackle Fable.React style and see where it goes.
-
-*)
-
-(*
-
-In SourceParser, I created two active patterns to capture html element with and without children.
-
-With:
-
-identifier [list of attributes] [list of children]
-
-Without:
-
-identifier [list of attributes]
-
-These are then printed out in genExpr of CodePrinter.
-In the following unit tests I will try to explain the reasoning behind certain decisions.
-Again nothing is set in stone, this is just an initial attempt.
-
-Some general rules:
-
-- If things are short (short being determined by a setting) put them on one line
-- If things are multiline, align attributes and children so they are easy to distinguish.
-- Multiline attributes are formatted:
-    [ a1
-      a2
-      a3 ]
-  While multiline children are formatted:
-  identifier attributes [ c1
-      c2
-      c3
-  ]
-
-  the closing ] aligns with the identifier, children have one indent.
-
-*)
-
-// everything is short, so single line
-
 [<Test>]
 let ``input without attributes`` () =
     formatSourceString false """let i = input []
@@ -185,8 +130,6 @@ let ``input without attributes`` () =
 let i = input []
 """
 
-// everything is short, so single line
-
 [<Test>]
 let ``short input with single attribute`` () =
     formatSourceString false """let i = input [ Type "text" ]
@@ -195,9 +138,6 @@ let ``short input with single attribute`` () =
     |> should equal """
 let i = input [ Type "text" ]
 """
-
-// the attributes are multiline, they follow the natural way of how multiline arrays are formatted by default in Fantomas
-// one difference there is that will always but place next to the identifier (input, in this case)
 
 [<Test>]
 let ``multiline input with multiple attributes`` () =
@@ -210,8 +150,6 @@ let i =
             Required "required" ]
 """
 
-// everything is short, so single line
-
 [<Test>]
 let ``div without children or attributes`` () =
     formatSourceString false """let d = div [] []
@@ -220,8 +158,6 @@ let ``div without children or attributes`` () =
     |> should equal """
 let d = div [] []
 """
-
-// everything is short, so single line
 
 [<Test>]
 let ``div with short attributes`` () =
@@ -232,8 +168,15 @@ let ``div with short attributes`` () =
 let d = div [ ClassName "mt-4" ] []
 """
 
-// here, it is immediately visible that the div has no children
-// the empty list is placed next to the closing ] of the attributes
+
+[<Test>]
+let ``div with no attributes and short children`` () =
+    formatSourceString false """let d = div [] [ str "meh" ]
+"""  config
+    |> prepend newline
+    |> should equal """
+let d = div [] [ str "meh" ]
+"""
 
 [<Test>]
 let ``div with multiline attributes`` () =
@@ -245,20 +188,6 @@ let d =
     div [ ClassName "container"
           OnClick(fun _ -> printfn "meh") ] []
 """
-
-// everything is short, so single line
-
-[<Test>]
-let ``div with no attributes and short no-elmish children`` () =
-    formatSourceString false """let d = div [] [ str "meh" ]
-"""  config
-    |> prepend newline
-    |> should equal """
-let d = div [] [ str "meh" ]
-"""
-
-// multiple children
-// one indent further than the start of the parent identifier
 
 [<Test>]
 let ``div with not attributes and multiple elmish children`` () =
@@ -277,8 +206,6 @@ let d =
     ]
 """
 
-// same example as above but with short attributes
-
 [<Test>]
 let ``div with single attribute and children`` () =
     formatSourceString false """let view =
@@ -295,8 +222,6 @@ let view =
         p [] [ str "A paragraph" ]
     ]
 """
-
-// long attributes and long children
 
 [<Test>]
 let ``div with multiple attributes and children`` () =
@@ -316,7 +241,6 @@ let d =
     ]
 """
 
-// if there is a single child that is short, keep it on one line
 
 [<Test>]
 let ``short div with short p`` () =
@@ -328,7 +252,6 @@ let ``short div with short p`` () =
 let d = div [] [ p [] [ str "meh" ] ]
 """
 
-// again, as long as thing are short, keep them in one line
 
 [<Test>]
 let ``short div with multiple short children`` () =
@@ -349,7 +272,7 @@ let ``div with long children but a long setting`` () =
         p [] [ str "fooooooooo" ]
         p [] [ str "baaaaaaaar" ]
     ]
-"""  { config with MaxArrayOrListWidth = 150 }
+"""  { config with MaxElmishWidth = 150 }
     |> prepend newline
     |> should equal """
 let d =
@@ -357,8 +280,7 @@ let d =
 """
 
 // here the p is 38 characters
-// this makes the div multiline
-// but here the is only one child that is short, so the closing ] of list says on the same line
+// this makes the div multiline but the p not.
 
 [<Test>]
 let ``short div with slightly longer p`` () =
@@ -373,10 +295,8 @@ let d =
     ]
 """
 
-// here is it is easier to spot there the div ends and where the p ends because of the extra indent.
-
 [<Test>]
-let ``short div with longer p`` () =
+let ``div with longer p`` () =
     formatSourceString false """let d =
     div [] [ p [] [ str "meeeeeeeeeeeeeeeeeeeeehhhh" ] ]
 """  config
@@ -522,29 +442,6 @@ table [ ClassName "table table-striped table-hover mb-0" ] [
 """
 
 [<Test>]
-let ``div with single child that is short`` () =
-    formatSourceString false """
-div [] [ p [] [ str "meh" ] ]
-"""  { config with MaxArrayOrListWidth = 5 }
-    |> prepend newline
-    |> should equal """
-div [] [
-    p [] [
-        str "meh"
-    ]
-]
-"""
-
-[<Test>]
-let ``short expression without attributes`` () =
-    formatSourceString false """p [] [ str "meh" ]
-"""  config
-    |> prepend newline
-    |> should equal """
-p [] [ str "meh" ]
-"""
-
-[<Test>]
 let ``child with empty children`` () =
     formatSourceString false """
 let commands dispatch =
@@ -627,20 +524,48 @@ let view (CurrentTime time) dispatch =
 """
 
 [<Test>]
-let ``mehh`` () =
-    formatSourceString false """let x =
-Opts.oneOf
-                                            (Optional,
-                                             [ Opt.flag [ "third"; "f" ]
-                                               Opt.valueWith "new value" [ "fourth"; "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ])
+let ``input with attribute array`` () =
+    formatSourceString false """let ia = input [| Type "hidden"; Name "code"; Required "required" |]
 """  config
     |> prepend newline
     |> should equal """
-let x =
-    Opts.oneOf
-        (Optional,
-         [ Opt.flag [ "third"; "f" ]
-           Opt.valueWith "new value"
-               [ "fourth"
-                 "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ])
+let ia =
+    input [| Type "hidden"
+             Name "code"
+             Required "required" |]
+"""
+
+[<Test>]
+let ``div with children array`` () =
+    formatSourceString false """let d =
+    div [||] [| p [||] [| str "oh my foobar" |] |]
+"""  config
+    |> prepend newline
+    |> should equal """
+let d =
+    div [||] [|
+        p [||] [| str "oh my foobar" |]
+    |]
+"""
+
+[<Test>]
+let ``mix lists and array`` () =
+    formatSourceString false """let view dispatch model =
+    div [| Class "container" |]
+        [
+          h1 [] [| str "my title" |]
+          button [| OnClick (fun _ -> dispatch Msg.Foo) |] [
+                str "click me"
+          ]
+        ]
+"""  config
+    |> prepend newline
+    |> should equal """
+let view dispatch model =
+    div [| Class "container" |] [
+        h1 [] [| str "my title" |]
+        button [| OnClick(fun _ -> dispatch Msg.Foo) |] [
+            str "click me"
+        ]
+    ]
 """
