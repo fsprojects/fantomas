@@ -262,8 +262,13 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
     match tokens with
     | headToken::rest when (headToken.TokenInfo.TokenName = "LINE_COMMENT") ->
         let lineCommentTokens =
+            let mutable currentLineNumber = headToken.LineNumber
+
             rest
-            |> List.takeWhile (fun t -> t.TokenInfo.TokenName = "LINE_COMMENT") // && t.LineNumber = headToken.LineNumber)
+            |> List.takeWhile (fun t ->
+                let take = t.TokenInfo.TokenName = "LINE_COMMENT" && t.LineNumber <= (currentLineNumber + 1)
+                currentLineNumber <- t.LineNumber
+                take)
             
         let comment =
             headToken
