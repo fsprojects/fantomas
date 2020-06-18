@@ -37,6 +37,7 @@ type FormatConfig =
       MultilineBlockBracketsOnSameColumn : bool
       NewlineBetweenTypeDefinitionAndMembers: bool
       KeepIfThenInSameLine : bool
+      MaxElmishWidth: Num
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -63,8 +64,9 @@ type FormatConfig =
           MaxFunctionBindingWidth = 40
           MultilineBlockBracketsOnSameColumn = false
           KeepIfThenInSameLine = false
-          StrictMode = false
-          NewlineBetweenTypeDefinitionAndMembers = false }
+          MaxElmishWidth = 40
+          NewlineBetweenTypeDefinitionAndMembers = false
+          StrictMode = false }
 
     static member ApplyOptions(currentConfig, options) =
         let currentValues = Reflection.getRecordFields currentConfig

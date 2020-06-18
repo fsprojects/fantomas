@@ -653,7 +653,6 @@ let (|Indexer|) = function
     | SynIndexerArg.Two(e1,e1FromEnd,e2,e2FromEnd,_,_) -> Pair((e1, e1FromEnd), (e2, e2FromEnd))
     | SynIndexerArg.One(e,fromEnd,_) -> Single(e, fromEnd)
 
-// hier ergens
 let (|OptVar|_|) = function
     | SynExpr.Ident(IdentOrKeyword(OpNameFull (s,r))) ->
         Some(s, false, r)
@@ -1425,3 +1424,31 @@ let isFunctionBinding (p: SynPat) =
     match p with
     | PatLongIdent(_, _, ps, _) when (List.isNotEmpty ps) -> true
     | _ -> false
+
+let (|ElmishReactWithoutChildren|_|) e =
+    match e with
+    | App(OptVar(ident,_,_), [ArrayOrList(_) as attributes]) ->
+        Some(ident, attributes)
+    | App(OptVar(ident,_,_), [ArrayOrListOfSeqExpr(_, CompExpr(_, Sequentials _)) as attributes]) ->
+        Some(ident, attributes)
+    | _ ->
+        None
+
+let (|ElmishReactWithChildren|_|) e =
+    match e with
+    | App(OptVar(ident), [ArrayOrList(_) as attributes; ArrayOrList(isArray, children, _)]) ->
+        Some(ident, attributes, (isArray, children))
+    | App(OptVar(ident), [ArrayOrListOfSeqExpr(_) as attributes
+                          ArrayOrListOfSeqExpr(isArray, CompExpr(_, Sequentials children))]) ->
+        Some(ident, attributes, (isArray,children))
+    | App(OptVar(ident), [ArrayOrListOfSeqExpr(_) as attributes
+                          ArrayOrListOfSeqExpr(isArray, CompExpr(_, singleChild))])
+    | App(OptVar(ident), [ArrayOrList(_) as attributes
+                          ArrayOrListOfSeqExpr(isArray, CompExpr(_, singleChild))]) ->
+        Some(ident, attributes, (isArray,[singleChild]))
+    | App(OptVar(ident), [ArrayOrListOfSeqExpr(_) as attributes
+                          ArrayOrList(isArray, [], _) ]) ->
+        Some(ident, attributes, (isArray, []))
+
+    | _ ->
+        None
