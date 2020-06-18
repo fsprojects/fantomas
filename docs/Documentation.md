@@ -272,6 +272,7 @@ A default configuration file would look like
   "MaxFunctionBindingWidth":40,
   "MultilineBlockBracketsOnSameColumn":false,
   "NewlineBetweenTypeDefinitionAndMembers":false,
+  "MaxElmishWidth": 40,
   "StrictMode":false 
 }
 ```
