@@ -2032,7 +2032,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
         let bodyExpr ctx =
             if (List.isEmpty ms) then
-                (isShortExpression ctx.Config.MaxRecordWidth shortExpression multilineExpression
+                (isShortExpression ctx.Config.MaxRecordWidth (enterNode tdr.Range +> shortExpression) multilineExpression
                 +> leaveNode tdr.Range // this will only print something when there is trivia after } in the short expression
                 // Yet it cannot be part of the short expression otherwise the multiline expression would be triggered unwillingly.
                 ) ctx
@@ -2134,9 +2134,11 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
 and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
     // the typeName is already printed
-    indent +> sepNln +> opt sepSpace ao' genAccess
+    indent
+    +> sepNln
     +> genTrivia tdr.Range
-        (sepOpenS
+        (opt sepSpace ao' genAccess
+        +> sepOpenS
         +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
         +> sepNlnBetweenTypeAndMembers ms
         +> genMemberDefnList { astContext with InterfaceRange = None } ms
@@ -2144,15 +2146,17 @@ and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
 
 and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
     // the typeName is already printed
-    indent +> sepNln +> opt (indent +> sepNln) ao' genAccess
+    indent
+    +> sepNln
     +> genTrivia tdr.Range
-        (sepOpenSFixed +> indent +> sepNln
-        +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
-        +> unindent +> sepNln +> sepCloseSFixed
-        +> sepNlnBetweenTypeAndMembers ms
-        +> genMemberDefnList { astContext with InterfaceRange = None } ms
-        +> onlyIf (Option.isSome ao') unindent
-        +> unindent)
+        (opt (indent +> sepNln) ao' genAccess
+         +> sepOpenSFixed +> indent +> sepNln
+         +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
+         +> unindent +> sepNln +> sepCloseSFixed
+         +> sepNlnBetweenTypeAndMembers ms
+         +> genMemberDefnList { astContext with InterfaceRange = None } ms
+         +> onlyIf (Option.isSome ao') unindent
+         +> unindent)
 
 and sepNlnBetweenSigTypeAndMembers (ms: SynMemberSig list) =
     let getRange =

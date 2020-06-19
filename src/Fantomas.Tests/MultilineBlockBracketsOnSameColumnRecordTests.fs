@@ -608,3 +608,25 @@ let expected =
         TheNewValue = 1
     }
 """
+
+[<Test>]
+let ``comment before access modifier of record type declaration`` () =
+    formatSourceString false """
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        {
+            Foo : int
+        }
+"""  config
+    |> prepend newline
+    |> should equal """
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        {
+            Foo : int
+        }
+"""
