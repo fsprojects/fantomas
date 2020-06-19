@@ -812,13 +812,20 @@ and genTuple astContext es =
     atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
 
 and genExpr astContext synExpr =
-    let appNlnFun e =
-        match e with
-        | MultilineString _
-        | Lambda _
-        | Paren (Lambda _)
-        | Paren (MatchLambda _) -> id
-        | _ -> autoNlnIfExpressionExceedsPageWidth
+    let appNlnFun e f (ctx: Context) =
+        let remainderOfLine = ctx.Config.PageWidth - ctx.Column
+        let expr =
+            match e with
+            | Paren(DesugaredLambda(cps, _)) when (Fantomas.SourceCounter.CountAstNode.ComplexPatsList cps
+                                                   |> Fantomas.SourceCounter.isASTLongerThan remainderOfLine) ->
+                fun g -> sepNln +> g
+            | MultilineString _
+            | Lambda _
+            | Paren (Lambda _)
+            | Paren (MatchLambda _) -> id
+            | _ -> autoNlnIfExpressionExceedsPageWidth
+
+        expr f ctx
 
     let kw tokenName f = tokN synExpr.Range tokenName f
     let sepOpenT = tokN synExpr.Range "LPAREN" sepOpenT

@@ -369,3 +369,43 @@ let projectIntoMap projection =
          state
          |> Map.add eventEnvelope.Metadata.Source newState
 """
+
+[<Test>]
+let ``long line of code with pattern matches, 884`` () =
+    formatSourceString false """
+module MyModule =
+
+    let foo : Foo -> Foo =
+        BigLongTypee.doStuff<aaaaaaaaaaaaa, bbbbbb, BigLongTypee>
+            (fun aaa bbbbbb (CCC ccc) ddddddddddd (EEEE eee) (FFF fff) ggggg ->
+                failwith "Not important"
+            )
+"""  config
+    |> prepend newline
+    |> should equal """
+module MyModule =
+
+    let foo: Foo -> Foo =
+        BigLongTypee.doStuff<aaaaaaaaaaaaa, bbbbbb, BigLongTypee> (fun aaa bbbbbb (CCC ccc) ddddddddddd (EEEE eee) (FFF fff) ggggg ->
+            failwith "Not important")
+"""
+
+[<Test>]
+let ``lambda with many parameters should move to the next line`` () =
+    formatSourceString false """
+module MyModule =
+
+    let foo : Foo -> Foo =
+        BigLongTypee.doStuff<aaaaaaaaaaaaa, bbbbbb, BigLongTypee>(fun aaa bbbbbb (CCC ccc) ddddddddddd (EEEE eee) (FFF fff) ggggg hhhhhhhh iiiiiiii ->
+            failwith "Not important"
+        )
+"""  config
+    |> prepend newline
+    |> should equal """
+module MyModule =
+
+    let foo: Foo -> Foo =
+        BigLongTypee.doStuff<aaaaaaaaaaaaa, bbbbbb, BigLongTypee>
+            (fun aaa bbbbbb (CCC ccc) ddddddddddd (EEEE eee) (FFF fff) ggggg hhhhhhhh iiiiiiii ->
+                failwith "Not important")
+"""
