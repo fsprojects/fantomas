@@ -5,4 +5,8 @@ open Fantomas.Benchmarks.Runners
 let main _ =
     BenchmarkRunner.Run<CodePrinterTest>()
     |> ignore
+
+    BenchmarkRunner.Run<AstTransformerTest>()
+    |> ignore
+
     0

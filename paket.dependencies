@@ -14,3 +14,4 @@ nuget Argu
 nuget BenchmarkDotNet
 
 github: fsprojects/fantomas:829faa6ba834f99afed9b4434b3a1680536474b2 src/Fantomas/CodePrinter.fs
+github: fsprojects/fantomas:829faa6ba834f99afed9b4434b3a1680536474b2 src/Fantomas/AstTransformer.fs

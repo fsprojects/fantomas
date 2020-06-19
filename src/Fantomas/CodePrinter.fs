@@ -7,6 +7,7 @@ open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.SyntaxTree
 open Fantomas
 open Fantomas.FormatConfig
+open Fantomas.SourceCounter
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
 open Fantomas.Context
@@ -981,11 +982,15 @@ and genExpr astContext synExpr =
                 (genMultilineRecordInstance inheritOpt xs eo synExpr astContext)
 
         fun ctx ->
-            isShortExpression
-                ctx.Config.MaxRecordWidth
-                shortRecordExpr
-                multilineRecordExpr
-                ctx
+            if (CountAstNode.RecordInstance(inheritOpt, xs, eo)
+                |> SourceCounter.isASTLongerThan ctx.Config.MaxRecordWidth) then
+                multilineRecordExpr ctx
+            else
+                isShortExpression
+                    ctx.Config.MaxRecordWidth
+                    shortRecordExpr
+                    multilineRecordExpr
+                    ctx
 
     | AnonRecord(isStruct, fields, copyInfo) ->
         let shortExpression =

@@ -463,6 +463,7 @@ and countComplexPats cp =
 type CountAstNode =
     | ComplexPatsList of ComplexPats list
     | FunctionSignature of functionName: string * (string option * SynPat) list * SynType option
+    | RecordInstance of (SynType * SynExpr) option * (RecordFieldName * SynExpr option * BlockSeparator option) list * SynExpr option
 
 let isASTLongerThan threshold node =
     lift threshold
@@ -474,6 +475,12 @@ let isASTLongerThan threshold node =
                    bindOption (String.length >> map) s
                    >=> countSynPat pat) pats
            >=> bindOption countSynType retType
+        | RecordInstance(inheritOpt, fields, e) ->
+            bindOption (fun (t,e) -> countSynType t >=> countSynExpr e) inheritOpt
+            >=> bindItems (fun ((lid,_), eo, _) ->
+                                countLongIdentWithDots lid
+                                >=> countSynExprOption eo) fields
+            >=> countSynExprOption e
     |> function
     | UnderThreshold _ -> false
     | OverThreshold -> true
