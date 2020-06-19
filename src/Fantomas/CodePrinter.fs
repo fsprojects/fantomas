@@ -813,11 +813,10 @@ and genTuple astContext es =
 
 and genExpr astContext synExpr =
     let appNlnFun e f (ctx: Context) =
-        let remainderOfLine = ctx.Config.PageWidth - ctx.Column
         let expr =
             match e with
             | Paren(DesugaredLambda(cps, _)) when (Fantomas.SourceCounter.CountAstNode.ComplexPatsList cps
-                                                   |> Fantomas.SourceCounter.isASTLongerThan remainderOfLine) ->
+                                                   |> Fantomas.SourceCounter.isASTLongerThan ctx.RemainderOfLine) ->
                 fun g -> sepNln +> g
             | MultilineString _
             | Lambda _
@@ -2844,18 +2843,11 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
         (sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType)
 
     let isLongFunctionSignature (ctx: Context) =
-        let space = 1
-        let colon = if ctx.Config.SpaceBeforeColon then 3 else 2
-        let lengthByAST =
-            getSynAccessLength ao
-            + lengthWhenSome (fun _ -> space) ao
-            + s.Length
-            + space
-            + List.sumBy (snd >> getSynPatLength >> (+) space) ps
-            + lengthWhenSome (fun _ -> colon) t
-            + lengthWhenSome getSynTypeLength t
+        let isLongerByCounterAST =
+            SourceCounter.FunctionSignature(s,ps,t)
+            |> SourceCounter.isASTLongerThan ctx.RemainderOfLine
 
-        (ctx.Column + lengthByAST > ctx.Config.PageWidth)
+        isLongerByCounterAST
         || futureNlnCheck (genName +> genParametersInitial +> genReturnType) ctx
 
     fun ctx ->

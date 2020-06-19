@@ -21,7 +21,7 @@ let private map value current =
 
 let private bind f current =
     match current with
-    | UnderThreshold (_, _) as ut -> f ut
+    | UnderThreshold _ as ut -> f ut
     | OverThreshold -> OverThreshold
 
 let private bindItems f items v =
@@ -46,11 +46,190 @@ and countLongIdentWithDots lid =
 
 and countSynType synType =
     match synType with
-    | _ -> map 0
+    | SynType.LongIdent lid -> countLongIdentWithDots lid
+    | SynType.App (synType, _, types, _, _, _, _) ->
+        countSynType synType
+        >=> bindItems countSynType types
+    | SynType.LongIdentApp (t, lids, _, types, _, _, _) ->
+        countSynType t
+        >=> countLongIdentWithDots lids
+        >=> bindItems countSynType types
+    | SynType.Tuple (_, types, _) -> bindItems (snd >> countSynType) types
+    | SynType.AnonRecd (_, types, _) -> bindItems (fun (i, t) -> countIdent i >=> countSynType t) types
+    | SynType.Array (_, t, _) -> countSynType t
+    | SynType.Fun (t1, t2, _) -> countSynType t1 >=> countSynType t2
+    | SynType.Var (typar, _) -> countSynTypar typar
+    | SynType.Anon _ -> id
+    | SynType.WithGlobalConstraints (t, constraints, _) ->
+        countSynType t
+        >=> bindItems countSynTypeConstraint constraints
+    | SynType.HashConstraint (t, _) -> countSynType t
+    | SynType.MeasureDivide (t1, t2, _) -> countSynType t1 >=> countSynType t2
+    | SynType.MeasurePower (t, _, _) -> countSynType t
+    | SynType.StaticConstant _ -> id
+    | SynType.StaticConstantExpr (expr, _) -> countSynExpr expr
+    | SynType.StaticConstantNamed (t1, t2, _) -> countSynType t1 >=> countSynType t2
+    | SynType.Paren (t, _) -> countSynType t
 
 and countSynExpr expr =
     match expr with
-    | _ -> map 0
+    | SynExpr.Paren (expr, _, _, _) -> countSynExpr expr
+    | SynExpr.Quote (e1, _, e2, _, _) -> countSynExpr e1 >=> countSynExpr e2
+    | SynExpr.Const _ -> id
+    | SynExpr.Typed (e, t, _) -> countSynExpr e >=> countSynType t
+    | SynExpr.Tuple (_, es, _, _) -> countSynExprs es
+    | SynExpr.AnonRecd (_, eo, fields, _) ->
+        bindOption (fst >> countSynExpr) eo
+        >=> bindItems (fun (i, e) -> countIdent i >=> countSynExpr e) fields
+    | SynExpr.ArrayOrList (_, es, _) -> countSynExprs es
+    | SynExpr.Record (updateExpr, inheritExpr, fields, _) ->
+        bindOption (fun (t, e, _, _, _) -> countSynType t >=> countSynExpr e) updateExpr
+        >=> bindOption (fun (e, _) -> countSynExpr e) inheritExpr
+        >=> bindItems (fun ((lid, _), eo, _) ->
+                countLongIdentWithDots lid
+                >=> countSynExprOption eo) fields
+    | SynExpr.New (_, t, e, _) -> countSynType t >=> countSynExpr e
+    | SynExpr.ObjExpr (t, eio, bindings, interfaces, _, _) ->
+        countSynType t
+        >=> bindOption (fun (e, io) -> countSynExpr e >=> bindOption countIdent io) eio
+        >=> bindItems countSynBinding bindings
+        >=> bindItems countSynInterfaceImpl interfaces
+    | SynExpr.While (_, e1, e2, _) -> countSynExpr e1 >=> countSynExpr e2
+    | SynExpr.For (_, ident, e1, _, e2, e3, _) ->
+        countIdent ident
+        >=> countSynExpr e1
+        >=> countSynExpr e2
+        >=> countSynExpr e3
+    | SynExpr.ForEach (_, _, _, pat, e1, e2, _) ->
+        countSynPat pat
+        >=> countSynExpr e1
+        >=> countSynExpr e2
+    | SynExpr.ArrayOrListOfSeqExpr (_, e, _) -> countSynExpr e
+    | SynExpr.CompExpr (_, _, e, _) -> countSynExpr e
+    | SynExpr.Lambda (_, _, pats, e, _) -> countSynSimplePats pats >=> countSynExpr e
+    | SynExpr.MatchLambda (_, _, smcs, _, _) -> bindItems countSynMatchClause smcs
+    | SynExpr.Match (_, e, smcs, _) ->
+        countSynExpr e
+        >=> bindItems countSynMatchClause smcs
+    | SynExpr.Do (e, _)
+    | SynExpr.Assert (e, _) -> countSynExpr e
+    | SynExpr.App (_, _, e1, e2, _) -> countSynExpr e1 >=> countSynExpr e2
+    | SynExpr.TypeApp (e, _, types, _, _, _, _) -> countSynExpr e >=> bindItems countSynType types
+    | SynExpr.LetOrUse (_, _, bindings, e, _) ->
+        bindItems countSynBinding bindings
+        >=> countSynExpr e
+    | SynExpr.TryWith (e, _, smcs, _, _, _, _) ->
+        countSynExpr e
+        >=> bindItems countSynMatchClause smcs
+    | SynExpr.TryFinally (e1, e2, _, _, _) -> countSynExpr e1 >=> countSynExpr e2
+    | SynExpr.Lazy (e, _) -> countSynExpr e
+    | SynExpr.Sequential (_, _, e1, e2, _) -> countSynExpr e1 >=> countSynExpr e2
+    | SynExpr.IfThenElse (e1, e2, eo, _, _, _, _) ->
+        countSynExpr e1
+        >=> countSynExpr e2
+        >=> countSynExprOption eo
+    | SynExpr.Ident ident -> countIdent ident
+    | SynExpr.LongIdent (_, lid, _, _) -> countLongIdentWithDots lid
+    | SynExpr.LongIdentSet (lid, e, _) -> countLongIdentWithDots lid >=> countSynExpr e
+    | SynExpr.DotGet (e, _, lid, _) -> countSynExpr e >=> countLongIdentWithDots lid
+    | SynExpr.DotSet (e1, lid, e2, _) ->
+        countSynExpr e1
+        >=> countLongIdentWithDots lid
+        >=> countSynExpr e2
+    | SynExpr.Set (e1, e2, _) -> countSynExpr e1 >=> countSynExpr e2
+    | SynExpr.DotIndexedGet (e, args, _, _) ->
+        countSynExpr e
+        >=> bindItems countSynIndexerArg args
+    | SynExpr.DotIndexedSet (e1, args, e2, _, _, _) ->
+        countSynExpr e1
+        >=> bindItems countSynIndexerArg args
+        >=> countSynExpr e2
+    | SynExpr.NamedIndexedPropertySet (lid, e1, e2, _) ->
+        countLongIdentWithDots lid
+        >=> countSynExpr e1
+        >=> countSynExpr e2
+    | SynExpr.DotNamedIndexedPropertySet (e1, lid, e2, e3, _) ->
+        countSynExpr e1
+        >=> countLongIdentWithDots lid
+        >=> countSynExpr e2
+        >=> countSynExpr e3
+    | SynExpr.TypeTest (e, t, _)
+    | SynExpr.Upcast (e, t, _)
+    | SynExpr.Downcast (e, t, _) -> countSynExpr e >=> countSynType t
+    | SynExpr.InferredUpcast (e, _)
+    | SynExpr.InferredDowncast (e, _) -> countSynExpr e
+    | SynExpr.Null _ -> id
+    | SynExpr.AddressOf (_, e, _, _) -> countSynExpr e
+    | SynExpr.TraitCall (typars, sms, e, _) ->
+        bindItems countSynTypar typars
+        >=> countSynMemberSig sms
+        >=> countSynExpr e
+    | SynExpr.JoinIn (e1, _, e2, _) -> countSynExpr e1 >=> countSynExpr e2
+    | SynExpr.ImplicitZero _ -> id
+    | SynExpr.SequentialOrImplicitYield (_, e1, e2, e3, _) ->
+        countSynExpr e1
+        >=> countSynExpr e2
+        >=> countSynExpr e3
+    | SynExpr.YieldOrReturn (_, e, _)
+    | SynExpr.YieldOrReturnFrom (_, e, _) -> countSynExpr e
+    | SynExpr.LetOrUseBang (_, _, _, pat, e1, andBangs, e2, _) ->
+        countSynPat pat
+        >=> countSynExpr e1
+        >=> bindItems (fun (_, _, _, pat, e, _) -> countSynPat pat >=> countSynExpr e) andBangs
+        >=> countSynExpr e2
+    | SynExpr.MatchBang (_, e, mcs, _) ->
+        countSynExpr e
+        >=> bindItems countSynMatchClause mcs
+    | SynExpr.DoBang (e, _) -> countSynExpr e
+    | SynExpr.LibraryOnlyILAssembly _
+    | SynExpr.LibraryOnlyStaticOptimization _
+    | SynExpr.LibraryOnlyUnionCaseFieldGet _
+    | SynExpr.LibraryOnlyUnionCaseFieldSet _ -> id
+    | SynExpr.ArbitraryAfterError (s, _) -> map s.Length
+    | SynExpr.FromParseError (e, _) -> countSynExpr e
+    | SynExpr.DiscardAfterMissingQualificationAfterDot (e, _)
+    | SynExpr.Fixed (e, _) -> countSynExpr e
+
+and countSynIndexerArg synIndexerArg =
+    match synIndexerArg with
+    | SynIndexerArg.One (e, _, _) -> countSynExpr e
+    | SynIndexerArg.Two (e1, _, e2, _, _, _) -> countSynExpr e1 >=> countSynExpr e2
+
+and countSynMatchClause synMatchClause =
+    match synMatchClause with
+    | SynMatchClause.Clause (pat, eo, e, _, _) ->
+        countSynPat pat
+        >=> countSynExprOption eo
+        >=> countSynExpr e
+
+and countSynValData synValData =
+    match synValData with
+    | SynValData (_, valInfo, io) ->
+        countSynValInfo valInfo
+        >=> bindOption countIdent io
+
+and countSynBindingReturnInfo synBindingReturnInfo =
+    match synBindingReturnInfo with
+    | SynBindingReturnInfo.SynBindingReturnInfo (t, _, attributes) -> countSynType t >=> countSynAttributes attributes
+
+and countSynBinding synBinding =
+    match synBinding with
+    | SynBinding.Binding (_, _, _, _, attributes, _, synValData, synPat, retInfo, e, _, _) ->
+        countSynAttributes attributes
+        >=> countSynValData synValData
+        >=> countSynPat synPat
+        >=> bindOption countSynBindingReturnInfo retInfo
+        >=> countSynExpr e
+
+and countSynInterfaceImpl synInterfaceImpl =
+    match synInterfaceImpl with
+    | SynInterfaceImpl.InterfaceImpl (t, bindings, _) ->
+        countSynType t
+        >=> bindItems countSynBinding bindings
+
+and countSynExprs es = bindItems countSynExpr es
+
+and countSynExprOption eo = bindOption countSynExpr eo
 
 and countSynAttribute (attribute: SynAttribute) =
     countLongIdentWithDots attribute.TypeName
@@ -125,7 +304,7 @@ and countSynValSig synValSig =
         >=> countSynTyparDecls typarDecls
         >=> countSynType synType
         >=> countSynValInfo synValInfo
-        >=> bindOption countSynExpr expr
+        >=> countSynExprOption expr
 
 and countSynComponentInfo synComponentInfo =
     match synComponentInfo with
@@ -281,13 +460,20 @@ and countComplexPats cp =
     | ComplexPats cps -> bindItems countComplexPat cps
     | ComplexTyped (cps, t) -> countComplexPats cps >=> countSynType t
 
-type CountAstNode = ComplexPatsList of ComplexPats list
+type CountAstNode =
+    | ComplexPatsList of ComplexPats list
+    | FunctionSignature of functionName: string * (string option * SynPat) list * SynType option
 
 let isASTLongerThan threshold node =
     lift threshold
     |> match node with
        | ComplexPatsList pats -> bindItems countComplexPats pats
-    |> Dbg.tee (printfn "%A")
+       | FunctionSignature (fn, pats, retType) ->
+           map fn.Length
+           >=> bindItems (fun (s, pat) ->
+                   bindOption (String.length >> map) s
+                   >=> countSynPat pat) pats
+           >=> bindOption countSynType retType
     |> function
     | UnderThreshold _ -> false
     | OverThreshold -> true

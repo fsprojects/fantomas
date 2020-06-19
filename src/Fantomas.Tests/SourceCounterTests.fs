@@ -28,3 +28,39 @@ let ``count parameters of lambda`` () =
     if result
     then pass ()
     else failwithf "expected to be over the threshold but was %A" result
+
+[<Test>]
+let ``count function signature`` () =
+    let ast =
+        """
+let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) =
+    ()
+"""
+        |> parse false
+        |> Array.head
+        |> fst
+
+    let result =
+        match ast with
+        | ImplFile (ParsedImplFileInput (_,
+                                         [ ModuleOrNamespace (_,
+                                                              _,
+                                                              _,
+                                                              _,
+                                                              [ Let (LetBinding (_,
+                                                                                 _,
+                                                                                 _,
+                                                                                 _,
+                                                                                 _,
+                                                                                 PatLongIdent (_, s, ps, _),
+                                                                                 _,
+                                                                                 _)) ],
+                                                              _,
+                                                              _) ])) ->
+            CountAstNode.FunctionSignature(s, ps, None)
+            |> isASTLongerThan 65
+        | _ -> failwith "expected different AST"
+
+    if result
+    then pass ()
+    else failwithf "expected to be over the threshold but was %A" result

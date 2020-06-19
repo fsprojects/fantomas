@@ -205,6 +205,7 @@ let internal dumpAndContinue (ctx: Context) =
 type Context with    
     member x.Column = x.WriterModel.Column
     member x.FinalizeModel = finalizeWriterModel x
+    member x.RemainderOfLine = x.Config.PageWidth - x.Column
 
 let internal writeEventsOnLastLine ctx =
     ctx.WriterEvents |> Queue.rev
