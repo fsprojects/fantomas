@@ -113,6 +113,7 @@ and countSynExpr expr =
         >=> bindItems countSynMatchClause smcs
     | SynExpr.Do (e, _)
     | SynExpr.Assert (e, _) -> countSynExpr e
+    | SynExpr.App (_, isInfix, _, e, _) when (isInfix) -> countSynExpr e
     | SynExpr.App (_, _, e1, e2, _) -> countSynExpr e1 >=> countSynExpr e2
     | SynExpr.TypeApp (e, _, types, _, _, _, _) -> countSynExpr e >=> bindItems countSynType types
     | SynExpr.LetOrUse (_, _, bindings, e, _) ->
@@ -137,13 +138,8 @@ and countSynExpr expr =
         >=> countLongIdentWithDots lid
         >=> countSynExpr e2
     | SynExpr.Set (e1, e2, _) -> countSynExpr e1 >=> countSynExpr e2
-    | SynExpr.DotIndexedGet (e, args, _, _) ->
-        countSynExpr e
-        >=> bindItems countSynIndexerArg args
-    | SynExpr.DotIndexedSet (e1, args, e2, _, _, _) ->
-        countSynExpr e1
-        >=> bindItems countSynIndexerArg args
-        >=> countSynExpr e2
+    | SynExpr.DotIndexedGet (e, _, _, _) -> countSynExpr e
+    | SynExpr.DotIndexedSet (e1, _, e2, _, _, _) -> countSynExpr e1 >=> countSynExpr e2
     | SynExpr.NamedIndexedPropertySet (lid, e1, e2, _) ->
         countLongIdentWithDots lid
         >=> countSynExpr e1
@@ -464,6 +460,13 @@ type CountAstNode =
     | ComplexPatsList of ComplexPats list
     | FunctionSignature of functionName: string * (string option * SynPat) list * SynType option
     | RecordInstance of (SynType * SynExpr) option * (RecordFieldName * SynExpr option * BlockSeparator option) list * SynExpr option
+    | AnonRecordInstance of fields: (Ident * SynExpr) list * copyInfo: SynExpr option
+    | SyntaxExpression of SynExpr
+    | InfixExpression of SynExpr * (string * SynExpr * SynExpr) list
+    | RecordTypeDefinition of SynField list
+    | AnonRecordTypeDefinition of (Ident * SynType) list
+    | ElmishElement of string * SynExpr * SynExpr list
+    | MultipleSyntaxExpressions of SynExpr list
 
 let isASTLongerThan threshold node =
     lift threshold
@@ -475,12 +478,26 @@ let isASTLongerThan threshold node =
                    bindOption (String.length >> map) s
                    >=> countSynPat pat) pats
            >=> bindOption countSynType retType
-        | RecordInstance(inheritOpt, fields, e) ->
-            bindOption (fun (t,e) -> countSynType t >=> countSynExpr e) inheritOpt
-            >=> bindItems (fun ((lid,_), eo, _) ->
-                                countLongIdentWithDots lid
-                                >=> countSynExprOption eo) fields
-            >=> countSynExprOption e
+       | RecordInstance (inheritOpt, fields, e) ->
+           bindOption (fun (t, e) -> countSynType t >=> countSynExpr e) inheritOpt
+           >=> bindItems (fun ((lid, _), eo, _) ->
+                   countLongIdentWithDots lid
+                   >=> countSynExprOption eo) fields
+           >=> countSynExprOption e
+       | AnonRecordInstance (fields, copyInfo) ->
+           bindItems (fun (i, e) -> countIdent i >=> countSynExpr e) fields
+           >=> countSynExprOption copyInfo
+       | SyntaxExpression expr -> countSynExpr expr
+       | InfixExpression (e, es) ->
+           countSynExpr e
+           >=> bindItems (fun (_, _, e2) -> countSynExpr e2) es
+       | RecordTypeDefinition (fields) -> bindItems countSynField fields
+       | AnonRecordTypeDefinition (fields) -> bindItems (fun (i, t) -> countIdent i >=> countSynType t) fields
+       | ElmishElement (identifier, attributes, children) ->
+           map identifier.Length
+           >=> countSynExpr attributes
+           >=> bindItems countSynExpr children
+       | MultipleSyntaxExpressions xs -> bindItems countSynExpr xs
     |> function
     | UnderThreshold _ -> false
     | OverThreshold -> true

@@ -899,6 +899,7 @@ and genExpr astContext synExpr =
         fun ctx ->
             isShortExpression
                 ctx.Config.MaxElmishWidth
+                (ElmishElement(identifier, attributes, children))
                 shortExpression
                 longExpression
                 ctx
@@ -914,6 +915,7 @@ and genExpr astContext synExpr =
         let genInfixExpr (ctx: Context) =
             isShortExpression
                 ctx.Config.MaxInfixOperatorExpression
+                (CountAstNode.SyntaxExpression(e))
                 // if this fits on the rest of line right after the lazy keyword, it should be wrapped in parenthesis.
                 (sepOpenT +> genExpr astContext e +> sepCloseT)
                 // if it is multiline there is no need for parenthesis, because of the indentation
@@ -963,7 +965,12 @@ and genExpr astContext synExpr =
             if (TriviaHelpers.``has line comments inside`` alNode.Range ctx.Trivia) then
                 multilineExpression ctx
             else
-                isShortExpression ctx.Config.MaxArrayOrListWidth shortExpression multilineExpression ctx
+                isShortExpression
+                    ctx.Config.MaxArrayOrListWidth
+                    (CountAstNode.MultipleSyntaxExpressions(xs))
+                    shortExpression
+                    multilineExpression
+                    ctx
 
     | Record(inheritOpt, xs, eo) ->
         let shortRecordExpr =
@@ -982,15 +989,12 @@ and genExpr astContext synExpr =
                 (genMultilineRecordInstance inheritOpt xs eo synExpr astContext)
 
         fun ctx ->
-            if (CountAstNode.RecordInstance(inheritOpt, xs, eo)
-                |> SourceCounter.isASTLongerThan ctx.Config.MaxRecordWidth) then
-                multilineRecordExpr ctx
-            else
-                isShortExpression
-                    ctx.Config.MaxRecordWidth
-                    shortRecordExpr
-                    multilineRecordExpr
-                    ctx
+            isShortExpression
+                ctx.Config.MaxRecordWidth
+                (CountAstNode.RecordInstance(inheritOpt, xs, eo))
+                shortRecordExpr
+                multilineRecordExpr
+                ctx
 
     | AnonRecord(isStruct, fields, copyInfo) ->
         let shortExpression =
@@ -1008,6 +1012,7 @@ and genExpr astContext synExpr =
         fun (ctx: Context) ->
             isShortExpression
                 ctx.Config.MaxRecordWidth
+                (CountAstNode.AnonRecordInstance(fields, copyInfo))
                 shortExpression
                 longExpression
                 ctx
@@ -1091,7 +1096,13 @@ and genExpr astContext synExpr =
         let multilineExpression =
             ifAlignBrackets bracketsOnSameColumn shortExpression
 
-        fun ctx -> isShortExpression ctx.Config.MaxArrayOrListWidth shortExpression multilineExpression ctx
+        fun ctx ->
+            isShortExpression
+                ctx.Config.MaxArrayOrListWidth
+                (CountAstNode.SyntaxExpression(e))
+                shortExpression
+                multilineExpression
+                ctx
 
     | JoinIn(e1, e2) -> genExpr astContext e1 -- " in " +> genExpr astContext e2
     | Paren(DesugaredLambda(cps, e)) ->
@@ -1197,6 +1208,7 @@ and genExpr astContext synExpr =
             (fun ctx ->
                  isShortExpression
                     ctx.Config.MaxInfixOperatorExpression
+                    (InfixExpression(e, es))
                     (expr +> sepAfterExpr sepSpace +> genInfixAppsShort astContext es)
                     (expr +> sepAfterExpr sepNln +> genInfixApps astContext es)
                     ctx)
@@ -2043,7 +2055,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
         let bodyExpr ctx =
             if (List.isEmpty ms) then
-                (isShortExpression ctx.Config.MaxRecordWidth shortExpression multilineExpression
+                (isShortExpression ctx.Config.MaxRecordWidth (RecordTypeDefinition(fs)) shortExpression multilineExpression
                 +> leaveNode tdr.Range // this will only print something when there is trivia after } in the short expression
                 // Yet it cannot be part of the short expression otherwise the multiline expression would be triggered unwillingly.
                 ) ctx
@@ -2241,7 +2253,7 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
                 (genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext)
                 (genSigSimpleRecord typeName tdr ms ao' fs astContext)
         fun ctx ->
-            isShortExpression ctx.Config.MaxRecordWidth shortExpr longExpr ctx
+            isShortExpression ctx.Config.MaxRecordWidth (CountAstNode.RecordTypeDefinition(fs)) shortExpr longExpr ctx
 
     | SigSimple TDSRNone ->
         let genMembers =
@@ -2475,7 +2487,7 @@ and genType astContext outerBracket t =
                 +> sepCloseAnonRecd
 
             fun (ctx:Context) ->
-                isShortExpression ctx.Config.MaxRecordWidth shortExpression longExpression ctx
+                isShortExpression ctx.Config.MaxRecordWidth (AnonRecordTypeDefinition(fields)) shortExpression longExpression ctx
         | TParen(innerT) ->
             sepOpenT +> loop innerT +> sepCloseT
         | t -> failwithf "Unexpected type: %O" t

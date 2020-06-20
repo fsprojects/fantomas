@@ -25,10 +25,10 @@
     <Compile Include="TriviaHelpers.fs" />
     <Compile Include="TokenParser.fs" />
     <Compile Include="Trivia.fs" />
-    <Compile Include="Context.fs" />
     <Compile Include="SourceParser.fs" />
-    <Compile Include="SourceTransformer.fs" />
     <Compile Include="SourceCounter.fs" />
+    <Compile Include="Context.fs" />
+    <Compile Include="SourceTransformer.fs" />
     <Compile Include="TriviaContext.fs" />
     <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatterImpl.fs" />

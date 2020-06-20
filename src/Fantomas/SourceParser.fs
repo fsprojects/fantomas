@@ -1,49 +1,16 @@
 ﻿module internal Fantomas.SourceParser
 
 open System
-open System.Diagnostics
 open FSharp.Compiler.PrettyNaming
 open FSharp.Compiler.Range
 open FSharp.Compiler.SyntaxTree
 open FSharp.Compiler.XmlDoc
 open Fantomas
-open Fantomas.Context
 open FSharp.Compiler.SourceCodeServices.PrettyNaming
 
 type Composite<'a, 'b> =
     | Pair of 'b * 'b
     | Single of 'a
-
-#if INTERACTIVE
-type Debug = Console
-#endif
-
-[<Literal>]
-let MaxLength = 512
-
-/// Get source string content based on range value
-let lookup (r : range) (c : Context) =
-    if r.EndLine < c.Positions.Length then
-        let start = c.Positions.[r.StartLine-1] + r.StartColumn
-        let startLength = c.Positions.[r.StartLine] - c.Positions.[r.StartLine-1]
-        let finish = c.Positions.[r.EndLine-1] + r.EndColumn - 1
-        let finishLength = c.Positions.[r.EndLine] - c.Positions.[r.EndLine-1]
-        let content = c.Content
-        // Any line with more than 512 characters isn't reliable for querying
-        if start > finish || startLength >= MaxLength || finishLength >= MaxLength then
-            Debug.WriteLine("Can't lookup between start = {0} and finish = {1}", start, finish)
-            None
-        else
-            let s = content.[start..finish]
-            Debug.WriteLine("Content: {0} at start = {1}, finish = {2}", s, start, finish)
-            if s.Contains("\\\n") then
-                // Terrible hack to compensate the offset made by F# compiler
-                let last = content.[c.Positions.[r.EndLine-1]..finish]
-                let offset = min (last.Length - last.TrimStart(' ').Length) (content.Length - finish - 1)
-                Debug.WriteLine("Content after patch: {0} with offset = {1}", s, offset)
-                Some content.[start..finish + offset]
-            else Some s
-    else None
 
 let (|Ident|) (s : Ident) = 
     let ident = s.idText
@@ -1449,6 +1416,5 @@ let (|ElmishReactWithChildren|_|) e =
     | App(OptVar(ident), [ArrayOrListOfSeqExpr(_) as attributes
                           ArrayOrList(isArray, [], _) ]) ->
         Some(ident, attributes, (isArray, []))
-
     | _ ->
         None
