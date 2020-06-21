@@ -27,6 +27,9 @@ let private bind f current =
 let private bindItems f items v =
     List.fold (fun acc a -> bind (f a) acc) v items
 
+let private bindSeq f items v =
+    Seq.fold (fun acc a -> bind (f a) acc) v items
+
 let private bindOption f o =
     match o with
     | Some s -> f s
@@ -37,6 +40,8 @@ let private (>>=) = bind
 let private (>=>) f g = fun v -> bind f v |> bind g
 
 let rec private countIdent (ident: Ident) = map ident.idText.Length
+
+and countIdentOption io = bindOption countIdent io
 
 and countLongIdent li = bindItems countIdent li
 
@@ -91,7 +96,7 @@ and countSynExpr expr =
     | SynExpr.New (_, t, e, _) -> countSynType t >=> countSynExpr e
     | SynExpr.ObjExpr (t, eio, bindings, interfaces, _, _) ->
         countSynType t
-        >=> bindOption (fun (e, io) -> countSynExpr e >=> bindOption countIdent io) eio
+        >=> bindOption (fun (e, io) -> countSynExpr e >=> countIdentOption io) eio
         >=> bindItems countSynBinding bindings
         >=> bindItems countSynInterfaceImpl interfaces
     | SynExpr.While (_, e1, e2, _) -> countSynExpr e1 >=> countSynExpr e2
@@ -200,9 +205,7 @@ and countSynMatchClause synMatchClause =
 
 and countSynValData synValData =
     match synValData with
-    | SynValData (_, valInfo, io) ->
-        countSynValInfo valInfo
-        >=> bindOption countIdent io
+    | SynValData (_, valInfo, io) -> countSynValInfo valInfo >=> countIdentOption io
 
 and countSynBindingReturnInfo synBindingReturnInfo =
     match synBindingReturnInfo with
@@ -230,7 +233,7 @@ and countSynExprOption eo = bindOption countSynExpr eo
 and countSynAttribute (attribute: SynAttribute) =
     countLongIdentWithDots attribute.TypeName
     >=> countSynExpr attribute.ArgExpr
-    >=> bindOption countIdent attribute.Target
+    >=> countIdentOption attribute.Target
 
 and countSynAttributeList (attributeList: SynAttributeList) =
     bindItems countSynAttribute attributeList.Attributes
@@ -242,7 +245,7 @@ and countSynField synField =
     match synField with
     | SynField.Field (attributes, _, ident, t, _, _, _, _) ->
         countSynAttributes attributes
-        >=> bindOption countIdent ident
+        >=> countIdentOption ident
         >=> countSynType t
 
 and countSynTypar synTypar =
@@ -283,7 +286,7 @@ and countSynArgInfo synArgInfo =
     match synArgInfo with
     | SynArgInfo.SynArgInfo (attributes, _, ident) ->
         countSynAttributes attributes
-        >=> bindOption countIdent ident
+        >=> countIdentOption ident
 
 and countSynValInfo synValInfo =
     match synValInfo with
@@ -362,7 +365,7 @@ and countSynTypeDefnSimpleRepr synTypeDefnSimpleRepr =
     | SynTypeDefnSimpleRepr.Record (_, fields, _) -> bindItems countSynField fields
     | SynTypeDefnSimpleRepr.General (stDefnKind, types, sigs, fields, _, _, pats, _) ->
         countSynTypeDefnKind stDefnKind
-        >=> bindItems (fun (t, _, io) -> countSynType t >=> bindOption countIdent io) types
+        >=> bindItems (fun (t, _, io) -> countSynType t >=> countIdentOption io) types
         >=> bindItems (fst >> countSynValSig) sigs
         >=> bindItems countSynField fields
         >=> bindOption countSynSimplePats pats
@@ -413,7 +416,7 @@ and countSynPat synPat =
     | SynPat.Ands (pats, _) -> bindItems countSynPat pats
     | SynPat.LongIdent (lid, ident, vtDecls, argPats, _, _) ->
         countLongIdentWithDots lid
-        >=> bindOption countIdent ident
+        >=> countIdentOption ident
         >=> bindOption countSynValTyparDecls vtDecls
         >=> countSynArgPats argPats
     | SynPat.Wild _
@@ -434,7 +437,7 @@ and countSynPat synPat =
     | SynPat.InstanceMember (i1, i2, i3, _, _) ->
         countIdent i1
         >=> countIdent i2
-        >=> bindOption countIdent i3
+        >=> countIdentOption i3
     | SynPat.FromParseError (pat, _) -> countSynPat pat
 
 and countSynArgPats synArgPats =
@@ -456,6 +459,84 @@ and countComplexPats cp =
     | ComplexPats cps -> bindItems countComplexPat cps
     | ComplexTyped (cps, t) -> countComplexPats cps >=> countSynType t
 
+and countSynTypeDefnRepr synTypeDefnRepr =
+    match synTypeDefnRepr with
+    | SynTypeDefnRepr.ObjectModel (kind, defs, _) ->
+        countSynTypeDefnKind kind
+        >=> countSynMemberDefns defs
+    | SynTypeDefnRepr.Simple (tdsr, _) -> countSynTypeDefnSimpleRepr tdsr
+    | SynTypeDefnRepr.Exception (edr) -> countSynExceptionDefnRepr edr
+
+and countSynMemberDefn synMemberDefn =
+    match synMemberDefn with
+    | SynMemberDefn.Open (lid, _) -> countLongIdent lid
+    | SynMemberDefn.Member (binding, _) -> countSynBinding binding
+    | SynMemberDefn.ImplicitCtor (_, attributes, pats, io, _) ->
+        countSynAttributes attributes
+        >=> countSynSimplePats pats
+        >=> countIdentOption io
+    | SynMemberDefn.ImplicitInherit (t, e, io, _) ->
+        countSynType t
+        >=> countSynExpr e
+        >=> countIdentOption io
+    | SynMemberDefn.LetBindings (bindings, _, _, _) -> bindItems countSynBinding bindings
+    | SynMemberDefn.AbstractSlot (valSig, _, _) -> countSynValSig valSig
+    | SynMemberDefn.Interface (st, mdefs, _) ->
+        countSynType st
+        >=> bindOption countSynMemberDefns mdefs
+    | SynMemberDefn.Inherit (t, io, _) -> countSynType t >=> countIdentOption io
+    | SynMemberDefn.ValField (sf, _) -> countSynField sf
+    | SynMemberDefn.NestedType (std, _, _) -> countSynTypeDefn std
+    | SynMemberDefn.AutoProperty (attributes, _, ident, topt, _, _, _, _, e, _, _) ->
+        countSynAttributes attributes
+        >=> countIdent ident
+        >=> bindOption countSynType topt
+        >=> countSynExpr e
+
+and countSynMemberDefns synMemberDefns =
+    bindItems countSynMemberDefn synMemberDefns
+
+and countSynTypeDefn synTypeDefn =
+    match synTypeDefn with
+    | SynTypeDefn.TypeDefn (com, stdr, smdefs, _) ->
+        countSynComponentInfo com
+        >=> countSynTypeDefnRepr stdr
+        >=> countSynMemberDefns smdefs
+
+and countSynExceptionDefn synExceptionDefn =
+    match synExceptionDefn with
+    | SynExceptionDefn.SynExceptionDefn (sedfr, smdefs, _) ->
+        countSynExceptionDefnRepr sedfr
+        >=> countSynMemberDefns smdefs
+
+and countParsedHashDirective parsedHashDirective =
+    match parsedHashDirective with
+    | ParsedHashDirective.ParsedHashDirective (s, sl, _) ->
+        map s.Length
+        >=> bindItems (String.length >> map) sl
+
+and countSynModuleOrNamespace synModuleOrNamespace =
+    match synModuleOrNamespace with
+    | SynModuleOrNamespace.SynModuleOrNamespace (lid, _, _, mdls, _, attributes, _, _) ->
+        countLongIdent lid
+        >=> bindItems countSynModuleDecl mdls
+        >=> countSynAttributes attributes
+
+and countSynModuleDecl synModuleDecl =
+    match synModuleDecl with
+    | SynModuleDecl.ModuleAbbrev (id, lid, _) -> countIdent id >=> countLongIdent lid
+    | SynModuleDecl.NestedModule (comp, _, mdls, _, _) ->
+        countSynComponentInfo comp
+        >=> bindItems countSynModuleDecl mdls
+    | SynModuleDecl.Let (_, bindings, _) -> bindItems countSynBinding bindings
+    | SynModuleDecl.DoExpr (_, e, _) -> countSynExpr e
+    | SynModuleDecl.Types (types, _) -> bindItems countSynTypeDefn types
+    | SynModuleDecl.Exception (sedf, _) -> countSynExceptionDefn sedf
+    | SynModuleDecl.Open (lid, _) -> countLongIdentWithDots lid
+    | SynModuleDecl.Attributes (attributes, _) -> countSynAttributes attributes
+    | SynModuleDecl.HashDirective (phd, _) -> countParsedHashDirective phd
+    | SynModuleDecl.NamespaceFragment (smon) -> countSynModuleOrNamespace smon
+
 type CountAstNode =
     | ComplexPatsList of ComplexPats list
     | FunctionSignature of functionName: string * (string option * SynPat) list * SynType option
@@ -466,7 +547,16 @@ type CountAstNode =
     | RecordTypeDefinition of SynField list
     | AnonRecordTypeDefinition of (Ident * SynType) list
     | ElmishElement of string * SynExpr * SynExpr list
-    | MultipleSyntaxExpressions of SynExpr list
+    | MultipleSyntaxExpressions of SynExpr seq
+    | DotGetExpression of string * SynExpr
+    | SynModuleDeclarationExpression of SynModuleDecl
+    | SynBindingExpression of SynBinding
+    | PropertyWithGetSetExpression of SynBinding * SynBinding
+    | LetBindingExpression of prefix: string * SynBinding
+    | SynMemberDefnExpression of SynMemberDefn
+    | CtorPattern of SynSimplePats
+    | LongIdentPattern of (string option * SynPat) list
+    | TuplePattern of SynPat list
 
 let isASTLongerThan threshold node =
     lift threshold
@@ -497,7 +587,19 @@ let isASTLongerThan threshold node =
            map identifier.Length
            >=> countSynExpr attributes
            >=> bindItems countSynExpr children
-       | MultipleSyntaxExpressions xs -> bindItems countSynExpr xs
+       | MultipleSyntaxExpressions xs -> bindSeq countSynExpr xs
+       | DotGetExpression (identifier, expr) -> map identifier.Length >=> countSynExpr expr
+       | SynModuleDeclarationExpression mdl -> countSynModuleDecl mdl
+       | SynBindingExpression binding -> countSynBinding binding
+       | PropertyWithGetSetExpression (g, s) -> countSynBinding g >=> countSynBinding s
+       | LetBindingExpression (prefix, binding) -> map prefix.Length >=> countSynBinding binding
+       | SynMemberDefnExpression defn -> countSynMemberDefn defn
+       | CtorPattern pats -> countSynSimplePats pats
+       | LongIdentPattern (ps) ->
+           bindItems (fun (s, pat) ->
+               bindOption (String.length >> map) s
+               >=> countSynPat pat) ps
+       | TuplePattern (pats) -> bindItems countSynPat pats
     |> function
     | UnderThreshold _ -> false
     | OverThreshold -> true

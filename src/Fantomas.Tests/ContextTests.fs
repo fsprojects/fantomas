@@ -57,30 +57,3 @@ Long comment
 Long comment
 
 *) """
-
-[<Test>]
-let ``nested exceedsMultiline expression should bubble up to parent check`` () =
-    let expression =
-        !- "let a ="
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth
-            (sepOpenA
-             +> expressionFitsOnRestOfLine
-                    // short expression, should cross the max page width of 50
-                    (!- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-                    // fallback expression
-                    (sepNln +> !- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +> sepNln +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" +> sepNln)
-             +> sepCloseA)
-
-    let config = { FormatConfig.Default with PageWidth = 50; SpaceAroundDelimiter = false }
-    let initialContext = { Context.Default with Config = config;  }
-
-    let result = dump (expression initialContext)
-    result
-    |> prepend newline
-    |> String.normalizeNewLine
-    |> should equal """
-let a =
-    [|
-    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-    BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
-    |]"""

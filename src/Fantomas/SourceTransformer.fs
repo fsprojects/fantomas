@@ -1,6 +1,7 @@
 ﻿module internal Fantomas.SourceTransformer
 
 open Fantomas.Context
+open Fantomas.SourceCounter
 open Fantomas.SourceParser
 
 [<RequireQualifiedAccess>]
@@ -115,11 +116,12 @@ let (|PropertyWithGetSetMemberDefn|_|) = function
         | _ -> None
     | _ -> None
 
-let addParenIfAutoNln synExpr f =
+let addParenIfAutoNln (countAstNode:CountAstNode) synExpr f =
     let expr = f synExpr
     expressionFitsOnRestOfLine
         expr
         (ifElse (hasParenthesis synExpr) (sepOpenT +> expr +> sepCloseT) expr)
+        countAstNode
 
 let addParenForTupleWhen f synExpr ctx =
     let condition e =

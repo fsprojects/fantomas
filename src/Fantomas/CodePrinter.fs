@@ -228,7 +228,8 @@ and genModuleDeclList astContext e =
         +> leadingExpressionIsMultiline
                 (expressionFitsOnRestOfLine
                      (genModuleDecl astContext m)
-                     (sepNlnBeforeMultilineConstruct m.Range attrs +> genModuleDecl astContext m +> newlineAfterMultiline))
+                     (sepNlnBeforeMultilineConstruct m.Range attrs +> genModuleDecl astContext m +> newlineAfterMultiline)
+                     (CountAstNode.SynModuleDeclarationExpression m))
                 (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) sepNln)
 
         +> genModuleDeclList astContext rest
@@ -502,14 +503,14 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
          +> sepEqual (isPrefixMultiline || hasLineCommentBeforeColon)
          +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual || hasLineCommentBeforeColon)
                (indent +> sepNln +> genExpr astContext e +> unindent)
-               (isShortExpressionOrAddIndentAndNewline maxWidth (genExpr astContext e))) ctx
+               (isShortExpressionOrAddIndentAndNewline maxWidth (CountAstNode.SyntaxExpression e) (genExpr astContext e))) ctx
     | e ->
         let genE =
             match e with
             | MultilineString(_)
             | _ when (TriviaHelpers.``has content itself that is multiline string`` e.Range ctx.Trivia) ->
                 genExpr astContext e
-            | _ -> isShortExpressionOrAddIndentAndNewline maxWidth (genExpr astContext e)
+            | _ -> isShortExpressionOrAddIndentAndNewline maxWidth (CountAstNode.SyntaxExpression e) (genExpr astContext e)
 
         (sepEqual isPrefixMultiline
         +> leaveEqualsToken pat.Range
@@ -633,14 +634,16 @@ and genMemberBindingList astContext node =
         leadingExpressionIsMultiline
             (expressionFitsOnRestOfLine
                 (genPropertyWithGetSet astContext gs)
-                (sepNln +> genPropertyWithGetSet astContext gs +> newlineAfterMultiline rest))
+                (sepNln +> genPropertyWithGetSet astContext gs +> newlineAfterMultiline rest)
+                (CountAstNode.PropertyWithGetSetExpression(gs)))
             (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) sepNln)
         +> genMemberBindingList astContext rest
     | mb::rest ->
         leadingExpressionIsMultiline
             (expressionFitsOnRestOfLine
                 (genMemberBinding astContext mb)
-                (genMemberBinding astContext mb +> newlineAfterMultiline rest))
+                (genMemberBinding astContext mb +> newlineAfterMultiline rest)
+                (CountAstNode.SynBindingExpression(mb)))
             (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) sepNln)
         +> genMemberBindingList astContext rest
     | _ -> sepNone
@@ -696,7 +699,10 @@ and genMemberBinding astContext b =
             +> prefix
             +> sepEq
             +> sepSpace
-            +> (fun ctx -> (isShortExpressionOrAddIndentAndNewline (if isFunctionBinding p then ctx.Config.MaxFunctionBindingWidth else ctx.Config.MaxValueBindingWidth) (genExpr astContext e)) ctx)
+            +> (fun ctx -> (isShortExpressionOrAddIndentAndNewline
+                                (if isFunctionBinding p then ctx.Config.MaxFunctionBindingWidth else ctx.Config.MaxValueBindingWidth)
+                                (CountAstNode.SyntaxExpression(e))
+                                (genExpr astContext e)) ctx)
 
     | ExplicitCtor(ats, px, ao, p, e, so) ->
         let prefix =
@@ -810,7 +816,7 @@ and genTuple astContext es =
     let shortExpression = col sepComma es f
     let longExpression = col (sepComma +> sepNln) es f
 
-    atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
+    atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression (CountAstNode.MultipleSyntaxExpressions(es)) )
 
 and genExpr astContext synExpr =
     let appNlnFun e f (ctx: Context) =
@@ -1045,7 +1051,8 @@ and genExpr astContext synExpr =
             // The opening { of the CompExpr is being added at the App(_,_,Ident(_),CompExr(_)) level
             (expressionFitsOnRestOfLine
                 (genExpr astContext e +> sepCloseS)
-                (genExpr astContext e +> unindent +> sepNln +> sepCloseSFixed))
+                (genExpr astContext e +> unindent +> sepNln +> sepCloseSFixed)
+                (CountAstNode.SyntaxExpression(e)))
 
     | CompExprBody(expr) ->
         let statements = collectComputationExpressionStatements expr
@@ -1295,9 +1302,10 @@ and genExpr astContext synExpr =
                         +> expressionFitsOnRestOfLine
                                 (genExpr astContext e)
                                 genMultilineExpr
+                                (CountAstNode.SyntaxExpression e)
 
                     let writeExpr =
-                         expressionFitsOnRestOfLine shortExpr fallBackExpr
+                         expressionFitsOnRestOfLine shortExpr fallBackExpr (CountAstNode.DotGetExpression(s, e))
 
                     let addNewlineIfNeeded (ctx: Context) =
                             // If the line before ended with a line comment, it should add a newline
@@ -1703,19 +1711,19 @@ and genExpr astContext synExpr =
     | LongIdentSet(s, e, _) ->
         !- (sprintf "%s <- " s)
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-    | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
-    | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
+    | DotIndexedGet(e, es) -> addParenIfAutoNln (CountAstNode.SyntaxExpression(e)) e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
+    | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln (CountAstNode.SyntaxExpression(e1)) e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
     | NamedIndexedPropertySet(ident, e1, e2) ->
         !- ident +> genExpr astContext e1  -- " <- "  +> genExpr astContext e2
     | DotNamedIndexedPropertySet(e, ident, e1, e2) ->
        genExpr astContext e -- "." -- ident +> genExpr astContext e1 -- " <- "  +> genExpr astContext e2
     | DotGet(e, (s,_)) ->
         let exprF = genExpr { astContext with IsInsideDotGet = true }
-        addParenIfAutoNln e exprF -- (sprintf ".%s" s)
-    | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
+        addParenIfAutoNln (CountAstNode.SyntaxExpression(e)) e exprF -- (sprintf ".%s" s)
+    | DotSet(e1, s, e2) -> addParenIfAutoNln (CountAstNode.SyntaxExpression(e1)) e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
 
     | SynExpr.Set(e1,e2, _) ->
-        addParenIfAutoNln e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
+        addParenIfAutoNln (CountAstNode.SyntaxExpression(e1)) e1 (genExpr astContext) -- sprintf " <- " +> genExpr astContext e2
 
     | ParsingError r ->
         raise <| FormatException (sprintf "Parsing error(s) between line %i column %i and line %i column %i"
@@ -1894,7 +1902,8 @@ and genLetOrUseList astContext expr =
                     (sepNlnBeforeMultilineConstruct x.RangeOfBindingSansRhs attrs
                      +> genLetBinding { astContext with IsFirstChild = p <> "and" } p x
                      +> onlyIf (List.isNotEmpty rest) sepNln
-                     +> newlineAfter))
+                     +> newlineAfter)
+                    (CountAstNode.LetBindingExpression(p,x)))
                 (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) newlineAfter))
         +> genLetOrUseList astContext rest
 
@@ -2601,7 +2610,10 @@ and genMemberDefnList astContext nodes =
         sepNlnConsideringTriviaContentBeforeWithAttributes m.RangeOfBindingSansRhs attrs +>
         (expressionFitsOnRestOfLine
             (genPropertyWithGetSet astContext gs)
-            (sepNlnBeforeMultilineConstruct m.RangeOfBindingSansRhs attrs +> genPropertyWithGetSet astContext gs +> onlyIf (List.isNotEmpty rest) sepNln))
+            (sepNlnBeforeMultilineConstruct m.RangeOfBindingSansRhs attrs
+             +> genPropertyWithGetSet astContext gs
+             +> onlyIf (List.isNotEmpty rest) sepNln)
+            (CountAstNode.PropertyWithGetSetExpression(gs)))
 
         +> genMemberDefnList ({ astContext with IsFirstChild = false }) rest
 
@@ -2614,7 +2626,8 @@ and genMemberDefnList astContext nodes =
               (genMemberDefn astContext m)
               (onlyIfNot astContext.IsFirstChild (sepNlnBeforeMultilineConstruct m.Range attrs)
                +> genMemberDefn astContext m
-               +> onlyIf (List.isNotEmpty rest) sepNln))
+               +> onlyIf (List.isNotEmpty rest) sepNln)
+              (CountAstNode.SynMemberDefnExpression(m)))
 
         +> genMemberDefnList ({ astContext with IsFirstChild = false }) rest
 
@@ -2650,6 +2663,7 @@ and genMemberDefn astContext node =
                  +> sepOpenT
                  +> atCurrentColumn (col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext))
                  +> sepCloseT)
+                (CountAstNode.CtorPattern(ps))
 
         // In implicit constructor, attributes should come even before access qualifiers
         ifElse ats.IsEmpty sepNone (sepSpace +> genOnelinerAttributes astContext ats)
@@ -2802,6 +2816,7 @@ and genPat astContext pat =
                 expressionFitsOnRestOfLine
                     (atCurrentColumn (col (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)))
                     (atCurrentColumn (col sepNln ps (genPatWithIdent astContext)))
+                    (CountAstNode.LongIdentPattern(ps))
 
             genName
             +> ifElse hasBracket sepOpenT sepNone
@@ -2814,6 +2829,7 @@ and genPat astContext pat =
         expressionFitsOnRestOfLine
             (col sepComma ps (genPat astContext))
             (atCurrentColumn (col (sepComma +> sepNln) ps (genPat astContext)))
+            (CountAstNode.TuplePattern(ps))
     | PatStructTuple ps ->
         !- "struct " +> sepOpenT +> atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext)) +> sepCloseT
     | PatSeq(PatList, ps) ->

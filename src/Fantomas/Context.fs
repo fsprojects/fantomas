@@ -532,42 +532,42 @@ let internal sepCloseT = !- ")"
 let internal eventsWithoutMultilineWrite ctx =
     { ctx with WriterEvents =  ctx.WriterEvents |> Queue.toSeq |> Seq.filter (function | Write s when s.Contains ("\n") -> false | _ -> true) |> Queue.ofSeq }
 
-let private shortExpressionWithFallback (shortExpression: Context -> Context) (fallbackExpression) maxWidth startColumn (ctx: Context) =
-    // if the context is already inside a ShortExpression mode and tries to figure out if the expression will go over the page width,
-    // we should try the shortExpression in this case.
-    match ctx.WriterModel.Mode with
-    | ShortExpression infos when (List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth ctx.Column) infos) ->
-        ctx
-    | _ ->
-        // create special context that will process the writer events slightly different
-        let shortExpressionContext =
-            match startColumn with
-            | Some sc -> ctx.WithShortExpression(maxWidth, sc)
-            | None -> ctx.WithShortExpression(maxWidth)
-
-        let resultContext = shortExpression shortExpressionContext
-        match resultContext.WriterModel.Mode with
-        | ShortExpression infos ->
-            // verify the expression is not longer than allowed
-            if List.exists(fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column) infos
-            then fallbackExpression ctx
-            else
-                { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
-        | _ ->
-            // you should never hit this branch
-            fallbackExpression ctx
-
-let internal isShortExpression maxWidth (counterNode:CountAstNode) (shortExpression: Context -> Context) (fallbackExpression) (ctx: Context) =
+let private shortExpressionWithFallback (shortExpression: Context -> Context) fallbackExpression maxWidth (counterNode:CountAstNode) startColumn (ctx: Context) =
     if SourceCounter.isASTLongerThan maxWidth counterNode then
         fallbackExpression ctx
     else
-        shortExpressionWithFallback shortExpression fallbackExpression maxWidth None ctx
+        // if the context is already inside a ShortExpression mode and tries to figure out if the expression will go over the page width,
+        // we should try the shortExpression in this case.
+        match ctx.WriterModel.Mode with
+        | ShortExpression infos when (List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth ctx.Column) infos) ->
+            ctx
+        | _ ->
+            // create special context that will process the writer events slightly different
+            let shortExpressionContext =
+                match startColumn with
+                | Some sc -> ctx.WithShortExpression(maxWidth, sc)
+                | None -> ctx.WithShortExpression(maxWidth)
 
-let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
-    shortExpressionWithFallback expr (indent +> sepNln +> expr +> unindent) maxWidth None ctx
+            let resultContext = shortExpression shortExpressionContext
+            match resultContext.WriterModel.Mode with
+            | ShortExpression infos ->
+                // verify the expression is not longer than allowed
+                if List.exists(fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column) infos
+                then fallbackExpression ctx
+                else
+                    { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
+            | _ ->
+                // you should never hit this branch
+                fallbackExpression ctx
 
-let internal expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
-    shortExpressionWithFallback expression fallbackExpression ctx.Config.PageWidth (Some 0) ctx
+let internal isShortExpression maxWidth (counterNode:CountAstNode) (shortExpression: Context -> Context) (fallbackExpression) (ctx: Context) =
+    shortExpressionWithFallback shortExpression fallbackExpression maxWidth counterNode None ctx
+
+let internal isShortExpressionOrAddIndentAndNewline maxWidth (counterNode:CountAstNode) expr (ctx: Context) =
+    shortExpressionWithFallback expr (indent +> sepNln +> expr +> unindent) maxWidth counterNode None ctx
+
+let internal expressionFitsOnRestOfLine expression fallbackExpression (counterNode:CountAstNode) (ctx: Context) =
+    shortExpressionWithFallback expression fallbackExpression ctx.Config.PageWidth counterNode (Some 0) ctx
 
 /// provide the line and column before and after the leadingExpression to to the continuation expression
 let internal leadingExpressionResult leadingExpression continuationExpression (ctx: Context) =
