@@ -567,7 +567,7 @@ and genLetBinding astContext pref b =
         let prefix = if pref.Contains("let") then pref.Replace("let", "do") else "do "
         genPreXmlDoc px
         +> genAttributes astContext ats -- prefix
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e)
 
     | b ->
         failwithf "%O isn't a let binding" b
@@ -692,7 +692,7 @@ and genMemberBinding astContext b =
             +> sepColon
             +> genType astContext false t
             +> sepEq
-            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e)
 
         | e ->
             genAttributesAndXmlDoc
@@ -716,10 +716,10 @@ and genMemberBinding astContext b =
         | Sequential(e1, e2, false) ->
             prefix +> sepEq +> indent +> sepNln
             +> genExpr astContext e1 ++ "then "
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e2)) (genExpr astContext e2)
             +> unindent
 
-        | e -> prefix +> sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        | e -> prefix +> sepEq +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e)
 
     | b -> failwithf "%O isn't a member binding" b
     |> genTrivia b.RangeOfBindingSansRhs
@@ -798,7 +798,7 @@ and genRecordFieldName astContext (RecordFieldName(s, eo) as node) =
         let expr =
             match e with
             | MultilineString _ -> sepSpace +> genExpr astContext e
-            | _ -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            | _ -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e)
 
         !- s +> sepEq +> expr)
     |> genTrivia range
@@ -807,7 +807,7 @@ and genAnonRecordFieldName astContext (AnonRecordFieldName(s, e)) =
     let expr =
         match e with
         | MultilineString _ -> sepSpace +> genExpr astContext e
-        | _ -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        | _ -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e)
 
     !- s +> sepEq +> expr
 
@@ -829,7 +829,7 @@ and genExpr astContext synExpr =
             | Lambda _
             | Paren (Lambda _)
             | Paren (MatchLambda _) -> id
-            | _ -> autoNlnIfExpressionExceedsPageWidth
+            | _ -> autoNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e))
 
         expr f ctx
 
@@ -930,6 +930,7 @@ and genExpr astContext synExpr =
 
         let genNonInfixExpr =
             autoIndentAndNlnIfExpressionExceedsPageWidth
+                           (CountAstNode.SyntaxExpression(e))
                            (onlyIfNot hasParenthesis sepOpenT
                             +> genExpr astContext e
                             +> onlyIfNot hasParenthesis sepCloseT)
@@ -1042,7 +1043,7 @@ and genExpr astContext synExpr =
         atCurrentColumn (
             !- "for " +> genPat astContext p -- " in " +> genExpr { astContext with IsNakedRange = true } e1
             +> ifElse isArrow
-                   (sepArrow +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2))
+                   (sepArrow +> autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e2)) (genExpr astContext e2))
                    (!- " do" +> indent +> sepNln +> genExpr astContext e2 +> unindent))
 
     | CompExpr(isArrayOrList, e) ->
@@ -1057,6 +1058,17 @@ and genExpr astContext synExpr =
     | CompExprBody(expr) ->
         let statements = collectComputationExpressionStatements expr
 
+        let countCompExprStatement ces =
+            match ces with
+            | LetOrUseStatement(_,_, binding) ->
+                CountAstNode.SynBindingExpression(binding)
+            | LetOrUseBangStatement(_, pat, expr, _)
+            | AndBangStatement(pat,expr) ->
+                CountAstNode.SynPatternAndSynExpression(pat, expr)
+            | OtherStatement expr ->
+                CountAstNode.SyntaxExpression(expr)
+
+
         let genCompExprStatement astContext ces =
             match ces with
             | LetOrUseStatement(isRecursive, isUse, binding) ->
@@ -1068,10 +1080,10 @@ and genExpr astContext synExpr =
                 enterNode r // print Trivia before entire LetBang expression
                 +> ifElse isUse (!- "use! ") (!- "let! ")
                 +> genPat astContext pat -- " = "
-                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+                +> autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(expr)) (genExpr astContext expr)
             | AndBangStatement(pat, expr) ->
                 genTrivia pat.Range (!- "and! " +> genPat astContext pat) -- " = "
-                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+                +> autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(expr)) (genExpr astContext expr)
             | OtherStatement expr -> genExpr astContext expr
 
         let getRangeOfCompExprStatement ces =
@@ -1082,7 +1094,7 @@ and genExpr astContext synExpr =
             | OtherStatement expr -> expr.Range
 
         statements
-        |> List.map (fun ces -> genCompExprStatement astContext ces, getRangeOfCompExprStatement ces)
+        |> List.map (fun ces -> genCompExprStatement astContext ces, getRangeOfCompExprStatement ces, countCompExprStatement ces)
         |> colWithNlnWhenItemIsMultiline
 
     | ArrayOrListOfSeqExpr(isArray, e) as aNode ->
@@ -1125,15 +1137,16 @@ and genExpr astContext synExpr =
                 +> col sepSpace cps (genComplexPats astContext)
                 +> triviaAfterArrow synExpr.Range
                 +> ifElse hasLineCommentAfterArrow (genExpr astContext e)
-                       (ifElse lastLineOnlyContainsParenthesis (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
-                            (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
+                       (ifElse lastLineOnlyContainsParenthesis
+                            (autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e))
+                            (autoNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e)))
                 +> sepCloseT
 
             expr ctx
 
     | DesugaredLambda(cps, e) ->
         !- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e)
     | Paren(Lambda(e, sps)) ->
         fun (ctx: Context) ->
             let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
@@ -1147,8 +1160,9 @@ and genExpr astContext synExpr =
                 +> col sepSpace sps (genSimplePats astContext)
                 +> triviaAfterArrow synExpr.Range
                 +> ifElse hasLineCommentAfterArrow (genExpr astContext e)
-                       (ifElse lastLineOnlyContainsParenthesis (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
-                            (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
+                       (ifElse lastLineOnlyContainsParenthesis
+                            (autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e))
+                            (autoNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e)))
                 +> sepCloseT
 
             expr ctx
@@ -1159,7 +1173,7 @@ and genExpr astContext synExpr =
             (!- "fun "
              +> col sepSpace sps (genSimplePats astContext)
              +> sepArrow
-             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+             +> autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e))
     | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause astContext true)
     | Match(e, cs) ->
         atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
@@ -1227,10 +1241,11 @@ and genExpr astContext synExpr =
     | DotGetAppSpecial(s, es) ->
         !- s
         +> atCurrentColumn
-             (colAutoNlnSkip0 sepNone es (fun ((s,r), e) ->
-                ((!- (sprintf ".%s" s) |> genTrivia r)
-                    +> ifElse (hasParenthesis e || isArrayOrList e) sepNone sepSpace +> genExpr astContext e)
-                ))
+             (colAutoNlnSkip0 sepNone es
+                  (fun ((s,_),e) -> CountAstNode.DotGetExpression(s,e))
+                  (fun ((s,r), e) ->
+                    ((!- (sprintf ".%s" s) |> genTrivia r)
+                      +> ifElse (hasParenthesis e || isArrayOrList e) sepNone sepSpace +> genExpr astContext e)))
 
     | DotGetApp(e, es) as appNode ->
         fun (ctx: Context) ->
@@ -1710,7 +1725,7 @@ and genExpr astContext synExpr =
         ifElse isOpt (!- "?") sepNone -- s +> opt id lastRange leaveNode
     | LongIdentSet(s, e, _) ->
         !- (sprintf "%s <- " s)
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e)
     | DotIndexedGet(e, es) -> addParenIfAutoNln (CountAstNode.SyntaxExpression(e)) e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
     | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln (CountAstNode.SyntaxExpression(e1)) e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
     | NamedIndexedPropertySet(ident, e1, e2) ->
@@ -1933,7 +1948,7 @@ and genInfixApp s (opE: SynExpr) e astContext =
                         | _ -> false
                     let genExpr =
                         if isEqualOperator then
-                            autoIndentAndNlnIfExpressionExceedsPageWidth (sepSpace +> genExpr astContext e)
+                            autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (sepSpace +> genExpr astContext e)
                         else
                             sepSpace +> genExpr astContext e
                     genExpr ctx))
@@ -1943,7 +1958,7 @@ and genInfixApp s (opE: SynExpr) e astContext =
             | ("?", SynExpr.Ident(Ident("op_Dynamic")), SynExpr.Ident(_)) ->
                 sepOpenT +> f +> sepCloseT
             | _ -> f
-        (node opE.Range s +> autoNlnIfExpressionExceedsPageWidth (wrapExpr (genExpr astContext e)))
+        (node opE.Range s +> autoNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (wrapExpr (genExpr astContext e)))
     else
         (fun ctx ->
             let hasLineCommentAfterInfix = hasLineCommentAfterInfix opE.Range ctx
@@ -2095,7 +2110,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
                  +> genMemberDefnList { astContext with InterfaceRange = None } ms
             +> unindent +> unindent)
 
-        let genTypeBody =  autoIndentAndNlnIfExpressionExceedsPageWidth (genTrivia tdr.Range genTypeAbbrev) +> genMembers
+        let genTypeBody =  autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SynTypeAndMembers(t,ms)) (genTrivia tdr.Range genTypeAbbrev) +> genMembers
 
         typeName +> sepEq +> sepSpace +> genTypeBody
     | Simple(TDSRException(ExceptionDefRepr(ats, px, ao, uc))) ->
@@ -2542,7 +2557,7 @@ and genTypeList astContext node =
                 opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
                 +> genType astContext hasBracket t
         genOnelinerAttributes astContext ats
-        +> gt +> ifElse ts.IsEmpty sepNone (autoNlnIfExpressionExceedsPageWidth (sepArrow +> genTypeList astContext ts))
+        +> gt +> ifElse ts.IsEmpty sepNone (autoNlnIfExpressionExceedsPageWidth (CountAstNode.SynTypeList(ts)) (sepArrow +> genTypeList astContext ts))
 
     | (TTuple ts', argInfo)::ts ->
         // The '/' separator shouldn't appear here
@@ -2552,11 +2567,11 @@ and genTypeList astContext node =
                         genOnelinerAttributes astContext ats
                         +> opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
                         +> genType astContext hasBracket t)
-        gt +> ifElse ts.IsEmpty sepNone (autoNlnIfExpressionExceedsPageWidth (sepArrow +> genTypeList astContext ts))
+        gt +> ifElse ts.IsEmpty sepNone (autoNlnIfExpressionExceedsPageWidth (CountAstNode.SynTypeList(ts)) (sepArrow +> genTypeList astContext ts))
 
     | (t, _)::ts ->
         let gt = genType astContext false t
-        gt +> ifElse ts.IsEmpty sepNone (autoNlnIfExpressionExceedsPageWidth (sepArrow +> genTypeList astContext ts))
+        gt +> ifElse ts.IsEmpty sepNone (autoNlnIfExpressionExceedsPageWidth (CountAstNode.SynTypeList(ts)) (sepArrow +> genTypeList astContext ts))
     // |> genTrivia node
 
 and genTypar astContext (Typar(s, isHead) as node) =
@@ -2586,7 +2601,7 @@ and genInterfaceImpl astContext (InterfaceImpl(t, bs, range)) =
 
 and genClause astContext hasBar (Clause(p, e, eo) as node) =
     let clauseBody e (ctx: Context) =
-        (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)) ctx
+        (autoIndentAndNlnIfExpressionExceedsPageWidth (CountAstNode.SyntaxExpression(e)) (genExpr astContext e)) ctx
 
     let pat = genPat astContext p
     let body = optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> clauseBody e
@@ -2831,17 +2846,17 @@ and genPat astContext pat =
             (atCurrentColumn (col (sepComma +> sepNln) ps (genPat astContext)))
             (CountAstNode.TuplePattern(ps))
     | PatStructTuple ps ->
-        !- "struct " +> sepOpenT +> atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext)) +> sepCloseT
+        !- "struct " +> sepOpenT +> atCurrentColumn (colAutoNlnSkip0 sepComma ps (fun p -> CountAstNode.TuplePattern([p])) (genPat astContext)) +> sepCloseT
     | PatSeq(PatList, ps) ->
         ifElse ps.IsEmpty (sepOpenLFixed +> sepCloseLFixed)
-            (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps (genPat astContext)) +> sepCloseL)
+            (sepOpenL +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps (fun p -> CountAstNode.TuplePattern([p])) (genPat astContext)) +> sepCloseL)
 
     | PatSeq(PatArray, ps) ->
         ifElse ps.IsEmpty (sepOpenAFixed +> sepCloseAFixed)
-            (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps (genPat astContext)) +> sepCloseA)
+            (sepOpenA +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps (fun p -> CountAstNode.TuplePattern([p])) (genPat astContext)) +> sepCloseA)
 
     | PatRecord(xs) ->
-        sepOpenS +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs (genPatRecordFieldName astContext)) +> sepCloseS
+        sepOpenS +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs (CountAstNode.RecordPattern) (genPatRecordFieldName astContext)) +> sepCloseS
     | PatConst(c,r) -> genConst c r
     | PatIsInst(TApp(_, [_], _) as t)
     | PatIsInst(TArray(_) as t) ->
@@ -2865,7 +2880,7 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
     let genName = aoc -- s +> tpsoc +> sepSpace
 
     let genParametersInitial =
-        colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)
+        colAutoNlnSkip0 (ifElse hasBracket sepSemi sepSpace) ps (fun p -> CountAstNode.LongIdentPattern([p])) (genPatWithIdent astContext)
 
     let genReturnType, newlineBeforeReturnType =
         match t with

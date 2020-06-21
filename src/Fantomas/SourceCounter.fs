@@ -557,6 +557,10 @@ type CountAstNode =
     | CtorPattern of SynSimplePats
     | LongIdentPattern of (string option * SynPat) list
     | TuplePattern of SynPat list
+    | SynPatternAndSynExpression of SynPat * SynExpr
+    | SynTypeAndMembers of SynType * SynMemberDefns
+    | SynTypeList of (SynType * SynArgInfo list) list
+    | RecordPattern of (LongIdent * Ident) * SynPat
 
 let isASTLongerThan threshold node =
     lift threshold
@@ -600,6 +604,13 @@ let isASTLongerThan threshold node =
                bindOption (String.length >> map) s
                >=> countSynPat pat) ps
        | TuplePattern (pats) -> bindItems countSynPat pats
+       | SynPatternAndSynExpression (pat, expr) -> countSynPat pat >=> countSynExpr expr
+       | SynTypeAndMembers (t, ms) -> countSynType t >=> countSynMemberDefns ms
+       | SynTypeList ts -> bindItems (fun (t, args) -> countSynType t >=> bindItems countSynArgInfo args) ts
+       | RecordPattern ((lid, ident), pat) ->
+           countLongIdent lid
+           >=> countIdent ident
+           >=> countSynPat pat
     |> function
     | UnderThreshold _ -> false
     | OverThreshold -> true

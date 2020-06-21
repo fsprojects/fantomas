@@ -590,48 +590,54 @@ let internal leadingExpressionIsMultiline leadingExpression continuationExpressi
 
     continuationExpression hasWriteLineEventsAfterExpression contextAfterLeading
 
-let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
-    // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
-    match ctx.WriterModel.Mode with
-    | ShortExpression infos when (List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth ctx.Column) infos) ->
-        ctx
-    | ShortExpression _ ->
+let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong (counterNode:CountAstNode) expr (ctx: Context) =
+    if SourceCounter.isASTLongerThan ctx.RemainderOfLine counterNode then
+        (beforeLong +> expr +> afterLong) ctx
+    else
         // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
-        (beforeShort +> expr +> afterShort) ctx
-    | _ ->
-        let shortExpressionContext = ctx.WithShortExpression(ctx.Config.PageWidth, 0)
-        let resultContext = (beforeShort +> expr +> afterShort) shortExpressionContext
-        let fallbackExpression = beforeLong +> expr +> afterLong
-
-        match resultContext.WriterModel.Mode with
-        | ShortExpression infos ->
-            // verify the expression is not longer than allowed
-            if List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column) infos then
-                fallbackExpression ctx
-            else
-                { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
+        match ctx.WriterModel.Mode with
+        | ShortExpression infos when (List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth ctx.Column) infos) ->
+            ctx
+        | ShortExpression _ ->
+            // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
+            (beforeShort +> expr +> afterShort) ctx
         | _ ->
-            // you should never hit this branch
-            fallbackExpression ctx
+            let shortExpressionContext = ctx.WithShortExpression(ctx.Config.PageWidth, 0)
+            let resultContext = (beforeShort +> expr +> afterShort) shortExpressionContext
+            let fallbackExpression = beforeLong +> expr +> afterLong
+
+            match resultContext.WriterModel.Mode with
+            | ShortExpression infos ->
+                // verify the expression is not longer than allowed
+                if List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column) infos then
+                    fallbackExpression ctx
+                else
+                    { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
+            | _ ->
+                // you should never hit this branch
+                fallbackExpression ctx
 
 /// try and write the expression on the remainder of the current line
 /// add an indent and newline if the expression is longer
-let internal autoIndentAndNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
+let internal autoIndentAndNlnIfExpressionExceedsPageWidth (counterNode:CountAstNode) expr (ctx:Context) =
     expressionExceedsPageWidth
         sepNone sepNone // before and after for short expressions
         (indent +> sepNln) unindent // before and after for long expressions
+        counterNode
         expr ctx
 
-let internal sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx:Context) =
+let internal sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (counterNode:CountAstNode) expr (ctx:Context) =
     expressionExceedsPageWidth
         sepSpace sepNone // before and after for short expressions
         (indent +> sepNln) unindent // before and after for long expressions
+        counterNode
         expr ctx
 
-let internal autoNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
+let internal autoNlnIfExpressionExceedsPageWidth (counterNode:CountAstNode) expr (ctx: Context) =
     expressionExceedsPageWidth
         sepNone sepNone // before and after for short expressions
         sepNln sepNone // before and after for long expressions
+        counterNode
         expr ctx
 
 let internal futureNlnCheckMem (f, ctx) =
@@ -653,11 +659,11 @@ let internal exceedsWidth maxWidth f (ctx: Context) =
     (ctxAfter.Column - currentColumn) > maxWidth
 
 /// Similar to col, skip auto newline for index 0
-let internal colAutoNlnSkip0i f' (c : seq<'T>) f (ctx : Context) = 
-    coli f' c (fun i c -> if i = 0 then f i c else autoNlnIfExpressionExceedsPageWidth (f i c)) ctx
+let internal colAutoNlnSkip0i f' (c : seq<'T>) (countFn: 'T -> CountAstNode) f (ctx : Context) =
+    coli f' c (fun i c -> if i = 0 then f i c else autoNlnIfExpressionExceedsPageWidth (countFn c) (f i c)) ctx
 
 /// Similar to col, skip auto newline for index 0
-let internal colAutoNlnSkip0 f' c f = colAutoNlnSkip0i f' c (fun _ -> f)
+let internal colAutoNlnSkip0 f' c (countFn: 'T -> CountAstNode) f = colAutoNlnSkip0i f' c countFn (fun _ -> f)
 
 /// Skip all auto-breaking newlines
 let internal noNln f (ctx : Context) : Context = 
@@ -960,10 +966,11 @@ let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
     | _ ->
         ctx
 
-let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth expr range (ctx: Context) =
+let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth counterNode expr range (ctx: Context) =
     expressionExceedsPageWidth
         sepNone sepNone // before and after for short expressions
         (sepNlnConsideringTriviaContentBefore range) sepNone // before and after for long expressions
+        counterNode
         expr ctx
 
 let internal addExtraNewlineIfLeadingWasMultiline leading continuation continuationRange =
@@ -993,10 +1000,10 @@ let internal addExtraNewlineIfLeadingWasMultiline leading continuation continuat
 /// The range in the tuple is the range of expression
 
 let internal colWithNlnWhenItemIsMultiline items =
-    let firstItemRange = List.tryHead items |> Option.map snd
+    let firstItemRange = List.tryHead items |> Option.map (fun (_,r,_) -> r)
     let rec impl items =
         match items with
-        | (f1,r1)::(_,r2)::_ ->
+        | (f1,r1,cn1)::(_,r2,_)::_ ->
             let f1Expr =
                 match firstItemRange with
                 | Some (fr1) when (fr1 = r1) ->
@@ -1008,10 +1015,10 @@ let internal colWithNlnWhenItemIsMultiline items =
                     ifElseCtx
                         newlineBetweenLastWriteEvent
                         f1
-                        (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f1 r1)
+                        (autoNlnConsideringTriviaIfExpressionExceedsPageWidth cn1 f1 r1)
 
             addExtraNewlineIfLeadingWasMultiline f1Expr (impl (List.skip 1 items)) r2
-        | [(f,r)] ->
+        | [(f,r,cn)] ->
             match firstItemRange with
             | Some (fr1) when (fr1 = r) ->
                 // this can only happen when there is only one item in items
@@ -1020,7 +1027,7 @@ let internal colWithNlnWhenItemIsMultiline items =
                 ifElseCtx
                     newlineBetweenLastWriteEvent
                     f
-                    (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f r)
+                    (autoNlnConsideringTriviaIfExpressionExceedsPageWidth cn f r)
         | [] -> sepNone
     impl items
 
