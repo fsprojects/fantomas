@@ -25,10 +25,14 @@ let private bind f current =
     | OverThreshold -> OverThreshold
 
 let private bindItems f items v =
-    List.fold (fun acc a -> bind (f a) acc) v items
+    match v with
+    | OverThreshold -> OverThreshold
+    | _ -> List.fold (fun acc a -> bind (f a) acc) v items
 
 let private bindSeq f items v =
-    Seq.fold (fun acc a -> bind (f a) acc) v items
+    match v with
+    | OverThreshold -> OverThreshold
+    | _ -> Seq.fold (fun acc a -> bind (f a) acc) v items
 
 let private bindOption f o =
     match o with
