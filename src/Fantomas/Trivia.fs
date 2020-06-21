@@ -6,7 +6,7 @@ open Fantomas.TriviaTypes
 open FSharp.Compiler.Range
 open FSharp.Compiler.SyntaxTree
 
-let private isMainNodeButNotAnonModule (node: TriviaNodeAssigner) =
+let inline private isMainNodeButNotAnonModule (node: TriviaNodeAssigner) =
     match node.Type with
     | MainNode(t) when (t <> "SynModuleOrNamespace.AnonModule") -> true
     | _ -> false
