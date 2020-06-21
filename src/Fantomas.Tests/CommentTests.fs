@@ -861,3 +861,45 @@ type LongIdentWithDots =
 /// LongIdent can be empty list - it is used to denote that name of some AST element is absent (i.e. empty type name in inherit)
 type LongIdentWithDots = LongIdentWithDots of id: LongIdent * dotms: range list
 """
+
+[<Test>]
+let ``newline between comments should lead to individual comments, 920`` () =
+    formatSourceString false """
+[<AllowNullLiteral>]
+type IExports =
+    abstract DataSet: DataSetStatic
+    abstract DataView: DataViewStatic
+    abstract Graph2d: Graph2dStatic
+    abstract Timeline: TimelineStatic
+    // abstract Timeline: TimelineStaticStatic
+    abstract Network: NetworkStatic
+
+// type [<AllowNullLiteral>] MomentConstructor1 =
+//     [<Emit "$0($1...)">] abstract Invoke: ?inp: MomentInput * ?format: MomentFormatSpecification * ?strict: bool -> Moment
+
+// type [<AllowNullLiteral>] MomentConstructor2 =
+//     [<Emit "$0($1...)">] abstract Invoke: ?inp: MomentInput * ?format: MomentFormatSpecification * ?language: string * ?strict: bool -> Moment
+
+// type MomentConstructor =
+//     U2<MomentConstructor1, MomentConstructor2>
+"""  config
+    |> prepend newline
+    |> should equal """
+[<AllowNullLiteral>]
+type IExports =
+    abstract DataSet: DataSetStatic
+    abstract DataView: DataViewStatic
+    abstract Graph2d: Graph2dStatic
+    abstract Timeline: TimelineStatic
+    // abstract Timeline: TimelineStaticStatic
+    abstract Network: NetworkStatic
+
+// type [<AllowNullLiteral>] MomentConstructor1 =
+//     [<Emit "$0($1...)">] abstract Invoke: ?inp: MomentInput * ?format: MomentFormatSpecification * ?strict: bool -> Moment
+
+// type [<AllowNullLiteral>] MomentConstructor2 =
+//     [<Emit "$0($1...)">] abstract Invoke: ?inp: MomentInput * ?format: MomentFormatSpecification * ?language: string * ?strict: bool -> Moment
+
+// type MomentConstructor =
+//     U2<MomentConstructor1, MomentConstructor2>
+"""
