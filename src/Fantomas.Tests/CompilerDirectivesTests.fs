@@ -476,7 +476,9 @@ type FunctionComponent =
                 (importValueDynamic f).``then``(fun x -> createObj [ "default" ==> x ]))
 
         fun props ->
-            ReactElementType.create ReactBindings.React.Suspense (createObj [ "fallback" ==> fallback ])
+            ReactElementType.create
+                ReactBindings.React.Suspense
+                (createObj [ "fallback" ==> fallback ])
                 [ ReactElementType.create elemType props [] ]
 #else
 
@@ -678,7 +680,9 @@ type FunctionComponent =
                 (importValueDynamic f).``then``(fun x -> createObj [ "default" ==> x ]))
 
         fun props ->
-            ReactElementType.create ReactBindings.React.Suspense (createObj [ "fallback" ==> fallback ])
+            ReactElementType.create
+                ReactBindings.React.Suspense
+                (createObj [ "fallback" ==> fallback ])
                 [ ReactElementType.create elemType props [] ]
 #else
         fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
