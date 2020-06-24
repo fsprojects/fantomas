@@ -6,7 +6,7 @@ open Fantomas.TriviaTypes
 open FSharp.Compiler.Range
 open FSharp.Compiler.SyntaxTree
 
-let private isMainNodeButNotAnonModule (node: TriviaNodeAssigner) =
+let inline private isMainNodeButNotAnonModule (node: TriviaNodeAssigner) =
     match node.Type with
     | MainNode(t) when (t <> "SynModuleOrNamespace.AnonModule") -> true
     | _ -> false
@@ -59,18 +59,23 @@ let inline private isNotMemberKeyword (node: TriviaNodeAssigner) =
     | Token({ TokenInfo = ti }) when (ti.TokenName = "MEMBER") -> false
     | _ -> true
 
-let private findFirstNodeAfterLine (nodes: TriviaNodeAssigner list) lineNumber : TriviaNodeAssigner option =
+let private findFirstNodeAfterLine
+    (nodes: TriviaNodeAssigner list)
+    lineNumber
+    hasAnonModulesAndOpenStatements
+    : TriviaNodeAssigner option
+    =
     nodes
-    |> List.filter (fun n -> n.Range.StartLine > lineNumber && isNotMemberKeyword n)
-    |> fun filteredNodes ->
-        match filteredNodes with
-        | moduleAndOpens when (nodesContainsBothAnonModuleAndOpen moduleAndOpens) ->
-            moduleAndOpens
-            |> List.filter (fun t -> t.Type = MainNode("SynModuleDecl.Open"))
-            |> List.tryHead
-        | _ ->
-            filteredNodes
-            |> List.tryHead
+    |> List.tryFind (fun tn ->
+        if tn.Range.StartLine > lineNumber
+           && isNotMemberKeyword tn then
+            if hasAnonModulesAndOpenStatements
+               && mainNodeIs "SynModuleOrNamespace.AnonModule" tn then
+                false
+            else
+                true
+        else
+            false)
 
 let private findLastNodeOnLine (nodes: TriviaNodeAssigner list) lineNumber : TriviaNodeAssigner option =
     nodes
@@ -232,7 +237,13 @@ let private findASTNodeOfTypeThatContains (nodes: TriviaNodeAssigner list) typeN
         | _ -> false)
     |> List.tryHead
 
-let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding (startOfSourceCode:int) (triviaNodes: TriviaNodeAssigner list) trivia =
+let private addTriviaToTriviaNode
+    triviaBetweenAttributeAndParentBinding
+    hasAnonModulesAndOpenStatements
+    (startOfSourceCode:int)
+    (triviaNodes: TriviaNodeAssigner list)
+    trivia
+    =
     match trivia with
     | { Item = Comment(LineCommentOnSingleLine(_)) as comment; Range = range } when (commentIsAfterLastTriviaNode triviaNodes range) ->
         // Comment on is on its own line after all Trivia nodes, most likely at the end of a module
@@ -240,7 +251,7 @@ let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding (startO
         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(comment)) triviaNodes
 
     | { Item = Comment(LineCommentOnSingleLine(_) as comment); Range = range } ->
-        findFirstNodeAfterLine triviaNodes range.StartLine
+        findFirstNodeAfterLine triviaNodes range.StartLine hasAnonModulesAndOpenStatements
         |> updateTriviaNode (fun tn -> tn.ContentBefore.Add (Comment(comment))) triviaNodes
 
     | { Item = Comment(BlockComment(comment, _,_)); Range = range } ->
@@ -272,7 +283,7 @@ let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding (startO
         | Some _ as node ->
             updateTriviaNode (fun tn -> tn.ContentAfter.Add(Newline)) triviaNodes node
         | _ ->
-            let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
+            let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine hasAnonModulesAndOpenStatements
             match nodeAfterLine with
             | Some _ ->
                 nodeAfterLine
@@ -387,13 +398,14 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
     let triviaBetweenAttributeAndParentBinding = if hasAnyAttributes then triviaBetweenAttributeAndParentBinding else (fun _ _ -> None)
     let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
     let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
+    let hasAnonModulesAndOpenStatements = nodesContainsBothAnonModuleAndOpen triviaNodes
     
     let trivias = TokenParser.getTriviaFromTokens tokens lineCount
 
     match trivias with
     | [] -> []
     | _ ->
-        List.fold (addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding startOfSourceCode) triviaNodes trivias
+        List.fold (addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding hasAnonModulesAndOpenStatements startOfSourceCode) triviaNodes trivias
         |> List.choose (fun tn ->
             if triviaNodeIsNotEmpty tn then
                 { Type = tn.Type
