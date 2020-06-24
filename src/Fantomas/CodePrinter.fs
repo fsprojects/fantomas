@@ -827,21 +827,49 @@ and genExpr astContext synExpr =
     match synExpr with
     | ElmishReactWithoutChildren(identifier, attributes) ->
         fun ctx ->
-            let maxRemainingArrayLength = ctx.Config.MaxElmishWidth - identifier.Length
-            let ctx' =
-                { ctx with Config = { ctx.Config with
-                                        MaxArrayOrListWidth = maxRemainingArrayLength
-                                        // override user setting to get original fantomas formatting
-                                        MultilineBlockBracketsOnSameColumn = false } }
-            (!- identifier
-             +> sepSpace
-             +> genExpr astContext attributes
-             +> fun cty ->
-                 // reset the config with original values
-                 { cty with Config = { cty.Config with
-                                         MaxArrayOrListWidth = ctx.Config.MaxArrayOrListWidth
-                                         MultilineBlockBracketsOnSameColumn = ctx.Config.MultilineBlockBracketsOnSameColumn } }) ctx'
+            let elmishExpression ctx =
+                let maxRemainingArrayLength = ctx.Config.MaxElmishWidth - identifier.Length
 
+                let ctx' =
+                    { ctx with Config = { ctx.Config with
+                                            MaxArrayOrListWidth = maxRemainingArrayLength
+                                            // override user setting to get original fantomas formatting
+                                            MultilineBlockBracketsOnSameColumn = false } }
+
+                let resetContext cty =
+                    { cty with Config = { cty.Config with
+                                                 MaxArrayOrListWidth = ctx.Config.MaxArrayOrListWidth
+                                                 MultilineBlockBracketsOnSameColumn = ctx.Config.MultilineBlockBracketsOnSameColumn } }
+
+                (!- identifier +> sepSpace +> genExpr astContext attributes +> resetContext) ctx'
+
+            let felizExpression =
+                let isArray, children =
+                    match attributes with
+                    | ArrayOrList(isArray, children, _)
+                    | ArrayOrListOfSeqExpr(isArray, CompExpr(_, Sequentials children)) ->
+                        isArray, children
+                    | _ -> false, []
+
+                let shortExpression = !- identifier +> sepSpace +> genExpr astContext attributes
+
+                let multilineExpression =
+                    atCurrentColumn (!- identifier
+                                     +> sepSpace
+                                     +> ifElse isArray sepOpenAFixed sepOpenLFixed
+                                     +> indent
+                                     +> sepNln
+                                     +> col sepNln children (genExpr astContext)
+                                     +> unindent
+                                     +> sepNln
+                                     +> ifElse isArray sepCloseAFixed sepCloseLFixed)
+
+                isShortExpression
+                    ctx.Config.MaxElmishWidth
+                    shortExpression
+                    multilineExpression
+
+            ifElse ctx.Config.SingleArgumentWebMode felizExpression elmishExpression ctx
 
     | ElmishReactWithChildren((identifier,_,_), attributes, (isArray,children)) ->
         let genChildren isShort =
