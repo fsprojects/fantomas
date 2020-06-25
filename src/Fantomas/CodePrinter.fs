@@ -825,23 +825,47 @@ and genExpr astContext synExpr =
     let sepCloseT = tokN synExpr.Range "RPAREN" sepCloseT
 
     match synExpr with
-    | ElmishReactWithoutChildren(identifier, attributes) ->
+    | ElmishReactWithoutChildren(identifier, isArray, children) ->
         fun ctx ->
-            let maxRemainingArrayLength = ctx.Config.MaxElmishWidth - identifier.Length
-            let ctx' =
-                { ctx with Config = { ctx.Config with
-                                        MaxArrayOrListWidth = maxRemainingArrayLength
-                                        // override user setting to get original fantomas formatting
-                                        MultilineBlockBracketsOnSameColumn = false } }
-            (!- identifier
-             +> sepSpace
-             +> genExpr astContext attributes
-             +> fun cty ->
-                 // reset the config with original values
-                 { cty with Config = { cty.Config with
-                                         MaxArrayOrListWidth = ctx.Config.MaxArrayOrListWidth
-                                         MultilineBlockBracketsOnSameColumn = ctx.Config.MultilineBlockBracketsOnSameColumn } }) ctx'
+            let shortExpression =
+                let noChildren =
+                    ifElse isArray sepOpenAFixed sepOpenLFixed
+                    +> ifElse isArray sepCloseAFixed sepCloseLFixed
 
+                let genChildren =
+                    ifElse isArray sepOpenA sepOpenL
+                    +> col sepSemi children (genExpr astContext)
+                    +> ifElse isArray sepCloseA sepCloseL
+
+                !- identifier
+                +> sepSpace
+                +> ifElse (List.isEmpty children) noChildren genChildren
+
+            let elmishExpression =
+                !- identifier
+                +> sepSpace
+                +> ifElse isArray sepOpenA sepOpenL
+                +> atCurrentColumn (col sepNln children (genExpr astContext))
+                +> ifElse isArray sepCloseA sepCloseL
+
+            let felizExpression =
+                atCurrentColumn (!- identifier
+                                 +> sepSpace
+                                 +> ifElse isArray sepOpenAFixed sepOpenLFixed
+                                 +> indent
+                                 +> sepNln
+                                 +> col sepNln children (genExpr astContext)
+                                 +> unindent
+                                 +> sepNln
+                                 +> ifElse isArray sepCloseAFixed sepCloseLFixed)
+
+            let multilineExpression = ifElse ctx.Config.SingleArgumentWebMode felizExpression elmishExpression
+
+            isShortExpression
+                ctx.Config.MaxElmishWidth
+                shortExpression
+                multilineExpression
+                ctx
 
     | ElmishReactWithChildren((identifier,_,_), attributes, (isArray,children)) ->
         let genChildren isShort =

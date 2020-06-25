@@ -1427,10 +1427,9 @@ let isFunctionBinding (p: SynPat) =
 
 let (|ElmishReactWithoutChildren|_|) e =
     match e with
-    | App(OptVar(ident,_,_), [ArrayOrList(_) as attributes]) ->
-        Some(ident, attributes)
-    | App(OptVar(ident,_,_), [ArrayOrListOfSeqExpr(_, CompExpr(_, Sequentials _)) as attributes]) ->
-        Some(ident, attributes)
+    | App(OptVar(ident,_,_), [ArrayOrList(isArray, children, _)])
+    | App(OptVar(ident,_,_), [ArrayOrListOfSeqExpr(isArray, CompExpr(_, Sequentials children))]) ->
+        Some(ident, isArray, children)
     | _ ->
         None
 

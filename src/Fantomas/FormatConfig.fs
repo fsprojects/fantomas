@@ -38,6 +38,7 @@ type FormatConfig =
       NewlineBetweenTypeDefinitionAndMembers: bool
       KeepIfThenInSameLine : bool
       MaxElmishWidth: Num
+      SingleArgumentWebMode: bool
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -65,6 +66,7 @@ type FormatConfig =
           MultilineBlockBracketsOnSameColumn = false
           KeepIfThenInSameLine = false
           MaxElmishWidth = 40
+          SingleArgumentWebMode = false
           NewlineBetweenTypeDefinitionAndMembers = false
           StrictMode = false }
 
