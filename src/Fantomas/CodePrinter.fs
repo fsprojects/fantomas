@@ -876,6 +876,7 @@ and genExpr astContext synExpr =
 
             isShortExpression
                 ctx.Config.MaxElmishWidth
+                (SourceCounter.CountAstNode.SyntaxExpression(synExpr))
                 shortExpression
                 multilineExpression
                 ctx
