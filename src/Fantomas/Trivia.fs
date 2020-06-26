@@ -146,7 +146,9 @@ let private findConstNodeAfter (nodes: TriviaNodeAssigner list) (range: range) =
 
 let private mapNodeToTriviaNode (node: Node) =
     node.Range
-    |> Option.map (fun range -> TriviaNodeAssigner(MainNode(node.Type), range))
+    |> Option.map (fun range ->
+        let attributeParent = Map.tryFind "parent" node.Properties
+        TriviaNodeAssigner(MainNode(node.Type), range, attributeParent))
 
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: range) =
     match List.filter isMainNodeButNotAnonModule triviaNodes with
@@ -223,7 +225,11 @@ let private triviaBetweenAttributeAndParentBinding (triviaNodes: TriviaNodeAssig
         | a, p when (a.Type = MainNode("SynAttributeList") && a.Range.StartLine < line && a.Range.StartLine = a.Range.EndLine) ->
             match p.Type with
               | MainNode("SynModuleDecl.Let") when (p.Range.StartLine > line) -> true
-              | MainNode("SynAttributeList") when (p.Range.StartLine > line) -> true
+              | MainNode("SynAttributeList") when (p.Range.StartLine > line) ->
+                  // This is an edge case scenario where the trivia needs to fit between two attributes of the same parent node.
+                  match p.AttributeParent, a.AttributeParent with
+                  | Some pp, Some ap -> pp = ap
+                  | _ -> false
               | MainNode("SynModuleDecl.Types") when (p.Range.StartLine > line) -> true
               | _ -> false
         | _ -> false)
