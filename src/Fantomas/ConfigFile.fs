@@ -43,8 +43,8 @@ let rec findConfigurationFiles fileOrFolder : string list =
     else
         []
 
-let makeWarningLocationAware configPath warning =
-    sprintf "%s, in %s" warning configPath
+let makeWarningLocationAware fsharpFile warning =
+    sprintf "unknown setting %s found for %s" warning fsharpFile
 
 let private fantomasFields = Reflection.getRecordFields FormatConfig.Default |> Array.map fst
 let private (|FantomasSetting|_|) (s:string) =

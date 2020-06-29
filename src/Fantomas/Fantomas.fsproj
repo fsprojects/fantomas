@@ -37,5 +37,10 @@
     <None Include="CodeFormatter.fsx" />
     <Content Include="schema.json" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Fantomas.EditorConfig.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\lib\Fantomas.EditorConfig.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
