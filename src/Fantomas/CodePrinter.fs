@@ -679,17 +679,30 @@ and genMemberBinding astContext b =
 
         let prefix =
             genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
-            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat ({ astContext with IsMemberDefinition = true }) p
+            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
+            +> genPat ({ astContext with IsMemberDefinition = true }) p
 
         match e with
         | TypedExpr(Typed, e, t) ->
-            genAttributesAndXmlDoc
-            +> prefix
-            +> sepColon
-            +> genType astContext false t
-            +> sepEq
-            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            let genName =
+                match p with
+                | PatLongIdent(ao, s, _, tpso) ->
+                    let aoc = opt sepSpace ao genAccess
+                    let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
+                    let s = if s = "``new``" then "new" else s
+                    aoc -- s +> tpsoc +> sepSpace
+                | p -> failwithf "Unexpected pattern: %O" p
 
+            let prefixUntilName = 
+                genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
+                +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genName
+
+            genAttributesAndXmlDoc
+            +> (fun ctx ->
+                    let lvl = ((prefixUntilName) ctx).Column
+                    (prefix
+                    +> expressionFitsOnRestOfLine (sepColon +> genType astContext false t +> sepEq) (atIndentLevel false lvl (sepNln +> sepColon +> genType astContext false t +> sepEq))
+                    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)) ctx)
         | e ->
             genAttributesAndXmlDoc
             +> prefix

@@ -1162,7 +1162,8 @@ let ``split multiple parameters over multiple lines`` () =
     |> should equal """
 type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
-                             (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string): string =
+                             (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
+                             : string =
         printfn "a"
         "b"
 """
@@ -1180,7 +1181,8 @@ let ``split multiple parameters over multiple lines and have correct indentation
     |> should equal """
 type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
-                             (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string): string =
+                             (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
+                             : string =
         printfn "a"
         "b"
 
@@ -1197,7 +1199,8 @@ let ``member with one long parameter and return type, 850`` () =
     |> prepend newline
     |> should equal """
 type SomeType =
-    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string =
+    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
+                             : string =
         printfn "a"
         "b"
 """
@@ -1237,7 +1240,8 @@ type SomeType =
     static member Serialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType) =
         Encode.string v.Meh
 
-    static member Deserialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee): SomeType =
+    static member Deserialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee)
+                              : SomeType =
         Decode.SomeType
             loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee
 """
