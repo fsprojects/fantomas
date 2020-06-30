@@ -433,7 +433,8 @@ table [ ClassName "table table-striped table-hover mb-0" ] [
         tokenDetailRow "ColorClass" (str colorClass)
         tokenDetailRow "CharClass" (str charClass)
         tokenDetailRow "Tag" (ofInt tag)
-        tokenDetailRow "FullMatchedLength"
+        tokenDetailRow
+            "FullMatchedLength"
             (span [ ClassName "has-text-weight-semibold" ] [
                 ofInt fullMatchedLength
              ])
