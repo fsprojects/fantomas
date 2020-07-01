@@ -34,5 +34,6 @@ type CodeFormatter =
     /// Returns the version of Fantomas found in the AssemblyInfo
     static member GetVersion : unit -> string
 
-    /// Accepts a fsharp file and processes the .editorconfig to a FormatConfig
+    /// Accepts a file or a folder and parses the found json to a FormatConfig
+    /// Configuration found in parent folders will be applied first.
     static member ReadConfiguration : string -> FormatConfigFileParseResult

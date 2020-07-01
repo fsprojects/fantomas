@@ -673,20 +673,34 @@ type internal BlockType =
 /// Make a position at (line, col) to denote cursor position
 let makePos line col = mkPos line col
 
-let private editorConfigParser = Fantomas.EditorConfig.Core.EditorConfigParser()
-
-let readConfiguration (fsharpFile:string) =
+let readConfiguration fileOrFolder =
     try
-        let editorConfigSettings: Fantomas.EditorConfig.Core.FileConfiguration = editorConfigParser.Parse(fileName = fsharpFile)
-        let config, unknownSettings = EditorConfig.parseOptionsFromEditorConfig editorConfigSettings
+        let configurationFiles =
+            ConfigFile.findConfigurationFiles fileOrFolder
 
-        match unknownSettings with
+        if List.isEmpty configurationFiles then failwithf "No configuration files were found for %s" fileOrFolder
+
+        let (config,warnings) =
+            List.fold (fun (currentConfig, warnings) configPath ->
+                let configContent = System.IO.File.ReadAllText(configPath)
+                let options, warningFromConfigPath =
+                    match System.IO.Path.GetFileName(configPath) with
+                    | json when (json = ConfigFile.jsonConfigFileName) ->
+                        JsonConfig.parseOptionsFromJson configContent
+                    | editorconfig when (editorconfig = ConfigFile.editorConfigFileName) ->
+                        EditorConfig.parseOptionsFromEditorConfig configContent
+                    | _ ->
+                        failwithf "Filename is not supported!"
+                let updatedConfig = FormatConfig.ApplyOptions(currentConfig, options)
+                let locationAwareWarnings =
+                    List.ofArray warningFromConfigPath
+                    |> List.map (ConfigFile.makeWarningLocationAware configPath)
+
+                (updatedConfig, warnings @ locationAwareWarnings)
+            ) (FormatConfig.Default, []) configurationFiles
+
+        match warnings with
         | [] -> FormatConfigFileParseResult.Success config
-        | us ->
-            let locationAwareWarnings =
-                us
-                |> List.map (ConfigFile.makeWarningLocationAware fsharpFile)
-            FormatConfigFileParseResult.PartialSuccess (config, locationAwareWarnings)
-
+        | w -> FormatConfigFileParseResult.PartialSuccess (config, w)
     with
     | exn -> FormatConfigFileParseResult.Failure exn

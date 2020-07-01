@@ -38,8 +38,5 @@
     <None Include="CodeFormatter.fsx" />
     <Content Include="schema.json" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Fantomas.EditorConfig.Core\Fantomas.EditorConfig.Core.csproj" />
-  </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
