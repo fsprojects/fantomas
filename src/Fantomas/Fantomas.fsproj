@@ -38,11 +38,6 @@
     <None Include="CodeFormatter.fsx" />
     <Content Include="schema.json" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Fantomas.EditorConfig.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\lib\Fantomas.EditorConfig.Core.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <Target Name="ILRepack" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
     <PropertyGroup>
       <WorkingDirectory>$(MSBuildThisFileDirectory)bin\$(Configuration)\$(TargetFramework)</WorkingDirectory>
