@@ -18,13 +18,14 @@ let ``if only, 825`` () =
                 "some very very long error message"
         if valueToSend <= 0m then
             invalidArg "valueToSend" "Amount has to be above zero"
-"""  { config with PageWidth = 100 }
+"""  config
     |> prepend newline
     |> should equal """
 type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =
     do
         if balanceAtTheMomentOfSending < valueToSend then
-            invalidArg "balanceAtTheMomentOfSending" "some very very long error message"
+            invalidArg "balanceAtTheMomentOfSending"
+                "some very very long error message"
         if valueToSend <= 0m then
             invalidArg "valueToSend" "Amount has to be above zero"
 """
@@ -46,8 +47,7 @@ type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) 
     do
         // comment
         if balanceAtTheMomentOfSending < valueToSend then // comment
-            invalidArg
-                "balanceAtTheMomentOfSending"  // comment
+            invalidArg "balanceAtTheMomentOfSending"  // comment
                 "some very very long error message" // comment
         if valueToSend <= 0m then // comment
             invalidArg "valueToSend" "Amount has to be above zero" // comment

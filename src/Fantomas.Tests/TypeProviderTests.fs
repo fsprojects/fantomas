@@ -60,8 +60,7 @@ let ``should handle lines with more than 512 characters``() =
                                             CommonRuntime.ConvertDecimalBack
                                                 ("", CommonRuntime.GetOptionalValue((let _, _, x = row in x))) |]),
                                          (ProviderFileSystem.readTextAtRunTimeWithDesignTimeOptions
-                                             @"C:\Dev\FSharp.Data-master\src\..\tests\FSharp.Data.Tests\Data"
-                                              ""
+                                             @"C:\Dev\FSharp.Data-master\src\..\tests\FSharp.Data.Tests\Data" ""
                                               "SmallTest.csv"),
                                          "",
                                          '"',

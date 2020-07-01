@@ -571,8 +571,7 @@ let expect =
                 Opts.oneOf
                     (Optional,
                      [ Opt.flag [ "third"; "f" ]
-                       Opt.valueWith
-                           "new value"
+                       Opt.valueWith "new value"
                            [ "fourth"
                              "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]) ]
           args = []
