@@ -23,6 +23,7 @@ NUGET
       System.ValueTuple (>= 4.5)
     BenchmarkDotNet.Annotations (0.12.1)
     CommandLineParser (2.8)
+    editorconfig (0.12.1)
     FsCheck (2.14)
       FSharp.Core (>= 4.2.3)
     FSharp.Compiler.Service (36.0.1)

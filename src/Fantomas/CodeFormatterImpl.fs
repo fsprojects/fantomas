@@ -688,7 +688,7 @@ let readConfiguration fileOrFolder =
                     | json when (json = ConfigFile.jsonConfigFileName) ->
                         JsonConfig.parseOptionsFromJson configContent
                     | editorconfig when (editorconfig = ConfigFile.editorConfigFileName) ->
-                        EditorConfig.parseOptionsFromEditorConfig configContent
+                        Array.empty, Array.empty
                     | _ ->
                         failwithf "Filename is not supported!"
                 let updatedConfig = FormatConfig.ApplyOptions(currentConfig, options)
@@ -704,3 +704,13 @@ let readConfiguration fileOrFolder =
         | w -> FormatConfigFileParseResult.PartialSuccess (config, w)
     with
     | exn -> FormatConfigFileParseResult.Failure exn
+
+let readDocumentConfiguration fileName =
+    try
+        let options, warnings = EditorConfig.readOptionsFromEditorConfig fileName
+        let config = FormatConfig.ApplyOptions(FormatConfig.Default, options)
+        match List.ofArray warnings with
+        | [] -> Success config
+        | w -> PartialSuccess (config, w)
+    with
+    | exn -> Failure exn

@@ -1,5 +1,6 @@
 ﻿namespace Fantomas
 
+open System
 open Fantomas.FormatConfig
 open Fantomas.SourceOrigin
 open FSharp.Compiler.Range
@@ -36,4 +37,8 @@ type CodeFormatter =
 
     /// Accepts a file or a folder and parses the found json to a FormatConfig
     /// Configuration found in parent folders will be applied first.
+    [<Obsolete("Use ReadDocumentConfiguration method instead.")>]
     static member ReadConfiguration : string -> FormatConfigFileParseResult
+
+    /// Given a source document file name, loads the appropriate FormatConfig from configuration files.
+    static member ReadDocumentConfiguration : string -> FormatConfigFileParseResult
