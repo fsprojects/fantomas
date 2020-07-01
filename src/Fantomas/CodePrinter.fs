@@ -1393,13 +1393,43 @@ and genExpr astContext synExpr =
             else
                 sepSpace ctx
 
-        atCurrentColumn
-            (genExpr astContext e
-             +> colPre sepSpace sepSpace es (fun e ->
-                    onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
+        let shortExpression =
+            atCurrentColumn
+                (genExpr astContext e
+                 +> colPre sepSpace sepSpace es (fun e ->
+                        onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
+                        +> indent
+                        +> appNlnFun e (indentIfNeeded +> genExpr astContext e)
+                        +> unindent))
+
+        let longExpression =
+            (atCurrentColumn
+                (genExpr astContext e
+                +> colPre sepSpace sepSpace es (fun e ->
+                ifElse (isCompExpr e)
+                    (sepSpace
+                    +> sepOpenSFixed
+                    +> sepSpace
                     +> indent
                     +> appNlnFun e (indentIfNeeded +> genExpr astContext e)
-                    +> unindent))
+                    +> unindent)
+                    (indent
+                    +> indentIfNeeded
+                    +> sepNln
+                    +> genExpr astContext e
+                    +> unindent))))
+
+        if List.exists (function
+            | Lambda _
+            | MatchLambda _
+            | Paren (Lambda (_))
+            | Paren (MatchLambda (_))
+            | MultilineString _
+            | CompExpr _ -> true
+            | _ -> false) es then
+            shortExpression
+        else
+            expressionFitsOnRestOfLine shortExpression longExpression
 
     | TypeApp(e, ts) -> genExpr astContext e -- "<" +> col sepComma ts (genType astContext false) -- ">"
     | LetOrUses(bs, e) ->
