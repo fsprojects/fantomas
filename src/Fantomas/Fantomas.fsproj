@@ -3,6 +3,7 @@
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <Version>4.0.0-alpha-011</Version>
     <Description>Source code formatter for F#</Description>
   </PropertyGroup>
@@ -42,5 +43,15 @@
       <HintPath>..\..\lib\Fantomas.EditorConfig.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <Target Name="ILRepack" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <WorkingDirectory>$(MSBuildThisFileDirectory)bin\$(Configuration)\$(TargetFramework)</WorkingDirectory>
+    </PropertyGroup>
+    <ItemGroup>
+      <InputAssemblies Include="Fantomas.EditorConfig.Core.dll" />
+    </ItemGroup>
+    <Message Text="MERGING: @(InputAssemblies-&gt;'%(Filename)') into $(OutputAssembly)" Importance="High" />
+    <ILRepack OutputType="$(OutputType)" MainAssembly="$(AssemblyName).dll" OutputAssembly="$(AssemblyName).dll" InputAssemblies="@(InputAssemblies)" WorkingDirectory="$(WorkingDirectory)" />
+  </Target>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
