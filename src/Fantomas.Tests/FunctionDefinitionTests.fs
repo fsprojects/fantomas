@@ -384,11 +384,9 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
             MaxInfixOperatorExpression = 70 })
     |> prepend newline
     |> should equal """
-let fold
-    (funcs : ResultFunc<'Input, 'Output, 'TError> seq)
-    (input : 'Input)
-    : Result<'Output list, 'TError list>
-    =
+let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq)
+         (input : 'Input)
+         : Result<'Output list, 'TError list> =
     let mutable anyErrors = false
     let mutable collectedOutputs = []
     let mutable collectedErrors = []
@@ -430,10 +428,8 @@ let ``internal keyword included in function signature length check`` () =
 """  ({ config with PageWidth = 90; SpaceBeforeColon = true })
     |> prepend newline
     |> should equal """
-let internal UpdateStrongNaming
-    (assembly : AssemblyDefinition)
-    (key : StrongNameKeyPair option)
-    =
+let internal UpdateStrongNaming (assembly : AssemblyDefinition)
+                                (key : StrongNameKeyPair option) =
     assembly.Name
 
 let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
@@ -469,10 +465,8 @@ module FormatCode =
         CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
 
     [<FunctionName("FormatCode")>]
-    let run
-        ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
-        (log: ILogger)
-        =
+    let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+            (log: ILogger) =
         Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
 """
 
@@ -505,11 +499,9 @@ module FormatCode =
         CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
 
     [<FunctionName("FormatCode")>]
-    let run
-        ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
-        (log: ILogger)
-        : HttpResponse
-        =
+    let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+            (log: ILogger)
+            : HttpResponse =
         Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
 """
 
@@ -526,14 +518,12 @@ let private addTaskToScheduler (scheduler : IScheduler) taskName taskCron prio (
 """  ({ config with PageWidth = 100 })
     |> prepend newline
     |> should equal """
-let private addTaskToScheduler
-    (scheduler: IScheduler)
-    taskName
-    taskCron
-    prio
-    (task: unit -> unit)
-    groupName
-    =
+let private addTaskToScheduler (scheduler: IScheduler)
+                               taskName
+                               taskCron
+                               prio
+                               (task: unit -> unit)
+                               groupName =
     let mutable jobDataMap = JobDataMap()
     jobDataMap.["task"] <- task
 
@@ -551,11 +541,9 @@ let ``long function signature should align with equal sign, 883`` () =
 """  { config with IndentSpaceNum = 2; SpaceBeforeColon = true }
     |> prepend newline
     |> should equal """
-let readModel
-  (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
-  (initState : 'State)
-  : ReadModel<'Event, 'State>
-  =
+let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
+              (initState : 'State)
+              : ReadModel<'Event, 'State> =
   ()
 """
 
@@ -566,9 +554,7 @@ let ``long function signature should align with equal sign, no return type`` () 
 """  { config with IndentSpaceNum = 2; SpaceBeforeColon = true; PageWidth = 80 }
     |> prepend newline
     |> should equal """
-let readModel
-  (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
-  (initState : 'State)
-  =
+let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
+              (initState : 'State) =
   ()
 """

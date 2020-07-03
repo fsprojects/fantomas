@@ -467,7 +467,8 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
                 if alreadyHasNewline then
                     (rep ctx.Config.IndentSpaceNum (!- " ") +> !- "=") ctx
                 else
-                    (indent +> sepNln +> !- "=" +> unindent) ctx
+                    (sepEq +> sepSpace) ctx
+                    //(indent +> sepNln +> !- "=" +> unindent) ctx
         else
             (sepEq +> sepSpace)
 
@@ -498,7 +499,8 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
          +> sepColon
          +> genMetadataAttributes
          +> genType astContext false t
-         +> sepEqual (isPrefixMultiline || hasLineCommentBeforeColon)
+         +> sepEq
+         +> sepSpace // sepEqual (isPrefixMultiline || hasLineCommentBeforeColon)
          +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual || hasLineCommentBeforeColon)
                (indent +> sepNln +> genExpr astContext e +> unindent)
                (isShortExpressionOrAddIndentAndNewline maxWidth (genExpr astContext e))) ctx
@@ -2890,7 +2892,7 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
         | None -> sepNone, sepNone
 
     let genParametersWithNewlines =
-        (sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType)
+        col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType
 
     let isLongFunctionSignature (ctx: Context) =
         let space = 1
@@ -2913,7 +2915,7 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
         let expr =
             genName
             +> ifElse hasBracket sepOpenT sepNone
-            +> ifElse isLong (indent +> genParametersWithNewlines  +> unindent) genParametersInitial
+            +> ifElse isLong (atCurrentColumn genParametersWithNewlines) genParametersInitial
             +> ifElse hasBracket sepCloseT sepNone
 
         expr ctx
