@@ -39,6 +39,7 @@ type FormatConfig =
       KeepIfThenInSameLine : bool
       MaxElmishWidth: Num
       SingleArgumentWebMode: bool
+      AlternateLongFunctionSignature: bool
       /// Prettyprinting based on ASTs only
       StrictMode : bool }
 
@@ -64,10 +65,11 @@ type FormatConfig =
           MaxValueBindingWidth = 40
           MaxFunctionBindingWidth = 40
           MultilineBlockBracketsOnSameColumn = false
+          NewlineBetweenTypeDefinitionAndMembers = false
           KeepIfThenInSameLine = false
           MaxElmishWidth = 40
           SingleArgumentWebMode = false
-          NewlineBetweenTypeDefinitionAndMembers = false
+          AlternateLongFunctionSignature = false
           StrictMode = false }
 
     static member ApplyOptions(currentConfig, options) =

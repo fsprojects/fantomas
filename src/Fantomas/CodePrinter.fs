@@ -466,9 +466,10 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
                 let alreadyHasNewline = lastWriteEventIsNewline ctx
                 if alreadyHasNewline then
                     (rep ctx.Config.IndentSpaceNum (!- " ") +> !- "=") ctx
+                elif ctx.Config.AlternateLongFunctionSignature then
+                    (indent +> sepNln +> !- "=" +> unindent) ctx
                 else
                     (sepEq +> sepSpace) ctx
-                    //(indent +> sepNln +> !- "=" +> unindent) ctx
         else
             (sepEq +> sepSpace)
 
@@ -499,8 +500,7 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
          +> sepColon
          +> genMetadataAttributes
          +> genType astContext false t
-         +> sepEq
-         +> sepSpace // sepEqual (isPrefixMultiline || hasLineCommentBeforeColon)
+         +> sepEqual (isPrefixMultiline || hasLineCommentBeforeColon)
          +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual || hasLineCommentBeforeColon)
                (indent +> sepNln +> genExpr astContext e +> unindent)
                (isShortExpressionOrAddIndentAndNewline maxWidth (genExpr astContext e))) ctx
@@ -2891,8 +2891,11 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
         | Some t -> genType astContext false t, sepNln
         | None -> sepNone, sepNone
 
-    let genParametersWithNewlines =
-        col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType
+    let genParametersWithNewlines ctx =
+        if ctx.Config.AlternateLongFunctionSignature then
+            (indent +> sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType +> unindent) ctx
+        else
+            atCurrentColumn (col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType) ctx
 
     let isLongFunctionSignature (ctx: Context) =
         let space = 1
@@ -2915,7 +2918,7 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
         let expr =
             genName
             +> ifElse hasBracket sepOpenT sepNone
-            +> ifElse isLong (atCurrentColumn genParametersWithNewlines) genParametersInitial
+            +> ifElse isLong genParametersWithNewlines genParametersInitial
             +> ifElse hasBracket sepCloseT sepNone
 
         expr ctx

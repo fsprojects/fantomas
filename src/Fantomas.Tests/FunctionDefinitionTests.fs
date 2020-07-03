@@ -558,3 +558,34 @@ let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
               (initState : 'State) =
   ()
 """
+
+[<Test>]
+let ``alternate long function definition without return type `` () =
+    formatSourceString false """
+let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq) (input: 'Input) (input2: 'Input) (input3: 'Input) = ()
+"""  { config with PageWidth = 60; AlternateLongFunctionSignature = true }
+    |> prepend newline
+    |> should equal """
+let fold
+    (funcs: ResultFunc<'Input, 'Output, 'TError> seq)
+    (input: 'Input)
+    (input2: 'Input)
+    (input3: 'Input)
+    =
+    ()
+"""
+
+[<Test>]
+let ``alternate long function signature with return type`` () =
+    formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) : ReadModel<'Event, 'State> =
+    ()
+"""  { config with IndentSpaceNum = 2; SpaceBeforeColon = true; AlternateLongFunctionSignature = true }
+    |> prepend newline
+    |> should equal """
+let readModel
+  (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
+  (initState : 'State)
+  : ReadModel<'Event, 'State>
+  =
+  ()
+"""
