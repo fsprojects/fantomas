@@ -9,8 +9,7 @@ type FormatException(msg : string) =
 
 type Num = int
 
-// NOTE: try to keep this list below in sync with the schema.json
-//       and the docs (e.g. Documentation.md)
+// NOTE: try to keep this list below in sync with the docs (e.g. Documentation.md)
 type FormatConfig = 
     { /// Number of spaces for each indentation
       IndentSize : Num
@@ -39,7 +38,7 @@ type FormatConfig =
       KeepIfThenInSameLine : bool
       MaxElmishWidth: Num
       SingleArgumentWebMode: bool
-      /// Prettyprinting based on ASTs only
+      /// Pretty printing based on ASTs only
       StrictMode : bool }
 
     static member Default = 
@@ -69,18 +68,3 @@ type FormatConfig =
           SingleArgumentWebMode = false
           NewlineBetweenTypeDefinitionAndMembers = false
           StrictMode = false }
-
-    static member ApplyOptions(currentConfig, options) =
-        let currentValues = Reflection.getRecordFields currentConfig
-        let newValues =
-            Array.fold (fun acc (k,v) ->
-                Array.map (fun (fn, ev) -> if fn = k then (fn, v) else (fn,ev)) acc
-            ) currentValues options
-            |> Array.map snd
-        let formatConfigType = FormatConfig.Default.GetType()
-        Microsoft.FSharp.Reflection.FSharpValue.MakeRecord (formatConfigType, newValues) :?> FormatConfig
-
-type FormatConfigFileParseResult =
-    | Success of FormatConfig
-    | PartialSuccess of config: FormatConfig * warnings: string list
-    | Failure of exn

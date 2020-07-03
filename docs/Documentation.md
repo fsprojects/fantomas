@@ -244,60 +244,38 @@ More preferences will be added depending on use cases.
 
 ##### `--config <Path to file or folder>`
 
-Use a JSON configuration file based on a [schema](../src/Fantomas/schema.json) to set the formatting options.
+Use an .editorconfig configuration file to set the formatting options.
 
-A default configuration file would look like
-```json
-{  
-  "IndentSpaceNum":4,
-  "PageWidth":120,
-  "SemicolonAtEndOfLine":false,
-  "SpaceBeforeParameter":true,
-  "SpaceBeforeLowercaseInvocation":true,
-  "SpaceBeforeUppercaseInvocation":false,
-  "SpaceBeforeClassConstructor":false,
-  "SpaceBeforeMember":false,
-  "SpaceBeforeColon":false,
-  "SpaceAfterComma":true ,
-  "SpaceBeforeSemicolon": false,
-  "SpaceAfterSemicolon":true ,
-  "IndentOnTryWith":false,
-  "SpaceAroundDelimiter":true ,
-  "MaxIfThenElseShortWidth":40,
-  "KeepIfThenInSameLine":false,
-  "MaxInfixOperatorExpression":50,
-  "MaxRecordWidth":40,
-  "MaxArrayOrListWidth":40,
-  "MaxValueBindingWidth":40,
-  "MaxFunctionBindingWidth":40,
-  "MultilineBlockBracketsOnSameColumn":false,
-  "NewlineBetweenTypeDefinitionAndMembers":false,
-  "MaxElmishWidth": 40,
-  "StrictMode":false 
-}
+A default .editorconfig file would look like
+```ini
+[*.fs]
+indent_size=4
+max_line_length=120
+semicolon_at_end_of_line=false
+space_before_parameter=true
+space_before_lowercase_invocation=true
+space_before_uppercase_invocation=false
+space_before_class_constructor=false
+space_before_member=false
+space_before_colon=false
+space_after_comma=true
+space_before_semicolon=false
+space_after_semicolon=true
+indent_on_try_with=false
+space_around_delimiter=true
+max_if_then_else_short_width=40
+max_infix_operator_expression=50
+max_record_width=40
+max_array_or_list_width=40
+max_value_binding_width=40
+max_function_binding_width=40
+multiline_block_brackets_on_same_column=false
+newline_between_type_definition_and_members=false
+keep_if_then_in_same_line=false
+max_elmish_width=40
+single_argument_web_mode=false
+strict_mode=false
 ```
-
-However, **a configuration file overwrites options** from [the default configuration](../src/Fantomas/FormatConfig.fs).
-
-The argument passed after `--config ` can be a file named `fantomas-config.json` or a folder.
-In both cases a Fantomas will try and locate `fantomas-config.json` in all the parent folders.
-The found configuration files are then being applied to to the default configuration from top to bottom.
-
-F.ex.
-
-```
-C:\
-    Temp\
-        fantomas-config.json
-        MyProject\
-            fantomas-config.json
-```
-
-Formatting with `dotnet fantomas MyFile.fs --config "C:\Temp\MyProject"` will first apply the settings in `C:\Temp\fantomas-config.json` and then those of `C:\Temp\MyProject\fantomas-config.json`.
-
-If the `--config` is used in combination with other settings, the configuration is applied first and then the other arguments.
-
-Warnings will be given if settings in the configuration no longer apply for the current version of Fantomas.
 
 ### Using the API
 

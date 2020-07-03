@@ -675,17 +675,10 @@ let makePos line col = mkPos line col
 
 let private editorConfigParser = Fantomas.EditorConfig.Core.EditorConfigParser()
 
-let readConfiguration (fsharpFile:string) =
+let readConfiguration (fsharpFile:string) : Result<FormatConfig, exn> =
     try
         let editorConfigSettings: Fantomas.EditorConfig.Core.FileConfiguration = editorConfigParser.Parse(fileName = fsharpFile)
-        let config, unknownSettings = EditorConfig.parseOptionsFromEditorConfig editorConfigSettings
-
-        match unknownSettings with
-        | [] -> FormatConfigFileParseResult.Success config
-        | us ->
-            let locationAwareWarnings =
-                us
-                |> List.map (ConfigFile.makeWarningLocationAware fsharpFile)
-            FormatConfigFileParseResult.PartialSuccess (config, locationAwareWarnings)
+        let config = EditorConfig.parseOptionsFromEditorConfig editorConfigSettings
+        Ok config
     with
-    | exn -> FormatConfigFileParseResult.Failure exn
+    | exn -> Error exn
