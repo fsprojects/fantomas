@@ -224,22 +224,6 @@ let main argv =
         let recurse = results.Contains<@ Arguments.Recurse @>
         let version = results.TryGetResult<@ Arguments.Version @>
 
-//        let config =
-//            results.TryGetResult<@ Arguments.Config @>
-//            |> Option.map (fun configPath ->
-//                let configResult = CodeFormatter.ReadConfiguration configPath
-//                match configResult with
-//                | Success s -> s
-//                | PartialSuccess (ps, warnings) ->
-//                    List.iter (writeInColor ConsoleColor.DarkYellow) warnings
-//                    ps
-//                | Failure e ->
-//                    writeInColor ConsoleColor.DarkRed "Couldn't process one or more Fantomas configuration files, falling back to the default configuration"
-//                    writeInColor ConsoleColor.DarkRed (e.ToString())
-//                    FormatConfig.Default
-//            )
-//            |> Option.defaultValue FormatConfig.Default
-
         let fileToFile (inFile : string) (outFile : string) =
             try
                 printfn "Processing %s" inFile
