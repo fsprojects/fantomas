@@ -79,6 +79,11 @@ Install from MyGet:
 Note that the `--version` is important, check the latest version [at MyGet](https://www.myget.org/feed/fantomas/package/nuget/fantomas-tool).
 Your can check your current version with `fantomas --version` (since December 2018).
 
+## Benchmarks
+
+Some figures can be found at https://fsprojects.github.io/fantomas/ <br/>
+We use [BenchmarkDotNet](https://github.com/dotnet/BenchmarkDotNet) to collect data for each build on the master branch.
+
 ## Purpose
 This project aims at formatting F# source files based on a given configuration.
 Fantomas will ensure correct indentation and consistent spacing between elements in the source files.

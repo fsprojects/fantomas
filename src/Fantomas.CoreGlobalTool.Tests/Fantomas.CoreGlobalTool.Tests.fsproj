@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
-    <Version>4.0.0-alpha-009</Version>
+    <Version>4.0.0-alpha-011</Version>
     <NoWarn>FS0988</NoWarn>
   </PropertyGroup>
   <ItemGroup>

@@ -71,6 +71,12 @@
     "NewlineBetweenTypeDefinitionAndMembers": {
       "type": "boolean"
     },
+    "MaxElmishWidth": {
+      "type": "integer"
+    },
+    "SingleArgumentWebMode": {
+      "type": "boolean"
+    },
     "StrictMode": {
       "type": "boolean"
     }

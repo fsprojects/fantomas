@@ -262,9 +262,11 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
     match tokens with
     | headToken::rest when (headToken.TokenInfo.TokenName = "LINE_COMMENT") ->
         let lineCommentTokens =
-            rest
-            |> List.takeWhile (fun t -> t.TokenInfo.TokenName = "LINE_COMMENT") // && t.LineNumber = headToken.LineNumber)
-            
+            Seq.zip rest (headToken::rest |> List.map (fun x -> x.LineNumber))
+            |> Seq.takeWhile (fun (t, currentLineNumber) -> t.TokenInfo.TokenName = "LINE_COMMENT" && t.LineNumber <= (currentLineNumber + 1))
+            |> Seq.map fst
+            |> Seq.toList
+
         let comment =
             headToken
             |> List.prependItem lineCommentTokens
@@ -465,20 +467,25 @@ let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) (ignoreRa
         |> Option.map (fun t -> t.LineNumber)
         |> Option.defaultValue lineCount
 
+    let ignoredLines =
+        ignoreRanges
+        |> List.collect(fun r -> [r.StartLine..r.EndLine])
+
+    let linesWithTokens =
+        tokens
+        |> List.groupBy (fun t -> t.LineNumber)
+
     let completeEmptyLines =
         [1 .. lastLineWithContent]
-        |> List.filter (fun line ->
-            not (List.exists (fun t -> t.LineNumber = line) tokens)
-                 && not (List.exists (fun (br:FSharp.Compiler.Range.range) -> br.StartLine < line && br.EndLine > line) ignoreRanges)
-        )
+        |> List.except (ignoredLines @ List.map fst linesWithTokens)
+        |> List.filter (fun line -> not (List.exists (fun t -> t.LineNumber = line) tokens))
         |> List.map createNewLine
 
     let linesWithOnlySpaces =
-        tokens
-        |> List.groupBy (fun t -> t.LineNumber)
+        linesWithTokens
         |> List.filter (fun (ln, g) -> ln <= lastLineWithContent && (List.length g) = 1 && (List.head g).TokenInfo.TokenName = "WHITESPACE")
         |> List.map (fst >> createNewLine)
-        
+
     completeEmptyLines @ linesWithOnlySpaces
 
 let getTriviaFromTokens (tokens: Token list) linesCount =
