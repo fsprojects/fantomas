@@ -36,4 +36,4 @@ type CodeFormatter =
 
     /// Accepts a file or a folder and parses the found json to a FormatConfig
     /// Configuration found in parent folders will be applied first.
-    static member ReadConfiguration : string -> Result<FormatConfig, exn>
+    static member ReadConfiguration : string -> FormatConfig

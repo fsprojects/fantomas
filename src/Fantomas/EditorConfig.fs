@@ -2,16 +2,23 @@ module internal Fantomas.EditorConfig
 
 open Fantomas.FormatConfig
 
-let private snakeCase value =
+let supportedProperties = ["max_line_length";"indent_size"]
+
+let private toEditorConfigName value =
     value
     |> Seq.map (fun c -> if System.Char.IsUpper(c) then sprintf "_%s" (c.ToString().ToLower()) else c.ToString())
     |> String.concat ""
     |> fun s -> s.TrimStart([|'_'|])
+    |> fun name ->
+        if List.contains name supportedProperties then
+            name
+        else
+            sprintf "fsharp_%s" name
 
 let private fantomasFields =
     Reflection.getRecordFields FormatConfig.Default
     |> Array.map (fun (propertyName, defaultValue) ->
-        let editorConfigName = snakeCase propertyName
+        let editorConfigName = toEditorConfigName propertyName
         (editorConfigName, defaultValue))
 
 let private (|Number|_|) d =
@@ -37,3 +44,16 @@ let parseOptionsFromEditorConfig (editorConfig: Fantomas.EditorConfig.Core.FileC
     |> fun newValues ->
         let formatConfigType = FormatConfig.Default.GetType()
         Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(formatConfigType, newValues) :?> FormatConfig
+
+let configToEditorConfig (config: FormatConfig): string =
+    Reflection.getRecordFields config
+    |> Array.choose (fun (k,v) ->
+        match v with
+        | :? System.Boolean as b ->
+            sprintf "%s=%s" (toEditorConfigName k) (if b then "true " else "false")
+            |> Some
+        | :? System.Int32 as i ->
+            sprintf " %s=%d" (toEditorConfigName k) i
+            |> Some
+        | _ -> None)
+    |> String.concat "\n"

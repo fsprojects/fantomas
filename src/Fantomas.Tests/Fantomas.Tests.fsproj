@@ -56,7 +56,6 @@
     <Compile Include="ElmishTests.fs" />
     <Compile Include="LambdaTests.fs" />
     <Compile Include="IfThenElseTests.fs" />
-    <Compile Include="FormatConfigJsonConfigurationFileTests.fs" />
     <Compile Include="FormatConfigEditorConfigurationFileTests.fs" />
     <Compile Include="CheckTests.fs" />
     <Compile Include="ContextTests.fs" />
