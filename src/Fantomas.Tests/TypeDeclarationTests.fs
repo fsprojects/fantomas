@@ -1347,6 +1347,52 @@ type Message =
 """
 
 [<Test>]
+let ``attribute on abstract member followed by type with attribute, 933`` () =
+    formatSourceString false """
+[<AllowNullLiteral>]
+type SubGroupStackOptions =
+    [<Emit "$0[$1]{{=$2}}">]
+    abstract Item: name:string -> bool with get, set
+
+[<AllowNullLiteral>]
+type DataGroup =
+    abstract className: string option with get, set
+"""  config
+    |> prepend newline
+    |> should equal """
+[<AllowNullLiteral>]
+type SubGroupStackOptions =
+    [<Emit "$0[$1]{{=$2}}">]
+    abstract Item: name:string -> bool with get, set
+
+[<AllowNullLiteral>]
+type DataGroup =
+    abstract className: string option with get, set
+"""
+
+[<Test>]
+let ``attribute on abstract member followed by let binding with attribute`` () =
+    formatSourceString false """
+[<AllowNullLiteral>]
+type SubGroupStackOptions =
+    [<Emit "$0[$1]{{=$2}}">]
+    abstract Item: name:string -> bool with get, set
+
+[<AllowNullLiteral>]
+let foo bar = zero
+"""  config
+    |> prepend newline
+    |> should equal """
+[<AllowNullLiteral>]
+type SubGroupStackOptions =
+    [<Emit "$0[$1]{{=$2}}">]
+    abstract Item: name:string -> bool with get, set
+
+[<AllowNullLiteral>]
+let foo bar = zero
+"""
+
+[<Test>]
 let ``type constraint on type definition, 887`` () =
     formatSourceString false """
 type OuterType =

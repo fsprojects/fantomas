@@ -65,11 +65,17 @@ open Reactstrap
 let private badgeSample =
     FunctionComponent.Of<obj>
         ((fun _ ->
-            fragment []
-                [ h3 []
-                      [ str "Heading "
-                        Badge.badge [ Badge.Color Secondary ] [ str "New" ] ]
-                  Badge.badge [ Badge.Color Warning ] [ str "oh my" ] ]),
+            fragment [] [
+                h3 [] [
+                    str "Heading "
+                    Badge.badge [ Badge.Color Secondary ] [
+                        str "New"
+                    ]
+                ]
+                Badge.badge [ Badge.Color Warning ] [
+                    str "oh my"
+                ]
+            ]),
          "BadgeSample")
 
 exportDefault badgeSample

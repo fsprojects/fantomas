@@ -1,4 +1,4 @@
-### 4.0.0-alpha-009 - 06/2020
+### 4.0.0-alpha-011 - 06/2020
 * WIP for [#705](https://github.com/fsprojects/fantomas/issues/705)
 * FCS 36
 
