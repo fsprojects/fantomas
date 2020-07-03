@@ -679,20 +679,47 @@ and genMemberBinding astContext b =
 
         let prefix =
             genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
-            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat ({ astContext with IsMemberDefinition = true }) p
+            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
 
         match e with
         | TypedExpr(Typed, e, t) ->
-            genAttributesAndXmlDoc
-            +> prefix
-            +> sepColon
-            +> genType astContext false t
-            +> sepEq
-            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            let genName, genParameters, spaceBeforeColon =
+                match p with
+                | PatLongIdent(ao, s, ps, tpso) ->
+                    let aoc = opt sepSpace ao genAccess
+                    let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
+                    let s = if s = "``new``" then "new" else s
+                    let hasBracket = ps |> Seq.map snd |> Seq.exists hasParenInPat
+                    let multipleParameters = List.length ps > 1
+                    let spaceAfter ctx = onlyIf (ctx.Config.SpaceBeforeMember || multipleParameters || not hasBracket) sepSpace ctx
+                    let name = (aoc -- s +> tpsoc +> spaceAfter)
 
+                    let parameters =
+                        expressionFitsOnRestOfLine
+                            (atCurrentColumn (col sepSpace ps (genPatWithIdent astContext)))
+                            (atCurrentColumn (col sepNln ps (genPatWithIdent astContext)))
+
+                    name, parameters, onlyIf (hasBracket && not multipleParameters) !- " "
+                | _ -> sepNone, sepNone, sepNone
+
+            let memberDefinition =
+                prefix
+                +> expressionFitsOnRestOfLine
+                    (genName +> genParameters +> sepColon +> genType astContext false t +> sepEq)
+                    (genName +> atCurrentColumn (genParameters +> sepNln +> spaceBeforeColon +> sepColon +> genType astContext false t +> sepEq))
+
+            genAttributesAndXmlDoc
+            +> leadingExpressionIsMultiline
+                    memberDefinition
+                    (fun mdLong ->
+                        ifElse
+                            mdLong
+                            (indent +> sepNln +> genExpr astContext e +> unindent)
+                            (sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
         | e ->
             genAttributesAndXmlDoc
             +> prefix
+            +> genPat ({ astContext with IsMemberDefinition = true }) p
             +> sepEq
             +> sepSpace
             +> (fun ctx -> (isShortExpressionOrAddIndentAndNewline (if isFunctionBinding p then ctx.Config.MaxFunctionBindingWidth else ctx.Config.MaxValueBindingWidth) (genExpr astContext e)) ctx)

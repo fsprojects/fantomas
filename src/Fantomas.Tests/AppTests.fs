@@ -98,7 +98,8 @@ let ``should split parameters over multiple lines when they exceed page width``(
 module Caching =
     type MainCache() =
         member __.RetrieveLastCompoundBalance (address: PublicAddress)
-                                              (currency: Currency): NotFresh<decimal> =
+                                              (currency: Currency)
+                                              : NotFresh<decimal> =
             lock cacheFiles.CachedNetworkData (fun _ ->
                 match balance with
                 | NotAvailable -> NotAvailable
@@ -134,7 +135,8 @@ let ``should split single parameter over multiple lines when it exceeds page wid
 module Caching =
     type MainCache() =
         member __.RetrieveLastCompoundBalance (address: PublicAddress)
-                                              (currency: Currency): NotFresh<decimal> =
+                                              (currency: Currency)
+                                              : NotFresh<decimal> =
             lock cacheFiles.CachedNetworkData (fun _ ->
                 match balance with
                 | NotAvailable -> NotAvailable
