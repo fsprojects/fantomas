@@ -825,23 +825,47 @@ and genExpr astContext synExpr =
     let sepCloseT = tokN synExpr.Range "RPAREN" sepCloseT
 
     match synExpr with
-    | ElmishReactWithoutChildren(identifier, attributes) ->
+    | ElmishReactWithoutChildren(identifier, isArray, children) ->
         fun ctx ->
-            let maxRemainingArrayLength = ctx.Config.MaxElmishWidth - identifier.Length
-            let ctx' =
-                { ctx with Config = { ctx.Config with
-                                        MaxArrayOrListWidth = maxRemainingArrayLength
-                                        // override user setting to get original fantomas formatting
-                                        MultilineBlockBracketsOnSameColumn = false } }
-            (!- identifier
-             +> sepSpace
-             +> genExpr astContext attributes
-             +> fun cty ->
-                 // reset the config with original values
-                 { cty with Config = { cty.Config with
-                                         MaxArrayOrListWidth = ctx.Config.MaxArrayOrListWidth
-                                         MultilineBlockBracketsOnSameColumn = ctx.Config.MultilineBlockBracketsOnSameColumn } }) ctx'
+            let shortExpression =
+                let noChildren =
+                    ifElse isArray sepOpenAFixed sepOpenLFixed
+                    +> ifElse isArray sepCloseAFixed sepCloseLFixed
 
+                let genChildren =
+                    ifElse isArray sepOpenA sepOpenL
+                    +> col sepSemi children (genExpr astContext)
+                    +> ifElse isArray sepCloseA sepCloseL
+
+                !- identifier
+                +> sepSpace
+                +> ifElse (List.isEmpty children) noChildren genChildren
+
+            let elmishExpression =
+                !- identifier
+                +> sepSpace
+                +> ifElse isArray sepOpenA sepOpenL
+                +> atCurrentColumn (col sepNln children (genExpr astContext))
+                +> ifElse isArray sepCloseA sepCloseL
+
+            let felizExpression =
+                atCurrentColumn (!- identifier
+                                 +> sepSpace
+                                 +> ifElse isArray sepOpenAFixed sepOpenLFixed
+                                 +> indent
+                                 +> sepNln
+                                 +> col sepNln children (genExpr astContext)
+                                 +> unindent
+                                 +> sepNln
+                                 +> ifElse isArray sepCloseAFixed sepCloseLFixed)
+
+            let multilineExpression = ifElse ctx.Config.SingleArgumentWebMode felizExpression elmishExpression
+
+            isShortExpression
+                ctx.Config.MaxElmishWidth
+                shortExpression
+                multilineExpression
+                ctx
 
     | ElmishReactWithChildren((identifier,_,_), attributes, (isArray,children)) ->
         let genChildren isShort =
@@ -1322,13 +1346,43 @@ and genExpr astContext synExpr =
             else
                 sepSpace ctx
 
-        atCurrentColumn
-            (genExpr astContext e
-             +> colPre sepSpace sepSpace es (fun e ->
-                    onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
+        let shortExpression =
+            atCurrentColumn
+                (genExpr astContext e
+                 +> colPre sepSpace sepSpace es (fun e ->
+                        onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
+                        +> indent
+                        +> appNlnFun e (indentIfNeeded +> genExpr astContext e)
+                        +> unindent))
+
+        let longExpression =
+            (atCurrentColumn
+                (genExpr astContext e
+                +> colPre sepSpace sepSpace es (fun e ->
+                ifElse (isCompExpr e)
+                    (sepSpace
+                    +> sepOpenSFixed
+                    +> sepSpace
                     +> indent
                     +> appNlnFun e (indentIfNeeded +> genExpr astContext e)
-                    +> unindent))
+                    +> unindent)
+                    (indent
+                    +> indentIfNeeded
+                    +> sepNln
+                    +> genExpr astContext e
+                    +> unindent))))
+
+        if List.exists (function
+            | Lambda _
+            | MatchLambda _
+            | Paren (Lambda (_))
+            | Paren (MatchLambda (_))
+            | MultilineString _
+            | CompExpr _ -> true
+            | _ -> false) es then
+            shortExpression
+        else
+            expressionFitsOnRestOfLine shortExpression longExpression
 
     | TypeApp(e, ts) -> genExpr astContext e -- "<" +> col sepComma ts (genType astContext false) -- ">"
     | LetOrUses(bs, e) ->
@@ -2337,8 +2391,9 @@ and genConstraints astContext (t: SynType) =
     match t with
     | TWithGlobalConstraints(t, tcs) ->
         genTypeByLookup astContext t
-        +> onlyIf (List.isNotEmpty tcs) (!- " when ")
-        +> col sepSpace tcs (genTypeConstraint astContext)
+        +> sepSpaceOrNlnIfExpressionExceedsPageWidth
+            (ifElse (List.isNotEmpty tcs) (!- "when ") sepSpace
+            +> col wordAnd tcs (genTypeConstraint astContext))
     | _ -> sepNone
 
 and genTyparDecl astContext (TyparDecl(ats, tp)) =
@@ -2680,6 +2735,7 @@ and genMemberDefn astContext node =
         +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
         +> genTypeParamPostfix astContext tds tcs
         +> sepColonX +> genTypeList astContext namedArgs -- genPropertyKind (not isFunctionProperty) mk
+        +> genConstraints astContext t
 
     | md -> failwithf "Unexpected member definition: %O" md
     |> genTrivia node.Range

@@ -262,9 +262,11 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
     match tokens with
     | headToken::rest when (headToken.TokenInfo.TokenName = "LINE_COMMENT") ->
         let lineCommentTokens =
-            rest
-            |> List.takeWhile (fun t -> t.TokenInfo.TokenName = "LINE_COMMENT") // && t.LineNumber = headToken.LineNumber)
-            
+            Seq.zip rest (headToken::rest |> List.map (fun x -> x.LineNumber))
+            |> Seq.takeWhile (fun (t, currentLineNumber) -> t.TokenInfo.TokenName = "LINE_COMMENT" && t.LineNumber <= (currentLineNumber + 1))
+            |> Seq.map fst
+            |> Seq.toList
+
         let comment =
             headToken
             |> List.prependItem lineCommentTokens

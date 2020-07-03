@@ -433,7 +433,8 @@ table [ ClassName "table table-striped table-hover mb-0" ] [
         tokenDetailRow "ColorClass" (str colorClass)
         tokenDetailRow "CharClass" (str charClass)
         tokenDetailRow "Tag" (ofInt tag)
-        tokenDetailRow "FullMatchedLength"
+        tokenDetailRow
+            "FullMatchedLength"
             (span [ ClassName "has-text-weight-semibold" ] [
                 ofInt fullMatchedLength
              ])
@@ -568,4 +569,146 @@ let view dispatch model =
             str "click me"
         ]
     ]
+"""
+
+[<Test>]
+let ``short feliz element`` () =
+    formatSourceString false """let a =
+    Html.h1 [ prop.text "some title" ]
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = Html.h1 [ prop.text "some title" ]
+"""
+
+[<Test>]
+let ``multiline feliz element`` () =
+    formatSourceString false """let a =
+        Html.button [
+            prop.style [ style.marginLeft 5 ]
+            prop.onClick (fun _ -> setCount(count - 1))
+            prop.text "Decrement"
+        ]
+"""  { config with SingleArgumentWebMode = true }
+    |> prepend newline
+    |> should equal """
+let a =
+    Html.button [
+        prop.style [ style.marginLeft 5 ]
+        prop.onClick (fun _ -> setCount (count - 1))
+        prop.text "Decrement"
+    ]
+"""
+
+[<Test>]
+let ``nested feliz elements`` () =
+    formatSourceString false """let a =
+    Html.div [
+        Html.h1 [ prop.text "short" ]
+        Html.button [
+            prop.style [ style.marginRight 5 ]
+            prop.onClick (fun _ -> setCount(count + 1))
+            prop.text "Increment"
+        ]
+    ]
+"""  { config with SingleArgumentWebMode = true }
+    |> prepend newline
+    |> should equal """
+let a =
+    Html.div [
+        Html.h1 [ prop.text "short" ]
+        Html.button [
+            prop.style [ style.marginRight 5 ]
+            prop.onClick (fun _ -> setCount (count + 1))
+            prop.text "Increment"
+        ]
+    ]
+"""
+
+[<Test>]
+let ``feliz counter sample`` () =
+    formatSourceString false """module App
+
+open Feliz
+
+let counter = React.functionComponent(fun () ->
+    let (count, setCount) = React.useState(0)
+    Html.div [
+        Html.button [
+            prop.style [ style.marginRight 5 ]
+            prop.onClick (fun _ -> setCount(count + 1))
+            prop.text "Increment"
+        ]
+
+        Html.button [
+            prop.style [ style.marginLeft 5 ]
+            prop.onClick (fun _ -> setCount(count - 1))
+            prop.text "Decrement"
+        ]
+
+        Html.h1 count
+    ])
+
+open Browser.Dom
+
+ReactDOM.render(counter, document.getElementById "root")
+"""  { config with SingleArgumentWebMode = true }
+    |> prepend newline
+    |> should equal """
+module App
+
+open Feliz
+
+let counter =
+    React.functionComponent (fun () ->
+        let (count, setCount) = React.useState (0)
+        Html.div [
+            Html.button [
+                prop.style [ style.marginRight 5 ]
+                prop.onClick (fun _ -> setCount (count + 1))
+                prop.text "Increment"
+            ]
+
+            Html.button [
+                prop.style [ style.marginLeft 5 ]
+                prop.onClick (fun _ -> setCount (count - 1))
+                prop.text "Decrement"
+            ]
+
+            Html.h1 count
+        ])
+
+open Browser.Dom
+
+ReactDOM.render (counter, document.getElementById "root")
+"""
+
+[<Test>]
+let ``feliz syntax`` () =
+    formatSourceString false """
+Html.h1 42
+
+Html.div "Hello there!"
+
+Html.div [ Html.h1 "So lightweight" ]
+
+Html.ul [
+  Html.li "One"
+  Html.li [ Html.strong "Two" ]
+  Html.li [ Html.em "Three" ]
+]
+"""  { config with SingleArgumentWebMode = true }
+    |> prepend newline
+    |> should equal """
+Html.h1 42
+
+Html.div "Hello there!"
+
+Html.div [ Html.h1 "So lightweight" ]
+
+Html.ul [
+    Html.li "One"
+    Html.li [ Html.strong "Two" ]
+    Html.li [ Html.em "Three" ]
+]
 """
