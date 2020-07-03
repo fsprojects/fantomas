@@ -91,7 +91,7 @@ let ``should pattern match on quotation expression``() =
 let ``should break on . operator``() =
     formatSourceString false """pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^").Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(").Replace(")", @"\)").Replace("+", @"\+")
 
-    """ { config with PageWidth = 80 }
+    """ { config with MaxLineLength = 80 }
     |> prepend newline
     |> should equal """
 pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^")
@@ -106,7 +106,7 @@ let ``should break on . operator and keep indentation``() =
     (x + y)
       .Replace(seperator + "**" + seperator, replacementSeparator + "(.|?" + replacementSeparator + ")?" )
       .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")" )
-    """ { config with PageWidth = 80; MaxInfixOperatorExpression = 60 }
+    """ { config with MaxLineLength = 80; MaxInfixOperatorExpression = 60 }
     |> should equal """let pattern =
     (x + y)
         .Replace

@@ -1109,7 +1109,7 @@ type internal Close =
   | ProcessExit
   | Pause
   | Resume
-"""  ({ config with IndentSpaceNum = 2 })
+"""  ({ config with IndentSize = 2 })
     |> prepend newline
     |> should equal """
 namespace AltCover.Recorder
@@ -1144,7 +1144,7 @@ type internal Close =
   | ProcessExit
   | Pause
   | Resume
-"""  ({ config with IndentSpaceNum = 2 })
+"""  ({ config with IndentSize = 2 })
     |> prepend newline
     |> should equal """
 namespace AltCover.Recorder
@@ -1179,7 +1179,7 @@ type internal Close =
   | ProcessExit
   | Pause
   | Resume
-"""  ({ config with IndentSpaceNum = 2 })
+"""  ({ config with IndentSize = 2 })
     |> prepend newline
     |> should equal """
 namespace AltCover.Recorder

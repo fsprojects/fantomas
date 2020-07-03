@@ -145,7 +145,7 @@ let ``child configuration should overwrite parent folder`` () =
     try
         let result = CodeFormatter.ReadConfiguration childConfig
         match result with
-        | Success config -> 90 == config.PageWidth
+        | Success config -> 90 == config.MaxLineLength
         | _ -> fail()
     finally
         delete parentConfig
@@ -161,7 +161,7 @@ let ``invalid key in parent config should return partial success`` () =
         let result = CodeFormatter.ReadConfiguration childConfig
         match result with
         | PartialSuccess (config, [warning]) ->
-            130 == config.PageWidth
+            130 == config.MaxLineLength
             let pieces = warning.Split([|','|])
             StringAssert.Contains("\"PageWidthX\"", pieces.[0])
             StringAssert.Contains(parentConfig, pieces.[1])

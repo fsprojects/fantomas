@@ -13,9 +13,9 @@ type Num = int
 //       and the docs (e.g. Documentation.md)
 type FormatConfig = 
     { /// Number of spaces for each indentation
-      IndentSpaceNum : Num
+      IndentSize : Num
       /// The column where we break to new lines
-      PageWidth : Num
+      MaxLineLength : Num
       SemicolonAtEndOfLine : bool
       SpaceBeforeParameter: bool
       SpaceBeforeLowercaseInvocation: bool
@@ -43,8 +43,8 @@ type FormatConfig =
       StrictMode : bool }
 
     static member Default = 
-        { IndentSpaceNum = 4
-          PageWidth = 120
+        { IndentSize = 4
+          MaxLineLength = 120
           SemicolonAtEndOfLine = false
           SpaceBeforeParameter = true
           SpaceBeforeLowercaseInvocation = true

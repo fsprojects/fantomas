@@ -54,7 +54,7 @@ let ``fantomas removes module and namespace if it is only 1 word`` () =
         let fantomasConfig =
             { FormatConfig.FormatConfig.Default with
                 StrictMode = true
-                IndentSpaceNum = 2
+                IndentSize = 2
                 SpaceBeforeColon = false }
         let! formattedFiles = FakeHelpers.formatCode fantomasConfig [file]
         

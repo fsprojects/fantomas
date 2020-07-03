@@ -190,7 +190,7 @@ let ``multiline list of string should not add ;`` () =
     formatSourceString false """
        [ "_Binaries/AltCover/Debug+AnyCPU/AltCover.exe"
          "_Binaries/AltCover.Shadow/Debug+AnyCPU/AltCover.Shadow.dll" ]
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> should equal """[ "_Binaries/AltCover/Debug+AnyCPU/AltCover.exe"
   "_Binaries/AltCover.Shadow/Debug+AnyCPU/AltCover.Shadow.dll" ]
 """
@@ -1407,7 +1407,7 @@ let nestedList: obj list = [
         "33333333bbbbbbbbbbbbbbb"
     ]
 ]
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 let nestedList: obj list =
@@ -1434,7 +1434,7 @@ let nestedList: obj list = [|
         "33333333bbbbbbbbbbbbbbb"
     |]
 |]
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 let nestedList: obj list =
@@ -1460,7 +1460,7 @@ let nestedList: obj list = [|
         "33333333bbbbbbbbbbbbbbb"
     |]
 |]
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 let nestedList: obj list =
@@ -1487,7 +1487,7 @@ let nestedList: obj list = [
         // this case looks weird but seen rarely
     ]
 ]
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 let nestedList: obj list =
@@ -1515,7 +1515,7 @@ let nestedList: obj list = [|
         // this case looks weird but seen rarely
     |]
 |]
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 let nestedList: obj list =
@@ -1538,7 +1538,7 @@ let c = list.[0..^1]  // 1,2,3,4
 let d = list.[^1..]   // 4,5
 let e = list.[^0..]   // 5
 let f = list.[^2..^1] // 3,4
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 let a = list.[..^0] // 1,2,3,4,5

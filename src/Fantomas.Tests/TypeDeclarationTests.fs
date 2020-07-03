@@ -782,7 +782,7 @@ let x =
         (Label = "Test", 
          IntrinsicSettings = JobCollectionIntrinsicSettings
                                  (Plan = JobCollectionPlan.Standard, 
-                                  Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))""" { config with PageWidth = 120 }
+                                  Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))""" { config with MaxLineLength = 120 }
     |> prepend newline
     |> should equal """
 let x =
@@ -1118,7 +1118,7 @@ let ``keep correct indentation after multiline member definition, 845`` () =
 
     member SomeOtherMember () =
         printfn "b"
-"""  ({ config with PageWidth = 80; MaxFunctionBindingWidth = 120 })
+"""  ({ config with MaxLineLength = 80; MaxFunctionBindingWidth = 120 })
     |> prepend newline
     |> should equal """
 type SomeType() =
@@ -1139,7 +1139,7 @@ let ``keep correct indentation after multiline typed member definition`` () =
 
     member SomeOtherMember () =
         printfn "b"
-"""  ({ config with PageWidth = 80; MaxFunctionBindingWidth = 120 })
+"""  ({ config with MaxLineLength = 80; MaxFunctionBindingWidth = 120 })
     |> prepend newline
     |> should equal """
 type SomeType() =
@@ -1269,7 +1269,7 @@ let ``long type members should be in multiple lines, 868`` () =
 type C() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: int, aSecondVeryLongType: int, aThirdVeryLongType: int) : int =
         aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
-"""  { config with PageWidth = 80; SpaceBeforeColon = true; MaxInfixOperatorExpression = 80 }
+"""  { config with MaxLineLength = 80; SpaceBeforeColon = true; MaxInfixOperatorExpression = 80 }
     |> prepend newline
     |> should equal """
 type C() =
@@ -1285,7 +1285,7 @@ let ``long type members should be in multiple lines, no return type`` () =
 type C() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: int, aSecondVeryLongType: int, aThirdVeryLongType: int) =
         aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
-"""  { config with PageWidth = 80; SpaceBeforeColon = true; MaxInfixOperatorExpression = 80 }
+"""  { config with MaxLineLength = 80; SpaceBeforeColon = true; MaxInfixOperatorExpression = 80 }
     |> prepend newline
     |> should equal """
 type C() =
@@ -1300,7 +1300,7 @@ let ``long type constructors should be in multiple lines, 868`` () =
     formatSourceString false """
 type VersionMismatchDuringDeserializationException(message: string, innerException: System.Exception) =
     inherit System.Exception(message, innerException)
-"""  { config with PageWidth = 80; SpaceBeforeColon = true }
+"""  { config with MaxLineLength = 80; SpaceBeforeColon = true }
     |> prepend newline
     |> should equal """
 type VersionMismatchDuringDeserializationException(message : string,

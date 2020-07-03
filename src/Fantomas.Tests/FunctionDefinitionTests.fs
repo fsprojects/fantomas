@@ -379,7 +379,7 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
     | true -> Error collectedErrors
     | false -> Ok collectedOutputs
 """  ({ config with
-            PageWidth = 100
+            MaxLineLength = 100
             SpaceBeforeColon = true
             MaxInfixOperatorExpression = 70 })
     |> prepend newline
@@ -427,7 +427,7 @@ let ``internal keyword included in function signature length check`` () =
 
   let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
     assembly.Name
-"""  ({ config with PageWidth = 90; SpaceBeforeColon = true })
+"""  ({ config with MaxLineLength = 90; SpaceBeforeColon = true })
     |> prepend newline
     |> should equal """
 let internal UpdateStrongNaming
@@ -523,7 +523,7 @@ let private addTaskToScheduler (scheduler : IScheduler) taskName taskCron prio (
             JobBuilder.Create<WrapperJob>().UsingJobData(jobDataMap)
                 .WithIdentity(taskName, groupName).Build()
         1
-"""  ({ config with PageWidth = 100 })
+"""  ({ config with MaxLineLength = 100 })
     |> prepend newline
     |> should equal """
 let private addTaskToScheduler
@@ -548,7 +548,7 @@ let private addTaskToScheduler
 let ``long function signature should align with equal sign, 883`` () =
     formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) : ReadModel<'Event, 'State> =
     ()
-"""  { config with IndentSpaceNum = 2; SpaceBeforeColon = true }
+"""  { config with IndentSize = 2; SpaceBeforeColon = true }
     |> prepend newline
     |> should equal """
 let readModel
@@ -563,7 +563,7 @@ let readModel
 let ``long function signature should align with equal sign, no return type`` () =
     formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) =
     ()
-"""  { config with IndentSpaceNum = 2; SpaceBeforeColon = true; PageWidth = 80 }
+"""  { config with IndentSize = 2; SpaceBeforeColon = true; MaxLineLength = 80 }
     |> prepend newline
     |> should equal """
 let readModel
