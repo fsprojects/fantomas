@@ -64,21 +64,22 @@ let formatContentAsync config (file: string) (originalContent: string) =
         | ex -> return Error(file, ex)
     }
 
-let formatFileAsync config (file : string) =
+let formatFileAsync (file : string) =
+    let config = CodeFormatter.ReadConfiguration(file)
     let originalContent = File.ReadAllText file
     async {
         let! formatted = originalContent |> formatContentAsync config file
         return formatted
     }
 
-let formatFilesAsync config files =
+let formatFilesAsync files =
     files
-    |> Seq.map (formatFileAsync config)
+    |> Seq.map formatFileAsync
     |> Async.Parallel
 
-let formatCode config files =
+let formatCode files =
     async {
-        let! results = files |> formatFilesAsync config
+        let! results = formatFilesAsync files
         
         // Check for formatting errors:
         let errors =
@@ -119,10 +120,10 @@ type CheckResult =
 /// Returns:
 ///
 /// A record with the file names that were formatted and the files that encounter problems while formatting.
-let checkCode (config: FormatConfig) (filenames: seq<string>) =
+let checkCode (filenames: seq<string>) =
     async {
         let! formatted = filenames
-                         |> Seq.map (formatFileAsync config)
+                         |> Seq.map formatFileAsync
                          |> Async.Parallel
 
         let getChangedFile =
