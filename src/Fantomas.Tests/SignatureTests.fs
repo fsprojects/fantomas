@@ -582,3 +582,20 @@ type A =
     internal { ALongIdentifier: string
                YetAnotherLongIdentifier: bool }
 """
+
+[<Test>]
+let ``multiple constraints on function declaration, 886`` () =
+    formatSourceString true """namespace Blah
+
+module Foo =
+    val inline sum : ('a -> ^value) -> 'a Foo -> ^value
+        when ^value : (static member (+) : ^value * ^value -> ^value) and ^value : (static member Zero : ^value)
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Blah
+
+module Foo =
+    val inline sum: ('a -> ^value) -> 'a Foo -> ^value
+        when ^value: (static member (+): ^value * ^value -> ^value) and ^value: (static member Zero: ^value)
+"""

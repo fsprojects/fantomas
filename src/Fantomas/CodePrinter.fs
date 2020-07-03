@@ -2387,8 +2387,9 @@ and genConstraints astContext (t: SynType) =
     match t with
     | TWithGlobalConstraints(t, tcs) ->
         genTypeByLookup astContext t
-        +> onlyIf (List.isNotEmpty tcs) (!- " when ")
-        +> col sepSpace tcs (genTypeConstraint astContext)
+        +> sepSpaceOrNlnIfExpressionExceedsPageWidth
+            (ifElse (List.isNotEmpty tcs) (!- "when ") sepSpace
+            +> col wordAnd tcs (genTypeConstraint astContext))
     | _ -> sepNone
 
 and genTyparDecl astContext (TyparDecl(ats, tp)) =
@@ -2730,6 +2731,7 @@ and genMemberDefn astContext node =
         +> opt sepSpace ao genAccess -- sprintf "abstract %s" s
         +> genTypeParamPostfix astContext tds tcs
         +> sepColonX +> genTypeList astContext namedArgs -- genPropertyKind (not isFunctionProperty) mk
+        +> genConstraints astContext t
 
     | md -> failwithf "Unexpected member definition: %O" md
     |> genTrivia node.Range
