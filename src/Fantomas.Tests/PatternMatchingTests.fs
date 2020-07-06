@@ -194,7 +194,7 @@ try
     fst(find (fun (s, (s', ty): int * int) -> 
                 s' = s0 && can (type_match ty ty0) []) (!the_interface))
 with
-| Failure _ -> s0""" { config with PageWidth = 80 }
+| Failure _ -> s0""" { config with MaxLineLength = 80 }
     |> prepend newline
     |> should equal """
 try
@@ -384,7 +384,7 @@ let (|OneLinerBinding|MultilineBinding|) b =
 
 [<Test>]
 let ``should split constructor and function call correctly, double formatting`` () =
-    let config80 = { config with PageWidth = 80 }
+    let config80 = { config with MaxLineLength = 80 }
 
     let original = """
 let update msg model =
@@ -458,7 +458,7 @@ match x with
     let z = 1
     Some(y + z)
 | None -> None
-"""  { config with IndentSpaceNum = 2 }
+"""  { config with IndentSize = 2 }
     |> prepend newline
     |> should equal """
 match x with

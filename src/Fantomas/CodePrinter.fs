@@ -465,7 +465,7 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
             fun ctx ->
                 let alreadyHasNewline = lastWriteEventIsNewline ctx
                 if alreadyHasNewline then
-                    (rep ctx.Config.IndentSpaceNum (!- " ") +> !- "=") ctx
+                    (rep ctx.Config.IndentSize (!- " ") +> !- "=") ctx
                 else
                     (indent +> sepNln +> !- "=" +> unindent) ctx
         else
@@ -2931,7 +2931,7 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
             + lengthWhenSome (fun _ -> colon) t
             + lengthWhenSome getSynTypeLength t
 
-        (ctx.Column + lengthByAST > ctx.Config.PageWidth)
+        (ctx.Column + lengthByAST > ctx.Config.MaxLineLength)
         || futureNlnCheck (genName +> genParametersInitial +> genReturnType) ctx
 
     fun ctx ->

@@ -27,7 +27,7 @@ let ``e2e script test with keyword __source__directory__`` () =
         let file = Path.Combine(Path.GetTempPath(), System.Guid.NewGuid().ToString("N") + ".fsx")
         File.WriteAllText(file, source)
         
-        let! formattedFiles = FakeHelpers.formatCode config [file]
+        let! formattedFiles = FakeHelpers.formatCode [file]
         
         let formattedSource = File.ReadAllText(file)
         Array.length formattedFiles == 1
@@ -54,13 +54,19 @@ let ``fantomas removes module and namespace if it is only 1 word`` () =
         let fantomasConfig =
             { FormatConfig.FormatConfig.Default with
                 StrictMode = true
-                IndentSpaceNum = 2
+                IndentSize = 2
                 SpaceBeforeColon = false }
-        let! formattedFiles = FakeHelpers.formatCode fantomasConfig [file]
+            |> EditorConfig.configToEditorConfig
+
+        let editorConfigPath = Path.Combine(Path.GetTempPath(), ".editorconfig")
+        File.WriteAllText(editorConfigPath, fantomasConfig)
+
+        let! formattedFiles = FakeHelpers.formatCode [file]
         
         let formattedSource = File.ReadAllText(file)
         Array.length formattedFiles == 1
         File.Delete(file)
+        File.Delete(editorConfigPath)
         
         formattedSource
         |> String.normalizeNewLine
@@ -84,7 +90,7 @@ let ``number in the filename should not end up in the module name`` () =
     File.WriteAllText(file, source)
     
     async {
-        let! formattedFiles = FakeHelpers.formatCode config [|file|]
+        let! formattedFiles = FakeHelpers.formatCode [|file|]
         let formattedSource = File.ReadAllText(file)
         Array.length formattedFiles == 1
         File.Delete(file)

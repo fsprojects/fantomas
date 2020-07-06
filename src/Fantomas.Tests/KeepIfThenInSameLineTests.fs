@@ -6,7 +6,7 @@ open Fantomas.Tests.TestHelper
 
 let config = { config with
                 KeepIfThenInSameLine = true
-                PageWidth = 80
+                MaxLineLength = 80
                 MaxIfThenElseShortWidth = 0 }
 
 [<Test>]
@@ -18,7 +18,7 @@ let ``if only, 825`` () =
                 "some very very long error message"
         if valueToSend <= 0m then
             invalidArg "valueToSend" "Amount has to be above zero"
-"""  { config with PageWidth = 100 }
+"""  { config with MaxLineLength = 100 }
     |> prepend newline
     |> should equal """
 type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =

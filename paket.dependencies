@@ -12,5 +12,7 @@ nuget NUnit3TestAdapter 3.15.1
 nuget NunitXml.TestLogger
 nuget Argu
 nuget BenchmarkDotNet
+nuget Fantomas.EditorConfig.Core copy_local: true
+nuget ILRepack.MSBuild.Task copy_local: true
 
 github: fsprojects/fantomas:829faa6ba834f99afed9b4434b3a1680536474b2 src/Fantomas/CodePrinter.fs

@@ -6,8 +6,6 @@ open Fantomas.FormatConfig
 open Fantomas.FakeHelpers
 open Fantomas.Tests.TestHelper
 
-let private config = FormatConfig.Default
-
 [<Literal>]
 let NeedsFormatting = """module A
 
@@ -30,7 +28,7 @@ let ``formatted files should report no changes``() =
     let result =
         fileFixture.Filename
         |> Seq.singleton
-        |> checkCode config
+        |> checkCode
         |> Async.RunSynchronously
 
     result.NeedsFormatting |> should equal false
@@ -43,7 +41,7 @@ let ``files with errors should report an internal error``() =
     let result =
         fileFixture.Filename
         |> Seq.singleton
-        |> checkCode config
+        |> checkCode
         |> Async.RunSynchronously
 
     result.HasErrors |> should equal true
@@ -56,7 +54,7 @@ let ``files that need formatting should report that they need to be formatted``(
     let result =
         fileFixture.Filename
         |> Seq.singleton
-        |> checkCode config
+        |> checkCode
         |> Async.RunSynchronously
 
     result.HasErrors |> should equal false

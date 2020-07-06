@@ -163,7 +163,7 @@ type internal Context =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
         let mkModel m = { m with Mode = Dummy; Lines = [String.replicate x.WriterModel.Column " "]; WriteBeforeNewline = "" }
         // Use infinite column width to encounter worst-case scenario
-        let config = { x.Config with PageWidth = if keepPageWidth then x.Config.PageWidth else Int32.MaxValue }
+        let config = { x.Config with MaxLineLength = if keepPageWidth then x.Config.MaxLineLength else Int32.MaxValue }
         { x with WriterModel = mkModel x.WriterModel; WriterEvents = writerCommands; Config = config }
 
     member x.WithShortExpression(maxWidth, ?startColumn) =
@@ -185,7 +185,7 @@ let internal writerEvent e ctx =
     let ctx' =
         { ctx with
            WriterEvents = Queue.append ctx.WriterEvents evs
-           WriterModel = (ctx.WriterModel, evs) ||> Seq.fold (fun m e -> WriterModel.update ctx.Config.PageWidth e m) }
+           WriterModel = (ctx.WriterModel, evs) ||> Seq.fold (fun m e -> WriterModel.update ctx.Config.MaxLineLength e m) }
     ctx'
 let internal finalizeWriterModel (ctx: Context) =
     if ctx.WriterModel.WriteBeforeNewline <> "" then writerEvent (Write ctx.WriterModel.WriteBeforeNewline) ctx else ctx
@@ -250,11 +250,11 @@ let internal forallCharsOnLastLine f ctx =
 /// Indent one more level based on configuration
 let internal indent (ctx : Context) = 
     // if atColumn is bigger then after indent, then we use atColumn as base for indent
-    writerEvent (IndentBy ctx.Config.IndentSpaceNum) ctx
+    writerEvent (IndentBy ctx.Config.IndentSize) ctx
 
 /// Unindent one more level based on configuration
 let internal unindent (ctx : Context) = 
-    writerEvent (UnIndentBy ctx.Config.IndentSpaceNum) ctx
+    writerEvent (UnIndentBy ctx.Config.IndentSize) ctx
 
 /// Increase indent by i spaces
 let internal incrIndent i (ctx : Context) = 
@@ -431,7 +431,7 @@ let internal onlyIfNot cond f ctx =
     if cond then ctx else f ctx
 
 let internal whenShortIndent f ctx =
-    onlyIf (ctx.Config.IndentSpaceNum < 3) f ctx
+    onlyIf (ctx.Config.IndentSize < 3) f ctx
 
 /// Repeat application of a function n times
 let internal rep n (f : Context -> Context) (ctx : Context) =
@@ -534,7 +534,7 @@ let private shortExpressionWithFallback (shortExpression: Context -> Context) (f
     // if the context is already inside a ShortExpression mode and tries to figure out if the expression will go over the page width,
     // we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
-    | ShortExpression infos when (List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth ctx.Column) infos) ->
+    | ShortExpression infos when (List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.MaxLineLength ctx.Column) infos) ->
         ctx
     | _ ->
         // create special context that will process the writer events slightly different
@@ -547,7 +547,7 @@ let private shortExpressionWithFallback (shortExpression: Context -> Context) (f
         match resultContext.WriterModel.Mode with
         | ShortExpression infos ->
             // verify the expression is not longer than allowed
-            if List.exists(fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column) infos
+            if List.exists(fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column) infos
             then fallbackExpression ctx
             else
                 { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
@@ -562,7 +562,7 @@ let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context)
     shortExpressionWithFallback expr (indent +> sepNln +> expr +> unindent) maxWidth None ctx
 
 let internal expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
-    shortExpressionWithFallback expression fallbackExpression ctx.Config.PageWidth (Some 0) ctx
+    shortExpressionWithFallback expression fallbackExpression ctx.Config.MaxLineLength (Some 0) ctx
 
 /// provide the line and column before and after the leadingExpression to to the continuation expression
 let internal leadingExpressionResult leadingExpression continuationExpression (ctx: Context) =
@@ -588,20 +588,20 @@ let internal leadingExpressionIsMultiline leadingExpression continuationExpressi
 let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
     // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
-    | ShortExpression infos when (List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth ctx.Column) infos) ->
+    | ShortExpression infos when (List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.MaxLineLength ctx.Column) infos) ->
         ctx
     | ShortExpression _ ->
         // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
         (beforeShort +> expr +> afterShort) ctx
     | _ ->
-        let shortExpressionContext = ctx.WithShortExpression(ctx.Config.PageWidth, 0)
+        let shortExpressionContext = ctx.WithShortExpression(ctx.Config.MaxLineLength, 0)
         let resultContext = (beforeShort +> expr +> afterShort) shortExpressionContext
         let fallbackExpression = beforeLong +> expr +> afterLong
 
         match resultContext.WriterModel.Mode with
         | ShortExpression infos ->
             // verify the expression is not longer than allowed
-            if List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.PageWidth resultContext.Column) infos then
+            if List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column) infos then
                 fallbackExpression ctx
             else
                 { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
@@ -639,7 +639,7 @@ let internal futureNlnCheckMem (f, ctx) =
     if ctx.WriterModel.IsDummy || not ctx.BreakLines then (false, false) else
     // Create a dummy context to evaluate length of current operation
     let dummyCtx : Context = ctx.WithDummy(Queue.empty, keepPageWidth = true) |> f
-    WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.PageWidth
+    WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.MaxLineLength
 
 let internal futureNlnCheck f (ctx : Context) =
     let (isMultiLine, isLong) = futureNlnCheckMem (f, ctx)
@@ -1080,7 +1080,7 @@ let internal lastLineOnlyContains characters (ctx: Context) =
     let lastLine =
         (writeEventsOnLastLine ctx |> String.concat "").Trim(characters)
     let length = String.length lastLine
-    length = 0 || length < ctx.Config.IndentSpaceNum
+    length = 0 || length < ctx.Config.IndentSize
 
 let private (|CommentOrDefineEvent|_|) we =
     match we with
