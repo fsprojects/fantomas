@@ -1077,7 +1077,8 @@ let ``long type member with return type should have parameters on separate lines
 type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
                                              aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
-                                             aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse): int =
+                                             aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
+                                             : int =
         aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
@@ -1144,7 +1145,8 @@ let ``keep correct indentation after multiline typed member definition`` () =
     |> should equal """
 type SomeType() =
     member SomeMember(looooooooooooooooooooooooooooooooooong1: A,
-                      looooooooooooooooooooooooooooooooooong2: A): string =
+                      looooooooooooooooooooooooooooooooooong2: A)
+                      : string =
         printfn "a"
         "a"
 
@@ -1279,7 +1281,8 @@ type C() =
 type C() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType : int,
                                             aSecondVeryLongType : int,
-                                            aThirdVeryLongType : int) : int =
+                                            aThirdVeryLongType : int)
+                                            : int =
         aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
 """
 
@@ -1394,4 +1397,19 @@ type SubGroupStackOptions =
 
 [<AllowNullLiteral>]
 let foo bar = zero
+"""
+
+[<Test>]
+let ``type constraint on type definition, 887`` () =
+    formatSourceString false """
+type OuterType =
+    abstract Apply<'r>
+        : InnerType<'r>
+        -> 'r when 'r : comparison
+"""  { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+type OuterType =
+    abstract Apply<'r> : InnerType<'r>
+        -> 'r when 'r : comparison
 """
