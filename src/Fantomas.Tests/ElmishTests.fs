@@ -495,7 +495,7 @@ let view (CurrentTime time) dispatch =
             SVG.Stroke "#023963"
             SVG.StrokeWidth 1.0 ] []
       ]
-"""  { config with IndentSpaceNum = 2 }
+"""  { config with IndentSize = 2 }
     |> prepend newline
     |> should equal """
 let view (CurrentTime time) dispatch =

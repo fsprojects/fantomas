@@ -578,7 +578,7 @@ type A =
 
 [<Test>]
 let ``indent update record fields far enough, 817`` () =
-    formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" ({ config with IndentSpaceNum = 2 })
+    formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" ({ config with IndentSize = 2 })
     |> prepend newline
     |> should equal """
 let expected =
@@ -589,7 +589,7 @@ let expected =
 
 [<Test>]
 let ``indent update anonymous record fields far enough`` () =
-    formatSourceString false "let expected = {| ThisIsAThing.Empty with TheNewValue = 1 |}" ({ config with IndentSpaceNum = 2 })
+    formatSourceString false "let expected = {| ThisIsAThing.Empty with TheNewValue = 1 |}" ({ config with IndentSize = 2 })
     |> prepend newline
     |> should equal """
 let expected =

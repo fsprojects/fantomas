@@ -8,7 +8,7 @@ open Fantomas.Tests.TestHelper
 let ``keep comment after arrow`` () =
     formatSourceString false """_Target "FSharpTypesDotNet" (fun _ -> // obsolete
  ())
-"""  ({ config with IndentSpaceNum = 2; PageWidth = 90 })
+"""  ({ config with IndentSize = 2; MaxLineLength = 90 })
     |> prepend newline
     |> should equal """
 _Target "FSharpTypesDotNet" (fun _ -> // obsolete
@@ -88,7 +88,7 @@ let a =
     b
     |> List.exists (fun p ->
         x && someVeryLongIdentifierrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrzzzz___________)
-"""  ({ config with PageWidth = 80})
+"""  ({ config with MaxLineLength = 80})
     |> prepend newline
     |> should equal """
 let a =
@@ -180,7 +180,7 @@ let ``short ident in nested let binding`` () =
     foo (fun a ->
                 let b = 8
                 b)
-"""  ({ config with IndentSpaceNum = 2})
+"""  ({ config with IndentSize = 2})
     |> prepend newline
     |> should equal """
 let a =
@@ -335,7 +335,7 @@ let projectIntoMap projection =
          |> Map.add eventEnvelope.Metadata.Source newState
 """
         ({ config with
-               IndentSpaceNum = 2
+               IndentSize = 2
                SpaceBeforeUppercaseInvocation = true
                SpaceBeforeColon = true
                SpaceAfterComma = false
