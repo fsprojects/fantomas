@@ -1413,3 +1413,43 @@ type OuterType =
     abstract Apply<'r> : InnerType<'r>
         -> 'r when 'r : comparison
 """
+
+[<Test>]
+let ``attribute on type and abstract member followed by type, 949`` () =
+    formatSourceString false """
+[<AllowNullLiteral>]
+type TimelineOptionsGroupCallbackFunction =
+    [<Emit "$0($1...)">]
+    abstract Invoke: group:TimelineGroup * callback:(TimelineGroup option -> unit) -> unit
+
+type TimelineOptionsGroupEditableType = U2<bool, TimelineGroupEditableOption>
+"""  config
+    |> prepend newline
+    |> should equal """
+[<AllowNullLiteral>]
+type TimelineOptionsGroupCallbackFunction =
+    [<Emit "$0($1...)">]
+    abstract Invoke: group:TimelineGroup * callback:(TimelineGroup option -> unit) -> unit
+
+type TimelineOptionsGroupEditableType = U2<bool, TimelineGroupEditableOption>
+"""
+
+[<Test>]
+let ``attribute on type and abstract member followed by let binding`` () =
+    formatSourceString false """
+[<AllowNullLiteral>]
+type TimelineOptionsGroupCallbackFunction =
+    [<Emit "$0($1...)">]
+    abstract Invoke: group:TimelineGroup * callback:(TimelineGroup option -> unit) -> unit
+
+let myBinding a = 7
+"""  config
+    |> prepend newline
+    |> should equal """
+[<AllowNullLiteral>]
+type TimelineOptionsGroupCallbackFunction =
+    [<Emit "$0($1...)">]
+    abstract Invoke: group:TimelineGroup * callback:(TimelineGroup option -> unit) -> unit
+
+let myBinding a = 7
+"""
