@@ -2066,32 +2066,41 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
             +> unindent)
 
     | Simple(TDSRUnion(ao', xs) as unionNode) ->
+        let hasLeadingTrivia (t : TriviaNode) = 
+            t.Range = unionNode.Range && not (List.isEmpty t.ContentBefore)
+        
         let sepNlnBasedOnTrivia =
             fun (ctx: Context) ->
                 let trivia =
-                    ctx.Trivia
-                    |> List.tryFind (fun t -> t.Range = unionNode.Range && not (List.isEmpty t.ContentBefore))
+                    ctx.Trivia |> List.tryFind hasLeadingTrivia
 
                 match trivia with
                 | Some _ -> sepNln
                 | None -> sepNone
                 <| ctx
 
-        let unionCases =
+        let unionCases ctx =
             match xs with
-            | [] -> id
-            | [UnionCase(attrs, _,_,_,(UnionCaseType fs)) as x] when List.isEmpty ms ->
-                let hasVerticalBar = Option.isSome ao' || not (List.isEmpty attrs) || List.isEmpty fs
+            | [] -> ctx
+            | [UnionCase(attrs, _,_,_,(UnionCaseType fields)) as x] when List.isEmpty ms ->
+                
+                let hasVerticalBar = 
+                    (Option.isSome ao' && List.length fields <> 1) || 
+                    ctx.Trivia |> List.exists hasLeadingTrivia || 
+                    not (List.isEmpty attrs) || 
+                    List.isEmpty fields
 
                 indent +> sepSpace +> sepNlnBasedOnTrivia
                 +> genTrivia tdr.Range
                     (opt sepSpace ao' genAccess
                     +> genUnionCase { astContext with HasVerticalBar = hasVerticalBar } x)
+                <| ctx
             | xs ->
                 indent +> sepNln
                 +> genTrivia tdr.Range
                     (opt sepNln ao' genAccess
                     +> col sepNln xs (genUnionCase { astContext with HasVerticalBar = true }))
+                <| ctx
 
         typeName +> sepEq
         +> unionCases

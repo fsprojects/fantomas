@@ -192,7 +192,7 @@ type CustomerId =
    """ config
    |> prepend newline
    |> should equal """
-type CustomerId = private | CustomerId of int
+type CustomerId = private CustomerId of int
 """
 
 [<Test>]
@@ -306,6 +306,13 @@ let ``single case DU with fields should not have a pipe after formatting`` () =
 type DU = Record of string
 """
 
+[<Test>]
+let ``single case DU with private fields should not have a pipe after formatting`` () =
+    formatSourceString false """type String50 = private String50 of string"""  config
+    |> prepend newline
+    |> should equal """
+type String50 = private String50 of string
+"""
 
 [<Test>]
 let ``single case DU, no UnionCaseFields in signature file`` () =
