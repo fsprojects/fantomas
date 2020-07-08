@@ -2,7 +2,6 @@ module Fantomas.Tests.CheckTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.FormatConfig
 open Fantomas.FakeHelpers
 open Fantomas.Tests.TestHelper
 

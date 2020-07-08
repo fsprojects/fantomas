@@ -4,7 +4,6 @@ open System
 open System.Diagnostics
 open System.IO
 open System.Text
-open Fantomas
 
 type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: bool, ?fileName: string) =
     let hasByteOrderMark = defaultArg hasByteOrderMark false

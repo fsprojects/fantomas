@@ -346,3 +346,105 @@ let ``should preserve multiple return type attributes`` () =
     formatSourceString false """let f x : [<return: AttributeOne;AttributeTwo;AttributeThree("foo")>] int = x""" config
     |> should equal """let f x: [<return:AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
 """
+
+[<Test>]
+let ``attribute, new line, let binding`` () =
+    formatSourceString false """
+    [<Foo>]
+
+let bar = 7
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Foo>]
+
+let bar = 7
+"""
+
+[<Test>]
+let ``attribute, new line, type declaration`` () =
+    formatSourceString false """
+[<Foo>]
+
+type Bar = Bar of string
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Foo>]
+
+type Bar = Bar of string
+"""
+
+[<Test>]
+let ``attribute, new line, attribute, newline, let binding`` () =
+    formatSourceString false """
+[<Foo>]
+
+[<Meh>]
+
+let bar = 7
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Foo>]
+
+[<Meh>]
+
+let bar = 7
+"""
+
+[<Test>]
+let ``attribute, new line, attribute, line comment, type declaration`` () =
+    formatSourceString false """
+[<Foo>]
+
+[<Meh>]
+// foo
+type Text = string
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Foo>]
+
+[<Meh>]
+// foo
+type Text = string
+"""
+
+[<Test>]
+let ``attribute, hash directive, attribute, hash directive, type declaration`` () =
+    formatSourceString false """
+[<Foo>]
+#if FOO
+[<Meh>]
+#endif
+type Text = string
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Foo>]
+#if FOO
+[<Meh>]
+#endif
+type Text = string
+"""
+
+[<Test>]
+let ``attribute, line comment, attribute, new line, record definition field`` () =
+    formatSourceString false """
+type Commenter =
+    { [<JsonProperty("display_name")>]
+      // foo
+      [<Bar>]
+      
+      DisplayName: string }
+"""  config
+    |> prepend newline
+    |> should equal """
+type Commenter =
+    { [<JsonProperty("display_name")>]
+      // foo
+      [<Bar>]
+
+      DisplayName: string }
+"""

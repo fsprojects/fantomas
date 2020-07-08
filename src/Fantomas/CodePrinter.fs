@@ -427,7 +427,7 @@ and genAttributes astContext (ats: SynAttributes) =
             let dontAddNewline =
                 TriviaHelpers.``has content after that ends with``
                     (fun t -> t.Range = a.Range)
-                    (function | Directive(_) | Newline -> true | _ -> false)
+                    (function | Directive(_) | Newline | Comment(LineCommentOnSingleLine(_)) -> true | _ -> false)
                     ctx.Trivia
             let chain =
                 acc +>
