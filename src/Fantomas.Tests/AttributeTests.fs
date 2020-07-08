@@ -428,3 +428,23 @@ type Text = string
 #endif
 type Text = string
 """
+
+[<Test>]
+let ``attribute, line comment, attribute, new line, record definition field`` () =
+    formatSourceString false """
+type Commenter =
+    { [<JsonProperty("display_name")>]
+      // foo
+      [<Bar>]
+      
+      DisplayName: string }
+"""  config
+    |> prepend newline
+    |> should equal """
+type Commenter =
+    { [<JsonProperty("display_name")>]
+      // foo
+      [<Bar>]
+
+      DisplayName: string }
+"""

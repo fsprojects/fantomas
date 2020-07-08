@@ -1423,6 +1423,9 @@ module private Ast =
     and visitSynField(sfield: SynField): Node =
         match sfield with
         | Field(attrs,isStatic,ident,typ,_,_,access,range) ->
+            let parentRange =
+                Option.map (fun (i:Ident) -> i.idRange) ident |> Option.defaultValue range
+            
             {Type = "Field"
              Range = r range
              Properties =
@@ -1431,7 +1434,7 @@ module private Ast =
                     if access.IsSome then yield "access" ==> (access.Value |> visitSynAccess)]
              FsAstNode = sfield
              Childs =
-                 [yield! (visitSynAttributeLists range attrs)
+                 [yield! (visitSynAttributeLists parentRange attrs)
                   yield visitSynType typ]}
 
     and visitSynType(st: SynType) =
