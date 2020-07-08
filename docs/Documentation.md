@@ -242,7 +242,7 @@ That said, most of the preferences are very simple.
 But they demonstrate the flexibility of Fantomas on a set of configurations. 
 More preferences will be added depending on use cases.
 
-##### `--config <Path to file or folder>`
+##### Settings configuration
 
 Use an .editorconfig configuration file to set the formatting options.
 
