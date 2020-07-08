@@ -61,6 +61,10 @@ The recommended way to use Fantomas is by using the [Ionide plugin](http://ionid
 
 Alternatively, you can install the [fantomas-fmt](https://marketplace.visualstudio.com/items?itemName=paolodellepiane.fantomas-fmt) extension.
 
+### Visual Studio
+
+The [F# Formatting](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs) extension sets up Fantomas as the default formatter for F# files, configurable from Visual Studio's options.
+
 ### Online
 
 Try the Fantomas [online](https://fsprojects.github.io/fantomas-tools/#/fantomas/preview).
