@@ -675,6 +675,12 @@ let makePos line col = mkPos line col
 
 let private editorConfigParser = Fantomas.EditorConfig.Core.EditorConfigParser()
 
-let readConfiguration (fsharpFile:string) : FormatConfig =
+let tryReadConfiguration (fsharpFile:string) : FormatConfig option =
     let editorConfigSettings: Fantomas.EditorConfig.Core.FileConfiguration = editorConfigParser.Parse(fileName = fsharpFile)
-    EditorConfig.parseOptionsFromEditorConfig editorConfigSettings
+    if editorConfigSettings.Properties.Count = 0 then
+        None
+    else
+        Some <| EditorConfig.parseOptionsFromEditorConfig editorConfigSettings
+
+let readConfiguration (fsharpFile:string) : FormatConfig =
+    tryReadConfiguration fsharpFile |> Option.defaultValue FormatConfig.Default
