@@ -6,7 +6,7 @@ open FsUnit
 open FsCheck
 
 module Queue =
-    let ofLists xss = (Queue.empty, xss) ||> List.fold (fun q xs -> Queue.append q xs) 
+    let ofLists xss = (Queue.empty, xss) ||> List.fold Queue.append 
 
 [<Test>]
 let ``Queue.append``() =

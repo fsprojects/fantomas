@@ -69,11 +69,7 @@ let private findFirstNodeAfterLine
     |> List.tryFind (fun tn ->
         if tn.Range.StartLine > lineNumber
            && isNotMemberKeyword tn then
-            if hasAnonModulesAndOpenStatements
-               && mainNodeIs "SynModuleOrNamespace.AnonModule" tn then
-                false
-            else
-                true
+            not (hasAnonModulesAndOpenStatements && mainNodeIs "SynModuleOrNamespace.AnonModule" tn)
         else
             false)
 
