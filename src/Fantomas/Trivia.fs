@@ -385,8 +385,8 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
         |> filterNodes
         |> List.choose mapNodeToTriviaNode
 
-    let hasAnyAttributes = List.exists (fun (tn:TriviaNodeAssigner) -> match tn.Type with | MainNode("SynAttributeList") -> true | _ -> false) triviaNodesFromAST
-    let triviaBetweenAttributeAndParentBinding = if hasAnyAttributes then triviaBetweenAttributeAndParentBinding else (fun _ _ -> None)
+    let hasAnyAttributesWithLinesBetweenParent = List.exists (fun (tn:TriviaNodeAssigner) -> Option.isSome tn.AttributeLinesBetweenParent) triviaNodesFromAST
+    let triviaBetweenAttributeAndParentBinding = if hasAnyAttributesWithLinesBetweenParent then triviaBetweenAttributeAndParentBinding else (fun _ _ -> None)
     let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
     let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
     let hasAnonModulesAndOpenStatements = nodesContainsBothAnonModuleAndOpen triviaNodes
