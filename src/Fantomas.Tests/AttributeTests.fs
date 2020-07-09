@@ -231,16 +231,17 @@ let ``different attributes according to defines`` () =
 #endif
       DefaultValue(true)>]
     let foo = ()"""  config
-    |> should equal """[<
+    |> prepend newline
+    |> should equal """
+[<
 #if NETCOREAPP2_1
-Builder.Object;
+  Builder.Object;
 #else
-Widget;
+  Widget;
 #endif
-DefaultValue(true)>]
+  DefaultValue(true)>]
 let foo = ()
 """
-
 
 [<Test>]
 let ``different attributes according to defines, no defines`` () =
@@ -252,13 +253,15 @@ let ``different attributes according to defines, no defines`` () =
 #endif
       DefaultValue(true)>]
     let foo = ()"""  config
-    |> should equal """[<
+    |> prepend newline
+    |> should equal """
+[<
 #if NETCOREAPP2_1
 
 #else
-Widget;
+  Widget;
 #endif
-DefaultValue(true)>]
+  DefaultValue(true)>]
 let foo = ()
 """
 

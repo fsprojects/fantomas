@@ -411,7 +411,7 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
                 if SourceTransformer.hasParenthesis e then id else sepSpace
             opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e
         |> genTrivia attr.Range
-    ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> col sepSemi ats (genAttributeExpr astContext) -- ">]")
+    ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> atCurrentColumn (col sepSemi ats (genAttributeExpr astContext)) -- ">]")
 
 and genOnelinerAttributes astContext ats =
     let ats = List.collect (fun a -> a.Attributes) ats
