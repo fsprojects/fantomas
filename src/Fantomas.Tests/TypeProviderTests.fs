@@ -19,7 +19,7 @@ let ``should add space before type provider params``() =
 type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >""" config
     |> prepend newline
     |> should equal """
-type IntegerRegex = FSharpx.Regex<@"(?<value>\d+)">
+type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >
 """
 
 [<Test>]

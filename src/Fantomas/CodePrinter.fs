@@ -2578,14 +2578,28 @@ and genType astContext outerBracket t =
 and genAnonRecordFieldType astContext (AnonRecordFieldType(s, t)) =
     !- s +> sepColon +> (genType astContext false t)
 
-and genPrefixTypes astContext node =
+and genPrefixTypes astContext node ctx =
     match node with
-    | [] -> sepNone
+    | [] -> ctx
     // Where <  and ^ meet, we need an extra space. For example:  seq< ^a >
     | (TVar(Typar(_, true)) as t)::ts ->
-        !- "< " +> col sepComma (t::ts) (genType astContext false) -- " >"
-    | ts ->
-        !- "<" +> col sepComma ts (genType astContext false) -- ">"
+        (!- "< " +> col sepComma (t::ts) (genType astContext false) -- " >") ctx
+    | t::_ ->
+        // for example: FSharpx.Regex< @"(?<value>\d+)" >
+        let firstItemHasAtSignBeforeString =
+            match t with
+            | SourceParser.TStaticConstant(_,r) ->
+                TriviaHelpers.``has content itself that matches``
+                    (function | StringContent sc -> sc.StartsWith("@") | _ -> false)
+                    r
+                    ctx.Trivia
+            | _ -> false
+
+        (!- "<"
+        +> onlyIf firstItemHasAtSignBeforeString sepSpace
+        +> col sepComma node (genType astContext false)
+        +> onlyIf firstItemHasAtSignBeforeString sepSpace
+        -- ">") ctx
     // |> genTrivia node
 
 and genTypeList astContext node =
