@@ -49,7 +49,7 @@ let configToEditorConfig (config: FormatConfig): string =
             sprintf "%s=%s" (toEditorConfigName k) (if b then "true " else "false")
             |> Some
         | :? System.Int32 as i ->
-            sprintf " %s=%d" (toEditorConfigName k) i
+            sprintf "%s=%d" (toEditorConfigName k) i
             |> Some
         | _ -> None)
     |> String.concat "\n"
