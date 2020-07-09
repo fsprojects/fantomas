@@ -35,4 +35,10 @@ type CodeFormatter =
     static member GetVersion : unit -> string
 
     /// Accepts a fsharp file and parses the matching .editorconfig to a FormatConfig
+    /// and returns the default configuration if no settings could be found
     static member ReadConfiguration : string -> FormatConfig
+
+    /// Accepts a fsharp file and parses the matching .editorconfig to a FormatConfig
+    /// and returns None if no matching settings could be found
+    /// for this file, otherwise returns the parsed FormatConfig
+    static member TryReadConfiguration : string -> FormatConfig option
