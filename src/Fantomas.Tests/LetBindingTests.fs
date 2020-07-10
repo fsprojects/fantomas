@@ -341,9 +341,30 @@ let ``line comment before return type info should indent before colon, 565`` () 
     |> should equal """
 module Bar =
     let f a
-        // foo
-        : int =
+          // foo
+          : int =
         0
+"""
+
+[<Test>]
+let ``line comment before return type with AlignFunctionSignatureToIndentation`` () =
+    formatSourceString false """
+  let functionName a b c
+    // foo
+    : int
+    =
+    0
+"""  { config with AlignFunctionSignatureToIndentation = true }
+    |> prepend newline
+    |> should equal """
+let functionName
+    a
+    b
+    c
+    // foo
+    : int
+    =
+    0
 """
 
 [<Test>]

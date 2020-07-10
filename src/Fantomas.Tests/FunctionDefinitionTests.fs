@@ -429,7 +429,8 @@ let ``internal keyword included in function signature length check`` () =
     |> prepend newline
     |> should equal """
 let internal UpdateStrongNaming (assembly : AssemblyDefinition)
-                                (key : StrongNameKeyPair option) =
+                                (key : StrongNameKeyPair option)
+                                =
     assembly.Name
 
 let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
@@ -466,7 +467,8 @@ module FormatCode =
 
     [<FunctionName("FormatCode")>]
     let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
-            (log: ILogger) =
+            (log: ILogger)
+            =
         Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
 """
 
@@ -523,7 +525,8 @@ let private addTaskToScheduler (scheduler: IScheduler)
                                taskCron
                                prio
                                (task: unit -> unit)
-                               groupName =
+                               groupName
+                               =
     let mutable jobDataMap = JobDataMap()
     jobDataMap.["task"] <- task
 

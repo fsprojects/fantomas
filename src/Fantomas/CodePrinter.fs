@@ -465,7 +465,11 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
             fun ctx ->
                 let alreadyHasNewline = lastWriteEventIsNewline ctx
                 if alreadyHasNewline then
-                    (rep ctx.Config.IndentSize (!- " ") +> !- "=") ctx
+                    // Column could be null when a hash directive was just written
+                    if ctx.Column = 0 then
+                        (rep ctx.Config.IndentSize (!- " ") +> !- "=") ctx
+                    else
+                        !- "=" ctx
                 elif ctx.Config.AlignFunctionSignatureToIndentation then
                     (indent +> sepNln +> !- "=" +> unindent) ctx
                 else
@@ -485,10 +489,7 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
 
         let hasLineCommentBeforeColon = TriviaHelpers.``has line comment before`` t.Range ctx.Trivia
 
-        let genCommentBeforeColon ctx =
-            (ifElse hasLineCommentBeforeColon indent sepNone
-             +> enterNode t.Range
-             +> ifElse hasLineCommentBeforeColon unindent sepNone) ctx
+        let genCommentBeforeColon = atCurrentColumn (enterNode t.Range)
 
         let genMetadataAttributes =
             match valInfo with
@@ -537,7 +538,7 @@ and genLetBinding astContext pref b =
     | LetBinding(ats, px, ao, isInline, isMutable, p, e, valInfo) ->
         let genPat =
             match e, p with
-            | TypedExpr(Typed, _, t),  PatLongIdent(ao, s, ps, tpso) when (List.length ps > 1)->
+            | TypedExpr(Typed, _, t),  PatLongIdent(ao, s, ps, tpso) when (List.isNotEmpty ps)->
                 genPatWithReturnType ao s ps tpso (Some t) astContext
             | _,  PatLongIdent(ao, s, ps, tpso) when (List.length ps > 1)->
                 genPatWithReturnType ao s ps tpso None astContext
@@ -2939,7 +2940,18 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
     let genReturnType, newlineBeforeReturnType =
         match t with
         | Some t -> genType astContext false t, sepNln
-        | None -> sepNone, sepNone
+        | None ->
+            let genReturnType = sepNone
+
+            let newline ctx =
+                if ctx.Config.AlignFunctionSignatureToIndentation then
+                    ctx
+                else
+                    match ps with
+                    | [(_, PatTuple(_))] -> ctx
+                    | _ -> sepNln ctx
+
+            genReturnType, newline
 
     let genParametersWithNewlines ctx =
         if ctx.Config.AlignFunctionSignatureToIndentation then
