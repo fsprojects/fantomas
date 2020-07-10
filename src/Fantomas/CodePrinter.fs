@@ -686,7 +686,6 @@ and genMemberBinding astContext b =
             | PatLongIdent(ao, s, ps, tpso) ->
                 let aoc = opt sepSpace ao genAccess
                 let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
-                let s = if s = "``new``" then "new" else s
                 let hasBracket = ps |> Seq.map snd |> Seq.exists hasParenInPat
                 let hasParameters = List.isNotEmpty ps
                 let multipleParameters = List.length ps > 1
