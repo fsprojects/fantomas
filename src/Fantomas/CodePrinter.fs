@@ -465,7 +465,7 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
             fun ctx ->
                 let alreadyHasNewline = lastWriteEventIsNewline ctx
                 if alreadyHasNewline then
-                    // Column could be null when a hash directive was just written
+                    // Column could be 0 when a hash directive was just written
                     if ctx.Column = 0 then
                         (rep ctx.Config.IndentSize (!- " ") +> !- "=") ctx
                     else
