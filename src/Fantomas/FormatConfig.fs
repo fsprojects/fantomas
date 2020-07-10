@@ -38,6 +38,7 @@ type FormatConfig =
       KeepIfThenInSameLine : bool
       MaxElmishWidth: Num
       SingleArgumentWebMode: bool
+      AlternativeLongMemberDefinitions: bool
       /// Pretty printing based on ASTs only
       StrictMode : bool }
 
@@ -67,4 +68,5 @@ type FormatConfig =
           MaxElmishWidth = 40
           SingleArgumentWebMode = false
           NewlineBetweenTypeDefinitionAndMembers = false
+          AlternativeLongMemberDefinitions = false
           StrictMode = false }

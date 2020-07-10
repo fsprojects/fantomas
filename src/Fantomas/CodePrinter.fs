@@ -465,9 +465,9 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
             fun ctx ->
                 let alreadyHasNewline = lastWriteEventIsNewline ctx
                 if alreadyHasNewline then
-                    (rep ctx.Config.IndentSize (!- " ") +> !- "=") ctx
+                    (rep ctx.Config.IndentSize (!- " ") +> sepEqFixed) ctx
                 else
-                    (indent +> sepNln +> !- "=" +> unindent) ctx
+                    (indent +> sepNln +> sepEqFixed +> unindent) ctx
         else
             (sepEq +> sepSpace)
 
@@ -695,18 +695,39 @@ and genMemberBinding astContext b =
                     let name = (aoc -- s +> tpsoc +> spaceAfter)
 
                     let parameters =
-                        expressionFitsOnRestOfLine
-                            (atCurrentColumn (col sepSpace ps (genPatWithIdent astContext)))
-                            (atCurrentColumn (col sepNln ps (genPatWithIdent astContext)))
+                        let astCtx = { astContext with IsMemberDefinition = true }
+                        let shortExpr = atCurrentColumn (col sepSpace ps (genPatWithIdent astCtx))
+
+                        let longExpr ctx =
+                            if ctx.Config.AlternativeLongMemberDefinitions then
+                                (indent +> sepNln +> col sepNln ps (genPatWithIdent astCtx) +> unindent) ctx
+                            else
+                                (atCurrentColumn (col sepNln ps (genPatWithIdent astCtx))) ctx
+
+                        expressionFitsOnRestOfLine shortExpr longExpr
 
                     name, parameters, onlyIf (hasBracket && not multipleParameters) !- " "
                 | _ -> sepNone, sepNone, sepNone
 
             let memberDefinition =
+                let shortExpr = genName +> genParameters +> sepColon +> genType astContext false t +> sepEq
+
+                let longExpr ctx =
+                    if ctx.Config.AlternativeLongMemberDefinitions then
+                        (genName
+                         +> genParameters
+                         +> indent
+                         +> sepNln
+                         +> sepColon
+                         +> genType astContext false t
+                         +> sepNln
+                         +> sepEqFixed
+                         +> unindent) ctx
+                    else
+                        (genName +> atCurrentColumn (genParameters +> sepNln +> spaceBeforeColon +> sepColon +> genType astContext false t +> sepEq)) ctx
+
                 prefix
-                +> expressionFitsOnRestOfLine
-                    (genName +> genParameters +> sepColon +> genType astContext false t +> sepEq)
-                    (genName +> atCurrentColumn (genParameters +> sepNln +> spaceBeforeColon +> sepColon +> genType astContext false t +> sepEq))
+                +> expressionFitsOnRestOfLine shortExpr longExpr
 
             genAttributesAndXmlDoc
             +> leadingExpressionIsMultiline
@@ -2892,7 +2913,16 @@ and genPat astContext pat =
             +> ifElse hasBracket sepCloseT sepNone
 
     | PatParen(PatConst(Const "()", _)) -> !- "()"
-    | PatParen(p) -> sepOpenT +> genPat astContext p +> sepCloseT
+    | PatParen(p) ->
+        let shortExpression = sepOpenT +> genPat astContext p +> sepCloseT
+
+        let longExpression ctx =
+            if astContext.IsMemberDefinition && ctx.Config.AlternativeLongMemberDefinitions then
+                (sepOpenT +> indent +> sepNln +> genPat astContext p +> unindent +> sepNln +> sepCloseT) ctx
+            else
+                shortExpression ctx
+
+        expressionFitsOnRestOfLine shortExpression longExpression
     | PatTuple ps ->
         expressionFitsOnRestOfLine
             (col sepComma ps (genPat astContext))

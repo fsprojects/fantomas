@@ -1453,3 +1453,47 @@ type TimelineOptionsGroupCallbackFunction =
 
 let myBinding a = 7
 """
+
+[<Test>]
+let ``alternative long member definition`` () =
+    formatSourceString false """
+type C () =
+    member __.LongMethodWithLotsOfParameters(aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) =
+        someImplementation aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""  { config with AlternativeLongMemberDefinitions = true }
+    |> prepend newline
+    |> should equal """
+type C () =
+    member __.LongMethodWithLotsOfParameters
+       (
+           aVeryLongType : AVeryLongTypeThatYouNeedToUse,
+           aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,
+           aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse
+       )
+       =
+       someImplementation aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""
+
+[<Test>]
+let ``alternative long member definition with return type`` () =
+    formatSourceString false """
+type C () =
+    member __.LongMethodWithLotsOfParameters(aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) : int =
+        someImplementation aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""  { config with
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeColon = true
+            AlternativeLongMemberDefinitions = true }
+    |> prepend newline
+    |> should equal """
+type C () =
+    member __.LongMethodWithLotsOfParameters
+        (
+            aVeryLongType : AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse
+        )
+        : int
+        =
+        someImplementation aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""
