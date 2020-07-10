@@ -1217,7 +1217,8 @@ let ``member with one long parameter and no return type, 850`` () =
     |> prepend newline
     |> should equal """
 type SomeType =
-    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
+    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
+                             =
         printfn "a"
         "b"
 """
@@ -1235,11 +1236,13 @@ let ``multiple members with one long parameter`` () =
     |> prepend newline
     |> should equal """
 type SomeType =
-    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
+    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
+                             =
         printfn "a"
         "b"
 
-    static member Serialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType) =
+    static member Serialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType)
+                           =
         Encode.string v.Meh
 
     static member Deserialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee)
@@ -1460,18 +1463,21 @@ let ``alternative long member definition`` () =
 type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) =
         someImplementation aVeryLongType aSecondVeryLongType aThirdVeryLongType
-"""  { config with AlternativeLongMemberDefinitions = true }
+"""  { config with
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeColon = true
+            AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should equal """
 type C () =
     member __.LongMethodWithLotsOfParameters
-       (
-           aVeryLongType : AVeryLongTypeThatYouNeedToUse,
-           aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,
-           aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse
-       )
-       =
-       someImplementation aVeryLongType aSecondVeryLongType aThirdVeryLongType
+        (
+            aVeryLongType : AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse
+        )
+        =
+        someImplementation aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
 [<Test>]
@@ -1496,4 +1502,73 @@ type C () =
         : int
         =
         someImplementation aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""
+
+// See https://github.com/dotnet/docs/issues/18806#issuecomment-655281219
+
+[<Test>]
+let ``member, tuple (non-curried), with return type:`` () =
+    formatSourceString false """
+type MyClass() =
+    member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : AVeryLongReturnType =
+        someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""  config
+    |> prepend newline
+    |> should equal """
+type MyClass() =
+    member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+                                            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+                                            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
+                                            : AVeryLongReturnType =
+        someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""
+
+[<Test>]
+let ``member, tuple (non-curried), with no return type:`` () =
+    formatSourceString false """
+type MyClass() =
+    member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
+        someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""  config
+    |> prepend newline
+    |> should equal """
+type MyClass() =
+    member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+                                            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+                                            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
+        someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""
+
+[<Test>]
+let ``member, curried (non-tuple), with return type:`` () =
+    formatSourceString false """
+type MyClass() =
+    member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse) (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse) (aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : AVeryLongReturnType =
+        someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""  config
+    |> prepend newline
+    |> should equal """
+type MyClass() =
+    member _.LongMethodWithLotsOfParameters (aVeryLongType: AVeryLongTypeThatYouNeedToUse)
+                                            (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse)
+                                            (aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
+                                            : AVeryLongReturnType =
+        someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""
+
+[<Test>]
+let ``member, curried (non-tuple), with no return type:`` () =
+    formatSourceString false """
+type MyClass() =
+    member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse) (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse) (aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
+        someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
+"""  config
+    |> prepend newline
+    |> should equal """
+type MyClass() =
+    member _.LongMethodWithLotsOfParameters (aVeryLongType: AVeryLongTypeThatYouNeedToUse)
+                                            (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse)
+                                            (aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
+                                            =
+        someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
