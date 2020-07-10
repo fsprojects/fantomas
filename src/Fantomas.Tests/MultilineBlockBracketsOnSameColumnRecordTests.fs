@@ -608,3 +608,33 @@ let expected =
         TheNewValue = 1
     }
 """
+
+[<Test>]
+let ``record type with attributes`` () =
+    formatSourceString false """
+[<Foo>]
+type Args =
+    { [<Foo "">]
+      [<Bar>]
+      [<Baz 1>]
+      Hi: int list }
+
+module Foo =
+
+    let r = 3
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Foo>]
+type Args =
+    {
+        [<Foo "">]
+        [<Bar>]
+        [<Baz 1>]
+        Hi : int list
+    }
+
+module Foo =
+
+    let r = 3
+"""
