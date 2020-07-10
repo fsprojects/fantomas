@@ -1572,3 +1572,52 @@ type MyClass() =
                                             =
         someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
+
+[<Test>]
+let ``alternative long class constructor`` () =
+    formatSourceString false """
+type C(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+       aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+       aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
+    class
+    end
+"""  { config with
+                AlternativeLongMemberDefinitions = true
+                SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+type C
+    (
+        aVeryLongType : AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse
+    )
+    =
+    class
+    end
+"""
+
+[<Test>]
+let ``alternative long class constructor with access modifier`` () =
+    formatSourceString false """
+type C internal (aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+       aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+       aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
+    class
+    end
+"""  { config with
+                AlternativeLongMemberDefinitions = true
+                SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+type C
+    internal
+    (
+        aVeryLongType : AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse
+    )
+    =
+    class
+    end
+"""

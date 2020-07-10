@@ -2249,7 +2249,15 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
         let astContext = { astContext with InterfaceRange = interfaceRange }
 
-        typeName +> sepSpaceBeforeClassConstructor +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq
+        typeName
+        +> sepSpaceBeforeClassConstructor
+        +> leadingExpressionIsMultiline
+               (opt sepNone impCtor (genMemberDefn astContext))
+               (fun isMulti ctx ->
+                    if isMulti && ctx.Config.AlternativeLongMemberDefinitions then
+                        sepEqFixed ctx
+                    else
+                        sepEq ctx)
         +> indent +> sepNln
         +> genTrivia tdr.Range
             (genTypeDefKind tdk
@@ -2804,15 +2812,33 @@ and genMemberDefn astContext node =
             | SynSimplePats.Typed(spts, _, _) -> simplePats spts
 
         let genCtor =
-            expressionFitsOnRestOfLine
-                (optPre sepSpace sepSpace ao genAccess
+            let shortExpr =
+                 optPre sepSpace sepSpace ao genAccess
                  +> sepOpenT
                  +> col sepComma (simplePats ps) (genSimplePat astContext)
-                 +> sepCloseT)
-                (optPre sepSpace sepSpace ao genAccess
-                 +> sepOpenT
-                 +> atCurrentColumn (col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext))
-                 +> sepCloseT)
+                 +> sepCloseT
+
+            let longExpr ctx =
+                if ctx.Config.AlternativeLongMemberDefinitions then
+                    (indent
+                    +> sepNln
+                    +> optSingle (fun ao -> genAccess ao +> sepNln) ao
+                    +> sepOpenT
+                    +> indent
+                    +> sepNln
+                    +> col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext)
+                    +> unindent
+                    +> sepNln
+                    +> sepCloseT
+                    +> sepNln
+                    +> unindent) ctx
+                else
+                    (optPre sepSpace sepSpace ao genAccess
+                    +> sepOpenT
+                    +> atCurrentColumn (col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext))
+                    +> sepCloseT) ctx
+
+            expressionFitsOnRestOfLine shortExpr longExpr
 
         // In implicit constructor, attributes should come even before access qualifiers
         ifElse ats.IsEmpty sepNone (sepSpace +> genOnelinerAttributes astContext ats)
