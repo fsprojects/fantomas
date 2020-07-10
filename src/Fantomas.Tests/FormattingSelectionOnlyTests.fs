@@ -81,8 +81,7 @@ let r =
       "b"
       "" ]
     |> List.map id""" config
-    |> should equal """[ "abc"; "a"; "b"; "" ]
-    |> List.map id"""
+    |> should equal """[ "abc"; "a"; "b"; "" ] |> List.map id"""
 
 [<Test>]
 let ``should preserve line breaks before and after selection``() =
@@ -102,9 +101,7 @@ type T () =
   let items = []
   override x.Reorder () = 
         items |> List.iter ignore""" { config with MaxFunctionBindingWidth = 120 }
-    |> should equal """  override x.Reorder() =
-      items
-      |> List.iter ignore"""
+    |> should equal """  override x.Reorder() = items |> List.iter ignore"""
 
 [<Test>]
 let ``should format the and branch of recursive functions``() =

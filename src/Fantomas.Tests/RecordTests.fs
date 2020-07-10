@@ -218,12 +218,8 @@ let newDocument = //somecomment
   |> prepend newline
   |> should equal """
 let newDocument = //somecomment
-    { program =
-          Encoding.Default.GetBytes(document.Program)
-          |> Encoding.UTF8.GetString
-      content =
-          Encoding.Default.GetBytes(document.Content)
-          |> Encoding.UTF8.GetString
+    { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
+      content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
       created = document.Created.ToLocalTime() }
     |> JsonConvert.SerializeObject
 """

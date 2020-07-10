@@ -17,10 +17,7 @@ let ``should keep the = on the same line in record def``() =
     """ config
     |> should equal """type UnionTypeConverter() =
     inherit JsonConverter()
-
-    let doRead (reader: JsonReader) =
-        reader.Read()
-        |> ignore
+    let doRead (reader: JsonReader) = reader.Read() |> ignore
 
     override x.CanConvert(typ: Type) =
         let result =

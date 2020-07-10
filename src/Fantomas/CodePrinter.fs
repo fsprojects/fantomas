@@ -1972,12 +1972,7 @@ and genInfixApps astContext synExprs =
         (fun (s, opE, e) -> genInfixApp s opE e astContext)
 
 and genInfixApp s (opE: SynExpr) e astContext =
-    if (newLineInfixOps.Contains s) then
-        sepNlnUnlessLastEventIsNewline
-        +> node opE.Range s
-        +> sepSpace
-        +> genExpr astContext e
-    elif (noBreakInfixOps.Contains s) then
+    if (noBreakInfixOps.Contains s) then
         (sepSpace
          +> node opE.Range s
          +> (fun ctx ->
