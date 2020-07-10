@@ -93,7 +93,9 @@ let factors number =
                                                         MaxFunctionBindingWidth = 65 })
     |> prepend newline
     |> should equal """
-let factors number = { 2L .. number / 2L } |> Seq.filter (fun x -> number % x = 0L)
+let factors number =
+    { 2L .. number / 2L }
+    |> Seq.filter (fun x -> number % x = 0L)
 """
 
 [<Test>]
@@ -224,7 +226,9 @@ let f2 =
         // on the right side to be indented.
         let! r =
             match 0 with
-            | _ -> () |> async.Return
+            | _ ->
+                ()
+                |> async.Return
 
         return r
     }
@@ -252,11 +256,15 @@ let f2 =
         // on the right side to be indented.
         let! r =
             match 0 with
-            | _ -> () |> async.Return
+            | _ ->
+                ()
+                |> async.Return
 
         and! s =
             match 0 with
-            | _ -> () |> async.Return
+            | _ ->
+                ()
+                |> async.Return
 
         return r + s
     }
@@ -1131,9 +1139,18 @@ let ``multiline let bang + return in ce`` () =
     |> should equal """
 let divideByWorkflow x y w z =
     maybe {
-        let! a = x |> divideBy y
-        let! b = a |> divideBy w
-        let! c = b |> divideBy z
+        let! a =
+            x
+            |> divideBy y
+
+        let! b =
+            a
+            |> divideBy w
+
+        let! c =
+            b
+            |> divideBy z
+
         return c
     }
 """
@@ -1266,7 +1283,11 @@ let ``use and let bang, 876`` () =
 let private getAST log (req: HttpRequest) =
     async {
         use stream = new StreamReader(req.Body)
-        let! json = stream.ReadToEndAsync() |> Async.AwaitTask
+
+        let! json =
+            stream.ReadToEndAsync()
+            |> Async.AwaitTask
+
         let parseRequest = Decoders.decodeInputRequest json
 
         match parseRequest with
@@ -1353,7 +1374,9 @@ let rec loop () =
 
     match msg with
     | Handle (eventSource, command, reply) ->
-        let! stream = eventSource |> eventStore.GetStream
+        let! stream =
+          eventSource
+          |> eventStore.GetStream
 
         let newEvents =
           stream

@@ -280,7 +280,9 @@ let ``short expression before and after pipe`` () =
     formatSourceString false "let a = b |> c"  config
     |> prepend newline
     |> should equal """
-let a = b |> c
+let a =
+    b
+    |> c
 """
 
 [<Test>]
@@ -312,7 +314,12 @@ let ``multiple short pipes`` () =
 """  config
     |> prepend newline
     |> should equal """
-let result = a && b |> f |> g |> h
+let result =
+    a
+    && b
+    |> f
+    |> g
+    |> h
 """
 
 [<Test>]
@@ -353,7 +360,9 @@ let ``operator before verbatim string add extra space, 736`` () =
 """  config
     |> prepend newline
     |> should equal """
-Target M.Tools (fun _ -> !! @"Tools\Tools.sln" |> rebuild)
+Target M.Tools (fun _ ->
+    !! @"Tools\Tools.sln"
+    |> rebuild)
 """
 
 [<Test>]
@@ -452,4 +461,19 @@ let ``addition via function`` () =
     |> prepend newline
     |> should equal """
 let a = (+) 7 8
+"""
+
+[<Test>]
+let ``lambda piped to lambda should be multiline, 942`` () =
+    formatSourceString false """
+let r (f : 'a -> 'b) (a : 'a) : 'b =
+    fun () ->
+        f a
+    |> fun f -> f ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let r (f: 'a -> 'b) (a: 'a): 'b =
+    fun () -> f a
+    |> fun f -> f ()
 """

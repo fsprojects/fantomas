@@ -13,7 +13,9 @@ let v = // <- Lazy "1"
     |> prepend newline
     |> should equal """
 let v = // <- Lazy "1"
-    lazy (1 |> string)
+    lazy
+        1
+        |> string
 """
 
 [<Test>]

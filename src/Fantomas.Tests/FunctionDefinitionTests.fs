@@ -401,7 +401,8 @@ let fold
             collectedErrors <- error :: collectedErrors
         | Ok output -> collectedOutputs <- output :: collectedOutputs
 
-    funcs |> Seq.iter (fun validator -> runValidator validator input)
+    funcs
+    |> Seq.iter (fun validator -> runValidator validator input)
     match anyErrors with
     | true -> Error collectedErrors
     | false -> Ok collectedOutputs

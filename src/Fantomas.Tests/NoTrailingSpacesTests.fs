@@ -22,5 +22,8 @@ let ``should not confuse me with an extra space at end of line v2``() =
            "--op"
            "extrude" |]
 
-    (fun () -> parseCmdLine args |> ignore) |> should throw typeof<Argu.ArguParseException>
+    (fun () ->
+        parseCmdLine args
+        |> ignore)
+    |> should throw typeof<Argu.ArguParseException>
 """

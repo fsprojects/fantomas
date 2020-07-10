@@ -374,12 +374,18 @@ let viewEntry todo dispatch =
             input [ ClassName "toggle"
                     Type "checkbox"
                     Checked todo.completed
-                    OnChange(fun _ -> Check(todo.id, (not todo.completed)) |> dispatch) ]
-            label [ OnDoubleClick(fun _ -> EditingEntry(todo.id, true) |> dispatch) ] [
+                    OnChange(fun _ ->
+                        Check(todo.id, (not todo.completed))
+                        |> dispatch) ]
+            label [ OnDoubleClick(fun _ ->
+                        EditingEntry(todo.id, true)
+                        |> dispatch) ] [
                 str todo.description
             ]
             button [ ClassName "destroy"
-                     OnClick(fun _ -> Delete todo.id |> dispatch) ] []
+                     OnClick(fun _ ->
+                         Delete todo.id
+                         |> dispatch) ] []
         ]
         input [ ClassName "edit"
                 valueOrDefault todo.description
@@ -388,7 +394,9 @@ let viewEntry todo dispatch =
                 OnInput(fun ev ->
                     UpdateEntry(todo.id, !!ev.target?value)
                     |> dispatch)
-                OnBlur(fun _ -> EditingEntry(todo.id, false) |> dispatch)
+                OnBlur(fun _ ->
+                    EditingEntry(todo.id, false)
+                    |> dispatch)
                 onEnter (EditingEntry(todo.id, false)) dispatch ]
     ]
 """
@@ -404,7 +412,9 @@ let ``multiline attributes, no children`` () =
     |> should equal """
 let a =
     button [ ClassName "destroy"
-             OnClick(fun _ -> Delete todo.id |> dispatch) ] []
+             OnClick(fun _ ->
+                 Delete todo.id
+                 |> dispatch) ] []
 """
 
 [<Test>]
