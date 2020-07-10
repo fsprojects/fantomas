@@ -4,7 +4,6 @@ open System
 open System.Diagnostics
 open System.IO
 open System.Text
-open Fantomas
 
 type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: bool, ?fileName: string) =
     let hasByteOrderMark = defaultArg hasByteOrderMark false
@@ -33,9 +32,8 @@ type OutputFile internal () =
             if File.Exists(filename) then
                 File.Delete(filename)
 
-type ConfigurationFile internal (config: Fantomas.FormatConfig.FormatConfig) =
-    let filename = Path.Join(Path.GetTempPath(), "fantomas-config.json")
-    let content = Config.configToJson config
+type ConfigurationFile internal (content: string) =
+    let filename = Path.Join(Path.GetTempPath(), ".editorconfig")
     do File.WriteAllText(filename, content)
     member _.Filename: string = filename
     interface IDisposable with

@@ -379,7 +379,7 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
     | true -> Error collectedErrors
     | false -> Ok collectedOutputs
 """  ({ config with
-            PageWidth = 100
+            MaxLineLength = 100
             SpaceBeforeColon = true
             MaxInfixOperatorExpression = 70 })
     |> prepend newline
@@ -425,7 +425,7 @@ let ``internal keyword included in function signature length check`` () =
 
   let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
     assembly.Name
-"""  ({ config with PageWidth = 90; SpaceBeforeColon = true })
+"""  ({ config with MaxLineLength = 90; SpaceBeforeColon = true })
     |> prepend newline
     |> should equal """
 let internal UpdateStrongNaming (assembly : AssemblyDefinition)
@@ -515,7 +515,7 @@ let private addTaskToScheduler (scheduler : IScheduler) taskName taskCron prio (
             JobBuilder.Create<WrapperJob>().UsingJobData(jobDataMap)
                 .WithIdentity(taskName, groupName).Build()
         1
-"""  ({ config with PageWidth = 100 })
+"""  ({ config with MaxLineLength = 100 })
     |> prepend newline
     |> should equal """
 let private addTaskToScheduler (scheduler: IScheduler)
@@ -538,7 +538,7 @@ let private addTaskToScheduler (scheduler: IScheduler)
 let ``long function signature should align with equal sign, 883`` () =
     formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) : ReadModel<'Event, 'State> =
     ()
-"""  { config with IndentSpaceNum = 2; SpaceBeforeColon = true }
+"""  { config with IndentSize = 2; SpaceBeforeColon = true }
     |> prepend newline
     |> should equal """
 let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
@@ -551,19 +551,51 @@ let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
 let ``long function signature should align with equal sign, no return type`` () =
     formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) =
     ()
-"""  { config with IndentSpaceNum = 2; SpaceBeforeColon = true; PageWidth = 80 }
+"""  { config with IndentSize = 2; SpaceBeforeColon = true; MaxLineLength = 80 }
     |> prepend newline
     |> should equal """
 let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
-              (initState : 'State) =
+              (initState : 'State)
+              =
   ()
 """
 
 [<Test>]
-let ``alternate long function definition without return type `` () =
+let ``long function signature with single tuple parameter and no return type`` () =
+    formatSourceString false """
+let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq, input: 'Input, input2: 'Input, input3: 'Input) =
+    ()
+"""  { config with MaxLineLength = 90 }
+    |> prepend newline
+    |> should equal """
+let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq,
+          input: 'Input,
+          input2: 'Input,
+          input3: 'Input) =
+    ()
+"""
+
+[<Test>]
+let ``long function signature with single tuple parameter and return type`` () =
+    formatSourceString false """
+let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq, input: 'Input, input2: 'Input, input3: 'Input) : Result<'Output list, 'TError list> =
+    ()
+"""  { config with MaxLineLength = 90 }
+    |> prepend newline
+    |> should equal """
+let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq,
+          input: 'Input,
+          input2: 'Input,
+          input3: 'Input)
+         : Result<'Output list, 'TError list> =
+    ()
+"""
+
+[<Test>]
+let ``align long function signature to indentation without return type `` () =
     formatSourceString false """
 let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq) (input: 'Input) (input2: 'Input) (input3: 'Input) = ()
-"""  { config with PageWidth = 60; AlternateLongFunctionSignature = true }
+"""  { config with MaxLineLength = 60; AlignFunctionSignatureToIndentation  = true }
     |> prepend newline
     |> should equal """
 let fold
@@ -576,10 +608,10 @@ let fold
 """
 
 [<Test>]
-let ``alternate long function signature with return type`` () =
+let ``align long function signature to indentation with return type`` () =
     formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) : ReadModel<'Event, 'State> =
     ()
-"""  { config with IndentSpaceNum = 2; SpaceBeforeColon = true; AlternateLongFunctionSignature = true }
+"""  { config with IndentSize = 2; SpaceBeforeColon = true; AlignFunctionSignatureToIndentation = true }
     |> prepend newline
     |> should equal """
 let readModel
@@ -591,7 +623,7 @@ let readModel
 """
 
 [<Test>]
-let ``alternate long function that are recursive`` () =
+let ``align long function signature to indentation that are recursive`` () =
     formatSourceString false """
 let rec run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest) (log: ILogger) : HttpResponse =
         logAnalyticsForRequest log req
@@ -599,7 +631,7 @@ let rec run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = 
 
 and logAnalyticsForRequest (log:ILogger) (httpRequest: HttpRequest) =
     log.Info (sprintf "Meh: %A" httpRequest)
-"""  { config with AlternateLongFunctionSignature = true; PageWidth = 60 }
+"""  { config with MaxLineLength = 60; AlignFunctionSignatureToIndentation = true }
     |> prepend newline
     |> should equal """
 let rec run

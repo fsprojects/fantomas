@@ -411,7 +411,7 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
                 if SourceTransformer.hasParenthesis e then id else sepSpace
             opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e
         |> genTrivia attr.Range
-    ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> col sepSemi ats (genAttributeExpr astContext) -- ">]")
+    ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> atCurrentColumn (col sepSemi ats (genAttributeExpr astContext)) -- ">]")
 
 and genOnelinerAttributes astContext ats =
     let ats = List.collect (fun a -> a.Attributes) ats
@@ -427,7 +427,7 @@ and genAttributes astContext (ats: SynAttributes) =
             let dontAddNewline =
                 TriviaHelpers.``has content after that ends with``
                     (fun t -> t.Range = a.Range)
-                    (function | Directive(_) | Newline -> true | _ -> false)
+                    (function | Directive(_) | Newline | Comment(LineCommentOnSingleLine(_)) -> true | _ -> false)
                     ctx.Trivia
             let chain =
                 acc +>
@@ -465,8 +465,8 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
             fun ctx ->
                 let alreadyHasNewline = lastWriteEventIsNewline ctx
                 if alreadyHasNewline then
-                    (rep ctx.Config.IndentSpaceNum (!- " ") +> !- "=") ctx
-                elif ctx.Config.AlternateLongFunctionSignature then
+                    (rep ctx.Config.IndentSize (!- " ") +> !- "=") ctx
+                elif ctx.Config.AlignFunctionSignatureToIndentation then
                     (indent +> sepNln +> !- "=" +> unindent) ctx
                 else
                     (sepEq +> sepSpace) ctx
@@ -681,20 +681,47 @@ and genMemberBinding astContext b =
 
         let prefix =
             genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
-            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess +> genPat ({ astContext with IsMemberDefinition = true }) p
+            +> ifElse isInline (!- "inline ") sepNone +> opt sepSpace ao genAccess
 
         match e with
         | TypedExpr(Typed, e, t) ->
-            genAttributesAndXmlDoc
-            +> prefix
-            +> sepColon
-            +> genType astContext false t
-            +> sepEq
-            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            let genName, genParameters, spaceBeforeColon =
+                match p with
+                | PatLongIdent(ao, s, ps, tpso) ->
+                    let aoc = opt sepSpace ao genAccess
+                    let tpsoc = opt sepNone tpso (fun (ValTyparDecls(tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
+                    let s = if s = "``new``" then "new" else s
+                    let hasBracket = ps |> Seq.map snd |> Seq.exists hasParenInPat
+                    let multipleParameters = List.length ps > 1
+                    let spaceAfter ctx = onlyIf (ctx.Config.SpaceBeforeMember || multipleParameters || not hasBracket) sepSpace ctx
+                    let name = (aoc -- s +> tpsoc +> spaceAfter)
 
+                    let parameters =
+                        expressionFitsOnRestOfLine
+                            (atCurrentColumn (col sepSpace ps (genPatWithIdent astContext)))
+                            (atCurrentColumn (col sepNln ps (genPatWithIdent astContext)))
+
+                    name, parameters, onlyIf (hasBracket && not multipleParameters) !- " "
+                | _ -> sepNone, sepNone, sepNone
+
+            let memberDefinition =
+                prefix
+                +> expressionFitsOnRestOfLine
+                    (genName +> genParameters +> sepColon +> genType astContext false t +> sepEq)
+                    (genName +> atCurrentColumn (genParameters +> sepNln +> spaceBeforeColon +> sepColon +> genType astContext false t +> sepEq))
+
+            genAttributesAndXmlDoc
+            +> leadingExpressionIsMultiline
+                    memberDefinition
+                    (fun mdLong ->
+                        ifElse
+                            mdLong
+                            (indent +> sepNln +> genExpr astContext e +> unindent)
+                            (sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
         | e ->
             genAttributesAndXmlDoc
             +> prefix
+            +> genPat ({ astContext with IsMemberDefinition = true }) p
             +> sepEq
             +> sepSpace
             +> (fun ctx -> (isShortExpressionOrAddIndentAndNewline (if isFunctionBinding p then ctx.Config.MaxFunctionBindingWidth else ctx.Config.MaxValueBindingWidth) (genExpr astContext e)) ctx)
@@ -2041,32 +2068,41 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
             +> unindent)
 
     | Simple(TDSRUnion(ao', xs) as unionNode) ->
+        let hasLeadingTrivia (t : TriviaNode) =
+            t.Range = unionNode.Range && not (List.isEmpty t.ContentBefore)
+
         let sepNlnBasedOnTrivia =
             fun (ctx: Context) ->
                 let trivia =
-                    ctx.Trivia
-                    |> List.tryFind (fun t -> t.Range = unionNode.Range && not (List.isEmpty t.ContentBefore))
+                    ctx.Trivia |> List.tryFind hasLeadingTrivia
 
                 match trivia with
                 | Some _ -> sepNln
                 | None -> sepNone
                 <| ctx
 
-        let unionCases =
+        let unionCases ctx =
             match xs with
-            | [] -> id
-            | [UnionCase(attrs, _,_,_,(UnionCaseType fs)) as x] when List.isEmpty ms ->
-                let hasVerticalBar = Option.isSome ao' || not (List.isEmpty attrs) || List.isEmpty fs
+            | [] -> ctx
+            | [UnionCase(attrs, _,_,_,(UnionCaseType fields)) as x] when List.isEmpty ms ->
+
+                let hasVerticalBar =
+                    (Option.isSome ao' && List.length fields <> 1) ||
+                    ctx.Trivia |> List.exists hasLeadingTrivia ||
+                    not (List.isEmpty attrs) ||
+                    List.isEmpty fields
 
                 indent +> sepSpace +> sepNlnBasedOnTrivia
                 +> genTrivia tdr.Range
                     (opt sepSpace ao' genAccess
                     +> genUnionCase { astContext with HasVerticalBar = hasVerticalBar } x)
+                <| ctx
             | xs ->
                 indent +> sepNln
                 +> genTrivia tdr.Range
                     (opt sepNln ao' genAccess
                     +> col sepNln xs (genUnionCase { astContext with HasVerticalBar = true }))
+                <| ctx
 
         typeName +> sepEq
         +> unionCases
@@ -2544,14 +2580,28 @@ and genType astContext outerBracket t =
 and genAnonRecordFieldType astContext (AnonRecordFieldType(s, t)) =
     !- s +> sepColon +> (genType astContext false t)
 
-and genPrefixTypes astContext node =
+and genPrefixTypes astContext node ctx =
     match node with
-    | [] -> sepNone
+    | [] -> ctx
     // Where <  and ^ meet, we need an extra space. For example:  seq< ^a >
     | (TVar(Typar(_, true)) as t)::ts ->
-        !- "< " +> col sepComma (t::ts) (genType astContext false) -- " >"
-    | ts ->
-        !- "<" +> col sepComma ts (genType astContext false) -- ">"
+        (!- "< " +> col sepComma (t::ts) (genType astContext false) -- " >") ctx
+    | t::_ ->
+        // for example: FSharpx.Regex< @"(?<value>\d+)" >
+        let firstItemHasAtSignBeforeString =
+            match t with
+            | SourceParser.TStaticConstant(_,r) ->
+                TriviaHelpers.``has content itself that matches``
+                    (function | StringContent sc -> sc.StartsWith("@") | _ -> false)
+                    r
+                    ctx.Trivia
+            | _ -> false
+
+        (!- "<"
+        +> onlyIf firstItemHasAtSignBeforeString sepSpace
+        +> col sepComma node (genType astContext false)
+        +> onlyIf firstItemHasAtSignBeforeString sepSpace
+        -- ">") ctx
     // |> genTrivia node
 
 and genTypeList astContext node =
@@ -2892,7 +2942,7 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
         | None -> sepNone, sepNone
 
     let genParametersWithNewlines ctx =
-        if ctx.Config.AlternateLongFunctionSignature then
+        if ctx.Config.AlignFunctionSignatureToIndentation then
             (indent +> sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType +> unindent) ctx
         else
             atCurrentColumn (col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType) ctx
@@ -2909,7 +2959,7 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
             + lengthWhenSome (fun _ -> colon) t
             + lengthWhenSome getSynTypeLength t
 
-        (ctx.Column + lengthByAST > ctx.Config.PageWidth)
+        (ctx.Column + lengthByAST > ctx.Config.MaxLineLength)
         || futureNlnCheck (genName +> genParametersInitial +> genReturnType) ctx
 
     fun ctx ->

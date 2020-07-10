@@ -71,7 +71,7 @@ let ``nested exceedsMultiline expression should bubble up to parent check`` () =
                     (sepNln +> !- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +> sepNln +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" +> sepNln)
              +> sepCloseA)
 
-    let config = { FormatConfig.Default with PageWidth = 50; SpaceAroundDelimiter = false }
+    let config = { FormatConfig.Default with MaxLineLength = 50; SpaceAroundDelimiter = false }
     let initialContext = { Context.Default with Config = config;  }
 
     let result = dump (expression initialContext)

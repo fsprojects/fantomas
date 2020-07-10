@@ -90,7 +90,7 @@ else g
 [<Test>]
 let ``longer condition, not multi-line`` () =
     formatSourceString false """if aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg then 1 else 0
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 if aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
@@ -101,7 +101,7 @@ else 0
 [<Test>]
 let ``longer ifBranch, not multi-line`` () =
     formatSourceString false """if x then aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg else 0
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 if x
@@ -112,7 +112,7 @@ else 0
 [<Test>]
 let ``longer else branch, not multi-line`` () =
     formatSourceString false """if x then 1 else aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 if x
@@ -123,7 +123,7 @@ else aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
 [<Test>]
 let ``longer if else branch, not multi-line`` () =
     formatSourceString false """if aaaaaaaaaaaa then bbbbbbbbbbbb else if cccccccccccc then ddddddddddd else eeeeeee
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 if aaaaaaaaaaaa then bbbbbbbbbbbb
@@ -134,7 +134,7 @@ else eeeeeee
 [<Test>]
 let ``longer if else branch, longer elif branch, not multi-line`` () =
     formatSourceString false """if aaaaaa then bbbbbb else if ccccccc then ddddddd elif eeeee then ffffff else gggggg
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 if aaaaaa then bbbbbb
@@ -147,7 +147,7 @@ else gggggg
 let ``multiline condition`` () =
     formatSourceString false """if (aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa && bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb) then
     x else y
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 if (aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -163,7 +163,7 @@ let ``multiline if branch`` () =
     let x = 2
     x + 2
 else y
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 if a then
@@ -180,7 +180,7 @@ let ``multiline else branch`` () =
 else
     let y = 7;
     y + 9
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 if a then
@@ -198,7 +198,7 @@ let ``multiline else if branch`` () =
                 y + 9
     else
         99
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 if a then
@@ -221,7 +221,7 @@ let ``multiline else if branch, multiline elif branch`` () =
         z - 7
     else
         99
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 if a then
@@ -721,7 +721,7 @@ let ``simple if/else with long identifiers`` () =
 if someveryveryveryverylongexpression then
             someveryveryveryveryveryverylongexpression
 else someveryveryveryverylongexpression
-"""  ({ config with PageWidth = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 if someveryveryveryverylongexpression

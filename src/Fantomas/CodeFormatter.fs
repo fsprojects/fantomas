@@ -34,4 +34,6 @@ type CodeFormatter =
 
     static member GetVersion() = Version.fantomasVersion.Value
 
-    static member ReadConfiguration(fileOrFolder) = CodeFormatterImpl.readConfiguration fileOrFolder
+    static member ReadConfiguration(fsharpFile) = CodeFormatterImpl.readConfiguration fsharpFile
+
+    static member TryReadConfiguration(fsharpFile) = CodeFormatterImpl.tryReadConfiguration fsharpFile

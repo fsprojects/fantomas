@@ -1342,7 +1342,7 @@ let ``new line between let and let bang, 879`` () =
         }
 """  ({ config with
             SpaceBeforeUppercaseInvocation = true
-            IndentSpaceNum = 2
+            IndentSize = 2
             SpaceAroundDelimiter = false
             MultilineBlockBracketsOnSameColumn = true })
     |> prepend newline

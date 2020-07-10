@@ -3,7 +3,8 @@
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>4.0.0-alpha-011</Version>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Version>4.0.0-alpha-012</Version>
     <Description>Source code formatter for F#</Description>
   </PropertyGroup>
   <ItemGroup>
@@ -17,8 +18,6 @@
     <Compile Include="Utils.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="FormatConfig.fs" />
-    <Compile Include="ConfigFile.fs" />
-    <Compile Include="JsonConfig.fs" />
     <Compile Include="EditorConfig.fs" />
     <Compile Include="TriviaTypes.fs" />
     <Compile Include="TokenParserBoolExpr.fs" />
@@ -35,7 +34,16 @@
     <Compile Include="CodeFormatter.fs" />
     <Compile Include="FakeHelpers.fs" />
     <None Include="CodeFormatter.fsx" />
-    <Content Include="schema.json" />
   </ItemGroup>
+  <Target Name="ILRepack" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <WorkingDirectory>$(MSBuildThisFileDirectory)bin\$(Configuration)\$(TargetFramework)</WorkingDirectory>
+    </PropertyGroup>
+    <ItemGroup>
+      <InputAssemblies Include="Fantomas.EditorConfig.Core.dll" />
+    </ItemGroup>
+    <Message Text="MERGING: @(InputAssemblies-&gt;'%(Filename)') into $(OutputAssembly)" Importance="High" />
+    <ILRepack OutputType="$(OutputType)" MainAssembly="$(AssemblyName).dll" OutputAssembly="$(AssemblyName).dll" InputAssemblies="@(InputAssemblies)" WorkingDirectory="$(WorkingDirectory)" />
+  </Target>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

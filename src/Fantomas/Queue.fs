@@ -61,7 +61,7 @@ type Queue<'T> (data : list<'T[]>, length : int) =
         let rec exists xs =
             match xs with
             | (arr: _[]) :: tl ->
-                while r = false && i < arr.Length do
+                while not r && i < arr.Length do
                     if f arr.[i] then r <- true
                     i <- i + 1
                 i <- 0

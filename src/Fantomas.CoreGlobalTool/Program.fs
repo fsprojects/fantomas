@@ -8,16 +8,14 @@ open System.Text
 let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli"; |]
 
 type Arguments =
-    | [<Unique>] Recurse
+    | [<Unique; AltCommandLine("-r")>] Recurse
     | [<Unique>] Force
     | [<Unique>] Profile
     | [<Unique>] Fsi of string
     | [<Unique>] Stdin
     | [<Unique>] Stdout
     | [<Unique>] Out of string
-    | [<Unique>] Indent of int
     | [<Unique>] Check
-    | [<Unique;AltCommandLine("-c")>] Config of string
     | [<Unique;AltCommandLine("-v")>] Version
     | [<MainCommand>] Input of string
 with
@@ -31,9 +29,7 @@ with
             | Fsi _ -> "Read F# source from stdin as F# signatures."
             | Stdin -> "Read F# source from standard input."
             | Stdout -> " Write the formatted source code to standard output."
-            | Indent _ -> "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
             | Check -> "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
-            | Config _ -> "Use configuration found in file or folder."
             | Version -> "Displays the version of Fantomas"
             | Input _ -> sprintf "Input path: can be a folder or file with %s extension." (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
 
@@ -108,9 +104,9 @@ let processSourceString isFsiFile s (tw : Choice<TextWriter, string>) config =
     |> Async.RunSynchronously
 
 /// Format inFile and write to text writer
-let processSourceFile inFile (tw : TextWriter) config =
+let processSourceFile inFile (tw : TextWriter) =
     async {
-        let! formatted = inFile |> FakeHelpers.formatFileAsync config
+        let! formatted = FakeHelpers.formatFileAsync inFile
 
         match formatted with
         | FakeHelpers.FormatResult.Formatted(_, formattedContent) ->
@@ -159,8 +155,8 @@ let private reportCheckResults (output: TextWriter) (checkResult: FakeHelpers.Ch
     |> List.map (fun filename -> sprintf "%s needs formatting" filename)
     |> Seq.iter output.WriteLine
 
-let runCheckCommand (config: FormatConfig) (recurse: bool) (inputPath: InputPath) : int =
-    let check files = Async.RunSynchronously (FakeHelpers.checkCode config files)
+let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
+    let check files = Async.RunSynchronously (FakeHelpers.checkCode files)
 
     let processCheckResult (checkResult: FakeHelpers.CheckResult) =
         if checkResult.IsValid then
@@ -228,23 +224,7 @@ let main argv =
         let recurse = results.Contains<@ Arguments.Recurse @>
         let version = results.TryGetResult<@ Arguments.Version @>
 
-        let config =
-            results.TryGetResult<@ Arguments.Config @>
-            |> Option.map (fun configPath ->
-                let configResult = CodeFormatter.ReadConfiguration configPath
-                match configResult with
-                | Success s -> s
-                | PartialSuccess (ps, warnings) ->
-                    List.iter (writeInColor ConsoleColor.DarkYellow) warnings
-                    ps
-                | Failure e ->
-                    writeInColor ConsoleColor.DarkRed "Couldn't process one or more Fantomas configuration files, falling back to the default configuration"
-                    writeInColor ConsoleColor.DarkRed (e.ToString())
-                    FormatConfig.Default
-            )
-            |> Option.defaultValue FormatConfig.Default
-
-        let fileToFile (inFile : string) (outFile : string) config =
+        let fileToFile (inFile : string) (outFile : string) =
             try
                 printfn "Processing %s" inFile
                 let hasByteOrderMark = hasByteOrderMark inFile
@@ -258,9 +238,9 @@ let main argv =
 
                 if profile then
                     File.ReadLines(inFile) |> Seq.length |> printfn "Line count: %i"
-                    time (fun () -> processSourceFile inFile buffer config)
+                    time (fun () -> processSourceFile inFile buffer)
                 else
-                    processSourceFile inFile buffer config
+                    processSourceFile inFile buffer
                 buffer.Flush()
                 printfn "%s has been written." outFile
             with
@@ -297,12 +277,13 @@ let main argv =
                 if force then
                     stdout.Write(s)
 
-        let processFile inputFile outputFile config =
+        let processFile inputFile outputFile =
             if inputFile <> outputFile then
-                fileToFile inputFile outputFile config
+                fileToFile inputFile outputFile
             else
                 printfn "Processing %s" inputFile
                 let content = File.ReadAllText inputFile
+                let config = CodeFormatter.ReadConfiguration(inputFile)
                 stringToFile content inputFile config
 
         let processFolder inputFolder outputFolder =
@@ -317,13 +298,13 @@ let main argv =
                         Path.Combine(outputFolder, suffix)
                     else i
 
-                processFile i o config)
+                processFile i o)
 
-        let fileToStdOut inFile config =
+        let fileToStdOut inFile =
             try
                 use buffer = new StringWriter()
                 // Don't record running time when output formatted content to console
-                processSourceFile inFile buffer config
+                processSourceFile inFile buffer
                 stdout.Write(buffer.ToString())
             with
             | exn ->
@@ -338,7 +319,7 @@ let main argv =
             let check = results.Contains<@ Arguments.Check @>
             if check then
                 inputPath
-                |> runCheckCommand config recurse
+                |> runCheckCommand recurse
                 |> exit
             else
                 match inputPath, outputPath with
@@ -346,18 +327,18 @@ let main argv =
                     eprintfn "Input path is missing..."
                     exit 1
                 | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
-                | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1 config
+                | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1
                 | InputPath.File p1, OutputPath.IO p2 ->
-                    processFile p1 p2 config
+                    processFile p1 p2
                 | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
                 | InputPath.StdIn s, OutputPath.IO p ->
-                    stringToFile s p config
+                    stringToFile s p FormatConfig.Default
                 | InputPath.StdIn s, OutputPath.Notknown
                 | InputPath.StdIn s, OutputPath.StdOut ->
-                    stringToStdOut s config
+                    stringToStdOut s FormatConfig.Default
                 | InputPath.File p, OutputPath.StdOut ->
-                    fileToStdOut p config
+                    fileToStdOut p
                 | InputPath.Folder p, OutputPath.StdOut ->
                     allFiles recurse p
-                    |> Seq.iter (fun p -> fileToStdOut p config)
+                    |> Seq.iter fileToStdOut
         0

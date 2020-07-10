@@ -782,7 +782,7 @@ let x =
         (Label = "Test", 
          IntrinsicSettings = JobCollectionIntrinsicSettings
                                  (Plan = JobCollectionPlan.Standard, 
-                                  Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))""" { config with PageWidth = 120 }
+                                  Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))""" { config with MaxLineLength = 120 }
     |> prepend newline
     |> should equal """
 let x =
@@ -1077,7 +1077,8 @@ let ``long type member with return type should have parameters on separate lines
 type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
                                              aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
-                                             aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse): int =
+                                             aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
+                                             : int =
         aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
@@ -1118,7 +1119,7 @@ let ``keep correct indentation after multiline member definition, 845`` () =
 
     member SomeOtherMember () =
         printfn "b"
-"""  ({ config with PageWidth = 80; MaxFunctionBindingWidth = 120 })
+"""  ({ config with MaxLineLength = 80; MaxFunctionBindingWidth = 120 })
     |> prepend newline
     |> should equal """
 type SomeType() =
@@ -1139,12 +1140,13 @@ let ``keep correct indentation after multiline typed member definition`` () =
 
     member SomeOtherMember () =
         printfn "b"
-"""  ({ config with PageWidth = 80; MaxFunctionBindingWidth = 120 })
+"""  ({ config with MaxLineLength = 80; MaxFunctionBindingWidth = 120 })
     |> prepend newline
     |> should equal """
 type SomeType() =
     member SomeMember(looooooooooooooooooooooooooooooooooong1: A,
-                      looooooooooooooooooooooooooooooooooong2: A): string =
+                      looooooooooooooooooooooooooooooooooong2: A)
+                      : string =
         printfn "a"
         "a"
 
@@ -1162,7 +1164,8 @@ let ``split multiple parameters over multiple lines`` () =
     |> should equal """
 type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
-                             (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string): string =
+                             (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
+                             : string =
         printfn "a"
         "b"
 """
@@ -1180,7 +1183,8 @@ let ``split multiple parameters over multiple lines and have correct indentation
     |> should equal """
 type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
-                             (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string): string =
+                             (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
+                             : string =
         printfn "a"
         "b"
 
@@ -1197,7 +1201,8 @@ let ``member with one long parameter and return type, 850`` () =
     |> prepend newline
     |> should equal """
 type SomeType =
-    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string =
+    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
+                             : string =
         printfn "a"
         "b"
 """
@@ -1237,7 +1242,8 @@ type SomeType =
     static member Serialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType) =
         Encode.string v.Meh
 
-    static member Deserialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee): SomeType =
+    static member Deserialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee)
+                              : SomeType =
         Decode.SomeType
             loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee
 """
@@ -1269,13 +1275,14 @@ let ``long type members should be in multiple lines, 868`` () =
 type C() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: int, aSecondVeryLongType: int, aThirdVeryLongType: int) : int =
         aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
-"""  { config with PageWidth = 80; SpaceBeforeColon = true; MaxInfixOperatorExpression = 80 }
+"""  { config with MaxLineLength = 80; SpaceBeforeColon = true; MaxInfixOperatorExpression = 80 }
     |> prepend newline
     |> should equal """
 type C() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType : int,
                                             aSecondVeryLongType : int,
-                                            aThirdVeryLongType : int) : int =
+                                            aThirdVeryLongType : int)
+                                            : int =
         aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
 """
 
@@ -1285,7 +1292,7 @@ let ``long type members should be in multiple lines, no return type`` () =
 type C() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: int, aSecondVeryLongType: int, aThirdVeryLongType: int) =
         aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
-"""  { config with PageWidth = 80; SpaceBeforeColon = true; MaxInfixOperatorExpression = 80 }
+"""  { config with MaxLineLength = 80; SpaceBeforeColon = true; MaxInfixOperatorExpression = 80 }
     |> prepend newline
     |> should equal """
 type C() =
@@ -1300,7 +1307,7 @@ let ``long type constructors should be in multiple lines, 868`` () =
     formatSourceString false """
 type VersionMismatchDuringDeserializationException(message: string, innerException: System.Exception) =
     inherit System.Exception(message, innerException)
-"""  { config with PageWidth = 80; SpaceBeforeColon = true }
+"""  { config with MaxLineLength = 80; SpaceBeforeColon = true }
     |> prepend newline
     |> should equal """
 type VersionMismatchDuringDeserializationException(message : string,
@@ -1405,4 +1412,44 @@ type OuterType =
 type OuterType =
     abstract Apply<'r> : InnerType<'r>
         -> 'r when 'r : comparison
+"""
+
+[<Test>]
+let ``attribute on type and abstract member followed by type, 949`` () =
+    formatSourceString false """
+[<AllowNullLiteral>]
+type TimelineOptionsGroupCallbackFunction =
+    [<Emit "$0($1...)">]
+    abstract Invoke: group:TimelineGroup * callback:(TimelineGroup option -> unit) -> unit
+
+type TimelineOptionsGroupEditableType = U2<bool, TimelineGroupEditableOption>
+"""  config
+    |> prepend newline
+    |> should equal """
+[<AllowNullLiteral>]
+type TimelineOptionsGroupCallbackFunction =
+    [<Emit "$0($1...)">]
+    abstract Invoke: group:TimelineGroup * callback:(TimelineGroup option -> unit) -> unit
+
+type TimelineOptionsGroupEditableType = U2<bool, TimelineGroupEditableOption>
+"""
+
+[<Test>]
+let ``attribute on type and abstract member followed by let binding`` () =
+    formatSourceString false """
+[<AllowNullLiteral>]
+type TimelineOptionsGroupCallbackFunction =
+    [<Emit "$0($1...)">]
+    abstract Invoke: group:TimelineGroup * callback:(TimelineGroup option -> unit) -> unit
+
+let myBinding a = 7
+"""  config
+    |> prepend newline
+    |> should equal """
+[<AllowNullLiteral>]
+type TimelineOptionsGroupCallbackFunction =
+    [<Emit "$0($1...)">]
+    abstract Invoke: group:TimelineGroup * callback:(TimelineGroup option -> unit) -> unit
+
+let myBinding a = 7
 """
