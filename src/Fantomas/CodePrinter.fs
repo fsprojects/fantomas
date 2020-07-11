@@ -2408,6 +2408,10 @@ and genMemberSig astContext node =
     match node with
     | MSMember(Val(ats, px, ao, s, t, vi, _, ValTyparDecls(tds, _, tcs)), mf) ->
         let (FunType namedArgs) = (t, vi)
+        let isFunctionProperty =
+            match t with
+            | TFun _ -> true
+            | _ -> false
         let sepColonX =
             match tds with
             | [] -> sepColon
@@ -2420,6 +2424,7 @@ and genMemberSig astContext node =
                                    +> sepColonX
                                    +> genTypeList astContext namedArgs
                                    +> genConstraints astContext t
+                                   -- (genPropertyKind (not isFunctionProperty) mf.MemberKind)
                                    +> unindent)
 
     | MSInterface t -> !- "interface " +> genType astContext false t
