@@ -39,6 +39,7 @@ type FormatConfig =
       MaxElmishWidth: Num
       SingleArgumentWebMode: bool
       AlignFunctionSignatureToIndentation: bool
+      AlternativeLongMemberDefinitions: bool
       /// Pretty printing based on ASTs only
       StrictMode : bool }
 
@@ -69,4 +70,5 @@ type FormatConfig =
           MaxElmishWidth = 40
           SingleArgumentWebMode = false
           AlignFunctionSignatureToIndentation = false
+          AlternativeLongMemberDefinitions = false
           StrictMode = false }
