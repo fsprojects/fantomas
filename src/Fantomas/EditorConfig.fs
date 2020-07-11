@@ -33,14 +33,10 @@ let private (|Boolean|_|) b =
 let parseOptionsFromEditorConfig (editorConfig: Fantomas.EditorConfig.Core.FileConfiguration) =
     fantomasFields
     |> Array.map (fun (ecn, dv) ->
-        if editorConfig.Properties.ContainsKey(ecn) then
-            let ecv = editorConfig.Properties.[ecn]
-            match ecv with
-            | Number n -> box n
-            | Boolean b -> box b
-            | _ -> dv
-        else
-            dv)
+        match editorConfig.Properties.TryGetValue(ecn) with
+        | true, Number n -> n
+        | true, Boolean b -> b
+        | _ -> dv)
     |> fun newValues ->
         let formatConfigType = FormatConfig.Default.GetType()
         Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(formatConfigType, newValues) :?> FormatConfig
@@ -53,7 +49,7 @@ let configToEditorConfig (config: FormatConfig): string =
             sprintf "%s=%s" (toEditorConfigName k) (if b then "true " else "false")
             |> Some
         | :? System.Int32 as i ->
-            sprintf " %s=%d" (toEditorConfigName k) i
+            sprintf "%s=%d" (toEditorConfigName k) i
             |> Some
         | _ -> None)
     |> String.concat "\n"

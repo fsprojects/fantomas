@@ -148,13 +148,26 @@ fsharp_max_function_binding_width=40
     config.MaxFunctionBindingWidth == 40
 
 [<Test>]
-let ``non existing file should return default config`` () =
+let ``non existing file should return defaults for readConfiguration`` () =
     use configFixture = new ConfigurationFile(defaultConfig)
 
     let config =
         CodeFormatter.ReadConfiguration "bogus.fs"
 
     config == defaultConfig
+
+    // In the future we could ensure that the Default config isn't 
+    // being generated every time because it's a property getter     
+    // Assert.That(Object.ReferenceEquals(config, defaultConfig))
+
+[<Test>]
+let ``non existing file should return None for tryReadConfiguration`` () =
+    use configFixture = new ConfigurationFile(defaultConfig)
+
+    let config =
+        CodeFormatter.TryReadConfiguration "bogus.fs"
+
+    config == None
 
 [<Test>]
 let ``indent_style tab edge case`` () =

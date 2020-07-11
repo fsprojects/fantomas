@@ -69,11 +69,7 @@ let private findFirstNodeAfterLine
     |> List.tryFind (fun tn ->
         if tn.Range.StartLine > lineNumber
            && isNotMemberKeyword tn then
-            if hasAnonModulesAndOpenStatements
-               && mainNodeIs "SynModuleOrNamespace.AnonModule" tn then
-                false
-            else
-                true
+            not (hasAnonModulesAndOpenStatements && mainNodeIs "SynModuleOrNamespace.AnonModule" tn)
         else
             false)
 
@@ -147,8 +143,16 @@ let private findConstNodeAfter (nodes: TriviaNodeAssigner list) (range: range) =
 let private mapNodeToTriviaNode (node: Node) =
     node.Range
     |> Option.map (fun range ->
-        let attributeParent = Map.tryFind "parent" node.Properties
-        TriviaNodeAssigner(MainNode(node.Type), range, attributeParent))
+        let attributeParent =
+            Map.tryFind "linesBetweenParent" node.Properties
+            |> Option.bind (fun v ->
+                match v with
+                | :? int as i when (i > 0) -> Some i
+                | _ -> None)
+
+        match attributeParent with
+        | Some i -> TriviaNodeAssigner(MainNode(node.Type), range, i)
+        | None -> TriviaNodeAssigner(MainNode(node.Type), range))
 
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: range) =
     match List.filter isMainNodeButNotAnonModule triviaNodes with
@@ -201,39 +205,12 @@ let private findParsedHashOnLineAndEndswith (triviaNodes: TriviaNodeAssigner lis
 // The reason for this is that the range of the attribute is not part of the range of the parent binding.
 // This can lead to weird results when used in CodePrinter.
 let private triviaBetweenAttributeAndParentBinding (triviaNodes: TriviaNodeAssigner list) line =
-    let filteredNodes =
-        triviaNodes
-        |> List.filter (fun t ->
-            match t.Type with
-            | MainNode("SynAttributeList")
-            | MainNode("SynModuleDecl.Let")
-            | MainNode("SynModuleDecl.Types")
-            | MainNode("SynModuleSigDecl.NestedModule")
-            | MainNode("ValSpfn")
-            | MainNode("SynMemberDefn.Member")
-            | MainNode("SynMemberDefn.LetBindings")
-            | MainNode("Field") -> true
-            | _ -> false
-        )
-        |> List.pairwise
-
-    filteredNodes |> List.tryFind (function
-        | f, a when (f.Type = MainNode("Field")
-                     && a.Type = MainNode("SynAttributeList")
-                     && f.Range.StartLine = a.Range.StartLine
-                     && a.Range.StartLine + 1 = f.Range.EndLine) -> true
-        | a, p when (a.Type = MainNode("SynAttributeList") && a.Range.StartLine < line && a.Range.StartLine = a.Range.EndLine) ->
-            match p.Type with
-              | MainNode("SynModuleDecl.Let") when (p.Range.StartLine > line) -> true
-              | MainNode("SynAttributeList") when (p.Range.StartLine > line) ->
-                  // This is an edge case scenario where the trivia needs to fit between two attributes of the same parent node.
-                  match p.AttributeParent, a.AttributeParent with
-                  | Some pp, Some ap -> pp = ap
-                  | _ -> false
-              | MainNode("SynModuleDecl.Types") when (p.Range.StartLine > line) -> true
-              | _ -> false
+    triviaNodes
+    |> List.tryFind (fun tn ->
+        match tn.AttributeLinesBetweenParent with
+        | Some linesBetween when (linesBetween + tn.Range.EndLine >= line && line > tn.Range.EndLine) ->
+            true
         | _ -> false)
-    |> Option.bind (fun (a,_) -> if a.Type = MainNode("SynAttributeList") then Some a else None)
 
 let private findASTNodeOfTypeThatContains (nodes: TriviaNodeAssigner list) typeName range =
     nodes
@@ -257,8 +234,12 @@ let private addTriviaToTriviaNode
         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(comment)) triviaNodes
 
     | { Item = Comment(LineCommentOnSingleLine(_) as comment); Range = range } ->
-        findFirstNodeAfterLine triviaNodes range.StartLine hasAnonModulesAndOpenStatements
-        |> updateTriviaNode (fun tn -> tn.ContentBefore.Add (Comment(comment))) triviaNodes
+        match triviaBetweenAttributeAndParentBinding triviaNodes range.StartLine with
+        | Some _ as node ->
+            updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(comment))) triviaNodes node
+        | None ->
+            findFirstNodeAfterLine triviaNodes range.StartLine hasAnonModulesAndOpenStatements
+            |> updateTriviaNode (fun tn -> tn.ContentBefore.Add (Comment(comment))) triviaNodes
 
     | { Item = Comment(BlockComment(comment, _,_)); Range = range } ->
         let nodeAfter = findNodeAfterLineAndColumn triviaNodes range.StartLine range.StartColumn
@@ -400,8 +381,8 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
         |> filterNodes
         |> List.choose mapNodeToTriviaNode
 
-    let hasAnyAttributes = List.exists (fun (tn:TriviaNodeAssigner) -> match tn.Type with | MainNode("SynAttributeList") -> true | _ -> false) triviaNodesFromAST
-    let triviaBetweenAttributeAndParentBinding = if hasAnyAttributes then triviaBetweenAttributeAndParentBinding else (fun _ _ -> None)
+    let hasAnyAttributesWithLinesBetweenParent = List.exists (fun (tn:TriviaNodeAssigner) -> Option.isSome tn.AttributeLinesBetweenParent) triviaNodesFromAST
+    let triviaBetweenAttributeAndParentBinding = if hasAnyAttributesWithLinesBetweenParent then triviaBetweenAttributeAndParentBinding else (fun _ _ -> None)
     let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens tokens
     let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
     let hasAnonModulesAndOpenStatements = nodesContainsBothAnonModuleAndOpen triviaNodes

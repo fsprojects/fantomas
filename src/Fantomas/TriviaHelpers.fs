@@ -65,6 +65,13 @@ module internal TriviaHelpers =
             | Some(CharContent c) -> Some c
             | _ -> None)
 
+    let ``has content itself that matches`` (predicate: TriviaContent -> bool) range (triviaNodes: TriviaNode list) =
+        triviaNodes
+        |> List.exists (fun tn ->
+            match tn.Range = range, tn.ContentItself with
+            | true, Some(t) -> predicate t
+            | _ -> false)
+
     let ``has content itself is ident between ticks`` range (triviaNodes: TriviaNode list) =
         triviaNodes
         |> List.choose (fun tn ->
