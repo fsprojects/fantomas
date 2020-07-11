@@ -1231,15 +1231,21 @@ and genExpr astContext synExpr =
             | (s,_,_)::_ when ((noSpaceInfixOps.Contains s)) -> sepNone
             | _ -> f
 
+        let isLambda e = match e with | Lambda _ -> true | _ -> false
         let expr = genExpr astContext e
+        let shortExpr = expr +> sepAfterExpr sepSpace +> genInfixAppsShort astContext es
+        let longExpr = expr +> sepAfterExpr sepNln +> genInfixApps astContext es
 
         atCurrentColumn
             (fun ctx ->
-                 isShortExpression
-                    ctx.Config.MaxInfixOperatorExpression
-                    (expr +> sepAfterExpr sepSpace +> genInfixAppsShort astContext es)
-                    (expr +> sepAfterExpr sepNln +> genInfixApps astContext es)
-                    ctx)
+                 if isLambda e || List.exists (fun (_,_,e) -> isLambda e) es then
+                    longExpr ctx
+                 else
+                     isShortExpression
+                        ctx.Config.MaxInfixOperatorExpression
+                        shortExpr
+                        longExpr
+                        ctx)
 
     | TernaryApp(e1,e2,e3) ->
         atCurrentColumn (genExpr astContext e1 +> !- "?" +> genExpr astContext e2 +> sepSpace +> !- "<-" +> sepSpace +> genExpr astContext e3)
