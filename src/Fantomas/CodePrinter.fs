@@ -37,6 +37,8 @@ type ASTContext =
       /// Check whether the context is inside a SynMemberDefn.Member(memberDefn,range)
       /// This is required to correctly detect the setting SpaceBeforeMember
       IsMemberDefinition: bool
+      /// Check whether the context is inside a SynExpr.DotIndexedGet
+      IsInsideDotIndexed: bool
     }
     static member Default =
         { TopLevelModuleName = ""
@@ -44,7 +46,8 @@ type ASTContext =
           IsCStylePattern = false; IsNakedRange = false
           HasVerticalBar = false; IsUnionField = false
           IsFirstTypeParam = false; IsInsideDotGet = false
-          IsMemberDefinition = false }
+          IsMemberDefinition = false
+          IsInsideDotIndexed = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx:Context) =
     match functionOrMethod, arg with
@@ -1345,7 +1348,7 @@ and genExpr astContext synExpr =
     | App(e1, [e2]) ->
         fun (ctx:Context) ->
             let hasPar = hasParenthesis e2
-            let addSpaceBefore = addSpaceBeforeParensInFunCall e1 e2 ctx
+            let addSpaceBefore = not astContext.IsInsideDotIndexed && addSpaceBeforeParensInFunCall e1 e2 ctx
             let genApp =
                 atCurrentColumn (
                     genExpr astContext e1
@@ -1767,8 +1770,8 @@ and genExpr astContext synExpr =
     | LongIdentSet(s, e, _) ->
         !- (sprintf "%s <- " s)
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-    | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
-    | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
+    | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr { astContext with IsInsideDotIndexed = true }) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
+    | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr { astContext with IsInsideDotIndexed = true }) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
     | NamedIndexedPropertySet(ident, e1, e2) ->
         !- ident +> genExpr astContext e1  -- " <- "  +> genExpr astContext e2
     | DotNamedIndexedPropertySet(e, ident, e1, e2) ->
@@ -2128,7 +2131,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
         let bodyExpr ctx =
             if (List.isEmpty ms) then
-                (isShortExpression ctx.Config.MaxRecordWidth shortExpression multilineExpression
+                (isShortExpression ctx.Config.MaxRecordWidth (enterNode tdr.Range +> shortExpression) multilineExpression
                 +> leaveNode tdr.Range // this will only print something when there is trivia after } in the short expression
                 // Yet it cannot be part of the short expression otherwise the multiline expression would be triggered unwillingly.
                 ) ctx
@@ -2230,9 +2233,11 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
 and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
     // the typeName is already printed
-    indent +> sepNln +> opt sepSpace ao' genAccess
+    indent
+    +> sepNln
     +> genTrivia tdr.Range
-        (sepOpenS
+        (opt sepSpace ao' genAccess
+        +> sepOpenS
         +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
         +> sepNlnBetweenTypeAndMembers ms
         +> genMemberDefnList { astContext with InterfaceRange = None } ms
@@ -2240,15 +2245,17 @@ and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
 
 and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
     // the typeName is already printed
-    indent +> sepNln +> opt (indent +> sepNln) ao' genAccess
+    indent
+    +> sepNln
     +> genTrivia tdr.Range
-        (sepOpenSFixed +> indent +> sepNln
-        +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
-        +> unindent +> sepNln +> sepCloseSFixed
-        +> sepNlnBetweenTypeAndMembers ms
-        +> genMemberDefnList { astContext with InterfaceRange = None } ms
-        +> onlyIf (Option.isSome ao') unindent
-        +> unindent)
+        (opt (indent +> sepNln) ao' genAccess
+         +> sepOpenSFixed +> indent +> sepNln
+         +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
+         +> unindent +> sepNln +> sepCloseSFixed
+         +> sepNlnBetweenTypeAndMembers ms
+         +> genMemberDefnList { astContext with InterfaceRange = None } ms
+         +> onlyIf (Option.isSome ao') unindent
+         +> unindent)
 
 and sepNlnBetweenSigTypeAndMembers (ms: SynMemberSig list) =
     let getRange =
@@ -2405,6 +2412,10 @@ and genMemberSig astContext node =
     match node with
     | MSMember(Val(ats, px, ao, s, t, vi, _, ValTyparDecls(tds, _, tcs)), mf) ->
         let (FunType namedArgs) = (t, vi)
+        let isFunctionProperty =
+            match t with
+            | TFun _ -> true
+            | _ -> false
         let sepColonX =
             match tds with
             | [] -> sepColon
@@ -2417,6 +2428,7 @@ and genMemberSig astContext node =
                                    +> sepColonX
                                    +> genTypeList astContext namedArgs
                                    +> genConstraints astContext t
+                                   -- (genPropertyKind (not isFunctionProperty) mf.MemberKind)
                                    +> unindent)
 
     | MSInterface t -> !- "interface " +> genType astContext false t
