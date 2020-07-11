@@ -453,3 +453,29 @@ let ``addition via function`` () =
     |> should equal """
 let a = (+) 7 8
 """
+
+[<Test>]
+let ``lambda piped to lambda should be multiline, 942`` () =
+    formatSourceString false """
+let r (f : 'a -> 'b) (a : 'a) : 'b =
+    fun () ->
+        f a
+    |> fun f -> f ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let r (f: 'a -> 'b) (a: 'a): 'b =
+    fun () -> f a
+    |> fun f -> f ()
+"""
+
+[<Test>]
+let ``combining lines breaks function precedence 488`` () =
+    formatSourceString false """fun () -> ()
+|> Some
+"""  config
+    |> prepend newline
+    |> should equal """
+fun () -> ()
+|> Some
+"""
