@@ -468,9 +468,15 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
             fun ctx ->
                 let alreadyHasNewline = lastWriteEventIsNewline ctx
                 if alreadyHasNewline then
-                    (rep ctx.Config.IndentSize (!- " ") +> !- "=") ctx
-                else
+                    // Column could be 0 when a hash directive was just written
+                    if ctx.Column = 0 then
+                        (rep ctx.Config.IndentSize (!- " ") +> !- "=") ctx
+                    else
+                        !- "=" ctx
+                elif ctx.Config.AlignFunctionSignatureToIndentation then
                     (indent +> sepNln +> !- "=" +> unindent) ctx
+                else
+                    (sepEq +> sepSpace) ctx
         else
             (sepEq +> sepSpace)
 
@@ -486,10 +492,7 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
 
         let hasLineCommentBeforeColon = TriviaHelpers.``has line comment before`` t.Range ctx.Trivia
 
-        let genCommentBeforeColon ctx =
-            (ifElse hasLineCommentBeforeColon indent sepNone
-             +> enterNode t.Range
-             +> ifElse hasLineCommentBeforeColon unindent sepNone) ctx
+        let genCommentBeforeColon = atCurrentColumn (enterNode t.Range)
 
         let genMetadataAttributes =
             match valInfo with
@@ -538,7 +541,7 @@ and genLetBinding astContext pref b =
     | LetBinding(ats, px, ao, isInline, isMutable, p, e, valInfo) ->
         let genPat =
             match e, p with
-            | TypedExpr(Typed, _, t),  PatLongIdent(ao, s, ps, tpso) when (List.length ps > 1)->
+            | TypedExpr(Typed, _, t),  PatLongIdent(ao, s, ps, tpso) when (List.isNotEmpty ps)->
                 genPatWithReturnType ao s ps tpso (Some t) astContext
             | _,  PatLongIdent(ao, s, ps, tpso) when (List.length ps > 1)->
                 genPatWithReturnType ao s ps tpso None astContext
@@ -2075,9 +2078,9 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
             +> unindent)
 
     | Simple(TDSRUnion(ao', xs) as unionNode) ->
-        let hasLeadingTrivia (t : TriviaNode) = 
+        let hasLeadingTrivia (t : TriviaNode) =
             t.Range = unionNode.Range && not (List.isEmpty t.ContentBefore)
-        
+
         let sepNlnBasedOnTrivia =
             fun (ctx: Context) ->
                 let trivia =
@@ -2092,11 +2095,11 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
             match xs with
             | [] -> ctx
             | [UnionCase(attrs, _,_,_,(UnionCaseType fields)) as x] when List.isEmpty ms ->
-                
-                let hasVerticalBar = 
-                    (Option.isSome ao' && List.length fields <> 1) || 
-                    ctx.Trivia |> List.exists hasLeadingTrivia || 
-                    not (List.isEmpty attrs) || 
+
+                let hasVerticalBar =
+                    (Option.isSome ao' && List.length fields <> 1) ||
+                    ctx.Trivia |> List.exists hasLeadingTrivia ||
+                    not (List.isEmpty attrs) ||
                     List.isEmpty fields
 
                 indent +> sepSpace +> sepNlnBasedOnTrivia
@@ -2955,10 +2958,24 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
     let genReturnType, newlineBeforeReturnType =
         match t with
         | Some t -> genType astContext false t, sepNln
-        | None -> sepNone, sepNone
+        | None ->
+            let genReturnType = sepNone
 
-    let genParametersWithNewlines =
-        (sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType)
+            let newline ctx =
+                if ctx.Config.AlignFunctionSignatureToIndentation then
+                    ctx
+                else
+                    match ps with
+                    | [(_, PatTuple(_))] -> ctx
+                    | _ -> sepNln ctx
+
+            genReturnType, newline
+
+    let genParametersWithNewlines ctx =
+        if ctx.Config.AlignFunctionSignatureToIndentation then
+            (indent +> sepNln +> col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType +> unindent) ctx
+        else
+            atCurrentColumn (col sepNln ps (genPatWithIdent astContext) +> newlineBeforeReturnType) ctx
 
     let isLongFunctionSignature (ctx: Context) =
         let space = 1
@@ -2981,7 +2998,7 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
         let expr =
             genName
             +> ifElse hasBracket sepOpenT sepNone
-            +> ifElse isLong (indent +> genParametersWithNewlines  +> unindent) genParametersInitial
+            +> ifElse isLong genParametersWithNewlines genParametersInitial
             +> ifElse hasBracket sepCloseT sepNone
 
         expr ctx
