@@ -384,11 +384,9 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
             MaxInfixOperatorExpression = 70 })
     |> prepend newline
     |> should equal """
-let fold
-    (funcs : ResultFunc<'Input, 'Output, 'TError> seq)
-    (input : 'Input)
-    : Result<'Output list, 'TError list>
-    =
+let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq)
+         (input : 'Input)
+         : Result<'Output list, 'TError list> =
     let mutable anyErrors = false
     let mutable collectedOutputs = []
     let mutable collectedErrors = []
@@ -430,10 +428,9 @@ let ``internal keyword included in function signature length check`` () =
 """  ({ config with MaxLineLength = 90; SpaceBeforeColon = true })
     |> prepend newline
     |> should equal """
-let internal UpdateStrongNaming
-    (assembly : AssemblyDefinition)
-    (key : StrongNameKeyPair option)
-    =
+let internal UpdateStrongNaming (assembly : AssemblyDefinition)
+                                (key : StrongNameKeyPair option)
+                                =
     assembly.Name
 
 let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
@@ -469,10 +466,9 @@ module FormatCode =
         CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
 
     [<FunctionName("FormatCode")>]
-    let run
-        ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
-        (log: ILogger)
-        =
+    let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+            (log: ILogger)
+            =
         Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
 """
 
@@ -505,11 +501,9 @@ module FormatCode =
         CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
 
     [<FunctionName("FormatCode")>]
-    let run
-        ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
-        (log: ILogger)
-        : HttpResponse
-        =
+    let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+            (log: ILogger)
+            : HttpResponse =
         Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
 """
 
@@ -526,14 +520,13 @@ let private addTaskToScheduler (scheduler : IScheduler) taskName taskCron prio (
 """  ({ config with MaxLineLength = 100 })
     |> prepend newline
     |> should equal """
-let private addTaskToScheduler
-    (scheduler: IScheduler)
-    taskName
-    taskCron
-    prio
-    (task: unit -> unit)
-    groupName
-    =
+let private addTaskToScheduler (scheduler: IScheduler)
+                               taskName
+                               taskCron
+                               prio
+                               (task: unit -> unit)
+                               groupName
+                               =
     let mutable jobDataMap = JobDataMap()
     jobDataMap.["task"] <- task
 
@@ -551,11 +544,9 @@ let ``long function signature should align with equal sign, 883`` () =
 """  { config with IndentSize = 2; SpaceBeforeColon = true }
     |> prepend newline
     |> should equal """
-let readModel
-  (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
-  (initState : 'State)
-  : ReadModel<'Event, 'State>
-  =
+let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
+              (initState : 'State)
+              : ReadModel<'Event, 'State> =
   ()
 """
 
@@ -566,9 +557,105 @@ let ``long function signature should align with equal sign, no return type`` () 
 """  { config with IndentSize = 2; SpaceBeforeColon = true; MaxLineLength = 80 }
     |> prepend newline
     |> should equal """
+let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
+              (initState : 'State)
+              =
+  ()
+"""
+
+[<Test>]
+let ``long function signature with single tuple parameter and no return type`` () =
+    formatSourceString false """
+let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq, input: 'Input, input2: 'Input, input3: 'Input) =
+    ()
+"""  { config with MaxLineLength = 90 }
+    |> prepend newline
+    |> should equal """
+let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq,
+          input: 'Input,
+          input2: 'Input,
+          input3: 'Input) =
+    ()
+"""
+
+[<Test>]
+let ``long function signature with single tuple parameter and return type`` () =
+    formatSourceString false """
+let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq, input: 'Input, input2: 'Input, input3: 'Input) : Result<'Output list, 'TError list> =
+    ()
+"""  { config with MaxLineLength = 90 }
+    |> prepend newline
+    |> should equal """
+let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq,
+          input: 'Input,
+          input2: 'Input,
+          input3: 'Input)
+         : Result<'Output list, 'TError list> =
+    ()
+"""
+
+[<Test>]
+let ``align long function signature to indentation without return type `` () =
+    formatSourceString false """
+let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq) (input: 'Input) (input2: 'Input) (input3: 'Input) = ()
+"""  { config with MaxLineLength = 60; AlignFunctionSignatureToIndentation  = true }
+    |> prepend newline
+    |> should equal """
+let fold
+    (funcs: ResultFunc<'Input, 'Output, 'TError> seq)
+    (input: 'Input)
+    (input2: 'Input)
+    (input3: 'Input)
+    =
+    ()
+"""
+
+[<Test>]
+let ``align long function signature to indentation with return type`` () =
+    formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) : ReadModel<'Event, 'State> =
+    ()
+"""  { config with IndentSize = 2; SpaceBeforeColon = true; AlignFunctionSignatureToIndentation = true }
+    |> prepend newline
+    |> should equal """
 let readModel
   (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
   (initState : 'State)
+  : ReadModel<'Event, 'State>
   =
   ()
+"""
+
+[<Test>]
+let ``align long function signature to indentation that are recursive`` () =
+    formatSourceString false """
+let rec run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest) (log: ILogger) : HttpResponse =
+        logAnalyticsForRequest log req
+        Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+
+and logAnalyticsForRequest (log:ILogger) (httpRequest: HttpRequest) =
+    log.Info (sprintf "Meh: %A" httpRequest)
+"""  { config with MaxLineLength = 60; AlignFunctionSignatureToIndentation = true }
+    |> prepend newline
+    |> should equal """
+let rec run
+    ([<HttpTrigger(AuthorizationLevel.Anonymous,
+                   "get",
+                   "post",
+                   Route = "{*any}")>] req: HttpRequest)
+    (log: ILogger)
+    : HttpResponse
+    =
+    logAnalyticsForRequest log req
+    Http.main
+        CodeFormatter.GetVersion
+        format
+        FormatConfig.FormatConfig.Default
+        log
+        req
+
+and logAnalyticsForRequest
+    (log: ILogger)
+    (httpRequest: HttpRequest)
+    =
+    log.Info(sprintf "Meh: %A" httpRequest)
 """

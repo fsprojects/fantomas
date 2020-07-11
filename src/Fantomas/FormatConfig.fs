@@ -38,6 +38,7 @@ type FormatConfig =
       KeepIfThenInSameLine : bool
       MaxElmishWidth: Num
       SingleArgumentWebMode: bool
+      AlignFunctionSignatureToIndentation: bool
       AlternativeLongMemberDefinitions: bool
       /// Pretty printing based on ASTs only
       StrictMode : bool }
@@ -64,9 +65,10 @@ type FormatConfig =
           MaxValueBindingWidth = 40
           MaxFunctionBindingWidth = 40
           MultilineBlockBracketsOnSameColumn = false
+          NewlineBetweenTypeDefinitionAndMembers = false
           KeepIfThenInSameLine = false
           MaxElmishWidth = 40
           SingleArgumentWebMode = false
-          NewlineBetweenTypeDefinitionAndMembers = false
+          AlignFunctionSignatureToIndentation = false
           AlternativeLongMemberDefinitions = false
           StrictMode = false }

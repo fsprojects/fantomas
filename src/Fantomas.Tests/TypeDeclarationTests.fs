@@ -1458,6 +1458,25 @@ let myBinding a = 7
 """
 
 [<Test>]
+let ``comments before access modifier, 885`` () =
+    formatSourceString false """
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        {
+            Foo : int
+        }
+"""  config
+    |> prepend newline
+    |> should equal """
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private { Foo: int }
+"""
+
+[<Test>]
 let ``alternative long member definition`` () =
     formatSourceString false """
 type C () =

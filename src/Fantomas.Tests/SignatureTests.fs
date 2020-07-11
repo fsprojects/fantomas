@@ -599,3 +599,67 @@ module Foo =
     val inline sum: ('a -> ^value) -> 'a Foo -> ^value
         when ^value: (static member (+): ^value * ^value -> ^value) and ^value: (static member Zero: ^value)
 """
+
+[<Test>]
+let ``preserve with get property, 945`` () =
+    formatSourceString true """
+namespace B
+type Foo =
+    | Bar of int
+    member Item : unit -> int with get
+"""  { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+namespace B
+
+type Foo =
+    | Bar of int
+    member Item : unit -> int with get
+"""
+
+[<Test>]
+let ``preserve with set property`` () =
+    formatSourceString true """
+namespace B
+type Foo =
+    member Item : int -> unit with set
+"""  { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+namespace B
+
+type Foo =
+    member Item : int -> unit with set
+"""
+
+[<Test>]
+let ``preserve with get,set`` () =
+    formatSourceString true """
+namespace B
+
+type Foo =
+    member Item : int with get,  set
+"""  { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+namespace B
+
+type Foo =
+    member Item : int with get, set
+"""
+
+[<Test>]
+let ``with set after constraint`` () =
+    formatSourceString true """
+namespace B
+
+type Foo =
+    member Item : 't -> unit when 't   :   comparison   with set
+"""  { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+namespace B
+
+type Foo =
+    member Item : 't -> unit when 't : comparison with set
+"""

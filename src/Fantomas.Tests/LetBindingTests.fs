@@ -341,10 +341,30 @@ let ``line comment before return type info should indent before colon, 565`` () 
     |> should equal """
 module Bar =
     let f a
-        // foo
-        : int
-        =
+          // foo
+          : int =
         0
+"""
+
+[<Test>]
+let ``line comment before return type with AlignFunctionSignatureToIndentation`` () =
+    formatSourceString false """
+  let functionName a b c
+    // foo
+    : int
+    =
+    0
+"""  { config with AlignFunctionSignatureToIndentation = true }
+    |> prepend newline
+    |> should equal """
+let functionName
+    a
+    b
+    c
+    // foo
+    : int
+    =
+    0
 """
 
 [<Test>]
@@ -510,12 +530,11 @@ let ``handle hash directives before equals, 728`` () =
         ()
 
     """ config
-    |> should equal """let Baz
-    (firstParam: string)
+    |> should equal """let Baz (firstParam: string)
 #if DEBUG
-    (_: int)
+        (_: int)
 #else
-    (secndParam: int)
+        (secndParam: int)
 #endif
     =
     ()
@@ -535,12 +554,11 @@ let ``multiple empty lines between equals and expression`` () =
         ()
 
     """ config
-    |> should equal """let Baz
-    (firstParam: string)
+    |> should equal """let Baz (firstParam: string)
 #if DEBUG
-    (_: int)
+        (_: int)
 #else
-    (secndParam: int)
+        (secndParam: int)
 #endif
     =
 
