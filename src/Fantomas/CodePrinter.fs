@@ -37,6 +37,8 @@ type ASTContext =
       /// Check whether the context is inside a SynMemberDefn.Member(memberDefn,range)
       /// This is required to correctly detect the setting SpaceBeforeMember
       IsMemberDefinition: bool
+      /// Check whether the context is inside a SynExpr.DotIndexedGet
+      IsInsideDotIndexed: bool
     }
     static member Default =
         { TopLevelModuleName = ""
@@ -44,7 +46,8 @@ type ASTContext =
           IsCStylePattern = false; IsNakedRange = false
           HasVerticalBar = false; IsUnionField = false
           IsFirstTypeParam = false; IsInsideDotGet = false
-          IsMemberDefinition = false }
+          IsMemberDefinition = false
+          IsInsideDotIndexed = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx:Context) =
     match functionOrMethod, arg with
@@ -1345,7 +1348,7 @@ and genExpr astContext synExpr =
     | App(e1, [e2]) ->
         fun (ctx:Context) ->
             let hasPar = hasParenthesis e2
-            let addSpaceBefore = addSpaceBeforeParensInFunCall e1 e2 ctx
+            let addSpaceBefore = not astContext.IsInsideDotIndexed && addSpaceBeforeParensInFunCall e1 e2 ctx
             let genApp =
                 atCurrentColumn (
                     genExpr astContext e1
@@ -1767,8 +1770,8 @@ and genExpr astContext synExpr =
     | LongIdentSet(s, e, _) ->
         !- (sprintf "%s <- " s)
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-    | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr astContext) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
-    | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
+    | DotIndexedGet(e, es) -> addParenIfAutoNln e (genExpr { astContext with IsInsideDotIndexed = true }) -- "." +> sepOpenLFixed +> genIndexers astContext es +> sepCloseLFixed
+    | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr { astContext with IsInsideDotIndexed = true }) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
     | NamedIndexedPropertySet(ident, e1, e2) ->
         !- ident +> genExpr astContext e1  -- " <- "  +> genExpr astContext e2
     | DotNamedIndexedPropertySet(e, ident, e1, e2) ->

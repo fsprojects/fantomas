@@ -49,3 +49,37 @@ let ``spaceBeforeUppercaseInvocation should add space before parentheses in uppe
     formatSourceString false "let value = MyFunction(a+b)" spaceBeforeConfig
     |> should equal """let value = MyFunction (a + b)
 """
+
+[<Test>]
+let ``space before uppercase function application cannot apply with dot-chaining, 943`` () =
+    formatSourceString false """foo.Bar().[5]
+"""  { config with SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should equal """
+foo.Bar().[5]
+"""
+
+[<Test>]
+let ``space before uppercase DotIndexedSet`` () =
+    formatSourceString false """foo.Bar().[5] <- 5
+"""  { config with SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should equal """
+foo.Bar().[5] <- 5
+"""
+
+[<Test>]
+let ``setting SpaceBeforeUppercaseInvocation is not applied in the middle of a invocation chain, 853`` () =
+    formatSourceString false """
+module SomeModule =
+    let DoSomething (a:SomeType) =
+        let someValue = a.Some.Thing("aaa").[0]
+        someValue
+"""  { config with SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should equal """
+module SomeModule =
+    let DoSomething (a: SomeType) =
+        let someValue = a.Some.Thing("aaa").[0]
+        someValue
+"""
