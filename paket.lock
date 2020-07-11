@@ -26,7 +26,7 @@ NUGET
     Fantomas.EditorConfig.Core (1.0) - copy_local: true
     FsCheck (2.14)
       FSharp.Core (>= 4.2.3)
-    FSharp.Compiler.Service (36.0.1)
+    FSharp.Compiler.Service (36.0.3)
       FSharp.Core (>= 4.6.2)
       System.Buffers (>= 4.5)
       System.Collections.Immutable (>= 1.5)
