@@ -524,7 +524,7 @@ type internal Foo2 =
 namespace Foo
 
 type internal Foo2 =
-    member Bar<'k> : unit -> unit when 'k: comparison
+    abstract Bar<'k> : unit -> unit when 'k: comparison
 """
 
 [<Test>]
