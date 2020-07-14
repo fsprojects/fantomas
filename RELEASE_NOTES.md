@@ -1,4 +1,4 @@
-### 4.0.0-alpha-013 - 07/2020
+### 4.0.0-alpha-014 - 07/2020
 * WIP for [#705](https://github.com/fsprojects/fantomas/issues/705)
 * FCS 36.0.3
 * Replaced json configuration with .editorconfig

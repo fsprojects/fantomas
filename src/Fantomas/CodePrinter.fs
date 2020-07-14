@@ -860,7 +860,7 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
                     tn.ContentItself
                     |> Option.bind (fun tc ->
                         match tc with
-                        | Keyword({ Content = ("override" | "default" | "member" | "abstract") as kw }) -> Some (!- (kw + " "))
+                        | Keyword({ Content = ("override" | "default" | "member" | "abstract" | "abstract member") as kw }) -> Some (!- (kw + " "))
                         | _ -> None
                     )
                 )

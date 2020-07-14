@@ -282,7 +282,25 @@ let private addTriviaToTriviaNode
 
     | { Item = Keyword({ Content = keyword} as kw); Range = range } when (keyword = "override" || keyword = "default" || keyword = "member" || keyword = "abstract") ->
         findMemberDefnMemberNodeOnLine triviaNodes range.StartLine
-        |> updateTriviaNode (fun tn -> tn.ContentItself <- Some (Keyword(kw))) triviaNodes
+        |> updateTriviaNode (fun tn ->
+            match tn.Type, tn.ContentItself with
+            | MainNode ("SynMemberSig.Member"), Some (Keyword ({ Content = existingKeywordContent } as token)) when existingKeywordContent =
+                                                                                                                        "abstract"
+                                                                                                                    && keyword =
+                                                                                                                        "member" ->
+                // Combine the two tokens to appear as one
+                let tokenInfo =
+                    { token.TokenInfo with
+                          RightColumn = kw.TokenInfo.RightColumn }
+
+                let combinedKeyword =
+                    { token with
+                          Content = "abstract member"
+                          TokenInfo = tokenInfo }
+
+                tn.ContentItself <- Some(Keyword(combinedKeyword))
+            | _ -> tn.ContentItself <- Some(Keyword(kw))
+        ) triviaNodes
 
     | { Item = Keyword({ TokenInfo = {TokenName = tn}} as kw); Range = range } when (tn = "QMARK") ->
         findConstNodeAfter triviaNodes range

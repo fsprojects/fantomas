@@ -524,7 +524,7 @@ type internal Foo2 =
 namespace Foo
 
 type internal Foo2 =
-    member Bar<'k> : unit -> unit when 'k: comparison
+    abstract member Bar<'k> : unit -> unit when 'k: comparison
 """
 
 [<Test>]
@@ -662,4 +662,24 @@ namespace B
 
 type Foo =
     member Item : 't -> unit when 't : comparison with set
+"""
+
+[<Test>]
+let ``preserve abstract member in type, 944`` () =
+    formatSourceString true """
+namespace Baz
+
+type Foo =
+    abstract member Bar : Type
+    abstract Bar2 : Type
+    member Bar3 : Type
+"""  { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+namespace Baz
+
+type Foo =
+    abstract member Bar : Type
+    abstract Bar2 : Type
+    member Bar3 : Type
 """
