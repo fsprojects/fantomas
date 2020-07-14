@@ -524,7 +524,7 @@ type internal Foo2 =
 namespace Foo
 
 type internal Foo2 =
-    abstract Bar<'k> : unit -> unit when 'k: comparison
+    abstract member Bar<'k> : unit -> unit when 'k: comparison
 """
 
 [<Test>]
@@ -679,7 +679,7 @@ type Foo =
 namespace Baz
 
 type Foo =
-    abstract Bar : Type
+    abstract member Bar : Type
     abstract Bar2 : Type
     member Bar3 : Type
 """

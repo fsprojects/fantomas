@@ -284,14 +284,22 @@ let private addTriviaToTriviaNode
         findMemberDefnMemberNodeOnLine triviaNodes range.StartLine
         |> updateTriviaNode (fun tn ->
             match tn.Type, tn.ContentItself with
-            | MainNode("SynMemberSig.Member"), Some( Keyword ({ Content = existingKeyword })) when (existingKeyword = "abstract" && keyword = "member") ->
-                // edge case when for a signature file with:
-                // type Foo =
-                //    abstract member Bar : Type
-                //
-                // here we don't want to override the abstract keyword
-                ()
-            | _ -> tn.ContentItself <- Some (Keyword(kw))
+            | MainNode ("SynMemberSig.Member"), Some (Keyword ({ Content = existingKeywordContent } as token)) when existingKeywordContent =
+                                                                                                                        "abstract"
+                                                                                                                    && keyword =
+                                                                                                                        "member" ->
+                // Combine the two tokens to appear as one
+                let tokenInfo =
+                    { token.TokenInfo with
+                          RightColumn = kw.TokenInfo.RightColumn }
+
+                let combinedKeyword =
+                    { token with
+                          Content = "abstract member"
+                          TokenInfo = tokenInfo }
+
+                tn.ContentItself <- Some(Keyword(combinedKeyword))
+            | _ -> tn.ContentItself <- Some(Keyword(kw))
         ) triviaNodes
 
     | { Item = Keyword({ TokenInfo = {TokenName = tn}} as kw); Range = range } when (tn = "QMARK") ->
