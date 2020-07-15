@@ -1,140 +1,304 @@
-## Fantomas: How to use
+# Fantomas: How to use
 
-### Using the command line tool
+## Using the command line tool
 
 ---
 
+Install the command line tool with:
+> dotnet tool install fantomas-tool
+
 For the overview how to use the tool, you can type the command
 
-	Fantomas --help
+	dotnet fantomas --help
+
+```
+USAGE: dotnet fantomas [--help] [--recurse] [--force] [--profile] [--fsi <string>] [--stdin] [--stdout] [--out <string>] [--check] [--version] [<string>]
+
+INPUT:
+
+    <string>              Input path: can be a folder or file with *.fs,*.fsi,*.fsx,*.ml,*.mli extension.
+
+OPTIONS:
+
+    --recurse, -r         Process the input folder recursively.
+    --force               Print the source unchanged if it cannot be parsed correctly.
+    --profile             Print performance profiling information.
+    --fsi <string>        Read F# source from stdin as F# signatures.
+    --stdin               Read F# source from standard input.
+    --stdout               Write the formatted source code to standard output.
+    --out <string>        Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only.
+    --check               Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error
+                          was an internal error
+    --version, -v         Displays the version of Fantomas
+    --help                display this list of options.
+
+```
 
 You have to specify an input path and optionally an output path. 
 The output path is prompted by `--out` e.g.
 
-	Fantomas ../../../../tests/stackexchange/array.fs --out ../../../../tests/stackexchange_output/array.fs 
+	dotnet fantomas ../../../../tests/stackexchange/array.fs --out ../../../../tests/stackexchange_output/array.fs 
 
 Both paths have to be files or folders at the same time. 
 If they are folders, the structure of input folder will be reflected in the output one. 
 The tool will explore the input folder recursively if you set `--recurse` option (see [Options section](#options)).
 If you omit the output path, Fantomas will overwrite the input files.
 
-#### Options
+## Configuration
 
-##### `--recurse`
+Fantomas ships with a series of format options.
+These can be stored in an [.editorconfig](https://editorconfig.org/) file and will be picked up automatically by the commandline tool.
 
-traverse the input folder recursively (if it is really a folder) to get all F# source files.
+A default .editorconfig file would look like
+```ini
+[*.fs]
+indent_size=4
+max_line_length=120
+fsharp_semicolon_at_end_of_line=false
+fsharp_space_before_parameter=true
+fsharp_space_before_lowercase_invocation=true
+fsharp_space_before_uppercase_invocation=false
+fsharp_space_before_class_constructor=false
+fsharp_space_before_member=false
+fsharp_space_before_colon=false
+fsharp_space_after_comma=true
+fsharp_space_before_semicolon=false
+fsharp_space_after_semicolon=true
+fsharp_indent_on_try_with=false
+fsharp_space_around_delimiter=true
+fsharp_max_if_then_else_short_width=40
+fsharp_max_infix_operator_expression=50
+fsharp_max_record_width=40
+fsharp_max_array_or_list_width=40
+fsharp_max_value_binding_width=40
+fsharp_max_function_binding_width=40
+fsharp_multiline_block_brackets_on_same_column=false
+fsharp_newline_between_type_definition_and_members=false
+fsharp_keep_if_then_in_same_line=false
+fsharp_max_elmish_width=40
+fsharp_single_argument_web_mode=false
+fsharp_strict_mode=false
+```
 
-##### `--force`
+### indent_size
 
-force writing original contents to output files. 
-This is helpful if the tool fails on some unknown F# constructs.
+` indent_size` has to be between 1 and 10.
 
-##### `--stdin`
-
-read input from standard input. This option is convenient to use with piping
-
-    echo 'open System;; let () = printfn "Hello World"' | Fantomas --stdin --out output.fs
-
-or
-
-    cat input.fs | Fantomas --stdin --out output.fs
-
-##### `--stdout`
-
-write formatted source code to standard output e.g.
- 
-    Fantomas input.fs --stdout
-
-##### `--fsi`
-
-this option to be used with `--stdin` to specify that we are formatting F# signatures e.g.
-
-    type input.fsi | Fantomas --fsi --stdin --stdout
-
-##### `--check`
-
-Checks if the files provided require formatting and:
-
-* Exits with `0` if no files require formatting
-* Exits with `1` if some files require formatting. It also outputs the path of the files that require formatting.
-* Exits with `99` if some files contain errors (e.g. parsing errors, etc.)
-
-For example:
-
-	# given an example project
-	ls src/MyProject
-	File1.fs # correctly formatted
-	File2.fs # needs formatting
-	File3.fs # has compilation errors
-
-	# running a check
-	Fantomas --check src/MyProject
-	src/MyProject/File2.fs requires formatting
-	error: Failed to format src/MyProject/File3.fs: <description of the error>
-
-	# if you check the exit code
-	echo $?
-	99
-
-#### Preferences
-
-##### `--indent <number>`
-
-`number` has to be between 1 and 10.
-
-This preference sets the indentation (default = 4). 
+This preference sets the indentation
 The common values are 2 and 4. 
-The same indentation is ensured to be consistent in a source file. 
-To illustrate, here is a code fragment with `--indent 2`:
+The same indentation is ensured to be consistent in a source file.
+Default = 4.
 
-	```fsharp
-	let inline selectRandom(f : _[]) = 
-	  let r = random 1.0
-	  let rec find = 
-	    function 
-	    | 0 -> fst f.[0]
-	    | n when r < snd f.[n] -> fst f.[n]
-	    | n -> find(n - 1)
-	  find <| f.Length - 1
-	```
+`defaultConfig`
 
-##### `--pageWidth <number>`
+```fsharp
+let inline selectRandom (f: _ []) =
+    let r = random 1.0
 
-`number` has to be an integer greater or equal to 60.
+    let rec find =
+        function
+        | 0 -> fst f.[0]
+        | n when r < snd f.[n] -> fst f.[n]
+        | n -> find (n - 1)
+
+    find <| f.Length - 1
+```
+
+`{ defaultConfig with IdentSize = 2 }`
+
+```fsharp
+let inline selectRandom (f: _ []) =
+  let r = random 1.0
+
+  let rec find =
+    function
+    | 0 -> fst f.[0]
+    | n when r < snd f.[n] -> fst f.[n]
+    | n -> find (n - 1)
+
+  find <| f.Length - 1
+```
+
+### max_line_length
+
+`max_line_length` has to be an integer greater or equal to 60.
 This preference sets the column where we break F# constructs into new lines.
-The default value is 120. To see its effects, please take a look at some [output files](tests/stackexchange_output) with `--pageWidth 90` preference.
+Default = 120.
 
-##### `--semicolonEOL`
+`defaultConfig`
 
-add semicolons at the end of lines e.g.
+```fsharp
+match myValue with
+| Some foo -> someLongFunctionNameThatWillTakeFooAndReturnsUnit foo
+| None -> printfn "nothing"
+```
 
-	```fsharp
-	let saturn = 
-	  { X = 8.343366718;
-	    Y = 4.124798564;
-	    Z = -0.4035234171;
-	    VX = -0.002767425107 * daysPerYear;
-	    VY = 0.004998528012 * daysPerYear;
-	    VZ = 2.304172976e-05 * daysPerYear;
-	    Mass = 0.0002858859807 * solarMass }
-	```
-	
-	vs.
-	
-	```fsharp
-	let saturn = 
-	  { X = 8.343366718
-	    Y = 4.124798564
-	    Z = -0.4035234171
-	    VX = -0.002767425107 * daysPerYear
-	    VY = 0.004998528012 * daysPerYear
-	    VZ = 2.304172976e-05 * daysPerYear
-	    Mass = 0.0002858859807 * solarMass }
-	```
+`{ defaultConfig with MaxLineLength = 60 }`
 
-##### `--spaceBeforeColon`
+```fsharp
+match myValue with
+| Some foo ->
+    someLongFunctionNameThatWillTakeFooAndReturnsUnit foo
+| None -> printfn "nothing"
+```
 
-if being set, there is a space before `:` e.g.
+### fsharp_semicolon_at_end_of_line
+
+Add semicolons at the end of lines.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+let saturn =
+    { X = 8.343366718
+      Y = 4.124798564
+      Z = -0.4035234171
+      VX = -0.002767425107 * daysPerYear
+      VY = 0.004998528012 * daysPerYear
+      VZ = 2.304172976e-05 * daysPerYear
+      Mass = 0.0002858859807 * solarMass }
+```
+
+`{ defaultConfig with SemicolonAtEndOfLine = true }`
+
+```fsharp
+let saturn =
+    { X = 8.343366718;
+      Y = 4.124798564;
+      Z = -0.4035234171;
+      VX = -0.002767425107 * daysPerYear;
+      VY = 0.004998528012 * daysPerYear;
+      VZ = 2.304172976e-05 * daysPerYear;
+      Mass = 0.0002858859807 * solarMass }
+```
+
+### fsharp_space_before_parameter
+
+Add a space after the name of a function and before the opening parenthesis of the first parameter.
+This setting influences function definitions.
+Default = true.
+
+`defaultConfig`
+
+```fsharp
+let value (a:int) = x
+let DumpTrace () = ()
+```
+
+`{ defaultConfig with SpaceBeforeParameter = false }`
+
+```fsharp
+let value(a: int) = x
+let DumpTrace() = ()
+```
+
+### fsharp_space_before_lowercase_invocation
+
+Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.
+This setting influences function invocation.
+Default = true.
+
+`defaultConfig`
+
+```fsharp
+value (a, b)
+startTimer ()
+```
+
+`{ defaultConfig with SpaceBeforeLowercaseInvocation = false }`
+
+```fsharp
+value(a, b)
+startTimer()
+```
+
+### fsharp_space_before_uppercase_invocation
+
+Add a space after the name of a uppercased function and before the opening parenthesis of the first argument.
+This setting influences function invocation.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+Value(a, b)
+person.ToString()
+```
+
+`{ defaultConfig with SpaceBeforeUppercaseInvocation = true }`
+
+```fsharp
+Value (a, b)
+person.ToString ()
+```
+
+### fsharp_space_before_class_constructor
+
+Add a space after a type name and before the class constructor.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+type Person() =
+    class
+    end
+```
+
+`{ defaultConfig with SpaceBeforeClassConstructor = true }
+
+```fsharp
+type Person () =
+    class
+    end
+```
+
+### fsharp_space_before_member
+
+Add a space after a member name and before the opening parenthesis of the first parameter.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+type Person() =
+    member this.Walk(distance: int) = ()
+    member this.Sleep() = ignore
+    member __.singAlong() = ()
+    member __.swim(duration: TimeSpan) = ()
+```
+
+`{ defaultConfig with SpaceBeforeMember = true }`
+
+```fsharp
+type Person() =
+    member this.Walk (distance: int) = ()
+    member this.Sleep () = ignore
+    member __.singAlong () = ()
+    member __.swim (duration: TimeSpan) = ()
+```
+
+### fsharp_space_before_colon
+
+Add a space before `:`.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+type Point = { x: int; y: int }
+
+let update (msg: Msg) (model: Model): Model = model
+```
+
+`{ defaultConfig with SpaceBeforeColon = true }`
+
+```fsharp
+type Point = { x : int; y : int }
+
+let update (msg : Msg) (model : Model) : Model = model
+```
 
 	```fsharp
 	type Planet = 
