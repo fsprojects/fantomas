@@ -4,8 +4,14 @@
 
 ---
 
+Create a [.NET tool manifest](https://docs.microsoft.com/en-us/dotnet/core/tools/local-tools-how-to-use) to install tools locally
+> dotnet new tool-manifest
+
 Install the command line tool with:
 > dotnet tool install fantomas-tool
+
+or install the tool globally with
+> dotnet tool install -g fantomas-tool
 
 For the overview how to use the tool, you can type the command
 
@@ -300,81 +306,128 @@ type Point = { x : int; y : int }
 let update (msg : Msg) (model : Model) : Model = model
 ```
 
-	```fsharp
-	type Planet = 
-	  { mutable X: float
-	    mutable Y: float
-	    mutable Z: float
-	    mutable VX: float
-	    mutable VY: float
-	    mutable VZ: float
-	    Mass: float }
-	```
-	
-	vs.
-	
-	```fsharp
-	type Planet = 
-	  { mutable X : float
-	    mutable Y : float
-	    mutable Z : float
-	    mutable VX : float
-	    mutable VY : float
-	    mutable VZ : float
-	    Mass : float }
-	```
+### fsharp_space_after_comma
 
-##### `--noSpaceAfterComma`
+Adds a space after `,` in tuples.
+Default = true
 
-is useful if you would like to save spaces in tuples, arguments, etc. 
-To illustrate, `(1, 2, 3)` is rewritten to `(1,2,3)`.
+`defaultConfig`
 
-##### `--noSpaceAfterSemiColon`
+```fsharp
+myValue.SomeFunction(foo, bar, somethingElse)
+(a, b, c)
+```
 
-saves spaces on records, arrays, lists, etc. Now 
+`{ defaultConfig with SpaceAfterComma = false }`
 
-	```fsharp
-	let planets = [|sun; jupiter; saturn; uranus; neptune|]
-	```
+```fsharp
+myValue.SomeFunction(foo,bar,somethingElse)
+(a,b,c)
+```
 
-	becomes
+### fsharp_space_before_semicolon
 
-	```fsharp
-	let planets = [|sun;jupiter;saturn;uranus;neptune|]
-	```
+Adds a space before `;` in records, arrays, lists, etc.
+Default = false
 
-Note: there is also the possibility to add a space before the semicolon.<br />
-This can be set by adding `"SpaceBeforeSemicolon": true` in a Fantomas configuration file (see below).
+`defaultConfig`
 
- ##### `--indentOnTryWith`
+```fsharp
+let a = [ 1; 2; 3 ]
+let b = [| foo; bar |]
+type C = { X: int; Y: int }
+```
 
-if being set, `with` blocks will be indented like in the following example:
+`{ defaultConfig with SpaceBeforeSemicolon = true }`
 
-	```fsharp
-	try
-	    if System.DateTime.Now.Second % 3 = 0 
-		then raise(new System.Exception())
-	    else raise(new System.ApplicationException())
-	with
-	    | :? System.ApplicationException -> 
-	        printfn "A second that was not a multiple of 3"    
-	    | _ -> 
-	        printfn "A second that was a multiple of 3"
-	```
+```fsharp
+let a = [ 1 ; 2 ; 3 ]
+let b = [| foo ; bar |]
+type C = { X: int ; Y: int }
+```
 
-##### `--noSpaceAroundDelimiter`
+### fsharp_space_after_semicolon
 
-saves spaces around delimiters of records, arrays, lists e.g.
+Adds a space after `;` in records, arrays, lists, etc.
+Default = true
 
-    ```fsharp
-	let planets = [| sun; jupiter; saturn; uranus; neptune |]
-	```
+`defaultConfig`
 
-	becomes
+```fsharp
+let a = [ 1; 2; 3 ]
+let b = [| foo; bar |]
+type C = { X: int; Y: int }
+```
 
-	```fsharp
-	let planets = [|sun; jupiter; saturn; uranus; neptune|]
-	```
+`{ defaultConfig with SpaceAfterSemicolon = false }`
+
+```fsharp
+let a = [ 1;2;3 ]
+let b = [| foo;bar |]
+type C = { X: int;Y: int }
+```
+
+### fsharp_indent_on_try_with
+
+Adds an extra indent to the `with` block of a try/with expression.
+Default = false
+
+`defaultConfig`
+
+```fsharp
+try
+    if System.DateTime.Now.Second % 3 = 0
+    then raise (new System.Exception())
+    else raise (new System.ApplicationException())
+with
+| :? System.ApplicationException -> printfn "A second that was not a multiple of 3"
+| _ -> printfn "A second that was a multiple of 3"
+```
+
+`{ defaultConfig with IndentOnTryWith = true }`
+
+```fsharp
+try
+    if System.DateTime.Now.Second % 3 = 0
+    then raise (new System.Exception())
+    else raise (new System.ApplicationException())
+with
+    | :? System.ApplicationException -> printfn "A second that was not a multiple of 3"
+    | _ -> printfn "A second that was a multiple of 3"
+```
+
+### fsharp_space_around_delimiter
+
+Adds a space around delimiters like `[`,`[|`,`{`.
+Default = true
+
+`defaultConfig`
+
+```fsharp
+let a = [ 1;2;3 ]
+let b = [| 4;5;6 |]
+```
+
+`{ defaultConfig with SpaceAroundDelimiter = false }`
+
+```fsharp
+let a = [1;2;3]
+let b = [|4;5;6|]
+```
+
+
+fsharp_max_if_then_else_short_width=40
+fsharp_max_infix_operator_expression=50
+fsharp_max_record_width=40
+fsharp_max_array_or_list_width=40
+fsharp_max_value_binding_width=40
+fsharp_max_function_binding_width=40
+fsharp_multiline_block_brackets_on_same_column=false
+fsharp_newline_between_type_definition_and_members=false
+fsharp_keep_if_then_in_same_line=false
+fsharp_max_elmish_width=40
+fsharp_single_argument_web_mode=false
+fsharp_strict_mode=false
 
 ##### `--strictMode`
 
