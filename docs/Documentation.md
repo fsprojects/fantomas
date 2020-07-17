@@ -83,6 +83,8 @@ fsharp_newline_between_type_definition_and_members=false
 fsharp_keep_if_then_in_same_line=false
 fsharp_max_elmish_width=40
 fsharp_single_argument_web_mode=false
+fsharp_align_function_signature_to_indentation=false
+fsharp_alternative_long_member_definitions=false
 fsharp_strict_mode=false
 ```
 
@@ -705,6 +707,64 @@ let a =
         prop.onClick (fun _ -> setCount (count - 1))
         prop.text "Decrement"
     ]
+```
+
+### fsharp_align_function_signature_to_indentation
+
+When a function signature exceeds the `max_line_length`, Fantomas will put the all but first parameters and the return type on new lines.
+These will align with the start column of the first parameter.
+This setting will place all parameters on the next line and align with one indent instead.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+[<FunctionName("FormatCode")>]
+let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+        (log: ILogger)
+        : HttpResponse =
+    Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+```
+
+`{ defaultConfig with AlignFunctionSignatureToIndentation = true }`
+
+```fsharp
+[<FunctionName("FormatCode")>]
+let run
+    ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+    (log: ILogger)
+    : HttpResponse
+    =
+    Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+```
+
+### fsharp_alternative_long_member_definitions
+
+Provides an alternative way of formatting long member and constructor definitions.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+type C(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+       aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+       aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
+    class
+    end
+```
+
+`{ defaultConfig with AlternativeLongMemberDefinitions = true }`
+
+```fsharp
+type C
+    (
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+    )
+    =
+    class
+    end
 ```
 
 ### fsharp_strict_mode

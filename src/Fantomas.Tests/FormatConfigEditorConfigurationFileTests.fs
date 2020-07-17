@@ -188,3 +188,9 @@ fsharp_indent_on_try_with=true
         CodeFormatter.ReadConfiguration fsharpFile.FSharpFile
 
     config.IndentSize == 5
+
+[<Test>]
+let ``print default editorconfig settings`` () =
+    FormatConfig.Default
+    |> EditorConfig.configToEditorConfig
+    |> printfn "%s"
