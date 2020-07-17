@@ -451,3 +451,126 @@ type Commenter =
 
       DisplayName: string }
 """
+
+[<Test>]
+let ``assembly attributes remain on own line, 629`` () =
+    formatSourceString false """
+namespace AltCover.Visualizer
+
+open System
+open System.Reflection
+open System.Runtime.InteropServices
+
+[<assembly:CLSCompliant(true)>]
+[<assembly:ComVisible(false)>]
+[<assembly:AssemblyTitle("AltCover.Visualizer")>]
+[<assembly:AssemblyDescription("Coverage and static analysis visualizer for NCover (possibly extended) and OpenCover")>]
+[<assembly:System.Resources.NeutralResourcesLanguageAttribute("en-GB")>]
+()
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace AltCover.Visualizer
+
+open System
+open System.Reflection
+open System.Runtime.InteropServices
+
+[<assembly:CLSCompliant(true)>]
+[<assembly:ComVisible(false)>]
+[<assembly:AssemblyTitle("AltCover.Visualizer")>]
+[<assembly:AssemblyDescription("Coverage and static analysis visualizer for NCover (possibly extended) and OpenCover")>]
+[<assembly:System.Resources.NeutralResourcesLanguageAttribute("en-GB")>]
+()
+"""
+
+[<Test>]
+let ``multiple attributes inside SynAttributes that exceeds max line length, 629`` () =
+    formatSourceString false """
+//[<ApiExplorerSettings(IgnoreApi = true)>]
+[<Route("api/v1/admin/import")>]
+type RoleAdminImportController(akkaService: AkkaService) =
+  inherit Controller()
+
+  [<HttpGet("jobs/all");
+    ProducesResponseType(typeof<bool>, 200);
+    ProducesResponseType(404);
+    Authorize(AuthorizationScopePolicies.Read)>]
+  member _.ListJobs(): Task<UserCmdResponseMsg> =
+    task {
+      return!
+        akkaService.ImporterSystem.ApiMaster <? ApiMasterMsg.GetAllJobsCmd
+    }
+
+  [<HttpPost("jobs/create");
+    DisableRequestSizeLimit;
+    RequestFormLimits(MultipartBodyLengthLimit = 509715200L);
+    ProducesResponseType(typeof<RoleChangeSummaryDto list>, 200);
+    ProducesResponseType(404);
+    Authorize(AuthorizationScopePolicies.Write)>]
+  member _.StartJob(file: IFormFile, [<FromQuery>] args: ImporterJobArgs) =
+    let importer = akkaService.ImporterSystem
+
+    ActionResult.ofAsyncResult <| asyncResult {
+      let! state =
+        (LowerCaseString.create args.State, file)
+        |> pipeObjectThroughValidation [ (fst, [stateIsValid]); (snd, [(fun s -> Ok s)]) ]
+
+      let! filePath = FormFile.downloadAsTemp file
+
+      let job =
+        { JobType = EsriBoundaryImport
+          FileToImport = filePath
+          State = state
+          DryRun = args.DryRun }
+
+      importer.ApiMaster <! StartImportCmd job
+      return Ok job
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+//[<ApiExplorerSettings(IgnoreApi = true)>]
+[<Route("api/v1/admin/import")>]
+type RoleAdminImportController(akkaService: AkkaService) =
+    inherit Controller()
+
+    [<HttpGet("jobs/all");
+      ProducesResponseType(typeof<bool>, 200);
+      ProducesResponseType(404);
+      Authorize(AuthorizationScopePolicies.Read)>]
+    member _.ListJobs(): Task<UserCmdResponseMsg> =
+        task {
+            return! akkaService.ImporterSystem.ApiMaster
+                    <? ApiMasterMsg.GetAllJobsCmd
+        }
+
+    [<HttpPost("jobs/create");
+      DisableRequestSizeLimit;
+      RequestFormLimits(MultipartBodyLengthLimit = 509715200L);
+      ProducesResponseType(typeof<RoleChangeSummaryDto list>, 200);
+      ProducesResponseType(404);
+      Authorize(AuthorizationScopePolicies.Write)>]
+    member _.StartJob(file: IFormFile, [<FromQuery>] args: ImporterJobArgs) =
+        let importer = akkaService.ImporterSystem
+
+        ActionResult.ofAsyncResult
+        <| asyncResult {
+            let! state =
+                (LowerCaseString.create args.State, file)
+                |> pipeObjectThroughValidation [ (fst, [ stateIsValid ])
+                                                 (snd, [ (fun s -> Ok s) ]) ]
+
+            let! filePath = FormFile.downloadAsTemp file
+
+            let job =
+                { JobType = EsriBoundaryImport
+                  FileToImport = filePath
+                  State = state
+                  DryRun = args.DryRun }
+
+            importer.ApiMaster <! StartImportCmd job
+
+            return Ok job
+           }
+"""
