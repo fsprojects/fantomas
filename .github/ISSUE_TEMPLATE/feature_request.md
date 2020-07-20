@@ -30,7 +30,7 @@ Related suggestions: (put links to related suggestions here)
 ## Affidavit (please submit!)
 
 Please tick this by placing a cross in the box:
-* [ ] I have [searched both open and closed suggestions on this site](http://github.com/fsharp/fslang-suggestions/issues) and believe this is not a duplicate
+* [ ] I have [searched both open and closed suggestions on this site](https://github.com/fsprojects/fantomas/issues) and believe this is not a duplicate
 
 Please tick all that apply:
 * [ ] This is not a breaking change to Fantomas

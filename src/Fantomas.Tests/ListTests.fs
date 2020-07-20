@@ -1567,3 +1567,37 @@ type T = { A: (unit -> unit) array }
 module F =
     let f (a: T) = a.A.[0]()
 """
+
+[<Test>]
+let ``list with if/then/else yield expressions should always be multiline, 931`` () =
+    formatSourceString false """
+let original_input = [
+  if true then yield "value1"
+  if false then yield "value2"
+  if true then yield "value3"
+]
+"""  { config with MaxIfThenElseShortWidth = 120; MaxArrayOrListWidth = 120 }
+    |> prepend newline
+    |> should equal """
+let original_input =
+    [ if true then yield "value1"
+      if false then yield "value2"
+      if true then yield "value3" ]
+"""
+
+[<Test>]
+let ``list with if/then/else yield bang expressions should always be multiline`` () =
+    formatSourceString false """
+let value = [
+    if foo then yield! ["a";"b"] else yield "c"
+    if bar then yield "d" else yield! ["e";"f"]
+]
+"""  { config with MaxIfThenElseShortWidth = 120; MaxArrayOrListWidth = 120; MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should equal """
+let value =
+    [
+        if foo then yield! [ "a"; "b" ] else yield "c"
+        if bar then yield "d" else yield! [ "e"; "f" ]
+    ]
+"""
