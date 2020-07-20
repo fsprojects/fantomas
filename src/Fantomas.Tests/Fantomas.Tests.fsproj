@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\netfx.props" />
   <PropertyGroup>
-    <Version>4.0.0-alpha-014</Version>
+    <Version>4.0.0-beta-001</Version>
     <NoWarn>FS0988</NoWarn>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
