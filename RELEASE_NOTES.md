@@ -27,7 +27,7 @@
 * Feature MultilineBlockBracketsOnSameColumn. [#453](https://github.com/fsprojects/fantomas/issues/453)
 * Feature NewlineBetweenTypeDefinitionAndMembers. [#752](https://github.com/fsprojects/fantomas/issues/752)
 * Feature KeepIfThenInSameLine. [#825](https://github.com/fsprojects/fantomas/issues/825)
-* Fix Fluent API calls getting condensed onto single line. [#960](https://github.com/fsprojects/fantomas/issues/960)
+* Fix List expression can get combined to a single line with different semantics. [#931](https://github.com/fsprojects/fantomas/issues/931)
 * Fix Additional new line inserted around attributes. [#949](https://github.com/fsprojects/fantomas/issues/949)
 * Fix `with get` removal in FSI invalid. [#945](https://github.com/fsprojects/fantomas/issues/945)
 * Fix FSI file has "abstract" stripped. [#944](https://github.com/fsprojects/fantomas/issues/944)
