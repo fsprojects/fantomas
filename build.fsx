@@ -184,6 +184,7 @@ Target.create "ProjectVersion" (fun _ ->
     setProjectVersion "Fantomas.CoreGlobalTool"
     setProjectVersion "Fantomas.CoreGlobalTool.Tests"
     setProjectVersion "Fantomas.Tests"
+    setProjectVersion "Fantomas.Extras"
 )
 
 // --------------------------------------------------------------------------------------
@@ -247,16 +248,17 @@ Target.create "Pack" (fun _ ->
                           "PackageIconUrl", iconUrl
                           "PackageLicenseUrl", licenceUrl
                       ] }
-        
+
         DotNet.pack (fun p ->
             { p with
-                  NoBuild = true
+                  NoRestore = true
                   Configuration = configuration
                   OutputPath = Some "./bin"
                   MSBuildParams = args
               }) projectPath 
 
     pack "Fantomas"
+    pack "Fantomas.Extras"
     pack "Fantomas.CoreGlobalTool"
 )
 
@@ -420,8 +422,8 @@ Target.create "All" ignore
 "Clean"
     ==> "ProjectVersion"
     ==> "Build"
-    ==> "UnitTests"
-    ==> "Benchmark"
+//    ==> "UnitTests"
+//    ==> "Benchmark"
     ==> "Pack"
     ==> "All"
     ==> "Push"
