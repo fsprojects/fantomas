@@ -1,6 +1,3 @@
-
-open Fake.Core
-
 #r "paket:
 nuget Microsoft.Azure.Cosmos.Table
 nuget Fake.BuildServer.AppVeyor

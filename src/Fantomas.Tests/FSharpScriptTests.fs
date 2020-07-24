@@ -1,6 +1,7 @@
 module Fantomas.Tests.FSharpScriptTests
 
 open Fantomas
+open Fantomas.Extras
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper

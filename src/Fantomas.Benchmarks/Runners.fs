@@ -4,6 +4,7 @@ open BenchmarkDotNet.Attributes
 open System.IO
 open FSharp.Compiler.SourceCodeServices
 open Fantomas
+open Fantomas.Extras
 
 let sharedChecker = lazy FSharpChecker.Create()
 let config = Fantomas.FormatConfig.FormatConfig.Default

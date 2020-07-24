@@ -33,7 +33,3 @@ type CodeFormatter =
         CodeFormatterImpl.makeRange fileName startLine startCol endLine endCol
 
     static member GetVersion() = Version.fantomasVersion.Value
-
-    static member ReadConfiguration(fsharpFile) = CodeFormatterImpl.readConfiguration fsharpFile
-
-    static member TryReadConfiguration(fsharpFile) = CodeFormatterImpl.tryReadConfiguration fsharpFile
