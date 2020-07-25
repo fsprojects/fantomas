@@ -1,3 +1,7 @@
+### 4.0.0-beta-002 - 07/2020
+
+* Extract FakeHelpers and EditorConfig to Fantomas.Extras project [#986](https://github.com/fsprojects/fantomas/issues/986)
+
 ### 4.0.0-beta-001 - 07/2020
 
 * Update FCS to 36. [#899](https://github.com/fsprojects/fantomas/pull/899), [#961](https://github.com/fsprojects/fantomas/pull/961)

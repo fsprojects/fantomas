@@ -4,6 +4,7 @@ open Fantomas
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
+open Fantomas.Extras
 
 [<Test>]
 let ``module abbreviation``() =

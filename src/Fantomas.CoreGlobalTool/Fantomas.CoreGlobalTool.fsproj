@@ -4,16 +4,16 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <ToolCommandName>fantomas</ToolCommandName>
     <PackAsTool>True</PackAsTool>
-    <Version>4.0.0-beta-001</Version>
+    <Version>4.0.0-beta-002</Version>
     <AssemblyName>fantomas-tool</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-  <Import Project="..\netfx.props" />
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

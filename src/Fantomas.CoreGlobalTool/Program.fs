@@ -2,6 +2,7 @@ open System
 open System.IO
 open Fantomas
 open Fantomas.FormatConfig
+open Fantomas.Extras
 open Argu
 open System.Text
 
@@ -283,7 +284,7 @@ let main argv =
             else
                 printfn "Processing %s" inputFile
                 let content = File.ReadAllText inputFile
-                let config = CodeFormatter.ReadConfiguration(inputFile)
+                let config = EditorConfig.readConfiguration inputFile
                 stringToFile content inputFile config
 
         let processFolder inputFolder outputFolder =
