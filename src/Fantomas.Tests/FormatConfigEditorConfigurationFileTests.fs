@@ -3,6 +3,7 @@ module Fantomas.Tests.FormatConfigEditorConfigurationFileTests
 open System
 open Fantomas
 open Fantomas.FormatConfig
+open Fantomas.Extras
 open NUnit.Framework
 open System.IO
 open Fantomas.Tests.TestHelper
@@ -71,7 +72,7 @@ let ``single configuration file`` () =
     use fsharpFile = new FSharpFile(".fs")
 
     let config =
-        CodeFormatter.ReadConfiguration fsharpFile.FSharpFile
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     config == defaultConfig
 
@@ -88,7 +89,7 @@ let ``pointing to subfolder should return parent config file as well`` () =
     use fsharpFile = new FSharpFile(subFolder = subFolder)
 
     let config =
-        CodeFormatter.ReadConfiguration fsharpFile.FSharpFile
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     config.IndentSize == 2
 
@@ -106,7 +107,7 @@ let ``parent config should not be taking into account when child is root`` () =
     use fsharpFile = new FSharpFile(subFolder = subFolder)
 
     let config =
-        CodeFormatter.ReadConfiguration fsharpFile.FSharpFile
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     config.MaxRecordWidth
     == defaultConfig.MaxRecordWidth
@@ -121,7 +122,7 @@ let ``configuration file should not affect file extension`` () =
     use fsharpFile = new FSharpFile(".fsx")
 
     let config =
-        CodeFormatter.ReadConfiguration fsharpFile.FSharpFile
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     config.MaxLineLength
     == defaultConfig.MaxLineLength
@@ -141,7 +142,7 @@ fsharp_max_function_binding_width=40
     use fsharpFile = new FSharpFile()
 
     let config =
-        CodeFormatter.ReadConfiguration fsharpFile.FSharpFile
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     config.MaxIfThenElseShortWidth == 25
     config.MaxValueBindingWidth == 40
@@ -152,7 +153,7 @@ let ``non existing file should return defaults for readConfiguration`` () =
     use configFixture = new ConfigurationFile(defaultConfig)
 
     let config =
-        CodeFormatter.ReadConfiguration "bogus.fs"
+        EditorConfig.readConfiguration "bogus.fs"
 
     config == defaultConfig
 
@@ -165,7 +166,7 @@ let ``non existing file should return None for tryReadConfiguration`` () =
     use configFixture = new ConfigurationFile(defaultConfig)
 
     let config =
-        CodeFormatter.TryReadConfiguration "bogus.fs"
+        EditorConfig.tryReadConfiguration "bogus.fs"
 
     config == None
 
@@ -185,6 +186,12 @@ fsharp_indent_on_try_with=true
     use fsharpFile = new FSharpFile()
 
     let config =
-        CodeFormatter.ReadConfiguration fsharpFile.FSharpFile
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     config.IndentSize == 5
+
+[<Test>]
+let ``print default editorconfig settings`` () =
+    FormatConfig.Default
+    |> EditorConfig.configToEditorConfig
+    |> printfn "%s"

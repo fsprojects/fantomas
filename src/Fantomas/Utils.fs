@@ -122,10 +122,3 @@ module List =
         l |> List.takeWhile (fun x -> let (s',r) = f s x in s <- s'; r)
 
     let isNotEmpty l = (List.isEmpty >> not) l
-
-module Reflection =
-    open FSharp.Reflection
-    let inline getRecordFields x =
-        let names = FSharpType.GetRecordFields (x.GetType()) |> Seq.map (fun x -> x.Name)
-        let values = FSharpValue.GetRecordFields x
-        Seq.zip names values |> Seq.toArray

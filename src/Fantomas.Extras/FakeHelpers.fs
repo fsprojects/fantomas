@@ -1,4 +1,4 @@
-module Fantomas.FakeHelpers
+module Fantomas.Extras.FakeHelpers
 
 open System
 open System.IO
@@ -65,7 +65,7 @@ let formatContentAsync config (file: string) (originalContent: string) =
     }
 
 let formatFileAsync (file : string) =
-    let config = CodeFormatter.ReadConfiguration(file)
+    let config = EditorConfig.readConfiguration file
     let originalContent = File.ReadAllText file
     async {
         let! formatted = originalContent |> formatContentAsync config file

@@ -1,6 +1,6 @@
 #r "paket:
-nuget Fantomas 3.3.0
-nuget FSharp.Compiler.Service 34.1.0
+nuget Fantomas 4.0.0-alpha-014
+nuget FSharp.Compiler.Service 36.0.3
 nuget Fake.Core.Target //"
 #load "./.fake/script.fsx/intellisense.fsx"
 
@@ -10,18 +10,10 @@ open Fake.IO.Globbing.Operators
 open Fantomas
 open Fantomas.FormatConfig
 
-let fantomasConfig =
-    // look for fantomas-config.json in the current directory
-    match CodeFormatter.ReadConfiguration(Shell.pwd()) with
-    | Success c -> c
-    | _ ->
-        printfn "Cannot parse fantomas-config.json, using default"
-        FormatConfig.Default
-
 Target.create "CheckCodeFormat" (fun _ ->
     let result =
         !!"*.fs"
-        |> FakeHelpers.checkCode fantomasConfig
+        |> FakeHelpers.checkCode
         |> Async.RunSynchronously
 
     if result.IsValid then
@@ -35,7 +27,7 @@ Target.create "CheckCodeFormat" (fun _ ->
 
 Target.create "Format" (fun _ ->
     !!"*.fs"
-    |> FakeHelpers.formatCode fantomasConfig
+    |> FakeHelpers.formatCode
     |> Async.RunSynchronously
     |> printfn "Formatted files: %A")
 

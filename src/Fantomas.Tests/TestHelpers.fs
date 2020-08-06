@@ -4,6 +4,7 @@ open FsUnit
 open System
 open Fantomas.FormatConfig
 open Fantomas
+open Fantomas.Extras
 open FSharp.Compiler.Range
 open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.SyntaxTree

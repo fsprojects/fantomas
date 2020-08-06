@@ -1451,3 +1451,11 @@ let (|ElmishReactWithChildren|_|) e =
 
     | _ ->
         None
+
+let isIfThenElseWithYieldReturn e =
+    match e with
+    | SynExpr.IfThenElse(_, SynExpr.YieldOrReturn _, None, _ ,_, _,_)
+    | SynExpr.IfThenElse(_, SynExpr.YieldOrReturn _, Some (SynExpr.YieldOrReturn _), _ ,_, _,_)
+    | SynExpr.IfThenElse(_, SynExpr.YieldOrReturnFrom _, None, _ ,_, _,_)
+    | SynExpr.IfThenElse(_, SynExpr.YieldOrReturn _, Some (SynExpr.YieldOrReturnFrom _), _ ,_, _,_) -> true
+    | _ -> false

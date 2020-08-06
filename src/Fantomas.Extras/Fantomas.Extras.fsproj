@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>4.0.0-beta-002</Version>
+    <Description>Utility package for Fantomas</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="paket.references" />
+    <Compile Include="EditorConfig.fs" />
+    <Compile Include="FakeHelpers.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

@@ -1101,7 +1101,8 @@ and genExpr astContext synExpr =
         fun ctx ->
             // If an array or list has any form of line comments inside them, they cannot fit on a single line
             // check for any comments inside the range of the node
-            if (TriviaHelpers.``has line comments inside`` alNode.Range ctx.Trivia) then
+            if (TriviaHelpers.``has line comments inside`` alNode.Range ctx.Trivia)
+               || List.exists isIfThenElseWithYieldReturn xs then
                 multilineExpression ctx
             else
                 isShortExpression ctx.Config.MaxArrayOrListWidth shortExpression multilineExpression ctx
