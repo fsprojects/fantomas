@@ -1864,8 +1864,7 @@ and genExpr astContext synExpr =
     | DotNamedIndexedPropertySet(e, ident, e1, e2) ->
        genExpr astContext e -- "." -- ident +> genExpr astContext e1 -- " <- "  +> genExpr astContext e2
     | DotGet(e, (s,_)) ->
-        let exprF = genExpr { astContext with IsInsideDotGet = true }
-        addParenIfAutoNln e exprF -- (sprintf ".%s" s)
+        genExpr { astContext with IsInsideDotGet = true } e -- (sprintf ".%s" s)
     | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
 
     | SynExpr.Set(e1,e2, _) ->
