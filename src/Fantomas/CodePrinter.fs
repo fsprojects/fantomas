@@ -389,7 +389,7 @@ and genSigModuleDecl astContext node =
         +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genSigTypeDefn { astContext with IsFirstChild = false })
     | md ->
         failwithf "Unexpected module signature declaration: %O" md
-    |> genTrivia node.Range
+    |> genTriviaFor ["SynModuleSigDecl.Types"; "SynModuleSigDecl.NestedModule"; "SynModuleSigDecl.Open"] node.Range
 
 and genAccess (Access s) = !- s
 
@@ -2474,7 +2474,7 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
 
     | SigExceptionRepr(SigExceptionDefRepr(ats, px, ao, uc)) ->
         genExceptionBody astContext ats px ao uc
-    |> genTrivia range
+    |> genTriviaFor ["SynTypeDefnRepr.ObjectModel"] range
 
 and genSigSimpleRecord typeName tdr ms ao' fs astContext =
     typeName +> sepEq
@@ -3253,6 +3253,12 @@ and genTrivia (range: range) f ctx =
         f ctx
     else
         (enterNode range +> f +> leaveNode range) ctx
+
+and genTriviaFor (mainNodeNames: string list) (range: range) f ctx =
+    if List.isEmpty ctx.Trivia then
+        f ctx
+    else
+        (enterNodeFor mainNodeNames range +> f +> leaveNode range) ctx
 
 and infixOperatorFromTrivia range fallback (ctx: Context) =
     // by specs, section 3.4 https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=24&zoom=auto,-137,312

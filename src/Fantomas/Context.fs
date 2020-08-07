@@ -810,6 +810,14 @@ let private findTriviaMainNodeOrTokenOnEndFromRange nodes (range:range) =
         Trivia.isMainNode n && RangeHelpers.rangeEq n.Range range
         || Trivia.isToken n && RangeHelpers.rangeEndEq n.Range range)
 
+let private findTriviaMainNodeFromNameAndRange nodes ((mainNodesNames, range): string list * range) =
+    nodes
+    |> List.tryFind(fun n ->
+        match n.Type with
+        | MainNode(mn) ->
+            List.contains mn mainNodesNames && RangeHelpers.rangeEq n.Range range
+        | _ -> false)
+
 let private findTriviaTokenFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n -> Trivia.isToken n && RangeHelpers.rangeEq n.Range range)
@@ -830,6 +838,7 @@ let internal enterNodeWith f x (ctx: Context) =
 let internal enterNode (range: range) (ctx: Context) = enterNodeWith findTriviaMainNodeOrTokenOnStartFromRange range ctx
 let internal enterNodeToken (range: range) (ctx: Context) = enterNodeWith findTriviaTokenFromRange range ctx
 let internal enterNodeTokenByName (range: range) (tokenName:string) (ctx: Context) = enterNodeWith (findTriviaTokenFromName range) tokenName ctx
+let internal enterNodeFor (mainNodeNames: string list) (range: range) (ctx: Context) = enterNodeWith findTriviaMainNodeFromNameAndRange (mainNodeNames, range) ctx
 
 let internal leaveNodeWith f x (ctx: Context) =
     match f ctx.Trivia x with
