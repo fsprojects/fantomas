@@ -389,7 +389,7 @@ and genSigModuleDecl astContext node =
         +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genSigTypeDefn { astContext with IsFirstChild = false })
     | md ->
         failwithf "Unexpected module signature declaration: %O" md
-    |> genTriviaFor ["SynModuleSigDecl.Types"; "SynModuleSigDecl.NestedModule"; "SynModuleSigDecl.Open"] node.Range
+    |> genTrivia node.Range
 
 and genAccess (Access s) = !- s
 
@@ -2474,7 +2474,7 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
 
     | SigExceptionRepr(SigExceptionDefRepr(ats, px, ao, uc)) ->
         genExceptionBody astContext ats px ao uc
-    |> genTriviaFor ["SynTypeDefnRepr.ObjectModel"] range
+    |> genTriviaFor ["TypeDefnSig"] range
 
 and genSigSimpleRecord typeName tdr ms ao' fs astContext =
     typeName +> sepEq
