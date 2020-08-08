@@ -3220,23 +3220,6 @@ and genConst (c:SynConst) (r:range) =
     | SynConst.Unit ->
         enterNodeTokenByName r "LPAREN" +> !- "(" +> leaveNodeTokenByName r "LPAREN"
         +> enterNodeTokenByName r "RPAREN" +> !- ")" +> leaveNodeTokenByName r "RPAREN"
-//            fun (ctx: Context) ->
-//                let innerComments =
-//                    ctx.Trivia
-//                    |> List.tryFind (fun t ->
-//                        let rangeMatch = t.Range.StartLine = r.StartLine && t.Range.StartColumn = r.StartColumn
-//                        match rangeMatch, t.Type with
-//                        | true, Token({TokenInfo = ti}) when (ti.TokenName = "LPAREN") -> true
-//                        | _ -> false
-//                    )
-//                    |> Option.map (fun tv -> tv.ContentAfter |> List.choose(function | Comment(BlockComment(bc,_,_)) -> Some bc | _ -> None))
-//                    |> Option.defaultValue []
-//
-//                match innerComments with
-//                | [] -> !- "()"
-//                | comments ->
-//                    !- "(" +> !- (String.concat " " comments) +> !- ")"
-//                <| ctx
     | SynConst.Bool(b) -> !- (if b then "true" else "false")
     | SynConst.Byte(_)
     | SynConst.SByte(_)
