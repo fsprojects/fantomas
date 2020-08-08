@@ -51,11 +51,11 @@ type TriviaNodeType =
     | Token of Token
     
 type TriviaNode =
-  { Type: TriviaNodeType
-    ContentBefore: TriviaContent list
-    ContentItself: TriviaContent option
-    ContentAfter: TriviaContent list
-    Range: range }
+    { Type: TriviaNodeType
+      ContentBefore: TriviaContent list
+      ContentItself: TriviaContent option
+      ContentAfter: TriviaContent list
+      Range: range }
 
 type internal TriviaNodeAssigner(nodeType: TriviaNodeType, range: range, ?linesBetweenParent: int) =
     member this.Type = nodeType

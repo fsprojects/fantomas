@@ -760,35 +760,8 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
         (ifElse addNewline sepNln sepNone) +> !- s +> sepNln
     <| ctx
 
-let private removeNodeFromContext triviaNode (ctx: Context) =
-    let newNodes = List.filter (fun tn -> tn <> triviaNode) ctx.Trivia
-    { ctx with Trivia = newNodes }
-
 let internal printContentBefore triviaNode =
-    // Make sure content is not being printed twice.
-    let removeBeforeContentOfTriviaNode =
-        fun (ctx:Context) ->
-            let trivia =
-                ctx.Trivia
-                |> List.map (fun tn ->
-                    let contentBefore =
-                        tn.ContentBefore
-                        |> List.filter(fun cb ->
-                            match cb with
-                            | Keyword _
-                            | Number _
-                            | StringContent _
-                            | IdentOperatorAsWord _ ->
-                                true
-                            | _ -> false)
-                    if tn = triviaNode then
-                        { tn with ContentBefore = contentBefore }
-                    else
-                        tn
-                ) 
-            { ctx with Trivia = trivia }
-        
-    col sepNone triviaNode.ContentBefore printTriviaContent +> removeBeforeContentOfTriviaNode
+    col sepNone triviaNode.ContentBefore printTriviaContent
 
 let internal printContentAfter triviaNode =
     col sepNone triviaNode.ContentAfter printTriviaContent
@@ -842,13 +815,13 @@ let internal enterNodeFor (mainNodeNames: string list) (range: range) (ctx: Cont
 
 let internal leaveNodeWith f x (ctx: Context) =
     match f ctx.Trivia x with
-    | Some triviaNode ->
-        ((printContentAfter triviaNode) +> (removeNodeFromContext triviaNode)) ctx
+    | Some triviaNode -> printContentAfter triviaNode ctx
     | None -> ctx
 let internal leaveNode (range: range) (ctx: Context) = leaveNodeWith findTriviaMainNodeOrTokenOnEndFromRange range ctx
 let internal leaveNodeToken (range: range) (ctx: Context) = leaveNodeWith findTriviaTokenFromRange range ctx
 let internal leaveNodeTokenByName (range: range) (tokenName:string) (ctx: Context) = leaveNodeWith (findTriviaTokenFromName range) tokenName ctx
-    
+let internal leaveNodeFor (mainNodeNames: string list) (range: range) (ctx: Context) = leaveNodeWith findTriviaMainNodeFromNameAndRange (mainNodeNames, range) ctx
+
 let internal leaveEqualsToken (range: range) (ctx: Context) =
     ctx.Trivia
     |> List.filter(fun tn ->
@@ -860,8 +833,8 @@ let internal leaveEqualsToken (range: range) (ctx: Context) =
     |> List.tryHead
     |> fun tn ->
         match tn with
-        | Some({ ContentAfter = [TriviaContent.Comment(LineCommentAfterSourceCode(lineComment))] } as tn) ->
-            sepSpace +> !- lineComment +> removeNodeFromContext tn
+        | Some({ ContentAfter = [TriviaContent.Comment(LineCommentAfterSourceCode(lineComment))] }) ->
+            sepSpace +> !- lineComment
         | _ ->
             id
     <| ctx
@@ -877,8 +850,8 @@ let internal leaveLeftToken (tokenName: string) (range: range) (ctx: Context) =
     )
     |> fun tn ->
         match tn with
-        | Some({ ContentAfter = [TriviaContent.Comment(LineCommentAfterSourceCode(lineComment))] } as tn) ->
-            !- lineComment +> sepNln +> removeNodeFromContext tn
+        | Some({ ContentAfter = [TriviaContent.Comment(LineCommentAfterSourceCode(lineComment))] }) ->
+            !- lineComment +> sepNln
         | _ ->
             id
     <| ctx
@@ -900,14 +873,14 @@ let internal enterRightToken (tokenName: string) (range: range) (ctx: Context) =
     )
     |> fun tn ->
         match tn with
-        | Some({ ContentBefore = [TriviaContent.Comment(LineCommentOnSingleLine(lineComment))] } as tn) ->
+        | Some({ ContentBefore = [TriviaContent.Comment(LineCommentOnSingleLine(lineComment))] }) ->
             let spacesBeforeComment =
                 let braceSize = if tokenName = "RBRACK" then 1 else 2
                 let spaceAround = if ctx.Config.SpaceAroundDelimiter then 1 else 0
                 !- String.Empty.PadLeft(braceSize + spaceAround)
 
             let spaceAfterNewline = if ctx.Config.SpaceAroundDelimiter then sepSpace else sepNone
-            sepNln +> spacesBeforeComment +> !- lineComment +> sepNln +> spaceAfterNewline +> removeNodeFromContext tn
+            sepNln +> spacesBeforeComment +> !- lineComment +> sepNln +> spaceAfterNewline
         | _ ->
             id
     <| ctx
@@ -930,7 +903,7 @@ let private hasDirectiveBefore (trivia: TriviaContent list) =
         | _ -> false)
 
 let internal sepConsideringTriviaContentBefore sepF (range: range) ctx =
-    match findTriviaMainNodeFromRange ctx.Trivia range with
+    match findTriviaMainNodeOrTokenOnStartFromRange ctx.Trivia range with
     | Some({ ContentBefore = (Comment(BlockComment(_,false,_)))::_ }) ->
         sepF ctx
     | Some({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) ->
@@ -1045,8 +1018,8 @@ let internal beforeElseKeyword (fullIfRange: range) (elseRange: range) (ctx: Con
     )
     |> fun tn ->
         match tn with
-        | Some({ ContentBefore = [TriviaContent.Comment(LineCommentOnSingleLine(lineComment))] } as tn) ->
-            sepNln +> !- lineComment +> removeNodeFromContext tn
+        | Some({ ContentBefore = [TriviaContent.Comment(LineCommentOnSingleLine(lineComment))] }) ->
+            sepNln +> !- lineComment
         | _ ->
             id
     <| ctx

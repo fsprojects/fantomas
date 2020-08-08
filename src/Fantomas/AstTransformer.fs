@@ -1006,7 +1006,7 @@ module private Ast =
     and visitSynBindingReturnInfo(returnInfo: SynBindingReturnInfo): Node =
         match returnInfo with
         | SynBindingReturnInfo(typeName,range,attrs) ->
-            {Type = "ComponentInfo"
+            {Type = "SynBindingReturnInfo"
              Range = r range
              Properties = p []
              FsAstNode = returnInfo
