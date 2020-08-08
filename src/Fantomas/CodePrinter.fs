@@ -1125,7 +1125,6 @@ and genExpr astContext synExpr =
              +> sepCloseLFixed
              +> leaveNodeTokenByName synExpr.Range "RBRACK")
     | ArrayOrList(isArray, xs, _) as alNode ->
-        printfn "confused"
         let shortExpression =
             ifElse isArray sepOpenA sepOpenL
             +> col sepSemi xs (genExpr astContext)
