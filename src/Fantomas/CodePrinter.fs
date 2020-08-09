@@ -148,9 +148,9 @@ and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRe
     let namespaceFn = ifElse (s = "") (!- "global") (!- s)
     let namespaceIsGlobal = not moduleKind.IsModule && s = ""
 
-    let sep = 
-        if namespaceIsGlobal 
-        then sepNln +> sepNlnConsideringTriviaContentBefore node.Range 
+    let sep =
+        if namespaceIsGlobal
+        then sepNone
         else sepModuleAndFirstDecl
 
     let expr =
