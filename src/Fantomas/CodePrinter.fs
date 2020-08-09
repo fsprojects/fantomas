@@ -1314,7 +1314,7 @@ and genExpr astContext synExpr =
         fun (ctx: Context) ->
             let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
             let hasLineCommentAfterArrow =
-                findTriviaTokenFromName synExpr.Range ctx.Trivia "RARROW"
+                findTriviaTokenFromName "RARROW" synExpr.Range ctx
                 |> Option.isSome
 
             let expr =
@@ -1336,7 +1336,7 @@ and genExpr astContext synExpr =
         fun (ctx: Context) ->
             let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
             let hasLineCommentAfterArrow =
-                findTriviaTokenFromName synExpr.Range ctx.Trivia "RARROW"
+                findTriviaTokenFromName "RARROW" synExpr.Range ctx
                 |> Option.isSome
 
             let expr =

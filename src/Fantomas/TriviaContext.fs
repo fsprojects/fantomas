@@ -42,7 +42,7 @@ let firstNewlineOrComment (es: SynExpr list) (ctx: Context) =
 
 let triviaAfterArrow (range: range) (ctx: Context) =
     let hasCommentAfterArrow =
-        findTriviaTokenFromName range ctx.Trivia "RARROW"
+        findTriviaTokenFromName "RARROW" range ctx
         |> Option.bind (fun t ->
             t.ContentAfter
             |> List.tryFind (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
