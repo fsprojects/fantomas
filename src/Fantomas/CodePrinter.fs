@@ -180,7 +180,14 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds
             else
                 sepNlnForEmptyNamespace range +> sepNln
         | Some mdl ->
-            sepNlnConsideringTriviaContentBefore mdl.Range +> sepNln
+            match mdl with
+            | SynModuleSigDecl.Types _ ->
+                sepNlnConsideringTriviaContentBeforeFor "SynModuleSigDecl.Types" mdl.Range
+            | SynModuleSigDecl.Val _ ->
+                sepNlnConsideringTriviaContentBeforeFor "ValSpfn" mdl.Range
+            | _ -> sepNone
+            // sepNlnConsideringTriviaContentBefore mdl.Range +>
+            +> sepNln
 
     let genTriviaForLongIdent (f: Context -> Context) =
         match node with
@@ -317,7 +324,10 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                 // first attribute should not have a newline anyway
                 List.fold (fun (prevContentAfterPresent, prevExpr) (a: SynAttributeList) ->
                     let expr =
-                        ifElse prevContentAfterPresent sepNone (sepNlnConsideringTriviaContentBefore a.Range)
+                        ifElse
+                            prevContentAfterPresent
+                            sepNone
+                            (sepNlnConsideringTriviaContentBeforeFor "SynModuleDecl.Attributes" a.Range) // (sepNlnConsideringTriviaContentBefore a.Range)
                         +> ((col sepNln a.Attributes (genAttribute astContext)) |> genTrivia a.Range)
 
                     let hasContentAfter =
@@ -348,14 +358,16 @@ and genModuleDecl astContext (node: SynModuleDecl) =
             match List.tryHead bs with
             | Some b' ->
                 let r = b'.RangeOfBindingSansRhs
-                sepNln +> sepNlnConsideringTriviaContentBefore r
+                sepNln +> sepNlnConsideringTriviaContentBeforeFor "Binding" r
+                // +> sepNlnConsideringTriviaContentBefore r
             | None -> id
 
         genLetBinding { astContext with IsFirstChild = true } "let rec " b
         +> sepBAndBs
         +> colEx (fun (b': SynBinding) ->
                 let r = b'.RangeOfBindingSansRhs
-                sepNln +> sepNlnConsideringTriviaContentBefore r
+                sepNln +> sepNlnConsideringTriviaContentBeforeFor "Binding" r
+                // +> sepNlnConsideringTriviaContentBefore r
             ) bs (fun andBinding -> enterNodeFor "Binding" andBinding.RangeOfBindingSansRhs
                                     +> genLetBinding { astContext with IsFirstChild = false } "and " andBinding)
 
@@ -378,11 +390,12 @@ and genModuleDecl astContext (node: SynModuleDecl) =
     | Types(t::ts) ->
         let sepTs =
             match List.tryHead ts with
-            | Some tsh -> sepNln +> sepNlnConsideringTriviaContentBefore tsh.Range
+            | Some _ -> sepNone // +> sepNlnConsideringTriviaContentBefore tsh.Range
             | None -> rep 2 sepNln
 
         genTypeDefn { astContext with IsFirstChild = true } t
-        +> colPreEx sepTs (fun (ty: SynTypeDefn) -> sepNln +> sepNlnConsideringTriviaContentBefore ty.Range) ts (genTypeDefn { astContext with IsFirstChild = false })
+        +> colPreEx sepTs (fun (ty: SynTypeDefn) ->
+                            sepNln +> sepNlnConsideringTriviaContentBeforeFor "TypeDefn" ty.Range (* +> sepNlnConsideringTriviaContentBefore ty.Range *)) ts (genTypeDefn { astContext with IsFirstChild = false })
     | md ->
         failwithf "Unexpected module declaration: %O" md
     //|> genTrivia node.Range
@@ -1592,8 +1605,16 @@ and genExpr astContext synExpr =
 
         let sepNlnBeforeExpr =
             match e with
-            | SynExpr.Sequential(_,_,e1,_,_) -> sepNlnConsideringTriviaContentBefore e1.Range
-            | _ -> (sepNlnConsideringTriviaContentBefore e.Range)
+            | SynExpr.Sequential(_,_, (SynExpr.App _ as app),_,_) ->
+                sepNlnConsideringTriviaContentBeforeFor "SynExpr.App" app.Range
+            | SynExpr.YieldOrReturn _ -> sepNlnConsideringTriviaContentBeforeFor "SynExpr.YieldOrReturn" e.Range
+            | SynExpr.IfThenElse _ -> sepNlnConsideringTriviaContentBeforeFor "SynExpr.IfThenElse" e.Range
+            | SynExpr.LetOrUseBang _ -> sepNlnConsideringTriviaContentBeforeFor "SynExpr.LetOrUseBang" e.Range
+            | SynExpr.Const _ ->  sepNlnConsideringTriviaContentBeforeFor "SynExpr.Const" e.Range
+            | SynExpr.Lambda _ -> sepNlnConsideringTriviaContentBeforeFor "SynExpr.Lambda" e.Range
+            | SynExpr.Ident _ -> sepNlnConsideringTriviaContentBeforeFor "SynExpr.Ident" e.Range
+            | SynExpr.App _ -> sepNlnConsideringTriviaContentBeforeFor "SynExpr.App" e.Range // (sepNlnConsideringTriviaContentBefore e.Range)
+            | _ -> sepNln
 
         atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") sepNlnBeforeExpr  +> genExpr astContext e)
 
@@ -2159,7 +2180,7 @@ and genLetOrUseList astContext expr =
 
         let newlineAfter ctx =
             match List.tryHead rest with
-            | Some (_,lb) -> sepNlnConsideringTriviaContentBefore lb.RangeOfBindingSansRhs ctx
+            | Some (_,lb) -> sepNlnConsideringTriviaContentBeforeFor "Binding" lb.RangeOfBindingSansRhs ctx // sepNlnConsideringTriviaContentBefore lb.RangeOfBindingSansRhs ctx
             | None -> sepNln ctx
 
         // Call trivia manually before genLetBinding
@@ -3117,7 +3138,8 @@ and genPat astContext pat =
     | PatAttrib(p, ats) -> genOnelinerAttributes astContext ats +> genPat astContext p
     | PatOr(p1, p2) ->
         genPat astContext p1
-        +> sepNlnConsideringTriviaContentBefore pat.Range
+        // +> sepNlnConsideringTriviaContentBefore pat.Range
+        +> sepNln
         +> enterNodeTokenByName pat.Range "BAR" -- "| "
         +> genPat astContext p2
     | PatAnds(ps) -> col (!- " & ") ps (genPat astContext)

@@ -942,17 +942,17 @@ let internal sepConsideringTriviaContentBefore sepF (range: range) ctx =
         range
         ctx
 
-let internal sepConsideringTriviaContentBeforeForMainNodes sepF (mainNodeNames: string list) (range: range) (ctx: Context) =
+let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: string) (range: range) (ctx: Context) =
     let findNode ctx range =
-        mainNodeNames
-        |> List.collect (fun name -> Map.tryFind name ctx.TriviaMainNodes |> Option.defaultValue [])
+        Map.tryFind mainNodeName ctx.TriviaMainNodes
+        |> Option.defaultValue []
         |> List.tryFind (fun { ContentBefore = cb; Range = r } -> List.isNotEmpty cb && RangeHelpers.rangeEq r range)
     sepConsideringTriviaContentBeforeBy findNode sepF range ctx
 
 let internal sepNlnConsideringTriviaContentBefore (range:range) = sepConsideringTriviaContentBefore sepNln range
 
-let internal sepNlnConsideringTriviaContentBeforeFor (mainNodes: string list) (range:range) =
-    sepConsideringTriviaContentBeforeForMainNodes sepNln mainNodes range
+let internal sepNlnConsideringTriviaContentBeforeFor (mainNode: string) (range:range) =
+    sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
 
 let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range) (attributeRanges: range seq) ctx =
     seq {
@@ -981,8 +981,9 @@ let internal sepNlnForEmptyNamespace (namespaceRange:range) ctx =
 
 let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
     match firstMemberRange with
-    | Some range when (ctx.Config.NewlineBetweenTypeDefinitionAndMembers) ->
-        sepNlnConsideringTriviaContentBefore range ctx
+    | Some _range when (ctx.Config.NewlineBetweenTypeDefinitionAndMembers) ->
+        sepNln ctx
+        // sepNlnConsideringTriviaContentBefore range ctx
     | _ ->
         ctx
 
