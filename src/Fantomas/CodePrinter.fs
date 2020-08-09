@@ -201,7 +201,7 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds
 
     // Don't generate trivia before in case the SynModuleOrNamespaceKind is a DeclaredNamespace
     // The range of the namespace is not correct, see https://github.com/dotnet/fsharp/issues/7680
-    ifElse moduleKind.IsModule (enterNode range) sepNone +>
+    ifElse moduleKind.IsModule (enterNodeFor "SynModuleOrNamespaceSig.NamedModule" range) sepNone +>
     genPreXmlDoc px
     +> genAttributes astContext ats
     +> ifElse (moduleKind = AnonModule)
@@ -1285,7 +1285,7 @@ and genExpr astContext synExpr =
                 enterNodeFor "Binding" binding.RangeOfBindingSansRhs
                 +> genLetBinding astContext prefix binding
             | LetOrUseBangStatement(isUse, pat, expr, r) ->
-                enterNode r // print Trivia before entire LetBang expression
+                enterNodeFor "SynExpr.LetOrUseBang" r // print Trivia before entire LetBang expression
                 +> ifElse isUse (!- "use! ") (!- "let! ")
                 +> genPat astContext pat -- " = "
                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
@@ -2379,7 +2379,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
         let bodyExpr ctx =
             if (List.isEmpty ms) then
-                (isShortExpression ctx.Config.MaxRecordWidth (enterNode tdr.Range +> shortExpression) multilineExpression
+                (isShortExpression ctx.Config.MaxRecordWidth (enterNodeFor "SynTypeDefnSimpleRepr.Record" tdr.Range +> shortExpression) multilineExpression
                 +> leaveNode tdr.Range // this will only print something when there is trivia after } in the short expression
                 // Yet it cannot be part of the short expression otherwise the multiline expression would be triggered unwillingly.
                 ) ctx
