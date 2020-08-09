@@ -985,11 +985,43 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range)
     |> Seq.exists (fun ({ ContentBefore = contentBefore }) -> hasPrintableContent contentBefore)
     |> fun hasContentBefore ->
         if hasContentBefore then ctx else sepNln ctx
-        
-let internal sepNlnForEmptyModule (moduleRange:range) ctx =    
-    match findTriviaMainNodeOrTokenOnStartFromRange ctx.Trivia moduleRange with
-    | Some node when hasPrintableContent node.ContentBefore || hasPrintableContent node.ContentAfter ->
-        ctx
+
+let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
+    (mainNode: string)
+    (ownRange:range)
+    (attributeRanges: range seq)
+    (ctx: Context)
+    =
+    let triviaNode =
+        match Map.tryFind mainNode ctx.TriviaMainNodes with
+        | Some triviaNodes ->
+            List.tryFind (fun { Range = r; ContentBefore = cb } -> hasPrintableContent cb && RangeHelpers.rangeEq r ownRange)
+                triviaNodes
+        | None -> None
+
+    let attributeNode =
+        match Map.tryFind "SynAttributeList" ctx.TriviaMainNodes with
+        | Some attributeNodes ->
+            List.tryFind (fun { Range = r; ContentBefore = cb } -> hasPrintableContent cb
+                                                                   && Seq.exists (fun range -> RangeHelpers.rangeEq r range) attributeRanges)
+                attributeNodes
+        | None -> None
+
+    if Option.isSome triviaNode || Option.isSome attributeNode
+    then ctx
+    else sepNln ctx
+
+let internal sepNlnForEmptyModule (mainNode:string) (moduleRange:range) (ctx: Context) =
+    match Map.tryFind mainNode ctx.TriviaMainNodes with
+    | Some nodes ->
+        if List.exists (fun tn -> RangeHelpers.rangeEq tn.Range moduleRange
+                                  && (hasPrintableContent tn.ContentBefore || hasPrintableContent tn.ContentAfter)) nodes then
+            ctx
+        else
+            sepNln ctx
+//    match findTriviaMainNodeOrTokenOnStartFromRange ctx.Trivia moduleRange with
+//    | Some node when hasPrintableContent node.ContentBefore || hasPrintableContent node.ContentAfter ->
+//        ctx
     | _ ->
         sepNln ctx
 

@@ -129,12 +129,13 @@ and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRe
         match firstDecl with
         | None ->
             if moduleKind.IsModule then
-                sepNlnForEmptyModule node.Range +> sepNln
+                sepNlnForEmptyModule "SynModuleOrNamespace.NamedModule" node.Range +> sepNln
             else
                 sepNlnForEmptyNamespace node.Range +> sepNln
         | Some mdl ->
-            let attrRanges = getRangesFromAttributesFromModuleDeclaration mdl
-            sepNlnConsideringTriviaContentBeforeWithAttributes mdl.Range attrRanges +> sepNln
+            let _attrRanges = getRangesFromAttributesFromModuleDeclaration mdl
+            // sepNlnConsideringTriviaContentBeforeWithAttributes mdl.Range attrRanges +> sepNln
+            sepNln
 
     let genTriviaForLongIdent (f: Context -> Context) =
         match node with
@@ -176,7 +177,7 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds
         match firstDecl with
         | None ->
             if moduleKind.IsModule then
-                sepNlnForEmptyModule range +> rep 2 sepNln
+                sepNlnForEmptyModule "SynModuleOrNamespaceSig.NamedModule" range +> rep 2 sepNln
             else
                 sepNlnForEmptyNamespace range +> sepNln
         | Some mdl ->
@@ -218,8 +219,8 @@ and genModuleDeclList astContext e =
             let sepModuleDecl =
                 match List.tryHead ys with
                 | Some ysh ->
-                    let attrs = getRangesFromAttributesFromModuleDeclaration ysh
-                    sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes ysh.Range attrs
+                    let _attrs = getRangesFromAttributesFromModuleDeclaration ysh
+                    sepNln // +> sepNlnConsideringTriviaContentBeforeWithAttributes ysh.Range attrs
                 | None -> rep 2 sepNln
 
             (col sepNln xs (fun mdl -> enterNodeFor "SynModuleDecl.Open" mdl.Range +> genModuleDecl astContext mdl) +> sepModuleDecl +> genModuleDeclList astContext ys)
@@ -231,7 +232,14 @@ and genModuleDeclList astContext e =
                 match List.tryHead rest with
                 | Some rm ->
                   let attrs = getRangesFromAttributesFromModuleDeclaration rm
-                  sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes rm.Range attrs
+                  sepNln // +> sepNlnConsideringTriviaContentBeforeWithAttributes rm.Range attrs
+                  +> (match rm with
+                      | SynModuleDecl.DoExpr _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor "SynModuleDecl.DoExpr" rm.Range attrs
+                      | SynModuleDecl.Types _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor "SynModuleDecl.Types" rm.Range attrs
+                      | SynModuleDecl.NestedModule _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor "SynModuleDecl.NestedModule" rm.Range attrs
+                      | SynModuleDecl.Let _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor "SynModuleDecl.Let" rm.Range attrs
+                      | SynModuleDecl.Open _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor "SynModuleDecl.Open" rm.Range attrs
+                      | _ -> sepNln)
                 | None -> sepNone
             expr ctx
 
@@ -274,7 +282,7 @@ and genSigModuleDeclList astContext node =
             match List.tryHead ys with
             | Some hs ->
                 let attrs = getRangesFromAttributesFromSynModuleSigDeclaration hs
-                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes hs.Range attrs
+                sepNln // +> sepNlnConsideringTriviaContentBeforeWithAttributes hs.Range attrs
             | None ->
                 rep 2 sepNln
 
@@ -297,7 +305,7 @@ and genSigModuleDeclList astContext node =
                 match List.tryHead ys with
                 | Some ysh ->
                     let attributeRanges = getRangesFromAttributesFromSynModuleSigDeclaration ysh
-                    sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes ysh.Range attributeRanges
+                    sepNln // +> sepNlnConsideringTriviaContentBeforeWithAttributes ysh.Range attributeRanges
                 | None -> rep 2 sepNln
             col sepNln xs (genSigModuleDecl astContext) +> sepXsYs +> genSigModuleDeclList astContext ys
 
@@ -306,7 +314,7 @@ and genSigModuleDeclList astContext node =
         | [] ->
             colEx (fun (smd: SynModuleSigDecl) ->
                 let ranges = getRangesFromAttributesFromSynModuleSigDeclaration smd
-                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes smd.Range ranges
+                sepNln // +> sepNlnConsideringTriviaContentBeforeWithAttributes smd.Range ranges
             ) xs (genSigModuleDecl astContext)
 
         | _ -> col (rep 2 sepNln) xs (genSigModuleDecl astContext) +> rep 2 sepNln +> genSigModuleDeclList astContext ys
@@ -694,7 +702,7 @@ and genMemberBindingList astContext node =
             match List.tryHead rest with
             | Some rm ->
                 let attrs = getRangesFromAttributesFromSynBinding rm
-                sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes rm.RangeOfBindingSansRhs attrs
+                sepNln // +> sepNlnConsideringTriviaContentBeforeWithAttributes rm.RangeOfBindingSansRhs attrs
             | None -> sepNone
         expr ctx
 
@@ -2937,7 +2945,7 @@ and genMemberDefnList astContext nodes =
         let m = fst gs
         let attrs = getRangesFromAttributesFromSynBinding (fst gs)
 
-        sepNlnConsideringTriviaContentBeforeWithAttributes m.RangeOfBindingSansRhs attrs +>
+        sepNlnConsideringTriviaContentBeforeWithAttributesFor "SynMemberDefn.Member" m.RangeOfBindingSansRhs attrs +> // sepNlnConsideringTriviaContentBeforeWithAttributes m.RangeOfBindingSansRhs attrs +>
         (expressionFitsOnRestOfLine
             (genPropertyWithGetSet astContext gs)
             (sepNlnBeforeMultilineConstruct m.RangeOfBindingSansRhs attrs +> genPropertyWithGetSet astContext gs +> onlyIf (List.isNotEmpty rest) sepNln))
@@ -2947,15 +2955,21 @@ and genMemberDefnList astContext nodes =
     | m::rest ->
         let attrs = getRangesFromAttributesFromSynMemberDefinition m
 
-        sepNlnConsideringTriviaContentBeforeWithAttributes m.Range attrs
-        +> fun ctx ->
-                match m with
-                | SynMemberDefn.Member _ -> enterNodeFor "SynMemberDefn.Member" m.Range ctx
-                | SynMemberDefn.AbstractSlot _ -> enterNodeFor "SynMemberDefn.AbstractSlot" m.Range ctx
-                | SynMemberDefn.LetBindings _ -> enterNodeFor "SynMemberDefn.LetBindings" m.Range ctx
-                | SynMemberDefn.ValField _ -> enterNodeFor "SynMemberDefn.ValField" m.Range ctx
-                | SynMemberDefn.Interface _ -> enterNodeFor "SynMemberDefn.Interface" m.Range ctx
-                | _ -> ctx
+        let mainNode =
+            match m with
+            | SynMemberDefn.Member _ -> Some "SynMemberDefn.Member"
+            | SynMemberDefn.AbstractSlot _ -> Some "SynMemberDefn.AbstractSlot"
+            | SynMemberDefn.LetBindings _ -> Some "SynMemberDefn.LetBindings"
+            | SynMemberDefn.ValField _ -> Some "SynMemberDefn.ValField"
+            | SynMemberDefn.Interface _ -> Some "SynMemberDefn.Interface"
+            | _ -> None
+        // sepNlnConsideringTriviaContentBeforeWithAttributes m.Range attrs
+
+        (match mainNode with
+         | Some mn ->
+             (sepNlnConsideringTriviaContentBeforeWithAttributesFor mn m.Range attrs
+              +> enterNodeFor mn m.Range)
+         | None -> sepNln)
 //        +> enterNodeFor
 //               [ "SynMemberDefn.Member"
 //                 "SynMemberDefn.AbstractSlot"
