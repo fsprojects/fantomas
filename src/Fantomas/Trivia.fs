@@ -1,5 +1,6 @@
 module internal Fantomas.Trivia
 
+open FSharp.Compiler.SourceCodeServices
 open Fantomas
 open Fantomas.AstTransformer
 open Fantomas.TriviaTypes
@@ -103,10 +104,25 @@ let private findMemberDefnMemberNodeOnLine (nodes: TriviaNodeAssigner list) line
         | _ -> false)
 
 let private findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner list) line column =
-    nodes
-    |> List.tryFindBack (fun tn ->
-        let range = tn.Range
-        range.StartLine <= line && range.StartColumn <= column)
+    let node =
+        nodes
+        |> List.tryFindBack (fun tn ->
+            let range = tn.Range
+            range.StartLine <= line && range.StartColumn <= column)
+
+    match node with
+    | Some tokenNode ->
+        match tokenNode.Type with
+        | Token(t) when (t.TokenInfo.CharClass = FSharpTokenCharKind.Operator) ->
+            // pick the matching ident instead of the token
+            nodes
+            |> List.tryFind (fun tn ->
+                match tn.Type with
+                | MainNode(mn) when (mn = "SynExpr.Ident") -> tn.Range.StartLine = t.LineNumber && tn.Range.StartColumn = tn.Range.StartColumn
+                | _ -> false)
+        | _ -> node
+    | _ -> node
+
 
 let private findNodeBeforeLineFromStart (nodes: TriviaNodeAssigner list) line =
     nodes

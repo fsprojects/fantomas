@@ -823,7 +823,6 @@ let internal enterNodeWith f x (ctx: Context) =
     | Some triviaNode ->
         (printContentBefore triviaNode) ctx
     | None -> ctx
-let internal enterNode (range: range) (ctx: Context) = enterNodeWith findTriviaMainNodeOrTokenOnStartFromRange range ctx
 let internal enterNodeToken (range: range) (ctx: Context) = enterNodeWith findTriviaTokenFromRange range ctx
 let internal enterNodeTokenByName (range: range) (tokenName:string) (ctx: Context) =
     match findTriviaTokenFromName tokenName range ctx with
@@ -848,7 +847,6 @@ let internal leaveNodeWith f x (ctx: Context) =
     match f ctx.Trivia x with
     | Some triviaNode -> printContentAfter triviaNode ctx
     | None -> ctx
-let internal leaveNode (range: range) (ctx: Context) = leaveNodeWith findTriviaMainNodeOrTokenOnEndFromRange range ctx
 let internal leaveNodeToken (range: range) (ctx: Context) = leaveNodeWith findTriviaTokenFromRange range ctx
 let internal leaveNodeTokenByName (range: range) (tokenName:string) (ctx: Context) =
     match findTriviaTokenFromName tokenName range ctx with

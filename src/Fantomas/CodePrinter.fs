@@ -208,7 +208,7 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds
             sepNone
             (genTriviaForLongIdent (moduleOrNamespace +> opt sepSpace ao genAccess -- s +> sepModuleAndFirstDecl))
     +> genSigModuleDeclList astContext mds
-    +> leaveNode range
+    +> leaveNodeFor "SynModuleOrNamespaceSig.NamedModule" range
 
 and genModuleDeclList astContext e =
     match e with
@@ -2233,7 +2233,8 @@ and genInfixApps astContext synExprs =
 and genInfixApp s (opE: SynExpr) e astContext =
     if (noBreakInfixOps.Contains s) then
         (sepSpace
-         +> node opE.Range s
+         genTriviaFor "SynExpr.Ident" opE.Range (!- s)
+         // +> node opE.Range s
          +> (fun ctx ->
                     let isEqualOperator =
                         match opE with
@@ -2251,11 +2252,11 @@ and genInfixApp s (opE: SynExpr) e astContext =
             | ("?", SynExpr.Ident(Ident("op_Dynamic")), SynExpr.Ident(_)) ->
                 sepOpenT +> f +> sepCloseT
             | _ -> f
-        (node opE.Range s +> autoNlnIfExpressionExceedsPageWidth (wrapExpr (genExpr astContext e)))
+        ( (* node opE.Range s *) genTriviaFor "SynExpr.Ident" opE.Range (!- s) +> autoNlnIfExpressionExceedsPageWidth (wrapExpr (genExpr astContext e)))
     else
         (fun ctx ->
             let hasLineCommentAfterInfix = hasLineCommentAfterInfix opE.Range ctx
-            (node opE.Range s
+            (genTriviaFor "SynExpr.Ident" opE.Range (!- s)
              +> ifElse hasLineCommentAfterInfix sepNln sepSpace
              +> genExpr astContext e) ctx)
 
@@ -2382,7 +2383,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         let bodyExpr ctx =
             if (List.isEmpty ms) then
                 (isShortExpression ctx.Config.MaxRecordWidth (enterNodeFor "SynTypeDefnSimpleRepr.Record" tdr.Range +> shortExpression) multilineExpression
-                +> leaveNode tdr.Range // this will only print something when there is trivia after } in the short expression
+                +> leaveNodeFor "SynTypeDefnSimpleRepr.Record" tdr.Range // this will only print something when there is trivia after } in the short expression
                 // Yet it cannot be part of the short expression otherwise the multiline expression would be triggered unwillingly.
                 ) ctx
             else

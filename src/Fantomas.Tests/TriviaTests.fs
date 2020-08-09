@@ -154,10 +154,10 @@ let ``block comment added to trivia`` () =
     let triviaNodes =
         toTrivia source
         |> List.head
-    
+
     match triviaNodes with
-    | [{ ContentAfter = [Comment(BlockComment(comment,_,_))]
-         Type = Token { Content = "=" } }; {ContentItself = Some(Number("9"))}] ->
+    | [{ ContentBefore = [Comment(BlockComment(comment,_,_))]
+         ContentItself = Some(Number("9")) }] ->
         comment == "(* meh *)"
     | _ ->
         failwith "Expected block comment"
