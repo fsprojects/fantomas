@@ -1070,19 +1070,23 @@ let internal genTriviaBeforeClausePipe (rangeOfClause:range) ctx =
     <| ctx
     
 let internal hasLineCommentAfterInfix (rangePlusInfix: range) (ctx: Context) =
-    findTriviaMainNodeFromRange ctx.Trivia rangePlusInfix
-    |> Option.bind (fun trivia ->
-        trivia.ContentAfter
-        |> List.map (fun ca ->
-            match ca with
-            | TriviaContent.Comment(Comment.LineCommentAfterSourceCode(comment)) -> Some comment
-            | _ -> None
+    match Map.tryFind "SynExpr.Ident" ctx.TriviaMainNodes with
+    | Some triviaNodes ->
+        triviaNodes
+        |> List.tryFind (fun { ContentAfter = ca; Range = r } -> List.isNotEmpty ca && RangeHelpers.rangeEq r rangePlusInfix)
+        |> Option.bind (fun trivia ->
+            trivia.ContentAfter
+            |> List.map (fun ca ->
+                match ca with
+                | TriviaContent.Comment(Comment.LineCommentAfterSourceCode(comment)) -> Some comment
+                | _ -> None
+            )
+            |> List.choose id
+            |> List.tryHead
         )
-        |> List.choose id
-        |> List.tryHead
-    )
-    |> Option.map (fun _ -> true)
-    |> Option.defaultValue false
+        |> Option.map (fun _ -> true)
+        |> Option.defaultValue false
+    | _ -> false
 
 let internal lastLineOnlyContains characters (ctx: Context) =
     let lastLine =
