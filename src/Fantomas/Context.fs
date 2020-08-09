@@ -927,15 +927,32 @@ let private hasDirectiveBefore (trivia: TriviaContent list) =
         | Directive(_) -> true
         | _ -> false)
 
-let internal sepConsideringTriviaContentBefore sepF (range: range) ctx =
-    match findTriviaMainNodeOrTokenOnStartFromRange ctx.Trivia range with
+let private sepConsideringTriviaContentBeforeBy (findNode: Context -> range -> TriviaNode option) (sepF: Context -> Context) (range: range) (ctx: Context) =
+    match findNode ctx range with
     | Some({ ContentBefore = (Comment(BlockComment(_,false,_)))::_ }) ->
         sepF ctx
     | Some({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) ->
         ctx
     | _ -> sepF ctx
 
+let internal sepConsideringTriviaContentBefore sepF (range: range) ctx =
+    sepConsideringTriviaContentBeforeBy
+        (fun ctx -> findTriviaMainNodeOrTokenOnStartFromRange ctx.Trivia)
+        sepF
+        range
+        ctx
+
+let internal sepConsideringTriviaContentBeforeForMainNodes sepF (mainNodeNames: string list) (range: range) (ctx: Context) =
+    let findNode ctx range =
+        mainNodeNames
+        |> List.collect (fun name -> Map.tryFind name ctx.TriviaMainNodes |> Option.defaultValue [])
+        |> List.tryFind (fun { ContentBefore = cb; Range = r } -> List.isNotEmpty cb && RangeHelpers.rangeEq r range)
+    sepConsideringTriviaContentBeforeBy findNode sepF range ctx
+
 let internal sepNlnConsideringTriviaContentBefore (range:range) = sepConsideringTriviaContentBefore sepNln range
+
+let internal sepNlnConsideringTriviaContentBeforeFor (mainNodes: string list) (range:range) =
+    sepConsideringTriviaContentBeforeForMainNodes sepNln mainNodes range
 
 let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range) (attributeRanges: range seq) ctx =
     seq {
