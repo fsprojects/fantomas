@@ -976,16 +976,6 @@ let internal sepNlnConsideringTriviaContentBefore (range:range) = sepConsidering
 let internal sepNlnConsideringTriviaContentBeforeFor (mainNode: string) (range:range) =
     sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
 
-let internal sepNlnConsideringTriviaContentBeforeWithAttributes (ownRange:range) (attributeRanges: range seq) ctx =
-    seq {
-        yield ownRange
-        yield! attributeRanges
-    }
-    |> Seq.choose (findTriviaMainNodeFromRange ctx.Trivia)
-    |> Seq.exists (fun ({ ContentBefore = contentBefore }) -> hasPrintableContent contentBefore)
-    |> fun hasContentBefore ->
-        if hasContentBefore then ctx else sepNln ctx
-
 let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
     (mainNode: string)
     (ownRange:range)
@@ -1197,7 +1187,7 @@ let private (|CommentOrDefineEvent|_|) we =
 // type Foo =
 //     .
 // => no need for a newline here
-let internal sepNlnBeforeMultilineConstruct range rangeOfAttributes ctx =
+let internal sepNlnBeforeMultilineConstruct (mainNode: string) range rangeOfAttributes ctx =
     let existingNewlines =
         ctx.WriterEvents
         |> Queue.rev
@@ -1219,4 +1209,5 @@ let internal sepNlnBeforeMultilineConstruct range rangeOfAttributes ctx =
         ctx // previous construct was multiline so no need to add any extra newlines
     else
         // previous construct was single line so add extra newline
-        sepNlnConsideringTriviaContentBeforeWithAttributes range rangeOfAttributes ctx
+        // sepNlnConsideringTriviaContentBeforeWithAttributes range rangeOfAttributes ctx
+        sepNlnConsideringTriviaContentBeforeWithAttributesFor mainNode range rangeOfAttributes ctx

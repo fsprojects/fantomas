@@ -254,19 +254,28 @@ and genModuleDeclList astContext e =
 //              "SynModuleDecl.Open"
 //              "SynModuleDecl.Attributes" ]
 //            m.Range
-        (match m with
-         | SynModuleDecl.Exception _ -> enterNodeFor "SynModuleDecl.Exception" m.Range
-         | SynModuleDecl.Let _ -> enterNodeFor "SynModuleDecl.Let" m.Range
-         | SynModuleDecl.Types _ -> enterNodeFor "SynModuleDecl.Types" m.Range
-         | SynModuleDecl.NestedModule _ -> enterNodeFor "SynModuleDecl.NestedModule" m.Range
-         | SynModuleDecl.DoExpr _ -> enterNodeFor "SynModuleDecl.DoExpr" m.Range
-         | SynModuleDecl.Open _ -> enterNodeFor "SynModuleDecl.Open" m.Range
-         | SynModuleDecl.Attributes _ -> enterNodeFor "SynModuleDecl.Attributes" m.Range
-         | _ -> id)
+
+        let mainNodeName =
+            match m with
+            | SynModuleDecl.Let _ -> Some "SynModuleDecl.Let"
+            | SynModuleDecl.Exception _ -> Some "SynModuleDecl.Exception"
+            | SynModuleDecl.Types _ -> Some "SynModuleDecl.Types"
+            | SynModuleDecl.NestedModule _ -> Some "SynModuleDecl.NestedModule"
+            | SynModuleDecl.DoExpr _ -> Some "SynModuleDecl.DoExpr"
+            | SynModuleDecl.Open _ -> Some "SynModuleDecl.Open"
+            | SynModuleDecl.Attributes _ -> Some "SynModuleDecl.Attributes"
+            | _ -> None
+
+        (match mainNodeName with
+         | Some mn -> enterNodeFor mn m.Range
+         | None -> id)
         +> leadingExpressionIsMultiline
                 (expressionFitsOnRestOfLine
                      (genModuleDecl astContext m)
-                     (sepNlnBeforeMultilineConstruct m.Range attrs +> genModuleDecl astContext m +> newlineAfterMultiline))
+                     (match mainNodeName with
+                      | Some mn -> sepNlnBeforeMultilineConstruct mn m.Range attrs
+                      | None -> sepNln
+                      +> genModuleDecl astContext m +> newlineAfterMultiline))
                 (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) sepNln)
 
         +> genModuleDeclList astContext rest
@@ -2197,7 +2206,7 @@ and genLetOrUseList astContext expr =
         +> (leadingExpressionIsMultiline
                 (expressionFitsOnRestOfLine
                     (genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
-                    (sepNlnBeforeMultilineConstruct x.RangeOfBindingSansRhs attrs
+                    (sepNlnBeforeMultilineConstruct "Binding" x.RangeOfBindingSansRhs attrs
                      +> genLetBinding { astContext with IsFirstChild = p <> "and" } p x
                      +> onlyIf (List.isNotEmpty rest) sepNln
                      +> newlineAfter))
@@ -2948,7 +2957,7 @@ and genMemberDefnList astContext nodes =
         sepNlnConsideringTriviaContentBeforeWithAttributesFor "SynMemberDefn.Member" m.RangeOfBindingSansRhs attrs +> // sepNlnConsideringTriviaContentBeforeWithAttributes m.RangeOfBindingSansRhs attrs +>
         (expressionFitsOnRestOfLine
             (genPropertyWithGetSet astContext gs)
-            (sepNlnBeforeMultilineConstruct m.RangeOfBindingSansRhs attrs +> genPropertyWithGetSet astContext gs +> onlyIf (List.isNotEmpty rest) sepNln))
+            (sepNlnBeforeMultilineConstruct "SynMemberDefn.Member" m.RangeOfBindingSansRhs attrs +> genPropertyWithGetSet astContext gs +> onlyIf (List.isNotEmpty rest) sepNln))
 
         +> genMemberDefnList ({ astContext with IsFirstChild = false }) rest
 
@@ -2979,7 +2988,7 @@ and genMemberDefnList astContext nodes =
 //               m.Range
         +> (expressionFitsOnRestOfLine
               (genMemberDefn astContext m)
-              (onlyIfNot astContext.IsFirstChild (sepNlnBeforeMultilineConstruct m.Range attrs)
+              (onlyIfNot astContext.IsFirstChild (match mainNode with | Some mn -> sepNlnBeforeMultilineConstruct mn m.Range attrs | None -> sepNln)
                +> genMemberDefn astContext m
                +> onlyIf (List.isNotEmpty rest) sepNln))
 
