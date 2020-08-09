@@ -126,6 +126,7 @@ type internal Context =
       /// Positions of new lines in the original source string
       Positions : int []; 
       Trivia : TriviaNode list
+      TriviaMainNodes: Map<string, TriviaNode list>
       RecordBraceStart: int list }
 
     /// Initialize with a string writer and use space as delimiter
@@ -137,6 +138,7 @@ type internal Context =
           Content = ""
           Positions = [||]
           Trivia = []
+          TriviaMainNodes = Map.empty
           RecordBraceStart = [] }
 
     static member Create config defines (content : string) maybeAst =
@@ -153,11 +155,22 @@ type internal Context =
             | Some ast, false -> Trivia.collectTrivia tokens lineCount ast
             | _ -> Context.Default.Trivia
 
+        let triviaByNodes =
+            trivia
+            |> List.choose (fun tn ->
+                match tn.Type with
+                | MainNode(mn) -> Some (mn, tn)
+                | _ -> None)
+            |> List.groupBy fst
+            |> List.map (fun (k, g) -> k, List.map snd g)
+            |> Map.ofList
+
         { Context.Default with 
             Config = config
             Content = content
             Positions = positions 
-            Trivia = trivia }
+            Trivia = trivia
+            TriviaMainNodes = triviaByNodes }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
@@ -783,14 +796,6 @@ let private findTriviaMainNodeOrTokenOnEndFromRange nodes (range:range) =
         Trivia.isMainNode n && RangeHelpers.rangeEq n.Range range
         || Trivia.isToken n && RangeHelpers.rangeEndEq n.Range range)
 
-let private findTriviaMainNodeFromNameAndRange nodes ((mainNodesNames, range): string list * range) =
-    nodes
-    |> List.tryFind(fun n ->
-        match n.Type with
-        | MainNode(mn) ->
-            List.contains mn mainNodesNames && RangeHelpers.rangeEq n.Range range
-        | _ -> false)
-
 let private findTriviaTokenFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n -> Trivia.isToken n && RangeHelpers.rangeEq n.Range range)
@@ -811,7 +816,18 @@ let internal enterNodeWith f x (ctx: Context) =
 let internal enterNode (range: range) (ctx: Context) = enterNodeWith findTriviaMainNodeOrTokenOnStartFromRange range ctx
 let internal enterNodeToken (range: range) (ctx: Context) = enterNodeWith findTriviaTokenFromRange range ctx
 let internal enterNodeTokenByName (range: range) (tokenName:string) (ctx: Context) = enterNodeWith (findTriviaTokenFromName range) tokenName ctx
-let internal enterNodeFor (mainNodeNames: string list) (range: range) (ctx: Context) = enterNodeWith findTriviaMainNodeFromNameAndRange (mainNodeNames, range) ctx
+let internal enterNodeFor (mainNodeName: string) (range: range) (ctx: Context) =
+    match Map.tryFind mainNodeName ctx.TriviaMainNodes with
+    | Some triviaNodes ->
+        let tn =
+            List.tryFind (fun { Range = r; ContentBefore = cb } -> List.isNotEmpty cb && RangeHelpers.rangeEq r range)
+                triviaNodes
+
+        match tn with
+        | Some triviaNode -> (printContentBefore triviaNode) ctx
+        | None -> ctx
+    | None -> ctx
+
 
 let internal leaveNodeWith f x (ctx: Context) =
     match f ctx.Trivia x with
@@ -820,7 +836,16 @@ let internal leaveNodeWith f x (ctx: Context) =
 let internal leaveNode (range: range) (ctx: Context) = leaveNodeWith findTriviaMainNodeOrTokenOnEndFromRange range ctx
 let internal leaveNodeToken (range: range) (ctx: Context) = leaveNodeWith findTriviaTokenFromRange range ctx
 let internal leaveNodeTokenByName (range: range) (tokenName:string) (ctx: Context) = leaveNodeWith (findTriviaTokenFromName range) tokenName ctx
-let internal leaveNodeFor (mainNodeNames: string list) (range: range) (ctx: Context) = leaveNodeWith findTriviaMainNodeFromNameAndRange (mainNodeNames, range) ctx
+let internal leaveNodeFor (mainNodeName: string) (range: range) (ctx: Context) =
+    match Map.tryFind mainNodeName ctx.TriviaMainNodes with
+    | Some triviaNodes ->
+        let tn = List.tryFind (fun { Range = r; ContentAfter = ca } -> List.isNotEmpty ca && RangeHelpers.rangeEq r range) triviaNodes
+        match tn with
+        | Some triviaNode ->
+            (printContentAfter triviaNode) ctx
+        | None -> ctx
+    | None ->
+        ctx
 
 let internal leaveEqualsToken (range: range) (ctx: Context) =
     ctx.Trivia
