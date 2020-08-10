@@ -108,7 +108,8 @@ and genParsedHashDirective (SyntaxTree.ParsedHashDirective(h, s, r)) =
         | _ -> !- (sprintf "\"%O\"" arg)
 
     let printIdent (ctx:Context) =
-        ctx.Trivia
+        Map.tryFind ParsedHashDirective_ ctx.TriviaMainNodes
+        |> Option.defaultValue []
         |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
         |> Option.bind(fun t -> t.ContentBefore
                                 |> List.choose (fun tc ->
