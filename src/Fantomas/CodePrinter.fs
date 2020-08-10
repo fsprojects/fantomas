@@ -3393,7 +3393,8 @@ and genConst (c:SynConst) (r:range) =
 
 and genConstNumber (c:SynConst) (r: range) =
     fun (ctx: Context) ->
-        ctx.Trivia
+        Map.tryFind SynExpr_Const ctx.TriviaMainNodes
+        |> Option.defaultValue []
         |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
         |> Option.bind(fun tn ->
             match tn.ContentItself with | Some(Number(n)) -> Some n | _ -> None
