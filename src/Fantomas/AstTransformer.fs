@@ -1587,11 +1587,17 @@ module private Ast =
               FsAstNode = st
               Childs = [ yield visitSynType measureType ] }
         | SynType.StaticConstant (constant, range) ->
+            // So this is kinda of a lie but is useful to detect trivia later on.
+            let children =
+                match constant with
+                | SynConst.String(s,range) -> [ { Type= SynExpr_Const; Range = r range; Properties = p []; FsAstNode = s; Childs = [] } ]
+                | _ -> []
+
             { Type = SynType_StaticConstant
               Range = r range
               Properties = p [ "constant" ==> visitSynConst constant ]
               FsAstNode = st
-              Childs = [] }
+              Childs = children }
         | SynType.StaticConstantExpr (expr, range) ->
             { Type = SynType_StaticConstantExpr
               Range = r range

@@ -3351,7 +3351,8 @@ and genConst (c:SynConst) (r:range) =
     | SynConst.String(s,_) ->
         fun (ctx: Context) ->
             let trivia =
-                ctx.Trivia
+                Map.tryFind SynExpr_Const ctx.TriviaMainNodes
+                |> Option.defaultValue []
                 |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range r)
 
             let triviaStringContent =
@@ -3359,8 +3360,7 @@ and genConst (c:SynConst) (r:range) =
                 |> Option.bind(fun tv ->
                     match tv.ContentItself with
                     | Some(StringContent(sc)) -> Some sc
-                    | _ -> None
-                )
+                    | _ -> None)
 
             match triviaStringContent, trivia with
             | Some stringContent, Some _ ->

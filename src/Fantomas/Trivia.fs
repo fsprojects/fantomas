@@ -38,6 +38,7 @@ let filterNodes nodes =
             TypeDefnSig_
             SynTypeDefnSigRepr_ObjectModel
             SynExpr_Typed
+            SynType_StaticConstant
         ]
     nodes |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
 
