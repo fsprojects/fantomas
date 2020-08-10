@@ -109,7 +109,7 @@ and genParsedHashDirective (SyntaxTree.ParsedHashDirective(h, s, r)) =
 
     let printIdent (ctx:Context) =
         ctx.Trivia
-        |> List.tryFind (fun t -> t.Range = r)
+        |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
         |> Option.bind(fun t -> t.ContentBefore
                                 |> List.choose (fun tc ->
                                     match tc with
@@ -354,7 +354,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
 
                     let hasContentAfter =
                         TriviaHelpers.``has content after after that matches``
-                            (fun tn -> tn.Range = a.Range)
+                            (fun tn -> RangeHelpers.rangeEq tn.Range a.Range)
                             (function | Directive(_) -> true | _ -> false)
                             ctx.Trivia
                     (hasContentAfter, prevExpr +> expr)
@@ -521,7 +521,7 @@ and genAttributes astContext (ats: SynAttributes) =
         fun (ctx:Context) ->
             let dontAddNewline =
                 TriviaHelpers.``has content after that ends with``
-                    (fun t -> t.Range = a.Range)
+                    (fun t -> RangeHelpers.rangeEq t.Range a.Range)
                     (function | Directive(_) | Newline | Comment(LineCommentOnSingleLine(_)) -> true | _ -> false)
                     ctx.Trivia
             let chain =
@@ -1755,7 +1755,7 @@ and genExpr astContext synExpr =
 
             let hasCommentAfterBoolExpr =
                 TriviaHelpers.``has content after after that matches``
-                    (fun tn -> tn.Range = e1.Range)
+                    (fun tn -> RangeHelpers.rangeEq tn.Range e1.Range)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
                     ctx.Trivia
 
@@ -1764,7 +1764,7 @@ and genExpr astContext synExpr =
 
             let ``has line comment after source code for range`` range =
                 TriviaHelpers.``has content after after that matches``
-                    (fun tn -> tn.Range = range)
+                    (fun tn -> RangeHelpers.rangeEq tn.Range range)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
                     ctx.Trivia
 
@@ -1799,7 +1799,7 @@ and genExpr astContext synExpr =
             let genElifOneliner ((elf1: SynExpr), (elf2: SynExpr), fullRange) =
                 let hasCommentAfterBoolExpr =
                     TriviaHelpers.``has content after after that matches``
-                        (fun tn -> tn.Range = elf1.Range)
+                        (fun tn -> RangeHelpers.rangeEq tn.Range elf1.Range)
                         (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
                         ctx.Trivia
                 let hasCommentAfterThenKeyword =
@@ -1861,7 +1861,7 @@ and genExpr astContext synExpr =
 
                 let hasCommentAfterBoolExpr =
                     TriviaHelpers.``has content after after that matches``
-                        (fun tn -> tn.Range = elf1.Range)
+                        (fun tn -> RangeHelpers.rangeEq tn.Range elf1.Range)
                         (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
                         ctx.Trivia
 
@@ -2163,7 +2163,7 @@ and genMultiLineArrayOrList (isArray: bool) xs alNode astContext =
 and genMultiLineArrayOrListAlignBrackets (isArray:bool) xs alNode astContext =
     let isLastItem (x:SynExpr) =
         List.tryLast xs
-        |> Option.map (fun i -> i.Range = x.Range)
+        |> Option.map (fun i -> RangeHelpers.rangeEq i.Range x.Range)
         |> Option.defaultValue false
 
     fun ctx ->
@@ -2335,7 +2335,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
     | Simple(TDSRUnion(ao', xs) as unionNode) ->
         let hasLeadingTrivia (t : TriviaNode) =
-            t.Range = unionNode.Range && not (List.isEmpty t.ContentBefore)
+            RangeHelpers.rangeEq t.Range unionNode.Range && not (List.isEmpty t.ContentBefore)
 
         let sepNlnBasedOnTrivia =
             fun (ctx: Context) ->
@@ -2560,7 +2560,7 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
             fun (ctx: Context) ->
                 let trivia =
                     ctx.Trivia
-                    |> List.tryFind (fun t -> t.Range = unionNode.Range && not (List.isEmpty t.ContentBefore))
+                    |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range unionNode.Range && not (List.isEmpty t.ContentBefore))
 
                 match trivia with
                 | Some _ -> sepNln
@@ -3353,7 +3353,7 @@ and genConst (c:SynConst) (r:range) =
         fun (ctx: Context) ->
             let trivia =
                 ctx.Trivia
-                |> List.tryFind (fun tv -> tv.Range = r)
+                |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range r)
 
             let triviaStringContent =
                 trivia
@@ -3395,7 +3395,7 @@ and genConst (c:SynConst) (r:range) =
 and genConstNumber (c:SynConst) (r: range) =
     fun (ctx: Context) ->
         ctx.Trivia
-        |> List.tryFind (fun t -> t.Range = r)
+        |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
         |> Option.bind(fun tn ->
             match tn.ContentItself with | Some(Number(n)) -> Some n | _ -> None
         )
@@ -3426,7 +3426,7 @@ and genConstBytes (bytes: byte []) (r: range) =
     fun (ctx: Context) ->
         let trivia =
             ctx.Trivia
-            |> List.tryFind(fun t -> t.Range = r)
+            |> List.tryFind(fun t -> RangeHelpers.rangeEq t.Range r)
             |> Option.bind (fun tv ->
                 match tv.ContentItself with
                 | Some(StringContent(content)) -> Some content

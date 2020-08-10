@@ -7,7 +7,7 @@ open Fantomas.TriviaTypes
 module internal TriviaHelpers =
     let findByRange (trivia: TriviaNode list) (range: range) =
         trivia
-        |> List.tryFind (fun t -> t.Range = range)
+        |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range range)
     
     let findInRange (trivia: TriviaNode list) (range:range) =
         trivia
@@ -53,13 +53,13 @@ module internal TriviaHelpers =
 
     let ``has line comment before`` range triviaNodes =
         triviaNodes
-        |> List.tryFind (fun tv -> tv.Range = range)
+        |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range range)
         |> Option.map (fun tv -> tv.ContentBefore |> List.exists (function | Comment(LineCommentOnSingleLine(_)) -> true | _ -> false))
         |> Option.defaultValue false
 
     let ``get CharContent`` range triviaNodes =
         triviaNodes
-        |> List.tryFind (fun tv -> tv.Range = range)
+        |> List.tryFind (fun tv -> RangeHelpers.rangeEq  tv.Range range)
         |> Option.bind (fun tv ->
             match tv.ContentItself with
             | Some(CharContent c) -> Some c
@@ -68,14 +68,14 @@ module internal TriviaHelpers =
     let ``has content itself that matches`` (predicate: TriviaContent -> bool) range (triviaNodes: TriviaNode list) =
         triviaNodes
         |> List.exists (fun tn ->
-            match tn.Range = range, tn.ContentItself with
+            match RangeHelpers.rangeEq tn.Range range, tn.ContentItself with
             | true, Some(t) -> predicate t
             | _ -> false)
 
     let ``has content itself is ident between ticks`` range (triviaNodes: TriviaNode list) =
         triviaNodes
         |> List.choose (fun tn ->
-            match tn.Range = range, tn.ContentItself with
+            match RangeHelpers.rangeEq  tn.Range range, tn.ContentItself with
             | true, Some(IdentBetweenTicks(ident)) -> Some ident
             | _ -> None)
         |> List.tryHead
@@ -83,7 +83,7 @@ module internal TriviaHelpers =
     let ``has content itself that is multiline string`` range (triviaNodes: TriviaNode list) =
         triviaNodes
         |> List.choose (fun tn ->
-            match tn.Range = range, tn.ContentItself with
+            match RangeHelpers.rangeEq tn.Range range, tn.ContentItself with
             | true, Some(StringContent(s)) when (String.isMultiline s) -> Some s
             | _ -> None)
         |> List.isNotEmpty
