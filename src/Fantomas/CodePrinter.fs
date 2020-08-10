@@ -229,18 +229,22 @@ and genModuleDeclList astContext e =
         let attrs = getRangesFromAttributesFromModuleDeclaration m
 
         let newlineAfterMultiline ctx =
+            let sepNlnConsideringTriviaContentBeforeWithAttributes node (rm:range) attrs =
+                match node with
+                | SynModuleDecl.DoExpr _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_DoExpr rm attrs
+                | SynModuleDecl.Types _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_Types rm attrs
+                | SynModuleDecl.NestedModule _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_NestedModule rm attrs
+                | SynModuleDecl.Let _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_Let rm attrs
+                | SynModuleDecl.Open _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_Open rm attrs
+                | _ -> sepNln
+
             let expr =
                 match List.tryHead rest with
-                | Some rm ->
-                  let attrs = getRangesFromAttributesFromModuleDeclaration rm
-                  sepNln // +> sepNlnConsideringTriviaContentBeforeWithAttributes rm.Range attrs
-                  +> (match rm with
-                      | SynModuleDecl.DoExpr _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_DoExpr rm.Range attrs
-                      | SynModuleDecl.Types _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_Types rm.Range attrs
-                      | SynModuleDecl.NestedModule _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_NestedModule rm.Range attrs
-                      | SynModuleDecl.Let _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_Let rm.Range attrs
-                      | SynModuleDecl.Open _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_Open rm.Range attrs
-                      | _ -> sepNln)
+                | Some (SynModuleDecl.DoExpr(_, SynExpr.Const(SynConst.Unit,_),rm) as node) when (match m with SynModuleDecl.Attributes(a,_) -> List.length a > 1) ->
+                    sepNlnConsideringTriviaContentBeforeWithAttributes node rm attrs
+                | Some mdl ->
+                  let attrs = getRangesFromAttributesFromModuleDeclaration mdl
+                  sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes mdl mdl.Range attrs
                 | None -> sepNone
             expr ctx
 
@@ -497,7 +501,12 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
                 if SourceTransformer.hasParenthesis e then id else sepSpace
             opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e
         |> genTriviaFor SynAttribute_ attr.Range
-    ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> atCurrentColumn (col sepSemi ats (genAttributeExpr astContext)) -- ">]")
+    let shortExpression = !- "[<" +> atCurrentColumn (col sepSemi ats (genAttributeExpr astContext)) -- ">]"
+    let longExpression = !- "[<" +> atCurrentColumn (col (sepSemi +> sepNln) ats (genAttributeExpr astContext)) -- ">]"
+
+    ifElse (Seq.isEmpty ats)
+        sepNone
+        (expressionFitsOnRestOfLine shortExpression longExpression)
 
 and genOnelinerAttributes astContext ats =
     let ats = List.collect (fun a -> a.Attributes) ats
@@ -1996,8 +2005,7 @@ and genExpr astContext synExpr =
     | DotNamedIndexedPropertySet(e, ident, e1, e2) ->
        genExpr astContext e -- "." -- ident +> genExpr astContext e1 -- " <- "  +> genExpr astContext e2
     | DotGet(e, (s,_)) ->
-        let exprF = genExpr { astContext with IsInsideDotGet = true }
-        addParenIfAutoNln e exprF -- (sprintf ".%s" s)
+        genExpr { astContext with IsInsideDotGet = true } e -- (sprintf ".%s" s)
     | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
 
     | SynExpr.Set(e1,e2, _) ->

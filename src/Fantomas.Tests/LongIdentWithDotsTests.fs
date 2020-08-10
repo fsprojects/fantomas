@@ -199,3 +199,28 @@ module Client =
                   then JS.Alert(sprintf "Your email is %s" e.Vars.Email.Value)
                   e.Event.PreventDefault()).Bind()
 """
+
+[<Test>]
+let ``don't repeat parenthesis for DotGet Paren, 989`` () =
+    formatSourceString false """(something_really_long
+  + another_thing_thats_really_long).A
+"""  config
+    |> prepend newline
+    |> should equal """
+(something_really_long
+ + another_thing_thats_really_long).A
+"""
+
+[<Test>]
+let ``infix expression inside DotGet, 921`` () =
+    formatSourceString false """let variable =
+                (DataAccess.getById moduleName.readData
+                         { Id = createObject.Id }
+                     |> Result.okValue).Value
+"""  config
+    |> prepend newline
+    |> should equal """
+let variable =
+    (DataAccess.getById moduleName.readData { Id = createObject.Id }
+     |> Result.okValue).Value
+"""
