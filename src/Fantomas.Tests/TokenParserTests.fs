@@ -245,10 +245,8 @@ let ``left brace should be found in tokens`` () =
         getTriviaNodesFromTokens tokens
     
     match triviaNodes.[0].Type, triviaNodes.[1].Type, triviaNodes.[2].Type with
-    | Token(equals), Token(lbrace), Token(rbrace) ->
-        equals.Content == "="
-        lbrace.Content == "{"
-        rbrace.Content == "}"
+    | Token(EQUALS,_), Token(LBRACE,_), Token(RBRACE,_) ->
+        pass ()
     | _ ->
         fail()
 

@@ -59,7 +59,7 @@ let private nodesContainsBothAnonModuleAndOpen (nodes: TriviaNodeAssigner list) 
 // so it is not an ideal candidate node to have trivia content
 let inline private isNotMemberKeyword (node: TriviaNodeAssigner) =
     match node.Type with
-    | Token({ TokenInfo = ti }) when (ti.TokenName = "MEMBER") -> false
+    | Token(MEMBER,_) -> false
     | _ -> true
 
 let private findFirstNodeAfterLine
@@ -101,7 +101,7 @@ let private findMemberDefnMemberNodeOnLine (nodes: TriviaNodeAssigner list) line
         match tn.Type, tn.Range.StartLine = line with
         | MainNode(SynMemberDefn_Member), true
         | MainNode(SynMemberSig_Member), true
-        | Token { TokenInfo = { TokenName = "MEMBER" } }, true -> true
+        | Token (MEMBER,_), true -> true
         | _ -> false)
 
 let private findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner list) line column =
@@ -114,7 +114,7 @@ let private findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner list) line co
     match node with
     | Some tokenNode ->
         match tokenNode.Type with
-        | Token(t) when (t.TokenInfo.CharClass = FSharpTokenCharKind.Operator) ->
+        | Token(_, t) when (t.TokenInfo.CharClass = FSharpTokenCharKind.Operator) ->
             // pick the matching ident instead of the token
             nodes
             |> List.tryFind (fun tn ->

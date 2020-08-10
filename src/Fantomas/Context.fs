@@ -127,7 +127,7 @@ type internal Context =
       Positions : int []; 
       Trivia : TriviaNode list
       TriviaMainNodes: Map<FsAstType, TriviaNode list>
-      TriviaTokenNodes: Map<string, TriviaNode list>
+      TriviaTokenNodes: Map<FsTokenType, TriviaNode list>
       RecordBraceStart: int list }
 
     /// Initialize with a string writer and use space as delimiter
@@ -171,7 +171,7 @@ type internal Context =
             trivia
             |> List.choose (fun tn ->
                 match tn.Type with
-                | Token t -> Some (t.TokenInfo.TokenName, tn)
+                | Token (tname,_) -> Some (tname, tn)
                 | _ -> None)
             |> List.groupBy fst
             |> List.map (fun (k, g) -> k, List.map snd g)
@@ -813,7 +813,7 @@ let private findTriviaTokenFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n -> Trivia.isToken n && RangeHelpers.rangeEq n.Range range)
 
-let internal findTriviaTokenFromName (tokenName:string) (range: range) (ctx: Context) =
+let internal findTriviaTokenFromName (tokenName:FsTokenType) (range: range) (ctx: Context) =
     Map.tryFind tokenName ctx.TriviaTokenNodes
     |> Option.defaultValue []
     |> List.tryFind(fun n -> RangeHelpers.``range contains`` range n.Range)
@@ -824,7 +824,7 @@ let internal enterNodeWith f x (ctx: Context) =
         (printContentBefore triviaNode) ctx
     | None -> ctx
 let internal enterNodeToken (range: range) (ctx: Context) = enterNodeWith findTriviaTokenFromRange range ctx
-let internal enterNodeTokenByName (range: range) (tokenName:string) (ctx: Context) =
+let internal enterNodeTokenByName (range: range) (tokenName:FsTokenType) (ctx: Context) =
     match findTriviaTokenFromName tokenName range ctx with
     | Some triviaNode ->
         (printContentBefore triviaNode) ctx
@@ -848,7 +848,7 @@ let internal leaveNodeWith f x (ctx: Context) =
     | Some triviaNode -> printContentAfter triviaNode ctx
     | None -> ctx
 let internal leaveNodeToken (range: range) (ctx: Context) = leaveNodeWith findTriviaTokenFromRange range ctx
-let internal leaveNodeTokenByName (range: range) (tokenName:string) (ctx: Context) =
+let internal leaveNodeTokenByName (range: range) (tokenName:FsTokenType) (ctx: Context) =
     match findTriviaTokenFromName tokenName range ctx with
     | Some triviaNode ->
         (printContentAfter triviaNode) ctx
@@ -871,8 +871,7 @@ let internal leaveEqualsToken (range: range) (ctx: Context) =
     ctx.Trivia
     |> List.filter(fun tn ->
         match tn.Type with
-        | Token(tok) ->
-            tok.TokenInfo.TokenName = "EQUALS" && tn.Range.StartLine = range.StartLine
+        | Token(EQUALS, tok) -> tn.Range.StartLine = range.StartLine
         | _ -> false
     )
     |> List.tryHead
@@ -884,13 +883,13 @@ let internal leaveEqualsToken (range: range) (ctx: Context) =
             id
     <| ctx
 
-let internal leaveLeftToken (tokenName: string) (range: range) (ctx: Context) =
+let internal leaveLeftToken (tokenName: FsTokenType) (range: range) (ctx: Context) =
     ctx.Trivia
     |> List.tryFind(fun tn ->
         // Token is a left brace { at the beginning of the range.
         match tn.Type with
-        | Token(tok) ->
-            tok.TokenInfo.TokenName = tokenName && tn.Range.StartLine = range.StartLine && tn.Range.StartColumn = range.StartColumn
+        | Token(tname, tok) ->
+            tname = tokenName && tn.Range.StartLine = range.StartLine && tn.Range.StartColumn = range.StartColumn
         | _ -> false
     )
     |> fun tn ->
@@ -901,17 +900,17 @@ let internal leaveLeftToken (tokenName: string) (range: range) (ctx: Context) =
             id
     <| ctx
 
-let internal leaveLeftBrace = leaveLeftToken "LBRACE"
-let internal leaveLeftBrack = leaveLeftToken "LBRACK"
-let internal leaveLeftBrackBar = leaveLeftToken "LBRACK_BAR"
+let internal leaveLeftBrace = leaveLeftToken LBRACE
+let internal leaveLeftBrack = leaveLeftToken LBRACK
+let internal leaveLeftBrackBar = leaveLeftToken LBRACK_BAR
 
-let internal enterRightToken (tokenName: string) (range: range) (ctx: Context) =
+let internal enterRightToken (tokenName: FsTokenType) (range: range) (ctx: Context) =
     ctx.Trivia
     |> List.tryFind(fun tn ->
         // Token is a left brace { at the beginning of the range.
         match tn.Type with
-        | Token(tok) ->
-            (tok.TokenInfo.TokenName = tokenName)
+        | Token(tname, tok) ->
+            (tname = tokenName)
             && tn.Range.EndLine = range.EndLine
             && (tn.Range.EndColumn = range.EndColumn || tn.Range.EndColumn + 1 = range.EndColumn)
         | _ -> false
@@ -920,7 +919,7 @@ let internal enterRightToken (tokenName: string) (range: range) (ctx: Context) =
         match tn with
         | Some({ ContentBefore = [TriviaContent.Comment(LineCommentOnSingleLine(lineComment))] }) ->
             let spacesBeforeComment =
-                let braceSize = if tokenName = "RBRACK" then 1 else 2
+                let braceSize = if tokenName = RBRACK then 1 else 2
                 let spaceAround = if ctx.Config.SpaceAroundDelimiter then 1 else 0
                 !- String.Empty.PadLeft(braceSize + spaceAround)
 
@@ -930,8 +929,8 @@ let internal enterRightToken (tokenName: string) (range: range) (ctx: Context) =
             id
     <| ctx
 
-let internal enterRightBracket = enterRightToken "RBRACK"
-let internal enterRightBracketBar = enterRightToken "BAR_RBRACK"
+let internal enterRightBracket = enterRightToken RBRACK
+let internal enterRightBracketBar = enterRightToken BAR_RBRACK
 let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
     |> List.exists (fun tn ->
@@ -1097,8 +1096,8 @@ let internal beforeElseKeyword (fullIfRange: range) (elseRange: range) (ctx: Con
     ctx.Trivia
     |> List.tryFind(fun tn ->
         match tn.Type with
-        | Token(tok) ->
-            tok.TokenInfo.TokenName = "ELSE" && (fullIfRange.StartLine < tn.Range.StartLine) && (tn.Range.StartLine >= elseRange.StartLine) 
+        | Token(ELSE, tok) ->
+            (fullIfRange.StartLine < tn.Range.StartLine) && (tn.Range.StartLine >= elseRange.StartLine)
         | _ -> false
     )
     |> fun tn ->
@@ -1113,8 +1112,8 @@ let internal genTriviaBeforeClausePipe (rangeOfClause:range) ctx =
     ctx.Trivia
     |> List.tryFind (fun t ->
         match t.Type with
-        | Token({ TokenInfo = { TokenName = bar } }) ->
-            bar = "BAR" && t.Range.StartColumn < rangeOfClause.StartColumn && t.Range.StartLine = rangeOfClause.StartLine
+        | Token(BAR, { TokenInfo = { TokenName = bar } }) ->
+            t.Range.StartColumn < rangeOfClause.StartColumn && t.Range.StartLine = rangeOfClause.StartLine
         | _ -> false
     )
     |> fun trivia ->

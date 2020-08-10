@@ -550,8 +550,7 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
         ctx.Trivia
         |> List.exists (fun tn ->
             match tn.Type with
-            | TriviaTypes.Token(tok) ->
-                tok.TokenInfo.TokenName = "EQUALS" && tn.Range.StartLine = pat.Range.StartLine
+            | TriviaTypes.Token(EQUALS, tok) -> tn.Range.StartLine = pat.Range.StartLine
             | _ -> false
         )
 
@@ -656,7 +655,7 @@ and genLetBinding astContext pref b =
         genPreXmlDoc px
         +> genAttr // this already contains the `let` or `and` keyword
         +> leadingExpressionIsMultiline
-               (afterLetKeyword +> genPat +> enterNodeTokenByName rangeBetweenBindingPatternAndExpression "EQUALS")
+               (afterLetKeyword +> genPat +> enterNodeTokenByName rangeBetweenBindingPatternAndExpression EQUALS)
                (genExprSepEqPrependType astContext p e (Some(valInfo)))
 
     | DoBinding(ats, px, e) ->
@@ -945,7 +944,7 @@ and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAn
                     | MainNode SynMemberSig_Member -> // trying to get AST trivia
                         RangeHelpers.``range contains`` r rangeOfBindingAndRhs
 
-                    | Token { TokenInfo = { TokenName = "MEMBER" } } -> // trying to get token trivia
+                    | Token(MEMBER, _) -> // trying to get token trivia
                         r.StartLine = rangeOfBindingAndRhs.StartLine
 
                     | _ -> false
@@ -1031,8 +1030,8 @@ and genExpr astContext synExpr =
         | _ -> autoNlnIfExpressionExceedsPageWidth
 
     let kw tokenName f = tokN synExpr.Range tokenName f
-    let sepOpenT = tokN synExpr.Range "LPAREN" sepOpenT
-    let sepCloseT = tokN synExpr.Range "RPAREN" sepCloseT
+    let sepOpenT = tokN synExpr.Range LPAREN sepOpenT
+    let sepCloseT = tokN synExpr.Range RPAREN sepCloseT
 
     match synExpr with
     | ElmishReactWithoutChildren(identifier, isArray, children) ->
@@ -1080,7 +1079,7 @@ and genExpr astContext synExpr =
     | ElmishReactWithChildren((identifier,_,_), attributes, (isArray,children, childrenRange)) ->
         let genChildren isShort =
             match children with
-            | [] when (not isArray) -> sepOpenLFixed +> sepCloseLFixed +> leaveNodeTokenByName childrenRange "RBRACK"
+            | [] when (not isArray) -> sepOpenLFixed +> sepCloseLFixed +> leaveNodeTokenByName childrenRange RBRACK
             | [] when isArray -> sepOpenAFixed +> sepCloseAFixed
             | [singleChild] ->
                 if isShort then
@@ -1089,7 +1088,7 @@ and genExpr astContext synExpr =
                     +> ifElse
                            isArray
                            sepCloseA
-                           (sepCloseL +> leaveNodeTokenByName childrenRange "RBRACK")
+                           (sepCloseL +> leaveNodeTokenByName childrenRange RBRACK)
                 else
                     ifElse isArray sepOpenA sepOpenL
                     +> indent
@@ -1100,7 +1099,7 @@ and genExpr astContext synExpr =
                     +> ifElse
                            isArray
                            sepCloseAFixed
-                           (sepCloseLFixed +> leaveNodeTokenByName childrenRange "RBRACK")
+                           (sepCloseLFixed +> leaveNodeTokenByName childrenRange RBRACK)
 
             | children ->
                 if isShort then
@@ -1180,18 +1179,18 @@ and genExpr astContext synExpr =
     | ArrayOrList(isArray, [], _) ->
         ifElse
             isArray
-            (enterNodeTokenByName synExpr.Range "LBRACK_BAR"
+            (enterNodeTokenByName synExpr.Range LBRACK_BAR
              +> sepOpenAFixed
-             +> leaveNodeTokenByName synExpr.Range "LBRACK_BAR"
-             +> enterNodeTokenByName synExpr.Range "BAR_RBRACK"
+             +> leaveNodeTokenByName synExpr.Range LBRACK_BAR
+             +> enterNodeTokenByName synExpr.Range BAR_RBRACK
              +> sepCloseAFixed
-             +> leaveNodeTokenByName synExpr.Range "BAR_RBRACK")
-            (enterNodeTokenByName synExpr.Range "LBRACK"
+             +> leaveNodeTokenByName synExpr.Range BAR_RBRACK)
+            (enterNodeTokenByName synExpr.Range LBRACK
              +> sepOpenLFixed
-             +> leaveNodeTokenByName synExpr.Range "LBRACK"
-             +> enterNodeTokenByName synExpr.Range "RBRACK"
+             +> leaveNodeTokenByName synExpr.Range LBRACK
+             +> enterNodeTokenByName synExpr.Range RBRACK
              +> sepCloseLFixed
-             +> leaveNodeTokenByName synExpr.Range "RBRACK")
+             +> leaveNodeTokenByName synExpr.Range RBRACK)
     | ArrayOrList(isArray, xs, _) as alNode ->
         let shortExpression =
             ifElse isArray sepOpenA sepOpenL
@@ -1302,7 +1301,7 @@ and genExpr astContext synExpr =
                 +> genPat astContext pat -- " = "
                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
             | AndBangStatement(pat, expr, andRange) ->
-                enterNodeTokenByName andRange "AND_BANG"
+                enterNodeTokenByName andRange AND_BANG
                 +> !- "and! " +> genPat astContext pat -- " = "
                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
             | OtherStatement expr -> genExpr astContext expr
@@ -1343,7 +1342,7 @@ and genExpr astContext synExpr =
         fun (ctx: Context) ->
             let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
             let hasLineCommentAfterArrow =
-                findTriviaTokenFromName "RARROW" synExpr.Range ctx
+                findTriviaTokenFromName RARROW synExpr.Range ctx
                 |> Option.isSome
 
             let expr =
@@ -1365,7 +1364,7 @@ and genExpr astContext synExpr =
         fun (ctx: Context) ->
             let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
             let hasLineCommentAfterArrow =
-                findTriviaTokenFromName "RARROW" synExpr.Range ctx
+                findTriviaTokenFromName RARROW synExpr.Range ctx
                 |> Option.isSome
 
             let expr =
@@ -1648,7 +1647,7 @@ and genExpr astContext synExpr =
 
     // Could customize a bit if e is single line
     | TryWith(e, cs) ->
-        let prefix = kw "TRY" !-"try " +> indent +> sepNln +> genExpr astContext e +> unindent +> kw "WITH" !+~"with"
+        let prefix = kw TRY !-"try " +> indent +> sepNln +> genExpr astContext e +> unindent +> kw WITH !+~"with"
         match cs with
         | [SynMatchClause.Clause(SynPat.Or(_),_,_,_,_)] ->
             atCurrentColumn (prefix +> indentOnWith +> sepNln +> col sepNln cs (genClause astContext true) +> unindentOnWith)
@@ -1658,7 +1657,7 @@ and genExpr astContext synExpr =
             atCurrentColumn (prefix +> indentOnWith +> sepNln +> col sepNln cs (genClause astContext true) +> unindentOnWith)
 
     | TryFinally(e1, e2) ->
-        atCurrentColumn (kw "TRY" !-"try " +> indent +> sepNln +> genExpr astContext e1 +> unindent +> kw "FINALLY" !+~"finally"
+        atCurrentColumn (kw TRY !-"try " +> indent +> sepNln +> genExpr astContext e1 +> unindent +> kw FINALLY !+~"finally"
             +> indent +> sepNln +> genExpr astContext e2 +> unindent)
 
     | SequentialSimple es | Sequentials es ->
@@ -1680,12 +1679,12 @@ and genExpr astContext synExpr =
                 TriviaHelpers.``has content after after that matches``
                     (fun tn ->
                         match tn.Type with
-                        | Token({ TokenInfo = ti }) when (ti.TokenName = "THEN") -> true
+                        | Token(THEN, _) -> true
                         | _ -> false)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
                     ctx.Trivia
 
-            let thenExpr = tokN mIfToThen "THEN"
+            let thenExpr = tokN mIfToThen THEN
 
             (leadingExpressionResult
                 (!- "if " +> genExpr astContext e1)
@@ -1720,7 +1719,7 @@ and genExpr astContext synExpr =
                 |> List.indexed
                 |> List.choose(fun (idx, (beforeRange, elseIfRange)) ->
                     let rangeBetween = mkRange "between" beforeRange.End elseIfRange.Start
-                    let keywordsFoundInBetween = TriviaHelpers.``keyword tokens inside range`` ["ELSE"] rangeBetween ctx.Trivia
+                    let keywordsFoundInBetween = TriviaHelpers.``keyword tokens inside range`` [ELSE] rangeBetween ctx.Trivia
                     match List.tryHead keywordsFoundInBetween with
                     | Some (_, elseKeyword) ->
                         (idx, mkRange "else if" elseKeyword.Range.Start elseIfRange.End)
@@ -1760,7 +1759,7 @@ and genExpr astContext synExpr =
                     ctx.Trivia
 
             let hasCommentAfterIfKeyword =
-                commentAfterKeyword "IF" (RangeHelpers.``have same range start`` synExpr.Range) ctx
+                commentAfterKeyword IF (RangeHelpers.``have same range start`` synExpr.Range) ctx
 
             let ``has line comment after source code for range`` range =
                 TriviaHelpers.``has content after after that matches``
@@ -1771,10 +1770,10 @@ and genExpr astContext synExpr =
             let hasCommentAfterIfBranchExpr = ``has line comment after source code for range`` e2.Range
 
             let hasCommentAfterIfBranchThenKeyword =
-                commentAfterKeyword "THEN" (RangeHelpers.``range contains`` synExpr.Range) ctx
+                commentAfterKeyword THEN (RangeHelpers.``range contains`` synExpr.Range) ctx
 
             let hasCommentAfterElseKeyword =
-                commentAfterKeyword "ELSE" (RangeHelpers.``range contains`` synExpr.Range) ctx
+                commentAfterKeyword ELSE (RangeHelpers.``range contains`` synExpr.Range) ctx
 
             let isConditionMultiline =
                 hasCommentAfterIfKeyword ||
@@ -1792,9 +1791,9 @@ and genExpr astContext synExpr =
                     futureNlnCheck (!- " else " +> genExpr astContext e3) ctx
                 | None -> false
 
-            let genIf ifElseRange = tokN ifElseRange "IF" (!- "if ")
-            let genThen ifElseRange = tokN ifElseRange "THEN" (!- "then ")
-            let genElse ifElseRange = tokN ifElseRange "ELSE" (!- "else ")
+            let genIf ifElseRange = tokN ifElseRange IF (!- "if ")
+            let genThen ifElseRange = tokN ifElseRange THEN (!- "then ")
+            let genElse ifElseRange = tokN ifElseRange ELSE (!- "else ")
 
             let genElifOneliner ((elf1: SynExpr), (elf2: SynExpr), fullRange) =
                 let hasCommentAfterBoolExpr =
@@ -1803,7 +1802,7 @@ and genExpr astContext synExpr =
                         (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
                         ctx.Trivia
                 let hasCommentAfterThenKeyword =
-                    commentAfterKeyword "THEN" (RangeHelpers.``range contains`` fullRange) ctx
+                    commentAfterKeyword THEN (RangeHelpers.``range contains`` fullRange) ctx
 
                 TriviaContext.``else if / elif`` fullRange
                 +> genExpr astContext elf1 +> sepSpace
@@ -1815,7 +1814,7 @@ and genExpr astContext synExpr =
 
             let genElifTwoLiner ((elf1: SynExpr), (elf2: SynExpr), fullRange) =
                 let hasCommentAfterThenKeyword =
-                    commentAfterKeyword "THEN" (RangeHelpers.``range contains`` fullRange) ctx
+                    commentAfterKeyword THEN (RangeHelpers.``range contains`` fullRange) ctx
 
                 TriviaContext.``else if / elif`` fullRange
                 +> genExpr astContext elf1 +> sepNln
@@ -1848,7 +1847,7 @@ and genExpr astContext synExpr =
             let genElifMultiLine ((elf1: SynExpr), elf2, fullRange) (ctx: Context) =
                 let indentAfterThenKeyword =
                     ctx.Trivia
-                    |> TriviaHelpers.``keyword tokens inside range`` ["IF"; "ELIF"] fullRange
+                    |> TriviaHelpers.``keyword tokens inside range`` [IF; ELIF] fullRange
                     |> List.tryHead
                     |> Option.map (fun (_, t) ->
                         if TriviaHelpers.``has line comment after`` t then
@@ -1998,7 +1997,7 @@ and genExpr astContext synExpr =
         +> sepOpenLFixed
         +> genIndexers astContext es
         +> sepCloseLFixed
-        +> leaveNodeTokenByName synExpr.Range "RBRACK"
+        +> leaveNodeTokenByName synExpr.Range RBRACK
     | DotIndexedSet(e1, es, e2) -> addParenIfAutoNln e1 (genExpr { astContext with IsInsideDotIndexed = true }) -- ".[" +> genIndexers astContext es -- "] <- " +> genExpr astContext e2
     | NamedIndexedPropertySet(ident, e1, e2) ->
         !- ident +> genExpr astContext e1  -- " <- "  +> genExpr astContext e2
@@ -2180,21 +2179,21 @@ and genMultiLineArrayOrListAlignBrackets (isArray:bool) xs alNode astContext =
             if isArray then
                 sepOpenAFixed +>
                 indent +>
-                leaveNodeTokenByName alNode.Range "LBRACK_BAR" +>
+                leaveNodeTokenByName alNode.Range LBRACK_BAR +>
                 sepNlnUnlessLastEventIsNewline +>
                 innerExpr +>
                 unindent +>
-                enterNodeTokenByName alNode.Range "BAR_RBRACK" +>
+                enterNodeTokenByName alNode.Range BAR_RBRACK +>
                 sepNlnUnlessLastEventIsNewline +>
                 sepCloseAFixed
             else
                 sepOpenLFixed +>
                 indent +>
-                leaveNodeTokenByName alNode.Range "LBRACK" +>
+                leaveNodeTokenByName alNode.Range LBRACK +>
                 sepNlnUnlessLastEventIsNewline +>
                 innerExpr +>
                 unindent +>
-                enterNodeTokenByName alNode.Range "RBRACK" +>
+                enterNodeTokenByName alNode.Range RBRACK +>
                 sepNlnUnlessLastEventIsNewline +>
                 sepCloseLFixed
 
@@ -3174,7 +3173,7 @@ and genPat astContext pat =
         genPat astContext p1
         // +> sepNlnConsideringTriviaContentBefore pat.Range
         +> sepNln
-        +> enterNodeTokenByName pat.Range "BAR" -- "| "
+        +> enterNodeTokenByName pat.Range BAR -- "| "
         +> genPat astContext p2
     | PatAnds(ps) -> col (!- " & ") ps (genPat astContext)
     | PatNullary PatNull -> !- "null"
@@ -3330,8 +3329,8 @@ and genPatWithReturnType ao s ps tpso (t:SynType option) (astContext: ASTContext
 and genConst (c:SynConst) (r:range) =
     match c with
     | SynConst.Unit ->
-        enterNodeTokenByName r "LPAREN" +> !- "(" +> leaveNodeTokenByName r "LPAREN"
-        +> enterNodeTokenByName r "RPAREN" +> !- ")" +> leaveNodeTokenByName r "RPAREN"
+        enterNodeTokenByName r LPAREN +> !- "(" +> leaveNodeTokenByName r LPAREN
+        +> enterNodeTokenByName r RPAREN +> !- ")" +> leaveNodeTokenByName r RPAREN
     | SynConst.Bool(b) -> !- (if b then "true" else "false")
     | SynConst.Byte(_)
     | SynConst.SByte(_)
@@ -3390,7 +3389,7 @@ and genConst (c:SynConst) (r:range) =
             match m with
             | Measure m -> !- m
 
-        genConstNumber c r +> measure +> leaveNodeTokenByName r "GREATER"
+        genConstNumber c r +> measure +> leaveNodeTokenByName r GREATER
 
 and genConstNumber (c:SynConst) (r: range) =
     fun (ctx: Context) ->

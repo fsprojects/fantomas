@@ -9,7 +9,7 @@ open FSharp.Compiler.SyntaxTree
 let tok (range: range) (s: string) =
     enterNodeToken range +> (!-s) +> leaveNodeToken range
 
-let tokN (range: range) (tokenName: string) f =
+let tokN (range: range) (tokenName: FsTokenType) f =
     enterNodeTokenByName range tokenName +> f +> leaveNodeTokenByName range tokenName
 
 let firstNewlineOrComment (es: SynExpr list) (ctx: Context) =
@@ -39,23 +39,23 @@ let firstNewlineOrComment (es: SynExpr list) (ctx: Context) =
 
 let triviaAfterArrow (range: range) (ctx: Context) =
     let hasCommentAfterArrow =
-        findTriviaTokenFromName "RARROW" range ctx
+        findTriviaTokenFromName RARROW range ctx
         |> Option.bind (fun t ->
             t.ContentAfter
             |> List.tryFind (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
         )
         |> Option.isSome
-    ((tokN range "RARROW" sepArrow) +> ifElse hasCommentAfterArrow sepNln sepNone) ctx
+    ((tokN range RARROW sepArrow) +> ifElse hasCommentAfterArrow sepNln sepNone) ctx
 
 let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
     let keywords =
         ctx.Trivia
-        |> TriviaHelpers.``keyword tokens inside range`` ["ELSE";"IF";"ELIF"] rangeOfIfThenElse
-        |> List.map (fun (tok, t) -> (tok.TokenName, t))
+        |> TriviaHelpers.``keyword tokens inside range`` [ELSE;IF;ELIF] rangeOfIfThenElse
+        |> List.map (fun (tok, t) -> (TokenParser.getFsToken tok.TokenInfo.TokenName, t))
 
     let resultExpr =
         match keywords with
-        | ("ELSE", elseTrivia)::("IF", ifTrivia)::_ ->
+        | (ELSE, elseTrivia)::(IF, ifTrivia)::_ ->
             let commentAfterElseKeyword = TriviaHelpers.``has line comment after`` elseTrivia
             let commentAfterIfKeyword = TriviaHelpers.``has line comment after`` ifTrivia
             let triviaBeforeIfKeyword =
@@ -69,16 +69,16 @@ let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
                     )
                 |> List.tryHead
 
-            tokN rangeOfIfThenElse "ELSE" (!- "else") +>
+            tokN rangeOfIfThenElse ELSE (!- "else") +>
             ifElse commentAfterElseKeyword sepNln sepSpace +>
             opt sepNone triviaBeforeIfKeyword printContentBefore +>
-            tokN rangeOfIfThenElse "IF" (!- "if ") +>
+            tokN rangeOfIfThenElse IF (!- "if ") +>
             ifElse commentAfterIfKeyword (indent +> sepNln) sepNone
 
-        | ("ELIF",elifTok)::_
-        | [("ELIF",elifTok)] ->
+        | (ELIF,elifTok)::_
+        | [(ELIF,elifTok)] ->
             let commentAfterElIfKeyword = TriviaHelpers.``has line comment after`` elifTok
-            tokN rangeOfIfThenElse "ELIF" (!- "elif ")
+            tokN rangeOfIfThenElse ELIF (!- "elif ")
             +> ifElse commentAfterElIfKeyword (indent +> sepNln) sepNone
 
         | [] ->

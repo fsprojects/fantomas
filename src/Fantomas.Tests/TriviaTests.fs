@@ -121,9 +121,9 @@ let ``comments inside record`` () =
         |> List.head
 
     match triviaNodes with
-    | [{ Type = TriviaNodeType.Token(t); ContentAfter = [Comment(LineCommentAfterSourceCode("// foo"))] }
+    | [{ Type = TriviaNodeType.Token(LBRACE,_); ContentAfter = [Comment(LineCommentAfterSourceCode("// foo"))] }
        { ContentItself = Some(Number("7")) }] ->
-        t.Content == "{"
+        pass ()
     | _ ->
         fail()
         
@@ -330,10 +330,10 @@ elif true then ()"""
         |> List.head
     
     match triviaNodes with
-    | [{ Type = Token {Content = "if"}; ContentItself = Some(Keyword({Content = "if"})) }
-       { Type = Token {Content = "then"}; ContentItself = Some(Keyword({Content = "then"})) }
-       { Type = Token {Content = "elif"}; ContentItself = Some(Keyword({Content = "elif"})) }
-       { Type = Token {Content = "then"}; ContentItself = Some(Keyword({Content = "then"})) }] ->
+    | [{ Type = Token(IF,_); ContentItself = Some(Keyword({Content = "if"})) }
+       { Type = Token(THEN,_); ContentItself = Some(Keyword({Content = "then"})) }
+       { Type = Token(ELIF,_); ContentItself = Some(Keyword({Content = "elif"})) }
+       { Type = Token(THEN,_); ContentItself = Some(Keyword({Content = "then"})) }] ->
         pass()
     | _ ->
         fail()
@@ -466,9 +466,9 @@ let ``if keyword should be keyword itself`` () =
 
     match trivia with
     | [{ ContentItself = Some(Keyword({ TokenInfo = { TokenName = "IF" } }))
-         Type = TriviaNodeType.Token({ TokenInfo = { TokenName = "IF" } }) }
+         Type = TriviaNodeType.Token(IF,_) }
        { ContentItself = Some(Keyword({ TokenInfo = { TokenName = "THEN" } }))
-         Type = TriviaNodeType.Token({ TokenInfo = { TokenName = "THEN" } }) }] ->
+         Type = TriviaNodeType.Token(THEN,_) }] ->
         pass()
     | _ -> fail()
 

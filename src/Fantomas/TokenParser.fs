@@ -501,10 +501,59 @@ let getTriviaFromTokens (tokens: Token list) linesCount =
 
 let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "LBRACK_BAR"; "BAR_RBRACK"; "EQUALS"; "IF"; "THEN"; "ELSE"; "ELIF"; "BAR"; "RARROW"; "TRY"; "FINALLY"; "WITH"; "MEMBER"; "AND_BANG"]
 let private tokenKinds = [FSharpTokenCharKind.Operator]
-    
+
+let internal getFsToken tokenName =
+    match tokenName with
+    | "LBRACE" -> LBRACE
+    | "RBRACE" -> RBRACE
+    | "LPAREN" -> LPAREN
+    | "RPAREN" -> RPAREN
+    | "LBRACK" -> LBRACK
+    | "RBRACK" -> RBRACK
+    | "LBRACK_BAR" -> LBRACK_BAR
+    | "BAR_RBRACK" -> BAR_RBRACK
+    | "EQUALS" -> EQUALS
+    | "IF" -> IF
+    | "THEN" -> THEN
+    | "ELSE" -> ELSE
+    | "ELIF" -> ELIF
+    | "BAR" -> BAR
+    | "RARROW" -> RARROW
+    | "TRY" -> TRY
+    | "FINALLY" -> FINALLY
+    | "WITH" -> WITH
+    | "MEMBER" -> MEMBER
+    | "AND_BANG" -> AND_BANG
+    | "PERCENT_OP" -> PERCENT_OP
+    | "AMP" -> AMP
+    | "INFIX_BAR_OP" -> INFIX_BAR_OP
+    | "INFIX_COMPARE_OP" -> INFIX_COMPARE_OP
+    | "LESS" -> LESS
+    | "AMP_AMP" -> AMP_AMP
+    | "GREATER" -> GREATER
+    | "INFIX_STAR_DIV_MOD_OP" -> INFIX_STAR_DIV_MOD_OP
+    | "DELAYED" -> DELAYED
+    | "PLUS_MINUS_OP" -> PLUS_MINUS_OP
+    | "QMARK" -> QMARK
+    | "MINUS" -> MINUS
+    | "COLON_QMARK" -> COLON_QMARK
+    | "DOT_DOT" -> DOT_DOT
+    | "INT32_DOT_DOT" -> INT32_DOT_DOT
+    | "COLON_EQUALS" -> COLON_EQUALS
+    | "PREFIX_OP" -> PREFIX_OP
+    | "INFIX_AMP_OP" -> INFIX_AMP_OP
+    | "COLON_QMARK_GREATER" -> COLON_QMARK_GREATER
+    | "COLON_COLON" -> COLON_COLON
+    | "COLON_GREATER" -> COLON_GREATER
+    | "DOT_DOT_HAT" -> DOT_DOT_HAT
+    | "BAR_BAR" -> BAR_BAR
+    | "INFIX_STAR_STAR_OP" -> INFIX_STAR_STAR_OP
+    | _ -> failwithf "was not expecting token %s" tokenName
+
+
 let getTriviaNodesFromTokens (tokens: Token list) =
     tokens
     |> List.filter (fun t -> List.exists (fun tn -> tn = t.TokenInfo.TokenName) tokenNames || List.exists (fun tk -> tk = t.TokenInfo.CharClass) tokenKinds)
     |> List.map (fun t ->
         let range = getRangeBetween t.TokenInfo.TokenName t t
-        TriviaNodeAssigner(TriviaNodeType.Token(t), range))
+        TriviaNodeAssigner(TriviaNodeType.Token(getFsToken t.TokenInfo.TokenName, t), range))

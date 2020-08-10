@@ -3,6 +3,52 @@ module Fantomas.TriviaTypes
 open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.Range
 
+type FsTokenType =
+    | LBRACE
+    | RBRACE
+    | LPAREN
+    | RPAREN
+    | LBRACK
+    | RBRACK
+    | LBRACK_BAR
+    | BAR_RBRACK
+    | EQUALS
+    | IF
+    | THEN
+    | ELSE
+    | ELIF
+    | BAR
+    | RARROW
+    | TRY
+    | FINALLY
+    | WITH
+    | MEMBER
+    | AND_BANG
+    | PERCENT_OP
+    | AMP
+    | INFIX_BAR_OP
+    | INFIX_COMPARE_OP
+    | LESS
+    | AMP_AMP
+    | GREATER
+    | INFIX_STAR_DIV_MOD_OP
+    | DELAYED
+    | PLUS_MINUS_OP
+    | QMARK
+    | MINUS
+    | COLON_QMARK
+    | DOT_DOT
+    | INT32_DOT_DOT
+    | COLON_EQUALS
+    | PREFIX_OP
+    | INFIX_AMP_OP
+    | COLON_QMARK_GREATER
+    | COLON_COLON
+    | COLON_GREATER
+    | DOT_DOT_HAT
+    | BAR_BAR
+    | INFIX_STAR_STAR_OP
+
 type Token =
     { TokenInfo:FSharpTokenInfo
       LineNumber: int
@@ -255,12 +301,9 @@ type FsAstType =
     | File_
     | SigFile_
 
-type FsTokenType =
-    | RARROW
-
 type TriviaNodeType =
     | MainNode of ``type``:FsAstType
-    | Token of Token
+    | Token of ``type``:FsTokenType * Token
     
 type TriviaNode =
     { Type: TriviaNodeType
