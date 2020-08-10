@@ -3425,7 +3425,8 @@ and genConstNumber (c:SynConst) (r: range) =
 and genConstBytes (bytes: byte []) (r: range) =
     fun (ctx: Context) ->
         let trivia =
-            ctx.Trivia
+            Map.tryFind SynExpr_Const ctx.TriviaMainNodes
+            |> Option.defaultValue []
             |> List.tryFind(fun t -> RangeHelpers.rangeEq t.Range r)
             |> Option.bind (fun tv ->
                 match tv.ContentItself with
