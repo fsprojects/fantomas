@@ -240,7 +240,7 @@ and genModuleDeclList astContext e =
 
             let expr =
                 match List.tryHead rest with
-                | Some (SynModuleDecl.DoExpr(_, SynExpr.Const(SynConst.Unit,_),rm) as node) when (match m with SynModuleDecl.Attributes(a,_) -> List.length a > 1) ->
+                | Some (SynModuleDecl.DoExpr(_, SynExpr.Const(SynConst.Unit,_),rm) as node) ->
                     sepNlnConsideringTriviaContentBeforeWithAttributes node rm attrs
                 | Some mdl ->
                   let attrs = getRangesFromAttributesFromModuleDeclaration mdl
