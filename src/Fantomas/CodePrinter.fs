@@ -218,6 +218,8 @@ and genModuleDeclList astContext e =
         let newlineAfterMultiline ctx =
             let expr =
                 match List.tryHead rest with
+                | Some (SynModuleDecl.DoExpr(_, SynExpr.Const(SynConst.Unit,_),rm)) when (match m with SynModuleDecl.Attributes(a,_) -> List.length a > 1) ->
+                    sepNlnConsideringTriviaContentBeforeWithAttributes rm attrs
                 | Some rm ->
                   let attrs = getRangesFromAttributesFromModuleDeclaration rm
                   sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes rm.Range attrs
@@ -414,7 +416,13 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
                 if SourceTransformer.hasParenthesis e then id else sepSpace
             opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e
         |> genTrivia attr.Range
-    ifElse (Seq.isEmpty ats) sepNone (!- "[<" +> atCurrentColumn (col sepSemi ats (genAttributeExpr astContext)) -- ">]")
+
+    let shortExpression = !- "[<" +> atCurrentColumn (col sepSemi ats (genAttributeExpr astContext)) -- ">]"
+    let longExpression = !- "[<" +> atCurrentColumn (col (sepSemi +> sepNln) ats (genAttributeExpr astContext)) -- ">]"
+
+    ifElse (Seq.isEmpty ats)
+        sepNone
+        (expressionFitsOnRestOfLine shortExpression longExpression)
 
 and genOnelinerAttributes astContext ats =
     let ats = List.collect (fun a -> a.Attributes) ats
