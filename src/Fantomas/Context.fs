@@ -126,7 +126,7 @@ type internal Context =
       /// Positions of new lines in the original source string
       Positions : int []; 
       Trivia : TriviaNode list
-      TriviaMainNodes: Map<string, TriviaNode list>
+      TriviaMainNodes: Map<FsAstType, TriviaNode list>
       TriviaTokenNodes: Map<string, TriviaNode list>
       RecordBraceStart: int list }
 
@@ -831,7 +831,7 @@ let internal enterNodeTokenByName (range: range) (tokenName:string) (ctx: Contex
     | None -> ctx
     // enterNodeWith (findTriviaTokenFromName range) tokenName ctx
 
-let internal enterNodeFor (mainNodeName: string) (range: range) (ctx: Context) =
+let internal enterNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaMainNodes with
     | Some triviaNodes ->
         let tn =
@@ -856,7 +856,7 @@ let internal leaveNodeTokenByName (range: range) (tokenName:string) (ctx: Contex
         ctx
     // leaveNodeWith (findTriviaTokenFromName range) tokenName ctx
 
-let internal leaveNodeFor (mainNodeName: string) (range: range) (ctx: Context) =
+let internal leaveNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaMainNodes with
     | Some triviaNodes ->
         let tn = List.tryFind (fun { Range = r; ContentAfter = ca } -> List.isNotEmpty ca && RangeHelpers.rangeEq r range) triviaNodes
@@ -962,7 +962,7 @@ let internal sepConsideringTriviaContentBefore sepF (range: range) ctx =
         range
         ctx
 
-let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: string) (range: range) (ctx: Context) =
+let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: FsAstType) (range: range) (ctx: Context) =
     let findNode ctx range =
         Map.tryFind mainNodeName ctx.TriviaMainNodes
         |> Option.defaultValue []
@@ -971,11 +971,11 @@ let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: st
 
 let internal sepNlnConsideringTriviaContentBefore (range:range) = sepConsideringTriviaContentBefore sepNln range
 
-let internal sepNlnConsideringTriviaContentBeforeFor (mainNode: string) (range:range) =
+let internal sepNlnConsideringTriviaContentBeforeFor (mainNode: FsAstType) (range:range) =
     sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
 
 let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
-    (mainNode: string)
+    (mainNode: FsAstType)
     (ownRange:range)
     (attributeRanges: range seq)
     (ctx: Context)
@@ -988,7 +988,7 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
         | None -> None
 
     let attributeNode =
-        match Map.tryFind "SynAttributeList" ctx.TriviaMainNodes with
+        match Map.tryFind SynAttributeList_ ctx.TriviaMainNodes with
         | Some attributeNodes ->
             List.tryFind (fun { Range = r; ContentBefore = cb } -> hasPrintableContent cb
                                                                    && Seq.exists (fun range -> RangeHelpers.rangeEq r range) attributeRanges)
@@ -999,7 +999,7 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
     then ctx
     else sepNln ctx
 
-let internal sepNlnForEmptyModule (mainNode:string) (moduleRange:range) (ctx: Context) =
+let internal sepNlnForEmptyModule (mainNode:FsAstType) (moduleRange:range) (ctx: Context) =
     match Map.tryFind mainNode ctx.TriviaMainNodes with
     | Some nodes ->
         if List.exists (fun tn -> RangeHelpers.rangeEq tn.Range moduleRange
@@ -1130,7 +1130,7 @@ let internal genTriviaBeforeClausePipe (rangeOfClause:range) ctx =
     <| ctx
     
 let internal hasLineCommentAfterInfix (rangePlusInfix: range) (ctx: Context) =
-    match Map.tryFind "SynExpr.Ident" ctx.TriviaMainNodes with
+    match Map.tryFind SynExpr_Ident ctx.TriviaMainNodes with
     | Some triviaNodes ->
         triviaNodes
         |> List.tryFind (fun { ContentAfter = ca; Range = r } -> List.isNotEmpty ca && RangeHelpers.rangeEq r rangePlusInfix)
@@ -1185,7 +1185,7 @@ let private (|CommentOrDefineEvent|_|) we =
 // type Foo =
 //     .
 // => no need for a newline here
-let internal sepNlnBeforeMultilineConstruct (mainNode: string) range rangeOfAttributes ctx =
+let internal sepNlnBeforeMultilineConstruct (mainNode: FsAstType) range rangeOfAttributes ctx =
     let existingNewlines =
         ctx.WriterEvents
         |> Queue.rev

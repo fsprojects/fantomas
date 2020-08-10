@@ -66,7 +66,7 @@ let ``line comment on same line, is after last AST item`` () =
         |> List.head
 
     match triviaNodes with
-    | [{Type = MainNode("SynModuleOrNamespace.AnonModule") ;ContentAfter = [Comment(LineCommentAfterSourceCode(lineComment))]}; {Type = MainNode("SynExpr.Const"); ContentItself =Some(Number("7"))}] ->
+    | [{Type = MainNode(SynModuleOrNamespace_AnonModule) ;ContentAfter = [Comment(LineCommentAfterSourceCode(lineComment))]}; {Type = MainNode(SynExpr_Const); ContentItself =Some(Number("7"))}] ->
         lineComment == "// should be 8"
     | _ ->
         fail()
@@ -141,7 +141,7 @@ let ``comment after all source code`` () =
     match triviaNodes with
     | [ { Type = MainNode(mn); ContentAfter = [Comment(LineCommentOnSingleLine(lineComment))] }
         { ContentItself = Some(Number("123")) } ] ->
-        mn == "SynModuleDecl.Types"
+        mn == SynModuleDecl_Types
         lineComment == "//    override private x.ToString() = \"\""
         pass()
     | _ ->
@@ -353,7 +353,7 @@ doSomething()
     let withoutDefine = Map.find [] triviaNodes
 
     match withoutDefine with
-    | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
+    | [{ Type = MainNode(SynModuleOrNamespace_AnonModule)
          ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else")]
          ContentAfter = [Directive("#endif")] }] ->
         pass()
@@ -361,7 +361,7 @@ doSomething()
         fail()
         
     match withDefine with
-    | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
+    | [{ Type = MainNode(SynModuleOrNamespace_AnonModule)
          ContentBefore = [Directive("#if NOT_DEFINED"); Directive("#else"); Directive("#endif")]
          ContentAfter = [] }] ->
         pass()
@@ -382,7 +382,7 @@ let x = 1
     let withoutDefine = Map.find [] triviaNodes
     
     match withoutDefine with
-    | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
+    | [{ Type = MainNode(SynModuleOrNamespace_AnonModule)
          ContentBefore = [Directive("#if NOT_DEFINED"); Newline; Directive("#endif")]
          ContentAfter = [] }] ->
         pass()
@@ -390,10 +390,10 @@ let x = 1
         fail()
 
     match withDefine with
-    | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
+    | [{ Type = MainNode(SynModuleOrNamespace_AnonModule)
          ContentBefore = [Directive("#if NOT_DEFINED")]
          ContentAfter = [] }
-       { Type = MainNode("SynModuleDecl.Let")
+       { Type = MainNode(SynModuleDecl_Let)
          ContentBefore = []
          ContentAfter = [Directive("#endif")]}] ->
         pass()
@@ -415,7 +415,7 @@ type ExtensibleDumper = A | B
     let trivias = Map.find ["DEBUG"] triviaNodes
 
     match trivias with
-    | [{ Type = MainNode("Ident")
+    | [{ Type = MainNode(Ident_)
          ContentAfter = [Directive("#if EXTENSIBLE_DUMPER")
                          Directive("#if DEBUG")
                          Newline
@@ -452,7 +452,7 @@ let foo = 42
         |> Map.find []
 
     match trivia with
-    | [{ Type = MainNode("SynModuleOrNamespace.AnonModule")
+    | [{ Type = MainNode(SynModuleOrNamespace_AnonModule)
          ContentBefore = [ Directive("#if SOMETHING"); Newline; Directive("#endif") ] }] -> pass()
     | _ -> fail()
 
@@ -490,7 +490,7 @@ with empty lines"
 
     match trivia with
     | [{ ContentItself = Some(StringContent(sc))
-         Type = TriviaNodeType.MainNode("SynExpr.Const") }] ->
+         Type = TriviaNodeType.MainNode(SynExpr_Const) }] ->
         sc == sprintf "\"%s\"" multilineString
     | _ -> fail()
 
@@ -512,7 +512,7 @@ with empty lines"
 
     match trivia with
     | [{ ContentItself = Some(StringContent(sc))
-         Type = TriviaNodeType.MainNode("SynExpr.Const") }] ->
+         Type = TriviaNodeType.MainNode(SynExpr_Const) }] ->
         sc == sprintf "\"\"\"%s\"\"\"" multilineString
     | _ -> fail()
 
@@ -525,7 +525,7 @@ let ``char content`` () =
 
     match trivia with
     | [{ ContentItself = Some(CharContent("\'\\u0000\'"))
-         Type = TriviaNodeType.MainNode("SynExpr.Const") }] ->
+         Type = TriviaNodeType.MainNode(SynExpr_Const) }] ->
         pass()
     | _ -> fail()
 
