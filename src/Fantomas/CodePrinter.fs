@@ -3375,7 +3375,7 @@ and genConst (c:SynConst) (r:range) =
             <| ctx
     | SynConst.Char(c) ->
         fun (ctx: Context) ->
-            let charContentFromTrivia = TriviaHelpers.``get CharContent`` r ctx.Trivia
+            let charContentFromTrivia = TriviaHelpers.``get CharContent`` r ctx.TriviaMainNodes
             let expr =
                 match charContentFromTrivia with
                 | Some content -> !- content

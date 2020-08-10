@@ -56,13 +56,15 @@ module internal TriviaHelpers =
         |> Option.map (fun tv -> tv.ContentBefore |> List.exists (function | Comment(LineCommentOnSingleLine(_)) -> true | _ -> false))
         |> Option.defaultValue false
 
-    let ``get CharContent`` range triviaNodes =
-        triviaNodes
-        |> List.tryFind (fun tv -> RangeHelpers.rangeEq  tv.Range range)
-        |> Option.bind (fun tv ->
-            match tv.ContentItself with
-            | Some(CharContent c) -> Some c
-            | _ -> None)
+    let ``get CharContent`` range (nodes: Map<FsAstType, TriviaNode list>) =
+        Map.tryFind SynExpr_Const nodes
+        |> Option.bind (fun triviaNodes ->
+            triviaNodes
+            |> List.tryFind (fun tv -> RangeHelpers.rangeEq  tv.Range range)
+            |> Option.bind (fun tv ->
+                match tv.ContentItself with
+                | Some(CharContent c) -> Some c
+                | _ -> None))
 
     let ``has content itself that matches`` (predicate: TriviaContent -> bool) range (triviaNodes: TriviaNode list) =
         triviaNodes
