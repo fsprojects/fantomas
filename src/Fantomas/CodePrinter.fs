@@ -3446,7 +3446,9 @@ and infixOperatorFromTrivia range fallback (ctx: Context) =
     // by specs, section 3.4 https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=24&zoom=auto,-137,312
     let validIdentRegex = """^(_|\p{L}|\p{Nl})([_'0-9]|\p{L}|\p{Nl}\p{Pc}|\p{Mn}|\p{Mc}|\p{Cf})*$"""
     let isValidIdent x = Regex.Match(x, validIdentRegex).Success
-    ctx.Trivia
+    [ if Map.containsKey SynPat_LongIdent ctx.TriviaMainNodes then yield! Map.find SynPat_LongIdent ctx.TriviaMainNodes
+      if Map.containsKey SynPat_Named ctx.TriviaMainNodes then yield! Map.find SynPat_Named ctx.TriviaMainNodes
+      if Map.containsKey Binding_ ctx.TriviaMainNodes then yield! Map.find Binding_ ctx.TriviaMainNodes ]
     |> List.choose(fun t ->
         match t.Range = range with
         | true ->
