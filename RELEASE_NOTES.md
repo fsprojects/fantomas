@@ -1,9 +1,6 @@
-### 4.0.0-beta-002 - 07/2020
+### 4.0.0 - 08/2020
 
 * Extract FakeHelpers and EditorConfig to Fantomas.Extras project [#986](https://github.com/fsprojects/fantomas/issues/986)
-
-### 4.0.0-beta-001 - 07/2020
-
 * Update FCS to 36. [#899](https://github.com/fsprojects/fantomas/pull/899), [#961](https://github.com/fsprojects/fantomas/pull/961)
 * Replaced json configuration with .editorconfig. [#650](https://github.com/fsprojects/fantomas/issues/650)
 * Sunset setting ReorderOpenDeclaration. [#645](https://github.com/fsprojects/fantomas/issues/645)
@@ -31,6 +28,8 @@
 * Feature MultilineBlockBracketsOnSameColumn. [#453](https://github.com/fsprojects/fantomas/issues/453)
 * Feature NewlineBetweenTypeDefinitionAndMembers. [#752](https://github.com/fsprojects/fantomas/issues/752)
 * Feature KeepIfThenInSameLine. [#825](https://github.com/fsprojects/fantomas/issues/825)
+* Fix Assembly attributes create over-long lines. [#629](https://github.com/fsprojects/fantomas/issues/629)
+* Fix Brackets increased every time Fantomas is run. [#989](https://github.com/fsprojects/fantomas/issues/989)
 * Fix List expression can get combined to a single line with different semantics. [#931](https://github.com/fsprojects/fantomas/issues/931)
 * Fix Additional new line inserted around attributes. [#949](https://github.com/fsprojects/fantomas/issues/949)
 * Fix `with get` removal in FSI invalid. [#945](https://github.com/fsprojects/fantomas/issues/945)
