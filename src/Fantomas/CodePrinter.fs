@@ -1699,7 +1699,7 @@ and genExpr astContext synExpr =
                 |> List.indexed
                 |> List.choose(fun (idx, (beforeRange, elseIfRange)) ->
                     let rangeBetween = mkRange "between" beforeRange.End elseIfRange.Start
-                    let keywordsFoundInBetween = TriviaHelpers.``keyword tokens inside range`` [ELSE] rangeBetween ctx.Trivia
+                    let keywordsFoundInBetween = TriviaHelpers.``keyword token inside range`` rangeBetween (Map.tryFindOrEmptyList ELSE ctx.TriviaTokenNodes)
                     match List.tryHead keywordsFoundInBetween with
                     | Some (_, elseKeyword) ->
                         (idx, mkRange "else if" elseKeyword.Range.Start elseIfRange.End)
@@ -1724,19 +1724,17 @@ and genExpr astContext synExpr =
             let hasElfis = not (List.isEmpty elfis)
 
             let commentAfterKeyword keyword rangePredicate (ctx: Context) =
-                ctx.Trivia
+                (Map.tryFindOrEmptyList keyword ctx.TriviaTokenNodes)
                 |> TriviaHelpers.``has content after after that matches``
-                    (fun t ->
-                        let ttt = TriviaHelpers.``is token of type`` keyword t
-                        let rrr = rangePredicate t.Range
-                        ttt && rrr)
+                    (fun t -> rangePredicate t.Range)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
 
             let hasCommentAfterBoolExpr =
                 TriviaHelpers.``has content after after that matches``
                     (fun tn -> RangeHelpers.rangeEq tn.Range e1.Range)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
-                    ctx.Trivia
+                    [ yield! (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
+                      yield! (Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes) ]
 
             let hasCommentAfterIfKeyword =
                 commentAfterKeyword IF (RangeHelpers.``have same range start`` synExpr.Range) ctx
@@ -1745,7 +1743,8 @@ and genExpr astContext synExpr =
                 TriviaHelpers.``has content after after that matches``
                     (fun tn -> RangeHelpers.rangeEq tn.Range range)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
-                    ctx.Trivia
+                    [ yield! (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
+                      yield! (Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes) ] // ctx.Trivia
 
             let hasCommentAfterIfBranchExpr = ``has line comment after source code for range`` e2.Range
 
@@ -1780,7 +1779,8 @@ and genExpr astContext synExpr =
                     TriviaHelpers.``has content after after that matches``
                         (fun tn -> RangeHelpers.rangeEq tn.Range elf1.Range)
                         (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
-                        ctx.Trivia
+                        [ yield! (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
+                          yield! (Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes) ]
                 let hasCommentAfterThenKeyword =
                     commentAfterKeyword THEN (RangeHelpers.``range contains`` fullRange) ctx
 
@@ -1826,8 +1826,8 @@ and genExpr astContext synExpr =
 
             let genElifMultiLine ((elf1: SynExpr), elf2, fullRange) (ctx: Context) =
                 let indentAfterThenKeyword =
-                    ctx.Trivia
-                    |> TriviaHelpers.``keyword tokens inside range`` [IF; ELIF] fullRange
+                    [ yield! (Map.tryFindOrEmptyList IF ctx.TriviaTokenNodes); yield! (Map.tryFindOrEmptyList ELIF ctx.TriviaTokenNodes) ]
+                    |> TriviaHelpers.``keyword token inside range`` fullRange
                     |> List.tryHead
                     |> Option.map (fun (_, t) ->
                         if TriviaHelpers.``has line comment after`` t then

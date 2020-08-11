@@ -49,8 +49,11 @@ let triviaAfterArrow (range: range) (ctx: Context) =
 
 let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
     let keywords =
-        ctx.Trivia
-        |> TriviaHelpers.``keyword tokens inside range`` [ELSE;IF;ELIF] rangeOfIfThenElse
+        [ yield! (Map.tryFindOrEmptyList ELSE ctx.TriviaTokenNodes)
+          yield! (Map.tryFindOrEmptyList IF ctx.TriviaTokenNodes)
+          yield! (Map.tryFindOrEmptyList ELIF ctx.TriviaTokenNodes) ]
+        |> List.sortBy (fun tn -> tn.Range.StartLine, tn.Range.StartColumn)
+        |> TriviaHelpers.``keyword token inside range`` rangeOfIfThenElse
         |> List.map (fun (tok, t) -> (TokenParser.getFsToken tok.TokenInfo.TokenName, t))
 
     let resultExpr =

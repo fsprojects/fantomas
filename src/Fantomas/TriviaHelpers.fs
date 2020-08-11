@@ -32,11 +32,11 @@ module internal TriviaHelpers =
         | Token(tname, _) -> tname = tokenName
         | _ -> false
 
-    let ``keyword tokens inside range`` keywords range (trivia: TriviaNode list) =
+    let ``keyword token inside range`` range (trivia: TriviaNode list) =
         trivia
         |> List.choose(fun t ->
             match t.Type with
-            | TriviaNodeType.Token(tname, tok) when (List.contains tname keywords && RangeHelpers.``range contains`` range t.Range) ->
+            | TriviaNodeType.Token(_, tok) when (RangeHelpers.``range contains`` range t.Range) ->
                 Some (tok, t)
             | _ -> None
         )
