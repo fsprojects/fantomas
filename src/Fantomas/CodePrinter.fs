@@ -1313,8 +1313,24 @@ and genExpr astContext synExpr =
             | AndBangStatement (_, _, r) -> r
             | OtherStatement expr -> expr.Range
 
+        let getKey ces =
+            match ces with
+            | LetOrUseStatement _ -> Binding_ |> Choice1Of2
+            | LetOrUseBangStatement _ -> SynExpr_LetOrUseBang |> Choice1Of2
+            | AndBangStatement _ -> AND_BANG |> Choice2Of2
+            | OtherStatement e ->
+                match e with
+                | SynExpr.App _ -> SynExpr_App
+                | SynExpr.Match _ -> SynExpr_Match
+                | SynExpr.IfThenElse _ -> SynExpr_IfThenElse
+                | SynExpr.YieldOrReturn _ -> SynExpr_YieldOrReturn
+                | SynExpr.YieldOrReturnFrom _ -> SynExpr_YieldOrReturnFrom
+                | SynExpr.Do _ -> SynExpr_Do
+                | _ -> SynExpr_Const
+                |> Choice1Of2
+
         statements
-        |> List.map (fun ces -> genCompExprStatement astContext ces, getRangeOfCompExprStatement ces)
+        |> List.map (fun ces -> genCompExprStatement astContext ces, getKey ces, getRangeOfCompExprStatement ces)
         |> colWithNlnWhenItemIsMultiline
 
     | ArrayOrListOfSeqExpr(isArray, e) as aNode ->
@@ -1648,7 +1664,7 @@ and genExpr astContext synExpr =
         // * https://github.com/fsprojects/fantomas/issues/478
         // * https://github.com/fsprojects/fantomas/issues/513
         firstNewlineOrComment es
-        +> atCurrentColumn (colEx (fun (e:SynExpr) -> sepConsideringTriviaContentBefore sepSemiNln e.Range) es (genExpr astContext))
+        +> atCurrentColumn (colEx (fun (e:SynExpr) -> sepConsideringTriviaContentBefore sepSemiNln (Choice1Of2 SynExpr_IfThenElse) e.Range ) es (genExpr astContext))
 
     | IfThenElse(e1, e2, None, mIfToThen) ->
         fun (ctx:Context) ->

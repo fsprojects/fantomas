@@ -23,10 +23,6 @@ let firstNewlineOrComment (es: SynExpr list) (ctx: Context) =
         | Some ({ ContentBefore = (TriviaContent.Newline|TriviaContent.Comment _) as head ::rest } as tn) ->
             let mapNode t = if t = tn then { tn with ContentBefore = rest } else t
 
-            let updatedTriviaNodes =
-                ctx.Trivia
-                |> List.map mapNode
-
             let updatedTriviaMainNodes =
                 match tn.Type with
                 | MainNode(mn) ->
@@ -35,7 +31,7 @@ let firstNewlineOrComment (es: SynExpr list) (ctx: Context) =
                     |> fun newNodes -> Map.add mn newNodes ctx.TriviaMainNodes
                 | _ -> ctx.TriviaMainNodes
 
-            let ctx' = { ctx with Trivia = updatedTriviaNodes; TriviaMainNodes = updatedTriviaMainNodes }
+            let ctx' = { ctx with TriviaMainNodes = updatedTriviaMainNodes }
             printTriviaContent head ctx'
         | _ -> sepNone ctx
 
