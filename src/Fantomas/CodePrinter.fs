@@ -1478,20 +1478,6 @@ and genExpr astContext synExpr =
                     | _ -> []
                 selectIdent appNode
 
-            let hasLineCommentAfterExpression (currentLine) =
-                let findTrivia tn = tn.Range.EndLine = currentLine
-                let predicate = function | Comment _ -> true | _ -> false
-                TriviaHelpers.``has content after after that matches`` findTrivia predicate ctx.Trivia
-
-            let lineCommentsAfter =
-                [ yield (e.Range.EndLine, hasLineCommentAfterExpression e.Range.EndLine)
-                  yield! (es |> List.map (fun ((_,re'),_) -> re'.EndLine , hasLineCommentAfterExpression re'.EndLine)) ]
-                |> Map.ofList
-
-            let hasLineCommentOn lineNumber =
-                Map.tryFind lineNumber lineCommentsAfter
-                |> Option.defaultValue false
-
             let expr =
                 match e with
                 | App(e1, [e2]) ->
@@ -1502,8 +1488,6 @@ and genExpr astContext synExpr =
             expr
             +> indent
             +> (col sepNone es (fun ((s,_), e) ->
-                    let currentExprRange = e.Range
-
                     let genTriviaOfIdent =
                         dotGetFuncExprIdents
                         |> List.tryFind (fun (er, _) -> er = e.Range)
@@ -1537,11 +1521,7 @@ and genExpr astContext synExpr =
                     let writeExpr =
                          expressionFitsOnRestOfLine shortExpr fallBackExpr
 
-                    let addNewlineIfNeeded (ctx: Context) =
-                            // If the line before ended with a line comment, it should add a newline
-                            (ifElse (hasLineCommentOn (currentExprRange.EndLine - 1)) sepNln sepNone) ctx
-
-                    addNewlineIfNeeded +> writeExpr))
+                    writeExpr))
             +> unindent
             <| ctx
 
