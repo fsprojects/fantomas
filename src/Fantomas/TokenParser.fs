@@ -461,9 +461,10 @@ let private createNewLine lineNumber =
     { Item = Newline; Range = range }
 
 let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) (ignoreRanges: FSharp.Compiler.Range.range list) =
+    let whiteSpaceTag = 4
     let lastLineWithContent =
         tokens
-        |> List.tryFindBack (fun t -> t.TokenInfo.TokenName <> "WHITESPACE")
+        |> List.tryFindBack (fun t -> t.TokenInfo.Tag <> whiteSpaceTag)
         |> Option.map (fun t -> t.LineNumber)
         |> Option.defaultValue lineCount
 
@@ -483,7 +484,11 @@ let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) (ignoreRa
 
     let linesWithOnlySpaces =
         linesWithTokens
-        |> List.filter (fun (ln, g) -> ln <= lastLineWithContent && (List.length g) = 1 && (List.head g).TokenInfo.TokenName = "WHITESPACE")
+        |> List.filter (fun (ln, g) ->
+            (ln <= lastLineWithContent)
+            && match g with
+               | [ t ] -> t.TokenInfo.Tag = whiteSpaceTag
+               | _ -> false)
         |> List.map (fst >> createNewLine)
 
     completeEmptyLines @ linesWithOnlySpaces
