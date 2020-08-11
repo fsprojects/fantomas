@@ -2833,7 +2833,7 @@ and genPrefixTypes astContext node ctx =
                 TriviaHelpers.``has content itself that matches``
                     (function | StringContent sc -> sc.StartsWith("@") | _ -> false)
                     r
-                    ctx.Trivia
+                    (Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes) // ctx.Trivia
             | _ -> false
 
         (!- "<"
