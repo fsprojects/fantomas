@@ -357,7 +357,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                         TriviaHelpers.``has content after after that matches``
                             (fun tn -> RangeHelpers.rangeEq tn.Range a.Range)
                             (function | Directive(_) -> true | _ -> false)
-                            ctx.Trivia
+                            (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaMainNodes)
                     (hasContentAfter, prevExpr +> expr)
                 ) (true, sepNone) ats
                 |> snd
@@ -524,7 +524,7 @@ and genAttributes astContext (ats: SynAttributes) =
                 TriviaHelpers.``has content after that ends with``
                     (fun t -> RangeHelpers.rangeEq t.Range a.Range)
                     (function | Directive(_) | Newline | Comment(LineCommentOnSingleLine(_)) -> true | _ -> false)
-                    ctx.Trivia
+                    (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaMainNodes)
             let chain =
                 acc +>
                 (genAttributesCore astContext a.Attributes |> genTriviaFor SynAttributeList_ a.Range)
@@ -548,12 +548,8 @@ and addSpaceAfterGenericConstructBeforeColon ctx =
 
 and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynValInfo option) (isPrefixMultiline: bool) ctx =
     let hasTriviaContentAfterEqual =
-        ctx.Trivia
-        |> List.exists (fun tn ->
-            match tn.Type with
-            | TriviaTypes.Token(EQUALS, tok) -> tn.Range.StartLine = pat.Range.StartLine
-            | _ -> false
-        )
+        Map.tryFindOrEmptyList EQUALS ctx.TriviaTokenNodes
+        |> List.exists (fun tn -> tn.Range.StartLine = pat.Range.StartLine)
 
     let sepEqual predicate =
         if predicate then
@@ -582,8 +578,6 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
                 addSpaceAfterGenericConstructBeforeColon
             | _ -> sepNone
 
-        let hasLineCommentBeforeColon = TriviaHelpers.``has line comment before`` t.Range ctx.Trivia
-
         let genCommentBeforeColon = atCurrentColumn (enterNodeFor SynBindingReturnInfo_ t.Range)
 
         let genMetadataAttributes =
@@ -596,15 +590,15 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
          +> sepColon
          +> genMetadataAttributes
          +> genType astContext false t
-         +> sepEqual (isPrefixMultiline || hasLineCommentBeforeColon)
-         +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual || hasLineCommentBeforeColon)
+         +> sepEqual (isPrefixMultiline)
+         +> ifElse (isPrefixMultiline || hasTriviaContentAfterEqual)
                (indent +> sepNln +> genExpr astContext e +> unindent)
                (isShortExpressionOrAddIndentAndNewline maxWidth (genExpr astContext e))) ctx
     | e ->
         let genE =
             match e with
             | MultilineString(_)
-            | _ when (TriviaHelpers.``has content itself that is multiline string`` e.Range ctx.Trivia) ->
+            | _ when (TriviaHelpers.``has content itself that is multiline string`` e.Range (Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes)) ->
                 genExpr astContext e
             | _ -> isShortExpressionOrAddIndentAndNewline maxWidth (genExpr astContext e)
 
@@ -938,7 +932,9 @@ and genMemberFlags astContext (mf:MemberFlags) =
 and genMemberFlagsForMemberBinding astContext (mf:MemberFlags) (rangeOfBindingAndRhs: range) =
     fun ctx ->
          let keywordFromTrivia =
-             ctx.Trivia
+             [ yield! (Map.tryFindOrEmptyList SynMemberDefn_Member ctx.TriviaMainNodes)
+               yield! (Map.tryFindOrEmptyList SynMemberSig_Member  ctx.TriviaMainNodes)
+               yield! (Map.tryFindOrEmptyList MEMBER ctx.TriviaTokenNodes) ]
                 |> List.tryFind(fun { Type = t; Range = r }  ->
                     match t with
                     | MainNode SynMemberDefn_Member
@@ -1206,7 +1202,10 @@ and genExpr astContext synExpr =
         fun ctx ->
             // If an array or list has any form of line comments inside them, they cannot fit on a single line
             // check for any comments inside the range of the node
-            if (TriviaHelpers.``has line comments inside`` alNode.Range ctx.Trivia)
+            if (TriviaHelpers.``has line comments inside`` alNode.Range [ yield! Map.tryFindOrEmptyList LBRACK_BAR  ctx.TriviaTokenNodes
+                                                                          yield! Map.tryFindOrEmptyList LBRACK ctx.TriviaTokenNodes
+                                                                          yield! Map.tryFindOrEmptyList BAR_RBRACK ctx.TriviaTokenNodes
+                                                                          yield! Map.tryFindOrEmptyList RBRACK ctx.TriviaTokenNodes ])
                || List.exists isIfThenElseWithYieldReturn xs then
                 multilineExpression ctx
             else
@@ -3352,8 +3351,7 @@ and genConst (c:SynConst) (r:range) =
     | SynConst.String(s,_) ->
         fun (ctx: Context) ->
             let trivia =
-                Map.tryFind SynExpr_Const ctx.TriviaMainNodes
-                |> Option.defaultValue []
+                Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes
                 |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range r)
 
             let triviaStringContent =
@@ -3394,8 +3392,7 @@ and genConst (c:SynConst) (r:range) =
 
 and genConstNumber (c:SynConst) (r: range) =
     fun (ctx: Context) ->
-        Map.tryFind SynExpr_Const ctx.TriviaMainNodes
-        |> Option.defaultValue []
+        Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes
         |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
         |> Option.bind(fun tn ->
             match tn.ContentItself with | Some(Number(n)) -> Some n | _ -> None
@@ -3426,8 +3423,7 @@ and genConstNumber (c:SynConst) (r: range) =
 and genConstBytes (bytes: byte []) (r: range) =
     fun (ctx: Context) ->
         let trivia =
-            Map.tryFind SynExpr_Const ctx.TriviaMainNodes
-            |> Option.defaultValue []
+            Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes
             |> List.tryFind(fun t -> RangeHelpers.rangeEq t.Range r)
             |> Option.bind (fun tv ->
                 match tv.ContentItself with
