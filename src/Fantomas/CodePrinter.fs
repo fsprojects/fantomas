@@ -2317,16 +2317,6 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         let hasLeadingTrivia (t : TriviaNode) =
             RangeHelpers.rangeEq t.Range unionNode.Range && not (List.isEmpty t.ContentBefore)
 
-        let sepNlnBasedOnTrivia =
-            fun (ctx: Context) ->
-                let trivia =
-                    ctx.Trivia |> List.tryFind hasLeadingTrivia
-
-                match trivia with
-                | Some _ -> sepNln
-                | None -> sepNone
-                <| ctx
-
         let unionCases ctx =
             match xs with
             | [] -> ctx
@@ -2338,7 +2328,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
                     not (List.isEmpty attrs) ||
                     List.isEmpty fields
 
-                indent +> sepSpace +> sepNlnBasedOnTrivia
+                indent +> sepSpace
                 +> genTriviaFor SynTypeDefnSimpleRepr_Union tdr.Range
                     (opt sepSpace ao' genAccess
                     +> genUnionCase { astContext with HasVerticalBar = hasVerticalBar } x)
