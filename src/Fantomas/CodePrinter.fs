@@ -2526,16 +2526,6 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
         +> unindent
 
     | SigSimple(TDSRUnion(ao', xs) as unionNode) ->
-        let sepNlnBasedOnTrivia =
-            fun (ctx: Context) ->
-                let trivia =
-                    ctx.Trivia
-                    |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range unionNode.Range && not (List.isEmpty t.ContentBefore))
-
-                match trivia with
-                | Some _ -> sepNln
-                | None -> sepNone
-                <| ctx
 
         let unionCases =
             match xs with
@@ -2543,7 +2533,7 @@ and genSigTypeDefn astContext (SigTypeDef(ats, px, ao, tds, tcs, tdr, ms, s, pre
             | [UnionCase(attrs, _,_,_, (UnionCaseType fs)) as x] when List.isEmpty ms ->
                 let hasVerticalBar = Option.isSome ao' || not (List.isEmpty attrs) || List.isEmpty fs
 
-                indent +> sepSpace +> sepNlnBasedOnTrivia
+                indent +> sepSpace
                 +> genTriviaFor SynTypeDefnSimpleRepr_Union tdr.Range
                     (opt sepSpace ao' genAccess
                     +> genUnionCase { astContext with HasVerticalBar = hasVerticalBar } x)
