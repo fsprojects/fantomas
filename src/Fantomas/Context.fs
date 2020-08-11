@@ -818,12 +818,6 @@ let internal findTriviaTokenFromName (tokenName:FsTokenType) (range: range) (ctx
     |> Option.defaultValue []
     |> List.tryFind(fun n -> RangeHelpers.``range contains`` range n.Range)
 
-let internal enterNodeWith f x (ctx: Context) =
-    match f ctx.Trivia x with
-    | Some triviaNode ->
-        (printContentBefore triviaNode) ctx
-    | None -> ctx
-let internal enterNodeToken (range: range) (ctx: Context) = enterNodeWith findTriviaTokenFromRange range ctx
 let internal enterNodeTokenByName (range: range) (tokenName:FsTokenType) (ctx: Context) =
     match findTriviaTokenFromName tokenName range ctx with
     | Some triviaNode ->
@@ -843,11 +837,6 @@ let internal enterNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context
         | None -> ctx
     | None -> ctx
 
-let internal leaveNodeWith f x (ctx: Context) =
-    match f ctx.Trivia x with
-    | Some triviaNode -> printContentAfter triviaNode ctx
-    | None -> ctx
-let internal leaveNodeToken (range: range) (ctx: Context) = leaveNodeWith findTriviaTokenFromRange range ctx
 let internal leaveNodeTokenByName (range: range) (tokenName:FsTokenType) (ctx: Context) =
     match findTriviaTokenFromName tokenName range ctx with
     | Some triviaNode ->
@@ -868,12 +857,8 @@ let internal leaveNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context
         ctx
 
 let internal leaveEqualsToken (range: range) (ctx: Context) =
-    ctx.Trivia
-    |> List.filter(fun tn ->
-        match tn.Type with
-        | Token(EQUALS, tok) -> tn.Range.StartLine = range.StartLine
-        | _ -> false
-    )
+    (Map.tryFindOrEmptyList EQUALS ctx.TriviaTokenNodes)
+    |> List.filter(fun tn -> tn.Range.StartLine = range.StartLine)
     |> List.tryHead
     |> fun tn ->
         match tn with
@@ -884,14 +869,8 @@ let internal leaveEqualsToken (range: range) (ctx: Context) =
     <| ctx
 
 let internal leaveLeftToken (tokenName: FsTokenType) (range: range) (ctx: Context) =
-    ctx.Trivia
-    |> List.tryFind(fun tn ->
-        // Token is a left brace { at the beginning of the range.
-        match tn.Type with
-        | Token(tname, tok) ->
-            tname = tokenName && tn.Range.StartLine = range.StartLine && tn.Range.StartColumn = range.StartColumn
-        | _ -> false
-    )
+    (Map.tryFindOrEmptyList tokenName ctx.TriviaTokenNodes)
+    |> List.tryFind(fun tn -> tn.Range.StartLine = range.StartLine && tn.Range.StartColumn = range.StartColumn)
     |> fun tn ->
         match tn with
         | Some({ ContentAfter = [TriviaContent.Comment(LineCommentAfterSourceCode(lineComment))] }) ->
@@ -905,16 +884,8 @@ let internal leaveLeftBrack = leaveLeftToken LBRACK
 let internal leaveLeftBrackBar = leaveLeftToken LBRACK_BAR
 
 let internal enterRightToken (tokenName: FsTokenType) (range: range) (ctx: Context) =
-    ctx.Trivia
-    |> List.tryFind(fun tn ->
-        // Token is a left brace { at the beginning of the range.
-        match tn.Type with
-        | Token(tname, tok) ->
-            (tname = tokenName)
-            && tn.Range.EndLine = range.EndLine
-            && (tn.Range.EndColumn = range.EndColumn || tn.Range.EndColumn + 1 = range.EndColumn)
-        | _ -> false
-    )
+    (Map.tryFindOrEmptyList tokenName ctx.TriviaTokenNodes)
+    |> List.tryFind(fun tn -> tn.Range.EndLine = range.EndLine && (tn.Range.EndColumn = range.EndColumn || tn.Range.EndColumn + 1 = range.EndColumn))
     |> fun tn ->
         match tn with
         | Some({ ContentBefore = [TriviaContent.Comment(LineCommentOnSingleLine(lineComment))] }) ->

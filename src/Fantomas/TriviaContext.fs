@@ -6,9 +6,6 @@ open Fantomas.TriviaTypes
 open FSharp.Compiler.Range
 open FSharp.Compiler.SyntaxTree
 
-let tok (range: range) (s: string) =
-    enterNodeToken range +> (!-s) +> leaveNodeToken range
-
 let tokN (range: range) (tokenName: FsTokenType) f =
     enterNodeTokenByName range tokenName +> f +> leaveNodeTokenByName range tokenName
 
