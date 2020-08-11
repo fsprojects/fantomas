@@ -2324,7 +2324,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
 
                 let hasVerticalBar =
                     (Option.isSome ao' && List.length fields <> 1) ||
-                    ctx.Trivia |> List.exists hasLeadingTrivia ||
+                    (Map.tryFindOrEmptyList SynTypeDefnSimpleRepr_Union ctx.TriviaMainNodes) |> List.exists hasLeadingTrivia ||
                     not (List.isEmpty attrs) ||
                     List.isEmpty fields
 
