@@ -1658,11 +1658,11 @@ and genExpr astContext synExpr =
             let thenKeywordHasLineComment =
                 TriviaHelpers.``has content after after that matches``
                     (fun tn ->
-                        match tn.Type with
-                        | Token(THEN, _) -> true
-                        | _ -> false)
+                        // there is like a one of bug here
+                        let correctedRange = mkRange "correctedRange" tn.Range.Start (mkPos tn.Range.EndLine (tn.Range.EndColumn + 1))
+                        RangeHelpers.rangeEndEq correctedRange mIfToThen)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
-                    ctx.Trivia
+                    (Map.tryFindOrEmptyList THEN ctx.TriviaTokenNodes)
 
             let thenExpr = tokN mIfToThen THEN
 
