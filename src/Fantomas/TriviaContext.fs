@@ -13,9 +13,14 @@ let tokN (range: range) (tokenName: FsTokenType) f =
     enterNodeTokenByName range tokenName +> f +> leaveNodeTokenByName range tokenName
 
 let firstNewlineOrComment (es: SynExpr list) (ctx: Context) =
+    let triviaNodes =
+        [ yield! (Map.tryFindOrEmptyList SynExpr_App ctx.TriviaMainNodes)
+          yield! (Map.tryFindOrEmptyList SynExpr_DoBang ctx.TriviaMainNodes)
+          yield! (Map.tryFindOrEmptyList SynExpr_YieldOrReturnFrom ctx.TriviaMainNodes) ]
+
     es
     |> List.tryHead
-    |> Option.bind (fun e -> TriviaHelpers.findByRange ctx.Trivia e.Range)
+    |> Option.bind (fun e -> TriviaHelpers.findByRange triviaNodes e.Range)
     |> fun cb ->
         match cb with
         | Some ({ ContentBefore = (TriviaContent.Newline|TriviaContent.Comment _) as head ::rest } as tn) ->
@@ -62,14 +67,10 @@ let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
             let commentAfterElseKeyword = TriviaHelpers.``has line comment after`` elseTrivia
             let commentAfterIfKeyword = TriviaHelpers.``has line comment after`` ifTrivia
             let triviaBeforeIfKeyword =
-                ctx.Trivia
+                (Map.tryFindOrEmptyList SynExpr_IfThenElse ctx.TriviaMainNodes) // ctx.Trivia
                 |> List.filter (fun t ->
-                    match t.Type with
-                    | MainNode(SynExpr_IfThenElse) ->
                         RangeHelpers.``range contains`` rangeOfIfThenElse t.Range
-                        && (RangeHelpers.``range after`` elseTrivia.Range t.Range)
-                    | _ -> false
-                    )
+                        && (RangeHelpers.``range after`` elseTrivia.Range t.Range))
                 |> List.tryHead
 
             tokN rangeOfIfThenElse ELSE (!- "else") +>
