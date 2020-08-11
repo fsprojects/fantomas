@@ -2722,11 +2722,7 @@ and genEnumCase astContext (EnumCase(ats, px, _, (_,_)) as node) =
         let expr =
             match node with
             | EnumCase(_, _, identInAST, (c,r)) ->
-                let ident =
-                    match TriviaHelpers.``has content itself is ident between ticks`` r ctx.Trivia with
-                    | Some identBetweenTicks -> identBetweenTicks
-                    | None -> identInAST
-                !- ident +> !- " = " +> genConst c r
+                !- identInAST +> !- " = " +> genConst c r
         expr ctx
 
     genPreXmlDoc px
