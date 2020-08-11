@@ -1842,7 +1842,8 @@ and genExpr astContext synExpr =
                     TriviaHelpers.``has content after after that matches``
                         (fun tn -> RangeHelpers.rangeEq tn.Range elf1.Range)
                         (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
-                        ctx.Trivia
+                        [ yield! (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
+                          yield! (Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes) ] // ctx.Trivia
 
                 let elifExpr =
                     TriviaContext.``else if / elif`` fullRange
