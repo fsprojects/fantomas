@@ -129,6 +129,7 @@ let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) line c
     |> List.tryFind (fun tn ->
         match tn.Type, line = tn.Range.StartLine, column = tn.Range.StartColumn with
         | MainNode("SynExpr.Const"), true, true -> true
+        | MainNode("SynPat.Const"), true, true -> true
         | _ -> false
     )
 
