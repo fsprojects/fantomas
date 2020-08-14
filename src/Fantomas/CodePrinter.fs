@@ -2740,12 +2740,16 @@ and genTypeList astContext node =
     | (TTuple ts', argInfo)::ts ->
         // The '/' separator shouldn't appear here
         let hasBracket = not ts.IsEmpty
-        let gt = col sepStar (Seq.zip argInfo (Seq.map snd ts'))
-                    (fun (ArgInfo(ats, so, isOpt), t) ->
-                        genOnelinerAttributes astContext ats
-                        +> opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
-                        +> genType astContext hasBracket t)
-        gt +> ifElse ts.IsEmpty sepNone (autoNlnIfExpressionExceedsPageWidth (sepArrow +> genTypeList astContext ts))
+        let gt sepBefore =
+            col sepBefore (Seq.zip argInfo (Seq.map snd ts'))
+                (fun (ArgInfo(ats, so, isOpt), t) ->
+                    genOnelinerAttributes astContext ats
+                    +> opt sepColonFixed so (if isOpt then (sprintf "?%s" >> (!-)) else (!-))
+                    +> genType astContext hasBracket t)
+
+        let shortExpr = gt sepStar +> ifElse ts.IsEmpty sepNone (sepArrow +> genTypeList astContext ts)
+        let longExpr = gt (sepNln +> sepStarFixed) +> ifElse ts.IsEmpty sepNone (sepNln +> sepArrowFixed +> genTypeList astContext ts)
+        atCurrentColumn (expressionFitsOnRestOfLine shortExpr longExpr)
 
     | (t, _)::ts ->
         let gt = genType astContext false t
