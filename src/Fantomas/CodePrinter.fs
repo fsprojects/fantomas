@@ -1282,7 +1282,15 @@ and genExpr astContext synExpr =
              +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
     | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause astContext true)
     | Match(e, cs) ->
-        atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
+        atCurrentColumn
+            (!- "match "
+             +> genExpr astContext e
+             +> enterNodeTokenByName synExpr.Range "WITH"
+             // indent 'with' further if trivia was printed so that is appear after the match keyword.
+             +> ifElseCtx lastWriteEventIsNewline (rep 5 !- " ") sepNone
+             -- " with"
+             +> leaveNodeTokenByName synExpr.Range "WITH"
+             +> colPre sepNln sepNln cs (genClause astContext true))
     | MatchBang(e, cs) ->
         atCurrentColumn (!- "match! " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
     | TraitCall(tps, msg, e) ->
@@ -1503,6 +1511,13 @@ and genExpr astContext synExpr =
                     +> genExpr astContext e
                     +> unindent))))
 
+        let hasThreeOrMoreLamdbas =
+            List.filter (function
+                | Paren (Lambda (_)) -> true
+                | _ -> false) es
+            |> List.length
+            |> fun l -> l >= 3
+
         if List.exists (function
             | Lambda _
             | MatchLambda _
@@ -1510,7 +1525,7 @@ and genExpr astContext synExpr =
             | Paren (MatchLambda (_))
             | MultilineString _
             | CompExpr _ -> true
-            | _ -> false) es then
+            | _ -> false) es && not hasThreeOrMoreLamdbas then
             shortExpression
         else
             expressionFitsOnRestOfLine shortExpression longExpression
