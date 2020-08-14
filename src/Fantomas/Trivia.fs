@@ -130,6 +130,7 @@ let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) line c
         match tn.Type, line = tn.Range.StartLine, column = tn.Range.StartColumn with
         | MainNode("SynExpr.Const"), true, true -> true
         | MainNode("SynPat.Const"), true, true -> true
+        | MainNode("SynInterpolatedStringPart.String"), true, true -> true
         | _ -> false
     )
 
