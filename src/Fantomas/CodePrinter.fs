@@ -1280,7 +1280,10 @@ and genExpr astContext synExpr =
              +> col sepSpace sps (genSimplePats astContext)
              +> sepArrow
              +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
-    | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause astContext true)
+    | MatchLambda(sp, _) ->
+        !- "function "
+        +> leaveNodeTokenByName synExpr.Range "FUNCTION"
+        +> colPre sepNln sepNln sp (genClause astContext true)
     | Match(e, cs) ->
         atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
     | MatchBang(e, cs) ->
@@ -2781,8 +2784,13 @@ and genClause astContext hasBar (Clause(p, e, eo) as node) =
     let clauseBody e (ctx: Context) =
         (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)) ctx
 
+    let arrowRange = mkRange "arrowRange" p.Range.End e.Range.Start
     let pat = genPat astContext p
-    let body = optPre (!- " when ") sepNone eo (genExpr astContext) +> sepArrow +> clauseBody e
+    let body =
+        optPre (!- " when ") sepNone eo (genExpr astContext)
+        +> sepArrow
+        +> leaveNodeTokenByName arrowRange "RARROW"
+        +> clauseBody e
     genTriviaBeforeClausePipe p.Range +>
     ifElse hasBar (sepBar +> atCurrentColumnWithPrepend pat body) (pat +> body)
     |> genTrivia node.Range
