@@ -33,3 +33,11 @@ let fieldColor (fieldNameX: string) =
     else NoColor
     |> Input.Color
 """
+
+[<Test>]
+let ``preserve back ticks from checked keyword, 937`` () =
+    formatSourceString false "let toggle = unbox<bool> (e.target?``checked``)"  config
+    |> prepend newline
+    |> should equal """
+let toggle = unbox<bool> (e.target?``checked``)
+"""

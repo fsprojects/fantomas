@@ -3185,6 +3185,9 @@ and genConst (c:SynConst) (r:range) =
                 !- stringContent
             | None, Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "KEYWORD_STRING"; }; Content = kw})] }) ->
                 !- kw
+            | None, Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "QMARK" }})]
+                           ContentItself = Some (IdentBetweenTicks ibt) }) ->
+                !- ibt
             | None, Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "QMARK" }})] }) ->
                 !- s
             | _ ->
