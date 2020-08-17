@@ -574,3 +574,34 @@ type RoleAdminImportController(akkaService: AkkaService) =
             return Ok job
            }
 """
+
+[<Test>]
+let ``compiler defines around SynAttribute nodes, 631`` () =
+    formatSourceString false """
+type internal Handler() =
+  class
+    [<
+#if NETCOREAPP2_1
+      Builder.Object;
+#else
+      Widget;
+#endif
+    DefaultValue(true)>]
+    val mutable mainWindow: Window
+end
+
+"""  config
+    |> prepend newline
+    |> should equal """
+type internal Handler() =
+    class
+        [<
+#if NETCOREAPP2_1
+          Builder.Object;
+#else
+          Widget;
+#endif
+          DefaultValue(true)>]
+        val mutable mainWindow: Window
+    end
+"""
