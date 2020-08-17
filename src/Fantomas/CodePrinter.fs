@@ -218,7 +218,7 @@ and genModuleDeclList astContext e =
         let newlineAfterMultiline ctx =
             let expr =
                 match List.tryHead rest with
-                | Some (SynModuleDecl.DoExpr(_, SynExpr.Const(SynConst.Unit,_),rm)) when (match m with SynModuleDecl.Attributes(a,_) -> List.length a > 1) ->
+                | Some (SynModuleDecl.DoExpr(_, SynExpr.Const(SynConst.Unit,_),rm)) when (match m with | SynModuleDecl.Attributes(a,_) -> List.length a > 1 | _ -> false) ->
                     sepNlnConsideringTriviaContentBeforeWithAttributes rm attrs
                 | Some rm ->
                   let attrs = getRangesFromAttributesFromModuleDeclaration rm
