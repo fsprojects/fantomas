@@ -1070,7 +1070,13 @@ and genExpr astContext synExpr =
         str "lazy "
         +> ifElse isInfixExpr genInfixExpr genNonInfixExpr
 
-    | SingleExpr(kind, e) -> str kind +> genExpr astContext e
+    | SingleExpr(kind, e) ->
+        str kind
+        +> (match kind with
+            | YieldFrom
+            | Yield -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            | _ -> genExpr astContext e)
+
     | ConstExpr(c,r) -> genConst c r
     | NullExpr -> !- "null"
     // Not sure about the role of e1
