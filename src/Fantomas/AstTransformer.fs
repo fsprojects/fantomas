@@ -1442,9 +1442,9 @@ module private Ast =
         | SynType.LongIdent(li) ->
             {Type = "SynType.LongIdent"
              Range = noRange
-             Properties = p ["ident" ==> lid li]
+             Properties = p []
              FsAstNode = st
-             Childs = []}
+             Childs = visitLongIdentWithDots li }
         | SynType.App(typeName,lESSrange,typeArgs,commaRanges,gREATERrange,isPostfix,range) ->
             {Type = "SynType.App"
              Range = r range

@@ -2995,8 +2995,9 @@ and genPat astContext pat =
     | PatTyped(p, t) ->
         // CStyle patterns only occur on extern declaration so it doesn't escalate to expressions
         // We lookup sources to get extern types since it has quite many exceptions compared to normal F# types
-        ifElse astContext.IsCStylePattern (genTypeByLookup astContext t +> sepSpace +> genPat astContext p)
-            (genPat astContext p +> sepColon +> genType astContext false t)
+        ifElse astContext.IsCStylePattern
+            (genTypeByLookup astContext t +> sepSpace +> genPat astContext p)
+            (genPat astContext p +> sepColon +> atCurrentColumnIndent (genType astContext false t))
     | PatNamed(ao, PatNullary PatWild, s) ->
          opt sepSpace ao genAccess +> infixOperatorFromTrivia pat.Range s
     | PatNamed(ao, p, s) -> opt sepSpace ao genAccess +> genPat astContext p -- sprintf " as %s" s
@@ -3031,7 +3032,11 @@ and genPat astContext pat =
 
     | PatParen(PatConst(Const "()", _)) -> !- "()"
     | PatParen(p) ->
-        let shortExpression = sepOpenT +> genPat astContext p +> sepCloseT
+        let shortExpression =
+            sepOpenT
+            +> genPat astContext p
+            +> enterNodeTokenByName  pat.Range "RPAREN"
+            +> sepCloseT
 
         let longExpression ctx =
             if astContext.IsMemberDefinition && ctx.Config.AlternativeLongMemberDefinitions then

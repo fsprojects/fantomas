@@ -1472,3 +1472,81 @@ let b = "
 #endif
 "
 """
+
+[<Test>]
+let ``compiler defines around parameter type definition, no defines`` () =
+    formatSourceStringWithDefines [] """
+               let UpdateUI (theModel:
+#if NETCOREAPP2_1
+                                       ITreeModel
+#else
+                                       TreeModel
+#endif
+                             ) (info: FileInfo) () =
+                 // File is good so enable the refresh button
+                 h.refreshButton.Sensitive <- true
+                 // Do real UI work here
+                 h.classStructureTree.Model <- theModel
+                 h.codeView.Buffer.Clear()
+                 h.mainWindow.Title <- "AltCover.Visualizer"
+                 updateMRU h info.FullName true
+"""  config
+    |> prepend newline
+    |> should equal """
+let UpdateUI (theModel:
+#if NETCOREAPP2_1
+
+#else
+                        TreeModel
+#endif
+             )
+             (info: FileInfo)
+             ()
+             =
+    // File is good so enable the refresh button
+    h.refreshButton.Sensitive <- true
+    // Do real UI work here
+    h.classStructureTree.Model <- theModel
+    h.codeView.Buffer.Clear()
+    h.mainWindow.Title <- "AltCover.Visualizer"
+    updateMRU h info.FullName true
+"""
+
+[<Test>]
+let ``compiler defines around parameter type definition, 633`` () =
+    formatSourceString false """
+               let UpdateUI (theModel:
+#if NETCOREAPP2_1
+                                       ITreeModel
+#else
+                                       TreeModel
+#endif
+                             ) (info: FileInfo) () =
+                 // File is good so enable the refresh button
+                 h.refreshButton.Sensitive <- true
+                 // Do real UI work here
+                 h.classStructureTree.Model <- theModel
+                 h.codeView.Buffer.Clear()
+                 h.mainWindow.Title <- "AltCover.Visualizer"
+                 updateMRU h info.FullName true
+"""  config
+    |> prepend newline
+    |> should equal """
+let UpdateUI (theModel:
+#if NETCOREAPP2_1
+                        ITreeModel
+#else
+                        TreeModel
+#endif
+             )
+             (info: FileInfo)
+             ()
+             =
+    // File is good so enable the refresh button
+    h.refreshButton.Sensitive <- true
+    // Do real UI work here
+    h.classStructureTree.Model <- theModel
+    h.codeView.Buffer.Clear()
+    h.mainWindow.Title <- "AltCover.Visualizer"
+    updateMRU h info.FullName true
+"""
