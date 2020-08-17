@@ -1601,3 +1601,41 @@ let value =
         if bar then yield "d" else yield! [ "e"; "f" ]
     ]
 """
+
+[<Test>]
+let ``multiline yield expression should be indented, 882`` () =
+    formatSourceString false """
+let choices : Foo list =
+    [
+        yield! getMore 9
+        yield
+            // Test
+            Foo 2
+    ]
+"""  config
+    |> prepend newline
+    |> should equal """
+let choices: Foo list =
+    [ yield! getMore 9
+      yield
+          // Test
+          Foo 2 ]
+"""
+
+[<Test>]
+let ``multiline yield bang inside list`` () =
+    formatSourceString false """
+let choices : Foo list =
+    [
+        yield!
+            // Test
+            [ Foo 2 ]
+    ]
+"""  config
+    |> prepend newline
+    |> should equal """
+let choices: Foo list =
+    [ yield!
+        // Test
+        [ Foo 2 ] ]
+"""
