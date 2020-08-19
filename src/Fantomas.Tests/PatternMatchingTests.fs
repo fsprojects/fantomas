@@ -493,3 +493,76 @@ let f x =
 
     | _ -> None
 """
+
+[<Test>]
+let ``very long match clause with many lambdas`` () =
+    formatSourceString false """
+let MethInfoIsUnseen g m ty minfo =
+    let isUnseenByObsoleteAttrib () =
+        match BindMethInfoAttributes m minfo
+                (fun ilAttribs -> Some foo)
+                (fun fsAttribs -> Some bar)
+                (fun provAttribs -> Some(CheckProvidedAttributesForUnseen provAttribs m))
+                (fun _provAttribs -> None)
+                    with
+        | Some res -> res
+        | None -> false
+
+    ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let MethInfoIsUnseen g m ty minfo =
+    let isUnseenByObsoleteAttrib () =
+        match BindMethInfoAttributes
+                  m
+                  minfo
+                  (fun ilAttribs -> Some foo)
+                  (fun fsAttribs -> Some bar)
+                  (fun provAttribs -> Some(CheckProvidedAttributesForUnseen provAttribs m))
+                  (fun _provAttribs -> None) with
+        | Some res -> res
+        | None -> false
+
+    ()
+"""
+
+[<Test>]
+let ``very long match clause with many lambdas mixed with defines, 976`` () =
+    formatSourceString false """
+let MethInfoIsUnseen g m ty minfo =
+    let isUnseenByObsoleteAttrib () =
+        match BindMethInfoAttributes m minfo
+                (fun ilAttribs -> Some foo)
+                (fun fsAttribs -> Some bar)
+#if !NO_EXTENSIONTYPING
+                (fun provAttribs -> Some(CheckProvidedAttributesForUnseen provAttribs m))
+#else
+                (fun _provAttribs -> None)
+#endif
+                    with
+        | Some res -> res
+        | None -> false
+
+    ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let MethInfoIsUnseen g m ty minfo =
+    let isUnseenByObsoleteAttrib () =
+        match BindMethInfoAttributes
+                  m
+                  minfo
+                  (fun ilAttribs -> Some foo)
+                  (fun fsAttribs -> Some bar)
+#if !NO_EXTENSIONTYPING
+                  (fun provAttribs -> Some(CheckProvidedAttributesForUnseen provAttribs m))
+#else
+                  (fun _provAttribs -> None)
+#endif
+              with
+        | Some res -> res
+        | None -> false
+
+    ()
+"""

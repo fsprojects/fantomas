@@ -226,6 +226,13 @@ let private getRangeBetween name startToken endToken =
     let endR = FSharp.Compiler.Range.mkPos endToken.LineNumber (if l=r then r+1 else r)
     FSharp.Compiler.Range.mkRange name start endR
 
+let private getRangeForSingleToken name token =
+    let l = token.TokenInfo.LeftColumn
+    let r = l + token.TokenInfo.FullMatchedLength
+    let start = FSharp.Compiler.Range.mkPos token.LineNumber l
+    let endR = FSharp.Compiler.Range.mkPos token.LineNumber r
+    FSharp.Compiler.Range.mkRange name start endR
+
 let private hasOnlySpacesAndLineCommentsOnLine lineNumber tokens =
     if List.isEmpty tokens then
         false
@@ -423,7 +430,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
         getTriviaFromTokensThemSelves allTokens rest info
 
     | head::rest when (isNumber head) ->
-        let range = getRangeBetween "number" head head
+        let range = getRangeForSingleToken "number" head
         let info =
             Trivia.Create (Number(head.Content)) range
             |> List.prependItem foundTrivia
