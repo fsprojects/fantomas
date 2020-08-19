@@ -1186,7 +1186,11 @@ and genExpr astContext synExpr =
             // The opening { of the CompExpr is being added at the App(_,_,Ident(_),CompExr(_)) level
             (expressionFitsOnRestOfLine
                 (genExpr astContext e +> sepCloseS)
-                (genExpr astContext e +> unindent +> sepNln +> sepCloseSFixed))
+                (genExpr astContext e
+                 +> unindent
+                 +> sepNln
+                 +> enterNodeTokenByName synExpr.Range "RBRACE"
+                 +> sepCloseSFixed))
 
     | CompExprBody(expr) ->
         let statements = collectComputationExpressionStatements expr
