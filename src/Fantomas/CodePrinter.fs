@@ -610,7 +610,7 @@ and genProperty astContext prefix ao propertyKind ps e =
         +> genExprSepEqPrependType astContext p e None false
     |> genTrivia e.Range
 
-and genPropertyWithGetSet astContext (b1, b2) =
+and genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
     match b1, b2 with
     | PropertyBinding(ats, px, ao, isInline, mf1, PatLongIdent(ao1, s1, ps1, _), e1),
       PropertyBinding(_, _, _, _, _, PatLongIdent(ao2, _, ps2, _), e2) ->
@@ -625,6 +625,7 @@ and genPropertyWithGetSet astContext (b1, b2) =
         prefix
         +> genTrivia b1.RangeOfBindingAndRhs
             (!- s1 +> indent +> sepNln
+            +> optSingle (fun rom -> enterNodeTokenByName rom "WITH") rangeOfMember
             +> genProperty astContext "with " ao1 "get " ps1 e1 +> sepNln)
         +> genTrivia b2.RangeOfBindingAndRhs
             (genProperty astContext "and " ao2 "set " ps2 e2 +> unindent)
@@ -645,8 +646,8 @@ and genMemberBindingList astContext node =
     | PropertyWithGetSet(gs, rest) ->
         leadingExpressionIsMultiline
             (expressionFitsOnRestOfLine
-                (genPropertyWithGetSet astContext gs)
-                (sepNln +> genPropertyWithGetSet astContext gs +> newlineAfterMultiline rest))
+                (genPropertyWithGetSet astContext gs None)
+                (sepNln +> genPropertyWithGetSet astContext gs None +> newlineAfterMultiline rest))
             (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) sepNln)
         +> genMemberBindingList astContext rest
     | mb::rest ->
@@ -959,6 +960,7 @@ and genExpr astContext synExpr =
                 let genChildren =
                     ifElse isArray sepOpenA sepOpenL
                     +> col sepSemi children (genExpr astContext)
+                    +> enterNodeTokenByName synExpr.Range (if isArray then "BAR_RBRACK" else "RBRACK")
                     +> ifElse isArray sepCloseA sepCloseL
 
                 !- identifier
@@ -969,7 +971,7 @@ and genExpr astContext synExpr =
                 !- identifier
                 +> sepSpace
                 +> ifElse isArray sepOpenA sepOpenL
-                +> atCurrentColumn (col sepNln children (genExpr astContext))
+                +> atCurrentColumn (col sepNln children (genExpr astContext) +> enterNodeTokenByName synExpr.Range (if isArray then "BAR_RBRACK" else "RBRACK"))
                 +> ifElse isArray sepCloseA sepCloseL
 
             let felizExpression =
@@ -981,6 +983,7 @@ and genExpr astContext synExpr =
                                  +> col sepNln children (genExpr astContext)
                                  +> unindent
                                  +> sepNln
+                                 +> enterNodeTokenByName synExpr.Range (if isArray then "BAR_RBRACK" else "RBRACK")
                                  +> ifElse isArray sepCloseAFixed sepCloseLFixed)
 
             let multilineExpression = ifElse ctx.Config.SingleArgumentWebMode felizExpression elmishExpression
@@ -1070,7 +1073,13 @@ and genExpr astContext synExpr =
         str "lazy "
         +> ifElse isInfixExpr genInfixExpr genNonInfixExpr
 
-    | SingleExpr(kind, e) -> str kind +> genExpr astContext e
+    | SingleExpr(kind, e) ->
+        str kind
+        +> (match kind with
+            | YieldFrom
+            | Yield -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            | _ -> genExpr astContext e)
+
     | ConstExpr(c,r) -> genConst c r
     | NullExpr -> !- "null"
     // Not sure about the role of e1
@@ -1120,7 +1129,7 @@ and genExpr astContext synExpr =
 
         let multilineRecordExpr =
             ifAlignBrackets
-                (genMultilineRecordInstanceAlignBrackets inheritOpt xs eo astContext)
+                (genMultilineRecordInstanceAlignBrackets inheritOpt xs eo synExpr astContext)
                 (genMultilineRecordInstance inheritOpt xs eo synExpr astContext)
 
         fun ctx ->
@@ -1178,7 +1187,11 @@ and genExpr astContext synExpr =
             // The opening { of the CompExpr is being added at the App(_,_,Ident(_),CompExr(_)) level
             (expressionFitsOnRestOfLine
                 (genExpr astContext e +> sepCloseS)
-                (genExpr astContext e +> unindent +> sepNln +> sepCloseSFixed))
+                (genExpr astContext e
+                 +> unindent
+                 +> sepNln
+                 +> enterNodeTokenByName synExpr.Range "RBRACE"
+                 +> sepCloseSFixed))
 
     | CompExprBody(expr) ->
         let statements = collectComputationExpressionStatements expr
@@ -1282,7 +1295,15 @@ and genExpr astContext synExpr =
              +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
     | MatchLambda(sp, _) -> !- "function " +> colPre sepNln sepNln sp (genClause astContext true)
     | Match(e, cs) ->
-        atCurrentColumn (!- "match " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
+        atCurrentColumn
+            (!- "match "
+             +> genExpr astContext e
+             +> enterNodeTokenByName synExpr.Range "WITH"
+             // indent 'with' further if trivia was printed so that is appear after the match keyword.
+             +> ifElseCtx lastWriteEventIsNewline (rep 5 !- " ") sepNone
+             -- " with"
+             +> leaveNodeTokenByName synExpr.Range "WITH"
+             +> colPre sepNln sepNln cs (genClause astContext true))
     | MatchBang(e, cs) ->
         atCurrentColumn (!- "match! " +> genExpr astContext e -- " with" +> colPre sepNln sepNln cs (genClause astContext true))
     | TraitCall(tps, msg, e) ->
@@ -1415,6 +1436,9 @@ and genExpr astContext synExpr =
                     let genMultilineExpr =
                         match e with
                         | Paren(Lambda(_)) -> atCurrentColumnIndent(genExpr astContext e)
+                        | Paren(App(_))
+                        | Paren(Tuple(_)) ->
+                            atCurrentColumn(genExpr astContext e)
                         | _ ->
                             ifElse hasParenthesis
                                     (indent +> sepNln +> genExpr astContext e +> unindent)
@@ -1503,6 +1527,13 @@ and genExpr astContext synExpr =
                     +> genExpr astContext e
                     +> unindent))))
 
+        let hasThreeOrMoreLamdbas =
+            List.filter (function
+                | Paren (Lambda (_)) -> true
+                | _ -> false) es
+            |> List.length
+            |> fun l -> l >= 3
+
         if List.exists (function
             | Lambda _
             | MatchLambda _
@@ -1510,7 +1541,7 @@ and genExpr astContext synExpr =
             | Paren (MatchLambda (_))
             | MultilineString _
             | CompExpr _ -> true
-            | _ -> false) es then
+            | _ -> false) es && not hasThreeOrMoreLamdbas then
             shortExpression
         else
             expressionFitsOnRestOfLine shortExpression longExpression
@@ -1891,7 +1922,10 @@ and genMultilineRecordInstance
     (inheritOpt:(SynType * SynExpr) option)
     (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
     (eo: SynExpr option)
-    synExpr astContext (ctx: Context) =
+    synExpr
+    astContext
+    (ctx: Context)
+    =
     let recordExpr =
             let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
             match eo with
@@ -1914,7 +1948,8 @@ and genMultilineRecordInstance
                     sepNone ({ctx with RecordBraceStart = rest})
             | [] ->
                     sepNone ctx)
-        +> sepCloseS
+        +> enterNodeTokenByName synExpr.Range "RBRACE"
+        +> ifElseCtx lastWriteEventIsNewline sepCloseSFixed sepCloseS
 
     expr ctx
 
@@ -1922,6 +1957,7 @@ and genMultilineRecordInstanceAlignBrackets
     (inheritOpt:(SynType * SynExpr) option)
     (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
     (eo: SynExpr option)
+    synExpr
     astContext
     =
     let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
@@ -1939,7 +1975,10 @@ and genMultilineRecordInstanceAlignBrackets
         +> (!- " with" +> indent +> whenShortIndent indent +> sepNln +> fieldsExpr +> unindent +> whenShortIndent unindent +> sepNln +> sepCloseSFixed)
 
     | _ ->
-        (sepOpenSFixed +> indent +> sepNln +> fieldsExpr +> unindent +> sepNln +> sepCloseSFixed)
+        (sepOpenSFixed +> indent +> sepNln +> fieldsExpr +> unindent
+         +> enterNodeTokenByName synExpr.Range "RBRACE"
+         +> ifElseCtx lastWriteEventIsNewline sepNone sepNln
+         +> sepCloseSFixed)
     |> atCurrentColumnIndent
 
 and genMultilineAnonRecord (isStruct: bool) fields copyInfo astContext =
@@ -2797,14 +2836,17 @@ and genMemberDefnList astContext nodes =
             | _ -> (col sepNln xs (genMemberDefn astContext) +> rep 2 sepNln +> genMemberDefnList astContext ys) ctx
 
     | PropertyWithGetSetMemberDefn(gs, rest) ->
+        let rangeOfFirstMember = List.head nodes |> fun m -> m.Range
         let m = fst gs
         let attrs = getRangesFromAttributesFromSynBinding (fst gs)
 
-        sepNlnConsideringTriviaContentBeforeWithAttributes m.RangeOfBindingSansRhs attrs +>
-        (expressionFitsOnRestOfLine
-            (genPropertyWithGetSet astContext gs)
-            (sepNlnBeforeMultilineConstruct m.RangeOfBindingSansRhs attrs +> genPropertyWithGetSet astContext gs +> onlyIf (List.isNotEmpty rest) sepNln))
-
+        sepNlnConsideringTriviaContentBeforeWithAttributes rangeOfFirstMember attrs
+        +> enterNode rangeOfFirstMember
+        +> (expressionFitsOnRestOfLine
+              (genPropertyWithGetSet astContext gs (Some rangeOfFirstMember))
+              (sepNlnBeforeMultilineConstruct m.RangeOfBindingSansRhs attrs
+               +> genPropertyWithGetSet astContext gs (Some rangeOfFirstMember)
+               +> onlyIf (List.isNotEmpty rest) sepNln))
         +> genMemberDefnList ({ astContext with IsFirstChild = false }) rest
 
     | m::rest ->
@@ -3185,6 +3227,9 @@ and genConst (c:SynConst) (r:range) =
                 !- stringContent
             | None, Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "KEYWORD_STRING"; }; Content = kw})] }) ->
                 !- kw
+            | None, Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "QMARK" }})]
+                           ContentItself = Some (IdentBetweenTicks ibt) }) ->
+                !- ibt
             | None, Some({ ContentBefore = [Keyword({TokenInfo = { TokenName = "QMARK" }})] }) ->
                 !- s
             | _ ->
