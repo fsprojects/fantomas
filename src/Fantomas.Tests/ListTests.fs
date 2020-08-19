@@ -1637,3 +1637,23 @@ let choices: Foo list =
         // Test
         [ Foo 2 ] ]
 """
+
+[<Test>]
+let ``preserve comment above first element of list, 990`` () =
+    formatSourceString false """
+let x = [
+    // comment
+    1
+    // another comment
+    2
+]
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    [
+      // comment
+      1
+      // another comment
+      2 ]
+"""

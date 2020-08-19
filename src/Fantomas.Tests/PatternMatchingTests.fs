@@ -566,3 +566,43 @@ let MethInfoIsUnseen g m ty minfo =
 
     ()
 """
+
+[<Test>]
+let ``trivia after arrow, 1010`` () =
+    formatSourceString false """
+let f () =
+    match lol with
+    | 1 -> // comment 1
+        ()
+    |> function
+    | 3 -> ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let f () =
+    match lol with
+    | 1 -> // comment 1
+        ()
+    |> function
+    | 3 -> ()
+"""
+
+[<Test>]
+let ``trivia after function keyword, 1010`` () =
+    formatSourceString false """
+let f () =
+    match lol with
+    | 1 -> // comment 1
+        () // comment 2
+    |> function // comment 3
+    | 3 -> ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let f () =
+    match lol with
+    | 1 -> // comment 1
+        () // comment 2
+    |> function // comment 3
+    | 3 -> ()
+"""
