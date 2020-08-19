@@ -109,9 +109,8 @@ let ``should break on . operator and keep indentation``() =
     """ { config with MaxLineLength = 80; MaxInfixOperatorExpression = 60 }
     |> should equal """let pattern =
     (x + y)
-        .Replace
-            (seperator + "**" + seperator,
-             replacementSeparator + "(.|?" + replacementSeparator + ")?")
+        .Replace(seperator + "**" + seperator,
+                 replacementSeparator + "(.|?" + replacementSeparator + ")?")
         .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")")
 """
 
