@@ -610,7 +610,7 @@ and genProperty astContext prefix ao propertyKind ps e =
         +> genExprSepEqPrependType astContext p e None false
     |> genTrivia e.Range
 
-and genPropertyWithGetSet astContext (b1, b2) =
+and genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
     match b1, b2 with
     | PropertyBinding(ats, px, ao, isInline, mf1, PatLongIdent(ao1, s1, ps1, _), e1),
       PropertyBinding(_, _, _, _, _, PatLongIdent(ao2, _, ps2, _), e2) ->
@@ -625,6 +625,7 @@ and genPropertyWithGetSet astContext (b1, b2) =
         prefix
         +> genTrivia b1.RangeOfBindingAndRhs
             (!- s1 +> indent +> sepNln
+            +> optSingle (fun rom -> enterNodeTokenByName rom "WITH") rangeOfMember
             +> genProperty astContext "with " ao1 "get " ps1 e1 +> sepNln)
         +> genTrivia b2.RangeOfBindingAndRhs
             (genProperty astContext "and " ao2 "set " ps2 e2 +> unindent)
@@ -645,8 +646,8 @@ and genMemberBindingList astContext node =
     | PropertyWithGetSet(gs, rest) ->
         leadingExpressionIsMultiline
             (expressionFitsOnRestOfLine
-                (genPropertyWithGetSet astContext gs)
-                (sepNln +> genPropertyWithGetSet astContext gs +> newlineAfterMultiline rest))
+                (genPropertyWithGetSet astContext gs None)
+                (sepNln +> genPropertyWithGetSet astContext gs None +> newlineAfterMultiline rest))
             (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) sepNln)
         +> genMemberBindingList astContext rest
     | mb::rest ->
@@ -2832,14 +2833,17 @@ and genMemberDefnList astContext nodes =
             | _ -> (col sepNln xs (genMemberDefn astContext) +> rep 2 sepNln +> genMemberDefnList astContext ys) ctx
 
     | PropertyWithGetSetMemberDefn(gs, rest) ->
+        let rangeOfFirstMember = List.head nodes |> fun m -> m.Range
         let m = fst gs
         let attrs = getRangesFromAttributesFromSynBinding (fst gs)
 
-        sepNlnConsideringTriviaContentBeforeWithAttributes m.RangeOfBindingSansRhs attrs +>
-        (expressionFitsOnRestOfLine
-            (genPropertyWithGetSet astContext gs)
-            (sepNlnBeforeMultilineConstruct m.RangeOfBindingSansRhs attrs +> genPropertyWithGetSet astContext gs +> onlyIf (List.isNotEmpty rest) sepNln))
-
+        sepNlnConsideringTriviaContentBeforeWithAttributes rangeOfFirstMember attrs
+        +> enterNode rangeOfFirstMember
+        +> (expressionFitsOnRestOfLine
+              (genPropertyWithGetSet astContext gs (Some rangeOfFirstMember))
+              (sepNlnBeforeMultilineConstruct m.RangeOfBindingSansRhs attrs
+               +> genPropertyWithGetSet astContext gs (Some rangeOfFirstMember)
+               +> onlyIf (List.isNotEmpty rest) sepNln))
         +> genMemberDefnList ({ astContext with IsFirstChild = false }) rest
 
     | m::rest ->
