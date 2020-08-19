@@ -1436,6 +1436,9 @@ and genExpr astContext synExpr =
                     let genMultilineExpr =
                         match e with
                         | Paren(Lambda(_)) -> atCurrentColumnIndent(genExpr astContext e)
+                        | Paren(App(_))
+                        | Paren(Tuple(_)) ->
+                            atCurrentColumn(genExpr astContext e)
                         | _ ->
                             ifElse hasParenthesis
                                     (indent +> sepNln +> genExpr astContext e +> unindent)
