@@ -1430,6 +1430,8 @@ let (|ElmishReactWithoutChildren|_|) e =
     | App(OptVar(ident,_,_), [ArrayOrList(isArray, children, _)])
     | App(OptVar(ident,_,_), [ArrayOrListOfSeqExpr(isArray, CompExpr(_, Sequentials children))]) ->
         Some(ident, isArray, children)
+    | App(OptVar(ident,_,_), [ArrayOrListOfSeqExpr(isArray, CompExpr(_, singleChild))]) ->
+        Some(ident, isArray, [singleChild])
     | _ ->
         None
 

@@ -38,7 +38,8 @@ let filterNodes nodes =
             TypeDefnSig_
             SynTypeDefnSigRepr_ObjectModel
             SynExpr_Typed
-            SynType_StaticConstant
+            // SynType_StaticConstant
+            SynExpr_CompExpr
         ]
     nodes |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
 
@@ -143,11 +144,17 @@ let private findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner list) line col
         (range.StartLine > line) || (range.StartLine = line && range.StartColumn > column)
     )
 
-let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) line column =
+let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (numberRange:range) =
     nodes
     |> List.tryFind (fun tn ->
-        match tn.Type, line = tn.Range.StartLine, column = tn.Range.StartColumn with
-        | MainNode(SynExpr_Const), true, true -> true
+        match tn.Type with
+        | MainNode(SynExpr_Const)
+        | MainNode(SynPat_Const) ->
+            numberRange.StartLine = tn.Range.StartLine
+            && numberRange.StartColumn = tn.Range.StartColumn
+        | MainNode(EnumCase_) ->
+            tn.Range.EndLine = numberRange.EndLine
+            && tn.Range.EndColumn = numberRange.EndColumn
         | _ -> false
     )
 
@@ -362,7 +369,7 @@ let private addTriviaToTriviaNode
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some siNode) triviaNodes
 
     | { Item = Number(_) as number; Range = range  } ->
-        findConstNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
+        findConstNodeOnLineAndColumn triviaNodes range
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some number) triviaNodes
 
     | { Item = CharContent(_) as chNode; Range = range } ->
@@ -381,7 +388,8 @@ let private addTriviaToTriviaNode
                 | MainNode(SynExpr_Ident)
                 | MainNode(SynPat_Named)
                 | MainNode(SynPat_LongIdent)
-                | MainNode(Ident_) -> true
+                | MainNode(Ident_)
+                | MainNode(SynExpr_Const) -> true
                 | _ -> false
             isIdent && (t.Range.StartColumn = range.StartColumn || t.Range.StartColumn = range.StartColumn + 1) && t.Range.StartLine = range.StartLine
         )

@@ -226,6 +226,13 @@ let private getRangeBetween name startToken endToken =
     let endR = FSharp.Compiler.Range.mkPos endToken.LineNumber (if l=r then r+1 else r)
     FSharp.Compiler.Range.mkRange name start endR
 
+let private getRangeForSingleToken name token =
+    let l = token.TokenInfo.LeftColumn
+    let r = l + token.TokenInfo.FullMatchedLength
+    let start = FSharp.Compiler.Range.mkPos token.LineNumber l
+    let endR = FSharp.Compiler.Range.mkPos token.LineNumber r
+    FSharp.Compiler.Range.mkRange name start endR
+
 let private hasOnlySpacesAndLineCommentsOnLine lineNumber tokens =
     if List.isEmpty tokens then
         false
@@ -423,7 +430,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
         getTriviaFromTokensThemSelves allTokens rest info
 
     | head::rest when (isNumber head) ->
-        let range = getRangeBetween "number" head head
+        let range = getRangeForSingleToken "number" head
         let info =
             Trivia.Create (Number(head.Content)) range
             |> List.prependItem foundTrivia
@@ -504,7 +511,7 @@ let getTriviaFromTokens (tokens: Token list) linesCount =
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
 
-let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "LBRACK_BAR"; "BAR_RBRACK"; "EQUALS"; "IF"; "THEN"; "ELSE"; "ELIF"; "BAR"; "RARROW"; "TRY"; "FINALLY"; "WITH"; "MEMBER"; "AND_BANG"]
+let private tokenNames = ["LBRACE";"RBRACE"; "LPAREN";"RPAREN"; "LBRACK"; "RBRACK"; "LBRACK_BAR"; "BAR_RBRACK"; "EQUALS"; "IF"; "THEN"; "ELSE"; "ELIF"; "BAR"; "RARROW"; "TRY"; "FINALLY"; "WITH"; "MEMBER"; "AND_BANG"; "FUNCTION"]
 let private tokenKinds = [FSharpTokenCharKind.Operator]
 
 let internal getFsToken tokenName =
@@ -553,6 +560,7 @@ let internal getFsToken tokenName =
     | "DOT_DOT_HAT" -> DOT_DOT_HAT
     | "BAR_BAR" -> BAR_BAR
     | "INFIX_STAR_STAR_OP" -> INFIX_STAR_STAR_OP
+    | "FUNCTION" -> FUNCTION
     | _ -> failwithf "was not expecting token %s" tokenName
 
 

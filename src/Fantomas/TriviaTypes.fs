@@ -48,6 +48,7 @@ type FsTokenType =
     | DOT_DOT_HAT
     | BAR_BAR
     | INFIX_STAR_STAR_OP
+    | FUNCTION
 
 type Token =
     { TokenInfo:FSharpTokenInfo

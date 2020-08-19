@@ -1494,136 +1494,126 @@ module private Ast =
 
     and visitSynType (st: SynType) =
         match st with
-        | SynType.LongIdent (li) ->
-            { Type = SynType_LongIdent
-              Range = noRange
-              Properties = p [ "ident" ==> lid li ]
-              FsAstNode = st
-              Childs = [] }
-        | SynType.App (typeName, lESSrange, typeArgs, commaRanges, gREATERrange, isPostfix, range) ->
-            { Type = SynType_App
-              Range = r range
-              Properties =
-                  p [ if lESSrange.IsSome
-                      then yield "lESSrange" ==> (lESSrange.Value |> r)
-                      yield "commaRanges" ==> (commaRanges |> List.map r)
-                      if gREATERrange.IsSome
-                      then yield "gREATERrange" ==> (gREATERrange.Value |> r)
-                      yield "isPostfix" ==> isPostfix ]
-              FsAstNode = st
-              Childs =
-                  [ yield! typeArgs |> List.map visitSynType
-                    yield visitSynType typeName ] }
-        | SynType.LongIdentApp (typeName, longDotId, lESSRange, typeArgs, commaRanges, gREATERrange, range) ->
-            { Type = SynType_LongIdentApp
-              Range = r range
-              Properties =
-                  p [ yield "ident" ==> lid longDotId
-                      if lESSRange.IsSome
-                      then yield "lESSRange" ==> (lESSRange.Value |> r)
-                      yield "commaRanges" ==> (commaRanges |> List.map r)
-                      if gREATERrange.IsSome
-                      then yield "gREATERrange" ==> (gREATERrange.Value |> r) ]
-              FsAstNode = st
-              Childs =
-                  [ yield! typeArgs |> List.map visitSynType
-                    yield visitSynType typeName ] }
-        | SynType.Tuple (isStruct, typeNames, range) ->
-            { Type = SynType_Tuple
-              Range = r range
-              Properties = p [ "isStruct" ==> isStruct ]
-              FsAstNode = st
-              Childs = [ yield! typeNames |> List.map (snd >> visitSynType) ] }
-        | SynType.Array (_, elementType, range) ->
-            { Type = SynType_Array
-              Range = r range
-              Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynType elementType ] }
-        | SynType.Fun (argType, returnType, range) ->
-            { Type = SynType_Fun
-              Range = r range
-              Properties = p []
-              FsAstNode = st
-              Childs =
-                  [ yield visitSynType argType
-                    yield visitSynType returnType ] }
-        | SynType.Var (genericName, range) ->
-            { Type = SynType_Var
-              Range = r range
-              Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynTypar genericName ] }
-        | SynType.Anon (range) ->
-            { Type = SynType_Anon
-              Range = r range
-              Properties = p []
-              FsAstNode = st
-              Childs = [] }
-        | SynType.WithGlobalConstraints (typeName, _, range) ->
-            { Type = SynType_WithGlobalConstraints
-              Range = r range
-              Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynType typeName ] }
-        | SynType.HashConstraint (synType, range) ->
-            { Type = SynType_HashConstraint
-              Range = r range
-              Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynType synType ] }
-        | SynType.MeasureDivide (dividendType, divisorType, range) ->
-            { Type = SynType_MeasureDivide
-              Range = r range
-              Properties = p []
-              FsAstNode = st
-              Childs =
-                  [ yield visitSynType dividendType
-                    yield visitSynType divisorType ] }
-        | SynType.MeasurePower (measureType, _, range) ->
-            { Type = SynType_MeasurePower
-              Range = r range
-              Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynType measureType ] }
-        | SynType.StaticConstant (constant, range) ->
-            // So this is kinda of a lie but is useful to detect trivia later on.
-            let children =
-                match constant with
-                | SynConst.String(s,range) -> [ { Type= SynExpr_Const; Range = r range; Properties = p []; FsAstNode = s; Childs = [] } ]
-                | _ -> []
-
-            { Type = SynType_StaticConstant
-              Range = r range
-              Properties = p [ "constant" ==> visitSynConst constant ]
-              FsAstNode = st
-              Childs = children }
-        | SynType.StaticConstantExpr (expr, range) ->
-            { Type = SynType_StaticConstantExpr
-              Range = r range
-              Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynExpr expr ] }
-        | SynType.StaticConstantNamed (expr, typ, range) ->
-            { Type = SynType_StaticConstantNamed
-              Range = r range
-              Properties = p []
-              FsAstNode = st
-              Childs =
-                  [ yield visitSynType expr
-                    yield visitSynType typ ] }
-        | SynType.AnonRecd (isStruct, typeNames, range) ->
-            { Type = SynType_AnonRecd
-              Range = r range
-              Properties = p [ "isStruct" ==> isStruct ]
-              FsAstNode = st
-              Childs = List.map visitAnonRecordTypeField typeNames }
-        | SynType.Paren (innerType, range) ->
-            { Type = SynType_Paren
-              Range = r range
-              Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynType innerType ] }
+        | SynType.LongIdent(li) ->
+            {Type = SynType_LongIdent
+             Range = noRange
+             Properties = p []
+             FsAstNode = st
+             Childs = visitLongIdentWithDots li }
+        | SynType.App(typeName,lESSrange,typeArgs,commaRanges,gREATERrange,isPostfix,range) ->
+            {Type = SynType_App
+             Range = r range
+             Properties =
+                 p [if lESSrange.IsSome then yield "lESSrange" ==> (lESSrange.Value |> r)
+                    yield "commaRanges" ==> (commaRanges |> List.map r)
+                    if gREATERrange.IsSome then yield "gREATERrange" ==> (gREATERrange.Value |> r)
+                    yield "isPostfix" ==> isPostfix]
+             FsAstNode = st
+             Childs =
+                 [yield! typeArgs |> List.map visitSynType
+                  yield visitSynType typeName]}
+        | SynType.LongIdentApp(typeName,longDotId,lESSRange,typeArgs,commaRanges,gREATERrange,range) ->
+            {Type = SynType_LongIdentApp
+             Range = r range
+             Properties =
+                 p [yield "ident" ==> lid longDotId
+                    if lESSRange.IsSome then yield "lESSRange" ==> (lESSRange.Value |> r)
+                    yield "commaRanges" ==> (commaRanges |> List.map r)
+                    if gREATERrange.IsSome then yield "gREATERrange" ==> (gREATERrange.Value |> r)]
+             FsAstNode = st
+             Childs =
+                 [yield! typeArgs |> List.map visitSynType
+                  yield visitSynType typeName]}
+        | SynType.Tuple(isStruct,typeNames,range) ->
+            {Type = SynType_Tuple
+             Range = r range
+             Properties = p ["isStruct" ==> isStruct]
+             FsAstNode = st
+             Childs = [yield! typeNames |> List.map(snd >> visitSynType)]}
+        | SynType.Array(_,elementType,range) ->
+            {Type = SynType_Array
+             Range = r range
+             Properties = p []
+             FsAstNode = st
+             Childs = [yield visitSynType elementType]}
+        | SynType.Fun(argType,returnType,range) ->
+            {Type = SynType_Fun
+             Range = r range
+             Properties = p []
+             FsAstNode = st
+             Childs =
+                 [yield visitSynType argType
+                  yield visitSynType returnType]}
+        | SynType.Var(genericName,range) ->
+            {Type = SynType_Var
+             Range = r range
+             Properties = p []
+             FsAstNode = st
+             Childs = [yield visitSynTypar genericName]}
+        | SynType.Anon(range) ->
+            {Type = SynType_Anon
+             Range = r range
+             Properties = p []
+             FsAstNode = st
+             Childs = []}
+        | SynType.WithGlobalConstraints(typeName,_,range) ->
+            {Type = SynType_WithGlobalConstraints
+             Range = r range
+             Properties = p []
+             FsAstNode = st
+             Childs = [yield visitSynType typeName]}
+        | SynType.HashConstraint(synType,range) ->
+            {Type = SynType_HashConstraint
+             Range = r range
+             Properties = p []
+             FsAstNode = st
+             Childs = [yield visitSynType synType]}
+        | SynType.MeasureDivide(dividendType,divisorType,range) ->
+            {Type = SynType_MeasureDivide
+             Range = r range
+             Properties = p []
+             FsAstNode = st
+             Childs =
+                 [yield visitSynType dividendType
+                  yield visitSynType divisorType]}
+        | SynType.MeasurePower(measureType,_,range) ->
+            {Type = SynType_MeasurePower
+             Range = r range
+             Properties = p []
+             FsAstNode = st
+             Childs = [yield visitSynType measureType]}
+        | SynType.StaticConstant(constant,range) ->
+            {Type = SynType_StaticConstant
+             Range = r range
+             Properties = p ["constant" ==> visitSynConst constant]
+             FsAstNode = st
+             Childs = []}
+        | SynType.StaticConstantExpr(expr,range) ->
+            {Type = SynType_StaticConstantExpr
+             Range = r range
+             Properties = p []
+             FsAstNode = st
+             Childs = [yield visitSynExpr expr]}
+        | SynType.StaticConstantNamed(expr,typ,range) ->
+            {Type = SynType_StaticConstantNamed
+             Range = r range
+             Properties = p []
+             FsAstNode = st
+             Childs =
+                 [yield visitSynType expr
+                  yield visitSynType typ]}
+        | SynType.AnonRecd(isStruct,typeNames,range) ->
+            {Type = SynType_AnonRecd
+             Range = r range
+             Properties = p ["isStruct" ==> isStruct]
+             FsAstNode = st
+             Childs = List.map visitAnonRecordTypeField typeNames}
+        | SynType.Paren(innerType,range) ->
+            {Type = SynType_Paren
+             Range = r range
+             Properties = p []
+             FsAstNode = st
+             Childs = [yield visitSynType innerType]}
 
     and visitSynConst (sc: SynConst) = sprintf "%A" sc
 
@@ -1645,7 +1635,6 @@ module private Ast =
                 ident
                 |> Option.map (fun i -> i.idRange)
                 |> Option.defaultValue range.Zero
-
 
             { Type = SynArgInfo_
               Range = noRange

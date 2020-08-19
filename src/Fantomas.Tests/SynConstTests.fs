@@ -157,3 +157,19 @@ Target.runOrDefault "CheckCodeFormat"
 
 Target.runOrDefault "CheckCodeFormat"
 """
+
+[<Test>]
+let ``hexadecimal numbers in match clause should be preserved, 995`` () =
+    formatSourceString false """
+let f (a: int) =
+    match a, b with
+    | 0x55 -> Some ()
+    | _ -> None
+"""  config
+    |> prepend newline
+    |> should equal """
+let f (a: int) =
+    match a, b with
+    | 0x55 -> Some()
+    | _ -> None
+"""
