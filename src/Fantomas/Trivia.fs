@@ -35,6 +35,7 @@ let filterNodes nodes =
             "SynTypeDefnRepr.ObjectModel"
             "TypeDefnSig"
             "SynTypeDefnSigRepr.ObjectModel"
+            "SynExpr.CompExpr"
         ]
     nodes |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
 
