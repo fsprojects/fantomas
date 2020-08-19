@@ -660,3 +660,34 @@ type TestType =
             Foo : int
         }
 """
+
+[<Test>]
+let ``defines in record assignment, 968`` () =
+    formatSourceString false """
+let config = {
+    title = "Fantomas"
+    description = "Fantomas is a code formatter for F#"
+    theme_variant = Some "red"
+    root_url =
+      #if WATCH
+        "http://localhost:8080/"
+      #else
+        "https://fsprojects.github.io/fantomas/"
+      #endif
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+let config =
+    {
+        title = "Fantomas"
+        description = "Fantomas is a code formatter for F#"
+        theme_variant = Some "red"
+        root_url =
+#if WATCH
+            "http://localhost:8080/"
+#else
+            "https://fsprojects.github.io/fantomas/"
+#endif
+    }
+"""
