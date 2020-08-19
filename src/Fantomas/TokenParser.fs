@@ -83,7 +83,7 @@ type private SourceCodeState =
 let rec private getTokenizedHashes sourceCode =
     let processLine content (trimmed:string) lineNumber fullMatchedLength offset =
         let contentLength = String.length content
-        let tokens = tokenize [] (trimmed.Substring(contentLength)) |> fst
+        let tokens = tokenize [] (trimmed.Substring(contentLength))
         tokens
         |> List.map (fun t ->
             let info =
@@ -152,7 +152,7 @@ let rec private getTokenizedHashes sourceCode =
     |> List.rev
     |> List.concat
 
-and tokenize defines (content : string) : Token list * int =
+and tokenize defines (content : string) : Token list =
     let sourceTokenizer = FSharpSourceTokenizer(defines, Some "/tmp.fsx")
     let lines =
         String.normalizeThenSplitNewLine content
@@ -180,7 +180,7 @@ and tokenize defines (content : string) : Token list * int =
         else
             tokens
 
-    combined, List.length lines
+    combined
     
 let getDefines sourceCode =
     getTokenizedHashes sourceCode
@@ -467,46 +467,32 @@ let private createNewLine lineNumber =
     let range = FSharp.Compiler.Range.mkRange "newline" pos pos
     { Item = Newline; Range = range }
 
-let private findEmptyNewlinesInTokens (tokens: Token list) (lineCount) (ignoreRanges: FSharp.Compiler.Range.range list) =
+let private findEmptyNewlinesInTokens (tokens: Token list) (ignoreRanges: FSharp.Compiler.Range.range list) =
     let whiteSpaceTag = 4
-    let lastLineWithContent =
+    let nonWhitespaceLines =
         tokens
-        |> List.tryFindBack (fun t -> t.TokenInfo.Tag <> whiteSpaceTag)
-        |> Option.map (fun t -> t.LineNumber)
-        |> Option.defaultValue lineCount
+        |> List.choose (fun t -> if t.TokenInfo.Tag <> whiteSpaceTag then Some t.LineNumber else None)
+        |> List.distinct
 
-    let ignoredLines =
+    let ignoreRanges =
         ignoreRanges
         |> List.collect(fun r -> [r.StartLine..r.EndLine])
 
-    let linesWithTokens =
-        tokens
-        |> List.groupBy (fun t -> t.LineNumber)
+    let lastLineWithContent =
+        List.tryLast nonWhitespaceLines
+        |> Option.defaultValue 1
 
-    let completeEmptyLines =
-        [1 .. lastLineWithContent]
-        |> List.except (ignoredLines @ List.map fst linesWithTokens)
-        |> List.filter (fun line -> not (List.exists (fun t -> t.LineNumber = line) tokens))
-        |> List.map createNewLine
+    [1 .. lastLineWithContent]
+    |> List.except (nonWhitespaceLines @ ignoreRanges)
+    |> List.map createNewLine
 
-    let linesWithOnlySpaces =
-        linesWithTokens
-        |> List.filter (fun (ln, g) ->
-            (ln <= lastLineWithContent)
-            && match g with
-               | [ t ] -> t.TokenInfo.Tag = whiteSpaceTag
-               | _ -> false)
-        |> List.map (fst >> createNewLine)
-
-    completeEmptyLines @ linesWithOnlySpaces
-
-let getTriviaFromTokens (tokens: Token list) linesCount =
+let getTriviaFromTokens (tokens: Token list) =
     let fromTokens = getTriviaFromTokensThemSelves tokens tokens []
     let blockComments = fromTokens |> List.choose (fun tc -> match tc.Item with | Comment(BlockComment(_)) -> Some tc.Range | _ -> None)
     let isMultilineString s = String.split StringSplitOptions.None [|"\n"|] s |> (Seq.isEmpty >> not)
     let multilineStrings = fromTokens |> List.choose (fun tc -> match tc.Item with | StringContent(sc) when (isMultilineString sc) -> Some tc.Range | _ -> None)
 
-    let newLines = findEmptyNewlinesInTokens tokens linesCount (blockComments @ multilineStrings)
+    let newLines = findEmptyNewlinesInTokens tokens (blockComments @ multilineStrings)
 
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)

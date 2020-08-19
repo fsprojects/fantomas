@@ -149,10 +149,10 @@ type internal Context =
             |> Seq.scan (+) 0
             |> Seq.toArray
 
-        let (tokens, lineCount) = TokenParser.tokenize defines content
+        let tokens = TokenParser.tokenize defines content
         let trivia =
             match maybeAst, config.StrictMode with
-            | Some ast, false -> Trivia.collectTrivia tokens lineCount ast
+            | Some ast, false -> Trivia.collectTrivia tokens ast
             | _ -> []
 
         let triviaByNodes =
