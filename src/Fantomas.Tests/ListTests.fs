@@ -208,10 +208,9 @@ let prismCli commando =
 """  config
     |> should equal """let prismCli commando =
     let props =
-        createObj
-            [ "component" ==> "pre"
-              //"className" ==> "language-fsharp"
-             ]
+        createObj [ "component" ==> "pre"
+                    //"className" ==> "language-fsharp"
+                     ]
 
     ()
 """
@@ -230,10 +229,9 @@ let prismCli commando =
 """  ({ config with SpaceAroundDelimiter = false })
     |> should equal """let prismCli commando =
     let props =
-        createObj
-            [|"component" ==> "pre"
-              //"className" ==> "language-fsharp"
-            |]
+        createObj [|"component" ==> "pre"
+                    //"className" ==> "language-fsharp"
+                    |]
 
     ()
 """
@@ -1600,4 +1598,42 @@ let value =
         if foo then yield! [ "a"; "b" ] else yield "c"
         if bar then yield "d" else yield! [ "e"; "f" ]
     ]
+"""
+
+[<Test>]
+let ``multiline yield expression should be indented, 882`` () =
+    formatSourceString false """
+let choices : Foo list =
+    [
+        yield! getMore 9
+        yield
+            // Test
+            Foo 2
+    ]
+"""  config
+    |> prepend newline
+    |> should equal """
+let choices: Foo list =
+    [ yield! getMore 9
+      yield
+          // Test
+          Foo 2 ]
+"""
+
+[<Test>]
+let ``multiline yield bang inside list`` () =
+    formatSourceString false """
+let choices : Foo list =
+    [
+        yield!
+            // Test
+            [ Foo 2 ]
+    ]
+"""  config
+    |> prepend newline
+    |> should equal """
+let choices: Foo list =
+    [ yield!
+        // Test
+        [ Foo 2 ] ]
 """
