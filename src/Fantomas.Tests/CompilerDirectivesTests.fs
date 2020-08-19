@@ -1474,6 +1474,96 @@ let b = "
 """
 
 [<Test>]
+let ``defines in record assignment, no defines`` () =
+    formatSourceStringWithDefines [] """
+let config = {
+    title = "Fantomas"
+    description = "Fantomas is a code formatter for F#"
+    theme_variant = Some "red"
+    root_url =
+      #if WATCH
+        "http://localhost:8080/"
+      #else
+        "https://fsprojects.github.io/fantomas/"
+      #endif
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+let config =
+    { title = "Fantomas"
+      description = "Fantomas is a code formatter for F#"
+      theme_variant = Some "red"
+      root_url =
+#if WATCH
+
+#else
+          "https://fsprojects.github.io/fantomas/"
+#endif
+    }
+"""
+
+[<Test>]
+let ``defines in record assignment, WATCH define`` () =
+    formatSourceStringWithDefines ["WATCH"] """
+let config = {
+    title = "Fantomas"
+    description = "Fantomas is a code formatter for F#"
+    theme_variant = Some "red"
+    root_url =
+      #if WATCH
+        "http://localhost:8080/"
+      #else
+        "https://fsprojects.github.io/fantomas/"
+      #endif
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+let config =
+    { title = "Fantomas"
+      description = "Fantomas is a code formatter for F#"
+      theme_variant = Some "red"
+      root_url =
+#if WATCH
+          "http://localhost:8080/"
+#else
+
+#endif
+    }
+"""
+
+[<Test>]
+let ``defines in record assignment, 968`` () =
+    formatSourceString false """
+let config = {
+    title = "Fantomas"
+    description = "Fantomas is a code formatter for F#"
+    theme_variant = Some "red"
+    root_url =
+      #if WATCH
+        "http://localhost:8080/"
+      #else
+        "https://fsprojects.github.io/fantomas/"
+      #endif
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+let config =
+    { title = "Fantomas"
+      description = "Fantomas is a code formatter for F#"
+      theme_variant = Some "red"
+      root_url =
+#if WATCH
+          "http://localhost:8080/"
+#else
+          "https://fsprojects.github.io/fantomas/"
+#endif
+    }
+"""
+
+[<Test>]
 let ``compiler defines around parameter type definition, no defines`` () =
     formatSourceStringWithDefines [] """
                let UpdateUI (theModel:
