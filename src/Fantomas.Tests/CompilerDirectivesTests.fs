@@ -1472,3 +1472,171 @@ let b = "
 #endif
 "
 """
+
+[<Test>]
+let ``defines in record assignment, no defines`` () =
+    formatSourceStringWithDefines [] """
+let config = {
+    title = "Fantomas"
+    description = "Fantomas is a code formatter for F#"
+    theme_variant = Some "red"
+    root_url =
+      #if WATCH
+        "http://localhost:8080/"
+      #else
+        "https://fsprojects.github.io/fantomas/"
+      #endif
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+let config =
+    { title = "Fantomas"
+      description = "Fantomas is a code formatter for F#"
+      theme_variant = Some "red"
+      root_url =
+#if WATCH
+
+#else
+          "https://fsprojects.github.io/fantomas/"
+#endif
+    }
+"""
+
+[<Test>]
+let ``defines in record assignment, WATCH define`` () =
+    formatSourceStringWithDefines ["WATCH"] """
+let config = {
+    title = "Fantomas"
+    description = "Fantomas is a code formatter for F#"
+    theme_variant = Some "red"
+    root_url =
+      #if WATCH
+        "http://localhost:8080/"
+      #else
+        "https://fsprojects.github.io/fantomas/"
+      #endif
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+let config =
+    { title = "Fantomas"
+      description = "Fantomas is a code formatter for F#"
+      theme_variant = Some "red"
+      root_url =
+#if WATCH
+          "http://localhost:8080/"
+#else
+
+#endif
+    }
+"""
+
+[<Test>]
+let ``defines in record assignment, 968`` () =
+    formatSourceString false """
+let config = {
+    title = "Fantomas"
+    description = "Fantomas is a code formatter for F#"
+    theme_variant = Some "red"
+    root_url =
+      #if WATCH
+        "http://localhost:8080/"
+      #else
+        "https://fsprojects.github.io/fantomas/"
+      #endif
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+let config =
+    { title = "Fantomas"
+      description = "Fantomas is a code formatter for F#"
+      theme_variant = Some "red"
+      root_url =
+#if WATCH
+          "http://localhost:8080/"
+#else
+          "https://fsprojects.github.io/fantomas/"
+#endif
+    }
+"""
+
+[<Test>]
+let ``compiler defines around parameter type definition, no defines`` () =
+    formatSourceStringWithDefines [] """
+               let UpdateUI (theModel:
+#if NETCOREAPP2_1
+                                       ITreeModel
+#else
+                                       TreeModel
+#endif
+                             ) (info: FileInfo) () =
+                 // File is good so enable the refresh button
+                 h.refreshButton.Sensitive <- true
+                 // Do real UI work here
+                 h.classStructureTree.Model <- theModel
+                 h.codeView.Buffer.Clear()
+                 h.mainWindow.Title <- "AltCover.Visualizer"
+                 updateMRU h info.FullName true
+"""  config
+    |> prepend newline
+    |> should equal """
+let UpdateUI (theModel:
+#if NETCOREAPP2_1
+
+#else
+                        TreeModel
+#endif
+             )
+             (info: FileInfo)
+             ()
+             =
+    // File is good so enable the refresh button
+    h.refreshButton.Sensitive <- true
+    // Do real UI work here
+    h.classStructureTree.Model <- theModel
+    h.codeView.Buffer.Clear()
+    h.mainWindow.Title <- "AltCover.Visualizer"
+    updateMRU h info.FullName true
+"""
+
+[<Test>]
+let ``compiler defines around parameter type definition, 633`` () =
+    formatSourceString false """
+               let UpdateUI (theModel:
+#if NETCOREAPP2_1
+                                       ITreeModel
+#else
+                                       TreeModel
+#endif
+                             ) (info: FileInfo) () =
+                 // File is good so enable the refresh button
+                 h.refreshButton.Sensitive <- true
+                 // Do real UI work here
+                 h.classStructureTree.Model <- theModel
+                 h.codeView.Buffer.Clear()
+                 h.mainWindow.Title <- "AltCover.Visualizer"
+                 updateMRU h info.FullName true
+"""  config
+    |> prepend newline
+    |> should equal """
+let UpdateUI (theModel:
+#if NETCOREAPP2_1
+                        ITreeModel
+#else
+                        TreeModel
+#endif
+             )
+             (info: FileInfo)
+             ()
+             =
+    // File is good so enable the refresh button
+    h.refreshButton.Sensitive <- true
+    // Do real UI work here
+    h.classStructureTree.Model <- theModel
+    h.codeView.Buffer.Clear()
+    h.mainWindow.Title <- "AltCover.Visualizer"
+    updateMRU h info.FullName true
+"""

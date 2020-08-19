@@ -208,10 +208,9 @@ let prismCli commando =
 """  config
     |> should equal """let prismCli commando =
     let props =
-        createObj
-            [ "component" ==> "pre"
-              //"className" ==> "language-fsharp"
-             ]
+        createObj [ "component" ==> "pre"
+                    //"className" ==> "language-fsharp"
+                     ]
 
     ()
 """
@@ -230,10 +229,9 @@ let prismCli commando =
 """  ({ config with SpaceAroundDelimiter = false })
     |> should equal """let prismCli commando =
     let props =
-        createObj
-            [|"component" ==> "pre"
-              //"className" ==> "language-fsharp"
-            |]
+        createObj [|"component" ==> "pre"
+                    //"className" ==> "language-fsharp"
+                    |]
 
     ()
 """
@@ -1638,4 +1636,24 @@ let choices: Foo list =
     [ yield!
         // Test
         [ Foo 2 ] ]
+"""
+
+[<Test>]
+let ``preserve comment above first element of list, 990`` () =
+    formatSourceString false """
+let x = [
+    // comment
+    1
+    // another comment
+    2
+]
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    [
+      // comment
+      1
+      // another comment
+      2 ]
 """

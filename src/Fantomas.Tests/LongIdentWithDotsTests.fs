@@ -109,8 +109,8 @@ let main _ =
                 ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).Build()
 
             WebHostBuilder().UseConfiguration(config).UseKestrel().UseSerilog()
-                .ConfigureAppConfiguration
-                    (Action<WebHostBuilderContext, IConfigurationBuilder> configureAppConfiguration)
+                .ConfigureAppConfiguration(Action<WebHostBuilderContext, IConfigurationBuilder>
+                                               configureAppConfiguration)
                 .ConfigureServices(Action<WebHostBuilderContext, IServiceCollection> configureServices)
                 .Configure(Action<IApplicationBuilder> configureApp).Build().Run()
             |> ignore
