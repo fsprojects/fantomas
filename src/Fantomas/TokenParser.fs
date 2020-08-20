@@ -10,6 +10,7 @@ open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
 
 let private whiteSpaceTag = 4
+let private lineCommentTag = 8
 
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
 // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
@@ -241,7 +242,7 @@ let private hasOnlySpacesAndLineCommentsOnLine lineNumber tokens =
     else
         tokens
         |> List.filter (fun t -> t.LineNumber = lineNumber)
-        |> List.forall (fun t -> t.TokenInfo.TokenName = "WHITESPACE" || t.TokenInfo.TokenName = "LINE_COMMENT")
+        |> List.forall (fun t -> t.TokenInfo.Tag = whiteSpaceTag || t.TokenInfo.Tag = lineCommentTag)
     
 let private getContentFromTokens tokens =
     tokens
@@ -264,15 +265,15 @@ let private identIsDecompiledOperator (token: Token) =
 
 let ``only whitespaces were found in the remainder of the line`` lineNumber tokens =
     tokens
-    |> List.exists (fun t -> t.LineNumber = lineNumber && t.TokenInfo.TokenName <> "WHITESPACE")
+    |> List.exists (fun t -> t.LineNumber = lineNumber && t.TokenInfo.Tag <> whiteSpaceTag)
     |> not
 
 let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: Token list) foundTrivia =
     match tokens with
-    | headToken::rest when (headToken.TokenInfo.TokenName = "LINE_COMMENT") ->
+    | headToken::rest when (headToken.TokenInfo.Tag = lineCommentTag) ->
         let lineCommentTokens =
             Seq.zip rest (headToken::rest |> List.map (fun x -> x.LineNumber))
-            |> Seq.takeWhile (fun (t, currentLineNumber) -> t.TokenInfo.TokenName = "LINE_COMMENT" && t.LineNumber <= (currentLineNumber + 1))
+            |> Seq.takeWhile (fun (t, currentLineNumber) -> t.TokenInfo.Tag = lineCommentTag && t.LineNumber <= (currentLineNumber + 1))
             |> Seq.map fst
             |> Seq.toList
 
