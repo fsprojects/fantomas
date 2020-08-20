@@ -9,6 +9,8 @@ open Fantomas
 open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
 
+let private whiteSpaceTag = 4
+
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
 // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
 let private isTokenAfterGreater token (greaterToken: Token) =
@@ -292,7 +294,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
         let info =
             let toLineComment =
                 allTokens
-                |> List.exists (fun t -> t.LineNumber = headToken.LineNumber && t.TokenInfo.TokenName <> "WHITESPACE" && t.TokenInfo.RightColumn < headToken.TokenInfo.LeftColumn)
+                |> List.exists (fun t -> t.LineNumber = headToken.LineNumber && t.TokenInfo.Tag <> whiteSpaceTag && t.TokenInfo.RightColumn < headToken.TokenInfo.LeftColumn)
                 |> fun e -> if e then LineCommentAfterSourceCode else LineCommentOnSingleLine
             
             let comment =
@@ -468,7 +470,6 @@ let private createNewLine lineNumber =
     { Item = Newline; Range = range }
 
 let private findEmptyNewlinesInTokens (tokens: Token list) (ignoreRanges: FSharp.Compiler.Range.range list) =
-    let whiteSpaceTag = 4
     let nonWhitespaceLines =
         tokens
         |> List.choose (fun t -> if t.TokenInfo.Tag <> whiteSpaceTag then Some t.LineNumber else None)
