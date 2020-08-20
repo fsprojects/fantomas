@@ -181,9 +181,22 @@ let private mapNodeToTriviaNode (node: Node) =
         | None -> TriviaNodeAssigner(MainNode(node.Type), range))
 
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: range) =
-    match List.filter isMainNodeButNotAnonModule triviaNodes with
-    | [tn] when (mainNodeIs SynModuleOrNamespaceSig_NamedModule tn) -> true
-    | mainNodes -> mainNodes |> List.forall (fun tn -> tn.Range.EndLine < range.StartLine)
+    let hasNoNodesAfterRange =
+        triviaNodes
+        |> Seq.filter (fun tn -> tn.Range.EndLine > range.StartLine && isMainNodeButNotAnonModule tn)
+        |> Seq.isEmpty
+
+    let hasOnlyOneNamedModule =
+        triviaNodes
+        |> List.tryExactlyOne
+        |> Option.map (fun mn ->
+            match mn.Type with
+            | MainNode(SynModuleOrNamespace_NamedModule)
+            | MainNode(SynModuleOrNamespaceSig_NamedModule) -> true
+            | _ -> false)
+        |> Option.defaultValue false
+
+    hasNoNodesAfterRange || hasOnlyOneNamedModule
 
 let private updateTriviaNode (lens: TriviaNodeAssigner -> unit)  (triviaNodes: TriviaNodeAssigner list) triviaNode =
     match triviaNode with
