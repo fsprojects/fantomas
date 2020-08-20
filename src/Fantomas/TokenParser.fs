@@ -11,12 +11,13 @@ open Fantomas.TriviaTypes
 
 let private whiteSpaceTag = 4
 let private lineCommentTag = 8
+let private greaterTag = 160
 
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
 // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
 let private isTokenAfterGreater token (greaterToken: Token) =
     let greaterToken = greaterToken.TokenInfo
-    greaterToken.TokenName = "GREATER" && token.TokenName <> "GREATER" && greaterToken.RightColumn <> (token.LeftColumn + 1)
+    greaterToken.Tag = greaterTag && token.Tag <> greaterTag && greaterToken.RightColumn <> (token.LeftColumn + 1)
 
 let private getTokenText (sourceCodeLines: string list) line (token: FSharpTokenInfo) =
     sourceCodeLines.[line - 1].Substring(token.LeftColumn, token.RightColumn - token.LeftColumn + 1)
