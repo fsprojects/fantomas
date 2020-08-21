@@ -24,8 +24,17 @@ let ``untyped quotations``() =
 """
 
 [<Test>]
-let ``should preserve unit literal``() =
-    shouldNotChangeAfterFormat """
+let ``should preserve unit literal`` () =
+    formatSourceString false """
 let logger =
     Mock<ILogger>().Setup(fun log -> <@ log.Log(error) @>).Returns(()).Create()
+"""  config
+    |> prepend newline
+    |> should equal """
+let logger =
+    Mock<ILogger>()
+        .Setup(fun log -> <@ log.Log(error) @>)
+        .Returns(())
+        .Create()
 """
+
