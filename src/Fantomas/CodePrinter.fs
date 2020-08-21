@@ -1376,12 +1376,34 @@ and genExpr astContext synExpr =
     | DotGetAppSpecial(s, es) ->
         let ss = s
         let ees = es
-        !- s
-        +> atCurrentColumn
-             (colAutoNlnSkip0 sepNone es (fun ((s,r), e) ->
-                ((!- (sprintf ".%s" s) |> genTrivia r)
-                    +> ifElse (hasParenthesis e || isArrayOrList e) sepNone sepSpace +> genExpr astContext e)
-                ))
+
+        let shortExpr =
+            !- s
+            +> atCurrentColumn
+                 (colAutoNlnSkip0 sepNone es (fun ((s,r), e) ->
+                    ((!- (sprintf ".%s" s) |> genTrivia r)
+                        +> ifElse (hasParenthesis e || isArrayOrList e) sepNone sepSpace +> genExpr astContext e)
+                    ))
+
+        let longExpr =
+            !- s
+            +> indent
+            +> sepNln
+            +> col sepNln es (fun ((s,r), e) ->
+                        (!- (sprintf ".%s" s) |> genTrivia r)
+                        +> ifElse
+                               (hasParenthesis e || isArrayOrList e)
+                               sepNone
+                               sepSpace
+                        +> genExpr astContext e)
+            +> unindent
+
+        fun ctx ->
+            isShortExpression
+                ctx.Config.MaxChainedExpressionWidth
+                shortExpr
+                longExpr
+                ctx
 
     | DotGetApp(e, es) as appNode ->
         fun (ctx: Context) ->
@@ -1906,7 +1928,24 @@ and genExpr astContext synExpr =
     | DotGet(e, (s,_)) ->
         let ee = e
         let ss = s
-        genExpr { astContext with IsInsideDotGet = true } e -- (sprintf ".%s" s)
+
+        let shortExpr =
+            genExpr { astContext with IsInsideDotGet = true } e -- (sprintf ".%s" s)
+
+        let longExpr =
+            genExpr { astContext with IsInsideDotGet = true } e
+            +> indent
+            +> sepNln
+            -- (sprintf ".%s" s)
+            +> unindent
+
+        fun ctx ->
+            isShortExpression
+                ctx.Config.MaxChainedExpressionWidth
+                shortExpr
+                longExpr
+                ctx
+
     | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
 
     | SynExpr.Set(e1,e2, _) ->

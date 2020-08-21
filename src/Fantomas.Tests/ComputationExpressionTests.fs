@@ -859,7 +859,11 @@ let ``let bang + do expression + let + return in ce`` () =
     |> prepend newline
     |> should equal """
 task {
-    let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
+    let! config =
+        manager
+            .GetConfigurationAsync()
+            .ConfigureAwait(false)
+
     parameters.IssuerSigningKeys <- config.SigningKeys
 
     let user, _ =

@@ -366,7 +366,9 @@ let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNa
 System.String.Concat("a", "b" + 
                             longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun(longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass).Property)
 """  config
-    |> should equal """type T() =
+    |> prepend newline
+    |> should equal """
+type T() =
     member __.Property = "hello"
 
 let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x: T) = x
@@ -376,7 +378,8 @@ System.String.Concat
     ("a",
      "b"
      + longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun
-         (longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass).Property)
+         (longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass)
+         .Property)
 """
 
 [<Test>]
