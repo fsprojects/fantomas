@@ -2061,6 +2061,7 @@ and genExpr astContext synExpr =
         | SynExpr.ArrayOrListOfSeqExpr _ -> genTriviaFor SynExpr_ArrayOrListOfSeqExpr synExpr.Range
         | SynExpr.Paren _ -> genTriviaFor SynExpr_Paren synExpr.Range
         | SynExpr.InterpolatedString _ -> genTriviaFor SynExpr_InterpolatedString synExpr.Range
+        | SynExpr.Tuple _ -> genTriviaFor SynExpr_Tuple synExpr.Range
         | _ -> id)
 
 and genMultilineRecordInstance
