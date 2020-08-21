@@ -1678,3 +1678,9 @@ type Box() =
     // If there's no get/set, the comment is preserved
     member x.hello = "world"
 """
+
+[<Test>]
+let ``union type with constraint`` () =
+    formatSourceString false """type 'a t when 'a :> IDisposable = T  of  'a option"""  config
+    |> should equal """type 'a t when 'a :> IDisposable = T of 'a option
+"""

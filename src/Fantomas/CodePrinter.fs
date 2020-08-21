@@ -539,7 +539,11 @@ and genTypeAndParam astContext typeName tds tcs preferPostfix =
          +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext) -- closeSep)
     if List.isEmpty tds then !- typeName
     elif preferPostfix then !- typeName +> types "<" ">"
-    elif List.atMostOne tds then types "" "" -- " " -- typeName
+    elif List.atMostOne tds then
+        genTyparDecl { astContext with IsFirstTypeParam = true } (List.head tds)
+        +> sepSpace
+        -- typeName
+        +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
     else types "(" ")" -- " " -- typeName
 
 and genTypeParamPostfix astContext tds tcs = genTypeAndParam astContext "" tds tcs true
