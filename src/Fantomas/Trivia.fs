@@ -144,17 +144,17 @@ let private findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner list) line col
         (range.StartLine > line) || (range.StartLine = line && range.StartColumn > column)
     )
 
-let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (numberRange:range) =
+let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (constantRange:range) =
     nodes
     |> List.tryFind (fun tn ->
         match tn.Type with
         | MainNode(SynExpr_Const)
         | MainNode(SynPat_Const) ->
-            numberRange.StartLine = tn.Range.StartLine
-            && numberRange.StartColumn = tn.Range.StartColumn
+            constantRange.StartLine = tn.Range.StartLine
+            && constantRange.StartColumn = tn.Range.StartColumn
         | MainNode(EnumCase_) ->
-            tn.Range.EndLine = numberRange.EndLine
-            && tn.Range.EndColumn = numberRange.EndColumn
+            tn.Range.EndLine = constantRange.EndLine
+            && tn.Range.EndColumn = constantRange.EndColumn
         | _ -> false
     )
 
@@ -424,10 +424,10 @@ let collectTrivia tokens (ast: ParsedInput) =
     let node =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hds, mns, _)) ->            
-            Fantomas.AstTransformer.astToNode hds mns
+            astToNode hds mns
 
         | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput(_, _, _ , _, mns)) ->
-            Fantomas.AstTransformer.sigAstToNode mns
+            sigAstToNode mns
 
     let startOfSourceCode =
         match node.Range with

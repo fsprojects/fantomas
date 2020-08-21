@@ -488,7 +488,7 @@ and genAttribute astContext (Attribute(s, e, target)) =
         !- "[<" +> opt sepColonFixed target (!-) -- s -- ">]"
     | e ->
         let argSpacing =
-            if SourceTransformer.hasParenthesis e then id else sepSpace
+            if hasParenthesis e then id else sepSpace
         !- "[<"  +> opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e -- ">]"
     // |> genTrivia "" e.Range
 
@@ -499,7 +499,7 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
             opt sepColonFixed target (!-) -- s
         | e ->
             let argSpacing =
-                if SourceTransformer.hasParenthesis e then id else sepSpace
+                if hasParenthesis e then id else sepSpace
             opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e
         |> genTriviaFor SynAttribute_ attr.Range
     let shortExpression = !- "[<" +> atCurrentColumn (col sepSemi ats (genAttributeExpr astContext)) -- ">]"
@@ -539,7 +539,7 @@ and genPreXmlDoc (PreXmlDoc lines) ctx =
 
 and addSpaceAfterGenericConstructBeforeColon ctx =
     if not ctx.Config.SpaceBeforeColon then
-        match Context.lastWriteEventOnLastLine ctx |> Option.bind Seq.tryLast with
+        match lastWriteEventOnLastLine ctx |> Option.bind Seq.tryLast with
         | Some('>') -> sepSpace
         | _ -> sepNone
     else
@@ -2048,6 +2048,51 @@ and genExpr astContext synExpr =
     | UnsupportedExpr r ->
         raise <| FormatException (sprintf "Unsupported construct(s) between line %i column %i and line %i column %i"
             r.StartLine (r.StartColumn + 1) r.EndLine (r.EndColumn + 1))
+    | SynExpr.InterpolatedString(parts, range) ->
+        fun (ctx: Context) ->
+            let stringRanges =
+                List.choose (function | SynInterpolatedStringPart.String (_, r) -> Some r | _ -> None) parts
+
+            // multiline interpolated string will contain the $ and or braces in the triviaContent
+            // example: $"""%s{ , } bar
+            let stringsFromTrivia =
+                stringRanges
+                |> List.choose(fun range ->
+                    Map.tryFindOrEmptyList SynInterpolatedStringPart_String ctx.TriviaMainNodes
+                    |> List.choose (fun tn ->
+                        match tn.Type, tn.ContentItself with
+                        | MainNode(SynInterpolatedStringPart_String), Some (StringContent sc) when (RangeHelpers.rangeEq tn.Range range) ->
+                            Some sc
+                        | _ -> None)
+                    |> List.tryHead
+                    |> Option.map (fun sc -> range, sc)
+                )
+
+            let genInterpolatedFillExpr expr =
+                leadingExpressionIsMultiline
+                    (atCurrentColumn (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)))
+                    (fun isMultiline -> onlyIf isMultiline sepNln)
+
+            let expr =
+                if List.length stringRanges = List.length stringsFromTrivia then
+                    colEx (fun _ -> sepNone) parts (fun part ->
+                        match part with
+                        | SynInterpolatedStringPart.String (_,range) ->
+                            let stringFromTrivia =
+                                List.find (fun (r,_) -> RangeHelpers.rangeEq range r) stringsFromTrivia
+                                |> snd
+                            !- stringFromTrivia |> genTriviaFor SynInterpolatedStringPart_String range
+                        | SynInterpolatedStringPart.FillExpr (expr, _ident) -> genInterpolatedFillExpr expr)
+                else
+                    !- "$\""
+                    +> colEx (fun _ -> sepNone) parts (fun part ->
+                        match part with
+                        | SynInterpolatedStringPart.String (s,r) -> !- s |> genTriviaFor SynInterpolatedStringPart_String r
+                        | SynInterpolatedStringPart.FillExpr (expr, _ident) ->
+                            !- "{" +> genInterpolatedFillExpr expr +> !- "}")
+                    +> !- "\""
+
+            expr ctx
     | e -> failwithf "Unexpected expression: %O" e
     |> (match synExpr with
         | SynExpr.App _ -> genTriviaFor SynExpr_App synExpr.Range
@@ -2065,6 +2110,7 @@ and genExpr astContext synExpr =
         | SynExpr.LongIdentSet _ -> genTriviaFor SynExpr_LongIdentSet synExpr.Range
         | SynExpr.ArrayOrListOfSeqExpr _ -> genTriviaFor SynExpr_ArrayOrListOfSeqExpr synExpr.Range
         | SynExpr.Paren _ -> genTriviaFor SynExpr_Paren synExpr.Range
+        | SynExpr.InterpolatedString _ -> genTriviaFor SynExpr_InterpolatedString synExpr.Range
         | _ -> id)
 //    |> genTriviaFor
 //           [ "SynExpr.App"

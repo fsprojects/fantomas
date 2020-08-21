@@ -255,10 +255,10 @@ let private numberTrivia = ["UINT8";"INT8";"UINT16";"INT16";"UINT32";"INT32";"UI
                             "DECIMAL";"IEEE64";"BIGNUM";"NATIVEINT";"UNATIVEINT"]
 
 let private isOperatorOrKeyword ({TokenInfo = {CharClass = cc}}) =
-    cc = FSharp.Compiler.SourceCodeServices.FSharpTokenCharKind.Keyword || cc = FSharp.Compiler.SourceCodeServices.FSharpTokenCharKind.Operator
+    cc = FSharpTokenCharKind.Keyword || cc = FSharpTokenCharKind.Operator
 
 let private isNumber ({TokenInfo = tn}) =
-    tn.ColorClass = FSharp.Compiler.SourceCodeServices.FSharpTokenColorKind.Number && List.contains tn.TokenName numberTrivia
+    tn.ColorClass = FSharpTokenColorKind.Number && List.contains tn.TokenName numberTrivia
     
 let private identIsDecompiledOperator (token: Token) =
     let decompiledName = FSharp.Compiler.PrettyNaming.DecompileOpName token.Content
@@ -326,7 +326,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
                 let (max,_) = List.maxBy fst groupedByLineNumber
                 [min .. max]
                 |> List.filter (fun l -> not (List.exists (fst >> ((=) l)) groupedByLineNumber))
-                |> List.map (fun l -> l, System.String.Empty)
+                |> List.map (fun l -> l, String.Empty)
 
             groupedByLineNumber
             |> List.map (fun (l, g) -> l, getContentFromTokens g)

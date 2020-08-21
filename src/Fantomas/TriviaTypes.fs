@@ -171,6 +171,9 @@ type FsAstType =
     | SynExpr_FromParseError
     | SynExpr_DiscardAfterMissingQualificationAfterDot
     | SynExpr_Fixed
+    | SynExpr_InterpolatedString
+    | SynInterpolatedStringPart_String
+    | SynInterpolatedStringPart_FillExpr
     | RecordField_
     | AnonRecordField_
     | AnonRecordTypeField_

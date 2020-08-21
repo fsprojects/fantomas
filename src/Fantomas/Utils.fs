@@ -74,9 +74,9 @@ There is a problem with merging all the code back togheter. Please raise an issu
         
         |> String.concat Environment.NewLine
 
-    let empty = System.String.Empty
+    let empty = String.Empty
 
-    let isNotNullOrEmpty = System.String.IsNullOrEmpty >> not
+    let isNotNullOrEmpty = String.IsNullOrEmpty >> not
 
     let isMultiline s = normalizeNewLine s |> String.exists ((=)'\n')
 

@@ -436,7 +436,8 @@ let rec shrinkSynExpr = function
     | SynExpr.FromParseError _
     | SynExpr.DiscardAfterMissingQualificationAfterDot _
     | SynExpr.Tuple(true, _, _, _)
-    | SynExpr.Fixed _ -> Seq.empty
+    | SynExpr.Fixed _
+    | SynExpr.InterpolatedString _ -> Seq.empty
 
 and collectSynExpr expr =
     seq { yield expr 
