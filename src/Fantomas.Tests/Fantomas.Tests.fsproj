@@ -72,6 +72,7 @@
     <Compile Include="MaxValueBindingWidthTests.fs" />
     <Compile Include="MaxFunctionBindingWidthTests.fs" />
     <Compile Include="InterpolatedStringTests.fs" />
+    <Compile Include="DotGetTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
