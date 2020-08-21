@@ -797,16 +797,6 @@ let private findTriviaOnStartFromRange nodes (range:range) =
     nodes
     |> List.tryFind(fun n -> RangeHelpers.rangeStartEq n.Range range)
 
-let private findTriviaMainNodeOrTokenOnEndFromRange nodes (range:range) =
-    nodes
-    |> List.tryFind(fun n ->
-        Trivia.isMainNode n && RangeHelpers.rangeEq n.Range range
-        || Trivia.isToken n && RangeHelpers.rangeEndEq n.Range range)
-
-let private findTriviaTokenFromRange nodes (range:range) =
-    nodes
-    |> List.tryFind(fun n -> Trivia.isToken n && RangeHelpers.rangeEq n.Range range)
-
 let internal findTriviaTokenFromName (tokenName:FsTokenType) (range: range) (ctx: Context) =
     Map.tryFind tokenName ctx.TriviaTokenNodes
     |> Option.defaultValue []
@@ -817,7 +807,6 @@ let internal enterNodeTokenByName (range: range) (tokenName:FsTokenType) (ctx: C
     | Some triviaNode ->
         (printContentBefore triviaNode) ctx
     | None -> ctx
-    // enterNodeWith (findTriviaTokenFromName range) tokenName ctx
 
 let internal enterNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaMainNodes with
@@ -837,7 +826,6 @@ let internal leaveNodeTokenByName (range: range) (tokenName:FsTokenType) (ctx: C
         (printContentAfter triviaNode) ctx
     | None ->
         ctx
-    // leaveNodeWith (findTriviaTokenFromName range) tokenName ctx
 
 let internal leaveNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaMainNodes with
@@ -902,13 +890,6 @@ let internal hasPrintableContent (trivia: TriviaContent list) =
         match tn with
         | Comment(_) -> true
         | Newline -> true
-        | _ -> false)
-    
-let private hasDirectiveBefore (trivia: TriviaContent list) =
-    trivia
-    |> List.exists (fun tn ->
-        match tn with
-        | Directive(_) -> true
         | _ -> false)
 
 let private sepConsideringTriviaContentBeforeBy (findNode: Context -> range -> TriviaNode option) (sepF: Context -> Context) (range: range) (ctx: Context) =
@@ -976,9 +957,6 @@ let internal sepNlnForEmptyModule (mainNode:FsAstType) (moduleRange:range) (ctx:
             ctx
         else
             sepNln ctx
-//    match findTriviaMainNodeOrTokenOnStartFromRange ctx.Trivia moduleRange with
-//    | Some node when hasPrintableContent node.ContentBefore || hasPrintableContent node.ContentAfter ->
-//        ctx
     | _ ->
         sepNln ctx
 
@@ -994,7 +972,6 @@ let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
     match firstMemberRange with
     | Some _range when (ctx.Config.NewlineBetweenTypeDefinitionAndMembers) ->
         sepNln ctx
-        // sepNlnConsideringTriviaContentBefore range ctx
     | _ ->
         ctx
 

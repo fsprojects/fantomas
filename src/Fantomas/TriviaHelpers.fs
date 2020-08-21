@@ -13,10 +13,6 @@ module internal TriviaHelpers =
         trivia
         |> List.tryFind (fun t -> RangeHelpers.``range contains`` range t.Range)
 
-    let findFirstContentBeforeByRange (trivia: TriviaNode list) (range: range) =
-        findByRange trivia range
-        |> Option.bind (fun t -> t.ContentBefore |> List.tryHead)
-
     let ``has content after after that matches`` (findTrivia: TriviaNode -> bool) (contentAfter: TriviaContent -> bool) (trivia: TriviaNode list) =
         List.tryFind findTrivia trivia
         |> Option.map (fun t -> t.ContentAfter |> List.exists contentAfter)
@@ -26,11 +22,6 @@ module internal TriviaHelpers =
         List.tryFind findTrivia trivia
         |> Option.bind (fun t -> t.ContentAfter |> List.tryLast |> Option.map contentAfterEnd)
         |> Option.defaultValue false
-
-    let ``is token of type`` tokenName (triviaNode: TriviaNode) =
-        match triviaNode.Type with
-        | Token(tname, _) -> tname = tokenName
-        | _ -> false
 
     let ``keyword token inside range`` range (trivia: TriviaNode list) =
         trivia
@@ -50,12 +41,6 @@ module internal TriviaHelpers =
         )
         |> (List.isEmpty >> not)
 
-    let ``has line comment before`` range triviaNodes =
-        triviaNodes
-        |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range range)
-        |> Option.map (fun tv -> tv.ContentBefore |> List.exists (function | Comment(LineCommentOnSingleLine(_)) -> true | _ -> false))
-        |> Option.defaultValue false
-
     let ``get CharContent`` range (nodes: Map<FsAstType, TriviaNode list>) =
         Map.tryFind SynExpr_Const nodes
         |> Option.bind (fun triviaNodes ->
@@ -72,14 +57,6 @@ module internal TriviaHelpers =
             match RangeHelpers.rangeEq tn.Range range, tn.ContentItself with
             | true, Some(t) -> predicate t
             | _ -> false)
-
-    let ``has content itself is ident between ticks`` range (triviaNodes: TriviaNode list) =
-        triviaNodes
-        |> List.choose (fun tn ->
-            match RangeHelpers.rangeEq  tn.Range range, tn.ContentItself with
-            | true, Some(IdentBetweenTicks(ident)) -> Some ident
-            | _ -> None)
-        |> List.tryHead
 
     let ``has content itself that is multiline string`` range (triviaNodes: TriviaNode list) =
         triviaNodes

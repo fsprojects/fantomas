@@ -132,10 +132,6 @@ let private findNodeBeforeLineFromStart (nodes: TriviaNodeAssigner list) line =
     |> List.filter (fun tn -> tn.Range.EndLine < line)
     |> List.sortByDescending (fun tn -> tn.Range.EndLine, -tn.Range.StartColumn)
     |> List.tryFind (fun tn -> tn.Range.StartLine < line)
-    
-let private findNodeBeforeLineFromEnd (nodes: TriviaNode list) line =
-    nodes
-    |> List.tryFindBack (fun { Range = range } -> range.StartLine < line)
 
 let private findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner list) line column =
     nodes
