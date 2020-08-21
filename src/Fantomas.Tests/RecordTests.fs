@@ -563,20 +563,21 @@ let expect =
     |> prepend newline
     |> should equal """
 let expect =
-    Result<Schema, SetError>.Ok
-        { opts =
-              [ Opts.anyOf
-                  ([ (Optional, Opt.flagTrue [ "first"; "f" ])
-                     (Optional, Opt.value [ "second"; "s" ]) ])
-                Opts.oneOf
-                    (Optional,
-                     [ Opt.flag [ "third"; "f" ]
-                       Opt.valueWith
-                           "new value"
-                           [ "fourth"
-                             "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]) ]
-          args = []
-          commands = [] }
+    Result<Schema, SetError>
+        .Ok
+            { opts =
+                  [ Opts.anyOf
+                      ([ (Optional, Opt.flagTrue [ "first"; "f" ])
+                         (Optional, Opt.value [ "second"; "s" ]) ])
+                    Opts.oneOf
+                        (Optional,
+                         [ Opt.flag [ "third"; "f" ]
+                           Opt.valueWith
+                               "new value"
+                               [ "fourth"
+                                 "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]) ]
+              args = []
+              commands = [] }
 """
 
 [<Test>]
@@ -599,10 +600,11 @@ let expect =
     |> prepend newline
     |> should equal """
 let expect =
-    Result<int, string>.Ok
-        [ "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
-          "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
-          "meh" ]
+    Result<int, string>
+        .Ok
+            [ "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
+              "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
+              "meh" ]
 """
 
 [<Test>]
