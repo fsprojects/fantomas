@@ -218,7 +218,7 @@ and genModuleDeclList astContext e =
         let newlineAfterMultiline ctx =
             let expr =
                 match List.tryHead rest with
-                | Some (SynModuleDecl.DoExpr(_, SynExpr.Const(SynConst.Unit,_),rm)) when (match m with SynModuleDecl.Attributes(a,_) -> List.length a > 1) ->
+                | Some (SynModuleDecl.DoExpr(_, SynExpr.Const(SynConst.Unit,_),rm)) when (match m with | SynModuleDecl.Attributes(a,_) -> List.length a > 1 | _ -> false) ->
                     sepNlnConsideringTriviaContentBeforeWithAttributes rm attrs
                 | Some rm ->
                   let attrs = getRangesFromAttributesFromModuleDeclaration rm
@@ -1918,6 +1918,51 @@ and genExpr astContext synExpr =
     | UnsupportedExpr r ->
         raise <| FormatException (sprintf "Unsupported construct(s) between line %i column %i and line %i column %i"
             r.StartLine (r.StartColumn + 1) r.EndLine (r.EndColumn + 1))
+    | SynExpr.InterpolatedString(parts, range) ->
+        fun (ctx: Context) ->
+            let stringRanges =
+                List.choose (function | SynInterpolatedStringPart.String (_, r) -> Some r | _ -> None) parts
+
+            // multiline interpolated string will contain the $ and or braces in the triviaContent
+            // example: $"""%s{ , } bar
+            let stringsFromTrivia =
+                stringRanges
+                |> List.choose(fun range ->
+                    ctx.Trivia
+                    |> List.choose (fun tn ->
+                        match tn.Type, tn.ContentItself with
+                        | MainNode("SynInterpolatedStringPart.String"), Some (StringContent sc) when (RangeHelpers.rangeEq tn.Range range) ->
+                            Some sc
+                        | _ -> None)
+                    |> List.tryHead
+                    |> Option.map (fun sc -> range, sc)
+                )
+
+            let genInterpolatedFillExpr expr =
+                leadingExpressionIsMultiline
+                    (atCurrentColumn (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)))
+                    (fun isMultiline -> onlyIf isMultiline sepNln)
+
+            let expr =
+                if List.length stringRanges = List.length stringsFromTrivia then
+                    colEx (fun _ -> sepNone) parts (fun part ->
+                        match part with
+                        | SynInterpolatedStringPart.String (s,range) ->
+                            let stringFromTrivia =
+                                List.find (fun (r,_) -> RangeHelpers.rangeEq range r) stringsFromTrivia
+                                |> snd
+                            !- stringFromTrivia |> genTrivia range
+                        | SynInterpolatedStringPart.FillExpr (expr, _ident) -> genInterpolatedFillExpr expr)
+                else
+                    !- "$\""
+                    +> colEx (fun _ -> sepNone) parts (fun part ->
+                        match part with
+                        | SynInterpolatedStringPart.String (s,r) -> !- s |> genTrivia r
+                        | SynInterpolatedStringPart.FillExpr (expr, _ident) ->
+                            !- "{" +> genInterpolatedFillExpr expr +> !- "}")
+                    +> !- "\""
+
+            (expr |> genTrivia range) ctx
     | e -> failwithf "Unexpected expression: %O" e
     |> genTrivia synExpr.Range
 

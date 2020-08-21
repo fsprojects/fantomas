@@ -125,17 +125,18 @@ let private findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner list) line col
         (range.StartLine > line) || (range.StartLine = line && range.StartColumn > column)
     )
 
-let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (numberRange:range) =
+let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (constantRange:range) =
     nodes
     |> List.tryFind (fun tn ->
         match tn.Type with
         | MainNode("SynExpr.Const")
-        | MainNode("SynPat.Const") ->
-            numberRange.StartLine = tn.Range.StartLine
-            && numberRange.StartColumn = tn.Range.StartColumn
+        | MainNode("SynPat.Const")
+        | MainNode("SynInterpolatedStringPart.String") ->
+            constantRange.StartLine = tn.Range.StartLine
+            && constantRange.StartColumn = tn.Range.StartColumn
         | MainNode("EnumCase") ->
-            tn.Range.EndLine = numberRange.EndLine
-            && tn.Range.EndColumn = numberRange.EndColumn
+            tn.Range.EndLine = constantRange.EndLine
+            && tn.Range.EndColumn = constantRange.EndColumn
         | _ -> false
     )
 

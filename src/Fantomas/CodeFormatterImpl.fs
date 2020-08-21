@@ -316,6 +316,10 @@ let isValidAST ast =
             false
         | SynExpr.Fixed _ ->
             true
+        | SynExpr.InterpolatedString (parts, _) ->
+            parts
+            |> List.forall (function | SynInterpolatedStringPart.String _ -> true
+                                     | SynInterpolatedStringPart.FillExpr(e,_) -> validateExpr e)
 
     and validatePattern = function
         | SynPat.Const(_const, _range) -> true
