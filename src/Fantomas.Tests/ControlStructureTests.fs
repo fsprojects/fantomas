@@ -216,9 +216,32 @@ let x =
     |> prepend newline
     |> should equal """
 let x =
-    if try
-        true
-       with Failure _ -> false then
+    if (try
+            true
+        with Failure _ -> false) then
+        ()
+    else
+        ()
+"""
+
+[<Test>]
+let ``try finally in if expression`` () =
+    formatSourceString false """
+let y =
+    if  try true
+        finally false
+    then
+        ()
+    else
+        ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let y =
+    if (try
+            true
+        finally
+            false) then
         ()
     else
         ()

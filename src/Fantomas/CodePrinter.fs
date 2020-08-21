@@ -1865,7 +1865,10 @@ and genExpr astContext synExpr =
                     //           x
                     // bool expr x should be indented
                     +> ifElse hasCommentAfterIfKeyword (indent +> sepNln) sepNone
-                    +> genExpr astContext e1
+                    +> (match e1 with
+                        | SynExpr.TryWith _
+                        | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e1 +> sepCloseT
+                        | _ -> genExpr astContext e1)
                     +> ifElse hasCommentAfterBoolExpr sepNln sepSpace
                     +> genThen synExpr.Range
                     // f.ex if x then // meh
