@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.CodeFormatterExtTests
+﻿module Fantomas.Tests.ComputationExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -1419,4 +1419,38 @@ let initDb () =
             ()
 #endif
         })
+"""
+
+[<Test>]
+let ``keep newline before do bang`` () =
+    formatSourceString false """
+let private removeSubscription (log : ILogger) (req : HttpRequest) =
+    log.LogInformation("Start remove-subscription")
+    task {
+        let origin = req.Headers.["Origin"].ToString()
+        let user = Authentication.getUser log req
+        let! endpoint = req.ReadAsStringAsync()
+        let! managementToken = Authentication.getManagementAccessToken log
+        let! existingSubscriptions = Authentication.getUserPushNotificationSubscriptions log managementToken user.Id
+
+        do! filterSubscriptionsAndPersist managementToken user.Id existingSubscriptions origin endpoint
+
+        return sendText "Subscription removed"
+    }
+"""   { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+let private removeSubscription (log : ILogger) (req : HttpRequest) =
+    log.LogInformation("Start remove-subscription")
+    task {
+        let origin = req.Headers.["Origin"].ToString()
+        let user = Authentication.getUser log req
+        let! endpoint = req.ReadAsStringAsync()
+        let! managementToken = Authentication.getManagementAccessToken log
+        let! existingSubscriptions = Authentication.getUserPushNotificationSubscriptions log managementToken user.Id
+
+        do! filterSubscriptionsAndPersist managementToken user.Id existingSubscriptions origin endpoint
+
+        return sendText "Subscription removed"
+    }
 """

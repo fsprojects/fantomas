@@ -1289,6 +1289,7 @@ and genExpr astContext synExpr =
                 | SynExpr.YieldOrReturn _ -> SynExpr_YieldOrReturn
                 | SynExpr.YieldOrReturnFrom _ -> SynExpr_YieldOrReturnFrom
                 | SynExpr.Do _ -> SynExpr_Do
+                | SynExpr.DoBang _ -> SynExpr_DoBang
                 | _ -> SynExpr_Const
                 |> Choice1Of2
 
@@ -2062,6 +2063,7 @@ and genExpr astContext synExpr =
         | SynExpr.Paren _ -> genTriviaFor SynExpr_Paren synExpr.Range
         | SynExpr.InterpolatedString _ -> genTriviaFor SynExpr_InterpolatedString synExpr.Range
         | SynExpr.Tuple _ -> genTriviaFor SynExpr_Tuple synExpr.Range
+        | SynExpr.DoBang _ -> genTriviaFor SynExpr_DoBang synExpr.Range
         | _ -> id)
 
 and genMultilineRecordInstance
