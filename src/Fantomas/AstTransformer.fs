@@ -638,6 +638,28 @@ module private Ast =
              Properties = p []
              FsAstNode = synExpr
              Childs = [yield visitSynExpr expr]}
+        | SynExpr.InterpolatedString (parts, range) ->
+            { Type = "SynExpr.InterpolatedString"
+              Range = r range
+              Properties = p []
+              FsAstNode = synExpr
+              Childs = List.map visitSynInterpolatedStringPart parts }
+
+    and visitSynInterpolatedStringPart (synInterpolatedStringPart: SynInterpolatedStringPart) =
+        match synInterpolatedStringPart with
+        | SynInterpolatedStringPart.String(value, range) ->
+            { Type = "SynInterpolatedStringPart.String"
+              Range = r range
+              Properties = p [ "value", box value ]
+              FsAstNode = synInterpolatedStringPart
+              Childs = [] }
+        | SynInterpolatedStringPart.FillExpr (expr, ident) ->
+            { Type = "SynInterpolatedStringPart.FillExpr"
+              Range = None
+              Properties = p []
+              FsAstNode = synInterpolatedStringPart
+              Childs = [ visitSynExpr expr
+                         yield! (Option.toList ident |> List.map visitIdent) ] }
 
     and visitRecordField((longId,_) as rfn: RecordFieldName,expr: SynExpr option, _: BlockSeparator option) =
         {Type = "RecordField"
@@ -1442,9 +1464,9 @@ module private Ast =
         | SynType.LongIdent(li) ->
             {Type = "SynType.LongIdent"
              Range = noRange
-             Properties = p ["ident" ==> lid li]
+             Properties = p []
              FsAstNode = st
-             Childs = []}
+             Childs = visitLongIdentWithDots li }
         | SynType.App(typeName,lESSrange,typeArgs,commaRanges,gREATERrange,isPostfix,range) ->
             {Type = "SynType.App"
              Range = r range

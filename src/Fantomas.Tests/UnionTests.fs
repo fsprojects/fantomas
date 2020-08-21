@@ -381,3 +381,17 @@ type MyEnum =
     | ``test-one`` of int
     | ``test-two`` of string
 """
+
+[<Test>]
+let ``hexadecimal numbers in enums, 1006`` () =
+    formatSourceString false """
+type Foo =
+    | One =  0x00000001
+    | Two = 0x00000002
+"""  config
+    |> prepend newline
+    |> should equal """
+type Foo =
+    | One = 0x00000001
+    | Two = 0x00000002
+"""
