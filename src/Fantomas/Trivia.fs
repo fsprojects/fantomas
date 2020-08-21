@@ -393,10 +393,10 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
     let node =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hds, mns, _)) ->            
-            Fantomas.AstTransformer.astToNode hds mns
+            astToNode hds mns
 
         | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput(_, _, _ , _, mns)) ->
-            Fantomas.AstTransformer.sigAstToNode mns
+            sigAstToNode mns
 
     let startOfSourceCode =
         match node.Range with

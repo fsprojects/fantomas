@@ -9,9 +9,9 @@ open System.IO
 open Fantomas.Tests.TestHelper
 
 let private defaultConfig = FormatConfig.Default
-let private tempName () = System.Guid.NewGuid().ToString("N")
+let private tempName () = Guid.NewGuid().ToString("N")
 
-type ConfigurationFile internal (config: Fantomas.FormatConfig.FormatConfig,
+type ConfigurationFile internal (config: FormatConfig.FormatConfig,
                                  ?editorConfigHeader: string,
                                  ?subFolder: string,
                                  ?isRoot: bool,

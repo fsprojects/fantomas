@@ -24,7 +24,7 @@ type Node =
       FsAstNode: FsAstNode }
 
 module Helpers =
-    let r(r: FSharp.Compiler.Range.range): range option =
+    let r(r: range): range option =
         Some r
 
     let p = Map.ofList

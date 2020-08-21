@@ -4,7 +4,7 @@ open System.Reflection
 
 let fantomasVersion =
     lazy
-        (let assembly = typeof<Fantomas.SourceOrigin.SourceOrigin>.Assembly
+        (let assembly = typeof<SourceOrigin.SourceOrigin>.Assembly
          assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
          |> Option.ofObj
          |> Option.map (fun a -> a.InformationalVersion)

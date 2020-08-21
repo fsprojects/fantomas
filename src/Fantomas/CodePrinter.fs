@@ -402,7 +402,7 @@ and genAttribute astContext (Attribute(s, e, target)) =
         !- "[<" +> opt sepColonFixed target (!-) -- s -- ">]"
     | e ->
         let argSpacing =
-            if SourceTransformer.hasParenthesis e then id else sepSpace
+            if hasParenthesis e then id else sepSpace
         !- "[<"  +> opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e -- ">]"
     |> genTrivia e.Range
 
@@ -413,7 +413,7 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
             opt sepColonFixed target (!-) -- s
         | e ->
             let argSpacing =
-                if SourceTransformer.hasParenthesis e then id else sepSpace
+                if hasParenthesis e then id else sepSpace
             opt sepColonFixed target (!-) -- s +> argSpacing +> genExpr astContext e
         |> genTrivia attr.Range
 
@@ -454,7 +454,7 @@ and genPreXmlDoc (PreXmlDoc lines) ctx =
 
 and addSpaceAfterGenericConstructBeforeColon ctx =
     if not ctx.Config.SpaceBeforeColon then
-        match Context.lastWriteEventOnLastLine ctx |> Option.bind Seq.tryLast with
+        match lastWriteEventOnLastLine ctx |> Option.bind Seq.tryLast with
         | Some('>') -> sepSpace
         | _ -> sepNone
     else
@@ -466,7 +466,7 @@ and genExprSepEqPrependType astContext (pat:SynPat) (e: SynExpr) (valInfo:SynVal
         ctx.Trivia
         |> List.exists (fun tn ->
             match tn.Type with
-            | TriviaTypes.Token(tok) ->
+            | Token(tok) ->
                 tok.TokenInfo.TokenName = "EQUALS" && tn.Range.StartLine = pat.Range.StartLine
             | _ -> false
         )
@@ -1947,7 +1947,7 @@ and genExpr astContext synExpr =
                 if List.length stringRanges = List.length stringsFromTrivia then
                     colEx (fun _ -> sepNone) parts (fun part ->
                         match part with
-                        | SynInterpolatedStringPart.String (s,range) ->
+                        | SynInterpolatedStringPart.String (_,range) ->
                             let stringFromTrivia =
                                 List.find (fun (r,_) -> RangeHelpers.rangeEq range r) stringsFromTrivia
                                 |> snd
@@ -2795,7 +2795,7 @@ and genPrefixTypes astContext node ctx =
         // for example: FSharpx.Regex< @"(?<value>\d+)" >
         let firstItemHasAtSignBeforeString =
             match t with
-            | SourceParser.TStaticConstant(_,r) ->
+            | TStaticConstant(_,r) ->
                 TriviaHelpers.``has content itself that matches``
                     (function | StringContent sc -> sc.StartsWith("@") | _ -> false)
                     r
