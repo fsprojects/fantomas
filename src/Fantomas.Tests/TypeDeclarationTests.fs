@@ -1678,3 +1678,41 @@ type Box() =
     // If there's no get/set, the comment is preserved
     member x.hello = "world"
 """
+
+[<Test>]
+let ``don't add additional newline before record instance return value`` () =
+    formatSourceString false """
+type Auth0User =
+    { UserId : string
+      AppMetaData : AppMetaData }
+
+    static member Decoder : Decoder<Auth0User> =
+        Decode.object (fun get ->
+            let userId =
+                get.Required.Field "user_id" Decode.string
+
+            let metaData =
+                get.Optional.Field "app_metadata" AppMetaData.Decoder
+                |> Option.defaultValue ({ PushNotificationSubscriptions = [] })
+
+            { UserId = userId
+              AppMetaData = metaData })
+"""   { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+type Auth0User =
+    { UserId : string
+      AppMetaData : AppMetaData }
+
+    static member Decoder : Decoder<Auth0User> =
+        Decode.object (fun get ->
+            let userId =
+                get.Required.Field "user_id" Decode.string
+
+            let metaData =
+                get.Optional.Field "app_metadata" AppMetaData.Decoder
+                |> Option.defaultValue ({ PushNotificationSubscriptions = [] })
+
+            { UserId = userId
+              AppMetaData = metaData })
+"""

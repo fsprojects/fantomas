@@ -1622,6 +1622,7 @@ and genExpr astContext synExpr =
             | SynExpr.Ident _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_Ident e.Range
             | SynExpr.App _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_App e.Range
             | SynExpr.Match _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_Match e.Range
+            | SynExpr.Record _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_Record e.Range
             | _ -> sepNln
 
         atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") sepNlnBeforeExpr  +> genExpr astContext e)
