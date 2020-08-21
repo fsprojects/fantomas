@@ -94,15 +94,9 @@ let ``should break on . operator``() =
     """ { config with MaxLineLength = 80 }
     |> prepend newline
     |> should equal """
-pattern
-    .Replace(".", @"\.")
-    .Replace("$", @"\$")
-    .Replace("^", @"\^")
-    .Replace("{", @"\{")
-    .Replace("[", @"\[")
-    .Replace("(", @"\(")
-    .Replace(")", @"\)")
-    .Replace("+", @"\+")
+pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^")
+       .Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(")
+       .Replace(")", @"\)").Replace("+", @"\+")
 """
 
 // the current behavior results in a compile error since line break is before the parens and not before the .

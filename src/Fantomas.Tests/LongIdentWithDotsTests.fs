@@ -239,8 +239,7 @@ let ``don't repeat parenthesis for DotGet Paren, 989`` () =
     |> prepend newline
     |> should equal """
 (something_really_long
- + another_thing_thats_really_long)
-    .A
+ + another_thing_thats_really_long).A
 """
 
 [<Test>]
@@ -254,6 +253,5 @@ let ``infix expression inside DotGet, 921`` () =
     |> should equal """
 let variable =
     (DataAccess.getById moduleName.readData { Id = createObject.Id }
-     |> Result.okValue)
-        .Value
+     |> Result.okValue).Value
 """

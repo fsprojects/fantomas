@@ -370,18 +370,12 @@ let start (args: IArgs) =
     try
         try
             let giraffeApp = configureGiraffeApp args
-            WebHost
-                .CreateDefaultBuilder()
-                .UseWebRoot(args.ClientPath)
+            WebHost.CreateDefaultBuilder().UseWebRoot(args.ClientPath)
 #if DEBUG
-                .UseContentRoot(args.ContentRoot)
-                .UseUrls(args.Host + ":" + string args.Port)
+                   .UseContentRoot(args.ContentRoot).UseUrls(args.Host + ":" + string args.Port)
 #endif
-                .UseSerilog()
-                .Configure(Action<IApplicationBuilder>(configureApp giraffeApp))
-                .ConfigureServices(configureServices args)
-                .Build()
-                .Run()
+                   .UseSerilog().Configure(Action<IApplicationBuilder>(configureApp giraffeApp))
+                   .ConfigureServices(configureServices args).Build().Run()
             0
         with ex ->
             Log.Fatal(ex, "Host terminated unexpectedly")
