@@ -1627,6 +1627,7 @@ and genExpr astContext synExpr =
             | SynExpr.Tuple _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_Tuple e.Range
             | SynExpr.DoBang _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_DoBang e.Range
             | SynExpr.Paren _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_Paren e.Range
+            | SynExpr.AnonRecd _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_AnonRecd e.Range
             | _ -> sepNln
 
         atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") sepNlnBeforeExpr  +> genExpr astContext e)
