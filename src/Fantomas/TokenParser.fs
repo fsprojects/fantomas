@@ -550,6 +550,7 @@ let internal getFsToken tokenName =
     | "BAR_BAR" -> BAR_BAR
     | "INFIX_STAR_STAR_OP" -> INFIX_STAR_STAR_OP
     | "FUNCTION" -> FUNCTION
+    | "LPAREN_STAR_RPAREN" -> LPAREN_STAR_RPAREN
     | _ -> failwithf "was not expecting token %s" tokenName
 
 

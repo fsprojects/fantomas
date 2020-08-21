@@ -49,6 +49,7 @@ type FsTokenType =
     | BAR_BAR
     | INFIX_STAR_STAR_OP
     | FUNCTION
+    | LPAREN_STAR_RPAREN
 
 type Token =
     { TokenInfo:FSharpTokenInfo
