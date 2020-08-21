@@ -33,7 +33,6 @@ type FormatConfig =
       MaxArrayOrListWidth: Num
       MaxValueBindingWidth: Num
       MaxFunctionBindingWidth: Num
-      MaxChainedExpressionWidth: Num
       MultilineBlockBracketsOnSameColumn : bool
       NewlineBetweenTypeDefinitionAndMembers: bool
       KeepIfThenInSameLine : bool
@@ -65,7 +64,6 @@ type FormatConfig =
           MaxArrayOrListWidth = 40
           MaxValueBindingWidth = 40
           MaxFunctionBindingWidth = 40
-          MaxChainedExpressionWidth = 50
           MultilineBlockBracketsOnSameColumn = false
           NewlineBetweenTypeDefinitionAndMembers = false
           KeepIfThenInSameLine = false

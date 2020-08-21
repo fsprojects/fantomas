@@ -84,9 +84,7 @@ let tomorrow =
 """  ({ config with MaxValueBindingWidth = 70 })
     |> prepend newline
     |> should equal """
-let tomorrow =
-    DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
-        .AddDays(1.)
+let tomorrow = DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset).AddDays(1.)
 """
 
 [<Test>]

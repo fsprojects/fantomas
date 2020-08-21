@@ -66,8 +66,7 @@ let ``should handle lines with more than 512 characters``() =
                                          "",
                                          '"',
                                          true,
-                                         false))
-    .Cache()
+                                         false)).Cache()
 """
 
 [<Test>]

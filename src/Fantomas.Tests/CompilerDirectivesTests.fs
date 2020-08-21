@@ -359,12 +359,8 @@ let start (args: IArgs) =
     |> should equal """let start (args: IArgs) =
     // Serilog configuration
     Log.Logger <-
-        LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            .WriteTo.File(Path.Combine(args.ContentRoot, "temp/log.txt"))
+        LoggerConfiguration().MinimumLevel.Debug().MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext().WriteTo.Console().WriteTo.File(Path.Combine(args.ContentRoot, "temp/log.txt"))
             .CreateLogger()
 
     try
@@ -477,8 +473,7 @@ type FunctionComponent =
         let elemType =
             ReactBindings.React.``lazy`` (fun () ->
                 // React.lazy requires a default export
-                (importValueDynamic f)
-                    .``then``(fun x -> createObj [ "default" ==> x ]))
+                (importValueDynamic f).``then``(fun x -> createObj [ "default" ==> x ]))
 
         fun props ->
             ReactElementType.create
@@ -682,8 +677,7 @@ type FunctionComponent =
         let elemType =
             ReactBindings.React.``lazy`` (fun () ->
                 // React.lazy requires a default export
-                (importValueDynamic f)
-                    .``then``(fun x -> createObj [ "default" ==> x ]))
+                (importValueDynamic f).``then``(fun x -> createObj [ "default" ==> x ]))
 
         fun props ->
             ReactElementType.create
