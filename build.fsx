@@ -39,7 +39,7 @@ let projectUrl = sprintf "%s/%s" gitHome gitName
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
 let summary = "Source code formatter for F#"
 
-let copyright = "Copyright \169 2019"
+let copyright = sprintf "Copyright \169 %d" (DateTime.UtcNow.Year)
 let iconUrl = "https://raw.githubusercontent.com/fsprojects/fantomas/master/fantomas_logo.png"
 let licenceUrl = "https://github.com/fsprojects/fantomas/blob/master/LICENSE.md"
 let configuration = DotNet.BuildConfiguration.Release
