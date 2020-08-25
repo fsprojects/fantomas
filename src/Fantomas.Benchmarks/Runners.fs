@@ -7,7 +7,7 @@ open Fantomas
 open Fantomas.Extras
 
 let sharedChecker = lazy FSharpChecker.Create()
-let config = Fantomas.FormatConfig.FormatConfig.Default
+let config = FormatConfig.FormatConfig.Default
 
 [<MemoryDiagnoser>]
 [<RankColumn>]

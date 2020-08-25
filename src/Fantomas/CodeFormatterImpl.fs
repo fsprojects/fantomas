@@ -392,7 +392,7 @@ let formatWith ast defines formatContext config =
     let sourceCode = defaultArg input String.Empty
     let normalizedSourceCode = String.normalizeNewLine sourceCode
     let formattedSourceCode =
-        let context = Fantomas.Context.Context.Create config defines normalizedSourceCode (Some ast)
+        let context = Context.Context.Create config defines normalizedSourceCode (Some ast)
         context |> genParsedInput { ASTContext.Default with TopLevelModuleName = moduleName } ast
         |> Dbg.tee (fun ctx -> printfn "%A" ctx.WriterEvents)
         |> Context.dump
