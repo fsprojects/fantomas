@@ -1940,7 +1940,10 @@ and genExpr astContext synExpr =
                     +> ifElse hasCommentAfterIfKeyword (indent +> sepNln) sepNone
                     +> genExpr astContext e1
                     +> ifElse hasCommentAfterBoolExpr sepNln sepSpace
-                    +> genThen synExpr.Range
+                    +> (match e1 with
+                        | SynExpr.TryWith _
+                        | SynExpr.TryFinally _ -> atCurrentColumn (sepNln +> genThen synExpr.Range)
+                        | _ -> genThen synExpr.Range)
                     // f.ex if x then // meh
                     //          0
                     // 0 should be indented
