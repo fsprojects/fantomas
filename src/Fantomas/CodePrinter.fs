@@ -122,6 +122,7 @@ and genParsedHashDirective (ParsedHashDirective(h, s, r)) =
         <| ctx
 
     !- "#" -- h +> sepSpace +> printIdent
+    |> genTriviaFor SynModuleDecl_HashDirective r
 
 and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind) as node) =
     let sepModuleAndFirstDecl =
