@@ -831,3 +831,31 @@ let notFound () =
     new HttpResponseMessage(HttpStatusCode.NotFound,
                             Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json"))
 """
+
+[<Test>]
+let ``don't add additional newline before SynExpr.New, 1049`` () =
+    formatSourceString false """
+    let getVersion () =
+        let version =
+            let assembly =
+                typeof<FSharp.Compiler.SourceCodeServices.FSharpChecker>.Assembly
+
+            let version = assembly.GetName().Version
+            sprintf "%i.%i.%i" version.Major version.Minor version.Revision
+
+        new HttpResponseMessage(HttpStatusCode.OK,
+                                Content = new StringContent(version, System.Text.Encoding.UTF8, "application/text"))
+"""  config
+    |> prepend newline
+    |> should equal """
+let getVersion () =
+    let version =
+        let assembly =
+            typeof<FSharp.Compiler.SourceCodeServices.FSharpChecker>.Assembly
+
+        let version = assembly.GetName().Version
+        sprintf "%i.%i.%i" version.Major version.Minor version.Revision
+
+    new HttpResponseMessage(HttpStatusCode.OK,
+                            Content = new StringContent(version, System.Text.Encoding.UTF8, "application/text"))
+"""
