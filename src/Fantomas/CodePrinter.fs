@@ -384,7 +384,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
     | Types(t::ts) ->
         let sepTs =
             match List.tryHead ts with
-            | Some _ -> sepNone
+            | Some t -> sepNln +> sepNlnConsideringTriviaContentBeforeFor TypeDefn_ t.Range
             | None -> rep 2 sepNln
 
         genTypeDefn { astContext with IsFirstChild = true } t
