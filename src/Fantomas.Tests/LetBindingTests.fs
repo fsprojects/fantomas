@@ -813,3 +813,21 @@ let private additionalRefs =
        "--noframework"
        yield! refs |]
 """
+
+[<Test>]
+let ``preserve new line new instance of class, 1034`` () =
+    formatSourceString false """
+    let notFound () =
+        let json = Encode.string "Not found" |> Encode.toString 4
+
+        new HttpResponseMessage(HttpStatusCode.NotFound,
+                                Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json"))
+"""   { config with MaxValueBindingWidth = 50; MaxFunctionBindingWidth = 50 }
+    |> prepend newline
+    |> should equal """
+let notFound () =
+    let json = Encode.string "Not found" |> Encode.toString 4
+
+    new HttpResponseMessage(HttpStatusCode.NotFound,
+                            Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json"))
+"""
