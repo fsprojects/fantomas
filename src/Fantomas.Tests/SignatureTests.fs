@@ -702,3 +702,21 @@ type Foo =
     /// Another
     Foo of int
 """
+
+[<Test>]
+let ``don't add additional newline before subsequent val, 1029`` () =
+    formatSourceString true """
+module Some_module
+
+type foo = bool
+
+val bar : bool
+"""  config
+    |> prepend newline
+    |> should equal """
+module Some_module
+
+type foo = bool
+
+val bar: bool
+"""

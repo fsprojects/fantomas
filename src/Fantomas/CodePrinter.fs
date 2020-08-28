@@ -306,7 +306,27 @@ and genSigModuleDeclList astContext node =
         | [] ->
             col sepNln xs (genSigModuleDecl astContext)
 
-        | _ -> col (rep 2 sepNln) xs (genSigModuleDecl astContext) +> rep 2 sepNln +> genSigModuleDeclList astContext ys
+        | _ ->
+            let sepXsYs =
+                match List.tryHead ys with
+                | Some y ->
+                    let mainNode =
+                        match y with
+                        | SynModuleSigDecl.Val _ -> ValSpfn_
+                        | SynModuleSigDecl.Exception _ -> SynModuleSigDecl_Exception
+                        | SynModuleSigDecl.NestedModule _ -> SynModuleSigDecl_NestedModule
+                        | SynModuleSigDecl.Types _ -> SynModuleSigDecl_Types
+                        | SynModuleSigDecl.Open _ -> SynModuleSigDecl_Open
+                        | SynModuleSigDecl.HashDirective _ -> SynModuleSigDecl_HashDirective
+                        | SynModuleSigDecl.NamespaceFragment _ -> SynModuleSigDecl_NamespaceFragment
+                        | SynModuleSigDecl.ModuleAbbrev _ -> SynModuleSigDecl_ModuleAbbrev
+
+                    sepNln +> sepNlnConsideringTriviaContentBeforeFor mainNode y.Range
+                | None -> rep 2 sepNln
+
+            col (rep 2 sepNln) xs (genSigModuleDecl astContext)
+            +> sepXsYs
+            +> genSigModuleDeclList astContext ys
 
     | _ -> sepNone
 
