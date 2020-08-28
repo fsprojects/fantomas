@@ -122,7 +122,6 @@ and genParsedHashDirective (ParsedHashDirective(h, s, r)) =
         <| ctx
 
     !- "#" -- h +> sepSpace +> printIdent
-    |> genTriviaFor SynModuleDecl_HashDirective r
 
 and genModuleOrNamespace astContext (ModuleOrNamespace(ats, px, ao, s, mds, isRecursive, moduleKind) as node) =
     let sepModuleAndFirstDecl =
@@ -252,6 +251,7 @@ and genModuleDeclList astContext e =
             | SynModuleDecl.DoExpr _ -> Some SynModuleDecl_DoExpr
             | SynModuleDecl.Open _ -> Some SynModuleDecl_Open
             | SynModuleDecl.Attributes _ -> Some SynModuleDecl_Attributes
+            | SynModuleDecl.HashDirective _ -> Some SynModuleDecl_HashDirective
             | _ -> None
 
         (match mainNodeName with
@@ -2796,6 +2796,7 @@ and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs) as node)
     +> ifElse astContext.HasVerticalBar sepBar sepNone
     +> genOnelinerAttributes astContext ats -- s
     +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
+    |> genTriviaFor UnionCase_ node.Range
 
 and genEnumCase astContext (EnumCase(ats, px, _, (_,_)) as node) =
     let genCase (ctx: Context) =
