@@ -1642,6 +1642,7 @@ and genExpr astContext synExpr =
         let sepNlnBeforeExpr =
             match e with
             | SynExpr.Sequential(_,_, (SynExpr.App _ as app),_,_) -> sepNlnConsideringTriviaContentBeforeFor SynExpr_App app.Range
+            | SynExpr.Sequential(_,_, (SynExpr.IfThenElse _ as ite),_,_) -> sepNlnConsideringTriviaContentBeforeFor SynExpr_IfThenElse ite.Range
             | SynExpr.YieldOrReturn _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_YieldOrReturn e.Range
             | SynExpr.IfThenElse _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_IfThenElse e.Range
             | SynExpr.LetOrUseBang _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_LetOrUseBang e.Range
