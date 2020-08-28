@@ -11,6 +11,12 @@ let inline private isMainNodeButNotAnonModule (node: TriviaNodeAssigner) =
     match node.Type with
     | MainNode(t) when (t <> SynModuleOrNamespace_AnonModule) -> true
     | _ -> false
+
+let inline private isSynAnonModule (node: TriviaNodeAssigner) =
+    match node.Type with
+    | MainNode(SynModuleOrNamespace_AnonModule)
+    | MainNode(SynModuleOrNamespaceSig_AnonModule) -> true
+    | _ -> false
     
 let isMainNode (node: TriviaNode) =
     match node.Type with
@@ -255,6 +261,14 @@ let private findASTNodeOfTypeThatContains (nodes: TriviaNodeAssigner list) typeN
         | _ -> false)
     |> List.tryHead
 
+let private addAllTriviaToEmptySynModuleOrNamespace (trivias: Trivia list) (singleNode: TriviaNodeAssigner) =
+    { Type = singleNode.Type
+      Range = singleNode.Range
+      ContentBefore = []
+      ContentItself = None
+      ContentAfter = List.map (fun t -> t.Item) trivias }
+    |> List.singleton
+
 let private addTriviaToTriviaNode
     triviaBetweenAttributeAndParentBinding
     hasAnonModulesAndOpenStatements
@@ -446,14 +460,18 @@ let collectTrivia tokens (ast: ParsedInput) =
     match trivias with
     | [] -> []
     | _ ->
-        List.fold (addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding hasAnonModulesAndOpenStatements startOfSourceCode) triviaNodes trivias
-        |> List.choose (fun tn ->
-            if triviaNodeIsNotEmpty tn then
-                { Type = tn.Type
-                  Range = tn.Range
-                  ContentBefore = Seq.toList tn.ContentBefore
-                  ContentItself = tn.ContentItself
-                  ContentAfter = Seq.toList tn.ContentAfter }
-                |> Some
-            else
-                None)
+        match triviaNodes with
+        | [singleNode] when (isSynAnonModule singleNode) ->
+            addAllTriviaToEmptySynModuleOrNamespace trivias singleNode
+        | _ ->
+            List.fold (addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding hasAnonModulesAndOpenStatements startOfSourceCode) triviaNodes trivias
+            |> List.choose (fun tn ->
+                if triviaNodeIsNotEmpty tn then
+                    { Type = tn.Type
+                      Range = tn.Range
+                      ContentBefore = Seq.toList tn.ContentBefore
+                      ContentItself = tn.ContentItself
+                      ContentAfter = Seq.toList tn.ContentAfter }
+                    |> Some
+                else
+                    None)
