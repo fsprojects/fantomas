@@ -789,6 +789,32 @@ let useOverviewPerMonth () =
 """
 
 [<Test>]
+let ``don't add newline before array, 1033`` () =
+    formatSourceString false """
+    let private additionalRefs =
+        let refs =
+            Directory.EnumerateFiles(Path.GetDirectoryName(typeof<System.Object>.Assembly.Location))
+            |> Seq.filter (fun path -> Array.contains (Path.GetFileName(path)) assemblies)
+            |> Seq.map (sprintf "-r:%s")
+
+        [| "--simpleresolution"
+           "--noframework"
+           yield! refs |]
+"""  config
+    |> prepend newline
+    |> should equal """
+let private additionalRefs =
+    let refs =
+        Directory.EnumerateFiles(Path.GetDirectoryName(typeof<System.Object>.Assembly.Location))
+        |> Seq.filter (fun path -> Array.contains (Path.GetFileName(path)) assemblies)
+        |> Seq.map (sprintf "-r:%s")
+
+    [| "--simpleresolution"
+       "--noframework"
+       yield! refs |]
+"""
+
+[<Test>]
 let ``preserve new line new instance of class, 1034`` () =
     formatSourceString false """
     let notFound () =
