@@ -1658,6 +1658,7 @@ and genExpr astContext synExpr =
             | SynExpr.AnonRecd _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_AnonRecd e.Range
             | SynExpr.ArrayOrListOfSeqExpr _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_ArrayOrListOfSeqExpr e.Range
             | SynExpr.LongIdentSet _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_LongIdentSet e.Range
+            | SynExpr.New _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_New e.Range
             | _ -> sepNln
 
         atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") sepNlnBeforeExpr  +> genExpr astContext e)
@@ -1949,8 +1950,12 @@ and genExpr astContext synExpr =
                     // f.ex
                     // if x then 0 // meh
                     // else 1
-                    genIf synExpr.Range +> genExpr astContext e1 +> sepSpace
-                    +> genThen synExpr.Range +> genExpr astContext e2 +> sepNln
+                    genIf synExpr.Range
+                    +> genExpr astContext e1
+                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                    +> genThen synExpr.Range
+                    +> genExpr astContext e2
+                    +> sepNln
                     +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
 
                 else
@@ -2792,6 +2797,7 @@ and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs) as node)
     +> ifElse astContext.HasVerticalBar sepBar sepNone
     +> genOnelinerAttributes astContext ats -- s
     +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
+    |> genTriviaFor UnionCase_ node.Range
 
 and genEnumCase astContext (EnumCase(ats, px, _, (_,_)) as node) =
     let genCase (ctx: Context) =
