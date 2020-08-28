@@ -1,6 +1,7 @@
 #r "paket:
-nuget Fantomas 4.0.0-alpha-014
-nuget FSharp.Compiler.Service 36.0.3
+nuget Fantomas 4.0.0
+nuget Fantomas.Extras 4.0.0
+nuget FSharp.Compiler.Service 37.0.0
 nuget Fake.Core.Target //"
 #load "./.fake/script.fsx/intellisense.fsx"
 
@@ -8,6 +9,7 @@ open Fake.Core
 open Fake.IO
 open Fake.IO.Globbing.Operators
 open Fantomas
+open Fantomas.Extras
 open Fantomas.FormatConfig
 
 Target.create "CheckCodeFormat" (fun _ ->
@@ -32,3 +34,4 @@ Target.create "Format" (fun _ ->
     |> printfn "Formatted files: %A")
 
 Target.runOrList()
+
