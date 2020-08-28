@@ -1744,3 +1744,9 @@ and Variable<'model, 'msg> =
     | BindModel of Getter<'model> * ViewBindings<'model, 'msg>
     | BindMap of Getter<'model> * (obj -> obj)
 """
+
+[<Test>]
+let ``union type with constraint`` () =
+    formatSourceString false """type 'a t when 'a :> IDisposable = T  of  'a option"""  config
+    |> should equal """type 'a t when 'a :> IDisposable = T of 'a option
+"""
