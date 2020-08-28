@@ -1656,6 +1656,7 @@ and genExpr astContext synExpr =
             | SynExpr.DoBang _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_DoBang e.Range
             | SynExpr.Paren _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_Paren e.Range
             | SynExpr.AnonRecd _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_AnonRecd e.Range
+            | SynExpr.ArrayOrListOfSeqExpr _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_ArrayOrListOfSeqExpr e.Range
             | _ -> sepNln
 
         atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") sepNlnBeforeExpr  +> genExpr astContext e)
@@ -2097,6 +2098,7 @@ and genExpr astContext synExpr =
         | SynExpr.Tuple _ -> genTriviaFor SynExpr_Tuple synExpr.Range
         | SynExpr.DoBang _ -> genTriviaFor SynExpr_DoBang synExpr.Range
         | SynExpr.TryWith _ -> genTriviaFor SynExpr_TryWith synExpr.Range
+        | SynExpr.New _ -> genTriviaFor SynExpr_New synExpr.Range
         | _ -> id)
 
 and genMultilineRecordInstance

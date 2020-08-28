@@ -787,3 +787,47 @@ let useOverviewPerMonth () =
 
     months
 """
+
+[<Test>]
+let ``don't add newline before array, 1033`` () =
+    formatSourceString false """
+    let private additionalRefs =
+        let refs =
+            Directory.EnumerateFiles(Path.GetDirectoryName(typeof<System.Object>.Assembly.Location))
+            |> Seq.filter (fun path -> Array.contains (Path.GetFileName(path)) assemblies)
+            |> Seq.map (sprintf "-r:%s")
+
+        [| "--simpleresolution"
+           "--noframework"
+           yield! refs |]
+"""  config
+    |> prepend newline
+    |> should equal """
+let private additionalRefs =
+    let refs =
+        Directory.EnumerateFiles(Path.GetDirectoryName(typeof<System.Object>.Assembly.Location))
+        |> Seq.filter (fun path -> Array.contains (Path.GetFileName(path)) assemblies)
+        |> Seq.map (sprintf "-r:%s")
+
+    [| "--simpleresolution"
+       "--noframework"
+       yield! refs |]
+"""
+
+[<Test>]
+let ``preserve new line new instance of class, 1034`` () =
+    formatSourceString false """
+    let notFound () =
+        let json = Encode.string "Not found" |> Encode.toString 4
+
+        new HttpResponseMessage(HttpStatusCode.NotFound,
+                                Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json"))
+"""   { config with MaxValueBindingWidth = 50; MaxFunctionBindingWidth = 50 }
+    |> prepend newline
+    |> should equal """
+let notFound () =
+    let json = Encode.string "Not found" |> Encode.toString 4
+
+    new HttpResponseMessage(HttpStatusCode.NotFound,
+                            Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json"))
+"""
