@@ -1536,7 +1536,10 @@ and genExpr astContext synExpr =
                          sepNone
                     +> indent
                     +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone)
-                    +> appNlnFun e2 (genExpr astContext e2)
+                    +> (fun ctx ->
+                          match e2 with
+                          | Paren (App (_)) when astContext.IsInsideDotGet -> genExpr astContext e2 ctx
+                          | _ -> appNlnFun e2 (genExpr astContext e2) ctx)
                     +> unindent)
             genApp ctx
 
@@ -1583,7 +1586,7 @@ and genExpr astContext synExpr =
                     +> genExpr astContext e
                     +> unindent))))
 
-        let hasThreeOrMoreLamdbas =
+        let hasThreeOrMoreLambdas =
             List.filter (function
                 | Paren (Lambda (_)) -> true
                 | _ -> false) es
@@ -1597,7 +1600,7 @@ and genExpr astContext synExpr =
             | Paren (MatchLambda (_))
             | MultilineString _
             | CompExpr _ -> true
-            | _ -> false) es && not hasThreeOrMoreLamdbas then
+            | _ -> false) es && not hasThreeOrMoreLambdas then
             shortExpression
         else
             expressionFitsOnRestOfLine shortExpression longExpression
