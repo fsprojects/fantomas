@@ -11,7 +11,6 @@ let config = FormatConfig.FormatConfig.Default
 
 [<MemoryDiagnoser>]
 [<RankColumn>]
-[<ShortRunJob>]
 type CodePrinterTest() =
     [<Benchmark>]
     member _.Format() =

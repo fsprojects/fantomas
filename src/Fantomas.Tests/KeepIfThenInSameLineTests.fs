@@ -85,7 +85,7 @@ else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
     b // comment
 elif caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
     c // comment
-else // comment
+else // comment x
     d // comment
 """  config
     |> prepend newline
@@ -97,7 +97,7 @@ else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
     b // comment
 elif caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
     c // comment
-else // comment
+else // comment x
     d // comment
 """
 

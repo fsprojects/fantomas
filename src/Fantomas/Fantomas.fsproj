@@ -2,6 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>4.0.0</Version>
     <Version>4.0.0-beta-003</Version>
     <Description>Source code formatter for F#</Description>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
@@ -10,6 +11,7 @@
     <None Include="paket.references" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="RangeHelpers.fs" />
+    <Compile Include="TriviaTypes.fs" />
     <Compile Include="AstTransformer.fs" />
     <Compile Include="SourceOrigin.fs" />
     <Compile Include="Version.fs" />
@@ -17,7 +19,6 @@
     <Compile Include="Utils.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="FormatConfig.fs" />
-    <Compile Include="TriviaTypes.fs" />
     <Compile Include="TokenParserBoolExpr.fs" />
     <Compile Include="TriviaHelpers.fs" />
     <Compile Include="TokenParser.fs" />

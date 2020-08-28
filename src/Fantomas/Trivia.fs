@@ -1,5 +1,6 @@
 module internal Fantomas.Trivia
 
+open FSharp.Compiler.SourceCodeServices
 open Fantomas
 open Fantomas.AstTransformer
 open Fantomas.TriviaTypes
@@ -8,7 +9,7 @@ open FSharp.Compiler.SyntaxTree
 
 let inline private isMainNodeButNotAnonModule (node: TriviaNodeAssigner) =
     match node.Type with
-    | MainNode(t) when (t <> "SynModuleOrNamespace.AnonModule") -> true
+    | MainNode(t) when (t <> SynModuleOrNamespace_AnonModule) -> true
     | _ -> false
     
 let isMainNode (node: TriviaNode) =
@@ -28,14 +29,17 @@ let rec private flattenNodeToList (node: Node) =
 let filterNodes nodes =
     let filterOutNodeTypes =
         set [
-            "SynExpr.Sequential" // some Sequential nodes are not visited in CodePrinter
-            "SynModuleOrNamespace.DeclaredNamespace" // LongIdent inside Namespace is being processed as children.
-            "SynModuleOrNamespaceSig.DeclaredNamespace"
-            "SynExpr.LetOrUse"
-            "SynTypeDefnRepr.ObjectModel"
-            "TypeDefnSig"
-            "SynTypeDefnSigRepr.ObjectModel"
-            "SynExpr.CompExpr"
+            SynExpr_Sequential // some Sequential nodes are not visited in CodePrinter
+            SynModuleOrNamespace_DeclaredNamespace // LongIdent inside Namespace is being processed as children.
+            SynModuleOrNamespaceSig_DeclaredNamespace
+            SynExpr_LetOrUse
+            SynTypeDefnRepr_ObjectModel
+            SynTypeDefnRepr_Simple
+            TypeDefnSig_
+            SynTypeDefnSigRepr_ObjectModel
+            SynExpr_Typed
+            // SynType_StaticConstant
+            SynExpr_CompExpr
         ]
     nodes |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
 
@@ -50,14 +54,14 @@ let inline private mainNodeIs name (t:TriviaNodeAssigner) =
     | _ -> false
 
 let private nodesContainsBothAnonModuleAndOpen (nodes: TriviaNodeAssigner list) =
-    List.exists (mainNodeIs "SynModuleOrNamespace.AnonModule") nodes &&
-    List.exists (mainNodeIs "SynModuleDecl.Open") nodes
+    List.exists (mainNodeIs SynModuleOrNamespace_AnonModule) nodes &&
+    List.exists (mainNodeIs SynModuleDecl_Open) nodes
 
 // the member keyword is not part of an AST node range
 // so it is not an ideal candidate node to have trivia content
 let inline private isNotMemberKeyword (node: TriviaNodeAssigner) =
     match node.Type with
-    | Token({ TokenInfo = ti }) when (ti.TokenName = "MEMBER") -> false
+    | Token(MEMBER,_) -> false
     | _ -> true
 
 let private findFirstNodeAfterLine
@@ -70,7 +74,7 @@ let private findFirstNodeAfterLine
     |> List.tryFind (fun tn ->
         if tn.Range.StartLine > lineNumber
            && isNotMemberKeyword tn then
-            not (hasAnonModulesAndOpenStatements && mainNodeIs "SynModuleOrNamespace.AnonModule" tn)
+            not (hasAnonModulesAndOpenStatements && mainNodeIs SynModuleOrNamespace_AnonModule tn)
         else
             false)
 
@@ -97,26 +101,37 @@ let private findMemberDefnMemberNodeOnLine (nodes: TriviaNodeAssigner list) line
     nodes
     |> List.tryFind (fun tn ->
         match tn.Type, tn.Range.StartLine = line with
-        | MainNode("SynMemberDefn.Member"), true
-        | MainNode("SynMemberSig.Member"), true
-        | Token { TokenInfo = { TokenName = "MEMBER" } }, true -> true
+        | MainNode(SynMemberDefn_Member), true
+        | MainNode(SynMemberSig_Member), true
+        | Token (MEMBER,_), true -> true
         | _ -> false)
 
 let private findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner list) line column =
-    nodes
-    |> List.tryFindBack (fun tn ->
-        let range = tn.Range
-        range.StartLine <= line && range.StartColumn <= column)
+    let node =
+        nodes
+        |> List.tryFindBack (fun tn ->
+            let range = tn.Range
+            range.StartLine <= line && range.StartColumn <= column)
+
+    match node with
+    | Some tokenNode ->
+        match tokenNode.Type with
+        | Token(_, t) when (t.TokenInfo.CharClass = FSharpTokenCharKind.Operator) ->
+            // pick the matching ident instead of the token
+            nodes
+            |> List.tryFind (fun tn ->
+                match tn.Type with
+                | MainNode(mn) when (mn = SynExpr_Ident) -> tn.Range.StartLine = t.LineNumber && tn.Range.StartColumn = tn.Range.StartColumn
+                | _ -> false)
+        | _ -> node
+    | _ -> node
+
 
 let private findNodeBeforeLineFromStart (nodes: TriviaNodeAssigner list) line =
     nodes
     |> List.filter (fun tn -> tn.Range.EndLine < line)
     |> List.sortByDescending (fun tn -> tn.Range.EndLine, -tn.Range.StartColumn)
     |> List.tryFind (fun tn -> tn.Range.StartLine < line)
-    
-let private findNodeBeforeLineFromEnd (nodes: TriviaNode list) line =
-    nodes
-    |> List.tryFindBack (fun { Range = range } -> range.StartLine < line)
 
 let private findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner list) line column =
     nodes
@@ -129,12 +144,11 @@ let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (const
     nodes
     |> List.tryFind (fun tn ->
         match tn.Type with
-        | MainNode("SynExpr.Const")
-        | MainNode("SynPat.Const")
-        | MainNode("SynInterpolatedStringPart.String") ->
+        | MainNode(SynExpr_Const)
+        | MainNode(SynPat_Const) ->
             constantRange.StartLine = tn.Range.StartLine
             && constantRange.StartColumn = tn.Range.StartColumn
-        | MainNode("EnumCase") ->
+        | MainNode(EnumCase_) ->
             tn.Range.EndLine = constantRange.EndLine
             && tn.Range.EndColumn = constantRange.EndColumn
         | _ -> false
@@ -144,7 +158,7 @@ let private findConstNodeAfter (nodes: TriviaNodeAssigner list) (range: range) =
     nodes
     |> List.tryFind (fun tn ->
         match tn.Type, range.StartLine = tn.Range.StartLine, range.StartColumn + 1 = tn.Range.StartColumn with
-        | MainNode("SynExpr.Const"), true, true -> true
+        | MainNode(SynExpr_Const), true, true -> true
         | _ -> false
     )
 
@@ -163,9 +177,22 @@ let private mapNodeToTriviaNode (node: Node) =
         | None -> TriviaNodeAssigner(MainNode(node.Type), range))
 
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: range) =
-    match List.filter isMainNodeButNotAnonModule triviaNodes with
-    | [tn] when (mainNodeIs "SynModuleOrNamespaceSig.NamedModule" tn) -> true
-    | mainNodes -> mainNodes |> List.forall (fun tn -> tn.Range.EndLine < range.StartLine)
+    let hasNoNodesAfterRange =
+        triviaNodes
+        |> Seq.filter (fun tn -> tn.Range.EndLine > range.StartLine && isMainNodeButNotAnonModule tn)
+        |> Seq.isEmpty
+
+    let hasOnlyOneNamedModule =
+        triviaNodes
+        |> List.tryExactlyOne
+        |> Option.map (fun mn ->
+            match mn.Type with
+            | MainNode(SynModuleOrNamespace_NamedModule)
+            | MainNode(SynModuleOrNamespaceSig_NamedModule) -> true
+            | _ -> false)
+        |> Option.defaultValue false
+
+    hasNoNodesAfterRange || hasOnlyOneNamedModule
 
 let private updateTriviaNode (lens: TriviaNodeAssigner -> unit)  (triviaNodes: TriviaNodeAssigner list) triviaNode =
     match triviaNode with
@@ -187,9 +214,9 @@ let private findBindingThatStartsWith (triviaNodes: TriviaNodeAssigner list) col
     triviaNodes
     |> List.tryFind (fun t ->
         match t.Type with
-        | MainNode("Binding") when (t.Range.StartColumn = column && t.Range.StartLine = line) ->
+        | MainNode(Binding_) when (t.Range.StartColumn = column && t.Range.StartLine = line) ->
             true
-        | MainNode("SynPat.Named") when (t.Range.StartColumn = column && t.Range.StartLine = line) ->
+        | MainNode(SynPat_Named) when (t.Range.StartColumn = column && t.Range.StartLine = line) ->
             true
         | _ -> false
     )
@@ -198,7 +225,7 @@ let private findParsedHashOnLineAndEndswith (triviaNodes: TriviaNodeAssigner lis
     triviaNodes
     |> List.tryFind (fun t ->
         match t.Type with
-        | MainNode("ParsedHashDirective") when (t.Range.StartLine = startLine && t.Range.EndColumn >= endColumn) ->
+        | MainNode(ParsedHashDirective_) when (t.Range.StartLine = startLine && t.Range.EndColumn >= endColumn) ->
             true
         | _ -> false
     )
@@ -292,7 +319,7 @@ let private addTriviaToTriviaNode
         findMemberDefnMemberNodeOnLine triviaNodes range.StartLine
         |> updateTriviaNode (fun tn ->
             match tn.Type, tn.ContentItself with
-            | MainNode ("SynMemberSig.Member"), Some (Keyword ({ Content = existingKeywordContent } as token)) when existingKeywordContent =
+            | MainNode (SynMemberSig_Member), Some (Keyword ({ Content = existingKeywordContent } as token)) when existingKeywordContent =
                                                                                                                         "abstract"
                                                                                                                     && keyword =
                                                                                                                         "member" ->
@@ -316,7 +343,7 @@ let private addTriviaToTriviaNode
 
     | { Item = Keyword({ Content = keyword}); Range = range } when (keyword = "if" || keyword = "then" || keyword = "else" || keyword = "elif") ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
-        |> Option.orElseWith(fun () -> findASTNodeOfTypeThatContains triviaNodes "SynExpr.IfThenElse" range)
+        |> Option.orElseWith(fun () -> findASTNodeOfTypeThatContains triviaNodes SynExpr_IfThenElse range)
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some trivia.Item) triviaNodes
 
     | { Item = Keyword(keyword); Range = range } ->
@@ -367,11 +394,11 @@ let private addTriviaToTriviaNode
         |> List.tryFind (fun t ->
             let isIdent =
                 match t.Type with
-                | MainNode("SynExpr.Ident")
-                | MainNode("SynPat.Named")
-                | MainNode("SynPat.LongIdent")
-                | MainNode("Ident")
-                | MainNode("SynExpr.Const") -> true
+                | MainNode(SynExpr_Ident)
+                | MainNode(SynPat_Named)
+                | MainNode(SynPat_LongIdent)
+                | MainNode(Ident_)
+                | MainNode(SynExpr_Const) -> true
                 | _ -> false
             isIdent && (t.Range.StartColumn = range.StartColumn || t.Range.StartColumn = range.StartColumn + 1) && t.Range.StartLine = range.StartLine
         )
@@ -389,7 +416,7 @@ let private triviaNodeIsNotEmpty (triviaNode:TriviaNodeAssigner) =
     3. Merge trivias with triviaNodes
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
-let collectTrivia tokens lineCount (ast: ParsedInput) =
+let collectTrivia tokens (ast: ParsedInput) =
     let node =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hds, mns, _)) ->            
@@ -414,7 +441,7 @@ let collectTrivia tokens lineCount (ast: ParsedInput) =
     let triviaNodes = triviaNodesFromAST @ triviaNodesFromTokens |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
     let hasAnonModulesAndOpenStatements = nodesContainsBothAnonModuleAndOpen triviaNodes
     
-    let trivias = TokenParser.getTriviaFromTokens tokens lineCount
+    let trivias = TokenParser.getTriviaFromTokens tokens
 
     match trivias with
     | [] -> []

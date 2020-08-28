@@ -565,3 +565,225 @@ let ``multiple empty lines between equals and expression`` () =
 
     ()
 """
+
+[<Test>]
+let ``don't add newline before paren tuple return value`` () =
+    formatSourceString false """
+/// Returns a  list of income and expense of the current month
+let useEntries month year =
+    let { Events = events } = useModel ()
+
+    let isNotCancelled =
+        Projections.isNotCancelledEventChecker events
+
+    let filter = Projections.isInMonth month year
+
+    let sortMapAndToArray (input: Transaction seq) =
+        input
+        |> Seq.sortBy (fun ai -> ai.Created)
+        |> Seq.map (fun ai ->
+            {| id = ai.Id
+               name = ai.Name
+               amount = ai.Amount |})
+        |> Seq.toArray
+
+    let income =
+        events
+        |> Seq.choose (function
+            | Event.AddIncome (ai) when (filter ai.Created && isNotCancelled ai.Id) -> Some ai
+            | _ -> None)
+        |> sortMapAndToArray
+
+    let expenses =
+        events
+        |> Seq.choose (function
+            | Event.AddExpense (ae) when (filter ae.Created && isNotCancelled ae.Id) -> Some ae
+            | _ -> None)
+        |> sortMapAndToArray
+
+    (income, expenses)
+"""  config
+    |> prepend newline
+    |> should equal """
+/// Returns a  list of income and expense of the current month
+let useEntries month year =
+    let { Events = events } = useModel ()
+
+    let isNotCancelled =
+        Projections.isNotCancelledEventChecker events
+
+    let filter = Projections.isInMonth month year
+
+    let sortMapAndToArray (input: Transaction seq) =
+        input
+        |> Seq.sortBy (fun ai -> ai.Created)
+        |> Seq.map (fun ai ->
+            {| id = ai.Id
+               name = ai.Name
+               amount = ai.Amount |})
+        |> Seq.toArray
+
+    let income =
+        events
+        |> Seq.choose (function
+            | Event.AddIncome (ai) when (filter ai.Created && isNotCancelled ai.Id) -> Some ai
+            | _ -> None)
+        |> sortMapAndToArray
+
+    let expenses =
+        events
+        |> Seq.choose (function
+            | Event.AddExpense (ae) when (filter ae.Created && isNotCancelled ae.Id) -> Some ae
+            | _ -> None)
+        |> sortMapAndToArray
+
+    (income, expenses)
+"""
+
+[<Test>]
+let ``keep newline before try with`` () =
+    formatSourceString false """
+let private authenticateRequest (logger: ILogger) header =
+    let token =
+        System.Text.RegularExpressions.Regex.Replace(header, "bearer\s?", System.String.Empty)
+
+    printfn "token: %s" token
+    Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII <- true
+    let parameters = TokenValidationParameters()
+    parameters.ValidIssuer <- (sprintf "https://%s/" Auth0Domain)
+    parameters.ValidAudiences <- Auth0Audiences
+    parameters.ValidateIssuer <- true
+    parameters.NameClaimType <- ClaimTypes.NameIdentifier // Auth0 related, see https://community.auth0.com/t/access-token-doesnt-contain-a-sub-claim/17671/2
+
+    let manager =
+        ConfigurationManager<OpenIdConnectConfiguration>
+            (sprintf "https://%s/.well-known/openid-configuration" Auth0Domain, OpenIdConnectConfigurationRetriever())
+
+    let handler = JwtSecurityTokenHandler()
+
+    try
+        task {
+            let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
+            parameters.IssuerSigningKeys <- config.SigningKeys
+
+            let user, _ =
+                handler.ValidateToken((token: string), parameters)
+
+            if user.HasPermission("use:application") then
+                return Some user.Identity.Name
+            else
+                logger.LogError(sprintf "User has a valid token but lacks the correct permission")
+                return None
+        }
+    with exn ->
+        logger.LogError(sprintf "Could not authenticate token %s\n%A" token exn)
+        task { return None }
+"""  config
+    |> prepend newline
+    |> should equal """
+let private authenticateRequest (logger: ILogger) header =
+    let token =
+        System.Text.RegularExpressions.Regex.Replace(header, "bearer\s?", System.String.Empty)
+
+    printfn "token: %s" token
+    Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII <- true
+    let parameters = TokenValidationParameters()
+    parameters.ValidIssuer <- (sprintf "https://%s/" Auth0Domain)
+    parameters.ValidAudiences <- Auth0Audiences
+    parameters.ValidateIssuer <- true
+    parameters.NameClaimType <- ClaimTypes.NameIdentifier // Auth0 related, see https://community.auth0.com/t/access-token-doesnt-contain-a-sub-claim/17671/2
+
+    let manager =
+        ConfigurationManager<OpenIdConnectConfiguration>
+            (sprintf "https://%s/.well-known/openid-configuration" Auth0Domain, OpenIdConnectConfigurationRetriever())
+
+    let handler = JwtSecurityTokenHandler()
+
+    try
+        task {
+            let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
+            parameters.IssuerSigningKeys <- config.SigningKeys
+
+            let user, _ =
+                handler.ValidateToken((token: string), parameters)
+
+            if user.HasPermission("use:application") then
+                return Some user.Identity.Name
+            else
+                logger.LogError(sprintf "User has a valid token but lacks the correct permission")
+                return None
+        }
+    with exn ->
+        logger.LogError(sprintf "Could not authenticate token %s\n%A" token exn)
+        task { return None }
+"""
+
+[<Test>]
+let ``don't add additional newline before anonymous record`` () =
+    formatSourceString false """
+let useOverviewPerMonth () =
+    let { Events = events } = useModel ()
+
+    let months =
+        events
+        |> List.choose (fun msg ->
+            match msg with
+            | Event.AddIncome ({ Created = created })
+            | Event.AddExpense ({ Created = created }) -> Some(created.Month, created.Year)
+            | _ -> None)
+        |> List.distinct
+        |> List.sort
+        |> List.groupBy snd
+        |> List.map (fun (year, months) ->
+            let rows =
+                months
+                |> List.map (fun (m, y) ->
+                    {| name = getMonthName m
+                       month = m
+                       balance = Projections.calculateBalance m y events |})
+                |> List.toArray
+
+            let balance =
+                rows |> Array.sumBy (fun mth -> mth.balance)
+
+            {| name = year
+               months = rows
+               balance = balance |})
+        |> List.toArray
+
+    months
+"""  config
+    |> prepend newline
+    |> should equal """
+let useOverviewPerMonth () =
+    let { Events = events } = useModel ()
+
+    let months =
+        events
+        |> List.choose (fun msg ->
+            match msg with
+            | Event.AddIncome ({ Created = created })
+            | Event.AddExpense ({ Created = created }) -> Some(created.Month, created.Year)
+            | _ -> None)
+        |> List.distinct
+        |> List.sort
+        |> List.groupBy snd
+        |> List.map (fun (year, months) ->
+            let rows =
+                months
+                |> List.map (fun (m, y) ->
+                    {| name = getMonthName m
+                       month = m
+                       balance = Projections.calculateBalance m y events |})
+                |> List.toArray
+
+            let balance =
+                rows |> Array.sumBy (fun mth -> mth.balance)
+
+            {| name = year
+               months = rows
+               balance = balance |})
+        |> List.toArray
+
+    months
+"""

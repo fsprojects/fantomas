@@ -446,7 +446,7 @@ let x =
     |> prepend newline
     |> should equal """
 let x =
-    ((*comment*))
+    ( (*comment*) )
     printf "a"
     // another comment 1
     printf "b"
@@ -543,7 +543,6 @@ limitations under the License.
 *)
 
 namespace ExtCore
-
 """
 
 [<Test>]
