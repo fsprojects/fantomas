@@ -950,3 +950,19 @@ else
     | Some tree -> return Result.Ok tree
     | _ -> return Error Array.empty // Not sure this branch can be reached.
 """
+
+[<Test>]
+let ``comment after if expression, 1019`` () =
+    formatSourceString false """
+let foo result total =
+    if result = 0 // there's a comment here
+    then total // and another one
+    else result
+"""  config
+    |> prepend newline
+    |> should equal """
+let foo result total =
+    if result = 0 // there's a comment here
+    then total // and another one
+    else result
+"""

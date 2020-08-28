@@ -975,6 +975,12 @@ let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
     | _ ->
         ctx
 
+let internal sepNlnWhenWriteBeforeNewlineNotEmpty fallback (ctx:Context) =
+    if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
+        sepNln ctx
+    else
+        fallback ctx
+
 let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth expr (key: Choice<FsAstType, FsTokenType>) range (ctx: Context) =
     expressionExceedsPageWidth
         sepNone sepNone // before and after for short expressions
