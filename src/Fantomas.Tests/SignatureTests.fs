@@ -686,3 +686,40 @@ type Foo =
     abstract Bar2 : Type
     member Bar3 : Type
 """
+
+[<Test>]
+let ``comment before union case, 965`` () =
+    formatSourceString true """namespace Blah
+
+/// Comment
+type Foo =
+/// Another
+    | Foo of int
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Blah
+
+/// Comment
+type Foo =
+    /// Another
+    Foo of int
+"""
+
+[<Test>]
+let ``don't add additional newline before subsequent val, 1029`` () =
+    formatSourceString true """
+module Some_module
+
+type foo = bool
+
+val bar : bool
+"""  config
+    |> prepend newline
+    |> should equal """
+module Some_module
+
+type foo = bool
+
+val bar: bool
+"""

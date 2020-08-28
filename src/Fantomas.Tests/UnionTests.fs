@@ -395,3 +395,29 @@ type Foo =
     | One = 0x00000001
     | Two = 0x00000002
 """
+
+[<Test>]
+let ``comment after union case, 1043`` () =
+    formatSourceString false """
+module FantomasTools.Client.FantomasOnline.Model
+
+open FantomasOnline.Shared
+
+type FantomasMode =
+    | V2
+    | V3
+    | V4
+    | Preview // master branch
+"""  config
+    |> prepend newline
+    |> should equal """
+module FantomasTools.Client.FantomasOnline.Model
+
+open FantomasOnline.Shared
+
+type FantomasMode =
+    | V2
+    | V3
+    | V4
+    | Preview // master branch
+"""

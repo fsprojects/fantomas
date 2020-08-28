@@ -369,3 +369,29 @@ let projectIntoMap projection =
          state
          |> Map.add eventEnvelope.Metadata.Source newState
 """
+
+[<Test>]
+let ``don't duplicate new line before LongIdentSet`` () =
+    formatSourceString false """
+        let options =
+            jsOptions<Vis.Options> (fun o ->
+                let layout =
+                    match opts.Layout with
+                    | Graph.Free -> createObj []
+                    | Graph.HierarchicalLeftRight -> createObj [ "hierarchical" ==> hierOpts "LR" ]
+                    | Graph.HierarchicalUpDown -> createObj [ "hierarchical" ==> hierOpts "UD" ]
+
+                o.layout <- Some layout)
+"""   { config with MaxValueBindingWidth = 50; MaxFunctionBindingWidth = 50 }
+    |> prepend newline
+    |> should equal """
+let options =
+    jsOptions<Vis.Options> (fun o ->
+        let layout =
+            match opts.Layout with
+            | Graph.Free -> createObj []
+            | Graph.HierarchicalLeftRight -> createObj [ "hierarchical" ==> hierOpts "LR" ]
+            | Graph.HierarchicalUpDown -> createObj [ "hierarchical" ==> hierOpts "UD" ]
+
+        o.layout <- Some layout)
+"""

@@ -1,8 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>4.0.0-beta-002</Version>
+    <Version>4.0.0</Version>
+    <Version>4.0.0-beta-003</Version>
     <NoWarn>FS0988</NoWarn>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <WarningsAsErrors>FS0025</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
@@ -70,6 +72,9 @@
     <Compile Include="KeepIfThenInSameLineTests.fs" />
     <Compile Include="MaxValueBindingWidthTests.fs" />
     <Compile Include="MaxFunctionBindingWidthTests.fs" />
+    <Compile Include="InterpolatedStringTests.fs" />
+    <Compile Include="DotGetTests.fs" />
+    <Compile Include="HashDirectiveTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
