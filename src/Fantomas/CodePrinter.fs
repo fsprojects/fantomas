@@ -2791,6 +2791,7 @@ and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs) as node)
     +> ifElse astContext.HasVerticalBar sepBar sepNone
     +> genOnelinerAttributes astContext ats -- s
     +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
+    |> genTriviaFor UnionCase_ node.Range
 
 and genEnumCase astContext (EnumCase(ats, px, _, (_,_)) as node) =
     let genCase (ctx: Context) =
