@@ -1658,6 +1658,7 @@ and genExpr astContext synExpr =
             | SynExpr.AnonRecd _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_AnonRecd e.Range
             | SynExpr.ArrayOrListOfSeqExpr _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_ArrayOrListOfSeqExpr e.Range
             | SynExpr.LongIdentSet _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_LongIdentSet e.Range
+            | SynExpr.New _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_New e.Range
             | _ -> sepNln
 
         atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") sepNlnBeforeExpr  +> genExpr astContext e)
