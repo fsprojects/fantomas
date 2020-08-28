@@ -1950,8 +1950,12 @@ and genExpr astContext synExpr =
                     // f.ex
                     // if x then 0 // meh
                     // else 1
-                    genIf synExpr.Range +> genExpr astContext e1 +> sepSpace
-                    +> genThen synExpr.Range +> genExpr astContext e2 +> sepNln
+                    genIf synExpr.Range
+                    +> genExpr astContext e1
+                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                    +> genThen synExpr.Range
+                    +> genExpr astContext e2
+                    +> sepNln
                     +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
 
                 else
