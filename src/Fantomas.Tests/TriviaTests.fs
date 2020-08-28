@@ -383,8 +383,8 @@ let x = 1
     
     match withoutDefine with
     | [{ Type = MainNode(SynModuleOrNamespace_AnonModule)
-         ContentBefore = [Directive("#if NOT_DEFINED"); Newline; Directive("#endif")]
-         ContentAfter = [] }] ->
+         ContentAfter = [Directive("#if NOT_DEFINED"); Newline; Directive("#endif")]
+         ContentBefore = [] }] ->
         pass()
     | _ ->
         fail()
@@ -453,7 +453,7 @@ let foo = 42
 
     match trivia with
     | [{ Type = MainNode(SynModuleOrNamespace_AnonModule)
-         ContentBefore = [ Directive("#if SOMETHING"); Newline; Directive("#endif") ] }] -> pass()
+         ContentAfter = [ Directive("#if SOMETHING"); Newline; Directive("#endif") ] }] -> pass()
     | _ -> fail()
 
 
