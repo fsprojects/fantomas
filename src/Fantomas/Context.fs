@@ -483,6 +483,7 @@ let internal sepNlnUnlessLastEventIsNewline (ctx: Context) =
     else sepNln ctx
 
 let internal sepStar = !- " * "
+let internal sepStarFixed = !- "* "
 let internal sepEq = !- " ="
 let internal sepEqFixed = !- "="
 let internal sepArrow = !- " -> "
