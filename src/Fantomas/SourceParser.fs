@@ -798,7 +798,7 @@ let rec (|LetOrUses|_|) = function
 type ComputationExpressionStatement =
     | LetOrUseStatement of recursive:bool * isUse:bool * SynBinding
     | LetOrUseBangStatement of isUse:bool * SynPat * SynExpr * range
-    | AndBangStatement of SynPat * SynExpr
+    | AndBangStatement of SynPat * SynExpr * range
     | OtherStatement of SynExpr
 
 let rec collectComputationExpressionStatements e : ComputationExpressionStatement list =
@@ -811,7 +811,7 @@ let rec collectComputationExpressionStatements e : ComputationExpressionStatemen
         [yield! bindings; yield! returnExpr]
     | SynExpr.LetOrUseBang(_,isUse,_,pat,expr, andBangs, body, r) ->
         let letOrUseBang = LetOrUseBangStatement(isUse, pat, expr, r)
-        let andBangs = andBangs |> List.map (fun (_,_,_, ap,ae,_) -> AndBangStatement(ap,ae))
+        let andBangs = andBangs |> List.map (fun (_,_,_, ap,ae,andRange) -> AndBangStatement(ap,ae,andRange))
         let bodyStatements = collectComputationExpressionStatements body
         [letOrUseBang; yield! andBangs; yield! bodyStatements]
     | SynExpr.Sequential(_,_, e1,  e2, _) ->
@@ -1437,19 +1437,19 @@ let (|ElmishReactWithoutChildren|_|) e =
 
 let (|ElmishReactWithChildren|_|) e =
     match e with
-    | App(OptVar(ident), [ArrayOrList(_) as attributes; ArrayOrList(isArray, children, _)]) ->
-        Some(ident, attributes, (isArray, children))
+    | App(OptVar(ident), [ArrayOrList(_) as attributes; ArrayOrList(isArray, children, _) as childrenNode]) ->
+        Some(ident, attributes, (isArray, children, childrenNode.Range))
     | App(OptVar(ident), [ArrayOrListOfSeqExpr(_) as attributes
-                          ArrayOrListOfSeqExpr(isArray, CompExpr(_, Sequentials children))]) ->
-        Some(ident, attributes, (isArray,children))
+                          ArrayOrListOfSeqExpr(isArray, CompExpr(_, Sequentials children)) as childrenNode]) ->
+        Some(ident, attributes, (isArray,children, childrenNode.Range))
     | App(OptVar(ident), [ArrayOrListOfSeqExpr(_) as attributes
-                          ArrayOrListOfSeqExpr(isArray, CompExpr(_, singleChild))])
+                          ArrayOrListOfSeqExpr(isArray, CompExpr(_, singleChild)) as childrenNode])
     | App(OptVar(ident), [ArrayOrList(_) as attributes
-                          ArrayOrListOfSeqExpr(isArray, CompExpr(_, singleChild))]) ->
-        Some(ident, attributes, (isArray,[singleChild]))
+                          ArrayOrListOfSeqExpr(isArray, CompExpr(_, singleChild)) as childrenNode]) ->
+        Some(ident, attributes, (isArray,[singleChild], childrenNode.Range))
     | App(OptVar(ident), [ArrayOrListOfSeqExpr(_) as attributes
-                          ArrayOrList(isArray, [], _) ]) ->
-        Some(ident, attributes, (isArray, []))
+                          ArrayOrList(isArray, [], _) as childrenNode ]) ->
+        Some(ident, attributes, (isArray, [], childrenNode.Range))
 
     | _ ->
         None

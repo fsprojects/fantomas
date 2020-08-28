@@ -122,3 +122,12 @@ module List =
         l |> List.takeWhile (fun x -> let (s',r) = f s x in s <- s'; r)
 
     let isNotEmpty l = (List.isEmpty >> not) l
+
+module Map =
+    let tryFindOrDefault (defaultValue:'g) (key:'t) (map: Map<'t,'g>) =
+        match Map.tryFind key map with
+        | Some v -> v
+        | None -> defaultValue
+
+    let tryFindOrEmptyList (key:'t) (map: Map<'t, 'g list>) =
+        tryFindOrDefault [] key map

@@ -478,3 +478,45 @@ let ``combining lines breaks function precedence 488`` () =
 fun () -> ()
 |> Some
 """
+
+[<Test>]
+let ``function with LPAREN_STAR_RPAREN`` () =
+    formatSourceString false """
+let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
+    if latA = latB && lngA = lngB then
+        0.
+    else
+        let theta = lngA - lngB
+
+        let dist =
+            Math.Sin(deg2rad (latA))
+            * Math.Sin(deg2rad (latB))
+            + (Math.Cos(deg2rad (latA))
+               * Math.Cos(deg2rad (latB))
+               * Math.Cos(deg2rad (theta)))
+            |> Math.Acos
+            |> rad2deg
+            |> (*) (60. * 1.1515 * 1.609344)
+
+        dist
+"""  config
+    |> prepend newline
+    |> should equal """
+let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
+    if latA = latB && lngA = lngB then
+        0.
+    else
+        let theta = lngA - lngB
+
+        let dist =
+            Math.Sin(deg2rad (latA))
+            * Math.Sin(deg2rad (latB))
+            + (Math.Cos(deg2rad (latA))
+               * Math.Cos(deg2rad (latB))
+               * Math.Cos(deg2rad (theta)))
+            |> Math.Acos
+            |> rad2deg
+            |> (*) (60. * 1.1515 * 1.609344)
+
+        dist
+"""

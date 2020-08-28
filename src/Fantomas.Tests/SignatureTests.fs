@@ -683,3 +683,22 @@ type Foo =
     abstract Bar2 : Type
     member Bar3 : Type
 """
+
+[<Test>]
+let ``comment before union case, 965`` () =
+    formatSourceString true """namespace Blah
+
+/// Comment
+type Foo =
+/// Another
+    | Foo of int
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Blah
+
+/// Comment
+type Foo =
+    /// Another
+    Foo of int
+"""

@@ -7,15 +7,11 @@ open Fantomas.TriviaTypes
 module internal TriviaHelpers =
     let findByRange (trivia: TriviaNode list) (range: range) =
         trivia
-        |> List.tryFind (fun t -> t.Range = range)
+        |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range range)
     
     let findInRange (trivia: TriviaNode list) (range:range) =
         trivia
         |> List.tryFind (fun t -> RangeHelpers.``range contains`` range t.Range)
-
-    let findFirstContentBeforeByRange (trivia: TriviaNode list) (range: range) =
-        findByRange trivia range
-        |> Option.bind (fun t -> t.ContentBefore |> List.tryHead)
 
     let ``has content after after that matches`` (findTrivia: TriviaNode -> bool) (contentAfter: TriviaContent -> bool) (trivia: TriviaNode list) =
         List.tryFind findTrivia trivia
@@ -27,17 +23,11 @@ module internal TriviaHelpers =
         |> Option.bind (fun t -> t.ContentAfter |> List.tryLast |> Option.map contentAfterEnd)
         |> Option.defaultValue false
 
-    let ``is token of type`` tokenName (triviaNode: TriviaNode) =
-        match triviaNode.Type with
-        | Token({ TokenInfo = ti }) -> ti.TokenName = tokenName
-        | _ -> false
-
-    let ``keyword tokens inside range`` keywords range (trivia: TriviaNode list) =
+    let ``keyword token inside range`` range (trivia: TriviaNode list) =
         trivia
         |> List.choose(fun t ->
             match t.Type with
-            | TriviaNodeType.Token({ TokenInfo = { TokenName = tn } as tok })
-                when ( RangeHelpers.``range contains`` range t.Range && List.contains tn keywords) ->
+            | TriviaNodeType.Token(_, tok) when (RangeHelpers.``range contains`` range t.Range) ->
                 Some (tok, t)
             | _ -> None
         )
@@ -51,39 +41,27 @@ module internal TriviaHelpers =
         )
         |> (List.isEmpty >> not)
 
-    let ``has line comment before`` range triviaNodes =
-        triviaNodes
-        |> List.tryFind (fun tv -> tv.Range = range)
-        |> Option.map (fun tv -> tv.ContentBefore |> List.exists (function | Comment(LineCommentOnSingleLine(_)) -> true | _ -> false))
-        |> Option.defaultValue false
-
-    let ``get CharContent`` range triviaNodes =
-        triviaNodes
-        |> List.tryFind (fun tv -> tv.Range = range)
-        |> Option.bind (fun tv ->
-            match tv.ContentItself with
-            | Some(CharContent c) -> Some c
-            | _ -> None)
+    let ``get CharContent`` range (nodes: Map<FsAstType, TriviaNode list>) =
+        Map.tryFind SynExpr_Const nodes
+        |> Option.bind (fun triviaNodes ->
+            triviaNodes
+            |> List.tryFind (fun tv -> RangeHelpers.rangeEq  tv.Range range)
+            |> Option.bind (fun tv ->
+                match tv.ContentItself with
+                | Some(CharContent c) -> Some c
+                | _ -> None))
 
     let ``has content itself that matches`` (predicate: TriviaContent -> bool) range (triviaNodes: TriviaNode list) =
         triviaNodes
         |> List.exists (fun tn ->
-            match tn.Range = range, tn.ContentItself with
+            match RangeHelpers.rangeEq tn.Range range, tn.ContentItself with
             | true, Some(t) -> predicate t
             | _ -> false)
-
-    let ``has content itself is ident between ticks`` range (triviaNodes: TriviaNode list) =
-        triviaNodes
-        |> List.choose (fun tn ->
-            match tn.Range = range, tn.ContentItself with
-            | true, Some(IdentBetweenTicks(ident)) -> Some ident
-            | _ -> None)
-        |> List.tryHead
 
     let ``has content itself that is multiline string`` range (triviaNodes: TriviaNode list) =
         triviaNodes
         |> List.choose (fun tn ->
-            match tn.Range = range, tn.ContentItself with
+            match RangeHelpers.rangeEq tn.Range range, tn.ContentItself with
             | true, Some(StringContent(s)) when (String.isMultiline s) -> Some s
             | _ -> None)
         |> List.isNotEmpty
@@ -99,3 +77,12 @@ module internal TriviaHelpers =
         |> List.exists (fun tn ->
             RangeHelpers.``range contains`` range tn.Range
             && (List.exists isLineComment tn.ContentBefore || List.exists isLineComment tn.ContentAfter))
+
+    let getNodesForTypes types (dict: Map<'t, TriviaNode list>) =
+        types
+        |> List.map (fun t ->
+            if Map.containsKey t dict then
+                Map.find t dict
+            else
+                List.empty)
+        |> List.collect id
