@@ -808,6 +808,13 @@ let internal enterNodeTokenByName (range: range) (tokenName:FsTokenType) (ctx: C
         (printContentBefore triviaNode) ctx
     | None -> ctx
 
+let internal leaveNodeTokenByName (range: range) (tokenName:FsTokenType) (ctx: Context) =
+    match findTriviaTokenFromName tokenName range ctx with
+    | Some triviaNode ->
+        (printContentAfter triviaNode) ctx
+    | None ->
+        ctx
+
 let internal enterNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaMainNodes with
     | Some triviaNodes ->
@@ -819,13 +826,6 @@ let internal enterNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context
         | Some triviaNode -> (printContentBefore triviaNode) ctx
         | None -> ctx
     | None -> ctx
-
-let internal leaveNodeTokenByName (range: range) (tokenName:FsTokenType) (ctx: Context) =
-    match findTriviaTokenFromName tokenName range ctx with
-    | Some triviaNode ->
-        (printContentAfter triviaNode) ctx
-    | None ->
-        ctx
 
 let internal leaveNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaMainNodes with
