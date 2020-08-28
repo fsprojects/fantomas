@@ -1162,10 +1162,9 @@ and genExpr astContext synExpr =
         fun ctx ->
             // If an array or list has any form of line comments inside them, they cannot fit on a single line
             // check for any comments inside the range of the node
-            if (TriviaHelpers.``has line comments inside`` alNode.Range [ yield! Map.tryFindOrEmptyList LBRACK_BAR  ctx.TriviaTokenNodes
-                                                                          yield! Map.tryFindOrEmptyList LBRACK ctx.TriviaTokenNodes
-                                                                          yield! Map.tryFindOrEmptyList BAR_RBRACK ctx.TriviaTokenNodes
-                                                                          yield! Map.tryFindOrEmptyList RBRACK ctx.TriviaTokenNodes ])
+            if TriviaHelpers.``has line comments inside``
+                    alNode.Range
+                    (TriviaHelpers.getNodesForTypes [ LBRACK_BAR; LBRACK; BAR_RBRACK; RBRACK ] ctx.TriviaTokenNodes)
                || List.exists isIfThenElseWithYieldReturn xs then
                 multilineExpression ctx
             else
@@ -1741,8 +1740,7 @@ and genExpr astContext synExpr =
                 TriviaHelpers.``has content after after that matches``
                     (fun tn -> RangeHelpers.rangeEq tn.Range e1.Range)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
-                    [ yield! (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
-                      yield! (Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes) ]
+                    (TriviaHelpers.getNodesForTypes [SynExpr_Ident;SynExpr_Const] ctx.TriviaMainNodes)
 
             let hasCommentAfterIfKeyword =
                 commentAfterKeyword IF (RangeHelpers.``have same range start`` synExpr.Range) ctx
@@ -1751,8 +1749,7 @@ and genExpr astContext synExpr =
                 TriviaHelpers.``has content after after that matches``
                     (fun tn -> RangeHelpers.rangeEq tn.Range range)
                     (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
-                    [ yield! (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
-                      yield! (Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes) ]
+                    (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
 
             let hasCommentAfterIfBranchExpr = ``has line comment after source code for range`` e2.Range
 
@@ -1787,8 +1784,8 @@ and genExpr astContext synExpr =
                     TriviaHelpers.``has content after after that matches``
                         (fun tn -> RangeHelpers.rangeEq tn.Range elf1.Range)
                         (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
-                        [ yield! (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
-                          yield! (Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes) ]
+                        (TriviaHelpers.getNodesForTypes [SynExpr_Ident; SynExpr_Const] ctx.TriviaMainNodes)
+
                 let hasCommentAfterThenKeyword =
                     commentAfterKeyword THEN (RangeHelpers.``range contains`` fullRange) ctx
 
@@ -1833,7 +1830,7 @@ and genExpr astContext synExpr =
 
             let genElifMultiLine ((elf1: SynExpr), elf2, fullRange) (ctx: Context) =
                 let indentAfterThenKeyword =
-                    [ yield! (Map.tryFindOrEmptyList IF ctx.TriviaTokenNodes); yield! (Map.tryFindOrEmptyList ELIF ctx.TriviaTokenNodes) ]
+                    TriviaHelpers.getNodesForTypes [ IF; ELIF ] ctx.TriviaTokenNodes
                     |> TriviaHelpers.``keyword token inside range`` fullRange
                     |> List.tryHead
                     |> Option.map (fun (_, t) ->
@@ -1849,8 +1846,7 @@ and genExpr astContext synExpr =
                     TriviaHelpers.``has content after after that matches``
                         (fun tn -> RangeHelpers.rangeEq tn.Range elf1.Range)
                         (function | Comment(LineCommentAfterSourceCode(_)) -> true | _ -> false)
-                        [ yield! (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
-                          yield! (Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes) ]
+                        (TriviaHelpers.getNodesForTypes [SynExpr_Ident; SynExpr_Const] ctx.TriviaMainNodes)
 
                 let elifExpr =
                     TriviaContext.``else if / elif`` fullRange
@@ -2883,8 +2879,7 @@ and genPrefixTypes astContext node ctx =
                 TriviaHelpers.``has content itself that matches``
                     (function | StringContent sc -> sc.StartsWith("@") | _ -> false)
                     r
-                    [ if Map.containsKey SynExpr_Const ctx.TriviaMainNodes then yield! Map.find SynExpr_Const ctx.TriviaMainNodes
-                      if Map.containsKey SynType_StaticConstant ctx.TriviaMainNodes then yield! Map.find SynType_StaticConstant ctx.TriviaMainNodes ]
+                    (TriviaHelpers.getNodesForTypes [ SynExpr_Const; SynType_StaticConstant ] ctx.TriviaMainNodes)
             | _ -> false
 
         (!- "<"
@@ -3337,8 +3332,7 @@ and genConst (c:SynConst) (r:range) =
     | SynConst.String(s,_) ->
         fun (ctx: Context) ->
             let trivia =
-                [ if Map.containsKey SynExpr_Const ctx.TriviaMainNodes then yield! Map.find SynExpr_Const ctx.TriviaMainNodes
-                  if Map.containsKey SynType_StaticConstant ctx.TriviaMainNodes then yield! Map.find SynType_StaticConstant ctx.TriviaMainNodes ]
+                TriviaHelpers.getNodesForTypes [ SynExpr_Const; SynType_StaticConstant ] ctx.TriviaMainNodes
                 |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range r)
 
             let triviaStringContent =
@@ -3382,9 +3376,7 @@ and genConst (c:SynConst) (r:range) =
 
 and genConstNumber (c:SynConst) (r: range) =
     fun (ctx: Context) ->
-        [ if Map.containsKey SynExpr_Const ctx.TriviaMainNodes then yield! Map.find SynExpr_Const ctx.TriviaMainNodes
-          if Map.containsKey SynPat_Const ctx.TriviaMainNodes then yield! Map.find SynPat_Const ctx.TriviaMainNodes
-          if Map.containsKey EnumCase_ ctx.TriviaMainNodes then yield! Map.find EnumCase_ ctx.TriviaMainNodes ]
+        TriviaHelpers.getNodesForTypes [ SynExpr_Const; SynPat_Const; EnumCase_ ] ctx.TriviaMainNodes
         |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
         |> Option.bind(fun tn ->
             match tn.ContentItself with | Some(Number(n)) -> Some n | _ -> None
@@ -3435,9 +3427,7 @@ and infixOperatorFromTrivia range fallback (ctx: Context) =
     // by specs, section 3.4 https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=24&zoom=auto,-137,312
     let validIdentRegex = """^(_|\p{L}|\p{Nl})([_'0-9]|\p{L}|\p{Nl}\p{Pc}|\p{Mn}|\p{Mc}|\p{Cf})*$"""
     let isValidIdent x = Regex.Match(x, validIdentRegex).Success
-    [ if Map.containsKey SynPat_LongIdent ctx.TriviaMainNodes then yield! Map.find SynPat_LongIdent ctx.TriviaMainNodes
-      if Map.containsKey SynPat_Named ctx.TriviaMainNodes then yield! Map.find SynPat_Named ctx.TriviaMainNodes
-      if Map.containsKey Binding_ ctx.TriviaMainNodes then yield! Map.find Binding_ ctx.TriviaMainNodes ]
+    TriviaHelpers.getNodesForTypes [ SynPat_LongIdent; SynPat_Named; Binding_ ] ctx.TriviaMainNodes
     |> List.choose(fun t ->
         match t.Range = range with
         | true ->
@@ -3449,6 +3439,5 @@ and infixOperatorFromTrivia range fallback (ctx: Context) =
     |> List.tryHead
     |> fun iiw ->
         match iiw with
-        | Some iiw -> !- iiw
-        | None ->  !- fallback
-    <| ctx
+        | Some iiw -> !- iiw ctx
+        | None ->  !- fallback ctx

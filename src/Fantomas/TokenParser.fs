@@ -553,7 +553,6 @@ let internal getFsToken tokenName =
     | "LPAREN_STAR_RPAREN" -> LPAREN_STAR_RPAREN
     | _ -> failwithf "was not expecting token %s" tokenName
 
-
 let getTriviaNodesFromTokens (tokens: Token list) =
     tokens
     |> List.filter (fun t -> List.exists (fun tn -> tn = t.TokenInfo.TokenName) tokenNames || List.exists (fun tk -> tk = t.TokenInfo.CharClass) tokenKinds)

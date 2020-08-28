@@ -77,3 +77,12 @@ module internal TriviaHelpers =
         |> List.exists (fun tn ->
             RangeHelpers.``range contains`` range tn.Range
             && (List.exists isLineComment tn.ContentBefore || List.exists isLineComment tn.ContentAfter))
+
+    let getNodesForTypes types (dict: Map<'t, TriviaNode list>) =
+        types
+        |> List.map (fun t ->
+            if Map.containsKey t dict then
+                Map.find t dict
+            else
+                List.empty)
+        |> List.collect id
