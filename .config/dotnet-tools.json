@@ -15,7 +15,7 @@
       ]
     },
     "dotnet-fsharplint": {
-      "version": "0.14.0",
+      "version": "0.16.5",
       "commands": [
         "dotnet-fsharplint"
       ]

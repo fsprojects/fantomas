@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.CodeFormatterExtTests
+﻿module Fantomas.Tests.ComputationExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -1419,4 +1419,85 @@ let initDb () =
             ()
 #endif
         })
+"""
+
+[<Test>]
+let ``keep newline before do bang`` () =
+    formatSourceString false """
+let private removeSubscription (log : ILogger) (req : HttpRequest) =
+    log.LogInformation("Start remove-subscription")
+    task {
+        let origin = req.Headers.["Origin"].ToString()
+        let user = Authentication.getUser log req
+        let! endpoint = req.ReadAsStringAsync()
+        let! managementToken = Authentication.getManagementAccessToken log
+        let! existingSubscriptions = Authentication.getUserPushNotificationSubscriptions log managementToken user.Id
+
+        do! filterSubscriptionsAndPersist managementToken user.Id existingSubscriptions origin endpoint
+
+        return sendText "Subscription removed"
+    }
+"""   { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should equal """
+let private removeSubscription (log : ILogger) (req : HttpRequest) =
+    log.LogInformation("Start remove-subscription")
+    task {
+        let origin = req.Headers.["Origin"].ToString()
+        let user = Authentication.getUser log req
+        let! endpoint = req.ReadAsStringAsync()
+        let! managementToken = Authentication.getManagementAccessToken log
+        let! existingSubscriptions = Authentication.getUserPushNotificationSubscriptions log managementToken user.Id
+
+        do! filterSubscriptionsAndPersist managementToken user.Id existingSubscriptions origin endpoint
+
+        return sendText "Subscription removed"
+    }
+"""
+
+[<Test>]
+let ``don't add extra newline before do bang`` () =
+    formatSourceString false """
+            let sendPushNotifications =
+                allSubscriptions
+                |> List.map (fun (user, subscriptions) ->
+                    subscriptions
+                    |> List.filter (fun s -> s.Origin = origin)
+                    |> List.map (fun s ->
+                        task {
+                            try
+                                let ps =
+                                    PushSubscription(s.Endpoint, s.P256DH, s.Auth)
+
+                                do! webPushClient.SendNotificationAsync(ps, payload, vapidDetails)
+                            with :? WebPushException as wpex ->
+                                log.LogError(sprintf "Couldn't send notification to %s, %A" user.UserId wpex)
+                                do! filterSubscriptionsAndPersist
+                                        managementToken
+                                        user.UserId
+                                        subscriptions
+                                        s.Origin
+                                        s.Endpoint
+                        } :> Task)
+                    |> Task.WhenAll)
+"""  config
+    |> prepend newline
+    |> should equal """
+let sendPushNotifications =
+    allSubscriptions
+    |> List.map (fun (user, subscriptions) ->
+        subscriptions
+        |> List.filter (fun s -> s.Origin = origin)
+        |> List.map (fun s ->
+            task {
+                try
+                    let ps =
+                        PushSubscription(s.Endpoint, s.P256DH, s.Auth)
+
+                    do! webPushClient.SendNotificationAsync(ps, payload, vapidDetails)
+                with :? WebPushException as wpex ->
+                    log.LogError(sprintf "Couldn't send notification to %s, %A" user.UserId wpex)
+                    do! filterSubscriptionsAndPersist managementToken user.UserId subscriptions s.Origin s.Endpoint
+            } :> Task)
+        |> Task.WhenAll)
 """
