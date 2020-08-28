@@ -131,3 +131,7 @@ module Map =
 
     let tryFindOrEmptyList (key:'t) (map: Map<'t, 'g list>) =
         tryFindOrDefault [] key map
+
+module Async =
+    let map f computation =
+        async.Bind(computation, f >> async.Return)

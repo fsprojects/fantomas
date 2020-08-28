@@ -18,15 +18,54 @@ let newline = "\n"
 
 let sharedChecker = lazy(FSharpChecker.Create())
 
+let private safeToIgnoreWarnings =
+    [ "This construct is deprecated: it is only for use in the F# library"
+      "Identifiers containing '@' are reserved for use in F# code generation" ]
+
+let private isValidAndHasNoWarnings fileName source parsingOptions =
+    let allDefineOptions =
+        TokenParser.getOptimizedDefinesSets source
+        @ (TokenParser.getDefines source |> List.map List.singleton)
+        @ [[]]
+        |> List.distinct
+
+    allDefineOptions
+    |> List.map (fun conditionalCompilationDefines ->
+        async {
+            let parsingOptionsWithDefines = { parsingOptions with ConditionalCompilationDefines = conditionalCompilationDefines } // IsInteractive = false
+            // Run the first phase (untyped parsing) of the compiler
+            let sourceText = FSharp.Compiler.Text.SourceText.ofString source
+            let! untypedRes = sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
+
+            let errors =
+                untypedRes.Errors
+                |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
+            // FSharpErrorInfo contains both Errors and Warnings
+            // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-sourcecodeservices-fsharperrorinfo.html
+            return Array.isEmpty errors
+        }
+    )
+    |> Async.Parallel
+    |> Async.map (fun results -> Seq.fold (&&) true results)
+
 let formatSourceString isFsiFile (s : string) config = 
     // On Linux/Mac this will exercise different line endings
     let s = s.Replace("\r\n", Environment.NewLine)
     let fileName = if isFsiFile then "/src.fsi" else "/src.fsx"
+    let parsingOptions = FakeHelpers.createParsingOptionsFromFile fileName
 
-    CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config,
-                                      FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
+    async {
+        let! formatted =
+            CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString s, config, parsingOptions, sharedChecker.Value)
+
+        let! isValid = isValidAndHasNoWarnings fileName formatted parsingOptions
+        if not isValid then
+            failwithf "The formatted result is not valid F# code or contains warnings\n%s" formatted
+
+        return formatted.Replace("\r\n", "\n")
+    }
+
     |> Async.RunSynchronously
-    |> fun s -> s.Replace("\r\n", "\n")
 
 let formatSourceStringWithDefines defines (s : string) config =
     // On Linux/Mac this will exercise different line endings
