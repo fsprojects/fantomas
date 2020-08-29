@@ -85,9 +85,11 @@ open System
 let lookForValue value maxValue =
     let mutable continueLooping = true
     let randomNumberGenerator = new Random()
+
     while continueLooping do
         let rand = randomNumberGenerator.Next(maxValue)
         printf "%d " rand
+
         if rand = value then
             printfn "\nFound a %d!" value
             continueLooping <- false

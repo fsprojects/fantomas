@@ -56,7 +56,7 @@ let ``Queue.skipExists``() =
         let f = id
         n <= List.sumBy List.length xss ==>
             lazy
-                (let result = Queue.ofLists xss |> Queue.skipExists n f
+                (let result = Queue.ofLists xss |> Queue.skipExists n f (fun _ -> false)
                  let expected = xss |> List.collect id |> Seq.skip n |> Seq.exists f
                  result |> should equal expected)
         )

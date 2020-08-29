@@ -124,6 +124,7 @@ type FsAstType =
     | SynExpr_For
     | SynExpr_ForEach
     | SynExpr_ArrayOrListOfSeqExpr
+    | SynExpr_ArrayOrList
     | SynExpr_CompExpr
     | SynExpr_Lambda
     | SynExpr_MatchLambda

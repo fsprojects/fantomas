@@ -570,7 +570,6 @@ type RoleAdminImportController(akkaService: AkkaService) =
                   DryRun = args.DryRun }
 
             importer.ApiMaster <! StartImportCmd job
-
             return Ok job
            }
 """

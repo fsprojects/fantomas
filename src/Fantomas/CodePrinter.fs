@@ -1639,29 +1639,105 @@ and genExpr astContext synExpr =
                 not (isFromAst ctx) && p.Range.EndLine = e.Range.StartLine && not (futureNlnCheck (genExpr astContext e) ctx)
             | _ -> false
 
-        let sepNlnBeforeExpr =
-            match e with
-            | SynExpr.Sequential(_,_, (SynExpr.App _ as app),_,_) -> sepNlnConsideringTriviaContentBeforeFor SynExpr_App app.Range
-            | SynExpr.Sequential(_,_, (SynExpr.IfThenElse _ as ite),_,_) -> sepNlnConsideringTriviaContentBeforeFor SynExpr_IfThenElse ite.Range
-            | SynExpr.YieldOrReturn _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_YieldOrReturn e.Range
-            | SynExpr.IfThenElse _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_IfThenElse e.Range
-            | SynExpr.LetOrUseBang _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_LetOrUseBang e.Range
-            | SynExpr.Const _ ->  sepNlnConsideringTriviaContentBeforeFor SynExpr_Const e.Range
-            | SynExpr.Lambda _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_Lambda e.Range
-            | SynExpr.Ident _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_Ident e.Range
-            | SynExpr.App _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_App e.Range
-            | SynExpr.Match _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_Match e.Range
-            | SynExpr.Record _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_Record e.Range
-            | SynExpr.Tuple _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_Tuple e.Range
-            | SynExpr.DoBang _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_DoBang e.Range
-            | SynExpr.Paren _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_Paren e.Range
-            | SynExpr.AnonRecd _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_AnonRecd e.Range
-            | SynExpr.ArrayOrListOfSeqExpr _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_ArrayOrListOfSeqExpr e.Range
-            | SynExpr.LongIdentSet _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_LongIdentSet e.Range
-            | SynExpr.New _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_New e.Range
-            | _ -> sepNln
+        fun ctx ->
+            if isInSameLine ctx then
+                atCurrentColumn
+                    (col sepNone bs (fun (p,x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
+                     +> (!- " in ")
+                     +> genExpr astContext e)
+                     ctx
+            else
+                let letBindings (bs:(string * SynBinding) list) =
+                    bs
+                    |> List.map (fun (p,x) ->
+                        let expr =
+                            enterNodeFor Binding_ x.RangeOfBindingSansRhs
+                            +> genLetBinding { astContext with IsFirstChild = p <> "and" } p x
 
-        atCurrentColumn (genLetOrUseList astContext bs +> ifElseCtx isInSameLine (!- " in ") sepNlnBeforeExpr  +> genExpr astContext e)
+                        let key = Binding_ |> Choice1Of2
+                        let range = x.RangeOfBindingSansRhs
+                        expr, key, range)
+
+                let synExprKeyForNonSequential e =
+                    match e with
+                    | SynExpr.YieldOrReturn _ -> SynExpr_YieldOrReturn
+                    | SynExpr.IfThenElse _ -> SynExpr_IfThenElse
+                    | SynExpr.LetOrUseBang _ -> SynExpr_LetOrUseBang
+                    | SynExpr.Const _ ->  SynExpr_Const
+                    | SynExpr.Lambda _ -> SynExpr_Lambda
+                    | SynExpr.Ident _ -> SynExpr_Ident
+                    | SynExpr.App _ -> SynExpr_App
+                    | SynExpr.Match _ -> SynExpr_Match
+                    | SynExpr.Record _ -> SynExpr_Record
+                    | SynExpr.Tuple _ -> SynExpr_Tuple
+                    | SynExpr.DoBang _ -> SynExpr_DoBang
+                    | SynExpr.Paren _ -> SynExpr_Paren
+                    | SynExpr.AnonRecd _ -> SynExpr_AnonRecd
+                    | SynExpr.ArrayOrListOfSeqExpr _ -> SynExpr_ArrayOrListOfSeqExpr
+                    | SynExpr.LongIdentSet _ -> SynExpr_LongIdentSet
+                    | SynExpr.New _ -> SynExpr_New
+                    | SynExpr.Quote _ -> SynExpr_Quote
+                    | SynExpr.DotIndexedSet _ -> SynExpr_DotIndexedSet
+                    | SynExpr.LetOrUse _ -> SynExpr_LetOrUse
+                    | SynExpr.TryWith _ -> SynExpr_TryWith
+                    | SynExpr.YieldOrReturnFrom _ -> SynExpr_YieldOrReturnFrom
+                    | SynExpr.While _ -> SynExpr_While
+                    | SynExpr.TryFinally _ -> SynExpr_TryFinally
+                    | SynExpr.Do _ -> SynExpr_Do
+                    | SynExpr.AddressOf _ -> SynExpr_AddressOf
+                    | SynExpr.Typed _ -> SynExpr_Typed
+                    | SynExpr.ArrayOrList _ -> SynExpr_ArrayOrList
+                    | SynExpr.ObjExpr _ -> SynExpr_ObjExpr
+                    | SynExpr.For _ -> SynExpr_For
+                    | SynExpr.ForEach _ -> SynExpr_ForEach
+                    | SynExpr.CompExpr _ -> SynExpr_CompExpr
+                    | SynExpr.MatchLambda _ -> SynExpr_MatchLambda
+                    | SynExpr.Assert _ -> SynExpr_Assert
+                    | SynExpr.TypeApp _ -> SynExpr_TypeApp
+                    | SynExpr.Lazy _ -> SynExpr_Lazy
+                    | SynExpr.LongIdent _ -> SynExpr_LongIdent
+                    | SynExpr.DotGet _ -> SynExpr_DotGet
+                    | SynExpr.DotSet _ -> SynExpr_DotSet
+                    | SynExpr.Set _ -> SynExpr_Set
+                    | SynExpr.DotIndexedGet _ -> SynExpr_DotIndexedGet
+                    | SynExpr.NamedIndexedPropertySet _ -> SynExpr_NamedIndexedPropertySet
+                    | SynExpr.DotNamedIndexedPropertySet _ -> SynExpr_DotNamedIndexedPropertySet
+                    | SynExpr.TypeTest _ -> SynExpr_TypeTest
+                    | SynExpr.Upcast _ -> SynExpr_Upcast
+                    | SynExpr.Downcast _ -> SynExpr_Downcast
+                    | SynExpr.InferredUpcast _ -> SynExpr_InferredUpcast
+                    | SynExpr.InferredDowncast _ -> SynExpr_InferredDowncast
+                    | SynExpr.Null _ -> SynExpr_Null
+                    | SynExpr.TraitCall _ -> SynExpr_TraitCall
+                    | SynExpr.JoinIn _ -> SynExpr_JoinIn
+                    | SynExpr.ImplicitZero _ -> SynExpr_ImplicitZero
+                    | SynExpr.SequentialOrImplicitYield _ -> SynExpr_SequentialOrImplicitYield
+                    | SynExpr.MatchBang _ -> SynExpr_MatchBang
+                    | SynExpr.LibraryOnlyILAssembly _ -> SynExpr_LibraryOnlyILAssembly
+                    | SynExpr.LibraryOnlyStaticOptimization _ -> SynExpr_LibraryOnlyStaticOptimization
+                    | SynExpr.LibraryOnlyUnionCaseFieldGet _ -> SynExpr_LibraryOnlyUnionCaseFieldGet
+                    | SynExpr.LibraryOnlyUnionCaseFieldSet _ -> SynExpr_LibraryOnlyUnionCaseFieldSet
+                    | SynExpr.ArbitraryAfterError _ -> SynExpr_ArbitraryAfterError
+                    | SynExpr.FromParseError _ -> SynExpr_FromParseError
+                    | SynExpr.DiscardAfterMissingQualificationAfterDot _ -> SynExpr_DiscardAfterMissingQualificationAfterDot
+                    | SynExpr.Fixed _ -> SynExpr_Fixed
+                    | SynExpr.InterpolatedString _ -> SynExpr_InterpolatedString
+                    | SynExpr.Sequential _ -> failwith "should not be called with Sequential"
+                    |> Choice1Of2
+
+                let rec synExpr e =
+                    match e with
+                    | LetOrUses(bs, e) ->
+                        letBindings bs @ synExpr e
+                    | Sequentials(s) ->
+                        s
+                        |> List.collect(fun e -> synExpr e)
+                    | _ ->
+                        [ genExpr astContext e, synExprKeyForNonSequential e, e.Range ]
+
+                let items = letBindings bs @ synExpr e
+
+                atCurrentColumn(colWithNlnWhenItemIsMultiline items) ctx
 
     // Could customize a bit if e is single line
     | TryWith(e, cs) ->
@@ -2263,31 +2339,6 @@ and genMultiLineArrayOrListAlignBrackets (isArray:bool) xs alNode astContext =
                 sepCloseLFixed
 
         expr ctx
-
-and genLetOrUseList astContext expr =
-    match expr with
-    | (p, x)::rest ->
-        let attrs = getRangesFromAttributesFromSynBinding x
-
-        let newlineAfter ctx =
-            match List.tryHead rest with
-            | Some (_,lb) -> sepNlnConsideringTriviaContentBeforeFor Binding_ lb.RangeOfBindingSansRhs ctx // sepNlnConsideringTriviaContentBefore lb.RangeOfBindingSansRhs ctx
-            | None -> sepNln ctx
-
-        // Call trivia manually before genLetBinding
-        // Otherwise the expression might become multiline because of comments or defines above the let binding
-        enterNodeFor Binding_ x.RangeOfBindingSansRhs
-        +> (leadingExpressionIsMultiline
-                (expressionFitsOnRestOfLine
-                    (genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
-                    (sepNlnBeforeMultilineConstruct Binding_ x.RangeOfBindingSansRhs attrs
-                     +> genLetBinding { astContext with IsFirstChild = p <> "and" } p x
-                     +> onlyIf (List.isNotEmpty rest) sepNln
-                     +> newlineAfter))
-                (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) newlineAfter))
-        +> genLetOrUseList astContext rest
-
-    | _ -> sepNone
 
 and genInfixAppsShort astContext synExprs =
     col sepSpace synExprs (fun (s, opE, e) -> genInfixApp s opE e astContext)

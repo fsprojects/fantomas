@@ -246,6 +246,20 @@ let internal lastWriteEventIsNewline ctx =
     |> Option.map (function | WriteLine -> true | _ -> false)
     |> Option.defaultValue false
 
+let private (|CommentOrDefineEvent|_|) we =
+    match we with
+    | Write (w) when (String.startsWithOrdinal "//" w) ->
+        Some we
+    | Write (w) when (String.startsWithOrdinal "#if" w) ->
+        Some we
+    | Write (w) when (String.startsWithOrdinal "#else" w) ->
+        Some we
+    | Write (w) when (String.startsWithOrdinal "#endif" w) ->
+        Some we
+    | Write (w) when (String.startsWithOrdinal "(*" w) ->
+        Some we
+    | _ -> None
+
 /// Validate if there is a complete blank line between the last write event and the last event
 let internal newlineBetweenLastWriteEvent ctx =
     ctx.WriterEvents
@@ -602,10 +616,27 @@ let internal leadingExpressionLong threshold leadingExpression continuationExpre
     let (lineCountAfter, columnAfter) = List.length contextAfterLeading.WriterModel.Lines, contextAfterLeading.WriterModel.Column
     continuationExpression (lineCountAfter > lineCountBefore || (columnAfter - columnBefore > threshold)) contextAfterLeading
 
+/// A leading expression is not consider multiline if it has a comment before it.
+/// For example
+/// let a = 7
+/// // foo
+/// let b = 8
+/// let c = 9
+/// The second binding b is not consider multiline.
 let internal leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: Context) =
     let eventCountBeforeExpression = Queue.length ctx.WriterEvents
     let contextAfterLeading = leadingExpression ctx
-    let hasWriteLineEventsAfterExpression = contextAfterLeading.WriterEvents |> Queue.skipExists eventCountBeforeExpression (function | WriteLine _ -> true | _ -> false)
+
+    let hasWriteLineEventsAfterExpression =
+        contextAfterLeading.WriterEvents
+        |> Queue.skipExists eventCountBeforeExpression (function
+            | WriteLine _ -> true
+            | _ -> false) (fun e ->
+                match e with
+                | [| CommentOrDefineEvent(_) |]
+                | [| WriteLine |]
+                | [| Write "" |] -> true
+                | _ -> false)
 
     continuationExpression hasWriteLineEventsAfterExpression contextAfterLeading
 
@@ -888,14 +919,13 @@ let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
     |> List.exists (fun tn ->
         match tn with
-        | Comment(_) -> true
-        | Newline -> true
+        | Comment _
+        | Newline
+        | Directive _ -> true
         | _ -> false)
 
 let private sepConsideringTriviaContentBeforeBy (findNode: Context -> range -> TriviaNode option) (sepF: Context -> Context) (range: range) (ctx: Context) =
     match findNode ctx range with
-    | Some({ ContentBefore = (Comment(BlockComment(_,false,_)))::_ }) ->
-        sepF ctx
     | Some({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) ->
         ctx
     | _ -> sepF ctx
@@ -1084,20 +1114,6 @@ let internal lastLineOnlyContains characters (ctx: Context) =
         (writeEventsOnLastLine ctx |> String.concat "").Trim(characters)
     let length = String.length lastLine
     length = 0 || length < ctx.Config.IndentSize
-
-let private (|CommentOrDefineEvent|_|) we =
-    match we with
-    | Write (w) when (String.startsWithOrdinal "//" w) ->
-        Some we
-    | Write (w) when (String.startsWithOrdinal "#if" w) ->
-        Some we
-    | Write (w) when (String.startsWithOrdinal "#else" w) ->
-        Some we
-    | Write (w) when (String.startsWithOrdinal "#endif" w) ->
-        Some we
-    | Write (w) when (String.startsWithOrdinal "(*" w) ->
-        Some we
-    | _ -> None
 
 // Add a newline when the previous code is only one line above the current location
 // For example

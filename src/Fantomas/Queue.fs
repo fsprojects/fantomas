@@ -44,10 +44,10 @@ type Queue<'T> (data : list<'T[]>, length : int) =
     member this.Append xs = 
         Queue(Array.ofList xs :: data, length + List.length xs)
     
-    /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.exists f, optimized for speed
-    member this.SkipExists n f =
+    /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.skipWhile p |> Seq.exists f, optimized for speed
+    member this.SkipExists n f p =
         if n >= length then false else
-        let mutable i = length - n // how nany items at end
+        let mutable i = length - n // how many items at end
         let mutable r = false
         let rec dataToEnd acc = function
             | (hd: _[]) :: tl -> 
@@ -68,7 +68,7 @@ type Queue<'T> (data : list<'T[]>, length : int) =
                 if r then true else exists tl
             | [] -> r
         let d = dataToEnd [] data
-        d |> exists
+        d |> List.skipWhile p |> exists
 
     interface System.Collections.Generic.IReadOnlyCollection<'T> with
         member this.Count = this.Length
@@ -101,4 +101,4 @@ module Queue =
     let inline append (q : Queue<'T>) xs = q.Append xs
 
     /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.exists f
-    let inline skipExists n f (q : Queue<'T>) = q.SkipExists n f
+    let inline skipExists n f p (q : Queue<'T>) = q.SkipExists n f p

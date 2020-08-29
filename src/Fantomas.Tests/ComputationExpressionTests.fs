@@ -1403,7 +1403,9 @@ let initDb () =
     if not (File.Exists(dbFileName)) then
         let dbFile = File.Create(dbFileName)
         dbFile.Dispose() |> ignore
+
     let createSql = readSqlFile "create"
+
     using (connection ()) (fun conn ->
         task {
             do! conn.OpenAsync()
