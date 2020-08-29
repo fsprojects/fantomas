@@ -527,6 +527,23 @@ Avoid extraneous whitespace in the following situations:
  - Method definitions inside a class are separated by a single blank line.
  - Extra blank lines may be used (sparingly) to separate groups of related functions. Blank lines may be omitted between a bunch of related one-liners (e.g. a set of dummy implementations).
  - Use blank lines in functions, sparingly, to indicate logical sections.
+ 
+#### 2020 Revision
+
+Blank lines are introduces around any multiline code constructs:
+```fsharp
+let a = 9
+
+if someCondition then
+    printfn "meh"
+    ()
+
+let b = 10
+let c = 10
+```
+
+The `SynExpr.IfThenElse` expression is multiline so a blank line between `let a` and `if someCondition` and between `if someCondition` and `let b` is fitting.
+Single line statements are combined without any additional blank lines, see `let b` and `let c`. 
 
 ### Comments
 
