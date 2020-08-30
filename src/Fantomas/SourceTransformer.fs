@@ -191,3 +191,16 @@ let synModuleDeclToFsAstType = function
     | SynModuleDecl.Attributes _ -> SynModuleDecl_Attributes
     | SynModuleDecl.HashDirective _ -> SynModuleDecl_HashDirective
     | SynModuleDecl.NamespaceFragment _ -> SynModuleDecl_NamespaceFragment
+
+let synMemberDefnToFsAstType = function
+    | SynMemberDefn.Member _ -> SynMemberDefn_Member
+    | SynMemberDefn.Open _ -> SynMemberDefn_Open
+    | SynMemberDefn.ImplicitCtor _ -> SynMemberDefn_ImplicitCtor
+    | SynMemberDefn.ImplicitInherit _ -> SynMemberDefn_ImplicitInherit
+    | SynMemberDefn.LetBindings _ -> SynMemberDefn_LetBindings
+    | SynMemberDefn.AbstractSlot _ -> SynMemberDefn_AbstractSlot
+    | SynMemberDefn.Interface _ -> SynMemberDefn_Interface
+    | SynMemberDefn.Inherit _ -> SynMemberDefn_Inherit
+    | SynMemberDefn.ValField _ -> SynMemberDefn_ValField
+    | SynMemberDefn.NestedType _ -> SynMemberDefn_NestedType
+    | SynMemberDefn.AutoProperty _ -> SynMemberDefn_AutoProperty

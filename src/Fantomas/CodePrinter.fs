@@ -2399,6 +2399,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         +> indent +> sepNln
         +> genTriviaFor SynTypeDefnSimpleRepr_Enum tdr.Range
             (col sepNln ecs (genEnumCase { astContext with HasVerticalBar = true })
+            +> onlyIf (List.isNotEmpty ms) sepNln
             +> sepNlnBetweenTypeAndMembers ms
             +> genMemberDefnList { astContext with InterfaceRange = None } ms
             // Add newline after un-indent to be spacing-correct
@@ -2431,8 +2432,10 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
                     +> col sepNln xs (genUnionCase { astContext with HasVerticalBar = true }))
                 <| ctx
 
-        typeName +> sepEq
+        typeName
+        +> sepEq
         +> unionCases
+        +> onlyIf (List.isNotEmpty ms) sepNln
         +> sepNlnBetweenTypeAndMembers ms
         +> genMemberDefnList { astContext with InterfaceRange = None } ms
         +> unindent
@@ -2479,6 +2482,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
             ifElse (List.isEmpty ms)
                 (!- "")
                 (indent ++ "with" +> indent
+                 +> sepNln
                  +> sepNlnBetweenTypeAndMembers ms
                  +> genMemberDefnList { astContext with InterfaceRange = None } ms
             +> unindent +> unindent)
@@ -2506,9 +2510,11 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
                         sepEqFixed ctx
                     else
                         sepEq ctx)
-        +> indent +> sepNln
-        +>  genTypeDefKind tdk
         +> indent
+        +> sepNln
+        +> genTypeDefKind tdk
+        +> indent
+        +> onlyIf (List.isNotEmpty others) sepNln
         +> sepNlnBetweenTypeAndMembers ms
         +> genMemberDefnList astContext others
         +> unindent
@@ -2520,10 +2526,14 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
             match ms with
             | [] -> sepNone
             | _ -> sepNln
-        typeName +> opt sepNone impCtor (genMemberDefn astContext) +> sepEq
-        +> indent +> sepNln
+        typeName
+        +> opt sepNone impCtor (genMemberDefn astContext)
+        +> sepEq
+        +> indent
+        +> sepNln
         +> genTypeDefKind tdk
         +> indent
+        +> sepNln
         +> genMemberDefnList astContext others
         +> unindent
         ++ "end"
@@ -2535,6 +2545,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
     | ObjectModel(TCSimple TCAugmentation, _, _) ->
         typeName -- " with" +> indent
         // Remember that we use MemberDefn of parent node
+        +> sepNln
         +> sepNlnBetweenTypeAndMembers ms
         +> genMemberDefnList { astContext with InterfaceRange = None } ms
         +> unindent
@@ -2543,11 +2554,16 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         typeName +> sepEq +> sepSpace +> !- "delegate of " +> genTypeList astContext ts
 
     | ObjectModel(TCSimple TCUnspecified, MemberDefnList(impCtor, others), _) when not(List.isEmpty ms) ->
-        typeName +> opt sepNone impCtor (genMemberDefn { astContext with InterfaceRange = None }) +> sepEq +> indent
+        typeName
+        +> opt sepNone impCtor (genMemberDefn { astContext with InterfaceRange = None })
+        +> sepEq
+        +> indent
+        +> sepNln
         +> genMemberDefnList { astContext with InterfaceRange = None } others
         +> sepNln
         -- "with"
         +> indent
+        +> sepNln
         +> genMemberDefnList { astContext with InterfaceRange = None } ms
         +> unindent
         +> unindent
@@ -2557,6 +2573,7 @@ and genTypeDefn astContext (TypeDef(ats, px, ao, tds, tcs, tdr, ms, s, preferPos
         +> opt sepNone impCtor (fun mdf -> sepSpaceBeforeClassConstructor +> genMemberDefn { astContext with InterfaceRange = None } mdf)
         +> sepEq
         +> indent
+        +> sepNln
         +> genMemberDefnList { astContext with InterfaceRange = None } others
         +> unindent
 
@@ -2571,7 +2588,9 @@ and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
     +> genTriviaFor SynTypeDefnSimpleRepr_Record tdr.Range
         (opt sepSpace ao' genAccess
         +> sepOpenS
-        +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext "")) +> sepCloseS
+        +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
+        +> sepCloseS
+        +> onlyIf (List.isNotEmpty ms) sepNln
         +> sepNlnBetweenTypeAndMembers ms
         +> genMemberDefnList { astContext with InterfaceRange = None } ms
         +> unindent)
@@ -2585,6 +2604,7 @@ and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
          +> sepOpenSFixed +> indent +> sepNln
          +> atCurrentColumn (leaveLeftBrace tdr.Range +> col sepSemiNln fs (genField astContext ""))
          +> unindent +> sepNln +> sepCloseSFixed
+         +> onlyIf (List.isNotEmpty ms) sepNln
          +> sepNlnBetweenTypeAndMembers ms
          +> genMemberDefnList { astContext with InterfaceRange = None } ms
          +> onlyIf (Option.isSome ao') unindent
@@ -2794,7 +2814,7 @@ and genExceptionBody astContext ats px ao uc =
 and genException astContext (ExceptionDef(ats, px, ao, uc, ms) as node) =
     genExceptionBody astContext ats px ao uc
     +> ifElse ms.IsEmpty sepNone
-        (!- " with" +> indent +> genMemberDefnList { astContext with InterfaceRange = None } ms +> unindent)
+        (!- " with" +> indent +> sepNln +> genMemberDefnList { astContext with InterfaceRange = None } ms +> unindent)
     |> genTriviaFor SynExceptionDefn_ node.Range
 
 and genSigException astContext (SigExceptionDef(ats, px, ao, uc, ms)) =
@@ -3014,53 +3034,28 @@ and genClause astContext hasBar (Clause(p, e, eo)) =
 
 /// Each multiline member definition has a pre and post new line.
 and genMemberDefnList astContext nodes =
-    match nodes with
-    | MDOpenL(xs, ys) ->
-        fun ctx ->
-            match ys with
-            | [] -> col sepNln xs (genMemberDefn astContext) ctx
-            | _ -> (col sepNln xs (genMemberDefn astContext) +> rep 2 sepNln +> genMemberDefnList astContext ys) ctx
+    let rec collectItems nodes =
+        match nodes with
+        | [] -> []
+        | PropertyWithGetSetMemberDefn(gs, rest) ->
+            let attrs = getRangesFromAttributesFromSynBinding (fst gs)
+            let rangeOfFirstMember = List.head nodes |> fun m -> m.Range
 
-    | PropertyWithGetSetMemberDefn(gs, rest) ->
-        let rangeOfFirstMember = List.head nodes |> fun m -> m.Range
-        let m = fst gs
-        let attrs = getRangesFromAttributesFromSynBinding (fst gs)
+            let expr =
+                enterNodeFor SynMemberDefn_Member rangeOfFirstMember
+                +> genPropertyWithGetSet astContext gs (Some rangeOfFirstMember)
 
-        sepNlnConsideringTriviaContentBeforeWithAttributesFor SynMemberDefn_Member rangeOfFirstMember attrs
-        +> enterNodeFor SynMemberDefn_Member rangeOfFirstMember
-        +> (expressionFitsOnRestOfLine
-              (genPropertyWithGetSet astContext gs (Some rangeOfFirstMember))
-              (sepNlnBeforeMultilineConstruct SynMemberDefn_Member m.RangeOfBindingSansRhs attrs
-               +> genPropertyWithGetSet astContext gs (Some rangeOfFirstMember)
-               +> onlyIf (List.isNotEmpty rest) sepNln))
-        +> genMemberDefnList ({ astContext with IsFirstChild = false }) rest
+            let sepNln = sepNlnConsideringTriviaContentBeforeWithAttributesFor SynMemberDefn_Member rangeOfFirstMember attrs
+            (expr, sepNln, rangeOfFirstMember)::(collectItems rest)
 
-    | m::rest ->
-        let attrs = getRangesFromAttributesFromSynMemberDefinition m
+        | m::rest ->
+            let attrs = getRangesFromAttributesFromSynMemberDefinition m
+            let expr = genMemberDefn astContext m
+            let sepNln = sepNlnConsideringTriviaContentBeforeWithAttributesFor (synMemberDefnToFsAstType m) m.Range attrs
+            (expr, sepNln, m.Range)::(collectItems rest)
 
-        let mainNode =
-            match m with
-            | SynMemberDefn.Member _ -> Some SynMemberDefn_Member
-            | SynMemberDefn.AbstractSlot _ -> Some SynMemberDefn_AbstractSlot
-            | SynMemberDefn.LetBindings _ -> Some SynMemberDefn_LetBindings
-            | SynMemberDefn.ValField _ -> Some SynMemberDefn_ValField
-            | SynMemberDefn.Interface _ -> Some SynMemberDefn_Interface
-            | _ -> None
-
-        (match mainNode with
-         | Some mn ->
-             (sepNlnConsideringTriviaContentBeforeWithAttributesFor mn m.Range attrs
-              +> enterNodeFor mn m.Range)
-         | None -> sepNln)
-        +> (expressionFitsOnRestOfLine
-              (genMemberDefn astContext m)
-              (onlyIfNot astContext.IsFirstChild (match mainNode with | Some mn -> sepNlnBeforeMultilineConstruct mn m.Range attrs | None -> sepNln)
-               +> genMemberDefn astContext m
-               +> onlyIf (List.isNotEmpty rest) sepNln))
-
-        +> genMemberDefnList ({ astContext with IsFirstChild = false }) rest
-
-    | _ -> sepNone
+    collectItems nodes
+    |> colWithNlnWhenItemIsMultiline
 
 and genMemberDefn astContext node =
     match node with
@@ -3130,7 +3125,7 @@ and genMemberDefn astContext node =
     | MDInterface(t, mdo, range) ->
         !- "interface " +> genType astContext false t
         +> opt sepNone mdo
-            (fun mds -> !- " with" +> indent +> genMemberDefnList { astContext with InterfaceRange = Some range } mds +> unindent)
+            (fun mds -> !- " with" +> indent +> sepNln +> genMemberDefnList { astContext with InterfaceRange = Some range } mds +> unindent)
 
     | MDAutoProperty(ats, px, ao, mk, e, s, _isStatic, typeOpt, memberKindToMemberFlags) ->
         let isFunctionProperty =
@@ -3162,7 +3157,7 @@ and genMemberDefn astContext node =
         +> genConstraints astContext t
 
     | md -> failwithf "Unexpected member definition: %O" md
-    +> leaveNodeFor SynMemberDefn_Member node.Range
+    |> genTriviaFor (synMemberDefnToFsAstType node) node.Range
 
 and genPropertyKind useSyntacticSugar node =
     match node with

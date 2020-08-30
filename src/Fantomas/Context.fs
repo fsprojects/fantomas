@@ -1012,8 +1012,8 @@ let internal sepNlnForEmptyNamespace (namespaceRange:range) ctx =
 
 let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
     match firstMemberRange with
-    | Some _range when (ctx.Config.NewlineBetweenTypeDefinitionAndMembers) ->
-        sepNln ctx
+    | Some range when (ctx.Config.NewlineBetweenTypeDefinitionAndMembers) ->
+        sepNlnConsideringTriviaContentBeforeForMainNode SynMemberDefn_Member range ctx
     | _ ->
         ctx
 
