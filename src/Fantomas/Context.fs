@@ -487,6 +487,7 @@ let internal sepStarFixed = !- "* "
 let internal sepEq = !- " ="
 let internal sepEqFixed = !- "="
 let internal sepArrow = !- " -> "
+let internal sepArrowFixed = !- "-> "
 let internal sepWild = !- "_"
 
 let internal sepBar = !- "| "
