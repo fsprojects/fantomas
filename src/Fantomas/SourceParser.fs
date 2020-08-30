@@ -827,6 +827,7 @@ let rec (|CompExprBody|_|) expr =
     | SynExpr.LetOrUseBang _ -> Some expr
     | SynExpr.Sequential(_,_, _, SynExpr.YieldOrReturn(_), _) -> Some expr
     | SynExpr.Sequential(_,_, _, SynExpr.LetOrUse(_), _) -> Some expr
+    | SynExpr.Sequential(_,_, SynExpr.DoBang _, SynExpr.LetOrUseBang _, _) -> Some expr
     | _ -> None
 
 let (|ForEach|_|) = function

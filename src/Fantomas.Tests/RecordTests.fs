@@ -501,6 +501,7 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
                                            Firstname = \"Guest\"
                                            Surname = \"\"
                                            Avatar = \"guest.png\" } |] }).write()
+
         Logger.debug \"Database restored\"
 "
 

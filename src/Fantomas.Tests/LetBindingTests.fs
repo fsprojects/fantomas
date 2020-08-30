@@ -78,6 +78,7 @@ let f () =
 
     (while true do
         ()
+
      x)
 """
 
@@ -899,6 +900,7 @@ let merge a b =
 
     if List.length aChunks <> List.length bChunks then
         Dbg.print (aChunks, bChunks)
+
         failwithf \"\"\"Fantomas is trying to format the input multiple times due to the detect of multiple defines.
 There is a problem with merging all the code back togheter. Please raise an issue at https://github.com/fsprojects/fantomas/issues.\"\"\"
 
@@ -939,3 +941,33 @@ let merge a b =
 
     List.zip aChunks bChunks
 "
+
+[<Test>]
+let ``multiline expressions within sequential should be separated with new lines`` () =
+    formatSourceString false """
+let x =
+    if someCondition then
+        //
+        foo
+    else
+        //
+        bar
+    while someCondition do
+        printfn "meh"
+    ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    if someCondition then
+        //
+        foo
+    else
+        //
+        bar
+
+    while someCondition do
+        printfn "meh"
+
+    ()
+"""

@@ -649,6 +649,7 @@ let rec run
     : HttpResponse
     =
     logAnalyticsForRequest log req
+
     Http.main
         CodeFormatter.GetVersion
         format

@@ -110,7 +110,9 @@ module Caching =
                             currency
                             address
                             sessionCachedNetworkData
+
                     ())
+
             ()
 """
 
@@ -143,7 +145,9 @@ module Caching =
                     if compoundBalance < 0.0m then
                         ReportProblem
                             looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong
+
                     ())
+
             ()
 """
 
@@ -173,7 +177,9 @@ module Caching =
                 | Cached (balance, time) ->
                     if compoundBalance < 0.0m
                     then ReportProblem compoundBalance None currency address sessionCachedNetworkData
+
                     ())
+
             ()
 """
 
@@ -203,5 +209,6 @@ module Caching =
                 | Cached (balance, time) ->
                     if compoundBalance < 0.0m then ReportProblem compoundBalance
                     ())
+
             ()
 """

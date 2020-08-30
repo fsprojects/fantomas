@@ -616,6 +616,7 @@ type BlobHelper(Account: CloudStorageAccount) =
 
             configSettingPublisher.Invoke(connectionString)
             |> ignore)
+
         BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))
 """
 

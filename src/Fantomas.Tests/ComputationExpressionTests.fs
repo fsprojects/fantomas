@@ -1444,6 +1444,7 @@ let private removeSubscription (log : ILogger) (req : HttpRequest) =
     |> should equal """
 let private removeSubscription (log : ILogger) (req : HttpRequest) =
     log.LogInformation("Start remove-subscription")
+
     task {
         let origin = req.Headers.["Origin"].ToString()
         let user = Authentication.getUser log req

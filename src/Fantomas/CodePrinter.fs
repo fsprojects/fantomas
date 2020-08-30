@@ -1622,71 +1622,7 @@ and genExpr astContext synExpr =
                         expr, sepNln, range)
 
                 let sepNlnForNonSequential e r =
-                    match e with
-                    | SynExpr.YieldOrReturn _ -> SynExpr_YieldOrReturn
-                    | SynExpr.IfThenElse _ -> SynExpr_IfThenElse
-                    | SynExpr.LetOrUseBang _ -> SynExpr_LetOrUseBang
-                    | SynExpr.Const _ ->  SynExpr_Const
-                    | SynExpr.Lambda _ -> SynExpr_Lambda
-                    | SynExpr.Ident _ -> SynExpr_Ident
-                    | SynExpr.App _ -> SynExpr_App
-                    | SynExpr.Match _ -> SynExpr_Match
-                    | SynExpr.Record _ -> SynExpr_Record
-                    | SynExpr.Tuple _ -> SynExpr_Tuple
-                    | SynExpr.DoBang _ -> SynExpr_DoBang
-                    | SynExpr.Paren _ -> SynExpr_Paren
-                    | SynExpr.AnonRecd _ -> SynExpr_AnonRecd
-                    | SynExpr.ArrayOrListOfSeqExpr _ -> SynExpr_ArrayOrListOfSeqExpr
-                    | SynExpr.LongIdentSet _ -> SynExpr_LongIdentSet
-                    | SynExpr.New _ -> SynExpr_New
-                    | SynExpr.Quote _ -> SynExpr_Quote
-                    | SynExpr.DotIndexedSet _ -> SynExpr_DotIndexedSet
-                    | SynExpr.LetOrUse _ -> SynExpr_LetOrUse
-                    | SynExpr.TryWith _ -> SynExpr_TryWith
-                    | SynExpr.YieldOrReturnFrom _ -> SynExpr_YieldOrReturnFrom
-                    | SynExpr.While _ -> SynExpr_While
-                    | SynExpr.TryFinally _ -> SynExpr_TryFinally
-                    | SynExpr.Do _ -> SynExpr_Do
-                    | SynExpr.AddressOf _ -> SynExpr_AddressOf
-                    | SynExpr.Typed _ -> SynExpr_Typed
-                    | SynExpr.ArrayOrList _ -> SynExpr_ArrayOrList
-                    | SynExpr.ObjExpr _ -> SynExpr_ObjExpr
-                    | SynExpr.For _ -> SynExpr_For
-                    | SynExpr.ForEach _ -> SynExpr_ForEach
-                    | SynExpr.CompExpr _ -> SynExpr_CompExpr
-                    | SynExpr.MatchLambda _ -> SynExpr_MatchLambda
-                    | SynExpr.Assert _ -> SynExpr_Assert
-                    | SynExpr.TypeApp _ -> SynExpr_TypeApp
-                    | SynExpr.Lazy _ -> SynExpr_Lazy
-                    | SynExpr.LongIdent _ -> SynExpr_LongIdent
-                    | SynExpr.DotGet _ -> SynExpr_DotGet
-                    | SynExpr.DotSet _ -> SynExpr_DotSet
-                    | SynExpr.Set _ -> SynExpr_Set
-                    | SynExpr.DotIndexedGet _ -> SynExpr_DotIndexedGet
-                    | SynExpr.NamedIndexedPropertySet _ -> SynExpr_NamedIndexedPropertySet
-                    | SynExpr.DotNamedIndexedPropertySet _ -> SynExpr_DotNamedIndexedPropertySet
-                    | SynExpr.TypeTest _ -> SynExpr_TypeTest
-                    | SynExpr.Upcast _ -> SynExpr_Upcast
-                    | SynExpr.Downcast _ -> SynExpr_Downcast
-                    | SynExpr.InferredUpcast _ -> SynExpr_InferredUpcast
-                    | SynExpr.InferredDowncast _ -> SynExpr_InferredDowncast
-                    | SynExpr.Null _ -> SynExpr_Null
-                    | SynExpr.TraitCall _ -> SynExpr_TraitCall
-                    | SynExpr.JoinIn _ -> SynExpr_JoinIn
-                    | SynExpr.ImplicitZero _ -> SynExpr_ImplicitZero
-                    | SynExpr.SequentialOrImplicitYield _ -> SynExpr_SequentialOrImplicitYield
-                    | SynExpr.MatchBang _ -> SynExpr_MatchBang
-                    | SynExpr.LibraryOnlyILAssembly _ -> SynExpr_LibraryOnlyILAssembly
-                    | SynExpr.LibraryOnlyStaticOptimization _ -> SynExpr_LibraryOnlyStaticOptimization
-                    | SynExpr.LibraryOnlyUnionCaseFieldGet _ -> SynExpr_LibraryOnlyUnionCaseFieldGet
-                    | SynExpr.LibraryOnlyUnionCaseFieldSet _ -> SynExpr_LibraryOnlyUnionCaseFieldSet
-                    | SynExpr.ArbitraryAfterError _ -> SynExpr_ArbitraryAfterError
-                    | SynExpr.FromParseError _ -> SynExpr_FromParseError
-                    | SynExpr.DiscardAfterMissingQualificationAfterDot _ -> SynExpr_DiscardAfterMissingQualificationAfterDot
-                    | SynExpr.Fixed _ -> SynExpr_Fixed
-                    | SynExpr.InterpolatedString _ -> SynExpr_InterpolatedString
-                    | SynExpr.Sequential _ -> failwith "should not be called with Sequential"
-                    |> fun mn -> sepNlnConsideringTriviaContentBeforeForMainNode mn r
+                    sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e) r
 
                 let rec synExpr e =
                     match e with
@@ -1718,10 +1654,17 @@ and genExpr astContext synExpr =
         atCurrentColumn (kw TRY !-"try " +> indent +> sepNln +> genExpr astContext e1 +> unindent +> kw FINALLY !+~"finally"
             +> indent +> sepNln +> genExpr astContext e2 +> unindent)
 
-    | SequentialSimple es | Sequentials es ->
-        atCurrentColumn
-            (colEx (fun (e: SynExpr) -> sepConsideringTriviaContentBefore sepSemiNln (Choice1Of2 SynExpr_IfThenElse) e.Range)
-                 es (genExpr astContext))
+    | SequentialSimple es
+    | Sequentials es ->
+        let items =
+            es
+            |> List.map (fun e ->
+                let expr = dumpAndContinue +> genExpr astContext e
+                let r = e.Range
+                let sepNln = sepConsideringTriviaContentBeforeForMainNode sepSemiNln (synExprToFsAstType e) r
+                expr, sepNln, r)
+
+        atCurrentColumn (colWithNlnWhenItemIsMultiline items)
 
     | IfThenElse(e1, e2, None, mIfToThen) ->
         fun (ctx:Context) ->
@@ -1972,14 +1915,14 @@ and genExpr astContext synExpr =
 
                     genIf synExpr.Range +> genExpr astContext e1 +> sepSpace
                     +> genThen synExpr.Range +> genExpr astContext e2 +> sepNln
-                    +> colPost sepNln sepNln elfis genElifOneliner
+                    +> col sepNln elfis genElifOneliner
                     +> opt id enOpt (fun e4 ->
                         let correctedElseRange =
                            match List.tryLast elfis with
                            | Some (_, te, _) ->
                                mkRange "correctedElseRange" te.Range.End synExpr.Range.End
                            | None -> synExpr.Range
-                        genElse correctedElseRange +> genExpr astContext e4)
+                        sepNln +> genElse correctedElseRange +> genExpr astContext e4)
 
                 else if hasCommentAfterIfBranchExpr && not hasElfis then
                     // f.ex
