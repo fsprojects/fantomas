@@ -422,3 +422,42 @@ type FantomasMode =
     | V4
     | Preview // master branch
 """
+
+[<Test>]
+let ``long union case should be split over multiple lines, 972`` () =
+    formatSourceString false """
+[<NoEquality; NoComparison; RequireQualifiedAccess>]
+type SynType =
+
+    /// F# syntax: A.B.C
+    | LongIdent of longDotId: LongIdentWithDots
+
+    /// F# syntax: type<type, ..., type> or type type or (type, ..., type) type
+    ///   isPostfix: indicates a postfix type application e.g. "int list" or "(int, string) dict"
+    | App of
+        typeName: SynType  *
+        lessRange: range option *
+        typeArgs: SynType list *
+        commaRanges: range list *
+        greaterRange: range option *
+        isPostfix: bool * range: range // interstitial commas
+"""  config
+    |> prepend newline
+    |> should equal """
+[<NoEquality; NoComparison; RequireQualifiedAccess>]
+type SynType =
+
+    /// F# syntax: A.B.C
+    | LongIdent of longDotId: LongIdentWithDots
+
+    /// F# syntax: type<type, ..., type> or type type or (type, ..., type) type
+    ///   isPostfix: indicates a postfix type application e.g. "int list" or "(int, string) dict"
+    | App of
+        typeName: SynType *
+        lessRange: range option *
+        typeArgs: SynType list *
+        commaRanges: range list *
+        greaterRange: range option *
+        isPostfix: bool *
+        range: range // interstitial commas
+"""

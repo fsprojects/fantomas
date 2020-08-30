@@ -2802,11 +2802,22 @@ and genSigException astContext (SigExceptionDef(ats, px, ao, uc, ms)) =
     +> colPre sepNln sepNln ms (genMemberSig astContext)
 
 and genUnionCase astContext (UnionCase(ats, px, _, s, UnionCaseType fs) as node) =
+    let shortExpr =
+        colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
+
+    let longExpr =
+        wordOf
+        +> indent
+        +> sepNln
+        +> atCurrentColumn
+            (col (sepStar +> sepNln) fs (genField { astContext with IsUnionField = true } ""))
+        +> unindent
+
     genPreXmlDoc px
     +> genTriviaBeforeClausePipe node.Range
     +> ifElse astContext.HasVerticalBar sepBar sepNone
     +> genOnelinerAttributes astContext ats -- s
-    +> colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
+    +> expressionFitsOnRestOfLine shortExpr longExpr
     |> genTriviaFor UnionCase_ node.Range
 
 and genEnumCase astContext (EnumCase(ats, px, _, (_,_)) as node) =
