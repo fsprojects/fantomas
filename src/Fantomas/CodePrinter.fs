@@ -660,31 +660,18 @@ and genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
         +> unindent
     | _ -> sepNone
 
-/// Each member is separated by a new line.
 and genMemberBindingList astContext node =
-    let newlineAfterMultiline rest ctx =
-        let expr =
-            match List.tryHead rest with
-            | Some _ -> sepNln
-            | None -> sepNone
-        expr ctx
+    let rec collectItems (node: SynBinding list) =
+        match node with
+        | [] -> []
+        | mb::rest ->
+            let expr = genMemberBinding astContext mb
+            let r = mb.RangeOfBindingSansRhs
+            let sepNln = sepNlnConsideringTriviaContentBeforeForMainNode Binding_ r
+            (expr, sepNln, r)::(collectItems rest)
 
-    match node with
-    | PropertyWithGetSet(gs, rest) ->
-        leadingExpressionIsMultiline
-            (expressionFitsOnRestOfLine
-                (genPropertyWithGetSet astContext gs None)
-                (sepNln +> genPropertyWithGetSet astContext gs None +> newlineAfterMultiline rest))
-            (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) sepNln)
-        +> genMemberBindingList astContext rest
-    | mb::rest ->
-        leadingExpressionIsMultiline
-            (expressionFitsOnRestOfLine
-                (genMemberBinding astContext mb)
-                (genMemberBinding astContext mb +> newlineAfterMultiline rest))
-            (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) sepNln)
-        +> genMemberBindingList astContext rest
-    | _ -> sepNone
+    collectItems node
+    |> colWithNlnWhenItemIsMultiline
 
 and genMemberBinding astContext b =
     match b with

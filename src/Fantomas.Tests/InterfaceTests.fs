@@ -198,3 +198,17 @@ type IFunc<'R> =
     |> should equal """type IFunc<'R> =
     abstract Invoke<'T> : unit -> 'R // without this space the code is invalid
 """
+
+[<Test>]
+let ``interface with get/set members`` () =
+    formatSourceString false """
+type IMyInterface =
+    abstract MyProp : bool with get, set
+    abstract MyMethod : unit -> unit
+"""  config
+    |> prepend newline
+    |> should equal """
+type IMyInterface =
+    abstract MyProp: bool with get, set
+    abstract MyMethod: unit -> unit
+"""
