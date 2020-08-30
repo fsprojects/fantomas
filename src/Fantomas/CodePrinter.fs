@@ -1694,7 +1694,7 @@ and genExpr astContext synExpr =
                         letBindings bs @ synExpr e
                     | Sequentials(s) ->
                         s
-                        |> List.collect(fun e -> synExpr e)
+                        |> List.collect synExpr
                     | _ ->
                         let r = e.Range
                         [ genExpr astContext e, sepNlnForNonSequential e r, r ]

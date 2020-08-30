@@ -185,8 +185,8 @@ let private mapNodeToTriviaNode (node: Node) =
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: range) =
     let hasNoNodesAfterRange =
         triviaNodes
-        |> Seq.filter (fun tn -> tn.Range.EndLine > range.StartLine && isMainNodeButNotAnonModule tn)
-        |> Seq.isEmpty
+        |> Seq.exists (fun tn -> tn.Range.EndLine > range.StartLine && isMainNodeButNotAnonModule tn)
+        |> not
 
     let hasOnlyOneNamedModule =
         triviaNodes
