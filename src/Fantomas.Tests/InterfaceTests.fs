@@ -170,7 +170,6 @@ type MyLogInteface() =
         override x.Version() = ()
 """
 
-
 [<Test>]
 let ``Interface with comment after equal`` () =
     formatSourceString false """
@@ -185,7 +184,6 @@ type IArgParserTemplate =
     abstract Usage: string
 """
 
-
 [<Test>]
 let ``generic interface member should have space after name`` () =
     let source = """
@@ -197,6 +195,48 @@ type IFunc<'R> =
     |> fun formatted -> formatSourceString false formatted config
     |> should equal """type IFunc<'R> =
     abstract Invoke<'T> : unit -> 'R // without this space the code is invalid
+"""
+
+[<Test>]
+let ``long abstract member definition, 435`` () =
+    formatSourceString false """
+type Test =
+    abstract RunJobs: folder:string * ?jobs:string * ?ctm:string * ?createDuplicate:bool * ?hold:bool * ?ignoreCriteria:bool * ?independentFlow:bool * ?orderDate:string * ?orderIntoFolder:string * ?variables:Dictionary<string, string> [] * ?waitForOrderDate:bool
+     -> string
+
+    override this.RunJobs(folder: string, ?jobs: string, ?ctm: string, ?createDuplicate: bool, ?hold: bool,
+                          ?ignoreCriteria: bool, ?independentFlow: bool, ?orderDate: string, ?orderIntoFolder: string,
+                          ?variables: Dictionary<string, string> [], ?waitForOrderDate: bool) =
+        ""
+"""  config
+    |> prepend newline
+    |> should equal """
+type Test =
+    abstract RunJobs: folder:string
+                      * ?jobs:string
+                      * ?ctm:string
+                      * ?createDuplicate:bool
+                      * ?hold:bool
+                      * ?ignoreCriteria:bool
+                      * ?independentFlow:bool
+                      * ?orderDate:string
+                      * ?orderIntoFolder:string
+                      * ?variables:Dictionary<string, string> []
+                      * ?waitForOrderDate:bool
+                      -> string
+
+    override this.RunJobs(folder: string,
+                          ?jobs: string,
+                          ?ctm: string,
+                          ?createDuplicate: bool,
+                          ?hold: bool,
+                          ?ignoreCriteria: bool,
+                          ?independentFlow: bool,
+                          ?orderDate: string,
+                          ?orderIntoFolder: string,
+                          ?variables: Dictionary<string, string> [],
+                          ?waitForOrderDate: bool) =
+        ""
 """
 
 [<Test>]

@@ -508,8 +508,11 @@ open FSharp.Compiler.SourceCodeServices
 [<Sealed>]
 type CodeFormatter =
     /// Parse a source string using given config
-    static member ParseAsync: fileName:string * source:SourceOrigin * parsingOptions:FSharpParsingOptions * checker:FSharpChecker
-         -> Async<(ParsedInput * string list) array>
+    static member ParseAsync: fileName:string
+                              * source:SourceOrigin
+                              * parsingOptions:FSharpParsingOptions
+                              * checker:FSharpChecker
+                              -> Async<(ParsedInput * string list) array>
 """
 
 [<Test>]
