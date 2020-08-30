@@ -3,6 +3,7 @@
 open FSharp.Compiler.SyntaxTree
 open Fantomas.Context
 open Fantomas.SourceParser
+open Fantomas.TriviaTypes
 
 [<RequireQualifiedAccess>]
 module List = 
@@ -65,6 +66,11 @@ let rec (|SigModuleAbbrevL|_|) = function
 let rec (|OpenL|_|) = function
     | Open _ as x::OpenL(xs, ys) -> Some(x::xs, ys)
     | Open _ as x::ys -> Some([x], ys)
+    | _ -> None
+
+let rec (|AttributesL|_|) = function
+    | Attributes _ as x::AttributesL(xs, ys) -> Some(x::xs, ys)
+    | Attributes _ as x::ys -> Some([x], ys)
     | _ -> None
 
 let rec (|SigOpenL|_|) = function
@@ -173,3 +179,15 @@ let rec getSynPatLength (synPat: SynPat) =
         getSynPatLength p + getSynTypeLength t
 
     | _ -> 0
+
+let synModuleDeclToFsAstType = function
+    | SynModuleDecl.DoExpr _ -> SynModuleDecl_DoExpr
+    | SynModuleDecl.Types _ -> SynModuleDecl_Types
+    | SynModuleDecl.NestedModule _ -> SynModuleDecl_NestedModule
+    | SynModuleDecl.Let _ -> SynModuleDecl_Let
+    | SynModuleDecl.Open _ -> SynModuleDecl_Open
+    | SynModuleDecl.ModuleAbbrev _ -> SynModuleDecl_ModuleAbbrev
+    | SynModuleDecl.Exception _ -> SynModuleDecl_Exception
+    | SynModuleDecl.Attributes _ -> SynModuleDecl_Attributes
+    | SynModuleDecl.HashDirective _ -> SynModuleDecl_HashDirective
+    | SynModuleDecl.NamespaceFragment _ -> SynModuleDecl_NamespaceFragment

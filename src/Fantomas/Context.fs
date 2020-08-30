@@ -942,6 +942,14 @@ let internal sepConsideringTriviaContentBefore sepF (key: Choice<FsAstType, FsTo
         range
         ctx
 
+let internal sepConsideringTriviaContentBeforeForToken sepF (fsTokenKey: FsTokenType) (range: range) (ctx: Context) =
+    let findTrivia ctx range = findTriviaOnStartFromRange (Map.tryFindOrEmptyList fsTokenKey ctx.TriviaTokenNodes) range
+    sepConsideringTriviaContentBeforeBy
+        findTrivia
+        sepF
+        range
+        ctx
+
 let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: FsAstType) (range: range) (ctx: Context) =
     let findNode ctx range =
         Map.tryFind mainNodeName ctx.TriviaMainNodes
@@ -951,7 +959,10 @@ let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: Fs
 
 let internal sepNlnConsideringTriviaContentBefore (key: Choice<FsAstType, FsTokenType>) (range:range) = sepConsideringTriviaContentBefore sepNln key range
 
-let internal sepNlnConsideringTriviaContentBeforeFor (mainNode: FsAstType) (range:range) =
+let internal sepNlnConsideringTriviaContentBeforeForToken (fsTokenKey: FsTokenType) (range:range) =
+    sepConsideringTriviaContentBeforeForToken sepNln fsTokenKey range
+
+let internal sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstType) (range:range) =
     sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
 
 let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
@@ -1011,16 +1022,16 @@ let internal sepNlnWhenWriteBeforeNewlineNotEmpty fallback (ctx:Context) =
     else
         fallback ctx
 
-let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth expr (key: Choice<FsAstType, FsTokenType>) range (ctx: Context) =
+let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNlnConsideringTriviaContentBefore expr (ctx: Context) =
     expressionExceedsPageWidth
         sepNone sepNone // before and after for short expressions
-        (sepNlnConsideringTriviaContentBefore key range) sepNone // before and after for long expressions
+        sepNlnConsideringTriviaContentBefore sepNone // before and after for long expressions
         expr ctx
 
-let internal addExtraNewlineIfLeadingWasMultiline leading continuation (key: Choice<FsAstType, FsTokenType>) continuationRange =
+let internal addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTriviaContentBefore continuation =
     leadingExpressionIsMultiline
         leading
-        (fun ml -> sepNln +> onlyIf ml (sepNlnConsideringTriviaContentBefore key continuationRange) +> continuation)
+        (fun ml -> sepNln +> onlyIf ml sepNlnConsideringTriviaContentBefore +> continuation)
 
 /// This helper function takes a list of expressions and ranges.
 /// If the expression is multiline it will add a newline before and after the expression.
@@ -1043,11 +1054,13 @@ let internal addExtraNewlineIfLeadingWasMultiline leading continuation (key: Cho
 ///
 /// The range in the tuple is the range of expression
 
-let internal colWithNlnWhenItemIsMultiline items =
+type internal ColMultilineItem = (Context -> Context) * (Context -> Context) * range
+
+let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
     let firstItemRange = List.tryHead items |> Option.map (fun (_,_,r) -> r)
     let rec impl items =
         match items with
-        | (f1, k1, r1)::(_, k2, r2)::_ ->
+        | (f1, sepNln1, r1)::(_, sepNln2, _)::_ ->
             let f1Expr =
                 match firstItemRange with
                 | Some (fr1) when (fr1 = r1) ->
@@ -1059,10 +1072,10 @@ let internal colWithNlnWhenItemIsMultiline items =
                     ifElseCtx
                         newlineBetweenLastWriteEvent
                         f1
-                        (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f1 k1 r1)
+                        (autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNln1 f1)
 
-            addExtraNewlineIfLeadingWasMultiline f1Expr (impl (List.skip 1 items)) k2 r2
-        | [(f,k,r)] ->
+            addExtraNewlineIfLeadingWasMultiline f1Expr sepNln2 (impl (List.skip 1 items))
+        | [(f, sepNln,r)] ->
             match firstItemRange with
             | Some (fr1) when (fr1 = r) ->
                 // this can only happen when there is only one item in items
@@ -1071,7 +1084,7 @@ let internal colWithNlnWhenItemIsMultiline items =
                 ifElseCtx
                     newlineBetweenLastWriteEvent
                     f
-                    (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f k r)
+                    (autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNln f)
         | [] -> sepNone
     impl items
 

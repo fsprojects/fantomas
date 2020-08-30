@@ -181,9 +181,9 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds
         | Some mdl ->
             match mdl with
             | SynModuleSigDecl.Types _ ->
-                sepNlnConsideringTriviaContentBeforeFor SynModuleSigDecl_Types mdl.Range
+                sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_Types mdl.Range
             | SynModuleSigDecl.Val _ ->
-                sepNlnConsideringTriviaContentBeforeFor ValSpfn_ mdl.Range
+                sepNlnConsideringTriviaContentBeforeForMainNode ValSpfn_ mdl.Range
             | _ -> sepNone
             +> sepNln
 
@@ -208,67 +208,48 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace(ats, px, ao, s, mds
     +> leaveNodeFor SynModuleOrNamespaceSig_NamedModule range
 
 and genModuleDeclList astContext e =
-    match e with
-    | OpenL(xs, ys) ->
-        match ys with
-        | [] -> col sepNln xs (fun mdl -> enterNodeFor SynModuleDecl_Open mdl.Range +> genModuleDecl astContext mdl)
-        | _ ->
-            let sepModuleDecl =
-                match List.tryHead ys with
-                | Some _ -> sepNln
-                | None -> rep 2 sepNln
+    let rec collectItems e =
+        match e with
+        | [] -> []
+        | OpenL (xs, ys) ->
+            let expr = col sepNln xs (genModuleDecl astContext)
 
-            (col sepNln xs (fun mdl -> enterNodeFor SynModuleDecl_Open mdl.Range +> genModuleDecl astContext mdl) +> sepModuleDecl +> genModuleDeclList astContext ys)
-    | m::rest ->
-        let attrs = getRangesFromAttributesFromModuleDeclaration m
+            let r =
+                List.head xs
+                |> fun mdl -> mdl.Range
+            // SynModuleDecl.Open cannot have attributes
+            let sepNln =
+                sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Open r
 
-        let newlineAfterMultiline ctx =
-            let sepNlnConsideringTriviaContentBeforeWithAttributes node (rm:range) attrs =
-                match node with
-                | SynModuleDecl.DoExpr _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_DoExpr rm attrs
-                | SynModuleDecl.Types _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_Types rm attrs
-                | SynModuleDecl.NestedModule _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_NestedModule rm attrs
-                | SynModuleDecl.Let _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_Let rm attrs
-                | SynModuleDecl.Open _ -> sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleDecl_Open rm attrs
-                | _ -> sepNln
+            [ expr, sepNln, r ] @ collectItems ys
+        | AttributesL (xs, y :: rest) ->
+            let attrs =
+                getRangesFromAttributesFromModuleDeclaration y
 
             let expr =
-                match List.tryHead rest with
-                | Some (SynModuleDecl.DoExpr(_, SynExpr.Const(SynConst.Unit,_),rm) as node) ->
-                    sepNlnConsideringTriviaContentBeforeWithAttributes node rm attrs
-                | Some mdl ->
-                  let attrs = getRangesFromAttributesFromModuleDeclaration mdl
-                  sepNln +> sepNlnConsideringTriviaContentBeforeWithAttributes mdl mdl.Range attrs
-                | None -> sepNone
-            expr ctx
+                col sepNln xs (genModuleDecl astContext)
+                +> sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleDeclToFsAstType y) y.Range attrs
+                +> genModuleDecl astContext y
 
-        let mainNodeName =
-            match m with
-            | SynModuleDecl.Let _ -> Some SynModuleDecl_Let
-            | SynModuleDecl.Exception _ -> Some SynModuleDecl_Exception
-            | SynModuleDecl.Types _ -> Some SynModuleDecl_Types
-            | SynModuleDecl.NestedModule _ -> Some SynModuleDecl_NestedModule
-            | SynModuleDecl.DoExpr _ -> Some SynModuleDecl_DoExpr
-            | SynModuleDecl.Open _ -> Some SynModuleDecl_Open
-            | SynModuleDecl.Attributes _ -> Some SynModuleDecl_Attributes
-            | SynModuleDecl.HashDirective _ -> Some SynModuleDecl_HashDirective
-            | _ -> None
+            let r =
+                List.head xs
+                |> fun mdl -> mdl.Range
 
-        (match mainNodeName with
-         | Some mn -> enterNodeFor mn m.Range
-         | None -> id)
-        +> leadingExpressionIsMultiline
-                (expressionFitsOnRestOfLine
-                     (genModuleDecl astContext m)
-                     (match mainNodeName with
-                      | Some mn -> sepNlnBeforeMultilineConstruct mn m.Range attrs
-                      | None -> sepNln
-                      +> genModuleDecl astContext m +> newlineAfterMultiline))
-                (fun multiline -> onlyIf (not multiline && List.isNotEmpty rest) sepNln)
+            let sepNln =
+                sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Attributes r
 
-        +> genModuleDeclList astContext rest
+            [ expr, sepNln, r ] @ collectItems rest
+        | m :: rest ->
+            let attrs =
+                getRangesFromAttributesFromModuleDeclaration m
 
-    | [] -> sepNone
+            let sepNln =
+                sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleDeclToFsAstType m) m.Range attrs
+
+            let expr = genModuleDecl astContext m
+            (expr, sepNln, m.Range) :: (collectItems rest)
+
+    collectItems e |> colWithNlnWhenItemIsMultiline
 
 and genSigModuleDeclList astContext node =
     match node with
@@ -321,7 +302,7 @@ and genSigModuleDeclList astContext node =
                         | SynModuleSigDecl.NamespaceFragment _ -> SynModuleSigDecl_NamespaceFragment
                         | SynModuleSigDecl.ModuleAbbrev _ -> SynModuleSigDecl_ModuleAbbrev
 
-                    sepNln +> sepNlnConsideringTriviaContentBeforeFor mainNode y.Range
+                    sepNln +> sepNlnConsideringTriviaContentBeforeForMainNode mainNode y.Range
                 | None -> rep 2 sepNln
 
             col (rep 2 sepNln) xs (genSigModuleDecl astContext)
@@ -343,7 +324,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                         ifElse
                             prevContentAfterPresent
                             sepNone
-                            (sepNlnConsideringTriviaContentBeforeFor SynModuleDecl_Attributes a.Range)
+                            (sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Attributes a.Range)
                         +> ((col sepNln a.Attributes (genAttribute astContext)) |> genTriviaFor SynAttributeList_ a.Range)
 
                     let hasContentAfter =
@@ -374,14 +355,14 @@ and genModuleDecl astContext (node: SynModuleDecl) =
             match List.tryHead bs with
             | Some b' ->
                 let r = b'.RangeOfBindingSansRhs
-                sepNln +> sepNlnConsideringTriviaContentBeforeFor Binding_ r
+                sepNln +> sepNlnConsideringTriviaContentBeforeForMainNode Binding_ r
             | None -> id
 
         genLetBinding { astContext with IsFirstChild = true } "let rec " b
         +> sepBAndBs
         +> colEx (fun (b': SynBinding) ->
                 let r = b'.RangeOfBindingSansRhs
-                sepNln +> sepNlnConsideringTriviaContentBeforeFor Binding_ r
+                sepNln +> sepNlnConsideringTriviaContentBeforeForMainNode Binding_ r
             ) bs (fun andBinding -> enterNodeFor Binding_ andBinding.RangeOfBindingSansRhs
                                     +> genLetBinding { astContext with IsFirstChild = false } "and " andBinding)
 
@@ -404,24 +385,15 @@ and genModuleDecl astContext (node: SynModuleDecl) =
     | Types(t::ts) ->
         let sepTs =
             match List.tryHead ts with
-            | Some t -> sepNln +> sepNlnConsideringTriviaContentBeforeFor TypeDefn_ t.Range
+            | Some t -> sepNln +> sepNlnConsideringTriviaContentBeforeForMainNode TypeDefn_ t.Range
             | None -> rep 2 sepNln
 
         genTypeDefn { astContext with IsFirstChild = true } t
         +> colPreEx sepTs (fun (ty: SynTypeDefn) ->
-                            sepNln +> sepNlnConsideringTriviaContentBeforeFor TypeDefn_ ty.Range) ts (genTypeDefn { astContext with IsFirstChild = false })
+                            sepNln +> sepNlnConsideringTriviaContentBeforeForMainNode TypeDefn_ ty.Range) ts (genTypeDefn { astContext with IsFirstChild = false })
     | md ->
         failwithf "Unexpected module declaration: %O" md
-    +> fun ctx ->
-                    match node with
-                    | SynModuleDecl.Exception _ -> leaveNodeFor SynModuleDecl_Exception node.Range ctx
-                    | SynModuleDecl.Let _ -> leaveNodeFor SynModuleDecl_Let node.Range ctx
-                    | SynModuleDecl.Types _ -> leaveNodeFor SynModuleDecl_Types node.Range ctx
-                    | SynModuleDecl.NestedModule _ -> leaveNodeFor SynModuleDecl_NestedModule node.Range ctx
-                    | SynModuleDecl.DoExpr _ -> leaveNodeFor SynModuleDecl_DoExpr node.Range ctx
-                    | SynModuleDecl.Open _ -> leaveNodeFor SynModuleDecl_Open node.Range ctx
-                    | SynModuleDecl.Attributes _ -> leaveNodeFor SynModuleDecl_Attributes node.Range ctx
-                    | _ -> ctx
+    |> genTriviaFor (synModuleDeclToFsAstType node) node.Range
 
 and genSigModuleDecl astContext node =
     match node with
@@ -1300,11 +1272,11 @@ and genExpr astContext synExpr =
             | AndBangStatement (_, _, r) -> r
             | OtherStatement expr -> expr.Range
 
-        let getKey ces =
+        let getSepNln ces r =
             match ces with
-            | LetOrUseStatement _ -> Binding_ |> Choice1Of2
-            | LetOrUseBangStatement _ -> SynExpr_LetOrUseBang |> Choice1Of2
-            | AndBangStatement _ -> AND_BANG |> Choice2Of2
+            | LetOrUseStatement _ -> sepNlnConsideringTriviaContentBeforeForMainNode Binding_ r
+            | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_LetOrUseBang r
+            | AndBangStatement _ -> sepNlnConsideringTriviaContentBeforeForToken AND_BANG r
             | OtherStatement e ->
                 match e with
                 | SynExpr.App _ -> SynExpr_App
@@ -1315,10 +1287,14 @@ and genExpr astContext synExpr =
                 | SynExpr.Do _ -> SynExpr_Do
                 | SynExpr.DoBang _ -> SynExpr_DoBang
                 | _ -> SynExpr_Const
-                |> Choice1Of2
+                |> fun mn -> sepNlnConsideringTriviaContentBeforeForMainNode mn r
 
         statements
-        |> List.map (fun ces -> genCompExprStatement astContext ces, getKey ces, getRangeOfCompExprStatement ces)
+        |> List.map (fun ces ->
+            let expr = genCompExprStatement astContext ces
+            let r = getRangeOfCompExprStatement ces
+            let sepNln = getSepNln ces r
+            expr, sepNln, r)
         |> colWithNlnWhenItemIsMultiline
 
     | ArrayOrListOfSeqExpr(isArray, e) as aNode ->
@@ -1654,11 +1630,11 @@ and genExpr astContext synExpr =
                             enterNodeFor Binding_ x.RangeOfBindingSansRhs
                             +> genLetBinding { astContext with IsFirstChild = p <> "and" } p x
 
-                        let key = Binding_ |> Choice1Of2
                         let range = x.RangeOfBindingSansRhs
-                        expr, key, range)
+                        let sepNln =  sepNlnConsideringTriviaContentBeforeForMainNode Binding_ range
+                        expr, sepNln, range)
 
-                let synExprKeyForNonSequential e =
+                let sepNlnForNonSequential e r =
                     match e with
                     | SynExpr.YieldOrReturn _ -> SynExpr_YieldOrReturn
                     | SynExpr.IfThenElse _ -> SynExpr_IfThenElse
@@ -1723,7 +1699,7 @@ and genExpr astContext synExpr =
                     | SynExpr.Fixed _ -> SynExpr_Fixed
                     | SynExpr.InterpolatedString _ -> SynExpr_InterpolatedString
                     | SynExpr.Sequential _ -> failwith "should not be called with Sequential"
-                    |> Choice1Of2
+                    |> fun mn -> sepNlnConsideringTriviaContentBeforeForMainNode mn r
 
                 let rec synExpr e =
                     match e with
@@ -1733,7 +1709,8 @@ and genExpr astContext synExpr =
                         s
                         |> List.collect(fun e -> synExpr e)
                     | _ ->
-                        [ genExpr astContext e, synExprKeyForNonSequential e, e.Range ]
+                        let r = e.Range
+                        [ genExpr astContext e, sepNlnForNonSequential e r, r ]
 
                 let items = letBindings bs @ synExpr e
 
