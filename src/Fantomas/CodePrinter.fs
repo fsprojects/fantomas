@@ -1732,14 +1732,9 @@ and genExpr astContext synExpr =
             +> indent +> sepNln +> genExpr astContext e2 +> unindent)
 
     | SequentialSimple es | Sequentials es ->
-        // This is one situation where the trivia needs to printed before atCurrentColumn due to compiler restriction (last tested FCS 32)
-        // If the trivia would be printed in a AtCurrentColumn block that code would be started too far off,
-        // and thus, engender compile errors.
-        // See :
-        // * https://github.com/fsprojects/fantomas/issues/478
-        // * https://github.com/fsprojects/fantomas/issues/513
-        firstNewlineOrComment es
-        +> atCurrentColumn (colEx (fun (e:SynExpr) -> sepConsideringTriviaContentBefore sepSemiNln (Choice1Of2 SynExpr_IfThenElse) e.Range ) es (genExpr astContext))
+        atCurrentColumn
+            (colEx (fun (e: SynExpr) -> sepConsideringTriviaContentBefore sepSemiNln (Choice1Of2 SynExpr_IfThenElse) e.Range)
+                 es (genExpr astContext))
 
     | IfThenElse(e1, e2, None, mIfToThen) ->
         fun (ctx:Context) ->
