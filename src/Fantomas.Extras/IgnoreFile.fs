@@ -9,12 +9,12 @@ module IgnoreFile =
     [<Literal>]
     let IgnoreFileName = ".fantomasignore"
 
-    let private ignoreFile () =  Path.Combine(Directory.GetCurrentDirectory(), IgnoreFileName)
+    let private getIgnoreFilePath () =  Path.Combine(Directory.GetCurrentDirectory(), IgnoreFileName)
 
-    let ignores = lazy IgnoreList(ignoreFile ())
+    let ignores = lazy IgnoreList(getIgnoreFilePath ())
 
     let private hasNoIgnoreFile () =
-        let path = ignoreFile ()
+        let path = getIgnoreFilePath ()
         File.Exists path
         |> not
 
@@ -23,6 +23,7 @@ module IgnoreFile =
             false
         else
             try
+                printfn ".fantomasignore at %s" (getIgnoreFilePath ())
                 let fullPath = Path.GetFullPath(file)
                 if isNull fullPath then
                     failwithf "Path.GetFullPath is null for %s" file

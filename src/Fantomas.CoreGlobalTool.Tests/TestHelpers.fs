@@ -4,6 +4,7 @@ open System
 open System.Diagnostics
 open System.IO
 open System.Text
+open Fantomas.Extras
 
 type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: bool, ?fileName: string, ?subFolder: string) =
     let hasByteOrderMark = defaultArg hasByteOrderMark false
@@ -54,7 +55,7 @@ type ConfigurationFile internal (content: string) =
                 File.Delete(filename)
 
 type FantomasIgnoreFile internal (content: string) =
-    let filename = Path.Join(Path.GetTempPath(), ".fantomasignore")
+    let filename = Path.Join(Path.GetTempPath(), IgnoreFile.IgnoreFileName)
     do File.WriteAllText(filename, content)
     member _.Filename: string = filename
     interface IDisposable with
