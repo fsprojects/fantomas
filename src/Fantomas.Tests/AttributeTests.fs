@@ -307,6 +307,7 @@ let main argv =
     printfn "Nice command-line arguments! Here's what JSON.NET has to say about them:" argv
     |> Array.map getJsonNetJson
     |> Array.iter(printfn "%s")
+
     0 // return an integer exit code
 """
 
@@ -485,6 +486,22 @@ open System.Runtime.InteropServices
 """
 
 [<Test>]
+let ``line comment between attributes and do expression`` () =
+    formatSourceString false """
+[<Foo>]
+[<Bar>]
+// barry
+printfn "meh"
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Foo>]
+[<Bar>]
+// barry
+printfn "meh"
+"""
+
+[<Test>]
 let ``multiple attributes inside SynAttributes that exceeds max line length, 629`` () =
     formatSourceString false """
 //[<ApiExplorerSettings(IgnoreApi = true)>]
@@ -570,7 +587,6 @@ type RoleAdminImportController(akkaService: AkkaService) =
                   DryRun = args.DryRun }
 
             importer.ApiMaster <! StartImportCmd job
-
             return Ok job
            }
 """

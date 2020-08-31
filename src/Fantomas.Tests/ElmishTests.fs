@@ -662,6 +662,7 @@ open Feliz
 let counter =
     React.functionComponent (fun () ->
         let (count, setCount) = React.useState (0)
+
         Html.div [
             Html.button [
                 prop.style [ style.marginRight 5 ]

@@ -100,6 +100,7 @@ let ``number in the filename should not end up in the module name`` () =
         |> String.normalizeNewLine
         |> should equal """let simplePatternMatch =
     let x = "a"
+
     match x with
     | "a" -> printfn "x is a"
     | "b" -> printfn "x is b"

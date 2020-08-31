@@ -330,12 +330,14 @@ let start (args: IArgs) =
     try
         try
             let giraffeApp = configureGiraffeApp args
+
             WebHost.CreateDefaultBuilder().UseWebRoot(args.ClientPath)
 #if DEBUG
                    .UseContentRoot(args.ContentRoot).UseUrls(args.Host + ":" + string args.Port)
 #endif
                    .UseSerilog().Configure(Action<IApplicationBuilder>(configureApp giraffeApp))
                    .ConfigureServices(configureServices args).Build().Run()
+
             0
         with ex ->
             Log.Fatal(ex, "Host terminated unexpectedly")
@@ -856,7 +858,7 @@ let foo = ()
 """
 
 [<Test>]
-let ``hash directive between attributes`` () =
+let ``hash directive between attributes, no defines`` () =
     formatSourceStringWithDefines [] """[<assembly:Foo()>]
 #if BAR
 [<assembly:Bar()>]
@@ -871,7 +873,6 @@ do  ()
 
 #endif
 [<assembly:Meh>]
-
 do ()
 """
 
@@ -891,7 +892,25 @@ do  ()
 [<assembly:Bar>]
 #endif
 [<assembly:Meh>]
+do ()
+"""
 
+[<Test>]
+let ``hash directive between attributes`` () =
+    formatSourceString false """[<assembly:Foo()>]
+#if BAR
+[<assembly:Bar()>]
+#endif
+[<assembly:Meh()>]
+do  ()
+"""  config
+    |> prepend newline
+    |> should equal """
+[<assembly:Foo>]
+#if BAR
+[<assembly:Bar>]
+#endif
+[<assembly:Meh>]
 do ()
 """
 

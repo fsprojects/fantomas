@@ -4,36 +4,9 @@ open Fantomas
 open Fantomas.Context
 open Fantomas.TriviaTypes
 open FSharp.Compiler.Range
-open FSharp.Compiler.SyntaxTree
 
 let tokN (range: range) (tokenName: FsTokenType) f =
     enterNodeTokenByName range tokenName +> f +> leaveNodeTokenByName range tokenName
-
-let firstNewlineOrComment (es: SynExpr list) (ctx: Context) =
-    let triviaNodes =
-        [ yield! (Map.tryFindOrEmptyList SynExpr_App ctx.TriviaMainNodes)
-          yield! (Map.tryFindOrEmptyList SynExpr_DoBang ctx.TriviaMainNodes)
-          yield! (Map.tryFindOrEmptyList SynExpr_YieldOrReturnFrom ctx.TriviaMainNodes) ]
-
-    es
-    |> List.tryHead
-    |> Option.bind (fun e -> TriviaHelpers.findByRange triviaNodes e.Range)
-    |> fun cb ->
-        match cb with
-        | Some ({ ContentBefore = (TriviaContent.Newline|TriviaContent.Comment _) as head ::rest } as tn) ->
-            let mapNode t = if t = tn then { tn with ContentBefore = rest } else t
-
-            let updatedTriviaMainNodes =
-                match tn.Type with
-                | MainNode(mn) ->
-                    let nodes = Map.find mn ctx.TriviaMainNodes
-                    List.map mapNode nodes
-                    |> fun newNodes -> Map.add mn newNodes ctx.TriviaMainNodes
-                | _ -> ctx.TriviaMainNodes
-
-            let ctx' = { ctx with TriviaMainNodes = updatedTriviaMainNodes }
-            printTriviaContent head ctx'
-        | _ -> sepNone ctx
 
 let triviaAfterArrow (range: range) (ctx: Context) =
     let hasCommentAfterArrow =

@@ -238,3 +238,17 @@ type Test =
                           ?waitForOrderDate: bool) =
         ""
 """
+
+[<Test>]
+let ``interface with get/set members`` () =
+    formatSourceString false """
+type IMyInterface =
+    abstract MyProp : bool with get, set
+    abstract MyMethod : unit -> unit
+"""  config
+    |> prepend newline
+    |> should equal """
+type IMyInterface =
+    abstract MyProp: bool with get, set
+    abstract MyMethod: unit -> unit
+"""

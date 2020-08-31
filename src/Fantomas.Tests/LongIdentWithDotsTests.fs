@@ -192,11 +192,13 @@ module Client =
             .Login(fun e ->
                   passwordValid
                   := not (String.IsNullOrWhiteSpace e.Vars.Password.Value)
+
                   emailValid
                   := not (String.IsNullOrWhiteSpace e.Vars.Email.Value)
 
                   if passwordValid.Value && emailValid.Value
                   then JS.Alert(sprintf "Your email is %s" e.Vars.Email.Value)
+
                   e.Event.PreventDefault()).Bind()
 """
 

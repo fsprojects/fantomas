@@ -25,6 +25,7 @@ type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) 
     do
         if balanceAtTheMomentOfSending < valueToSend then
             invalidArg "balanceAtTheMomentOfSending" "some very very long error message"
+
         if valueToSend <= 0m then
             invalidArg "valueToSend" "Amount has to be above zero"
 """
@@ -49,6 +50,7 @@ type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) 
             invalidArg
                 "balanceAtTheMomentOfSending"  // comment
                 "some very very long error message" // comment
+
         if valueToSend <= 0m then // comment
             invalidArg "valueToSend" "Amount has to be above zero" // comment
 """

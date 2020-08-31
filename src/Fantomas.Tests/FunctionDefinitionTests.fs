@@ -126,6 +126,7 @@ let ``let bindings with return types``() =
 let divide x y =
     let stream: System.IO.FileStream = System.IO.File.Create("test.txt")
     let writer: System.IO.StreamWriter = new System.IO.StreamWriter(stream)
+
     try
         writer.WriteLine("test1")
         Some(x / y)
@@ -393,6 +394,7 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq)
 
     let runValidator (validator : ResultFunc<'Input, 'Output, 'TError>) input =
         let validatorResult = validator input
+
         match validatorResult with
         | Error error ->
             anyErrors <- true
@@ -400,6 +402,7 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq)
         | Ok output -> collectedOutputs <- output :: collectedOutputs
 
     funcs |> Seq.iter (fun validator -> runValidator validator input)
+
     match anyErrors with
     | true -> Error collectedErrors
     | false -> Ok collectedOutputs
@@ -646,6 +649,7 @@ let rec run
     : HttpResponse
     =
     logAnalyticsForRequest log req
+
     Http.main
         CodeFormatter.GetVersion
         format

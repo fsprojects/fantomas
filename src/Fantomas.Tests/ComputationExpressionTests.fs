@@ -1403,7 +1403,9 @@ let initDb () =
     if not (File.Exists(dbFileName)) then
         let dbFile = File.Create(dbFileName)
         dbFile.Dispose() |> ignore
+
     let createSql = readSqlFile "create"
+
     using (connection ()) (fun conn ->
         task {
             do! conn.OpenAsync()
@@ -1442,6 +1444,7 @@ let private removeSubscription (log : ILogger) (req : HttpRequest) =
     |> should equal """
 let private removeSubscription (log : ILogger) (req : HttpRequest) =
     log.LogInformation("Start remove-subscription")
+
     task {
         let origin = req.Headers.["Origin"].ToString()
         let user = Authentication.getUser log req

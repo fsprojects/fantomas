@@ -246,6 +246,20 @@ let internal lastWriteEventIsNewline ctx =
     |> Option.map (function | WriteLine -> true | _ -> false)
     |> Option.defaultValue false
 
+let private (|CommentOrDefineEvent|_|) we =
+    match we with
+    | Write (w) when (String.startsWithOrdinal "//" w) ->
+        Some we
+    | Write (w) when (String.startsWithOrdinal "#if" w) ->
+        Some we
+    | Write (w) when (String.startsWithOrdinal "#else" w) ->
+        Some we
+    | Write (w) when (String.startsWithOrdinal "#endif" w) ->
+        Some we
+    | Write (w) when (String.startsWithOrdinal "(*" w) ->
+        Some we
+    | _ -> None
+
 /// Validate if there is a complete blank line between the last write event and the last event
 let internal newlineBetweenLastWriteEvent ctx =
     ctx.WriterEvents
@@ -604,10 +618,27 @@ let internal leadingExpressionLong threshold leadingExpression continuationExpre
     let (lineCountAfter, columnAfter) = List.length contextAfterLeading.WriterModel.Lines, contextAfterLeading.WriterModel.Column
     continuationExpression (lineCountAfter > lineCountBefore || (columnAfter - columnBefore > threshold)) contextAfterLeading
 
+/// A leading expression is not consider multiline if it has a comment before it.
+/// For example
+/// let a = 7
+/// // foo
+/// let b = 8
+/// let c = 9
+/// The second binding b is not consider multiline.
 let internal leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: Context) =
     let eventCountBeforeExpression = Queue.length ctx.WriterEvents
     let contextAfterLeading = leadingExpression ctx
-    let hasWriteLineEventsAfterExpression = contextAfterLeading.WriterEvents |> Queue.skipExists eventCountBeforeExpression (function | WriteLine _ -> true | _ -> false)
+
+    let hasWriteLineEventsAfterExpression =
+        contextAfterLeading.WriterEvents
+        |> Queue.skipExists eventCountBeforeExpression (function
+            | WriteLine _ -> true
+            | _ -> false) (fun e ->
+                match e with
+                | [| CommentOrDefineEvent(_) |]
+                | [| WriteLine |]
+                | [| Write "" |] -> true
+                | _ -> false)
 
     continuationExpression hasWriteLineEventsAfterExpression contextAfterLeading
 
@@ -890,14 +921,13 @@ let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
     |> List.exists (fun tn ->
         match tn with
-        | Comment(_) -> true
-        | Newline -> true
+        | Comment _
+        | Newline
+        | Directive _ -> true
         | _ -> false)
 
 let private sepConsideringTriviaContentBeforeBy (findNode: Context -> range -> TriviaNode option) (sepF: Context -> Context) (range: range) (ctx: Context) =
     match findNode ctx range with
-    | Some({ ContentBefore = (Comment(BlockComment(_,false,_)))::_ }) ->
-        sepF ctx
     | Some({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) ->
         ctx
     | _ -> sepF ctx
@@ -914,6 +944,14 @@ let internal sepConsideringTriviaContentBefore sepF (key: Choice<FsAstType, FsTo
         range
         ctx
 
+let internal sepConsideringTriviaContentBeforeForToken sepF (fsTokenKey: FsTokenType) (range: range) (ctx: Context) =
+    let findTrivia ctx range = findTriviaOnStartFromRange (Map.tryFindOrEmptyList fsTokenKey ctx.TriviaTokenNodes) range
+    sepConsideringTriviaContentBeforeBy
+        findTrivia
+        sepF
+        range
+        ctx
+
 let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: FsAstType) (range: range) (ctx: Context) =
     let findNode ctx range =
         Map.tryFind mainNodeName ctx.TriviaMainNodes
@@ -923,7 +961,10 @@ let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: Fs
 
 let internal sepNlnConsideringTriviaContentBefore (key: Choice<FsAstType, FsTokenType>) (range:range) = sepConsideringTriviaContentBefore sepNln key range
 
-let internal sepNlnConsideringTriviaContentBeforeFor (mainNode: FsAstType) (range:range) =
+let internal sepNlnConsideringTriviaContentBeforeForToken (fsTokenKey: FsTokenType) (range:range) =
+    sepConsideringTriviaContentBeforeForToken sepNln fsTokenKey range
+
+let internal sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstType) (range:range) =
     sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
 
 let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
@@ -972,8 +1013,8 @@ let internal sepNlnForEmptyNamespace (namespaceRange:range) ctx =
 
 let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
     match firstMemberRange with
-    | Some _range when (ctx.Config.NewlineBetweenTypeDefinitionAndMembers) ->
-        sepNln ctx
+    | Some range when (ctx.Config.NewlineBetweenTypeDefinitionAndMembers) ->
+        sepNlnConsideringTriviaContentBeforeForMainNode SynMemberDefn_Member range ctx
     | _ ->
         ctx
 
@@ -983,16 +1024,16 @@ let internal sepNlnWhenWriteBeforeNewlineNotEmpty fallback (ctx:Context) =
     else
         fallback ctx
 
-let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth expr (key: Choice<FsAstType, FsTokenType>) range (ctx: Context) =
+let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNlnConsideringTriviaContentBefore expr (ctx: Context) =
     expressionExceedsPageWidth
         sepNone sepNone // before and after for short expressions
-        (sepNlnConsideringTriviaContentBefore key range) sepNone // before and after for long expressions
+        sepNlnConsideringTriviaContentBefore sepNone // before and after for long expressions
         expr ctx
 
-let internal addExtraNewlineIfLeadingWasMultiline leading continuation (key: Choice<FsAstType, FsTokenType>) continuationRange =
+let internal addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTriviaContentBefore continuation =
     leadingExpressionIsMultiline
         leading
-        (fun ml -> sepNln +> onlyIf ml (sepNlnConsideringTriviaContentBefore key continuationRange) +> continuation)
+        (fun ml -> sepNln +> onlyIf ml sepNlnConsideringTriviaContentBefore +> continuation)
 
 /// This helper function takes a list of expressions and ranges.
 /// If the expression is multiline it will add a newline before and after the expression.
@@ -1015,11 +1056,13 @@ let internal addExtraNewlineIfLeadingWasMultiline leading continuation (key: Cho
 ///
 /// The range in the tuple is the range of expression
 
-let internal colWithNlnWhenItemIsMultiline items =
+type internal ColMultilineItem = (Context -> Context) * (Context -> Context) * range
+
+let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
     let firstItemRange = List.tryHead items |> Option.map (fun (_,_,r) -> r)
     let rec impl items =
         match items with
-        | (f1, k1, r1)::(_, k2, r2)::_ ->
+        | (f1, sepNln1, r1)::(_, sepNln2, _)::_ ->
             let f1Expr =
                 match firstItemRange with
                 | Some (fr1) when (fr1 = r1) ->
@@ -1031,10 +1074,10 @@ let internal colWithNlnWhenItemIsMultiline items =
                     ifElseCtx
                         newlineBetweenLastWriteEvent
                         f1
-                        (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f1 k1 r1)
+                        (autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNln1 f1)
 
-            addExtraNewlineIfLeadingWasMultiline f1Expr (impl (List.skip 1 items)) k2 r2
-        | [(f,k,r)] ->
+            addExtraNewlineIfLeadingWasMultiline f1Expr sepNln2 (impl (List.skip 1 items))
+        | [(f, sepNln,r)] ->
             match firstItemRange with
             | Some (fr1) when (fr1 = r) ->
                 // this can only happen when there is only one item in items
@@ -1043,7 +1086,7 @@ let internal colWithNlnWhenItemIsMultiline items =
                 ifElseCtx
                     newlineBetweenLastWriteEvent
                     f
-                    (autoNlnConsideringTriviaIfExpressionExceedsPageWidth f k r)
+                    (autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNln f)
         | [] -> sepNone
     impl items
 
@@ -1086,20 +1129,6 @@ let internal lastLineOnlyContains characters (ctx: Context) =
         (writeEventsOnLastLine ctx |> String.concat "").Trim(characters)
     let length = String.length lastLine
     length = 0 || length < ctx.Config.IndentSize
-
-let private (|CommentOrDefineEvent|_|) we =
-    match we with
-    | Write (w) when (String.startsWithOrdinal "//" w) ->
-        Some we
-    | Write (w) when (String.startsWithOrdinal "#if" w) ->
-        Some we
-    | Write (w) when (String.startsWithOrdinal "#else" w) ->
-        Some we
-    | Write (w) when (String.startsWithOrdinal "#endif" w) ->
-        Some we
-    | Write (w) when (String.startsWithOrdinal "(*" w) ->
-        Some we
-    | _ -> None
 
 // Add a newline when the previous code is only one line above the current location
 // For example

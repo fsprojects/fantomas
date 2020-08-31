@@ -192,7 +192,7 @@ module private Ast =
               FsAstNode = synExpr
               Childs = [ yield! exprs |> List.map visitSynExpr ] }
         | SynExpr.ArrayOrList (isList, exprs, range) ->
-            { Type = SynExpr_StructTuple
+            { Type = SynExpr_ArrayOrList
               Range = r range
               Properties = p [ "isList" ==> isList ]
               FsAstNode = synExpr

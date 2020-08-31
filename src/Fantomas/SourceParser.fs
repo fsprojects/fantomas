@@ -820,12 +820,14 @@ let rec collectComputationExpressionStatements e : ComputationExpressionStatemen
     | expr -> [ OtherStatement expr ]
 
 /// Matches if the SynExpr has some or of computation expression member call inside.
-let (|CompExprBody|_|) expr =
+let rec (|CompExprBody|_|) expr =
     match expr with
-    | SynExpr.LetOrUse(_,_,_, SynExpr.LetOrUseBang(_), _) ->
+    | SynExpr.LetOrUse(_,_,_, CompExprBody(_), _) ->
         Some expr
     | SynExpr.LetOrUseBang _ -> Some expr
     | SynExpr.Sequential(_,_, _, SynExpr.YieldOrReturn(_), _) -> Some expr
+    | SynExpr.Sequential(_,_, _, SynExpr.LetOrUse(_), _) -> Some expr
+    | SynExpr.Sequential(_,_, SynExpr.DoBang _, SynExpr.LetOrUseBang _, _) -> Some expr
     | _ -> None
 
 let (|ForEach|_|) = function
