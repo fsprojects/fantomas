@@ -9,7 +9,7 @@ module IgnoreFile =
     [<Literal>]
     let IgnoreFileName = ".fantomasignore"
 
-    let private getIgnoreFilePath () =  Path.Combine(Directory.GetCurrentDirectory(), IgnoreFileName).TrimStart('/');
+    let private getIgnoreFilePath () =  Path.Combine(Directory.GetCurrentDirectory(), IgnoreFileName)
 
     let ignores = lazy IgnoreList(getIgnoreFilePath ())
 
