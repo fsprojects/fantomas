@@ -22,5 +22,10 @@ module IgnoreFile =
         if hasNoIgnoreFile () then
             false
         else
-            let fullPath = Path.GetFullPath(file)
-            ignores.Value.IsIgnored(fullPath, false)
+            try
+                let fullPath = Path.GetFullPath(file)
+                ignores.Value.IsIgnored(fullPath, false)
+            with
+            | ex ->
+                printfn "%A" ex
+                false
