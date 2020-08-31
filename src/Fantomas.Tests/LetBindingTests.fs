@@ -917,32 +917,6 @@ There is a problem with merging all the code back togheter. Please raise an issu
 "
 
 [<Test>]
-let meh () =
-    formatSourceString false "
-let merge a b =
-    let aChunks = splitWhenHash a
-    let bChunks = splitWhenHash b
-
-    if List.length aChunks <> List.length bChunks then
-        Dbg.print (aChunks, bChunks)
-        failwithf \"\"\"Fantomas is tryiissues.\"\"\"
-
-    List.zip aChunks bChunks
-"    config
-    |> prepend newline
-    |> should equal "
-let merge a b =
-    let aChunks = splitWhenHash a
-    let bChunks = splitWhenHash b
-
-    if List.length aChunks <> List.length bChunks then
-        Dbg.print (aChunks, bChunks)
-        failwithf \"\"\"Fantomas is tryiissues.\"\"\"
-
-    List.zip aChunks bChunks
-"
-
-[<Test>]
 let ``multiline expressions within sequential should be separated with new lines`` () =
     formatSourceString false """
 let x =

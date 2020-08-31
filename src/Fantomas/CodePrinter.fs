@@ -1606,7 +1606,7 @@ and genExpr astContext synExpr =
             if isInSameLine ctx then
                 atCurrentColumn
                     (col sepNone bs (fun (p,x) -> genLetBinding { astContext with IsFirstChild = p <> "and" } p x)
-                     +> (!- " in ")
+                     -- " in "
                      +> genExpr astContext e)
                      ctx
             else
@@ -1636,7 +1636,6 @@ and genExpr astContext synExpr =
                         [ genExpr astContext e, sepNlnForNonSequential e r, r ]
 
                 let items = letBindings bs @ synExpr e
-
                 atCurrentColumn(colWithNlnWhenItemIsMultiline items) ctx
 
     // Could customize a bit if e is single line
@@ -1659,7 +1658,7 @@ and genExpr astContext synExpr =
         let items =
             es
             |> List.map (fun e ->
-                let expr = dumpAndContinue +> genExpr astContext e
+                let expr = genExpr astContext e
                 let r = e.Range
                 let sepNln = sepConsideringTriviaContentBeforeForMainNode sepSemiNln (synExprToFsAstType e) r
                 expr, sepNln, r)
