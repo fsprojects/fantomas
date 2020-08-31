@@ -5,6 +5,7 @@ open System.IO
 open FSharp.Compiler.SourceCodeServices
 open Fantomas
 open Fantomas.FormatConfig
+open Fantomas.Extras
 
 // Share an F# checker instance across formatting calls
 let sharedChecker = lazy(FSharpChecker.Create())
@@ -36,41 +37,50 @@ type FormatResult =
     | Formatted of filename : string * formattedContent : string
     | Unchanged of filename : string
     | Error of filename : string * formattingError : Exception
+    | IgnoredFile of filename: string
 
 let createParsingOptionsFromFile fileName =
     { FSharpParsingOptions.Default with SourceFiles = [|fileName|] }
 
 let formatContentAsync config (file: string) (originalContent: string) =
-    async {
-        try
-            let fileName =
-                if Path.GetExtension(file) = ".fsi" then "tmp.fsi" else "tmp.fsx"
+    if IgnoreFile.isIgnoredFile file then
+        async { return IgnoredFile file }
+    else
+        async {
+            try
+                let fileName =
+                    if Path.GetExtension(file) = ".fsi" then "tmp.fsi" else "tmp.fsx"
 
-            let! formattedContent =
-                CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString originalContent, config,
-                                                  createParsingOptionsFromFile fileName ,sharedChecker.Value)
+                let! formattedContent =
+                    CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString originalContent, config,
+                                                      createParsingOptionsFromFile fileName ,sharedChecker.Value)
 
-            if originalContent <> formattedContent then
-                let! isValid =
-                    CodeFormatter.IsValidFSharpCodeAsync(fileName, (SourceOrigin.SourceString(formattedContent)),
-                                                         createParsingOptionsFromFile fileName, sharedChecker.Value)
-                if not isValid  then
-                    raise <| FormatException "Formatted content is not valid F# code"
+                if originalContent <> formattedContent then
+                    let! isValid =
+                        CodeFormatter.IsValidFSharpCodeAsync(fileName, (SourceOrigin.SourceString(formattedContent)),
+                                                             createParsingOptionsFromFile fileName, sharedChecker.Value)
+                    if not isValid  then
+                        raise <| FormatException "Formatted content is not valid F# code"
 
-                return Formatted(filename=file, formattedContent=formattedContent)
-            else
-                return Unchanged(filename=file)
-        with
-        | ex -> return Error(file, ex)
-    }
+                    return Formatted(filename=file, formattedContent=formattedContent)
+                else
+                    return Unchanged(filename=file)
+            with
+            | ex -> return Error(file, ex)
+        }
 
 let formatFileAsync (file : string) =
     let config = EditorConfig.readConfiguration file
-    let originalContent = File.ReadAllText file
-    async {
-        let! formatted = originalContent |> formatContentAsync config file
-        return formatted
-    }
+
+    if IgnoreFile.isIgnoredFile file then
+        async { return IgnoredFile file }
+    else
+        let originalContent = File.ReadAllText file
+
+        async {
+            let! formatted = originalContent |> formatContentAsync config file
+            return formatted
+        }
 
 let formatFilesAsync files =
     files
@@ -92,7 +102,7 @@ let formatCode files =
         if not <| Array.isEmpty errors then
             raise <| CodeFormatException errors
 
-        // Overwritte source files with formatted content
+        // Overwrite source files with formatted content
         let result =
             results
             |> Array.choose (fun x ->
@@ -123,12 +133,14 @@ type CheckResult =
 let checkCode (filenames: seq<string>) =
     async {
         let! formatted = filenames
+                         |> Seq.filter (IgnoreFile.isIgnoredFile >> not)
                          |> Seq.map formatFileAsync
                          |> Async.Parallel
 
         let getChangedFile =
             function
-            | FormatResult.Unchanged(_) -> None
+            | FormatResult.Unchanged _
+            | FormatResult.IgnoredFile _ -> None
             | FormatResult.Formatted(f,_)
             | FormatResult.Error(f,_) -> Some f
 

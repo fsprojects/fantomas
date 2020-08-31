@@ -65,7 +65,7 @@ let isFSharpFile (s: string) = Set.contains (Path.GetExtension s) extensions
 let rec allFiles isRec path =
     let searchOption = (if isRec then SearchOption.AllDirectories else SearchOption.TopDirectoryOnly)
     Directory.GetFiles(path, "*.*", searchOption)
-    |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
+    |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f) && not (IgnoreFile.isIgnoredFile(f)))
 
 /// Fantomas assumes the input files are UTF-8
 /// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
@@ -99,6 +99,8 @@ let processSourceString isFsiFile s (tw : Choice<TextWriter, string>) config =
             formattedContent |> writeResult
         | FakeHelpers.FormatResult.Unchanged(_) ->
             s |> writeResult
+        | FakeHelpers.IgnoredFile file ->
+            printfn "'%s' was ignored" file
         | FakeHelpers.FormatResult.Error(_, ex) ->
             raise <| ex
     }
@@ -116,6 +118,8 @@ let processSourceFile inFile (tw : TextWriter) =
             inFile
             |> File.ReadAllText
             |> tw.Write
+        | FakeHelpers.IgnoredFile file ->
+            printfn "'%s' was ignored" file
         | FakeHelpers.FormatResult.Error(_, ex) ->
             raise <| ex
     }
@@ -171,6 +175,9 @@ let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
     | InputPath.Unspecified
     | InputPath.StdIn(_) ->
         eprintfn "No input path provided. Nothing to do."
+        0
+    | InputPath.File f when (IgnoreFile.isIgnoredFile f) ->
+        printfn "'%s' was ignored" f
         0
     | InputPath.File(path) ->
         path
@@ -327,6 +334,8 @@ let main argv =
                 | InputPath.Unspecified, _ ->
                     eprintfn "Input path is missing..."
                     exit 1
+                | InputPath.File f, _ when (IgnoreFile.isIgnoredFile f) ->
+                    printfn "'%s' was ignored" f
                 | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
                 | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1
                 | InputPath.File p1, OutputPath.IO p2 ->
