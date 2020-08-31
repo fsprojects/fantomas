@@ -22,5 +22,4 @@ module IgnoreFile =
         if hasNoIgnoreFile () then
             false
         else
-            FileInfo(file)
-            |> ignores.Value.IsIgnored
+            ignores.Value.IsIgnored(file, false)
