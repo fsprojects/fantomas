@@ -22,4 +22,5 @@ module IgnoreFile =
         if hasNoIgnoreFile () then
             false
         else
-            ignores.Value.IsIgnored(file, false)
+            let fullPath = Path.GetFullPath(file)
+            ignores.Value.IsIgnored(fullPath, false)
