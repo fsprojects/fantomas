@@ -254,7 +254,7 @@ type Person() =
     end
 ```
 
-`{ defaultConfig with SpaceBeforeClassConstructor = true }
+`{ defaultConfig with SpaceBeforeClassConstructor = true }`
 
 ```fsharp
 type Person () =
