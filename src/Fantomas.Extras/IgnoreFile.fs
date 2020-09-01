@@ -23,10 +23,7 @@ module IgnoreFile =
             false
         else
             try
-                printfn ".fantomasignore at %s" (getIgnoreFilePath ())
                 let fullPath = Path.GetFullPath(file)
-                if isNull fullPath then
-                    failwithf "Path.GetFullPath is null for %s" file
                 ignores.Value.IsIgnored(fullPath, false)
             with
             | ex ->
