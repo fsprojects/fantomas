@@ -793,6 +793,23 @@ let add a b =
 let add a b = a + b
 ```
 
+## Ignore Files: .fantomasignore
+
+*starting version 4.1*
+
+To exclude files from formatting, create a `.fantomasignore` file in the root of your project.
+`.fantomasignore` uses gitignore syntax (via [MAB.DotIgnore](https://github.com/markashleybell/MAB.DotIgnore)).
+Ignored files will be picked up when the [Fantomas cli tool](https://www.nuget.org/packages/fantomas-tool/) or the FAKE helpers (in [Fantomas.Extras](https://www.nuget.org/packages/Fantomas.Extras/)).
+Exclusion applies both to formatting and the format checking.
+
+```
+# Ignore Fable files
+.fable/
+
+# Ignore script files
+*.fsx
+```
+
 ## Using the API
 
 See [CodeFormatter.fsi](../src/Fantomas/CodeFormatter.fsi) to view the public API of Fantomas.

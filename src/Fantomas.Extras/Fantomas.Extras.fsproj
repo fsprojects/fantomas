@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>4.0.0</Version>
+    <Version>4.1.0-alpha-001</Version>
     <Version>4.0.0-beta-003</Version>
     <Description>Utility package for Fantomas</Description>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
@@ -10,6 +10,7 @@
   <ItemGroup>
     <None Include="paket.references" />
     <Compile Include="EditorConfig.fs" />
+    <Compile Include="IgnoreFile.fs" />
     <Compile Include="FakeHelpers.fs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,3 +1,19 @@
+### 4.1.0-alpha-001 - 09/2020
+
+* Blacklist files or code blocks by `.fantomasignore` file. [#420](https://github.com/fsprojects/fantomas/issues/420)
+* Verify all unit test whether the formatted code is valid. [#842](https://github.com/fsprojects/fantomas/issues/842)
+* Limit trivia by AST MainNode name. [#992](https://github.com/fsprojects/fantomas/pull/992)
+* Fix if/then/else indented too far. [#1054](https://github.com/fsprojects/fantomas/issues/1054)
+* Fix Single AST node should contain trivia. [#1031](https://github.com/fsprojects/fantomas/issues/1031)
+* Fix Formatter adds extra newlines between type and any subsequent val in .fsi files. [#1029](https://github.com/fsprojects/fantomas/issues/1029)
+* Fix Comments in if/then/else statements are sometimes deleted. [#1019](https://github.com/fsprojects/fantomas/issues/1019)
+* Fix Moves type name around when writing constrained type defintions. [#1018](https://github.com/fsprojects/fantomas/issues/1018)
+* Fix Line break before bracket on long method call followed by member access causes semantic change. [#994](https://github.com/fsprojects/fantomas/issues/994)
+* Fix Long union case should be split over multiple lines. [#972](https://github.com/fsprojects/fantomas/issues/972)
+* Fix FSI formatting does the wrong thing with comments on single-case DU. [#965](https://github.com/fsprojects/fantomas/issues/965)
+* Fix Invalid unit test ``should break lines on multiline if conditions``. [#863](https://github.com/fsprojects/fantomas/issues/863)
+* Fix Abstract member declarations don't follow page width. [#435](https://github.com/fsprojects/fantomas/issues/435)
+
 ### 4.0.0 - 08/2020
 
 * Add initial support of String Interpolation. [#998](https://github.com/fsprojects/fantomas/issues/998)
