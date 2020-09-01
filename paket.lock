@@ -44,7 +44,7 @@ NUGET
       NETStandard.Library (>= 2.0.3)
       NUnit (>= 3.12 < 4.0)
     Iced (1.7)
-    MAB.DotIgnore (3.0)
+    MAB.DotIgnore (3.0.1)
       NETStandard.Library (>= 1.6.1)
     Microsoft.Build.Framework (16.6)
       System.Security.Permissions (>= 4.7)

@@ -16,10 +16,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="MAB.DotIgnore, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bb17585c8bff981a">
-      <HintPath>..\..\lib\MAB.DotIgnore.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
