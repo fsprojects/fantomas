@@ -723,3 +723,35 @@ type foo = bool
 
 val bar: bool
 """
+
+[<Test>]
+let ``don't add duplicate parentheses for TypeAbbrev, 1057`` () =
+    formatSourceString false """
+type AB = A -> B list * C -> D
+type AB = A -> (B list * C -> D)
+type AB = A -> ((B list * C -> D))
+
+type AB = A -> (C -> D)
+"""  config
+    |> prepend newline
+    |> should equal """
+type AB = A -> B list * C -> D
+type AB = A -> (B list * C -> D)
+type AB = A -> ((B list * C -> D))
+
+type AB = A -> (C -> D)
+"""
+
+[<Test>]
+let ``don't add duplicate parentheses for TypeAbbrev in signature file`` () =
+    formatSourceString true """
+namespace Foo
+
+type AB = A -> (B list * C -> D)
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Foo
+
+type AB = A -> (B list * C -> D)
+"""
