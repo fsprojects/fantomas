@@ -376,7 +376,8 @@ System.String.Concat
     ("a",
      "b"
      + longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun
-         (longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass).Property)
+         (longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass)
+         .Property)
 """
 
 [<Test>]

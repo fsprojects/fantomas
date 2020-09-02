@@ -1530,6 +1530,8 @@ and genExpr astContext synExpr =
                     +> (fun ctx ->
                           match e2 with
                           | Paren (App (_)) when astContext.IsInsideDotGet -> genExpr astContext e2 ctx
+                          | Paren (DotGet (App(_), _)) when astContext.IsInsideDotGet -> genExpr astContext e2 ctx
+                          | ConstExpr(SynConst.Unit, _) when astContext.IsInsideDotGet -> genExpr astContext e2 ctx
                           | _ -> appNlnFun e2 (genExpr astContext e2) ctx)
                     +> unindent)
             genApp ctx
@@ -2007,7 +2009,9 @@ and genExpr astContext synExpr =
     | DotNamedIndexedPropertySet(e, ident, e1, e2) ->
        genExpr astContext e -- "." -- ident +> genExpr astContext e1 -- " <- "  +> genExpr astContext e2
     | DotGet(e, (s,_)) ->
-        genExpr { astContext with IsInsideDotGet = true } e -- (sprintf ".%s" s)
+        let shortExpr = genExpr { astContext with IsInsideDotGet = true } e -- (sprintf ".%s" s)
+        let longExpr = genExpr { astContext with IsInsideDotGet = true } e +> indent +> sepNln -- (sprintf ".%s" s) +> unindent
+        expressionFitsOnRestOfLine shortExpr longExpr
     | DotSet(e1, s, e2) -> addParenIfAutoNln e1 (genExpr astContext) -- sprintf ".%s <- " s +> genExpr astContext e2
 
     | SynExpr.Set(e1,e2, _) ->
