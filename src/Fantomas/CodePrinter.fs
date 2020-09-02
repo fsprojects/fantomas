@@ -740,6 +740,8 @@ and genMemberBinding astContext b =
                     let n, p = genNameAndParameters p
                     n +> sepColon +> genType astContext false t, p
             | PatParen(p) -> genNameAndParameters p
+            | PatNamed(ao, _, s) ->
+                optSingle genAccess ao +> sepSpace -- s, sepNone
             | _ -> sepNone, sepNone
 
         let hasParenthesis = match p with | PatParen _ -> true | _ -> false
