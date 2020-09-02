@@ -1101,7 +1101,9 @@ and genExpr astContext synExpr =
         +> str kind
         +> (match kind with
             | YieldFrom
-            | Yield -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            | Yield
+            | Return
+            | ReturnFrom -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
             | _ -> genExpr astContext e)
 
     | ConstExpr(c,r) -> genConst c r
@@ -2833,7 +2835,7 @@ and genType astContext outerBracket t =
         | TAnon -> sepWild
         | TVar tp -> genTypar astContext tp
         // Drop bracket around tuples before an arrow
-        | TFun(TTuple ts, t) -> sepOpenT +> loopTTupleList ts +> sepArrow +> loop t +> sepCloseT
+        | TFun(TTuple ts, t) -> loopTTupleList ts +> sepArrow +> loop t
         // Do similar for tuples after an arrow
         | TFun(t, TTuple ts) -> sepOpenT +> loop t +> sepArrow +> loopTTupleList ts +> sepCloseT
         | TFuns ts -> col sepArrow ts loop
