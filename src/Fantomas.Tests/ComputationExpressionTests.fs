@@ -1504,3 +1504,51 @@ let sendPushNotifications =
             } :> Task)
         |> Task.WhenAll)
 """
+
+[<Test>]
+let ``multi line return expression should be indented, 1062`` () =
+    formatSourceString false """
+let f () =
+  async {
+    let x = 2
+    return some rather long |> stuff that |> uses piping |> to' demonstrate |> the issue
+  }
+"""  config
+    |> prepend newline
+    |> should equal """
+let f () =
+    async {
+        let x = 2
+
+        return
+            some rather long
+            |> stuff that
+            |> uses piping
+            |> to' demonstrate
+            |> the issue
+    }
+"""
+
+[<Test>]
+let ``multi line return bang expression should be indented`` () =
+    formatSourceString false """
+let f () =
+  async {
+    let x = 2
+    return! some rather long |> stuff that |> uses piping |> to' demonstrate |> the issue
+  }
+"""  config
+    |> prepend newline
+    |> should equal """
+let f () =
+    async {
+        let x = 2
+
+        return!
+            some rather long
+            |> stuff that
+            |> uses piping
+            |> to' demonstrate
+            |> the issue
+    }
+"""
