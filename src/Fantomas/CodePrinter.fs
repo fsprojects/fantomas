@@ -1101,7 +1101,9 @@ and genExpr astContext synExpr =
         +> str kind
         +> (match kind with
             | YieldFrom
-            | Yield -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            | Yield
+            | Return
+            | ReturnFrom -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
             | _ -> genExpr astContext e)
 
     | ConstExpr(c,r) -> genConst c r
