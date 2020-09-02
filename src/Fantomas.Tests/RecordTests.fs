@@ -937,3 +937,52 @@ type ShortExpressionInfo =
 
     member x.Foo() = ()
 """
+
+[<Test>]
+let ``record with static member, 1059`` () =
+    formatSourceString false """
+type XX =
+  {a:int
+   b:int}
+  static member foo = 30
+"""  config
+    |> prepend newline
+    |> should equal """
+type XX =
+    { a: int
+      b: int }
+    static member foo = 30
+"""
+
+[<Test>]
+let ``record with typed static member`` () =
+    formatSourceString false """
+type XX =
+  {a:int
+   b:int}
+  static member foo : int = 30
+"""  config
+    |> prepend newline
+    |> should equal """
+type XX =
+    { a: int
+      b: int }
+    static member foo: int = 30
+"""
+
+[<Test>]
+let ``record with private static member`` () =
+    formatSourceString false """
+type XX =
+    { a: int
+      b: int }
+    static member private foo: int = 30
+"""  { config with NewlineBetweenTypeDefinitionAndMembers = true }
+    |> prepend newline
+    |> should equal """
+type XX =
+    { a: int
+      b: int }
+
+    static member private foo: int = 30
+"""
