@@ -343,10 +343,13 @@ let ``meaningful space should be preserved, 353`` () =
         { dotnetOptions o' with WorkingDirectory =
                                   Path.getFullName "RegressionTesting/issue29"
                                 Verbosity = Some DotNet.Verbosity.Minimal }).WithParameters""" config
-    |> should equal """to'.WithCommon(fun o' ->
+    |> prepend newline
+    |> should equal """
+to'.WithCommon(fun o' ->
     { dotnetOptions o' with
           WorkingDirectory = Path.getFullName "RegressionTesting/issue29"
-          Verbosity = Some DotNet.Verbosity.Minimal }).WithParameters
+          Verbosity = Some DotNet.Verbosity.Minimal })
+    .WithParameters
 """
 
 [<Test>]
