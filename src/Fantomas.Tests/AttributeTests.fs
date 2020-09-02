@@ -558,8 +558,9 @@ type RoleAdminImportController(akkaService: AkkaService) =
       Authorize(AuthorizationScopePolicies.Read)>]
     member _.ListJobs(): Task<UserCmdResponseMsg> =
         task {
-            return! akkaService.ImporterSystem.ApiMaster
-                    <? ApiMasterMsg.GetAllJobsCmd
+            return!
+                akkaService.ImporterSystem.ApiMaster
+                <? ApiMasterMsg.GetAllJobsCmd
         }
 
     [<HttpPost("jobs/create");
