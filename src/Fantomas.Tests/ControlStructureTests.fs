@@ -526,3 +526,35 @@ let genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
         +> unindent
     | _ -> sepNone
 """
+
+[<Test>]
+let ``preserve new line before while loop, 1072`` () =
+    formatSourceString false """
+let internal coli f' (c: seq<'T>) f (ctx: Context) =
+    let mutable tryPick = true
+    let mutable st = ctx
+    let mutable i = 0
+    let e = c.GetEnumerator()
+
+    while (e.MoveNext()) do
+        if tryPick then tryPick <- false else st <- f' st
+        st <- f i (e.Current) st
+        i <- i + 1
+
+    st
+"""  config
+    |> prepend newline
+    |> should equal """
+let internal coli f' (c: seq<'T>) f (ctx: Context) =
+    let mutable tryPick = true
+    let mutable st = ctx
+    let mutable i = 0
+    let e = c.GetEnumerator()
+
+    while (e.MoveNext()) do
+        if tryPick then tryPick <- false else st <- f' st
+        st <- f i (e.Current) st
+        i <- i + 1
+
+    st
+"""
