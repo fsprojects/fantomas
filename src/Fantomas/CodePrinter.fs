@@ -3339,7 +3339,7 @@ and genConst (c:SynConst) (r:range) =
     | SynConst.String(s,_) ->
         fun (ctx: Context) ->
             let trivia =
-                TriviaHelpers.getNodesForTypes [ SynExpr_Const; SynType_StaticConstant ] ctx.TriviaMainNodes
+                TriviaHelpers.getNodesForTypes [ SynExpr_Const; SynType_StaticConstant; SynPat_Const ] ctx.TriviaMainNodes
                 |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range r)
 
             let triviaStringContent =
