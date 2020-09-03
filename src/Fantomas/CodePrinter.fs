@@ -2081,6 +2081,7 @@ and genExpr astContext synExpr =
         | SynExpr.DoBang _ -> genTriviaFor SynExpr_DoBang synExpr.Range
         | SynExpr.TryWith _ -> genTriviaFor SynExpr_TryWith synExpr.Range
         | SynExpr.New _ -> genTriviaFor SynExpr_New synExpr.Range
+        | SynExpr.Assert _ -> genTriviaFor SynExpr_Assert synExpr.Range
         | SynExpr.While _ -> genTriviaFor SynExpr_While synExpr.Range
         | _ -> id)
 
