@@ -1294,7 +1294,7 @@ and genExpr astContext synExpr =
         let shortExpression =
             ifElse isArray
                 (sepOpenA +> genExpr astContext e +> enterRightBracketBar aNode.Range +> sepCloseA)
-                (sepOpenL +> genExpr astContext e +> enterRightBracket aNode.Range +> sepCloseL)
+                (sepOpenL +> genExpr astContext e +> enterRightBracket aNode.Range +> sepCloseL +> leaveNodeTokenByName aNode.Range RBRACK)
 
         let bracketsOnSameColumn =
             ifElse isArray sepOpenAFixed sepOpenLFixed
@@ -2082,6 +2082,7 @@ and genExpr astContext synExpr =
         | SynExpr.TryWith _ -> genTriviaFor SynExpr_TryWith synExpr.Range
         | SynExpr.New _ -> genTriviaFor SynExpr_New synExpr.Range
         | SynExpr.Assert _ -> genTriviaFor SynExpr_Assert synExpr.Range
+        | SynExpr.While _ -> genTriviaFor SynExpr_While synExpr.Range
         | SynExpr.MatchLambda _ -> genTriviaFor SynExpr_MatchLambda synExpr.Range
         | _ -> id)
 
