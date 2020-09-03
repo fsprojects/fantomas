@@ -1,3 +1,12 @@
+### 4.1.0-beta-001 - 09/2020
+
+* Fix Allow line break after return to avoid excessive indenting/aligning. [#1062](https://github.com/fsprojects/fantomas/issues/1062)
+* Fix Name of static members are removed/empty. [#1059](https://github.com/fsprojects/fantomas/issues/1059)
+* Fix When using parenthesis in type definition, it will sometimes keep adding additional () for each time fantomas i run. [#1057](https://github.com/fsprojects/fantomas/issues/1057)
+* Fix Multiline string in use expression. [#1055](https://github.com/fsprojects/fantomas/issues/1055)
+* Fix Issue #246 has returned in v4.0.0. [#1051](https://github.com/fsprojects/fantomas/issues/1051)
+* Fix Indentation after multiple hash directives is off. [#1026](https://github.com/fsprojects/fantomas/issues/1026)
+
 ### 4.1.0-alpha-001 - 09/2020
 
 * Blacklist files or code blocks by `.fantomasignore` file. [#420](https://github.com/fsprojects/fantomas/issues/420)
