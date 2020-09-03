@@ -1657,3 +1657,31 @@ let x =
       // another comment
       2 ]
 """
+
+[<Test>]
+let ``comment after closing list bracket, 1073`` () =
+    formatSourceString false """
+[ Gen.map5 (fun b1 b2 expr1 expr2 pat ->
+                            SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
+                            Arb.generate<_> Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubSynPat ] //
+"""  config
+    |> prepend newline
+    |> should equal """
+[ Gen.map5 (fun b1 b2 expr1 expr2 pat ->
+    SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero)) Arb.generate<_> Arb.generate<_>
+      genSubDeclExpr genSubDeclExpr genSubSynPat ] //
+"""
+
+[<Test>]
+let ``comment after closing array bracket`` () =
+    formatSourceString false """
+[| Gen.map5 (fun b1 b2 expr1 expr2 pat ->
+                            SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
+                            Arb.generate<_> Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubSynPat |] //
+"""  config
+    |> prepend newline
+    |> should equal """
+[| Gen.map5 (fun b1 b2 expr1 expr2 pat ->
+    SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero)) Arb.generate<_> Arb.generate<_>
+       genSubDeclExpr genSubDeclExpr genSubSynPat |] //
+"""
