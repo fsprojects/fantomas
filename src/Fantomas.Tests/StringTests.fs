@@ -197,3 +197,36 @@ content
 
 with empty lines\"\"\"
 "
+
+[<Test>]
+let ``string with newline inside union case, 1056`` () =
+    formatSourceString false """
+[<Test>]
+let ``newline in string`` () =
+    let source = "\"
+\""
+
+    let triviaNodes =
+        tokenize [] source
+        |> getTriviaFromTokens
+        |> List.filter (fun { Item = item } -> match item with | StringContent("\"\n\"") -> true  | _ -> false)
+
+    List.length triviaNodes == 1
+"""  config
+    |> prepend newline
+    |> should equal """
+[<Test>]
+let ``newline in string`` () =
+    let source = "\"
+\""
+
+    let triviaNodes =
+        tokenize [] source
+        |> getTriviaFromTokens
+        |> List.filter (fun { Item = item } ->
+            match item with
+            | StringContent ("\"\n\"") -> true
+            | _ -> false)
+
+    List.length triviaNodes == 1
+"""
