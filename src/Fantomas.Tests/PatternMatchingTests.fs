@@ -685,3 +685,29 @@ let private update onSubmit msg model =
 
         { model with Errors = errors }, Cmd.none
 """
+
+[<Test>]
+let ``keep new line before function match, 1074`` () =
+    formatSourceString false """
+    let (|AndExpr|_|) =
+        let chooser =
+            function
+            | (ExprPat e1, ExprPat e2) -> Some(e1, e2)
+            | _ -> None
+
+        function
+        | ListSplitPick "&&" chooser (e1, e2) -> Some(BoolExpr.And(e1, e2))
+        | _ -> None
+"""  config
+    |> prepend newline
+    |> should equal """
+let (|AndExpr|_|) =
+    let chooser =
+        function
+        | (ExprPat e1, ExprPat e2) -> Some(e1, e2)
+        | _ -> None
+
+    function
+    | ListSplitPick "&&" chooser (e1, e2) -> Some(BoolExpr.And(e1, e2))
+    | _ -> None
+"""
