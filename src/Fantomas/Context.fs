@@ -567,6 +567,21 @@ let internal sepOpenT = !- "("
 /// closing token of tuple
 let internal sepCloseT = !- ")"
 
+// we need to make sure each expression in the function application has offset at least greater than
+// indentation of the function expression itself
+// we replace sepSpace in such case
+// remarks: https://github.com/fsprojects/fantomas/issues/545
+let internal indentIfNeeded f (ctx: Context) =
+    let savedColumn = ctx.WriterModel.AtColumn
+    if savedColumn >= ctx.Column then
+        // missingSpaces needs to be at least one more than the column
+        // of function expression being applied upon, otherwise (as known up to F# 4.7)
+        // this would lead to a compile error for the function application
+        let missingSpaces = (savedColumn - ctx.FinalizeModel.Column + 1)
+        atIndentLevel true savedColumn (!- (String.replicate missingSpaces " ")) ctx
+    else
+        f ctx
+
 let internal eventsWithoutMultilineWrite ctx =
     { ctx with WriterEvents =  ctx.WriterEvents |> Queue.toSeq |> Seq.filter (function | Write s when s.Contains ("\n") -> false | _ -> true) |> Queue.ofSeq }
 

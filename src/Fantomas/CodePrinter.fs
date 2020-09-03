@@ -1381,8 +1381,14 @@ and genExpr astContext synExpr =
         // Just write out original code inside (# ... #)
         fun ctx -> !- (defaultArg (lookup r ctx) "") ctx
     | Paren e ->
-        // Parentheses nullify effects of no space inside DotGet
-        sepOpenT +> genExpr { astContext with IsInsideDotGet = false } e +> sepCloseT
+        match e with
+        | MultilineString _ ->
+            sepOpenT
+            +> atCurrentColumn (genExpr { astContext with IsInsideDotGet = false } e +> indentIfNeeded sepNone)
+            +> sepCloseT
+        | _ ->
+            // Parentheses nullify effects of no space inside DotGet
+            sepOpenT +> genExpr { astContext with IsInsideDotGet = false } e +> sepCloseT
     | CompApp(s, e) ->
         !- s +> sepSpace +> sepOpenS +> genExpr { astContext with IsNakedRange = true } e +> sepCloseS
     // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
@@ -1538,28 +1544,13 @@ and genExpr astContext synExpr =
 
     // Always spacing in multiple arguments
     | App(e, es) ->
-        // we need to make sure each expression in the function application has offset at least greater than
-        // indentation of the function expression itself
-        // we replace sepSpace in such case
-        // remarks: https://github.com/fsprojects/fantomas/issues/545
-        let indentIfNeeded (ctx: Context) =
-            let savedColumn = ctx.WriterModel.AtColumn
-            if savedColumn >= ctx.Column then
-                // missingSpaces needs to be at least one more than the column
-                // of function expression being applied upon, otherwise (as known up to F# 4.7)
-                // this would lead to a compile error for the function application
-                let missingSpaces = (savedColumn - ctx.FinalizeModel.Column + 1)
-                atIndentLevel true savedColumn (!- (String.replicate missingSpaces " ")) ctx
-            else
-                sepSpace ctx
-
         let shortExpression =
             atCurrentColumn
                 (genExpr astContext e
                  +> colPre sepSpace sepSpace es (fun e ->
                         onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
                         +> indent
-                        +> appNlnFun e (indentIfNeeded +> genExpr astContext e)
+                        +> appNlnFun e (indentIfNeeded sepSpace +> genExpr astContext e)
                         +> unindent))
 
         let longExpression =
@@ -1571,10 +1562,10 @@ and genExpr astContext synExpr =
                     +> sepOpenSFixed
                     +> sepSpace
                     +> indent
-                    +> appNlnFun e (indentIfNeeded +> genExpr astContext e)
+                    +> appNlnFun e (indentIfNeeded sepSpace +> genExpr astContext e)
                     +> unindent)
                     (indent
-                    +> indentIfNeeded
+                    +> indentIfNeeded sepSpace
                     +> sepNln
                     +> genExpr astContext e
                     +> unindent))))
