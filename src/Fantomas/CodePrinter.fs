@@ -1511,17 +1511,7 @@ and genExpr astContext synExpr =
             | LetOrUseStatement _ -> sepNlnConsideringTriviaContentBeforeForMainNode Binding_ r
             | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_LetOrUseBang r
             | AndBangStatement _ -> sepNlnConsideringTriviaContentBeforeForToken AND_BANG r
-            | OtherStatement e ->
-                match e with
-                | SynExpr.App _ -> SynExpr_App
-                | SynExpr.Match _ -> SynExpr_Match
-                | SynExpr.IfThenElse _ -> SynExpr_IfThenElse
-                | SynExpr.YieldOrReturn _ -> SynExpr_YieldOrReturn
-                | SynExpr.YieldOrReturnFrom _ -> SynExpr_YieldOrReturnFrom
-                | SynExpr.Do _ -> SynExpr_Do
-                | SynExpr.DoBang _ -> SynExpr_DoBang
-                | _ -> SynExpr_Const
-                |> fun mn -> sepNlnConsideringTriviaContentBeforeForMainNode mn r
+            | OtherStatement e -> sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e) r
 
         statements
         |> List.map (fun ces ->

@@ -1555,3 +1555,43 @@ let f () =
             |> the issue
     }
 """
+
+[<Test>]
+let ``add new line before multiline for loop, 1092`` () =
+    formatSourceString false """
+async {
+    let! (msg: Msg) = inbox.Receive()
+    for x in msg.Content do
+        printfn "%s" x
+    return ()
+}
+
+async {
+    let! (msg: Msg) = inbox.Receive()
+
+    for x in msg.Content do
+        printfn "%s" x
+
+    return ()
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+async {
+    let! (msg: Msg) = inbox.Receive()
+
+    for x in msg.Content do
+        printfn "%s" x
+
+    return ()
+}
+
+async {
+    let! (msg: Msg) = inbox.Receive()
+
+    for x in msg.Content do
+        printfn "%s" x
+
+    return ()
+}
+"""
