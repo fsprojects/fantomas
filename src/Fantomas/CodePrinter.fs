@@ -2973,13 +2973,15 @@ and genClause astContext hasBar (Clause(p, e, eo)) =
 
     let arrowRange = mkRange "arrowRange" p.Range.End e.Range.Start
     let pat = genPat astContext p
+
     let body =
         optPre (!- " when ") sepNone eo (genExpr astContext)
         +> sepArrow
         +> leaveNodeTokenByName arrowRange RARROW
         +> clauseBody e
-    genTriviaBeforeClausePipe p.Range +>
-    ifElse hasBar (sepBar +> atCurrentColumnWithPrepend pat body) (pat +> body)
+
+    genTriviaBeforeClausePipe p.Range
+    +> ifElse hasBar (sepBar +> atCurrentColumnWithPrepend pat body) (pat +> body)
 
 /// Each multiline member definition has a pre and post new line.
 and genMemberDefnList astContext nodes =
@@ -3155,9 +3157,11 @@ and genPat astContext pat =
     | PatOptionalVal(s) -> !- (sprintf "?%s" s)
     | PatAttrib(p, ats) -> genOnelinerAttributes astContext ats +> genPat astContext p
     | PatOr(p1, p2) ->
+        let barRange = mkRange "bar range" p1.Range.End p2.Range.Start
+
         genPat astContext p1
         +> sepNln
-        +> enterNodeTokenByName pat.Range BAR -- "| "
+        +> enterNodeTokenByName barRange BAR -- "| "
         +> genPat astContext p2
     | PatAnds(ps) -> col (!- " & ") ps (genPat astContext)
     | PatNullary PatNull -> !- "null"

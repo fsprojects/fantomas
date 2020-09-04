@@ -711,3 +711,34 @@ let (|AndExpr|_|) =
     | ListSplitPick "&&" chooser (e1, e2) -> Some(BoolExpr.And(e1, e2))
     | _ -> None
 """
+
+[<Test>]
+let ``trivia before pipe should not be repeated for each pipe, 1083`` () =
+    formatSourceString false """
+Seq.takeWhile
+               (function
+                         | Write ""
+                         // for example:
+                         // type Foo =
+                         //     static member Bar () = ...
+                         | IndentBy _
+                         | WriteLine
+                         | SetAtColumn _
+                         | Write " -> "
+                         | CommentOrDefineEvent _ -> true
+                         | _ -> false)
+"""  config
+    |> prepend newline
+    |> should equal """
+Seq.takeWhile (function
+    | Write ""
+    // for example:
+    // type Foo =
+    //     static member Bar () = ...
+    | IndentBy _
+    | WriteLine
+    | SetAtColumn _
+    | Write " -> "
+    | CommentOrDefineEvent _ -> true
+    | _ -> false)
+"""
