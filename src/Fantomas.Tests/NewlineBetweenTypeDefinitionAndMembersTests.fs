@@ -206,3 +206,59 @@ type HttpContext with
 
     member QueryString: unit -> string
 """
+
+[<Test>]
+let ``existing new line between type and members in signature file, 1094`` () =
+    formatSourceString true """
+namespace X
+
+type MyRecord =
+    {
+        Level : int
+        Progress : string
+        Bar : string
+        Street : string
+        Number : int
+    }
+
+    member Score : unit -> int
+
+type MyRecord =
+    {
+        SomeField : int
+    }
+
+    interface IMyInterface
+
+type Color =
+    | Red = 0
+    | Green = 1
+    | Blue = 2
+
+    member ToInt: unit -> int
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace X
+
+type MyRecord =
+    { Level: int
+      Progress: string
+      Bar: string
+      Street: string
+      Number: int }
+
+    member Score: unit -> int
+
+type MyRecord =
+    { SomeField: int }
+
+    interface IMyInterface
+
+type Color =
+    | Red = 0
+    | Green = 1
+    | Blue = 2
+
+    member ToInt: unit -> int
+"""
