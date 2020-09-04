@@ -702,3 +702,20 @@ let config =
 #endif
     }
 """
+
+[<Test>]
+let ``comment after closing brace in nested record`` () =
+    formatSourceString false """
+let person =
+    { Name = "James"
+      Address = { Street = "Bakerstreet"; Number = 42 }  // end address
+    } // end person
+"""  config
+    |> prepend newline
+    |> should equal """
+let person =
+    {
+        Name = "James"
+        Address = { Street = "Bakerstreet" ; Number = 42 } // end address
+    } // end person
+"""
