@@ -997,3 +997,33 @@ type XX =
 
     static member private foo: int = 30
 """
+
+[<Test>]
+let ``keep comments after closing brace of single line records, 1096`` () =
+    formatSourceString false """
+let formatConfig = { PageWidth = 70; Indent = 8 } // The number of spaces
+type FormatConfig = { PageWidth: int; Indent: int } // The number of spaces
+()
+"""  config
+    |> prepend newline
+    |> should equal """
+let formatConfig = { PageWidth = 70; Indent = 8 } // The number of spaces
+type FormatConfig = { PageWidth: int; Indent: int } // The number of spaces
+()
+"""
+
+[<Test>]
+let ``comment after closing brace in nested record`` () =
+    formatSourceString false """
+let person =
+    { Name = "James"
+      Address = { Street = "Bakerstreet"; Number = 42 }  // end address
+    } // end person
+"""  config
+    |> prepend newline
+    |> should equal """
+let person =
+    { Name = "James"
+      Address = { Street = "Bakerstreet"; Number = 42 } // end address
+    } // end person
+"""
