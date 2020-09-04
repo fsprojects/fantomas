@@ -295,3 +295,14 @@ let synExprToFsAstType =
     | SynExpr.Fixed _ -> SynExpr_Fixed
     | SynExpr.InterpolatedString _ -> SynExpr_InterpolatedString
     | SynExpr.Sequential _ -> SynExpr_Sequential
+
+let synModuleSigDeclToFsAstType =
+    function
+    | SynModuleSigDecl.Val _ -> ValSpfn_
+    | SynModuleSigDecl.Exception _ -> SynModuleSigDecl_Exception
+    | SynModuleSigDecl.NestedModule _ -> SynModuleSigDecl_NestedModule
+    | SynModuleSigDecl.Types _ -> SynModuleSigDecl_Types
+    | SynModuleSigDecl.Open _ -> SynModuleSigDecl_Open
+    | SynModuleSigDecl.HashDirective _ -> SynModuleSigDecl_HashDirective
+    | SynModuleSigDecl.NamespaceFragment _ -> SynModuleSigDecl_NamespaceFragment
+    | SynModuleSigDecl.ModuleAbbrev _ -> SynModuleSigDecl_ModuleAbbrev
