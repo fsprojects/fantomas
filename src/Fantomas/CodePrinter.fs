@@ -1186,6 +1186,7 @@ and genExpr astContext synExpr =
                     (col sepNln children (genExpr astContext)
                      +> enterNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK))
                 +> ifElse isArray sepCloseA sepCloseL
+                +> leaveNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
 
             let felizExpression =
                 atCurrentColumn
@@ -1198,7 +1199,8 @@ and genExpr astContext synExpr =
                      +> unindent
                      +> sepNln
                      +> enterNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
-                     +> ifElse isArray sepCloseAFixed sepCloseLFixed)
+                     +> ifElse isArray sepCloseAFixed sepCloseLFixed
+                     +> leaveNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK))
 
             let multilineExpression =
                 ifElse ctx.Config.SingleArgumentWebMode felizExpression elmishExpression

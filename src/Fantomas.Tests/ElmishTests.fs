@@ -850,3 +850,43 @@ let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
 
     location, creatorName
 """
+
+[<Test>]
+let ``keep comment after closing bracket, 1089`` () =
+    formatSourceString false """
+        Gen.frequency [ 8,
+                        2,
+                        Gen.map5 (fun b1 b2 expr1 expr2 pat ->
+                            SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
+                            Arb.generate<_> Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubSynPat ] //
+"""  config
+    |> prepend newline
+    |> should equal """
+Gen.frequency [ 8,
+                2,
+                Gen.map5 (fun b1 b2 expr1 expr2 pat ->
+                    SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero)) Arb.generate<_>
+                    Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubSynPat ] //
+"""
+
+[<Test>]
+let ``keep comment after closing bracket, single web mode`` () =
+    formatSourceString false """
+        Gen.frequency [ 8,
+                        2,
+                        Gen.map5 (fun b1 b2 expr1 expr2 pat ->
+                            SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
+                            Arb.generate<_> Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubSynPat ] //
+"""
+        { config with
+              SingleArgumentWebMode = true }
+    |> prepend newline
+    |> should equal """
+Gen.frequency [
+    8,
+    2,
+    Gen.map5 (fun b1 b2 expr1 expr2 pat ->
+        SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero)) Arb.generate<_>
+        Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubSynPat
+] //
+"""
