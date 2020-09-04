@@ -1,3 +1,8 @@
+### 4.1.0-beta-002 - 09/2020
+
+* Fixed some regression introduced by [#992](https://github.com/fsprojects/fantomas/pull/992).
+* Fix Comment after arrow is being duplicated. [#1082](https://github.com/fsprojects/fantomas/issues/1082)
+
 ### 4.1.0-beta-001 - 09/2020
 
 * Fix Allow line break after return to avoid excessive indenting/aligning. [#1062](https://github.com/fsprojects/fantomas/issues/1062)
