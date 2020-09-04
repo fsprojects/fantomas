@@ -193,7 +193,10 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, s, md
         | Some mdl ->
             match mdl with
             | SynModuleSigDecl.Types _ ->
-                sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_Types mdl.Range
+                let attrs =
+                    getRangesFromAttributesFromSynModuleSigDeclaration mdl
+
+                sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleSigDecl_Types mdl.Range attrs
             | SynModuleSigDecl.Val _ -> sepNlnConsideringTriviaContentBeforeForMainNode ValSpfn_ mdl.Range
             | _ -> sepNone
             +> sepNln

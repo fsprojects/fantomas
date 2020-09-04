@@ -759,3 +759,21 @@ namespace Foo
 
 type AB = A -> (B list * C -> D)
 """
+
+[<Test>]
+let ``don't add extra new line between attribute and namespace, 1097`` () =
+    formatSourceString true """
+namespace Meh
+
+[<StringEnum>]
+[<RequireQualifiedAccess>]
+type PayableFilters = | [<CompiledName "statusSelector">] Status
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Meh
+
+[<StringEnum>]
+[<RequireQualifiedAccess>]
+type PayableFilters = | [<CompiledName "statusSelector">] Status
+"""
