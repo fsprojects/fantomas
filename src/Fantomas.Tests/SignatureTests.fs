@@ -777,3 +777,31 @@ namespace Meh
 [<RequireQualifiedAccess>]
 type PayableFilters = | [<CompiledName "statusSelector">] Status
 """
+
+[<Test>]
+let ``don't add extra new line between nested modules, 1105`` () =
+    formatSourceString true """
+module Example
+
+module Foo =
+    module Bar =
+        type t = bool
+        val lol: unit -> bool
+
+    type t = int
+    val lmao: unit -> bool
+"""  config
+    |> prepend newline
+    |> should equal """
+module Example
+
+module Foo =
+    module Bar =
+        type t = bool
+
+        val lol: unit -> bool
+
+    type t = int
+
+    val lmao: unit -> bool
+"""

@@ -314,27 +314,18 @@ and genSigModuleDeclList astContext node =
     | SigMultilineModuleDeclL (xs, ys) ->
         match ys with
         | [] -> col sepNln xs (genSigModuleDecl astContext)
-
         | _ ->
             let sepXsYs =
                 match List.tryHead ys with
                 | Some y ->
-                    let mainNode =
-                        match y with
-                        | SynModuleSigDecl.Val _ -> ValSpfn_
-                        | SynModuleSigDecl.Exception _ -> SynModuleSigDecl_Exception
-                        | SynModuleSigDecl.NestedModule _ -> SynModuleSigDecl_NestedModule
-                        | SynModuleSigDecl.Types _ -> SynModuleSigDecl_Types
-                        | SynModuleSigDecl.Open _ -> SynModuleSigDecl_Open
-                        | SynModuleSigDecl.HashDirective _ -> SynModuleSigDecl_HashDirective
-                        | SynModuleSigDecl.NamespaceFragment _ -> SynModuleSigDecl_NamespaceFragment
-                        | SynModuleSigDecl.ModuleAbbrev _ -> SynModuleSigDecl_ModuleAbbrev
-
                     sepNln
-                    +> sepNlnConsideringTriviaContentBeforeForMainNode mainNode y.Range
+                    +> sepNlnConsideringTriviaContentBeforeForMainNode (synModuleSigDeclToFsAstType y) y.Range
                 | None -> rep 2 sepNln
 
-            col (rep 2 sepNln) xs (genSigModuleDecl astContext)
+            colEx (fun (x: SynModuleSigDecl) ->
+                sepNln
+                +> sepNlnConsideringTriviaContentBeforeForMainNode (synModuleSigDeclToFsAstType x) x.Range) xs
+                (genSigModuleDecl astContext)
             +> sepXsYs
             +> genSigModuleDeclList astContext ys
 
