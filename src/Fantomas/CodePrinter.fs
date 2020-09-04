@@ -2932,7 +2932,7 @@ and genIndexers astContext node =
     | _ -> sepNone
 
 and sepNlnBetweenTypeAndMembers (ms: SynMemberDefn list) =
-    sepNlnTypeAndMembers (List.tryHead ms |> Option.map (fun e -> e.Range))
+    sepNlnTypeAndMembers (List.tryHead ms |> Option.map (fun e -> e.Range)) SynMemberDefn_Member
 
 and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix) as node) =
     let typeName =
@@ -3256,15 +3256,18 @@ and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
             +> unindent)
 
 and sepNlnBetweenSigTypeAndMembers (ms: SynMemberSig list) =
-    let getRange =
-        function
-        | SynMemberSig.Inherit (_, r)
-        | SynMemberSig.Interface (_, r)
-        | SynMemberSig.Member (_, _, r)
-        | SynMemberSig.NestedType (_, r)
-        | SynMemberSig.ValField (_, r) -> r
+    match List.tryHead ms with
+    | Some m ->
+        let range, mainNodeType =
+            match m with
+            | SynMemberSig.Interface (_, r) -> r, SynMemberSig_Interface
+            | SynMemberSig.Inherit (_, r) -> r, SynMemberSig_Inherit
+            | SynMemberSig.Member (_, _, r) -> r, SynMemberSig_Member
+            | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
+            | SynMemberSig.ValField (_, r) -> r, SynMemberSig_ValField
 
-    sepNlnTypeAndMembers (List.tryHead ms |> Option.map getRange)
+        sepNlnTypeAndMembers (Some range) mainNodeType
+    | None -> sepNone
 
 and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix) as node) =
     let range =
@@ -3352,7 +3355,10 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
                 (genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext)
                 (genSigSimpleRecord typeName tdr ms ao' fs astContext)
 
-        fun ctx -> isShortExpression ctx.Config.MaxRecordWidth shortExpr longExpr ctx
+        fun ctx ->
+            if List.isNotEmpty ms
+            then longExpr ctx
+            else isShortExpression ctx.Config.MaxRecordWidth shortExpr longExpr ctx
 
     | SigSimple TDSRNone ->
         let genMembers =

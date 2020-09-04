@@ -1173,10 +1173,10 @@ let internal sepNlnForEmptyNamespace (namespaceRange: range) ctx =
                      || hasPrintableContent node.ContentAfter -> ctx
     | _ -> sepNln ctx
 
-let internal sepNlnTypeAndMembers (firstMemberRange: range option) ctx =
+let internal sepNlnTypeAndMembers (firstMemberRange: range option) (mainNodeType: FsAstType) ctx =
     match firstMemberRange with
     | Some range when (ctx.Config.NewlineBetweenTypeDefinitionAndMembers) ->
-        sepNlnConsideringTriviaContentBeforeForMainNode SynMemberDefn_Member range ctx
+        sepNlnConsideringTriviaContentBeforeForMainNode mainNodeType range ctx
     | _ -> ctx
 
 let internal sepNlnWhenWriteBeforeNewlineNotEmpty fallback (ctx: Context) =
