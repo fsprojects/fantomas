@@ -1398,6 +1398,7 @@ and genExpr astContext synExpr =
             +> optSingle (fun e -> genExpr astContext e +> !- " with ") eo
             +> col sepSemi xs (genRecordFieldName astContext)
             +> sepCloseS
+            +> leaveNodeTokenByName synExpr.Range RBRACE
 
         let multilineRecordExpr =
             ifAlignBrackets
@@ -2645,6 +2646,7 @@ and genMultilineRecordInstance (inheritOpt: (SynType * SynExpr) option)
                 else
                     sepNone ({ ctx with RecordBraceStart = rest })
             | [] -> sepNone ctx)
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
         +> enterNodeTokenByName synExpr.Range RBRACE
         +> ifElseCtx lastWriteEventIsNewline sepCloseSFixed sepCloseS
 
@@ -3023,6 +3025,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
             +> leaveLeftBrace tdr.Range
             +> col sepSemi fs (genField astContext "")
             +> sepCloseS
+            +> leaveNodeTokenByName node.Range RBRACE
 
         let multilineExpression =
             ifAlignBrackets
