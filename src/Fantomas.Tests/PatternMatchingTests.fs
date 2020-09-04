@@ -740,3 +740,34 @@ List.tryFind (fun { Type = t; Range = r } ->
 
     | _ -> false)
 """
+
+[<Test>]
+let ``trivia before pipe should not be repeated for each pipe, 1083`` () =
+    formatSourceString false """
+Seq.takeWhile
+               (function
+                         | Write ""
+                         // for example:
+                         // type Foo =
+                         //     static member Bar () = ...
+                         | IndentBy _
+                         | WriteLine
+                         | SetAtColumn _
+                         | Write " -> "
+                         | CommentOrDefineEvent _ -> true
+                         | _ -> false)
+"""  config
+    |> prepend newline
+    |> should equal """
+Seq.takeWhile (function
+    | Write ""
+    // for example:
+    // type Foo =
+    //     static member Bar () = ...
+    | IndentBy _
+    | WriteLine
+    | SetAtColumn _
+    | Write " -> "
+    | CommentOrDefineEvent _ -> true
+    | _ -> false)
+"""
