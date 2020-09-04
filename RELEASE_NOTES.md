@@ -1,3 +1,13 @@
+### 4.1.0-beta-003 09/2020
+
+* Lead by example. [#666](https://github.com/fsprojects/fantomas/issues/666)
+* Fixed some regression introduced by [#992](https://github.com/fsprojects/fantomas/pull/992).
+* Fix Extra new line is added before attributes. [#1097](https://github.com/fsprojects/fantomas/issues/1097)
+* Fix Comments after closing brace are lost. [#1096](https://github.com/fsprojects/fantomas/issues/1096)
+* Fix Comment after Or operator lost. [#1095](https://github.com/fsprojects/fantomas/issues/1095)
+* Fix Trivia before bar is being repeated. [#1083](https://github.com/fsprojects/fantomas/issues/1083)
+* Fix Comment after arrow is being duplicated. [#1082](https://github.com/fsprojects/fantomas/issues/1082)
+
 ### 4.1.0-beta-002 - 09/2020
 
 * Fixed some regression introduced by [#992](https://github.com/fsprojects/fantomas/pull/992).
