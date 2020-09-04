@@ -23,6 +23,11 @@ let isMainNode (node: TriviaNode) =
     | MainNode (_) -> true
     | _ -> false
 
+let inline isMainNodeFor nodeType (node: TriviaNodeAssigner) =
+    match node.Type with
+    | MainNode (t) when (t = nodeType) -> true
+    | _ -> false
+
 let isToken (node: TriviaNode) =
     match node.Type with
     | Token (_) -> true
@@ -91,7 +96,13 @@ let private findLastNodeOnLine (nodes: TriviaNodeAssigner list) lineNumber: Triv
     nodes
     |> List.filter (fun tn -> tn.Range.EndLine = lineNumber)
     |> List.sortByDescending (fun tn -> tn.Range.EndColumn, tn.Range.StartColumn)
-    |> List.tryHead
+    |> fun candidates ->
+        match candidates with
+        | app :: ident :: _ when (app.Range.End = ident.Range.End
+                                  && isMainNodeFor SynExpr_App app
+                                  && isMainNodeFor SynExpr_Ident ident) -> Some ident
+        | h :: _ -> Some h
+        | [] -> None
 
 let private findLastNode (nodes: TriviaNodeAssigner list): TriviaNodeAssigner option =
     match nodes with
