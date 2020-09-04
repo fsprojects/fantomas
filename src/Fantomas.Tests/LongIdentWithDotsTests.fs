@@ -228,3 +228,21 @@ let variable =
      |> Result.okValue)
         .Value
 """
+
+[<Test>]
+let ``preserve comment before SynExpr.LongIdent, 1080`` () =
+    formatSourceString false """
+let shrinkInput input =
+    match toSynExprs input with
+    | [] ->
+        //stdout.WriteLine("Can't shrink {0} further.", sprintf "%A" input)
+        Seq.empty
+"""  config
+    |> prepend newline
+    |> should equal """
+let shrinkInput input =
+    match toSynExprs input with
+    | [] ->
+        //stdout.WriteLine("Can't shrink {0} further.", sprintf "%A" input)
+        Seq.empty
+"""

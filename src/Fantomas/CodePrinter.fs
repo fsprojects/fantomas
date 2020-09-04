@@ -2084,6 +2084,7 @@ and genExpr astContext synExpr =
         | SynExpr.Assert _ -> genTriviaFor SynExpr_Assert synExpr.Range
         | SynExpr.While _ -> genTriviaFor SynExpr_While synExpr.Range
         | SynExpr.MatchLambda _ -> genTriviaFor SynExpr_MatchLambda synExpr.Range
+        | SynExpr.LongIdent _ -> genTriviaFor SynExpr_LongIdent synExpr.Range
         | _ -> id)
 
 and genMultilineRecordInstance
