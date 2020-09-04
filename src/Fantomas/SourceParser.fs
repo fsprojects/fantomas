@@ -961,13 +961,6 @@ let (|PatOr|_|) = function
         Some(p1, p2)
     | _ -> None
 
-let rec (|FirstPatOr|_|) =
-    function
-    | PatOr(FirstPatOr(p), _) -> Some p
-    | PatOr(p,_) -> Some p
-    | _ -> None
-
-
 let (|PatAnds|_|) = function
     | SynPat.Ands(ps, _) ->
         Some ps
