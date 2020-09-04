@@ -8,7 +8,10 @@ open Fantomas.Tests.TestHelper
 let ``keep comment after arrow`` () =
     formatSourceString false """_Target "FSharpTypesDotNet" (fun _ -> // obsolete
  ())
-"""  ({ config with IndentSize = 2; MaxLineLength = 90 })
+"""
+        ({ config with
+               IndentSize = 2
+               MaxLineLength = 90 })
     |> prepend newline
     |> should equal """
 _Target "FSharpTypesDotNet" (fun _ -> // obsolete
@@ -88,7 +91,7 @@ let a =
     b
     |> List.exists (fun p ->
         x && someVeryLongIdentifierrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrzzzz___________)
-"""  ({ config with MaxLineLength = 80})
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
 let a =
@@ -180,7 +183,7 @@ let ``short ident in nested let binding`` () =
     foo (fun a ->
                 let b = 8
                 b)
-"""  ({ config with IndentSize = 2})
+"""  ({ config with IndentSize = 2 })
     |> prepend newline
     |> should equal """
 let a =
@@ -219,7 +222,7 @@ let ``multiple braces should add indent`` () =
 
 [<Test>]
 let ``add space after chained ident, 676`` () =
-    formatSourceString false """let foo = Foo(fun () -> Foo.Create x).Value"""  config
+    formatSourceString false """let foo = Foo(fun () -> Foo.Create x).Value""" config
     |> prepend newline
     |> should equal """
 let foo = Foo(fun () -> Foo.Create x).Value
@@ -228,7 +231,9 @@ let foo = Foo(fun () -> Foo.Create x).Value
 [<Test>]
 let ``line comment after lambda should not necessary make it multiline`` () =
     formatSourceString false """let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
-"""  ({ config with MaxFunctionBindingWidth = 150 })
+"""
+        ({ config with
+               MaxFunctionBindingWidth = 150 })
     |> prepend newline
     |> should equal """
 let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
@@ -382,7 +387,10 @@ let ``don't duplicate new line before LongIdentSet`` () =
                     | Graph.HierarchicalUpDown -> createObj [ "hierarchical" ==> hierOpts "UD" ]
 
                 o.layout <- Some layout)
-"""   { config with MaxValueBindingWidth = 50; MaxFunctionBindingWidth = 50 }
+"""
+        { config with
+              MaxValueBindingWidth = 50
+              MaxFunctionBindingWidth = 50 }
     |> prepend newline
     |> should equal """
 let options =

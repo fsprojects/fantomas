@@ -8,7 +8,7 @@ open Fantomas.FormatConfig
 open Fantomas.Extras
 
 // Share an F# checker instance across formatting calls
-let sharedChecker = lazy(FSharpChecker.Create())
+let sharedChecker = lazy (FSharpChecker.Create())
 
 exception CodeFormatException of (string * Option<Exception>) array with
     override x.ToString() =
@@ -31,16 +31,18 @@ exception CodeFormatException of (string * Option<Exception>) array with
 
         String.Join(String.Empty, errors)
         + "The following files aren't formatted properly:"
-        + "\r\n- " + String.Join("\r\n- ", files)
+        + "\r\n- "
+        + String.Join("\r\n- ", files)
 
 type FormatResult =
-    | Formatted of filename : string * formattedContent : string
-    | Unchanged of filename : string
-    | Error of filename : string * formattingError : Exception
+    | Formatted of filename: string * formattedContent: string
+    | Unchanged of filename: string
+    | Error of filename: string * formattingError: Exception
     | IgnoredFile of filename: string
 
 let createParsingOptionsFromFile fileName =
-    { FSharpParsingOptions.Default with SourceFiles = [|fileName|] }
+    { FSharpParsingOptions.Default with
+          SourceFiles = [| fileName |] }
 
 let formatContentAsync config (file: string) (originalContent: string) =
     if IgnoreFile.isIgnoredFile file then
@@ -52,24 +54,32 @@ let formatContentAsync config (file: string) (originalContent: string) =
                     if Path.GetExtension(file) = ".fsi" then "tmp.fsi" else "tmp.fsx"
 
                 let! formattedContent =
-                    CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString originalContent, config,
-                                                      createParsingOptionsFromFile fileName ,sharedChecker.Value)
+                    CodeFormatter.FormatDocumentAsync
+                        (fileName,
+                         SourceOrigin.SourceString originalContent,
+                         config,
+                         createParsingOptionsFromFile fileName,
+                         sharedChecker.Value)
 
                 if originalContent <> formattedContent then
                     let! isValid =
-                        CodeFormatter.IsValidFSharpCodeAsync(fileName, (SourceOrigin.SourceString(formattedContent)),
-                                                             createParsingOptionsFromFile fileName, sharedChecker.Value)
-                    if not isValid  then
-                        raise <| FormatException "Formatted content is not valid F# code"
+                        CodeFormatter.IsValidFSharpCodeAsync
+                            (fileName,
+                             (SourceOrigin.SourceString(formattedContent)),
+                             createParsingOptionsFromFile fileName,
+                             sharedChecker.Value)
 
-                    return Formatted(filename=file, formattedContent=formattedContent)
+                    if not isValid then
+                        raise
+                        <| FormatException "Formatted content is not valid F# code"
+
+                    return Formatted(filename = file, formattedContent = formattedContent)
                 else
-                    return Unchanged(filename=file)
-            with
-            | ex -> return Error(file, ex)
+                    return Unchanged(filename = file)
+            with ex -> return Error(file, ex)
         }
 
-let formatFileAsync (file : string) =
+let formatFileAsync (file: string) =
     let config = EditorConfig.readConfiguration file
 
     if IgnoreFile.isIgnoredFile file then
@@ -83,31 +93,28 @@ let formatFileAsync (file : string) =
         }
 
 let formatFilesAsync files =
-    files
-    |> Seq.map formatFileAsync
-    |> Async.Parallel
+    files |> Seq.map formatFileAsync |> Async.Parallel
 
 let formatCode files =
     async {
         let! results = formatFilesAsync files
-        
+
         // Check for formatting errors:
         let errors =
             results
             |> Array.choose (fun x ->
                 match x with
-                | Error(file, ex) -> Some(file, Some(ex))
+                | Error (file, ex) -> Some(file, Some(ex))
                 | _ -> None)
 
-        if not <| Array.isEmpty errors then
-            raise <| CodeFormatException errors
+        if not <| Array.isEmpty errors then raise <| CodeFormatException errors
 
         // Overwrite source files with formatted content
         let result =
             results
             |> Array.choose (fun x ->
                 match x with
-                | Formatted(source, formatted) ->
+                | Formatted (source, formatted) ->
                     File.WriteAllText(source, formatted)
                     Some source
                 | _ -> None)
@@ -120,7 +127,10 @@ type CheckResult =
       Formatted: string list }
     member this.HasErrors = List.isNotEmpty this.Errors
     member this.NeedsFormatting = List.isNotEmpty this.Formatted
-    member this.IsValid = List.isEmpty this.Errors && List.isEmpty this.Formatted
+
+    member this.IsValid =
+        List.isEmpty this.Errors
+        && List.isEmpty this.Formatted
 
 /// Runs a check on the given files and reports the result to the given output:
 ///
@@ -132,17 +142,18 @@ type CheckResult =
 /// A record with the file names that were formatted and the files that encounter problems while formatting.
 let checkCode (filenames: seq<string>) =
     async {
-        let! formatted = filenames
-                         |> Seq.filter (IgnoreFile.isIgnoredFile >> not)
-                         |> Seq.map formatFileAsync
-                         |> Async.Parallel
+        let! formatted =
+            filenames
+            |> Seq.filter (IgnoreFile.isIgnoredFile >> not)
+            |> Seq.map formatFileAsync
+            |> Async.Parallel
 
         let getChangedFile =
             function
             | FormatResult.Unchanged _
             | FormatResult.IgnoredFile _ -> None
-            | FormatResult.Formatted(f,_)
-            | FormatResult.Error(f,_) -> Some f
+            | FormatResult.Formatted (f, _)
+            | FormatResult.Error (f, _) -> Some f
 
         let changes =
             formatted
@@ -151,13 +162,11 @@ let checkCode (filenames: seq<string>) =
 
         let getErrors =
             function
-            | FormatResult.Error(f,e) -> Some (f,e)
+            | FormatResult.Error (f, e) -> Some(f, e)
             | _ -> None
 
         let errors =
-            formatted
-            |> Seq.choose getErrors
-            |> Seq.toList
+            formatted |> Seq.choose getErrors |> Seq.toList
 
         return { Errors = errors; Formatted = changes }
     }

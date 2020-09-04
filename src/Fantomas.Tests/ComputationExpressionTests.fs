@@ -1,15 +1,15 @@
-﻿module Fantomas.Tests.ComputationExpressionTests
+module Fantomas.Tests.ComputationExpressionTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``async workflows``() =
+let ``async workflows`` () =
     formatSourceString false """
 let fetchAsync(name, url:string) =
-    async { 
-        try 
+    async {
+        try
             let uri = new System.Uri(url)
             let webClient = new WebClient()
             let! html = webClient.AsyncDownloadString(uri)
@@ -35,7 +35,7 @@ let fetchAsync (name, url: string) =
 """
 
 [<Test>]
-let ``computation expressions``() =
+let ``computation expressions`` () =
     formatSourceString false """
 let comp =
     eventually { for x in 1 .. 2 do
@@ -53,7 +53,7 @@ let comp =
 """
 
 [<Test>]
-let ``sequence expressions``() =
+let ``sequence expressions`` () =
     formatSourceString false """
 let s1 = seq { for i in 1 .. 10 -> i * i }
 let s2 = seq { 0 .. 10 .. 100 }
@@ -65,7 +65,7 @@ let rec inorder tree =
                yield x
                yield! inorder right
           | Leaf x -> yield x
-    }   
+    }
     """ config
     |> prepend newline
     |> should equal """
@@ -84,22 +84,23 @@ let rec inorder tree =
 """
 
 [<Test>]
-let ``range expressions``() =
+let ``range expressions`` () =
     formatSourceString false """
-let factors number = 
+let factors number =
     {2L .. number / 2L}
-    |> Seq.filter (fun x -> number % x = 0L)""" ({ config with
-                                                        MaxInfixOperatorExpression = 65
-                                                        MaxFunctionBindingWidth = 65 })
+    |> Seq.filter (fun x -> number % x = 0L)"""
+        ({ config with
+               MaxInfixOperatorExpression = 65
+               MaxFunctionBindingWidth = 65 })
     |> prepend newline
     |> should equal """
 let factors number = { 2L .. number / 2L } |> Seq.filter (fun x -> number % x = 0L)
 """
 
 [<Test>]
-let ``match bang``() =
+let ``match bang`` () =
     formatSourceString false """
-async { 
+async {
     match! myAsyncFunction() with
     | Some x -> printfn "%A" x
     | None -> printfn "Function returned None!"
@@ -135,14 +136,15 @@ async {
     return 10
 }
 """  config
-   |> prepend newline
-   |> should equal """
+    |> prepend newline
+    |> should equal """
 async {
     let! x = Async.Sleep 1.
     and! y = Async.Sleep 2.
     return 10
 }
 """
+
 [<Test>]
 let ``multiple and! is supported`` () =
     formatSourceString false """
@@ -154,8 +156,8 @@ parallel {
     return f x y z
 }
 """  config
-   |> prepend newline
-   |> should equal """
+    |> prepend newline
+    |> should equal """
 // Reads the values of x, y and z concurrently, then applies f to them
 ``parallel`` {
     let! x = slowRequestX ()
@@ -174,8 +176,8 @@ observable {
     return a + b
 }
 """  config
-   |> prepend newline
-   |> should equal """
+    |> prepend newline
+    |> should equal """
 observable {
     let! a = foo
     and! b = bar
@@ -288,7 +290,7 @@ let ``multiline computation expression with SynExpr.App identifier, 835`` () =
         // foo
         // bar
         return 42
-    }"""  config
+    }""" config
     |> prepend newline
     |> should equal """
 let meh =
@@ -1340,11 +1342,12 @@ let ``new line between let and let bang, 879`` () =
 
               return! loop ()
         }
-"""  ({ config with
-            SpaceBeforeUppercaseInvocation = true
-            IndentSize = 2
-            SpaceAroundDelimiter = false
-            MultilineBlockBracketsOnSameColumn = true })
+"""
+        ({ config with
+               SpaceBeforeUppercaseInvocation = true
+               IndentSize = 2
+               SpaceAroundDelimiter = false
+               MultilineBlockBracketsOnSameColumn = true })
     |> prepend newline
     |> should equal """
 let rec loop () =
@@ -1439,7 +1442,7 @@ let private removeSubscription (log : ILogger) (req : HttpRequest) =
 
         return sendText "Subscription removed"
     }
-"""   { config with SpaceBeforeColon = true }
+"""  { config with SpaceBeforeColon = true }
     |> prepend newline
     |> should equal """
 let private removeSubscription (log : ILogger) (req : HttpRequest) =

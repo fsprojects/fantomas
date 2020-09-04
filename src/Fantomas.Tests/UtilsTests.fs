@@ -6,8 +6,8 @@ open Fantomas.Tests.TestHelper
 
 let private mergeAndCompare a b expected =
     let result =
-        String.merge a b
-        |> String.normalizeNewLine
+        String.merge a b |> String.normalizeNewLine
+
     let normalizedExpected = String.normalizeNewLine expected
     normalizedExpected == result
 
@@ -70,7 +70,7 @@ let private assemblyConfig() =
     x
 """
     |> mergeAndCompare a b
-    
+
 [<Test>]
 let ``Only split on control structure keyword`` () =
     let a = """

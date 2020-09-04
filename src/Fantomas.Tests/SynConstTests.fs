@@ -131,13 +131,13 @@ module Runner =
 
 [<Test>]
 let ``array literals of BigInteger, 682`` () =
-    formatSourceString false "let input = [| 1I;0I;-1I |]"  config
+    formatSourceString false "let input = [| 1I;0I;-1I |]" config
     |> should equal "let input = [| 1I; 0I; -1I |]
 "
 
 [<Test>]
 let ``negative single floating-point number, 785`` () =
-    formatSourceString false "let num = -3.213f"  config
+    formatSourceString false "let num = -3.213f" config
     |> should equal "let num = -3.213f
 "
 

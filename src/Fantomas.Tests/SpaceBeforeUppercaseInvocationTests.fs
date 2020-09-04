@@ -4,7 +4,9 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let spaceBeforeConfig = { config with SpaceBeforeUppercaseInvocation = true }
+let spaceBeforeConfig =
+    { config with
+          SpaceBeforeUppercaseInvocation = true }
 
 /// Space before () in Uppercase function call
 
@@ -30,7 +32,7 @@ let ``spaceBeforeUppercaseInvocation should add space before unit in chained upp
 
 [<Test>]
 let ``spaceBeforeUppercaseInvocation should not have impact when member is called after unit`` () =
-    formatSourceString false "let v2 = OtherFunction().Member"  spaceBeforeConfig
+    formatSourceString false "let v2 = OtherFunction().Member" spaceBeforeConfig
     |> prepend newline
     |> should equal """
 let v2 = OtherFunction().Member
@@ -53,7 +55,9 @@ let ``spaceBeforeUppercaseInvocation should add space before parentheses in uppe
 [<Test>]
 let ``space before uppercase function application cannot apply with dot-chaining, 943`` () =
     formatSourceString false """foo.Bar().[5]
-"""  { config with SpaceBeforeUppercaseInvocation = true }
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should equal """
 foo.Bar().[5]
@@ -62,7 +66,9 @@ foo.Bar().[5]
 [<Test>]
 let ``space before uppercase DotIndexedSet`` () =
     formatSourceString false """foo.Bar().[5] <- 5
-"""  { config with SpaceBeforeUppercaseInvocation = true }
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should equal """
 foo.Bar().[5] <- 5
@@ -75,7 +81,9 @@ module SomeModule =
     let DoSomething (a:SomeType) =
         let someValue = a.Some.Thing("aaa").[0]
         someValue
-"""  { config with SpaceBeforeUppercaseInvocation = true }
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should equal """
 module SomeModule =

@@ -20,8 +20,10 @@ type ConfigurationFile internal (config: FormatConfig.FormatConfig,
         match subFolder with
         | Some sf ->
             let dirPath = Path.Join(Path.GetTempPath(), sf)
+
             if not (Directory.Exists(dirPath))
             then Directory.CreateDirectory(dirPath) |> ignore
+
             Path.Join(Path.GetTempPath(), sf, ".editorconfig")
         | None -> Path.Join(Path.GetTempPath(), ".editorconfig")
 
@@ -42,7 +44,8 @@ type ConfigurationFile internal (config: FormatConfig.FormatConfig,
     do File.WriteAllText(editorConfigPath, content)
 
     interface IDisposable with
-        member this.Dispose(): unit = if File.Exists(editorConfigPath) then File.Delete(editorConfigPath)
+        member this.Dispose(): unit =
+            if File.Exists(editorConfigPath) then File.Delete(editorConfigPath)
 
 type FSharpFile internal (?fsharpFileExtension: string, ?subFolder: string) =
     let extension =
@@ -54,8 +57,10 @@ type FSharpFile internal (?fsharpFileExtension: string, ?subFolder: string) =
         match subFolder with
         | Some sf ->
             let dirPath = Path.Join(Path.GetTempPath(), sf)
+
             if not (Directory.Exists(dirPath))
             then Directory.CreateDirectory(dirPath) |> ignore
+
             Path.Join(Path.GetTempPath(), sf, fsharpFile)
         | None -> Path.Join(Path.GetTempPath(), fsharpFile)
 
@@ -64,7 +69,8 @@ type FSharpFile internal (?fsharpFileExtension: string, ?subFolder: string) =
     member _.FSharpFile: string = fsharpFilePath
 
     interface IDisposable with
-        member this.Dispose(): unit = if File.Exists(fsharpFilePath) then File.Delete(fsharpFilePath)
+        member this.Dispose(): unit =
+            if File.Exists(fsharpFilePath) then File.Delete(fsharpFilePath)
 
 [<Test>]
 let ``single configuration file`` () =
@@ -111,6 +117,7 @@ let ``parent config should not be taking into account when child is root`` () =
 
     config.MaxRecordWidth
     == defaultConfig.MaxRecordWidth
+
     config.IndentSize == 2
 
 [<Test>]
@@ -157,9 +164,9 @@ let ``non existing file should return defaults for readConfiguration`` () =
 
     config == defaultConfig
 
-    // In the future we could ensure that the Default config isn't 
-    // being generated every time because it's a property getter     
-    // Assert.That(Object.ReferenceEquals(config, defaultConfig))
+// In the future we could ensure that the Default config isn't
+// being generated every time because it's a property getter
+// Assert.That(Object.ReferenceEquals(config, defaultConfig))
 
 [<Test>]
 let ``non existing file should return None for tryReadConfiguration`` () =

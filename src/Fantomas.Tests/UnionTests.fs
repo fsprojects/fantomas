@@ -1,11 +1,11 @@
-﻿module Fantomas.Tests.UnionsTests
+module Fantomas.Tests.UnionsTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``enums declaration``() =
+let ``enums declaration`` () =
     formatSourceString false """
     type FontVariant =
     | [<Description("small-caps")>] SmallCaps = 0""" config
@@ -16,7 +16,7 @@ type FontVariant =
 """
 
 [<Test>]
-let ``discriminated unions declaration``() =
+let ``discriminated unions declaration`` () =
     formatSourceString false "type X = private | A of AParameters | B" config
     |> prepend newline
     |> should equal """
@@ -27,7 +27,7 @@ type X =
 """
 
 [<Test>]
-let ``enums conversion``() =
+let ``enums conversion`` () =
     shouldNotChangeAfterFormat """
 type uColor =
     | Red = 0u
@@ -39,7 +39,7 @@ let col3 =
 """
 
 [<Test>]
-let ``discriminated unions with members``() =
+let ``discriminated unions with members`` () =
     formatSourceString false """
 type Type
     = TyLam of Type * Type
@@ -64,7 +64,7 @@ type Type =
 """
 
 [<Test>]
-let ``newline between discriminated unions and members``() =
+let ``newline between discriminated unions and members`` () =
     formatSourceString false """
 type Type
     = TyLam of Type * Type
@@ -74,7 +74,9 @@ type Type
             match this with
             | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
             | TyVar a -> a
-            | TyCon (s, ts) -> s""" ({ config with NewlineBetweenTypeDefinitionAndMembers = true })
+            | TyCon (s, ts) -> s"""
+        ({ config with
+               NewlineBetweenTypeDefinitionAndMembers = true })
     |> prepend newline
     |> should equal """
 type Type =
@@ -90,9 +92,9 @@ type Type =
 """
 
 [<Test>]
-let ``should keep attributes on union cases``() =
+let ``should keep attributes on union cases`` () =
     formatSourceString false """
-type Argument = 
+type Argument =
   | [<MandatoryAttribute>] Action of string
   | [<MandatoryAttribute>] ProjectFile of string
   | PackageId of string
@@ -107,7 +109,7 @@ type Argument =
 """
 
 [<Test>]
-let ``should be able to define named unions``() =
+let ``should be able to define named unions`` () =
     formatSourceString false """
 type Thing =
 | Human of Name:string * Age:int
@@ -132,7 +134,7 @@ type Strategy =
 """
 
 [<Test>]
-let ``should be able to pattern match on unions``() =
+let ``should be able to pattern match on unions`` () =
     formatSourceString false """
 type TestUnion = Test of A : int * B : int
 [<EntryPoint>]
@@ -155,7 +157,7 @@ let main argv =
 """
 
 [<Test>]
-let ``enums conversion with strict mode``() =
+let ``enums conversion with strict mode`` () =
     formatSourceString false """
 type uColor =
    | Red = 0u
@@ -176,7 +178,7 @@ let col3 =
 [<Test>]
 let ``Single case DUs on same line`` () =
     formatSourceString false """
-type CustomerId = 
+type CustomerId =
     | CustomerId of int
     """ config
     |> prepend newline
@@ -186,13 +188,13 @@ type CustomerId = CustomerId of int
 
 [<Test>]
 let ``Single case DU with private access modifier`` () =
-   formatSourceString false """
+    formatSourceString false """
 type CustomerId =
-   private 
+   private
    | CustomerId of int
    """ config
-   |> prepend newline
-   |> should equal """
+    |> prepend newline
+    |> should equal """
 type CustomerId = private CustomerId of int
 """
 
@@ -203,7 +205,9 @@ type CustomerId =
     | CustomerId of int
     member this.Test() =
         printfn "%A" this
-    """ { config with MaxFunctionBindingWidth = 120 }
+    """
+        { config with
+              MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type CustomerId =
@@ -301,7 +305,7 @@ type DU = | Record
 
 [<Test>]
 let ``single case DU with fields should not have a pipe after formatting`` () =
-    formatSourceString false """type DU = Record of string"""  config
+    formatSourceString false """type DU = Record of string""" config
     |> prepend newline
     |> should equal """
 type DU = Record of string
@@ -309,7 +313,7 @@ type DU = Record of string
 
 [<Test>]
 let ``single case DU with private fields should not have a pipe after formatting`` () =
-    formatSourceString false """type String50 = private String50 of string"""  config
+    formatSourceString false """type String50 = private String50 of string""" config
     |> prepend newline
     |> should equal """
 type String50 = private String50 of string

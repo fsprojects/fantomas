@@ -9,14 +9,14 @@ module IgnoreFile =
     [<Literal>]
     let IgnoreFileName = ".fantomasignore"
 
-    let private getIgnoreFilePath () =  Path.Combine(Directory.GetCurrentDirectory(), IgnoreFileName)
+    let private getIgnoreFilePath () =
+        Path.Combine(Directory.GetCurrentDirectory(), IgnoreFileName)
 
-    let ignores = lazy IgnoreList(getIgnoreFilePath ())
+    let ignores = lazy (IgnoreList(getIgnoreFilePath ()))
 
     let private hasNoIgnoreFile () =
         let path = getIgnoreFilePath ()
-        File.Exists path
-        |> not
+        File.Exists path |> not
 
     let isIgnoredFile (file: string) =
         if hasNoIgnoreFile () then
@@ -25,7 +25,6 @@ module IgnoreFile =
             try
                 let fullPath = Path.GetFullPath(file)
                 ignores.Value.IsIgnored(fullPath, false)
-            with
-            | ex ->
+            with ex ->
                 printfn "%A" ex
                 false

@@ -1,21 +1,27 @@
-﻿module Fantomas.Tests.StringTests
+module Fantomas.Tests.StringTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``triple-quoted strings``() =
-    formatSourceString false "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"" ({ config with MaxValueBindingWidth = 60 })
+let ``triple-quoted strings`` () =
+    formatSourceString
+        false
+        "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\""
+        ({ config with
+               MaxValueBindingWidth = 60 })
     |> should equal "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"
 "
 
 [<Test>]
-let ``string literals``() =
+let ``string literals`` () =
     formatSourceString false """
 let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
 let str1 = "abc"
-    """ ({ config with MaxValueBindingWidth = 60 })
+    """
+        ({ config with
+               MaxValueBindingWidth = 60 })
     |> prepend newline
     |> should equal """
 let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
@@ -23,7 +29,7 @@ let str1 = "abc"
 """
 
 [<Test>]
-let ``multiline strings``() =
+let ``multiline strings`` () =
     formatSourceString false """
 let alu =
         "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
@@ -46,7 +52,7 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
 """
 
 [<Test>]
-let ``multiline string piped``() =
+let ``multiline string piped`` () =
     formatSourceString false """
 let f a b =
     a "
@@ -61,7 +67,7 @@ let f a b =
 """
 
 [<Test>]
-let ``preserve uncommon literals``() =
+let ``preserve uncommon literals`` () =
     formatSourceString false """
 let a = 0xFFy
 let c = 0b0111101us
@@ -69,7 +75,7 @@ let d = 0o0777
 let e = 1.40e10f
 let f = 23.4M
 let g = '\n'
-    """ config 
+    """ config
     |> prepend newline
     |> should equal """
 let a = 0xFFy
@@ -81,7 +87,7 @@ let g = '\n'
 """
 
 [<Test>]
-let ``uncommon literals strict mode``() =
+let ``uncommon literals strict mode`` () =
     formatSourceString false """
 let a = 0xFFy
 let c = 0b0111101us
@@ -89,7 +95,7 @@ let d = 0o0777
 let e = 1.40e10f
 let f = 23.4M
 let g = '\n'
-    """ { config with StrictMode=true }
+    """ { config with StrictMode = true }
     |> prepend newline
     |> should equal """
 let a = -1y
@@ -101,7 +107,7 @@ let g = '\n'
 """
 
 [<Test>]
-let ``should preserve triple-quote strings``() =
+let ``should preserve triple-quote strings`` () =
     formatSourceString false "
     type GetList() =
         let switchvox_users_voicemail_getList_response = \"\"\"
@@ -110,7 +116,9 @@ let ``should preserve triple-quote strings``() =
         let switchvox_users_voicemail_getList = \"\"\"
             </request>\"\"\"
 
-        member self.X = switchvox_users_voicemail_getList_response" { config with MaxValueBindingWidth = 120 } 
+        member self.X = switchvox_users_voicemail_getList_response"
+        { config with
+              MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal "
 type GetList() =
@@ -130,10 +138,10 @@ type GetList() =
 // To me this feels valid though, of course it lead to the follow result of the test.
 
 [<Test>]
-let ``should keep triple-quote strings``() =
+let ``should keep triple-quote strings`` () =
     formatSourceString false "
 [<EntryPoint>]
-let main argv = 
+let main argv =
     use fun1 = R.eval(R.parse(text = \"\"\"
     function(i) {
         x <- rnorm(1000)
@@ -143,7 +151,7 @@ let main argv =
     }
     \"\"\"))
     0
-"    config 
+"    config
     |> prepend newline
     |> should equal "
 [<EntryPoint>]
@@ -188,7 +196,7 @@ let x = \"\"\"some
 content
 
 with empty lines\"\"\"
-"      config
+"    config
     |> prepend newline
     |> should equal "
 let x = \"\"\"some

@@ -1,4 +1,4 @@
-﻿namespace Fantomas
+namespace Fantomas
 
 [<Sealed>]
 type CodeFormatter =
@@ -7,7 +7,9 @@ type CodeFormatter =
         |> CodeFormatterImpl.parse checker parsingOptions
 
     static member FormatASTAsync(ast, fileName, defines, source, config) =
-        let formatContext = CodeFormatterImpl.createFormatContext fileName (Option.defaultValue (SourceOrigin.SourceString "") source)
+        let formatContext =
+            CodeFormatterImpl.createFormatContext fileName (Option.defaultValue (SourceOrigin.SourceString "") source)
+
         CodeFormatterImpl.formatAST ast defines formatContext config
         |> async.Return
 
@@ -23,13 +25,12 @@ type CodeFormatter =
         CodeFormatterImpl.createFormatContext fileName source
         |> CodeFormatterImpl.isValidFSharpCode checker parsingOptions
 
-    static member IsValidASTAsync ast = 
+    static member IsValidASTAsync ast =
         async { return CodeFormatterImpl.isValidAST ast }
 
-    static member MakePos(line, col) = 
-        CodeFormatterImpl.makePos line col
+    static member MakePos(line, col) = CodeFormatterImpl.makePos line col
 
-    static member MakeRange(fileName, startLine, startCol, endLine, endCol) = 
+    static member MakeRange(fileName, startLine, startCol, endLine, endCol) =
         CodeFormatterImpl.makeRange fileName startLine startCol endLine endCol
 
     static member GetVersion() = Version.fantomasVersion.Value

@@ -4,7 +4,9 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let config = { config with NewlineBetweenTypeDefinitionAndMembers = true }
+let config =
+    { config with
+          NewlineBetweenTypeDefinitionAndMembers = true }
 
 [<Test>]
 let ``newline between record type and members`` () =
@@ -13,7 +15,9 @@ let ``newline between record type and members`` () =
       To : float
       Name: string }
     member this.Length = this.To - this.From
-"""  { config with MaxValueBindingWidth = 120 }
+"""
+        { config with
+              MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Range =
@@ -32,7 +36,9 @@ let ``existing newline between record type and members should not be duplicate``
       Name: string }
 
     member this.Length = this.To - this.From
-"""  { config with MaxValueBindingWidth = 120 }
+"""
+        { config with
+              MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Range =

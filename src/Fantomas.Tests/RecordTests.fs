@@ -1,11 +1,11 @@
-﻿module Fantomas.Tests.RecordTests
+module Fantomas.Tests.RecordTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``record declaration``() =
+let ``record declaration`` () =
     formatSourceString false "type AParameters = { a : int }" config
     |> prepend newline
     |> should equal """
@@ -13,7 +13,7 @@ type AParameters = { a: int }
 """
 
 [<Test>]
-let ``record declaration with implementation visibility attribute``() =
+let ``record declaration with implementation visibility attribute`` () =
     formatSourceString false "type AParameters = private { a : int; b: float }" config
     |> prepend newline
     |> should equal """
@@ -21,7 +21,7 @@ type AParameters = private { a: int; b: float }
 """
 
 [<Test>]
-let ``record signatures``() =
+let ``record signatures`` () =
     formatSourceString true """
 module RecordSignature
 /// Represents simple XML elements.
@@ -58,7 +58,9 @@ type Element =
     static member WithText : text: string -> self: Element-> Element
 
     /// Replaces the children with a single text node.
-    static member ( -- ) : self: Element * text: string -> Element""" { config with SemicolonAtEndOfLine = true }
+    static member ( -- ) : self: Element * text: string -> Element"""
+        { config with
+              SemicolonAtEndOfLine = true }
     |> prepend newline
     |> should equal """
 module RecordSignature
@@ -99,7 +101,7 @@ type Element =
 """
 
 [<Test>]
-let ``records with update``() =
+let ``records with update`` () =
     formatSourceString false """
 type Car = {
     Make : string
@@ -120,7 +122,7 @@ let myRecord3 = { myRecord2 with Y = 100; Z = 2 }
 
 // the current behavior results in a compile error since the if is not aligned properly
 [<Test>]
-let ``should not break inside of if statements in records``() =
+let ``should not break inside of if statements in records`` () =
     formatSourceString false """let XpkgDefaults() =
     {
         ToolPath = "./tools/xpkg/xpkg.exe"
@@ -141,7 +143,9 @@ let ``should not break inside of if statements in records``() =
         Samples = [];
     }
 
-    """ { config with SemicolonAtEndOfLine = true }
+    """
+        { config with
+              SemicolonAtEndOfLine = true }
     |> should equal """let XpkgDefaults () =
     { ToolPath = "./tools/xpkg/xpkg.exe";
       WorkingDir = "./";
@@ -162,15 +166,15 @@ let ``should not break inside of if statements in records``() =
 """
 
 [<Test>]
-let ``should not add redundant newlines when using a record in a DU``() =
+let ``should not add redundant newlines when using a record in a DU`` () =
     formatSourceString false """
-let rec make item depth = 
-    if depth > 0 then 
+let rec make item depth =
+    if depth > 0 then
         Tree({ Left = make (2 * item - 1) (depth - 1)
                Right = make (2 * item) (depth - 1) }, item)
     else Tree(defaultof<_>, item)""" config
-  |> prepend newline
-  |> should equal """
+    |> prepend newline
+    |> should equal """
 let rec make item depth =
     if depth > 0 then
         Tree
@@ -195,28 +199,30 @@ let a =
 """
 
 [<Test>]
-let ``should keep unit of measures in record and DU declaration``() =
+let ``should keep unit of measures in record and DU declaration`` () =
     formatSourceString false """
 type rate = {Rate:float<GBP*SGD/USD>}
 type rate2 = Rate of float<GBP/SGD*USD>
 """  config
-  |> prepend newline
-  |> should equal """
+    |> prepend newline
+    |> should equal """
 type rate = { Rate: float<GBP * SGD / USD> }
 type rate2 = Rate of float<GBP / SGD * USD>
 """
 
 [<Test>]
-let ``should keep comments on records``() =
+let ``should keep comments on records`` () =
     formatSourceString false """
 let newDocument = //somecomment
     { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
       content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
       created = document.Created.ToLocalTime() }
     |> JsonConvert.SerializeObject
-"""  ({ config with MaxInfixOperatorExpression = 75 })
-  |> prepend newline
-  |> should equal """
+"""
+        ({ config with
+               MaxInfixOperatorExpression = 75 })
+    |> prepend newline
+    |> should equal """
 let newDocument = //somecomment
     { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
       content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
@@ -225,7 +231,7 @@ let newDocument = //somecomment
 """
 
 [<Test>]
-let ``|> should be on the next line if preceding expression is multiline``() =
+let ``|> should be on the next line if preceding expression is multiline`` () =
     shouldNotChangeAfterFormat """
 let newDocument = //somecomment
     { program = "Loooooooooooooooooooooooooong"
@@ -235,36 +241,36 @@ let newDocument = //somecomment
 """
 
 [<Test>]
-let ``should preserve inherit parts in records``() =
+let ``should preserve inherit parts in records`` () =
     formatSourceString false """
 type MyExc =
     inherit Exception
     new(msg) = {inherit Exception(msg)}
 """  config
-  |> prepend newline
-  |> should equal """
+    |> prepend newline
+    |> should equal """
 type MyExc =
     inherit Exception
     new(msg) = { inherit Exception(msg) }
 """
 
 [<Test>]
-let ``should preserve inherit parts in records with field``() =
+let ``should preserve inherit parts in records with field`` () =
     formatSourceString false """
 type MyExc =
     inherit Exception
     new(msg) = {inherit Exception(msg)
                 X = 1}
 """  config
-  |> prepend newline
-  |> should equal """
+    |> prepend newline
+    |> should equal """
 type MyExc =
     inherit Exception
     new(msg) = { inherit Exception(msg); X = 1 }
 """
 
 [<Test>]
-let ``should preserve inherit parts in records multiline``() =
+let ``should preserve inherit parts in records multiline`` () =
     formatSourceString false """
 type MyExc =
     inherit Exception
@@ -272,8 +278,8 @@ type MyExc =
                 XXXXXXXXXXXXXXXXXXXXXXXX = 1
                 YYYYYYYYYYYYYYYYYYYYYYYY = 2}
 """  config
-  |> prepend newline
-  |> should equal """
+    |> prepend newline
+    |> should equal """
 type MyExc =
     inherit Exception
 
@@ -324,7 +330,7 @@ let r =
 Fooey
 \"\"\"
     |}
-"      config
+"    config
     |> prepend newline
     |> should equal "
 let r =
@@ -435,7 +441,7 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
             ).write()
         Logger.debug \"Database restored\"
 
-"      config
+"    config
     |> should equal "type Database =
 
     static member Default() =
@@ -509,7 +515,7 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
 "
 
 [<Test>]
-let ``issue 457``() =
+let ``issue 457`` () =
     formatSourceString false """
 let x = Foo("").Goo()
 
@@ -518,8 +524,8 @@ let r =
         xxxxxxxxxxxxxxxxxxxxx = 1
         yyyyyyyyyyyyyyyyyyyyy = 2 }
 """  config
-  |> prepend newline
-  |> should equal """
+    |> prepend newline
+    |> should equal """
 let x = Foo("").Goo()
 
 let r =
@@ -586,7 +592,7 @@ let expect =
 [<Test>]
 let ``short record should remain on the same line after DU constructor`` () =
     formatSourceString false """
-let expect = Result<int,string>.Ok   7"""  config
+let expect = Result<int,string>.Ok   7""" config
     |> prepend newline
     |> should equal """
 let expect = Result<int, string>.Ok 7
@@ -599,7 +605,7 @@ let expect =
     Result<int,string>.Ok [ "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
                             "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
                             "meh"
-                          ]"""  config
+                          ]""" config
     |> prepend newline
     |> should equal """
 let expect =
@@ -621,7 +627,7 @@ module Maintoc =
     { MyPage.Create() with body =
                                 [ Doc.Verbatim \"\"\"
 This is a very long line in a multi-line string, so long in fact that it is longer than that page width to which I am trying to constrain everything, and so it goes bang.
-\"\"\" ] }"  config
+\"\"\" ] }" config
     |> prepend newline
     |> should equal "
 namespace web_core
@@ -980,7 +986,9 @@ type XX =
     { a: int
       b: int }
     static member private foo: int = 30
-"""  { config with NewlineBetweenTypeDefinitionAndMembers = true }
+"""
+        { config with
+              NewlineBetweenTypeDefinitionAndMembers = true }
     |> prepend newline
     |> should equal """
 type XX =
