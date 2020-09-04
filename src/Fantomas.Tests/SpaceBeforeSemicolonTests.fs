@@ -4,14 +4,15 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let beforeConfig = { config with
-                        SpaceBeforeSemicolon = true
-                        SpaceAfterSemicolon = false }
+let beforeConfig =
+    { config with
+          SpaceBeforeSemicolon = true
+          SpaceAfterSemicolon = false }
 
 [<Test>]
 let ``space before attributelist`` () =
     formatSourceString false """[<Foo;Bar;Meh>]
-let f a : int = 7"""  beforeConfig
+let f a : int = 7""" beforeConfig
     |> prepend newline
     |> should equal """
 [<Foo ;Bar ;Meh>]
@@ -63,12 +64,14 @@ let IsMatchByName record1 (name: string) =
     | _ -> false
 """
 
-let beforeAndAfterConfig = { config with SpaceBeforeSemicolon = true }
+let beforeAndAfterConfig =
+    { config with
+          SpaceBeforeSemicolon = true }
 
 [<Test>]
 let ``space before and after attributelist`` () =
     formatSourceString false """[<Foo;Bar;Meh>]
-let f a : int = 7"""  beforeAndAfterConfig
+let f a : int = 7""" beforeAndAfterConfig
     |> prepend newline
     |> should equal """
 [<Foo ; Bar ; Meh>]

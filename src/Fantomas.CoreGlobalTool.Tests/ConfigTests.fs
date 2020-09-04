@@ -16,14 +16,16 @@ let ``config file in working directory should not require relative prefix, 821``
 indent_size=2
 """                            )
 
-    let (exitCode, output) =
-        runFantomasTool fileFixture.Filename
+    let (exitCode, output) = runFantomasTool fileFixture.Filename
 
     exitCode |> should equal 0
+
     output
     |> should startWith (sprintf "Processing %s" fileFixture.Filename)
 
-    let result = System.IO.File.ReadAllText(fileFixture.Filename)
+    let result =
+        System.IO.File.ReadAllText(fileFixture.Filename)
+
     result
     |> should equal """let a = // foo
   9

@@ -7,11 +7,12 @@ open Fantomas.Extras
 open Fantomas.Tests.TestHelper
 
 let parseAndFormat sourceCode originSource =
-    
+
     let fileName = "/tmp.fsx"
-    
+
     let ast =
-        CodeFormatter.ParseAsync(fileName, sourceCode, FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
+        CodeFormatter.ParseAsync
+            (fileName, sourceCode, FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
         |> Async.RunSynchronously
         |> Seq.head
         |> fst
@@ -21,7 +22,7 @@ let parseAndFormat sourceCode originSource =
         |> Async.RunSynchronously
         |> String.normalizeNewLine
         |> fun s -> s.TrimEnd('\n')
-    
+
     formattedCode
 
 let formatAstWithSourceCode code =
@@ -33,12 +34,10 @@ let formatAst code =
     parseAndFormat source None
 
 [<Test>]
-let ``Format the ast works correctly with no source code``() =
-    formatAst "()"
-    |> should equal "()"
-    
+let ``Format the ast works correctly with no source code`` () = formatAst "()" |> should equal "()"
+
 [<Test>]
-let ``let in should not be used``() =
+let ``let in should not be used`` () =
     formatAst "let x = 1 in ()"
     |> should equal """let x = 1
 ()"""
@@ -49,7 +48,7 @@ let ``elif keyword is not present in raw AST`` () =
     if a then ()
     elif b then ()
     else ()"""
-    
+
     formatAst source
     |> should equal """if a then ()
 else if b then ()
@@ -69,7 +68,7 @@ let b =   1"""
 let b = 1"""
 
 [<Test>]
-let ``default implementations in abstract classes should be emited as override from AST without origin source, 742``() =
+let ``default implementations in abstract classes should be emited as override from AST without origin source, 742`` () =
     """[<AbstractClass>]
 type Foo =
     abstract foo: int
@@ -81,7 +80,7 @@ type Foo =
     override __.foo = 1"""
 
 [<Test>]
-let ``default implementations in abstract classes with `default` keyword should be emited as it was before from AST with origin source, 742``() =
+let ``default implementations in abstract classes with `default` keyword should be emited as it was before from AST with origin source, 742`` () =
     """[<AbstractClass>]
 type Foo =
     abstract foo: int
@@ -93,7 +92,7 @@ type Foo =
     default __.foo = 1"""
 
 [<Test>]
-let ``default implementations in abstract classes with `override` keyword should be emited as it was before from AST with origin source, 742``() =
+let ``default implementations in abstract classes with `override` keyword should be emited as it was before from AST with origin source, 742`` () =
     """[<AbstractClass>]
 type Foo =
     abstract foo: int
@@ -103,25 +102,25 @@ type Foo =
 type Foo =
     abstract foo: int
     override __.foo = 1"""
-  
+
 [<Test>]
-let ``object expression should emit override keyword on AST formatting without origin source, 742``() =
+let ``object expression should emit override keyword on AST formatting without origin source, 742`` () =
     """{ new System.IDisposable with
     member __.Dispose() = () }"""
     |> formatAst
     |> should equal """{ new System.IDisposable with
     override __.Dispose() = () }"""
-    
+
 [<Test>]
-let ``object expression should preserve member keyword on AST formatting with origin source, 742``() =
+let ``object expression should preserve member keyword on AST formatting with origin source, 742`` () =
     """{ new System.IDisposable with
     member __.Dispose() = () }"""
     |> formatAstWithSourceCode
     |> should equal """{ new System.IDisposable with
     member __.Dispose() = () }"""
-    
+
 [<Test>]
-let ``object expression should preserve override keyword on AST formatting with origin source, 742``() =
+let ``object expression should preserve override keyword on AST formatting with origin source, 742`` () =
     """{ new System.IDisposable with
     override __.Dispose() = () }"""
     |> formatAstWithSourceCode

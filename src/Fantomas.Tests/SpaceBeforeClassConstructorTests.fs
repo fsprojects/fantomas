@@ -4,7 +4,9 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let spaceBeforeConfig = { config with SpaceBeforeClassConstructor = true }
+let spaceBeforeConfig =
+    { config with
+          SpaceBeforeClassConstructor = true }
 
 // Space before unit in Uppercase class definition
 

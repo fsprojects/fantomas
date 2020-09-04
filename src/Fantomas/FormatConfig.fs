@@ -1,49 +1,49 @@
-﻿module Fantomas.FormatConfig
+module Fantomas.FormatConfig
 
 open System
 
 let satSolveMaxStepsMaxSteps = 100
 
-type FormatException(msg : string) =
+type FormatException(msg: string) =
     inherit Exception(msg)
 
 type Num = int
 
 // NOTE: try to keep this list below in sync with the docs (e.g. Documentation.md)
-type FormatConfig = 
+type FormatConfig =
     { /// Number of spaces for each indentation
-      IndentSize : Num
+      IndentSize: Num
       /// The column where we break to new lines
-      MaxLineLength : Num
-      SemicolonAtEndOfLine : bool
+      MaxLineLength: Num
+      SemicolonAtEndOfLine: bool
       SpaceBeforeParameter: bool
       SpaceBeforeLowercaseInvocation: bool
       SpaceBeforeUppercaseInvocation: bool
-      SpaceBeforeClassConstructor : bool
-      SpaceBeforeMember : bool
-      SpaceBeforeColon : bool
-      SpaceAfterComma : bool
-      SpaceBeforeSemicolon : bool
-      SpaceAfterSemicolon : bool
-      IndentOnTryWith : bool
-      SpaceAroundDelimiter : bool
+      SpaceBeforeClassConstructor: bool
+      SpaceBeforeMember: bool
+      SpaceBeforeColon: bool
+      SpaceAfterComma: bool
+      SpaceBeforeSemicolon: bool
+      SpaceAfterSemicolon: bool
+      IndentOnTryWith: bool
+      SpaceAroundDelimiter: bool
       MaxIfThenElseShortWidth: Num
       MaxInfixOperatorExpression: Num
       MaxRecordWidth: Num
       MaxArrayOrListWidth: Num
       MaxValueBindingWidth: Num
       MaxFunctionBindingWidth: Num
-      MultilineBlockBracketsOnSameColumn : bool
+      MultilineBlockBracketsOnSameColumn: bool
       NewlineBetweenTypeDefinitionAndMembers: bool
-      KeepIfThenInSameLine : bool
+      KeepIfThenInSameLine: bool
       MaxElmishWidth: Num
       SingleArgumentWebMode: bool
       AlignFunctionSignatureToIndentation: bool
       AlternativeLongMemberDefinitions: bool
       /// Pretty printing based on ASTs only
-      StrictMode : bool }
+      StrictMode: bool }
 
-    static member Default = 
+    static member Default =
         { IndentSize = 4
           MaxLineLength = 120
           SemicolonAtEndOfLine = false

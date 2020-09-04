@@ -1,11 +1,11 @@
-﻿module Fantomas.Tests.SpecialConstructsTests
+module Fantomas.Tests.SpecialConstructsTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``embedded IL``() =
+let ``embedded IL`` () =
     formatSourceString false """
 let inline private retype<'T, 'U> (x : 'T) : 'U = (# "" x : 'U #)""" config
     |> prepend newline
@@ -20,10 +20,11 @@ let ``don't add whitespace in chained accessors, 566`` () =
 
 let x : F = { new F with member __.G _ = Map.empty }
 x.G[].TryFind 3
-"""  ({ config with
-          SpaceAfterComma = false
-          SpaceAfterSemicolon = false
-          SpaceAroundDelimiter = false })
+"""
+        ({ config with
+               SpaceAfterComma = false
+               SpaceAfterSemicolon = false
+               SpaceAroundDelimiter = false })
     |> prepend newline
     |> should equal """
 type F =

@@ -5,13 +5,13 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``Keep () when dynamic operator is used``() =
+let ``Keep () when dynamic operator is used`` () =
     formatSourceString false "let memoEquals x = x?(k + 1)" config
     |> should equal """let memoEquals x = x?(k + 1)
 """
 
 [<Test>]
-let ``Remove () when dynamic operator is string``() =
+let ``Remove () when dynamic operator is string`` () =
     formatSourceString false "let memoEquals x = x?k" config
     |> should equal """let memoEquals x = x?k
 """
@@ -36,7 +36,7 @@ let fieldColor (fieldNameX: string) =
 
 [<Test>]
 let ``preserve back ticks from checked keyword, 937`` () =
-    formatSourceString false "let toggle = unbox<bool> (e.target?``checked``)"  config
+    formatSourceString false "let toggle = unbox<bool> (e.target?``checked``)" config
     |> prepend newline
     |> should equal """
 let toggle = unbox<bool> (e.target?``checked``)

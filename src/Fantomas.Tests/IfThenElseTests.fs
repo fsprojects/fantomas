@@ -39,7 +39,9 @@ then baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar
 let ``multiline if without else`` () =
     formatSourceString false """
 if foo && bar && meh then aha
-"""  ({ config with MaxInfixOperatorExpression = 5 })
+"""
+        ({ config with
+               MaxInfixOperatorExpression = 5 })
     |> prepend newline
     |> should equal """
 if foo
@@ -700,7 +702,9 @@ elif strA.String == strB.String && strA.Offset = strB.Offset then
 
 else
     -1
-"""  ({ config with MaxInfixOperatorExpression = 55 })
+"""
+        ({ config with
+               MaxInfixOperatorExpression = 55 })
     |> prepend newline
     |> should equal """
 if strA.Length = 0 && strB.Length = 0 then
@@ -769,7 +773,8 @@ else d
 
 [<Test>]
 let ``impact of MaxIfThenElseShortWidth setting, longer bool expression`` () =
-    let source = """if (tare + netWeight) = 10000 then a else b"""
+    let source =
+        """if (tare + netWeight) = 10000 then a else b"""
 
     formatSourceString false source config
     |> prepend newline
@@ -777,7 +782,11 @@ let ``impact of MaxIfThenElseShortWidth setting, longer bool expression`` () =
 if (tare + netWeight) = 10000 then a else b
 """
 
-    formatSourceString false source ({ config with MaxIfThenElseShortWidth = 20})
+    formatSourceString
+        false
+        source
+        ({ config with
+               MaxIfThenElseShortWidth = 20 })
     |> prepend newline
     |> should equal """
 if (tare + netWeight) = 10000
@@ -787,7 +796,8 @@ else b
 
 [<Test>]
 let ``impact of MaxIfThenElseShortWidth setting, longer if branch`` () =
-    let source = """if a then (tare + netWeight) + 10000 else 0"""
+    let source =
+        """if a then (tare + netWeight) + 10000 else 0"""
 
     formatSourceString false source config
     |> prepend newline
@@ -795,7 +805,11 @@ let ``impact of MaxIfThenElseShortWidth setting, longer if branch`` () =
 if a then (tare + netWeight) + 10000 else 0
 """
 
-    formatSourceString false source ({ config with MaxIfThenElseShortWidth = 20})
+    formatSourceString
+        false
+        source
+        ({ config with
+               MaxIfThenElseShortWidth = 20 })
     |> prepend newline
     |> should equal """
 if a
@@ -805,7 +819,8 @@ else 0
 
 [<Test>]
 let ``impact of MaxIfThenElseShortWidth setting, longer else branch`` () =
-    let source = """if a then 0 else (tare + netWeight) + 10000"""
+    let source =
+        """if a then 0 else (tare + netWeight) + 10000"""
 
     formatSourceString false source config
     |> prepend newline
@@ -813,13 +828,18 @@ let ``impact of MaxIfThenElseShortWidth setting, longer else branch`` () =
 if a then 0 else (tare + netWeight) + 10000
 """
 
-    formatSourceString false source ({ config with MaxIfThenElseShortWidth = 20})
+    formatSourceString
+        false
+        source
+        ({ config with
+               MaxIfThenElseShortWidth = 20 })
     |> prepend newline
     |> should equal """
 if a
 then 0
 else (tare + netWeight) + 10000
 """
+
 [<Test>]
 let ``else if with newline in between, 675`` () =
     formatSourceString false """namespace Fantomas
@@ -933,7 +953,10 @@ let ``don't add additional new line before nested if/then, 1035`` () =
                 match ast.ParseTree with
                 | Some tree -> return Result.Ok tree
                 | _ -> return Error Array.empty // Not sure this branch can be reached.
-"""  { config with MaxValueBindingWidth = 50; MaxFunctionBindingWidth = 50 }
+"""
+        { config with
+              MaxValueBindingWidth = 50
+              MaxFunctionBindingWidth = 50 }
     |> prepend newline
     |> should equal """
 if ast.ParseHadErrors then

@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.ModuleTests
+module Fantomas.Tests.ModuleTests
 
 open Fantomas
 open NUnit.Framework
@@ -7,13 +7,13 @@ open Fantomas.Tests.TestHelper
 open Fantomas.Extras
 
 [<Test>]
-let ``module abbreviation``() =
+let ``module abbreviation`` () =
     formatSourceString false "module ES = Microsoft.FSharp.Quotations.ExprShape" config
     |> should equal """module ES = Microsoft.FSharp.Quotations.ExprShape
 """
 
 [<Test>]
-let ``module with functions``() =
+let ``module with functions`` () =
     formatSourceString false "module internal MyModule = let x = 42" config
     |> prepend newline
     |> should equal """
@@ -22,7 +22,7 @@ module internal MyModule =
 """
 
 [<Test>]
-let ``open modules``() =
+let ``open modules`` () =
     formatSourceString false """
     // comment1
     open System.IO
@@ -37,7 +37,7 @@ open System
 """
 
 [<Test>]
-let ``sort open modules doesn't mess comments up``() =
+let ``sort open modules doesn't mess comments up`` () =
     formatSourceString false """
 module internal Fantomas.CodePrinter
 
@@ -79,10 +79,10 @@ let sortAndDedup by l =
 """
 
 [<Test>]
-let ``nested modules``() =
+let ``nested modules`` () =
     formatSourceString false """
 module Y =
-    let x = 1 
+    let x = 1
 
     module Z =
         let z = 5""" config
@@ -96,7 +96,7 @@ module Y =
 """
 
 [<Test>]
-let ``sibling modules``() =
+let ``sibling modules`` () =
     formatSourceString false """
 module TopLevel
 
@@ -120,7 +120,7 @@ module Inner2 =
 """
 
 [<Test>]
-let ``module signatures``() =
+let ``module signatures`` () =
     formatSourceString true """
 module Utils
 
@@ -150,12 +150,12 @@ module Random =
 """
 
 [<Test>]
-let ``namespace declaration``() =
+let ``namespace declaration`` () =
     formatSourceString false """
 namespace Widgets
 
 type MyWidget1 =
-    member this.WidgetName = "Widget1" 
+    member this.WidgetName = "Widget1"
 
 module WidgetsModule =
     let widgetName = "Widget2"
@@ -172,7 +172,7 @@ module WidgetsModule =
 """
 
 [<Test>]
-let ``should retain rec in namespace``() =
+let ``should retain rec in namespace`` () =
     formatSourceString false """
 namespace rec Test
 
@@ -194,7 +194,7 @@ type Expr =
 """
 
 [<Test>]
-let ``should retain rec in nested module``() =
+let ``should retain rec in nested module`` () =
     formatSourceString false """
 namespace Test
 
@@ -218,14 +218,16 @@ module rec Expression =
 """
 
 [<Test>]
-let ``should preserve global keyword``() =
+let ``should preserve global keyword`` () =
     formatSourceString false """
 namespace global
 
 type SomeType() =
-    member this.Print() = 
+    member this.Print() =
         global.System.Console.WriteLine("Hello World!")
-    """ { config with MaxFunctionBindingWidth = 120 }
+    """
+        { config with
+              MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 namespace global
@@ -235,16 +237,18 @@ type SomeType() =
 """
 
 [<Test>]
-let ``should escape keywords correctly``() =
+let ``should escape keywords correctly`` () =
     formatSourceString false """
 module ``member``
 
 let ``abstract`` = "abstract"
 
 type SomeType() =
-    member this.``new``() = 
+    member this.``new``() =
         System.Console.WriteLine("Hello World!")
-    """ { config with MaxFunctionBindingWidth = 120 }
+    """
+        { config with
+              MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 module ``member``
@@ -256,7 +260,7 @@ type SomeType() =
 """
 
 [<Test>]
-let ``should escape base keyword correctly``() =
+let ``should escape base keyword correctly`` () =
     formatSourceString false """
 open System
 open RDotNet
@@ -267,7 +271,7 @@ open RProvider.``base``
 open RProvider.stats
 
 [<EntryPoint>]
-let main argv = 
+let main argv =
     let a = R.rnorm(1000)
     0
     """ config
@@ -288,7 +292,7 @@ let main argv =
 """
 
 [<Test>]
-let ``should retain rec in modules``() =
+let ``should retain rec in modules`` () =
     formatSourceString false """
 module rec Test =
     let test = 42
@@ -300,7 +304,7 @@ module rec Test =
 """
 
 [<Test>]
-let ``should retain order when access and rec present in module declaration``() =
+let ``should retain order when access and rec present in module declaration`` () =
     formatSourceString false """
 module private rec Test =
     let test = 42
@@ -314,14 +318,19 @@ module private rec Test =
 [<Test>]
 let ``Implicit module should not be added to code`` () =
     let fileName = "60Seconds.fsx"
+
     let sourceCode = """open System
 
 type T() =
     interface IDisposable with
         override x.Dispose() = ()"""
-    
-    CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString sourceCode, config,
-                                               FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
+
+    CodeFormatter.FormatDocumentAsync
+        (fileName,
+         SourceOrigin.SourceString sourceCode,
+         config,
+         FakeHelpers.createParsingOptionsFromFile fileName,
+         sharedChecker.Value)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
     |> should equal """open System

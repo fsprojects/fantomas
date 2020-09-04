@@ -589,7 +589,9 @@ let ``multiline feliz element`` () =
             prop.onClick (fun _ -> setCount(count - 1))
             prop.text "Decrement"
         ]
-"""  { config with SingleArgumentWebMode = true }
+"""
+        { config with
+              SingleArgumentWebMode = true }
     |> prepend newline
     |> should equal """
 let a =
@@ -611,7 +613,9 @@ let ``nested feliz elements`` () =
             prop.text "Increment"
         ]
     ]
-"""  { config with SingleArgumentWebMode = true }
+"""
+        { config with
+              SingleArgumentWebMode = true }
     |> prepend newline
     |> should equal """
 let a =
@@ -652,7 +656,9 @@ let counter = React.functionComponent(fun () ->
 open Browser.Dom
 
 ReactDOM.render(counter, document.getElementById "root")
-"""  { config with SingleArgumentWebMode = true }
+"""
+        { config with
+              SingleArgumentWebMode = true }
     |> prepend newline
     |> should equal """
 module App
@@ -698,7 +704,9 @@ Html.ul [
   Html.li [ Html.strong "Two" ]
   Html.li [ Html.em "Three" ]
 ]
-"""  { config with SingleArgumentWebMode = true }
+"""
+        { config with
+              SingleArgumentWebMode = true }
     |> prepend newline
     |> should equal """
 Html.h1 42
@@ -741,7 +749,9 @@ let drawer =
                 |> Mui.list
             ]
         ]
-"""  { config with SingleArgumentWebMode = true }
+"""
+        { config with
+              SingleArgumentWebMode = true }
     |> prepend newline
     |> should equal """
 let drawer =
@@ -803,7 +813,7 @@ let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
             box location.Creator |])
 
     location, creatorName
-"""   { config with SpaceBeforeColon = true }
+"""  { config with SpaceBeforeColon = true }
     |> prepend newline
     |> should equal """
 let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =

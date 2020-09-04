@@ -4,7 +4,9 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let noSpaceBefore = { config with SpaceBeforeLowercaseInvocation = false }
+let noSpaceBefore =
+    { config with
+          SpaceBeforeLowercaseInvocation = false }
 
 /// Space before () in lowercase function call
 

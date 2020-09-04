@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.ClassTests
+module Fantomas.Tests.ClassTests
 
 open NUnit.Framework
 open FsUnit
@@ -6,7 +6,7 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``class signatures``() =
+let ``class signatures`` () =
     formatSourceString true """
 module Heap
 
@@ -39,7 +39,7 @@ type Heap<'T when 'T: comparison> =
 """
 
 [<Test>]
-let ``type constraints complex``() =
+let ``type constraints complex`` () =
     formatSourceString false """
 type Class4<'T when 'T : (static member staticMethod1 : unit -> 'T) > =
     class end
@@ -72,7 +72,7 @@ type Class7<'T when 'T: (new: unit -> 'T)>() =
 """
 
 [<Test>]
-let ``abstract classes``() =
+let ``abstract classes`` () =
     formatSourceString false """
 [<AbstractClass>]
 type Shape2D(x0 : float, y0 : float) =
@@ -92,7 +92,9 @@ type Shape2D(x0 : float, y0 : float) =
 
     abstract member Rotate: float -> unit
     default this.Rotate(angle) = rotAngle <- rotAngle + angle
-    """ { config with MaxValueBindingWidth = 120 }
+    """
+        { config with
+              MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 [<AbstractClass>]
@@ -121,7 +123,7 @@ type Shape2D(x0: float, y0: float) =
 """
 
 [<Test>]
-let ``abstract member declaration``() =
+let ``abstract member declaration`` () =
     formatSourceString false """
 type A =
     abstract B: ?p1:(float * int) -> unit
@@ -145,7 +147,7 @@ type A =
 """
 
 [<Test>]
-let ``class declaration``() =
+let ``class declaration`` () =
     formatSourceString false """
 type BaseClass = class
     val string1 : string
@@ -175,13 +177,15 @@ type DerivedClass =
 """
 
 [<Test>]
-let ``classes and implicit constructors``() =
+let ``classes and implicit constructors`` () =
     formatSourceString false """
     type MyClass2(dataIn) as self =
        let data = dataIn
        do self.PrintMessage()
        member this.PrintMessage() =
-           printf "Creating MyClass2 with Data %d" data""" { config with MaxFunctionBindingWidth = 120 }
+           printf "Creating MyClass2 with Data %d" data"""
+        { config with
+              MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type MyClass2(dataIn) as self =
@@ -191,13 +195,15 @@ type MyClass2(dataIn) as self =
 """
 
 [<Test>]
-let ``classes and private implicit constructors``() =
+let ``classes and private implicit constructors`` () =
     formatSourceString false """
     type MyClass2 private (dataIn) as self =
        let data = dataIn
        do self.PrintMessage()
        member this.PrintMessage() =
-           printf "Creating MyClass2 with Data %d" data""" { config with MaxFunctionBindingWidth = 120 }
+           printf "Creating MyClass2 with Data %d" data"""
+        { config with
+              MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type MyClass2 private (dataIn) as self =
@@ -207,16 +213,18 @@ type MyClass2 private (dataIn) as self =
 """
 
 [<Test>]
-let ``recursive classes``() =
+let ``recursive classes`` () =
     formatSourceString false """
 type Folder(pathIn: string) =
   let path = pathIn
   let filenameArray : string array = System.IO.Directory.GetFiles(path)
   member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
 
-and File(filename: string, containingFolder: Folder) = 
+and File(filename: string, containingFolder: Folder) =
    member __.Name = filename
-   member __.ContainingFolder = containingFolder""" { config with MaxValueBindingWidth = 120 }
+   member __.ContainingFolder = containingFolder"""
+        { config with
+              MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Folder(pathIn: string) =
@@ -230,7 +238,7 @@ and File(filename: string, containingFolder: Folder) =
 """
 
 [<Test>]
-let ``classes and inheritance``() =
+let ``classes and inheritance`` () =
     formatSourceString false """
 type MyClassBase2(x: int) =
    let mutable z = x * x
@@ -257,8 +265,8 @@ type MyClassDerived2(y: int) =
 """
 
 [<Test>]
-let ``should keep parens in class definition in the right place``() =
-    formatSourceString false """type DGMLClass() = class   
+let ``should keep parens in class definition in the right place`` () =
+    formatSourceString false """type DGMLClass() = class
     let mutable currentState = System.String.Empty
     end
     """ config
@@ -269,7 +277,7 @@ let ``should keep parens in class definition in the right place``() =
 """
 
 [<Test>]
-let ``should keep parens in class inheritance in the right place``() =
+let ``should keep parens in class inheritance in the right place`` () =
     formatSourceString false """type StateMachine(makeAsync) as this = class
     inherit DGMLClass()
 
@@ -286,8 +294,8 @@ let ``should keep parens in class inheritance in the right place``() =
 """
 
 [<Test>]
-let ``should keep type annotations on auto properties``() =
-    formatSourceString false """type Document(id : string, library : string, name : string option) = 
+let ``should keep type annotations on auto properties`` () =
+    formatSourceString false """type Document(id : string, library : string, name : string option) =
     member val ID = id
     member val Library = library
     member val Name = name with get, set
@@ -301,7 +309,7 @@ let ``should keep type annotations on auto properties``() =
 """
 
 [<Test>]
-let ``should work on static auto properties``() =
+let ``should work on static auto properties`` () =
     formatSourceString false """type A() =
     static member val LastSchema = "" with get, set
 """  config
@@ -310,7 +318,7 @@ let ``should work on static auto properties``() =
 """
 
 [<Test>]
-let ``member properties with type annotation``() =
+let ``member properties with type annotation`` () =
     formatSourceString false """type A() =
     member this.X with get():int = 1
     member this.Y with get():int = 1 and set (_:int):unit = ()
@@ -329,7 +337,7 @@ let ``member properties with type annotation``() =
 """
 
 [<Test>]
-let ``class augmentation``() =
+let ``class augmentation`` () =
     formatSourceString false """type A () =
     let foo = () with
     let hello = "Hello"
@@ -343,7 +351,7 @@ let ``class augmentation``() =
 """
 
 [<Test>]
-let ``class inherit and augmentation``() =
+let ``class inherit and augmentation`` () =
     formatSourceString false """type A () =
     inherit B() with
     let hello = "Hello"
@@ -357,13 +365,13 @@ let ``class inherit and augmentation``() =
 """
 
 [<Test>]
-let ``property long line``() =
+let ``property long line`` () =
     formatSourceString false """type T() =
     member __.Property = "hello"
 let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x:T) = x
 let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass = T()
 
-System.String.Concat("a", "b" + 
+System.String.Concat("a", "b" +
                             longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun(longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass).Property)
 """  config
     |> should equal """type T() =
@@ -381,12 +389,14 @@ System.String.Concat
 """
 
 [<Test>]
-let ``indexed get long line``() =
+let ``indexed get long line`` () =
     formatSourceString false """open System
 type Exception with
-    member inline __.FirstLine = 
+    member inline __.FirstLine =
         __.Message.Split([|Environment.NewLine|], StringSplitOptions.RemoveEmptyEntries).[0]
-"""  { config with MaxValueBindingWidth = 120 }
+"""
+        { config with
+              MaxValueBindingWidth = 120 }
     |> should equal """open System
 
 type Exception with
@@ -427,7 +437,9 @@ module Logging =
         LogProvider.SetCurrentLogProvider(QuartzLoggerWrapper(loggerFunction))
 
     let SetQuartzLogger l = LogProvider.SetCurrentLogProvider(l)
-"""  { config with MaxFunctionBindingWidth = 80 }
+"""
+        { config with
+              MaxFunctionBindingWidth = 80 }
     |> prepend newline
     |> should equal """
 namespace Quartz.Fsharp
@@ -465,7 +477,7 @@ module Logging =
 """
 
 [<Test>]
-let ``no extra new lines between type members, 569``() =
+let ``no extra new lines between type members, 569`` () =
     formatSourceString false """
 type A() =
 
@@ -473,7 +485,9 @@ type A() =
 
     member this.MemberB = if true then 2 else 3
 
-    member this.MemberC = 0""" { config with MaxValueBindingWidth = 120 }
+    member this.MemberC = 0"""
+        { config with
+              MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type A() =
@@ -486,7 +500,7 @@ type A() =
 """
 
 [<Test>]
-let ``no extra new line before nested module with attribute, 586``()=
+let ``no extra new line before nested module with attribute, 586`` () =
     shouldNotChangeAfterFormat """
 module A =
     let x = 0
@@ -497,7 +511,7 @@ module A =
 """
 
 [<Test>]
-let ``no extra new line before abstract member with attribute, 586``()=
+let ``no extra new line before abstract member with attribute, 586`` () =
     shouldNotChangeAfterFormat """
 type A =
 
@@ -508,7 +522,7 @@ type A =
 """
 
 [<Test>]
-let ``no extra new line between abstract members with attribute, 586``()=
+let ``no extra new line between abstract members with attribute, 586`` () =
     shouldNotChangeAfterFormat """
 type A =
 
@@ -585,7 +599,7 @@ indent_size=2
     |> should equal \"\"\"let a = // foo
   9
 \"\"\"
-"      config
+"    config
     |> prepend newline
     |> should equal "
 module Fantomas.CoreGlobalTool.Tests.ConfigTests

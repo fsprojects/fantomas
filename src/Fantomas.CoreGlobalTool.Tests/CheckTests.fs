@@ -20,21 +20,25 @@ let CorrectlyFormatted = """module A
 """
 
 [<Test>]
-let ``formatted files should report exit code 0``() =
-    use fileFixture = new TemporaryFileCodeSample(CorrectlyFormatted)
-    let (exitCode,_) = checkCode fileFixture.Filename
+let ``formatted files should report exit code 0`` () =
+    use fileFixture =
+        new TemporaryFileCodeSample(CorrectlyFormatted)
+
+    let (exitCode, _) = checkCode fileFixture.Filename
     exitCode |> should equal 0
 
 [<Test>]
-let ``invalid files should report exit code 1``() =
+let ``invalid files should report exit code 1`` () =
     use fileFixture = new TemporaryFileCodeSample(WithErrors)
     let (exitCode, _) = checkCode fileFixture.Filename
     exitCode |> should equal 1
 
 [<Test>]
-let ``files that need formatting should report exit code 99``() =
-    use fileFixture = new TemporaryFileCodeSample(NeedsFormatting)
-    let (exitCode,_) = checkCode fileFixture.Filename
+let ``files that need formatting should report exit code 99`` () =
+    use fileFixture =
+        new TemporaryFileCodeSample(NeedsFormatting)
+
+    let (exitCode, _) = checkCode fileFixture.Filename
     exitCode |> should equal 99
 
 [<Test>]

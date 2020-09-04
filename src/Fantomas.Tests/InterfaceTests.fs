@@ -1,22 +1,24 @@
-﻿module Fantomas.Tests.InterfaceTests
+module Fantomas.Tests.InterfaceTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``interfaces and inheritance``() =
+let ``interfaces and inheritance`` () =
     formatSourceString false """
 type IPrintable =
    abstract member Print : unit -> unit
 
 type SomeClass1(x: int, y: float) =
-   interface IPrintable with 
+   interface IPrintable with
       member this.Print() = printfn "%d %f" x y
 type Interface3 =
     inherit Interface1
     inherit Interface2
-    abstract member Method3 : int -> int""" { config with MaxFunctionBindingWidth = 120 }
+    abstract member Method3 : int -> int"""
+        { config with
+              MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type IPrintable =
@@ -33,14 +35,16 @@ type Interface3 =
 """
 
 [<Test>]
-let ``should not add with to interface definitions with no members``() =
-    formatSourceString false """type Text(text : string) = 
+let ``should not add with to interface definitions with no members`` () =
+    formatSourceString false """type Text(text : string) =
     interface IDocument
-        
+
     interface Infrastucture with
         member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
         member this.ToXml() = v :> obj
-    """ { config with MaxValueBindingWidth = 120 }
+    """
+        { config with
+              MaxValueBindingWidth = 120 }
     |> should equal """type Text(text: string) =
     interface IDocument
 
@@ -50,7 +54,7 @@ let ``should not add with to interface definitions with no members``() =
 """
 
 [<Test>]
-let ``object expressions``() =
+let ``object expressions`` () =
     formatSourceString false """let obj1 = { new System.Object() with member x.ToString() = "F#" }""" config
     |> prepend newline
     |> should equal """
@@ -60,13 +64,13 @@ let obj1 =
 """
 
 [<Test>]
-let ``object expressions and interfaces``() =
+let ``object expressions and interfaces`` () =
     formatSourceString false """
-    let implementer() = 
-        { new ISecond with 
+    let implementer() =
+        { new ISecond with
             member this.H() = ()
             member this.J() = ()
-          interface IFirst with 
+          interface IFirst with
             member this.F() = ()
             member this.G() = () }""" config
     |> prepend newline
@@ -81,14 +85,16 @@ let implementer () =
 """
 
 [<Test>]
-let ``should not add with to interfaces with no members in object expressions``() =
+let ``should not add with to interfaces with no members in object expressions`` () =
     formatSourceString false """
-let f () =       
+let f () =
     { new obj() with
         member x.ToString() = "INotifyEnumerableInternal"
       interface INotifyEnumerableInternal<'T>
       interface IEnumerable<_> with
-        member x.GetEnumerator() = null }""" { config with MaxValueBindingWidth = 120 }
+        member x.GetEnumerator() = null }"""
+        { config with
+              MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 let f () =
@@ -100,7 +106,7 @@ let f () =
 """
 
 [<Test>]
-let ``should keep named arguments on abstract members``() =
+let ``should keep named arguments on abstract members`` () =
     formatSourceString false """type IThing =
     abstract Foo : name:string * age:int -> bool
 """  config
@@ -109,8 +115,8 @@ let ``should keep named arguments on abstract members``() =
 """
 
 [<Test>]
-let ``should not skip 'with get()' in indexers``() =
-    formatSourceString false """type Interface = 
+let ``should not skip 'with get()' in indexers`` () =
+    formatSourceString false """type Interface =
     abstract Item : int -> char with get
 """  config
     |> should equal """type Interface =
@@ -120,7 +126,7 @@ let ``should not skip 'with get()' in indexers``() =
 [<Test>]
 let ``override keyword should be preserved`` () =
     formatSourceString false """open System
-    
+
 type T() =
     interface IDisposable with
         override x.Dispose() = ()""" config
@@ -145,12 +151,15 @@ type MyLogInteface() =
     interface LogInterface with
         member x.Print msg = printfn "%s" msg
         override x.GetLogFile environment =
-            if environment = "DEV" then 
+            if environment = "DEV" then
                 "dev.log"
             else
                 sprintf "date-%s.log" environment
         member x.Info () = ()
-        override x.Version () = ()""" ({ config with MaxLineLength = 119; MaxFunctionBindingWidth = 120 })
+        override x.Version () = ()"""
+        ({ config with
+               MaxLineLength = 119
+               MaxFunctionBindingWidth = 120 })
     |> prepend newline
     |> should equal """
 type LogInterface =

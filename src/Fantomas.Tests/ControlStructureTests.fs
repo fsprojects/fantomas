@@ -1,11 +1,11 @@
-﻿module Fantomas.Tests.ControlStructureTests
+module Fantomas.Tests.ControlStructureTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``if/then/else block``() =
+let ``if/then/else block`` () =
     formatSourceString false """
 let rec tryFindMatch pred list =
     match list with
@@ -15,8 +15,8 @@ let rec tryFindMatch pred list =
     | [] -> None
 
 let test x y =
-  if x = y then "equals" 
-  elif x < y then "is less than" 
+  if x = y then "equals"
+  elif x < y then "is less than"
   else if x > y then "is greater than"
   else "Don't know"
 
@@ -40,7 +40,7 @@ then printfn "You are only %d years old and already learning F#? Wow!" age
 """
 
 [<Test>]
-let ``for loops``() =
+let ``for loops`` () =
     formatSourceString false """
     let function1() =
         for i = 1 to 10 do
@@ -67,16 +67,16 @@ let function2 () =
 """
 
 [<Test>]
-let ``while loop``() =
+let ``while loop`` () =
     formatSourceString false """
 open System
 let lookForValue value maxValue =
-  let mutable continueLooping = true 
+  let mutable continueLooping = true
   let randomNumberGenerator = new Random()
-  while continueLooping do 
+  while continueLooping do
     let rand = randomNumberGenerator.Next(maxValue)
     printf "%d " rand
-    if rand = value then 
+    if rand = value then
        printfn "\nFound a %d!" value
        continueLooping <- false
 lookForValue 10 20""" config
@@ -100,7 +100,7 @@ lookForValue 10 20
 """
 
 [<Test>]
-let ``try/with block``() =
+let ``try/with block`` () =
     formatSourceString false """
 let divide1 x y =
    try
@@ -123,11 +123,11 @@ let result1 = divide1 100 0
 """
 
 [<Test>]
-let ``try/with and finally``() =
+let ``try/with and finally`` () =
     formatSourceString false """
     let function1 x y =
-       try 
-         try 
+       try
+         try
             if x = y then raise (InnerError("inner"))
             else raise (OuterError("outer"))
          with
@@ -150,7 +150,7 @@ let function1 x y =
 """
 
 [<Test>]
-let ``range expressions``() =
+let ``range expressions`` () =
     formatSourceString false """
     let function2() =
       for i in 1 .. 2 .. 10 do
@@ -170,7 +170,7 @@ function2 ()
 """
 
 [<Test>]
-let ``use binding``() =
+let ``use binding`` () =
     formatSourceString false """
     let writetofile filename obj =
      use file1 = File.CreateText(filename)
@@ -184,7 +184,7 @@ let writetofile filename obj =
 """
 
 [<Test>]
-let ``access modifiers``() =
+let ``access modifiers`` () =
     formatSourceString false """
     let private myPrivateObj = new MyPrivateType()
     let internal myInternalObj = new MyInternalType()""" config
@@ -195,7 +195,7 @@ let internal myInternalObj = new MyInternalType()
 """
 
 [<Test>]
-let ``keyworded expressions``() =
+let ``keyworded expressions`` () =
     formatSourceString false """
     assert (3 > 2)
     let result = lazy (x + 10)
@@ -209,13 +209,13 @@ do printfn "Hello world"
 """
 
 [<Test>]
-let ``should break lines on multiline if conditions``() =
+let ``should break lines on multiline if conditions`` () =
     formatSourceString false """
-let x = 
+let x =
     if try
         true
-       with 
-       | Failure _ -> false 
+       with
+       | Failure _ -> false
     then ()
     else ()
     """ config
@@ -254,7 +254,7 @@ let y =
 """
 
 [<Test>]
-let ``should not escape some specific keywords``() =
+let ``should not escape some specific keywords`` () =
     formatSourceString false """
 base.Initializer()
 global.Test()
@@ -266,13 +266,13 @@ global.Test()
 """
 
 [<Test>]
-let ``should handle delimiters before comments``() =
+let ``should handle delimiters before comments`` () =
     formatSourceString false """
-let handle = 
-    if n<weakThreshhold then 
+let handle =
+    if n<weakThreshhold then
         assert onStrongDiscard.IsNone; // it disappeared
-        Weak(WeakReference(v)) 
-    else 
+        Weak(WeakReference(v))
+    else
         Strong(v)
     """ config
     |> prepend newline
@@ -286,9 +286,9 @@ let handle =
 """
 
 [<Test>]
-let ``should handle infix operators in pattern matching``() =
+let ``should handle infix operators in pattern matching`` () =
     formatSourceString false """
-let url = 
+let url =
   match x with
   | A -> "a"
   | B -> "b"
@@ -304,7 +304,7 @@ let url =
 """
 
 [<Test>]
-let ``if/elif without else``() =
+let ``if/elif without else`` () =
     formatSourceString false """
 if true then ()
 elif true then ()
@@ -316,9 +316,9 @@ elif true then ()
 """
 
 [<Test>]
-let ``multiline if in tuple``() =
+let ``multiline if in tuple`` () =
     formatSourceString false """
-(if true then 1 else 2 
+(if true then 1 else 2
  ,3)
     """ config
     |> prepend newline

@@ -1,16 +1,16 @@
-﻿module Fantomas.Tests.ListTests
+module Fantomas.Tests.ListTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``array indices``() =
+let ``array indices`` () =
     formatSourceString false """
 let array1 = [| 1; 2; 3 |]
-array1.[0..2] 
+array1.[0..2]
 array2.[2.., 0..]
-array2.[..3, ..1] 
+array2.[..3, ..1]
 array1.[1] <- 3
     """ config
     |> prepend newline
@@ -23,11 +23,13 @@ array1.[1] <- 3
 """
 
 [<Test>]
-let ``array values``() =
+let ``array values`` () =
     formatSourceString false """
 let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
   (3, 2, 6); (3, 3, 9)|]
-    """ { config with SemicolonAtEndOfLine = true }
+    """
+        { config with
+              SemicolonAtEndOfLine = true }
     |> prepend newline
     |> should equal """
 let arr =
@@ -43,7 +45,7 @@ let arr =
 """
 
 [<Test>]
-let ``cons and list patterns``() =
+let ``cons and list patterns`` () =
     formatSourceString false """
 let rec printList l =
     match l with
@@ -56,7 +58,7 @@ let listLength list =
     | [ _ ] -> 1
     | [ _; _ ] -> 2
     | [ _; _; _ ] -> 3
-    | _ -> List.length list"""  config
+    | _ -> List.length list""" config
     |> prepend newline
     |> should equal """
 let rec printList l =
@@ -76,7 +78,7 @@ let listLength list =
 """
 
 [<Test>]
-let ``array patterns``() =
+let ``array patterns`` () =
     formatSourceString false """
 let vectorLength vec =
     match vec with
@@ -95,7 +97,7 @@ let vectorLength vec =
 """
 
 [<Test>]
-let ``should keep -> notation``() =
+let ``should keep -> notation`` () =
     formatSourceString false """let environVars target =
     [for e in Environment.GetEnvironmentVariables target ->
         let e1 = e :?> Collections.DictionaryEntry
@@ -110,7 +112,7 @@ let environVars target =
 """
 
 [<Test>]
-let ``list comprehensions``() =
+let ``list comprehensions`` () =
     formatSourceString false """
 let listOfSquares = [ for i in 1 .. 10 -> i*i ]
 let list0to3 = [0 .. 3]""" config
@@ -121,10 +123,10 @@ let list0to3 = [ 0 .. 3 ]
 """
 
 [<Test>]
-let ``array comprehensions``() =
+let ``array comprehensions`` () =
     formatSourceString false """
 let a1 = [| for i in 1 .. 10 -> i * i |]
-let a2 = [| 0 .. 99 |]  
+let a2 = [| 0 .. 99 |]
 let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config
     |> prepend newline
     |> should equal """
@@ -137,7 +139,7 @@ let a3 =
 """
 
 [<Test>]
-let ``should keep Array2D``() =
+let ``should keep Array2D`` () =
     formatSourceString false """
 let cast<'a> (A:obj[,]):'a[,] = A |> Array2D.map unbox
 let flatten (A:'a[,]) = A |> Seq.cast<'a>
@@ -150,7 +152,7 @@ let getColumn c (A: _ [,]) = flatten A.[*, c..c] |> Seq.toArray
 """
 
 [<Test>]
-let ``should be able to support F# 3.1 slicing``() =
+let ``should be able to support F# 3.1 slicing`` () =
     formatSourceString false """
 let x = matrix.[*, 3]
 let y = matrix.[3, *]""" config
@@ -226,7 +228,9 @@ let prismCli commando =
             //"className" ==> "language-fsharp"
         |]
     ()
-"""  ({ config with SpaceAroundDelimiter = false })
+"""
+        ({ config with
+               SpaceAroundDelimiter = false })
     |> should equal """let prismCli commando =
     let props =
         createObj [|"component" ==> "pre"
@@ -241,7 +245,9 @@ let ``line comment inside list`` () =
     formatSourceString false """[ 7
 // foo
 ]
-"""  ({ config with SpaceAroundDelimiter = false })
+"""
+        ({ config with
+               SpaceAroundDelimiter = false })
     |> should equal """[7
  // foo
 ]
@@ -1574,7 +1580,10 @@ let original_input = [
   if false then yield "value2"
   if true then yield "value3"
 ]
-"""  { config with MaxIfThenElseShortWidth = 120; MaxArrayOrListWidth = 120 }
+"""
+        { config with
+              MaxIfThenElseShortWidth = 120
+              MaxArrayOrListWidth = 120 }
     |> prepend newline
     |> should equal """
 let original_input =
@@ -1590,7 +1599,11 @@ let value = [
     if foo then yield! ["a";"b"] else yield "c"
     if bar then yield "d" else yield! ["e";"f"]
 ]
-"""  { config with MaxIfThenElseShortWidth = 120; MaxArrayOrListWidth = 120; MultilineBlockBracketsOnSameColumn = true }
+"""
+        { config with
+              MaxIfThenElseShortWidth = 120
+              MaxArrayOrListWidth = 120
+              MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should equal """
 let value =

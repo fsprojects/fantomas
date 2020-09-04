@@ -1,4 +1,4 @@
-﻿namespace FsUnit
+namespace FsUnit
 
 open NUnit.Framework
 open NUnit.Framework.Constraints
@@ -11,7 +11,8 @@ module TopLevelOperators =
 
     let EmptyString = EmptyStringConstraint()
 
-    let NullOrEmptyString = fun s -> Assert.That(s, Is.Null.Or.Empty)
+    let NullOrEmptyString =
+        fun s -> Assert.That(s, Is.Null.Or.Empty)
 
     let True = TrueConstraint()
 
@@ -21,14 +22,16 @@ module TopLevelOperators =
 
     let unique = UniqueItemsConstraint()
 
-    let should (f : 'a -> #Constraint) x (y : obj) =
+    let should (f: 'a -> #Constraint) x (y: obj) =
         let c = f x
+
         let y =
             match y with
             | :? (unit -> unit) -> box (TestDelegate(y :?> unit -> unit))
             | _ -> y
+
         Assert.That(y, c)
-    
+
     let equal x = EqualConstraint(x)
 
     let equalWithin tolerance x = equal(x).Within tolerance
@@ -45,7 +48,7 @@ module TopLevelOperators =
 
     let throw = Throws.TypeOf
 
-    let throwWithMessage (m:string) (t:System.Type) = Throws.TypeOf(t).And.Message.EqualTo(m)
+    let throwWithMessage (m: string) (t: System.Type) = Throws.TypeOf(t).And.Message.EqualTo(m)
 
     let greaterThan x = GreaterThanConstraint(x)
 
@@ -55,12 +58,13 @@ module TopLevelOperators =
 
     let lessThanOrEqualTo x = LessThanOrEqualConstraint(x)
 
-    let shouldFail (f : unit -> unit) =
-        TestDelegate(f) |> should throw typeof<AssertionException>
+    let shouldFail (f: unit -> unit) =
+        TestDelegate(f)
+        |> should throw typeof<AssertionException>
 
-    let endWith (s:string) = EndsWithConstraint s
+    let endWith (s: string) = EndsWithConstraint s
 
-    let startWith (s:string) = StartsWithConstraint s
+    let startWith (s: string) = StartsWithConstraint s
 
     let ofExactType<'a> = ExactTypeConstraint(typeof<'a>)
 

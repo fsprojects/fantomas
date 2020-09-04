@@ -14,13 +14,27 @@ let ``sepSpace should not add an additional space if the line ends with a space`
     result |> should equal "let a = "
 
 [<Test>]
-let ``sepColon should not add a space when nothing proceeds it``() =
+let ``sepColon should not add a space when nothing proceeds it`` () =
     let expr =
-        !-"let add a b" +> indent +> sepNln +> sepColon +> !-"int =" +> indent +> sepNln +> !-"a + b" +> unindent
-        +> unindent +> sepNln
-    let config = { FormatConfig.Default with SpaceBeforeColon = true }
+        !- "let add a b"
+        +> indent
+        +> sepNln
+        +> sepColon
+        +> !- "int ="
+        +> indent
+        +> sepNln
+        +> !- "a + b"
+        +> unindent
+        +> unindent
+        +> sepNln
+
+    let config =
+        { FormatConfig.Default with
+              SpaceBeforeColon = true }
+
     let ctx = { Context.Default with Config = config }
     let result = dump (expr ctx)
+
     result
     |> prepend newline
     |> String.normalizeNewLine
@@ -32,12 +46,15 @@ let add a b
 
 [<Test>]
 let ``sepColon should not add a space when space proceeds it`` () =
-    let expr =  !- "let a " +> sepNone +> sepColon
-    let config = { FormatConfig.Default with SpaceBeforeColon = true }
+    let expr = !- "let a " +> sepNone +> sepColon
+
+    let config =
+        { FormatConfig.Default with
+              SpaceBeforeColon = true }
+
     let ctx = { Context.Default with Config = config }
     let result = dump (expr ctx)
-    result
-    |> should equal "let a : "
+    result |> should equal "let a : "
 
 [<Test>]
 let ``don't add space before block comment`` () =
@@ -46,8 +63,16 @@ let ``don't add space before block comment`` () =
 Long comment
 
 *)"""
-    let expr = sepNone +> sepSpace -- comment +> sepSpace +> sepNone
+
+    let expr =
+        sepNone
+        +> sepSpace
+        -- comment
+        +> sepSpace
+        +> sepNone
+
     let result = dump (expr Context.Default)
+
     result
     |> prepend newline
     |> String.normalizeNewLine
@@ -65,16 +90,26 @@ let ``nested exceedsMultiline expression should bubble up to parent check`` () =
         +> autoIndentAndNlnIfExpressionExceedsPageWidth
             (sepOpenA
              +> expressionFitsOnRestOfLine
-                    // short expression, should cross the max page width of 50
-                    (!- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+                 // short expression, should cross the max page width of 50
+                 (!- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                  +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
                     // fallback expression
-                    (sepNln +> !- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +> sepNln +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" +> sepNln)
+                    (sepNln
+                     +> !- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                     +> sepNln
+                     +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+                     +> sepNln)
              +> sepCloseA)
 
-    let config = { FormatConfig.Default with MaxLineLength = 50; SpaceAroundDelimiter = false }
-    let initialContext = { Context.Default with Config = config;  }
+    let config =
+        { FormatConfig.Default with
+              MaxLineLength = 50
+              SpaceAroundDelimiter = false }
+
+    let initialContext = { Context.Default with Config = config }
 
     let result = dump (expression initialContext)
+
     result
     |> prepend newline
     |> String.normalizeNewLine

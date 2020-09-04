@@ -5,7 +5,7 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``let in should be preserved``() =
+let ``let in should be preserved`` () =
     formatSourceString false "let x = 1 in ()" config
     |> should equal """let x = 1 in ()
 """
@@ -13,9 +13,9 @@ let ``let in should be preserved``() =
 [<Test>]
 let ``multiple let in lines, should remove in`` () =
     let codeSnippet = """
-let f () = 
+let f () =
   let x = 1 in   // the "in" keyword is available in F#
-    let y = 2 in 
+    let y = 2 in
       x + y
 """
 
@@ -29,13 +29,17 @@ let f () =
 [<Test>]
 let ``multiple let in lines, should remove in, block comment`` () =
     let codeSnippet = """
-let f () = 
+let f () =
   let x = 1 in   (* the "in" keyword is available in F# *)
-    let y = 2 in 
+    let y = 2 in
       x + y
 """
 
-    formatSourceString false codeSnippet ({ config with MaxValueBindingWidth = 50 })
+    formatSourceString
+        false
+        codeSnippet
+        ({ config with
+               MaxValueBindingWidth = 50 })
     |> should equal """let f () =
     let x = 1 (* the "in" keyword is available in F# *)
     let y = 2
@@ -88,7 +92,9 @@ let ``DotGet on newline should be indented far enough`` () =
 let tomorrow =
     DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
         .AddDays(1.)
-"""  ({ config with MaxValueBindingWidth = 70 })
+"""
+        ({ config with
+               MaxValueBindingWidth = 70 })
     |> prepend newline
     |> should equal """
 let tomorrow = DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset).AddDays(1.)
@@ -171,8 +177,8 @@ module Card =
             |> keyValueList CaseRules.LowerFirst
 
         let props = JS.Object.assign (createEmpty, customProps, typeProps)
-        ofImport "Card" "reactstrap" props elems"""  config
-        |> should equal """namespace ReactStrap
+        ofImport "Card" "reactstrap" props elems""" config
+    |> should equal """namespace ReactStrap
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -220,7 +226,9 @@ let ``newlines inside let binding should be not duplicated`` () =
         if not animating then activeIndex.update ((activeIndex.current + itemLength - 1) % itemLength)
 
     ()
-"""  ({ config with MaxInfixOperatorExpression = 60 })
+"""
+        ({ config with
+               MaxInfixOperatorExpression = 60 })
     |> should equal """let foo =
     let next _ =
         if not animating
@@ -247,7 +255,7 @@ let ``inner let binding should not add additional newline, #475`` () =
         let someOtherValue = \"\"
 
         someObject.someFunc \"can't remove any of this stuff\"
-        someMutableProperty <- \"not even this\""  config
+        someMutableProperty <- \"not even this\"" config
     |> prepend newline
     |> should equal "
 module Test =
@@ -341,10 +349,11 @@ let ``line comment before return type info should indent before colon, 565`` () 
     : int
     =
     0
-"""  ({ config with
-            SpaceAfterComma = false
-            SpaceAfterSemicolon = false
-            SpaceAroundDelimiter = false })
+"""
+        ({ config with
+               SpaceAfterComma = false
+               SpaceAfterSemicolon = false
+               SpaceAroundDelimiter = false })
     |> prepend newline
     |> should equal """
 module Bar =
@@ -362,7 +371,9 @@ let ``line comment before return type with AlignFunctionSignatureToIndentation``
     : int
     =
     0
-"""  { config with AlignFunctionSignatureToIndentation = true }
+"""
+        { config with
+              AlignFunctionSignatureToIndentation = true }
     |> prepend newline
     |> should equal """
 let functionName
@@ -380,11 +391,12 @@ let ``has symbol in signature requires paren, 564`` () =
     formatSourceString false """module Bar =
   let foo (_ : #(int seq)) = 1
   let meh (_: #seq<int>) = 2
-"""  ({ config with
-            SpaceAfterComma = false
-            SpaceAfterSemicolon = false
-            SpaceAroundDelimiter = false
-            SpaceBeforeParameter = false })
+"""
+        ({ config with
+               SpaceAfterComma = false
+               SpaceAfterSemicolon = false
+               SpaceAroundDelimiter = false
+               SpaceBeforeParameter = false })
     |> prepend newline
     |> should equal """
 module Bar =
@@ -394,7 +406,7 @@ module Bar =
 
 [<Test>]
 let ``only add one space between idents in app`` () =
-    formatSourceString false "let validatorResult = validator input"  config
+    formatSourceString false "let validatorResult = validator input" config
     |> should equal "let validatorResult = validator input
 "
 
@@ -527,7 +539,7 @@ module Bar =
 """
 
 [<Test>]
-let ``handle hash directives before equals, 728`` () = 
+let ``handle hash directives before equals, 728`` () =
     formatSourceString false """let Baz (firstParam: string)
 #if DEBUG
             (_         : int)
@@ -830,7 +842,10 @@ let ``preserve new line new instance of class, 1034`` () =
 
         new HttpResponseMessage(HttpStatusCode.NotFound,
                                 Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json"))
-"""   { config with MaxValueBindingWidth = 50; MaxFunctionBindingWidth = 50 }
+"""
+        { config with
+              MaxValueBindingWidth = 50
+              MaxFunctionBindingWidth = 50 }
     |> prepend newline
     |> should equal """
 let notFound () =

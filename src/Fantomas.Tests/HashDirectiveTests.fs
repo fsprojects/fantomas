@@ -5,7 +5,7 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``should use verbatim strings on some hash directives``() =
+let ``should use verbatim strings on some hash directives`` () =
     formatSourceString false """
     #r @"C:\foo\bar.dll"
     """ config
@@ -15,7 +15,7 @@ let ``should use verbatim strings on some hash directives``() =
 """
 
 [<Test>]
-let ``hash directives``() =
+let ``hash directives`` () =
     formatSourceString false """
     #r "Fantomas.Tests.dll"
     #load "CodeFormatterTests.fs"
@@ -27,7 +27,7 @@ let ``hash directives``() =
 """
 
 [<Test>]
-let ``should support load directive multiple arguments``() =
+let ``should support load directive multiple arguments`` () =
     formatSourceString false """
     #load "A.fs" "B.fs"
     #load "C.fs"

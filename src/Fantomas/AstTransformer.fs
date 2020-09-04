@@ -418,6 +418,7 @@ module private Ast =
               Childs = [] }
         | SynExpr.LongIdent (isOptional, longDotId, _, range) ->
             let ids = visitLongIdentWithDots longDotId
+
             { Type = SynExpr_LongIdent
               Range = r range
               Properties =
@@ -434,6 +435,7 @@ module private Ast =
         | SynExpr.DotGet (expr, rangeOfDot, longDotId, range) ->
             // Idents are collected as childs here to deal with unit test ``Fluent api with comments should remain on same lines``
             let ids = visitLongIdentWithDots longDotId
+
             { Type = SynExpr_DotGet
               Range = r range
               Properties =

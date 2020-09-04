@@ -5,7 +5,7 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``lazy should wrap with ()``() =
+let ``lazy should wrap with ()`` () =
     formatSourceString false """
 let v = // <- Lazy "1"
     lazy
@@ -17,7 +17,7 @@ let v = // <- Lazy "1"
 """
 
 [<Test>]
-let ``lazy should not wrap with () for multiline``() =
+let ``lazy should not wrap with () for multiline`` () =
     formatSourceString false """
 let v = // <- Lazy "1"
     lazy
@@ -35,7 +35,7 @@ let v = // <- Lazy "1"
 
 [<Test>]
 let ``short lazy with parens and infix should keep parens`` () =
-    formatSourceString false """let result = lazy (x + 10)"""  config
+    formatSourceString false """let result = lazy (x + 10)""" config
     |> prepend newline
     |> should equal """
 let result = lazy (x + 10)

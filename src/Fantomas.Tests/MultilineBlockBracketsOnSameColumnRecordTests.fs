@@ -1,14 +1,15 @@
-﻿module Fantomas.Tests.MultilineBlockBracketsOnSameColumnRecordTests
+module Fantomas.Tests.MultilineBlockBracketsOnSameColumnRecordTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let config = ({ config with
-                    MultilineBlockBracketsOnSameColumn = true
-                    SpaceBeforeColon = true
-                    SpaceBeforeSemicolon = true
-                    NewlineBetweenTypeDefinitionAndMembers = true })
+let config =
+    ({ config with
+           MultilineBlockBracketsOnSameColumn = true
+           SpaceBeforeColon = true
+           SpaceBeforeSemicolon = true
+           NewlineBetweenTypeDefinitionAndMembers = true })
 
 [<Test>]
 let ``single member record stays on one line`` () =
@@ -130,7 +131,7 @@ let ``type with record instance with inherit keyword`` () =
     inherit CommunicationUnsuccessfulException
 
     new(message) =
-        { inherit CommunicationUnsuccessfulException(message) }"""  config
+        { inherit CommunicationUnsuccessfulException(message) }""" config
     |> prepend newline
     |> should equal """
 type ServerCannotBeResolvedException =
@@ -399,7 +400,9 @@ type Range =
     { From: float
       To: float }
     member this.Length = this.To - this.From
-"""  { config with MaxValueBindingWidth = 120 }
+"""
+        { config with
+              MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should equal """
 type Range =
@@ -528,7 +531,9 @@ type ShortExpressionInfo =
         currentColumn - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
     member x.Foo() = ()
-"""  ({ config with NewlineBetweenTypeDefinitionAndMembers = false })
+"""
+        ({ config with
+               NewlineBetweenTypeDefinitionAndMembers = false })
     |> prepend newline
     |> should equal """
 type ShortExpressionInfo =
@@ -578,7 +583,10 @@ type A =
 
 [<Test>]
 let ``indent update record fields far enough, 817`` () =
-    formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" ({ config with IndentSize = 2 })
+    formatSourceString
+        false
+        "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }"
+        ({ config with IndentSize = 2 })
     |> prepend newline
     |> should equal """
 let expected =
@@ -589,7 +597,10 @@ let expected =
 
 [<Test>]
 let ``indent update anonymous record fields far enough`` () =
-    formatSourceString false "let expected = {| ThisIsAThing.Empty with TheNewValue = 1 |}" ({ config with IndentSize = 2 })
+    formatSourceString
+        false
+        "let expected = {| ThisIsAThing.Empty with TheNewValue = 1 |}"
+        ({ config with IndentSize = 2 })
     |> prepend newline
     |> should equal """
 let expected =

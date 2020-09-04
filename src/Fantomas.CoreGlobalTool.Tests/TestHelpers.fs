@@ -6,7 +6,10 @@ open System.IO
 open System.Text
 open Fantomas.Extras
 
-type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: bool, ?fileName: string, ?subFolder: string) =
+type TemporaryFileCodeSample internal (codeSnippet: string,
+                                       ?hasByteOrderMark: bool,
+                                       ?fileName: string,
+                                       ?subFolder: string) =
     let hasByteOrderMark = defaultArg hasByteOrderMark false
 
     let filename =
@@ -19,62 +22,82 @@ type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: b
         | Some sf ->
             let tempFolder = Path.Join(Path.GetTempPath(), sf)
 
-            if not (Directory.Exists(tempFolder)) then
-                Directory.CreateDirectory(tempFolder) |> ignore
+            if not (Directory.Exists(tempFolder))
+            then Directory.CreateDirectory(tempFolder) |> ignore
 
             Path.Join(tempFolder, sprintf "%s.fs" name)
-        | None ->
-            Path.Join(Path.GetTempPath(), sprintf "%s.fs" name)
+        | None -> Path.Join(Path.GetTempPath(), sprintf "%s.fs" name)
 
-    do (if hasByteOrderMark
-        then File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
-        else File.WriteAllText(filename, codeSnippet))
+    do
+        (if hasByteOrderMark
+         then File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
+         else File.WriteAllText(filename, codeSnippet))
 
     member _.Filename: string = filename
+
     interface IDisposable with
         member this.Dispose(): unit =
             File.Delete(filename)
+
             subFolder
-            |> Option.iter (fun sf -> Path.Join(Path.GetTempPath(), sf) |> Directory.Delete)
+            |> Option.iter (fun sf ->
+                Path.Join(Path.GetTempPath(), sf)
+                |> Directory.Delete)
 
 type OutputFile internal () =
-    let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
+    let filename =
+        Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
+
     member _.Filename: string = filename
+
     interface IDisposable with
         member this.Dispose(): unit =
-            if File.Exists(filename) then
-                File.Delete(filename)
+            if File.Exists(filename) then File.Delete(filename)
 
 type ConfigurationFile internal (content: string) =
-    let filename = Path.Join(Path.GetTempPath(), ".editorconfig")
+    let filename =
+        Path.Join(Path.GetTempPath(), ".editorconfig")
+
     do File.WriteAllText(filename, content)
     member _.Filename: string = filename
+
     interface IDisposable with
         member this.Dispose(): unit =
-            if File.Exists(filename) then
-                File.Delete(filename)
+            if File.Exists(filename) then File.Delete(filename)
 
 type FantomasIgnoreFile internal (content: string) =
-    let filename = Path.Join(Path.GetTempPath(), IgnoreFile.IgnoreFileName)
+    let filename =
+        Path.Join(Path.GetTempPath(), IgnoreFile.IgnoreFileName)
+
     do File.WriteAllText(filename, content)
     member _.Filename: string = filename
+
     interface IDisposable with
         member this.Dispose(): unit =
-            if File.Exists(filename) then
-                File.Delete(filename)
+            if File.Exists(filename) then File.Delete(filename)
 
 let runFantomasTool arguments =
-    let pwd = Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
+    let pwd =
+        Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
+
     let configuration =
-        #if DEBUG
+#if DEBUG
         "Debug"
-        #else
+#else
         "Release"
-        #endif
+#endif
 
     let fantomasDll =
         Path.Combine
-            (pwd, "..", "..", "..", "..", "Fantomas.CoreGlobalTool", "bin", configuration, "netcoreapp3.1",
+            (pwd,
+             "..",
+             "..",
+             "..",
+             "..",
+             "Fantomas.CoreGlobalTool",
+             "bin",
+             configuration,
+             "netcoreapp3.1",
              "fantomas-tool.dll")
 
     use p = new Process()

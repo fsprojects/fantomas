@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.AttributeTests
+module Fantomas.Tests.AttributeTests
 
 open NUnit.Framework
 open FsUnit
@@ -6,13 +6,15 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``should keep the attribute on top of the function``() =
+let ``should keep the attribute on top of the function`` () =
     formatSourceString false """[<Extension>]
-type Funcs = 
+type Funcs =
     [<Extension>]
     static member ToFunc (f: Action<_,_,_>) =
         Func<_,_,_,_>(fun a b c -> f.Invoke(a,b,c))
-    """ { config with MaxFunctionBindingWidth = 120 }
+    """
+        { config with
+              MaxFunctionBindingWidth = 120 }
     |> should equal """[<Extension>]
 type Funcs =
     [<Extension>]
@@ -20,7 +22,7 @@ type Funcs =
 """
 
 [<Test>]
-let ``attributes on expressions``() =
+let ``attributes on expressions`` () =
     formatSourceString false """
     [<Dependency("FSharp.Compiler", LoadHint.Always)>]
     do ()""" config
@@ -31,7 +33,7 @@ do ()
 """
 
 [<Test>]
-let ``attributes with multiple spaces between args on expressions``() =
+let ``attributes with multiple spaces between args on expressions`` () =
     formatSourceString false """
     [<Dependency         ("FSharp.Compiler", LoadHint.Always)>]
     do ()""" config
@@ -42,7 +44,7 @@ do ()
 """
 
 [<Test>]
-let ``attributes without parentheses on expressions``() =
+let ``attributes without parentheses on expressions`` () =
     formatSourceString false """
     [<MyValue 55>]
     do ()""" config
@@ -53,7 +55,7 @@ do ()
 """
 
 [<Test>]
-let ``attributes without parentheses and multiples spaces between args on expressions``() =
+let ``attributes without parentheses and multiples spaces between args on expressions`` () =
     formatSourceString false """
     [<MyValue       55>]
     do ()""" config
@@ -64,7 +66,7 @@ do ()
 """
 
 [<Test>]
-let ``units of measures declaration``() =
+let ``units of measures declaration`` () =
     formatSourceString false """
     [<Measure>] type m
     [<Measure>] type kg
@@ -90,7 +92,7 @@ type Pa = N * m^2
 """
 
 [<Test>]
-let ``type params``() =
+let ``type params`` () =
     formatSourceString false """
 let genericSumUnits ( x : float<'u>) (y: float<'u>) = x + y
 type vector3D<[<Measure>] 'u> = { x : float<'u>; y : float<'u>; z : float<'u>}""" config
@@ -105,7 +107,7 @@ type vector3D<[<Measure>] 'u> =
 """
 
 [<Test>]
-let ``attributes on recursive functions``() =
+let ``attributes on recursive functions`` () =
     formatSourceString false """
 let rec [<Test>] a () = 10
 and [<Test>] b () = 10""" config
@@ -118,7 +120,7 @@ and [<Test>] b () = 10
 """
 
 [<Test>]
-let ``attributes on implicit constructors``() =
+let ``attributes on implicit constructors`` () =
     formatSourceString false """
 [<Export>]
 type Sample [<ImportingConstructor>] (dependency: IDependency) = class end
@@ -138,15 +140,15 @@ type Sample [<ImportingConstructor>] internal () =
 """
 
 [<Test>]
-let ``should handle targets on attributes``() =
+let ``should handle targets on attributes`` () =
     formatSourceString false """
 [<DataContract>]
-type Foo = 
+type Foo =
     { [<field:DataMember>]
       Bar:string }
 """  config
-  |> prepend newline
-  |> should equal """
+    |> prepend newline
+    |> should equal """
 [<DataContract>]
 type Foo =
     { [<field:DataMember>]
@@ -198,13 +200,13 @@ let e2e value = Props.Data("e2e", value)
 
 [<Test>]
 let ``comments before attributes should be added correctly, issue 422`` () =
-    formatSourceString false """module RecordTypes = 
+    formatSourceString false """module RecordTypes =
 
     /// Records can also be represented as structs via the 'Struct' attribute.
     /// This is helpful in situations where the performance of structs outweighs
     /// the flexibility of reference types.
     [<Struct>]
-    type ContactCardStruct = 
+    type ContactCardStruct =
         { Name     : string
           Phone    : string
           Verified : bool }
@@ -230,7 +232,7 @@ let ``different attributes according to defines`` () =
       Widget;
 #endif
       DefaultValue(true)>]
-    let foo = ()"""  config
+    let foo = ()""" config
     |> prepend newline
     |> should equal """
 [<
@@ -252,7 +254,7 @@ let ``different attributes according to defines, no defines`` () =
       Widget;
 #endif
       DefaultValue(true)>]
-    let foo = ()"""  config
+    let foo = ()""" config
     |> prepend newline
     |> should equal """
 [<
@@ -291,11 +293,12 @@ let main argv =
     printfn "Nice command-line arguments! Here's what JSON.NET has to say about them:" argv
     |> Array.map getJsonNetJson |> Array.iter (printfn "%s")
     0 // return an integer exit code
-"""  ({ config with
-            SpaceAfterComma = false
-            SpaceAfterSemicolon = false
-            SpaceAroundDelimiter = false
-            SpaceBeforeLowercaseInvocation = false })
+"""
+        ({ config with
+               SpaceAfterComma = false
+               SpaceAfterSemicolon = false
+               SpaceAroundDelimiter = false
+               SpaceBeforeLowercaseInvocation = false })
     |> prepend newline
     |> should equal """
 open System
@@ -440,7 +443,7 @@ type Commenter =
     { [<JsonProperty("display_name")>]
       // foo
       [<Bar>]
-      
+
       DisplayName: string }
 """  config
     |> prepend newline

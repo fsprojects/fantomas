@@ -1,11 +1,11 @@
-﻿module Fantomas.Tests.FunctionDefinitionTests
+module Fantomas.Tests.FunctionDefinitionTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``recursive functions``() =
+let ``recursive functions`` () =
     formatSourceString false """
     let rec f x = g x
     and g x = x""" config
@@ -17,9 +17,9 @@ and g x = x
 """
 
 [<Test>]
-let ``recursive functions in type definition``() =
+let ``recursive functions in type definition`` () =
     formatSourceString false """
-type C () = 
+type C () =
     let rec g x = h x
     and h x = g x
 
@@ -34,7 +34,7 @@ type C() =
 """
 
 [<Test>]
-let ``should keep mutually recursive functions``() =
+let ``should keep mutually recursive functions`` () =
     formatSourceString false """
 let rec createJArray x = createJObject
 
@@ -46,7 +46,7 @@ and createJObject y = createJArray
 """
 
 [<Test>]
-let ``should keep mutually recursive functions in nested function``() =
+let ``should keep mutually recursive functions in nested function`` () =
     formatSourceString false """let f =
     let rec createJArray x = createJObject x
 
@@ -61,28 +61,28 @@ let ``should keep mutually recursive functions in nested function``() =
 """
 
 [<Test>]
-let ``should keep identifiers with whitespace in double backticks``() =
+let ``should keep identifiers with whitespace in double backticks`` () =
     formatSourceString false """let ``should keep identifiers in double backticks``() = x
     """ config
     |> should equal """let ``should keep identifiers in double backticks`` () = x
 """
 
 [<Test>]
-let ``should remove backticks from shouldn't identifier``() =
+let ``should remove backticks from shouldn't identifier`` () =
     formatSourceString false """let ``shouldn't`` () = x
     """ config
     |> should equal """let shouldn't () = x
 """
 
 [<Test>]
-let ``should keep identifiers with + in double backticks``() =
+let ``should keep identifiers with + in double backticks`` () =
     formatSourceString false """let ``Foo+Bar``() = x
     """ config
     |> should equal """let ``Foo+Bar`` () = x
 """
 
 [<Test>]
-let ``double backticks with non-alphanum character, 776``() =
+let ``double backticks with non-alphanum character, 776`` () =
     formatSourceString false """let ``!foo hoo`` () = ()
 let ``@foo hoo`` () = ()
 let ``$foo hoo`` () = ()
@@ -109,7 +109,7 @@ let ``-foo hoo`` () = ()
 """
 
 [<Test>]
-let ``let bindings with return types``() =
+let ``let bindings with return types`` () =
     formatSourceString false """
        let divide x y =
            let stream : System.IO.FileStream = System.IO.File.Create("test.txt")
@@ -137,7 +137,7 @@ let divide x y =
 """
 
 [<Test>]
-let ``simple subtype constraint``() =
+let ``simple subtype constraint`` () =
     formatSourceString false """
 let subtype (xs : seq<'t :> System.IDisposable>) = ()""" config
     |> prepend newline
@@ -146,7 +146,7 @@ let subtype (xs: seq<'t :> System.IDisposable>) = ()
 """
 
 [<Test>]
-let ``type constraints and inline``() =
+let ``type constraints and inline`` () =
     formatSourceString false """
 let inline add(value1 : ^T when ^T : (static member (+) : ^T * ^T -> ^T), value2: ^T) =
     value1 + value2
@@ -162,25 +162,25 @@ let inline heterogenousAdd (value1: ^T when (^T or ^U): (static member (+): ^T *
 """
 
 [<Test>]
-let ``should keep whitespace after function call``() =
+let ``should keep whitespace after function call`` () =
     formatSourceString false """let relative = (toRelativePath fileName).TrimStart '.'
     """ config
     |> should equal """let relative = (toRelativePath fileName).TrimStart '.'
 """
 
 [<Test>]
-let ``should keep type annotations``() =
+let ``should keep type annotations`` () =
     formatSourceString false """let empty<'T> : LazyList<'T> = EmptyValue<'T>.Value""" config
     |> should equal """let empty<'T> : LazyList<'T> = EmptyValue<'T>.Value
 """
 
 [<Test>]
-let ``should add spaces between multiline nested let bindings``() =
-    formatSourceString false """let f1 = 
-    let f2 x = 
+let ``should add spaces between multiline nested let bindings`` () =
+    formatSourceString false """let f1 =
+    let f2 x =
         let _ = ()
         x + 1
-    let f3 y = 
+    let f3 y =
         let _ = ()
         y + 1
     x + y""" config
@@ -197,7 +197,7 @@ let ``should add spaces between multiline nested let bindings``() =
 """
 
 [<Test>]
-let ``should indent fun blocks``() =
+let ``should indent fun blocks`` () =
     formatSourceString false """let f =
     fun x ->
     let y = 1
@@ -207,8 +207,9 @@ let ``should indent fun blocks``() =
         let y = 1
         x
 """
+
 [<Test>]
-let ``should not add spaces into a series of function application``() =
+let ``should not add spaces into a series of function application`` () =
     formatSourceString false """let f x = "d"
 f(1).Contains("3")""" config
     |> should equal """let f x = "d"
@@ -216,7 +217,7 @@ f(1).Contains("3")
 """
 
 [<Test>]
-let ``should handle external functions``() =
+let ``should handle external functions`` () =
     formatSourceString false """[<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
 extern ReturnCode  GetParent (System.IntPtr inRef, byref outParentRef)""" config
     |> prepend newline
@@ -226,7 +227,7 @@ extern ReturnCode GetParent(System.IntPtr inRef, byref outParentRef)
 """
 
 [<Test>]
-let ``should handle simple external functions``() =
+let ``should handle simple external functions`` () =
     formatSourceString false """module InteropWithNative =
         [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
         extern IntPtr setCallbridgeSupportTarget(IntPtr newTarget)""" config
@@ -238,7 +239,7 @@ module InteropWithNative =
 """
 
 [<Test>]
-let ``should handle external functions with void return type``() =
+let ``should handle external functions with void return type`` () =
     formatSourceString false """module InteropWithNative =
         [<DllImport(@"__Internal", CallingConvention = CallingConvention.Cdecl)>]
         extern void setCallbridgeSupportTarget(IntPtr newTarget)""" config
@@ -250,7 +251,7 @@ module InteropWithNative =
 """
 
 [<Test>]
-let ``should handle external functions with fully-qualified attributes``() =
+let ``should handle external functions with fully-qualified attributes`` () =
     formatSourceString false """[<System.Runtime.InteropServices.DllImport("user32.dll")>]
 extern int GetWindowLong(System.IntPtr hwnd, int index)""" config
     |> prepend newline
@@ -260,16 +261,16 @@ extern int GetWindowLong(System.IntPtr hwnd, int index)
 """
 
 [<Test>]
-let ``should handle external functions with special types``() =
+let ``should handle external functions with special types`` () =
     formatSourceString false """open System
 open System.Runtime.InteropServices
 open Accessibility
 
 [<DllImport("oleacc.dll")>]
 extern int AccessibleChildren(
-    IAccessible paccContainer, 
-    int iChildStart, 
-    int cChildren, 
+    IAccessible paccContainer,
+    int iChildStart,
+    int cChildren,
     [<Out()>] [<MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4s)>] System.Object [] rgvarChildren,
     int* pcObtained)""" config
     |> prepend newline
@@ -285,7 +286,7 @@ extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cC
 """
 
 [<Test>]
-let ``DllImport and Marshall return type, 574``() =
+let ``DllImport and Marshall return type, 574`` () =
     formatSourceString false """[<DllImport("userenv.dll", SetLastError = true)>]
 [<MarshalAs(UnmanagedType.Bool)>]
 extern bool DestroyEnvironmentBlock(IntPtr lpEnvironment)""" config
@@ -295,7 +296,7 @@ extern bool DestroyEnvironmentBlock(IntPtr lpEnvironment)
 """
 
 [<Test>]
-let ``should handle desugared matches correctly``() =
+let ``should handle desugared matches correctly`` () =
     formatSourceString false """
 type U = X of int
 let f = fun x -> match x with X (x) -> x
@@ -311,7 +312,7 @@ let f =
 """
 
 [<Test>]
-let ``should handle member constraints and generic params correctly``() =
+let ``should handle member constraints and generic params correctly`` () =
     formatSourceString false """
 let inline implicit< ^a,^b when ^a : (static member op_Implicit : ^b -> ^a)> arg =
         (^a : (static member op_Implicit : ^b -> ^a) arg)
@@ -323,7 +324,7 @@ let inline implicit< ^a, ^b when ^a: (static member op_Implicit: ^b -> ^a)> arg 
 """
 
 [<Test>]
-let ``don't add spaces for function application inside dot access``() =
+let ``don't add spaces for function application inside dot access`` () =
     formatSourceString false """
 let f x = "foo"
 f(42).Length
@@ -335,9 +336,9 @@ f(42).Length
 """
 
 [<Test>]
-let ``do add spaces for function application inside parentheses inside dot access``() =
+let ``do add spaces for function application inside parentheses inside dot access`` () =
     formatSourceString false """let inputBlah = "So, I was like, Visual Studio did wat"
-let someBlahing = (Blah.TryCreate inputBlah).Value"""  config
+let someBlahing = (Blah.TryCreate inputBlah).Value""" config
     |> prepend newline
     |> should equal """
 let inputBlah = "So, I was like, Visual Studio did wat"
@@ -345,16 +346,16 @@ let someBlahing = (Blah.TryCreate inputBlah).Value
 """
 
 [<Test>]
-let ``don't create redundant parentheses outside trait calls``() =
-    formatSourceString false """let f (arg : 'T) = (^T : (member Value : string) arg)"""  config
+let ``don't create redundant parentheses outside trait calls`` () =
+    formatSourceString false """let f (arg : 'T) = (^T : (member Value : string) arg)""" config
     |> prepend newline
     |> should equal """
 let f (arg: 'T) = (^T: (member Value: string) arg)
 """
 
 [<Test>]
-let ``lambda with complex type``() =
-    formatSourceString false """let x = fun ((u, v):(int*int)) -> 5"""  config
+let ``lambda with complex type`` () =
+    formatSourceString false """let x = fun ((u, v):(int*int)) -> 5""" config
     |> prepend newline
     |> should equal """
 let x = fun ((u, v): (int * int)) -> 5
@@ -379,10 +380,11 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
     match anyErrors with
     | true -> Error collectedErrors
     | false -> Ok collectedOutputs
-"""  ({ config with
-            MaxLineLength = 100
-            SpaceBeforeColon = true
-            MaxInfixOperatorExpression = 70 })
+"""
+        ({ config with
+               MaxLineLength = 100
+               SpaceBeforeColon = true
+               MaxInfixOperatorExpression = 70 })
     |> prepend newline
     |> should equal """
 let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq)
@@ -428,7 +430,10 @@ let ``internal keyword included in function signature length check`` () =
 
   let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
     assembly.Name
-"""  ({ config with MaxLineLength = 90; SpaceBeforeColon = true })
+"""
+        ({ config with
+               MaxLineLength = 90
+               SpaceBeforeColon = true })
     |> prepend newline
     |> should equal """
 let internal UpdateStrongNaming (assembly : AssemblyDefinition)
@@ -544,7 +549,10 @@ let private addTaskToScheduler (scheduler: IScheduler)
 let ``long function signature should align with equal sign, 883`` () =
     formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) : ReadModel<'Event, 'State> =
     ()
-"""  { config with IndentSize = 2; SpaceBeforeColon = true }
+"""
+        { config with
+              IndentSize = 2
+              SpaceBeforeColon = true }
     |> prepend newline
     |> should equal """
 let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
@@ -557,7 +565,11 @@ let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
 let ``long function signature should align with equal sign, no return type`` () =
     formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) =
     ()
-"""  { config with IndentSize = 2; SpaceBeforeColon = true; MaxLineLength = 80 }
+"""
+        { config with
+              IndentSize = 2
+              SpaceBeforeColon = true
+              MaxLineLength = 80 }
     |> prepend newline
     |> should equal """
 let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
@@ -601,7 +613,10 @@ let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq,
 let ``align long function signature to indentation without return type `` () =
     formatSourceString false """
 let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq) (input: 'Input) (input2: 'Input) (input3: 'Input) = ()
-"""  { config with MaxLineLength = 60; AlignFunctionSignatureToIndentation  = true }
+"""
+        { config with
+              MaxLineLength = 60
+              AlignFunctionSignatureToIndentation = true }
     |> prepend newline
     |> should equal """
 let fold
@@ -617,7 +632,11 @@ let fold
 let ``align long function signature to indentation with return type`` () =
     formatSourceString false """let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State) (initState : 'State) : ReadModel<'Event, 'State> =
     ()
-"""  { config with IndentSize = 2; SpaceBeforeColon = true; AlignFunctionSignatureToIndentation = true }
+"""
+        { config with
+              IndentSize = 2
+              SpaceBeforeColon = true
+              AlignFunctionSignatureToIndentation = true }
     |> prepend newline
     |> should equal """
 let readModel
@@ -637,7 +656,10 @@ let rec run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = 
 
 and logAnalyticsForRequest (log:ILogger) (httpRequest: HttpRequest) =
     log.Info (sprintf "Meh: %A" httpRequest)
-"""  { config with MaxLineLength = 60; AlignFunctionSignatureToIndentation = true }
+"""
+        { config with
+              MaxLineLength = 60
+              AlignFunctionSignatureToIndentation = true }
     |> prepend newline
     |> should equal """
 let rec run

@@ -52,16 +52,16 @@ type FsTokenType =
     | LPAREN_STAR_RPAREN
 
 type Token =
-    { TokenInfo:FSharpTokenInfo
+    { TokenInfo: FSharpTokenInfo
       LineNumber: int
       Content: string }
 
 
 type Comment =
-    | LineCommentAfterSourceCode of comment:string
-    | LineCommentOnSingleLine of comment:string
-    | BlockComment of string * newlineBefore:bool * newlineAfter:bool
-    
+    | LineCommentAfterSourceCode of comment: string
+    | LineCommentOnSingleLine of comment: string
+    | BlockComment of string * newlineBefore: bool * newlineAfter: bool
+
 (* LineComment Examples
 
 let a = 7 // b
@@ -82,16 +82,14 @@ type TriviaContent =
     | IdentBetweenTicks of string
     | Comment of Comment
     | Newline
-    | Directive of directive:string
+    | Directive of directive: string
     | CharContent of string
-    
+
 type Trivia =
     { Item: TriviaContent
       Range: range }
-with
-    static member Create item range : Trivia =
-        { Item = item; Range = range }
-        
+    static member Create item range: Trivia = { Item = item; Range = range }
+
 type TriviaIndex = TriviaIndex of int * int
 
 type FsAstType =
@@ -308,9 +306,9 @@ type FsAstType =
     | SigFile_
 
 type TriviaNodeType =
-    | MainNode of ``type``:FsAstType
-    | Token of ``type``:FsTokenType * Token
-    
+    | MainNode of ``type``: FsAstType
+    | Token of ``type``: FsTokenType * Token
+
 type TriviaNode =
     { Type: TriviaNodeType
       ContentBefore: TriviaContent list
@@ -322,6 +320,6 @@ type internal TriviaNodeAssigner(nodeType: TriviaNodeType, range: range, ?linesB
     member this.Type = nodeType
     member this.Range = range
     member this.AttributeLinesBetweenParent = linesBetweenParent
-    member val ContentBefore = ResizeArray<TriviaContent>() with get,set
-    member val ContentItself = Option<TriviaContent>.None with get,set
-    member val ContentAfter = ResizeArray<TriviaContent>() with get,set
+    member val ContentBefore = ResizeArray<TriviaContent>() with get, set
+    member val ContentItself = Option<TriviaContent>.None with get, set
+    member val ContentAfter = ResizeArray<TriviaContent>() with get, set

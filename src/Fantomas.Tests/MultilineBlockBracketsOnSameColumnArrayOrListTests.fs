@@ -1,16 +1,17 @@
-﻿module Fantomas.Tests.MultilineBlockBracketsOnSameColumnArrayOrListTests
+module Fantomas.Tests.MultilineBlockBracketsOnSameColumnArrayOrListTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let config = ({ config with
-                    MultilineBlockBracketsOnSameColumn = true
-                    SpaceBeforeColon = true
-                    SpaceBeforeSemicolon = true })
+let config =
+    ({ config with
+           MultilineBlockBracketsOnSameColumn = true
+           SpaceBeforeColon = true
+           SpaceBeforeSemicolon = true })
 
 [<Test>]
-let ``array values``() =
+let ``array values`` () =
     formatSourceString false """
 let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
   (3, 2, 6); (3, 3, 9)|]
@@ -32,7 +33,7 @@ let arr =
 """
 
 [<Test>]
-let ``list values``() =
+let ``list values`` () =
     formatSourceString false """
 let arr = [(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
   (3, 2, 6); (3, 3, 9)]
@@ -62,7 +63,7 @@ let defines = [ "FOO" ; "BAR" ]
 """
 
 [<Test>]
-let ``array patterns``() =
+let ``array patterns`` () =
     formatSourceString false """
 let vectorLength vec =
     match vec with
@@ -81,7 +82,7 @@ let vectorLength vec =
 """
 
 [<Test>]
-let ``array comprehensions``() =
+let ``array comprehensions`` () =
     formatSourceString false """
 let a1 = [| 0 .. 99 |]
 let a2 = [| for n in 1 .. 100 do if isPrime n then yield n |]""" config

@@ -1,4 +1,5 @@
 #r "paket:
+nuget Fantomas.Extras 4.1.0-beta-002
 nuget Microsoft.Azure.Cosmos.Table
 nuget Fake.BuildServer.AppVeyor
 nuget Fake.Core.ReleaseNotes
@@ -17,11 +18,14 @@ nuget Fake.Core.Target //"
 open Fake.Core
 open Fake.IO
 open Fake.IO.FileSystemOperators
+open Fake.IO.Globbing.Operators
 open Fake.Core.TargetOperators
 open Fake.BuildServer
 open System
 open System.IO
 open Fake.DotNet
+open Fantomas
+open Fantomas.Extras.FakeHelpers
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted
@@ -414,6 +418,29 @@ Target.create "Benchmark" (fun _ ->
         printfn "Not saving benchmark results to the cloud"
 )
 
+Target.create "Format" (fun _ ->
+    !! "src/**/*.fs"
+    -- "src/*/obj/**/*.fs"
+    |> formatCode
+    |> Async.RunSynchronously
+    |> printfn "Formatted files: %A")
+
+Target.create "CheckFormat" (fun _ ->
+    let result =
+        !! "src/**/*.fs"
+        -- "src/*/obj/**/*.fs"
+        |> checkCode
+        |> Async.RunSynchronously
+
+    if result.IsValid then
+        Trace.log "No files need formatting"
+    elif result.NeedsFormatting then
+        Trace.log "The following files need formatting:"
+        List.iter Trace.log result.Formatted
+        failwith "Some files need formatting, check output for more info"
+    else
+        Trace.logf "Errors while formatting: %A" result.Errors)
+
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
@@ -421,6 +448,7 @@ Target.create "All" ignore
 
 "Clean"
     ==> "ProjectVersion"
+    ==> "CheckFormat"
     ==> "Build"
     ==> "UnitTests"
     ==> "Benchmark"
