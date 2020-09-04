@@ -528,3 +528,47 @@ let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
 
         dist
 """
+
+[<Test>]
+let ``keep comment after or operator, 1095`` () =
+    formatSourceString false """
+let f x =
+    a
+    || // other case
+    match n with
+    | 17 -> false
+    | _ -> true
+"""  config
+    |> prepend newline
+    |> should equal """
+let f x =
+    a
+    || // other case
+    match n with
+    | 17 -> false
+    | _ -> true
+"""
+
+[<Test>]
+let ``keep comment after and operator`` () =
+    formatSourceString false "
+let r =
+    {| Foo =
+           a
+           && // && b
+           c
+       Bar = \"\"\"
+Fooey
+\"\"\" |}
+"    config
+    |> prepend newline
+    |> should equal "
+let r =
+    {| Foo =
+           a
+           && // && b
+           c
+       Bar = \"\"\"
+Fooey
+\"\"\" |}
+"

@@ -425,6 +425,13 @@ Target.create "Format" (fun _ ->
     |> Async.RunSynchronously
     |> printfn "Formatted files: %A")
 
+Target.create "FormatChanged" (fun _ ->
+    Fake.Tools.Git.FileStatus.getChangedFilesInWorkingCopy "." "HEAD"
+    |> Seq.choose (fun (_, file) -> if file.StartsWith("src") then Some file else None)
+    |> formatCode
+    |> Async.RunSynchronously
+    |> printfn "Formatted files: %A")
+
 Target.create "CheckFormat" (fun _ ->
     let result =
         !! "src/**/*.fs"
