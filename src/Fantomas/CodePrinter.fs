@@ -1312,15 +1312,22 @@ and genExpr astContext synExpr =
     | Paren(DesugaredLambda(cps, e)) ->
         fun (ctx: Context) ->
             let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
+
+            let arrowRange =
+                List.last cps
+                |> snd
+                |> fun lastPatRange ->
+                    mkRange "arrow range" lastPatRange.End e.Range.Start
+
             let hasLineCommentAfterArrow =
-                findTriviaTokenFromName RARROW synExpr.Range ctx
+                findTriviaTokenFromName RARROW arrowRange ctx
                 |> Option.isSome
 
             let expr =
                 sepOpenT
                 -- "fun "
-                +> col sepSpace cps (genComplexPats astContext)
-                +> triviaAfterArrow synExpr.Range
+                +> col sepSpace cps (fst >> genComplexPats astContext)
+                +> triviaAfterArrow arrowRange
                 +> ifElse hasLineCommentAfterArrow (genExpr astContext e)
                        (ifElse lastLineOnlyContainsParenthesis (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
                             (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
@@ -1329,7 +1336,7 @@ and genExpr astContext synExpr =
             expr ctx
 
     | DesugaredLambda(cps, e) ->
-        !- "fun " +>  col sepSpace cps (genComplexPats astContext) +> sepArrow
+        !- "fun " +>  col sepSpace cps (fst >> genComplexPats astContext) +> sepArrow
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
     | Paren(Lambda(e, sps)) ->
         fun (ctx: Context) ->

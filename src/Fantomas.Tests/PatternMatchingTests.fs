@@ -713,6 +713,35 @@ let (|AndExpr|_|) =
 """
 
 [<Test>]
+let ``comment after arrow should not be duplicated, 1082`` () =
+    formatSourceString false """
+List.tryFind(fun { Type = t; Range = r }  ->
+                    match t with
+                    | MainNode SynMemberDefn_Member
+                    | MainNode SynMemberSig_Member -> // trying to get AST trivia
+                        RangeHelpers.``range contains`` r rangeOfBindingAndRhs
+
+                    | Token(MEMBER, _) -> // trying to get token trivia
+                        r.StartLine = rangeOfBindingAndRhs.StartLine
+
+                    | _ -> false
+                )
+"""  config
+    |> prepend newline
+    |> should equal """
+List.tryFind (fun { Type = t; Range = r } ->
+    match t with
+    | MainNode SynMemberDefn_Member
+    | MainNode SynMemberSig_Member -> // trying to get AST trivia
+        RangeHelpers.``range contains`` r rangeOfBindingAndRhs
+
+    | Token (MEMBER, _) -> // trying to get token trivia
+        r.StartLine = rangeOfBindingAndRhs.StartLine
+
+    | _ -> false)
+"""
+
+[<Test>]
 let ``trivia before pipe should not be repeated for each pipe, 1083`` () =
     formatSourceString false """
 Seq.takeWhile
