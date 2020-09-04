@@ -496,8 +496,8 @@ let (|Quote|_|) = function
     | _ -> None
 
 let (|Paren|_|) = function 
-    | SynExpr.Paren(e, _, _, _) ->
-        Some e
+    | SynExpr.Paren(e, lpr, rpr, _) ->
+        Some (lpr, e, rpr)
     | _ -> None
 
 type ExprKind = 

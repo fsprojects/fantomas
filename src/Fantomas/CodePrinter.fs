@@ -958,13 +958,13 @@ and genExpr astContext synExpr =
         match e with
         | MultilineString _
         | Lambda _
-        | Paren (Lambda _)
-        | Paren (MatchLambda _) -> id
+        | Paren (_, Lambda _, _)
+        | Paren (_, MatchLambda _, _) -> id
         | _ -> autoNlnIfExpressionExceedsPageWidth
 
     let kw tokenName f = tokN synExpr.Range tokenName f
-    let sepOpenT = tokN synExpr.Range LPAREN sepOpenT
-    let sepCloseT = tokN synExpr.Range RPAREN sepCloseT
+    let sepOpenTFor r = tokN (Option.defaultValue synExpr.Range r) LPAREN sepOpenT
+    let sepCloseTFor r = tokN (Option.defaultValue synExpr.Range r) RPAREN sepCloseT
 
     match synExpr with
     | ElmishReactWithoutChildren(identifier, isArray, children) ->
@@ -1309,7 +1309,7 @@ and genExpr astContext synExpr =
         fun ctx -> isShortExpression ctx.Config.MaxArrayOrListWidth shortExpression multilineExpression ctx
 
     | JoinIn(e1, e2) -> genExpr astContext e1 -- " in " +> genExpr astContext e2
-    | Paren(DesugaredLambda(cps, e)) ->
+    | Paren(_, DesugaredLambda(cps, e), _) ->
         fun (ctx: Context) ->
             let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
 
@@ -1338,7 +1338,7 @@ and genExpr astContext synExpr =
     | DesugaredLambda(cps, e) ->
         !- "fun " +>  col sepSpace cps (fst >> genComplexPats astContext) +> sepArrow
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-    | Paren(Lambda(e, sps)) ->
+    | Paren(lpr, Lambda(e, sps), rpr) ->
         fun (ctx: Context) ->
             let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' ';'('|] ctx
             let hasLineCommentAfterArrow =
@@ -1346,14 +1346,14 @@ and genExpr astContext synExpr =
                 |> Option.isSome
 
             let expr =
-                sepOpenT
+                sepOpenTFor (Some lpr)
                 -- "fun "
                 +> col sepSpace sps (genSimplePats astContext)
                 +> triviaAfterArrow synExpr.Range
                 +> ifElse hasLineCommentAfterArrow (genExpr astContext e)
                        (ifElse lastLineOnlyContainsParenthesis (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
                             (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
-                +> sepCloseT
+                +> sepCloseTFor rpr
 
             expr ctx
 
@@ -1384,18 +1384,20 @@ and genExpr astContext synExpr =
         genTyparList astContext tps +> sepColon +> sepOpenT +> genMemberSig astContext msg +> sepCloseT
         +> sepSpace +> genExpr astContext e
 
-    | Paren (ILEmbedded r) ->
+    | Paren (_, ILEmbedded r, _) ->
         // Just write out original code inside (# ... #)
         fun ctx -> !- (defaultArg (lookup r ctx) "") ctx
-    | Paren e ->
+    | Paren (lpr ,e, rpr) ->
         match e with
         | MultilineString _ ->
-            sepOpenT
+            sepOpenTFor (Some lpr)
             +> atCurrentColumn (genExpr { astContext with IsInsideDotGet = false } e +> indentIfNeeded sepNone)
-            +> sepCloseT
+            +> sepCloseTFor rpr
         | _ ->
             // Parentheses nullify effects of no space inside DotGet
-            sepOpenT +> genExpr { astContext with IsInsideDotGet = false } e +> sepCloseT
+            sepOpenTFor (Some lpr)
+            +> genExpr { astContext with IsInsideDotGet = false } e
+            +> sepCloseTFor rpr
     | CompApp(s, e) ->
         !- s +> sepSpace +> sepOpenS +> genExpr { astContext with IsNakedRange = true } e +> sepCloseS
     // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
@@ -1499,9 +1501,9 @@ and genExpr astContext synExpr =
 
                     let genMultilineExpr =
                         match e with
-                        | Paren(Lambda(_)) -> atCurrentColumnIndent(genExpr astContext e)
-                        | Paren(App(_))
-                        | Paren(Tuple(_)) ->
+                        | Paren(_, Lambda(_), _) -> atCurrentColumnIndent(genExpr astContext e)
+                        | Paren(_, App(_), _)
+                        | Paren(_, Tuple(_), _) ->
                             atCurrentColumn(genExpr astContext e)
                         | _ ->
                             ifElse hasParenthesis
@@ -1542,8 +1544,8 @@ and genExpr astContext synExpr =
                     +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone)
                     +> (fun ctx ->
                           match e2 with
-                          | Paren (App (_)) when astContext.IsInsideDotGet -> genExpr astContext e2 ctx
-                          | Paren (DotGet (App(_), _)) when astContext.IsInsideDotGet -> genExpr astContext e2 ctx
+                          | Paren (_, App (_), _) when astContext.IsInsideDotGet -> genExpr astContext e2 ctx
+                          | Paren (_, DotGet (App(_), _), _) when astContext.IsInsideDotGet -> genExpr astContext e2 ctx
                           | ConstExpr(SynConst.Unit, _) when astContext.IsInsideDotGet -> genExpr astContext e2 ctx
                           | _ -> appNlnFun e2 (genExpr astContext e2) ctx)
                     +> unindent)
@@ -1579,7 +1581,7 @@ and genExpr astContext synExpr =
 
         let hasThreeOrMoreLambdas =
             List.filter (function
-                | Paren (Lambda (_)) -> true
+                | Paren (_, Lambda (_), _) -> true
                 | _ -> false) es
             |> List.length
             |> fun l -> l >= 3
@@ -1587,8 +1589,8 @@ and genExpr astContext synExpr =
         if List.exists (function
             | Lambda _
             | MatchLambda _
-            | Paren (Lambda (_))
-            | Paren (MatchLambda (_))
+            | Paren (_, Lambda (_), _)
+            | Paren (_, MatchLambda (_), _)
             | MultilineString _
             | CompExpr _ -> true
             | _ -> false) es && not hasThreeOrMoreLambdas then
