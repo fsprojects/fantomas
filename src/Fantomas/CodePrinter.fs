@@ -351,6 +351,8 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                     let hasContentAfter =
                         TriviaHelpers.``has content after after that matches`` (fun tn ->
                             RangeHelpers.rangeEq tn.Range a.Range) (function
+                            | Newline
+                            | Comment (LineCommentOnSingleLine (_))
                             | Directive (_) -> true
                             | _ -> false) (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaMainNodes)
 

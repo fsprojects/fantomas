@@ -512,3 +512,35 @@ namespace foo.quz
 // bar
 // baz
 """
+
+[<Test>]
+let ``don't add extra new lines between comments and attributes, 1108`` () =
+    formatSourceString false """
+namespace Foo
+
+// First
+[<someAnnotation>]
+
+// Second
+[<someAnnotation>]
+
+// Third
+[<someAnnotation>]
+
+do ()
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Foo
+
+// First
+[<someAnnotation>]
+
+// Second
+[<someAnnotation>]
+
+// Third
+[<someAnnotation>]
+
+do ()
+"""
