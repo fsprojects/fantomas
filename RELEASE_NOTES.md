@@ -1,7 +1,12 @@
+### 4.1.0-beta-004 09/2020
+
+* Fixed some regression introduced by [#992](https://github.com/fsprojects/fantomas/pull/992).
+* Fix Adds newline between comments and (all but the first) attribute. [#1108](https://github.com/fsprojects/fantomas/issues/1108)
+* Fix Extra whitespace lines added in fsi files at the end of a nested module declaration. [#1105](https://github.com/fsprojects/fantomas/issues/1105)
+
 ### 4.1.0-beta-003 09/2020
 
 * Lead by example. [#666](https://github.com/fsprojects/fantomas/issues/666)
-* Fixed some regression introduced by [#992](https://github.com/fsprojects/fantomas/pull/992).
 * Fix Extra new line is added before attributes. [#1097](https://github.com/fsprojects/fantomas/issues/1097)
 * Fix Comments after closing brace are lost. [#1096](https://github.com/fsprojects/fantomas/issues/1096)
 * Fix Comment after Or operator lost. [#1095](https://github.com/fsprojects/fantomas/issues/1095)

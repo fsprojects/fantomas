@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <ToolCommandName>fantomas</ToolCommandName>
     <PackAsTool>True</PackAsTool>
-    <Version>4.1.0-beta-003</Version>
+    <Version>4.1.0-beta-004</Version>
     <AssemblyName>fantomas-tool</AssemblyName>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
   </PropertyGroup>
