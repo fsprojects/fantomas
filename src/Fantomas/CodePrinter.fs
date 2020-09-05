@@ -2037,10 +2037,14 @@ and genExpr astContext synExpr =
             es
             |> List.map (fun e ->
                 let expr = genExpr astContext e
-                let r = e.Range
+
+                let fsAstType, r =
+                    match e with
+                    | LetOrUses ((_, fb) :: _, _) -> Binding_, fb.RangeOfBindingSansRhs
+                    | _ -> synExprToFsAstType e, e.Range
 
                 let sepNln =
-                    sepConsideringTriviaContentBeforeForMainNode sepSemiNln (synExprToFsAstType e) r
+                    sepConsideringTriviaContentBeforeForMainNode sepSemiNln fsAstType r
 
                 expr, sepNln, r)
 
