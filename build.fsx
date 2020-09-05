@@ -420,6 +420,7 @@ Target.create "Benchmark" (fun _ ->
 
 Target.create "Format" (fun _ ->
     !! "src/**/*.fs"
+    ++ "src/**/*.fsi"
     -- "src/*/obj/**/*.fs"
     |> formatCode
     |> Async.RunSynchronously
@@ -435,6 +436,7 @@ Target.create "FormatChanged" (fun _ ->
 Target.create "CheckFormat" (fun _ ->
     let result =
         !! "src/**/*.fs"
+        ++ "src/**/*.fsi"
         -- "src/*/obj/**/*.fs"
         |> checkCode
         |> Async.RunSynchronously
