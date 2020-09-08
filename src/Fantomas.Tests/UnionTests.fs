@@ -465,3 +465,39 @@ type SynType =
         isPostfix: bool *
         range: range // interstitial commas
 """
+
+[<Test>]
+let ``multiline single union case field`` () =
+    formatSourceString true """
+namespace X
+
+type UnresolvedAssemblyReference = UnresolvedAssemblyReference of string * AssemblyReference list
+type ResolvedExtensionReference = ResolvedExtensionReference of string * AssemblyReference list * Tainted<ITypeProvider> list
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace X
+
+type UnresolvedAssemblyReference = UnresolvedAssemblyReference of string * AssemblyReference list
+
+type ResolvedExtensionReference =
+    ResolvedExtensionReference of string * AssemblyReference list * Tainted<ITypeProvider> list
+"""
+
+[<Test>]
+let ``multiline single union case field, implementation file`` () =
+    formatSourceString false """
+namespace X
+
+type UnresolvedAssemblyReference = UnresolvedAssemblyReference of string * AssemblyReference list
+type ResolvedExtensionReference = ResolvedExtensionReference of string * AssemblyReference list * Tainted<ITypeProvider> list
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace X
+
+type UnresolvedAssemblyReference = UnresolvedAssemblyReference of string * AssemblyReference list
+
+type ResolvedExtensionReference =
+    ResolvedExtensionReference of string * AssemblyReference list * Tainted<ITypeProvider> list
+"""
