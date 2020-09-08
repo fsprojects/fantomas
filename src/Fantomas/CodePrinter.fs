@@ -315,9 +315,12 @@ and genSigModuleDeclList astContext node =
         match ys with
         | [] ->
             colEx (fun (x: SynModuleSigDecl) ->
+                let attrs =
+                    getRangesFromAttributesFromSynModuleSigDeclaration x
+
                 sepNln
-                +> sepNlnConsideringTriviaContentBeforeForMainNode (synModuleSigDeclToFsAstType x) x.Range) xs
-                (genSigModuleDecl astContext)
+                +> sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleSigDeclToFsAstType x) x.Range attrs)
+                xs (genSigModuleDecl astContext)
         | _ ->
             let sepXsYs =
                 match List.tryHead ys with
@@ -327,9 +330,12 @@ and genSigModuleDeclList astContext node =
                 | None -> rep 2 sepNln
 
             colEx (fun (x: SynModuleSigDecl) ->
+                let attrs =
+                    getRangesFromAttributesFromSynModuleSigDeclaration x
+
                 sepNln
-                +> sepNlnConsideringTriviaContentBeforeForMainNode (synModuleSigDeclToFsAstType x) x.Range) xs
-                (genSigModuleDecl astContext)
+                +> sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleSigDeclToFsAstType x) x.Range attrs)
+                xs (genSigModuleDecl astContext)
             +> sepXsYs
             +> genSigModuleDeclList astContext ys
 

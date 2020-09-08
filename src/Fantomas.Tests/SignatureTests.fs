@@ -805,3 +805,47 @@ module Foo =
 
     val lmao: unit -> bool
 """
+
+[<Test>]
+let ``don't add extra new line before attribute of type, 1116`` () =
+    formatSourceString true """
+module Test
+
+type t1 = bool
+
+[<SomeAttribute>]
+type t2 = bool
+
+val foo : bool
+"""  config
+    |> prepend newline
+    |> should equal """
+module Test
+
+type t1 = bool
+
+[<SomeAttribute>]
+type t2 = bool
+
+val foo: bool
+"""
+
+[<Test>]
+let ``don't add extra new line before attribute of type, only types`` () =
+    formatSourceString true """
+module Test
+
+type t1 = bool
+
+[<SomeAttribute>]
+type t2 = bool
+"""  config
+    |> prepend newline
+    |> should equal """
+module Test
+
+type t1 = bool
+
+[<SomeAttribute>]
+type t2 = bool
+"""
