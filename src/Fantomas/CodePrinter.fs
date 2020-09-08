@@ -313,7 +313,11 @@ and genSigModuleDeclList astContext node =
 
     | SigMultilineModuleDeclL (xs, ys) ->
         match ys with
-        | [] -> col sepNln xs (genSigModuleDecl astContext)
+        | [] ->
+            colEx (fun (x: SynModuleSigDecl) ->
+                sepNln
+                +> sepNlnConsideringTriviaContentBeforeForMainNode (synModuleSigDeclToFsAstType x) x.Range) xs
+                (genSigModuleDecl astContext)
         | _ ->
             let sepXsYs =
                 match List.tryHead ys with
@@ -2977,17 +2981,17 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
                     || not (List.isEmpty attrs)
                     || List.isEmpty fields
 
-                indent
-                +> sepSpace
-                +> genTriviaFor
-                    SynTypeDefnSimpleRepr_Union
-                       tdr.Range
-                       (opt sepSpace ao' genAccess
-                        +> genUnionCase
-                            { astContext with
-                                  HasVerticalBar = hasVerticalBar }
-                               x)
-                <| ctx
+                let expr =
+                    genTriviaFor
+                        SynTypeDefnSimpleRepr_Union
+                        tdr.Range
+                        (opt sepSpace ao' genAccess
+                         +> genUnionCase
+                             { astContext with
+                                   HasVerticalBar = hasVerticalBar }
+                                x)
+
+                expressionFitsOnRestOfLine (sepSpace +> expr) (indent +> sepNln +> expr) ctx
             | xs ->
                 indent
                 +> sepNln
@@ -3304,16 +3308,17 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
                     || not (List.isEmpty attrs)
                     || List.isEmpty fs
 
-                indent
-                +> sepSpace
-                +> genTriviaFor
-                    SynTypeDefnSimpleRepr_Union
-                       tdr.Range
-                       (opt sepSpace ao' genAccess
-                        +> genUnionCase
-                            { astContext with
-                                  HasVerticalBar = hasVerticalBar }
-                               x)
+                let expr =
+                    genTriviaFor
+                        SynTypeDefnSimpleRepr_Union
+                        tdr.Range
+                        (opt sepSpace ao' genAccess
+                         +> genUnionCase
+                             { astContext with
+                                   HasVerticalBar = hasVerticalBar }
+                                x)
+
+                expressionFitsOnRestOfLine (sepSpace +> expr) (indent +> sepNln +> expr)
             | xs ->
                 indent
                 +> sepNln
