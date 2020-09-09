@@ -1,37 +1,26 @@
-### 4.1.0-beta-004 09/2020
+### 4.1.0 - 09/2020
 
-* Fixed some regression introduced by [#992](https://github.com/fsprojects/fantomas/pull/992).
+* Ignore files by `.fantomasignore` file. [#420](https://github.com/fsprojects/fantomas/issues/420)
+* Limit trivia by AST MainNode name. [#992](https://github.com/fsprojects/fantomas/pull/992)
+* Lead by example. [#666](https://github.com/fsprojects/fantomas/issues/666)
+* Verify all unit test whether the formatted code is valid. [#842](https://github.com/fsprojects/fantomas/issues/842)
+* Fix Comments get dropped from the end of multi-line records. [#1124](https://github.com/fsprojects/fantomas/issues/1124)
+* Fix Functions in nested modules which follow a type consisting of only one member of a DU are un-nested from that module. [#1123](https://github.com/fsprojects/fantomas/issues/1123)
+* Fix After discriminated union in module wrongly indented. [#1122](https://github.com/fsprojects/fantomas/issues/1122)
+* Fix Extra whitespace with a type which has an attribute. [#1116](https://github.com/fsprojects/fantomas/issues/1116)
 * Fix Adds newline between comments and (all but the first) attribute. [#1108](https://github.com/fsprojects/fantomas/issues/1108)
 * Fix Extra whitespace lines added in fsi files at the end of a nested module declaration. [#1105](https://github.com/fsprojects/fantomas/issues/1105)
-
-### 4.1.0-beta-003 09/2020
-
-* Lead by example. [#666](https://github.com/fsprojects/fantomas/issues/666)
 * Fix Extra new line is added before attributes. [#1097](https://github.com/fsprojects/fantomas/issues/1097)
 * Fix Comments after closing brace are lost. [#1096](https://github.com/fsprojects/fantomas/issues/1096)
 * Fix Comment after Or operator lost. [#1095](https://github.com/fsprojects/fantomas/issues/1095)
 * Fix Trivia before bar is being repeated. [#1083](https://github.com/fsprojects/fantomas/issues/1083)
 * Fix Comment after arrow is being duplicated. [#1082](https://github.com/fsprojects/fantomas/issues/1082)
-
-### 4.1.0-beta-002 - 09/2020
-
-* Fixed some regression introduced by [#992](https://github.com/fsprojects/fantomas/pull/992).
-* Fix Comment after arrow is being duplicated. [#1082](https://github.com/fsprojects/fantomas/issues/1082)
-
-### 4.1.0-beta-001 - 09/2020
-
 * Fix Allow line break after return to avoid excessive indenting/aligning. [#1062](https://github.com/fsprojects/fantomas/issues/1062)
 * Fix Name of static members are removed/empty. [#1059](https://github.com/fsprojects/fantomas/issues/1059)
 * Fix When using parenthesis in type definition, it will sometimes keep adding additional () for each time fantomas i run. [#1057](https://github.com/fsprojects/fantomas/issues/1057)
 * Fix Multiline string in use expression. [#1055](https://github.com/fsprojects/fantomas/issues/1055)
 * Fix Issue #246 has returned in v4.0.0. [#1051](https://github.com/fsprojects/fantomas/issues/1051)
 * Fix Indentation after multiple hash directives is off. [#1026](https://github.com/fsprojects/fantomas/issues/1026)
-
-### 4.1.0-alpha-001 - 09/2020
-
-* Blacklist files or code blocks by `.fantomasignore` file. [#420](https://github.com/fsprojects/fantomas/issues/420)
-* Verify all unit test whether the formatted code is valid. [#842](https://github.com/fsprojects/fantomas/issues/842)
-* Limit trivia by AST MainNode name. [#992](https://github.com/fsprojects/fantomas/pull/992)
 * Fix if/then/else indented too far. [#1054](https://github.com/fsprojects/fantomas/issues/1054)
 * Fix Single AST node should contain trivia. [#1031](https://github.com/fsprojects/fantomas/issues/1031)
 * Fix Formatter adds extra newlines between type and any subsequent val in .fsi files. [#1029](https://github.com/fsprojects/fantomas/issues/1029)
