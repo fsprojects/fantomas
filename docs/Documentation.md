@@ -787,7 +787,7 @@ let add a b =
 #endif
 ```
 
-`{ defaultConfig with StriceMode = true }`
+`{ defaultConfig with StrictMode = true }`
 
 ```fsharp
 let add a b = a + b
