@@ -2997,7 +2997,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
                                    HasVerticalBar = hasVerticalBar }
                                 x)
 
-                expressionFitsOnRestOfLine (sepSpace +> expr) (indent +> sepNln +> expr) ctx
+                expressionFitsOnRestOfLine (indent +> sepSpace +> expr) (indent +> sepNln +> expr) ctx
             | xs ->
                 indent
                 +> sepNln
@@ -3324,7 +3324,7 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
                                    HasVerticalBar = hasVerticalBar }
                                 x)
 
-                expressionFitsOnRestOfLine (sepSpace +> expr) (indent +> sepNln +> expr)
+                expressionFitsOnRestOfLine (indent +> sepSpace +> expr) (indent +> sepNln +> expr)
             | xs ->
                 indent
                 +> sepNln
