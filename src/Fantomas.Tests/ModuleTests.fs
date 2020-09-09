@@ -544,3 +544,59 @@ namespace Foo
 
 do ()
 """
+
+[<Test>]
+let ``keep correct indentation for let binding inside nested module, 1122`` () =
+    formatSourceString false """
+namespace Test
+
+module App =
+    type Msg = B of C
+
+    let a = "test"
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Test
+
+module App =
+    type Msg = B of C
+
+    let a = "test"
+"""
+
+[<Test>]
+let ``keep correct indentation for let binding inside nested module, signature file`` () =
+    formatSourceString true """
+namespace Test
+
+module App =
+    type Msg = B of C
+
+    val a : string
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Test
+
+module App =
+    type Msg = B of C
+
+    val a: string
+"""
+
+[<Test>]
+let ``nested nested module with single union DU, 1123`` () =
+    formatSourceString false """
+module Test =
+  module Foo =
+    type t = T of bool
+    let foo = true
+"""  config
+    |> prepend newline
+    |> should equal """
+module Test =
+    module Foo =
+        type t = T of bool
+        let foo = true
+"""
