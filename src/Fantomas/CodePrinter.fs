@@ -3224,6 +3224,7 @@ and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
                 (leaveLeftBrace tdr.Range
                  +> col sepSemiNln fs (genField astContext ""))
             +> sepCloseS
+            +> leaveNodeTokenByName tdr.Range RBRACE
             +> onlyIf (List.isNotEmpty ms) sepNln
             +> sepNlnBetweenTypeAndMembers ms
             +> genMemberDefnList

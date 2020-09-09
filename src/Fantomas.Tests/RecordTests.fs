@@ -1027,3 +1027,19 @@ let person =
       Address = { Street = "Bakerstreet"; Number = 42 } // end address
     } // end person
 """
+
+[<Test>]
+let ``comment after closing brace of multi-line record type, 1124`` () =
+    formatSourceString false """
+module Test =
+    type t =
+      { long_enough : string
+        also_long_enough : string } // Hi I am a comment
+"""  config
+    |> prepend newline
+    |> should equal """
+module Test =
+    type t =
+        { long_enough: string
+          also_long_enough: string } // Hi I am a comment
+"""
