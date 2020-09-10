@@ -327,6 +327,7 @@ let private numberTrivia =
       "UINT32"
       "INT32"
       "UINT64"
+      "INT64"
       "IEEE32"
       "DECIMAL"
       "IEEE64"
