@@ -173,3 +173,9 @@ let f (a: int) =
     | 0x55 -> Some()
     | _ -> None
 """
+
+[<Test>]
+let ``preserve underscore in int64, 1120`` () =
+    formatSourceString false "let x = 60_000L" config
+    |> should equal "let x = 60_000L
+"
