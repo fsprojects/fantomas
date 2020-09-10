@@ -3702,7 +3702,11 @@ and genType astContext outerBracket t =
                 +> sepCloseAnonRecd
 
             fun (ctx: Context) -> isShortExpression ctx.Config.MaxRecordWidth shortExpression longExpression ctx
-        | TParen (innerT) -> sepOpenT +> loop innerT +> sepCloseT
+        | TParen (innerT) ->
+            sepOpenT
+            +> loop innerT
+            +> sepCloseT
+            +> leaveNodeTokenByName current.Range RPAREN
         | t -> failwithf "Unexpected type: %O" t
 
     and loopTTupleList =
