@@ -501,3 +501,21 @@ type UnresolvedAssemblyReference = UnresolvedAssemblyReference of string * Assem
 type ResolvedExtensionReference =
     ResolvedExtensionReference of string * AssemblyReference list * Tainted<ITypeProvider> list
 """
+
+[<Test>]
+let ``comment after union fields wrapped in parenthesis, 1128`` () =
+    formatSourceString false """
+module Test
+
+type t =
+   | Beta of (unit -> unit) /// comment is gone
+   | Alpha of bool /// comment stays
+"""  config
+    |> prepend newline
+    |> should equal """
+module Test
+
+type t =
+    | Beta of (unit -> unit) /// comment is gone
+    | Alpha of bool /// comment stays
+"""
