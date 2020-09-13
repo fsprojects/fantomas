@@ -572,3 +572,66 @@ let r =
 Fooey
 \"\"\" |}
 "
+
+[<Test>]
+let ``simple math`` () =
+    formatSourceString false """let myValue = a + b * c
+"""   { config with MaxInfixOperatorExpression = 5 }
+    |> prepend newline
+    |> should equal """
+let myValue =
+    a +
+    b * c
+"""
+
+[<Test>]
+let ``simple math in one line`` () =
+    formatSourceString false """let myValue = a + b * c
+"""   { config with MaxInfixOperatorExpression = 50 }
+    |> prepend newline
+    |> should equal """
+let myValue = a + b * c
+"""
+
+[<Test>]
+let ``simple math reversed`` () =
+    formatSourceString false """let myValue = a * b + c
+"""   { config with MaxInfixOperatorExpression = 5 }
+    |> prepend newline
+    |> should equal """
+let myValue =
+    a * b
+    + c
+"""
+
+[<Test>]
+let ``multiple sum operators`` () =
+    formatSourceString false """let myValue = a + b * c + d
+"""  { config with MaxInfixOperatorExpression = 5 }
+    |> prepend newline
+    |> should equal """
+let myValue =
+    a +
+    b * c +
+    d
+"""
+
+[<Test>]
+let ``nested math sample`` () =
+    formatSourceString false """
+        let dist =
+            aaaaaaaaaaaaaaaaaaaaaaaa
+            * bbbbbbbbbbbbbbbbbbbbbbbbb
+            + (ccccccccccccccccccccccccc
+               * ddddddddddddddddddddddd
+               * eeeeeeeeeeeeeeeeeeeeeee)
+"""  config
+    |> prepend newline
+    |> should equal """
+let dist =
+    aaaaaaaaaaaaaaaaaaaaaaaa *
+    bbbbbbbbbbbbbbbbbbbbbbbbb
+    + (ccccccccccccccccccccccccc *
+       ddddddddddddddddddddddd *
+       eeeeeeeeeeeeeeeeeeeeeee)
+"""

@@ -1735,36 +1735,79 @@ and genExpr astContext synExpr =
         +> genExpr astContext e
     // Handle spaces of infix application based on which category it belongs to
     | InfixApps (e, es) ->
-        let sepAfterExpr f =
-            match es with
-            | [] -> sepNone
-            | (s, _, _) :: _ when ((noBreakInfixOps.Contains s)) -> sepSpace
-            | (s, _, _) :: _ when ((noSpaceInfixOps.Contains s)) -> sepNone
-            | _ -> f
+        let rec genInfixApps (e, es) =
+            let ee = e
+            let ees = es
 
-        let isLambda e =
-            match e with
-            | Lambda _ -> true
-            | _ -> false
+            let shortExpr = genExpr astContext e +> sepSpace +> genInfixAppsShort astContext es
+            let printOperator (s,_,_)  = !- s
+            let getExpression (_,_,e) = e
 
-        let expr = genExpr astContext e
+            let longExpr (e, es) =
+                // could be more than one, splitting on the first occurence for now
+                let lowestOperatorIndex =
+                    es
+                    |> List.mapi (fun index (operatorString,_,_) -> index, Map.find operatorString operatorMeta)
+                    |> List.minBy (fun (index, meta) -> meta.Priority, index)
+                    |> fst
 
-        let shortExpr =
-            expr
-            +> sepAfterExpr sepSpace
-            +> genInfixAppsShort astContext es
+                let printRight es =
+                    match es with
+                    | [] -> sepNone
+                    | [(_,_,e)] -> genExpr astContext e
+                    | (_,_,e)::es -> genInfixApps(e,es)
 
-        let longExpr =
-            expr
-            +> sepAfterExpr sepNln
-            +> genInfixApps astContext es
+                let right = List.skip lowestOperatorIndex es
 
-        atCurrentColumn (fun ctx ->
-            if isLambda e
-               || List.exists (fun (_, _, e) -> isLambda e) es then
-                longExpr ctx
-            else
-                isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr longExpr ctx)
+                if lowestOperatorIndex = 0 then
+                    genExpr astContext e
+                    +> sepSpace
+                    +> printOperator es.[lowestOperatorIndex]
+                    +> sepNln
+                    +> printRight right
+                else
+                    let left = List.take lowestOperatorIndex es
+
+                    genInfixApps (e, left)
+                    +> sepSpace
+                    +> printOperator es.[lowestOperatorIndex]
+                    +> sepNln
+                    +> printRight right
+
+            fun ctx ->
+                (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr (longExpr(e,es))) ctx
+
+        genInfixApps (e, es)
+//        let sepAfterExpr f =
+//            match es with
+//            | [] -> sepNone
+//            | (s, _, _) :: _ when ((noBreakInfixOps.Contains s)) -> sepSpace
+//            | (s, _, _) :: _ when ((noSpaceInfixOps.Contains s)) -> sepNone
+//            | _ -> f
+//
+//        let isLambda e =
+//            match e with
+//            | Lambda _ -> true
+//            | _ -> false
+//
+//        let expr = genExpr astContext e
+//
+//        let shortExpr =
+//            expr
+//            +> sepAfterExpr sepSpace
+//            +> genInfixAppsShort astContext es
+//
+//        let longExpr =
+//            expr
+//            +> sepAfterExpr sepNln
+//            +> genInfixApps astContext es
+//
+//        atCurrentColumn (fun ctx ->
+//            if isLambda e
+//               || List.exists (fun (_, _, e) -> isLambda e) es then
+//                longExpr ctx
+//            else
+//                isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr longExpr ctx)
 
     | TernaryApp (e1, e2, e3) ->
         atCurrentColumn

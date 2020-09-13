@@ -323,3 +323,25 @@ type internal TriviaNodeAssigner(nodeType: TriviaNodeType, range: range, ?linesB
     member val ContentBefore = ResizeArray<TriviaContent>() with get, set
     member val ContentItself = Option<TriviaContent>.None with get, set
     member val ContentAfter = ResizeArray<TriviaContent>() with get, set
+
+type Associativity =
+    | Right
+    | Left
+    | NonAssociative
+
+type InfixOperatorMeta =
+    { Priority: int
+      Associativity: Associativity
+      PreferOnNewline: bool }
+
+// Not sure if a fixed map is workable
+// https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/symbol-and-operator-reference/#operator-precedence
+
+let operatorMeta =
+    [ "+", { Priority = 1; Associativity = Left; PreferOnNewline = false }
+      "-", { Priority = 1; Associativity = Left; PreferOnNewline = false }
+      "*", { Priority = 2; Associativity = Left; PreferOnNewline = false }
+      "|>", { Priority = 3; Associativity = Left; PreferOnNewline = false }
+      "=", { Priority = 3; Associativity = Left; PreferOnNewline = false }
+      "&&", { Priority = 4; Associativity = Left; PreferOnNewline = false } ]
+    |> Map.ofList
