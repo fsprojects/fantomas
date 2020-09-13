@@ -1,5 +1,5 @@
 #r "paket:
-nuget Fantomas.Extras 4.1.0-beta-002
+nuget Fantomas.Extras 4.1.0
 nuget Microsoft.Azure.Cosmos.Table
 nuget Fake.BuildServer.AppVeyor
 nuget Fake.Core.ReleaseNotes
