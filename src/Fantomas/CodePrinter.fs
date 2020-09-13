@@ -1881,11 +1881,18 @@ and genExpr astContext synExpr =
                      +> indent
                      +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone)
                      +> (fun ctx ->
-                         match e2 with
-                         | Paren (_, App (_), _) when astContext.IsInsideDotGet -> genExpr astContext e2 ctx
-                         | Paren (_, DotGet (App (_), _), _) when astContext.IsInsideDotGet -> genExpr astContext e2 ctx
-                         | ConstExpr (SynConst.Unit, _) when astContext.IsInsideDotGet -> genExpr astContext e2 ctx
-                         | _ -> appNlnFun e2 (genExpr astContext e2) ctx)
+                         let expr =
+                             if astContext.IsInsideDotGet then
+                                 match e1, e2 with
+                                 | _, Paren (_, App (_), _)
+                                 | _, Paren (_, DotGet (App (_), _), _)
+                                 | TypeApp _, Paren (_, Tuple _, _)
+                                 | _, ConstExpr (SynConst.Unit, _) -> genExpr astContext e2
+                                 | _ -> appNlnFun e2 (genExpr astContext e2)
+                             else
+                                 appNlnFun e2 (genExpr astContext e2)
+
+                         expr ctx)
                      +> unindent)
 
             genApp ctx
@@ -2605,6 +2612,7 @@ and genExpr astContext synExpr =
         | SynExpr.While _ -> genTriviaFor SynExpr_While synExpr.Range
         | SynExpr.MatchLambda _ -> genTriviaFor SynExpr_MatchLambda synExpr.Range
         | SynExpr.LongIdent _ -> genTriviaFor SynExpr_LongIdent synExpr.Range
+        | SynExpr.DotGet _ -> genTriviaFor SynExpr_DotGet synExpr.Range
         | _ -> id)
 
 and genMultilineRecordInstance (inheritOpt: (SynType * SynExpr) option)

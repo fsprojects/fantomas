@@ -46,3 +46,73 @@ root.SetAttribute
      + System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location)
          .FileVersion)
 """
+
+[<Test>]
+let ``keep parenthesis on same line as SynExpr.TypeApp`` () =
+    formatSourceString false """
+Equinox.EventStore.Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy).Resolve
+"""  { config with MaxLineLength = 100 }
+    |> prepend newline
+    |> should equal """
+Equinox.EventStore.Resolver<'event, 'state, _>(gateway,
+                                               codec,
+                                               fold,
+                                               initial,
+                                               cacheStrategy,
+                                               accessStrategy)
+    .Resolve
+"""
+
+[<Test>]
+let ``don't break line for generic function call, 1134`` () =
+    formatSourceString false """
+module Services =
+    /// Builds a Stream Resolve function appropriate to the store being used
+    type StreamResolver(storage: Storage.Instance) =
+        member __.Resolve
+            (
+                codec: FsCodec.IEventCodec<'event, byte [], _>,
+                fold: ('state -> 'event seq -> 'state),
+                initial: 'state,
+                snapshot: (('event -> bool) * ('state -> 'event))
+            )
+            =
+            match storage with
+            | Storage.MemoryStore store ->
+                Equinox.MemoryStore.Resolver(store, FsCodec.Box.Codec.Create(), fold, initial).Resolve
+            | Storage.EventStore (gateway, cache) ->
+                let accessStrategy =
+                    Equinox.EventStore.AccessStrategy.RollingSnapshots snapshot
+
+                let cacheStrategy =
+                    Equinox.EventStore.CachingStrategy.SlidingWindow(cache, TimeSpan.FromMinutes 20.)
+
+                Equinox.EventStore.Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy).Resolve
+"""  config
+    |> prepend newline
+    |> should equal """
+module Services =
+    /// Builds a Stream Resolve function appropriate to the store being used
+    type StreamResolver(storage: Storage.Instance) =
+        member __.Resolve(codec: FsCodec.IEventCodec<'event, byte [], _>,
+                          fold: ('state -> 'event seq -> 'state),
+                          initial: 'state,
+                          snapshot: (('event -> bool) * ('state -> 'event))) =
+            match storage with
+            | Storage.MemoryStore store ->
+                Equinox.MemoryStore.Resolver(store, FsCodec.Box.Codec.Create(), fold, initial).Resolve
+            | Storage.EventStore (gateway, cache) ->
+                let accessStrategy =
+                    Equinox.EventStore.AccessStrategy.RollingSnapshots snapshot
+
+                let cacheStrategy =
+                    Equinox.EventStore.CachingStrategy.SlidingWindow(cache, TimeSpan.FromMinutes 20.)
+
+                Equinox.EventStore.Resolver<'event, 'state, _>(gateway,
+                                                               codec,
+                                                               fold,
+                                                               initial,
+                                                               cacheStrategy,
+                                                               accessStrategy)
+                    .Resolve
+"""
