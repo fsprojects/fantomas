@@ -1478,8 +1478,8 @@ and genExpr astContext synExpr =
                 (genExpr astContext e +> sepCloseS)
                  (genExpr astContext e
                   +> unindent
-                  +> sepNln
                   +> enterNodeTokenByName synExpr.Range RBRACE
+                  +> sepNlnUnlessLastEventIsNewline
                   +> sepCloseSFixed))
 
     | CompExprBody (expr) ->
