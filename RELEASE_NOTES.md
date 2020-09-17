@@ -1,3 +1,11 @@
+### 4.1.1 - 09/2020
+
+* Fix No newline between module and first declaration. [#1139](https://github.com/fsprojects/fantomas/issues/1139)     
+* Fix additional new lines added after each call to format. [#1137](https://github.com/fsprojects/fantomas/issues/1137)
+* Fix Generics error when breaking line. [#1134](https://github.com/fsprojects/fantomas/issues/1134)
+* Fix Comments on DUs parameterized by functions are dropped. [#1128](https://github.com/fsprojects/fantomas/issues/1128)
+* Fix Preserve underscore in number. [#1120](https://github.com/fsprojects/fantomas/issues/1120)
+
 ### 4.1.0 - 09/2020
 
 * Ignore files by `.fantomasignore` file. [#420](https://github.com/fsprojects/fantomas/issues/420)
