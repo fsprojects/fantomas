@@ -132,7 +132,12 @@ and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, s, mds, isR
                 +> sepNln
             else
                 sepNlnForEmptyNamespace node.Range +> sepNln
-        | Some _ -> sepNln
+        | Some mdl ->
+            let attrs =
+                getRangesFromAttributesFromModuleDeclaration mdl
+
+            sepNln
+            +> sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleDeclToFsAstType mdl) mdl.Range attrs
 
     let genTriviaForLongIdent (f: Context -> Context) =
         match node with

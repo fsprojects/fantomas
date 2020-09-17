@@ -600,3 +600,16 @@ module Test =
         type t = T of bool
         let foo = true
 """
+
+[<Test>]
+let ``always add new line between named module and first declaration, 1139`` () =
+    formatSourceString false """
+module Input
+    let modules = [109024;137172;80445;80044]
+"""  config
+    |> prepend newline
+    |> should equal """
+module Input
+
+let modules = [ 109024; 137172; 80445; 80044 ]
+"""
