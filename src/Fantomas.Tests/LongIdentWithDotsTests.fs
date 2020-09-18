@@ -5,7 +5,7 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``Fluent api should not remain on the same lines`` () =
+let ``fluent api should not remain on the same lines`` () =
     formatSourceString false """
 Log.Logger <-
   LoggerConfiguration()
@@ -14,7 +14,11 @@ Log.Logger <-
     .CreateLogger()""" config
     |> prepend newline
     |> should equal """
-Log.Logger <- LoggerConfiguration().Destructure.FSharpTypes().WriteTo.Console().CreateLogger()
+Log.Logger <-
+    LoggerConfiguration()
+        .Destructure.FSharpTypes()
+        .WriteTo.Console()
+        .CreateLogger()
 """
 
 [<Test>]
@@ -106,13 +110,20 @@ let main _ =
             Config.Logger.configure ()
 
             let config =
-                ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).Build()
+                ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .Build()
 
-            WebHostBuilder().UseConfiguration(config).UseKestrel().UseSerilog()
+            WebHostBuilder()
+                .UseConfiguration(config)
+                .UseKestrel()
+                .UseSerilog()
                 .ConfigureAppConfiguration(Action<WebHostBuilderContext, IConfigurationBuilder>
                                                configureAppConfiguration)
                 .ConfigureServices(Action<WebHostBuilderContext, IServiceCollection> configureServices)
-                .Configure(Action<IApplicationBuilder> configureApp).Build().Run()
+                .Configure(Action<IApplicationBuilder> configureApp)
+                .Build()
+                .Run()
             |> ignore
 
             0
@@ -187,19 +198,21 @@ module Client =
         let passwordValid = Var.Create true
         let emailValid = Var.Create true
 
-        MySPA().AttrPassword(Attr.ClassPred "is-danger" (not passwordValid.V))
+        MySPA()
+            .AttrPassword(Attr.ClassPred "is-danger" (not passwordValid.V))
             .AttrEmail(Attr.ClassPred "is-danger" (not emailValid.V))
             .Login(fun e ->
-                  passwordValid
-                  := not (String.IsNullOrWhiteSpace e.Vars.Password.Value)
+                passwordValid
+                := not (String.IsNullOrWhiteSpace e.Vars.Password.Value)
 
-                  emailValid
-                  := not (String.IsNullOrWhiteSpace e.Vars.Email.Value)
+                emailValid
+                := not (String.IsNullOrWhiteSpace e.Vars.Email.Value)
 
-                  if passwordValid.Value && emailValid.Value
-                  then JS.Alert(sprintf "Your email is %s" e.Vars.Email.Value)
+                if passwordValid.Value && emailValid.Value
+                then JS.Alert(sprintf "Your email is %s" e.Vars.Email.Value)
 
-                  e.Event.PreventDefault()).Bind()
+                e.Event.PreventDefault())
+            .Bind()
 """
 
 [<Test>]

@@ -539,7 +539,10 @@ let private addTaskToScheduler (scheduler: IScheduler)
     jobDataMap.["task"] <- task
 
     let job =
-        JobBuilder.Create<WrapperJob>().UsingJobData(jobDataMap).WithIdentity(taskName, groupName)
+        JobBuilder
+            .Create<WrapperJob>()
+            .UsingJobData(jobDataMap)
+            .WithIdentity(taskName, groupName)
             .Build()
 
     1
