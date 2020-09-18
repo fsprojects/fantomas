@@ -169,3 +169,41 @@ let main args =
 
     0
 """
+
+[<Test>]
+let ``nested TypeApp inside DotGet`` () =
+    formatSourceString false """
+let job =
+    JobBuilder
+        .UsingJobData(jobDataMap)
+        .Create<WrapperJob>()
+        .WithIdentity(taskName, groupName)
+        .Build()
+"""  config
+    |> prepend newline
+    |> should equal """
+let job =
+    JobBuilder
+        .UsingJobData(jobDataMap)
+        .Create<WrapperJob>()
+        .WithIdentity(taskName, groupName)
+        .Build()
+"""
+
+[<Test>]
+let ``TypeApp at end of nested DotGet`` () =
+    formatSourceString false """
+let c =
+      builder
+        .CaptureStartupErrors(true)
+        .UseSerilog(dispose = true)
+        .UseStartup<Startup>()
+"""  config
+    |> prepend newline
+    |> should equal """
+let c =
+    builder
+        .CaptureStartupErrors(true)
+        .UseSerilog(dispose = true)
+        .UseStartup<Startup>()
+"""
