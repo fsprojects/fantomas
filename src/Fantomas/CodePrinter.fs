@@ -1605,7 +1605,9 @@ and genExpr astContext synExpr =
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
     | Paren (lpr, Lambda (e, sps), rpr) ->
         fun (ctx: Context) ->
-            let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' '; '(' |] ctx
+            let addIndent =
+                lastLineOnlyContains [| ' '; '(' |] ctx
+                || astContext.IsInsideDotGet
 
             let hasLineCommentAfterArrow =
                 findTriviaTokenFromName RARROW synExpr.Range ctx
@@ -1620,8 +1622,12 @@ and genExpr astContext synExpr =
                     hasLineCommentAfterArrow
                        (genExpr astContext e)
                        (ifElse
-                           lastLineOnlyContainsParenthesis
-                            (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                           addIndent
+                            (autoIndentAndNlnIfExpressionExceedsPageWidth
+                                (genExpr
+                                    { astContext with
+                                          IsInsideDotGet = false }
+                                     e))
                             (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
                 +> sepCloseTFor rpr
 
@@ -1783,12 +1789,28 @@ and genExpr astContext synExpr =
 
     // This filters a few long examples of App
     | DotGetAppSpecial (s, es) ->
-        !-s
-        +> atCurrentColumn
-            (colAutoNlnSkip0 sepNone es (fun ((s, r), e) ->
-                 ((!-(sprintf ".%s" s) |> genTriviaFor Ident_ r)
-                  +> ifElse (hasParenthesis e || isArrayOrList e) sepNone sepSpace
-                  +> genExpr astContext e)))
+        let shortExpr =
+            !-s
+            +> atCurrentColumn
+                (colAutoNlnSkip0 sepNone es (fun ((s, r), e) ->
+                     ((!-(sprintf ".%s" s) |> genTriviaFor Ident_ r)
+                      +> ifElse (hasParenthesis e || isArrayOrList e) sepNone sepSpace
+                      +> genExpr astContext e)))
+
+        let longExpr =
+            !-s
+            +> indent
+            +> sepNln
+            +> col sepNln es (fun ((s, r), e) ->
+                   (!-(sprintf ".%s" s) |> genTriviaFor Ident_ r)
+                   +> ifElse (hasParenthesis e || isArrayOrList e) sepNone sepSpace
+                   +> genExpr
+                       { astContext with
+                             IsInsideDotGet = true }
+                          e)
+            +> unindent
+
+        fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
 
     | DotGetApp (e, es) as appNode ->
         fun (ctx: Context) ->
@@ -1811,8 +1833,18 @@ and genExpr astContext synExpr =
 
                 selectIdent appNode
 
-            let expr =
+            let expr sep =
                 match e with
+                | App (TypeApp (LongIdentPieces (lids), ts), [ e2 ]) when (List.moreThanOne lids) ->
+                    !-(List.head lids)
+                    +> indent
+                    +> sep
+                    +> col sep (List.tail lids) (fun s -> !-(sprintf ".%s" s))
+                    -- "<"
+                    +> col sepComma ts (genType astContext false)
+                    -- ">"
+                    +> genExpr astContext e2
+                    +> unindent
                 | App (e1, [ e2 ]) ->
                     noNln
                         (genExpr astContext e1
@@ -1820,51 +1852,38 @@ and genExpr astContext synExpr =
                          +> genExpr astContext e2)
                 | _ -> genExpr astContext e
 
-            expr
-            +> indent
-            +> (col sepNone es (fun ((s, _), e) ->
-                    let genTriviaOfIdent =
-                        dotGetFuncExprIdents
-                        |> List.tryFind (fun (er, _) -> er = e.Range)
-                        |> Option.map
-                            (snd
-                             >> (fun lid -> genTriviaFor Ident_ lid.idRange))
-                        |> Option.defaultValue (id)
+            let genExpr sep =
+                let genTriviaOfIdent f (e: SynExpr) =
+                    dotGetFuncExprIdents
+                    |> List.tryFind (fun (er, _) -> er = e.Range)
+                    |> Option.map
+                        (snd
+                         >> (fun lid -> genTriviaFor Ident_ lid.idRange))
+                    |> Option.defaultValue id
+                    |> fun genTrivia -> genTrivia f
 
-                    let currentIdentifier = genTriviaOfIdent (!-(sprintf ".%s" s))
-                    let hasParenthesis = hasParenthesis e
+                match es with
+                | [ (s, _), e ] when (not (hasParenthesis e)) ->
+                    expr sep
+                    +> genTriviaOfIdent (!-(sprintf ".%s" s)) e
+                    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+                | _ ->
+                    expr sep
+                    +> indent
+                    +> sep
+                    +> (col sep es (fun ((s, _), e) ->
+                            let currentIdentifier = genTriviaOfIdent (!-(sprintf ".%s" s)) e
+                            let hasParenthesis = hasParenthesis e
 
-                    let shortExpr =
-                        (currentIdentifier
-                         +> ifElse hasParenthesis sepNone sepSpace
-                         +> genExpr astContext e)
+                            (currentIdentifier
+                             +> ifElse hasParenthesis sepNone sepSpace
+                             +> genExpr
+                                 { astContext with
+                                       IsInsideDotGet = true }
+                                    e)))
+                    +> unindent
 
-                    let genMultilineExpr =
-                        match e with
-                        | Paren (_, Lambda (_), _) -> atCurrentColumnIndent (genExpr astContext e)
-                        | Paren (_, App (_), _)
-                        | Paren (_, Tuple (_), _) -> atCurrentColumn (genExpr astContext e)
-                        | _ ->
-                            ifElse
-                                hasParenthesis
-                                (indent
-                                 +> sepNln
-                                 +> genExpr astContext e
-                                 +> unindent)
-                                (sepNln +> genExpr astContext e)
-
-                    let fallBackExpr =
-                        onlyIf hasParenthesis sepNln
-                        +> currentIdentifier
-                        +> ifElse hasParenthesis sepNone sepSpace
-                        +> expressionFitsOnRestOfLine (genExpr astContext e) genMultilineExpr
-
-                    let writeExpr =
-                        expressionFitsOnRestOfLine shortExpr fallBackExpr
-
-                    writeExpr))
-            +> unindent
-            <| ctx
+            isShortExpression ctx.Config.MaxDotGetExpressionWidth (genExpr sepNone) (genExpr sepNln) ctx
 
     // Unlike infix app, function application needs a level of indentation
     | App (e1, [ e2 ]) ->
@@ -2510,7 +2529,7 @@ and genExpr astContext synExpr =
             -- (sprintf ".%s" s)
             +> unindent
 
-        expressionFitsOnRestOfLine shortExpr longExpr
+        fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
     | DotSet (e1, s, e2) ->
         addParenIfAutoNln e1 (genExpr astContext)
         -- sprintf ".%s <- " s

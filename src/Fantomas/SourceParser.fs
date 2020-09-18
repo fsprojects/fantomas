@@ -80,6 +80,14 @@ let (|LongIdent|) (li: LongIdent) =
         // Assume that if it starts with base, it's going to be the base keyword
         if String.startsWithOrdinal "``base``." s then String.Join("", "base.", s.[9..]) else s
 
+let (|LongIdentPieces|_|) =
+    function
+    | SynExpr.LongIdent (_, LongIdentWithDots (lids, _), _, _) ->
+        lids
+        |> List.map (fun x -> if x.idText = MangledGlobalName then "global" else (|Ident|) x)
+        |> Some
+    | _ -> None
+
 let inline (|LongIdentWithDots|) (LongIdentWithDots (LongIdent s, _)) = s
 
 type Identifier =

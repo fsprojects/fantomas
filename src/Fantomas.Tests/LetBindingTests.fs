@@ -97,7 +97,9 @@ let tomorrow =
                MaxValueBindingWidth = 70 })
     |> prepend newline
     |> should equal """
-let tomorrow = DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset).AddDays(1.)
+let tomorrow =
+    DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
+        .AddDays(1.)
 """
 
 [<Test>]
@@ -721,7 +723,11 @@ let private authenticateRequest (logger: ILogger) header =
 
     try
         task {
-            let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
+            let! config =
+                manager
+                    .GetConfigurationAsync()
+                    .ConfigureAwait(false)
+
             parameters.IssuerSigningKeys <- config.SigningKeys
 
             let user, _ =
@@ -874,7 +880,8 @@ let ``don't add additional newline before SynExpr.New, 1049`` () =
 let getVersion () =
     let version =
         let assembly =
-            typeof<FSharp.Compiler.SourceCodeServices.FSharpChecker>.Assembly
+            typeof<FSharp.Compiler.SourceCodeServices.FSharpChecker>
+                .Assembly
 
         let version = assembly.GetName().Version
         sprintf "%i.%i.%i" version.Major version.Minor version.Revision
