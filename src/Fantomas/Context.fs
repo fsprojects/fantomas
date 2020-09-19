@@ -28,8 +28,8 @@ type ShortExpressionInfo =
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
 
 type Size =
-    | CharacterWidth of width:Num * maxWidth:Num
-    | LogicalSize of size:Num * maxSize:Num
+    | CharacterWidth of width: Num * maxWidth: Num
+    | LogicalSize of size: Num * maxSize: Num
 
 type WriteModelMode =
     | Standard
@@ -702,8 +702,7 @@ let internal isShortExpression maxWidth (shortExpression: Context -> Context) (f
 
 let internal isSmallExpression size (smallExpression: Context -> Context) fallbackExpression (ctx: Context) =
     match size with
-    | CharacterWidth (_width, maxWidth) ->
-        isShortExpression maxWidth smallExpression fallbackExpression ctx
+    | CharacterWidth (_width, maxWidth) -> isShortExpression maxWidth smallExpression fallbackExpression ctx
     | LogicalSize (size, maxSize) ->
         let effectiveMaxWidth = if size > maxSize then 0 else Num.max
         isShortExpression effectiveMaxWidth smallExpression fallbackExpression ctx

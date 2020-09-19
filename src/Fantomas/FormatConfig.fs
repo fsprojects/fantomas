@@ -12,6 +12,16 @@ type Num = int
 type MultilineFormatterType =
     | CharacterWidth
     | LogicalSize
+    static member toConfigString =
+        function
+        | CharacterWidth -> "character_width"
+        | LogicalSize -> "logical_size"
+
+    static member ofConfigString =
+        function
+        | "character_width" -> Some(box CharacterWidth)
+        | "logical_size" -> Some(box LogicalSize)
+        | _ -> None
 
 module Num =
     let max = Int32.MaxValue
