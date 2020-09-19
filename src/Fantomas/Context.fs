@@ -27,6 +27,10 @@ type ShortExpressionInfo =
         - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
 
+type Size =
+    | CharacterWidth of width:Num * maxWidth:Num
+    | LogicalSize of size:Num * maxSize:Num
+
 type WriteModelMode =
     | Standard
     | Dummy
@@ -695,6 +699,14 @@ let private shortExpressionWithFallback (shortExpression: Context -> Context)
 
 let internal isShortExpression maxWidth (shortExpression: Context -> Context) (fallbackExpression) (ctx: Context) =
     shortExpressionWithFallback shortExpression fallbackExpression maxWidth None ctx
+
+let internal isSmallExpression size (smallExpression: Context -> Context) fallbackExpression (ctx: Context) =
+    match size with
+    | CharacterWidth (_width, maxWidth) ->
+        isShortExpression maxWidth smallExpression fallbackExpression ctx
+    | LogicalSize (size, maxSize) ->
+        let effectiveMaxWidth = if size > maxSize then 0 else Num.max
+        isShortExpression effectiveMaxWidth smallExpression fallbackExpression ctx
 
 let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
     shortExpressionWithFallback expr (indent +> sepNln +> expr +> unindent) maxWidth None ctx

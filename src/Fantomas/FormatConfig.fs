@@ -9,6 +9,13 @@ type FormatException(msg: string) =
 
 type Num = int
 
+type MultilineFormatterType =
+    | CharacterWidth
+    | LogicalSize
+
+module Num =
+    let max = Int32.MaxValue
+
 // NOTE: try to keep this list below in sync with the docs (e.g. Documentation.md)
 type FormatConfig =
     { /// Number of spaces for each indentation
@@ -31,6 +38,8 @@ type FormatConfig =
       MaxInfixOperatorExpression: Num
       MaxRecordWidth: Num
       MaxArrayOrListWidth: Num
+      MaxArrayOrListSize: Num
+      ArrayOrListMultilineFormatter: MultilineFormatterType
       MaxValueBindingWidth: Num
       MaxFunctionBindingWidth: Num
       MaxDotGetExpressionWidth: Num
@@ -63,6 +72,8 @@ type FormatConfig =
           MaxInfixOperatorExpression = 50
           MaxRecordWidth = 40
           MaxArrayOrListWidth = 40
+          MaxArrayOrListSize = 1
+          ArrayOrListMultilineFormatter = CharacterWidth
           MaxValueBindingWidth = 40
           MaxFunctionBindingWidth = 40
           MaxDotGetExpressionWidth = 50
