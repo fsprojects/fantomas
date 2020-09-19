@@ -11,7 +11,11 @@ Microsoft.FSharp.Reflection.FSharpType.GetUnionCases(typeof<option<option<unit>>
 """  config
     |> prepend newline
     |> should equal """
-Microsoft.FSharp.Reflection.FSharpType.GetUnionCases(typeof<option<option<unit>>>
+Microsoft
+    .FSharp
+    .Reflection
+    .FSharpType
+    .GetUnionCases(typeof<option<option<unit>>>
         .GetGenericTypeDefinition()
         .MakeGenericType(t))
     .Assembly
@@ -25,7 +29,13 @@ System.Diagnostics.FileVersionInfo.GetVersionInfo(
 """  { config with MaxLineLength = 80 }
     |> prepend newline
     |> should equal """
-System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly()
+System
+    .Diagnostics
+    .FileVersionInfo
+    .GetVersionInfo(System
+        .Reflection
+        .Assembly
+        .GetExecutingAssembly()
         .Location)
     .FileVersion
 """
@@ -44,7 +54,13 @@ let ``split chained method call expression, 246`` () =
 root.SetAttribute
     ("driverVersion",
      "AltCover.Recorder "
-     + System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly()
+     + System
+         .Diagnostics
+         .FileVersionInfo
+         .GetVersionInfo(System
+             .Reflection
+             .Assembly
+             .GetExecutingAssembly()
              .Location)
          .FileVersion)
 """
@@ -56,12 +72,9 @@ Equinox.EventStore.Resolver<'event, 'state, _>(gateway, codec, fold, initial, ca
 """  { config with MaxLineLength = 100 }
     |> prepend newline
     |> should equal """
-Equinox.EventStore.Resolver<'event, 'state, _>(gateway,
-                                               codec,
-                                               fold,
-                                               initial,
-                                               cacheStrategy,
-                                               accessStrategy)
+Equinox
+    .EventStore
+    .Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy)
     .Resolve
 """
 
@@ -102,7 +115,9 @@ module Services =
                           snapshot: (('event -> bool) * ('state -> 'event))) =
             match storage with
             | Storage.MemoryStore store ->
-                Equinox.MemoryStore.Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
+                Equinox
+                    .MemoryStore
+                    .Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
                     .Resolve
             | Storage.EventStore (gateway, cache) ->
                 let accessStrategy =
@@ -111,12 +126,9 @@ module Services =
                 let cacheStrategy =
                     Equinox.EventStore.CachingStrategy.SlidingWindow(cache, TimeSpan.FromMinutes 20.)
 
-                Equinox.EventStore.Resolver<'event, 'state, _>(gateway,
-                                                               codec,
-                                                               fold,
-                                                               initial,
-                                                               cacheStrategy,
-                                                               accessStrategy)
+                Equinox
+                    .EventStore
+                    .Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy)
                     .Resolve
 """
 
@@ -206,4 +218,57 @@ let c =
         .CaptureStartupErrors(true)
         .UseSerilog(dispose = true)
         .UseStartup<Startup>()
+"""
+
+[<Test>]
+let ``inner SynExpr.LongIdent should also be split`` () =
+    formatSourceString false """
+let firstName =
+    define
+        .Attribute
+        .ParsedRes(FirstName.value, FirstName.create)
+        .Get(fun u -> u.FirstName)
+        .SetRes(userSetter User.setFirstName)
+"""  config
+    |> prepend newline
+    |> should equal """
+let firstName =
+    define
+        .Attribute
+        .ParsedRes(FirstName.value, FirstName.create)
+        .Get(fun u -> u.FirstName)
+        .SetRes(userSetter User.setFirstName)
+"""
+
+[<Test>]
+let ``long ident with dots inside app inside dotget`` () =
+    formatSourceString false """
+Equinox.MemoryStore.Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
+                    .Resolve
+"""  config
+    |> prepend newline
+    |> should equal """
+Equinox
+    .MemoryStore
+    .Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
+    .Resolve
+"""
+
+[<Test>]
+let ``long ident with dots inside type app inside dotget`` () =
+    formatSourceString false """
+                Equinox.EventStore.Resolver<'event, 'state, _>(gateway,
+                                                               codec,
+                                                               fold,
+                                                               initial,
+                                                               cacheStrategy,
+                                                               accessStrategy)
+                    .Resolve
+"""  config
+    |> prepend newline
+    |> should equal """
+Equinox
+    .EventStore
+    .Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy)
+    .Resolve
 """
