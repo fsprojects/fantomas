@@ -1,3 +1,7 @@
+### 4.2.0-alpha-002 - 09/2020
+
+* Extended feature MaxDotGetExpressionWidth. [#501](https://github.com/fsprojects/fantomas/issues/501#issuecomment-695054715)
+
 ### 4.2.0-alpha-001 - 09/2020
 
 * Feature MaxDotGetExpressionWidth. [#501](https://github.com/fsprojects/fantomas/issues/501)
