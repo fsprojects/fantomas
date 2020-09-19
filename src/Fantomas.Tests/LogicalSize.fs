@@ -11,7 +11,9 @@ let ``logically sized lists are formatted properly`` () =
 let xs = [ a; b; c ]
 let ys = [ AReallyLongExpressionThatIsMuchLongerThan50Characters ]
 f xs [ x; y; z ]
-    """ { config with ArrayOrListMultilineFormatter = LogicalSize }
+    """
+        { config with
+              ArrayOrListMultilineFormatter = LogicalSize }
     |> prepend newline
     |> should equal """
 let xs =
@@ -36,7 +38,9 @@ let xs = [| a; b; c |]
 let ys = [| AReallyLongExpressionThatIsMuchLongerThan50Characters |]
 f xs [| x; y; z |]
 List.map (fun x -> x * x) [1;2;]
-    """ { config with ArrayOrListMultilineFormatter = LogicalSize }
+    """
+        { config with
+              ArrayOrListMultilineFormatter = LogicalSize }
     |> prepend newline
     |> should equal """
 let xs =
@@ -64,7 +68,9 @@ let ``logically sized Elmish lists are formatted properly`` () =
 f [ a; b; c ] [ x; y; z ]
 g [ longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
 h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
-    """ { config with ArrayOrListMultilineFormatter = LogicalSize }
+    """
+        { config with
+              ArrayOrListMultilineFormatter = LogicalSize }
     |> prepend newline
     |> should equal """
 f [ a
@@ -100,4 +106,3 @@ g [ longValueThatIsALotOfCharactersSoooooLong
     x
 ]
 """
-
