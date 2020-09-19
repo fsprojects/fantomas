@@ -978,16 +978,6 @@ let rec (|DotGetApp|_|) =
     | SynExpr.App (_, _, SynExpr.TypeApp (DotGet (e, s), _, ts, _, _, _, _), e', _) -> Some(e, [ (s, e', ts) ])
     | _ -> None
 
-let (|DotGetAppSpecial|_|) =
-    function
-    | DotGetApp (SynExpr.App (_, _, (Var s as sx), e, _), es) ->
-        let i = s.IndexOf(".")
-
-        if i <> -1
-        then Some((s.[..i - 1]), ((s.[i + 1..], sx.Range), e, []) :: es)
-        else None
-    | _ -> None
-
 let (|DotSet|_|) =
     function
     | SynExpr.DotSet (e1, LongIdentWithDots s, e2, _) -> Some(e1, s, e2)

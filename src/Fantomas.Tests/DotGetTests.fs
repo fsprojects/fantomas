@@ -207,3 +207,23 @@ let c =
         .UseSerilog(dispose = true)
         .UseStartup<Startup>()
 """
+
+[<Test>]
+let ``inner SynExpr.LongIdent should also be split`` () =
+    formatSourceString false """
+let firstName =
+    define
+        .Attribute
+        .ParsedRes(FirstName.value, FirstName.create)
+        .Get(fun u -> u.FirstName)
+        .SetRes(userSetter User.setFirstName)
+"""  config
+    |> prepend newline
+    |> should equal """
+let firstName =
+    define
+        .Attribute
+        .ParsedRes(FirstName.value, FirstName.create)
+        .Get(fun u -> u.FirstName)
+        .SetRes(userSetter User.setFirstName)
+"""
