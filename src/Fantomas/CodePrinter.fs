@@ -2519,10 +2519,36 @@ and genExpr astContext synExpr =
             -- (sprintf ".%s" s)
 
         let longExpr =
-            genExpr
-                { astContext with
-                      IsInsideDotGet = true }
-                e
+            let expr =
+                match e with
+                | App (LongIdentPieces (lids), [ e2 ]) when (List.moreThanOne lids) ->
+                    !-(List.head lids)
+                    +> indent
+                    +> sepNln
+                    +> col sepNln (List.tail lids) (fun s -> !-(sprintf ".%s" s))
+                    +> genExpr
+                        { astContext with
+                              IsInsideDotGet = true }
+                           e2
+                    +> unindent
+                | App (TypeApp (LongIdentPieces (lids), ts), [ e2 ]) when (List.moreThanOne lids) ->
+                    !-(List.head lids)
+                    +> indent
+                    +> sepNln
+                    +> col sepNln (List.tail lids) (fun s -> !-(sprintf ".%s" s))
+                    +> genGenericTypeParameters astContext ts
+                    +> genExpr
+                        { astContext with
+                              IsInsideDotGet = true }
+                           e2
+                    +> unindent
+                | _ ->
+                    genExpr
+                        { astContext with
+                              IsInsideDotGet = true }
+                        e
+
+            expr
             +> indent
             +> sepNln
             -- (sprintf ".%s" s)
