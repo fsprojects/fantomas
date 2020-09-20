@@ -52,6 +52,18 @@ type ASTContext =
           IsMemberDefinition = false
           IsInsideDotIndexed = false }
 
+let internal getRecordSize ctx fields =
+    match ctx.Config.RecordMultilineFormatter with
+    // isSmallExpression will find the character width and use that, so we just pass 0 here
+    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth(0, ctx.Config.MaxRecordWidth)
+    | MultilineFormatterType.LogicalSize -> Size.LogicalSize(List.length fields, ctx.Config.MaxRecordSize)
+
+let internal getArrayOrListSize ctx xs =
+    match ctx.Config.ArrayOrListMultilineFormatter with
+    // isSmallExpression will find the character width and use that, so we just pass 0 here
+    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth(0, ctx.Config.MaxArrayOrListWidth)
+    | MultilineFormatterType.LogicalSize -> Size.LogicalSize(List.length xs, ctx.Config.MaxArrayOrListSize)
+
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     match functionOrMethod, arg with
     | SynExpr.TypeApp (e, _, _, _, _, _, _), _ -> addSpaceBeforeParensInFunCall e arg ctx
@@ -1392,17 +1404,12 @@ and genExpr astContext synExpr =
                || List.exists isIfThenElseWithYieldReturn xs then
                 multilineExpression ctx
             else
-                let size =
-                    match ctx.Config.ArrayOrListMultilineFormatter with
-                    // isSmallExpression will find the character width and use that, so we just pass 0 here
-                    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth(0, ctx.Config.MaxArrayOrListWidth)
-                    | MultilineFormatterType.LogicalSize ->
-                        Size.LogicalSize(List.length xs, ctx.Config.MaxArrayOrListSize)
+                let size = getArrayOrListSize ctx xs
 
                 isSmallExpression size smallExpression multilineExpression ctx
 
     | Record (inheritOpt, xs, eo) ->
-        let shortRecordExpr =
+        let smallRecordExpr =
             sepOpenS
             +> leaveLeftBrace synExpr.Range
             +> optSingle (fun (inheritType, inheritExpr) ->
@@ -1420,10 +1427,13 @@ and genExpr astContext synExpr =
                 (genMultilineRecordInstanceAlignBrackets inheritOpt xs eo synExpr astContext)
                 (genMultilineRecordInstance inheritOpt xs eo synExpr astContext)
 
-        fun ctx -> isShortExpression ctx.Config.MaxRecordWidth shortRecordExpr multilineRecordExpr ctx
+        fun ctx ->
+            let size = getRecordSize ctx xs
+
+            isSmallExpression size smallRecordExpr multilineRecordExpr ctx
 
     | AnonRecord (isStruct, fields, copyInfo) ->
-        let shortExpression =
+        let smallExpression =
             onlyIf isStruct !- "struct "
             +> sepOpenAnonRecd
             +> optSingle (fun e -> genExpr astContext e +> !- " with ") copyInfo
@@ -1435,7 +1445,10 @@ and genExpr astContext synExpr =
                 (genMultilineAnonRecordAlignBrackets isStruct fields copyInfo astContext)
                 (genMultilineAnonRecord isStruct fields copyInfo astContext)
 
-        fun (ctx: Context) -> isShortExpression ctx.Config.MaxRecordWidth shortExpression longExpression ctx
+        fun (ctx: Context) ->
+            let size = getRecordSize ctx fields
+
+            isSmallExpression size smallExpression longExpression ctx
 
     | ObjExpr (t, eio, bd, ims, range) ->
         ifAlignBrackets
@@ -3097,7 +3110,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
         +> unindent
 
     | Simple (TDSRRecord (ao', fs)) ->
-        let shortExpression =
+        let smallExpression =
             sepSpace
             +> optSingle (fun ao -> genAccess ao +> sepSpace) ao'
             +> sepOpenS
@@ -3112,11 +3125,13 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
                 (genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext)
 
         let bodyExpr ctx =
+            let size = getRecordSize ctx fs
+
             if (List.isEmpty ms) then
-                (isShortExpression
-                    ctx.Config.MaxRecordWidth
+                (isSmallExpression
+                    size
                      (enterNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
-                      +> shortExpression)
+                      +> smallExpression)
                      multilineExpression
                  +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range // this will only print something when there is trivia after } in the short expression
                 // Yet it cannot be part of the short expression otherwise the multiline expression would be triggered unwillingly.
@@ -3417,7 +3432,7 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
         +> unindent
 
     | SigSimple (TDSRRecord (ao', fs)) ->
-        let shortExpr =
+        let smallExpr =
             typeName
             +> sepEq
             +> sepSpace
@@ -3433,9 +3448,11 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
                 (genSigSimpleRecord typeName tdr ms ao' fs astContext)
 
         fun ctx ->
+            let size = getRecordSize ctx fs
+
             if List.isNotEmpty ms
             then longExpr ctx
-            else isShortExpression ctx.Config.MaxRecordWidth shortExpr longExpr ctx
+            else isSmallExpression size smallExpr longExpr ctx
 
     | SigSimple TDSRNone ->
         let genMembers =
@@ -3761,7 +3778,7 @@ and genType astContext outerBracket t =
                 && astContext.IsCStylePattern) (genTypeByLookup astContext t) (!-s)
             |> genTriviaFor Ident_ current.Range
         | TAnonRecord (isStruct, fields) ->
-            let shortExpression =
+            let smallExpression =
                 ifElse isStruct !- "struct " sepNone
                 +> sepOpenAnonRecd
                 +> col sepSemi fields (genAnonRecordFieldType astContext)
@@ -3773,7 +3790,10 @@ and genType astContext outerBracket t =
                 +> atCurrentColumn (col sepSemiNln fields (genAnonRecordFieldType astContext))
                 +> sepCloseAnonRecd
 
-            fun (ctx: Context) -> isShortExpression ctx.Config.MaxRecordWidth shortExpression longExpression ctx
+            fun (ctx: Context) ->
+                let size = getRecordSize ctx fields
+
+                isSmallExpression size smallExpression longExpression ctx
         | TParen (innerT) ->
             sepOpenT
             +> loop innerT

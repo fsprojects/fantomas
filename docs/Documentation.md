@@ -472,8 +472,9 @@ let WebApp =
 
 ### fsharp_max_record_width
 
-Control the maximum width for which records should be in one line.
-Default = 40.
+Control the maximum width for which records should be in one line. Default = 40.
+Requires `fsharp_reocrd_multiline_formatter` to be `character_width` to take
+effect.
 
 `defaultConfig`
 
@@ -494,6 +495,98 @@ let myInstance =
     { X = 10
       Y = 20
       Length = 90 }
+```
+
+### fsharp_max_record_size
+
+Control the maximum number of fields for which records should be in one line.
+Default 1. Requires `fsharp_array_or_list_multiline_formatter` to be
+`logical_size` to take effect.
+
+`defaultConfig`
+
+```fsharp
+type R = { x: int }
+
+type S = { x: int; y: string }
+
+type T = { x: int; y: string; z: float }
+
+let myRecord = { r = 3 }
+
+let myRecord' = { r with x = 3 }
+
+let myRecord'' = { r with x = 3; y = "hello" }
+
+let myRecord''' = { r with x = 3; y = "hello"; z = 0.0 }
+```
+
+`{ defaultConfig with MaxRecordSize = 2; RecordMultilineFormatter =
+MultilineFormatterType.LogicalSize }`
+
+```fsharp
+type R = { x: int }
+
+type S = { x: int; y: string }
+
+type T =
+    { x: int
+      y: string
+      z: float }
+
+let myRecord = { r = 3 }
+
+let myRecord' = { r with x = 3 }
+
+let myRecord'' = { r with x = 3; y = "hello" }
+
+let myRecord''' =
+    { r with
+          x = 3
+          y = "hello"
+          z = 0.0 }
+```
+
+### fsharp_record_multiline_formatter
+
+Split records expressions/statements into multiple lines based on the given condition.
+`character_width` uses character count of the expression, controlled by
+`fsharp_max_record_width`. `logical_size` uses the number of fields in
+the record, controlled by `fsharp_max_record_size`. Default
+`character_width`.
+
+`defaultConfig`
+
+```fsharp
+type R = { x: int }
+
+type S = { x: int; y: string }
+
+let myRecord = { r = 3 }
+
+let myRecord' = { r with x = 3 }
+
+let myRecord'' = { r with x = 3; y = "hello" }
+```
+
+`{ defaultConfig with RecordMultilineFormatter =
+MultilineFormatterType.LogicalSize }`
+
+```fsharp
+type R = { x: int }
+
+type S =
+    { x: int
+      y: string }
+
+let myRecord = { x = 3 }
+
+let myRecord' = { r with x = 3 }
+
+let myRecord'' =
+    { r with
+          x = 3
+          y = "hello" }
 ```
 
 ### fsharp_max_array_or_list_width

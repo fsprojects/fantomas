@@ -47,6 +47,8 @@ type FormatConfig =
       MaxIfThenElseShortWidth: Num
       MaxInfixOperatorExpression: Num
       MaxRecordWidth: Num
+      MaxRecordSize: Num
+      RecordMultilineFormatter: MultilineFormatterType
       MaxArrayOrListWidth: Num
       MaxArrayOrListSize: Num
       ArrayOrListMultilineFormatter: MultilineFormatterType
@@ -81,6 +83,8 @@ type FormatConfig =
           MaxIfThenElseShortWidth = 40
           MaxInfixOperatorExpression = 50
           MaxRecordWidth = 40
+          MaxRecordSize = 1
+          RecordMultilineFormatter = CharacterWidth
           MaxArrayOrListWidth = 40
           MaxArrayOrListSize = 1
           ArrayOrListMultilineFormatter = CharacterWidth
