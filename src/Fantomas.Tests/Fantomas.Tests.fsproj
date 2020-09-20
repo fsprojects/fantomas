@@ -74,7 +74,7 @@
     <Compile Include="InterpolatedStringTests.fs" />
     <Compile Include="DotGetTests.fs" />
     <Compile Include="HashDirectiveTests.fs" />
-    <Compile Include="LogicalSize.fs" />
+    <Compile Include="LogicalSizeTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
