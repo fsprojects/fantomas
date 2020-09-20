@@ -62,7 +62,7 @@ let configToEditorConfig (config: FormatConfig): string =
             |> Some
         | :? System.Int32 as i -> sprintf "%s=%d" (toEditorConfigName k) i |> Some
         | :? MultilineFormatterType as mft ->
-            sprintf "%s=\"%s\"" (toEditorConfigName k) (MultilineFormatterType.toConfigString mft)
+            sprintf "%s=%s" (toEditorConfigName k) (MultilineFormatterType.toConfigString mft)
             |> Some
         | _ -> None)
     |> String.concat "\n"
