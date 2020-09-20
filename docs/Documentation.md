@@ -76,6 +76,8 @@ fsharp_max_if_then_else_short_width=40
 fsharp_max_infix_operator_expression=50
 fsharp_max_record_width=40
 fsharp_max_array_or_list_width=40
+fsharp_max_array_or_list_size=1
+fsharp_array_or_list_multiline_formatter=character_width
 fsharp_max_value_binding_width=40
 fsharp_max_function_binding_width=40
 fsharp_max_dot_get_expression_width=50
@@ -497,7 +499,8 @@ let myInstance =
 ### fsharp_max_array_or_list_width
 
 Control the maximum width for which lists and arrays should be in one line.
-Default = 40.
+Default = 40. Requires `fsharp_array_or_list_multiline_formatter` to be
+`character_width` to take effect.
 
 `defaultConfig`
 
@@ -506,6 +509,56 @@ let myArray = [| one; two; three |]
 ```
 
 `{ defaultConfig with MaxArrayOrListWidth = 20 }`
+
+```fsharp
+let myArray =
+    [| one
+       two
+       three |]
+```
+
+### fsharp_max_array_or_list_size
+
+Control the maximum number of elements for which lists and arrays should be in
+one line. Default 1. Requires `fsharp_array_or_list_multiline_formatter` to be
+`logical_size` to take effect.
+
+`defaultConfig`
+
+```fsharp
+let myList = [ one; two ]
+
+let myArray = [| one; two; three |]
+```
+
+`{ defaultConfig with MaxArrayOrListSize = 2; ArrayOrListMultilineFormatter =
+MultilineFormatterType.LogicalSize }`
+
+```fsharp
+let myList = [ one; two ]
+
+let myArray =
+    [| one
+       two
+       three |]
+```
+
+### fsharp_array_or_list_multiline_formatter
+
+Split arrays and lists into multiple lines based on the given condition.
+`character_width` uses character count of the expression, controlled by
+`fsharp_max_array_or_list_width`. `logical_size` uses the number of elements in
+the array or list, controlled by `fsharp_max_array_or_list_size`. Default
+`character_width`.
+
+`defaultConfig`
+
+```fsharp
+let myArray = [| one; two; three |]
+```
+
+`{ defaultConfig with ArrayOrListMultilineFormatter =
+MultilineFormatterType.LogicalSize }`
 
 ```fsharp
 let myArray =
