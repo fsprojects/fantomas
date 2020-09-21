@@ -1569,7 +1569,7 @@ and genExpr astContext synExpr =
         genExpr astContext e1
         -- " in "
         +> genExpr astContext e2
-    | Paren (_, DesugaredLambda (cps, e), _) ->
+    | Paren (lpr, DesugaredLambda (cps, e), rpr) ->
         fun (ctx: Context) ->
             let addIndent =
                 lastLineOnlyContains [| ' '; '(' |] ctx
@@ -1585,18 +1585,17 @@ and genExpr astContext synExpr =
                 |> Option.isSome
 
             let expr =
-                sepOpenT
+                sepOpenTFor (Some lpr)
                 -- "fun "
                 +> col sepSpace cps (fst >> genComplexPats astContext)
                 +> triviaAfterArrow arrowRange
-                +> ifElse
-                    hasLineCommentAfterArrow
-                       (genExpr astContext e)
-                       (ifElse
-                           addIndent
-                            (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
-                            (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
-                +> sepCloseT
+                +> (fun ctx ->
+                    if hasLineCommentAfterArrow then
+                        (genExpr astContext e +> sepCloseTFor rpr) ctx
+                    elif addIndent then
+                        (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr)) ctx
+                    else
+                        (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr)) ctx)
 
             expr ctx
 
@@ -1620,18 +1619,19 @@ and genExpr astContext synExpr =
                 -- "fun "
                 +> col sepSpace sps (genSimplePats astContext)
                 +> triviaAfterArrow synExpr.Range
-                +> ifElse
-                    hasLineCommentAfterArrow
-                       (genExpr astContext e)
-                       (ifElse
-                           addIndent
-                            (autoIndentAndNlnIfExpressionExceedsPageWidth
-                                (genExpr
-                                    { astContext with
-                                          IsInsideDotGet = false }
-                                     e))
-                            (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
-                +> sepCloseTFor rpr
+                +> (fun ctx ->
+                    if hasLineCommentAfterArrow then
+                        (genExpr astContext e +> sepCloseTFor rpr) ctx
+                    elif addIndent then
+                        autoIndentAndNlnIfExpressionExceedsPageWidth
+                            (genExpr
+                                { astContext with
+                                      IsInsideDotGet = false }
+                                 e
+                             +> sepCloseTFor rpr)
+                            ctx
+                    else
+                        autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr) ctx)
 
             expr ctx
 

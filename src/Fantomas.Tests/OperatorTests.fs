@@ -242,7 +242,8 @@ let watchFiles =
         use _ =
             !!(serverPath </> "*.fs")
             ++ (serverPath </> "*.fsproj") // combines fs and fsproj
-            |> ChangeWatcher.run (fun changes -> printfn "FILE CHANGE %A" changes
+            |> ChangeWatcher.run (fun changes ->
+                printfn "FILE CHANGE %A" changes
                 // stopFunc()
                 //Async.Start (startFunc())
                 )
@@ -277,7 +278,8 @@ let watchFiles =
         use _ =
             !!(serverPath </> "*.fs")
             ++ "*.fsproj" // combines fs and fsproj
-            |> ChangeWatcher.run (fun changes -> printfn "FILE CHANGE %A" changes
+            |> ChangeWatcher.run (fun changes ->
+                printfn "FILE CHANGE %A" changes
                 // stopFunc()
                 //Async.Start (startFunc())
                 )
