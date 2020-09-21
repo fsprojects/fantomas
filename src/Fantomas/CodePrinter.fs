@@ -1571,7 +1571,9 @@ and genExpr astContext synExpr =
         +> genExpr astContext e2
     | Paren (_, DesugaredLambda (cps, e), _) ->
         fun (ctx: Context) ->
-            let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' '; '(' |] ctx
+            let addIndent =
+                lastLineOnlyContains [| ' '; '(' |] ctx
+                || astContext.IsInsideDotGet
 
             let arrowRange =
                 List.last cps
@@ -1591,7 +1593,7 @@ and genExpr astContext synExpr =
                     hasLineCommentAfterArrow
                        (genExpr astContext e)
                        (ifElse
-                           lastLineOnlyContainsParenthesis
+                           addIndent
                             (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
                             (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
                 +> sepCloseT
@@ -1829,7 +1831,10 @@ and genExpr astContext synExpr =
                     noNln
                         (genExpr astContext e1
                          +> ifElse (hasParenthesis e2) sepNone sepSpace
-                         +> genExpr astContext e2)
+                         +> genExpr
+                             { astContext with
+                                   IsInsideDotGet = true }
+                                e2)
                 | _ -> genExpr astContext e
 
             let genExpr sep =
@@ -2542,11 +2547,7 @@ and genExpr astContext synExpr =
                               IsInsideDotGet = true }
                            e2
                     +> unindent
-                | _ ->
-                    genExpr
-                        { astContext with
-                              IsInsideDotGet = true }
-                        e
+                | _ -> genExpr astContext e
 
             expr
             +> indent
