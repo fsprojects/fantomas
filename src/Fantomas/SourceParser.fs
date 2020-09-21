@@ -796,7 +796,7 @@ let (|PrefixApp|_|) =
                    _) when IsPrefixOperator(DecompileOpName s.Text) -> Some((|OpName|) s, e2)
     | _ -> None
 
-let private (|InfixApp|_|) synExpr =
+let (|InfixApp|_|) synExpr =
     match synExpr with
     | SynExpr.App (_, true, (Var "::" as e), Tuple [ e1; e2 ], _) -> Some("::", e, e1, e2)
     // Range operators need special treatments, so we exclude them here

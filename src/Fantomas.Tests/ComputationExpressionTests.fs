@@ -1365,8 +1365,7 @@ let rec loop () =
         let newEvents =
           stream
           |> Result.map
-               (asEvents
-                >> behaviour command
+               (asEvents >> behaviour command
                 >> enveloped eventSource)
 
         let! result =

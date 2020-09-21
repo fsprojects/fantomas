@@ -1746,51 +1746,87 @@ and genExpr astContext synExpr =
         !-s
         +> extraSpaceBeforeString
         +> genExpr astContext e
+
+    | InfixApp(pipeText, operatorExpr, (Lambda _ as e1), e2) when (newLineInfixOps.Contains(pipeText)) ->
+        let opExpr =
+            (!- pipeText
+            |> genTriviaFor SynExpr_Ident operatorExpr.Range)
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+
+        atCurrentColumn
+            (genExpr astContext e1
+             +> sepNln
+             +> opExpr
+             +> sepSpace
+             +> genExpr astContext e2)
+    | InfixApp(operatorText, operatorExpr, e1, e2) ->
+        let opExpr =
+            (!- operatorText
+            |> genTriviaFor SynExpr_Ident operatorExpr.Range)
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+
+        let shortExpr =
+                genExpr astContext e1 +> sepSpace +> opExpr +> sepSpace +> genExpr astContext e2
+
+        let longExpr =
+            if noBreakInfixOps.Contains(operatorText) then
+                shortExpr
+            else
+                atCurrentColumn
+                    (genExpr astContext e1
+                     +> sepNln
+                     +> opExpr
+                     +> sepSpace
+                     +> genExpr astContext e2)
+
+        fun ctx ->
+            isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr longExpr ctx
+
     // Handle spaces of infix application based on which category it belongs to
-    | InfixApps (e, es) ->
-        let rec genInfixApps (e, es) =
-            let ee = e
-            let ees = es
-
-            let shortExpr = genExpr astContext e +> sepSpace +> genInfixAppsShort astContext es
-            let printOperator (s,_,_)  = !- s
-            let getExpression (_,_,e) = e
-
-            let longExpr (e, es) =
-                // could be more than one, splitting on the first occurence for now
-                let lowestOperatorIndex =
-                    es
-                    |> List.mapi (fun index (operatorString,_,_) -> index, Map.find operatorString operatorMeta)
-                    |> List.minBy (fun (index, meta) -> meta.Priority, index)
-                    |> fst
-
-                let printRight es =
-                    match es with
-                    | [] -> sepNone
-                    | [(_,_,e)] -> genExpr astContext e
-                    | (_,_,e)::es -> genInfixApps(e,es)
-
-                let right = List.skip lowestOperatorIndex es
-
-                if lowestOperatorIndex = 0 then
-                    genExpr astContext e
-                    +> sepSpace
-                    +> printOperator es.[lowestOperatorIndex]
-                    +> sepNln
-                    +> printRight right
-                else
-                    let left = List.take lowestOperatorIndex es
-
-                    genInfixApps (e, left)
-                    +> sepSpace
-                    +> printOperator es.[lowestOperatorIndex]
-                    +> sepNln
-                    +> printRight right
-
-            fun ctx ->
-                (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr (longExpr(e,es))) ctx
-
-        genInfixApps (e, es)
+//    | InfixApps (e, es) ->
+//        let rec genInfixApps (e, es) =
+//            let ee = e
+//            let ees = es
+//
+//            let shortExpr = genExpr astContext e +> sepSpace +> genInfixAppsShort astContext es
+//            let printOperator (s,_,_)  = !- s
+//            let getExpression (_,_,e) = e
+//
+//            let longExpr (e, es) =
+//                // could be more than one, splitting on the first occurence for now
+//                let lowestOperatorIndex =
+//                    es
+//                    |> List.mapi (fun index (operatorString,_,_) -> index, Map.find operatorString operatorMeta)
+//                    |> List.minBy (fun (index, meta) -> meta.Priority, index)
+//                    |> fst
+//
+//                let printRight es =
+//                    match es with
+//                    | [] -> sepNone
+//                    | [(_,_,e)] -> genExpr astContext e
+//                    | (_,_,e)::es -> genInfixApps(e,es)
+//
+//                let right = List.skip lowestOperatorIndex es
+//
+//                if lowestOperatorIndex = 0 then
+//                    genExpr astContext e
+//                    +> sepSpace
+//                    +> printOperator es.[lowestOperatorIndex]
+//                    +> sepNln
+//                    +> printRight right
+//                else
+//                    let left = List.take lowestOperatorIndex es
+//
+//                    genInfixApps (e, left)
+//                    +> sepSpace
+//                    +> printOperator es.[lowestOperatorIndex]
+//                    +> sepNln
+//                    +> printRight right
+//
+//            fun ctx ->
+//                (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr (longExpr(e,es))) ctx
+//
+//        genInfixApps (e, es)
 //        let sepAfterExpr f =
 //            match es with
 //            | [] -> sepNone

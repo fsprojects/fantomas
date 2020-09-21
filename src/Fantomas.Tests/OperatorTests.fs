@@ -275,8 +275,7 @@ let watchFiles =
         printfn "after start"
 
         use _ =
-            !!(serverPath </> "*.fs")
-            ++ "*.fsproj" // combines fs and fsproj
+            !!(serverPath </> "*.fs") ++ "*.fsproj" // combines fs and fsproj
             |> ChangeWatcher.run (fun changes -> printfn "FILE CHANGE %A" changes
                 // stopFunc()
                 //Async.Start (startFunc())
@@ -310,7 +309,7 @@ let ``giraffe sample`` () =
 let WebApp = route "/ping" >=> authorized >=> text "pong"
 """
         ({ config with
-               MaxInfixOperatorExpression = 40 })
+               MaxInfixOperatorExpression = 20 })
     |> prepend newline
     |> should equal """
 let WebApp =
@@ -336,7 +335,7 @@ let ``pipe boolean expression`` () =
     |> should equal """
 b
 && c
-|> someLongExpressionThatShouldMoveThePipeToTheNextLine
+   |> someLongExpressionThatShouldMoveThePipeToTheNextLine
 """
 
 [<Test>]
@@ -586,8 +585,8 @@ let ``simple math`` () =
     |> prepend newline
     |> should equal """
 let myValue =
-    a +
-    b * c
+    a
+    + b * c
 """
 
 [<Test>]
@@ -617,9 +616,9 @@ let ``multiple sum operators`` () =
     |> prepend newline
     |> should equal """
 let myValue =
-    a +
-    b * c +
-    d
+    a
+    + b * c
+    + d
 """
 
 [<Test>]
@@ -635,9 +634,28 @@ let ``nested math sample`` () =
     |> prepend newline
     |> should equal """
 let dist =
-    aaaaaaaaaaaaaaaaaaaaaaaa *
-    bbbbbbbbbbbbbbbbbbbbbbbbb
-    + (ccccccccccccccccccccccccc *
-       ddddddddddddddddddddddd *
-       eeeeeeeeeeeeeeeeeeeeeee)
+    aaaaaaaaaaaaaaaaaaaaaaaa
+    * bbbbbbbbbbbbbbbbbbbbbbbbb
+    + (ccccccccccccccccccccccccc
+       * ddddddddddddddddddddddd
+       * eeeeeeeeeeeeeeeeeeeeeee)
+"""
+
+[<Test>]
+let ``meh x`` () =
+    formatSourceString false """
+let shouldIncludeRelationship relName =
+    req.Includes |> List.exists (fun path ->
+      path.Length >= currentIncludePath.Length + 1
+      && path |> List.take (currentIncludePath.Length + 1) = currentIncludePath @ [relName]
+    )
+"""  config
+    |> prepend newline
+    |> should equal """
+let shouldIncludeRelationship relName =
+    req.Includes
+    |> List.exists (fun path ->
+        path.Length >= currentIncludePath.Length + 1
+        && path |> List.take (currentIncludePath.Length + 1)
+        = currentIncludePath @ [ relName ])
 """
