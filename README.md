@@ -55,6 +55,20 @@ Or check out the [sample](https://github.com/fsprojects/fantomas/blob/master/fak
 
 The [fsharp-support](https://github.com/JetBrains/fsharp-support) uses fantomas under the hood to format the source code. No need for any additional plugins.
 
+#### Using the latest version inside Rider
+
+For technical reasons Rider cannot always use the latest version of Fantomas found on NuGet.
+As a workaround you could install [fantomas-tool](https://www.nuget.org/packages/fantomas-tool) and configure it as an [External tool](https://www.jetbrains.com/help/rider/Settings_Tools_External_Tools.html).
+
+> dotnet tool install fantomas-tool
+
+![Rider external tool window](./docs/rider-external-tool.png)
+
+![Rider action window](./docs/rider-action-window.png)
+
+**This will have an impact on you editing experiencing in Rider**, the external change to the file by the command line application might trigger more internal logic inside Rider than necessary.
+It could be noticeable in regards to the default formatting experience.
+
 ### Visual Studio Code
 
 The recommended way to use Fantomas is by using the [Ionide plugin](http://ionide.io/). Fantomas is integrated in [FSAutoComplete](https://github.com/fsharp/FsAutoComplete/) which is the language server used by Ionide.
@@ -160,10 +174,10 @@ For more complex examples, please take a look at F# outputs of [20 language shoo
 
 ## Installation
 The code base is written in F# 4.X /.NET standard 2.0.
-The solution file can be opened in Visual Studio 2017, VS Code (with the [ionide plugin](http://ionide.io/)) & [Jetbrains Rider](http://jetbrains.com/rider/).
+The solution file can be opened in Visual Studio 2017, VS Code (with the [ionide plugin](http://ionide.io/)) & [JetBrains Rider](http://jetbrains.com/rider/).
 Paket is used to manage external packages.
 The [test project](src/Fantomas.Tests) depends on FsUnit and NUnit.
-However, the [library project](src/Fantomas) and [command line interface](src/Fantomas.Cmd) have no dependency on external packages.
+However, the [library project](src/Fantomas) has no dependencies on external packages.
 
 ### Step to build the repo
 
@@ -193,7 +207,7 @@ Thank you for your interest in contributing to Fantomas! This guide explains eve
 - For stylistic changes, please take the time to discuss them and consider all possible outcomes of the change. Consult the [fsharp style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/) for guidance.
 New behavior should most likely be optional because a configuration flag. 
 Always keep the following train of thought: if a user upgrades Fantomas to a new version, the result of formatting with the default settings should not change.
-- For new features, the same things apply: please discuss before making a PR.  
+- For new features, the same things apply: please discuss before making a PR.
 
 ### PR checklist
 - [ ] Did you cover all new code changes with unit tests? Unit tests are extremely important for this project. 

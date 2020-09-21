@@ -253,9 +253,11 @@ CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettin
     |> should equal """
 CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
     let connectionString =
-        if hostedService
-        then RoleEnvironment.GetConfigurationSettingValue(configName)
-        else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
+        if hostedService then
+            RoleEnvironment.GetConfigurationSettingValue(configName)
+        else
+            ConfigurationManager.ConnectionStrings.[configName]
+                .ConnectionString
 
     configSettingPublisher.Invoke(connectionString)
     |> ignore)

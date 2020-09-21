@@ -133,6 +133,12 @@ module List =
 
     let isNotEmpty l = (List.isEmpty >> not) l
 
+    let moreThanOne =
+        function
+        | []
+        | [ _ ] -> false
+        | _ -> true
+
 module Map =
     let tryFindOrDefault (defaultValue: 'g) (key: 't) (map: Map<'t, 'g>) =
         match Map.tryFind key map with

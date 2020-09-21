@@ -80,6 +80,14 @@ let (|LongIdent|) (li: LongIdent) =
         // Assume that if it starts with base, it's going to be the base keyword
         if String.startsWithOrdinal "``base``." s then String.Join("", "base.", s.[9..]) else s
 
+let (|LongIdentPieces|_|) =
+    function
+    | SynExpr.LongIdent (_, LongIdentWithDots (lids, _), _, _) ->
+        lids
+        |> List.map (fun x -> if x.idText = MangledGlobalName then "global" else (|Ident|) x)
+        |> Some
+    | _ -> None
+
 let inline (|LongIdentWithDots|) (LongIdentWithDots (LongIdent s, _)) = s
 
 type Identifier =
@@ -963,18 +971,11 @@ let (|DotGet|_|) =
 /// Gather series of application for line breaking
 let rec (|DotGetApp|_|) =
     function
-    | SynExpr.App (_, _, DotGet (DotGetApp (e, es), s), e', _) -> Some(e, [ yield! es; yield (s, e') ])
-    | SynExpr.App (_, _, DotGet (e, s), e', _) -> Some(e, [ (s, e') ])
-    | _ -> None
-
-let (|DotGetAppSpecial|_|) =
-    function
-    | DotGetApp (SynExpr.App (_, _, (Var s as sx), e, _), es) ->
-        let i = s.IndexOf(".")
-
-        if i <> -1
-        then Some((s.[..i - 1]), ((s.[i + 1..], sx.Range), e) :: es)
-        else None
+    | SynExpr.App (_, _, DotGet (DotGetApp (e, es), s), e', _) -> Some(e, [ yield! es; yield (s, e', []) ])
+    | SynExpr.App (_, _, DotGet (e, s), e', _) -> Some(e, [ (s, e', []) ])
+    | SynExpr.App (_, _, SynExpr.TypeApp (DotGet (DotGetApp (e, es), s), _, ts, _, _, _, _), e', _) ->
+        Some(e, [ yield! es; yield (s, e', ts) ])
+    | SynExpr.App (_, _, SynExpr.TypeApp (DotGet (e, s), _, ts, _, _, _, _), e', _) -> Some(e, [ (s, e', ts) ])
     | _ -> None
 
 let (|DotSet|_|) =

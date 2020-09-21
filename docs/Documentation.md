@@ -78,6 +78,7 @@ fsharp_max_record_width=40
 fsharp_max_array_or_list_width=40
 fsharp_max_value_binding_width=40
 fsharp_max_function_binding_width=40
+fsharp_max_dot_get_expression_width=50
 fsharp_multiline_block_brackets_on_same_column=false
 fsharp_newline_between_type_definition_and_members=false
 fsharp_keep_if_then_in_same_line=false
@@ -561,6 +562,28 @@ let printScore score total =
 type Triangle() =
     member this.CalculateSurface(width: int, height: int) =
         width * height / 2
+```
+
+### fsharp_max_dot_get_expression_width
+
+Control the maximum width for which (nested) [SynExpr.DotGet](https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-syntaxtree-synexpr.html) expressions should be in one line.
+Default = 50.
+
+`defaultConfig`
+
+```fsharp
+let job =
+    JobBuilder
+        .UsingJobData(jobDataMap)
+        .Create<WrapperJob>()
+        .Build()
+```
+
+`{ defaultConfig with MaxDotGetExpressionWidth = 100 }`
+
+```fsharp
+let job =
+    JobBuilder.UsingJobData(jobDataMap).Create<WrapperJob>().Build()
 ```
 
 ### fsharp_multiline_block_brackets_on_same_column

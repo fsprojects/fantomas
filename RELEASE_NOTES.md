@@ -1,3 +1,23 @@
+### 4.2.0-alpha-003 - 09/2020
+
+* Extended feature MaxDotGetExpressionWidth. [#501](https://github.com/fsprojects/fantomas/issues/501#issuecomment-695284222)
+
+### 4.2.0-alpha-002 - 09/2020
+
+* Extended feature MaxDotGetExpressionWidth. [#501](https://github.com/fsprojects/fantomas/issues/501#issuecomment-695054715)
+
+### 4.2.0-alpha-001 - 09/2020
+
+* Feature MaxDotGetExpressionWidth. [#501](https://github.com/fsprojects/fantomas/issues/501)
+
+### 4.1.1 - 09/2020
+
+* Fix No newline between module and first declaration. [#1139](https://github.com/fsprojects/fantomas/issues/1139)     
+* Fix additional new lines added after each call to format. [#1137](https://github.com/fsprojects/fantomas/issues/1137)
+* Fix Generics error when breaking line. [#1134](https://github.com/fsprojects/fantomas/issues/1134)
+* Fix Comments on DUs parameterized by functions are dropped. [#1128](https://github.com/fsprojects/fantomas/issues/1128)
+* Fix Preserve underscore in number. [#1120](https://github.com/fsprojects/fantomas/issues/1120)
+
 ### 4.1.0 - 09/2020
 
 * Ignore files by `.fantomasignore` file. [#420](https://github.com/fsprojects/fantomas/issues/420)
