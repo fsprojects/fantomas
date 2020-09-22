@@ -702,9 +702,9 @@ let internal isShortExpression maxWidth (shortExpression: Context -> Context) (f
 
 let internal isSmallExpression size (smallExpression: Context -> Context) fallbackExpression (ctx: Context) =
     match size with
-    | CharacterWidth (_width, maxWidth) -> isShortExpression maxWidth smallExpression fallbackExpression ctx
-    | LogicalSize (size, maxSize) ->
-        let effectiveMaxWidth = if size > maxSize then 0 else Num.max
+    | CharacterWidth maxWidth -> isShortExpression maxWidth smallExpression fallbackExpression ctx
+    | NumberOfItems (items, maxItems) ->
+        let effectiveMaxWidth = if items > maxItems then 0 else Num.max
         isShortExpression effectiveMaxWidth smallExpression fallbackExpression ctx
 
 let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =

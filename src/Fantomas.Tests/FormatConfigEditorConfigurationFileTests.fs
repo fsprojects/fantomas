@@ -202,3 +202,22 @@ let ``print default editorconfig settings`` () =
     FormatConfig.Default
     |> EditorConfig.configToEditorConfig
     |> printfn "%s"
+
+[<Test>]
+let ``number_of_items parsing tests`` () =
+    let editorConfig = """
+[*.fs]
+fsharp_array_or_list_multiline_formatter = number_of_items
+fsharp_max_array_or_list_number_of_items = 4
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, content = editorConfig)
+
+    use fsharpFile = new FSharpFile()
+
+    let config =
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    config.MaxArrayOrListNumberOfItems == 4
+    config.ArrayOrListMultilineFormatter == NumberOfItems

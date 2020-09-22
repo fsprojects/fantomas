@@ -517,11 +517,11 @@ let myArray =
        three |]
 ```
 
-### fsharp_max_array_or_list_size
+### fsharp_max_array_or_list_number_of_items
 
 Control the maximum number of elements for which lists and arrays should be in
 one line. Default 1. Requires `fsharp_array_or_list_multiline_formatter` to be
-`logical_size` to take effect.
+`number_of_items` to take effect.
 
 `defaultConfig`
 
@@ -531,8 +531,8 @@ let myList = [ one; two ]
 let myArray = [| one; two; three |]
 ```
 
-`{ defaultConfig with MaxArrayOrListSize = 2; ArrayOrListMultilineFormatter =
-MultilineFormatterType.LogicalSize }`
+`{ defaultConfig with MaxArrayOrListNumberOfItems = 2; ArrayOrListMultilineFormatter =
+MultilineFormatterType.NumberOfItems }`
 
 ```fsharp
 let myList = [ one; two ]
@@ -547,8 +547,8 @@ let myArray =
 
 Split arrays and lists into multiple lines based on the given condition.
 `character_width` uses character count of the expression, controlled by
-`fsharp_max_array_or_list_width`. `logical_size` uses the number of elements in
-the array or list, controlled by `fsharp_max_array_or_list_size`. Default
+`fsharp_max_array_or_list_width`. `number_of_items` uses the number of elements in
+the array or list, controlled by `fsharp_max_array_or_list_number_of_items`. Default
 `character_width`.
 
 `defaultConfig`
@@ -558,7 +558,7 @@ let myArray = [| one; two; three |]
 ```
 
 `{ defaultConfig with ArrayOrListMultilineFormatter =
-MultilineFormatterType.LogicalSize }`
+MultilineFormatterType.NumberOfItems }`
 
 ```fsharp
 let myArray =

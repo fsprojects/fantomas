@@ -1396,7 +1396,7 @@ and genExpr astContext synExpr =
                     match ctx.Config.ArrayOrListMultilineFormatter with
                     | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxArrayOrListWidth
                     | MultilineFormatterType.NumberOfItems ->
-                        Size.NumberOfItems(List.length xs, ctx.Config.MaxArrayOrListSize)
+                        Size.NumberOfItems(List.length xs, ctx.Config.MaxArrayOrListNumberOfItems)
 
                 isSmallExpression size smallExpression multilineExpression ctx
 

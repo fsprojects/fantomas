@@ -48,7 +48,7 @@ type FormatConfig =
       MaxInfixOperatorExpression: Num
       MaxRecordWidth: Num
       MaxArrayOrListWidth: Num
-      MaxArrayOrListSize: Num
+      MaxArrayOrListNumberOfItems: Num
       ArrayOrListMultilineFormatter: MultilineFormatterType
       MaxValueBindingWidth: Num
       MaxFunctionBindingWidth: Num
@@ -82,7 +82,7 @@ type FormatConfig =
           MaxInfixOperatorExpression = 50
           MaxRecordWidth = 40
           MaxArrayOrListWidth = 40
-          MaxArrayOrListSize = 1
+          MaxArrayOrListNumberOfItems = 1
           ArrayOrListMultilineFormatter = CharacterWidth
           MaxValueBindingWidth = 40
           MaxFunctionBindingWidth = 40
