@@ -220,4 +220,6 @@ fsharp_max_array_or_list_number_of_items = 4
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     config.MaxArrayOrListNumberOfItems == 4
-    config.ArrayOrListMultilineFormatter == NumberOfItems
+
+    config.ArrayOrListMultilineFormatter
+    == NumberOfItems
