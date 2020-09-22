@@ -1575,9 +1575,11 @@ and genExpr astContext synExpr =
         genExpr astContext e1
         -- " in "
         +> genExpr astContext e2
-    | Paren (_, DesugaredLambda (cps, e), _) ->
+    | Paren (lpr, DesugaredLambda (cps, e), rpr) ->
         fun (ctx: Context) ->
-            let lastLineOnlyContainsParenthesis = lastLineOnlyContains [| ' '; '(' |] ctx
+            let addIndent =
+                lastLineOnlyContains [| ' '; '(' |] ctx
+                || astContext.IsInsideDotGet
 
             let arrowRange =
                 List.last cps
@@ -1589,18 +1591,17 @@ and genExpr astContext synExpr =
                 |> Option.isSome
 
             let expr =
-                sepOpenT
+                sepOpenTFor (Some lpr)
                 -- "fun "
                 +> col sepSpace cps (fst >> genComplexPats astContext)
                 +> triviaAfterArrow arrowRange
-                +> ifElse
-                    hasLineCommentAfterArrow
-                       (genExpr astContext e)
-                       (ifElse
-                           lastLineOnlyContainsParenthesis
-                            (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
-                            (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
-                +> sepCloseT
+                +> (fun ctx ->
+                    if hasLineCommentAfterArrow then
+                        (genExpr astContext e +> sepCloseTFor rpr) ctx
+                    elif addIndent then
+                        (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr)) ctx
+                    else
+                        (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr)) ctx)
 
             expr ctx
 
@@ -1624,18 +1625,19 @@ and genExpr astContext synExpr =
                 -- "fun "
                 +> col sepSpace sps (genSimplePats astContext)
                 +> triviaAfterArrow synExpr.Range
-                +> ifElse
-                    hasLineCommentAfterArrow
-                       (genExpr astContext e)
-                       (ifElse
-                           addIndent
-                            (autoIndentAndNlnIfExpressionExceedsPageWidth
-                                (genExpr
-                                    { astContext with
-                                          IsInsideDotGet = false }
-                                     e))
-                            (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)))
-                +> sepCloseTFor rpr
+                +> (fun ctx ->
+                    if hasLineCommentAfterArrow then
+                        (genExpr astContext e +> sepCloseTFor rpr) ctx
+                    elif addIndent then
+                        autoIndentAndNlnIfExpressionExceedsPageWidth
+                            (genExpr
+                                { astContext with
+                                      IsInsideDotGet = false }
+                                 e
+                             +> sepCloseTFor rpr)
+                            ctx
+                    else
+                        autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr) ctx)
 
             expr ctx
 
@@ -1835,7 +1837,10 @@ and genExpr astContext synExpr =
                     noNln
                         (genExpr astContext e1
                          +> ifElse (hasParenthesis e2) sepNone sepSpace
-                         +> genExpr astContext e2)
+                         +> genExpr
+                             { astContext with
+                                   IsInsideDotGet = true }
+                                e2)
                 | _ -> genExpr astContext e
 
             let genExpr sep =
@@ -2548,11 +2553,7 @@ and genExpr astContext synExpr =
                               IsInsideDotGet = true }
                            e2
                     +> unindent
-                | _ ->
-                    genExpr
-                        { astContext with
-                              IsInsideDotGet = true }
-                        e
+                | _ -> genExpr astContext e
 
             expr
             +> indent
