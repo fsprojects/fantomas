@@ -821,16 +821,19 @@ let (|NewlineInfixApps|_|) e =
     | _ -> None
 
 let (|TupleWithInfixEqualsApps|_|) e =
-    match e with
-    | Tuple (es) ->
-        let infixApps =
-            es
-            |> List.choose (fun e ->
-                match e with
-                | InfixApp ("=", opE, e1, e2) -> Some(e1, opE, e2)
-                | _ -> None)
+    let isEqualInfix =
+        function
+        | InfixApp ("=", _, _, _) -> true
+        | _ -> false
 
-        if es.Length = infixApps.Length then Some infixApps else None
+    match e with
+    | Tuple es when (List.forall isEqualInfix es) ->
+        es
+        |> List.map (fun e ->
+            match e with
+            | InfixApp ("=", opE, e1, e2) -> e1, opE, e2
+            | _ -> failwith "should not be possible")
+        |> Some
     | _ -> None
 
 let (|TernaryApp|_|) =
