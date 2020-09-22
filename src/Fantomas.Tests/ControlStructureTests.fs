@@ -504,7 +504,8 @@ let genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
     | PropertyBinding (ats, px, ao, isInline, mf1, PatLongIdent (ao1, s1, ps1, _), e1),
       PropertyBinding (_, _, _, _, _, PatLongIdent (ao2, _, ps2, _), e2) ->
         let prefix =
-            genPreXmlDoc px +> genAttributes astContext ats
+            genPreXmlDoc px
+            +> genAttributes astContext ats
             +> genMemberFlags astContext mf1
             +> ifElse isInline (!- "inline ") sepNone
             +> opt sepSpace ao genAccess
@@ -514,7 +515,10 @@ let genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
         let ps1 = List.map snd ps1
         let ps2 = List.map snd ps2
 
-        prefix +> !-s1 +> indent +> sepNln
+        prefix
+        +> !-s1
+        +> indent
+        +> sepNln
         +> optSingle (fun rom -> enterNodeTokenByName rom WITH) rangeOfMember
         +> genProperty astContext "with " ao1 "get " ps1 e1
         +> sepNln
