@@ -820,6 +820,21 @@ let (|NewlineInfixApps|_|) e =
     | (e, es) when (List.length es > 1) -> Some(e, List.rev es)
     | _ -> None
 
+let (|SameInfixApps|_|) e =
+    let rec loop operator synExpr =
+        match synExpr with
+        | InfixApp (s, opE, e, e2) when (s = operator) ->
+            let (e1, es) = loop operator e
+            (e1, (s, opE, e2) :: es)
+        | e -> (e, [])
+
+    match e with
+    | InfixApp (operatorText, _, _, _) ->
+        match loop operatorText e with
+        | (e, es) when (List.length es > 1) -> Some(e, List.rev es)
+        | _ -> None
+    | _ -> None
+
 let (|TupleWithInfixEqualsApps|_|) e =
     let isEqualInfix =
         function

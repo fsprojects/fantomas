@@ -1775,7 +1775,8 @@ and genExpr astContext synExpr =
     | NewlineInfixApp (operatorText, operatorExpr, (Lambda _ as e1), e2) ->
         genMultilineInfixExpr astContext e1 operatorText operatorExpr e2
 
-    | NewlineInfixApps (e, es) ->
+    | NewlineInfixApps (e, es)
+    | SameInfixApps (e, es) ->
         let shortExpr =
             genExpr astContext e
             +> sepSpace

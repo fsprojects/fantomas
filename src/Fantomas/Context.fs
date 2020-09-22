@@ -916,13 +916,7 @@ let internal ifAlignBrackets f g =
 let internal noSpaceInfixOps = set [ "?" ]
 
 /// Always break into newlines on these operators
-let internal newLineInfixOps =
-    set [ "|>"
-          "||>"
-          "|||>"
-          ">>"
-          ">>="
-          "+>" ]
+let internal newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
 
 /// Never break into newlines on these operators
 let internal noBreakInfixOps = set [ "="; ">"; "<"; "%" ]
