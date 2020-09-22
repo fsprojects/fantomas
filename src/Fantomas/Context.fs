@@ -28,8 +28,8 @@ type ShortExpressionInfo =
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
 
 type Size =
-    | CharacterWidth of width: Num * maxWidth: Num
-    | LogicalSize of size: Num * maxSize: Num
+    | CharacterWidth of maxWidth: Num
+    | NumberOfItems of number: Num * maxNumber: Num
 
 type WriteModelMode =
     | Standard

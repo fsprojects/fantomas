@@ -11,16 +11,16 @@ type Num = int
 
 type MultilineFormatterType =
     | CharacterWidth
-    | LogicalSize
+    | NumberOfItems
     static member toConfigString =
         function
         | CharacterWidth -> "character_width"
-        | LogicalSize -> "logical_size"
+        | NumberOfItems -> "number_of_items"
 
     static member ofConfigString =
         function
         | "character_width" -> Some(box CharacterWidth)
-        | "logical_size" -> Some(box LogicalSize)
+        | "number_of_items" -> Some(box NumberOfItems)
         | _ -> None
 
 module Num =

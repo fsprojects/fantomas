@@ -1394,10 +1394,9 @@ and genExpr astContext synExpr =
             else
                 let size =
                     match ctx.Config.ArrayOrListMultilineFormatter with
-                    // isSmallExpression will find the character width and use that, so we just pass 0 here
-                    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth(0, ctx.Config.MaxArrayOrListWidth)
-                    | MultilineFormatterType.LogicalSize ->
-                        Size.LogicalSize(List.length xs, ctx.Config.MaxArrayOrListSize)
+                    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxArrayOrListWidth
+                    | MultilineFormatterType.NumberOfItems ->
+                        Size.NumberOfItems(List.length xs, ctx.Config.MaxArrayOrListSize)
 
                 isSmallExpression size smallExpression multilineExpression ctx
 
