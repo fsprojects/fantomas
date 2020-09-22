@@ -1285,7 +1285,7 @@ and genExpr astContext synExpr =
 
         let isInfixExpr =
             match e with
-            | InfixApps _ -> true
+            | InfixApp _ -> true
             | _ -> false
 
         let genInfixExpr (ctx: Context) =
@@ -1346,6 +1346,31 @@ and genExpr astContext synExpr =
         genExpr astContext e
         +> sepColon
         +> genType astContext false t
+    | TupleWithInfixEqualsApps es ->
+        let expr (e1, opE, e2) =
+            let shortExpr =
+                genExpr astContext e1
+                +> sepSpace
+                +> genInfixOperator "=" opE
+                +> sepSpace
+                +> genExpr astContext e2
+
+            let longExpr =
+                genExpr astContext e1
+                +> sepSpace
+                +> genInfixOperator "=" opE
+                +> indent
+                +> sepNln
+                +> genExpr astContext e2
+                +> unindent
+
+            expressionFitsOnRestOfLine shortExpr longExpr
+
+        let shortExpression = col sepComma es expr
+        let longExpression = col (sepComma +> sepNln) es expr
+
+        atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
+
     | Tuple es -> genTuple astContext es
     | StructTuple es ->
         !- "struct "
@@ -1747,116 +1772,35 @@ and genExpr astContext synExpr =
         +> extraSpaceBeforeString
         +> genExpr astContext e
 
-    | InfixApp(pipeText, operatorExpr, (Lambda _ as e1), e2) when (newLineInfixOps.Contains(pipeText)) ->
-        let opExpr =
-            (!- pipeText
-            |> genTriviaFor SynExpr_Ident operatorExpr.Range)
-            +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+    | NewlineInfixApp (operatorText, operatorExpr, (Lambda _ as e1), e2) ->
+        genMultilineInfixExpr astContext e1 operatorText operatorExpr e2
 
-        atCurrentColumn
-            (genExpr astContext e1
-             +> sepNln
-             +> opExpr
-             +> sepSpace
-             +> genExpr astContext e2)
-    | InfixApp(operatorText, operatorExpr, e1, e2) ->
-        let opExpr =
-            (!- operatorText
-            |> genTriviaFor SynExpr_Ident operatorExpr.Range)
-            +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-
+    | NewlineInfixApps (e, es) ->
         let shortExpr =
-                genExpr astContext e1 +> sepSpace +> opExpr +> sepSpace +> genExpr astContext e2
+            genExpr astContext e
+            +> sepSpace
+            +> col sepSpace es (fun (s, oe, e) ->
+                   genInfixOperator s oe
+                   +> sepSpace
+                   +> genExpr astContext e)
 
-        let longExpr =
-            if noBreakInfixOps.Contains(operatorText) then
-                shortExpr
-            else
-                atCurrentColumn
-                    (genExpr astContext e1
-                     +> sepNln
-                     +> opExpr
-                     +> sepSpace
-                     +> genExpr astContext e2)
+        let multilineExpr =
+            genExpr astContext e
+            +> sepNln
+            +> col sepNln es (fun (s, oe, e) ->
+                   genInfixOperator s oe
+                   +> sepSpace
+                   +> genExpr astContext e)
 
+        fun ctx -> atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
+
+    | InfixApp (operatorText, operatorExpr, e1, e2) ->
         fun ctx ->
-            isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr longExpr ctx
-
-    // Handle spaces of infix application based on which category it belongs to
-//    | InfixApps (e, es) ->
-//        let rec genInfixApps (e, es) =
-//            let ee = e
-//            let ees = es
-//
-//            let shortExpr = genExpr astContext e +> sepSpace +> genInfixAppsShort astContext es
-//            let printOperator (s,_,_)  = !- s
-//            let getExpression (_,_,e) = e
-//
-//            let longExpr (e, es) =
-//                // could be more than one, splitting on the first occurence for now
-//                let lowestOperatorIndex =
-//                    es
-//                    |> List.mapi (fun index (operatorString,_,_) -> index, Map.find operatorString operatorMeta)
-//                    |> List.minBy (fun (index, meta) -> meta.Priority, index)
-//                    |> fst
-//
-//                let printRight es =
-//                    match es with
-//                    | [] -> sepNone
-//                    | [(_,_,e)] -> genExpr astContext e
-//                    | (_,_,e)::es -> genInfixApps(e,es)
-//
-//                let right = List.skip lowestOperatorIndex es
-//
-//                if lowestOperatorIndex = 0 then
-//                    genExpr astContext e
-//                    +> sepSpace
-//                    +> printOperator es.[lowestOperatorIndex]
-//                    +> sepNln
-//                    +> printRight right
-//                else
-//                    let left = List.take lowestOperatorIndex es
-//
-//                    genInfixApps (e, left)
-//                    +> sepSpace
-//                    +> printOperator es.[lowestOperatorIndex]
-//                    +> sepNln
-//                    +> printRight right
-//
-//            fun ctx ->
-//                (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr (longExpr(e,es))) ctx
-//
-//        genInfixApps (e, es)
-//        let sepAfterExpr f =
-//            match es with
-//            | [] -> sepNone
-//            | (s, _, _) :: _ when ((noBreakInfixOps.Contains s)) -> sepSpace
-//            | (s, _, _) :: _ when ((noSpaceInfixOps.Contains s)) -> sepNone
-//            | _ -> f
-//
-//        let isLambda e =
-//            match e with
-//            | Lambda _ -> true
-//            | _ -> false
-//
-//        let expr = genExpr astContext e
-//
-//        let shortExpr =
-//            expr
-//            +> sepAfterExpr sepSpace
-//            +> genInfixAppsShort astContext es
-//
-//        let longExpr =
-//            expr
-//            +> sepAfterExpr sepNln
-//            +> genInfixApps astContext es
-//
-//        atCurrentColumn (fun ctx ->
-//            if isLambda e
-//               || List.exists (fun (_, _, e) -> isLambda e) es then
-//                longExpr ctx
-//            else
-//                isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr longExpr ctx)
+            isShortExpression
+                ctx.Config.MaxInfixOperatorExpression
+                (genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2)
+                (genMultilineInfixExpr astContext e1 operatorText operatorExpr e2)
+                ctx
 
     | TernaryApp (e1, e2, e3) ->
         atCurrentColumn
@@ -2744,6 +2688,29 @@ and genExpr astContext synExpr =
         | SynExpr.DotGet _ -> genTriviaFor SynExpr_DotGet synExpr.Range
         | _ -> id)
 
+and genInfixOperator operatorText (operatorExpr: SynExpr) =
+    (!-operatorText
+     |> genTriviaFor SynExpr_Ident operatorExpr.Range)
+    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+
+and genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2 =
+    genExpr astContext e1
+    +> sepSpace
+    +> genInfixOperator operatorText operatorExpr
+    +> sepSpace
+    +> genExpr astContext e2
+
+and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
+    if noBreakInfixOps.Contains(operatorText) then
+        genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2
+    else
+        atCurrentColumn
+            (genExpr astContext e1
+             +> sepNln
+             +> genInfixOperator operatorText operatorExpr
+             +> sepSpace
+             +> genExpr astContext e2)
+
 and genGenericTypeParameters astContext ts =
     match ts with
     | [] -> sepNone
@@ -2999,45 +2966,6 @@ and genMultiLineArrayOrListAlignBrackets (isArray: bool) xs alNode astContext =
                 +> sepCloseLFixed
 
         expr ctx
-
-and genInfixAppsShort astContext synExprs =
-    col sepSpace synExprs (fun (s, opE, e) -> genInfixApp s opE e astContext)
-
-and genInfixApps astContext synExprs =
-    colEx (fun (s, _, _) -> if (noBreakInfixOps.Contains s) then sepSpace else sepNln) synExprs (fun (s, opE, e) ->
-        genInfixApp s opE e astContext)
-
-and genInfixApp s (opE: SynExpr) e astContext =
-    if (noBreakInfixOps.Contains s) then
-        (sepSpace
-         +> genTriviaFor SynExpr_Ident opE.Range (!-s)
-         +> (fun ctx ->
-             let isEqualOperator =
-                 match opE with
-                 | SynExpr.Ident (Ident ("op_Equality")) -> true
-                 | _ -> false
-
-             let genExpr =
-                 if isEqualOperator
-                 then autoIndentAndNlnIfExpressionExceedsPageWidth (sepSpace +> genExpr astContext e)
-                 else sepSpace +> genExpr astContext e
-
-             genExpr ctx))
-    elif (noSpaceInfixOps.Contains s) then
-        let wrapExpr f =
-            match (s, opE, e) with
-            | ("?", SynExpr.Ident (Ident ("op_Dynamic")), SynExpr.Ident (_)) -> sepOpenT +> f +> sepCloseT
-            | _ -> f
-
-        (genTriviaFor SynExpr_Ident opE.Range (!-s)
-         +> autoNlnIfExpressionExceedsPageWidth (wrapExpr (genExpr astContext e)))
-    else
-        (fun ctx ->
-            let hasLineCommentAfterInfix = hasLineCommentAfterInfix opE.Range ctx
-
-            (genTriviaFor SynExpr_Ident opE.Range (!-s)
-             +> ifElse hasLineCommentAfterInfix sepNln sepSpace
-             +> genExpr astContext e) ctx)
 
 /// Use in indexed set and get only
 and genIndexers astContext node =

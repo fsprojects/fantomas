@@ -198,9 +198,8 @@ let ``should not add newline before = operator after |>`` () =
         false
         """1 |> max 0 = 1"""
         ({ config with
-               MaxInfixOperatorExpression = 10 })
-    |> should equal """1
-|> max 0 = 1
+               MaxInfixOperatorExpression = 15 })
+    |> should equal """1 |> max 0 = 1
 """
 
 [<Test>]
@@ -581,7 +580,9 @@ Fooey
 [<Test>]
 let ``simple math`` () =
     formatSourceString false """let myValue = a + b * c
-"""   { config with MaxInfixOperatorExpression = 5 }
+"""
+        { config with
+              MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should equal """
 let myValue =
@@ -592,7 +593,9 @@ let myValue =
 [<Test>]
 let ``simple math in one line`` () =
     formatSourceString false """let myValue = a + b * c
-"""   { config with MaxInfixOperatorExpression = 50 }
+"""
+        { config with
+              MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should equal """
 let myValue = a + b * c
@@ -601,7 +604,9 @@ let myValue = a + b * c
 [<Test>]
 let ``simple math reversed`` () =
     formatSourceString false """let myValue = a * b + c
-"""   { config with MaxInfixOperatorExpression = 5 }
+"""
+        { config with
+              MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should equal """
 let myValue =
@@ -612,7 +617,9 @@ let myValue =
 [<Test>]
 let ``multiple sum operators`` () =
     formatSourceString false """let myValue = a + b * c + d
-"""  { config with MaxInfixOperatorExpression = 5 }
+"""
+        { config with
+              MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should equal """
 let myValue =
@@ -642,7 +649,7 @@ let dist =
 """
 
 [<Test>]
-let ``meh x`` () =
+let ``split infix operators according to nested structure in AST, 988`` () =
     formatSourceString false """
 let shouldIncludeRelationship relName =
     req.Includes |> List.exists (fun path ->
@@ -656,6 +663,5 @@ let shouldIncludeRelationship relName =
     req.Includes
     |> List.exists (fun path ->
         path.Length >= currentIncludePath.Length + 1
-        && path |> List.take (currentIncludePath.Length + 1)
-        = currentIncludePath @ [ relName ])
+        && path |> List.take (currentIncludePath.Length + 1) = currentIncludePath @ [ relName ])
 """

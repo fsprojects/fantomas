@@ -803,35 +803,40 @@ let (|InfixApp|_|) synExpr =
     | SynExpr.App (_, _, SynExpr.App (_, true, (Var s as e), e1, _), e2, _) when s <> ".." -> Some(s, e, e1, e2)
     | _ -> None
 
+let (|NewlineInfixApp|_|) =
+    function
+    | InfixApp (text, operatorExpr, e1, e2) when (newLineInfixOps.Contains(text)) -> Some(text, operatorExpr, e1, e2)
+    | _ -> None
+
+let (|NewlineInfixApps|_|) e =
+    let rec loop synExpr =
+        match synExpr with
+        | NewlineInfixApp (s, opE, e, e2) ->
+            let (e1, es) = loop e
+            (e1, (s, opE, e2) :: es)
+        | e -> (e, [])
+
+    match loop e with
+    | (e, es) when (List.length es > 1) -> Some(e, List.rev es)
+    | _ -> None
+
+let (|TupleWithInfixEqualsApps|_|) e =
+    match e with
+    | Tuple (es) ->
+        let infixApps =
+            es
+            |> List.choose (fun e ->
+                match e with
+                | InfixApp ("=", opE, e1, e2) -> Some(e1, opE, e2)
+                | _ -> None)
+
+        if es.Length = infixApps.Length then Some infixApps else None
+    | _ -> None
+
 let (|TernaryApp|_|) =
     function
     | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
     | _ -> None
-
-/// We should return the whole triple for convenient check
-let (|InfixApps|_|) e =
-    let rec loop synExpr =
-        match synExpr with
-        | InfixApp (s, opE, e, e2) ->
-            let (e1, es) = loop e
-
-            match es with
-            | [] ->
-                let (t1, ts) = loop e2
-
-                match ts with
-                | [] -> (e1, (s, opE, e2) :: es)
-                | ts ->
-                    // example code that leads to this:
-                    // let foo =
-                    //     a & b |> c |> d
-                    (e1, ts @ [ (s, opE, t1) ])
-            | _ -> (e1, (s, opE, e2) :: es)
-        | e -> (e, [])
-
-    match loop e with
-    | (_, []) -> None
-    | (e, es) -> Some(e, List.rev es)
 
 let (|AppWithMultilineArgument|_|) e =
     let isMultilineString p =
