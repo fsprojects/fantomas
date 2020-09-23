@@ -198,9 +198,8 @@ let ``should not add newline before = operator after |>`` () =
         false
         """1 |> max 0 = 1"""
         ({ config with
-               MaxInfixOperatorExpression = 10 })
-    |> should equal """1
-|> max 0 = 1
+               MaxInfixOperatorExpression = 15 })
+    |> should equal """1 |> max 0 = 1
 """
 
 [<Test>]
@@ -276,8 +275,7 @@ let watchFiles =
         printfn "after start"
 
         use _ =
-            !!(serverPath </> "*.fs")
-            ++ "*.fsproj" // combines fs and fsproj
+            !!(serverPath </> "*.fs") ++ "*.fsproj" // combines fs and fsproj
             |> ChangeWatcher.run (fun changes ->
                 printfn "FILE CHANGE %A" changes
                 // stopFunc()
@@ -312,7 +310,7 @@ let ``giraffe sample`` () =
 let WebApp = route "/ping" >=> authorized >=> text "pong"
 """
         ({ config with
-               MaxInfixOperatorExpression = 40 })
+               MaxInfixOperatorExpression = 20 })
     |> prepend newline
     |> should equal """
 let WebApp =
@@ -338,7 +336,7 @@ let ``pipe boolean expression`` () =
     |> should equal """
 b
 && c
-|> someLongExpressionThatShouldMoveThePipeToTheNextLine
+   |> someLongExpressionThatShouldMoveThePipeToTheNextLine
 """
 
 [<Test>]
@@ -580,3 +578,92 @@ let r =
 Fooey
 \"\"\" |}
 "
+
+[<Test>]
+let ``simple math`` () =
+    formatSourceString false """let myValue = a + b * c
+"""
+        { config with
+              MaxInfixOperatorExpression = 5 }
+    |> prepend newline
+    |> should equal """
+let myValue =
+    a
+    + b * c
+"""
+
+[<Test>]
+let ``simple math in one line`` () =
+    formatSourceString false """let myValue = a + b * c
+"""
+        { config with
+              MaxInfixOperatorExpression = 50 }
+    |> prepend newline
+    |> should equal """
+let myValue = a + b * c
+"""
+
+[<Test>]
+let ``simple math reversed`` () =
+    formatSourceString false """let myValue = a * b + c
+"""
+        { config with
+              MaxInfixOperatorExpression = 5 }
+    |> prepend newline
+    |> should equal """
+let myValue =
+    a * b
+    + c
+"""
+
+[<Test>]
+let ``multiple sum operators`` () =
+    formatSourceString false """let myValue = a + b * c + d
+"""
+        { config with
+              MaxInfixOperatorExpression = 5 }
+    |> prepend newline
+    |> should equal """
+let myValue =
+    a
+    + b * c
+    + d
+"""
+
+[<Test>]
+let ``nested math sample`` () =
+    formatSourceString false """
+        let dist =
+            aaaaaaaaaaaaaaaaaaaaaaaa
+            * bbbbbbbbbbbbbbbbbbbbbbbbb
+            + (ccccccccccccccccccccccccc
+               * ddddddddddddddddddddddd
+               * eeeeeeeeeeeeeeeeeeeeeee)
+"""  config
+    |> prepend newline
+    |> should equal """
+let dist =
+    aaaaaaaaaaaaaaaaaaaaaaaa
+    * bbbbbbbbbbbbbbbbbbbbbbbbb
+    + (ccccccccccccccccccccccccc
+       * ddddddddddddddddddddddd
+       * eeeeeeeeeeeeeeeeeeeeeee)
+"""
+
+[<Test>]
+let ``split infix operators according to nested structure in AST, 988`` () =
+    formatSourceString false """
+let shouldIncludeRelationship relName =
+    req.Includes |> List.exists (fun path ->
+      path.Length >= currentIncludePath.Length + 1
+      && path |> List.take (currentIncludePath.Length + 1) = currentIncludePath @ [relName]
+    )
+"""  config
+    |> prepend newline
+    |> should equal """
+let shouldIncludeRelationship relName =
+    req.Includes
+    |> List.exists (fun path ->
+        path.Length >= currentIncludePath.Length + 1
+        && path |> List.take (currentIncludePath.Length + 1) = currentIncludePath @ [ relName ])
+"""
