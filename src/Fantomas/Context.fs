@@ -704,8 +704,9 @@ let internal isSmallExpression size (smallExpression: Context -> Context) fallba
     match size with
     | CharacterWidth maxWidth -> isShortExpression maxWidth smallExpression fallbackExpression ctx
     | NumberOfItems (items, maxItems) ->
-        let effectiveMaxWidth = if items > maxItems then 0 else Num.max
-        isShortExpression effectiveMaxWidth smallExpression fallbackExpression ctx
+        if items > maxItems then fallbackExpression ctx else smallExpression ctx
+        // let effectiveMaxWidth = if items > maxItems then 0 else Num.max
+        //isShortExpression effectiveMaxWidth smallExpression fallbackExpression ctx
 
 let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
     shortExpressionWithFallback expr (indent +> sepNln +> expr +> unindent) maxWidth None ctx

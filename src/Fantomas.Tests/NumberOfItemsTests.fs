@@ -1,4 +1,4 @@
-module Fantomas.Tests.LogicalSize
+module Fantomas.Tests.NumberOfItems
 
 open NUnit.Framework
 open FsUnit
@@ -212,6 +212,7 @@ h [
 ]
 """
 
+[<Test>]
 let ``number of items sized Elmish lists with single argument web mode are formatted properly`` () =
     formatSourceString false """
 f [ a; b; c ]
@@ -223,11 +224,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
               SingleArgumentWebMode = true }
     |> prepend newline
     |> should equal """
-f [
-    a
-    b
-    c
-]
+f [ a; b; c ]
 
 g [
     longValueThatIsALotOfCharactersSoooooLong
@@ -239,6 +236,7 @@ h [
 ]
 """
 
+[<Test>]
 let ``number of items sized Elmish lists with single argument web mode and multiline block brackets on same column are formatted properly`` () =
     formatSourceString false """
 f [ a; b; c ]
@@ -251,11 +249,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
               MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should equal """
-f [
-    a
-    b
-    c
-]
+f [ a; b; c ]
 
 g [
     longValueThatIsALotOfCharactersSoooooLong
@@ -266,3 +260,18 @@ h [
     longValueThatIsALotOfCharactersSoooooLong
 ]
 """
+
+[<Test>]
+let ``long expressions with number of items set to 3 will get split on max line length`` () =
+    formatSourceString false """
+[ longValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ]
+    """
+        { config with
+              ArrayOrListMultilineFormatter = NumberOfItems
+              MaxArrayOrListNumberOfItems = 3 }
+    |> prepend newline
+    |> should equal """
+[ longValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLong
+  longValueThatIsALotOfCharactersSoooooLong ]
+"""
+
