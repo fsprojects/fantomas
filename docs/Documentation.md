@@ -498,8 +498,8 @@ let myInstance =
 
 ### fsharp_max_array_or_list_width
 
-Control the maximum width for which lists and arrays should be in one line.
-Default = 40. Requires `fsharp_array_or_list_multiline_formatter` to be
+Control the maximum width for which lists and arrays can be in one line. Default
+= 40. Requires `fsharp_array_or_list_multiline_formatter` to be
 `character_width` to take effect.
 
 `defaultConfig`
@@ -519,8 +519,8 @@ let myArray =
 
 ### fsharp_max_array_or_list_number_of_items
 
-Control the maximum number of elements for which lists and arrays should be in
-one line. Default 1. Requires `fsharp_array_or_list_multiline_formatter` to be
+Control the maximum number of elements for which lists and arrays can be in
+one line. Default = 1. Requires `fsharp_array_or_list_multiline_formatter` to be
 `number_of_items` to take effect.
 
 `defaultConfig`
@@ -547,9 +547,10 @@ let myArray =
 
 Split arrays and lists into multiple lines based on the given condition.
 `character_width` uses character count of the expression, controlled by
-`fsharp_max_array_or_list_width`. `number_of_items` uses the number of elements in
-the array or list, controlled by `fsharp_max_array_or_list_number_of_items`. Default
-`character_width`.
+`fsharp_max_array_or_list_width`. `number_of_items` uses the number of elements
+in the array or list, controlled by `fsharp_max_array_or_list_number_of_items`.
+Default = `character_width`. Note that in either case, list expressions are
+still governed by `max_line_length`.
 
 `defaultConfig`
 
