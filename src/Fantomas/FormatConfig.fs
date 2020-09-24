@@ -23,9 +23,6 @@ type MultilineFormatterType =
         | "number_of_items" -> Some(box NumberOfItems)
         | _ -> None
 
-module Num =
-    let max = Int32.MaxValue
-
 // NOTE: try to keep this list below in sync with the docs (e.g. Documentation.md)
 type FormatConfig =
     { /// Number of spaces for each indentation

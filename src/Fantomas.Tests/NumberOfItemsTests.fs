@@ -262,7 +262,7 @@ h [
 """
 
 [<Test>]
-let ``long expressions with number of items set to 3 will get split on max line length`` () =
+let ``long expressions with number of items set to 3 will get split due to max line length`` () =
     formatSourceString false """
 [ longValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ]
     """
