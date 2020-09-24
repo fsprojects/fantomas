@@ -1221,7 +1221,8 @@ and genExpr astContext synExpr =
             let multilineExpression =
                 ifElse ctx.Config.SingleArgumentWebMode felizExpression elmishExpression
 
-            let size = getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
+            let size =
+                getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
 
             let smallExpression =
                 isSmallExpression size shortExpression multilineExpression
@@ -1288,7 +1289,8 @@ and genExpr astContext synExpr =
                  +> genChildren false)
 
         fun ctx ->
-            let size = getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
+            let size =
+                getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
 
             let smallExpression =
                 isSmallExpression size shortExpression longExpression
@@ -1408,7 +1410,8 @@ and genExpr astContext synExpr =
                || List.exists isIfThenElseWithYieldReturn xs then
                 multilineExpression ctx
             else
-                let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth xs
+                let size =
+                    getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth xs
 
                 isSmallExpression size smallExpression multilineExpression ctx
 
