@@ -29,7 +29,7 @@ type ShortExpressionInfo =
 
 type Size =
     | CharacterWidth of maxWidth: Num
-    | NumberOfItems of number: Num * maxNumber: Num
+    | NumberOfItems of items: Num * maxItems: Num
 
 type WriteModelMode =
     | Standard
@@ -700,19 +700,19 @@ let private shortExpressionWithFallback (shortExpression: Context -> Context)
 let internal isShortExpression maxWidth (shortExpression: Context -> Context) (fallbackExpression) (ctx: Context) =
     shortExpressionWithFallback shortExpression fallbackExpression maxWidth None ctx
 
-let internal isSmallExpression size (smallExpression: Context -> Context) fallbackExpression (ctx: Context) =
-    match size with
-    | CharacterWidth maxWidth -> isShortExpression maxWidth smallExpression fallbackExpression ctx
-    | NumberOfItems (items, maxItems) ->
-        if items > maxItems then fallbackExpression ctx else smallExpression ctx
-        // let effectiveMaxWidth = if items > maxItems then 0 else Num.max
-        //isShortExpression effectiveMaxWidth smallExpression fallbackExpression ctx
-
 let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
     shortExpressionWithFallback expr (indent +> sepNln +> expr +> unindent) maxWidth None ctx
 
 let internal expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
     shortExpressionWithFallback expression fallbackExpression ctx.Config.MaxLineLength (Some 0) ctx
+
+let internal isSmallExpression size (smallExpression: Context -> Context) fallbackExpression (ctx: Context) =
+    match size with
+    | CharacterWidth maxWidth -> isShortExpression maxWidth smallExpression fallbackExpression ctx
+    | NumberOfItems (items, maxItems) ->
+        if items > maxItems
+        then fallbackExpression ctx
+        else expressionFitsOnRestOfLine smallExpression fallbackExpression ctx
 
 /// provide the line and column before and after the leadingExpression to to the continuation expression
 let internal leadingExpressionResult leadingExpression continuationExpression (ctx: Context) =

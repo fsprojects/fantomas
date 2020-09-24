@@ -274,4 +274,3 @@ let ``long expressions with number of items set to 3 will get split on max line 
 [ longValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLong
   longValueThatIsALotOfCharactersSoooooLong ]
 """
-

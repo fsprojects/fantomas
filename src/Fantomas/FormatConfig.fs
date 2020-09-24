@@ -12,12 +12,12 @@ type Num = int
 type MultilineFormatterType =
     | CharacterWidth
     | NumberOfItems
-    static member toConfigString =
+    static member ToConfigString =
         function
         | CharacterWidth -> "character_width"
         | NumberOfItems -> "number_of_items"
 
-    static member ofConfigString =
+    static member OfConfigString =
         function
         | "character_width" -> Some(box CharacterWidth)
         | "number_of_items" -> Some(box NumberOfItems)
