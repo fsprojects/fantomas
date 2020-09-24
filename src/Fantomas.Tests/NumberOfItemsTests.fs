@@ -224,7 +224,11 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
               SingleArgumentWebMode = true }
     |> prepend newline
     |> should equal """
-f [ a; b; c ]
+f [
+    a
+    b
+    c
+]
 
 g [
     longValueThatIsALotOfCharactersSoooooLong
@@ -249,7 +253,11 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
               MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should equal """
-f [ a; b; c ]
+f [
+    a
+    b
+    c
+]
 
 g [
     longValueThatIsALotOfCharactersSoooooLong

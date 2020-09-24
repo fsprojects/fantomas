@@ -52,6 +52,11 @@ type ASTContext =
           IsMemberDefinition = false
           IsInsideDotIndexed = false }
 
+let getListOrArrayExprSize ctx maxWidth xs =
+    match ctx.Config.ArrayOrListMultilineFormatter with
+    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth maxWidth
+    | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length xs, ctx.Config.MaxArrayOrListNumberOfItems)
+
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     match functionOrMethod, arg with
     | SynExpr.TypeApp (e, _, _, _, _, _, _), _ -> addSpaceBeforeParensInFunCall e arg ctx
@@ -1216,7 +1221,12 @@ and genExpr astContext synExpr =
             let multilineExpression =
                 ifElse ctx.Config.SingleArgumentWebMode felizExpression elmishExpression
 
-            isShortExpression ctx.Config.MaxElmishWidth shortExpression multilineExpression ctx
+            let size = getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
+
+            let smallExpression =
+                isSmallExpression size shortExpression multilineExpression
+
+            isShortExpression ctx.Config.MaxElmishWidth smallExpression multilineExpression ctx
 
     | ElmishReactWithChildren ((identifier, _, _), attributes, (isArray, children, childrenRange)) ->
         let genChildren isShort =
@@ -1277,7 +1287,13 @@ and genExpr astContext synExpr =
                  +> sepSpace
                  +> genChildren false)
 
-        fun ctx -> isShortExpression ctx.Config.MaxElmishWidth shortExpression longExpression ctx
+        fun ctx ->
+            let size = getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
+
+            let smallExpression =
+                isSmallExpression size shortExpression longExpression
+
+            isShortExpression ctx.Config.MaxElmishWidth smallExpression longExpression ctx
 
     | SingleExpr (Lazy, e) ->
         // Always add braces when dealing with lazy
@@ -1392,11 +1408,7 @@ and genExpr astContext synExpr =
                || List.exists isIfThenElseWithYieldReturn xs then
                 multilineExpression ctx
             else
-                let size =
-                    match ctx.Config.ArrayOrListMultilineFormatter with
-                    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxArrayOrListWidth
-                    | MultilineFormatterType.NumberOfItems ->
-                        Size.NumberOfItems(List.length xs, ctx.Config.MaxArrayOrListNumberOfItems)
+                let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth xs
 
                 isSmallExpression size smallExpression multilineExpression ctx
 
