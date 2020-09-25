@@ -239,14 +239,14 @@ let private updateTriviaNode (lens: TriviaNodeAssigner -> unit) (triviaNodes: Tr
     //        |> List.mapi (fun idx tn -> if idx = index then lens tn else tn)
     | None -> triviaNodes
 
-let private findBindingThatStartsWith (triviaNodes: TriviaNodeAssigner list) column line =
+let private findNamedPatThatStartsWith (triviaNodes: TriviaNodeAssigner list) column line =
     triviaNodes
     |> List.tryFind (fun t ->
         match t.Type with
-        | MainNode (Binding_) when (t.Range.StartColumn = column
-                                    && t.Range.StartLine = line) -> true
         | MainNode (SynPat_Named) when (t.Range.StartColumn = column
                                         && t.Range.StartLine = line) -> true
+        | MainNode (SynPat_LongIdent) when (t.Range.StartColumn = column
+                                            && t.Range.StartLine = line) -> true
         | _ -> false)
 
 let private findParsedHashOnLineAndEndswith (triviaNodes: TriviaNodeAssigner list) startLine endColumn =
@@ -388,9 +388,13 @@ let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding
         |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(kw))) triviaNodes
 
     | { Item = Keyword ({ Content = keyword }); Range = range } when (keyword = "in") ->
-        // find largest SynExpr right before in range
-        findNodeBeforeLineAndColumn triviaNodes range.StartLine range.StartColumn
-        |> updateTriviaNode (fun tn -> tn.ContentAfter.Add trivia.Item) triviaNodes
+        // find In keyword TriviaNode
+        triviaNodes
+        |> List.tryFind (fun tn ->
+            match tn.Type with
+            | Token (IN, _) -> RangeHelpers.rangeEq range tn.Range
+            | _ -> false)
+        |> updateTriviaNode (fun tn -> tn.ContentItself <- Some trivia.Item) triviaNodes
 
     | { Item = Keyword ({ Content = keyword }); Range = range } when (keyword = "if"
                                                                       || keyword = "then"
@@ -439,7 +443,7 @@ let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some chNode) triviaNodes
 
     | { Item = IdentOperatorAsWord (_) as ifw; Range = range } ->
-        findBindingThatStartsWith triviaNodes range.StartColumn range.StartLine
+        findNamedPatThatStartsWith triviaNodes range.StartColumn range.StartLine
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some ifw) triviaNodes
 
     | { Item = IdentBetweenTicks (_) as iNode; Range = range } ->

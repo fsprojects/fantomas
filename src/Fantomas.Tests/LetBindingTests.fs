@@ -11,7 +11,7 @@ let ``let in should be preserved`` () =
 """
 
 [<Test>]
-let ``multiple let in lines, should remove in`` () =
+let ``multiple let in lines, should keep in`` () =
     let codeSnippet = """
 let f () =
   let x = 1 in   // the "in" keyword is available in F#
@@ -21,13 +21,13 @@ let f () =
 
     formatSourceString false codeSnippet config
     |> should equal """let f () =
-    let x = 1 // the "in" keyword is available in F#
-    let y = 2
+    let x = 1 in // the "in" keyword is available in F#
+    let y = 2 in
     x + y
 """
 
 [<Test>]
-let ``multiple let in lines, should remove in, block comment`` () =
+let ``multiple let in lines, should keep in, block comment`` () =
     let codeSnippet = """
 let f () =
   let x = 1 in   (* the "in" keyword is available in F# *)
@@ -41,13 +41,13 @@ let f () =
         ({ config with
                MaxValueBindingWidth = 50 })
     |> should equal """let f () =
-    let x = 1 (* the "in" keyword is available in F# *)
-    let y = 2
+    let x = 1 in (* the "in" keyword is available in F# *)
+    let y = 2 in
     x + y
 """
 
 [<Test>]
-let ``multiline let in, should remove in`` () =
+let ``multiline let in, should keep in`` () =
     let codeSnippet = """
 let f () =
   let x = 1 in if longIdentifierThatWillForceThisConstructToBeMultiline
@@ -59,7 +59,7 @@ let f () =
     |> prepend newline
     |> should equal """
 let f () =
-    let x = 1
+    let x = 1 in
 
     if longIdentifierThatWillForceThisConstructToBeMultiline
     then x
@@ -78,7 +78,7 @@ let f () =
     |> prepend newline
     |> should equal """
 let f () =
-    let x = 1
+    let x = 1 in
 
     (while true do
         ()
@@ -552,7 +552,9 @@ let ``handle hash directives before equals, 728`` () =
         ()
 
     """ config
-    |> should equal """let Baz (firstParam: string)
+    |> prepend newline
+    |> should equal """
+let Baz (firstParam: string)
 #if DEBUG
         (_: int)
 #else
@@ -972,7 +974,7 @@ let x =
 let ``preserve in keyword via trivia, 340`` () =
     formatSourceString false """
 let x = List.singleton <|
-        let item = "text"
+        let item = "text" in
         item
 """  config
     |> prepend newline

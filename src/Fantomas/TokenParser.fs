@@ -666,7 +666,8 @@ let private tokenNames =
       "WITH"
       "MEMBER"
       "AND_BANG"
-      "FUNCTION" ]
+      "FUNCTION"
+      "IN" ]
 
 let private tokenKinds = [ FSharpTokenCharKind.Operator ]
 
@@ -718,6 +719,7 @@ let internal getFsToken tokenName =
     | "INFIX_STAR_STAR_OP" -> INFIX_STAR_STAR_OP
     | "FUNCTION" -> FUNCTION
     | "LPAREN_STAR_RPAREN" -> LPAREN_STAR_RPAREN
+    | "IN" -> IN
     | _ -> failwithf "was not expecting token %s" tokenName
 
 let getTriviaNodesFromTokens (tokens: Token list) =

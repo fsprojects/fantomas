@@ -404,20 +404,20 @@ and genModuleDecl astContext (node: SynModuleDecl) =
         let sepBAndBs =
             match List.tryHead bs with
             | Some b' ->
-                let r = b'.RangeOfBindingSansRhs
+                let r = b'.RangeOfBindingAndRhs
 
                 sepNln
-                +> sepNlnConsideringTriviaContentBeforeForMainNode Binding_ r
+                +> sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) r
             | None -> id
 
         genLetBinding { astContext with IsFirstChild = true } "let rec " b
         +> sepBAndBs
         +> colEx (fun (b': SynBinding) ->
-            let r = b'.RangeOfBindingSansRhs
+            let r = b'.RangeOfBindingAndRhs
 
             sepNln
-            +> sepNlnConsideringTriviaContentBeforeForMainNode Binding_ r) bs (fun andBinding ->
-               enterNodeFor Binding_ andBinding.RangeOfBindingSansRhs
+            +> sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) r) bs (fun andBinding ->
+               enterNodeFor (synBindingToFsAstType b) andBinding.RangeOfBindingAndRhs
                +> genLetBinding { astContext with IsFirstChild = false } "and " andBinding)
 
     | ModuleAbbrev (s1, s2) -> !- "module " -- s1 +> sepEq +> sepSpace -- s2
@@ -715,7 +715,6 @@ and genLetBinding astContext pref b =
         +> leadingExpressionIsMultiline
             (afterLetKeyword
              +> genPat
-             +> dumpAndContinue
              +> enterNodeTokenByName rangeBetweenBindingPatternAndExpression EQUALS)
                (genExprSepEqPrependType astContext p e (Some(valInfo)))
 
@@ -729,7 +728,7 @@ and genLetBinding astContext pref b =
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     | b -> failwithf "%O isn't a let binding" b
-    +> leaveNodeFor Binding_ b.RangeOfBindingSansRhs
+    +> leaveNodeFor (synBindingToFsAstType b) b.RangeOfBindingAndRhs
 
 and genShortGetProperty astContext (pat: SynPat) e =
     genExprSepEqPrependType astContext pat e None false
@@ -803,10 +802,10 @@ and genMemberBindingList astContext node =
         | [] -> []
         | mb :: rest ->
             let expr = genMemberBinding astContext mb
-            let r = mb.RangeOfBindingSansRhs
+            let r = mb.RangeOfBindingAndRhs
 
             let sepNln =
-                sepNlnConsideringTriviaContentBeforeForMainNode Binding_ r
+                sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType mb) r
 
             (expr, sepNln, r) :: (collectItems rest)
 
@@ -1051,7 +1050,7 @@ and genMemberBinding astContext b =
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     | b -> failwithf "%O isn't a member binding" b
-    |> genTriviaFor Binding_ b.RangeOfBindingSansRhs
+    |> genTriviaFor (synBindingToFsAstType b) b.RangeOfBindingAndRhs
 
 and genMemberFlags astContext (mf: MemberFlags) =
     match mf with
@@ -1523,7 +1522,7 @@ and genExpr astContext synExpr =
                 let prefix =
                     sprintf "%s%s" (if isUse then "use " else "let ") (if isRecursive then "rec " else "")
 
-                enterNodeFor Binding_ binding.RangeOfBindingSansRhs
+                enterNodeFor (synBindingToFsAstType binding) binding.RangeOfBindingAndRhs
                 +> genLetBinding astContext prefix binding
             | LetOrUseBangStatement (isUse, pat, expr, r) ->
                 enterNodeFor SynExpr_LetOrUseBang r // print Trivia before entire LetBang expression
@@ -1541,14 +1540,14 @@ and genExpr astContext synExpr =
 
         let getRangeOfCompExprStatement ces =
             match ces with
-            | LetOrUseStatement (_, _, binding) -> binding.RangeOfBindingSansRhs
+            | LetOrUseStatement (_, _, binding) -> binding.RangeOfBindingAndRhs
             | LetOrUseBangStatement (_, _, _, r) -> r
             | AndBangStatement (_, _, r) -> r
             | OtherStatement expr -> expr.Range
 
         let getSepNln ces r =
             match ces with
-            | LetOrUseStatement _ -> sepNlnConsideringTriviaContentBeforeForMainNode Binding_ r
+            | LetOrUseStatement (_, _, b) -> sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) r
             | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_LetOrUseBang r
             | AndBangStatement _ -> sepNlnConsideringTriviaContentBeforeForToken AND_BANG r
             | OtherStatement e -> sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e) r
@@ -2005,27 +2004,42 @@ and genExpr astContext synExpr =
         genExpr astContext e
         +> genGenericTypeParameters astContext ts
     | LetOrUses (bs, e) ->
-        let isFromAst (ctx: Context) = ctx.Content = String.Empty
+        let inKeyWordTrivia (binding: SynBinding) ctx =
+            let inRange =
+                mkRange "IN" binding.RangeOfBindingAndRhs.End e.Range.Start
+
+            Map.tryFindOrEmptyList IN ctx.TriviaTokenNodes
+            |> TriviaHelpers.``keyword token inside range`` inRange
+            |> List.tryHead
 
         let isInSameLine ctx =
             match bs with
-            | [ _, LetBinding (_, _, _, _, _, p, _, _) ] ->
-                // the `` keyword should be a trivia thing
-                not (isFromAst ctx)
+            | [ _, (LetBinding (_, _, _, _, _, p, _, _) as binding) ] ->
+                Option.isSome (inKeyWordTrivia binding ctx)
                 && p.Range.EndLine = e.Range.StartLine
                 && not (futureNlnCheck (genExpr astContext e) ctx)
             | _ -> false
 
+        let genInKeyword (binding: SynBinding) (ctx: Context) =
+            match inKeyWordTrivia binding ctx with
+            | Some (_, tn) ->
+                (printContentBefore tn
+                 +> !- " in "
+                 +> printContentAfter tn) ctx
+            | None -> sepNone ctx
+
         fun ctx ->
             if isInSameLine ctx then
+                // short expression with in keyword
+                // f.ex. let a in ()
                 atCurrentColumn
-                    (col sepNone bs (fun (p, x) ->
-                         genLetBinding
-                             { astContext with
-                                   IsFirstChild = p <> "and" }
-                             p
-                             x)
-                     -- " in "
+                    (optSingle (fun (p, x) ->
+                        genLetBinding
+                            { astContext with
+                                  IsFirstChild = p <> "and" }
+                            p
+                            x
+                        +> genInKeyword x) (List.tryHead bs)
                      +> genExpr astContext e)
                     ctx
             else
@@ -2033,17 +2047,18 @@ and genExpr astContext synExpr =
                     bs
                     |> List.map (fun (p, x) ->
                         let expr =
-                            enterNodeFor Binding_ x.RangeOfBindingSansRhs
+                            enterNodeFor (synBindingToFsAstType x) x.RangeOfBindingAndRhs
                             +> genLetBinding
                                 { astContext with
                                       IsFirstChild = p <> "and" }
                                    p
                                    x
+                            +> genInKeyword x
 
-                        let range = x.RangeOfBindingSansRhs
+                        let range = x.RangeOfBindingAndRhs
 
                         let sepNln =
-                            sepNlnConsideringTriviaContentBeforeForMainNode Binding_ range
+                            sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType x) range
 
                         expr, sepNln, range)
 
@@ -2110,7 +2125,7 @@ and genExpr astContext synExpr =
 
                 let fsAstType, r =
                     match e with
-                    | LetOrUses ((_, fb) :: _, _) -> Binding_, fb.RangeOfBindingSansRhs
+                    | LetOrUses ((_, fb) :: _, _) -> (synBindingToFsAstType fb), fb.RangeOfBindingAndRhs
                     | _ -> synExprToFsAstType e, e.Range
 
                 let sepNln =
@@ -4560,11 +4575,7 @@ and infixOperatorFromTrivia range fallback (ctx: Context) =
 
     let isValidIdent x = Regex.Match(x, validIdentRegex).Success
 
-    TriviaHelpers.getNodesForTypes
-        [ SynPat_LongIdent
-          SynPat_Named
-          Binding_ ]
-        ctx.TriviaMainNodes
+    TriviaHelpers.getNodesForTypes [ SynPat_LongIdent; SynPat_Named ] ctx.TriviaMainNodes
     |> List.choose (fun t ->
         match t.Range = range with
         | true ->
