@@ -20,7 +20,7 @@ let inline private isSynAnonModule (node: TriviaNodeAssigner) =
 
 let isMainNode (node: TriviaNode) =
     match node.Type with
-    | MainNode (_) -> true
+    | MainNode _ -> true
     | _ -> false
 
 let inline isMainNodeFor nodeType (node: TriviaNodeAssigner) =
@@ -30,7 +30,7 @@ let inline isMainNodeFor nodeType (node: TriviaNodeAssigner) =
 
 let isToken (node: TriviaNode) =
     match node.Type with
-    | Token (_) -> true
+    | Token _ -> true
     | _ -> false
 
 let rec private flattenNodeToList (node: Node) =
@@ -299,14 +299,14 @@ let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding
                                   trivia
                                   =
     match trivia with
-    | { Item = Comment (LineCommentOnSingleLine (_)) as comment; Range = range } when (commentIsAfterLastTriviaNode
+    | { Item = Comment (LineCommentOnSingleLine _) as comment; Range = range } when (commentIsAfterLastTriviaNode
                                                                                            triviaNodes
                                                                                            range) ->
         // Comment on is on its own line after all Trivia nodes, most likely at the end of a module
         findLastNode triviaNodes
         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(comment)) triviaNodes
 
-    | { Item = Comment (LineCommentOnSingleLine (_) as comment); Range = range } ->
+    | { Item = Comment (LineCommentOnSingleLine _ as comment); Range = range } ->
         match triviaBetweenAttributeAndParentBinding triviaNodes range.StartLine with
         | Some _ as node -> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(comment))) triviaNodes node
         | None ->
@@ -338,7 +338,7 @@ let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding
             |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, false)))) triviaNodes
         | None, None -> triviaNodes
 
-    | { Item = Comment (LineCommentAfterSourceCode (_) as comment); Range = range } ->
+    | { Item = Comment (LineCommentAfterSourceCode _ as comment); Range = range } ->
         findLastNodeOnLine triviaNodes range.EndLine
         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(comment))) triviaNodes
 
@@ -421,23 +421,23 @@ let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding
                     let directive = Directive dc
                     tn.ContentAfter.Add(directive)) triviaNodes
 
-    | { Item = StringContent (_) as siNode; Range = range } ->
+    | { Item = StringContent _ as siNode; Range = range } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some siNode) triviaNodes
 
-    | { Item = Number (_) as number; Range = range } ->
+    | { Item = Number _ as number; Range = range } ->
         findConstNodeOnLineAndColumn triviaNodes range
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some number) triviaNodes
 
-    | { Item = CharContent (_) as chNode; Range = range } ->
+    | { Item = CharContent _ as chNode; Range = range } ->
         findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some chNode) triviaNodes
 
-    | { Item = IdentOperatorAsWord (_) as ifw; Range = range } ->
+    | { Item = IdentOperatorAsWord _ as ifw; Range = range } ->
         findBindingThatStartsWith triviaNodes range.StartColumn range.StartLine
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some ifw) triviaNodes
 
-    | { Item = IdentBetweenTicks (_) as iNode; Range = range } ->
+    | { Item = IdentBetweenTicks _ as iNode; Range = range } ->
         triviaNodes
         |> List.tryFind (fun t ->
             let isIdent =

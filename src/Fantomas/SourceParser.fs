@@ -953,10 +953,10 @@ let rec collectComputationExpressionStatements e: ComputationExpressionStatement
 /// Matches if the SynExpr has some or of computation expression member call inside.
 let rec (|CompExprBody|_|) expr =
     match expr with
-    | SynExpr.LetOrUse (_, _, _, CompExprBody (_), _) -> Some expr
+    | SynExpr.LetOrUse (_, _, _, CompExprBody _, _) -> Some expr
     | SynExpr.LetOrUseBang _ -> Some expr
-    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn (_), _) -> Some expr
-    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse (_), _) -> Some expr
+    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn _, _) -> Some expr
+    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse _, _) -> Some expr
     | SynExpr.Sequential (_, _, SynExpr.DoBang _, SynExpr.LetOrUseBang _, _) -> Some expr
     | _ -> None
 
@@ -1622,19 +1622,19 @@ let (|ElmishReactWithoutChildren|_|) e =
 
 let (|ElmishReactWithChildren|_|) e =
     match e with
-    | App (OptVar (ident), [ ArrayOrList (_) as attributes; ArrayOrList (isArray, children, _) as childrenNode ]) ->
+    | App (OptVar (ident), [ ArrayOrList _ as attributes; ArrayOrList (isArray, children, _) as childrenNode ]) ->
         Some(ident, attributes, (isArray, children, childrenNode.Range))
     | App (OptVar (ident),
-           [ ArrayOrListOfSeqExpr (_) as attributes;
+           [ ArrayOrListOfSeqExpr _ as attributes;
              ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as childrenNode ]) ->
         Some(ident, attributes, (isArray, children, childrenNode.Range))
     | App (OptVar (ident),
-           [ ArrayOrListOfSeqExpr (_) as attributes;
+           [ ArrayOrListOfSeqExpr _ as attributes;
              ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ])
     | App (OptVar (ident),
-           [ ArrayOrList (_) as attributes; ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ]) ->
+           [ ArrayOrList _ as attributes; ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ]) ->
         Some(ident, attributes, (isArray, [ singleChild ], childrenNode.Range))
-    | App (OptVar (ident), [ ArrayOrListOfSeqExpr (_) as attributes; ArrayOrList (isArray, [], _) as childrenNode ]) ->
+    | App (OptVar (ident), [ ArrayOrListOfSeqExpr _ as attributes; ArrayOrList (isArray, [], _) as childrenNode ]) ->
         Some(ident, attributes, (isArray, [], childrenNode.Range))
 
     | _ -> None
