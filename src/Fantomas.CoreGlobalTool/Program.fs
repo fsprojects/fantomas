@@ -211,10 +211,9 @@ let runCheckCommand (recurse: bool) (inputPath: InputPath): int =
 let main argv =
     let errorHandler =
         ProcessExiter
-            (colorizer =
-                function
-                | ErrorCode.HelpText -> None
-                | _ -> Some ConsoleColor.Red)
+            (colorizer = function
+            | ErrorCode.HelpText -> None
+            | _ -> Some ConsoleColor.Red)
 
     let parser =
         ArgumentParser.Create<Arguments>(programName = "dotnet fantomas", errorHandler = errorHandler)

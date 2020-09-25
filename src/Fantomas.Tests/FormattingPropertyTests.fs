@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.FormattingPropertyTests
+module Fantomas.Tests.FormattingPropertyTests
 
 open NUnit.Framework
 open System
@@ -535,7 +535,9 @@ let fromExprRange (originalSource: string) (expr: SynExpr) =
     let r = expr.Range
 
     let source =
-        originalSource.Replace("\r\n", "\n").Replace("\r", "\n")
+        originalSource
+            .Replace("\r\n", "\n")
+            .Replace("\r", "\n")
 
     let positions =
         source.Split('\n')

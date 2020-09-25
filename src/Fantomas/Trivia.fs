@@ -134,8 +134,7 @@ let private findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner list) line co
         |> List.tryFindBack (fun tn ->
             let range = tn.Range
 
-            range.StartLine
-            <= line
+            range.StartLine <= line
             && range.StartColumn <= column)
 
     match node with
@@ -270,9 +269,7 @@ let private triviaBetweenAttributeAndParentBinding (triviaNodes: TriviaNodeAssig
     triviaNodes
     |> List.tryFind (fun tn ->
         match tn.AttributeLinesBetweenParent with
-        | Some linesBetween when (linesBetween
-                                  + tn.Range.EndLine
-                                  >= line
+        | Some linesBetween when (linesBetween + tn.Range.EndLine >= line
                                   && line > tn.Range.EndLine) -> true
         | _ -> false)
 
@@ -366,10 +363,8 @@ let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding
         findMemberDefnMemberNodeOnLine triviaNodes range.StartLine
         |> updateTriviaNode (fun tn ->
             match tn.Type, tn.ContentItself with
-            | MainNode (SynMemberSig_Member), Some (Keyword ({ Content = existingKeywordContent } as token)) when existingKeywordContent =
-                                                                                                                      "abstract"
-                                                                                                                  && keyword =
-                                                                                                                      "member" ->
+            | MainNode (SynMemberSig_Member), Some (Keyword ({ Content = existingKeywordContent } as token)) when existingKeywordContent = "abstract"
+                                                                                                                  && keyword = "member" ->
                 // Combine the two tokens to appear as one
                 let tokenInfo =
                     { token.TokenInfo with
@@ -504,8 +499,7 @@ let collectTrivia tokens (ast: ParsedInput) =
         TokenParser.getTriviaNodesFromTokens tokens
 
     let triviaNodes =
-        triviaNodesFromAST
-        @ triviaNodesFromTokens
+        triviaNodesFromAST @ triviaNodesFromTokens
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
     let hasAnonModulesAndOpenStatements =

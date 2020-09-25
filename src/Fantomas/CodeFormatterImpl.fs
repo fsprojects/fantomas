@@ -52,7 +52,7 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
         TokenParser.getOptimizedDefinesSets source
         @ (TokenParser.getDefines source
            |> List.map List.singleton)
-        @ [ [] ]
+          @ [ [] ]
         |> List.distinct
 
     allDefineOptions
@@ -396,7 +396,7 @@ let formatWith ast defines formatContext config =
     // Sometimes F# parser gives a partial AST for incorrect input
     if input.IsSome
        && String.IsNullOrWhiteSpace normalizedSourceCode
-       <> String.IsNullOrWhiteSpace formattedSourceCode then
+          <> String.IsNullOrWhiteSpace formattedSourceCode then
         raise
         <| FormatException
             "Incomplete code fragment which is most likely due to parsing errors or the use of F# constructs newer than supported."
@@ -449,8 +449,7 @@ let makeRange fileName startLine startCol endLine endCol =
 
 /// Get first non-whitespace line
 let rec getStartLineIndex (lines: _ []) i =
-    if i = lines.Length
-       - 1
+    if i = lines.Length - 1
        || not <| String.IsNullOrWhiteSpace(lines.[i]) then
         i
     else
@@ -464,8 +463,7 @@ let rec getEndLineIndex (lines: _ []) i =
         getEndLineIndex lines (i - 1)
 
 let isSignificantToken (tok: FSharpTokenInfo) =
-    tok.CharClass
-    <> FSharpTokenCharKind.WhiteSpace
+    tok.CharClass <> FSharpTokenCharKind.WhiteSpace
     && tok.CharClass <> FSharpTokenCharKind.LineComment
     && tok.CharClass <> FSharpTokenCharKind.Comment
     && tok.TokenName <> "STRING_TEXT"
@@ -474,8 +472,7 @@ let isSignificantToken (tok: FSharpTokenInfo) =
 let rec getStartCol (r: range) (tokenizer: FSharpLineTokenizer) lexState =
     match tokenizer.ScanToken(!lexState) with
     | Some (tok), state ->
-        if tok.RightColumn
-           >= r.StartColumn
+        if tok.RightColumn >= r.StartColumn
            && isSignificantToken tok then
             tok.LeftColumn
         else
@@ -489,8 +486,7 @@ let rec getEndCol (r: range) (tokenizer: FSharpLineTokenizer) lexState =
     | Some (tok), state ->
         Debug.WriteLine("End token: {0}", sprintf "%A" tok |> box)
 
-        if tok.RightColumn
-           >= r.EndColumn
+        if tok.RightColumn >= r.EndColumn
            && isSignificantToken tok then
             tok.RightColumn
         else
@@ -619,10 +615,9 @@ let private formatRange (checker: FSharpChecker)
             // If the input is not inline, the output should not be inline as well
             if sourceCode.EndsWith("\n")
                && not
-               <| formattedSourceCode.EndsWith(Environment.NewLine) then
+                  <| formattedSourceCode.EndsWith(Environment.NewLine) then
                 return formattedSourceCode + Environment.NewLine
-            elif not
-                 <| sourceCode.EndsWith("\n")
+            elif not <| sourceCode.EndsWith("\n")
                  && formattedSourceCode.EndsWith(Environment.NewLine) then
                 return formattedSourceCode.TrimEnd('\r', '\n')
             else
@@ -718,16 +713,14 @@ let formatSelection (checker: FSharpChecker)
         let line =
             lines.[contentRange.StartLine - 1].[contentRange.StartColumn..]
 
-        contentRange.StartColumn
-        + line.Length
+        contentRange.StartColumn + line.Length
         - line.TrimStart().Length
 
     let endCol =
         let line =
             lines.[contentRange.EndLine - 1].[..contentRange.EndColumn]
 
-        contentRange.EndColumn
-        - line.Length
+        contentRange.EndColumn - line.Length
         + line.TrimEnd().Length
 
     let modifiedRange =
@@ -749,13 +742,12 @@ let formatSelection (checker: FSharpChecker)
             sourceCode.[start..newStart - 1].TrimEnd('\r')
 
         let post =
-            if newFinish
-               + 1
-               >= sourceCode.Length
+            if newFinish + 1 >= sourceCode.Length
                || newFinish >= finish then
                 String.Empty
             else
-                sourceCode.[newFinish + 1..finish].Replace("\r", "\n")
+                sourceCode.[newFinish + 1..finish]
+                    .Replace("\r", "\n")
 
         Debug.WriteLine
             ("Original index: {0} --> modified index: {1}",
