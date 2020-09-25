@@ -300,8 +300,8 @@ let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding
                                   =
     match trivia with
     | { Item = Comment (LineCommentOnSingleLine _) as comment; Range = range } when (commentIsAfterLastTriviaNode
-                                                                                           triviaNodes
-                                                                                           range) ->
+                                                                                         triviaNodes
+                                                                                         range) ->
         // Comment on is on its own line after all Trivia nodes, most likely at the end of a module
         findLastNode triviaNodes
         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(comment)) triviaNodes
