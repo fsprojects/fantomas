@@ -519,3 +519,43 @@ type t =
     | Beta of (unit -> unit) /// comment is gone
     | Alpha of bool /// comment stays
 """
+
+[<Test>]
+let ``union type with static member, 1154`` () =
+    formatSourceString false """
+type CardValue =
+    | Basic of int
+    | Jack
+    | Knight
+    | Queen
+    | King
+    static member allWithKnight =
+        [
+            for n in 1 .. 10 do
+                yield Basic n
+            yield Jack
+            yield Knight
+            yield Queen
+            yield King
+        ]
+"""
+        { config with
+              MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should equal """
+type CardValue =
+    | Basic of int
+    | Jack
+    | Knight
+    | Queen
+    | King
+    static member allWithKnight =
+        [
+            for n in 1 .. 10 do
+                yield Basic n
+            yield Jack
+            yield Knight
+            yield Queen
+            yield King
+        ]
+"""
