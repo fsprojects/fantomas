@@ -1146,13 +1146,41 @@ and genAnonRecordFieldName astContext (AnonRecordFieldName (s, e)) =
     !-s +> sepEq +> expr
 
 and genTuple astContext es =
-    let f =
-        addParenForTupleWhen (genExpr astContext)
+    let genExpr e =
+        let expr e =
+            match e with
+            | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
+                genNamedArgumentExpr astContext operatorExpr e1 e2
+            | _ -> genExpr astContext e
 
-    let shortExpression = col sepComma es f
-    let longExpression = col (sepComma +> sepNln) es f
+        addParenForTupleWhen expr e
+
+    let shortExpression = col sepComma es genExpr
+    let longExpression = col (sepComma +> sepNln) es genExpr
 
     atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
+
+and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 =
+    let short =
+        genExpr astContext e1
+        +> sepSpace
+        +> genInfixOperator "=" operatorExpr
+        +> sepSpace
+        +> genExpr astContext e2
+
+    match e2 with
+    | MultilineString _ -> short
+    | _ ->
+        let long =
+            genExpr astContext e1
+            +> sepSpace
+            +> genInfixOperator "=" operatorExpr
+            +> indent
+            +> sepNln
+            +> genExpr astContext e2
+            +> unindent
+
+        expressionFitsOnRestOfLine short long
 
 and genExpr astContext synExpr =
     let appNlnFun e =
@@ -1346,31 +1374,6 @@ and genExpr astContext synExpr =
         genExpr astContext e
         +> sepColon
         +> genType astContext false t
-    | TupleWithInfixEqualsApps es ->
-        let expr (e1, opE, e2) =
-            let shortExpr =
-                genExpr astContext e1
-                +> sepSpace
-                +> genInfixOperator "=" opE
-                +> sepSpace
-                +> genExpr astContext e2
-
-            let longExpr =
-                genExpr astContext e1
-                +> sepSpace
-                +> genInfixOperator "=" opE
-                +> indent
-                +> sepNln
-                +> genExpr astContext e2
-                +> unindent
-
-            expressionFitsOnRestOfLine shortExpr longExpr
-
-        let shortExpression = col sepComma es expr
-        let longExpression = col (sepComma +> sepNln) es expr
-
-        atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
-
     | Tuple es -> genTuple astContext es
     | StructTuple es ->
         !- "struct "
@@ -1709,6 +1712,10 @@ and genExpr astContext synExpr =
                           IsInsideDotGet = false }
                      e
                  +> indentIfNeeded sepNone)
+            +> sepCloseTFor rpr
+        | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
+            sepOpenTFor (Some lpr)
+            +> genNamedArgumentExpr astContext operatorExpr e1 e2
             +> sepCloseTFor rpr
         | _ ->
             // Parentheses nullify effects of no space inside DotGet
