@@ -1034,3 +1034,30 @@ let x =
            else
                false
 """
+
+[<Test>]
+let ``in keyword in short boolean expression, 1032`` () =
+    formatSourceString false """
+let internal sepSpace =
+    // ignore multiple spaces, space on start of file, after newline
+    // TODO: this is inefficient - maybe remember last char written?
+    fun (ctx: Context) ->
+        if (not ctx.WriterInitModel.IsDummy && let s = dump ctx in s = "" || s.EndsWith " " || s.EndsWith Environment.NewLine) then ctx
+        else (!- " ") ctx
+"""  config
+    |> prepend newline
+    |> should equal """
+let internal sepSpace =
+    // ignore multiple spaces, space on start of file, after newline
+    // TODO: this is inefficient - maybe remember last char written?
+    fun (ctx: Context) ->
+        if (not ctx.WriterInitModel.IsDummy
+            && let s = dump ctx in
+
+               s = ""
+               || s.EndsWith " "
+               || s.EndsWith Environment.NewLine) then
+            ctx
+        else
+            (!- " ") ctx
+"""
