@@ -835,22 +835,6 @@ let (|SameInfixApps|_|) e =
         | _ -> None
     | _ -> None
 
-let (|TupleWithInfixEqualsApps|_|) e =
-    let isEqualInfix =
-        function
-        | InfixApp ("=", _, _, _) -> true
-        | _ -> false
-
-    match e with
-    | Tuple es when (List.forall isEqualInfix es) ->
-        es
-        |> List.map (fun e ->
-            match e with
-            | InfixApp ("=", opE, e1, e2) -> e1, opE, e2
-            | _ -> failwith "should not be possible")
-        |> Some
-    | _ -> None
-
 let (|TernaryApp|_|) =
     function
     | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
