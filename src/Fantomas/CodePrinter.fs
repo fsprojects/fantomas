@@ -58,9 +58,9 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     | SynExpr.Paren _, _ -> true
     | UppercaseSynExpr, ConstExpr (Const "()", _) -> ctx.Config.SpaceBeforeUppercaseInvocation
     | LowercaseSynExpr, ConstExpr (Const "()", _) -> ctx.Config.SpaceBeforeLowercaseInvocation
-    | SynExpr.Ident (_), SynExpr.Ident (_) -> true
-    | UppercaseSynExpr, Paren (_) -> ctx.Config.SpaceBeforeUppercaseInvocation
-    | LowercaseSynExpr, Paren (_) -> ctx.Config.SpaceBeforeLowercaseInvocation
+    | SynExpr.Ident _, SynExpr.Ident _ -> true
+    | UppercaseSynExpr, Paren _ -> ctx.Config.SpaceBeforeUppercaseInvocation
+    | LowercaseSynExpr, Paren _ -> ctx.Config.SpaceBeforeLowercaseInvocation
     | _ -> true
 
 let addSpaceBeforeParensInFunDef (astContext: ASTContext) (functionOrMethod: string) args (ctx: Context) =
@@ -70,7 +70,7 @@ let addSpaceBeforeParensInFunDef (astContext: ASTContext) (functionOrMethod: str
 
     match functionOrMethod, args with
     | "new", _ -> false
-    | _, PatParen (_) ->
+    | _, PatParen _ ->
         if astContext.IsMemberDefinition then ctx.Config.SpaceBeforeMember else ctx.Config.SpaceBeforeParameter
     | (_: string), _ -> not isLastPartUppercase
     | _ -> true
@@ -367,8 +367,8 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                         TriviaHelpers.``has content after after that matches`` (fun tn ->
                             RangeHelpers.rangeEq tn.Range a.Range) (function
                             | Newline
-                            | Comment (LineCommentOnSingleLine (_))
-                            | Directive (_) -> true
+                            | Comment (LineCommentOnSingleLine _)
+                            | Directive _ -> true
                             | _ -> false) (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaMainNodes)
 
                     (hasContentAfter, prevExpr +> expr)) (true, sepNone) ats
@@ -542,9 +542,9 @@ and genAttributes astContext (ats: SynAttributes) =
     |> List.fold (fun acc a (ctx: Context) ->
         let dontAddNewline =
             TriviaHelpers.``has content after that ends with`` (fun t -> RangeHelpers.rangeEq t.Range a.Range) (function
-                | Directive (_)
+                | Directive _
                 | Newline
-                | Comment (LineCommentOnSingleLine (_)) -> true
+                | Comment (LineCommentOnSingleLine _) -> true
                 | _ -> false) (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaMainNodes)
 
         let chain =
@@ -605,7 +605,7 @@ and genExprSepEqPrependType astContext
     | TypedExpr (Typed, e, t) ->
         let addExtraSpaceBeforeGenericType =
             match pat with
-            | SynPat.LongIdent (_, _, Some (SynValTyparDecls (_)), _, _, _) -> addSpaceAfterGenericConstructBeforeColon
+            | SynPat.LongIdent (_, _, Some (SynValTyparDecls _), _, _, _) -> addSpaceAfterGenericConstructBeforeColon
             | _ -> sepNone
 
         let genCommentBeforeColon =
@@ -632,7 +632,7 @@ and genExprSepEqPrependType astContext
     | e ->
         let genE =
             match e with
-            | MultilineString (_)
+            | MultilineString _
             | _ when (TriviaHelpers.``has content itself that is multiline string``
                           e.Range
                           (Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes)) -> genExpr astContext e
@@ -918,8 +918,8 @@ and genMemberBinding astContext b =
 
         let isSingleTuple =
             match p with
-            | PatLongIdent (_, _, [ _, PatParen (PatTuple (_)) ], _)
-            | PatLongIdent (_, _, [ _, PatParen (PatNamed (_)) ], _) -> true
+            | PatLongIdent (_, _, [ _, PatParen (PatTuple _) ], _)
+            | PatLongIdent (_, _, [ _, PatParen (PatNamed _) ], _) -> true
             | _ -> false
 
         let genName, genParameters = genNameAndParameters p
@@ -1727,7 +1727,7 @@ and genExpr astContext synExpr =
     // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
     | App (Var "?", e :: es) ->
         match es with
-        | SynExpr.Const (SynConst.String (_), _) :: _ ->
+        | SynExpr.Const (SynConst.String _, _) :: _ ->
             genExpr astContext e
             -- "?"
             +> col sepSpace es (genExpr astContext)
@@ -1765,7 +1765,7 @@ and genExpr astContext synExpr =
     | PrefixApp (s, e) ->
         let extraSpaceBeforeString =
             match e with
-            | String (_) -> sepSpace
+            | String _ -> sepSpace
             | _ -> sepNone
 
         !-s
@@ -1938,8 +1938,8 @@ and genExpr astContext synExpr =
                          let expr =
                              if astContext.IsInsideDotGet then
                                  match e1, e2 with
-                                 | _, Paren (_, App (_), _)
-                                 | _, Paren (_, DotGet (App (_), _), _)
+                                 | _, Paren (_, App _, _)
+                                 | _, Paren (_, DotGet (App _, _), _)
                                  | TypeApp _, Paren (_, Tuple _, _)
                                  | _, ConstExpr (SynConst.Unit, _) -> genExpr astContext e2
                                  | _ -> appNlnFun e2 (genExpr astContext e2)
@@ -1982,7 +1982,7 @@ and genExpr astContext synExpr =
 
         let hasThreeOrMoreLambdas =
             List.filter (function
-                | Paren (_, Lambda (_), _) -> true
+                | Paren (_, Lambda _, _) -> true
                 | _ -> false) es
             |> List.length
             |> fun l -> l >= 3
@@ -1990,8 +1990,8 @@ and genExpr astContext synExpr =
         if List.exists (function
             | Lambda _
             | MatchLambda _
-            | Paren (_, Lambda (_), _)
-            | Paren (_, MatchLambda (_), _)
+            | Paren (_, Lambda _, _)
+            | Paren (_, MatchLambda _, _)
             | MultilineString _
             | CompExpr _ -> true
             | _ -> false) es
@@ -2087,7 +2087,7 @@ and genExpr astContext synExpr =
             +> kw WITH !+~ "with"
 
         match cs with
-        | [ SynMatchClause.Clause (SynPat.Or (_), _, _, _, _) ] ->
+        | [ SynMatchClause.Clause (SynPat.Or _, _, _, _, _) ] ->
             atCurrentColumn
                 (prefix
                  +> indentOnWith
@@ -2147,7 +2147,7 @@ and genExpr astContext synExpr =
                         mkRange "correctedRange" tn.Range.Start (mkPos tn.Range.EndLine (tn.Range.EndColumn + 1))
 
                     RangeHelpers.rangeEndEq correctedRange mIfToThen) (function
-                    | Comment (LineCommentAfterSourceCode (_)) -> true
+                    | Comment (LineCommentAfterSourceCode _) -> true
                     | _ -> false) (Map.tryFindOrEmptyList THEN ctx.TriviaTokenNodes)
 
             let thenExpr = tokN mIfToThen THEN
@@ -2226,12 +2226,12 @@ and genExpr astContext synExpr =
             let commentAfterKeyword keyword rangePredicate (ctx: Context) =
                 (Map.tryFindOrEmptyList keyword ctx.TriviaTokenNodes)
                 |> TriviaHelpers.``has content after after that matches`` (fun t -> rangePredicate t.Range) (function
-                       | Comment (LineCommentAfterSourceCode (_)) -> true
+                       | Comment (LineCommentAfterSourceCode _) -> true
                        | _ -> false)
 
             let hasCommentAfterBoolExpr =
                 TriviaHelpers.``has content after after that matches`` (fun tn -> RangeHelpers.rangeEq tn.Range e1.Range) (function
-                    | Comment (LineCommentAfterSourceCode (_)) -> true
+                    | Comment (LineCommentAfterSourceCode _) -> true
                     | _ -> false) (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
 
             let hasCommentAfterIfKeyword =
@@ -2239,7 +2239,7 @@ and genExpr astContext synExpr =
 
             let ``has line comment after source code for range`` range =
                 TriviaHelpers.``has content after after that matches`` (fun tn -> RangeHelpers.rangeEq tn.Range range) (function
-                    | Comment (LineCommentAfterSourceCode (_)) -> true
+                    | Comment (LineCommentAfterSourceCode _) -> true
                     | _ -> false) (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
 
             let hasCommentAfterIfBranchExpr =
@@ -2275,7 +2275,7 @@ and genExpr astContext synExpr =
                 let hasCommentAfterBoolExpr =
                     TriviaHelpers.``has content after after that matches`` (fun tn ->
                         RangeHelpers.rangeEq tn.Range elf1.Range) (function
-                        | Comment (LineCommentAfterSourceCode (_)) -> true
+                        | Comment (LineCommentAfterSourceCode _) -> true
                         | _ -> false)
                         (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
 
@@ -2345,7 +2345,7 @@ and genExpr astContext synExpr =
                 let hasCommentAfterBoolExpr =
                     TriviaHelpers.``has content after after that matches`` (fun tn ->
                         RangeHelpers.rangeEq tn.Range elf1.Range) (function
-                        | Comment (LineCommentAfterSourceCode (_)) -> true
+                        | Comment (LineCommentAfterSourceCode _) -> true
                         | _ -> false)
                         (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
 
@@ -4337,7 +4337,7 @@ and genPat astContext pat =
         +> sepCloseS
     | PatConst (c, r) -> genConst c r
     | PatIsInst (TApp (_, [ _ ], _) as t)
-    | PatIsInst (TArray (_) as t) ->
+    | PatIsInst (TArray _ as t) ->
         // special case for things like ":? (int seq) ->"
         !- ":? "
         +> sepOpenT
@@ -4386,7 +4386,7 @@ and genPatWithReturnType ao s ps tpso (t: SynType option) (astContext: ASTContex
                     ctx
                 else
                     match ps with
-                    | [ (_, PatTuple (_)) ] -> ctx
+                    | [ (_, PatTuple _) ] -> ctx
                     | _ -> sepNln ctx
 
             genReturnType, newline
@@ -4444,21 +4444,21 @@ and genConst (c: SynConst) (r: range) =
         +> !- ")"
         +> leaveNodeTokenByName r RPAREN
     | SynConst.Bool (b) -> !-(if b then "true" else "false")
-    | SynConst.Byte (_)
-    | SynConst.SByte (_)
-    | SynConst.Int16 (_)
-    | SynConst.Int32 (_)
-    | SynConst.Int64 (_)
-    | SynConst.UInt16 (_)
-    | SynConst.UInt16s (_)
-    | SynConst.UInt32 (_)
-    | SynConst.UInt64 (_)
-    | SynConst.Double (_)
-    | SynConst.Single (_)
-    | SynConst.Decimal (_)
-    | SynConst.IntPtr (_)
-    | SynConst.UInt64 (_)
-    | SynConst.UIntPtr (_)
+    | SynConst.Byte _
+    | SynConst.SByte _
+    | SynConst.Int16 _
+    | SynConst.Int32 _
+    | SynConst.Int64 _
+    | SynConst.UInt16 _
+    | SynConst.UInt16s _
+    | SynConst.UInt32 _
+    | SynConst.UInt64 _
+    | SynConst.Double _
+    | SynConst.Single _
+    | SynConst.Decimal _
+    | SynConst.IntPtr _
+    | SynConst.UInt64 _
+    | SynConst.UIntPtr _
     | SynConst.UserNum _ -> genConstNumber c r
     | SynConst.String (s, _) ->
         fun (ctx: Context) ->

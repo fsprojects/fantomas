@@ -120,7 +120,7 @@ let processSourceString isFsiFile s (tw: Choice<TextWriter, string>) config =
 
         match formatted with
         | FakeHelpers.FormatResult.Formatted (_, formattedContent) -> formattedContent |> writeResult
-        | FakeHelpers.FormatResult.Unchanged (_) -> s |> writeResult
+        | FakeHelpers.FormatResult.Unchanged _ -> s |> writeResult
         | FakeHelpers.IgnoredFile file -> printfn "'%s' was ignored" file
         | FakeHelpers.FormatResult.Error (_, ex) -> raise <| ex
     }
@@ -133,7 +133,7 @@ let processSourceFile inFile (tw: TextWriter) =
 
         match formatted with
         | FakeHelpers.FormatResult.Formatted (_, formattedContent) -> tw.Write(formattedContent)
-        | FakeHelpers.FormatResult.Unchanged (_) -> inFile |> File.ReadAllText |> tw.Write
+        | FakeHelpers.FormatResult.Unchanged _ -> inFile |> File.ReadAllText |> tw.Write
         | FakeHelpers.IgnoredFile file -> printfn "'%s' was ignored" file
         | FakeHelpers.FormatResult.Error (_, ex) -> raise <| ex
     }
@@ -173,7 +173,7 @@ let private reportCheckResults (output: TextWriter) (checkResult: FakeHelpers.Ch
     |> Seq.iter output.WriteLine
 
     checkResult.Formatted
-    |> List.map (fun filename -> sprintf "%s needs formatting" filename)
+    |> List.map (sprintf "%s needs formatting")
     |> Seq.iter output.WriteLine
 
 let runCheckCommand (recurse: bool) (inputPath: InputPath): int =
@@ -190,7 +190,7 @@ let runCheckCommand (recurse: bool) (inputPath: InputPath): int =
 
     match inputPath with
     | InputPath.Unspecified
-    | InputPath.StdIn (_) ->
+    | InputPath.StdIn _ ->
         eprintfn "No input path provided. Nothing to do."
         0
     | InputPath.File f when (IgnoreFile.isIgnoredFile f) ->
