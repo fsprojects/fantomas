@@ -1,3 +1,7 @@
+### 4.2.0-alpha-004 - 09/2020
+
+* Fix Confusing symmetry between infix operators. [#988](https://github.com/fsprojects/fantomas/issues/988)
+
 ### 4.2.0-alpha-003 - 09/2020
 
 * Extended feature MaxDotGetExpressionWidth. [#501](https://github.com/fsprojects/fantomas/issues/501#issuecomment-695284222)

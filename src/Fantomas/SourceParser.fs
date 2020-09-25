@@ -796,42 +796,65 @@ let (|PrefixApp|_|) =
                    _) when IsPrefixOperator(DecompileOpName s.Text) -> Some((|OpName|) s, e2)
     | _ -> None
 
-let private (|InfixApp|_|) synExpr =
+let (|InfixApp|_|) synExpr =
     match synExpr with
     | SynExpr.App (_, true, (Var "::" as e), Tuple [ e1; e2 ], _) -> Some("::", e, e1, e2)
     // Range operators need special treatments, so we exclude them here
     | SynExpr.App (_, _, SynExpr.App (_, true, (Var s as e), e1, _), e2, _) when s <> ".." -> Some(s, e, e1, e2)
     | _ -> None
 
+let (|NewlineInfixApp|_|) =
+    function
+    | InfixApp (text, operatorExpr, e1, e2) when (newLineInfixOps.Contains(text)) -> Some(text, operatorExpr, e1, e2)
+    | _ -> None
+
+let (|NewlineInfixApps|_|) e =
+    let rec loop synExpr =
+        match synExpr with
+        | NewlineInfixApp (s, opE, e, e2) ->
+            let (e1, es) = loop e
+            (e1, (s, opE, e2) :: es)
+        | e -> (e, [])
+
+    match loop e with
+    | (e, es) when (List.length es > 1) -> Some(e, List.rev es)
+    | _ -> None
+
+let (|SameInfixApps|_|) e =
+    let rec loop operator synExpr =
+        match synExpr with
+        | InfixApp (s, opE, e, e2) when (s = operator) ->
+            let (e1, es) = loop operator e
+            (e1, (s, opE, e2) :: es)
+        | e -> (e, [])
+
+    match e with
+    | InfixApp (operatorText, _, _, _) ->
+        match loop operatorText e with
+        | (e, es) when (List.length es > 1) -> Some(e, List.rev es)
+        | _ -> None
+    | _ -> None
+
+let (|TupleWithInfixEqualsApps|_|) e =
+    let isEqualInfix =
+        function
+        | InfixApp ("=", _, _, _) -> true
+        | _ -> false
+
+    match e with
+    | Tuple es when (List.forall isEqualInfix es) ->
+        es
+        |> List.map (fun e ->
+            match e with
+            | InfixApp ("=", opE, e1, e2) -> e1, opE, e2
+            | _ -> failwith "should not be possible")
+        |> Some
+    | _ -> None
+
 let (|TernaryApp|_|) =
     function
     | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
     | _ -> None
-
-/// We should return the whole triple for convenient check
-let (|InfixApps|_|) e =
-    let rec loop synExpr =
-        match synExpr with
-        | InfixApp (s, opE, e, e2) ->
-            let (e1, es) = loop e
-
-            match es with
-            | [] ->
-                let (t1, ts) = loop e2
-
-                match ts with
-                | [] -> (e1, (s, opE, e2) :: es)
-                | ts ->
-                    // example code that leads to this:
-                    // let foo =
-                    //     a & b |> c |> d
-                    (e1, ts @ [ (s, opE, t1) ])
-            | _ -> (e1, (s, opE, e2) :: es)
-        | e -> (e, [])
-
-    match loop e with
-    | (_, []) -> None
-    | (e, es) -> Some(e, List.rev es)
 
 let (|AppWithMultilineArgument|_|) e =
     let isMultilineString p =
