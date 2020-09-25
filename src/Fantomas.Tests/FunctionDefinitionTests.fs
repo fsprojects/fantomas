@@ -688,3 +688,29 @@ and logAnalyticsForRequest
     =
     log.Info(sprintf "Meh: %A" httpRequest)
 """
+
+[<Test>]
+let ``typeof generic static constraint, 803`` () =
+    formatSourceString false """
+let inline test< ^foo> (foo: ^foo) =
+    let bar = typeof< ^foo>
+    bar.Name
+"""  config
+    |> prepend newline
+    |> should equal """
+let inline test< ^foo> (foo: ^foo) =
+    let bar = typeof< ^foo>
+    bar.Name
+"""
+
+[<Test>]
+let ``space before ^ SRTP type is required in function call, 984`` () =
+    formatSourceString false """
+let inline deserialize< ^a when ( ^a or FromJsonDefaults) : (static member FromJson :  ^a -> Json< ^a>)> json =
+    json |> Json.parse |> Json.deserialize< ^a>
+"""  config
+    |> prepend newline
+    |> should equal """
+let inline deserialize< ^a when ^a: (static member FromJson: ^a -> Json< ^a >)> json =
+    json |> Json.parse |> Json.deserialize< ^a>
+"""
