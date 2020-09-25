@@ -1,5 +1,5 @@
 #r "paket:
-nuget Fantomas.Extras 4.1.0
+nuget Fantomas.Extras 4.2.0
 nuget Microsoft.Azure.Cosmos.Table
 nuget Fake.BuildServer.AppVeyor
 nuget Fake.Core.ReleaseNotes
@@ -428,7 +428,14 @@ Target.create "Format" (fun _ ->
 
 Target.create "FormatChanged" (fun _ ->
     Fake.Tools.Git.FileStatus.getChangedFilesInWorkingCopy "." "HEAD"
-    |> Seq.choose (fun (_, file) -> if file.StartsWith("src") then Some file else None)
+    |> Seq.choose (fun (_, file) ->
+        let ext = Path.GetExtension(file)
+
+        if file.StartsWith("src")
+           && (ext = ".fs" || ext = ".fsi") then
+            Some file
+        else
+            None)
     |> formatCode
     |> Async.RunSynchronously
     |> printfn "Formatted files: %A")

@@ -11,7 +11,7 @@ let ``let in should be preserved`` () =
 """
 
 [<Test>]
-let ``multiple let in lines, should remove in`` () =
+let ``multiple let in lines, should keep in`` () =
     let codeSnippet = """
 let f () =
   let x = 1 in   // the "in" keyword is available in F#
@@ -21,13 +21,13 @@ let f () =
 
     formatSourceString false codeSnippet config
     |> should equal """let f () =
-    let x = 1 // the "in" keyword is available in F#
-    let y = 2
+    let x = 1 in // the "in" keyword is available in F#
+    let y = 2 in
     x + y
 """
 
 [<Test>]
-let ``multiple let in lines, should remove in, block comment`` () =
+let ``multiple let in lines, should keep in, block comment`` () =
     let codeSnippet = """
 let f () =
   let x = 1 in   (* the "in" keyword is available in F# *)
@@ -41,13 +41,13 @@ let f () =
         ({ config with
                MaxValueBindingWidth = 50 })
     |> should equal """let f () =
-    let x = 1 (* the "in" keyword is available in F# *)
-    let y = 2
+    let x = 1 in (* the "in" keyword is available in F# *)
+    let y = 2 in
     x + y
 """
 
 [<Test>]
-let ``multiline let in, should remove in`` () =
+let ``multiline let in, should keep in`` () =
     let codeSnippet = """
 let f () =
   let x = 1 in if longIdentifierThatWillForceThisConstructToBeMultiline
@@ -59,7 +59,7 @@ let f () =
     |> prepend newline
     |> should equal """
 let f () =
-    let x = 1
+    let x = 1 in
 
     if longIdentifierThatWillForceThisConstructToBeMultiline
     then x
@@ -78,7 +78,7 @@ let f () =
     |> prepend newline
     |> should equal """
 let f () =
-    let x = 1
+    let x = 1 in
 
     (while true do
         ()
@@ -552,7 +552,9 @@ let ``handle hash directives before equals, 728`` () =
         ()
 
     """ config
-    |> should equal """let Baz (firstParam: string)
+    |> prepend newline
+    |> should equal """
+let Baz (firstParam: string)
 #if DEBUG
         (_: int)
 #else
@@ -966,4 +968,96 @@ let x =
         printfn "meh"
 
     ()
+"""
+
+[<Test>]
+let ``preserve in keyword via trivia, 340`` () =
+    formatSourceString false """
+let x = List.singleton <|
+        let item = "text" in
+        item
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    List.singleton
+    <| let item = "text" in
+       item
+"""
+
+[<Test>]
+let ``in keyword in boolean expression, 1114`` () =
+    formatSourceString false """
+let x =
+    not (isObjTy g ty)
+    && isAppTy g ty
+    && isObjTy g minfo.ApparentEnclosingType
+    && let tcref = tcrefOfAppTy g ty in
+       match tcref.TypeReprInfo with
+       | TProvidedTypeExtensionPoint info ->
+           info.ProvidedType.PUntaint
+               ((fun st ->
+                   (st :> IProvidedCustomAttributeProvider)
+                       .GetHasTypeProviderEditorHideMethodsAttribute(info.ProvidedType.TypeProvider.PUntaintNoFailure
+                                                                         (id))),
+                m)
+       | _ ->
+           if tcref.IsILTycon then
+               tcref.ILTyconRawMetadata.CustomAttrs.AsArray
+               |> Array.exists (fun attr ->
+                   attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>.FullName)
+           else
+               false
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    not (isObjTy g ty)
+    && isAppTy g ty
+    && isObjTy g minfo.ApparentEnclosingType
+    && let tcref = tcrefOfAppTy g ty in
+
+       match tcref.TypeReprInfo with
+       | TProvidedTypeExtensionPoint info ->
+           info.ProvidedType.PUntaint
+               ((fun st ->
+                   (st :> IProvidedCustomAttributeProvider)
+                       .GetHasTypeProviderEditorHideMethodsAttribute(info.ProvidedType.TypeProvider.PUntaintNoFailure
+                                                                         (id))),
+                m)
+       | _ ->
+           if tcref.IsILTycon then
+               tcref.ILTyconRawMetadata.CustomAttrs.AsArray
+               |> Array.exists (fun attr ->
+                   attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>
+                       .FullName)
+           else
+               false
+"""
+
+[<Test>]
+let ``in keyword in short boolean expression, 1032`` () =
+    formatSourceString false """
+let internal sepSpace =
+    // ignore multiple spaces, space on start of file, after newline
+    // TODO: this is inefficient - maybe remember last char written?
+    fun (ctx: Context) ->
+        if (not ctx.WriterInitModel.IsDummy && let s = dump ctx in s = "" || s.EndsWith " " || s.EndsWith Environment.NewLine) then ctx
+        else (!- " ") ctx
+"""  config
+    |> prepend newline
+    |> should equal """
+let internal sepSpace =
+    // ignore multiple spaces, space on start of file, after newline
+    // TODO: this is inefficient - maybe remember last char written?
+    fun (ctx: Context) ->
+        if (not ctx.WriterInitModel.IsDummy
+            && let s = dump ctx in
+
+               s = ""
+               || s.EndsWith " "
+               || s.EndsWith Environment.NewLine) then
+            ctx
+        else
+            (!- " ") ctx
 """

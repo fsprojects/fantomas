@@ -306,3 +306,9 @@ let synModuleSigDeclToFsAstType =
     | SynModuleSigDecl.HashDirective _ -> SynModuleSigDecl_HashDirective
     | SynModuleSigDecl.NamespaceFragment _ -> SynModuleSigDecl_NamespaceFragment
     | SynModuleSigDecl.ModuleAbbrev _ -> SynModuleSigDecl_ModuleAbbrev
+
+let synBindingToFsAstType (Binding (_, kind, _, _, _, _, _, _, _, _, _, _)) =
+    match kind with
+    | SynBindingKind.StandaloneExpression -> StandaloneExpression_
+    | SynBindingKind.NormalBinding -> NormalBinding_
+    | SynBindingKind.DoBinding -> DoBinding_

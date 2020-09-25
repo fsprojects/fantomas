@@ -50,6 +50,7 @@ type FsTokenType =
     | INFIX_STAR_STAR_OP
     | FUNCTION
     | LPAREN_STAR_RPAREN
+    | IN
 
 type Token =
     { TokenInfo: FSharpTokenInfo
@@ -207,7 +208,9 @@ type FsAstType =
     | SynSimplePat_Attrib
     | SynSimplePats_SimplePats
     | SynSimplePats_Typed
-    | Binding_
+    | StandaloneExpression_
+    | NormalBinding_
+    | DoBinding_
     | SynBindingReturnInfo_
     | SynValTyparDecls_
     | TyparDecl_

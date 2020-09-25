@@ -23,8 +23,7 @@ type ShortExpressionInfo =
       StartColumn: int
       ConfirmedMultiline: bool }
     member x.IsTooLong maxPageWidth currentColumn =
-        currentColumn
-        - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
+        currentColumn - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
 
 type Size =
@@ -74,7 +73,7 @@ module WriterModel =
                   Lines =
                       String.replicate m.Indent " "
                       :: (List.head m.Lines + m.WriteBeforeNewline)
-                      :: (List.tail m.Lines)
+                         :: (List.tail m.Lines)
                   WriteBeforeNewline = ""
                   Column = m.Indent }
 
@@ -130,8 +129,7 @@ module WriterModel =
 module WriterEvents =
     let normalize ev =
         match ev with
-        | Write s when String.normalizeThenSplitNewLine s
-                       |> Array.length > 1 ->
+        | Write s when String.normalizeThenSplitNewLine s |> Array.length > 1 ->
             String.normalizeThenSplitNewLine s
             |> Seq.map (fun x -> [ Write x ])
             |> Seq.reduce (fun x y -> x @ [ WriteLineInsideStringConst ] @ y)
@@ -763,7 +761,7 @@ let internal leadingExpressionIsMultiline leadingExpression continuationExpressi
                | WriteLine _ -> true
                | _ -> false) (fun e ->
                match e with
-               | [| CommentOrDefineEvent (_) |]
+               | [| CommentOrDefineEvent _ |]
                | [| WriteLine |]
                | [| Write "" |] -> true
                | _ -> false)
@@ -1287,7 +1285,7 @@ let internal genTriviaBeforeClausePipe (rangeOfClause: range) ctx =
                 trivia.ContentBefore
                 |> List.forall (fun tn ->
                     match tn with
-                    | Directive (_) -> true
+                    | Directive _ -> true
                     | _ -> false)
 
             ifElse containsOnlyDirectives sepNln sepNone
@@ -1316,7 +1314,8 @@ let internal hasLineCommentAfterInfix (rangePlusInfix: range) (ctx: Context) =
 
 let internal lastLineOnlyContains characters (ctx: Context) =
     let lastLine =
-        (writeEventsOnLastLine ctx |> String.concat "").Trim(characters)
+        (writeEventsOnLastLine ctx |> String.concat "")
+            .Trim(characters)
 
     let length = String.length lastLine
     length = 0 || length < ctx.Config.IndentSize

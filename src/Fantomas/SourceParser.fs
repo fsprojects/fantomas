@@ -229,8 +229,7 @@ let rec (|Const|) c =
     | SynConst.Decimal d -> sprintf "%A" d
     | SynConst.String (s, _) ->
         // Naive check for verbatim strings
-        if not
-           <| String.IsNullOrEmpty(s)
+        if not <| String.IsNullOrEmpty(s)
            && s.Contains("\\")
            && not <| s.Contains(@"\\") then
             sprintf "@%A" s
@@ -835,22 +834,6 @@ let (|SameInfixApps|_|) e =
         | _ -> None
     | _ -> None
 
-let (|TupleWithInfixEqualsApps|_|) e =
-    let isEqualInfix =
-        function
-        | InfixApp ("=", _, _, _) -> true
-        | _ -> false
-
-    match e with
-    | Tuple es when (List.forall isEqualInfix es) ->
-        es
-        |> List.map (fun e ->
-            match e with
-            | InfixApp ("=", opE, e1, e2) -> e1, opE, e2
-            | _ -> failwith "should not be possible")
-        |> Some
-    | _ -> None
-
 let (|TernaryApp|_|) =
     function
     | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
@@ -953,10 +936,10 @@ let rec collectComputationExpressionStatements e: ComputationExpressionStatement
 /// Matches if the SynExpr has some or of computation expression member call inside.
 let rec (|CompExprBody|_|) expr =
     match expr with
-    | SynExpr.LetOrUse (_, _, _, CompExprBody (_), _) -> Some expr
+    | SynExpr.LetOrUse (_, _, _, CompExprBody _, _) -> Some expr
     | SynExpr.LetOrUseBang _ -> Some expr
-    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn (_), _) -> Some expr
-    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse (_), _) -> Some expr
+    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn _, _) -> Some expr
+    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse _, _) -> Some expr
     | SynExpr.Sequential (_, _, SynExpr.DoBang _, SynExpr.LetOrUseBang _, _) -> Some expr
     | _ -> None
 
@@ -1622,19 +1605,19 @@ let (|ElmishReactWithoutChildren|_|) e =
 
 let (|ElmishReactWithChildren|_|) e =
     match e with
-    | App (OptVar (ident), [ ArrayOrList (_) as attributes; ArrayOrList (isArray, children, _) as childrenNode ]) ->
+    | App (OptVar (ident), [ ArrayOrList _ as attributes; ArrayOrList (isArray, children, _) as childrenNode ]) ->
         Some(ident, attributes, (isArray, children, childrenNode.Range))
     | App (OptVar (ident),
-           [ ArrayOrListOfSeqExpr (_) as attributes;
+           [ ArrayOrListOfSeqExpr _ as attributes;
              ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as childrenNode ]) ->
         Some(ident, attributes, (isArray, children, childrenNode.Range))
     | App (OptVar (ident),
-           [ ArrayOrListOfSeqExpr (_) as attributes;
+           [ ArrayOrListOfSeqExpr _ as attributes;
              ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ])
     | App (OptVar (ident),
-           [ ArrayOrList (_) as attributes; ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ]) ->
+           [ ArrayOrList _ as attributes; ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ]) ->
         Some(ident, attributes, (isArray, [ singleChild ], childrenNode.Range))
-    | App (OptVar (ident), [ ArrayOrListOfSeqExpr (_) as attributes; ArrayOrList (isArray, [], _) as childrenNode ]) ->
+    | App (OptVar (ident), [ ArrayOrListOfSeqExpr _ as attributes; ArrayOrList (isArray, [], _) as childrenNode ]) ->
         Some(ident, attributes, (isArray, [], childrenNode.Range))
 
     | _ -> None

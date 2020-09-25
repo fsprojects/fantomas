@@ -16,7 +16,7 @@ let triviaAfterArrow (range: range) (ctx: Context) =
         |> Option.bind (fun t ->
             t.ContentAfter
             |> List.tryFind (function
-                | Comment (LineCommentAfterSourceCode (_)) -> true
+                | Comment (LineCommentAfterSourceCode _) -> true
                 | _ -> false))
         |> Option.isSome
 
