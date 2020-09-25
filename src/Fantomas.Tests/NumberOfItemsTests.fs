@@ -282,3 +282,21 @@ let ``long expressions with number of items set to 3 will get split due to max l
 [ longValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLong
   longValueThatIsALotOfCharactersSoooooLong ]
 """
+
+[<Test>]
+let ``character width with explicit width lists are formatted properly`` () =
+    formatSourceString false """
+let x = [ a; b; c ]
+let y = [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ]
+let z = [ longValueThatIsALotOfCharactersSoooooLong; 100; 123 ]
+    """ { config with MaxArrayOrListWidth = 70 }
+    |> prepend newline
+    |> should equal """
+let x = [ a; b; c ]
+
+let y =
+    [ longValueThatIsALotOfCharactersSoooooLong
+      longValueThatIsALotOfCharactersSoooooLong ]
+
+let z = [ longValueThatIsALotOfCharactersSoooooLong; 100; 123 ]
+"""
