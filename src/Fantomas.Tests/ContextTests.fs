@@ -65,9 +65,7 @@ Long comment
 *)"""
 
     let expr =
-        sepNone
-        +> sepSpace
-        -- comment
+        sepNone +> sepSpace -- comment
         +> sepSpace
         +> sepNone
 

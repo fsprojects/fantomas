@@ -27,7 +27,7 @@ let private isValidAndHasNoWarnings fileName source parsingOptions =
         TokenParser.getOptimizedDefinesSets source
         @ (TokenParser.getDefines source
            |> List.map List.singleton)
-        @ [ [] ]
+          @ [ [] ]
         |> List.distinct
 
     allDefineOptions
