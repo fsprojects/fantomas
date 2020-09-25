@@ -2740,7 +2740,11 @@ and genGenericTypeParameters astContext ts =
     | [] -> sepNone
     | ts ->
         !- "<"
-        +> col sepComma ts (genType astContext false)
+        +> coli sepComma ts (fun idx ->
+               genType
+                   { astContext with
+                         IsFirstTypeParam = idx = 0 }
+                   false)
         -- ">"
 
 and genMultilineRecordInstance (inheritOpt: (SynType * SynExpr) option)

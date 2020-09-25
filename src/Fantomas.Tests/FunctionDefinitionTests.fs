@@ -688,3 +688,17 @@ and logAnalyticsForRequest
     =
     log.Info(sprintf "Meh: %A" httpRequest)
 """
+
+[<Test>]
+let ``typeof generic static constraint, 803`` () =
+    formatSourceString false """
+let inline test< ^foo> (foo: ^foo) =
+    let bar = typeof< ^foo>
+    bar.Name
+"""  config
+    |> prepend newline
+    |> should equal """
+let inline test< ^foo> (foo: ^foo) =
+    let bar = typeof< ^foo>
+    bar.Name
+"""
