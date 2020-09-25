@@ -12,7 +12,10 @@ module Dbg =
         let mutable n = 0
 
         let prefix () =
-            sb.Append("DEBUG ").Append(DateTime.Now.ToString("dd MMM HH:mm:ss.fffffff")).Append("> ")
+            sb
+                .Append("DEBUG ")
+                .Append(DateTime.Now.ToString("dd MMM HH:mm:ss.fffffff"))
+                .Append("> ")
             |> ignore
 
             n <- n + 1

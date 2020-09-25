@@ -229,8 +229,7 @@ let rec (|Const|) c =
     | SynConst.Decimal d -> sprintf "%A" d
     | SynConst.String (s, _) ->
         // Naive check for verbatim strings
-        if not
-           <| String.IsNullOrEmpty(s)
+        if not <| String.IsNullOrEmpty(s)
            && s.Contains("\\")
            && not <| s.Contains(@"\\") then
             sprintf "@%A" s

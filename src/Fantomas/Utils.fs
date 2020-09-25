@@ -33,7 +33,10 @@ module String =
 
     let private lengthWithoutSpaces (str: string) =
         normalizeNewLine str
-        |> fun s -> s.Replace("\n", String.Empty).Replace(" ", String.Empty)
+        |> fun s ->
+            s
+                .Replace("\n", String.Empty)
+                .Replace(" ", String.Empty)
         |> String.length
 
     let private hashRegex = @"^\s*#(if|elseif|else|endif).*"
