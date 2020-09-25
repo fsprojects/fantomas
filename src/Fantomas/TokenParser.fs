@@ -585,7 +585,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
 
         getTriviaFromTokensThemSelves allTokens rest info
 
-    | (_) :: rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
+    | _ :: rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
 
     | [] -> foundTrivia
 
@@ -623,7 +623,7 @@ let getTriviaFromTokens (tokens: Token list) =
         fromTokens
         |> List.choose (fun tc ->
             match tc.Item with
-            | Comment (BlockComment (_)) -> Some tc.Range
+            | Comment (BlockComment _) -> Some tc.Range
             | _ -> None)
 
     let isMultilineString s =

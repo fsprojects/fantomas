@@ -746,7 +746,7 @@ let internal leadingExpressionIsMultiline leadingExpression continuationExpressi
                | WriteLine _ -> true
                | _ -> false) (fun e ->
                match e with
-               | [| CommentOrDefineEvent (_) |]
+               | [| CommentOrDefineEvent _ |]
                | [| WriteLine |]
                | [| Write "" |] -> true
                | _ -> false)
@@ -1270,7 +1270,7 @@ let internal genTriviaBeforeClausePipe (rangeOfClause: range) ctx =
                 trivia.ContentBefore
                 |> List.forall (fun tn ->
                     match tn with
-                    | Directive (_) -> true
+                    | Directive _ -> true
                     | _ -> false)
 
             ifElse containsOnlyDirectives sepNln sepNone

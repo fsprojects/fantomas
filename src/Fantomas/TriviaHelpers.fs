@@ -43,7 +43,7 @@ module internal TriviaHelpers =
         triviaNode.ContentAfter
         |> List.filter (fun tn ->
             match tn with
-            | Comment (LineCommentAfterSourceCode (_)) -> true
+            | Comment (LineCommentAfterSourceCode _) -> true
             | _ -> false)
         |> (List.isEmpty >> not)
 

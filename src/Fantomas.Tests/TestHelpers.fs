@@ -50,7 +50,7 @@ let private isValidAndHasNoWarnings fileName source parsingOptions =
             return Array.isEmpty errors
         })
     |> Async.Parallel
-    |> Async.map (fun results -> Seq.fold (&&) true results)
+    |> Async.map (Seq.fold (&&) true)
 
 let formatSourceString isFsiFile (s: string) config =
     // On Linux/Mac this will exercise different line endings
