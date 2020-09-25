@@ -967,3 +967,18 @@ let x =
 
     ()
 """
+
+[<Test>]
+let ``preserve in keyword via trivia, 340`` () =
+    formatSourceString false """
+let x = List.singleton <|
+        let item = "text"
+        item
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    List.singleton
+    <| let item = "text" in
+       item
+"""

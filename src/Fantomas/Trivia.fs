@@ -387,6 +387,11 @@ let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding
         findConstNodeAfter triviaNodes range
         |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(kw))) triviaNodes
 
+    | { Item = Keyword ({ Content = keyword }); Range = range } when (keyword = "in") ->
+        // find largest SynExpr right before in range
+        findNodeBeforeLineAndColumn triviaNodes range.StartLine range.StartColumn
+        |> updateTriviaNode (fun tn -> tn.ContentAfter.Add trivia.Item) triviaNodes
+
     | { Item = Keyword ({ Content = keyword }); Range = range } when (keyword = "if"
                                                                       || keyword = "then"
                                                                       || keyword = "else"

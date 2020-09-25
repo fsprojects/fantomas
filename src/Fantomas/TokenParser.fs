@@ -317,7 +317,8 @@ let private keywordTrivia =
       "DEFAULT"
       "ABSTRACT"
       "KEYWORD_STRING"
-      "QMARK" ]
+      "QMARK"
+      "IN" ]
 
 let private numberTrivia =
     [ "UINT8"

@@ -715,6 +715,7 @@ and genLetBinding astContext pref b =
         +> leadingExpressionIsMultiline
             (afterLetKeyword
              +> genPat
+             +> dumpAndContinue
              +> enterNodeTokenByName rangeBetweenBindingPatternAndExpression EQUALS)
                (genExprSepEqPrependType astContext p e (Some(valInfo)))
 
