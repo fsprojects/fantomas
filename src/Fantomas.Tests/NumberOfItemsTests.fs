@@ -298,5 +298,6 @@ let y =
     [ longValueThatIsALotOfCharactersSoooooLong
       longValueThatIsALotOfCharactersSoooooLong ]
 
-let z = [ longValueThatIsALotOfCharactersSoooooLong; 100; 123 ]
+let z =
+    [ longValueThatIsALotOfCharactersSoooooLong; 100; 123 ]
 """
