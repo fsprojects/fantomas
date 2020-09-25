@@ -223,3 +223,20 @@ fsharp_max_array_or_list_number_of_items = 4
 
     config.ArrayOrListMultilineFormatter
     == NumberOfItems
+
+[<Test>]
+let ``character_width parsing test with single option`` () =
+    let editorConfig = """
+[*.fs]
+fsharp_max_array_or_list_width = 123
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, content = editorConfig)
+
+    use fsharpFile = new FSharpFile()
+
+    let config =
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    config.MaxArrayOrListWidth == 123

@@ -524,6 +524,11 @@ let internal optPre (f2: _ -> Context) (f1: Context -> _) o f (ctx: Context) =
     | Some x -> f1 (f x (f2 ctx))
     | None -> ctx
 
+let internal getListOrArrayExprSize ctx maxWidth xs =
+    match ctx.Config.ArrayOrListMultilineFormatter with
+    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth maxWidth
+    | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length xs, ctx.Config.MaxArrayOrListNumberOfItems)
+
 /// b is true, apply f1 otherwise apply f2
 let internal ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else f2 ctx
 

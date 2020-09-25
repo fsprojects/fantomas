@@ -1,4 +1,4 @@
-module Fantomas.Tests.NumberOfItems
+module Fantomas.Tests.NumberOfItemsTests
 
 open NUnit.Framework
 open FsUnit

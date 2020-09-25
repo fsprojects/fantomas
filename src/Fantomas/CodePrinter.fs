@@ -52,11 +52,6 @@ type ASTContext =
           IsMemberDefinition = false
           IsInsideDotIndexed = false }
 
-let getListOrArrayExprSize ctx maxWidth xs =
-    match ctx.Config.ArrayOrListMultilineFormatter with
-    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth maxWidth
-    | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length xs, ctx.Config.MaxArrayOrListNumberOfItems)
-
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     match functionOrMethod, arg with
     | SynExpr.TypeApp (e, _, _, _, _, _, _), _ -> addSpaceBeforeParensInFunCall e arg ctx
