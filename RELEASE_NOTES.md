@@ -1,18 +1,8 @@
-### 4.2.0-alpha-004 - 09/2020
-
-* Fix Confusing symmetry between infix operators. [#988](https://github.com/fsprojects/fantomas/issues/988)
-
-### 4.2.0-alpha-003 - 09/2020
-
-* Extended feature MaxDotGetExpressionWidth. [#501](https://github.com/fsprojects/fantomas/issues/501#issuecomment-695284222)
-
-### 4.2.0-alpha-002 - 09/2020
-
-* Extended feature MaxDotGetExpressionWidth. [#501](https://github.com/fsprojects/fantomas/issues/501#issuecomment-695054715)
-
-### 4.2.0-alpha-001 - 09/2020
+### 4.2.0 - 09/2020
 
 * Feature MaxDotGetExpressionWidth. [#501](https://github.com/fsprojects/fantomas/issues/501)
+* Fix Confusing symmetry between infix operators. [#988](https://github.com/fsprojects/fantomas/issues/988)
+* Fix Comment before closing parenthesis is lost. [#1146](https://github.com/fsprojects/fantomas/issues/1146)
 
 ### 4.1.1 - 09/2020
 
