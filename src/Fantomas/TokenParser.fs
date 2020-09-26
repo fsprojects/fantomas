@@ -23,7 +23,8 @@ let private isTokenAfterGreater token (greaterToken: Token) =
     && greaterToken.RightColumn <> (token.LeftColumn + 1)
 
 let private getTokenText (sourceCodeLines: string list) line (token: FSharpTokenInfo) =
-    sourceCodeLines.[line - 1].Substring(token.LeftColumn, token.RightColumn - token.LeftColumn + 1)
+    sourceCodeLines.[line - 1]
+        .Substring(token.LeftColumn, token.RightColumn - token.LeftColumn + 1)
     |> String.normalizeNewLine
 
 /// Tokenize a single line of F# code
@@ -140,7 +141,9 @@ let rec private getTokenizedHashes sourceCode =
          - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
 
     let singleQuoteWrappedInTriple line =
-        Regex.Match(line, "\\\"\\\"\\\".*\\\".*\\\"\\\"\\\"").Success
+        Regex
+            .Match(line, "\\\"\\\"\\\".*\\\".*\\\"\\\"\\\"")
+            .Success
 
     sourceCode
     |> String.normalizeThenSplitNewLine
@@ -196,8 +199,7 @@ and tokenize defines (content: string): Token list =
                 hashes
                 |> List.filter (fun t -> not (List.contains t.LineNumber existingLines))
             // filter hashes that are present in source code parsed by the Tokenizer.
-            tokens
-            @ filteredHashes
+            tokens @ filteredHashes
             |> List.sortBy (fun t -> t.LineNumber, t.TokenInfo.LeftColumn)
         else
             tokens
@@ -233,8 +235,7 @@ let getDefineExprs sourceCode =
         (([], []), tokensByLine)
         ||> List.fold (fun (contextExprs, exprAcc) (_, lineTokens) ->
                 let contextExpr e =
-                    e
-                    :: contextExprs
+                    e :: contextExprs
                     |> List.reduce (fun x y -> BoolExpr.And(x, y))
 
                 let t =
@@ -317,7 +318,8 @@ let private keywordTrivia =
       "DEFAULT"
       "ABSTRACT"
       "KEYWORD_STRING"
-      "QMARK" ]
+      "QMARK"
+      "IN" ]
 
 let private numberTrivia =
     [ "UINT8"
@@ -363,8 +365,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
         let lineCommentTokens =
             Seq.zip
                 rest
-                (headToken
-                 :: rest
+                (headToken :: rest
                  |> List.map (fun x -> x.LineNumber))
             |> Seq.takeWhile (fun (t, currentLineNumber) ->
                 t.TokenInfo.Tag = lineCommentTag
@@ -585,7 +586,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
 
         getTriviaFromTokensThemSelves allTokens rest info
 
-    | (_) :: rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
+    | _ :: rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
 
     | [] -> foundTrivia
 
@@ -623,7 +624,7 @@ let getTriviaFromTokens (tokens: Token list) =
         fromTokens
         |> List.choose (fun tc ->
             match tc.Item with
-            | Comment (BlockComment (_)) -> Some tc.Range
+            | Comment (BlockComment _) -> Some tc.Range
             | _ -> None)
 
     let isMultilineString s =
@@ -640,8 +641,7 @@ let getTriviaFromTokens (tokens: Token list) =
     let newLines =
         findEmptyNewlinesInTokens tokens (blockComments @ multilineStrings)
 
-    fromTokens
-    @ newLines
+    fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
 
 let private tokenNames =
@@ -665,7 +665,8 @@ let private tokenNames =
       "WITH"
       "MEMBER"
       "AND_BANG"
-      "FUNCTION" ]
+      "FUNCTION"
+      "IN" ]
 
 let private tokenKinds = [ FSharpTokenCharKind.Operator ]
 
@@ -717,6 +718,7 @@ let internal getFsToken tokenName =
     | "INFIX_STAR_STAR_OP" -> INFIX_STAR_STAR_OP
     | "FUNCTION" -> FUNCTION
     | "LPAREN_STAR_RPAREN" -> LPAREN_STAR_RPAREN
+    | "IN" -> IN
     | _ -> failwithf "was not expecting token %s" tokenName
 
 let getTriviaNodesFromTokens (tokens: Token list) =

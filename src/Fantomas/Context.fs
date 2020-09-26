@@ -23,13 +23,12 @@ type ShortExpressionInfo =
       StartColumn: int
       ConfirmedMultiline: bool }
     member x.IsTooLong maxPageWidth currentColumn =
-        currentColumn
-        - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
+        currentColumn - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
 
 type Size =
-    | CharacterWidth of width: Num * maxWidth: Num
-    | LogicalSize of size: Num * maxSize: Num
+    | CharacterWidth of maxWidth: Num
+    | NumberOfItems of items: Num * maxItems: Num
 
 type WriteModelMode =
     | Standard
@@ -74,7 +73,7 @@ module WriterModel =
                   Lines =
                       String.replicate m.Indent " "
                       :: (List.head m.Lines + m.WriteBeforeNewline)
-                      :: (List.tail m.Lines)
+                         :: (List.tail m.Lines)
                   WriteBeforeNewline = ""
                   Column = m.Indent }
 
@@ -130,8 +129,7 @@ module WriterModel =
 module WriterEvents =
     let normalize ev =
         match ev with
-        | Write s when String.normalizeThenSplitNewLine s
-                       |> Array.length > 1 ->
+        | Write s when String.normalizeThenSplitNewLine s |> Array.length > 1 ->
             String.normalizeThenSplitNewLine s
             |> Seq.map (fun x -> [ Write x ])
             |> Seq.reduce (fun x y -> x @ [ WriteLineInsideStringConst ] @ y)
@@ -524,6 +522,16 @@ let internal optPre (f2: _ -> Context) (f1: Context -> _) o f (ctx: Context) =
     | Some x -> f1 (f x (f2 ctx))
     | None -> ctx
 
+let internal getListOrArrayExprSize ctx maxWidth xs =
+    match ctx.Config.ArrayOrListMultilineFormatter with
+    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth maxWidth
+    | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length xs, ctx.Config.MaxArrayOrListNumberOfItems)
+
+let internal getRecordSize ctx fields =
+    match ctx.Config.RecordMultilineFormatter with
+    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxRecordWidth
+    | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length fields, ctx.Config.MaxRecordNumberOfItems)
+
 /// b is true, apply f1 otherwise apply f2
 let internal ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else f2 ctx
 
@@ -700,18 +708,19 @@ let private shortExpressionWithFallback (shortExpression: Context -> Context)
 let internal isShortExpression maxWidth (shortExpression: Context -> Context) (fallbackExpression) (ctx: Context) =
     shortExpressionWithFallback shortExpression fallbackExpression maxWidth None ctx
 
-let internal isSmallExpression size (smallExpression: Context -> Context) fallbackExpression (ctx: Context) =
-    match size with
-    | CharacterWidth (_width, maxWidth) -> isShortExpression maxWidth smallExpression fallbackExpression ctx
-    | LogicalSize (size, maxSize) ->
-        let effectiveMaxWidth = if size > maxSize then 0 else Num.max
-        isShortExpression effectiveMaxWidth smallExpression fallbackExpression ctx
-
 let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
     shortExpressionWithFallback expr (indent +> sepNln +> expr +> unindent) maxWidth None ctx
 
 let internal expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
     shortExpressionWithFallback expression fallbackExpression ctx.Config.MaxLineLength (Some 0) ctx
+
+let internal isSmallExpression size (smallExpression: Context -> Context) fallbackExpression (ctx: Context) =
+    match size with
+    | CharacterWidth maxWidth -> isShortExpression maxWidth smallExpression fallbackExpression ctx
+    | NumberOfItems (items, maxItems) ->
+        if items > maxItems
+        then fallbackExpression ctx
+        else expressionFitsOnRestOfLine smallExpression fallbackExpression ctx
 
 /// provide the line and column before and after the leadingExpression to to the continuation expression
 let internal leadingExpressionResult leadingExpression continuationExpression (ctx: Context) =
@@ -757,7 +766,7 @@ let internal leadingExpressionIsMultiline leadingExpression continuationExpressi
                | WriteLine _ -> true
                | _ -> false) (fun e ->
                match e with
-               | [| CommentOrDefineEvent (_) |]
+               | [| CommentOrDefineEvent _ |]
                | [| WriteLine |]
                | [| Write "" |] -> true
                | _ -> false)
@@ -1281,7 +1290,7 @@ let internal genTriviaBeforeClausePipe (rangeOfClause: range) ctx =
                 trivia.ContentBefore
                 |> List.forall (fun tn ->
                     match tn with
-                    | Directive (_) -> true
+                    | Directive _ -> true
                     | _ -> false)
 
             ifElse containsOnlyDirectives sepNln sepNone
@@ -1310,7 +1319,8 @@ let internal hasLineCommentAfterInfix (rangePlusInfix: range) (ctx: Context) =
 
 let internal lastLineOnlyContains characters (ctx: Context) =
     let lastLine =
-        (writeEventsOnLastLine ctx |> String.concat "").Trim(characters)
+        (writeEventsOnLastLine ctx |> String.concat "")
+            .Trim(characters)
 
     let length = String.length lastLine
     length = 0 || length < ctx.Config.IndentSize

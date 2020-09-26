@@ -497,11 +497,11 @@ let myInstance =
       Length = 90 }
 ```
 
-### fsharp_max_record_size
+### fsharp_max_record_number_of_items
 
 Control the maximum number of fields for which records should be in one line.
-Default 1. Requires `fsharp_array_or_list_multiline_formatter` to be
-`logical_size` to take effect.
+Default = 1. Requires `fsharp_array_or_list_multiline_formatter` to be
+`number_of_items` to take effect.
 
 `defaultConfig`
 
@@ -522,7 +522,7 @@ let myRecord''' = { r with x = 3; y = "hello"; z = 0.0 }
 ```
 
 `{ defaultConfig with MaxRecordSize = 2; RecordMultilineFormatter =
-MultilineFormatterType.LogicalSize }`
+MultilineFormatterType.NumberOfItems }`
 
 ```fsharp
 type R = { x: int }
@@ -549,11 +549,12 @@ let myRecord''' =
 
 ### fsharp_record_multiline_formatter
 
-Split records expressions/statements into multiple lines based on the given condition.
-`character_width` uses character count of the expression, controlled by
-`fsharp_max_record_width`. `logical_size` uses the number of fields in
-the record, controlled by `fsharp_max_record_size`. Default
-`character_width`.
+Split records expressions/statements into multiple lines based on the given
+condition. `character_width` uses character count of the expression, controlled
+by `fsharp_max_record_width`. `number_of_items` uses the number of fields in the
+record, controlled by `fsharp_max_record_number_of_items`. Default =
+`character_width`. Note that in either case, record expressions/statements are
+still governed by `max_line_length`.
 
 `defaultConfig`
 
@@ -570,7 +571,7 @@ let myRecord'' = { r with x = 3; y = "hello" }
 ```
 
 `{ defaultConfig with RecordMultilineFormatter =
-MultilineFormatterType.LogicalSize }`
+MultilineFormatterType.NumberOfItems }`
 
 ```fsharp
 type R = { x: int }
@@ -591,8 +592,8 @@ let myRecord'' =
 
 ### fsharp_max_array_or_list_width
 
-Control the maximum width for which lists and arrays should be in one line.
-Default = 40. Requires `fsharp_array_or_list_multiline_formatter` to be
+Control the maximum width for which lists and arrays can be in one line. Default
+= 40. Requires `fsharp_array_or_list_multiline_formatter` to be
 `character_width` to take effect.
 
 `defaultConfig`
@@ -610,11 +611,11 @@ let myArray =
        three |]
 ```
 
-### fsharp_max_array_or_list_size
+### fsharp_max_array_or_list_number_of_items
 
-Control the maximum number of elements for which lists and arrays should be in
-one line. Default 1. Requires `fsharp_array_or_list_multiline_formatter` to be
-`logical_size` to take effect.
+Control the maximum number of elements for which lists and arrays can be in
+one line. Default = 1. Requires `fsharp_array_or_list_multiline_formatter` to be
+`number_of_items` to take effect.
 
 `defaultConfig`
 
@@ -624,8 +625,8 @@ let myList = [ one; two ]
 let myArray = [| one; two; three |]
 ```
 
-`{ defaultConfig with MaxArrayOrListSize = 2; ArrayOrListMultilineFormatter =
-MultilineFormatterType.LogicalSize }`
+`{ defaultConfig with MaxArrayOrListNumberOfItems = 2; ArrayOrListMultilineFormatter =
+MultilineFormatterType.NumberOfItems }`
 
 ```fsharp
 let myList = [ one; two ]
@@ -640,9 +641,10 @@ let myArray =
 
 Split arrays and lists into multiple lines based on the given condition.
 `character_width` uses character count of the expression, controlled by
-`fsharp_max_array_or_list_width`. `logical_size` uses the number of elements in
-the array or list, controlled by `fsharp_max_array_or_list_size`. Default
-`character_width`.
+`fsharp_max_array_or_list_width`. `number_of_items` uses the number of elements
+in the array or list, controlled by `fsharp_max_array_or_list_number_of_items`.
+Default = `character_width`. Note that in either case, list expressions are
+still governed by `max_line_length`.
 
 `defaultConfig`
 
@@ -651,7 +653,7 @@ let myArray = [| one; two; three |]
 ```
 
 `{ defaultConfig with ArrayOrListMultilineFormatter =
-MultilineFormatterType.LogicalSize }`
+MultilineFormatterType.NumberOfItems }`
 
 ```fsharp
 let myArray =

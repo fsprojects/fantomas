@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>4.2.0-alpha-002</Version>
+    <Version>4.2.0</Version>
     <NoWarn>FS0988</NoWarn>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
@@ -74,7 +74,8 @@
     <Compile Include="InterpolatedStringTests.fs" />
     <Compile Include="DotGetTests.fs" />
     <Compile Include="HashDirectiveTests.fs" />
-    <Compile Include="LogicalSizeTests.fs" />
+    <Compile Include="NumberOfItemsTests.fs" />
+    <Compile Include="SynExprNewTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

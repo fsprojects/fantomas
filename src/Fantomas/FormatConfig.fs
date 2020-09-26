@@ -11,20 +11,17 @@ type Num = int
 
 type MultilineFormatterType =
     | CharacterWidth
-    | LogicalSize
-    static member toConfigString =
+    | NumberOfItems
+    static member ToConfigString =
         function
         | CharacterWidth -> "character_width"
-        | LogicalSize -> "logical_size"
+        | NumberOfItems -> "number_of_items"
 
-    static member ofConfigString =
+    static member OfConfigString =
         function
         | "character_width" -> Some(box CharacterWidth)
-        | "logical_size" -> Some(box LogicalSize)
+        | "number_of_items" -> Some(box NumberOfItems)
         | _ -> None
-
-module Num =
-    let max = Int32.MaxValue
 
 // NOTE: try to keep this list below in sync with the docs (e.g. Documentation.md)
 type FormatConfig =
@@ -47,10 +44,10 @@ type FormatConfig =
       MaxIfThenElseShortWidth: Num
       MaxInfixOperatorExpression: Num
       MaxRecordWidth: Num
-      MaxRecordSize: Num
+      MaxRecordNumberOfItems: Num
       RecordMultilineFormatter: MultilineFormatterType
       MaxArrayOrListWidth: Num
-      MaxArrayOrListSize: Num
+      MaxArrayOrListNumberOfItems: Num
       ArrayOrListMultilineFormatter: MultilineFormatterType
       MaxValueBindingWidth: Num
       MaxFunctionBindingWidth: Num
@@ -83,10 +80,10 @@ type FormatConfig =
           MaxIfThenElseShortWidth = 40
           MaxInfixOperatorExpression = 50
           MaxRecordWidth = 40
-          MaxRecordSize = 1
+          MaxRecordNumberOfItems = 1
           RecordMultilineFormatter = CharacterWidth
           MaxArrayOrListWidth = 40
-          MaxArrayOrListSize = 1
+          MaxArrayOrListNumberOfItems = 1
           ArrayOrListMultilineFormatter = CharacterWidth
           MaxValueBindingWidth = 40
           MaxFunctionBindingWidth = 40

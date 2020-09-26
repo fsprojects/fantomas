@@ -985,8 +985,14 @@ module private Ast =
     and visitSynBinding (binding: SynBinding): Node =
         match binding with
         | Binding (access, kind, mustInline, isMutable, attrs, _, valData, headPat, returnInfo, expr, range, _) ->
-            { Type = Binding_
-              Range = r range
+            let t =
+                match kind with
+                | SynBindingKind.StandaloneExpression -> StandaloneExpression_
+                | SynBindingKind.NormalBinding -> NormalBinding_
+                | SynBindingKind.DoBinding -> DoBinding_
+
+            { Type = t
+              Range = r binding.RangeOfBindingAndRhs
               Properties =
                   p [ yield "mustInline" ==> mustInline
                       yield "isMutable" ==> isMutable

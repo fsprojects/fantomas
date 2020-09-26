@@ -272,3 +272,79 @@ Equinox
     .Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy)
     .Resolve
 """
+
+[<Test>]
+let ``lambda should have extra indent inside dotget`` () =
+    formatSourceString false """
+let getColl =
+  define
+    .Operation
+    .ForContext(Context.toAuthenticatedContext)
+    .GetCollection(fun _ parser ->
+      let x = 2
+      x)
+"""  config
+    |> prepend newline
+    |> should equal """
+let getColl =
+    define
+        .Operation
+        .ForContext(Context.toAuthenticatedContext)
+        .GetCollection(fun _ parser ->
+            let x = 2
+            x)
+"""
+
+[<Test>]
+let ``dotget app lambda`` () =
+    formatSourceString false """
+let getColl =
+    GetCollection(fun _ parser ->
+        let x = 1
+        x
+    ).ToString()
+
+let getColl2 =
+    GetCollection(fun parser ->
+        let x = 2
+        x
+    ).ToString()
+
+let getColl3 =
+    GetCollection(fun _ parser ->
+        let x = 3
+        x
+    ).Foo
+
+let getColl4 =
+    GetCollection(fun parser ->
+        let x = 4
+        x
+    ).Foo
+"""  config
+    |> prepend newline
+    |> should equal """
+let getColl =
+    GetCollection(fun _ parser ->
+        let x = 1
+        x)
+        .ToString()
+
+let getColl2 =
+    GetCollection(fun parser ->
+        let x = 2
+        x)
+        .ToString()
+
+let getColl3 =
+    GetCollection(fun _ parser ->
+        let x = 3
+        x)
+        .Foo
+
+let getColl4 =
+    GetCollection(fun parser ->
+        let x = 4
+        x)
+        .Foo
+"""

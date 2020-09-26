@@ -229,8 +229,7 @@ let rec (|Const|) c =
     | SynConst.Decimal d -> sprintf "%A" d
     | SynConst.String (s, _) ->
         // Naive check for verbatim strings
-        if not
-           <| String.IsNullOrEmpty(s)
+        if not <| String.IsNullOrEmpty(s)
            && s.Contains("\\")
            && not <| s.Contains(@"\\") then
             sprintf "@%A" s
@@ -796,42 +795,49 @@ let (|PrefixApp|_|) =
                    _) when IsPrefixOperator(DecompileOpName s.Text) -> Some((|OpName|) s, e2)
     | _ -> None
 
-let private (|InfixApp|_|) synExpr =
+let (|InfixApp|_|) synExpr =
     match synExpr with
     | SynExpr.App (_, true, (Var "::" as e), Tuple [ e1; e2 ], _) -> Some("::", e, e1, e2)
     // Range operators need special treatments, so we exclude them here
     | SynExpr.App (_, _, SynExpr.App (_, true, (Var s as e), e1, _), e2, _) when s <> ".." -> Some(s, e, e1, e2)
     | _ -> None
 
+let (|NewlineInfixApp|_|) =
+    function
+    | InfixApp (text, operatorExpr, e1, e2) when (newLineInfixOps.Contains(text)) -> Some(text, operatorExpr, e1, e2)
+    | _ -> None
+
+let (|NewlineInfixApps|_|) e =
+    let rec loop synExpr =
+        match synExpr with
+        | NewlineInfixApp (s, opE, e, e2) ->
+            let (e1, es) = loop e
+            (e1, (s, opE, e2) :: es)
+        | e -> (e, [])
+
+    match loop e with
+    | (e, es) when (List.length es > 1) -> Some(e, List.rev es)
+    | _ -> None
+
+let (|SameInfixApps|_|) e =
+    let rec loop operator synExpr =
+        match synExpr with
+        | InfixApp (s, opE, e, e2) when (s = operator) ->
+            let (e1, es) = loop operator e
+            (e1, (s, opE, e2) :: es)
+        | e -> (e, [])
+
+    match e with
+    | InfixApp (operatorText, _, _, _) ->
+        match loop operatorText e with
+        | (e, es) when (List.length es > 1) -> Some(e, List.rev es)
+        | _ -> None
+    | _ -> None
+
 let (|TernaryApp|_|) =
     function
     | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
     | _ -> None
-
-/// We should return the whole triple for convenient check
-let (|InfixApps|_|) e =
-    let rec loop synExpr =
-        match synExpr with
-        | InfixApp (s, opE, e, e2) ->
-            let (e1, es) = loop e
-
-            match es with
-            | [] ->
-                let (t1, ts) = loop e2
-
-                match ts with
-                | [] -> (e1, (s, opE, e2) :: es)
-                | ts ->
-                    // example code that leads to this:
-                    // let foo =
-                    //     a & b |> c |> d
-                    (e1, ts @ [ (s, opE, t1) ])
-            | _ -> (e1, (s, opE, e2) :: es)
-        | e -> (e, [])
-
-    match loop e with
-    | (_, []) -> None
-    | (e, es) -> Some(e, List.rev es)
 
 let (|AppWithMultilineArgument|_|) e =
     let isMultilineString p =
@@ -930,10 +936,10 @@ let rec collectComputationExpressionStatements e: ComputationExpressionStatement
 /// Matches if the SynExpr has some or of computation expression member call inside.
 let rec (|CompExprBody|_|) expr =
     match expr with
-    | SynExpr.LetOrUse (_, _, _, CompExprBody (_), _) -> Some expr
+    | SynExpr.LetOrUse (_, _, _, CompExprBody _, _) -> Some expr
     | SynExpr.LetOrUseBang _ -> Some expr
-    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn (_), _) -> Some expr
-    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse (_), _) -> Some expr
+    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn _, _) -> Some expr
+    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse _, _) -> Some expr
     | SynExpr.Sequential (_, _, SynExpr.DoBang _, SynExpr.LetOrUseBang _, _) -> Some expr
     | _ -> None
 
@@ -1599,19 +1605,19 @@ let (|ElmishReactWithoutChildren|_|) e =
 
 let (|ElmishReactWithChildren|_|) e =
     match e with
-    | App (OptVar (ident), [ ArrayOrList (_) as attributes; ArrayOrList (isArray, children, _) as childrenNode ]) ->
+    | App (OptVar (ident), [ ArrayOrList _ as attributes; ArrayOrList (isArray, children, _) as childrenNode ]) ->
         Some(ident, attributes, (isArray, children, childrenNode.Range))
     | App (OptVar (ident),
-           [ ArrayOrListOfSeqExpr (_) as attributes;
+           [ ArrayOrListOfSeqExpr _ as attributes;
              ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as childrenNode ]) ->
         Some(ident, attributes, (isArray, children, childrenNode.Range))
     | App (OptVar (ident),
-           [ ArrayOrListOfSeqExpr (_) as attributes;
+           [ ArrayOrListOfSeqExpr _ as attributes;
              ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ])
     | App (OptVar (ident),
-           [ ArrayOrList (_) as attributes; ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ]) ->
+           [ ArrayOrList _ as attributes; ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ]) ->
         Some(ident, attributes, (isArray, [ singleChild ], childrenNode.Range))
-    | App (OptVar (ident), [ ArrayOrListOfSeqExpr (_) as attributes; ArrayOrList (isArray, [], _) as childrenNode ]) ->
+    | App (OptVar (ident), [ ArrayOrListOfSeqExpr _ as attributes; ArrayOrList (isArray, [], _) as childrenNode ]) ->
         Some(ident, attributes, (isArray, [], childrenNode.Range))
 
     | _ -> None

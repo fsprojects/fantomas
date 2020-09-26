@@ -34,7 +34,7 @@ let private (|Number|_|) d =
     | _ -> None
 
 let private (|MultilineFormatterType|_|) mft =
-    MultilineFormatterType.ofConfigString mft
+    MultilineFormatterType.OfConfigString mft
 
 let private (|Boolean|_|) b =
     if b = "true" then Some(box true)
@@ -62,7 +62,7 @@ let configToEditorConfig (config: FormatConfig): string =
             |> Some
         | :? System.Int32 as i -> sprintf "%s=%d" (toEditorConfigName k) i |> Some
         | :? MultilineFormatterType as mft ->
-            sprintf "%s=%s" (toEditorConfigName k) (MultilineFormatterType.toConfigString mft)
+            sprintf "%s=%s" (toEditorConfigName k) (MultilineFormatterType.ToConfigString mft)
             |> Some
         | _ -> None)
     |> String.concat "\n"

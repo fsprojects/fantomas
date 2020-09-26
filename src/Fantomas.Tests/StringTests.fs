@@ -131,12 +131,6 @@ type GetList() =
     member self.X = switchvox_users_voicemail_getList_response
 "
 
-// either this test needs to be changed or
-// ``should not add newline before = operator after |>`` should change
-// Main problem here it that `ShortExpression` trigger being multiline on
-// WriteLineInsideStringConst cmd
-// To me this feels valid though, of course it lead to the follow result of the test.
-
 [<Test>]
 let ``should keep triple-quote strings`` () =
     formatSourceString false "
@@ -159,8 +153,7 @@ let main argv =
     use fun1 =
         R.eval
             (R.parse
-                (text =
-                    \"\"\"
+                (text = \"\"\"
     function(i) {
         x <- rnorm(1000)
         y <- rnorm(1000)

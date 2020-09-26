@@ -30,8 +30,6 @@ let ``should throw FormatException on unparsed input`` () =
         |> ignore)
     |> ignore
 
-
-
 [<Test>]
 let ``should handle lines with more than 512 characters`` () =
     formatSourceString false """

@@ -440,3 +440,35 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
         (nextState, allTokens)) (state, []) // empty tokens to start with
     |> snd // ignore the state
 """
+
+[<Test>]
+let ``trivia before closing parenthesis of desugared lambda, 1146`` () =
+    formatSourceString false """
+Target.create "Install" (fun _ ->
+    Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
+    // Paket restore will already happen when the build.fsx dependencies are restored
+)
+"""  config
+    |> prepend newline
+    |> should equal """
+Target.create "Install" (fun _ ->
+    Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
+    // Paket restore will already happen when the build.fsx dependencies are restored
+    )
+"""
+
+[<Test>]
+let ``trivia before closing parenthesis of lambda`` () =
+    formatSourceString false """
+Target.create "Install" (fun x ->
+    Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
+    // Paket restore will already happen when the build.fsx dependencies are restored
+)
+"""  config
+    |> prepend newline
+    |> should equal """
+Target.create "Install" (fun x ->
+    Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
+    // Paket restore will already happen when the build.fsx dependencies are restored
+    )
+"""
