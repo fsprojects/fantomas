@@ -66,7 +66,7 @@ As a workaround you could install [fantomas-tool](https://www.nuget.org/packages
 
 ![Rider action window](./docs/rider-action-window.png)
 
-**This will have an impact on you editing experiencing in Rider**, the external change to the file by the command line application might trigger more internal logic inside Rider than necessary.
+**This will have an impact on your editing experiencing in Rider**, the external change to the file by the command line application might trigger more internal logic inside Rider than necessary.
 It could be noticeable in regards to the default formatting experience.
 
 ### Visual Studio Code
