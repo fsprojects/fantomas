@@ -473,7 +473,7 @@ let WebApp =
 ### fsharp_max_record_width
 
 Control the maximum width for which records should be in one line. Default = 40.
-Requires `fsharp_reocrd_multiline_formatter` to be `character_width` to take
+Requires `fsharp_record_multiline_formatter` to be `character_width` to take
 effect.
 
 `defaultConfig`
