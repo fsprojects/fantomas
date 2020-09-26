@@ -5,6 +5,10 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 open Fantomas.FormatConfig
 
+// ****************
+// Lists and Arrays
+// ****************
+
 [<Test>]
 let ``number of items sized lists are formatted properly`` () =
     formatSourceString false """
@@ -284,7 +288,7 @@ let ``long expressions with number of items set to 3 will get split due to max l
 """
 
 [<Test>]
-let ``character width with explicit width lists are formatted properly`` () =
+let ``character width with explicit width sized lists are formatted properly`` () =
     formatSourceString false """
 let x = [ a; b; c ]
 let y = [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ]
@@ -302,13 +306,15 @@ let z =
     [ longValueThatIsALotOfCharactersSoooooLong; 100; 123 ]
 """
 
+// *******
+// Records
+// *******
+
 [<Test>]
 let ``number of items sized record definitions are formatted properly`` () =
     formatSourceString false """
 type R = { a: int; b: string; c: float option }
 type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
-let f (x: {| a: int; b: string |}) = x.a
-let f (x: {| AReallyLongExpressionThatIsMuchLongerThan50Characters: int |}) = x
     """
         { config with
               RecordMultilineFormatter = NumberOfItems }
@@ -320,12 +326,27 @@ type R =
       c: float option }
 
 type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
+"""
 
-let f (x: {| a: int
-             b: string |}) =
-    x.a
+[<Test>]
+let ``number of items sized record definitions with multiline block brackets on same column are formatted properly`` () =
+    formatSourceString false """
+type R = { a: int; b: string; c: float option }
+type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
+    """
+        { config with
+              RecordMultilineFormatter = NumberOfItems
+              MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should equal """
+type R =
+    {
+        a: int
+        b: string
+        c: float option
+    }
 
-let f (x: {| AReallyLongExpressionThatIsMuchLongerThan50Characters: int |}) = x
+type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
 """
 
 [<Test>]
@@ -378,6 +399,67 @@ f
           a = x
           b = y
           z = c }
+
+g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
+"""
+
+[<Test>]
+let ``number of items sized record expressions with multiline block brackets on same column are formatted properly`` () =
+    formatSourceString false """
+let r = { a = x; b = y; z = c }
+let s = { AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
+
+let r' = { r with a = x; b = y; z = c }
+let s' = { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
+
+f r { a = x; b = y; z = c }
+g s { AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
+
+f r' { r with a = x; b = y; z = c }
+g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
+    """
+        { config with
+              RecordMultilineFormatter = NumberOfItems
+              MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should equal """
+let r =
+    {
+        a = x
+        b = y
+        z = c
+    }
+
+let s =
+    { AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
+
+let r' =
+    { r with
+        a = x
+        b = y
+        z = c
+    }
+
+let s' =
+    { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
+
+f
+    r
+    {
+        a = x
+        b = y
+        z = c
+    }
+
+g s { AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
+
+f
+    r'
+    { r with
+        a = x
+        b = y
+        z = c
+    }
 
 g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 """
@@ -437,21 +519,73 @@ g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 """
 
 [<Test>]
-let ``TEMPLATE`` () =
+let ``number of items sized anonymous record expressions with multiline block brackets on same column are formatted properly`` () =
     formatSourceString false """
-"""
+let r = {| a = x; b = y; z = c |}
+let s = {| AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
+
+let r' = {| r with a = x; b = y; z = c |}
+let s' = {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
+
+f r {| a = x; b = y; z = c |}
+g s {| AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
+
+f r' {| r with a = x; b = y; z = c |}
+g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
+    """
         { config with
-              RecordMultilineFormatter = NumberOfItems }
+              RecordMultilineFormatter = NumberOfItems
+              MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should equal """
-"""
+let r =
+    {|
+        a = x
+        b = y
+        z = c
+    |}
 
+let s =
+    {| AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
+
+let r' =
+    {| r with
+        a = x
+        b = y
+        z = c
+    |}
+
+let s' =
+    {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
+
+f
+    r
+    {|
+        a = x
+        b = y
+        z = c
+    |}
+
+g s {| AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
+
+f
+    r'
+    {| r with
+        a = x
+        b = y
+        z = c
+    |}
+
+g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
+"""
 
 [<Test>]
 let ``number of items sized anonymous record types are formatted properly`` () =
     formatSourceString false """
 let f (x: {| x: int; y: obj |}) = x
+let g (x: {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}) = x
 type A = {| x: int; y: obj |}
+type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
 """
         { config with
               RecordMultilineFormatter = NumberOfItems }
@@ -461,7 +595,39 @@ let f (x: {| x: int
              y: obj |}) =
     x
 
+let g (x: {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}) = x
+
 type A =
     {| x: int
        y: obj |}
+
+type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
 """
+
+// FIXME: Change with https://github.com/fsprojects/fantomas/issues/1167
+[<Test>]
+let ``number of items sized anonymous record types with multiline block brackets on same column are formatted properly`` () =
+    formatSourceString false """
+let f (x: {| x: int; y: obj |}) = x
+let g (x: {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}) = x
+type A = {| x: int; y: obj |}
+type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
+"""
+        { config with
+              RecordMultilineFormatter = NumberOfItems
+              MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should equal """
+let f (x: {| x: int
+             y: obj |}) =
+    x
+
+let g (x: {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}) = x
+
+type A =
+    {| x: int
+       y: obj |}
+
+type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
+"""
+
