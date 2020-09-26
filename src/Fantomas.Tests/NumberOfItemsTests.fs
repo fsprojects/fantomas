@@ -630,4 +630,3 @@ type A =
 
 type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
 """
-
