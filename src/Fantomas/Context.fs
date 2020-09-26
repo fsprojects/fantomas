@@ -1158,7 +1158,7 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor (mainNode: Fs
         | Some attributeNodes ->
             List.tryFind (fun { Range = r; ContentBefore = cb } ->
                 hasPrintableContent cb
-                && Seq.exists (fun range -> RangeHelpers.rangeEq r range) attributeRanges) attributeNodes
+                && Seq.exists (RangeHelpers.rangeEq r) attributeRanges) attributeNodes
         | None -> None
 
     if Option.isSome triviaNode

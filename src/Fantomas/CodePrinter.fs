@@ -647,11 +647,10 @@ and genTyparList astContext tps =
 and genTypeAndParam astContext typeName tds tcs preferPostfix =
     let types openSep closeSep =
         (!-openSep
-         +> coli sepComma tds (fun i decl ->
+         +> coli sepComma tds (fun i ->
                 genTyparDecl
                     { astContext with
-                          IsFirstTypeParam = i = 0 }
-                    decl)
+                          IsFirstTypeParam = i = 0 })
          +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
          -- closeSep)
 
