@@ -26,6 +26,10 @@ type ShortExpressionInfo =
         currentColumn - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
 
+type Size =
+    | CharacterWidth of maxWidth: Num
+    | NumberOfItems of items: Num * maxItems: Num
+
 type WriteModelMode =
     | Standard
     | Dummy
@@ -518,6 +522,11 @@ let internal optPre (f2: _ -> Context) (f1: Context -> _) o f (ctx: Context) =
     | Some x -> f1 (f x (f2 ctx))
     | None -> ctx
 
+let internal getListOrArrayExprSize ctx maxWidth xs =
+    match ctx.Config.ArrayOrListMultilineFormatter with
+    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth maxWidth
+    | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length xs, ctx.Config.MaxArrayOrListNumberOfItems)
+
 /// b is true, apply f1 otherwise apply f2
 let internal ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else f2 ctx
 
@@ -699,6 +708,14 @@ let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context)
 
 let internal expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
     shortExpressionWithFallback expression fallbackExpression ctx.Config.MaxLineLength (Some 0) ctx
+
+let internal isSmallExpression size (smallExpression: Context -> Context) fallbackExpression (ctx: Context) =
+    match size with
+    | CharacterWidth maxWidth -> isShortExpression maxWidth smallExpression fallbackExpression ctx
+    | NumberOfItems (items, maxItems) ->
+        if items > maxItems
+        then fallbackExpression ctx
+        else expressionFitsOnRestOfLine smallExpression fallbackExpression ctx
 
 /// provide the line and column before and after the leadingExpression to to the continuation expression
 let internal leadingExpressionResult leadingExpression continuationExpression (ctx: Context) =

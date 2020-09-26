@@ -76,6 +76,8 @@ fsharp_max_if_then_else_short_width=40
 fsharp_max_infix_operator_expression=50
 fsharp_max_record_width=40
 fsharp_max_array_or_list_width=40
+fsharp_max_array_or_list_size=1
+fsharp_array_or_list_multiline_formatter=character_width
 fsharp_max_value_binding_width=40
 fsharp_max_function_binding_width=40
 fsharp_max_dot_get_expression_width=50
@@ -496,8 +498,9 @@ let myInstance =
 
 ### fsharp_max_array_or_list_width
 
-Control the maximum width for which lists and arrays should be in one line.
-Default = 40.
+Control the maximum width for which lists and arrays can be in one line. Default
+= 40. Requires `fsharp_array_or_list_multiline_formatter` to be
+`character_width` to take effect.
 
 `defaultConfig`
 
@@ -506,6 +509,57 @@ let myArray = [| one; two; three |]
 ```
 
 `{ defaultConfig with MaxArrayOrListWidth = 20 }`
+
+```fsharp
+let myArray =
+    [| one
+       two
+       three |]
+```
+
+### fsharp_max_array_or_list_number_of_items
+
+Control the maximum number of elements for which lists and arrays can be in
+one line. Default = 1. Requires `fsharp_array_or_list_multiline_formatter` to be
+`number_of_items` to take effect.
+
+`defaultConfig`
+
+```fsharp
+let myList = [ one; two ]
+
+let myArray = [| one; two; three |]
+```
+
+`{ defaultConfig with MaxArrayOrListNumberOfItems = 2; ArrayOrListMultilineFormatter =
+MultilineFormatterType.NumberOfItems }`
+
+```fsharp
+let myList = [ one; two ]
+
+let myArray =
+    [| one
+       two
+       three |]
+```
+
+### fsharp_array_or_list_multiline_formatter
+
+Split arrays and lists into multiple lines based on the given condition.
+`character_width` uses character count of the expression, controlled by
+`fsharp_max_array_or_list_width`. `number_of_items` uses the number of elements
+in the array or list, controlled by `fsharp_max_array_or_list_number_of_items`.
+Default = `character_width`. Note that in either case, list expressions are
+still governed by `max_line_length`.
+
+`defaultConfig`
+
+```fsharp
+let myArray = [| one; two; three |]
+```
+
+`{ defaultConfig with ArrayOrListMultilineFormatter =
+MultilineFormatterType.NumberOfItems }`
 
 ```fsharp
 let myArray =

@@ -33,6 +33,9 @@ let private (|Number|_|) d =
     | true, d -> Some(box d)
     | _ -> None
 
+let private (|MultilineFormatterType|_|) mft =
+    MultilineFormatterType.OfConfigString mft
+
 let private (|Boolean|_|) b =
     if b = "true" then Some(box true)
     elif b = "false" then Some(box false)
@@ -44,6 +47,7 @@ let private parseOptionsFromEditorConfig (editorConfig: EditorConfig.Core.FileCo
         match editorConfig.Properties.TryGetValue(ecn) with
         | true, Number n -> n
         | true, Boolean b -> b
+        | true, MultilineFormatterType mft -> mft
         | _ -> dv)
     |> fun newValues ->
         let formatConfigType = FormatConfig.Default.GetType()
@@ -57,6 +61,9 @@ let configToEditorConfig (config: FormatConfig): string =
             sprintf "%s=%s" (toEditorConfigName k) (if b then "true " else "false")
             |> Some
         | :? System.Int32 as i -> sprintf "%s=%d" (toEditorConfigName k) i |> Some
+        | :? MultilineFormatterType as mft ->
+            sprintf "%s=%s" (toEditorConfigName k) (MultilineFormatterType.ToConfigString mft)
+            |> Some
         | _ -> None)
     |> String.concat "\n"
 
