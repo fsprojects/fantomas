@@ -472,3 +472,44 @@ Target.create "Install" (fun x ->
     // Paket restore will already happen when the build.fsx dependencies are restored
     )
 """
+
+[<Test>]
+let ``function call with two lambda arguments, 1164`` () =
+    formatSourceString false """
+let init =
+  addDateTimeConverter
+    (fun dt -> Date(dt.Year, dt.Month, dt.Day))
+    (fun (Date (y, m, d)) ->
+      System.DateTime(y, m, d))
+"""  { config with MaxLineLength = 85 }
+    |> prepend newline
+    |> should equal """
+let init =
+    addDateTimeConverter
+        (fun dt -> Date(dt.Year, dt.Month, dt.Day))
+        (fun (Date (y, m, d)) -> System.DateTime(y, m, d))
+"""
+
+[<Test>]
+let ``function call with two lambdas and three other arguments`` () =
+    formatSourceString false """
+SettingControls.toggleButton (fun _ ->
+    UpdateOption(key, MultilineFormatterTypeOption(o, key, "character_width"))
+    |> dispatch) (fun _ ->
+    UpdateOption(key, MultilineFormatterTypeOption(o, key, "number_of_items"))
+    |> dispatch) "CharacterWidth" "NumberOfItems" key (v = "character_width")
+"""  config
+    |> prepend newline
+    |> should equal """
+SettingControls.toggleButton
+    (fun _ ->
+        UpdateOption(key, MultilineFormatterTypeOption(o, key, "character_width"))
+        |> dispatch)
+    (fun _ ->
+        UpdateOption(key, MultilineFormatterTypeOption(o, key, "number_of_items"))
+        |> dispatch)
+    "CharacterWidth"
+    "NumberOfItems"
+    key
+    (v = "character_width")
+"""
