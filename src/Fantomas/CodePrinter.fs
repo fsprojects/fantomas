@@ -1966,12 +1966,13 @@ and genExpr astContext synExpr =
                              +> genExpr astContext e
                              +> unindent))))
 
-        let hasThreeOrMoreLambdas =
+        let hasMultipleLambdas =
             List.filter (function
-                | Paren (_, Lambda _, _) -> true
+                | Paren (_, Lambda _, _)
+                | Paren (_, DesugaredLambda _, _) -> true
                 | _ -> false) es
             |> List.length
-            |> fun l -> l >= 3
+            |> fun l -> l > 1
 
         if List.exists (function
             | Lambda _
@@ -1981,7 +1982,7 @@ and genExpr astContext synExpr =
             | MultilineString _
             | CompExpr _ -> true
             | _ -> false) es
-           && not hasThreeOrMoreLambdas then
+           && not hasMultipleLambdas then
             shortExpression
         else
             expressionFitsOnRestOfLine shortExpression longExpression
