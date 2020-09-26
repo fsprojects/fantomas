@@ -259,8 +259,7 @@ fsharp_max_record_number_of_items = 4
 
     config.MaxRecordNumberOfItems == 4
 
-    config.RecordMultilineFormatter
-    == NumberOfItems
+    config.RecordMultilineFormatter == NumberOfItems
 
 [<Test>]
 let ``record character_width parsing test with single option`` () =
