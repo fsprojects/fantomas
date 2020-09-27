@@ -6,7 +6,8 @@ open Fantomas.Tests.TestHelper
 open Fantomas.FormatConfig
 
 let config =
-    { config with RecordMultilineFormatter = NumberOfItems }
+    { config with
+          RecordMultilineFormatter = NumberOfItems }
 
 [<Test>]
 let ``single member record stays on one line`` () =

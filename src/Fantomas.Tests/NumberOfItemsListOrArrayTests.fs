@@ -305,4 +305,3 @@ let y =
 let z =
     [ longValueThatIsALotOfCharactersSoooooLong; 100; 123 ]
 """
-
