@@ -4298,9 +4298,20 @@ and genPat astContext pat =
              +> sepCloseA)
 
     | PatRecord (xs) ->
-        sepOpenS
-        +> atCurrentColumn (colAutoNlnSkip0 sepSemi xs (genPatRecordFieldName astContext))
-        +> sepCloseS
+        let smallRecordExpr =
+            sepOpenS
+            +> col sepSemi xs (genPatRecordFieldName astContext)
+            +> sepCloseS
+
+        // Note that MultilineBlockBracketsOnSameColumn is not taken into account here.
+        let multilineRecordExpr =
+            sepOpenS
+            +> atCurrentColumn (col sepSemiNln xs (genPatRecordFieldName astContext))
+            +> sepCloseS
+
+        fun ctx ->
+            let size = getRecordSize ctx xs
+            isSmallExpression size smallRecordExpr multilineRecordExpr ctx
     | PatConst (c, r) -> genConst c r
     | PatIsInst (TApp (_, [ _ ], _) as t)
     | PatIsInst (TArray _ as t) ->

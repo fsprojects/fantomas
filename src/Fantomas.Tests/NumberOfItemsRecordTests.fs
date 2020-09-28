@@ -382,7 +382,6 @@ type MyRecord =
     interface IMyInterface
 """
 
-[<Ignore("Issue #1173")>]
 [<Test>]
 let ``SynPat.Record in pattern match, 1173`` () =
     formatSourceString false """match foo with
