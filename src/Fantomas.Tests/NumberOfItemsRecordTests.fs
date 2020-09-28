@@ -492,8 +492,6 @@ type ShortExpressionInfo =
     member x.Foo() = ()
 """
 
-// FIXME: See https://github.com/fsprojects/fantomas/issues/1171
-[<Ignore("Issue #1171")>]
 [<Test>]
 let ``internal keyword before multiline record type, 1171`` () =
     formatSourceString false """
@@ -506,8 +504,6 @@ type A =
           YetAnotherLongIdentifier: bool }
 """
 
-// FIXME: See https://github.com/fsprojects/fantomas/issues/1171
-[<Ignore("Issue #1171")>]
 [<Test>]
 let ``internal keyword before multiline record type in signature file, 1171`` () =
     formatSourceString true """namespace Bar

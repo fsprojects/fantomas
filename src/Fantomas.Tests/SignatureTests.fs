@@ -586,8 +586,9 @@ let ``internal keyword before long record type`` () =
 namespace Bar
 
 type A =
-    internal { ALongIdentifier: string
-               YetAnotherLongIdentifier: bool }
+    internal
+        { ALongIdentifier: string
+          YetAnotherLongIdentifier: bool }
 """
 
 [<Test>]
@@ -848,4 +849,53 @@ type t1 = bool
 
 [<SomeAttribute>]
 type t2 = bool
+"""
+
+[<Test>]
+let ``line comments before access modifier of multiline record type`` () =
+    formatSourceString true """
+namespace Foo
+
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        {
+            Foo : int
+            Barry: string
+        }
+"""  { config with MaxRecordWidth = 10 }
+    |> prepend newline
+    |> should equal """
+namespace Foo
+
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        { Foo: int
+          Barry: string }
+"""
+
+[<Test>]
+let ``line comments before access modifier of single line record type`` () =
+    formatSourceString true """
+namespace Foo
+
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        {
+            Meh : TimeSpan
+        }
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Foo
+
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private { Meh: TimeSpan }
 """

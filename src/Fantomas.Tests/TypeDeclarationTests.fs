@@ -1528,6 +1528,30 @@ type TestType =
 """
 
 [<Test>]
+let ``comments before access modifier and multiline record type`` () =
+    formatSourceString false """
+type OlapCube =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        {
+            OneDimension : int
+            TwoDimension : int
+            ThreeDimension : int
+        }
+"""  config
+    |> prepend newline
+    |> should equal """
+type OlapCube =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        { OneDimension: int
+          TwoDimension: int
+          ThreeDimension: int }
+"""
+
+[<Test>]
 let ``alternative long member definition`` () =
     formatSourceString false """
 type C () =
@@ -1804,4 +1828,22 @@ and Variable<'model, 'msg> =
 let ``union type with constraint`` () =
     formatSourceString false """type 'a t when 'a :> IDisposable = T  of  'a option""" config
     |> should equal """type 'a t when 'a :> IDisposable = T of 'a option
+"""
+
+[<Test>]
+let ``add newline and indent for multiline internal record definition, 658`` () =
+    formatSourceString false """
+type RequestParser<'ctx, 'a> = internal {
+  consumedFields: Set<ConsumedFieldName>
+  parse: 'ctx -> Request ->  Async<Result<'a, Error list>>
+  prohibited: ProhibitedRequestGetter list
+}
+"""  config
+    |> prepend newline
+    |> should equal """
+type RequestParser<'ctx, 'a> =
+    internal
+        { consumedFields: Set<ConsumedFieldName>
+          parse: 'ctx -> Request -> Async<Result<'a, Error list>>
+          prohibited: ProhibitedRequestGetter list }
 """

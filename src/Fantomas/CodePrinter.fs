@@ -3115,18 +3115,20 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
             let size = getRecordSize ctx fs
 
             if (List.isEmpty ms) then
-                (isSmallExpression
-                    size
-                     (enterNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
-                      +> smallExpression)
-                     multilineExpression
+                (isSmallExpression size smallExpression multilineExpression
                  +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range // this will only print something when there is trivia after } in the short expression
                 // Yet it cannot be part of the short expression otherwise the multiline expression would be triggered unwillingly.
                 ) ctx
             else
                 multilineExpression ctx
 
-        typeName +> sepEq +> bodyExpr
+        typeName
+        +> sepEq
+        +> indent
+        +> enterNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+        +> bodyExpr
+        +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+        +> unindent
 
     | Simple TDSRNone -> typeName
     | Simple (TDSRTypeAbbrev t) ->
@@ -3285,51 +3287,42 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
 
 and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
     // the typeName is already printed
-    indent
-    +> sepNln
-    +> genTriviaFor
-        SynTypeDefnSimpleRepr_Record
-           tdr.Range
-           (opt sepSpace ao' genAccess
-            +> sepOpenS
-            +> atCurrentColumn
-                (leaveLeftBrace tdr.Range
-                 +> col sepSemiNln fs (genField astContext ""))
-            +> sepCloseS
-            +> leaveNodeTokenByName tdr.Range RBRACE
-            +> onlyIf (List.isNotEmpty ms) sepNln
-            +> sepNlnBetweenTypeAndMembers ms
-            +> genMemberDefnList
-                { astContext with
-                      InterfaceRange = None }
-                   ms
-            +> unindent)
+    sepNlnUnlessLastEventIsNewline
+    +> opt (indent +> sepNln) ao' genAccess
+    +> sepOpenS
+    +> atCurrentColumn
+        (leaveLeftBrace tdr.Range
+         +> col sepSemiNln fs (genField astContext ""))
+    +> sepCloseS
+    +> leaveNodeTokenByName tdr.Range RBRACE
+    +> onlyIf (List.isNotEmpty ms) sepNln
+    +> sepNlnBetweenTypeAndMembers ms
+    +> genMemberDefnList
+        { astContext with
+              InterfaceRange = None }
+           ms
+    +> optSingle (fun _ -> unindent) ao'
 
 and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
     // the typeName is already printed
-    indent
+    sepNlnUnlessLastEventIsNewline
+    +> opt (indent +> sepNln) ao' genAccess
+    +> sepOpenSFixed
+    +> indent
     +> sepNln
-    +> genTriviaFor
-        SynTypeDefnSimpleRepr_Record
-           tdr.Range
-           (opt (indent +> sepNln) ao' genAccess
-            +> sepOpenSFixed
-            +> indent
-            +> sepNln
-            +> atCurrentColumn
-                (leaveLeftBrace tdr.Range
-                 +> col sepSemiNln fs (genField astContext ""))
-            +> unindent
-            +> sepNln
-            +> sepCloseSFixed
-            +> onlyIf (List.isNotEmpty ms) sepNln
-            +> sepNlnBetweenTypeAndMembers ms
-            +> genMemberDefnList
-                { astContext with
-                      InterfaceRange = None }
-                   ms
-            +> onlyIf (Option.isSome ao') unindent
-            +> unindent)
+    +> atCurrentColumn
+        (leaveLeftBrace tdr.Range
+         +> col sepSemiNln fs (genField astContext ""))
+    +> unindent
+    +> sepNln
+    +> sepCloseSFixed
+    +> onlyIf (List.isNotEmpty ms) sepNln
+    +> sepNlnBetweenTypeAndMembers ms
+    +> genMemberDefnList
+        { astContext with
+              InterfaceRange = None }
+           ms
+    +> onlyIf (Option.isSome ao') unindent
 
 and sepNlnBetweenSigTypeAndMembers (ms: SynMemberSig list) =
     match List.tryHead ms with
@@ -3416,27 +3409,38 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
         +> unindent
 
     | SigSimple (TDSRRecord (ao', fs)) ->
-        let smallExpr =
-            typeName
-            +> sepEq
-            +> sepSpace
+        let smallExpression =
+            sepSpace
             +> optSingle (fun ao -> genAccess ao +> sepSpace) ao'
             +> sepOpenS
             +> leaveLeftBrace tdr.Range
             +> col sepSemi fs (genField astContext "")
             +> sepCloseS
+            +> leaveNodeTokenByName tdr.Range RBRACE
 
-        let longExpr =
+        let multilineExpression =
             ifAlignBrackets
-                (genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext)
-                (genSigSimpleRecord typeName tdr ms ao' fs astContext)
+                (genSigSimpleRecordAlignBrackets tdr ms ao' fs astContext)
+                (genSigSimpleRecord tdr ms ao' fs astContext)
 
-        fun ctx ->
+        let bodyExpr ctx =
             let size = getRecordSize ctx fs
 
-            if List.isNotEmpty ms
-            then longExpr ctx
-            else isSmallExpression size smallExpr longExpr ctx
+            if (List.isEmpty ms) then
+                (isSmallExpression size smallExpression multilineExpression
+                 +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range // this will only print something when there is trivia after } in the short expression
+                // Yet it cannot be part of the short expression otherwise the multiline expression would be triggered unwillingly.
+                ) ctx
+            else
+                multilineExpression ctx
+
+        typeName
+        +> sepEq
+        +> indent
+        +> enterNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+        +> bodyExpr
+        +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+        +> unindent
 
     | SigSimple TDSRNone ->
         let genMembers =
@@ -3502,12 +3506,10 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
     | SigExceptionRepr (SigExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody astContext ats px ao uc
     |> genTriviaFor TypeDefnSig_ range
 
-and genSigSimpleRecord typeName tdr ms ao' fs astContext =
-    typeName
-    +> sepEq
-    +> indent
-    +> sepNln
-    +> opt sepSpace ao' genAccess
+and genSigSimpleRecord tdr ms ao' fs astContext =
+    // the typeName is already printed
+    sepNlnUnlessLastEventIsNewline
+    +> opt (indent +> sepNln) ao' genAccess
     +> sepOpenS
     +> atCurrentColumn
         (leaveLeftBrace tdr.Range
@@ -3515,13 +3517,11 @@ and genSigSimpleRecord typeName tdr ms ao' fs astContext =
     +> sepCloseS
     +> sepNlnBetweenSigTypeAndMembers ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)
-    +> unindent
+    +> optSingle (fun _ -> unindent) ao'
 
-and genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext =
-    typeName
-    +> sepEq
-    +> indent
-    +> sepNln
+and genSigSimpleRecordAlignBrackets tdr ms ao' fs astContext =
+    // the typeName is already printed
+    sepNlnUnlessLastEventIsNewline
     +> opt (indent +> sepNln) ao' genAccess
     +> sepOpenSFixed
     +> indent
@@ -3535,7 +3535,6 @@ and genSigSimpleRecordAlignBrackets typeName tdr ms ao' fs astContext =
     +> sepNlnBetweenSigTypeAndMembers ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)
     +> onlyIf (Option.isSome ao') unindent
-    +> unindent
 
 and genMemberSig astContext node =
     let range, mainNodeName =
