@@ -661,7 +661,7 @@ type TestType =
         {
             Foo : int
         }
-"""  config
+"""  { config with MaxRecordWidth = 10 }
     |> prepend newline
     |> should equal """
 type TestType =
@@ -719,4 +719,55 @@ let person =
         Name = "James"
         Address = { Street = "Bakerstreet" ; Number = 42 } // end address
     } // end person
+"""
+
+[<Test>]
+let ``line comments before access modifier of multiline record type`` () =
+    formatSourceString true """
+namespace Foo
+
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        {
+            Foo : int
+            Barry: string
+        }
+"""  { config with MaxRecordWidth = 10 }
+    |> prepend newline
+    |> should equal """
+namespace Foo
+
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        {
+            Foo : int
+            Barry : string
+        }
+"""
+
+[<Test>]
+let ``line comments before access modifier of single line record type`` () =
+    formatSourceString true """
+namespace Foo
+
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        {
+            Meh : TimeSpan
+        }
+"""  config
+    |> prepend newline
+    |> should equal """
+namespace Foo
+
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private { Meh : TimeSpan }
 """
