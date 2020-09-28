@@ -1048,3 +1048,53 @@ module Test =
         { long_enough: string
           also_long_enough: string } // Hi I am a comment
 """
+
+[<Test>]
+let ``multiline SynPat.Record in match clause, 1173`` () =
+    formatSourceString false """
+match foo with
+| { Bar = bar
+    Level = 12
+    Vibes = plenty
+    Lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " } ->
+    "7"
+| _ -> "8"
+"""  config
+    |> prepend newline
+    |> should equal """
+match foo with
+| { Bar = bar
+    Level = 12
+    Vibes = plenty
+    Lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " } ->
+    "7"
+| _ -> "8"
+"""
+
+[<Test>]
+let ``multiline SynPat.Record in let binding destructuring`` () =
+    formatSourceString false """
+let internal sepSemi (ctx: Context) =
+    let { Config = { SpaceBeforeSemicolon = before; SpaceAfterSemicolon = after } } = ctx
+
+    match before, after with
+    | false, false -> str ";"
+    | true, false -> str " ;"
+    | false, true -> str "; "
+    | true, true -> str " ; "
+    <| ctx
+"""  config
+    |> prepend newline
+    |> should equal """
+let internal sepSemi (ctx: Context) =
+    let { Config = { SpaceBeforeSemicolon = before
+                     SpaceAfterSemicolon = after } } =
+        ctx
+
+    match before, after with
+    | false, false -> str ";"
+    | true, false -> str " ;"
+    | false, true -> str "; "
+    | true, true -> str " ; "
+    <| ctx
+"""
