@@ -5,10 +5,6 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 open Fantomas.FormatConfig
 
-// ****************
-// Lists and Arrays
-// ****************
-
 [<Test>]
 let ``number of items sized lists are formatted properly`` () =
     formatSourceString false """

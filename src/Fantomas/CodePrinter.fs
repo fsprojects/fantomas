@@ -1437,7 +1437,6 @@ and genExpr astContext synExpr =
 
         fun ctx ->
             let size = getRecordSize ctx xs
-
             isSmallExpression size smallRecordExpr multilineRecordExpr ctx
 
     | AnonRecord (isStruct, fields, copyInfo) ->
@@ -1455,7 +1454,6 @@ and genExpr astContext synExpr =
 
         fun (ctx: Context) ->
             let size = getRecordSize ctx fields
-
             isSmallExpression size smallExpression longExpression ctx
 
     | ObjExpr (t, eio, bd, ims, range) ->
@@ -3379,7 +3377,6 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
         +> unindent
 
     | SigSimple (TDSRUnion (ao', xs)) ->
-
         let unionCases =
             match xs with
             | [] -> id
@@ -3773,7 +3770,6 @@ and genType astContext outerBracket t =
 
             fun (ctx: Context) ->
                 let size = getRecordSize ctx fields
-
                 isSmallExpression size smallExpression longExpression ctx
         | TParen (innerT) ->
             sepOpenT
