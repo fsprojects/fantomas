@@ -527,6 +527,11 @@ let internal getListOrArrayExprSize ctx maxWidth xs =
     | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth maxWidth
     | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length xs, ctx.Config.MaxArrayOrListNumberOfItems)
 
+let internal getRecordSize ctx fields =
+    match ctx.Config.RecordMultilineFormatter with
+    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxRecordWidth
+    | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length fields, ctx.Config.MaxRecordNumberOfItems)
+
 /// b is true, apply f1 otherwise apply f2
 let internal ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else f2 ctx
 

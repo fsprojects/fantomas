@@ -1,4 +1,4 @@
-module Fantomas.Tests.NumberOfItemsTests
+module Fantomas.Tests.NumberOfItemsListOrArrayTests
 
 open NUnit.Framework
 open FsUnit
@@ -284,7 +284,7 @@ let ``long expressions with number of items set to 3 will get split due to max l
 """
 
 [<Test>]
-let ``character width with explicit width lists are formatted properly`` () =
+let ``character width with explicit width sized lists are formatted properly`` () =
     formatSourceString false """
 let x = [ a; b; c ]
 let y = [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ]

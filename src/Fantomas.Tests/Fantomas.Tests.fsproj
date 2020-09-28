@@ -74,7 +74,8 @@
     <Compile Include="InterpolatedStringTests.fs" />
     <Compile Include="DotGetTests.fs" />
     <Compile Include="HashDirectiveTests.fs" />
-    <Compile Include="NumberOfItemsTests.fs" />
+    <Compile Include="NumberOfItemsListOrArrayTests.fs" />
+    <Compile Include="NumberOfItemsRecordTests.fs" />
     <Compile Include="SynExprNewTests.fs" />
   </ItemGroup>
   <ItemGroup>
