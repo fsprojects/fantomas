@@ -52,16 +52,18 @@ let ``mathematical expressions`` () =
 let w = x + y + z
 
 let w = x - y - z
-
-let w = x * y + z
     """ config
     |> prepend newline
     |> should equal """
-let w = x + y + z
+let w =
+    x
+    + y
+    + z
 
-let w = x - y - z
-
-let w = x * y + z
+let w =
+    x
+    - y
+    - z
 """
 
 [<Test>]
@@ -73,15 +75,6 @@ let ``equal sign operator should not move to next line`` () =
     |> should equal """
 let result =
     (typ.GetInterface(typeof<System.Collections.IEnumerable>.FullName) = null)
-"""
-
-[<Test>]
-let ``multiple equality test should not move to next line`` () =
-    formatSourceString false """let result = x = y = true
-"""  config
-    |> prepend newline
-    |> should equal """
-let result = x = y = true
 """
 
 [<Test>]
@@ -115,8 +108,7 @@ let ``modulo operator on same line, 780`` () =
     |> prepend newline
     |> should equal """
 let hasUnEvenAmount regex line =
-    (Regex.Matches(line, regex).Count
-     - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
+    (Regex.Matches(line, regex).Count - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
 """
 
 [<Test>]
@@ -156,21 +148,6 @@ async {
 }
 \"\"\"
 "
-
-[<Test>]
-let ``lambda piped to lambda should be multiline, 942`` () =
-    formatSourceString false """
-    let r (f : 'a -> 'b) (a : 'a) : 'b =
-        fun () ->
-            f a
-            |> fun f -> f ()
-            """  config
-            |> prepend newline
-    |> should equal """
-let r (f: 'a -> 'b) (a: 'a): 'b =
-    fun () -> f a
-    |> fun f -> f ()
-"""
 
 [<Test>]
 let ``combining lines breaks function precedence 488`` () =
@@ -213,14 +190,16 @@ let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
         let theta = lngA - lngB
 
         let dist =
-            Math.Sin(deg2rad (latA))
-            * Math.Sin(deg2rad (latB))
+            Math.Sin(deg2rad (latA)) * Math.Sin(deg2rad (latB))
             + (Math.Cos(deg2rad (latA))
                * Math.Cos(deg2rad (latB))
                * Math.Cos(deg2rad (theta)))
             |> Math.Acos
             |> rad2deg
-            |> (*) (60. * 1.1515 * 1.609344)
+            |> (*)
+                (60.
+                 * 1.1515
+                 * 1.609344)
 
         dist
 """
@@ -246,17 +225,6 @@ let f x =
 """
 
 [<Test>]
-let ``simple math`` () =
-    formatSourceString false """let myValue = a + b * c
-"""  config
-    |> prepend newline
-    |> should equal """
-let myValue =
-    a
-    + b * c
-"""
-
-[<Test>]
 let ``simple math in one line`` () =
     formatSourceString false """let myValue = a + b * c
 """  config
@@ -271,9 +239,7 @@ let ``simple math reversed`` () =
 """  config
     |> prepend newline
     |> should equal """
-let myValue =
-    a * b
-    + c
+let myValue = a * b + c
 """
 
 [<Test>]
@@ -301,8 +267,7 @@ let ``nested math sample`` () =
     |> prepend newline
     |> should equal """
 let dist =
-    aaaaaaaaaaaaaaaaaaaaaaaa
-    * bbbbbbbbbbbbbbbbbbbbbbbbb
+    aaaaaaaaaaaaaaaaaaaaaaaa * bbbbbbbbbbbbbbbbbbbbbbbbb
     + (ccccccccccccccccccccccccc
        * ddddddddddddddddddddddd
        * eeeeeeeeeeeeeeeeeeeeeee)

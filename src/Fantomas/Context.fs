@@ -534,7 +534,7 @@ let internal getRecordSize ctx fields =
 
 let internal getInfixOperatorExpressionSize ctx es =
     match ctx.Config.InfixOperatorExpressionMultilineFormatter with
-    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxRecordWidth
+    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxInfixOperatorExpression
     | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length es, ctx.Config.MaxInfixOperatorExpressionNumberOfItems)
 
 /// b is true, apply f1 otherwise apply f2
