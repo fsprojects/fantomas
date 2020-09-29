@@ -452,7 +452,8 @@ else c.ToString()
 ### fsharp_max_infix_operator_expression
 
 Control the maximum length for which infix expression can be on one line.
-Default = 50.
+Default = 50. Requires `fsharp_infix_operator_expression_multiline_formatter` to
+be `character_width` to take effect.
 
 `defaultConfig`
 
@@ -468,6 +469,69 @@ let WebApp =
     route "/ping"
     >=> authorized
     >=> text "pong"
+```
+
+### fsharp_max_infix_operator_expression_number_of_items
+
+Control the maximum number of same infix operators for which infix expression
+can be on one line. Default = 1. Requires
+`fsharp_infix_operator_expression_multiline_formatter` to be `number_of_items`
+to take effect.
+
+`defaultConfig`
+
+```fsharp
+let WebApp =
+    route "/ping" >=> authorized >=> text "pong"
+
+let WebApp2 = 
+    route "/ping" >=> authorized >=> g >=> h
+```
+
+`{ defaultConfig with MaxInfixOperatorExpressionNumberOfItems = 2; InfixOperatorExpressionMultilineFormatter = 2 }`
+
+```fsharp
+let WebApp =
+    route "/ping" >=> authorized >=> text "pong"
+
+let WebApp2 =
+    route "/ping"
+    >=> authorized
+    >=> g
+    >=> h
+```
+
+### fsharp_infix_operator_expression_multiline_formatter
+
+Split infix operator expressions into multiple lines based on the given
+condition. `character_width` uses character count of the expression, controlled
+by `fsharp_max_infix_operator_expression`. `number_of_items` uses the number of
+same infix operators, controlled by
+`fsharp_max_infix_operator_expression_number_of_items`. Default =
+`character_width`. Note that in either case, infix operator expressions are
+still governed by `max_line_length`.
+
+`defaultConfig`
+
+```fsharp
+let WebApp =
+    route "/ping" >=> authorized >=> text "pong"
+
+let WebApp2 =
+    route "/a-very-long-named-route-indeed"
+    >=> text "A large response body containing text"
+```
+
+`{ defaultConfig with InfixOperatorExpressionMultilineFormatter = NumberOfItems }`
+
+```fsharp
+let WebApp =
+    route "/ping"
+    >=> authorized
+    >=> text "pong"
+
+let WebApp2 =
+    route "/a-very-long-named-route-indeed" >=> text "A large response body containing text"
 ```
 
 ### fsharp_max_record_width

@@ -277,3 +277,42 @@ fsharp_max_record_width = 123
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     config.MaxRecordWidth == 123
+
+
+[<Test>]
+let ``infix operator expression number_of_items parsing tests`` () =
+    let editorConfig = """
+[*.fs]
+fsharp_infix_operator_expression_multiline_formatter = number_of_items
+fsharp_max_infix_operator_expression_number_of_items = 4
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, content = editorConfig)
+
+    use fsharpFile = new FSharpFile()
+
+    let config =
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    config.MaxInfixOperatorExpressionNumberOfItems == 4
+
+    config.InfixOperatorExpressionMultilineFormatter == NumberOfItems
+
+[<Test>]
+let ``infix operator expression character_width parsing test with single option`` () =
+    let editorConfig = """
+[*.fs]
+fsharp_max_infix_operator_expression = 123
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, content = editorConfig)
+
+    use fsharpFile = new FSharpFile()
+
+    let config =
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    config.MaxInfixOperatorExpression == 123
+

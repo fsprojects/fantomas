@@ -1310,9 +1310,9 @@ and genExpr astContext synExpr =
             | InfixApp _ -> true
             | _ -> false
 
-        let genInfixExpr (ctx: Context) =
-            isShortExpression
-                ctx.Config.MaxInfixOperatorExpression
+        let genInfixExpr size (ctx: Context) =
+            isSmallExpression
+                size
                 // if this fits on the rest of line right after the lazy keyword, it should be wrapped in parenthesis.
                 (sepOpenT +> genExpr astContext e +> sepCloseT)
                 // if it is multiline there is no need for parenthesis, because of the indentation
@@ -1328,8 +1328,11 @@ and genExpr astContext synExpr =
                  +> genExpr astContext e
                  +> onlyIfNot hasParenthesis sepCloseT)
 
-        str "lazy "
-        +> ifElse isInfixExpr genInfixExpr genNonInfixExpr
+        fun ctx ->
+            // at most one InfixApp
+            let size = getInfixOperatorExpressionSize ctx [()]
+
+            (str "lazy " +> ifElse isInfixExpr (genInfixExpr size) genNonInfixExpr) ctx
 
     | SingleExpr (kind, e) ->
         enterNodeFor SynExpr_Do synExpr.Range
@@ -1767,7 +1770,7 @@ and genExpr astContext synExpr =
 
     | NewlineInfixApps (e, es)
     | SameInfixApps (e, es) ->
-        let shortExpr =
+        let smallExpr =
             genExpr astContext e
             +> sepSpace
             +> col sepSpace es (fun (s, oe, e) ->
@@ -1783,12 +1786,17 @@ and genExpr astContext synExpr =
                    +> sepSpace
                    +> genExpr astContext e)
 
-        fun ctx -> atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
+        fun ctx ->
+            let size = getInfixOperatorExpressionSize ctx es
+
+            atCurrentColumn (isSmallExpression size smallExpr multilineExpr) ctx
 
     | InfixApp (operatorText, operatorExpr, e1, e2) ->
         fun ctx ->
-            isShortExpression
-                ctx.Config.MaxInfixOperatorExpression
+            let size = getInfixOperatorExpressionSize ctx [()]
+
+            isSmallExpression
+                size
                 (genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2)
                 (genMultilineInfixExpr astContext e1 operatorText operatorExpr e2)
                 ctx
