@@ -1330,9 +1330,11 @@ and genExpr astContext synExpr =
 
         fun ctx ->
             // at most one InfixApp
-            let size = getInfixOperatorExpressionSize ctx [()]
+            let size =
+                getInfixOperatorExpressionSize ctx [ () ]
 
-            (str "lazy " +> ifElse isInfixExpr (genInfixExpr size) genNonInfixExpr) ctx
+            (str "lazy "
+             +> ifElse isInfixExpr (genInfixExpr size) genNonInfixExpr) ctx
 
     | SingleExpr (kind, e) ->
         enterNodeFor SynExpr_Do synExpr.Range
@@ -1793,7 +1795,8 @@ and genExpr astContext synExpr =
 
     | InfixApp (operatorText, operatorExpr, e1, e2) ->
         fun ctx ->
-            let size = getInfixOperatorExpressionSize ctx [()]
+            let size =
+                getInfixOperatorExpressionSize ctx [ () ]
 
             isSmallExpression
                 size

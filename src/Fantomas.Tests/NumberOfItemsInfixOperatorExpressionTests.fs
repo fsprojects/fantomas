@@ -5,7 +5,9 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 open Fantomas.FormatConfig
 
-let config = { config with InfixOperatorExpressionMultilineFormatter = NumberOfItems }
+let config =
+    { config with
+          InfixOperatorExpressionMultilineFormatter = NumberOfItems }
 
 [<Test>]
 let ``simple infix operator expressions`` () =
@@ -79,10 +81,7 @@ let result =
 
 [<Test>]
 let ``should not add newline before = operator after |>`` () =
-    formatSourceString
-        false
-        """1 |> max 0 = 1"""
-        config
+    formatSourceString false """1 |> max 0 = 1""" config
     |> should equal """1 |> max 0 = 1
 """
 
@@ -213,8 +212,8 @@ let ``keep comment after or operator, 1095`` () =
         match n with
             | 17 -> false
             | _ -> true
-            """  config
-            |> prepend newline
+            """ config
+    |> prepend newline
     |> should equal """
 let f x =
     a

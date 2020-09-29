@@ -295,9 +295,11 @@ fsharp_max_infix_operator_expression_number_of_items = 4
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    config.MaxInfixOperatorExpressionNumberOfItems == 4
+    config.MaxInfixOperatorExpressionNumberOfItems
+    == 4
 
-    config.InfixOperatorExpressionMultilineFormatter == NumberOfItems
+    config.InfixOperatorExpressionMultilineFormatter
+    == NumberOfItems
 
 [<Test>]
 let ``infix operator expression character_width parsing test with single option`` () =
@@ -315,4 +317,3 @@ fsharp_max_infix_operator_expression = 123
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     config.MaxInfixOperatorExpression == 123
-
