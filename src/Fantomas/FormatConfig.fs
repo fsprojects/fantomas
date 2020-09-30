@@ -12,15 +12,16 @@ type Num = int
 type MultilineFormatterType =
     | CharacterWidth
     | NumberOfItems
-    static member ToConfigString =
-        function
-        | CharacterWidth -> "character_width"
-        | NumberOfItems -> "number_of_items"
 
-    static member OfConfigString =
-        function
-        | "character_width" -> Some(box CharacterWidth)
-        | "number_of_items" -> Some(box NumberOfItems)
+    static member ToConfigString(cfg: MultilineFormatterType) =
+        match cfg with
+        | MultilineFormatterType.CharacterWidth -> "character_width"
+        | MultilineFormatterType.NumberOfItems -> "number_of_items"
+
+    static member OfConfigString(cfgString: string) =
+        match cfgString with
+        | "character_width" -> Some(box MultilineFormatterType.CharacterWidth)
+        | "number_of_items" -> Some(box MultilineFormatterType.NumberOfItems)
         | _ -> None
 
 // NOTE: try to keep this list below in sync with the docs (e.g. Documentation.md)
@@ -85,10 +86,10 @@ type FormatConfig =
           InfixOperatorExpressionMultilineFormatter = CharacterWidth
           MaxRecordWidth = 40
           MaxRecordNumberOfItems = 1
-          RecordMultilineFormatter = CharacterWidth
+          RecordMultilineFormatter = MultilineFormatterType.CharacterWidth
           MaxArrayOrListWidth = 40
           MaxArrayOrListNumberOfItems = 1
-          ArrayOrListMultilineFormatter = CharacterWidth
+          ArrayOrListMultilineFormatter = MultilineFormatterType.CharacterWidth
           MaxValueBindingWidth = 40
           MaxFunctionBindingWidth = 40
           MaxDotGetExpressionWidth = 50
