@@ -39,6 +39,14 @@ module internal TriviaHelpers =
             | TriviaNodeType.Token (_, tok) when (RangeHelpers.``range contains`` range t.Range) -> Some(tok, t)
             | _ -> None)
 
+    let ``keyword token after start column and on same line`` (range: range) (trivia: TriviaNode list) =
+        trivia
+        |> List.choose (fun t ->
+            match t.Type with
+            | TriviaNodeType.Token (_, tok) when (range.StartLine = t.Range.StartLine
+                                                  && range.StartColumn < t.Range.StartColumn) -> Some(tok, t)
+            | _ -> None)
+
     let ``has line comment after`` triviaNode =
         triviaNode.ContentAfter
         |> List.filter (fun tn ->
