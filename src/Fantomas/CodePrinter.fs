@@ -1103,7 +1103,10 @@ and genVal astContext (Val (ats, px, ao, s, t, vi, isInline, _) as node) =
          +> genericParams
          +> addSpaceAfterGenericConstructBeforeColon
          +> sepColon
-         +> ifElse (List.isNotEmpty namedArgs) (genTypeList astContext namedArgs) (genConstraints astContext t)
+         +> ifElse
+             (List.isNotEmpty namedArgs)
+                (autoNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
+                (genConstraints astContext t)
          +> unindent)
     |> genTriviaFor ValSpfn_ range
 
