@@ -681,6 +681,8 @@ and genLetBinding astContext pref b =
                 genPatWithReturnType ao s ps tpso (Some t) astContext
             | _, PatLongIdent (ao, s, ps, tpso) when (List.length ps > 1) ->
                 genPatWithReturnType ao s ps tpso None astContext
+            | _, PatTuple _ ->
+                expressionFitsOnRestOfLine (genPat astContext p) (sepOpenT +> genPat astContext p +> sepCloseT)
             | _ -> genPat astContext p
 
         let genAttr =
