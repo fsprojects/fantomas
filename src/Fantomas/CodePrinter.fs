@@ -2000,7 +2000,7 @@ and genExpr astContext synExpr =
                 mkRange "IN" binding.RangeOfBindingAndRhs.End e.Range.Start
 
             Map.tryFindOrEmptyList IN ctx.TriviaTokenNodes
-            |> TriviaHelpers.``keyword token inside range`` inRange
+            |> TriviaHelpers.``keyword token after start column and on same line`` inRange
             |> List.tryHead
 
         let isInSameLine ctx =
