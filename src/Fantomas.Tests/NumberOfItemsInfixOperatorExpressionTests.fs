@@ -23,9 +23,7 @@ x |> f |> g
     |> prepend newline
     |> should equal """
 let WebApp =
-    route "/ping"
-    >=> authorized
-    >=> text "pong"
+    route "/ping" >=> authorized >=> text "pong"
 
 x |> aVeryLongFunctionNameThatGoesOnAndOnForeverAlmost
 
@@ -57,15 +55,9 @@ let w = x - y - z
     """ config
     |> prepend newline
     |> should equal """
-let w =
-    x
-    + y
-    + z
+let w = x + y + z
 
-let w =
-    x
-    - y
-    - z
+let w = x - y - z
 """
 
 [<Test>]
@@ -195,10 +187,7 @@ let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
                * Math.Cos(deg2rad (theta)))
             |> Math.Acos
             |> rad2deg
-            |> (*)
-                (60.
-                 * 1.1515
-                 * 1.609344)
+            |> (*) (60. * 1.1515 * 1.609344)
 
         dist
 """
@@ -247,10 +236,7 @@ let ``multiple sum operators`` () =
 """  config
     |> prepend newline
     |> should equal """
-let myValue =
-    a
-    + b * c
-    + d
+let myValue = a + b * c + d
 """
 
 [<Test>]

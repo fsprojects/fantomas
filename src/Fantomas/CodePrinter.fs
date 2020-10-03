@@ -1809,8 +1809,7 @@ and genExpr astContext synExpr =
                    +> sepSpace
                    +> genExpr astContext e)
 
-        fun ctx ->
-            atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
+        fun ctx -> atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
 
     | InfixApp (operatorText, operatorExpr, e1, e2) ->
         fun ctx ->
