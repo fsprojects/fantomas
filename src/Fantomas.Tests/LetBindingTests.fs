@@ -1061,3 +1061,18 @@ let internal sepSpace =
         else
             (!- " ") ctx
 """
+
+[<Test>]
+let ``in keyword in LetOrUse with and keyword, 1176`` () =
+    formatSourceString false """
+do
+    let rec f = ()
+    and g = () in
+    ()
+"""  config
+    |> prepend newline
+    |> should equal """
+do let rec f = ()
+   and g = () in
+   ()
+"""

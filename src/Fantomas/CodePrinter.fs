@@ -681,6 +681,8 @@ and genLetBinding astContext pref b =
                 genPatWithReturnType ao s ps tpso (Some t) astContext
             | _, PatLongIdent (ao, s, ps, tpso) when (List.length ps > 1) ->
                 genPatWithReturnType ao s ps tpso None astContext
+            | _, PatTuple _ ->
+                expressionFitsOnRestOfLine (genPat astContext p) (sepOpenT +> genPat astContext p +> sepCloseT)
             | _ -> genPat astContext p
 
         let genAttr =
@@ -1101,7 +1103,10 @@ and genVal astContext (Val (ats, px, ao, s, t, vi, isInline, _) as node) =
          +> genericParams
          +> addSpaceAfterGenericConstructBeforeColon
          +> sepColon
-         +> ifElse (List.isNotEmpty namedArgs) (genTypeList astContext namedArgs) (genConstraints astContext t)
+         +> ifElse
+             (List.isNotEmpty namedArgs)
+                (autoNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
+                (genConstraints astContext t)
          +> unindent)
     |> genTriviaFor ValSpfn_ range
 
@@ -2029,7 +2034,7 @@ and genExpr astContext synExpr =
                 mkRange "IN" binding.RangeOfBindingAndRhs.End e.Range.Start
 
             Map.tryFindOrEmptyList IN ctx.TriviaTokenNodes
-            |> TriviaHelpers.``keyword token inside range`` inRange
+            |> TriviaHelpers.``keyword token after start column and on same line`` inRange
             |> List.tryHead
 
         let isInSameLine ctx =
