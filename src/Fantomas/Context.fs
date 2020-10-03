@@ -533,10 +533,10 @@ let internal getRecordSize ctx fields =
     | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length fields, ctx.Config.MaxRecordNumberOfItems)
 
 let internal getInfixOperatorExpressionSize ctx es =
-    match ctx.Config.InfixOperatorExpressionMultilineFormatter with
+    match ctx.Config.NewlineInfixOperatorExpressionMultilineFormatter with
     | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxInfixOperatorExpression
     | MultilineFormatterType.NumberOfItems ->
-        Size.NumberOfItems(List.length es, ctx.Config.MaxInfixOperatorExpressionNumberOfItems)
+        Size.NumberOfItems(List.length es, ctx.Config.MaxNewlineInfixOperatorExpressionNumberOfItems)
 
 /// b is true, apply f1 otherwise apply f2
 let internal ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else f2 ctx

@@ -283,8 +283,8 @@ fsharp_max_record_width = 123
 let ``infix operator expression number_of_items parsing tests`` () =
     let editorConfig = """
 [*.fs]
-fsharp_infix_operator_expression_multiline_formatter = number_of_items
-fsharp_max_infix_operator_expression_number_of_items = 4
+fsharp_newline_infix_operator_expression_multiline_formatter = number_of_items
+fsharp_max_newline_infix_operator_expression_number_of_items = 4
 """
 
     use configFixture =
@@ -295,10 +295,10 @@ fsharp_max_infix_operator_expression_number_of_items = 4
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    config.MaxInfixOperatorExpressionNumberOfItems
+    config.MaxNewlineInfixOperatorExpressionNumberOfItems
     == 4
 
-    config.InfixOperatorExpressionMultilineFormatter
+    config.NewlineInfixOperatorExpressionMultilineFormatter
     == NumberOfItems
 
 [<Test>]

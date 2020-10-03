@@ -7,7 +7,7 @@ open Fantomas.FormatConfig
 
 let config =
     { config with
-          InfixOperatorExpressionMultilineFormatter = NumberOfItems }
+          NewlineInfixOperatorExpressionMultilineFormatter = NumberOfItems }
 
 [<Test>]
 let ``simple infix operator expressions`` () =

@@ -471,67 +471,78 @@ let WebApp =
     >=> text "pong"
 ```
 
-### fsharp_max_infix_operator_expression_number_of_items
+### fsharp_max_newline_infix_operator_expression_number_of_items
 
-Control the maximum number of same infix operators for which infix expression
+Control the maximum number of certain infix operators for which infix expression
 can be on one line. Default = 1. Requires
-`fsharp_infix_operator_expression_multiline_formatter` to be `number_of_items`
-to take effect.
+`fsharp_newline_infix_operator_expression_multiline_formatter` to be
+`number_of_items` to take effect. The next entry below contains more details.
 
 `defaultConfig`
 
 ```fsharp
-let WebApp =
-    route "/ping" >=> authorized >=> text "pong"
+let fourthPower =
+    [ 1; 2; 3 ]
+    |> List.map (fun x -> x * x)
+    >>= (fun x -> [ x * x ])
 
-let WebApp2 = 
-    route "/ping" >=> authorized >=> g >=> h
+let eigthPower =
+    [ 1; 2; 3 ]
+    |> List.map (fun x -> x * x)
+    >>= (fun x -> [ x * x ])
+    |> List.choose (fun x -> Some (x * x))
 ```
 
-`{ defaultConfig with MaxInfixOperatorExpressionNumberOfItems = 2; InfixOperatorExpressionMultilineFormatter = 2 }`
+`{ defaultConfig with MaxNewlineInfixOperatorExpressionNumberOfItems = 2; NewlineInfixOperatorExpressionMultilineFormatter = 2 }`
 
 ```fsharp
-let WebApp =
-    route "/ping" >=> authorized >=> text "pong"
+let fourthPower =
+    [ 1; 2; 3 ] |> List.map (fun x -> x * x) >>= (fun x -> [ x * x ])
 
-let WebApp2 =
-    route "/ping"
-    >=> authorized
-    >=> g
-    >=> h
+let eigthPower =
+    [ 1; 2; 3 ]
+    |> List.map (fun x -> x * x)
+    >>= (fun x -> [ x * x ])
+    |> List.choose (fun x -> Some (x * x))
 ```
 
-### fsharp_infix_operator_expression_multiline_formatter
+### fsharp_newline_infix_operator_expression_multiline_formatter
 
-Split infix operator expressions into multiple lines based on the given
-condition. `character_width` uses character count of the expression, controlled
-by `fsharp_max_infix_operator_expression`. `number_of_items` uses the number of
-same infix operators, controlled by
-`fsharp_max_infix_operator_expression_number_of_items`. Default =
+Split certain\* infix operator expressions into multiple lines based on the
+given condition. `character_width` uses character count of the expression,
+controlled by `fsharp_max_infix_operator_expression`. `number_of_items` uses the
+number of same infix operators, controlled by
+`fsharp_max_newline_infix_operator_expression_number_of_items`. Default =
 `character_width`. Note that in either case, infix operator expressions are
 still governed by `max_line_length`.
 
+\* The operators thus split are: `|>`, `||>`, `|||>`, `>>`, `>>=`.
+
 `defaultConfig`
 
 ```fsharp
-let WebApp =
-    route "/ping" >=> authorized >=> text "pong"
+let sq x = x * x
 
-let WebApp2 =
-    route "/a-very-long-named-route-indeed"
-    >=> text "A large response body containing text"
+let secondPower =
+    [ 1; 2; 3; 4; 5; 6; 7; 8 ]
+    |> List.choose (fun aLongName -> aLongName * aLongName |> Some)
+
+let fourthPower =
+    [ 1; 2; 3 ] |> List.map sq >>= (fun x -> [ sq x ])
 ```
 
-`{ defaultConfig with InfixOperatorExpressionMultilineFormatter = NumberOfItems }`
+`{ defaultConfig with NewlineInfixOperatorExpressionMultilineFormatter = NumberOfItems }`
 
 ```fsharp
-let WebApp =
-    route "/ping"
-    >=> authorized
-    >=> text "pong"
+let sq x = x * x
 
-let WebApp2 =
-    route "/a-very-long-named-route-indeed" >=> text "A large response body containing text"
+let secondPower =
+    [ 1; 2; 3; 4; 5; 6; 7; 8 ] |> List.choose (fun aLongName -> aLongName * aLongName |> Some)
+
+let fourthPower =
+    [ 1; 2; 3 ]
+    |> List.map sq
+    >>= (fun x -> [ sq x ])
 ```
 
 ### fsharp_max_record_width
