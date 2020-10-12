@@ -481,14 +481,17 @@ and genAttribute astContext (Attribute (s, e, target)) =
     match e with
     // Special treatment for function application on attributes
     | ConstExpr (Const "()", _) ->
-        !- "[<" +> opt sepColonFixed target (!-)
+        !- "[<"
+        +> opt sepColonWithEndingSpaceFixed target (!-)
         -- s
         -- ">]"
     | e ->
         let argSpacing =
             if hasParenthesis e then id else sepSpace
 
-        !- "[<" +> opt sepColonFixed target (!-) -- s
+        !- "[<"
+        +> opt sepColonWithEndingSpaceFixed target (!-)
+        -- s
         +> argSpacing
         +> genExpr astContext e
         -- ">]"
@@ -496,12 +499,12 @@ and genAttribute astContext (Attribute (s, e, target)) =
 and genAttributesCore astContext (ats: SynAttribute seq) =
     let genAttributeExpr astContext (Attribute (s, e, target) as attr) =
         match e with
-        | ConstExpr (Const "()", _) -> opt sepColonFixed target (!-) -- s
+        | ConstExpr (Const "()", _) -> opt sepColonWithEndingSpaceFixed target (!-) -- s
         | e ->
             let argSpacing =
                 if hasParenthesis e then id else sepSpace
 
-            opt sepColonFixed target (!-) -- s
+            opt sepColonWithEndingSpaceFixed target (!-) -- s
             +> argSpacing
             +> genExpr astContext e
         |> genTriviaFor SynAttribute_ attr.Range
