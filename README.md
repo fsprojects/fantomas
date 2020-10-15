@@ -230,10 +230,10 @@ let ``preserve compile directive between piped functions, 512`` () = ...
 
 ### Tools
 
-- F# AST Viewer: https://jindraivanek.gitlab.io/ast-viewer/
-- F# Tokens: https://nojaf.github.io/fsharp-tokens/
-- Fantomas Online: https://jindraivanek.gitlab.io/fantomas-ui/
-- Trivia viewer: https://nojaf.github.io/trivia-tool/
+- F# AST Viewer: https://fsprojects.github.io/fantomas-tools/#/ast
+- F# Tokens: https://fsprojects.github.io/fantomas-tools/#/tokens
+- Fantomas Online: https://fsprojects.github.io/fantomas-tools/#/fantomas/preview
+- Trivia viewer: https://fsprojects.github.io/fantomas-tools/#/trivia
 
 ### Upgrading FSharp.Compiler.Service
 
