@@ -52,12 +52,3 @@ let main _ = 0
 
     let (exitCode, _) = checkCode fileFixture.Filename
     exitCode |> should equal 0
-
-[<Test>]
-let ``my new test`` () =
-    formatSourceString false """
-"""  config
-    |> prepend newline
-    |> should equal """
-
-"""
