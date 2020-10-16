@@ -480,18 +480,12 @@ and genAccess (Access s) = !-s
 and genAttribute astContext (Attribute (s, e, target)) =
     match e with
     // Special treatment for function application on attributes
-    | ConstExpr (Const "()", _) ->
-        !- "[<"
-        +> opt sepColon target (!-)
-        -- s
-        -- ">]"
+    | ConstExpr (Const "()", _) -> !- "[<" +> opt sepColon target (!-) -- s -- ">]"
     | e ->
         let argSpacing =
             if hasParenthesis e then id else sepSpace
 
-        !- "[<"
-        +> opt sepColon target (!-)
-        -- s
+        !- "[<" +> opt sepColon target (!-) -- s
         +> argSpacing
         +> genExpr astContext e
         -- ">]"
