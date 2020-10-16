@@ -904,8 +904,6 @@ let internal sepColonFixed = !- ":"
 
 let internal sepColonWithSpacesFixed = !- " : "
 
-let internal sepColonWithEndingSpaceFixed = !- ": "
-
 let internal sepComma (ctx: Context) =
     if ctx.Config.SpaceAfterComma then str ", " ctx else str "," ctx
 
