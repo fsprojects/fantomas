@@ -7,4 +7,4 @@ assignees: ''
 
 ---
 
-
+Please review the [contribution guidelines](../../CONTRIBUTING.md).

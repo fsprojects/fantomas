@@ -17,3 +17,4 @@ Use the `create issue` link at the bottom, this will generate a report with ever
 Try and reproduce your problem against the `preview` version of the tool, this is linked to the master branch of the project.
 
 In case you wish to report another problem, continue writing this current issue.
+Please review the [contribution guidelines](../../CONTRIBUTING.md).
