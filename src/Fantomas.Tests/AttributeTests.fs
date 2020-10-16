@@ -151,7 +151,7 @@ type Foo =
     |> should equal """
 [<DataContract>]
 type Foo =
-    { [<field:DataMember>]
+    { [<field: DataMember>]
       Bar: string }
 """
 
@@ -336,8 +336,8 @@ open System.Reflection
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 
-[<assembly:AssemblyTitle("Foo")>]
-[<assembly:AssemblyDescription("")>]
+[<assembly: AssemblyTitle("Foo")>]
+[<assembly: AssemblyDescription("")>]
 
 do ()
 """
@@ -345,13 +345,13 @@ do ()
 [<Test>]
 let ``should preserve single return type attribute`` () =
     formatSourceString false """let f x : [<return: Attribute>] int = x""" config
-    |> should equal """let f x: [<return:Attribute>] int = x
+    |> should equal """let f x: [<return: Attribute>] int = x
 """
 
 [<Test>]
 let ``should preserve multiple return type attributes`` () =
     formatSourceString false """let f x : [<return: AttributeOne;AttributeTwo;AttributeThree("foo")>] int = x""" config
-    |> should equal """let f x: [<return:AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
+    |> should equal """let f x: [<return: AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
 """
 
 [<Test>]
@@ -480,11 +480,11 @@ open System
 open System.Reflection
 open System.Runtime.InteropServices
 
-[<assembly:CLSCompliant(true)>]
-[<assembly:ComVisible(false)>]
-[<assembly:AssemblyTitle("AltCover.Visualizer")>]
-[<assembly:AssemblyDescription("Coverage and static analysis visualizer for NCover (possibly extended) and OpenCover")>]
-[<assembly:System.Resources.NeutralResourcesLanguageAttribute("en-GB")>]
+[<assembly: CLSCompliant(true)>]
+[<assembly: ComVisible(false)>]
+[<assembly: AssemblyTitle("AltCover.Visualizer")>]
+[<assembly: AssemblyDescription("Coverage and static analysis visualizer for NCover (possibly extended) and OpenCover")>]
+[<assembly: System.Resources.NeutralResourcesLanguageAttribute("en-GB")>]
 ()
 """
 
