@@ -61,7 +61,11 @@ let formatContentAsync config (file: string) (originalContent: string) =
                          createParsingOptionsFromFile fileName,
                          sharedChecker.Value)
 
-                if originalContent <> formattedContent then
+                let stripNewlines (s: string) =
+                    System.Text.RegularExpressions.Regex.Replace(s, @"\n|\r", String.Empty)
+
+                if (stripNewlines originalContent)
+                   <> (stripNewlines formattedContent) then
                     let! isValid =
                         CodeFormatter.IsValidFSharpCodeAsync
                             (fileName,
