@@ -93,3 +93,57 @@ let encodeInput (input: Input) =
           "isFsi", Encode.bool input.IsFsi ]
     |> Encode.toString 2
 """
+
+[<Test>]
+let ``encode arrays`` () =
+    formatSourceString false """
+type Event =
+    | LocationAdded of AddLocation
+    | LocationCancelled of Identifier
+    | LocationNoLongerSellsRonnies of Identifier
+
+    static member Encoder : Encoder<Event> =
+        fun event ->
+            match event with
+            | LocationAdded addLocation ->
+                Encode.array [| Encode.string "locationAdded"
+                                AddLocation.Encoder addLocation |]
+            | LocationCancelled id ->
+                Encode.array [| Encode.string "locationCancelled"
+                                (Identifier.Read >> Encode.guid) id |]
+            | LocationNoLongerSellsRonnies id ->
+                Encode.array [| Encode.string "locationNoLongerSellsRonnies"
+                                (Identifier.Read >> Encode.guid) id |]
+"""
+        { config with
+              SpaceBeforeColon = true
+              MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should equal """
+type Event =
+    | LocationAdded of AddLocation
+    | LocationCancelled of Identifier
+    | LocationNoLongerSellsRonnies of Identifier
+
+    static member Encoder : Encoder<Event> =
+        fun event ->
+            match event with
+            | LocationAdded addLocation ->
+                Encode.array
+                    [|
+                        Encode.string "locationAdded"
+                        AddLocation.Encoder addLocation
+                    |]
+            | LocationCancelled id ->
+                Encode.array
+                    [|
+                        Encode.string "locationCancelled"
+                        (Identifier.Read >> Encode.guid) id
+                    |]
+            | LocationNoLongerSellsRonnies id ->
+                Encode.array
+                    [|
+                        Encode.string "locationNoLongerSellsRonnies"
+                        (Identifier.Read >> Encode.guid) id
+                    |]
+"""
