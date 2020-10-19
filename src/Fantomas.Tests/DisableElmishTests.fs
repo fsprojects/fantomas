@@ -166,7 +166,10 @@ let counter = React.functionComponent(fun () ->
         ]
         Html.h1 count
     ])
-"""  { config with MaxElmishWidth = 30; SingleArgumentWebMode = true }
+"""
+        { config with
+              MaxElmishWidth = 30
+              SingleArgumentWebMode = true }
     |> prepend newline
     |> should equal """
 let counter =
