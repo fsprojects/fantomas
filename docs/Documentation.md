@@ -74,9 +74,13 @@ fsharp_indent_on_try_with=false
 fsharp_space_around_delimiter=true
 fsharp_max_if_then_else_short_width=40
 fsharp_max_infix_operator_expression=50
+fsharp_max_newline_infix_operator_expression_number_of_items=1
+fsharp_multiline_infix_multiline_formatter=character_width
 fsharp_max_record_width=40
+fsharp_max_record_number_of_items=1
+fsharp_record_multiline_formatter=character_width
 fsharp_max_array_or_list_width=40
-fsharp_max_array_or_list_size=1
+fsharp_max_array_or_list_number_of_items=1
 fsharp_array_or_list_multiline_formatter=character_width
 fsharp_max_value_binding_width=40
 fsharp_max_function_binding_width=40
@@ -475,8 +479,15 @@ let WebApp =
 ### fsharp_max_newline_infix_operator_expression_number_of_items
 
 Control the maximum number of certain infix operators for which infix expression
-can be on one line. Default = 1. Requires
-`fsharp_newline_infix_operator_expression_multiline_formatter` to be
+can be on one line. This subset of infix operators is called the "multiline infix operators" and contains:
+- `|>`
+- `||>`
+- `|||>`
+- `>>`
+- `>>=`
+
+Default = 1. 
+Requires `fsharp_multiline_infix_multiline_formatter=character_width` to be
 `number_of_items` to take effect. The next entry below contains more details.
 
 `defaultConfig`
@@ -494,7 +505,11 @@ let eigthPower =
     |> List.choose (fun x -> Some (x * x))
 ```
 
-`{ defaultConfig with MaxNewlineInfixOperatorExpressionNumberOfItems = 2; NewlineInfixOperatorExpressionMultilineFormatter = 2 }`
+```fsharp
+{ defaultConfig with 
+    MaxNewlineInfixOperatorExpressionNumberOfItems = 2
+    MultilineInfixMultilineFormatter = MultilineFormatterType.NumberOfItems }
+```
 
 ```fsharp
 let fourthPower =
@@ -701,8 +716,11 @@ let myList = [ one; two ]
 let myArray = [| one; two; three |]
 ```
 
-`{ defaultConfig with MaxArrayOrListNumberOfItems = 2; ArrayOrListMultilineFormatter =
-MultilineFormatterType.NumberOfItems }`
+```fsharp
+{ defaultConfig with 
+    MaxArrayOrListNumberOfItems = 2
+    ArrayOrListMultilineFormatter = MultilineFormatterType.NumberOfItems }
+```
 
 ```fsharp
 let myList = [ one; two ]
