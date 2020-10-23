@@ -85,7 +85,9 @@ let ``always put pipe on next line`` () =
     formatSourceString false """
 let a = List.init 40 (fun i -> generateThing i a) |> List.map mapThingToOtherThing
 let b = 42 |> printfn "%i"
-"""  { config with MaxNewlineInfixOperatorExpressionNumberOfItems = 0 }
+"""
+        { config with
+              MaxNewlineInfixOperatorExpressionNumberOfItems = 0 }
     |> prepend newline
     |> should equal """
 let a =
