@@ -52,3 +52,19 @@ let main _ = 0
 
     let (exitCode, _) = checkCode fileFixture.Filename
     exitCode |> should equal 0
+
+[<Test>]
+let ``check with different line endings`` () =
+    let codeSnippet = """let a =
+    // some comment
+    42
+"""
+
+    let snippetWithOtherLineEndings =
+        if codeSnippet.Contains("\r\n") then codeSnippet.Replace("\r\n", "\n") else codeSnippet.Replace("\n", "\r\n")
+
+    use fileFixture =
+        new TemporaryFileCodeSample(snippetWithOtherLineEndings)
+
+    let (exitCode, _) = checkCode fileFixture.Filename
+    exitCode |> should equal 0

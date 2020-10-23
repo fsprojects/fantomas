@@ -88,6 +88,7 @@ fsharp_max_elmish_width=40
 fsharp_single_argument_web_mode=false
 fsharp_align_function_signature_to_indentation=false
 fsharp_alternative_long_member_definitions=false
+fsharp_disable_elmish_syntax=false
 fsharp_strict_mode=false
 ```
 
@@ -1013,12 +1014,37 @@ type C
     end
 ```
 
+### fsharp_disable_elmish_syntax
+
+Disable the default [Elmish formatting style](./Formatting-Elmish-code.md). When `fsharp_disable_elmish_syntax` is enabled `fsharp_max_elmish_width` and `fsharp_single_argument_web_mode` will have no effect anymore.
+
+`defaultConfig`
+
+```fsharp
+let encodeInput (input: Input) =
+    Encode.object [ "sourceCode", Encode.string input.SourceCode
+                    "defines",
+                    (Array.map Encode.string input.Defines
+                     |> Encode.array)
+                    "isFsi", Encode.bool input.IsFsi ]
+```
+
+`{ defaultConfig with DisableElmishSyntax = true }`
+
+```fsharp
+let encodeUrlModel code model: JsonValue =
+    Encode.object
+        [ "defines", Encode.string model.Defines
+          "isFsi", Encode.bool model.IsFsi
+          "code", Encode.string code ]
+```
+
 ### fsharp_strict_mode
 
 If being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored.
 There are numerous situations when the information in the AST alone cannot restored the original code.
 **Please do not use this setting for formatting hand written code!**
-Valid us-case of this settings is code generation in projects like [FsAst](https://github.com/ionide/FsAst) and [Myriad](https://github.com/MoiraeSoftware/myriad).
+Valid use-case of this settings is code generation in projects like [FsAst](https://github.com/ionide/FsAst) and [Myriad](https://github.com/MoiraeSoftware/myriad).
 Default = false.
 
 `hand written code`

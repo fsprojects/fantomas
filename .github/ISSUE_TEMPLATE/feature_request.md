@@ -30,6 +30,7 @@ Related suggestions: (put links to related suggestions here)
 ## Affidavit (please submit!)
 
 Please tick this by placing a cross in the box:
+* [ ] I have read the [Contribution Guidelines](../../CONTRIBUTING.md).
 * [ ] I have [searched both open and closed suggestions on this site](https://github.com/fsprojects/fantomas/issues) and believe this is not a duplicate
 
 Please tick all that apply:
