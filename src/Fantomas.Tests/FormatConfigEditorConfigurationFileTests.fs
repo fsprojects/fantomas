@@ -277,3 +277,20 @@ fsharp_max_record_width = 123
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     config.MaxRecordWidth == 123
+
+[<Test>]
+let fsharp_disable_elmish_syntax () =
+    let editorConfig = """
+[*.fs]
+fsharp_disable_elmish_syntax = true
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, content = editorConfig)
+
+    use fsharpFile = new FSharpFile()
+
+    let config =
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    Assert.IsTrue config.DisableElmishSyntax

@@ -1165,7 +1165,7 @@ and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 =
 
         expressionFitsOnRestOfLine short long
 
-and genExpr astContext synExpr =
+and genExpr astContext synExpr ctx =
     let appNlnFun e =
         match e with
         | MultilineString _
@@ -1182,1514 +1182,1524 @@ and genExpr astContext synExpr =
     let sepCloseTFor r =
         tokN (Option.defaultValue synExpr.Range r) RPAREN sepCloseT
 
-    match synExpr with
-    | ElmishReactWithoutChildren (identifier, isArray, children) ->
-        fun ctx ->
-            let shortExpression =
-                let noChildren =
-                    ifElse isArray sepOpenAFixed sepOpenLFixed
-                    +> ifElse isArray sepCloseAFixed sepCloseLFixed
+    let expr =
+        match synExpr with
+        | ElmishReactWithoutChildren (identifier, isArray, children) when (not ctx.Config.DisableElmishSyntax) ->
+            fun ctx ->
+                let shortExpression =
+                    let noChildren =
+                        ifElse isArray sepOpenAFixed sepOpenLFixed
+                        +> ifElse isArray sepCloseAFixed sepCloseLFixed
 
-                let genChildren =
-                    ifElse isArray sepOpenA sepOpenL
-                    +> col sepSemi children (genExpr astContext)
-                    +> enterNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
+                    let genChildren =
+                        ifElse isArray sepOpenA sepOpenL
+                        +> col sepSemi children (genExpr astContext)
+                        +> enterNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
+                        +> ifElse isArray sepCloseA sepCloseL
+
+                    !-identifier
+                    +> sepSpace
+                    +> ifElse (List.isEmpty children) noChildren genChildren
+
+                let elmishExpression =
+                    !-identifier
+                    +> sepSpace
+                    +> ifElse isArray sepOpenA sepOpenL
+                    +> atCurrentColumn
+                        (col sepNln children (genExpr astContext)
+                         +> enterNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK))
                     +> ifElse isArray sepCloseA sepCloseL
+                    +> leaveNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
 
+                let felizExpression =
+                    atCurrentColumn
+                        (!-identifier
+                         +> sepSpace
+                         +> ifElse isArray sepOpenAFixed sepOpenLFixed
+                         +> indent
+                         +> sepNln
+                         +> col sepNln children (genExpr astContext)
+                         +> unindent
+                         +> sepNln
+                         +> enterNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
+                         +> ifElse isArray sepCloseAFixed sepCloseLFixed
+                         +> leaveNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK))
+
+                let multilineExpression =
+                    ifElse ctx.Config.SingleArgumentWebMode felizExpression elmishExpression
+
+                let size =
+                    getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
+
+                let smallExpression =
+                    isSmallExpression size shortExpression multilineExpression
+
+                isShortExpression ctx.Config.MaxElmishWidth smallExpression multilineExpression ctx
+
+        | ElmishReactWithChildren ((identifier, _, _), attributes, (isArray, children, childrenRange)) when (not
+                                                                                                                 ctx.Config.DisableElmishSyntax) ->
+            let genChildren isShort =
+                match children with
+                | [] when (not isArray) ->
+                    sepOpenLFixed
+                    +> sepCloseLFixed
+                    +> leaveNodeTokenByName childrenRange RBRACK
+                | [] when isArray -> sepOpenAFixed +> sepCloseAFixed
+                | [ singleChild ] ->
+                    if isShort then
+                        ifElse isArray sepOpenA sepOpenL
+                        +> genExpr astContext singleChild
+                        +> ifElse
+                            isArray
+                               sepCloseA
+                               (sepCloseL
+                                +> leaveNodeTokenByName childrenRange RBRACK)
+                    else
+                        ifElse isArray sepOpenA sepOpenL
+                        +> indent
+                        +> sepNln
+                        +> genExpr astContext singleChild
+                        +> unindent
+                        +> sepNln
+                        +> ifElse
+                            isArray
+                               sepCloseAFixed
+                               (sepCloseLFixed
+                                +> leaveNodeTokenByName childrenRange RBRACK)
+
+                | children ->
+                    if isShort then
+                        ifElse isArray sepOpenA sepOpenL
+                        +> col sepSemi children (genExpr astContext)
+                        +> ifElse isArray sepCloseA sepCloseL
+                    else
+                        ifElse isArray sepOpenA sepOpenL
+                        +> indent
+                        +> sepNln
+                        +> col sepNln children (genExpr astContext)
+                        +> unindent
+                        +> sepNln
+                        +> ifElse isArray sepCloseAFixed sepCloseLFixed
+
+            let shortExpression =
                 !-identifier
                 +> sepSpace
-                +> ifElse (List.isEmpty children) noChildren genChildren
-
-            let elmishExpression =
-                !-identifier
+                +> genExpr astContext attributes
                 +> sepSpace
-                +> ifElse isArray sepOpenA sepOpenL
-                +> atCurrentColumn
-                    (col sepNln children (genExpr astContext)
-                     +> enterNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK))
-                +> ifElse isArray sepCloseA sepCloseL
-                +> leaveNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
+                +> genChildren true
 
-            let felizExpression =
+            let longExpression =
                 atCurrentColumn
                     (!-identifier
                      +> sepSpace
-                     +> ifElse isArray sepOpenAFixed sepOpenLFixed
-                     +> indent
-                     +> sepNln
-                     +> col sepNln children (genExpr astContext)
-                     +> unindent
-                     +> sepNln
-                     +> enterNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
-                     +> ifElse isArray sepCloseAFixed sepCloseLFixed
-                     +> leaveNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK))
+                     +> atCurrentColumn (genExpr astContext attributes)
+                     +> sepSpace
+                     +> genChildren false)
 
-            let multilineExpression =
-                ifElse ctx.Config.SingleArgumentWebMode felizExpression elmishExpression
-
-            let size =
-                getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
-
-            let smallExpression =
-                isSmallExpression size shortExpression multilineExpression
-
-            isShortExpression ctx.Config.MaxElmishWidth smallExpression multilineExpression ctx
-
-    | ElmishReactWithChildren ((identifier, _, _), attributes, (isArray, children, childrenRange)) ->
-        let genChildren isShort =
-            match children with
-            | [] when (not isArray) ->
-                sepOpenLFixed
-                +> sepCloseLFixed
-                +> leaveNodeTokenByName childrenRange RBRACK
-            | [] when isArray -> sepOpenAFixed +> sepCloseAFixed
-            | [ singleChild ] ->
-                if isShort then
-                    ifElse isArray sepOpenA sepOpenL
-                    +> genExpr astContext singleChild
-                    +> ifElse
-                        isArray
-                           sepCloseA
-                           (sepCloseL
-                            +> leaveNodeTokenByName childrenRange RBRACK)
-                else
-                    ifElse isArray sepOpenA sepOpenL
-                    +> indent
-                    +> sepNln
-                    +> genExpr astContext singleChild
-                    +> unindent
-                    +> sepNln
-                    +> ifElse
-                        isArray
-                           sepCloseAFixed
-                           (sepCloseLFixed
-                            +> leaveNodeTokenByName childrenRange RBRACK)
-
-            | children ->
-                if isShort then
-                    ifElse isArray sepOpenA sepOpenL
-                    +> col sepSemi children (genExpr astContext)
-                    +> ifElse isArray sepCloseA sepCloseL
-                else
-                    ifElse isArray sepOpenA sepOpenL
-                    +> indent
-                    +> sepNln
-                    +> col sepNln children (genExpr astContext)
-                    +> unindent
-                    +> sepNln
-                    +> ifElse isArray sepCloseAFixed sepCloseLFixed
-
-        let shortExpression =
-            !-identifier
-            +> sepSpace
-            +> genExpr astContext attributes
-            +> sepSpace
-            +> genChildren true
-
-        let longExpression =
-            atCurrentColumn
-                (!-identifier
-                 +> sepSpace
-                 +> atCurrentColumn (genExpr astContext attributes)
-                 +> sepSpace
-                 +> genChildren false)
-
-        fun ctx ->
-            let size =
-                getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
-
-            let smallExpression =
-                isSmallExpression size shortExpression longExpression
-
-            isShortExpression ctx.Config.MaxElmishWidth smallExpression longExpression ctx
-
-    | SingleExpr (Lazy, e) ->
-        // Always add braces when dealing with lazy
-        let hasParenthesis = hasParenthesis e
-
-        let isInfixExpr =
-            match e with
-            | InfixApp _ -> true
-            | _ -> false
-
-        let genInfixExpr (ctx: Context) =
-            isShortExpression
-                ctx.Config.MaxInfixOperatorExpression
-                // if this fits on the rest of line right after the lazy keyword, it should be wrapped in parenthesis.
-                (sepOpenT +> genExpr astContext e +> sepCloseT)
-                // if it is multiline there is no need for parenthesis, because of the indentation
-                (indent
-                 +> sepNln
-                 +> genExpr astContext e
-                 +> unindent)
-                ctx
-
-        let genNonInfixExpr =
-            autoIndentAndNlnIfExpressionExceedsPageWidth
-                (onlyIfNot hasParenthesis sepOpenT
-                 +> genExpr astContext e
-                 +> onlyIfNot hasParenthesis sepCloseT)
-
-        str "lazy "
-        +> ifElse isInfixExpr genInfixExpr genNonInfixExpr
-
-    | SingleExpr (kind, e) ->
-        enterNodeFor SynExpr_Do synExpr.Range
-        +> str kind
-        +> (match kind with
-            | YieldFrom
-            | Yield
-            | Return
-            | ReturnFrom -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-            | _ -> genExpr astContext e)
-
-    | ConstExpr (c, r) -> genConst c r
-    | NullExpr -> !- "null"
-    // Not sure about the role of e1
-    | Quote (_, e2, isRaw) ->
-        let e = genExpr astContext e2
-        ifElse isRaw (!- "<@@ " +> e -- " @@>") (!- "<@ " +> e -- " @>")
-    | TypedExpr (TypeTest, e, t) ->
-        genExpr astContext e -- " :? "
-        +> genType astContext false t
-    | TypedExpr (New, e, t) ->
-        !- "new "
-        +> genType astContext false t
-        +> ifElse (hasParenthesis e) sepNone sepSpace
-        +> genExpr astContext e
-    | TypedExpr (Downcast, e, t) ->
-        genExpr astContext e -- " :?> "
-        +> genType astContext false t
-    | TypedExpr (Upcast, e, t) ->
-        genExpr astContext e -- " :> "
-        +> genType astContext false t
-    | TypedExpr (Typed, e, t) ->
-        genExpr astContext e
-        +> sepColon
-        +> genType astContext false t
-    | Tuple es -> genTuple astContext es
-    | StructTuple es ->
-        !- "struct "
-        +> sepOpenT
-        +> genTuple astContext es
-        +> sepCloseT
-    | ArrayOrList (isArray, [], _) ->
-        ifElse
-            isArray
-            (enterNodeTokenByName synExpr.Range LBRACK_BAR
-             +> sepOpenAFixed
-             +> leaveNodeTokenByName synExpr.Range LBRACK_BAR
-             +> enterNodeTokenByName synExpr.Range BAR_RBRACK
-             +> sepCloseAFixed
-             +> leaveNodeTokenByName synExpr.Range BAR_RBRACK)
-            (enterNodeTokenByName synExpr.Range LBRACK
-             +> sepOpenLFixed
-             +> leaveNodeTokenByName synExpr.Range LBRACK
-             +> enterNodeTokenByName synExpr.Range RBRACK
-             +> sepCloseLFixed
-             +> leaveNodeTokenByName synExpr.Range RBRACK)
-    | ArrayOrList (isArray, xs, _) as alNode ->
-        let smallExpression =
-            ifElse isArray sepOpenA sepOpenL
-            +> col sepSemi xs (genExpr astContext)
-            +> ifElse isArray sepCloseA sepCloseL
-
-        let multilineExpression =
-            ifAlignBrackets
-                (genMultiLineArrayOrListAlignBrackets isArray xs alNode astContext)
-                (genMultiLineArrayOrList isArray xs alNode astContext)
-
-        fun ctx ->
-            // If an array or list has any form of line comments inside them, they cannot fit on a single line
-            // check for any comments inside the range of the node
-            if TriviaHelpers.``has line comments inside``
-                alNode.Range
-                   (TriviaHelpers.getNodesForTypes
-                       [ LBRACK_BAR
-                         LBRACK
-                         BAR_RBRACK
-                         RBRACK ]
-                        ctx.TriviaTokenNodes)
-               || List.exists isIfThenElseWithYieldReturn xs then
-                multilineExpression ctx
-            else
+            fun ctx ->
                 let size =
-                    getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth xs
+                    getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
 
-                isSmallExpression size smallExpression multilineExpression ctx
+                let smallExpression =
+                    isSmallExpression size shortExpression longExpression
 
-    | Record (inheritOpt, xs, eo) ->
-        let smallRecordExpr =
-            sepOpenS
-            +> leaveLeftBrace synExpr.Range
-            +> optSingle (fun (inheritType, inheritExpr) ->
-                !- "inherit "
-                +> genType astContext false inheritType
-                +> genExpr astContext inheritExpr
-                +> onlyIf (List.isNotEmpty xs) sepSemi) inheritOpt
-            +> optSingle (fun e -> genExpr astContext e +> !- " with ") eo
-            +> col sepSemi xs (genRecordFieldName astContext)
-            +> sepCloseS
-            +> leaveNodeTokenByName synExpr.Range RBRACE
+                isShortExpression ctx.Config.MaxElmishWidth smallExpression longExpression ctx
 
-        let multilineRecordExpr =
-            ifAlignBrackets
-                (genMultilineRecordInstanceAlignBrackets inheritOpt xs eo synExpr astContext)
-                (genMultilineRecordInstance inheritOpt xs eo synExpr astContext)
+        | SingleExpr (Lazy, e) ->
+            // Always add braces when dealing with lazy
+            let hasParenthesis = hasParenthesis e
 
-        fun ctx ->
-            let size = getRecordSize ctx xs
-            isSmallExpression size smallRecordExpr multilineRecordExpr ctx
+            let isInfixExpr =
+                match e with
+                | InfixApp _ -> true
+                | _ -> false
 
-    | AnonRecord (isStruct, fields, copyInfo) ->
-        let smallExpression =
-            onlyIf isStruct !- "struct "
-            +> sepOpenAnonRecd
-            +> optSingle (fun e -> genExpr astContext e +> !- " with ") copyInfo
-            +> col sepSemi fields (genAnonRecordFieldName astContext)
-            +> sepCloseAnonRecd
-
-        let longExpression =
-            ifAlignBrackets
-                (genMultilineAnonRecordAlignBrackets isStruct fields copyInfo astContext)
-                (genMultilineAnonRecord isStruct fields copyInfo astContext)
-
-        fun (ctx: Context) ->
-            let size = getRecordSize ctx fields
-            isSmallExpression size smallExpression longExpression ctx
-
-    | ObjExpr (t, eio, bd, ims, range) ->
-        ifAlignBrackets
-            (genObjExprAlignBrackets t eio bd ims range astContext)
-            (genObjExpr t eio bd ims range astContext)
-
-    | While (e1, e2) ->
-        atCurrentColumn
-            (!- "while " +> genExpr astContext e1 -- " do"
-             +> indent
-             +> sepNln
-             +> genExpr astContext e2
-             +> unindent)
-
-    | For (s, e1, e2, e3, isUp) ->
-        atCurrentColumn
-            (!-(sprintf "for %s = " s)
-             +> genExpr astContext e1
-             +> ifElse isUp (!- " to ") (!- " downto ")
-             +> genExpr astContext e2
-             -- " do"
-             +> indent
-             +> sepNln
-             +> genExpr astContext e3
-             +> unindent)
-
-    // Handle the form 'for i in e1 -> e2'
-    | ForEach (p, e1, e2, isArrow) ->
-        atCurrentColumn
-            (!- "for " +> genPat astContext p -- " in "
-             +> genExpr { astContext with IsNakedRange = true } e1
-             +> ifElse
-                 isArrow
-                    (sepArrow
-                     +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2))
-                    (!- " do"
-                     +> indent
+            let genInfixExpr (ctx: Context) =
+                isShortExpression
+                    ctx.Config.MaxInfixOperatorExpression
+                    // if this fits on the rest of line right after the lazy keyword, it should be wrapped in parenthesis.
+                    (sepOpenT +> genExpr astContext e +> sepCloseT)
+                    // if it is multiline there is no need for parenthesis, because of the indentation
+                    (indent
                      +> sepNln
-                     +> genExpr astContext e2
-                     +> unindent))
+                     +> genExpr astContext e
+                     +> unindent)
+                    ctx
 
-    | CompExpr (isArrayOrList, e) ->
-        ifElse
-            isArrayOrList
-            (genExpr astContext e)
-            // The opening { of the CompExpr is being added at the App(_,_,Ident(_),CompExr(_)) level
-            (expressionFitsOnRestOfLine
-                (genExpr astContext e +> sepCloseS)
-                 (genExpr astContext e
-                  +> unindent
-                  +> enterNodeTokenByName synExpr.Range RBRACE
-                  +> sepNlnUnlessLastEventIsNewline
-                  +> sepCloseSFixed))
+            let genNonInfixExpr =
+                autoIndentAndNlnIfExpressionExceedsPageWidth
+                    (onlyIfNot hasParenthesis sepOpenT
+                     +> genExpr astContext e
+                     +> onlyIfNot hasParenthesis sepCloseT)
 
-    | CompExprBody (expr) ->
-        let statements =
-            collectComputationExpressionStatements expr
+            str "lazy "
+            +> ifElse isInfixExpr genInfixExpr genNonInfixExpr
 
-        let genCompExprStatement astContext ces =
-            match ces with
-            | LetOrUseStatement (isRecursive, isUse, binding) ->
-                let prefix =
-                    sprintf "%s%s" (if isUse then "use " else "let ") (if isRecursive then "rec " else "")
+        | SingleExpr (kind, e) ->
+            enterNodeFor SynExpr_Do synExpr.Range
+            +> str kind
+            +> (match kind with
+                | YieldFrom
+                | Yield
+                | Return
+                | ReturnFrom -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+                | _ -> genExpr astContext e)
 
-                enterNodeFor (synBindingToFsAstType binding) binding.RangeOfBindingAndRhs
-                +> genLetBinding astContext prefix binding
-            | LetOrUseBangStatement (isUse, pat, expr, r) ->
-                enterNodeFor SynExpr_LetOrUseBang r // print Trivia before entire LetBang expression
-                +> ifElse isUse (!- "use! ") (!- "let! ")
-                +> genPat astContext pat
-                -- " = "
-                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
-            | AndBangStatement (pat, expr, andRange) ->
-                enterNodeTokenByName andRange AND_BANG
-                +> !- "and! "
-                +> genPat astContext pat
-                -- " = "
-                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
-            | OtherStatement expr -> genExpr astContext expr
-
-        let getRangeOfCompExprStatement ces =
-            match ces with
-            | LetOrUseStatement (_, _, binding) -> binding.RangeOfBindingAndRhs
-            | LetOrUseBangStatement (_, _, _, r) -> r
-            | AndBangStatement (_, _, r) -> r
-            | OtherStatement expr -> expr.Range
-
-        let getSepNln ces r =
-            match ces with
-            | LetOrUseStatement (_, _, b) -> sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) r
-            | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_LetOrUseBang r
-            | AndBangStatement _ -> sepNlnConsideringTriviaContentBeforeForToken AND_BANG r
-            | OtherStatement e -> sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e) r
-
-        statements
-        |> List.map (fun ces ->
-            let expr = genCompExprStatement astContext ces
-            let r = getRangeOfCompExprStatement ces
-            let sepNln = getSepNln ces r
-            expr, sepNln, r)
-        |> colWithNlnWhenItemIsMultiline
-
-    | ArrayOrListOfSeqExpr (isArray, e) as aNode ->
-        let astContext = { astContext with IsNakedRange = true }
-
-        let shortExpression =
+        | ConstExpr (c, r) -> genConst c r
+        | NullExpr -> !- "null"
+        // Not sure about the role of e1
+        | Quote (_, e2, isRaw) ->
+            let e = genExpr astContext e2
+            ifElse isRaw (!- "<@@ " +> e -- " @@>") (!- "<@ " +> e -- " @>")
+        | TypedExpr (TypeTest, e, t) ->
+            genExpr astContext e -- " :? "
+            +> genType astContext false t
+        | TypedExpr (New, e, t) ->
+            !- "new "
+            +> genType astContext false t
+            +> ifElse (hasParenthesis e) sepNone sepSpace
+            +> genExpr astContext e
+        | TypedExpr (Downcast, e, t) ->
+            genExpr astContext e -- " :?> "
+            +> genType astContext false t
+        | TypedExpr (Upcast, e, t) ->
+            genExpr astContext e -- " :> "
+            +> genType astContext false t
+        | TypedExpr (Typed, e, t) ->
+            genExpr astContext e
+            +> sepColon
+            +> genType astContext false t
+        | Tuple es -> genTuple astContext es
+        | StructTuple es ->
+            !- "struct "
+            +> sepOpenT
+            +> genTuple astContext es
+            +> sepCloseT
+        | ArrayOrList (isArray, [], _) ->
             ifElse
                 isArray
-                (sepOpenA
-                 +> genExpr astContext e
-                 +> enterRightBracketBar aNode.Range
-                 +> sepCloseA)
-                (sepOpenL
-                 +> genExpr astContext e
-                 +> enterRightBracket aNode.Range
-                 +> sepCloseL
-                 +> leaveNodeTokenByName aNode.Range RBRACK)
+                (enterNodeTokenByName synExpr.Range LBRACK_BAR
+                 +> sepOpenAFixed
+                 +> leaveNodeTokenByName synExpr.Range LBRACK_BAR
+                 +> enterNodeTokenByName synExpr.Range BAR_RBRACK
+                 +> sepCloseAFixed
+                 +> leaveNodeTokenByName synExpr.Range BAR_RBRACK)
+                (enterNodeTokenByName synExpr.Range LBRACK
+                 +> sepOpenLFixed
+                 +> leaveNodeTokenByName synExpr.Range LBRACK
+                 +> enterNodeTokenByName synExpr.Range RBRACK
+                 +> sepCloseLFixed
+                 +> leaveNodeTokenByName synExpr.Range RBRACK)
+        | ArrayOrList (isArray, xs, _) as alNode ->
+            let smallExpression =
+                ifElse isArray sepOpenA sepOpenL
+                +> col sepSemi xs (genExpr astContext)
+                +> ifElse isArray sepCloseA sepCloseL
 
-        let bracketsOnSameColumn =
-            ifElse isArray sepOpenAFixed sepOpenLFixed
-            +> indent
-            +> sepNln
+            let multilineExpression =
+                ifAlignBrackets
+                    (genMultiLineArrayOrListAlignBrackets isArray xs alNode astContext)
+                    (genMultiLineArrayOrList isArray xs alNode astContext)
+
+            fun ctx ->
+                // If an array or list has any form of line comments inside them, they cannot fit on a single line
+                // check for any comments inside the range of the node
+                if TriviaHelpers.``has line comments inside``
+                    alNode.Range
+                       (TriviaHelpers.getNodesForTypes
+                           [ LBRACK_BAR
+                             LBRACK
+                             BAR_RBRACK
+                             RBRACK ]
+                            ctx.TriviaTokenNodes)
+                   || List.exists isIfThenElseWithYieldReturn xs then
+                    multilineExpression ctx
+                else
+                    let size =
+                        getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth xs
+
+                    isSmallExpression size smallExpression multilineExpression ctx
+
+        | Record (inheritOpt, xs, eo) ->
+            let smallRecordExpr =
+                sepOpenS
+                +> leaveLeftBrace synExpr.Range
+                +> optSingle (fun (inheritType, inheritExpr) ->
+                    !- "inherit "
+                    +> genType astContext false inheritType
+                    +> genExpr astContext inheritExpr
+                    +> onlyIf (List.isNotEmpty xs) sepSemi) inheritOpt
+                +> optSingle (fun e -> genExpr astContext e +> !- " with ") eo
+                +> col sepSemi xs (genRecordFieldName astContext)
+                +> sepCloseS
+                +> leaveNodeTokenByName synExpr.Range RBRACE
+
+            let multilineRecordExpr =
+                ifAlignBrackets
+                    (genMultilineRecordInstanceAlignBrackets inheritOpt xs eo synExpr astContext)
+                    (genMultilineRecordInstance inheritOpt xs eo synExpr astContext)
+
+            fun ctx ->
+                let size = getRecordSize ctx xs
+                isSmallExpression size smallRecordExpr multilineRecordExpr ctx
+
+        | AnonRecord (isStruct, fields, copyInfo) ->
+            let smallExpression =
+                onlyIf isStruct !- "struct "
+                +> sepOpenAnonRecd
+                +> optSingle (fun e -> genExpr astContext e +> !- " with ") copyInfo
+                +> col sepSemi fields (genAnonRecordFieldName astContext)
+                +> sepCloseAnonRecd
+
+            let longExpression =
+                ifAlignBrackets
+                    (genMultilineAnonRecordAlignBrackets isStruct fields copyInfo astContext)
+                    (genMultilineAnonRecord isStruct fields copyInfo astContext)
+
+            fun (ctx: Context) ->
+                let size = getRecordSize ctx fields
+                isSmallExpression size smallExpression longExpression ctx
+
+        | ObjExpr (t, eio, bd, ims, range) ->
+            ifAlignBrackets
+                (genObjExprAlignBrackets t eio bd ims range astContext)
+                (genObjExpr t eio bd ims range astContext)
+
+        | While (e1, e2) ->
+            atCurrentColumn
+                (!- "while " +> genExpr astContext e1 -- " do"
+                 +> indent
+                 +> sepNln
+                 +> genExpr astContext e2
+                 +> unindent)
+
+        | For (s, e1, e2, e3, isUp) ->
+            atCurrentColumn
+                (!-(sprintf "for %s = " s)
+                 +> genExpr astContext e1
+                 +> ifElse isUp (!- " to ") (!- " downto ")
+                 +> genExpr astContext e2
+                 -- " do"
+                 +> indent
+                 +> sepNln
+                 +> genExpr astContext e3
+                 +> unindent)
+
+        // Handle the form 'for i in e1 -> e2'
+        | ForEach (p, e1, e2, isArrow) ->
+            atCurrentColumn
+                (!- "for " +> genPat astContext p -- " in "
+                 +> genExpr { astContext with IsNakedRange = true } e1
+                 +> ifElse
+                     isArrow
+                        (sepArrow
+                         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2))
+                        (!- " do"
+                         +> indent
+                         +> sepNln
+                         +> genExpr astContext e2
+                         +> unindent))
+
+        | CompExpr (isArrayOrList, e) ->
+            ifElse
+                isArrayOrList
+                (genExpr astContext e)
+                // The opening { of the CompExpr is being added at the App(_,_,Ident(_),CompExr(_)) level
+                (expressionFitsOnRestOfLine
+                    (genExpr astContext e +> sepCloseS)
+                     (genExpr astContext e
+                      +> unindent
+                      +> enterNodeTokenByName synExpr.Range RBRACE
+                      +> sepNlnUnlessLastEventIsNewline
+                      +> sepCloseSFixed))
+
+        | CompExprBody (expr) ->
+            let statements =
+                collectComputationExpressionStatements expr
+
+            let genCompExprStatement astContext ces =
+                match ces with
+                | LetOrUseStatement (isRecursive, isUse, binding) ->
+                    let prefix =
+                        sprintf "%s%s" (if isUse then "use " else "let ") (if isRecursive then "rec " else "")
+
+                    enterNodeFor (synBindingToFsAstType binding) binding.RangeOfBindingAndRhs
+                    +> genLetBinding astContext prefix binding
+                | LetOrUseBangStatement (isUse, pat, expr, r) ->
+                    enterNodeFor SynExpr_LetOrUseBang r // print Trivia before entire LetBang expression
+                    +> ifElse isUse (!- "use! ") (!- "let! ")
+                    +> genPat astContext pat
+                    -- " = "
+                    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+                | AndBangStatement (pat, expr, andRange) ->
+                    enterNodeTokenByName andRange AND_BANG
+                    +> !- "and! "
+                    +> genPat astContext pat
+                    -- " = "
+                    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+                | OtherStatement expr -> genExpr astContext expr
+
+            let getRangeOfCompExprStatement ces =
+                match ces with
+                | LetOrUseStatement (_, _, binding) -> binding.RangeOfBindingAndRhs
+                | LetOrUseBangStatement (_, _, _, r) -> r
+                | AndBangStatement (_, _, r) -> r
+                | OtherStatement expr -> expr.Range
+
+            let getSepNln ces r =
+                match ces with
+                | LetOrUseStatement (_, _, b) ->
+                    sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) r
+                | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_LetOrUseBang r
+                | AndBangStatement _ -> sepNlnConsideringTriviaContentBeforeForToken AND_BANG r
+                | OtherStatement e -> sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e) r
+
+            statements
+            |> List.map (fun ces ->
+                let expr = genCompExprStatement astContext ces
+                let r = getRangeOfCompExprStatement ces
+                let sepNln = getSepNln ces r
+                expr, sepNln, r)
+            |> colWithNlnWhenItemIsMultiline
+
+        | ArrayOrListOfSeqExpr (isArray, e) as aNode ->
+            let astContext = { astContext with IsNakedRange = true }
+
+            let shortExpression =
+                ifElse
+                    isArray
+                    (sepOpenA
+                     +> genExpr astContext e
+                     +> enterRightBracketBar aNode.Range
+                     +> sepCloseA)
+                    (sepOpenL
+                     +> genExpr astContext e
+                     +> enterRightBracket aNode.Range
+                     +> sepCloseL
+                     +> leaveNodeTokenByName aNode.Range RBRACK)
+
+            let bracketsOnSameColumn =
+                ifElse isArray sepOpenAFixed sepOpenLFixed
+                +> indent
+                +> sepNln
+                +> genExpr astContext e
+                +> unindent
+                +> sepNln
+                +> ifElse isArray sepCloseAFixed sepCloseLFixed
+
+            let multilineExpression =
+                ifAlignBrackets bracketsOnSameColumn shortExpression
+
+            fun ctx -> isShortExpression ctx.Config.MaxArrayOrListWidth shortExpression multilineExpression ctx
+
+        | JoinIn (e1, e2) ->
+            genExpr astContext e1 -- " in "
+            +> genExpr astContext e2
+        | Paren (lpr, DesugaredLambda (cps, e), rpr) ->
+            fun (ctx: Context) ->
+                let addIndent =
+                    lastLineOnlyContains [| ' '; '(' |] ctx
+                    || astContext.IsInsideDotGet
+
+                let arrowRange =
+                    List.last cps
+                    |> snd
+                    |> fun lastPatRange -> mkRange "arrow range" lastPatRange.End e.Range.Start
+
+                let hasLineCommentAfterArrow =
+                    findTriviaTokenFromName RARROW arrowRange ctx
+                    |> Option.isSome
+
+                let expr =
+                    sepOpenTFor (Some lpr) -- "fun "
+                    +> col sepSpace cps (fst >> genComplexPats astContext)
+                    +> triviaAfterArrow arrowRange
+                    +> (fun ctx ->
+                        if hasLineCommentAfterArrow then
+                            (genExpr astContext e +> sepCloseTFor rpr) ctx
+                        elif addIndent then
+                            (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr))
+                                ctx
+                        else
+                            (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr)) ctx)
+
+                expr ctx
+
+        | DesugaredLambda (cps, e) ->
+            !- "fun "
+            +> col sepSpace cps (fst >> genComplexPats astContext)
+            +> sepArrow
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        | Paren (lpr, Lambda (e, sps), rpr) ->
+            fun (ctx: Context) ->
+                let addIndent =
+                    lastLineOnlyContains [| ' '; '(' |] ctx
+                    || astContext.IsInsideDotGet
+
+                let hasLineCommentAfterArrow =
+                    findTriviaTokenFromName RARROW synExpr.Range ctx
+                    |> Option.isSome
+
+                let expr =
+                    sepOpenTFor (Some lpr) -- "fun "
+                    +> col sepSpace sps (genSimplePats astContext)
+                    +> triviaAfterArrow synExpr.Range
+                    +> (fun ctx ->
+                        if hasLineCommentAfterArrow then
+                            (genExpr astContext e +> sepCloseTFor rpr) ctx
+                        elif addIndent then
+                            autoIndentAndNlnIfExpressionExceedsPageWidth
+                                (genExpr
+                                    { astContext with
+                                          IsInsideDotGet = false }
+                                     e
+                                 +> sepCloseTFor rpr)
+                                ctx
+                        else
+                            autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr) ctx)
+
+                expr ctx
+
+        // When there are parentheses, most likely lambda will appear in function application
+        | Lambda (e, sps) ->
+            atCurrentColumn
+                (!- "fun "
+                 +> col sepSpace sps (genSimplePats astContext)
+                 +> sepArrow
+                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+        | MatchLambda (sp, _) ->
+            !- "function "
+            +> leaveNodeTokenByName synExpr.Range FUNCTION
+            +> colPre sepNln sepNln sp (genClause astContext true)
+        | Match (e, cs) ->
+            atCurrentColumn
+                (!- "match "
+                 +> genExpr astContext e
+                 +> enterNodeTokenByName synExpr.Range WITH
+                 // indent 'with' further if trivia was printed so that is appear after the match keyword.
+                 +> ifElseCtx lastWriteEventIsNewline (rep 5 !- " ") sepNone
+                 -- " with"
+                 +> leaveNodeTokenByName synExpr.Range WITH
+                 +> colPre sepNln sepNln cs (genClause astContext true))
+        | MatchBang (e, cs) ->
+            atCurrentColumn
+                (!- "match! " +> genExpr astContext e -- " with"
+                 +> colPre sepNln sepNln cs (genClause astContext true))
+        | TraitCall (tps, msg, e) ->
+            genTyparList astContext tps
+            +> sepColon
+            +> sepOpenT
+            +> genMemberSig astContext msg
+            +> sepCloseT
+            +> sepSpace
             +> genExpr astContext e
-            +> unindent
-            +> sepNln
-            +> ifElse isArray sepCloseAFixed sepCloseLFixed
 
-        let multilineExpression =
-            ifAlignBrackets bracketsOnSameColumn shortExpression
-
-        fun ctx -> isShortExpression ctx.Config.MaxArrayOrListWidth shortExpression multilineExpression ctx
-
-    | JoinIn (e1, e2) ->
-        genExpr astContext e1 -- " in "
-        +> genExpr astContext e2
-    | Paren (lpr, DesugaredLambda (cps, e), rpr) ->
-        fun (ctx: Context) ->
-            let addIndent =
-                lastLineOnlyContains [| ' '; '(' |] ctx
-                || astContext.IsInsideDotGet
-
-            let arrowRange =
-                List.last cps
-                |> snd
-                |> fun lastPatRange -> mkRange "arrow range" lastPatRange.End e.Range.Start
-
-            let hasLineCommentAfterArrow =
-                findTriviaTokenFromName RARROW arrowRange ctx
-                |> Option.isSome
-
-            let expr =
-                sepOpenTFor (Some lpr) -- "fun "
-                +> col sepSpace cps (fst >> genComplexPats astContext)
-                +> triviaAfterArrow arrowRange
-                +> (fun ctx ->
-                    if hasLineCommentAfterArrow then
-                        (genExpr astContext e +> sepCloseTFor rpr) ctx
-                    elif addIndent then
-                        (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr)) ctx
-                    else
-                        (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr)) ctx)
-
-            expr ctx
-
-    | DesugaredLambda (cps, e) ->
-        !- "fun "
-        +> col sepSpace cps (fst >> genComplexPats astContext)
-        +> sepArrow
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-    | Paren (lpr, Lambda (e, sps), rpr) ->
-        fun (ctx: Context) ->
-            let addIndent =
-                lastLineOnlyContains [| ' '; '(' |] ctx
-                || astContext.IsInsideDotGet
-
-            let hasLineCommentAfterArrow =
-                findTriviaTokenFromName RARROW synExpr.Range ctx
-                |> Option.isSome
-
-            let expr =
-                sepOpenTFor (Some lpr) -- "fun "
-                +> col sepSpace sps (genSimplePats astContext)
-                +> triviaAfterArrow synExpr.Range
-                +> (fun ctx ->
-                    if hasLineCommentAfterArrow then
-                        (genExpr astContext e +> sepCloseTFor rpr) ctx
-                    elif addIndent then
-                        autoIndentAndNlnIfExpressionExceedsPageWidth
-                            (genExpr
-                                { astContext with
-                                      IsInsideDotGet = false }
-                                 e
-                             +> sepCloseTFor rpr)
-                            ctx
-                    else
-                        autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr) ctx)
-
-            expr ctx
-
-    // When there are parentheses, most likely lambda will appear in function application
-    | Lambda (e, sps) ->
-        atCurrentColumn
-            (!- "fun "
-             +> col sepSpace sps (genSimplePats astContext)
-             +> sepArrow
-             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
-    | MatchLambda (sp, _) ->
-        !- "function "
-        +> leaveNodeTokenByName synExpr.Range FUNCTION
-        +> colPre sepNln sepNln sp (genClause astContext true)
-    | Match (e, cs) ->
-        atCurrentColumn
-            (!- "match "
-             +> genExpr astContext e
-             +> enterNodeTokenByName synExpr.Range WITH
-             // indent 'with' further if trivia was printed so that is appear after the match keyword.
-             +> ifElseCtx lastWriteEventIsNewline (rep 5 !- " ") sepNone
-             -- " with"
-             +> leaveNodeTokenByName synExpr.Range WITH
-             +> colPre sepNln sepNln cs (genClause astContext true))
-    | MatchBang (e, cs) ->
-        atCurrentColumn
-            (!- "match! " +> genExpr astContext e -- " with"
-             +> colPre sepNln sepNln cs (genClause astContext true))
-    | TraitCall (tps, msg, e) ->
-        genTyparList astContext tps
-        +> sepColon
-        +> sepOpenT
-        +> genMemberSig astContext msg
-        +> sepCloseT
-        +> sepSpace
-        +> genExpr astContext e
-
-    | Paren (_, ILEmbedded r, _) ->
-        // Just write out original code inside (# ... #)
-        fun ctx -> !- (defaultArg (lookup r ctx) "") ctx
-    | Paren (lpr, e, rpr) ->
-        match e with
-        | MultilineString _ ->
-            sepOpenTFor (Some lpr)
-            +> atCurrentColumn
-                (genExpr
+        | Paren (_, ILEmbedded r, _) ->
+            // Just write out original code inside (# ... #)
+            fun ctx -> !- (defaultArg (lookup r ctx) "") ctx
+        | Paren (lpr, e, rpr) ->
+            match e with
+            | MultilineString _ ->
+                sepOpenTFor (Some lpr)
+                +> atCurrentColumn
+                    (genExpr
+                        { astContext with
+                              IsInsideDotGet = false }
+                         e
+                     +> indentIfNeeded sepNone)
+                +> sepCloseTFor rpr
+            | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
+                sepOpenTFor (Some lpr)
+                +> genNamedArgumentExpr astContext operatorExpr e1 e2
+                +> sepCloseTFor rpr
+            | _ ->
+                // Parentheses nullify effects of no space inside DotGet
+                sepOpenTFor (Some lpr)
+                +> genExpr
                     { astContext with
                           IsInsideDotGet = false }
-                     e
-                 +> indentIfNeeded sepNone)
-            +> sepCloseTFor rpr
-        | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
-            sepOpenTFor (Some lpr)
-            +> genNamedArgumentExpr astContext operatorExpr e1 e2
-            +> sepCloseTFor rpr
-        | _ ->
-            // Parentheses nullify effects of no space inside DotGet
-            sepOpenTFor (Some lpr)
-            +> genExpr
-                { astContext with
-                      IsInsideDotGet = false }
-                   e
-            +> sepCloseTFor rpr
-    | CompApp (s, e) ->
-        !-s
-        +> sepSpace
-        +> sepOpenS
-        +> genExpr { astContext with IsNakedRange = true } e
-        +> sepCloseS
-    // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
-    | App (Var "?", e :: es) ->
-        match es with
-        | SynExpr.Const (SynConst.String _, _) :: _ ->
-            genExpr astContext e -- "?"
-            +> col sepSpace es (genExpr astContext)
-        | _ ->
-            genExpr astContext e -- "?"
-            +> sepOpenT
-            +> col sepSpace es (genExpr astContext)
-            +> sepCloseT
-
-    | App (Var "..", [ e1; e2 ]) ->
-        let expr =
-            genExpr astContext e1 +> sepSpace -- ".."
+                       e
+                +> sepCloseTFor rpr
+        | CompApp (s, e) ->
+            !-s
             +> sepSpace
-            +> genExpr astContext e2
+            +> sepOpenS
+            +> genExpr { astContext with IsNakedRange = true } e
+            +> sepCloseS
+        // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
+        | App (Var "?", e :: es) ->
+            match es with
+            | SynExpr.Const (SynConst.String _, _) :: _ ->
+                genExpr astContext e -- "?"
+                +> col sepSpace es (genExpr astContext)
+            | _ ->
+                genExpr astContext e -- "?"
+                +> sepOpenT
+                +> col sepSpace es (genExpr astContext)
+                +> sepCloseT
 
-        ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
-    | App (Var ".. ..", [ e1; e2; e3 ]) ->
-        let expr =
-            genExpr astContext e1 +> sepSpace -- ".."
-            +> sepSpace
-            +> genExpr astContext e2
-            +> sepSpace
-            -- ".."
-            +> sepSpace
-            +> genExpr astContext e3
+        | App (Var "..", [ e1; e2 ]) ->
+            let expr =
+                genExpr astContext e1 +> sepSpace -- ".."
+                +> sepSpace
+                +> genExpr astContext e2
 
-        ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
-    // Separate two prefix ops by spaces
-    | PrefixApp (s1, PrefixApp (s2, e)) -> !-(sprintf "%s %s" s1 s2) +> genExpr astContext e
-    | PrefixApp (s, e) ->
-        let extraSpaceBeforeString =
-            match e with
-            | String _ -> sepSpace
-            | _ -> sepNone
+            ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
+        | App (Var ".. ..", [ e1; e2; e3 ]) ->
+            let expr =
+                genExpr astContext e1 +> sepSpace -- ".."
+                +> sepSpace
+                +> genExpr astContext e2
+                +> sepSpace
+                -- ".."
+                +> sepSpace
+                +> genExpr astContext e3
 
-        !-s
-        +> extraSpaceBeforeString
-        +> genExpr astContext e
-
-    | NewlineInfixApp (operatorText, operatorExpr, (Lambda _ as e1), e2) ->
-        genMultilineInfixExpr astContext e1 operatorText operatorExpr e2
-
-    | NewlineInfixApps (e, es)
-    | SameInfixApps (e, es) ->
-        let shortExpr =
-            genExpr astContext e
-            +> sepSpace
-            +> col sepSpace es (fun (s, oe, e) ->
-                   genInfixOperator s oe
-                   +> sepSpace
-                   +> genExpr astContext e)
-
-        let multilineExpr =
-            genExpr astContext e
-            +> sepNln
-            +> col sepNln es (fun (s, oe, e) ->
-                   genInfixOperator s oe
-                   +> sepSpace
-                   +> genExpr astContext e)
-
-        fun ctx -> atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
-
-    | InfixApp (operatorText, operatorExpr, e1, e2) ->
-        fun ctx ->
-            isShortExpression
-                ctx.Config.MaxInfixOperatorExpression
-                (genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2)
-                (genMultilineInfixExpr astContext e1 operatorText operatorExpr e2)
-                ctx
-
-    | TernaryApp (e1, e2, e3) ->
-        atCurrentColumn
-            (genExpr astContext e1
-             +> !- "?"
-             +> genExpr astContext e2
-             +> sepSpace
-             +> !- "<-"
-             +> sepSpace
-             +> genExpr astContext e3)
-
-    | DotGetApp (e, es) as appNode ->
-        fun (ctx: Context) ->
-            // find all the lids recursively + range of do expr
-            let dotGetFuncExprIdents =
-                let rec selectIdent appNode =
-                    match appNode with
-                    | SynExpr.App (_,
-                                   _,
-                                   (SynExpr.DotGet (_, _, LongIdentWithDots.LongIdentWithDots (lids, _), _) as dotGet),
-                                   argExpr,
-                                   _) ->
-                        let lids =
-                            List.map (fun lid -> (argExpr.Range, lid)) lids
-
-                        let childLids = selectIdent dotGet
-                        lids @ childLids
-                    | SynExpr.DotGet (aExpr, _, _, _) -> selectIdent aExpr
-                    | _ -> []
-
-                selectIdent appNode
-
-            let expr sep =
+            ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
+        // Separate two prefix ops by spaces
+        | PrefixApp (s1, PrefixApp (s2, e)) -> !-(sprintf "%s %s" s1 s2) +> genExpr astContext e
+        | PrefixApp (s, e) ->
+            let extraSpaceBeforeString =
                 match e with
-                | App (TypeApp (LongIdentPieces (lids), ts), [ e2 ]) when (List.moreThanOne lids) ->
-                    !-(List.head lids)
-                    +> indent
-                    +> sep
-                    +> col sep (List.tail lids) (fun s -> !-(sprintf ".%s" s))
-                    +> genGenericTypeParameters astContext ts
-                    +> genExpr astContext e2
-                    +> unindent
-                | App (LongIdentPieces (lids), [ e2 ]) when (List.moreThanOne lids) ->
-                    !-(List.head lids)
-                    +> indent
-                    +> sep
-                    +> col sep (List.tail lids) (fun s -> !-(sprintf ".%s" s))
-                    +> genExpr astContext e2
-                    +> unindent
-                | App (e1, [ e2 ]) ->
-                    noNln
-                        (genExpr astContext e1
-                         +> ifElse (hasParenthesis e2) sepNone sepSpace
-                         +> genExpr
-                             { astContext with
-                                   IsInsideDotGet = true }
-                                e2)
-                | _ -> genExpr astContext e
+                | String _ -> sepSpace
+                | _ -> sepNone
 
-            let genExpr sep =
-                let genTriviaOfIdent f (e: SynExpr) =
-                    dotGetFuncExprIdents
-                    |> List.tryFind (fun (er, _) -> er = e.Range)
-                    |> Option.map
-                        (snd
-                         >> (fun lid -> genTriviaFor Ident_ lid.idRange))
-                    |> Option.defaultValue id
-                    |> fun genTrivia -> genTrivia f
+            !-s
+            +> extraSpaceBeforeString
+            +> genExpr astContext e
 
-                match es with
-                | [ (s, _), e, [] ] when (not (hasParenthesis e)) ->
-                    expr sep
-                    +> genTriviaOfIdent (!-(sprintf ".%s" s)) e
-                    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-                | _ ->
-                    expr sep
-                    +> indent
-                    +> sep
-                    +> coli sep es (fun idx ((s, _), e, ts) ->
-                           let currentIdentifier =
-                               genTriviaOfIdent (!-(sprintf ".%s" s)) e
-                               +> genGenericTypeParameters astContext ts
+        | NewlineInfixApp (operatorText, operatorExpr, (Lambda _ as e1), e2) ->
+            genMultilineInfixExpr astContext e1 operatorText operatorExpr e2
 
-                           let hasParenthesis = hasParenthesis e
+        | NewlineInfixApps (e, es)
+        | SameInfixApps (e, es) ->
+            let shortExpr =
+                genExpr astContext e
+                +> sepSpace
+                +> col sepSpace es (fun (s, oe, e) ->
+                       genInfixOperator s oe
+                       +> sepSpace
+                       +> genExpr astContext e)
 
-                           let isLastAndTyped =
-                               (List.length es - 1) = idx && List.isNotEmpty ts
+            let multilineExpr =
+                genExpr astContext e
+                +> sepNln
+                +> col sepNln es (fun (s, oe, e) ->
+                       genInfixOperator s oe
+                       +> sepSpace
+                       +> genExpr astContext e)
 
-                           currentIdentifier
-                           +> (fun ctx ->
-                               let isUpper = Char.IsUpper(s.[0])
+            fun ctx ->
+                atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
 
-                               let expr =
-                                   if (isLastAndTyped
-                                       && isUpper
-                                       && ctx.Config.SpaceBeforeUppercaseInvocation)
-                                      || (isLastAndTyped
-                                          && not isUpper
-                                          && ctx.Config.SpaceBeforeLowercaseInvocation)
-                                      || (not isLastAndTyped && not hasParenthesis) then
-                                       sepSpace
-                                   else
-                                       sepNone
-
-                               expr ctx)
-                           +> genExpr
-                               { astContext with
-                                     IsInsideDotGet = true }
-                                  e)
-                    +> unindent
-
-            isShortExpression ctx.Config.MaxDotGetExpressionWidth (genExpr sepNone) (genExpr sepNln) ctx
-
-    // Unlike infix app, function application needs a level of indentation
-    | App (e1, [ e2 ]) ->
-        fun (ctx: Context) ->
-            let hasPar = hasParenthesis e2
-
-            let addSpaceBefore =
-                not astContext.IsInsideDotIndexed
-                && addSpaceBeforeParensInFunCall e1 e2 ctx
-
-            let genApp =
-                atCurrentColumn
-                    (genExpr astContext e1
-                     +> onlyIf (isCompExpr e2) (sepSpace +> sepOpenSFixed +> sepSpace)
-                     +> ifElse
-                         (not astContext.IsInsideDotGet)
-                            (ifElse hasPar (ifElse addSpaceBefore sepSpace sepNone) sepSpace)
-                            sepNone
-                     +> indent
-                     +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone)
-                     +> (fun ctx ->
-                         let expr =
-                             if astContext.IsInsideDotGet then
-                                 match e1, e2 with
-                                 | _, Paren (_, App _, _)
-                                 | _, Paren (_, DotGet (App _, _), _)
-                                 | TypeApp _, Paren (_, Tuple _, _)
-                                 | _, ConstExpr (SynConst.Unit, _) -> genExpr astContext e2
-                                 | _ -> appNlnFun e2 (genExpr astContext e2)
-                             else
-                                 appNlnFun e2 (genExpr astContext e2)
-
-                         expr ctx)
-                     +> unindent)
-
-            genApp ctx
-
-    // Always spacing in multiple arguments
-    | App (e, es) ->
-        let shortExpression =
-            atCurrentColumn
-                (genExpr astContext e
-                 +> colPre sepSpace sepSpace es (fun e ->
-                        onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
-                        +> indent
-                        +> appNlnFun e (indentIfNeeded sepSpace +> genExpr astContext e)
-                        +> unindent))
-
-        let longExpression =
-            (atCurrentColumn
-                (genExpr astContext e
-                 +> colPre sepSpace sepSpace es (fun e ->
-                        ifElse
-                            (isCompExpr e)
-                            (sepSpace
-                             +> sepOpenSFixed
-                             +> sepSpace
-                             +> indent
-                             +> appNlnFun e (indentIfNeeded sepSpace +> genExpr astContext e)
-                             +> unindent)
-                            (indent
-                             +> indentIfNeeded sepSpace
-                             +> sepNln
-                             +> genExpr astContext e
-                             +> unindent))))
-
-        let hasMultipleLambdas =
-            List.filter (function
-                | Paren (_, Lambda _, _)
-                | Paren (_, DesugaredLambda _, _) -> true
-                | _ -> false) es
-            |> List.length
-            |> fun l -> l > 1
-
-        if List.exists (function
-            | Lambda _
-            | MatchLambda _
-            | Paren (_, Lambda _, _)
-            | Paren (_, MatchLambda _, _)
-            | MultilineString _
-            | CompExpr _ -> true
-            | _ -> false) es
-           && not hasMultipleLambdas then
-            shortExpression
-        else
-            expressionFitsOnRestOfLine shortExpression longExpression
-
-    | TypeApp (e, ts) ->
-        genExpr astContext e
-        +> genGenericTypeParameters astContext ts
-    | LetOrUses (bs, e) ->
-        let inKeyWordTrivia (binding: SynBinding) ctx =
-            let inRange =
-                mkRange "IN" binding.RangeOfBindingAndRhs.End e.Range.Start
-
-            Map.tryFindOrEmptyList IN ctx.TriviaTokenNodes
-            |> TriviaHelpers.``keyword token after start column and on same line`` inRange
-            |> List.tryHead
-
-        let isInSameLine ctx =
-            match bs with
-            | [ _, (LetBinding (_, _, _, _, _, p, _, _) as binding) ] ->
-                Option.isSome (inKeyWordTrivia binding ctx)
-                && p.Range.EndLine = e.Range.StartLine
-                && not (futureNlnCheck (genExpr astContext e) ctx)
-            | _ -> false
-
-        let genInKeyword (binding: SynBinding) (ctx: Context) =
-            match inKeyWordTrivia binding ctx with
-            | Some (_, tn) ->
-                (printContentBefore tn
-                 +> !- " in "
-                 +> printContentAfter tn) ctx
-            | None -> sepNone ctx
-
-        fun ctx ->
-            if isInSameLine ctx then
-                // short expression with in keyword
-                // f.ex. let a in ()
-                atCurrentColumn
-                    (optSingle (fun (p, x) ->
-                        genLetBinding
-                            { astContext with
-                                  IsFirstChild = p <> "and" }
-                            p
-                            x
-                        +> genInKeyword x) (List.tryHead bs)
-                     +> genExpr astContext e)
+        | InfixApp (operatorText, operatorExpr, e1, e2) ->
+            fun ctx ->
+                isShortExpression
+                    ctx.Config.MaxInfixOperatorExpression
+                    (genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2)
+                    (genMultilineInfixExpr astContext e1 operatorText operatorExpr e2)
                     ctx
+
+        | TernaryApp (e1, e2, e3) ->
+            atCurrentColumn
+                (genExpr astContext e1
+                 +> !- "?"
+                 +> genExpr astContext e2
+                 +> sepSpace
+                 +> !- "<-"
+                 +> sepSpace
+                 +> genExpr astContext e3)
+
+        | DotGetApp (e, es) as appNode ->
+            fun (ctx: Context) ->
+                // find all the lids recursively + range of do expr
+                let dotGetFuncExprIdents =
+                    let rec selectIdent appNode =
+                        match appNode with
+                        | SynExpr.App (_,
+                                       _,
+                                       (SynExpr.DotGet (_, _, LongIdentWithDots.LongIdentWithDots (lids, _), _) as dotGet),
+                                       argExpr,
+                                       _) ->
+                            let lids =
+                                List.map (fun lid -> (argExpr.Range, lid)) lids
+
+                            let childLids = selectIdent dotGet
+                            lids @ childLids
+                        | SynExpr.DotGet (aExpr, _, _, _) -> selectIdent aExpr
+                        | _ -> []
+
+                    selectIdent appNode
+
+                let expr sep =
+                    match e with
+                    | App (TypeApp (LongIdentPieces (lids), ts), [ e2 ]) when (List.moreThanOne lids) ->
+                        !-(List.head lids)
+                        +> indent
+                        +> sep
+                        +> col sep (List.tail lids) (fun s -> !-(sprintf ".%s" s))
+                        +> genGenericTypeParameters astContext ts
+                        +> genExpr astContext e2
+                        +> unindent
+                    | App (LongIdentPieces (lids), [ e2 ]) when (List.moreThanOne lids) ->
+                        !-(List.head lids)
+                        +> indent
+                        +> sep
+                        +> col sep (List.tail lids) (fun s -> !-(sprintf ".%s" s))
+                        +> genExpr astContext e2
+                        +> unindent
+                    | App (e1, [ e2 ]) ->
+                        noNln
+                            (genExpr astContext e1
+                             +> ifElse (hasParenthesis e2) sepNone sepSpace
+                             +> genExpr
+                                 { astContext with
+                                       IsInsideDotGet = true }
+                                    e2)
+                    | _ -> genExpr astContext e
+
+                let genExpr sep =
+                    let genTriviaOfIdent f (e: SynExpr) =
+                        dotGetFuncExprIdents
+                        |> List.tryFind (fun (er, _) -> er = e.Range)
+                        |> Option.map
+                            (snd
+                             >> (fun lid -> genTriviaFor Ident_ lid.idRange))
+                        |> Option.defaultValue id
+                        |> fun genTrivia -> genTrivia f
+
+                    match es with
+                    | [ (s, _), e, [] ] when (not (hasParenthesis e)) ->
+                        expr sep
+                        +> genTriviaOfIdent (!-(sprintf ".%s" s)) e
+                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+                    | _ ->
+                        expr sep
+                        +> indent
+                        +> sep
+                        +> coli sep es (fun idx ((s, _), e, ts) ->
+                               let currentIdentifier =
+                                   genTriviaOfIdent (!-(sprintf ".%s" s)) e
+                                   +> genGenericTypeParameters astContext ts
+
+                               let hasParenthesis = hasParenthesis e
+
+                               let isLastAndTyped =
+                                   (List.length es - 1) = idx && List.isNotEmpty ts
+
+                               currentIdentifier
+                               +> (fun ctx ->
+                                   let isUpper = Char.IsUpper(s.[0])
+
+                                   let expr =
+                                       if (isLastAndTyped
+                                           && isUpper
+                                           && ctx.Config.SpaceBeforeUppercaseInvocation)
+                                          || (isLastAndTyped
+                                              && not isUpper
+                                              && ctx.Config.SpaceBeforeLowercaseInvocation)
+                                          || (not isLastAndTyped && not hasParenthesis) then
+                                           sepSpace
+                                       else
+                                           sepNone
+
+                                   expr ctx)
+                               +> genExpr
+                                   { astContext with
+                                         IsInsideDotGet = true }
+                                      e)
+                        +> unindent
+
+                isShortExpression ctx.Config.MaxDotGetExpressionWidth (genExpr sepNone) (genExpr sepNln) ctx
+
+        // Unlike infix app, function application needs a level of indentation
+        | App (e1, [ e2 ]) ->
+            fun (ctx: Context) ->
+                let hasPar = hasParenthesis e2
+
+                let addSpaceBefore =
+                    not astContext.IsInsideDotIndexed
+                    && addSpaceBeforeParensInFunCall e1 e2 ctx
+
+                let genApp =
+                    atCurrentColumn
+                        (genExpr astContext e1
+                         +> onlyIf (isCompExpr e2) (sepSpace +> sepOpenSFixed +> sepSpace)
+                         +> ifElse
+                             (not astContext.IsInsideDotGet)
+                                (ifElse hasPar (ifElse addSpaceBefore sepSpace sepNone) sepSpace)
+                                sepNone
+                         +> indent
+                         +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone)
+                         +> (fun ctx ->
+                             let expr =
+                                 if astContext.IsInsideDotGet then
+                                     match e1, e2 with
+                                     | _, Paren (_, App _, _)
+                                     | _, Paren (_, DotGet (App _, _), _)
+                                     | TypeApp _, Paren (_, Tuple _, _)
+                                     | _, ConstExpr (SynConst.Unit, _) -> genExpr astContext e2
+                                     | _ -> appNlnFun e2 (genExpr astContext e2)
+                                 else
+                                     appNlnFun e2 (genExpr astContext e2)
+
+                             expr ctx)
+                         +> unindent)
+
+                genApp ctx
+
+        // Always spacing in multiple arguments
+        | App (e, es) ->
+            let shortExpression =
+                atCurrentColumn
+                    (genExpr astContext e
+                     +> colPre sepSpace sepSpace es (fun e ->
+                            onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
+                            +> indent
+                            +> appNlnFun e (indentIfNeeded sepSpace +> genExpr astContext e)
+                            +> unindent))
+
+            let longExpression =
+                (atCurrentColumn
+                    (genExpr astContext e
+                     +> colPre sepSpace sepSpace es (fun e ->
+                            ifElse
+                                (isCompExpr e)
+                                (sepSpace
+                                 +> sepOpenSFixed
+                                 +> sepSpace
+                                 +> indent
+                                 +> appNlnFun e (indentIfNeeded sepSpace +> genExpr astContext e)
+                                 +> unindent)
+                                (indent
+                                 +> indentIfNeeded sepSpace
+                                 +> sepNln
+                                 +> genExpr astContext e
+                                 +> unindent))))
+
+            let hasMultipleLambdas =
+                List.filter (function
+                    | Paren (_, Lambda _, _)
+                    | Paren (_, DesugaredLambda _, _) -> true
+                    | _ -> false) es
+                |> List.length
+                |> fun l -> l > 1
+
+            if List.exists (function
+                | Lambda _
+                | MatchLambda _
+                | Paren (_, Lambda _, _)
+                | Paren (_, MatchLambda _, _)
+                | MultilineString _
+                | CompExpr _ -> true
+                | _ -> false) es
+               && not hasMultipleLambdas then
+                shortExpression
             else
-                let letBindings (bs: (string * SynBinding) list) =
-                    bs
-                    |> List.map (fun (p, x) ->
-                        let expr =
-                            enterNodeFor (synBindingToFsAstType x) x.RangeOfBindingAndRhs
-                            +> genLetBinding
+                expressionFitsOnRestOfLine shortExpression longExpression
+
+        | TypeApp (e, ts) ->
+            genExpr astContext e
+            +> genGenericTypeParameters astContext ts
+        | LetOrUses (bs, e) ->
+            let inKeyWordTrivia (binding: SynBinding) ctx =
+                let inRange =
+                    mkRange "IN" binding.RangeOfBindingAndRhs.End e.Range.Start
+
+                Map.tryFindOrEmptyList IN ctx.TriviaTokenNodes
+                |> TriviaHelpers.``keyword token after start column and on same line`` inRange
+                |> List.tryHead
+
+            let isInSameLine ctx =
+                match bs with
+                | [ _, (LetBinding (_, _, _, _, _, p, _, _) as binding) ] ->
+                    Option.isSome (inKeyWordTrivia binding ctx)
+                    && p.Range.EndLine = e.Range.StartLine
+                    && not (futureNlnCheck (genExpr astContext e) ctx)
+                | _ -> false
+
+            let genInKeyword (binding: SynBinding) (ctx: Context) =
+                match inKeyWordTrivia binding ctx with
+                | Some (_, tn) ->
+                    (printContentBefore tn
+                     +> !- " in "
+                     +> printContentAfter tn) ctx
+                | None -> sepNone ctx
+
+            fun ctx ->
+                if isInSameLine ctx then
+                    // short expression with in keyword
+                    // f.ex. let a in ()
+                    atCurrentColumn
+                        (optSingle (fun (p, x) ->
+                            genLetBinding
                                 { astContext with
                                       IsFirstChild = p <> "and" }
-                                   p
-                                   x
-                            +> genInKeyword x
+                                p
+                                x
+                            +> genInKeyword x) (List.tryHead bs)
+                         +> genExpr astContext e)
+                        ctx
+                else
+                    let letBindings (bs: (string * SynBinding) list) =
+                        bs
+                        |> List.map (fun (p, x) ->
+                            let expr =
+                                enterNodeFor (synBindingToFsAstType x) x.RangeOfBindingAndRhs
+                                +> genLetBinding
+                                    { astContext with
+                                          IsFirstChild = p <> "and" }
+                                       p
+                                       x
+                                +> genInKeyword x
 
-                        let range = x.RangeOfBindingAndRhs
+                            let range = x.RangeOfBindingAndRhs
 
-                        let sepNln =
-                            sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType x) range
+                            let sepNln =
+                                sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType x) range
 
-                        expr, sepNln, range)
+                            expr, sepNln, range)
 
-                let sepNlnForNonSequential e r =
-                    sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e) r
+                    let sepNlnForNonSequential e r =
+                        sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e) r
 
-                let rec synExpr e =
-                    match e with
-                    | LetOrUses (bs, e) -> letBindings bs @ synExpr e
-                    | Sequentials (s) -> s |> List.collect synExpr
-                    | _ ->
-                        let r = e.Range
-                        [ genExpr astContext e, sepNlnForNonSequential e r, r ]
+                    let rec synExpr e =
+                        match e with
+                        | LetOrUses (bs, e) -> letBindings bs @ synExpr e
+                        | Sequentials (s) -> s |> List.collect synExpr
+                        | _ ->
+                            let r = e.Range
+                            [ genExpr astContext e, sepNlnForNonSequential e r, r ]
 
-                let items = letBindings bs @ synExpr e
-                atCurrentColumn (colWithNlnWhenItemIsMultiline items) ctx
+                    let items = letBindings bs @ synExpr e
+                    atCurrentColumn (colWithNlnWhenItemIsMultiline items) ctx
 
-    // Could customize a bit if e is single line
-    | TryWith (e, cs) ->
-        let prefix =
-            kw TRY !- "try "
-            +> indent
-            +> sepNln
-            +> genExpr astContext e
-            +> unindent
-            +> kw WITH !+~ "with"
+        // Could customize a bit if e is single line
+        | TryWith (e, cs) ->
+            let prefix =
+                kw TRY !- "try "
+                +> indent
+                +> sepNln
+                +> genExpr astContext e
+                +> unindent
+                +> kw WITH !+~ "with"
 
-        match cs with
-        | [ SynMatchClause.Clause (SynPat.Or _, _, _, _, _) ] ->
-            atCurrentColumn
-                (prefix
-                 +> indentOnWith
-                 +> sepNln
-                 +> col sepNln cs (genClause astContext true)
-                 +> unindentOnWith)
-        | [ c ] -> atCurrentColumn (prefix +> sepSpace +> genClause astContext false c)
-        | _ ->
-            atCurrentColumn
-                (prefix
-                 +> indentOnWith
-                 +> sepNln
-                 +> col sepNln cs (genClause astContext true)
-                 +> unindentOnWith)
-
-    | TryFinally (e1, e2) ->
-        atCurrentColumn
-            (kw TRY !- "try "
-             +> indent
-             +> sepNln
-             +> genExpr astContext e1
-             +> unindent
-             +> kw FINALLY !+~ "finally"
-             +> indent
-             +> sepNln
-             +> genExpr astContext e2
-             +> unindent)
-
-    | SequentialSimple es
-    | Sequentials es ->
-        let items =
-            es
-            |> List.map (fun e ->
-                let expr = genExpr astContext e
-
-                let fsAstType, r =
-                    match e with
-                    | LetOrUses ((_, fb) :: _, _) -> (synBindingToFsAstType fb), fb.RangeOfBindingAndRhs
-                    | _ -> synExprToFsAstType e, e.Range
-
-                let sepNln =
-                    sepConsideringTriviaContentBeforeForMainNode sepSemiNln fsAstType r
-
-                expr, sepNln, r)
-
-        atCurrentColumn (colWithNlnWhenItemIsMultiline items)
-
-    | IfThenElse (e1, e2, None, mIfToThen) ->
-        fun (ctx: Context) ->
-            let maxWidth = ctx.Config.MaxIfThenElseShortWidth
-            let keepIfThenInSameLine = ctx.Config.KeepIfThenInSameLine
-
-            let thenKeywordHasLineComment =
-                TriviaHelpers.``has content after after that matches`` (fun tn ->
-                    // there is like a one of bug here
-                    let correctedRange =
-                        mkRange "correctedRange" tn.Range.Start (mkPos tn.Range.EndLine (tn.Range.EndColumn + 1))
-
-                    RangeHelpers.rangeEndEq correctedRange mIfToThen) (function
-                    | Comment (LineCommentAfterSourceCode _) -> true
-                    | _ -> false) (Map.tryFindOrEmptyList THEN ctx.TriviaTokenNodes)
-
-            let thenExpr = tokN mIfToThen THEN
-
-            (leadingExpressionResult (!- "if " +> genExpr astContext e1) (fun ((lb, cb), (la, ca)) ->
-                 let thenExpressionIsMultiline =
-                     thenKeywordHasLineComment
-                     || futureNlnCheck (genExpr astContext e2) ctx
-
-                 if lb < la
-                    || thenExpressionIsMultiline
-                    || keepIfThenInSameLine then // if or then expression was multiline
-                     thenExpr (!- " then")
-                     +> indent
+            match cs with
+            | [ SynMatchClause.Clause (SynPat.Or _, _, _, _, _) ] ->
+                atCurrentColumn
+                    (prefix
+                     +> indentOnWith
                      +> sepNln
-                     +> genExpr astContext e2
-                     +> unindent
-                 elif (lb = la && (ca - cb) > maxWidth)
-                      && not thenExpressionIsMultiline then // if expression is longer than maxWidth but not multiline
-                     sepNln
-                     +> thenExpr (!- "then ")
-                     +> genExpr astContext e2
-                 elif (exceedsWidth maxWidth (genExpr astContext e2) ctx)
-                      && not thenExpressionIsMultiline then // then is longer than maxWidth but not multiline
-                     sepNln
-                     +> thenExpr (!- "then ")
-                     +> genExpr astContext e2
-                 else
-                     // write out as short expression
-                     thenExpr (!- " then ") +> genExpr astContext e2)
-             |> atCurrentColumn) ctx
+                     +> col sepNln cs (genClause astContext true)
+                     +> unindentOnWith)
+            | [ c ] -> atCurrentColumn (prefix +> sepSpace +> genClause astContext false c)
+            | _ ->
+                atCurrentColumn
+                    (prefix
+                     +> indentOnWith
+                     +> sepNln
+                     +> col sepNln cs (genClause astContext true)
+                     +> unindentOnWith)
 
-    // A generalization of IfThenElse
-    | ElIf ((e1, e2, _, _, _) :: es, enOpt) ->
-        // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
-        fun ctx ->
-            let correctedElifRanges =
+        | TryFinally (e1, e2) ->
+            atCurrentColumn
+                (kw TRY !- "try "
+                 +> indent
+                 +> sepNln
+                 +> genExpr astContext e1
+                 +> unindent
+                 +> kw FINALLY !+~ "finally"
+                 +> indent
+                 +> sepNln
+                 +> genExpr astContext e2
+                 +> unindent)
+
+        | SequentialSimple es
+        | Sequentials es ->
+            let items =
                 es
-                |> List.pairwise
-                |> List.map (fun ((_, beforeNode, _, _, _), (_, _, _, _, node)) -> (beforeNode.Range, node.Range))
-                |> fun tail ->
-                    match es with
-                    | (_, _, _, _, hn) :: _ -> (e2.Range, hn.Range) :: tail
-                    | _ -> tail
-                |> List.indexed
-                |> List.choose (fun (idx, (beforeRange, elseIfRange)) ->
-                    let rangeBetween =
-                        mkRange "between" beforeRange.End elseIfRange.Start
+                |> List.map (fun e ->
+                    let expr = genExpr astContext e
 
-                    let keywordsFoundInBetween =
-                        TriviaHelpers.``keyword token inside range``
-                            rangeBetween
-                            (Map.tryFindOrEmptyList ELSE ctx.TriviaTokenNodes)
+                    let fsAstType, r =
+                        match e with
+                        | LetOrUses ((_, fb) :: _, _) -> (synBindingToFsAstType fb), fb.RangeOfBindingAndRhs
+                        | _ -> synExprToFsAstType e, e.Range
 
-                    match List.tryHead keywordsFoundInBetween with
-                    | Some (_, elseKeyword) ->
-                        (idx, mkRange "else if" elseKeyword.Range.Start elseIfRange.End)
-                        |> Some
-                    | _ -> None)
-                |> Map.ofList
+                    let sepNln =
+                        sepConsideringTriviaContentBeforeForMainNode sepSemiNln fsAstType r
 
-            let elfis =
-                List.indexed es
-                |> List.map (fun (idx, (elf1, elf2, _, fullRange, _)) ->
-                    // In some scenarios the last else keyword of the 'else if' combination is not included in inner IfThenElse syn expr
-                    // f.ex if  a then b else // meh
-                    //          if c then d else e
-                    let correctedRange =
-                        Map.tryFind idx correctedElifRanges
-                        |> Option.defaultValue fullRange
+                    expr, sepNln, r)
 
-                    (elf1, elf2, correctedRange))
+            atCurrentColumn (colWithNlnWhenItemIsMultiline items)
 
-            let hasElfis = not (List.isEmpty elfis)
+        | IfThenElse (e1, e2, None, mIfToThen) ->
+            fun (ctx: Context) ->
+                let maxWidth = ctx.Config.MaxIfThenElseShortWidth
+                let keepIfThenInSameLine = ctx.Config.KeepIfThenInSameLine
 
-            let commentAfterKeyword keyword rangePredicate (ctx: Context) =
-                (Map.tryFindOrEmptyList keyword ctx.TriviaTokenNodes)
-                |> TriviaHelpers.``has content after after that matches`` (fun t -> rangePredicate t.Range) (function
-                       | Comment (LineCommentAfterSourceCode _) -> true
-                       | _ -> false)
+                let thenKeywordHasLineComment =
+                    TriviaHelpers.``has content after after that matches`` (fun tn ->
+                        // there is like a one of bug here
+                        let correctedRange =
+                            mkRange "correctedRange" tn.Range.Start (mkPos tn.Range.EndLine (tn.Range.EndColumn + 1))
 
-            let hasCommentAfterBoolExpr =
-                TriviaHelpers.``has content after after that matches`` (fun tn ->
-                    RangeHelpers.rangeEq tn.Range e1.Range) (function
-                    | Comment (LineCommentAfterSourceCode _) -> true
-                    | _ -> false) (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
+                        RangeHelpers.rangeEndEq correctedRange mIfToThen) (function
+                        | Comment (LineCommentAfterSourceCode _) -> true
+                        | _ -> false) (Map.tryFindOrEmptyList THEN ctx.TriviaTokenNodes)
 
-            let hasCommentAfterIfKeyword =
-                commentAfterKeyword IF (RangeHelpers.``have same range start`` synExpr.Range) ctx
+                let thenExpr = tokN mIfToThen THEN
 
-            let ``has line comment after source code for range`` range =
-                TriviaHelpers.``has content after after that matches`` (fun tn -> RangeHelpers.rangeEq tn.Range range) (function
-                    | Comment (LineCommentAfterSourceCode _) -> true
-                    | _ -> false) (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
+                (leadingExpressionResult (!- "if " +> genExpr astContext e1) (fun ((lb, cb), (la, ca)) ->
+                     let thenExpressionIsMultiline =
+                         thenKeywordHasLineComment
+                         || futureNlnCheck (genExpr astContext e2) ctx
 
-            let hasCommentAfterIfBranchExpr =
-                ``has line comment after source code for range`` e2.Range
+                     if lb < la
+                        || thenExpressionIsMultiline
+                        || keepIfThenInSameLine then // if or then expression was multiline
+                         thenExpr (!- " then")
+                         +> indent
+                         +> sepNln
+                         +> genExpr astContext e2
+                         +> unindent
+                     elif (lb = la && (ca - cb) > maxWidth)
+                          && not thenExpressionIsMultiline then // if expression is longer than maxWidth but not multiline
+                         sepNln
+                         +> thenExpr (!- "then ")
+                         +> genExpr astContext e2
+                     elif (exceedsWidth maxWidth (genExpr astContext e2) ctx)
+                          && not thenExpressionIsMultiline then // then is longer than maxWidth but not multiline
+                         sepNln
+                         +> thenExpr (!- "then ")
+                         +> genExpr astContext e2
+                     else
+                         // write out as short expression
+                         thenExpr (!- " then ") +> genExpr astContext e2)
+                 |> atCurrentColumn) ctx
 
-            let hasCommentAfterIfBranchThenKeyword =
-                commentAfterKeyword THEN (RangeHelpers.``range contains`` synExpr.Range) ctx
+        // A generalization of IfThenElse
+        | ElIf ((e1, e2, _, _, _) :: es, enOpt) ->
+            // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
+            fun ctx ->
+                let correctedElifRanges =
+                    es
+                    |> List.pairwise
+                    |> List.map (fun ((_, beforeNode, _, _, _), (_, _, _, _, node)) -> (beforeNode.Range, node.Range))
+                    |> fun tail ->
+                        match es with
+                        | (_, _, _, _, hn) :: _ -> (e2.Range, hn.Range) :: tail
+                        | _ -> tail
+                    |> List.indexed
+                    |> List.choose (fun (idx, (beforeRange, elseIfRange)) ->
+                        let rangeBetween =
+                            mkRange "between" beforeRange.End elseIfRange.Start
 
-            let hasCommentAfterElseKeyword =
-                commentAfterKeyword ELSE (RangeHelpers.``range contains`` synExpr.Range) ctx
+                        let keywordsFoundInBetween =
+                            TriviaHelpers.``keyword token inside range``
+                                rangeBetween
+                                (Map.tryFindOrEmptyList ELSE ctx.TriviaTokenNodes)
 
-            let isConditionMultiline =
-                hasCommentAfterIfKeyword
-                || hasCommentAfterBoolExpr
-                || hasCommentAfterIfBranchThenKeyword
-                || futureNlnCheck (!- "if " +> genExpr astContext e1) ctx
+                        match List.tryHead keywordsFoundInBetween with
+                        | Some (_, elseKeyword) ->
+                            (idx, mkRange "else if" elseKeyword.Range.Start elseIfRange.End)
+                            |> Some
+                        | _ -> None)
+                    |> Map.ofList
 
-            let isIfBranchMultiline =
-                futureNlnCheck (genExpr astContext e2) ctx
+                let elfis =
+                    List.indexed es
+                    |> List.map (fun (idx, (elf1, elf2, _, fullRange, _)) ->
+                        // In some scenarios the last else keyword of the 'else if' combination is not included in inner IfThenElse syn expr
+                        // f.ex if  a then b else // meh
+                        //          if c then d else e
+                        let correctedRange =
+                            Map.tryFind idx correctedElifRanges
+                            |> Option.defaultValue fullRange
 
-            let isElseBranchMultiline =
-                match enOpt with
-                | Some e3 ->
-                    hasCommentAfterElseKeyword
-                    || futureNlnCheck (!- " else " +> genExpr astContext e3) ctx
-                | None -> false
+                        (elf1, elf2, correctedRange))
 
-            let genIf ifElseRange = tokN ifElseRange IF (!- "if ")
-            let genThen ifElseRange = tokN ifElseRange THEN (!- "then ")
-            let genElse ifElseRange = tokN ifElseRange ELSE (!- "else ")
+                let hasElfis = not (List.isEmpty elfis)
 
-            let genElifOneliner ((elf1: SynExpr), (elf2: SynExpr), fullRange) =
+                let commentAfterKeyword keyword rangePredicate (ctx: Context) =
+                    (Map.tryFindOrEmptyList keyword ctx.TriviaTokenNodes)
+                    |> TriviaHelpers.``has content after after that matches`` (fun t -> rangePredicate t.Range) (function
+                           | Comment (LineCommentAfterSourceCode _) -> true
+                           | _ -> false)
+
                 let hasCommentAfterBoolExpr =
                     TriviaHelpers.``has content after after that matches`` (fun tn ->
-                        RangeHelpers.rangeEq tn.Range elf1.Range) (function
+                        RangeHelpers.rangeEq tn.Range e1.Range) (function
                         | Comment (LineCommentAfterSourceCode _) -> true
                         | _ -> false)
                         (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
 
-                let hasCommentAfterThenKeyword =
-                    commentAfterKeyword THEN (RangeHelpers.``range contains`` fullRange) ctx
+                let hasCommentAfterIfKeyword =
+                    commentAfterKeyword IF (RangeHelpers.``have same range start`` synExpr.Range) ctx
 
-                TriviaContext.``else if / elif`` fullRange
-                +> genExpr astContext elf1
-                +> sepSpace
-                +> ifElse hasCommentAfterBoolExpr sepNln sepNone
-                +> genThen fullRange
-                +> ifElse hasCommentAfterThenKeyword sepNln sepNone
-                +> genExpr astContext elf2
-                |> genTriviaFor SynExpr_IfThenElse fullRange
+                let ``has line comment after source code for range`` range =
+                    TriviaHelpers.``has content after after that matches`` (fun tn ->
+                        RangeHelpers.rangeEq tn.Range range) (function
+                        | Comment (LineCommentAfterSourceCode _) -> true
+                        | _ -> false)
+                        (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
 
-            let genElifTwoLiner ((elf1: SynExpr), (elf2: SynExpr), fullRange) =
-                let hasCommentAfterThenKeyword =
-                    commentAfterKeyword THEN (RangeHelpers.``range contains`` fullRange) ctx
+                let hasCommentAfterIfBranchExpr =
+                    ``has line comment after source code for range`` e2.Range
 
-                TriviaContext.``else if / elif`` fullRange
-                +> genExpr astContext elf1
-                +> sepNln
-                +> genThen fullRange
-                +> ifElse hasCommentAfterThenKeyword sepNln sepNone
-                +> genExpr astContext elf2
+                let hasCommentAfterIfBranchThenKeyword =
+                    commentAfterKeyword THEN (RangeHelpers.``range contains`` synExpr.Range) ctx
 
-            let isAnyElifBranchMultiline =
-                elfis
-                |> List.exists (fun elf -> futureNlnCheck (genElifOneliner elf) ctx)
+                let hasCommentAfterElseKeyword =
+                    commentAfterKeyword ELSE (RangeHelpers.``range contains`` synExpr.Range) ctx
 
-            let anyElifBranchHasCommentAfterBranchExpr =
-                elfis
-                |> List.exists (fun (_, e, _) -> ``has line comment after source code for range`` e.Range)
+                let isConditionMultiline =
+                    hasCommentAfterIfKeyword
+                    || hasCommentAfterBoolExpr
+                    || hasCommentAfterIfBranchThenKeyword
+                    || futureNlnCheck (!- "if " +> genExpr astContext e1) ctx
 
-            let isAnyExpressionIsLongerButNotMultiline =
-                let longerSetting = ctx.Config.MaxIfThenElseShortWidth
+                let isIfBranchMultiline =
+                    futureNlnCheck (genExpr astContext e2) ctx
 
-                let elseExceedsWith =
+                let isElseBranchMultiline =
                     match enOpt with
-                    | Some e4 -> exceedsWidth longerSetting (genExpr astContext e4) ctx
+                    | Some e3 ->
+                        hasCommentAfterElseKeyword
+                        || futureNlnCheck (!- " else " +> genExpr astContext e3) ctx
                     | None -> false
 
-                exceedsWidth longerSetting (genExpr astContext e1) ctx
-                || exceedsWidth longerSetting (genExpr astContext e2) ctx
-                || elseExceedsWith
+                let genIf ifElseRange = tokN ifElseRange IF (!- "if ")
+                let genThen ifElseRange = tokN ifElseRange THEN (!- "then ")
+                let genElse ifElseRange = tokN ifElseRange ELSE (!- "else ")
 
-            let isAnyExpressionIsMultiline =
-                isConditionMultiline
-                || isIfBranchMultiline
-                || isElseBranchMultiline
-                || isAnyElifBranchMultiline
+                let genElifOneliner ((elf1: SynExpr), (elf2: SynExpr), fullRange) =
+                    let hasCommentAfterBoolExpr =
+                        TriviaHelpers.``has content after after that matches`` (fun tn ->
+                            RangeHelpers.rangeEq tn.Range elf1.Range) (function
+                            | Comment (LineCommentAfterSourceCode _) -> true
+                            | _ -> false)
+                            (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
 
-            let genElifMultiLine ((elf1: SynExpr), elf2, fullRange) (ctx: Context) =
-                let indentAfterThenKeyword =
-                    TriviaHelpers.getNodesForTypes [ IF; ELIF ] ctx.TriviaTokenNodes
-                    |> TriviaHelpers.``keyword token inside range`` fullRange
-                    |> List.tryHead
-                    |> Option.map (fun (_, t) ->
-                        if TriviaHelpers.``has line comment after`` t then
-                            // don't indent because comment after if/elif keyword
-                            // TriviaContext.``else if / elif`` fullRange will already placed indentation
-                            sepNone
-                        else
-                            indent)
-                    |> Option.defaultValue indent
+                    let hasCommentAfterThenKeyword =
+                        commentAfterKeyword THEN (RangeHelpers.``range contains`` fullRange) ctx
 
-                let hasCommentAfterBoolExpr =
-                    TriviaHelpers.``has content after after that matches`` (fun tn ->
-                        RangeHelpers.rangeEq tn.Range elf1.Range) (function
-                        | Comment (LineCommentAfterSourceCode _) -> true
-                        | _ -> false)
-                        (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
-
-                let elifExpr =
                     TriviaContext.``else if / elif`` fullRange
                     +> genExpr astContext elf1
-                    +> ifElse hasCommentAfterBoolExpr sepNln sepSpace
+                    +> sepSpace
+                    +> ifElse hasCommentAfterBoolExpr sepNln sepNone
                     +> genThen fullRange
-                    +> indentAfterThenKeyword
-                    +> sepNln
+                    +> ifElse hasCommentAfterThenKeyword sepNln sepNone
                     +> genExpr astContext elf2
-                    +> unindent
+                    |> genTriviaFor SynExpr_IfThenElse fullRange
 
-                (elifExpr
-                 |> genTriviaFor SynExpr_IfThenElse fullRange) ctx
+                let genElifTwoLiner ((elf1: SynExpr), (elf2: SynExpr), fullRange) =
+                    let hasCommentAfterThenKeyword =
+                        commentAfterKeyword THEN (RangeHelpers.``range contains`` fullRange) ctx
 
-            let genOneliner =
-                genIf synExpr.Range
-                +> genExpr astContext e1
-                +> sepSpace
-                +> genThen synExpr.Range
-                +> genExpr astContext e2
-                +> col sepNone elfis (fun elf -> sepSpace +> genElifOneliner elf)
-                +> opt id enOpt (fun e4 ->
-                       (sepSpace
-                        +> genElse synExpr.Range
-                        +> genExpr astContext e4))
-
-            // This is a simplistic check to see if everything fits on one line
-            let isOneLiner =
-                not hasElfis
-                && not isAnyExpressionIsLongerButNotMultiline
-                && not isAnyExpressionIsMultiline
-                && not hasCommentAfterIfBranchExpr
-                && not anyElifBranchHasCommentAfterBranchExpr
-                && not (futureNlnCheck genOneliner ctx)
-
-            let keepIfThenInSameLine = ctx.Config.KeepIfThenInSameLine
-
-            let formatIfElseExpr =
-                if isOneLiner then
-                    // Indentation of conditionals depends on the sizes of the expressions that make them up. If cond, e1 and e2 are short, simply write them on one line:
-                    // if cond then e1 else e2
-                    genOneliner
-
-                elif not isOneLiner
-                     && not isAnyExpressionIsMultiline
-                     && isAnyExpressionIsLongerButNotMultiline
-                     && not keepIfThenInSameLine then
-                    // If either cond, e1 or e2 are longer, but not multi-line:
-                    // if cond
-                    // then e1
-                    // else e2
-
-                    genIf synExpr.Range
-                    +> genExpr astContext e1
+                    TriviaContext.``else if / elif`` fullRange
+                    +> genExpr astContext elf1
                     +> sepNln
-                    +> genThen synExpr.Range
-                    +> genExpr astContext e2
-                    +> sepNln
-                    +> colPost sepNln sepNln elfis genElifTwoLiner
-                    +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
+                    +> genThen fullRange
+                    +> ifElse hasCommentAfterThenKeyword sepNln sepNone
+                    +> genExpr astContext elf2
 
-                elif hasElfis
-                     && not isAnyExpressionIsMultiline
-                     && not isAnyExpressionIsLongerButNotMultiline then
-                    // Multiple conditionals with elif and else are indented at the same scope as the if:
-                    // if cond1 then e1
-                    // elif cond2 then e2
-                    // elif cond3 then e3
-                    // else e4
+                let isAnyElifBranchMultiline =
+                    elfis
+                    |> List.exists (fun elf -> futureNlnCheck (genElifOneliner elf) ctx)
 
+                let anyElifBranchHasCommentAfterBranchExpr =
+                    elfis
+                    |> List.exists (fun (_, e, _) -> ``has line comment after source code for range`` e.Range)
+
+                let isAnyExpressionIsLongerButNotMultiline =
+                    let longerSetting = ctx.Config.MaxIfThenElseShortWidth
+
+                    let elseExceedsWith =
+                        match enOpt with
+                        | Some e4 -> exceedsWidth longerSetting (genExpr astContext e4) ctx
+                        | None -> false
+
+                    exceedsWidth longerSetting (genExpr astContext e1) ctx
+                    || exceedsWidth longerSetting (genExpr astContext e2) ctx
+                    || elseExceedsWith
+
+                let isAnyExpressionIsMultiline =
+                    isConditionMultiline
+                    || isIfBranchMultiline
+                    || isElseBranchMultiline
+                    || isAnyElifBranchMultiline
+
+                let genElifMultiLine ((elf1: SynExpr), elf2, fullRange) (ctx: Context) =
+                    let indentAfterThenKeyword =
+                        TriviaHelpers.getNodesForTypes [ IF; ELIF ] ctx.TriviaTokenNodes
+                        |> TriviaHelpers.``keyword token inside range`` fullRange
+                        |> List.tryHead
+                        |> Option.map (fun (_, t) ->
+                            if TriviaHelpers.``has line comment after`` t then
+                                // don't indent because comment after if/elif keyword
+                                // TriviaContext.``else if / elif`` fullRange will already placed indentation
+                                sepNone
+                            else
+                                indent)
+                        |> Option.defaultValue indent
+
+                    let hasCommentAfterBoolExpr =
+                        TriviaHelpers.``has content after after that matches`` (fun tn ->
+                            RangeHelpers.rangeEq tn.Range elf1.Range) (function
+                            | Comment (LineCommentAfterSourceCode _) -> true
+                            | _ -> false)
+                            (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
+
+                    let elifExpr =
+                        TriviaContext.``else if / elif`` fullRange
+                        +> genExpr astContext elf1
+                        +> ifElse hasCommentAfterBoolExpr sepNln sepSpace
+                        +> genThen fullRange
+                        +> indentAfterThenKeyword
+                        +> sepNln
+                        +> genExpr astContext elf2
+                        +> unindent
+
+                    (elifExpr
+                     |> genTriviaFor SynExpr_IfThenElse fullRange) ctx
+
+                let genOneliner =
                     genIf synExpr.Range
                     +> genExpr astContext e1
                     +> sepSpace
                     +> genThen synExpr.Range
                     +> genExpr astContext e2
-                    +> sepNln
-                    +> col sepNln elfis genElifOneliner
+                    +> col sepNone elfis (fun elf -> sepSpace +> genElifOneliner elf)
                     +> opt id enOpt (fun e4 ->
-                           let correctedElseRange =
-                               match List.tryLast elfis with
-                               | Some (_, te, _) -> mkRange "correctedElseRange" te.Range.End synExpr.Range.End
-                               | None -> synExpr.Range
+                           (sepSpace
+                            +> genElse synExpr.Range
+                            +> genExpr astContext e4))
 
-                           sepNln
-                           +> genElse correctedElseRange
-                           +> genExpr astContext e4)
+                // This is a simplistic check to see if everything fits on one line
+                let isOneLiner =
+                    not hasElfis
+                    && not isAnyExpressionIsLongerButNotMultiline
+                    && not isAnyExpressionIsMultiline
+                    && not hasCommentAfterIfBranchExpr
+                    && not anyElifBranchHasCommentAfterBranchExpr
+                    && not (futureNlnCheck genOneliner ctx)
 
-                else if hasCommentAfterIfBranchExpr && not hasElfis then
-                    // f.ex
-                    // if x then 0 // meh
-                    // else 1
-                    genIf synExpr.Range
-                    +> genExpr astContext e1
-                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-                    +> genThen synExpr.Range
-                    +> genExpr astContext e2
-                    +> sepNln
-                    +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
+                let keepIfThenInSameLine = ctx.Config.KeepIfThenInSameLine
 
-                else
-                    // If any of the expressions are multi-line:
-                    // if cond then
-                    //     e1
-                    // else
-                    //     e2
+                let formatIfElseExpr =
+                    if isOneLiner then
+                        // Indentation of conditionals depends on the sizes of the expressions that make them up. If cond, e1 and e2 are short, simply write them on one line:
+                        // if cond then e1 else e2
+                        genOneliner
 
-                    genIf synExpr.Range
-                    // f.ex. if // meh
-                    //           x
-                    // bool expr x should be indented
-                    +> ifElse hasCommentAfterIfKeyword (indent +> sepNln) sepNone
-                    +> (match e1 with
-                        | SynExpr.TryWith _
-                        | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e1 +> sepCloseT
-                        | _ -> genExpr astContext e1)
-                    +> ifElse hasCommentAfterBoolExpr sepNln sepSpace
-                    +> genThen synExpr.Range
-                    // f.ex if x then // meh
-                    //          0
-                    // 0 should be indented
-                    +> ifElse
-                        (hasCommentAfterIfBranchThenKeyword
-                         && not hasCommentAfterIfKeyword)
-                           indent
-                           sepNone
-                    // f.ex. if x //
-                    //       then
-                    //           0
-                    // 0 should be indented
-                    +> ifElse
-                        (hasCommentAfterBoolExpr
-                         && not hasCommentAfterIfKeyword)
-                           indent
-                           sepNone
-                    // normal scenario
-                    // f.ex. if (longCondition
-                    //          && onMultipleLines) then
-                    //           x
-                    +> ifElse
-                        (not hasCommentAfterIfKeyword
-                         && not hasCommentAfterBoolExpr
-                         && not hasCommentAfterIfBranchThenKeyword)
-                           indent
-                           sepNone
-                    +> sepNln
-                    +> genExpr astContext e2
-                    +> unindent
-                    +> sepNln
-                    +> colPost sepNln sepNln elfis genElifMultiLine
-                    +> opt id enOpt (fun e4 ->
-                           let correctedElseRange =
-                               match List.tryLast elfis with
-                               | Some (_, te, _) -> mkRange "correctedElseRange" te.Range.End synExpr.Range.End
-                               | None -> synExpr.Range
+                    elif not isOneLiner
+                         && not isAnyExpressionIsMultiline
+                         && isAnyExpressionIsLongerButNotMultiline
+                         && not keepIfThenInSameLine then
+                        // If either cond, e1 or e2 are longer, but not multi-line:
+                        // if cond
+                        // then e1
+                        // else e2
 
-                           genElse correctedElseRange
-                           +> indent
-                           +> sepNln
-                           +> genExpr astContext e4
-                           +> unindent)
+                        genIf synExpr.Range
+                        +> genExpr astContext e1
+                        +> sepNln
+                        +> genThen synExpr.Range
+                        +> genExpr astContext e2
+                        +> sepNln
+                        +> colPost sepNln sepNln elfis genElifTwoLiner
+                        +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
 
-            (atCurrentColumn formatIfElseExpr) ctx
+                    elif hasElfis
+                         && not isAnyExpressionIsMultiline
+                         && not isAnyExpressionIsLongerButNotMultiline then
+                        // Multiple conditionals with elif and else are indented at the same scope as the if:
+                        // if cond1 then e1
+                        // elif cond2 then e2
+                        // elif cond3 then e3
+                        // else e4
 
-    // At this stage, all symbolic operators have been handled.
-    | OptVar (s, isOpt, ranges) ->
-        // In case s is f.ex `onStrongDiscard.IsNone`, last range is the range of `IsNone`
-        let lastRange = List.tryLast ranges
+                        genIf synExpr.Range
+                        +> genExpr astContext e1
+                        +> sepSpace
+                        +> genThen synExpr.Range
+                        +> genExpr astContext e2
+                        +> sepNln
+                        +> col sepNln elfis genElifOneliner
+                        +> opt id enOpt (fun e4 ->
+                               let correctedElseRange =
+                                   match List.tryLast elfis with
+                                   | Some (_, te, _) -> mkRange "correctedElseRange" te.Range.End synExpr.Range.End
+                                   | None -> synExpr.Range
 
-        ifElse isOpt (!- "?") sepNone -- s
-        +> opt id lastRange (leaveNodeFor Ident_)
-    | LongIdentSet (s, e, _) ->
-        !-(sprintf "%s <- " s)
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-    | DotIndexedGet (e, es) ->
-        addParenIfAutoNln
-            e
-            (genExpr
-                { astContext with
-                      IsInsideDotIndexed = true })
-        -- "."
-        +> sepOpenLFixed
-        +> genIndexers astContext es
-        +> sepCloseLFixed
-        +> leaveNodeTokenByName synExpr.Range RBRACK
-    | DotIndexedSet (e1, es, e2) ->
-        addParenIfAutoNln
-            e1
-            (genExpr
-                { astContext with
-                      IsInsideDotIndexed = true })
-        -- ".["
-        +> genIndexers astContext es
-        -- "] <- "
-        +> genExpr astContext e2
-    | NamedIndexedPropertySet (ident, e1, e2) ->
-        !-ident +> genExpr astContext e1 -- " <- "
-        +> genExpr astContext e2
-    | DotNamedIndexedPropertySet (e, ident, e1, e2) ->
-        genExpr astContext e -- "." -- ident
-        +> genExpr astContext e1
-        -- " <- "
-        +> genExpr astContext e2
-    | DotGet (e, (s, _)) ->
-        let shortExpr =
-            genExpr
-                { astContext with
-                      IsInsideDotGet = true }
+                               sepNln
+                               +> genElse correctedElseRange
+                               +> genExpr astContext e4)
+
+                    else if hasCommentAfterIfBranchExpr && not hasElfis then
+                        // f.ex
+                        // if x then 0 // meh
+                        // else 1
+                        genIf synExpr.Range
+                        +> genExpr astContext e1
+                        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                        +> genThen synExpr.Range
+                        +> genExpr astContext e2
+                        +> sepNln
+                        +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
+
+                    else
+                        // If any of the expressions are multi-line:
+                        // if cond then
+                        //     e1
+                        // else
+                        //     e2
+
+                        genIf synExpr.Range
+                        // f.ex. if // meh
+                        //           x
+                        // bool expr x should be indented
+                        +> ifElse hasCommentAfterIfKeyword (indent +> sepNln) sepNone
+                        +> (match e1 with
+                            | SynExpr.TryWith _
+                            | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e1 +> sepCloseT
+                            | _ -> genExpr astContext e1)
+                        +> ifElse hasCommentAfterBoolExpr sepNln sepSpace
+                        +> genThen synExpr.Range
+                        // f.ex if x then // meh
+                        //          0
+                        // 0 should be indented
+                        +> ifElse
+                            (hasCommentAfterIfBranchThenKeyword
+                             && not hasCommentAfterIfKeyword)
+                               indent
+                               sepNone
+                        // f.ex. if x //
+                        //       then
+                        //           0
+                        // 0 should be indented
+                        +> ifElse
+                            (hasCommentAfterBoolExpr
+                             && not hasCommentAfterIfKeyword)
+                               indent
+                               sepNone
+                        // normal scenario
+                        // f.ex. if (longCondition
+                        //          && onMultipleLines) then
+                        //           x
+                        +> ifElse
+                            (not hasCommentAfterIfKeyword
+                             && not hasCommentAfterBoolExpr
+                             && not hasCommentAfterIfBranchThenKeyword)
+                               indent
+                               sepNone
+                        +> sepNln
+                        +> genExpr astContext e2
+                        +> unindent
+                        +> sepNln
+                        +> colPost sepNln sepNln elfis genElifMultiLine
+                        +> opt id enOpt (fun e4 ->
+                               let correctedElseRange =
+                                   match List.tryLast elfis with
+                                   | Some (_, te, _) -> mkRange "correctedElseRange" te.Range.End synExpr.Range.End
+                                   | None -> synExpr.Range
+
+                               genElse correctedElseRange
+                               +> indent
+                               +> sepNln
+                               +> genExpr astContext e4
+                               +> unindent)
+
+                (atCurrentColumn formatIfElseExpr) ctx
+
+        // At this stage, all symbolic operators have been handled.
+        | OptVar (s, isOpt, ranges) ->
+            // In case s is f.ex `onStrongDiscard.IsNone`, last range is the range of `IsNone`
+            let lastRange = List.tryLast ranges
+
+            ifElse isOpt (!- "?") sepNone -- s
+            +> opt id lastRange (leaveNodeFor Ident_)
+        | LongIdentSet (s, e, _) ->
+            !-(sprintf "%s <- " s)
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        | DotIndexedGet (e, es) ->
+            addParenIfAutoNln
                 e
-            -- (sprintf ".%s" s)
+                (genExpr
+                    { astContext with
+                          IsInsideDotIndexed = true })
+            -- "."
+            +> sepOpenLFixed
+            +> genIndexers astContext es
+            +> sepCloseLFixed
+            +> leaveNodeTokenByName synExpr.Range RBRACK
+        | DotIndexedSet (e1, es, e2) ->
+            addParenIfAutoNln
+                e1
+                (genExpr
+                    { astContext with
+                          IsInsideDotIndexed = true })
+            -- ".["
+            +> genIndexers astContext es
+            -- "] <- "
+            +> genExpr astContext e2
+        | NamedIndexedPropertySet (ident, e1, e2) ->
+            !-ident +> genExpr astContext e1 -- " <- "
+            +> genExpr astContext e2
+        | DotNamedIndexedPropertySet (e, ident, e1, e2) ->
+            genExpr astContext e -- "." -- ident
+            +> genExpr astContext e1
+            -- " <- "
+            +> genExpr astContext e2
+        | DotGet (e, (s, _)) ->
+            let shortExpr =
+                genExpr
+                    { astContext with
+                          IsInsideDotGet = true }
+                    e
+                -- (sprintf ".%s" s)
 
-        let longExpr =
-            let expr =
-                match e with
-                | App (LongIdentPieces (lids), [ e2 ]) when (List.moreThanOne lids) ->
-                    !-(List.head lids)
-                    +> indent
-                    +> sepNln
-                    +> col sepNln (List.tail lids) (fun s -> !-(sprintf ".%s" s))
-                    +> genExpr
-                        { astContext with
-                              IsInsideDotGet = true }
-                           e2
-                    +> unindent
-                | App (TypeApp (LongIdentPieces (lids), ts), [ e2 ]) when (List.moreThanOne lids) ->
-                    !-(List.head lids)
-                    +> indent
-                    +> sepNln
-                    +> col sepNln (List.tail lids) (fun s -> !-(sprintf ".%s" s))
-                    +> genGenericTypeParameters astContext ts
-                    +> genExpr
-                        { astContext with
-                              IsInsideDotGet = true }
-                           e2
-                    +> unindent
-                | _ -> genExpr astContext e
+            let longExpr =
+                let expr =
+                    match e with
+                    | App (LongIdentPieces (lids), [ e2 ]) when (List.moreThanOne lids) ->
+                        !-(List.head lids)
+                        +> indent
+                        +> sepNln
+                        +> col sepNln (List.tail lids) (fun s -> !-(sprintf ".%s" s))
+                        +> genExpr
+                            { astContext with
+                                  IsInsideDotGet = true }
+                               e2
+                        +> unindent
+                    | App (TypeApp (LongIdentPieces (lids), ts), [ e2 ]) when (List.moreThanOne lids) ->
+                        !-(List.head lids)
+                        +> indent
+                        +> sepNln
+                        +> col sepNln (List.tail lids) (fun s -> !-(sprintf ".%s" s))
+                        +> genGenericTypeParameters astContext ts
+                        +> genExpr
+                            { astContext with
+                                  IsInsideDotGet = true }
+                               e2
+                        +> unindent
+                    | _ -> genExpr astContext e
 
-            expr +> indent +> sepNln -- (sprintf ".%s" s)
-            +> unindent
+                expr +> indent +> sepNln -- (sprintf ".%s" s)
+                +> unindent
 
-        fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
-    | DotSet (e1, s, e2) ->
-        addParenIfAutoNln e1 (genExpr astContext)
-        -- sprintf ".%s <- " s
-        +> genExpr astContext e2
+            fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
+        | DotSet (e1, s, e2) ->
+            addParenIfAutoNln e1 (genExpr astContext)
+            -- sprintf ".%s <- " s
+            +> genExpr astContext e2
 
-    | SynExpr.Set (e1, e2, _) ->
-        addParenIfAutoNln e1 (genExpr astContext)
-        -- sprintf " <- "
-        +> genExpr astContext e2
+        | SynExpr.Set (e1, e2, _) ->
+            addParenIfAutoNln e1 (genExpr astContext)
+            -- sprintf " <- "
+            +> genExpr astContext e2
 
-    | ParsingError r ->
-        raise
-        <| FormatException
-            (sprintf
-                "Parsing error(s) between line %i column %i and line %i column %i"
-                 r.StartLine
-                 (r.StartColumn + 1)
-                 r.EndLine
-                 (r.EndColumn + 1))
-    | UnsupportedExpr r ->
-        raise
-        <| FormatException
-            (sprintf
-                "Unsupported construct(s) between line %i column %i and line %i column %i"
-                 r.StartLine
-                 (r.StartColumn + 1)
-                 r.EndLine
-                 (r.EndColumn + 1))
-    | SynExpr.InterpolatedString (parts, _) ->
-        fun (ctx: Context) ->
-            let stringRanges =
-                List.choose (function
-                    | SynInterpolatedStringPart.String (_, r) -> Some r
-                    | _ -> None) parts
+        | ParsingError r ->
+            raise
+            <| FormatException
+                (sprintf
+                    "Parsing error(s) between line %i column %i and line %i column %i"
+                     r.StartLine
+                     (r.StartColumn + 1)
+                     r.EndLine
+                     (r.EndColumn + 1))
+        | UnsupportedExpr r ->
+            raise
+            <| FormatException
+                (sprintf
+                    "Unsupported construct(s) between line %i column %i and line %i column %i"
+                     r.StartLine
+                     (r.StartColumn + 1)
+                     r.EndLine
+                     (r.EndColumn + 1))
+        | SynExpr.InterpolatedString (parts, _) ->
+            fun (ctx: Context) ->
+                let stringRanges =
+                    List.choose (function
+                        | SynInterpolatedStringPart.String (_, r) -> Some r
+                        | _ -> None) parts
 
-            // multiline interpolated string will contain the $ and or braces in the triviaContent
-            // example: $"""%s{ , } bar
-            let stringsFromTrivia =
-                stringRanges
-                |> List.choose (fun range ->
-                    Map.tryFindOrEmptyList SynInterpolatedStringPart_String ctx.TriviaMainNodes
-                    |> List.choose (fun tn ->
-                        match tn.Type, tn.ContentItself with
-                        | MainNode (SynInterpolatedStringPart_String), Some (StringContent sc) when (RangeHelpers.rangeEq
-                                                                                                         tn.Range
-                                                                                                         range) ->
-                            Some sc
-                        | _ -> None)
-                    |> List.tryHead
-                    |> Option.map (fun sc -> range, sc))
+                // multiline interpolated string will contain the $ and or braces in the triviaContent
+                // example: $"""%s{ , } bar
+                let stringsFromTrivia =
+                    stringRanges
+                    |> List.choose (fun range ->
+                        Map.tryFindOrEmptyList SynInterpolatedStringPart_String ctx.TriviaMainNodes
+                        |> List.choose (fun tn ->
+                            match tn.Type, tn.ContentItself with
+                            | MainNode (SynInterpolatedStringPart_String), Some (StringContent sc) when (RangeHelpers.rangeEq
+                                                                                                             tn.Range
+                                                                                                             range) ->
+                                Some sc
+                            | _ -> None)
+                        |> List.tryHead
+                        |> Option.map (fun sc -> range, sc))
 
-            let genInterpolatedFillExpr expr =
-                leadingExpressionIsMultiline
-                    (atCurrentColumn (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr))) (fun isMultiline ->
-                    onlyIf isMultiline sepNln)
+                let genInterpolatedFillExpr expr =
+                    leadingExpressionIsMultiline
+                        (atCurrentColumn (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr))) (fun isMultiline ->
+                        onlyIf isMultiline sepNln)
 
-            let expr =
-                if List.length stringRanges = List.length stringsFromTrivia then
-                    colEx (fun _ -> sepNone) parts (fun part ->
-                        match part with
-                        | SynInterpolatedStringPart.String (_, range) ->
-                            let stringFromTrivia =
-                                List.find (fun (r, _) -> RangeHelpers.rangeEq range r) stringsFromTrivia
-                                |> snd
+                let expr =
+                    if List.length stringRanges = List.length stringsFromTrivia then
+                        colEx (fun _ -> sepNone) parts (fun part ->
+                            match part with
+                            | SynInterpolatedStringPart.String (_, range) ->
+                                let stringFromTrivia =
+                                    List.find (fun (r, _) -> RangeHelpers.rangeEq range r) stringsFromTrivia
+                                    |> snd
 
-                            !-stringFromTrivia
-                            |> genTriviaFor SynInterpolatedStringPart_String range
-                        | SynInterpolatedStringPart.FillExpr (expr, _ident) -> genInterpolatedFillExpr expr)
-                else
-                    !- "$\""
-                    +> colEx (fun _ -> sepNone) parts (fun part ->
-                           match part with
-                           | SynInterpolatedStringPart.String (s, r) ->
-                               !-s
-                               |> genTriviaFor SynInterpolatedStringPart_String r
-                           | SynInterpolatedStringPart.FillExpr (expr, _ident) ->
-                               !- "{" +> genInterpolatedFillExpr expr +> !- "}")
-                    +> !- "\""
+                                !-stringFromTrivia
+                                |> genTriviaFor SynInterpolatedStringPart_String range
+                            | SynInterpolatedStringPart.FillExpr (expr, _ident) -> genInterpolatedFillExpr expr)
+                    else
+                        !- "$\""
+                        +> colEx (fun _ -> sepNone) parts (fun part ->
+                               match part with
+                               | SynInterpolatedStringPart.String (s, r) ->
+                                   !-s
+                                   |> genTriviaFor SynInterpolatedStringPart_String r
+                               | SynInterpolatedStringPart.FillExpr (expr, _ident) ->
+                                   !- "{" +> genInterpolatedFillExpr expr +> !- "}")
+                        +> !- "\""
 
-            expr ctx
-    | e -> failwithf "Unexpected expression: %O" e
-    |> (match synExpr with
-        | SynExpr.App _ -> genTriviaFor SynExpr_App synExpr.Range
-        | SynExpr.Const _ -> genTriviaFor SynExpr_Const synExpr.Range
-        | SynExpr.AnonRecd _ -> genTriviaFor SynExpr_AnonRecd synExpr.Range
-        | SynExpr.Record _ -> genTriviaFor SynExpr_Record synExpr.Range
-        | SynExpr.Ident _ -> genTriviaFor SynExpr_Ident synExpr.Range
-        | SynExpr.IfThenElse _ -> genTriviaFor SynExpr_IfThenElse synExpr.Range
-        | SynExpr.Lambda _ -> genTriviaFor SynExpr_Lambda synExpr.Range
-        | SynExpr.ForEach _ -> genTriviaFor SynExpr_ForEach synExpr.Range
-        | SynExpr.Match _ -> genTriviaFor SynExpr_Match synExpr.Range
-        | SynExpr.YieldOrReturn _ -> genTriviaFor SynExpr_YieldOrReturn synExpr.Range
-        | SynExpr.YieldOrReturnFrom _ -> genTriviaFor SynExpr_YieldOrReturnFrom synExpr.Range
-        | SynExpr.TryFinally _ -> genTriviaFor SynExpr_TryFinally synExpr.Range
-        | SynExpr.LongIdentSet _ -> genTriviaFor SynExpr_LongIdentSet synExpr.Range
-        | SynExpr.ArrayOrListOfSeqExpr _ -> genTriviaFor SynExpr_ArrayOrListOfSeqExpr synExpr.Range
-        | SynExpr.Paren _ -> genTriviaFor SynExpr_Paren synExpr.Range
-        | SynExpr.InterpolatedString _ -> genTriviaFor SynExpr_InterpolatedString synExpr.Range
-        | SynExpr.Tuple _ -> genTriviaFor SynExpr_Tuple synExpr.Range
-        | SynExpr.DoBang _ -> genTriviaFor SynExpr_DoBang synExpr.Range
-        | SynExpr.TryWith _ -> genTriviaFor SynExpr_TryWith synExpr.Range
-        | SynExpr.New _ -> genTriviaFor SynExpr_New synExpr.Range
-        | SynExpr.Assert _ -> genTriviaFor SynExpr_Assert synExpr.Range
-        | SynExpr.While _ -> genTriviaFor SynExpr_While synExpr.Range
-        | SynExpr.MatchLambda _ -> genTriviaFor SynExpr_MatchLambda synExpr.Range
-        | SynExpr.LongIdent _ -> genTriviaFor SynExpr_LongIdent synExpr.Range
-        | SynExpr.DotGet _ -> genTriviaFor SynExpr_DotGet synExpr.Range
-        | _ -> id)
+                expr ctx
+        | e -> failwithf "Unexpected expression: %O" e
+        |> (match synExpr with
+            | SynExpr.App _ -> genTriviaFor SynExpr_App synExpr.Range
+            | SynExpr.Const _ -> genTriviaFor SynExpr_Const synExpr.Range
+            | SynExpr.AnonRecd _ -> genTriviaFor SynExpr_AnonRecd synExpr.Range
+            | SynExpr.Record _ -> genTriviaFor SynExpr_Record synExpr.Range
+            | SynExpr.Ident _ -> genTriviaFor SynExpr_Ident synExpr.Range
+            | SynExpr.IfThenElse _ -> genTriviaFor SynExpr_IfThenElse synExpr.Range
+            | SynExpr.Lambda _ -> genTriviaFor SynExpr_Lambda synExpr.Range
+            | SynExpr.ForEach _ -> genTriviaFor SynExpr_ForEach synExpr.Range
+            | SynExpr.Match _ -> genTriviaFor SynExpr_Match synExpr.Range
+            | SynExpr.YieldOrReturn _ -> genTriviaFor SynExpr_YieldOrReturn synExpr.Range
+            | SynExpr.YieldOrReturnFrom _ -> genTriviaFor SynExpr_YieldOrReturnFrom synExpr.Range
+            | SynExpr.TryFinally _ -> genTriviaFor SynExpr_TryFinally synExpr.Range
+            | SynExpr.LongIdentSet _ -> genTriviaFor SynExpr_LongIdentSet synExpr.Range
+            | SynExpr.ArrayOrListOfSeqExpr _ -> genTriviaFor SynExpr_ArrayOrListOfSeqExpr synExpr.Range
+            | SynExpr.Paren _ -> genTriviaFor SynExpr_Paren synExpr.Range
+            | SynExpr.InterpolatedString _ -> genTriviaFor SynExpr_InterpolatedString synExpr.Range
+            | SynExpr.Tuple _ -> genTriviaFor SynExpr_Tuple synExpr.Range
+            | SynExpr.DoBang _ -> genTriviaFor SynExpr_DoBang synExpr.Range
+            | SynExpr.TryWith _ -> genTriviaFor SynExpr_TryWith synExpr.Range
+            | SynExpr.New _ -> genTriviaFor SynExpr_New synExpr.Range
+            | SynExpr.Assert _ -> genTriviaFor SynExpr_Assert synExpr.Range
+            | SynExpr.While _ -> genTriviaFor SynExpr_While synExpr.Range
+            | SynExpr.MatchLambda _ -> genTriviaFor SynExpr_MatchLambda synExpr.Range
+            | SynExpr.LongIdent _ -> genTriviaFor SynExpr_LongIdent synExpr.Range
+            | SynExpr.DotGet _ -> genTriviaFor SynExpr_DotGet synExpr.Range
+            | _ -> id)
+
+    expr ctx
 
 and genInfixOperator operatorText (operatorExpr: SynExpr) =
     (!-operatorText
