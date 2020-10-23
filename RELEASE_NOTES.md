@@ -1,3 +1,22 @@
+### 4.3.0-alpha-001 - 10/2020
+
+* Disable Elmish syntax. [#1198](https://github.com/fsprojects/fantomas/issues/1198)
+* Add option to make expressions multiline based on number of subexpressions rather than character length. [#1143](https://github.com/fsprojects/fantomas/issues/1143)
+* Fix --check should ignore the line endings. [#1196](https://github.com/fsprojects/fantomas/issues/1196)
+* Fix Format entire return type on the line. [#1181](https://github.com/fsprojects/fantomas/issues/1181)
+* Fix Only add one `in` keyword in LetOrUse. [#1176](https://github.com/fsprojects/fantomas/issues/1176)
+* Fix Multiline SynPat.Record in pattern match is formatted as a mixture of single/multiline styles. [#1173](https://github.com/fsprojects/fantomas/issues/1173)
+* Fix Inconsistent indentation of multiline records with internal keyword when fsharp_multiline_block_brackets_on_same_column is on/off. [#1171](https://github.com/fsprojects/fantomas/issues/1171)
+* Fix Lambda argument splits in awkward way. [#1164](https://github.com/fsprojects/fantomas/issues/1164)
+* Fix Multiline expression should be on next line. [#1158](https://github.com/fsprojects/fantomas/issues/1158)
+* Fix Missing in keyword makes code invalid. [#1114](https://github.com/fsprojects/fantomas/issues/1114)
+* Fix Invalid code after format. [#1032](https://github.com/fsprojects/fantomas/issues/1032)
+* Fix Space before ^ SRTP type is removed in function call. [#984](https://github.com/fsprojects/fantomas/issues/984)
+* Fix Shouldn't remove space after colon. [#908](https://github.com/fsprojects/fantomas/issues/908)
+* Fix Crash when formatting with config file. [#824](https://github.com/fsprojects/fantomas/issues/824)
+* Fix Formatting typeof generic static constraint fails to compile. [#803](https://github.com/fsprojects/fantomas/issues/803)
+* Fix Indenting of record definition when internal. [#658](https://github.com/fsprojects/fantomas/issues/658)
+
 ### 4.2.0 - 09/2020
 
 * Feature MaxDotGetExpressionWidth. [#501](https://github.com/fsprojects/fantomas/issues/501)
