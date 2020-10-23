@@ -45,7 +45,7 @@ type FormatConfig =
       MaxIfThenElseShortWidth: Num
       MaxInfixOperatorExpression: Num
       MaxNewlineInfixOperatorExpressionNumberOfItems: Num
-      NewlineInfixOperatorExpressionMultilineFormatter: MultilineFormatterType
+      MultilineInfixMultilineFormatter: MultilineFormatterType
       MaxRecordWidth: Num
       MaxRecordNumberOfItems: Num
       RecordMultilineFormatter: MultilineFormatterType
@@ -84,7 +84,7 @@ type FormatConfig =
           MaxIfThenElseShortWidth = 40
           MaxInfixOperatorExpression = 50
           MaxNewlineInfixOperatorExpressionNumberOfItems = 1
-          NewlineInfixOperatorExpressionMultilineFormatter = CharacterWidth
+          MultilineInfixMultilineFormatter = CharacterWidth
           MaxRecordWidth = 40
           MaxRecordNumberOfItems = 1
           RecordMultilineFormatter = MultilineFormatterType.CharacterWidth

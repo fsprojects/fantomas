@@ -533,7 +533,7 @@ let internal getRecordSize ctx fields =
     | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length fields, ctx.Config.MaxRecordNumberOfItems)
 
 let internal getInfixOperatorExpressionSize ctx es =
-    match ctx.Config.NewlineInfixOperatorExpressionMultilineFormatter with
+    match ctx.Config.MultilineInfixMultilineFormatter with
     | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxInfixOperatorExpression
     | MultilineFormatterType.NumberOfItems ->
         Size.NumberOfItems(List.length es, ctx.Config.MaxNewlineInfixOperatorExpressionNumberOfItems)
