@@ -187,3 +187,4 @@ external-project-tests/
 .vscode/
 .ionide
 BenchmarkDotNet.Artifacts/
+FormatChanged.ps1

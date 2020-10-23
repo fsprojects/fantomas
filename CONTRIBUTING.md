@@ -1,8 +1,8 @@
 # Introduction
 
-Well hello there my dear reader! Thank you for considering contributing to the Fantomas project!<br />
+Well hello there, my dear reader! Thank you for considering contributing to the Fantomas project!<br />
 Fantomas is a bit of a complex project and it can be overwhelming to just dive in.
-In this guide, we will try to get you started, and express our expectations in terms of potential contributions.<br />
+In this guide, we will try to get you started and express our expectations in terms of potential contributions.<br />
 We hope to give you proper context about fixing bugs, expressing new ideas and the technical aspects.
 
 ## What are we looking for?
@@ -19,18 +19,18 @@ We'll ask for a regression test when you fix a bug, to guarantee that you won't 
 #### bug (soundness)
 
 Our goal is for Fantomas to be able to format all files out of the box without breaking correctness.
-It's very important to us that a new user's experience is smooth and at the very least results in correct code;
+It's very important to us that a new user's experience is smooth and at the very least results in correct code.
 bugs labelled `bug (soundness)` all indicate places where a new user might bounce off Fantomas because it actually broke their code.
-We want to make sure users get a chance to explore the settings and tweaking the style.
+We want to make sure users get a chance to explore the settings and tweak the style.
 If you can help us out by fixing a soundness bug, you can really help the project move forward.
 
 #### bug (stylistic)
 
-Besides breaking correctness, another kind of bug is that the style of the output might not be what you expect.
+Besides breaking correctness another kind of bug is that the style of the output might not be what you expect.
 Bugs like this are labelled as `bug (stylistic)`.
-This includes cases where Fantomas breaks one of its own formatting rules, or fails to respect one of its settings.
+This includes cases where Fantomas breaks one of its own formatting rules or fails to respect one of its settings.
 
-Again here, scratch your own itch. If something bothers you, the best cure is to try a take a stab at it yourself.
+Again, here: scratch your own itch. If something bothers you, the best cure is to try a take a stab at it yourself.
 
 ### Adoption
 
@@ -43,7 +43,7 @@ This tool will only improve by adoption.
 
 Fantomas grew significantly as a result of its first sponsorship deal with [G-Research](https://www.gresearch.co.uk/).
 It would still be in the dark ages if it weren't for this support. For that we will forever be grateful.
-If you want to help increase adoption by providing financial support, you can reach out to [conduct@fantomas.com](mailto:conduct@fantomas.com). 
+If you want to help increase adoption by providing financial support, you can reach out to [sponsoring@fantomas.io](mailto:sponsoring@fantomas.io). 
 
 ## What are we not looking for?
 
@@ -75,15 +75,15 @@ If a feature can help in the project's adoption and growth, we are happy to disc
 
 # Getting started with Fantomas
 
-Fantomas has fairly straightforward setup.
+Fantomas has a fairly straightforward setup.
 
 > git clone https://github.com/yourfork/fantomas
 
-After cloning the repository you can restore the local .NET tools:
+After cloning the repository, you can restore the local .NET tools:
 
 > dotnet tool restore
 
-Next you can execute FAKE build targets.
+Next, you can execute FAKE build targets.
 
 > dotnet fake run build.fsx --list
 
@@ -135,7 +135,7 @@ When developing a new feature, add new tests to cover all code paths.
 ## Guidelines
 
 - Unit test names should start with a lowercase letter.
-- Verify if the change you are making also should apply to signature files (`*.fsi`).
+- Verify if the change you are making should also apply to signature files (`*.fsi`).
 - Check if you need additional tests to cope with a different combination of settings.
 - Check if you need additional tests to cope with a different combination of defines (`#if DEBUG`, ...).
 - Write/update documentation when necessary.
@@ -149,8 +149,8 @@ let ``preserve compile directive between piped functions, 512`` () = ...
 ### Small steps
 
 It is better to create a draft pull request with some initial small changes, and engage conversation, than to spend a lot of effort on a large pull request that was never discussed.
-Someone might be able to warn you in advance that your change will have wide implications for the rest of Fantomas, or might be able to point you in the right direction;
-but this can only happen if you discuss your proposed changes early and often.
+Someone might be able to warn you in advance that your change will have wide implications for the rest of Fantomas, or might be able to point you in the right direction.
+However, this can only happen if you discuss your proposed changes early and often.
 It's often better to check *before* contributing that you're setting off on the right path.
 
 # Your First Contribution
@@ -173,8 +173,8 @@ Trivia nodes are linked to an existing AST node or a F# token. They serve as a m
 
 ## YouTube video series
 
-In order to better understand how everything works, you can watch a [YouTube video series](https://www.youtube.com/playlist?list=PLvw_J2kfZCX3Mf6tEbIPZXbzJOD1VGl4K) on how Fantomas internally works.
-This is highly recommended for anybody new to the code base.
+In order to better understand how everything works, you can watch a [YouTube video series](https://www.youtube.com/playlist?list=PLvw_J2kfZCX3Mf6tEbIPZXbzJOD1VGl4K) on the internals of Fantomas.
+This is highly recommended for anybody new to the codebase.
 
 ## Tools
 
@@ -212,7 +212,7 @@ When faced with this issue, ask yourself the following questions:
 - Is the trivia being printed in `CodePrinter.fs` when the trivia node is processed?
 
 Without any debugging, these questions can already point you in the right direction to solve the problem.
-You might be surprised how little code change was necessary to resolve the bug ;) see, for example, #1130, which solved a problem like this in only five lines.
+You might be surprised how little code change was necessary to resolve the bug ;) See, for example, #1130, which solved a problem like this in only five lines.
 
 ### Repeating newline bug
 
