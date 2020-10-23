@@ -74,9 +74,13 @@ fsharp_indent_on_try_with=false
 fsharp_space_around_delimiter=true
 fsharp_max_if_then_else_short_width=40
 fsharp_max_infix_operator_expression=50
+fsharp_max_newline_infix_operator_expression_number_of_items=1
+fsharp_multiline_infix_multiline_formatter=character_width
 fsharp_max_record_width=40
+fsharp_max_record_number_of_items=1
+fsharp_record_multiline_formatter=character_width
 fsharp_max_array_or_list_width=40
-fsharp_max_array_or_list_size=1
+fsharp_max_array_or_list_number_of_items=1
 fsharp_array_or_list_multiline_formatter=character_width
 fsharp_max_value_binding_width=40
 fsharp_max_function_binding_width=40
@@ -453,7 +457,8 @@ else c.ToString()
 ### fsharp_max_infix_operator_expression
 
 Control the maximum length for which infix expression can be on one line.
-Default = 50.
+Default = 50. Requires `fsharp_infix_operator_expression_multiline_formatter` to
+be `character_width` to take effect.
 
 `defaultConfig`
 
@@ -469,6 +474,91 @@ let WebApp =
     route "/ping"
     >=> authorized
     >=> text "pong"
+```
+
+### fsharp_max_newline_infix_operator_expression_number_of_items
+
+Control the maximum number of certain infix operators for which infix expression
+can be on one line. This subset of infix operators is called the "multiline infix operators" and contains:
+- `|>`
+- `||>`
+- `|||>`
+- `>>`
+- `>>=`
+
+Default = 1. 
+Requires `fsharp_multiline_infix_multiline_formatter=character_width` to be
+`number_of_items` to take effect. The next entry below contains more details.
+
+`defaultConfig`
+
+```fsharp
+let fourthPower =
+    [ 1; 2; 3 ]
+    |> List.map (fun x -> x * x)
+    >>= (fun x -> [ x * x ])
+
+let eigthPower =
+    [ 1; 2; 3 ]
+    |> List.map (fun x -> x * x)
+    >>= (fun x -> [ x * x ])
+    |> List.choose (fun x -> Some (x * x))
+```
+
+```fsharp
+{ defaultConfig with 
+    MaxNewlineInfixOperatorExpressionNumberOfItems = 2
+    MultilineInfixMultilineFormatter = MultilineFormatterType.NumberOfItems }
+```
+
+```fsharp
+let fourthPower =
+    [ 1; 2; 3 ] |> List.map (fun x -> x * x) >>= (fun x -> [ x * x ])
+
+let eigthPower =
+    [ 1; 2; 3 ]
+    |> List.map (fun x -> x * x)
+    >>= (fun x -> [ x * x ])
+    |> List.choose (fun x -> Some (x * x))
+```
+
+### fsharp_newline_infix_operator_expression_multiline_formatter
+
+Split certain\* infix operator expressions into multiple lines based on the
+given condition. `character_width` uses character count of the expression,
+controlled by `fsharp_max_infix_operator_expression`. `number_of_items` uses the
+number of same infix operators, controlled by
+`fsharp_max_newline_infix_operator_expression_number_of_items`. Default =
+`character_width`. Note that in either case, infix operator expressions are
+still governed by `max_line_length`.
+
+\* The operators thus split are: `|>`, `||>`, `|||>`, `>>`, `>>=`.
+
+`defaultConfig`
+
+```fsharp
+let sq x = x * x
+
+let secondPower =
+    [ 1; 2; 3; 4; 5; 6; 7; 8 ]
+    |> List.choose (fun aLongName -> aLongName * aLongName |> Some)
+
+let fourthPower =
+    [ 1; 2; 3 ] |> List.map sq >>= (fun x -> [ sq x ])
+```
+
+`{ defaultConfig with NewlineInfixOperatorExpressionMultilineFormatter = NumberOfItems }`
+
+```fsharp
+let sq x = x * x
+
+let secondPower =
+    [ 1; 2; 3; 4; 5; 6; 7; 8 ] |> List.choose (fun aLongName -> aLongName * aLongName |> Some)
+
+let fourthPower =
+    [ 1; 2; 3 ]
+    |> List.map sq
+    >>= (fun x -> [ sq x ])
 ```
 
 ### fsharp_max_record_width
@@ -626,8 +716,11 @@ let myList = [ one; two ]
 let myArray = [| one; two; three |]
 ```
 
-`{ defaultConfig with MaxArrayOrListNumberOfItems = 2; ArrayOrListMultilineFormatter =
-MultilineFormatterType.NumberOfItems }`
+```fsharp
+{ defaultConfig with 
+    MaxArrayOrListNumberOfItems = 2
+    ArrayOrListMultilineFormatter = MultilineFormatterType.NumberOfItems }
+```
 
 ```fsharp
 let myList = [ one; two ]
