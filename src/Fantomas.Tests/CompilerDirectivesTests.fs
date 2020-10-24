@@ -449,10 +449,11 @@ type FunctionComponent =
     static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
 #if FABLE_COMPILER
         let elemType =
-            ReactBindings.React.``lazy`` (fun () ->
-                // React.lazy requires a default export
-                (importValueDynamic f)
-                    .``then``(fun x -> createObj [ "default" ==> x ]))
+            ReactBindings.React.``lazy``
+                (fun () ->
+                    // React.lazy requires a default export
+                    (importValueDynamic f)
+                        .``then``(fun x -> createObj [ "default" ==> x ]))
 
         fun props ->
             ReactElementType.create
@@ -654,10 +655,11 @@ type FunctionComponent =
     static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
 #if FABLE_COMPILER
         let elemType =
-            ReactBindings.React.``lazy`` (fun () ->
-                // React.lazy requires a default export
-                (importValueDynamic f)
-                    .``then``(fun x -> createObj [ "default" ==> x ]))
+            ReactBindings.React.``lazy``
+                (fun () ->
+                    // React.lazy requires a default export
+                    (importValueDynamic f)
+                        .``then``(fun x -> createObj [ "default" ==> x ]))
 
         fun props ->
             ReactElementType.create
@@ -939,7 +941,8 @@ let ``endif in lambda`` () =
 """  config
     |> prepend newline
     |> should equal """
-foo (fun x ->
+foo
+    (fun x ->
         ()
 #if DEF
         ()
@@ -1754,38 +1757,39 @@ let getDefaultProxyFor =
     |> prepend newline
     |> should equal """
 let getDefaultProxyFor =
-    memoize (fun (url: string) ->
-        let uri = Uri url
+    memoize
+        (fun (url: string) ->
+            let uri = Uri url
 
-        let getDefault () =
+            let getDefault () =
 #if CUSTOM_WEBPROXY
-            let result =
-                { new IWebProxy with
-                    member __.Credentials = null
+                let result =
+                    { new IWebProxy with
+                        member __.Credentials = null
 
-                    member __.Credentials
-                        with set _value = ()
+                        member __.Credentials
+                            with set _value = ()
 
-                    member __.GetProxy _ = null
-                    member __.IsBypassed(_host: Uri) = true }
+                        member __.GetProxy _ = null
+                        member __.IsBypassed(_host: Uri) = true }
 #else
-            let result = WebRequest.GetSystemWebProxy()
+                let result = WebRequest.GetSystemWebProxy()
 #endif
 #if CUSTOM_WEBPROXY
-            let proxy = result
+                let proxy = result
 #else
-            let address = result.GetProxy uri
+                let address = result.GetProxy uri
 
-            if address = uri then
-                null
-            else
-                let proxy = WebProxy address
-                proxy.BypassProxyOnLocal <- true
+                if address = uri then
+                    null
+                else
+                    let proxy = WebProxy address
+                    proxy.BypassProxyOnLocal <- true
 #endif
-            proxy.Credentials <- CredentialCache.DefaultCredentials
-            proxy
+                proxy.Credentials <- CredentialCache.DefaultCredentials
+                proxy
 
-        match calcEnvProxies.Force().TryFind uri.Scheme with
-        | Some p -> if p.GetProxy uri <> uri then p else getDefault ()
-        | None -> getDefault ())
+            match calcEnvProxies.Force().TryFind uri.Scheme with
+            | Some p -> if p.GetProxy uri <> uri then p else getDefault ()
+            | None -> getDefault ())
 """

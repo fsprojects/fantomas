@@ -14,8 +14,10 @@ let ``keep comment after arrow`` () =
                MaxLineLength = 90 })
     |> prepend newline
     |> should equal """
-_Target "FSharpTypesDotNet" (fun _ -> // obsolete
-  ())
+_Target
+  "FSharpTypesDotNet"
+  (fun _ -> // obsolete
+    ())
 """
 
 let ``indent multiline lambda in parenthesis, 523`` () =
@@ -96,9 +98,10 @@ let a =
     |> should equal """
 let a =
     b
-    |> List.exists (fun p ->
-        x
-        && someVeryLongIdentifierrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrzzzz___________)
+    |> List.exists
+        (fun p ->
+            x
+            && someVeryLongIdentifierrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrzzzz___________)
 """
 
 [<Test>]
@@ -115,13 +118,15 @@ Target.create "Clean" (fun _ ->
 """  config
     |> prepend newline
     |> should equal """
-Target.create "Clean" (fun _ ->
-    [ "bin"
-      "src/Fantomas/bin"
-      "src/Fantomas/obj"
-      "src/Fantomas.CoreGlobalTool/bin"
-      "src/Fantomas.CoreGlobalTool/obj" ]
-    |> List.iter Shell.cleanDir)
+Target.create
+    "Clean"
+    (fun _ ->
+        [ "bin"
+          "src/Fantomas/bin"
+          "src/Fantomas/obj"
+          "src/Fantomas.CoreGlobalTool/bin"
+          "src/Fantomas.CoreGlobalTool/obj" ]
+        |> List.iter Shell.cleanDir)
 """
 
 [<Test>]
@@ -135,11 +140,12 @@ List.filter (fun ({ ContentBefore = contentBefore }) ->
 """  config
     |> prepend newline
     |> should equal """
-List.filter (fun { ContentBefore = contentBefore } ->
-    // some comment
-    let a = 8
-    let b = List.length contentBefore
-    a + b)
+List.filter
+    (fun { ContentBefore = contentBefore } ->
+        // some comment
+        let a = 8
+        let b = List.length contentBefore
+        a + b)
 """
 
 [<Test>]
@@ -172,7 +178,8 @@ foo (fun a ->
 """  config
     |> prepend newline
     |> should equal """
-foo (fun a ->
+foo
+    (fun a ->
         let b = 8
         b)
 """
@@ -187,9 +194,10 @@ let ``short ident in nested let binding`` () =
     |> prepend newline
     |> should equal """
 let a =
-  foo (fun a ->
-    let b = 8
-    b)
+  foo
+    (fun a ->
+      let b = 8
+      b)
 """
 
 [<Test>]
@@ -202,9 +210,10 @@ let ``longer ident in nested let binding`` () =
     |> prepend newline
     |> should equal """
 let a =
-    foobar (fun a ->
-        let b = 8
-        b)
+    foobar
+        (fun a ->
+            let b = 8
+            b)
 """
 
 [<Test>]
@@ -251,16 +260,17 @@ CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettin
 """  config
     |> prepend newline
     |> should equal """
-CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
-    let connectionString =
-        if hostedService then
-            RoleEnvironment.GetConfigurationSettingValue(configName)
-        else
-            ConfigurationManager.ConnectionStrings.[configName]
-                .ConnectionString
+CloudStorageAccount.SetConfigurationSettingPublisher
+    (fun configName configSettingPublisher ->
+        let connectionString =
+            if hostedService then
+                RoleEnvironment.GetConfigurationSettingValue(configName)
+            else
+                ConfigurationManager.ConnectionStrings.[configName]
+                    .ConnectionString
 
-    configSettingPublisher.Invoke(connectionString)
-    |> ignore)
+        configSettingPublisher.Invoke(connectionString)
+        |> ignore)
 """
 
 [<Test>]
@@ -292,31 +302,34 @@ let genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingA
         | MFOverride _ ->
             (fun (ctx: Context) -> // trying to get AST trivia
 
-            ctx.Trivia
-            |> List.tryFind (fun { Type = t; Range = r } -> // trying to get token trivia
+                ctx.Trivia
+                |> List.tryFind
+                    (fun { Type = t; Range = r } -> // trying to get token trivia
 
-                match t with
-                | MainNode "SynMemberDefn.Member" -> RangeHelpers.``range contains`` r rangeOfBindingAndRhs
+                        match t with
+                        | MainNode "SynMemberDefn.Member" -> RangeHelpers.``range contains`` r rangeOfBindingAndRhs
 
-                | Token { TokenInfo = { TokenName = "MEMBER" } } -> r.StartLine = rangeOfBindingAndRhs.StartLine
+                        | Token { TokenInfo = { TokenName = "MEMBER" } } -> r.StartLine = rangeOfBindingAndRhs.StartLine
 
-                | _ -> false)
-            |> Option.defaultValue (!- "override ")
-            <| ctx)
+                        | _ -> false)
+                |> Option.defaultValue (!- "override ")
+                <| ctx)
         <| ctx
 """
 
 [<Test>]
 let ``line comment after arrow should not introduce extra newline`` () =
-    formatSourceString false """List.tryFind (fun { Type = t; Range = r } -> // foo
+    formatSourceString false """
+List.tryFind (fun { Type = t; Range = r } -> // foo
                     let a = 8
                     a + 9)
 """  config
     |> prepend newline
     |> should equal """
-List.tryFind (fun { Type = t; Range = r } -> // foo
-    let a = 8
-    a + 9)
+List.tryFind
+    (fun { Type = t; Range = r } -> // foo
+        let a = 8
+        a + 9)
 """
 
 [<Test>]
@@ -396,14 +409,15 @@ let ``don't duplicate new line before LongIdentSet`` () =
     |> prepend newline
     |> should equal """
 let options =
-    jsOptions<Vis.Options> (fun o ->
-        let layout =
-            match opts.Layout with
-            | Graph.Free -> createObj []
-            | Graph.HierarchicalLeftRight -> createObj [ "hierarchical" ==> hierOpts "LR" ]
-            | Graph.HierarchicalUpDown -> createObj [ "hierarchical" ==> hierOpts "UD" ]
+    jsOptions<Vis.Options>
+        (fun o ->
+            let layout =
+                match opts.Layout with
+                | Graph.Free -> createObj []
+                | Graph.HierarchicalLeftRight -> createObj [ "hierarchical" ==> hierOpts "LR" ]
+                | Graph.HierarchicalUpDown -> createObj [ "hierarchical" ==> hierOpts "UD" ]
 
-        o.layout <- Some layout)
+            o.layout <- Some layout)
 """
 
 [<Test>]
@@ -427,18 +441,70 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
 let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
     allLines
     |> List.mapi (fun index line -> line, (index + 1)) // line number is needed in tokenizeLine
-    |> List.fold (fun (state, tokens) (line, lineNumber) ->
-        let tokenizer =
-            sourceTokenizer.CreateLineTokenizer(line)
+    |> List.fold
+        (fun (state, tokens) (line, lineNumber) ->
+            let tokenizer =
+                sourceTokenizer.CreateLineTokenizer(line)
 
-        let nextState, tokensOfLine =
-            tokenizeLine tokenizer allLines state lineNumber []
+            let nextState, tokensOfLine =
+                tokenizeLine tokenizer allLines state lineNumber []
 
-        let allTokens =
-            List.append tokens (List.rev tokensOfLine) // tokens of line are add in reversed order
+            let allTokens =
+                List.append tokens (List.rev tokensOfLine) // tokens of line are add in reversed order
 
-        (nextState, allTokens)) (state, []) // empty tokens to start with
+            (nextState, allTokens))
+        (state, []) // empty tokens to start with
     |> snd // ignore the state
+"""
+
+[<Test>]
+let ``foo `` () =
+    formatSourceString false """
+let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
+    allLines
+    |> List.fold
+        (fun (state, tokens) (line, lineNumber) ->
+            // meh
+            (nextState, allTokens))
+        (state, []) // empty tokens to start with
+"""  config
+    |> prepend newline
+    |> should equal """
+let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
+    allLines
+    |> List.fold
+        (fun (state, tokens) (line, lineNumber) ->
+            // meh
+            (nextState, allTokens))
+        (state, []) // empty tokens to start with
+"""
+
+[<Test>]
+let ``bar  `` () =
+    formatSourceString false """
+let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
+    allLines
+    |> List.fold
+        (fun (state, tokens) (line, lineNumber) ->
+            // meh
+            (nextState, allTokens))
+        (state, [])
+        (state, [])
+        (state, [])
+        (state, []) // empty tokens to start with
+"""  config
+    |> prepend newline
+    |> should equal """
+let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
+    allLines
+    |> List.fold
+        (fun (state, tokens) (line, lineNumber) ->
+            // meh
+            (nextState, allTokens))
+        (state, [])
+        (state, [])
+        (state, [])
+        (state, []) // empty tokens to start with
 """
 
 [<Test>]
@@ -451,10 +517,12 @@ Target.create "Install" (fun _ ->
 """  config
     |> prepend newline
     |> should equal """
-Target.create "Install" (fun _ ->
-    Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
-    // Paket restore will already happen when the build.fsx dependencies are restored
-    )
+Target.create
+    "Install"
+    (fun _ ->
+        Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
+        // Paket restore will already happen when the build.fsx dependencies are restored
+        )
 """
 
 [<Test>]
@@ -467,10 +535,12 @@ Target.create "Install" (fun x ->
 """  config
     |> prepend newline
     |> should equal """
-Target.create "Install" (fun x ->
-    Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
-    // Paket restore will already happen when the build.fsx dependencies are restored
-    )
+Target.create
+    "Install"
+    (fun x ->
+        Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
+        // Paket restore will already happen when the build.fsx dependencies are restored
+        )
 """
 
 [<Test>]
@@ -512,4 +582,62 @@ SettingControls.toggleButton
     "NumberOfItems"
     key
     (v = "character_width")
+"""
+
+[<Test>]
+let ``lambda should be on the next line, 1201`` () =
+    formatSourceString false """
+let printListWithOffset a list1 =
+    List.iter
+        (fun elem -> printfn "%d" (a + elem))
+        list1
+
+// OK if lambda body is long enough
+let printListWithOffset a list1 =
+    List.iter
+        (fun elem ->
+            // OK if lambda body is long enough
+            printfn "%d" (a + elem))
+        list1
+"""  config
+    |> prepend newline
+    |> should equal """
+let printListWithOffset a list1 =
+    List.iter (fun elem -> printfn "%d" (a + elem)) list1
+
+// OK if lambda body is long enough
+let printListWithOffset a list1 =
+    List.iter
+        (fun elem ->
+            // OK if lambda body is long enough
+            printfn "%d" (a + elem))
+        list1
+"""
+
+[<Test>]
+let ``Thoth.Json decoder, 685`` () =
+    formatSourceString false """
+Decode.map3 (fun aggregateId event commitPayload ->
+    match commitPayload with
+    | Some payload ->
+        Some
+            { AggregateId = AggregateId aggregateId
+              Event = event
+              Payload = payload }
+    | None -> None) (Decode.field "aggregate_id" Decode.string) (Decode.field "event" Decode.string) decodePayload
+"""  config
+    |> prepend newline
+    |> should equal """
+Decode.map3
+    (fun aggregateId event commitPayload ->
+        match commitPayload with
+        | Some payload ->
+            Some
+                { AggregateId = AggregateId aggregateId
+                  Event = event
+                  Payload = payload }
+        | None -> None)
+    (Decode.field "aggregate_id" Decode.string)
+    (Decode.field "event" Decode.string)
+    decodePayload
 """

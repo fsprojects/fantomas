@@ -1413,21 +1413,23 @@ let initDb () =
 
     let createSql = readSqlFile "create"
 
-    using (connection ()) (fun conn ->
-        task {
-            do! conn.OpenAsync()
-            let! _ = conn.ExecuteAsync(createSql)
+    using
+        (connection ())
+        (fun conn ->
+            task {
+                do! conn.OpenAsync()
+                let! _ = conn.ExecuteAsync(createSql)
 #if DEBUG
-            let! hasClients = hasClients ()
+                let! hasClients = hasClients ()
 
-            if not (hasClients) then
-                let seedSql = readSqlFile "seed"
-                let! _ = conn.ExecuteAsync(seedSql)
-                ()
+                if not (hasClients) then
+                    let seedSql = readSqlFile "seed"
+                    let! _ = conn.ExecuteAsync(seedSql)
+                    ()
 #else
-            ()
+                ()
 #endif
-        })
+            })
 """
 
 [<Test>]
@@ -1470,46 +1472,89 @@ let ``don't add extra newline before do bang`` () =
     formatSourceString false """
             let sendPushNotifications =
                 allSubscriptions
-                |> List.map (fun (user, subscriptions) ->
-                    subscriptions
-                    |> List.filter (fun s -> s.Origin = origin)
-                    |> List.map (fun s ->
-                        task {
-                            try
-                                let ps =
-                                    PushSubscription(s.Endpoint, s.P256DH, s.Auth)
+                |> List.map
+                    (fun (user, subscriptions) ->
+                        subscriptions
+                        |> List.filter (fun s -> s.Origin = origin)
+                        |> List.map (fun s ->
+                            task {
+                                try
+                                    let ps =
+                                        PushSubscription(s.Endpoint, s.P256DH, s.Auth)
 
-                                do! webPushClient.SendNotificationAsync(ps, payload, vapidDetails)
-                            with :? WebPushException as wpex ->
-                                log.LogError(sprintf "Couldn't send notification to %s, %A" user.UserId wpex)
-                                do! filterSubscriptionsAndPersist
-                                        managementToken
-                                        user.UserId
-                                        subscriptions
-                                        s.Origin
-                                        s.Endpoint
-                        } :> Task)
-                    |> Task.WhenAll)
+                                    do! webPushClient.SendNotificationAsync(ps, payload, vapidDetails)
+                                with :? WebPushException as wpex ->
+                                    log.LogError(sprintf "Couldn't send notification to %s, %A" user.UserId wpex)
+                                    do! filterSubscriptionsAndPersist
+                                            managementToken
+                                            user.UserId
+                                            subscriptions
+                                            s.Origin
+                                            s.Endpoint
+                            } :> Task)
+                |> Task.WhenAll)
 """  config
     |> prepend newline
     |> should equal """
 let sendPushNotifications =
     allSubscriptions
-    |> List.map (fun (user, subscriptions) ->
-        subscriptions
-        |> List.filter (fun s -> s.Origin = origin)
-        |> List.map (fun s ->
-            task {
-                try
-                    let ps =
-                        PushSubscription(s.Endpoint, s.P256DH, s.Auth)
+    |> List.map
+        (fun (user, subscriptions) ->
+            subscriptions
+            |> List.filter (fun s -> s.Origin = origin)
+            |> List.map
+                (fun s ->
+                    task {
+                        try
+                            let ps =
+                                PushSubscription(s.Endpoint, s.P256DH, s.Auth)
 
-                    do! webPushClient.SendNotificationAsync(ps, payload, vapidDetails)
-                with :? WebPushException as wpex ->
-                    log.LogError(sprintf "Couldn't send notification to %s, %A" user.UserId wpex)
-                    do! filterSubscriptionsAndPersist managementToken user.UserId subscriptions s.Origin s.Endpoint
-            } :> Task)
-        |> Task.WhenAll)
+                            do! webPushClient.SendNotificationAsync(ps, payload, vapidDetails)
+                        with :? WebPushException as wpex ->
+                            log.LogError(sprintf "Couldn't send notification to %s, %A" user.UserId wpex)
+
+                            do! filterSubscriptionsAndPersist
+                                    managementToken
+                                    user.UserId
+                                    subscriptions
+                                    s.Origin
+                                    s.Endpoint
+                    } :> Task)
+            |> Task.WhenAll)
+"""
+
+[<Test>]
+let ``foo ex`` () =
+    formatSourceString false """
+let sendPushNotifications =
+    allSubscriptions
+    |> List.map
+        (fun (user, subscriptions) ->
+            subscriptions
+            |> List.filter (fun s -> s.Origin = origin)
+            |> List.map
+                (fun s ->
+                    task {
+                        // mec
+                        return ()
+                    } :> Task)
+         |> Task.WhenAll)
+"""  config
+    |> prepend newline
+    |> should equal """
+let sendPushNotifications =
+    allSubscriptions
+    |> List.map
+        (fun (user, subscriptions) ->
+            subscriptions
+            |> List.filter (fun s -> s.Origin = origin)
+            |> List.map
+                (fun s ->
+                    task {
+                        // mec
+                        return ()
+                    } :> Task)
+            |> Task.WhenAll)
 """
 
 [<Test>]

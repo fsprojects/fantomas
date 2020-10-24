@@ -31,7 +31,8 @@ f
       y
       z ]
 
-List.map (fun x -> x * x)
+List.map
+    (fun x -> x * x)
     [ 1
       2 ]
 """
@@ -62,7 +63,8 @@ f
        y
        z |]
 
-List.map (fun x -> x * x)
+List.map
+    (fun x -> x * x)
     [| 1
        2 |]
 """
@@ -129,7 +131,8 @@ f
         z
     ]
 
-List.map (fun x -> x * x)
+List.map
+    (fun x -> x * x)
     [
         1
         2
@@ -169,7 +172,8 @@ f
         z
     |]
 
-List.map (fun x -> x * x)
+List.map
+    (fun x -> x * x)
     [|
         1
         2

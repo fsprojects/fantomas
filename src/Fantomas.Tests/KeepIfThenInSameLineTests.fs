@@ -49,7 +49,7 @@ type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) 
         // comment
         if balanceAtTheMomentOfSending < valueToSend then // comment
             invalidArg
-                "balanceAtTheMomentOfSending"  // comment
+                "balanceAtTheMomentOfSending" // comment
                 "some very very long error message" // comment
 
         if valueToSend <= 0m then // comment

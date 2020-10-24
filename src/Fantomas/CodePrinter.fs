@@ -1168,10 +1168,7 @@ and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 =
 and genExpr astContext synExpr ctx =
     let appNlnFun e =
         match e with
-        | MultilineString _
-        | Lambda _
-        | Paren (_, Lambda _, _)
-        | Paren (_, MatchLambda _, _) -> id
+        | MultilineString _ -> id
         | _ -> autoNlnIfExpressionExceedsPageWidth
 
     let kw tokenName f = tokN synExpr.Range tokenName f
@@ -1613,15 +1610,16 @@ and genExpr astContext synExpr ctx =
                 let expr =
                     sepOpenTFor (Some lpr) -- "fun "
                     +> col sepSpace cps (fst >> genComplexPats astContext)
+                    +> indent
                     +> triviaAfterArrow arrowRange
                     +> (fun ctx ->
-                        if hasLineCommentAfterArrow then
-                            (genExpr astContext e +> sepCloseTFor rpr) ctx
-                        elif addIndent then
-                            (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr))
-                                ctx
-                        else
-                            (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr)) ctx)
+                        if hasLineCommentAfterArrow
+                        then (genExpr astContext e +> sepCloseTFor rpr) ctx
+                        //                        elif addIndent then
+//                            (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr))
+//                                ctx
+                        else (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr)) ctx)
+                    +> unindent
 
                 expr ctx
 
@@ -1640,23 +1638,26 @@ and genExpr astContext synExpr ctx =
                     findTriviaTokenFromName RARROW synExpr.Range ctx
                     |> Option.isSome
 
+                let astCtx = { astContext with IsInsideDotGet = false }
+
                 let expr =
                     sepOpenTFor (Some lpr) -- "fun "
                     +> col sepSpace sps (genSimplePats astContext)
+                    +> indent
                     +> triviaAfterArrow synExpr.Range
                     +> (fun ctx ->
-                        if hasLineCommentAfterArrow then
-                            (genExpr astContext e +> sepCloseTFor rpr) ctx
-                        elif addIndent then
-                            autoIndentAndNlnIfExpressionExceedsPageWidth
-                                (genExpr
-                                    { astContext with
-                                          IsInsideDotGet = false }
-                                     e
-                                 +> sepCloseTFor rpr)
-                                ctx
-                        else
-                            autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr) ctx)
+                        if hasLineCommentAfterArrow
+                        then (genExpr astCtx e +> sepCloseTFor rpr) ctx
+                        //                        elif addIndent then
+//                            autoIndentAndNlnIfExpressionExceedsPageWidth
+//                                (genExpr
+//                                    { astContext with
+//                                          IsInsideDotGet = false }
+//                                     e
+//                                 +> sepCloseTFor rpr)
+//                                ctx
+                        else autoNlnIfExpressionExceedsPageWidth (genExpr astCtx e +> sepCloseTFor rpr) ctx)
+                    +> unindent
 
                 expr ctx
 
@@ -1949,87 +1950,93 @@ and genExpr astContext synExpr ctx =
                 isShortExpression ctx.Config.MaxDotGetExpressionWidth (genExpr sepNone) (genExpr sepNln) ctx
 
         // Unlike infix app, function application needs a level of indentation
-        | App (e1, [ e2 ]) ->
-            fun (ctx: Context) ->
-                let hasPar = hasParenthesis e2
-
-                let addSpaceBefore =
-                    not astContext.IsInsideDotIndexed
-                    && addSpaceBeforeParensInFunCall e1 e2 ctx
-
-                let genApp =
-                    atCurrentColumn
-                        (genExpr astContext e1
-                         +> onlyIf (isCompExpr e2) (sepSpace +> sepOpenSFixed +> sepSpace)
-                         +> ifElse
-                             (not astContext.IsInsideDotGet)
-                                (ifElse hasPar (ifElse addSpaceBefore sepSpace sepNone) sepSpace)
-                                sepNone
-                         +> indent
-                         +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone)
-                         +> (fun ctx ->
-                             let expr =
-                                 if astContext.IsInsideDotGet then
-                                     match e1, e2 with
-                                     | _, Paren (_, App _, _)
-                                     | _, Paren (_, DotGet (App _, _), _)
-                                     | TypeApp _, Paren (_, Tuple _, _)
-                                     | _, ConstExpr (SynConst.Unit, _) -> genExpr astContext e2
-                                     | _ -> appNlnFun e2 (genExpr astContext e2)
-                                 else
-                                     appNlnFun e2 (genExpr astContext e2)
-
-                             expr ctx)
-                         +> unindent)
-
-                genApp ctx
+//        | App (e1, [ e2 ]) ->
+//            fun (ctx: Context) ->
+//                let hasPar = hasParenthesis e2
+//
+//                let addSpaceBefore =
+//                    not astContext.IsInsideDotIndexed
+//                    && addSpaceBeforeParensInFunCall e1 e2 ctx
+//
+//                let genApp =
+//                    atCurrentColumn
+//                        (genExpr astContext e1
+//                         +> onlyIf (isCompExpr e2) (sepSpace +> sepOpenSFixed +> sepSpace)
+//                         +> ifElse
+//                             (not astContext.IsInsideDotGet)
+//                                (ifElse hasPar (ifElse addSpaceBefore sepSpace sepNone) sepSpace)
+//                                sepNone
+//                         +> indent
+//                         +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone)
+//                         +> (fun ctx ->
+//                             let expr =
+//                                 if astContext.IsInsideDotGet then
+//                                     match e1, e2 with
+//                                     | _, Paren (_, App _, _)
+//                                     | _, Paren (_, DotGet (App _, _), _)
+//                                     | TypeApp _, Paren (_, Tuple _, _)
+//                                     | _, ConstExpr (SynConst.Unit, _) -> genExpr astContext e2
+//                                     | _ -> appNlnFun e2 (genExpr astContext e2)
+//                                 else
+//                                     appNlnFun e2 (genExpr astContext e2)
+//
+//                             expr ctx)
+//                         +> unindent)
+//
+//                genApp ctx
 
         // Always spacing in multiple arguments
         | App (e, es) ->
             let shortExpression =
                 atCurrentColumn
                     (genExpr astContext e
-                     +> colPre sepSpace sepSpace es (fun e ->
-                            onlyIf (isCompExpr e) (sepSpace +> sepOpenSFixed +> sepSpace)
-                            +> indent
-                            +> appNlnFun e (indentIfNeeded sepSpace +> genExpr astContext e)
-                            +> unindent))
+                     +> ifElseCtx
+                            (fun ctx ->
+                                match es with
+                                | [] -> false
+                                | [h]
+                                | h::_ -> addSpaceBeforeParensInFunCall e h ctx)
+                            sepSpace
+                            sepNone
+                     +> col sepSpace es (fun e ->
+                            if isCompExpr e then
+                                sepSpace
+                                +> sepOpenSFixed
+                                +> sepSpace
+                                +> indent
+                                +>  appNlnFun e (genExpr astContext e)
+                                +> unindent
+                            else
+                                genExpr astContext e))
 
             let longExpression =
-                (atCurrentColumn
+                atCurrentColumn
                     (genExpr astContext e
-                     +> colPre sepSpace sepSpace es (fun e ->
-                            ifElse
-                                (isCompExpr e)
-                                (sepSpace
-                                 +> sepOpenSFixed
-                                 +> sepSpace
-                                 +> indent
-                                 +> appNlnFun e (indentIfNeeded sepSpace +> genExpr astContext e)
-                                 +> unindent)
-                                (indent
-                                 +> indentIfNeeded sepSpace
-                                 +> sepNln
-                                 +> genExpr astContext e
-                                 +> unindent))))
-
-            let hasMultipleLambdas =
-                List.filter (function
-                    | Paren (_, Lambda _, _)
-                    | Paren (_, DesugaredLambda _, _) -> true
-                    | _ -> false) es
-                |> List.length
-                |> fun l -> l > 1
+                     +> indent
+                     +> sepNln
+                     +> colEx (fun e -> sepNln) es (fun e -> genExpr astContext e))
+            //                (atCurrentColumn
+//                    (genExpr astContext e
+//                     +> colPre sepSpace sepSpace es (fun e ->
+//                            ifElse
+//                                (isCompExpr e)
+//                                (sepSpace
+//                                 +> sepOpenSFixed
+//                                 +> sepSpace
+//                                 +> indent
+//                                 +> appNlnFun e (indentIfNeeded sepSpace +> genExpr astContext e)
+//                                 +> unindent)
+//                                dumpAndContinue +>
+//                                (indent
+//                                 +> indentIfNeeded sepSpace
+//                                 +> sepNln
+//                                 +> genExpr astContext e
+//                                 +> unindent))))
 
             if List.exists (function
-                | Lambda _
-                | MatchLambda _
-                | Paren (_, Lambda _, _)
-                | Paren (_, MatchLambda _, _)
                 | MultilineString _
                 | CompExpr _ -> true
-                | _ -> false) es
-               && not hasMultipleLambdas then
+                | _ -> false) es then
                 shortExpression
             else
                 expressionFitsOnRestOfLine shortExpression longExpression

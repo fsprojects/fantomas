@@ -117,9 +117,10 @@ let x =
     |> should equal """
 let x =
     [| 1 .. 2 |]
-    |> Array.mapi (fun _ _ ->
-        let num = "".PadLeft(9)
-        num)
+    |> Array.mapi
+        (fun _ _ ->
+            let num = "".PadLeft(9)
+            num)
 """
 
 [<Test>]
@@ -200,14 +201,16 @@ module Card =
     let card (props: CardProps seq) (elems: ReactElement seq): ReactElement =
         let customProps =
             props
-            |> Seq.collect (function
+            |> Seq.collect
+                (function
                 | Custom props -> props
                 | _ -> List.empty)
             |> keyValueList CaseRules.LowerFirst
 
         let typeProps =
             props
-            |> Seq.choose (function
+            |> Seq.choose
+                (function
                 | Custom _ -> None
                 | prop -> Some prop)
             |> keyValueList CaseRules.LowerFirst
@@ -641,22 +644,25 @@ let useEntries month year =
     let sortMapAndToArray (input: Transaction seq) =
         input
         |> Seq.sortBy (fun ai -> ai.Created)
-        |> Seq.map (fun ai ->
-            {| id = ai.Id
-               name = ai.Name
-               amount = ai.Amount |})
+        |> Seq.map
+            (fun ai ->
+                {| id = ai.Id
+                   name = ai.Name
+                   amount = ai.Amount |})
         |> Seq.toArray
 
     let income =
         events
-        |> Seq.choose (function
+        |> Seq.choose
+            (function
             | Event.AddIncome (ai) when (filter ai.Created && isNotCancelled ai.Id) -> Some ai
             | _ -> None)
         |> sortMapAndToArray
 
     let expenses =
         events
-        |> Seq.choose (function
+        |> Seq.choose
+            (function
             | Event.AddExpense (ae) when (filter ae.Created && isNotCancelled ae.Id) -> Some ae
             | _ -> None)
         |> sortMapAndToArray
@@ -788,29 +794,32 @@ let useOverviewPerMonth () =
 
     let months =
         events
-        |> List.choose (fun msg ->
-            match msg with
-            | Event.AddIncome ({ Created = created })
-            | Event.AddExpense ({ Created = created }) -> Some(created.Month, created.Year)
-            | _ -> None)
+        |> List.choose
+            (fun msg ->
+                match msg with
+                | Event.AddIncome ({ Created = created })
+                | Event.AddExpense ({ Created = created }) -> Some(created.Month, created.Year)
+                | _ -> None)
         |> List.distinct
         |> List.sort
         |> List.groupBy snd
-        |> List.map (fun (year, months) ->
-            let rows =
-                months
-                |> List.map (fun (m, y) ->
-                    {| name = getMonthName m
-                       month = m
-                       balance = Projections.calculateBalance m y events |})
-                |> List.toArray
+        |> List.map
+            (fun (year, months) ->
+                let rows =
+                    months
+                    |> List.map
+                        (fun (m, y) ->
+                            {| name = getMonthName m
+                               month = m
+                               balance = Projections.calculateBalance m y events |})
+                    |> List.toArray
 
-            let balance =
-                rows |> Array.sumBy (fun mth -> mth.balance)
+                let balance =
+                    rows |> Array.sumBy (fun mth -> mth.balance)
 
-            {| name = year
-               months = rows
-               balance = balance |})
+                {| name = year
+                   months = rows
+                   balance = balance |})
         |> List.toArray
 
     months
@@ -929,13 +938,14 @@ let merge a b =
 There is a problem with merging all the code back togheter. Please raise an issue at https://github.com/fsprojects/fantomas/issues.\"\"\"
 
     List.zip aChunks bChunks
-    |> List.map (fun (a', b') ->
-        let la = lengthWithoutSpaces a'
-        let lb = lengthWithoutSpaces b'
+    |> List.map
+        (fun (a', b') ->
+            let la = lengthWithoutSpaces a'
+            let lb = lengthWithoutSpaces b'
 
-        if la <> lb then if la > lb then a' else b'
-        else if String.length a' < String.length b' then a'
-        else b')
+            if la <> lb then if la > lb then a' else b'
+            else if String.length a' < String.length b' then a'
+            else b')
 
     |> String.concat Environment.NewLine
 "
@@ -1028,9 +1038,10 @@ let x =
        | _ ->
            if tcref.IsILTycon then
                tcref.ILTyconRawMetadata.CustomAttrs.AsArray
-               |> Array.exists (fun attr ->
-                   attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>
-                       .FullName)
+               |> Array.exists
+                   (fun attr ->
+                       attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>
+                           .FullName)
            else
                false
 """
