@@ -1594,10 +1594,6 @@ and genExpr astContext synExpr ctx =
             +> genExpr astContext e2
         | Paren (lpr, DesugaredLambda (cps, e), rpr) ->
             fun (ctx: Context) ->
-                let addIndent =
-                    lastLineOnlyContains [| ' '; '(' |] ctx
-                    || astContext.IsInsideDotGet
-
                 let arrowRange =
                     List.last cps
                     |> snd
@@ -1607,6 +1603,10 @@ and genExpr astContext synExpr ctx =
                     findTriviaTokenFromName RARROW arrowRange ctx
                     |> Option.isSome
 
+                let astCtx =
+                    { astContext with
+                          IsInsideDotGet = false }
+
                 let expr =
                     sepOpenTFor (Some lpr) -- "fun "
                     +> col sepSpace cps (fst >> genComplexPats astContext)
@@ -1614,11 +1614,8 @@ and genExpr astContext synExpr ctx =
                     +> triviaAfterArrow arrowRange
                     +> (fun ctx ->
                         if hasLineCommentAfterArrow
-                        then (genExpr astContext e +> sepCloseTFor rpr) ctx
-                        //                        elif addIndent then
-//                            (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr))
-//                                ctx
-                        else (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr)) ctx)
+                        then (genExpr astCtx e +> sepCloseTFor rpr) ctx
+                        else (autoNlnIfExpressionExceedsPageWidth (genExpr astCtx e +> sepCloseTFor rpr)) ctx)
                     +> unindent
 
                 expr ctx
@@ -1630,15 +1627,13 @@ and genExpr astContext synExpr ctx =
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
         | Paren (lpr, Lambda (e, sps), rpr) ->
             fun (ctx: Context) ->
-                let addIndent =
-                    lastLineOnlyContains [| ' '; '(' |] ctx
-                    || astContext.IsInsideDotGet
-
                 let hasLineCommentAfterArrow =
                     findTriviaTokenFromName RARROW synExpr.Range ctx
                     |> Option.isSome
 
-                let astCtx = { astContext with IsInsideDotGet = false }
+                let astCtx =
+                    { astContext with
+                          IsInsideDotGet = false }
 
                 let expr =
                     sepOpenTFor (Some lpr) -- "fun "
@@ -1648,14 +1643,6 @@ and genExpr astContext synExpr ctx =
                     +> (fun ctx ->
                         if hasLineCommentAfterArrow
                         then (genExpr astCtx e +> sepCloseTFor rpr) ctx
-                        //                        elif addIndent then
-//                            autoIndentAndNlnIfExpressionExceedsPageWidth
-//                                (genExpr
-//                                    { astContext with
-//                                          IsInsideDotGet = false }
-//                                     e
-//                                 +> sepCloseTFor rpr)
-//                                ctx
                         else autoNlnIfExpressionExceedsPageWidth (genExpr astCtx e +> sepCloseTFor rpr) ctx)
                     +> unindent
 
@@ -1949,43 +1936,8 @@ and genExpr astContext synExpr ctx =
 
                 isShortExpression ctx.Config.MaxDotGetExpressionWidth (genExpr sepNone) (genExpr sepNln) ctx
 
-        // Unlike infix app, function application needs a level of indentation
-//        | App (e1, [ e2 ]) ->
-//            fun (ctx: Context) ->
-//                let hasPar = hasParenthesis e2
-//
-//                let addSpaceBefore =
-//                    not astContext.IsInsideDotIndexed
-//                    && addSpaceBeforeParensInFunCall e1 e2 ctx
-//
-//                let genApp =
-//                    atCurrentColumn
-//                        (genExpr astContext e1
-//                         +> onlyIf (isCompExpr e2) (sepSpace +> sepOpenSFixed +> sepSpace)
-//                         +> ifElse
-//                             (not astContext.IsInsideDotGet)
-//                                (ifElse hasPar (ifElse addSpaceBefore sepSpace sepNone) sepSpace)
-//                                sepNone
-//                         +> indent
-//                         +> (ifElse (not hasPar && addSpaceBefore) sepSpace sepNone)
-//                         +> (fun ctx ->
-//                             let expr =
-//                                 if astContext.IsInsideDotGet then
-//                                     match e1, e2 with
-//                                     | _, Paren (_, App _, _)
-//                                     | _, Paren (_, DotGet (App _, _), _)
-//                                     | TypeApp _, Paren (_, Tuple _, _)
-//                                     | _, ConstExpr (SynConst.Unit, _) -> genExpr astContext e2
-//                                     | _ -> appNlnFun e2 (genExpr astContext e2)
-//                                 else
-//                                     appNlnFun e2 (genExpr astContext e2)
-//
-//                             expr ctx)
-//                         +> unindent)
-//
-//                genApp ctx
-
-        | App (e, (MultilineString _ as h::rest as es)) ->
+        // Multiline strings are a bit of an edge case in Fantomas, they are not immediately seen as multiline constructs.
+        | App (e, (MultilineString _ as h :: rest as es)) ->
             let shortExpression =
                 atCurrentColumn
                     (genExpr astContext e
@@ -2008,16 +1960,15 @@ and genExpr astContext synExpr ctx =
         | App (e, es) ->
             let shortExpression =
                 let addFirstSpace =
-                    ifElseCtx
-                        (fun ctx ->
-                            match es with
-                            | [] -> false
-                            | [h]
-                            | h::_ ->
-                                not (astContext.IsInsideDotGet || astContext.IsInsideDotIndexed)
-                                && addSpaceBeforeParensInFunCall e h ctx)
-                        sepSpace
-                        sepNone
+                    ifElseCtx (fun ctx ->
+                        match es with
+                        | [] -> false
+                        | [ h ]
+                        | h :: _ ->
+                            not
+                                (astContext.IsInsideDotGet
+                                 || astContext.IsInsideDotIndexed)
+                            && addSpaceBeforeParensInFunCall e h ctx) sepSpace sepNone
 
                 let addSpace = indentIfNeeded sepSpace
 
@@ -2044,23 +1995,6 @@ and genExpr astContext synExpr ctx =
                      +> sepNln
                      +> col sepNln es (fun e -> genExpr astContext e)
                      +> unindent)
-            //                (atCurrentColumn
-//                    (genExpr astContext e
-//                     +> colPre sepSpace sepSpace es (fun e ->
-//                            ifElse
-//                                (isCompExpr e)
-//                                (sepSpace
-//                                 +> sepOpenSFixed
-//                                 +> sepSpace
-//                                 +> indent
-//                                 +> appNlnFun e (indentIfNeeded sepSpace +> genExpr astContext e)
-//                                 +> unindent)
-//                                dumpAndContinue +>
-//                                (indent
-//                                 +> indentIfNeeded sepSpace
-//                                 +> sepNln
-//                                 +> genExpr astContext e
-//                                 +> unindent))))
 
             if List.exists (function
                 | MultilineString _
