@@ -1985,36 +1985,65 @@ and genExpr astContext synExpr ctx =
 //
 //                genApp ctx
 
-        // Always spacing in multiple arguments
-        | App (e, es) ->
+        | App (e, (MultilineString _ as h::rest as es)) ->
             let shortExpression =
                 atCurrentColumn
                     (genExpr astContext e
-                     +> ifElseCtx
-                            (fun ctx ->
-                                match es with
-                                | [] -> false
-                                | [h]
-                                | h::_ -> addSpaceBeforeParensInFunCall e h ctx)
-                            sepSpace
-                            sepNone
-                     +> col sepSpace es (fun e ->
-                            if isCompExpr e then
-                                sepSpace
-                                +> sepOpenSFixed
-                                +> sepSpace
-                                +> indent
-                                +>  appNlnFun e (genExpr astContext e)
-                                +> unindent
-                            else
-                                genExpr astContext e))
+                     +> sepSpace
+                     +> col sepSpace es (genExpr astContext))
+
+            let longExpression =
+                atCurrentColumn
+                    (genExpr astContext e
+                     +> sepSpace
+                     +> genExpr astContext h
+                     +> indent
+                     +> onlyIf (List.isNotEmpty rest) sepNln
+                     +> col sepNln rest (genExpr astContext)
+                     +> unindent)
+
+            expressionFitsOnRestOfLine shortExpression longExpression
+
+        // Always spacing in multiple arguments
+        | App (e, es) ->
+            let shortExpression =
+                let addFirstSpace =
+                    ifElseCtx
+                        (fun ctx ->
+                            match es with
+                            | [] -> false
+                            | [h]
+                            | h::_ ->
+                                not (astContext.IsInsideDotGet || astContext.IsInsideDotIndexed)
+                                && addSpaceBeforeParensInFunCall e h ctx)
+                        sepSpace
+                        sepNone
+
+                let addSpace = indentIfNeeded sepSpace
+
+                let genEx e =
+                    if isCompExpr e then
+                        sepSpace
+                        +> sepOpenSFixed
+                        +> sepSpace
+                        +> indent
+                        +> appNlnFun e (genExpr astContext e)
+                        +> unindent
+                    else
+                        genExpr astContext e
+
+                atCurrentColumn
+                    (genExpr astContext e
+                     +> addFirstSpace
+                     +> col addSpace es genEx)
 
             let longExpression =
                 atCurrentColumn
                     (genExpr astContext e
                      +> indent
                      +> sepNln
-                     +> colEx (fun e -> sepNln) es (fun e -> genExpr astContext e))
+                     +> col sepNln es (fun e -> genExpr astContext e)
+                     +> unindent)
             //                (atCurrentColumn
 //                    (genExpr astContext e
 //                     +> colPre sepSpace sepSpace es (fun e ->

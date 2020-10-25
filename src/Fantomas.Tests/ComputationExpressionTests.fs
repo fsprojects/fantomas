@@ -1492,7 +1492,7 @@ let ``don't add extra newline before do bang`` () =
                                             s.Origin
                                             s.Endpoint
                             } :> Task)
-                |> Task.WhenAll)
+                        |> Task.WhenAll)
 """  config
     |> prepend newline
     |> should equal """
@@ -1519,40 +1519,6 @@ let sendPushNotifications =
                                     subscriptions
                                     s.Origin
                                     s.Endpoint
-                    } :> Task)
-            |> Task.WhenAll)
-"""
-
-[<Test>]
-let ``foo ex`` () =
-    formatSourceString false """
-let sendPushNotifications =
-    allSubscriptions
-    |> List.map
-        (fun (user, subscriptions) ->
-            subscriptions
-            |> List.filter (fun s -> s.Origin = origin)
-            |> List.map
-                (fun s ->
-                    task {
-                        // mec
-                        return ()
-                    } :> Task)
-         |> Task.WhenAll)
-"""  config
-    |> prepend newline
-    |> should equal """
-let sendPushNotifications =
-    allSubscriptions
-    |> List.map
-        (fun (user, subscriptions) ->
-            subscriptions
-            |> List.filter (fun s -> s.Origin = origin)
-            |> List.map
-                (fun s ->
-                    task {
-                        // mec
-                        return ()
                     } :> Task)
             |> Task.WhenAll)
 """

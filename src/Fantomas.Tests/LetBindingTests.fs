@@ -511,7 +511,8 @@ let genSigModuleDeclList astContext node =
             | _ ->
                 (col sepNln xs (genSigModuleDecl astContext)
                  +> sepXsAndYs
-                 +> genSigModuleDeclList astContext ys) ctx
+                 +> genSigModuleDeclList astContext ys)
+                    ctx
 """
 
 [<Test>]
