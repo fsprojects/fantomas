@@ -216,21 +216,6 @@ module Client =
 """
 
 [<Test>]
-let ``foo `` () =
-    formatSourceString false """
-MySPA().Login(fun e ->
-                passwordValid
-                := not (String.IsNullOrWhiteSpace e.Vars.Password.Value))
-"""  config
-    |> prepend newline
-    |> should equal """
-MySPA()
-    .Login(fun e ->
-        passwordValid
-        := not (String.IsNullOrWhiteSpace e.Vars.Password.Value))
-"""
-
-[<Test>]
 let ``don't repeat parenthesis for DotGet Paren, 989`` () =
     formatSourceString false """(something_really_long
   + another_thing_thats_really_long).A

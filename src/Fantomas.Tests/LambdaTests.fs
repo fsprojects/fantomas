@@ -458,56 +458,6 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
 """
 
 [<Test>]
-let ``foo `` () =
-    formatSourceString false """
-let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
-    allLines
-    |> List.fold
-        (fun (state, tokens) (line, lineNumber) ->
-            // meh
-            (nextState, allTokens))
-        (state, []) // empty tokens to start with
-"""  config
-    |> prepend newline
-    |> should equal """
-let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
-    allLines
-    |> List.fold
-        (fun (state, tokens) (line, lineNumber) ->
-            // meh
-            (nextState, allTokens))
-        (state, []) // empty tokens to start with
-"""
-
-[<Test>]
-let ``bar  `` () =
-    formatSourceString false """
-let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
-    allLines
-    |> List.fold
-        (fun (state, tokens) (line, lineNumber) ->
-            // meh
-            (nextState, allTokens))
-        (state, [])
-        (state, [])
-        (state, [])
-        (state, []) // empty tokens to start with
-"""  config
-    |> prepend newline
-    |> should equal """
-let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
-    allLines
-    |> List.fold
-        (fun (state, tokens) (line, lineNumber) ->
-            // meh
-            (nextState, allTokens))
-        (state, [])
-        (state, [])
-        (state, [])
-        (state, []) // empty tokens to start with
-"""
-
-[<Test>]
 let ``trivia before closing parenthesis of desugared lambda, 1146`` () =
     formatSourceString false """
 Target.create "Install" (fun _ ->
@@ -640,4 +590,50 @@ Decode.map3
     (Decode.field "aggregate_id" Decode.string)
     (Decode.field "event" Decode.string)
     decodePayload
+"""
+
+[<Test>]
+let ``add extra indent in fluent api, 970`` () =
+    formatSourceString false """
+  services.AddAuthentication(fun options ->
+          options.DefaultScheme <- "Cookies"
+          options.DefaultChallengeScheme <- "oidc").AddCookie("Cookies")
+          .AddOpenIdConnect(fun options ->
+          options.Authority <- "http://localhost:7001"
+          options.ClientId <- "mvc"
+          options.ClientSecret <- "secret"
+          options.ResponseType <- "code"
+          options.SaveTokens <- true)
+"""  config
+    |> prepend newline
+    |> should equal """
+services
+    .AddAuthentication(fun options ->
+        options.DefaultScheme <- "Cookies"
+        options.DefaultChallengeScheme <- "oidc")
+    .AddCookie("Cookies")
+    .AddOpenIdConnect(fun options ->
+        options.Authority <- "http://localhost:7001"
+        options.ClientId <- "mvc"
+        options.ClientSecret <- "secret"
+        options.ResponseType <- "code"
+        options.SaveTokens <- true)
+"""
+
+[<Test>]
+let ``correctly indent nested lambda inside fluent api`` () =
+    formatSourceString false """
+services.AddHttpsRedirection(Action<HttpsRedirectionOptions>(fun options ->
+    // meh
+    options.HttpsPort <- Nullable(7002)
+)) |> ignore
+"""  { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should equal """
+services.AddHttpsRedirection
+    (Action<HttpsRedirectionOptions>
+        (fun options ->
+            // meh
+            options.HttpsPort <- Nullable(7002)))
+|> ignore
 """
