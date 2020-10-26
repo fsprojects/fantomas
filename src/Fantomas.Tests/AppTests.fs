@@ -17,10 +17,11 @@ let a =
     |> should equal """
 let a =
     b
-    |> List.exists (fun p ->
-        p.a
-        && p.b
-           |> List.exists (fun o -> o.a = "lorem ipsum dolor sit amet"))
+    |> List.exists
+        (fun p ->
+            p.a
+            && p.b
+               |> List.exists (fun o -> o.a = "lorem ipsum dolor sit amet"))
 """
 
 // compile error due to expression starting before the beginning of the function expression
@@ -40,12 +41,16 @@ let a s =
     |> prepend newline
     |> should equal @"
 let a s =
-    if s <> """"
-    then printfn """"""fooo
+    if s <> """" then
+        printfn """"""fooo
 %s
 %s
 %s
-%s""""""     (llloooooooooooooooooooooooooo s) s s s
+%s""""""
+            (llloooooooooooooooooooooooooo s)
+            s
+            s
+            s
 "
 
 // compile error due to expression starting before the beginning of the function expression
@@ -70,7 +75,9 @@ let a s =
 %s
 %s
 %s
-%s""""""    (llloooooooooooooooooooooooooo s) s
+%s""""""
+            (llloooooooooooooooooooooooooo s)
+            s
             (llloooooooooooooooooooooooooo s)
             (llloooooooooooooooooooooooooo s)
 "
@@ -97,19 +104,21 @@ module Caching =
         member __.RetrieveLastCompoundBalance (address: PublicAddress)
                                               (currency: Currency)
                                               : NotFresh<decimal> =
-            lock cacheFiles.CachedNetworkData (fun _ ->
-                match balance with
-                | NotAvailable -> NotAvailable
-                | Cached (balance, time) ->
-                    if compoundBalance < 0.0m then
-                        ReportProblem
-                            compoundBalance
-                            None
-                            currency
-                            address
-                            sessionCachedNetworkData
+            lock
+                cacheFiles.CachedNetworkData
+                (fun _ ->
+                    match balance with
+                    | NotAvailable -> NotAvailable
+                    | Cached (balance, time) ->
+                        if compoundBalance < 0.0m then
+                            ReportProblem
+                                compoundBalance
+                                None
+                                currency
+                                address
+                                sessionCachedNetworkData
 
-                    ())
+                        ())
 
             ()
 """
@@ -136,15 +145,17 @@ module Caching =
         member __.RetrieveLastCompoundBalance (address: PublicAddress)
                                               (currency: Currency)
                                               : NotFresh<decimal> =
-            lock cacheFiles.CachedNetworkData (fun _ ->
-                match balance with
-                | NotAvailable -> NotAvailable
-                | Cached (balance, time) ->
-                    if compoundBalance < 0.0m then
-                        ReportProblem
-                            looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong
+            lock
+                cacheFiles.CachedNetworkData
+                (fun _ ->
+                    match balance with
+                    | NotAvailable -> NotAvailable
+                    | Cached (balance, time) ->
+                        if compoundBalance < 0.0m then
+                            ReportProblem
+                                looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong
 
-                    ())
+                        ())
 
             ()
 """
@@ -169,14 +180,16 @@ let ``should not split parameters over multiple lines when they do not exceed pa
 module Caching =
     type MainCache() =
         member __.RetrieveLastCompoundBalance (address: PublicAddress) (currency: Currency): NotFresh<decimal> =
-            lock cacheFiles.CachedNetworkData (fun _ ->
-                match balance with
-                | NotAvailable -> NotAvailable
-                | Cached (balance, time) ->
-                    if compoundBalance < 0.0m
-                    then ReportProblem compoundBalance None currency address sessionCachedNetworkData
+            lock
+                cacheFiles.CachedNetworkData
+                (fun _ ->
+                    match balance with
+                    | NotAvailable -> NotAvailable
+                    | Cached (balance, time) ->
+                        if compoundBalance < 0.0m
+                        then ReportProblem compoundBalance None currency address sessionCachedNetworkData
 
-                    ())
+                        ())
 
             ()
 """
@@ -201,12 +214,14 @@ let ``should not split single parameter over multiple lines when it does not exc
 module Caching =
     type MainCache() =
         member __.RetrieveLastCompoundBalance (address: PublicAddress) (currency: Currency): NotFresh<decimal> =
-            lock cacheFiles.CachedNetworkData (fun _ ->
-                match balance with
-                | NotAvailable -> NotAvailable
-                | Cached (balance, time) ->
-                    if compoundBalance < 0.0m then ReportProblem compoundBalance
-                    ())
+            lock
+                cacheFiles.CachedNetworkData
+                (fun _ ->
+                    match balance with
+                    | NotAvailable -> NotAvailable
+                    | Cached (balance, time) ->
+                        if compoundBalance < 0.0m then ReportProblem compoundBalance
+                        ())
 
             ()
 """

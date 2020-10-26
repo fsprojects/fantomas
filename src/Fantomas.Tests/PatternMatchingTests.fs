@@ -199,8 +199,10 @@ with
     |> should equal """
 try
     fst
-        (find (fun (s, (s', ty): int * int) ->
-            s' = s0 && can (type_match ty ty0) []) (!the_interface))
+        (find
+            (fun (s, (s', ty): int * int) ->
+                s' = s0 && can (type_match ty ty0) [])
+            (!the_interface))
 with Failure _ -> s0
 """
 
@@ -283,9 +285,11 @@ let v =
     |> prepend newline
     |> should equal """
 let v =
-    List.tryPick (function
+    List.tryPick
+        (function
         | 1 -> Some 1
-        | _ -> None) [ 1; 2; 3 ]
+        | _ -> None)
+        [ 1; 2; 3 ]
 """
 
 [<Test>]
@@ -730,16 +734,17 @@ List.tryFind(fun { Type = t; Range = r }  ->
 """  config
     |> prepend newline
     |> should equal """
-List.tryFind (fun { Type = t; Range = r } ->
-    match t with
-    | MainNode SynMemberDefn_Member
-    | MainNode SynMemberSig_Member -> // trying to get AST trivia
-        RangeHelpers.``range contains`` r rangeOfBindingAndRhs
+List.tryFind
+    (fun { Type = t; Range = r } ->
+        match t with
+        | MainNode SynMemberDefn_Member
+        | MainNode SynMemberSig_Member -> // trying to get AST trivia
+            RangeHelpers.``range contains`` r rangeOfBindingAndRhs
 
-    | Token (MEMBER, _) -> // trying to get token trivia
-        r.StartLine = rangeOfBindingAndRhs.StartLine
+        | Token (MEMBER, _) -> // trying to get token trivia
+            r.StartLine = rangeOfBindingAndRhs.StartLine
 
-    | _ -> false)
+        | _ -> false)
 """
 
 [<Test>]
@@ -760,7 +765,8 @@ Seq.takeWhile
 """  config
     |> prepend newline
     |> should equal """
-Seq.takeWhile (function
+Seq.takeWhile
+    (function
     | Write ""
     // for example:
     // type Foo =

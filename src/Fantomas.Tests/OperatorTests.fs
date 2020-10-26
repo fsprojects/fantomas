@@ -241,11 +241,12 @@ let watchFiles =
         use _ =
             !!(serverPath </> "*.fs")
             ++ (serverPath </> "*.fsproj") // combines fs and fsproj
-            |> ChangeWatcher.run (fun changes ->
-                printfn "FILE CHANGE %A" changes
-                // stopFunc()
-                //Async.Start (startFunc())
-                )
+            |> ChangeWatcher.run
+                (fun changes ->
+                    printfn "FILE CHANGE %A" changes
+                    // stopFunc()
+                    //Async.Start (startFunc())
+                    )
 
         ()
     }
@@ -276,11 +277,12 @@ let watchFiles =
 
         use _ =
             !!(serverPath </> "*.fs") ++ "*.fsproj" // combines fs and fsproj
-            |> ChangeWatcher.run (fun changes ->
-                printfn "FILE CHANGE %A" changes
-                // stopFunc()
-                //Async.Start (startFunc())
-                )
+            |> ChangeWatcher.run
+                (fun changes ->
+                    printfn "FILE CHANGE %A" changes
+                    // stopFunc()
+                    //Async.Start (startFunc())
+                    )
 
         ()
     }
@@ -663,7 +665,8 @@ let shouldIncludeRelationship relName =
     |> should equal """
 let shouldIncludeRelationship relName =
     req.Includes
-    |> List.exists (fun path ->
-        path.Length >= currentIncludePath.Length + 1
-        && path |> List.take (currentIncludePath.Length + 1) = currentIncludePath @ [ relName ])
+    |> List.exists
+        (fun path ->
+            path.Length >= currentIncludePath.Length + 1
+            && path |> List.take (currentIncludePath.Length + 1) = currentIncludePath @ [ relName ])
 """
