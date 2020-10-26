@@ -1,3 +1,9 @@
+### 4.3.0-alpha-002 - 10/2020
+
+* Fix Incorrect formatting of function parameter application with lambdas. [#1201](https://github.com/fsprojects/fantomas/issues/1201)
+* Fix Lambda functions in fluent API calls should indent further. [#970](https://github.com/fsprojects/fantomas/issues/970)
+* Fix Hard to read code when using Thoth.Json. [#685](https://github.com/fsprojects/fantomas/issues/685)
+
 ### 4.3.0-alpha-001 - 10/2020
 
 * Disable Elmish syntax. [#1198](https://github.com/fsprojects/fantomas/issues/1198)
