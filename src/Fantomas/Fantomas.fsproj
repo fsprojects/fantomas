@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>4.3.0-alpha-001</Version>
+    <Version>4.3.0-alpha-002</Version>
     <Description>Source code formatter for F#</Description>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
   </PropertyGroup>
