@@ -136,9 +136,14 @@ let rec private getTokenizedHashes sourceCode =
         then processLine "#endif" trimmed lineNumber fullMatchedLength offset
         else []
 
-    let hasUnEvenAmount regex line =
-        (Regex.Matches(line, regex).Count
-         - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
+    let hasUnEvenAmount regex (line: string) =
+        let sanitizedLined = line.Replace("\"\\\\\"", String.Empty)
+        let regexMatches = Regex.Matches(sanitizedLined, regex)
+
+        let escapedBackslashMatches =
+            Regex.Matches(sanitizedLined, @"\\" + regex)
+
+        (regexMatches.Count - escapedBackslashMatches.Count) % 2 = 1
 
     let singleQuoteWrappedInTriple line =
         Regex

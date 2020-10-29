@@ -535,3 +535,16 @@ let a = \"\"\"\\\"\"\"
 "
 
     getDefines source == []
+
+[<Test>]
+let ``backslashes in strings prior to hash directives should not affect token parsing`` () =
+    let source = "
+let file =
+    System.IO.Path.Combine(contentDir,
+                           (n |> System.IO.Path.GetFileNameWithoutExtension)
+                           + \".md\").Replace(\"\\\\\", \"//\")
+
+#if WATCH
+#endif
+"
+    getDefines source == [ "WATCH" ]

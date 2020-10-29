@@ -1793,3 +1793,45 @@ let getDefaultProxyFor =
             | Some p -> if p.GetProxy uri <> uri then p else getDefault ()
             | None -> getDefault ())
 """
+
+[<Test>]
+let ``backslashes in strings prior to hash directives should not affect token parsing of those directives, 1205`` () =
+    formatSourceString false """
+let loadFile n =
+  let file =
+    System.IO.Path.Combine(contentDir,
+                           (n |> System.IO.Path.GetFileNameWithoutExtension)
+                           + ".md").Replace("\\", "/")
+
+  ()
+
+let loader (projectRoot: string) (siteContent: SiteContents) =
+#if WATCH
+  let disableLiveRefresh = false
+#else
+  let disableLiveRefresh = true
+#endif
+  disableLiveRefresh
+"""  config
+    |> prepend newline
+    |> should equal """
+let loadFile n =
+    let file =
+        System
+            .IO
+            .Path
+            .Combine(contentDir,
+                     (n |> System.IO.Path.GetFileNameWithoutExtension)
+                     + ".md")
+            .Replace("\\", "/")
+
+    ()
+
+let loader (projectRoot: string) (siteContent: SiteContents) =
+#if WATCH
+    let disableLiveRefresh = false
+#else
+    let disableLiveRefresh = true
+#endif
+    disableLiveRefresh
+"""
