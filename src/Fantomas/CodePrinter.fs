@@ -1357,11 +1357,25 @@ and genExpr astContext synExpr ctx =
             +> ifElse (hasParenthesis e) sepNone sepSpace
             +> genExpr astContext e
         | TypedExpr (Downcast, e, t) ->
-            genExpr astContext e -- " :?> "
-            +> genType astContext false t
+            let shortExpr =
+                genExpr astContext e -- " :?> "
+                +> genType astContext false t
+
+            let longExpr =
+                genExpr astContext e +> sepNln -- ":?> "
+                +> genType astContext false t
+
+            expressionFitsOnRestOfLine shortExpr longExpr
         | TypedExpr (Upcast, e, t) ->
-            genExpr astContext e -- " :> "
-            +> genType astContext false t
+            let shortExpr =
+                genExpr astContext e -- " :> "
+                +> genType astContext false t
+
+            let longExpr =
+                genExpr astContext e +> sepNln -- ":> "
+                +> genType astContext false t
+
+            expressionFitsOnRestOfLine shortExpr longExpr
         | TypedExpr (Typed, e, t) ->
             genExpr astContext e
             +> sepColon

@@ -79,6 +79,7 @@
     <Compile Include="NumberOfItemsMultilineInfixOperatorExpressionTests.fs" />
     <Compile Include="SynExprNewTests.fs" />
     <Compile Include="DisableElmishTests.fs" />
+    <Compile Include="CastTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
