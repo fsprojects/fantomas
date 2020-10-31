@@ -1519,7 +1519,8 @@ let sendPushNotifications =
                                     subscriptions
                                     s.Origin
                                     s.Endpoint
-                    } :> Task)
+                    }
+                    :> Task)
             |> Task.WhenAll)
 """
 
