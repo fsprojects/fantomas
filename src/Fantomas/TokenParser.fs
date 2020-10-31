@@ -198,18 +198,22 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
             let fullMatchedLength = String.length line
             let trimmed = line.TrimStart()
 
-            let offset =
-                String.length line - String.length trimmed
+            if trimmed.Contains("#") then
+                let offset =
+                    String.length line - String.length trimmed
 
-            if trimmed.StartsWith("#if")
-            then processLine "#if" trimmed lineNumber fullMatchedLength offset
-            elif trimmed.StartsWith("#elseif")
-            then processLine "#elseif" trimmed lineNumber fullMatchedLength offset
-            elif trimmed.StartsWith("#else")
-            then processLine "#else" trimmed lineNumber fullMatchedLength offset
-            elif trimmed.StartsWith("#endif")
-            then processLine "#endif" trimmed lineNumber fullMatchedLength offset
-            else []
+                if trimmed.StartsWith("#if") then
+                    processLine "#if" trimmed lineNumber fullMatchedLength offset
+                elif trimmed.StartsWith("#elseif") then
+                    processLine "#elseif" trimmed lineNumber fullMatchedLength offset
+                elif trimmed.StartsWith("#else") then
+                    processLine "#else" trimmed lineNumber fullMatchedLength offset
+                elif trimmed.StartsWith("#endif") then
+                    processLine "#endif" trimmed lineNumber fullMatchedLength offset
+                else
+                    []
+            else
+                []
 
         let sourceWithoutStrings = removeStringsIn sourceCode
 
