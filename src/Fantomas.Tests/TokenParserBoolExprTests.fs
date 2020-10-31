@@ -8,6 +8,9 @@ open Fantomas.TokenParserBoolExpr
 open Fantomas.Tests.TestHelper
 open FsCheck
 
+let getDefineExprs source =
+    String.normalizeNewLine source |> getDefineExprs
+
 [<Test>]
 let ``Get define exprs from complex statements`` () =
     let source = """

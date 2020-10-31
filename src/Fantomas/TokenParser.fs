@@ -126,7 +126,13 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
 
                 if idx < 2 then
                     match currentState with
-                    | Normal when (isDoubleQuoteChar zero) -> currentState <- InsideString
+                    | Normal when (isDoubleQuoteChar zero) ->
+                        // check if triple quotes
+                        if (idx + 2 < sourceLength)
+                           && (zero, source.[idx + 1], source.[idx + 2]) = tripleQuotes then
+                            currentState <- InsideTripleQuoteString idx
+                        else
+                            currentState <- InsideString
                     | Normal -> appendChar source.[idx]
                     | _ -> ()
 
