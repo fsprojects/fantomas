@@ -220,8 +220,7 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
         if not (sourceWithoutStrings.Contains("#")) then
             []
         else
-            sourceWithoutStrings
-            |> String.normalizeThenSplitNewLine
+            sourceWithoutStrings.Split('\n')
             |> Array.mapi findDefineInLine
             |> Array.toList
             |> List.concat
