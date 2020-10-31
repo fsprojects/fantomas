@@ -98,7 +98,9 @@ type SourceCodeState =
     | InsideTripleQuoteString of int
 
 let rec private getTokenizedHashes (sourceCode: string): Token list =
-    if not (sourceCode.Contains("#")) then
+    let hasNoHashDirectiveStart (source: string) = not (source.Contains("#if"))
+
+    if hasNoHashDirectiveStart sourceCode then
         []
     else
         let doubleQuoteChar = '"'
@@ -223,7 +225,7 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
 
         let sourceWithoutStrings = removeStringsIn sourceCode
 
-        if not (sourceWithoutStrings.Contains("#")) then
+        if hasNoHashDirectiveStart sourceWithoutStrings then
             []
         else
             sourceWithoutStrings.Split('\n')
