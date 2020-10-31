@@ -232,3 +232,23 @@ let ``newline in string`` () =
 
     List.length triviaNodes == 1
 """
+
+[<Test>]
+let ``double backslash in triple quote string`` () =
+    formatSourceString false "
+let a = \"\"\"\\\\\"\"\"
+"    config
+    |> prepend newline
+    |> should equal "
+let a = \"\"\"\\\\\"\"\"
+"
+
+[<Test>]
+let ``single string with compiler define`` () =
+    formatSourceString false """
+"#if FOO"
+"""  config
+    |> prepend newline
+    |> should equal """
+"#if FOO"
+"""

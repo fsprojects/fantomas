@@ -92,92 +92,135 @@ let private createHashToken lineNumber content fullMatchedLength offset =
             Tag = 0
             FullMatchedLength = fullMatchedLength } }
 
-type private SourceCodeState =
+type SourceCodeState =
     | Normal
-    | InsideSingleQuoteString
-    | InsideTripleQuoteString
+    | InsideString
+    | InsideTripleQuoteString of int
 
-let rec private getTokenizedHashes sourceCode =
-    let processLine content (trimmed: string) lineNumber fullMatchedLength offset =
-        let contentLength = String.length content
+let rec private getTokenizedHashes (sourceCode: string): Token list =
+    if not (sourceCode.Contains("#")) then
+        []
+    else
+        let doubleQuoteChar = '"'
+        let backSlashChar = '\\'
+        let isDoubleQuoteChar = (=) doubleQuoteChar
+        let isBackSlashChar = (=) backSlashChar
+        let isNoBackSlashChar v = v <> backSlashChar
 
-        let tokens =
-            tokenize [] (trimmed.Substring(contentLength))
+        let tripleQuotes =
+            (doubleQuoteChar, doubleQuoteChar, doubleQuoteChar)
 
-        tokens
-        |> List.map (fun t ->
-            let info =
-                { t.TokenInfo with
-                      LeftColumn = t.TokenInfo.LeftColumn + contentLength
-                      RightColumn = t.TokenInfo.RightColumn + contentLength }
+        // remove `"*"` and `"""*"""` in source code
+        let removeStringsIn (source: string) =
+            let sb = StringBuilder(source.Length)
+            let appendChar (v: char) = sb.Append(v) |> ignore
+            let sourceLength = String.length source
+            let lastIndex = sourceLength - 3
+            let mutable currentState = Normal
 
-            { t with
-                  LineNumber = lineNumber
-                  TokenInfo = info })
-        |> fun rest ->
-            (createHashToken lineNumber content fullMatchedLength offset)
-            :: rest
+            // Go over the source code char per char
+            // Detect when we are inside a string or triple quote string
+            // When not inside a string, collect the characters.
+            for idx in [ 0 .. (sourceLength - 1) ] do
+                let zero = source.[idx]
 
-    let findDefineInLine idx line =
-        let lineNumber = idx + 1
-        let fullMatchedLength = String.length line
-        let trimmed = line.TrimStart()
+                if idx < 2 then
+                    match currentState with
+                    | Normal when (isDoubleQuoteChar zero) -> currentState <- InsideString
+                    | Normal -> appendChar source.[idx]
+                    | _ -> ()
 
-        let offset =
-            String.length line - String.length trimmed
+                elif idx < lastIndex then
+                    let minusTwo = source.[idx - 2]
+                    let minusOne = source.[idx - 1]
+                    let plusOne = source.[idx + 1]
+                    let plusTwo = source.[idx + 2]
 
-        if trimmed.StartsWith("#if")
-        then processLine "#if" trimmed lineNumber fullMatchedLength offset
-        elif trimmed.StartsWith("#elseif")
-        then processLine "#elseif" trimmed lineNumber fullMatchedLength offset
-        elif trimmed.StartsWith("#else")
-        then processLine "#else" trimmed lineNumber fullMatchedLength offset
-        elif trimmed.StartsWith("#endif")
-        then processLine "#endif" trimmed lineNumber fullMatchedLength offset
-        else []
+                    match currentState with
+                    | Normal ->
+                        if (zero, plusOne, plusTwo) = tripleQuotes
+                        then currentState <- InsideTripleQuoteString idx
+                        elif zero = doubleQuoteChar
+                        then currentState <- InsideString
+                        else appendChar zero
 
-    let hasUnEvenAmount regex (line: string) =
-        let sanitizedLined = line.Replace("\"\\\\\"", String.Empty)
-        let regexMatches = Regex.Matches(sanitizedLined, regex)
+                    | InsideString ->
+                        if isDoubleQuoteChar zero then
+                            if isBackSlashChar minusOne
+                               && isNoBackSlashChar minusTwo then
+                                () // escaped quote
+                            else
+                                currentState <- Normal
 
-        let escapedBackslashMatches =
-            Regex.Matches(sanitizedLined, @"\\" + regex)
+                    | InsideTripleQuoteString startIndex ->
+                        if (startIndex + 2 < idx)
+                           && (minusTwo, minusOne, zero) = tripleQuotes then
+                            // check if there is no backslash before the first `"` of `"""`
+                            if (startIndex - 1) > 0 then
+                                let minusThree = source.[idx - 3]
+                                if isNoBackSlashChar minusThree then currentState <- Normal
+                            else
+                                currentState <- Normal
+                else
+                    match currentState with
+                    | Normal -> appendChar source.[idx]
+                    | _ -> ()
 
-        (regexMatches.Count - escapedBackslashMatches.Count) % 2 = 1
+            sb.ToString()
 
-    let singleQuoteWrappedInTriple line =
-        Regex
-            .Match(line, "\\\"\\\"\\\".*\\\".*\\\"\\\"\\\"")
-            .Success
+        let processLine (content: string)
+                        (trimmed: string)
+                        (lineNumber: int)
+                        (fullMatchedLength: int)
+                        (offset: int)
+                        : Token list =
+            let contentLength = String.length content
 
-    sourceCode
-    |> String.normalizeThenSplitNewLine
-    |> Array.indexed
-    |> Array.fold (fun (state, defines) (idx, line) ->
-        let hasTripleQuotes = hasUnEvenAmount "\"\"\"" line
+            let tokens =
+                tokenize [] (trimmed.Substring(contentLength))
 
-        let hasSingleQuote =
-            (not hasTripleQuotes)
-            && (hasUnEvenAmount "\"" line)
-            && not (singleQuoteWrappedInTriple line)
+            tokens
+            |> List.map (fun t ->
+                let info =
+                    { t.TokenInfo with
+                          LeftColumn = t.TokenInfo.LeftColumn + contentLength
+                          RightColumn = t.TokenInfo.RightColumn + contentLength }
 
-        match state with
-        | Normal when (hasTripleQuotes) -> InsideTripleQuoteString, defines
-        | Normal when (hasSingleQuote) -> InsideSingleQuoteString, defines
-        | Normal when (not hasTripleQuotes && not hasSingleQuote) -> Normal, (findDefineInLine idx line) :: defines
+                { t with
+                      LineNumber = lineNumber
+                      TokenInfo = info })
+            |> fun rest ->
+                (createHashToken lineNumber content fullMatchedLength offset)
+                :: rest
 
-        | InsideTripleQuoteString when (not hasTripleQuotes) -> InsideTripleQuoteString, defines
-        | InsideTripleQuoteString when hasTripleQuotes -> Normal, defines
+        let findDefineInLine (idx: int) (line: string): Token list =
+            let lineNumber = idx + 1
+            let fullMatchedLength = String.length line
+            let trimmed = line.TrimStart()
 
-        | InsideSingleQuoteString when (not hasSingleQuote) -> InsideSingleQuoteString, defines
-        | InsideSingleQuoteString when (hasSingleQuote) -> Normal, defines
+            let offset =
+                String.length line - String.length trimmed
 
-        | _ -> failwithf "unexpected %A" state
+            if trimmed.StartsWith("#if")
+            then processLine "#if" trimmed lineNumber fullMatchedLength offset
+            elif trimmed.StartsWith("#elseif")
+            then processLine "#elseif" trimmed lineNumber fullMatchedLength offset
+            elif trimmed.StartsWith("#else")
+            then processLine "#else" trimmed lineNumber fullMatchedLength offset
+            elif trimmed.StartsWith("#endif")
+            then processLine "#endif" trimmed lineNumber fullMatchedLength offset
+            else []
 
-        ) (Normal, [])
-    |> snd
-    |> List.rev
-    |> List.concat
+        let sourceWithoutStrings = removeStringsIn sourceCode
+
+        if not (sourceWithoutStrings.Contains("#")) then
+            []
+        else
+            sourceWithoutStrings
+            |> String.normalizeThenSplitNewLine
+            |> Array.mapi findDefineInLine
+            |> Array.toList
+            |> List.concat
 
 and tokenize defines (content: string): Token list =
     let sourceTokenizer =
