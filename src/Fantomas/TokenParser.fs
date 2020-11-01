@@ -199,7 +199,6 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
                 elif trimmed.StartsWith("#endif")
                 then defines.Add(processLine "#endif" trimmed lineNumber offset)
 
-
         for idx in [ 0 .. lastIndex ] do
             let zero = sourceCode.[idx]
             let plusOne = sourceCode.[idx + 1]
