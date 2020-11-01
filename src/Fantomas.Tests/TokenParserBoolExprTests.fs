@@ -9,7 +9,10 @@ open Fantomas.Tests.TestHelper
 open FsCheck
 
 let getDefineExprs source =
-    String.normalizeNewLine source |> getDefineExprs
+    String.normalizeNewLine source
+    |> TokenParser.getDefines
+    |> snd
+    |> getDefineExprs
 
 [<Test>]
 let ``Get define exprs from complex statements`` () =
@@ -245,8 +248,9 @@ let ``Hash ifs optimize defines property`` () =
                Arbitrary = [ typeof<BoolExprGenerator> ] },
          (fun es ->
              let source = boolExprsToSource es
-             let allDefines = getDefines source
-             let defines = getOptimizedDefinesSets source
+             let _, hashTokens = getDefines source
+             let allDefines = getDefinesWords hashTokens
+             let defines = getOptimizedDefinesSets hashTokens
 
              let definesToLiterals ds =
                  let s = set ds

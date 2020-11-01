@@ -170,7 +170,7 @@ type internal Context =
           TriviaTokenNodes = Map.empty
           RecordBraceStart = [] }
 
-    static member Create config defines (content: string) maybeAst =
+    static member Create config defines (hashTokens: Token list) (content: string) maybeAst =
         let content = String.normalizeNewLine content
 
         let positions =
@@ -179,7 +179,8 @@ type internal Context =
             |> Seq.scan (+) 0
             |> Seq.toArray
 
-        let tokens = TokenParser.tokenize defines content
+        let tokens =
+            TokenParser.tokenize defines hashTokens content
 
         let trivia =
             match maybeAst, config.StrictMode with

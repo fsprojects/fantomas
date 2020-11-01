@@ -134,7 +134,7 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
                 let defineExpressionWithHash = lineContent.Substring(hashContentLength)
 
                 if String.isNotNullOrEmpty defineExpressionWithHash
-                then tokenize [] defineExpressionWithHash
+                then tokenize [] [] defineExpressionWithHash
                 else []
 
             tokens
@@ -272,7 +272,7 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
 
         defines |> Seq.collect id |> Seq.toList
 
-and tokenize defines (content: string): Token list =
+and tokenize defines (hashTokens: Token list) (content: string): Token list =
     let sourceTokenizer =
         FSharpSourceTokenizer(defines, Some "/tmp.fsx")
 
@@ -290,11 +290,9 @@ and tokenize defines (content: string): Token list =
         |> List.distinct
 
     let combined =
-        if content.Contains("#") then
-            let hashes = getTokenizedHashes content
-
+        if List.isNotEmpty hashTokens then
             let filteredHashes =
-                hashes
+                hashTokens
                 |> List.filter (fun t -> not (List.contains t.LineNumber existingLines))
             // filter hashes that are present in source code parsed by the Tokenizer.
             tokens @ filteredHashes
@@ -304,13 +302,13 @@ and tokenize defines (content: string): Token list =
 
     combined
 
-let getDefines sourceCode =
-    getTokenizedHashes sourceCode
+let getDefinesWords (tokens: Token list) =
+    tokens
     |> List.filter (fun { TokenInfo = { TokenName = tn } } -> tn = "IDENT")
     |> List.map (fun t -> t.Content)
     |> List.distinct
 
-let getDefineExprs sourceCode =
+let getDefineExprs (hashTokens: Token list) =
     let parseHashContent tokens =
         let allowedContent = set [ "||"; "&&"; "!"; "("; ")" ]
 
@@ -322,10 +320,8 @@ let getDefineExprs sourceCode =
         |> Seq.toList
         |> BoolExprParser.parse
 
-    let tokens = getTokenizedHashes sourceCode
-
     let tokensByLine =
-        tokens
+        hashTokens
         |> List.groupBy (fun t -> t.LineNumber)
         |> List.sortBy fst
 
@@ -358,14 +354,23 @@ let getDefineExprs sourceCode =
 
     result
 
-let getOptimizedDefinesSets sourceCode =
+let internal getOptimizedDefinesSets (hashTokens: Token list) =
     let maxSteps = FormatConfig.satSolveMaxStepsMaxSteps
 
-    match getDefineExprs sourceCode
+    match getDefineExprs hashTokens
           |> BoolExpr.mergeBoolExprs maxSteps
           |> List.map snd with
     | [] -> [ [] ]
     | xs -> xs
+
+let getDefines sourceCode =
+    let hashTokens = getTokenizedHashes sourceCode
+
+    let defineCombinations =
+        getOptimizedDefinesSets hashTokens @ (getDefinesWords  hashTokens |> List.map List.singleton) @ [ [] ]
+        |> List.distinct
+
+    defineCombinations, hashTokens
 
 let private getRangeBetween name startToken endToken =
     let l = startToken.TokenInfo.LeftColumn
