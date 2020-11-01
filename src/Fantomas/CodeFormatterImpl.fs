@@ -19,7 +19,7 @@ open System.IO
 
 let private getSourceString (source: SourceOrigin) =
     match source with
-    | SourceString s -> s
+    | SourceString s -> String.normalizeNewLine s
     | SourceText sourceText ->
         let totalLines = sourceText.GetLineCount()
 

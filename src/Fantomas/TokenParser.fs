@@ -77,7 +77,7 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
         (nextState, allTokens)) (state, []) // empty tokens to start with
     |> snd // ignore the state
 
-let private createHashToken lineNumber content fullMatchedLength offset =
+let private createHashToken lineNumber content offset =
     let (left, right) = offset, String.length content + offset
 
     { LineNumber = lineNumber
@@ -90,12 +90,13 @@ let private createHashToken lineNumber content fullMatchedLength offset =
             CharClass = FSharpTokenCharKind.WhiteSpace
             FSharpTokenTriggerClass = FSharpTokenTriggerClass.None
             Tag = 0
-            FullMatchedLength = fullMatchedLength } }
+            FullMatchedLength = String.length content } }
 
 type SourceCodeState =
     | Normal
     | InsideString
     | InsideTripleQuoteString of int
+    | InsideMultilineComment
 
 let rec private getTokenizedHashes (sourceCode: string): Token list =
     let hasNoHashDirectiveStart (source: string) = not (source.Contains("#if"))
@@ -105,6 +106,12 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
     else
         let doubleQuoteChar = '"'
         let backSlashChar = '\\'
+        let openParenChar = '('
+        let closeParenChar = ')'
+        let asteriskChar = '*'
+        let newlineChar = '\n'
+        let hashChar = '#'
+        let spaceChar = ' '
         let isDoubleQuoteChar = (=) doubleQuoteChar
         let isBackSlashChar = (=) backSlashChar
         let isNoBackSlashChar v = v <> backSlashChar
@@ -112,126 +119,159 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
         let tripleQuotes =
             (doubleQuoteChar, doubleQuoteChar, doubleQuoteChar)
 
-        // remove `"*"` and `"""*"""` in source code
-        let removeStringsIn (source: string) =
-            let sb = StringBuilder(source.Length)
-            let appendChar (v: char) = sb.Append(v) |> ignore
-            let sourceLength = String.length source
-            let lastIndex = sourceLength - 3
-            let mutable currentState = Normal
+        let isOpenParenChar = (=) openParenChar
+        let isAsteriskChar = (=) asteriskChar
+        let isNoCloseParenChar v = v <> closeParenChar
+        let isCloseParenChar = (=) closeParenChar
+        let isNewlineChar = (=) newlineChar
+        let isHashChar = (=) hashChar
+        let isSpace = (=) spaceChar
 
-            // Go over the source code char per char
-            // Detect when we are inside a string or triple quote string
-            // When not inside a string, collect the characters.
-            for idx in [ 0 .. (sourceLength - 1) ] do
-                let zero = source.[idx]
-
-                if idx < 2 then
-                    match currentState with
-                    | Normal when (isDoubleQuoteChar zero) ->
-                        // check if triple quotes
-                        if (idx + 2 < sourceLength)
-                           && (zero, source.[idx + 1], source.[idx + 2]) = tripleQuotes then
-                            currentState <- InsideTripleQuoteString idx
-                        else
-                            currentState <- InsideString
-                    | Normal -> appendChar source.[idx]
-                    | _ -> ()
-
-                elif idx < lastIndex then
-                    let minusTwo = source.[idx - 2]
-                    let minusOne = source.[idx - 1]
-                    let plusOne = source.[idx + 1]
-                    let plusTwo = source.[idx + 2]
-
-                    match currentState with
-                    | Normal ->
-                        if (zero, plusOne, plusTwo) = tripleQuotes
-                        then currentState <- InsideTripleQuoteString idx
-                        elif zero = doubleQuoteChar
-                        then currentState <- InsideString
-                        else appendChar zero
-
-                    | InsideString ->
-                        if isDoubleQuoteChar zero then
-                            if isBackSlashChar minusOne
-                               && isNoBackSlashChar minusTwo then
-                                () // escaped quote
-                            else
-                                currentState <- Normal
-
-                    | InsideTripleQuoteString startIndex ->
-                        if (startIndex + 2 < idx)
-                           && (minusTwo, minusOne, zero) = tripleQuotes then
-                            // check if there is no backslash before the first `"` of `"""`
-                            if (startIndex - 1) > 0 then
-                                let minusThree = source.[idx - 3]
-                                if isNoBackSlashChar minusThree then currentState <- Normal
-                            else
-                                currentState <- Normal
-                else
-                    match currentState with
-                    | Normal -> appendChar source.[idx]
-                    | _ -> ()
-
-            sb.ToString()
-
-        let processLine (content: string)
-                        (trimmed: string)
-                        (lineNumber: int)
-                        (fullMatchedLength: int)
-                        (offset: int)
-                        : Token list =
-            let contentLength = String.length content
+        let processLine (hashContent: string) (lineContent: string) (lineNumber: int) (offset: int): Token list =
+            let hashContentLength = String.length hashContent
 
             let tokens =
-                tokenize [] (trimmed.Substring(contentLength))
+                let defineExpressionWithHash = lineContent.Substring(hashContentLength)
+
+                if String.isNotNullOrEmpty defineExpressionWithHash
+                then tokenize [] defineExpressionWithHash
+                else []
 
             tokens
             |> List.map (fun t ->
                 let info =
                     { t.TokenInfo with
-                          LeftColumn = t.TokenInfo.LeftColumn + contentLength
-                          RightColumn = t.TokenInfo.RightColumn + contentLength }
+                          LeftColumn = t.TokenInfo.LeftColumn + hashContentLength
+                          RightColumn = t.TokenInfo.RightColumn + hashContentLength }
 
                 { t with
                       LineNumber = lineNumber
                       TokenInfo = info })
             |> fun rest ->
-                (createHashToken lineNumber content fullMatchedLength offset)
+                (createHashToken lineNumber hashContent offset)
                 :: rest
 
-        let findDefineInLine (idx: int) (line: string): Token list =
-            let lineNumber = idx + 1
-            let fullMatchedLength = String.length line
-            let trimmed = line.TrimStart()
+        let sourceLength = String.length sourceCode
+        let lastIndex = sourceLength - 3
+        let defines = ResizeArray()
+        let mutable currentState = Normal
+        let mutable newlineIndexes = ResizeArray()
 
-            if trimmed.Contains("#") then
+        // check if the current # char is part of an define expression
+        // if so add to defines
+        let captureHashDefine idx =
+            let lastNewlineIdx =
+                Seq.tryLast newlineIndexes
+                |> Option.defaultValue -1
+
+            let leadingCharactersBeforeLastNewlineAreSpaces =
+                let take = Math.Max(idx - lastNewlineIdx - 1, 0)
+
+                sourceCode
+                |> Seq.skip (lastNewlineIdx + 1)
+                |> Seq.take take
+                |> Seq.forall isSpace
+
+            if leadingCharactersBeforeLastNewlineAreSpaces then
+                let skip =
+                    if lastNewlineIdx = -1 then 0 else lastNewlineIdx + 1 // zero when the source starts with an #
+
+                let currentLine =
+                    sourceCode
+                    |> Seq.skip skip
+                    |> Seq.takeWhile (isNewlineChar >> not)
+                    |> Seq.toArray
+                    |> fun chars -> new string(chars)
+
+                let trimmed = currentLine.TrimStart()
+
                 let offset =
-                    String.length line - String.length trimmed
+                    (String.length currentLine - String.length trimmed)
 
-                if trimmed.StartsWith("#if") then
-                    processLine "#if" trimmed lineNumber fullMatchedLength offset
-                elif trimmed.StartsWith("#elseif") then
-                    processLine "#elseif" trimmed lineNumber fullMatchedLength offset
-                elif trimmed.StartsWith("#else") then
-                    processLine "#else" trimmed lineNumber fullMatchedLength offset
-                elif trimmed.StartsWith("#endif") then
-                    processLine "#endif" trimmed lineNumber fullMatchedLength offset
-                else
-                    []
+                let lineNumber = Seq.length newlineIndexes + 1 // line numbers are 1 based.
+
+                if trimmed.StartsWith("#if")
+                then defines.Add(processLine "#if" trimmed lineNumber offset)
+                elif trimmed.StartsWith("#elseif")
+                then defines.Add(processLine "#elseif" trimmed lineNumber offset)
+                elif trimmed.StartsWith("#else")
+                then defines.Add(processLine "#else" trimmed lineNumber offset)
+                elif trimmed.StartsWith("#endif")
+                then defines.Add(processLine "#endif" trimmed lineNumber offset)
+
+
+        for idx in [ 0 .. lastIndex ] do
+            let zero = sourceCode.[idx]
+            let plusOne = sourceCode.[idx + 1]
+            let plusTwo = sourceCode.[idx + 2]
+
+            // No logic needed for the multiline strings as they cannot be detected yet
+            if idx < 2 then
+                match currentState with
+                | Normal when (isDoubleQuoteChar zero) ->
+                    if (zero, plusOne, plusTwo) = tripleQuotes
+                    then currentState <- InsideTripleQuoteString idx
+                    else currentState <- InsideString
+                | Normal when (isOpenParenChar zero && sourceLength > 3) ->
+
+                    if isAsteriskChar plusOne
+                       && isNoCloseParenChar plusTwo then
+                        currentState <- InsideMultilineComment
+                | Normal when (isNewlineChar zero) -> newlineIndexes.Add(idx)
+                | Normal when (isHashChar zero) -> captureHashDefine idx
+                | _ -> ()
+
+            elif idx < lastIndex then
+                let minusTwo = sourceCode.[idx - 2]
+                let minusOne = sourceCode.[idx - 1]
+
+                match currentState with
+                | Normal ->
+                    if (zero, plusOne, plusTwo) = tripleQuotes then
+                        currentState <- InsideTripleQuoteString idx
+                    elif isDoubleQuoteChar zero then
+                        currentState <- InsideString
+                    elif isOpenParenChar zero
+                         && isAsteriskChar plusOne
+                         && isNoCloseParenChar plusTwo then
+                        currentState <- InsideMultilineComment
+                    elif isNewlineChar zero then
+                        newlineIndexes.Add(idx)
+                    elif isHashChar zero then
+                        captureHashDefine idx
+
+
+                | InsideString ->
+                    if isNewlineChar zero then
+                        newlineIndexes.Add(idx)
+                    elif isDoubleQuoteChar zero then
+                        if isBackSlashChar minusOne
+                           && isNoBackSlashChar minusTwo then
+                            () // escaped quote
+                        else
+                            currentState <- Normal
+
+
+                | InsideTripleQuoteString startIndex ->
+                    if isNewlineChar zero then
+                        newlineIndexes.Add(idx)
+                    elif (startIndex + 2 < idx)
+                         && (minusTwo, minusOne, zero) = tripleQuotes then
+                        // check if there is no backslash before the first `"`
+                        if (startIndex - 1) > 0 then
+                            let minusThree = sourceCode.[idx - 3]
+                            if isNoBackSlashChar minusThree then currentState <- Normal
+                        else
+                            currentState <- Normal
+
+
+                | InsideMultilineComment ->
+                    if isNewlineChar zero then newlineIndexes.Add(idx)
+                    elif isAsteriskChar minusOne && isCloseParenChar zero then currentState <- Normal
             else
-                []
+                ()
 
-        let sourceWithoutStrings = removeStringsIn sourceCode
-
-        if hasNoHashDirectiveStart sourceWithoutStrings then
-            []
-        else
-            sourceWithoutStrings.Split('\n')
-            |> Array.mapi findDefineInLine
-            |> Array.toList
-            |> List.concat
+        defines |> Seq.collect id |> Seq.toList
 
 and tokenize defines (content: string): Token list =
     let sourceTokenizer =
