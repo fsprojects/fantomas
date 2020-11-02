@@ -989,3 +989,72 @@ let foo result total =
     then total // and another one
     else result
 """
+
+[<Test>]
+let ``if/then/elif without else, 1211`` () =
+    formatSourceString false """
+let a =
+        // check if the current # char is part of an define expression
+        // if so add to defines
+        let captureHashDefine idx =
+                if trimmed.StartsWith("#if")
+                then defines.Add(processLine "#if" trimmed lineNumber offset)
+                elif trimmed.StartsWith("#elseif")
+                then defines.Add(processLine "#elseif" trimmed lineNumber offset)
+                elif trimmed.StartsWith("#else")
+                then defines.Add(processLine "#else" trimmed lineNumber offset)
+                elif trimmed.StartsWith("#endif")
+                then defines.Add(processLine "#endif" trimmed lineNumber offset)
+
+        for idx in [ 0 .. lastIndex ] do
+            let zero = sourceCode.[idx]
+            let plusOne = sourceCode.[idx + 1]
+            let plusTwo = sourceCode.[idx + 2]
+            ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    // check if the current # char is part of an define expression
+    // if so add to defines
+    let captureHashDefine idx =
+        if trimmed.StartsWith("#if")
+        then defines.Add(processLine "#if" trimmed lineNumber offset)
+        elif trimmed.StartsWith("#elseif")
+        then defines.Add(processLine "#elseif" trimmed lineNumber offset)
+        elif trimmed.StartsWith("#else")
+        then defines.Add(processLine "#else" trimmed lineNumber offset)
+        elif trimmed.StartsWith("#endif")
+        then defines.Add(processLine "#endif" trimmed lineNumber offset)
+
+    for idx in [ 0 .. lastIndex ] do
+        let zero = sourceCode.[idx]
+        let plusOne = sourceCode.[idx + 1]
+        let plusTwo = sourceCode.[idx + 2]
+        ()
+"""
+
+[<Test>]
+let ``multiline if/then/elif without else, 1187`` () =
+    formatSourceString false """
+let fn () =
+    if true then
+        DoSomething ()
+        DoSomethingElse()
+    elif shouldWe then
+        Whatever()
+
+let  nextfunc () =
+    printf "Hi"
+"""  config
+    |> prepend newline
+    |> should equal """
+let fn () =
+    if true then
+        DoSomething()
+        DoSomethingElse()
+    elif shouldWe then
+        Whatever()
+
+let nextfunc () = printf "Hi"
+"""
