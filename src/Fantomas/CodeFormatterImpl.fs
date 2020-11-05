@@ -355,8 +355,7 @@ let isValidFSharpCode (checker: FSharpChecker) (parsingOptions: FSharpParsingOpt
 
             let isValid =
                 ast
-                |> Array.map (fun (a, _, _) -> a)
-                |> Array.forall isValidAST
+                |> Array.forall (fun (a, _, _) -> isValidAST a)
 
             return isValid
         with _ -> return false
@@ -366,14 +365,14 @@ let formatWith ast defines hashTokens formatContext config =
     let moduleName =
         Path.GetFileNameWithoutExtension formatContext.FileName
 
-    let sourceCode, hasInput =
+    let sourceCodeOrEmptyString =
         if String.IsNullOrWhiteSpace formatContext.Source
-        then String.Empty, false
-        else formatContext.Source, true
+        then String.Empty
+        else formatContext.Source
 
     let formattedSourceCode =
         let context =
-            Context.Context.Create config defines hashTokens sourceCode (Some ast)
+            Context.Context.Create config defines hashTokens sourceCodeOrEmptyString (Some ast)
 
         context
         |> genParsedInput
@@ -382,19 +381,8 @@ let formatWith ast defines hashTokens formatContext config =
                ast
         |> Dbg.tee (fun ctx -> printfn "%A" ctx.WriterEvents)
         |> Context.dump
-    //        |> if config.StrictMode then id
-//           else integrateComments config formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode
 
-    // Sometimes F# parser gives a partial AST for incorrect input
-    if hasInput
-       && String.IsNullOrWhiteSpace sourceCode
-          <> String.IsNullOrWhiteSpace formattedSourceCode then
-        raise
-        <| FormatException
-            "Incomplete code fragment which is most likely due to parsing errors or the use of F# constructs newer than supported."
-    else
-        formattedSourceCode
-
+    formattedSourceCode
     |> String.removeTrailingSpaces
 
 let format (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) config formatContext =
