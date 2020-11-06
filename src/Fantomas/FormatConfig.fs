@@ -62,6 +62,7 @@ type FormatConfig =
       SingleArgumentWebMode: bool
       AlignFunctionSignatureToIndentation: bool
       AlternativeLongMemberDefinitions: bool
+      AlternativeMultilineLambda: bool
       DisableElmishSyntax: bool
       /// Pretty printing based on ASTs only
       StrictMode: bool }
@@ -101,5 +102,6 @@ type FormatConfig =
           SingleArgumentWebMode = false
           AlignFunctionSignatureToIndentation = false
           AlternativeLongMemberDefinitions = false
+          AlternativeMultilineLambda = false
           DisableElmishSyntax = false
           StrictMode = false }
