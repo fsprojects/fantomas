@@ -1,6 +1,5 @@
 module internal Fantomas.TokenParser
 
-open System.Text.RegularExpressions
 open FSharp.Compiler.AbstractIL.Internal.Library
 open System
 open System.Text
