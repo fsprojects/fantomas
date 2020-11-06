@@ -1971,53 +1971,7 @@ and genExpr astContext synExpr ctx =
             expressionFitsOnRestOfLine shortExpression longExpression
 
         // Always spacing in multiple arguments
-        | App (e, es) ->
-            let shortExpression =
-                let addFirstSpace =
-                    ifElseCtx (fun ctx ->
-                        match es with
-                        | [] -> false
-                        | [ h ]
-                        | h :: _ ->
-                            not
-                                (astContext.IsInsideDotGet
-                                 || astContext.IsInsideDotIndexed)
-                            && addSpaceBeforeParensInFunCall e h ctx) sepSpace sepNone
-
-                let addSpace = indentIfNeeded sepSpace
-
-                let genEx e =
-                    if isCompExpr e then
-                        sepSpace
-                        +> sepOpenSFixed
-                        +> sepSpace
-                        +> indent
-                        +> appNlnFun e (genExpr astContext e)
-                        +> unindent
-                    else
-                        genExpr astContext e
-
-                atCurrentColumn
-                    (genExpr astContext e
-                     +> addFirstSpace
-                     +> col addSpace es genEx)
-
-            let longExpression =
-                atCurrentColumn
-                    (genExpr astContext e
-                     +> indent
-                     +> sepNln
-                     +> col sepNln es (fun e -> genExpr astContext e)
-                     +> unindent)
-
-            if List.exists (function
-                | MultilineString _
-                | CompExpr _ -> true
-                | _ -> false) es then
-                shortExpression
-            else
-                expressionFitsOnRestOfLine shortExpression longExpression
-
+        | App (e, es) -> genApp appNlnFun astContext e es
         | TypeApp (e, ts) ->
             genExpr astContext e
             +> genGenericTypeParameters astContext ts
@@ -3040,6 +2994,53 @@ and genIndexers astContext node =
         genSingle astContext fromEnd eo
         +> genRest astContext es
     | _ -> sepNone
+
+and genApp appNlnFun astContext e es =
+    let shortExpression =
+        let addFirstSpace =
+            ifElseCtx (fun ctx ->
+                match es with
+                | [] -> false
+                | [ h ]
+                | h :: _ ->
+                    not
+                        (astContext.IsInsideDotGet
+                         || astContext.IsInsideDotIndexed)
+                    && addSpaceBeforeParensInFunCall e h ctx) sepSpace sepNone
+
+        let addSpace = indentIfNeeded sepSpace
+
+        let genEx e =
+            if isCompExpr e then
+                sepSpace
+                +> sepOpenSFixed
+                +> sepSpace
+                +> indent
+                +> appNlnFun e (genExpr astContext e)
+                +> unindent
+            else
+                genExpr astContext e
+
+        atCurrentColumn
+            (genExpr astContext e
+             +> addFirstSpace
+             +> col addSpace es genEx)
+
+    let longExpression =
+        atCurrentColumn
+            (genExpr astContext e
+             +> indent
+             +> sepNln
+             +> col sepNln es (genExpr astContext)
+             +> unindent)
+
+    if List.exists (function
+        | MultilineString _
+        | CompExpr _ -> true
+        | _ -> false) es then
+        shortExpression
+    else
+        expressionFitsOnRestOfLine shortExpression longExpression
 
 and sepNlnBetweenTypeAndMembers (ms: SynMemberDefn list) =
     sepNlnTypeAndMembers (List.tryHead ms |> Option.map (fun e -> e.Range)) SynMemberDefn_Member
