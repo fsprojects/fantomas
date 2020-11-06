@@ -2428,8 +2428,11 @@ and genExpr astContext synExpr ctx =
                         +> genThen synExpr.Range
                         +> genExpr astContext e2
                         +> sepNln
-                        +> colPost sepNln sepNln elfis genElifTwoLiner
-                        +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
+                        +> col sepNln elfis genElifTwoLiner
+                        +> opt id enOpt (fun e4 ->
+                               onlyIf (List.isNotEmpty elfis) sepNln
+                               +> genElse synExpr.Range
+                               +> genExpr astContext e4)
 
                     elif hasElfis
                          && not isAnyExpressionIsMultiline
@@ -2518,14 +2521,15 @@ and genExpr astContext synExpr ctx =
                         +> genExpr astContext e2
                         +> unindent
                         +> sepNln
-                        +> colPost sepNln sepNln elfis genElifMultiLine
+                        +> col sepNln elfis genElifMultiLine
                         +> opt id enOpt (fun e4 ->
                                let correctedElseRange =
                                    match List.tryLast elfis with
                                    | Some (_, te, _) -> mkRange "correctedElseRange" te.Range.End synExpr.Range.End
                                    | None -> synExpr.Range
 
-                               genElse correctedElseRange
+                               onlyIf (List.isNotEmpty elfis) sepNln
+                               +> genElse correctedElseRange
                                +> indent
                                +> sepNln
                                +> genExpr astContext e4
