@@ -18,11 +18,13 @@ List.collect (fun (a, element) ->
 
     innerFunc<'a, 'b>
         path'
-        element
+        elementNameThatHasThisRatherLongVariableNameToForceTheWholeThingOnMultipleLines
         (foo >> bar value >> List.item a)
         shape
 )
-"""  config
+"""
+        { config with
+              MaxInfixOperatorExpression = 35 }
     |> prepend newline
     |> should equal """
 List.collect (fun (a, element) ->
@@ -32,7 +34,7 @@ List.collect (fun (a, element) ->
 
     innerFunc<'a, 'b>
         path'
-        element
+        elementNameThatHasThisRatherLongVariableNameToForceTheWholeThingOnMultipleLines
         (foo >> bar value >> List.item a)
         shape
 )
@@ -52,7 +54,7 @@ let mySuperFunction a =
 let mySuperFunction a =
     someOtherFunction a (fun b ->
         // doing some stuff her
-       b * b
+        b * b
     )
 """
 
@@ -70,7 +72,7 @@ let mySuperFunction a =
 let mySuperFunction a =
     someOtherFunction (fun b ->
         // doing some stuff her
-       b * b
+        b * b
     ) a
 """
 
@@ -88,10 +90,10 @@ let printListWithOffset a list1 =
     |> prepend newline
     |> should equal """
 let printListWithOffset a list1 =
-    List.iter (
-        ((+) a)
-        >> printfn "%d"
-    ) list1
+    List.iter
+        (((+) a)
+         >> printfn "%d")
+        list1
 """
 
 [<Test>]
@@ -106,7 +108,7 @@ let printListWithOffset a list1 =
     |> prepend newline
     |> should equal """
 let printListWithOffset a list1 =
-    List.iter(fun { ItemOne = a } ->
+    List.iter (fun { ItemOne = a } ->
         // print
         printfn "%s" a
     ) list1
@@ -130,7 +132,7 @@ let mySuperFunction v =
     |> should equal """
 let mySuperFunction v =
     someOtherFunction
-        (fun  a  ->
+        (fun a ->
             let meh = "foo"
             a
         )
@@ -140,3 +142,135 @@ let mySuperFunction v =
         )
         v
 """
+
+[<Test>]
+let ``multiple multiline desugared lambdas`` () =
+    formatSourceString false """
+let myTopLevelFunction v =
+    someOtherFunction (fun { A = a }  ->
+        let meh = "foo"
+        a
+     ) (fun ({ B = b }) ->
+        // probably wrong
+        42
+     ) v
+"""  config
+    |> prepend newline
+    |> should equal """
+let myTopLevelFunction v =
+    someOtherFunction
+        (fun { A = a } ->
+            let meh = "foo"
+            a
+        )
+        (fun { B = b } ->
+            // probably wrong
+            42
+        )
+        v
+"""
+
+[<Test>]
+let ``lambda after pipe operator`` () =
+    formatSourceString false """
+let printListWithOffset a list1 =
+    list1
+    |> List.iter (fun elem ->
+        // print stuff
+        printfn "%d" (a + elem)
+    )
+
+let printListWithOffset a list1 =
+    list1
+    |> List.iter (
+        ((+) a)
+        >> printfn "%d"
+    )
+"""
+        { config with
+              MaxInfixOperatorExpression = 10 }
+    |> prepend newline
+    |> should equal """
+let printListWithOffset a list1 =
+    list1
+    |> List.iter (fun elem ->
+        // print stuff
+        printfn "%d" (a + elem)
+    )
+
+let printListWithOffset a list1 =
+    list1
+    |> List.iter (
+        ((+) a)
+        >> printfn "%d"
+    )
+"""
+
+[<Test>]
+let ``custom infix operator with multiline lambda`` () =
+    formatSourceString false """
+let expr =
+    genExpr astContext e
+    +> col
+        sepSpace
+        es
+        (fun e ->
+            match e with
+            | Paren (_, Lambda _, _) -> !- "lambda"
+            | _ -> genExpr astContext e)
+"""  config
+    |> prepend newline
+    |> should equal """
+let expr =
+    genExpr astContext e
+    +> col sepSpace es (fun e ->
+        match e with
+        | Paren (_, Lambda _, _) -> !- "lambda"
+        | _ -> genExpr astContext e
+    )
+"""
+
+[<Test>]
+let ``multiline infix operator samples`` () =
+    formatSourceString false """
+let printListWithOffset a list1 =
+    list1
+    |> List.iter (
+        ((+) veryVeryVeryVeryVeryVeryVeryVeryVeryLongThing)
+        >> printfn "%d"
+    )
+
+let printListWithOffset' a list1 =
+    list1
+    |> List.iter (((+) a) >> printfn "%d")
+
+let foldList a list1 =
+    list1
+    |> List.fold (((+) a) >> printfn "%d") someVeryLongAccumulatorNameThatMakesTheWholeConstructMultilineBecauseOfTheLongName
+"""
+        { config with
+              MaxInfixOperatorExpression = 35 }
+    |> prepend newline
+    |> should equal """
+let printListWithOffset a list1 =
+    list1
+    |> List.iter (
+        ((+) veryVeryVeryVeryVeryVeryVeryVeryVeryLongThing)
+        >> printfn "%d"
+    )
+
+let printListWithOffset' a list1 =
+    list1
+    |> List.iter (((+) a) >> printfn "%d")
+
+let foldList a list1 =
+    list1
+    |> List.fold
+        (((+) a) >> printfn "%d")
+        someVeryLongAccumulatorNameThatMakesTheWholeConstructMultilineBecauseOfTheLongName
+"""
+
+
+// TODO:
+// - fsharp_space_before_lowercase_invocation
+// - fsharp_space_before_uppercase_invocation
