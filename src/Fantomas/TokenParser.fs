@@ -95,8 +95,13 @@ let private createHashToken lineNumber content offset =
 type SourceCodeState =
     | Normal
     | InsideString
-    | InsideTripleQuoteString of int
+    | InsideTripleQuoteString of startIndex: int
     | InsideMultilineComment
+
+type SourceCodeParserState =
+    { State: SourceCodeState
+      NewlineIndexes: int list
+      Defines: (Token list) list }
 
 let rec private getTokenizedHashes (sourceCode: string): Token list =
     let hasNoHashDirectiveStart (source: string) = not (source.Contains("#if"))
@@ -104,28 +109,25 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
     if hasNoHashDirectiveStart sourceCode then
         []
     else
-        let doubleQuoteChar = '"'
-        let backSlashChar = '\\'
-        let openParenChar = '('
-        let closeParenChar = ')'
-        let asteriskChar = '*'
-        let newlineChar = '\n'
-        let hashChar = '#'
-        let spaceChar = ' '
-        let isDoubleQuoteChar = (=) doubleQuoteChar
-        let isBackSlashChar = (=) backSlashChar
-        let isNoBackSlashChar v = v <> backSlashChar
+        let equalsChar c v = if c = v then Some() else None
+        let differsFromChar c v = if c <> v then Some() else None
 
-        let tripleQuotes =
-            (doubleQuoteChar, doubleQuoteChar, doubleQuoteChar)
+        let (|DoubleQuoteChar|_|) = equalsChar '"'
 
-        let isOpenParenChar = (=) openParenChar
-        let isAsteriskChar = (=) asteriskChar
-        let isNoCloseParenChar v = v <> closeParenChar
-        let isCloseParenChar = (=) closeParenChar
-        let isNewlineChar = (=) newlineChar
-        let isHashChar = (=) hashChar
-        let isSpace = (=) spaceChar
+        let (|TripleQuoteChars|_|) v =
+            match v with
+            | DoubleQuoteChar, DoubleQuoteChar, DoubleQuoteChar -> Some()
+            | _ -> None
+
+        let (|OpenParenChar|_|) = equalsChar '('
+        let (|AsteriskChar|_|) = equalsChar '*'
+        let (|NoCloseParenChar|_|) = differsFromChar ')'
+        let (|NewlineChar|_|) = equalsChar '\n'
+        let (|HashChar|_|) = equalsChar '#'
+        let (|BackSlashChar|_|) = equalsChar '\\'
+        let (|NoBackSlashChar|_|) = differsFromChar '\\'
+        let (|CloseParenChar|_|) = equalsChar ')'
+        let isSpace = (=) ' '
 
         let processLine (hashContent: string) (lineContent: string) (lineNumber: int) (offset: int): Token list =
             let hashContentLength = String.length hashContent
@@ -152,16 +154,17 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
                 :: rest
 
         let sourceLength = String.length sourceCode
+        // stop scanning the source code three characters before the end
+        // three because of how triple quote string are opened and closed
+        // the scan looks three characters ahead (zero, plusOne, plusTwo)
+        // and sometimes also two characters behind (minusTwo, minusOne)
+        // In theory there is will also never be any new hash detect inside the last three characters
         let lastIndex = sourceLength - 3
-        let defines = ResizeArray()
-        let mutable currentState = Normal
-        let mutable newlineIndexes = ResizeArray()
-
         // check if the current # char is part of an define expression
         // if so add to defines
-        let captureHashDefine idx =
+        let captureHashDefine (state: SourceCodeParserState) idx =
             let lastNewlineIdx =
-                Seq.tryLast newlineIndexes
+                Seq.tryHead state.NewlineIndexes
                 |> Option.defaultValue -1
 
             let leadingCharactersBeforeLastNewlineAreSpaces =
@@ -179,7 +182,9 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
                 let currentLine =
                     sourceCode
                     |> Seq.skip skip
-                    |> Seq.takeWhile (isNewlineChar >> not)
+                    |> Seq.takeWhile (function
+                        | NewlineChar -> false
+                        | _ -> true)
                     |> Seq.toArray
                     |> fun chars -> new string(chars)
 
@@ -188,89 +193,108 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
                 let offset =
                     (String.length currentLine - String.length trimmed)
 
-                let lineNumber = Seq.length newlineIndexes + 1 // line numbers are 1 based.
+                let lineNumber = List.length state.NewlineIndexes + 1 // line numbers are 1 based.
 
-                if trimmed.StartsWith("#if")
-                then defines.Add(processLine "#if" trimmed lineNumber offset)
-                elif trimmed.StartsWith("#elseif")
-                then defines.Add(processLine "#elseif" trimmed lineNumber offset)
-                elif trimmed.StartsWith("#else")
-                then defines.Add(processLine "#else" trimmed lineNumber offset)
-                elif trimmed.StartsWith("#endif")
-                then defines.Add(processLine "#endif" trimmed lineNumber offset)
+                if trimmed.StartsWith("#if") then
+                    { state with
+                          Defines =
+                              (processLine "#if" trimmed lineNumber offset)
+                              :: state.Defines }
+                elif trimmed.StartsWith("#elseif") then
+                    { state with
+                          Defines =
+                              (processLine "#elseif" trimmed lineNumber offset)
+                              :: state.Defines }
+                elif trimmed.StartsWith("#else") then
+                    { state with
+                          Defines =
+                              (processLine "#else" trimmed lineNumber offset)
+                              :: state.Defines }
+                elif trimmed.StartsWith("#endif") then
+                    { state with
+                          Defines =
+                              (processLine "#endif" trimmed lineNumber offset)
+                              :: state.Defines }
+                else
+                    state
+            else
+                state
 
-        for idx in [ 0 .. lastIndex ] do
+        let initialState =
+            { State = Normal
+              NewlineIndexes = []
+              Defines = [] }
+
+        [ 0 .. lastIndex ]
+        |> List.fold (fun acc idx ->
             let zero = sourceCode.[idx]
             let plusOne = sourceCode.[idx + 1]
             let plusTwo = sourceCode.[idx + 2]
 
-            // No logic needed for the multiline strings as they cannot be detected yet
             if idx < 2 then
-                match currentState with
-                | Normal when (isDoubleQuoteChar zero) ->
-                    if (zero, plusOne, plusTwo) = tripleQuotes
-                    then currentState <- InsideTripleQuoteString idx
-                    else currentState <- InsideString
-                | Normal when (isOpenParenChar zero && sourceLength > 3) ->
-
-                    if isAsteriskChar plusOne
-                       && isNoCloseParenChar plusTwo then
-                        currentState <- InsideMultilineComment
-                | Normal when (isNewlineChar zero) -> newlineIndexes.Add(idx)
-                | Normal when (isHashChar zero) -> captureHashDefine idx
-                | _ -> ()
+                match acc.State, (zero, plusOne, plusTwo) with
+                | Normal, TripleQuoteChars ->
+                    { acc with
+                          State = InsideTripleQuoteString(idx) }
+                | Normal, (DoubleQuoteChar, _, _) -> { acc with State = InsideString }
+                | Normal, (OpenParenChar, AsteriskChar, NoCloseParenChar) when (sourceLength > 3) ->
+                    { acc with
+                          State = InsideMultilineComment }
+                | Normal, (NewlineChar, _, _) ->
+                    { acc with
+                          NewlineIndexes = idx :: acc.NewlineIndexes }
+                | Normal, (HashChar, _, _) -> captureHashDefine acc idx
+                | _ -> acc
 
             elif idx < lastIndex then
                 let minusTwo = sourceCode.[idx - 2]
                 let minusOne = sourceCode.[idx - 1]
 
-                match currentState with
-                | Normal ->
-                    if (zero, plusOne, plusTwo) = tripleQuotes then
-                        currentState <- InsideTripleQuoteString idx
-                    elif isDoubleQuoteChar zero then
-                        currentState <- InsideString
-                    elif isOpenParenChar zero
-                         && isAsteriskChar plusOne
-                         && isNoCloseParenChar plusTwo then
-                        currentState <- InsideMultilineComment
-                    elif isNewlineChar zero then
-                        newlineIndexes.Add(idx)
-                    elif isHashChar zero then
-                        captureHashDefine idx
+                match acc.State, (zero, plusOne, plusTwo) with
+                | Normal, TripleQuoteChars ->
+                    { acc with
+                          State = InsideTripleQuoteString idx }
+                | Normal, (DoubleQuoteChar, _, _) -> { acc with State = InsideString }
+                | Normal, (OpenParenChar, AsteriskChar, NoCloseParenChar) ->
+                    { acc with
+                          State = InsideMultilineComment }
+                | Normal, (NewlineChar, _, _) ->
+                    { acc with
+                          NewlineIndexes = idx :: acc.NewlineIndexes }
+                | Normal, (HashChar, _, _) -> captureHashDefine acc idx
+                | InsideString, (NewlineChar, _, _) ->
+                    { acc with
+                          NewlineIndexes = idx :: acc.NewlineIndexes }
+                | InsideString, (DoubleQuoteChar, _, _) ->
+                    match minusOne, minusTwo with
+                    | BackSlashChar, NoBackSlashChar -> acc
+                    | _ -> { acc with State = Normal }
+                | InsideString, (DoubleQuoteChar, _, _) -> { acc with State = Normal }
+                | InsideTripleQuoteString _, (NewlineChar, _, _) ->
+                    { acc with
+                          NewlineIndexes = idx :: acc.NewlineIndexes }
+                | InsideTripleQuoteString startIndex, _ when (startIndex + 2 < idx) ->
+                    match (minusTwo, minusOne, zero) with
+                    | TripleQuoteChars when ((startIndex - 1) > 0) ->
+                        let minusThree = sourceCode.[idx - 3]
+                        // check if there is no backslash before the first `"` of `"""`
+                        // so no `\"""` characters
+                        match minusThree with
+                        | NoBackSlashChar -> { acc with State = Normal }
+                        | _ -> acc
+                    | _ -> acc
+                | InsideMultilineComment, (NewlineChar, _, _) ->
+                    { acc with
+                          NewlineIndexes = idx :: acc.NewlineIndexes }
+                | InsideMultilineComment, (CloseParenChar, _, _) ->
+                    match minusOne with
+                    | AsteriskChar -> { acc with State = Normal }
+                    | _ -> acc
+                | _ -> acc
 
-
-                | InsideString ->
-                    if isNewlineChar zero then
-                        newlineIndexes.Add(idx)
-                    elif isDoubleQuoteChar zero then
-                        if isBackSlashChar minusOne
-                           && isNoBackSlashChar minusTwo then
-                            () // escaped quote
-                        else
-                            currentState <- Normal
-
-
-                | InsideTripleQuoteString startIndex ->
-                    if isNewlineChar zero then
-                        newlineIndexes.Add(idx)
-                    elif (startIndex + 2 < idx)
-                         && (minusTwo, minusOne, zero) = tripleQuotes then
-                        // check if there is no backslash before the first `"`
-                        if (startIndex - 1) > 0 then
-                            let minusThree = sourceCode.[idx - 3]
-                            if isNoBackSlashChar minusThree then currentState <- Normal
-                        else
-                            currentState <- Normal
-
-
-                | InsideMultilineComment ->
-                    if isNewlineChar zero then newlineIndexes.Add(idx)
-                    elif isAsteriskChar minusOne && isCloseParenChar zero then currentState <- Normal
             else
-                ()
-
-        defines |> Seq.collect id |> Seq.toList
+                acc) initialState
+        |> fun state -> state.Defines |> List.rev |> List.collect id
 
 and tokenize defines (hashTokens: Token list) (content: string): Token list =
     let sourceTokenizer =
@@ -367,7 +391,10 @@ let getDefines sourceCode =
     let hashTokens = getTokenizedHashes sourceCode
 
     let defineCombinations =
-        getOptimizedDefinesSets hashTokens @ (getDefinesWords  hashTokens |> List.map List.singleton) @ [ [] ]
+        getOptimizedDefinesSets hashTokens
+        @ (getDefinesWords hashTokens
+           |> List.map List.singleton)
+          @ [ [] ]
         |> List.distinct
 
     defineCombinations, hashTokens
