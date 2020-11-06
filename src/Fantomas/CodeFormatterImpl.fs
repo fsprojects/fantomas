@@ -382,8 +382,7 @@ let formatWith ast defines hashTokens formatContext config =
         |> Dbg.tee (fun ctx -> printfn "%A" ctx.WriterEvents)
         |> Context.dump
 
-    formattedSourceCode
-    |> String.removeTrailingSpaces
+    formattedSourceCode |> String.removeTrailingSpaces
 
 let format (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) config formatContext =
     async {
