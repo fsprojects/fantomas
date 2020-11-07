@@ -568,14 +568,44 @@ and genExprSepEqPrependType astContext
 
     let sepEqual predicate =
         if predicate then
-            fun ctx ->
+            fun (ctx: Context) ->
                 let alreadyHasNewline = lastWriteEventIsNewline ctx
 
                 if alreadyHasNewline then
+                    // AST Context ??
+
+                    let lines =
+                        ctx.WriterModel.Lines
+                        |> Seq.skipWhile String.IsNullOrWhiteSpace
+                        |> Seq.head
+
+                    let repSize =
+                            let spacesFromStartOfString = Seq.takeWhile Char.IsWhiteSpace >> Seq.length
+
+                            ctx.WriterModel.Lines
+                            |> Seq.skipWhile String.IsNullOrWhiteSpace
+                            |> Seq.tryHead
+                            |> Option.map (fun lastLineWithContent ->
+                                let spacesOnLastLineWithContent =
+                                    spacesFromStartOfString lastLineWithContent
+
+                                let spacesOnLastLine =
+                                    ctx.WriterModel.Lines
+                                    |> Seq.tryHead
+                                    |> Option.map spacesFromStartOfString
+                                    |> Option.defaultValue 0
+
+                                spacesOnLastLineWithContent - spacesOnLastLine
+                            )
+                            |> Option.defaultValue ctx.Config.IndentSize
+
+                    (rep repSize (!- " ") +> !- "=") ctx
+
                     // Column could be 0 when a hash directive was just written
-                    if ctx.Column = 0
-                    then (rep ctx.Config.IndentSize (!- " ") +> !- "=") ctx
-                    else !- "=" ctx
+                    //if ctx.Column = 0 then
+
+                    //else
+                    //    !- "=" ctx
                 elif ctx.Config.AlignFunctionSignatureToIndentation then
                     (indent +> sepNln +> !- "=" +> unindent) ctx
                 else

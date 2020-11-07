@@ -714,3 +714,72 @@ let inline deserialize< ^a when ( ^a or FromJsonDefaults) : (static member FromJ
 let inline deserialize< ^a when ^a: (static member FromJson: ^a -> Json< ^a >)> json =
     json |> Json.parse |> Json.deserialize< ^a>
 """
+
+[<Test>]
+let ``meh xx`` () =
+    formatSourceString false """
+module Infrastructure =
+
+    let internal ReportMessage (message: string)
+                               (_: ErrorLevel)
+
+                               (errorLevel: ErrorLevel)
+
+                               =
+    // meh
+    ()
+"""  config
+    |> prepend newline
+    |> should equal """
+module Infrastructure =
+
+    let internal ReportMessage (message: string)
+                               (_: ErrorLevel)
+
+                               (errorLevel: ErrorLevel)
+
+                               =
+        // meh
+        ()
+"""
+
+[<Test>]
+let ``equals sign between hash directives, 1218`` () =
+    formatSourceString false """
+module Infrastructure =
+
+    let internal ReportMessage
+        (message: string)
+#if DEBUG
+        (_: ErrorLevel)
+#else
+        (errorLevel: ErrorLevel)
+#endif
+        =
+#if DEBUG
+        failwith message
+#else
+        let sentryEvent = SentryEvent (SentryMessage message, Level = errorLevel)
+        ()
+#endif
+"""  config
+    |> prepend newline
+    |> should equal """
+module Infrastructure =
+
+    let internal ReportMessage (message: string)
+#if DEBUG
+                               (_: ErrorLevel)
+#else
+                               (errorLevel: ErrorLevel)
+#endif
+                               =
+#if DEBUG
+        failwith message
+#else
+        let sentryEvent =
+            SentryEvent(SentryMessage message, Level = errorLevel)
+
+        ()
+#endif
+"""
