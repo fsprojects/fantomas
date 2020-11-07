@@ -289,7 +289,7 @@ type TemporaryFileCodeSample internal (codeSnippet: string) =
 
     do File.WriteAllText(filename, codeSnippet)
 
-    member _.Filename: string = filename
+    member __.Filename: string = filename
 
     interface IDisposable with
         member this.Dispose(): unit = File.Delete(filename)

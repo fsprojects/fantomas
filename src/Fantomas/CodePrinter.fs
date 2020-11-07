@@ -2721,6 +2721,8 @@ and genExpr astContext synExpr ctx =
             | SynExpr.MatchLambda _ -> genTriviaFor SynExpr_MatchLambda synExpr.Range
             | SynExpr.LongIdent _ -> genTriviaFor SynExpr_LongIdent synExpr.Range
             | SynExpr.DotGet _ -> genTriviaFor SynExpr_DotGet synExpr.Range
+            | SynExpr.Upcast _ -> genTriviaFor SynExpr_Upcast synExpr.Range
+            | SynExpr.Downcast _ -> genTriviaFor SynExpr_Downcast synExpr.Range
             | _ -> id)
 
     expr ctx
