@@ -51,3 +51,70 @@ longMethodName
     longArgument2
 :> List<bool>
 """
+
+[<Test>]
+let ``trivia newline before upcast, 1227`` () =
+    formatSourceString false """
+module S3v2
+
+open System.Threading.Tasks
+open Amazon.Runtime
+
+let waitAndUpcast (x: Task<'t>) =
+    let t =
+        x |> Async.AwaitTask |> Async.RunSynchronously
+    x.Result :> AmazonWebServiceResponse
+
+let waitAndUpcast (x: Task<'t>) =
+    let t =
+        x |> Async.AwaitTask |> Async.RunSynchronously
+
+    x.Result :> AmazonWebServiceResponse
+"""  config
+    |> prepend newline
+    |> should equal """
+module S3v2
+
+open System.Threading.Tasks
+open Amazon.Runtime
+
+let waitAndUpcast (x: Task<'t>) =
+    let t =
+        x |> Async.AwaitTask |> Async.RunSynchronously
+
+    x.Result :> AmazonWebServiceResponse
+
+let waitAndUpcast (x: Task<'t>) =
+    let t =
+        x |> Async.AwaitTask |> Async.RunSynchronously
+
+    x.Result :> AmazonWebServiceResponse
+"""
+
+[<Test>]
+let ``trivia newline before downcast`` () =
+    formatSourceString false """
+module S3v2
+
+open System.Threading.Tasks
+open Amazon.Runtime
+
+let waitAndUpcast (x: Task<'t>) =
+    let t =
+        x |> Async.AwaitTask |> Async.RunSynchronously
+
+    x.Result :?> AmazonWebServiceResponse
+"""  config
+    |> prepend newline
+    |> should equal """
+module S3v2
+
+open System.Threading.Tasks
+open Amazon.Runtime
+
+let waitAndUpcast (x: Task<'t>) =
+    let t =
+        x |> Async.AwaitTask |> Async.RunSynchronously
+
+    x.Result :?> AmazonWebServiceResponse
+"""
