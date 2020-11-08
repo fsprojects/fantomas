@@ -717,6 +717,9 @@ let internal isShortExpression maxWidth (shortExpression: Context -> Context) (f
 let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
     shortExpressionWithFallback expr (indent +> sepNln +> expr +> unindent) maxWidth None ctx
 
+let internal sepSpaceIfShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
+    shortExpressionWithFallback (sepSpace +> expr) (indent +> sepNln +> expr +> unindent) maxWidth None ctx
+
 let internal expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
     shortExpressionWithFallback expression fallbackExpression ctx.Config.MaxLineLength (Some 0) ctx
 

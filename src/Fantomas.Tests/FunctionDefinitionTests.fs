@@ -68,10 +68,10 @@ let ``should keep identifiers with whitespace in double backticks`` () =
 """
 
 [<Test>]
-let ``should remove backticks from shouldn't identifier`` () =
+let ``should not remove backticks from shouldn't identifier`` () =
     formatSourceString false """let ``shouldn't`` () = x
     """ config
-    |> should equal """let shouldn't () = x
+    |> should equal """let ``shouldn't`` () = x
 """
 
 [<Test>]
@@ -83,7 +83,8 @@ let ``should keep identifiers with + in double backticks`` () =
 
 [<Test>]
 let ``double backticks with non-alphanum character, 776`` () =
-    formatSourceString false """let ``!foo hoo`` () = ()
+    formatSourceString false """
+let ``!foo hoo`` () = ()
 let ``@foo hoo`` () = ()
 let ``$foo hoo`` () = ()
 let ``%foo hoo`` () = ()
@@ -94,8 +95,13 @@ let ``<foo hoo`` () = ()
 let ``>foo hoo`` () = ()
 let ``=foo hoo`` () = ()
 let ``-foo hoo`` () = ()
+let ``!foo hoo`` () : unit = ()
+let ``@foo hoo`` = ()
+let ``$foo hoo`` : unit = ()
     """ config
-    |> should equal """let ``!foo hoo`` () = ()
+    |> prepend newline
+    |> should equal """
+let ``!foo hoo`` () = ()
 let ``@foo hoo`` () = ()
 let ``$foo hoo`` () = ()
 let ``%foo hoo`` () = ()
@@ -106,6 +112,9 @@ let ``<foo hoo`` () = ()
 let ``>foo hoo`` () = ()
 let ``=foo hoo`` () = ()
 let ``-foo hoo`` () = ()
+let ``!foo hoo`` (): unit = ()
+let ``@foo hoo`` = ()
+let ``$foo hoo``: unit = ()
 """
 
 [<Test>]
@@ -716,34 +725,6 @@ let inline deserialize< ^a when ^a: (static member FromJson: ^a -> Json< ^a >)> 
 """
 
 [<Test>]
-let ``meh xx`` () =
-    formatSourceString false """
-module Infrastructure =
-
-    let internal ReportMessage (message: string)
-                               (_: ErrorLevel)
-
-                               (errorLevel: ErrorLevel)
-
-                               =
-    // meh
-    ()
-"""  config
-    |> prepend newline
-    |> should equal """
-module Infrastructure =
-
-    let internal ReportMessage (message: string)
-                               (_: ErrorLevel)
-
-                               (errorLevel: ErrorLevel)
-
-                               =
-        // meh
-        ()
-"""
-
-[<Test>]
 let ``equals sign between hash directives, 1218`` () =
     formatSourceString false """
 module Infrastructure =
@@ -782,4 +763,150 @@ module Infrastructure =
 
         ()
 #endif
+"""
+
+[<Test>]
+let ``single line value without return type `` () =
+    formatSourceString false """
+let a =  7
+let private b  = ""
+let internal c  = 8
+let [<Foo>] d  = 9
+let e<'t>  = 8
+"""  config
+    |> prepend newline
+    |> should equal """
+let a = 7
+let private b = ""
+let internal c = 8
+
+[<Foo>]
+let d = 9
+
+let e<'t> = 8
+"""
+
+[<Test>]
+let ``single line value with return type `` () =
+    formatSourceString false """
+let a : int =  7
+let private b : string = ""
+let internal c : int = 8
+let [<Foo>] d : int = 9
+let e<'t> : int = 8
+"""  config
+    |> prepend newline
+    |> should equal """
+let a: int = 7
+let private b: string = ""
+let internal c: int = 8
+
+[<Foo>]
+let d: int = 9
+
+let e<'t> : int = 8
+"""
+
+[<Test>]
+let ``multiline value without return type `` () =
+    formatSourceString false """
+let a =
+    // a comment makes things multiline
+    7
+let private b =
+    // a comment makes things multiline
+    ""
+let internal c =
+    // a comment makes things multiline
+    8
+let [<Foo>] d =
+    // a comment makes things multiline
+    9
+let e<'t> =
+    // a comment makes things multiline
+    8
+"""  config
+    |> prepend newline
+    |> should equal """
+let a =
+    // a comment makes things multiline
+    7
+
+let private b =
+    // a comment makes things multiline
+    ""
+
+let internal c =
+    // a comment makes things multiline
+    8
+
+[<Foo>]
+let d =
+    // a comment makes things multiline
+    9
+
+let e<'t> =
+    // a comment makes things multiline
+    8
+"""
+
+[<Test>]
+let ``multiline value with return type `` () =
+    formatSourceString false """
+let a : int =
+    // a comment makes things multiline
+    7
+let private b : string =
+    // a comment makes things multiline
+    ""
+let internal c : int =
+    // a comment makes things multiline
+    8
+let [<Foo>] d : int =
+    // a comment makes things multiline
+    9
+let e<'t> : int =
+    // a comment makes things multiline
+    8
+"""  config
+    |> prepend newline
+    |> should equal """
+let a: int =
+    // a comment makes things multiline
+    7
+
+let private b: string =
+    // a comment makes things multiline
+    ""
+
+let internal c: int =
+    // a comment makes things multiline
+    8
+
+[<Foo>]
+let d: int =
+    // a comment makes things multiline
+    9
+
+let e<'t> : int =
+    // a comment makes things multiline
+    8
+"""
+
+[<Test>]
+let ``short function binding name without return type`` () =
+    formatSourceString false """
+let add a b = a + b
+let subtract (a: int) (b:int) = a - b
+let private multiply a b = a * b
+let internal divide a b = a / b
+let SetQuartzLogger l = LogProvider.SetCurrentLogProvider(l)
+"""  config
+    |> prepend newline
+    |> should equal """
+let add a b = a + b
+let subtract (a: int) (b: int) = a - b
+let private multiply a b = a * b
+let internal divide a b = a / b
+let SetQuartzLogger l = LogProvider.SetCurrentLogProvider(l)
 """
