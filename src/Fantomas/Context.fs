@@ -1046,17 +1046,6 @@ let internal leaveNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context
         | None -> ctx
     | None -> ctx
 
-let internal leaveEqualsToken (range: range) (ctx: Context) =
-    (Map.tryFindOrEmptyList EQUALS ctx.TriviaTokenNodes)
-    |> List.filter (fun tn -> tn.Range.StartLine = range.StartLine)
-    |> List.tryHead
-    |> fun tn ->
-        match tn with
-        | Some ({ ContentAfter = [ TriviaContent.Comment (LineCommentAfterSourceCode (lineComment)) ] }) ->
-            sepSpace +> !-lineComment
-        | _ -> id
-    <| ctx
-
 let internal leaveLeftToken (tokenName: FsTokenType) (range: range) (ctx: Context) =
     (Map.tryFindOrEmptyList tokenName ctx.TriviaTokenNodes)
     |> List.tryFind (fun tn ->
