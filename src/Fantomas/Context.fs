@@ -718,6 +718,9 @@ let internal isShortExpression maxWidth (shortExpression: Context -> Context) (f
 let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
     shortExpressionWithFallback expr (indent +> sepNln +> expr +> unindent) maxWidth None ctx
 
+let internal sepSpaceIfShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
+    shortExpressionWithFallback (sepSpace +> expr) (indent +> sepNln +> expr +> unindent) maxWidth None ctx
+
 let internal expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
     shortExpressionWithFallback expression fallbackExpression ctx.Config.MaxLineLength (Some 0) ctx
 
@@ -1043,17 +1046,6 @@ let internal leaveNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context
         | Some triviaNode -> (printContentAfter triviaNode) ctx
         | None -> ctx
     | None -> ctx
-
-let internal leaveEqualsToken (range: range) (ctx: Context) =
-    (Map.tryFindOrEmptyList EQUALS ctx.TriviaTokenNodes)
-    |> List.filter (fun tn -> tn.Range.StartLine = range.StartLine)
-    |> List.tryHead
-    |> fun tn ->
-        match tn with
-        | Some ({ ContentAfter = [ TriviaContent.Comment (LineCommentAfterSourceCode (lineComment)) ] }) ->
-            sepSpace +> !-lineComment
-        | _ -> id
-    <| ctx
 
 let internal leaveLeftToken (tokenName: FsTokenType) (range: range) (ctx: Context) =
     (Map.tryFindOrEmptyList tokenName ctx.TriviaTokenNodes)

@@ -396,6 +396,7 @@ let ``has symbol in signature requires paren, 564`` () =
     formatSourceString false """module Bar =
   let foo (_ : #(int seq)) = 1
   let meh (_: #seq<int>) = 2
+  let evenMoreMeh (_: #seq<int>) : int = 2
 """
         ({ config with
                SpaceAfterComma = false
@@ -407,6 +408,7 @@ let ``has symbol in signature requires paren, 564`` () =
 module Bar =
     let foo(_: #(int seq)) = 1
     let meh(_: #seq<int>) = 2
+    let evenMoreMeh(_: #seq<int>): int = 2
 """
 
 [<Test>]
@@ -564,7 +566,31 @@ let Baz (firstParam: string)
 #else
         (secndParam: int)
 #endif
-    =
+        =
+    ()
+"""
+
+[<Test>]
+let ``handle hash directives before equals, no defines`` () =
+    formatSourceStringWithDefines [] """let Baz (firstParam: string)
+#if DEBUG
+            (_         : int)
+#else
+            (secndParam: int)
+#endif
+                =
+        ()
+
+    """ config
+    |> prepend newline
+    |> should equal """
+let Baz (firstParam: string)
+#if DEBUG
+
+#else
+        (secndParam: int)
+#endif
+        =
     ()
 """
 
@@ -588,7 +614,7 @@ let ``multiple empty lines between equals and expression`` () =
 #else
         (secndParam: int)
 #endif
-    =
+        =
 
 
     ()
