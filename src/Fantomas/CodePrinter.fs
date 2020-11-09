@@ -1696,7 +1696,7 @@ and genExpr astContext synExpr ctx =
             genMultilineInfixExpr astContext e1 operatorText operatorExpr e2
 
         | NewlineInfixApps (e, es) ->
-            let smallExpr =
+            let shortExpr =
                 genExpr astContext e
                 +> sepSpace
                 +> col sepSpace es (fun (s, oe, e) ->
@@ -1713,24 +1713,7 @@ and genExpr astContext synExpr ctx =
                        +> genExpr astContext e)
 
             fun ctx ->
-                let size = getInfixOperatorExpressionSize ctx es
-                atCurrentColumn (isSmallExpression size smallExpr multilineExpr) ctx
-
-        | NewlineInfixApp (operatorText, operatorExpr, e1, e2) when (ctx.Config.MultilineInfixMultilineFormatter = MultilineFormatterType.NumberOfItems) ->
-            let expr sep =
-                genExpr astContext e1
-                +> sep
-                +> genInfixOperator operatorText operatorExpr
-                +> sepSpace
-                +> genExpr astContext e2
-
-            fun ctx ->
-                let size =
-                    getInfixOperatorExpressionSize ctx [ operatorExpr ]
-
-                let smallExpr = expr sepSpace
-                let multilineExpr = expr sepNln
-                atCurrentColumn (isSmallExpression size smallExpr multilineExpr) ctx
+                atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
 
         | SameInfixApps (e, es) ->
             let shortExpr =

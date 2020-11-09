@@ -76,7 +76,6 @@
     <Compile Include="HashDirectiveTests.fs" />
     <Compile Include="NumberOfItemsListOrArrayTests.fs" />
     <Compile Include="NumberOfItemsRecordTests.fs" />
-    <Compile Include="NumberOfItemsMultilineInfixOperatorExpressionTests.fs" />
     <Compile Include="SynExprNewTests.fs" />
     <Compile Include="DisableElmishTests.fs" />
     <Compile Include="CastTests.fs" />
