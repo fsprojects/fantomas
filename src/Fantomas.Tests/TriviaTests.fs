@@ -9,16 +9,20 @@ let private toTrivia source =
     let astWithDefines = parse false source |> Array.toList
 
     astWithDefines
-    |> List.map (fun (ast, defines) ->
-        let tokens = TokenParser.tokenize defines source
+    |> List.map (fun (ast, defines, hashTokens) ->
+        let tokens =
+            TokenParser.tokenize defines hashTokens source
+
         Trivia.collectTrivia tokens ast)
 
 let private toTriviaWithDefines source =
     let astWithDefines = parse false source |> Array.toList
 
     astWithDefines
-    |> List.map (fun (ast, defines) ->
-        let tokens = TokenParser.tokenize defines source
+    |> List.map (fun (ast, defines, hashTokens) ->
+        let tokens =
+            TokenParser.tokenize defines hashTokens source
+
         defines, Trivia.collectTrivia tokens ast)
     |> Map.ofList
 

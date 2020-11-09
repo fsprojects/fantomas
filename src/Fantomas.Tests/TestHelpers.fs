@@ -23,12 +23,7 @@ let private safeToIgnoreWarnings =
       "Identifiers containing '@' are reserved for use in F# code generation" ]
 
 let private isValidAndHasNoWarnings fileName source parsingOptions =
-    let allDefineOptions =
-        TokenParser.getOptimizedDefinesSets source
-        @ (TokenParser.getDefines source
-           |> List.map List.singleton)
-          @ [ [] ]
-        |> List.distinct
+    let allDefineOptions, _ = TokenParser.getDefines source
 
     allDefineOptions
     |> List.map (fun conditionalCompilationDefines ->
@@ -95,12 +90,12 @@ let formatSourceStringWithDefines defines (s: string) config =
         async {
             let! asts = CodeFormatterImpl.parse sharedChecker.Value parsingOptions formatContext
 
-            let ast =
-                Array.filter (fun (_, d) -> d = defines) asts
+            let ast, hashTokens =
+                Array.filter (fun (_, d, _) -> d = defines) asts
                 |> Array.head
-                |> fst
+                |> fun (ast, _, hashTokens) -> ast, hashTokens
 
-            return CodeFormatterImpl.formatWith ast defines formatContext config
+            return CodeFormatterImpl.formatWith ast defines hashTokens formatContext config
         }
         |> Async.RunSynchronously
         |> CodeFormatterImpl.addNewlineIfNeeded
@@ -137,8 +132,8 @@ let parse isFsiFile s =
     let fileName =
         if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
 
-    CodeFormatter.ParseAsync
-        (fileName, SourceOrigin.SourceString s, FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
+    CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s)
+    |> CodeFormatterImpl.parse sharedChecker.Value (FakeHelpers.createParsingOptionsFromFile fileName)
     |> Async.RunSynchronously
 
 let formatAST a s c =
@@ -166,25 +161,19 @@ let printAST isFsiFile sourceCode =
     printfn "AST:"
     printfn "%A" ast
 
-let printContext sourceCode =
-    let normalizedSourceCode =
-        Fantomas.String.normalizeNewLine sourceCode
-
-    let defines = TokenParser.getDefines sourceCode
-
-    let context =
-        Context.Context.Create config defines normalizedSourceCode None
-
-    printfn "context: %A" context
-
 let zero = range.Zero
 
 type Input = Input of string
 
 let toSynExprs (Input s) =
-    match (try
-               Some(parse false s)
-           with _ -> None) with
+    let ast =
+        try
+            parse false s
+            |> Array.map (fun (ast, _, _) -> ast)
+            |> Some
+        with _ -> None
+
+    match ast with
     | Some [| (ParsedInput.ImplFile (ParsedImplFileInput ("/tmp.fsx",
                                                           _,
                                                           QualifiedNameOfFile _,
@@ -198,8 +187,7 @@ let toSynExprs (Input s) =
                                                                                   _,
                                                                                   _,
                                                                                   _) ],
-                                                          _))),
-              _ |] ->
+                                                          _))) |] ->
         List.choose (function
             | (SynModuleDecl.DoExpr (_, expr, _)) -> Some expr
             | _ -> None) exprs
