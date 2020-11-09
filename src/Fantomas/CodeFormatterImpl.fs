@@ -19,7 +19,7 @@ open System.IO
 
 let private getSourceString (source: SourceOrigin) =
     match source with
-    | SourceString s -> s
+    | SourceString s -> String.normalizeNewLine s
     | SourceText sourceText ->
         let totalLines = sourceText.GetLineCount()
 
@@ -48,12 +48,7 @@ let createFormatContext fileName (source: SourceOrigin) =
       SourceText = sourceText }
 
 let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { FileName = fileName; Source = source } =
-    let allDefineOptions =
-        TokenParser.getOptimizedDefinesSets source
-        @ (TokenParser.getDefines source
-           |> List.map List.singleton)
-          @ [ [] ]
-        |> List.distinct
+    let allDefineOptions, defineHashTokens = TokenParser.getDefines source
 
     allDefineOptions
     |> List.map (fun conditionalCompilationDefines ->
@@ -84,7 +79,7 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
                     raise
                     <| FormatException "Parsing failed. Please select a complete code fragment to format."
 
-            return (tree, conditionalCompilationDefines)
+            return (tree, conditionalCompilationDefines, defineHashTokens)
         })
     |> Async.Parallel
 
@@ -359,29 +354,25 @@ let isValidFSharpCode (checker: FSharpChecker) (parsingOptions: FSharpParsingOpt
             let! ast = parse checker parsingOptions formatContext
 
             let isValid =
-                ast |> Array.map fst |> Array.forall isValidAST
+                ast
+                |> Array.forall (fun (a, _, _) -> isValidAST a)
 
             return isValid
         with _ -> return false
     }
 
-let formatWith ast defines formatContext config =
+let formatWith ast defines hashTokens formatContext config =
     let moduleName =
         Path.GetFileNameWithoutExtension formatContext.FileName
 
-    let input =
+    let sourceCodeOrEmptyString =
         if String.IsNullOrWhiteSpace formatContext.Source
-        then None
-        else Some formatContext.Source
-
-    // Use '\n' as the new line delimiter consistently
-    // It would be easier for F# parser
-    let sourceCode = defaultArg input String.Empty
-    let normalizedSourceCode = String.normalizeNewLine sourceCode
+        then String.Empty
+        else formatContext.Source
 
     let formattedSourceCode =
         let context =
-            Context.Context.Create config defines normalizedSourceCode (Some ast)
+            Context.Context.Create config defines hashTokens sourceCodeOrEmptyString (Some ast)
 
         context
         |> genParsedInput
@@ -390,20 +381,8 @@ let formatWith ast defines formatContext config =
                ast
         |> Dbg.tee (fun ctx -> printfn "%A" ctx.WriterEvents)
         |> Context.dump
-    //        |> if config.StrictMode then id
-//           else integrateComments config formatContext.ProjectOptions.ConditionalCompilationDefines normalizedSourceCode
 
-    // Sometimes F# parser gives a partial AST for incorrect input
-    if input.IsSome
-       && String.IsNullOrWhiteSpace normalizedSourceCode
-          <> String.IsNullOrWhiteSpace formattedSourceCode then
-        raise
-        <| FormatException
-            "Incomplete code fragment which is most likely due to parsing errors or the use of F# constructs newer than supported."
-    else
-        formattedSourceCode
-
-    |> String.removeTrailingSpaces
+    formattedSourceCode |> String.removeTrailingSpaces
 
 let format (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) config formatContext =
     async {
@@ -411,7 +390,7 @@ let format (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) confi
 
         let results =
             asts
-            |> Array.map (fun (ast', defines) -> formatWith ast' defines formatContext config)
+            |> Array.map (fun (ast', defines, hashTokens) -> formatWith ast' defines hashTokens formatContext config)
             |> List.ofArray
 
         let merged =
@@ -439,7 +418,7 @@ let formatDocument (checker: FSharpChecker) (parsingOptions: FSharpParsingOption
 /// Format an abstract syntax tree using given config
 let formatAST ast defines formatContext config =
     let formattedSourceCode =
-        formatWith ast defines formatContext config
+        formatWith ast defines [] formatContext config
 
     addNewlineIfNeeded formattedSourceCode
 
@@ -627,7 +606,7 @@ let private formatRange (checker: FSharpChecker)
     let reconstructSourceCode startCol formatteds pre post =
         Debug.WriteLine("Formatted parts: '{0}' at column {1}", sprintf "%A" formatteds, startCol)
         // Realign results on the correct column
-        Context.Context.Create config [] String.Empty None
+        Context.Context.Create config [] [] String.Empty None
         // Mono version of indent text writer behaves differently from .NET one,
         // So we add an empty string first to regularize it
         |> if returnFormattedContentOnly then Context.str String.Empty else Context.str pre

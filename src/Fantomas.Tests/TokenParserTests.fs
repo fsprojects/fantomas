@@ -12,6 +12,12 @@ let private isNewline item =
     | Newline -> true
     | _ -> false
 
+let getDefines v =
+    let _, hashTokens = getDefines v
+    getDefinesWords hashTokens
+
+let tokenize v = tokenize [] [] v
+
 [<Test>]
 let ``Simple compiler directive should be found`` () =
     let source = """
@@ -57,9 +63,12 @@ let ``Tokens from directive inside a directive are being added`` () =
   #endif
 #endif
 """
-    getDefines source == [ "FOO"; "BAR" ]
 
-    let tokens = tokenize [] source
+    let _, hashTokens = TokenParser.getDefines source
+    getDefinesWords hashTokens == [ "FOO"; "BAR" ]
+
+    let tokens =
+        TokenParser.tokenize [] hashTokens source
 
     let hashTokens =
         tokens
@@ -89,16 +98,14 @@ let ``define with underscore`` () =
 let ``tokenize should return correct amount`` () =
     let source = "let a = 7" // LET WHITESPACE IDENT WHITESPACE EQUALS WHITESPACE INT32
 
-    tokenize [] source
-    |> List.length
-    |> should equal 7
+    tokenize source |> List.length |> should equal 7
 
 [<Test>]
 let ``tokenize should return correct sequence of tokens`` () =
     let source = "let a = 7" // LET WHITESPACE IDENT WHITESPACE EQUALS WHITESPACE INT32
 
     let tokens =
-        tokenize [] source
+        tokenize source
         |> List.map (fun t -> t.TokenInfo.TokenName)
 
     tokens.[0] == "LET"
@@ -113,7 +120,7 @@ let ``tokenize should return correct sequence of tokens`` () =
 let ``tokenize should work with multiple lines`` () =
     let source = """let a = 8
 let b = 9"""
-    let tokens = tokenize [] source
+    let tokens = tokenize source
     let tokensLength = List.length tokens
     tokensLength == 14
 
@@ -132,7 +139,7 @@ let b = 9"""
 [<Test>]
 let ``simple line comment should be found in tokens`` () =
     let source = "let a = 7 // some comment"
-    let tokens = tokenize [] source
+    let tokens = tokenize source
     let triviaNodes = getTriviaFromTokens tokens
 
     match List.tryLast triviaNodes with
@@ -145,7 +152,7 @@ let ``simple line comment should be found in tokens`` () =
 [<Test>]
 let ``Single line block comment should be found in tokens`` () =
     let source = "let foo (* not fonz *) = bar"
-    let tokens = tokenize [] source
+    let tokens = tokenize source
     let triviaNodes = getTriviaFromTokens tokens
 
     match List.tryLast triviaNodes with
@@ -159,7 +166,7 @@ let ``Multi line block comment should be found in tokens`` () =
    line
    comment *)
     7"""
-    let tokens = tokenize [] source
+    let tokens = tokenize source
     let triviaNodes = getTriviaFromTokens tokens
 
     let expectedComment =
@@ -182,8 +189,7 @@ let ``multiple line comment should be found in tokens`` () =
 let a = 9
 """
 
-    let triviaNodes =
-        tokenize [] source |> getTriviaFromTokens
+    let triviaNodes = tokenize source |> getTriviaFromTokens
 
     let expectedComment =
         String.normalizeNewLine """// meh
@@ -199,8 +205,7 @@ let ``newline should be found in tokens`` () =
 
 printfn bar"""
 
-    let triviaNodes =
-        tokenize [] source |> getTriviaFromTokens
+    let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
     | [ { Item = item; Range = range } ] when (isNewline item) ->
@@ -214,8 +219,7 @@ let ``Only empty spaces in line are also consider as Newline`` () =
 
 printfn bar""" // difference is the 4 spaces on line 188
 
-    let triviaNodes =
-        tokenize [] source |> getTriviaFromTokens
+    let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
     | [ { Item = item; Range = range } ] when (isNewline item) ->
@@ -229,8 +233,7 @@ let ``Comment after left brace of record`` () =
     { // foo
     B = 7 }"""
 
-    let triviaNodes =
-        tokenize [] source |> getTriviaFromTokens
+    let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
     | [ { Item = Comment (LineCommentAfterSourceCode (comment)); Range = range }; { Item = Number ("7") } ] ->
@@ -243,7 +246,7 @@ let ``left brace should be found in tokens`` () =
     let source = "type R = { A: int }"
 
     let triviaNodes =
-        tokenize [] source |> getTriviaNodesFromTokens
+        tokenize source |> getTriviaNodesFromTokens
 
     match triviaNodes.[0].Type, triviaNodes.[1].Type, triviaNodes.[2].Type with
     | Token (EQUALS, _), Token (LBRACE, _), Token (RBRACE, _) -> pass ()
@@ -256,8 +259,7 @@ type T() =
     let x = 123
 """
 
-    let triviaNodes =
-        tokenize [] source |> getTriviaFromTokens
+    let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
     | [ { Item = Newline; Range = rAbove }; { Item = Number ("123") } ] -> rAbove.StartLine == 1
@@ -268,8 +270,7 @@ let ``if keyword should be found in tokens`` () =
     let source = """if true then ()
 elif true then ()"""
 
-    let triviaNodes =
-        tokenize [] source |> getTriviaFromTokens
+    let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
     | [ { Item = Keyword ({ Content = "if" }) }; { Item = Keyword ({ Content = "then" }) };
@@ -285,10 +286,10 @@ let x = 1
 #endif
 """
 
-    let defines = getDefines source
+    let defines, hashTokens = TokenParser.getDefines source
 
     let triviaNodes =
-        tokenize defines source
+        TokenParser.tokenize defines.[0] hashTokens source
         |> getTriviaFromTokens
         |> List.choose (fun tv ->
             match tv.Item with
@@ -307,7 +308,7 @@ type MyLogInteface() =
 """
 
     let triviaNodes =
-        tokenize [] source
+        tokenize source
         |> getTriviaFromTokens
         |> List.choose (fun { Item = item } ->
             match item with
@@ -323,7 +324,7 @@ let ``at before string`` () =
     let source = "@\"foo\""
 
     let triviaNodes =
-        tokenize [] source
+        tokenize source
         |> getTriviaFromTokens
         |> List.filter (fun { Item = item } ->
             match item with
@@ -338,7 +339,7 @@ let ``newline in string`` () =
 \""
 
     let triviaNodes =
-        tokenize [] source
+        tokenize source
         |> getTriviaFromTokens
         |> List.filter (fun { Item = item } ->
             match item with
@@ -352,7 +353,7 @@ let ``newline with slashes in string`` () =
     let source = "\"\\r\\n\""
 
     let triviaNodes =
-        tokenize [] source
+        tokenize source
         |> getTriviaFromTokens
         |> List.filter (fun { Item = item } ->
             match item with
@@ -366,7 +367,7 @@ let ``triple quotes`` () =
     let source = "\"\"\"foo\"\"\""
 
     let triviaNodes =
-        tokenize [] source
+        tokenize source
         |> getTriviaFromTokens
         |> List.filter (fun { Item = item } ->
             match item with
@@ -381,7 +382,7 @@ let ``with quotes`` () =
     let source = "\"" + quotes + "\""
 
     let triviaNodes =
-        tokenize [] source
+        tokenize source
         |> getTriviaFromTokens
         |> List.filter (fun { Item = item } ->
             match item with
@@ -396,7 +397,7 @@ let ``infix operator in full words inside an ident`` () =
     let source = """let op_LessThan(a, b) = a < b"""
 
     let triviaNodes =
-        tokenize [] source
+        tokenize source
         |> getTriviaFromTokens
         |> List.filter (fun { Item = item } ->
             match item with
@@ -409,8 +410,7 @@ let ``infix operator in full words inside an ident`` () =
 let ``ident between tickets `` () =
     let source = "let ``/ operator combines paths`` = ()"
 
-    let triviaNodes =
-        tokenize [] source |> getTriviaFromTokens
+    let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
     | [ { Item = IdentBetweenTicks ("``/ operator combines paths``") } ] -> pass ()
@@ -420,8 +420,7 @@ let ``ident between tickets `` () =
 let ``simple char content`` () =
     let source = "let someChar = \'s\'"
 
-    let triviaNodes =
-        tokenize [] source |> getTriviaFromTokens
+    let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
     | [ { Item = CharContent ("\'s\'") } ] -> pass ()
@@ -431,8 +430,7 @@ let ``simple char content`` () =
 let ``escaped char content`` () =
     let source = "let nulchar = \'\\u0000\'"
 
-    let triviaNodes =
-        tokenize [] source |> getTriviaFromTokens
+    let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
     | [ { Item = CharContent ("\'\\u0000\'") } ] -> pass ()
@@ -535,3 +533,16 @@ let a = \"\"\"\\\"\"\"
 "
 
     getDefines source == []
+
+[<Test>]
+let ``backslashes in strings prior to hash directives should not affect token parsing`` () =
+    let source = "
+let file =
+    System.IO.Path.Combine(contentDir,
+                           (n |> System.IO.Path.GetFileNameWithoutExtension)
+                           + \".md\").Replace(\"\\\\\", \"//\")
+
+#if WATCH
+#endif
+"
+    getDefines source == [ "WATCH" ]

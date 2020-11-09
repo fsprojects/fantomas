@@ -3,8 +3,13 @@ namespace Fantomas
 [<Sealed>]
 type CodeFormatter =
     static member ParseAsync(fileName, source, parsingOptions, checker) =
-        CodeFormatterImpl.createFormatContext fileName source
-        |> CodeFormatterImpl.parse checker parsingOptions
+        async {
+            let! asts =
+                CodeFormatterImpl.createFormatContext fileName source
+                |> CodeFormatterImpl.parse checker parsingOptions
+
+            return (Array.map (fun (a, d, _) -> a, d) asts)
+        }
 
     static member FormatASTAsync(ast, fileName, defines, source, config) =
         let formatContext =
