@@ -106,6 +106,7 @@ type FsAstType =
     | SynModuleDecl_Types
     | SynModuleDecl_Exception
     | SynModuleDecl_Open
+    | SynModuleDecl_OpenType
     | SynModuleDecl_Attributes
     | SynModuleDecl_HashDirective
     | SynModuleDecl_NamespaceFragment
@@ -298,6 +299,7 @@ type FsAstType =
     | SynModuleSigDecl_NestedModule
     | SynModuleSigDecl_Types
     | SynModuleSigDecl_Open
+    | SynModuleSigDecl_OpenType
     | SynModuleSigDecl_HashDirective
     | SynModuleSigDecl_Exception
     | SynModuleSigDecl_NamespaceFragment

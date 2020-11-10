@@ -430,6 +430,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
         +> unindent
 
     | Open (s) -> !-(sprintf "open %s" s)
+    | OpenType (s) -> !-(sprintf "open type %s" s)
     // There is no nested types and they are recursive if there are more than one definition
     | Types (t :: ts) ->
         let sepTs =
@@ -466,6 +467,7 @@ and genSigModuleDecl astContext node =
         +> unindent
 
     | SigOpen (s) -> !-(sprintf "open %s" s)
+    | SigOpenType (s) -> !-(sprintf "open type %s" s)
     | SigTypes (t :: ts) ->
         genSigTypeDefn { astContext with IsFirstChild = true } t
         +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genSigTypeDefn { astContext with IsFirstChild = false })
@@ -473,7 +475,9 @@ and genSigModuleDecl astContext node =
     |> (match node with
         | SynModuleSigDecl.Types _ -> genTriviaFor SynModuleSigDecl_Types node.Range
         | SynModuleSigDecl.NestedModule _ -> genTriviaFor SynModuleSigDecl_NestedModule node.Range
-        | SynModuleSigDecl.Open _ -> genTriviaFor SynModuleSigDecl_Open node.Range
+        | SynModuleSigDecl.Open (SynOpenDeclTarget.ModuleOrNamespace _, _) ->
+            genTriviaFor SynModuleSigDecl_Open node.Range
+        | SynModuleSigDecl.Open (SynOpenDeclTarget.Type _, _) -> genTriviaFor SynModuleSigDecl_OpenType node.Range
         | _ -> id)
 
 and genAccess (Access s) = !-s

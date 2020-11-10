@@ -1,9 +1,11 @@
 source https://api.nuget.org/v3/index.json
+source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json
+
 framework: netstandard2.0, netcoreapp3.1
 storage: none
 
-nuget FSharp.Core
-nuget FSharp.Compiler.Service ~> 37.0
+nuget FSharp.Core prerelease
+nuget FSharp.Compiler.Service prerelease
 nuget FsUnit
 nuget FsCheck
 nuget Microsoft.NET.Test.Sdk 16.7.0
