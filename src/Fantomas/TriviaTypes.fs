@@ -194,6 +194,7 @@ type FsAstType =
     | SynTypeDefnSigRepr_ObjectModel
     | SynTypeDefnSigRepr_Exception
     | SynMemberDefn_Open
+    | SynMemberDefn_OpenType
     | SynMemberDefn_Member
     | SynMemberDefn_ImplicitCtor
     | SynMemberDefn_ImplicitInherit

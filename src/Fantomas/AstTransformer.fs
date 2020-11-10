@@ -81,21 +81,6 @@ module private Ast =
                     yield! (visitSynAttributeLists range attrs)
                     yield! (decls |> List.map visitSynModuleDecl) ] }
 
-    and visitSynOpenDeclTarget (ast: SynOpenDeclTarget): Node =
-        match ast with
-        | SynOpenDeclTarget.ModuleOrNamespace (longIdent, range) ->
-            { Type = SynModuleDecl_Open
-              Range = r range
-              Properties = p [ "longIdent" ==> li longIdent ]
-              FsAstNode = ast
-              Childs = [] }
-        | SynOpenDeclTarget.Type (synType, range) ->
-            { Type = SynModuleDecl_OpenType
-              Range = r range
-              Properties = p []
-              FsAstNode = ast
-              Childs = [ visitSynType synType ] }
-
     and visitSynModuleDecl (ast: SynModuleDecl): Node =
         match ast with
         | SynModuleDecl.ModuleAbbrev (ident, longIdent, range) ->
@@ -138,7 +123,21 @@ module private Ast =
               Properties = p []
               FsAstNode = ast
               Childs = [ visitSynExceptionDefn exceptionDef ] }
-        | SynModuleDecl.Open (target, range) -> visitSynOpenDeclTarget target
+        | SynModuleDecl.Open (target, parentRange) ->
+          // we use the parent ranges here to match up with the trivia parsed
+          match target with
+          | SynOpenDeclTarget.ModuleOrNamespace (longIdent, range) ->
+              { Type = SynModuleDecl_Open
+                Range = r parentRange
+                Properties = p [ "longIdent" ==> li longIdent ]
+                FsAstNode = ast
+                Childs = [] }
+          | SynOpenDeclTarget.Type (synType, range) ->
+              { Type = SynModuleDecl_OpenType
+                Range = r parentRange
+                Properties = p []
+                FsAstNode = ast
+                Childs = [ visitSynType synType ] }
         | SynModuleDecl.Attributes (attrs, range) ->
             { Type = SynModuleDecl_Attributes
               Range = r range
@@ -842,7 +841,21 @@ module private Ast =
 
     and visitSynMemberDefn (mbrDef: SynMemberDefn): Node =
         match mbrDef with
-        | SynMemberDefn.Open (openTarget, range) -> visitSynOpenDeclTarget openTarget
+        | SynMemberDefn.Open (target, parentRange) ->
+          // we use the parent ranges here to match up with the trivia parsed
+          match target with
+          | SynOpenDeclTarget.ModuleOrNamespace (longIdent, range) ->
+              { Type = SynMemberDefn_Open
+                Range = r parentRange
+                Properties = p [ "longIdent" ==> li longIdent ]
+                FsAstNode = target
+                Childs = [] }
+          | SynOpenDeclTarget.Type (synType, range) ->
+              { Type = SynMemberDefn_OpenType
+                Range = r parentRange
+                Properties = p []
+                FsAstNode = target
+                Childs = [ visitSynType synType ] }
         | SynMemberDefn.Member (memberDefn, range) ->
             { Type = SynMemberDefn_Member
               Range = r range
@@ -1770,7 +1783,21 @@ module private Ast =
               Properties = p []
               FsAstNode = ast
               Childs = typeDefs |> List.map visitSynTypeDefnSig }
-        | SynModuleSigDecl.Open (openTarget, range) -> visitSynOpenDeclTarget openTarget
+        | SynModuleSigDecl.Open (target, parentRange) ->
+          // we use the parent ranges here to match up with the trivia parsed
+          match target with
+          | SynOpenDeclTarget.ModuleOrNamespace (longIdent, range) ->
+              { Type = SynModuleSigDecl_Open
+                Range = r parentRange
+                Properties = p [ "longIdent" ==> li longIdent ]
+                FsAstNode = target
+                Childs = [] }
+          | SynOpenDeclTarget.Type (synType, range) ->
+              { Type = SynModuleSigDecl_OpenType
+                Range = r parentRange
+                Properties = p []
+                FsAstNode = target
+                Childs = [ visitSynType synType ] }
         | SynModuleSigDecl.HashDirective (hash, range) ->
             { Type = SynModuleSigDecl_HashDirective
               Range = r range
