@@ -379,14 +379,17 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
 """
         ({ config with
                MaxInfixOperatorExpression = 75 })
-    |> should equal """let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
+    |> prepend newline
+    |> should equal """
+let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
     let assemblyName = assembly.Name
 #if NETCOREAPP2_0
+    do
 #else
     match key with
     | None ->
 #endif
-    do assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+       assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
        assemblyName.HasPublicKey <- false
        assemblyName.PublicKey <- null
        assemblyName.PublicKeyToken <- null
