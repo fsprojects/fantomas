@@ -382,7 +382,7 @@ let formatWith ast defines hashTokens formatContext config =
         |> Dbg.tee (fun ctx -> printfn "%A" ctx.WriterEvents)
         |> Context.dump
 
-    formattedSourceCode //|> String.removeTrailingSpaces
+    formattedSourceCode
 
 let format (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) config formatContext =
     async {
@@ -402,25 +402,13 @@ let format (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) confi
         return merged
     }
 
-let addNewlineIfNeeded (formattedSourceCode: string) (eolStyle: EndOfLineStyle) =
-    // When formatting the whole document, an EOL is required
-    if formattedSourceCode.EndsWith(eolStyle.NewLineString)
-    then formattedSourceCode
-    else formattedSourceCode + eolStyle.NewLineString
-
 /// Format a source string using given config
 let formatDocument (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) config formatContext =
-    async {
-        let! formattedSourceCode = format checker parsingOptions config formatContext
-        return addNewlineIfNeeded formattedSourceCode config.EndOfLine
-    }
+    format checker parsingOptions config formatContext
 
 /// Format an abstract syntax tree using given config
 let formatAST ast defines formatContext config =
-    let formattedSourceCode =
-        formatWith ast defines [] formatContext config
-
-    addNewlineIfNeeded formattedSourceCode config.EndOfLine
+    formatWith ast defines [] formatContext config
 
 /// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
 let makeRange fileName startLine startCol endLine endCol =

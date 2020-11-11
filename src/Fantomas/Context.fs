@@ -276,6 +276,8 @@ let internal dump (ctx: Context) =
 
     ctx.WriterModel.Lines
     |> List.rev
+    |> List.skipWhile ((=) "")
+    |> List.map (fun line -> line.TrimEnd())
     |> String.concat ctx.Config.EndOfLine.NewLineString
 
 let internal dumpAndContinue (ctx: Context) =
