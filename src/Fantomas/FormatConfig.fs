@@ -38,7 +38,7 @@ type EndOfLineStyle =
     static member FromEnvironment =
         match System.Environment.NewLine with
         | "\n" -> LF
-        | "\r" -> CR
+        | "\r" -> failwith "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
         | "\r\n" -> CRLF
         | other -> failwithf "Unknown system newline string found: %s" other
 
@@ -51,7 +51,7 @@ type EndOfLineStyle =
     static member OfConfigString(eolString: string) =
         match eolString with
         | "lf" -> Some(box EndOfLineStyle.LF)
-        | "cr" -> Some(box EndOfLineStyle.CR)
+        | "cr" -> failwith "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
         | "crlf" -> Some(box EndOfLineStyle.CRLF)
         | _ -> None
 

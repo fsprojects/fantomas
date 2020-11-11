@@ -276,13 +276,16 @@ let internal dump (ctx: Context) =
 
     ctx.WriterModel.Lines
     |> List.rev
-    |> String.concat Environment.NewLine
+    |> String.concat ctx.Config.EndOfLine.NewLineString
 
 let internal dumpAndContinue (ctx: Context) =
 #if DEBUG
     let m = finalizeWriterModel ctx
     let lines = m.WriterModel.Lines |> List.rev
-    let code = String.concat Environment.NewLine lines
+
+    let code =
+        String.concat ctx.Config.EndOfLine.NewLineString lines
+
     printfn "%s" code
 #endif
     ctx

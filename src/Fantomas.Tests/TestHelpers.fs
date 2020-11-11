@@ -98,7 +98,7 @@ let formatSourceStringWithDefines defines (s: string) config =
             return CodeFormatterImpl.formatWith ast defines hashTokens formatContext config
         }
         |> Async.RunSynchronously
-        |> CodeFormatterImpl.addNewlineIfNeeded
+        |> fun formattedCode -> CodeFormatterImpl.addNewlineIfNeeded formattedCode config.EndOfLine
 
     // merge with itself to make #if go on beginning of line
     String.merge result result

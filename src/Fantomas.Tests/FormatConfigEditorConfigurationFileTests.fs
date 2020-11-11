@@ -4,9 +4,10 @@ open System
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.Extras
+open Fantomas.Tests.TestHelper
+open FsUnit
 open NUnit.Framework
 open System.IO
-open Fantomas.Tests.TestHelper
 
 let private defaultConfig = FormatConfig.Default
 let private tempName () = Guid.NewGuid().ToString("N")
@@ -317,6 +318,7 @@ let eol_settings =
       EndOfLineStyle.CR
       EndOfLineStyle.CRLF ]
 
+// todo: this fails on CR, because CR isn't valid for F# code
 [<TestCaseSource("eol_settings")>]
 let can_parse_end_of_line_setting (eol: EndOfLineStyle) =
     let editorConfig =
@@ -334,3 +336,14 @@ end_of_line = %s
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     config.EndOfLine == eol
+
+[<Test>]
+let blah_test () =
+    let config =
+        { config with
+              EndOfLine = EndOfLineStyle.CRLF }
+
+    formatSourceString false """let (|Boolean|_|) = Boolean.parse
+    """ config
+    |> should equal """let (|Boolean|_|) = Boolean.parse
+"""
