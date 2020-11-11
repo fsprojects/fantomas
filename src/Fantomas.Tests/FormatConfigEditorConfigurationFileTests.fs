@@ -311,3 +311,26 @@ fsharp_disable_elmish_syntax = true
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     Assert.IsTrue config.DisableElmishSyntax
+
+let eol_settings =
+    [ EndOfLineStyle.LF
+      EndOfLineStyle.CR
+      EndOfLineStyle.CRLF ]
+
+[<TestCaseSource("eol_settings")>]
+let can_parse_end_of_line_setting (eol: EndOfLineStyle) =
+    let editorConfig =
+        sprintf """
+[*.fs]
+end_of_line = %s
+"""      (EndOfLineStyle.ToConfigString eol)
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, content = editorConfig)
+
+    use fsharpFile = new FSharpFile()
+
+    let config =
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    config.EndOfLine == eol
