@@ -26,6 +26,9 @@ NUGET
     editorconfig (0.12.2)
     FsCheck (2.14.3)
       FSharp.Core (>= 4.2.3)
+    FSharp.Compiler.Service (38.0)
+      FSharp.Core (5.0)
+    FSharp.Core (5.0)
     FsUnit (4.0.2)
       FSharp.Core (>= 4.3.4)
       NETStandard.Library (>= 2.0.3)
@@ -373,10 +376,6 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3)
       System.Xml.XmlDocument (>= 4.3)
       System.Xml.XPath (>= 4.3)
-  remote: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json
-    FSharp.Compiler.Service (38.0.1-beta.20555.2)
-      FSharp.Core (5.0.1-beta.20555.2)
-    FSharp.Core (5.0.1-beta.20555.2)
 GITHUB
   remote: fsprojects/fantomas
     src/Fantomas/CodePrinter.fs (829faa6ba834f99afed9b4434b3a1680536474b2)
