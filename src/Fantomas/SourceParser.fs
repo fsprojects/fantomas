@@ -309,7 +309,6 @@ let (|OpenType|_|) =
     | SynModuleDecl.Open (SynOpenDeclTarget.Type (SynType.LongIdent (LongIdentWithDots s), _m), _) -> Some s
     | _ -> None
 
-
 let (|ModuleAbbrev|_|) =
     function
     | SynModuleDecl.ModuleAbbrev (Ident s1, LongIdent s2, _) -> Some(s1, s2)
@@ -370,7 +369,6 @@ let (|SigOpen|_|) =
     function
     | SynModuleSigDecl.Open (SynOpenDeclTarget.ModuleOrNamespace (LongIdent s, _), _) -> Some s
     | _ -> None
-
 
 let (|SigOpenType|_|) =
     function
@@ -462,7 +460,6 @@ let (|MDOpen|_|) =
     function
     | SynMemberDefn.Open (SynOpenDeclTarget.ModuleOrNamespace (LongIdent s, _), _) -> Some s
     | _ -> None
-
 
 let (|MDOpenType|_|) =
     function
