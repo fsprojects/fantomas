@@ -209,7 +209,8 @@ let synModuleDeclToFsAstType =
     | SynModuleDecl.Types _ -> SynModuleDecl_Types
     | SynModuleDecl.NestedModule _ -> SynModuleDecl_NestedModule
     | SynModuleDecl.Let _ -> SynModuleDecl_Let
-    | SynModuleDecl.Open _ -> SynModuleDecl_Open
+    | SynModuleDecl.Open (SynOpenDeclTarget.ModuleOrNamespace _, _) -> SynModuleDecl_Open
+    | SynModuleDecl.Open (SynOpenDeclTarget.Type _, _) -> SynModuleDecl_OpenType
     | SynModuleDecl.ModuleAbbrev _ -> SynModuleDecl_ModuleAbbrev
     | SynModuleDecl.Exception _ -> SynModuleDecl_Exception
     | SynModuleDecl.Attributes _ -> SynModuleDecl_Attributes

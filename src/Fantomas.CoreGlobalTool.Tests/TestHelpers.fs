@@ -89,16 +89,7 @@ let runFantomasTool arguments =
 
     let fantomasDll =
         Path.Combine
-            (pwd,
-             "..",
-             "..",
-             "..",
-             "..",
-             "Fantomas.CoreGlobalTool",
-             "bin",
-             configuration,
-             "netcoreapp3.1",
-             "fantomas-tool.dll")
+            (pwd, "..", "..", "..", "..", "Fantomas.CoreGlobalTool", "bin", configuration, "net5.0", "fantomas-tool.dll")
 
     use p = new Process()
     p.StartInfo.UseShellExecute <- false

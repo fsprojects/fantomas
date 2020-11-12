@@ -206,7 +206,7 @@ let isValidAST ast =
 
         | SynExpr.ArrayOrListOfSeqExpr (_, synExpr, _range) -> validateExpr synExpr
         | SynExpr.CompExpr (_, _, synExpr, _range) -> validateExpr synExpr
-        | SynExpr.Lambda (_, _, _synSimplePats, synExpr, _range) -> validateExpr synExpr
+        | SynExpr.Lambda (_, _, _synSimplePats, synExpr, _parsedData, _range) -> validateExpr synExpr
 
         | SynExpr.MatchLambda (_isExnMatch, _argm, synMatchClauseList, _spBind, _wholem) ->
             List.forall validateClause synMatchClauseList

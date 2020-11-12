@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Version>4.3.0-alpha-003</Version>
     <NoWarn>FS0988</NoWarn>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
@@ -79,6 +79,7 @@
     <Compile Include="SynExprNewTests.fs" />
     <Compile Include="DisableElmishTests.fs" />
     <Compile Include="CastTests.fs" />
+    <Compile Include="OpenTypeTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

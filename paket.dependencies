@@ -1,9 +1,10 @@
 source https://api.nuget.org/v3/index.json
-framework: netstandard2.0, netcoreapp3.1
+
+framework: netstandard2.0, net5.0
 storage: none
 
 nuget FSharp.Core
-nuget FSharp.Compiler.Service ~> 37.0
+nuget FSharp.Compiler.Service ~> 38.0
 nuget FsUnit
 nuget FsCheck
 nuget Microsoft.NET.Test.Sdk 16.7.0
