@@ -4161,6 +4161,8 @@ and genMemberDefn astContext node =
             | SynExpr.Const _ -> true // string, numbers, ...
             | _ -> false
 
+        // Verify sepSpaceBeforeConstructor condition here with addSpaceAfterType
+        
         !- "inherit "
         +> genType astContext false t
         +> ifElse addSpaceAfterType sepSpace sepNone
@@ -4420,7 +4422,9 @@ and genPat astContext pat =
             +> genParameters
             +> ifElse hasBracket sepCloseT sepNone
 
+    // Add space before "()" 
     | PatParen (PatConst (Const "()", _)) -> !- "()"
+    // Idem, verify short and long expression
     | PatParen (p) ->
         let shortExpression =
             sepOpenT

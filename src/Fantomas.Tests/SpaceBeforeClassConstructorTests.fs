@@ -102,7 +102,7 @@ type animal(length: int) =
 """
 
 [<Test>]
-let ``SpaceBeforeParenthesisParameterInUppercaseClassConstructor should add space before lowercase constructor of class`` () =
+let ``SpaceBeforeParenthesisParameterInLowercaseClassConstructor should add space before lowercase constructor of class`` () =
     formatSourceString false """
 type animal(length:int) =
     class end
@@ -112,4 +112,56 @@ type animal(length:int) =
 type animal (length: int) =
     class
     end
+"""
+
+// Space before parentheses in secondary class constructor
+
+[<Test>]
+let ``should add space before secondary constructor of class declared with new, 964`` () =
+    formatSourceString false """
+type animal (length: int) =
+    new(length) = animal (length)
+"""  spaceBeforeConfig
+    |> prepend newline
+    |> should equal """
+type animal (length: int) =
+    new (length) = animal (length)
+"""
+
+// Space before parentheses in secondary class constructor
+
+[<Test>]
+let ``should add space after inherit base class declaration, 964`` () =
+    formatSourceString false """
+type dog() =
+    inherit animal()
+"""  spaceBeforeConfig
+    |> prepend newline
+    |> should equal """
+type dog () =
+    inherit animal ()
+"""
+
+// Original issue example
+
+[<Test>]
+let ``should add space before new and inherit on constructor of class, 964`` () =
+    formatSourceString false """
+type ProtocolGlitchException =
+    inherit CommunicationUnsuccessfulException
+
+    new(message) = { inherit CommunicationUnsuccessfulException(message) }
+
+    new(message: string, innerException: Exception) =
+        { inherit CommunicationUnsuccessfulException(message, innerException) }
+"""  spaceBeforeConfig
+    |> prepend newline
+    |> should equal """
+type ProtocolGlitchException =
+    inherit CommunicationUnsuccessfulException
+
+    new (message) = { inherit CommunicationUnsuccessfulException (message) }
+
+    new (message: string, innerException: Exception) =
+        { inherit CommunicationUnsuccessfulException (message, innerException) }
 """
