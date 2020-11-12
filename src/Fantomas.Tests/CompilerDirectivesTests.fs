@@ -402,6 +402,95 @@ let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameK
 """
 
 [<Test>]
+let ``some spacing is still lost in and around #if blocks, no defines`` () =
+    formatSourceStringWithDefines [] """
+  let internal UpdateStrongNaming (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
+    let assemblyName = assembly.Name
+#if NETCOREAPP2_0
+    do
+#else
+    match key with
+    | None ->
+#endif
+              assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+              assemblyName.HasPublicKey <- false
+              assemblyName.PublicKey <- null
+              assemblyName.PublicKeyToken <- null
+#if NETCOREAPP2_0
+#else
+    | Some key' -> assemblyName.HasPublicKey <- true
+                   assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
+#endif
+"""
+        ({ config with
+               MaxInfixOperatorExpression = 75 })
+    |> prepend newline
+    |> should equal """
+let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
+    let assemblyName = assembly.Name
+#if NETCOREAPP2_0
+
+#else
+    match key with
+    | None ->
+#endif
+        assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+        assemblyName.HasPublicKey <- false
+        assemblyName.PublicKey <- null
+        assemblyName.PublicKeyToken <- null
+#if NETCOREAPP2_0
+#else
+    | Some key' ->
+        assemblyName.HasPublicKey <- true
+        assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
+#endif
+"""
+
+[<Test>]
+let ``some spacing is still lost in and around #if blocks, NETCOREAPP2_0`` () =
+    formatSourceStringWithDefines [ "NETCOREAPP2_0" ] """
+  let internal UpdateStrongNaming (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
+    let assemblyName = assembly.Name
+#if NETCOREAPP2_0
+    do
+#else
+    match key with
+    | None ->
+#endif
+              assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+              assemblyName.HasPublicKey <- false
+              assemblyName.PublicKey <- null
+              assemblyName.PublicKeyToken <- null
+#if NETCOREAPP2_0
+#else
+    | Some key' -> assemblyName.HasPublicKey <- true
+                   assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
+#endif
+"""
+        ({ config with
+               MaxInfixOperatorExpression = 75 })
+    |> prepend newline
+    |> should equal """
+let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
+    let assemblyName = assembly.Name
+#if NETCOREAPP2_0
+    do
+#else
+
+
+#endif
+       assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+       assemblyName.HasPublicKey <- false
+       assemblyName.PublicKey <- null
+       assemblyName.PublicKeyToken <- null
+#if NETCOREAPP2_0
+#else
+
+
+#endif
+"""
+
+[<Test>]
 let ``nested directives, FABLE_COMPILER`` () =
     formatSourceStringWithDefines [ "FABLE_COMPILER" ] """namespace Fable.React
 

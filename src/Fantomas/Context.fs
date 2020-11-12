@@ -1117,7 +1117,7 @@ let internal sepConsideringTriviaContentBefore sepF (key: Choice<FsAstType, FsTo
 
 let internal sepConsideringTriviaContentBeforeForToken sepF (fsTokenKey: FsTokenType) (range: range) (ctx: Context) =
     let findTrivia ctx range =
-        findTriviaOnStartFromRange (Map.tryFindOrEmptyList fsTokenKey ctx.TriviaTokenNodes) range
+        findTriviaTokenFromName fsTokenKey range ctx
 
     sepConsideringTriviaContentBeforeBy findTrivia sepF range ctx
 
@@ -1286,7 +1286,7 @@ let internal genTriviaBeforeClausePipe (rangeOfClause: range) ctx =
                     | Directive _ -> true
                     | _ -> false)
 
-            ifElse containsOnlyDirectives sepNln sepNone
+            onlyIf containsOnlyDirectives sepNlnUnlessLastEventIsNewline
             +> printContentBefore trivia
         | None -> id
     <| ctx

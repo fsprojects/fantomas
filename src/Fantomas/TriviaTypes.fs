@@ -51,12 +51,12 @@ type FsTokenType =
     | FUNCTION
     | LPAREN_STAR_RPAREN
     | IN
+    | DO
 
 type Token =
     { TokenInfo: FSharpTokenInfo
       LineNumber: int
       Content: string }
-
 
 type Comment =
     | LineCommentAfterSourceCode of comment: string

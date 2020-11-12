@@ -52,7 +52,8 @@ let filterNodes nodes =
               SynTypeDefnSigRepr_ObjectModel
               SynExpr_Typed
               // SynType_StaticConstant
-              SynExpr_CompExpr ]
+              SynExpr_CompExpr
+              SynExpr_Do ]
 
     nodes
     |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))

@@ -251,6 +251,17 @@ and genModuleDeclList astContext e =
             let expr =
                 col sepNln xs (genModuleDecl astContext)
                 +> sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleDeclToFsAstType y) y.Range attrs
+                +> (fun ctx ->
+                    match y with
+                    | SynModuleDecl.DoExpr _ ->
+                        let doKeyWordRange =
+                            let lastAttribute = List.last xs
+                            mkRange "doKeyword" lastAttribute.Range.End y.Range.Start
+
+                        // the do keyword range is not part of SynModuleDecl.DoExpr
+                        // So Trivia before `do` cannot be printed in genModuleDecl
+                        enterNodeTokenByName doKeyWordRange DO ctx
+                    | _ -> ctx)
                 +> genModuleDecl astContext y
 
             let r = List.head xs |> fun mdl -> mdl.Range
@@ -1259,8 +1270,7 @@ and genExpr astContext synExpr ctx =
             +> ifElse isInfixExpr genInfixExpr genNonInfixExpr
 
         | SingleExpr (kind, e) ->
-            enterNodeFor SynExpr_Do synExpr.Range
-            +> str kind
+            str kind
             +> (match kind with
                 | YieldFrom
                 | Yield
@@ -1996,6 +2006,19 @@ and genExpr astContext synExpr ctx =
                         match e with
                         | LetOrUses (bs, e) -> letBindings bs @ synExpr e
                         | Sequentials (s) -> s |> List.collect synExpr
+                        | SynExpr.Do _ ->
+                            let doKeyWordRange =
+                                List.last bs
+                                |> snd
+                                |> fun binding -> mkRange "doKeyword" binding.RangeOfBindingAndRhs.End e.Range.Start
+
+                            let expr =
+                                // the do keyword range is not part of SynExpr.Do
+                                // So Trivia before `do` cannot be printed in genExpr
+                                enterNodeTokenByName doKeyWordRange DO
+                                +> genExpr astContext e
+
+                            [ expr, sepNlnConsideringTriviaContentBeforeForToken DO doKeyWordRange, doKeyWordRange ]
                         | _ ->
                             let r = e.Range
                             [ genExpr astContext e, sepNlnForNonSequential e r, r ]
