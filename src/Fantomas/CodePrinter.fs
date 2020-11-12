@@ -1408,9 +1408,21 @@ and genExpr astContext synExpr ctx =
                 isSmallExpression size smallExpression longExpression ctx
 
         | ObjExpr (t, eio, bd, ims, range) ->
-            ifAlignBrackets
-                (genObjExprAlignBrackets t eio bd ims range astContext)
-                (genObjExpr t eio bd ims range astContext)
+            if List.isEmpty bd then
+                // Check the role of the second part of eio
+                let param =
+                    opt sepNone (Option.map fst eio) (genExpr astContext)
+
+                // See https://devblogs.microsoft.com/dotnet/announcing-f-5/#default-interface-member-consumption
+                sepOpenS
+                +> !- "new "
+                +> genType astContext false t
+                +> param
+                +> sepCloseS
+            else
+                ifAlignBrackets
+                    (genObjExprAlignBrackets t eio bd ims range astContext)
+                    (genObjExpr t eio bd ims range astContext)
 
         | While (e1, e2) ->
             atCurrentColumn
@@ -2474,7 +2486,13 @@ and genExpr astContext synExpr ctx =
             // In case s is f.ex `onStrongDiscard.IsNone`, last range is the range of `IsNone`
             let lastRange = List.tryLast ranges
 
-            ifElse isOpt (!- "?") sepNone -- s
+            let genS =
+                match lastRange with
+                | Some r -> infixOperatorFromTrivia r s
+                | None -> !-s
+
+            ifElse isOpt (!- "?") sepNone
+            +> genS
             +> opt id lastRange (leaveNodeFor Ident_)
         | LongIdentSet (s, e, _) ->
             !-(sprintf "%s <- " s)
@@ -2655,6 +2673,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.DotGet _ -> genTriviaFor SynExpr_DotGet synExpr.Range
             | SynExpr.Upcast _ -> genTriviaFor SynExpr_Upcast synExpr.Range
             | SynExpr.Downcast _ -> genTriviaFor SynExpr_Downcast synExpr.Range
+            | SynExpr.DotIndexedGet _ -> genTriviaFor SynExpr_DotIndexedGet synExpr.Range
             | _ -> id)
 
     expr ctx
@@ -4777,7 +4796,11 @@ and infixOperatorFromTrivia range fallback (ctx: Context) =
 
     let isValidIdent x = Regex.Match(x, validIdentRegex).Success
 
-    TriviaHelpers.getNodesForTypes [ SynPat_LongIdent; SynPat_Named ] ctx.TriviaMainNodes
+    TriviaHelpers.getNodesForTypes
+        [ SynPat_LongIdent
+          SynPat_Named
+          SynExpr_Ident ]
+        ctx.TriviaMainNodes
     |> List.choose (fun t ->
         match t.Range = range with
         | true ->

@@ -247,6 +247,8 @@ let private findNamedPatThatStartsWith (triviaNodes: TriviaNodeAssigner list) co
                                         && t.Range.StartLine = line) -> true
         | MainNode (SynPat_LongIdent) when (t.Range.StartColumn = column
                                             && t.Range.StartLine = line) -> true
+        | MainNode (SynExpr_Ident) when (t.Range.StartColumn = column
+                                         && t.Range.StartLine = line) -> true
         | _ -> false)
 
 let private findParsedHashOnLineAndEndswith (triviaNodes: TriviaNodeAssigner list) startLine endColumn =

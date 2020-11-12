@@ -79,6 +79,7 @@
     <Compile Include="SynExprNewTests.fs" />
     <Compile Include="DisableElmishTests.fs" />
     <Compile Include="CastTests.fs" />
+    <Compile Include="OpenTypeTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
