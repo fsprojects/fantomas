@@ -34,7 +34,7 @@ NUGET
       NETStandard.Library (>= 2.0.3)
       NUnit (>= 3.12 < 4.0)
     Iced (1.7)
-    MAB.DotIgnore (3.0.1)
+    MAB.DotIgnore (3.0.2)
       NETStandard.Library (>= 1.6.1)
     Microsoft.CodeAnalysis.Analyzers (3.0)
     Microsoft.CodeAnalysis.Common (3.6)

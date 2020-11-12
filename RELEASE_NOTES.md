@@ -1,3 +1,6 @@
+### 4.3.0-alpha-004 - 11/2020
+* Update to FCS 38. [#1240](https://github.com/fsprojects/fantomas/pull/1240)
+
 ### 4.3.0-alpha-003 - 11/2020
 
 * Removed fsharp_max_newline_infix_operator_expression_number_of_items. [#1143](https://github.com/fsprojects/fantomas/issues/1143#issuecomment-723572967)
