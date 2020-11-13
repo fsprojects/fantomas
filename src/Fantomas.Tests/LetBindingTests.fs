@@ -1161,3 +1161,26 @@ printfn "%s" (lookupMonth 12)
 printfn "%s" (lookupMonth 1)
 printfn "%s" (lookupMonth 13) // Throws an exception!
 """
+
+[<Test>]
+let ``print inline before private, 1250`` () =
+    formatSourceString false """
+    let inline private isIdentifier t = t.CharClass = FSharpTokenCharKind.Identifier
+    let inline private isOperator t = t.CharClass = FSharpTokenCharKind.Operator
+    let inline private isKeyword t = t.ColorClass = FSharpTokenColorKind.Keyword
+    let inline private isPunctuation t = t.ColorClass = FSharpTokenColorKind.Punctuation
+"""  config
+    |> prepend newline
+    |> should equal """
+let inline private isIdentifier t =
+    t.CharClass = FSharpTokenCharKind.Identifier
+
+let inline private isOperator t =
+    t.CharClass = FSharpTokenCharKind.Operator
+
+let inline private isKeyword t =
+    t.ColorClass = FSharpTokenColorKind.Keyword
+
+let inline private isPunctuation t =
+    t.ColorClass = FSharpTokenColorKind.Punctuation
+"""
