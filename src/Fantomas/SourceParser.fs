@@ -1088,6 +1088,13 @@ let (|PatOr|_|) =
     | SynPat.Or (p1, p2, _) -> Some(p1, p2)
     | _ -> None
 
+let rec (|PatOrs|_|) =
+    function
+    | PatOr (PatOrs pats, p) -> Some(pats @ [ p ])
+    | PatOr (p, PatOrs pats) -> Some(p :: pats)
+    | PatOr (p1, p2) -> Some [ p1; p2 ]
+    | _ -> None
+
 let (|PatAnds|_|) =
     function
     | SynPat.Ands (ps, _) -> Some ps

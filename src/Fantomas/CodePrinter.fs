@@ -3929,7 +3929,20 @@ and genClause astContext hasBar (Clause (p, e, eo)) =
     let arrowRange =
         mkRange "arrowRange" p.Range.End e.Range.Start
 
-    let pat = genPat astContext p
+    let pat ctx =
+        match p with
+        | PatOrs (ph :: _ as allPats) when (List.length allPats > 1) ->
+            allPats
+            |> List.pairwise
+            |> List.fold (fun acc (prev, current) ->
+                let barRange =
+                    mkRange "bar range" prev.Range.End current.Range.Start
+
+                (sepNln
+                 +> enterNodeTokenByName barRange BAR
+                 +> sepBar
+                 +> genPat astContext current) acc) (genPat astContext ph ctx)
+        | _ -> genPat astContext p ctx
 
     let body =
         optPre (!- " when ") sepNone eo (genExpr astContext)
@@ -4178,7 +4191,7 @@ and genPat astContext pat =
             mkRange "bar range" p1.Range.End p2.Range.Start
 
         genPat astContext p1
-        +> sepNln
+        +> sepSpace
         +> enterNodeTokenByName barRange BAR
         -- "| "
         +> genPat astContext p2
