@@ -252,6 +252,17 @@ and genModuleDeclList astContext e =
             let expr =
                 col sepNln xs (genModuleDecl astContext)
                 +> sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleDeclToFsAstType y) y.Range attrs
+                +> (fun ctx ->
+                    match y with
+                    | SynModuleDecl.DoExpr _ ->
+                        let doKeyWordRange =
+                            let lastAttribute = List.last xs
+                            mkRange "doKeyword" lastAttribute.Range.End y.Range.Start
+
+                        // the do keyword range is not part of SynModuleDecl.DoExpr
+                        // So Trivia before `do` cannot be printed in genModuleDecl
+                        enterNodeTokenByName doKeyWordRange DO ctx
+                    | _ -> ctx)
                 +> genModuleDecl astContext y
 
             let r = List.head xs |> fun mdl -> mdl.Range
@@ -431,6 +442,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
         +> unindent
 
     | Open (s) -> !-(sprintf "open %s" s)
+    | OpenType (s) -> !-(sprintf "open type %s" s)
     // There is no nested types and they are recursive if there are more than one definition
     | Types (t :: ts) ->
         let sepTs =
@@ -467,6 +479,7 @@ and genSigModuleDecl astContext node =
         +> unindent
 
     | SigOpen (s) -> !-(sprintf "open %s" s)
+    | SigOpenType (s) -> !-(sprintf "open type %s" s)
     | SigTypes (t :: ts) ->
         genSigTypeDefn { astContext with IsFirstChild = true } t
         +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genSigTypeDefn { astContext with IsFirstChild = false })
@@ -474,7 +487,9 @@ and genSigModuleDecl astContext node =
     |> (match node with
         | SynModuleSigDecl.Types _ -> genTriviaFor SynModuleSigDecl_Types node.Range
         | SynModuleSigDecl.NestedModule _ -> genTriviaFor SynModuleSigDecl_NestedModule node.Range
-        | SynModuleSigDecl.Open _ -> genTriviaFor SynModuleSigDecl_Open node.Range
+        | SynModuleSigDecl.Open (SynOpenDeclTarget.ModuleOrNamespace _, _) ->
+            genTriviaFor SynModuleSigDecl_Open node.Range
+        | SynModuleSigDecl.Open (SynOpenDeclTarget.Type _, _) -> genTriviaFor SynModuleSigDecl_OpenType node.Range
         | _ -> id)
 
 and genAccess (Access s) = !-s
@@ -1256,8 +1271,7 @@ and genExpr astContext synExpr ctx =
             +> ifElse isInfixExpr genInfixExpr genNonInfixExpr
 
         | SingleExpr (kind, e) ->
-            enterNodeFor SynExpr_Do synExpr.Range
-            +> str kind
+            str kind
             +> (match kind with
                 | YieldFrom
                 | Yield
@@ -1395,9 +1409,21 @@ and genExpr astContext synExpr ctx =
                 isSmallExpression size smallExpression longExpression ctx
 
         | ObjExpr (t, eio, bd, ims, range) ->
-            ifAlignBrackets
-                (genObjExprAlignBrackets t eio bd ims range astContext)
-                (genObjExpr t eio bd ims range astContext)
+            if List.isEmpty bd then
+                // Check the role of the second part of eio
+                let param =
+                    opt sepNone (Option.map fst eio) (genExpr astContext)
+
+                // See https://devblogs.microsoft.com/dotnet/announcing-f-5/#default-interface-member-consumption
+                sepOpenS
+                +> !- "new "
+                +> genType astContext false t
+                +> param
+                +> sepCloseS
+            else
+                ifAlignBrackets
+                    (genObjExprAlignBrackets t eio bd ims range astContext)
+                    (genObjExpr t eio bd ims range astContext)
 
         | While (e1, e2) ->
             atCurrentColumn
@@ -1993,6 +2019,19 @@ and genExpr astContext synExpr ctx =
                         match e with
                         | LetOrUses (bs, e) -> letBindings bs @ synExpr e
                         | Sequentials (s) -> s |> List.collect synExpr
+                        | SynExpr.Do _ ->
+                            let doKeyWordRange =
+                                List.last bs
+                                |> snd
+                                |> fun binding -> mkRange "doKeyword" binding.RangeOfBindingAndRhs.End e.Range.Start
+
+                            let expr =
+                                // the do keyword range is not part of SynExpr.Do
+                                // So Trivia before `do` cannot be printed in genExpr
+                                enterNodeTokenByName doKeyWordRange DO
+                                +> genExpr astContext e
+
+                            [ expr, sepNlnConsideringTriviaContentBeforeForToken DO doKeyWordRange, doKeyWordRange ]
                         | _ ->
                             let r = e.Range
                             [ genExpr astContext e, sepNlnForNonSequential e r, r ]
@@ -2448,7 +2487,13 @@ and genExpr astContext synExpr ctx =
             // In case s is f.ex `onStrongDiscard.IsNone`, last range is the range of `IsNone`
             let lastRange = List.tryLast ranges
 
-            ifElse isOpt (!- "?") sepNone -- s
+            let genS =
+                match lastRange with
+                | Some r -> infixOperatorFromTrivia r s
+                | None -> !-s
+
+            ifElse isOpt (!- "?") sepNone
+            +> genS
             +> opt id lastRange (leaveNodeFor Ident_)
         | LongIdentSet (s, e, _) ->
             !-(sprintf "%s <- " s)
@@ -2629,6 +2674,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.DotGet _ -> genTriviaFor SynExpr_DotGet synExpr.Range
             | SynExpr.Upcast _ -> genTriviaFor SynExpr_Upcast synExpr.Range
             | SynExpr.Downcast _ -> genTriviaFor SynExpr_Downcast synExpr.Range
+            | SynExpr.DotIndexedGet _ -> genTriviaFor SynExpr_DotIndexedGet synExpr.Range
             | _ -> id)
 
     expr ctx
@@ -4751,7 +4797,11 @@ and infixOperatorFromTrivia range fallback (ctx: Context) =
 
     let isValidIdent x = Regex.Match(x, validIdentRegex).Success
 
-    TriviaHelpers.getNodesForTypes [ SynPat_LongIdent; SynPat_Named ] ctx.TriviaMainNodes
+    TriviaHelpers.getNodesForTypes
+        [ SynPat_LongIdent
+          SynPat_Named
+          SynExpr_Ident ]
+        ctx.TriviaMainNodes
     |> List.choose (fun t ->
         match t.Range = range with
         | true ->

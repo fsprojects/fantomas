@@ -1,9 +1,10 @@
 source https://api.nuget.org/v3/index.json
-framework: netstandard2.0, netcoreapp3.1
+
+framework: netstandard2.0, net5.0
 storage: none
 
 nuget FSharp.Core
-nuget FSharp.Compiler.Service ~> 37.0
+nuget FSharp.Compiler.Service ~> 38.0
 nuget FsUnit
 nuget FsCheck
 nuget Microsoft.NET.Test.Sdk 16.7.0
@@ -13,6 +14,6 @@ nuget NunitXml.TestLogger
 nuget Argu
 nuget BenchmarkDotNet
 nuget editorconfig
-nuget MAB.DotIgnore 3.0.1
+nuget MAB.DotIgnore 3.0.2
 
 github: fsprojects/fantomas:829faa6ba834f99afed9b4434b3a1680536474b2 src/Fantomas/CodePrinter.fs

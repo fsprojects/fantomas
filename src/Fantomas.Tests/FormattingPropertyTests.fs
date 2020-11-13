@@ -250,7 +250,7 @@ and generateSynExpr size =
                         Gen.map2 (fun b clauses -> SynExpr.MatchLambda(b, zero, clauses, NoDebugPointAtDoBinding, zero))
                             Arb.generate<_> genSubSynMatchClauseList
                         2,
-                        Gen.map3 (fun b pat expr -> SynExpr.Lambda(b, false, pat, expr, zero)) Arb.generate<_>
+                        Gen.map3 (fun b pat expr -> SynExpr.Lambda(b, false, pat, expr, None, zero)) Arb.generate<_>
                             genSubSynSimplePats genSubSynExpr
                         2,
                         Gen.map5 (fun b expr1 expr2 expr3 s ->
@@ -419,7 +419,7 @@ and generateDeclExpr size =
                         Gen.map2 (fun b clauses -> SynExpr.MatchLambda(b, zero, clauses, NoDebugPointAtDoBinding, zero))
                             Arb.generate<_> genSubSynMatchClauseList //
                         4,
-                        Gen.map3 (fun b pat expr -> SynExpr.Lambda(b, false, pat, expr, zero)) Arb.generate<_>
+                        Gen.map3 (fun b pat expr -> SynExpr.Lambda(b, false, pat, expr, None, zero)) Arb.generate<_>
                             genSubSynSimplePats genSubDeclExpr //
                         1,
                         Gen.map2 (fun expr1 expr2 ->
@@ -574,7 +574,7 @@ let rec shrinkSynExpr =
     | SynExpr.TypeApp (expr, _, _, _, _, _, _)
     | SynExpr.Do (expr, _)
     | SynExpr.Assert (expr, _)
-    | SynExpr.Lambda (_, _, _, expr, _)
+    | SynExpr.Lambda (_, _, _, expr, _, _)
     | SynExpr.CompExpr (_, _, expr, _)
     | SynExpr.ArrayOrListOfSeqExpr (_, expr, _)
     | SynExpr.New (_, _, expr, _)

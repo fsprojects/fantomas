@@ -65,3 +65,29 @@ let decodeKeyValue: Decoder<obj> = fun _key jsonValue -> Ok jsonValue
 
 #nowarn "40"
 """
+
+[<Test>]
+let ``#r "nuget:..." syntax`` () =
+    formatSourceString false """
+#r "nuget: Newtonsoft.Json"
+// Optionally, specify a version explicitly
+// #r "nuget: Newtonsoft.Json,11.0.1"
+
+open Newtonsoft.Json
+
+let o = {| X = 2; Y = "Hello" |}
+
+printfn "%s" (JsonConvert.SerializeObject o)
+"""  config
+    |> prepend newline
+    |> should equal """
+#r "nuget: Newtonsoft.Json"
+// Optionally, specify a version explicitly
+// #r "nuget: Newtonsoft.Json,11.0.1"
+
+open Newtonsoft.Json
+
+let o = {| X = 2; Y = "Hello" |}
+
+printfn "%s" (JsonConvert.SerializeObject o)
+"""

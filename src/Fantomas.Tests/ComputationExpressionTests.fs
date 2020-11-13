@@ -1671,3 +1671,203 @@ let create: Highlighter =
                 |> List.ofSeq
                 |> FormattedText.fromList
 """
+
+[<Test>]
+let ``applicative computation expression`` () =
+    formatSourceString false """
+// First, define a 'zip' function
+module Result =
+    let zip x1 x2 =
+        match x1,x2 with
+        | Ok x1res, Ok x2res -> Ok (x1res, x2res)
+        | Error e, _ -> Error e
+        | _, Error e -> Error e
+
+// Next, define a builder with 'MergeSources' and 'BindReturn'
+type ResultBuilder() =
+    member _.MergeSources(t1: Result<'T,'U>, t2: Result<'T1,'U>) = Result.zip t1 t2
+    member _.BindReturn(x: Result<'T,'U>, f) = Result.map f x
+
+let result = ResultBuilder()
+
+let run r1 r2 r3 =
+    // And here is our applicative!
+    let res1: Result<int, string> =
+        result {
+            let! a = r1
+            and! b = r2
+            and! c = r3
+            return a + b - c
+        }
+
+    match res1 with
+    | Ok x -> printfn "%s is: %d" (nameof res1) x
+    | Error e -> printfn "%s is: %s" (nameof res1) e
+
+let printApplicatives () =
+    let r1 = Ok 2
+    let r2 = Ok 3 // Error "fail!"
+    let r3 = Ok 4
+
+    run r1 r2 r3
+    run r1 (Error "failure!") r3
+"""  config
+    |> prepend newline
+    |> should equal """
+// First, define a 'zip' function
+module Result =
+    let zip x1 x2 =
+        match x1, x2 with
+        | Ok x1res, Ok x2res -> Ok(x1res, x2res)
+        | Error e, _ -> Error e
+        | _, Error e -> Error e
+
+// Next, define a builder with 'MergeSources' and 'BindReturn'
+type ResultBuilder() =
+    member _.MergeSources(t1: Result<'T, 'U>, t2: Result<'T1, 'U>) = Result.zip t1 t2
+    member _.BindReturn(x: Result<'T, 'U>, f) = Result.map f x
+
+let result = ResultBuilder()
+
+let run r1 r2 r3 =
+    // And here is our applicative!
+    let res1: Result<int, string> =
+        result {
+            let! a = r1
+            and! b = r2
+            and! c = r3
+            return a + b - c
+        }
+
+    match res1 with
+    | Ok x -> printfn "%s is: %d" (nameof res1) x
+    | Error e -> printfn "%s is: %s" (nameof res1) e
+
+let printApplicatives () =
+    let r1 = Ok 2
+    let r2 = Ok 3 // Error "fail!"
+    let r3 = Ok 4
+
+    run r1 r2 r3
+    run r1 (Error "failure!") r3
+"""
+
+[<Test>]
+let ``overloads of custom keywords in computation expressions`` () =
+    formatSourceString false """
+open System
+
+type InputKind =
+    | Text of placeholder:string option
+    | Password of placeholder: string option
+
+type InputOptions =
+  { Label: string option
+    Kind : InputKind
+    Validators : (string -> bool) array }
+
+type InputBuilder() =
+    member t.Yield(_) =
+      { Label = None
+        Kind = Text None
+        Validators = [||] }
+
+    [<CustomOperation("text")>]
+    member this.Text(io, ?placeholder) =
+        { io with Kind = Text placeholder }
+
+    [<CustomOperation("password")>]
+    member this.Password(io, ?placeholder) =
+        { io with Kind = Password placeholder }
+
+    [<CustomOperation("label")>]
+    member this.Label(io, label) =
+        { io with Label = Some label }
+
+    [<CustomOperation("with_validators")>]
+    member this.Validators(io, [<ParamArray>] validators) =
+        { io with Validators = validators }
+
+let input = InputBuilder()
+
+let name =
+    input {
+        label "Name"
+        text
+        with_validators
+            (String.IsNullOrWhiteSpace >> not)
+    }
+
+let email =
+    input {
+        label "Email"
+        text "Your email"
+        with_validators
+            (String.IsNullOrWhiteSpace >> not)
+            (fun s -> s.Contains "@")
+    }
+
+let password =
+    input {
+        label "Password"
+        password "Must contains at least 6 characters, one number and one uppercase"
+        with_validators
+            (String.exists Char.IsUpper)
+            (String.exists Char.IsDigit)
+            (fun s -> s.Length >= 6)
+    }
+"""  config
+    |> prepend newline
+    |> should equal """
+open System
+
+type InputKind =
+    | Text of placeholder: string option
+    | Password of placeholder: string option
+
+type InputOptions =
+    { Label: string option
+      Kind: InputKind
+      Validators: (string -> bool) array }
+
+type InputBuilder() =
+    member t.Yield(_) =
+        { Label = None
+          Kind = Text None
+          Validators = [||] }
+
+    [<CustomOperation("text")>]
+    member this.Text(io, ?placeholder) = { io with Kind = Text placeholder }
+
+    [<CustomOperation("password")>]
+    member this.Password(io, ?placeholder) = { io with Kind = Password placeholder }
+
+    [<CustomOperation("label")>]
+    member this.Label(io, label) = { io with Label = Some label }
+
+    [<CustomOperation("with_validators")>]
+    member this.Validators(io, [<ParamArray>] validators) = { io with Validators = validators }
+
+let input = InputBuilder()
+
+let name =
+    input {
+        label "Name"
+        text
+        with_validators (String.IsNullOrWhiteSpace >> not)
+    }
+
+let email =
+    input {
+        label "Email"
+        text "Your email"
+        with_validators (String.IsNullOrWhiteSpace >> not) (fun s -> s.Contains "@")
+    }
+
+let password =
+    input {
+        label "Password"
+        password "Must contains at least 6 characters, one number and one uppercase"
+        with_validators (String.exists Char.IsUpper) (String.exists Char.IsDigit) (fun s -> s.Length >= 6)
+    }
+"""
