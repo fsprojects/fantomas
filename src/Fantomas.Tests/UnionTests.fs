@@ -559,3 +559,17 @@ type CardValue =
             yield King
         ]
 """
+
+[<Test>]
+let ``comment after enum field, 1247`` () =
+    formatSourceString false """
+type Foo =
+    | Bar = 3 // Foo
+    | Baz = 5 // Eee
+"""  config
+    |> prepend newline
+    |> should equal """
+type Foo =
+    | Bar = 3 // Foo
+    | Baz = 5 // Eee
+"""
