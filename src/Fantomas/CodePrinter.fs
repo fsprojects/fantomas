@@ -4352,9 +4352,9 @@ and getLetBindingFunction (astContext: ASTContext)
         else (!-pref +> genOnelinerAttributes astContext ats)
 
     let afterLetKeyword =
-        opt sepSpace ao genAccess
-        +> ifElse isMutable (!- "mutable ") sepNone
+        ifElse isMutable (!- "mutable ") sepNone
         +> ifElse isInline (!- "inline ") sepNone
+        +> opt sepSpace ao genAccess
 
     let genFunctionName =
         getIndentBetweenTicksFromSynPat patRange functionName
