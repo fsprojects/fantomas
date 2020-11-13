@@ -2340,6 +2340,11 @@ and genExpr astContext synExpr ctx =
                             +> genElse synExpr.Range
                             +> genExpr astContext e4))
 
+                let isIfThenElse =
+                    function
+                    | SynExpr.IfThenElse _ -> true
+                    | _ -> false
+
                 // This is a simplistic check to see if everything fits on one line
                 let isOneLiner =
                     not hasElfis
@@ -2347,6 +2352,7 @@ and genExpr astContext synExpr ctx =
                     && not isAnyExpressionIsMultiline
                     && not hasCommentAfterIfBranchExpr
                     && not anyElifBranchHasCommentAfterBranchExpr
+                    && not (isIfThenElse e2)
                     && not (futureNlnCheck genOneliner ctx)
 
                 let keepIfThenInSameLine = ctx.Config.KeepIfThenInSameLine
