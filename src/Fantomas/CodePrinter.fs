@@ -3650,7 +3650,9 @@ and genEnumCase astContext (EnumCase (ats, px, _, (_, _)) as node) =
     let genCase (ctx: Context) =
         let expr =
             match node with
-            | EnumCase (_, _, identInAST, (c, r)) -> !-identInAST +> !- " = " +> genConst c r
+            | EnumCase (_, _, identInAST, (c, r)) ->
+                !-identInAST +> !- " = " +> genConst c r
+                |> genTriviaFor EnumCase_ r
 
         expr ctx
 
