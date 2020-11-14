@@ -1533,7 +1533,7 @@ and genExpr astContext synExpr ctx =
                      +> enterRightBracketBar aNode.Range
                      +> sepCloseA)
                     (sepOpenL
-                     +> genExpr astContext e
+                     +> atCurrentColumn (genExpr astContext e)
                      +> enterRightBracket aNode.Range
                      +> sepCloseL
                      +> leaveNodeTokenByName aNode.Range RBRACK)
@@ -2341,6 +2341,11 @@ and genExpr astContext synExpr ctx =
                             +> genElse synExpr.Range
                             +> genExpr astContext e4))
 
+                let isIfThenElse =
+                    function
+                    | SynExpr.IfThenElse _ -> true
+                    | _ -> false
+
                 // This is a simplistic check to see if everything fits on one line
                 let isOneLiner =
                     not hasElfis
@@ -2348,6 +2353,7 @@ and genExpr astContext synExpr ctx =
                     && not isAnyExpressionIsMultiline
                     && not hasCommentAfterIfBranchExpr
                     && not anyElifBranchHasCommentAfterBranchExpr
+                    && not (isIfThenElse e2)
                     && not (futureNlnCheck genOneliner ctx)
 
                 let keepIfThenInSameLine = ctx.Config.KeepIfThenInSameLine
@@ -3651,7 +3657,9 @@ and genEnumCase astContext (EnumCase (ats, px, _, (_, _)) as node) =
     let genCase (ctx: Context) =
         let expr =
             match node with
-            | EnumCase (_, _, identInAST, (c, r)) -> !-identInAST +> !- " = " +> genConst c r
+            | EnumCase (_, _, identInAST, (c, r)) ->
+                !-identInAST +> !- " = " +> genConst c r
+                |> genTriviaFor EnumCase_ r
 
         expr ctx
 
@@ -3922,7 +3930,20 @@ and genClause astContext hasBar (Clause (p, e, eo)) =
     let arrowRange =
         mkRange "arrowRange" p.Range.End e.Range.Start
 
-    let pat = genPat astContext p
+    let pat ctx =
+        match p with
+        | PatOrs (ph :: _ as allPats) when (List.length allPats > 1) ->
+            allPats
+            |> List.pairwise
+            |> List.fold (fun acc (prev, current) ->
+                let barRange =
+                    mkRange "bar range" prev.Range.End current.Range.Start
+
+                (sepNln
+                 +> enterNodeTokenByName barRange BAR
+                 +> sepBar
+                 +> genPat astContext current) acc) (genPat astContext ph ctx)
+        | _ -> genPat astContext p ctx
 
     let body =
         optPre (!- " when ") sepNone eo (genExpr astContext)
@@ -4171,7 +4192,7 @@ and genPat astContext pat =
             mkRange "bar range" p1.Range.End p2.Range.Start
 
         genPat astContext p1
-        +> sepNln
+        +> sepSpace
         +> enterNodeTokenByName barRange BAR
         -- "| "
         +> genPat astContext p2
@@ -4345,9 +4366,9 @@ and getLetBindingFunction (astContext: ASTContext)
         else (!-pref +> genOnelinerAttributes astContext ats)
 
     let afterLetKeyword =
-        opt sepSpace ao genAccess
-        +> ifElse isMutable (!- "mutable ") sepNone
+        ifElse isMutable (!- "mutable ") sepNone
         +> ifElse isInline (!- "inline ") sepNone
+        +> opt sepSpace ao genAccess
 
     let genFunctionName =
         getIndentBetweenTicksFromSynPat patRange functionName
