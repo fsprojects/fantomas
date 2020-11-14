@@ -1532,7 +1532,7 @@ and genExpr astContext synExpr ctx =
                      +> enterRightBracketBar aNode.Range
                      +> sepCloseA)
                     (sepOpenL
-                     +> genExpr astContext e
+                     +> atCurrentColumn (genExpr astContext e)
                      +> enterRightBracket aNode.Range
                      +> sepCloseL
                      +> leaveNodeTokenByName aNode.Range RBRACK)
