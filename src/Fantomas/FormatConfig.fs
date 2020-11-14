@@ -36,9 +36,8 @@ type EndOfLineStyle =
         | CRLF -> "\r\n"
 
     static member FromEnvironment =
-        match System.Environment.NewLine with
+        match Environment.NewLine with
         | "\n" -> LF
-        | "\r" -> failwith "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
         | "\r\n" -> CRLF
         | other -> failwithf "Unknown system newline string found: %s" other
 

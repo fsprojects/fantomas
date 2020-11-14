@@ -32,7 +32,22 @@ indent_size=2
 """
 
 [<Test>]
-let uses_end_of_line_settings_to_write_user_newlines () =
+let ``end_of_line=cr should throw an exception`` () =
+    use fileFixture =
+        new TemporaryFileCodeSample("let a = 9\n")
+
+    use configFixture =
+        new ConfigurationFile("""
+[*.fs]
+end_of_line=cr
+"""                            )
+
+    let exitCode, output = runFantomasTool fileFixture.Filename
+    exitCode |> should equal 1
+    StringAssert.Contains("Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'", output)
+
+[<Test>]
+let ``uses end_of_line setting to write user newlines`` () =
     let sampleCode = """let a = 9\n"""
     let codeWithNewline = sampleCode
 

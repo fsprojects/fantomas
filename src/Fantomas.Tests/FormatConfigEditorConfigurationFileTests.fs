@@ -313,13 +313,31 @@ fsharp_disable_elmish_syntax = true
 
     Assert.IsTrue config.DisableElmishSyntax
 
-let eol_settings =
+[<Test>]
+let ``end_of_line = cr should throw`` () =
+    let editorConfig = """
+[*.fs]
+end_of_line = cr
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, content = editorConfig)
+
+    use fsharpFile = new FSharpFile()
+
+    let ex =
+        Assert.Throws(fun () ->
+            EditorConfig.readConfiguration fsharpFile.FSharpFile
+            |> ignore)
+
+    ex.Message
+    == "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
+
+let valid_eol_settings =
     [ EndOfLineStyle.LF
-      // EndOfLineStyle.CR
       EndOfLineStyle.CRLF ]
 
-// todo: this fails on CR, because CR isn't valid for F# code
-[<TestCaseSource("eol_settings")>]
+[<TestCaseSource("valid_eol_settings")>]
 let can_parse_end_of_line_setting (eol: EndOfLineStyle) =
     let editorConfig =
         sprintf """
