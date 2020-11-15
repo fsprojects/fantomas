@@ -225,3 +225,29 @@ module Caching =
 
             ()
 """
+
+[<Test>]
+let ``single line constructor without new keyword`` () =
+    formatSourceString false """
+let smallTree = BinaryNode(BinaryValue 3, BinaryValue 4)
+"""  config
+    |> prepend newline
+    |> should equal """
+let smallTree = BinaryNode(BinaryValue 3, BinaryValue 4)
+"""
+
+[<Test>]
+let ``multiline constructor without new keyword`` () =
+    formatSourceString false """
+let tree1 =
+    BinaryNode(BinaryNode(BinaryValue 1, BinaryValue 2), BinaryNode(BinaryValue 3, BinaryValue 4))
+
+"""  { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should equal """
+let tree1 =
+    BinaryNode(
+        BinaryNode(BinaryValue 1, BinaryValue 2),
+        BinaryNode(BinaryValue 3, BinaryValue 4)
+    )
+"""

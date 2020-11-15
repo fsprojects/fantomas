@@ -1901,6 +1901,25 @@ and genExpr astContext synExpr ctx =
 
             expressionFitsOnRestOfLine shortExpression longExpression
 
+        | AppTuple (e, lpr, args, rpr) ->
+            let short =
+                genExpr astContext e
+                +> sepOpenTFor (Some lpr)
+                +> col sepComma args (genExpr astContext)
+                +> sepCloseTFor rpr
+
+            let long =
+                genExpr astContext e
+                +> sepOpenTFor (Some lpr)
+                +> indent
+                +> sepNln
+                +> col (sepComma +> sepNln) args (genExpr astContext)
+                +> unindent
+                +> sepNln
+                +> sepCloseTFor rpr
+
+            expressionFitsOnRestOfLine short long
+
         // Always spacing in multiple arguments
         | App (e, es) ->
             let shortExpression =

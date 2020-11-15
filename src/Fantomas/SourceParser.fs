@@ -793,6 +793,13 @@ let (|App|_|) e =
     | (_, []) -> None
     | (e, es) -> Some(e, List.rev es)
 
+// captures application with single tuple arg
+let (|AppTuple|_|) =
+    function
+    | App (e, [ (Paren (lpr, Tuple args, rpr)) ]) -> Some(e, lpr, args, rpr)
+    //| SynExpr.New(_, pat, (Paren (_, Tuple _, _) as arg), _) -> Some(NewTuple (pat, arg))
+    | _ -> None
+
 let (|CompApp|_|) =
     function
     | SynExpr.App (_, _, Var "seq", (SynExpr.App _ as e), _) -> Some("seq", e)
@@ -852,16 +859,6 @@ let (|SameInfixApps|_|) e =
 let (|TernaryApp|_|) =
     function
     | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
-    | _ -> None
-
-let (|AppWithMultilineArgument|_|) e =
-    let isMultilineString p =
-        match p with
-        | MultilineString _ -> true
-        | _ -> false
-
-    match e with
-    | App (_, arguments) when (List.exists isMultilineString arguments) -> Some e
     | _ -> None
 
 /// Gather all arguments in lambda
