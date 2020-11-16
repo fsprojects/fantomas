@@ -1287,11 +1287,6 @@ and genExpr astContext synExpr ctx =
         | TypedExpr (TypeTest, e, t) ->
             genExpr astContext e -- " :? "
             +> genType astContext false t
-        | TypedExpr (New, e, t) ->
-            !- "new "
-            +> genType astContext false t
-            +> ifElse (hasParenthesis e) sepNone sepSpace
-            +> genExpr astContext e
         | TypedExpr (Downcast, e, t) ->
             let shortExpr =
                 genExpr astContext e -- " :?> "
@@ -1316,6 +1311,26 @@ and genExpr astContext synExpr ctx =
             genExpr astContext e
             +> sepColon
             +> genType astContext false t
+        | NewTuple (t, lpr, args, rpr) ->
+            let short =
+                !- "new "
+                +> genType astContext false t
+                +> sepOpenTFor (Some lpr)
+                +> col sepComma args (genExpr astContext)
+                +> sepCloseTFor rpr
+
+            let long =
+                !- "new "
+                +> genType astContext false t
+                +> sepOpenTFor (Some lpr)
+                +> indent
+                +> sepNln
+                +> col (sepComma +> sepNln) args (genExpr astContext)
+                +> unindent
+                +> sepNln
+                +> sepCloseTFor rpr
+
+            expressionFitsOnRestOfLine short long
         | Tuple es -> genTuple astContext es
         | StructTuple es ->
             !- "struct "

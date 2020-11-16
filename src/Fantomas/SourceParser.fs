@@ -634,7 +634,6 @@ let (|SingleExpr|_|) =
 
 type TypedExprKind =
     | TypeTest
-    | New
     | Downcast
     | Upcast
     | Typed
@@ -642,7 +641,6 @@ type TypedExprKind =
 let (|TypedExpr|_|) =
     function
     | SynExpr.TypeTest (e, t, _) -> Some(TypeTest, e, t)
-    | SynExpr.New (_, t, e, _) -> Some(New, e, t)
     | SynExpr.Downcast (e, t, _) -> Some(Downcast, e, t)
     | SynExpr.Upcast (e, t, _) -> Some(Upcast, e, t)
     | SynExpr.Typed (e, t, _) -> Some(Typed, e, t)
@@ -798,6 +796,19 @@ let (|AppTuple|_|) =
     function
     | App (e, [ (Paren (lpr, Tuple args, rpr)) ]) -> Some(e, lpr, args, rpr)
     //| SynExpr.New(_, pat, (Paren (_, Tuple _, _) as arg), _) -> Some(NewTuple (pat, arg))
+    | _ -> None
+
+let (|NewTuple|_|) =
+    function
+    | SynExpr.New (_, t, Paren (lpr, Tuple args, rpr), _) -> Some(t, lpr, args, rpr)
+    | SynExpr.New (_, t, ConstExpr (SynConst.Unit, unitRange), _) ->
+        let lpr =
+            mkRange "lpr" unitRange.Start unitRange.Start
+
+        let rpr =
+            mkRange "rpr" unitRange.End unitRange.End
+
+        Some(t, lpr, [], Some rpr)
     | _ -> None
 
 let (|CompApp|_|) =

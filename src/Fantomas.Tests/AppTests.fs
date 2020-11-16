@@ -251,3 +251,85 @@ let tree1 =
         BinaryNode(BinaryValue 3, BinaryValue 4)
     )
 """
+
+[<Test>]
+let ``short constructor with new keyword`` () =
+    formatSourceString false """
+let person = new Person("Jim", 33)
+"""  config
+    |> prepend newline
+    |> should equal """
+let person = new Person("Jim", 33)
+"""
+
+[<Test>]
+let ``multiline constructor with new keyword`` () =
+    formatSourceString false """
+let otherThing =
+    new Foobar(longname1, longname2, longname3, longname4, longname5, longname6, longname7)
+"""  { config with MaxLineLength = 90 }
+    |> prepend newline
+    |> should equal """
+let otherThing =
+    new Foobar(
+        longname1,
+        longname2,
+        longname3,
+        longname4,
+        longname5,
+        longname6,
+        longname7
+    )
+"""
+
+[<Test>]
+let ``short static member call`` () =
+    formatSourceString false """
+let myRegexMatch = Regex.Match(input, regex)
+"""  config
+    |> prepend newline
+    |> should equal """
+let myRegexMatch = Regex.Match(input, regex)
+"""
+
+[<Test>]
+let ``multiline static member call`` () =
+    formatSourceString false """
+let myRegexMatch =
+    Regex.Match("my longer input string with some interesting content in it","myRegexPattern")
+"""  { config with MaxLineLength = 90 }
+    |> prepend newline
+    |> should equal """
+let myRegexMatch =
+    Regex.Match(
+        "my longer input string with some interesting content in it",
+        "myRegexPattern"
+    )
+"""
+
+[<Test>]
+let ``short instance member call`` () =
+    formatSourceString false """
+let untypedRes = checker.ParseFile(file, source, opts)
+"""  config
+    |> prepend newline
+    |> should equal """
+let untypedRes = checker.ParseFile(file, source, opts)
+"""
+
+[<Test>]
+let ``multiline instance member call`` () =
+    formatSourceString false """
+let untypedRes =
+    checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines, somethingElseWithARatherLongVariableName)
+"""  { config with MaxLineLength = 90 }
+    |> prepend newline
+    |> should equal """
+let untypedRes =
+    checker.ParseFile(
+        fileName,
+        sourceText,
+        parsingOptionsWithDefines,
+        somethingElseWithARatherLongVariableName
+    )
+"""
