@@ -354,15 +354,3 @@ end_of_line = %s
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     config.EndOfLine == eol
-
-[<Test>]
-[<Ignore("formatSourceString will normalize line endings")>]
-let blah_test () =
-    let config =
-        { config with
-              EndOfLine = EndOfLineStyle.CRLF }
-
-    formatSourceString false """let (|Boolean|_|) = Boolean.parse
-    """ config
-    |> should equal """let (|Boolean|_|) = Boolean.parse
-"""
