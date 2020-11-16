@@ -326,7 +326,6 @@ let main argv =
             printfn "Processing %s" inputFile
             let content = File.ReadAllText inputFile
             let config = EditorConfig.readConfiguration inputFile
-
             stringToFile content inputFile config
 
     let processFolder inputFolder outputFolder =
