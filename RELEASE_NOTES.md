@@ -1,4 +1,15 @@
+### 4.3.0-alpha-005 - 11/2020
+
+* Support user-provided end-of-line characters. [#1231](https://github.com/fsprojects/fantomas/issues/1231)
+* Fix multiline yield bang in list should be further indented. [#1254](https://github.com/fsprojects/fantomas/issues/1254)
+* Fix Or pipe in destructured record should not be splitted. [#1252](https://github.com/fsprojects/fantomas/issues/1252)
+* Fix Swap order of private and inline. [#1250](https://github.com/fsprojects/fantomas/issues/1250)
+* Fix Comment is lost in enum. [#1247](https://github.com/fsprojects/fantomas/issues/1247)
+* Fix Nested if/else/then in short mode. [#1243](https://github.com/fsprojects/fantomas/issues/1243)
+* Fix Something doesn't add up in fix for 303. [#1093](https://github.com/fsprojects/fantomas/issues/1093)
+
 ### 4.3.0-alpha-004 - 11/2020
+
 * Update to FCS 38. [#1240](https://github.com/fsprojects/fantomas/pull/1240)
 
 ### 4.3.0-alpha-003 - 11/2020
