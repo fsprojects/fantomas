@@ -3004,10 +3004,7 @@ and genApp appNlnFun astContext e es ctx =
 
     let longExpression =
         if shouldHaveAlternativeLambdaStyle then
-            let hasMultipleLambdas =
-                List.filter isParenLambda es
-                |> List.length
-                |> fun l -> l > 1
+            let hasMultipleArguments = (List.length es) > 1
 
             let singleInfix =
                 col sepNone es (fun e ->
@@ -3038,7 +3035,7 @@ and genApp appNlnFun astContext e es ctx =
                         expressionFitsOnRestOfLine short long
                     | _ -> genExpr astContext e)
 
-            let multipleLambdas =
+            let multipleArguments =
                 col sepNln es (fun e ->
                     let genLambda pats (bodyExpr: SynExpr) lpr rpr arrowRange =
                         let sepOpenTFor r =
@@ -3078,7 +3075,7 @@ and genApp appNlnFun astContext e es ctx =
                         genLambda (col sepSpace sps (genSimplePats astContext)) e lpr rpr e.Range
                     | _ -> genExpr astContext e)
 
-            let singleLambdaAndOtherArguments =
+            let singleLambdaArgument =
                 col sepSpace es (fun e ->
                     let genLambda pats (bodyExpr: SynExpr) lpr rpr arrowRange =
                         let sepOpenTFor r =
@@ -3120,13 +3117,13 @@ and genApp appNlnFun astContext e es ctx =
 
             let argExpr =
                 if hasASingleInfixExpression then singleInfix
-                elif hasMultipleLambdas then multipleLambdas
-                else singleLambdaAndOtherArguments
+                elif hasMultipleArguments then multipleArguments
+                else singleLambdaArgument
 
             genExpr astContext e
-            +> ifElse (not hasMultipleLambdas) sepSpace (indent +> sepNln)
+            +> ifElse (not hasMultipleArguments) sepSpace (indent +> sepNln)
             +> argExpr
-            +> onlyIf hasMultipleLambdas unindent
+            +> onlyIf hasMultipleArguments unindent
         else
             atCurrentColumn
                 (genExpr astContext e

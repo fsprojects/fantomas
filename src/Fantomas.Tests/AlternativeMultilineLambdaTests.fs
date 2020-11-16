@@ -52,10 +52,12 @@ let mySuperFunction a =
     |> prepend newline
     |> should equal """
 let mySuperFunction a =
-    someOtherFunction a (fun b ->
-        // doing some stuff her
-        b * b
-    )
+    someOtherFunction
+        a
+        (fun b ->
+            // doing some stuff her
+            b * b
+        )
 """
 
 [<Test>]
@@ -70,10 +72,12 @@ let mySuperFunction a =
     |> prepend newline
     |> should equal """
 let mySuperFunction a =
-    someOtherFunction (fun b ->
-        // doing some stuff her
-        b * b
-    ) a
+    someOtherFunction
+        (fun b ->
+            // doing some stuff her
+            b * b
+        )
+        a
 """
 
 [<Test>]
@@ -108,10 +112,12 @@ let printListWithOffset a list1 =
     |> prepend newline
     |> should equal """
 let printListWithOffset a list1 =
-    List.iter (fun { ItemOne = a } ->
-        // print
-        printfn "%s" a
-    ) list1
+    List.iter
+        (fun { ItemOne = a } ->
+            // print
+            printfn "%s" a
+        )
+        list1
 """
 
 // Not sure if the result is accepted here
@@ -223,11 +229,14 @@ let expr =
     |> should equal """
 let expr =
     genExpr astContext e
-    +> col sepSpace es (fun e ->
-        match e with
-        | Paren (_, Lambda _, _) -> !- "lambda"
-        | _ -> genExpr astContext e
-    )
+    +> col
+        sepSpace
+        es
+        (fun e ->
+            match e with
+            | Paren (_, Lambda _, _) -> !- "lambda"
+            | _ -> genExpr astContext e
+        )
 """
 
 [<Test>]
