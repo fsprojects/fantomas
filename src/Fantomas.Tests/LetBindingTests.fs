@@ -396,6 +396,7 @@ let ``has symbol in signature requires paren, 564`` () =
     formatSourceString false """module Bar =
   let foo (_ : #(int seq)) = 1
   let meh (_: #seq<int>) = 2
+  let evenMoreMeh (_: #seq<int>) : int = 2
 """
         ({ config with
                SpaceAfterComma = false
@@ -407,6 +408,7 @@ let ``has symbol in signature requires paren, 564`` () =
 module Bar =
     let foo(_: #(int seq)) = 1
     let meh(_: #seq<int>) = 2
+    let evenMoreMeh(_: #seq<int>): int = 2
 """
 
 [<Test>]
@@ -564,7 +566,31 @@ let Baz (firstParam: string)
 #else
         (secndParam: int)
 #endif
-    =
+        =
+    ()
+"""
+
+[<Test>]
+let ``handle hash directives before equals, no defines`` () =
+    formatSourceStringWithDefines [] """let Baz (firstParam: string)
+#if DEBUG
+            (_         : int)
+#else
+            (secndParam: int)
+#endif
+                =
+        ()
+
+    """ config
+    |> prepend newline
+    |> should equal """
+let Baz (firstParam: string)
+#if DEBUG
+
+#else
+        (secndParam: int)
+#endif
+        =
     ()
 """
 
@@ -588,7 +614,7 @@ let ``multiple empty lines between equals and expression`` () =
 #else
         (secndParam: int)
 #endif
-    =
+        =
 
 
     ()
@@ -1087,4 +1113,74 @@ do
 do let rec f = ()
    and g = () in
    ()
+"""
+
+[<Test>]
+let nameof () =
+    formatSourceString false """
+let months =
+    [
+        "January"; "February"; "March"; "April";
+        "May"; "June"; "July"; "August"; "September";
+        "October"; "November"; "December"
+    ]
+
+let lookupMonth month =
+    if (month > 12 || month < 1) then
+        invalidArg (nameof month) (sprintf "Value passed in was %d." month)
+
+    months.[month-1]
+
+printfn "%s" (lookupMonth 12)
+printfn "%s" (lookupMonth 1)
+printfn "%s" (lookupMonth 13) // Throws an exception!
+"""  config
+    |> prepend newline
+    |> should equal """
+let months =
+    [ "January"
+      "February"
+      "March"
+      "April"
+      "May"
+      "June"
+      "July"
+      "August"
+      "September"
+      "October"
+      "November"
+      "December" ]
+
+let lookupMonth month =
+    if (month > 12 || month < 1)
+    then invalidArg (nameof month) (sprintf "Value passed in was %d." month)
+
+    months.[month - 1]
+
+printfn "%s" (lookupMonth 12)
+printfn "%s" (lookupMonth 1)
+printfn "%s" (lookupMonth 13) // Throws an exception!
+"""
+
+[<Test>]
+let ``print inline before private, 1250`` () =
+    formatSourceString false """
+    let inline private isIdentifier t = t.CharClass = FSharpTokenCharKind.Identifier
+    let inline private isOperator t = t.CharClass = FSharpTokenCharKind.Operator
+    let inline private isKeyword t = t.ColorClass = FSharpTokenColorKind.Keyword
+    let inline private isPunctuation t = t.ColorClass = FSharpTokenColorKind.Punctuation
+"""  config
+    |> prepend newline
+    |> should equal """
+let inline private isIdentifier t =
+    t.CharClass = FSharpTokenCharKind.Identifier
+
+let inline private isOperator t =
+    t.CharClass = FSharpTokenCharKind.Operator
+
+let inline private isKeyword t =
+    t.ColorClass = FSharpTokenColorKind.Keyword
+
+let inline private isPunctuation t =
+    t.ColorClass = FSharpTokenColorKind.Punctuation
 """

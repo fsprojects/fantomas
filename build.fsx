@@ -104,7 +104,7 @@ let fantomasExecutableForExternalTests projectdir =
         | DotNet.BuildConfiguration.Release -> "Release"
         | DotNet.BuildConfiguration.Custom s -> s
     
-    { ProcessName = "dotnet"; Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/netcoreapp3.0/fantomas-tool.dll" projectdir configuration ] }
+    { ProcessName = "dotnet"; Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/net5.0/fantomas-tool.dll" projectdir configuration ] }
 
 let externalProjectsToTest = [
 //    { GitUrl = @"https://github.com/fsprojects/Argu"
@@ -364,7 +364,7 @@ open Microsoft.Azure.Cosmos.Table
 open Microsoft.Azure.Documents
 
 Target.create "Benchmark" (fun _ ->
-    DotNet.exec id ("src" </> "Fantomas.Benchmarks" </> "bin" </> "Release" </> "netcoreapp3.1" </> "Fantomas.Benchmarks.dll") ""
+    DotNet.exec id ("src" </> "Fantomas.Benchmarks" </> "bin" </> "Release" </> "net5.0" </> "Fantomas.Benchmarks.dll") ""
     |> ignore
 
     match Environment.environVarOrNone "TABLE_STORAGE_CONNECTION_STRING" with

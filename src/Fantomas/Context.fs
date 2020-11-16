@@ -170,7 +170,7 @@ type internal Context =
           TriviaTokenNodes = Map.empty
           RecordBraceStart = [] }
 
-    static member Create config defines (content: string) maybeAst =
+    static member Create config defines (hashTokens: Token list) (content: string) maybeAst =
         let content = String.normalizeNewLine content
 
         let positions =
@@ -179,7 +179,8 @@ type internal Context =
             |> Seq.scan (+) 0
             |> Seq.toArray
 
-        let tokens = TokenParser.tokenize defines content
+        let tokens =
+            TokenParser.tokenize defines hashTokens content
 
         let trivia =
             match maybeAst, config.StrictMode with
@@ -532,12 +533,6 @@ let internal getRecordSize ctx fields =
     | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxRecordWidth
     | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length fields, ctx.Config.MaxRecordNumberOfItems)
 
-let internal getInfixOperatorExpressionSize ctx es =
-    match ctx.Config.MultilineInfixMultilineFormatter with
-    | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxInfixOperatorExpression
-    | MultilineFormatterType.NumberOfItems ->
-        Size.NumberOfItems(List.length es, ctx.Config.MaxNewlineInfixOperatorExpressionNumberOfItems)
-
 /// b is true, apply f1 otherwise apply f2
 let internal ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else f2 ctx
 
@@ -716,6 +711,9 @@ let internal isShortExpression maxWidth (shortExpression: Context -> Context) (f
 
 let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
     shortExpressionWithFallback expr (indent +> sepNln +> expr +> unindent) maxWidth None ctx
+
+let internal sepSpaceIfShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
+    shortExpressionWithFallback (sepSpace +> expr) (indent +> sepNln +> expr +> unindent) maxWidth None ctx
 
 let internal expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
     shortExpressionWithFallback expression fallbackExpression ctx.Config.MaxLineLength (Some 0) ctx
@@ -1043,17 +1041,6 @@ let internal leaveNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context
         | None -> ctx
     | None -> ctx
 
-let internal leaveEqualsToken (range: range) (ctx: Context) =
-    (Map.tryFindOrEmptyList EQUALS ctx.TriviaTokenNodes)
-    |> List.filter (fun tn -> tn.Range.StartLine = range.StartLine)
-    |> List.tryHead
-    |> fun tn ->
-        match tn with
-        | Some ({ ContentAfter = [ TriviaContent.Comment (LineCommentAfterSourceCode (lineComment)) ] }) ->
-            sepSpace +> !-lineComment
-        | _ -> id
-    <| ctx
-
 let internal leaveLeftToken (tokenName: FsTokenType) (range: range) (ctx: Context) =
     (Map.tryFindOrEmptyList tokenName ctx.TriviaTokenNodes)
     |> List.tryFind (fun tn ->
@@ -1130,7 +1117,7 @@ let internal sepConsideringTriviaContentBefore sepF (key: Choice<FsAstType, FsTo
 
 let internal sepConsideringTriviaContentBeforeForToken sepF (fsTokenKey: FsTokenType) (range: range) (ctx: Context) =
     let findTrivia ctx range =
-        findTriviaOnStartFromRange (Map.tryFindOrEmptyList fsTokenKey ctx.TriviaTokenNodes) range
+        findTriviaTokenFromName fsTokenKey range ctx
 
     sepConsideringTriviaContentBeforeBy findTrivia sepF range ctx
 
@@ -1299,7 +1286,7 @@ let internal genTriviaBeforeClausePipe (rangeOfClause: range) ctx =
                     | Directive _ -> true
                     | _ -> false)
 
-            ifElse containsOnlyDirectives sepNln sepNone
+            onlyIf containsOnlyDirectives sepNlnUnlessLastEventIsNewline
             +> printContentBefore trivia
         | None -> id
     <| ctx

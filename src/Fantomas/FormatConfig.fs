@@ -44,8 +44,6 @@ type FormatConfig =
       SpaceAroundDelimiter: bool
       MaxIfThenElseShortWidth: Num
       MaxInfixOperatorExpression: Num
-      MaxNewlineInfixOperatorExpressionNumberOfItems: Num
-      MultilineInfixMultilineFormatter: MultilineFormatterType
       MaxRecordWidth: Num
       MaxRecordNumberOfItems: Num
       RecordMultilineFormatter: MultilineFormatterType
@@ -84,8 +82,6 @@ type FormatConfig =
           SpaceAroundDelimiter = true
           MaxIfThenElseShortWidth = 40
           MaxInfixOperatorExpression = 50
-          MaxNewlineInfixOperatorExpressionNumberOfItems = 1
-          MultilineInfixMultilineFormatter = CharacterWidth
           MaxRecordWidth = 40
           MaxRecordNumberOfItems = 1
           RecordMultilineFormatter = MultilineFormatterType.CharacterWidth

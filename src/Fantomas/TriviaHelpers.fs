@@ -97,3 +97,15 @@ module internal TriviaHelpers =
         types
         |> List.map (fun t -> if Map.containsKey t dict then Map.find t dict else List.empty)
         |> List.collect id
+
+    let hasMultilineString range (triviaNodes: TriviaNode list) =
+        triviaNodes
+        |> List.exists (fun tn ->
+            let contentItSelfIsMultilineString () =
+                match tn.ContentItself with
+                | Some (StringContent sc) -> String.isMultiline sc
+                | _ -> false
+
+
+            RangeHelpers.rangeEq tn.Range range
+            && contentItSelfIsMultilineString ())

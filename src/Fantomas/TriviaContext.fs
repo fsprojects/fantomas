@@ -71,3 +71,18 @@ let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
                 "Unexpected scenario when formatting else if / elif, please open an issue via https://jindraivanek.gitlab.io/fantomas-ui"
 
     resultExpr ctx
+
+let getIndentBetweenTicksFromSynPat patRange fallback ctx =
+    TriviaHelpers.getNodesForTypes [ SynPat_LongIdent; SynPat_Named ] ctx.TriviaMainNodes
+    |> List.choose (fun t ->
+        match t.Range = patRange with
+        | true ->
+            match t.ContentItself with
+            | Some (IdentBetweenTicks (iiw)) -> Some iiw
+            | _ -> None
+        | _ -> None)
+    |> List.tryHead
+    |> fun iiw ->
+        match iiw with
+        | Some iiw -> !- iiw ctx
+        | None -> !- fallback ctx

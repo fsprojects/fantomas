@@ -1,3 +1,16 @@
+### 4.3.0-alpha-004 - 11/2020
+* Update to FCS 38. [#1240](https://github.com/fsprojects/fantomas/pull/1240)
+
+### 4.3.0-alpha-003 - 11/2020
+
+* Removed fsharp_max_newline_infix_operator_expression_number_of_items. [#1143](https://github.com/fsprojects/fantomas/issues/1143#issuecomment-723572967)
+* Fix Fantomas format is "unstable/oscillates" after upcast operator: adds/removes empty line. [#1227](https://github.com/fsprojects/fantomas/issues/1227)
+* Fix Misplaces `=` in function signature so it's invalid F# code. [#1218](https://github.com/fsprojects/fantomas/issues/1218)
+* Fix Additional newline is added between if/elif and for loop. [#1211](https://github.com/fsprojects/fantomas/issues/1211)
+* Fix Let binding in hash directive disappears. [#1205](https://github.com/fsprojects/fantomas/issues/1205)
+* Fix Downcast operator doesn't get a new line. [#1203](https://github.com/fsprojects/fantomas/issues/1203)
+* Fix Implicit unit else results in extra lines with each reformat. [#1187](https://github.com/fsprojects/fantomas/issues/1187)
+
 ### 4.3.0-alpha-002 - 10/2020
 
 * Fix Incorrect formatting of function parameter application with lambdas. [#1201](https://github.com/fsprojects/fantomas/issues/1201)

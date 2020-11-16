@@ -1554,6 +1554,109 @@ let f = list.[^2..^1] // 3,4
 """
 
 [<Test>]
+let ``enhanced slicing sample`` () =
+    formatSourceString false """
+let l = [ 1..10 ]
+let a = [| 1..10 |]
+let s = "hello!"
+
+// Before: would return empty list
+// F# 5: same
+let emptyList = l.[-2..(-1)]
+
+// Before: would throw exception
+// F# 5: returns empty array
+let emptyArray = a.[-2..(-1)]
+
+// Before: would throw exception
+// F# 5: returns empty string
+let emptyString = s.[-2..(-1)]
+"""  config
+    |> prepend newline
+    |> should equal """
+let l = [ 1 .. 10 ]
+let a = [| 1 .. 10 |]
+let s = "hello!"
+
+// Before: would return empty list
+// F# 5: same
+let emptyList = l.[-2..(-1)]
+
+// Before: would throw exception
+// F# 5: returns empty array
+let emptyArray = a.[-2..(-1)]
+
+// Before: would throw exception
+// F# 5: returns empty string
+let emptyString = s.[-2..(-1)]
+"""
+
+[<Test>]
+let ``reverse indexes`` () =
+    formatSourceString false """
+open System
+
+type Span<'T> with
+    member sp.GetSlice(startIdx, endIdx) =
+        let s = defaultArg startIdx 0
+        let e = defaultArg endIdx sp.Length
+        sp.Slice(s, e - s)
+
+    member sp.GetReverseIndex(_, offset: int) =
+        sp.Length - offset
+
+let printSpan (sp: Span<int>) =
+    let arr = sp.ToArray()
+    printfn "%A" arr
+
+let run () =
+    let sp = [| 1; 2; 3; 4; 5 |].AsSpan()
+
+    // Pre-# 5.0 slicing on a Span<'T>
+    printSpan sp.[0..] // [|1; 2; 3; 4; 5|]
+    printSpan sp.[..3] // [|1; 2; 3|]
+    printSpan sp.[1..3] // |2; 3|]
+
+    // Same slices, but only using from-the-end index
+    printSpan sp.[..^0] // [|1; 2; 3; 4; 5|]
+    printSpan sp.[..^2] // [|1; 2; 3|]
+    printSpan sp.[^4..^2] // [|2; 3|]
+
+run() // Prints the same thing twice
+"""  config
+    |> prepend newline
+    |> should equal """
+open System
+
+type Span<'T> with
+    member sp.GetSlice(startIdx, endIdx) =
+        let s = defaultArg startIdx 0
+        let e = defaultArg endIdx sp.Length
+        sp.Slice(s, e - s)
+
+    member sp.GetReverseIndex(_, offset: int) = sp.Length - offset
+
+let printSpan (sp: Span<int>) =
+    let arr = sp.ToArray()
+    printfn "%A" arr
+
+let run () =
+    let sp = [| 1; 2; 3; 4; 5 |].AsSpan()
+
+    // Pre-# 5.0 slicing on a Span<'T>
+    printSpan sp.[0..] // [|1; 2; 3; 4; 5|]
+    printSpan sp.[..3] // [|1; 2; 3|]
+    printSpan sp.[1..3] // |2; 3|]
+
+    // Same slices, but only using from-the-end index
+    printSpan sp.[..^0] // [|1; 2; 3; 4; 5|]
+    printSpan sp.[..^2] // [|1; 2; 3|]
+    printSpan sp.[^4..^2] // [|2; 3|]
+
+run () // Prints the same thing twice
+"""
+
+[<Test>]
 let ``calling indexed item in list, 798`` () =
     formatSourceString false """namespace Foo
 
@@ -1705,4 +1808,41 @@ let ``comment after closing array bracket`` () =
     genSubDeclExpr
     genSubDeclExpr
     genSubSynPat |] //
+"""
+
+[<Test>]
+let ``multiline yield! expression, 1254`` () =
+    formatSourceString false """
+type FSharpCompilerServiceChecker(backgroundServiceEnabled) =
+  member __.GetDependingProjects (file: FilePath) (options : seq<string * FSharpProjectOptions>) =
+    let project = options |> Seq.tryFind (fun (k,_) -> k.ToUpperInvariant() = file.ToUpperInvariant())
+    project |> Option.map (fun (_, option) ->
+      option, [
+        yield! options
+               |> Seq.map snd
+               |> Seq.distinctBy (fun o -> o.ProjectFileName)
+               |> Seq.filter (fun o -> o.ReferencedProjects |> Array.map (fun (_,v) -> Path.GetFullPath v.ProjectFileName) |> Array.contains option.ProjectFileName )
+      ])
+"""  { config with IndentSize = 2 }
+    |> prepend newline
+    |> should equal """
+type FSharpCompilerServiceChecker(backgroundServiceEnabled) =
+  member __.GetDependingProjects (file: FilePath) (options: seq<string * FSharpProjectOptions>) =
+    let project =
+      options
+      |> Seq.tryFind (fun (k, _) -> k.ToUpperInvariant() = file.ToUpperInvariant())
+
+    project
+    |> Option.map
+         (fun (_, option) ->
+           option,
+           [ yield!
+               options
+               |> Seq.map snd
+               |> Seq.distinctBy (fun o -> o.ProjectFileName)
+               |> Seq.filter
+                    (fun o ->
+                      o.ReferencedProjects
+                      |> Array.map (fun (_, v) -> Path.GetFullPath v.ProjectFileName)
+                      |> Array.contains option.ProjectFileName) ])
 """

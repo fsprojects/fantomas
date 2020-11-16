@@ -379,14 +379,17 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
 """
         ({ config with
                MaxInfixOperatorExpression = 75 })
-    |> should equal """let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
+    |> prepend newline
+    |> should equal """
+let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
     let assemblyName = assembly.Name
 #if NETCOREAPP2_0
+    do
 #else
     match key with
     | None ->
 #endif
-    do assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+       assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
        assemblyName.HasPublicKey <- false
        assemblyName.PublicKey <- null
        assemblyName.PublicKeyToken <- null
@@ -395,6 +398,95 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
     | Some key' ->
         assemblyName.HasPublicKey <- true
         assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
+#endif
+"""
+
+[<Test>]
+let ``some spacing is still lost in and around #if blocks, no defines`` () =
+    formatSourceStringWithDefines [] """
+  let internal UpdateStrongNaming (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
+    let assemblyName = assembly.Name
+#if NETCOREAPP2_0
+    do
+#else
+    match key with
+    | None ->
+#endif
+              assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+              assemblyName.HasPublicKey <- false
+              assemblyName.PublicKey <- null
+              assemblyName.PublicKeyToken <- null
+#if NETCOREAPP2_0
+#else
+    | Some key' -> assemblyName.HasPublicKey <- true
+                   assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
+#endif
+"""
+        ({ config with
+               MaxInfixOperatorExpression = 75 })
+    |> prepend newline
+    |> should equal """
+let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
+    let assemblyName = assembly.Name
+#if NETCOREAPP2_0
+
+#else
+    match key with
+    | None ->
+#endif
+        assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+        assemblyName.HasPublicKey <- false
+        assemblyName.PublicKey <- null
+        assemblyName.PublicKeyToken <- null
+#if NETCOREAPP2_0
+#else
+    | Some key' ->
+        assemblyName.HasPublicKey <- true
+        assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
+#endif
+"""
+
+[<Test>]
+let ``some spacing is still lost in and around #if blocks, NETCOREAPP2_0`` () =
+    formatSourceStringWithDefines [ "NETCOREAPP2_0" ] """
+  let internal UpdateStrongNaming (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
+    let assemblyName = assembly.Name
+#if NETCOREAPP2_0
+    do
+#else
+    match key with
+    | None ->
+#endif
+              assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+              assemblyName.HasPublicKey <- false
+              assemblyName.PublicKey <- null
+              assemblyName.PublicKeyToken <- null
+#if NETCOREAPP2_0
+#else
+    | Some key' -> assemblyName.HasPublicKey <- true
+                   assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
+#endif
+"""
+        ({ config with
+               MaxInfixOperatorExpression = 75 })
+    |> prepend newline
+    |> should equal """
+let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
+    let assemblyName = assembly.Name
+#if NETCOREAPP2_0
+    do
+#else
+
+
+#endif
+       assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+       assemblyName.HasPublicKey <- false
+       assemblyName.PublicKey <- null
+       assemblyName.PublicKeyToken <- null
+#if NETCOREAPP2_0
+#else
+
+
 #endif
 """
 
@@ -1792,4 +1884,46 @@ let getDefaultProxyFor =
             match calcEnvProxies.Force().TryFind uri.Scheme with
             | Some p -> if p.GetProxy uri <> uri then p else getDefault ()
             | None -> getDefault ())
+"""
+
+[<Test>]
+let ``backslashes in strings prior to hash directives should not affect token parsing of those directives, 1205`` () =
+    formatSourceString false """
+let loadFile n =
+  let file =
+    System.IO.Path.Combine(contentDir,
+                           (n |> System.IO.Path.GetFileNameWithoutExtension)
+                           + ".md").Replace("\\", "/")
+
+  ()
+
+let loader (projectRoot: string) (siteContent: SiteContents) =
+#if WATCH
+  let disableLiveRefresh = false
+#else
+  let disableLiveRefresh = true
+#endif
+  disableLiveRefresh
+"""  config
+    |> prepend newline
+    |> should equal """
+let loadFile n =
+    let file =
+        System
+            .IO
+            .Path
+            .Combine(contentDir,
+                     (n |> System.IO.Path.GetFileNameWithoutExtension)
+                     + ".md")
+            .Replace("\\", "/")
+
+    ()
+
+let loader (projectRoot: string) (siteContent: SiteContents) =
+#if WATCH
+    let disableLiveRefresh = false
+#else
+    let disableLiveRefresh = true
+#endif
+    disableLiveRefresh
 """
