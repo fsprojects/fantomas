@@ -49,9 +49,9 @@ type EndOfLineStyle =
 
     static member OfConfigString(eolString: string) =
         match eolString with
-        | "lf" -> Some(box EndOfLineStyle.LF)
+        | "lf" -> Some(EndOfLineStyle.LF)
         | "cr" -> failwith "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
-        | "crlf" -> Some(box EndOfLineStyle.CRLF)
+        | "crlf" -> Some(EndOfLineStyle.CRLF)
         | _ -> None
 
 // NOTE: try to keep this list below in sync with the docs (e.g. Documentation.md)

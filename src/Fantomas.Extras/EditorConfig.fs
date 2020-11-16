@@ -53,7 +53,7 @@ let private parseOptionsFromEditorConfig (editorConfig: EditorConfig.Core.FileCo
         | true, Number n -> n
         | true, Boolean b -> b
         | true, MultilineFormatterType mft -> mft
-        | true, EndOfLineStyle eol -> eol
+        | true, EndOfLineStyle eol -> box eol
         | _ -> dv)
     |> fun newValues ->
         let formatConfigType = FormatConfig.Default.GetType()

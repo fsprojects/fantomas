@@ -1,5 +1,6 @@
 module Fantomas.CoreGlobalTool.Tests.ConfigTests
 
+open Fantomas
 open NUnit.Framework
 open FsUnit
 open Fantomas.CoreGlobalTool.Tests.TestHelpers
@@ -46,33 +47,33 @@ end_of_line=cr
     exitCode |> should equal 1
     StringAssert.Contains("Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'", output)
 
-[<Test>]
-let ``uses end_of_line setting to write user newlines`` () =
-    let sampleCode = """let a = 9\n"""
-    let codeWithNewline = sampleCode
+let valid_eol_settings = [ "lf"; "crlf" ]
+
+[<TestCaseSource("valid_eol_settings")>]
+let ``uses end_of_line setting to write user newlines`` setting =
+    let newline =
+        (FormatConfig.EndOfLineStyle.OfConfigString setting)
+            .Value.NewLineString
+
+    let sampleCode nln =
+        sprintf "let a = 9%s%slet b = 7%s" nln nln nln
 
     use fileFixture =
-        new TemporaryFileCodeSample(codeWithNewline)
+        new TemporaryFileCodeSample(sampleCode "\n")
 
     use configFixture =
-        new ConfigurationFile("""
+        new ConfigurationFile(sprintf """
 [*.fs]
-end_of_line = crlf
-"""                            )
+end_of_line = %s
+"""                            setting)
 
-    let (exitCode, output) = runFantomasTool fileFixture.Filename
+    let (exitCode, _) = runFantomasTool fileFixture.Filename
 
     exitCode |> should equal 0
-
-    output
-    |> should startWith (sprintf "Processing %s" fileFixture.Filename)
 
     let result =
         System.IO.File.ReadAllText(fileFixture.Filename)
 
-    let expected = sampleCode.Replace("\n", "\r\n")
-    //     .Split([| "\r\n"; "\n" |], System.StringSplitOptions.None) // maybe chomping some whitespace here?
-    // |> String.concat "\r\n" // todo: user-specific string here
-    // |> fun s -> s + "    \r\n"
+    let expected = sampleCode newline
 
     result |> should equal expected
