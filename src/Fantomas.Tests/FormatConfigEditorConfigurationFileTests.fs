@@ -4,9 +4,10 @@ open System
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.Extras
+open Fantomas.Tests.TestHelper
+open FsUnit
 open NUnit.Framework
 open System.IO
-open Fantomas.Tests.TestHelper
 
 let private defaultConfig = FormatConfig.Default
 let private tempName () = Guid.NewGuid().ToString("N")
@@ -311,3 +312,45 @@ fsharp_disable_elmish_syntax = true
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     Assert.IsTrue config.DisableElmishSyntax
+
+[<Test>]
+let ``end_of_line = cr should throw`` () =
+    let editorConfig = """
+[*.fs]
+end_of_line = cr
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, content = editorConfig)
+
+    use fsharpFile = new FSharpFile()
+
+    let ex =
+        Assert.Throws(fun () ->
+            EditorConfig.readConfiguration fsharpFile.FSharpFile
+            |> ignore)
+
+    ex.Message
+    == "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
+
+let valid_eol_settings =
+    [ EndOfLineStyle.LF
+      EndOfLineStyle.CRLF ]
+
+[<TestCaseSource("valid_eol_settings")>]
+let can_parse_end_of_line_setting (eol: EndOfLineStyle) =
+    let editorConfig =
+        sprintf """
+[*.fs]
+end_of_line = %s
+"""      (EndOfLineStyle.ToConfigString eol)
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, content = editorConfig)
+
+    use fsharpFile = new FSharpFile()
+
+    let config =
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    config.EndOfLine == eol

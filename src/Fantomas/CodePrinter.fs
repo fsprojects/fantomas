@@ -76,10 +76,11 @@ let addSpaceBeforeParensInFunDef (astContext: ASTContext) (functionOrMethod: str
     | (_: string), _ -> not isLastPartUppercase
     | _ -> true
 
-let rec genParsedInput astContext =
-    function
+let rec genParsedInput astContext ast =
+    match ast with
     | ImplFile im -> genImpFile astContext im
     | SigFile si -> genSigFile astContext si
+    +> ifElseCtx lastWriteEventIsNewline sepNone sepNln
 
 (*
     See https://github.com/fsharp/FSharp.Compiler.Service/blob/master/src/fsharp/ast.fs#L1518

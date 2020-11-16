@@ -4,7 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <ToolCommandName>fantomas</ToolCommandName>
     <PackAsTool>True</PackAsTool>
-    <Version>4.3.0-alpha-004</Version>
+    <Version>4.3.0-alpha-005</Version>
     <AssemblyName>fantomas-tool</AssemblyName>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
   </PropertyGroup>

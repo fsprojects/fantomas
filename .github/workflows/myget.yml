@@ -24,7 +24,7 @@ jobs:
       run: echo Build number is $BUILD_NUMBER
     - uses: actions/checkout@v2
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1.4.0
+      uses: actions/setup-dotnet@v1
       with:
         dotnet-version: ${{ matrix.dotnet }}
     - name: Install local tools

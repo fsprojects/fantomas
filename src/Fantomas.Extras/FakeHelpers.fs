@@ -44,7 +44,11 @@ let createParsingOptionsFromFile fileName =
     { FSharpParsingOptions.Default with
           SourceFiles = [| fileName |] }
 
-let formatContentAsync config (file: string) (originalContent: string) =
+let private formatContentInternalAsync (compareWithoutLineEndings: bool)
+                                       (config: FormatConfig)
+                                       (file: string)
+                                       (originalContent: string)
+                                       : Async<FormatResult> =
     if IgnoreFile.isIgnoredFile file then
         async { return IgnoredFile file }
     else
@@ -61,11 +65,17 @@ let formatContentAsync config (file: string) (originalContent: string) =
                          createParsingOptionsFromFile fileName,
                          sharedChecker.Value)
 
-                let stripNewlines (s: string) =
-                    System.Text.RegularExpressions.Regex.Replace(s, @"\n|\r", String.Empty)
+                let contentChanged =
+                    if compareWithoutLineEndings then
+                        let stripNewlines (s: string) =
+                            System.Text.RegularExpressions.Regex.Replace(s, @"\n|\r", String.Empty)
 
-                if (stripNewlines originalContent)
-                   <> (stripNewlines formattedContent) then
+                        (stripNewlines originalContent)
+                        <> (stripNewlines formattedContent)
+                    else
+                        originalContent <> formattedContent
+
+                if contentChanged then
                     let! isValid =
                         CodeFormatter.IsValidFSharpCodeAsync
                             (fileName,
@@ -83,7 +93,9 @@ let formatContentAsync config (file: string) (originalContent: string) =
             with ex -> return Error(file, ex)
         }
 
-let formatFileAsync (file: string) =
+let formatContentAsync = formatContentInternalAsync false
+
+let private formatFileInternalAsync (compareWithoutLineEndings: bool) (file: string) =
     let config = EditorConfig.readConfiguration file
 
     if IgnoreFile.isIgnoredFile file then
@@ -92,9 +104,14 @@ let formatFileAsync (file: string) =
         let originalContent = File.ReadAllText file
 
         async {
-            let! formatted = originalContent |> formatContentAsync config file
+            let! formatted =
+                originalContent
+                |> formatContentInternalAsync compareWithoutLineEndings config file
+
             return formatted
         }
+
+let formatFileAsync = formatFileInternalAsync false
 
 let formatFilesAsync files =
     files |> Seq.map formatFileAsync |> Async.Parallel
@@ -149,7 +166,7 @@ let checkCode (filenames: seq<string>) =
         let! formatted =
             filenames
             |> Seq.filter (IgnoreFile.isIgnoredFile >> not)
-            |> Seq.map formatFileAsync
+            |> Seq.map (formatFileInternalAsync true)
             |> Async.Parallel
 
         let getChangedFile =
