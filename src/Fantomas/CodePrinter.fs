@@ -76,10 +76,11 @@ let addSpaceBeforeParensInFunDef (astContext: ASTContext) (functionOrMethod: str
     | (_: string), _ -> not isLastPartUppercase
     | _ -> true
 
-let rec genParsedInput astContext =
-    function
+let rec genParsedInput astContext ast =
+    match ast with
     | ImplFile im -> genImpFile astContext im
     | SigFile si -> genSigFile astContext si
+    +> ifElseCtx lastWriteEventIsNewline sepNone sepNln
 
 (*
     See https://github.com/fsharp/FSharp.Compiler.Service/blob/master/src/fsharp/ast.fs#L1518
@@ -1066,17 +1067,14 @@ and genAnonRecordFieldName astContext (AnonRecordFieldName (s, e)) =
     !-s +> sepEq +> expr
 
 and genTuple astContext es =
-    let genExpr e =
-        let expr e =
-            match e with
-            | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
-                genNamedArgumentExpr astContext operatorExpr e1 e2
-            | _ -> genExpr astContext e
+    let genShortExpr astContext e =
+        addParenForTupleWhen (genExpr astContext) e
 
-        addParenForTupleWhen expr e
+    let shortExpression =
+        col sepComma es (genShortExpr astContext)
 
-    let shortExpression = col sepComma es genExpr
-    let longExpression = col (sepComma +> sepNln) es genExpr
+    let longExpression =
+        col (sepComma +> sepNln) es (genExpr astContext)
 
     atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
 
@@ -1287,11 +1285,6 @@ and genExpr astContext synExpr ctx =
         | TypedExpr (TypeTest, e, t) ->
             genExpr astContext e -- " :? "
             +> genType astContext false t
-        | TypedExpr (New, e, t) ->
-            !- "new "
-            +> genType astContext false t
-            +> ifElse (hasParenthesis e) sepNone sepSpace
-            +> genExpr astContext e
         | TypedExpr (Downcast, e, t) ->
             let shortExpr =
                 genExpr astContext e -- " :?> "
@@ -1316,6 +1309,33 @@ and genExpr astContext synExpr ctx =
             genExpr astContext e
             +> sepColon
             +> genType astContext false t
+        | NewTuple (t, lpr, args, rpr) ->
+            let sepSpace (ctx: Context) =
+                match t with
+                | UppercaseSynType -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
+                | LowercaseSynType -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
+
+            let short =
+                !- "new "
+                +> genType astContext false t
+                +> sepSpace
+                +> sepOpenTFor (Some lpr)
+                +> col sepComma args (genExpr astContext)
+                +> sepCloseTFor rpr
+
+            let long =
+                !- "new "
+                +> genType astContext false t
+                +> sepSpace
+                +> sepOpenTFor (Some lpr)
+                +> indent
+                +> sepNln
+                +> col (sepComma +> sepNln) args (genExpr astContext)
+                +> unindent
+                +> sepNln
+                +> sepCloseTFor rpr
+
+            expressionFitsOnRestOfLine short long
         | Tuple es -> genTuple astContext es
         | StructTuple es ->
             !- "struct "
@@ -1664,11 +1684,17 @@ and genExpr astContext synExpr ctx =
                 +> sepCloseTFor rpr
             | _ ->
                 // Parentheses nullify effects of no space inside DotGet
+                // Unless there is another application with parenthesis
+                // See: ``app tuple inside dotget expression``
+                let astCtx =
+                    match e with
+                    | AppTuple _ -> astContext
+                    | _ ->
+                        { astContext with
+                              IsInsideDotGet = false }
+
                 sepOpenTFor (Some lpr)
-                +> genExpr
-                    { astContext with
-                          IsInsideDotGet = false }
-                       e
+                +> genExpr astCtx e
                 +> sepCloseTFor rpr
         | CompApp (s, e) ->
             !-s
@@ -1900,6 +1926,49 @@ and genExpr astContext synExpr ctx =
                      +> unindent)
 
             expressionFitsOnRestOfLine shortExpression longExpression
+
+        | AppTuple (e, lpr, args, rpr) when (not astContext.IsInsideDotGet) ->
+            let sepSpace (ctx: Context) =
+                if astContext.IsInsideDotGet
+                   || astContext.IsInsideDotIndexed then
+                    ctx
+                else
+                    match e with
+                    | Paren _ -> sepSpace ctx
+                    | UppercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
+                    | LowercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
+
+            let genShortExpr astContext e =
+                addParenForTupleWhen (genExpr astContext) e
+
+            let genExprLong astContext e =
+                let expr e =
+                    match e with
+                    | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
+                        genNamedArgumentExpr astContext operatorExpr e1 e2
+                    | _ -> genExpr astContext e
+
+                expr e
+
+            let short =
+                genExpr astContext e
+                +> sepSpace
+                +> sepOpenTFor (Some lpr)
+                +> col sepComma args (genShortExpr astContext)
+                +> sepCloseTFor rpr
+
+            let long =
+                genExpr astContext e
+                +> sepSpace
+                +> sepOpenTFor (Some lpr)
+                +> indent
+                +> sepNln
+                +> col (sepComma +> sepNln) args (genExprLong astContext)
+                +> unindent
+                +> sepNln
+                +> sepCloseTFor rpr
+
+            expressionFitsOnRestOfLine short long
 
         // Always spacing in multiple arguments
         | App (e, es) -> genApp appNlnFun astContext e es

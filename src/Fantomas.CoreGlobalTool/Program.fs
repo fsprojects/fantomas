@@ -69,7 +69,7 @@ let isInExcludedDir (fullPath: string) =
            ".fable"
            "node_modules" |]
     |> Set.map (fun dir -> sprintf "%c%s%c" Path.DirectorySeparatorChar dir Path.DirectorySeparatorChar)
-    |> Set.exists (fun dir -> fullPath.Contains(dir))
+    |> Set.exists (fullPath.Contains)
 
 let isFSharpFile (s: string) =
     Set.contains (Path.GetExtension s) extensions
@@ -361,19 +361,23 @@ let main argv =
         if check then
             inputPath |> runCheckCommand recurse |> exit
         else
-            match inputPath, outputPath with
-            | InputPath.Unspecified, _ ->
-                eprintfn "Input path is missing..."
+            try
+                match inputPath, outputPath with
+                | InputPath.Unspecified, _ ->
+                    eprintfn "Input path is missing..."
+                    exit 1
+                | InputPath.File f, _ when (IgnoreFile.isIgnoredFile f) -> printfn "'%s' was ignored" f
+                | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
+                | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1
+                | InputPath.File p1, OutputPath.IO p2 -> processFile p1 p2
+                | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
+                | InputPath.StdIn s, OutputPath.IO p -> stringToFile s p FormatConfig.Default
+                | InputPath.StdIn s, OutputPath.Notknown
+                | InputPath.StdIn s, OutputPath.StdOut -> stringToStdOut s FormatConfig.Default
+                | InputPath.File p, OutputPath.StdOut -> fileToStdOut p
+                | InputPath.Folder p, OutputPath.StdOut -> allFiles recurse p |> Seq.iter fileToStdOut
+            with exn ->
+                printfn "%s" exn.Message
                 exit 1
-            | InputPath.File f, _ when (IgnoreFile.isIgnoredFile f) -> printfn "'%s' was ignored" f
-            | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
-            | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1
-            | InputPath.File p1, OutputPath.IO p2 -> processFile p1 p2
-            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
-            | InputPath.StdIn s, OutputPath.IO p -> stringToFile s p FormatConfig.Default
-            | InputPath.StdIn s, OutputPath.Notknown
-            | InputPath.StdIn s, OutputPath.StdOut -> stringToStdOut s FormatConfig.Default
-            | InputPath.File p, OutputPath.StdOut -> fileToStdOut p
-            | InputPath.Folder p, OutputPath.StdOut -> allFiles recurse p |> Seq.iter fileToStdOut
 
     0

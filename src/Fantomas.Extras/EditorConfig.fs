@@ -13,7 +13,10 @@ module Reflection =
         let values = FSharpValue.GetRecordFields x
         Seq.zip names values |> Seq.toArray
 
-let supportedProperties = [ "max_line_length"; "indent_size" ]
+let supportedProperties =
+    [ "max_line_length"
+      "indent_size"
+      "end_of_line" ]
 
 let private toEditorConfigName value =
     value
@@ -36,6 +39,8 @@ let private (|Number|_|) d =
 let private (|MultilineFormatterType|_|) mft =
     MultilineFormatterType.OfConfigString mft
 
+let private (|EndOfLineStyle|_|) eol = EndOfLineStyle.OfConfigString eol
+
 let private (|Boolean|_|) b =
     if b = "true" then Some(box true)
     elif b = "false" then Some(box false)
@@ -48,6 +53,7 @@ let private parseOptionsFromEditorConfig (editorConfig: EditorConfig.Core.FileCo
         | true, Number n -> n
         | true, Boolean b -> b
         | true, MultilineFormatterType mft -> mft
+        | true, EndOfLineStyle eol -> box eol
         | _ -> dv)
     |> fun newValues ->
         let formatConfigType = FormatConfig.Default.GetType()
