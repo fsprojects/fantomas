@@ -93,6 +93,7 @@ fsharp_single_argument_web_mode=false
 fsharp_align_function_signature_to_indentation=false
 fsharp_alternative_long_member_definitions=false
 fsharp_disable_elmish_syntax=false
+fsharp_multi_line_lambda_closing_newline=false
 fsharp_strict_mode=false
 ```
 
@@ -971,6 +972,49 @@ let encodeUrlModel code model: JsonValue =
           "isFsi", Encode.bool model.IsFsi
           "code", Encode.string code ]
 ```
+
+### fsharp_multi_line_lambda_closing_newline
+
+Places the closing parenthesis of a multiline lambda argument on the next line.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+let printListWithOffset a list1 =
+    List.iter
+        (fun { ItemOne = a } ->
+            // print
+            printfn "%s" a)
+        list1
+
+let printListWithOffset a list1 =
+    list1
+    |> List.iter
+        (fun elem ->
+            // print stuff
+            printfn "%d" (a + elem))
+```
+
+`{ defaultConfig with MultiLineLambdaClosingNewline = true }`
+
+```fsharp
+let printListWithOffset a list1 =
+    List.iter
+        (fun { ItemOne = a } ->
+            // print
+            printfn "%s" a
+        )
+        list1
+
+let printListWithOffset a list1 =
+    list1
+    |> List.iter (fun elem ->
+        // print stuff
+        printfn "%d" (a + elem)
+    )
+```
+
 
 ### fsharp_strict_mode
 

@@ -90,7 +90,7 @@ type FormatConfig =
       SingleArgumentWebMode: bool
       AlignFunctionSignatureToIndentation: bool
       AlternativeLongMemberDefinitions: bool
-      AlternativeMultilineLambda: bool
+      MultiLineLambdaClosingNewline: bool
       DisableElmishSyntax: bool
       EndOfLine: EndOfLineStyle
       /// Pretty printing based on ASTs only
@@ -129,7 +129,7 @@ type FormatConfig =
           SingleArgumentWebMode = false
           AlignFunctionSignatureToIndentation = false
           AlternativeLongMemberDefinitions = false
-          AlternativeMultilineLambda = false
+          MultiLineLambdaClosingNewline = false
           DisableElmishSyntax = false
           EndOfLine = EndOfLineStyle.FromEnvironment
           StrictMode = false }

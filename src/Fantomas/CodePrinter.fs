@@ -3061,7 +3061,7 @@ and genApp appNlnFun astContext e es ctx =
     let shouldHaveAlternativeLambdaStyle =
         let hasLambdas = List.exists isParenLambda es
 
-        ctx.Config.AlternativeMultilineLambda
+        ctx.Config.MultiLineLambdaClosingNewline
         && hasLambdas
 
     let longExpression =

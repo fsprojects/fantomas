@@ -79,7 +79,7 @@
     <Compile Include="SynExprNewTests.fs" />
     <Compile Include="DisableElmishTests.fs" />
     <Compile Include="CastTests.fs" />
-    <Compile Include="AlternativeMultilineLambdaTests.fs" />
+    <Compile Include="MultiLineLambdaClosingNewlineTests.fs" />
     <Compile Include="OpenTypeTests.fs" />
   </ItemGroup>
   <ItemGroup>
