@@ -1,3 +1,8 @@
+### 4.3.0-alpha-006 - 11/2020
+
+* Feature Clarify constructors. [#1217](https://github.com/fsprojects/fantomas/issues/1217)
+* Feature MultiLineLambdaClosingNewline. [#1221](https://github.com/fsprojects/fantomas/issues/1221)
+
 ### 4.3.0-alpha-005 - 11/2020
 
 * Support user-provided end-of-line characters. [#1231](https://github.com/fsprojects/fantomas/issues/1231)
