@@ -24,6 +24,36 @@ type MultilineFormatterType =
         | "number_of_items" -> Some(box MultilineFormatterType.NumberOfItems)
         | _ -> None
 
+[<RequireQualifiedAccess>]
+type EndOfLineStyle =
+    | LF
+    | CR
+    | CRLF
+    member x.NewLineString =
+        match x with
+        | LF -> "\n"
+        | CR -> "\r"
+        | CRLF -> "\r\n"
+
+    static member FromEnvironment =
+        match Environment.NewLine with
+        | "\n" -> LF
+        | "\r\n" -> CRLF
+        | other -> failwithf "Unknown system newline string found: %s" other
+
+    static member ToConfigString(eol: EndOfLineStyle) =
+        match eol with
+        | EndOfLineStyle.LF -> "lf"
+        | EndOfLineStyle.CR -> "cr"
+        | EndOfLineStyle.CRLF -> "crlf"
+
+    static member OfConfigString(eolString: string) =
+        match eolString with
+        | "lf" -> Some(EndOfLineStyle.LF)
+        | "cr" -> failwith "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
+        | "crlf" -> Some(EndOfLineStyle.CRLF)
+        | _ -> None
+
 // NOTE: try to keep this list below in sync with the docs (e.g. Documentation.md)
 type FormatConfig =
     { /// Number of spaces for each indentation
@@ -61,6 +91,7 @@ type FormatConfig =
       AlignFunctionSignatureToIndentation: bool
       AlternativeLongMemberDefinitions: bool
       DisableElmishSyntax: bool
+      EndOfLine: EndOfLineStyle
       /// Pretty printing based on ASTs only
       StrictMode: bool }
 
@@ -98,4 +129,5 @@ type FormatConfig =
           AlignFunctionSignatureToIndentation = false
           AlternativeLongMemberDefinitions = false
           DisableElmishSyntax = false
+          EndOfLine = EndOfLineStyle.FromEnvironment
           StrictMode = false }
