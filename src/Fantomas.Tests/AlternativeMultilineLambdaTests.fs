@@ -4,6 +4,8 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
+let defaultConfig = config
+
 let config =
     { config with
           AlternativeMultilineLambda = true }
@@ -89,7 +91,7 @@ let printListWithOffset a list1 =
         >> printfn "%d"
     ) list1
 """
-        { config with
+        { defaultConfig with
               MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should equal """
@@ -119,8 +121,6 @@ let printListWithOffset a list1 =
         )
         list1
 """
-
-// Not sure if the result is accepted here
 
 [<Test>]
 let ``multiple multiline lambdas`` () =
@@ -257,7 +257,7 @@ let foldList a list1 =
     list1
     |> List.fold (((+) a) >> printfn "%d") someVeryLongAccumulatorNameThatMakesTheWholeConstructMultilineBecauseOfTheLongName
 """
-        { config with
+        { defaultConfig with
               MaxInfixOperatorExpression = 35 }
     |> prepend newline
     |> should equal """
@@ -279,7 +279,154 @@ let foldList a list1 =
         someVeryLongAccumulatorNameThatMakesTheWholeConstructMultilineBecauseOfTheLongName
 """
 
+[<Test>]
+let ``no space before uppercase invocations`` () =
+    formatSourceString false """
+Foobar(fun x ->
+    // going multiline
+    x * x)
 
-// TODO:
-// - fsharp_space_before_lowercase_invocation
-// - fsharp_space_before_uppercase_invocation
+myValue.UppercaseMemberCall(fun x ->
+    let y = x + 1
+    x + y)
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = false }
+    |> prepend newline
+    |> should equal """
+Foobar(fun x ->
+    // going multiline
+    x * x
+)
+
+myValue.UppercaseMemberCall(fun x ->
+    let y = x + 1
+    x + y
+)
+"""
+
+[<Test>]
+let ``space before uppercase invocations`` () =
+    formatSourceString false """
+Foobar(fun x ->
+    // going multiline
+    x * x)
+
+myValue.UppercaseMemberCall(fun x ->
+    let y = x + 1
+    x + y)
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should equal """
+Foobar (fun x ->
+    // going multiline
+    x * x
+)
+
+myValue.UppercaseMemberCall (fun x ->
+    let y = x + 1
+    x + y
+)
+"""
+
+[<Test>]
+let ``no space before lowercase invocations`` () =
+    formatSourceString false """
+foobar(fun x ->
+    // going multiline
+    x * x)
+
+myValue.lowercaseMemberCall(fun x ->
+    let y = x + 1
+    x + y)
+"""
+        { config with
+              SpaceBeforeLowercaseInvocation = false }
+    |> prepend newline
+    |> should equal """
+foobar(fun x ->
+    // going multiline
+    x * x
+)
+
+myValue.lowercaseMemberCall(fun x ->
+    let y = x + 1
+    x + y
+)
+"""
+
+[<Test>]
+let ``space before lowercase invocations`` () =
+    formatSourceString false """
+foobar(fun x ->
+    // going multiline
+    x * x)
+
+myValue.lowercaseMemberCall(fun x ->
+    let y = x + 1
+    x + y)
+"""
+        { config with
+              SpaceBeforeLowercaseInvocation = true }
+    |> prepend newline
+    |> should equal """
+foobar (fun x ->
+    // going multiline
+    x * x
+)
+
+myValue.lowercaseMemberCall (fun x ->
+    let y = x + 1
+    x + y
+)
+"""
+
+[<Test>]
+let ``comments after desugared lambda arrows`` () =
+    formatSourceString false """
+[]
+|> List.map (fun { Foo = foo } -> // I use the name foo a lot
+    foo + 1)
+
+List.map(fun { Bar = bar } -> // same remark for bar
+    bar + 2) []
+"""  config
+    |> prepend newline
+    |> should equal """
+[]
+|> List.map (fun { Foo = foo } -> // I use the name foo a lot
+    foo + 1
+)
+
+List.map
+    (fun { Bar = bar } -> // same remark for bar
+        bar + 2
+    )
+    []
+"""
+
+[<Test>]
+let ``comments after lambda arrows`` () =
+    formatSourceString false """
+[]
+|> List.map (fun foo -> // I use the name foo a lot
+    foo + 1)
+
+List.map(fun bar -> // same remark for bar
+    bar + 2) []
+"""  config
+    |> prepend newline
+    |> should equal """
+[]
+|> List.map (fun foo -> // I use the name foo a lot
+    foo + 1
+)
+
+List.map
+    (fun bar -> // same remark for bar
+        bar + 2
+    )
+    []
+"""

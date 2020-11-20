@@ -1108,8 +1108,7 @@ and genExpr astContext synExpr ctx =
 
     let kw tokenName f = tokN synExpr.Range tokenName f
 
-    let sepOpenTFor r =
-        tokN (Option.defaultValue synExpr.Range r) LPAREN sepOpenT
+    let sepOpenTFor r = tokN r LPAREN sepOpenT
 
     let sepCloseTFor r =
         tokN (Option.defaultValue synExpr.Range r) RPAREN sepCloseT
@@ -1319,7 +1318,7 @@ and genExpr astContext synExpr ctx =
                 !- "new "
                 +> genType astContext false t
                 +> sepSpace
-                +> sepOpenTFor (Some lpr)
+                +> sepOpenTFor lpr
                 +> col sepComma args (genExpr astContext)
                 +> sepCloseTFor rpr
 
@@ -1327,7 +1326,7 @@ and genExpr astContext synExpr ctx =
                 !- "new "
                 +> genType astContext false t
                 +> sepSpace
-                +> sepOpenTFor (Some lpr)
+                +> sepOpenTFor lpr
                 +> indent
                 +> sepNln
                 +> col (sepComma +> sepNln) args (genExpr astContext)
@@ -1590,7 +1589,7 @@ and genExpr astContext synExpr ctx =
                           IsInsideDotGet = false }
 
                 let expr =
-                    sepOpenTFor (Some lpr) -- "fun "
+                    sepOpenTFor lpr -- "fun "
                     +> col sepSpace cps (fst >> genComplexPats astContext)
                     +> indent
                     +> triviaAfterArrow arrowRange
@@ -1618,7 +1617,7 @@ and genExpr astContext synExpr ctx =
                           IsInsideDotGet = false }
 
                 let expr =
-                    sepOpenTFor (Some lpr) -- "fun "
+                    sepOpenTFor lpr -- "fun "
                     +> col sepSpace sps (genSimplePats astContext)
                     +> indent
                     +> triviaAfterArrow synExpr.Range
@@ -1670,7 +1669,7 @@ and genExpr astContext synExpr ctx =
         | Paren (lpr, e, rpr) ->
             match e with
             | MultilineString _ ->
-                sepOpenTFor (Some lpr)
+                sepOpenTFor lpr
                 +> atCurrentColumn
                     (genExpr
                         { astContext with
@@ -1679,7 +1678,7 @@ and genExpr astContext synExpr ctx =
                      +> indentIfNeeded sepNone)
                 +> sepCloseTFor rpr
             | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
-                sepOpenTFor (Some lpr)
+                sepOpenTFor lpr
                 +> genNamedArgumentExpr astContext operatorExpr e1 e2
                 +> sepCloseTFor rpr
             | _ ->
@@ -1693,7 +1692,7 @@ and genExpr astContext synExpr ctx =
                         { astContext with
                               IsInsideDotGet = false }
 
-                sepOpenTFor (Some lpr)
+                sepOpenTFor lpr
                 +> genExpr astCtx e
                 +> sepCloseTFor rpr
         | CompApp (s, e) ->
@@ -1953,14 +1952,14 @@ and genExpr astContext synExpr ctx =
             let short =
                 genExpr astContext e
                 +> sepSpace
-                +> sepOpenTFor (Some lpr)
+                +> sepOpenTFor lpr
                 +> col sepComma args (genShortExpr astContext)
                 +> sepCloseTFor rpr
 
             let long =
                 genExpr astContext e
                 +> sepSpace
-                +> sepOpenTFor (Some lpr)
+                +> sepOpenTFor lpr
                 +> indent
                 +> sepNln
                 +> col (sepComma +> sepNln) args (genExprLong astContext)
@@ -3054,11 +3053,6 @@ and genApp appNlnFun astContext e es ctx =
              +> addFirstSpace
              +> col addSpace es genEx)
 
-    let hasASingleInfixExpression =
-        match es with
-        | [ Paren (_, InfixApp _, _) ] -> true
-        | _ -> false
-
     let isParenLambda =
         (function
         | Paren (_, Lambda _, _) -> true
@@ -3068,47 +3062,21 @@ and genApp appNlnFun astContext e es ctx =
         let hasLambdas = List.exists isParenLambda es
 
         ctx.Config.AlternativeMultilineLambda
-        && (hasLambdas || hasASingleInfixExpression)
-
+        && hasLambdas
 
     let longExpression =
         if shouldHaveAlternativeLambdaStyle then
             let hasMultipleArguments = (List.length es) > 1
 
-            let singleInfix =
-                col sepNone es (fun e ->
-                    let sepOpenTFor r =
-                        tokN (Option.defaultValue e.Range r) LPAREN sepOpenT
-
-                    let sepCloseTFor r =
-                        tokN (Option.defaultValue e.Range r) RPAREN sepCloseT
-
-                    match e with
-                    | Paren (lpr, (InfixApp _ as ia), rpr) ->
-                        let infixExpr = genExpr astContext ia
-
-                        let short =
-                            sepOpenTFor (Some lpr)
-                            +> infixExpr
-                            +> sepCloseTFor rpr
-
-                        let long =
-                            sepOpenTFor (Some lpr)
-                            +> indent
-                            +> sepNln
-                            +> infixExpr
-                            +> unindent
-                            +> sepNln
-                            +> sepCloseTFor rpr
-
-                        expressionFitsOnRestOfLine short long
-                    | _ -> genExpr astContext e)
+            let sepSpace ctx =
+                match e with
+                | UppercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
+                | LowercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
 
             let multipleArguments =
                 col sepNln es (fun e ->
                     let genLambda pats (bodyExpr: SynExpr) lpr rpr arrowRange =
-                        let sepOpenTFor r =
-                            tokN (Option.defaultValue e.Range r) LPAREN sepOpenT
+                        let sepOpenTFor r = tokN r LPAREN sepOpenT
 
                         let sepCloseTFor r =
                             tokN (Option.defaultValue e.Range r) RPAREN sepCloseT
@@ -3122,7 +3090,7 @@ and genApp appNlnFun astContext e es ctx =
                             then genExpr astCtx e ctx
                             else autoNlnIfExpressionExceedsPageWidth (genExpr astCtx e) ctx
 
-                        sepOpenTFor (Some lpr) -- "fun "
+                        sepOpenTFor lpr -- "fun "
                         +> pats
                         +> indent
                         +> triviaAfterArrow arrowRange
@@ -3140,15 +3108,17 @@ and genApp appNlnFun astContext e es ctx =
 
                         genLambda (col sepSpace cps (fst >> genComplexPats astContext)) e lpr rpr arrowRange
                     | Paren (lpr, Lambda (e, sps), rpr) ->
-                        // TODO: arrow range?
-                        genLambda (col sepSpace sps (genSimplePats astContext)) e lpr rpr e.Range
+                        let arrowRange =
+                            List.last sps
+                            |> fun sp -> mkRange "arrow range" sp.Range.End e.Range.Start
+
+                        genLambda (col sepSpace sps (genSimplePats astContext)) e lpr rpr arrowRange
                     | _ -> genExpr astContext e)
 
             let singleLambdaArgument =
                 col sepSpace es (fun e ->
                     let genLambda pats (bodyExpr: SynExpr) lpr rpr arrowRange =
-                        let sepOpenTFor r =
-                            tokN (Option.defaultValue e.Range r) LPAREN sepOpenT
+                        let sepOpenTFor r = tokN r LPAREN sepOpenT
 
                         let sepCloseTFor r =
                             tokN (Option.defaultValue e.Range r) RPAREN sepCloseT
@@ -3158,11 +3128,11 @@ and genApp appNlnFun astContext e es ctx =
                                   IsInsideDotGet = false }
 
                         let genExprAfterArrow (e: SynExpr) ctx =
-                            if Option.isSome (findTriviaTokenFromName RARROW e.Range ctx)
-                            then genExpr astCtx e ctx
-                            else autoNlnIfExpressionExceedsPageWidth (genExpr astCtx e) ctx
+                            match findTriviaTokenFromName RARROW e.Range ctx with
+                            | Some _ -> genExpr astCtx e ctx
+                            | None -> autoNlnIfExpressionExceedsPageWidth (genExpr astCtx e) ctx
 
-                        sepOpenTFor (Some lpr) -- "fun "
+                        sepOpenTFor lpr -- "fun "
                         +> pats
                         +> indent
                         +> triviaAfterArrow arrowRange
@@ -3180,14 +3150,15 @@ and genApp appNlnFun astContext e es ctx =
 
                         genLambda (col sepSpace cps (fst >> genComplexPats astContext)) e lpr rpr arrowRange
                     | Paren (lpr, Lambda (e, sps), rpr) ->
-                        // TODO arrow range?
-                        genLambda (col sepSpace sps (genSimplePats astContext)) e lpr rpr e.Range
+                        let arrowRange =
+                            List.last sps
+                            |> fun sp -> mkRange "arrow range" sp.Range.End e.Range.Start
+
+                        genLambda (col sepSpace sps (genSimplePats astContext)) e lpr rpr arrowRange
                     | _ -> genExpr astContext e)
 
             let argExpr =
-                if hasASingleInfixExpression then singleInfix
-                elif hasMultipleArguments then multipleArguments
-                else singleLambdaArgument
+                if hasMultipleArguments then multipleArguments else singleLambdaArgument
 
             genExpr astContext e
             +> ifElse (not hasMultipleArguments) sepSpace (indent +> sepNln)
