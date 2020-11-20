@@ -2506,12 +2506,14 @@ and genExpr astContext synExpr ctx =
             !-(sprintf "%s <- " s)
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
         | DotIndexedGet (e, es) ->
-            addParenIfAutoNln
-                e
-                (genExpr
+            let astCtx =
+                match e with
+                | Paren _ -> astContext
+                | _ ->
                     { astContext with
-                          IsInsideDotIndexed = true })
-            -- "."
+                          IsInsideDotIndexed = true }
+
+            addParenIfAutoNln e (genExpr astCtx) -- "."
             +> sepOpenLFixed
             +> genIndexers astContext es
             +> sepCloseLFixed
