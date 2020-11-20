@@ -395,14 +395,19 @@ module Types =
     |> should equal "
 [<Test>]
 let ``attribute on module after namespace`` () =
-    formatSourceString false \"\"\"namespace SomeNamespace
+    formatSourceString
+        false
+        \"\"\"namespace SomeNamespace
 
 [<AutoOpen>]
 module Types =
     let a = 5
-\"\"\"  config
+\"\"\"
+        config
     |> prepend newline
-    |> should equal \"\"\"
+    |> should
+        equal
+        \"\"\"
 namespace SomeNamespace
 
 [<AutoOpen>]
@@ -444,14 +449,19 @@ async {
     |> prepend newline
     |> should equal "
 let ``match bang`` () =
-    formatSourceString false \"\"\"
+    formatSourceString
+        false
+        \"\"\"
 async {
     match! myAsyncFunction() with
     | Some x -> printfn \"%A\" x
     | None -> printfn \"Function returned None!\"
-}\"\"\" config
+}\"\"\"
+        config
     |> prepend newline
-    |> should equal \"\"\"
+    |> should
+        equal
+        \"\"\"
 async {
     match! myAsyncFunction () with
     | Some x -> printfn \"%A\" x

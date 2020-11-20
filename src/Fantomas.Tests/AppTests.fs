@@ -42,7 +42,8 @@ let a s =
     |> should equal @"
 let a s =
     if s <> """" then
-        printfn """"""fooo
+        printfn
+            """"""fooo
 %s
 %s
 %s
@@ -71,7 +72,8 @@ let a s =
     |> should equal @"
 let a s =
     if s <> """" then
-        printfn """"""fooo
+        printfn
+            """"""fooo
 %s
 %s
 %s
@@ -333,3 +335,32 @@ let untypedRes =
         somethingElseWithARatherLongVariableName
     )
 """
+
+[<Test>]
+let ``multiline string in function application, 1259`` () =
+    formatSourceString false "
+[<Test>]
+let ``classes and private implicit constructors`` () =
+    formatSourceString false \"\"\"
+    type MyClass2 private (dataIn) as self =
+       let data = dataIn
+       do self.PrintMessage()
+       member this.PrintMessage() =
+           printf \"Creating MyClass2 with Data %d\" data\"\"\" { config with
+                                                                 MaxFunctionBindingWidth = 120 }
+"    config
+    |> prepend newline
+    |> should equal "
+[<Test>]
+let ``classes and private implicit constructors`` () =
+    formatSourceString
+        false
+        \"\"\"
+    type MyClass2 private (dataIn) as self =
+       let data = dataIn
+       do self.PrintMessage()
+       member this.PrintMessage() =
+           printf \"Creating MyClass2 with Data %d\" data\"\"\"
+        { config with
+              MaxFunctionBindingWidth = 120 }
+"

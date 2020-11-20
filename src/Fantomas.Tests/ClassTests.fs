@@ -639,7 +639,9 @@ indent_size=2
         System.IO.File.ReadAllText(fileFixture.Filename)
 
     result
-    |> should equal \"\"\"let a = // foo
+    |> should
+        equal
+        \"\"\"let a = // foo
   9
 \"\"\"
 "
