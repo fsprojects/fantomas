@@ -17,11 +17,10 @@ let ``combination of named and non named arguments, 1158`` () =
     |> prepend newline
     |> should equal """
 let private sendTooLargeError () =
-    new HttpResponseMessage(HttpStatusCode.RequestEntityTooLarge,
-                            Content =
-                                new StringContent("File was too way too large",
-                                                  System.Text.Encoding.UTF16,
-                                                  "application/text"))
+    new HttpResponseMessage(
+        HttpStatusCode.RequestEntityTooLarge,
+        Content = new StringContent("File was too way too large", System.Text.Encoding.UTF16, "application/text")
+    )
 """
 
 [<Test>]
@@ -35,6 +34,7 @@ let myInstance =
     |> prepend newline
     |> should equal """
 let myInstance =
-    new EvilBadRequest(Content =
-        new StringContent("File was too way too large", System.Text.Encoding.UTF16, "application/text"))
+    new EvilBadRequest(
+        Content = new StringContent("File was too way too large", System.Text.Encoding.UTF16, "application/text")
+    )
 """

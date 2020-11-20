@@ -374,18 +374,22 @@ let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNa
 System.String.Concat("a", "b" +
                             longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun(longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass).Property)
 """  config
-    |> should equal """type T() =
+    |> prepend newline
+    |> should equal """
+type T() =
     member __.Property = "hello"
 
 let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x: T) = x
 let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass = T()
 
-System.String.Concat
-    ("a",
-     "b"
-     + longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun
-         (longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass)
-         .Property)
+System.String.Concat(
+    "a",
+    "b"
+    + longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (
+        longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass
+    )
+        .Property
+)
 """
 
 [<Test>]
@@ -611,14 +615,18 @@ open Fantomas.CoreGlobalTool.Tests.TestHelpers
 [<Test>]
 let ``config file in working directory should not require relative prefix, 821`` () =
     use fileFixture =
-        new TemporaryFileCodeSample(\"let a  = // foo
-                                                            9\")
+        new TemporaryFileCodeSample(
+            \"let a  = // foo
+                                                            9\"
+        )
 
     use configFixture =
-        new ConfigurationFile(\"\"\"
+        new ConfigurationFile(
+            \"\"\"
 [*.fs]
 indent_size=2
-\"\"\"                            )
+\"\"\"
+        )
 
     let (exitCode, output) = runFantomasTool fileFixture.Filename
 

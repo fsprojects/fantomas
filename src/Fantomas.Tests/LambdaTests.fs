@@ -68,8 +68,8 @@ open Fable.React.Props
 open Reactstrap
 
 let private badgeSample =
-    FunctionComponent.Of<obj>
-        ((fun _ ->
+    FunctionComponent.Of<obj>(
+        (fun _ ->
             fragment [] [
                 h3 [] [
                     str "Heading "
@@ -81,7 +81,8 @@ let private badgeSample =
                     str "oh my"
                 ]
             ]),
-         "BadgeSample")
+        "BadgeSample"
+    )
 
 exportDefault badgeSample
 """
@@ -630,10 +631,11 @@ services.AddHttpsRedirection(Action<HttpsRedirectionOptions>(fun options ->
 """  { config with MaxLineLength = 60 }
     |> prepend newline
     |> should equal """
-services.AddHttpsRedirection
-    (Action<HttpsRedirectionOptions>
+services.AddHttpsRedirection(
+    Action<HttpsRedirectionOptions>
         (fun options ->
             // meh
-            options.HttpsPort <- Nullable(7002)))
+            options.HttpsPort <- Nullable(7002))
+)
 |> ignore
 """

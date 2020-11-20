@@ -795,12 +795,17 @@ let (|App|_|) e =
 let (|AppTuple|_|) =
     function
     | App (e, [ (Paren (lpr, Tuple args, rpr)) ]) -> Some(e, lpr, args, rpr)
-    //| SynExpr.New(_, pat, (Paren (_, Tuple _, _) as arg), _) -> Some(NewTuple (pat, arg))
+    | App (e, [ (Paren (lpr, singleExpr, rpr)) ]) ->
+        match singleExpr with
+        | SynExpr.Lambda _
+        | SynExpr.MatchLambda _ -> None
+        | _ -> Some(e, lpr, [ singleExpr ], rpr)
     | _ -> None
 
 let (|NewTuple|_|) =
     function
     | SynExpr.New (_, t, Paren (lpr, Tuple args, rpr), _) -> Some(t, lpr, args, rpr)
+    | SynExpr.New (_, t, Paren (lpr, singleExpr, rpr), _) -> Some(t, lpr, [ singleExpr ], rpr)
     | SynExpr.New (_, t, ConstExpr (SynConst.Unit, unitRange), _) ->
         let lpr =
             mkRange "lpr" unitRange.Start unitRange.Start
@@ -1615,9 +1620,25 @@ let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
 
     | SynExpr.DotGet (_, _, LongIdentWithDots (lid), _) -> upperOrLower lid
 
-    | SynExpr.DotIndexedGet (expr, _, _, _) -> (|UppercaseSynExpr|LowercaseSynExpr|) expr
+    | SynExpr.DotIndexedGet (expr, _, _, _)
+    | SynExpr.TypeApp (expr, _, _, _, _, _, _) -> (|UppercaseSynExpr|LowercaseSynExpr|) expr
 
     | _ -> failwithf "cannot determine if synExpr %A is uppercase or lowercase" synExpr
+
+let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
+    let upperOrLower (v: string) =
+        let isUpper =
+            Seq.tryHead v
+            |> Option.map (Char.IsUpper)
+            |> Option.defaultValue false
+
+        if isUpper then UppercaseSynType else LowercaseSynType
+
+    match synType with
+    | SynType.LongIdent (LongIdentWithDots lid) -> lid.Split('.') |> Seq.last |> upperOrLower
+    | SynType.Var (Typar (s, _), _) -> upperOrLower s
+    | SynType.App (st, _, _, _, _, _, _) -> (|UppercaseSynType|LowercaseSynType|) st
+    | _ -> failwithf "cannot determine if synType %A is uppercase or lowercase" synType
 
 let isFunctionBinding (p: SynPat) =
     match p with

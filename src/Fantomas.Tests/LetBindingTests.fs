@@ -266,10 +266,11 @@ let ``inner let binding should not add additional newline, #475`` () =
 module Test =
     let testFunc () =
         let someObject =
-            someStaticObject.Create
-                (((fun o ->
+            someStaticObject.Create(
+                ((fun o ->
                     o.SomeProperty <- \"\"
-                    o.Role <- \"Has to be at least two properties\")))
+                    o.Role <- \"Has to be at least two properties\"))
+            )
 
         /// Comment can't be removed to reproduce bug
         let someOtherValue = \"\"
@@ -751,8 +752,10 @@ let private authenticateRequest (logger: ILogger) header =
     parameters.NameClaimType <- ClaimTypes.NameIdentifier // Auth0 related, see https://community.auth0.com/t/access-token-doesnt-contain-a-sub-claim/17671/2
 
     let manager =
-        ConfigurationManager<OpenIdConnectConfiguration>
-            (sprintf "https://%s/.well-known/openid-configuration" Auth0Domain, OpenIdConnectConfigurationRetriever())
+        ConfigurationManager<OpenIdConnectConfiguration>(
+            sprintf "https://%s/.well-known/openid-configuration" Auth0Domain,
+            OpenIdConnectConfigurationRetriever()
+        )
 
     let handler = JwtSecurityTokenHandler()
 
@@ -895,8 +898,10 @@ let ``preserve new line new instance of class, 1034`` () =
 let notFound () =
     let json = Encode.string "Not found" |> Encode.toString 4
 
-    new HttpResponseMessage(HttpStatusCode.NotFound,
-                            Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json"))
+    new HttpResponseMessage(
+        HttpStatusCode.NotFound,
+        Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+    )
 """
 
 [<Test>]
@@ -924,8 +929,10 @@ let getVersion () =
         let version = assembly.GetName().Version
         sprintf "%i.%i.%i" version.Major version.Minor version.Revision
 
-    new HttpResponseMessage(HttpStatusCode.OK,
-                            Content = new StringContent(version, System.Text.Encoding.UTF8, "application/text"))
+    new HttpResponseMessage(
+        HttpStatusCode.OK,
+        Content = new StringContent(version, System.Text.Encoding.UTF8, "application/text")
+    )
 """
 
 [<Test>]
@@ -1032,12 +1039,12 @@ let x =
     && let tcref = tcrefOfAppTy g ty in
        match tcref.TypeReprInfo with
        | TProvidedTypeExtensionPoint info ->
-           info.ProvidedType.PUntaint
-               ((fun st ->
+           info.ProvidedType.PUntaint(
+               (fun st ->
                    (st :> IProvidedCustomAttributeProvider)
-                       .GetHasTypeProviderEditorHideMethodsAttribute(info.ProvidedType.TypeProvider.PUntaintNoFailure
-                                                                         (id))),
-                m)
+                       .GetHasTypeProviderEditorHideMethodsAttribute(info.ProvidedType.TypeProvider.PUntaintNoFailure(id))),
+               m
+           )
        | _ ->
            if tcref.IsILTycon then
                tcref.ILTyconRawMetadata.CustomAttrs.AsArray
@@ -1056,12 +1063,13 @@ let x =
 
        match tcref.TypeReprInfo with
        | TProvidedTypeExtensionPoint info ->
-           info.ProvidedType.PUntaint
-               ((fun st ->
+           info.ProvidedType.PUntaint(
+               (fun st ->
                    (st :> IProvidedCustomAttributeProvider)
                        .GetHasTypeProviderEditorHideMethodsAttribute(info.ProvidedType.TypeProvider.PUntaintNoFailure
                                                                          (id))),
-                m)
+               m
+           )
        | _ ->
            if tcref.IsILTycon then
                tcref.ILTyconRawMetadata.CustomAttrs.AsArray
@@ -1071,6 +1079,24 @@ let x =
                            .FullName)
            else
                false
+"""
+
+[<Test>]
+let ``app tuple inside dotget expression`` () =
+    formatSourceString false """
+                   (st :> IProvidedCustomAttributeProvider)
+                       .GetHasTypeProviderEditorHideMethodsAttribute(
+                           info.ProvidedType.TypeProvider.PUntaintNoFailure(
+                                id
+                           )
+                        )
+
+"""  { config with MaxLineLength = 40 }
+    |> prepend newline
+    |> should equal """
+(st :> IProvidedCustomAttributeProvider)
+    .GetHasTypeProviderEditorHideMethodsAttribute(info.ProvidedType.TypeProvider.PUntaintNoFailure
+                                                      (id))
 """
 
 [<Test>]

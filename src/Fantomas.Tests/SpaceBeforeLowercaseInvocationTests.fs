@@ -43,3 +43,138 @@ let ``spaceBeforeLowercaseInvocation should not have impact when member is calle
     |> should equal """
 let v1 = myFunction().Member
 """
+
+[<Test>]
+let ``space before lower constructor without new`` () =
+    formatSourceString false """
+let tree1 =
+    binaryNode(binaryNode(binaryValue 1, binaryValue 2), binaryNode(binaryValue 3, binaryValue 4))
+"""  { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should equal """
+let tree1 =
+    binaryNode (
+        binaryNode (binaryValue 1, binaryValue 2),
+        binaryNode (binaryValue 3, binaryValue 4)
+    )
+"""
+
+[<Test>]
+let ``space before lower case constructor invocation with new keyword`` () =
+    formatSourceString false """
+let person = new person("Jim", 33)
+
+let otherThing =
+    new foobar(longname1, longname2, longname3, longname4, longname5, longname6, longname7)
+"""  { config with MaxLineLength = 90 }
+    |> prepend newline
+    |> should equal """
+let person = new person ("Jim", 33)
+
+let otherThing =
+    new foobar (
+        longname1,
+        longname2,
+        longname3,
+        longname4,
+        longname5,
+        longname6,
+        longname7
+    )
+"""
+
+[<Test>]
+let ``space before lower member call`` () =
+    formatSourceString false """
+let myRegexMatch = Regex.matches(input, regex)
+
+let myRegexMatchLong =
+    Regex.matches("my longer input string with some interesting content in it","myRegexPattern")
+
+let untypedRes = checker.parseFile(file, source, opts)
+
+let untypedResLong =
+    checker.parseFile(fileName, sourceText, parsingOptionsWithDefines, somethingElseWithARatherLongVariableName)
+"""  { config with MaxLineLength = 90 }
+    |> prepend newline
+    |> should equal """
+let myRegexMatch = Regex.matches (input, regex)
+
+let myRegexMatchLong =
+    Regex.matches (
+        "my longer input string with some interesting content in it",
+        "myRegexPattern"
+    )
+
+let untypedRes = checker.parseFile (file, source, opts)
+
+let untypedResLong =
+    checker.parseFile (
+        fileName,
+        sourceText,
+        parsingOptionsWithDefines,
+        somethingElseWithARatherLongVariableName
+    )
+"""
+
+[<Test>]
+let ``no space before lowercase member calls and constructors`` () =
+    formatSourceString false """
+let tree1 =
+    binaryNode(binaryNode(binaryValue 1, binaryValue 2), binaryNode(binaryValue 3, binaryValue 4))
+
+let person = new person("Jim", 33)
+let otherThing =
+    new foobar(longname1, longname2, longname3, longname4, longname5, longname6, longname7)
+
+let myRegexMatch = Regex.matches(input, regex)
+
+let myRegexMatchLong =
+    Regex.matches("my longer input string with some interesting content in it","myRegexPattern")
+
+let untypedRes = checker.parseFile(file, source, opts)
+
+let untypedResLong =
+    checker.parseFile(fileName, sourceText, parsingOptionsWithDefines, somethingElseWithARatherLongVariableName)
+"""
+        { noSpaceBefore with
+              MaxLineLength = 60 }
+    |> prepend newline
+    |> should equal """
+let tree1 =
+    binaryNode(
+        binaryNode(binaryValue 1, binaryValue 2),
+        binaryNode(binaryValue 3, binaryValue 4)
+    )
+
+let person = new person("Jim", 33)
+
+let otherThing =
+    new foobar(
+        longname1,
+        longname2,
+        longname3,
+        longname4,
+        longname5,
+        longname6,
+        longname7
+    )
+
+let myRegexMatch = Regex.matches(input, regex)
+
+let myRegexMatchLong =
+    Regex.matches(
+        "my longer input string with some interesting content in it",
+        "myRegexPattern"
+    )
+
+let untypedRes = checker.parseFile(file, source, opts)
+
+let untypedResLong =
+    checker.parseFile(
+        fileName,
+        sourceText,
+        parsingOptionsWithDefines,
+        somethingElseWithARatherLongVariableName
+    )
+"""
