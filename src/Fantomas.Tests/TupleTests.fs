@@ -6,7 +6,7 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``tuple with lamba should add parenthesis`` () =
+let ``tuple with lambda should add parenthesis`` () =
     formatSourceString false """
 let private carouselSample =
     FunctionComponent.Of<obj>(fun _ ->
@@ -24,10 +24,12 @@ let ``multiline item in tuple - paren on its line`` () =
  if longExpressionMakingTheIfElseMultiline && a then answerWhenTheConditionIsTrue
  else answerWhenTheConditionIsFalse)
 """  config
-    |> should equal """(x,
- (if longExpressionMakingTheIfElseMultiline && a
-  then answerWhenTheConditionIsTrue
-  else answerWhenTheConditionIsFalse))
+    |> prepend newline
+    |> should equal """
+(x,
+ if longExpressionMakingTheIfElseMultiline && a
+ then answerWhenTheConditionIsTrue
+ else answerWhenTheConditionIsFalse)
 """
 
 [<Test>]

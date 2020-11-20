@@ -712,19 +712,25 @@ type substring =
 #if INVARIANT_CULTURE_STRING_COMPARISON
             // NOTE: we don't have to null check here because System.String.Compare
             // gives reliable results on null values.
-            System.String.Compare
-                (strA.String,
-                 strA.Offset,
-                 strB.String,
-                 strB.Offset,
-                 min strA.Length strB.Length,
-                 false,
-                 CultureInfo.InvariantCulture)
+            System.String.Compare(
+                strA.String,
+                strA.Offset,
+                strB.String,
+                strB.Offset,
+                min strA.Length strB.Length,
+                false,
+                CultureInfo.InvariantCulture
+            )
 #else
             // NOTE: we don't have to null check here because System.String.CompareOrdinal
             // gives reliable results on null values.
-            System.String.CompareOrdinal
-                (strA.String, strA.Offset, strB.String, strB.Offset, min strA.Length strB.Length)
+            System.String.CompareOrdinal(
+                strA.String,
+                strA.Offset,
+                strB.String,
+                strB.Offset,
+                min strA.Length strB.Length
+            )
 #endif
 """
 

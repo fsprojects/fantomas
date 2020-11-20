@@ -806,11 +806,14 @@ let x =
     |> prepend newline
     |> should equal """
 let x =
-    JobCollectionCreateParameters
-        (Label = "Test",
-         IntrinsicSettings =
-             JobCollectionIntrinsicSettings
-                 (Plan = JobCollectionPlan.Standard, Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))
+    JobCollectionCreateParameters(
+        Label = "Test",
+        IntrinsicSettings =
+            JobCollectionIntrinsicSettings(
+                Plan = JobCollectionPlan.Standard,
+                Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))
+            )
+    )
 """
 
 [<Test>]

@@ -91,3 +91,82 @@ module SomeModule =
         let someValue = a.Some.Thing("aaa").[0]
         someValue
 """
+
+[<Test>]
+let ``space before uppercase constructor without new`` () =
+    formatSourceString false """
+let tree1 =
+    BinaryNode(BinaryNode(BinaryValue 1, BinaryValue 2), BinaryNode(BinaryValue 3, BinaryValue 4))
+"""
+        { spaceBeforeConfig with
+              MaxLineLength = 80 }
+    |> prepend newline
+    |> should equal """
+let tree1 =
+    BinaryNode (
+        BinaryNode (BinaryValue 1, BinaryValue 2),
+        BinaryNode (BinaryValue 3, BinaryValue 4)
+    )
+"""
+
+[<Test>]
+let ``space before upper case constructor invocation with new keyword`` () =
+    formatSourceString false """
+let person = new Person("Jim", 33)
+
+let otherThing =
+    new Foobar(longname1, longname2, longname3, longname4, longname5, longname6, longname7)
+"""
+        { spaceBeforeConfig with
+              MaxLineLength = 90 }
+    |> prepend newline
+    |> should equal """
+let person = new Person ("Jim", 33)
+
+let otherThing =
+    new Foobar (
+        longname1,
+        longname2,
+        longname3,
+        longname4,
+        longname5,
+        longname6,
+        longname7
+    )
+"""
+
+[<Test>]
+let ``space before uppercase member call`` () =
+    formatSourceString false """
+let myRegexMatch = Regex.Match(input, regex)
+
+let myRegexMatchLong =
+    Regex.Match("my longer input string with some interesting content in it","myRegexPattern")
+
+let untypedRes = checker.ParseFile(file, source, opts)
+
+let untypedResLong =
+    checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines, somethingElseWithARatherLongVariableName)
+"""
+        { spaceBeforeConfig with
+              MaxLineLength = 90 }
+    |> prepend newline
+    |> should equal """
+let myRegexMatch = Regex.Match (input, regex)
+
+let myRegexMatchLong =
+    Regex.Match (
+        "my longer input string with some interesting content in it",
+        "myRegexPattern"
+    )
+
+let untypedRes = checker.ParseFile (file, source, opts)
+
+let untypedResLong =
+    checker.ParseFile (
+        fileName,
+        sourceText,
+        parsingOptionsWithDefines,
+        somethingElseWithARatherLongVariableName
+    )
+"""

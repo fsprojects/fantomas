@@ -634,7 +634,6 @@ let (|SingleExpr|_|) =
 
 type TypedExprKind =
     | TypeTest
-    | New
     | Downcast
     | Upcast
     | Typed
@@ -642,7 +641,6 @@ type TypedExprKind =
 let (|TypedExpr|_|) =
     function
     | SynExpr.TypeTest (e, t, _) -> Some(TypeTest, e, t)
-    | SynExpr.New (_, t, e, _) -> Some(New, e, t)
     | SynExpr.Downcast (e, t, _) -> Some(Downcast, e, t)
     | SynExpr.Upcast (e, t, _) -> Some(Upcast, e, t)
     | SynExpr.Typed (e, t, _) -> Some(Typed, e, t)
@@ -793,6 +791,31 @@ let (|App|_|) e =
     | (_, []) -> None
     | (e, es) -> Some(e, List.rev es)
 
+// captures application with single tuple arg
+let (|AppTuple|_|) =
+    function
+    | App (e, [ (Paren (lpr, Tuple args, rpr)) ]) -> Some(e, lpr, args, rpr)
+    | App (e, [ (Paren (lpr, singleExpr, rpr)) ]) ->
+        match singleExpr with
+        | SynExpr.Lambda _
+        | SynExpr.MatchLambda _ -> None
+        | _ -> Some(e, lpr, [ singleExpr ], rpr)
+    | _ -> None
+
+let (|NewTuple|_|) =
+    function
+    | SynExpr.New (_, t, Paren (lpr, Tuple args, rpr), _) -> Some(t, lpr, args, rpr)
+    | SynExpr.New (_, t, Paren (lpr, singleExpr, rpr), _) -> Some(t, lpr, [ singleExpr ], rpr)
+    | SynExpr.New (_, t, ConstExpr (SynConst.Unit, unitRange), _) ->
+        let lpr =
+            mkRange "lpr" unitRange.Start unitRange.Start
+
+        let rpr =
+            mkRange "rpr" unitRange.End unitRange.End
+
+        Some(t, lpr, [], Some rpr)
+    | _ -> None
+
 let (|CompApp|_|) =
     function
     | SynExpr.App (_, _, Var "seq", (SynExpr.App _ as e), _) -> Some("seq", e)
@@ -852,16 +875,6 @@ let (|SameInfixApps|_|) e =
 let (|TernaryApp|_|) =
     function
     | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
-    | _ -> None
-
-let (|AppWithMultilineArgument|_|) e =
-    let isMultilineString p =
-        match p with
-        | MultilineString _ -> true
-        | _ -> false
-
-    match e with
-    | App (_, arguments) when (List.exists isMultilineString arguments) -> Some e
     | _ -> None
 
 /// Gather all arguments in lambda
@@ -1607,9 +1620,25 @@ let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
 
     | SynExpr.DotGet (_, _, LongIdentWithDots (lid), _) -> upperOrLower lid
 
-    | SynExpr.DotIndexedGet (expr, _, _, _) -> (|UppercaseSynExpr|LowercaseSynExpr|) expr
+    | SynExpr.DotIndexedGet (expr, _, _, _)
+    | SynExpr.TypeApp (expr, _, _, _, _, _, _) -> (|UppercaseSynExpr|LowercaseSynExpr|) expr
 
     | _ -> failwithf "cannot determine if synExpr %A is uppercase or lowercase" synExpr
+
+let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
+    let upperOrLower (v: string) =
+        let isUpper =
+            Seq.tryHead v
+            |> Option.map (Char.IsUpper)
+            |> Option.defaultValue false
+
+        if isUpper then UppercaseSynType else LowercaseSynType
+
+    match synType with
+    | SynType.LongIdent (LongIdentWithDots lid) -> lid.Split('.') |> Seq.last |> upperOrLower
+    | SynType.Var (Typar (s, _), _) -> upperOrLower s
+    | SynType.App (st, _, _, _, _, _, _) -> (|UppercaseSynType|LowercaseSynType|) st
+    | _ -> failwithf "cannot determine if synType %A is uppercase or lowercase" synType
 
 let isFunctionBinding (p: SynPat) =
     match p with

@@ -51,18 +51,19 @@ let ``split chained method call expression, 246`` () =
 """  config
     |> prepend newline
     |> should equal """
-root.SetAttribute
-    ("driverVersion",
-     "AltCover.Recorder "
-     + System
-         .Diagnostics
-         .FileVersionInfo
-         .GetVersionInfo(System
-             .Reflection
-             .Assembly
-             .GetExecutingAssembly()
-             .Location)
-         .FileVersion)
+root.SetAttribute(
+    "driverVersion",
+    "AltCover.Recorder "
+    + System
+        .Diagnostics
+        .FileVersionInfo
+        .GetVersionInfo(System
+            .Reflection
+            .Assembly
+            .GetExecutingAssembly()
+            .Location)
+        .FileVersion
+)
 """
 
 [<Test>]

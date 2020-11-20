@@ -177,10 +177,11 @@ let rec make item depth =
     |> should equal """
 let rec make item depth =
     if depth > 0 then
-        Tree
-            ({ Left = make (2 * item - 1) (depth - 1)
-               Right = make (2 * item) (depth - 1) },
-             item)
+        Tree(
+            { Left = make (2 * item - 1) (depth - 1)
+              Right = make (2 * item) (depth - 1) },
+            item
+        )
     else
         Tree(defaultof<_>, item)
 """
@@ -192,10 +193,11 @@ let ``record inside DU constructor`` () =
     |> prepend newline
     |> should equal """
 let a =
-    Tree
-        ({ Left = make (2 * item - 1) (depth - 1)
-           Right = make (2 * item) (depth - 1) },
-         item)
+    Tree(
+        { Left = make (2 * item - 1) (depth - 1)
+          Right = make (2 * item) (depth - 1) },
+        item
+    )
 """
 
 [<Test>]
@@ -581,16 +583,18 @@ let expect =
 let expect =
     Result<Schema, SetError>.Ok
         { opts =
-              [ Opts.anyOf
-                  ([ (Optional, Opt.flagTrue [ "first"; "f" ])
-                     (Optional, Opt.value [ "second"; "s" ]) ])
-                Opts.oneOf
-                    (Optional,
-                     [ Opt.flag [ "third"; "f" ]
-                       Opt.valueWith
-                           "new value"
-                           [ "fourth"
-                             "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]) ]
+              [ Opts.anyOf (
+                  [ (Optional, Opt.flagTrue [ "first"; "f" ])
+                    (Optional, Opt.value [ "second"; "s" ]) ]
+                )
+                Opts.oneOf (
+                    Optional,
+                    [ Opt.flag [ "third"; "f" ]
+                      Opt.valueWith
+                          "new value"
+                          [ "fourth"
+                            "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]
+                ) ]
           args = []
           commands = [] }
 """

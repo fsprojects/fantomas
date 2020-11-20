@@ -1364,10 +1364,11 @@ let rec loop () =
 
         let newEvents =
           stream
-          |> Result.map
-               (asEvents
-                >> behaviour command
-                >> enveloped eventSource)
+          |> Result.map (
+            asEvents
+            >> behaviour command
+            >> enveloped eventSource
+          )
 
         let! result =
           newEvents
