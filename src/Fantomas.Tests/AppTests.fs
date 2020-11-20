@@ -364,3 +364,23 @@ let ``classes and private implicit constructors`` () =
         { config with
               MaxFunctionBindingWidth = 120 }
 "
+
+[<Test>]
+let ``space between function and argument in DotIndexedGet, 1261`` () =
+    formatSourceString false """
+type Queue<'T>(data: list<'T []>, length: int) =
+
+    member this.Head =
+        if length > 0
+        then (List.head data).[0]
+        else raise (System.Exception("Queue is empty"))
+"""  config
+    |> prepend newline
+    |> should equal """
+type Queue<'T>(data: list<'T []>, length: int) =
+
+    member this.Head =
+        if length > 0
+        then (List.head data).[0]
+        else raise (System.Exception("Queue is empty"))
+"""
