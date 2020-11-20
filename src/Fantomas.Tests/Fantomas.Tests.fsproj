@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>4.3.0-alpha-005</Version>
+    <Version>4.3.0-alpha-006</Version>
     <NoWarn>FS0988</NoWarn>
     <TargetFramework>net5.0</TargetFramework>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
@@ -79,6 +79,7 @@
     <Compile Include="SynExprNewTests.fs" />
     <Compile Include="DisableElmishTests.fs" />
     <Compile Include="CastTests.fs" />
+    <Compile Include="MultiLineLambdaClosingNewlineTests.fs" />
     <Compile Include="OpenTypeTests.fs" />
   </ItemGroup>
   <ItemGroup>
