@@ -1906,26 +1906,6 @@ and genExpr astContext synExpr ctx =
 
                 isShortExpression ctx.Config.MaxDotGetExpressionWidth (genExpr sepNone) (genExpr sepNln) ctx
 
-        // Multiline strings are a bit of an edge case in Fantomas, they are not immediately seen as multiline constructs.
-        | App (e, (MultilineString _ as h :: rest as es)) ->
-            let shortExpression =
-                atCurrentColumn
-                    (genExpr astContext e
-                     +> sepSpace
-                     +> col sepSpace es (genExpr astContext))
-
-            let longExpression =
-                atCurrentColumn
-                    (genExpr astContext e
-                     +> sepSpace
-                     +> genExpr astContext h
-                     +> indent
-                     +> onlyIf (List.isNotEmpty rest) sepNln
-                     +> col sepNln rest (genExpr astContext)
-                     +> unindent)
-
-            expressionFitsOnRestOfLine shortExpression longExpression
-
         | AppTuple (e, lpr, args, rpr) when (not astContext.IsInsideDotGet) ->
             let sepSpace (ctx: Context) =
                 if astContext.IsInsideDotGet
@@ -3173,7 +3153,6 @@ and genApp appNlnFun astContext e es ctx =
                  +> unindent)
 
     if List.exists (function
-        | MultilineString _
         | CompExpr _ -> true
         | _ -> false) es then
         shortExpression ctx

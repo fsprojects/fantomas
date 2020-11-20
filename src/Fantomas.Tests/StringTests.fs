@@ -61,7 +61,8 @@ let f a b =
     |> prepend newline
     |> should equal """
 let f a b =
-    a "
+    a
+        "
 "
     |> b
 """
