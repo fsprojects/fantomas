@@ -389,10 +389,10 @@ let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameK
     match key with
     | None ->
 #endif
-       assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
-       assemblyName.HasPublicKey <- false
-       assemblyName.PublicKey <- null
-       assemblyName.PublicKeyToken <- null
+        assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+        assemblyName.HasPublicKey <- false
+        assemblyName.PublicKey <- null
+        assemblyName.PublicKeyToken <- null
 #if NETCOREAPP2_0
 #else
     | Some key' ->
@@ -479,10 +479,10 @@ let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameK
 
 
 #endif
-       assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
-       assemblyName.HasPublicKey <- false
-       assemblyName.PublicKey <- null
-       assemblyName.PublicKeyToken <- null
+        assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+        assemblyName.HasPublicKey <- false
+        assemblyName.PublicKey <- null
+        assemblyName.PublicKeyToken <- null
 #if NETCOREAPP2_0
 #else
 

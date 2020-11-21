@@ -1275,7 +1275,9 @@ and genExpr astContext synExpr ctx =
                 | YieldFrom
                 | Yield
                 | Return
-                | ReturnFrom -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+                | ReturnFrom
+                | Do
+                | DoBang -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
                 | _ -> genExpr astContext e)
 
         | ConstExpr (c, r) -> genConst c r
