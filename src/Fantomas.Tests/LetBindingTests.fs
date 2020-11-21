@@ -1137,9 +1137,10 @@ do
 """  config
     |> prepend newline
     |> should equal """
-do let rec f = ()
-   and g = () in
-   ()
+do
+    let rec f = ()
+    and g = () in
+    ()
 """
 
 [<Test>]
