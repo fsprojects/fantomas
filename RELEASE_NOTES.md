@@ -1,3 +1,7 @@
+### 4.3.0-alpha-007 - 11/2020
+
+* Fix regressions. [#1264](https://github.com/fsprojects/fantomas/pull/1264)
+
 ### 4.3.0-alpha-006 - 11/2020
 
 * Feature Clarify constructors. [#1217](https://github.com/fsprojects/fantomas/issues/1217)
