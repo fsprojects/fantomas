@@ -1147,3 +1147,33 @@ let main argv =
 
     0
 """
+
+[<Test>]
+let ``multiline function application condition with 2 space indent, 1267`` () =
+    formatSourceString false "
+let code =
+    if System.Text.RegularExpressions.Regex.IsMatch(
+        d.Name,
+        \"\"\"^[a-zA-Z][a-zA-Z0-9']+$\"\"\") then
+        d.Name
+    elif d.NamespaceToOpen.IsSome then
+        d.Name
+    else
+        PrettyNaming.QuoteIdentifierIfNeeded d.Name
+"
+        { config with
+              MaxLineLength = 60
+              IndentSize = 2 }
+    |> prepend newline
+    |> should equal "
+let code =
+  if (System.Text.RegularExpressions.Regex.IsMatch(
+        d.Name,
+        \"\"\"^[a-zA-Z][a-zA-Z0-9']+$\"\"\"
+      )) then
+    d.Name
+  elif d.NamespaceToOpen.IsSome then
+    d.Name
+  else
+    PrettyNaming.QuoteIdentifierIfNeeded d.Name
+"

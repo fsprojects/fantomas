@@ -2444,6 +2444,10 @@ and genExpr astContext synExpr ctx =
                         +> (match e1 with
                             | SynExpr.TryWith _
                             | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e1 +> sepCloseT
+                            | AppTuple _ when (isConditionMultiline) ->
+                                sepOpenT
+                                +> atCurrentColumn (genExpr astContext e1)
+                                +> sepCloseT
                             | _ -> genExpr astContext e1)
                         +> ifElse hasCommentAfterBoolExpr sepNln sepSpace
                         +> genThen synExpr.Range
