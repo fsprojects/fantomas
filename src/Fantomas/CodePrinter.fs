@@ -2229,7 +2229,7 @@ and genExpr astContext synExpr ctx =
                     || futureNlnCheck (!- "if " +> genExpr astContext e1) ctx
 
                 let isIfBranchMultiline =
-                    futureNlnCheck (genExpr astContext e2) ctx
+                    futureNlnCheck (!- "then " +> genExpr astContext e2) ctx
 
                 let isElseBranchMultiline =
                     match enOpt with
