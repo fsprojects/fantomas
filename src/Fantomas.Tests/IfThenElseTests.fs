@@ -1107,3 +1107,43 @@ let funcs =
             let n2Score = modifierScore n2
             if n1Score = n2Score then n1.DisplayName.CompareTo n2.DisplayName else n1Score.CompareTo n2Score)
 """
+
+[<Test>]
+let ``multiline then clause`` () =
+    formatSourceString false """
+[<EntryPoint>]
+let main argv =
+    let fileToFile (inFile: string) (outFile: string) =
+        try
+            use buffer =
+                if hasByteOrderMark
+                then new StreamWriter(new FileStream(outFile, FileMode.OpenOrCreate, FileAccess.ReadWrite),
+                                      Encoding.UTF8)
+                else new StreamWriter(outFile)
+
+            buffer.Flush()
+        with exn ->
+            eprintfn "The following exception occurred while formatting %s: %O" inFile exn
+
+    0
+"""  config
+    |> prepend newline
+    |> should equal """
+[<EntryPoint>]
+let main argv =
+    let fileToFile (inFile: string) (outFile: string) =
+        try
+            use buffer =
+                if hasByteOrderMark then
+                    new StreamWriter(
+                        new FileStream(outFile, FileMode.OpenOrCreate, FileAccess.ReadWrite),
+                        Encoding.UTF8
+                    )
+                else
+                    new StreamWriter(outFile)
+
+            buffer.Flush()
+        with exn -> eprintfn "The following exception occurred while formatting %s: %O" inFile exn
+
+    0
+"""
