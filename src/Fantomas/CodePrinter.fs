@@ -4429,9 +4429,7 @@ and genPat astContext pat =
             +> genParameters
             +> ifElse hasBracket sepCloseT sepNone
 
-    // Add space before "()" 
     | PatParen (PatConst (Const "()", _)) -> !- "()"
-    // Idem, verify short and long expression
     | PatParen (p) ->
         let shortExpression =
             sepOpenT
