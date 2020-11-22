@@ -945,10 +945,16 @@ and genMemberBinding astContext b =
 
     | ExplicitCtor (ats, px, ao, p, e, so) ->
         let prefix =
+            let genPat ctx =
+                match p with
+                | PatExplicitCtor pat ->
+                    (!- "new" +> onlyIf ctx.Config.SpaceBeforeClassConstructor sepSpace +> genPat astContext pat) ctx
+                | _ -> genPat astContext p ctx
+
             genPreXmlDoc px
             +> genAttributes astContext ats
             +> opt sepSpace ao genAccess
-            +> genPat astContext p
+            +> genPat
             +> opt sepNone so (sprintf " as %s" >> (!-))
 
         match e with
@@ -4155,17 +4161,18 @@ and genMemberDefn astContext node =
     | MDOpen (s) -> !-(sprintf "open %s" s)
     // What is the role of so
     | MDImplicitInherit (t, e, _) ->
-        let addSpaceAfterType =
-            match e with
-            | SynExpr.Const (SynConst.Unit, _) -> false
-            | SynExpr.Const _ -> true // string, numbers, ...
-            | _ -> false
-
-        // Verify sepSpaceBeforeConstructor condition here with addSpaceAfterType
+        let addSpaceAfterType ctx =
+            if not ctx.Config.SpaceBeforeClassConstructor then
+                match e with
+                | SynExpr.Const (SynConst.Unit, _) -> false
+                | SynExpr.Const _ -> true // string, numbers, ...
+                | _ -> false
+            else
+                true
         
         !- "inherit "
         +> genType astContext false t
-        +> ifElse addSpaceAfterType sepSpace sepNone
+        +> ifElseCtx addSpaceAfterType sepSpace sepNone
         +> genExpr astContext e
     | MDInherit (t, _) -> !- "inherit " +> genType astContext false t
     | MDValField f -> genField astContext "val " f

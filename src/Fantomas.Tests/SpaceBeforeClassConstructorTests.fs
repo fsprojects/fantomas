@@ -128,8 +128,6 @@ type animal (length: int) =
     new (length) = animal (length)
 """
 
-// Space before parentheses in secondary class constructor
-
 [<Test>]
 let ``should add space after inherit base class declaration, 964`` () =
     formatSourceString false """
