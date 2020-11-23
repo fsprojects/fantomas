@@ -1397,8 +1397,15 @@ and genExpr astContext synExpr ctx =
                 sepOpenS
                 +> leaveLeftBrace synExpr.Range
                 +> optSingle (fun (inheritType, inheritExpr) ->
+                    let addSpace ctx =
+                        match inheritExpr with
+                        | Paren _ when (ctx.Config.SpaceBeforeClassConstructor) ->
+                            sepSpace ctx
+                        | _ -> ctx
+                    
                     !- "inherit "
                     +> genType astContext false inheritType
+                    +> addSpace
                     +> genExpr astContext inheritExpr
                     +> onlyIf (List.isNotEmpty xs) sepSemi) inheritOpt
                 +> optSingle (fun e -> genExpr astContext e +> !- " with ") eo
@@ -2758,8 +2765,15 @@ and genMultilineRecordInstance (inheritOpt: (SynType * SynExpr) option)
         +> atCurrentColumnIndent
             (leaveLeftBrace synExpr.Range
              +> opt (if xs.IsEmpty then sepNone else sepNln) inheritOpt (fun (typ, expr) ->
+                    let addSpace ctx =
+                        match expr with
+                        | Paren _ when (ctx.Config.SpaceBeforeClassConstructor) ->
+                            sepSpace ctx
+                        | _ -> ctx
+                    
                     !- "inherit "
                     +> genType astContext false typ
+                    +> addSpace
                     +> genExpr astContext expr)
              +> recordExpr)
         +> (fun ctx ->
@@ -4162,13 +4176,10 @@ and genMemberDefn astContext node =
     // What is the role of so
     | MDImplicitInherit (t, e, _) ->
         let addSpaceAfterType ctx =
-            if not ctx.Config.SpaceBeforeClassConstructor then
-                match e with
-                | SynExpr.Const (SynConst.Unit, _) -> false
-                | SynExpr.Const _ -> true // string, numbers, ...
-                | _ -> false
-            else
-                true
+            match e with
+            | ConstExpr (SynConst.Unit, _)
+            | Paren _ -> ctx.Config.SpaceBeforeClassConstructor
+            | _ -> true
         
         !- "inherit "
         +> genType astContext false t
