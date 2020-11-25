@@ -118,3 +118,23 @@ fun x ->
     if y > 2 then y + 1 else y - 1
 , []
 """
+
+[<Test>]
+let ``all lines should start with comma if tuple contains match`` () =
+    formatSourceString false """
+match "Hello" with
+    | "first" -> 1
+    | "second" -> 2
+    , []
+    , "Hello"
+    , 1
+"""  { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should equal """
+match "Hello" with
+| "first" -> 1
+| "second" -> 2
+, []
+, "Hello"
+, 1
+"""
