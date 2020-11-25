@@ -86,3 +86,35 @@ module Foo =
 
         ()
 """
+
+[<Test>]
+let ``long tuple containing match must be formatted with comma on the next line`` () =
+    formatSourceString false """
+match "Hello" with
+    | "first" -> 1
+    | "second" -> 2
+    , []
+"""  { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should equal """
+match "Hello" with
+| "first" -> 1
+| "second" -> 2
+, []
+"""
+
+[<Test>]
+let ``long tuple containing lambda must be formatted with comma on the next line`` () =
+    formatSourceString false """
+fun x ->
+    let y = x + 3
+    if y > 2 then y + 1 else y - 1
+, []
+"""  { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should equal """
+fun x ->
+    let y = x + 3
+    if y > 2 then y + 1 else y - 1
+, []
+"""
