@@ -140,8 +140,6 @@ type dog () =
     inherit animal ()
 """
 
-// Original issue example
-
 [<Test>]
 let ``should add space before new and inherit on constructor of class, 964`` () =
     formatSourceString false """
@@ -162,4 +160,42 @@ type ProtocolGlitchException =
 
     new (message: string, innerException: Exception) =
         { inherit CommunicationUnsuccessfulException (message, innerException) }
+"""
+
+[<Test>]
+let ``should add space before new and inherit on constructor of class with multiline record, 964`` () =
+    formatSourceString false """
+type BaseClass =
+    val string1: string
+    new(str) = { string1 = str }
+    new() = { string1 = "" }
+
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new(str1, str2) =
+        { inherit BaseClass(str1)
+          string2 = str2 }
+
+    new(str2) = { inherit BaseClass(); string2 = str2 }
+"""  spaceBeforeConfig
+    |> prepend newline
+    |> should equal """
+type BaseClass =
+    val string1: string
+    new (str) = { string1 = str }
+    new () = { string1 = "" }
+
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new (str1, str2) =
+        { inherit BaseClass (str1)
+          string2 = str2 }
+
+    new (str2) = { inherit BaseClass (); string2 = str2 }
 """

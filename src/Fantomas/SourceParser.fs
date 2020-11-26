@@ -1195,10 +1195,12 @@ let (|PatQuoteExpr|_|) =
 
 let (|PatExplicitCtor|_|) =
     function
-    | SynPat.LongIdent (LongIdentWithDots.LongIdentWithDots([newIdent], _),
+    | SynPat.LongIdent (LongIdentWithDots.LongIdentWithDots ([ newIdent ], _),
                         _,
                         _,
-                        SynArgPats.Pats([PatParen _ as pat]), _, _) when (newIdent.idText = "new") -> Some pat
+                        SynArgPats.Pats ([ PatParen _ as pat ]),
+                        _,
+                        _) when (newIdent.idText = "new") -> Some pat
     | _ -> None
 
 // Members

@@ -948,7 +948,9 @@ and genMemberBinding astContext b =
             let genPat ctx =
                 match p with
                 | PatExplicitCtor pat ->
-                    (!- "new" +> onlyIf ctx.Config.SpaceBeforeClassConstructor sepSpace +> genPat astContext pat) ctx
+                    (!- "new"
+                     +> onlyIf ctx.Config.SpaceBeforeClassConstructor sepSpace
+                     +> genPat astContext pat) ctx
                 | _ -> genPat astContext p ctx
 
             genPreXmlDoc px
@@ -1399,10 +1401,9 @@ and genExpr astContext synExpr ctx =
                 +> optSingle (fun (inheritType, inheritExpr) ->
                     let addSpace ctx =
                         match inheritExpr with
-                        | Paren _ when (ctx.Config.SpaceBeforeClassConstructor) ->
-                            sepSpace ctx
+                        | Paren _ when (ctx.Config.SpaceBeforeClassConstructor) -> sepSpace ctx
                         | _ -> ctx
-                    
+
                     !- "inherit "
                     +> genType astContext false inheritType
                     +> addSpace
@@ -2767,10 +2768,9 @@ and genMultilineRecordInstance (inheritOpt: (SynType * SynExpr) option)
              +> opt (if xs.IsEmpty then sepNone else sepNln) inheritOpt (fun (typ, expr) ->
                     let addSpace ctx =
                         match expr with
-                        | Paren _ when (ctx.Config.SpaceBeforeClassConstructor) ->
-                            sepSpace ctx
+                        | Paren _ when (ctx.Config.SpaceBeforeClassConstructor) -> sepSpace ctx
                         | _ -> ctx
-                    
+
                     !- "inherit "
                     +> genType astContext false typ
                     +> addSpace
@@ -2808,10 +2808,16 @@ and genMultilineRecordInstanceAlignBrackets (inheritOpt: (SynType * SynExpr) opt
 
     match inheritOpt, eo with
     | Some (inheritType, inheritExpr), None ->
+        let addSpace ctx =
+            match inheritExpr with
+            | Paren _ when (ctx.Config.SpaceBeforeClassConstructor) -> sepSpace ctx
+            | _ -> ctx
+
         sepOpenS
         +> ifElse hasFields (indent +> sepNln) sepNone
         +> !- "inherit "
         +> genType astContext false inheritType
+        +> addSpace
         +> genExpr astContext inheritExpr
         +> ifElse
             hasFields
@@ -4180,7 +4186,7 @@ and genMemberDefn astContext node =
             | ConstExpr (SynConst.Unit, _)
             | Paren _ -> ctx.Config.SpaceBeforeClassConstructor
             | _ -> true
-        
+
         !- "inherit "
         +> genType astContext false t
         +> ifElseCtx addSpaceAfterType sepSpace sepNone
