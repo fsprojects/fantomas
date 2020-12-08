@@ -40,3 +40,22 @@ let ``short lazy with parens and infix should keep parens`` () =
     |> should equal """
 let result = lazy (x + 10)
 """
+
+[<Test>]
+let ``multiline lazy with parenthesis and letOrUse expression, 1271`` () =
+    formatSourceString false """
+let setup =
+  lazy
+   (let thing = Thing()
+    thing.DoSomething()
+    let value = 1
+    value)""" config
+    |> prepend newline
+    |> should equal """
+let setup =
+    lazy
+        (let thing = Thing()
+         thing.DoSomething()
+         let value = 1
+         value)
+"""

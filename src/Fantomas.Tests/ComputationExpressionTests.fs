@@ -1942,3 +1942,27 @@ type ProjectController(checker: FSharpChecker) =
       return true
     }
 """
+
+[<Test>]
+let ``multiline do bang with parenthesis`` () =
+    formatSourceString false """
+let setup =
+  meh {
+    do!
+      (let thing = Thing()
+       thing.DoSomething()
+       let value = 1
+       value)
+  }
+"""  config
+    |> prepend newline
+    |> should equal """
+let setup =
+    meh {
+        do!
+            (let thing = Thing()
+             thing.DoSomething()
+             let value = 1
+             value)
+    }
+"""
