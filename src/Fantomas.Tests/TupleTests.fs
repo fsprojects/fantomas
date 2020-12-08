@@ -138,3 +138,41 @@ match "Hello" with
 , "Hello"
 , 1
 """
+
+[<Test>]
+let ``add comma at the back when match is not follow by another expression in tuple`` () =
+    formatSourceString false """
+1
+, "Hello"
+, match "Hello" with
+  | "first" -> 1
+  | "second" -> 2
+  | _ -> 3
+"""  config
+    |> prepend newline
+    |> should equal """
+1,
+"Hello",
+match "Hello" with
+| "first" -> 1
+| "second" -> 2
+| _ -> 3
+"""
+
+[<Test>]
+let ``infix lambda followed by constant, 966`` () =
+    formatSourceString false """
+let f =
+    5
+    |> fun i -> i + 1
+    , 6
+"""
+        { config with
+              MaxInfixOperatorExpression = 5 }
+    |> prepend newline
+    |> should equal """
+let f =
+    5
+    |> fun i -> i + 1
+    , 6
+"""

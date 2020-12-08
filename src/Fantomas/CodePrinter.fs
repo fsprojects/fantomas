@@ -1079,9 +1079,11 @@ and genTuple astContext es =
     let longExpression =
         let containsLambdaOrMatchExpr =
             es
-            |> Seq.exists (function
-                | SynExpr.Match _
-                | SynExpr.Lambda _ -> true
+            |> List.pairwise
+            |> List.exists (function
+                | SynExpr.Match _, _
+                | SynExpr.Lambda _, _
+                | InfixApp (_, _, _, SynExpr.Lambda _), _ -> true
                 | _ -> false)
 
         let sep =
