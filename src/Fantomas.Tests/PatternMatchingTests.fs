@@ -821,3 +821,59 @@ let draftToken =
 
         DraftToken.Create kind token
 """
+
+[<Test>]
+let ``named pat or in clauses`` () =
+    formatSourceString false """
+let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: MemberFlags) =
+    match mf.MemberKind with
+    | MemberKind.ClassConstructor
+    | MemberKind.Constructor -> MFConstructor()
+    | MemberKind.Member
+    | MemberKind.PropertyGet
+    | MemberKind.PropertySet
+    | MemberKind.PropertyGetSet as mk ->
+        if mf.IsInstance && mf.IsOverrideOrExplicitImpl
+        then MFOverride mk
+        elif mf.IsInstance
+        then MFMember mk
+        else MFStaticMember mk
+"""  config
+    |> prepend newline
+    |> should equal """
+let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: MemberFlags) =
+    match mf.MemberKind with
+    | MemberKind.ClassConstructor
+    | MemberKind.Constructor -> MFConstructor()
+    | MemberKind.Member
+    | MemberKind.PropertyGet
+    | MemberKind.PropertySet
+    | MemberKind.PropertyGetSet as mk ->
+        if mf.IsInstance && mf.IsOverrideOrExplicitImpl
+        then MFOverride mk
+        elif mf.IsInstance
+        then MFMember mk
+        else MFStaticMember mk
+"""
+
+[<Test>]
+let ``named pat or in function syntax`` () =
+    formatSourceString false """
+let rec (|DoExprAttributesL|_|) =
+    function
+    | DoExpr _
+    | Attributes _ as x :: DoExprAttributesL (xs, ys) -> Some(x :: xs, ys)
+    | DoExpr _
+    | Attributes _ as x :: ys -> Some([ x ], ys)
+    | _ -> None
+"""  config
+    |> prepend newline
+    |> should equal """
+let rec (|DoExprAttributesL|_|) =
+    function
+    | DoExpr _
+    | Attributes _ as x :: DoExprAttributesL (xs, ys) -> Some(x :: xs, ys)
+    | DoExpr _
+    | Attributes _ as x :: ys -> Some([ x ], ys)
+    | _ -> None
+"""

@@ -38,7 +38,9 @@ type ASTContext =
       /// This is required to correctly detect the setting SpaceBeforeMember
       IsMemberDefinition: bool
       /// Check whether the context is inside a SynExpr.DotIndexedGet
-      IsInsideDotIndexed: bool }
+      IsInsideDotIndexed: bool
+      /// Inside a SynPat of MatchClause
+      IsInsideMatchClausePattern: bool }
     static member Default =
         { TopLevelModuleName = ""
           IsFirstChild = false
@@ -50,7 +52,8 @@ type ASTContext =
           IsFirstTypeParam = false
           IsInsideDotGet = false
           IsMemberDefinition = false
-          IsInsideDotIndexed = false }
+          IsInsideDotIndexed = false
+          IsInsideMatchClausePattern = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     match functionOrMethod, arg with
@@ -1281,7 +1284,9 @@ and genExpr astContext synExpr ctx =
                 | YieldFrom
                 | Yield
                 | Return
-                | ReturnFrom -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+                | ReturnFrom
+                | Do
+                | DoBang -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
                 | _ -> genExpr astContext e)
 
         | ConstExpr (c, r) -> genConst c r
@@ -2236,7 +2241,7 @@ and genExpr astContext synExpr ctx =
                     || futureNlnCheck (!- "if " +> genExpr astContext e1) ctx
 
                 let isIfBranchMultiline =
-                    futureNlnCheck (genExpr astContext e2) ctx
+                    futureNlnCheck (!- "then " +> genExpr astContext e2) ctx
 
                 let isElseBranchMultiline =
                     match enOpt with
@@ -2449,6 +2454,10 @@ and genExpr astContext synExpr ctx =
                         +> (match e1 with
                             | SynExpr.TryWith _
                             | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e1 +> sepCloseT
+                            | AppTuple _ when (isConditionMultiline) ->
+                                sepOpenT
+                                +> atCurrentColumn (genExpr astContext e1)
+                                +> sepCloseT
                             | _ -> genExpr astContext e1)
                         +> ifElse hasCommentAfterBoolExpr sepNln sepSpace
                         +> genThen synExpr.Range
@@ -4102,26 +4111,17 @@ and genClause astContext hasBar (Clause (p, e, eo)) =
     let arrowRange =
         mkRange "arrowRange" p.Range.End e.Range.Start
 
-    let pat ctx =
-        match p with
-        | PatOrs (ph :: _ as allPats) when (List.length allPats > 1) ->
-            allPats
-            |> List.pairwise
-            |> List.fold (fun acc (prev, current) ->
-                let barRange =
-                    mkRange "bar range" prev.Range.End current.Range.Start
-
-                (sepNln
-                 +> enterNodeTokenByName barRange BAR
-                 +> sepBar
-                 +> genPat astContext current) acc) (genPat astContext ph ctx)
-        | _ -> genPat astContext p ctx
-
     let body =
         optPre (!- " when ") sepNone eo (genExpr astContext)
         +> sepArrow
         +> leaveNodeTokenByName arrowRange RARROW
         +> clauseBody e
+
+    let astCtx =
+        { astContext with
+              IsInsideMatchClausePattern = true }
+
+    let pat = genPat astCtx p
 
     genTriviaBeforeClausePipe p.Range
     +> ifElse hasBar (sepBar +> atCurrentColumnWithPrepend pat body) (pat +> body)
@@ -4341,7 +4341,10 @@ and genComplexPats astContext node =
 
 and genPatRecordFieldName astContext (PatRecordFieldName (s1, s2, p)) =
     ifElse (s1 = "") (!-(sprintf "%s = " s2)) (!-(sprintf "%s.%s = " s1 s2))
-    +> genPat astContext p
+    +> genPat
+        { astContext with
+              IsInsideMatchClausePattern = false }
+           p // see issue 1252.
 
 and genPatWithIdent astContext (ido, p) =
     opt (sepEq +> sepSpace) ido (!-)
@@ -4358,7 +4361,7 @@ and genPat astContext pat =
             mkRange "bar range" p1.Range.End p2.Range.Start
 
         genPat astContext p1
-        +> sepSpace
+        +> ifElse astContext.IsInsideMatchClausePattern sepNln sepSpace
         +> enterNodeTokenByName barRange BAR
         -- "| "
         +> genPat astContext p2

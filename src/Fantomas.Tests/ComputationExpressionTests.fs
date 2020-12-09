@@ -1514,7 +1514,8 @@ let sendPushNotifications =
                         with :? WebPushException as wpex ->
                             log.LogError(sprintf "Couldn't send notification to %s, %A" user.UserId wpex)
 
-                            do! filterSubscriptionsAndPersist
+                            do!
+                                filterSubscriptionsAndPersist
                                     managementToken
                                     user.UserId
                                     subscriptions
@@ -1870,5 +1871,74 @@ let password =
         label "Password"
         password "Must contains at least 6 characters, one number and one uppercase"
         with_validators (String.exists Char.IsUpper) (String.exists Char.IsDigit) (fun s -> s.Length >= 6)
+    }
+"""
+
+[<Test>]
+let ``multiline do bang`` () =
+    formatSourceString false """
+type ProjectController(checker: FSharpChecker) =
+  member x.LoadWorkspace (files: string list) (tfmForScripts: FSIRefs.TFM) onProjectLoaded (generateBinlog: bool) =
+    async {
+      match Environment.workspaceLoadDelay () with
+      | delay when delay > TimeSpan.Zero ->
+          do! Async.Sleep(
+            Environment.workspaceLoadDelay().TotalMilliseconds
+            |> int
+          )
+      | _ -> ()
+
+      return true
+    }
+
+"""  { config with IndentSize = 2 }
+    |> prepend newline
+    |> should equal """
+type ProjectController(checker: FSharpChecker) =
+  member x.LoadWorkspace (files: string list) (tfmForScripts: FSIRefs.TFM) onProjectLoaded (generateBinlog: bool) =
+    async {
+      match Environment.workspaceLoadDelay () with
+      | delay when delay > TimeSpan.Zero ->
+          do!
+            Async.Sleep(
+              Environment.workspaceLoadDelay().TotalMilliseconds
+              |> int
+            )
+      | _ -> ()
+
+      return true
+    }
+"""
+
+[<Test>]
+let ``multiline do`` () =
+    formatSourceString false """
+type ProjectController(checker: FSharpChecker) =
+  member x.LoadWorkspace (files: string list) (tfmForScripts: FSIRefs.TFM) onProjectLoaded (generateBinlog: bool) =
+    async {
+      match Environment.workspaceLoadDelay () with
+      | delay when delay > TimeSpan.Zero ->
+          do NonAsync.Sleep( Environment.workspaceLoadDelay().TotalMilliseconds |> int )
+      | _ -> ()
+
+      return true
+    }
+
+"""  { config with IndentSize = 2 }
+    |> prepend newline
+    |> should equal """
+type ProjectController(checker: FSharpChecker) =
+  member x.LoadWorkspace (files: string list) (tfmForScripts: FSIRefs.TFM) onProjectLoaded (generateBinlog: bool) =
+    async {
+      match Environment.workspaceLoadDelay () with
+      | delay when delay > TimeSpan.Zero ->
+          do
+            NonAsync.Sleep(
+              Environment.workspaceLoadDelay().TotalMilliseconds
+              |> int
+            )
+      | _ -> ()
+
+      return true
     }
 """

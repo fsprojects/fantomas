@@ -1,3 +1,12 @@
+### 4.3.0-beta-001 - 12/2020
+
+* Fix Multliline if condition can have incorrect indentation error. [#1267](https://github.com/fsprojects/fantomas/issues/1267)
+* Fix multiline do bang gives a warning. [#1265](https://github.com/fsprojects/fantomas/issues/1265)
+
+### 4.3.0-alpha-007 - 11/2020
+
+* Fix regressions. [#1264](https://github.com/fsprojects/fantomas/pull/1264)
+
 ### 4.3.0-alpha-006 - 11/2020
 
 * Feature Clarify constructors. [#1217](https://github.com/fsprojects/fantomas/issues/1217)
