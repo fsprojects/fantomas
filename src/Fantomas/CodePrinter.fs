@@ -1077,7 +1077,19 @@ and genTuple astContext es =
         col sepComma es (genShortExpr astContext)
 
     let longExpression =
-        col (sepComma +> sepNln) es (genExpr astContext)
+        let containsLambdaOrMatchExpr =
+            es
+            |> List.pairwise
+            |> List.exists (function
+                | SynExpr.Match _, _
+                | SynExpr.Lambda _, _
+                | InfixApp (_, _, _, SynExpr.Lambda _), _ -> true
+                | _ -> false)
+
+        let sep =
+            if containsLambdaOrMatchExpr then (sepNln +> sepComma) else (sepComma +> sepNln)
+
+        col sep es (genExpr astContext)
 
     atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
 
