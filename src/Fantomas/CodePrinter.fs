@@ -1708,6 +1708,10 @@ and genExpr astContext synExpr ctx =
                 sepOpenTFor lpr
                 +> genNamedArgumentExpr astContext operatorExpr e1 e2
                 +> sepCloseTFor rpr
+            | LetOrUses _ ->
+                sepOpenTFor lpr
+                +> atCurrentColumn (genExpr astContext e)
+                +> sepCloseTFor rpr
             | _ ->
                 // Parentheses nullify effects of no space inside DotGet
                 // Unless there is another application with parenthesis
