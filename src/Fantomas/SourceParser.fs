@@ -1185,6 +1185,16 @@ let (|PatQuoteExpr|_|) =
     | SynPat.QuoteExpr (e, _) -> Some e
     | _ -> None
 
+let (|PatExplicitCtor|_|) =
+    function
+    | SynPat.LongIdent (LongIdentWithDots.LongIdentWithDots ([ newIdent ], _),
+                        _,
+                        _,
+                        SynArgPats.Pats ([ PatParen _ as pat ]),
+                        ao,
+                        _) when (newIdent.idText = "new") -> Some(ao, pat)
+    | _ -> None
+
 // Members
 type SynSimplePats with
     member pat.Range =
