@@ -947,9 +947,10 @@ and genMemberBinding astContext b =
         let prefix =
             let genPat ctx =
                 match p with
-                | PatExplicitCtor pat ->
-                    (!- "new"
-                     +> onlyIf ctx.Config.SpaceBeforeClassConstructor sepSpace
+                | PatExplicitCtor (ao, pat) ->
+                    (opt sepSpace ao genAccess
+                     +> !- "new"
+                     +> sepSpaceBeforeClassConstructor
                      +> genPat astContext pat) ctx
                 | _ -> genPat astContext p ctx
 
@@ -1399,14 +1400,9 @@ and genExpr astContext synExpr ctx =
                 sepOpenS
                 +> leaveLeftBrace synExpr.Range
                 +> optSingle (fun (inheritType, inheritExpr) ->
-                    let addSpace ctx =
-                        match inheritExpr with
-                        | Paren _ when (ctx.Config.SpaceBeforeClassConstructor) -> sepSpace ctx
-                        | _ -> ctx
-
                     !- "inherit "
                     +> genType astContext false inheritType
-                    +> addSpace
+                    +> addSpaceBeforeClassConstructor inheritExpr
                     +> genExpr astContext inheritExpr
                     +> onlyIf (List.isNotEmpty xs) sepSemi) inheritOpt
                 +> optSingle (fun e -> genExpr astContext e +> !- " with ") eo
@@ -2766,14 +2762,9 @@ and genMultilineRecordInstance (inheritOpt: (SynType * SynExpr) option)
         +> atCurrentColumnIndent
             (leaveLeftBrace synExpr.Range
              +> opt (if xs.IsEmpty then sepNone else sepNln) inheritOpt (fun (typ, expr) ->
-                    let addSpace ctx =
-                        match expr with
-                        | Paren _ when (ctx.Config.SpaceBeforeClassConstructor) -> sepSpace ctx
-                        | _ -> ctx
-
                     !- "inherit "
                     +> genType astContext false typ
-                    +> addSpace
+                    +> addSpaceBeforeClassConstructor expr
                     +> genExpr astContext expr)
              +> recordExpr)
         +> (fun ctx ->
@@ -2808,16 +2799,11 @@ and genMultilineRecordInstanceAlignBrackets (inheritOpt: (SynType * SynExpr) opt
 
     match inheritOpt, eo with
     | Some (inheritType, inheritExpr), None ->
-        let addSpace ctx =
-            match inheritExpr with
-            | Paren _ when (ctx.Config.SpaceBeforeClassConstructor) -> sepSpace ctx
-            | _ -> ctx
-
         sepOpenS
         +> ifElse hasFields (indent +> sepNln) sepNone
         +> !- "inherit "
         +> genType astContext false inheritType
-        +> addSpace
+        +> addSpaceBeforeClassConstructor inheritExpr
         +> genExpr astContext inheritExpr
         +> ifElse
             hasFields
@@ -4181,15 +4167,9 @@ and genMemberDefn astContext node =
     | MDOpen (s) -> !-(sprintf "open %s" s)
     // What is the role of so
     | MDImplicitInherit (t, e, _) ->
-        let addSpaceAfterType ctx =
-            match e with
-            | ConstExpr (SynConst.Unit, _)
-            | Paren _ -> ctx.Config.SpaceBeforeClassConstructor
-            | _ -> true
-
         !- "inherit "
         +> genType astContext false t
-        +> ifElseCtx addSpaceAfterType sepSpace sepNone
+        +> addSpaceBeforeClassConstructor e
         +> genExpr astContext e
     | MDInherit (t, _) -> !- "inherit " +> genType astContext false t
     | MDValField f -> genField astContext "val " f
@@ -5022,3 +5002,9 @@ and infixOperatorFromTrivia range fallback (ctx: Context) =
         match iiw with
         | Some iiw -> !- iiw ctx
         | None -> !- fallback ctx
+
+and addSpaceBeforeClassConstructor expr =
+    match expr with
+    | Paren _
+    | ConstExpr (SynConst.Unit, _) -> sepSpaceBeforeClassConstructor
+    | _ -> sepSpace

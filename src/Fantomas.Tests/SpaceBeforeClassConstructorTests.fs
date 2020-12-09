@@ -199,3 +199,57 @@ type DerivedClass =
 
     new (str2) = { inherit BaseClass (); string2 = str2 }
 """
+
+[<Test>]
+let ``should add space before inherit on constructor that takes a constant value`` () =
+    formatSourceString false """
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new (str1, str2) =
+        { inherit BaseClass "meh"
+          string2 = str2 }
+"""
+        { config with
+              SpaceBeforeClassConstructor = false }
+    |> prepend newline
+    |> should equal """
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new(str1, str2) =
+        { inherit BaseClass "meh"
+          string2 = str2 }
+"""
+
+[<Test>]
+let ``should add space before inherit on constructor of class with multiline record, MultilineBlockBracketsOnSameColumn`` () =
+    formatSourceString false """
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new(str1, str2) =
+        { inherit BaseClass(str1)
+          string2 = str2 }
+"""
+        { spaceBeforeConfig with
+              MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should equal """
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new (str1, str2) =
+        {
+            inherit BaseClass (str1)
+            string2 = str2
+        }
+"""

@@ -1199,8 +1199,8 @@ let (|PatExplicitCtor|_|) =
                         _,
                         _,
                         SynArgPats.Pats ([ PatParen _ as pat ]),
-                        _,
-                        _) when (newIdent.idText = "new") -> Some pat
+                        ao,
+                        _) when (newIdent.idText = "new") -> Some(ao, pat)
     | _ -> None
 
 // Members
