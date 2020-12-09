@@ -102,7 +102,7 @@ type animal(length: int) =
 """
 
 [<Test>]
-let ``SpaceBeforeParenthesisParameterInUppercaseClassConstructor should add space before lowercase constructor of class`` () =
+let ``SpaceBeforeParenthesisParameterInLowercaseClassConstructor should add space before lowercase constructor of class`` () =
     formatSourceString false """
 type animal(length:int) =
     class end
@@ -112,4 +112,144 @@ type animal(length:int) =
 type animal (length: int) =
     class
     end
+"""
+
+// Space before parentheses in secondary class constructor
+
+[<Test>]
+let ``should add space before secondary constructor of class declared with new, 964`` () =
+    formatSourceString false """
+type animal (length: int) =
+    new(length) = animal (length)
+"""  spaceBeforeConfig
+    |> prepend newline
+    |> should equal """
+type animal (length: int) =
+    new (length) = animal (length)
+"""
+
+[<Test>]
+let ``should add space after inherit base class declaration, 964`` () =
+    formatSourceString false """
+type dog() =
+    inherit animal()
+"""  spaceBeforeConfig
+    |> prepend newline
+    |> should equal """
+type dog () =
+    inherit animal ()
+"""
+
+[<Test>]
+let ``should add space before new and inherit on constructor of class, 964`` () =
+    formatSourceString false """
+type ProtocolGlitchException =
+    inherit CommunicationUnsuccessfulException
+
+    new(message) = { inherit CommunicationUnsuccessfulException(message) }
+
+    new(message: string, innerException: Exception) =
+        { inherit CommunicationUnsuccessfulException(message, innerException) }
+"""  spaceBeforeConfig
+    |> prepend newline
+    |> should equal """
+type ProtocolGlitchException =
+    inherit CommunicationUnsuccessfulException
+
+    new (message) = { inherit CommunicationUnsuccessfulException (message) }
+
+    new (message: string, innerException: Exception) =
+        { inherit CommunicationUnsuccessfulException (message, innerException) }
+"""
+
+[<Test>]
+let ``should add space before new and inherit on constructor of class with multiline record, 964`` () =
+    formatSourceString false """
+type BaseClass =
+    val string1: string
+    new(str) = { string1 = str }
+    new() = { string1 = "" }
+
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new(str1, str2) =
+        { inherit BaseClass(str1)
+          string2 = str2 }
+
+    new(str2) = { inherit BaseClass(); string2 = str2 }
+"""  spaceBeforeConfig
+    |> prepend newline
+    |> should equal """
+type BaseClass =
+    val string1: string
+    new (str) = { string1 = str }
+    new () = { string1 = "" }
+
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new (str1, str2) =
+        { inherit BaseClass (str1)
+          string2 = str2 }
+
+    new (str2) = { inherit BaseClass (); string2 = str2 }
+"""
+
+[<Test>]
+let ``should add space before inherit on constructor that takes a constant value`` () =
+    formatSourceString false """
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new (str1, str2) =
+        { inherit BaseClass "meh"
+          string2 = str2 }
+"""
+        { config with
+              SpaceBeforeClassConstructor = false }
+    |> prepend newline
+    |> should equal """
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new(str1, str2) =
+        { inherit BaseClass "meh"
+          string2 = str2 }
+"""
+
+[<Test>]
+let ``should add space before inherit on constructor of class with multiline record, MultilineBlockBracketsOnSameColumn`` () =
+    formatSourceString false """
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new(str1, str2) =
+        { inherit BaseClass(str1)
+          string2 = str2 }
+"""
+        { spaceBeforeConfig with
+              MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should equal """
+type DerivedClass =
+    inherit BaseClass
+
+    val string2: string
+
+    new (str1, str2) =
+        {
+            inherit BaseClass (str1)
+            string2 = str2
+        }
 """
