@@ -86,3 +86,93 @@ module Foo =
 
         ()
 """
+
+[<Test>]
+let ``long tuple containing match must be formatted with comma on the next line`` () =
+    formatSourceString false """
+match "Hello" with
+    | "first" -> 1
+    | "second" -> 2
+    , []
+"""  { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should equal """
+match "Hello" with
+| "first" -> 1
+| "second" -> 2
+, []
+"""
+
+[<Test>]
+let ``long tuple containing lambda must be formatted with comma on the next line`` () =
+    formatSourceString false """
+fun x ->
+    let y = x + 3
+    if y > 2 then y + 1 else y - 1
+, []
+"""  { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should equal """
+fun x ->
+    let y = x + 3
+    if y > 2 then y + 1 else y - 1
+, []
+"""
+
+[<Test>]
+let ``all lines should start with comma if tuple contains match`` () =
+    formatSourceString false """
+match "Hello" with
+    | "first" -> 1
+    | "second" -> 2
+    , []
+    , "Hello"
+    , 1
+"""  { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should equal """
+match "Hello" with
+| "first" -> 1
+| "second" -> 2
+, []
+, "Hello"
+, 1
+"""
+
+[<Test>]
+let ``add comma at the back when match is not follow by another expression in tuple`` () =
+    formatSourceString false """
+1
+, "Hello"
+, match "Hello" with
+  | "first" -> 1
+  | "second" -> 2
+  | _ -> 3
+"""  config
+    |> prepend newline
+    |> should equal """
+1,
+"Hello",
+match "Hello" with
+| "first" -> 1
+| "second" -> 2
+| _ -> 3
+"""
+
+[<Test>]
+let ``infix lambda followed by constant, 966`` () =
+    formatSourceString false """
+let f =
+    5
+    |> fun i -> i + 1
+    , 6
+"""
+        { config with
+              MaxInfixOperatorExpression = 5 }
+    |> prepend newline
+    |> should equal """
+let f =
+    5
+    |> fun i -> i + 1
+    , 6
+"""
