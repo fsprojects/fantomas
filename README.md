@@ -57,7 +57,7 @@ Try the Fantomas [online](https://fsprojects.github.io/fantomas-tools/#/fantomas
 
 ## Early builds
 
-Every once and a while an `alpha` or `beta` version is published to https://www.nuget.org/.
+Every once in a while an `alpha` or `beta` version is published to https://www.nuget.org/.
 Our previous MyGet feed is now deprecated.
 
 ## Benchmarks
