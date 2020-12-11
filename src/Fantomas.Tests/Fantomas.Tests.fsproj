@@ -81,6 +81,7 @@
     <Compile Include="CastTests.fs" />
     <Compile Include="MultiLineLambdaClosingNewlineTests.fs" />
     <Compile Include="OpenTypeTests.fs" />
+    <Compile Include="CodeFormatterTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

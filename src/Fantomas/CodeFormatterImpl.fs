@@ -40,10 +40,14 @@ type FormatContext =
       Source: string
       SourceText: ISourceText }
 
+// Some file names have a special meaning for the F# compiler and the AST cannot be parsed.
+let safeFileName fileName =
+    if fileName = "Program.fs" then "tmp.fsx" else fileName
+
 let createFormatContext fileName (source: SourceOrigin) =
     let (sourceText, sourceCode) = getSourceTextAndCode source
 
-    { FileName = fileName
+    { FileName = safeFileName fileName
       Source = sourceCode
       SourceText = sourceText }
 
@@ -55,7 +59,8 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
         async {
             let parsingOptionsWithDefines =
                 { parsingOptions with
-                      ConditionalCompilationDefines = conditionalCompilationDefines }
+                      ConditionalCompilationDefines = conditionalCompilationDefines
+                      SourceFiles = Array.map safeFileName parsingOptions.SourceFiles }
             // Run the first phase (untyped parsing) of the compiler
             let sourceText =
                 FSharp.Compiler.Text.SourceText.ofString source
