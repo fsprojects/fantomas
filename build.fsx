@@ -169,16 +169,8 @@ Target.create "Clean" (fun _ ->
     |> List.iter Shell.cleanDir
 )
 
-let buildNumber = 
-    Environment.environVarOrNone "BUILD_NUMBER" |> Option.map (System.Int32.Parse)
-
 Target.create "ProjectVersion" (fun _ ->
-    let version =
-        match buildNumber with
-        | Some n ->
-            sprintf "%s.%i" release.NugetVersion n
-        | None ->
-            release.NugetVersion
+    let version = release.NugetVersion
 
     let setProjectVersion project =
         let file = sprintf "src/%s/%s.fsproj" project project 
@@ -225,12 +217,7 @@ Target.create "UnitTests" (fun _ ->
 // Build a NuGet package
 
 Target.create "Pack" (fun _ ->
-    let nugetVersion =
-        match buildNumber with
-        | Some n ->
-            sprintf "%s-alpha-%03d" release.NugetVersion n
-        | None ->
-            release.NugetVersion
+    let nugetVersion = release.NugetVersion
 
     let pack project =
         let projectPath = sprintf "src/%s/%s.fsproj" project project
@@ -346,13 +333,6 @@ let pushPackage additionalArguments =
 
 
 Target.create "Push" (fun _ -> pushPackage [])
-    // Paket.push (fun p -> { p with WorkingDir = "bin" }))
-
-Target.create "MyGet" (fun _ ->
-    let apiKey = Environment.environVarOrDefault "MYGET_KEY" "key-missing"
-    let args = ["--url"; "https://www.myget.org/F/fantomas/api/v2/package"; "--api-key"; apiKey ]
-    pushPackage args
-)
 
 let git command =
     CreateProcess.fromRawCommandLine "git" command
@@ -382,16 +362,10 @@ Target.create "Benchmark" (fun _ ->
                 | [ header; values ] ->
                     let csvValues = List.zip header values
 
-                    let buildNumber =
-                        match buildNumber with
-                        |Some i -> [ "BuildNumber", i.ToString() ]
-                        | None -> []
-
                     let metaData =
                         [ "Branch", branchName
                           "Commit", commit
-                          "Operating System", operatingSystem
-                          yield! buildNumber ]
+                          "Operating System", operatingSystem ]
 
                     [ yield! csvValues; yield! metaData ]
                 | _ ->
@@ -474,8 +448,5 @@ Target.create "All" ignore
 
 "Build"
     ==> "TestExternalProjects"
-
-"Pack"
-    ==> "MyGet"
 
 Target.runOrDefault "All"

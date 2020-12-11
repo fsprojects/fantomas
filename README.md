@@ -11,7 +11,7 @@ F# source code formatter, inspired by [scalariform](https://github.com/mdr/scala
 ## How to use
 
 ### Command line tool / API
-Use this command to install Fantomas as a dotnet SDK global tool:
+Use this command to install Fantomas as a .NET 5 SDK global tool:
 
 ```
 dotnet tool install -g fantomas-tool
@@ -57,17 +57,8 @@ Try the Fantomas [online](https://fsprojects.github.io/fantomas-tools/#/fantomas
 
 ## Early builds
 
-We have our [own NuGet feed](https://www.myget.org/feed/fantomas/package/nuget/fantomas-tool) that contains artifacts built on the latest master branch.
-To install you probably need to uninstall the current version from the official NuGet feed.
-
-> `dotnet tool uninstall -g fantomas-tool`
-
-Install from MyGet:
-
-> `dotnet tool install -g fantomas-tool --add-source https://www.myget.org/F/fantomas/api/v3/index.json --framework netcoreapp3.1 --version 3.0.1-alpha-*`
-
-Note that the `--version` is important, check the latest version [at MyGet](https://www.myget.org/feed/fantomas/package/nuget/fantomas-tool).
-Your can check your current version with `fantomas --version` (since December 2018).
+Every once and a while an `alpha` or `beta` version is published to https://www.nuget.org/.
+Our previous MyGet feed is now deprecated.
 
 ## Benchmarks
 
