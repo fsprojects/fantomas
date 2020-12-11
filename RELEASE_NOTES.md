@@ -1,3 +1,10 @@
+### 4.3.0-beta-002 - 12/2020
+
+* Fix Bracket indentation is incorrect. [#1271](https://github.com/fsprojects/fantomas/issues/1271)
+* Fix tuple with match formats to invalid code. [#1269](https://github.com/fsprojects/fantomas/issues/1269)
+* Fix Incorrect movement of a comma. [#966](https://github.com/fsprojects/fantomas/issues/966)
+* Fix Not adding a space even when all SpaceBefore* settings are enabled. [#964](https://github.com/fsprojects/fantomas/issues/964)
+
 ### 4.3.0-beta-001 - 12/2020
 
 * Fix Multliline if condition can have incorrect indentation error. [#1267](https://github.com/fsprojects/fantomas/issues/1267)
