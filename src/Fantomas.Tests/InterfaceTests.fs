@@ -159,7 +159,8 @@ type MyLogInteface() =
         override x.Version () = ()"""
         ({ config with
                MaxLineLength = 119
-               MaxFunctionBindingWidth = 120 })
+               MaxFunctionBindingWidth = 120
+               MaxIfThenElseShortWidth = 80 })
     |> prepend newline
     |> should equal """
 type LogInterface =

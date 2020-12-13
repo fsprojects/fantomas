@@ -136,6 +136,10 @@ module List =
         | [ _ ] -> false
         | _ -> true
 
+    let foldi fold first source =
+        source
+        |> List.fold (fun (prev, i) c -> (fold i prev c, i + 1)) (first, 0)
+
 module Map =
     let tryFindOrDefault (defaultValue: 'g) (key: 't) (map: Map<'t, 'g>) =
         match Map.tryFind key map with

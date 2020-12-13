@@ -145,7 +145,8 @@ let ``should not break inside of if statements in records`` () =
 
     """
         { config with
-              SemicolonAtEndOfLine = true }
+              SemicolonAtEndOfLine = true
+              MaxIfThenElseShortWidth = 52 }
     |> should equal """let XpkgDefaults () =
     { ToolPath = "./tools/xpkg/xpkg.exe";
       WorkingDir = "./";

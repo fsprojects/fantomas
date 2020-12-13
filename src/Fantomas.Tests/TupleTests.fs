@@ -27,9 +27,10 @@ let ``multiline item in tuple - paren on its line`` () =
     |> prepend newline
     |> should equal """
 (x,
- if longExpressionMakingTheIfElseMultiline && a
- then answerWhenTheConditionIsTrue
- else answerWhenTheConditionIsFalse)
+ if longExpressionMakingTheIfElseMultiline && a then
+     answerWhenTheConditionIsTrue
+ else
+     answerWhenTheConditionIsFalse)
 """
 
 [<Test>]

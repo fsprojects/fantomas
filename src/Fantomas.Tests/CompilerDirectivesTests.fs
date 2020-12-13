@@ -1850,7 +1850,9 @@ let getDefaultProxyFor =
             match calcEnvProxies.Force().TryFind uri.Scheme with
             | Some p -> if p.GetProxy uri <> uri then p else getDefault()
             | None -> getDefault())
-"""  config
+"""
+        { config with
+              MaxIfThenElseShortWidth = 50 }
     |> prepend newline
     |> should equal """
 let getDefaultProxyFor =

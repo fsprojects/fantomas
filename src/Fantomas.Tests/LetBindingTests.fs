@@ -61,9 +61,10 @@ let f () =
 let f () =
     let x = 1 in
 
-    if longIdentifierThatWillForceThisConstructToBeMultiline
-    then x
-    else x
+    if longIdentifierThatWillForceThisConstructToBeMultiline then
+        x
+    else
+        x
 """
 
 [<Test>]
@@ -978,9 +979,12 @@ There is a problem with merging all the code back togheter. Please raise an issu
             let la = lengthWithoutSpaces a'
             let lb = lengthWithoutSpaces b'
 
-            if la <> lb then if la > lb then a' else b'
-            else if String.length a' < String.length b' then a'
-            else b')
+            if la <> lb then
+                if la > lb then a' else b'
+            else if String.length a' < String.length b' then
+                a'
+            else
+                b')
 
     |> String.concat Environment.NewLine
 "
