@@ -163,6 +163,48 @@ let y = matrix.[3, *]
 """
 
 [<Test>]
+let ``comment before empty list`` () =
+    formatSourceString false """
+let x =
+    // Comment
+    []
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    // Comment
+    []
+"""
+
+[<Test>]
+let ``comment after empty list`` () =
+    formatSourceString false """let x = [] // Comment
+"""  config
+    |> should equal """let x = [] // Comment
+"""
+
+[<Test>]
+let ``comment before empty array`` () =
+    formatSourceString false """
+let x =
+    // Comment
+    [||]
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    // Comment
+    [||]
+"""
+
+[<Test>]
+let ``comment after empty array`` () =
+    formatSourceString false """let x = [||] // Comment
+"""  config
+    |> should equal """let x = [||] // Comment
+"""
+
+[<Test>]
 let ``comment after string in list`` () =
     formatSourceString false """let xxxxxxxxxxxx = ["yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy" //
                     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz" //
@@ -1755,6 +1797,34 @@ let choices: Foo list =
 """
 
 [<Test>]
+let ``comment after opening bracket of single-item list`` () =
+    formatSourceString false """
+let x = [ // comment
+    1
+]
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    [ // comment
+      1 ]
+"""
+
+[<Test>]
+let ``comment after opening bracket of single-item array`` () =
+    formatSourceString false """
+let x = [| // comment
+    1
+|]
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    [| // comment
+       1 |]
+"""
+
+[<Test>]
 let ``preserve comment above first element of list, 990`` () =
     formatSourceString false """
 let x = [
@@ -1808,6 +1878,34 @@ let ``comment after closing array bracket`` () =
     genSubDeclExpr
     genSubDeclExpr
     genSubSynPat |] //
+"""
+
+[<Test>]
+let ``comment after multi-line closing list bracket`` () =
+    formatSourceString false """
+[ 1 // one
+  2 // two
+  3 ] // three
+"""  config
+    |> prepend newline 
+    |> should equal """
+[ 1 // one
+  2 // two
+  3 ] // three
+"""
+
+[<Test>]
+let ``comment after multi-line closing array bracket`` () =
+    formatSourceString false """
+[| 1 // one
+   2 // two
+   3 |] // three
+"""  config
+    |> prepend newline 
+    |> should equal """
+[| 1 // one
+   2 // two
+   3 |] // three
 """
 
 [<Test>]
