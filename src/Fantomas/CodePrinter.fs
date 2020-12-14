@@ -4580,8 +4580,7 @@ and getLetBindingFunction (astContext: ASTContext)
             +> genFunctionName
             +> ifElseCtx (addSpaceBeforeParensInFunDef astContext functionName firstParameter) sepSpace sepNone
             +> genParameters sepSpace
-            +> enterNodeTokenByName rangeBetweenBindingPatternAndExpression EQUALS
-            +> sepEq
+            +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEq
 
         let long (ctx: Context) =
             if ctx.Config.AlignFunctionSignatureToIndentation then
@@ -4593,8 +4592,7 @@ and getLetBindingFunction (astContext: ASTContext)
                  +> sepNln
                  +> genParameters sepNln
                  +> sepNln
-                 +> enterNodeTokenByName rangeBetweenBindingPatternAndExpression EQUALS
-                 +> sepEqFixed
+                 +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEqFixed
                  +> unindent) ctx
             else
                 let genEq, genNlnAfterParameters =
@@ -4611,8 +4609,7 @@ and getLetBindingFunction (astContext: ASTContext)
                  +> atCurrentColumn
                      (genParameters sepNln
                       +> genNlnAfterParameters
-                      +> enterNodeTokenByName rangeBetweenBindingPatternAndExpression EQUALS
-                      +> genEq)) ctx
+                      +> tokN rangeBetweenBindingPatternAndExpression EQUALS genEq)) ctx
 
         expressionFitsOnRestOfLine short long
 
@@ -4679,6 +4676,9 @@ and getLetBindingFunctionWithReturnType (astContext: ASTContext)
     let genSignature =
         let firstParameter = List.head parameters |> snd
 
+        let equalsRange =
+            mkRange "equals range" returnType.Range.End e.Range.Start
+
         let short =
             genPref
             +> afterLetKeyword
@@ -4687,7 +4687,7 @@ and getLetBindingFunctionWithReturnType (astContext: ASTContext)
             +> ifElseCtx (addSpaceBeforeParensInFunDef astContext functionName firstParameter) sepSpace sepNone
             +> genParameters sepSpace
             +> genReturnType false
-            +> sepEq
+            +> tokN equalsRange EQUALS sepEq
 
         let long (ctx: Context) =
             if ctx.Config.AlignFunctionSignatureToIndentation then
@@ -4701,7 +4701,7 @@ and getLetBindingFunctionWithReturnType (astContext: ASTContext)
                  +> sepNln
                  +> genReturnType true
                  +> sepNln
-                 +> sepEqFixed
+                 +> tokN equalsRange EQUALS sepEqFixed
                  +> unindent) ctx
             else
                 (genPref
@@ -4713,7 +4713,7 @@ and getLetBindingFunctionWithReturnType (astContext: ASTContext)
                      (genParameters sepNln
                       +> sepNln
                       +> genReturnType true
-                      +> sepEq)) ctx
+                      +> tokN equalsRange EQUALS sepEq)) ctx
 
         expressionFitsOnRestOfLine short long
 
@@ -4754,15 +4754,17 @@ and genLetBindingDestructedTuple (astContext: ASTContext)
     let genDestructedTuples =
         expressionFitsOnRestOfLine (genPat astContext pat) (sepOpenT +> genPat astContext pat +> sepCloseT)
 
+    let equalsRange =
+        mkRange "equals range" pat.Range.End e.Range.Start
+
     genPreXmlDoc px
     +> leadingExpressionIsMultiline
         (genAttrAndPref
          +> afterLetKeyword
          +> sepSpace
          +> genDestructedTuples
-         +> sepEq
-         +> sepSpace) (fun isMultiline ctx ->
-           let short = genExpr astContext e
+         +> tokN equalsRange EQUALS sepEq) (fun isMultiline ctx ->
+           let short = sepSpace +> genExpr astContext e
 
            let long =
                indent
@@ -4821,16 +4823,16 @@ and genLetBindingValue (astContext: ASTContext)
 
         mkRange "range between binding pattern and expression" endPos e.Range.Start
 
-    let genSpaceAfterEquals (ctx: Context) =
-        ctx.TriviaTokenNodes
-        |> Map.tryFindOrEmptyList EQUALS
-        |> fun triviaNodes ->
-            match triviaNodes with
-            | [] -> sepSpace ctx
-            | nodes ->
-                if List.exists (fun tn -> List.isNotEmpty tn.ContentAfter) nodes
-                then sepNone ctx
-                else sepSpace ctx
+    let genEqualsInBinding (equalsRange: range) (ctx: Context) =
+        let space =
+            ctx.TriviaTokenNodes
+            |> Map.tryFindOrEmptyList EQUALS
+            |> fun triviaNodes ->
+                match TriviaHelpers.findInRange triviaNodes equalsRange with
+                | Some tn when (List.isNotEmpty tn.ContentAfter) -> sepNone
+                | _ -> sepSpace
+
+        (tokN equalsRange EQUALS sepEq +> space) ctx
 
     genPreXmlDoc px
     +> genAttrIsFirstChild
@@ -4840,9 +4842,7 @@ and genLetBindingValue (astContext: ASTContext)
          +> sepSpace
          +> genValueName
          +> genReturnType
-         +> sepEq
-         +> leaveNodeTokenByName equalsRange EQUALS
-         +> genSpaceAfterEquals) (fun isMultiline ctx ->
+         +> genEqualsInBinding equalsRange) (fun isMultiline ctx ->
            let short = genExpr astContext e
 
            let long =
