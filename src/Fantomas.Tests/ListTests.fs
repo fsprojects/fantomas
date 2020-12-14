@@ -163,6 +163,48 @@ let y = matrix.[3, *]
 """
 
 [<Test>]
+let ``comment before empty list`` () =
+    formatSourceString false """
+let x =
+    // Comment
+    []
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    // Comment
+    []
+"""
+
+[<Test>]
+let ``comment after empty list`` () =
+    formatSourceString false """let x = [] // Comment
+"""  config
+    |> should equal """let x = [] // Comment
+"""
+
+[<Test>]
+let ``comment before empty array`` () =
+    formatSourceString false """
+let x =
+    // Comment
+    [||]
+"""  config
+    |> prepend newline
+    |> should equal """
+let x =
+    // Comment
+    [||]
+"""
+
+[<Test>]
+let ``comment after empty array`` () =
+    formatSourceString false """let x = [||] // Comment
+"""  config
+    |> should equal """let x = [||] // Comment
+"""
+
+[<Test>]
 let ``comment after string in list`` () =
     formatSourceString false """let xxxxxxxxxxxx = ["yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy" //
                     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz" //

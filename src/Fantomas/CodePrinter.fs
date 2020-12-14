@@ -2704,6 +2704,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.YieldOrReturnFrom _ -> genTriviaFor SynExpr_YieldOrReturnFrom synExpr.Range
             | SynExpr.TryFinally _ -> genTriviaFor SynExpr_TryFinally synExpr.Range
             | SynExpr.LongIdentSet _ -> genTriviaFor SynExpr_LongIdentSet synExpr.Range
+            | SynExpr.ArrayOrList _ -> genTriviaFor SynExpr_ArrayOrList synExpr.Range
             | SynExpr.ArrayOrListOfSeqExpr _ -> genTriviaFor SynExpr_ArrayOrListOfSeqExpr synExpr.Range
             | SynExpr.Paren _ -> genTriviaFor SynExpr_Paren synExpr.Range
             | SynExpr.InterpolatedString _ -> genTriviaFor SynExpr_InterpolatedString synExpr.Range
