@@ -1212,3 +1212,104 @@ let inline private isKeyword t =
 let inline private isPunctuation t =
     t.ColorClass = FSharpTokenColorKind.Punctuation
 """
+
+[<Test>]
+let ``comment after equal sign of value binding, 1248`` () =
+    formatSourceString false """
+let value = // TODO: some comment
+    let v = 2 + 3
+    v
+
+let k = -1
+"""  config
+    |> prepend newline
+    |> should equal """
+let value = // TODO: some comment
+    let v = 2 + 3
+    v
+
+let k = -1
+"""
+
+[<Test>]
+let ``comment after equal sign of function binding`` () =
+    formatSourceString false """
+let value a = // TODO: some comment
+    let v = 2 + a
+    v
+
+let k = -1
+"""  config
+    |> prepend newline
+    |> should equal """
+let value a = // TODO: some comment
+    let v = 2 + a
+    v
+
+let k = -1
+"""
+
+[<Test>]
+let ``comment after equal sign of function binding, AlignFunctionSignatureToIndentation`` () =
+    formatSourceString false """
+let longFunctionNameThatWillTriggerAlternativeSignatureSyntax a = // TODO: some comment
+    let v = 2 + a
+    v
+
+let k = -1
+"""
+        { config with
+              AlignFunctionSignatureToIndentation = true
+              MaxLineLength = 60 }
+    |> prepend newline
+    |> should equal """
+let longFunctionNameThatWillTriggerAlternativeSignatureSyntax
+    a
+    = // TODO: some comment
+    let v = 2 + a
+    v
+
+let k = -1
+"""
+
+[<Test>]
+let ``comment after equal sign of function binding with return type`` () =
+    formatSourceString false """
+let value a : int = // TODO: some comment
+    let v x : int = 2 + a
+    v
+
+let k = -1
+"""  config
+    |> prepend newline
+    |> should equal """
+let value a: int = // TODO: some comment
+    let v x: int = 2 + a
+    v
+
+let k = -1
+"""
+
+[<Test>]
+let ``comment after equal sign of function binding with return type, AlignFunctionSignatureToIndentation`` () =
+    formatSourceString false """
+let longFunctionNameThatWillTriggerAlternativeSignatureSyntax a : int = // TODO: some comment
+    let v = 2 + a
+    v
+
+let k = -1
+"""
+        { config with
+              AlignFunctionSignatureToIndentation = true
+              MaxLineLength = 60 }
+    |> prepend newline
+    |> should equal """
+let longFunctionNameThatWillTriggerAlternativeSignatureSyntax
+    a
+    : int
+    = // TODO: some comment
+    let v = 2 + a
+    v
+
+let k = -1
+"""
