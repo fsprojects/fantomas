@@ -1,7 +1,5 @@
 #r "paket:
-nuget Fantomas 4.0.0
-nuget Fantomas.Extras 4.0.0
-nuget FSharp.Compiler.Service 37.0.0
+nuget Fantomas.Extras 4.3.0
 nuget Fake.Core.Target //"
 #load "./.fake/script.fsx/intellisense.fsx"
 
