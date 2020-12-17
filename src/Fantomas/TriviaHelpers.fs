@@ -5,10 +5,6 @@ open Fantomas.TriviaTypes
 
 [<RequireQualifiedAccess>]
 module internal TriviaHelpers =
-    let findByRange (trivia: TriviaNode list) (range: range) =
-        trivia
-        |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range range)
-
     let findInRange (trivia: TriviaNode list) (range: range) =
         trivia
         |> List.tryFind (fun t -> RangeHelpers.``range contains`` range t.Range)
