@@ -3967,7 +3967,10 @@ and genType astContext outerBracket t =
         | TMeasureDivide (t1, t2) -> loop t1 -- " / " +> loop t2
         | TStaticConstant (c, r) -> genConst c r
         | TStaticConstantExpr (e) -> genExpr astContext e
-        | TStaticConstantNamed (t1, t2) -> loop t1 -- "=" +> loop t2
+        | TStaticConstantNamed (t1, t2) ->
+            loop t1 -- "="
+            +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t2
+            +> loop t2
         | TArray (t, n) -> loop t -- " [" +> rep (n - 1) (!- ",") -- "]"
         | TAnon -> sepWild
         | TVar tp -> genTypar astContext tp
@@ -4063,6 +4066,24 @@ and genType astContext outerBracket t =
     | TTuple ts -> ifElse outerBracket (sepOpenT +> loopTTupleList ts +> sepCloseT) (loopTTupleList ts)
     | _ -> loop t
 
+// for example: FSharpx.Regex< @"(?<value>\d+)" >
+and addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: SynType) (ctx: Context) =
+    let hasAtSign =
+        match t with
+        | TStaticConstant (_, r) ->
+            TriviaHelpers.``has content itself that matches``
+                (function
+                | StringContent sc -> sc.StartsWith("@")
+                | _ -> false)
+                r
+                (TriviaHelpers.getNodesForTypes
+                    [ SynExpr_Const
+                      SynType_StaticConstant ]
+                    ctx.TriviaMainNodes)
+        | _ -> false
+
+    onlyIf hasAtSign sepSpace ctx
+
 and genAnonRecordFieldType astContext (AnonRecordFieldType (s, t)) =
     !-s +> sepColon +> (genType astContext false t)
 
@@ -4076,25 +4097,10 @@ and genPrefixTypes astContext node ctx =
          -- " >")
             ctx
     | t :: _ ->
-        // for example: FSharpx.Regex< @"(?<value>\d+)" >
-        let firstItemHasAtSignBeforeString =
-            match t with
-            | TStaticConstant (_, r) ->
-                TriviaHelpers.``has content itself that matches``
-                    (function
-                    | StringContent sc -> sc.StartsWith("@")
-                    | _ -> false)
-                    r
-                    (TriviaHelpers.getNodesForTypes
-                        [ SynExpr_Const
-                          SynType_StaticConstant ]
-                        ctx.TriviaMainNodes)
-            | _ -> false
-
         (!- "<"
-         +> onlyIf firstItemHasAtSignBeforeString sepSpace
+         +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
          +> col sepComma node (genType astContext false)
-         +> onlyIf firstItemHasAtSignBeforeString sepSpace
+         +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
          -- ">")
             ctx
 
