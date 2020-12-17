@@ -179,3 +179,35 @@ let ``preserve underscore in int64, 1120`` () =
     formatSourceString false "let x = 60_000L" config
     |> should equal "let x = 60_000L
 "
+
+[<Test>]
+let ``spaces before hash define inside string, 1290`` () =
+    formatSourceString false "
+[<Test>]
+let ``defines inside string, escaped quote`` () =
+    let source = \"
+let a = \\\"\\\\\\\"
+#if FOO
+  #if BAR
+  #endif
+#endif
+\\\"
+\"
+
+    getDefines source == []
+"    config
+    |> prepend newline
+    |> should equal "
+[<Test>]
+let ``defines inside string, escaped quote`` () =
+    let source = \"
+let a = \\\"\\\\\\\"
+#if FOO
+  #if BAR
+  #endif
+#endif
+\\\"
+\"
+
+    getDefines source == []
+"

@@ -265,8 +265,11 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
                     { acc with
                           NewlineIndexes = idx :: acc.NewlineIndexes }
                 | InsideString, (DoubleQuoteChar, _, _) ->
-                    match minusOne, minusTwo with
-                    | BackSlashChar, NoBackSlashChar -> acc
+                    let minusThree = sourceCode.[idx - 3]
+
+                    match minusOne, minusTwo, minusThree with
+                    | BackSlashChar, NoBackSlashChar, _
+                    | BackSlashChar, BackSlashChar, BackSlashChar -> acc
                     | _ -> { acc with State = Normal }
                 | InsideString, (DoubleQuoteChar, _, _) -> { acc with State = Normal }
                 | InsideTripleQuoteString _, (NewlineChar, _, _) ->
