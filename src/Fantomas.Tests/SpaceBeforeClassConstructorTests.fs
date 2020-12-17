@@ -13,18 +13,25 @@ let spaceBeforeConfig =
 [<Test>]
 let ``default config should not add space before unit in uppercase class definition`` () =
     formatSourceString false "type Person () = class end" config
-    |> should equal """type Person() =
+    |> should
+        equal
+        """type Person() =
     class
     end
 """
 
 [<Test>]
 let ``SpaceBeforeUnitParameterInUppercaseClassConstructor should add space after constructor of class`` () =
-    formatSourceString false """type Person () =
+    formatSourceString
+        false
+        """type Person () =
     class end
-"""  spaceBeforeConfig
+"""
+        spaceBeforeConfig
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Person () =
     class
     end
@@ -34,25 +41,36 @@ type Person () =
 
 [<Test>]
 let ``default config should not add space before unit in lowercase class definition`` () =
-    formatSourceString false """type t () =
+    formatSourceString
+        false
+        """type t () =
     class
     end
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type t() =
     class
     end
 """
 
 [<Test>]
-let ``SpaceBeforeUnitParameterInLowercaseClassConstructor should add space before unit in lowercase class definition`` () =
-    formatSourceString false """type t() =
+let ``SpaceBeforeUnitParameterInLowercaseClassConstructor should add space before unit in lowercase class definition`` ()
+                                                                                                                       =
+    formatSourceString
+        false
+        """type t() =
     class
     end
-"""  spaceBeforeConfig
+"""
+        spaceBeforeConfig
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type t () =
     class
     end
@@ -62,25 +80,36 @@ type t () =
 
 [<Test>]
 let ``default config should not add space before uppercase constructor of class`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Animal(length:int) =
     class end
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Animal(length: int) =
     class
     end
 """
 
 [<Test>]
-let ``SpaceBeforeParenthesisParameterInUppercaseClassConstructor should add space before uppercase constructor of class`` () =
-    formatSourceString false """
+let ``SpaceBeforeParenthesisParameterInUppercaseClassConstructor should add space before uppercase constructor of class`` ()
+                                                                                                                          =
+    formatSourceString
+        false
+        """
 type Animal(length:int) =
     class end
-"""  spaceBeforeConfig
+"""
+        spaceBeforeConfig
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Animal (length: int) =
     class
     end
@@ -90,25 +119,36 @@ type Animal (length: int) =
 
 [<Test>]
 let ``default config should not add space before lowercase constructor of class`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type animal(length:int) =
     class end
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type animal(length: int) =
     class
     end
 """
 
 [<Test>]
-let ``SpaceBeforeParenthesisParameterInLowercaseClassConstructor should add space before lowercase constructor of class`` () =
-    formatSourceString false """
+let ``SpaceBeforeParenthesisParameterInLowercaseClassConstructor should add space before lowercase constructor of class`` ()
+                                                                                                                          =
+    formatSourceString
+        false
+        """
 type animal(length:int) =
     class end
-"""  spaceBeforeConfig
+"""
+        spaceBeforeConfig
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type animal (length: int) =
     class
     end
@@ -118,31 +158,43 @@ type animal (length: int) =
 
 [<Test>]
 let ``should add space before secondary constructor of class declared with new, 964`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type animal (length: int) =
     new(length) = animal (length)
-"""  spaceBeforeConfig
+"""
+        spaceBeforeConfig
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type animal (length: int) =
     new (length) = animal (length)
 """
 
 [<Test>]
 let ``should add space after inherit base class declaration, 964`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type dog() =
     inherit animal()
-"""  spaceBeforeConfig
+"""
+        spaceBeforeConfig
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type dog () =
     inherit animal ()
 """
 
 [<Test>]
 let ``should add space before new and inherit on constructor of class, 964`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type ProtocolGlitchException =
     inherit CommunicationUnsuccessfulException
 
@@ -150,9 +202,12 @@ type ProtocolGlitchException =
 
     new(message: string, innerException: Exception) =
         { inherit CommunicationUnsuccessfulException(message, innerException) }
-"""  spaceBeforeConfig
+"""
+        spaceBeforeConfig
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type ProtocolGlitchException =
     inherit CommunicationUnsuccessfulException
 
@@ -164,7 +219,9 @@ type ProtocolGlitchException =
 
 [<Test>]
 let ``should add space before new and inherit on constructor of class with multiline record, 964`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type BaseClass =
     val string1: string
     new(str) = { string1 = str }
@@ -180,9 +237,12 @@ type DerivedClass =
           string2 = str2 }
 
     new(str2) = { inherit BaseClass(); string2 = str2 }
-"""  spaceBeforeConfig
+"""
+        spaceBeforeConfig
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type BaseClass =
     val string1: string
     new (str) = { string1 = str }
@@ -202,7 +262,9 @@ type DerivedClass =
 
 [<Test>]
 let ``should add space before inherit on constructor that takes a constant value`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type DerivedClass =
     inherit BaseClass
 
@@ -215,7 +277,9 @@ type DerivedClass =
         { config with
               SpaceBeforeClassConstructor = false }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type DerivedClass =
     inherit BaseClass
 
@@ -227,8 +291,11 @@ type DerivedClass =
 """
 
 [<Test>]
-let ``should add space before inherit on constructor of class with multiline record, MultilineBlockBracketsOnSameColumn`` () =
-    formatSourceString false """
+let ``should add space before inherit on constructor of class with multiline record, MultilineBlockBracketsOnSameColumn`` ()
+                                                                                                                          =
+    formatSourceString
+        false
+        """
 type DerivedClass =
     inherit BaseClass
 
@@ -241,7 +308,9 @@ type DerivedClass =
         { spaceBeforeConfig with
               MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type DerivedClass =
     inherit BaseClass
 

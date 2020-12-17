@@ -12,7 +12,9 @@ let config =
 
 [<Test>]
 let ``function with single multiline lambda`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 List.collect (fun (a, element) ->
     let path' =
         path
@@ -28,7 +30,9 @@ List.collect (fun (a, element) ->
         { config with
               MaxInfixOperatorExpression = 35 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 List.collect (fun (a, element) ->
     let path' =
         path
@@ -44,15 +48,20 @@ List.collect (fun (a, element) ->
 
 [<Test>]
 let ``parameter before multiline lambda`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let mySuperFunction a =
     someOtherFunction a (fun b ->
         // doing some stuff her
        b * b
     )
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let mySuperFunction a =
     someOtherFunction
         a
@@ -64,15 +73,20 @@ let mySuperFunction a =
 
 [<Test>]
 let ``parameter after multiline lambda`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let mySuperFunction a =
     someOtherFunction (fun b ->
         // doing some stuff her
        b * b
     ) a
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let mySuperFunction a =
     someOtherFunction
         (fun b ->
@@ -84,7 +98,9 @@ let mySuperFunction a =
 
 [<Test>]
 let ``lambda without fun keyword`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let printListWithOffset a list1 =
     List.iter (
         ((+) a)
@@ -94,7 +110,9 @@ let printListWithOffset a list1 =
         { defaultConfig with
               MaxInfixOperatorExpression = 5 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let printListWithOffset a list1 =
     List.iter
         (((+) a)
@@ -104,15 +122,20 @@ let printListWithOffset a list1 =
 
 [<Test>]
 let ``desugared lambda`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let printListWithOffset a list1 =
     List.iter(fun { ItemOne = a } ->
         // print
         printfn "%s" a
     ) list1
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let printListWithOffset a list1 =
     List.iter
         (fun { ItemOne = a } ->
@@ -124,7 +147,9 @@ let printListWithOffset a list1 =
 
 [<Test>]
 let ``multiple multiline lambdas`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let mySuperFunction v =
     someOtherFunction (fun  a  ->
         let meh = "foo"
@@ -133,9 +158,12 @@ let mySuperFunction v =
         // probably wrong
         42
      ) v
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let mySuperFunction v =
     someOtherFunction
         (fun a ->
@@ -151,7 +179,9 @@ let mySuperFunction v =
 
 [<Test>]
 let ``multiple multiline desugared lambdas`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let myTopLevelFunction v =
     someOtherFunction (fun { A = a }  ->
         let meh = "foo"
@@ -160,9 +190,12 @@ let myTopLevelFunction v =
         // probably wrong
         42
      ) v
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let myTopLevelFunction v =
     someOtherFunction
         (fun { A = a } ->
@@ -178,7 +211,9 @@ let myTopLevelFunction v =
 
 [<Test>]
 let ``lambda after pipe operator`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let printListWithOffset a list1 =
     list1
     |> List.iter (fun elem ->
@@ -196,7 +231,9 @@ let printListWithOffset a list1 =
         { config with
               MaxInfixOperatorExpression = 10 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let printListWithOffset a list1 =
     list1
     |> List.iter (fun elem ->
@@ -214,7 +251,9 @@ let printListWithOffset a list1 =
 
 [<Test>]
 let ``custom infix operator with multiline lambda`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let expr =
     genExpr astContext e
     +> col
@@ -224,9 +263,12 @@ let expr =
             match e with
             | Paren (_, Lambda _, _) -> !- "lambda"
             | _ -> genExpr astContext e)
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let expr =
     genExpr astContext e
     +> col
@@ -241,7 +283,9 @@ let expr =
 
 [<Test>]
 let ``multiline infix operator samples`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let printListWithOffset a list1 =
     list1
     |> List.iter (
@@ -260,7 +304,9 @@ let foldList a list1 =
         { defaultConfig with
               MaxInfixOperatorExpression = 35 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let printListWithOffset a list1 =
     list1
     |> List.iter (
@@ -281,7 +327,9 @@ let foldList a list1 =
 
 [<Test>]
 let ``no space before uppercase invocations`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 Foobar(fun x ->
     // going multiline
     x * x)
@@ -293,7 +341,9 @@ myValue.UppercaseMemberCall(fun x ->
         { config with
               SpaceBeforeUppercaseInvocation = false }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Foobar(fun x ->
     // going multiline
     x * x
@@ -307,7 +357,9 @@ myValue.UppercaseMemberCall(fun x ->
 
 [<Test>]
 let ``space before uppercase invocations`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 Foobar(fun x ->
     // going multiline
     x * x)
@@ -319,7 +371,9 @@ myValue.UppercaseMemberCall(fun x ->
         { config with
               SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Foobar (fun x ->
     // going multiline
     x * x
@@ -333,7 +387,9 @@ myValue.UppercaseMemberCall (fun x ->
 
 [<Test>]
 let ``no space before lowercase invocations`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 foobar(fun x ->
     // going multiline
     x * x)
@@ -345,7 +401,9 @@ myValue.lowercaseMemberCall(fun x ->
         { config with
               SpaceBeforeLowercaseInvocation = false }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 foobar(fun x ->
     // going multiline
     x * x
@@ -359,7 +417,9 @@ myValue.lowercaseMemberCall(fun x ->
 
 [<Test>]
 let ``space before lowercase invocations`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 foobar(fun x ->
     // going multiline
     x * x)
@@ -371,7 +431,9 @@ myValue.lowercaseMemberCall(fun x ->
         { config with
               SpaceBeforeLowercaseInvocation = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 foobar (fun x ->
     // going multiline
     x * x
@@ -385,16 +447,21 @@ myValue.lowercaseMemberCall (fun x ->
 
 [<Test>]
 let ``comments after desugared lambda arrows`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 []
 |> List.map (fun { Foo = foo } -> // I use the name foo a lot
     foo + 1)
 
 List.map(fun { Bar = bar } -> // same remark for bar
     bar + 2) []
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 []
 |> List.map (fun { Foo = foo } -> // I use the name foo a lot
     foo + 1
@@ -409,16 +476,21 @@ List.map
 
 [<Test>]
 let ``comments after lambda arrows`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 []
 |> List.map (fun foo -> // I use the name foo a lot
     foo + 1)
 
 List.map(fun bar -> // same remark for bar
     bar + 2) []
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 []
 |> List.map (fun foo -> // I use the name foo a lot
     foo + 1

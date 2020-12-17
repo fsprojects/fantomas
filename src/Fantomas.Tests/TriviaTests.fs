@@ -9,21 +9,23 @@ let private toTrivia source =
     let astWithDefines = parse false source |> Array.toList
 
     astWithDefines
-    |> List.map (fun (ast, defines, hashTokens) ->
-        let tokens =
-            TokenParser.tokenize defines hashTokens source
+    |> List.map
+        (fun (ast, defines, hashTokens) ->
+            let tokens =
+                TokenParser.tokenize defines hashTokens source
 
-        Trivia.collectTrivia tokens ast)
+            Trivia.collectTrivia tokens ast)
 
 let private toTriviaWithDefines source =
     let astWithDefines = parse false source |> Array.toList
 
     astWithDefines
-    |> List.map (fun (ast, defines, hashTokens) ->
-        let tokens =
-            TokenParser.tokenize defines hashTokens source
+    |> List.map
+        (fun (ast, defines, hashTokens) ->
+            let tokens =
+                TokenParser.tokenize defines hashTokens source
 
-        defines, Trivia.collectTrivia tokens ast)
+            defines, Trivia.collectTrivia tokens ast)
     |> Map.ofList
 
 [<Test>]
@@ -58,9 +60,10 @@ let ``line comment on same line, is after last AST item`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule);
+    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
           ContentAfter = [ Comment (LineCommentAfterSourceCode (lineComment)) ] };
-        { Type = MainNode (SynExpr_Const); ContentItself = Some (Number ("7")) } ] -> lineComment == "// should be 8"
+        { Type = MainNode (SynExpr_Const)
+          ContentItself = Some (Number ("7")) } ] -> lineComment == "// should be 8"
     | _ -> fail ()
 
 [<Test>]
@@ -85,7 +88,8 @@ let a = 7
     let triviaNodes = toTrivia source |> List.head
 
     let expectedComment =
-        String.normalizeNewLine """// foo
+        String.normalizeNewLine
+            """// foo
 // bar"""
 
     match triviaNodes with
@@ -104,8 +108,9 @@ let ``comments inside record`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { Type = TriviaNodeType.Token (LBRACE, _); ContentAfter = [ Comment (LineCommentAfterSourceCode ("// foo")) ] };
-        { ContentItself = Some (Number ("7")) } ] -> pass ()
+    | [ { Type = TriviaNodeType.Token (LBRACE, _)
+          ContentAfter = [ Comment (LineCommentAfterSourceCode ("// foo")) ] }; { ContentItself = Some (Number ("7")) } ] ->
+        pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -118,7 +123,8 @@ let ``comment after all source code`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { Type = MainNode (mn); ContentAfter = [ Comment (LineCommentOnSingleLine (lineComment)) ] };
+    | [ { Type = MainNode (mn)
+          ContentAfter = [ Comment (LineCommentOnSingleLine (lineComment)) ] };
         { ContentItself = Some (Number ("123")) } ] ->
         mn == SynModuleDecl_Types
 
@@ -135,8 +141,8 @@ let ``block comment added to trivia`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (BlockComment (comment, _, _)) ]; ContentItself = Some (Number ("9")) } ] ->
-        comment == "(* meh *)"
+    | [ { ContentBefore = [ Comment (BlockComment (comment, _, _)) ]
+          ContentItself = Some (Number ("9")) } ] -> comment == "(* meh *)"
     | _ -> failwith "Expected block comment"
 
 [<Test>]
@@ -270,10 +276,14 @@ elif true then ()"""
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { Type = Token (IF, _); ContentItself = Some (Keyword ({ Content = "if" })) };
-        { Type = Token (THEN, _); ContentItself = Some (Keyword ({ Content = "then" })) };
-        { Type = Token (ELIF, _); ContentItself = Some (Keyword ({ Content = "elif" })) };
-        { Type = Token (THEN, _); ContentItself = Some (Keyword ({ Content = "then" })) } ] -> pass ()
+    | [ { Type = Token (IF, _)
+          ContentItself = Some (Keyword ({ Content = "if" })) };
+        { Type = Token (THEN, _)
+          ContentItself = Some (Keyword ({ Content = "then" })) };
+        { Type = Token (ELIF, _)
+          ContentItself = Some (Keyword ({ Content = "elif" })) };
+        { Type = Token (THEN, _)
+          ContentItself = Some (Keyword ({ Content = "then" })) } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -290,14 +300,14 @@ doSomething()
     let withoutDefine = Map.find [] triviaNodes
 
     match withoutDefine with
-    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule);
-          ContentBefore = [ Directive ("#if NOT_DEFINED"); Directive ("#else") ];
+    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
+          ContentBefore = [ Directive ("#if NOT_DEFINED"); Directive ("#else") ]
           ContentAfter = [ Directive ("#endif") ] } ] -> pass ()
     | _ -> fail ()
 
     match withDefine with
-    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule);
-          ContentBefore = [ Directive ("#if NOT_DEFINED"); Directive ("#else"); Directive ("#endif") ];
+    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
+          ContentBefore = [ Directive ("#if NOT_DEFINED"); Directive ("#else"); Directive ("#endif") ]
           ContentAfter = [] } ] -> pass ()
     | _ -> fail ()
 
@@ -314,16 +324,18 @@ let x = 1
     let withoutDefine = Map.find [] triviaNodes
 
     match withoutDefine with
-    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule);
-          ContentAfter = [ Directive ("#if NOT_DEFINED"); Newline; Directive ("#endif") ]; ContentBefore = [] } ] ->
-        pass ()
+    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
+          ContentAfter = [ Directive ("#if NOT_DEFINED"); Newline; Directive ("#endif") ]
+          ContentBefore = [] } ] -> pass ()
     | _ -> fail ()
 
     match withDefine with
-    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule); ContentBefore = [ Directive ("#if NOT_DEFINED") ];
+    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
+          ContentBefore = [ Directive ("#if NOT_DEFINED") ]
           ContentAfter = [] };
-        { Type = MainNode (SynModuleDecl_Let); ContentBefore = []; ContentAfter = [ Directive ("#endif") ] } ] ->
-        pass ()
+        { Type = MainNode (SynModuleDecl_Let)
+          ContentBefore = []
+          ContentAfter = [ Directive ("#endif") ] } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -340,7 +352,7 @@ type ExtensibleDumper = A | B
     let trivias = Map.find [ "DEBUG" ] triviaNodes
 
     match trivias with
-    | [ { Type = MainNode (Ident_);
+    | [ { Type = MainNode (Ident_)
           ContentAfter = [ Directive ("#if EXTENSIBLE_DUMPER"); Directive ("#if DEBUG"); Newline; Directive ("#endif");
                            Directive ("#endif") ] } ] -> pass ()
     | _ -> fail ()
@@ -369,7 +381,7 @@ let foo = 42
         toTriviaWithDefines source |> Map.find []
 
     match trivia with
-    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule);
+    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
           ContentAfter = [ Directive ("#if SOMETHING"); Newline; Directive ("#endif") ] } ] -> pass ()
     | _ -> fail ()
 
@@ -380,9 +392,10 @@ let ``if keyword should be keyword itself`` () =
     let trivia = toTrivia source |> List.head
 
     match trivia with
-    | [ { ContentItself = Some (Keyword ({ TokenInfo = { TokenName = "IF" } })); Type = TriviaNodeType.Token (IF, _) };
-        { ContentItself = Some (Keyword ({ TokenInfo = { TokenName = "THEN" } })); Type = TriviaNodeType.Token (THEN, _) } ] ->
-        pass ()
+    | [ { ContentItself = Some (Keyword ({ TokenInfo = { TokenName = "IF" } }))
+          Type = TriviaNodeType.Token (IF, _) };
+        { ContentItself = Some (Keyword ({ TokenInfo = { TokenName = "THEN" } }))
+          Type = TriviaNodeType.Token (THEN, _) } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -400,8 +413,8 @@ with empty lines"
     let trivia = toTrivia source |> List.head
 
     match trivia with
-    | [ { ContentItself = Some (StringContent (sc)); Type = TriviaNodeType.MainNode (SynExpr_Const) } ] ->
-        sc == sprintf "\"%s\"" multilineString
+    | [ { ContentItself = Some (StringContent (sc))
+          Type = TriviaNodeType.MainNode (SynExpr_Const) } ] -> sc == sprintf "\"%s\"" multilineString
     | _ -> fail ()
 
 [<Test>]
@@ -420,8 +433,8 @@ with empty lines"
     let trivia = toTrivia source |> List.head
 
     match trivia with
-    | [ { ContentItself = Some (StringContent (sc)); Type = TriviaNodeType.MainNode (SynExpr_Const) } ] ->
-        sc == sprintf "\"\"\"%s\"\"\"" multilineString
+    | [ { ContentItself = Some (StringContent (sc))
+          Type = TriviaNodeType.MainNode (SynExpr_Const) } ] -> sc == sprintf "\"\"\"%s\"\"\"" multilineString
     | _ -> fail ()
 
 [<Test>]
@@ -430,8 +443,8 @@ let ``char content`` () =
     let trivia = toTrivia source |> List.head
 
     match trivia with
-    | [ { ContentItself = Some (CharContent ("\'\\u0000\'")); Type = TriviaNodeType.MainNode (SynExpr_Const) } ] ->
-        pass ()
+    | [ { ContentItself = Some (CharContent ("\'\\u0000\'"))
+          Type = TriviaNodeType.MainNode (SynExpr_Const) } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -461,7 +474,8 @@ type LongIdentWithDots =
     let trivia = toTrivia source |> List.head
 
     let expectedComment =
-        String.normalizeNewLine """/// Represents a long identifier with possible '.' at end.
+        String.normalizeNewLine
+            """/// Represents a long identifier with possible '.' at end.
 ///
 /// Typically dotms.Length = lid.Length-1, but they may be same if (incomplete) code ends in a dot, e.g. "Foo.Bar."
 /// The dots mostly matter for parsing, and are typically ignored by the typechecker, but

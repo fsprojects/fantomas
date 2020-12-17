@@ -6,32 +6,49 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``should keep parens around active patterns`` () =
-    formatSourceString false """let (|Boolean|_|) = Boolean.parse
-    """ config
-    |> should equal """let (|Boolean|_|) = Boolean.parse
+    formatSourceString
+        false
+        """let (|Boolean|_|) = Boolean.parse
+    """
+        config
+    |> should
+        equal
+        """let (|Boolean|_|) = Boolean.parse
 """
 
 [<Test>]
 let ``should keep parens around active patterns in module`` () =
-    formatSourceString false """module Interpreted =
+    formatSourceString
+        false
+        """module Interpreted =
     let (|Match|_|) = (|Match|_|) RegexOptions.None
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Interpreted =
     let (|Match|_|) = (|Match|_|) RegexOptions.None
 """
 
 [<Test>]
 let ``should keep parens around active patterns in inlined functions`` () =
-    formatSourceString false """let inline (|Match|_|) x = tryMatchWithOptions x
-    """ config
-    |> should equal """let inline (|Match|_|) x = tryMatchWithOptions x
+    formatSourceString
+        false
+        """let inline (|Match|_|) x = tryMatchWithOptions x
+    """
+        config
+    |> should
+        equal
+        """let inline (|Match|_|) x = tryMatchWithOptions x
 """
 
 [<Test>]
 let ``active patterns`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let (|Even|Odd|) input = if input % 2 = 0 then Even else Odd
 
 let (|Integer|_|) (str: string) =
@@ -49,7 +66,9 @@ let (|ParseRegex|_|) regex str =
                MaxFunctionBindingWidth = 30
                MaxIfThenElseShortWidth = 70 })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let (|Even|Odd|) input =
     if input % 2 = 0 then Even else Odd
 

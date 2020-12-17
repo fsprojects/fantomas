@@ -11,26 +11,34 @@ let ``triple-quoted strings`` () =
         "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\""
         ({ config with
                MaxValueBindingWidth = 60 })
-    |> should equal "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"
+    |> should
+        equal
+        "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"
 "
 
 [<Test>]
 let ``string literals`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
 let str1 = "abc"
     """
         ({ config with
                MaxValueBindingWidth = 60 })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
 let str1 = "abc"
 """
 
 [<Test>]
 let ``multiline strings`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let alu =
         "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
         GAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGA\
@@ -39,9 +47,12 @@ let alu =
         GCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGG\
         AGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCC\
   AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA"B
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
         GAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGA\
         CCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAAT\
@@ -53,13 +64,18 @@ let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
 
 [<Test>]
 let ``multiline string piped`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f a b =
     a "
 " |> b
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f a b =
     a
         "
@@ -69,16 +85,21 @@ let f a b =
 
 [<Test>]
 let ``preserve uncommon literals`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let a = 0xFFy
 let c = 0b0111101us
 let d = 0o0777
 let e = 1.40e10f
 let f = 23.4M
 let g = '\n'
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a = 0xFFy
 let c = 0b0111101us
 let d = 0o0777
@@ -89,16 +110,21 @@ let g = '\n'
 
 [<Test>]
 let ``uncommon literals strict mode`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let a = 0xFFy
 let c = 0b0111101us
 let d = 0o0777
 let e = 1.40e10f
 let f = 23.4M
 let g = '\n'
-    """ { config with StrictMode = true }
+    """
+        { config with StrictMode = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a = -1y
 let c = 61us
 let d = 511
@@ -109,7 +135,9 @@ let g = '\n'
 
 [<Test>]
 let ``should preserve triple-quote strings`` () =
-    formatSourceString false "
+    formatSourceString
+        false
+        "
     type GetList() =
         let switchvox_users_voicemail_getList_response = \"\"\"
             </response>\"\"\"
@@ -121,7 +149,9 @@ let ``should preserve triple-quote strings`` () =
         { config with
               MaxValueBindingWidth = 120 }
     |> prepend newline
-    |> should equal "
+    |> should
+        equal
+        "
 type GetList() =
     let switchvox_users_voicemail_getList_response = \"\"\"
             </response>\"\"\"
@@ -134,7 +164,9 @@ type GetList() =
 
 [<Test>]
 let ``should keep triple-quote strings`` () =
-    formatSourceString false "
+    formatSourceString
+        false
+        "
 [<EntryPoint>]
 let main argv =
     use fun1 = R.eval(R.parse(text = \"\"\"
@@ -146,9 +178,12 @@ let main argv =
     }
     \"\"\"))
     0
-"    config
+"
+        config
     |> prepend newline
-    |> should equal "
+    |> should
+        equal
+        "
 [<EntryPoint>]
 let main argv =
     use fun1 =
@@ -171,30 +206,42 @@ let main argv =
 [<Test>]
 let ``chars should be properly escaped`` () =
     formatSourceString false """let private peskyChars = [| '"' ; '\t' ; ' ' ; '\\' |]""" config
-    |> should equal """let private peskyChars = [| '"'; '\t'; ' '; '\\' |]
+    |> should
+        equal
+        """let private peskyChars = [| '"'; '\t'; ' '; '\\' |]
 """
 
 [<Test>]
 let ``quotes should be escaped in strict mode`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     let formatter =
         // escape commas left in invalid entries
         sprintf "%i,\"%s\""
-"""  ({ config with StrictMode = true })
-    |> should equal """let formatter = sprintf "%i,\"%s\""
+"""
+        ({ config with StrictMode = true })
+    |> should
+        equal
+        """let formatter = sprintf "%i,\"%s\""
 """
 
 [<Test>]
 let ``empty lines in multi-line string should be preserved, 577`` () =
-    formatSourceString false "
+    formatSourceString
+        false
+        "
 let x = \"\"\"some
 
 content
 
 with empty lines\"\"\"
-"    config
+"
+        config
     |> prepend newline
-    |> should equal "
+    |> should
+        equal
+        "
 let x = \"\"\"some
 
 content
@@ -204,7 +251,9 @@ with empty lines\"\"\"
 
 [<Test>]
 let ``string with newline inside union case, 1056`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<Test>]
 let ``newline in string`` () =
     let source = "\"
@@ -216,9 +265,12 @@ let ``newline in string`` () =
         |> List.filter (fun { Item = item } -> match item with | StringContent("\"\n\"") -> true  | _ -> false)
 
     List.length triviaNodes == 1
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Test>]
 let ``newline in string`` () =
     let source = "\"
@@ -238,20 +290,30 @@ let ``newline in string`` () =
 
 [<Test>]
 let ``double backslash in triple quote string`` () =
-    formatSourceString false "
+    formatSourceString
+        false
+        "
 let a = \"\"\"\\\\\"\"\"
-"    config
+"
+        config
     |> prepend newline
-    |> should equal "
+    |> should
+        equal
+        "
 let a = \"\"\"\\\\\"\"\"
 "
 
 [<Test>]
 let ``single string with compiler define`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 "#if FOO"
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 "#if FOO"
 """

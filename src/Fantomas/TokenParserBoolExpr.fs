@@ -35,9 +35,10 @@ module BoolExpr =
                 mapFunctions |> Seq.fold (fun e f -> map f e) e
 
             expr
-            |> Seq.unfold (fun e ->
-                let e' = oneStep e
-                if e = e' then None else Some(e', e'))
+            |> Seq.unfold
+                (fun e ->
+                    let e' = oneStep e
+                    if e = e' then None else Some(e', e'))
             |> Seq.tryLast
             |> Option.defaultValue expr
 
@@ -87,7 +88,8 @@ module BoolExpr =
 
         let splitByNeg xs =
             xs
-            |> List.map (function
+            |> List.map
+                (function
                 | BoolExpr.Not (BoolExpr.Ident x) -> Negative x
                 | BoolExpr.Ident x -> Positive x
                 | _ -> failwithf "Expr not in CNF: %A" e)
@@ -110,7 +112,8 @@ module BoolExpr =
 
         let groupedLiterals ls =
             ls
-            |> Seq.groupBy (function
+            |> Seq.groupBy
+                (function
                 | Positive x
                 | Negative x -> x)
             |> Seq.map (fun (key, g) -> key, g |> Seq.distinct |> Seq.toList)
@@ -134,10 +137,12 @@ module BoolExpr =
 
             let toSolve =
                 toSolve
-                |> List.filter (fun (k, _) ->
-                    not
-                        (Set.contains (Positive k) solvedSet
-                         || Set.contains (Negative k) solvedSet))
+                |> List.filter
+                    (fun (k, _) ->
+                        not (
+                            Set.contains (Positive k) solvedSet
+                            || Set.contains (Negative k) solvedSet
+                        ))
 
             let rec genCombinations groups =
                 seq {
@@ -153,21 +158,25 @@ module BoolExpr =
                 let combinations = genCombinations (groups |> List.map snd)
 
                 combinations
-                |> Seq.mapi (fun i comb ->
-                    if i > maxSteps then
-                        Some Unconclusive
-                    else
-                        let vals = vals @ comb
-
-                        if eval cnf vals then
-                            Some
-                                (Satisfiable
-                                    (vals
-                                     |> List.choose (function
-                                         | Positive x -> Some x
-                                         | _ -> None)))
+                |> Seq.mapi
+                    (fun i comb ->
+                        if i > maxSteps then
+                            Some Unconclusive
                         else
-                            None)
+                            let vals = vals @ comb
+
+                            if eval cnf vals then
+                                Some(
+                                    Satisfiable(
+                                        vals
+                                        |> List.choose
+                                            (function
+                                            | Positive x -> Some x
+                                            | _ -> None)
+                                    )
+                                )
+                            else
+                                None)
                 |> Seq.tryPick id
                 |> Option.defaultValue Unsatisfiable
 
@@ -186,9 +195,10 @@ module BoolExpr =
 
         let allPairs xs =
             xs
-            |> Seq.mapi (fun i x ->
-                xs
-                |> Seq.mapi (fun j y -> if i < j then Some(x, y) else None))
+            |> Seq.mapi
+                (fun i x ->
+                    xs
+                    |> Seq.mapi (fun j y -> if i < j then Some(x, y) else None))
             |> Seq.collect id
             |> Seq.choose id
 
@@ -199,24 +209,27 @@ module BoolExpr =
 
             match exprsIndexed
                   |> allPairs
-                  |> Seq.tryPick (fun ((i, (x, _)), (j, (y, _))) ->
-                      pairSolve x y
-                      |> Option.map (fun r -> (i, x), (j, y), r)) with
+                  |> Seq.tryPick
+                      (fun ((i, (x, _)), (j, (y, _))) ->
+                          pairSolve x y
+                          |> Option.map (fun r -> (i, x), (j, y), r)) with
             | None -> exprs
             | Some ((i, x), (j, y), r) ->
-                f
-                    ((exprsIndexed
-                      |> Seq.filter (fun (k, _) -> i <> k && j <> k)
-                      |> Seq.map snd
-                      |> Seq.toList)
-                     @ [ BoolExpr.And(x, y), Some r ])
+                f (
+                    (exprsIndexed
+                     |> Seq.filter (fun (k, _) -> i <> k && j <> k)
+                     |> Seq.map snd
+                     |> Seq.toList)
+                    @ [ BoolExpr.And(x, y), Some r ]
+                )
 
         let r =
             f exprs
-            |> List.choose (fun (e, r) ->
-                r
-                |> Option.orElseWith (fun () -> solve e)
-                |> Option.map (fun x -> e, x))
+            |> List.choose
+                (fun (e, r) ->
+                    r
+                    |> Option.orElseWith (fun () -> solve e)
+                    |> Option.map (fun x -> e, x))
 
         r
 

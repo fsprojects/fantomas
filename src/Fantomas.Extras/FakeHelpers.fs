@@ -14,20 +14,23 @@ exception CodeFormatException of (string * Option<Exception>) array with
     override x.ToString() =
         let errors =
             x.Data0
-            |> Array.choose (fun z ->
-                match z with
-                | file, Some ex -> Some(file, ex)
-                | _ -> None)
-            |> Array.map (fun z ->
-                let file, ex = z
-                file + ":\r\n" + ex.Message + "\r\n\r\n")
+            |> Array.choose
+                (fun z ->
+                    match z with
+                    | file, Some ex -> Some(file, ex)
+                    | _ -> None)
+            |> Array.map
+                (fun z ->
+                    let file, ex = z
+                    file + ":\r\n" + ex.Message + "\r\n\r\n")
 
         let files =
             x.Data0
-            |> Array.map (fun z ->
-                match z with
-                | file, Some _ -> file + " !"
-                | file, None -> file)
+            |> Array.map
+                (fun z ->
+                    match z with
+                    | file, Some _ -> file + " !"
+                    | file, None -> file)
 
         String.Join(String.Empty, errors)
         + "The following files aren't formatted properly:"
@@ -55,15 +58,19 @@ let private formatContentInternalAsync (compareWithoutLineEndings: bool)
         async {
             try
                 let fileName =
-                    if Path.GetExtension(file) = ".fsi" then "tmp.fsi" else "tmp.fsx"
+                    if Path.GetExtension(file) = ".fsi" then
+                        "tmp.fsi"
+                    else
+                        "tmp.fsx"
 
                 let! formattedContent =
-                    CodeFormatter.FormatDocumentAsync
-                        (fileName,
-                         SourceOrigin.SourceString originalContent,
-                         config,
-                         createParsingOptionsFromFile fileName,
-                         sharedChecker.Value)
+                    CodeFormatter.FormatDocumentAsync(
+                        fileName,
+                        SourceOrigin.SourceString originalContent,
+                        config,
+                        createParsingOptionsFromFile fileName,
+                        sharedChecker.Value
+                    )
 
                 let contentChanged =
                     if compareWithoutLineEndings then
@@ -77,11 +84,12 @@ let private formatContentInternalAsync (compareWithoutLineEndings: bool)
 
                 if contentChanged then
                     let! isValid =
-                        CodeFormatter.IsValidFSharpCodeAsync
-                            (fileName,
-                             (SourceOrigin.SourceString(formattedContent)),
-                             createParsingOptionsFromFile fileName,
-                             sharedChecker.Value)
+                        CodeFormatter.IsValidFSharpCodeAsync(
+                            fileName,
+                            (SourceOrigin.SourceString(formattedContent)),
+                            createParsingOptionsFromFile fileName,
+                            sharedChecker.Value
+                        )
 
                     if not isValid then
                         raise
@@ -123,22 +131,24 @@ let formatCode files =
         // Check for formatting errors:
         let errors =
             results
-            |> Array.choose (fun x ->
-                match x with
-                | Error (file, ex) -> Some(file, Some(ex))
-                | _ -> None)
+            |> Array.choose
+                (fun x ->
+                    match x with
+                    | Error (file, ex) -> Some(file, Some(ex))
+                    | _ -> None)
 
         if not <| Array.isEmpty errors then raise <| CodeFormatException errors
 
         // Overwrite source files with formatted content
         let result =
             results
-            |> Array.choose (fun x ->
-                match x with
-                | Formatted (source, formatted) ->
-                    File.WriteAllText(source, formatted)
-                    Some source
-                | _ -> None)
+            |> Array.choose
+                (fun x ->
+                    match x with
+                    | Formatted (source, formatted) ->
+                        File.WriteAllText(source, formatted)
+                        Some source
+                    | _ -> None)
 
         return result
     }

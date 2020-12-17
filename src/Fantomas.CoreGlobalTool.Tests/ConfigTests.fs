@@ -8,14 +8,18 @@ open Fantomas.CoreGlobalTool.Tests.TestHelpers
 [<Test>]
 let ``config file in working directory should not require relative prefix, 821`` () =
     use fileFixture =
-        new TemporaryFileCodeSample("let a  = // foo
-                                                            9")
+        new TemporaryFileCodeSample(
+            "let a  = // foo
+                                                            9"
+        )
 
     use configFixture =
-        new ConfigurationFile("""
+        new ConfigurationFile(
+            """
 [*.fs]
 indent_size=2
-"""                            )
+"""
+        )
 
     let (exitCode, output) = runFantomasTool fileFixture.Filename
 
@@ -28,7 +32,9 @@ indent_size=2
         System.IO.File.ReadAllText(fileFixture.Filename)
 
     result
-    |> should equal """let a = // foo
+    |> should
+        equal
+        """let a = // foo
   9
 """
 
@@ -38,10 +44,12 @@ let ``end_of_line=cr should throw an exception`` () =
         new TemporaryFileCodeSample("let a = 9\n")
 
     use configFixture =
-        new ConfigurationFile("""
+        new ConfigurationFile(
+            """
 [*.fs]
 end_of_line=cr
-"""                            )
+"""
+        )
 
     let exitCode, output = runFantomasTool fileFixture.Filename
     exitCode |> should equal 1
@@ -62,10 +70,14 @@ let ``uses end_of_line setting to write user newlines`` setting =
         new TemporaryFileCodeSample(sampleCode "\n")
 
     use configFixture =
-        new ConfigurationFile(sprintf """
+        new ConfigurationFile(
+            sprintf
+                """
 [*.fs]
 end_of_line = %s
-"""                            setting)
+"""
+                setting
+        )
 
     let (exitCode, _) = runFantomasTool fileFixture.Filename
 

@@ -63,17 +63,19 @@ let rec private tokenizeLine (tokenizer: FSharpLineTokenizer) sourceCodeLines st
 let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
     allLines
     |> List.mapi (fun index line -> line, (index + 1)) // line number is needed in tokenizeLine
-    |> List.fold (fun (state, tokens) (line, lineNumber) ->
-        let tokenizer =
-            sourceTokenizer.CreateLineTokenizer(line)
+    |> List.fold
+        (fun (state, tokens) (line, lineNumber) ->
+            let tokenizer =
+                sourceTokenizer.CreateLineTokenizer(line)
 
-        let nextState, tokensOfLine =
-            tokenizeLine tokenizer allLines state lineNumber []
+            let nextState, tokensOfLine =
+                tokenizeLine tokenizer allLines state lineNumber []
 
-        let allTokens =
-            List.append tokens (List.rev tokensOfLine) // tokens of line are add in reversed order
+            let allTokens =
+                List.append tokens (List.rev tokensOfLine) // tokens of line are add in reversed order
 
-        (nextState, allTokens)) (state, []) // empty tokens to start with
+            (nextState, allTokens))
+        (state, []) // empty tokens to start with
     |> snd // ignore the state
 
 let private createHashToken lineNumber content offset =
@@ -134,20 +136,22 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
             let tokens =
                 let defineExpressionWithHash = lineContent.Substring(hashContentLength)
 
-                if String.isNotNullOrEmpty defineExpressionWithHash
-                then tokenize [] [] defineExpressionWithHash
-                else []
+                if String.isNotNullOrEmpty defineExpressionWithHash then
+                    tokenize [] [] defineExpressionWithHash
+                else
+                    []
 
             tokens
-            |> List.map (fun t ->
-                let info =
-                    { t.TokenInfo with
-                          LeftColumn = t.TokenInfo.LeftColumn + hashContentLength
-                          RightColumn = t.TokenInfo.RightColumn + hashContentLength }
+            |> List.map
+                (fun t ->
+                    let info =
+                        { t.TokenInfo with
+                              LeftColumn = t.TokenInfo.LeftColumn + hashContentLength
+                              RightColumn = t.TokenInfo.RightColumn + hashContentLength }
 
-                { t with
-                      LineNumber = lineNumber
-                      TokenInfo = info })
+                    { t with
+                          LineNumber = lineNumber
+                          TokenInfo = info })
             |> fun rest ->
                 (createHashToken lineNumber hashContent offset)
                 :: rest
@@ -176,16 +180,20 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
 
             if leadingCharactersBeforeLastNewlineAreSpaces then
                 let skip =
-                    if lastNewlineIdx = -1 then 0 else lastNewlineIdx + 1 // zero when the source starts with an #
+                    if lastNewlineIdx = -1 then
+                        0
+                    else
+                        lastNewlineIdx + 1 // zero when the source starts with an #
 
                 let currentLine =
                     sourceCode
                     |> Seq.skip skip
-                    |> Seq.takeWhile (function
+                    |> Seq.takeWhile
+                        (function
                         | NewlineChar -> false
                         | _ -> true)
                     |> Seq.toArray
-                    |> fun chars -> new string(chars)
+                    |> fun chars -> new string (chars)
 
                 let trimmed = currentLine.TrimStart()
 
@@ -225,77 +233,79 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
               Defines = [] }
 
         [ 0 .. lastIndex ]
-        |> List.fold (fun acc idx ->
-            let zero = sourceCode.[idx]
-            let plusOne = sourceCode.[idx + 1]
-            let plusTwo = sourceCode.[idx + 2]
+        |> List.fold
+            (fun acc idx ->
+                let zero = sourceCode.[idx]
+                let plusOne = sourceCode.[idx + 1]
+                let plusTwo = sourceCode.[idx + 2]
 
-            if idx < 2 then
-                match acc.State, (zero, plusOne, plusTwo) with
-                | Normal, TripleQuoteChars ->
-                    { acc with
-                          State = InsideTripleQuoteString(idx) }
-                | Normal, (DoubleQuoteChar, _, _) -> { acc with State = InsideString }
-                | Normal, (OpenParenChar, AsteriskChar, NoCloseParenChar) when (sourceLength > 3) ->
-                    { acc with
-                          State = InsideMultilineComment }
-                | Normal, (NewlineChar, _, _) ->
-                    { acc with
-                          NewlineIndexes = idx :: acc.NewlineIndexes }
-                | Normal, (HashChar, _, _) -> captureHashDefine acc idx
-                | _ -> acc
+                if idx < 2 then
+                    match acc.State, (zero, plusOne, plusTwo) with
+                    | Normal, TripleQuoteChars ->
+                        { acc with
+                              State = InsideTripleQuoteString(idx) }
+                    | Normal, (DoubleQuoteChar, _, _) -> { acc with State = InsideString }
+                    | Normal, (OpenParenChar, AsteriskChar, NoCloseParenChar) when (sourceLength > 3) ->
+                        { acc with
+                              State = InsideMultilineComment }
+                    | Normal, (NewlineChar, _, _) ->
+                        { acc with
+                              NewlineIndexes = idx :: acc.NewlineIndexes }
+                    | Normal, (HashChar, _, _) -> captureHashDefine acc idx
+                    | _ -> acc
 
-            elif idx < lastIndex then
-                let minusTwo = sourceCode.[idx - 2]
-                let minusOne = sourceCode.[idx - 1]
+                elif idx < lastIndex then
+                    let minusTwo = sourceCode.[idx - 2]
+                    let minusOne = sourceCode.[idx - 1]
 
-                match acc.State, (zero, plusOne, plusTwo) with
-                | Normal, TripleQuoteChars ->
-                    { acc with
-                          State = InsideTripleQuoteString idx }
-                | Normal, (DoubleQuoteChar, _, _) -> { acc with State = InsideString }
-                | Normal, (OpenParenChar, AsteriskChar, NoCloseParenChar) ->
-                    { acc with
-                          State = InsideMultilineComment }
-                | Normal, (NewlineChar, _, _) ->
-                    { acc with
-                          NewlineIndexes = idx :: acc.NewlineIndexes }
-                | Normal, (HashChar, _, _) -> captureHashDefine acc idx
-                | InsideString, (NewlineChar, _, _) ->
-                    { acc with
-                          NewlineIndexes = idx :: acc.NewlineIndexes }
-                | InsideString, (DoubleQuoteChar, _, _) ->
-                    let minusThree = sourceCode.[idx - 3]
-
-                    match minusOne, minusTwo, minusThree with
-                    | BackSlashChar, NoBackSlashChar, _
-                    | BackSlashChar, BackSlashChar, BackSlashChar -> acc
-                    | _ -> { acc with State = Normal }
-                | InsideString, (DoubleQuoteChar, _, _) -> { acc with State = Normal }
-                | InsideTripleQuoteString _, (NewlineChar, _, _) ->
-                    { acc with
-                          NewlineIndexes = idx :: acc.NewlineIndexes }
-                | InsideTripleQuoteString startIndex, _ when (startIndex + 2 < idx) ->
-                    match (minusTwo, minusOne, zero) with
-                    | TripleQuoteChars when ((startIndex - 1) > 0) ->
+                    match acc.State, (zero, plusOne, plusTwo) with
+                    | Normal, TripleQuoteChars ->
+                        { acc with
+                              State = InsideTripleQuoteString idx }
+                    | Normal, (DoubleQuoteChar, _, _) -> { acc with State = InsideString }
+                    | Normal, (OpenParenChar, AsteriskChar, NoCloseParenChar) ->
+                        { acc with
+                              State = InsideMultilineComment }
+                    | Normal, (NewlineChar, _, _) ->
+                        { acc with
+                              NewlineIndexes = idx :: acc.NewlineIndexes }
+                    | Normal, (HashChar, _, _) -> captureHashDefine acc idx
+                    | InsideString, (NewlineChar, _, _) ->
+                        { acc with
+                              NewlineIndexes = idx :: acc.NewlineIndexes }
+                    | InsideString, (DoubleQuoteChar, _, _) ->
                         let minusThree = sourceCode.[idx - 3]
-                        // check if there is no backslash before the first `"` of `"""`
-                        // so no `\"""` characters
-                        match minusThree with
-                        | NoBackSlashChar -> { acc with State = Normal }
+
+                        match minusOne, minusTwo, minusThree with
+                        | BackSlashChar, NoBackSlashChar, _
+                        | BackSlashChar, BackSlashChar, BackSlashChar -> acc
+                        | _ -> { acc with State = Normal }
+                    | InsideString, (DoubleQuoteChar, _, _) -> { acc with State = Normal }
+                    | InsideTripleQuoteString _, (NewlineChar, _, _) ->
+                        { acc with
+                              NewlineIndexes = idx :: acc.NewlineIndexes }
+                    | InsideTripleQuoteString startIndex, _ when (startIndex + 2 < idx) ->
+                        match (minusTwo, minusOne, zero) with
+                        | TripleQuoteChars when ((startIndex - 1) > 0) ->
+                            let minusThree = sourceCode.[idx - 3]
+                            // check if there is no backslash before the first `"` of `"""`
+                            // so no `\"""` characters
+                            match minusThree with
+                            | NoBackSlashChar -> { acc with State = Normal }
+                            | _ -> acc
+                        | _ -> acc
+                    | InsideMultilineComment, (NewlineChar, _, _) ->
+                        { acc with
+                              NewlineIndexes = idx :: acc.NewlineIndexes }
+                    | InsideMultilineComment, (CloseParenChar, _, _) ->
+                        match minusOne with
+                        | AsteriskChar -> { acc with State = Normal }
                         | _ -> acc
                     | _ -> acc
-                | InsideMultilineComment, (NewlineChar, _, _) ->
-                    { acc with
-                          NewlineIndexes = idx :: acc.NewlineIndexes }
-                | InsideMultilineComment, (CloseParenChar, _, _) ->
-                    match minusOne with
-                    | AsteriskChar -> { acc with State = Normal }
-                    | _ -> acc
-                | _ -> acc
 
-            else
-                acc) initialState
+                else
+                    acc)
+            initialState
         |> fun state -> state.Defines |> List.rev |> List.collect id
 
 and tokenize defines (hashTokens: Token list) (content: string): Token list =
@@ -339,9 +349,10 @@ let getDefineExprs (hashTokens: Token list) =
         let allowedContent = set [ "||"; "&&"; "!"; "("; ")" ]
 
         tokens
-        |> Seq.filter (fun t ->
-            t.TokenInfo.TokenName = "IDENT"
-            || Set.contains t.Content allowedContent)
+        |> Seq.filter
+            (fun t ->
+                t.TokenInfo.TokenName = "IDENT"
+                || Set.contains t.Content allowedContent)
         |> Seq.map (fun t -> t.Content)
         |> Seq.toList
         |> BoolExprParser.parse
@@ -353,28 +364,30 @@ let getDefineExprs (hashTokens: Token list) =
 
     let result =
         (([], []), tokensByLine)
-        ||> List.fold (fun (contextExprs, exprAcc) (_, lineTokens) ->
-                let contextExpr e =
-                    e :: contextExprs
-                    |> List.reduce (fun x y -> BoolExpr.And(x, y))
+        ||> List.fold
+                (fun (contextExprs, exprAcc) (_, lineTokens) ->
+                    let contextExpr e =
+                        e :: contextExprs
+                        |> List.reduce (fun x y -> BoolExpr.And(x, y))
 
-                let t =
-                    lineTokens
-                    |> Seq.tryFind (fun x -> x.TokenInfo.TokenName = "HASH_IF")
+                    let t =
+                        lineTokens
+                        |> Seq.tryFind (fun x -> x.TokenInfo.TokenName = "HASH_IF")
 
-                match t |> Option.map (fun x -> x.Content) with
-                | Some "#if" ->
-                    parseHashContent lineTokens
-                    |> Option.map (fun e -> e :: contextExprs, contextExpr e :: exprAcc)
-                    |> Option.defaultValue (contextExprs, exprAcc)
-                | Some "#else" ->
-                    contextExprs,
-                    BoolExpr.Not
-                        (contextExprs
-                         |> List.reduce (fun x y -> BoolExpr.And(x, y)))
-                    :: exprAcc
-                | Some "#endif" -> List.tail contextExprs, exprAcc
-                | _ -> contextExprs, exprAcc)
+                    match t |> Option.map (fun x -> x.Content) with
+                    | Some "#if" ->
+                        parseHashContent lineTokens
+                        |> Option.map (fun e -> e :: contextExprs, contextExpr e :: exprAcc)
+                        |> Option.defaultValue (contextExprs, exprAcc)
+                    | Some "#else" ->
+                        contextExprs,
+                        BoolExpr.Not(
+                            contextExprs
+                            |> List.reduce (fun x y -> BoolExpr.And(x, y))
+                        )
+                        :: exprAcc
+                    | Some "#endif" -> List.tail contextExprs, exprAcc
+                    | _ -> contextExprs, exprAcc)
         |> snd
         |> List.rev
 
@@ -431,9 +444,10 @@ let private hasOnlySpacesAndLineCommentsOnLine lineNumber tokens =
     else
         tokens
         |> List.filter (fun t -> t.LineNumber = lineNumber)
-        |> List.forall (fun t ->
-            t.TokenInfo.Tag = whiteSpaceTag
-            || t.TokenInfo.Tag = lineCommentTag)
+        |> List.forall
+            (fun t ->
+                t.TokenInfo.Tag = whiteSpaceTag
+                || t.TokenInfo.Tag = lineCommentTag)
 
 let private getContentFromTokens tokens =
     tokens
@@ -486,9 +500,10 @@ let private identIsDecompiledOperator (token: Token) =
 
 let ``only whitespaces were found in the remainder of the line`` lineNumber tokens =
     tokens
-    |> List.exists (fun t ->
-        t.LineNumber = lineNumber
-        && t.TokenInfo.Tag <> whiteSpaceTag)
+    |> List.exists
+        (fun t ->
+            t.LineNumber = lineNumber
+            && t.TokenInfo.Tag <> whiteSpaceTag)
     |> not
 
 let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: Token list) foundTrivia =
@@ -499,9 +514,10 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
                 rest
                 (headToken :: rest
                  |> List.map (fun x -> x.LineNumber))
-            |> Seq.takeWhile (fun (t, currentLineNumber) ->
-                t.TokenInfo.Tag = lineCommentTag
-                && t.LineNumber <= (currentLineNumber + 1))
+            |> Seq.takeWhile
+                (fun (t, currentLineNumber) ->
+                    t.TokenInfo.Tag = lineCommentTag
+                    && t.LineNumber <= (currentLineNumber + 1))
             |> Seq.map fst
             |> Seq.toList
 
@@ -523,11 +539,16 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
         let info =
             let toLineComment =
                 allTokens
-                |> List.exists (fun t ->
-                    t.LineNumber = headToken.LineNumber
-                    && t.TokenInfo.Tag <> whiteSpaceTag
-                    && t.TokenInfo.RightColumn < headToken.TokenInfo.LeftColumn)
-                |> fun e -> if e then LineCommentAfterSourceCode else LineCommentOnSingleLine
+                |> List.exists
+                    (fun t ->
+                        t.LineNumber = headToken.LineNumber
+                        && t.TokenInfo.Tag <> whiteSpaceTag
+                        && t.TokenInfo.RightColumn < headToken.TokenInfo.LeftColumn)
+                |> fun e ->
+                    if e then
+                        LineCommentAfterSourceCode
+                    else
+                        LineCommentOnSingleLine
 
             let comment = toLineComment comment |> Comment
 
@@ -539,14 +560,16 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
     | headToken :: rest when (headToken.TokenInfo.TokenName = "COMMENT") ->
         let blockCommentTokens =
             rest
-            |> List.takeWhileState (fun depth t ->
-                let newDepth =
-                    match t.Content with
-                    | "(*" -> depth + 1
-                    | "*)" -> depth - 1
-                    | _ -> depth
+            |> List.takeWhileState
+                (fun depth t ->
+                    let newDepth =
+                        match t.Content with
+                        | "(*" -> depth + 1
+                        | "*)" -> depth - 1
+                        | _ -> depth
 
-                newDepth, t.TokenInfo.TokenName = "COMMENT" && depth > 0) 1
+                    newDepth, t.TokenInfo.TokenName = "COMMENT" && depth > 0)
+                1
 
         let comment =
             let groupedByLineNumber =
@@ -579,7 +602,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             getRangeBetween "block comment" headToken lastToken
 
         let info =
-            Trivia.Create (Comment(BlockComment(comment, false, false))) range
+            Trivia.Create(Comment(BlockComment(comment, false, false))) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves allTokens nextTokens info
@@ -590,7 +613,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             getRangeBetween "keyword" headToken headToken
 
         let info =
-            Trivia.Create (Keyword(headToken)) range
+            Trivia.Create(Keyword(headToken)) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves allTokens rest info
@@ -610,7 +633,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             getRangeBetween "directive" headToken (List.last directiveTokens)
 
         let info =
-            Trivia.Create (Directive(directiveContent)) range
+            Trivia.Create(Directive(directiveContent)) range
             |> List.prependItem foundTrivia
 
         let nextRest =
@@ -636,16 +659,18 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             let builder = StringBuilder()
 
             stringTokens
-            |> List.fold (fun (b: StringBuilder, currentLine) st ->
-                if currentLine <> st.LineNumber then
-                    let delta = st.LineNumber - currentLine
+            |> List.fold
+                (fun (b: StringBuilder, currentLine) st ->
+                    if currentLine <> st.LineNumber then
+                        let delta = st.LineNumber - currentLine
 
-                    [ 1 .. delta ]
-                    |> List.iter (fun _ -> b.Append("\n") |> ignore)
+                        [ 1 .. delta ]
+                        |> List.iter (fun _ -> b.Append("\n") |> ignore)
 
-                    b.Append(st.Content), st.LineNumber
-                else
-                    b.Append(st.Content), st.LineNumber) (builder, head.LineNumber)
+                        b.Append(st.Content), st.LineNumber
+                    else
+                        b.Append(st.Content), st.LineNumber)
+                (builder, head.LineNumber)
             |> fst
             |> fun b -> b.ToString()
 
@@ -657,7 +682,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             getRangeBetween "string content" head lastToken
 
         let info =
-            Trivia.Create (StringContent(stringContent)) range
+            Trivia.Create(StringContent(stringContent)) range
             |> List.prependItem foundTrivia
 
         let nextRest =
@@ -672,7 +697,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
         let range = getRangeBetween "number" minus head
 
         let info =
-            Trivia.Create (Number(minus.Content + head.Content)) range
+            Trivia.Create(Number(minus.Content + head.Content)) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves allTokens rest info
@@ -681,7 +706,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
         let range = getRangeForSingleToken "number" head
 
         let info =
-            Trivia.Create (Number(head.Content)) range
+            Trivia.Create(Number(head.Content)) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves allTokens rest info
@@ -691,7 +716,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             getRangeBetween "operator as word" head head
 
         let info =
-            Trivia.Create (IdentOperatorAsWord head.Content) range
+            Trivia.Create(IdentOperatorAsWord head.Content) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves allTokens rest info
@@ -703,7 +728,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             getRangeBetween "ident between ``" head head
 
         let info =
-            Trivia.Create (IdentBetweenTicks(head.Content)) range
+            Trivia.Create(IdentBetweenTicks(head.Content)) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves allTokens rest info
@@ -713,7 +738,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             getRangeBetween head.TokenInfo.TokenName head head
 
         let info =
-            Trivia.Create (CharContent(head.Content)) range
+            Trivia.Create(CharContent(head.Content)) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves allTokens rest info
@@ -733,7 +758,12 @@ let private createNewLine lineNumber =
 let private findEmptyNewlinesInTokens (tokens: Token list) (ignoreRanges: FSharp.Compiler.Range.range list) =
     let nonWhitespaceLines =
         tokens
-        |> List.choose (fun t -> if t.TokenInfo.Tag <> whiteSpaceTag then Some t.LineNumber else None)
+        |> List.choose
+            (fun t ->
+                if t.TokenInfo.Tag <> whiteSpaceTag then
+                    Some t.LineNumber
+                else
+                    None)
         |> List.distinct
 
     let ignoreRanges =
@@ -754,10 +784,11 @@ let getTriviaFromTokens (tokens: Token list) =
 
     let blockComments =
         fromTokens
-        |> List.choose (fun tc ->
-            match tc.Item with
-            | Comment (BlockComment _) -> Some tc.Range
-            | _ -> None)
+        |> List.choose
+            (fun tc ->
+                match tc.Item with
+                | Comment (BlockComment _) -> Some tc.Range
+                | _ -> None)
 
     let isMultilineString s =
         String.split StringSplitOptions.None [| "\n" |] s
@@ -765,10 +796,11 @@ let getTriviaFromTokens (tokens: Token list) =
 
     let multilineStrings =
         fromTokens
-        |> List.choose (fun tc ->
-            match tc.Item with
-            | StringContent (sc) when (isMultilineString sc) -> Some tc.Range
-            | _ -> None)
+        |> List.choose
+            (fun tc ->
+                match tc.Item with
+                | StringContent (sc) when (isMultilineString sc) -> Some tc.Range
+                | _ -> None)
 
     let newLines =
         findEmptyNewlinesInTokens tokens (blockComments @ multilineStrings)
@@ -857,11 +889,13 @@ let internal getFsToken tokenName =
 
 let getTriviaNodesFromTokens (tokens: Token list) =
     tokens
-    |> List.filter (fun t ->
-        List.exists (fun tn -> tn = t.TokenInfo.TokenName) tokenNames
-        || List.exists (fun tk -> tk = t.TokenInfo.CharClass) tokenKinds)
-    |> List.map (fun t ->
-        let range =
-            getRangeBetween t.TokenInfo.TokenName t t
+    |> List.filter
+        (fun t ->
+            List.exists (fun tn -> tn = t.TokenInfo.TokenName) tokenNames
+            || List.exists (fun tk -> tk = t.TokenInfo.CharClass) tokenKinds)
+    |> List.map
+        (fun t ->
+            let range =
+                getRangeBetween t.TokenInfo.TokenName t t
 
-        TriviaNodeAssigner(TriviaNodeType.Token(getFsToken t.TokenInfo.TokenName, t), range))
+            TriviaNodeAssigner(TriviaNodeType.Token(getFsToken t.TokenInfo.TokenName, t), range))

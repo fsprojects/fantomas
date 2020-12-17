@@ -6,16 +6,21 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``long named arguments should go on newline`` () =
-    formatSourceString false """let view (model: Model) dispatch =
+    formatSourceString
+        false
+        """let view (model: Model) dispatch =
     View.ContentPage(
         appearing=(fun () -> dispatch PageAppearing),
         title=model.Planet.Info.Name,
         backgroundColor=Color.Black,
         content=["....long line....................................................................................................."]
     )
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let view (model: Model) dispatch =
     View.ContentPage(
         appearing = (fun () -> dispatch PageAppearing),
@@ -28,15 +33,20 @@ let view (model: Model) dispatch =
 
 [<Test>]
 let ``single view entry`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let a =
     View.Entry(
                                     placeholder = "User name",
                                     isEnabled = (not model.IsSigningIn),
                                     textChanged = (fun args -> (dispatch (UserNameChanged args.NewTextValue))))
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a =
     View.Entry(
         placeholder = "User name",
@@ -47,7 +57,9 @@ let a =
 
 [<Test>]
 let ``fabulous view`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     let loginPage =
         View.ContentPage(
             title = "Fabulous Demo",
@@ -82,9 +94,12 @@ let ``fabulous view`` () =
                 )
             )
         )
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let loginPage =
     View.ContentPage(
         title = "Fabulous Demo",
@@ -133,28 +148,43 @@ let loginPage =
 
 [<Test>]
 let ``input without attributes`` () =
-    formatSourceString false """let i = input []
-"""  config
+    formatSourceString
+        false
+        """let i = input []
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let i = input []
 """
 
 [<Test>]
 let ``short input with single attribute`` () =
-    formatSourceString false """let i = input [ Type "text" ]
-"""  config
+    formatSourceString
+        false
+        """let i = input [ Type "text" ]
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let i = input [ Type "text" ]
 """
 
 [<Test>]
 let ``multiline input with multiple attributes`` () =
-    formatSourceString false """let i = input [ Type "text"; Required "required" ]
-"""  config
+    formatSourceString
+        false
+        """let i = input [ Type "text"; Required "required" ]
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let i =
     input [ Type "text"
             Required "required" ]
@@ -162,38 +192,58 @@ let i =
 
 [<Test>]
 let ``div without children or attributes`` () =
-    formatSourceString false """let d = div [] []
-"""  config
+    formatSourceString
+        false
+        """let d = div [] []
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let d = div [] []
 """
 
 [<Test>]
 let ``div with short attributes`` () =
-    formatSourceString false """let d = div [ ClassName "mt-4" ] []
-"""  config
+    formatSourceString
+        false
+        """let d = div [ ClassName "mt-4" ] []
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let d = div [ ClassName "mt-4" ] []
 """
 
 
 [<Test>]
 let ``div with no attributes and short children`` () =
-    formatSourceString false """let d = div [] [ str "meh" ]
-"""  config
+    formatSourceString
+        false
+        """let d = div [] [ str "meh" ]
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let d = div [] [ str "meh" ]
 """
 
 [<Test>]
 let ``div with multiline attributes`` () =
-    formatSourceString false """let d = div [ ClassName "container"; OnClick (fun _ -> printfn "meh")  ] []
-"""  config
+    formatSourceString
+        false
+        """let d = div [ ClassName "container"; OnClick (fun _ -> printfn "meh")  ] []
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let d =
     div [ ClassName "container"
           OnClick(fun _ -> printfn "meh") ] []
@@ -201,14 +251,19 @@ let d =
 
 [<Test>]
 let ``div with not attributes and multiple elmish children`` () =
-    formatSourceString false """let d =
+    formatSourceString
+        false
+        """let d =
     div [] [
       span [] [ str "a" ]
       span [] [ str "b" ]
     ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let d =
     div [] [
         span [] [ str "a" ]
@@ -218,14 +273,19 @@ let d =
 
 [<Test>]
 let ``div with single attribute and children`` () =
-    formatSourceString false """let view =
+    formatSourceString
+        false
+        """let view =
     div [ ClassName "container" ] [
         h1 [] [ str "A heading 1" ]
         p [] [ str "A paragraph" ]
     ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let view =
     div [ ClassName "container" ] [
         h1 [] [ str "A heading 1" ]
@@ -235,14 +295,19 @@ let view =
 
 [<Test>]
 let ``div with multiple attributes and children`` () =
-    formatSourceString false """let d =
+    formatSourceString
+        false
+        """let d =
 div [ ClassName "container"; OnClick (fun _ -> printfn "meh") ] [
     span [] [str "foo"]
     code [] [str "bar"]
 ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let d =
     div [ ClassName "container"
           OnClick(fun _ -> printfn "meh") ] [
@@ -254,37 +319,52 @@ let d =
 
 [<Test>]
 let ``short div with short p`` () =
-    formatSourceString false """let d =
+    formatSourceString
+        false
+        """let d =
     div [] [ p [] [ str "meh" ] ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let d = div [] [ p [] [ str "meh" ] ]
 """
 
 
 [<Test>]
 let ``short div with multiple short children`` () =
-    formatSourceString false """let d =
+    formatSourceString
+        false
+        """let d =
     div [] [
       br [] ; br []
     ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let d = div [] [ br []; br [] ]
 """
 
 [<Test>]
 let ``div with long children but a long setting`` () =
-    formatSourceString false """let d =
+    formatSourceString
+        false
+        """let d =
     div [] [
         p [] [ str "fooooooooo" ]
         p [] [ str "baaaaaaaar" ]
     ]
-"""  { config with MaxElmishWidth = 150 }
+"""
+        { config with MaxElmishWidth = 150 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let d =
     div [] [ p [] [ str "fooooooooo" ]; p [] [ str "baaaaaaaar" ] ]
 """
@@ -294,11 +374,16 @@ let d =
 
 [<Test>]
 let ``short div with slightly longer p`` () =
-    formatSourceString false """let d =
+    formatSourceString
+        false
+        """let d =
     div [] [ p [] [ str "meeeeeeeeeeeeeeeeeeeeeh" ] ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let d =
     div [] [
         p [] [ str "meeeeeeeeeeeeeeeeeeeeeh" ]
@@ -307,11 +392,16 @@ let d =
 
 [<Test>]
 let ``div with longer p`` () =
-    formatSourceString false """let d =
+    formatSourceString
+        false
+        """let d =
     div [] [ p [] [ str "meeeeeeeeeeeeeeeeeeeeehhhh" ] ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let d =
     div [] [
         p [] [
@@ -322,7 +412,9 @@ let d =
 
 [<Test>]
 let counter () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let view model dispatch =
   div [] [
     button [ OnClick (fun _ -> dispatch Decrement) ] [
@@ -335,9 +427,12 @@ let view model dispatch =
         str "+"
     ]
   ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let view model dispatch =
     div [] [
         button [ OnClick(fun _ -> dispatch Decrement) ] [
@@ -352,7 +447,9 @@ let view model dispatch =
 
 [<Test>]
 let ``view entry`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let viewEntry todo dispatch =
   li [ classList [ ("completed", todo.completed); ("editing", todo.editing) ] ]
      [ div [ ClassName "view" ]
@@ -374,9 +471,12 @@ let viewEntry todo dispatch =
                OnBlur (fun _ -> EditingEntry (todo.id,false) |> dispatch)
                onEnter (EditingEntry (todo.id,false)) dispatch ]
     ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let viewEntry todo dispatch =
     li [ classList [ ("completed", todo.completed)
                      ("editing", todo.editing) ] ] [
@@ -406,13 +506,18 @@ let viewEntry todo dispatch =
 
 [<Test>]
 let ``multiline attributes, no children`` () =
-    formatSourceString false """let a =
+    formatSourceString
+        false
+        """let a =
                button [ ClassName "destroy"
                         OnClick(fun _-> Delete todo.id |> dispatch) ]
                       []
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a =
     button [ ClassName "destroy"
              OnClick(fun _ -> Delete todo.id |> dispatch) ] []
@@ -420,7 +525,9 @@ let a =
 
 [<Test>]
 let ``table and tbody`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 table [ ClassName "table table-striped table-hover mb-0" ]
               [ tbody []
                     [ tokenDetailRow "TokenName" (str tokenName)
@@ -432,9 +539,12 @@ table [ ClassName "table table-striped table-hover mb-0" ]
                       tokenDetailRow "Tag" (ofInt tag)
                       tokenDetailRow "FullMatchedLength"
                           (span [ ClassName "has-text-weight-semibold" ] [ ofInt fullMatchedLength ]) ] ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 table [ ClassName "table table-striped table-hover mb-0" ] [
     tbody [] [
         tokenDetailRow "TokenName" (str tokenName)
@@ -455,7 +565,9 @@ table [ ClassName "table table-striped table-hover mb-0" ] [
 
 [<Test>]
 let ``child with empty children`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let commands dispatch =
     Button.button
         [ Button.Color Primary
@@ -464,9 +576,12 @@ let commands dispatch =
                 OnClick(fun _ -> dispatch GetTrivia) ] ]
         [ i [ ClassName "fas fa-code mr-1" ] []
           str "Get trivia" ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let commands dispatch =
     Button.button [ Button.Color Primary
                     Button.Custom [ ClassName "rounded-0"
@@ -478,7 +593,9 @@ let commands dispatch =
 
 [<Test>]
 let ``clock with two spaces`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let view (CurrentTime time) dispatch =
     svg
       [ ViewBox "0 0 100 100"
@@ -506,9 +623,12 @@ let view (CurrentTime time) dispatch =
             SVG.Stroke "#023963"
             SVG.StrokeWidth 1.0 ] []
       ]
-"""  { config with IndentSize = 2 }
+"""
+        { config with IndentSize = 2 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let view (CurrentTime time) dispatch =
   svg [ ViewBox "0 0 100 100"
         SVG.Width "350px" ] [
@@ -537,10 +657,15 @@ let view (CurrentTime time) dispatch =
 
 [<Test>]
 let ``input with attribute array`` () =
-    formatSourceString false """let ia = input [| Type "hidden"; Name "code"; Required "required" |]
-"""  config
+    formatSourceString
+        false
+        """let ia = input [| Type "hidden"; Name "code"; Required "required" |]
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let ia =
     input [| Type "hidden"
              Name "code"
@@ -549,11 +674,16 @@ let ia =
 
 [<Test>]
 let ``div with children array`` () =
-    formatSourceString false """let d =
+    formatSourceString
+        false
+        """let d =
     div [||] [| p [||] [| str "oh my foobar" |] |]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let d =
     div [||] [|
         p [||] [| str "oh my foobar" |]
@@ -562,7 +692,9 @@ let d =
 
 [<Test>]
 let ``mix lists and array`` () =
-    formatSourceString false """let view dispatch model =
+    formatSourceString
+        false
+        """let view dispatch model =
     div [| Class "container" |]
         [
           h1 [] [| str "my title" |]
@@ -570,9 +702,12 @@ let ``mix lists and array`` () =
                 str "click me"
           ]
         ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let view dispatch model =
     div [| Class "container" |] [
         h1 [] [| str "my title" |]
@@ -584,17 +719,24 @@ let view dispatch model =
 
 [<Test>]
 let ``short feliz element`` () =
-    formatSourceString false """let a =
+    formatSourceString
+        false
+        """let a =
     Html.h1 [ prop.text "some title" ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a = Html.h1 [ prop.text "some title" ]
 """
 
 [<Test>]
 let ``multiline feliz element`` () =
-    formatSourceString false """let a =
+    formatSourceString
+        false
+        """let a =
         Html.button [
             prop.style [ style.marginLeft 5 ]
             prop.onClick (fun _ -> setCount(count - 1))
@@ -604,7 +746,9 @@ let ``multiline feliz element`` () =
         { config with
               SingleArgumentWebMode = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a =
     Html.button [
         prop.style [ style.marginLeft 5 ]
@@ -615,7 +759,9 @@ let a =
 
 [<Test>]
 let ``nested feliz elements`` () =
-    formatSourceString false """let a =
+    formatSourceString
+        false
+        """let a =
     Html.div [
         Html.h1 [ prop.text "short" ]
         Html.button [
@@ -628,7 +774,9 @@ let ``nested feliz elements`` () =
         { config with
               SingleArgumentWebMode = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a =
     Html.div [
         Html.h1 [ prop.text "short" ]
@@ -642,7 +790,9 @@ let a =
 
 [<Test>]
 let ``feliz counter sample`` () =
-    formatSourceString false """module App
+    formatSourceString
+        false
+        """module App
 
 open Feliz
 
@@ -671,7 +821,9 @@ ReactDOM.render(counter, document.getElementById "root")
         { config with
               SingleArgumentWebMode = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module App
 
 open Feliz
@@ -704,7 +856,9 @@ ReactDOM.render (counter, document.getElementById "root")
 
 [<Test>]
 let ``feliz syntax`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 Html.h1 42
 
 Html.div "Hello there!"
@@ -720,7 +874,9 @@ Html.ul [
         { config with
               SingleArgumentWebMode = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Html.h1 42
 
 Html.div "Hello there!"
@@ -736,7 +892,9 @@ Html.ul [
 
 [<Test>]
 let ``feliz construct with a single element as child, 999`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let drawer =
     Mui.drawer [
         // drawer.open' props.IsOpen
@@ -765,7 +923,9 @@ let drawer =
         { config with
               SingleArgumentWebMode = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let drawer =
     Mui.drawer [
         // drawer.open' props.IsOpen
@@ -792,7 +952,9 @@ let drawer =
 
 [<Test>]
 let ``react hook`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
     let id = Guid.Parse(id)
     let eventCtx = React.useContext (eventContext)
@@ -826,9 +988,12 @@ let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
             box location.Creator |])
 
     location, creatorName
-"""  { config with SpaceBeforeColon = true }
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
     let id = Guid.Parse(id)
     let eventCtx = React.useContext (eventContext)
@@ -869,15 +1034,20 @@ let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
 
 [<Test>]
 let ``keep comment after closing bracket, 1089`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
         Gen.frequency [ 8,
                         2,
                         Gen.map5 (fun b1 b2 expr1 expr2 pat ->
                             SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
                             Arb.generate<_> Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubSynPat ] //
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Gen.frequency [ 8,
                 2,
                 Gen.map5
@@ -892,7 +1062,9 @@ Gen.frequency [ 8,
 
 [<Test>]
 let ``keep comment after closing bracket, single web mode`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
         Gen.frequency [ 8,
                         2,
                         Gen.map5 (fun b1 b2 expr1 expr2 pat ->
@@ -902,7 +1074,9 @@ let ``keep comment after closing bracket, single web mode`` () =
         { config with
               SingleArgumentWebMode = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Gen.frequency [
     8,
     2,

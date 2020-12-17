@@ -11,24 +11,34 @@ let config =
 
 [<Test>]
 let ``single member record stays on one line`` () =
-    formatSourceString false """let a = { Foo = "bar" }
-"""  config
+    formatSourceString
+        false
+        """let a = { Foo = "bar" }
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a = { Foo = "bar" }
 """
 
 [<Test>]
 let ``record instance`` () =
-    formatSourceString false """let myRecord =
+    formatSourceString
+        false
+        """let myRecord =
     { Level = 1
       Progress = "foo"
       Bar = "bar"
       Street = "Bakerstreet"
       Number = 42 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let myRecord =
     { Level = 1
       Progress = "foo"
@@ -39,7 +49,9 @@ let myRecord =
 
 [<Test>]
 let ``nested record`` () =
-    formatSourceString false """let myRecord =
+    formatSourceString
+        false
+        """let myRecord =
     { Level = 1
       Progress = "foo"
       Bar = { Zeta = "bar" }
@@ -47,9 +59,12 @@ let ``nested record`` () =
           { Street = "Bakerstreet"
             ZipCode = "9000" }
       Number = 42 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let myRecord =
     { Level = 1
       Progress = "foo"
@@ -62,14 +77,19 @@ let myRecord =
 
 [<Test>]
 let ``update record`` () =
-    formatSourceString false """let myRecord =
+    formatSourceString
+        false
+        """let myRecord =
     { myOldRecord
         with Level = 2
              Bar = "barry"
              Progress = "fooey" }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let myRecord =
     { myOldRecord with
           Level = 2
@@ -79,24 +99,34 @@ let myRecord =
 
 [<Test>]
 let ``update record with single field`` () =
-    formatSourceString false """let myRecord =
+    formatSourceString
+        false
+        """let myRecord =
     { myOldRecord
         with Level = 2 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let myRecord = { myOldRecord with Level = 2 }
 """
 
 [<Test>]
 let ``record instance with inherit keyword`` () =
-    formatSourceString false """let a =
+    formatSourceString
+        false
+        """let a =
         { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
           buildSettings = FSharpBuildSettings()
           targetPlatformData = targetPlatformData }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a =
     { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK)
       buildSettings = FSharpBuildSettings()
@@ -105,24 +135,34 @@ let a =
 
 [<Test>]
 let ``record instance with inherit keyword and no fields`` () =
-    formatSourceString false """let a =
+    formatSourceString
+        false
+        """let a =
         { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK) }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a =
     { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK) }
 """
 
 [<Test>]
 let ``type with record instance with inherit keyword`` () =
-    formatSourceString false """type ServerCannotBeResolvedException =
+    formatSourceString
+        false
+        """type ServerCannotBeResolvedException =
     inherit CommunicationUnsuccessfulException
 
     new(message) =
-        { inherit CommunicationUnsuccessfulException(message) }""" config
+        { inherit CommunicationUnsuccessfulException(message) }"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type ServerCannotBeResolvedException =
     inherit CommunicationUnsuccessfulException
 
@@ -131,15 +171,20 @@ type ServerCannotBeResolvedException =
 
 [<Test>]
 let ``anonymous record`` () =
-    formatSourceString false """let meh =
+    formatSourceString
+        false
+        """let meh =
     {| Level = 1
        Progress = "foo"
        Bar = "bar"
        Street = "Bakerstreet"
        Number = 42 |}
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let meh =
     {| Level = 1
        Progress = "foo"
@@ -150,19 +195,29 @@ let meh =
 
 [<Test>]
 let ``anonymous record with single field update`` () =
-    formatSourceString false """let a = {| foo with Level = 7 |}
-"""  config
+    formatSourceString
+        false
+        """let a = {| foo with Level = 7 |}
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a = {| foo with Level = 7 |}
 """
 
 [<Test>]
 let ``anonymous record with multiple field update`` () =
-    formatSourceString false """let a = {| foo with Level = 7; Square = 9 |}
-"""  ({ config with MaxRecordWidth = 35 })
+    formatSourceString
+        false
+        """let a = {| foo with Level = 7; Square = 9 |}
+"""
+        ({ config with MaxRecordWidth = 35 })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a =
     {| foo with
            Level = 7
@@ -171,10 +226,15 @@ let a =
 
 [<Test>]
 let ``anonymous type`` () =
-    formatSourceString false """type a = {| foo : string; bar : string |}
-"""  config
+    formatSourceString
+        false
+        """type a = {| foo : string; bar : string |}
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type a =
     {| foo: string
        bar: string |}
@@ -182,24 +242,34 @@ type a =
 
 [<Test>]
 let ``anonymous record with single field`` () =
-    formatSourceString false """let a = {| A = "meh" |}
-"""  config
+    formatSourceString
+        false
+        """let a = {| A = "meh" |}
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a = {| A = "meh" |}
 """
 
 [<Test>]
 let ``anonymous record with child records`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let anonRecord =
     {| A = {| A1 = "string";A2LongerIdentifier = "foo" |};
        B = {| B1 = 7 |}
        C= { C1 = "foo"; C2LongerIdentifier = "bar"}
        D = { D1 = "bar" } |}
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let anonRecord =
     {| A =
            {| A1 = "string"
@@ -213,11 +283,16 @@ let anonRecord =
 
 [<Test>]
 let ``record as parameter to function`` () =
-    formatSourceString false """let configurations =
+    formatSourceString
+        false
+        """let configurations =
     buildConfiguration { XXXXXXXXXXXX = "XXXXXXXXXXXXX"; YYYYYYYYYYYY = "YYYYYYYYYYYYYYY" }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let configurations =
     buildConfiguration
         { XXXXXXXXXXXX = "XXXXXXXXXXXXX"
@@ -226,15 +301,20 @@ let configurations =
 
 [<Test>]
 let ``records in list`` () =
-    formatSourceString false """let configurations =
+    formatSourceString
+        false
+        """let configurations =
     [
         { Build = true; Configuration = "RELEASE"; Defines = ["FOO"] }
         { Build = true; Configuration = "DEBUG"; Defines = ["FOO";"BAR"] }
         { Build = true; Configuration = "UNKNOWN"; Defines = [] }
     ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let configurations =
     [ { Build = true
         Configuration = "RELEASE"
@@ -249,14 +329,19 @@ let configurations =
 
 [<Test>]
 let ``anonymous records in list`` () =
-    formatSourceString false """let configurations =
+    formatSourceString
+        false
+        """let configurations =
     [
         {| Build = true; Configuration = "RELEASE"; Defines = ["FOO"] |}
         {| Build = true; Configuration = "DEBUG"; Defines = ["FOO";"BAR"] |}
     ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let configurations =
     [ {| Build = true
          Configuration = "RELEASE"
@@ -268,14 +353,19 @@ let configurations =
 
 [<Test>]
 let ``records in array`` () =
-    formatSourceString false """let configurations =
+    formatSourceString
+        false
+        """let configurations =
     [|
         { Build = true; Configuration = "RELEASE"; Defines = ["FOO"] }
         { Build = true; Configuration = "DEBUG"; Defines = ["FOO";"BAR"] }
     |]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let configurations =
     [| { Build = true
          Configuration = "RELEASE"
@@ -287,11 +377,16 @@ let configurations =
 
 [<Test>]
 let ``object expression`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let obj1 = { new System.Object() with member x.ToString() = "F#" }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let obj1 =
     { new System.Object() with
         member x.ToString() = "F#" }
@@ -301,15 +396,20 @@ let obj1 =
 [<Ignore("Issue #1170")>]
 [<Test>]
 let ``object expressions in list, 1170`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let a =
     [
         { new System.Object() with member x.ToString() = "F#" }
         { new System.Object() with member x.ToString() = "C#" }
     ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a =
     [ { new System.Object() with
           member x.ToString() = "F#" }
@@ -319,7 +419,9 @@ let a =
 
 [<Test>]
 let ``record type signature with bracketOnSeparateLine`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 module RecordSignature
 /// Represents simple XML elements.
 type Element =
@@ -332,9 +434,12 @@ type Element =
 
       /// The qualified name.
       Name: Name }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module RecordSignature
 /// Represents simple XML elements.
 type Element =
@@ -351,7 +456,9 @@ type Element =
 
 [<Test>]
 let ``record type with member definitions should align with bracket`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Range =
     { From: float
       To: float }
@@ -360,7 +467,9 @@ type Range =
         { config with
               MaxValueBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Range =
     { From: float
       To: float }
@@ -369,14 +478,19 @@ type Range =
 
 [<Test>]
 let ``record type with interface`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type MyRecord =
     { SomeField : int
     }
     interface IMyInterface
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type MyRecord =
     { SomeField: int }
     interface IMyInterface
@@ -384,12 +498,17 @@ type MyRecord =
 
 [<Test>]
 let ``SynPat.Record in pattern match, 1173`` () =
-    formatSourceString false """match foo with
+    formatSourceString
+        false
+        """match foo with
 | { Bar = bar; Level = 12; Vibes = plenty; Lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " } -> "7"
 | _ -> "8"
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 match foo with
 | { Bar = bar
     Level = 12
@@ -401,15 +520,20 @@ match foo with
 
 [<Test>]
 let ``record declaration`` () =
-    formatSourceString false """type MyRecord =
+    formatSourceString
+        false
+        """type MyRecord =
     { Level: int
       Progress: string
       Bar: string
       Street: string
       Number: int }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type MyRecord =
     { Level: int
       Progress: string
@@ -420,16 +544,21 @@ type MyRecord =
 
 [<Test>]
 let ``record declaration in signature file`` () =
-    formatSourceString true """namespace X
+    formatSourceString
+        true
+        """namespace X
 type MyRecord =
     { Level: int
       Progress: string
       Bar: string
       Street: string
       Number: int }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace X
 
 type MyRecord =
@@ -442,7 +571,9 @@ type MyRecord =
 
 [<Test>]
 let ``record declaration with members in signature file`` () =
-    formatSourceString true """namespace X
+    formatSourceString
+        true
+        """namespace X
 type MyRecord =
     { Level: int
       Progress: string
@@ -450,9 +581,12 @@ type MyRecord =
       Street: string
       Number: int }
     member Score : unit -> int
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace X
 
 type MyRecord =
@@ -467,7 +601,9 @@ type MyRecord =
 
 [<Test>]
 let ``no newline before first multiline member`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type ShortExpressionInfo =
     { MaxWidth: int
       StartColumn: int
@@ -480,7 +616,9 @@ type ShortExpressionInfo =
         ({ config with
                NewlineBetweenTypeDefinitionAndMembers = false })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type ShortExpressionInfo =
     { MaxWidth: int
       StartColumn: int
@@ -494,10 +632,15 @@ type ShortExpressionInfo =
 
 [<Test>]
 let ``internal keyword before multiline record type, 1171`` () =
-    formatSourceString false """
-    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }""" config
+    formatSourceString
+        false
+        """
+    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type A =
     internal
         { ALongIdentifier: string
@@ -506,11 +649,16 @@ type A =
 
 [<Test>]
 let ``internal keyword before multiline record type in signature file, 1171`` () =
-    formatSourceString true """namespace Bar
+    formatSourceString
+        true
+        """namespace Bar
 
-    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }""" config
+    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Bar
 
 type A =
@@ -526,7 +674,9 @@ let ``indent update record fields far enough, 817`` () =
         "let expected = { ThisIsAThing.Empty with TheNewValue = 1; ThatValue = 2 }"
         ({ config with IndentSize = 2 })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let expected =
   { ThisIsAThing.Empty with
       TheNewValue = 1
@@ -540,7 +690,9 @@ let ``indent update anonymous record fields far enough`` () =
         "let expected = {| ThisIsAThing.Empty with TheNewValue = 1; ThatValue = 2 |}"
         ({ config with IndentSize = 2 })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let expected =
   {| ThisIsAThing.Empty with
        TheNewValue = 1
@@ -551,7 +703,9 @@ let expected =
 let ``update record with standard indent`` () =
     formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1; ThatValue = 2 }" config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let expected =
     { ThisIsAThing.Empty with
           TheNewValue = 1
@@ -560,7 +714,9 @@ let expected =
 
 [<Test>]
 let ``record type with attributes`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<Foo>]
 type Args =
     { [<Foo "">]
@@ -571,9 +727,12 @@ type Args =
 module Foo =
 
     let r = 3
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Foo>]
 type Args =
     { [<Foo "">]
@@ -588,7 +747,9 @@ module Foo =
 
 [<Test>]
 let ``comment before access modifier of record type declaration`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type TestType =
     // Here is some comment about the type
     // Some more comments
@@ -596,9 +757,12 @@ type TestType =
         {
             Foo : int
         }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type TestType =
     // Here is some comment about the type
     // Some more comments
@@ -607,7 +771,9 @@ type TestType =
 
 [<Test>]
 let ``defines in record assignment, 968`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let config = {
     title = "Fantomas"
     description = "Fantomas is a code formatter for F#"
@@ -619,9 +785,12 @@ let config = {
         "https://fsprojects.github.io/fantomas/"
       #endif
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let config =
     { title = "Fantomas"
       description = "Fantomas is a code formatter for F#"
@@ -639,14 +808,19 @@ let config =
 [<Ignore("Issue #1172")>]
 [<Test>]
 let ``comment after closing brace in nested record, 1172`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let person =
     { Name = "James"
       Address = { Street = "Bakerstreet"; Number = 42 }  // end address
     } // end person
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let person =
     { Name = "James"
       Address =
@@ -657,14 +831,18 @@ let person =
 
 [<Test>]
 let ``number of items sized record definitions are formatted properly`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type R = { a: int; b: string; c: float option }
 type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
     """
         { config with
               RecordMultilineFormatter = NumberOfItems }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type R =
     { a: int
       b: string
@@ -674,8 +852,11 @@ type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
 """
 
 [<Test>]
-let ``number of items sized record definitions with multiline block brackets on same column are formatted properly`` () =
-    formatSourceString false """
+let ``number of items sized record definitions with multiline block brackets on same column are formatted properly`` ()
+                                                                                                                     =
+    formatSourceString
+        false
+        """
 type R = { a: int; b: string; c: float option }
 type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
     """
@@ -683,7 +864,9 @@ type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
               RecordMultilineFormatter = NumberOfItems
               MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type R =
     {
         a: int
@@ -696,7 +879,9 @@ type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
 
 [<Test>]
 let ``number of items sized record expressions are formatted properly`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let r = { a = x; b = y; z = c }
 let s = { AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 
@@ -712,7 +897,9 @@ g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
         { config with
               RecordMultilineFormatter = NumberOfItems }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let r =
     { a = x
       b = y
@@ -749,8 +936,11 @@ g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 """
 
 [<Test>]
-let ``number of items sized record expressions with multiline block brackets on same column are formatted properly`` () =
-    formatSourceString false """
+let ``number of items sized record expressions with multiline block brackets on same column are formatted properly`` ()
+                                                                                                                     =
+    formatSourceString
+        false
+        """
 let r = { a = x; b = y; z = c }
 let s = { AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 
@@ -767,7 +957,9 @@ g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
               RecordMultilineFormatter = NumberOfItems
               MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let r =
     {
         a = x
@@ -811,7 +1003,9 @@ g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 
 [<Test>]
 let ``number of items sized anonymous record expressions are formatted properly`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let r = {| a = x; b = y; z = c |}
 let s = {| AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 
@@ -827,7 +1021,9 @@ g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
         { config with
               RecordMultilineFormatter = NumberOfItems }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let r =
     {| a = x
        b = y
@@ -864,8 +1060,11 @@ g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 """
 
 [<Test>]
-let ``number of items sized anonymous record expressions with multiline block brackets on same column are formatted properly`` () =
-    formatSourceString false """
+let ``number of items sized anonymous record expressions with multiline block brackets on same column are formatted properly`` ()
+                                                                                                                               =
+    formatSourceString
+        false
+        """
 let r = {| a = x; b = y; z = c |}
 let s = {| AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 
@@ -882,7 +1081,9 @@ g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
               RecordMultilineFormatter = NumberOfItems
               MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let r =
     {|
         a = x
@@ -926,7 +1127,9 @@ g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 
 [<Test>]
 let ``number of items sized anonymous record types are formatted properly`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f (x: {| x: int; y: obj |}) = x
 let g (x: {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}) = x
 type A = {| x: int; y: obj |}
@@ -935,7 +1138,9 @@ type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
         { config with
               RecordMultilineFormatter = NumberOfItems }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f (x: {| x: int
              y: obj |}) =
     x
@@ -952,8 +1157,11 @@ type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
 // FIXME: See https://github.com/fsprojects/fantomas/issues/1167
 [<Test>]
 [<Ignore("Issue #1167")>]
-let ``number of items sized anonymous record types with multiline block brackets on same column are formatted properly`` () =
-    formatSourceString false """
+let ``number of items sized anonymous record types with multiline block brackets on same column are formatted properly`` ()
+                                                                                                                         =
+    formatSourceString
+        false
+        """
 let f (x: {| x: int; y: obj |}) = x
 let g (x: {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}) = x
 type A = {| x: int; y: obj |}
@@ -963,7 +1171,9 @@ type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
               RecordMultilineFormatter = NumberOfItems
               MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 
 let f (x: {|
               x : int

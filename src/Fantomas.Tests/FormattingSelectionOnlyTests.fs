@@ -6,54 +6,79 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``should format a part of a line correctly`` () =
-    formatSelectionOnly false (makeRange 3 8 3 10) """
+    formatSelectionOnly
+        false
+        (makeRange 3 8 3 10)
+        """
 let x = 2 + 3
 let y = 1+2
-let z = x + y""" config
+let z = x + y"""
+        config
     |> should equal """1 + 2"""
 
 [<Test>]
 let ``should format a whole line correctly and preserve indentation`` () =
-    formatSelectionOnly false (makeRange 3 0 3 36) """
+    formatSelectionOnly
+        false
+        (makeRange 3 0 3 36)
+        """
     let base1 = d1 :> Base1
-    let derived1 = base1 :?> Derived1""" config
+    let derived1 = base1 :?> Derived1"""
+        config
     |> should equal """    let derived1 = base1 :?> Derived1"""
 
 [<Test>]
 let ``should format a few lines correctly and preserve indentation`` () =
-    formatSelectionOnly false (makeRange 3 4 5 51) """
+    formatSelectionOnly
+        false
+        (makeRange 3 4 5 51)
+        """
 let rangeTest testValue mid size =
     match testValue with
     | var1 when var1 >= mid - size/2 && var1 <= mid + size/2 -> printfn "The test value is in range."
     | _ -> printfn "The test value is out of range."
 
-let (var1, var2) as tuple1 = (1, 2)""" config
+let (var1, var2) as tuple1 = (1, 2)"""
+        config
     |> append newline
-    |> should equal """match testValue with
+    |> should
+        equal
+        """match testValue with
     | var1 when var1 >= mid - size / 2 && var1 <= mid + size / 2 -> printfn "The test value is in range."
     | _ -> printfn "The test value is out of range."
 """
 
 [<Test>]
 let ``should format a top-level let correctly`` () =
-    formatSelectionOnly false (makeRange 3 0 3 10) """
+    formatSelectionOnly
+        false
+        (makeRange 3 0 3 10)
+        """
 let x = 2 + 3
 let y = 1+2
-let z = x + y""" config
+let z = x + y"""
+        config
     |> should equal """let y = 1 + 2"""
 
 [<Test>]
 let ``should skip whitespace at the beginning of lines`` () =
-    formatSelectionOnly false (makeRange 3 3 3 27) """
+    formatSelectionOnly
+        false
+        (makeRange 3 3 3 27)
+        """
 type Product' (backlogItemId) =
     let mutable ordering = 0
     let mutable version = 0
-    let backlogItems = []""" config
+    let backlogItems = []"""
+        config
     |> should equal """ let mutable ordering = 0"""
 
 [<Test>]
 let ``should parse a complete expression correctly`` () =
-    formatSelectionOnly false (makeRange 4 0 5 35) """
+    formatSelectionOnly
+        false
+        (makeRange 4 0 5 35)
+        """
 open Fantomas.CodeFormatter
 
 let config = { FormatConfig.Default with
@@ -77,29 +102,40 @@ let source = "
 
 [<Test>]
 let ``should format the selected pipeline correctly`` () =
-    formatSelectionOnly false (makeRange 3 4 7 18) """
+    formatSelectionOnly
+        false
+        (makeRange 3 4 7 18)
+        """
 let r =
     [ "abc"
       "a"
       "b"
       "" ]
-    |> List.map id""" config
+    |> List.map id"""
+        config
     |> should equal """[ "abc"; "a"; "b"; "" ] |> List.map id"""
 
 [<Test>]
 let ``should preserve line breaks before and after selection`` () =
-    formatSelectionOnly false (makeRange 3 0 4 25) """
+    formatSelectionOnly
+        false
+        (makeRange 3 0 4 25)
+        """
 assert (3 > 2)
 
 let result = lazy (x + 10)
 
 do printfn "Hello world"
-"""  config
+"""
+        config
     |> should equal """let result = lazy (x + 10)"""
 
 [<Test>]
 let ``should detect members and format appropriately`` () =
-    formatSelectionOnly false (makeRange 4 0 5 32) """
+    formatSelectionOnly
+        false
+        (makeRange 4 0 5 32)
+        """
 type T () =
   let items = []
   override x.Reorder () =
@@ -110,17 +146,26 @@ type T () =
 
 [<Test>]
 let ``should format the and branch of recursive functions`` () =
-    formatSelectionOnly false (makeRange 3 0 4 34) """
+    formatSelectionOnly
+        false
+        (makeRange 3 0 4 34)
+        """
 let rec createJArray x = createJObject
 
 and createJObject y = createJArray
-"""  config
-    |> should equal """and createJObject y = createJArray
+"""
+        config
+    |> should
+        equal
+        """and createJObject y = createJArray
 """
 
 [<Test>]
 let ``should format recursive types correctly`` () =
-    formatSelectionOnly false (makeRange 7 0 10 48) """
+    formatSelectionOnly
+        false
+        (makeRange 7 0 10 48)
+        """
 type Folder(pathIn : string) =
     let path = pathIn
     let filenameArray : string array = System.IO.Directory.GetFiles(path)
@@ -133,23 +178,31 @@ and File(filename: string, containingFolder: Folder) =
         { config with
               MaxValueBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 and File(filename: string, containingFolder: Folder) =
     member __.Name = filename
     member __.ContainingFolder = containingFolder"""
 
 [<Test>]
 let ``should not add trailing whitespaces and preserve indentation`` () =
-    formatSelectionOnly false (makeRange 4 0 7 15) """
+    formatSelectionOnly
+        false
+        (makeRange 4 0 7 15)
+        """
 module Enums =
     // Declaration of an enumeration.
     type Colour =
       | Red = 0
       | Green = 1
       | Blue = 2
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
     type Colour =
         | Red = 0
         | Green = 1
