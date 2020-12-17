@@ -2130,51 +2130,6 @@ and genExpr astContext synExpr ctx =
 
             atCurrentColumn (colWithNlnWhenItemIsMultiline items)
 
-        | IfThenElse (e1, e2, None, mIfToThen) ->
-            fun (ctx: Context) ->
-                let maxWidth = ctx.Config.MaxIfThenElseShortWidth
-                let keepIfThenInSameLine = ctx.Config.KeepIfThenInSameLine
-
-                let thenKeywordHasLineComment =
-                    TriviaHelpers.``has content after after that matches`` (fun tn ->
-                        // there is like a one of bug here
-                        let correctedRange =
-                            mkRange "correctedRange" tn.Range.Start (mkPos tn.Range.EndLine (tn.Range.EndColumn + 1))
-
-                        RangeHelpers.rangeEndEq correctedRange mIfToThen) (function
-                        | Comment (LineCommentAfterSourceCode _) -> true
-                        | _ -> false) (Map.tryFindOrEmptyList THEN ctx.TriviaTokenNodes)
-
-                let thenExpr = tokN mIfToThen THEN
-
-                (leadingExpressionResult (!- "if " +> genExpr astContext e1) (fun ((lb, cb), (la, ca)) ->
-                     let thenExpressionIsMultiline =
-                         thenKeywordHasLineComment
-                         || futureNlnCheck (genExpr astContext e2) ctx
-
-                     if lb < la
-                        || thenExpressionIsMultiline
-                        || keepIfThenInSameLine then // if or then expression was multiline
-                         thenExpr (!- " then")
-                         +> indent
-                         +> sepNln
-                         +> genExpr astContext e2
-                         +> unindent
-                     elif (lb = la && (ca - cb) > maxWidth)
-                          && not thenExpressionIsMultiline then // if expression is longer than maxWidth but not multiline
-                         sepNln
-                         +> thenExpr (!- "then ")
-                         +> genExpr astContext e2
-                     elif (exceedsWidth maxWidth (genExpr astContext e2) ctx)
-                          && not thenExpressionIsMultiline then // then is longer than maxWidth but not multiline
-                         sepNln
-                         +> thenExpr (!- "then ")
-                         +> genExpr astContext e2
-                     else
-                         // write out as short expression
-                         thenExpr (!- " then ") +> genExpr astContext e2)
-                 |> atCurrentColumn) ctx
-
         // A generalization of IfThenElse
         | ElIf ((e1, e2, _, _, _) :: es, enOpt) ->
             // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
@@ -2217,6 +2172,7 @@ and genExpr astContext synExpr ctx =
                         (elf1, elf2, correctedRange))
 
                 let hasElfis = not (List.isEmpty elfis)
+                let hasElse = Option.isSome enOpt
 
                 let commentAfterKeyword keyword rangePredicate (ctx: Context) =
                     (Map.tryFindOrEmptyList keyword ctx.TriviaTokenNodes)
@@ -2369,7 +2325,7 @@ and genExpr astContext synExpr ctx =
                     +> sepNln
                     +> genExpr astContext e2
                     +> unindent
-                    +> sepNln
+                    +> onlyIf (hasElfis || hasElse) sepNln
                     +> col sepNln elfis genElifMultiLine
                     +> opt id enOpt (fun e4 ->
                            let correctedElseRange =

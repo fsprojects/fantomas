@@ -20,8 +20,8 @@ then bar
 """  config
     |> prepend newline
     |> should equal """
-if foooooooooooooooooooooooooooooooooooooooooooo
-then bar
+if foooooooooooooooooooooooooooooooooooooooooooo then
+    bar
 """
 
 [<Test>]
@@ -31,8 +31,18 @@ if foo then baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar
 """  config
     |> prepend newline
     |> should equal """
-if foo
-then baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar
+if foo then
+    baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar
+"""
+
+[<Test>]
+let ``short if then without else`` () =
+    formatSourceString false """
+if a then b
+"""  config
+    |> prepend newline
+    |> should equal """
+if a then b
 """
 
 [<Test>]
@@ -991,8 +1001,8 @@ if ast.ParseHadErrors then
         ast.Errors
         |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
 
-    if not <| Array.isEmpty errors
-    then log.LogError(sprintf "Parsing failed with errors: %A\nAnd options: %A" errors checkOptions)
+    if not <| Array.isEmpty errors then
+        log.LogError(sprintf "Parsing failed with errors: %A\nAnd options: %A" errors checkOptions)
 
     return Error ast.Errors
 else
