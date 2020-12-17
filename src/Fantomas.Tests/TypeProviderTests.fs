@@ -33,6 +33,21 @@ type IntegerRegex = FSharpx.Regex< @"(?<value>\d+)" >
 """
 
 [<Test>]
+let ``should add space before type provider named argument, 1209`` () =
+    formatSourceString
+        false
+        """
+type Graphml = XmlProvider<Schema= @"http://graphml.graphdrawing.org/xmlns/1.0/graphml-structure.xsd">
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Graphml = XmlProvider<Schema= @"http://graphml.graphdrawing.org/xmlns/1.0/graphml-structure.xsd">
+"""
+
+[<Test>]
 let ``should throw FormatException on unparsed input`` () =
     Assert.Throws<Fantomas.FormatConfig.FormatException>
         (fun () ->
