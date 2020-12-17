@@ -13,7 +13,8 @@ let private isNewline item =
     | _ -> false
 
 let getDefines v =
-    let _, hashTokens = getDefines v
+    let normalizedString = String.normalizeNewLine v
+    let _, hashTokens = getDefines normalizedString
     getDefinesWords hashTokens
 
 let tokenize v = tokenize [] [] v
@@ -546,3 +547,22 @@ let file =
 #endif
 "
     getDefines source == [ "WATCH" ]
+
+[<Test>]
+let ``escaped backslash inside escaped string, 1290`` () =
+    let source = "
+[<Test>]
+let ``defines inside string, escaped quote`` () =
+    let source = \"
+let a = \\\"\\\\\\\"
+#if FOO
+  #if BAR
+  #endif
+#endif
+\\\"
+\"
+
+    getDefines source == []
+"
+
+    getDefines source == []
