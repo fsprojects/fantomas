@@ -126,3 +126,76 @@ let options =
 
             o.layout <- Some layout)
 """
+
+[<Test>]
+let ``multi line assign mutable setter assignment, 659`` () =
+    formatSourceString
+        false
+        """
+ctx.Response.Headers.[HeaderNames.ContentType] <- Constants.jsonApiMediaType
+                                                  |> StringValues
+ctx.Response.Headers.[HeaderNames.ContentLength] <- bytes.Length
+                                                    |> string
+                                                    |> StringValues
+ctx.Response.SomeElseThatIsMutable <- [ "a"; "b"; "c" ]
+                                      |> List.indexed
+                                      |> List.map snd
+"""
+        { config with
+              MaxLineLength = 80
+              MaxInfixOperatorExpression = 50 }
+    |> prepend newline
+    |> should
+        equal
+        """
+ctx.Response.Headers.[HeaderNames.ContentType] <-
+    Constants.jsonApiMediaType |> StringValues
+
+ctx.Response.Headers.[HeaderNames.ContentLength] <-
+    bytes.Length |> string |> StringValues
+
+ctx.Response.SomeElseThatIsMutable <-
+    [ "a"; "b"; "c" ] |> List.indexed |> List.map snd
+"""
+
+[<Test>]
+let ``multi line NamedIndexedPropertySet`` () =
+    formatSourceString
+        false
+        """
+ HttpContext.Response.Body(128) <- bytes.Length
+                                   |> string
+                                   |> StringValues
+"""
+        { config with
+              MaxInfixOperatorExpression = 10 }
+    |> prepend newline
+    |> should
+        equal
+        """
+HttpContext.Response.Body(128) <-
+    bytes.Length
+    |> string
+    |> StringValues
+"""
+
+[<Test>]
+let ``multi line DotNamedIndexedPropertySet`` () =
+    formatSourceString
+        false
+        """
+ (HttpContextResponse).Body(128) <- bytes.Length
+                                    |> string
+                                    |> StringValues
+"""
+        { config with
+              MaxInfixOperatorExpression = 10 }
+    |> prepend newline
+    |> should
+        equal
+        """
+(HttpContextResponse).Body(128) <-
+    bytes.Length
+    |> string
+    |> StringValues
+"""

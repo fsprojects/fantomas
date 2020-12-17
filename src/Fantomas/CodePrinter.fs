@@ -2566,15 +2566,15 @@ and genExpr astContext synExpr ctx =
             -- ".["
             +> genIndexers astContext es
             -- "] <- "
-            +> genExpr astContext e2
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
         | NamedIndexedPropertySet (ident, e1, e2) ->
             !-ident +> genExpr astContext e1 -- " <- "
-            +> genExpr astContext e2
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
         | DotNamedIndexedPropertySet (e, ident, e1, e2) ->
             genExpr astContext e -- "." -- ident
             +> genExpr astContext e1
             -- " <- "
-            +> genExpr astContext e2
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
         | DotGet (e, (s, _)) ->
             let shortExpr =
                 genExpr
