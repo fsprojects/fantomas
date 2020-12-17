@@ -6,19 +6,14 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``should keep compiler directives`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #if INTERACTIVE
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
 #endif
-"""
-        config
-    |> should
-        equal
-        """#if INTERACTIVE
+"""  config
+    |> should equal """#if INTERACTIVE
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
@@ -27,20 +22,15 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 
 [<Test>]
 let ``should keep compiler directives 2`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #if INTERACTIVE
 #else
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
 #endif
-"""
-        config
-    |> should
-        equal
-        """#if INTERACTIVE
+"""  config
+    |> should equal """#if INTERACTIVE
 #else
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
@@ -50,20 +40,15 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 
 [<Test>]
 let ``line, file and path identifiers`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
     let printSourceLocation() =
         printfn "Line: %s" __LINE__
         printfn "Source Directory: %s" __SOURCE_DIRECTORY__
         printfn "Source File: %s" __SOURCE_FILE__
     printSourceLocation()
-    """
-        config
+    """ config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let printSourceLocation () =
     printfn "Line: %s" __LINE__
     printfn "Source Directory: %s" __SOURCE_DIRECTORY__
@@ -74,9 +59,7 @@ printSourceLocation ()
 
 [<Test>]
 let ``should keep #if, #else and #endif on compiler directives`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let x = 1
 #if SILVERLIGHT
 let useHiddenInitCode = false
@@ -84,12 +67,9 @@ let useHiddenInitCode = false
 let useHiddenInitCode = true
 #endif
 let y = 2
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let x = 1
 #if SILVERLIGHT
 let useHiddenInitCode = false
@@ -101,9 +81,7 @@ let y = 2
 
 [<Test>]
 let ``should handle nested compiler directives`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let [<Literal>] private assemblyConfig =
     #if DEBUG
     #if TRACE
@@ -118,12 +96,9 @@ let [<Literal>] private assemblyConfig =
     ""
     #endif
     #endif
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 [<Literal>]
 let private assemblyConfig =
 #if DEBUG
@@ -143,9 +118,7 @@ let private assemblyConfig =
 
 [<Test; Description("inactive code is not formatted correctly")>]
 let ``should break lines before compiler directives`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let [<Literal>] private assemblyConfig() =
   #if TRACE
   let x = ""
@@ -153,12 +126,9 @@ let [<Literal>] private assemblyConfig() =
   let x = "x"
   #endif
   x
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 [<Literal>]
 let private assemblyConfig () =
 #if TRACE
@@ -171,9 +141,7 @@ let private assemblyConfig () =
 
 [<Test>]
 let ``should break lines before compiler directives, no defines`` () =
-    formatSourceStringWithDefines
-        []
-        """
+    formatSourceStringWithDefines [] """
 let [<Literal>] private assemblyConfig() =
   #if TRACE
   let x = ""
@@ -181,12 +149,9 @@ let [<Literal>] private assemblyConfig() =
   let x = "x"
   #endif
   x
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 [<Literal>]
 let private assemblyConfig () =
 #if TRACE
@@ -199,16 +164,11 @@ let private assemblyConfig () =
 
 [<Test>]
 let ``should break line after single directive`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #nowarn "47"
-namespace Internal.Utilities.Text.Lexing"""
-        config
+namespace Internal.Utilities.Text.Lexing""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 #nowarn "47"
 namespace Internal.Utilities.Text.Lexing
 
@@ -216,9 +176,7 @@ namespace Internal.Utilities.Text.Lexing
 
 [<Test>]
 let ``should handle endif directives with no newline`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 namespace Internal.Utilities.Diagnostic
 
 #if EXTENSIBLE_DUMPER
@@ -227,12 +185,9 @@ namespace Internal.Utilities.Diagnostic
 type ExtensibleDumper = A | B
 
 #endif
-#endif"""
-        config
+#endif""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace Internal.Utilities.Diagnostic
 
 #if EXTENSIBLE_DUMPER
@@ -248,35 +203,25 @@ type ExtensibleDumper =
 
 [<Test>]
 let ``missing inactive code if directive not defined`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #if NOT_DEFINED
 let x = 1
 #endif
-"""
-        config
-    |> should
-        equal
-        """#if NOT_DEFINED
+"""  config
+    |> should equal """#if NOT_DEFINED
 let x = 1
 #endif
 """
 
 [<Test>]
 let ``don't duplicate active code if directive not defined`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #if NOT_DEFINED
 #else
 let x = 1
 #endif
-"""
-        config
-    |> should
-        equal
-        """#if NOT_DEFINED
+"""  config
+    |> should equal """#if NOT_DEFINED
 #else
 let x = 1
 #endif
@@ -284,60 +229,43 @@ let x = 1
 
 [<Test>]
 let ``missing line break in an active directive`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #if DEBUG
 let x = 1
 #endif
-"""
-        config
-    |> should
-        equal
-        """#if DEBUG
+"""  config
+    |> should equal """#if DEBUG
 let x = 1
 #endif
 """
 
 [<Test>]
 let ``should handle #if on the first line`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #if INTERACTIVE
 let x = 1
 #endif
-"""
-        config
-    |> should
-        equal
-        """#if INTERACTIVE
+"""  config
+    |> should equal """#if INTERACTIVE
 let x = 1
 #endif
 """
 
 [<Test>]
 let ``should handle combined #if`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #if INTERACTIVE || (FOO && BAR) || BUZZ
 let x = 1
 #endif
-"""
-        config
-    |> should
-        equal
-        """#if INTERACTIVE || (FOO && BAR) || BUZZ
+"""  config
+    |> should equal """#if INTERACTIVE || (FOO && BAR) || BUZZ
 let x = 1
 #endif
 """
 
 [<Test>]
 let ``issue 382`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type Currency =
     // Temporary fix until a new Thoth.Json.Net package is released
     // See https://github.com/MangelMaxime/Thoth/pull/70
@@ -346,11 +274,8 @@ type Currency =
     private
 #endif
     | Code of string
-"""
-        config
-    |> should
-        equal
-        """type Currency =
+"""  config
+    |> should equal """type Currency =
     // Temporary fix until a new Thoth.Json.Net package is released
     // See https://github.com/MangelMaxime/Thoth/pull/70
 
@@ -362,9 +287,7 @@ type Currency =
 
 [<Test>]
 let ``indentation incorrect for code with chained fluent interface method calls`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let start (args: IArgs) =
     // Serilog configuration
     Log.Logger <-
@@ -396,11 +319,8 @@ let start (args: IArgs) =
             1
     finally
         Log.CloseAndFlush()
-"""
-        config
-    |> should
-        equal
-        """let start (args: IArgs) =
+"""  config
+    |> should equal """let start (args: IArgs) =
     // Serilog configuration
     Log.Logger <-
         LoggerConfiguration()
@@ -438,9 +358,7 @@ let start (args: IArgs) =
 
 [<Test>]
 let ``some spacing is still lost in and around #if blocks, 303`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
   let internal UpdateStrongNaming (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
     let assemblyName = assembly.Name
 #if NETCOREAPP2_0
@@ -462,9 +380,7 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
         ({ config with
                MaxInfixOperatorExpression = 75 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
     let assemblyName = assembly.Name
 #if NETCOREAPP2_0
@@ -487,9 +403,7 @@ let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameK
 
 [<Test>]
 let ``some spacing is still lost in and around #if blocks, no defines`` () =
-    formatSourceStringWithDefines
-        []
-        """
+    formatSourceStringWithDefines [] """
   let internal UpdateStrongNaming (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
     let assemblyName = assembly.Name
 #if NETCOREAPP2_0
@@ -511,9 +425,7 @@ let ``some spacing is still lost in and around #if blocks, no defines`` () =
         ({ config with
                MaxInfixOperatorExpression = 75 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
     let assemblyName = assembly.Name
 #if NETCOREAPP2_0
@@ -536,9 +448,7 @@ let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameK
 
 [<Test>]
 let ``some spacing is still lost in and around #if blocks, NETCOREAPP2_0`` () =
-    formatSourceStringWithDefines
-        [ "NETCOREAPP2_0" ]
-        """
+    formatSourceStringWithDefines [ "NETCOREAPP2_0" ] """
   let internal UpdateStrongNaming (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
     let assemblyName = assembly.Name
 #if NETCOREAPP2_0
@@ -560,9 +470,7 @@ let ``some spacing is still lost in and around #if blocks, NETCOREAPP2_0`` () =
         ({ config with
                MaxInfixOperatorExpression = 75 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
     let assemblyName = assembly.Name
 #if NETCOREAPP2_0
@@ -584,9 +492,7 @@ let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameK
 
 [<Test>]
 let ``nested directives, FABLE_COMPILER`` () =
-    formatSourceStringWithDefines
-        [ "FABLE_COMPILER" ]
-        """namespace Fable.React
+    formatSourceStringWithDefines [ "FABLE_COMPILER" ] """namespace Fable.React
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -618,11 +524,8 @@ type FunctionComponent =
 #endif
 
     static member Foo = ()
-"""
-        config
-    |> should
-        equal
-        """namespace Fable.React
+"""  config
+    |> should equal """namespace Fable.React
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -660,9 +563,7 @@ type FunctionComponent =
 
 [<Test>]
 let ``nested directives, FABLE_REPL_LIB`` () =
-    formatSourceStringWithDefines
-        [ "FABLE_REPL_LIB" ]
-        """namespace Fable.React
+    formatSourceStringWithDefines [ "FABLE_REPL_LIB" ] """namespace Fable.React
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -694,11 +595,8 @@ type FunctionComponent =
 #endif
 
     static member Foo = ()
-"""
-        config
-    |> should
-        equal
-        """namespace Fable.React
+"""  config
+    |> should equal """namespace Fable.React
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -734,9 +632,7 @@ type FunctionComponent =
 
 [<Test>]
 let ``nested directives, no defines`` () =
-    formatSourceStringWithDefines
-        []
-        """namespace Fable.React
+    formatSourceStringWithDefines [] """namespace Fable.React
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -768,11 +664,8 @@ type FunctionComponent =
 #endif
 
     static member Foo = ()
-"""
-        config
-    |> should
-        equal
-        """namespace Fable.React
+"""  config
+    |> should equal """namespace Fable.React
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -805,9 +698,7 @@ type FunctionComponent =
 
 [<Test>]
 let ``negated directive`` () =
-    formatSourceString
-        false
-        """namespace Fable.React
+    formatSourceString false """namespace Fable.React
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -839,11 +730,8 @@ type FunctionComponent =
 #endif
 
     static member Foo = ()
-"""
-        config
-    |> should
-        equal
-        """namespace Fable.React
+"""  config
+    |> should equal """namespace Fable.React
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -880,9 +768,7 @@ type FunctionComponent =
 
 [<Test>]
 let ``module with nested directives`` () =
-    formatSourceString
-        false
-        """module ReactDomBindings =
+    formatSourceString false """module ReactDomBindings =
     #if FABLE_REPL_LIB
     [<Global("ReactDOM")>]
     #else
@@ -893,11 +779,8 @@ let ``module with nested directives`` () =
     #if !FABLE_REPL_LIB
     [<Import("default", "react-dom/server")>]
     let ReactDomServer: IReactDomServer = jsNative
-    #endif"""
-        config
-    |> should
-        equal
-        """module ReactDomBindings =
+    #endif""" config
+    |> should equal """module ReactDomBindings =
 #if FABLE_REPL_LIB
     [<Global("ReactDOM")>]
 #else
@@ -913,9 +796,7 @@ let ``module with nested directives`` () =
 
 [<Test>]
 let ``module with nested directives, no defines`` () =
-    formatSourceStringWithDefines
-        []
-        """module ReactDomBindings =
+    formatSourceStringWithDefines [] """module ReactDomBindings =
     #if FABLE_REPL_LIB
     [<Global("ReactDOM")>]
     #else
@@ -926,11 +807,8 @@ let ``module with nested directives, no defines`` () =
     #if !FABLE_REPL_LIB
     [<Import("default", "react-dom/server")>]
     let ReactDomServer: IReactDomServer = jsNative
-    #endif"""
-        config
-    |> should
-        equal
-        """module ReactDomBindings =
+    #endif""" config
+    |> should equal """module ReactDomBindings =
 #if FABLE_REPL_LIB
 
 #else
@@ -946,9 +824,7 @@ let ``module with nested directives, no defines`` () =
 
 [<Test>]
 let ``module with nested directives, FABLE_REPL_LIB`` () =
-    formatSourceStringWithDefines
-        [ "FABLE_REPL_LIB" ]
-        """module ReactDomBindings =
+    formatSourceStringWithDefines [ "FABLE_REPL_LIB" ] """module ReactDomBindings =
     #if FABLE_REPL_LIB
     [<Global("ReactDOM")>]
     #else
@@ -959,11 +835,8 @@ let ``module with nested directives, FABLE_REPL_LIB`` () =
     #if !FABLE_REPL_LIB
     [<Import("default", "react-dom/server")>]
     let ReactDomServer: IReactDomServer = jsNative
-    #endif"""
-        config
-    |> should
-        equal
-        """module ReactDomBindings =
+    #endif""" config
+    |> should equal """module ReactDomBindings =
 #if FABLE_REPL_LIB
     [<Global("ReactDOM")>]
 #else
@@ -979,50 +852,35 @@ let ``module with nested directives, FABLE_REPL_LIB`` () =
 
 [<Test>]
 let ``should handle complex #if`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #if !(INTERACTIVE || !FOO || !BAR || !BUZZ)
 let x = 1
 #endif
-"""
-        config
-    |> should
-        equal
-        """#if !(INTERACTIVE || !FOO || !BAR || !BUZZ)
+"""  config
+    |> should equal """#if !(INTERACTIVE || !FOO || !BAR || !BUZZ)
 let x = 1
 #endif
 """
 
 [<Test>]
 let ``inactive code with no newline at EOF #480`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #if NOT_DEFINED
 let x = 1
 #endif
-"""
-        config
-    |> should
-        equal
-        """#if NOT_DEFINED
+"""  config
+    |> should equal """#if NOT_DEFINED
 let x = 1
 #endif
 """
 
 [<Test>]
 let ``no code for inactive define`` () =
-    formatSourceString
-        false
-        """#if SOMETHING
+    formatSourceString false """#if SOMETHING
 let foo = 42
-#endif"""
-        config
+#endif""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 #if SOMETHING
 let foo = 42
 #endif
@@ -1030,9 +888,7 @@ let foo = 42
 
 [<Test>]
 let ``#if should not be printed twice, #482`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 namespace AltCover
 
 open System
@@ -1049,12 +905,9 @@ open System.Runtime.InteropServices
 [<assembly:ComVisible(false)>]
 [<assembly:System.Resources.NeutralResourcesLanguageAttribute("en-GB")>]
 let foo = ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace AltCover
 
 open System
@@ -1075,9 +928,7 @@ let foo = ()
 
 [<Test>]
 let ``482, no defines`` () =
-    formatSourceStringWithDefines
-        []
-        """namespace AltCover
+    formatSourceStringWithDefines [] """namespace AltCover
 
 open System
 open System.Diagnostics.CodeAnalysis
@@ -1093,12 +944,9 @@ open System.Runtime.InteropServices
 [<assembly:ComVisible(false)>]
 [<assembly:System.Resources.NeutralResourcesLanguageAttribute("en-GB")>]
 let foo = ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace AltCover
 
 open System
@@ -1119,20 +967,15 @@ let foo = ()
 
 [<Test>]
 let ``hash directive between attributes, no defines`` () =
-    formatSourceStringWithDefines
-        []
-        """[<assembly:Foo()>]
+    formatSourceStringWithDefines [] """[<assembly:Foo()>]
 #if BAR
 [<assembly:Bar()>]
 #endif
 [<assembly:Meh()>]
 do  ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 [<assembly: Foo>]
 #if BAR
 
@@ -1143,20 +986,15 @@ do ()
 
 [<Test>]
 let ``hash directive between attributes, bar`` () =
-    formatSourceStringWithDefines
-        [ "BAR" ]
-        """[<assembly:Foo()>]
+    formatSourceStringWithDefines [ "BAR" ] """[<assembly:Foo()>]
 #if BAR
 [<assembly: Bar()>]
 #endif
 [<assembly: Meh()>]
 do  ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 [<assembly: Foo>]
 #if BAR
 [<assembly: Bar>]
@@ -1167,20 +1005,15 @@ do ()
 
 [<Test>]
 let ``hash directive between attributes`` () =
-    formatSourceString
-        false
-        """[<assembly:Foo()>]
+    formatSourceString false """[<assembly:Foo()>]
 #if BAR
 [<assembly:Bar()>]
 #endif
 [<assembly:Meh()>]
 do  ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 [<assembly: Foo>]
 #if BAR
 [<assembly: Bar>]
@@ -1191,20 +1024,15 @@ do ()
 
 [<Test>]
 let ``endif in lambda`` () =
-    formatSourceStringWithDefines
-        [ "DEF" ]
-        """foo (fun x ->
+    formatSourceStringWithDefines [ "DEF" ] """foo (fun x ->
         ()
 #if DEF
         ()
 #endif
 )
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 foo
     (fun x ->
         ()
@@ -1216,21 +1044,16 @@ foo
 
 [<Test>]
 let ``finally after endif`` () =
-    formatSourceStringWithDefines
-        [ "DEF" ]
-        """try
+    formatSourceStringWithDefines [ "DEF" ] """try
     ()
 #if DEF
     ()
 #endif
 finally
     ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 try
     ()
 #if DEF
@@ -1242,21 +1065,16 @@ finally
 
 [<Test>]
 let ``with after endif`` () =
-    formatSourceStringWithDefines
-        [ "DEF" ]
-        """try
+    formatSourceStringWithDefines [ "DEF" ] """try
     ()
 #if DEF
     ()
 #endif
 with
     | _ -> ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 try
     ()
 #if DEF
@@ -1267,20 +1085,15 @@ with _ -> ()
 
 [<Test>]
 let ``preserve compile directive between piped functions (DEBUG), 512`` () =
-    formatSourceStringWithDefines
-        [ "DEBUG" ]
-        """let foo = [ 1 ]
+    formatSourceStringWithDefines [ "DEBUG" ] """let foo = [ 1 ]
             |> List.sort
 #if DEBUG
             |> List.rev
 #endif
             |> List.sort
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let foo =
     [ 1 ]
     |> List.sort
@@ -1292,20 +1105,15 @@ let foo =
 
 [<Test>]
 let ``preserve compile directive between piped functions, 512`` () =
-    formatSourceString
-        false
-        """let foo = [ 1 ]
+    formatSourceString false """let foo = [ 1 ]
             |> List.sort
 #if DEBUG
             |> List.rev
 #endif
             |> List.sort
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let foo =
     [ 1 ]
     |> List.sort
@@ -1317,20 +1125,15 @@ let foo =
 
 [<Test>]
 let ``preserve compile directive between piped functions, DEBUG`` () =
-    formatSourceStringWithDefines
-        []
-        """let foo = [ 1 ]
+    formatSourceStringWithDefines [] """let foo = [ 1 ]
             |> List.sort
 #if DEBUG
             |> List.rev
 #endif
             |> List.sort
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let foo =
     [ 1 ]
     |> List.sort
@@ -1342,21 +1145,16 @@ let foo =
 
 [<Test>]
 let ``async block inside directive, 576`` () =
-    formatSourceString
-        false
-        """#if TEST
+    formatSourceString false """#if TEST
 let f () =
     async {
         let x = 2
         return x
     }
 #endif
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 #if TEST
 let f () =
     async {
@@ -1368,21 +1166,16 @@ let f () =
 
 [<Test>]
 let ``async block inside directive, TEST`` () =
-    formatSourceStringWithDefines
-        [ "TEST" ]
-        """#if TEST
+    formatSourceStringWithDefines [ "TEST" ] """#if TEST
 let f () =
     async {
         let x = 2
         return x
     }
 #endif
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 #if TEST
 let f () =
     async {
@@ -1394,9 +1187,7 @@ let f () =
 
 [<Test>]
 let ``directive capturing attribute, 635`` () =
-    formatSourceString
-        false
-        """namespace AltCover.Recorder
+    formatSourceString false """namespace AltCover.Recorder
 
 open System
 
@@ -1410,12 +1201,9 @@ type internal Close =
   | ProcessExit
   | Pause
   | Resume
-"""
-        ({ config with IndentSize = 2 })
+"""  ({ config with IndentSize = 2 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace AltCover.Recorder
 
 open System
@@ -1434,9 +1222,7 @@ type internal Close =
 
 [<Test>]
 let ``directive capturing attribute, no defines`` () =
-    formatSourceStringWithDefines
-        []
-        """namespace AltCover.Recorder
+    formatSourceStringWithDefines [] """namespace AltCover.Recorder
 
 open System
 
@@ -1450,12 +1236,9 @@ type internal Close =
   | ProcessExit
   | Pause
   | Resume
-"""
-        ({ config with IndentSize = 2 })
+"""  ({ config with IndentSize = 2 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace AltCover.Recorder
 
 open System
@@ -1474,9 +1257,7 @@ type internal Close =
 
 [<Test>]
 let ``directive capturing attribute, NET2`` () =
-    formatSourceStringWithDefines
-        [ "NET2" ]
-        """namespace AltCover.Recorder
+    formatSourceStringWithDefines [ "NET2" ] """namespace AltCover.Recorder
 
 open System
 
@@ -1490,12 +1271,9 @@ type internal Close =
   | ProcessExit
   | Pause
   | Resume
-"""
-        ({ config with IndentSize = 2 })
+"""  ({ config with IndentSize = 2 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace AltCover.Recorder
 
 open System
@@ -1515,9 +1293,7 @@ type internal Close =
 
 [<Test>]
 let ``namespace global mixed with hash directives, no directives`` () =
-    formatSourceStringWithDefines
-        []
-        """namespace global
+    formatSourceStringWithDefines [] """namespace global
 
 #if DEBUG
 
@@ -1542,12 +1318,9 @@ module Dbg =
     let teePrint x = x
     let print _ = ()
 #endif
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace global
 
 #if DEBUG
@@ -1577,9 +1350,7 @@ module Dbg =
 
 [<Test>]
 let ``namespace global mixed with hash directives, DEBUG`` () =
-    formatSourceStringWithDefines
-        [ "DEBUG" ]
-        """namespace global
+    formatSourceStringWithDefines [ "DEBUG" ] """namespace global
 
 #if DEBUG
 
@@ -1604,12 +1375,9 @@ module Dbg =
     let teePrint x = x
     let print _ = ()
 #endif
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace global
 
 #if DEBUG
@@ -1639,9 +1407,7 @@ module Dbg =
 
 [<Test>]
 let ``namespace global mixed with hash directives, 681`` () =
-    formatSourceString
-        false
-        """namespace global
+    formatSourceString false """namespace global
 
 #if DEBUG
 
@@ -1666,12 +1432,9 @@ module Dbg =
     let teePrint x = x
     let print _ = ()
 #endif
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace global
 
 #if DEBUG
@@ -1701,9 +1464,7 @@ module Dbg =
 
 [<Test>]
 let ``defines in string should be taken into account, 761`` () =
-    (formatSourceString
-        false
-        "
+    (formatSourceString false "
 [<Test>]
 let ``should keep compiler directives``() =
     formatSourceString false \"\"\"
@@ -1719,12 +1480,9 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load \"__setup__.fsx\"
 #endif
 \"\"\"
-"
-        config)
+"     config)
     |> prepend newline
-    |> should
-        equal
-        "
+    |> should equal "
 [<Test>]
 let ``should keep compiler directives`` () =
     formatSourceString
@@ -1749,20 +1507,15 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 
 [<Test>]
 let ``hash directive in single quote string should not have impact`` () =
-    formatSourceString
-        false
-        """let a = "
+    formatSourceString false """let a = "
 #if FOO
 "
 let b = "
 #endif
 "
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let a = "
 #if FOO
 "
@@ -1774,9 +1527,7 @@ let b = "
 
 [<Test>]
 let ``hash directive in triple quote string with other quotes should not have impact`` () =
-    (formatSourceString
-        false
-        "
+    (formatSourceString false "
 let a = \"\"\"
 \"
 #if FOO
@@ -1785,12 +1536,9 @@ let a = \"\"\"
 let b = \"\"\"
 #endif
 \"\"\"
-"
-        config)
+"     config)
     |> prepend newline
-    |> should
-        equal
-        "
+    |> should equal "
 let a = \"\"\"
 \"
 #if FOO
@@ -1804,20 +1552,15 @@ let b = \"\"\"
 
 [<Test>]
 let ``hash directive in single quote string should not have impact - escaped quote`` () =
-    formatSourceString
-        false
-        """let a = "
+    formatSourceString false """let a = "
 #if FOO
 \""
 let b = "
 #endif
 "
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let a = "
 #if FOO
 \""
@@ -1829,9 +1572,7 @@ let b = "
 
 [<Test>]
 let ``defines in record assignment, no defines`` () =
-    formatSourceStringWithDefines
-        []
-        """
+    formatSourceStringWithDefines [] """
 let config = {
     title = "Fantomas"
     description = "Fantomas is a code formatter for F#"
@@ -1843,12 +1584,9 @@ let config = {
         "https://fsprojects.github.io/fantomas/"
       #endif
 }
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let config =
     { title = "Fantomas"
       description = "Fantomas is a code formatter for F#"
@@ -1864,9 +1602,7 @@ let config =
 
 [<Test>]
 let ``defines in record assignment, WATCH define`` () =
-    formatSourceStringWithDefines
-        [ "WATCH" ]
-        """
+    formatSourceStringWithDefines [ "WATCH" ] """
 let config = {
     title = "Fantomas"
     description = "Fantomas is a code formatter for F#"
@@ -1878,12 +1614,9 @@ let config = {
         "https://fsprojects.github.io/fantomas/"
       #endif
 }
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let config =
     { title = "Fantomas"
       description = "Fantomas is a code formatter for F#"
@@ -1899,9 +1632,7 @@ let config =
 
 [<Test>]
 let ``defines in record assignment, 968`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let config = {
     title = "Fantomas"
     description = "Fantomas is a code formatter for F#"
@@ -1913,12 +1644,9 @@ let config = {
         "https://fsprojects.github.io/fantomas/"
       #endif
 }
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let config =
     { title = "Fantomas"
       description = "Fantomas is a code formatter for F#"
@@ -1934,9 +1662,7 @@ let config =
 
 [<Test>]
 let ``compiler defines around parameter type definition, no defines`` () =
-    formatSourceStringWithDefines
-        []
-        """
+    formatSourceStringWithDefines [] """
                let UpdateUI (theModel:
 #if NETCOREAPP2_1
                                        ITreeModel
@@ -1951,12 +1677,9 @@ let ``compiler defines around parameter type definition, no defines`` () =
                  h.codeView.Buffer.Clear()
                  h.mainWindow.Title <- "AltCover.Visualizer"
                  updateMRU h info.FullName true
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let UpdateUI (theModel:
 #if NETCOREAPP2_1
 
@@ -1978,9 +1701,7 @@ let UpdateUI (theModel:
 
 [<Test>]
 let ``compiler defines around parameter type definition, 633`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
                let UpdateUI (theModel:
 #if NETCOREAPP2_1
                                        ITreeModel
@@ -1995,12 +1716,9 @@ let ``compiler defines around parameter type definition, 633`` () =
                  h.codeView.Buffer.Clear()
                  h.mainWindow.Title <- "AltCover.Visualizer"
                  updateMRU h info.FullName true
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let UpdateUI (theModel:
 #if NETCOREAPP2_1
                         ITreeModel
@@ -2022,9 +1740,7 @@ let UpdateUI (theModel:
 
 [<Test>]
 let ``directives under parsed hash directives`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #load "../../.paket/load/netstandard2.0/Client/client.group.fsx"
 #load "../Overview/Types.fs"
 #load "./Shared.fsx"
@@ -2042,12 +1758,9 @@ open Teams.Overview.Types
 open Browser.Types
 open Browser
 open Shared
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 #load "../../.paket/load/netstandard2.0/Client/client.group.fsx"
 #load "../Overview/Types.fs"
 #load "./Shared.fsx"
@@ -2069,20 +1782,15 @@ open Shared
 
 [<Test>]
 let ``empty module with trivia, FAKE`` () =
-    formatSourceStringWithDefines
-        [ "FAKE" ]
-        """
+    formatSourceStringWithDefines [ "FAKE" ] """
 // This file is automatically generated by FAKE
 // This file is needed for IDE support only
 #if !FAKE
 #load "intellisense_lazy.fsx"
 #endif
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 // This file is automatically generated by FAKE
 // This file is needed for IDE support only
 #if !FAKE
@@ -2092,20 +1800,15 @@ let ``empty module with trivia, FAKE`` () =
 
 [<Test>]
 let ``empty module with trivia, 1031`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 // This file is automatically generated by FAKE
 // This file is needed for IDE support only
 #if !FAKE
 #load "intellisense_lazy.fsx"
 #endif
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 // This file is automatically generated by FAKE
 // This file is needed for IDE support only
 #if !FAKE
@@ -2115,9 +1818,7 @@ let ``empty module with trivia, 1031`` () =
 
 [<Test>]
 let ``don't indent too far after multiple hash directives, 1026`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let getDefaultProxyFor =
     memoize
       (fun (url:string) ->
@@ -2153,9 +1854,7 @@ let getDefaultProxyFor =
         { config with
               MaxIfThenElseShortWidth = 50 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let getDefaultProxyFor =
     memoize
         (fun (url: string) ->
@@ -2196,9 +1895,7 @@ let getDefaultProxyFor =
 
 [<Test>]
 let ``backslashes in strings prior to hash directives should not affect token parsing of those directives, 1205`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let loadFile n =
   let file =
     System.IO.Path.Combine(contentDir,
@@ -2214,12 +1911,9 @@ let loader (projectRoot: string) (siteContent: SiteContents) =
   let disableLiveRefresh = true
 #endif
   disableLiveRefresh
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let loadFile n =
     let file =
         System

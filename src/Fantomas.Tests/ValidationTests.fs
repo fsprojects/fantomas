@@ -6,18 +6,14 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``naked ranges are invalid outside for..in.do`` () =
-    isValidFSharpCode
-        false
-        """
+    isValidFSharpCode false """
 let factors number = 2L..number / 2L
                      |> Seq.filter (fun x -> number % x = 0L)"""
     |> should equal false
 
 [<Test>]
 let ``misplaced comments should give parser errors`` () =
-    isValidFSharpCode
-        false
-        """
+    isValidFSharpCode false """
 module ServiceSupportMethods =
     let toDisposable (xs : seq<'t // Sleep to give time for printf to succeed
                                   when 't :> IDisposable>) =
@@ -27,9 +23,7 @@ module ServiceSupportMethods =
 
 [<Test>]
 let ``should fail on uncompilable extern functions`` () =
-    isValidFSharpCode
-        false
-        """
+    isValidFSharpCode false """
 [<System.Runtime.InteropServices.DllImport("user32.dll")>]
 let GetWindowLong hwnd : System.IntPtr, index : int : int = failwith )"""
     |> should equal false

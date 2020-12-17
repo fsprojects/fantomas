@@ -7,9 +7,7 @@ open Fantomas.Tests.TestHelper
 // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-ast-synconst.html
 [<Test>]
 let ``All known SynConst with trivia`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let a = true
 let b = 13uy
 let c = "abc"B
@@ -40,11 +38,8 @@ let z = 1Z
 let a2 = 1R
 let b2 = 1N
 let c2 = 1G
-"""
-        config
-    |> should
-        equal
-        """let a = true
+"""  config
+    |> should equal """let a = true
 let b = 13uy
 let c = "abc"B
 let d = 'a'
@@ -80,20 +75,15 @@ let c2 = 1G
 
 [<Test>]
 let ``unicode in characters`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 namespace SomeNamespace
 
 module SomeModule =
     let backspace = '\b'
     let formFeed = '\f'
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace SomeNamespace
 
 module SomeModule =
@@ -103,25 +93,18 @@ module SomeModule =
 
 [<Test>]
 let ``escape unicode null, 632`` () =
-    formatSourceString
-        false
-        """let nulchar = '\u0000'
+    formatSourceString false """let nulchar = '\u0000'
 let nullstr = "\u0000"
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let nulchar = '\u0000'
 let nullstr = "\u0000"
 """
 
 [<Test>]
 let ``line comment after custom measure type, 598`` () =
-    formatSourceString
-        false
-        """namespace Krach
+    formatSourceString false """namespace Krach
 
 module Runner =
 
@@ -131,12 +114,9 @@ module Runner =
     type ProcessId =
         class
         end
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace Krach
 
 module Runner =
@@ -152,34 +132,25 @@ module Runner =
 [<Test>]
 let ``array literals of BigInteger, 682`` () =
     formatSourceString false "let input = [| 1I;0I;-1I |]" config
-    |> should
-        equal
-        "let input = [| 1I; 0I; -1I |]
+    |> should equal "let input = [| 1I; 0I; -1I |]
 "
 
 [<Test>]
 let ``negative single floating-point number, 785`` () =
     formatSourceString false "let num = -3.213f" config
-    |> should
-        equal
-        "let num = -3.213f
+    |> should equal "let num = -3.213f
 "
 
 [<Test>]
 let ``string content ends at string token, 646`` () =
-    formatSourceString
-        false
-        """"Yarn" ==> "Format"
+    formatSourceString false """"Yarn" ==> "Format"
 
 "Yarn" ==> "CheckCodeFormat"
 
 Target.runOrDefault "CheckCodeFormat"
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 "Yarn" ==> "Format"
 
 "Yarn" ==> "CheckCodeFormat"
@@ -189,19 +160,14 @@ Target.runOrDefault "CheckCodeFormat"
 
 [<Test>]
 let ``hexadecimal numbers in match clause should be preserved, 995`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let f (a: int) =
     match a, b with
     | 0x55 -> Some ()
     | _ -> None
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let f (a: int) =
     match a, b with
     | 0x55 -> Some()
@@ -211,16 +177,12 @@ let f (a: int) =
 [<Test>]
 let ``preserve underscore in int64, 1120`` () =
     formatSourceString false "let x = 60_000L" config
-    |> should
-        equal
-        "let x = 60_000L
+    |> should equal "let x = 60_000L
 "
 
 [<Test>]
 let ``spaces before hash define inside string, 1290`` () =
-    formatSourceString
-        false
-        "
+    formatSourceString false "
 [<Test>]
 let ``defines inside string, escaped quote`` () =
     let source = \"
@@ -233,12 +195,9 @@ let a = \\\"\\\\\\\"
 \"
 
     getDefines source == []
-"
-        config
+"    config
     |> prepend newline
-    |> should
-        equal
-        "
+    |> should equal "
 [<Test>]
 let ``defines inside string, escaped quote`` () =
     let source = \"

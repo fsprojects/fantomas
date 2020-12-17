@@ -74,30 +74,17 @@ let (|Ident|) (s: Ident) =
 
 let (|LongIdent|) (li: LongIdent) =
     li
-    |> Seq.map
-        (fun x ->
-            if x.idText = MangledGlobalName then
-                "global"
-            else
-                (|Ident|) x)
+    |> Seq.map (fun x -> if x.idText = MangledGlobalName then "global" else (|Ident|) x)
     |> String.concat "."
     |> fun s ->
         // Assume that if it starts with base, it's going to be the base keyword
-        if String.startsWithOrdinal "``base``." s then
-            String.Join("", "base.", s.[9..])
-        else
-            s
+        if String.startsWithOrdinal "``base``." s then String.Join("", "base.", s.[9..]) else s
 
 let (|LongIdentPieces|_|) =
     function
     | SynExpr.LongIdent (_, LongIdentWithDots (lids, _), _, _) ->
         lids
-        |> List.map
-            (fun x ->
-                if x.idText = MangledGlobalName then
-                    "global"
-                else
-                    (|Ident|) x)
+        |> List.map (fun x -> if x.idText = MangledGlobalName then "global" else (|Ident|) x)
         |> Some
     | _ -> None
 
@@ -111,12 +98,7 @@ type Identifier =
         | Id x -> x.idText
         | LongId xs ->
             xs
-            |> Seq.map
-                (fun x ->
-                    if x.idText = MangledGlobalName then
-                        "global"
-                    else
-                        x.idText)
+            |> Seq.map (fun x -> if x.idText = MangledGlobalName then "global" else x.idText)
             |> String.concat "."
 
     member x.Ranges =
@@ -137,10 +119,9 @@ let (|OpName|) (x: Identifier) =
     if IsActivePatternName s then
         sprintf "(%s)" s'
     elif IsPrefixOperator s then
-        if s'.[0] = '~' && s'.Length >= 2 && s'.[1] <> '~' then
-            s'.[1..]
-        else
-            s'
+        if s'.[0] = '~' && s'.Length >= 2 && s'.[1] <> '~'
+        then s'.[1..]
+        else s'
     else
         match x with
         | Id (Ident s)
@@ -157,10 +138,9 @@ let (|OpNameFullInPattern|) (x: Identifier) =
        || IsTernaryOperator s
        || s = "op_Dynamic" then
         /// Use two spaces for symmetry
-        if String.startsWithOrdinal "*" s' && s' <> "*" then
-            sprintf "( %s )" s'
-        else
-            sprintf "(%s)" s'
+        if String.startsWithOrdinal "*" s' && s' <> "*"
+        then sprintf "( %s )" s'
+        else sprintf "(%s)" s'
     else
         match x with
         | Id (Ident s)
@@ -289,8 +269,7 @@ let (|ModuleOrNamespace|) (SynModuleOrNamespace.SynModuleOrNamespace (LongIdent 
                                                                       px,
                                                                       ats,
                                                                       ao,
-                                                                      _))
-                          =
+                                                                      _)) =
     (ats, px, ao, s, mds, isRecursive, isModule)
 
 let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (LongIdent s,
@@ -300,8 +279,7 @@ let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (L
                                                                                px,
                                                                                ats,
                                                                                ao,
-                                                                               _))
-                             =
+                                                                               _)) =
     (ats, px, ao, s, mds, isRecursive, isModule)
 
 let (|Attribute|) (a: SynAttribute) =
@@ -446,8 +424,7 @@ let (|ExceptionDef|) (SynExceptionDefn.SynExceptionDefn (SynExceptionDefnRepr.Sy
                                                                                                     ao,
                                                                                                     _),
                                                          ms,
-                                                         _))
-                     =
+                                                         _)) =
     (ats, px, ao, uc, ms)
 
 let (|SigExceptionDef|) (SynExceptionSig.SynExceptionSig (SynExceptionDefnRepr.SynExceptionDefnRepr (ats,
@@ -457,8 +434,7 @@ let (|SigExceptionDef|) (SynExceptionSig.SynExceptionSig (SynExceptionDefnRepr.S
                                                                                                      ao,
                                                                                                      _),
                                                           ms,
-                                                          _))
-                        =
+                                                          _)) =
     (ats, px, ao, uc, ms)
 
 let (|UnionCase|) (SynUnionCase.UnionCase (ats, Ident s, uct, px, ao, _)) = (ats, px, ao, s, uct)
@@ -576,12 +552,11 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: MemberFlags) =
     | MemberKind.PropertyGet
     | MemberKind.PropertySet
     | MemberKind.PropertyGetSet as mk ->
-        if mf.IsInstance && mf.IsOverrideOrExplicitImpl then
-            MFOverride mk
-        elif mf.IsInstance then
-            MFMember mk
-        else
-            MFStaticMember mk
+        if mf.IsInstance && mf.IsOverrideOrExplicitImpl
+        then MFOverride mk
+        elif mf.IsInstance
+        then MFMember mk
+        else MFStaticMember mk
 
 let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) =
     function
@@ -799,11 +774,7 @@ let (|CompilerGeneratedVar|_|) =
     | SynExpr.LongIdent (_, LongIdentWithDots.LongIdentWithDots (LongIdentOrKeyword (OpName s), _), opt, _) ->
         match opt with
         | Some _ -> Some s
-        | None ->
-            if String.startsWithOrdinal "_arg" s then
-                Some s
-            else
-                None
+        | None -> if String.startsWithOrdinal "_arg" s then Some s else None
     | _ -> None
 
 /// Get all application params at once
@@ -939,13 +910,7 @@ let rec (|LetOrUses|_|) =
             else "let "
 
         let xs' =
-            List.mapi
-                (fun i x ->
-                    if i = 0 then
-                        (prefix, x)
-                    else
-                        ("and ", x))
-                xs
+            List.mapi (fun i x -> if i = 0 then (prefix, x) else ("and ", x)) xs
 
         Some(xs' @ ys, e)
     | SynExpr.LetOrUse (isRec, isUse, xs, e, _) ->
@@ -955,13 +920,7 @@ let rec (|LetOrUses|_|) =
             else "let "
 
         let xs' =
-            List.mapi
-                (fun i x ->
-                    if i = 0 then
-                        (prefix, x)
-                    else
-                        ("and ", x))
-                xs
+            List.mapi (fun i x -> if i = 0 then (prefix, x) else ("and ", x)) xs
 
         Some(xs', e)
     | _ -> None
@@ -1343,18 +1302,14 @@ let (|Simple|ObjectModel|ExceptionRepr|) =
 let (|MemberDefnList|) mds =
     // Assume that there is at most one implicit constructor
     let impCtor =
-        List.tryFind
-            (function
+        List.tryFind (function
             | MDImplicitCtor _ -> true
-            | _ -> false)
-            mds
+            | _ -> false) mds
     // Might need to sort so that let and do bindings come first
     let others =
-        List.filter
-            (function
+        List.filter (function
             | MDImplicitCtor _ -> false
-            | _ -> true)
-            mds
+            | _ -> true) mds
 
     (impCtor, others)
 
@@ -1400,8 +1355,7 @@ let (|TypeDef|) (SynTypeDefn.TypeDefn (SynComponentInfo.ComponentInfo (ats,
                                                                        _),
                                        tdr,
                                        ms,
-                                       _))
-                =
+                                       _)) =
     (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)
 
 let (|SigTypeDef|) (SynTypeDefnSig.TypeDefnSig (SynComponentInfo.ComponentInfo (ats,
@@ -1414,8 +1368,7 @@ let (|SigTypeDef|) (SynTypeDefnSig.TypeDefnSig (SynComponentInfo.ComponentInfo (
                                                                                 _),
                                                 tdr,
                                                 ms,
-                                                _))
-                   =
+                                                _)) =
     (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)
 
 let (|TyparDecl|) (SynTyparDecl.TyparDecl (ats, tp)) = (ats, tp)
@@ -1547,14 +1500,11 @@ let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|Typ
     | WhereTyparDefaultsToType (tp, t, _) -> TyparDefaultsToType(tp, t)
     | WhereTyparSubtypeOfType (tp, t, _) -> TyparSubtypeOfType(tp, t)
     | WhereTyparSupportsMember (tps, msg, _) ->
-        TyparSupportsMember(
-            List.choose
-                (function
+        TyparSupportsMember
+            (List.choose (function
                 | SynType.Var (tp, _) -> Some tp
-                | _ -> None)
-                tps,
-            msg
-        )
+                | _ -> None) tps,
+             msg)
     | WhereTyparIsEnum (tp, ts, _) -> TyparIsEnum(tp, ts)
     | WhereTyparIsDelegate (tp, ts, _) -> TyparIsDelegate(tp, ts)
 
@@ -1602,15 +1552,11 @@ let (|Extern|_|) =
     | Let (LetBinding (ats, px, ao, _, _, PatLongIdent (_, s, [ _, PatTuple ps ], _), TypedExpr (Typed, _, t), _)) ->
         let hasDllImportAttr =
             ats
-            |> List.exists
-                (fun { Attributes = attrs } ->
-                    attrs
-                    |> List.exists (fun (Attribute (name, _, _)) -> name.EndsWith("DllImport")))
+            |> List.exists (fun { Attributes = attrs } ->
+                attrs
+                |> List.exists (fun (Attribute (name, _, _)) -> name.EndsWith("DllImport")))
 
-        if hasDllImportAttr then
-            Some(ats, px, ao, t, s, ps)
-        else
-            None
+        if hasDllImportAttr then Some(ats, px, ao, t, s, ps) else None
     | _ -> None
 
 let private collectAttributesRanges (a: SynAttributes) =
@@ -1626,11 +1572,10 @@ let getRangesFromAttributesFromModuleDeclaration (mdl: SynModuleDecl) =
         |> Seq.collect (fun (Binding (_, _, _, _, attrs, _, _, _, _, _, _, _)) -> collectAttributesRanges attrs)
     | SynModuleDecl.Types (types, _) ->
         types
-        |> Seq.collect
-            (fun t ->
-                match t with
-                | SynTypeDefn.TypeDefn ((SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _)), _, _, _) ->
-                    collectAttributesRanges attrs)
+        |> Seq.collect (fun t ->
+            match t with
+            | SynTypeDefn.TypeDefn ((SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _)), _, _, _) ->
+                collectAttributesRanges attrs)
     | SynModuleDecl.NestedModule ((SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _)), _, _, _, _) ->
         collectAttributesRanges attrs
     | _ -> Seq.empty
@@ -1669,10 +1614,7 @@ let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
             |> Option.map (Char.IsUpper)
             |> Option.defaultValue false
 
-        if isUpper then
-            UppercaseSynExpr
-        else
-            LowercaseSynExpr
+        if isUpper then UppercaseSynExpr else LowercaseSynExpr
 
     match synExpr with
     | SynExpr.Ident (Ident (id)) -> upperOrLower id
@@ -1698,10 +1640,7 @@ let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
             |> Option.map (Char.IsUpper)
             |> Option.defaultValue false
 
-        if isUpper then
-            UppercaseSynType
-        else
-            LowercaseSynType
+        if isUpper then UppercaseSynType else LowercaseSynType
 
     match synType with
     | SynType.LongIdent (LongIdentWithDots lid) -> lid.Split('.') |> Seq.last |> upperOrLower

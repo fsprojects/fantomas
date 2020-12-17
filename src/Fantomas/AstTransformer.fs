@@ -47,13 +47,12 @@ module private Ast =
         | SynModuleOrNamespace (longIdent, isRecursive, synModuleOrNamespaceKind, decls, _, attrs, access, range) ->
             let collectIdents (idents: LongIdent) =
                 idents
-                |> List.map
-                    (fun ident ->
-                        { Type = Ident_
-                          Range = r ident.idRange
-                          Properties = Map.empty
-                          FsAstNode = ident
-                          Childs = [] })
+                |> List.map (fun ident ->
+                    { Type = Ident_
+                      Range = r ident.idRange
+                      Properties = Map.empty
+                      FsAstNode = ident
+                      Childs = [] })
 
             let typeName =
                 match synModuleOrNamespaceKind with
@@ -76,10 +75,9 @@ module private Ast =
               FsAstNode = modOrNs
               Childs =
                   [ yield!
-                      if synModuleOrNamespaceKind = SynModuleOrNamespaceKind.DeclaredNamespace then
-                          collectIdents longIdent
-                      else
-                          []
+                      if synModuleOrNamespaceKind = SynModuleOrNamespaceKind.DeclaredNamespace
+                      then collectIdents longIdent
+                      else []
                     yield! (visitSynAttributeLists range attrs)
                     yield! (decls |> List.map visitSynModuleDecl) ] }
 
@@ -1754,10 +1752,9 @@ module private Ast =
               FsAstNode = modOrNs
               Childs =
                   [ yield!
-                      if synModuleOrNamespaceKind = SynModuleOrNamespaceKind.DeclaredNamespace then
-                          visitLongIdent longIdent
-                      else
-                          []
+                      if synModuleOrNamespaceKind = SynModuleOrNamespaceKind.DeclaredNamespace
+                      then visitLongIdent longIdent
+                      else []
                     yield! (visitSynAttributeLists range attrs)
                     yield! (decls |> List.map visitSynModuleSigDecl) ] }
 

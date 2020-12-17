@@ -7,9 +7,7 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``class signatures`` () =
-    formatSourceString
-        true
-        """
+    formatSourceString true """
 module Heap
 
 type Heap<'T when 'T : comparison> =
@@ -22,12 +20,9 @@ type Heap<'T when 'T : comparison> =
     member PeekMin : unit -> 'T
     override ToString : unit -> string
     member Count : int
-    end"""
-        config
+    end""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 module Heap
 
 type Heap<'T when 'T: comparison> =
@@ -45,9 +40,7 @@ type Heap<'T when 'T: comparison> =
 
 [<Test>]
 let ``type constraints complex`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type Class4<'T when 'T : (static member staticMethod1 : unit -> 'T) > =
     class end
 
@@ -59,12 +52,9 @@ type Class6<'T when 'T : (member Property1 : int)> =
 
 type Class7<'T when 'T : (new : unit -> 'T)>() =
    member val Field = new 'T()
-    """
-        config
+    """ config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type Class4<'T when 'T: (static member staticMethod1: unit -> 'T)> =
     class
     end
@@ -83,9 +73,7 @@ type Class7<'T when 'T: (new: unit -> 'T)>() =
 
 [<Test>]
 let ``abstract classes`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 [<AbstractClass>]
 type Shape2D(x0 : float, y0 : float) =
     let mutable x, y = x0, y0
@@ -108,9 +96,7 @@ type Shape2D(x0 : float, y0 : float) =
         { config with
               MaxValueBindingWidth = 120 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 [<AbstractClass>]
 type Shape2D(x0: float, y0: float) =
     let mutable x, y = x0, y0
@@ -138,9 +124,7 @@ type Shape2D(x0: float, y0: float) =
 
 [<Test>]
 let ``abstract member declaration`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type A =
     abstract B: ?p1:(float * int) -> unit
     abstract C: ?p1:float * int -> unit
@@ -149,12 +133,9 @@ type A =
     abstract F: ?p1:float * ?p2:float -> unit
     abstract G: p1:float * ?p2:float -> unit
     abstract H: float * ?p2:float -> unit
-    """
-        config
+    """ config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type A =
     abstract B: ?p1:(float * int) -> unit
     abstract C: ?p1:float * int -> unit
@@ -167,9 +148,7 @@ type A =
 
 [<Test>]
 let ``class declaration`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type BaseClass = class
     val string1 : string
     new(str) = { string1 = str }
@@ -180,12 +159,9 @@ type DerivedClass =
     inherit BaseClass
     val string2 : string
     new (str1, str2) = { inherit BaseClass(str1); string2 = str2 }
-    new (str2) = { inherit BaseClass(); string2 = str2 }"""
-        ({ config with MaxRecordWidth = 45 })
+    new (str2) = { inherit BaseClass(); string2 = str2 }""" ({ config with MaxRecordWidth = 45 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type BaseClass =
     class
         val string1: string
@@ -202,9 +178,7 @@ type DerivedClass =
 
 [<Test>]
 let ``classes and implicit constructors`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
     type MyClass2(dataIn) as self =
        let data = dataIn
        do self.PrintMessage()
@@ -213,9 +187,7 @@ let ``classes and implicit constructors`` () =
         { config with
               MaxFunctionBindingWidth = 120 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type MyClass2(dataIn) as self =
     let data = dataIn
     do self.PrintMessage()
@@ -224,9 +196,7 @@ type MyClass2(dataIn) as self =
 
 [<Test>]
 let ``classes and private implicit constructors`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
     type MyClass2 private (dataIn) as self =
        let data = dataIn
        do self.PrintMessage()
@@ -235,9 +205,7 @@ let ``classes and private implicit constructors`` () =
         { config with
               MaxFunctionBindingWidth = 120 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type MyClass2 private (dataIn) as self =
     let data = dataIn
     do self.PrintMessage()
@@ -246,9 +214,7 @@ type MyClass2 private (dataIn) as self =
 
 [<Test>]
 let ``recursive classes`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type Folder(pathIn: string) =
   let path = pathIn
   let filenameArray : string array = System.IO.Directory.GetFiles(path)
@@ -260,9 +226,7 @@ and File(filename: string, containingFolder: Folder) =
         { config with
               MaxValueBindingWidth = 120 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type Folder(pathIn: string) =
     let path = pathIn
     let filenameArray: string array = System.IO.Directory.GetFiles(path)
@@ -275,21 +239,16 @@ and File(filename: string, containingFolder: Folder) =
 
 [<Test>]
 let ``classes and inheritance`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type MyClassBase2(x: int) =
    let mutable z = x * x
    do for i in 1..z do printf "%d " i
 
 type MyClassDerived2(y: int) =
    inherit MyClassBase2(y * 2)
-   do for i in 1..y do printf "%d " i"""
-        config
+   do for i in 1..y do printf "%d " i""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type MyClassBase2(x: int) =
     let mutable z = x * x
 
@@ -307,16 +266,11 @@ type MyClassDerived2(y: int) =
 
 [<Test>]
 let ``should keep parens in class definition in the right place`` () =
-    formatSourceString
-        false
-        """type DGMLClass() = class
+    formatSourceString false """type DGMLClass() = class
     let mutable currentState = System.String.Empty
     end
-    """
-        config
-    |> should
-        equal
-        """type DGMLClass() =
+    """ config
+    |> should equal """type DGMLClass() =
     class
         let mutable currentState = System.String.Empty
     end
@@ -324,18 +278,13 @@ let ``should keep parens in class definition in the right place`` () =
 
 [<Test>]
 let ``should keep parens in class inheritance in the right place`` () =
-    formatSourceString
-        false
-        """type StateMachine(makeAsync) as this = class
+    formatSourceString false """type StateMachine(makeAsync) as this = class
     inherit DGMLClass()
 
     let functions = System.Collections.Generic.Dictionary<string, IState>()
     end
-    """
-        config
-    |> should
-        equal
-        """type StateMachine(makeAsync) as this =
+    """ config
+    |> should equal """type StateMachine(makeAsync) as this =
     class
         inherit DGMLClass()
 
@@ -346,18 +295,13 @@ let ``should keep parens in class inheritance in the right place`` () =
 
 [<Test>]
 let ``should keep type annotations on auto properties`` () =
-    formatSourceString
-        false
-        """type Document(id : string, library : string, name : string option) =
+    formatSourceString false """type Document(id : string, library : string, name : string option) =
     member val ID = id
     member val Library = library
     member val Name = name with get, set
     member val LibraryID : string option = None with get, set
-"""
-        config
-    |> should
-        equal
-        """type Document(id: string, library: string, name: string option) =
+"""  config
+    |> should equal """type Document(id: string, library: string, name: string option) =
     member val ID = id
     member val Library = library
     member val Name = name with get, set
@@ -366,31 +310,21 @@ let ``should keep type annotations on auto properties`` () =
 
 [<Test>]
 let ``should work on static auto properties`` () =
-    formatSourceString
-        false
-        """type A() =
+    formatSourceString false """type A() =
     static member val LastSchema = "" with get, set
-"""
-        config
-    |> should
-        equal
-        """type A() =
+"""  config
+    |> should equal """type A() =
     static member val LastSchema = "" with get, set
 """
 
 [<Test>]
 let ``member properties with type annotation`` () =
-    formatSourceString
-        false
-        """type A() =
+    formatSourceString false """type A() =
     member this.X with get():int = 1
     member this.Y with get():int = 1 and set (_:int):unit = ()
     member this.Z with set (_:int):unit = () and get():int = 1
-"""
-        config
-    |> should
-        equal
-        """type A() =
+"""  config
+    |> should equal """type A() =
     member this.X: int = 1
 
     member this.Y
@@ -404,17 +338,12 @@ let ``member properties with type annotation`` () =
 
 [<Test>]
 let ``class augmentation`` () =
-    formatSourceString
-        false
-        """type A () =
+    formatSourceString false """type A () =
     let foo = () with
     let hello = "Hello"
     member this.X = "Member"
-"""
-        config
-    |> should
-        equal
-        """type A() =
+"""  config
+    |> should equal """type A() =
     let foo = ()
     with
         let hello = "Hello"
@@ -423,17 +352,12 @@ let ``class augmentation`` () =
 
 [<Test>]
 let ``class inherit and augmentation`` () =
-    formatSourceString
-        false
-        """type A () =
+    formatSourceString false """type A () =
     inherit B() with
     let hello = "Hello"
     member this.X = "Member"
-"""
-        config
-    |> should
-        equal
-        """type A() =
+"""  config
+    |> should equal """type A() =
     inherit B()
     with
         let hello = "Hello"
@@ -442,21 +366,16 @@ let ``class inherit and augmentation`` () =
 
 [<Test>]
 let ``property long line`` () =
-    formatSourceString
-        false
-        """type T() =
+    formatSourceString false """type T() =
     member __.Property = "hello"
 let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x:T) = x
 let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass = T()
 
 System.String.Concat("a", "b" +
                             longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun(longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass).Property)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type T() =
     member __.Property = "hello"
 
@@ -475,18 +394,14 @@ System.String.Concat(
 
 [<Test>]
 let ``indexed get long line`` () =
-    formatSourceString
-        false
-        """open System
+    formatSourceString false """open System
 type Exception with
     member inline __.FirstLine =
         __.Message.Split([|Environment.NewLine|], StringSplitOptions.RemoveEmptyEntries).[0]
 """
         { config with
               MaxValueBindingWidth = 120 }
-    |> should
-        equal
-        """open System
+    |> should equal """open System
 
 type Exception with
     member inline __.FirstLine = __.Message.Split([| Environment.NewLine |], StringSplitOptions.RemoveEmptyEntries).[0]
@@ -494,9 +409,7 @@ type Exception with
 
 [<Test>]
 let ``no extra new lines between interface members, 569`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 namespace Quartz.Fsharp
 
 module Logging =
@@ -532,9 +445,7 @@ module Logging =
         { config with
               MaxFunctionBindingWidth = 80 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace Quartz.Fsharp
 
 module Logging =
@@ -571,9 +482,7 @@ module Logging =
 
 [<Test>]
 let ``no extra new lines between type members, 569`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type A() =
 
     member this.MemberA = if true then 0 else 1
@@ -584,9 +493,7 @@ type A() =
         { config with
               MaxValueBindingWidth = 120 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type A() =
 
     member this.MemberA = if true then 0 else 1
@@ -598,8 +505,7 @@ type A() =
 
 [<Test>]
 let ``no extra new line before nested module with attribute, 586`` () =
-    shouldNotChangeAfterFormat
-        """
+    shouldNotChangeAfterFormat """
 module A =
     let x = 0
 
@@ -610,8 +516,7 @@ module A =
 
 [<Test>]
 let ``no extra new line before abstract member with attribute, 586`` () =
-    shouldNotChangeAfterFormat
-        """
+    shouldNotChangeAfterFormat """
 type A =
 
     [<EmitConstructor>]
@@ -622,8 +527,7 @@ type A =
 
 [<Test>]
 let ``no extra new line between abstract members with attribute, 586`` () =
-    shouldNotChangeAfterFormat
-        """
+    shouldNotChangeAfterFormat """
 type A =
 
     [<Emit("a")>]
@@ -635,57 +539,40 @@ type A =
 
 [<Test>]
 let ``string parameter to inherited class, 720`` () =
-    formatSourceString
-        false
-        """type Child() =
+    formatSourceString false """type Child() =
   inherit Parent ""
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type Child() =
     inherit Parent ""
 """
 
 [<Test>]
 let ``float parameter to inherited class`` () =
-    formatSourceString
-        false
-        """type Child() =
+    formatSourceString false """type Child() =
   inherit Parent 7.9
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type Child() =
     inherit Parent 7.9
 """
 
 [<Test>]
 let ``unit parameter to inherited class`` () =
-    formatSourceString
-        false
-        """type Child() =
+    formatSourceString false """type Child() =
   inherit Parent ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type Child() =
     inherit Parent()
 """
 
 [<Test>]
 let ``multiline string inside constructor, 1055`` () =
-    formatSourceString
-        false
-        "
+    formatSourceString false "
 module Fantomas.CoreGlobalTool.Tests.ConfigTests
 
 open NUnit.Framework
@@ -716,12 +603,9 @@ indent_size=2
     |> should equal \"\"\"let a = // foo
   9
 \"\"\"
-"
-        config
+"    config
     |> prepend newline
-    |> should
-        equal
-        "
+    |> should equal "
 module Fantomas.CoreGlobalTool.Tests.ConfigTests
 
 open NUnit.Framework

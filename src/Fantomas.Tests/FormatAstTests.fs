@@ -11,12 +11,8 @@ let parseAndFormat sourceCode originSource =
     let fileName = "/tmp.fsx"
 
     let ast =
-        CodeFormatter.ParseAsync(
-            fileName,
-            sourceCode,
-            FakeHelpers.createParsingOptionsFromFile fileName,
-            sharedChecker.Value
-        )
+        CodeFormatter.ParseAsync
+            (fileName, sourceCode, FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
         |> Async.RunSynchronously
         |> Seq.head
         |> fst
@@ -43,9 +39,7 @@ let ``Format the ast works correctly with no source code`` () = formatAst "()" |
 [<Test>]
 let ``let in should not be used`` () =
     formatAst "let x = 1 in ()"
-    |> should
-        equal
-        """let x = 1
+    |> should equal """let x = 1
 ()"""
 
 [<Test>]
@@ -56,9 +50,7 @@ let ``elif keyword is not present in raw AST`` () =
     else ()"""
 
     formatAst source
-    |> should
-        equal
-        """if a then ()
+    |> should equal """if a then ()
 else if b then ()
 else ()"""
 
@@ -71,53 +63,42 @@ let ``create F# code with existing AST and source code`` () =
 
 let b =   1"""
     |> formatAstWithSourceCode
-    |> should
-        equal
-        """let a = 42
+    |> should equal """let a = 42
 
 let b = 1"""
 
 [<Test>]
-let ``default implementations in abstract classes should be emited as override from AST without origin source, 742`` ()
-                                                                                                                     =
+let ``default implementations in abstract classes should be emited as override from AST without origin source, 742`` () =
     """[<AbstractClass>]
 type Foo =
     abstract foo: int
     default __.foo = 1"""
     |> formatAst
-    |> should
-        equal
-        """[<AbstractClass>]
+    |> should equal """[<AbstractClass>]
 type Foo =
     abstract foo: int
     override __.foo = 1"""
 
 [<Test>]
-let ``default implementations in abstract classes with `default` keyword should be emited as it was before from AST with origin source, 742`` ()
-                                                                                                                                              =
+let ``default implementations in abstract classes with `default` keyword should be emited as it was before from AST with origin source, 742`` () =
     """[<AbstractClass>]
 type Foo =
     abstract foo: int
     default __.foo = 1"""
     |> formatAstWithSourceCode
-    |> should
-        equal
-        """[<AbstractClass>]
+    |> should equal """[<AbstractClass>]
 type Foo =
     abstract foo: int
     default __.foo = 1"""
 
 [<Test>]
-let ``default implementations in abstract classes with `override` keyword should be emited as it was before from AST with origin source, 742`` ()
-                                                                                                                                               =
+let ``default implementations in abstract classes with `override` keyword should be emited as it was before from AST with origin source, 742`` () =
     """[<AbstractClass>]
 type Foo =
     abstract foo: int
     override __.foo = 1"""
     |> formatAstWithSourceCode
-    |> should
-        equal
-        """[<AbstractClass>]
+    |> should equal """[<AbstractClass>]
 type Foo =
     abstract foo: int
     override __.foo = 1"""
@@ -127,9 +108,7 @@ let ``object expression should emit override keyword on AST formatting without o
     """{ new System.IDisposable with
     member __.Dispose() = () }"""
     |> formatAst
-    |> should
-        equal
-        """{ new System.IDisposable with
+    |> should equal """{ new System.IDisposable with
     override __.Dispose() = () }"""
 
 [<Test>]
@@ -137,9 +116,7 @@ let ``object expression should preserve member keyword on AST formatting with or
     """{ new System.IDisposable with
     member __.Dispose() = () }"""
     |> formatAstWithSourceCode
-    |> should
-        equal
-        """{ new System.IDisposable with
+    |> should equal """{ new System.IDisposable with
     member __.Dispose() = () }"""
 
 [<Test>]
@@ -147,7 +124,5 @@ let ``object expression should preserve override keyword on AST formatting with 
     """{ new System.IDisposable with
     override __.Dispose() = () }"""
     |> formatAstWithSourceCode
-    |> should
-        equal
-        """{ new System.IDisposable with
+    |> should equal """{ new System.IDisposable with
     override __.Dispose() = () }"""

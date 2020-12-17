@@ -8,9 +8,7 @@ open Fantomas.Tests.TestHelper
 let ``record declaration`` () =
     formatSourceString false "type AParameters = { a : int }" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type AParameters = { a: int }
 """
 
@@ -18,17 +16,13 @@ type AParameters = { a: int }
 let ``record declaration with implementation visibility attribute`` () =
     formatSourceString false "type AParameters = private { a : int; b: float }" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type AParameters = private { a: int; b: float }
 """
 
 [<Test>]
 let ``record signatures`` () =
-    formatSourceString
-        true
-        """
+    formatSourceString true """
 module RecordSignature
 /// Represents simple XML elements.
 type Element =
@@ -68,9 +62,7 @@ type Element =
         { config with
               SemicolonAtEndOfLine = true }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 module RecordSignature
 /// Represents simple XML elements.
 type Element =
@@ -110,21 +102,16 @@ type Element =
 
 [<Test>]
 let ``records with update`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type Car = {
     Make : string
     Model : string
     mutable Odometer : int
     }
 
-let myRecord3 = { myRecord2 with Y = 100; Z = 2 }"""
-        config
+let myRecord3 = { myRecord2 with Y = 100; Z = 2 }""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type Car =
     { Make: string
       Model: string
@@ -136,9 +123,7 @@ let myRecord3 = { myRecord2 with Y = 100; Z = 2 }
 // the current behavior results in a compile error since the if is not aligned properly
 [<Test>]
 let ``should not break inside of if statements in records`` () =
-    formatSourceString
-        false
-        """let XpkgDefaults() =
+    formatSourceString false """let XpkgDefaults() =
     {
         ToolPath = "./tools/xpkg/xpkg.exe"
         WorkingDir = "./";
@@ -162,9 +147,7 @@ let ``should not break inside of if statements in records`` () =
         { config with
               SemicolonAtEndOfLine = true
               MaxIfThenElseShortWidth = 52 }
-    |> should
-        equal
-        """let XpkgDefaults () =
+    |> should equal """let XpkgDefaults () =
     { ToolPath = "./tools/xpkg/xpkg.exe";
       WorkingDir = "./";
       TimeOut = TimeSpan.FromMinutes 5.;
@@ -185,19 +168,14 @@ let ``should not break inside of if statements in records`` () =
 
 [<Test>]
 let ``should not add redundant newlines when using a record in a DU`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let rec make item depth =
     if depth > 0 then
         Tree({ Left = make (2 * item - 1) (depth - 1)
                Right = make (2 * item) (depth - 1) }, item)
-    else Tree(defaultof<_>, item)"""
-        config
+    else Tree(defaultof<_>, item)""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let rec make item depth =
     if depth > 0 then
         Tree(
@@ -211,15 +189,10 @@ let rec make item depth =
 
 [<Test>]
 let ``record inside DU constructor`` () =
-    formatSourceString
-        false
-        """let a = Tree({ Left = make (2 * item - 1) (depth - 1); Right = make (2 * item) (depth - 1) }, item)
-"""
-        config
+    formatSourceString false """let a = Tree({ Left = make (2 * item - 1) (depth - 1); Right = make (2 * item) (depth - 1) }, item)
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let a =
     Tree(
         { Left = make (2 * item - 1) (depth - 1)
@@ -230,26 +203,19 @@ let a =
 
 [<Test>]
 let ``should keep unit of measures in record and DU declaration`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type rate = {Rate:float<GBP*SGD/USD>}
 type rate2 = Rate of float<GBP/SGD*USD>
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type rate = { Rate: float<GBP * SGD / USD> }
 type rate2 = Rate of float<GBP / SGD * USD>
 """
 
 [<Test>]
 let ``should keep comments on records`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let newDocument = //somecomment
     { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
       content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
@@ -259,9 +225,7 @@ let newDocument = //somecomment
         ({ config with
                MaxInfixOperatorExpression = 75 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let newDocument = //somecomment
     { program = Encoding.Default.GetBytes(document.Program) |> Encoding.UTF8.GetString
       content = Encoding.Default.GetBytes(document.Content) |> Encoding.UTF8.GetString
@@ -271,8 +235,7 @@ let newDocument = //somecomment
 
 [<Test>]
 let ``|> should be on the next line if preceding expression is multiline`` () =
-    shouldNotChangeAfterFormat
-        """
+    shouldNotChangeAfterFormat """
 let newDocument = //somecomment
     { program = "Loooooooooooooooooooooooooong"
       content = "striiiiiiiiiiiiiiiiiiinnnnnnnnnnng"
@@ -282,18 +245,13 @@ let newDocument = //somecomment
 
 [<Test>]
 let ``should preserve inherit parts in records`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type MyExc =
     inherit Exception
     new(msg) = {inherit Exception(msg)}
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type MyExc =
     inherit Exception
     new(msg) = { inherit Exception(msg) }
@@ -301,19 +259,14 @@ type MyExc =
 
 [<Test>]
 let ``should preserve inherit parts in records with field`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type MyExc =
     inherit Exception
     new(msg) = {inherit Exception(msg)
                 X = 1}
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type MyExc =
     inherit Exception
     new(msg) = { inherit Exception(msg); X = 1 }
@@ -321,20 +274,15 @@ type MyExc =
 
 [<Test>]
 let ``should preserve inherit parts in records multiline`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type MyExc =
     inherit Exception
     new(msg) = {inherit Exception(msg)
                 XXXXXXXXXXXXXXXXXXXXXXXX = 1
                 YYYYYYYYYYYYYYYYYYYYYYYY = 2}
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type MyExc =
     inherit Exception
 
@@ -346,17 +294,12 @@ type MyExc =
 
 [<Test>]
 let ``anon record`` () =
-    formatSourceString
-        false
-        """let r: {| Foo: int; Bar: string |} =
+    formatSourceString false """let r: {| Foo: int; Bar: string |} =
     {| Foo = 123
        Bar = "" |}
-"""
-        ({ config with MaxRecordWidth = 10 })
+"""  ({ config with MaxRecordWidth = 10 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let r: {| Foo: int
           Bar: string |} =
     {| Foo = 123
@@ -365,17 +308,12 @@ let r: {| Foo: int
 
 [<Test>]
 let ``anon record - struct`` () =
-    formatSourceString
-        false
-        """let r: struct {| Foo: int; Bar: string |} =
+    formatSourceString false """let r: struct {| Foo: int; Bar: string |} =
     struct {| Foo = 123
               Bar = "" |}
-"""
-        ({ config with MaxRecordWidth = 10 })
+"""  ({ config with MaxRecordWidth = 10 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let r: struct {| Foo: int
                  Bar: string |} =
     struct {| Foo = 123
@@ -384,9 +322,7 @@ let r: struct {| Foo: int
 
 [<Test>]
 let ``anon record with multiline assignments`` () =
-    formatSourceString
-        false
-        "
+    formatSourceString false "
 let r =
     {|
         Foo =
@@ -397,12 +333,9 @@ let r =
 Fooey
 \"\"\"
     |}
-"
-        config
+"    config
     |> prepend newline
-    |> should
-        equal
-        "
+    |> should equal "
 let r =
     {| Foo =
            a
@@ -415,17 +348,12 @@ Fooey
 
 [<Test>]
 let ``meaningful space should be preserved, 353`` () =
-    formatSourceString
-        false
-        """to'.WithCommon(fun o' ->
+    formatSourceString false """to'.WithCommon(fun o' ->
         { dotnetOptions o' with WorkingDirectory =
                                   Path.getFullName "RegressionTesting/issue29"
-                                Verbosity = Some DotNet.Verbosity.Minimal }).WithParameters"""
-        config
+                                Verbosity = Some DotNet.Verbosity.Minimal }).WithParameters""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 to'
     .WithCommon(fun o' ->
         { dotnetOptions o' with
@@ -436,9 +364,7 @@ to'
 
 [<Test>]
 let ``record with long string inside array`` () =
-    formatSourceString
-        false
-        "
+    formatSourceString false "
 type Database =
 
     static member Default () =
@@ -519,12 +445,9 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
             ).write()
         Logger.debug \"Database restored\"
 
-"
-        config
+"    config
     |> prepend newline
-    |> should
-        equal
-        "
+    |> should equal "
 type Database =
 
     static member Default() =
@@ -602,21 +525,16 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
 
 [<Test>]
 let ``issue 457`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let x = Foo("").Goo()
 
 let r =
     { s with
         xxxxxxxxxxxxxxxxxxxxx = 1
         yyyyyyyyyyyyyyyyyyyyy = 2 }
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let x = Foo("").Goo()
 
 let r =
@@ -627,21 +545,16 @@ let r =
 
 [<Test>]
 let ``class member attributes should not introduce newline, 471`` () =
-    formatSourceString
-        false
-        """type Test =
+    formatSourceString false """type Test =
     | String of string
 
     [<SomeAttribute>]
     member x._Print = ""
 
     member this.TestMember = ""
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type Test =
     | String of string
 
@@ -653,9 +566,7 @@ type Test =
 
 [<Test>]
 let ``multiline record should be on new line after DU constructor, 462`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let expect =
     Result<Schema, SetError>.Ok { opts =
                                       [ Opts.anyOf
@@ -667,12 +578,9 @@ let expect =
                                                Opt.valueWith "new value" [ "fourth"; "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]) ]
                                   args = []
                                   commands = [] }
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let expect =
     Result<Schema, SetError>.Ok
         { opts =
@@ -694,33 +602,23 @@ let expect =
 
 [<Test>]
 let ``short record should remain on the same line after DU constructor`` () =
-    formatSourceString
-        false
-        """
-let expect = Result<int,string>.Ok   7"""
-        config
+    formatSourceString false """
+let expect = Result<int,string>.Ok   7""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let expect = Result<int, string>.Ok 7
 """
 
 [<Test>]
 let ``multiline list after DU should be on new line after DU constructor`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let expect =
     Result<int,string>.Ok [ "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
                             "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
                             "meh"
-                          ]"""
-        config
+                          ]""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let expect =
     Result<int, string>.Ok
         [ "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
@@ -730,9 +628,7 @@ let expect =
 
 [<Test>]
 let ``record with long string, 472`` () =
-    formatSourceString
-        false
-        "
+    formatSourceString false "
 namespace web_core
 
 open WebSharper.UI
@@ -742,12 +638,9 @@ module Maintoc =
     { MyPage.Create() with body =
                                 [ Doc.Verbatim \"\"\"
 This is a very long line in a multi-line string, so long in fact that it is longer than that page width to which I am trying to constrain everything, and so it goes bang.
-\"\"\" ] }"
-        config
+\"\"\" ] }" config
     |> prepend newline
-    |> should
-        equal
-        "
+    |> should equal "
 namespace web_core
 
 open WebSharper.UI
@@ -764,9 +657,7 @@ This is a very long line in a multi-line string, so long in fact that it is long
 
 [<Test>]
 let ``record type signature with line comment, 517`` () =
-    formatSourceString
-        true
-        """
+    formatSourceString true """
 module RecordSignature
 /// Represents simple XML elements.
 type Element =
@@ -778,12 +669,9 @@ type Element =
 
       /// The qualified name.
       Name: Name }
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 module RecordSignature
 /// Represents simple XML elements.
 type Element =
@@ -799,9 +687,7 @@ type Element =
 
 [<Test>]
 let ``don't duplicate newlines in object expression, 601`` () =
-    formatSourceString
-        false
-        """namespace Blah
+    formatSourceString false """namespace Blah
 
 open System
 
@@ -820,12 +706,9 @@ module Test =
             member __.Dispose() =
                 something.Dispose()
                 somethingElse.Dispose() }
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace Blah
 
 open System
@@ -849,47 +732,32 @@ module Test =
 
 [<Test>]
 let ``short record should be a oneliner`` () =
-    formatSourceString
-        false
-        """let a = { B = 7 ; C = 9 }
-"""
-        config
+    formatSourceString false """let a = { B = 7 ; C = 9 }
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let a = { B = 7; C = 9 }
 """
 
 // This test ensures that the normal flow of Fantomas is resumed when the next expression is being written.
 [<Test>]
 let ``short record and let binding`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let a = { B = 7 ; C = 9 }
 let sumOfMember = a.B + a.C
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let a = { B = 7; C = 9 }
 let sumOfMember = a.B + a.C
 """
 
 [<Test>]
 let ``long record should be multiline`` () =
-    formatSourceString
-        false
-        """let myInstance = { FirstLongMemberName = "string value" ; SecondLongMemberName = "other value" }
-"""
-        config
+    formatSourceString false """let myInstance = { FirstLongMemberName = "string value" ; SecondLongMemberName = "other value" }
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let myInstance =
     { FirstLongMemberName = "string value"
       SecondLongMemberName = "other value" }
@@ -897,19 +765,14 @@ let myInstance =
 
 [<Test>]
 let ``multiline in record field should short circuit short expression check`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let a =
     { B =
           8 // some comment
       C = 9 }
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let a =
     { B = 8 // some comment
       C = 9 }
@@ -919,25 +782,18 @@ let a =
 let ``short record type should remain single line`` () =
     formatSourceString false "type Foo = { A: int; B:   string }" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type Foo = { A: int; B: string }
 """
 
 [<Test>]
 let ``short record type with comment should go to multiline`` () =
-    formatSourceString
-        false
-        """type Foo = { A: int;
+    formatSourceString false """type Foo = { A: int;
                     // comment
                     B:   string }
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type Foo =
     { A: int
       // comment
@@ -946,17 +802,12 @@ type Foo =
 
 [<Test>]
 let ``short record type with comment after opening brace should go to multiline`` () =
-    formatSourceString
-        false
-        """type Foo = { // comment
+    formatSourceString false """type Foo = { // comment
                     A: int;
                     B:   string }
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type Foo =
     { // comment
       A: int
@@ -967,9 +818,7 @@ type Foo =
 let ``short record type with member definitions should be multi line`` () =
     formatSourceString false "type Foo = { A: int; B:   string } with member this.Foo () = ()" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type Foo =
     { A: int
       B: string }
@@ -978,47 +827,32 @@ type Foo =
 
 [<Test>]
 let ``short anonymous record with two members`` () =
-    formatSourceString
-        false
-        """let foo =
+    formatSourceString false """let foo =
     {| A = 7
        B = 8 |}
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let foo = {| A = 7; B = 8 |}
 """
 
 [<Test>]
 let ``short anonymous record with copy expression`` () =
-    formatSourceString
-        false
-        """let foo =
+    formatSourceString false """let foo =
     {| bar with A = 7 |}
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let foo = {| bar with A = 7 |}
 """
 
 [<Test>]
 let ``longer anonymous record with copy expression`` () =
-    formatSourceString
-        false
-        """let foo =
+    formatSourceString false """let foo =
     {| bar with AMemberWithALongName = aValueWithAlsoALongName |}
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let foo =
     {| bar with
            AMemberWithALongName = aValueWithAlsoALongName |}
@@ -1026,19 +860,14 @@ let foo =
 
 [<Test>]
 let ``short anonymous record type alias`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let useAddEntry() =
     fun (input: {| name: string; amount: Amount |}) ->
         // foo
         bar ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let useAddEntry () =
     fun (input: {| name: string; amount: Amount |}) ->
         // foo
@@ -1047,19 +876,14 @@ let useAddEntry () =
 
 [<Test>]
 let ``long anonymous record type alias`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let useAddEntry() =
     fun (input: {| name: string; amount: Amount; isIncome: bool; created: string |}) ->
         // foo
         bar ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let useAddEntry () =
     fun (input: {| name: string
                    amount: Amount
@@ -1071,16 +895,11 @@ let useAddEntry () =
 
 [<Test>]
 let ``line comment after { should make record multiline`` () =
-    formatSourceString
-        false
-        """let meh = { // this comment right
+    formatSourceString false """let meh = { // this comment right
     Name = "FOO"; Level = 78 }
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let meh =
     { // this comment right
       Name = "FOO"
@@ -1089,51 +908,34 @@ let meh =
 
 [<Test>]
 let ``line comment after short syntax record type, 774`` () =
-    formatSourceString
-        false
-        """type FormatConfig = {
+    formatSourceString false """type FormatConfig = {
     PageWidth: int
     Indent: int } // The number of spaces
-"""
-        config
-    |> should
-        equal
-        """type FormatConfig = { PageWidth: int; Indent: int } // The number of spaces
+"""  config
+    |> should equal """type FormatConfig = { PageWidth: int; Indent: int } // The number of spaces
 """
 
 [<Test>]
 let ``line comment after short record instance syntax`` () =
-    formatSourceString
-        false
-        """let formatConfig = {
+    formatSourceString false """let formatConfig = {
     PageWidth = 70
     Indent = 8 } // The number of spaces
-"""
-        config
-    |> should
-        equal
-        """let formatConfig = { PageWidth = 70; Indent = 8 } // The number of spaces
+"""  config
+    |> should equal """let formatConfig = { PageWidth = 70; Indent = 8 } // The number of spaces
 """
 
 [<Test>]
 let ``line comment after short anonymous record instance syntax`` () =
-    formatSourceString
-        false
-        """let formatConfig = {|
+    formatSourceString false """let formatConfig = {|
     PageWidth = 70
     Indent = 8 |} // The number of spaces
-"""
-        config
-    |> should
-        equal
-        """let formatConfig = {| PageWidth = 70; Indent = 8 |} // The number of spaces
+"""  config
+    |> should equal """let formatConfig = {| PageWidth = 70; Indent = 8 |} // The number of spaces
 """
 
 [<Test>]
 let ``no newline before first multiline member`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type ShortExpressionInfo =
     { MaxWidth: int
       StartColumn: int
@@ -1142,12 +944,9 @@ type ShortExpressionInfo =
         currentColumn - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
     member x.Foo() = ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type ShortExpressionInfo =
     { MaxWidth: int
       StartColumn: int
@@ -1161,19 +960,14 @@ type ShortExpressionInfo =
 
 [<Test>]
 let ``record with static member, 1059`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type XX =
   {a:int
    b:int}
   static member foo = 30
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type XX =
     { a: int
       b: int }
@@ -1182,19 +976,14 @@ type XX =
 
 [<Test>]
 let ``record with typed static member`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type XX =
   {a:int
    b:int}
   static member foo : int = 30
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type XX =
     { a: int
       b: int }
@@ -1203,9 +992,7 @@ type XX =
 
 [<Test>]
 let ``record with private static member`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type XX =
     { a: int
       b: int }
@@ -1214,9 +1001,7 @@ type XX =
         { config with
               NewlineBetweenTypeDefinitionAndMembers = true }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type XX =
     { a: int
       b: int }
@@ -1226,18 +1011,13 @@ type XX =
 
 [<Test>]
 let ``keep comments after closing brace of single line records, 1096`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let formatConfig = { PageWidth = 70; Indent = 8 } // The number of spaces
 type FormatConfig = { PageWidth: int; Indent: int } // The number of spaces
 ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let formatConfig = { PageWidth = 70; Indent = 8 } // The number of spaces
 type FormatConfig = { PageWidth: int; Indent: int } // The number of spaces
 ()
@@ -1245,19 +1025,14 @@ type FormatConfig = { PageWidth: int; Indent: int } // The number of spaces
 
 [<Test>]
 let ``comment after closing brace in nested record`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let person =
     { Name = "James"
       Address = { Street = "Bakerstreet"; Number = 42 }  // end address
     } // end person
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let person =
     { Name = "James"
       Address = { Street = "Bakerstreet"; Number = 42 } // end address
@@ -1266,19 +1041,14 @@ let person =
 
 [<Test>]
 let ``comment after closing brace of multi-line record type, 1124`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 module Test =
     type t =
       { long_enough : string
         also_long_enough : string } // Hi I am a comment
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 module Test =
     type t =
         { long_enough: string
@@ -1287,9 +1057,7 @@ module Test =
 
 [<Test>]
 let ``multiline SynPat.Record in match clause, 1173`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 match foo with
 | { Bar = bar
     Level = 12
@@ -1297,12 +1065,9 @@ match foo with
     Lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " } ->
     "7"
 | _ -> "8"
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 match foo with
 | { Bar = bar
     Level = 12
@@ -1314,9 +1079,7 @@ match foo with
 
 [<Test>]
 let ``multiline SynPat.Record in let binding destructuring`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let internal sepSemi (ctx: Context) =
     let { Config = { SpaceBeforeSemicolon = before; SpaceAfterSemicolon = after } } = ctx
 
@@ -1326,12 +1089,9 @@ let internal sepSemi (ctx: Context) =
     | false, true -> str "; "
     | true, true -> str " ; "
     <| ctx
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let internal sepSemi (ctx: Context) =
     let { Config = { SpaceBeforeSemicolon = before
                      SpaceAfterSemicolon = after } } =

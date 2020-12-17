@@ -7,9 +7,7 @@ open Fantomas.Tests.TestHelper
 [<Test>]
 let ``should keep sticky-to-the-left comments after nowarn directives`` () =
     formatSourceString false """#nowarn "51" // address-of operator can occur in the code""" config
-    |> should
-        equal
-        """#nowarn "51" // address-of operator can occur in the code
+    |> should equal """#nowarn "51" // address-of operator can occur in the code
 """
 
 [<Test>]
@@ -22,9 +20,7 @@ module FSharpx.TypeProviders.VectorTypeProvider
 let x = 1"""
 
     formatSourceString false source config
-    |> should
-        equal
-        """// The original idea for this typeprovider is from Ivan Towlson
+    |> should equal """// The original idea for this typeprovider is from Ivan Towlson
 // some text
 module FSharpx.TypeProviders.VectorTypeProvider
 
@@ -33,20 +29,15 @@ let x = 1
 
 [<Test>]
 let ``comments on local let bindings`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let print_30_permut() =
 
     /// declare and initialize
     let permutation : int array = Array.init n (fun i -> Console.Write(i+1); i)
     permutation
-    """
-        config
+    """ config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let print_30_permut () =
 
     /// declare and initialize
@@ -62,20 +53,15 @@ let print_30_permut () =
 
 [<Test>]
 let ``comments on local let bindings with desugared lambda`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let print_30_permut() =
 
     /// declare and initialize
     let permutation : int array = Array.init n (fun (i,j) -> Console.Write(i+1); i)
     permutation
-    """
-        config
+    """ config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let print_30_permut () =
 
     /// declare and initialize
@@ -92,9 +78,7 @@ let print_30_permut () =
 
 [<Test>]
 let ``xml documentation`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 /// <summary>
 /// Kill Weight Mud
 /// </summary>
@@ -105,12 +89,9 @@ let kwm sidpp tvd omw =
     (sidpp / 0.052 / tvd) + omw
 
 /// Kill Weight Mud
-let kwm sidpp tvd omw = 1.0"""
-        config
+let kwm sidpp tvd omw = 1.0""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 /// <summary>
 /// Kill Weight Mud
 /// </summary>
@@ -125,17 +106,12 @@ let kwm sidpp tvd omw = 1.0
 
 [<Test>]
 let ``should preserve comment-only source code`` () =
-    formatSourceString
-        false
-        """(*
+    formatSourceString false """(*
   line1
   line2
 *)
-"""
-        config
-    |> should
-        equal
-        """(*
+"""  config
+    |> should equal """(*
   line1
   line2
 *)
@@ -143,18 +119,13 @@ let ``should preserve comment-only source code`` () =
 
 [<Test>]
 let ``should keep sticky-to-the-right comments`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let f() =
     // COMMENT
     x + x
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let f () =
     // COMMENT
     x + x
@@ -162,18 +133,13 @@ let f () =
 
 [<Test>]
 let ``should keep sticky-to-the-left comments`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let f() =
   let x = 1 // COMMENT
   x + x
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let f () =
     let x = 1 // COMMENT
     x + x
@@ -181,9 +147,7 @@ let f () =
 
 [<Test>]
 let ``should keep well-aligned comments`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 /// XML COMMENT
 // Other comment
 let f() =
@@ -193,12 +157,9 @@ let f() =
     (* COMMENT C *)
     x + x + x
 
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 /// XML COMMENT
 // Other comment
 let f () =
@@ -211,9 +172,7 @@ let f () =
 
 [<Test>]
 let ``should align mis-aligned comments`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
    /// XML COMMENT A
      // Other comment
 let f() =
@@ -224,12 +183,9 @@ let f() =
   // COMMENT B
     x + x + x
 
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 /// XML COMMENT A
 // Other comment
 let f () =
@@ -243,9 +199,7 @@ let f () =
 
 [<Test>]
 let ``should indent comments properly`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 /// Non-local information related to internals of code generation within an assembly
 type IlxGenIntraAssemblyInfo =
     { /// A table recording the generated name of the static backing fields for each mutable top level value where
@@ -255,12 +209,9 @@ type IlxGenIntraAssemblyInfo =
       /// that come from both the signature and the implementation.
       StaticFieldInfo : Dictionary<ILMethodRef, ILFieldSpec> }
 
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 /// Non-local information related to internals of code generation within an assembly
 type IlxGenIntraAssemblyInfo =
     { /// A table recording the generated name of the static backing fields for each mutable top level value where
@@ -273,19 +224,14 @@ type IlxGenIntraAssemblyInfo =
 
 [<Test>]
 let ``should add comment after { as part of property assignment`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let a =
     { // foo
     // bar
     B = 7 }
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let a =
     { // foo
       // bar
@@ -294,35 +240,25 @@ let a =
 
 [<Test>]
 let ``shouldn't break on one-line comment`` () =
-    formatSourceString
-        false
-        """
-1 + (* Comment *) 1"""
-        config
+    formatSourceString false """
+1 + (* Comment *) 1""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 1 + (* Comment *) 1
 """
 
 [<Test>]
 let ``should keep comments on DU cases`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 /// XML comment
 type X =
    /// Hello
    A
    /// Goodbye
    | B
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 /// XML comment
 type X =
     /// Hello
@@ -333,9 +269,7 @@ type X =
 
 [<Test>]
 let ``should keep comments before attributes`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 [<NoEquality; NoComparison>]
 type IlxGenOptions =
     { fragName: string
@@ -363,9 +297,7 @@ type IlxGenOptions =
         { config with
               SemicolonAtEndOfLine = true }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 [<NoEquality; NoComparison>]
 type IlxGenOptions =
     { fragName: string;
@@ -392,21 +324,16 @@ type IlxGenOptions =
 
 [<Test>]
 let ``should keep comments on else if`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 if a then ()
 else
     // Comment 1
     if b then ()
     // Comment 2
     else ()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 if a then
     ()
 else
@@ -420,20 +347,15 @@ else
 
 [<Test>]
 let ``should keep comments on almost-equal identifiers`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let zp = p1 lxor p2
 // Comment 1
 let b = zp land (zp)
 (* Comment 2 *)
 let p = p1 land (b - 1)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let zp = p1 ``lxor`` p2
 // Comment 1
 let b = zp ``land`` (zp)
@@ -443,19 +365,14 @@ let p = p1 ``land`` (b - 1)
 
 [<Test>]
 let ``should not write sticky-to-the-left comments in a new line`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let moveFrom source =
   getAllFiles source
     |> Seq.filter (fun f -> Path.GetExtension(f).ToLower() <> ".db")  //exlcude the thumbs.db files
     |> move @"C:\_EXTERNAL_DRIVE\_Camera"
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let moveFrom source =
     getAllFiles source
     |> Seq.filter (fun f -> Path.GetExtension(f).ToLower() <> ".db") //exlcude the thumbs.db files
@@ -464,18 +381,13 @@ let moveFrom source =
 
 [<Test>]
 let ``should handle comments at the end of file`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let hello() = "hello world"
 
 (* This is a comment. *)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let hello () = "hello world"
 
 (* This is a comment. *)
@@ -483,26 +395,19 @@ let hello () = "hello world"
 
 [<Test>]
 let ``should handle block comments at the end of file, 810`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 printfn "hello world"
 (* This is a comment. *)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 printfn "hello world"
 (* This is a comment. *)
 """
 
 [<Test>]
 let ``preserve block comment after record, 516`` () =
-    formatSourceString
-        false
-        """module TriviaModule =
+    formatSourceString false """module TriviaModule =
 
 let env = "DEBUG"
 
@@ -515,12 +420,9 @@ let meh = { // this comment right
     Name = "FOO"; Level = 78 }
 
 (* ending with block comment *)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 module TriviaModule =
 
     let env = "DEBUG"
@@ -537,9 +439,7 @@ module TriviaModule =
 
 [<Test>]
 let ``should keep comments inside unit`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let x =
     ((*comment*))
     printf "a"
@@ -548,12 +448,9 @@ let x =
     // another comment 2
     printf "c"
 
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let x =
     ( (*comment*) )
     printf "a"
@@ -573,9 +470,7 @@ type T() =
 
     formatSourceString false source config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type T() =
     let x = 123
 //    override private x.ToString() = ""
@@ -583,19 +478,14 @@ type T() =
 
 [<Test>]
 let ``comment after function in type definition should be applied to member bindings`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type C () =
     let rec g x = h x
     and h x = g x
 
-    member x.P = g 3"""
-        config
+    member x.P = g 3""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type C() =
     let rec g x = h x
     and h x = g x
@@ -612,17 +502,13 @@ let foo = 7
 """
 
     formatSourceString false source config
-    |> should
-        equal
-        """let foo = 7
+    |> should equal """let foo = 7
 //
 """
 
 [<Test>]
 let ``block comment on top of namespace`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 (*
 
 Copyright 2010-2012 TidePowerd Ltd.
@@ -642,11 +528,8 @@ limitations under the License.
 
 *)
 
-namespace ExtCore"""
-        config
-    |> should
-        equal
-        """(*
+namespace ExtCore""" config
+    |> should equal """(*
 
 Copyright 2010-2012 TidePowerd Ltd.
 Copyright 2013 Jack Pappas
@@ -670,9 +553,7 @@ namespace ExtCore
 
 [<Test>]
 let ``block comment on top of file`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 (*
 
 Copyright 2010-2012 TidePowerd Ltd.
@@ -760,9 +641,7 @@ type substring =
 """
         ({ config with
                MaxInfixOperatorExpression = 60 })
-    |> should
-        equal
-        """(*
+    |> should equal """(*
 
 Copyright 2010-2012 TidePowerd Ltd.
 Copyright 2013 Jack Pappas
@@ -857,17 +736,12 @@ type substring =
 
 [<Test>]
 let ``line comment after "then"`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 if true then //comment
     1
-else 0"""
-        config
+else 0""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 if true then //comment
     1
 else
@@ -876,17 +750,12 @@ else
 
 [<Test>]
 let ``line comment after "if"`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 if //comment
     true then 1
-else 0"""
-        config
+else 0""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 if //comment
     true then
     1
@@ -896,17 +765,12 @@ else
 
 [<Test>]
 let ``line comment after "else"`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 if true then 1
 else //comment
-    0"""
-        config
+    0""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 if true then
     1
 else //comment
@@ -915,19 +779,14 @@ else //comment
 
 [<Test>]
 let ``comments for enum cases, 572`` () =
-    formatSourceString
-        false
-        """type A =
+    formatSourceString false """type A =
     /// Doc for CaseA
     | CaseA = 0
     /// Doc for CaseB
     | CaseB = 1
     /// Doc for CaseC
-    | CaseC = 2"""
-        config
-    |> should
-        equal
-        """type A =
+    | CaseC = 2""" config
+    |> should equal """type A =
     /// Doc for CaseA
     | CaseA = 0
     /// Doc for CaseB
@@ -936,19 +795,14 @@ let ``comments for enum cases, 572`` () =
     | CaseC = 2
 """
 
-    formatSourceString
-        false
-        """type A =
+    formatSourceString false """type A =
     // Comment for CaseA
     | CaseA = 0
     // Comment for CaseB
     | CaseB = 1
     // Comment for CaseC
-    | CaseC = 2"""
-        config
-    |> should
-        equal
-        """type A =
+    | CaseC = 2""" config
+    |> should equal """type A =
     // Comment for CaseA
     | CaseA = 0
     // Comment for CaseB
@@ -959,20 +813,15 @@ let ``comments for enum cases, 572`` () =
 
 [<Test>]
 let ``comments in multi-pattern case matching should not be removed, 813`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let f x =
     match x with
     | A // inline comment
     // line comment
     | B -> Some()
-    | _ -> None"""
-        config
+    | _ -> None""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let f x =
     match x with
     | A // inline comment
@@ -983,21 +832,16 @@ let f x =
 
 [<Test>]
 let ``block comments in multi-pattern case matching should not be removed`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let f x =
     match x with
     | A
     (* multi-line
        block comment *)
     | B -> Some()
-    | _ -> None"""
-        config
+    | _ -> None""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let f x =
     match x with
     | A
@@ -1009,9 +853,7 @@ let f x =
 
 [<Test>]
 let ``multiple line comments form a single trivia`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 /// Represents a long identifier with possible '.' at end.
 ///
 /// Typically dotms.Length = lid.Length-1, but they may be same if (incomplete) code ends in a dot, e.g. "Foo.Bar."
@@ -1021,12 +863,9 @@ let ``multiple line comments form a single trivia`` () =
 /// LongIdent can be empty list - it is used to denote that name of some AST element is absent (i.e. empty type name in inherit)
 type LongIdentWithDots =
     | LongIdentWithDots of id: LongIdent * dotms: range list
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 /// Represents a long identifier with possible '.' at end.
 ///
 /// Typically dotms.Length = lid.Length-1, but they may be same if (incomplete) code ends in a dot, e.g. "Foo.Bar."
@@ -1039,9 +878,7 @@ type LongIdentWithDots = LongIdentWithDots of id: LongIdent * dotms: range list
 
 [<Test>]
 let ``newline between comments should lead to individual comments, 920`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 [<AllowNullLiteral>]
 type IExports =
     abstract DataSet: DataSetStatic
@@ -1059,12 +896,9 @@ type IExports =
 
 // type MomentConstructor =
 //     U2<MomentConstructor1, MomentConstructor2>
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 [<AllowNullLiteral>]
 type IExports =
     abstract DataSet: DataSetStatic

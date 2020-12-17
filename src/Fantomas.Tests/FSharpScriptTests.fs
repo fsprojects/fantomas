@@ -9,16 +9,11 @@ open System.IO
 
 [<Test>]
 let ``source _directory keyword should not be replace with actual path`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #I __SOURCE_DIRECTORY__
 #load ".paket/load/net471/main.group.fsx"
-"""
-        config
-    |> should
-        equal
-        """#I __SOURCE_DIRECTORY__
+"""  config
+    |> should equal """#I __SOURCE_DIRECTORY__
 #load ".paket/load/net471/main.group.fsx"
 """
 
@@ -43,9 +38,7 @@ let ``e2e script test with keyword __source__directory__`` () =
 
         formattedSource
         |> String.normalizeNewLine
-        |> should
-            equal
-            """#I __SOURCE_DIRECTORY__
+        |> should equal """#I __SOURCE_DIRECTORY__
 #load ".paket/load/net471/main.group.fsx"
 """
     }
@@ -85,9 +78,7 @@ let ``fantomas removes module and namespace if it is only 1 word`` () =
 
         formattedSource
         |> String.normalizeNewLine
-        |> should
-            equal
-            """namespace Shared
+        |> should equal """namespace Shared
 
 type Counter = int
 """
@@ -117,9 +108,7 @@ let ``number in the filename should not end up in the module name`` () =
 
         formattedSource
         |> String.normalizeNewLine
-        |> should
-            equal
-            """let simplePatternMatch =
+        |> should equal """let simplePatternMatch =
     let x = "a"
 
     match x with

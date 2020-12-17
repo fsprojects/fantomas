@@ -38,9 +38,7 @@ let ``sepColon should not add a space when nothing proceeds it`` () =
     result
     |> prepend newline
     |> String.normalizeNewLine
-    |> should
-        equal
-        """
+    |> should equal """
 let add a b
     : int =
         a + b
@@ -76,9 +74,7 @@ Long comment
     result
     |> prepend newline
     |> String.normalizeNewLine
-    |> should
-        equal
-        """
+    |> should equal """
 (*
 
 Long comment
@@ -89,20 +85,19 @@ Long comment
 let ``nested exceedsMultiline expression should bubble up to parent check`` () =
     let expression =
         !- "let a ="
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (
-            sepOpenA
-            +> expressionFitsOnRestOfLine
-                // short expression, should cross the max page width of 50
-                (!- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-                 +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-                // fallback expression
-                (sepNln
-                 +> !- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-                 +> sepNln
-                 +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
-                 +> sepNln)
-            +> sepCloseA
-        )
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth
+            (sepOpenA
+             +> expressionFitsOnRestOfLine
+                 // short expression, should cross the max page width of 50
+                 (!- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                  +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+                    // fallback expression
+                    (sepNln
+                     +> !- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                     +> sepNln
+                     +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+                     +> sepNln)
+             +> sepCloseA)
 
     let config =
         { FormatConfig.Default with
@@ -116,9 +111,7 @@ let ``nested exceedsMultiline expression should bubble up to parent check`` () =
     result
     |> prepend newline
     |> String.normalizeNewLine
-    |> should
-        equal
-        """
+    |> should equal """
 let a =
     [|
     AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA

@@ -6,16 +6,11 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``a TypeApp inside a DotGet should stay on the same line, 994`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 Microsoft.FSharp.Reflection.FSharpType.GetUnionCases(typeof<option<option<unit>>>.GetGenericTypeDefinition().MakeGenericType(t)).Assembly
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 Microsoft
     .FSharp
     .Reflection
@@ -28,17 +23,12 @@ Microsoft
 
 [<Test>]
 let ``a DotGetApp inside a DotGet should stay on the same line, 1051`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 System.Diagnostics.FileVersionInfo.GetVersionInfo(
                System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion
-"""
-        { config with MaxLineLength = 80 }
+"""  { config with MaxLineLength = 80 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 System
     .Diagnostics
     .FileVersionInfo
@@ -52,20 +42,15 @@ System
 
 [<Test>]
 let ``split chained method call expression, 246`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
         root.SetAttribute
           ("driverVersion",
            "AltCover.Recorder "
            + System.Diagnostics.FileVersionInfo.GetVersionInfo(
                System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 root.SetAttribute(
     "driverVersion",
     "AltCover.Recorder "
@@ -83,16 +68,11 @@ root.SetAttribute(
 
 [<Test>]
 let ``keep parenthesis on same line as SynExpr.TypeApp`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 Equinox.EventStore.Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy).Resolve
-"""
-        { config with MaxLineLength = 100 }
+"""  { config with MaxLineLength = 100 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 Equinox
     .EventStore
     .Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy)
@@ -101,9 +81,7 @@ Equinox
 
 [<Test>]
 let ``don't break line for generic function call, 1134`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 module Services =
     /// Builds a Stream Resolve function appropriate to the store being used
     type StreamResolver(storage: Storage.Instance) =
@@ -126,12 +104,9 @@ module Services =
                     Equinox.EventStore.CachingStrategy.SlidingWindow(cache, TimeSpan.FromMinutes 20.)
 
                 Equinox.EventStore.Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy).Resolve
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 module Services =
     /// Builds a Stream Resolve function appropriate to the store being used
     type StreamResolver(storage: Storage.Instance) =
@@ -160,9 +135,7 @@ module Services =
 
 [<Test>]
 let ``long chained expression should be multiline, 501`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 module Program
 
 open Microsoft.AspNetCore.Hosting
@@ -184,12 +157,9 @@ let main args =
     .Build()
     .Run()
   0
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 module Program
 
 open Microsoft.AspNetCore.Hosting
@@ -215,21 +185,16 @@ let main args =
 
 [<Test>]
 let ``nested TypeApp inside DotGet`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let job =
     JobBuilder
         .UsingJobData(jobDataMap)
         .Create<WrapperJob>()
         .WithIdentity(taskName, groupName)
         .Build()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let job =
     JobBuilder
         .UsingJobData(jobDataMap)
@@ -240,20 +205,15 @@ let job =
 
 [<Test>]
 let ``TypeApp at end of nested DotGet`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let c =
       builder
         .CaptureStartupErrors(true)
         .UseSerilog(dispose = true)
         .UseStartup<Startup>()
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let c =
     builder
         .CaptureStartupErrors(true)
@@ -263,21 +223,16 @@ let c =
 
 [<Test>]
 let ``inner SynExpr.LongIdent should also be split`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let firstName =
     define
         .Attribute
         .ParsedRes(FirstName.value, FirstName.create)
         .Get(fun u -> u.FirstName)
         .SetRes(userSetter User.setFirstName)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let firstName =
     define
         .Attribute
@@ -288,17 +243,12 @@ let firstName =
 
 [<Test>]
 let ``long ident with dots inside app inside dotget`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 Equinox.MemoryStore.Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
                     .Resolve
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 Equinox
     .MemoryStore
     .Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
@@ -307,9 +257,7 @@ Equinox
 
 [<Test>]
 let ``long ident with dots inside type app inside dotget`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
                 Equinox.EventStore.Resolver<'event, 'state, _>(gateway,
                                                                codec,
                                                                fold,
@@ -317,12 +265,9 @@ let ``long ident with dots inside type app inside dotget`` () =
                                                                cacheStrategy,
                                                                accessStrategy)
                     .Resolve
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 Equinox
     .EventStore
     .Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy)
@@ -331,9 +276,7 @@ Equinox
 
 [<Test>]
 let ``lambda should have extra indent inside dotget`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let getColl =
   define
     .Operation
@@ -341,12 +284,9 @@ let getColl =
     .GetCollection(fun _ parser ->
       let x = 2
       x)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let getColl =
     define
         .Operation
@@ -358,9 +298,7 @@ let getColl =
 
 [<Test>]
 let ``dotget app lambda`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let getColl =
     GetCollection(fun _ parser ->
         let x = 1
@@ -384,12 +322,9 @@ let getColl4 =
         let x = 4
         x
     ).Foo
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let getColl =
     GetCollection(fun _ parser ->
         let x = 1

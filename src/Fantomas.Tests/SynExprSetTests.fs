@@ -10,33 +10,23 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``array indexer set`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let arr = [|0|]
 (arr.[0]) <- 1
-"""
-        config
-    |> should
-        equal
-        """let arr = [| 0 |]
+"""  config
+    |> should equal """let arr = [| 0 |]
 (arr.[0]) <- 1
 """
 
 [<Test>]
 let ``setter of type set`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type T() =
     member val X = 0 with get, set
 (T().X) <- 1
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type T() =
     member val X = 0 with get, set
 
@@ -45,24 +35,17 @@ type T() =
 
 [<Test>]
 let ``mutable value set`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let mutable x = 0
 (x) <- 1
-"""
-        config
-    |> should
-        equal
-        """let mutable x = 0
+"""  config
+    |> should equal """let mutable x = 0
 (x) <- 1
 """
 
 [<Test>]
 let ``don't add additional new line after SynExpr.LongIndentSet, 1111`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
         let options =
             jsOptions<Vis.Options> (fun o ->
                 o.autoResize <- Some true
@@ -90,12 +73,9 @@ let ``don't add additional new line after SynExpr.LongIndentSet, 1111`` () =
                     | Graph.HierarchicalUpDown -> createObj [ "hierarchical" ==> hierOpts "UD" ]
 
                 o.layout <- Some layout)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let options =
     jsOptions<Vis.Options>
         (fun o ->

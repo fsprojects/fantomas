@@ -6,60 +6,43 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``should use verbatim strings on some hash directives`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
     #r @"C:\foo\bar.dll"
-    """
-        config
+    """ config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 #r @"C:\foo\bar.dll"
 """
 
 [<Test>]
 let ``hash directives`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
     #r "Fantomas.Tests.dll"
     #load "CodeFormatterTests.fs"
-    """
-        config
+    """ config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 #r "Fantomas.Tests.dll"
 #load "CodeFormatterTests.fs"
 """
 
 [<Test>]
 let ``should support load directive multiple arguments`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
     #load "A.fs" "B.fs"
     #load "C.fs"
           "D.fs"
           "E.fs"
-    """
-        config
+    """ config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 #load "A.fs" "B.fs"
 #load "C.fs" "D.fs" "E.fs"
 """
 
 [<Test>]
 let ``don't add extra new line before hash directive`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 module FantomasTools.Client.ASTViewer.Decoders
 
 open ASTViewer.Shared
@@ -69,12 +52,9 @@ open Thoth.Json
 let decodeKeyValue: Decoder<obj> = fun _key jsonValue -> Ok jsonValue
 
 #nowarn "40"
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 module FantomasTools.Client.ASTViewer.Decoders
 
 open ASTViewer.Shared
@@ -88,9 +68,7 @@ let decodeKeyValue: Decoder<obj> = fun _key jsonValue -> Ok jsonValue
 
 [<Test>]
 let ``#r "nuget:..." syntax`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 #r "nuget: Newtonsoft.Json"
 // Optionally, specify a version explicitly
 // #r "nuget: Newtonsoft.Json,11.0.1"
@@ -100,12 +78,9 @@ open Newtonsoft.Json
 let o = {| X = 2; Y = "Hello" |}
 
 printfn "%s" (JsonConvert.SerializeObject o)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 #r "nuget: Newtonsoft.Json"
 // Optionally, specify a version explicitly
 // #r "nuget: Newtonsoft.Json,11.0.1"

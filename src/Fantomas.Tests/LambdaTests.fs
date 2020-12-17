@@ -6,18 +6,14 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``keep comment after arrow`` () =
-    formatSourceString
-        false
-        """_Target "FSharpTypesDotNet" (fun _ -> // obsolete
+    formatSourceString false """_Target "FSharpTypesDotNet" (fun _ -> // obsolete
  ())
 """
         ({ config with
                IndentSize = 2
                MaxLineLength = 90 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 _Target
   "FSharpTypesDotNet"
   (fun _ -> // obsolete
@@ -25,18 +21,13 @@ _Target
 """
 
 let ``indent multiline lambda in parenthesis, 523`` () =
-    formatSourceString
-        false
-        """let square = (fun b ->
+    formatSourceString false """let square = (fun b ->
     b*b
     prinftn "%i" b*b
 )
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let square =
     (fun b ->
         b * b
@@ -45,9 +36,7 @@ let square =
 
 [<Test>]
 let ``lambda inside tupled argument`` () =
-    formatSourceString
-        false
-        """#load "../../.paket/load/netstandard2.0/main.group.fsx"
+    formatSourceString false """#load "../../.paket/load/netstandard2.0/main.group.fsx"
 #load "../../src/Common.fs"
 #load "../../src/Badge.fs"
 
@@ -66,12 +55,9 @@ let private badgeSample =
                   Badge.badge [ Badge.Color Warning ] [ str "oh my" ]]), "BadgeSample")
 
 exportDefault badgeSample
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 #load "../../.paket/load/netstandard2.0/main.group.fsx"
 #load "../../src/Common.fs"
 #load "../../src/Badge.fs"
@@ -103,19 +89,14 @@ exportDefault badgeSample
 
 [<Test>]
 let ``long identifier inside lambda`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let a =
     b
     |> List.exists (fun p ->
         x && someVeryLongIdentifierrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrzzzz___________)
-"""
-        ({ config with MaxLineLength = 80 })
+"""  ({ config with MaxLineLength = 80 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let a =
     b
     |> List.exists
@@ -126,9 +107,7 @@ let a =
 
 [<Test>]
 let ``FAKE target`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 Target.create "Clean" (fun _ ->
     [ "bin"
       "src/Fantomas/bin"
@@ -137,12 +116,9 @@ Target.create "Clean" (fun _ ->
       "src/Fantomas.CoreGlobalTool/obj" ]
     |> List.iter Shell.cleanDir
 )
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 Target.create
     "Clean"
     (fun _ ->
@@ -156,20 +132,15 @@ Target.create
 
 [<Test>]
 let ``destructed argument lamba`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 List.filter (fun ({ ContentBefore = contentBefore }) ->
                                                     // some comment
                                                     let a = 8
                                                     let b = List.length contentBefore
                                                     a + b)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 List.filter
     (fun { ContentBefore = contentBefore } ->
         // some comment
@@ -180,21 +151,16 @@ List.filter
 
 [<Test>]
 let ``destructed argument lamba in let binding`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let a =
     (fun ({ ContentBefore = contentBefore }) ->
                                                     // some comment
                                                     let a = 8
                                                     let b = List.length contentBefore
                                                     a + b)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let a =
     (fun { ContentBefore = contentBefore } ->
         // some comment
@@ -206,18 +172,13 @@ let a =
 
 [<Test>]
 let ``indent when identifier is smaller than ident size`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 foo (fun a ->
                 let b = 8
                 b)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 foo
     (fun a ->
         let b = 8
@@ -226,18 +187,13 @@ foo
 
 [<Test>]
 let ``short ident in nested let binding`` () =
-    formatSourceString
-        false
-        """let a =
+    formatSourceString false """let a =
     foo (fun a ->
                 let b = 8
                 b)
-"""
-        ({ config with IndentSize = 2 })
+"""  ({ config with IndentSize = 2 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let a =
   foo
     (fun a ->
@@ -247,18 +203,13 @@ let a =
 
 [<Test>]
 let ``longer ident in nested let binding`` () =
-    formatSourceString
-        false
-        """let a =
+    formatSourceString false """let a =
     foobar (fun a ->
                 let b = 8
                 b)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let a =
     foobar
         (fun a ->
@@ -268,17 +219,12 @@ let a =
 
 [<Test>]
 let ``multiple braces should add indent`` () =
-    formatSourceString
-        false
-        """((((fun () ->
+    formatSourceString false """((((fun () ->
     printfn "meh"
     ()))))
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 ((((fun () ->
     printfn "meh"
     ()))))
@@ -288,44 +234,33 @@ let ``multiple braces should add indent`` () =
 let ``add space after chained ident, 676`` () =
     formatSourceString false """let foo = Foo(fun () -> Foo.Create x).Value""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let foo = Foo(fun () -> Foo.Create x).Value
 """
 
 [<Test>]
 let ``line comment after lambda should not necessary make it multiline`` () =
-    formatSourceString
-        false
-        """let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
+    formatSourceString false """let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
 """
         ({ config with
                MaxFunctionBindingWidth = 150 })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
 """
 
 
 [<Test>]
 let ``multiline let binding in lambda`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
             let connectionString =
                 if hostedService then RoleEnvironment.GetConfigurationSettingValue(configName)
                 else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
             configSettingPublisher.Invoke(connectionString) |> ignore)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 CloudStorageAccount.SetConfigurationSettingPublisher
     (fun configName configSettingPublisher ->
         let connectionString =
@@ -341,9 +276,7 @@ CloudStorageAccount.SetConfigurationSettingPublisher
 
 [<Test>]
 let ``line comment after arrow should not introduce additional newline, 772`` () =
-    formatSourceString
-        false
-        """let genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingAndRhs: range) =
+    formatSourceString false """let genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingAndRhs: range) =
     fun ctx ->
         match mf with
         | MFOverride _ ->
@@ -361,12 +294,9 @@ let ``line comment after arrow should not introduce additional newline, 772`` ()
                 |> Option.defaultValue (!- "override ")
                 <| ctx)
         <| ctx
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingAndRhs: range) =
     fun ctx ->
         match mf with
@@ -390,18 +320,13 @@ let genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingA
 
 [<Test>]
 let ``line comment after arrow should not introduce extra newline`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 List.tryFind (fun { Type = t; Range = r } -> // foo
                     let a = 8
                     a + 9)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 List.tryFind
     (fun { Type = t; Range = r } -> // foo
         let a = 8
@@ -410,9 +335,7 @@ List.tryFind
 
 [<Test>]
 let ``lambda body should be indented far enough, 870`` () =
-    formatSourceString
-        false
-        """  let projectIntoMap projection =
+    formatSourceString false """  let projectIntoMap projection =
     fun state eventEnvelope ->
       state
       |> Map.tryFind eventEnvelope.Metadata.Source
@@ -442,9 +365,7 @@ let projectIntoMap projection =
                MaxFunctionBindingWidth = 60
                MultilineBlockBracketsOnSameColumn = true })
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let projectIntoMap projection =
   fun state eventEnvelope ->
     state
@@ -472,9 +393,7 @@ let projectIntoMap projection =
 
 [<Test>]
 let ``don't duplicate new line before LongIdentSet`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
         let options =
             jsOptions<Vis.Options> (fun o ->
                 let layout =
@@ -489,9 +408,7 @@ let ``don't duplicate new line before LongIdentSet`` () =
               MaxValueBindingWidth = 50
               MaxFunctionBindingWidth = 50 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let options =
     jsOptions<Vis.Options>
         (fun o ->
@@ -506,9 +423,7 @@ let options =
 
 [<Test>]
 let ``don't print unrelated trivia after closing parenthesis of lambda, 1084`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
   allLines
   |> List.mapi (fun index line -> line, (index + 1)) // line number is needed in tokenizeLine
@@ -521,12 +436,9 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
       (nextState, allTokens)
   ) (state, []) // empty tokens to start with
   |> snd // ignore the state
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
     allLines
     |> List.mapi (fun index line -> line, (index + 1)) // line number is needed in tokenizeLine
@@ -548,19 +460,14 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
 
 [<Test>]
 let ``trivia before closing parenthesis of desugared lambda, 1146`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 Target.create "Install" (fun _ ->
     Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
     // Paket restore will already happen when the build.fsx dependencies are restored
 )
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 Target.create
     "Install"
     (fun _ ->
@@ -571,19 +478,14 @@ Target.create
 
 [<Test>]
 let ``trivia before closing parenthesis of lambda`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 Target.create "Install" (fun x ->
     Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
     // Paket restore will already happen when the build.fsx dependencies are restored
 )
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 Target.create
     "Install"
     (fun x ->
@@ -594,20 +496,15 @@ Target.create
 
 [<Test>]
 let ``function call with two lambda arguments, 1164`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let init =
   addDateTimeConverter
     (fun dt -> Date(dt.Year, dt.Month, dt.Day))
     (fun (Date (y, m, d)) ->
       System.DateTime(y, m, d))
-"""
-        { config with MaxLineLength = 85 }
+"""  { config with MaxLineLength = 85 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let init =
     addDateTimeConverter
         (fun dt -> Date(dt.Year, dt.Month, dt.Day))
@@ -616,20 +513,15 @@ let init =
 
 [<Test>]
 let ``function call with two lambdas and three other arguments`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 SettingControls.toggleButton (fun _ ->
     UpdateOption(key, MultilineFormatterTypeOption(o, key, "character_width"))
     |> dispatch) (fun _ ->
     UpdateOption(key, MultilineFormatterTypeOption(o, key, "number_of_items"))
     |> dispatch) "CharacterWidth" "NumberOfItems" key (v = "character_width")
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 SettingControls.toggleButton
     (fun _ ->
         UpdateOption(key, MultilineFormatterTypeOption(o, key, "character_width"))
@@ -645,9 +537,7 @@ SettingControls.toggleButton
 
 [<Test>]
 let ``lambda should be on the next line, 1201`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 let printListWithOffset a list1 =
     List.iter
         (fun elem -> printfn "%d" (a + elem))
@@ -660,12 +550,9 @@ let printListWithOffset a list1 =
             // OK if lambda body is long enough
             printfn "%d" (a + elem))
         list1
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 let printListWithOffset a list1 =
     List.iter (fun elem -> printfn "%d" (a + elem)) list1
 
@@ -680,9 +567,7 @@ let printListWithOffset a list1 =
 
 [<Test>]
 let ``Thoth.Json decoder, 685`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 Decode.map3 (fun aggregateId event commitPayload ->
     match commitPayload with
     | Some payload ->
@@ -691,12 +576,9 @@ Decode.map3 (fun aggregateId event commitPayload ->
               Event = event
               Payload = payload }
     | None -> None) (Decode.field "aggregate_id" Decode.string) (Decode.field "event" Decode.string) decodePayload
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 Decode.map3
     (fun aggregateId event commitPayload ->
         match commitPayload with
@@ -713,9 +595,7 @@ Decode.map3
 
 [<Test>]
 let ``add extra indent in fluent api, 970`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
   services.AddAuthentication(fun options ->
           options.DefaultScheme <- "Cookies"
           options.DefaultChallengeScheme <- "oidc").AddCookie("Cookies")
@@ -725,12 +605,9 @@ let ``add extra indent in fluent api, 970`` () =
           options.ClientSecret <- "secret"
           options.ResponseType <- "code"
           options.SaveTokens <- true)
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 services
     .AddAuthentication(fun options ->
         options.DefaultScheme <- "Cookies"
@@ -746,19 +623,14 @@ services
 
 [<Test>]
 let ``correctly indent nested lambda inside fluent api`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 services.AddHttpsRedirection(Action<HttpsRedirectionOptions>(fun options ->
     // meh
     options.HttpsPort <- Nullable(7002)
 )) |> ignore
-"""
-        { config with MaxLineLength = 60 }
+"""  { config with MaxLineLength = 60 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 services.AddHttpsRedirection(
     Action<HttpsRedirectionOptions>
         (fun options ->

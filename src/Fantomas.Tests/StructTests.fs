@@ -6,9 +6,7 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``struct type`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type NameStruct =
     struct
         val Name : string
@@ -25,9 +23,7 @@ let n = new NameStruct("Hippo")"""
         { config with
               MaxValueBindingWidth = 120 }
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type NameStruct =
     struct
         val Name: string
@@ -43,9 +39,7 @@ let n = new NameStruct("Hippo")
 
 [<Test>]
 let ``struct type retains members outside struct-end`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type NameStruct =
     struct
         val Name : string
@@ -58,12 +52,9 @@ type NameStruct =
     member x.Lower() =
         x.Name.ToLower()
 
-let n = new NameStruct("Hippo")"""
-        config
+let n = new NameStruct("Hippo")""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type NameStruct =
     struct
         val Name: string
@@ -79,20 +70,15 @@ let n = new NameStruct("Hippo")
 
 [<Test>]
 let ``struct tuple`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 type S = S of struct (int * int)
 let g : struct (int*int) = struct (1,1)
 let z = fun (S (struct (u, v)): S) -> u + v
 let t = struct (1,2)
 match t with
-| struct (x,y) -> ()"""
-        config
+| struct (x,y) -> ()""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type S = S of struct (int * int)
 let g: struct (int * int) = struct (1, 1)
 let z = fun ((S (struct (u, v))): S) -> u + v
@@ -106,24 +92,17 @@ match t with
 let ``struct tuple type abbreviation, 605`` () =
     formatSourceString false "type TupleStruct = (struct (string * string))" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 type TupleStruct = (struct (string * string))
 """
 
 [<Test>]
 let ``struct tuple type abbreviation, sigfile`` () =
-    formatSourceString
-        true
-        """namespace meh
+    formatSourceString true """namespace meh
 
-type TupleStruct = (struct (string * string))"""
-        config
+type TupleStruct = (struct (string * string))""" config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace meh
 
 type TupleStruct = (struct (string * string))

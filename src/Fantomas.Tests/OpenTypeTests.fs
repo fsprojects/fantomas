@@ -7,9 +7,7 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``open type in implementation`` () =
-    formatSourceString
-        false
-        """
+    formatSourceString false """
 open type System.Math
 
 let x = Min(1.0, 2.0)
@@ -23,12 +21,9 @@ module M =
 open type M.DU
 
 printfn "%A" A
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 open type System.Math
 
 let x = Min(1.0, 2.0)
@@ -49,18 +44,13 @@ printfn "%A" A
 
 [<Test>]
 let ``open type in signature file`` () =
-    formatSourceString
-        true
-        """
+    formatSourceString true """
 namespace MySigFile
 
 open type System.Math
-"""
-        config
+"""  config
     |> prepend newline
-    |> should
-        equal
-        """
+    |> should equal """
 namespace MySigFile
 
 open type System.Math

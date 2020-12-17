@@ -13,18 +13,15 @@ let tokN (range: range) (tokenName: FsTokenType) f =
 let triviaAfterArrow (range: range) (ctx: Context) =
     let hasCommentAfterArrow =
         findTriviaTokenFromName RARROW range ctx
-        |> Option.bind
-            (fun t ->
-                t.ContentAfter
-                |> List.tryFind
-                    (function
-                    | Comment (LineCommentAfterSourceCode _) -> true
-                    | _ -> false))
+        |> Option.bind (fun t ->
+            t.ContentAfter
+            |> List.tryFind (function
+                | Comment (LineCommentAfterSourceCode _) -> true
+                | _ -> false))
         |> Option.isSome
 
     ((tokN range RARROW sepArrow)
-     +> ifElse hasCommentAfterArrow sepNln sepNone)
-        ctx
+     +> ifElse hasCommentAfterArrow sepNln sepNone) ctx
 
 let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
     let keywords =
@@ -46,10 +43,9 @@ let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
 
             let triviaBeforeIfKeyword =
                 (Map.tryFindOrEmptyList SynExpr_IfThenElse ctx.TriviaMainNodes) // ctx.Trivia
-                |> List.filter
-                    (fun t ->
-                        RangeHelpers.``range contains`` rangeOfIfThenElse t.Range
-                        && (RangeHelpers.``range after`` elseTrivia.Range t.Range))
+                |> List.filter (fun t ->
+                    RangeHelpers.``range contains`` rangeOfIfThenElse t.Range
+                    && (RangeHelpers.``range after`` elseTrivia.Range t.Range))
                 |> List.tryHead
 
             tokN rangeOfIfThenElse ELSE (!- "else")
@@ -78,14 +74,13 @@ let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
 
 let getIndentBetweenTicksFromSynPat patRange fallback ctx =
     TriviaHelpers.getNodesForTypes [ SynPat_LongIdent; SynPat_Named ] ctx.TriviaMainNodes
-    |> List.choose
-        (fun t ->
-            match t.Range = patRange with
-            | true ->
-                match t.ContentItself with
-                | Some (IdentBetweenTicks (iiw)) -> Some iiw
-                | _ -> None
-            | _ -> None)
+    |> List.choose (fun t ->
+        match t.Range = patRange with
+        | true ->
+            match t.ContentItself with
+            | Some (IdentBetweenTicks (iiw)) -> Some iiw
+            | _ -> None
+        | _ -> None)
     |> List.tryHead
     |> fun iiw ->
         match iiw with

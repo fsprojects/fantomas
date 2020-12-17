@@ -22,24 +22,21 @@ module Dbg =
 
         prefix ()
 
-        Printf.kbprintf
-            (fun () ->
+        Printf.kbprintf (fun () ->
 
-                let old = Console.ForegroundColor
+            let old = Console.ForegroundColor
 
-                try
-                    Console.ForegroundColor <- ConsoleColor.Red
+            try
+                Console.ForegroundColor <- ConsoleColor.Red
 
-                    if n <> 1
-                    then sb.Append(" (").Append(n).Append(")") |> ignore
+                if n <> 1
+                then sb.Append(" (").Append(n).Append(")") |> ignore
 
-                    sb.ToString() |> Console.Error.WriteLine
-                    sb.Clear() |> ignore
-                    prefix ()
-                finally
-                    Console.ForegroundColor <- old)
-            sb
-            fmt
+                sb.ToString() |> Console.Error.WriteLine
+                sb.Clear() |> ignore
+                prefix ()
+            finally
+                Console.ForegroundColor <- old) sb fmt
 
     let seq fn = Seq.iter fn
 

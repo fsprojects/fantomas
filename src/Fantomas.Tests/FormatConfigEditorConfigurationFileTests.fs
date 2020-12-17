@@ -105,10 +105,8 @@ let ``parent config should not be taking into account when child is root`` () =
     let subFolder = tempName ()
 
     use parentConfig =
-        new ConfigurationFile(
-            { defaultConfig with
-                  MaxRecordWidth = 10 }
-        )
+        new ConfigurationFile({ defaultConfig with
+                                    MaxRecordWidth = 10 })
 
     use childConfig =
         new ConfigurationFile({ defaultConfig with IndentSize = 2 }, subFolder = subFolder, isRoot = true)
@@ -126,10 +124,8 @@ let ``parent config should not be taking into account when child is root`` () =
 [<Test>]
 let ``configuration file should not affect file extension`` () =
     use configFixture =
-        new ConfigurationFile(
-            { defaultConfig with
-                  MaxLineLength = 90 }
-        )
+        new ConfigurationFile({ defaultConfig with
+                                    MaxLineLength = 90 })
 
     use fsharpFile = new FSharpFile(".fsx")
 
@@ -330,10 +326,9 @@ end_of_line = cr
     use fsharpFile = new FSharpFile()
 
     let ex =
-        Assert.Throws
-            (fun () ->
-                EditorConfig.readConfiguration fsharpFile.FSharpFile
-                |> ignore)
+        Assert.Throws(fun () ->
+            EditorConfig.readConfiguration fsharpFile.FSharpFile
+            |> ignore)
 
     ex.Message
     == "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
@@ -345,12 +340,10 @@ let valid_eol_settings =
 [<TestCaseSource("valid_eol_settings")>]
 let can_parse_end_of_line_setting (eol: EndOfLineStyle) =
     let editorConfig =
-        sprintf
-            """
+        sprintf """
 [*.fs]
 end_of_line = %s
-"""
-            (EndOfLineStyle.ToConfigString eol)
+"""      (EndOfLineStyle.ToConfigString eol)
 
     use configFixture =
         new ConfigurationFile(defaultConfig, content = editorConfig)

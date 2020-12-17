@@ -61,10 +61,7 @@ let ``check with different line endings`` () =
 """
 
     let snippetWithOtherLineEndings =
-        if codeSnippet.Contains("\r\n") then
-            codeSnippet.Replace("\r\n", "\n")
-        else
-            codeSnippet.Replace("\n", "\r\n")
+        if codeSnippet.Contains("\r\n") then codeSnippet.Replace("\r\n", "\n") else codeSnippet.Replace("\n", "\r\n")
 
     use fileFixture =
         new TemporaryFileCodeSample(snippetWithOtherLineEndings)

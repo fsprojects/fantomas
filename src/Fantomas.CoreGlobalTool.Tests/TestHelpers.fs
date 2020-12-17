@@ -29,10 +29,9 @@ type TemporaryFileCodeSample internal (codeSnippet: string,
         | None -> Path.Join(Path.GetTempPath(), sprintf "%s.fs" name)
 
     do
-        (if hasByteOrderMark then
-            File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
-         else
-             File.WriteAllText(filename, codeSnippet))
+        (if hasByteOrderMark
+         then File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
+         else File.WriteAllText(filename, codeSnippet))
 
     member _.Filename: string = filename
 
@@ -41,10 +40,9 @@ type TemporaryFileCodeSample internal (codeSnippet: string,
             File.Delete(filename)
 
             subFolder
-            |> Option.iter
-                (fun sf ->
-                    Path.Join(Path.GetTempPath(), sf)
-                    |> Directory.Delete)
+            |> Option.iter (fun sf ->
+                Path.Join(Path.GetTempPath(), sf)
+                |> Directory.Delete)
 
 type OutputFile internal () =
     let filename =
@@ -90,18 +88,8 @@ let runFantomasTool arguments =
 #endif
 
     let fantomasDll =
-        Path.Combine(
-            pwd,
-            "..",
-            "..",
-            "..",
-            "..",
-            "Fantomas.CoreGlobalTool",
-            "bin",
-            configuration,
-            "net5.0",
-            "fantomas-tool.dll"
-        )
+        Path.Combine
+            (pwd, "..", "..", "..", "..", "Fantomas.CoreGlobalTool", "bin", configuration, "net5.0", "fantomas-tool.dll")
 
     use p = new Process()
     p.StartInfo.UseShellExecute <- false
