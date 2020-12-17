@@ -22,16 +22,17 @@ type TemporaryFileCodeSample internal (codeSnippet: string,
         | Some sf ->
             let tempFolder = Path.Join(Path.GetTempPath(), sf)
 
-            if not (Directory.Exists(tempFolder))
-            then Directory.CreateDirectory(tempFolder) |> ignore
+            if not (Directory.Exists(tempFolder)) then
+                Directory.CreateDirectory(tempFolder) |> ignore
 
             Path.Join(tempFolder, sprintf "%s.fs" name)
         | None -> Path.Join(Path.GetTempPath(), sprintf "%s.fs" name)
 
     do
-        (if hasByteOrderMark
-         then File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
-         else File.WriteAllText(filename, codeSnippet))
+        (if hasByteOrderMark then
+            File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
+         else
+             File.WriteAllText(filename, codeSnippet))
 
     member _.Filename: string = filename
 
@@ -40,9 +41,10 @@ type TemporaryFileCodeSample internal (codeSnippet: string,
             File.Delete(filename)
 
             subFolder
-            |> Option.iter (fun sf ->
-                Path.Join(Path.GetTempPath(), sf)
-                |> Directory.Delete)
+            |> Option.iter
+                (fun sf ->
+                    Path.Join(Path.GetTempPath(), sf)
+                    |> Directory.Delete)
 
 type OutputFile internal () =
     let filename =
@@ -52,7 +54,8 @@ type OutputFile internal () =
 
     interface IDisposable with
         member this.Dispose(): unit =
-            if File.Exists(filename) then File.Delete(filename)
+            if File.Exists(filename) then
+                File.Delete(filename)
 
 type ConfigurationFile internal (content: string) =
     let filename =
@@ -63,7 +66,8 @@ type ConfigurationFile internal (content: string) =
 
     interface IDisposable with
         member this.Dispose(): unit =
-            if File.Exists(filename) then File.Delete(filename)
+            if File.Exists(filename) then
+                File.Delete(filename)
 
 type FantomasIgnoreFile internal (content: string) =
     let filename =
@@ -74,7 +78,8 @@ type FantomasIgnoreFile internal (content: string) =
 
     interface IDisposable with
         member this.Dispose(): unit =
-            if File.Exists(filename) then File.Delete(filename)
+            if File.Exists(filename) then
+                File.Delete(filename)
 
 let runFantomasTool arguments =
     let pwd =
@@ -88,8 +93,18 @@ let runFantomasTool arguments =
 #endif
 
     let fantomasDll =
-        Path.Combine
-            (pwd, "..", "..", "..", "..", "Fantomas.CoreGlobalTool", "bin", configuration, "net5.0", "fantomas-tool.dll")
+        Path.Combine(
+            pwd,
+            "..",
+            "..",
+            "..",
+            "..",
+            "Fantomas.CoreGlobalTool",
+            "bin",
+            configuration,
+            "net5.0",
+            "fantomas-tool.dll"
+        )
 
     use p = new Process()
     p.StartInfo.UseShellExecute <- false

@@ -20,18 +20,25 @@ type Queue<'T>(data: list<'T []>, length: int) =
     override this.Equals(other) =
         match other with
         | :? (Queue<'T>) as y ->
-            if this.Length <> y.Length then false
-            else if this.GetHashCode() <> y.GetHashCode() then false
-            else Seq.forall2 (Unchecked.equals) this y
+            if this.Length <> y.Length then
+                false
+            else if this.GetHashCode() <> y.GetHashCode() then
+                false
+            else
+                Seq.forall2 (Unchecked.equals) this y
         | _ -> false
 
     member this.Head =
-        if length > 0
-        then (List.head data).[0]
-        else raise (System.Exception("Queue is empty"))
+        if length > 0 then
+            (List.head data).[0]
+        else
+            raise (System.Exception("Queue is empty"))
 
     member this.TryHead =
-        if length > 0 then Some((List.head data).[0]) else None
+        if length > 0 then
+            Some((List.head data).[0])
+        else
+            None
 
     member this.IsEmpty = length = 0
 
@@ -39,9 +46,10 @@ type Queue<'T>(data: list<'T []>, length: int) =
 
     member this.Rev() =
         data
-        |> Seq.collect (fun arr ->
-            seq { arr.Length - 1 .. -1 .. 0 }
-            |> Seq.map (fun i -> arr.[i]))
+        |> Seq.collect
+            (fun arr ->
+                seq { arr.Length - 1 .. -1 .. 0 }
+                |> Seq.map (fun i -> arr.[i]))
 
     member this.Append xs =
         Queue(Array.ofList xs :: data, length + List.length xs)

@@ -10,7 +10,9 @@ let config =
 
 [<Test>]
 let ``newline between record type and members`` () =
-    formatSourceString false """type Range =
+    formatSourceString
+        false
+        """type Range =
     { From : float
       To : float
       Name: string }
@@ -19,7 +21,9 @@ let ``newline between record type and members`` () =
         { config with
               MaxValueBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Range =
     { From: float
       To: float
@@ -30,7 +34,9 @@ type Range =
 
 [<Test>]
 let ``existing newline between record type and members should not be duplicate`` () =
-    formatSourceString false """type Range =
+    formatSourceString
+        false
+        """type Range =
     { From : float
       To : float
       Name: string }
@@ -40,7 +46,9 @@ let ``existing newline between record type and members should not be duplicate``
         { config with
               MaxValueBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Range =
     { From: float
       To: float
@@ -51,13 +59,18 @@ type Range =
 
 [<Test>]
 let ``no extra newline after record type with no members`` () =
-    formatSourceString false """type Range =
+    formatSourceString
+        false
+        """type Range =
     { From : float
       To : float
       Name: string }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Range =
     { From: float
       To: float
@@ -66,14 +79,19 @@ type Range =
 
 [<Test>]
 let ``union type with members`` () =
-    formatSourceString false """type Color =
+    formatSourceString
+        false
+        """type Color =
     | Red
     | Green
     | Blue
     member this.ToInt = ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Color =
     | Red
     | Green
@@ -84,14 +102,19 @@ type Color =
 
 [<Test>]
 let ``enum type with members`` () =
-    formatSourceString false """type Color =
+    formatSourceString
+        false
+        """type Color =
     | Red = 0
     | Green = 1
     | Blue = 2
     member this.ToInt = ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Color =
     | Red = 0
     | Green = 1
@@ -102,13 +125,18 @@ type Color =
 
 [<Test>]
 let ``type abbreviation with members`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type A = string
 with
     member this.X = ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type A = string
     with
 
@@ -117,12 +145,17 @@ type A = string
 
 [<Test>]
 let ``type augmentation with members`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type HttpContext with
     member this.QueryString () = "?"
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type HttpContext with
 
     member this.QueryString() = "?"
@@ -130,16 +163,21 @@ type HttpContext with
 
 [<Test>]
 let ``newline between record type signature and members`` () =
-    formatSourceString true """namespace Signature
+    formatSourceString
+        true
+        """namespace Signature
 
 type Range =
     { From : float
       To : float
       Name: string }
     member Length : unit -> int
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Signature
 
 type Range =
@@ -152,15 +190,20 @@ type Range =
 
 [<Test>]
 let ``union signature type with members`` () =
-    formatSourceString true """namespace Signature
+    formatSourceString
+        true
+        """namespace Signature
 type Color =
     | Red
     | Green
     | Blue
     member ToInt: unit -> int
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Signature
 
 type Color =
@@ -173,15 +216,20 @@ type Color =
 
 [<Test>]
 let ``enum signature type with members`` () =
-    formatSourceString true """namespace Signature
+    formatSourceString
+        true
+        """namespace Signature
 type Color =
     | Red = 0
     | Green = 1
     | Blue = 2
     member ToInt : unit -> int
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Signature
 
 type Color =
@@ -194,12 +242,17 @@ type Color =
 
 [<Test>]
 let ``simple type in signature file with members`` () =
-    formatSourceString true """namespace Signature
+    formatSourceString
+        true
+        """namespace Signature
 type HttpContext with
     member QueryString : unit -> string
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Signature
 
 type HttpContext with
@@ -209,7 +262,9 @@ type HttpContext with
 
 [<Test>]
 let ``existing new line between type and members in signature file, 1094`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace X
 
 type MyRecord =
@@ -236,9 +291,12 @@ type Color =
     | Blue = 2
 
     member ToInt: unit -> int
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace X
 
 type MyRecord =

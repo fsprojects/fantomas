@@ -42,7 +42,10 @@ type FormatContext =
 
 // Some file names have a special meaning for the F# compiler and the AST cannot be parsed.
 let safeFileName fileName =
-    if fileName = "Program.fs" then "tmp.fsx" else fileName
+    if fileName = "Program.fs" then
+        "tmp.fsx"
+    else
+        fileName
 
 let createFormatContext fileName (source: SourceOrigin) =
     let (sourceText, sourceCode) = getSourceTextAndCode source
@@ -55,37 +58,39 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
     let allDefineOptions, defineHashTokens = TokenParser.getDefines source
 
     allDefineOptions
-    |> List.map (fun conditionalCompilationDefines ->
-        async {
-            let parsingOptionsWithDefines =
-                { parsingOptions with
-                      ConditionalCompilationDefines = conditionalCompilationDefines
-                      SourceFiles = Array.map safeFileName parsingOptions.SourceFiles }
-            // Run the first phase (untyped parsing) of the compiler
-            let sourceText =
-                FSharp.Compiler.Text.SourceText.ofString source
+    |> List.map
+        (fun conditionalCompilationDefines ->
+            async {
+                let parsingOptionsWithDefines =
+                    { parsingOptions with
+                          ConditionalCompilationDefines = conditionalCompilationDefines
+                          SourceFiles = Array.map safeFileName parsingOptions.SourceFiles }
+                // Run the first phase (untyped parsing) of the compiler
+                let sourceText =
+                    FSharp.Compiler.Text.SourceText.ofString source
 
-            let! untypedRes = checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
+                let! untypedRes = checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
 
-            if untypedRes.ParseHadErrors then
-                let errors =
-                    untypedRes.Errors
-                    |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
+                if untypedRes.ParseHadErrors then
+                    let errors =
+                        untypedRes.Errors
+                        |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
 
-                if not <| Array.isEmpty errors then
-                    raise
-                    <| FormatException
-                        (sprintf "Parsing failed with errors: %A\nAnd options: %A" errors parsingOptionsWithDefines)
+                    if not <| Array.isEmpty errors then
+                        raise
+                        <| FormatException(
+                            sprintf "Parsing failed with errors: %A\nAnd options: %A" errors parsingOptionsWithDefines
+                        )
 
-            let tree =
-                match untypedRes.ParseTree with
-                | Some tree -> tree
-                | None ->
-                    raise
-                    <| FormatException "Parsing failed. Please select a complete code fragment to format."
+                let tree =
+                    match untypedRes.ParseTree with
+                    | Some tree -> tree
+                    | None ->
+                        raise
+                        <| FormatException "Parsing failed. Please select a complete code fragment to format."
 
-            return (tree, conditionalCompilationDefines, defineHashTokens)
-        })
+                return (tree, conditionalCompilationDefines, defineHashTokens)
+            })
     |> Async.Parallel
 
 /// Check whether an AST consists of parsing errors
@@ -100,7 +105,7 @@ let isValidAST ast =
     let rec validateImplFileInput (ParsedImplFileInput (_, moduleOrNamespaceList)) =
         List.forall validateModuleOrNamespace moduleOrNamespaceList
 
-    and validateModuleOrNamespace (SynModuleOrNamespace(decls = decls)) = List.forall validateModuleDecl decls
+    and validateModuleOrNamespace (SynModuleOrNamespace (decls = decls)) = List.forall validateModuleDecl decls
 
     and validateModuleDecl (decl: SynModuleDecl) =
         match decl with
@@ -172,7 +177,8 @@ let isValidAST ast =
                                   _retTy,
                                   expr,
                                   _bindingRange,
-                                  _seqPoint)) =
+                                  _seqPoint))
+                        =
         validateExpr expr && validatePattern headPat
 
     and validateClause (Clause (pat, expr, exprOpt)) =
@@ -299,9 +305,10 @@ let isValidAST ast =
         | SynExpr.LetOrUseBang (_sequencePointInfoForBinding, _, _, synPat, synExpr1, ands, synExpr2, _range) ->
             List.forall validateExpr [ synExpr1; synExpr2 ]
             && validatePattern synPat
-            && List.forall (fun (pat, e) -> validateExpr e && validatePattern pat)
-                   (ands
-                    |> List.map (fun (_, _, _, pat, e, _) -> pat, e))
+            && List.forall
+                (fun (pat, e) -> validateExpr e && validatePattern pat)
+                (ands
+                 |> List.map (fun (_, _, _, pat, e, _) -> pat, e))
 
         | SynExpr.LibraryOnlyILAssembly _
         | SynExpr.LibraryOnlyStaticOptimization _
@@ -314,7 +321,8 @@ let isValidAST ast =
         | SynExpr.Fixed _ -> true
         | SynExpr.InterpolatedString (parts, _) ->
             parts
-            |> List.forall (function
+            |> List.forall
+                (function
                 | SynInterpolatedStringPart.String _ -> true
                 | SynInterpolatedStringPart.FillExpr (e, _) -> validateExpr e)
 
@@ -371,9 +379,10 @@ let formatWith ast defines hashTokens formatContext config =
         Path.GetFileNameWithoutExtension formatContext.FileName
 
     let sourceCodeOrEmptyString =
-        if String.IsNullOrWhiteSpace formatContext.Source
-        then String.Empty
-        else formatContext.Source
+        if String.IsNullOrWhiteSpace formatContext.Source then
+            String.Empty
+        else
+            formatContext.Source
 
     let formattedSourceCode =
         let context =
@@ -383,7 +392,7 @@ let formatWith ast defines hashTokens formatContext config =
         |> genParsedInput
             { ASTContext.Default with
                   TopLevelModuleName = moduleName }
-               ast
+            ast
         |> Dbg.tee (fun ctx -> printfn "%A" ctx.WriterEvents)
         |> Context.dump
 
@@ -496,7 +505,10 @@ let private getPatch startCol (lines: string []) =
             let m = Regex.Match(lines.[i], "^[\s]*let")
             let col = m.Index + m.Length
             // Value 4 accounts for length of "and "
-            if m.Success && col <= startCol + 4 then RecLet else loop (i - 1)
+            if m.Success && col <= startCol + 4 then
+                RecLet
+            else
+                loop (i - 1)
 
     loop (lines.Length - 1)
 
@@ -515,7 +527,11 @@ let private stringPos (r: range) (sourceCode: string) =
     // We can't assume the range is valid, so check string boundary here
     let finish =
         let pos = positions.[r.EndLine - 1] + r.EndColumn
-        if pos >= sourceCode.Length then sourceCode.Length - 1 else pos
+
+        if pos >= sourceCode.Length then
+            sourceCode.Length - 1
+        else
+            pos
 
     (start, finish)
 
@@ -534,7 +550,10 @@ let private formatRange (checker: FSharpChecker)
     let (start, finish) = stringPos range sourceCode
 
     let pre =
-        if start = 0 then String.Empty else sourceCode.[0..start - 1].TrimEnd('\r')
+        if start = 0 then
+            String.Empty
+        else
+            sourceCode.[0..start - 1].TrimEnd('\r')
 
     // Prepend selection by an appropriate amount of whitespace
     let (selection, patch) =
@@ -568,7 +587,11 @@ let private formatRange (checker: FSharpChecker)
     let post =
         if finish < sourceCode.Length then
             let post = sourceCode.[finish + 1..]
-            if String.startsWithOrdinal "\n" post then Environment.NewLine + post.[1..] else post
+
+            if String.startsWithOrdinal "\n" post then
+                Environment.NewLine + post.[1..]
+            else
+                post
         else
             String.Empty
 
@@ -602,9 +625,15 @@ let private formatRange (checker: FSharpChecker)
         Context.Context.Create config [] [] String.Empty None
         // Mono version of indent text writer behaves differently from .NET one,
         // So we add an empty string first to regularize it
-        |> if returnFormattedContentOnly then Context.str String.Empty else Context.str pre
+        |> if returnFormattedContentOnly then
+            Context.str String.Empty
+           else
+               Context.str pre
         |> Context.atIndentLevel true startCol (Context.col Context.sepNln formatteds Context.str)
-        |> if returnFormattedContentOnly then Context.str String.Empty else Context.str post
+        |> if returnFormattedContentOnly then
+            Context.str String.Empty
+           else
+               Context.str post
         |> Context.dump
 
     async {
@@ -616,9 +645,10 @@ let private formatRange (checker: FSharpChecker)
             let contents = String.normalizeThenSplitNewLine result
 
             if Array.isEmpty contents then
-                if returnFormattedContentOnly
-                then return result
-                else return String.Join(String.Empty, pre, result, post)
+                if returnFormattedContentOnly then
+                    return result
+                else
+                    return String.Join(String.Empty, pre, result, post)
             else
                 // Due to patching, the text has at least two lines
                 let first = contents.[1]
@@ -634,7 +664,10 @@ let private formatRange (checker: FSharpChecker)
             let! result = formatSelection selection config
             // Substitute by old contents
             let pattern =
-                if patch = RecType then Regex("type") else Regex("let rec")
+                if patch = RecType then
+                    Regex("type")
+                else
+                    Regex("let rec")
 
             let formatteds =
                 String.normalizeThenSplitNewLine (pattern.Replace(result, "and", 1))
@@ -652,7 +685,8 @@ let formatSelection (checker: FSharpChecker)
                     (parsingOptions: FSharpParsingOptions)
                     (range: range)
                     config
-                    ({ Source = sourceCode; FileName = fileName } as formatContext)
+                    ({ Source = sourceCode
+                       FileName = fileName } as formatContext)
                     =
     let lines =
         String.normalizeThenSplitNewLine sourceCode
@@ -672,12 +706,16 @@ let formatSelection (checker: FSharpChecker)
             Debug.Assert(endLine <= range.EndLine, "Should shrink selections only.")
 
             let startCol =
-                if startLine = range.StartLine then max range.StartColumn 0 else 0
+                if startLine = range.StartLine then
+                    max range.StartColumn 0
+                else
+                    0
 
             let endCol =
-                if endLine = range.EndLine
-                then min range.EndColumn (lines.[endLine - 1].Length - 1)
-                else lines.[endLine - 1].Length - 1
+                if endLine = range.EndLine then
+                    min range.EndColumn (lines.[endLine - 1].Length - 1)
+                else
+                    lines.[endLine - 1].Length - 1
             // Notice that Line indices start at 1 while Column indices start at 0.
             makeRange fileName startLine startCol endLine endCol
 
@@ -698,11 +736,12 @@ let formatSelection (checker: FSharpChecker)
     let modifiedRange =
         makeRange fileName range.StartLine startCol range.EndLine endCol
 
-    Debug.WriteLine
-        ("Original range: {0} --> content range: {1} --> modified range: {2}",
-         sprintf "%O" range,
-         sprintf "%O" contentRange,
-         sprintf "%O" modifiedRange)
+    Debug.WriteLine(
+        "Original range: {0} --> content range: {1} --> modified range: {2}",
+        sprintf "%O" range,
+        sprintf "%O" contentRange,
+        sprintf "%O" modifiedRange
+    )
 
     async {
         let! formatted = formatRange checker parsingOptions true modifiedRange lines config formatContext
@@ -721,10 +760,11 @@ let formatSelection (checker: FSharpChecker)
                 sourceCode.[newFinish + 1..finish]
                     .Replace("\r", "\n")
 
-        Debug.WriteLine
-            ("Original index: {0} --> modified index: {1}",
-             sprintf "%O" (start, finish),
-             sprintf "%O" (newStart, newFinish))
+        Debug.WriteLine(
+            "Original index: {0} --> modified index: {1}",
+            sprintf "%O" (start, finish),
+            sprintf "%O" (newStart, newFinish)
+        )
 
         Debug.WriteLine("Join '{0}', '{1}' and '{2}'", pre, formatted, post)
         return String.Join(String.Empty, pre, formatted, post)

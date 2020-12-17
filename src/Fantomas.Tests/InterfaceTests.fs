@@ -6,7 +6,9 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``interfaces and inheritance`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type IPrintable =
    abstract member Print : unit -> unit
 
@@ -20,7 +22,9 @@ type Interface3 =
         { config with
               MaxFunctionBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type IPrintable =
     abstract Print: unit -> unit
 
@@ -36,7 +40,9 @@ type Interface3 =
 
 [<Test>]
 let ``should not add with to interface definitions with no members`` () =
-    formatSourceString false """type Text(text : string) =
+    formatSourceString
+        false
+        """type Text(text : string) =
     interface IDocument
 
     interface Infrastucture with
@@ -45,7 +51,9 @@ let ``should not add with to interface definitions with no members`` () =
     """
         { config with
               MaxValueBindingWidth = 120 }
-    |> should equal """type Text(text: string) =
+    |> should
+        equal
+        """type Text(text: string) =
     interface IDocument
 
     interface Infrastucture with
@@ -57,7 +65,9 @@ let ``should not add with to interface definitions with no members`` () =
 let ``object expressions`` () =
     formatSourceString false """let obj1 = { new System.Object() with member x.ToString() = "F#" }""" config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let obj1 =
     { new System.Object() with
         member x.ToString() = "F#" }
@@ -65,16 +75,21 @@ let obj1 =
 
 [<Test>]
 let ``object expressions and interfaces`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     let implementer() =
         { new ISecond with
             member this.H() = ()
             member this.J() = ()
           interface IFirst with
             member this.F() = ()
-            member this.G() = () }""" config
+            member this.G() = () }"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let implementer () =
     { new ISecond with
         member this.H() = ()
@@ -86,7 +101,9 @@ let implementer () =
 
 [<Test>]
 let ``should not add with to interfaces with no members in object expressions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f () =
     { new obj() with
         member x.ToString() = "INotifyEnumerableInternal"
@@ -96,7 +113,9 @@ let f () =
         { config with
               MaxValueBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f () =
     { new obj() with
         member x.ToString() = "INotifyEnumerableInternal"
@@ -107,31 +126,46 @@ let f () =
 
 [<Test>]
 let ``should keep named arguments on abstract members`` () =
-    formatSourceString false """type IThing =
+    formatSourceString
+        false
+        """type IThing =
     abstract Foo : name:string * age:int -> bool
-"""  config
-    |> should equal """type IThing =
+"""
+        config
+    |> should
+        equal
+        """type IThing =
     abstract Foo: name:string * age:int -> bool
 """
 
 [<Test>]
 let ``should not skip 'with get()' in indexers`` () =
-    formatSourceString false """type Interface =
+    formatSourceString
+        false
+        """type Interface =
     abstract Item : int -> char with get
-"""  config
-    |> should equal """type Interface =
+"""
+        config
+    |> should
+        equal
+        """type Interface =
     abstract Item: int -> char with get
 """
 
 [<Test>]
 let ``override keyword should be preserved`` () =
-    formatSourceString false """open System
+    formatSourceString
+        false
+        """open System
 
 type T() =
     interface IDisposable with
-        override x.Dispose() = ()""" config
+        override x.Dispose() = ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 open System
 
 type T() =
@@ -141,7 +175,9 @@ type T() =
 
 [<Test>]
 let ``combination of override and member`` () =
-    formatSourceString false """type LogInterface =
+    formatSourceString
+        false
+        """type LogInterface =
     abstract member Print: string -> unit
     abstract member GetLogFile: string -> string
     abstract member Info: unit -> unit
@@ -162,7 +198,9 @@ type MyLogInteface() =
                MaxFunctionBindingWidth = 120
                MaxIfThenElseShortWidth = 80 })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type LogInterface =
     abstract Print: string -> unit
     abstract GetLogFile: string -> string
@@ -182,13 +220,18 @@ type MyLogInteface() =
 
 [<Test>]
 let ``Interface with comment after equal`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 /// Interface that must be implemented by all Argu template types
 type IArgParserTemplate =
     /// returns a usage string for every union case
     abstract Usage : string
-"""  config
-    |> should equal """/// Interface that must be implemented by all Argu template types
+"""
+        config
+    |> should
+        equal
+        """/// Interface that must be implemented by all Argu template types
 type IArgParserTemplate =
     /// returns a usage string for every union case
     abstract Usage: string
@@ -203,13 +246,17 @@ type IFunc<'R> =
 
     formatSourceString false source config
     |> fun formatted -> formatSourceString false formatted config
-    |> should equal """type IFunc<'R> =
+    |> should
+        equal
+        """type IFunc<'R> =
     abstract Invoke<'T> : unit -> 'R // without this space the code is invalid
 """
 
 [<Test>]
 let ``long abstract member definition, 435`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Test =
     abstract RunJobs: folder:string * ?jobs:string * ?ctm:string * ?createDuplicate:bool * ?hold:bool * ?ignoreCriteria:bool * ?independentFlow:bool * ?orderDate:string * ?orderIntoFolder:string * ?variables:Dictionary<string, string> [] * ?waitForOrderDate:bool
      -> string
@@ -218,9 +265,12 @@ type Test =
                           ?ignoreCriteria: bool, ?independentFlow: bool, ?orderDate: string, ?orderIntoFolder: string,
                           ?variables: Dictionary<string, string> [], ?waitForOrderDate: bool) =
         ""
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Test =
     abstract RunJobs: folder:string
                       * ?jobs:string
@@ -251,13 +301,18 @@ type Test =
 
 [<Test>]
 let ``interface with get/set members`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type IMyInterface =
     abstract MyProp : bool with get, set
     abstract MyMethod : unit -> unit
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type IMyInterface =
     abstract MyProp: bool with get, set
     abstract MyMethod: unit -> unit
@@ -265,7 +320,9 @@ type IMyInterface =
 
 [<Test>]
 let ``default interface member consumption`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 open CSharp
 
 // You can implement the interface via a class
@@ -280,9 +337,12 @@ printfn "DIM from C#: %d" md.Z
 // You can also implement it via an object expression
 let md' = { new MyDim }
 printfn "DIM from C# but via Object Expression: %d" md'.Z
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 open CSharp
 
 // You can implement the interface via a class

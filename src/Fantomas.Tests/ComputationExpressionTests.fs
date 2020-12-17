@@ -6,7 +6,9 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``async workflows`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let fetchAsync(name, url:string) =
     async {
         try
@@ -18,9 +20,12 @@ let fetchAsync(name, url:string) =
             | :? Exception -> ()
             | ex -> printfn "%s" (ex.Message);
     }
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let fetchAsync (name, url: string) =
     async {
         try
@@ -36,13 +41,18 @@ let fetchAsync (name, url: string) =
 
 [<Test>]
 let ``computation expressions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let comp =
     eventually { for x in 1 .. 2 do
                     printfn " x = %d" x
-                 return 3 + 4 }""" config
+                 return 3 + 4 }"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let comp =
     eventually {
         for x in 1 .. 2 do
@@ -54,7 +64,9 @@ let comp =
 
 [<Test>]
 let ``sequence expressions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let s1 = seq { for i in 1 .. 10 -> i * i }
 let s2 = seq { 0 .. 10 .. 100 }
 let rec inorder tree =
@@ -66,9 +78,12 @@ let rec inorder tree =
                yield! inorder right
           | Leaf x -> yield x
     }
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let s1 = seq { for i in 1 .. 10 -> i * i }
 let s2 = seq { 0 .. 10 .. 100 }
 
@@ -85,7 +100,9 @@ let rec inorder tree =
 
 [<Test>]
 let ``range expressions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let factors number =
     {2L .. number / 2L}
     |> Seq.filter (fun x -> number % x = 0L)"""
@@ -93,20 +110,27 @@ let factors number =
                MaxInfixOperatorExpression = 65
                MaxFunctionBindingWidth = 65 })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let factors number = { 2L .. number / 2L } |> Seq.filter (fun x -> number % x = 0L)
 """
 
 [<Test>]
 let ``match bang`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 async {
     match! myAsyncFunction() with
     | Some x -> printfn "%A" x
     | None -> printfn "Function returned None!"
-}""" config
+}"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     match! myAsyncFunction () with
     | Some x -> printfn "%A" x
@@ -116,28 +140,38 @@ async {
 
 [<Test>]
 let ``sequence expression inside computation expression, 553`` () =
-    formatSourceString false """let x = {3..7}
+    formatSourceString
+        false
+        """let x = {3..7}
 let y = async {
     return { 0.. 1 }
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let x = { 3 .. 7 }
 let y = async { return { 0 .. 1 } }
 """
 
 [<Test>]
 let ``and! is supported`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 async {
     let! x = Async.Sleep 1.
     and! y = Async.Sleep 2.
     return 10
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     let! x = Async.Sleep 1.
     and! y = Async.Sleep 2.
@@ -147,7 +181,9 @@ async {
 
 [<Test>]
 let ``multiple and! is supported`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 // Reads the values of x, y and z concurrently, then applies f to them
 parallel {
     let! x = slowRequestX()
@@ -155,9 +191,12 @@ parallel {
     and! z = slowRequestZ()
     return f x y z
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 // Reads the values of x, y and z concurrently, then applies f to them
 ``parallel`` {
     let! x = slowRequestX ()
@@ -169,15 +208,20 @@ parallel {
 
 [<Test>]
 let ``and! sample number 3`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 observable {
     let! a = foo
     and! b = bar
     return a + b
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 observable {
     let! a = foo
     and! b = bar
@@ -187,7 +231,9 @@ observable {
 
 [<Test>]
 let ``let bang should be formatted as regular let, 615`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f =
   async {
     // Without binding newline after assignment sign preserved, which is expected behavior
@@ -207,9 +253,12 @@ let f2 =
 
     return r
   }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f =
     async {
         // Without binding newline after assignment sign preserved, which is expected behavior
@@ -234,7 +283,9 @@ let f2 =
 
 [<Test>]
 let ``let bang, and bang should be formatted as regular let`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f2 =
   async {
     // When binding, newline force-removed, which makes the whole expression
@@ -245,9 +296,12 @@ let f2 =
              | _ -> () |> async.Return
     return r + s
   }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f2 =
     async {
         // When binding, newline force-removed, which makes the whole expression
@@ -266,7 +320,9 @@ let f2 =
 
 [<Test>]
 let ``computation expression with app identifier, 806`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<Tests>]
 let tests =
   testList "tests"
@@ -275,9 +331,12 @@ let tests =
         Expect.equal true true "unexpected"
       }
     ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Tests>]
 let tests =
     testList "tests" [ test "test" { Expect.equal true true "unexpected" } ]
@@ -285,14 +344,19 @@ let tests =
 
 [<Test>]
 let ``multiline computation expression with SynExpr.App identifier, 835`` () =
-    formatSourceString false """let meh =
+    formatSourceString
+        false
+        """let meh =
     create [] {
         // foo
         // bar
         return 42
-    }""" config
+    }"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let meh =
     create [] {
         // foo
@@ -303,7 +367,9 @@ let meh =
 
 [<Test>]
 let ``multiline computation expression with SynExpr.App identifier and multiple expressions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let private validateLocation =
     createValidatorFor<LocationAdded> () {
         validate (fun l -> l.Id) [ isNotEmptyGuid ]
@@ -316,9 +382,12 @@ let private validateLocation =
         validate (fun l -> l.Date) [ isNotMinDate ]
         validate (fun l -> l.Creator) [ isNotEmpty ]
     }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let private validateLocation =
     createValidatorFor<LocationAdded> () {
         validate (fun l -> l.Id) [ isNotEmptyGuid ]
@@ -333,7 +402,9 @@ let private validateLocation =
 
 [<Test>]
 let ``new line after multiline let bang, 819`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let x data =
     async {
         let! bar =
@@ -363,9 +434,12 @@ let z =
         |> Array.filter ((=) 1)
         |> Array.countBy id
     bar
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let x data =
     async {
         let! bar =
@@ -402,7 +476,9 @@ let z =
 
 [<Test>]
 let ``normal let bindings before and after let bang`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let fetchAsync(name, url:string) =
     async {
         let uri = new System.Uri(url)
@@ -411,9 +487,12 @@ let fetchAsync(name, url:string) =
         let title = html.CssSelect("title")
         return title
     }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let fetchAsync (name, url: string) =
     async {
         let uri = new System.Uri(url)
@@ -426,7 +505,9 @@ let fetchAsync (name, url: string) =
 
 [<Test>]
 let ``short expression with intertwined with newlines`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 async {
     let! a = aa
 
@@ -436,9 +517,12 @@ async {
 
     return (a + b + c)
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     let! a = aa
 
@@ -452,7 +536,9 @@ async {
 
 [<Test>]
 let ``add new line between one-liner and multiline expression, 838`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let AddEvents (req: HttpRequest, log: ILogger) =
     task {
         let! user = req.Authenticate(log)
@@ -478,9 +564,12 @@ let AddEventsX (req: HttpRequest, log: ILogger) =
             |> Result.map (persistEvents)
             |> Result.either
         response
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let AddEvents (req: HttpRequest, log: ILogger) =
     task {
         let! user = req.Authenticate(log)
@@ -514,7 +603,9 @@ let AddEventsX (req: HttpRequest, log: ILogger) =
 
 [<Test>]
 let ``mix of let and let! single line expressions`` () =
-    formatSourceString false """let foo () =
+    formatSourceString
+        false
+        """let foo () =
     async {
         let! a = callA()
         let b = callB()
@@ -522,9 +613,12 @@ let ``mix of let and let! single line expressions`` () =
         let d = callD()
         let! e = callE()
         return (a + b + c - e * d) }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let foo () =
     async {
         let! a = callA ()
@@ -538,21 +632,31 @@ let foo () =
 
 [<Test>]
 let ``return from computation expression`` () =
-    formatSourceString false """async { return 42 }
-"""  config
+    formatSourceString
+        false
+        """async { return 42 }
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async { return 42 }
 """
 
 [<Test>]
 let ``return from multiline computation expression`` () =
-    formatSourceString false """async {
+    formatSourceString
+        false
+        """async {
     // foo
     return 42 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     // foo
     return 42
@@ -561,13 +665,18 @@ async {
 
 [<Test>]
 let ``let + return from ce`` () =
-    formatSourceString false """async {
+    formatSourceString
+        false
+        """async {
     let a = getA()
     return a
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     let a = getA ()
     return a
@@ -576,13 +685,18 @@ async {
 
 [<Test>]
 let ``let rec + return from ce`` () =
-    formatSourceString false """async {
+    formatSourceString
+        false
+        """async {
     let rec a = getA()
     return a
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     let rec a = getA ()
     return a
@@ -591,14 +705,19 @@ async {
 
 [<Test>]
 let ``two let + return from ce`` () =
-    formatSourceString false """async {
+    formatSourceString
+        false
+        """async {
     let a = getA()
     let b = getB ()
     return a
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     let a = getA ()
     let b = getB ()
@@ -608,15 +727,20 @@ async {
 
 [<Test>]
 let ``let + let rec + let + return from ce`` () =
-    formatSourceString false """async {
+    formatSourceString
+        false
+        """async {
     let a = getA ()
     let rec b = getB ()
     let c = getC ()
     return a
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     let a = getA ()
     let rec b = getB ()
@@ -627,15 +751,20 @@ async {
 
 [<Test>]
 let ``multiline let + return from ce`` () =
-    formatSourceString false """async {
+    formatSourceString
+        false
+        """async {
     let a =
         // foo
         getA()
     return a
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     let a =
         // foo
@@ -647,13 +776,18 @@ async {
 
 [<Test>]
 let ``do + return from ce`` () =
-    formatSourceString false """async {
+    formatSourceString
+        false
+        """async {
     do foo
     return bar
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     do foo
     return bar
@@ -662,13 +796,18 @@ async {
 
 [<Test>]
 let ``do! + return from ce`` () =
-    formatSourceString false """async {
+    formatSourceString
+        false
+        """async {
     do! foo
     return bar
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     do! foo
     return bar
@@ -677,14 +816,19 @@ async {
 
 [<Test>]
 let ``do! + let + return from ce`` () =
-    formatSourceString false """async {
+    formatSourceString
+        false
+        """async {
     do! foo
     let bar = getBar ()
     return bar
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     do! foo
     let bar = getBar ()
@@ -694,14 +838,19 @@ async {
 
 [<Test>]
 let ``let bang + newline + return`` () =
-    formatSourceString false """async {
+    formatSourceString
+        false
+        """async {
     let! bar = getBar ()
 
     return bar
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     let! bar = getBar ()
 
@@ -711,16 +860,21 @@ async {
 
 [<Test>]
 let ``let bang + and bang + newline + return`` () =
-    formatSourceString false """async {
+    formatSourceString
+        false
+        """async {
     let! bar = getBar ()
 
     and! foo = getFoo ()
 
     return bar
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     let! bar = getBar ()
 
@@ -732,13 +886,18 @@ async {
 
 [<Test>]
 let ``custom method names`` () =
-    formatSourceString false """let indexMachine =
+    formatSourceString
+        false
+        """let indexMachine =
     freyaMachine {
         methods [GET; HEAD; OPTIONS]
         handleOk Pages.home }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let indexMachine =
     freyaMachine {
         methods [ GET; HEAD; OPTIONS ]
@@ -748,7 +907,9 @@ let indexMachine =
 
 [<Test>]
 let ``let bang + multiline match in ce`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let rec runPendingJobs () =
     task {
         let! jobToRun = checkForJob ()
@@ -759,9 +920,12 @@ let rec runPendingJobs () =
             return! runPendingJobs ()
     }
 
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let rec runPendingJobs () =
     task {
         let! jobToRun = checkForJob ()
@@ -776,7 +940,9 @@ let rec runPendingJobs () =
 
 [<Test>]
 let ``let + let + let bang + if/then/else in ce`` () =
-    formatSourceString false """let rec private appendToAzureTableStorage (cosmoEvents: EventWrite<JsonValue> seq) =
+    formatSourceString
+        false
+        """let rec private appendToAzureTableStorage (cosmoEvents: EventWrite<JsonValue> seq) =
     task {
         let moreThanBatchLimit = Seq.length cosmoEvents > BatchLimit
 
@@ -796,7 +962,9 @@ let ``let + let + let bang + if/then/else in ce`` () =
         { config with
               MaxIfThenElseShortWidth = 75 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let rec private appendToAzureTableStorage (cosmoEvents: EventWrite<JsonValue> seq) =
     task {
         let moreThanBatchLimit = Seq.length cosmoEvents > BatchLimit
@@ -817,12 +985,17 @@ let rec private appendToAzureTableStorage (cosmoEvents: EventWrite<JsonValue> se
 
 [<Test>]
 let ``short do bang in ce`` () =
-    formatSourceString false """let appendEvents userId (events: Event list) =
+    formatSourceString
+        false
+        """let appendEvents userId (events: Event list) =
     let cosmoEvents = List.map (createEvent userId) events
     task { do! appendToAzureTableStorage cosmoEvents }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let appendEvents userId (events: Event list) =
     let cosmoEvents = List.map (createEvent userId) events
     task { do! appendToAzureTableStorage cosmoEvents }
@@ -830,15 +1003,20 @@ let appendEvents userId (events: Event list) =
 
 [<Test>]
 let ``let bang + let + return in ce`` () =
-    formatSourceString false """let getEvents() =
+    formatSourceString
+        false
+        """let getEvents() =
     task {
         let! cosmoEvents = eventStore.GetEvents EventStream AllEvents
         let events = List.map (fun (ce: EventRead<JsonValue, _>) -> ce.Data) cosmoEvents
         return events
     }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let getEvents () =
     task {
         let! cosmoEvents = eventStore.GetEvents EventStream AllEvents
@@ -852,16 +1030,21 @@ let getEvents () =
 
 [<Test>]
 let ``let bang + do expression + let + return in ce`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     task {
         let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
         parameters.IssuerSigningKeys <- config.SigningKeys
         let user, _ = handler.ValidateToken((token: string), parameters)
         return Ok(user.Identity.Name, collectClaims user)
     }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 task {
     let! config =
         manager
@@ -879,14 +1062,19 @@ task {
 
 [<Test>]
 let ``do bang + return in ce`` () =
-    formatSourceString false """    let ((userId, _), events) = request
+    formatSourceString
+        false
+        """    let ((userId, _), events) = request
     task {
         do! EventStore.appendEvents userId events
         return sendText "Events persisted"
     }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let ((userId, _), events) = request
 
 task {
@@ -897,7 +1085,9 @@ task {
 
 [<Test>]
 let ``yield bang + yield bang in ce`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let squares =
     seq {
         for i in 1..3 -> i * i
@@ -913,9 +1103,12 @@ let squaresAndCubes =
         yield! squares
         yield! cubes
     }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let squares = seq { for i in 1 .. 3 -> i * i }
 
 let cubes = seq { for i in 1 .. 3 -> i * i * i }
@@ -929,12 +1122,17 @@ let squaresAndCubes =
 
 [<Test>]
 let ``let bang + yield bang in ce`` () =
-    formatSourceString false """let myCollection = seq {
+    formatSourceString
+        false
+        """let myCollection = seq {
     let! squares = getSquares()
     yield! (squares * level) }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let myCollection =
     seq {
         let! squares = getSquares ()
@@ -944,21 +1142,28 @@ let myCollection =
 
 [<Test>]
 let ``return bang in ce`` () =
-    formatSourceString false """let req = // 'req' is of type is 'Async<data>'
+    formatSourceString
+        false
+        """let req = // 'req' is of type is 'Async<data>'
     async {
         return! fetch url
     }
 
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let req = // 'req' is of type is 'Async<data>'
     async { return! fetch url }
 """
 
 [<Test>]
 let ``saturn router`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 module Router
 
 open Saturn
@@ -990,9 +1195,12 @@ let appRouter = router {
     // forward "/api" apiRouter
     forward "" browserRouter
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Router
 
 open Saturn
@@ -1032,7 +1240,9 @@ let appRouter =
 
 [<Test>]
 let ``freya api file`` () =
-    formatSourceString false """module Api
+    formatSourceString
+        false
+        """module Api
 
 open Freya.Core
 open Freya.Machines.Http
@@ -1063,9 +1273,12 @@ let helloMachine =
 let root =
     freyaRouter {
         resource "/hello{/name}" helloMachine }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Api
 
 open Freya.Core
@@ -1103,7 +1316,9 @@ let root =
 
 [<Test>]
 let ``use bang`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let resource = promise {
     return new DisposableAction(fun () -> isDisposed := true)
 }
@@ -1111,9 +1326,12 @@ promise {
     use! r = resource
     step1ok := not !isDisposed
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let resource =
     promise { return new DisposableAction(fun () -> isDisposed := true) }
 
@@ -1125,7 +1343,9 @@ promise {
 
 [<Test>]
 let ``multiline let bang + return in ce`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
    let divideByWorkflow x y w z =
         maybe
             {
@@ -1134,9 +1354,12 @@ let ``multiline let bang + return in ce`` () =
             let! c = b |> divideBy z
             return c
             }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let divideByWorkflow x y w z =
     maybe {
         let! a = x |> divideBy y
@@ -1148,7 +1371,9 @@ let divideByWorkflow x y w z =
 
 [<Test>]
 let ``giraffe handler example`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let loginHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
         task {
@@ -1166,9 +1391,12 @@ let loginHandler =
 
             return! text "Successfully logged in" next ctx
         }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let loginHandler =
     fun (next: HttpFunc) (ctx: HttpContext) ->
         task {
@@ -1190,7 +1418,9 @@ let loginHandler =
 
 [<Test>]
 let ``all keywords`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let valueOne =
     myCe {
         let a = getA()
@@ -1210,9 +1440,12 @@ let valueTwo =
         do! d
         return! getE()
     }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let valueOne =
     myCe {
         let a = getA ()
@@ -1236,7 +1469,9 @@ let valueTwo =
 
 [<Test>]
 let ``use and let bang, 876`` () =
-    formatSourceString false """let private getAST log (req: HttpRequest) =
+    formatSourceString
+        false
+        """let private getAST log (req: HttpRequest) =
         async {
             use stream = new StreamReader(req.Body)
             let! json = stream.ReadToEndAsync() |> Async.AwaitTask
@@ -1268,9 +1503,12 @@ let ``use and let bang, 876`` () =
 
             | Error err -> return sendInternalError (sprintf "%A" err)
         }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let private getAST log (req: HttpRequest) =
     async {
         use stream = new StreamReader(req.Body)
@@ -1308,15 +1546,20 @@ let private getAST log (req: HttpRequest) =
 
 [<Test>]
 let ``let rec + let bang`` () =
-    formatSourceString false """let a =
+    formatSourceString
+        false
+        """let a =
     async {
         let rec foo a = foo a
         let! bar = async { return foo a }
         return bar
     }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a =
     async {
         let rec foo a = foo a
@@ -1327,7 +1570,9 @@ let a =
 
 [<Test>]
 let ``new line between let and let bang, 879`` () =
-    formatSourceString false """let rec loop () =
+    formatSourceString
+        false
+        """let rec loop () =
         async {
           let! msg = inbox.Receive()
 
@@ -1355,7 +1600,9 @@ let ``new line between let and let bang, 879`` () =
                SpaceAroundDelimiter = false
                MultilineBlockBracketsOnSameColumn = true })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let rec loop () =
   async {
     let! msg = inbox.Receive ()
@@ -1386,7 +1633,9 @@ let rec loop () =
 
 [<Test>]
 let ``trivia before closing brace, 977`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     let initDb() =
         if not (File.Exists(dbFileName)) then
             let dbFile = File.Create(dbFileName)
@@ -1406,9 +1655,12 @@ let ``trivia before closing brace, 977`` () =
                 ()
 #endif
             })
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let initDb () =
     if not (File.Exists(dbFileName)) then
         let dbFile = File.Create(dbFileName)
@@ -1437,7 +1689,9 @@ let initDb () =
 
 [<Test>]
 let ``keep newline before do bang`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let private removeSubscription (log : ILogger) (req : HttpRequest) =
     log.LogInformation("Start remove-subscription")
     task {
@@ -1451,9 +1705,12 @@ let private removeSubscription (log : ILogger) (req : HttpRequest) =
 
         return sendText "Subscription removed"
     }
-"""  { config with SpaceBeforeColon = true }
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let private removeSubscription (log : ILogger) (req : HttpRequest) =
     log.LogInformation("Start remove-subscription")
 
@@ -1472,7 +1729,9 @@ let private removeSubscription (log : ILogger) (req : HttpRequest) =
 
 [<Test>]
 let ``don't add extra newline before do bang`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
             let sendPushNotifications =
                 allSubscriptions
                 |> List.map
@@ -1496,9 +1755,12 @@ let ``don't add extra newline before do bang`` () =
                                             s.Endpoint
                             } :> Task)
                         |> Task.WhenAll)
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let sendPushNotifications =
     allSubscriptions
     |> List.map
@@ -1530,15 +1792,20 @@ let sendPushNotifications =
 
 [<Test>]
 let ``multi line return expression should be indented, 1062`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f () =
   async {
     let x = 2
     return some rather long |> stuff that |> uses piping |> to' demonstrate |> the issue
   }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f () =
     async {
         let x = 2
@@ -1554,15 +1821,20 @@ let f () =
 
 [<Test>]
 let ``multi line return bang expression should be indented`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f () =
   async {
     let x = 2
     return! some rather long |> stuff that |> uses piping |> to' demonstrate |> the issue
   }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f () =
     async {
         let x = 2
@@ -1578,7 +1850,9 @@ let f () =
 
 [<Test>]
 let ``add new line before multiline for loop, 1092`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 async {
     let! (msg: Msg) = inbox.Receive()
     for x in msg.Content do
@@ -1594,9 +1868,12 @@ async {
 
     return ()
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 async {
     let! (msg: Msg) = inbox.Receive()
 
@@ -1618,7 +1895,9 @@ async {
 
 [<Test>]
 let ``don't repeat new line trivia before closing brace, 1137`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let create: Highlighter =
     fun searchTerm ->
         let regex = searchTerm |> SearchTerm.toRegex
@@ -1649,7 +1928,9 @@ let create: Highlighter =
         { config with
               MaxIfThenElseShortWidth = 80 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let create: Highlighter =
     fun searchTerm ->
         let regex = searchTerm |> SearchTerm.toRegex
@@ -1680,7 +1961,9 @@ let create: Highlighter =
 
 [<Test>]
 let ``applicative computation expression`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 // First, define a 'zip' function
 module Result =
     let zip x1 x2 =
@@ -1717,9 +2000,12 @@ let printApplicatives () =
 
     run r1 r2 r3
     run r1 (Error "failure!") r3
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 // First, define a 'zip' function
 module Result =
     let zip x1 x2 =
@@ -1760,7 +2046,9 @@ let printApplicatives () =
 
 [<Test>]
 let ``overloads of custom keywords in computation expressions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 open System
 
 type InputKind =
@@ -1822,9 +2110,12 @@ let password =
             (String.exists Char.IsDigit)
             (fun s -> s.Length >= 6)
     }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 open System
 
 type InputKind =
@@ -1880,7 +2171,9 @@ let password =
 
 [<Test>]
 let ``multiline do bang`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type ProjectController(checker: FSharpChecker) =
   member x.LoadWorkspace (files: string list) (tfmForScripts: FSIRefs.TFM) onProjectLoaded (generateBinlog: bool) =
     async {
@@ -1895,9 +2188,12 @@ type ProjectController(checker: FSharpChecker) =
       return true
     }
 
-"""  { config with IndentSize = 2 }
+"""
+        { config with IndentSize = 2 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type ProjectController(checker: FSharpChecker) =
   member x.LoadWorkspace (files: string list) (tfmForScripts: FSIRefs.TFM) onProjectLoaded (generateBinlog: bool) =
     async {
@@ -1916,7 +2212,9 @@ type ProjectController(checker: FSharpChecker) =
 
 [<Test>]
 let ``multiline do`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type ProjectController(checker: FSharpChecker) =
   member x.LoadWorkspace (files: string list) (tfmForScripts: FSIRefs.TFM) onProjectLoaded (generateBinlog: bool) =
     async {
@@ -1928,9 +2226,12 @@ type ProjectController(checker: FSharpChecker) =
       return true
     }
 
-"""  { config with IndentSize = 2 }
+"""
+        { config with IndentSize = 2 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type ProjectController(checker: FSharpChecker) =
   member x.LoadWorkspace (files: string list) (tfmForScripts: FSIRefs.TFM) onProjectLoaded (generateBinlog: bool) =
     async {
@@ -1949,7 +2250,9 @@ type ProjectController(checker: FSharpChecker) =
 
 [<Test>]
 let ``multiline do bang with parenthesis`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let setup =
   meh {
     do!
@@ -1958,9 +2261,12 @@ let setup =
        let value = 1
        value)
   }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let setup =
     meh {
         do!

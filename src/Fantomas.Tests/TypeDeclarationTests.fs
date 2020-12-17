@@ -7,32 +7,43 @@ open Fantomas.Tests.TestHelper
 [<Test>]
 let ``exception declarations`` () =
     formatSourceString false "exception Error2 of string * int" config
-    |> should equal """exception Error2 of string * int
+    |> should
+        equal
+        """exception Error2 of string * int
 """
 
 [<Test>]
 let ``exception declarations with members`` () =
-    formatSourceString false """/// An exception type to signal build errors.
+    formatSourceString
+        false
+        """/// An exception type to signal build errors.
 exception BuildException of string*list<string>
   with
     override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)"""
         ({ config with
                MaxInfixOperatorExpression = 60
                MaxFunctionBindingWidth = 120 })
-    |> should equal """/// An exception type to signal build errors.
+    |> should
+        equal
+        """/// An exception type to signal build errors.
 exception BuildException of string * list<string> with
     override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)
 """
 
 [<Test>]
 let ``type annotations`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     let iterate1 (f : unit -> seq<int>) =
         for e in f() do printfn "%d" e
     let iterate2 (f : unit -> #seq<int>) =
-        for e in f() do printfn "%d" e""" config
+        for e in f() do printfn "%d" e"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let iterate1 (f: unit -> seq<int>) =
     for e in f () do
         printfn "%d" e
@@ -44,18 +55,25 @@ let iterate2 (f: unit -> #seq<int>) =
 
 [<Test>]
 let ``upcast and downcast`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     let base1 = d1 :> Base1
-    let derived1 = base1 :?> Derived1""" config
+    let derived1 = base1 :?> Derived1"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let base1 = d1 :> Base1
 let derived1 = base1 :?> Derived1
 """
 
 [<Test>]
 let ``optional arguments`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) =
     let duplex = defaultArg duplex0 Full
     let parity = defaultArg parity0 false
@@ -64,9 +82,12 @@ type Connection(?rate0 : int, ?duplex0 : DuplexType, ?parity0 : bool) =
                         | None -> match duplex with
                                   | Full -> 9600
                                   | Half -> 4800
-    do printfn "Baud Rate: %d Duplex: %A Parity: %b" rate duplex parity""" config
+    do printfn "Baud Rate: %d Duplex: %A Parity: %b" rate duplex parity"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Connection(?rate0: int, ?duplex0: DuplexType, ?parity0: bool) =
     let duplex = defaultArg duplex0 Full
     let parity = defaultArg parity0 false
@@ -84,7 +105,9 @@ type Connection(?rate0: int, ?duplex0: DuplexType, ?parity0: bool) =
 
 [<Test>]
 let ``method params`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Test() =
     member this.Function1<'a>(x, y) =
         printfn "%A, %A" x y
@@ -95,7 +118,9 @@ type Test() =
         { config with
               MaxFunctionBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Test() =
     member this.Function1<'a>(x, y) = printfn "%A, %A" x y
 
@@ -105,13 +130,18 @@ type Test() =
 
 [<Test>]
 let ``params arguments`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type X() =
     member this.F([<ParamArray>] args: Object []) =
         for arg in args do
-            printfn "%A" arg""" config
+            printfn "%A" arg"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type X() =
     member this.F([<ParamArray>] args: Object []) =
         for arg in args do
@@ -120,7 +150,9 @@ type X() =
 
 [<Test>]
 let ``generic types`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type public MyClass<'a> public (x, y) as this =
     static let PI = 3.14
     static do printfn "static constructor"
@@ -137,7 +169,9 @@ type public MyClass<'a> public (x, y) as this =
         { config with
               MaxFunctionBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type public MyClass<'a> public (x, y) as this =
     static let PI = 3.14
     static do printfn "static constructor"
@@ -161,15 +195,20 @@ type public MyClass<'a> public (x, y) as this =
 
 [<Test>]
 let ``struct declaration`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     type Point2D =
        struct
           val X: float
           val Y: float
           new(x: float, y: float) = { X = x; Y = y }
-       end""" config
+       end"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Point2D =
     struct
         val X: float
@@ -180,7 +219,9 @@ type Point2D =
 
 [<Test>]
 let ``abstract and override keywords`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     type MyClassBase1() =
        let mutable z = 0
        abstract member Function1 : int -> int
@@ -188,9 +229,12 @@ let ``abstract and override keywords`` () =
 
     type MyClassDerived1() =
        inherit MyClassBase1()
-       override u.Function1(a: int) = a + 1""" config
+       override u.Function1(a: int) = a + 1"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type MyClassBase1() =
     let mutable z = 0
     abstract Function1: int -> int
@@ -206,14 +250,19 @@ type MyClassDerived1() =
 
 [<Test>]
 let ``intrinsic type extensions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type MyClass() =
       member this.F() = 100
 
 type MyClass with
-    member this.G() = 200""" config
+    member this.G() = 200"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type MyClass() =
     member this.F() = 100
 
@@ -223,7 +272,9 @@ type MyClass with
 
 [<Test>]
 let ``optional type extensions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 /// Define a new member method FromString on the type Int32.
 type System.Int32 with
     member this.FromString( s : string ) =
@@ -231,7 +282,9 @@ type System.Int32 with
         { config with
               MaxFunctionBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 /// Define a new member method FromString on the type Int32.
 type System.Int32 with
     member this.FromString(s: string) = System.Int32.Parse(s)
@@ -239,12 +292,17 @@ type System.Int32 with
 
 [<Test>]
 let ``auto property`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type MyClass(property1 : int) =
     member val Property1 = property1
-    member val Property2 = "" with get, set""" config
+    member val Property2 = "" with get, set"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type MyClass(property1: int) =
     member val Property1 = property1
     member val Property2 = "" with get, set
@@ -252,13 +310,18 @@ type MyClass(property1: int) =
 
 [<Test>]
 let ``property handling`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Derived1() =
    inherit AbstractBase()
    let mutable value = 10
-   override this.Property1 with get() = value and set(v : int) = value <- v""" config
+   override this.Property1 with get() = value and set(v : int) = value <- v"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Derived1() =
     inherit AbstractBase()
     let mutable value = 10
@@ -270,16 +333,21 @@ type Derived1() =
 
 [<Test>]
 let ``access modifiers on properties`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Foo() =
     member x.Get with get () = 1
     member x.Set with private set (v : int) = value <- v
     member x.GetSet with internal get () = value and private set (v : bool) = value <- v
     member x.GetI with internal get (key1, key2) = false
     member x.SetI with private set (key1, key2) value = ()
-    member x.GetSetI with internal get (key1, key2) = true and private set (key1, key2) value = ()""" config
+    member x.GetSetI with internal get (key1, key2) = true and private set (key1, key2) value = ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Foo() =
     member x.Get = 1
 
@@ -303,7 +371,9 @@ type Foo() =
 
 [<Test>]
 let ``types with attributes`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type MyType() =
     let mutable myInt1 = 10
     [<DefaultValue; Test>] val mutable myInt2 : int
@@ -312,9 +382,12 @@ type MyType() =
        myInt1 <- i
        this.myInt2 <- i + 1
        this.myString <- str
-       printfn "%d %d %s" myInt1 (this.myInt2) (this.myString)""" config
+       printfn "%d %d %s" myInt1 (this.myInt2) (this.myString)"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type MyType() =
     let mutable myInt1 = 10
 
@@ -333,7 +406,9 @@ type MyType() =
 
 [<Test>]
 let ``named arguments`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type SpeedingTicket() =
     member this.GetMPHOver(speed: int, limit: int) = speed - limit
 
@@ -343,7 +418,9 @@ let CalculateFine (ticket : SpeedingTicket) =
         ({ config with
                MaxValueBindingWidth = 120 })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type SpeedingTicket() =
     member this.GetMPHOver(speed: int, limit: int) = speed - limit
 
@@ -354,7 +431,9 @@ let CalculateFine (ticket: SpeedingTicket) =
 
 [<Test>]
 let ``indexed properties`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type NumberStrings() =
    let mutable ordinals = [| "one"; |]
    let mutable cardinals = [| "first"; |]
@@ -366,9 +445,12 @@ type NumberStrings() =
       and set index value = ordinals.[index] <- value
    member this.Cardinal
       with get(index) = cardinals.[index]
-      and set index value = cardinals.[index] <- value""" config
+      and set index value = cardinals.[index] <- value"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type NumberStrings() =
     let mutable ordinals = [| "one" |]
     let mutable cardinals = [| "first" |]
@@ -388,7 +470,9 @@ type NumberStrings() =
 
 [<Test>]
 let ``complex indexed properties`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 open System.Collections.Generic
 type SparseMatrix() =
     let mutable table = new Dictionary<int * int, float>()
@@ -399,9 +483,12 @@ type SparseMatrix() =
 let matrix1 = new SparseMatrix()
 for i in 1..1000 do
     matrix1.[i, i] <- float i * float i
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 open System.Collections.Generic
 
 type SparseMatrix() =
@@ -419,7 +506,9 @@ for i in 1 .. 1000 do
 
 [<Test>]
 let ``type constraints simple`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Class1<'T when 'T :> System.Exception> =
     class end
 
@@ -448,9 +537,12 @@ type Class13<'T when 'T : unmanaged> =
    class end
 
 type Class14<'T,'U when 'T : equality and 'U : equality> =
-    class end""" config
+    class end"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Class1<'T when 'T :> System.Exception> =
     class
     end
@@ -494,7 +586,9 @@ type Class14<'T, 'U when 'T: equality and 'U: equality> =
 
 [<Test>]
 let ``then blocks after constructors`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Person(nameIn : string, idIn : int) =
     let mutable name = nameIn
     let mutable id = idIn
@@ -504,9 +598,12 @@ type Person(nameIn : string, idIn : int) =
     new() =
         Person("Invalid Name", -1)
         then printfn "Created an invalid person object."
-            """ config
+            """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Person(nameIn: string, idIn: int) =
     let mutable name = nameIn
     let mutable id = idIn
@@ -527,15 +624,20 @@ type Person(nameIn: string, idIn: int) =
 
 [<Test>]
 let ``associativity of types`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Delegate1 = delegate of (int * int) * (int * int) -> int
 type Delegate2 = delegate of int * int -> int
 type Delegate3 = delegate of int -> (int -> int)
 type Delegate4 = delegate of int -> int -> int
 type U = U of (int * int)
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Delegate1 = delegate of (int * int) * (int * int) -> int
 type Delegate2 = delegate of int * int -> int
 type Delegate3 = delegate of int -> (int -> int)
@@ -545,7 +647,9 @@ type U = U of (int * int)
 
 [<Test>]
 let ``should keep the ? in optional parameters`` () =
-    formatSourceString false """type Shell() =
+    formatSourceString
+        false
+        """type Shell() =
     static member private GetParams(cmd, ?args) = doStuff
     static member Exec(cmd, ?args) =
         shellExec(Shell.GetParams(cmd, ?args = args))
@@ -553,22 +657,29 @@ let ``should keep the ? in optional parameters`` () =
     """
         { config with
               MaxFunctionBindingWidth = 120 }
-    |> should equal """type Shell() =
+    |> should
+        equal
+        """type Shell() =
     static member private GetParams(cmd, ?args) = doStuff
     static member Exec(cmd, ?args) = shellExec (Shell.GetParams(cmd, ?args = args))
 """
 
 [<Test>]
 let ``should add space before argument on given config`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f(x: int) = x
 
 type t(x : int) =
     class
     end
-    """ { config with SpaceBeforeColon = true }
+    """
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f (x : int) = x
 
 type t(x : int) =
@@ -578,29 +689,38 @@ type t(x : int) =
 
 [<Test>]
 let ``should keep brackets around type signatures`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let user_printers = ref([] : (string * (term -> unit)) list)
 let the_interface = ref([] : (string * (string * hol_type)) list)
     """
         ({ config with
                MaxValueBindingWidth = 50 })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let user_printers = ref ([]: (string * (term -> unit)) list)
 let the_interface = ref ([]: (string * (string * hol_type)) list)
 """
 
 [<Test>]
 let ``should print named patterns on explicit constructors`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type StateMachine(makeAsync) =
     new(fileName, makeAsync, initState) as secondCtor =
         new StateMachine(makeAsync)
         then
             secondCtor.Init(fileName, initState)
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type StateMachine(makeAsync) =
     new(fileName, makeAsync, initState) as secondCtor =
         new StateMachine(makeAsync)
@@ -609,7 +729,9 @@ type StateMachine(makeAsync) =
 
 [<Test>]
 let ``should not misrecognize sequential expressions as a then block`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type BlobHelper(Account : CloudStorageAccount) =
     new(configurationSettingName, hostedService) =
         CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
@@ -618,9 +740,12 @@ type BlobHelper(Account : CloudStorageAccount) =
                 else ConfigurationManager.ConnectionStrings.[configName].ConnectionString
             configSettingPublisher.Invoke(connectionString) |> ignore)
         BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type BlobHelper(Account: CloudStorageAccount) =
     new(configurationSettingName, hostedService) =
         CloudStorageAccount.SetConfigurationSettingPublisher
@@ -640,32 +765,47 @@ type BlobHelper(Account: CloudStorageAccount) =
 
 [<Test>]
 let ``^a needs spaces when used as a type parameter`` () =
-    formatSourceString false """
-let inline tryAverage(seq: seq< ^a >): ^a option =  None""" config
+    formatSourceString
+        false
+        """
+let inline tryAverage(seq: seq< ^a >): ^a option =  None"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let inline tryAverage (seq: seq< ^a >): ^a option = None
 """
 
 [<Test>]
 let ``multiple hats need spaces`` () =
-    formatSourceString false """
-let inline tryAverage(map: Map< ^a,^b>): ^a option =  None""" config
+    formatSourceString
+        false
+        """
+let inline tryAverage(map: Map< ^a,^b>): ^a option =  None"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let inline tryAverage (map: Map< ^a, ^b >): ^a option = None
 """
 
 [<Test>]
 let ``should preserve orders on field declarations`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type CustomGraphControl() =
     inherit UserControl()
     [<DefaultValue(false)>]
     static val mutable private GraphProperty : DependencyProperty
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type CustomGraphControl() =
     inherit UserControl()
 
@@ -675,14 +815,19 @@ type CustomGraphControl() =
 
 [<Test>]
 let ``should preserve orders on field declarations - multiple spaces between attribute args`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type CustomGraphControl() =
     inherit UserControl()
     [<DefaultValue      (false)>]
     static val mutable private GraphProperty : DependencyProperty
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type CustomGraphControl() =
     inherit UserControl()
 
@@ -692,14 +837,19 @@ type CustomGraphControl() =
 
 [<Test>]
 let ``should preserve orders on field declarations - attribute without parentheses`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type CustomGraphControl() =
     inherit UserControl()
     [<DefaultValue false>]
     static val mutable private GraphProperty : DependencyProperty
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type CustomGraphControl() =
     inherit UserControl()
 
@@ -708,15 +858,21 @@ type CustomGraphControl() =
 """
 
 [<Test>]
-let ``should preserve orders on field declarations - attribute without parentheses and multiple spaces between attribute args`` () =
-    formatSourceString false """
+let ``should preserve orders on field declarations - attribute without parentheses and multiple spaces between attribute args`` ()
+                                                                                                                                =
+    formatSourceString
+        false
+        """
 type CustomGraphControl() =
     inherit UserControl()
     [<DefaultValue       false>]
     static val mutable private GraphProperty : DependencyProperty
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type CustomGraphControl() =
     inherit UserControl()
 
@@ -726,16 +882,21 @@ type CustomGraphControl() =
 
 [<Test>]
 let ``should indent properly on getters and setters`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type A() =
     override this.Address with set v =
         let x =
              match _kbytes.GetAddress(8) with
              | Some(x) -> x
              | None -> null
-        ignore x""" config
+        ignore x"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type A() =
     override this.Address
         with set v =
@@ -749,12 +910,17 @@ type A() =
 
 [<Test>]
 let ``should go to new lines on long property bodies`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type A() =
     member x.B with set v = "[<System.Runtime.InteropServices.DllImport(\"user32.dll\")>] extern int GetWindowLong(System.IntPtr hwnd, int index)"
-                            |> ignore""" config
+                            |> ignore"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type A() =
     member x.B
         with set v =
@@ -764,7 +930,9 @@ type A() =
 
 [<Test>]
 let ``should not remove identifier on getter ... except '()'`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Bar =
     member this.Item
         with get(i : int) =
@@ -776,9 +944,12 @@ type Bar =
         with get(i : string) =
             match mo with
             | Some (m) when m.Groups.[i].Success -> m.Groups.[i].Value
-            | _ -> null""" config
+            | _ -> null"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Bar =
     member this.Item
         with get (i: int) =
@@ -795,7 +966,9 @@ type Bar =
 
 [<Test>]
 let ``should not add dubious new line inside call chains`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let x =
     JobCollectionCreateParameters
         (Label = "Test",
@@ -804,7 +977,9 @@ let x =
                                   Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))))"""
         { config with MaxLineLength = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let x =
     JobCollectionCreateParameters(
         Label = "Test",
@@ -818,23 +993,33 @@ let x =
 
 [<Test>]
 let ``should preserve attributes on member parameters`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type ILogger =
-    abstract DebugFormat : format:String * [<ParamArray>]args:Object [] -> unit""" config
+    abstract DebugFormat : format:String * [<ParamArray>]args:Object [] -> unit"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type ILogger =
     abstract DebugFormat: format:String * [<ParamArray>] args:Object [] -> unit
 """
 
 [<Test>]
 let ``should preserve brackets on type signatures`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type A =
     abstract member M : int -> (int -> unit)
-    abstract member M : float -> int""" config
+    abstract member M : float -> int"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type A =
     abstract M: int -> (int -> unit)
     abstract M: float -> int
@@ -842,12 +1027,17 @@ type A =
 
 [<Test>]
 let ``should preserve brackets on type signatures 2`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type A =
     abstract member M : (int -> int) -> unit
-    abstract member M : float -> int""" config
+    abstract member M : float -> int"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type A =
     abstract M: (int -> int) -> unit
     abstract M: float -> int
@@ -855,12 +1045,17 @@ type A =
 
 [<Test>]
 let ``should handle overridden auto properties`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Entity() =
     abstract Id : int with get, set
-    default val Id = 0 with get, set""" config
+    default val Id = 0 with get, set"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Entity() =
     abstract Id: int with get, set
     override val Id = 0 with get, set
@@ -868,44 +1063,61 @@ type Entity() =
 
 [<Test>]
 let ``type abbreviation augmentation`` () =
-    formatSourceString false """type T2 = T2 with
+    formatSourceString
+        false
+        """type T2 = T2 with
     member __.X = ()
-"""  config
-    |> should equal """type T2 = T2
+"""
+        config
+    |> should
+        equal
+        """type T2 = T2
     with
         member __.X = ()
 """
 
 [<Test>]
 let ``operator in words should not print to symbol, 409`` () =
-    formatSourceString false """type T() =
+    formatSourceString
+        false
+        """type T() =
     static member op_LessThan(a, b) = a < b"""
         ({ config with
                SpaceBeforeMember = true
                MaxFunctionBindingWidth = 120 })
-    |> should equal """type T() =
+    |> should
+        equal
+        """type T() =
     static member op_LessThan (a, b) = a < b
 """
 
 [<Test>]
 let ``operator in words in let binding`` () =
     formatSourceString false """let op_PipeRight2  = ()""" config
-    |> should equal """let op_PipeRight2 = ()
+    |> should
+        equal
+        """let op_PipeRight2 = ()
 """
 
 [<Test>]
 let ``operator in words in member`` () =
-    formatSourceString false """type A() =
+    formatSourceString
+        false
+        """type A() =
     member this.B(op_Inequality : string) = ()"""
         { config with
               MaxFunctionBindingWidth = 120 }
-    |> should equal """type A() =
+    |> should
+        equal
+        """type A() =
     member this.B(op_Inequality: string) = ()
 """
 
 [<Test>]
 let ``attributes on extension methods should not add newlines, 473`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<Extension>]
 type TestExtensions =
 
@@ -918,7 +1130,9 @@ type TestExtensions =
         { config with
               MaxValueBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Extension>]
 type TestExtensions =
 
@@ -931,19 +1145,26 @@ type TestExtensions =
 
 [<Test>]
 let ``F# 4.7 syntax relaxation in member declaration`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type C'() =
     member _.M() = ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type C'() =
     member _.M() = ()
 """
 
 [<Test>]
 let ``don't add additional newlines between recursive type declarations, 520`` () =
-    formatSourceString false """module Game
+    formatSourceString
+        false
+        """module Game
 
 type Details =
     { Name: string
@@ -967,9 +1188,12 @@ and Room =
     { Details: Details
       Items: Item list
       Exits: Exits }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Game
 
 type Details = { Name: string; Description: string }
@@ -995,7 +1219,9 @@ and Room =
 
 [<Test>]
 let ``don't add additional newlines between recursive type declarations with attributes, 520`` () =
-    formatSourceString false """module Game
+    formatSourceString
+        false
+        """module Game
 
 type Exit =
     | Passable of Details * desitnation: Room
@@ -1012,9 +1238,12 @@ and [<Marker()>] Room =
     { Details: Details
       Items: Item list
       Exits: Exits }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Game
 
 type Exit =
@@ -1036,7 +1265,9 @@ and [<Marker>] Room =
 
 [<Test>]
 let ``trivia newlines between letbinding of type, 709`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 open Xunit
 open FSharp.Core
 open Swensen.Unquote
@@ -1048,9 +1279,12 @@ type FormattingSpecs() =
 
     [<Fact>]
     let ``false is false``() = test <@ false = false @>
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 open Xunit
 open FSharp.Core
 open Swensen.Unquote
@@ -1066,15 +1300,20 @@ type FormattingSpecs() =
 
 [<Test>]
 let ``line comment above single line abstract slot should not make it multiline, 757`` () =
-    formatSourceString false """[<AllowNullLiteral>]
+    formatSourceString
+        false
+        """[<AllowNullLiteral>]
 type Graph2dOptions =
     abstract zoomMin: float option with get, set
     // abstract moment: MomentConstructor option with get, set
     abstract maxHeight: HeightWidthType option with get, set
     abstract zIndex: float option with get, set
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<AllowNullLiteral>]
 type Graph2dOptions =
     abstract zoomMin: float option with get, set
@@ -1085,13 +1324,17 @@ type Graph2dOptions =
 
 [<Test>]
 let ``long type members should have parameters on separate lines, 719`` () =
-    formatSourceString false """type C () =
+    formatSourceString
+        false
+        """type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
         ({ config with
                SpaceBeforeClassConstructor = true })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
                                              aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
@@ -1101,13 +1344,17 @@ type C () =
 
 [<Test>]
 let ``long type member with return type should have parameters on separate lines`` () =
-    formatSourceString false """type C () =
+    formatSourceString
+        false
+        """type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : int =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
         ({ config with
                SpaceBeforeClassConstructor = true })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
                                              aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
@@ -1118,13 +1365,17 @@ type C () =
 
 [<Test>]
 let ``long constructors should have parameters on separate lines`` () =
-    formatSourceString false """type C (aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) =
+    formatSourceString
+        false
+        """type C (aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) =
     member this.X = 42
 """
         ({ config with
                SpaceBeforeClassConstructor = true })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type C (aVeryLongType: AVeryLongTypeThatYouNeedToUse,
         aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
         aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
@@ -1133,13 +1384,18 @@ type C (aVeryLongType: AVeryLongTypeThatYouNeedToUse,
 
 [<Test>]
 let ``preserve abstract keyword`` () =
-    formatSourceString false """namespace Foo
+    formatSourceString
+        false
+        """namespace Foo
 
 type internal Blah =
   abstract Baz : unit
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Foo
 
 type internal Blah =
@@ -1148,7 +1404,9 @@ type internal Blah =
 
 [<Test>]
 let ``keep correct indentation after multiline member definition, 845`` () =
-    formatSourceString false """type SomeType() =
+    formatSourceString
+        false
+        """type SomeType() =
     member SomeMember(looooooooooooooooooooooooooooooooooong1: A, looooooooooooooooooooooooooooooooooong2: A) =
         printfn "a"
         "a"
@@ -1160,7 +1418,9 @@ let ``keep correct indentation after multiline member definition, 845`` () =
                MaxLineLength = 80
                MaxFunctionBindingWidth = 120 })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type SomeType() =
     member SomeMember(looooooooooooooooooooooooooooooooooong1: A,
                       looooooooooooooooooooooooooooooooooong2: A) =
@@ -1172,7 +1432,9 @@ type SomeType() =
 
 [<Test>]
 let ``keep correct indentation after multiline typed member definition`` () =
-    formatSourceString false """type SomeType() =
+    formatSourceString
+        false
+        """type SomeType() =
     member SomeMember(looooooooooooooooooooooooooooooooooong1: A, looooooooooooooooooooooooooooooooooong2: A) : string =
         printfn "a"
         "a"
@@ -1184,7 +1446,9 @@ let ``keep correct indentation after multiline typed member definition`` () =
                MaxLineLength = 80
                MaxFunctionBindingWidth = 120 })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type SomeType() =
     member SomeMember(looooooooooooooooooooooooooooooooooong1: A,
                       looooooooooooooooooooooooooooooooooong2: A)
@@ -1197,13 +1461,18 @@ type SomeType() =
 
 [<Test>]
 let ``split multiple parameters over multiple lines`` () =
-    formatSourceString false """type SomeType =
+    formatSourceString
+        false
+        """type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string) (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string) : string =
     printfn "a"
     "b"
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
                              (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
@@ -1214,7 +1483,9 @@ type SomeType =
 
 [<Test>]
 let ``split multiple parameters over multiple lines and have correct indentation afterwards`` () =
-    formatSourceString false """type SomeType =
+    formatSourceString
+        false
+        """type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string) (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string) : string =
     printfn "a"
     "b"
@@ -1224,7 +1495,9 @@ let ``split multiple parameters over multiple lines and have correct indentation
         { config with
               MaxFunctionBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
                              (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
@@ -1237,13 +1510,18 @@ type SomeType =
 
 [<Test>]
 let ``member with one long parameter and return type, 850`` () =
-    formatSourceString false """type SomeType =
+    formatSourceString
+        false
+        """type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 : string =
     printfn "a"
     "b"
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
                              : string =
@@ -1253,13 +1531,18 @@ type SomeType =
 
 [<Test>]
 let ``member with one long parameter and no return type, 850`` () =
-    formatSourceString false """type SomeType =
+    formatSourceString
+        false
+        """type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
     printfn "a"
     "b"
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
                              =
@@ -1269,16 +1552,21 @@ type SomeType =
 
 [<Test>]
 let ``multiple members with one long parameter`` () =
-    formatSourceString false """type SomeType =
+    formatSourceString
+        false
+        """type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
     printfn "a"
     "b"
 
     static member Serialize (loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType) = Encode.string v.Meh
     static member Deserialize (loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee) : SomeType = Decode.SomeType loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
                              =
@@ -1297,14 +1585,19 @@ type SomeType =
 
 [<Test>]
 let ``access modifier before long constructor`` () =
-    formatSourceString false """type INotifications<'a,'b,'c,'d,'e> =
+    formatSourceString
+        false
+        """type INotifications<'a,'b,'c,'d,'e> =
     class
     end
 type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData> private (client: INotifications<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>, callbackId: 'CallbackId, validateUnregisterOutputData: 'UnregisterOutputData -> unit) =
     let a = 5
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type INotifications<'a, 'b, 'c, 'd, 'e> =
     class
     end
@@ -1318,7 +1611,9 @@ type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, '
 
 [<Test>]
 let ``long type members should be in multiple lines, 868`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type C() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: int, aSecondVeryLongType: int, aThirdVeryLongType: int) : int =
         aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
@@ -1328,7 +1623,9 @@ type C() =
               SpaceBeforeColon = true
               MaxInfixOperatorExpression = 80 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type C() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType : int,
                                             aSecondVeryLongType : int,
@@ -1339,7 +1636,9 @@ type C() =
 
 [<Test>]
 let ``long type members should be in multiple lines, no return type`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type C() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: int, aSecondVeryLongType: int, aThirdVeryLongType: int) =
         aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
@@ -1349,7 +1648,9 @@ type C() =
               SpaceBeforeColon = true
               MaxInfixOperatorExpression = 80 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type C() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType : int,
                                             aSecondVeryLongType : int,
@@ -1359,7 +1660,9 @@ type C() =
 
 [<Test>]
 let ``long type constructors should be in multiple lines, 868`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type VersionMismatchDuringDeserializationException(message: string, innerException: System.Exception) =
     inherit System.Exception(message, innerException)
 """
@@ -1367,7 +1670,9 @@ type VersionMismatchDuringDeserializationException(message: string, innerExcepti
               MaxLineLength = 80
               SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type VersionMismatchDuringDeserializationException(message : string,
                                                    innerException : System.Exception) =
     inherit System.Exception(message, innerException)
@@ -1375,33 +1680,48 @@ type VersionMismatchDuringDeserializationException(message : string,
 
 [<Test>]
 let ``tuple typed abbreviation`` () =
-    formatSourceString false """type A = (int * int)
-"""  config
+    formatSourceString
+        false
+        """type A = (int * int)
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type A = (int * int)
 """
 
 [<Test>]
 let ``function signature type abbreviation`` () =
-    formatSourceString false """type A = (int -> int -> int)
-"""  config
+    formatSourceString
+        false
+        """type A = (int -> int -> int)
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type A = (int -> int -> int)
 """
 
 let ``type record declaration with attributes, 910`` () =
-    formatSourceString false """type Commenter =
+    formatSourceString
+        false
+        """type Commenter =
     { [<JsonProperty("display_name")>]
       DisplayName: string }
 
 type Message =
     { [<JsonProperty("body")>]
       Body: string }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Commenter =
     { [<JsonProperty("display_name")>]
       DisplayName: string }
@@ -1413,7 +1733,9 @@ type Message =
 
 [<Test>]
 let ``attribute on abstract member followed by type with attribute, 933`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<AllowNullLiteral>]
 type SubGroupStackOptions =
     [<Emit "$0[$1]{{=$2}}">]
@@ -1422,9 +1744,12 @@ type SubGroupStackOptions =
 [<AllowNullLiteral>]
 type DataGroup =
     abstract className: string option with get, set
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<AllowNullLiteral>]
 type SubGroupStackOptions =
     [<Emit "$0[$1]{{=$2}}">]
@@ -1437,7 +1762,9 @@ type DataGroup =
 
 [<Test>]
 let ``attribute on abstract member followed by let binding with attribute`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<AllowNullLiteral>]
 type SubGroupStackOptions =
     [<Emit "$0[$1]{{=$2}}">]
@@ -1445,9 +1772,12 @@ type SubGroupStackOptions =
 
 [<AllowNullLiteral>]
 let foo bar = zero
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<AllowNullLiteral>]
 type SubGroupStackOptions =
     [<Emit "$0[$1]{{=$2}}">]
@@ -1459,14 +1789,19 @@ let foo bar = zero
 
 [<Test>]
 let ``type constraint on type definition, 887`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type OuterType =
     abstract Apply<'r>
         : InnerType<'r>
         -> 'r when 'r : comparison
-"""  { config with SpaceBeforeColon = true }
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type OuterType =
     abstract Apply<'r> : InnerType<'r>
         -> 'r when 'r : comparison
@@ -1474,16 +1809,21 @@ type OuterType =
 
 [<Test>]
 let ``attribute on type and abstract member followed by type, 949`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<AllowNullLiteral>]
 type TimelineOptionsGroupCallbackFunction =
     [<Emit "$0($1...)">]
     abstract Invoke: group:TimelineGroup * callback:(TimelineGroup option -> unit) -> unit
 
 type TimelineOptionsGroupEditableType = U2<bool, TimelineGroupEditableOption>
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<AllowNullLiteral>]
 type TimelineOptionsGroupCallbackFunction =
     [<Emit "$0($1...)">]
@@ -1494,16 +1834,21 @@ type TimelineOptionsGroupEditableType = U2<bool, TimelineGroupEditableOption>
 
 [<Test>]
 let ``attribute on type and abstract member followed by let binding`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<AllowNullLiteral>]
 type TimelineOptionsGroupCallbackFunction =
     [<Emit "$0($1...)">]
     abstract Invoke: group:TimelineGroup * callback:(TimelineGroup option -> unit) -> unit
 
 let myBinding a = 7
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<AllowNullLiteral>]
 type TimelineOptionsGroupCallbackFunction =
     [<Emit "$0($1...)">]
@@ -1514,7 +1859,9 @@ let myBinding a = 7
 
 [<Test>]
 let ``comments before access modifier, 885`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type TestType =
     // Here is some comment about the type
     // Some more comments
@@ -1522,9 +1869,12 @@ type TestType =
         {
             Foo : int
         }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type TestType =
     // Here is some comment about the type
     // Some more comments
@@ -1533,7 +1883,9 @@ type TestType =
 
 [<Test>]
 let ``comments before access modifier and multiline record type`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type OlapCube =
     // Here is some comment about the type
     // Some more comments
@@ -1543,9 +1895,12 @@ type OlapCube =
             TwoDimension : int
             ThreeDimension : int
         }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type OlapCube =
     // Here is some comment about the type
     // Some more comments
@@ -1557,7 +1912,9 @@ type OlapCube =
 
 [<Test>]
 let ``alternative long member definition`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) =
         someImplementation aVeryLongType aSecondVeryLongType aThirdVeryLongType
@@ -1567,7 +1924,9 @@ type C () =
               SpaceBeforeColon = true
               AlternativeLongMemberDefinitions = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type C () =
     member __.LongMethodWithLotsOfParameters
         (
@@ -1581,7 +1940,9 @@ type C () =
 
 [<Test>]
 let ``alternative long member definition with return type`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse,aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) : int =
         someImplementation aVeryLongType aSecondVeryLongType aThirdVeryLongType
@@ -1591,7 +1952,9 @@ type C () =
               SpaceBeforeColon = true
               AlternativeLongMemberDefinitions = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type C () =
     member __.LongMethodWithLotsOfParameters
         (
@@ -1608,13 +1971,18 @@ type C () =
 
 [<Test>]
 let ``member, tuple (non-curried), with return type:`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type MyClass() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : AVeryLongReturnType =
         someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type MyClass() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
                                             aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
@@ -1625,13 +1993,18 @@ type MyClass() =
 
 [<Test>]
 let ``member, tuple (non-curried), with no return type:`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type MyClass() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
         someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type MyClass() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
                                             aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
@@ -1641,13 +2014,18 @@ type MyClass() =
 
 [<Test>]
 let ``member, curried (non-tuple), with return type:`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type MyClass() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse) (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse) (aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : AVeryLongReturnType =
         someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type MyClass() =
     member _.LongMethodWithLotsOfParameters (aVeryLongType: AVeryLongTypeThatYouNeedToUse)
                                             (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse)
@@ -1658,13 +2036,18 @@ type MyClass() =
 
 [<Test>]
 let ``member, curried (non-tuple), with no return type:`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type MyClass() =
     member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse) (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse) (aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
         someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type MyClass() =
     member _.LongMethodWithLotsOfParameters (aVeryLongType: AVeryLongTypeThatYouNeedToUse)
                                             (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse)
@@ -1675,7 +2058,9 @@ type MyClass() =
 
 [<Test>]
 let ``alternative long class constructor`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type C(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
@@ -1686,7 +2071,9 @@ type C(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
               AlternativeLongMemberDefinitions = true
               SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type C
     (
         aVeryLongType : AVeryLongTypeThatYouNeedToUse,
@@ -1700,7 +2087,9 @@ type C
 
 [<Test>]
 let ``alternative long class constructor with access modifier`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type C internal (aVeryLongType: AVeryLongTypeThatYouNeedToUse,
        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
@@ -1711,7 +2100,9 @@ type C internal (aVeryLongType: AVeryLongTypeThatYouNeedToUse,
               AlternativeLongMemberDefinitions = true
               SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type C
     internal
     (
@@ -1726,7 +2117,9 @@ type C
 
 [<Test>]
 let ``trivia before properties, 1009`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Box() =
     let mutable color : string = null
 
@@ -1742,9 +2135,12 @@ type Box() =
 
     // If there's no get/set, the comment is preserved
     member x.hello = "world"
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Box() =
     let mutable color: string = null
 
@@ -1764,7 +2160,9 @@ type Box() =
 
 [<Test>]
 let ``don't add additional newline before record instance return value`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Auth0User =
     { UserId : string
       AppMetaData : AppMetaData }
@@ -1780,9 +2178,12 @@ type Auth0User =
 
             { UserId = userId
               AppMetaData = metaData })
-"""  { config with SpaceBeforeColon = true }
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Auth0User =
     { UserId : string
       AppMetaData : AppMetaData }
@@ -1803,7 +2204,9 @@ type Auth0User =
 
 [<Test>]
 let ``generic recursive types`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type ViewBinding<'model,'msg> = string * Variable<'model,'msg>
 and ViewBindings<'model,'msg> = ViewBinding<'model,'msg> list
 and Variable<'model,'msg> =
@@ -1813,9 +2216,12 @@ and Variable<'model,'msg> =
     | BindCmd of Execute<'model,'msg> * CanExecute<'model>
     | BindModel of Getter<'model> * ViewBindings<'model,'msg>
     | BindMap of Getter<'model> * (obj -> obj)
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type ViewBinding<'model, 'msg> = string * Variable<'model, 'msg>
 
 and ViewBindings<'model, 'msg> = ViewBinding<'model, 'msg> list
@@ -1832,20 +2238,27 @@ and Variable<'model, 'msg> =
 [<Test>]
 let ``union type with constraint`` () =
     formatSourceString false """type 'a t when 'a :> IDisposable = T  of  'a option""" config
-    |> should equal """type 'a t when 'a :> IDisposable = T of 'a option
+    |> should
+        equal
+        """type 'a t when 'a :> IDisposable = T of 'a option
 """
 
 [<Test>]
 let ``add newline and indent for multiline internal record definition, 658`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type RequestParser<'ctx, 'a> = internal {
   consumedFields: Set<ConsumedFieldName>
   parse: 'ctx -> Request ->  Async<Result<'a, Error list>>
   prohibited: ProhibitedRequestGetter list
 }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type RequestParser<'ctx, 'a> =
     internal
         { consumedFields: Set<ConsumedFieldName>
@@ -1855,7 +2268,9 @@ type RequestParser<'ctx, 'a> =
 
 [<Test>]
 let ``generic nameof`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 #r "nuget: FSharp.SystemTextJson"
 
 open System.Text.Json
@@ -1883,9 +2298,12 @@ let deserialize (e: RecordedEvent) : MyEvent =
     | nameof AData -> AData (JsonSerializer.Deserialize<int> e.Data)
     | nameof BData -> BData (JsonSerializer.Deserialize<string> e.Data)
     | t -> failwithf "Invalid EventType: %s" t
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 #r "nuget: FSharp.SystemTextJson"
 
 open System.Text.Json

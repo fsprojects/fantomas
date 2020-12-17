@@ -13,13 +13,17 @@ let noSpaceBefore =
 [<Test>]
 let ``default config should add space before unit in lowercase function call`` () =
     formatSourceString false "let value = myFunction()" config
-    |> should equal """let value = myFunction ()
+    |> should
+        equal
+        """let value = myFunction ()
 """
 
 [<Test>]
 let ``spaceBeforeLowercaseInvocation = false, should not add space before unit in lowercase function call`` () =
     formatSourceString false "let value = myFunction()" noSpaceBefore
-    |> should equal """let value = myFunction()
+    |> should
+        equal
+        """let value = myFunction()
 """
 
 // Space before parentheses (a+b) in lowercase function call
@@ -27,31 +31,42 @@ let ``spaceBeforeLowercaseInvocation = false, should not add space before unit i
 [<Test>]
 let ``default config should add space before parentheses in lowercase function call`` () =
     formatSourceString false "let value = myFunction(a+b)" config
-    |> should equal """let value = myFunction (a + b)
+    |> should
+        equal
+        """let value = myFunction (a + b)
 """
 
 [<Test>]
 let ``spaceBeforeLowercaseInvocation = false, should not add space before parentheses in lowercase function call`` () =
     formatSourceString false "let value = myFunction(a+b)" noSpaceBefore
-    |> should equal """let value = myFunction(a + b)
+    |> should
+        equal
+        """let value = myFunction(a + b)
 """
 
 [<Test>]
 let ``spaceBeforeLowercaseInvocation should not have impact when member is called after unit`` () =
     formatSourceString false "let v1 = myFunction().Member" noSpaceBefore
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let v1 = myFunction().Member
 """
 
 [<Test>]
 let ``space before lower constructor without new`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let tree1 =
     binaryNode(binaryNode(binaryValue 1, binaryValue 2), binaryNode(binaryValue 3, binaryValue 4))
-"""  { config with MaxLineLength = 80 }
+"""
+        { config with MaxLineLength = 80 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let tree1 =
     binaryNode (
         binaryNode (binaryValue 1, binaryValue 2),
@@ -61,14 +76,19 @@ let tree1 =
 
 [<Test>]
 let ``space before lower case constructor invocation with new keyword`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let person = new person("Jim", 33)
 
 let otherThing =
     new foobar(longname1, longname2, longname3, longname4, longname5, longname6, longname7)
-"""  { config with MaxLineLength = 90 }
+"""
+        { config with MaxLineLength = 90 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let person = new person ("Jim", 33)
 
 let otherThing =
@@ -85,7 +105,9 @@ let otherThing =
 
 [<Test>]
 let ``space before lower member call`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let myRegexMatch = Regex.matches(input, regex)
 
 let myRegexMatchLong =
@@ -95,9 +117,12 @@ let untypedRes = checker.parseFile(file, source, opts)
 
 let untypedResLong =
     checker.parseFile(fileName, sourceText, parsingOptionsWithDefines, somethingElseWithARatherLongVariableName)
-"""  { config with MaxLineLength = 90 }
+"""
+        { config with MaxLineLength = 90 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let myRegexMatch = Regex.matches (input, regex)
 
 let myRegexMatchLong =
@@ -119,7 +144,9 @@ let untypedResLong =
 
 [<Test>]
 let ``no space before lowercase member calls and constructors`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let tree1 =
     binaryNode(binaryNode(binaryValue 1, binaryValue 2), binaryNode(binaryValue 3, binaryValue 4))
 
@@ -140,7 +167,9 @@ let untypedResLong =
         { noSpaceBefore with
               MaxLineLength = 60 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let tree1 =
     binaryNode(
         binaryNode(binaryValue 1, binaryValue 2),

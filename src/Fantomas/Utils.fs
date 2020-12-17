@@ -37,16 +37,18 @@ module String =
 
     let private splitWhenHash (source: string) =
         source.Split([| Environment.NewLine; "\r\n"; "\n" |], options = StringSplitOptions.None)
-        |> Array.fold (fun acc line ->
-            if Regex.IsMatch(line, hashRegex) then
-                let trimmmedLine = line.TrimStart()
+        |> Array.fold
+            (fun acc line ->
+                if Regex.IsMatch(line, hashRegex) then
+                    let trimmmedLine = line.TrimStart()
 
-                match acc with
-                | [ [] ] -> [ [ trimmmedLine ] ]
-                | _ -> [ trimmmedLine ] :: acc
-            else
-                acc
-                |> List.mapi (fun idx l -> if idx = 0 then (line :: l) else l)) [ [] ]
+                    match acc with
+                    | [ [] ] -> [ [ trimmmedLine ] ]
+                    | _ -> [ trimmmedLine ] :: acc
+                else
+                    acc
+                    |> List.mapi (fun idx l -> if idx = 0 then (line :: l) else l))
+            [ [] ]
         |> List.map (List.rev >> String.concat Environment.NewLine)
         |> List.rev
 
@@ -57,17 +59,22 @@ module String =
         if List.length aChunks <> List.length bChunks then
             Dbg.print (aChunks, bChunks)
 
-            failwithf """Fantomas is trying to format the input multiple times due to the detect of multiple defines.
+            failwithf
+                """Fantomas is trying to format the input multiple times due to the detect of multiple defines.
 There is a problem with merging all the code back togheter. Please raise an issue at https://github.com/fsprojects/fantomas/issues."""
 
         List.zip aChunks bChunks
-        |> List.map (fun (a', b') ->
-            let la = lengthWithoutSpaces a'
-            let lb = lengthWithoutSpaces b'
+        |> List.map
+            (fun (a', b') ->
+                let la = lengthWithoutSpaces a'
+                let lb = lengthWithoutSpaces b'
 
-            if la <> lb then if la > lb then a' else b'
-            else if String.length a' < String.length b' then a'
-            else b')
+                if la <> lb then
+                    if la > lb then a' else b'
+                else if String.length a' < String.length b' then
+                    a'
+                else
+                    b')
 
         |> String.concat Environment.NewLine
 
@@ -123,10 +130,11 @@ module List =
         let mutable s = state
 
         l
-        |> List.takeWhile (fun x ->
-            let (s', r) = f s x
-            s <- s'
-            r)
+        |> List.takeWhile
+            (fun x ->
+                let (s', r) = f s x
+                s <- s'
+                r)
 
     let isNotEmpty l = (List.isEmpty >> not) l
 

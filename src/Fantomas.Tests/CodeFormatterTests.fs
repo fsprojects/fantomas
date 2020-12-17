@@ -22,7 +22,12 @@ let main argv _ =
     let parsingOptions =
         FakeHelpers.createParsingOptionsFromFile fileName
 
-    CodeFormatter.FormatDocumentAsync
-        (fileName, SourceOrigin.SourceString source, config, parsingOptions, sharedChecker.Value)
+    CodeFormatter.FormatDocumentAsync(
+        fileName,
+        SourceOrigin.SourceString source,
+        config,
+        parsingOptions,
+        sharedChecker.Value
+    )
     |> Async.RunSynchronously
     |> ignore

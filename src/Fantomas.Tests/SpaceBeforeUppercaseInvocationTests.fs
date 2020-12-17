@@ -13,19 +13,25 @@ let spaceBeforeConfig =
 [<Test>]
 let ``default config should not add space before unit in uppercase function call`` () =
     formatSourceString false "let value = MyFunction()" config
-    |> should equal """let value = MyFunction()
+    |> should
+        equal
+        """let value = MyFunction()
 """
 
 [<Test>]
 let ``spaceBeforeUppercaseInvocation should add space before unit in uppercase function call`` () =
     formatSourceString false "let value = MyFunction()" spaceBeforeConfig
-    |> should equal """let value = MyFunction ()
+    |> should
+        equal
+        """let value = MyFunction ()
 """
 
 [<Test>]
 let ``spaceBeforeUppercaseInvocation should add space before unit in chained uppercase function call`` () =
     formatSourceString false "let value = person.ToString()" spaceBeforeConfig
-    |> should equal """let value = person.ToString ()
+    |> should
+        equal
+        """let value = person.ToString ()
 """
 
 // Exception to the rule
@@ -34,7 +40,9 @@ let ``spaceBeforeUppercaseInvocation should add space before unit in chained upp
 let ``spaceBeforeUppercaseInvocation should not have impact when member is called after unit`` () =
     formatSourceString false "let v2 = OtherFunction().Member" spaceBeforeConfig
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let v2 = OtherFunction().Member
 """
 
@@ -43,40 +51,54 @@ let v2 = OtherFunction().Member
 [<Test>]
 let ``default config should not add space before parentheses in uppercase function call`` () =
     formatSourceString false "let value = MyFunction(a+b)" config
-    |> should equal """let value = MyFunction(a + b)
+    |> should
+        equal
+        """let value = MyFunction(a + b)
 """
 
 [<Test>]
 let ``spaceBeforeUppercaseInvocation should add space before parentheses in uppercase function call`` () =
     formatSourceString false "let value = MyFunction(a+b)" spaceBeforeConfig
-    |> should equal """let value = MyFunction (a + b)
+    |> should
+        equal
+        """let value = MyFunction (a + b)
 """
 
 [<Test>]
 let ``space before uppercase function application cannot apply with dot-chaining, 943`` () =
-    formatSourceString false """foo.Bar().[5]
+    formatSourceString
+        false
+        """foo.Bar().[5]
 """
         { config with
               SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 foo.Bar().[5]
 """
 
 [<Test>]
 let ``space before uppercase DotIndexedSet`` () =
-    formatSourceString false """foo.Bar().[5] <- 5
+    formatSourceString
+        false
+        """foo.Bar().[5] <- 5
 """
         { config with
               SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 foo.Bar().[5] <- 5
 """
 
 [<Test>]
 let ``setting SpaceBeforeUppercaseInvocation is not applied in the middle of a invocation chain, 853`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 module SomeModule =
     let DoSomething (a:SomeType) =
         let someValue = a.Some.Thing("aaa").[0]
@@ -85,7 +107,9 @@ module SomeModule =
         { config with
               SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module SomeModule =
     let DoSomething (a: SomeType) =
         let someValue = a.Some.Thing("aaa").[0]
@@ -94,14 +118,18 @@ module SomeModule =
 
 [<Test>]
 let ``space before uppercase constructor without new`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let tree1 =
     BinaryNode(BinaryNode(BinaryValue 1, BinaryValue 2), BinaryNode(BinaryValue 3, BinaryValue 4))
 """
         { spaceBeforeConfig with
               MaxLineLength = 80 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let tree1 =
     BinaryNode (
         BinaryNode (BinaryValue 1, BinaryValue 2),
@@ -111,7 +139,9 @@ let tree1 =
 
 [<Test>]
 let ``space before upper case constructor invocation with new keyword`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let person = new Person("Jim", 33)
 
 let otherThing =
@@ -120,7 +150,9 @@ let otherThing =
         { spaceBeforeConfig with
               MaxLineLength = 90 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let person = new Person ("Jim", 33)
 
 let otherThing =
@@ -137,7 +169,9 @@ let otherThing =
 
 [<Test>]
 let ``space before uppercase member call`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let myRegexMatch = Regex.Match(input, regex)
 
 let myRegexMatchLong =
@@ -151,7 +185,9 @@ let untypedResLong =
         { spaceBeforeConfig with
               MaxLineLength = 90 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let myRegexMatch = Regex.Match (input, regex)
 
 let myRegexMatchLong =

@@ -10,37 +10,52 @@ let config =
 
 [<Test>]
 let ``function call with two list argument`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let v =
     someFunctionHere [parameters] [yetMoreParameters]
     :?> _
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let v =
     someFunctionHere [ parameters ] [ yetMoreParameters ] :?> _
 """
 
 [<Test>]
 let ``function with short array argument`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 InstanceObject.make [| a; b; c |]
-"""  { config with MaxElmishWidth = 10 }
+"""
+        { config with MaxElmishWidth = 10 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 InstanceObject.make [| a; b; c |]
 """
 
 [<Test>]
 let ``function call with single multiline list argument`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let  f x =
     Case.fromCaseTimeline [ { mockClaim with x = 5 }
                               |> Event.claim "42"
                               |> Commit.caseCommit System.DateTime.Now ]
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f x =
     Case.fromCaseTimeline
         [ { mockClaim with x = 5 }
@@ -50,7 +65,9 @@ let f x =
 
 [<Test>]
 let ``json encoders`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 module FantomasTools.Client.ASTViewer.Encoders
 
 open ASTViewer.Shared
@@ -69,9 +86,12 @@ let encodeInput (input: Input) =
                      |> Encode.array)
                     "isFsi", Encode.bool input.IsFsi ]
     |> Encode.toString 2
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module FantomasTools.Client.ASTViewer.Encoders
 
 open ASTViewer.Shared
@@ -96,7 +116,9 @@ let encodeInput (input: Input) =
 
 [<Test>]
 let ``encode arrays`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Event =
     | LocationAdded of AddLocation
     | LocationCancelled of Identifier
@@ -119,7 +141,9 @@ type Event =
               SpaceBeforeColon = true
               MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Event =
     | LocationAdded of AddLocation
     | LocationCancelled of Identifier
@@ -150,7 +174,9 @@ type Event =
 
 [<Test>]
 let ``elmish settings should not have any effect`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let counter = React.functionComponent(fun () ->
     let (count, setCount) = React.useState(0)
     Html.div [
@@ -171,7 +197,9 @@ let counter = React.functionComponent(fun () ->
               MaxElmishWidth = 30
               SingleArgumentWebMode = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let counter =
     React.functionComponent
         (fun () ->

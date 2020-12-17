@@ -6,13 +6,18 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``typed quotations`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     <@
         let f x = x + 10
         f 20
-    @>""" config
+    @>"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 <@ let f x = x + 10
    f 20 @>
 """
@@ -20,12 +25,15 @@ let ``typed quotations`` () =
 [<Test>]
 let ``untyped quotations`` () =
     formatSourceString false "<@@ 2 + 3 @@>" config
-    |> should equal """<@@ 2 + 3 @@>
+    |> should
+        equal
+        """<@@ 2 + 3 @@>
 """
 
 [<Test>]
 let ``should preserve unit literal`` () =
-    shouldNotChangeAfterFormat """
+    shouldNotChangeAfterFormat
+        """
 let logger =
     Mock<ILogger>()
         .Setup(fun log -> <@ log.Log(error) @>)
