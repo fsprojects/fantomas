@@ -1,58 +1,37 @@
-### 4.3.0-beta-002 - 12/2020
+### 4.3.0 - 12/2020
 
+* Feature Clarify constructors. [#1217](https://github.com/fsprojects/fantomas/issues/1217)
+* Feature MultiLineLambdaClosingNewline. [#1221](https://github.com/fsprojects/fantomas/issues/1221)
+* Feature Disable Elmish syntax. [#1198](https://github.com/fsprojects/fantomas/issues/1198)
+* Support user-provided end-of-line characters. [#1231](https://github.com/fsprojects/fantomas/issues/1231)
+* Add option to make expressions multiline based on number of subexpressions rather than character length. [#1143](https://github.com/fsprojects/fantomas/issues/1143)
+* Update to FCS 38. [#1240](https://github.com/fsprojects/fantomas/pull/1240)
+* Fix Comment after let binding breaks downstream output. [#1284](https://github.com/fsprojects/fantomas/issues/1284)
+* Fix Comments are removed before and after empty array literals. [#1281](https://github.com/fsprojects/fantomas/issues/1281)
+* Fix Use a safe filename when formatting from CodeFormatter. [#1279](https://github.com/fsprojects/fantomas/issues/1279)
+* Fix Incorrect movement of a comma. [#966](https://github.com/fsprojects/fantomas/issues/966)
 * Fix Bracket indentation is incorrect. [#1271](https://github.com/fsprojects/fantomas/issues/1271)
 * Fix tuple with match formats to invalid code. [#1269](https://github.com/fsprojects/fantomas/issues/1269)
 * Fix Incorrect movement of a comma. [#966](https://github.com/fsprojects/fantomas/issues/966)
 * Fix Not adding a space even when all SpaceBefore* settings are enabled. [#964](https://github.com/fsprojects/fantomas/issues/964)
-
-### 4.3.0-beta-001 - 12/2020
-
-* Fix Multliline if condition can have incorrect indentation error. [#1267](https://github.com/fsprojects/fantomas/issues/1267)
+* Fix Multiline if condition can have incorrect indentation error. [#1267](https://github.com/fsprojects/fantomas/issues/1267)
 * Fix multiline do bang gives a warning. [#1265](https://github.com/fsprojects/fantomas/issues/1265)
-
-### 4.3.0-alpha-007 - 11/2020
-
 * Fix regressions. [#1264](https://github.com/fsprojects/fantomas/pull/1264)
-
-### 4.3.0-alpha-006 - 11/2020
-
-* Feature Clarify constructors. [#1217](https://github.com/fsprojects/fantomas/issues/1217)
-* Feature MultiLineLambdaClosingNewline. [#1221](https://github.com/fsprojects/fantomas/issues/1221)
-
-### 4.3.0-alpha-005 - 11/2020
-
-* Support user-provided end-of-line characters. [#1231](https://github.com/fsprojects/fantomas/issues/1231)
 * Fix multiline yield bang in list should be further indented. [#1254](https://github.com/fsprojects/fantomas/issues/1254)
 * Fix Or pipe in destructured record should not be splitted. [#1252](https://github.com/fsprojects/fantomas/issues/1252)
 * Fix Swap order of private and inline. [#1250](https://github.com/fsprojects/fantomas/issues/1250)
 * Fix Comment is lost in enum. [#1247](https://github.com/fsprojects/fantomas/issues/1247)
 * Fix Nested if/else/then in short mode. [#1243](https://github.com/fsprojects/fantomas/issues/1243)
 * Fix Something doesn't add up in fix for 303. [#1093](https://github.com/fsprojects/fantomas/issues/1093)
-
-### 4.3.0-alpha-004 - 11/2020
-
-* Update to FCS 38. [#1240](https://github.com/fsprojects/fantomas/pull/1240)
-
-### 4.3.0-alpha-003 - 11/2020
-
-* Removed fsharp_max_newline_infix_operator_expression_number_of_items. [#1143](https://github.com/fsprojects/fantomas/issues/1143#issuecomment-723572967)
 * Fix Fantomas format is "unstable/oscillates" after upcast operator: adds/removes empty line. [#1227](https://github.com/fsprojects/fantomas/issues/1227)
 * Fix Misplaces `=` in function signature so it's invalid F# code. [#1218](https://github.com/fsprojects/fantomas/issues/1218)
 * Fix Additional newline is added between if/elif and for loop. [#1211](https://github.com/fsprojects/fantomas/issues/1211)
 * Fix Let binding in hash directive disappears. [#1205](https://github.com/fsprojects/fantomas/issues/1205)
 * Fix Downcast operator doesn't get a new line. [#1203](https://github.com/fsprojects/fantomas/issues/1203)
 * Fix Implicit unit else results in extra lines with each reformat. [#1187](https://github.com/fsprojects/fantomas/issues/1187)
-
-### 4.3.0-alpha-002 - 10/2020
-
 * Fix Incorrect formatting of function parameter application with lambdas. [#1201](https://github.com/fsprojects/fantomas/issues/1201)
 * Fix Lambda functions in fluent API calls should indent further. [#970](https://github.com/fsprojects/fantomas/issues/970)
 * Fix Hard to read code when using Thoth.Json. [#685](https://github.com/fsprojects/fantomas/issues/685)
-
-### 4.3.0-alpha-001 - 10/2020
-
-* Disable Elmish syntax. [#1198](https://github.com/fsprojects/fantomas/issues/1198)
-* Add option to make expressions multiline based on number of subexpressions rather than character length. [#1143](https://github.com/fsprojects/fantomas/issues/1143)
 * Fix --check should ignore the line endings. [#1196](https://github.com/fsprojects/fantomas/issues/1196)
 * Fix Format entire return type on the line. [#1181](https://github.com/fsprojects/fantomas/issues/1181)
 * Fix Only add one `in` keyword in LetOrUse. [#1176](https://github.com/fsprojects/fantomas/issues/1176)

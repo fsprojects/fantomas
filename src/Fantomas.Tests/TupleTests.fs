@@ -177,3 +177,16 @@ let f =
     |> fun i -> i + 1
     , 6
 """
+
+[<Test>]
+let ``destructed tuple with comment after equals`` () =
+    formatSourceString false """
+        let var1withAVeryLongLongLongLongLongLongName, var2withAVeryLongLongLongLongLongLongName = // foo
+            someFunc 1, someFunc 2
+"""  { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should equal """
+let (var1withAVeryLongLongLongLongLongLongName,
+     var2withAVeryLongLongLongLongLongLongName) = // foo
+    someFunc 1, someFunc 2
+"""
