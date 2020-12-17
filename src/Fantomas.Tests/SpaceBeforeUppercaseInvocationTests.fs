@@ -206,3 +206,22 @@ let untypedResLong =
         somethingElseWithARatherLongVariableName
     )
 """
+
+[<Test>]
+let ``function application inside parenthesis followed by .DotIndexedGet, 1226`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let Bar () =
+        (doc.DocumentNode.SelectNodes "//table").[0]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let Bar () =
+        (doc.DocumentNode.SelectNodes "//table").[0]
+"""
