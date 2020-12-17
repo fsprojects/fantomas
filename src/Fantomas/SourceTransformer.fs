@@ -162,10 +162,12 @@ let lengthWhenSome f o =
     | None -> 0
 
 let getSynAccessLength ao =
-    lengthWhenSome (function
+    lengthWhenSome
+        (function
         | SynAccess.Internal -> 8
         | SynAccess.Private -> 7
-        | SynAccess.Public -> 6) ao
+        | SynAccess.Public -> 6)
+        ao
 
 let rec getSynTypeLength (synType: SynType) =
     match synType with
@@ -187,9 +189,10 @@ let rec getSynPatLength (synPat: SynPat) =
 
         let patternLength =
             ps
-            |> List.sumBy (fun (ident, pat) ->
-                let identLength = lengthWhenSome String.length ident
-                identLength + getSynPatLength pat)
+            |> List.sumBy
+                (fun (ident, pat) ->
+                    let identLength = lengthWhenSome String.length ident
+                    identLength + getSynPatLength pat)
 
         accessLength + patternLength + s.Length
 

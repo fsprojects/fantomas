@@ -26,24 +26,25 @@ let private isValidAndHasNoWarnings fileName source parsingOptions =
     let allDefineOptions, _ = TokenParser.getDefines source
 
     allDefineOptions
-    |> List.map (fun conditionalCompilationDefines ->
-        async {
-            let parsingOptionsWithDefines =
-                { parsingOptions with
-                      ConditionalCompilationDefines = conditionalCompilationDefines }
-            // Run the first phase (untyped parsing) of the compiler
-            let sourceText =
-                FSharp.Compiler.Text.SourceText.ofString source
+    |> List.map
+        (fun conditionalCompilationDefines ->
+            async {
+                let parsingOptionsWithDefines =
+                    { parsingOptions with
+                          ConditionalCompilationDefines = conditionalCompilationDefines }
+                // Run the first phase (untyped parsing) of the compiler
+                let sourceText =
+                    FSharp.Compiler.Text.SourceText.ofString source
 
-            let! untypedRes = sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
+                let! untypedRes = sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
 
-            let errors =
-                untypedRes.Errors
-                |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
-            // FSharpErrorInfo contains both Errors and Warnings
-            // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-sourcecodeservices-fsharperrorinfo.html
-            return Array.isEmpty errors
-        })
+                let errors =
+                    untypedRes.Errors
+                    |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
+                // FSharpErrorInfo contains both Errors and Warnings
+                // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-sourcecodeservices-fsharperrorinfo.html
+                return Array.isEmpty errors
+            })
     |> Async.Parallel
     |> Async.map (Seq.fold (&&) true)
 
@@ -52,20 +53,28 @@ let formatSourceString isFsiFile (s: string) config =
     let s = s.Replace("\r\n", Environment.NewLine)
 
     let fileName =
-        if isFsiFile then "/src.fsi" else "/src.fsx"
+        if isFsiFile then
+            "/src.fsi"
+        else
+            "/src.fsx"
 
     let parsingOptions =
         FakeHelpers.createParsingOptionsFromFile fileName
 
     async {
         let! formatted =
-            CodeFormatter.FormatDocumentAsync
-                (fileName, SourceOrigin.SourceString s, config, parsingOptions, sharedChecker.Value)
+            CodeFormatter.FormatDocumentAsync(
+                fileName,
+                SourceOrigin.SourceString s,
+                config,
+                parsingOptions,
+                sharedChecker.Value
+            )
 
         let! isValid = isValidAndHasNoWarnings fileName formatted parsingOptions
 
-        if not isValid
-        then failwithf "The formatted result is not valid F# code or contains warnings\n%s" formatted
+        if not isValid then
+            failwithf "The formatted result is not valid F# code or contains warnings\n%s" formatted
 
         return formatted.Replace("\r\n", "\n")
     }
@@ -107,29 +116,43 @@ let formatSelectionOnly isFsiFile r (s: string) config =
     let s = s.Replace("\r\n", Environment.NewLine)
 
     let fileName =
-        if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+        if isFsiFile then
+            "/tmp.fsi"
+        else
+            "/tmp.fsx"
 
-    CodeFormatter.FormatSelectionAsync
-        (fileName,
-         r,
-         SourceOrigin.SourceString s,
-         config,
-         FakeHelpers.createParsingOptionsFromFile fileName,
-         sharedChecker.Value)
+    CodeFormatter.FormatSelectionAsync(
+        fileName,
+        r,
+        SourceOrigin.SourceString s,
+        config,
+        FakeHelpers.createParsingOptionsFromFile fileName,
+        sharedChecker.Value
+    )
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
 
 let isValidFSharpCode isFsiFile s =
     let fileName =
-        if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+        if isFsiFile then
+            "/tmp.fsi"
+        else
+            "/tmp.fsx"
 
-    CodeFormatter.IsValidFSharpCodeAsync
-        (fileName, SourceOrigin.SourceString s, FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
+    CodeFormatter.IsValidFSharpCodeAsync(
+        fileName,
+        SourceOrigin.SourceString s,
+        FakeHelpers.createParsingOptionsFromFile fileName,
+        sharedChecker.Value
+    )
     |> Async.RunSynchronously
 
 let parse isFsiFile s =
     let fileName =
-        if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+        if isFsiFile then
+            "/tmp.fsi"
+        else
+            "/tmp.fsx"
 
     CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s)
     |> CodeFormatterImpl.parse sharedChecker.Value (FakeHelpers.createParsingOptionsFromFile fileName)
@@ -187,9 +210,11 @@ let toSynExprs (Input s) =
                                                                                   _,
                                                                                   _) ],
                                                           _))) |] ->
-        List.choose (function
+        List.choose
+            (function
             | (SynModuleDecl.DoExpr (_, expr, _)) -> Some expr
-            | _ -> None) exprs
+            | _ -> None)
+            exprs
     | _ -> []
 
 let tryFormatAST ast sourceCode config =
@@ -207,23 +232,26 @@ let fromSynExpr expr =
     let ast =
         let ident = Ident("Tmp", zero)
 
-        ParsedInput.ImplFile
-            (ParsedImplFileInput
-                ("/tmp.fsx",
-                 true,
-                 QualifiedNameOfFile ident,
-                 [],
-                 [],
-                 [ SynModuleOrNamespace
-                     ([ ident ],
-                      false,
-                      AnonModule,
-                      [ SynModuleDecl.DoExpr(NoDebugPointAtDoBinding, expr, zero) ],
-                      PreXmlDocEmpty,
-                      [],
-                      None,
-                      zero) ],
-                 (true, true)))
+        ParsedInput.ImplFile(
+            ParsedImplFileInput(
+                "/tmp.fsx",
+                true,
+                QualifiedNameOfFile ident,
+                [],
+                [],
+                [ SynModuleOrNamespace(
+                    [ ident ],
+                    false,
+                    AnonModule,
+                    [ SynModuleDecl.DoExpr(NoDebugPointAtDoBinding, expr, zero) ],
+                    PreXmlDocEmpty,
+                    [],
+                    None,
+                    zero
+                  ) ],
+                (true, true)
+            )
+        )
 
     Input(tryFormatAST ast None formatConfig)
 

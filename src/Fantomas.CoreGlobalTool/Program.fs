@@ -77,13 +77,17 @@ let isFSharpFile (s: string) =
 /// Get all appropriate files, either recursively or non-recursively
 let rec allFiles isRec path =
     let searchOption =
-        (if isRec then SearchOption.AllDirectories else SearchOption.TopDirectoryOnly)
+        (if isRec then
+            SearchOption.AllDirectories
+         else
+             SearchOption.TopDirectoryOnly)
 
     Directory.GetFiles(path, "*.*", searchOption)
-    |> Seq.filter (fun f ->
-        isFSharpFile f
-        && not (isInExcludedDir f)
-        && not (IgnoreFile.isIgnoredFile (f)))
+    |> Seq.filter
+        (fun f ->
+            isFSharpFile f
+            && not (isInExcludedDir f)
+            && not (IgnoreFile.isIgnoredFile (f)))
 
 /// Fantomas assumes the input files are UTF-8
 /// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
@@ -103,15 +107,19 @@ let private hasByteOrderMark file =
 /// Format a source string using given config and write to a text writer
 let processSourceString isFsiFile s (tw: Choice<TextWriter, string>) config =
     let fileName =
-        if isFsiFile then "/tmp.fsi" else "/tmp.fsx"
+        if isFsiFile then
+            "/tmp.fsi"
+        else
+            "/tmp.fsx"
 
     let writeResult (formatted: string) =
         match tw with
         | Choice1Of2 tw -> tw.Write(formatted)
         | Choice2Of2 path ->
-            if hasByteOrderMark path
-            then File.WriteAllText(path, formatted, Encoding.UTF8)
-            else File.WriteAllText(path, formatted)
+            if hasByteOrderMark path then
+                File.WriteAllText(path, formatted, Encoding.UTF8)
+            else
+                File.WriteAllText(path, formatted)
 
     async {
         let! formatted =
@@ -165,7 +173,10 @@ let readFromStdin (lineLimit: int) =
             |> Seq.takeWhile isNotEof
             |> Seq.reduce appendWithNewline
 
-        if String.IsNullOrWhiteSpace input then None else Some(input)
+        if String.IsNullOrWhiteSpace input then
+            None
+        else
+            Some(input)
 
 let private reportCheckResults (output: TextWriter) (checkResult: FakeHelpers.CheckResult) =
     checkResult.Errors
@@ -210,10 +221,12 @@ let runCheckCommand (recurse: bool) (inputPath: InputPath): int =
 [<EntryPoint>]
 let main argv =
     let errorHandler =
-        ProcessExiter
-            (colorizer = function
-            | ErrorCode.HelpText -> None
-            | _ -> Some ConsoleColor.Red)
+        ProcessExiter(
+            colorizer =
+                function
+                | ErrorCode.HelpText -> None
+                | _ -> Some ConsoleColor.Red
+        )
 
     let parser =
         ArgumentParser.Create<Arguments>(programName = "dotnet fantomas", errorHandler = errorHandler)
@@ -236,9 +249,12 @@ let main argv =
 
         match maybeInput with
         | Some input ->
-            if Directory.Exists(input) then InputPath.Folder input
-            elif File.Exists input && isFSharpFile input then InputPath.File input
-            else InputPath.Unspecified
+            if Directory.Exists(input) then
+                InputPath.Folder input
+            elif File.Exists input && isFSharpFile input then
+                InputPath.File input
+            else
+                InputPath.Unspecified
         | None ->
             let hasStdin = results.Contains <@ Arguments.Stdin @>
 
@@ -265,10 +281,13 @@ let main argv =
             let hasByteOrderMark = hasByteOrderMark inFile
 
             use buffer =
-                if hasByteOrderMark
-                then new StreamWriter(new FileStream(outFile, FileMode.OpenOrCreate, FileAccess.ReadWrite),
-                                      Encoding.UTF8)
-                else new StreamWriter(outFile)
+                if hasByteOrderMark then
+                    new StreamWriter(
+                        new FileStream(outFile, FileMode.OpenOrCreate, FileAccess.ReadWrite),
+                        Encoding.UTF8
+                    )
+                else
+                    new StreamWriter(outFile)
 
             if profile then
                 File.ReadLines(inFile)
@@ -329,18 +348,22 @@ let main argv =
             stringToFile content inputFile config
 
     let processFolder inputFolder outputFolder =
-        if not <| Directory.Exists(outputFolder)
-        then Directory.CreateDirectory(outputFolder) |> ignore
+        if not <| Directory.Exists(outputFolder) then
+            Directory.CreateDirectory(outputFolder) |> ignore
 
         allFiles recurse inputFolder
-        |> Seq.iter (fun i ->
-            // s supposes to have form s1/suffix
-            let suffix = i.Substring(inputFolder.Length + 1)
+        |> Seq.iter
+            (fun i ->
+                // s supposes to have form s1/suffix
+                let suffix = i.Substring(inputFolder.Length + 1)
 
-            let o =
-                if inputFolder <> outputFolder then Path.Combine(outputFolder, suffix) else i
+                let o =
+                    if inputFolder <> outputFolder then
+                        Path.Combine(outputFolder, suffix)
+                    else
+                        i
 
-            processFile i o)
+                processFile i o)
 
     let fileToStdOut inFile =
         try
@@ -350,7 +373,9 @@ let main argv =
             stdout.Write(buffer.ToString())
         with exn ->
             eprintfn "The following exception occurred while formatting %s: %O" inFile exn
-            if force then stdout.Write(File.ReadAllText inFile)
+
+            if force then
+                stdout.Write(File.ReadAllText inFile)
 
     if Option.isSome version then
         let version = CodeFormatter.GetVersion()

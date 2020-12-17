@@ -12,16 +12,21 @@ let config =
 
 [<Test>]
 let ``if only, 825`` () =
-    formatSourceString false """type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =
+    formatSourceString
+        false
+        """type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =
     do
         if balanceAtTheMomentOfSending < valueToSend then
             invalidArg "balanceAtTheMomentOfSending"
                 "some very very long error message"
         if valueToSend <= 0m then
             invalidArg "valueToSend" "Amount has to be above zero"
-"""  { config with MaxLineLength = 100 }
+"""
+        { config with MaxLineLength = 100 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =
     do
         if balanceAtTheMomentOfSending < valueToSend then
@@ -33,7 +38,9 @@ type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) 
 
 [<Test>]
 let ``if with comments, 825`` () =
-    formatSourceString false """type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =
+    formatSourceString
+        false
+        """type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =
     do
         // comment
         if balanceAtTheMomentOfSending < valueToSend then // comment
@@ -41,9 +48,12 @@ let ``if with comments, 825`` () =
                 "some very very long error message" // comment
         if valueToSend <= 0m then // comment
             invalidArg "valueToSend" "Amount has to be above zero" // comment
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) =
     do
         // comment
@@ -58,7 +68,9 @@ type TransferAmount(valueToSend: decimal, balanceAtTheMomentOfSending: decimal) 
 
 [<Test>]
 let ``if, else if, else, 825`` () =
-    formatSourceString false """if foooooooooooooooooooooooooooooooooooooooo then
+    formatSourceString
+        false
+        """if foooooooooooooooooooooooooooooooooooooooo then
     a
 else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
     b
@@ -66,9 +78,12 @@ elif caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
     c
 else
     d
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 if foooooooooooooooooooooooooooooooooooooooo then
     a
 else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
@@ -81,7 +96,9 @@ else
 
 [<Test>]
 let ``if, else if, else, with comments 825`` () =
-    formatSourceString false """// comment
+    formatSourceString
+        false
+        """// comment
 if foooooooooooooooooooooooooooooooooooooooo then // comment
     a // comment
 else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
@@ -90,9 +107,12 @@ elif caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then // comment
     c // comment
 else // comment x
     d // comment
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 // comment
 if foooooooooooooooooooooooooooooooooooooooo then // comment
     a // comment
@@ -106,7 +126,9 @@ else // comment x
 
 [<Test>]
 let ``if, else if, else, multiline, 825`` () =
-    formatSourceString false """if foooooooooooooooooooooooooooooooooooooooo then
+    formatSourceString
+        false
+        """if foooooooooooooooooooooooooooooooooooooooo then
     multi
     line
 else if baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
@@ -118,9 +140,12 @@ elif caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar then
 else
     multi
     line
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 if foooooooooooooooooooooooooooooooooooooooo then
     multi
     line
@@ -141,7 +166,9 @@ let ``MaxIfThenElseShortWidth not exceeded, 825`` () =
         { config with
               MaxIfThenElseShortWidth = 100 }
 
-    formatSourceString false """if foo then
+    formatSourceString
+        false
+        """if foo then
     bar
 else if fooo then
     bar
@@ -149,9 +176,12 @@ elif foooo then
     bar
 else
     bar
-"""  c
+"""
+        c
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 if foo then bar
 else if fooo then bar
 elif foooo then bar

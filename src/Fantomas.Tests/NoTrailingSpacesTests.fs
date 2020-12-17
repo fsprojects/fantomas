@@ -17,7 +17,9 @@ let ``should not confuse me with an extra space at end of line v2`` () =
         codeSnippet
         ({ config with
                MaxInfixOperatorExpression = 90 })
-    |> should equal """let ``should not extrude without positive distance`` () =
+    |> should
+        equal
+        """let ``should not extrude without positive distance`` () =
     let args =
         [| "-i"
            "input.dxf"

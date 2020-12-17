@@ -6,7 +6,9 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``multiline downcast expression, `` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 longMethodName
     longArgument
     longArgument2
@@ -21,7 +23,9 @@ longMethodName
               AlternativeLongMemberDefinitions = true
               DisableElmishSyntax = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 longMethodName
     longArgument
     longArgument2
@@ -30,7 +34,9 @@ longMethodName
 
 [<Test>]
 let ``multiline upcast expression, `` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 longMethodName
     longArgument
     longArgument2
@@ -45,7 +51,9 @@ longMethodName
               AlternativeLongMemberDefinitions = true
               DisableElmishSyntax = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 longMethodName
     longArgument
     longArgument2
@@ -54,7 +62,9 @@ longMethodName
 
 [<Test>]
 let ``trivia newline before upcast, 1227`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 module S3v2
 
 open System.Threading.Tasks
@@ -70,9 +80,12 @@ let waitAndUpcast (x: Task<'t>) =
         x |> Async.AwaitTask |> Async.RunSynchronously
 
     x.Result :> AmazonWebServiceResponse
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module S3v2
 
 open System.Threading.Tasks
@@ -93,7 +106,9 @@ let waitAndUpcast (x: Task<'t>) =
 
 [<Test>]
 let ``trivia newline before downcast`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 module S3v2
 
 open System.Threading.Tasks
@@ -104,9 +119,12 @@ let waitAndUpcast (x: Task<'t>) =
         x |> Async.AwaitTask |> Async.RunSynchronously
 
     x.Result :?> AmazonWebServiceResponse
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module S3v2
 
 open System.Threading.Tasks

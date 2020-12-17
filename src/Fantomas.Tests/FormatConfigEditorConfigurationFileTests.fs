@@ -22,8 +22,8 @@ type ConfigurationFile internal (config: FormatConfig.FormatConfig,
         | Some sf ->
             let dirPath = Path.Join(Path.GetTempPath(), sf)
 
-            if not (Directory.Exists(dirPath))
-            then Directory.CreateDirectory(dirPath) |> ignore
+            if not (Directory.Exists(dirPath)) then
+                Directory.CreateDirectory(dirPath) |> ignore
 
             Path.Join(Path.GetTempPath(), sf, ".editorconfig")
         | None -> Path.Join(Path.GetTempPath(), ".editorconfig")
@@ -46,7 +46,8 @@ type ConfigurationFile internal (config: FormatConfig.FormatConfig,
 
     interface IDisposable with
         member this.Dispose(): unit =
-            if File.Exists(editorConfigPath) then File.Delete(editorConfigPath)
+            if File.Exists(editorConfigPath) then
+                File.Delete(editorConfigPath)
 
 type FSharpFile internal (?fsharpFileExtension: string, ?subFolder: string) =
     let extension =
@@ -59,8 +60,8 @@ type FSharpFile internal (?fsharpFileExtension: string, ?subFolder: string) =
         | Some sf ->
             let dirPath = Path.Join(Path.GetTempPath(), sf)
 
-            if not (Directory.Exists(dirPath))
-            then Directory.CreateDirectory(dirPath) |> ignore
+            if not (Directory.Exists(dirPath)) then
+                Directory.CreateDirectory(dirPath) |> ignore
 
             Path.Join(Path.GetTempPath(), sf, fsharpFile)
         | None -> Path.Join(Path.GetTempPath(), fsharpFile)
@@ -71,7 +72,8 @@ type FSharpFile internal (?fsharpFileExtension: string, ?subFolder: string) =
 
     interface IDisposable with
         member this.Dispose(): unit =
-            if File.Exists(fsharpFilePath) then File.Delete(fsharpFilePath)
+            if File.Exists(fsharpFilePath) then
+                File.Delete(fsharpFilePath)
 
 [<Test>]
 let ``single configuration file`` () =
@@ -105,8 +107,10 @@ let ``parent config should not be taking into account when child is root`` () =
     let subFolder = tempName ()
 
     use parentConfig =
-        new ConfigurationFile({ defaultConfig with
-                                    MaxRecordWidth = 10 })
+        new ConfigurationFile(
+            { defaultConfig with
+                  MaxRecordWidth = 10 }
+        )
 
     use childConfig =
         new ConfigurationFile({ defaultConfig with IndentSize = 2 }, subFolder = subFolder, isRoot = true)
@@ -124,8 +128,10 @@ let ``parent config should not be taking into account when child is root`` () =
 [<Test>]
 let ``configuration file should not affect file extension`` () =
     use configFixture =
-        new ConfigurationFile({ defaultConfig with
-                                    MaxLineLength = 90 })
+        new ConfigurationFile(
+            { defaultConfig with
+                  MaxLineLength = 90 }
+        )
 
     use fsharpFile = new FSharpFile(".fsx")
 
@@ -326,9 +332,10 @@ end_of_line = cr
     use fsharpFile = new FSharpFile()
 
     let ex =
-        Assert.Throws(fun () ->
-            EditorConfig.readConfiguration fsharpFile.FSharpFile
-            |> ignore)
+        Assert.Throws
+            (fun () ->
+                EditorConfig.readConfiguration fsharpFile.FSharpFile
+                |> ignore)
 
     ex.Message
     == "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
@@ -340,10 +347,12 @@ let valid_eol_settings =
 [<TestCaseSource("valid_eol_settings")>]
 let can_parse_end_of_line_setting (eol: EndOfLineStyle) =
     let editorConfig =
-        sprintf """
+        sprintf
+            """
 [*.fs]
 end_of_line = %s
-"""      (EndOfLineStyle.ToConfigString eol)
+"""
+            (EndOfLineStyle.ToConfigString eol)
 
     use configFixture =
         new ConfigurationFile(defaultConfig, content = editorConfig)

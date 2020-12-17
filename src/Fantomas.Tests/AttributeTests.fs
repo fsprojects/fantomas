@@ -7,7 +7,9 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``should keep the attribute on top of the function`` () =
-    formatSourceString false """[<Extension>]
+    formatSourceString
+        false
+        """[<Extension>]
 type Funcs =
     [<Extension>]
     static member ToFunc (f: Action<_,_,_>) =
@@ -15,7 +17,9 @@ type Funcs =
     """
         { config with
               MaxFunctionBindingWidth = 120 }
-    |> should equal """[<Extension>]
+    |> should
+        equal
+        """[<Extension>]
 type Funcs =
     [<Extension>]
     static member ToFunc(f: Action<_, _, _>) = Func<_, _, _, _>(fun a b c -> f.Invoke(a, b, c))
@@ -23,58 +27,83 @@ type Funcs =
 
 [<Test>]
 let ``attributes on expressions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     [<Dependency("FSharp.Compiler", LoadHint.Always)>]
-    do ()""" config
+    do ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Dependency("FSharp.Compiler", LoadHint.Always)>]
 do ()
 """
 
 [<Test>]
 let ``attributes with multiple spaces between args on expressions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     [<Dependency         ("FSharp.Compiler", LoadHint.Always)>]
-    do ()""" config
+    do ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Dependency("FSharp.Compiler", LoadHint.Always)>]
 do ()
 """
 
 [<Test>]
 let ``attributes without parentheses on expressions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     [<MyValue 55>]
-    do ()""" config
+    do ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<MyValue 55>]
 do ()
 """
 
 [<Test>]
 let ``attributes without parentheses and multiples spaces between args on expressions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     [<MyValue       55>]
-    do ()""" config
+    do ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<MyValue 55>]
 do ()
 """
 
 [<Test>]
 let ``units of measures declaration`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     [<Measure>] type m
     [<Measure>] type kg
     [<Measure>] type s
     [<Measure>] type N = kg m / s^2
-    [<Measure>] type Pa = N * m^2""" config
+    [<Measure>] type Pa = N * m^2"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Measure>]
 type m
 
@@ -93,11 +122,16 @@ type Pa = N * m^2
 
 [<Test>]
 let ``type params`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let genericSumUnits ( x : float<'u>) (y: float<'u>) = x + y
-type vector3D<[<Measure>] 'u> = { x : float<'u>; y : float<'u>; z : float<'u>}""" config
+type vector3D<[<Measure>] 'u> = { x : float<'u>; y : float<'u>; z : float<'u>}"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let genericSumUnits (x: float<'u>) (y: float<'u>) = x + y
 
 type vector3D<[<Measure>] 'u> =
@@ -108,11 +142,16 @@ type vector3D<[<Measure>] 'u> =
 
 [<Test>]
 let ``attributes on recursive functions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let rec [<Test>] a () = 10
-and [<Test>] b () = 10""" config
+and [<Test>] b () = 10"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Test>]
 let rec a () = 10
 
@@ -121,13 +160,18 @@ and [<Test>] b () = 10
 
 [<Test>]
 let ``attributes on implicit constructors`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<Export>]
 type Sample [<ImportingConstructor>] (dependency: IDependency) = class end
 [<Export>]
-type Sample [<ImportingConstructor>] internal () = class end""" config
+type Sample [<ImportingConstructor>] internal () = class end"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Export>]
 type Sample [<ImportingConstructor>] (dependency: IDependency) =
     class
@@ -141,14 +185,19 @@ type Sample [<ImportingConstructor>] internal () =
 
 [<Test>]
 let ``should handle targets on attributes`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<DataContract>]
 type Foo =
     { [<field:DataMember>]
       Bar:string }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<DataContract>]
 type Foo =
     { [<field: DataMember>]
@@ -179,7 +228,9 @@ let e2e value =
 """
 
     formatSourceString false source config
-    |> should equal """module MyApp
+    |> should
+        equal
+        """module MyApp
 
 #if DEBUG
 [<Emit("console.log('%c' +  $1, 'color: ' + $0)")>]
@@ -200,7 +251,9 @@ let e2e value = Props.Data("e2e", value)
 
 [<Test>]
 let ``comments before attributes should be added correctly, issue 422`` () =
-    formatSourceString false """module RecordTypes =
+    formatSourceString
+        false
+        """module RecordTypes =
 
     /// Records can also be represented as structs via the 'Struct' attribute.
     /// This is helpful in situations where the performance of structs outweighs
@@ -210,8 +263,11 @@ let ``comments before attributes should be added correctly, issue 422`` () =
         { Name     : string
           Phone    : string
           Verified : bool }
-"""  config
-    |> should equal """module RecordTypes =
+"""
+        config
+    |> should
+        equal
+        """module RecordTypes =
 
     /// Records can also be represented as structs via the 'Struct' attribute.
     /// This is helpful in situations where the performance of structs outweighs
@@ -225,16 +281,21 @@ let ``comments before attributes should be added correctly, issue 422`` () =
 
 [<Test>]
 let ``different attributes according to defines`` () =
-    formatSourceString false """    [<
+    formatSourceString
+        false
+        """    [<
 #if NETCOREAPP2_1
       Builder.Object;
 #else
       Widget;
 #endif
       DefaultValue(true)>]
-    let foo = ()""" config
+    let foo = ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<
 #if NETCOREAPP2_1
   Builder.Object;
@@ -247,16 +308,21 @@ let foo = ()
 
 [<Test>]
 let ``different attributes according to defines, no defines`` () =
-    formatSourceStringWithDefines [] """    [<
+    formatSourceStringWithDefines
+        []
+        """    [<
 #if NETCOREAPP2_1
       Builder.Object;
 #else
       Widget;
 #endif
       DefaultValue(true)>]
-    let foo = ()""" config
+    let foo = ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<
 #if NETCOREAPP2_1
 
@@ -269,13 +335,18 @@ let foo = ()
 
 [<Test>]
 let ``attribute above extern keyword, 562`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 module C =
   [<DllImport("")>]
   extern IntPtr f()
-"""  ({ config with StrictMode = true })
+"""
+        ({ config with StrictMode = true })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module C =
     [<DllImport("")>]
     extern IntPtr f()
@@ -283,7 +354,9 @@ module C =
 
 [<Test>]
 let ``keep single newline between attribute and let binding, 611`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 open System
 open Library
 
@@ -300,7 +373,9 @@ let main argv =
                SpaceAroundDelimiter = false
                SpaceBeforeLowercaseInvocation = false })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 open System
 open Library
 
@@ -316,7 +391,9 @@ let main argv =
 
 [<Test>]
 let ``multiple assembly attributes, 796`` () =
-    formatSourceString false """namespace Foo.AssemblyInfo
+    formatSourceString
+        false
+        """namespace Foo.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.CompilerServices
@@ -327,9 +404,12 @@ open System.Runtime.InteropServices
 
 do
   ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Foo.AssemblyInfo
 
 open System.Reflection
@@ -345,24 +425,33 @@ do ()
 [<Test>]
 let ``should preserve single return type attribute`` () =
     formatSourceString false """let f x : [<return: Attribute>] int = x""" config
-    |> should equal """let f x: [<return: Attribute>] int = x
+    |> should
+        equal
+        """let f x: [<return: Attribute>] int = x
 """
 
 [<Test>]
 let ``should preserve multiple return type attributes`` () =
     formatSourceString false """let f x : [<return: AttributeOne;AttributeTwo;AttributeThree("foo")>] int = x""" config
-    |> should equal """let f x: [<return: AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
+    |> should
+        equal
+        """let f x: [<return: AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
 """
 
 [<Test>]
 let ``attribute, new line, let binding`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     [<Foo>]
 
 let bar = 7
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Foo>]
 
 let bar = 7
@@ -370,13 +459,18 @@ let bar = 7
 
 [<Test>]
 let ``attribute, new line, type declaration`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<Foo>]
 
 type Bar = Bar of string
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Foo>]
 
 type Bar = Bar of string
@@ -384,15 +478,20 @@ type Bar = Bar of string
 
 [<Test>]
 let ``attribute, new line, attribute, newline, let binding`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<Foo>]
 
 [<Meh>]
 
 let bar = 7
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Foo>]
 
 [<Meh>]
@@ -402,15 +501,20 @@ let bar = 7
 
 [<Test>]
 let ``attribute, new line, attribute, line comment, type declaration`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<Foo>]
 
 [<Meh>]
 // foo
 type Text = string
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Foo>]
 
 [<Meh>]
@@ -420,15 +524,20 @@ type Text = string
 
 [<Test>]
 let ``attribute, hash directive, attribute, hash directive, type declaration`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<Foo>]
 #if FOO
 [<Meh>]
 #endif
 type Text = string
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Foo>]
 #if FOO
 [<Meh>]
@@ -438,16 +547,21 @@ type Text = string
 
 [<Test>]
 let ``attribute, line comment, attribute, new line, record definition field`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Commenter =
     { [<JsonProperty("display_name")>]
       // foo
       [<Bar>]
 
       DisplayName: string }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Commenter =
     { [<JsonProperty("display_name")>]
       // foo
@@ -458,7 +572,9 @@ type Commenter =
 
 [<Test>]
 let ``assembly attributes remain on own line, 629`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 namespace AltCover.Visualizer
 
 open System
@@ -471,9 +587,12 @@ open System.Runtime.InteropServices
 [<assembly:AssemblyDescription("Coverage and static analysis visualizer for NCover (possibly extended) and OpenCover")>]
 [<assembly:System.Resources.NeutralResourcesLanguageAttribute("en-GB")>]
 ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace AltCover.Visualizer
 
 open System
@@ -490,14 +609,19 @@ open System.Runtime.InteropServices
 
 [<Test>]
 let ``line comment between attributes and do expression`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 [<Foo>]
 [<Bar>]
 // barry
 printfn "meh"
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Foo>]
 [<Bar>]
 // barry
@@ -506,7 +630,9 @@ printfn "meh"
 
 [<Test>]
 let ``multiple attributes inside SynAttributes that exceeds max line length, 629`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 //[<ApiExplorerSettings(IgnoreApi = true)>]
 [<Route("api/v1/admin/import")>]
 type RoleAdminImportController(akkaService: AkkaService) =
@@ -547,9 +673,12 @@ type RoleAdminImportController(akkaService: AkkaService) =
       importer.ApiMaster <! StartImportCmd job
       return Ok job
     }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 //[<ApiExplorerSettings(IgnoreApi = true)>]
 [<Route("api/v1/admin/import")>]
 type RoleAdminImportController(akkaService: AkkaService) =
@@ -597,7 +726,9 @@ type RoleAdminImportController(akkaService: AkkaService) =
 
 [<Test>]
 let ``compiler defines around SynAttribute nodes, 631`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type internal Handler() =
   class
     [<
@@ -610,9 +741,12 @@ type internal Handler() =
     val mutable mainWindow: Window
 end
 
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type internal Handler() =
     class
         [<
