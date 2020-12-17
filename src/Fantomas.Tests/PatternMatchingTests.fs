@@ -6,13 +6,18 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``match expressions`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     let filter123 x =
         match x with
         | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
-        | a -> printfn "%d" a""" config
+        | a -> printfn "%d" a"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let filter123 x =
     match x with
     | 1
@@ -23,12 +28,17 @@ let filter123 x =
 
 [<Test>]
 let ``function keyword`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     let filterNumbers =
         function | 1 | 2 | 3 -> printfn "Found 1, 2, or 3!"
-                 | a -> printfn "%d" a""" config
+                 | a -> printfn "%d" a"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let filterNumbers =
     function
     | 1
@@ -39,16 +49,21 @@ let filterNumbers =
 
 [<Test>]
 let ``when clauses and as patterns`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let rangeTest testValue mid size =
     match testValue with
     | var1 when var1 >= mid - size/2 && var1 <= mid + size/2 -> printfn "The test value is in range."
     | _ -> printfn "The test value is out of range."
 
 let (var1, var2) as tuple1 = (1, 2)
-printfn "%d %d %A" var1 var2 tuple1""" config
+printfn "%d %d %A" var1 var2 tuple1"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let rangeTest testValue mid size =
     match testValue with
     | var1 when var1 >= mid - size / 2 && var1 <= mid + size / 2 -> printfn "The test value is in range."
@@ -60,7 +75,9 @@ printfn "%d %d %A" var1 var2 tuple1
 
 [<Test>]
 let ``and & or patterns`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let detectZeroOR point =
     match point with
     | (0, 0) | (0, _) | (_, 0) -> printfn "Zero found."
@@ -72,9 +89,12 @@ let detectZeroAND point =
     | (var1, var2) & (0, _) -> printfn "First value is 0 in (%d, %d)" var1 var2
     | (var1, var2)  & (_, 0) -> printfn "Second value is 0 in (%d, %d)" var1 var2
     | _ -> printfn "Both nonzero."
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let detectZeroOR point =
     match point with
     | (0, 0)
@@ -92,7 +112,9 @@ let detectZeroAND point =
 
 [<Test>]
 let ``paren and tuple patterns`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let countValues list value =
     let rec checkList list acc =
        match list with
@@ -107,9 +129,12 @@ let detectZeroTuple point =
     | (0, var2) -> printfn "First value is 0 in (0, %d)" var2
     | (var1, 0) -> printfn "Second value is 0 in (%d, 0)" var1
     | _ -> printfn "Both nonzero."
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let countValues list value =
     let rec checkList list acc =
         match list with
@@ -129,7 +154,9 @@ let detectZeroTuple point =
 
 [<Test>]
 let ``type test and null patterns`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let detect1 x =
     match x with
     | 1 -> printfn "Found a 1!"
@@ -144,9 +171,12 @@ let RegisterControl(control:Control) =
 let ReadFromFile (reader : System.IO.StreamReader) =
     match reader.ReadLine() with
     | null -> printfn "\n"; false
-    | line -> printfn "%s" line; true""" config
+    | line -> printfn "%s" line; true"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let detect1 x =
     match x with
     | 1 -> printfn "Found a 1!"
@@ -170,15 +200,20 @@ let ReadFromFile (reader: System.IO.StreamReader) =
 
 [<Test>]
 let ``record patterns`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type MyRecord = { Name: string; ID: int }
 
 let IsMatchByName record1 (name: string) =
     match record1 with
     | { MyRecord.Name = nameFound; ID = _; } when nameFound = name -> true
-    | _ -> false """ config
+    | _ -> false """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type MyRecord = { Name: string; ID: int }
 
 let IsMatchByName record1 (name: string) =
@@ -189,14 +224,19 @@ let IsMatchByName record1 (name: string) =
 
 [<Test>]
 let ``desugared lambdas`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 try
     fst(find (fun (s, (s', ty): int * int) ->
                 s' = s0 && can (type_match ty ty0) []) (!the_interface))
 with
-| Failure _ -> s0""" { config with MaxLineLength = 80 }
+| Failure _ -> s0"""
+        { config with MaxLineLength = 80 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 try
     fst (
         find
@@ -209,24 +249,34 @@ with Failure _ -> s0
 
 [<Test>]
 let ``another case of desugared lambdas`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 find (fun (Ident op) x y -> Combp(Combp(Varp(op,dpty),x),y)) "term after binary operator" inp
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 find (fun (Ident op) x y -> Combp(Combp(Varp(op, dpty), x), y)) "term after binary operator" inp
 """
 
 [<Test>]
 let ``yet another case of desugared lambdas`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let UNIFY_ACCEPT_TAC mvs th (asl, w) =
     let insts = term_unify mvs (concl th) w
     ([], insts), [],
     let th' = INSTANTIATE insts th
-    fun i [] -> INSTANTIATE i th'""" config
+    fun i [] -> INSTANTIATE i th'"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let UNIFY_ACCEPT_TAC mvs th (asl, w) =
     let insts = term_unify mvs (concl th) w
 
@@ -238,23 +288,33 @@ let UNIFY_ACCEPT_TAC mvs th (asl, w) =
 
 [<Test>]
 let ``desugared lambdas again`` () =
-    formatSourceString false """
-fun P -> T""" config
+    formatSourceString
+        false
+        """
+fun P -> T"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 fun P -> T
 """
 
 [<Test>]
 let ``should consume spaces before inserting comments`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f x =
   a || // other case
         match n with
         | 17 -> false
-        | _ -> true""" config
+        | _ -> true"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f x =
     a
     || // other case
@@ -265,13 +325,18 @@ let f x =
 
 [<Test>]
 let ``should not remove parentheses in patterns`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let x =
     match y with
     | Start(-1) -> true
-    | _ -> false""" config
+    | _ -> false"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let x =
     match y with
     | Start (-1) -> true
@@ -280,11 +345,16 @@ let x =
 
 [<Test>]
 let ``should indent function keyword in function application`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let v =
-    List.tryPick (function 1 -> Some 1 | _ -> None) [1; 2; 3]""" config
+    List.tryPick (function 1 -> Some 1 | _ -> None) [1; 2; 3]"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let v =
     List.tryPick
         (function
@@ -295,13 +365,18 @@ let v =
 
 [<Test>]
 let ``should put brackets around tuples in type tests`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 match item.Item with
 | :? FSharpToolTipText as titem -> ()
 | :? (string * XmlDoc) as tip -> ()
-| _ -> ()""" config
+| _ -> ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 match item.Item with
 | :? FSharpToolTipText as titem -> ()
 | :? (string * XmlDoc) as tip -> ()
@@ -310,38 +385,55 @@ match item.Item with
 
 [<Test>]
 let ``should put brackets around app type tests`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 match item.Item with
-| :? (Instruction seq) -> ()""" config
+| :? (Instruction seq) -> ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 match item.Item with
 | :? (Instruction seq) -> ()
 """
 
 [<Test>]
 let ``should put brackets around array type tests`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 match item.Item with
-| :? (Instruction []) -> ()""" config
+| :? (Instruction []) -> ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 match item.Item with
 | :? (Instruction []) -> ()
 """
 
 [<Test>]
 let ``should support rational powers on units of measures`` () =
-    formatSourceString false """
-[<Measure>] type X = cm^(1/2)/W""" config
+    formatSourceString
+        false
+        """
+[<Measure>] type X = cm^(1/2)/W"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Measure>]
 type X = cm^(1/2) / W
 """
 
 let ``should add each case on newline`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let (|OneLine|MultiLine|) b =
     match b with
     | Red
@@ -350,9 +442,12 @@ let (|OneLine|MultiLine|) b =
         OneLinerBinding b
 
     | _ -> MultilineBinding b
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let (|OneLine|MultiLine|) b =
     match b with
     | Red
@@ -363,7 +458,9 @@ let (|OneLine|MultiLine|) b =
 
 [<Test>]
 let ``each pattern should be on newline`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let (|OneLinerBinding|MultilineBinding|) b =
     match b with
     | LetBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
@@ -374,9 +471,12 @@ let (|OneLinerBinding|MultilineBinding|) b =
         OneLinerBinding b
 
     | _ -> MultilineBinding b
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let (|OneLinerBinding|MultilineBinding|) b =
     match b with
     | LetBinding ([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
@@ -406,7 +506,9 @@ let update msg model =
 
     formatSourceString false afterFirstFormat config80
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let update msg model =
     let res =
         match msg with
@@ -421,14 +523,19 @@ let update msg model =
 
 [<Test>]
 let ``updated record with function call remains be on same line, because short enough`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let x =  { Value = 36 }.Times(9)
 
 match b with
 | _ -> { Value = 42 }.Times(8)
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let x = { Value = 36 }.Times(9)
 
 match b with
@@ -437,7 +544,9 @@ match b with
 
 [<Test>]
 let ``with clause drop-through, 465`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let internal ImageLoadResilient (f: unit -> 'a) (tidy: unit -> 'a) =
     try
       f()
@@ -445,9 +554,12 @@ let internal ImageLoadResilient (f: unit -> 'a) (tidy: unit -> 'a) =
     | :? BadImageFormatException
     | :? ArgumentException
     | :? IOException -> tidy()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let internal ImageLoadResilient (f: unit -> 'a) (tidy: unit -> 'a) =
     try
         f ()
@@ -459,15 +571,20 @@ let internal ImageLoadResilient (f: unit -> 'a) (tidy: unit -> 'a) =
 
 [<Test>]
 let ``pattern match 2 space indent`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 match x with
 | Some y ->
     let z = 1
     Some(y + z)
 | None -> None
-"""  { config with IndentSize = 2 }
+"""
+        { config with IndentSize = 2 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 match x with
 | Some y ->
     let z = 1
@@ -477,7 +594,9 @@ match x with
 
 [<Test>]
 let ``should preserve a new line between single and multi-pattern cases`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f x =
     match x with
     | A
@@ -487,9 +606,12 @@ let f x =
     | C -> None
 
     | _ -> None
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f x =
     match x with
     | A
@@ -503,7 +625,9 @@ let f x =
 
 [<Test>]
 let ``very long match clause with many lambdas`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let MethInfoIsUnseen g m ty minfo =
     let isUnseenByObsoleteAttrib () =
         match BindMethInfoAttributes m minfo
@@ -516,9 +640,12 @@ let MethInfoIsUnseen g m ty minfo =
         | None -> false
 
     ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let MethInfoIsUnseen g m ty minfo =
     let isUnseenByObsoleteAttrib () =
         match BindMethInfoAttributes
@@ -536,7 +663,9 @@ let MethInfoIsUnseen g m ty minfo =
 
 [<Test>]
 let ``very long match clause with many lambdas mixed with defines, 976`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let MethInfoIsUnseen g m ty minfo =
     let isUnseenByObsoleteAttrib () =
         match BindMethInfoAttributes m minfo
@@ -552,9 +681,12 @@ let MethInfoIsUnseen g m ty minfo =
         | None -> false
 
     ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let MethInfoIsUnseen g m ty minfo =
     let isUnseenByObsoleteAttrib () =
         match BindMethInfoAttributes
@@ -576,16 +708,21 @@ let MethInfoIsUnseen g m ty minfo =
 
 [<Test>]
 let ``trivia after arrow, 1010`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f () =
     match lol with
     | 1 -> // comment 1
         ()
     |> function
     | 3 -> ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f () =
     match lol with
     | 1 -> // comment 1
@@ -596,16 +733,21 @@ let f () =
 
 [<Test>]
 let ``trivia after function keyword, 1010`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f () =
     match lol with
     | 1 -> // comment 1
         () // comment 2
     |> function // comment 3
     | 3 -> ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f () =
     match lol with
     | 1 -> // comment 1
@@ -616,7 +758,9 @@ let f () =
 
 [<Test>]
 let ``don't add additional newline before match`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let private userNameDecoder (get : Decode.IGetters) =
     let givenName =
         get.Optional.Field "given_name" Decode.string
@@ -627,9 +771,12 @@ let private userNameDecoder (get : Decode.IGetters) =
     match givenName, familyName with
     | Some g, Some f -> sprintf "%s %c" g f.[0]
     | _ -> get.Required.Field "nickname" Decode.string
-"""  { config with SpaceBeforeColon = true }
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let private userNameDecoder (get : Decode.IGetters) =
     let givenName =
         get.Optional.Field "given_name" Decode.string
@@ -644,7 +791,9 @@ let private userNameDecoder (get : Decode.IGetters) =
 
 [<Test>]
 let ``don't add newline before tuple return in clause`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let private update onSubmit msg model =
     match msg with
     | UpdateName n -> ({ model with Name = n } : Model), Cmd.none
@@ -666,9 +815,12 @@ let private update onSubmit msg model =
                 Map.remove "distance" model.Errors
 
         { model with Errors = errors }, Cmd.none
-"""  { config with SpaceBeforeColon = true }
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let private update onSubmit msg model =
     match msg with
     | UpdateName n -> ({ model with Name = n } : Model), Cmd.none
@@ -694,7 +846,9 @@ let private update onSubmit msg model =
 
 [<Test>]
 let ``keep new line before function match, 1074`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     let (|AndExpr|_|) =
         let chooser =
             function
@@ -704,9 +858,12 @@ let ``keep new line before function match, 1074`` () =
         function
         | ListSplitPick "&&" chooser (e1, e2) -> Some(BoolExpr.And(e1, e2))
         | _ -> None
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let (|AndExpr|_|) =
     let chooser =
         function
@@ -720,7 +877,9 @@ let (|AndExpr|_|) =
 
 [<Test>]
 let ``comment after arrow should not be duplicated, 1082`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 List.tryFind(fun { Type = t; Range = r }  ->
                     match t with
                     | MainNode SynMemberDefn_Member
@@ -732,9 +891,12 @@ List.tryFind(fun { Type = t; Range = r }  ->
 
                     | _ -> false
                 )
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 List.tryFind
     (fun { Type = t; Range = r } ->
         match t with
@@ -750,7 +912,9 @@ List.tryFind
 
 [<Test>]
 let ``trivia before pipe should not be repeated for each pipe, 1083`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 Seq.takeWhile
                (function
                          | Write ""
@@ -763,9 +927,12 @@ Seq.takeWhile
                          | Write " -> "
                          | CommentOrDefineEvent _ -> true
                          | _ -> false)
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Seq.takeWhile
     (function
     | Write ""
@@ -782,7 +949,9 @@ Seq.takeWhile
 
 [<Test>]
 let ``or pattern in destructed record should stay in one line, 1252`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let draftToken =
     match lastToken with
     | Some { Kind = GenericTypeParameter | StaticallyResolvedTypeParameter as kind } when isIdentifier token ->
@@ -798,9 +967,12 @@ let draftToken =
             elif isPunctuation token then Dot
             else Other
         DraftToken.Create kind token
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let draftToken =
     match lastToken with
     | Some { Kind = GenericTypeParameter | StaticallyResolvedTypeParameter as kind } when isIdentifier token ->
@@ -824,7 +996,9 @@ let draftToken =
 
 [<Test>]
 let ``named pat or in clauses`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: MemberFlags) =
     match mf.MemberKind with
     | MemberKind.ClassConstructor
@@ -838,9 +1012,12 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: MemberFlags) =
         elif mf.IsInstance
         then MFMember mk
         else MFStaticMember mk
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: MemberFlags) =
     match mf.MemberKind with
     | MemberKind.ClassConstructor
@@ -859,7 +1036,9 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: MemberFlags) =
 
 [<Test>]
 let ``named pat or in function syntax`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let rec (|DoExprAttributesL|_|) =
     function
     | DoExpr _
@@ -867,9 +1046,12 @@ let rec (|DoExprAttributesL|_|) =
     | DoExpr _
     | Attributes _ as x :: ys -> Some([ x ], ys)
     | _ -> None
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let rec (|DoExprAttributesL|_|) =
     function
     | DoExpr _

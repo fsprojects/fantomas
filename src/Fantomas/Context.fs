@@ -91,7 +91,11 @@ module WriterModel =
             | WriteBeforeNewline s -> { m with WriteBeforeNewline = s }
             | IndentBy x ->
                 { m with
-                      Indent = if m.AtColumn >= m.Indent + x then m.AtColumn + x else m.Indent + x }
+                      Indent =
+                          if m.AtColumn >= m.Indent + x then
+                              m.AtColumn + x
+                          else
+                              m.Indent + x }
             | UnIndentBy x ->
                 { m with
                       Indent = max m.AtColumn <| m.Indent - x }
@@ -114,11 +118,12 @@ module WriterModel =
 
             let updatedInfos =
                 infos
-                |> List.map (fun info ->
-                    let tooLong = info.IsTooLong maxPageWidth m.Column
+                |> List.map
+                    (fun info ->
+                        let tooLong = info.IsTooLong maxPageWidth m.Column
 
-                    { info with
-                          ConfirmedMultiline = tooLong || nextCmdCausesMultiline })
+                        { info with
+                              ConfirmedMultiline = tooLong || nextCmdCausesMultiline })
 
             if List.exists (fun i -> i.ConfirmedMultiline) updatedInfos then
                 { m with
@@ -139,7 +144,8 @@ module WriterEvents =
     let isMultiline evs =
         evs
         |> Queue.toSeq
-        |> Seq.exists (function
+        |> Seq.exists
+            (function
             | WriteLine -> true
             | _ -> false)
 
@@ -189,20 +195,22 @@ type internal Context =
 
         let triviaByNodes =
             trivia
-            |> List.choose (fun tn ->
-                match tn.Type with
-                | MainNode (mn) -> Some(mn, tn)
-                | _ -> None)
+            |> List.choose
+                (fun tn ->
+                    match tn.Type with
+                    | MainNode (mn) -> Some(mn, tn)
+                    | _ -> None)
             |> List.groupBy fst
             |> List.map (fun (k, g) -> k, List.map snd g)
             |> Map.ofList
 
         let triviaByTokenNames =
             trivia
-            |> List.choose (fun tn ->
-                match tn.Type with
-                | Token (tname, _) -> Some(tname, tn)
-                | _ -> None)
+            |> List.choose
+                (fun tn ->
+                    match tn.Type with
+                    | Token (tname, _) -> Some(tname, tn)
+                    | _ -> None)
             |> List.groupBy fst
             |> List.map (fun (k, g) -> k, List.map snd g)
             |> Map.ofList
@@ -226,7 +234,11 @@ type internal Context =
         // Use infinite column width to encounter worst-case scenario
         let config =
             { x.Config with
-                  MaxLineLength = if keepPageWidth then x.Config.MaxLineLength else Int32.MaxValue }
+                  MaxLineLength =
+                      if keepPageWidth then
+                          x.Config.MaxLineLength
+                      else
+                          Int32.MaxValue }
 
         { x with
               WriterModel = mkModel x.WriterModel
@@ -267,9 +279,10 @@ let internal writerEvent e ctx =
     ctx'
 
 let internal finalizeWriterModel (ctx: Context) =
-    if ctx.WriterModel.WriteBeforeNewline <> ""
-    then writerEvent (Write ctx.WriterModel.WriteBeforeNewline) ctx
-    else ctx
+    if ctx.WriterModel.WriteBeforeNewline <> "" then
+        writerEvent (Write ctx.WriterModel.WriteBeforeNewline) ctx
+    else
+        ctx
 
 let internal dump (ctx: Context) =
     let ctx = finalizeWriterModel ctx
@@ -299,24 +312,28 @@ type Context with
 let internal writeEventsOnLastLine ctx =
     ctx.WriterEvents
     |> Queue.rev
-    |> Seq.takeWhile (function
+    |> Seq.takeWhile
+        (function
         | WriteLine
         | WriteLineInsideStringConst -> false
         | _ -> true)
-    |> Seq.choose (function
+    |> Seq.choose
+        (function
         | Write w when (String.length w > 0) -> Some w
         | _ -> None)
 
 let internal lastWriteEventIsNewline ctx =
     ctx.WriterEvents
     |> Queue.rev
-    |> Seq.skipWhile (function
+    |> Seq.skipWhile
+        (function
         | RestoreIndent _
         | RestoreAtColumn _
         | Write "" -> true
         | _ -> false)
     |> Seq.tryHead
-    |> Option.map (function
+    |> Option.map
+        (function
         | WriteLine -> true
         | _ -> false)
     |> Option.defaultValue false
@@ -334,7 +351,8 @@ let private (|CommentOrDefineEvent|_|) we =
 let internal newlineBetweenLastWriteEvent ctx =
     ctx.WriterEvents
     |> Queue.rev
-    |> Seq.takeWhile (function
+    |> Seq.takeWhile
+        (function
         | Write ""
         | WriteLine
         | IndentBy _
@@ -344,13 +362,15 @@ let internal newlineBetweenLastWriteEvent ctx =
         | SetAtColumn _
         | RestoreAtColumn _ -> true
         | _ -> false)
-    |> Seq.filter (function
+    |> Seq.filter
+        (function
         | WriteLine _ -> true
         | _ -> false)
     |> Seq.length
     |> fun writeLines -> writeLines > 1
 
-let internal lastWriteEventOnLastLine ctx = writeEventsOnLastLine ctx |> Seq.tryHead
+let internal lastWriteEventOnLastLine ctx =
+    writeEventsOnLastLine ctx |> Seq.tryHead
 
 let internal forallCharsOnLastLine f ctx =
     writeEventsOnLastLine ctx
@@ -376,18 +396,22 @@ let internal decrIndent i (ctx: Context) = writerEvent (UnIndentBy i) ctx
 
 /// Apply function f at an absolute indent level (use with care)
 let internal atIndentLevel alsoSetIndent level (f: Context -> Context) (ctx: Context) =
-    if level < 0
-    then invalidArg "level" "The indent level cannot be negative."
+    if level < 0 then
+        invalidArg "level" "The indent level cannot be negative."
 
     let m = ctx.WriterModel
     let oldIndent = m.Indent
     let oldColumn = m.AtColumn
 
     (writerEvent (SetAtColumn level)
-     >> if alsoSetIndent then writerEvent (SetIndent level) else id
+     >> if alsoSetIndent then
+         writerEvent (SetIndent level)
+        else
+            id
      >> f
      >> writerEvent (RestoreAtColumn oldColumn)
-     >> writerEvent (RestoreIndent oldIndent)) ctx
+     >> writerEvent (RestoreIndent oldIndent))
+        ctx
 
 /// Set minimal indentation (`atColumn`) at current column position - next newline will be indented on `max indent atColumn`
 /// Example:
@@ -432,7 +456,10 @@ let internal (+-) (ctx: Context -> Context) (str: string) x =
     let c = ctx x
 
     let c =
-        if c.BreakOn str then writerEvent WriteLine c else writerEvent (Write " ") c
+        if c.BreakOn str then
+            writerEvent WriteLine c
+        else
+            writerEvent (Write " ") c
 
     writerEvent (Write str) c
 
@@ -447,7 +474,10 @@ let internal (+~) (ctx: Context -> Context) (str: string) x =
     let c = ctx x
 
     let c =
-        if addNewline c then writerEvent WriteLine c else c
+        if addNewline c then
+            writerEvent WriteLine c
+        else
+            c
 
     writerEvent (Write str) c
 
@@ -457,7 +487,8 @@ let internal (!+-) (str: string) = id +- str
 let internal (!+~) (str: string) = id +~ str
 
 /// Print object converted to string
-let internal str (o: 'T) (ctx: Context) = ctx |> writerEvent (Write(o.ToString()))
+let internal str (o: 'T) (ctx: Context) =
+    ctx |> writerEvent (Write(o.ToString()))
 
 /// Similar to col, and supply index as well
 let internal coli f' (c: seq<'T>) f (ctx: Context) =
@@ -467,7 +498,11 @@ let internal coli f' (c: seq<'T>) f (ctx: Context) =
     let e = c.GetEnumerator()
 
     while (e.MoveNext()) do
-        if tryPick then tryPick <- false else st <- f' st
+        if tryPick then
+            tryPick <- false
+        else
+            st <- f' st
+
         st <- f i (e.Current) st
         i <- i + 1
 
@@ -482,7 +517,11 @@ let internal col f' (c: seq<'T>) f (ctx: Context) =
     let e = c.GetEnumerator()
 
     while (e.MoveNext()) do
-        if tryPick then tryPick <- false else st <- f' st
+        if tryPick then
+            tryPick <- false
+        else
+            st <- f' st
+
         st <- f (e.Current) st
 
     st
@@ -494,21 +533,34 @@ let internal colEx f' (c: seq<'T>) f (ctx: Context) =
     let e = c.GetEnumerator()
 
     while (e.MoveNext()) do
-        if tryPick then tryPick <- false else st <- f' e.Current st
+        if tryPick then
+            tryPick <- false
+        else
+            st <- f' e.Current st
+
         st <- f (e.Current) st
 
     st
 
 /// Similar to col, apply one more function f2 at the end if the input sequence is not empty
 let internal colPost f2 f1 (c: seq<'T>) f (ctx: Context) =
-    if Seq.isEmpty c then ctx else f2 (col f1 c f ctx)
+    if Seq.isEmpty c then
+        ctx
+    else
+        f2 (col f1 c f ctx)
 
 /// Similar to col, apply one more function f2 at the beginning if the input sequence is not empty
 let internal colPre f2 f1 (c: seq<'T>) f (ctx: Context) =
-    if Seq.isEmpty c then ctx else col f1 c f (f2 ctx)
+    if Seq.isEmpty c then
+        ctx
+    else
+        col f1 c f (f2 ctx)
 
 let internal colPreEx f2 f1 (c: seq<'T>) f (ctx: Context) =
-    if Seq.isEmpty c then ctx else colEx f1 c f (f2 ctx)
+    if Seq.isEmpty c then
+        ctx
+    else
+        colEx f1 c f (f2 ctx)
 
 /// If there is a value, apply f and f' accordingly, otherwise do nothing
 let internal opt (f': Context -> _) o f (ctx: Context) =
@@ -548,7 +600,8 @@ let internal onlyIf cond f ctx = if cond then f ctx else ctx
 
 let internal onlyIfNot cond f ctx = if cond then ctx else f ctx
 
-let internal whenShortIndent f ctx = onlyIf (ctx.Config.IndentSize < 3) f ctx
+let internal whenShortIndent f ctx =
+    onlyIf (ctx.Config.IndentSize < 3) f ctx
 
 /// Repeat application of a function n times
 let internal rep n (f: Context -> Context) (ctx: Context) =
@@ -573,7 +626,10 @@ let internal sepSpace (ctx: Context) =
 let internal sepNln = !+ ""
 
 let internal sepNlnUnlessLastEventIsNewline (ctx: Context) =
-    if lastWriteEventIsNewline ctx then ctx else sepNln ctx
+    if lastWriteEventIsNewline ctx then
+        ctx
+    else
+        sepNln ctx
 
 let internal sepStar = !- " * "
 let internal sepStarFixed = !- "* "
@@ -587,11 +643,17 @@ let internal sepBar = !- "| "
 
 /// opening token of list
 let internal sepOpenL (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then str "[ " ctx else str "[" ctx
+    if ctx.Config.SpaceAroundDelimiter then
+        str "[ " ctx
+    else
+        str "[" ctx
 
 /// closing token of list
 let internal sepCloseL (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then str " ]" ctx else str "]" ctx
+    if ctx.Config.SpaceAroundDelimiter then
+        str " ]" ctx
+    else
+        str "]" ctx
 
 /// opening token of list
 let internal sepOpenLFixed = !- "["
@@ -601,11 +663,17 @@ let internal sepCloseLFixed = !- "]"
 
 /// opening token of array
 let internal sepOpenA (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then str "[| " ctx else str "[|" ctx
+    if ctx.Config.SpaceAroundDelimiter then
+        str "[| " ctx
+    else
+        str "[|" ctx
 
 /// closing token of array
 let internal sepCloseA (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then str " |]" ctx else str "|]" ctx
+    if ctx.Config.SpaceAroundDelimiter then
+        str " |]" ctx
+    else
+        str "|]" ctx
 
 /// opening token of list
 let internal sepOpenAFixed = !- "[|"
@@ -614,19 +682,31 @@ let internal sepCloseAFixed = !- "|]"
 
 /// opening token of sequence or record
 let internal sepOpenS (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then str "{ " ctx else str "{" ctx
+    if ctx.Config.SpaceAroundDelimiter then
+        str "{ " ctx
+    else
+        str "{" ctx
 
 /// closing token of sequence or record
 let internal sepCloseS (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then str " }" ctx else str "}" ctx
+    if ctx.Config.SpaceAroundDelimiter then
+        str " }" ctx
+    else
+        str "}" ctx
 
 /// opening token of anon record
 let internal sepOpenAnonRecd (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then str "{| " ctx else str "{|" ctx
+    if ctx.Config.SpaceAroundDelimiter then
+        str "{| " ctx
+    else
+        str "{|" ctx
 
 /// closing token of anon record
 let internal sepCloseAnonRecd (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then str " |}" ctx else str "|}" ctx
+    if ctx.Config.SpaceAroundDelimiter then
+        str " |}" ctx
+    else
+        str "|}" ctx
 
 /// opening token of anon record
 let internal sepOpenAnonRecdFixed = !- "{|"
@@ -669,7 +749,8 @@ let internal eventsWithoutMultilineWrite ctx =
           WriterEvents =
               ctx.WriterEvents
               |> Queue.toSeq
-              |> Seq.filter (function
+              |> Seq.filter
+                  (function
                   | Write s when s.Contains("\n") -> false
                   | _ -> true)
               |> Queue.ofSeq }
@@ -683,9 +764,11 @@ let private shortExpressionWithFallback (shortExpression: Context -> Context)
     // if the context is already inside a ShortExpression mode and tries to figure out if the expression will go over the page width,
     // we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
-    | ShortExpression infos when (List.exists (fun info ->
-                                      info.ConfirmedMultiline
-                                      || info.IsTooLong ctx.Config.MaxLineLength ctx.Column) infos) -> ctx
+    | ShortExpression infos when (List.exists
+                                      (fun info ->
+                                          info.ConfirmedMultiline
+                                          || info.IsTooLong ctx.Config.MaxLineLength ctx.Column)
+                                      infos) -> ctx
     | _ ->
         // create special context that will process the writer events slightly different
         let shortExpressionContext =
@@ -698,9 +781,11 @@ let private shortExpressionWithFallback (shortExpression: Context -> Context)
         match resultContext.WriterModel.Mode with
         | ShortExpression infos ->
             // verify the expression is not longer than allowed
-            if List.exists (fun info ->
-                info.ConfirmedMultiline
-                || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column) infos then
+            if List.exists
+                (fun info ->
+                    info.ConfirmedMultiline
+                    || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column)
+                infos then
                 fallbackExpression ctx
             else
                 { resultContext with
@@ -727,9 +812,10 @@ let internal isSmallExpression size (smallExpression: Context -> Context) fallba
     match size with
     | CharacterWidth maxWidth -> isShortExpression maxWidth smallExpression fallbackExpression ctx
     | NumberOfItems (items, maxItems) ->
-        if items > maxItems
-        then fallbackExpression ctx
-        else expressionFitsOnRestOfLine smallExpression fallbackExpression ctx
+        if items > maxItems then
+            fallbackExpression ctx
+        else
+            expressionFitsOnRestOfLine smallExpression fallbackExpression ctx
 
 /// provide the line and column before and after the leadingExpression to to the continuation expression
 let internal leadingExpressionResult leadingExpression continuationExpression (ctx: Context) =
@@ -771,23 +857,28 @@ let internal leadingExpressionIsMultiline leadingExpression continuationExpressi
 
     let hasWriteLineEventsAfterExpression =
         contextAfterLeading.WriterEvents
-        |> Queue.skipExists eventCountBeforeExpression (function
-               | WriteLine _ -> true
-               | _ -> false) (fun e ->
-               match e with
-               | [| CommentOrDefineEvent _ |]
-               | [| WriteLine |]
-               | [| Write "" |] -> true
-               | _ -> false)
+        |> Queue.skipExists
+            eventCountBeforeExpression
+            (function
+            | WriteLine _ -> true
+            | _ -> false)
+            (fun e ->
+                match e with
+                | [| CommentOrDefineEvent _ |]
+                | [| WriteLine |]
+                | [| Write "" |] -> true
+                | _ -> false)
 
     continuationExpression hasWriteLineEventsAfterExpression contextAfterLeading
 
 let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
     // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
-    | ShortExpression infos when (List.exists (fun info ->
-                                      info.ConfirmedMultiline
-                                      || info.IsTooLong ctx.Config.MaxLineLength ctx.Column) infos) -> ctx
+    | ShortExpression infos when (List.exists
+                                      (fun info ->
+                                          info.ConfirmedMultiline
+                                          || info.IsTooLong ctx.Config.MaxLineLength ctx.Column)
+                                      infos) -> ctx
     | ShortExpression _ ->
         // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
         (beforeShort +> expr +> afterShort) ctx
@@ -803,9 +894,11 @@ let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLo
         match resultContext.WriterModel.Mode with
         | ShortExpression infos ->
             // verify the expression is not longer than allowed
-            if List.exists (fun info ->
-                info.ConfirmedMultiline
-                || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column) infos then
+            if List.exists
+                (fun info ->
+                    info.ConfirmedMultiline
+                    || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column)
+                infos then
                 fallbackExpression ctx
             else
                 { resultContext with
@@ -821,36 +914,36 @@ let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLo
 let internal autoIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
         sepNone
-        sepNone  // before and after for short expressions
+        sepNone // before and after for short expressions
         (indent +> sepNln)
-        unindent  // before and after for long expressions
+        unindent // before and after for long expressions
         expr
         ctx
 
 let internal sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
         sepSpace
-        sepNone  // before and after for short expressions
+        sepNone // before and after for short expressions
         (indent +> sepNln)
-        unindent  // before and after for long expressions
+        unindent // before and after for long expressions
         expr
         ctx
 
 let internal sepSpaceOrNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
         sepSpace
-        sepNone  // before and after for short expressions
+        sepNone // before and after for short expressions
         sepNln
-        unindent  // before and after for long expressions
+        unindent // before and after for long expressions
         expr
         ctx
 
 let internal autoNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
         sepNone
-        sepNone  // before and after for short expressions
+        sepNone // before and after for short expressions
         sepNln
-        sepNone  // before and after for long expressions
+        sepNone // before and after for long expressions
         expr
         ctx
 
@@ -881,10 +974,15 @@ let internal exceedsWidth maxWidth f (ctx: Context) =
 
 /// Similar to col, skip auto newline for index 0
 let internal colAutoNlnSkip0i f' (c: seq<'T>) f (ctx: Context) =
-    coli f' c (fun i c ->
-        if i = 0
-        then f i c
-        else autoNlnIfExpressionExceedsPageWidth (f i c)) ctx
+    coli
+        f'
+        c
+        (fun i c ->
+            if i = 0 then
+                f i c
+            else
+                autoNlnIfExpressionExceedsPageWidth (f i c))
+        ctx
 
 /// Similar to col, skip auto newline for index 0
 let internal colAutoNlnSkip0 f' c f = colAutoNlnSkip0i f' c (fun _ -> f)
@@ -895,11 +993,17 @@ let internal noNln f (ctx: Context): Context =
     { res with BreakLines = ctx.BreakLines }
 
 let internal sepSpaceBeforeClassConstructor ctx =
-    if ctx.Config.SpaceBeforeClassConstructor then sepSpace ctx else ctx
+    if ctx.Config.SpaceBeforeClassConstructor then
+        sepSpace ctx
+    else
+        ctx
 
 let internal sepColon (ctx: Context) =
     let defaultExpr =
-        if ctx.Config.SpaceBeforeColon then str " : " else str ": "
+        if ctx.Config.SpaceBeforeColon then
+            str " : "
+        else
+            str ": "
 
     if ctx.WriterModel.IsDummy then
         defaultExpr ctx
@@ -914,10 +1018,15 @@ let internal sepColonFixed = !- ":"
 let internal sepColonWithSpacesFixed = !- " : "
 
 let internal sepComma (ctx: Context) =
-    if ctx.Config.SpaceAfterComma then str ", " ctx else str "," ctx
+    if ctx.Config.SpaceAfterComma then
+        str ", " ctx
+    else
+        str "," ctx
 
 let internal sepSemi (ctx: Context) =
-    let { Config = { SpaceBeforeSemicolon = before; SpaceAfterSemicolon = after } } = ctx
+    let { Config = { SpaceBeforeSemicolon = before
+                     SpaceAfterSemicolon = after } } =
+        ctx
 
     match before, after with
     | false, false -> str ";"
@@ -928,15 +1037,24 @@ let internal sepSemi (ctx: Context) =
 
 let internal sepSemiNln (ctx: Context) =
     // sepNln part is essential to indentation
-    if ctx.Config.SemicolonAtEndOfLine then (!- ";" +> sepNln) ctx else sepNln ctx
+    if ctx.Config.SemicolonAtEndOfLine then
+        (!- ";" +> sepNln) ctx
+    else
+        sepNln ctx
 
 /// Conditional indentation on with keyword
 let internal indentOnWith (ctx: Context) =
-    if ctx.Config.IndentOnTryWith then indent ctx else ctx
+    if ctx.Config.IndentOnTryWith then
+        indent ctx
+    else
+        ctx
 
 /// Conditional unindentation on with keyword
 let internal unindentOnWith (ctx: Context) =
-    if ctx.Config.IndentOnTryWith then unindent ctx else ctx
+    if ctx.Config.IndentOnTryWith then
+        unindent ctx
+    else
+        ctx
 
 let internal ifAlignBrackets f g =
     ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
@@ -962,9 +1080,10 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
 
     let addSpace =
         currentLastLine
-        |> Option.bind (fun line ->
-            Seq.tryLast line
-            |> Option.map (fun lastChar -> lastChar <> ' '))
+        |> Option.bind
+            (fun line ->
+                Seq.tryLast line
+                |> Option.map (fun lastChar -> lastChar <> ' '))
         |> Option.defaultValue false
 
     match c with
@@ -1026,7 +1145,8 @@ let internal enterNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context
     match Map.tryFind mainNodeName ctx.TriviaMainNodes with
     | Some triviaNodes ->
         let tn =
-            List.tryFind (fun { Range = r; ContentBefore = cb } -> List.isNotEmpty cb && RangeHelpers.rangeEq r range)
+            List.tryFind
+                (fun { Range = r; ContentBefore = cb } -> List.isNotEmpty cb && RangeHelpers.rangeEq r range)
                 triviaNodes
 
         match tn with
@@ -1038,7 +1158,8 @@ let internal leaveNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context
     match Map.tryFind mainNodeName ctx.TriviaMainNodes with
     | Some triviaNodes ->
         let tn =
-            List.tryFind (fun { Range = r; ContentAfter = ca } -> List.isNotEmpty ca && RangeHelpers.rangeEq r range)
+            List.tryFind
+                (fun { Range = r; ContentAfter = ca } -> List.isNotEmpty ca && RangeHelpers.rangeEq r range)
                 triviaNodes
 
         match tn with
@@ -1048,9 +1169,10 @@ let internal leaveNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context
 
 let internal leaveLeftToken (tokenName: FsTokenType) (range: range) (ctx: Context) =
     (Map.tryFindOrEmptyList tokenName ctx.TriviaTokenNodes)
-    |> List.tryFind (fun tn ->
-        tn.Range.StartLine = range.StartLine
-        && tn.Range.StartColumn = range.StartColumn)
+    |> List.tryFind
+        (fun tn ->
+            tn.Range.StartLine = range.StartLine
+            && tn.Range.StartColumn = range.StartColumn)
     |> fun tn ->
         match tn with
         | Some ({ ContentAfter = [ TriviaContent.Comment (LineCommentAfterSourceCode (lineComment)) ] }) ->
@@ -1064,10 +1186,11 @@ let internal leaveLeftBrackBar = leaveLeftToken LBRACK_BAR
 
 let internal enterRightToken (tokenName: FsTokenType) (range: range) (ctx: Context) =
     (Map.tryFindOrEmptyList tokenName ctx.TriviaTokenNodes)
-    |> List.tryFind (fun tn ->
-        tn.Range.EndLine = range.EndLine
-        && (tn.Range.EndColumn = range.EndColumn
-            || tn.Range.EndColumn + 1 = range.EndColumn))
+    |> List.tryFind
+        (fun tn ->
+            tn.Range.EndLine = range.EndLine
+            && (tn.Range.EndColumn = range.EndColumn
+                || tn.Range.EndColumn + 1 = range.EndColumn))
     |> fun tn ->
         match tn with
         | Some ({ ContentBefore = [ TriviaContent.Comment (LineCommentOnSingleLine (lineComment)) ] }) ->
@@ -1075,12 +1198,18 @@ let internal enterRightToken (tokenName: FsTokenType) (range: range) (ctx: Conte
                 let braceSize = if tokenName = RBRACK then 1 else 2
 
                 let spaceAround =
-                    if ctx.Config.SpaceAroundDelimiter then 1 else 0
+                    if ctx.Config.SpaceAroundDelimiter then
+                        1
+                    else
+                        0
 
                 !-String.Empty.PadLeft(braceSize + spaceAround)
 
             let spaceAfterNewline =
-                if ctx.Config.SpaceAroundDelimiter then sepSpace else sepNone
+                if ctx.Config.SpaceAroundDelimiter then
+                    sepSpace
+                else
+                    sepNone
 
             sepNln
             +> spacesBeforeComment
@@ -1095,12 +1224,13 @@ let internal enterRightBracketBar = enterRightToken BAR_RBRACK
 
 let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
-    |> List.exists (fun tn ->
-        match tn with
-        | Comment _
-        | Newline
-        | Directive _ -> true
-        | _ -> false)
+    |> List.exists
+        (fun tn ->
+            match tn with
+            | Comment _
+            | Newline
+            | Directive _ -> true
+            | _ -> false)
 
 let private sepConsideringTriviaContentBeforeBy (findNode: Context -> range -> TriviaNode option)
                                                 (sepF: Context -> Context)
@@ -1151,17 +1281,21 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor (mainNode: Fs
     let triviaNode =
         match Map.tryFind mainNode ctx.TriviaMainNodes with
         | Some triviaNodes ->
-            List.tryFind (fun { Range = r; ContentBefore = cb } ->
-                hasPrintableContent cb
-                && RangeHelpers.rangeEq r ownRange) triviaNodes
+            List.tryFind
+                (fun { Range = r; ContentBefore = cb } ->
+                    hasPrintableContent cb
+                    && RangeHelpers.rangeEq r ownRange)
+                triviaNodes
         | None -> None
 
     let attributeNode =
         match Map.tryFind SynAttributeList_ ctx.TriviaMainNodes with
         | Some attributeNodes ->
-            List.tryFind (fun { Range = r; ContentBefore = cb } ->
-                hasPrintableContent cb
-                && Seq.exists (RangeHelpers.rangeEq r) attributeRanges) attributeNodes
+            List.tryFind
+                (fun { Range = r; ContentBefore = cb } ->
+                    hasPrintableContent cb
+                    && Seq.exists (RangeHelpers.rangeEq r) attributeRanges)
+                attributeNodes
         | None -> None
 
     if Option.isSome triviaNode
@@ -1173,10 +1307,12 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor (mainNode: Fs
 let internal sepNlnForEmptyModule (mainNode: FsAstType) (moduleRange: range) (ctx: Context) =
     match Map.tryFind mainNode ctx.TriviaMainNodes with
     | Some nodes ->
-        if List.exists (fun tn ->
-            RangeHelpers.rangeEq tn.Range moduleRange
-            && (hasPrintableContent tn.ContentBefore
-                || hasPrintableContent tn.ContentAfter)) nodes then
+        if List.exists
+            (fun tn ->
+                RangeHelpers.rangeEq tn.Range moduleRange
+                && (hasPrintableContent tn.ContentBefore
+                    || hasPrintableContent tn.ContentAfter))
+            nodes then
             ctx
         else
             sepNln ctx
@@ -1198,9 +1334,10 @@ let internal sepNlnTypeAndMembers (firstMemberRange: range option) (mainNodeType
     | _ -> ctx
 
 let internal sepNlnWhenWriteBeforeNewlineNotEmpty fallback (ctx: Context) =
-    if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline
-    then sepNln ctx
-    else fallback ctx
+    if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
+        sepNln ctx
+    else
+        fallback ctx
 
 let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNlnConsideringTriviaContentBefore
                                                                   expr
@@ -1208,17 +1345,19 @@ let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNlnConsider
                                                                   =
     expressionExceedsPageWidth
         sepNone
-        sepNone  // before and after for short expressions
+        sepNone // before and after for short expressions
         sepNlnConsideringTriviaContentBefore
-        sepNone  // before and after for long expressions
+        sepNone // before and after for long expressions
         expr
         ctx
 
 let internal addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTriviaContentBefore continuation =
-    leadingExpressionIsMultiline leading (fun ml ->
-        sepNln
-        +> onlyIf ml sepNlnConsideringTriviaContentBefore
-        +> continuation)
+    leadingExpressionIsMultiline
+        leading
+        (fun ml ->
+            sepNln
+            +> onlyIf ml sepNlnConsideringTriviaContentBefore
+            +> continuation)
 
 /// This helper function takes a list of expressions and ranges.
 /// If the expression is multiline it will add a newline before and after the expression.
@@ -1278,18 +1417,20 @@ let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
 
 let internal genTriviaBeforeClausePipe (rangeOfClause: range) ctx =
     (Map.tryFindOrEmptyList BAR ctx.TriviaTokenNodes)
-    |> List.tryFind (fun t ->
-        t.Range.StartColumn < rangeOfClause.StartColumn
-        && t.Range.StartLine = rangeOfClause.StartLine)
+    |> List.tryFind
+        (fun t ->
+            t.Range.StartColumn < rangeOfClause.StartColumn
+            && t.Range.StartLine = rangeOfClause.StartLine)
     |> fun trivia ->
         match trivia with
         | Some trivia ->
             let containsOnlyDirectives =
                 trivia.ContentBefore
-                |> List.forall (fun tn ->
-                    match tn with
-                    | Directive _ -> true
-                    | _ -> false)
+                |> List.forall
+                    (fun tn ->
+                        match tn with
+                        | Directive _ -> true
+                        | _ -> false)
 
             onlyIf containsOnlyDirectives sepNlnUnlessLastEventIsNewline
             +> printContentBefore trivia
@@ -1300,17 +1441,20 @@ let internal hasLineCommentAfterInfix (rangePlusInfix: range) (ctx: Context) =
     match Map.tryFind SynExpr_Ident ctx.TriviaMainNodes with
     | Some triviaNodes ->
         triviaNodes
-        |> List.tryFind (fun { ContentAfter = ca; Range = r } ->
-            List.isNotEmpty ca
-            && RangeHelpers.rangeEq r rangePlusInfix)
-        |> Option.bind (fun trivia ->
-            trivia.ContentAfter
-            |> List.map (fun ca ->
-                match ca with
-                | TriviaContent.Comment (Comment.LineCommentAfterSourceCode (comment)) -> Some comment
-                | _ -> None)
-            |> List.choose id
-            |> List.tryHead)
+        |> List.tryFind
+            (fun { ContentAfter = ca; Range = r } ->
+                List.isNotEmpty ca
+                && RangeHelpers.rangeEq r rangePlusInfix)
+        |> Option.bind
+            (fun trivia ->
+                trivia.ContentAfter
+                |> List.map
+                    (fun ca ->
+                        match ca with
+                        | TriviaContent.Comment (Comment.LineCommentAfterSourceCode (comment)) -> Some comment
+                        | _ -> None)
+                |> List.choose id
+                |> List.tryHead)
         |> Option.map (fun _ -> true)
         |> Option.defaultValue false
     | _ -> false
@@ -1344,7 +1488,8 @@ let internal sepNlnBeforeMultilineConstruct (mainNode: FsAstType) range rangeOfA
     let existingNewlines =
         ctx.WriterEvents
         |> Queue.rev
-        |> Seq.takeWhile (function
+        |> Seq.takeWhile
+            (function
             | Write ""
             // for example:
             // type Foo =
@@ -1355,7 +1500,8 @@ let internal sepNlnBeforeMultilineConstruct (mainNode: FsAstType) range rangeOfA
             | Write " -> "
             | CommentOrDefineEvent _ -> true
             | _ -> false)
-        |> Seq.filter (function
+        |> Seq.filter
+            (function
             | WriteLine
             | IndentBy _
             | Write " -> "
@@ -1363,8 +1509,9 @@ let internal sepNlnBeforeMultilineConstruct (mainNode: FsAstType) range rangeOfA
             | _ -> false)
         |> Seq.length
 
-    if existingNewlines >= 2 then ctx // previous construct was multiline so no need to add any extra newlines
+    if existingNewlines >= 2 then
+        ctx // previous construct was multiline so no need to add any extra newlines
     else
-    // previous construct was single line so add extra newline
-    // sepNlnConsideringTriviaContentBeforeWithAttributes range rangeOfAttributes ctx
-    sepNlnConsideringTriviaContentBeforeWithAttributesFor mainNode range rangeOfAttributes ctx
+        // previous construct was single line so add extra newline
+        // sepNlnConsideringTriviaContentBeforeWithAttributes range rangeOfAttributes ctx
+        sepNlnConsideringTriviaContentBeforeWithAttributesFor mainNode range rangeOfAttributes ctx

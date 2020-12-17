@@ -7,7 +7,9 @@ open Fantomas.Tests.TestHelper
 // the current behavior results in a compile error since "(string * string) list" is converted to "string * string list"
 [<Test>]
 let ``should keep the (string * string) list type signature in records`` () =
-    formatSourceString false """type MSBuildParams =
+    formatSourceString
+        false
+        """type MSBuildParams =
     { Targets : string list
       Properties : (string * string) list
       MaxCpuCount : int option option
@@ -15,8 +17,11 @@ let ``should keep the (string * string) list type signature in records`` () =
       Verbosity : MSBuildVerbosity option
       FileLoggers : MSBuildFileLoggerConfig list option }
 
-    """ config
-    |> should equal """type MSBuildParams =
+    """
+        config
+    |> should
+        equal
+        """type MSBuildParams =
     { Targets: string list
       Properties: (string * string) list
       MaxCpuCount: int option option
@@ -27,7 +32,8 @@ let ``should keep the (string * string) list type signature in records`` () =
 
 [<Test>]
 let ``should keep the (string * string) list type signature in functions`` () =
-    shouldNotChangeAfterFormat """
+    shouldNotChangeAfterFormat
+        """
 let MSBuildWithProjectProperties outputPath (targets: string) (properties: string -> (string * string) list) projects =
     doingsomstuff
 """
@@ -35,7 +41,8 @@ let MSBuildWithProjectProperties outputPath (targets: string) (properties: strin
 
 [<Test>]
 let ``should keep the string * string list type signature in functions`` () =
-    shouldNotChangeAfterFormat """
+    shouldNotChangeAfterFormat
+        """
 let MSBuildWithProjectProperties outputPath (targets: string) (properties: (string -> string) * string list) projects =
     doingsomstuff
 """
@@ -43,7 +50,9 @@ let MSBuildWithProjectProperties outputPath (targets: string) (properties: (stri
 
 [<Test>]
 let ``should not add parens in signature`` () =
-    formatSourceString false """type Route =
+    formatSourceString
+        false
+        """type Route =
     { Verb : string
       Path : string
       Handler : Map<string, string> -> HttpListenerContext -> string }
@@ -52,7 +61,9 @@ let ``should not add parens in signature`` () =
     """
         { config with
               MaxFunctionBindingWidth = 120 }
-    |> should equal """type Route =
+    |> should
+        equal
+        """type Route =
     { Verb: string
       Path: string
       Handler: Map<string, string> -> HttpListenerContext -> string }
@@ -61,40 +72,54 @@ let ``should not add parens in signature`` () =
 
 [<Test>]
 let ``should keep the string * string * string option type signature`` () =
-    formatSourceString false """type DGML =
+    formatSourceString
+        false
+        """type DGML =
     | Node of string
     | Link of string * string * (string option)
 
-    """ config
-    |> should equal """type DGML =
+    """
+        config
+    |> should
+        equal
+        """type DGML =
     | Node of string
     | Link of string * string * (string option)
 """
 
 [<Test>]
 let ``should keep the (string option * Node) list type signature`` () =
-    formatSourceString false """type Node =
+    formatSourceString
+        false
+        """type Node =
     { Name : string;
       NextNodes : (string option * Node) list }
 
     """
         { config with
               SemicolonAtEndOfLine = true }
-    |> should equal """type Node =
+    |> should
+        equal
+        """type Node =
     { Name: string;
       NextNodes: (string option * Node) list }
 """
 
 [<Test>]
 let ``should keep parentheses on the left of type signatures`` () =
-    formatSourceString false """type IA =
+    formatSourceString
+        false
+        """type IA =
     abstract F: (unit -> Option<'T>) -> Option<'T>
 
 type A () =
     interface IA with
         member x.F (f: unit -> _) = f ()
-    """ config
-    |> should equal """type IA =
+    """
+        config
+    |> should
+        equal
+        """type IA =
     abstract F: (unit -> Option<'T>) -> Option<'T>
 
 type A() =
@@ -104,15 +129,20 @@ type A() =
 
 [<Test>]
 let ``should not add parentheses around bare tuples`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace TupleType
 type C =
     member P1 : int * string
     /// def
     member P2 : int
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace TupleType
 
 type C =
@@ -123,12 +153,17 @@ type C =
 
 [<Test>]
 let ``should keep global constraints in type signature`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 module Tainted
 val GetHashCodeTainted : (Tainted<'T> -> int) when 'T : equality
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Tainted
 
 val GetHashCodeTainted: (Tainted<'T> -> int) when 'T: equality
@@ -136,13 +171,18 @@ val GetHashCodeTainted: (Tainted<'T> -> int) when 'T: equality
 
 [<Test>]
 let ``should keep access modifiers in signatures seperated`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 module Test
 type Test =
     static member internal FormatAroundCursorAsync : fileName:string -> unit
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Test
 
 type Test =
@@ -151,13 +191,18 @@ type Test =
 
 [<Test>]
 let ``comment should stay above type`` () =
-    formatSourceString true """namespace TypeEquality
+    formatSourceString
+        true
+        """namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
 type Teq<'a, 'b>
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
@@ -166,14 +211,19 @@ type Teq<'a, 'b>
 
 [<Test>]
 let ``comment before namespace should be preserved`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 // some comment
 namespace TypeEquality
 
 type Teq<'a, 'b>
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 // some comment
 namespace TypeEquality
 
@@ -182,7 +232,9 @@ type Teq<'a, 'b>
 
 [<Test>]
 let ``generic val in nested module should keep generic type parameters`` () =
-    formatSourceString true """namespace TypeEquality
+    formatSourceString
+        true
+        """namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
 type Teq<'a, 'b>
@@ -198,9 +250,12 @@ module Teq =
     /// values, but Refl is the only provably correct constructor we can create
     /// in F#, so we choose soundness over completeness here).
     val refl<'a> : Teq<'a, 'a>
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
@@ -221,7 +276,9 @@ module Teq =
 
 [<Test>]
 let ``don't duplicate newline between type and module`` () =
-    formatSourceString true """namespace TypeEquality
+    formatSourceString
+        true
+        """namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
 type Teq<'a, 'b>
@@ -337,9 +394,12 @@ module Teq =
         /// Given a pair of type equalities, one for the first element of a pair and one for the second element of a pair,
         /// returns the type equality for the corresponding pair types.
         val pair<'fst1, 'snd1, 'fst2, 'snd2> : Teq<'fst1, 'fst2> -> Teq<'snd1, 'snd2> -> Teq<'fst1 * 'snd1, 'fst2 * 'snd2>
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
@@ -464,16 +524,21 @@ module Teq =
 
 [<Test>]
 let ``intrinsic type extension member signature, 413`` () =
-    formatSourceString true """namespace ExtensionParts
+    formatSourceString
+        true
+        """namespace ExtensionParts
 
 type T =
     new: unit -> T
 
 type T with
     member Foo: int
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace ExtensionParts
 
 type T =
@@ -485,7 +550,9 @@ type T with
 
 [<Test>]
 let ``comment above static member, 680`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace Fantomas
 
 open Fantomas.FormatConfig
@@ -498,9 +565,12 @@ open FSharp.Compiler.SourceCodeServices
 type CodeFormatter =
     /// Parse a source string using given config
     static member ParseAsync : fileName:string * source:SourceOrigin * parsingOptions: FSharpParsingOptions * checker:FSharpChecker -> Async<(ParsedInput * string list) array>
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Fantomas
 
 open Fantomas.FormatConfig
@@ -521,13 +591,18 @@ type CodeFormatter =
 
 [<Test>]
 let ``type restrictions, 797`` () =
-    formatSourceString true """namespace Foo
+    formatSourceString
+        true
+        """namespace Foo
 
 type internal Foo2 =
   abstract member Bar<'k> : unit -> unit when 'k : comparison
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Foo
 
 type internal Foo2 =
@@ -536,11 +611,16 @@ type internal Foo2 =
 
 [<Test>]
 let ``operator with constraint`` () =
-    formatSourceString true """namespace Bar
+    formatSourceString
+        true
+        """namespace Bar
     val inline (.+.) : x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b) : (static member (+) : ^a * ^b -> ^c)
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Bar
 
 val inline (.+.): x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b): (static member (+): ^a * ^b -> ^c)
@@ -548,13 +628,18 @@ val inline (.+.): x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b): (static me
 
 [<Test>]
 let ``preserve abstract keyword`` () =
-    formatSourceString true """namespace Foo
+    formatSourceString
+        true
+        """namespace Foo
 
 type internal Blah =
   abstract Baz : unit
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Foo
 
 type internal Blah =
@@ -563,14 +648,19 @@ type internal Blah =
 
 [<Test>]
 let ``internal keyword before short record type, 830`` () =
-    formatSourceString true """namespace Bar
+    formatSourceString
+        true
+        """namespace Bar
 type 'a Baz =
     internal {
         Value : 'a
     }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Bar
 
 type 'a Baz = internal { Value: 'a }
@@ -578,11 +668,16 @@ type 'a Baz = internal { Value: 'a }
 
 [<Test>]
 let ``internal keyword before long record type`` () =
-    formatSourceString true """namespace Bar
+    formatSourceString
+        true
+        """namespace Bar
 
-    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }""" config
+    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Bar
 
 type A =
@@ -593,14 +688,19 @@ type A =
 
 [<Test>]
 let ``multiple constraints on function declaration, 886`` () =
-    formatSourceString true """namespace Blah
+    formatSourceString
+        true
+        """namespace Blah
 
 module Foo =
     val inline sum : ('a -> ^value) -> 'a Foo -> ^value
         when ^value : (static member (+) : ^value * ^value -> ^value) and ^value : (static member Zero : ^value)
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Blah
 
 module Foo =
@@ -610,14 +710,19 @@ module Foo =
 
 [<Test>]
 let ``preserve with get property, 945`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace B
 type Foo =
     | Bar of int
     member Item : unit -> int with get
-"""  { config with SpaceBeforeColon = true }
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace B
 
 type Foo =
@@ -627,13 +732,18 @@ type Foo =
 
 [<Test>]
 let ``preserve with set property`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace B
 type Foo =
     member Item : int -> unit with set
-"""  { config with SpaceBeforeColon = true }
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace B
 
 type Foo =
@@ -642,14 +752,19 @@ type Foo =
 
 [<Test>]
 let ``preserve with get,set`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace B
 
 type Foo =
     member Item : int with get,  set
-"""  { config with SpaceBeforeColon = true }
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace B
 
 type Foo =
@@ -658,14 +773,19 @@ type Foo =
 
 [<Test>]
 let ``with set after constraint`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace B
 
 type Foo =
     member Item : 't -> unit when 't   :   comparison   with set
-"""  { config with SpaceBeforeColon = true }
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace B
 
 type Foo =
@@ -674,16 +794,21 @@ type Foo =
 
 [<Test>]
 let ``preserve abstract member in type, 944`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace Baz
 
 type Foo =
     abstract member Bar : Type
     abstract Bar2 : Type
     member Bar3 : Type
-"""  { config with SpaceBeforeColon = true }
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Baz
 
 type Foo =
@@ -694,15 +819,20 @@ type Foo =
 
 [<Test>]
 let ``comment before union case, 965`` () =
-    formatSourceString true """namespace Blah
+    formatSourceString
+        true
+        """namespace Blah
 
 /// Comment
 type Foo =
 /// Another
     | Foo of int
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Blah
 
 /// Comment
@@ -713,15 +843,20 @@ type Foo =
 
 [<Test>]
 let ``don't add additional newline before subsequent val, 1029`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 module Some_module
 
 type foo = bool
 
 val bar : bool
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Some_module
 
 type foo = bool
@@ -731,15 +866,20 @@ val bar: bool
 
 [<Test>]
 let ``don't add duplicate parentheses for TypeAbbrev, 1057`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type AB = A -> B list * C -> D
 type AB = A -> (B list * C -> D)
 type AB = A -> ((B list * C -> D))
 
 type AB = A -> (C -> D)
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type AB = A -> B list * C -> D
 type AB = A -> (B list * C -> D)
 type AB = A -> ((B list * C -> D))
@@ -749,13 +889,18 @@ type AB = A -> (C -> D)
 
 [<Test>]
 let ``don't add duplicate parentheses for TypeAbbrev in signature file`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace Foo
 
 type AB = A -> (B list * C -> D)
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Foo
 
 type AB = A -> (B list * C -> D)
@@ -763,15 +908,20 @@ type AB = A -> (B list * C -> D)
 
 [<Test>]
 let ``don't add extra new line between attribute and namespace, 1097`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace Meh
 
 [<StringEnum>]
 [<RequireQualifiedAccess>]
 type PayableFilters = | [<CompiledName "statusSelector">] Status
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Meh
 
 [<StringEnum>]
@@ -781,7 +931,9 @@ type PayableFilters = | [<CompiledName "statusSelector">] Status
 
 [<Test>]
 let ``don't add extra new line between nested modules, 1105`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 module Example
 
 module Foo =
@@ -791,9 +943,12 @@ module Foo =
 
     type t = int
     val lmao: unit -> bool
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Example
 
 module Foo =
@@ -809,7 +964,9 @@ module Foo =
 
 [<Test>]
 let ``don't add extra new line before attribute of type, 1116`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 module Test
 
 type t1 = bool
@@ -818,9 +975,12 @@ type t1 = bool
 type t2 = bool
 
 val foo : bool
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Test
 
 type t1 = bool
@@ -833,16 +993,21 @@ val foo: bool
 
 [<Test>]
 let ``don't add extra new line before attribute of type, only types`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 module Test
 
 type t1 = bool
 
 [<SomeAttribute>]
 type t2 = bool
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Test
 
 type t1 = bool
@@ -853,7 +1018,9 @@ type t2 = bool
 
 [<Test>]
 let ``line comments before access modifier of multiline record type`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace Foo
 
 type TestType =
@@ -864,9 +1031,12 @@ type TestType =
             Foo : int
             Barry: string
         }
-"""  { config with MaxRecordWidth = 10 }
+"""
+        { config with MaxRecordWidth = 10 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Foo
 
 type TestType =
@@ -879,7 +1049,9 @@ type TestType =
 
 [<Test>]
 let ``line comments before access modifier of single line record type`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace Foo
 
 type TestType =
@@ -889,9 +1061,12 @@ type TestType =
         {
             Meh : TimeSpan
         }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Foo
 
 type TestType =
@@ -902,7 +1077,9 @@ type TestType =
 
 [<Test>]
 let ``format long val return type multiline, 1181`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace TypeEquality
 
 [<RequireQualifiedAccess>]
@@ -913,9 +1090,12 @@ module Teq =
 
         val domainOf<'domain1, 'domain2, 'range1, 'range2> : Teq<'domain1 -> 'range1, 'domain2 -> 'range2>
              -> Teq<'domain1, 'domain2>
-"""  { config with SpaceBeforeColon = true }
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace TypeEquality
 
 [<RequireQualifiedAccess>]

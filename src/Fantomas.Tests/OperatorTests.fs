@@ -6,79 +6,129 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``should format prefix operators`` () =
-    formatSourceString false """let x = -y
+    formatSourceString
+        false
+        """let x = -y
 let z = !!x
-    """ config
-    |> should equal """let x = -y
+    """
+        config
+    |> should
+        equal
+        """let x = -y
 let z = !!x
 """
 
 [<Test>]
 let ``should keep triple ~~~ operator`` () =
-    formatSourceString false """x ~~~FileAttributes.ReadOnly
-    """ config
-    |> should equal """x ~~~FileAttributes.ReadOnly
+    formatSourceString
+        false
+        """x ~~~FileAttributes.ReadOnly
+    """
+        config
+    |> should
+        equal
+        """x ~~~FileAttributes.ReadOnly
 """
 
 [<Test>]
 let ``should keep single triple ~~~ operator`` () =
-    formatSourceString false """~~~FileAttributes.ReadOnly
-    """ config
-    |> should equal """~~~FileAttributes.ReadOnly
+    formatSourceString
+        false
+        """~~~FileAttributes.ReadOnly
+    """
+        config
+    |> should
+        equal
+        """~~~FileAttributes.ReadOnly
 """
 
 [<Test>]
 let ``should keep parens around ? operator definition`` () =
-    formatSourceString false """let (?) f s = f s
-    """ config
-    |> should equal """let (?) f s = f s
+    formatSourceString
+        false
+        """let (?) f s = f s
+    """
+        config
+    |> should
+        equal
+        """let (?) f s = f s
 """
 
 [<Test>]
 let ``should keep parens around ?<- operator definition`` () =
-    formatSourceString false """let (?<-) f s = f s
-    """ config
-    |> should equal """let (?<-) f s = f s
+    formatSourceString
+        false
+        """let (?<-) f s = f s
+    """
+        config
+    |> should
+        equal
+        """let (?<-) f s = f s
 """
 
 [<Test>]
 let ``should keep parens around !+ prefix operator definition`` () =
-    formatSourceString false """let (!+) x = Include x
-    """ config
-    |> should equal """let (!+) x = Include x
+    formatSourceString
+        false
+        """let (!+) x = Include x
+    """
+        config
+    |> should
+        equal
+        """let (!+) x = Include x
 """
 
 [<Test>]
 let ``should keep parens around ++ infix operator definition`` () =
-    formatSourceString false """let (++) x y = { x with Includes = y :: x.Includes }
-    """ config
-    |> should equal """let (++) x y = { x with Includes = y :: x.Includes }
+    formatSourceString
+        false
+        """let (++) x y = { x with Includes = y :: x.Includes }
+    """
+        config
+    |> should
+        equal
+        """let (++) x y = { x with Includes = y :: x.Includes }
 """
 
 [<Test>]
 let ``should keep parens around inlined ==> operator definition`` () =
-    formatSourceString false """let inline (==>) x y = f x y
-    """ config
-    |> should equal """let inline (==>) x y = f x y
+    formatSourceString
+        false
+        """let inline (==>) x y = f x y
+    """
+        config
+    |> should
+        equal
+        """let inline (==>) x y = f x y
 """
 
 [<Test>]
 let ``should keep parens around inlined operator definition`` () =
-    formatSourceString false """let inline (@@) path1 path2 = Path.Combine(path1, path2)
-    """ config
-    |> should equal """let inline (@@) path1 path2 = Path.Combine(path1, path2)
+    formatSourceString
+        false
+        """let inline (@@) path1 path2 = Path.Combine(path1, path2)
+    """
+        config
+    |> should
+        equal
+        """let inline (@@) path1 path2 = Path.Combine(path1, path2)
 """
 
 [<Test>]
 let ``should pattern match on quotation expression`` () =
-    formatSourceString false """let rec print expr =
+    formatSourceString
+        false
+        """let rec print expr =
     match expr with
     | SpecificCall <@@ (+) @@> (_, _, exprList) ->
         print exprList.Head
         printf " + "
         print exprList.Tail.Head
-    | _ -> ()""" config
-    |> should equal """let rec print expr =
+    | _ -> ()"""
+        config
+    |> should
+        equal
+        """let rec print expr =
     match expr with
     | SpecificCall <@@ (+) @@> (_, _, exprList) ->
         print exprList.Head
@@ -89,11 +139,16 @@ let ``should pattern match on quotation expression`` () =
 
 [<Test>]
 let ``should break on . operator`` () =
-    formatSourceString false """pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^").Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(").Replace(")", @"\)").Replace("+", @"\+")
+    formatSourceString
+        false
+        """pattern.Replace(".", @"\.").Replace("$", @"\$").Replace("^", @"\^").Replace("{", @"\{").Replace("[", @"\[").Replace("(", @"\(").Replace(")", @"\)").Replace("+", @"\+")
 
-    """ { config with MaxLineLength = 80 }
+    """
+        { config with MaxLineLength = 80 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 pattern
     .Replace(".", @"\.")
     .Replace("$", @"\$")
@@ -108,7 +163,9 @@ pattern
 // the current behavior results in a compile error since line break is before the parens and not before the .
 [<Test>]
 let ``should break on . operator and keep indentation`` () =
-    formatSourceString false """let pattern =
+    formatSourceString
+        false
+        """let pattern =
     (x + y)
       .Replace(seperator + "**" + seperator, replacementSeparator + "(.|?" + replacementSeparator + ")?" )
       .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")" )
@@ -116,7 +173,9 @@ let ``should break on . operator and keep indentation`` () =
         { config with
               MaxLineLength = 80
               MaxInfixOperatorExpression = 60 }
-    |> should equal """let pattern =
+    |> should
+        equal
+        """let pattern =
     (x + y)
         .Replace(seperator + "**" + seperator,
                  replacementSeparator + "(.|?" + replacementSeparator + ")?")
@@ -125,32 +184,49 @@ let ``should break on . operator and keep indentation`` () =
 
 [<Test>]
 let ``should keep space between ( and * in *** operator definition`` () =
-    formatSourceString false """let inline ( ***) l1 l2 = pair l2 l1
-    """ config
-    |> should equal """let inline ( *** ) l1 l2 = pair l2 l1
+    formatSourceString
+        false
+        """let inline ( ***) l1 l2 = pair l2 l1
+    """
+        config
+    |> should
+        equal
+        """let inline ( *** ) l1 l2 = pair l2 l1
 """
 
 [<Test>]
 let ``should keep space between ( and * in *= operator definition`` () =
-    formatSourceString false """let inline ( *=) l v = update (( *) v) l
-    """ config
-    |> should equal """let inline ( *= ) l v = update ((*) v) l
+    formatSourceString
+        false
+        """let inline ( *=) l v = update (( *) v) l
+    """
+        config
+    |> should
+        equal
+        """let inline ( *= ) l v = update ((*) v) l
 """
 
 [<Test>]
 let ``should not add space around ? operator`` () =
     formatSourceString false """let x = y?z.d?c.[2]?d.xpto()""" config
-    |> should equal """let x = y?z.d?c.[2]?d.xpto()
+    |> should
+        equal
+        """let x = y?z.d?c.[2]?d.xpto()
 """
 
 [<Test>]
 let ``should understand ? as an infix operator`` () =
-    formatSourceString false """try
+    formatSourceString
+        false
+        """try
     item.MethodInfo.Method.Invoke(null, ipa)
     |> (fun x -> x?Invoke (true))
     |> fun (t : Task) -> t.Wait()
-with _ -> ()""" config
-    |> should equal """try
+with _ -> ()"""
+        config
+    |> should
+        equal
+        """try
     item.MethodInfo.Method.Invoke(null, ipa)
     |> (fun x -> x?Invoke (true))
     |> fun (t: Task) -> t.Wait()
@@ -160,21 +236,28 @@ with _ -> ()
 [<Test>]
 let ``should not mess up ?<- operator`` () =
     formatSourceString false """x?v <- 2""" config
-    |> should equal """x?v <- 2
+    |> should
+        equal
+        """x?v <- 2
 """
 
 
 [<Test>]
 let ``should pipeline monadic bind`` () =
-    formatSourceString false """strToInt "1"
+    formatSourceString
+        false
+        """strToInt "1"
 >>= strAddLong "A long argument that is ignored" "2"
 >>= strAddLong "A long argument that is ignored" "2"
 >>= strAddLong "A long argument that is ignored" "2"
 >>= strAddLong "A long argument that is ignored" "2"
 >>= strAddLong "A long argument that is ignored" "2"
 >>= strAddLong "A long argument that is ignored" "2"
-"""  config
-    |> should equal """strToInt "1"
+"""
+        config
+    |> should
+        equal
+        """strToInt "1"
 >>= strAddLong "A long argument that is ignored" "2"
 >>= strAddLong "A long argument that is ignored" "2"
 >>= strAddLong "A long argument that is ignored" "2"
@@ -185,10 +268,15 @@ let ``should pipeline monadic bind`` () =
 
 [<Test>]
 let ``should keep >>.~ operator`` () =
-    formatSourceString false """let (>>.~) (g : int) (h : int) : int = g + h
+    formatSourceString
+        false
+        """let (>>.~) (g : int) (h : int) : int = g + h
 let output = 2 >>.~ 3
-    """ config
-    |> should equal """let (>>.~) (g: int) (h: int): int = g + h
+    """
+        config
+    |> should
+        equal
+        """let (>>.~) (g: int) (h: int): int = g + h
 let output = 2 >>.~ 3
 """
 
@@ -199,25 +287,33 @@ let ``should not add newline before = operator after |>`` () =
         """1 |> max 0 = 1"""
         ({ config with
                MaxInfixOperatorExpression = 15 })
-    |> should equal """1 |> max 0 = 1
+    |> should
+        equal
+        """1 |> max 0 = 1
 """
 
 [<Test>]
 let ``should add space around .. operator`` () =
     formatSourceString false """[1..10]""" config
-    |> should equal """[ 1 .. 10 ]
+    |> should
+        equal
+        """[ 1 .. 10 ]
 """
 
 
 [<Test>]
 let ``should add space around .. .. operators`` () =
     formatSourceString false """[10 .. -1 .. 1]""" config
-    |> should equal """[ 10 .. -1 .. 1 ]
+    |> should
+        equal
+        """[ 10 .. -1 .. 1 ]
 """
 
 [<Test>]
 let ``line comment after infix function with parenthesis, 559`` () =
-    formatSourceString false """let watchFiles =
+    formatSourceString
+        false
+        """let watchFiles =
         async {
             printfn "after start"
             use _ =
@@ -231,9 +327,12 @@ let ``line comment after infix function with parenthesis, 559`` () =
                                       )
             ()
         }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let watchFiles =
     async {
         printfn "after start"
@@ -254,7 +353,9 @@ let watchFiles =
 
 [<Test>]
 let ``line comment after infix function with string constant, 559`` () =
-    formatSourceString false """let watchFiles =
+    formatSourceString
+        false
+        """let watchFiles =
         async {
             printfn "after start"
             use _ =
@@ -268,9 +369,12 @@ let ``line comment after infix function with string constant, 559`` () =
                                       )
             ()
         }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let watchFiles =
     async {
         printfn "after start"
@@ -292,7 +396,9 @@ let watchFiles =
 let ``short expression before and after pipe`` () =
     formatSourceString false "let a = b |> c" config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a = b |> c
 """
 
@@ -300,7 +406,9 @@ let a = b |> c
 let ``long expression with pipe should be multiline`` () =
     formatSourceString false "let a = List.init 40 (fun i -> generateThing i a) |> List.map mapThingToOtherThing" config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a =
     List.init 40 (fun i -> generateThing i a)
     |> List.map mapThingToOtherThing
@@ -308,13 +416,17 @@ let a =
 
 [<Test>]
 let ``giraffe sample`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let WebApp = route "/ping" >=> authorized >=> text "pong"
 """
         ({ config with
                MaxInfixOperatorExpression = 20 })
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let WebApp =
     route "/ping"
     >=> authorized
@@ -323,19 +435,29 @@ let WebApp =
 
 [<Test>]
 let ``multiple short pipes`` () =
-    formatSourceString false """let result = a && b |>  f |>  g |>   h
-"""  config
+    formatSourceString
+        false
+        """let result = a && b |>  f |>  g |>   h
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let result = a && b |> f |> g |> h
 """
 
 [<Test>]
 let ``pipe boolean expression`` () =
-    formatSourceString false """b && c |> someLongExpressionThatShouldMoveThePipeToTheNextLine
-"""  config
+    formatSourceString
+        false
+        """b && c |> someLongExpressionThatShouldMoveThePipeToTheNextLine
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 b
 && c
    |> someLongExpressionThatShouldMoveThePipeToTheNextLine
@@ -343,37 +465,54 @@ b
 
 [<Test>]
 let ``two long boolean expressions`` () =
-    formatSourceString false """aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa || bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-"""  config
+    formatSourceString
+        false
+        """aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa || bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 || bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 """
 
 [<Test>]
 let ``equal sign operator should not move to next line`` () =
-    formatSourceString false """let result =
+    formatSourceString
+        false
+        """let result =
             (typ.GetInterface(typeof<System.Collections.IEnumerable>.FullName) = null)
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let result =
     (typ.GetInterface(typeof<System.Collections.IEnumerable>.FullName) = null)
 """
 
 [<Test>]
 let ``operator before verbatim string add extra space, 736`` () =
-    formatSourceString false """Target M.Tools (fun _ -> !! @"Tools\Tools.sln" |> rebuild)
-"""  config
+    formatSourceString
+        false
+        """Target M.Tools (fun _ -> !! @"Tools\Tools.sln" |> rebuild)
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Target M.Tools (fun _ -> !! @"Tools\Tools.sln" |> rebuild)
 """
 
 [<Test>]
 let ``function call before pipe operator, 754`` () =
-    formatSourceString false "
+    formatSourceString
+        false
+        "
 [<Test>]
 let ``attribute on module after namespace`` () =
     formatSourceString false \"\"\"namespace SomeNamespace
@@ -390,9 +529,12 @@ namespace SomeNamespace
 module Types =
     let a = 5
 \"\"\"
-"    config
+"
+        config
     |> prepend newline
-    |> should equal "
+    |> should
+        equal
+        "
 [<Test>]
 let ``attribute on module after namespace`` () =
     formatSourceString
@@ -418,10 +560,15 @@ module Types =
 
 [<Test>]
 let ``modulo operator on same line, 780`` () =
-    formatSourceString false """let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
-"""  config
+    formatSourceString
+        false
+        """let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let hasUnEvenAmount regex line =
     (Regex.Matches(line, regex).Count
      - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
@@ -429,7 +576,9 @@ let hasUnEvenAmount regex line =
 
 [<Test>]
 let ``parameter after multiline string, 783`` () =
-    formatSourceString false "
+    formatSourceString
+        false
+        "
 let ``match bang`` () =
     formatSourceString false \"\"\"
 async {
@@ -445,9 +594,12 @@ async {
     | None -> printfn \"Function returned None!\"
 }
 \"\"\"
-"    config
+"
+        config
     |> prepend newline
-    |> should equal "
+    |> should
+        equal
+        "
 let ``match bang`` () =
     formatSourceString
         false
@@ -472,23 +624,33 @@ async {
 
 [<Test>]
 let ``addition via function`` () =
-    formatSourceString false """let a = (+) 7 8
-"""  config
+    formatSourceString
+        false
+        """let a = (+) 7 8
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a = (+) 7 8
 """
 
 [<Test>]
 let ``lambda piped to lambda should be multiline, 942`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let r (f : 'a -> 'b) (a : 'a) : 'b =
     fun () ->
         f a
     |> fun f -> f ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let r (f: 'a -> 'b) (a: 'a): 'b =
     fun () -> f a
     |> fun f -> f ()
@@ -496,18 +658,25 @@ let r (f: 'a -> 'b) (a: 'a): 'b =
 
 [<Test>]
 let ``combining lines breaks function precedence 488`` () =
-    formatSourceString false """fun () -> ()
+    formatSourceString
+        false
+        """fun () -> ()
 |> Some
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 fun () -> ()
 |> Some
 """
 
 [<Test>]
 let ``function with LPAREN_STAR_RPAREN`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
     if latA = latB && lngA = lngB then
         0.
@@ -525,9 +694,12 @@ let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
             |> (*) (60. * 1.1515 * 1.609344)
 
         dist
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
     if latA = latB && lngA = lngB then
         0.
@@ -549,16 +721,21 @@ let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
 
 [<Test>]
 let ``keep comment after or operator, 1095`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let f x =
     a
     || // other case
     match n with
     | 17 -> false
     | _ -> true
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f x =
     a
     || // other case
@@ -569,7 +746,9 @@ let f x =
 
 [<Test>]
 let ``keep comment after and operator`` () =
-    formatSourceString false "
+    formatSourceString
+        false
+        "
 let r =
     {| Foo =
            a
@@ -578,9 +757,12 @@ let r =
        Bar = \"\"\"
 Fooey
 \"\"\" |}
-"    config
+"
+        config
     |> prepend newline
-    |> should equal "
+    |> should
+        equal
+        "
 let r =
     {| Foo =
            a
@@ -593,12 +775,16 @@ Fooey
 
 [<Test>]
 let ``simple math`` () =
-    formatSourceString false """let myValue = a + b * c
+    formatSourceString
+        false
+        """let myValue = a + b * c
 """
         { config with
               MaxInfixOperatorExpression = 5 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let myValue =
     a
     + b * c
@@ -606,23 +792,31 @@ let myValue =
 
 [<Test>]
 let ``simple math in one line`` () =
-    formatSourceString false """let myValue = a + b * c
+    formatSourceString
+        false
+        """let myValue = a + b * c
 """
         { config with
               MaxInfixOperatorExpression = 50 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let myValue = a + b * c
 """
 
 [<Test>]
 let ``simple math reversed`` () =
-    formatSourceString false """let myValue = a * b + c
+    formatSourceString
+        false
+        """let myValue = a * b + c
 """
         { config with
               MaxInfixOperatorExpression = 5 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let myValue =
     a * b
     + c
@@ -630,12 +824,16 @@ let myValue =
 
 [<Test>]
 let ``multiple sum operators`` () =
-    formatSourceString false """let myValue = a + b * c + d
+    formatSourceString
+        false
+        """let myValue = a + b * c + d
 """
         { config with
               MaxInfixOperatorExpression = 5 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let myValue =
     a
     + b * c
@@ -644,16 +842,21 @@ let myValue =
 
 [<Test>]
 let ``nested math sample`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
         let dist =
             aaaaaaaaaaaaaaaaaaaaaaaa
             * bbbbbbbbbbbbbbbbbbbbbbbbb
             + (ccccccccccccccccccccccccc
                * ddddddddddddddddddddddd
                * eeeeeeeeeeeeeeeeeeeeeee)
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let dist =
     aaaaaaaaaaaaaaaaaaaaaaaa
     * bbbbbbbbbbbbbbbbbbbbbbbbb
@@ -664,15 +867,20 @@ let dist =
 
 [<Test>]
 let ``split infix operators according to nested structure in AST, 988`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let shouldIncludeRelationship relName =
     req.Includes |> List.exists (fun path ->
       path.Length >= currentIncludePath.Length + 1
       && path |> List.take (currentIncludePath.Length + 1) = currentIncludePath @ [relName]
     )
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let shouldIncludeRelationship relName =
     req.Includes
     |> List.exists

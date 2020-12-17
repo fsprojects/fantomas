@@ -10,8 +10,9 @@ let fantomasVersion =
          assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
          |> Option.ofObj
          |> Option.map (fun a -> a.InformationalVersion)
-         |> Option.defaultValue
-             (Assembly
+         |> Option.defaultValue (
+             Assembly
                  .GetExecutingAssembly()
                  .GetName()
-                 .Version.ToString()))
+                 .Version.ToString()
+         ))

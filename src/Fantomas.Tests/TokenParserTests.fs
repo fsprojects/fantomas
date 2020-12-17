@@ -144,7 +144,8 @@ let ``simple line comment should be found in tokens`` () =
     let triviaNodes = getTriviaFromTokens tokens
 
     match List.tryLast triviaNodes with
-    | Some ({ Item = Comment (LineCommentAfterSourceCode (lineComment)); Range = range }) ->
+    | Some ({ Item = Comment (LineCommentAfterSourceCode (lineComment))
+              Range = range }) ->
         lineComment == "// some comment"
         range.StartLine == range.EndLine
 
@@ -177,7 +178,8 @@ let ``Multi line block comment should be found in tokens`` () =
         |> String.normalizeNewLine
 
     match triviaNodes with
-    | [ { Item = Comment (BlockComment (blockComment, _, _)); Range = range }; { Item = Number ("7") } ] ->
+    | [ { Item = Comment (BlockComment (blockComment, _, _))
+          Range = range }; { Item = Number ("7") } ] ->
         blockComment == expectedComment
         range.StartLine == 2
         range.EndLine == 4
@@ -193,7 +195,8 @@ let a = 9
     let triviaNodes = tokenize source |> getTriviaFromTokens
 
     let expectedComment =
-        String.normalizeNewLine """// meh
+        String.normalizeNewLine
+            """// meh
 // foo"""
 
     match triviaNodes with
@@ -237,7 +240,8 @@ let ``Comment after left brace of record`` () =
     let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
-    | [ { Item = Comment (LineCommentAfterSourceCode (comment)); Range = range }; { Item = Number ("7") } ] ->
+    | [ { Item = Comment (LineCommentAfterSourceCode (comment))
+          Range = range }; { Item = Number ("7") } ] ->
         comment == "// foo"
         range.StartLine == 2
     | _ -> failwith "expected line comment after left brace"
@@ -292,10 +296,11 @@ let x = 1
     let triviaNodes =
         TokenParser.tokenize defines.[0] hashTokens source
         |> getTriviaFromTokens
-        |> List.choose (fun tv ->
-            match tv.Item with
-            | Directive (directive) -> Some directive
-            | _ -> None)
+        |> List.choose
+            (fun tv ->
+                match tv.Item with
+                | Directive (directive) -> Some directive
+                | _ -> None)
 
     List.length triviaNodes == 3
 
@@ -311,10 +316,11 @@ type MyLogInteface() =
     let triviaNodes =
         tokenize source
         |> getTriviaFromTokens
-        |> List.choose (fun { Item = item } ->
-            match item with
-            | Keyword ({ Content = kw }) -> Some kw
-            | _ -> None)
+        |> List.choose
+            (fun { Item = item } ->
+                match item with
+                | Keyword ({ Content = kw }) -> Some kw
+                | _ -> None)
 
     match triviaNodes with
     | [ "member"; "override" ] -> pass ()
@@ -327,10 +333,11 @@ let ``at before string`` () =
     let triviaNodes =
         tokenize source
         |> getTriviaFromTokens
-        |> List.filter (fun { Item = item } ->
-            match item with
-            | StringContent ("@\"foo\"") -> true
-            | _ -> false)
+        |> List.filter
+            (fun { Item = item } ->
+                match item with
+                | StringContent ("@\"foo\"") -> true
+                | _ -> false)
 
     List.length triviaNodes == 1
 
@@ -342,10 +349,11 @@ let ``newline in string`` () =
     let triviaNodes =
         tokenize source
         |> getTriviaFromTokens
-        |> List.filter (fun { Item = item } ->
-            match item with
-            | StringContent ("\"\n\"") -> true
-            | _ -> false)
+        |> List.filter
+            (fun { Item = item } ->
+                match item with
+                | StringContent ("\"\n\"") -> true
+                | _ -> false)
 
     List.length triviaNodes == 1
 
@@ -356,10 +364,11 @@ let ``newline with slashes in string`` () =
     let triviaNodes =
         tokenize source
         |> getTriviaFromTokens
-        |> List.filter (fun { Item = item } ->
-            match item with
-            | StringContent ("\"\\r\\n\"") -> true
-            | _ -> false)
+        |> List.filter
+            (fun { Item = item } ->
+                match item with
+                | StringContent ("\"\\r\\n\"") -> true
+                | _ -> false)
 
     List.length triviaNodes == 1
 
@@ -370,10 +379,11 @@ let ``triple quotes`` () =
     let triviaNodes =
         tokenize source
         |> getTriviaFromTokens
-        |> List.filter (fun { Item = item } ->
-            match item with
-            | StringContent ("\"\"\"foo\"\"\"") -> true
-            | _ -> false)
+        |> List.filter
+            (fun { Item = item } ->
+                match item with
+                | StringContent ("\"\"\"foo\"\"\"") -> true
+                | _ -> false)
 
     List.length triviaNodes == 1
 
@@ -385,10 +395,11 @@ let ``with quotes`` () =
     let triviaNodes =
         tokenize source
         |> getTriviaFromTokens
-        |> List.filter (fun { Item = item } ->
-            match item with
-            | StringContent (sc) when (sc = source) -> true
-            | _ -> false)
+        |> List.filter
+            (fun { Item = item } ->
+                match item with
+                | StringContent (sc) when (sc = source) -> true
+                | _ -> false)
 
     List.length triviaNodes == 1
 
@@ -400,10 +411,11 @@ let ``infix operator in full words inside an ident`` () =
     let triviaNodes =
         tokenize source
         |> getTriviaFromTokens
-        |> List.filter (fun { Item = item } ->
-            match item with
-            | IdentOperatorAsWord "op_LessThan" -> true
-            | _ -> false)
+        |> List.filter
+            (fun { Item = item } ->
+                match item with
+                | IdentOperatorAsWord "op_LessThan" -> true
+                | _ -> false)
 
     List.length triviaNodes == 1
 

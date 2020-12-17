@@ -6,7 +6,9 @@ open Fantomas.Tests.TestHelper
 
 [<Test>]
 let ``verbose syntax`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
     #light "off"
 
     let div2 = 2;;
@@ -17,9 +19,12 @@ let ``verbose syntax`` () =
             begin "Odd"  end
           else
             begin "Even" end
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let div2 = 2
 
 let f x =
