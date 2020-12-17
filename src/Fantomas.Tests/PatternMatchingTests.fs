@@ -849,11 +849,12 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: MemberFlags) =
     | MemberKind.PropertyGet
     | MemberKind.PropertySet
     | MemberKind.PropertyGetSet as mk ->
-        if mf.IsInstance && mf.IsOverrideOrExplicitImpl
-        then MFOverride mk
-        elif mf.IsInstance
-        then MFMember mk
-        else MFStaticMember mk
+        if mf.IsInstance && mf.IsOverrideOrExplicitImpl then
+            MFOverride mk
+        elif mf.IsInstance then
+            MFMember mk
+        else
+            MFStaticMember mk
 """
 
 [<Test>]

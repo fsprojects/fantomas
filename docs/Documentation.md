@@ -431,28 +431,26 @@ let b = [|4;5;6|]
 Fantomas by default follows the if/then/else conventions listed in the [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions).
 There is stated:
 
-> If either cond, e1 or e2 are longer, but not multi-line:
-> if cond
-> then e1
-> else e2
+> Indentation of conditionals depends on the size and complexity of the expressions that make them up. Write them on one line when:
+> cond, e1, and e2 are short
+> e1 and e2 are not if/then/else expressions themselves.
 
-This setting controls what exactly short means in terms of character count.
+This setting facilitates this by determining the maximum character width where the if/then/else expression stays in one line.
 Default = 40.
 
 `defaultConfig`
 
 ```fsharp
-if System.Char.IsUpper(c) then sprintf "_%s" (c.ToString().ToLower()) else c.ToString()
+if myCheck then truth else bogus
 ```
 
-Neither of the expression is longer than the default 40 here.
-
-`{ defaultConfig with MaxIfThenElseShortWidth = 30 }`
+`{ defaultConfig with MaxIfThenElseShortWidth = 10 }`
 
 ```fsharp
-if System.Char.IsUpper(c)
-then sprintf "_%s" (c.ToString().ToLower())
-else c.ToString()
+if myCheck then 
+    truth 
+else 
+    bogus
 ```
 
 ### fsharp_max_infix_operator_expression
@@ -820,6 +818,13 @@ type Range =
 ```
 
 ### fsharp_keep_if_then_in_same_line
+
+**Deprecated setting!**
+
+This setting will be removed in the next major version of Fantomas.
+As of 4.4, it has no effect anymore due to a change in the MS F# style guide.
+
+#### Original description:
 
 Bypasses the situation where `if`,`then` and `else` are placed underneath each other.
 This will ensure `if` and `then` are kept in the same line.

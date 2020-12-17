@@ -95,9 +95,10 @@ let ``longer condition, not multi-line`` () =
 """  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
-if aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
-then 1
-else 0
+if aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg then
+    1
+else
+    0
 """
 
 [<Test>]
@@ -106,9 +107,10 @@ let ``longer ifBranch, not multi-line`` () =
 """  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
-if x
-then aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
-else 0
+if x then
+    aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
+else
+    0
 """
 
 [<Test>]
@@ -117,9 +119,10 @@ let ``longer else branch, not multi-line`` () =
 """  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
-if x
-then 1
-else aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
+if x then
+    1
+else
+    aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
 """
 
 [<Test>]
@@ -287,8 +290,10 @@ let ``comment after if branch expression`` () =
 """  config
     |> prepend newline
     |> should equal """
-if x then 0 // meh
-else 1
+if x then
+    0 // meh
+else
+    1
 """
 
 [<Test>]
@@ -728,9 +733,10 @@ else someveryveryveryverylongexpression
 """  ({ config with MaxLineLength = 80 })
     |> prepend newline
     |> should equal """
-if someveryveryveryverylongexpression
-then someveryveryveryveryveryverylongexpression
-else someveryveryveryverylongexpression
+if someveryveryveryverylongexpression then
+    someveryveryveryveryveryverylongexpression
+else
+    someveryveryveryverylongexpression
 """
 
 [<Test>]
@@ -740,9 +746,10 @@ let ``longer if branch, nothing multiline`` () =
 """  config
     |> prepend newline
     |> should equal """
-if m.Success
-then Some(List.tail [ for x in m.Groups -> x.Value ])
-else None
+if m.Success then
+    Some(List.tail [ for x in m.Groups -> x.Value ])
+else
+    None
 """
 
 [<Test>]
@@ -752,7 +759,9 @@ let (|Integer|_|) (str: string) =
    let mutable intvalue = 0
    if System.Int32.TryParse(str, &intvalue) then Some(intvalue)
    else None
-"""  config
+"""
+        { config with
+              MaxIfThenElseShortWidth = 70 }
     |> prepend newline
     |> should equal """
 let (|Integer|_|) (str: string) =
@@ -763,7 +772,9 @@ let (|Integer|_|) (str: string) =
 [<Test>]
 let ``longer elif condition`` () =
     formatSourceString false """if a then b elif somethingABitLongerToForceDifferentStyle then c else d
-"""  config
+"""
+        { config with
+              MaxIfThenElseShortWidth = 53 }
     |> prepend newline
     |> should equal """
 if a then b
@@ -779,19 +790,20 @@ let ``impact of MaxIfThenElseShortWidth setting, longer bool expression`` () =
     formatSourceString false source config
     |> prepend newline
     |> should equal """
-if (tare + netWeight) = 10000 then a else b
+if (tare + netWeight) = 10000 then
+    a
+else
+    b
 """
 
     formatSourceString
         false
         source
         ({ config with
-               MaxIfThenElseShortWidth = 20 })
+               MaxIfThenElseShortWidth = 55 })
     |> prepend newline
     |> should equal """
-if (tare + netWeight) = 10000
-then a
-else b
+if (tare + netWeight) = 10000 then a else b
 """
 
 [<Test>]
@@ -799,33 +811,34 @@ let ``impact of MaxIfThenElseShortWidth setting, longer if branch`` () =
     let source =
         """if a then (tare + netWeight) + 10000 else 0"""
 
-    formatSourceString false source config
+    formatSourceString
+        false
+        source
+        { config with
+              MaxIfThenElseShortWidth = 45 }
     |> prepend newline
     |> should equal """
 if a then (tare + netWeight) + 10000 else 0
 """
 
-    formatSourceString
-        false
-        source
-        ({ config with
-               MaxIfThenElseShortWidth = 20 })
+    formatSourceString false source config
     |> prepend newline
     |> should equal """
-if a
-then (tare + netWeight) + 10000
-else 0
+if a then
+    (tare + netWeight) + 10000
+else
+    0
 """
 
 [<Test>]
 let ``impact of MaxIfThenElseShortWidth setting, longer else branch`` () =
     let source =
-        """if a then 0 else (tare + netWeight) + 10000"""
+        """if a then 0 else (tare + netWeight) + 10"""
 
     formatSourceString false source config
     |> prepend newline
     |> should equal """
-if a then 0 else (tare + netWeight) + 10000
+if a then 0 else (tare + netWeight) + 10
 """
 
     formatSourceString
@@ -835,9 +848,10 @@ if a then 0 else (tare + netWeight) + 10000
                MaxIfThenElseShortWidth = 20 })
     |> prepend newline
     |> should equal """
-if a
-then 0
-else (tare + netWeight) + 10000
+if a then
+    0
+else
+    (tare + netWeight) + 10
 """
 
 [<Test>]
@@ -850,16 +864,21 @@ module String =
                 if la > lb then a' else b'
             else
                 if String.length a' < String.length b' then a' else b'
-"""  config
+"""
+        { config with
+              MaxIfThenElseShortWidth = 100 }
     |> prepend newline
     |> should equal """
 namespace Fantomas
 
 module String =
     let merge a b =
-        if la <> lb then if la > lb then a' else b'
-        else if String.length a' < String.length b' then a'
-        else b'
+        if la <> lb then
+            if la > lb then a' else b'
+        else if String.length a' < String.length b' then
+            a'
+        else
+            b'
 """
 
 [<Test>]
@@ -900,10 +919,14 @@ module String =
     |> should equal """
 module String =
     let merge a b =
-        if la <> lb then if la > lb then a' else b'
-        elif la = lb then a'
-        else if String.length a' < String.length b' then a'
-        else b'
+        if la <> lb then
+            if la > lb then a' else b'
+        elif la = lb then
+            a'
+        else if String.length a' < String.length b' then
+            a'
+        else
+            b'
 """
 
 [<Test>]
@@ -920,10 +943,14 @@ module String =
     |> should equal """
 module String =
     let merge a b =
-        if la <> lb then if la > lb then a' else b'
-        else if String.length a' < String.length b' then a'
-        else if String.length a' > String.length b' then b'
-        else b'
+        if la <> lb then
+            if la > lb then a' else b'
+        else if String.length a' < String.length b' then
+            a'
+        else if String.length a' > String.length b' then
+            b'
+        else
+            b'
 """
 
 [<Test>]
@@ -986,8 +1013,10 @@ let foo result total =
     |> should equal """
 let foo result total =
     if result = 0 // there's a comment here
-    then total // and another one
-    else result
+    then
+        total // and another one
+    else
+        result
 """
 
 [<Test>]
@@ -1018,14 +1047,14 @@ let a =
     // check if the current # char is part of an define expression
     // if so add to defines
     let captureHashDefine idx =
-        if trimmed.StartsWith("#if")
-        then defines.Add(processLine "#if" trimmed lineNumber offset)
-        elif trimmed.StartsWith("#elseif")
-        then defines.Add(processLine "#elseif" trimmed lineNumber offset)
-        elif trimmed.StartsWith("#else")
-        then defines.Add(processLine "#else" trimmed lineNumber offset)
-        elif trimmed.StartsWith("#endif")
-        then defines.Add(processLine "#endif" trimmed lineNumber offset)
+        if trimmed.StartsWith("#if") then
+            defines.Add(processLine "#if" trimmed lineNumber offset)
+        elif trimmed.StartsWith("#elseif") then
+            defines.Add(processLine "#elseif" trimmed lineNumber offset)
+        elif trimmed.StartsWith("#else") then
+            defines.Add(processLine "#else" trimmed lineNumber offset)
+        elif trimmed.StartsWith("#endif") then
+            defines.Add(processLine "#endif" trimmed lineNumber offset)
 
     for idx in [ 0 .. lastIndex ] do
         let zero = sourceCode.[idx]
@@ -1105,7 +1134,11 @@ let funcs =
 
             let n1Score = modifierScore n1
             let n2Score = modifierScore n2
-            if n1Score = n2Score then n1.DisplayName.CompareTo n2.DisplayName else n1Score.CompareTo n2Score)
+
+            if n1Score = n2Score then
+                n1.DisplayName.CompareTo n2.DisplayName
+            else
+                n1Score.CompareTo n2Score)
 """
 
 [<Test>]
@@ -1177,3 +1210,64 @@ let code =
   else
     PrettyNaming.QuoteIdentifierIfNeeded d.Name
 "
+
+[<Test>]
+let ``cond, e1 and e2 are short`` () =
+    formatSourceString false """
+if cond then e1 else e2
+"""  config
+    |> prepend newline
+    |> should equal """
+if cond then e1 else e2
+"""
+
+[<Test>]
+let ``e1 is if/then/else`` () =
+    formatSourceString false """
+if cond then
+    if a then b else c
+else
+    e2
+"""  config
+    |> prepend newline
+    |> should equal """
+if cond then
+    if a then b else c
+else
+    e2
+"""
+
+[<Test>]
+let ``e2 is if/then/else`` () =
+    formatSourceString false """
+if cond then
+    e1
+else
+    if a then b else c
+"""  config
+    |> prepend newline
+    |> should equal """
+if cond then e1
+else if a then b
+else c
+"""
+
+[<Test>]
+let ``multiple elifs where one condition is longer than configuration value`` () =
+    formatSourceString false """
+if a then
+    b
+elif cccccccccccccccccccccccc then d
+else f
+"""
+        { config with
+              MaxIfThenElseShortWidth = 20 }
+    |> prepend newline
+    |> should equal """
+if a then
+    b
+elif cccccccccccccccccccccccc then
+    d
+else
+    f
+"""

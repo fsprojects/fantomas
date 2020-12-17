@@ -792,7 +792,9 @@ let ``let + let + let bang + if/then/else in ce`` () =
         else
             return ()
     }
-"""  config
+"""
+        { config with
+              MaxIfThenElseShortWidth = 75 }
     |> prepend newline
     |> should equal """
 let rec private appendToAzureTableStorage (cosmoEvents: EventWrite<JsonValue> seq) =
@@ -1643,7 +1645,9 @@ let create: Highlighter =
                 }
                 |> List.ofSeq
                 |> FormattedText.fromList
-"""  config
+"""
+        { config with
+              MaxIfThenElseShortWidth = 80 }
     |> prepend newline
     |> should equal """
 let create: Highlighter =
@@ -1664,10 +1668,10 @@ let create: Highlighter =
                         yield TextSpan.highlight ms.[i].Value
                         let regStart = ms.[i].Index + ms.[i].Length
 
-                        if i < ms.Count - 1
-                        then yield TextSpan.normal (s.Substring(regStart, ms.[i + 1].Index - regStart))
-                        elif regStart < s.Length
-                        then yield TextSpan.normal (s.Substring(regStart))
+                        if i < ms.Count - 1 then
+                            yield TextSpan.normal (s.Substring(regStart, ms.[i + 1].Index - regStart))
+                        elif regStart < s.Length then
+                            yield TextSpan.normal (s.Substring(regStart))
 
                 }
                 |> List.ofSeq

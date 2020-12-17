@@ -2232,39 +2232,16 @@ and genExpr astContext synExpr ctx =
                         (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
 
                 let hasCommentAfterIfKeyword =
-                    commentAfterKeyword IF (RangeHelpers.``have same range start`` synExpr.Range) ctx
-
-                let ``has line comment after source code for range`` range =
-                    TriviaHelpers.``has content after after that matches`` (fun tn ->
-                        RangeHelpers.rangeEq tn.Range range) (function
-                        | Comment (LineCommentAfterSourceCode _) -> true
-                        | _ -> false)
-                        (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
-
-                let hasCommentAfterIfBranchExpr =
-                    ``has line comment after source code for range`` e2.Range
+                    commentAfterKeyword IF (RangeHelpers.rangeStartEq synExpr.Range) ctx
 
                 let hasCommentAfterIfBranchThenKeyword =
                     commentAfterKeyword THEN (RangeHelpers.``range contains`` synExpr.Range) ctx
-
-                let hasCommentAfterElseKeyword =
-                    commentAfterKeyword ELSE (RangeHelpers.``range contains`` synExpr.Range) ctx
 
                 let isConditionMultiline =
                     hasCommentAfterIfKeyword
                     || hasCommentAfterBoolExpr
                     || hasCommentAfterIfBranchThenKeyword
                     || futureNlnCheck (!- "if " +> genExpr astContext e1) ctx
-
-                let isIfBranchMultiline =
-                    futureNlnCheck (!- "then " +> genExpr astContext e2) ctx
-
-                let isElseBranchMultiline =
-                    match enOpt with
-                    | Some e3 ->
-                        hasCommentAfterElseKeyword
-                        || futureNlnCheck (!- " else " +> genExpr astContext e3) ctx
-                    | None -> false
 
                 let genIf ifElseRange = tokN ifElseRange IF (!- "if ")
                 let genThen ifElseRange = tokN ifElseRange THEN (!- "then ")
@@ -2289,43 +2266,6 @@ and genExpr astContext synExpr ctx =
                     +> ifElse hasCommentAfterThenKeyword sepNln sepNone
                     +> genExpr astContext elf2
                     |> genTriviaFor SynExpr_IfThenElse fullRange
-
-                let genElifTwoLiner ((elf1: SynExpr), (elf2: SynExpr), fullRange) =
-                    let hasCommentAfterThenKeyword =
-                        commentAfterKeyword THEN (RangeHelpers.``range contains`` fullRange) ctx
-
-                    TriviaContext.``else if / elif`` fullRange
-                    +> genExpr astContext elf1
-                    +> sepNln
-                    +> genThen fullRange
-                    +> ifElse hasCommentAfterThenKeyword sepNln sepNone
-                    +> genExpr astContext elf2
-
-                let isAnyElifBranchMultiline =
-                    elfis
-                    |> List.exists (fun elf -> futureNlnCheck (genElifOneliner elf) ctx)
-
-                let anyElifBranchHasCommentAfterBranchExpr =
-                    elfis
-                    |> List.exists (fun (_, e, _) -> ``has line comment after source code for range`` e.Range)
-
-                let isAnyExpressionIsLongerButNotMultiline =
-                    let longerSetting = ctx.Config.MaxIfThenElseShortWidth
-
-                    let elseExceedsWith =
-                        match enOpt with
-                        | Some e4 -> exceedsWidth longerSetting (genExpr astContext e4) ctx
-                        | None -> false
-
-                    exceedsWidth longerSetting (genExpr astContext e1) ctx
-                    || exceedsWidth longerSetting (genExpr astContext e2) ctx
-                    || elseExceedsWith
-
-                let isAnyExpressionIsMultiline =
-                    isConditionMultiline
-                    || isIfBranchMultiline
-                    || isElseBranchMultiline
-                    || isAnyElifBranchMultiline
 
                 let genElifMultiLine ((elf1: SynExpr), elf2, fullRange) (ctx: Context) =
                     let indentAfterThenKeyword =
@@ -2361,168 +2301,145 @@ and genExpr astContext synExpr ctx =
                     (elifExpr
                      |> genTriviaFor SynExpr_IfThenElse fullRange) ctx
 
-                let genOneliner =
+                let genShortElse e elseRange =
+                    optSingle (fun e ->
+                        sepSpace
+                        +> genElse elseRange
+                        +> genExpr astContext e) e
+
+                let genOneliner enOpt =
                     genIf synExpr.Range
                     +> genExpr astContext e1
-                    +> sepSpace
+                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                    +> dumpAndContinue
                     +> genThen synExpr.Range
                     +> genExpr astContext e2
-                    +> col sepNone elfis (fun elf -> sepSpace +> genElifOneliner elf)
-                    +> opt id enOpt (fun e4 ->
-                           (sepSpace
-                            +> genElse synExpr.Range
-                            +> genExpr astContext e4))
+                    // +> col sepNone elfis (fun elf -> sepSpace +> genElifOneliner elf)
+                    +> genShortElse enOpt synExpr.Range
 
                 let isIfThenElse =
                     function
                     | SynExpr.IfThenElse _ -> true
                     | _ -> false
 
-                // This is a simplistic check to see if everything fits on one line
-                let isOneLiner =
-                    not hasElfis
-                    && not isAnyExpressionIsLongerButNotMultiline
-                    && not isAnyExpressionIsMultiline
-                    && not hasCommentAfterIfBranchExpr
-                    && not anyElifBranchHasCommentAfterBranchExpr
-                    && not (isIfThenElse e2)
-                    && not (futureNlnCheck genOneliner ctx)
+                let longIfThenElse =
+                    genIf synExpr.Range
+                    // f.ex. if // meh
+                    //           x
+                    // bool expr x should be indented
+                    +> ifElse hasCommentAfterIfKeyword (indent +> sepNln) sepNone
+                    +> (match e1 with
+                        | SynExpr.TryWith _
+                        | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e1 +> sepCloseT
+                        | AppTuple _ when (isConditionMultiline) ->
+                            sepOpenT
+                            +> atCurrentColumn (genExpr astContext e1)
+                            +> sepCloseT
+                        | _ -> genExpr astContext e1)
+                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                    //+> ifElse hasCommentAfterBoolExpr sepNln sepSpace
+                    +> genThen synExpr.Range
+                    // f.ex if x then // meh
+                    //          0
+                    // 0 should be indented
+                    +> ifElse
+                        (hasCommentAfterIfBranchThenKeyword
+                         && not hasCommentAfterIfKeyword)
+                           indent
+                           sepNone
+                    // f.ex. if x //
+                    //       then
+                    //           0
+                    // 0 should be indented
+                    +> ifElse
+                        (hasCommentAfterBoolExpr
+                         && not hasCommentAfterIfKeyword)
+                           indent
+                           sepNone
+                    // normal scenario
+                    // f.ex. if (longCondition
+                    //          && onMultipleLines) then
+                    //           x
+                    +> ifElse
+                        (not hasCommentAfterIfKeyword
+                         && not hasCommentAfterBoolExpr
+                         && not hasCommentAfterIfBranchThenKeyword)
+                           indent
+                           sepNone
+                    +> sepNln
+                    +> genExpr astContext e2
+                    +> unindent
+                    +> sepNln
+                    +> col sepNln elfis genElifMultiLine
+                    +> opt id enOpt (fun e4 ->
+                           let correctedElseRange =
+                               match List.tryLast elfis with
+                               | Some (_, te, _) -> mkRange "correctedElseRange" te.Range.End synExpr.Range.End
+                               | None -> synExpr.Range
 
-                let keepIfThenInSameLine = ctx.Config.KeepIfThenInSameLine
+                           onlyIf (List.isNotEmpty elfis) sepNln
+                           +> genElse correctedElseRange
+                           +> indent
+                           +> sepNln
+                           +> genExpr astContext e4
+                           +> unindent)
 
-                let formatIfElseExpr =
-                    if isOneLiner then
-                        // Indentation of conditionals depends on the sizes of the expressions that make them up. If cond, e1 and e2 are short, simply write them on one line:
-                        // if cond then e1 else e2
-                        genOneliner
+                let shortIfThenElif ctx =
+                    // Try and format if each conditional follow the one-liner rules
+                    // Abort if something is too long
+                    let shortCtx, isShort =
+                        let elseExpr =
+                            let elseRange =
+                                List.last elfis
+                                |> fun (_, _, r) -> mkRange "elseRange" r.End synExpr.Range.End
 
-                    elif not isOneLiner
-                         && not isAnyExpressionIsMultiline
-                         && isAnyExpressionIsLongerButNotMultiline
-                         && not keepIfThenInSameLine then
-                        // If either cond, e1 or e2 are longer, but not multi-line:
-                        // if cond
-                        // then e1
-                        // else e2
+                            enOpt
+                            |> Option.map (fun _ -> genShortElse enOpt elseRange)
+                            |> Option.toList
 
-                        genIf synExpr.Range
-                        +> genExpr astContext e1
-                        +> sepNln
-                        +> genThen synExpr.Range
-                        +> genExpr astContext e2
-                        +> sepNln
-                        +> col sepNln elfis genElifTwoLiner
-                        +> opt id enOpt (fun e4 ->
-                               onlyIf (List.isNotEmpty elfis) sepNln
-                               +> genElse synExpr.Range
-                               +> genExpr astContext e4)
+                        let exprs =
+                            [ genOneliner None
+                              yield! (List.map genElifOneliner elfis)
+                              yield! elseExpr ]
 
-                    elif hasElfis
-                         && not isAnyExpressionIsMultiline
-                         && not isAnyExpressionIsLongerButNotMultiline then
-                        // Multiple conditionals with elif and else are indented at the same scope as the if:
-                        // if cond1 then e1
-                        // elif cond2 then e2
-                        // elif cond3 then e3
-                        // else e4
+                        let lastIndex = List.length exprs - 1
 
-                        genIf synExpr.Range
-                        +> genExpr astContext e1
-                        +> sepSpace
-                        +> genThen synExpr.Range
-                        +> genExpr astContext e2
-                        +> sepNln
-                        +> col sepNln elfis genElifOneliner
-                        +> opt id enOpt (fun e4 ->
-                               let correctedElseRange =
-                                   match List.tryLast elfis with
-                                   | Some (_, te, _) -> mkRange "correctedElseRange" te.Range.End synExpr.Range.End
-                                   | None -> synExpr.Range
+                        exprs
+                        |> List.indexed
+                        |> List.fold (fun (acc, allLinesShort) (idx, expr) ->
+                            if allLinesShort then
+                                let lastLine, lastColumn = acc.WriterModel.Lines.Length, acc.Column
 
-                               sepNln
-                               +> genElse correctedElseRange
-                               +> genExpr astContext e4)
+                                let nextCtx = expr acc
 
-                    else if hasCommentAfterIfBranchExpr && not hasElfis then
-                        // f.ex
-                        // if x then 0 // meh
-                        // else 1
-                        genIf synExpr.Range
-                        +> genExpr astContext e1
-                        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-                        +> genThen synExpr.Range
-                        +> genExpr astContext e2
-                        +> sepNln
-                        +> opt id enOpt (fun e4 -> genElse synExpr.Range +> genExpr astContext e4)
+                                let currentLine, currentColumn =
+                                    nextCtx.WriterModel.Lines.Length, nextCtx.Column
 
+                                let isStillShort =
+                                    lastLine = currentLine
+                                    && (currentColumn - lastColumn
+                                        <= acc.Config.MaxIfThenElseShortWidth)
+
+                                (ifElse (lastIndex > idx) sepNln sepNone nextCtx, isStillShort)
+                            else
+                                ctx, false) (ctx, true)
+
+                    if isShort then shortCtx else longIfThenElse ctx
+
+                let expr =
+                    if hasElfis && not (isIfThenElse e2) then
+                        shortIfThenElif
+                    elif isIfThenElse e2 then
+                        // If branch expression is an if/then/else expressions.
+                        // Always go with long version in this case
+                        longIfThenElse
                     else
-                        // If any of the expressions are multi-line:
-                        // if cond then
-                        //     e1
-                        // else
-                        //     e2
+                        let shortExpression = genOneliner enOpt
+                        let longExpression = longIfThenElse
 
-                        genIf synExpr.Range
-                        // f.ex. if // meh
-                        //           x
-                        // bool expr x should be indented
-                        +> ifElse hasCommentAfterIfKeyword (indent +> sepNln) sepNone
-                        +> (match e1 with
-                            | SynExpr.TryWith _
-                            | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e1 +> sepCloseT
-                            | AppTuple _ when (isConditionMultiline) ->
-                                sepOpenT
-                                +> atCurrentColumn (genExpr astContext e1)
-                                +> sepCloseT
-                            | _ -> genExpr astContext e1)
-                        +> ifElse hasCommentAfterBoolExpr sepNln sepSpace
-                        +> genThen synExpr.Range
-                        // f.ex if x then // meh
-                        //          0
-                        // 0 should be indented
-                        +> ifElse
-                            (hasCommentAfterIfBranchThenKeyword
-                             && not hasCommentAfterIfKeyword)
-                               indent
-                               sepNone
-                        // f.ex. if x //
-                        //       then
-                        //           0
-                        // 0 should be indented
-                        +> ifElse
-                            (hasCommentAfterBoolExpr
-                             && not hasCommentAfterIfKeyword)
-                               indent
-                               sepNone
-                        // normal scenario
-                        // f.ex. if (longCondition
-                        //          && onMultipleLines) then
-                        //           x
-                        +> ifElse
-                            (not hasCommentAfterIfKeyword
-                             && not hasCommentAfterBoolExpr
-                             && not hasCommentAfterIfBranchThenKeyword)
-                               indent
-                               sepNone
-                        +> sepNln
-                        +> genExpr astContext e2
-                        +> unindent
-                        +> sepNln
-                        +> col sepNln elfis genElifMultiLine
-                        +> opt id enOpt (fun e4 ->
-                               let correctedElseRange =
-                                   match List.tryLast elfis with
-                                   | Some (_, te, _) -> mkRange "correctedElseRange" te.Range.End synExpr.Range.End
-                                   | None -> synExpr.Range
+                        isShortExpression ctx.Config.MaxIfThenElseShortWidth shortExpression longExpression
 
-                               onlyIf (List.isNotEmpty elfis) sepNln
-                               +> genElse correctedElseRange
-                               +> indent
-                               +> sepNln
-                               +> genExpr astContext e4
-                               +> unindent)
-
-                (atCurrentColumn formatIfElseExpr) ctx
+                atCurrentColumn expr ctx
 
         // At this stage, all symbolic operators have been handled.
         | OptVar (s, isOpt, ranges) ->
