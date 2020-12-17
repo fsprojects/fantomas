@@ -1,3 +1,7 @@
+### 4.4.0-alpha-002 - 12/2020
+
+* Revisit SynExpr.IfThenElse without Else branch [#1258](https://github.com/fsprojects/fantomas/issues/1258)
+
 ### 4.4.0-alpha-001 - 12/2020
 
 * Revisit SynExpr.IfThenElse. [#1258](https://github.com/fsprojects/fantomas/issues/1258)

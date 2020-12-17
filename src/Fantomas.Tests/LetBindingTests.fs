@@ -237,12 +237,12 @@ let ``newlines inside let binding should be not duplicated`` () =
                MaxInfixOperatorExpression = 60 })
     |> should equal """let foo =
     let next _ =
-        if not animating
-        then activeIndex.update ((activeIndex.current + 1) % itemLength)
+        if not animating then
+            activeIndex.update ((activeIndex.current + 1) % itemLength)
 
     let prev _ =
-        if not animating
-        then activeIndex.update ((activeIndex.current + itemLength - 1) % itemLength)
+        if not animating then
+            activeIndex.update ((activeIndex.current + itemLength - 1) % itemLength)
 
     ()
 """
@@ -1184,8 +1184,8 @@ let months =
       "December" ]
 
 let lookupMonth month =
-    if (month > 12 || month < 1)
-    then invalidArg (nameof month) (sprintf "Value passed in was %d." month)
+    if (month > 12 || month < 1) then
+        invalidArg (nameof month) (sprintf "Value passed in was %d." month)
 
     months.[month - 1]
 

@@ -188,8 +188,8 @@ module Caching =
                     match balance with
                     | NotAvailable -> NotAvailable
                     | Cached (balance, time) ->
-                        if compoundBalance < 0.0m
-                        then ReportProblem compoundBalance None currency address sessionCachedNetworkData
+                        if compoundBalance < 0.0m then
+                            ReportProblem compoundBalance None currency address sessionCachedNetworkData
 
                         ())
 
@@ -222,7 +222,9 @@ module Caching =
                     match balance with
                     | NotAvailable -> NotAvailable
                     | Cached (balance, time) ->
-                        if compoundBalance < 0.0m then ReportProblem compoundBalance
+                        if compoundBalance < 0.0m then
+                            ReportProblem compoundBalance
+
                         ())
 
             ()
