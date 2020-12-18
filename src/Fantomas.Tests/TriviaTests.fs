@@ -37,8 +37,7 @@ let a = 9
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (lineComment)) ] }; { ContentItself = Some (Number ("9")) } ] ->
-        lineComment == "// meh"
+    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (lineComment)) ] } ] -> lineComment == "// meh"
     | _ -> failwith "Expected line comment"
 
 [<Test>]
@@ -50,8 +49,7 @@ let a = 'c'
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (lineComment)) ] };
-        { ContentItself = Some (CharContent ("\'c\'")) } ] -> lineComment == "// foo"
+    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (lineComment)) ] } ] -> lineComment == "// foo"
     | _ -> failwith "Expected line comment"
 
 [<Test>]
@@ -61,9 +59,7 @@ let ``line comment on same line, is after last AST item`` () =
 
     match triviaNodes with
     | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
-          ContentAfter = [ Comment (LineCommentAfterSourceCode (lineComment)) ] };
-        { Type = MainNode (SynExpr_Const)
-          ContentItself = Some (Number ("7")) } ] -> lineComment == "// should be 8"
+          ContentAfter = [ Comment (LineCommentAfterSourceCode (lineComment)) ] } ] -> lineComment == "// should be 8"
     | _ -> fail ()
 
 [<Test>]
@@ -74,8 +70,7 @@ let b = 9"""
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentItself = Some (Number ("7")) }; { ContentBefore = [ Newline ] };
-        { ContentItself = Some (Number ("9")) } ] -> pass ()
+    | [ { ContentBefore = [ Newline ] } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -93,7 +88,7 @@ let a = 7
 // bar"""
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (comments)) ] }; { ContentItself = Some (Number ("7")) } ] ->
+    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (comments)) ] } ] ->
         String.normalizeNewLine comments
         == expectedComment
     | _ -> fail ()
@@ -109,8 +104,7 @@ let ``comments inside record`` () =
 
     match triviaNodes with
     | [ { Type = TriviaNodeType.Token (LBRACE, _)
-          ContentAfter = [ Comment (LineCommentAfterSourceCode ("// foo")) ] }; { ContentItself = Some (Number ("7")) } ] ->
-        pass ()
+          ContentAfter = [ Comment (LineCommentAfterSourceCode ("// foo")) ] } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -124,8 +118,7 @@ let ``comment after all source code`` () =
 
     match triviaNodes with
     | [ { Type = MainNode (mn)
-          ContentAfter = [ Comment (LineCommentOnSingleLine (lineComment)) ] };
-        { ContentItself = Some (Number ("123")) } ] ->
+          ContentAfter = [ Comment (LineCommentOnSingleLine (lineComment)) ] } ] ->
         mn == SynModuleDecl_Types
 
         lineComment
@@ -141,8 +134,7 @@ let ``block comment added to trivia`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (BlockComment (comment, _, _)) ]
-          ContentItself = Some (Number ("9")) } ] -> comment == "(* meh *)"
+    | [ { ContentBefore = [ Comment (BlockComment (comment, _, _)) ] } ] -> comment == "(* meh *)"
     | _ -> failwith "Expected block comment"
 
 [<Test>]
@@ -200,8 +192,7 @@ let a =  9
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (BlockComment (comment, _, true)) ] }; { ContentItself = Some (Number ("9")) } ] ->
-        comment == "(* // meh *)"
+    | [ { ContentBefore = [ Comment (BlockComment (comment, _, true)) ] } ] -> comment == "(* // meh *)"
     | _ -> failwith "Expected block comment"
 
 
@@ -486,4 +477,15 @@ type LongIdentWithDots =
     match trivia with
     | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (comment)) ] } ] ->
         String.normalizeNewLine comment == expectedComment
+    | _ -> fail ()
+
+[<Test>]
+let ``number expression`` () =
+    let source = sprintf "let x = 2.0m"
+
+    let trivia = toTrivia source |> List.head
+
+    match trivia with
+    | [ { ContentItself = Some (Number (n))
+          Type = TriviaNodeType.MainNode (SynExpr_Const) } ] -> n == "2.0m"
     | _ -> fail ()
