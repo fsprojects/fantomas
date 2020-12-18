@@ -487,13 +487,23 @@ let private isOperatorOrKeyword ({ TokenInfo = { CharClass = cc } }) =
     cc = FSharpTokenCharKind.Keyword
     || cc = FSharpTokenCharKind.Operator
 
-let onlyNumberRegex =
+let private onlyNumberRegex =
     System.Text.RegularExpressions.Regex(@"^\d+$")
 
 let private isNumber ({ TokenInfo = tn; Content = content }) =
     tn.ColorClass = FSharpTokenColorKind.Number
     && List.contains tn.TokenName numberTrivia
     && not (onlyNumberRegex.IsMatch(content))
+
+let private digitOrLetterCharRegex =
+    System.Text.RegularExpressions.Regex(@"^'(\d|[a-zA-Z])'$")
+
+let (|CharToken|_|) token =
+    if token.TokenInfo.TokenName = "CHAR"
+       && not (digitOrLetterCharRegex.IsMatch(token.Content)) then
+        Some token
+    else
+        None
 
 let private identIsDecompiledOperator (token: Token) =
     let decompiledName =
@@ -737,7 +747,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
 
         getTriviaFromTokensThemSelves allTokens rest info
 
-    | head :: rest when (head.TokenInfo.TokenName = "CHAR") ->
+    | CharToken (head) :: rest ->
         let range =
             getRangeBetween head.TokenInfo.TokenName head head
 

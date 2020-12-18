@@ -49,8 +49,7 @@ let a = 'c'
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (lineComment)) ] };
-        { ContentItself = Some (CharContent ("\'c\'")) } ] -> lineComment == "// foo"
+    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (lineComment)) ] } ] -> lineComment == "// foo"
     | _ -> failwith "Expected line comment"
 
 [<Test>]

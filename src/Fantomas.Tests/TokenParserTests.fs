@@ -430,16 +430,6 @@ let ``ident between tickets `` () =
     | _ -> fail ()
 
 [<Test>]
-let ``simple char content`` () =
-    let source = "let someChar = \'s\'"
-
-    let triviaNodes = tokenize source |> getTriviaFromTokens
-
-    match triviaNodes with
-    | [ { Item = CharContent ("\'s\'") } ] -> pass ()
-    | _ -> fail ()
-
-[<Test>]
 let ``escaped char content`` () =
     let source = "let nulchar = \'\\u0000\'"
 
