@@ -252,3 +252,18 @@ let a = \\\"\\\\\\\"
 
     getDefines source == []
 "
+
+[<Test>]
+let ``escaped single quote`` () =
+    formatSourceString
+        false
+        """
+let x = !-(sprintf "\'%s\'" escapedChar)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x = !-(sprintf "\'%s\'" escapedChar)
+"""

@@ -518,7 +518,7 @@ let private (|InterpStringEndToken|_|) token =
         None
 
 let escapedCharacterRegex =
-    System.Text.RegularExpressions.Regex("(\\\\(n|r|u|\\\"|\\\\))+")
+    System.Text.RegularExpressions.Regex("(\\\\(n|r|u|'|\\\"|\\\\))+")
 
 let rec private (|EndOfInterpolatedString|_|) tokens =
     match tokens with
