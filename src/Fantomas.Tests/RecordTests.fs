@@ -1344,3 +1344,84 @@ let internal sepSemi (ctx: Context) =
     | true, true -> str " ; "
     <| ctx
 """
+
+[<Test>]
+let ``record with an access modifier and a static member, 1300`` () =
+    formatSourceString
+        false
+        """
+type RequestParser<'ctx, 'a> =
+    internal
+        { consumedFields: Set<ConsumedFieldName>
+          parse: 'ctx -> Request -> Async<Result<'a, Error list>>
+          prohibited: ProhibitedRequestGetter list }
+
+        static member internal Create
+            (
+                consumedFields, parse: 'ctx -> Request -> Async<Result<'a, Error list>>
+            ) : RequestParser<'ctx, 'a> =
+            { consumedFields = consumedFields
+              parse = parse
+              prohibited = [] }
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type RequestParser<'ctx, 'a> =
+    internal
+        { consumedFields: Set<ConsumedFieldName>
+          parse: 'ctx -> Request -> Async<Result<'a, Error list>>
+          prohibited: ProhibitedRequestGetter list }
+
+    static member internal Create(consumedFields, parse: 'ctx -> Request -> Async<Result<'a, Error list>>)
+                                  : RequestParser<'ctx, 'a> =
+        { consumedFields = consumedFields
+          parse = parse
+          prohibited = [] }
+"""
+
+[<Test>]
+let ``record with an access modifier and a static member, MultilineBlockBracketsOnSameColumn`` () =
+    formatSourceString
+        false
+        """
+type RequestParser<'ctx, 'a> =
+    internal
+        { consumedFields: Set<ConsumedFieldName>
+          parse: 'ctx -> Request -> Async<Result<'a, Error list>>
+          prohibited: ProhibitedRequestGetter list }
+
+        static member internal Create
+            (
+                consumedFields, parse: 'ctx -> Request -> Async<Result<'a, Error list>>
+            ) : RequestParser<'ctx, 'a> =
+            { consumedFields = consumedFields
+              parse = parse
+              prohibited = [] }
+
+"""
+        { config with
+              MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type RequestParser<'ctx, 'a> =
+    internal
+        {
+            consumedFields: Set<ConsumedFieldName>
+            parse: 'ctx -> Request -> Async<Result<'a, Error list>>
+            prohibited: ProhibitedRequestGetter list
+        }
+
+    static member internal Create(consumedFields, parse: 'ctx -> Request -> Async<Result<'a, Error list>>)
+                                  : RequestParser<'ctx, 'a> =
+        {
+            consumedFields = consumedFields
+            parse = parse
+            prohibited = []
+        }
+"""
