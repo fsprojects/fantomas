@@ -487,9 +487,13 @@ let private isOperatorOrKeyword ({ TokenInfo = { CharClass = cc } }) =
     cc = FSharpTokenCharKind.Keyword
     || cc = FSharpTokenCharKind.Operator
 
-let private isNumber ({ TokenInfo = tn }) =
+let onlyNumberRegex =
+    System.Text.RegularExpressions.Regex(@"^\d+$")
+
+let private isNumber ({ TokenInfo = tn; Content = content }) =
     tn.ColorClass = FSharpTokenColorKind.Number
     && List.contains tn.TokenName numberTrivia
+    && not (onlyNumberRegex.IsMatch(content))
 
 let private identIsDecompiledOperator (token: Token) =
     let decompiledName =

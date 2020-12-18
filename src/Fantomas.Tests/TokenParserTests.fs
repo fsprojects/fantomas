@@ -162,7 +162,7 @@ let ``Single line block comment should be found in tokens`` () =
     | _ -> failwith "expected block comment"
 
 [<Test>]
-let ``Multi line block comment should be found in tokens`` () =
+let ``multi line block comment should be found in tokens`` () =
     let source = """let bar =
 (* multi
    line
@@ -179,7 +179,7 @@ let ``Multi line block comment should be found in tokens`` () =
 
     match triviaNodes with
     | [ { Item = Comment (BlockComment (blockComment, _, _))
-          Range = range }; { Item = Number ("7") } ] ->
+          Range = range } ] ->
         blockComment == expectedComment
         range.StartLine == 2
         range.EndLine == 4
@@ -241,7 +241,7 @@ let ``Comment after left brace of record`` () =
 
     match triviaNodes with
     | [ { Item = Comment (LineCommentAfterSourceCode (comment))
-          Range = range }; { Item = Number ("7") } ] ->
+          Range = range } ] ->
         comment == "// foo"
         range.StartLine == 2
     | _ -> failwith "expected line comment after left brace"
@@ -267,7 +267,7 @@ type T() =
     let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
-    | [ { Item = Newline; Range = rAbove }; { Item = Number ("123") } ] -> rAbove.StartLine == 1
+    | [ { Item = Newline; Range = rAbove } ] -> rAbove.StartLine == 1
     | _ -> fail ()
 
 [<Test>]
