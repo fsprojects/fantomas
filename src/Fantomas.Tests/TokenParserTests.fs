@@ -403,7 +403,6 @@ let ``with quotes`` () =
 
     List.length triviaNodes == 1
 
-
 [<Test>]
 let ``infix operator in full words inside an ident`` () =
     let source = """let op_LessThan(a, b) = a < b"""
@@ -496,7 +495,6 @@ let a = \"\\\"
 "
 
     getDefines source == []
-
 
 [<Test>]
 let ``defines inside triple quote string`` () =

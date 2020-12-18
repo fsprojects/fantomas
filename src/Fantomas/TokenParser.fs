@@ -498,12 +498,92 @@ let private isNumber ({ TokenInfo = tn; Content = content }) =
 let private digitOrLetterCharRegex =
     System.Text.RegularExpressions.Regex(@"^'(\d|[a-zA-Z])'$")
 
-let (|CharToken|_|) token =
+let private (|CharToken|_|) token =
     if token.TokenInfo.TokenName = "CHAR"
        && not (digitOrLetterCharRegex.IsMatch(token.Content)) then
         Some token
     else
         None
+
+let private (|StringTextToken|_|) token =
+    if token.TokenInfo.TokenName = "STRING_TEXT" then
+        Some token
+    else
+        None
+
+let private (|InterpStringEndToken|_|) token =
+    if token.TokenInfo.TokenName = "INTERP_STRING_END" then
+        Some token
+    else
+        None
+
+let escapedCharacterRegex =
+    System.Text.RegularExpressions.Regex("(\\\\(n|r|u|\\\"|\\\\))+")
+
+let rec private (|EndOfInterpolatedString|_|) tokens =
+    match tokens with
+    | StringTextToken (stToken) :: InterpStringEndToken (endToken) :: rest -> Some([ stToken ], endToken, rest)
+    | StringTextToken (stToken) :: EndOfInterpolatedString (stringTokens, endToken, rest) ->
+        Some(stToken :: stringTokens, endToken, rest)
+    | _ -> None
+
+let private (|StringText|_|) tokens =
+    match tokens with
+    | StringTextToken head :: rest ->
+        let stringTokens =
+            rest
+            |> List.takeWhile (fun { TokenInfo = { TokenName = tn } } -> tn = "STRING_TEXT")
+            |> fun others ->
+                let length = List.length others
+                let closingQuote = rest.[length]
+
+                [ yield head
+                  yield! others
+                  yield closingQuote ]
+
+        let stringContent =
+            let builder = StringBuilder()
+
+            stringTokens
+            |> List.fold
+                (fun (b: StringBuilder, currentLine) st ->
+                    if currentLine <> st.LineNumber then
+                        let delta = st.LineNumber - currentLine
+
+                        [ 1 .. delta ]
+                        |> List.iter (fun _ -> b.Append("\n") |> ignore)
+
+                        b.Append(st.Content), st.LineNumber
+                    else
+                        b.Append(st.Content), st.LineNumber)
+                (builder, head.LineNumber)
+            |> fst
+            |> fun b -> b.ToString()
+
+        let stringStartIsSpecial () =
+            if stringContent.Length > 2 then
+                match stringContent.[0], stringContent.[1], stringContent.[2] with
+                | '@', '"', _
+                | '$', '"', _
+                | '"', '"', '"' -> true
+                | _ -> false
+            else
+                false
+
+        let hasEscapedCharacter () =
+            escapedCharacterRegex.IsMatch(stringContent)
+
+        let hasNewlines () = stringContent.Contains("\n")
+        let endsWithBinaryCharacter () = stringContent.EndsWith("\"B")
+
+        if stringStartIsSpecial ()
+           || hasEscapedCharacter ()
+           || hasNewlines ()
+           || endsWithBinaryCharacter () then
+            Some(head, stringTokens, rest, stringContent)
+        else
+            None
+    | _ -> None
 
 let private identIsDecompiledOperator (token: Token) =
     let decompiledName =
@@ -657,37 +737,22 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
 
         getTriviaFromTokensThemSelves allTokens nextRest info
 
-    | head :: rest when (head.TokenInfo.TokenName = "STRING_TEXT") ->
-        let stringTokens =
-            rest
-            |> List.takeWhile (fun { TokenInfo = { TokenName = tn } } -> tn = "STRING_TEXT")
-            |> fun others ->
-                let length = List.length others
-                let closingQuote = rest.[length]
-
-                [ yield head
-                  yield! others
-                  yield closingQuote ]
-
+    | EndOfInterpolatedString (stringTokens, interpStringEnd, rest) ->
         let stringContent =
-            let builder = StringBuilder()
+            [ yield! (List.map (fun t -> t.Content) stringTokens)
+              yield interpStringEnd.Content ]
+            |> String.concat String.Empty
 
-            stringTokens
-            |> List.fold
-                (fun (b: StringBuilder, currentLine) st ->
-                    if currentLine <> st.LineNumber then
-                        let delta = st.LineNumber - currentLine
+        let range =
+            getRangeBetween "string content" stringTokens.Head interpStringEnd
 
-                        [ 1 .. delta ]
-                        |> List.iter (fun _ -> b.Append("\n") |> ignore)
+        let info =
+            Trivia.Create(StringContent(stringContent)) range
+            |> List.prependItem foundTrivia
 
-                        b.Append(st.Content), st.LineNumber
-                    else
-                        b.Append(st.Content), st.LineNumber)
-                (builder, head.LineNumber)
-            |> fst
-            |> fun b -> b.ToString()
+        getTriviaFromTokensThemSelves allTokens rest info
 
+    | StringText (head, stringTokens, rest, stringContent) ->
         let lastToken =
             List.tryLast stringTokens
             |> Option.defaultValue head
