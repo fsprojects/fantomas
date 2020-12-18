@@ -1,3 +1,10 @@
+### 4.4.0-alpha-003 - 12/2020
+
+* Stricter trivia selection. [#1304](https://github.com/fsprojects/fantomas/pull/1304)
+* Fix static member should only have a single indent. [#1300](https://github.com/fsprojects/fantomas/issues/1300)
+* Fix Named string argument to type provider requires a space prior to '@', which Fantomas removes. [#1209](https://github.com/fsprojects/fantomas/issues/1209)
+* Fix Don't indent too far. [#659](https://github.com/fsprojects/fantomas/issues/659)
+
 ### 4.4.0-alpha-002 - 12/2020
 
 * Revisit SynExpr.IfThenElse without Else branch [#1258](https://github.com/fsprojects/fantomas/issues/1258)
