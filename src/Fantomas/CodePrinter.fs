@@ -3548,6 +3548,7 @@ and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
     )
     +> sepCloseS
     +> leaveNodeTokenByName tdr.Range RBRACE
+    +> optSingle (fun _ -> unindent) ao'
     +> onlyIf (List.isNotEmpty ms) sepNln
     +> sepNlnBetweenTypeAndMembers ms
     +> genMemberDefnList
@@ -3570,6 +3571,7 @@ and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
     +> unindent
     +> sepNln
     +> sepCloseSFixed
+    +> optSingle (fun _ -> unindent) ao'
     +> onlyIf (List.isNotEmpty ms) sepNln
     +> sepNlnBetweenTypeAndMembers ms
     +> genMemberDefnList
