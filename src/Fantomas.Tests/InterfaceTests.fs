@@ -26,7 +26,7 @@ type Interface3 =
         equal
         """
 type IPrintable =
-    abstract Print: unit -> unit
+    abstract member Print: unit -> unit
 
 type SomeClass1(x: int, y: float) =
     interface IPrintable with
@@ -35,7 +35,7 @@ type SomeClass1(x: int, y: float) =
 type Interface3 =
     inherit Interface1
     inherit Interface2
-    abstract Method3: int -> int
+    abstract member Method3: int -> int
 """
 
 [<Test>]
@@ -202,10 +202,10 @@ type MyLogInteface() =
         equal
         """
 type LogInterface =
-    abstract Print: string -> unit
-    abstract GetLogFile: string -> string
-    abstract Info: unit -> unit
-    abstract Version: unit -> unit
+    abstract member Print: string -> unit
+    abstract member GetLogFile: string -> string
+    abstract member Info: unit -> unit
+    abstract member Version: unit -> unit
 
 type MyLogInteface() =
     interface LogInterface with

@@ -237,7 +237,7 @@ let ``abstract and override keywords`` () =
         """
 type MyClassBase1() =
     let mutable z = 0
-    abstract Function1: int -> int
+    abstract member Function1: int -> int
 
     default u.Function1(a: int) =
         z <- z + a
@@ -1021,8 +1021,8 @@ type A =
         equal
         """
 type A =
-    abstract M: int -> (int -> unit)
-    abstract M: float -> int
+    abstract member M: int -> (int -> unit)
+    abstract member M: float -> int
 """
 
 [<Test>]
@@ -1039,8 +1039,8 @@ type A =
         equal
         """
 type A =
-    abstract M: (int -> int) -> unit
-    abstract M: float -> int
+    abstract member M: (int -> int) -> unit
+    abstract member M: float -> int
 """
 
 [<Test>]

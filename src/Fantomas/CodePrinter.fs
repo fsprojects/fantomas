@@ -4389,10 +4389,27 @@ and genMemberDefn astContext node =
             | [] -> sepColon
             | _ -> sepColonWithSpacesFixed
 
+        let genAbstractMemberKeyword (ctx: Context) =
+            Map.tryFindOrEmptyList MEMBER ctx.TriviaTokenNodes
+            |> List.choose
+                (fun tn ->
+                    if tn.Range.StartLine = node.Range.StartLine then
+                        match tn.ContentItself with
+                        | Some (Keyword (kw)) -> Some kw.Content
+                        | _ -> None
+                    else
+                        None)
+            |> List.tryHead
+            |> fun keywordOpt ->
+                match keywordOpt with
+                | Some kw -> sprintf "%s %s" kw s
+                | None -> sprintf "abstract %s" s
+            |> fun s -> !- s ctx
+
         genPreXmlDoc px
         +> genAttributes astContext ats
         +> opt sepSpace ao genAccess
-        -- sprintf "abstract %s" s
+        +> genAbstractMemberKeyword
         +> genTypeParamPostfix astContext tds tcs
         +> sepColonX
         +> genTypeList astContext namedArgs
