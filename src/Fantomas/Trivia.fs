@@ -390,6 +390,7 @@ let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding
         |> updateTriviaNode
             (fun tn ->
                 match tn.Type, tn.ContentItself with
+                | TriviaNodeType.Token (MEMBER, _), Some (Keyword ({ Content = existingKeywordContent } as token))
                 | MainNode (SynMemberSig_Member), Some (Keyword ({ Content = existingKeywordContent } as token)) when existingKeywordContent = "abstract"
                                                                                                                       && keyword = "member" ->
                     // Combine the two tokens to appear as one
