@@ -589,9 +589,10 @@ let ``internal keyword included in function signature length check`` () =
     |> should
         equal
         """
-let internal UpdateStrongNaming (assembly : AssemblyDefinition)
-                                (key : StrongNameKeyPair option)
-                                =
+let internal UpdateStrongNaming
+    (assembly : AssemblyDefinition)
+    (key : StrongNameKeyPair option)
+    =
     assembly.Name
 
 let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
@@ -632,9 +633,10 @@ module FormatCode =
         CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
 
     [<FunctionName("FormatCode")>]
-    let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
-            (log: ILogger)
-            =
+    let run
+        ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+        (log: ILogger)
+        =
         Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
 """
 
@@ -696,13 +698,14 @@ let private addTaskToScheduler (scheduler : IScheduler) taskName taskCron prio (
     |> should
         equal
         """
-let private addTaskToScheduler (scheduler: IScheduler)
-                               taskName
-                               taskCron
-                               prio
-                               (task: unit -> unit)
-                               groupName
-                               =
+let private addTaskToScheduler
+    (scheduler: IScheduler)
+    taskName
+    taskCron
+    prio
+    (task: unit -> unit)
+    groupName
+    =
     let mutable jobDataMap = JobDataMap()
     jobDataMap.["task"] <- task
 
@@ -751,9 +754,10 @@ let ``long function signature should align with equal sign, no return type`` () 
     |> should
         equal
         """
-let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
-              (initState : 'State)
-              =
+let readModel
+  (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
+  (initState : 'State)
+  =
   ()
 """
 
@@ -770,10 +774,12 @@ let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq, input: 'Input, input2
     |> should
         equal
         """
-let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq,
-          input: 'Input,
-          input2: 'Input,
-          input3: 'Input) =
+let fold
+    (funcs: ResultFunc<'Input, 'Output, 'TError> seq,
+     input: 'Input,
+     input2: 'Input,
+     input3: 'Input)
+    =
     ()
 """
 
@@ -952,13 +958,14 @@ module Infrastructure =
         """
 module Infrastructure =
 
-    let internal ReportMessage (message: string)
+    let internal ReportMessage
+        (message: string)
 #if DEBUG
-                               (_: ErrorLevel)
+        (_: ErrorLevel)
 #else
-                               (errorLevel: ErrorLevel)
+        (errorLevel: ErrorLevel)
 #endif
-                               =
+        =
 #if DEBUG
         failwith message
 #else
@@ -1138,4 +1145,33 @@ let subtract (a: int) (b: int) = a - b
 let private multiply a b = a * b
 let internal divide a b = a / b
 let SetQuartzLogger l = LogProvider.SetCurrentLogProvider(l)
+"""
+
+[<Test>]
+let ``long function definition without return type, 1307`` () =
+    formatSourceString
+        false
+        """
+module M =
+    let LongFunctionWithLotsOfParameters
+        (aVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+        (aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+        (aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+        =
+        // ... the body of the method follows
+        ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module M =
+    let LongFunctionWithLotsOfParameters
+        (aVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+        (aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+        (aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+        =
+        // ... the body of the method follows
+        ()
 """

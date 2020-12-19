@@ -1957,16 +1957,17 @@ let ``compiler defines around parameter type definition, no defines`` () =
     |> should
         equal
         """
-let UpdateUI (theModel:
+let UpdateUI
+    (theModel:
 #if NETCOREAPP2_1
 
 #else
-                        TreeModel
+               TreeModel
 #endif
-             )
-             (info: FileInfo)
-             ()
-             =
+    )
+    (info: FileInfo)
+    ()
+    =
     // File is good so enable the refresh button
     h.refreshButton.Sensitive <- true
     // Do real UI work here
@@ -2001,16 +2002,17 @@ let ``compiler defines around parameter type definition, 633`` () =
     |> should
         equal
         """
-let UpdateUI (theModel:
+let UpdateUI
+    (theModel:
 #if NETCOREAPP2_1
-                        ITreeModel
+               ITreeModel
 #else
-                        TreeModel
+               TreeModel
 #endif
-             )
-             (info: FileInfo)
-             ()
-             =
+    )
+    (info: FileInfo)
+    ()
+    =
     // File is good so enable the refresh button
     h.refreshButton.Sensitive <- true
     // Do real UI work here

@@ -4695,36 +4695,17 @@ and getLetBindingFunction (astContext: ASTContext)
             +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEq
 
         let long (ctx: Context) =
-            if ctx.Config.AlignFunctionSignatureToIndentation then
-                (genPref
-                 +> afterLetKeyword
-                 +> sepSpace
-                 +> genFunctionName
-                 +> indent
-                 +> sepNln
-                 +> genParameters sepNln
-                 +> sepNln
-                 +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEqFixed
-                 +> unindent)
-                    ctx
-            else
-                let genEq, genNlnAfterParameters =
-                    match parameters with
-                    | [ _, PatParen (PatTuple _) ]
-                    | [ _, PatParen (PatTyped (_, SynType.AnonRecd _)) ] -> sepEq, sepNone
-                    | _ -> sepEqFixed, sepNln
-
-                (genPref
-                 +> afterLetKeyword
-                 +> sepSpace
-                 +> genFunctionName
-                 +> sepSpace
-                 +> atCurrentColumn (
-                     genParameters sepNln
-                     +> genNlnAfterParameters
-                     +> tokN rangeBetweenBindingPatternAndExpression EQUALS genEq
-                 ))
-                    ctx
+            (genPref
+             +> afterLetKeyword
+             +> sepSpace
+             +> genFunctionName
+             +> indent
+             +> sepNln
+             +> genParameters sepNln
+             +> sepNln
+             +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEqFixed
+             +> unindent)
+                ctx
 
         expressionFitsOnRestOfLine short long
 
