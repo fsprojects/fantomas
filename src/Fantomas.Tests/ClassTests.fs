@@ -132,7 +132,7 @@ type Shape2D(x0: float, y0: float) =
         x <- x + dx
         y <- y + dy
 
-    abstract Rotate: float -> unit
+    abstract member Rotate: float -> unit
     default this.Rotate(angle) = rotAngle <- rotAngle + angle
 """
 
@@ -761,3 +761,24 @@ indent_size=2
   9
 \"\"\"
 "
+
+[<Test>]
+let ``keep abstract member keywords, 1106`` () =
+    formatSourceString
+        false
+        """
+module Example
+
+type Foo =
+    abstract member bar : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Example
+
+type Foo =
+    abstract member bar: int
+"""
