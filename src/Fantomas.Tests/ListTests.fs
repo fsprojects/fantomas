@@ -2093,3 +2093,34 @@ type FSharpCompilerServiceChecker(backgroundServiceEnabled) =
                       |> Array.map (fun (_, v) -> Path.GetFullPath v.ProjectFileName)
                       |> Array.contains option.ProjectFileName) ])
 """
+
+[<Test>]
+let ``yield inside list that is part of multi line function application, 1191`` () =
+    formatSourceString
+        false
+        """
+let private fn (xs: int []) =
+    fn2
+        ""
+        [ let r = Seq.head xs
+
+          yield r
+
+          let s = fn2()
+          s.DoSomething() ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let private fn (xs: int []) =
+    fn2
+        ""
+        [ let r = Seq.head xs
+
+          yield r
+
+          let s = fn2 ()
+          s.DoSomething() ]
+"""
