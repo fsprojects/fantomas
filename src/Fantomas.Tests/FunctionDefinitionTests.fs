@@ -775,11 +775,12 @@ let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq, input: 'Input, input2
         equal
         """
 let fold
-    (funcs: ResultFunc<'Input, 'Output, 'TError> seq,
-     input: 'Input,
-     input2: 'Input,
-     input3: 'Input)
-    =
+    (
+        funcs: ResultFunc<'Input, 'Output, 'TError> seq,
+        input: 'Input,
+        input2: 'Input,
+        input3: 'Input
+    ) =
     ()
 """
 
@@ -1174,4 +1175,27 @@ module M =
         =
         // ... the body of the method follows
         ()
+"""
+
+[<Test>]
+let ``long function definition with tuple and without return type`` () =
+    formatSourceString false """
+let longFunctionWithLongTupleParameter
+    (aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+     aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+     aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+    =
+    // ... the body of the method follows
+    ()
+"""  config
+    |> prepend newline
+    |> should equal """
+let longFunctionWithLongTupleParameter
+    (
+        aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
+    ) =
+    // ... the body of the method follows
+    ()
 """

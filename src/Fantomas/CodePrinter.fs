@@ -4689,9 +4689,6 @@ and getLetBindingFunction (astContext: ASTContext)
             genericTypeParameters
             (fun (ValTyparDecls (tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
 
-    let genParameters sep =
-        col sep parameters (genPatWithIdent astContext)
-
     let genSignature =
         let firstParameter = List.head parameters |> snd
 
@@ -4708,21 +4705,41 @@ and getLetBindingFunction (astContext: ASTContext)
             +> afterLetKeyword
             +> genFunctionName
             +> ifElseCtx (addSpaceBeforeParensInFunDef astContext functionName firstParameter) sepSpace sepNone
-            +> genParameters sepSpace
+            +> col sepSpace parameters (genPatWithIdent astContext) 
             +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEq
 
         let long (ctx: Context) =
-            (genPref
-             +> afterLetKeyword
-             +> sepSpace
-             +> genFunctionName
-             +> indent
-             +> sepNln
-             +> genParameters sepNln
-             +> sepNln
-             +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEqFixed
-             +> unindent)
-                ctx
+            let genParameters, hasSingleTupledArg =
+                match parameters with
+                | [ _, PatParen (PatTuple ps) ] ->
+                    genParenTupleWithIndentAndNewlines ps astContext , true
+                | _ ->
+                    col sepNln parameters (genPatWithIdent astContext), false
+            
+            if ctx.Config.AlignFunctionSignatureToIndentation then
+                (genPref
+                 +> afterLetKeyword
+                 +> sepSpace
+                 +> genFunctionName
+                 +> indent
+                 +> sepNln
+                 +> col sepNln parameters (genPatWithIdent astContext)
+                 +> sepNln
+                 +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEqFixed
+                 +> unindent)
+                    ctx
+            else
+                (genPref
+                 +> afterLetKeyword
+                 +> sepSpace
+                 +> genFunctionName
+                 +> indent
+                 +> sepNln
+                 +> genParameters
+                 +> ifElse hasSingleTupledArg sepSpace sepNln 
+                 +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEqFixed
+                 +> unindent)
+                    ctx
 
         expressionFitsOnRestOfLine short long
 
@@ -4992,6 +5009,15 @@ and genLetBindingValue (astContext: ASTContext)
                 long ctx
             else
                 isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
+
+and genParenTupleWithIndentAndNewlines ps astContext =
+    sepOpenT
+    +> indent
+    +> sepNln
+    +> col (sepComma +> sepNln) ps (genPat astContext)
+    +> unindent
+    +> sepNln
+    +> sepCloseT
 
 and genConst (c: SynConst) (r: range) =
     match c with
