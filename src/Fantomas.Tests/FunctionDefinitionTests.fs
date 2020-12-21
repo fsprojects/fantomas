@@ -1179,7 +1179,9 @@ module M =
 
 [<Test>]
 let ``long function definition with tuple and without return type`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let longFunctionWithLongTupleParameter
     (aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
      aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
@@ -1187,14 +1189,78 @@ let longFunctionWithLongTupleParameter
     =
     // ... the body of the method follows
     ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let longFunctionWithLongTupleParameter
     (
         aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
         aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
         aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
+    ) =
+    // ... the body of the method follows
+    ()
+"""
+
+[<Test>]
+let ``long function definition with tuple and without return type, AlignFunctionSignatureToIndentation`` () =
+    formatSourceString
+        false
+        """
+let longFunctionWithLongTupleParameter
+    (aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+     aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+     aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+    =
+    // ... the body of the method follows
+    ()
+"""
+        { config with
+              AlignFunctionSignatureToIndentation = true
+              SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let longFunctionWithLongTupleParameter
+    (
+        aVeryLongParam : AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongParam : AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongParam : AVeryLongTypeThatYouNeedToUse
+    )
+    =
+    // ... the body of the method follows
+    ()
+"""
+
+[<Test>]
+let ``long function definition with tuple without types and without return type`` () =
+    formatSourceString
+        false
+        """
+let longFunctionWithLongTupleParameter
+    (aVeryLongParam,
+     aSecondVeryLongParam,
+     aThirdVeryLongParam,
+     aFourthVeryLongParam)
+    =
+    // ... the body of the method follows
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let longFunctionWithLongTupleParameter
+    (
+        aVeryLongParam,
+        aSecondVeryLongParam,
+        aThirdVeryLongParam,
+        aFourthVeryLongParam
     ) =
     // ... the body of the method follows
     ()

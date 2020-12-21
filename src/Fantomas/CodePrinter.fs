@@ -4705,41 +4705,30 @@ and getLetBindingFunction (astContext: ASTContext)
             +> afterLetKeyword
             +> genFunctionName
             +> ifElseCtx (addSpaceBeforeParensInFunDef astContext functionName firstParameter) sepSpace sepNone
-            +> col sepSpace parameters (genPatWithIdent astContext) 
+            +> col sepSpace parameters (genPatWithIdent astContext)
             +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEq
 
         let long (ctx: Context) =
             let genParameters, hasSingleTupledArg =
                 match parameters with
-                | [ _, PatParen (PatTuple ps) ] ->
-                    genParenTupleWithIndentAndNewlines ps astContext , true
-                | _ ->
-                    col sepNln parameters (genPatWithIdent astContext), false
-            
-            if ctx.Config.AlignFunctionSignatureToIndentation then
-                (genPref
-                 +> afterLetKeyword
-                 +> sepSpace
-                 +> genFunctionName
-                 +> indent
-                 +> sepNln
-                 +> col sepNln parameters (genPatWithIdent astContext)
-                 +> sepNln
-                 +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEqFixed
-                 +> unindent)
-                    ctx
-            else
-                (genPref
-                 +> afterLetKeyword
-                 +> sepSpace
-                 +> genFunctionName
-                 +> indent
-                 +> sepNln
-                 +> genParameters
-                 +> ifElse hasSingleTupledArg sepSpace sepNln 
-                 +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEqFixed
-                 +> unindent)
-                    ctx
+                | [ _, PatParen (PatTuple ps) ] -> genParenTupleWithIndentAndNewlines ps astContext, true
+                | _ -> col sepNln parameters (genPatWithIdent astContext), false
+
+            (genPref
+             +> afterLetKeyword
+             +> sepSpace
+             +> genFunctionName
+             +> indent
+             +> sepNln
+             +> genParameters
+             +> ifElse
+                 (hasSingleTupledArg
+                  && not ctx.Config.AlignFunctionSignatureToIndentation)
+                 sepSpace
+                 sepNln
+             +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEqFixed
+             +> unindent)
+                ctx
 
         expressionFitsOnRestOfLine short long
 
