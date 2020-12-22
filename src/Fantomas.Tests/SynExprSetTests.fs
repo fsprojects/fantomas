@@ -199,3 +199,58 @@ let ``multi line DotNamedIndexedPropertySet`` () =
     |> string
     |> StringValues
 """
+
+[<Test>]
+let ``keep new line before SynExpr.DotIndexedSet, 1314`` () =
+    formatSourceString
+        false
+        """
+          match x with
+          | NotificationEvent.Lint (file, warnings) ->
+              let uri = Path.FilePathToUri file
+
+              diagnosticCollections.AddOrUpdate((uri, "F# Linter"), [||], (fun _ _ -> [||]))
+              |> ignore
+
+              let fs =
+                warnings
+                |> List.choose
+                     (fun w ->
+                       w.Warning.Details.SuggestedFix
+                       |> Option.bind
+                            (fun f ->
+                              let f = f.Force()
+                              let range = fcsRangeToLsp w.Warning.Details.Range
+
+                              f
+                              |> Option.map (fun f -> range, { Range = range; NewText = f.ToText })))
+
+              lintFixes.[uri] <- fs
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| NotificationEvent.Lint (file, warnings) ->
+    let uri = Path.FilePathToUri file
+
+    diagnosticCollections.AddOrUpdate((uri, "F# Linter"), [||], (fun _ _ -> [||]))
+    |> ignore
+
+    let fs =
+        warnings
+        |> List.choose
+            (fun w ->
+                w.Warning.Details.SuggestedFix
+                |> Option.bind
+                    (fun f ->
+                        let f = f.Force()
+                        let range = fcsRangeToLsp w.Warning.Details.Range
+
+                        f
+                        |> Option.map (fun f -> range, { Range = range; NewText = f.ToText })))
+
+    lintFixes.[uri] <- fs
+"""
