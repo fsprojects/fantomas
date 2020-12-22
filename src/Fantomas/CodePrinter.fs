@@ -4229,21 +4229,21 @@ and genClause astContext hasBar (Clause (p, e, eo)) =
     let arrowRange =
         mkRange "arrowRange" p.Range.End e.Range.Start
 
-    let body =
-        optPre
+    let body = clauseBody e
+
+    let astCtx =
+        { astContext with
+              IsInsideMatchClausePattern = true }
+
+    let pat =
+        genPat astCtx p
+        +> optPre
             (!- " when")
             sepNone
             eo
             (fun e -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
         +> sepArrow
         +> leaveNodeTokenByName arrowRange RARROW
-        +> clauseBody e
-
-    let astCtx =
-        { astContext with
-              IsInsideMatchClausePattern = true }
-
-    let pat = genPat astCtx p
 
     genTriviaBeforeClausePipe p.Range
     +> ifElse hasBar (sepBar +> atCurrentColumnWithPrepend pat body) (pat +> body)
