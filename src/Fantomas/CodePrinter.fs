@@ -2716,6 +2716,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.Lambda _ -> genTriviaFor SynExpr_Lambda synExpr.Range
             | SynExpr.ForEach _ -> genTriviaFor SynExpr_ForEach synExpr.Range
             | SynExpr.Match _ -> genTriviaFor SynExpr_Match synExpr.Range
+            | SynExpr.MatchBang _ -> genTriviaFor SynExpr_MatchBang synExpr.Range
             | SynExpr.YieldOrReturn _ -> genTriviaFor SynExpr_YieldOrReturn synExpr.Range
             | SynExpr.YieldOrReturnFrom _ -> genTriviaFor SynExpr_YieldOrReturnFrom synExpr.Range
             | SynExpr.TryFinally _ -> genTriviaFor SynExpr_TryFinally synExpr.Range
