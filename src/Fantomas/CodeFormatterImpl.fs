@@ -166,19 +166,20 @@ let isValidAST ast =
         | SynMemberDefn.ImplicitCtor _ -> true
         | SynMemberDefn.ImplicitInherit (_, expr, _, _) -> validateExpr expr
 
-    and validateBinding (Binding (_access,
-                                  _bindingKind,
-                                  _isInline,
-                                  _isMutable,
-                                  _attrs,
-                                  _xmldoc,
-                                  _valData,
-                                  headPat,
-                                  _retTy,
-                                  expr,
-                                  _bindingRange,
-                                  _seqPoint))
-                        =
+    and validateBinding
+        (Binding (_access,
+                  _bindingKind,
+                  _isInline,
+                  _isMutable,
+                  _attrs,
+                  _xmldoc,
+                  _valData,
+                  headPat,
+                  _retTy,
+                  expr,
+                  _bindingRange,
+                  _seqPoint))
+        =
         validateExpr expr && validatePattern headPat
 
     and validateClause (Clause (pat, expr, exprOpt)) =
@@ -535,14 +536,15 @@ let private stringPos (r: range) (sourceCode: string) =
 
     (start, finish)
 
-let private formatRange (checker: FSharpChecker)
-                        (parsingOptions: FSharpParsingOptions)
-                        returnFormattedContentOnly
-                        (range: range)
-                        (lines: _ [])
-                        config
-                        ({ Source = sourceCode } as formatContext)
-                        =
+let private formatRange
+    (checker: FSharpChecker)
+    (parsingOptions: FSharpParsingOptions)
+    returnFormattedContentOnly
+    (range: range)
+    (lines: _ [])
+    config
+    ({ Source = sourceCode } as formatContext)
+    =
     let startLine = range.StartLine
     let startCol = range.StartColumn
     let endLine = range.EndLine
@@ -681,13 +683,14 @@ let private formatRange (checker: FSharpChecker)
 
 /// Format a part of source string using given config, and return the (formatted) selected part only.
 /// Beware that the range argument is inclusive. If the range has a trailing newline, it will appear in the formatted result.
-let formatSelection (checker: FSharpChecker)
-                    (parsingOptions: FSharpParsingOptions)
-                    (range: range)
-                    config
-                    ({ Source = sourceCode
-                       FileName = fileName } as formatContext)
-                    =
+let formatSelection
+    (checker: FSharpChecker)
+    (parsingOptions: FSharpParsingOptions)
+    (range: range)
+    config
+    ({ Source = sourceCode
+       FileName = fileName } as formatContext)
+    =
     let lines =
         String.normalizeThenSplitNewLine sourceCode
 

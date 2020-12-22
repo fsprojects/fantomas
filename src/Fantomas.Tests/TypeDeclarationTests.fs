@@ -858,8 +858,9 @@ type CustomGraphControl() =
 """
 
 [<Test>]
-let ``should preserve orders on field declarations - attribute without parentheses and multiple spaces between attribute args`` ()
-                                                                                                                                =
+let ``should preserve orders on field declarations - attribute without parentheses and multiple spaces between attribute args``
+    ()
+    =
     formatSourceString
         false
         """

@@ -79,10 +79,11 @@ let inline private isNotMemberKeyword (node: TriviaNodeAssigner) =
     | Token (MEMBER, _) -> false
     | _ -> true
 
-let private findFirstNodeAfterLine (nodes: TriviaNodeAssigner list)
-                                   lineNumber
-                                   hasAnonModulesAndOpenStatements
-                                   : TriviaNodeAssigner option =
+let private findFirstNodeAfterLine
+    (nodes: TriviaNodeAssigner list)
+    lineNumber
+    hasAnonModulesAndOpenStatements
+    : TriviaNodeAssigner option =
     nodes
     |> List.tryFind
         (fun tn ->
@@ -309,12 +310,13 @@ let private addAllTriviaToEmptySynModuleOrNamespace (trivias: Trivia list) (sing
       ContentAfter = List.map (fun t -> t.Item) trivias }
     |> List.singleton
 
-let private addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding
-                                  hasAnonModulesAndOpenStatements
-                                  (startOfSourceCode: int)
-                                  (triviaNodes: TriviaNodeAssigner list)
-                                  trivia
-                                  =
+let private addTriviaToTriviaNode
+    triviaBetweenAttributeAndParentBinding
+    hasAnonModulesAndOpenStatements
+    (startOfSourceCode: int)
+    (triviaNodes: TriviaNodeAssigner list)
+    trivia
+    =
     match trivia with
     | { Item = Comment (LineCommentOnSingleLine _) as comment
         Range = range } when (commentIsAfterLastTriviaNode triviaNodes range) ->

@@ -58,8 +58,9 @@ type t() =
 """
 
 [<Test>]
-let ``SpaceBeforeUnitParameterInLowercaseClassConstructor should add space before unit in lowercase class definition`` ()
-                                                                                                                       =
+let ``SpaceBeforeUnitParameterInLowercaseClassConstructor should add space before unit in lowercase class definition``
+    ()
+    =
     formatSourceString
         false
         """type t() =
@@ -97,8 +98,9 @@ type Animal(length: int) =
 """
 
 [<Test>]
-let ``SpaceBeforeParenthesisParameterInUppercaseClassConstructor should add space before uppercase constructor of class`` ()
-                                                                                                                          =
+let ``SpaceBeforeParenthesisParameterInUppercaseClassConstructor should add space before uppercase constructor of class``
+    ()
+    =
     formatSourceString
         false
         """
@@ -136,8 +138,9 @@ type animal(length: int) =
 """
 
 [<Test>]
-let ``SpaceBeforeParenthesisParameterInLowercaseClassConstructor should add space before lowercase constructor of class`` ()
-                                                                                                                          =
+let ``SpaceBeforeParenthesisParameterInLowercaseClassConstructor should add space before lowercase constructor of class``
+    ()
+    =
     formatSourceString
         false
         """
@@ -291,8 +294,9 @@ type DerivedClass =
 """
 
 [<Test>]
-let ``should add space before inherit on constructor of class with multiline record, MultilineBlockBracketsOnSameColumn`` ()
-                                                                                                                          =
+let ``should add space before inherit on constructor of class with multiline record, MultilineBlockBracketsOnSameColumn``
+    ()
+    =
     formatSourceString
         false
         """

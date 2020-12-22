@@ -47,11 +47,12 @@ let createParsingOptionsFromFile fileName =
     { FSharpParsingOptions.Default with
           SourceFiles = [| fileName |] }
 
-let private formatContentInternalAsync (compareWithoutLineEndings: bool)
-                                       (config: FormatConfig)
-                                       (file: string)
-                                       (originalContent: string)
-                                       : Async<FormatResult> =
+let private formatContentInternalAsync
+    (compareWithoutLineEndings: bool)
+    (config: FormatConfig)
+    (file: string)
+    (originalContent: string)
+    : Async<FormatResult> =
     if IgnoreFile.isIgnoredFile file then
         async { return IgnoredFile file }
     else

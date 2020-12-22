@@ -273,8 +273,9 @@ h [
 """
 
 [<Test>]
-let ``number of items sized Elmish lists with single argument web mode and multiline block brackets on same column are formatted properly`` ()
-                                                                                                                                            =
+let ``number of items sized Elmish lists with single argument web mode and multiline block brackets on same column are formatted properly``
+    ()
+    =
     formatSourceString
         false
         """

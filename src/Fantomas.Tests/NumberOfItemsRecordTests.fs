@@ -852,8 +852,9 @@ type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
 """
 
 [<Test>]
-let ``number of items sized record definitions with multiline block brackets on same column are formatted properly`` ()
-                                                                                                                     =
+let ``number of items sized record definitions with multiline block brackets on same column are formatted properly``
+    ()
+    =
     formatSourceString
         false
         """
@@ -936,8 +937,9 @@ g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 """
 
 [<Test>]
-let ``number of items sized record expressions with multiline block brackets on same column are formatted properly`` ()
-                                                                                                                     =
+let ``number of items sized record expressions with multiline block brackets on same column are formatted properly``
+    ()
+    =
     formatSourceString
         false
         """
@@ -1060,8 +1062,9 @@ g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 """
 
 [<Test>]
-let ``number of items sized anonymous record expressions with multiline block brackets on same column are formatted properly`` ()
-                                                                                                                               =
+let ``number of items sized anonymous record expressions with multiline block brackets on same column are formatted properly``
+    ()
+    =
     formatSourceString
         false
         """
@@ -1159,8 +1162,9 @@ type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
 // FIXME: See https://github.com/fsprojects/fantomas/issues/1167
 [<Test>]
 [<Ignore("Issue #1167")>]
-let ``number of items sized anonymous record types with multiline block brackets on same column are formatted properly`` ()
-                                                                                                                         =
+let ``number of items sized anonymous record types with multiline block brackets on same column are formatted properly``
+    ()
+    =
     formatSourceString
         false
         """

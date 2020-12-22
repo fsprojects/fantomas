@@ -755,12 +755,13 @@ let internal eventsWithoutMultilineWrite ctx =
                   | _ -> true)
               |> Queue.ofSeq }
 
-let private shortExpressionWithFallback (shortExpression: Context -> Context)
-                                        (fallbackExpression)
-                                        maxWidth
-                                        startColumn
-                                        (ctx: Context)
-                                        =
+let private shortExpressionWithFallback
+    (shortExpression: Context -> Context)
+    (fallbackExpression)
+    maxWidth
+    startColumn
+    (ctx: Context)
+    =
     // if the context is already inside a ShortExpression mode and tries to figure out if the expression will go over the page width,
     // we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
@@ -1232,11 +1233,12 @@ let internal hasPrintableContent (trivia: TriviaContent list) =
             | Directive _ -> true
             | _ -> false)
 
-let private sepConsideringTriviaContentBeforeBy (findNode: Context -> range -> TriviaNode option)
-                                                (sepF: Context -> Context)
-                                                (range: range)
-                                                (ctx: Context)
-                                                =
+let private sepConsideringTriviaContentBeforeBy
+    (findNode: Context -> range -> TriviaNode option)
+    (sepF: Context -> Context)
+    (range: range)
+    (ctx: Context)
+    =
     match findNode ctx range with
     | Some ({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) -> ctx
     | _ -> sepF ctx
@@ -1273,11 +1275,12 @@ let internal sepNlnConsideringTriviaContentBeforeForToken (fsTokenKey: FsTokenTy
 let internal sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstType) (range: range) =
     sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
 
-let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor (mainNode: FsAstType)
-                                                                   (ownRange: range)
-                                                                   (attributeRanges: range seq)
-                                                                   (ctx: Context)
-                                                                   =
+let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
+    (mainNode: FsAstType)
+    (ownRange: range)
+    (attributeRanges: range seq)
+    (ctx: Context)
+    =
     let triviaNode =
         match Map.tryFind mainNode ctx.TriviaMainNodes with
         | Some triviaNodes ->
@@ -1339,10 +1342,11 @@ let internal sepNlnWhenWriteBeforeNewlineNotEmpty fallback (ctx: Context) =
     else
         fallback ctx
 
-let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNlnConsideringTriviaContentBefore
-                                                                  expr
-                                                                  (ctx: Context)
-                                                                  =
+let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth
+    sepNlnConsideringTriviaContentBefore
+    expr
+    (ctx: Context)
+    =
     expressionExceedsPageWidth
         sepNone
         sepNone // before and after for short expressions
