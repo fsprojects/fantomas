@@ -1,3 +1,11 @@
+### 4.4.0-alpha-004 12/2020
+
+* Fix Revisit place parameters on a new line for long definitions. [#1307](https://github.com/fsprojects/fantomas/issues/1307)
+* Fix static member should only have a single indent. [#1300](https://github.com/fsprojects/fantomas/issues/1300)
+* Fix Elmish-like syntax using yields with interspersed let statements breaks the code. [#1191](https://github.com/fsprojects/fantomas/issues/1191)
+* Fix The 'member' keyword gets deleted in 'abstract member' declarations. [#1106](https://github.com/fsprojects/fantomas/issues/1106)
+* Fix Don't indent too far. [#659](https://github.com/fsprojects/fantomas/issues/659)
+
 ### 4.4.0-alpha-003 - 12/2020
 
 * Stricter trivia selection. [#1304](https://github.com/fsprojects/fantomas/pull/1304)

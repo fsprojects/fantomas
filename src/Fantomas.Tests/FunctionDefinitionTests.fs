@@ -531,9 +531,10 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
     |> should
         equal
         """
-let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq)
-         (input : 'Input)
-         : Result<'Output list, 'TError list> =
+let fold
+    (funcs : ResultFunc<'Input, 'Output, 'TError> seq)
+    (input : 'Input)
+    : Result<'Output list, 'TError list> =
     let mutable anyErrors = false
     let mutable collectedOutputs = []
     let mutable collectedErrors = []
@@ -589,9 +590,10 @@ let ``internal keyword included in function signature length check`` () =
     |> should
         equal
         """
-let internal UpdateStrongNaming (assembly : AssemblyDefinition)
-                                (key : StrongNameKeyPair option)
-                                =
+let internal UpdateStrongNaming
+    (assembly : AssemblyDefinition)
+    (key : StrongNameKeyPair option)
+    =
     assembly.Name
 
 let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
@@ -632,9 +634,10 @@ module FormatCode =
         CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
 
     [<FunctionName("FormatCode")>]
-    let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
-            (log: ILogger)
-            =
+    let run
+        ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+        (log: ILogger)
+        =
         Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
 """
 
@@ -672,9 +675,10 @@ module FormatCode =
         CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
 
     [<FunctionName("FormatCode")>]
-    let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
-            (log: ILogger)
-            : HttpResponse =
+    let run
+        ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+        (log: ILogger)
+        : HttpResponse =
         Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
 """
 
@@ -696,13 +700,14 @@ let private addTaskToScheduler (scheduler : IScheduler) taskName taskCron prio (
     |> should
         equal
         """
-let private addTaskToScheduler (scheduler: IScheduler)
-                               taskName
-                               taskCron
-                               prio
-                               (task: unit -> unit)
-                               groupName
-                               =
+let private addTaskToScheduler
+    (scheduler: IScheduler)
+    taskName
+    taskCron
+    prio
+    (task: unit -> unit)
+    groupName
+    =
     let mutable jobDataMap = JobDataMap()
     jobDataMap.["task"] <- task
 
@@ -730,9 +735,10 @@ let ``long function signature should align with equal sign, 883`` () =
     |> should
         equal
         """
-let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
-              (initState : 'State)
-              : ReadModel<'Event, 'State> =
+let readModel
+  (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
+  (initState : 'State)
+  : ReadModel<'Event, 'State> =
   ()
 """
 
@@ -751,9 +757,10 @@ let ``long function signature should align with equal sign, no return type`` () 
     |> should
         equal
         """
-let readModel (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
-              (initState : 'State)
-              =
+let readModel
+  (updateState : 'State -> EventEnvelope<'Event> list -> 'State)
+  (initState : 'State)
+  =
   ()
 """
 
@@ -770,10 +777,13 @@ let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq, input: 'Input, input2
     |> should
         equal
         """
-let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq,
-          input: 'Input,
-          input2: 'Input,
-          input3: 'Input) =
+let fold
+    (
+        funcs: ResultFunc<'Input, 'Output, 'TError> seq,
+        input: 'Input,
+        input2: 'Input,
+        input3: 'Input
+    ) =
     ()
 """
 
@@ -790,11 +800,13 @@ let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq, input: 'Input, input2
     |> should
         equal
         """
-let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq,
-          input: 'Input,
-          input2: 'Input,
-          input3: 'Input)
-         : Result<'Output list, 'TError list> =
+let fold
+    (
+        funcs: ResultFunc<'Input, 'Output, 'TError> seq,
+        input: 'Input,
+        input2: 'Input,
+        input3: 'Input
+    ): Result<'Output list, 'TError list> =
     ()
 """
 
@@ -952,13 +964,14 @@ module Infrastructure =
         """
 module Infrastructure =
 
-    let internal ReportMessage (message: string)
+    let internal ReportMessage
+        (message: string)
 #if DEBUG
-                               (_: ErrorLevel)
+        (_: ErrorLevel)
 #else
-                               (errorLevel: ErrorLevel)
+        (errorLevel: ErrorLevel)
 #endif
-                               =
+        =
 #if DEBUG
         failwith message
 #else
@@ -1138,4 +1151,203 @@ let subtract (a: int) (b: int) = a - b
 let private multiply a b = a * b
 let internal divide a b = a / b
 let SetQuartzLogger l = LogProvider.SetCurrentLogProvider(l)
+"""
+
+[<Test>]
+let ``long function definition without return type, 1307`` () =
+    formatSourceString
+        false
+        """
+module M =
+    let LongFunctionWithLotsOfParameters
+        (aVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+        (aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+        (aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+        =
+        // ... the body of the method follows
+        ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module M =
+    let LongFunctionWithLotsOfParameters
+        (aVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+        (aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+        (aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+        =
+        // ... the body of the method follows
+        ()
+"""
+
+[<Test>]
+let ``long function definition with tuple and without return type`` () =
+    formatSourceString
+        false
+        """
+let longFunctionWithLongTupleParameter
+    (aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+     aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+     aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+    =
+    // ... the body of the method follows
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let longFunctionWithLongTupleParameter
+    (
+        aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
+    ) =
+    // ... the body of the method follows
+    ()
+"""
+
+[<Test>]
+let ``long function definition with tuple and without return type, AlignFunctionSignatureToIndentation`` () =
+    formatSourceString
+        false
+        """
+let longFunctionWithLongTupleParameter
+    (aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+     aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+     aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+    =
+    // ... the body of the method follows
+    ()
+"""
+        { config with
+              AlignFunctionSignatureToIndentation = true
+              SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let longFunctionWithLongTupleParameter
+    (
+        aVeryLongParam : AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongParam : AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongParam : AVeryLongTypeThatYouNeedToUse
+    )
+    =
+    // ... the body of the method follows
+    ()
+"""
+
+[<Test>]
+let ``long function definition with tuple without types and without return type`` () =
+    formatSourceString
+        false
+        """
+let longFunctionWithLongTupleParameter
+    (aVeryLongParam,
+     aSecondVeryLongParam,
+     aThirdVeryLongParam,
+     aFourthVeryLongParam)
+    =
+    // ... the body of the method follows
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let longFunctionWithLongTupleParameter
+    (
+        aVeryLongParam,
+        aSecondVeryLongParam,
+        aThirdVeryLongParam,
+        aFourthVeryLongParam
+    ) =
+    // ... the body of the method follows
+    ()
+"""
+
+[<Test>]
+let ``long function definition with return type`` () =
+    formatSourceString
+        false
+        """
+    let longFunctionWithLotsOfParametersAndReturnType (aVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+                                                      (aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+                                                      (aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+                                                      : ReturnType =
+        // ... the body of the method follows
+        ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let longFunctionWithLotsOfParametersAndReturnType
+    (aVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+    (aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+    (aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse)
+    : ReturnType =
+    // ... the body of the method follows
+    ()
+"""
+
+[<Test>]
+let ``long function definition with tuple parameter and return type`` () =
+    formatSourceString
+        false
+        """
+let longFunctionWithLongTupleParameterAndReturnType (aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+                                                     aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+                                                     aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse) : ReturnType =
+        // ... the body of the method follows
+        ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let longFunctionWithLongTupleParameterAndReturnType
+    (
+        aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
+    ): ReturnType =
+    // ... the body of the method follows
+    ()
+"""
+
+[<Test>]
+let ``long function definition with tuple parameter and return type, AlignFunctionSignatureToIndentation`` () =
+    formatSourceString
+        false
+        """
+let longFunctionWithLongTupleParameterAndReturnType (aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+                                                     aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+                                                     aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse) : ReturnType =
+        // ... the body of the method follows
+        ()
+"""
+        { config with
+              AlignFunctionSignatureToIndentation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let longFunctionWithLongTupleParameterAndReturnType
+    (
+        aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
+    )
+    : ReturnType
+    =
+    // ... the body of the method follows
+    ()
 """

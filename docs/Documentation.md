@@ -897,18 +897,18 @@ let a =
 
 ### fsharp_align_function_signature_to_indentation
 
-When a function signature exceeds the `max_line_length`, Fantomas will put the all but first parameters and the return type on new lines.
-These will align with the start column of the first parameter.
-This setting will place all parameters on the next line and align with one indent instead.
+When a function signature exceeds the `max_line_length`, Fantomas will put all parameters on separate lines.
+This setting also places the equals sign and return type on a new line.
 Default = false.
 
 `defaultConfig`
 
 ```fsharp
 [<FunctionName("FormatCode")>]
-let run ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
-        (log: ILogger)
-        : HttpResponse =
+let run 
+    ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+    (log: ILogger)
+    : HttpResponse =
     Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
 ```
 

@@ -1141,8 +1141,10 @@ type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
     |> should
         equal
         """
-let f (x: {| x: int
-             y: obj |}) =
+let f
+    (x: {| x: int
+           y: obj |})
+    =
     x
 
 let g (x: {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}) = x
