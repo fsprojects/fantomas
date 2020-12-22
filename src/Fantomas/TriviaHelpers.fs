@@ -9,18 +9,20 @@ module internal TriviaHelpers =
         trivia
         |> List.tryFind (fun t -> RangeHelpers.``range contains`` range t.Range)
 
-    let ``has content after after that matches`` (findTrivia: TriviaNode -> bool)
-                                                 (contentAfter: TriviaContent -> bool)
-                                                 (trivia: TriviaNode list)
-                                                 =
+    let ``has content after after that matches``
+        (findTrivia: TriviaNode -> bool)
+        (contentAfter: TriviaContent -> bool)
+        (trivia: TriviaNode list)
+        =
         List.tryFind findTrivia trivia
         |> Option.map (fun t -> t.ContentAfter |> List.exists contentAfter)
         |> Option.defaultValue false
 
-    let ``has content after that ends with`` (findTrivia: TriviaNode -> bool)
-                                             (contentAfterEnd: TriviaContent -> bool)
-                                             (trivia: TriviaNode list)
-                                             =
+    let ``has content after that ends with``
+        (findTrivia: TriviaNode -> bool)
+        (contentAfterEnd: TriviaContent -> bool)
+        (trivia: TriviaNode list)
+        =
         List.tryFind findTrivia trivia
         |> Option.bind
             (fun t ->

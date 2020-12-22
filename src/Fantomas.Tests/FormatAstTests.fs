@@ -78,8 +78,9 @@ let b =   1"""
 let b = 1"""
 
 [<Test>]
-let ``default implementations in abstract classes should be emited as override from AST without origin source, 742`` ()
-                                                                                                                     =
+let ``default implementations in abstract classes should be emited as override from AST without origin source, 742``
+    ()
+    =
     """[<AbstractClass>]
 type Foo =
     abstract foo: int
@@ -93,8 +94,9 @@ type Foo =
     override __.foo = 1"""
 
 [<Test>]
-let ``default implementations in abstract classes with `default` keyword should be emited as it was before from AST with origin source, 742`` ()
-                                                                                                                                              =
+let ``default implementations in abstract classes with `default` keyword should be emited as it was before from AST with origin source, 742``
+    ()
+    =
     """[<AbstractClass>]
 type Foo =
     abstract foo: int
@@ -108,8 +110,9 @@ type Foo =
     default __.foo = 1"""
 
 [<Test>]
-let ``default implementations in abstract classes with `override` keyword should be emited as it was before from AST with origin source, 742`` ()
-                                                                                                                                               =
+let ``default implementations in abstract classes with `override` keyword should be emited as it was before from AST with origin source, 742``
+    ()
+    =
     """[<AbstractClass>]
 type Foo =
     abstract foo: int

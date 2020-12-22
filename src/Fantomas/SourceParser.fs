@@ -282,26 +282,14 @@ let (|ParsedImplFileInput|) (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _
 
 let (|ParsedSigFileInput|) (ParsedSigFileInput.ParsedSigFileInput (_, _, _, hs, mns)) = (hs, mns)
 
-let (|ModuleOrNamespace|) (SynModuleOrNamespace.SynModuleOrNamespace (LongIdent s,
-                                                                      isRecursive,
-                                                                      isModule,
-                                                                      mds,
-                                                                      px,
-                                                                      ats,
-                                                                      ao,
-                                                                      _))
-                          =
+let (|ModuleOrNamespace|)
+    (SynModuleOrNamespace.SynModuleOrNamespace (LongIdent s, isRecursive, isModule, mds, px, ats, ao, _))
+    =
     (ats, px, ao, s, mds, isRecursive, isModule)
 
-let (|SigModuleOrNamespace|) (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (LongIdent s,
-                                                                               isRecursive,
-                                                                               isModule,
-                                                                               mds,
-                                                                               px,
-                                                                               ats,
-                                                                               ao,
-                                                                               _))
-                             =
+let (|SigModuleOrNamespace|)
+    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (LongIdent s, isRecursive, isModule, mds, px, ats, ao, _))
+    =
     (ats, px, ao, s, mds, isRecursive, isModule)
 
 let (|Attribute|) (a: SynAttribute) =
@@ -439,26 +427,14 @@ let (|ExceptionDefRepr|) (SynExceptionDefnRepr.SynExceptionDefnRepr (ats, uc, _,
 
 let (|SigExceptionDefRepr|) (SynExceptionDefnRepr.SynExceptionDefnRepr (ats, uc, _, px, ao, _)) = (ats, px, ao, uc)
 
-let (|ExceptionDef|) (SynExceptionDefn.SynExceptionDefn (SynExceptionDefnRepr.SynExceptionDefnRepr (ats,
-                                                                                                    uc,
-                                                                                                    _,
-                                                                                                    px,
-                                                                                                    ao,
-                                                                                                    _),
-                                                         ms,
-                                                         _))
-                     =
+let (|ExceptionDef|)
+    (SynExceptionDefn.SynExceptionDefn (SynExceptionDefnRepr.SynExceptionDefnRepr (ats, uc, _, px, ao, _), ms, _))
+    =
     (ats, px, ao, uc, ms)
 
-let (|SigExceptionDef|) (SynExceptionSig.SynExceptionSig (SynExceptionDefnRepr.SynExceptionDefnRepr (ats,
-                                                                                                     uc,
-                                                                                                     _,
-                                                                                                     px,
-                                                                                                     ao,
-                                                                                                     _),
-                                                          ms,
-                                                          _))
-                        =
+let (|SigExceptionDef|)
+    (SynExceptionSig.SynExceptionSig (SynExceptionDefnRepr.SynExceptionDefnRepr (ats, uc, _, px, ao, _), ms, _))
+    =
     (ats, px, ao, uc, ms)
 
 let (|UnionCase|) (SynUnionCase.UnionCase (ats, Ident s, uct, px, ao, _)) = (ats, px, ao, s, uct)
@@ -1390,32 +1366,20 @@ let (|TCSimple|TCDelegate|) =
     | TyconILAssemblyCode -> TCSimple TCILAssemblyCode
     | TyconDelegate (t, vi) -> TCDelegate(t, vi)
 
-let (|TypeDef|) (SynTypeDefn.TypeDefn (SynComponentInfo.ComponentInfo (ats,
-                                                                       tds,
-                                                                       tcs,
-                                                                       LongIdent s,
-                                                                       px,
-                                                                       preferPostfix,
-                                                                       ao,
-                                                                       _),
-                                       tdr,
-                                       ms,
-                                       _))
-                =
+let (|TypeDef|)
+    (SynTypeDefn.TypeDefn (SynComponentInfo.ComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _),
+                           tdr,
+                           ms,
+                           _))
+    =
     (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)
 
-let (|SigTypeDef|) (SynTypeDefnSig.TypeDefnSig (SynComponentInfo.ComponentInfo (ats,
-                                                                                tds,
-                                                                                tcs,
-                                                                                LongIdent s,
-                                                                                px,
-                                                                                preferPostfix,
-                                                                                ao,
-                                                                                _),
-                                                tdr,
-                                                ms,
-                                                _))
-                   =
+let (|SigTypeDef|)
+    (SynTypeDefnSig.TypeDefnSig (SynComponentInfo.ComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _),
+                                 tdr,
+                                 ms,
+                                 _))
+    =
     (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)
 
 let (|TyparDecl|) (SynTyparDecl.TyparDecl (ats, tp)) = (ats, tp)

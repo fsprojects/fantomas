@@ -354,8 +354,9 @@ let ``should keep space before :`` () =
 "
 
 [<Test>]
-let ``newline trivia before simple sequence doesn't force remaining to get offset by last expression column index, 513`` ()
-                                                                                                                         =
+let ``newline trivia before simple sequence doesn't force remaining to get offset by last expression column index, 513``
+    ()
+    =
     formatSourceString
         false
         """let a() =
@@ -377,8 +378,9 @@ let a () =
 """
 
 [<Test>]
-let ``comment trivia before simple sequence doesn't force remaining to get offset by last expression column index, 513`` ()
-                                                                                                                         =
+let ``comment trivia before simple sequence doesn't force remaining to get offset by last expression column index, 513``
+    ()
+    =
     formatSourceString
         false
         """let a() =

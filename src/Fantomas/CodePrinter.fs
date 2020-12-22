@@ -2779,13 +2779,14 @@ and genGenericTypeParameters astContext ts =
                     false)
         -- ">"
 
-and genMultilineRecordInstance (inheritOpt: (SynType * SynExpr) option)
-                               (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
-                               (eo: SynExpr option)
-                               synExpr
-                               astContext
-                               (ctx: Context)
-                               =
+and genMultilineRecordInstance
+    (inheritOpt: (SynType * SynExpr) option)
+    (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
+    (eo: SynExpr option)
+    synExpr
+    astContext
+    (ctx: Context)
+    =
     let recordExpr =
         let fieldsExpr =
             col sepSemiNln xs (genRecordFieldName astContext)
@@ -2839,12 +2840,13 @@ and genMultilineRecordInstance (inheritOpt: (SynType * SynExpr) option)
 
     expr ctx
 
-and genMultilineRecordInstanceAlignBrackets (inheritOpt: (SynType * SynExpr) option)
-                                            (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
-                                            (eo: SynExpr option)
-                                            synExpr
-                                            astContext
-                                            =
+and genMultilineRecordInstanceAlignBrackets
+    (inheritOpt: (SynType * SynExpr) option)
+    (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
+    (eo: SynExpr option)
+    synExpr
+    astContext
+    =
     let fieldsExpr =
         col sepSemiNln xs (genRecordFieldName astContext)
 
@@ -4654,20 +4656,21 @@ and genPat astContext pat =
         | SynPat.Paren _ -> genTriviaFor SynPat_Paren pat.Range
         | _ -> id)
 
-and getLetBindingFunction (astContext: ASTContext)
-                          (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
-                          (ats: SynAttributes)
-                          (pref: string)
-                          (ao: SynAccess option)
-                          (isInline: bool)
-                          (isMutable: bool)
-                          (functionName: string)
-                          (patRange: range)
-                          (parameters: (string option * SynPat) list)
-                          (genericTypeParameters: SynValTyparDecls option)
-                          (valInfo: SynValInfo)
-                          (e: SynExpr)
-                          =
+and getLetBindingFunction
+    (astContext: ASTContext)
+    (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
+    (ats: SynAttributes)
+    (pref: string)
+    (ao: SynAccess option)
+    (isInline: bool)
+    (isMutable: bool)
+    (functionName: string)
+    (patRange: range)
+    (parameters: (string option * SynPat) list)
+    (genericTypeParameters: SynValTyparDecls option)
+    (valInfo: SynValInfo)
+    (e: SynExpr)
+    =
     let genAttrIsFirstChild =
         onlyIf astContext.IsFirstChild (genAttributes astContext ats)
 
@@ -4749,21 +4752,22 @@ and getLetBindingFunction (astContext: ASTContext)
                     (genExpr astContext e)
                     ctx)
 
-and getLetBindingFunctionWithReturnType (astContext: ASTContext)
-                                        (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
-                                        (ats: SynAttributes)
-                                        (pref: string)
-                                        (ao: SynAccess option)
-                                        (isInline: bool)
-                                        (isMutable: bool)
-                                        (functionName: string)
-                                        (patRange: range)
-                                        (parameters: (string option * SynPat) list)
-                                        (genericTypeParameters: SynValTyparDecls option)
-                                        (returnType: SynType)
-                                        (valInfo: SynValInfo)
-                                        (e: SynExpr)
-                                        =
+and getLetBindingFunctionWithReturnType
+    (astContext: ASTContext)
+    (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
+    (ats: SynAttributes)
+    (pref: string)
+    (ao: SynAccess option)
+    (isInline: bool)
+    (isMutable: bool)
+    (functionName: string)
+    (patRange: range)
+    (parameters: (string option * SynPat) list)
+    (genericTypeParameters: SynValTyparDecls option)
+    (returnType: SynType)
+    (valInfo: SynValInfo)
+    (e: SynExpr)
+    =
     let genAttrIsFirstChild =
         onlyIf astContext.IsFirstChild (genAttributes astContext ats)
 
@@ -4858,16 +4862,17 @@ and getLetBindingFunctionWithReturnType (astContext: ASTContext)
                     (genExpr astContext e)
                     ctx)
 
-and genLetBindingDestructedTuple (astContext: ASTContext)
-                                 (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
-                                 (ats: SynAttributes)
-                                 (pref: string)
-                                 (ao: SynAccess option)
-                                 (isInline: bool)
-                                 (isMutable: bool)
-                                 (pat: SynPat)
-                                 (e: SynExpr)
-                                 =
+and genLetBindingDestructedTuple
+    (astContext: ASTContext)
+    (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
+    (ats: SynAttributes)
+    (pref: string)
+    (ao: SynAccess option)
+    (isInline: bool)
+    (isMutable: bool)
+    (pat: SynPat)
+    (e: SynExpr)
+    =
     let genAttrAndPref =
         if astContext.IsFirstChild then
             (genAttributes astContext ats -- pref)
@@ -4906,18 +4911,19 @@ and genLetBindingDestructedTuple (astContext: ASTContext)
             else
                 isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 
-and genLetBindingValue (astContext: ASTContext)
-                       (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
-                       (ats: SynAttributes)
-                       (pref: string)
-                       (ao: SynAccess option)
-                       (isInline: bool)
-                       (isMutable: bool)
-                       (valueName: SynPat)
-                       (returnType: SynType option)
-                       (valInfo: SynValInfo)
-                       (e: SynExpr)
-                       =
+and genLetBindingValue
+    (astContext: ASTContext)
+    (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
+    (ats: SynAttributes)
+    (pref: string)
+    (ao: SynAccess option)
+    (isInline: bool)
+    (isMutable: bool)
+    (valueName: SynPat)
+    (returnType: SynType option)
+    (valInfo: SynValInfo)
+    (e: SynExpr)
+    =
     let genAttrIsFirstChild =
         onlyIf astContext.IsFirstChild (genAttributes astContext ats)
 
