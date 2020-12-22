@@ -2737,6 +2737,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.Upcast _ -> genTriviaFor SynExpr_Upcast synExpr.Range
             | SynExpr.Downcast _ -> genTriviaFor SynExpr_Downcast synExpr.Range
             | SynExpr.DotIndexedGet _ -> genTriviaFor SynExpr_DotIndexedGet synExpr.Range
+            | SynExpr.DotIndexedSet _ -> genTriviaFor SynExpr_DotIndexedSet synExpr.Range
             | _ -> id)
 
     expr ctx
