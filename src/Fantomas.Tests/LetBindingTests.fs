@@ -428,9 +428,10 @@ let ``line comment before return type info should indent before colon, 565`` () 
         equal
         """
 module Bar =
-    let f a
-          // foo
-          : int =
+    let f
+        a
+        // foo
+        : int =
         0
 """
 

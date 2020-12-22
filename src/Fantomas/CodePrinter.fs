@@ -4785,9 +4785,6 @@ and getLetBindingFunctionWithReturnType (astContext: ASTContext)
             genericTypeParameters
             (fun (ValTyparDecls (tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
 
-    let genParameters sep =
-        col sep parameters (genPatWithIdent astContext)
-
     let genReturnType isFixed =
         let genMetadataAttributes =
             match valInfo with
@@ -4810,38 +4807,37 @@ and getLetBindingFunctionWithReturnType (astContext: ASTContext)
             +> sepSpace
             +> genFunctionName
             +> ifElseCtx (addSpaceBeforeParensInFunDef astContext functionName firstParameter) sepSpace sepNone
-            +> genParameters sepSpace
+            +> col sepSpace parameters (genPatWithIdent astContext)
             +> genReturnType false
             +> tokN equalsRange EQUALS sepEq
 
         let long (ctx: Context) =
-            if ctx.Config.AlignFunctionSignatureToIndentation then
-                (genPref
-                 +> afterLetKeyword
-                 +> sepSpace
-                 +> genFunctionName
-                 +> indent
-                 +> sepNln
-                 +> genParameters sepNln
-                 +> sepNln
-                 +> genReturnType true
-                 +> sepNln
-                 +> tokN equalsRange EQUALS sepEqFixed
-                 +> unindent)
-                    ctx
-            else
-                (genPref
-                 +> afterLetKeyword
-                 +> sepSpace
-                 +> genFunctionName
-                 +> sepSpace
-                 +> atCurrentColumn (
-                     genParameters sepNln
-                     +> sepNln
-                     +> genReturnType true
-                     +> tokN equalsRange EQUALS sepEq
-                 ))
-                    ctx
+            let genParameters, hasSingleTupledArg =
+                match parameters with
+                | [ _, PatParen (PatTuple ps) ] -> genParenTupleWithIndentAndNewlines ps astContext, true
+                | _ -> col sepNln parameters (genPatWithIdent astContext), false
+
+            (genPref
+             +> afterLetKeyword
+             +> sepSpace
+             +> genFunctionName
+             +> indent
+             +> sepNln
+             +> genParameters
+             +> onlyIf
+                 (not hasSingleTupledArg
+                  || ctx.Config.AlignFunctionSignatureToIndentation)
+                 sepNln
+             +> genReturnType (
+                 not hasSingleTupledArg
+                 || ctx.Config.AlignFunctionSignatureToIndentation
+             )
+             +> ifElse
+                 ctx.Config.AlignFunctionSignatureToIndentation
+                 (sepNln +> tokN equalsRange EQUALS sepEqFixed)
+                 sepEq
+             +> unindent)
+                ctx
 
         expressionFitsOnRestOfLine short long
 
