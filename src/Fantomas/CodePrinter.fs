@@ -4230,7 +4230,11 @@ and genClause astContext hasBar (Clause (p, e, eo)) =
         mkRange "arrowRange" p.Range.End e.Range.Start
 
     let body =
-        optPre (!- " when ") sepNone eo (genExpr astContext)
+        optPre
+            (!- " when")
+            sepNone
+            eo
+            (fun e -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
         +> sepArrow
         +> leaveNodeTokenByName arrowRange RARROW
         +> clauseBody e
