@@ -1089,7 +1089,42 @@ module Foo =
             // Ordinary functions or values
             | false, _, _, name when
                 not (hasAttribute<RequireQualifiedAccessAttribute> v.ApparentEnclosingEntity.Attributes) ->
-                  name + " " + parArgs
+                name + " " + parArgs
             // Ordinary static members or things (?) that require fully qualified access
             | _, _, _, name -> name + parArgs
+"""
+
+[<Test>]
+let ``maintain indent if when condition is multiline`` () =
+    formatSourceString
+        false
+        """
+    match foo with
+    | headToken :: rest when (isOperatorOrKeyword headToken && List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia) ->
+          let range =
+              getRangeBetween "keyword" headToken headToken
+
+          let info =
+              Trivia.Create(Keyword(headToken)) range
+              |> List.prependItem foundTrivia
+
+          getTriviaFromTokensThemSelves allTokens rest info
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match foo with
+| headToken :: rest when
+    (isOperatorOrKeyword headToken
+     && List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia) ->
+    let range =
+        getRangeBetween "keyword" headToken headToken
+
+    let info =
+        Trivia.Create(Keyword(headToken)) range
+        |> List.prependItem foundTrivia
+
+    getTriviaFromTokensThemSelves allTokens rest info
 """
