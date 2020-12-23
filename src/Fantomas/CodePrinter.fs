@@ -2419,6 +2419,7 @@ and genExpr astContext synExpr ctx =
                     +> (match e1 with
                         | SynExpr.TryWith _
                         | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e1 +> sepCloseT
+                        | App (SynExpr.DotGet _, [ (Paren _) ]) -> atCurrentColumn (genExpr astContext e1)
                         | AppTuple _ when (isConditionMultiline) ->
                             sepOpenT
                             +> atCurrentColumn (genExpr astContext e1)
