@@ -1876,7 +1876,10 @@ and genExpr astContext synExpr ctx =
                         +> genExpr astContext e)
 
             let multilineExpr =
-                genExpr astContext e
+                (match e with
+                 | SynExpr.IfThenElse _ ->
+                     expressionFitsOnRestOfLine (genExpr astContext e) (sepOpenT +> genExpr astContext e +> sepCloseT)
+                 | _ -> genExpr astContext e)
                 +> sepNln
                 +> col
                     sepNln
@@ -2527,7 +2530,7 @@ and genExpr astContext synExpr ctx =
 
                         isShortExpression ctx.Config.MaxIfThenElseShortWidth shortExpression longExpression
 
-                atCurrentColumn expr ctx
+                atCurrentColumnIndent expr ctx
 
         // At this stage, all symbolic operators have been handled.
         | OptVar (s, isOpt, ranges) ->
