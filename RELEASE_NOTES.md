@@ -1,3 +1,14 @@
+### 4.4.0-alpha-005 12/2020
+
+* Fix DotGet inside If expression not correct on second format. [#1329](https://github.com/fsprojects/fantomas/issues/1329)
+* Fix Pipe is indented too far. [#1327](https://github.com/fsprojects/fantomas/issues/1327)
+* Fix IfThenElse piped leads to invalid code. [#1324](https://github.com/fsprojects/fantomas/issues/1324)
+* Fix Multiline when condition in pattern match needs to be further indented. [#1320](https://github.com/fsprojects/fantomas/issues/1320)
+* Fix Add comma in front of expression in tuple with if/then/else. [#1319](https://github.com/fsprojects/fantomas/issues/1319)
+* Fix New line before for loop not preserved. [#1317](https://github.com/fsprojects/fantomas/issues/1317)
+* Fix Newline before set expression is lost. [#1314](https://github.com/fsprojects/fantomas/issues/1314)
+* Fix Newline after let bang is missing. [#1313](https://github.com/fsprojects/fantomas/issues/1313)
+
 ### 4.4.0-alpha-004 12/2020
 
 * Fix Revisit place parameters on a new line for long definitions. [#1307](https://github.com/fsprojects/fantomas/issues/1307)
