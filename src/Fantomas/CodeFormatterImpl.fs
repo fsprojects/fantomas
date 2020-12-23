@@ -628,12 +628,12 @@ let private formatRange
         // Mono version of indent text writer behaves differently from .NET one,
         // So we add an empty string first to regularize it
         |> if returnFormattedContentOnly then
-            Context.str String.Empty
+               Context.str String.Empty
            else
                Context.str pre
         |> Context.atIndentLevel true startCol (Context.col Context.sepNln formatteds Context.str)
         |> if returnFormattedContentOnly then
-            Context.str String.Empty
+               Context.str String.Empty
            else
                Context.str post
         |> Context.dump

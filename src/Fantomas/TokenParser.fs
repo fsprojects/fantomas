@@ -701,8 +701,9 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
 
         getTriviaFromTokensThemSelves allTokens nextTokens info
 
-    | headToken :: rest when (isOperatorOrKeyword headToken
-                              && List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia) ->
+    | headToken :: rest when
+        (isOperatorOrKeyword headToken
+         && List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia) ->
         let range =
             getRangeBetween "keyword" headToken headToken
 
@@ -771,8 +772,9 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
 
         getTriviaFromTokensThemSelves allTokens nextRest info
 
-    | minus :: head :: rest when (minus.TokenInfo.TokenName = "MINUS"
-                                  && isNumber head) ->
+    | minus :: head :: rest when
+        (minus.TokenInfo.TokenName = "MINUS"
+         && isNumber head) ->
         let range = getRangeBetween "number" minus head
 
         let info =
@@ -800,9 +802,10 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
 
         getTriviaFromTokensThemSelves allTokens rest info
 
-    | head :: rest when (head.TokenInfo.TokenName = "IDENT"
-                         && head.Content.StartsWith("``")
-                         && head.Content.EndsWith("``")) ->
+    | head :: rest when
+        (head.TokenInfo.TokenName = "IDENT"
+         && head.Content.StartsWith("``")
+         && head.Content.EndsWith("``")) ->
         let range =
             getRangeBetween "ident between ``" head head
 

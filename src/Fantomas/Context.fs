@@ -405,7 +405,7 @@ let internal atIndentLevel alsoSetIndent level (f: Context -> Context) (ctx: Con
 
     (writerEvent (SetAtColumn level)
      >> if alsoSetIndent then
-         writerEvent (SetIndent level)
+            writerEvent (SetIndent level)
         else
             id
      >> f
@@ -441,8 +441,9 @@ let internal (+>) (ctx: Context -> Context) (f: _ -> Context) x =
     let y = ctx x
 
     match y.WriterModel.Mode with
-    | ShortExpression infos when infos
-                                 |> Seq.exists (fun x -> x.ConfirmedMultiline) -> y
+    | ShortExpression infos when
+        infos
+        |> Seq.exists (fun x -> x.ConfirmedMultiline) -> y
     | _ -> f y
 
 /// Break-line and append specified string
@@ -765,11 +766,12 @@ let private shortExpressionWithFallback
     // if the context is already inside a ShortExpression mode and tries to figure out if the expression will go over the page width,
     // we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
-    | ShortExpression infos when (List.exists
-                                      (fun info ->
-                                          info.ConfirmedMultiline
-                                          || info.IsTooLong ctx.Config.MaxLineLength ctx.Column)
-                                      infos) -> ctx
+    | ShortExpression infos when
+        (List.exists
+            (fun info ->
+                info.ConfirmedMultiline
+                || info.IsTooLong ctx.Config.MaxLineLength ctx.Column)
+            infos) -> ctx
     | _ ->
         // create special context that will process the writer events slightly different
         let shortExpressionContext =
@@ -875,11 +877,12 @@ let internal leadingExpressionIsMultiline leadingExpression continuationExpressi
 let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
     // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
-    | ShortExpression infos when (List.exists
-                                      (fun info ->
-                                          info.ConfirmedMultiline
-                                          || info.IsTooLong ctx.Config.MaxLineLength ctx.Column)
-                                      infos) -> ctx
+    | ShortExpression infos when
+        (List.exists
+            (fun info ->
+                info.ConfirmedMultiline
+                || info.IsTooLong ctx.Config.MaxLineLength ctx.Column)
+            infos) -> ctx
     | ShortExpression _ ->
         // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
         (beforeShort +> expr +> afterShort) ctx
@@ -1329,8 +1332,9 @@ let internal sepNlnForEmptyNamespace (namespaceRange: range) ctx =
         mkRange namespaceRange.FileName (mkPos 0 0) namespaceRange.End
 
     match TriviaHelpers.findInRange (Map.tryFindOrEmptyList Ident_ ctx.TriviaMainNodes) emptyNamespaceRange with
-    | Some node when hasPrintableContent node.ContentBefore
-                     || hasPrintableContent node.ContentAfter -> ctx
+    | Some node when
+        hasPrintableContent node.ContentBefore
+        || hasPrintableContent node.ContentAfter -> ctx
     | _ -> sepNln ctx
 
 let internal sepNlnTypeAndMembers (firstMemberRange: range option) (mainNodeType: FsAstType) ctx =

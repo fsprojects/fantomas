@@ -78,7 +78,7 @@ let isFSharpFile (s: string) =
 let rec allFiles isRec path =
     let searchOption =
         (if isRec then
-            SearchOption.AllDirectories
+             SearchOption.AllDirectories
          else
              SearchOption.TopDirectoryOnly)
 

@@ -44,8 +44,9 @@ module internal TriviaHelpers =
         |> List.choose
             (fun t ->
                 match t.Type with
-                | TriviaNodeType.Token (_, tok) when (range.StartLine = t.Range.StartLine
-                                                      && range.StartColumn < t.Range.StartColumn) -> Some(tok, t)
+                | TriviaNodeType.Token (_, tok) when
+                    (range.StartLine = t.Range.StartLine
+                     && range.StartColumn < t.Range.StartColumn) -> Some(tok, t)
                 | _ -> None)
 
     let ``has line comment after`` triviaNode =
