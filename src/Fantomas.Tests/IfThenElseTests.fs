@@ -1658,3 +1658,35 @@ let tryDecompile (ty: FSharpEntity) =
           |> tryGetSource
   }
 """
+
+[<Test>]
+let ``if then else followed by pipe, 1327`` () =
+    formatSourceString
+        false
+        """
+module X =
+  let getValSignature displayContext (v: FSharpMemberOrFunctionOrValue) =
+    let name =
+      if v.DisplayName.StartsWith "( "
+      then v.LogicalName
+      else v.DisplayName
+      |> PrettyNaming.QuoteIdentifierIfNeeded
+
+    ()
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+module X =
+  let getValSignature displayContext (v: FSharpMemberOrFunctionOrValue) =
+    let name =
+      (if v.DisplayName.StartsWith "( " then
+         v.LogicalName
+       else
+         v.DisplayName)
+      |> PrettyNaming.QuoteIdentifierIfNeeded
+
+    ()
+"""
