@@ -799,6 +799,7 @@ let (|App|_|) e =
 // captures application with single tuple arg
 let (|AppTuple|_|) =
     function
+    | App (SynExpr.DotGet _, [ (Paren (_, Tuple _, _)) ]) -> None
     | App (e, [ (Paren (lpr, Tuple args, rpr)) ]) -> Some(e, lpr, args, rpr)
     | App (e, [ (Paren (lpr, singleExpr, rpr)) ]) ->
         match singleExpr with
