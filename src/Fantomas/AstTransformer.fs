@@ -702,7 +702,7 @@ module private Ast =
           FsAstNode = rfn
           Childs =
               [ if expr.IsSome then
-                  yield visitSynExpr expr.Value ] }
+                    yield visitSynExpr expr.Value ] }
 
     and visitAnonRecordField (ident: Ident, expr: SynExpr) =
         { Type = AnonRecordField_
@@ -1183,7 +1183,7 @@ module private Ast =
               FsAstNode = sp
               Childs =
                   [ if svtd.IsSome then
-                      yield visitSynValTyparDecls svtd.Value
+                        yield visitSynValTyparDecls svtd.Value
                     yield visitSynConstructorArgs ctorArgs ] }
         | SynPat.Tuple (isStruct, pats, range) ->
             { Type = SynPat_Tuple

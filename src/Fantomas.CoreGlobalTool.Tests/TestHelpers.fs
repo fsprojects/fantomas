@@ -30,7 +30,7 @@ type TemporaryFileCodeSample internal (codeSnippet: string,
 
     do
         (if hasByteOrderMark then
-            File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
+             File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
          else
              File.WriteAllText(filename, codeSnippet))
 

@@ -151,20 +151,20 @@ let (|OpNameFullInPattern|) (x: Identifier) =
     let s = x.Text
     let s' = DecompileOpName s
 
-    if IsActivePatternName s
-       || IsInfixOperator s
-       || IsPrefixOperator s
-       || IsTernaryOperator s
-       || s = "op_Dynamic" then
-        /// Use two spaces for symmetry
-        if String.startsWithOrdinal "*" s' && s' <> "*" then
-            sprintf "( %s )" s'
-        else
-            sprintf "(%s)" s'
-    else
-        match x with
-        | Id (Ident s)
-        | LongId (LongIdent s) -> DecompileOpName s
+    (if IsActivePatternName s
+        || IsInfixOperator s
+        || IsPrefixOperator s
+        || IsTernaryOperator s
+        || s = "op_Dynamic" then
+         /// Use two spaces for symmetry
+         if String.startsWithOrdinal "*" s' && s' <> "*" then
+             sprintf "( %s )" s'
+         else
+             sprintf "(%s)" s'
+     else
+         match x with
+         | Id (Ident s)
+         | LongId (LongIdent s) -> DecompileOpName s)
     |> fun s -> (s, r)
 
 
@@ -174,17 +174,17 @@ let (|OpNameFull|) (x: Identifier) =
     let s = x.Text
     let s' = DecompileOpName s
 
-    if IsActivePatternName s then
-        s
-    elif IsInfixOperator s
-         || IsPrefixOperator s
-         || IsTernaryOperator s
-         || s = "op_Dynamic" then
-        s'
-    else
-        match x with
-        | Id (Ident s)
-        | LongId (LongIdent s) -> DecompileOpName s
+    (if IsActivePatternName s then
+         s
+     elif IsInfixOperator s
+          || IsPrefixOperator s
+          || IsTernaryOperator s
+          || s = "op_Dynamic" then
+         s'
+     else
+         match x with
+         | Id (Ident s)
+         | LongId (LongIdent s) -> DecompileOpName s)
     |> fun s -> (s, r)
 
 // Type params

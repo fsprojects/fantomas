@@ -611,13 +611,13 @@ and genPreXmlDoc (PreXmlDoc lines) ctx =
         ctx
 
 and addSpaceAfterGenericConstructBeforeColon ctx =
-    if not ctx.Config.SpaceBeforeColon then
-        match lastWriteEventOnLastLine ctx
-              |> Option.bind Seq.tryLast with
-        | Some ('>') -> sepSpace
-        | _ -> sepNone
-    else
-        sepNone
+    (if not ctx.Config.SpaceBeforeColon then
+         match lastWriteEventOnLastLine ctx
+               |> Option.bind Seq.tryLast with
+         | Some ('>') -> sepSpace
+         | _ -> sepNone
+     else
+         sepNone)
     <| ctx
 
 and genExprSepEqPrependType (astContext: ASTContext) (e: SynExpr) =
@@ -1270,8 +1270,8 @@ and genExpr astContext synExpr ctx =
 
                 isShortExpression ctx.Config.MaxElmishWidth smallExpression multilineExpression ctx
 
-        | ElmishReactWithChildren ((identifier, _, _), attributes, (isArray, children, childrenRange)) when (not
-                                                                                                                 ctx.Config.DisableElmishSyntax) ->
+        | ElmishReactWithChildren ((identifier, _, _), attributes, (isArray, children, childrenRange)) when
+            (not ctx.Config.DisableElmishSyntax) ->
             let genChildren isShort =
                 match children with
                 | [] when (not isArray) ->
@@ -2673,10 +2673,8 @@ and genExpr astContext synExpr ctx =
                             |> List.choose
                                 (fun tn ->
                                     match tn.Type, tn.ContentItself with
-                                    | MainNode (SynInterpolatedStringPart_String), Some (StringContent sc) when (RangeHelpers.rangeEq
-                                                                                                                     tn.Range
-                                                                                                                     range) ->
-                                        Some sc
+                                    | MainNode (SynInterpolatedStringPart_String), Some (StringContent sc) when
+                                        (RangeHelpers.rangeEq tn.Range range) -> Some sc
                                     | _ -> None)
                             |> List.tryHead
                             |> Option.map (fun sc -> range, sc))
@@ -2843,7 +2841,7 @@ and genMultilineRecordInstance
                 if ctx.Column < rbs then
                     let offset =
                         (if ctx.Config.SpaceAroundDelimiter then
-                            2
+                             2
                          else
                              1)
                         + 1
@@ -4141,7 +4139,7 @@ and genTypeList astContext node =
                     sepColonFixed
                     so
                     (if isOpt then
-                        (sprintf "?%s" >> (!-))
+                         (sprintf "?%s" >> (!-))
                      else
                          (!-))
                 +> genType astContext hasBracket t
@@ -4164,7 +4162,7 @@ and genTypeList astContext node =
                         sepColonFixed
                         so
                         (if isOpt then
-                            (sprintf "?%s" >> (!-))
+                             (sprintf "?%s" >> (!-))
                          else
                              (!-))
                     +> genType astContext hasBracket t)
