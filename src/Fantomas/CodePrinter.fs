@@ -2769,8 +2769,13 @@ and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
     if noBreakInfixOps.Contains(operatorText) then
         genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2
     else
+        let genE1 =
+            match e1 with
+            | SynExpr.IfThenElse _ -> autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e1)
+            | _ -> genExpr astContext e1
+
         atCurrentColumn (
-            genExpr astContext e1
+            genE1
             +> sepNln
             +> genInfixOperator operatorText operatorExpr
             +> sepSpace
