@@ -1151,24 +1151,31 @@ and genTuple astContext es =
         col sepComma es (genShortExpr astContext)
 
     let longExpression =
-        let shouldAddCommaUpFront =
+        let containsLambdaOrMatchExpr =
             es
             |> List.pairwise
             |> List.exists
                 (function
                 | SynExpr.Match _, _
                 | SynExpr.Lambda _, _
-                | SynExpr.IfThenElse _, _
                 | InfixApp (_, _, _, SynExpr.Lambda _), _ -> true
                 | _ -> false)
 
         let sep =
-            if shouldAddCommaUpFront then
+            if containsLambdaOrMatchExpr then
                 (sepNln +> sepComma)
             else
                 (sepComma +> sepNln)
 
-        col sep es (genExpr astContext)
+        let lastIndex = List.length es - 1
+
+        let genExpr astContext idx e =
+            match e with
+            | SynExpr.IfThenElse _ when (idx < lastIndex) ->
+                autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e)
+            | _ -> genExpr astContext e
+
+        coli sep es (genExpr astContext)
 
     atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
 
@@ -1877,8 +1884,7 @@ and genExpr astContext synExpr ctx =
 
             let multilineExpr =
                 (match e with
-                 | SynExpr.IfThenElse _ ->
-                     expressionFitsOnRestOfLine (genExpr astContext e) (sepOpenT +> genExpr astContext e +> sepCloseT)
+                 | SynExpr.IfThenElse _ -> autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e)
                  | _ -> genExpr astContext e)
                 +> sepNln
                 +> col
