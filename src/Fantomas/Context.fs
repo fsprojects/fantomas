@@ -948,6 +948,9 @@ let internal autoNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
         expr
         ctx
 
+let internal autoParenthesisIfExpressionExceedsPageWidth expr (ctx: Context) =
+    expressionFitsOnRestOfLine expr (sepOpenT +> expr +> sepCloseT) ctx
+
 let internal futureNlnCheckMem (f, ctx) =
     if ctx.WriterModel.IsDummy || not ctx.BreakLines then
         (false, false)
