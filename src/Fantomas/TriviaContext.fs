@@ -84,6 +84,7 @@ let getIndentBetweenTicksFromSynPat patRange fallback ctx =
             | true ->
                 match t.ContentItself with
                 | Some (IdentBetweenTicks (iiw)) -> Some iiw
+                | Some (IdentOperatorAsWord (iow)) -> Some iow
                 | _ -> None
             | _ -> None)
     |> List.tryHead

@@ -565,8 +565,8 @@ let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) =
         ExplicitCtor(ats, px, ao, pat, expr, Option.map (|Ident|) ido)
     | SynBinding.Binding (ao, _, isInline, _, ats, px, SynValData (Some (MFProperty _ as mf), _, _), pat, _, expr, _, _) ->
         PropertyBinding(ats, px, ao, isInline, mf, pat, expr)
-    | SynBinding.Binding (ao, _, isInline, _, ats, px, SynValData (Some mf, _, _), pat, _, expr, _, _) ->
-        MemberBinding(ats, px, ao, isInline, mf, pat, expr)
+    | SynBinding.Binding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, expr, _, _) ->
+        MemberBinding(ats, px, ao, isInline, mf, pat, expr, synValInfo)
     | SynBinding.Binding (_, DoBinding, _, _, ats, px, _, _, _, expr, _, _) -> DoBinding(ats, px, expr)
     | SynBinding.Binding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, _, expr, _, _) ->
         LetBinding(attrs, px, ao, isInline, isMutable, pat, expr, valInfo)

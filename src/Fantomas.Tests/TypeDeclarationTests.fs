@@ -1337,9 +1337,12 @@ let ``long type members should have parameters on separate lines, 719`` () =
         equal
         """
 type C () =
-    member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
-                                             aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
-                                             aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
+    member __.LongMethodWithLotsOfParameters
+        (
+            aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+        ) =
         aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
@@ -1357,10 +1360,12 @@ let ``long type member with return type should have parameters on separate lines
         equal
         """
 type C () =
-    member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
-                                             aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
-                                             aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
-                                             : int =
+    member __.LongMethodWithLotsOfParameters
+        (
+            aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+        ): int =
         aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
@@ -1423,8 +1428,11 @@ let ``keep correct indentation after multiline member definition, 845`` () =
         equal
         """
 type SomeType() =
-    member SomeMember(looooooooooooooooooooooooooooooooooong1: A,
-                      looooooooooooooooooooooooooooooooooong2: A) =
+    member SomeMember
+        (
+            looooooooooooooooooooooooooooooooooong1: A,
+            looooooooooooooooooooooooooooooooooong2: A
+        ) =
         printfn "a"
         "a"
 
@@ -1451,9 +1459,11 @@ let ``keep correct indentation after multiline typed member definition`` () =
         equal
         """
 type SomeType() =
-    member SomeMember(looooooooooooooooooooooooooooooooooong1: A,
-                      looooooooooooooooooooooooooooooooooong2: A)
-                      : string =
+    member SomeMember
+        (
+            looooooooooooooooooooooooooooooooooong1: A,
+            looooooooooooooooooooooooooooooooooong2: A
+        ): string =
         printfn "a"
         "a"
 
@@ -1475,9 +1485,10 @@ let ``split multiple parameters over multiple lines`` () =
         equal
         """
 type SomeType =
-    static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
-                             (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
-                             : string =
+    static member SomeMember
+        (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
+        (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
+        : string =
         printfn "a"
         "b"
 """
@@ -1500,9 +1511,10 @@ let ``split multiple parameters over multiple lines and have correct indentation
         equal
         """
 type SomeType =
-    static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
-                             (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
-                             : string =
+    static member SomeMember
+        (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string)
+        (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string)
+        : string =
         printfn "a"
         "b"
 
@@ -1524,8 +1536,9 @@ let ``member with one long parameter and return type, 850`` () =
         equal
         """
 type SomeType =
-    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
-                             : string =
+    static member SomeMember
+        loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
+        : string =
         printfn "a"
         "b"
 """
@@ -1545,8 +1558,9 @@ let ``member with one long parameter and no return type, 850`` () =
         equal
         """
 type SomeType =
-    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
-                             =
+    static member SomeMember
+        loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
+        =
         printfn "a"
         "b"
 """
@@ -1569,17 +1583,20 @@ let ``multiple members with one long parameter`` () =
         equal
         """
 type SomeType =
-    static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
-                             =
+    static member SomeMember
+        loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1
+        =
         printfn "a"
         "b"
 
-    static member Serialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType)
-                           =
+    static member Serialize
+        (loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType)
+        =
         Encode.string v.Meh
 
-    static member Deserialize(loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee)
-                              : SomeType =
+    static member Deserialize
+        (loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee)
+        : SomeType =
         Decode.SomeType
             loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee
 """
@@ -1628,10 +1645,12 @@ type C() =
         equal
         """
 type C() =
-    member _.LongMethodWithLotsOfParameters(aVeryLongType : int,
-                                            aSecondVeryLongType : int,
-                                            aThirdVeryLongType : int)
-                                            : int =
+    member _.LongMethodWithLotsOfParameters
+        (
+            aVeryLongType : int,
+            aSecondVeryLongType : int,
+            aThirdVeryLongType : int
+        ) : int =
         aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
 """
 
@@ -1653,9 +1672,12 @@ type C() =
         equal
         """
 type C() =
-    member _.LongMethodWithLotsOfParameters(aVeryLongType : int,
-                                            aSecondVeryLongType : int,
-                                            aThirdVeryLongType : int) =
+    member _.LongMethodWithLotsOfParameters
+        (
+            aVeryLongType : int,
+            aSecondVeryLongType : int,
+            aThirdVeryLongType : int
+        ) =
         aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
 """
 
@@ -1985,10 +2007,12 @@ type MyClass() =
         equal
         """
 type MyClass() =
-    member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
-                                            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
-                                            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
-                                            : AVeryLongReturnType =
+    member _.LongMethodWithLotsOfParameters
+        (
+            aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+        ): AVeryLongReturnType =
         someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
@@ -2007,9 +2031,12 @@ type MyClass() =
         equal
         """
 type MyClass() =
-    member _.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
-                                            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
-                                            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
+    member _.LongMethodWithLotsOfParameters
+        (
+            aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+        ) =
         someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
@@ -2028,10 +2055,11 @@ type MyClass() =
         equal
         """
 type MyClass() =
-    member _.LongMethodWithLotsOfParameters (aVeryLongType: AVeryLongTypeThatYouNeedToUse)
-                                            (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse)
-                                            (aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
-                                            : AVeryLongReturnType =
+    member _.LongMethodWithLotsOfParameters
+        (aVeryLongType: AVeryLongTypeThatYouNeedToUse)
+        (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse)
+        (aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
+        : AVeryLongReturnType =
         someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
@@ -2050,10 +2078,11 @@ type MyClass() =
         equal
         """
 type MyClass() =
-    member _.LongMethodWithLotsOfParameters (aVeryLongType: AVeryLongTypeThatYouNeedToUse)
-                                            (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse)
-                                            (aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
-                                            =
+    member _.LongMethodWithLotsOfParameters
+        (aVeryLongType: AVeryLongTypeThatYouNeedToUse)
+        (aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse)
+        (aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse)
+        =
         someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
