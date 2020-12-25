@@ -1346,7 +1346,7 @@ let internal sepSemi (ctx: Context) =
 """
 
 [<Test>]
-let ``record with an access modifier and a static member, 1300`` () =
+let ``record with an access modifier and a static member, 1300, 657`` () =
     formatSourceString
         false
         """
@@ -1376,8 +1376,11 @@ type RequestParser<'ctx, 'a> =
           parse: 'ctx -> Request -> Async<Result<'a, Error list>>
           prohibited: ProhibitedRequestGetter list }
 
-    static member internal Create(consumedFields, parse: 'ctx -> Request -> Async<Result<'a, Error list>>)
-                                  : RequestParser<'ctx, 'a> =
+    static member internal Create
+        (
+            consumedFields,
+            parse: 'ctx -> Request -> Async<Result<'a, Error list>>
+        ): RequestParser<'ctx, 'a> =
         { consumedFields = consumedFields
           parse = parse
           prohibited = [] }
@@ -1404,7 +1407,8 @@ type RequestParser<'ctx, 'a> =
 
 """
         { config with
-              MultilineBlockBracketsOnSameColumn = true }
+              MultilineBlockBracketsOnSameColumn = true
+              AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should
         equal
@@ -1417,8 +1421,13 @@ type RequestParser<'ctx, 'a> =
             prohibited: ProhibitedRequestGetter list
         }
 
-    static member internal Create(consumedFields, parse: 'ctx -> Request -> Async<Result<'a, Error list>>)
-                                  : RequestParser<'ctx, 'a> =
+    static member internal Create
+        (
+            consumedFields,
+            parse: 'ctx -> Request -> Async<Result<'a, Error list>>
+        )
+        : RequestParser<'ctx, 'a>
+        =
         {
             consumedFields = consumedFields
             parse = parse

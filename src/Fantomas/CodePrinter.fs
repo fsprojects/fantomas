@@ -66,19 +66,16 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     | LowercaseSynExpr, Paren _ -> ctx.Config.SpaceBeforeLowercaseInvocation
     | _ -> true
 
-let addSpaceBeforeParensInFunDef (astContext: ASTContext) (functionOrMethod: string) args (ctx: Context) =
+let addSpaceBeforeParensInFunDef (spaceBeforeSetting: bool) (functionOrMethod: string) args =
     let isLastPartUppercase =
         let parts = functionOrMethod.Split '.'
         Char.IsUpper parts.[parts.Length - 1].[0]
 
     match functionOrMethod, args with
     | "new", _ -> false
-    | _, PatParen _ ->
-        if astContext.IsMemberDefinition then
-            ctx.Config.SpaceBeforeMember
-        else
-            ctx.Config.SpaceBeforeParameter
-    | _, PatNamed _ -> true
+    | _, PatParen _ -> spaceBeforeSetting
+    | _, PatNamed _
+    | _, SynPat.Wild _ -> true
     | (_: string), _ -> not isLastPartUppercase
     | _ -> true
 
@@ -671,15 +668,17 @@ and genTypeParamPostfix astContext tds tcs =
     genTypeAndParam astContext "" tds tcs true
 
 and genLetBinding astContext pref b =
+    let genPref = !-pref
+
     match b with
     | LetBinding (ats, px, ao, isInline, isMutable, p, e, valInfo) ->
         match e, p with
         | TypedExpr (Typed, e, t), PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
-            getLetBindingFunctionWithReturnType
+            genSynBindingFunctionWithReturnType
                 astContext
                 px
                 ats
-                pref
+                genPref
                 ao
                 isInline
                 isMutable
@@ -691,11 +690,11 @@ and genLetBinding astContext pref b =
                 valInfo
                 e
         | e, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
-            getLetBindingFunction astContext px ats pref ao isInline isMutable s p.Range ps tpso valInfo e
+            genSynBindingFunction astContext px ats genPref ao isInline isMutable s p.Range ps tpso valInfo e
         | TypedExpr (Typed, e, t), pat ->
-            genLetBindingValue astContext px ats pref ao isInline isMutable pat (Some t) valInfo e
+            genSynBindingValue astContext px ats genPref ao isInline isMutable pat (Some t) valInfo e
         | _, PatTuple _ -> genLetBindingDestructedTuple astContext px ats pref ao isInline isMutable p e
-        | _, pat -> genLetBindingValue astContext px ats pref ao isInline isMutable pat None valInfo e
+        | _, pat -> genSynBindingValue astContext px ats genPref ao isInline isMutable pat None valInfo e
         | _ -> sepNone
     | DoBinding (ats, px, e) ->
         let prefix =
@@ -820,191 +819,36 @@ and genMemberBinding astContext b =
                 +> unindent
         | p -> failwithf "Unexpected pattern: %O" p
 
-    | MemberBinding (ats, px, ao, isInline, mf, p, e) ->
-        let genAttributesAndXmlDoc =
-            genPreXmlDoc px +> genAttributes astContext ats
-
+    | MemberBinding (ats, px, ao, isInline, mf, p, e, synValInfo) ->
         let prefix =
             genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
-            +> ifElse isInline (!- "inline ") sepNone
-            +> opt sepSpace ao genAccess
 
-        let rec genNameAndParameters p =
-            match p with
-            | PatLongIdent (ao, s, ps, tpso) ->
-                let aoc = opt sepSpace ao genAccess
+        let astContext =
+            { astContext with
+                  IsMemberDefinition = true }
 
-                let tpsoc =
-                    opt sepNone tpso (fun (ValTyparDecls (tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
-
-                let hasBracket =
-                    ps |> Seq.map snd |> Seq.exists hasParenInPat
-
-                let hasParameters = List.isNotEmpty ps
-                let multipleParameters = List.length ps > 1
-
-                let spaceAfter ctx =
-                    onlyIf
-                        (ctx.Config.SpaceBeforeMember && hasParameters
-                         || not hasBracket && hasParameters
-                         || multipleParameters)
-                        sepSpace
-                        ctx
-
-                let name =
-                    aoc
-                    +> infixOperatorFromTrivia p.Range s
-                    +> tpsoc
-                    +> spaceAfter
-
-                let parameters =
-                    let astCtx =
-                        { astContext with
-                              IsMemberDefinition = true }
-
-                    let shortExpr =
-                        atCurrentColumn (col sepSpace ps (genPatWithIdent astCtx))
-
-                    let longExpr ctx =
-                        if ctx.Config.AlternativeLongMemberDefinitions then
-                            (indent
-                             +> sepNln
-                             +> col sepNln ps (genPatWithIdent astCtx)
-                             +> unindent)
-                                ctx
-                        else
-                            (atCurrentColumn (col sepNln ps (genPatWithIdent astCtx))) ctx
-
-                    expressionFitsOnRestOfLine shortExpr longExpr
-
-                name, parameters
-            | PatTyped (p, t) ->
-                let n, p = genNameAndParameters p
-                n +> sepColon +> genType astContext false t, p
-            | PatParen (p) -> genNameAndParameters p
-            | PatNamed (ao, _, s) -> optSingle genAccess ao +> sepSpace -- s, sepNone
-            | _ -> sepNone, sepNone
-
-        let hasParenthesis =
-            match p with
-            | PatParen _ -> true
-            | _ -> false
-
-        let isSingleTuple =
-            match p with
-            | PatLongIdent (_, _, [ _, PatParen (PatTuple _) ], _)
-            | PatLongIdent (_, _, [ _, PatParen (PatNamed _) ], _) -> true
-            | _ -> false
-
-        let genName, genParameters = genNameAndParameters p
-
-        match e with
-        | TypedExpr (Typed, e, t) ->
-            let memberDefinition =
-                let shortExpr =
-                    genName
-                    +> genParameters
-                    +> sepColon
-                    +> genType astContext false t
-                    +> sepEq
-
-                let longExpr ctx =
-                    let expr =
-                        if ctx.Config.AlternativeLongMemberDefinitions then
-                            genName
-                            +> genParameters
-                            +> indent
-                            +> sepNln
-                            +> sepColon
-                            +> genType astContext false t
-                            +> sepNln
-                            +> sepEqFixed
-                            +> unindent
-                        else
-                            genName
-                            +> atCurrentColumn (
-                                genParameters
-                                +> sepNln
-                                +> onlyIf isSingleTuple (!- " ")
-                                +> sepColon
-                                +> genType astContext false t
-                                +> sepEq
-                            )
-
-                    expr ctx
-
+        match e, p with
+        | TypedExpr (Typed, e, t), PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
+            genSynBindingFunctionWithReturnType
+                astContext
+                px
+                ats
                 prefix
-                +> expressionFitsOnRestOfLine shortExpr longExpr
-
-            genAttributesAndXmlDoc
-            +> leadingExpressionIsMultiline
-                memberDefinition
-                (fun mdLong ctx ->
-                    let maxWidth =
-                        if isFunctionBinding p then
-                            ctx.Config.MaxFunctionBindingWidth
-                        else
-                            ctx.Config.MaxValueBindingWidth
-
-                    ifElse
-                        mdLong
-                        (indent
-                         +> sepNln
-                         +> genExpr astContext e
-                         +> unindent)
-                        (sepSpace
-                         +> isShortExpressionOrAddIndentAndNewline maxWidth (genExpr astContext e))
-                        ctx)
-        | e ->
-            let memberDefinition =
-                let shortExpr =
-                    onlyIf hasParenthesis sepOpenT
-                    +> genName
-                    +> onlyIf hasParenthesis sepCloseT
-                    +> genParameters
-                    +> sepEq
-                    +> sepSpace
-
-                let longExpr ctx =
-                    if ctx.Config.AlternativeLongMemberDefinitions then
-                        (genName
-                         +> genParameters
-                         +> indent
-                         +> sepNln
-                         +> sepEqFixed
-                         +> unindent)
-                            ctx
-                    else
-                        (onlyIf hasParenthesis sepOpenT
-                         +> genName
-                         +> onlyIf hasParenthesis sepCloseT
-                         +> atCurrentColumn (
-                             genParameters
-                             +> ifElse isSingleTuple sepEq (sepNln +> sepEqFixed)
-                         ))
-                            ctx
-
-                prefix
-                +> expressionFitsOnRestOfLine shortExpr longExpr
-
-            genAttributesAndXmlDoc
-            +> leadingExpressionIsMultiline
-                memberDefinition
-                (fun mdLong ctx ->
-                    let maxWidth =
-                        if isFunctionBinding p then
-                            ctx.Config.MaxFunctionBindingWidth
-                        else
-                            ctx.Config.MaxValueBindingWidth
-
-                    ifElse
-                        mdLong
-                        (indent
-                         +> sepNln
-                         +> genExpr astContext e
-                         +> unindent)
-                        (isShortExpressionOrAddIndentAndNewline maxWidth (genExpr astContext e))
-                        ctx)
+                ao
+                isInline
+                false
+                s
+                p.Range
+                ps
+                tpso
+                t
+                synValInfo
+                e
+        | e, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
+            genSynBindingFunction astContext px ats prefix ao isInline false s p.Range ps tpso synValInfo e
+        | TypedExpr (Typed, e, t), pat ->
+            genSynBindingValue astContext px ats prefix ao isInline false pat (Some t) synValInfo e
+        | _, pat -> genSynBindingValue astContext px ats prefix ao isInline false pat None synValInfo e
 
     | ExplicitCtor (ats, px, ao, p, e, so) ->
         let prefix =
@@ -4568,7 +4412,10 @@ and genPat astContext pat =
             +> tpsoc
             +> ifElse
                 (hasParenInPat p || Option.isSome ido)
-                (ifElseCtx (addSpaceBeforeParensInFunDef astContext s p) sepSpace sepNone)
+                (ifElseCtx
+                    (fun ctx -> addSpaceBeforeParensInFunDef ctx.Config.SpaceBeforeParameter s p)
+                    sepSpace
+                    sepNone)
                 sepSpace
             +> ifElse
                 (Option.isSome ido)
@@ -4677,11 +4524,11 @@ and genPat astContext pat =
         | SynPat.Paren _ -> genTriviaFor SynPat_Paren pat.Range
         | _ -> id)
 
-and getLetBindingFunction
+and genSynBindingFunction
     (astContext: ASTContext)
     (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
     (ats: SynAttributes)
-    (pref: string)
+    (pref: Context -> Context)
     (ao: SynAccess option)
     (isInline: bool)
     (isMutable: bool)
@@ -4691,15 +4538,22 @@ and getLetBindingFunction
     (genericTypeParameters: SynValTyparDecls option)
     (valInfo: SynValInfo)
     (e: SynExpr)
+    (ctx: Context)
     =
+    let spaceBefore, alternativeSyntax =
+        if astContext.IsMemberDefinition then
+            ctx.Config.SpaceBeforeMember, ctx.Config.AlternativeLongMemberDefinitions
+        else
+            ctx.Config.SpaceBeforeParameter, ctx.Config.AlignFunctionSignatureToIndentation
+
     let genAttrIsFirstChild =
         onlyIf astContext.IsFirstChild (genAttributes astContext ats)
 
     let genPref =
         if astContext.IsFirstChild then
-            (!-pref)
+            pref
         else
-            (!-pref +> genOnelinerAttributes astContext ats)
+            (pref +> genOnelinerAttributes astContext ats)
 
     let afterLetKeyword =
         ifElse isMutable (!- "mutable ") sepNone
@@ -4714,8 +4568,6 @@ and getLetBindingFunction
             (fun (ValTyparDecls (tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
 
     let genSignature =
-        let firstParameter = List.head parameters |> snd
-
         let rangeBetweenBindingPatternAndExpression =
             let endOfParameters =
                 List.last parameters
@@ -4724,11 +4576,17 @@ and getLetBindingFunction
 
             mkRange "range between binding pattern and expression" endOfParameters e.Range.Start
 
+        let spaceBeforeParameters =
+            match parameters with
+            | [] -> sepNone
+            | [ (_, p) ] -> ifElse (addSpaceBeforeParensInFunDef spaceBefore functionName p) sepSpace sepNone
+            | _ -> sepSpace
+
         let short =
             genPref
             +> afterLetKeyword
             +> genFunctionName
-            +> ifElseCtx (addSpaceBeforeParensInFunDef astContext functionName firstParameter) sepSpace sepNone
+            +> spaceBeforeParameters
             +> col sepSpace parameters (genPatWithIdent astContext)
             +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEq
 
@@ -4745,39 +4603,33 @@ and getLetBindingFunction
              +> indent
              +> sepNln
              +> genParameters
-             +> ifElse
-                 (hasSingleTupledArg
-                  && not ctx.Config.AlignFunctionSignatureToIndentation)
-                 sepSpace
-                 sepNln
+             +> ifElse (hasSingleTupledArg && not alternativeSyntax) sepSpace sepNln
              +> tokN rangeBetweenBindingPatternAndExpression EQUALS sepEqFixed
              +> unindent)
                 ctx
 
         expressionFitsOnRestOfLine short long
 
-    genPreXmlDoc px
-    +> genAttrIsFirstChild
-    +> leadingExpressionIsMultiline
-        genSignature
-        (fun isMultiline ctx ->
-            if isMultiline then
-                (indent
-                 +> sepNln
-                 +> genExpr astContext e
-                 +> unindent)
-                    ctx
-            else
-                sepSpaceIfShortExpressionOrAddIndentAndNewline
-                    ctx.Config.MaxFunctionBindingWidth
-                    (genExpr astContext e)
-                    ctx)
+    let genExpr isMultiline =
+        if isMultiline then
+            (indent
+             +> sepNln
+             +> genExpr astContext e
+             +> unindent)
 
-and getLetBindingFunctionWithReturnType
+        else
+            sepSpaceIfShortExpressionOrAddIndentAndNewline ctx.Config.MaxFunctionBindingWidth (genExpr astContext e)
+
+    (genPreXmlDoc px
+     +> genAttrIsFirstChild
+     +> leadingExpressionIsMultiline genSignature genExpr)
+        ctx
+
+and genSynBindingFunctionWithReturnType
     (astContext: ASTContext)
     (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
     (ats: SynAttributes)
-    (pref: string)
+    (pref: Context -> Context)
     (ao: SynAccess option)
     (isInline: bool)
     (isMutable: bool)
@@ -4788,15 +4640,22 @@ and getLetBindingFunctionWithReturnType
     (returnType: SynType)
     (valInfo: SynValInfo)
     (e: SynExpr)
+    (ctx: Context)
     =
+    let spaceBefore, alternativeSyntax =
+        if astContext.IsMemberDefinition then
+            ctx.Config.SpaceBeforeMember, ctx.Config.AlternativeLongMemberDefinitions
+        else
+            ctx.Config.SpaceBeforeParameter, ctx.Config.AlignFunctionSignatureToIndentation
+
     let genAttrIsFirstChild =
         onlyIf astContext.IsFirstChild (genAttributes astContext ats)
 
     let genPref =
         if astContext.IsFirstChild then
-            (!-pref)
+            pref
         else
-            (!-pref +> genOnelinerAttributes astContext ats)
+            pref +> genOnelinerAttributes astContext ats
 
     let afterLetKeyword =
         ifElse isMutable (!- "mutable ") sepNone
@@ -4821,17 +4680,21 @@ and getLetBindingFunctionWithReturnType
         +> genType astContext false returnType
 
     let genSignature =
-        let firstParameter = List.head parameters |> snd
-
         let equalsRange =
             mkRange "equals range" returnType.Range.End e.Range.Start
+
+        let spaceBeforeParameters =
+            match parameters with
+            | [] -> sepNone
+            | [ (_, p) ] -> ifElse (addSpaceBeforeParensInFunDef spaceBefore functionName p) sepSpace sepNone
+            | _ -> sepSpace
 
         let short =
             genPref
             +> afterLetKeyword
             +> sepSpace
             +> genFunctionName
-            +> ifElseCtx (addSpaceBeforeParensInFunDef astContext functionName firstParameter) sepSpace sepNone
+            +> spaceBeforeParameters
             +> col sepSpace parameters (genPatWithIdent astContext)
             +> genReturnType false
             +> tokN equalsRange EQUALS sepEq
@@ -4849,39 +4712,28 @@ and getLetBindingFunctionWithReturnType
              +> indent
              +> sepNln
              +> genParameters
-             +> onlyIf
-                 (not hasSingleTupledArg
-                  || ctx.Config.AlignFunctionSignatureToIndentation)
-                 sepNln
-             +> genReturnType (
-                 not hasSingleTupledArg
-                 || ctx.Config.AlignFunctionSignatureToIndentation
-             )
-             +> ifElse
-                 ctx.Config.AlignFunctionSignatureToIndentation
-                 (sepNln +> tokN equalsRange EQUALS sepEqFixed)
-                 sepEq
+             +> onlyIf (not hasSingleTupledArg || alternativeSyntax) sepNln
+             +> genReturnType (not hasSingleTupledArg || alternativeSyntax)
+             +> ifElse alternativeSyntax (sepNln +> tokN equalsRange EQUALS sepEqFixed) sepEq
              +> unindent)
                 ctx
 
         expressionFitsOnRestOfLine short long
 
-    genPreXmlDoc px
-    +> genAttrIsFirstChild
-    +> leadingExpressionIsMultiline
-        genSignature
-        (fun isMultiline ctx ->
-            if isMultiline then
-                (indent
-                 +> sepNln
-                 +> genExpr astContext e
-                 +> unindent)
-                    ctx
-            else
-                sepSpaceIfShortExpressionOrAddIndentAndNewline
-                    ctx.Config.MaxFunctionBindingWidth
-                    (genExpr astContext e)
-                    ctx)
+    let genExpr isMultiline =
+        if isMultiline then
+            (indent
+             +> sepNln
+             +> genExpr astContext e
+             +> unindent)
+
+        else
+            sepSpaceIfShortExpressionOrAddIndentAndNewline ctx.Config.MaxFunctionBindingWidth (genExpr astContext e)
+
+    (genPreXmlDoc px
+     +> genAttrIsFirstChild
+     +> leadingExpressionIsMultiline genSignature genExpr)
+        ctx
 
 and genLetBindingDestructedTuple
     (astContext: ASTContext)
@@ -4932,11 +4784,11 @@ and genLetBindingDestructedTuple
             else
                 isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 
-and genLetBindingValue
+and genSynBindingValue
     (astContext: ASTContext)
     (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
     (ats: SynAttributes)
-    (pref: string)
+    (pref: Context -> Context)
     (ao: SynAccess option)
     (isInline: bool)
     (isMutable: bool)
@@ -4950,9 +4802,9 @@ and genLetBindingValue
 
     let genPref =
         if astContext.IsFirstChild then
-            (!-pref)
+            pref
         else
-            (!-pref +> genOnelinerAttributes astContext ats)
+            (pref +> genOnelinerAttributes astContext ats)
 
     let afterLetKeyword =
         opt sepSpace ao genAccess
