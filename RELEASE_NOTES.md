@@ -1,3 +1,7 @@
+### 4.4.0-alpha-006 12/2020
+
+* Fix Formatting of long parameter lists. [#657](https://github.com/fsprojects/fantomas/issues/657)
+
 ### 4.4.0-alpha-005 12/2020
 
 * Fix DotGet inside If expression not correct on second format. [#1329](https://github.com/fsprojects/fantomas/issues/1329)
