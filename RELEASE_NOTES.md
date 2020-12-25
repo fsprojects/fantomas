@@ -1,3 +1,7 @@
+### 4.4.0-alpha-007 12/2020
+
+* Fix Program.fs inside full path can lead to invalid AST. [#1337](https://github.com/fsprojects/fantomas/issues/1337)
+
 ### 4.4.0-alpha-006 12/2020
 
 * Fix Formatting of long parameter lists. [#657](https://github.com/fsprojects/fantomas/issues/657)
