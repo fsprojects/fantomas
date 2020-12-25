@@ -41,11 +41,13 @@ type FormatContext =
       SourceText: ISourceText }
 
 // Some file names have a special meaning for the F# compiler and the AST cannot be parsed.
-let safeFileName fileName =
+let safeFileName file =
+    let fileName = Path.GetFileName(file)
+
     if fileName = "Program.fs" then
         "tmp.fsx"
     else
-        fileName
+        file
 
 let createFormatContext fileName (source: SourceOrigin) =
     let (sourceText, sourceCode) = getSourceTextAndCode source
