@@ -42,7 +42,8 @@ type FormatContext =
 
 // Some file names have a special meaning for the F# compiler and the AST cannot be parsed.
 let safeFileName (file: string) =
-    let fileName = file.Split([| '\\'; '/' |]) |> Array.last
+    let fileName =
+        file.Split([| '\\'; '/' |]) |> Array.last
 
     if fileName = "Program.fs" then
         "tmp.fsx"
