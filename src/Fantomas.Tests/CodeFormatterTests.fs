@@ -31,3 +31,30 @@ let main argv _ =
     )
     |> Async.RunSynchronously
     |> ignore
+
+[<Test>]
+let ``sanitize filename if path with Program.fs`` () =
+    let fileName = @"d:\dev\bootcamp\src\Program.fs"
+
+    let source = """
+open System
+open Poker.Main
+
+[<EntryPoint>]
+let main _ =
+    processInput Console.In Console.Out
+    0
+"""
+
+    let parsingOptions =
+        FakeHelpers.createParsingOptionsFromFile fileName
+
+    CodeFormatter.FormatDocumentAsync(
+        fileName,
+        SourceOrigin.SourceString source,
+        config,
+        parsingOptions,
+        sharedChecker.Value
+    )
+    |> Async.RunSynchronously
+    |> ignore
