@@ -320,3 +320,31 @@ type Color =
 
     member ToInt: unit -> int
 """
+
+[<Test>]
+let ``newline before interface, 1346`` () =
+    formatSourceString
+        false
+        """
+type andSeq<'t> =
+    | AndSeq of 't seq
+
+    interface IEnumerable<'t> with
+        member this.GetEnumerator(): Collections.IEnumerator =
+            match this with
+            | AndSeq xs -> xs.GetEnumerator() :> _
+"""
+        { config with
+              NewlineBetweenTypeDefinitionAndMembers = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type andSeq<'t> =
+    | AndSeq of 't seq
+
+    interface IEnumerable<'t> with
+        member this.GetEnumerator(): Collections.IEnumerator =
+            match this with
+            | AndSeq xs -> xs.GetEnumerator() :> _
+"""
