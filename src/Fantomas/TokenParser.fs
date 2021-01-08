@@ -511,8 +511,9 @@ let private (|StringTextToken|_|) token =
     else
         None
 
-let private (|InterpStringEndToken|_|) token =
-    if token.TokenInfo.TokenName = "INTERP_STRING_END" then
+let private (|InterpStringEndOrPartToken|_|) token =
+    if token.TokenInfo.TokenName = "INTERP_STRING_END"
+       || token.TokenInfo.TokenName = "INTERP_STRING_PART" then
         Some token
     else
         None
@@ -522,7 +523,7 @@ let escapedCharacterRegex =
 
 let rec private (|EndOfInterpolatedString|_|) tokens =
     match tokens with
-    | StringTextToken (stToken) :: InterpStringEndToken (endToken) :: rest -> Some([ stToken ], endToken, rest)
+    | StringTextToken (stToken) :: InterpStringEndOrPartToken (endToken) :: rest -> Some([ stToken ], endToken, rest)
     | StringTextToken (stToken) :: EndOfInterpolatedString (stringTokens, endToken, rest) ->
         Some(stToken :: stringTokens, endToken, rest)
     | _ -> None

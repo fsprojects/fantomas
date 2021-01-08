@@ -131,3 +131,18 @@ $"abc {
            x + x
 } xyz"
 """
+
+[<Test>]
+let ``backslash in interpolation, issue 1344`` () =
+    formatSourceString
+        false
+        """
+$"\"{bar}\" {1} {2}"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+$"\"{bar}\" {1} {2}"
+"""
