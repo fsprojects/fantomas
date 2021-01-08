@@ -1604,7 +1604,7 @@ and genExpr astContext synExpr ctx =
         | Match (e, cs) ->
             atCurrentColumn (
                 !- "match "
-                +> genExpr astContext e
+                +> atCurrentColumnIndent (genExpr astContext e)
                 +> enterNodeTokenByName synExpr.Range WITH
                 // indent 'with' further if trivia was printed so that is appear after the match keyword.
                 +> ifElseCtx lastWriteEventIsNewline (rep 5 !- " ") sepNone
