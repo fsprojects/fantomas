@@ -670,6 +670,10 @@ and genTypeParamPostfix astContext tds tcs =
 and genLetBinding astContext pref b =
     let genPref = !-pref
 
+    let astContext =
+        { astContext with
+              IsMemberDefinition = false }
+
     match b with
     | LetBinding (ats, px, ao, isInline, isMutable, p, e, valInfo) ->
         match e, p with
