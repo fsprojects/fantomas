@@ -1351,3 +1351,28 @@ let longFunctionWithLongTupleParameterAndReturnType
     // ... the body of the method follows
     ()
 """
+
+[<Test>]
+let ``space before parameter inside inner let binding, 1345`` () =
+    formatSourceString
+        false
+        """
+let func1 (l: int) = ()
+
+type Test () =
+    member this.Testing () =
+        let func2 (l: int) = ()
+        return 0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let func1 (l: int) = ()
+
+type Test() =
+    member this.Testing() =
+        let func2 (l: int) = ()
+        return 0
+"""
