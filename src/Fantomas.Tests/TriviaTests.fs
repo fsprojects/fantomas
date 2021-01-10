@@ -1,6 +1,7 @@
 module Fantomas.Tests.TriviaTests
 
 open NUnit.Framework
+open FsUnit
 open Fantomas
 open Fantomas.Tests.TestHelper
 open Fantomas.TriviaTypes
@@ -489,3 +490,65 @@ let ``number expression`` () =
     | [ { ContentItself = Some (Number (n))
           Type = TriviaNodeType.MainNode (SynExpr_Const) } ] -> n == "2.0m"
     | _ -> fail ()
+
+[<Test>]
+let ``line comment inside short `with` block (of a try-with), 1219`` () =
+    formatSourceString
+        false
+        """
+      try
+          //humberto
+          TrySomething(someParam)
+      with
+          //comentario
+          ex ->
+          MakeSureToCleanup(someParam)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    //humberto
+    TrySomething(someParam)
+with
+    //comentario
+    ex -> MakeSureToCleanup(someParam)
+"""
+
+[<Test>]
+let ``line comment inside `with` block (of a try-with), 1219`` () =
+    formatSourceString
+        false
+        """module Foo =
+        let Bar () =
+            async {
+                try
+                    let! content = tryDownloadFile url
+                    return Some content
+                with
+                    // should we specify HttpRequestException?
+                    ex ->
+                        Infrastructure.ReportWarning ex
+                        return None
+            }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let Bar () =
+        async {
+            try
+                let! content = tryDownloadFile url
+                return Some content
+            with
+                // should we specify HttpRequestException?
+                ex ->
+                    Infrastructure.ReportWarning ex
+                    return None
+        }
+"""

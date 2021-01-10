@@ -4103,6 +4103,7 @@ and genClause astContext hasBar (Clause (p, e, eo)) =
         +> leaveNodeTokenByName arrowRange RARROW
 
     genTriviaBeforeClausePipe p.Range
+    +> genTriviaMainNodesBeforeClausePipe p.Range
     +> ifElse hasBar (sepBar +> atCurrentColumnWithPrepend pat body) (pat +> body)
 
 /// Each multiline member definition has a pre and post new line.

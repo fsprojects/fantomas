@@ -1448,6 +1448,17 @@ let internal genTriviaBeforeClausePipe (rangeOfClause: range) ctx =
         | None -> id
     <| ctx
 
+let internal genTriviaMainNodesBeforeClausePipe (rangeOfClause: range) ctx =
+    (Map.tryFindOrEmptyList SynMatchClause_Clause ctx.TriviaMainNodes)
+    |> List.tryFind
+        (fun t ->
+            RangeHelpers.rangeEq t.Range rangeOfClause)
+    |> fun trivia ->
+        match trivia with
+        | Some trivia -> indent +> (printContentBefore trivia)
+        | None -> id
+    <| ctx
+
 let internal hasLineCommentAfterInfix (rangePlusInfix: range) (ctx: Context) =
     match Map.tryFind SynExpr_Ident ctx.TriviaMainNodes with
     | Some triviaNodes ->
