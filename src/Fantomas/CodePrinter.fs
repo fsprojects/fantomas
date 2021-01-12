@@ -127,9 +127,8 @@ and genParsedHashDirective (ParsedHashDirective (h, s, r)) =
         | None -> col sepSpace s printArgument
         <| ctx
 
-    genTriviaFor ParsedHashDirective_ r !- "#" -- h
-    +> sepSpace
-    +> printIdent
+    !- "#" -- h +> sepSpace +> printIdent
+    |> genTriviaFor ParsedHashDirective_ r
 
 and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, s, mds, isRecursive, moduleKind) as node) =
     let sepModuleAndFirstDecl =
