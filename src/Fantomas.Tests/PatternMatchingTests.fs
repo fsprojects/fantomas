@@ -1128,3 +1128,23 @@ match foo with
 
     getTriviaFromTokensThemSelves allTokens rest info
 """
+
+[<Test>]
+let ``multiline application call in match expression, 1352`` () =
+    formatSourceString
+        false
+        """
+match x (Map.tryFind somelongidentifier a + Option.defaultValue longidentifier) with
+| _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match x (
+          Map.tryFind somelongidentifier a
+          + Option.defaultValue longidentifier
+      ) with
+| _ -> ()
+"""

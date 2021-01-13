@@ -128,6 +128,7 @@ and genParsedHashDirective (ParsedHashDirective (h, s, r)) =
         <| ctx
 
     !- "#" -- h +> sepSpace +> printIdent
+    |> genTriviaFor ParsedHashDirective_ r
 
 and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, s, mds, isRecursive, moduleKind) as node) =
     let sepModuleAndFirstDecl =
@@ -669,6 +670,10 @@ and genTypeParamPostfix astContext tds tcs =
 
 and genLetBinding astContext pref b =
     let genPref = !-pref
+
+    let astContext =
+        { astContext with
+              IsMemberDefinition = false }
 
     match b with
     | LetBinding (ats, px, ao, isInline, isMutable, p, e, valInfo) ->
@@ -1604,7 +1609,7 @@ and genExpr astContext synExpr ctx =
         | Match (e, cs) ->
             atCurrentColumn (
                 !- "match "
-                +> genExpr astContext e
+                +> atCurrentColumnIndent (genExpr astContext e)
                 +> enterNodeTokenByName synExpr.Range WITH
                 // indent 'with' further if trivia was printed so that is appear after the match keyword.
                 +> ifElseCtx lastWriteEventIsNewline (rep 5 !- " ") sepNone
@@ -3125,7 +3130,24 @@ and genApp appNlnFun astContext e es ctx =
         expressionFitsOnRestOfLine shortExpression longExpression ctx
 
 and sepNlnBetweenTypeAndMembers (ms: SynMemberDefn list) =
-    sepNlnTypeAndMembers (List.tryHead ms |> Option.map (fun e -> e.Range)) SynMemberDefn_Member
+    match List.tryHead ms with
+    | Some m ->
+        let range, mainNodeType =
+            match m with
+            | SynMemberDefn.Interface (_, _, r) -> r, SynMemberDefn_Interface
+            | SynMemberDefn.Open (_, r) -> r, SynMemberDefn_Open
+            | SynMemberDefn.Member (_, r) -> r, SynMemberDefn_Member
+            | SynMemberDefn.ImplicitCtor (_, _, _, _, _, r) -> r, SynMemberDefn_ImplicitCtor
+            | SynMemberDefn.ImplicitInherit (_, _, _, r) -> r, SynMemberDefn_ImplicitInherit
+            | SynMemberDefn.LetBindings (_, _, _, r) -> r, SynMemberDefn_LetBindings
+            | SynMemberDefn.AbstractSlot (_, _, r) -> r, SynMemberDefn_AbstractSlot
+            | SynMemberDefn.Inherit (_, _, r) -> r, SynMemberDefn_Inherit
+            | SynMemberDefn.ValField (_, r) -> r, SynMemberDefn_ValField
+            | SynMemberDefn.NestedType (_, _, r) -> r, SynMemberDefn_NestedType
+            | SynMemberDefn.AutoProperty (_, _, _, _, _, _, _, _, _, _, r) -> r, SynMemberDefn_AutoProperty
+
+        sepNlnTypeAndMembers (Some range) mainNodeType
+    | None -> sepNone
 
 and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix) as node) =
     let typeName =

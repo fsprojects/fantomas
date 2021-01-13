@@ -1083,3 +1083,31 @@ type IExports =
 // type MomentConstructor =
 //     U2<MomentConstructor1, MomentConstructor2>
 """
+
+[<Test>]
+let ``comments before no warn should not be removed, 1220`` () =
+    formatSourceString
+        false
+        """
+// sample comment before no warn
+#nowarn "44"
+
+namespace Foo
+
+module Bar =
+    let Baz () =
+        ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// sample comment before no warn
+#nowarn "44"
+
+namespace Foo
+
+module Bar =
+    let Baz () = ()
+"""
