@@ -268,3 +268,32 @@ let y =
          sprintf "(%s)" args),
     namesWithIndices
 """
+
+[<Test>]
+let ``comment on first tuple argument is preserved`` () =
+    formatSourceString
+        false
+        """
+let func (a, b) = a + b
+
+func(
+        // abc
+        0,
+        // def
+        1
+)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let func (a, b) = a + b
+
+func (
+    // abc
+    0,
+    // def
+    1
+)
+"""
