@@ -17,7 +17,7 @@ type Heap<'T when 'T : comparison> =
     new : capacity:int -> Heap<'T>
     member Clear : unit -> unit
     member ExtractMin : unit -> 'T
-    member Insert : k:'T -> unit
+    member Insert : k: 'T -> unit
     member IsEmpty : unit -> bool
     member PeekMin : unit -> 'T
     override ToString : unit -> string
@@ -32,10 +32,10 @@ module Heap
 
 type Heap<'T when 'T: comparison> =
     class
-        new: capacity:int -> Heap<'T>
+        new: capacity: int -> Heap<'T>
         member Clear: unit -> unit
         member ExtractMin: unit -> 'T
-        member Insert: k:'T -> unit
+        member Insert: k: 'T -> unit
         member IsEmpty: unit -> bool
         member PeekMin: unit -> 'T
         override ToString: unit -> string
@@ -156,13 +156,13 @@ type A =
         equal
         """
 type A =
-    abstract B: ?p1:(float * int) -> unit
-    abstract C: ?p1:float * int -> unit
-    abstract D: ?p1:(int -> int) -> unit
-    abstract E: ?p1:float -> unit
-    abstract F: ?p1:float * ?p2:float -> unit
-    abstract G: p1:float * ?p2:float -> unit
-    abstract H: float * ?p2:float -> unit
+    abstract B: ?p1: (float * int) -> unit
+    abstract C: ?p1: float * int -> unit
+    abstract D: ?p1: (int -> int) -> unit
+    abstract E: ?p1: float -> unit
+    abstract F: ?p1: float * ?p2: float -> unit
+    abstract G: p1: float * ?p2: float -> unit
+    abstract H: float * ?p2: float -> unit
 """
 
 [<Test>]

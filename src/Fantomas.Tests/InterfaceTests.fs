@@ -135,7 +135,7 @@ let ``should keep named arguments on abstract members`` () =
     |> should
         equal
         """type IThing =
-    abstract Foo: name:string * age:int -> bool
+    abstract Foo: name: string * age: int -> bool
 """
 
 [<Test>]
@@ -272,18 +272,19 @@ type Test =
         equal
         """
 type Test =
-    abstract RunJobs: folder:string
-                      * ?jobs:string
-                      * ?ctm:string
-                      * ?createDuplicate:bool
-                      * ?hold:bool
-                      * ?ignoreCriteria:bool
-                      * ?independentFlow:bool
-                      * ?orderDate:string
-                      * ?orderIntoFolder:string
-                      * ?variables:Dictionary<string, string> []
-                      * ?waitForOrderDate:bool
-                      -> string
+    abstract RunJobs:
+        folder: string
+        * ?jobs: string
+        * ?ctm: string
+        * ?createDuplicate: bool
+        * ?hold: bool
+        * ?ignoreCriteria: bool
+        * ?independentFlow: bool
+        * ?orderDate: string
+        * ?orderIntoFolder: string
+        * ?variables: Dictionary<string, string> []
+        * ?waitForOrderDate: bool ->
+        string
 
     override this.RunJobs
         (
@@ -360,4 +361,120 @@ printfn "DIM from C#: %d" md.Z
 // You can also implement it via an object expression
 let md' = { new MyDim }
 printfn "DIM from C# but via Object Expression: %d" md'.Z
+"""
+
+[<Test>]
+let ``long member in type declaration, 1362`` () =
+    formatSourceString
+        false
+        """
+type IFoo =
+    abstract Blah : foo : string -> bar : string -> baz : string -> int
+"""
+        { config with
+              MaxLineLength = 60
+              SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type IFoo =
+    abstract Blah :
+        foo : string ->
+        bar : string ->
+        baz : string ->
+        int
+"""
+
+[<Test>]
+let ``long member in type declaration, not named`` () =
+    formatSourceString
+        false
+        """
+type IFoo =
+    abstract Blah : string -> string -> string -> int -> string -> string
+"""
+        { config with
+              MaxLineLength = 60
+              SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type IFoo =
+    abstract Blah :
+        string ->
+        string ->
+        string ->
+        int ->
+        string ->
+        string
+"""
+
+[<Test>]
+let ``long member with tuple in type declaration`` () =
+    formatSourceString
+        false
+        """
+type IFoo =
+    abstract Bar : [<Path "bar">] bar : string  * [<Path "baz">] baz : string ->  Task<Foo>
+"""
+        { config with
+              MaxLineLength = 60
+              SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type IFoo =
+    abstract Bar :
+        [<Path "bar">] bar : string
+        * [<Path "baz">] baz : string ->
+        Task<Foo>
+"""
+
+[<Test>]
+let ``long member with mixed type declaration`` () =
+    formatSourceString
+        false
+        """
+type IFoo =
+    abstract Bar : i : int -> a : string * foo : int -> string
+"""
+        { config with
+              MaxLineLength = 60
+              SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type IFoo =
+    abstract Bar :
+        i : int ->
+        a : string * foo : int ->
+        string
+"""
+
+[<Test>]
+let ``long member with mixed type declaration with a long name`` () =
+    formatSourceString
+        false
+        """
+type IFoo =
+    abstract Bar : i : int -> a : string * foo : int * someReallyLongNameThatMakesTheTupleMultiLine : string -> string
+"""
+        { config with
+              MaxLineLength = 60
+              SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type IFoo =
+    abstract Bar :
+        i : int ->
+        a : string
+        * foo : int
+        * someReallyLongNameThatMakesTheTupleMultiLine : string ->
+        string
 """
