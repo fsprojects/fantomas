@@ -4206,26 +4206,19 @@ and genMemberDefn astContext node =
                 +> sepCloseT
 
             let longExpr ctx =
-                if ctx.Config.AlternativeLongMemberDefinitions then
-                    (indent
-                     +> sepNln
-                     +> optSingle (fun ao -> genAccess ao +> sepNln) ao
-                     +> sepOpenT
-                     +> indent
-                     +> sepNln
-                     +> col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext)
-                     +> unindent
-                     +> sepNln
-                     +> sepCloseT
-                     +> sepNln
-                     +> unindent)
-                        ctx
-                else
-                    (optPre sepSpace sepSpace ao genAccess
-                     +> sepOpenT
-                     +> atCurrentColumn (col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext))
-                     +> sepCloseT)
-                        ctx
+                (indent
+                 +> sepNln
+                 +> optSingle (fun ao -> genAccess ao +> sepNln) ao
+                 +> sepOpenT
+                 +> indent
+                 +> sepNln
+                 +> col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext)
+                 +> unindent
+                 +> sepNln
+                 +> sepCloseT
+                 +> onlyIf ctx.Config.AlternativeLongMemberDefinitions sepNln
+                 +> unindent)
+                    ctx
 
             expressionFitsOnRestOfLine shortExpr longExpr
 

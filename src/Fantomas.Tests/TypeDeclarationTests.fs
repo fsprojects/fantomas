@@ -1382,9 +1382,12 @@ let ``long constructors should have parameters on separate lines`` () =
     |> should
         equal
         """
-type C (aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+type C
+    (
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
         aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
-        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+    ) =
     member this.X = 42
 """
 
@@ -1620,9 +1623,13 @@ type INotifications<'a, 'b, 'c, 'd, 'e> =
     class
     end
 
-type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData> private (client: INotifications<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>,
-                                                                                                                                    callbackId: 'CallbackId,
-                                                                                                                                    validateUnregisterOutputData: 'UnregisterOutputData -> unit) =
+type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>
+    private
+    (
+        client: INotifications<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>,
+        callbackId: 'CallbackId,
+        validateUnregisterOutputData: 'UnregisterOutputData -> unit
+    ) =
     let a = 5
 """
 
@@ -1696,8 +1703,11 @@ type VersionMismatchDuringDeserializationException(message: string, innerExcepti
     |> should
         equal
         """
-type VersionMismatchDuringDeserializationException(message : string,
-                                                   innerException : System.Exception) =
+type VersionMismatchDuringDeserializationException
+    (
+        message : string,
+        innerException : System.Exception
+    ) =
     inherit System.Exception(message, innerException)
 """
 
