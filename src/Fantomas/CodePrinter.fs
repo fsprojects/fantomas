@@ -1941,7 +1941,7 @@ and genExpr astContext synExpr ctx =
                 +> sepOpenTFor lpr
                 +> indent
                 +> sepNln
-                +> (col (sepComma +> sepNln) args (genExprLong astContext)
+                +> (col (sepCommaFixed +> sepNln) args (genExprLong astContext)
                     |> genTupleTrivia)
                 +> unindent
                 +> sepNln
