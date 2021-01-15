@@ -1291,6 +1291,11 @@ and genExpr astContext synExpr ctx =
                 +> sepCloseTFor rpr
 
             expressionFitsOnRestOfLine short long
+        | SynExpr.New (_, t, e, _) ->
+            !- "new "
+            +> genType astContext false t
+            +> sepSpace
+            +> genExpr astContext e
         | Tuple (es, _) -> genTuple astContext es
         | StructTuple es ->
             !- "struct "
