@@ -782,3 +782,33 @@ module Example
 type Foo =
     abstract member bar: int
 """
+
+[<Test>]
+let ``multiline constructor in class, 1359`` () =
+    formatSourceString
+        false
+        """
+type SomeVeryLongTypeNameWithConstructor
+    (
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+    )
+    =
+    class
+    end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type SomeVeryLongTypeNameWithConstructor
+    (
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+    ) =
+    class
+    end
+"""
