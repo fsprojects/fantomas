@@ -4006,7 +4006,6 @@ and genTypeList astContext node =
     let gt (t, args: SynArgInfo list) =
         match t, args with
         | TTuple ts', _ ->
-            // The '/' separator shouldn't appear here
             let hasBracket = not node.IsEmpty
 
             let gt sepBefore =
