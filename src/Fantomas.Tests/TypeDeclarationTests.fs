@@ -1005,7 +1005,7 @@ type ILogger =
         equal
         """
 type ILogger =
-    abstract DebugFormat: format:String * [<ParamArray>] args:Object [] -> unit
+    abstract DebugFormat: format: String * [<ParamArray>] args: Object [] -> unit
 """
 
 [<Test>]
@@ -1786,7 +1786,7 @@ type DataGroup =
 [<AllowNullLiteral>]
 type SubGroupStackOptions =
     [<Emit "$0[$1]{{=$2}}">]
-    abstract Item: name:string -> bool with get, set
+    abstract Item: name: string -> bool with get, set
 
 [<AllowNullLiteral>]
 type DataGroup =
@@ -1814,7 +1814,7 @@ let foo bar = zero
 [<AllowNullLiteral>]
 type SubGroupStackOptions =
     [<Emit "$0[$1]{{=$2}}">]
-    abstract Item: name:string -> bool with get, set
+    abstract Item: name: string -> bool with get, set
 
 [<AllowNullLiteral>]
 let foo bar = zero
@@ -1860,7 +1860,7 @@ type TimelineOptionsGroupEditableType = U2<bool, TimelineGroupEditableOption>
 [<AllowNullLiteral>]
 type TimelineOptionsGroupCallbackFunction =
     [<Emit "$0($1...)">]
-    abstract Invoke: group:TimelineGroup * callback:(TimelineGroup option -> unit) -> unit
+    abstract Invoke: group: TimelineGroup * callback: (TimelineGroup option -> unit) -> unit
 
 type TimelineOptionsGroupEditableType = U2<bool, TimelineGroupEditableOption>
 """
@@ -1885,7 +1885,7 @@ let myBinding a = 7
 [<AllowNullLiteral>]
 type TimelineOptionsGroupCallbackFunction =
     [<Emit "$0($1...)">]
-    abstract Invoke: group:TimelineGroup * callback:(TimelineGroup option -> unit) -> unit
+    abstract Invoke: group: TimelineGroup * callback: (TimelineGroup option -> unit) -> unit
 
 let myBinding a = 7
 """

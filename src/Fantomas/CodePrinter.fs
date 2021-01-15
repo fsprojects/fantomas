@@ -3719,8 +3719,7 @@ and genMemberSig astContext node =
         genPreXmlDoc px
         +> genAttributes astContext ats
         +> atCurrentColumn (
-            indent
-            +> genMemberFlagsForMemberBinding
+            genMemberFlagsForMemberBinding
                 { astContext with
                       InterfaceRange = None }
                 mf
@@ -3732,7 +3731,6 @@ and genMemberSig astContext node =
             +> genTypeList astContext namedArgs
             +> genConstraints astContext t
             -- (genPropertyKind (not isFunctionProperty) mf.MemberKind)
-            +> unindent
         )
 
     | MSInterface t -> !- "interface " +> genType astContext false t
@@ -4005,67 +4003,59 @@ and genPrefixTypes astContext node ctx =
             ctx
 
 and genTypeList astContext node =
-    match node with
-    | [] -> sepNone
-    | (t, [ ArgInfo (ats, so, isOpt) ]) :: ts ->
-        let gt =
+    let gt (t, args: SynArgInfo list) =
+        match t, args with
+        | TTuple ts', _ ->
+            let hasBracket = not node.IsEmpty
+
+            let gt sepBefore =
+                if args.Length = ts'.Length then
+                    col
+                        sepBefore
+                        (Seq.zip args (Seq.map snd ts'))
+                        (fun ((ArgInfo (ats, so, isOpt)), t) ->
+                            genOnelinerAttributes astContext ats
+                            +> opt
+                                sepColon
+                                so
+                                (if isOpt then
+                                     (sprintf "?%s" >> (!-))
+                                 else
+                                     (!-))
+                            +> genType astContext hasBracket t)
+                else
+                    col sepBefore ts' (snd >> genType astContext hasBracket)
+
+            let shortExpr = gt sepStar
+            let longExpr = gt (sepNln +> sepStarFixed)
+            expressionFitsOnRestOfLine shortExpr longExpr
+
+        | _, [ ArgInfo (ats, so, isOpt) ] ->
             match t with
-            | TTuple _ -> not ts.IsEmpty
+            | TTuple _ -> not node.IsEmpty
             | TFun _ -> true // Fun is grouped by brackets inside 'genType astContext true t'
             | _ -> false
             |> fun hasBracket ->
-                opt
-                    sepColonFixed
+                genOnelinerAttributes astContext ats
+                +> opt
+                    sepColon
                     so
                     (if isOpt then
                          (sprintf "?%s" >> (!-))
                      else
                          (!-))
                 +> genType astContext hasBracket t
+        | _ -> genType astContext false t
 
-        genOnelinerAttributes astContext ats
-        +> gt
-        +> ifElse ts.IsEmpty sepNone (autoNlnIfExpressionExceedsPageWidth (sepArrow +> genTypeList astContext ts))
+    let shortExpr = col sepArrow node gt
 
-    | (TTuple ts', argInfo) :: ts ->
-        // The '/' separator shouldn't appear here
-        let hasBracket = not ts.IsEmpty
+    let longExpr =
+        indent
+        +> sepNln
+        +> col (sepArrow +> sepNln) node gt
+        +> unindent
 
-        let gt sepBefore =
-            col
-                sepBefore
-                (Seq.zip argInfo (Seq.map snd ts'))
-                (fun ((ArgInfo (ats, so, isOpt)), t) ->
-                    genOnelinerAttributes astContext ats
-                    +> opt
-                        sepColonFixed
-                        so
-                        (if isOpt then
-                             (sprintf "?%s" >> (!-))
-                         else
-                             (!-))
-                    +> genType astContext hasBracket t)
-
-        let shortExpr =
-            gt sepStar
-            +> ifElse ts.IsEmpty sepNone (sepArrow +> genTypeList astContext ts)
-
-        let longExpr =
-            gt (sepNln +> sepStarFixed)
-            +> ifElse
-                ts.IsEmpty
-                sepNone
-                (sepNln
-                 +> sepArrowFixed
-                 +> genTypeList astContext ts)
-
-        atCurrentColumn (expressionFitsOnRestOfLine shortExpr longExpr)
-
-    | (t, _) :: ts ->
-        let gt = genType astContext false t
-
-        gt
-        +> ifElse ts.IsEmpty sepNone (autoNlnIfExpressionExceedsPageWidth (sepArrow +> genTypeList astContext ts))
+    expressionFitsOnRestOfLine shortExpr longExpr
 
 and genTypar astContext (Typar (s, isHead) as node) =
     ifElse isHead (ifElse astContext.IsFirstTypeParam (!- " ^") (!- "^")) (!- "'")
