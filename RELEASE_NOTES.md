@@ -1,3 +1,14 @@
+### 4.4.0-alpha-008 01/2021
+
+* Fix Update constructor formatting to match MS Style guide. [#1359](https://github.com/fsprojects/fantomas/issues/1359)
+* Fix Violation of name-sensitive alignments. [#1358](https://github.com/fsprojects/fantomas/issues/1358)
+* Fix Pattern matching breaks code when expression is long and somewhat complex. [#1352](https://github.com/fsprojects/fantomas/issues/1352)
+* Fix Inserts extra newline everytime formatter runs. [#1346](https://github.com/fsprojects/fantomas/issues/1346)
+* Fix Functions looses space before parameter if func is defined inside method. [#1345](https://github.com/fsprojects/fantomas/issues/1345)
+* Fix Required backslash removed in string interpolation. [#1344](https://github.com/fsprojects/fantomas/issues/1344)
+* Fix Swallows comment before #nowarn directive. [#1220](https://github.com/fsprojects/fantomas/issues/1220)
+* Fix Swallows comment inside `with` block (of a try-with). [#1219](https://github.com/fsprojects/fantomas/issues/1219)
+
 ### 4.4.0-alpha-007 12/2020
 
 * Fix Program.fs inside full path can lead to invalid AST. [#1337](https://github.com/fsprojects/fantomas/issues/1337)
