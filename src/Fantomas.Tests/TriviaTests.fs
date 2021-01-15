@@ -1,6 +1,7 @@
 module Fantomas.Tests.TriviaTests
 
 open NUnit.Framework
+open FsUnit
 open Fantomas
 open Fantomas.Tests.TestHelper
 open Fantomas.TriviaTypes
