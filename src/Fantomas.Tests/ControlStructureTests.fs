@@ -735,3 +735,104 @@ let foldi (folder: 'State -> int -> 'T -> 'State) (state: 'State) (array: 'T [])
 
         state
 """
+
+[<Test>]
+let ``line comment inside short `with` block (of a try-with), 1219`` () =
+    formatSourceString
+        false
+        """
+      try
+          //comment1
+          TrySomething(someParam)
+      with
+          //comment2
+          ex ->
+          MakeSureToCleanup(someParam)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    //comment1
+    TrySomething(someParam)
+with
+    //comment2
+    ex -> MakeSureToCleanup(someParam)
+"""
+
+[<Test>]
+let ``line comment inside `with` block (of a try-with), 1219`` () =
+    formatSourceString
+        false
+        """module Foo =
+        let Bar () =
+            async {
+                try
+                    let! content = tryDownloadFile url
+                    return Some content
+                with
+                    // should we specify HttpRequestException?
+                    ex ->
+                        Infrastructure.ReportWarning ex
+                        return None
+            }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let Bar () =
+        async {
+            try
+                let! content = tryDownloadFile url
+                return Some content
+            with
+                // should we specify HttpRequestException?
+                ex ->
+                    Infrastructure.ReportWarning ex
+                    return None
+        }
+"""
+
+[<Test>]
+let ``line comment inside nested `with` block (of a try-with), 1219`` () =
+    formatSourceString
+        false
+        """
+      try
+          //comment1
+          try
+              //comment2
+              TrySomething(someParam)
+          with
+              //comment3
+              ex ->
+              MakeSureToCleanup(someParam)
+
+      with
+          ex ->
+          Infrastructure.ReportWarning ex
+          return None
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    //comment1
+    try
+        //comment2
+        TrySomething(someParam)
+    with
+        //comment3
+        ex -> MakeSureToCleanup(someParam)
+
+with ex ->
+    Infrastructure.ReportWarning ex
+    return None
+"""
