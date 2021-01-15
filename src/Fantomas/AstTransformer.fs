@@ -770,9 +770,9 @@ module private Ast =
 
     and visitSynMatchClause (mc: SynMatchClause): Node =
         match mc with
-        | SynMatchClause.Clause (pat, e1, e2, range, _) ->
+        | SynMatchClause.Clause (pat, e1, e2, _range, _) ->
             { Type = SynMatchClause_Clause
-              Range = r range
+              Range = r mc.Range // _range is the same range as pat, see https://github.com/dotnet/fsharp/issues/10877
               Properties = p []
               FsAstNode = mc
               Childs =
