@@ -1030,6 +1030,8 @@ let internal sepComma (ctx: Context) =
     else
         str "," ctx
 
+let internal sepCommaFixed = str ","
+
 let internal sepSemi (ctx: Context) =
     let { Config = { SpaceBeforeSemicolon = before
                      SpaceAfterSemicolon = after } } =

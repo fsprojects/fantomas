@@ -1291,7 +1291,7 @@ and genExpr astContext synExpr ctx =
                 +> sepCloseTFor rpr
 
             expressionFitsOnRestOfLine short long
-        | Tuple es -> genTuple astContext es
+        | Tuple (es, _) -> genTuple astContext es
         | StructTuple es ->
             !- "struct "
             +> sepOpenT
@@ -1899,7 +1899,7 @@ and genExpr astContext synExpr ctx =
 
                 isShortExpression ctx.Config.MaxDotGetExpressionWidth (genExpr sepNone) (genExpr sepNln) ctx
 
-        | AppTuple (e, lpr, args, rpr) when (not astContext.IsInsideDotGet) ->
+        | AppTuple (e, lpr, args, tupleRange, rpr) when (not astContext.IsInsideDotGet) ->
             let sepSpace (ctx: Context) =
                 if astContext.IsInsideDotGet
                    || astContext.IsInsideDotIndexed then
@@ -1922,11 +1922,17 @@ and genExpr astContext synExpr ctx =
 
                 expr e
 
+            let genTupleTrivia f =
+                match tupleRange with
+                | Some range -> f |> genTriviaFor SynExpr_Tuple range
+                | None -> f
+
             let short =
                 genExpr astContext e
                 +> sepSpace
                 +> sepOpenTFor lpr
-                +> col sepComma args (genShortExpr astContext)
+                +> (col sepComma args (genShortExpr astContext)
+                    |> genTupleTrivia)
                 +> sepCloseTFor rpr
 
             let long =
@@ -1935,7 +1941,8 @@ and genExpr astContext synExpr ctx =
                 +> sepOpenTFor lpr
                 +> indent
                 +> sepNln
-                +> col (sepComma +> sepNln) args (genExprLong astContext)
+                +> (col (sepCommaFixed +> sepNln) args (genExprLong astContext)
+                    |> genTupleTrivia)
                 +> unindent
                 +> sepNln
                 +> sepCloseTFor rpr

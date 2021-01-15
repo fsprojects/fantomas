@@ -733,7 +733,7 @@ let (|ArrayOrList|_|) =
 
 let (|Tuple|_|) =
     function
-    | SynExpr.Tuple (false, exprs, _, _) -> Some exprs
+    | SynExpr.Tuple (false, exprs, _, tupleRange) -> Some(exprs, Some tupleRange)
     | _ -> None
 
 let (|StructTuple|_|) =
@@ -800,17 +800,17 @@ let (|App|_|) e =
 let (|AppTuple|_|) =
     function
     | App (SynExpr.DotGet _, [ (Paren (_, Tuple _, _)) ]) -> None
-    | App (e, [ (Paren (lpr, Tuple args, rpr)) ]) -> Some(e, lpr, args, rpr)
+    | App (e, [ (Paren (lpr, Tuple (args, tupleRange), rpr)) ]) -> Some(e, lpr, args, tupleRange, rpr)
     | App (e, [ (Paren (lpr, singleExpr, rpr)) ]) ->
         match singleExpr with
         | SynExpr.Lambda _
         | SynExpr.MatchLambda _ -> None
-        | _ -> Some(e, lpr, [ singleExpr ], rpr)
+        | _ -> Some(e, lpr, [ singleExpr ], None, rpr)
     | _ -> None
 
 let (|NewTuple|_|) =
     function
-    | SynExpr.New (_, t, Paren (lpr, Tuple args, rpr), _) -> Some(t, lpr, args, rpr)
+    | SynExpr.New (_, t, Paren (lpr, Tuple (args, _), rpr), _) -> Some(t, lpr, args, rpr)
     | SynExpr.New (_, t, Paren (lpr, singleExpr, rpr), _) -> Some(t, lpr, [ singleExpr ], rpr)
     | SynExpr.New (_, t, ConstExpr (SynConst.Unit, unitRange), _) ->
         let lpr =
@@ -841,7 +841,7 @@ let (|PrefixApp|_|) =
 
 let (|InfixApp|_|) synExpr =
     match synExpr with
-    | SynExpr.App (_, true, (Var "::" as e), Tuple [ e1; e2 ], _) -> Some("::", e, e1, e2)
+    | SynExpr.App (_, true, (Var "::" as e), Tuple ([ e1; e2 ], _), _) -> Some("::", e, e1, e2)
     // Range operators need special treatments, so we exclude them here
     | SynExpr.App (_, _, SynExpr.App (_, true, (Var s as e), e1, _), e2, _) when s <> ".." -> Some(s, e, e1, e2)
     | _ -> None
