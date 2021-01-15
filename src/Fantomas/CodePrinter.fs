@@ -1931,7 +1931,8 @@ and genExpr astContext synExpr ctx =
                 genExpr astContext e
                 +> sepSpace
                 +> sepOpenTFor lpr
-                +> (col sepComma args (genShortExpr astContext) |> genTupleTrivia)
+                +> (col sepComma args (genShortExpr astContext)
+                    |> genTupleTrivia)
                 +> sepCloseTFor rpr
 
             let long =
@@ -1940,7 +1941,8 @@ and genExpr astContext synExpr ctx =
                 +> sepOpenTFor lpr
                 +> indent
                 +> sepNln
-                +> (col (sepComma +> sepNln) args (genExprLong astContext) |> genTupleTrivia)
+                +> (col (sepComma +> sepNln) args (genExprLong astContext)
+                    |> genTupleTrivia)
                 +> unindent
                 +> sepNln
                 +> sepCloseTFor rpr
