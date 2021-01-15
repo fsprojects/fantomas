@@ -48,3 +48,20 @@ let myInstance =
         Content = new StringContent("File was too way too large", System.Text.Encoding.UTF16, "application/text")
     )
 """
+
+[<Test>]
+let ``single string argument, 1363`` () =
+    formatSourceString
+        false
+        """
+open System.IO
+let f = new StringReader ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+open System.IO
+let f = new StringReader ""
+"""
