@@ -18,17 +18,13 @@ module internal TriviaHelpers =
         |> Option.map (fun t -> t.ContentAfter |> List.exists contentAfter)
         |> Option.defaultValue false
 
-    let ``has sigle line comments before`` (triviaNodes: TriviaNode List) =
-        triviaNodes
+    let ``has single line comment before`` (triviaNode: TriviaNode) =
+        triviaNode.ContentBefore
         |> List.exists
-            (fun nodes ->
-                nodes.ContentBefore
-                |> List.filter
-                    (fun tn ->
-                        match tn with
-                        | Comment (LineCommentOnSingleLine _) -> true
-                        | _ -> false)
-                |> (List.isEmpty >> not))
+            (fun tn ->
+                match tn with
+                | Comment (LineCommentOnSingleLine _) -> true
+                | _ -> false)
 
     let ``has content after that ends with``
         (findTrivia: TriviaNode -> bool)

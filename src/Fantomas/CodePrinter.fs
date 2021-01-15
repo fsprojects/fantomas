@@ -2049,8 +2049,10 @@ and genExpr astContext synExpr ctx =
 
             let hasCommentBeforeClause (c: SynMatchClause) =
                 Map.tryFindOrEmptyList SynMatchClause_Clause ctx.TriviaMainNodes
-                |> List.filter (fun node -> RangeHelpers.rangeStartEq node.Range c.Range)
-                |> TriviaHelpers.``has sigle line comments before``
+                |> List.exists
+                    (fun node ->
+                        RangeHelpers.rangeEq node.Range c.Range
+                        && TriviaHelpers.``has single line comment before`` node)
 
             let genClause (astContext: ASTContext) (b: bool) (c: SynMatchClause) =
                 ifElse
@@ -4112,7 +4114,7 @@ and genInterfaceImpl astContext (InterfaceImpl (t, bs, range)) =
             bs
         +> unindent
 
-and genClause astContext hasBar (Clause (p, e, eo)) =
+and genClause astContext hasBar (Clause (p, e, eo) as ce) =
     let clauseBody e (ctx: Context) =
         (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)) ctx
 
@@ -4125,7 +4127,6 @@ and genClause astContext hasBar (Clause (p, e, eo)) =
         { astContext with
               IsInsideMatchClausePattern = true }
 
-
     let pat =
         genPat astCtx p
         +> optPre
@@ -4135,10 +4136,14 @@ and genClause astContext hasBar (Clause (p, e, eo)) =
             (fun e -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
         +> sepArrow
         +> leaveNodeTokenByName arrowRange RARROW
-        |> genTriviaFor SynMatchClause_Clause p.Range
 
     genTriviaBeforeClausePipe p.Range
-    +> ifElse hasBar (sepBar +> atCurrentColumnWithPrepend pat body) (pat +> body)
+    +> ifElse
+        hasBar
+        (sepBar +> atCurrentColumnWithPrepend pat body
+         |> genTriviaFor SynMatchClause_Clause ce.Range)
+        (pat +> body
+         |> genTriviaFor SynMatchClause_Clause ce.Range)
 
 /// Each multiline member definition has a pre and post new line.
 and genMemberDefnList astContext nodes =
