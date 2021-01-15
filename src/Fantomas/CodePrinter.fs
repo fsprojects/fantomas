@@ -1922,11 +1922,16 @@ and genExpr astContext synExpr ctx =
 
                 expr e
 
+            let genTupleTrivia f =
+                match rangeOfTuple with
+                | Some range -> f |> genTriviaFor SynExpr_Tuple range
+                | None -> f
+
             let short =
                 genExpr astContext e
                 +> sepSpace
                 +> sepOpenTFor lpr
-                +> col sepComma args (genShortExpr astContext >> genTriviaFor SynExpr_Tuple rangeOfTuple)
+                +> (col sepComma args (genShortExpr astContext) |> genTupleTrivia)
                 +> sepCloseTFor rpr
 
             let long =
@@ -1935,7 +1940,7 @@ and genExpr astContext synExpr ctx =
                 +> sepOpenTFor lpr
                 +> indent
                 +> sepNln
-                +> col (sepComma +> sepNln) args (genExprLong astContext >> genTriviaFor SynExpr_Tuple rangeOfTuple)
+                +> (col (sepComma +> sepNln) args (genExprLong astContext) |> genTupleTrivia)
                 +> unindent
                 +> sepNln
                 +> sepCloseTFor rpr

@@ -279,7 +279,6 @@ let func (a, b) = a + b
 func(
         // abc
         0,
-        // def
         1
 )
 """
@@ -293,7 +292,37 @@ let func (a, b) = a + b
 func (
     // abc
     0,
-    // def
     1
+)
+"""
+
+[<Test>]
+let ``comment trivias on tuple arguments are preserved`` () =
+    formatSourceString
+        false
+        """
+let func (a, b) = a + b
+
+func(
+        // abc
+        0, // def
+        // ghi
+        1 // jkl
+        // mno
+)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let func (a, b) = a + b
+
+func (
+    // abc
+    0,  // def
+    // ghi
+    1 // jkl
+// mno
 )
 """
