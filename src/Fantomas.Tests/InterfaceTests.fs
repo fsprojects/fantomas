@@ -432,3 +432,49 @@ type IFoo =
         * [<Path "baz">] baz : string ->
         Task<Foo>
 """
+
+[<Test>]
+let ``long member with mixed type declaration`` () =
+    formatSourceString
+        false
+        """
+type IFoo =
+    abstract Bar : i : int -> a : string * foo : int -> string
+"""
+        { config with
+              MaxLineLength = 60
+              SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type IFoo =
+    abstract Bar :
+        i : int ->
+        a : string * foo : int ->
+        string
+"""
+
+[<Test>]
+let ``long member with mixed type declaration with a long name`` () =
+    formatSourceString
+        false
+        """
+type IFoo =
+    abstract Bar : i : int -> a : string * foo : int * someReallyLongNameThatMakesTheTupleMultiLine : string -> string
+"""
+        { config with
+              MaxLineLength = 60
+              SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type IFoo =
+    abstract Bar :
+        i : int ->
+        a : string
+        * foo : int
+        * someReallyLongNameThatMakesTheTupleMultiLine : string ->
+        string
+"""
