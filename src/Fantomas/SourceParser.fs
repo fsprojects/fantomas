@@ -733,7 +733,7 @@ let (|ArrayOrList|_|) =
 
 let (|Tuple|_|) =
     function
-    | SynExpr.Tuple (false, exprs, _, rangeOfTuple) -> Some(exprs, Some rangeOfTuple)
+    | SynExpr.Tuple (false, exprs, _, tupleRange) -> Some(exprs, Some tupleRange)
     | _ -> None
 
 let (|StructTuple|_|) =
@@ -800,7 +800,7 @@ let (|App|_|) e =
 let (|AppTuple|_|) =
     function
     | App (SynExpr.DotGet _, [ (Paren (_, Tuple _, _)) ]) -> None
-    | App (e, [ (Paren (lpr, Tuple (args, rangeOfTuple), rpr)) ]) -> Some(e, lpr, args, rangeOfTuple, rpr)
+    | App (e, [ (Paren (lpr, Tuple (args, tupleRange), rpr)) ]) -> Some(e, lpr, args, tupleRange, rpr)
     | App (e, [ (Paren (lpr, singleExpr, rpr)) ]) ->
         match singleExpr with
         | SynExpr.Lambda _

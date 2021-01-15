@@ -1899,7 +1899,7 @@ and genExpr astContext synExpr ctx =
 
                 isShortExpression ctx.Config.MaxDotGetExpressionWidth (genExpr sepNone) (genExpr sepNln) ctx
 
-        | AppTuple (e, lpr, args, rangeOfTuple, rpr) when (not astContext.IsInsideDotGet) ->
+        | AppTuple (e, lpr, args, tupleRange, rpr) when (not astContext.IsInsideDotGet) ->
             let sepSpace (ctx: Context) =
                 if astContext.IsInsideDotGet
                    || astContext.IsInsideDotIndexed then
@@ -1923,7 +1923,7 @@ and genExpr astContext synExpr ctx =
                 expr e
 
             let genTupleTrivia f =
-                match rangeOfTuple with
+                match tupleRange with
                 | Some range -> f |> genTriviaFor SynExpr_Tuple range
                 | None -> f
 
