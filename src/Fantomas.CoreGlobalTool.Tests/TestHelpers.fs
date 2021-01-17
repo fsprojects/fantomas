@@ -6,10 +6,14 @@ open System.IO
 open System.Text
 open Fantomas.Extras
 
-type TemporaryFileCodeSample internal (codeSnippet: string,
-                                       ?hasByteOrderMark: bool,
-                                       ?fileName: string,
-                                       ?subFolder: string) =
+type TemporaryFileCodeSample
+    internal
+    (
+        codeSnippet: string,
+        ?hasByteOrderMark: bool,
+        ?fileName: string,
+        ?subFolder: string
+    ) =
     let hasByteOrderMark = defaultArg hasByteOrderMark false
 
     let filename =

@@ -12,11 +12,15 @@ open System.IO
 let private defaultConfig = FormatConfig.Default
 let private tempName () = Guid.NewGuid().ToString("N")
 
-type ConfigurationFile internal (config: FormatConfig.FormatConfig,
-                                 ?editorConfigHeader: string,
-                                 ?subFolder: string,
-                                 ?isRoot: bool,
-                                 ?content: string) =
+type ConfigurationFile
+    internal
+    (
+        config: FormatConfig.FormatConfig,
+        ?editorConfigHeader: string,
+        ?subFolder: string,
+        ?isRoot: bool,
+        ?content: string
+    ) =
     let editorConfigPath =
         match subFolder with
         | Some sf ->
