@@ -864,7 +864,7 @@ module Foo =
             | {
                   Bar = true
                   Baz = _
-              } ->
-                failwith "xxx"
+              } 
+                -> failwith "xxx"
             | _ -> None
 """
