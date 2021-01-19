@@ -851,8 +851,8 @@ let ``MultilineBlockBracketsOnSameColumn should be honored inside match block, 1
                   | _ -> None
 """
         { config with
-            MaxLineLength = 30
-            MultilineBlockBracketsOnSameColumn = true}
+              MaxLineLength = 30
+              MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -864,7 +864,7 @@ module Foo =
             | {
                   Bar = true
                   Baz = _
-              } 
+              }
                 -> failwith "xxx"
             | _ -> None
 """

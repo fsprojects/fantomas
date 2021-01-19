@@ -4546,7 +4546,7 @@ and genPat astContext pat =
             |> atCurrentColumnIndent
 
         let multilineExpressionIfAlignBrackets =
-            ifAlignBrackets multilineRecordExprAlignBrackets multilineRecordExpr  
+            ifAlignBrackets multilineRecordExprAlignBrackets multilineRecordExpr
 
         fun ctx ->
             let size = getRecordSize ctx xs
