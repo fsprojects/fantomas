@@ -66,18 +66,6 @@ module internal TriviaHelpers =
                 | _ -> false)
         |> (List.isEmpty >> not)
 
-    let ``get CharContent`` range (nodes: Map<FsAstType, TriviaNode list>) =
-        Map.tryFind SynExpr_Const nodes
-        |> Option.bind
-            (fun triviaNodes ->
-                triviaNodes
-                |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range range)
-                |> Option.bind
-                    (fun tv ->
-                        match tv.ContentItself with
-                        | Some (CharContent c) -> Some c
-                        | _ -> None))
-
     let ``has content itself that matches`` (predicate: TriviaContent -> bool) range (triviaNodes: TriviaNode list) =
         triviaNodes
         |> List.exists
@@ -131,3 +119,12 @@ module internal TriviaHelpers =
 
                 RangeHelpers.rangeEq tn.Range range
                 && contentItSelfIsMultilineString ())
+
+    let ``get CharContent`` range (nodes: Map<FsAstType, TriviaNode list>) =
+        getNodesForTypes [ SynExpr_Const; SynPat_Const ] nodes
+        |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range range)
+        |> Option.bind
+            (fun tv ->
+                match tv.ContentItself with
+                | Some (CharContent c) -> Some c
+                | _ -> None)

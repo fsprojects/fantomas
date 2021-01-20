@@ -267,3 +267,30 @@ let x = !-(sprintf "\'%s\'" escapedChar)
         """
 let x = !-(sprintf "\'%s\'" escapedChar)
 """
+
+[<Test>]
+let ``character literal patterns should be preserved, 1372`` () =
+    formatSourceString
+        false
+        """
+let f (c: char) =
+    match c with
+    | '\''
+    | '\"'
+    | '\x00'
+    | '\u0000'
+    | _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f (c: char) =
+    match c with
+    | '\''
+    | '\"'
+    | '\x00'
+    | '\u0000'
+    | _ -> ()
+"""
