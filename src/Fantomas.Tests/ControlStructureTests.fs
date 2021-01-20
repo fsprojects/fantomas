@@ -836,35 +836,3 @@ with ex ->
     Infrastructure.ReportWarning ex
     return None
 """
-
-[<Test>]
-let ``MultilineBlockBracketsOnSameColumn should be honored inside match block, 1238`` () =
-    formatSourceString
-        false
-        """
-      module Foo =
-          let Bar () =
-              if x then
-                  match foo with
-                  | { Bar = true
-                      Baz = _ } -> failwith "xxx"
-                  | _ -> None
-"""
-        { config with
-              MaxLineLength = 30
-              MultilineBlockBracketsOnSameColumn = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-module Foo =
-    let Bar () =
-        if x then
-            match foo with
-            | {
-                  Bar = true
-                  Baz = _
-              }
-                -> failwith "xxx"
-            | _ -> None
-"""

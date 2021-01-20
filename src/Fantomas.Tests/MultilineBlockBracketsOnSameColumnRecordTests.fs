@@ -560,11 +560,12 @@ let ``SynPat.Record in pattern match with bracketOnSeparateLine`` () =
         equal
         """
 match foo with
-| { Bar = bar
-    Level = 12
-    Vibes = plenty
-    Lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " } ->
-    "7"
+| {
+      Bar = bar
+      Level = 12
+      Vibes = plenty
+      Lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+  } -> "7"
 | _ -> "8"
 """
 
@@ -954,4 +955,35 @@ type TestType =
     // Here is some comment about the type
     // Some more comments
     private { Meh : TimeSpan }
+"""
+
+[<Test>]
+let ``MultilineBlockBracketsOnSameColumn should be honored inside match block, 1238`` () =
+    formatSourceString
+        false
+        """
+      module Foo =
+          let Bar () =
+              if x then
+                  match foo with
+                  | { Bar = true
+                      Baz = _ } -> failwith "xxx"
+                  | _ -> None
+"""
+        { config with
+              MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let Bar () =
+        if x then
+            match foo with
+            | {
+                  Bar = true
+                  Baz = _
+              } ->
+                failwith "xxx"
+            | _ -> None
 """
