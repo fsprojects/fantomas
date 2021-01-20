@@ -970,8 +970,7 @@ let ``MultilineBlockBracketsOnSameColumn should be honored inside match block, 1
                       Baz = _ } -> failwith "xxx"
                   | _ -> None
 """
-        { config with
-              MaxLineLength = 30 }
+        { config with MaxLineLength = 30 }
     |> prepend newline
     |> should
         equal
