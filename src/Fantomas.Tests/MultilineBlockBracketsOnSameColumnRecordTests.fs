@@ -986,3 +986,36 @@ module Foo =
                 failwith "xxx"
             | _ -> None
 """
+
+[<Test>]
+let ``MultilineBlockBracketsOnSameColumn should be honored inside let binding, 1238`` () =
+    formatSourceString
+        false
+        """
+      module Foo =
+          let someFunction { Firstname = fn; Lastname = ln; Age = age } =
+              printfn "Name: %s" fn
+              printfn "Last Name: %s" ln
+              printfn "Age: %i" age
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let someFunction
+        {
+            Firstname = fn
+            Lastname = ln
+            Age = age
+        }
+        =
+        printfn "Name: %s" fn
+
+        printfn
+            "Last Name: %s"
+            ln
+
+        printfn "Age: %i" age
+"""
