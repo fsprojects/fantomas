@@ -1267,6 +1267,15 @@ and genExpr astContext synExpr ctx =
                 +> col sepComma args (genExpr astContext)
                 +> sepCloseTFor rpr
 
+            let genExprLong astContext e =
+                let expr e =
+                    match e with
+                    | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
+                        genNamedArgumentExpr astContext operatorExpr e1 e2
+                    | _ -> genExpr astContext e
+
+                expr e
+
             let long =
                 !- "new "
                 +> genType astContext false t
@@ -1274,7 +1283,7 @@ and genExpr astContext synExpr ctx =
                 +> sepOpenTFor lpr
                 +> indent
                 +> sepNln
-                +> col (sepComma +> sepNln) args (genExpr astContext)
+                +> col (sepCommaFixed +> sepNln) args (genExprLong astContext)
                 +> unindent
                 +> sepNln
                 +> sepCloseTFor rpr
@@ -1639,10 +1648,6 @@ and genExpr astContext synExpr ctx =
                         e
                     +> indentIfNeeded sepNone
                 )
-                +> sepCloseTFor rpr
-            | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
-                sepOpenTFor lpr
-                +> genNamedArgumentExpr astContext operatorExpr e1 e2
                 +> sepCloseTFor rpr
             | LetOrUses _ ->
                 sepOpenTFor lpr

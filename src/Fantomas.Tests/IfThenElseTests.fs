@@ -1738,3 +1738,40 @@ let private tryGetUrlWithExactMatch
   else
     None
 """
+
+[<Test>]
+let ``infix equals expression in if condition expression, 1241`` () =
+    formatSourceString
+        false
+        """
+namespace SomeNamespace
+
+module SomeModule =
+
+    let SomeFunc () =
+        let someLocalFunc someVeryLooooooooooooooooooooooooooooooooooooooooooooooooongParam =
+            async {
+                if (someVeryLooooooooooooooooooooooooooooooooooooooooooooooooongParam = 1) then
+                    return failwith "xxx"
+            }
+        ()
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace SomeNamespace
+
+module SomeModule =
+
+    let SomeFunc () =
+        let someLocalFunc someVeryLooooooooooooooooooooooooooooooooooooooooooooooooongParam =
+            async {
+                if (someVeryLooooooooooooooooooooooooooooooooooooooooooooooooongParam = 1) then
+                    return failwith "xxx"
+            }
+
+        ()
+"""
