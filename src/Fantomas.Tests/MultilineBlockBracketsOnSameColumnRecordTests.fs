@@ -958,7 +958,7 @@ type TestType =
 """
 
 [<Test>]
-let ``MultilineBlockBracketsOnSameColumn should be honored inside match block, 1238`` () =
+let ``record inside pattern match, 1238`` () =
     formatSourceString
         false
         """
@@ -988,7 +988,7 @@ module Foo =
 """
 
 [<Test>]
-let ``MultilineBlockBracketsOnSameColumn should be honored inside let binding, 1238`` () =
+let ``record destructuring in let binding`` () =
     formatSourceString
         false
         """
@@ -998,7 +998,7 @@ let ``MultilineBlockBracketsOnSameColumn should be honored inside let binding, 1
               printfn "Last Name: %s" ln
               printfn "Age: %i" age
 """
-        { config with MaxLineLength = 30 }
+        config
     |> prepend newline
     |> should
         equal
@@ -1012,10 +1012,6 @@ module Foo =
         }
         =
         printfn "Name: %s" fn
-
-        printfn
-            "Last Name: %s"
-            ln
-
+        printfn "Last Name: %s" ln
         printfn "Age: %i" age
 """
