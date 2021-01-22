@@ -28,15 +28,9 @@ let ``formatted files should report exit code 0`` () =
     exitCode |> should equal 0
 
 [<Test>]
-let ``invalid files should report exit code 1 with check`` () =
-    use fileFixture = new TemporaryFileCodeSample(WithErrors)
-    let (exitCode, _) = checkCode fileFixture.Filename
-    exitCode |> should equal 1
-
-[<Test>]
 let ``invalid files should report exit code 1`` () =
     use fileFixture = new TemporaryFileCodeSample(WithErrors)
-    let (exitCode, _) = formatCode fileFixture.Filename
+    let (exitCode, _) = checkCode fileFixture.Filename
     exitCode |> should equal 1
 
 [<Test>]
