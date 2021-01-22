@@ -8,9 +8,14 @@ open Fantomas
 open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
 
+let private hashIfTag = 0
+let private commentTag = 3
 let private whiteSpaceTag = 4
+let private inactiveCodeTag = 7
 let private lineCommentTag = 8
+let private stringTextTag = 9
 let private greaterTag = 160
+let private identTag = 191
 
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
 // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
@@ -25,6 +30,17 @@ let private getTokenText (sourceCodeLines: string list) line (token: FSharpToken
     sourceCodeLines.[line - 1]
         .Substring(token.LeftColumn, token.RightColumn - token.LeftColumn + 1)
     |> String.normalizeNewLine
+
+let (|NotCommentOrStringTextToken|_|) token =
+    let tag = token.TokenInfo.Tag
+    let isClosingComment = tag = commentTag && token.Content = "*)"
+
+    if isClosingComment then
+        Some token
+    elif tag <> commentTag && tag <> stringTextTag then
+        Some token
+    else
+        None
 
 /// Tokenize a single line of F# code
 let rec private tokenizeLine (tokenizer: FSharpLineTokenizer) sourceCodeLines state lineNumber tokens =
@@ -60,23 +76,61 @@ let rec private tokenizeLine (tokenizer: FSharpLineTokenizer) sourceCodeLines st
 
     | (None, state), _ -> state, tokens
 
-let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state =
+let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines state: TokenizeResult =
     allLines
     |> List.mapi (fun index line -> line, (index + 1)) // line number is needed in tokenizeLine
     |> List.fold
-        (fun (state, tokens) (line, lineNumber) ->
+        (fun (state, tokens, emptyLines) (line, lineNumber) ->
             let tokenizer =
                 sourceTokenizer.CreateLineTokenizer(line)
 
             let nextState, tokensOfLine =
                 tokenizeLine tokenizer allLines state lineNumber []
 
-            let allTokens =
-                List.append tokens (List.rev tokensOfLine) // tokens of line are add in reversed order
+            let isInActiveCode =
+                List.isNotEmpty tokensOfLine
+                && List.forall (fun { TokenInfo = { Tag = t } } -> t = inactiveCodeTag) tokensOfLine
 
-            (nextState, allTokens))
-        (state, []) // empty tokens to start with
-    |> snd // ignore the state
+            let isSingleWhitespace =
+                match tokensOfLine with
+                | [ { TokenInfo = { Tag = t } } ] -> t = whiteSpaceTag
+                | _ -> false
+
+            let emptyLines =
+                if isInActiveCode || isSingleWhitespace then
+                    lineNumber :: emptyLines
+                else
+                    let lastToken = Seq.rev tokens |> Seq.tryHead
+
+                    match tokensOfLine, lastToken with
+                    | [], Some (NotCommentOrStringTextToken _)
+                    | [], None -> lineNumber :: emptyLines
+                    | _ -> emptyLines
+
+            let allTokens =
+                if not isInActiveCode then
+                    List.append tokens (List.rev tokensOfLine) // tokens of line are add in reversed order
+                else
+                    tokens
+
+            (nextState, allTokens, emptyLines))
+        (state, [], []) // empty tokens to start with
+    |> fun (_, tokens, emptyLines) ->
+        let lastTokenLine =
+            Seq.rev tokens
+            |> Seq.skipWhile (fun t -> t.TokenInfo.Tag = whiteSpaceTag)
+            |> Seq.tryHead
+            |> Option.map (fun t -> t.LineNumber)
+            |> Option.defaultValue 0
+
+        let emptyLines =
+            emptyLines
+            |> Seq.skipWhile (fun l -> l > lastTokenLine)
+            |> Seq.rev
+            |> Seq.toList
+
+        { Tokens = tokens
+          EmptyLines = emptyLines }
 
 let private createHashToken lineNumber content offset =
     let (left, right) = offset, String.length content + offset
@@ -138,6 +192,7 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
 
                 if String.isNotNullOrEmpty defineExpressionWithHash then
                     tokenize [] [] defineExpressionWithHash
+                    |> fun tr -> tr.Tokens
                 else
                     []
 
@@ -308,7 +363,8 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
             initialState
         |> fun state -> state.Defines |> List.rev |> List.collect id
 
-and tokenize defines (hashTokens: Token list) (content: string): Token list =
+/// Returns all found tokens and a list of lines that did not produce tokens.
+and tokenize defines (hashTokens: Token list) (content: string): TokenizeResult =
     let sourceTokenizer =
         FSharpSourceTokenizer(defines, Some "/tmp.fsx")
 
@@ -316,17 +372,26 @@ and tokenize defines (hashTokens: Token list) (content: string): Token list =
         String.normalizeThenSplitNewLine content
         |> Array.toList
 
-    let tokens =
+    let tokenizeResult =
         tokenizeLines sourceTokenizer lines FSharpTokenizerLexState.Initial
-        |> List.filter (fun t -> t.TokenInfo.TokenName <> "INACTIVECODE")
+
+    let tokens = tokenizeResult.Tokens
+    let hasHashTokens = List.isNotEmpty hashTokens
 
     let existingLines =
         tokens
         |> List.map (fun t -> t.LineNumber)
         |> List.distinct
 
+    let emptyLines =
+        if hasHashTokens then
+            tokenizeResult.EmptyLines
+            |> List.except (List.map (fun ht -> ht.LineNumber) hashTokens)
+        else
+            tokenizeResult.EmptyLines
+
     let combined =
-        if List.isNotEmpty hashTokens then
+        if hasHashTokens then
             let filteredHashes =
                 hashTokens
                 |> List.filter (fun t -> not (List.contains t.LineNumber existingLines))
@@ -336,7 +401,8 @@ and tokenize defines (hashTokens: Token list) (content: string): Token list =
         else
             tokens
 
-    combined
+    { Tokens = combined
+      EmptyLines = emptyLines }
 
 let getDefinesWords (tokens: Token list) =
     tokens
@@ -838,55 +904,14 @@ let private createNewLine lineNumber =
 
     { Item = Newline; Range = range }
 
-let private findEmptyNewlinesInTokens (tokens: Token list) (ignoreRanges: FSharp.Compiler.Range.range list) =
-    let nonWhitespaceLines =
-        tokens
-        |> List.choose
-            (fun t ->
-                if t.TokenInfo.Tag <> whiteSpaceTag then
-                    Some t.LineNumber
-                else
-                    None)
-        |> List.distinct
+let getTriviaFromTokens (tokenizeResult: TokenizeResult) =
+    let tokens = tokenizeResult.Tokens
 
-    let ignoreRanges =
-        ignoreRanges
-        |> List.collect (fun r -> [ r.StartLine .. r.EndLine ])
-
-    let lastLineWithContent =
-        List.tryLast nonWhitespaceLines
-        |> Option.defaultValue 1
-
-    [ 1 .. lastLineWithContent ]
-    |> List.except (nonWhitespaceLines @ ignoreRanges)
-    |> List.map createNewLine
-
-let getTriviaFromTokens (tokens: Token list) =
     let fromTokens =
         getTriviaFromTokensThemSelves tokens tokens []
 
-    let blockComments =
-        fromTokens
-        |> List.choose
-            (fun tc ->
-                match tc.Item with
-                | Comment (BlockComment _) -> Some tc.Range
-                | _ -> None)
-
-    let isMultilineString s =
-        String.split StringSplitOptions.None [| "\n" |] s
-        |> (Seq.isEmpty >> not)
-
-    let multilineStrings =
-        fromTokens
-        |> List.choose
-            (fun tc ->
-                match tc.Item with
-                | StringContent (sc) when (isMultilineString sc) -> Some tc.Range
-                | _ -> None)
-
     let newLines =
-        findEmptyNewlinesInTokens tokens (blockComments @ multilineStrings)
+        List.map createNewLine tokenizeResult.EmptyLines
 
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)

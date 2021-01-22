@@ -58,6 +58,10 @@ type Token =
       LineNumber: int
       Content: string }
 
+type TokenizeResult =
+    { Tokens: Token list
+      EmptyLines: int list }
+
 type Comment =
     | LineCommentAfterSourceCode of comment: string
     | LineCommentOnSingleLine of comment: string
