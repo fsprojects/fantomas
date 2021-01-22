@@ -1775,3 +1775,84 @@ module SomeModule =
 
         ()
 """
+
+[<Test>]
+let ``multiline function application inside parenthesis in if expression, 1374`` () =
+    formatSourceString
+        false
+        """
+module UtxoCoinAccount =
+    let internal SendPayment
+        (account: NormalUtxoAccount)
+        (txMetadata: TransactionMetadata)
+        (destination: string)
+        (amount: TransferAmount)
+        (password: string)
+        =
+        if (baseAccount.PublicAddress.Equals (destination, StringComparison.InvariantCultureIgnoreCase)) then
+            raise DestinationEqualToOrigin
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+module UtxoCoinAccount =
+    let internal SendPayment
+        (account: NormalUtxoAccount)
+        (txMetadata: TransactionMetadata)
+        (destination: string)
+        (amount: TransferAmount)
+        (password: string)
+        =
+        if (baseAccount.PublicAddress.Equals(
+                destination,
+                StringComparison.InvariantCultureIgnoreCase
+            )) then
+            raise DestinationEqualToOrigin
+"""
+
+[<Test>]
+let ``multiline function application inside parenthesis in if expression must remain idempotent, 1349`` () =
+    formatSourceString
+        false
+        """
+// Original input:
+let x =
+    if not (f aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa) then
+        1
+    else
+        2
+
+// Formatted output of the above, in for a second format:
+let x =
+    if (not (
+            f aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        )) then
+        1
+    else
+        2
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Original input:
+let x =
+    if (not (
+            f aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        )) then
+        1
+    else
+        2
+
+// Formatted output of the above, in for a second format:
+let x =
+    if (not (
+            f aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        )) then
+        1
+    else
+        2
+"""

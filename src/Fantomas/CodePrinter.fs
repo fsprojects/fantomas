@@ -2290,7 +2290,11 @@ and genExpr astContext synExpr ctx =
                         | App (SynExpr.DotGet _, [ (Paren _) ]) -> atCurrentColumn (genExpr astContext e1)
                         | AppTuple _ when (isConditionMultiline) ->
                             sepOpenT
-                            +> atCurrentColumn (genExpr astContext e1)
+                            +> atCurrentColumnIndent (genExpr astContext e1)
+                            +> sepCloseT
+                        | Paren (_, (AppTuple _ as ate), _) when (isConditionMultiline) ->
+                            sepOpenT
+                            +> atCurrentColumnIndent (genExpr astContext ate)
                             +> sepCloseT
                         | _ -> genExpr astContext e1)
                     +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
