@@ -4535,9 +4535,22 @@ and genPat astContext pat =
             +> atCurrentColumn (col sepSemiNln xs (genPatRecordFieldName astContext))
             +> sepCloseS
 
+        let multilineRecordExprAlignBrackets =
+            sepOpenSFixed
+            +> indent
+            +> sepNln
+            +> atCurrentColumn (col sepSemiNln xs (genPatRecordFieldName astContext))
+            +> unindent
+            +> sepNln
+            +> sepCloseSFixed
+            |> atCurrentColumnIndent
+
+        let multilineExpressionIfAlignBrackets =
+            ifAlignBrackets multilineRecordExprAlignBrackets multilineRecordExpr
+
         fun ctx ->
             let size = getRecordSize ctx xs
-            isSmallExpression size smallRecordExpr multilineRecordExpr ctx
+            isSmallExpression size smallRecordExpr multilineExpressionIfAlignBrackets ctx
     | PatConst (c, r) -> genConst c r
     | PatIsInst (TApp (_, [ _ ], _) as t)
     | PatIsInst (TArray _ as t) ->

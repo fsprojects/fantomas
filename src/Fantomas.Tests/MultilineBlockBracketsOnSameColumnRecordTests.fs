@@ -560,11 +560,12 @@ let ``SynPat.Record in pattern match with bracketOnSeparateLine`` () =
         equal
         """
 match foo with
-| { Bar = bar
-    Level = 12
-    Vibes = plenty
-    Lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " } ->
-    "7"
+| {
+      Bar = bar
+      Level = 12
+      Vibes = plenty
+      Lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+  } -> "7"
 | _ -> "8"
 """
 
@@ -954,4 +955,63 @@ type TestType =
     // Here is some comment about the type
     // Some more comments
     private { Meh : TimeSpan }
+"""
+
+[<Test>]
+let ``record inside pattern match, 1238`` () =
+    formatSourceString
+        false
+        """
+      module Foo =
+          let Bar () =
+              if x then
+                  match foo with
+                  | { Bar = true
+                      Baz = _ } -> failwith "xxx"
+                  | _ -> None
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let Bar () =
+        if x then
+            match foo with
+            | {
+                  Bar = true
+                  Baz = _
+              } ->
+                failwith "xxx"
+            | _ -> None
+"""
+
+[<Test>]
+let ``record destructuring in let binding`` () =
+    formatSourceString
+        false
+        """
+      module Foo =
+          let someFunction { Firstname = fn; Lastname = ln; Age = age } =
+              printfn "Name: %s" fn
+              printfn "Last Name: %s" ln
+              printfn "Age: %i" age
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let someFunction
+        {
+            Firstname = fn
+            Lastname = ln
+            Age = age
+        }
+        =
+        printfn "Name: %s" fn
+        printfn "Last Name: %s" ln
+        printfn "Age: %i" age
 """
