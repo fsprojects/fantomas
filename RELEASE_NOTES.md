@@ -1,3 +1,16 @@
+### 4.4.0-beta-001 01/2021
+
+* Fix Shortening an 'if' condition causes compilation warnings about indentation. [#1374](https://github.com/fsprojects/fantomas/issues/1374)
+* Fix Some escapes are unexpectedly modified in character literal patterns. [#1372](https://github.com/fsprojects/fantomas/issues/1372)
+* Fix Fantomas formats with an error for very long DU case match. [#1364](https://github.com/fsprojects/fantomas/issues/1364)
+* Fix Fantomas errors out on `new Foo ""`. [#1363](https://github.com/fsprojects/fantomas/issues/1363)
+* Fix Aesthetics of long members in a type declaration. [#1362](https://github.com/fsprojects/fantomas/issues/1362)
+* Fix Comment on first constructor argument gets removed. [#1350](https://github.com/fsprojects/fantomas/issues/1350)
+* Fix “FS0058: Possible incorrect indentation” around if/then/else after running Fantomas. [#1349](https://github.com/fsprojects/fantomas/issues/1349)
+* Fix Failing to format file should return an exit code different than 0. [#1340](https://github.com/fsprojects/fantomas/issues/1340)
+* Fix Shorter MaxLineLength with long variable name yields invalid F# code according to fantomas. [#1241](https://github.com/fsprojects/fantomas/issues/1241)
+* Fix MultilineBlockBracketsOnSameColumn should be honored inside match block. [#1238](https://github.com/fsprojects/fantomas/issues/1238)
+
 ### 4.4.0-alpha-008 01/2021
 
 * Fix Update constructor formatting to match MS Style guide. [#1359](https://github.com/fsprojects/fantomas/issues/1359)
