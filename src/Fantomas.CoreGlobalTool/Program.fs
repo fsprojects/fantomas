@@ -307,6 +307,8 @@ let main argv =
                 File.WriteAllText(outFile, File.ReadAllText inFile)
                 printfn "Force writing original contents to %s" outFile
 
+            raise exn
+
     let stringToFile (s: string) (outFile: string) config =
         try
             let fsi = Path.GetExtension(outFile) = ".fsi"
@@ -329,6 +331,8 @@ let main argv =
                 File.WriteAllText(outFile, s)
                 printfn "Force writing original contents to %s." outFile
 
+            raise exn
+
     let stringToStdOut s config =
         try
             use buffer = new StringWriter() :> TextWriter
@@ -337,6 +341,7 @@ let main argv =
         with exn ->
             eprintfn "The following exception occurs while formatting stdin: %O" exn
             if force then stdout.Write(s)
+            raise exn
 
     let processFile inputFile outputFile =
         if inputFile <> outputFile then
@@ -376,6 +381,8 @@ let main argv =
 
             if force then
                 stdout.Write(File.ReadAllText inFile)
+
+            raise exn
 
     if Option.isSome version then
         let version = CodeFormatter.GetVersion()

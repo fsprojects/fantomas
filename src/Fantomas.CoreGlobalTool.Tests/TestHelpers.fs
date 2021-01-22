@@ -124,3 +124,7 @@ let runFantomasTool arguments =
 let checkCode file =
     let arguments = sprintf "--check \"%s\"" file
     runFantomasTool arguments
+
+let formatCode file =
+    let arguments = sprintf "\"%s\"" file
+    runFantomasTool arguments
