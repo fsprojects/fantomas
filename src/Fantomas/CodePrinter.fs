@@ -34,9 +34,6 @@ type ASTContext =
       IsFirstTypeParam: bool
       /// Check whether the context is inside DotGet to suppress whitespaces
       IsInsideDotGet: bool
-      /// Check whether the context is inside a SynMemberDefn.Member(memberDefn,range)
-      /// This is required to correctly detect the setting SpaceBeforeMember
-      IsMemberDefinition: bool
       /// Check whether the context is inside a SynExpr.DotIndexedGet
       IsInsideDotIndexed: bool
       /// Inside a SynPat of MatchClause
@@ -51,7 +48,6 @@ type ASTContext =
           IsUnionField = false
           IsFirstTypeParam = false
           IsInsideDotGet = false
-          IsMemberDefinition = false
           IsInsideDotIndexed = false
           IsInsideMatchClausePattern = false }
 
@@ -671,16 +667,13 @@ and genTypeParamPostfix astContext tds tcs =
 and genLetBinding astContext pref b =
     let genPref = !-pref
 
-    let astContext =
-        { astContext with
-              IsMemberDefinition = false }
-
     match b with
     | LetBinding (ats, px, ao, isInline, isMutable, p, e, valInfo) ->
         match e, p with
         | TypedExpr (Typed, e, t), PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
             genSynBindingFunctionWithReturnType
                 astContext
+                false
                 px
                 ats
                 genPref
@@ -695,11 +688,11 @@ and genLetBinding astContext pref b =
                 valInfo
                 e
         | e, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
-            genSynBindingFunction astContext px ats genPref ao isInline isMutable s p.Range ps tpso valInfo e
+            genSynBindingFunction astContext false px ats genPref ao isInline isMutable s p.Range ps tpso e
         | TypedExpr (Typed, e, t), pat ->
-            genSynBindingValue astContext px ats genPref ao isInline isMutable pat (Some t) valInfo e
+            genSynBindingValue astContext px ats genPref ao isInline isMutable pat (Some t) e
         | _, PatTuple _ -> genLetBindingDestructedTuple astContext px ats pref ao isInline isMutable p e
-        | _, pat -> genSynBindingValue astContext px ats genPref ao isInline isMutable pat None valInfo e
+        | _, pat -> genSynBindingValue astContext px ats genPref ao isInline isMutable pat None e
         | _ -> sepNone
     | DoBinding (ats, px, e) ->
         let prefix =
@@ -828,14 +821,11 @@ and genMemberBinding astContext b =
         let prefix =
             genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
 
-        let astContext =
-            { astContext with
-                  IsMemberDefinition = true }
-
         match e, p with
         | TypedExpr (Typed, e, t), PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
             genSynBindingFunctionWithReturnType
                 astContext
+                true
                 px
                 ats
                 prefix
@@ -850,10 +840,9 @@ and genMemberBinding astContext b =
                 synValInfo
                 e
         | e, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
-            genSynBindingFunction astContext px ats prefix ao isInline false s p.Range ps tpso synValInfo e
-        | TypedExpr (Typed, e, t), pat ->
-            genSynBindingValue astContext px ats prefix ao isInline false pat (Some t) synValInfo e
-        | _, pat -> genSynBindingValue astContext px ats prefix ao isInline false pat None synValInfo e
+            genSynBindingFunction astContext true px ats prefix ao isInline false s p.Range ps tpso e
+        | TypedExpr (Typed, e, t), pat -> genSynBindingValue astContext px ats prefix ao isInline false pat (Some t) e
+        | _, pat -> genSynBindingValue astContext px ats prefix ao isInline false pat None e
 
     | ExplicitCtor (ats, px, ao, p, e, so) ->
         let prefix =
@@ -1278,6 +1267,15 @@ and genExpr astContext synExpr ctx =
                 +> col sepComma args (genExpr astContext)
                 +> sepCloseTFor rpr
 
+            let genExprLong astContext e =
+                let expr e =
+                    match e with
+                    | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
+                        genNamedArgumentExpr astContext operatorExpr e1 e2
+                    | _ -> genExpr astContext e
+
+                expr e
+
             let long =
                 !- "new "
                 +> genType astContext false t
@@ -1285,7 +1283,7 @@ and genExpr astContext synExpr ctx =
                 +> sepOpenTFor lpr
                 +> indent
                 +> sepNln
-                +> col (sepComma +> sepNln) args (genExpr astContext)
+                +> col (sepCommaFixed +> sepNln) args (genExprLong astContext)
                 +> unindent
                 +> sepNln
                 +> sepCloseTFor rpr
@@ -1650,10 +1648,6 @@ and genExpr astContext synExpr ctx =
                         e
                     +> indentIfNeeded sepNone
                 )
-                +> sepCloseTFor rpr
-            | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
-                sepOpenTFor lpr
-                +> genNamedArgumentExpr astContext operatorExpr e1 e2
                 +> sepCloseTFor rpr
             | LetOrUses _ ->
                 sepOpenTFor lpr
@@ -4477,27 +4471,10 @@ and genPat astContext pat =
 
     | PatParen (PatConst (Const "()", _)) -> !- "()"
     | PatParen (p) ->
-        let shortExpression =
-            sepOpenT
-            +> genPat astContext p
-            +> enterNodeTokenByName pat.Range RPAREN
-            +> sepCloseT
-
-        let longExpression ctx =
-            if astContext.IsMemberDefinition
-               && ctx.Config.AlternativeLongMemberDefinitions then
-                (sepOpenT
-                 +> indent
-                 +> sepNln
-                 +> genPat astContext p
-                 +> unindent
-                 +> sepNln
-                 +> sepCloseT)
-                    ctx
-            else
-                shortExpression ctx
-
-        expressionFitsOnRestOfLine shortExpression longExpression
+        sepOpenT
+        +> genPat astContext p
+        +> enterNodeTokenByName pat.Range RPAREN
+        +> sepCloseT
     | PatTuple ps ->
         expressionFitsOnRestOfLine
             (col sepComma ps (genPat astContext))
@@ -4535,9 +4512,22 @@ and genPat astContext pat =
             +> atCurrentColumn (col sepSemiNln xs (genPatRecordFieldName astContext))
             +> sepCloseS
 
+        let multilineRecordExprAlignBrackets =
+            sepOpenSFixed
+            +> indent
+            +> sepNln
+            +> atCurrentColumn (col sepSemiNln xs (genPatRecordFieldName astContext))
+            +> unindent
+            +> sepNln
+            +> sepCloseSFixed
+            |> atCurrentColumnIndent
+
+        let multilineExpressionIfAlignBrackets =
+            ifAlignBrackets multilineRecordExprAlignBrackets multilineRecordExpr
+
         fun ctx ->
             let size = getRecordSize ctx xs
-            isSmallExpression size smallRecordExpr multilineRecordExpr ctx
+            isSmallExpression size smallRecordExpr multilineExpressionIfAlignBrackets ctx
     | PatConst (c, r) -> genConst c r
     | PatIsInst (TApp (_, [ _ ], _) as t)
     | PatIsInst (TArray _ as t) ->
@@ -4561,6 +4551,7 @@ and genPat astContext pat =
 
 and genSynBindingFunction
     (astContext: ASTContext)
+    (isMemberDefinition: bool)
     (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
     (ats: SynAttributes)
     (pref: Context -> Context)
@@ -4571,12 +4562,11 @@ and genSynBindingFunction
     (patRange: range)
     (parameters: (string option * SynPat) list)
     (genericTypeParameters: SynValTyparDecls option)
-    (valInfo: SynValInfo)
     (e: SynExpr)
     (ctx: Context)
     =
     let spaceBefore, alternativeSyntax =
-        if astContext.IsMemberDefinition then
+        if isMemberDefinition then
             ctx.Config.SpaceBeforeMember, ctx.Config.AlternativeLongMemberDefinitions
         else
             ctx.Config.SpaceBeforeParameter, ctx.Config.AlignFunctionSignatureToIndentation
@@ -4651,7 +4641,6 @@ and genSynBindingFunction
              +> sepNln
              +> genExpr astContext e
              +> unindent)
-
         else
             sepSpaceIfShortExpressionOrAddIndentAndNewline ctx.Config.MaxFunctionBindingWidth (genExpr astContext e)
 
@@ -4662,6 +4651,7 @@ and genSynBindingFunction
 
 and genSynBindingFunctionWithReturnType
     (astContext: ASTContext)
+    (isMemberDefinition: bool)
     (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
     (ats: SynAttributes)
     (pref: Context -> Context)
@@ -4678,7 +4668,7 @@ and genSynBindingFunctionWithReturnType
     (ctx: Context)
     =
     let spaceBefore, alternativeSyntax =
-        if astContext.IsMemberDefinition then
+        if isMemberDefinition then
             ctx.Config.SpaceBeforeMember, ctx.Config.AlternativeLongMemberDefinitions
         else
             ctx.Config.SpaceBeforeParameter, ctx.Config.AlignFunctionSignatureToIndentation
@@ -4829,7 +4819,6 @@ and genSynBindingValue
     (isMutable: bool)
     (valueName: SynPat)
     (returnType: SynType option)
-    (valInfo: SynValInfo)
     (e: SynExpr)
     =
     let genAttrIsFirstChild =

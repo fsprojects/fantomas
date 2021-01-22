@@ -34,7 +34,7 @@ let ``single multi line named argument instance`` () =
         false
         """
 let myInstance =
-        new EvilBadRequest(Content = new StringContent("File was too way too large",
+        new EvilBadRequest(Content = new StringContent("File was too way too large, as in waaaaaaaaaaaaaaaaaaaay tooooooooo long",
                                                       System.Text.Encoding.UTF16,
                                                       "application/text"))
 """
@@ -45,7 +45,12 @@ let myInstance =
         """
 let myInstance =
     new EvilBadRequest(
-        Content = new StringContent("File was too way too large", System.Text.Encoding.UTF16, "application/text")
+        Content =
+            new StringContent(
+                "File was too way too large, as in waaaaaaaaaaaaaaaaaaaay tooooooooo long",
+                System.Text.Encoding.UTF16,
+                "application/text"
+            )
     )
 """
 

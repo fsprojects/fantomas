@@ -1148,3 +1148,62 @@ match x (
       ) with
 | _ -> ()
 """
+
+[<Test>]
+let ``alternative_long_member_definitions should no influence on pattern match inside member binding, 1364`` () =
+    formatSourceString
+        false
+        """
+type Thing =
+| Foo of msg : string
+with
+    override this.ToString () =
+        match this with
+        | Foo (ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) ->
+            ""
+"""
+        { config with
+              MaxLineLength = 100
+              AlternativeLongMemberDefinitions = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type Thing =
+    | Foo of msg: string
+    override this.ToString() =
+        match this with
+        | Foo (ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) ->
+            ""
+"""
+
+[<Test>]
+let ``alternative_long_member_definitions should no influence on pattern match inside member binding with return type``
+    ()
+    =
+    formatSourceString
+        false
+        """
+type Thing =
+| Foo of msg : string
+with
+    override this.ToString () : string =
+        match this with
+        | Foo (ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) ->
+            ""
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeColon = true
+              AlternativeLongMemberDefinitions = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type Thing =
+    | Foo of msg : string
+    override this.ToString() : string =
+        match this with
+        | Foo (ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) ->
+            ""
+"""
