@@ -1640,10 +1640,6 @@ and genExpr astContext synExpr ctx =
                     +> indentIfNeeded sepNone
                 )
                 +> sepCloseTFor rpr
-            | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
-                sepOpenTFor lpr
-                +> genNamedArgumentExpr astContext operatorExpr e1 e2
-                +> sepCloseTFor rpr
             | LetOrUses _ ->
                 sepOpenTFor lpr
                 +> atCurrentColumn (genExpr astContext e)
