@@ -1,13 +1,4 @@
-#r "paket:
-nuget Fantomas.Extras 4.4.0-beta-001
-nuget Microsoft.Azure.Cosmos.Table
-nuget Fake.Core.ReleaseNotes
-nuget Fake.Core.Xml
-nuget Fake.DotNet.Cli
-nuget Fake.DotNet.Paket
-nuget Fake.Tools.Git
-nuget Fake.Core.Process
-nuget Fake.Core.Target //"
+#r "paket: groupref build //"
 #load "./.fake/build.fsx/intellisense.fsx"
 
 #if !FAKE
