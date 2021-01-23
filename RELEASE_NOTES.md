@@ -1,3 +1,7 @@
+### 4.4.0-beta-002 01/2021
+
+* Target netcoreapp3.1 for fantomas-tool.
+
 ### 4.4.0-beta-001 01/2021
 
 * Fix Shortening an 'if' condition causes compilation warnings about indentation. [#1374](https://github.com/fsprojects/fantomas/issues/1374)
