@@ -106,7 +106,7 @@ let runFantomasTool arguments =
             "Fantomas.CoreGlobalTool",
             "bin",
             configuration,
-            "net5.0",
+            "netcoreapp3.1",
             "fantomas-tool.dll"
         )
 
