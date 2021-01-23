@@ -478,3 +478,26 @@ type IFoo =
         * someReallyLongNameThatMakesTheTupleMultiLine : string ->
         string
 """
+
+[<Test>]
+let ``print trivia before object expression, 1388`` () =
+    formatSourceString
+        false
+        """
+let test () =
+    let something = "something"
+
+    { new IDisposable with
+        override this.Dispose() = dispose somethingElse }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let test () =
+    let something = "something"
+
+    { new IDisposable with
+        override this.Dispose() = dispose somethingElse }
+"""
