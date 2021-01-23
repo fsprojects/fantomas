@@ -226,3 +226,61 @@ let a =
     // some line comment
     |]
 """
+
+[<Test>]
+let ``multiline function application inside array`` () =
+    formatSourceString
+        false
+        """
+[| Abc(
+    deffffffffffffffffffffff,
+    ghiiiiiiiiiiiiiiiiiiiiiii,
+    jklllllllllllllllllllllll,
+    qweeeeeeeeeeeeeeeeeeeeeee,
+    uioooooooooooooooooooooooo
+  ) |]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[|
+    Abc(
+        deffffffffffffffffffffff,
+        ghiiiiiiiiiiiiiiiiiiiiiii,
+        jklllllllllllllllllllllll,
+        qweeeeeeeeeeeeeeeeeeeeeee,
+        uioooooooooooooooooooooooo
+    )
+|]
+"""
+
+[<Test>]
+let ``multiline function application inside list`` () =
+    formatSourceString
+        false
+        """
+[ myFunction(
+    deffffffffffffffffffffff,
+    ghiiiiiiiiiiiiiiiiiiiiiii,
+    jklllllllllllllllllllllll,
+    qweeeeeeeeeeeeeeeeeeeeeee,
+    uioooooooooooooooooooooooo)
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[
+    myFunction (
+        deffffffffffffffffffffff,
+        ghiiiiiiiiiiiiiiiiiiiiiii,
+        jklllllllllllllllllllllll,
+        qweeeeeeeeeeeeeeeeeeeeeee,
+        uioooooooooooooooooooooooo
+    )
+]
+"""
