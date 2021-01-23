@@ -1,26 +1,11 @@
-#r "paket:
-nuget Fantomas.Extras 4.4.0-beta-001
-nuget Microsoft.Azure.Cosmos.Table
-nuget Fake.BuildServer.AppVeyor
-nuget Fake.Core.ReleaseNotes
-nuget Fake.Core.Xml
-nuget Fake.DotNet.Cli
-nuget Fake.DotNet.Paket
-nuget Fake.Tools.Git
-nuget Fake.Core.Process
-nuget Fake.Core.Target //"
+#r "paket: groupref build //"
 #load "./.fake/build.fsx/intellisense.fsx"
-
-#if !FAKE
-  #r "netstandard"
-#endif
 
 open Fake.Core
 open Fake.IO
 open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
 open Fake.Core.TargetOperators
-open Fake.BuildServer
 open System
 open System.IO
 open Fake.DotNet
@@ -66,7 +51,7 @@ let tags = "F# fsharp formatting beautifier indentation indenter"
 // (<solutionFile>.sln is built during the building process)
 let solutionFile  = "fantomas"
 //// Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
-let release = Fake.Core.ReleaseNotes.parse (IO.File.ReadAllLines "RELEASE_NOTES.md")
+let release = ReleaseNotes.parse (File.ReadAllLines "RELEASE_NOTES.md")
 
 // Types and helper functions for building external projects (see the TestExternalProjects target below)
 type ProcessStartInfo =
@@ -315,7 +300,7 @@ Target.create "TestExternalProjectsFailing" (fun _ -> testExternalProjects exter
 
 // Workaround for https://github.com/fsharp/FAKE/issues/2242
 let pushPackage additionalArguments =
-    IO.Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
+    Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
     |> Seq.iter (fun nupkg ->
         let args =
             [ yield "push";
@@ -341,7 +326,6 @@ let git command =
     |> fun p -> p.Result.Output.Trim()
 
 open Microsoft.Azure.Cosmos.Table
-open Microsoft.Azure.Documents
 
 Target.create "Benchmark" (fun _ ->
     DotNet.exec id ("src" </> "Fantomas.Benchmarks" </> "bin" </> "Release" </> "net5.0" </> "Fantomas.Benchmarks.dll") ""
@@ -354,7 +338,7 @@ Target.create "Benchmark" (fun _ ->
         let operatingSystem = Environment.environVar "RUNNER_OS"
 
         let results =
-            System.IO.File.ReadLines("./BenchmarkDotNet.Artifacts/results/Fantomas.Benchmarks.Runners.CodePrinterTest-report.csv")
+            File.ReadLines("./BenchmarkDotNet.Artifacts/results/Fantomas.Benchmarks.Runners.CodePrinterTest-report.csv")
             |> Seq.map (fun line -> line.Split(',') |> Array.toList)
             |> Seq.toList
             |> fun lineGroups ->

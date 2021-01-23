@@ -17,3 +17,17 @@ nuget editorconfig
 nuget MAB.DotIgnore 3.0.2
 
 github: fsprojects/fantomas:829faa6ba834f99afed9b4434b3a1680536474b2 src/Fantomas/CodePrinter.fs
+
+group build
+    storage: none
+    source https://api.nuget.org/v3/index.json
+
+    nuget Fantomas.Extras 4.4.0-beta-001
+    nuget Microsoft.Azure.Cosmos.Table
+    nuget Fake.Core.ReleaseNotes
+    nuget Fake.Core.Xml
+    nuget Fake.DotNet.Cli
+    nuget Fake.DotNet.Paket
+    nuget Fake.Tools.Git
+    nuget Fake.Core.Process
+    nuget Fake.Core.Target
