@@ -1,7 +1,6 @@
 #r "paket:
 nuget Fantomas.Extras 4.4.0-beta-001
 nuget Microsoft.Azure.Cosmos.Table
-nuget Fake.BuildServer.AppVeyor
 nuget Fake.Core.ReleaseNotes
 nuget Fake.Core.Xml
 nuget Fake.DotNet.Cli
@@ -20,7 +19,6 @@ open Fake.IO
 open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
 open Fake.Core.TargetOperators
-open Fake.BuildServer
 open System
 open System.IO
 open Fake.DotNet
