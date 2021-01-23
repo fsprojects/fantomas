@@ -131,8 +131,8 @@ let ``should keep -> notation`` () =
         """
 let environVars target =
     [ for e in Environment.GetEnvironmentVariables target ->
-        let e1 = e :?> Collections.DictionaryEntry
-        e1.Key, e1.Value ]
+          let e1 = e :?> Collections.DictionaryEntry
+          e1.Key, e1.Value ]
 """
 
 [<Test>]
@@ -169,7 +169,7 @@ let a2 = [| 0 .. 99 |]
 
 let a3 =
     [| for n in 1 .. 100 do
-        if isPrime n then yield n |]
+           if isPrime n then yield n |]
 """
 
 [<Test>]
@@ -404,7 +404,6 @@ let ``line comment inside array`` () =
 """
 
 [<Test>]
-[<Ignore("fails on ci")>]
 let ``long array sequence`` () =
     formatSourceString
         false
@@ -1977,8 +1976,8 @@ let choices : Foo list =
         """
 let choices: Foo list =
     [ yield!
-        // Test
-        [ Foo 2 ] ]
+          // Test
+          [ Foo 2 ] ]
 """
 
 [<Test>]
@@ -2021,12 +2020,12 @@ let ``comment after closing list bracket, 1073`` () =
         equal
         """
 [ Gen.map5
-    (fun b1 b2 expr1 expr2 pat -> SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
-    Arb.generate<_>
-    Arb.generate<_>
-    genSubDeclExpr
-    genSubDeclExpr
-    genSubSynPat ] //
+      (fun b1 b2 expr1 expr2 pat -> SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
+      Arb.generate<_>
+      Arb.generate<_>
+      genSubDeclExpr
+      genSubDeclExpr
+      genSubSynPat ] //
 """
 
 [<Test>]
@@ -2044,12 +2043,12 @@ let ``comment after closing array bracket`` () =
         equal
         """
 [| Gen.map5
-    (fun b1 b2 expr1 expr2 pat -> SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
-    Arb.generate<_>
-    Arb.generate<_>
-    genSubDeclExpr
-    genSubDeclExpr
-    genSubSynPat |] //
+       (fun b1 b2 expr1 expr2 pat -> SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
+       Arb.generate<_>
+       Arb.generate<_>
+       genSubDeclExpr
+       genSubDeclExpr
+       genSubSynPat |] //
 """
 
 [<Test>]
@@ -2123,4 +2122,59 @@ let private fn (xs: int []) =
 
           let s = fn2 ()
           s.DoSomething() ]
+"""
+
+[<Test>]
+let ``multiline function application inside array, 1382`` () =
+    formatSourceString
+        false
+        """
+[| Abc(
+    deffffffffffffffffffffff,
+    ghiiiiiiiiiiiiiiiiiiiiiii,
+    jklllllllllllllllllllllll,
+    qweeeeeeeeeeeeeeeeeeeeeee,
+    uioooooooooooooooooooooooo
+  ) |]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[| Abc(
+       deffffffffffffffffffffff,
+       ghiiiiiiiiiiiiiiiiiiiiiii,
+       jklllllllllllllllllllllll,
+       qweeeeeeeeeeeeeeeeeeeeeee,
+       uioooooooooooooooooooooooo
+   ) |]
+"""
+
+[<Test>]
+let ``multiline function application inside list`` () =
+    formatSourceString
+        false
+        """
+[ myFunction(
+    deffffffffffffffffffffff,
+    ghiiiiiiiiiiiiiiiiiiiiiii,
+    jklllllllllllllllllllllll,
+    qweeeeeeeeeeeeeeeeeeeeeee,
+    uioooooooooooooooooooooooo)
+]
+"""
+        { config with
+              SpaceBeforeLowercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+[ myFunction (
+      deffffffffffffffffffffff,
+      ghiiiiiiiiiiiiiiiiiiiiiii,
+      jklllllllllllllllllllllll,
+      qweeeeeeeeeeeeeeeeeeeeeee,
+      uioooooooooooooooooooooooo
+  ) ]
 """

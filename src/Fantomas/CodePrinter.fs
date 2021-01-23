@@ -1513,11 +1513,11 @@ and genExpr astContext synExpr ctx =
                 ifElse
                     isArray
                     (sepOpenA
-                     +> genExpr astContext e
+                     +> atCurrentColumnIndent (genExpr astContext e)
                      +> enterRightBracketBar aNode.Range
                      +> sepCloseA)
                     (sepOpenL
-                     +> atCurrentColumn (genExpr astContext e)
+                     +> atCurrentColumnIndent (genExpr astContext e)
                      +> enterRightBracket aNode.Range
                      +> sepCloseL
                      +> leaveNodeTokenByName aNode.Range RBRACK)
