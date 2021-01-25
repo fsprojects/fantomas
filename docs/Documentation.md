@@ -1068,6 +1068,16 @@ Exclusion applies both to formatting and the format checking.
 
 See [CodeFormatter.fsi](../src/Fantomas/CodeFormatter.fsi) to view the public API of Fantomas.
 
+## A git pre-commit hook sample
+
+A very elegant and transparent way to use fantomas is including it in a pre-commit git hook, by creating a `.git/hooks/pre-commit` file with:
+
+```
+#!/bin/sh
+git diff --cached --name-only --diff-filter=ACM -z | xargs -0 $HOME/.dotnet/tools/fantomas
+git diff --cached --name-only --diff-filter=ACM -z | xargs -0 git add
+```
+
 ## FAKE Helpers
 
 Fantomas also exposes some less official helper functions when formatting code in FAKE scripts.
