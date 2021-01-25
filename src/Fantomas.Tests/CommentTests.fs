@@ -1119,7 +1119,7 @@ let ``starting of a multi-line comment should not be removed (with Begin of Comm
         """
 module Foo =
     let v1 = method7
-            (* Begin of Comment 
+            (* Begin of Comment
        Body of Comment
              *)
     printf "Hello World!"
