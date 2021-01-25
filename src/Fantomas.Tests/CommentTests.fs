@@ -1111,3 +1111,88 @@ namespace Foo
 module Bar =
     let Baz () = ()
 """
+
+[<Test>]
+let ``starting of a multi-line comment should not be removed (with Begin of Comment), 1223`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let v1 = method7
+            (* Begin of Comment 
+       Body of Comment
+             *)
+    printf "Hello World!"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let v1 = method7
+    (* Begin of Comment
+       Body of Comment
+             *)
+    printf "Hello World!"
+"""
+
+[<Test>]
+let ``starting of a multi-line comment should not be removed (withOut Begin of Comment), 1223`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let v1 = method7
+            (*
+       Body of Comment
+*)
+    printf "Hello World!"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let v1 = method7
+(*
+       Body of Comment
+*)
+    printf "Hello World!"
+"""
+
+[<Test>]
+let ``starting of a multi-line comment should not be removed`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let private GetConfirmedEtherBalanceInternal (web3: Web3) (publicAddress: string): Async<HexBigInteger> =
+        async {
+             let! blockForConfirmationReference = GetBlockToCheckForConfirmedBalance web3
+(*
+             if (Config.DebugLog) then
+                 Infrastructure.LogError (SPrintF2 "Last block number and last confirmed block number: %s: %s"
+                                                  (latestBlock.Value.ToString()) (blockForConfirmationReference.BlockNumber.Value.ToString()))
+ *)
+            return blockForConfirmationReference
+        }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let private GetConfirmedEtherBalanceInternal (web3: Web3) (publicAddress: string): Async<HexBigInteger> =
+        async {
+            let! blockForConfirmationReference = GetBlockToCheckForConfirmedBalance web3
+(*
+             if (Config.DebugLog) then
+                 Infrastructure.LogError (SPrintF2 "Last block number and last confirmed block number: %s: %s"
+                                                  (latestBlock.Value.ToString()) (blockForConfirmationReference.BlockNumber.Value.ToString()))
+ *)
+            return blockForConfirmationReference
+        }
+"""

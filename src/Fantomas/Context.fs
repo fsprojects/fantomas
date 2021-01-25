@@ -84,6 +84,10 @@ module WriterModel =
                 { m with
                       Lines = "" :: m.Lines
                       Column = 0 }
+            | Write s when s.Equals("(*") ->
+                { m with
+                      Lines = (s) :: (List.tail m.Lines)
+                      Column = m.Column + (String.length s) }
             | Write s ->
                 { m with
                       Lines = (List.head m.Lines + s) :: (List.tail m.Lines)
