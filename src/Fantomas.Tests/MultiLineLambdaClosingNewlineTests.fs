@@ -1,4 +1,4 @@
-module Fantomas.Tests.MultiLineLambdaClosingNewlineTests
+module Fantomas.Tests.MultilineLambdaClosingNewlineTests
 
 open NUnit.Framework
 open FsUnit
@@ -8,7 +8,7 @@ let defaultConfig = config
 
 let config =
     { config with
-          MultiLineLambdaClosingNewline = true }
+          MultilineLambdaClosingNewline = true }
 
 [<Test>]
 let ``function with single multiline lambda`` () =

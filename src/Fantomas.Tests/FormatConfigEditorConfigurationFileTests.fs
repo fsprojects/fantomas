@@ -369,10 +369,10 @@ end_of_line = %s
     config.EndOfLine == eol
 
 [<Test>]
-let fsharp_multiLine_lambda_closing_newline () =
+let fsharp_multiline_lambda_closing_newline () =
     let editorConfig = """
 [*.fs]
-fsharp_multi_line_lambda_closing_newline = true
+fsharp_multiline_lambda_closing_newline = true
 """
 
     use configFixture =
@@ -383,4 +383,4 @@ fsharp_multi_line_lambda_closing_newline = true
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.IsTrue config.MultiLineLambdaClosingNewline
+    Assert.IsTrue config.MultilineLambdaClosingNewline
