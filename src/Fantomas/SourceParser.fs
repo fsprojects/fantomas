@@ -1020,6 +1020,21 @@ let (|DotGet|_|) =
     | SynExpr.DotGet (e, _, (LongIdentWithDots s as lid), _) -> Some(e, (s, lid.Range))
     | _ -> None
 
+/// Match function call followed by Property
+let (|DotGetAppParen|_|) e =
+    match e with
+    //| App(e, [DotGet (Paren _ as p, (s,r))]) -> Some (e, p, s, r)
+    | DotGet (App (e, [(Paren (_, Tuple _, _) as px)]), (s,r)) ->
+        Some (e,px,s,r)
+    | DotGet (App (e, [(Paren (_, singleExpr, _) as px)]), (s,r)) ->
+        match singleExpr with
+        | SynExpr.Lambda _
+        | SynExpr.MatchLambda _ -> None
+        | _ -> Some (e,px,s,r)
+    | DotGet (App (e, [(ConstExpr (SynConst.Unit, _) as px)]), (s,r)) ->
+        Some (e,px,s,r)
+    | _ -> None
+
 /// Gather series of application for line breaking
 let rec (|DotGetApp|_|) =
     function

@@ -20,9 +20,11 @@ Microsoft
     .FSharp
     .Reflection
     .FSharpType
-    .GetUnionCases(typeof<option<option<unit>>>
-        .GetGenericTypeDefinition()
-        .MakeGenericType(t))
+    .GetUnionCases(
+        typeof<option<option<unit>>>
+            .GetGenericTypeDefinition()
+            .MakeGenericType(t)
+    )
     .Assembly
 """
 
@@ -42,11 +44,13 @@ System.Diagnostics.FileVersionInfo.GetVersionInfo(
 System
     .Diagnostics
     .FileVersionInfo
-    .GetVersionInfo(System
-        .Reflection
-        .Assembly
-        .GetExecutingAssembly()
-        .Location)
+    .GetVersionInfo(
+        System
+            .Reflection
+            .Assembly
+            .GetExecutingAssembly()
+            .Location
+    )
     .FileVersion
 """
 
@@ -72,11 +76,13 @@ root.SetAttribute(
     + System
         .Diagnostics
         .FileVersionInfo
-        .GetVersionInfo(System
-            .Reflection
-            .Assembly
-            .GetExecutingAssembly()
-            .Location)
+        .GetVersionInfo(
+            System
+                .Reflection
+                .Assembly
+                .GetExecutingAssembly()
+                .Location
+        )
         .FileVersion
 )
 """
@@ -95,7 +101,14 @@ Equinox.EventStore.Resolver<'event, 'state, _>(gateway, codec, fold, initial, ca
         """
 Equinox
     .EventStore
-    .Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy)
+    .Resolver<'event, 'state, _>(
+        gateway,
+        codec,
+        fold,
+        initial,
+        cacheStrategy,
+        accessStrategy
+    )
     .Resolve
 """
 
@@ -146,7 +159,12 @@ module Services =
             | Storage.MemoryStore store ->
                 Equinox
                     .MemoryStore
-                    .Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
+                    .Resolver(
+                        store,
+                        FsCodec.Box.Codec.Create(),
+                        fold,
+                        initial
+                    )
                     .Resolve
             | Storage.EventStore (gateway, cache) ->
                 let accessStrategy =
@@ -157,7 +175,14 @@ module Services =
 
                 Equinox
                     .EventStore
-                    .Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy)
+                    .Resolver<'event, 'state, _>(
+                        gateway,
+                        codec,
+                        fold,
+                        initial,
+                        cacheStrategy,
+                        accessStrategy
+                    )
                     .Resolve
 """
 
@@ -304,7 +329,12 @@ Equinox.MemoryStore.Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
         """
 Equinox
     .MemoryStore
-    .Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
+    .Resolver(
+        store,
+        FsCodec.Box.Codec.Create(),
+        fold,
+        initial
+    )
     .Resolve
 """
 
@@ -328,7 +358,14 @@ let ``long ident with dots inside type app inside dotget`` () =
         """
 Equinox
     .EventStore
-    .Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy)
+    .Resolver<'event, 'state, _>(
+        gateway,
+        codec,
+        fold,
+        initial,
+        cacheStrategy,
+        accessStrategy
+    )
     .Resolve
 """
 
