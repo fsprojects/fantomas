@@ -3714,7 +3714,7 @@ and genMemberSig astContext node =
         | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
 
     match node with
-    | MSMember (Val (ats, px, ao, s, t, vi, _, ValTyparDecls (tds, _, tcs)), mf) ->
+    | MSMember (Val (ats, px, ao, s, t, vi, isInline, ValTyparDecls (tds, _, tcs)), mf) ->
         let (FunType namedArgs) = (t, vi)
 
         let isFunctionProperty =
@@ -3735,6 +3735,7 @@ and genMemberSig astContext node =
                       InterfaceRange = None }
                 mf
                 range
+            +> ifElse isInline (!- "inline ") sepNone
             +> opt sepSpace ao genAccess
             +> ifElse (s = "``new``") (!- "new") (!-s)
             +> genTypeParamPostfix astContext tds tcs
