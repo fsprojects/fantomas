@@ -952,7 +952,7 @@ and genVal astContext (Val (ats, px, ao, s, t, vi, isInline, _) as node) =
         +> ifElse
             (List.isNotEmpty namedArgs)
             (autoNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
-            (genConstraints astContext t)
+            (genConstraints astContext t vi)
         +> unindent
     )
     |> genTriviaFor ValSpfn_ range
@@ -3741,7 +3741,7 @@ and genMemberSig astContext node =
             +> genTypeParamPostfix astContext tds tcs
             +> sepColonX
             +> genTypeList astContext namedArgs
-            +> genConstraints astContext t
+            +> genConstraints astContext t vi
             -- (genPropertyKind (not isFunctionProperty) mf.MemberKind)
         )
 
@@ -3751,10 +3751,30 @@ and genMemberSig astContext node =
     | MSNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
     |> genTriviaFor mainNodeName range
 
-and genConstraints astContext (t: SynType) =
+and genConstraints astContext (t: SynType) (vi: SynValInfo) =
     match t with
-    | TWithGlobalConstraints (t, tcs) ->
-        genTypeByLookup astContext t
+    | TWithGlobalConstraints (ti, tcs) ->
+        let genType =
+            match ti, vi with
+            | TFuns ts, SynValInfo (curriedArgInfos, returnType) ->
+                let namedArgInfos =
+                    (List.map List.head curriedArgInfos)
+                    @ [ returnType ]
+                    |> List.map (fun (SynArgInfo (_, _, i)) -> i)
+
+                coli
+                    sepArrow
+                    ts
+                    (fun i t ->
+                        let genNamedArg =
+                            List.tryItem i namedArgInfos
+                            |> Option.bind id
+                            |> optSingle (fun (Ident (s)) -> !-s +> sepColon)
+
+                        genNamedArg +> genType astContext false t)
+            | _ -> genType astContext false ti
+
+        genType
         +> sepSpaceOrNlnIfExpressionExceedsPageWidth (
             ifElse (List.isNotEmpty tcs) (!- "when ") sepSpace
             +> col wordAnd tcs (genTypeConstraint astContext)
@@ -4313,7 +4333,7 @@ and genMemberDefn astContext node =
         +> sepColonX
         +> genTypeList astContext namedArgs
         -- genPropertyKind (not isFunctionProperty) mk
-        +> genConstraints astContext t
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genConstraints astContext t vi)
 
     | md -> failwithf "Unexpected member definition: %O" md
     |> genTriviaFor (synMemberDefnToFsAstType node) node.Range

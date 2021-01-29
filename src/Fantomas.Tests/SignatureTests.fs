@@ -614,14 +614,31 @@ let ``operator with constraint`` () =
         """namespace Bar
     val inline (.+.) : x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b) : (static member (+) : ^a * ^b -> ^c)
 """
-        config
+        { config with SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal
         """
 namespace Bar
 
-val inline (.+.): x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b): (static member (+): ^a * ^b -> ^c)
+val inline (.+.) : x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b) : (static member (+) : ^a * ^b -> ^c)
+"""
+
+[<Test>]
+let ``operator with named constraint`` () =
+    formatSourceString
+        true
+        """namespace Bar
+    val inline (.+.) : x : ^a Foo -> y : ^b Foo -> z: ^c Foo when (^a or ^b) : (static member (+) : ^a * ^b -> ^c)
+"""
+        { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Bar
+
+val inline (.+.) : x : ^a Foo -> y : ^b Foo -> z : ^c Foo when (^a or ^b) : (static member (+) : ^a * ^b -> ^c)
 """
 
 [<Test>]
