@@ -2067,7 +2067,8 @@ and genExpr astContext synExpr ctx =
                     (genClause astContext b c)
 
             match cs with
-            | [ SynMatchClause.Clause (SynPat.Or _, _, _, _, _) ] ->
+            | [ SynMatchClause.Clause (PatOr _, _, _, _, _) ]
+            | [ SynMatchClause.Clause (PatNamed (_, (PatOr _), _), _, _, _, _) ] ->
                 atCurrentColumn (
                     prefix
                     +> indentOnWith

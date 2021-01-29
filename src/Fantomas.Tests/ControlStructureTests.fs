@@ -836,3 +836,63 @@ with ex ->
     Infrastructure.ReportWarning ex
     return None
 """
+
+[<Test>]
+let ``try/with with multiple type checks, 1395`` () =
+    formatSourceString
+        false
+        """
+things
+|> Seq.map (fun a ->
+    try
+        Some i
+    with
+    | :? Foo
+    | :? Bar as e when true ->
+        None
+)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+things
+|> Seq.map
+    (fun a ->
+        try
+            Some i
+        with
+        | :? Foo
+        | :? Bar as e when true -> None)
+"""
+
+[<Test>]
+let ``try/with with named or pattern`` () =
+    formatSourceString
+        false
+        """
+things
+|> Seq.map (fun a ->
+    try
+        Some i
+    with
+    | Foo _
+    | Bar _ as e when true ->
+        None
+)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+things
+|> Seq.map
+    (fun a ->
+        try
+            Some i
+        with
+        | Foo _
+        | Bar _ as e when true -> None)
+"""
