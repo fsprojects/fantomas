@@ -1836,8 +1836,7 @@ type OuterType =
         equal
         """
 type OuterType =
-    abstract Apply<'r> : InnerType<'r>
-        -> 'r when 'r : comparison
+    abstract Apply<'r> : InnerType<'r> -> 'r when 'r : comparison
 """
 
 [<Test>]
@@ -2373,4 +2372,43 @@ let deserialize (e: RecordedEvent): MyEvent =
     | nameof AData -> AData(JsonSerializer.Deserialize<int> e.Data)
     | nameof BData -> BData(JsonSerializer.Deserialize<string> e.Data)
     | t -> failwithf "Invalid EventType: %s" t
+"""
+
+[<Test>]
+let ``member constraint on next line should have extra indent, 1394`` () =
+    formatSourceString
+        false
+        """
+type Bar = | Bar of int
+and Foo<'ret> = abstract Barrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr<'a> : 'a -> 'ret when 'a : comparison
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type Bar = Bar of int
+
+and Foo<'ret> =
+    abstract Barrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr<'a> :
+        'a -> 'ret when 'a: comparison
+"""
+
+[<Test>]
+let ``member constraint on next line with long return type`` () =
+    formatSourceString
+        false
+        """
+type Foo =
+    abstract Baaaaaaaaaaaaaarrrrrrr<'a> : 'a -> int -> string -> string -> bool when 'a : comparison
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo =
+    abstract Baaaaaaaaaaaaaarrrrrrr<'a> :
+        'a -> int -> string -> string -> bool
+        when 'a: comparison
 """
