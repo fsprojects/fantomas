@@ -237,6 +237,27 @@ type FsAstType =
     | SynPat_DeprecatedCharRange
     | SynPat_InstanceMember
     | SynPat_FromParseError
+    | SynConst_Bool
+    | SynConst_Unit
+    | SynConst_SByte
+    | SynConst_Byte
+    | SynConst_Int16
+    | SynConst_UInt16
+    | SynConst_Int32
+    | SynConst_UInt32
+    | SynConst_Int64
+    | SynConst_UInt64
+    | SynConst_IntPtr
+    | SynConst_UIntPtr
+    | SynConst_Single
+    | SynConst_Double
+    | SynConst_Char
+    | SynConst_Decimal
+    | SynConst_UserNum
+    | SynConst_String
+    | SynConst_Bytes
+    | SynConst_UInt16s
+    | SynConst_Measure
     | Pats_
     | NamePatPairs_
     | ComponentInfo_

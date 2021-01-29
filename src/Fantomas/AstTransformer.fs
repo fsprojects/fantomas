@@ -128,13 +128,13 @@ module private Ast =
         | SynModuleDecl.Open (target, parentRange) ->
             // we use the parent ranges here to match up with the trivia parsed
             match target with
-            | SynOpenDeclTarget.ModuleOrNamespace (longIdent, range) ->
+            | SynOpenDeclTarget.ModuleOrNamespace (longIdent, _range) ->
                 { Type = SynModuleDecl_Open
                   Range = r parentRange
                   Properties = p [ "longIdent" ==> li longIdent ]
                   FsAstNode = ast
                   Childs = [] }
-            | SynOpenDeclTarget.Type (synType, range) ->
+            | SynOpenDeclTarget.Type (synType, _range) ->
                 { Type = SynModuleDecl_OpenType
                   Range = r parentRange
                   Properties = p []
@@ -183,9 +183,9 @@ module private Ast =
         | SynExpr.Const (constant, range) ->
             { Type = SynExpr_Const
               Range = r range
-              Properties = p [ "constant" ==> visitSynConst constant ]
+              Properties = p []
               FsAstNode = synExpr
-              Childs = [] }
+              Childs = [ visitSynConst range constant ] }
         | SynExpr.Typed (expr, typeName, range) ->
             { Type = SynExpr_Typed
               Range = r range
@@ -853,13 +853,13 @@ module private Ast =
         | SynMemberDefn.Open (target, parentRange) ->
             // we use the parent ranges here to match up with the trivia parsed
             match target with
-            | SynOpenDeclTarget.ModuleOrNamespace (longIdent, range) ->
+            | SynOpenDeclTarget.ModuleOrNamespace (longIdent, _range) ->
                 { Type = SynMemberDefn_Open
                   Range = r parentRange
                   Properties = p [ "longIdent" ==> li longIdent ]
                   FsAstNode = target
                   Childs = [] }
-            | SynOpenDeclTarget.Type (synType, range) ->
+            | SynOpenDeclTarget.Type (synType, _range) ->
                 { Type = SynMemberDefn_OpenType
                   Range = r parentRange
                   Properties = p []
@@ -1122,9 +1122,9 @@ module private Ast =
         | SynPat.Const (sc, range) ->
             { Type = SynPat_Const
               Range = r range
-              Properties = p [ "const" ==> visitSynConst sc ]
+              Properties = p []
               FsAstNode = sp
-              Childs = [] }
+              Childs = [ visitSynConst range sc ] }
         | SynPat.Wild (range) ->
             { Type = SynPat_Wild
               Range = r range
@@ -1659,9 +1659,9 @@ module private Ast =
         | SynType.StaticConstant (constant, range) ->
             { Type = SynType_StaticConstant
               Range = r range
-              Properties = p [ "constant" ==> visitSynConst constant ]
+              Properties = p []
               FsAstNode = st
-              Childs = [] }
+              Childs = [ visitSynConst range constant ] }
         | SynType.StaticConstantExpr (expr, range) ->
             { Type = SynType_StaticConstantExpr
               Range = r range
@@ -1689,7 +1689,36 @@ module private Ast =
               FsAstNode = st
               Childs = [ yield visitSynType innerType ] }
 
-    and visitSynConst (sc: SynConst) = sprintf "%A" sc
+    and visitSynConst (parentRange: range) (sc: SynConst) =
+        let t =
+            match sc with
+            | SynConst.Bool _ -> SynConst_Bool
+            | SynConst.Unit _ -> SynConst_Unit
+            | SynConst.SByte _ -> SynConst_SByte
+            | SynConst.Byte _ -> SynConst_Byte
+            | SynConst.Int16 _ -> SynConst_Int16
+            | SynConst.UInt16 _ -> SynConst_UInt16
+            | SynConst.Int32 _ -> SynConst_Int32
+            | SynConst.UInt32 _ -> SynConst_UInt32
+            | SynConst.Int64 _ -> SynConst_Int64
+            | SynConst.UInt64 _ -> SynConst_UInt64
+            | SynConst.IntPtr _ -> SynConst_IntPtr
+            | SynConst.UIntPtr _ -> SynConst_UIntPtr
+            | SynConst.Single _ -> SynConst_Single
+            | SynConst.Double _ -> SynConst_Double
+            | SynConst.Char _ -> SynConst_Char
+            | SynConst.Decimal _ -> SynConst_Decimal
+            | SynConst.UserNum _ -> SynConst_UserNum
+            | SynConst.String _ -> SynConst_String
+            | SynConst.Bytes _ -> SynConst_Bytes
+            | SynConst.UInt16s _ -> SynConst_UInt16s
+            | SynConst.Measure _ -> SynConst_Measure
+
+        { Type = t
+          Range = r (sc.Range parentRange)
+          Properties = p []
+          FsAstNode = sc
+          Childs = [] }
 
     and visitSynValInfo (svi: SynValInfo) =
         match svi with
@@ -1808,13 +1837,13 @@ module private Ast =
         | SynModuleSigDecl.Open (target, parentRange) ->
             // we use the parent ranges here to match up with the trivia parsed
             match target with
-            | SynOpenDeclTarget.ModuleOrNamespace (longIdent, range) ->
+            | SynOpenDeclTarget.ModuleOrNamespace (longIdent, _range) ->
                 { Type = SynModuleSigDecl_Open
                   Range = r parentRange
                   Properties = p [ "longIdent" ==> li longIdent ]
                   FsAstNode = target
                   Childs = [] }
-            | SynOpenDeclTarget.Type (synType, range) ->
+            | SynOpenDeclTarget.Type (synType, _range) ->
                 { Type = SynModuleSigDecl_OpenType
                   Range = r parentRange
                   Properties = p []
