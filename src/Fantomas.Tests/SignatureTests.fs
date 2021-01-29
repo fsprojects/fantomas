@@ -1105,3 +1105,49 @@ module Teq =
         val domainOf<'domain1, 'domain2, 'range1, 'range2> :
             Teq<'domain1 -> 'range1, 'domain2 -> 'range2> -> Teq<'domain1, 'domain2>
 """
+
+[<Test>]
+let ``inline type definition member, 1399`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+[<Sealed>]
+type Foo =
+    member inline Return : 'a -> Baz<'a>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+[<Sealed>]
+type Foo =
+    member inline Return: 'a -> Baz<'a>
+"""
+
+[<Test>]
+let ``inline private type definition member`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+[<Sealed>]
+type Foo =
+    member inline private Return : 'a -> Baz<'a>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+[<Sealed>]
+type Foo =
+    member inline private Return: 'a -> Baz<'a>
+"""
