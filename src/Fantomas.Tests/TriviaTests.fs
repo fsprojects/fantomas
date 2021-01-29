@@ -406,7 +406,7 @@ with empty lines"
 
     match trivia with
     | [ { ContentItself = Some (StringContent (sc))
-          Type = TriviaNodeType.MainNode (SynExpr_Const) } ] -> sc == sprintf "\"%s\"" multilineString
+          Type = TriviaNodeType.MainNode (SynConst_String) } ] -> sc == sprintf "\"%s\"" multilineString
     | _ -> fail ()
 
 [<Test>]
@@ -426,7 +426,7 @@ with empty lines"
 
     match trivia with
     | [ { ContentItself = Some (StringContent (sc))
-          Type = TriviaNodeType.MainNode (SynExpr_Const) } ] -> sc == sprintf "\"\"\"%s\"\"\"" multilineString
+          Type = TriviaNodeType.MainNode (SynConst_String) } ] -> sc == sprintf "\"\"\"%s\"\"\"" multilineString
     | _ -> fail ()
 
 [<Test>]
@@ -436,7 +436,7 @@ let ``char content`` () =
 
     match trivia with
     | [ { ContentItself = Some (CharContent ("\'\\u0000\'"))
-          Type = TriviaNodeType.MainNode (SynExpr_Const) } ] -> pass ()
+          Type = TriviaNodeType.MainNode (SynConst_Char) } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]

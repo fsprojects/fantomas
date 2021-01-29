@@ -192,12 +192,12 @@ let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (const
                 && tn.Range.EndColumn = constantRange.EndColumn
             | _ -> false)
 
-let private findConstNodeAfter (nodes: TriviaNodeAssigner list) (range: range) =
+let private findSynConstStringNodeAfter (nodes: TriviaNodeAssigner list) (range: range) =
     nodes
     |> List.tryFind
         (fun tn ->
             match tn.Type, range.StartLine = tn.Range.StartLine, range.StartColumn + 1 = tn.Range.StartColumn with
-            | MainNode (SynExpr_Const), true, true -> true
+            | MainNode (SynConst_String), true, true -> true
             | _ -> false)
 
 let private mapNodeToTriviaNode (node: Node) =
@@ -419,7 +419,7 @@ let private addTriviaToTriviaNode
 
     | { Item = Keyword ({ TokenInfo = { TokenName = tn } } as kw)
         Range = range } when (tn = "QMARK") ->
-        findConstNodeAfter triviaNodes range
+        findSynConstStringNodeAfter triviaNodes range
         |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(kw))) triviaNodes
 
     | { Item = Keyword ({ Content = keyword })
@@ -504,7 +504,7 @@ let private addTriviaToTriviaNode
                     | MainNode (SynPat_Named)
                     | MainNode (SynPat_LongIdent)
                     | MainNode (Ident_)
-                    | MainNode (SynExpr_Const) -> true
+                    | MainNode (SynConst_String) -> true
                     | _ -> false
 
                 isIdent

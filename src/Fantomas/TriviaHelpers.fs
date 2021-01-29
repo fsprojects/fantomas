@@ -121,8 +121,8 @@ module internal TriviaHelpers =
                 && contentItSelfIsMultilineString ())
 
     let ``get CharContent`` range (nodes: Map<FsAstType, TriviaNode list>) =
-        getNodesForTypes [ SynExpr_Const; SynPat_Const ] nodes
-        |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range range)
+        Map.tryFindOrEmptyList SynConst_Char nodes
+        |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range range)
         |> Option.bind
             (fun tv ->
                 match tv.ContentItself with

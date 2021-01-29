@@ -3985,10 +3985,7 @@ and addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: SynType) (ctx: Cont
                 | StringContent sc -> sc.StartsWith("@")
                 | _ -> false)
                 r
-                (TriviaHelpers.getNodesForTypes
-                    [ SynExpr_Const
-                      SynType_StaticConstant ]
-                    ctx.TriviaMainNodes)
+                (Map.tryFindOrEmptyList SynConst_String ctx.TriviaMainNodes)
         | _ -> false
 
     onlyIf hasAtSign sepSpace ctx
@@ -4892,9 +4889,16 @@ and genSynBindingValue
                 +> unindent
 
             let hasMultilineString =
-                ctx.TriviaMainNodes
-                |> Map.tryFindOrEmptyList SynExpr_Const
-                |> TriviaHelpers.hasMultilineString e.Range
+                match e with
+                | SynExpr.Const (SynConst.String (_, r), _) ->
+                    ctx.TriviaMainNodes
+                    |> Map.tryFindOrEmptyList SynConst_String
+                    |> TriviaHelpers.hasMultilineString r
+                | SynExpr.Const (SynConst.Bytes (_, r), _) ->
+                    ctx.TriviaMainNodes
+                    |> Map.tryFindOrEmptyList SynConst_Bytes
+                    |> TriviaHelpers.hasMultilineString r
+                | _ -> false
 
             if hasMultilineString then
                 short ctx
@@ -4938,14 +4942,10 @@ and genConst (c: SynConst) (r: range) =
     | SynConst.UInt64 _
     | SynConst.UIntPtr _
     | SynConst.UserNum _ -> genConstNumber c r
-    | SynConst.String (s, _) ->
+    | SynConst.String (s, r) ->
         fun (ctx: Context) ->
             let trivia =
-                TriviaHelpers.getNodesForTypes
-                    [ SynExpr_Const
-                      SynType_StaticConstant
-                      SynPat_Const ]
-                    ctx.TriviaMainNodes
+                Map.tryFindOrEmptyList SynConst_String ctx.TriviaMainNodes
                 |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range r)
 
             let triviaStringContent =
@@ -4982,7 +4982,7 @@ and genConst (c: SynConst) (r: range) =
                     !-(sprintf "\'%s\'" escapedChar)
 
             expr ctx
-    | SynConst.Bytes (bytes, _) -> genConstBytes bytes r
+    | SynConst.Bytes (bytes, r) -> genConstBytes bytes r
     | SynConst.Measure (c, m) ->
         let measure =
             match m with
@@ -5031,7 +5031,7 @@ and genConstNumber (c: SynConst) (r: range) =
 and genConstBytes (bytes: byte []) (r: range) =
     fun (ctx: Context) ->
         let trivia =
-            Map.tryFindOrEmptyList SynExpr_Const ctx.TriviaMainNodes
+            Map.tryFindOrEmptyList SynConst_Bytes ctx.TriviaMainNodes
             |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
             |> Option.bind
                 (fun tv ->
