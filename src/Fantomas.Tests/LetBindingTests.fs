@@ -1242,8 +1242,9 @@ let x =
            info.ProvidedType.PUntaint(
                (fun st ->
                    (st :> IProvidedCustomAttributeProvider)
-                       .GetHasTypeProviderEditorHideMethodsAttribute(info.ProvidedType.TypeProvider.PUntaintNoFailure
-                                                                         (id))),
+                       .GetHasTypeProviderEditorHideMethodsAttribute(
+                           info.ProvidedType.TypeProvider.PUntaintNoFailure(id)
+                       )),
                m
            )
        | _ ->
@@ -1276,8 +1277,11 @@ let ``app tuple inside dotget expression`` () =
         equal
         """
 (st :> IProvidedCustomAttributeProvider)
-    .GetHasTypeProviderEditorHideMethodsAttribute(info.ProvidedType.TypeProvider.PUntaintNoFailure
-                                                      (id))
+    .GetHasTypeProviderEditorHideMethodsAttribute(
+        info.ProvidedType.TypeProvider.PUntaintNoFailure(
+            id
+        )
+    )
 """
 
 [<Test>]

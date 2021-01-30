@@ -293,12 +293,15 @@ let ``should indent fun blocks`` () =
 let ``should not add spaces into a series of function application`` () =
     formatSourceString
         false
-        """let f x = "d"
+        """
+let f x = "d"
 f(1).Contains("3")"""
         config
+    |> prepend newline
     |> should
         equal
-        """let f x = "d"
+        """
+let f x = "d"
 f(1).Contains("3")
 """
 

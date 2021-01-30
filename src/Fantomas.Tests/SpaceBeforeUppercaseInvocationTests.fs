@@ -46,6 +46,33 @@ let ``spaceBeforeUppercaseInvocation should not have impact when member is calle
 let v2 = OtherFunction().Member
 """
 
+[<Test>]
+let ``spaceBeforeUppercaseInvocation should not have impact when member is called after construction invocation, 1401``
+    ()
+    =
+    formatSourceString
+        false
+        """
+let x = DateTimeOffset(2017,6,1,10,3,14,TimeSpan(1,30,0)).LocalDateTime
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    DateTimeOffset(
+        2017,
+        6,
+        1,
+        10,
+        3,
+        14,
+        TimeSpan (1, 30, 0)
+    )
+        .LocalDateTime
+"""
+
 // Space before parentheses (a+b) in Uppercase function call
 
 [<Test>]

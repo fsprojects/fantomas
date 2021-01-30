@@ -466,7 +466,7 @@ let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNa
 System.String.Concat(
     "a",
     "b"
-    + longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (
+    + longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun(
         longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass
     )
         .Property

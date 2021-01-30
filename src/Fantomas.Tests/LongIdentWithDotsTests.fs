@@ -50,10 +50,12 @@ Log.Logger <-
     LoggerConfiguration()
         // Suave.SerilogExtensions has native destructuring mechanism
         // this helps Serilog deserialize the fsharp types like unions/records
-        .Destructure.FSharpTypes()
+        .Destructure
+        .FSharpTypes()
         // use package Serilog.Sinks.Console
         // https://github.com/serilog/serilog-sinks-console
-        .WriteTo.Console()
+        .WriteTo
+        .Console()
         // add more sinks etc.
         .CreateLogger()
 """
@@ -138,8 +140,9 @@ let main _ =
                 .UseConfiguration(config)
                 .UseKestrel()
                 .UseSerilog()
-                .ConfigureAppConfiguration(Action<WebHostBuilderContext, IConfigurationBuilder>
-                                               configureAppConfiguration)
+                .ConfigureAppConfiguration(
+                    Action<WebHostBuilderContext, IConfigurationBuilder> configureAppConfiguration
+                )
                 .ConfigureServices(Action<WebHostBuilderContext, IServiceCollection> configureServices)
                 .Configure(Action<IApplicationBuilder> configureApp)
                 .Build()
