@@ -459,14 +459,19 @@ let getColl4 =
 
 [<Test>]
 let ``comment between chained call`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 Log
     .Foo()
     // Bar
     .Poo()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Log
     .Foo()
     // Bar
@@ -475,84 +480,124 @@ Log
 
 [<Test>]
 let ``short DotGetApp with unit`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 Foo().Bar()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Foo().Bar()
 """
 
 [<Test>]
 let ``short DotGetApp with lowercase function name and unit`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 Foo().bar()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Foo().bar ()
 """
 
 [<Test>]
 let ``short DotGetApp with constant`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 Foo().Bar "meh"
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Foo().Bar "meh"
 """
 
 [<Test>]
 let ``short DotGetApp with property`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 Foo().Bar().Length
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Foo().Bar().Length
 """
 
 [<Test>]
 let ``short DotGetApp with multiline idents and constant`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 MyModule.Foo().Bar()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 MyModule.Foo().Bar()
 """
 
 [<Test>]
 let ``short DotGet TypedApp`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 typeof<System.Collections.IEnumerable>.FullName
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 typeof<System.Collections.IEnumerable>.FullName
 """
 
 [<Test>]
 let ``short DotGet with lambda`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 Foo(fun x -> x).Bar()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Foo(fun x -> x).Bar()
 """
 
 [<Test>]
 let ``named argument inside DotGet application`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 SomeFunction(name = SearchForName(
     "foooooooooooooooooooooooooooooooooooooooooooooooooo",
     "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
 )).ChainedFunctionCall()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 SomeFunction(
     name =
         SearchForName(

@@ -822,10 +822,8 @@ let (|AppSingleArg|_|) =
 
 let (|NewTuple|_|) =
     function
-    | SynExpr.New (_, t, (Paren _ as px), _) ->
-        Some(t, px)
-    | SynExpr.New (_, t, (ConstExpr (SynConst.Unit, _) as px), _) ->
-        Some(t, px)
+    | SynExpr.New (_, t, (Paren _ as px), _) -> Some(t, px)
+    | SynExpr.New (_, t, (ConstExpr (SynConst.Unit, _) as px), _) -> Some(t, px)
     | _ -> None
 
 let (|CompApp|_|) =
@@ -1030,15 +1028,13 @@ let (|DotGet|_|) =
 let (|DotGetAppParen|_|) e =
     match e with
     //| App(e, [DotGet (Paren _ as p, (s,r))]) -> Some (e, p, s, r)
-    | DotGet (App (e, [(Paren (_, Tuple _, _) as px)]), lids) ->
-        Some (e,px,lids)
-    | DotGet (App (e, [(Paren (_, singleExpr, _) as px)]), lids) ->
+    | DotGet (App (e, [ (Paren (_, Tuple _, _) as px) ]), lids) -> Some(e, px, lids)
+    | DotGet (App (e, [ (Paren (_, singleExpr, _) as px) ]), lids) ->
         match singleExpr with
         | SynExpr.Lambda _
         | SynExpr.MatchLambda _ -> None
-        | _ -> Some (e,px,lids)
-    | DotGet (App (e, [(ConstExpr (SynConst.Unit, _) as px)]), lids) ->
-        Some (e,px,lids)
+        | _ -> Some(e, px, lids)
+    | DotGet (App (e, [ (ConstExpr (SynConst.Unit, _) as px) ]), lids) -> Some(e, px, lids)
     | _ -> None
 
 /// Gather series of application for line breaking

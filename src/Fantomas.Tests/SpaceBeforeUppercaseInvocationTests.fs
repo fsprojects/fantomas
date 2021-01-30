@@ -47,12 +47,19 @@ let v2 = OtherFunction().Member
 """
 
 [<Test>]
-let ``spaceBeforeUppercaseInvocation should not have impact when member is called after construction invocation, 1401`` () =
-    formatSourceString false """
+let ``spaceBeforeUppercaseInvocation should not have impact when member is called after construction invocation, 1401``
+    ()
+    =
+    formatSourceString
+        false
+        """
 let x = DateTimeOffset(2017,6,1,10,3,14,TimeSpan(1,30,0)).LocalDateTime
-"""  spaceBeforeConfig
+"""
+        spaceBeforeConfig
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let x =
     DateTimeOffset(
         2017,

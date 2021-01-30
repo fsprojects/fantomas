@@ -1266,11 +1266,7 @@ and genExpr astContext synExpr ctx =
                 !- "new "
                 +> genType astContext false t
                 +> sepSpace
-                +> genMultilineFunctionApplicationArguments
-                            sepOpenTFor
-                            sepCloseTFor
-                            astContext
-                            px
+                +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
 
             expressionFitsOnRestOfLine short long
         | SynExpr.New (_, t, e, _) ->
@@ -1617,12 +1613,7 @@ and genExpr astContext synExpr ctx =
             match e with
             | MultilineString _ ->
                 sepOpenTFor lpr
-                +> atCurrentColumn (
-                    genExpr
-                        astContext
-                        e
-                    +> indentIfNeeded sepNone
-                )
+                +> atCurrentColumn (genExpr astContext e +> indentIfNeeded sepNone)
                 +> sepCloseTFor rpr
             | LetOrUses _ ->
                 sepOpenTFor lpr
@@ -1755,47 +1746,38 @@ and genExpr astContext synExpr ctx =
                 +> sepSpace
                 +> genExpr astContext e3
             )
-        
+
         // Result<int, string>.Ok 42
-        | App (DotGet (TypeApp(e,ts) , lids), es) ->
-            let s =
-                List.map fst lids
-                |> String.concat "."
-                
+        | App (DotGet (TypeApp (e, ts), lids), es) ->
+            let s = List.map fst lids |> String.concat "."
+
             genExpr astContext e
             +> genGenericTypeParameters astContext ts
-            +> !- $".{s}"
+            +> !-($".{s}")
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (col sepSpace es (genExpr astContext))
 
         // Foo().Bar
-        | DotGetAppParen(e, px, lids) ->
+        | DotGetAppParen (e, px, lids) ->
             let shortAppExpr =
                 genExpr astContext e +> genExpr astContext px
 
             let longAppExpr =
                 let functionName argFn =
                     match e with
-                    | LongIdentPieces lids when (List.moreThanOne lids) ->
-                        genFunctionNameWithMultilineLids argFn lids
+                    | LongIdentPieces lids when (List.moreThanOne lids) -> genFunctionNameWithMultilineLids argFn lids
                     | TypeApp (LongIdentPieces (lids), ts) when (List.moreThanOne lids) ->
-                        genFunctionNameWithMultilineLids
-                            (genGenericTypeParameters astContext ts +> argFn)
-                            lids
+                        genFunctionNameWithMultilineLids (genGenericTypeParameters astContext ts +> argFn) lids
                     | _ -> genExpr astContext e +> argFn
 
                 let arguments =
-                    genMultilineFunctionApplicationArguments
-                        sepOpenTFor
-                        sepCloseTFor
-                        astContext
-                        px
+                    genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
 
                 functionName arguments
 
             let shortDotGetExpr = genLidsWithDots lids
 
             let longDotGetExpr =
-                 indent
+                indent
                 +> sepNln
                 +> genLidsWithDotsAndNewlines lids
                 +> unindent
@@ -1808,11 +1790,10 @@ and genExpr astContext synExpr ctx =
                     ctx
 
         // Foo(fun x -> x).Bar()
-        | DotGetApp (App(e, [Paren (_, Lambda _, _) as px]), es) ->
+        | DotGetApp (App (e, [ Paren (_, Lambda _, _) as px ]), es) ->
             let genLongFunctionName f =
                 match e with
-                | LongIdentPieces (lids) when (List.moreThanOne lids) ->
-                    genFunctionNameWithMultilineLids f lids
+                | LongIdentPieces (lids) when (List.moreThanOne lids) -> genFunctionNameWithMultilineLids f lids
                 | TypeApp (LongIdentPieces (lids), ts) when (List.moreThanOne lids) ->
                     genFunctionNameWithMultilineLids (genGenericTypeParameters astContext ts +> f) lids
                 | _ -> genExpr astContext e +> f
@@ -1820,40 +1801,46 @@ and genExpr astContext synExpr ctx =
             let short =
                 genExpr astContext e
                 +> genExpr astContext px
-                +> col sepNone es (fun (lids,e, _) ->
-                    genLidsWithDots lids +> genExpr astContext e)
+                +> col sepNone es (fun (lids, e, _) -> genLidsWithDots lids +> genExpr astContext e)
 
             let long =
                 genLongFunctionName (genExpr astContext px)
                 +> indent
                 +> sepNln
-                +> col sepNln es (fun (lids,e, _) ->
-                    genLidsWithDotsAndNewlines lids +> genExpr astContext e)
+                +> col
+                    sepNln
+                    es
+                    (fun (lids, e, _) ->
+                        genLidsWithDotsAndNewlines lids
+                        +> genExpr astContext e)
                 +> unindent
-                
+
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
-            
+
         // Foo().Bar().Meh()
-        | DotGetApp (e, es) ->            
+        | DotGetApp (e, es) ->
             let genLongFunctionName =
                 match e with
                 | App (LongIdentPieces (lids), [ e2 ]) when (List.moreThanOne lids) ->
                     genFunctionNameWithMultilineLids (genExpr astContext e2) lids
                 | App (TypeApp (LongIdentPieces (lids), ts), [ e2 ]) when (List.moreThanOne lids) ->
                     genFunctionNameWithMultilineLids
-                        (genGenericTypeParameters astContext ts +> genExpr astContext e2)
+                        (genGenericTypeParameters astContext ts
+                         +> genExpr astContext e2)
                         lids
                 | _ -> genExpr astContext e
-            
-            let genApp ((lids,e, ts): (string * range) list * SynExpr * SynType list): Context -> Context =
+
+            let genApp ((lids, e, ts): (string * range) list * SynExpr * SynType list): Context -> Context =
                 let short =
                     let addSpace ctx =
                         let config =
                             let s = fst lids.[0]
+
                             if Char.IsUpper(s.[0]) then
                                 ctx.Config.SpaceBeforeUppercaseInvocation
                             else
                                 ctx.Config.SpaceBeforeLowercaseInvocation
+
                         not (hasParenthesis e) || config
 
                     genLidsWithDots lids
@@ -1867,14 +1854,14 @@ and genExpr astContext synExpr ctx =
                     +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext e
 
                 expressionFitsOnRestOfLine short long
-            
+
             let short =
                 match e with
-                | App (e, [px]) when (hasParenthesis px || isArrayOrList px) ->
+                | App (e, [ px ]) when (hasParenthesis px || isArrayOrList px) ->
                     genExpr astContext e +> genExpr astContext px
                 | _ -> genExpr astContext e
                 +> col sepNone es genApp
-            
+
             let long =
                 genLongFunctionName
                 +> indent
@@ -1884,12 +1871,12 @@ and genExpr astContext synExpr ctx =
 
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
 
-        | AppSingleArg (e, px) when (not astContext.IsInsideDotIndexed)  ->
+        | AppSingleArg (e, px) when (not astContext.IsInsideDotIndexed) ->
             let sepSpace (ctx: Context) =
-                    match e with
-                    | Paren _ -> sepSpace ctx
-                    | UppercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
-                    | LowercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
+                match e with
+                | Paren _ -> sepSpace ctx
+                | UppercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
+                | LowercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
 
             let short =
                 genExpr astContext e
@@ -1899,11 +1886,7 @@ and genExpr astContext synExpr ctx =
             let long =
                 genExpr astContext e
                 +> sepSpace
-                +> genMultilineFunctionApplicationArguments
-                        sepOpenTFor
-                        sepCloseTFor
-                        astContext
-                        px
+                +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
 
             expressionFitsOnRestOfLine short long
 
@@ -2422,15 +2405,15 @@ and genExpr astContext synExpr ctx =
         // typeof<System.Collections.IEnumerable>.FullName
         | DotGet (e, lids) ->
             let shortExpr =
-                genExpr
-                    astContext
-                    e
-                +> genLidsWithDots lids
+                genExpr astContext e +> genLidsWithDots lids
 
             let longExpr =
                 //genLongIdentWithMultipleFragmentsMultiline astContext e
                 genExpr astContext e
-                +> indent +> sepNln +> genLidsWithDotsAndNewlines lids +> unindent
+                +> indent
+                +> sepNln
+                +> genLidsWithDotsAndNewlines lids
+                +> unindent
 
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
         | DotSet (e1, s, e2) ->
@@ -2592,20 +2575,20 @@ and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
         )
 
 and genLidsWithDots (lids: (string * range) list) =
-    optSingle (fun (_,r) -> enterNodeFor Ident_ r) (List.tryHead lids)
+    optSingle (fun (_, r) -> enterNodeFor Ident_ r) (List.tryHead lids)
     +> !- "."
-    +> col !- "." lids (fun (s,_) -> !- s)
+    +> col !- "." lids (fun (s, _) -> !-s)
 
 and genLidsWithDotsAndNewlines (lids: (string * range) list) =
-    optSingle (fun (_,r) -> enterNodeFor Ident_ r) (List.tryHead lids)
+    optSingle (fun (_, r) -> enterNodeFor Ident_ r) (List.tryHead lids)
     +> !- "."
-    +> col (sepNln +> !- ".") lids (fun (s,_) -> !- s)
+    +> col (sepNln +> !- ".") lids (fun (s, _) -> !-s)
 
 and genFunctionNameWithMultilineLids f lids =
     match lids with
-    | (s,r)::t ->
+    | (s, r) :: t ->
         enterNodeFor Ident_ r
-        +> !- s
+        +> !-s
         +> indent
         +> sepNln
         +> genLidsWithDotsAndNewlines t
@@ -2613,12 +2596,7 @@ and genFunctionNameWithMultilineLids f lids =
         +> unindent
     | _ -> sepNone
 
-and genMultilineFunctionApplicationArguments
-    sepOpenTFor
-    sepCloseTFor
-    astContext
-    argExpr
-    =
+and genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext argExpr =
     let argsInsideParenthesis lpr rpr f =
         sepOpenTFor lpr
         +> indent
@@ -2633,10 +2611,9 @@ and genMultilineFunctionApplicationArguments
         | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
             genNamedArgumentExpr astContext operatorExpr e1 e2
         | _ -> genExpr astContext e
-    
+
     match argExpr with
-    | Paren (_, Lambda _, _) ->
-        genExpr astContext argExpr
+    | Paren (_, Lambda _, _) -> genExpr astContext argExpr
     | Paren (lpr, Tuple (args, tupleRange), rpr) ->
         (col (sepCommaFixed +> sepNln) args (genExpr astContext))
         |> optSingle (genTriviaFor SynExpr_Tuple) tupleRange
@@ -2968,9 +2945,7 @@ and genApp appNlnFun astContext e es ctx =
                     | [] -> false
                     | [ h ]
                     | h :: _ ->
-                        not (
-                            astContext.IsInsideDotIndexed
-                        )
+                        not (astContext.IsInsideDotIndexed)
                         && addSpaceBeforeParensInFunCall e h ctx)
                 sepSpace
                 sepNone

@@ -712,7 +712,8 @@ let ``keep new line before for loop, 1317`` () =
 
       state
 """
-        { config with MaxDotGetExpressionWidth = 60 }
+        { config with
+              MaxDotGetExpressionWidth = 60 }
     |> prepend newline
     |> should
         equal
