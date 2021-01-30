@@ -32,8 +32,6 @@ type ASTContext =
       IsUnionField: bool
       /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
       IsFirstTypeParam: bool
-      /// Check whether the context is inside a SynExpr.DotIndexedGet
-      IsInsideDotIndexed: bool
       /// Inside a SynPat of MatchClause
       IsInsideMatchClausePattern: bool }
     static member Default =
@@ -45,7 +43,6 @@ type ASTContext =
           HasVerticalBar = false
           IsUnionField = false
           IsFirstTypeParam = false
-          IsInsideDotIndexed = false
           IsInsideMatchClausePattern = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
@@ -1871,7 +1868,7 @@ and genExpr astContext synExpr ctx =
 
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
 
-        | AppSingleArg (e, px) when (not astContext.IsInsideDotIndexed) ->
+        | AppSingleArg (e, px) ->
             let sepSpace (ctx: Context) =
                 match e with
                 | Paren _ -> sepSpace ctx
@@ -2370,26 +2367,52 @@ and genExpr astContext synExpr ctx =
         | LongIdentSet (s, e, _) ->
             !-(sprintf "%s <- " s)
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-        | DotIndexedGet (e, es) ->
-            let astCtx =
-                match e with
-                | Paren _ -> astContext
-                | _ ->
-                    { astContext with
-                          IsInsideDotIndexed = true }
+        | DotIndexedGet (AppSingleArg (e, px), es) ->
+            let short =
+                genExpr astContext e +> genExpr astContext px
 
-            addParenIfAutoNln e (genExpr astCtx) -- "."
+            let long =
+                genExpr astContext e
+                +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
+
+            let idx =
+                !- "."
+                +> sepOpenLFixed
+                +> genIndexers astContext es
+                +> sepCloseLFixed
+                +> leaveNodeTokenByName synExpr.Range RBRACK
+
+            expressionFitsOnRestOfLine (short +> idx) (long +> idx)
+        | DotIndexedGet (e, es) ->
+            addParenIfAutoNln e (genExpr astContext) -- "."
             +> sepOpenLFixed
             +> genIndexers astContext es
             +> sepCloseLFixed
             +> leaveNodeTokenByName synExpr.Range RBRACK
+        | DotIndexedSet (AppSingleArg (a, px), es, e2) ->
+            let short =
+                genExpr astContext a +> genExpr astContext px
+
+            let long =
+                genExpr astContext a
+                +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
+
+            let idx =
+                !- "."
+                +> sepOpenLFixed
+                +> genIndexers astContext es
+                +> sepCloseLFixed
+                +> leaveNodeTokenByName synExpr.Range RBRACK
+                +> sepArrowRev
+
+            expressionFitsOnRestOfLine
+                (short +> idx +> genExpr astContext e2)
+                (long
+                 +> idx
+                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2))
+
         | DotIndexedSet (e1, es, e2) ->
-            addParenIfAutoNln
-                e1
-                (genExpr
-                    { astContext with
-                          IsInsideDotIndexed = true })
-            -- ".["
+            addParenIfAutoNln e1 (genExpr astContext) -- ".["
             +> genIndexers astContext es
             -- "] <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
@@ -2944,9 +2967,7 @@ and genApp appNlnFun astContext e es ctx =
                     match es with
                     | [] -> false
                     | [ h ]
-                    | h :: _ ->
-                        not (astContext.IsInsideDotIndexed)
-                        && addSpaceBeforeParensInFunCall e h ctx)
+                    | h :: _ -> addSpaceBeforeParensInFunCall e h ctx)
                 sepSpace
                 sepNone
 

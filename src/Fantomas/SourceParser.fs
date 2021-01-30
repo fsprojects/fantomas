@@ -818,6 +818,7 @@ let (|AppSingleArg|_|) =
         | SynExpr.Lambda _
         | SynExpr.MatchLambda _ -> None
         | _ -> Some(e, px)
+    | App (e, [ (ConstExpr (SynConst.Unit, _) as px) ]) -> Some(e, px)
     | _ -> None
 
 let (|NewTuple|_|) =
