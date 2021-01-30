@@ -730,14 +730,14 @@ let generateParsedInput =
                 [],
                 [],
                 [ SynModuleOrNamespace(
-                    [ ident ],
-                    false,
-                    AnonModule,
-                    [ SynModuleDecl.DoExpr(NoDebugPointAtDoBinding, expr, zero) ],
-                    PreXmlDocEmpty,
-                    [],
-                    None,
-                    zero
+                      [ ident ],
+                      false,
+                      AnonModule,
+                      [ SynModuleDecl.DoExpr(NoDebugPointAtDoBinding, expr, zero) ],
+                      PreXmlDocEmpty,
+                      [],
+                      None,
+                      zero
                   ) ],
                 (true, true)
             )

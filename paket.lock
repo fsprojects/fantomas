@@ -839,12 +839,12 @@ NUGET
       Fake.Core.Trace (>= 5.20.3) - restriction: >= netstandard2.0
       Fake.IO.FileSystem (>= 5.20.3) - restriction: >= netstandard2.0
       FSharp.Core (>= 4.7.2) - restriction: >= netstandard2.0
-    Fantomas (4.4.0-beta-001) - restriction: >= netstandard2.0
-      FSharp.Compiler.Service (>= 38.0) - restriction: >= netstandard2.0
+    Fantomas (4.4.0-beta-003) - restriction: >= netstandard2.0
+      FSharp.Compiler.Service (>= 38.0.2) - restriction: >= netstandard2.0
       FSharp.Core (>= 5.0) - restriction: >= netstandard2.0
-    Fantomas.Extras (4.4.0-beta-001)
+    Fantomas.Extras (4.4.0-beta-003)
       editorconfig (>= 0.12.2) - restriction: >= netstandard2.0
-      Fantomas (>= 4.4.0-beta-001) - restriction: >= netstandard2.0
+      Fantomas (>= 4.4.0-beta-003) - restriction: >= netstandard2.0
       FSharp.Core (>= 5.0) - restriction: >= netstandard2.0
       MAB.DotIgnore (>= 3.0.2) - restriction: >= netstandard2.0
     FParsec (1.1.1) - restriction: >= netstandard2.0
