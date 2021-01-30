@@ -456,3 +456,109 @@ let getColl4 =
             x)
         .Foo
 """
+
+[<Test>]
+let ``comment between chained call`` () =
+    formatSourceString false """
+Log
+    .Foo()
+    // Bar
+    .Poo()
+"""  config
+    |> prepend newline
+    |> should equal """
+Log
+    .Foo()
+    // Bar
+    .Poo()
+"""
+
+[<Test>]
+let ``short DotGetApp with unit`` () =
+    formatSourceString false """
+Foo().Bar()
+"""  config
+    |> prepend newline
+    |> should equal """
+Foo().Bar()
+"""
+
+[<Test>]
+let ``short DotGetApp with lowercase function name and unit`` () =
+    formatSourceString false """
+Foo().bar()
+"""  config
+    |> prepend newline
+    |> should equal """
+Foo().bar ()
+"""
+
+[<Test>]
+let ``short DotGetApp with constant`` () =
+    formatSourceString false """
+Foo().Bar "meh"
+"""  config
+    |> prepend newline
+    |> should equal """
+Foo().Bar "meh"
+"""
+
+[<Test>]
+let ``short DotGetApp with property`` () =
+    formatSourceString false """
+Foo().Bar().Length
+"""  config
+    |> prepend newline
+    |> should equal """
+Foo().Bar().Length
+"""
+
+[<Test>]
+let ``short DotGetApp with multiline idents and constant`` () =
+    formatSourceString false """
+MyModule.Foo().Bar()
+"""  config
+    |> prepend newline
+    |> should equal """
+MyModule.Foo().Bar()
+"""
+
+[<Test>]
+let ``short DotGet TypedApp`` () =
+    formatSourceString false """
+typeof<System.Collections.IEnumerable>.FullName
+"""  config
+    |> prepend newline
+    |> should equal """
+typeof<System.Collections.IEnumerable>.FullName
+"""
+
+[<Test>]
+let ``short DotGet with lambda`` () =
+    formatSourceString false """
+Foo(fun x -> x).Bar()
+"""  config
+    |> prepend newline
+    |> should equal """
+Foo(fun x -> x).Bar()
+"""
+
+[<Test>]
+let ``named argument inside DotGet application`` () =
+    formatSourceString false """
+SomeFunction(name = SearchForName(
+    "foooooooooooooooooooooooooooooooooooooooooooooooooo",
+    "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
+)).ChainedFunctionCall()
+"""  config
+    |> prepend newline
+    |> should equal """
+SomeFunction(
+    name =
+        SearchForName(
+            "foooooooooooooooooooooooooooooooooooooooooooooooooo",
+            "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
+        )
+)
+    .ChainedFunctionCall()
+"""

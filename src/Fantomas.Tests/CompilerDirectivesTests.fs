@@ -419,7 +419,9 @@ let start (args: IArgs) =
                 .CreateDefaultBuilder()
                 .UseWebRoot(args.ClientPath)
 #if DEBUG
-                .UseContentRoot(args.ContentRoot)
+                .UseContentRoot(
+                    args.ContentRoot
+                )
                 .UseUrls(args.Host + ":" + string args.Port)
 #endif
                 .UseSerilog()
@@ -642,7 +644,7 @@ type FunctionComponent =
                 (fun () ->
                     // React.lazy requires a default export
                     (importValueDynamic f)
-                        .``then``(fun x -> createObj [ "default" ==> x ]))
+                        .``then`` (fun x -> createObj [ "default" ==> x ]))
 
         fun props ->
             ReactElementType.create
@@ -863,7 +865,7 @@ type FunctionComponent =
                 (fun () ->
                     // React.lazy requires a default export
                     (importValueDynamic f)
-                        .``then``(fun x -> createObj [ "default" ==> x ]))
+                        .``then`` (fun x -> createObj [ "default" ==> x ]))
 
         fun props ->
             ReactElementType.create

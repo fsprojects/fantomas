@@ -95,11 +95,24 @@ let (|LongIdentPieces|_|) =
         |> List.map
             (fun x ->
                 if x.idText = MangledGlobalName then
-                    "global"
+                    "global", x.idRange
                 else
-                    (|Ident|) x)
+                    (|Ident|) x, x.idRange)
         |> Some
     | _ -> None
+
+
+let (|LongIdentWithDotsPieces|_|) =
+    function
+    | LongIdentWithDots (lids, _) ->
+        lids
+        |> List.map
+            (fun x ->
+                if x.idText = MangledGlobalName then
+                    "global", x.idRange
+                else
+                    (|Ident|) x, x.idRange)
+        |> Some
 
 let inline (|LongIdentWithDots|) (LongIdentWithDots (LongIdent s, _)) = s
 
@@ -796,30 +809,23 @@ let (|App|_|) e =
     | (_, []) -> None
     | (e, es) -> Some(e, List.rev es)
 
-// captures application with single tuple arg
-let (|AppTuple|_|) =
+// captures application with single arg
+let (|AppSingleArg|_|) =
     function
     | App (SynExpr.DotGet _, [ (Paren (_, Tuple _, _)) ]) -> None
-    | App (e, [ (Paren (lpr, Tuple (args, tupleRange), rpr)) ]) -> Some(e, lpr, args, tupleRange, rpr)
-    | App (e, [ (Paren (lpr, singleExpr, rpr)) ]) ->
+    | App (e, [ (Paren (_, singleExpr, _) as px) ]) ->
         match singleExpr with
         | SynExpr.Lambda _
         | SynExpr.MatchLambda _ -> None
-        | _ -> Some(e, lpr, [ singleExpr ], None, rpr)
+        | _ -> Some(e, px)
     | _ -> None
 
 let (|NewTuple|_|) =
     function
-    | SynExpr.New (_, t, Paren (lpr, Tuple (args, _), rpr), _) -> Some(t, lpr, args, rpr)
-    | SynExpr.New (_, t, Paren (lpr, singleExpr, rpr), _) -> Some(t, lpr, [ singleExpr ], rpr)
-    | SynExpr.New (_, t, ConstExpr (SynConst.Unit, unitRange), _) ->
-        let lpr =
-            mkRange "lpr" unitRange.Start unitRange.Start
-
-        let rpr =
-            mkRange "rpr" unitRange.End unitRange.End
-
-        Some(t, lpr, [], Some rpr)
+    | SynExpr.New (_, t, (Paren _ as px), _) ->
+        Some(t, px)
+    | SynExpr.New (_, t, (ConstExpr (SynConst.Unit, _) as px), _) ->
+        Some(t, px)
     | _ -> None
 
 let (|CompApp|_|) =
@@ -1017,22 +1023,22 @@ let (|DotIndexedGet|_|) =
 
 let (|DotGet|_|) =
     function
-    | SynExpr.DotGet (e, _, (LongIdentWithDots s as lid), _) -> Some(e, (s, lid.Range))
+    | SynExpr.DotGet (e, _, (LongIdentWithDotsPieces lids), _) -> Some(e, lids)
     | _ -> None
 
 /// Match function call followed by Property
 let (|DotGetAppParen|_|) e =
     match e with
     //| App(e, [DotGet (Paren _ as p, (s,r))]) -> Some (e, p, s, r)
-    | DotGet (App (e, [(Paren (_, Tuple _, _) as px)]), (s,r)) ->
-        Some (e,px,s,r)
-    | DotGet (App (e, [(Paren (_, singleExpr, _) as px)]), (s,r)) ->
+    | DotGet (App (e, [(Paren (_, Tuple _, _) as px)]), lids) ->
+        Some (e,px,lids)
+    | DotGet (App (e, [(Paren (_, singleExpr, _) as px)]), lids) ->
         match singleExpr with
         | SynExpr.Lambda _
         | SynExpr.MatchLambda _ -> None
-        | _ -> Some (e,px,s,r)
-    | DotGet (App (e, [(ConstExpr (SynConst.Unit, _) as px)]), (s,r)) ->
-        Some (e,px,s,r)
+        | _ -> Some (e,px,lids)
+    | DotGet (App (e, [(ConstExpr (SynConst.Unit, _) as px)]), lids) ->
+        Some (e,px,lids)
     | _ -> None
 
 /// Gather series of application for line breaking

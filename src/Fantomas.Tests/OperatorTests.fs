@@ -177,8 +177,10 @@ let ``should break on . operator and keep indentation`` () =
         equal
         """let pattern =
     (x + y)
-        .Replace(seperator + "**" + seperator,
-                 replacementSeparator + "(.|?" + replacementSeparator + ")?")
+        .Replace(
+            seperator + "**" + seperator,
+            replacementSeparator + "(.|?" + replacementSeparator + ")?"
+        )
         .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")")
 """
 
@@ -211,7 +213,7 @@ let ``should not add space around ? operator`` () =
     formatSourceString false """let x = y?z.d?c.[2]?d.xpto()""" config
     |> should
         equal
-        """let x = y?z.d?c.[2]?d.xpto()
+        """let x = y?z.d?c.[2]?d.xpto ()
 """
 
 [<Test>]

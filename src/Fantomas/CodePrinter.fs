@@ -32,8 +32,6 @@ type ASTContext =
       IsUnionField: bool
       /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
       IsFirstTypeParam: bool
-      /// Check whether the context is inside DotGet to suppress whitespaces
-      IsInsideDotGet: bool
       /// Check whether the context is inside a SynExpr.DotIndexedGet
       IsInsideDotIndexed: bool
       /// Inside a SynPat of MatchClause
@@ -47,7 +45,6 @@ type ASTContext =
           HasVerticalBar = false
           IsUnionField = false
           IsFirstTypeParam = false
-          IsInsideDotGet = false
           IsInsideDotIndexed = false
           IsInsideMatchClausePattern = false }
 
@@ -1253,7 +1250,7 @@ and genExpr astContext synExpr ctx =
             genExpr astContext e
             +> sepColon
             +> genType astContext false t
-        | NewTuple (t, lpr, args, rpr) ->
+        | NewTuple (t, px) ->
             let sepSpace (ctx: Context) =
                 match t with
                 | UppercaseSynType -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
@@ -1263,30 +1260,17 @@ and genExpr astContext synExpr ctx =
                 !- "new "
                 +> genType astContext false t
                 +> sepSpace
-                +> sepOpenTFor lpr
-                +> col sepComma args (genExpr astContext)
-                +> sepCloseTFor rpr
-
-            let genExprLong astContext e =
-                let expr e =
-                    match e with
-                    | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
-                        genNamedArgumentExpr astContext operatorExpr e1 e2
-                    | _ -> genExpr astContext e
-
-                expr e
+                +> genExpr astContext px
 
             let long =
                 !- "new "
                 +> genType astContext false t
                 +> sepSpace
-                +> sepOpenTFor lpr
-                +> indent
-                +> sepNln
-                +> col (sepCommaFixed +> sepNln) args (genExprLong astContext)
-                +> unindent
-                +> sepNln
-                +> sepCloseTFor rpr
+                +> genMultilineFunctionApplicationArguments
+                            sepOpenTFor
+                            sepCloseTFor
+                            astContext
+                            px
 
             expressionFitsOnRestOfLine short long
         | SynExpr.New (_, t, e, _) ->
@@ -1550,10 +1534,6 @@ and genExpr astContext synExpr ctx =
                     findTriviaTokenFromName RARROW arrowRange ctx
                     |> Option.isSome
 
-                let astCtx =
-                    { astContext with
-                          IsInsideDotGet = false }
-
                 let expr =
                     sepOpenTFor lpr -- "fun "
                     +> col sepSpace cps (fst >> genComplexPats astContext)
@@ -1561,9 +1541,9 @@ and genExpr astContext synExpr ctx =
                     +> triviaAfterArrow arrowRange
                     +> (fun ctx ->
                         if hasLineCommentAfterArrow then
-                            (genExpr astCtx e +> sepCloseTFor rpr) ctx
+                            (genExpr astContext e +> sepCloseTFor rpr) ctx
                         else
-                            (autoNlnIfExpressionExceedsPageWidth (genExpr astCtx e +> sepCloseTFor rpr)) ctx)
+                            (autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr)) ctx)
                     +> unindent
 
                 expr ctx
@@ -1579,10 +1559,6 @@ and genExpr astContext synExpr ctx =
                     findTriviaTokenFromName RARROW synExpr.Range ctx
                     |> Option.isSome
 
-                let astCtx =
-                    { astContext with
-                          IsInsideDotGet = false }
-
                 let expr =
                     sepOpenTFor lpr -- "fun "
                     +> col sepSpace sps (genSimplePats astContext)
@@ -1590,9 +1566,9 @@ and genExpr astContext synExpr ctx =
                     +> triviaAfterArrow synExpr.Range
                     +> (fun ctx ->
                         if hasLineCommentAfterArrow then
-                            (genExpr astCtx e +> sepCloseTFor rpr) ctx
+                            (genExpr astContext e +> sepCloseTFor rpr) ctx
                         else
-                            autoNlnIfExpressionExceedsPageWidth (genExpr astCtx e +> sepCloseTFor rpr) ctx)
+                            autoNlnIfExpressionExceedsPageWidth (genExpr astContext e +> sepCloseTFor rpr) ctx)
                     +> unindent
 
                 expr ctx
@@ -1643,8 +1619,7 @@ and genExpr astContext synExpr ctx =
                 sepOpenTFor lpr
                 +> atCurrentColumn (
                     genExpr
-                        { astContext with
-                              IsInsideDotGet = false }
+                        astContext
                         e
                     +> indentIfNeeded sepNone
                 )
@@ -1654,18 +1629,8 @@ and genExpr astContext synExpr ctx =
                 +> atCurrentColumn (genExpr astContext e)
                 +> sepCloseTFor rpr
             | _ ->
-                // Parentheses nullify effects of no space inside DotGet
-                // Unless there is another application with parenthesis
-                // See: ``app tuple inside dotget expression``
-                let astCtx =
-                    match e with
-                    | AppTuple _ -> astContext
-                    | _ ->
-                        { astContext with
-                              IsInsideDotGet = false }
-
                 sepOpenTFor lpr
-                +> genExpr astCtx e
+                +> genExpr astContext e
                 +> sepCloseTFor rpr
         | CompApp (s, e) ->
             !-s
@@ -1790,18 +1755,20 @@ and genExpr astContext synExpr ctx =
                 +> sepSpace
                 +> genExpr astContext e3
             )
+        
+        // Result<int, string>.Ok 42
+        | App (DotGet (TypeApp(e,ts) , lids), es) ->
+            let s =
+                List.map fst lids
+                |> String.concat "."
+                
+            genExpr astContext e
+            +> genGenericTypeParameters astContext ts
+            +> !- $".{s}"
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (col sepSpace es (genExpr astContext))
 
-        | DotGetAppParen(e, px, s, _r) ->
-//            let genShortExpr astContext e =
-//                addParenForTupleWhen (genExpr astContext) e
-
-
-
-//            let genTupleTrivia f =
-//                match tupleRange with
-//                | Some range -> f |> genTriviaFor SynExpr_Tuple range
-//                | None -> f
-
+        // Foo().Bar
+        | DotGetAppParen(e, px, lids) ->
             let shortAppExpr =
                 genExpr astContext e +> genExpr astContext px
 
@@ -1809,60 +1776,28 @@ and genExpr astContext synExpr ctx =
                 let functionName argFn =
                     match e with
                     | LongIdentPieces lids when (List.moreThanOne lids) ->
-                        !-(List.head lids)
-                        +> indent
-                        +> sepNln
-                        +> col sepNln (List.tail lids) (fun s -> !-(sprintf ".%s" s))
-                        +> argFn
-                        +> unindent
+                        genFunctionNameWithMultilineLids argFn lids
                     | TypeApp (LongIdentPieces (lids), ts) when (List.moreThanOne lids) ->
-                        !-(List.head lids)
-                        +> indent
-                        +> sepNln
-                        +> col sepNln (List.tail lids) (fun s -> !-(sprintf ".%s" s))
-                        +> genGenericTypeParameters astContext ts
-                        +> argFn
-                        +> unindent
+                        genFunctionNameWithMultilineLids
+                            (genGenericTypeParameters astContext ts +> argFn)
+                            lids
                     | _ -> genExpr astContext e +> argFn
 
                 let arguments =
-                    let argsInsideParenthesis lpr rpr f =
-                        sepOpenTFor lpr
-                        +> indent
-                        +> sepNln
-                        +> f
-                        +> unindent
-                        +> sepNln
-                        +> sepCloseTFor rpr
-                    match px with
-                    | Paren (lpr, Tuple (args, tupleRange), rpr) ->
-                        let tupleItem astContext e =
-                            let expr e =
-                                match e with
-                                | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
-                                    genNamedArgumentExpr astContext operatorExpr e1 e2
-                                | _ -> genExpr astContext e
+                    genMultilineFunctionApplicationArguments
+                        sepOpenTFor
+                        sepCloseTFor
+                        astContext
+                        px
 
-                            expr e
-                        
-                        (col (sepCommaFixed +> sepNln) args (tupleItem astContext))
-                        |> optSingle (genTriviaFor SynExpr_Tuple) tupleRange
-                        |> argsInsideParenthesis lpr rpr
-                    | Paren (lpr, singleExpr, rpr) ->
-                        genExpr astContext singleExpr
-                        |> argsInsideParenthesis lpr rpr
-                    | _ -> genExpr astContext px
-                
                 functionName arguments
 
-            //let appExpr ctx = isShortExpression ctx.Config.MaxDotGetExpressionWidth shortAppExpr longAppExpr ctx
-            let shortDotGetExpr = !- (sprintf ".%s" s)
+            let shortDotGetExpr = genLidsWithDots lids
 
             let longDotGetExpr =
                  indent
                 +> sepNln
-                //sepNln
-                +> !- (sprintf ".%s" s)
+                +> genLidsWithDotsAndNewlines lids
                 +> unindent
 
             fun ctx ->
@@ -1872,160 +1807,103 @@ and genExpr astContext synExpr ctx =
                     (longAppExpr +> longDotGetExpr)
                     ctx
 
-        | DotGetApp (e, es) as appNode ->
-            fun (ctx: Context) ->
-                // find all the lids recursively + range of do expr
-                let dotGetFuncExprIdents =
-                    let rec selectIdent appNode =
-                        match appNode with
-                        | SynExpr.App (_,
-                                       _,
-                                       (SynExpr.DotGet (_, _, LongIdentWithDots.LongIdentWithDots (lids, _), _) as dotGet),
-                                       argExpr,
-                                       _) ->
-                            let lids =
-                                List.map (fun lid -> (argExpr.Range, lid)) lids
+        // Foo(fun x -> x).Bar()
+        | DotGetApp (App(e, [Paren (_, Lambda _, _) as px]), es) ->
+            let genLongFunctionName f =
+                match e with
+                | LongIdentPieces (lids) when (List.moreThanOne lids) ->
+                    genFunctionNameWithMultilineLids f lids
+                | TypeApp (LongIdentPieces (lids), ts) when (List.moreThanOne lids) ->
+                    genFunctionNameWithMultilineLids (genGenericTypeParameters astContext ts +> f) lids
+                | _ -> genExpr astContext e +> f
 
-                            let childLids = selectIdent dotGet
-                            lids @ childLids
-                        | SynExpr.DotGet (aExpr, _, _, _) -> selectIdent aExpr
-                        | _ -> []
+            let short =
+                genExpr astContext e
+                +> genExpr astContext px
+                +> col sepNone es (fun (lids,e, _) ->
+                    genLidsWithDots lids +> genExpr astContext e)
 
-                    selectIdent appNode
+            let long =
+                genLongFunctionName (genExpr astContext px)
+                +> indent
+                +> sepNln
+                +> col sepNln es (fun (lids,e, _) ->
+                    genLidsWithDotsAndNewlines lids +> genExpr astContext e)
+                +> unindent
+                
+            fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
+            
+        // Foo().Bar().Meh()
+        | DotGetApp (e, es) ->            
+            let genLongFunctionName =
+                match e with
+                | App (LongIdentPieces (lids), [ e2 ]) when (List.moreThanOne lids) ->
+                    genFunctionNameWithMultilineLids (genExpr astContext e2) lids
+                | App (TypeApp (LongIdentPieces (lids), ts), [ e2 ]) when (List.moreThanOne lids) ->
+                    genFunctionNameWithMultilineLids
+                        (genGenericTypeParameters astContext ts +> genExpr astContext e2)
+                        lids
+                | _ -> genExpr astContext e
+            
+            let genApp ((lids,e, ts): (string * range) list * SynExpr * SynType list): Context -> Context =
+                let short =
+                    let addSpace ctx =
+                        let config =
+                            let s = fst lids.[0]
+                            if Char.IsUpper(s.[0]) then
+                                ctx.Config.SpaceBeforeUppercaseInvocation
+                            else
+                                ctx.Config.SpaceBeforeLowercaseInvocation
+                        not (hasParenthesis e) || config
 
-                let expr sep =
-                    match e with
-                    | App (TypeApp (LongIdentPieces (lids), ts), [ e2 ]) when (List.moreThanOne lids) ->
-                        !-(List.head lids)
-                        +> indent
-                        +> sep
-                        +> col sep (List.tail lids) (fun s -> !-(sprintf ".%s" s))
-                        +> genGenericTypeParameters astContext ts
-                        +> genExpr astContext e2
-                        +> unindent
-                    | App (LongIdentPieces (lids), [ e2 ]) when (List.moreThanOne lids) ->
-                        !-(List.head lids)
-                        +> indent
-                        +> sep
-                        +> col sep (List.tail lids) (fun s -> !-(sprintf ".%s" s))
-                        +> genExpr astContext e2
-                        +> unindent
-                    | App (e1, [ e2 ]) ->
-                        noNln (
-                            genExpr astContext e1
-                            +> ifElse (hasParenthesis e2) sepNone sepSpace
-                            +> genExpr
-                                { astContext with
-                                      IsInsideDotGet = true }
-                                e2
-                        )
-                    | _ -> genExpr astContext e
+                    genLidsWithDots lids
+                    +> genGenericTypeParameters astContext ts
+                    +> ifElseCtx (addSpace) sepSpace sepNone
+                    +> genExpr astContext e
 
-                let genExpr sep =
-                    let genTriviaOfIdent f (e: SynExpr) =
-                        dotGetFuncExprIdents
-                        |> List.tryFind (fun (er, _) -> er = e.Range)
-                        |> Option.map (
-                            snd
-                            >> (fun lid -> genTriviaFor Ident_ lid.idRange)
-                        )
-                        |> Option.defaultValue id
-                        |> fun genTrivia -> genTrivia f
+                let long =
+                    genLidsWithDotsAndNewlines lids
+                    +> genGenericTypeParameters astContext ts
+                    +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext e
 
-                    match es with
-                    | [ (s, _), e, [] ] when (not (hasParenthesis e)) ->
-                        expr sep
-                        +> genTriviaOfIdent (!-(sprintf ".%s" s)) e
-                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-                    | _ ->
-                        expr sep
-                        +> indent
-                        +> sep
-                        +> coli
-                            sep
-                            es
-                            (fun idx ((s, _), e, ts) ->
-                                let currentIdentifier =
-                                    genTriviaOfIdent (!-(sprintf ".%s" s)) e
-                                    +> genGenericTypeParameters astContext ts
+                expressionFitsOnRestOfLine short long
+            
+            let short =
+                match e with
+                | App (e, [px]) when (hasParenthesis px || isArrayOrList px) ->
+                    genExpr astContext e +> genExpr astContext px
+                | _ -> genExpr astContext e
+                +> col sepNone es genApp
+            
+            let long =
+                genLongFunctionName
+                +> indent
+                +> sepNln
+                +> col sepNln es genApp
+                +> unindent
 
-                                let hasParenthesis = hasParenthesis e
+            fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
 
-                                let isLastAndTyped =
-                                    (List.length es - 1) = idx && List.isNotEmpty ts
-
-                                currentIdentifier
-                                +> (fun ctx ->
-                                    let isUpper = Char.IsUpper(s.[0])
-
-                                    let expr =
-                                        if (isLastAndTyped
-                                            && isUpper
-                                            && ctx.Config.SpaceBeforeUppercaseInvocation)
-                                           || (isLastAndTyped
-                                               && not isUpper
-                                               && ctx.Config.SpaceBeforeLowercaseInvocation)
-                                           || (not isLastAndTyped && not hasParenthesis) then
-                                            sepSpace
-                                        else
-                                            sepNone
-
-                                    expr ctx)
-                                +> genExpr
-                                    { astContext with
-                                          IsInsideDotGet = true }
-                                    e)
-                        +> unindent
-
-                isShortExpression ctx.Config.MaxDotGetExpressionWidth (genExpr sepNone) (genExpr sepNln) ctx
-
-        | AppTuple (e, lpr, args, tupleRange, rpr) when (not astContext.IsInsideDotGet) ->
+        | AppSingleArg (e, px) when (not astContext.IsInsideDotIndexed)  ->
             let sepSpace (ctx: Context) =
-                if astContext.IsInsideDotGet
-                   || astContext.IsInsideDotIndexed then
-                    ctx
-                else
                     match e with
                     | Paren _ -> sepSpace ctx
                     | UppercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
                     | LowercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
 
-            let genShortExpr astContext e =
-                addParenForTupleWhen (genExpr astContext) e
-
-            let genExprLong astContext e =
-                let expr e =
-                    match e with
-                    | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
-                        genNamedArgumentExpr astContext operatorExpr e1 e2
-                    | _ -> genExpr astContext e
-
-                expr e
-
-            let genTupleTrivia f =
-                match tupleRange with
-                | Some range -> f |> genTriviaFor SynExpr_Tuple range
-                | None -> f
-
             let short =
                 genExpr astContext e
                 +> sepSpace
-                +> sepOpenTFor lpr
-                +> (col sepComma args (genShortExpr astContext)
-                    |> genTupleTrivia)
-                +> sepCloseTFor rpr
+                +> genExpr astContext px
 
             let long =
                 genExpr astContext e
                 +> sepSpace
-                +> sepOpenTFor lpr
-                +> indent
-                +> sepNln
-                +> (col (sepCommaFixed +> sepNln) args (genExprLong astContext)
-                    |> genTupleTrivia)
-                +> unindent
-                +> sepNln
-                +> sepCloseTFor rpr
+                +> genMultilineFunctionApplicationArguments
+                        sepOpenTFor
+                        sepCloseTFor
+                        astContext
+                        px
 
             expressionFitsOnRestOfLine short long
 
@@ -2370,11 +2248,11 @@ and genExpr astContext synExpr ctx =
                         | SynExpr.TryWith _
                         | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e1 +> sepCloseT
                         | App (SynExpr.DotGet _, [ (Paren _) ]) -> atCurrentColumn (genExpr astContext e1)
-                        | AppTuple _ when (isConditionMultiline) ->
+                        | AppSingleArg _ when (isConditionMultiline) ->
                             sepOpenT
                             +> atCurrentColumnIndent (genExpr astContext e1)
                             +> sepCloseT
-                        | Paren (_, (AppTuple _ as ate), _) when (isConditionMultiline) ->
+                        | Paren (_, (AppSingleArg _ as ate), _) when (isConditionMultiline) ->
                             sepOpenT
                             +> atCurrentColumnIndent (genExpr astContext ate)
                             +> sepCloseT
@@ -2540,19 +2418,19 @@ and genExpr astContext synExpr ctx =
             +> genExpr astContext e1
             -- " <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
-        | DotGet (e, (s, _)) ->
-            let astContext = { astContext with IsInsideDotGet = true }
-            
+
+        // typeof<System.Collections.IEnumerable>.FullName
+        | DotGet (e, lids) ->
             let shortExpr =
                 genExpr
                     astContext
                     e
-                -- (sprintf ".%s" s)
+                +> genLidsWithDots lids
 
             let longExpr =
                 //genLongIdentWithMultipleFragmentsMultiline astContext e
                 genExpr astContext e
-                +> indent +> sepNln -- (sprintf ".%s" s) +> unindent
+                +> indent +> sepNln +> genLidsWithDotsAndNewlines lids +> unindent
 
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
         | DotSet (e1, s, e2) ->
@@ -2712,6 +2590,61 @@ and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
             +> sepSpace
             +> genExpr astContext e2
         )
+
+and genLidsWithDots (lids: (string * range) list) =
+    optSingle (fun (_,r) -> enterNodeFor Ident_ r) (List.tryHead lids)
+    +> !- "."
+    +> col !- "." lids (fun (s,_) -> !- s)
+
+and genLidsWithDotsAndNewlines (lids: (string * range) list) =
+    optSingle (fun (_,r) -> enterNodeFor Ident_ r) (List.tryHead lids)
+    +> !- "."
+    +> col (sepNln +> !- ".") lids (fun (s,_) -> !- s)
+
+and genFunctionNameWithMultilineLids f lids =
+    match lids with
+    | (s,r)::t ->
+        enterNodeFor Ident_ r
+        +> !- s
+        +> indent
+        +> sepNln
+        +> genLidsWithDotsAndNewlines t
+        +> f
+        +> unindent
+    | _ -> sepNone
+
+and genMultilineFunctionApplicationArguments
+    sepOpenTFor
+    sepCloseTFor
+    astContext
+    argExpr
+    =
+    let argsInsideParenthesis lpr rpr f =
+        sepOpenTFor lpr
+        +> indent
+        +> sepNln
+        +> f
+        +> unindent
+        +> sepNln
+        +> sepCloseTFor rpr
+
+    let genExpr astContext e =
+        match e with
+        | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
+            genNamedArgumentExpr astContext operatorExpr e1 e2
+        | _ -> genExpr astContext e
+    
+    match argExpr with
+    | Paren (_, Lambda _, _) ->
+        genExpr astContext argExpr
+    | Paren (lpr, Tuple (args, tupleRange), rpr) ->
+        (col (sepCommaFixed +> sepNln) args (genExpr astContext))
+        |> optSingle (genTriviaFor SynExpr_Tuple) tupleRange
+        |> argsInsideParenthesis lpr rpr
+    | Paren (lpr, singleExpr, rpr) ->
+        genExpr astContext singleExpr
+        |> argsInsideParenthesis lpr rpr
+    | _ -> genExpr astContext argExpr
 
 and genGenericTypeParameters astContext ts =
     match ts with
@@ -3036,8 +2969,7 @@ and genApp appNlnFun astContext e es ctx =
                     | [ h ]
                     | h :: _ ->
                         not (
-                            astContext.IsInsideDotGet
-                            || astContext.IsInsideDotIndexed
+                            astContext.IsInsideDotIndexed
                         )
                         && addSpaceBeforeParensInFunCall e h ctx)
                 sepSpace
@@ -3093,15 +3025,11 @@ and genApp appNlnFun astContext e es ctx =
                             let sepCloseTFor r =
                                 tokN (Option.defaultValue e.Range r) RPAREN sepCloseT
 
-                            let astCtx =
-                                { astContext with
-                                      IsInsideDotGet = false }
-
                             let genExprAfterArrow (e: SynExpr) ctx =
                                 if Option.isSome (findTriviaTokenFromName RARROW e.Range ctx) then
-                                    genExpr astCtx e ctx
+                                    genExpr astContext e ctx
                                 else
-                                    autoNlnIfExpressionExceedsPageWidth (genExpr astCtx e) ctx
+                                    autoNlnIfExpressionExceedsPageWidth (genExpr astContext e) ctx
 
                             sepOpenTFor lpr -- "fun "
                             +> pats
@@ -3139,14 +3067,10 @@ and genApp appNlnFun astContext e es ctx =
                             let sepCloseTFor r =
                                 tokN (Option.defaultValue e.Range r) RPAREN sepCloseT
 
-                            let astCtx =
-                                { astContext with
-                                      IsInsideDotGet = false }
-
                             let genExprAfterArrow (e: SynExpr) ctx =
                                 match findTriviaTokenFromName RARROW e.Range ctx with
-                                | Some _ -> genExpr astCtx e ctx
-                                | None -> autoNlnIfExpressionExceedsPageWidth (genExpr astCtx e) ctx
+                                | Some _ -> genExpr astContext e ctx
+                                | None -> autoNlnIfExpressionExceedsPageWidth (genExpr astContext e) ctx
 
                             sepOpenTFor lpr -- "fun "
                             +> pats
