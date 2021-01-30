@@ -16,21 +16,29 @@ type ConfigurationFile
     internal
     (
         config: FormatConfig.FormatConfig,
+        rootFolderName: string,
         ?editorConfigHeader: string,
         ?subFolder: string,
         ?isRoot: bool,
         ?content: string
     ) =
+    let rootDir =
+        Path.Join(Path.GetTempPath(), rootFolderName)
+
+    do
+        if not (Directory.Exists(rootDir)) then
+            Directory.CreateDirectory(rootDir) |> ignore
+
     let editorConfigPath =
         match subFolder with
         | Some sf ->
-            let dirPath = Path.Join(Path.GetTempPath(), sf)
+            let dirPath = Path.Join(rootDir, sf)
 
             if not (Directory.Exists(dirPath)) then
                 Directory.CreateDirectory(dirPath) |> ignore
 
-            Path.Join(Path.GetTempPath(), sf, ".editorconfig")
-        | None -> Path.Join(Path.GetTempPath(), ".editorconfig")
+            Path.Join(rootDir, sf, ".editorconfig")
+        | None -> Path.Join(rootDir, ".editorconfig")
 
     let header =
         Option.defaultValue "[*.fs]" editorConfigHeader
@@ -50,10 +58,17 @@ type ConfigurationFile
 
     interface IDisposable with
         member this.Dispose(): unit =
-            if File.Exists(editorConfigPath) then
-                File.Delete(editorConfigPath)
+            if Directory.Exists(rootDir) then
+                Directory.Delete(rootDir, true)
 
-type FSharpFile internal (?fsharpFileExtension: string, ?subFolder: string) =
+type FSharpFile internal (rootFolderName: string, ?fsharpFileExtension: string, ?subFolder: string) =
+    let rootDir =
+        Path.Join(Path.GetTempPath(), rootFolderName)
+
+    do
+        if not (Directory.Exists(rootDir)) then
+            Directory.CreateDirectory(rootDir) |> ignore
+
     let extension =
         Option.defaultValue ".fs" fsharpFileExtension
 
@@ -62,13 +77,13 @@ type FSharpFile internal (?fsharpFileExtension: string, ?subFolder: string) =
     let fsharpFilePath =
         match subFolder with
         | Some sf ->
-            let dirPath = Path.Join(Path.GetTempPath(), sf)
+            let dirPath = Path.Join(rootDir, sf)
 
             if not (Directory.Exists(dirPath)) then
                 Directory.CreateDirectory(dirPath) |> ignore
 
-            Path.Join(Path.GetTempPath(), sf, fsharpFile)
-        | None -> Path.Join(Path.GetTempPath(), fsharpFile)
+            Path.Join(rootDir, sf, fsharpFile)
+        | None -> Path.Join(rootDir, fsharpFile)
 
     do File.WriteAllText(fsharpFilePath, String.empty)
 
@@ -76,12 +91,14 @@ type FSharpFile internal (?fsharpFileExtension: string, ?subFolder: string) =
 
     interface IDisposable with
         member this.Dispose(): unit =
-            if File.Exists(fsharpFilePath) then
-                File.Delete(fsharpFilePath)
+            if Directory.Exists(rootDir) then
+                Directory.Delete(rootDir, true)
 
 [<Test>]
 let ``single configuration file`` () =
-    use configFixture = new ConfigurationFile(defaultConfig)
+    use configFixture =
+        new ConfigurationFile(defaultConfig, tempName ())
+
     use fsharpFile = new FSharpFile(".fs")
 
     let config =
@@ -91,15 +108,17 @@ let ``single configuration file`` () =
 
 [<Test>]
 let ``pointing to subfolder should return parent config file as well`` () =
+    let rootFolder = tempName ()
     let subFolder = tempName ()
 
     use parentConfig =
-        new ConfigurationFile({ defaultConfig with IndentSize = 3 })
+        new ConfigurationFile({ defaultConfig with IndentSize = 3 }, rootFolder)
 
     use childConfig =
-        new ConfigurationFile({ defaultConfig with IndentSize = 2 }, subFolder = subFolder)
+        new ConfigurationFile({ defaultConfig with IndentSize = 2 }, rootFolder, subFolder = subFolder)
 
-    use fsharpFile = new FSharpFile(subFolder = subFolder)
+    use fsharpFile =
+        new FSharpFile(rootFolder, subFolder = subFolder)
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -108,18 +127,21 @@ let ``pointing to subfolder should return parent config file as well`` () =
 
 [<Test>]
 let ``parent config should not be taking into account when child is root`` () =
+    let rootFolder = tempName ()
     let subFolder = tempName ()
 
     use parentConfig =
         new ConfigurationFile(
             { defaultConfig with
-                  MaxRecordWidth = 10 }
+                  MaxRecordWidth = 10 },
+            rootFolder
         )
 
     use childConfig =
-        new ConfigurationFile({ defaultConfig with IndentSize = 2 }, subFolder = subFolder, isRoot = true)
+        new ConfigurationFile({ defaultConfig with IndentSize = 2 }, rootFolder, subFolder = subFolder, isRoot = true)
 
-    use fsharpFile = new FSharpFile(subFolder = subFolder)
+    use fsharpFile =
+        new FSharpFile(rootFolder, subFolder = subFolder)
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -134,7 +156,8 @@ let ``configuration file should not affect file extension`` () =
     use configFixture =
         new ConfigurationFile(
             { defaultConfig with
-                  MaxLineLength = 90 }
+                  MaxLineLength = 90 },
+            tempName ()
         )
 
     use fsharpFile = new FSharpFile(".fsx")
@@ -147,6 +170,8 @@ let ``configuration file should not affect file extension`` () =
 
 [<Test>]
 let ``fantomas-tool configuration file`` () =
+    let rootDir = tempName ()
+
     let myConfig = """
 [*.fs]
 fsharp_max_if_then_else_short_width=25
@@ -155,9 +180,9 @@ fsharp_max_function_binding_width=40
 """
 
     use configFixture =
-        new ConfigurationFile(defaultConfig, content = myConfig)
+        new ConfigurationFile(defaultConfig, rootDir, content = myConfig)
 
-    use fsharpFile = new FSharpFile()
+    use fsharpFile = new FSharpFile(rootDir)
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -168,7 +193,8 @@ fsharp_max_function_binding_width=40
 
 [<Test>]
 let ``non existing file should return defaults for readConfiguration`` () =
-    use configFixture = new ConfigurationFile(defaultConfig)
+    use configFixture =
+        new ConfigurationFile(defaultConfig, tempName ())
 
     let config =
         EditorConfig.readConfiguration "bogus.fs"
@@ -181,7 +207,8 @@ let ``non existing file should return defaults for readConfiguration`` () =
 
 [<Test>]
 let ``non existing file should return None for tryReadConfiguration`` () =
-    use configFixture = new ConfigurationFile(defaultConfig)
+    use configFixture =
+        new ConfigurationFile(defaultConfig, tempName ())
 
     let config =
         EditorConfig.tryReadConfiguration "bogus.fs"
@@ -190,6 +217,8 @@ let ``non existing file should return None for tryReadConfiguration`` () =
 
 [<Test>]
 let ``indent_style tab edge case`` () =
+    let rootDir = tempName ()
+
     let editorConfig = """
 [*.fs]
 indent_style=tab
@@ -199,9 +228,9 @@ fsharp_indent_on_try_with=true
 """
 
     use configFixture =
-        new ConfigurationFile(defaultConfig, content = editorConfig)
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
 
-    use fsharpFile = new FSharpFile()
+    use fsharpFile = new FSharpFile(rootDir)
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -216,6 +245,8 @@ let ``print default editorconfig settings`` () =
 
 [<Test>]
 let ``list and array number_of_items parsing tests`` () =
+    let rootDir = tempName ()
+
     let editorConfig = """
 [*.fs]
 fsharp_array_or_list_multiline_formatter = number_of_items
@@ -223,9 +254,9 @@ fsharp_max_array_or_list_number_of_items = 4
 """
 
     use configFixture =
-        new ConfigurationFile(defaultConfig, content = editorConfig)
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
 
-    use fsharpFile = new FSharpFile()
+    use fsharpFile = new FSharpFile(rootDir)
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -237,15 +268,17 @@ fsharp_max_array_or_list_number_of_items = 4
 
 [<Test>]
 let ``list and array character_width parsing test with single option`` () =
+    let rootDir = tempName ()
+
     let editorConfig = """
 [*.fs]
 fsharp_max_array_or_list_width = 123
 """
 
     use configFixture =
-        new ConfigurationFile(defaultConfig, content = editorConfig)
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
 
-    use fsharpFile = new FSharpFile()
+    use fsharpFile = new FSharpFile(rootDir)
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -254,6 +287,8 @@ fsharp_max_array_or_list_width = 123
 
 [<Test>]
 let ``record number_of_items parsing tests`` () =
+    let rootDir = tempName ()
+
     let editorConfig = """
 [*.fs]
 fsharp_record_multiline_formatter = number_of_items
@@ -261,9 +296,9 @@ fsharp_max_record_number_of_items = 4
 """
 
     use configFixture =
-        new ConfigurationFile(defaultConfig, content = editorConfig)
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
 
-    use fsharpFile = new FSharpFile()
+    use fsharpFile = new FSharpFile(rootDir)
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -274,15 +309,17 @@ fsharp_max_record_number_of_items = 4
 
 [<Test>]
 let ``record character_width parsing test with single option`` () =
+    let rootDir = tempName ()
+
     let editorConfig = """
 [*.fs]
 fsharp_max_record_width = 123
 """
 
     use configFixture =
-        new ConfigurationFile(defaultConfig, content = editorConfig)
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
 
-    use fsharpFile = new FSharpFile()
+    use fsharpFile = new FSharpFile(rootDir)
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -291,15 +328,17 @@ fsharp_max_record_width = 123
 
 [<Test>]
 let ``infix operator expression character_width parsing test with single option`` () =
+    let rootDir = tempName ()
+
     let editorConfig = """
 [*.fs]
 fsharp_max_infix_operator_expression = 123
 """
 
     use configFixture =
-        new ConfigurationFile(defaultConfig, content = editorConfig)
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
 
-    use fsharpFile = new FSharpFile()
+    use fsharpFile = new FSharpFile(rootDir)
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -308,15 +347,17 @@ fsharp_max_infix_operator_expression = 123
 
 [<Test>]
 let fsharp_disable_elmish_syntax () =
+    let rootDir = tempName ()
+
     let editorConfig = """
 [*.fs]
 fsharp_disable_elmish_syntax = true
 """
 
     use configFixture =
-        new ConfigurationFile(defaultConfig, content = editorConfig)
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
 
-    use fsharpFile = new FSharpFile()
+    use fsharpFile = new FSharpFile(rootDir)
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -325,15 +366,17 @@ fsharp_disable_elmish_syntax = true
 
 [<Test>]
 let ``end_of_line = cr should throw`` () =
+    let rootDir = tempName ()
+
     let editorConfig = """
 [*.fs]
 end_of_line = cr
 """
 
     use configFixture =
-        new ConfigurationFile(defaultConfig, content = editorConfig)
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
 
-    use fsharpFile = new FSharpFile()
+    use fsharpFile = new FSharpFile(rootDir)
 
     let ex =
         Assert.Throws
@@ -350,6 +393,8 @@ let valid_eol_settings =
 
 [<TestCaseSource("valid_eol_settings")>]
 let can_parse_end_of_line_setting (eol: EndOfLineStyle) =
+    let rootDir = tempName ()
+
     let editorConfig =
         sprintf
             """
@@ -359,9 +404,9 @@ end_of_line = %s
             (EndOfLineStyle.ToConfigString eol)
 
     use configFixture =
-        new ConfigurationFile(defaultConfig, content = editorConfig)
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
 
-    use fsharpFile = new FSharpFile()
+    use fsharpFile = new FSharpFile(rootDir)
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -370,15 +415,17 @@ end_of_line = %s
 
 [<Test>]
 let fsharp_multiLine_lambda_closing_newline () =
+    let rootDir = tempName ()
+
     let editorConfig = """
 [*.fs]
 fsharp_multi_line_lambda_closing_newline = true
 """
 
     use configFixture =
-        new ConfigurationFile(defaultConfig, content = editorConfig)
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
 
-    use fsharpFile = new FSharpFile()
+    use fsharpFile = new FSharpFile(rootDir)
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile

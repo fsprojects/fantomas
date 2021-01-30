@@ -13,6 +13,9 @@ open NUnit.Framework
 open FsCheck
 open System.IO
 
+[<assembly: Parallelizable(ParallelScope.All)>]
+do ()
+
 let config = FormatConfig.Default
 let newline = "\n"
 
