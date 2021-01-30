@@ -61,7 +61,8 @@ let valid_eol_settings = [ "lf"; "crlf" ]
 let ``uses end_of_line setting to write user newlines`` setting =
     let newline =
         (FormatConfig.EndOfLineStyle.OfConfigString setting)
-            .Value.NewLineString
+            .Value
+            .NewLineString
 
     let sampleCode nln =
         sprintf "let a = 9%s%slet b = 7%s" nln nln nln
