@@ -1,3 +1,13 @@
+### 4.4.0-beta-003 01/2021
+
+* Fix Invalid addition of a space after constructor invocation. [#1401](https://github.com/fsprojects/fantomas/issues/1401)
+* Fix "Inline" is incorrectly stripped out in FSI file. [#1399](https://github.com/fsprojects/fantomas/issues/1399)
+* Fix Multiple type checks in a `try/with` get collapsed. [#1395](https://github.com/fsprojects/fantomas/issues/1395)
+* Fix Short line length and member constraint leads to invalid code. [#1394](https://github.com/fsprojects/fantomas/issues/1394)
+* Fix Object expression newline gets added/removed. [#1388](https://github.com/fsprojects/fantomas/issues/1388)
+* Fix Arrays of constructors with lots of arguments gets dedented too much. [#1382](https://github.com/fsprojects/fantomas/issues/1382)
+* Fix Format in pre-commit hook. [#1207](https://github.com/fsprojects/fantomas/issues/1207)
+
 ### 4.4.0-beta-002 01/2021
 
 * Target netcoreapp3.1 for fantomas-tool.
