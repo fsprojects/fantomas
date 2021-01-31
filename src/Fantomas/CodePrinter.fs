@@ -1750,7 +1750,7 @@ and genExpr astContext synExpr ctx =
 
             genExpr astContext e
             +> genGenericTypeParameters astContext ts
-            +> !-($".{s}")
+            +> !-(sprintf ".%s" s)
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (col sepSpace es (genExpr astContext))
 
         // Foo().Bar
