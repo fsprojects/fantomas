@@ -185,12 +185,12 @@ type internal Context =
             |> Seq.scan (+) 0
             |> Seq.toArray
 
-        let tokens =
+        let tokenizeResult =
             TokenParser.tokenize defines hashTokens content
 
         let trivia =
             match maybeAst, config.StrictMode with
-            | Some ast, false -> Trivia.collectTrivia tokens ast
+            | Some ast, false -> Trivia.collectTrivia tokenizeResult ast
             | _ -> []
 
         let triviaByNodes =

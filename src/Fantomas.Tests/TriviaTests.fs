@@ -340,7 +340,6 @@ type ExtensibleDumper = A | B
 #endif"""
 
     let triviaNodes = toTriviaWithDefines source
-
     let trivias = Map.find [ "DEBUG" ] triviaNodes
 
     match trivias with
