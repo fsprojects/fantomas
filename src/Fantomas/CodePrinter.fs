@@ -3465,7 +3465,6 @@ and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
         { astContext with
               InterfaceRange = None }
         ms
-    +> onlyIf (Option.isSome ao') unindent
 
 and sepNlnBetweenSigTypeAndMembers (ms: SynMemberSig list) =
     match List.tryHead ms with
