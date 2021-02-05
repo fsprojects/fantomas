@@ -502,3 +502,34 @@ List.map
     )
     []
 """
+
+[<Test>]
+let ``multiple lambda parameters, 1427`` () =
+    formatSourceString
+        false
+        """
+let choose chooser source =
+    source
+    |> Set.fold
+        (fun set item ->
+            chooser item
+            |> Option.map (fun mappedItem -> Set.add mappedItem set)
+            |> Option.defaultValue set)
+        Set.empty
+"""
+        { config with
+              SpaceBeforeLowercaseInvocation = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+let choose chooser source =
+    source
+    |> Set.fold
+        (fun set item ->
+            chooser item
+            |> Option.map(fun mappedItem -> Set.add mappedItem set)
+            |> Option.defaultValue set
+        )
+        Set.empty
+"""
