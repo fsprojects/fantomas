@@ -19,6 +19,12 @@
       "commands": [
         "dotnet-fsharplint"
       ]
+    },
+    "fantomas-tool": {
+      "version": "4.4.0-beta-004",
+      "commands": [
+        "fantomas"
+      ]
     }
   }
 }

@@ -57,7 +57,7 @@ type ConfigurationFile
     do File.WriteAllText(editorConfigPath, content)
 
     interface IDisposable with
-        member this.Dispose(): unit =
+        member this.Dispose() : unit =
             if Directory.Exists(rootDir) then
                 Directory.Delete(rootDir, true)
 
@@ -87,10 +87,10 @@ type FSharpFile internal (rootFolderName: string, ?fsharpFileExtension: string, 
 
     do File.WriteAllText(fsharpFilePath, String.empty)
 
-    member __.FSharpFile: string = fsharpFilePath
+    member __.FSharpFile : string = fsharpFilePath
 
     interface IDisposable with
-        member this.Dispose(): unit =
+        member this.Dispose() : unit =
             if Directory.Exists(rootDir) then
                 Directory.Delete(rootDir, true)
 

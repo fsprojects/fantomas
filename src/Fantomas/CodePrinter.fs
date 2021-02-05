@@ -1824,7 +1824,7 @@ and genExpr astContext synExpr ctx =
                         lids
                 | _ -> genExpr astContext e
 
-            let genApp ((lids, e, ts): (string * range) list * SynExpr * SynType list): Context -> Context =
+            let genApp ((lids, e, ts): (string * range) list * SynExpr * SynType list) : Context -> Context =
                 let short =
                     let addSpace ctx =
                         let config =

@@ -4,13 +4,10 @@
 open Fake.Core
 open Fake.IO
 open Fake.IO.FileSystemOperators
-open Fake.IO.Globbing.Operators
 open Fake.Core.TargetOperators
 open System
 open System.IO
 open Fake.DotNet
-open Fantomas
-open Fantomas.Extras.FakeHelpers
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted
@@ -377,12 +374,9 @@ Target.create "Benchmark" (fun _ ->
 )
 
 Target.create "Format" (fun _ ->
-    !! "src/**/*.fs"
-    ++ "src/**/*.fsi"
-    -- "src/*/obj/**/*.fs"
-    |> formatCode
-    |> Async.RunSynchronously
-    |> printfn "Formatted files: %A")
+    let result = DotNet.exec id "fantomas" "src -r"
+    if not result.OK then
+        printfn "Errors while formatting all files: %A" result.Messages)
 
 Target.create "FormatChanged" (fun _ ->
     Fake.Tools.Git.FileStatus.getChangedFilesInWorkingCopy "." "HEAD"
@@ -394,23 +388,22 @@ Target.create "FormatChanged" (fun _ ->
             Some file
         else
             None)
-    |> formatCode
+    |> Seq.map (fun file -> async {
+        let result = DotNet.exec id "fantomas" file
+        if not result.OK then
+            printfn "Problem when formatting %s:\n%A" file result.Errors
+    })
+    |> Async.Parallel
     |> Async.RunSynchronously
-    |> printfn "Formatted files: %A")
+    |> ignore)
 
 Target.create "CheckFormat" (fun _ ->
     let result =
-        !! "src/**/*.fs"
-        ++ "src/**/*.fsi"
-        -- "src/*/obj/**/*.fs"
-        |> checkCode
-        |> Async.RunSynchronously
+        DotNet.exec id "fantomas" "src -r --check"
 
-    if result.IsValid then
+    if result.ExitCode = 0 then
         Trace.log "No files need formatting"
-    elif result.NeedsFormatting then
-        Trace.log "The following files need formatting:"
-        List.iter Trace.log result.Formatted
+    elif result.ExitCode = 99 then
         failwith "Some files need formatting, check output for more info"
     else
         Trace.logf "Errors while formatting: %A" result.Errors)
