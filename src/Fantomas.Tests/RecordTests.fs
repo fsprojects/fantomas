@@ -1434,3 +1434,32 @@ type RequestParser<'ctx, 'a> =
             prohibited = []
         }
 """
+
+[<Test>]
+let ``access modifier on short type record inside module, 1404`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    type Stores =
+        private {
+            ModeratelyLongName : int
+        }
+
+    type private Bang = abstract Baz : int
+"""
+        { config with
+              MaxLineLength = 40
+              SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    type Stores =
+        private
+            { ModeratelyLongName: int }
+
+    type private Bang =
+        abstract Baz: int
+"""
