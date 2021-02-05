@@ -1,3 +1,11 @@
+### 4.4.0-beta-004 01/2021
+
+* Fix MultiLineLambdaClosingNewline concats lambda arguments. [#1427](https://github.com/fsprojects/fantomas/issues/1427)
+* Fix `member val` causes invalid code to be generated. [#1426](https://github.com/fsprojects/fantomas/issues/1426)
+* Fix Surround return type annotations with white space [F# style guide]. [#1420](https://github.com/fsprojects/fantomas/issues/1420)
+* Fix Lists concatene onto one line invalidly. [#1405](https://github.com/fsprojects/fantomas/issues/1405)
+* Fix Accessibility modifier on record causes unindentation of following type. [#1404](https://github.com/fsprojects/fantomas/issues/1404)
+
 ### 4.4.0-beta-003 01/2021
 
 * Fix Invalid addition of a space after constructor invocation. [#1401](https://github.com/fsprojects/fantomas/issues/1401)
