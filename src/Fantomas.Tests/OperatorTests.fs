@@ -278,7 +278,7 @@ let output = 2 >>.~ 3
         config
     |> should
         equal
-        """let (>>.~) (g: int) (h: int): int = g + h
+        """let (>>.~) (g: int) (h: int) : int = g + h
 let output = 2 >>.~ 3
 """
 
@@ -653,7 +653,7 @@ let r (f : 'a -> 'b) (a : 'a) : 'b =
     |> should
         equal
         """
-let r (f: 'a -> 'b) (a: 'a): 'b =
+let r (f: 'a -> 'b) (a: 'a) : 'b =
     fun () -> f a
     |> fun f -> f ()
 """

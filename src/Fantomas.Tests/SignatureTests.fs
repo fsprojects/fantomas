@@ -117,10 +117,12 @@ type A () =
         member x.F (f: unit -> _) = f ()
     """
         config
+    |> prepend newline
     |> should
         equal
-        """type IA =
-    abstract F: (unit -> Option<'T>) -> Option<'T>
+        """
+type IA =
+    abstract F : (unit -> Option<'T>) -> Option<'T>
 
 type A() =
     interface IA with
@@ -146,9 +148,9 @@ type C =
 namespace TupleType
 
 type C =
-    member P1: int * string
+    member P1 : int * string
     /// def
-    member P2: int
+    member P2 : int
 """
 
 [<Test>]
@@ -166,7 +168,7 @@ val GetHashCodeTainted : (Tainted<'T> -> int) when 'T : equality
         """
 module Tainted
 
-val GetHashCodeTainted: (Tainted<'T> -> int) when 'T: equality
+val GetHashCodeTainted : (Tainted<'T> -> int) when 'T: equality
 """
 
 [<Test>]
@@ -186,7 +188,7 @@ type Test =
 module Test
 
 type Test =
-    static member internal FormatAroundCursorAsync: fileName: string -> unit
+    static member internal FormatAroundCursorAsync : fileName: string -> unit
 """
 
 [<Test>]
@@ -424,25 +426,25 @@ module Teq =
     /// Order isn't important
     /// a = b => b = a
     /// If you always do this followed by a cast, you may as well just use castFrom
-    val symmetry: Teq<'a, 'b> -> Teq<'b, 'a>
+    val symmetry : Teq<'a, 'b> -> Teq<'b, 'a>
 
     /// Let's compose two type-equalities: a = b && b = c => a = c
-    val transitivity: Teq<'a, 'b> -> Teq<'b, 'c> -> Teq<'a, 'c>
+    val transitivity : Teq<'a, 'b> -> Teq<'b, 'c> -> Teq<'a, 'c>
 
     /// Converts an 'a to a 'b
-    val cast: Teq<'a, 'b> -> ('a -> 'b)
+    val cast : Teq<'a, 'b> -> ('a -> 'b)
 
     /// Converts an 'a to a 'b
     /// Alias for cast
-    val castTo: Teq<'a, 'b> -> ('a -> 'b)
+    val castTo : Teq<'a, 'b> -> ('a -> 'b)
 
     /// Converts a 'b to an 'a
     /// Equivalent to symmetry >> cast, but more efficient
-    val castFrom: Teq<'a, 'b> -> ('b -> 'a)
+    val castFrom : Teq<'a, 'b> -> ('b -> 'a)
 
     /// Utility function to map an object of one type using a mapping function
     /// for a different type when we have a type equality between the two types
-    val mapAs: Teq<'a, 'b> -> ('b -> 'b) -> 'a -> 'a
+    val mapAs : Teq<'a, 'b> -> ('b -> 'b) -> 'a -> 'a
 
     /// The Cong module (short for congruence) contains functions that
     /// allow you safely transform Teqs into other Teqs that logically follow.
@@ -542,10 +544,10 @@ type T with
 namespace ExtensionParts
 
 type T =
-    new: unit -> T
+    new : unit -> T
 
 type T with
-    member Foo: int
+    member Foo : int
 """
 
 [<Test>]
@@ -582,7 +584,7 @@ open FSharp.Compiler.SourceCodeServices
 [<Sealed>]
 type CodeFormatter =
     /// Parse a source string using given config
-    static member ParseAsync:
+    static member ParseAsync :
         fileName: string * source: SourceOrigin * parsingOptions: FSharpParsingOptions * checker: FSharpChecker ->
         Async<(ParsedInput * string list) array>
 """
@@ -658,7 +660,7 @@ type internal Blah =
 namespace Foo
 
 type internal Blah =
-    abstract Baz: unit
+    abstract Baz : unit
 """
 
 [<Test>]
@@ -719,8 +721,8 @@ module Foo =
 namespace Blah
 
 module Foo =
-    val inline sum: ('a -> ^value) -> 'a Foo -> ^value
-        when ^value: (static member (+): ^value * ^value -> ^value) and ^value: (static member Zero: ^value)
+    val inline sum : ('a -> ^value) -> 'a Foo -> ^value
+        when ^value: (static member (+) : ^value * ^value -> ^value) and ^value: (static member Zero : ^value)
 """
 
 [<Test>]
@@ -876,7 +878,7 @@ module Some_module
 
 type foo = bool
 
-val bar: bool
+val bar : bool
 """
 
 [<Test>]
@@ -970,11 +972,11 @@ module Foo =
     module Bar =
         type t = bool
 
-        val lol: unit -> bool
+        val lol : unit -> bool
 
     type t = int
 
-    val lmao: unit -> bool
+    val lmao : unit -> bool
 """
 
 [<Test>]
@@ -1003,7 +1005,7 @@ type t1 = bool
 [<SomeAttribute>]
 type t2 = bool
 
-val foo: bool
+val foo : bool
 """
 
 [<Test>]
@@ -1143,7 +1145,7 @@ namespace Baz
 
 [<Sealed>]
 type Foo =
-    member inline Return: 'a -> Baz<'a>
+    member inline Return : 'a -> Baz<'a>
 """
 
 [<Test>]
@@ -1166,5 +1168,34 @@ namespace Baz
 
 [<Sealed>]
 type Foo =
-    member inline private Return: 'a -> Baz<'a>
+    member inline private Return : 'a -> Baz<'a>
+"""
+
+[<Test>]
+let ``surround return type annotations with white space`` () =
+    formatSourceString
+        true
+        """
+namespace Foo
+
+val blah:int
+
+type C =
+    member P1 : int * string
+    /// def
+    member P2 : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+val blah : int
+
+type C =
+    member P1 : int * string
+    /// def
+    member P2 : int
 """

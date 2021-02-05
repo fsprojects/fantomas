@@ -152,9 +152,9 @@ let ``<foo hoo`` () = ()
 let ``>foo hoo`` () = ()
 let ``=foo hoo`` () = ()
 let ``-foo hoo`` () = ()
-let ``!foo hoo`` (): unit = ()
+let ``!foo hoo`` () : unit = ()
 let ``@foo hoo`` = ()
-let ``$foo hoo``: unit = ()
+let ``$foo hoo`` : unit = ()
 """
 
 [<Test>]
@@ -178,8 +178,8 @@ let ``let bindings with return types`` () =
         equal
         """
 let divide x y =
-    let stream: System.IO.FileStream = System.IO.File.Create("test.txt")
-    let writer: System.IO.StreamWriter = new System.IO.StreamWriter(stream)
+    let stream : System.IO.FileStream = System.IO.File.Create("test.txt")
+    let writer : System.IO.StreamWriter = new System.IO.StreamWriter(stream)
 
     try
         writer.WriteLine("test1")
@@ -219,9 +219,9 @@ let inline heterogenousAdd(value1 : ^T when (^T or ^U) : (static member (+) : ^T
     |> should
         equal
         """
-let inline add (value1: ^T when ^T: (static member (+): ^T * ^T -> ^T), value2: ^T) = value1 + value2
+let inline add (value1: ^T when ^T: (static member (+) : ^T * ^T -> ^T), value2: ^T) = value1 + value2
 
-let inline heterogenousAdd (value1: ^T when (^T or ^U): (static member (+): ^T * ^U -> ^T), value2: ^U) =
+let inline heterogenousAdd (value1: ^T when (^T or ^U): (static member (+) : ^T * ^U -> ^T), value2: ^U) =
     value1 + value2
 """
 
@@ -448,8 +448,8 @@ let inline implicit< ^a,^b when ^a : (static member op_Implicit : ^b -> ^a)> arg
     |> should
         equal
         """
-let inline implicit< ^a, ^b when ^a: (static member op_Implicit: ^b -> ^a)> arg =
-    (^a: (static member op_Implicit: ^b -> ^a) arg)
+let inline implicit< ^a, ^b when ^a: (static member op_Implicit : ^b -> ^a)> arg =
+    (^a: (static member op_Implicit : ^b -> ^a) arg)
 """
 
 [<Test>]
@@ -491,7 +491,7 @@ let ``don't create redundant parentheses outside trait calls`` () =
     |> should
         equal
         """
-let f (arg: 'T) = (^T: (member Value: string) arg)
+let f (arg: 'T) = (^T: (member Value : string) arg)
 """
 
 [<Test>]
@@ -572,7 +572,7 @@ let printInColor (color:string) (msg:string):unit = jsNative
         equal
         """
 [<Emit("console.log('%c' +  $1, 'color: ' + $0)")>]
-let printInColor (color: string) (msg: string): unit = jsNative
+let printInColor (color: string) (msg: string) : unit = jsNative
 """
 
 [<Test>]
@@ -809,7 +809,7 @@ let fold
         input: 'Input,
         input2: 'Input,
         input3: 'Input
-    ): Result<'Output list, 'TError list> =
+    ) : Result<'Output list, 'TError list> =
     ()
 """
 
@@ -934,7 +934,7 @@ let inline deserialize< ^a when ( ^a or FromJsonDefaults) : (static member FromJ
     |> should
         equal
         """
-let inline deserialize< ^a when ^a: (static member FromJson: ^a -> Json< ^a >)> json =
+let inline deserialize< ^a when ^a: (static member FromJson : ^a -> Json< ^a >)> json =
     json |> Json.parse |> Json.deserialize< ^a>
 """
 
@@ -1027,12 +1027,12 @@ let e<'t> : int = 8
     |> should
         equal
         """
-let a: int = 7
-let private b: string = ""
-let internal c: int = 8
+let a : int = 7
+let private b : string = ""
+let internal c : int = 8
 
 [<Foo>]
-let d: int = 9
+let d : int = 9
 
 let e<'t> : int = 8
 """
@@ -1111,20 +1111,20 @@ let e<'t> : int =
     |> should
         equal
         """
-let a: int =
+let a : int =
     // a comment makes things multiline
     7
 
-let private b: string =
+let private b : string =
     // a comment makes things multiline
     ""
 
-let internal c: int =
+let internal c : int =
     // a comment makes things multiline
     8
 
 [<Foo>]
-let d: int =
+let d : int =
     // a comment makes things multiline
     9
 
@@ -1321,7 +1321,7 @@ let longFunctionWithLongTupleParameterAndReturnType
         aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
         aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
         aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
-    ): ReturnType =
+    ) : ReturnType =
     // ... the body of the method follows
     ()
 """

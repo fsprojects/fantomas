@@ -90,7 +90,7 @@ type Foo =
         equal
         """[<AbstractClass>]
 type Foo =
-    abstract foo: int
+    abstract foo : int
     override __.foo = 1"""
 
 [<Test>]
@@ -106,7 +106,7 @@ type Foo =
         equal
         """[<AbstractClass>]
 type Foo =
-    abstract foo: int
+    abstract foo : int
     default __.foo = 1"""
 
 [<Test>]
@@ -122,7 +122,7 @@ type Foo =
         equal
         """[<AbstractClass>]
 type Foo =
-    abstract foo: int
+    abstract foo : int
     override __.foo = 1"""
 
 [<Test>]

@@ -213,7 +213,7 @@ let ``should not split parameters over multiple lines when they do not exceed pa
         """
 module Caching =
     type MainCache() =
-        member __.RetrieveLastCompoundBalance (address: PublicAddress) (currency: Currency): NotFresh<decimal> =
+        member __.RetrieveLastCompoundBalance (address: PublicAddress) (currency: Currency) : NotFresh<decimal> =
             lock
                 cacheFiles.CachedNetworkData
                 (fun _ ->
@@ -252,7 +252,7 @@ let ``should not split single parameter over multiple lines when it does not exc
         """
 module Caching =
     type MainCache() =
-        member __.RetrieveLastCompoundBalance (address: PublicAddress) (currency: Currency): NotFresh<decimal> =
+        member __.RetrieveLastCompoundBalance (address: PublicAddress) (currency: Currency) : NotFresh<decimal> =
             lock
                 cacheFiles.CachedNetworkData
                 (fun _ ->

@@ -185,7 +185,7 @@ let getColumn c (A:_[,]) = flatten A.[*,c..c] |> Seq.toArray"""
     |> should
         equal
         """
-let cast<'a> (A: obj [,]): 'a [,] = A |> Array2D.map unbox
+let cast<'a> (A: obj [,]) : 'a [,] = A |> Array2D.map unbox
 let flatten (A: 'a [,]) = A |> Seq.cast<'a>
 let getColumn c (A: _ [,]) = flatten A.[*, c..c] |> Seq.toArray
 """
@@ -1583,7 +1583,7 @@ let nestedList: obj list = [
     |> should
         equal
         """
-let nestedList: obj list =
+let nestedList : obj list =
     [ "11111111aaaaaaaaa"
       "22222222aaaaaaaaa"
       "33333333aaaaaaaaa"
@@ -1615,7 +1615,7 @@ let nestedList: obj list = [|
     |> should
         equal
         """
-let nestedList: obj list =
+let nestedList : obj list =
     [| "11111111aaaaaaaaa"
        "22222222aaaaaaaaa"
        "33333333aaaaaaaaa"
@@ -1646,7 +1646,7 @@ let nestedList: obj list = [|
     |> should
         equal
         """
-let nestedList: obj list =
+let nestedList : obj list =
     [| "11111111aaaaaaaaa"
        "22222222aaaaaaaaa"
        "33333333aaaaaaaaa"
@@ -1678,7 +1678,7 @@ let nestedList: obj list = [
     |> should
         equal
         """
-let nestedList: obj list =
+let nestedList : obj list =
     [ "11111111aaaaaaaaa"
       "22222222aaaaaaaaa"
       "33333333aaaaaaaaa"
@@ -1711,7 +1711,7 @@ let nestedList: obj list = [|
     |> should
         equal
         """
-let nestedList: obj list =
+let nestedList : obj list =
     [| "11111111aaaaaaaaa"
        "22222222aaaaaaaaa"
        "33333333aaaaaaaaa"
@@ -1951,7 +1951,7 @@ let choices : Foo list =
     |> should
         equal
         """
-let choices: Foo list =
+let choices : Foo list =
     [ yield! getMore 9
       yield
           // Test
@@ -1975,7 +1975,7 @@ let choices : Foo list =
     |> should
         equal
         """
-let choices: Foo list =
+let choices : Foo list =
     [ yield!
           // Test
           [ Foo 2 ] ]

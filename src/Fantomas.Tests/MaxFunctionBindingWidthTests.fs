@@ -58,7 +58,7 @@ let ``should apply to typed member function definition`` () =
     let aaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbbbb =
         bbbbbbbbbbbbbbbbbbb + 1
 
-    member this.cccccccccccccc dddddddddddddd: int = dddddddddddddd + 2
+    member this.cccccccccccccc dddddddddddddd : int = dddddddddddddd + 2
 """
 
 [<Test>]

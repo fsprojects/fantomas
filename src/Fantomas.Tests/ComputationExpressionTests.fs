@@ -1931,7 +1931,7 @@ let create: Highlighter =
     |> should
         equal
         """
-let create: Highlighter =
+let create : Highlighter =
     fun searchTerm ->
         let regex = searchTerm |> SearchTerm.toRegex
 
@@ -2023,7 +2023,7 @@ let result = ResultBuilder()
 
 let run r1 r2 r3 =
     // And here is our applicative!
-    let res1: Result<int, string> =
+    let res1 : Result<int, string> =
         result {
             let! a = r1
             and! b = r2

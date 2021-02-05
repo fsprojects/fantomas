@@ -21,7 +21,7 @@ let f a : int = 7"""
         equal
         """
 [<Foo ;Bar ;Meh>]
-let f a: int = 7
+let f a : int = 7
 """
 
 [<Test>]
@@ -102,7 +102,7 @@ let f a : int = 7"""
         equal
         """
 [<Foo ; Bar ; Meh>]
-let f a: int = 7
+let f a : int = 7
 """
 
 [<Test>]

@@ -234,16 +234,16 @@ let e2e value =
 
 #if DEBUG
 [<Emit("console.log('%c' +  $1, 'color: ' + $0)")>]
-let printInColor (color: string) (msg: string): unit = jsNative
+let printInColor (color: string) (msg: string) : unit = jsNative
 
 [<Emit("console.log('%c' +  $1, $0)")>]
-let printInStyle (style: string) (msg): unit = jsNative
+let printInStyle (style: string) (msg) : unit = jsNative
 
 [<Emit("console.info($0)")>]
-let printModel model: unit = jsNative
+let printModel model : unit = jsNative
 
 [<Emit("console.trace()")>]
-let printStackTrace (): unit = jsNative
+let printStackTrace () : unit = jsNative
 #endif
 
 let e2e value = Props.Data("e2e", value)
@@ -427,7 +427,7 @@ let ``should preserve single return type attribute`` () =
     formatSourceString false """let f x : [<return: Attribute>] int = x""" config
     |> should
         equal
-        """let f x: [<return: Attribute>] int = x
+        """let f x : [<return: Attribute>] int = x
 """
 
 [<Test>]
@@ -435,7 +435,7 @@ let ``should preserve multiple return type attributes`` () =
     formatSourceString false """let f x : [<return: AttributeOne;AttributeTwo;AttributeThree("foo")>] int = x""" config
     |> should
         equal
-        """let f x: [<return: AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
+        """let f x : [<return: AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
 """
 
 [<Test>]
@@ -688,7 +688,7 @@ type RoleAdminImportController(akkaService: AkkaService) =
       ProducesResponseType(typeof<bool>, 200);
       ProducesResponseType(404);
       Authorize(AuthorizationScopePolicies.Read)>]
-    member _.ListJobs(): Task<UserCmdResponseMsg> =
+    member _.ListJobs() : Task<UserCmdResponseMsg> =
         task {
             return!
                 akkaService.ImporterSystem.ApiMaster

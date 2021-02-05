@@ -32,14 +32,14 @@ module Heap
 
 type Heap<'T when 'T: comparison> =
     class
-        new: capacity: int -> Heap<'T>
-        member Clear: unit -> unit
-        member ExtractMin: unit -> 'T
-        member Insert: k: 'T -> unit
-        member IsEmpty: unit -> bool
-        member PeekMin: unit -> 'T
-        override ToString: unit -> string
-        member Count: int
+        new : capacity: int -> Heap<'T>
+        member Clear : unit -> unit
+        member ExtractMin : unit -> 'T
+        member Insert : k: 'T -> unit
+        member IsEmpty : unit -> bool
+        member PeekMin : unit -> 'T
+        override ToString : unit -> string
+        member Count : int
     end
 """
 
@@ -65,19 +65,19 @@ type Class7<'T when 'T : (new : unit -> 'T)>() =
     |> should
         equal
         """
-type Class4<'T when 'T: (static member staticMethod1: unit -> 'T)> =
+type Class4<'T when 'T: (static member staticMethod1 : unit -> 'T)> =
     class
     end
 
-type Class5<'T when 'T: (member Method1: 'T -> int)> =
+type Class5<'T when 'T: (member Method1 : 'T -> int)> =
     class
     end
 
-type Class6<'T when 'T: (member Property1: int)> =
+type Class6<'T when 'T: (member Property1 : int)> =
     class
     end
 
-type Class7<'T when 'T: (new: unit -> 'T)>() =
+type Class7<'T when 'T: (new : unit -> 'T)>() =
     member val Field = new 'T()
 """
 
@@ -124,15 +124,15 @@ type Shape2D(x0: float, y0: float) =
         with get () = y
         and set yval = y <- yval
 
-    abstract Area: float
-    abstract Perimeter: float
-    abstract Name: string
+    abstract Area : float
+    abstract Perimeter : float
+    abstract Name : string
 
     member this.Move dx dy =
         x <- x + dx
         y <- y + dy
 
-    abstract member Rotate: float -> unit
+    abstract member Rotate : float -> unit
     default this.Rotate(angle) = rotAngle <- rotAngle + angle
 """
 
@@ -156,13 +156,13 @@ type A =
         equal
         """
 type A =
-    abstract B: ?p1: (float * int) -> unit
-    abstract C: ?p1: float * int -> unit
-    abstract D: ?p1: (int -> int) -> unit
-    abstract E: ?p1: float -> unit
-    abstract F: ?p1: float * ?p2: float -> unit
-    abstract G: p1: float * ?p2: float -> unit
-    abstract H: float * ?p2: float -> unit
+    abstract B : ?p1: (float * int) -> unit
+    abstract C : ?p1: float * int -> unit
+    abstract D : ?p1: (int -> int) -> unit
+    abstract E : ?p1: float -> unit
+    abstract F : ?p1: float * ?p2: float -> unit
+    abstract G : p1: float * ?p2: float -> unit
+    abstract H : float * ?p2: float -> unit
 """
 
 [<Test>]
@@ -265,7 +265,7 @@ and File(filename: string, containingFolder: Folder) =
         """
 type Folder(pathIn: string) =
     let path = pathIn
-    let filenameArray: string array = System.IO.Directory.GetFiles(path)
+    let filenameArray : string array = System.IO.Directory.GetFiles(path)
     member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
 
 and File(filename: string, containingFolder: Folder) =
@@ -615,9 +615,9 @@ let ``no extra new line before abstract member with attribute, 586`` () =
 type A =
 
     [<EmitConstructor>]
-    abstract Create: Unit -> A
+    abstract Create : Unit -> A
 
-    abstract b: Unit -> Unit
+    abstract b : Unit -> Unit
 """
 
 [<Test>]
@@ -627,10 +627,10 @@ let ``no extra new line between abstract members with attribute, 586`` () =
 type A =
 
     [<Emit("a")>]
-    abstract a: Unit -> string
+    abstract a : Unit -> string
 
     [<Emit("b")>]
-    abstract b: Unit -> string
+    abstract b : Unit -> string
 """
 
 [<Test>]
@@ -780,7 +780,7 @@ type Foo =
 module Example
 
 type Foo =
-    abstract member bar: int
+    abstract member bar : int
 """
 
 [<Test>]

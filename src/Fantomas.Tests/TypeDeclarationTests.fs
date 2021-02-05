@@ -237,7 +237,7 @@ let ``abstract and override keywords`` () =
         """
 type MyClassBase1() =
     let mutable z = 0
-    abstract member Function1: int -> int
+    abstract member Function1 : int -> int
 
     default u.Function1(a: int) =
         z <- z + a
@@ -774,7 +774,7 @@ let inline tryAverage(seq: seq< ^a >): ^a option =  None"""
     |> should
         equal
         """
-let inline tryAverage (seq: seq< ^a >): ^a option = None
+let inline tryAverage (seq: seq< ^a >) : ^a option = None
 """
 
 [<Test>]
@@ -788,7 +788,7 @@ let inline tryAverage(map: Map< ^a,^b>): ^a option =  None"""
     |> should
         equal
         """
-let inline tryAverage (map: Map< ^a, ^b >): ^a option = None
+let inline tryAverage (map: Map< ^a, ^b >) : ^a option = None
 """
 
 [<Test>]
@@ -1005,7 +1005,7 @@ type ILogger =
         equal
         """
 type ILogger =
-    abstract DebugFormat: format: String * [<ParamArray>] args: Object [] -> unit
+    abstract DebugFormat : format: String * [<ParamArray>] args: Object [] -> unit
 """
 
 [<Test>]
@@ -1022,8 +1022,8 @@ type A =
         equal
         """
 type A =
-    abstract member M: int -> (int -> unit)
-    abstract member M: float -> int
+    abstract member M : int -> (int -> unit)
+    abstract member M : float -> int
 """
 
 [<Test>]
@@ -1040,8 +1040,8 @@ type A =
         equal
         """
 type A =
-    abstract member M: (int -> int) -> unit
-    abstract member M: float -> int
+    abstract member M : (int -> int) -> unit
+    abstract member M : float -> int
 """
 
 [<Test>]
@@ -1058,7 +1058,7 @@ type Entity() =
         equal
         """
 type Entity() =
-    abstract Id: int with get, set
+    abstract Id : int with get, set
     override val Id = 0 with get, set
 """
 
@@ -1317,10 +1317,10 @@ type Graph2dOptions =
         """
 [<AllowNullLiteral>]
 type Graph2dOptions =
-    abstract zoomMin: float option with get, set
+    abstract zoomMin : float option with get, set
     // abstract moment: MomentConstructor option with get, set
-    abstract maxHeight: HeightWidthType option with get, set
-    abstract zIndex: float option with get, set
+    abstract maxHeight : HeightWidthType option with get, set
+    abstract zIndex : float option with get, set
 """
 
 [<Test>]
@@ -1365,7 +1365,7 @@ type C () =
             aVeryLongType: AVeryLongTypeThatYouNeedToUse,
             aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
             aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
-        ): int =
+        ) : int =
         aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
@@ -1408,7 +1408,7 @@ type internal Blah =
 namespace Foo
 
 type internal Blah =
-    abstract Baz: unit
+    abstract Baz : unit
 """
 
 [<Test>]
@@ -1466,7 +1466,7 @@ type SomeType() =
         (
             looooooooooooooooooooooooooooooooooong1: A,
             looooooooooooooooooooooooooooooooooong2: A
-        ): string =
+        ) : string =
         printfn "a"
         "a"
 
@@ -1786,11 +1786,11 @@ type DataGroup =
 [<AllowNullLiteral>]
 type SubGroupStackOptions =
     [<Emit "$0[$1]{{=$2}}">]
-    abstract Item: name: string -> bool with get, set
+    abstract Item : name: string -> bool with get, set
 
 [<AllowNullLiteral>]
 type DataGroup =
-    abstract className: string option with get, set
+    abstract className : string option with get, set
 """
 
 [<Test>]
@@ -1814,7 +1814,7 @@ let foo bar = zero
 [<AllowNullLiteral>]
 type SubGroupStackOptions =
     [<Emit "$0[$1]{{=$2}}">]
-    abstract Item: name: string -> bool with get, set
+    abstract Item : name: string -> bool with get, set
 
 [<AllowNullLiteral>]
 let foo bar = zero
@@ -1859,7 +1859,7 @@ type TimelineOptionsGroupEditableType = U2<bool, TimelineGroupEditableOption>
 [<AllowNullLiteral>]
 type TimelineOptionsGroupCallbackFunction =
     [<Emit "$0($1...)">]
-    abstract Invoke: group: TimelineGroup * callback: (TimelineGroup option -> unit) -> unit
+    abstract Invoke : group: TimelineGroup * callback: (TimelineGroup option -> unit) -> unit
 
 type TimelineOptionsGroupEditableType = U2<bool, TimelineGroupEditableOption>
 """
@@ -1884,7 +1884,7 @@ let myBinding a = 7
 [<AllowNullLiteral>]
 type TimelineOptionsGroupCallbackFunction =
     [<Emit "$0($1...)">]
-    abstract Invoke: group: TimelineGroup * callback: (TimelineGroup option -> unit) -> unit
+    abstract Invoke : group: TimelineGroup * callback: (TimelineGroup option -> unit) -> unit
 
 let myBinding a = 7
 """
@@ -2021,7 +2021,7 @@ type MyClass() =
             aVeryLongType: AVeryLongTypeThatYouNeedToUse,
             aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
             aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
-        ): AVeryLongReturnType =
+        ) : AVeryLongReturnType =
         someFunction aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
 
@@ -2181,7 +2181,7 @@ type Box() =
         equal
         """
 type Box() =
-    let mutable color: string = null
+    let mutable color : string = null
 
     // A Box has a color property with get and set.
     member x.Color
@@ -2367,7 +2367,7 @@ type MyEvent =
     | BData of string
 
 // use 'nameof' instead of the string literal in the match expression
-let deserialize (e: RecordedEvent): MyEvent =
+let deserialize (e: RecordedEvent) : MyEvent =
     match e.EventType with
     | nameof AData -> AData(JsonSerializer.Deserialize<int> e.Data)
     | nameof BData -> BData(JsonSerializer.Deserialize<string> e.Data)

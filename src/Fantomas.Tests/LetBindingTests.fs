@@ -230,7 +230,7 @@ module Card =
         | Body of bool
         | Custom of IHTMLProp list
 
-    let card (props: CardProps seq) (elems: ReactElement seq): ReactElement =
+    let card (props: CardProps seq) (elems: ReactElement seq) : ReactElement =
         let customProps =
             props
             |> Seq.collect
@@ -485,7 +485,7 @@ let ``has symbol in signature requires paren, 564`` () =
 module Bar =
     let foo(_: #(int seq)) = 1
     let meh(_: #seq<int>) = 2
-    let evenMoreMeh(_: #seq<int>): int = 2
+    let evenMoreMeh(_: #seq<int>) : int = 2
 """
 
 [<Test>]
@@ -529,7 +529,7 @@ let foo (a: int ) (b:  string):string =
     |> should
         equal
         """
-let foo (a: int) (b: string): string =
+let foo (a: int) (b: string) : string =
     let c = a.ToString() + b
     sprintf "result: %s" c
 """
@@ -1506,8 +1506,8 @@ let k = -1
     |> should
         equal
         """
-let value a: int = // TODO: some comment
-    let v x: int = 2 + a
+let value a : int = // TODO: some comment
+    let v x : int = 2 + a
     v
 
 let k = -1
@@ -1539,4 +1539,21 @@ let longFunctionNameThatWillTriggerAlternativeSignatureSyntax
     v
 
 let k = -1
+"""
+
+[<Test>]
+let ``surround return type annotations with white space, 1420`` () =
+    formatSourceString
+        false
+        """
+let expensiveToCompute : int = 0
+let myFun (a: decimal) b c : decimal = a + b + c
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let expensiveToCompute : int = 0
+let myFun (a: decimal) b c : decimal = a + b + c
 """

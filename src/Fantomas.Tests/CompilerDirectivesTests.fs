@@ -637,7 +637,7 @@ type FunctionComponent =
     /// Creates a lazy React component from a function in another file
     /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
     /// directly to the argument position (avoid pipes)
-    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
+    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement) : LazyFunctionComponent<'Props> =
 #if FABLE_COMPILER
         let elemType =
             ReactBindings.React.``lazy``
@@ -787,7 +787,7 @@ type FunctionComponent =
     /// Creates a lazy React component from a function in another file
     /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
     /// directly to the argument position (avoid pipes)
-    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
+    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement) : LazyFunctionComponent<'Props> =
 #if FABLE_COMPILER
 
 
@@ -858,7 +858,7 @@ type FunctionComponent =
     /// Creates a lazy React component from a function in another file
     /// ATTENTION: Requires fable-compiler 2.3, pass the external reference
     /// directly to the argument position (avoid pipes)
-    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement): LazyFunctionComponent<'Props> =
+    static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement) : LazyFunctionComponent<'Props> =
 #if FABLE_COMPILER
         let elemType =
             ReactBindings.React.``lazy``
@@ -905,11 +905,11 @@ let ``module with nested directives`` () =
 #else
     [<Import("*", "react-dom")>]
 #endif
-    let ReactDom: IReactDom = jsNative
+    let ReactDom : IReactDom = jsNative
 
 #if !FABLE_REPL_LIB
     [<Import("default", "react-dom/server")>]
-    let ReactDomServer: IReactDomServer = jsNative
+    let ReactDomServer : IReactDomServer = jsNative
 #endif
 """
 
@@ -938,11 +938,11 @@ let ``module with nested directives, no defines`` () =
 #else
     [<Import("*", "react-dom")>]
 #endif
-    let ReactDom: IReactDom = jsNative
+    let ReactDom : IReactDom = jsNative
 
 #if !FABLE_REPL_LIB
     [<Import("default", "react-dom/server")>]
-    let ReactDomServer: IReactDomServer = jsNative
+    let ReactDomServer : IReactDomServer = jsNative
 #endif
 """
 
@@ -971,7 +971,7 @@ let ``module with nested directives, FABLE_REPL_LIB`` () =
 #else
 
 #endif
-    let ReactDom: IReactDom = jsNative
+    let ReactDom : IReactDom = jsNative
 
 #if !FABLE_REPL_LIB
 

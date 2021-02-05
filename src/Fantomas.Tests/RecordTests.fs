@@ -87,25 +87,25 @@ type Element =
     interface INode
 
     /// Constructs an new empty Element.
-    static member Create: name: string * ?uri: string -> Element
+    static member Create : name: string * ?uri: string -> Element
 
     /// Replaces the children.
-    static member WithChildren: children: #seq<#INode> -> self: Element -> Element
+    static member WithChildren : children: #seq<#INode> -> self: Element -> Element
 
     /// Replaces the children.
-    static member (-): self: Element * children: #seq<#INode> -> Element
+    static member (-) : self: Element * children: #seq<#INode> -> Element
 
     /// Replaces the attributes.
-    static member WithAttributes: attrs: #seq<string * string> -> self: Element -> Element
+    static member WithAttributes : attrs: #seq<string * string> -> self: Element -> Element
 
     /// Replaces the attributes.
-    static member (+): self: Element * attrs: #seq<string * string> -> Element
+    static member (+) : self: Element * attrs: #seq<string * string> -> Element
 
     /// Replaces the children with a single text node.
-    static member WithText: text: string -> self: Element -> Element
+    static member WithText : text: string -> self: Element -> Element
 
     /// Replaces the children with a single text node.
-    static member (--): self: Element * text: string -> Element
+    static member (--) : self: Element * text: string -> Element
 """
 
 [<Test>]
@@ -357,8 +357,8 @@ let ``anon record`` () =
     |> should
         equal
         """
-let r: {| Foo: int
-          Bar: string |} =
+let r : {| Foo: int
+           Bar: string |} =
     {| Foo = 123
        Bar = "" |}
 """
@@ -376,8 +376,8 @@ let ``anon record - struct`` () =
     |> should
         equal
         """
-let r: struct {| Foo: int
-                 Bar: string |} =
+let r : struct {| Foo: int
+                  Bar: string |} =
     struct {| Foo = 123
               Bar = "" |}
 """
@@ -833,7 +833,7 @@ open System
 module Test =
     type ISomething =
         inherit IDisposable
-        abstract DoTheThing: string -> unit
+        abstract DoTheThing : string -> unit
 
     let test (something: IDisposable) (somethingElse: IDisposable) =
         { new ISomething with
@@ -1198,7 +1198,7 @@ type XX =
 type XX =
     { a: int
       b: int }
-    static member foo: int = 30
+    static member foo : int = 30
 """
 
 [<Test>]
@@ -1221,7 +1221,7 @@ type XX =
     { a: int
       b: int }
 
-    static member private foo: int = 30
+    static member private foo : int = 30
 """
 
 [<Test>]
@@ -1380,7 +1380,7 @@ type RequestParser<'ctx, 'a> =
         (
             consumedFields,
             parse: 'ctx -> Request -> Async<Result<'a, Error list>>
-        ): RequestParser<'ctx, 'a> =
+        ) : RequestParser<'ctx, 'a> =
         { consumedFields = consumedFields
           parse = parse
           prohibited = [] }
@@ -1412,5 +1412,5 @@ module Foo =
             { ModeratelyLongName: int }
 
     type private Bang =
-        abstract Baz: int
+        abstract Baz : int
 """
