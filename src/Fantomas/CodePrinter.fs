@@ -4288,9 +4288,10 @@ and genMemberDefn astContext node =
         -- s
         +> optPre sepColon sepNone typeOpt (genType astContext false)
         +> sepEq
-        +> sepSpace
-        +> genExpr astContext e
-        -- genPropertyKind (not isFunctionProperty) mk
+        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
+            genExpr astContext e
+            -- genPropertyKind (not isFunctionProperty) mk
+        )
 
     | MDAbstractSlot (ats, px, ao, s, t, vi, ValTyparDecls (tds, _, tcs), MFMemberFlags mk) ->
         let (FunType namedArgs) = (t, vi)

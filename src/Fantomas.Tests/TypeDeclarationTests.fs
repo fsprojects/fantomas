@@ -2412,3 +2412,54 @@ type Foo =
         'a -> int -> string -> string -> bool
         when 'a: comparison
 """
+
+[<Test>]
+let ``member with val keyword with multiline expression, 1426`` () =
+    formatSourceString
+        false
+        """
+type public Foo() =
+
+    // Here it generates valid code
+    static member FooBarThing1 =
+        new TypedThingDefinition(
+            "StringA",
+            SomeLongThing.SomeProperty,
+            IsMandatory = new Nullable<bool>(true),
+            Blablablabla = moreStuff
+        )
+
+    // With "member val" it generates invalid code
+    static member val FooBarThing2 =
+        new TypedThingDefinition(
+            "StringA",
+            SomeLongThing.SomeProperty,
+            IsMandatory = new Nullable<bool>(true),
+            Blablablabla = moreStuff
+        )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type public Foo() =
+
+    // Here it generates valid code
+    static member FooBarThing1 =
+        new TypedThingDefinition(
+            "StringA",
+            SomeLongThing.SomeProperty,
+            IsMandatory = new Nullable<bool>(true),
+            Blablablabla = moreStuff
+        )
+
+    // With "member val" it generates invalid code
+    static member val FooBarThing2 =
+        new TypedThingDefinition(
+            "StringA",
+            SomeLongThing.SomeProperty,
+            IsMandatory = new Nullable<bool>(true),
+            Blablablabla = moreStuff
+        )
+"""
