@@ -1293,28 +1293,36 @@ and genExpr astContext synExpr ctx =
                  +> sepCloseLFixed
                  +> leaveNodeTokenByName synExpr.Range RBRACK)
         | ArrayOrList (isArray, xs, _) as alNode ->
+            let tokenSize = if isArray then 2 else 1
+
+            let openingTokenRange =
+                mkRange
+                    "opening token"
+                    alNode.Range.Start
+                    (mkPos alNode.Range.Start.Line (alNode.Range.Start.Column + tokenSize))
+
+            let closingTokenRange =
+                mkRange
+                    "closing token"
+                    (mkPos alNode.Range.End.Line (alNode.Range.End.Column - tokenSize))
+                    alNode.Range.End
+
             let smallExpression =
-                ifElse isArray sepOpenA sepOpenL
+                ifElse isArray (tokN openingTokenRange LBRACK_BAR sepOpenA) (tokN openingTokenRange LBRACK sepOpenL)
                 +> col sepSemi xs (genExpr astContext)
-                +> ifElse isArray sepCloseA sepCloseL
+                +> ifElse
+                    isArray
+                    (tokN closingTokenRange BAR_RBRACK sepCloseA)
+                    (tokN closingTokenRange RBRACK sepCloseL)
 
             let multilineExpression =
                 ifAlignBrackets
-                    (genMultiLineArrayOrListAlignBrackets isArray xs alNode astContext)
-                    (genMultiLineArrayOrList isArray xs alNode astContext)
+                    (genMultiLineArrayOrListAlignBrackets isArray xs openingTokenRange closingTokenRange astContext)
+                    (genMultiLineArrayOrList isArray xs openingTokenRange closingTokenRange astContext)
 
             fun ctx ->
-                // If an array or list has any form of line comments inside them, they cannot fit on a single line
-                // check for any comments inside the range of the node
-                if TriviaHelpers.``has line comments inside``
-                    alNode.Range
-                    (TriviaHelpers.getNodesForTypes
-                        [ LBRACK_BAR
-                          LBRACK
-                          BAR_RBRACK
-                          RBRACK ]
-                        ctx.TriviaTokenNodes)
-                   || List.exists isIfThenElseWithYieldReturn xs then
+                if List.exists isIfThenElseWithYieldReturn xs
+                   || List.forall isSynExprLambda xs then
                     multilineExpression ctx
                 else
                     let size =
@@ -2869,16 +2877,32 @@ and genObjExprAlignBrackets t eio bd ims range (astContext: ASTContext) =
 
     atCurrentColumnIndent (sepOpenS +> genObjExpr +> sepNln +> sepCloseSFixed)
 
-and genMultiLineArrayOrList (isArray: bool) xs alNode astContext =
-    ifElse isArray sepOpenA sepOpenL
-    +> atCurrentColumn (
-        (ifElse isArray (leaveLeftBrackBar alNode.Range) (leaveLeftBrack alNode.Range))
-        +> col sepSemiNln xs (genExpr astContext)
-    )
-    +> ifElse isArray (enterRightBracketBar alNode.Range) (enterRightBracket alNode.Range)
-    +> ifElse isArray sepCloseA sepCloseL
+and genMultiLineArrayOrList
+    (isArray: bool)
+    xs
+    (openingTokenRange: range)
+    (closingTokenRange: range)
+    (astContext: ASTContext)
+    ctx
+    =
+    if isArray then
+        (tokN openingTokenRange LBRACK_BAR sepOpenA
+         +> atCurrentColumn (
+             sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+             +> col sepSemiNln xs (genExpr astContext)
+             +> tokN closingTokenRange BAR_RBRACK (ifElseCtx lastWriteEventIsNewline sepCloseAFixed sepCloseA)
+         ))
+            ctx
+    else
+        (tokN openingTokenRange LBRACK sepOpenL
+         +> atCurrentColumn (
+             sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+             +> col sepSemiNln xs (genExpr astContext)
+             +> tokN closingTokenRange RBRACK (ifElseCtx lastWriteEventIsNewline sepCloseLFixed sepCloseL)
+         ))
+            ctx
 
-and genMultiLineArrayOrListAlignBrackets (isArray: bool) xs alNode astContext =
+and genMultiLineArrayOrListAlignBrackets (isArray: bool) xs openingTokenRange closingTokenRange astContext =
     let isLastItem (x: SynExpr) =
         List.tryLast xs
         |> Option.map (fun i -> RangeHelpers.rangeEq i.Range x.Range)
@@ -2900,25 +2924,21 @@ and genMultiLineArrayOrListAlignBrackets (isArray: bool) xs alNode astContext =
 
         let expr =
             if isArray then
-                sepOpenAFixed
+                tokN openingTokenRange LBRACK_BAR sepOpenAFixed
                 +> indent
-                +> leaveNodeTokenByName alNode.Range LBRACK_BAR
                 +> sepNlnUnlessLastEventIsNewline
                 +> innerExpr
                 +> unindent
-                +> enterNodeTokenByName alNode.Range BAR_RBRACK
                 +> sepNlnUnlessLastEventIsNewline
-                +> sepCloseAFixed
+                +> tokN closingTokenRange BAR_RBRACK sepCloseAFixed
             else
-                sepOpenLFixed
+                tokN openingTokenRange LBRACK sepOpenLFixed
                 +> indent
-                +> leaveNodeTokenByName alNode.Range LBRACK
                 +> sepNlnUnlessLastEventIsNewline
                 +> innerExpr
                 +> unindent
-                +> enterNodeTokenByName alNode.Range RBRACK
                 +> sepNlnUnlessLastEventIsNewline
-                +> sepCloseLFixed
+                +> tokN closingTokenRange RBRACK sepCloseLFixed
 
         expr ctx
 

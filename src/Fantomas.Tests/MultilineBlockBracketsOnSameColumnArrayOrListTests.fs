@@ -284,3 +284,49 @@ let ``multiline function application inside list`` () =
     )
 ]
 """
+
+[<Test>]
+let ``list with only lambda expressions should be multiline, 1405`` () =
+    formatSourceString
+        false
+        """
+let foo =
+    [
+        fun () -> 1
+        fun () -> 2
+    ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo =
+    [
+        fun () -> 1
+        fun () -> 2
+    ]
+"""
+
+[<Test>]
+let ``array with only lambda expressions should be multiline`` () =
+    formatSourceString
+        false
+        """
+let foo =
+    [|
+        fun () -> 1
+        fun () -> 2
+    |]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo =
+    [|
+        fun () -> 1
+        fun () -> 2
+    |]
+"""
