@@ -1015,3 +1015,82 @@ module Foo =
         printfn "Last Name: %s" ln
         printfn "Age: %i" age
 """
+
+[<Test>]
+let ``access modifier on short type record inside module`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    type Stores =
+        private {
+            ModeratelyLongName : int
+        }
+
+    type private Bang = abstract Baz : int
+"""
+        { config with
+              MaxLineLength = 40
+              SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    type Stores =
+        private
+            {
+                ModeratelyLongName : int
+            }
+
+    type private Bang =
+        abstract Baz : int
+"""
+
+[<Test>]
+let ``record with an access modifier and a static member`` () =
+    formatSourceString
+        false
+        """
+type RequestParser<'ctx, 'a> =
+    internal
+        { consumedFields: Set<ConsumedFieldName>
+          parse: 'ctx -> Request -> Async<Result<'a, Error list>>
+          prohibited: ProhibitedRequestGetter list }
+
+        static member internal Create
+            (
+                consumedFields, parse: 'ctx -> Request -> Async<Result<'a, Error list>>
+            ) : RequestParser<'ctx, 'a> =
+            { consumedFields = consumedFields
+              parse = parse
+              prohibited = [] }
+
+"""
+        { config with
+              AlternativeLongMemberDefinitions = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type RequestParser<'ctx, 'a> =
+    internal
+        {
+            consumedFields : Set<ConsumedFieldName>
+            parse : 'ctx -> Request -> Async<Result<'a, Error list>>
+            prohibited : ProhibitedRequestGetter list
+        }
+
+    static member internal Create
+        (
+            consumedFields,
+            parse : 'ctx -> Request -> Async<Result<'a, Error list>>
+        )
+        : RequestParser<'ctx, 'a>
+        =
+        {
+            consumedFields = consumedFields
+            parse = parse
+            prohibited = []
+        }
+"""

@@ -3443,7 +3443,6 @@ and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
         { astContext with
               InterfaceRange = None }
         ms
-    +> optSingle (fun _ -> unindent) ao'
 
 and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
     // the typeName is already printed
@@ -3466,7 +3465,6 @@ and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
         { astContext with
               InterfaceRange = None }
         ms
-    +> onlyIf (Option.isSome ao') unindent
 
 and sepNlnBetweenSigTypeAndMembers (ms: SynMemberSig list) =
     match List.tryHead ms with

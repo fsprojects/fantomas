@@ -1387,50 +1387,30 @@ type RequestParser<'ctx, 'a> =
 """
 
 [<Test>]
-let ``record with an access modifier and a static member, MultilineBlockBracketsOnSameColumn`` () =
+let ``access modifier on short type record inside module, 1404`` () =
     formatSourceString
         false
         """
-type RequestParser<'ctx, 'a> =
-    internal
-        { consumedFields: Set<ConsumedFieldName>
-          parse: 'ctx -> Request -> Async<Result<'a, Error list>>
-          prohibited: ProhibitedRequestGetter list }
+module Foo =
+    type Stores =
+        private {
+            ModeratelyLongName : int
+        }
 
-        static member internal Create
-            (
-                consumedFields, parse: 'ctx -> Request -> Async<Result<'a, Error list>>
-            ) : RequestParser<'ctx, 'a> =
-            { consumedFields = consumedFields
-              parse = parse
-              prohibited = [] }
-
+    type private Bang = abstract Baz : int
 """
         { config with
-              MultilineBlockBracketsOnSameColumn = true
-              AlternativeLongMemberDefinitions = true }
+              MaxLineLength = 40
+              SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
         """
-type RequestParser<'ctx, 'a> =
-    internal
-        {
-            consumedFields: Set<ConsumedFieldName>
-            parse: 'ctx -> Request -> Async<Result<'a, Error list>>
-            prohibited: ProhibitedRequestGetter list
-        }
+module Foo =
+    type Stores =
+        private
+            { ModeratelyLongName: int }
 
-    static member internal Create
-        (
-            consumedFields,
-            parse: 'ctx -> Request -> Async<Result<'a, Error list>>
-        )
-        : RequestParser<'ctx, 'a>
-        =
-        {
-            consumedFields = consumedFields
-            parse = parse
-            prohibited = []
-        }
+    type private Bang =
+        abstract Baz: int
 """
