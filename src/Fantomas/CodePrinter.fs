@@ -598,16 +598,6 @@ and genPreXmlDoc (PreXmlDoc lines) ctx =
     else
         ctx
 
-and addSpaceAfterGenericConstructBeforeColon ctx =
-    (if not ctx.Config.SpaceBeforeColon then
-         match lastWriteEventOnLastLine ctx
-               |> Option.bind Seq.tryLast with
-         | Some ('>') -> sepSpace
-         | _ -> sepNone
-     else
-         sepNone)
-    <| ctx
-
 and genExprSepEqPrependType (astContext: ASTContext) (e: SynExpr) =
     match e with
     | TypedExpr (Typed, e, t) ->
@@ -941,8 +931,7 @@ and genVal astContext (Val (ats, px, ao, s, t, vi, isInline, _) as node) =
         +> opt sepSpace ao genAccess
         -- s
         +> genericParams
-        +> addSpaceAfterGenericConstructBeforeColon
-        +> sepColon
+        +> sepColonWithSpacesFixed
         +> ifElse
             (List.isNotEmpty namedArgs)
             (autoNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
@@ -3719,11 +3708,6 @@ and genMemberSig astContext node =
             | TFun _ -> true
             | _ -> false
 
-        let sepColonX =
-            match tds with
-            | [] -> sepColon
-            | _ -> sepColonWithSpacesFixed
-
         genPreXmlDoc px
         +> genAttributes astContext ats
         +> atCurrentColumn (
@@ -3736,7 +3720,7 @@ and genMemberSig astContext node =
             +> opt sepSpace ao genAccess
             +> ifElse (s = "``new``") (!- "new") (!-s)
             +> genTypeParamPostfix astContext tds tcs
-            +> sepColonX
+            +> sepColonWithSpacesFixed
             +> genTypeList astContext namedArgs
             +> genConstraints astContext t vi
             -- (genPropertyKind (not isFunctionProperty) mf.MemberKind)
@@ -4301,11 +4285,6 @@ and genMemberDefn astContext node =
             | TFun _ -> true
             | _ -> false
 
-        let sepColonX =
-            match tds with
-            | [] -> sepColon
-            | _ -> sepColonWithSpacesFixed
-
         let genAbstractMemberKeyword (ctx: Context) =
             Map.tryFindOrEmptyList MEMBER ctx.TriviaTokenNodes
             |> List.choose
@@ -4328,7 +4307,7 @@ and genMemberDefn astContext node =
         +> opt sepSpace ao genAccess
         +> genAbstractMemberKeyword
         +> genTypeParamPostfix astContext tds tcs
-        +> sepColonX
+        +> sepColonWithSpacesFixed
         +> genTypeList astContext namedArgs
         -- genPropertyKind (not isFunctionProperty) mk
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genConstraints astContext t vi)
@@ -4721,7 +4700,7 @@ and genSynBindingFunctionWithReturnType
             | SynValInfo (_, SynArgInfo (attributes, _, _)) -> genOnelinerAttributes astContext attributes
 
         enterNodeFor SynBindingReturnInfo_ returnType.Range
-        +> ifElse isFixed (sepColonFixed +> sepSpace) sepColon
+        +> ifElse isFixed (sepColonFixed +> sepSpace) sepColonWithSpacesFixed
         +> genMetadataAttributes
         +> genType astContext false returnType
 
@@ -4856,18 +4835,13 @@ and genSynBindingValue
         +> ifElse isMutable (!- "mutable ") sepNone
         +> ifElse isInline (!- "inline ") sepNone
 
-    let genValueName =
-        let addExtraSpace =
-            match valueName with
-            | PatLongIdent (_, _, _, Some _) -> Option.isSome returnType
-            | _ -> false
-
-        genPat astContext valueName
-        +> onlyIf addExtraSpace sepSpace
+    let genValueName = genPat astContext valueName
 
     let genReturnType =
         match returnType with
-        | Some rt -> sepColon +> genType astContext false rt
+        | Some rt ->
+            sepColonWithSpacesFixed
+            +> genType astContext false rt
         | None -> sepNone
 
     let equalsRange =

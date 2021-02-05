@@ -15,7 +15,7 @@ let inline private retype<'T, 'U> (x : 'T) : 'U = (# "" x : 'U #)"""
     |> should
         equal
         """
-let inline private retype<'T, 'U> (x: 'T): 'U = (# "" x : 'U #)
+let inline private retype<'T, 'U> (x: 'T) : 'U = (# "" x : 'U #)
 """
 
 [<Test>]
@@ -37,9 +37,9 @@ x.G[].TryFind 3
         equal
         """
 type F =
-    abstract G: int list -> Map<int,int>
+    abstract G : int list -> Map<int,int>
 
-let x: F =
+let x : F =
     {new F with
         member __.G _ = Map.empty}
 

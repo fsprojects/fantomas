@@ -50,7 +50,7 @@ let print_30_permut() =
 let print_30_permut () =
 
     /// declare and initialize
-    let permutation: int array =
+    let permutation : int array =
         Array.init
             n
             (fun i ->
@@ -79,7 +79,7 @@ let print_30_permut() =
 let print_30_permut () =
 
     /// declare and initialize
-    let permutation: int array =
+    let permutation : int array =
         Array.init
             n
             (fun (i, j) ->
@@ -1067,12 +1067,12 @@ type IExports =
         """
 [<AllowNullLiteral>]
 type IExports =
-    abstract DataSet: DataSetStatic
-    abstract DataView: DataViewStatic
-    abstract Graph2d: Graph2dStatic
-    abstract Timeline: TimelineStatic
+    abstract DataSet : DataSetStatic
+    abstract DataView : DataViewStatic
+    abstract Graph2d : Graph2dStatic
+    abstract Timeline : TimelineStatic
     // abstract Timeline: TimelineStaticStatic
-    abstract Network: NetworkStatic
+    abstract Network : NetworkStatic
 
 // type [<AllowNullLiteral>] MomentConstructor1 =
 //     [<Emit "$0($1...)">] abstract Invoke: ?inp: MomentInput * ?format: MomentFormatSpecification * ?strict: bool -> Moment
