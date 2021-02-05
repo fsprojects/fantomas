@@ -89,7 +89,7 @@ type TriviaContent =
 type Trivia =
     { Item: TriviaContent
       Range: range }
-    static member Create item range: Trivia = { Item = item; Range = range }
+    static member Create item range : Trivia = { Item = item; Range = range }
 
 type TriviaIndex = TriviaIndex of int * int
 

@@ -58,7 +58,7 @@ let filterNodes nodes =
     nodes
     |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
 
-let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber: TriviaNode option =
+let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
     |> List.filter (fun { Range = r } -> r.StartLine = lineNumber)
     |> List.tryHead
@@ -96,7 +96,7 @@ let private findFirstNodeAfterLine
             else
                 false)
 
-let private findLastNodeOnLine (nodes: TriviaNodeAssigner list) lineNumber: TriviaNodeAssigner option =
+let private findLastNodeOnLine (nodes: TriviaNodeAssigner list) lineNumber : TriviaNodeAssigner option =
     nodes
     |> List.filter (fun tn -> tn.Range.EndLine = lineNumber)
     |> List.sortByDescending (fun tn -> tn.Range.EndColumn, tn.Range.StartColumn)
@@ -109,7 +109,7 @@ let private findLastNodeOnLine (nodes: TriviaNodeAssigner list) lineNumber: Triv
         | h :: _ -> Some h
         | [] -> None
 
-let private findLastNode (nodes: TriviaNodeAssigner list): TriviaNodeAssigner option =
+let private findLastNode (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner option =
     match nodes with
     | [] -> None
     | nodes ->

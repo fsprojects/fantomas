@@ -70,7 +70,7 @@ let private parseOptionsFromEditorConfig (editorConfig: EditorConfig.Core.FileCo
         let formatConfigType = FormatConfig.Default.GetType()
         Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(formatConfigType, newValues) :?> FormatConfig
 
-let configToEditorConfig (config: FormatConfig): string =
+let configToEditorConfig (config: FormatConfig) : string =
     Reflection.getRecordFields config
     |> Array.choose
         (fun (k, v) ->
@@ -87,8 +87,8 @@ let configToEditorConfig (config: FormatConfig): string =
 
 let private editorConfigParser = EditorConfig.Core.EditorConfigParser()
 
-let tryReadConfiguration (fsharpFile: string): FormatConfig option =
-    let editorConfigSettings: EditorConfig.Core.FileConfiguration =
+let tryReadConfiguration (fsharpFile: string) : FormatConfig option =
+    let editorConfigSettings : EditorConfig.Core.FileConfiguration =
         editorConfigParser.Parse(fileName = fsharpFile)
 
     if editorConfigSettings.Properties.Count = 0 then
@@ -97,6 +97,6 @@ let tryReadConfiguration (fsharpFile: string): FormatConfig option =
         Some
         <| parseOptionsFromEditorConfig editorConfigSettings
 
-let readConfiguration (fsharpFile: string): FormatConfig =
+let readConfiguration (fsharpFile: string) : FormatConfig =
     tryReadConfiguration fsharpFile
     |> Option.defaultValue FormatConfig.Default

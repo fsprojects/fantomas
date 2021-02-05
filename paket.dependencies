@@ -22,7 +22,6 @@ group build
     storage: none
     source https://api.nuget.org/v3/index.json
 
-    nuget Fantomas.Extras 4.4.0-beta-003
     nuget Microsoft.Azure.Cosmos.Table
     nuget Fake.Core.ReleaseNotes
     nuget Fake.Core.Xml

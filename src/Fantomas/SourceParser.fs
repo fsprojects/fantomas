@@ -954,7 +954,7 @@ type ComputationExpressionStatement =
     | AndBangStatement of SynPat * SynExpr * range
     | OtherStatement of SynExpr
 
-let rec collectComputationExpressionStatements e: ComputationExpressionStatement list =
+let rec collectComputationExpressionStatements e : ComputationExpressionStatement list =
     match e with
     | SynExpr.LetOrUse (isRecursive, isUse, bindings, body, _) ->
         let bindings =

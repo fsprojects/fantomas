@@ -960,7 +960,7 @@ let internal futureNlnCheckMem (f, ctx) =
         (false, false)
     else
         // Create a dummy context to evaluate length of current operation
-        let dummyCtx: Context =
+        let dummyCtx : Context =
             ctx.WithDummy(Queue.empty, keepPageWidth = true)
             |> f
 
@@ -973,11 +973,11 @@ let internal futureNlnCheck f (ctx: Context) =
 /// similar to futureNlnCheck but validates whether the expression is going over the max page width
 /// This functions is does not use any caching
 let internal exceedsWidth maxWidth f (ctx: Context) =
-    let dummyCtx: Context =
+    let dummyCtx : Context =
         ctx.WithDummy(Queue.empty, keepPageWidth = true)
 
     let currentColumn = dummyCtx.Column
-    let ctxAfter: Context = f dummyCtx
+    let ctxAfter : Context = f dummyCtx
     (ctxAfter.Column - currentColumn) > maxWidth
 
 /// Similar to col, skip auto newline for index 0
@@ -996,7 +996,7 @@ let internal colAutoNlnSkip0i f' (c: seq<'T>) f (ctx: Context) =
 let internal colAutoNlnSkip0 f' c f = colAutoNlnSkip0i f' c (fun _ -> f)
 
 /// Skip all auto-breaking newlines
-let internal noNln f (ctx: Context): Context =
+let internal noNln f (ctx: Context) : Context =
     let res = f { ctx with BreakLines = false }
     { res with BreakLines = ctx.BreakLines }
 

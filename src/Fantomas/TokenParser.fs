@@ -51,7 +51,7 @@ let rec private tokenizeLine (tokenizer: FSharpLineTokenizer) sourceCodeLines st
         tokenizeLine tokenizer sourceCodeLines state lineNumber (token :: extraToken :: tokens)
 
     | (Some tok, state), _ ->
-        let token: Token =
+        let token : Token =
             { TokenInfo = tok
               LineNumber = lineNumber
               Content = getTokenText sourceCodeLines lineNumber tok }
@@ -104,7 +104,7 @@ type SourceCodeParserState =
       NewlineIndexes: int list
       Defines: (Token list) list }
 
-let rec private getTokenizedHashes (sourceCode: string): Token list =
+let rec private getTokenizedHashes (sourceCode: string) : Token list =
     let hasNoHashDirectiveStart (source: string) = not (source.Contains("#if"))
 
     if hasNoHashDirectiveStart sourceCode then
@@ -130,7 +130,7 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
         let (|CloseParenChar|_|) = equalsChar ')'
         let isSpace = (=) ' '
 
-        let processLine (hashContent: string) (lineContent: string) (lineNumber: int) (offset: int): Token list =
+        let processLine (hashContent: string) (lineContent: string) (lineNumber: int) (offset: int) : Token list =
             let hashContentLength = String.length hashContent
 
             let tokens =
@@ -308,7 +308,7 @@ let rec private getTokenizedHashes (sourceCode: string): Token list =
             initialState
         |> fun state -> state.Defines |> List.rev |> List.collect id
 
-and tokenize defines (hashTokens: Token list) (content: string): Token list =
+and tokenize defines (hashTokens: Token list) (content: string) : Token list =
     let sourceTokenizer =
         FSharpSourceTokenizer(defines, Some "/tmp.fsx")
 

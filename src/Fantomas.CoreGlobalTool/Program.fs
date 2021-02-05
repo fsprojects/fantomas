@@ -187,7 +187,7 @@ let private reportCheckResults (output: TextWriter) (checkResult: FakeHelpers.Ch
     |> List.map (sprintf "%s needs formatting")
     |> Seq.iter output.WriteLine
 
-let runCheckCommand (recurse: bool) (inputPath: InputPath): int =
+let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
     let check files =
         Async.RunSynchronously(FakeHelpers.checkCode files)
 

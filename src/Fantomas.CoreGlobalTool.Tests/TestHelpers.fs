@@ -38,10 +38,10 @@ type TemporaryFileCodeSample
          else
              File.WriteAllText(filename, codeSnippet))
 
-    member _.Filename: string = filename
+    member _.Filename : string = filename
 
     interface IDisposable with
-        member this.Dispose(): unit =
+        member this.Dispose() : unit =
             File.Delete(filename)
 
             subFolder
@@ -54,10 +54,10 @@ type OutputFile internal () =
     let filename =
         Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
 
-    member _.Filename: string = filename
+    member _.Filename : string = filename
 
     interface IDisposable with
-        member this.Dispose(): unit =
+        member this.Dispose() : unit =
             if File.Exists(filename) then
                 File.Delete(filename)
 
@@ -66,10 +66,10 @@ type ConfigurationFile internal (content: string) =
         Path.Join(Path.GetTempPath(), ".editorconfig")
 
     do File.WriteAllText(filename, content)
-    member _.Filename: string = filename
+    member _.Filename : string = filename
 
     interface IDisposable with
-        member this.Dispose(): unit =
+        member this.Dispose() : unit =
             if File.Exists(filename) then
                 File.Delete(filename)
 
@@ -78,10 +78,10 @@ type FantomasIgnoreFile internal (content: string) =
         Path.Join(Path.GetTempPath(), IgnoreFile.IgnoreFileName)
 
     do File.WriteAllText(filename, content)
-    member _.Filename: string = filename
+    member _.Filename : string = filename
 
     interface IDisposable with
-        member this.Dispose(): unit =
+        member this.Dispose() : unit =
             if File.Exists(filename) then
                 File.Delete(filename)
 
