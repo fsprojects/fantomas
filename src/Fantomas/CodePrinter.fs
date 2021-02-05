@@ -3005,7 +3005,7 @@ and genApp appNlnFun astContext e es ctx =
         if shouldHaveAlternativeLambdaStyle then
             let hasMultipleArguments = (List.length es) > 1
 
-            let sepSpace ctx =
+            let sepSpaceAfterFunctionName ctx =
                 match e with
                 | UppercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
                 | LowercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
@@ -3100,7 +3100,7 @@ and genApp appNlnFun astContext e es ctx =
                     singleLambdaArgument
 
             genExpr astContext e
-            +> ifElse (not hasMultipleArguments) sepSpace (indent +> sepNln)
+            +> ifElse (not hasMultipleArguments) sepSpaceAfterFunctionName (indent +> sepNln)
             +> argExpr
             +> onlyIf hasMultipleArguments unindent
         else
