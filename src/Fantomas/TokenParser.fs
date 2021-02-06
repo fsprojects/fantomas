@@ -414,29 +414,15 @@ let getDefines sourceCode =
 
     defineCombinations, hashTokens
 
-let private getRangeBetween name startToken endToken =
+let private getRangeBetween (mkRange: MkRange) startToken endToken =
     let l = startToken.TokenInfo.LeftColumn
     let r = endToken.TokenInfo.RightColumn
+    mkRange startToken.LineNumber l endToken.LineNumber (if l = r then r + 1 else r)
 
-    let start =
-        FSharp.Compiler.Range.mkPos startToken.LineNumber l
-
-    let endR =
-        FSharp.Compiler.Range.mkPos endToken.LineNumber (if l = r then r + 1 else r)
-
-    FSharp.Compiler.Range.mkRange name start endR
-
-let private getRangeForSingleToken name token =
+let private getRangeForSingleToken (mkRange: MkRange) token =
     let l = token.TokenInfo.LeftColumn
     let r = l + token.TokenInfo.FullMatchedLength
-
-    let start =
-        FSharp.Compiler.Range.mkPos token.LineNumber l
-
-    let endR =
-        FSharp.Compiler.Range.mkPos token.LineNumber r
-
-    FSharp.Compiler.Range.mkRange name start endR
+    mkRange token.LineNumber l token.LineNumber r
 
 let private hasOnlySpacesAndLineCommentsOnLine lineNumber tokens =
     if List.isEmpty tokens then
@@ -601,7 +587,12 @@ let ``only whitespaces were found in the remainder of the line`` lineNumber toke
             && t.TokenInfo.Tag <> whiteSpaceTag)
     |> not
 
-let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: Token list) foundTrivia =
+let rec private getTriviaFromTokensThemSelves
+    (mkRange: MkRange)
+    (allTokens: Token list)
+    (tokens: Token list)
+    foundTrivia
+    =
     match tokens with
     | headToken :: rest when (headToken.TokenInfo.Tag = lineCommentTag) ->
         let lineCommentTokens =
@@ -629,7 +620,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
 
         let range =
             let lastToken = List.tryLast lineCommentTokens
-            getRangeBetween "line comment" headToken (Option.defaultValue headToken lastToken)
+            getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
 
         let info =
             let toLineComment =
@@ -650,7 +641,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             Trivia.Create comment range
             |> List.appendItem foundTrivia
 
-        getTriviaFromTokensThemSelves allTokens nextTokens info
+        getTriviaFromTokensThemSelves mkRange allTokens nextTokens info
 
     | headToken :: rest when (headToken.TokenInfo.TokenName = "COMMENT") ->
         let blockCommentTokens =
@@ -694,25 +685,25 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
 
         let range =
             let lastToken = List.last blockCommentTokens
-            getRangeBetween "block comment" headToken lastToken
+            getRangeBetween mkRange headToken lastToken
 
         let info =
             Trivia.Create(Comment(BlockComment(comment, false, false))) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves allTokens nextTokens info
+        getTriviaFromTokensThemSelves mkRange allTokens nextTokens info
 
     | headToken :: rest when
         (isOperatorOrKeyword headToken
          && List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia) ->
         let range =
-            getRangeBetween "keyword" headToken headToken
+            getRangeBetween mkRange headToken headToken
 
         let info =
             Trivia.Create(Keyword(headToken)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves allTokens rest info
+        getTriviaFromTokensThemSelves mkRange allTokens rest info
 
     | headToken :: rest when (headToken.TokenInfo.TokenName = "HASH_IF") ->
         let directiveTokens =
@@ -726,7 +717,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> String.concat String.empty
 
         let range =
-            getRangeBetween "directive" headToken (List.last directiveTokens)
+            getRangeBetween mkRange headToken (List.last directiveTokens)
 
         let info =
             Trivia.Create(Directive(directiveContent)) range
@@ -737,7 +728,7 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             | [] -> []
             | _ -> List.skip (List.length directiveTokens - 1) rest
 
-        getTriviaFromTokensThemSelves allTokens nextRest info
+        getTriviaFromTokensThemSelves mkRange allTokens nextRest info
 
     | EndOfInterpolatedString (stringTokens, interpStringEnd, rest) ->
         let stringContent =
@@ -746,21 +737,20 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             |> String.concat String.Empty
 
         let range =
-            getRangeBetween "string content" stringTokens.Head interpStringEnd
+            getRangeBetween mkRange stringTokens.Head interpStringEnd
 
         let info =
             Trivia.Create(StringContent(stringContent)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves allTokens rest info
+        getTriviaFromTokensThemSelves mkRange allTokens rest info
 
     | StringText (head, stringTokens, rest, stringContent) ->
         let lastToken =
             List.tryLast stringTokens
             |> Option.defaultValue head
 
-        let range =
-            getRangeBetween "string content" head lastToken
+        let range = getRangeBetween mkRange head lastToken
 
         let info =
             Trivia.Create(StringContent(stringContent)) range
@@ -771,74 +761,71 @@ let rec private getTriviaFromTokensThemSelves (allTokens: Token list) (tokens: T
             | [] -> []
             | _ -> List.skip (List.length stringTokens - 1) rest
 
-        getTriviaFromTokensThemSelves allTokens nextRest info
+        getTriviaFromTokensThemSelves mkRange allTokens nextRest info
 
     | minus :: head :: rest when
         (minus.TokenInfo.TokenName = "MINUS"
          && isNumber head) ->
-        let range = getRangeBetween "number" minus head
+        let range = getRangeBetween mkRange minus head
 
         let info =
             Trivia.Create(Number(minus.Content + head.Content)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves allTokens rest info
+        getTriviaFromTokensThemSelves mkRange allTokens rest info
 
     | head :: rest when (isNumber head) ->
-        let range = getRangeForSingleToken "number" head
+        let range = getRangeForSingleToken mkRange head
 
         let info =
             Trivia.Create(Number(head.Content)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves allTokens rest info
+        getTriviaFromTokensThemSelves mkRange allTokens rest info
 
     | head :: rest when (identIsDecompiledOperator head) ->
-        let range =
-            getRangeBetween "operator as word" head head
+        let range = getRangeBetween mkRange head head
 
         let info =
             Trivia.Create(IdentOperatorAsWord head.Content) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves allTokens rest info
+        getTriviaFromTokensThemSelves mkRange allTokens rest info
 
     | head :: rest when
         (head.TokenInfo.TokenName = "IDENT"
          && head.Content.StartsWith("``")
          && head.Content.EndsWith("``")) ->
-        let range =
-            getRangeBetween "ident between ``" head head
+        let range = getRangeBetween mkRange head head
 
         let info =
             Trivia.Create(IdentBetweenTicks(head.Content)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves allTokens rest info
+        getTriviaFromTokensThemSelves mkRange allTokens rest info
 
     | CharToken (head) :: rest ->
-        let range =
-            getRangeBetween head.TokenInfo.TokenName head head
+        let range = getRangeBetween mkRange head head
 
         let info =
             Trivia.Create(CharContent(head.Content)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves allTokens rest info
+        getTriviaFromTokensThemSelves mkRange allTokens rest info
 
-    | _ :: rest -> getTriviaFromTokensThemSelves allTokens rest foundTrivia
+    | _ :: rest -> getTriviaFromTokensThemSelves mkRange allTokens rest foundTrivia
 
     | [] -> foundTrivia
 
-let private createNewLine lineNumber =
-    let pos = FSharp.Compiler.Range.mkPos lineNumber 0
-
-    let range =
-        FSharp.Compiler.Range.mkRange "newline" pos pos
-
+let private createNewLine (mkRange: MkRange) lineNumber =
+    let range = mkRange lineNumber 0 lineNumber 0
     { Item = Newline; Range = range }
 
-let private findEmptyNewlinesInTokens (tokens: Token list) (ignoreRanges: FSharp.Compiler.Range.range list) =
+let private findEmptyNewlinesInTokens
+    (mkRange: MkRange)
+    (tokens: Token list)
+    (ignoreRanges: FSharp.Compiler.Range.range list)
+    =
     let nonWhitespaceLines =
         tokens
         |> List.choose
@@ -859,11 +846,11 @@ let private findEmptyNewlinesInTokens (tokens: Token list) (ignoreRanges: FSharp
 
     [ 1 .. lastLineWithContent ]
     |> List.except (nonWhitespaceLines @ ignoreRanges)
-    |> List.map createNewLine
+    |> List.map (createNewLine mkRange)
 
-let getTriviaFromTokens (tokens: Token list) =
+let getTriviaFromTokens (mkRange: MkRange) (tokens: Token list) =
     let fromTokens =
-        getTriviaFromTokensThemSelves tokens tokens []
+        getTriviaFromTokensThemSelves mkRange tokens tokens []
 
     let blockComments =
         fromTokens
@@ -886,7 +873,7 @@ let getTriviaFromTokens (tokens: Token list) =
                 | _ -> None)
 
     let newLines =
-        findEmptyNewlinesInTokens tokens (blockComments @ multilineStrings)
+        findEmptyNewlinesInTokens mkRange tokens (blockComments @ multilineStrings)
 
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
@@ -970,7 +957,7 @@ let internal getFsToken tokenName =
     | "DO" -> DO
     | _ -> failwithf "was not expecting token %s" tokenName
 
-let getTriviaNodesFromTokens (tokens: Token list) =
+let getTriviaNodesFromTokens (mkRange: MkRange) (tokens: Token list) =
     tokens
     |> List.filter
         (fun t ->
@@ -978,7 +965,5 @@ let getTriviaNodesFromTokens (tokens: Token list) =
             || List.exists (fun tk -> tk = t.TokenInfo.CharClass) tokenKinds)
     |> List.map
         (fun t ->
-            let range =
-                getRangeBetween t.TokenInfo.TokenName t t
-
+            let range = getRangeBetween mkRange t t
             TriviaNodeAssigner(TriviaNodeType.Token(getFsToken t.TokenInfo.TokenName, t), range))

@@ -2,6 +2,7 @@ module Fantomas.Context
 
 open System
 open FSharp.Compiler.Range
+open FSharp.Compiler.SyntaxTree
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.TriviaTypes
@@ -161,7 +162,8 @@ type internal Context =
       Positions: int []
       TriviaMainNodes: Map<FsAstType, TriviaNode list>
       TriviaTokenNodes: Map<FsTokenType, TriviaNode list>
-      RecordBraceStart: int list }
+      RecordBraceStart: int list
+      MkRange: MkRange }
 
     /// Initialize with a string writer and use space as delimiter
     static member Default =
@@ -174,9 +176,10 @@ type internal Context =
           Positions = [||]
           TriviaMainNodes = Map.empty
           TriviaTokenNodes = Map.empty
-          RecordBraceStart = [] }
+          RecordBraceStart = []
+          MkRange = fun _ _ _ _ -> range.Zero }
 
-    static member Create config defines (hashTokens: Token list) (content: string) maybeAst =
+    static member Create config defines (hashTokens: Token list) (content: string) (maybeAst: ParsedInput option) =
         let content = String.normalizeNewLine content
 
         let positions =
@@ -188,10 +191,14 @@ type internal Context =
         let tokens =
             TokenParser.tokenize defines hashTokens content
 
-        let trivia =
+        let trivia, mkRange =
             match maybeAst, config.StrictMode with
-            | Some ast, false -> Trivia.collectTrivia tokens ast
-            | _ -> []
+            | Some ast, false ->
+                let mkRange startLine startCol endLine endCol =
+                    mkRange ast.Range.FileName (mkPos startLine startCol) (mkPos endLine endCol)
+
+                (Trivia.collectTrivia mkRange tokens ast), mkRange
+            | _ -> [], Context.Default.MkRange
 
         let triviaByNodes =
             trivia
@@ -220,7 +227,8 @@ type internal Context =
               Content = content
               Positions = positions
               TriviaMainNodes = triviaByNodes
-              TriviaTokenNodes = triviaByTokenNames }
+              TriviaTokenNodes = triviaByTokenNames
+              MkRange = mkRange }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth =
@@ -265,6 +273,9 @@ type internal Context =
                   WriterModel =
                       { x.WriterModel with
                             Mode = ShortExpression([ info ]) } }
+
+    member x.MkRangeWithPos (startPos: pos) (endPos: pos) =
+        x.MkRange startPos.Line startPos.Column endPos.Line endPos.Column
 
 let internal writerEvent e ctx =
     let evs = WriterEvents.normalize e

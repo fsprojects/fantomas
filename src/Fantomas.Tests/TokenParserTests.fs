@@ -12,12 +12,18 @@ let private isNewline item =
     | Newline -> true
     | _ -> false
 
-let getDefines v =
+let private getDefines v =
     let normalizedString = String.normalizeNewLine v
     let _, hashTokens = getDefines normalizedString
     getDefinesWords hashTokens
 
-let tokenize v = tokenize [] [] v
+let private tokenize v = tokenize [] [] v
+
+let private mkRange : MkRange =
+    CodeFormatterImpl.makeRange "TokenParserTests"
+
+let private getTriviaFromTokens = getTriviaFromTokens mkRange
+let private getTriviaNodesFromTokens = getTriviaNodesFromTokens mkRange
 
 [<Test>]
 let ``Simple compiler directive should be found`` () =

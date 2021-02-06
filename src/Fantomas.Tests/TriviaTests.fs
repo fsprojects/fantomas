@@ -1,10 +1,12 @@
 module Fantomas.Tests.TriviaTests
 
 open NUnit.Framework
-open FsUnit
 open Fantomas
 open Fantomas.Tests.TestHelper
 open Fantomas.TriviaTypes
+
+let private collectTrivia =
+    Trivia.collectTrivia (CodeFormatterImpl.makeRange "Fantomas.Tests.TriviaTests")
 
 let private toTrivia source =
     let astWithDefines = parse false source |> Array.toList
@@ -15,7 +17,7 @@ let private toTrivia source =
             let tokens =
                 TokenParser.tokenize defines hashTokens source
 
-            Trivia.collectTrivia tokens ast)
+            collectTrivia tokens ast)
 
 let private toTriviaWithDefines source =
     let astWithDefines = parse false source |> Array.toList
@@ -26,7 +28,7 @@ let private toTriviaWithDefines source =
             let tokens =
                 TokenParser.tokenize defines hashTokens source
 
-            defines, Trivia.collectTrivia tokens ast)
+            defines, collectTrivia tokens ast)
     |> Map.ofList
 
 [<Test>]
