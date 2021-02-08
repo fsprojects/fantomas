@@ -82,6 +82,7 @@
     <Compile Include="MultiLineLambdaClosingNewlineTests.fs" />
     <Compile Include="OpenTypeTests.fs" />
     <Compile Include="CodeFormatterTests.fs" />
+    <Compile Include="RemoveUnnecessaryParenthesesTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

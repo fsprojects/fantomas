@@ -36,6 +36,8 @@ type ASTContext =
       IsInsideDotGet: bool
       /// Check whether the context is inside a SynExpr.DotIndexedGet
       IsInsideDotIndexed: bool
+      /// Inside a SynExpr of IfThenElse
+      IsInsideIfThenElseExpression: bool
       /// Inside a SynPat of MatchClause
       IsInsideMatchClausePattern: bool }
     static member Default =
@@ -49,6 +51,7 @@ type ASTContext =
           IsFirstTypeParam = false
           IsInsideDotGet = false
           IsInsideDotIndexed = false
+          IsInsideIfThenElseExpression = false
           IsInsideMatchClausePattern = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
@@ -1637,6 +1640,17 @@ and genExpr astContext synExpr ctx =
         | Paren (_, ILEmbedded r, _) ->
             // Just write out original code inside (# ... #)
             fun ctx -> !- (defaultArg (lookup r ctx) "") ctx
+
+        | Paren (lpr, SynExpr.Ident ident, rpr) when astContext.IsInsideIfThenElseExpression ->
+            let e = SynExpr.Ident ident
+
+            match ident.idText with
+            | "op_Multiply" ->
+                sepOpenTFor lpr
+                +> genExpr astContext e
+                +> sepCloseTFor rpr
+            | _ -> genExpr astContext e
+
         | Paren (lpr, e, rpr) ->
             match e with
             | MultilineString _ ->
@@ -2123,6 +2137,10 @@ and genExpr astContext synExpr ctx =
         | ElIf ((e1, e2, _, _, _) :: es, enOpt) ->
             // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
             fun ctx ->
+                let astContext =
+                    { astContext with
+                          IsInsideIfThenElseExpression = true }
+
                 let correctedElifRanges =
                     es
                     |> List.pairwise
