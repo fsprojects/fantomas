@@ -1,3 +1,8 @@
+### 4.4.0-beta-005 02/2021
+
+* Fix fsharp_space_before_uppercase_invocation=true breaks method calls. [#1437](https://github.com/fsprojects/fantomas/issues/1437)
+* Fix Crash regression on 4.4.0-beta-003. [#1438](https://github.com/fsprojects/fantomas/issues/1438)
+
 ### 4.4.0-beta-004 01/2021
 
 * Fix MultiLineLambdaClosingNewline concats lambda arguments. [#1427](https://github.com/fsprojects/fantomas/issues/1427)
