@@ -607,3 +607,111 @@ SomeFunction(
 )
     .ChainedFunctionCall()
 """
+
+[<Test>]
+let ``space before uppercase invocation should only be respected at end of chain, 1438`` () =
+    formatSourceString
+        false
+        """
+namespace AspNetSerilog
+
+[<Extension>]
+type IWebHostBuilderExtensions() =
+
+    [<Extension>]
+    static member UseSerilog(webHostBuilder : IWebHostBuilder, index : Index) =
+        webHostBuilder.UseSerilog(fun context configuration ->
+            configuration
+                .MinimumLevel.Debug()
+                .WriteTo.Logger(fun loggerConfiguration ->
+                    loggerConfiguration
+                        .Enrich.WithProperty("host", Environment.MachineName)
+                        .Enrich.WithProperty("user", Environment.UserName)
+                        .Enrich.WithProperty("application", context.HostingEnvironment.ApplicationName)
+                    |> ignore
+                )
+            |> ignore
+        )
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace AspNetSerilog
+
+[<Extension>]
+type IWebHostBuilderExtensions() =
+
+    [<Extension>]
+    static member UseSerilog(webHostBuilder: IWebHostBuilder, index: Index) =
+        webHostBuilder.UseSerilog (fun context configuration ->
+            configuration
+                .MinimumLevel
+                .Debug()
+                .WriteTo
+                .Logger(fun loggerConfiguration ->
+                    loggerConfiguration
+                        .Enrich
+                        .WithProperty("host", Environment.MachineName)
+                        .Enrich.WithProperty("user", Environment.UserName)
+                        .Enrich
+                        .WithProperty(
+                            "application",
+                            context.HostingEnvironment.ApplicationName
+                        )
+                    |> ignore)
+            |> ignore
+        )
+"""
+
+[<Test>]
+let ``space before uppercase invocation only on last lid of chain, 1437`` () =
+    formatSourceString
+        false
+        """
+Log.Logger <-
+    LoggerConfiguration()
+        .Destructure.FSharpTypes()
+        .WriteTo.Console()
+        .CreateLogger()
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+Log.Logger <-
+    LoggerConfiguration()
+        .Destructure.FSharpTypes()
+        .WriteTo.Console()
+        .CreateLogger ()
+"""
+
+[<Test>]
+let ``space before uppercase invocation only on last lid of chain, tupled arg`` () =
+    formatSourceString
+        false
+        """
+Log.Logger <-
+    LoggerConfiguration(1,2)
+        .Destructure.FSharpTypes()
+        .WriteTo.Console()
+        .CreateLogger()
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+Log.Logger <-
+    LoggerConfiguration(1, 2)
+        .Destructure.FSharpTypes()
+        .WriteTo.Console()
+        .CreateLogger ()
+"""
