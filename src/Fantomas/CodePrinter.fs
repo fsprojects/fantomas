@@ -1822,9 +1822,15 @@ and genExpr astContext synExpr ctx =
                         (genGenericTypeParameters astContext ts
                          +> genExpr astContext e2)
                         lids
+                | App (SimpleExpr e, [ ConstExpr (SynConst.Unit, r) ]) when (List.moreThanOne es) ->
+                    genExpr astContext e +> genConst SynConst.Unit r
+                | App (SimpleExpr e, [ Paren _ as p ]) when (List.moreThanOne es) ->
+                    genExpr astContext e +> genExpr astContext p
                 | _ -> genExpr astContext e
 
-            let genApp ((lids, e, ts): (string * range) list * SynExpr * SynType list) : Context -> Context =
+            let lastEsIndex = es.Length - 1
+
+            let genApp (idx: int) ((lids, e, ts): (string * range) list * SynExpr * SynType list) : Context -> Context =
                 let short =
                     let addSpace ctx =
                         let config =
@@ -1835,7 +1841,8 @@ and genExpr astContext synExpr ctx =
                             else
                                 ctx.Config.SpaceBeforeLowercaseInvocation
 
-                        not (hasParenthesis e) || config
+                        (lastEsIndex = idx)
+                        && (not (hasParenthesis e) || config)
 
                     genLidsWithDots lids
                     +> genGenericTypeParameters astContext ts
@@ -1854,13 +1861,13 @@ and genExpr astContext synExpr ctx =
                 | App (e, [ px ]) when (hasParenthesis px || isArrayOrList px) ->
                     genExpr astContext e +> genExpr astContext px
                 | _ -> genExpr astContext e
-                +> col sepNone es genApp
+                +> coli sepNone es genApp
 
             let long =
                 genLongFunctionName
                 +> indent
                 +> sepNln
-                +> col sepNln es genApp
+                +> coli sepNln es genApp
                 +> unindent
 
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
