@@ -1094,3 +1094,47 @@ type RequestParser<'ctx, 'a> =
             prohibited = []
         }
 """
+
+[<Test>]
+let ``formatting error with MultilineBlockBracketsOnSameColumn, 1396`` () =
+    formatSourceString
+        false
+        """
+namespace GeeTower.Tests.EndToEnd
+
+module WatcherTests =
+
+    let CanRevokeAnIllegalCommitmentTx () =
+        let lndAddress = obj()
+
+        let config = {
+            GeeTower.Backend.Configuration.GetTestingConfig (lndAddress.ToString())
+            with
+                BitcoinRpcUser = "btc"
+        }
+
+        ()
+"""
+        { config with
+              MaxLineLength = 80
+              MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace GeeTower.Tests.EndToEnd
+
+module WatcherTests =
+
+    let CanRevokeAnIllegalCommitmentTx () =
+        let lndAddress = obj ()
+
+        let config =
+            { GeeTower.Backend.Configuration.GetTestingConfig(
+                  lndAddress.ToString()
+              ) with
+                BitcoinRpcUser = "btc"
+            }
+
+        ()
+"""
