@@ -2757,7 +2757,7 @@ and genMultilineRecordInstanceAlignBrackets
 
     | None, Some e ->
         sepOpenS
-        +> genExpr astContext e
+        +> atCurrentColumnIndent (genExpr astContext e)
         +> (!- " with"
             +> indent
             +> whenShortIndent indent
