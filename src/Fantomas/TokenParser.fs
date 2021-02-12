@@ -417,12 +417,12 @@ let getDefines sourceCode =
 let private getRangeBetween (mkRange: MkRange) startToken endToken =
     let l = startToken.TokenInfo.LeftColumn
     let r = endToken.TokenInfo.RightColumn
-    mkRange startToken.LineNumber l endToken.LineNumber (if l = r then r + 1 else r)
+    mkRange (startToken.LineNumber, l) (endToken.LineNumber, (if l = r then r + 1 else r))
 
 let private getRangeForSingleToken (mkRange: MkRange) token =
     let l = token.TokenInfo.LeftColumn
     let r = l + token.TokenInfo.FullMatchedLength
-    mkRange token.LineNumber l token.LineNumber r
+    mkRange (token.LineNumber, l) (token.LineNumber, r)
 
 let private hasOnlySpacesAndLineCommentsOnLine lineNumber tokens =
     if List.isEmpty tokens then
@@ -818,7 +818,7 @@ let rec private getTriviaFromTokensThemSelves
     | [] -> foundTrivia
 
 let private createNewLine (mkRange: MkRange) lineNumber =
-    let range = mkRange lineNumber 0 lineNumber 0
+    let range = mkRange (lineNumber, 0) (lineNumber, 0)
     { Item = Newline; Range = range }
 
 let private findEmptyNewlinesInTokens

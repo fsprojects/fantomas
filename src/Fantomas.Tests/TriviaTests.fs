@@ -6,7 +6,12 @@ open Fantomas.Tests.TestHelper
 open Fantomas.TriviaTypes
 
 let private collectTrivia =
-    Trivia.collectTrivia (CodeFormatterImpl.makeRange "Fantomas.Tests.TriviaTests")
+    Trivia.collectTrivia
+        (fun (sl, sc) (el, ec) ->
+            FSharp.Compiler.Range.mkRange
+                "TriviaTests"
+                (FSharp.Compiler.Range.mkPos sl sc)
+                (FSharp.Compiler.Range.mkPos el ec))
 
 let private toTrivia source =
     let astWithDefines = parse false source |> Array.toList

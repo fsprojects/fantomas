@@ -20,7 +20,11 @@ let private getDefines v =
 let private tokenize v = tokenize [] [] v
 
 let private mkRange : MkRange =
-    CodeFormatterImpl.makeRange "TokenParserTests"
+    fun (sl, sc) (el, ec) ->
+        FSharp.Compiler.Range.mkRange
+            "TokenParserTests"
+            (FSharp.Compiler.Range.mkPos sl sc)
+            (FSharp.Compiler.Range.mkPos el ec)
 
 let private getTriviaFromTokens = getTriviaFromTokens mkRange
 let private getTriviaNodesFromTokens = getTriviaNodesFromTokens mkRange

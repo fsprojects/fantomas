@@ -201,7 +201,7 @@ type internal Context =
         let trivia =
             match maybeAst, config.StrictMode with
             | Some ast, false ->
-                let mkRange startLine startCol endLine endCol =
+                let mkRange (startLine, startCol) (endLine, endCol) =
                     mkRange fileName (mkPos startLine startCol) (mkPos endLine endCol)
 
                 Trivia.collectTrivia mkRange tokens ast

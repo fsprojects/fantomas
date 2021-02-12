@@ -351,4 +351,4 @@ type TriviaNodeAssigner(nodeType: TriviaNodeType, range: range, ?linesBetweenPar
     member val ContentItself = Option<TriviaContent>.None with get, set
     member val ContentAfter = ResizeArray<TriviaContent>() with get, set
 
-type MkRange = int -> int -> int -> int -> range
+type MkRange = int * int -> int * int -> range
