@@ -259,7 +259,7 @@ and genModuleDeclList astContext e =
                     | SynModuleDecl.DoExpr _ ->
                         let doKeyWordRange =
                             let lastAttribute = List.last xs
-                            ctx.MkRangeWithPos lastAttribute.Range.End y.Range.Start
+                            ctx.MkRange lastAttribute.Range.End y.Range.Start
 
                         // the do keyword range is not part of SynModuleDecl.DoExpr
                         // So Trivia before `do` cannot be printed in genModuleDecl
@@ -1285,18 +1285,14 @@ and genExpr astContext synExpr ctx =
             let tokenSize = if isArray then 2 else 1
 
             let openingTokenRange =
-                ctx.MkRange
-                    alNode.Range.Start.Line
-                    alNode.Range.Start.Column
-                    alNode.Range.Start.Line
-                    (alNode.Range.Start.Column + tokenSize)
+                ctx.MkRangeWith
+                    (alNode.Range.Start.Line, alNode.Range.Start.Column)
+                    (alNode.Range.Start.Line, (alNode.Range.Start.Column + tokenSize))
 
             let closingTokenRange =
-                ctx.MkRange
-                    alNode.Range.End.Line
-                    (alNode.Range.End.Column - tokenSize)
-                    alNode.Range.End.Line
-                    alNode.Range.End.Column
+                ctx.MkRangeWith
+                    (alNode.Range.End.Line, (alNode.Range.End.Column - tokenSize))
+                    (alNode.Range.End.Line, alNode.Range.End.Column)
 
             let smallExpression =
                 ifElse isArray (tokN openingTokenRange LBRACK_BAR sepOpenA) (tokN openingTokenRange LBRACK sepOpenL)
@@ -1520,7 +1516,7 @@ and genExpr astContext synExpr ctx =
                 let arrowRange =
                     List.last cps
                     |> snd
-                    |> fun lastPatRange -> ctx.MkRangeWithPos lastPatRange.End e.Range.Start
+                    |> fun lastPatRange -> ctx.MkRange lastPatRange.End e.Range.Start
 
                 let hasLineCommentAfterArrow =
                     findTriviaTokenFromName RARROW arrowRange ctx
@@ -1901,7 +1897,7 @@ and genExpr astContext synExpr ctx =
         | LetOrUses (bs, e) ->
             let inKeyWordTrivia (binding: SynBinding) (ctx: Context) =
                 let inRange =
-                    ctx.MkRangeWithPos binding.RangeOfBindingAndRhs.End e.Range.Start
+                    ctx.MkRange binding.RangeOfBindingAndRhs.End e.Range.Start
 
                 Map.tryFindOrEmptyList IN ctx.TriviaTokenNodes
                 |> TriviaHelpers.``keyword token after start column and on same line`` inRange
@@ -1972,7 +1968,7 @@ and genExpr astContext synExpr ctx =
                             let doKeyWordRange =
                                 List.last bs
                                 |> snd
-                                |> fun binding -> ctx.MkRangeWithPos binding.RangeOfBindingAndRhs.End e.Range.Start
+                                |> fun binding -> ctx.MkRange binding.RangeOfBindingAndRhs.End e.Range.Start
 
                             let expr =
                                 // the do keyword range is not part of SynExpr.Do
@@ -2081,7 +2077,7 @@ and genExpr astContext synExpr ctx =
                     |> List.choose
                         (fun (idx, (beforeRange, elseIfRange)) ->
                             let rangeBetween =
-                                ctx.MkRangeWithPos beforeRange.End elseIfRange.Start
+                                ctx.MkRange beforeRange.End elseIfRange.Start
 
                             let keywordsFoundInBetween =
                                 TriviaHelpers.``keyword token inside range``
@@ -2090,7 +2086,7 @@ and genExpr astContext synExpr ctx =
 
                             match List.tryHead keywordsFoundInBetween with
                             | Some (_, elseKeyword) ->
-                                (idx, ctx.MkRangeWithPos elseKeyword.Range.Start elseIfRange.End)
+                                (idx, ctx.MkRange elseKeyword.Range.Start elseIfRange.End)
                                 |> Some
                             | _ -> None)
                     |> Map.ofList
@@ -2284,7 +2280,7 @@ and genExpr astContext synExpr ctx =
                         (fun e4 ->
                             let correctedElseRange =
                                 match List.tryLast elfis with
-                                | Some (_, te, _) -> ctx.MkRangeWithPos te.Range.End synExpr.Range.End
+                                | Some (_, te, _) -> ctx.MkRange te.Range.End synExpr.Range.End
                                 | None -> synExpr.Range
 
                             onlyIf (List.isNotEmpty elfis) sepNln
@@ -2301,7 +2297,7 @@ and genExpr astContext synExpr ctx =
                         let elseExpr =
                             let elseRange =
                                 List.last elfis
-                                |> fun (_, _, r) -> ctx.MkRangeWithPos r.End synExpr.Range.End
+                                |> fun (_, _, r) -> ctx.MkRange r.End synExpr.Range.End
 
                             enOpt
                             |> Option.map (fun _ -> genShortElse enOpt elseRange)
@@ -3059,13 +3055,13 @@ and genApp appNlnFun astContext e es ctx =
                             let arrowRange =
                                 List.last cps
                                 |> snd
-                                |> fun lastPatRange -> ctx.MkRangeWithPos lastPatRange.End e.Range.Start
+                                |> fun lastPatRange -> ctx.MkRange lastPatRange.End e.Range.Start
 
                             genLambda (col sepSpace cps (fst >> genComplexPats astContext)) e lpr rpr arrowRange
                         | Paren (lpr, Lambda (e, sps), rpr) ->
                             let arrowRange =
                                 List.last sps
-                                |> fun sp -> ctx.MkRangeWithPos sp.Range.End e.Range.Start
+                                |> fun sp -> ctx.MkRange sp.Range.End e.Range.Start
 
                             genLambda (col sepSpace sps (genSimplePats astContext)) e lpr rpr arrowRange
                         | _ -> genExpr astContext e)
@@ -3100,13 +3096,13 @@ and genApp appNlnFun astContext e es ctx =
                             let arrowRange =
                                 List.last cps
                                 |> snd
-                                |> fun lastPatRange -> ctx.MkRangeWithPos lastPatRange.End e.Range.Start
+                                |> fun lastPatRange -> ctx.MkRange lastPatRange.End e.Range.Start
 
                             genLambda (col sepSpace cps (fst >> genComplexPats astContext)) e lpr rpr arrowRange
                         | Paren (lpr, Lambda (e, sps), rpr) ->
                             let arrowRange =
                                 List.last sps
-                                |> fun sp -> ctx.MkRangeWithPos sp.Range.End e.Range.Start
+                                |> fun sp -> ctx.MkRange sp.Range.End e.Range.Start
 
                             genLambda (col sepSpace sps (genSimplePats astContext)) e lpr rpr arrowRange
                         | _ -> genExpr astContext e)
@@ -4127,8 +4123,7 @@ and genClause astContext hasBar (Clause (p, e, eo) as ce) =
     let clauseBody e (ctx: Context) =
         (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)) ctx
 
-    let arrowRange (ctx: Context) =
-        ctx.MkRangeWithPos p.Range.End e.Range.Start
+    let arrowRange (ctx: Context) = ctx.MkRange p.Range.End e.Range.Start
 
     let body = clauseBody e
 
@@ -4403,8 +4398,7 @@ and genPat astContext pat =
         genOnelinerAttributes astContext ats
         +> genPat astContext p
     | PatOr (p1, p2) ->
-        let barRange (ctx: Context) =
-            ctx.MkRangeWithPos p1.Range.End p2.Range.Start
+        let barRange (ctx: Context) = ctx.MkRange p1.Range.End p2.Range.Start
 
         genPat astContext p1
         +> ifElse astContext.IsInsideMatchClausePattern sepNln sepSpace
@@ -4608,7 +4602,7 @@ and genSynBindingFunction
                 |> snd
                 |> fun p -> p.Range.End
 
-            ctx.MkRangeWithPos endOfParameters e.Range.Start
+            ctx.MkRange endOfParameters e.Range.Start
 
         let spaceBeforeParameters =
             match parameters with
@@ -4715,7 +4709,7 @@ and genSynBindingFunctionWithReturnType
 
     let genSignature =
         let equalsRange =
-            ctx.MkRangeWithPos returnType.Range.End e.Range.Start
+            ctx.MkRange returnType.Range.End e.Range.Start
 
         let spaceBeforeParameters =
             match parameters with
@@ -4794,8 +4788,7 @@ and genLetBindingDestructedTuple
     let genDestructedTuples =
         expressionFitsOnRestOfLine (genPat astContext pat) (sepOpenT +> genPat astContext pat +> sepCloseT)
 
-    let equalsRange (ctx: Context) =
-        ctx.MkRangeWithPos pat.Range.End e.Range.Start
+    let equalsRange (ctx: Context) = ctx.MkRange pat.Range.End e.Range.Start
 
     genPreXmlDoc px
     +> leadingExpressionIsMultiline
@@ -4859,7 +4852,7 @@ and genSynBindingValue
             | Some rt -> rt.Range.End
             | None -> valueName.Range.End
 
-        ctx.MkRangeWithPos endPos e.Range.Start
+        ctx.MkRange endPos e.Range.Start
 
     let genEqualsInBinding (equalsRange: range) (ctx: Context) =
         let space =

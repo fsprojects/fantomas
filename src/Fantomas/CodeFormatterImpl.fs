@@ -390,7 +390,7 @@ let formatWith ast defines hashTokens formatContext config =
 
     let formattedSourceCode =
         let context =
-            Context.Context.Create config defines hashTokens sourceCodeOrEmptyString (Some ast)
+            Context.Context.Create config defines formatContext.FileName hashTokens sourceCodeOrEmptyString (Some ast)
 
         context
         |> genParsedInput
@@ -546,7 +546,8 @@ let private formatRange
     (range: range)
     (lines: _ [])
     config
-    ({ Source = sourceCode } as formatContext)
+    ({ Source = sourceCode
+       FileName = fileName } as formatContext)
     =
     let startLine = range.StartLine
     let startCol = range.StartColumn
@@ -627,7 +628,7 @@ let private formatRange
     let reconstructSourceCode startCol formatteds pre post =
         Debug.WriteLine("Formatted parts: '{0}' at column {1}", sprintf "%A" formatteds, startCol)
         // Realign results on the correct column
-        Context.Context.Create config [] [] String.Empty None
+        Context.Context.Create config [] fileName [] String.Empty None
         // Mono version of indent text writer behaves differently from .NET one,
         // So we add an empty string first to regularize it
         |> if returnFormattedContentOnly then

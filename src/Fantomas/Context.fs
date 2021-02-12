@@ -163,7 +163,7 @@ type internal Context =
       TriviaMainNodes: Map<FsAstType, TriviaNode list>
       TriviaTokenNodes: Map<FsTokenType, TriviaNode list>
       RecordBraceStart: int list
-      MkRange: MkRange }
+      FileName: string }
 
     /// Initialize with a string writer and use space as delimiter
     static member Default =
@@ -177,9 +177,16 @@ type internal Context =
           TriviaMainNodes = Map.empty
           TriviaTokenNodes = Map.empty
           RecordBraceStart = []
-          MkRange = fun _ _ _ _ -> range.Zero }
+          FileName = String.Empty }
 
-    static member Create config defines (hashTokens: Token list) (content: string) (maybeAst: ParsedInput option) =
+    static member Create
+        config
+        defines
+        (fileName: string)
+        (hashTokens: Token list)
+        (content: string)
+        (maybeAst: ParsedInput option)
+        =
         let content = String.normalizeNewLine content
 
         let positions =
@@ -191,14 +198,14 @@ type internal Context =
         let tokens =
             TokenParser.tokenize defines hashTokens content
 
-        let trivia, mkRange =
+        let trivia =
             match maybeAst, config.StrictMode with
             | Some ast, false ->
                 let mkRange startLine startCol endLine endCol =
-                    mkRange ast.Range.FileName (mkPos startLine startCol) (mkPos endLine endCol)
+                    mkRange fileName (mkPos startLine startCol) (mkPos endLine endCol)
 
-                (Trivia.collectTrivia mkRange tokens ast), mkRange
-            | _ -> [], Context.Default.MkRange
+                Trivia.collectTrivia mkRange tokens ast
+            | _ -> []
 
         let triviaByNodes =
             trivia
@@ -228,7 +235,7 @@ type internal Context =
               Positions = positions
               TriviaMainNodes = triviaByNodes
               TriviaTokenNodes = triviaByTokenNames
-              MkRange = mkRange }
+              FileName = fileName }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth =
@@ -274,8 +281,10 @@ type internal Context =
                       { x.WriterModel with
                             Mode = ShortExpression([ info ]) } }
 
-    member x.MkRangeWithPos (startPos: pos) (endPos: pos) =
-        x.MkRange startPos.Line startPos.Column endPos.Line endPos.Column
+    member x.MkRange (startPos: pos) (endPos: pos) = mkRange x.FileName startPos endPos
+
+    member x.MkRangeWith (startLine, startColumn) (endLine, endColumn) =
+        x.MkRange(mkPos startLine startColumn) (mkPos endLine endColumn)
 
 let internal writerEvent e ctx =
     let evs = WriterEvents.normalize e
