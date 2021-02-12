@@ -679,13 +679,13 @@ type IWebHostBuilderExtensions() =
                 .MinimumLevel
                 .Debug()
                 .WriteTo
-                .Logger(fun loggerConfiguration ->
+                .Logger (fun loggerConfiguration ->
                     loggerConfiguration
                         .Enrich
                         .WithProperty("host", Environment.MachineName)
                         .Enrich.WithProperty("user", Environment.UserName)
                         .Enrich
-                        .WithProperty(
+                        .WithProperty (
                             "application",
                             context.HostingEnvironment.ApplicationName
                         )
@@ -774,7 +774,7 @@ let blah =
         """
 let blah =
     Mock()
-        .Returns(fun _ ->
+        .Returns (fun _ ->
             {
                 dasdasdsadsadsadsa = ""
                 Sdadsadasdasdas = "sdsadsadasdsa"
@@ -813,7 +813,7 @@ let blah =
         """
 let blah =
     Mock("foo")
-        .Returns(fun _ ->
+        .Returns (fun _ ->
             {
                 dasdasdsadsadsadsa = ""
                 Sdadsadasdasdas = "sdsadsadasdsa"
@@ -864,4 +864,29 @@ let x =
     LoggerConfiguration<Foo>()
         .Enrich.WithProperty<Bar>("user", Environment.UserName)
         .Enrich.WithProperty ("application", context.HostingEnvironment.ApplicationName)
+"""
+
+[<Test>]
+let ``typeApp followed by chained lambda, 1448`` () =
+    formatSourceString
+        false
+        """
+let blah =
+    Mock<Foo>()
+        .Returns (fun _ ->
+            { dasdasdsadsadsadsa = ""
+              Sdadsadasdasdas = "sdsadsadasdsa" })
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeMember = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let blah =
+    Mock<Foo>()
+        .Returns (fun _ ->
+            { dasdasdsadsadsadsa = ""
+              Sdadsadasdasdas = "sdsadsadasdsa" })
 """
