@@ -62,7 +62,7 @@ myList.[7].lowerSomeFunctionCallOnSeven("looooooooooooooooooooooooooooooooonnggg
         equal
         """
 myList.[7]
-    .lowerSomeFunctionCallOnSeven(
+    .lowerSomeFunctionCallOnSeven (
         "looooooooooooooooooooooooooooooooonnggggStringArgument",
         otherArg1,
         otherArg2,

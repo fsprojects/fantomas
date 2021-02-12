@@ -1819,21 +1819,24 @@ and genExpr astContext synExpr ctx =
         | DotGetApp (e, es) ->
             let genLongFunctionName =
                 match e with
-                | App (LongIdentPieces (lids), [ e2 ]) when (List.moreThanOne lids) ->
-                    genFunctionNameWithMultilineLids (genExpr astContext e2) lids
-                | App (TypeApp (LongIdentPieces (lids), ts), [ e2 ]) when (List.moreThanOne lids) ->
+                | AppOrTypeApp (LongIdentPieces (lids), ts, [ e2 ]) when (List.moreThanOne lids) ->
                     genFunctionNameWithMultilineLids
-                        (genGenericTypeParameters astContext ts
+                        (optSingle (genGenericTypeParameters astContext) ts
                          +> genExpr astContext e2)
                         lids
-                | App (SimpleExpr e, [ ConstExpr (SynConst.Unit, r) ]) ->
-                    genExpr astContext e +> genConst SynConst.Unit r
-                | App (SimpleExpr e, [ Paren _ as px ]) ->
+                | AppOrTypeApp (SimpleExpr e, ts, [ ConstExpr (SynConst.Unit, r) ]) ->
+                    genExpr astContext e
+                    +> optSingle (genGenericTypeParameters astContext) ts
+                    +> genConst SynConst.Unit r
+                | AppOrTypeApp (SimpleExpr e, ts, [ Paren _ as px ]) ->
                     let short =
-                        genExpr astContext e +> genExpr astContext px
+                        genExpr astContext e
+                        +> optSingle (genGenericTypeParameters astContext) ts
+                        +> genExpr astContext px
 
                     let long =
                         genExpr astContext e
+                        +> optSingle (genGenericTypeParameters astContext) ts
                         +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
 
                     expressionFitsOnRestOfLine short long
@@ -1842,19 +1845,19 @@ and genExpr astContext synExpr ctx =
             let lastEsIndex = es.Length - 1
 
             let genApp (idx: int) ((lids, e, ts): (string * range) list * SynExpr * SynType list) : Context -> Context =
+                let addSpace ctx =
+                    let config =
+                        let s = fst lids.[0]
+
+                        if Char.IsUpper(s.[0]) then
+                            ctx.Config.SpaceBeforeUppercaseInvocation
+                        else
+                            ctx.Config.SpaceBeforeLowercaseInvocation
+
+                    (lastEsIndex = idx)
+                    && (not (hasParenthesis e) || config)
+
                 let short =
-                    let addSpace ctx =
-                        let config =
-                            let s = fst lids.[0]
-
-                            if Char.IsUpper(s.[0]) then
-                                ctx.Config.SpaceBeforeUppercaseInvocation
-                            else
-                                ctx.Config.SpaceBeforeLowercaseInvocation
-
-                        (lastEsIndex = idx)
-                        && (not (hasParenthesis e) || config)
-
                     genLidsWithDots lids
                     +> genGenericTypeParameters astContext ts
                     +> ifElseCtx (addSpace) sepSpace sepNone
@@ -1863,6 +1866,7 @@ and genExpr astContext synExpr ctx =
                 let long =
                     genLidsWithDotsAndNewlines lids
                     +> genGenericTypeParameters astContext ts
+                    +> ifElseCtx (addSpace) sepSpace sepNone
                     +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext e
 
                 expressionFitsOnRestOfLine short long
