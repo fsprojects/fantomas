@@ -1574,14 +1574,20 @@ and genExpr astContext synExpr ctx =
             +> leaveNodeTokenByName synExpr.Range FUNCTION
             +> colPre sepNln sepNln sp (genClause astContext true)
         | Match (e, cs) ->
+            let withRange =
+                ctx.MkRange e.Range.Start (List.head cs).Range.Start
+
             atCurrentColumn (
                 !- "match "
                 +> atCurrentColumnIndent (genExpr astContext e)
-                +> enterNodeTokenByName synExpr.Range WITH
-                // indent 'with' further if trivia was printed so that is appear after the match keyword.
-                +> ifElseCtx lastWriteEventIsNewline (rep 5 !- " ") sepNone
-                -- " with"
-                +> leaveNodeTokenByName synExpr.Range WITH
+                +> tokN
+                    withRange
+                    WITH
+                    (ifElseCtx
+                        lastWriteEventIsNewline
+                        (rep 5 !- " ") // indent 'with' further if trivia was printed so that is appear after the match keyword.
+                        sepNone
+                     -- " with")
                 +> colPre sepNln sepNln cs (genClause astContext true)
             )
         | MatchBang (e, cs) ->
