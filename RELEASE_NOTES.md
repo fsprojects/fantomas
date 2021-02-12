@@ -1,3 +1,9 @@
+### 4.4.0-beta-007 02/2021
+
+* Fix Typed App followed by chained lambda should not add space. [#1448](https://github.com/fsprojects/fantomas/issues/1448)
+* Fix TypedApp should not have a space when chained. [#1447](https://github.com/fsprojects/fantomas/issues/1447)
+* Fix Unexpected newline after short match expression. [#1445](https://github.com/fsprojects/fantomas/issues/1445)
+
 ### 4.4.0-beta-006 02/2021
 
 * Fix Space after chain lambda function is not allowed. [#1440](https://github.com/fsprojects/fantomas/issues/1440)
