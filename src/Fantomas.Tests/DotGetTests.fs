@@ -819,3 +819,49 @@ let blah =
                 Sdadsadasdasdas = "sdsadsadasdsa"
             })
 """
+
+[<Test>]
+let ``typedApp should not have space with chained DotGet, 1447`` () =
+    formatSourceString
+        false
+        """
+let x =
+                        LoggerConfiguration<Foo>("host", Environment.MachineName)
+                            .Enrich.WithProperty<Bar>("user", Environment.UserName)
+                            .Enrich.WithProperty ("application", context.HostingEnvironment.ApplicationName)
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeMember = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    LoggerConfiguration<Foo>("host", Environment.MachineName)
+        .Enrich.WithProperty<Bar>("user", Environment.UserName)
+        .Enrich.WithProperty ("application", context.HostingEnvironment.ApplicationName)
+"""
+
+[<Test>]
+let ``typedApp should not have space with chained DotGet, unit arg`` () =
+    formatSourceString
+        false
+        """
+let x =
+                        LoggerConfiguration<Foo>()
+                            .Enrich.WithProperty<Bar>("user", Environment.UserName)
+                            .Enrich.WithProperty ("application", context.HostingEnvironment.ApplicationName)
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeMember = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    LoggerConfiguration<Foo>()
+        .Enrich.WithProperty<Bar>("user", Environment.UserName)
+        .Enrich.WithProperty ("application", context.HostingEnvironment.ApplicationName)
+"""

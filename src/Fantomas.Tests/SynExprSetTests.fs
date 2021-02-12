@@ -254,3 +254,27 @@ match x with
 
     lintFixes.[uri] <- fs
 """
+
+[<Test>]
+let ``space before uppercase invocation with TypeApp`` () =
+    formatSourceString
+        false
+        """
+Log.Logger <-
+    LoggerConfiguration<Foo>()
+        .Destructure.FSharpTypes()
+        .WriteTo.Console()
+        .CreateLogger()
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+Log.Logger <-
+    LoggerConfiguration<Foo>()
+        .Destructure.FSharpTypes()
+        .WriteTo.Console()
+        .CreateLogger ()
+"""

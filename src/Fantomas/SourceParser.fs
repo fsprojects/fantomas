@@ -821,6 +821,12 @@ let (|AppSingleArg|_|) =
     | App (e, [ (ConstExpr (SynConst.Unit, _) as px) ]) -> Some(e, px)
     | _ -> None
 
+let (|AppOrTypeApp|_|) e =
+    match e with
+    | App (TypeApp (e, ts), es) -> Some(e, Some ts, es)
+    | App (e, es) -> Some(e, None, es)
+    | _ -> None
+
 let (|NewTuple|_|) =
     function
     | SynExpr.New (_, t, (Paren _ as px), _) -> Some(t, px)
