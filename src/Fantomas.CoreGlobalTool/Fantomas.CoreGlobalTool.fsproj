@@ -5,7 +5,7 @@
     <RollForward>Major</RollForward>
     <ToolCommandName>fantomas</ToolCommandName>
     <PackAsTool>True</PackAsTool>
-    <Version>4.4.0-beta-005</Version>
+    <Version>4.4.0-beta-006</Version>
     <AssemblyName>fantomas-tool</AssemblyName>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
   </PropertyGroup>

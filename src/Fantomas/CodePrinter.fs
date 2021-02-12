@@ -1820,10 +1820,17 @@ and genExpr astContext synExpr ctx =
                         (genGenericTypeParameters astContext ts
                          +> genExpr astContext e2)
                         lids
-                | App (SimpleExpr e, [ ConstExpr (SynConst.Unit, r) ]) when (List.moreThanOne es) ->
+                | App (SimpleExpr e, [ ConstExpr (SynConst.Unit, r) ]) ->
                     genExpr astContext e +> genConst SynConst.Unit r
-                | App (SimpleExpr e, [ Paren _ as p ]) when (List.moreThanOne es) ->
-                    genExpr astContext e +> genExpr astContext p
+                | App (SimpleExpr e, [ Paren _ as px ]) ->
+                    let short =
+                        genExpr astContext e +> genExpr astContext px
+
+                    let long =
+                        genExpr astContext e
+                        +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
+
+                    expressionFitsOnRestOfLine short long
                 | _ -> genExpr astContext e
 
             let lastEsIndex = es.Length - 1

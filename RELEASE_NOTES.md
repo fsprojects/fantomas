@@ -1,3 +1,8 @@
+### 4.4.0-beta-006 02/2021
+
+* Fix Space after chain lambda function is not allowed. [#1440](https://github.com/fsprojects/fantomas/issues/1440)
+* Fix Formatting error with MultilineBlockBracketsOnSameColumn. [#1396](https://github.com/fsprojects/fantomas/issues/1396)
+
 ### 4.4.0-beta-005 02/2021
 
 * Fix fsharp_space_before_uppercase_invocation=true breaks method calls. [#1437](https://github.com/fsprojects/fantomas/issues/1437)
