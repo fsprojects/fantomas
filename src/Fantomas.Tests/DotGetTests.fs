@@ -609,6 +609,32 @@ SomeFunction(
 """
 
 [<Test>]
+let ``named argument inside DotGet application, SpaceBeforeUppercaseInvocation`` () =
+    formatSourceString
+        false
+        """
+SomeFunction(name = SearchForName(
+    "foooooooooooooooooooooooooooooooooooooooooooooooooo",
+    "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
+)).ChainedFunctionCall()
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+SomeFunction(
+    name =
+        SearchForName (
+            "foooooooooooooooooooooooooooooooooooooooooooooooooo",
+            "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
+        )
+)
+    .ChainedFunctionCall ()
+"""
+
+[<Test>]
 let ``space before uppercase invocation should only be respected at end of chain, 1438`` () =
     formatSourceString
         false
@@ -714,4 +740,82 @@ Log.Logger <-
         .Destructure.FSharpTypes()
         .WriteTo.Console()
         .CreateLogger ()
+"""
+
+[<Test>]
+let ``don't add space when function call is followed by lambda, 1440`` () =
+    formatSourceString
+        false
+        """
+let blah =
+    Mock().Returns(fun _ ->
+                {
+                    dasdasdsadsadsadsa = ""
+                    Sdadsadasdasdas =  "sdsadsadasdsa"
+                })
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              IndentOnTryWith = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              DisableElmishSyntax = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let blah =
+    Mock()
+        .Returns(fun _ ->
+            {
+                dasdasdsadsadsadsa = ""
+                Sdadsadasdasdas = "sdsadsadasdsa"
+            })
+"""
+
+[<Test>]
+let ``don't add space when function call is followed by lambda, const expr`` () =
+    formatSourceString
+        false
+        """
+let blah =
+    Mock("foo").Returns(fun _ ->
+                {
+                    dasdasdsadsadsadsa = ""
+                    Sdadsadasdasdas =  "sdsadsadasdsa"
+                })
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              IndentOnTryWith = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              DisableElmishSyntax = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let blah =
+    Mock("foo")
+        .Returns(fun _ ->
+            {
+                dasdasdsadsadsadsa = ""
+                Sdadsadasdasdas = "sdsadsadasdsa"
+            })
 """
