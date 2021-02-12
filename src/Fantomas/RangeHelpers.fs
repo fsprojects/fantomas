@@ -24,4 +24,4 @@ module RangeHelpers =
         r1.EndLine = r2.EndLine
         && r1.EndColumn = r2.EndColumn
 
-    let rangeEq (r1: range) (r2: range) = rangeStartEq r1 r2 && rangeEndEq r1 r2
+    let rangeEq = equals

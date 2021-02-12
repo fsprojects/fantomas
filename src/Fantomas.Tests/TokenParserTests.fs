@@ -12,12 +12,22 @@ let private isNewline item =
     | Newline -> true
     | _ -> false
 
-let getDefines v =
+let private getDefines v =
     let normalizedString = String.normalizeNewLine v
     let _, hashTokens = getDefines normalizedString
     getDefinesWords hashTokens
 
-let tokenize v = tokenize [] [] v
+let private tokenize v = tokenize [] [] v
+
+let private mkRange : MkRange =
+    fun (sl, sc) (el, ec) ->
+        FSharp.Compiler.Range.mkRange
+            "TokenParserTests"
+            (FSharp.Compiler.Range.mkPos sl sc)
+            (FSharp.Compiler.Range.mkPos el ec)
+
+let private getTriviaFromTokens = getTriviaFromTokens mkRange
+let private getTriviaNodesFromTokens = getTriviaNodesFromTokens mkRange
 
 [<Test>]
 let ``Simple compiler directive should be found`` () =
