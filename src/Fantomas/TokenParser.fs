@@ -579,6 +579,21 @@ let private identIsDecompiledOperator (token: Token) =
     token.TokenInfo.TokenName = "IDENT"
     && decompiledName <> token.Content
 
+let private extractContentPreservingNewLines (tokens: Token list) =
+    let rec loop result =
+        function
+        | [] -> result
+        | [ final ] -> final.Content :: result
+        | current :: rest ->
+            let next = List.head rest
+
+            if current.LineNumber <> next.LineNumber then
+                loop (Environment.NewLine :: current.Content :: result) rest
+            else
+                loop (current.Content :: result) rest
+
+    loop [] tokens |> List.rev
+
 let ``only whitespaces were found in the remainder of the line`` lineNumber tokens =
     tokens
     |> List.exists
@@ -732,7 +747,7 @@ let rec private getTriviaFromTokensThemSelves
 
     | EndOfInterpolatedString (stringTokens, interpStringEnd, rest) ->
         let stringContent =
-            [ yield! (List.map (fun t -> t.Content) stringTokens)
+            [ yield! extractContentPreservingNewLines stringTokens
               yield interpStringEnd.Content ]
             |> String.concat String.Empty
 
