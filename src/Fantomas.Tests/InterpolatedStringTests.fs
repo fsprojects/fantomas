@@ -146,3 +146,20 @@ $"\"{bar}\" {1} {2}"
         """
 $"\"{bar}\" {1} {2}"
 """
+
+[<Test>]
+let ``multiline string literal, issue 1451`` () =
+    formatSourceString
+        false
+        "
+$\"\"\"one: {1}<
+>two: {2}\"\"\"
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+$\"\"\"one: {1}<
+>two: {2}\"\"\"
+"
