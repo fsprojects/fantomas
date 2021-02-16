@@ -584,13 +584,9 @@ let private extractContentPreservingNewLines (tokens: Token list) =
         function
         | [] -> result
         | [ final ] -> final.Content :: result
-        | current :: rest ->
-            let next = List.head rest
-
-            if current.LineNumber <> next.LineNumber then
-                loop (Environment.NewLine :: current.Content :: result) rest
-            else
-                loop (current.Content :: result) rest
+        | current :: ((next :: _) as rest) when (current.LineNumber <> next.LineNumber) ->
+            loop ("\n" :: current.Content :: result) rest
+        | current :: rest -> loop (current.Content :: result) rest
 
     loop [] tokens |> List.rev
 
