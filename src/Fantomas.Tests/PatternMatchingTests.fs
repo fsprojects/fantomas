@@ -699,7 +699,7 @@ let MethInfoIsUnseen g m ty minfo =
 #else
                   (fun _provAttribs -> None)
 #endif
-              with
+               with
         | Some res -> res
         | None -> false
 

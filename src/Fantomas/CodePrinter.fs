@@ -1577,17 +1577,45 @@ and genExpr astContext synExpr ctx =
             let withRange =
                 ctx.MkRange e.Range.Start (List.head cs).Range.Start
 
-            atCurrentColumn (
+            let genMatchExpr =
                 !- "match "
-                +> atCurrentColumnIndent (genExpr astContext e)
-                +> tokN
-                    withRange
-                    WITH
-                    (ifElseCtx
-                        lastWriteEventIsNewline
-                        (rep 5 !- " ") // indent 'with' further if trivia was printed so that is appear after the match keyword.
-                        sepNone
-                     -- " with")
+                +> expressionFitsOnRestOfLine
+                    (genExpr astContext e
+                     +> tokN withRange WITH (!- " with"))
+                    (fun ctx ->
+                        match e with
+                        | App (e, [ Paren (lpr, Tuple (ts, tr), rpr) ]) ->
+                            let genTupleTrivia =
+                                match tr with
+                                | Some tr -> genTriviaFor SynExpr_Tuple tr
+                                | None -> id
+
+                            (indent
+                             +> sepNln
+                             +> genExpr astContext e
+                             +> indent
+                             +> sepNln
+                             +> sepOpenT
+                             +> indent
+                             +> sepNln
+                             +> (col (sepComma +> sepNln) ts (genExpr astContext)
+                                 |> genTupleTrivia)
+                             +> unindent
+                             +> sepNln
+                             +> sepCloseT
+                             +> unindent
+                             +> sepNln
+                             +> tokN withRange WITH (!- "with")
+                             +> unindent)
+                                ctx
+                        | _ ->
+                            atCurrentColumnIndent
+                                (genExpr astContext e
+                                 +> tokN withRange WITH (!- " with"))
+                                ctx)
+
+            atCurrentColumn (
+                genMatchExpr
                 +> colPre sepNln sepNln cs (genClause astContext true)
             )
         | MatchBang (e, cs) ->
@@ -3151,6 +3179,32 @@ and genApp appNlnFun astContext e es ctx =
         shortExpression ctx
     else
         expressionFitsOnRestOfLine shortExpression longExpression ctx
+
+and genExprWhenInCondition astContext e =
+    match e with
+    | App (e, [ Paren (lpr, Tuple (ts, tr), rpr) ]) ->
+        let genTupleTrivia =
+            match tr with
+            | Some tr -> genTriviaFor SynExpr_Tuple tr
+            | None -> id
+
+        indent
+        +> sepNln
+        +> genExpr astContext e
+        +> indent
+        +> sepNln
+        +> sepOpenT
+        +> indent
+        +> sepNln
+        +> (col (sepComma +> sepNln) ts (genExpr astContext)
+            |> genTupleTrivia)
+        +> unindent
+        +> sepNln
+        +> sepCloseT
+        +> unindent
+        +> sepNln
+        +> unindent
+    | _ -> atCurrentColumnIndent (genExpr astContext e +> sepSpace)
 
 and sepNlnBetweenTypeAndMembers (ms: SynMemberDefn list) =
     match List.tryHead ms with
