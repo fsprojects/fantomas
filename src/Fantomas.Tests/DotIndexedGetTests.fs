@@ -70,3 +70,27 @@ myList.[7]
         otherArgument4
     )
 """
+
+[<Test>]
+let ``should not merge tokens inside parentheses, 1407`` () = 
+ formatSourceString
+  false 
+  """
+let inline (=??) x = (=!) x
+let mySampleMethod() =
+    let result = Ok {| Results = [] |}
+    (Result.okValue result).Results.[0] |> Result.isOk =?? true
+"""
+  config
+  |> prepend newline
+  |> should 
+      equal 
+      """
+let inline (=??) x = (=!) x
+
+let mySampleMethod () =
+    let result = Ok {| Results = [] |}
+
+    (Result.okValue result).Results.[0] |> Result.isOk
+    =?? true
+"""
