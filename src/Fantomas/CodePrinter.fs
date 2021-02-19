@@ -3248,6 +3248,7 @@ and genAlternativeAppWithSingleParenthesisArgument (e, lpr, a, rpr, pr) astConte
     +> sepSpaceWhenOrIndentAndNlnIfExpressionExceedsPageWidth
         (fun ctx ->
             match e with
+            | Paren _ -> true
             | UppercaseSynExpr _ -> ctx.Config.SpaceBeforeUppercaseInvocation
             | LowercaseSynExpr _ -> ctx.Config.SpaceBeforeLowercaseInvocation)
         (tokN lpr LPAREN sepOpenT
