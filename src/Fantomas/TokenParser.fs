@@ -485,8 +485,10 @@ let private digitOrLetterCharRegex =
     System.Text.RegularExpressions.Regex(@"^'(\d|[a-zA-Z])'$")
 
 let private (|CharToken|_|) token =
-    if token.TokenInfo.TokenName = "CHAR"
-       && not (digitOrLetterCharRegex.IsMatch(token.Content)) then
+    if
+        token.TokenInfo.TokenName = "CHAR"
+        && not (digitOrLetterCharRegex.IsMatch(token.Content))
+    then
         Some token
     else
         None
