@@ -1923,6 +1923,8 @@ and genExpr astContext synExpr ctx =
 
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
 
+        | AppParenArg (Choice1Of2 (Paren _, _, _, _, _, _) as app)
+        | AppParenArg (Choice2Of2 (Paren _, _, _, _, _) as app) -> genAlternativeAppWithParenthesis app astContext
         | AppSingleArg (e, px) ->
             let sepSpace (ctx: Context) =
                 match e with
@@ -3246,6 +3248,7 @@ and genAlternativeAppWithSingleParenthesisArgument (e, lpr, a, rpr, pr) astConte
     +> sepSpaceWhenOrIndentAndNlnIfExpressionExceedsPageWidth
         (fun ctx ->
             match e with
+            | Paren _ -> true
             | UppercaseSynExpr _ -> ctx.Config.SpaceBeforeUppercaseInvocation
             | LowercaseSynExpr _ -> ctx.Config.SpaceBeforeLowercaseInvocation)
         (tokN lpr LPAREN sepOpenT
