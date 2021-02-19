@@ -306,3 +306,37 @@ module Web3ServerSeedList =
                     raise UnexpectedRpcResponseError
         | _ -> ()
 """
+
+[<Test>]
+let ``inside infix expression of elif expression`` () =
+    formatSourceString
+        false
+        """
+let c =
+    if blah then
+        true
+    elif bar |> Seq.exists ((|KeyValue|) >> snd >> (=) (Some i)) then false else true
+"""
+        { config with
+              MaxLineLength = 40
+              SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let c =
+    if blah then
+        true
+    elif
+        bar
+        |> Seq.exists
+            (
+                (|KeyValue|)
+                >> snd
+                >> (=) (Some i)
+            )
+    then
+        false
+    else
+        true
+"""

@@ -2207,6 +2207,60 @@ and genExpr astContext synExpr ctx =
                     +> genExpr astContext elf2
                     |> genTriviaFor SynExpr_IfThenElse fullRange
 
+                let genIfExpr e astContext =
+                    let short = genExpr astContext e
+
+                    let long =
+                        match e with
+                        | SynExpr.TryWith _
+                        | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e +> sepCloseT
+                        | App (SynExpr.DotGet _, [ (Paren _) ]) -> atCurrentColumn (genExpr astContext e)
+                        | Paren (lpr, (AppSingleArg _ as ate), rpr, pr) ->
+                            sepOpenTFor lpr
+                            +> atCurrentColumnIndent (genExpr astContext ate)
+                            +> sepCloseTFor rpr pr
+                        | AppParenArg app ->
+                            indent
+                            +> sepNln
+                            +> genAlternativeAppWithParenthesis app astContext
+                            +> unindent
+                            +> sepNln
+                        | InfixApp (s, e, e1, AppParenArg app) ->
+                            indent
+                            +> sepNln
+                            +> genExpr astContext e1
+                            +> sepNln
+                            +> genInfixOperator s e
+                            +> sepSpace
+                            +> genAlternativeAppWithParenthesis app astContext
+                            +> unindent
+                            +> sepNln
+                        // very specific fix for 1380
+                        | SameInfixApps (Paren (lpr, AppParenArg e, rpr, pr), es) ->
+                            indent
+                            +> sepNln
+                            +> sepOpenTFor lpr
+                            +> genAlternativeAppWithParenthesis e astContext
+                            +> sepCloseTFor rpr pr
+                            +> sepNln
+                            +> col
+                                sepNln
+                                es
+                                (fun (opText, opExpr, e) ->
+                                    genInfixOperator opText opExpr
+                                    +> sepSpace
+                                    +> (match e with
+                                        | Paren (lpr, AppParenArg app, rpr, pr) ->
+                                            sepOpenTFor lpr
+                                            +> genAlternativeAppWithParenthesis app astContext
+                                            +> sepCloseTFor rpr pr
+                                        | _ -> genExpr astContext e))
+                            +> unindent
+                            +> sepNln
+                        | _ -> genExpr astContext e
+
+                    expressionFitsOnRestOfLine short long
+
                 let genElifMultiLine ((elf1: SynExpr), elf2, fullRange) (ctx: Context) =
                     let indentAfterThenKeyword =
                         TriviaHelpers.getNodesForTypes [ IF; ELIF ] ctx.TriviaTokenNodes
@@ -2232,7 +2286,7 @@ and genExpr astContext synExpr ctx =
 
                     let elifExpr =
                         TriviaContext.``else if / elif`` fullRange
-                        +> genExpr astContext elf1
+                        +> genIfExpr elf1 astContext
                         +> ifElse hasCommentAfterBoolExpr sepNln sepSpace
                         +> genThen fullRange
                         +> indentAfterThenKeyword
@@ -2266,66 +2320,12 @@ and genExpr astContext synExpr ctx =
                     | _ -> false
 
                 let longIfThenElse =
-                    let genIfExpr =
-                        let short = genExpr astContext e1
-
-                        let long =
-                            match e1 with
-                            | SynExpr.TryWith _
-                            | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e1 +> sepCloseT
-                            | App (SynExpr.DotGet _, [ (Paren _) ]) -> atCurrentColumn (genExpr astContext e1)
-                            | Paren (lpr, (AppSingleArg _ as ate), rpr, pr) ->
-                                sepOpenTFor lpr
-                                +> atCurrentColumnIndent (genExpr astContext ate)
-                                +> sepCloseTFor rpr pr
-                            | AppParenArg app ->
-                                indent
-                                +> sepNln
-                                +> genAlternativeAppWithParenthesis app astContext
-                                +> unindent
-                                +> sepNln
-                            | InfixApp (s, e, e1, AppParenArg app) ->
-                                indent
-                                +> sepNln
-                                +> genExpr astContext e1
-                                +> sepNln
-                                +> genInfixOperator s e
-                                +> sepSpace
-                                +> genAlternativeAppWithParenthesis app astContext
-                                +> unindent
-                                +> sepNln
-                            // very specific fix for 1380
-                            | SameInfixApps (Paren (lpr, AppParenArg e, rpr, pr), es) ->
-                                indent
-                                +> sepNln
-                                +> sepOpenTFor lpr
-                                +> genAlternativeAppWithParenthesis e astContext
-                                +> sepCloseTFor rpr pr
-                                +> sepNln
-                                +> col
-                                    sepNln
-                                    es
-                                    (fun (opText, opExpr, e) ->
-                                        genInfixOperator opText opExpr
-                                        +> sepSpace
-                                        +> (match e with
-                                            | Paren (lpr, AppParenArg app, rpr, pr) ->
-                                                sepOpenTFor lpr
-                                                +> genAlternativeAppWithParenthesis app astContext
-                                                +> sepCloseTFor rpr pr
-                                            | _ -> genExpr astContext e))
-                                +> unindent
-                                +> sepNln
-                            | _ -> genExpr astContext e1
-
-                        expressionFitsOnRestOfLine short long
-
                     genIf synExpr.Range
                     // f.ex. if // meh
                     //           x
                     // bool expr x should be indented
                     +> ifElse hasCommentAfterIfKeyword (indent +> sepNln) sepNone
-                    +> genIfExpr
+                    +> genIfExpr e1 astContext
                     +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
                     //+> ifElse hasCommentAfterBoolExpr sepNln sepSpace
                     +> genThen synExpr.Range
