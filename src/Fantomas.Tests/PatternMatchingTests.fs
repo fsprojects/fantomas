@@ -1142,10 +1142,13 @@ match x (Map.tryFind somelongidentifier a + Option.defaultValue longidentifier) 
     |> should
         equal
         """
-match x (
-          Map.tryFind somelongidentifier a
-          + Option.defaultValue longidentifier
-      ) with
+match
+    x
+        (
+            Map.tryFind somelongidentifier a
+            + Option.defaultValue longidentifier
+        )
+    with
 | _ -> ()
 """
 
