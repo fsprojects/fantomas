@@ -216,44 +216,6 @@ let foo () =
 """
 
 [<Test>]
-let ``temp`` () =
-    formatSourceString
-        false
-        """
-            if rpcResponseEx.RpcError <> null then
-                if (not (rpcResponseEx.RpcError.Message.Contains "pruning=archive"))
-                       && (not (rpcResponseEx.RpcError.Message.Contains "header not found"))
-                       && (not (rpcResponseEx.RpcError.Message.Contains "missing trie node")) then
-                        raise UnexpectedRpcResponseError
-
-"""
-        { config with MaxLineLength = 50 }
-    |> prepend newline
-    |> should
-        equal
-        """
-if rpcResponseEx.RpcError <> null then
-    if
-        (not
-            (
-                rpcResponseEx.RpcError.Message.Contains
-                    "pruning=archive"
-            ))
-        && (not
-            (
-                rpcResponseEx.RpcError.Message.Contains
-                    "header not found"
-            ))
-        && (not
-            (
-                rpcResponseEx.RpcError.Message.Contains
-                    "missing trie node"
-            ))
-    then
-        raise UnexpectedRpcResponseError
-"""
-
-[<Test>]
 let ``multiple infix operator application inside if expression, 1390`` () =
     formatSourceString
         false
