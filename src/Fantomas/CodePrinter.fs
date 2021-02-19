@@ -1592,6 +1592,15 @@ and genExpr astContext synExpr ctx =
                              +> tokN withRange WITH (!- "with")
                              +> unindent)
                                 ctx
+                        | Match _
+                        | MatchBang _ ->
+                            (indent
+                             +> sepNln
+                             +> genExpr astContext e
+                             +> sepNln
+                             +> tokN withRange WITH (!- "with")
+                             +> unindent)
+                                ctx
                         | _ ->
                             atCurrentColumnIndent
                                 (genExpr astContext e
@@ -1617,6 +1626,15 @@ and genExpr astContext synExpr ctx =
                             (indent
                              +> sepNln
                              +> genAlternativeAppWithParenthesis app astContext
+                             +> sepNln
+                             +> tokN withRange WITH (!- "with")
+                             +> unindent)
+                                ctx
+                        | Match _
+                        | MatchBang _ ->
+                            (indent
+                             +> sepNln
+                             +> genExpr astContext e
                              +> sepNln
                              +> tokN withRange WITH (!- "with")
                              +> unindent)
