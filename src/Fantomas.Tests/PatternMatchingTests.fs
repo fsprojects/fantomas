@@ -1267,3 +1267,123 @@ let private formatResponse<'options> () =
         | Error err -> return sendInternalError (err)
     }
 """
+
+[<Test>]
+let ``match inside match expression, 1400`` () =
+    formatSourceString
+        false
+        """
+let u = ""
+match
+    match u with
+    | null -> ""
+    | s -> s
+    with
+    | "" -> x
+    | _ -> failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let u = ""
+
+match
+    match u with
+    | null -> ""
+    | s -> s
+    with
+| "" -> x
+| _ -> failwith ""
+"""
+
+[<Test>]
+let ``match bang inside match expression`` () =
+    formatSourceString
+        false
+        """
+let u = ""
+match
+    match! u with
+    | null -> ""
+    | s -> s
+    with
+    | "" -> x
+    | _ -> failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let u = ""
+
+match
+    match! u with
+    | null -> ""
+    | s -> s
+    with
+| "" -> x
+| _ -> failwith ""
+"""
+
+[<Test>]
+let ``match inside match bang expression`` () =
+    formatSourceString
+        false
+        """
+let u = ""
+match!
+    match u with
+    | null -> ""
+    | s -> s
+    with
+    | "" -> x
+    | _ -> failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let u = ""
+
+match!
+    match u with
+    | null -> ""
+    | s -> s
+    with
+| "" -> x
+| _ -> failwith ""
+"""
+
+[<Test>]
+let ``match bang inside match bang expression`` () =
+    formatSourceString
+        false
+        """
+let u = ""
+match!
+    match! u with
+    | null -> ""
+    | s -> s
+    with
+    | "" -> x
+    | _ -> failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let u = ""
+
+match!
+    match! u with
+    | null -> ""
+    | s -> s
+    with
+| "" -> x
+| _ -> failwith ""
+"""
