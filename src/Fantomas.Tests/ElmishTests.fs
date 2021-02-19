@@ -1004,8 +1004,10 @@ let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
 
     React.useEffect (
         (fun () ->
-            if roles.IsEditorOrAdmin
-               && not (String.IsNullOrWhiteSpace(location.Creator)) then
+            if
+                roles.IsEditorOrAdmin
+                && not (String.IsNullOrWhiteSpace(location.Creator))
+            then
                 auth0.getAccessTokenSilently ()
                 |> Promise.bind
                     (fun authToken ->

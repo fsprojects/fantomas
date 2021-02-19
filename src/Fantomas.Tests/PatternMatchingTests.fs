@@ -699,7 +699,7 @@ let MethInfoIsUnseen g m ty minfo =
 #else
                   (fun _provAttribs -> None)
 #endif
-              with
+               with
         | Some res -> res
         | None -> false
 
@@ -1142,10 +1142,13 @@ match x (Map.tryFind somelongidentifier a + Option.defaultValue longidentifier) 
     |> should
         equal
         """
-match x (
-          Map.tryFind somelongidentifier a
-          + Option.defaultValue longidentifier
-      ) with
+match
+    x
+        (
+            Map.tryFind somelongidentifier a
+            + Option.defaultValue longidentifier
+        )
+    with
 | _ -> ()
 """
 

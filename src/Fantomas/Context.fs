@@ -954,6 +954,15 @@ let internal sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Conte
         expr
         ctx
 
+let internal sepSpaceWhenOrIndentAndNlnIfExpressionExceedsPageWidth (addSpace: Context -> bool) expr (ctx: Context) =
+    expressionExceedsPageWidth
+        (ifElseCtx addSpace sepSpace sepNone)
+        sepNone // before and after for short expressions
+        (indent +> sepNln)
+        unindent // before and after for long expressions
+        expr
+        ctx
+
 let internal sepSpaceOrNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
         sepSpace
