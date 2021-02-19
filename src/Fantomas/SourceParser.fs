@@ -1676,8 +1676,8 @@ let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
     | SynExpr.DotGet (_, _, LongIdentWithDots (lid), _) -> upperOrLower lid
 
     | SynExpr.DotIndexedGet (expr, _, _, _)
-    | SynExpr.TypeApp (expr, _, _, _, _, _, _) -> (|UppercaseSynExpr|LowercaseSynExpr|) expr
-
+    | SynExpr.TypeApp (expr, _, _, _, _, _, _)
+    | SynExpr.Paren (expr, _, _, _) -> (|UppercaseSynExpr|LowercaseSynExpr|) expr
     | _ -> failwithf "cannot determine if synExpr %A is uppercase or lowercase" synExpr
 
 let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =

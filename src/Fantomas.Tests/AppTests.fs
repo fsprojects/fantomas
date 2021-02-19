@@ -474,3 +474,79 @@ type Queue<'T>(data: list<'T []>, length: int) =
         else
             raise (System.Exception("Queue is empty"))
 """
+
+[<Test>]
+let ``parenthesis around composed function expression, 1341`` () =
+    formatSourceString
+        false
+        """
+(f >> g) (bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb, c)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(f >> g)
+    (
+        bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,
+        c
+    )
+"""
+
+[<Test>]
+let ``parenthesis around simple function expression`` () =
+    formatSourceString
+        false
+        """
+(ignore) ("Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone", 42)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(ignore)
+    (
+        "Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone",
+        42
+    )
+"""
+
+[<Test>]
+let ``parenthesis around simple function expression with single parenthesis argument`` () =
+    formatSourceString
+        false
+        """
+(ignore) ("Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone")
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+(ignore)
+    ("Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone")
+"""
+
+[<Test>]
+let ``parenthesis around simple function expression with single multiline parenthesis argument`` () =
+    formatSourceString
+        false
+        "
+(ignore) (\"\"\"Tuuuuuuuuuuuuurn
+tooooooooooooooooooooooo
+stooooooooooooooooooooooooone\"\"\")
+"
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        "
+(ignore)
+    (
+        \"\"\"Tuuuuuuuuuuuuurn
+tooooooooooooooooooooooo
+stooooooooooooooooooooooooone\"\"\"
+    )
+"
