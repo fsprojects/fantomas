@@ -2331,7 +2331,7 @@ let generateUnionCases =
 """
 
 [<Test>]
-let ``keep newline before multiline expression, 1463`` () =
+let ``keep newline before multiline SynExpr.JoinIn, 1463`` () =
     formatSourceString
         false
         """
