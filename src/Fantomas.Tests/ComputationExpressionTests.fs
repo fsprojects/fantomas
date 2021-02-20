@@ -2329,3 +2329,77 @@ let generateUnionCases =
             |> AsyncResult.foldResult id (fun _ -> []))
         "Incomplete pattern matches on this expression. For example"
 """
+
+[<Test>]
+let ``keep newline before multiline expression, 1463`` () =
+    formatSourceString
+        false
+        """
+aggregateResult {
+    apply id in someFunction
+    also displayableId in AggregateResult.map (fun x -> string x.Z) g
+    also person in getThing y |> AggregateResult.ofResult
+    also more in AggregateResult.bind
+                     (getLongfunctionNameWithLotsOfStuff
+                      >> AggregateResult.ofResult)
+                     mainThingThatHappens
+
+    return
+        { Id = id
+          DisplayableId = displayableId
+          More = more }
+}
+
+aggregateResult {
+    apply id in someFunction
+    also displayableId in AggregateResult.map (fun x -> string x.Z) g
+    also person in getThing y |> AggregateResult.ofResult
+
+    also more in AggregateResult.bind
+                     (getLongfunctionNameWithLotsOfStuff
+                      >> AggregateResult.ofResult)
+                     mainThingThatHappens
+
+    return
+        { Id = id
+          DisplayableId = displayableId
+          More = more }
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+aggregateResult {
+    apply id in someFunction
+    also displayableId in AggregateResult.map (fun x -> string x.Z) g
+    also person in getThing y |> AggregateResult.ofResult
+
+    also more in AggregateResult.bind
+                     (getLongfunctionNameWithLotsOfStuff
+                      >> AggregateResult.ofResult)
+                     mainThingThatHappens
+
+    return
+        { Id = id
+          DisplayableId = displayableId
+          More = more }
+}
+
+aggregateResult {
+    apply id in someFunction
+    also displayableId in AggregateResult.map (fun x -> string x.Z) g
+    also person in getThing y |> AggregateResult.ofResult
+
+    also more in AggregateResult.bind
+                     (getLongfunctionNameWithLotsOfStuff
+                      >> AggregateResult.ofResult)
+                     mainThingThatHappens
+
+    return
+        { Id = id
+          DisplayableId = displayableId
+          More = more }
+}
+"""
