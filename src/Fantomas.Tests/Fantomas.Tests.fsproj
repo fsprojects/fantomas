@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>4.4.0-beta-007</Version>
+    <Version>4.4.0-beta-008</Version>
     <NoWarn>FS0988</NoWarn>
     <TargetFramework>net5.0</TargetFramework>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
@@ -84,6 +84,7 @@
     <Compile Include="CodeFormatterTests.fs" />
     <Compile Include="DotIndexedGetTests.fs" />
     <Compile Include="DotIndexedSetTests.fs" />
+    <Compile Include="MultilineFunctionApplicationsInConditionExpressionsTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

@@ -1530,10 +1530,13 @@ let code =
         equal
         "
 let code =
-  if (System.Text.RegularExpressions.Regex.IsMatch(
+  if
+    System.Text.RegularExpressions.Regex.IsMatch
+      (
         d.Name,
         \"\"\"^[a-zA-Z][a-zA-Z0-9']+$\"\"\"
-      )) then
+      )
+  then
     d.Name
   elif d.NamespaceToOpen.IsSome then
     d.Name
@@ -1840,9 +1843,13 @@ let x =
         """
 // Original input:
 let x =
-    if (not (
-            f aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-        )) then
+    if
+        not
+            (
+                f
+                    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+            )
+    then
         1
     else
         2

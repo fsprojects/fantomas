@@ -699,7 +699,7 @@ let MethInfoIsUnseen g m ty minfo =
 #else
                   (fun _provAttribs -> None)
 #endif
-              with
+               with
         | Some res -> res
         | None -> false
 
@@ -1142,10 +1142,13 @@ match x (Map.tryFind somelongidentifier a + Option.defaultValue longidentifier) 
     |> should
         equal
         """
-match x (
-          Map.tryFind somelongidentifier a
-          + Option.defaultValue longidentifier
-      ) with
+match
+    x
+        (
+            Map.tryFind somelongidentifier a
+            + Option.defaultValue longidentifier
+        )
+    with
 | _ -> ()
 """
 
@@ -1263,4 +1266,124 @@ let private formatResponse<'options> () =
             with exn -> return sendBadRequest (sprintf "%A" exn)
         | Error err -> return sendInternalError (err)
     }
+"""
+
+[<Test>]
+let ``match inside match expression, 1400`` () =
+    formatSourceString
+        false
+        """
+let u = ""
+match
+    match u with
+    | null -> ""
+    | s -> s
+    with
+    | "" -> x
+    | _ -> failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let u = ""
+
+match
+    match u with
+    | null -> ""
+    | s -> s
+    with
+| "" -> x
+| _ -> failwith ""
+"""
+
+[<Test>]
+let ``match bang inside match expression`` () =
+    formatSourceString
+        false
+        """
+let u = ""
+match
+    match! u with
+    | null -> ""
+    | s -> s
+    with
+    | "" -> x
+    | _ -> failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let u = ""
+
+match
+    match! u with
+    | null -> ""
+    | s -> s
+    with
+| "" -> x
+| _ -> failwith ""
+"""
+
+[<Test>]
+let ``match inside match bang expression`` () =
+    formatSourceString
+        false
+        """
+let u = ""
+match!
+    match u with
+    | null -> ""
+    | s -> s
+    with
+    | "" -> x
+    | _ -> failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let u = ""
+
+match!
+    match u with
+    | null -> ""
+    | s -> s
+    with
+| "" -> x
+| _ -> failwith ""
+"""
+
+[<Test>]
+let ``match bang inside match bang expression`` () =
+    formatSourceString
+        false
+        """
+let u = ""
+match!
+    match! u with
+    | null -> ""
+    | s -> s
+    with
+    | "" -> x
+    | _ -> failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let u = ""
+
+match!
+    match! u with
+    | null -> ""
+    | s -> s
+    with
+| "" -> x
+| _ -> failwith ""
 """
