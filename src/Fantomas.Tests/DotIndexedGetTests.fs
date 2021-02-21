@@ -81,7 +81,15 @@ let mySampleMethod() =
     let result = Ok {| Results = [] |}
     (Result.okValue result).Results.[0] |> Result.isOk =?? true
 """
-        config
+        { config with
+              SpaceBeforeLowercaseInvocation = false
+              SpaceBeforeColon = true
+              MaxIfThenElseShortWidth = 25
+              MultilineBlockBracketsOnSameColumn = true
+              KeepIfThenInSameLine = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal
