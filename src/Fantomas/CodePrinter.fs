@@ -247,6 +247,15 @@ and genModuleDeclList astContext e =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Open r
 
             [ expr, sepNln, r ] @ collectItems ys
+        | HashDirectiveL (xs, ys) ->
+            let expr = col sepNln xs (genModuleDecl astContext)
+
+            let r = List.head xs |> fun mdl -> mdl.Range
+            // SynModuleDecl.HashDirective cannot have attributes
+            let sepNln =
+                sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_HashDirective r
+
+            [ expr, sepNln, r ] @ collectItems ys
         | AttributesL (xs, y :: rest) ->
             let attrs =
                 getRangesFromAttributesFromModuleDeclaration y
@@ -273,6 +282,7 @@ and genModuleDeclList astContext e =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Attributes r
 
             [ expr, sepNln, r ] @ collectItems rest
+
         | m :: rest ->
             let attrs =
                 getRangesFromAttributesFromModuleDeclaration m
