@@ -116,3 +116,26 @@ let o = {| X = 2; Y = "Hello" |}
 
 printfn "%s" (JsonConvert.SerializeObject o)
 """
+
+[<Test>]
+let ``don't print trivia of other hash directive, 1464`` () =
+    formatSourceString
+        false
+        """
+#r @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\5.0.2\Microsoft.Extensions.Hosting.dll"
+#r @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\5.0.2\Microsoft.Extensions.ObjectPool.dll"
+#r @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\5.0.2\Microsoft.Extensions.Options.ConfigurationExtensions.dll"
+
+#r "nuget: Giraffe"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#r @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\5.0.2\Microsoft.Extensions.Hosting.dll"
+#r @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\5.0.2\Microsoft.Extensions.ObjectPool.dll"
+#r @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\5.0.2\Microsoft.Extensions.Options.ConfigurationExtensions.dll"
+
+#r "nuget: Giraffe"
+"""
