@@ -4078,12 +4078,7 @@ and genType astContext outerBracket t =
         // Drop bracket around tuples before an arrow
         | TFun (TTuple ts, t) -> loopTTupleList ts +> sepArrow +> loop t
         // Do similar for tuples after an arrow
-        | TFun (t, TTuple ts) ->
-            sepOpenT
-            +> loop t
-            +> sepArrow
-            +> loopTTupleList ts
-            +> sepCloseT
+        | TFun (t, TTuple ts) -> loop t +> sepArrow +> loopTTupleList ts
         | TFuns ts -> col sepArrow ts loop
         | TApp (t, ts, isPostfix) ->
             let postForm =
