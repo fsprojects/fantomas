@@ -1309,16 +1309,10 @@ let rec transformPatterns ss =
         List.map loop sps |> ComplexPats
     | SPSTyped (sp, t) -> ComplexTyped(transformPatterns ss sp, t)
 
-let getSynSimplePatsRange =
-    function
-    | SynSimplePats.SimplePats (_, r)
-    | SynSimplePats.Typed (_, _, r) -> r
-
 /// Process compiler-generated matches in an appropriate way
 let (|DesugaredLambda|_|) =
     function
-    | Lambda (DesugaredMatch (ss, e), spss) ->
-        Some(List.map (fun sp -> transformPatterns ss sp, getSynSimplePatsRange sp) spss, e)
+    | Lambda (DesugaredMatch (ss, e), spss) -> Some(List.map (fun sp -> transformPatterns ss sp, sp.Range) spss, e)
     | _ -> None
 
 // Type definitions

@@ -1379,3 +1379,18 @@ type Test() =
         let func2 (l: int) = ()
         return 0
 """
+
+[<Test>]
+let ``function argument with parenthesis, 1470`` () =
+    formatSourceString
+        false
+        """
+let bazka (f: ((FooTypeX -> string * string list)) Bar) = failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let bazka (f: ((FooTypeX -> string * string list)) Bar) = failwith ""
+"""
