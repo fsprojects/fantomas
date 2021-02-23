@@ -599,7 +599,7 @@ let (|Quote|_|) =
 
 let (|Paren|_|) =
     function
-    | SynExpr.Paren (e, lpr, rpr, _) -> Some(lpr, e, rpr)
+    | SynExpr.Paren (e, lpr, rpr, r) -> Some(lpr, e, rpr, r)
     | _ -> None
 
 type ExprKind =
@@ -812,8 +812,8 @@ let (|App|_|) e =
 // captures application with single arg
 let (|AppSingleArg|_|) =
     function
-    | App (SynExpr.DotGet _, [ (Paren (_, Tuple _, _)) ]) -> None
-    | App (e, [ (Paren (_, singleExpr, _) as px) ]) ->
+    | App (SynExpr.DotGet _, [ (Paren (_, Tuple _, _, _)) ]) -> None
+    | App (e, [ (Paren (_, singleExpr, _, _) as px) ]) ->
         match singleExpr with
         | SynExpr.Lambda _
         | SynExpr.MatchLambda _ -> None
@@ -1035,8 +1035,8 @@ let (|DotGet|_|) =
 let (|DotGetAppParen|_|) e =
     match e with
     //| App(e, [DotGet (Paren _ as p, (s,r))]) -> Some (e, p, s, r)
-    | DotGet (App (e, [ (Paren (_, Tuple _, _) as px) ]), lids) -> Some(e, px, lids)
-    | DotGet (App (e, [ (Paren (_, singleExpr, _) as px) ]), lids) ->
+    | DotGet (App (e, [ (Paren (_, Tuple _, _, _) as px) ]), lids) -> Some(e, px, lids)
+    | DotGet (App (e, [ (Paren (_, singleExpr, _, _) as px) ]), lids) ->
         match singleExpr with
         | SynExpr.Lambda _
         | SynExpr.MatchLambda _ -> None
@@ -1677,7 +1677,6 @@ let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
 
     | SynExpr.DotIndexedGet (expr, _, _, _)
     | SynExpr.TypeApp (expr, _, _, _, _, _, _) -> (|UppercaseSynExpr|LowercaseSynExpr|) expr
-
     | _ -> failwithf "cannot determine if synExpr %A is uppercase or lowercase" synExpr
 
 let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
@@ -1743,3 +1742,19 @@ let isSynExprLambda =
     function
     | SynExpr.Lambda _ -> true
     | _ -> false
+
+let (|AppParenTupleArg|_|) e =
+    match e with
+    | AppSingleArg (a, Paren (lpr, Tuple (ts, tr), rpr, pr)) -> Some(a, lpr, ts, tr, rpr, pr)
+    | _ -> None
+
+let (|AppParenSingleArg|_|) e =
+    match e with
+    | AppSingleArg (a, Paren (lpr, p, rpr, pr)) -> Some(a, lpr, p, rpr, pr)
+    | _ -> None
+
+let (|AppParenArg|_|) e =
+    match e with
+    | AppParenTupleArg t -> Choice1Of2 t |> Some
+    | AppParenSingleArg s -> Choice2Of2 s |> Some
+    | _ -> None

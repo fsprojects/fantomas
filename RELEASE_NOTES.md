@@ -1,3 +1,13 @@
+### 4.4.0-beta-008 02/201
+
+* Fix string interpolation with multi-line string causes literal part to change. [#1451](https://github.com/fsprojects/fantomas/issues/1451)
+* Fix `when` clause in try-with block gets split and causes compiler warnings about indentation. [#1406](https://github.com/fsprojects/fantomas/issues/1406)
+* Fix Long line breaks match. [#1403](https://github.com/fsprojects/fantomas/issues/1403)
+* Fix Long line causes offside error. [#1402](https://github.com/fsprojects/fantomas/issues/1402)
+* Fix Nested matches format into something invalid. [#1400](https://github.com/fsprojects/fantomas/issues/1400)
+* Fix Shortening big `if` clause still creates compiler warnings. [#1390](https://github.com/fsprojects/fantomas/issues/1390)
+* Fix “FS0058: Possible incorrect indentation” on function composition after running Fantomas. [#1341](https://github.com/fsprojects/fantomas/issues/1341)
+
 ### 4.4.0-beta-007 02/2021
 
 * Fix Typed App followed by chained lambda should not add space. [#1448](https://github.com/fsprojects/fantomas/issues/1448)
