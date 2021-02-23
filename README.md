@@ -30,9 +30,7 @@ The [fsharp-support](https://github.com/JetBrains/fsharp-support) uses fantomas 
 #### Using the latest version inside Rider
 
 For technical reasons Rider cannot always use the latest version of Fantomas found on NuGet.
-As a workaround you could install [fantomas-tool](https://www.nuget.org/packages/fantomas-tool) and configure it as an [External tool](https://www.jetbrains.com/help/rider/Settings_Tools_External_Tools.html).
-
-> dotnet tool install fantomas-tool
+As a workaround you could install [fantomas-tool](https://www.nuget.org/packages/fantomas-tool) locally with `dotnet tool install fantomas-tool` and configure it as an [External tool](https://www.jetbrains.com/help/rider/Settings_Tools_External_Tools.html).
 
 ![Rider external tool window](./docs/rider-external-tool.png)
 
