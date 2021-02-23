@@ -102,3 +102,28 @@ let mySampleMethod () =
     (Result.okValue result).Results.[0] |> Result.isOk
     =?? true
 """
+
+[<Test>]
+let ``multiple indexed application with unit`` () =
+    formatSourceString
+        false
+        """
+a.Some.Thing(
+    "aaa",
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc").Meh().[0]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+a
+    .Some
+    .Thing(
+        "aaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    )
+    .Meh().[0]
+"""
