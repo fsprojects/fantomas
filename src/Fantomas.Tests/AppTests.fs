@@ -550,3 +550,33 @@ tooooooooooooooooooooooo
 stooooooooooooooooooooooooone\"\"\"
     )
 "
+
+[<Test>]
+let ``multiline function application with single unit argument, 1469`` () =
+    formatSourceString
+        false
+        """
+namespace SomeNs
+
+module SomeModule =
+    let GetNormalAccountsPairingInfoForWatchWallet(): Option<WatchWalletInfo> =
+        let initialAbs = initialFeeWithAMinimumGasPriceInWeiDictatedByAvailablePublicFullNodes.CalculateAbsoluteValue()
+        initialAbs / 100
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace SomeNs
+
+module SomeModule =
+    let GetNormalAccountsPairingInfoForWatchWallet
+        ()
+        : Option<WatchWalletInfo> =
+        let initialAbs =
+            initialFeeWithAMinimumGasPriceInWeiDictatedByAvailablePublicFullNodes.CalculateAbsoluteValue
+                ()
+
+        initialAbs / 100
+"""

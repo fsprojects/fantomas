@@ -1953,7 +1953,7 @@ and genExpr astContext synExpr ctx =
 
         | AppParenArg (Choice1Of2 (Paren _, _, _, _, _, _) as app)
         | AppParenArg (Choice2Of2 (Paren _, _, _, _, _) as app) -> genAlternativeAppWithParenthesis app astContext
-        | AppSingleArg (e, px) ->
+        | AppSingleParenArg (e, px) ->
             let sepSpace (ctx: Context) =
                 match e with
                 | Paren _ -> sepSpace ctx
@@ -2245,7 +2245,7 @@ and genExpr astContext synExpr ctx =
                         | SynExpr.TryWith _
                         | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e +> sepCloseT
                         | App (SynExpr.DotGet _, [ (Paren _) ]) -> atCurrentColumn (genExpr astContext e)
-                        | Paren (lpr, (AppSingleArg _ as ate), rpr, pr) ->
+                        | Paren (lpr, (AppSingleParenArg _ as ate), rpr, pr) ->
                             sepOpenTFor lpr
                             +> atCurrentColumnIndent (genExpr astContext ate)
                             +> sepCloseTFor rpr pr
@@ -2486,7 +2486,15 @@ and genExpr astContext synExpr ctx =
         | LongIdentSet (s, e, _) ->
             !-(sprintf "%s <- " s)
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-        | DotIndexedGet (AppSingleArg (e, px), es) ->
+        | DotIndexedGet (App (e, [ (ConstExpr (SynConst.Unit, _) as ux) ]), es) ->
+            genExpr astContext e
+            +> genExpr astContext ux
+            +> !- "."
+            +> sepOpenLFixed
+            +> genIndexers astContext es
+            +> sepCloseLFixed
+            +> leaveNodeTokenByName synExpr.Range RBRACK
+        | DotIndexedGet (AppSingleParenArg (e, px), es) ->
             let short =
                 genExpr astContext e +> genExpr astContext px
 
@@ -2508,7 +2516,24 @@ and genExpr astContext synExpr ctx =
             +> genIndexers astContext es
             +> sepCloseLFixed
             +> leaveNodeTokenByName synExpr.Range RBRACK
-        | DotIndexedSet (AppSingleArg (a, px), es, e2) ->
+        | DotIndexedSet (App (e, [ (ConstExpr (SynConst.Unit, _) as ux) ]), es, e2) ->
+            let appExpr =
+                genExpr astContext e +> genExpr astContext ux
+
+            let idx =
+                !- "."
+                +> sepOpenLFixed
+                +> genIndexers astContext es
+                +> sepCloseLFixed
+                +> leaveNodeTokenByName synExpr.Range RBRACK
+                +> sepArrowRev
+
+            expressionFitsOnRestOfLine
+                (appExpr +> idx +> genExpr astContext e2)
+                (appExpr
+                 +> idx
+                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2))
+        | DotIndexedSet (AppSingleParenArg (a, px), es, e2) ->
             let short =
                 genExpr astContext a +> genExpr astContext px
 

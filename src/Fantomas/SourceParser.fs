@@ -809,8 +809,8 @@ let (|App|_|) e =
     | (_, []) -> None
     | (e, es) -> Some(e, List.rev es)
 
-// captures application with single arg
-let (|AppSingleArg|_|) =
+// captures application with single parenthesis argument
+let (|AppSingleParenArg|_|) =
     function
     | App (SynExpr.DotGet _, [ (Paren (_, Tuple _, _, _)) ]) -> None
     | App (e, [ (Paren (_, singleExpr, _, _) as px) ]) ->
@@ -818,7 +818,6 @@ let (|AppSingleArg|_|) =
         | SynExpr.Lambda _
         | SynExpr.MatchLambda _ -> None
         | _ -> Some(e, px)
-    | App (e, [ (ConstExpr (SynConst.Unit, _) as px) ]) -> Some(e, px)
     | _ -> None
 
 let (|AppOrTypeApp|_|) e =
@@ -1745,12 +1744,12 @@ let isSynExprLambda =
 
 let (|AppParenTupleArg|_|) e =
     match e with
-    | AppSingleArg (a, Paren (lpr, Tuple (ts, tr), rpr, pr)) -> Some(a, lpr, ts, tr, rpr, pr)
+    | AppSingleParenArg (a, Paren (lpr, Tuple (ts, tr), rpr, pr)) -> Some(a, lpr, ts, tr, rpr, pr)
     | _ -> None
 
 let (|AppParenSingleArg|_|) e =
     match e with
-    | AppSingleArg (a, Paren (lpr, p, rpr, pr)) -> Some(a, lpr, p, rpr, pr)
+    | AppSingleParenArg (a, Paren (lpr, p, rpr, pr)) -> Some(a, lpr, p, rpr, pr)
     | _ -> None
 
 let (|AppParenArg|_|) e =
