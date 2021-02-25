@@ -1414,3 +1414,26 @@ module Foo =
     type private Bang =
         abstract Baz : int
 """
+
+[<Test>]
+let ``add space before parenthesis when function identifier is SynExpr.Const, 1476`` () =
+    formatSourceString
+        false
+        """
+let x =
+      { actual = 6
+         y = x }
+
+let y =
+      { actual = 6
+        y = x }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x = { actual = 6 y = x }
+
+let y = { actual = 6; y = x }
+"""
