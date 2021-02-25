@@ -1,5 +1,14 @@
-### 4.4.0-beta-008 02/201
+### 4.4.0 - 02/201
 
+* Revisit SynExpr.IfThenElse. [#1258](https://github.com/fsprojects/fantomas/issues/1258)
+* Target netcoreapp3.1 for fantomas-tool.
+* Stricter trivia selection. [#1304](https://github.com/fsprojects/fantomas/pull/1304)
+* Fix Idempotency problem when function argument's type annotation requires brackets. [#1470](https://github.com/fsprojects/fantomas/issues/1470)
+* Fix Inconsistency about when fantomas decides to split `()` (unit) to the next line. [#1469](https://github.com/fsprojects/fantomas/issues/1469)
+* Fix Unexpected newline between hash directives. [#1464](https://github.com/fsprojects/fantomas/issues/1464)
+* Fix Oscillating newlines in custom computation expression. [#1463](https://github.com/fsprojects/fantomas/issues/1463)
+* Fix Violation of "avoid name-sensitive alignments" clause. [#1422](https://github.com/fsprojects/fantomas/issues/1422)
+* Fix Incorrectly combines tokens when formatting. [#1407](https://github.com/fsprojects/fantomas/issues/1407)
 * Fix string interpolation with multi-line string causes literal part to change. [#1451](https://github.com/fsprojects/fantomas/issues/1451)
 * Fix `when` clause in try-with block gets split and causes compiler warnings about indentation. [#1406](https://github.com/fsprojects/fantomas/issues/1406)
 * Fix Long line breaks match. [#1403](https://github.com/fsprojects/fantomas/issues/1403)
@@ -7,33 +16,18 @@
 * Fix Nested matches format into something invalid. [#1400](https://github.com/fsprojects/fantomas/issues/1400)
 * Fix Shortening big `if` clause still creates compiler warnings. [#1390](https://github.com/fsprojects/fantomas/issues/1390)
 * Fix “FS0058: Possible incorrect indentation” on function composition after running Fantomas. [#1341](https://github.com/fsprojects/fantomas/issues/1341)
-
-### 4.4.0-beta-007 02/2021
-
 * Fix Typed App followed by chained lambda should not add space. [#1448](https://github.com/fsprojects/fantomas/issues/1448)
 * Fix TypedApp should not have a space when chained. [#1447](https://github.com/fsprojects/fantomas/issues/1447)
 * Fix Unexpected newline after short match expression. [#1445](https://github.com/fsprojects/fantomas/issues/1445)
-
-### 4.4.0-beta-006 02/2021
-
 * Fix Space after chain lambda function is not allowed. [#1440](https://github.com/fsprojects/fantomas/issues/1440)
 * Fix Formatting error with MultilineBlockBracketsOnSameColumn. [#1396](https://github.com/fsprojects/fantomas/issues/1396)
-
-### 4.4.0-beta-005 02/2021
-
 * Fix fsharp_space_before_uppercase_invocation=true breaks method calls. [#1437](https://github.com/fsprojects/fantomas/issues/1437)
 * Fix Crash regression on 4.4.0-beta-003. [#1438](https://github.com/fsprojects/fantomas/issues/1438)
-
-### 4.4.0-beta-004 01/2021
-
 * Fix MultiLineLambdaClosingNewline concats lambda arguments. [#1427](https://github.com/fsprojects/fantomas/issues/1427)
 * Fix `member val` causes invalid code to be generated. [#1426](https://github.com/fsprojects/fantomas/issues/1426)
 * Fix Surround return type annotations with white space [F# style guide]. [#1420](https://github.com/fsprojects/fantomas/issues/1420)
 * Fix Lists concatene onto one line invalidly. [#1405](https://github.com/fsprojects/fantomas/issues/1405)
 * Fix Accessibility modifier on record causes unindentation of following type. [#1404](https://github.com/fsprojects/fantomas/issues/1404)
-
-### 4.4.0-beta-003 01/2021
-
 * Fix Invalid addition of a space after constructor invocation. [#1401](https://github.com/fsprojects/fantomas/issues/1401)
 * Fix "Inline" is incorrectly stripped out in FSI file. [#1399](https://github.com/fsprojects/fantomas/issues/1399)
 * Fix Multiple type checks in a `try/with` get collapsed. [#1395](https://github.com/fsprojects/fantomas/issues/1395)
@@ -41,13 +35,6 @@
 * Fix Object expression newline gets added/removed. [#1388](https://github.com/fsprojects/fantomas/issues/1388)
 * Fix Arrays of constructors with lots of arguments gets dedented too much. [#1382](https://github.com/fsprojects/fantomas/issues/1382)
 * Fix Format in pre-commit hook. [#1207](https://github.com/fsprojects/fantomas/issues/1207)
-
-### 4.4.0-beta-002 01/2021
-
-* Target netcoreapp3.1 for fantomas-tool.
-
-### 4.4.0-beta-001 01/2021
-
 * Fix Shortening an 'if' condition causes compilation warnings about indentation. [#1374](https://github.com/fsprojects/fantomas/issues/1374)
 * Fix Some escapes are unexpectedly modified in character literal patterns. [#1372](https://github.com/fsprojects/fantomas/issues/1372)
 * Fix Fantomas formats with an error for very long DU case match. [#1364](https://github.com/fsprojects/fantomas/issues/1364)
@@ -58,9 +45,6 @@
 * Fix Failing to format file should return an exit code different than 0. [#1340](https://github.com/fsprojects/fantomas/issues/1340)
 * Fix Shorter MaxLineLength with long variable name yields invalid F# code according to fantomas. [#1241](https://github.com/fsprojects/fantomas/issues/1241)
 * Fix MultilineBlockBracketsOnSameColumn should be honored inside match block. [#1238](https://github.com/fsprojects/fantomas/issues/1238)
-
-### 4.4.0-alpha-008 01/2021
-
 * Fix Update constructor formatting to match MS Style guide. [#1359](https://github.com/fsprojects/fantomas/issues/1359)
 * Fix Violation of name-sensitive alignments. [#1358](https://github.com/fsprojects/fantomas/issues/1358)
 * Fix Pattern matching breaks code when expression is long and somewhat complex. [#1352](https://github.com/fsprojects/fantomas/issues/1352)
@@ -69,17 +53,8 @@
 * Fix Required backslash removed in string interpolation. [#1344](https://github.com/fsprojects/fantomas/issues/1344)
 * Fix Swallows comment before #nowarn directive. [#1220](https://github.com/fsprojects/fantomas/issues/1220)
 * Fix Swallows comment inside `with` block (of a try-with). [#1219](https://github.com/fsprojects/fantomas/issues/1219)
-
-### 4.4.0-alpha-007 12/2020
-
 * Fix Program.fs inside full path can lead to invalid AST. [#1337](https://github.com/fsprojects/fantomas/issues/1337)
-
-### 4.4.0-alpha-006 12/2020
-
 * Fix Formatting of long parameter lists. [#657](https://github.com/fsprojects/fantomas/issues/657)
-
-### 4.4.0-alpha-005 12/2020
-
 * Fix DotGet inside If expression not correct on second format. [#1329](https://github.com/fsprojects/fantomas/issues/1329)
 * Fix Pipe is indented too far. [#1327](https://github.com/fsprojects/fantomas/issues/1327)
 * Fix IfThenElse piped leads to invalid code. [#1324](https://github.com/fsprojects/fantomas/issues/1324)
@@ -88,29 +63,14 @@
 * Fix New line before for loop not preserved. [#1317](https://github.com/fsprojects/fantomas/issues/1317)
 * Fix Newline before set expression is lost. [#1314](https://github.com/fsprojects/fantomas/issues/1314)
 * Fix Newline after let bang is missing. [#1313](https://github.com/fsprojects/fantomas/issues/1313)
-
-### 4.4.0-alpha-004 12/2020
-
 * Fix Revisit place parameters on a new line for long definitions. [#1307](https://github.com/fsprojects/fantomas/issues/1307)
 * Fix static member should only have a single indent. [#1300](https://github.com/fsprojects/fantomas/issues/1300)
 * Fix Elmish-like syntax using yields with interspersed let statements breaks the code. [#1191](https://github.com/fsprojects/fantomas/issues/1191)
 * Fix The 'member' keyword gets deleted in 'abstract member' declarations. [#1106](https://github.com/fsprojects/fantomas/issues/1106)
 * Fix Don't indent too far. [#659](https://github.com/fsprojects/fantomas/issues/659)
-
-### 4.4.0-alpha-003 - 12/2020
-
-* Stricter trivia selection. [#1304](https://github.com/fsprojects/fantomas/pull/1304)
 * Fix static member should only have a single indent. [#1300](https://github.com/fsprojects/fantomas/issues/1300)
 * Fix Named string argument to type provider requires a space prior to '@', which Fantomas removes. [#1209](https://github.com/fsprojects/fantomas/issues/1209)
 * Fix Don't indent too far. [#659](https://github.com/fsprojects/fantomas/issues/659)
-
-### 4.4.0-alpha-002 - 12/2020
-
-* Revisit SynExpr.IfThenElse without Else branch [#1258](https://github.com/fsprojects/fantomas/issues/1258)
-
-### 4.4.0-alpha-001 - 12/2020
-
-* Revisit SynExpr.IfThenElse. [#1258](https://github.com/fsprojects/fantomas/issues/1258)
 * Fix spaces removed from string. [#1290](https://github.com/fsprojects/fantomas/issues/1290)
 
 ### 4.3.0 - 12/2020
