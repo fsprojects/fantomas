@@ -1415,9 +1415,8 @@ module Foo =
         abstract Baz : int
 """
 
-
 [<Test>]
-let ``add space before paren in funcall, 1476`` () =
+let ``add space before parenthesis when function identifier is SynExpr.Const, 1476`` () =
     formatSourceString
         false
         """
@@ -1438,4 +1437,3 @@ let x = { actual = 6 y = x }
 
 let y = { actual = 6; y = x }
 """
-        
