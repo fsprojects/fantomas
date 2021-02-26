@@ -2019,3 +2019,40 @@ module Configuration =
         then
             config.Save file
 """
+
+[<Test>]
+let ``multiline yield bang in then expression, 1185`` () =
+    formatSourceString
+        false
+        """
+let lessonsForm (f:ValidatedForm<Request.CreateLessons>) dispatch =
+
+    Html.div [
+        Bulma.field.div [
+            Bulma.fieldBody [
+                Bulma.button.button [
+                    color.isPrimary
+                    prop.text "Přidat lekce"
+                    if f.IsLoading then yield! [ button.isLoading; prop.disabled true ]
+                    prop.onClick (fun _ -> CreateLessons |> dispatch)
+                ]
+            ]
+        ]
+    ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let lessonsForm (f: ValidatedForm<Request.CreateLessons>) dispatch =
+
+    Html.div [ Bulma.field.div [ Bulma.fieldBody [ Bulma.button.button [ color.isPrimary
+                                                                         prop.text "Přidat lekce"
+                                                                         if f.IsLoading then
+                                                                             yield!
+                                                                                 [ button.isLoading
+                                                                                   prop.disabled true ]
+                                                                         prop.onClick
+                                                                             (fun _ -> CreateLessons |> dispatch) ] ] ] ]
+"""
