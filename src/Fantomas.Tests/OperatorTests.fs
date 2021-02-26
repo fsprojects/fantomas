@@ -890,3 +890,84 @@ let shouldIncludeRelationship relName =
             path.Length >= currentIncludePath.Length + 1
             && path |> List.take (currentIncludePath.Length + 1) = currentIncludePath @ [ relName ])
 """
+
+[<Test>]
+let ``add in keyword when let binding is part of same operator infix expression, 1461`` () =
+    formatSourceString
+        false
+        """
+    let isUnseenByHidingAttribute () =
+        not (isObjTy g ty) &&
+        isAppTy g ty &&
+        isObjTy g minfo.ApparentEnclosingType &&
+        let tcref = tcrefOfAppTy g ty
+        match tcref.TypeReprInfo with
+        | _ -> false
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let isUnseenByHidingAttribute () =
+    not (isObjTy g ty)
+    && isAppTy g ty
+    && isObjTy g minfo.ApparentEnclosingType
+    && let tcref = tcrefOfAppTy g ty in
+
+       match tcref.TypeReprInfo with
+       | _ -> false
+"""
+
+[<Test>]
+let ``add in keyword when let binding is part of single infix expression`` () =
+    formatSourceString
+        false
+        """
+    // Check for the [<ProjectionParameter>] attribute on an argument position
+    let isCustomOperationProjectionParameter i (nm: Ident) =
+        match tryGetArgInfosForCustomOperator nm with
+        | None -> false
+        | Some argInfosForOverloads ->
+            let vs =
+                argInfosForOverloads |> List.map (function
+                    | None -> false
+                    | Some argInfos ->
+                        i < argInfos.Length &&
+                        let (_, argInfo) = List.item i argInfos
+                        HasFSharpAttribute cenv.g cenv.g.attrib_ProjectionParameterAttribute argInfo.Attribs)
+            if List.allEqual vs then vs.[0]
+            else
+                let opDatas = (tryGetDataForCustomOperation nm).Value
+                let (opName, _, _, _, _, _, _, _j, _) = opDatas.[0]
+                errorR(Error(FSComp.SR.tcCustomOperationInvalid opName, nm.idRange))
+                false
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Check for the [<ProjectionParameter>] attribute on an argument position
+let isCustomOperationProjectionParameter i (nm: Ident) =
+    match tryGetArgInfosForCustomOperator nm with
+    | None -> false
+    | Some argInfosForOverloads ->
+        let vs =
+            argInfosForOverloads
+            |> List.map
+                (function
+                | None -> false
+                | Some argInfos ->
+                    i < argInfos.Length
+                    && let (_, argInfo) = List.item i argInfos in
+                       HasFSharpAttribute cenv.g cenv.g.attrib_ProjectionParameterAttribute argInfo.Attribs)
+
+        if List.allEqual vs then
+            vs.[0]
+        else
+            let opDatas = (tryGetDataForCustomOperation nm).Value
+            let (opName, _, _, _, _, _, _, _j, _) = opDatas.[0]
+            errorR (Error(FSComp.SR.tcCustomOperationInvalid opName, nm.idRange))
+            false
+"""
