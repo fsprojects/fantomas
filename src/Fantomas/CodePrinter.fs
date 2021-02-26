@@ -2219,8 +2219,6 @@ and genExpr astContext synExpr ctx =
 
                     let long =
                         match e with
-                        | SynExpr.TryWith _
-                        | SynExpr.TryFinally _ -> sepOpenT +> genExpr astContext e +> sepCloseT
                         | App (SynExpr.DotGet _, [ (Paren _) ]) -> atCurrentColumn (genExpr astContext e)
                         | Paren (lpr, (AppSingleParenArg _ as ate), rpr, pr) ->
                             sepOpenTFor lpr
@@ -2262,6 +2260,15 @@ and genExpr astContext synExpr ctx =
                                             +> genAlternativeAppWithParenthesis app astContext
                                             +> sepCloseTFor rpr pr
                                         | _ -> genExpr astContext e))
+                            +> unindent
+                            +> sepNln
+                        | SynExpr.Match _
+                        | SynExpr.MatchBang _
+                        | SynExpr.TryWith _
+                        | SynExpr.TryFinally _ ->
+                            indent
+                            +> sepNln
+                            +> genExpr astContext e
                             +> unindent
                             +> sepNln
                         | _ -> genExpr astContext e
