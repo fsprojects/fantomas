@@ -3183,14 +3183,14 @@ and genApp appNlnFun astContext e es ctx =
                                 else
                                     autoNlnIfExpressionExceedsPageWidth (genExpr astContext e) ctx
 
-                            sepOpenTFor lpr -- "fun "
-                            +> pats
-                            +> indent
-                            +> triviaAfterArrow arrowRange
-                            +> genExprAfterArrow bodyExpr
-                            +> unindent
-                            +> sepNln
-                            +> sepCloseTFor rpr
+                            leadingExpressionIsMultiline
+                                (sepOpenTFor lpr -- "fun "
+                                 +> pats
+                                 +> indent
+                                 +> triviaAfterArrow arrowRange
+                                 +> genExprAfterArrow bodyExpr
+                                 +> unindent)
+                                (fun isMultiline -> onlyIf isMultiline sepNln +> sepCloseTFor rpr)
 
                         match e with
                         | Paren (lpr, DesugaredLambda (cps, e), rpr, _) ->
