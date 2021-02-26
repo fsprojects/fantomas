@@ -276,9 +276,11 @@ let x =
         equal
         """
 let x =
-    if (try
+    if
+        try
             true
-        with Failure _ -> false) then
+        with Failure _ -> false
+    then
         ()
     else
         ()
@@ -303,10 +305,12 @@ let y =
         equal
         """
 let y =
-    if (try
+    if
+        try
             true
         finally
-            false) then
+            false
+    then
         ()
     else
         ()
