@@ -4,12 +4,12 @@ framework: netstandard2.0, net5.0, netcoreapp3.1
 storage: none
 
 nuget FSharp.Core
-nuget FSharp.Compiler.Service ~> 38.0
+nuget FSharp.Compiler.Service ~> 39.0
 nuget FsUnit
 nuget FsCheck
-nuget Microsoft.NET.Test.Sdk 16.7.0
-nuget nunit 3.12.0
-nuget NUnit3TestAdapter 3.17.0
+nuget Microsoft.NET.Test.Sdk 16.9.1
+nuget nunit 3.13.1
+nuget NUnit3TestAdapter 4.0.0-beta.1
 nuget NunitXml.TestLogger
 nuget Argu
 nuget BenchmarkDotNet

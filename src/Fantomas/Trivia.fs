@@ -4,7 +4,7 @@ open FSharp.Compiler.SourceCodeServices
 open Fantomas
 open Fantomas.AstTransformer
 open Fantomas.TriviaTypes
-open FSharp.Compiler.Range
+open FSharp.Compiler.Text
 open FSharp.Compiler.SyntaxTree
 
 let inline private isMainNodeButNotAnonModule (node: TriviaNodeAssigner) =
@@ -52,8 +52,8 @@ let filterNodes nodes =
               SynTypeDefnSigRepr_ObjectModel
               SynExpr_Typed
               // SynType_StaticConstant
-              SynExpr_CompExpr
-              SynExpr_Do ]
+              SynExpr_CompExpr ]
+    // SynExpr_Do ]
 
     nodes
     |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
@@ -178,7 +178,7 @@ let private findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner list) line col
             || (range.StartLine = line
                 && range.StartColumn > column))
 
-let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (constantRange: range) =
+let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (constantRange: Range) =
     nodes
     |> List.tryFind
         (fun tn ->
@@ -192,7 +192,7 @@ let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (const
                 && tn.Range.EndColumn = constantRange.EndColumn
             | _ -> false)
 
-let private findSynConstStringNodeAfter (nodes: TriviaNodeAssigner list) (range: range) =
+let private findSynConstStringNodeAfter (nodes: TriviaNodeAssigner list) (range: Range) =
     nodes
     |> List.tryFind
         (fun tn ->
@@ -216,7 +216,7 @@ let private mapNodeToTriviaNode (node: Node) =
             | Some i -> TriviaNodeAssigner(MainNode(node.Type), range, i)
             | None -> TriviaNodeAssigner(MainNode(node.Type), range))
 
-let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: range) =
+let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: Range) =
     let hasNoNodesAfterRange =
         triviaNodes
         |> Seq.exists

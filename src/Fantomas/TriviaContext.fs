@@ -3,14 +3,14 @@ module internal Fantomas.TriviaContext
 open Fantomas
 open Fantomas.Context
 open Fantomas.TriviaTypes
-open FSharp.Compiler.Range
+open FSharp.Compiler.Text
 
-let tokN (range: range) (tokenName: FsTokenType) f =
+let tokN (range: Range) (tokenName: FsTokenType) f =
     enterNodeTokenByName range tokenName
     +> f
     +> leaveNodeTokenByName range tokenName
 
-let triviaAfterArrow (range: range) (ctx: Context) =
+let triviaAfterArrow (range: Range) (ctx: Context) =
     let hasCommentAfterArrow =
         findTriviaTokenFromName RARROW range ctx
         |> Option.bind
@@ -26,7 +26,7 @@ let triviaAfterArrow (range: range) (ctx: Context) =
      +> ifElse hasCommentAfterArrow sepNln sepNone)
         ctx
 
-let ``else if / elif`` (rangeOfIfThenElse: range) (ctx: Context) =
+let ``else if / elif`` (rangeOfIfThenElse: Range) (ctx: Context) =
     let keywords =
         [ yield! (Map.tryFindOrEmptyList ELSE ctx.TriviaTokenNodes)
           yield! (Map.tryFindOrEmptyList IF ctx.TriviaTokenNodes)

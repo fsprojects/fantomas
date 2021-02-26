@@ -2,7 +2,7 @@ namespace Fantomas
 
 open Fantomas.FormatConfig
 open Fantomas.SourceOrigin
-open FSharp.Compiler.Range
+open FSharp.Compiler.Text
 open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.SyntaxTree
 
@@ -31,7 +31,7 @@ type CodeFormatter =
     /// Beware that the range argument is inclusive. If the range has a trailing newline, it will appear in the formatted result.
     static member FormatSelectionAsync :
         fileName: string
-        * selection: range
+        * selection: Range
         * source: SourceOrigin
         * config: FormatConfig
         * parsingOptions: FSharpParsingOptions

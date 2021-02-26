@@ -4,11 +4,10 @@ module Fantomas.CodeFormatterImpl
 open System
 open System.Diagnostics
 open System.Text.RegularExpressions
-
-open FSharp.Compiler.Range
+open FSharp.Compiler.Text.Range
+open FSharp.Compiler.Text.Pos
 open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.SyntaxTree
-
 open FSharp.Compiler.Text
 open Fantomas
 open Fantomas.FormatConfig
@@ -77,7 +76,7 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
                 if untypedRes.ParseHadErrors then
                     let errors =
                         untypedRes.Errors
-                        |> Array.filter (fun e -> e.Severity = FSharpErrorSeverity.Error)
+                        |> Array.filter (fun e -> e.Severity = FSharpDiagnosticSeverity.Error)
 
                     if not <| Array.isEmpty errors then
                         raise
@@ -454,7 +453,7 @@ let isSignificantToken (tok: FSharpTokenInfo) =
     && tok.TokenName <> "STRING_TEXT"
 
 /// Find out the start token
-let rec getStartCol (r: range) (tokenizer: FSharpLineTokenizer) lexState =
+let rec getStartCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
     match tokenizer.ScanToken(!lexState) with
     | Some (tok), state ->
         if tok.RightColumn >= r.StartColumn
@@ -466,7 +465,7 @@ let rec getStartCol (r: range) (tokenizer: FSharpLineTokenizer) lexState =
     | None, _ -> r.StartColumn
 
 /// Find out the end token
-let rec getEndCol (r: range) (tokenizer: FSharpLineTokenizer) lexState =
+let rec getEndCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
     match tokenizer.ScanToken(!lexState) with
     | Some (tok), state ->
         Debug.WriteLine("End token: {0}", sprintf "%A" tok |> box)
@@ -517,7 +516,7 @@ let private getPatch startCol (lines: string []) =
     loop (lines.Length - 1)
 
 /// Convert from range to string positions
-let private stringPos (r: range) (sourceCode: string) =
+let private stringPos (r: Range) (sourceCode: string) =
     // Assume that content has been normalized (no "\r\n" anymore)
     let positions =
         sourceCode.Split('\n')
@@ -543,7 +542,7 @@ let private formatRange
     (checker: FSharpChecker)
     (parsingOptions: FSharpParsingOptions)
     returnFormattedContentOnly
-    (range: range)
+    (range: Range)
     (lines: _ [])
     config
     ({ Source = sourceCode
@@ -692,7 +691,7 @@ let private formatRange
 let formatSelection
     (checker: FSharpChecker)
     (parsingOptions: FSharpParsingOptions)
-    (range: range)
+    (range: Range)
     config
     ({ Source = sourceCode
        FileName = fileName } as formatContext)

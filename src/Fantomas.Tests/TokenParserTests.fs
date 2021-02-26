@@ -21,10 +21,10 @@ let private tokenize v = tokenize [] [] v
 
 let private mkRange : MkRange =
     fun (sl, sc) (el, ec) ->
-        FSharp.Compiler.Range.mkRange
+        FSharp.Compiler.Text.Range.mkRange
             "TokenParserTests"
-            (FSharp.Compiler.Range.mkPos sl sc)
-            (FSharp.Compiler.Range.mkPos el ec)
+            (FSharp.Compiler.Text.Pos.mkPos sl sc)
+            (FSharp.Compiler.Text.Pos.mkPos el ec)
 
 let private getTriviaFromTokens = getTriviaFromTokens mkRange
 let private getTriviaNodesFromTokens = getTriviaNodesFromTokens mkRange
@@ -491,7 +491,7 @@ let a = \"
 \"
 "
 
-    getDefines source == []
+    getDefines source == List<string>.Empty
 
 [<Test>]
 let ``defines inside string, escaped quote`` () =
@@ -504,7 +504,7 @@ let a = \"\\\"
 \"
 "
 
-    getDefines source == []
+    getDefines source == List<string>.Empty
 
 [<Test>]
 let ``defines inside triple quote string`` () =
@@ -517,7 +517,7 @@ let a = \"\"\"
 \"\"\"
 "
 
-    getDefines source == []
+    getDefines source == List<string>.Empty
 
 [<Test>]
 let ``defines inside triple quote string, escaped quote`` () =
@@ -530,7 +530,7 @@ let a = \"\"\"\\\"
 \"\"\"
 "
 
-    getDefines source == []
+    getDefines source == List<string>.Empty
 
 [<Test>]
 let ``defines inside triple quote string, escaped triple quote`` () =
@@ -543,7 +543,7 @@ let a = \"\"\"\\\"\"\"
 \"\"\"
 "
 
-    getDefines source == []
+    getDefines source == List<string>.Empty
 
 [<Test>]
 let ``backslashes in strings prior to hash directives should not affect token parsing`` () =
@@ -575,4 +575,4 @@ let a = \\\"\\\\\\\"
     getDefines source == []
 "
 
-    getDefines source == []
+    getDefines source == List<string>.Empty
