@@ -252,3 +252,22 @@ module Foo =
     let Bar () =
         (doc.DocumentNode.SelectNodes "//table").[0]
 """
+
+[<Test>]
+let ``ignore setting when function call is the argument of prefix application, 1488`` () =
+    formatSourceString
+        false
+        """
+!-String.Empty.PadLeft(braceSize + spaceAround)
+(!-System.String.Empty.PadRight(delta)) ({ ctx with RecordBraceStart = rest })
+!- Meh()
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+!- String.Empty.PadLeft(braceSize + spaceAround)
+(!- System.String.Empty.PadRight(delta)) ({ ctx with RecordBraceStart = rest })
+!- Meh()
+"""

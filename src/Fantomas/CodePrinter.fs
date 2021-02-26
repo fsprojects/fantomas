@@ -1713,6 +1713,12 @@ and genExpr astContext synExpr ctx =
             ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
         // Separate two prefix ops by spaces
         | PrefixApp (s1, PrefixApp (s2, e)) -> !-(sprintf "%s %s" s1 s2) +> genExpr astContext e
+        | PrefixApp (s, App (e, [ Paren _ as p ]))
+        | PrefixApp (s, App (e, [ ConstExpr (SynConst.Unit _, _) as p ])) ->
+            !-s
+            +> sepSpace
+            +> genExpr astContext e
+            +> genExpr astContext p
         | PrefixApp (s, e) ->
             let extraSpaceBeforeString =
                 match e with
