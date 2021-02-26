@@ -890,3 +890,31 @@ let shouldIncludeRelationship relName =
             path.Length >= currentIncludePath.Length + 1
             && path |> List.take (currentIncludePath.Length + 1) = currentIncludePath @ [ relName ])
 """
+
+[<Test>]
+let ``add in keyword when let binding is part of infix expression, 1461`` () =
+    formatSourceString
+        false
+        """
+    let isUnseenByHidingAttribute () =
+        not (isObjTy g ty) &&
+        isAppTy g ty &&
+        isObjTy g minfo.ApparentEnclosingType &&
+        let tcref = tcrefOfAppTy g ty
+        match tcref.TypeReprInfo with
+        | _ -> false
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let isUnseenByHidingAttribute () =
+    not (isObjTy g ty)
+    && isAppTy g ty
+    && isObjTy g minfo.ApparentEnclosingType
+    && let tcref = tcrefOfAppTy g ty in
+
+       match tcref.TypeReprInfo with
+       | _ -> false
+"""

@@ -1775,7 +1775,18 @@ and genExpr astContext synExpr ctx =
                     (fun (s, oe, e) ->
                         genInfixOperator s oe
                         +> sepSpace
-                        +> genExpr astContext e)
+                        +> match e with
+                           | LetOrUse (false, false, [ lb ], e) ->
+                               atCurrentColumn (
+                                   genLetBinding astContext "let " lb
+                                   +> !- " in"
+                                   +> sepNln
+                                   +> expressionFitsOnRestOfLine
+                                       (genExpr astContext e)
+                                       (sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e) e.Range
+                                        +> genExpr astContext e)
+                               )
+                           | _ -> genExpr astContext e)
 
             fun ctx ->
                 atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
