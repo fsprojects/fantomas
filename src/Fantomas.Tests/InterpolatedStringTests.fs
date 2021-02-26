@@ -163,3 +163,18 @@ $\"\"\"one: {1}<
 $\"\"\"one: {1}<
 >two: {2}\"\"\"
 "
+
+[<Test>]
+let ``prefix application, 1414`` () =
+    formatSourceString
+        false
+        """
+!- $".{s}"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+!- $".{s}"
+"""
