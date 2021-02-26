@@ -533,3 +533,30 @@ let choose chooser source =
         )
         Set.empty
 """
+
+[<Test>]
+let ``single line lambda, 1474`` () =
+    formatSourceString
+        false
+        """
+module Caching =
+    type MainCache() =
+        member __.GetLastCachedData (): CachedNetworkData =
+            lock cacheFiles.CachedNetworkData (fun _ ->
+                sessionCachedNetworkData
+            )
+"""
+        { config with
+              MaxLineLength = 80
+              MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Caching =
+    type MainCache() =
+        member __.GetLastCachedData() : CachedNetworkData =
+            lock
+                cacheFiles.CachedNetworkData
+                (fun _ -> sessionCachedNetworkData)
+"""
