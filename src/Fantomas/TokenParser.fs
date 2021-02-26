@@ -1,12 +1,11 @@
 module internal Fantomas.TokenParser
 
-open FSharp.Compiler.AbstractIL.Internal.Library
 open System
 open System.Text
-open FSharp.Compiler.SourceCodeServices
 open Fantomas
 open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
+open FSharp.Compiler.SourceCodeServices
 
 let private whiteSpaceTag = 4
 let private lineCommentTag = 8
@@ -576,7 +575,7 @@ let private (|StringText|_|) tokens =
 
 let private identIsDecompiledOperator (token: Token) =
     let decompiledName =
-        FSharp.Compiler.PrettyNaming.DecompileOpName token.Content
+        PrettyNaming.DecompileOpName token.Content
 
     token.TokenInfo.TokenName = "IDENT"
     && decompiledName <> token.Content
@@ -837,7 +836,7 @@ let private createNewLine (mkRange: MkRange) lineNumber =
 let private findEmptyNewlinesInTokens
     (mkRange: MkRange)
     (tokens: Token list)
-    (ignoreRanges: FSharp.Compiler.Range.range list)
+    (ignoreRanges: FSharp.Compiler.Text.Range list)
     =
     let nonWhitespaceLines =
         tokens
@@ -873,8 +872,8 @@ let getTriviaFromTokens (mkRange: MkRange) (tokens: Token list) =
                 | Comment (BlockComment _) -> Some tc.Range
                 | _ -> None)
 
-    let isMultilineString s =
-        String.split StringSplitOptions.None [| "\n" |] s
+    let isMultilineString (s: string) =
+        s.Split([| "\n" |], StringSplitOptions.None)
         |> (Seq.isEmpty >> not)
 
     let multilineStrings =
@@ -913,8 +912,7 @@ let private tokenNames =
       "MEMBER"
       "AND_BANG"
       "FUNCTION"
-      "IN"
-      "DO" ]
+      "IN" ]
 
 let private tokenKinds = [ FSharpTokenCharKind.Operator ]
 

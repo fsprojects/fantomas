@@ -1,6 +1,6 @@
 module Fantomas.AstTransformer
 
-open FSharp.Compiler.Range
+open FSharp.Compiler.Text
 open FSharp.Compiler.SyntaxTree
 open Fantomas.TriviaTypes
 
@@ -10,19 +10,19 @@ let rec (|Sequentials|_|) =
     | SynExpr.Sequential (_, isTrueSeq, e1, e2, range) -> Some [ isTrueSeq, e1, Some e2, range ]
     | _ -> None
 
-type Id = { Ident: string; Range: range option }
+type Id = { Ident: string; Range: Range option }
 
 type FsAstNode = obj
 
 type Node =
     { Type: FsAstType
-      Range: range option
+      Range: Range option
       Properties: Map<string, obj>
       Childs: Node list
       FsAstNode: FsAstNode }
 
 module Helpers =
-    let r (r: range) : range option = Some r
+    let r (r: Range) : Range option = Some r
 
     let p = Map.ofList
     let inline (==>) a b = (a, box b)
@@ -1477,7 +1477,7 @@ module private Ast =
           FsAstNode = attr
           Childs = [ visitSynExpr attr.ArgExpr ] }
 
-    and visitSynAttributeLists (parentRange: range) (attrs: SynAttributeList list) : Node list =
+    and visitSynAttributeLists (parentRange: Range) (attrs: SynAttributeList list) : Node list =
         match attrs with
         | [ h ] ->
             visitSynAttributeList parentRange h
@@ -1492,7 +1492,7 @@ module private Ast =
             |> List.map (fun (a, r) -> visitSynAttributeList r a)
         | [] -> []
 
-    and visitSynAttributeList (parentRange: range) (attrs: SynAttributeList) : Node =
+    and visitSynAttributeList (parentRange: Range) (attrs: SynAttributeList) : Node =
         { Type = SynAttributeList_
           Range = r attrs.Range
           Properties = p [ "linesBetweenParent", box (parentRange.StartLine - attrs.Range.EndLine - 1) ]
@@ -1689,7 +1689,7 @@ module private Ast =
               FsAstNode = st
               Childs = [ yield visitSynType innerType ] }
 
-    and visitSynConst (parentRange: range) (sc: SynConst) =
+    and visitSynConst (parentRange: Range) (sc: SynConst) =
         let t =
             match sc with
             | SynConst.Bool _ -> SynConst_Bool

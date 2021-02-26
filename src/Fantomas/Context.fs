@@ -1,7 +1,9 @@
 module Fantomas.Context
 
 open System
-open FSharp.Compiler.Range
+open FSharp.Compiler.Text
+open FSharp.Compiler.Text.Range
+open FSharp.Compiler.Text.Pos
 open FSharp.Compiler.SyntaxTree
 open Fantomas
 open Fantomas.FormatConfig
@@ -1157,30 +1159,30 @@ let internal printContentBefore triviaNode =
 let internal printContentAfter triviaNode =
     col sepNone triviaNode.ContentAfter printTriviaContent
 
-let private findTriviaRangeEq nodes (range: range) =
+let private findTriviaRangeEq nodes (range: Range) =
     nodes
     |> List.tryFind (fun n -> RangeHelpers.rangeEq n.Range range)
 
-let private findTriviaOnStartFromRange nodes (range: range) =
+let private findTriviaOnStartFromRange nodes (range: Range) =
     nodes
     |> List.tryFind (fun n -> RangeHelpers.rangeStartEq n.Range range)
 
-let internal findTriviaTokenFromName (tokenName: FsTokenType) (range: range) (ctx: Context) =
+let internal findTriviaTokenFromName (tokenName: FsTokenType) (range: Range) (ctx: Context) =
     Map.tryFind tokenName ctx.TriviaTokenNodes
     |> Option.defaultValue []
     |> List.tryFind (fun n -> RangeHelpers.``range contains`` range n.Range)
 
-let internal enterNodeTokenByName (range: range) (tokenName: FsTokenType) (ctx: Context) =
+let internal enterNodeTokenByName (range: Range) (tokenName: FsTokenType) (ctx: Context) =
     match findTriviaTokenFromName tokenName range ctx with
     | Some triviaNode -> (printContentBefore triviaNode) ctx
     | None -> ctx
 
-let internal leaveNodeTokenByName (range: range) (tokenName: FsTokenType) (ctx: Context) =
+let internal leaveNodeTokenByName (range: Range) (tokenName: FsTokenType) (ctx: Context) =
     match findTriviaTokenFromName tokenName range ctx with
     | Some triviaNode -> (printContentAfter triviaNode) ctx
     | None -> ctx
 
-let internal enterNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context) =
+let internal enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaMainNodes with
     | Some triviaNodes ->
         let tn =
@@ -1193,7 +1195,7 @@ let internal enterNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context
         | None -> ctx
     | None -> ctx
 
-let internal leaveNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context) =
+let internal leaveNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaMainNodes with
     | Some triviaNodes ->
         let tn =
@@ -1206,7 +1208,7 @@ let internal leaveNodeFor (mainNodeName: FsAstType) (range: range) (ctx: Context
         | None -> ctx
     | None -> ctx
 
-let internal leaveLeftToken (tokenName: FsTokenType) (range: range) (ctx: Context) =
+let internal leaveLeftToken (tokenName: FsTokenType) (range: Range) (ctx: Context) =
     (Map.tryFindOrEmptyList tokenName ctx.TriviaTokenNodes)
     |> List.tryFind
         (fun tn ->
@@ -1223,7 +1225,7 @@ let internal leaveLeftBrace = leaveLeftToken LBRACE
 let internal leaveLeftBrack = leaveLeftToken LBRACK
 let internal leaveLeftBrackBar = leaveLeftToken LBRACK_BAR
 
-let internal enterRightToken (tokenName: FsTokenType) (range: range) (ctx: Context) =
+let internal enterRightToken (tokenName: FsTokenType) (range: Range) (ctx: Context) =
     (Map.tryFindOrEmptyList tokenName ctx.TriviaTokenNodes)
     |> List.tryFind
         (fun tn ->
@@ -1274,14 +1276,14 @@ let internal hasPrintableContent (trivia: TriviaContent list) =
 let private sepConsideringTriviaContentBeforeBy
     (findNode: Context -> range -> TriviaNode option)
     (sepF: Context -> Context)
-    (range: range)
+    (range: Range)
     (ctx: Context)
     =
     match findNode ctx range with
     | Some ({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) -> ctx
     | _ -> sepF ctx
 
-let internal sepConsideringTriviaContentBefore sepF (key: Choice<FsAstType, FsTokenType>) (range: range) ctx =
+let internal sepConsideringTriviaContentBefore sepF (key: Choice<FsAstType, FsTokenType>) (range: Range) ctx =
     let findTrivia ctx range =
         match key with
         | Choice1Of2 fsAstKey -> findTriviaRangeEq (Map.tryFindOrEmptyList fsAstKey ctx.TriviaMainNodes) range
@@ -1290,13 +1292,13 @@ let internal sepConsideringTriviaContentBefore sepF (key: Choice<FsAstType, FsTo
 
     sepConsideringTriviaContentBeforeBy findTrivia sepF range ctx
 
-let internal sepConsideringTriviaContentBeforeForToken sepF (fsTokenKey: FsTokenType) (range: range) (ctx: Context) =
+let internal sepConsideringTriviaContentBeforeForToken sepF (fsTokenKey: FsTokenType) (range: Range) (ctx: Context) =
     let findTrivia ctx range =
         findTriviaTokenFromName fsTokenKey range ctx
 
     sepConsideringTriviaContentBeforeBy findTrivia sepF range ctx
 
-let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: FsAstType) (range: range) (ctx: Context) =
+let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     let findNode ctx range =
         Map.tryFind mainNodeName ctx.TriviaMainNodes
         |> Option.defaultValue []
@@ -1304,19 +1306,19 @@ let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: Fs
 
     sepConsideringTriviaContentBeforeBy findNode sepF range ctx
 
-let internal sepNlnConsideringTriviaContentBefore (key: Choice<FsAstType, FsTokenType>) (range: range) =
+let internal sepNlnConsideringTriviaContentBefore (key: Choice<FsAstType, FsTokenType>) (range: Range) =
     sepConsideringTriviaContentBefore sepNln key range
 
-let internal sepNlnConsideringTriviaContentBeforeForToken (fsTokenKey: FsTokenType) (range: range) =
+let internal sepNlnConsideringTriviaContentBeforeForToken (fsTokenKey: FsTokenType) (range: Range) =
     sepConsideringTriviaContentBeforeForToken sepNln fsTokenKey range
 
-let internal sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstType) (range: range) =
+let internal sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstType) (range: Range) =
     sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
 
 let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
     (mainNode: FsAstType)
-    (ownRange: range)
-    (attributeRanges: range seq)
+    (ownRange: Range)
+    (attributeRanges: Range seq)
     (ctx: Context)
     =
     let triviaNode =
@@ -1345,7 +1347,7 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
     else
         sepNln ctx
 
-let internal sepNlnForEmptyModule (mainNode: FsAstType) (moduleRange: range) (ctx: Context) =
+let internal sepNlnForEmptyModule (mainNode: FsAstType) (moduleRange: Range) (ctx: Context) =
     match Map.tryFind mainNode ctx.TriviaMainNodes with
     | Some nodes ->
         if List.exists
@@ -1359,7 +1361,7 @@ let internal sepNlnForEmptyModule (mainNode: FsAstType) (moduleRange: range) (ct
             sepNln ctx
     | _ -> sepNln ctx
 
-let internal sepNlnForEmptyNamespace (namespaceRange: range) ctx =
+let internal sepNlnForEmptyNamespace (namespaceRange: Range) ctx =
     let emptyNamespaceRange =
         mkRange namespaceRange.FileName (mkPos 0 0) namespaceRange.End
 
@@ -1369,7 +1371,7 @@ let internal sepNlnForEmptyNamespace (namespaceRange: range) ctx =
         || hasPrintableContent node.ContentAfter -> ctx
     | _ -> sepNln ctx
 
-let internal sepNlnTypeAndMembers (firstMemberRange: range option) (mainNodeType: FsAstType) ctx =
+let internal sepNlnTypeAndMembers (firstMemberRange: Range option) (mainNodeType: FsAstType) ctx =
     match firstMemberRange with
     | Some range when (ctx.Config.NewlineBetweenTypeDefinitionAndMembers) ->
         sepNlnConsideringTriviaContentBeforeForMainNode mainNodeType range ctx
@@ -1458,7 +1460,7 @@ let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
 
     impl items
 
-let internal genTriviaBeforeClausePipe (rangeOfClause: range) ctx =
+let internal genTriviaBeforeClausePipe (rangeOfClause: Range) ctx =
     (Map.tryFindOrEmptyList BAR ctx.TriviaTokenNodes)
     |> List.tryFind
         (fun t ->
@@ -1480,7 +1482,7 @@ let internal genTriviaBeforeClausePipe (rangeOfClause: range) ctx =
         | None -> id
     <| ctx
 
-let internal hasLineCommentAfterInfix (rangePlusInfix: range) (ctx: Context) =
+let internal hasLineCommentAfterInfix (rangePlusInfix: Range) (ctx: Context) =
     match Map.tryFind SynExpr_Ident ctx.TriviaMainNodes with
     | Some triviaNodes ->
         triviaNodes

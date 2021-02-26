@@ -8,10 +8,10 @@ open Fantomas.TriviaTypes
 let private collectTrivia =
     Trivia.collectTrivia
         (fun (sl, sc) (el, ec) ->
-            FSharp.Compiler.Range.mkRange
+            FSharp.Compiler.Text.Range.mkRange
                 "TriviaTests"
-                (FSharp.Compiler.Range.mkPos sl sc)
-                (FSharp.Compiler.Range.mkPos el ec))
+                (FSharp.Compiler.Text.Pos.mkPos sl sc)
+                (FSharp.Compiler.Text.Pos.mkPos el ec))
 
 let private toTrivia source =
     let astWithDefines = parse false source |> Array.toList

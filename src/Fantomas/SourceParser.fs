@@ -2,13 +2,13 @@ module internal Fantomas.SourceParser
 
 open System
 open System.Diagnostics
-open FSharp.Compiler.PrettyNaming
-open FSharp.Compiler.Range
+open FSharp.Compiler.SourceCodeServices.PrettyNaming
+open FSharp.Compiler.SourceCodeServices.FSharpKeywords
+open FSharp.Compiler.Text
 open FSharp.Compiler.SyntaxTree
 open FSharp.Compiler.XmlDoc
 open Fantomas
 open Fantomas.Context
-open FSharp.Compiler.SourceCodeServices.PrettyNaming
 
 type Composite<'a, 'b> =
     | Pair of 'b * 'b
@@ -21,8 +21,11 @@ type Debug = Console
 [<Literal>]
 let MaxLength = 512
 
+[<Literal>]
+let private MangledGlobalName : string = "`global`"
+
 /// Get source string content based on range value
-let lookup (r: range) (c: Context) =
+let lookup (r: Range) (c: Context) =
     if r.EndLine < c.Positions.Length then
         let start =
             c.Positions.[r.StartLine - 1] + r.StartColumn

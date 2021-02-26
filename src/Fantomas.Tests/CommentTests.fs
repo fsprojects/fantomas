@@ -1111,3 +1111,34 @@ namespace Foo
 module Bar =
     let Baz () = ()
 """
+
+[<Test>]
+let ``comment above do keyword, 1343`` () =
+    formatSourceString
+        false
+        """
+if stateSub.Value |> State.hasChanges then
+    // Push changes
+    let! pushed = push state
+
+    // Import new etags of pushed items
+    do
+        pushed
+        |> Option.bind Dto.changesAsImport
+        |> Option.iter (fun changes -> update (Import changes) |> ignore)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if stateSub.Value |> State.hasChanges then
+    // Push changes
+    let! pushed = push state
+
+    // Import new etags of pushed items
+    do
+        pushed
+        |> Option.bind Dto.changesAsImport
+        |> Option.iter (fun changes -> update (Import changes) |> ignore)
+"""

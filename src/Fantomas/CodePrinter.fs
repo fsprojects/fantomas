@@ -2,7 +2,7 @@ module internal Fantomas.CodePrinter
 
 open System
 open System.Text.RegularExpressions
-open FSharp.Compiler.Range
+open FSharp.Compiler.Text
 open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.SyntaxTree
 open Fantomas
@@ -21,7 +21,7 @@ type ASTContext =
       /// Current node is the first child of its parent
       IsFirstChild: bool
       /// Current node is a subnode deep down in an interface
-      InterfaceRange: range option
+      InterfaceRange: Range option
       /// This pattern matters for formatting extern declarations
       IsCStylePattern: bool
       /// Range operators are naked in 'for..in..do' constructs
@@ -264,17 +264,6 @@ and genModuleDeclList astContext e =
             let expr =
                 col sepNln xs (genModuleDecl astContext)
                 +> sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleDeclToFsAstType y) y.Range attrs
-                +> (fun ctx ->
-                    match y with
-                    | SynModuleDecl.DoExpr _ ->
-                        let doKeyWordRange =
-                            let lastAttribute = List.last xs
-                            ctx.MkRange lastAttribute.Range.End y.Range.Start
-
-                        // the do keyword range is not part of SynModuleDecl.DoExpr
-                        // So Trivia before `do` cannot be printed in genModuleDecl
-                        enterNodeTokenByName doKeyWordRange DO ctx
-                    | _ -> ctx)
                 +> genModuleDecl astContext y
 
             let r = List.head xs |> fun mdl -> mdl.Range
@@ -884,7 +873,7 @@ and genMemberFlags astContext (mf: MemberFlags) =
     | MFConstructor _ -> sepNone
     | MFOverride _ -> ifElse astContext.InterfaceRange.IsSome (!- "member ") (!- "override ")
 
-and genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingAndRhs: range) =
+and genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingAndRhs: Range) =
     fun ctx ->
         let keywordFromTrivia =
             [ yield! (Map.tryFindOrEmptyList SynMemberDefn_Member ctx.TriviaMainNodes)
@@ -2048,19 +2037,6 @@ and genExpr astContext synExpr ctx =
                         match e with
                         | LetOrUses (bs, e) -> letBindings bs @ synExpr e
                         | Sequentials (s) -> s |> List.collect synExpr
-                        | SynExpr.Do _ ->
-                            let doKeyWordRange =
-                                List.last bs
-                                |> snd
-                                |> fun binding -> ctx.MkRange binding.RangeOfBindingAndRhs.End e.Range.Start
-
-                            let expr =
-                                // the do keyword range is not part of SynExpr.Do
-                                // So Trivia before `do` cannot be printed in genExpr
-                                enterNodeTokenByName doKeyWordRange DO
-                                +> genExpr astContext e
-
-                            [ expr, sepNlnConsideringTriviaContentBeforeForToken DO doKeyWordRange, doKeyWordRange ]
                         | _ ->
                             let r = e.Range
                             [ genExpr astContext e, sepNlnForNonSequential e r, r ]
@@ -2710,6 +2686,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.DotIndexedSet _ -> genTriviaFor SynExpr_DotIndexedSet synExpr.Range
             | SynExpr.ObjExpr _ -> genTriviaFor SynExpr_ObjExpr synExpr.Range
             | SynExpr.JoinIn _ -> genTriviaFor SynExpr_JoinIn synExpr.Range
+            | SynExpr.Do _ -> genTriviaFor SynExpr_Do synExpr.Range
             | _ -> id)
 
     expr ctx
@@ -3018,8 +2995,8 @@ and genObjExprAlignBrackets t eio bd ims range (astContext: ASTContext) =
 and genMultiLineArrayOrList
     (isArray: bool)
     xs
-    (openingTokenRange: range)
-    (closingTokenRange: range)
+    (openingTokenRange: Range)
+    (closingTokenRange: Range)
     (astContext: ASTContext)
     ctx
     =
@@ -4759,7 +4736,7 @@ and genSynBindingFunction
     (isInline: bool)
     (isMutable: bool)
     (functionName: string)
-    (patRange: range)
+    (patRange: Range)
     (parameters: (string option * SynPat) list)
     (genericTypeParameters: SynValTyparDecls option)
     (e: SynExpr)
@@ -4859,7 +4836,7 @@ and genSynBindingFunctionWithReturnType
     (isInline: bool)
     (isMutable: bool)
     (functionName: string)
-    (patRange: range)
+    (patRange: Range)
     (parameters: (string option * SynPat) list)
     (genericTypeParameters: SynValTyparDecls option)
     (returnType: SynType)
@@ -5051,7 +5028,7 @@ and genSynBindingValue
 
         ctx.MkRange endPos e.Range.Start
 
-    let genEqualsInBinding (equalsRange: range) (ctx: Context) =
+    let genEqualsInBinding (equalsRange: Range) (ctx: Context) =
         let space =
             ctx.TriviaTokenNodes
             |> Map.tryFindOrEmptyList EQUALS
@@ -5108,7 +5085,7 @@ and genParenTupleWithIndentAndNewlines ps astContext =
     +> sepNln
     +> sepCloseT
 
-and genConst (c: SynConst) (r: range) =
+and genConst (c: SynConst) (r: Range) =
     match c with
     | SynConst.Unit ->
         enterNodeTokenByName r LPAREN
@@ -5184,7 +5161,7 @@ and genConst (c: SynConst) (r: range) =
         +> measure
         +> leaveNodeTokenByName r GREATER
 
-and genConstNumber (c: SynConst) (r: range) =
+and genConstNumber (c: SynConst) (r: Range) =
     fun (ctx: Context) ->
         TriviaHelpers.getNodesForTypes
             [ SynExpr_Const
@@ -5220,7 +5197,7 @@ and genConstNumber (c: SynConst) (r: range) =
                 | _ -> failwithf "Cannot generating Const number for %A" c
         <| ctx
 
-and genConstBytes (bytes: byte []) (r: range) =
+and genConstBytes (bytes: byte []) (r: Range) =
     fun (ctx: Context) ->
         let trivia =
             Map.tryFindOrEmptyList SynConst_Bytes ctx.TriviaMainNodes
@@ -5236,7 +5213,7 @@ and genConstBytes (bytes: byte []) (r: range) =
         | None -> !-(sprintf "%A" bytes)
         <| ctx
 
-and genTriviaFor (mainNodeName: FsAstType) (range: range) f ctx =
+and genTriviaFor (mainNodeName: FsAstType) (range: Range) f ctx =
     (enterNodeFor mainNodeName range
      +> f
      +> leaveNodeFor mainNodeName range)

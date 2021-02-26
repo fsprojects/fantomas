@@ -1,7 +1,7 @@
 module Fantomas.TriviaTypes
 
 open FSharp.Compiler.SourceCodeServices
-open FSharp.Compiler.Range
+open FSharp.Compiler.Text
 
 type FsTokenType =
     | LBRACE
@@ -88,7 +88,7 @@ type TriviaContent =
 
 type Trivia =
     { Item: TriviaContent
-      Range: range }
+      Range: Range }
     static member Create item range : Trivia = { Item = item; Range = range }
 
 type TriviaIndex = TriviaIndex of int * int
@@ -341,9 +341,9 @@ type TriviaNode =
       ContentBefore: TriviaContent list
       ContentItself: TriviaContent option
       ContentAfter: TriviaContent list
-      Range: range }
+      Range: Range }
 
-type TriviaNodeAssigner(nodeType: TriviaNodeType, range: range, ?linesBetweenParent: int) =
+type TriviaNodeAssigner(nodeType: TriviaNodeType, range: Range, ?linesBetweenParent: int) =
     member this.Type = nodeType
     member this.Range = range
     member this.AttributeLinesBetweenParent = linesBetweenParent
@@ -351,4 +351,4 @@ type TriviaNodeAssigner(nodeType: TriviaNodeType, range: range, ?linesBetweenPar
     member val ContentItself = Option<TriviaContent>.None with get, set
     member val ContentAfter = ResizeArray<TriviaContent>() with get, set
 
-type MkRange = int * int -> int * int -> range
+type MkRange = int * int -> int * int -> Range

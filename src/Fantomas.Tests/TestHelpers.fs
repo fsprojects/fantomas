@@ -5,7 +5,7 @@ open System
 open Fantomas.FormatConfig
 open Fantomas
 open Fantomas.Extras
-open FSharp.Compiler.Range
+open FSharp.Compiler.Text
 open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.SyntaxTree
 open FSharp.Compiler.XmlDoc
@@ -36,8 +36,7 @@ let private isValidAndHasNoWarnings fileName source parsingOptions =
                     { parsingOptions with
                           ConditionalCompilationDefines = conditionalCompilationDefines }
                 // Run the first phase (untyped parsing) of the compiler
-                let sourceText =
-                    FSharp.Compiler.Text.SourceText.ofString source
+                let sourceText = SourceText.ofString source
 
                 let! untypedRes = sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
 
@@ -247,7 +246,7 @@ let fromSynExpr expr =
                       false,
                       AnonModule,
                       [ SynModuleDecl.DoExpr(NoDebugPointAtDoBinding, expr, zero) ],
-                      PreXmlDocEmpty,
+                      PreXmlDoc.Empty,
                       [],
                       None,
                       zero

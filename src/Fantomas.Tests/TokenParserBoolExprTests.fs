@@ -315,7 +315,7 @@ let ``get define exprs from unit test with defines in triple quote string`` () =
 #endif
 \"\"\"
 "
-    getDefineExprs source == List.empty
+    getDefineExprs source == List<BoolExpr>.Empty
 
 [<Test>]
 let ``nested quote in triple quote string should not yield defines`` () =
@@ -329,4 +329,4 @@ let ``nested quote in triple quote string should not yield defines`` () =
 \"
 \"\"\"
 "
-    getDefineExprs source == List.empty
+    getDefineExprs source == List<BoolExpr>.Empty

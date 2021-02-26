@@ -41,7 +41,6 @@
     <Compile Include="VerboseSyntaxConversionTests.fs" />
     <Compile Include="FormattingSelectionOnlyTests.fs" />
     <Compile Include="ValidationTests.fs" />
-    <Compile Include="FormattingPropertyTests.fs" />
     <Compile Include="SpecialConstructsTests.fs" />
     <Compile Include="FormatAstTests.fs" />
     <Compile Include="LetBindingTests.fs" />

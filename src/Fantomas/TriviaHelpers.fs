@@ -1,11 +1,11 @@
 namespace Fantomas
 
-open FSharp.Compiler.Range
+open FSharp.Compiler.Text
 open Fantomas.TriviaTypes
 
 [<RequireQualifiedAccess>]
 module internal TriviaHelpers =
-    let findInRange (trivia: TriviaNode list) (range: range) =
+    let findInRange (trivia: TriviaNode list) (range: Range) =
         trivia
         |> List.tryFind (fun t -> RangeHelpers.``range contains`` range t.Range)
 
@@ -47,7 +47,7 @@ module internal TriviaHelpers =
                 | TriviaNodeType.Token (_, tok) when (RangeHelpers.``range contains`` range t.Range) -> Some(tok, t)
                 | _ -> None)
 
-    let ``keyword token after start column and on same line`` (range: range) (trivia: TriviaNode list) =
+    let ``keyword token after start column and on same line`` (range: Range) (trivia: TriviaNode list) =
         trivia
         |> List.choose
             (fun t ->
