@@ -207,3 +207,22 @@ let untypedResLong =
         somethingElseWithARatherLongVariableName
     )
 """
+
+[<Test>]
+let ``ignore setting when function call is the argument of prefix application`` () =
+    formatSourceString
+        false
+        """
+!-String.Empty.padLeft(braceSize + spaceAround)
+(!-System.String.Empty.padRight(delta)) ({ ctx with RecordBraceStart = rest })
+!- meh()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+!- String.Empty.padLeft(braceSize + spaceAround)
+(!- System.String.Empty.padRight(delta)) ({ ctx with RecordBraceStart = rest })
+!- meh()
+"""
