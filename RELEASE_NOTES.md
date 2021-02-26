@@ -1,4 +1,10 @@
-### 4.4.0 - 02/201
+### 4.5.0-alpha-001 - 02/2021
+
+* Update to FCS 39 [#1479](https://github.com/fsprojects/fantomas/pull/1479)
+* Fix Extra space throws exception. [#1476](https://github.com/fsprojects/fantomas/issues/1476)
+* Fix comment deleted on reformat. [#1343](https://github.com/fsprojects/fantomas/issues/1343)
+
+### 4.4.0 - 02/2021
 
 * Revisit SynExpr.IfThenElse. [#1258](https://github.com/fsprojects/fantomas/issues/1258)
 * Target netcoreapp3.1 for fantomas-tool.
