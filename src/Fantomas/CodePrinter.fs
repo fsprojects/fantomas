@@ -1775,18 +1775,7 @@ and genExpr astContext synExpr ctx =
                     (fun (s, oe, e) ->
                         genInfixOperator s oe
                         +> sepSpace
-                        +> match e with
-                           | LetOrUse (false, false, [ lb ], e) ->
-                               atCurrentColumn (
-                                   genLetBinding astContext "let " lb
-                                   +> !- " in"
-                                   +> sepNln
-                                   +> expressionFitsOnRestOfLine
-                                       (genExpr astContext e)
-                                       (sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e) e.Range
-                                        +> genExpr astContext e)
-                               )
-                           | _ -> genExpr astContext e)
+                        +> genExprInMultilineInfixExpr astContext e)
 
             fun ctx ->
                 atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
@@ -2728,8 +2717,22 @@ and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
             +> sepNln
             +> genInfixOperator operatorText operatorExpr
             +> sepSpace
-            +> genExpr astContext e2
+            +> genExprInMultilineInfixExpr astContext e2
         )
+
+and genExprInMultilineInfixExpr astContext e =
+    match e with
+    | LetOrUse (false, false, [ lb ], e) ->
+        atCurrentColumn (
+            genLetBinding astContext "let " lb
+            +> !- " in"
+            +> sepNln
+            +> expressionFitsOnRestOfLine
+                (genExpr astContext e)
+                (sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e) e.Range
+                 +> genExpr astContext e)
+        )
+    | _ -> genExpr astContext e
 
 and genLidsWithDots (lids: (string * range) list) =
     optSingle (fun (_, r) -> enterNodeFor Ident_ r) (List.tryHead lids)
