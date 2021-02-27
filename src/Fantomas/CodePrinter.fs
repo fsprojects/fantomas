@@ -4440,17 +4440,29 @@ and genMemberDefn astContext node =
                 +> col sepComma (simplePats ps) (genSimplePat astContext)
                 +> sepCloseT
 
+            let emptyPats =
+                let rec isEmpty ps =
+                    match ps with
+                    | SynSimplePats.SimplePats ([], _) -> true
+                    | SynSimplePats.SimplePats _ -> false
+                    | SynSimplePats.Typed (spts, _, _) -> isEmpty spts
+
+                isEmpty ps
+
             let longExpr ctx =
                 (indent
                  +> sepNln
                  +> optSingle (fun ao -> genAccess ao +> sepNln) ao
-                 +> sepOpenT
-                 +> indent
-                 +> sepNln
-                 +> col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext)
-                 +> unindent
-                 +> sepNln
-                 +> sepCloseT
+                 +> ifElse
+                     emptyPats
+                     (sepOpenT +> sepCloseT)
+                     (sepOpenT
+                      +> indent
+                      +> sepNln
+                      +> col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext)
+                      +> unindent
+                      +> sepNln
+                      +> sepCloseT)
                  +> onlyIf ctx.Config.AlternativeLongMemberDefinitions sepNln
                  +> unindent)
                     ctx
