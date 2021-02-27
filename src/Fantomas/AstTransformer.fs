@@ -5,12 +5,6 @@ open FSharp.Compiler.SyntaxTree
 open Fantomas.TriviaTypes
 open Fantomas
 
-//let rec (|Sequentials|_|) =
-//    function
-//    | SynExpr.Sequential (_, isTrueSeq, e, Sequentials es, range) -> Some((isTrueSeq, e, None, range) :: es)
-//    | SynExpr.Sequential (_, isTrueSeq, e1, e2, range) -> Some [ isTrueSeq, e1, Some e2, range ]
-//    | _ -> None
-
 type Id = { Ident: string; Range: Range option }
 
 type FsAstNode = obj
@@ -19,7 +13,6 @@ type Node =
     { Type: FsAstType
       Range: Range option
       Properties: Map<string, obj>
-      // Childs: Node list
       FsAstNode: FsAstNode }
 
 module Helpers =
@@ -479,23 +472,6 @@ module private Ast =
                           FsAstNode = synExpr }
                         :: nodes
                         |> finalContinuation)
-            //        | Sequentials xs ->
-            //            let rec cons xs =
-            //                match xs with
-            //                | [] -> failwith "should not happen" // expr2Opt is always Some in last item
-            //                | ((isTrueSeq, expr1, expr2Opt, range) :: rest) ->
-            //                    { Type = SynExpr_Sequential
-            //                      Range = r range
-            //                      Properties = p [ "isTrueSeq" ==> isTrueSeq ]
-            //                      FsAstNode = synExpr
-            //                      Childs =
-            //                          [ yield visitSynExpr expr1
-            //                            yield
-            //                                expr2Opt
-            //                                |> Option.map visitSynExpr
-            //                                |> Option.defaultWith (fun () -> cons rest) ] }
-            //
-            //            cons xs
             | SynExpr.Sequential (_, isTrueSeq, expr1, expr2, range) ->
                 let continuations : ((Node list -> Node list) -> Node list) list = [ visit expr1; visit expr2 ]
 
@@ -1180,47 +1156,67 @@ module private Ast =
                  yield! visitSynExpr synExpr ]
 
     and visitSynSimplePat (sp: SynSimplePat) : Node list =
-        match sp with
-        | SynSimplePat.Id (ident, _, isCompilerGenerated, isThisVar, isOptArg, range) ->
-            { Type = SynSimplePat_Id
-              Range = r range
-              Properties =
-                  p [ "isCompilerGenerated" ==> isCompilerGenerated
-                      "isThisVar" ==> isThisVar
-                      "isOptArg" ==> isOptArg
-                      "ident" ==> i ident ]
-              FsAstNode = sp }
-            |> List.singleton
-        | SynSimplePat.Typed (simplePat, typ, range) ->
-            { Type = SynSimplePat_Typed
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: [ yield! visitSynSimplePat simplePat
-                 yield! visitSynType typ ]
-        | SynSimplePat.Attrib (simplePat, attrs, range) ->
-            { Type = SynSimplePat_Attrib
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: [ yield! visitSynSimplePat simplePat
-                 yield! (visitSynAttributeLists range attrs) ]
+        let rec visit (sp: SynSimplePat) (continuation: Node list -> Node list) : Node list =
+            match sp with
+            | SynSimplePat.Id (ident, _, isCompilerGenerated, isThisVar, isOptArg, range) ->
+                { Type = SynSimplePat_Id
+                  Range = r range
+                  Properties =
+                      p [ "isCompilerGenerated" ==> isCompilerGenerated
+                          "isThisVar" ==> isThisVar
+                          "isOptArg" ==> isOptArg
+                          "ident" ==> i ident ]
+                  FsAstNode = sp }
+                |> List.singleton
+                |> continuation
+            | SynSimplePat.Typed (simplePat, typ, range) ->
+                visit
+                    simplePat
+                    (fun nodes ->
+                        [ { Type = SynSimplePat_Typed
+                            Range = r range
+                            Properties = p []
+                            FsAstNode = sp }
+                          yield! nodes
+                          yield! visitSynType typ ]
+                        |> continuation)
+            | SynSimplePat.Attrib (simplePat, attrs, range) ->
+                visit
+                    simplePat
+                    (fun nodes ->
+                        [ { Type = SynSimplePat_Attrib
+                            Range = r range
+                            Properties = p []
+                            FsAstNode = sp }
+                          yield! nodes
+                          yield! (visitSynAttributeLists range attrs) ]
+                        |> continuation)
+
+        visit sp id
 
     and visitSynSimplePats (sp: SynSimplePats) : Node list =
-        match sp with
-        | SynSimplePats.SimplePats (pats, range) ->
-            { Type = SynSimplePats_SimplePats
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: [ yield! pats |> List.collect visitSynSimplePat ]
-        | SynSimplePats.Typed (pats, typ, range) ->
-            { Type = SynSimplePat_Typed
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: [ yield! visitSynSimplePats pats
-                 yield! visitSynType typ ]
+        let rec visit (sp: SynSimplePats) (continuation: Node list -> Node list) =
+            match sp with
+            | SynSimplePats.SimplePats (pats, range) ->
+                { Type = SynSimplePats_SimplePats
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = sp }
+                :: (List.collect visitSynSimplePat pats)
+                |> continuation
+            | SynSimplePats.Typed (pats, typ, range) ->
+                visit
+                    pats
+                    (fun nodes ->
+                        [ { Type = SynSimplePat_Typed
+                            Range = r range
+                            Properties = p []
+                            FsAstNode = sp }
+                          yield! nodes
+                          yield! visitSynType typ ]
+                        |> continuation)
+
+        visit sp id
 
     and visitSynBinding (binding: SynBinding) : Node list =
         match binding with
@@ -1815,126 +1811,192 @@ module private Ast =
                  yield! visitSynType typ ]
 
     and visitSynType (st: SynType) =
-        match st with
-        | SynType.LongIdent (li) ->
-            { Type = SynType_LongIdent
-              Range = noRange
-              Properties = p []
-              FsAstNode = st }
-            :: (visitLongIdentWithDots li)
-        | SynType.App (typeName, lessRange, typeArgs, commaRanges, greaterRange, isPostfix, range) ->
-            { Type = SynType_App
-              Range = r range
-              Properties =
-                  p [ if lessRange.IsSome then
-                          yield "lessRange" ==> (lessRange.Value |> r)
-                      yield "commaRanges" ==> (commaRanges |> List.map r)
-                      if greaterRange.IsSome then
-                          yield "greaterRange" ==> (greaterRange.Value |> r)
-                      yield "isPostfix" ==> isPostfix ]
-              FsAstNode = st }
-            :: [ yield! typeArgs |> List.collect visitSynType
-                 yield! visitSynType typeName ]
-        | SynType.LongIdentApp (typeName, longDotId, lessRange, typeArgs, commaRanges, greaterRange, range) ->
-            { Type = SynType_LongIdentApp
-              Range = r range
-              Properties =
-                  p [ yield "ident" ==> lid longDotId
-                      if lessRange.IsSome then
-                          yield "lessRange" ==> (lessRange.Value |> r)
-                      yield "commaRanges" ==> (commaRanges |> List.map r)
-                      if greaterRange.IsSome then
-                          yield "greaterRange" ==> (greaterRange.Value |> r) ]
-              FsAstNode = st }
-            :: [ yield! typeArgs |> List.collect visitSynType
-                 yield! visitSynType typeName ]
-        | SynType.Tuple (isStruct, typeNames, range) ->
-            { Type = SynType_Tuple
-              Range = r range
-              Properties = p [ "isStruct" ==> isStruct ]
-              FsAstNode = st }
-            :: (List.collect (snd >> visitSynType) typeNames)
-        | SynType.Array (_, elementType, range) ->
-            { Type = SynType_Array
-              Range = r range
-              Properties = p []
-              FsAstNode = st }
-            :: (visitSynType elementType)
-        | SynType.Fun (argType, returnType, range) ->
-            { Type = SynType_Fun
-              Range = r range
-              Properties = p []
-              FsAstNode = st }
-            :: [ yield! visitSynType argType
-                 yield! visitSynType returnType ]
-        | SynType.Var (genericName, range) ->
-            { Type = SynType_Var
-              Range = r range
-              Properties = p []
-              FsAstNode = st }
-            :: (visitSynTypar genericName)
-        | SynType.Anon (range) ->
-            { Type = SynType_Anon
-              Range = r range
-              Properties = p []
-              FsAstNode = st }
-            |> List.singleton
-        | SynType.WithGlobalConstraints (typeName, _, range) ->
-            { Type = SynType_WithGlobalConstraints
-              Range = r range
-              Properties = p []
-              FsAstNode = st }
-            :: (visitSynType typeName)
-        | SynType.HashConstraint (synType, range) ->
-            { Type = SynType_HashConstraint
-              Range = r range
-              Properties = p []
-              FsAstNode = st }
-            :: (visitSynType synType)
-        | SynType.MeasureDivide (dividendType, divisorType, range) ->
-            { Type = SynType_MeasureDivide
-              Range = r range
-              Properties = p []
-              FsAstNode = st }
-            :: [ yield! visitSynType dividendType
-                 yield! visitSynType divisorType ]
-        | SynType.MeasurePower (measureType, _, range) ->
-            { Type = SynType_MeasurePower
-              Range = r range
-              Properties = p []
-              FsAstNode = st }
-            :: (visitSynType measureType)
-        | SynType.StaticConstant (constant, range) ->
-            { Type = SynType_StaticConstant
-              Range = r range
-              Properties = p []
-              FsAstNode = st }
-            :: [ (visitSynConst range constant) ]
-        | SynType.StaticConstantExpr (expr, range) ->
-            { Type = SynType_StaticConstantExpr
-              Range = r range
-              Properties = p []
-              FsAstNode = st }
-            :: (visitSynExpr expr)
-        | SynType.StaticConstantNamed (expr, typ, range) ->
-            { Type = SynType_StaticConstantNamed
-              Range = r range
-              Properties = p []
-              FsAstNode = st }
-            :: [ yield! visitSynType expr
-                 yield! visitSynType typ ]
-        | SynType.AnonRecd (isStruct, typeNames, range) ->
-            { Type = SynType_AnonRecd
-              Range = r range
-              Properties = p [ "isStruct" ==> isStruct ]
-              FsAstNode = st }
-            :: (List.collect visitAnonRecordTypeField typeNames)
-        | SynType.Paren (innerType, range) ->
-            { Type = SynType_Paren
-              Range = r range
-              Properties = p []
-              FsAstNode = st }
-            :: (visitSynType innerType)
+        let rec visit (st: SynType) (finalContinuation: Node list -> Node list) : Node list =
+            match st with
+            | SynType.LongIdent (li) ->
+                { Type = SynType_LongIdent
+                  Range = noRange
+                  Properties = p []
+                  FsAstNode = st }
+                :: (visitLongIdentWithDots li)
+                |> finalContinuation
+            | SynType.App (typeName, lessRange, typeArgs, commaRanges, greaterRange, isPostfix, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list =
+                    [ yield! (List.map visit typeArgs)
+                      visit typeName ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynType_App
+                      Range = r range
+                      Properties =
+                          p [ if lessRange.IsSome then
+                                  yield "lessRange" ==> (lessRange.Value |> r)
+                              yield "commaRanges" ==> (commaRanges |> List.map r)
+                              if greaterRange.IsSome then
+                                  yield "greaterRange" ==> (greaterRange.Value |> r)
+                              yield "isPostfix" ==> isPostfix ]
+                      FsAstNode = st }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynType.LongIdentApp (typeName, longDotId, lessRange, typeArgs, commaRanges, greaterRange, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list =
+                    [ yield! (List.map visit typeArgs)
+                      visit typeName ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynType_LongIdentApp
+                      Range = r range
+                      Properties =
+                          p [ yield "ident" ==> lid longDotId
+                              if lessRange.IsSome then
+                                  yield "lessRange" ==> (lessRange.Value |> r)
+                              yield "commaRanges" ==> (commaRanges |> List.map r)
+                              if greaterRange.IsSome then
+                                  yield "greaterRange" ==> (greaterRange.Value |> r) ]
+                      FsAstNode = st }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynType.Tuple (isStruct, typeNames, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = List.map (snd >> visit) typeNames
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynType_Tuple
+                      Range = r range
+                      Properties = p [ "isStruct" ==> isStruct ]
+                      FsAstNode = st }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynType.Array (_, elementType, range) ->
+                visit
+                    elementType
+                    (fun nodes ->
+                        { Type = SynType_Array
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = st }
+                        :: nodes
+                        |> finalContinuation)
+            | SynType.Fun (argType, returnType, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit argType; visit returnType ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynType_Fun
+                      Range = r range
+                      Properties = p []
+                      FsAstNode = st }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynType.Var (genericName, range) ->
+                { Type = SynType_Var
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = st }
+                :: (visitSynTypar genericName)
+                |> finalContinuation
+            | SynType.Anon (range) ->
+                { Type = SynType_Anon
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = st }
+                |> List.singleton
+                |> finalContinuation
+            | SynType.WithGlobalConstraints (typeName, _, range) ->
+                visit
+                    typeName
+                    (fun nodes ->
+                        { Type = SynType_WithGlobalConstraints
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = st }
+                        :: nodes
+                        |> finalContinuation)
+            | SynType.HashConstraint (synType, range) ->
+                visit
+                    synType
+                    (fun nodes ->
+                        { Type = SynType_HashConstraint
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = st }
+                        :: nodes
+                        |> finalContinuation)
+            | SynType.MeasureDivide (dividendType, divisorType, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list =
+                    [ visit dividendType
+                      visit divisorType ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynType_MeasureDivide
+                      Range = r range
+                      Properties = p []
+                      FsAstNode = st }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynType.MeasurePower (measureType, _, range) ->
+                visit
+                    measureType
+                    (fun nodes ->
+                        { Type = SynType_MeasurePower
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = st }
+                        :: nodes
+                        |> finalContinuation)
+            | SynType.StaticConstant (constant, range) ->
+                [ { Type = SynType_StaticConstant
+                    Range = r range
+                    Properties = p []
+                    FsAstNode = st }
+                  visitSynConst range constant ]
+                |> finalContinuation
+            | SynType.StaticConstantExpr (expr, range) ->
+                { Type = SynType_StaticConstantExpr
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = st }
+                :: (visitSynExpr expr)
+                |> finalContinuation
+            | SynType.StaticConstantNamed (expr, typ, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit expr; visit typ ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynType_StaticConstantNamed
+                      Range = r range
+                      Properties = p []
+                      FsAstNode = st }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynType.AnonRecd (isStruct, typeNames, range) ->
+                { Type = SynType_AnonRecd
+                  Range = r range
+                  Properties = p [ "isStruct" ==> isStruct ]
+                  FsAstNode = st }
+                :: (List.collect visitAnonRecordTypeField typeNames)
+                |> finalContinuation
+            | SynType.Paren (innerType, range) ->
+                visit
+                    innerType
+                    (fun nodes ->
+                        { Type = SynType_Paren
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = st }
+                        :: nodes
+                        |> finalContinuation)
+
+        visit st id
 
     and visitSynConst (parentRange: Range) (sc: SynConst) : Node =
         let t =
@@ -2036,7 +2098,6 @@ module private Ast =
                 | SynModuleOrNamespaceKind.DeclaredNamespace -> SynModuleOrNamespaceSig_DeclaredNamespace
                 | SynModuleOrNamespaceKind.GlobalNamespace -> SynModuleOrNamespaceSig_GlobalNamespace
 
-
             { Type = typeName
               Range = r range
               Properties =
@@ -2055,62 +2116,78 @@ module private Ast =
                  yield! (decls |> List.collect visitSynModuleSigDecl) ]
 
     and visitSynModuleSigDecl (ast: SynModuleSigDecl) : Node list =
-        match ast with
-        | SynModuleSigDecl.ModuleAbbrev (ident, longIdent, range) ->
-            { Type = SynModuleSigDecl_ModuleAbbrev
-              Range = r range
-              Properties =
-                  p [ "ident" ==> i ident
-                      "longIdent" ==> li longIdent ]
-              FsAstNode = ast }
-            |> List.singleton
-        | SynModuleSigDecl.NestedModule (sci, isRecursive, decls, range) ->
-            { Type = SynModuleSigDecl_NestedModule
-              Range = r range
-              Properties = p [ "isRecursive" ==> isRecursive ]
-              FsAstNode = ast }
-            :: [ yield! visitSynComponentInfo sci
-                 yield! (decls |> List.collect visitSynModuleSigDecl) ]
-        | SynModuleSigDecl.Val (SynValSig.ValSpfn _ as node, _) -> visitSynValSig node
-        | SynModuleSigDecl.Types (typeDefs, range) ->
-            { Type = SynModuleSigDecl_Types
-              Range = r range
-              Properties = p []
-              FsAstNode = ast }
-            :: (List.collect visitSynTypeDefnSig typeDefs)
-        | SynModuleSigDecl.Open (target, parentRange) ->
-            // we use the parent ranges here to match up with the trivia parsed
-            match target with
-            | SynOpenDeclTarget.ModuleOrNamespace (longIdent, _range) ->
-                { Type = SynModuleSigDecl_Open
-                  Range = r parentRange
-                  Properties = p [ "longIdent" ==> li longIdent ]
-                  FsAstNode = target }
+        let rec visit (ast: SynModuleSigDecl) (finalContinuation: Node list -> Node list) : Node list =
+            match ast with
+            | SynModuleSigDecl.ModuleAbbrev (ident, longIdent, range) ->
+                { Type = SynModuleSigDecl_ModuleAbbrev
+                  Range = r range
+                  Properties =
+                      p [ "ident" ==> i ident
+                          "longIdent" ==> li longIdent ]
+                  FsAstNode = ast }
                 |> List.singleton
-            | SynOpenDeclTarget.Type (synType, _range) ->
-                { Type = SynModuleSigDecl_OpenType
-                  Range = r parentRange
+                |> finalContinuation
+            | SynModuleSigDecl.NestedModule (sci, isRecursive, decls, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = List.map visit decls
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynModuleSigDecl_NestedModule
+                        Range = r range
+                        Properties = p [ "isRecursive" ==> isRecursive ]
+                        FsAstNode = ast }
+                      yield! visitSynComponentInfo sci
+                      yield! (List.collect id nodes) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynModuleSigDecl.Val (SynValSig.ValSpfn _ as node, _) -> visitSynValSig node |> finalContinuation
+            | SynModuleSigDecl.Types (typeDefs, range) ->
+                { Type = SynModuleSigDecl_Types
+                  Range = r range
                   Properties = p []
-                  FsAstNode = target }
-                :: (visitSynType synType)
-        | SynModuleSigDecl.HashDirective (hash, range) ->
-            [ { Type = SynModuleSigDecl_HashDirective
-                Range = r range
-                Properties = p []
-                FsAstNode = ast }
-              (visitParsedHashDirective hash) ]
-        | SynModuleSigDecl.NamespaceFragment (moduleOrNamespace) ->
-            { Type = SynModuleSigDecl_NamespaceFragment
-              Range = noRange
-              Properties = p []
-              FsAstNode = ast }
-            :: (visitSynModuleOrNamespaceSig moduleOrNamespace)
-        | SynModuleSigDecl.Exception (synExceptionSig, range) ->
-            { Type = SynModuleSigDecl_Exception
-              Range = r range
-              Properties = p []
-              FsAstNode = ast }
-            :: (visitSynExceptionSig synExceptionSig)
+                  FsAstNode = ast }
+                :: (List.collect visitSynTypeDefnSig typeDefs)
+                |> finalContinuation
+            | SynModuleSigDecl.Open (target, parentRange) ->
+                // we use the parent ranges here to match up with the trivia parsed
+                match target with
+                | SynOpenDeclTarget.ModuleOrNamespace (longIdent, _range) ->
+                    { Type = SynModuleSigDecl_Open
+                      Range = r parentRange
+                      Properties = p [ "longIdent" ==> li longIdent ]
+                      FsAstNode = target }
+                    |> List.singleton
+                    |> finalContinuation
+                | SynOpenDeclTarget.Type (synType, _range) ->
+                    { Type = SynModuleSigDecl_OpenType
+                      Range = r parentRange
+                      Properties = p []
+                      FsAstNode = target }
+                    :: (visitSynType synType)
+                    |> finalContinuation
+            | SynModuleSigDecl.HashDirective (hash, range) ->
+                [ { Type = SynModuleSigDecl_HashDirective
+                    Range = r range
+                    Properties = p []
+                    FsAstNode = ast }
+                  (visitParsedHashDirective hash) ]
+                |> finalContinuation
+            | SynModuleSigDecl.NamespaceFragment (moduleOrNamespace) ->
+                { Type = SynModuleSigDecl_NamespaceFragment
+                  Range = noRange
+                  Properties = p []
+                  FsAstNode = ast }
+                :: (visitSynModuleOrNamespaceSig moduleOrNamespace)
+                |> finalContinuation
+            | SynModuleSigDecl.Exception (synExceptionSig, range) ->
+                { Type = SynModuleSigDecl_Exception
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = ast }
+                :: (visitSynExceptionSig synExceptionSig)
+                |> finalContinuation
+
+        visit ast id
 
     and visitSynExceptionSig (exceptionDef: SynExceptionSig) : Node list =
         match exceptionDef with
