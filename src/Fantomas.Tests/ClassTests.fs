@@ -812,3 +812,25 @@ type SomeVeryLongTypeNameWithConstructor
     class
     end
 """
+
+[<Test>]
+let ``long type generic type constraints with unit constructors, 1494`` () =
+    formatSourceString
+        false
+        """
+type ISingleExpressionValue<'p, 'o, 'v when 'p :> IProperty and 'o :> IOperator and 'p: equality and 'o: equality and 'v: equality> () =
+    abstract Property: 'p
+    abstract Operator: 'o
+    abstract Value: 'v
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type ISingleExpressionValue<'p, 'o, 'v when 'p :> IProperty and 'o :> IOperator and 'p: equality and 'o: equality and 'v: equality>
+    () =
+    abstract Property : 'p
+    abstract Operator : 'o
+    abstract Value : 'v
+"""
