@@ -175,22 +175,6 @@ let private findSynConstStringNodeAfter (nodes: TriviaNodeAssigner list) (range:
             | MainNode (SynConst_String), true, true -> true
             | _ -> false)
 
-let private mapNodeToTriviaNode (node: Node) =
-    node.Range
-    |> Option.map
-        (fun range ->
-            let attributeParent =
-                Map.tryFind "linesBetweenParent" node.Properties
-                |> Option.bind
-                    (fun v ->
-                        match v with
-                        | :? int as i when (i > 0) -> Some i
-                        | _ -> None)
-
-            match attributeParent with
-            | Some i -> TriviaNodeAssigner(MainNode(node.Type), range, i)
-            | None -> TriviaNodeAssigner(MainNode(node.Type), range))
-
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: Range) =
     let hasNoNodesAfterRange =
         triviaNodes
@@ -511,18 +495,11 @@ let private triviaNodeIsNotEmpty (triviaNode: TriviaNodeAssigner) =
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
 let collectTrivia (mkRange: MkRange) tokens (ast: ParsedInput) =
-    let nodes =
+    let triviaNodesFromAST =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _, hds, mns, _)) -> astToNode hds mns
 
         | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput (_, _, _, _, mns)) -> sigAstToNode mns
-
-    let startOfSourceCode =
-        match nodes with
-        | { Range = Some r } :: _ -> r.StartLine
-        | _ -> 1
-
-    let triviaNodesFromAST = nodes |> List.choose mapNodeToTriviaNode
 
     let hasAnyAttributesWithLinesBetweenParent =
         List.exists (fun (tn: TriviaNodeAssigner) -> Option.isSome tn.AttributeLinesBetweenParent) triviaNodesFromAST
@@ -545,6 +522,11 @@ let collectTrivia (mkRange: MkRange) tokens (ast: ParsedInput) =
 
     let trivias =
         TokenParser.getTriviaFromTokens mkRange tokens
+
+    let startOfSourceCode =
+        match tokens with
+        | h :: _ -> h.LineNumber // Keep track of comments or hash defines before the first AST node
+        | _ -> 1
 
     match trivias with
     | [] -> []

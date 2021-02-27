@@ -5,46 +5,32 @@ open FSharp.Compiler.SyntaxTree
 open Fantomas.TriviaTypes
 open Fantomas
 
-type Id = { Ident: string; Range: Range option }
+type Id = { Ident: string; Range: Range }
 
-type FsAstNode = obj
-
-type Node =
-    { Type: FsAstType
-      Range: Range option
-      Properties: Map<string, obj>
-      FsAstNode: FsAstNode }
+//type Node =
+//    { Type: FsAstType
+//      Range: Range
+//      LinesBetweenParent: int }
 
 module Helpers =
-    let r (r: Range) : Range option = Some r
-
-    let p = Map.ofList
-    let inline (==>) a b = (a, box b)
-
-    let noRange = None
-
     let i (id: Ident) : Id =
         { Ident = id.idText
-          Range = r id.idRange }
+          Range = id.idRange }
 
     let li (id: LongIdent) = id |> List.map i
 
     let lid (id: LongIdentWithDots) = li id.Lid
+    let mkNode (t: FsAstType) (r: range) = TriviaNodeAssigner(MainNode(t), r)
 
 module private Ast =
     open Helpers
 
-    let rec visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : Node list =
+    let rec visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : TriviaNodeAssigner list =
         match modOrNs with
         | SynModuleOrNamespace (longIdent, _, synModuleOrNamespaceKind, decls, _, attrs, _, range) ->
             let collectIdents (idents: LongIdent) =
                 idents
-                |> List.map
-                    (fun ident ->
-                        { Type = Ident_
-                          Range = r ident.idRange
-                          Properties = Map.empty
-                          FsAstNode = ident })
+                |> List.map (fun ident -> mkNode Ident_ ident.idRange)
 
             let typeName =
                 match synModuleOrNamespaceKind with
@@ -56,10 +42,7 @@ module private Ast =
             [
               // LongIdent inside Namespace is being processed as children.
               if typeName <> SynModuleOrNamespace_DeclaredNamespace then
-                  { Type = typeName
-                    Range = r range
-                    Properties = Map.empty
-                    FsAstNode = modOrNs }
+                  mkNode typeName range
               yield!
                   if synModuleOrNamespaceKind = SynModuleOrNamespaceKind.DeclaredNamespace then
                       collectIdents longIdent
@@ -68,133 +51,92 @@ module private Ast =
               yield! (visitSynAttributeLists range attrs)
               yield! (decls |> List.collect visitSynModuleDecl) ]
 
-    and visitSynModuleDecl (ast: SynModuleDecl) : Node list =
-        let rec visit (ast: SynModuleDecl) (finalContinuation: Node list -> Node list) : Node list =
+    and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNodeAssigner list =
+        let rec visit
+            (ast: SynModuleDecl)
+            (finalContinuation: TriviaNodeAssigner list -> TriviaNodeAssigner list)
+            : TriviaNodeAssigner list =
             match ast with
             | SynModuleDecl.ModuleAbbrev (_, _, range) ->
-                [ { Type = SynModuleDecl_ModuleAbbrev
-                    Range = r range
-                    Properties = Map.empty
-                    FsAstNode = ast } ]
+                [ mkNode SynModuleDecl_ModuleAbbrev range ]
                 |> finalContinuation
             | SynModuleDecl.NestedModule (sci, _, decls, _, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = decls |> List.map visit
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    decls |> List.map visit
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynModuleDecl_NestedModule
-                        Range = r range
-                        Properties = Map.empty
-                        FsAstNode = ast }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    [ mkNode SynModuleDecl_NestedModule range
                       yield! visitSynComponentInfo sci
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynModuleDecl.Let (_, bindings, range) ->
-                { Type = SynModuleDecl_Let
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = ast }
+                mkNode SynModuleDecl_Let range
                 :: (bindings |> List.collect visitSynBinding)
                 |> finalContinuation
             | SynModuleDecl.DoExpr (_, expr, range) ->
-                { Type = SynModuleDecl_DoExpr
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = ast }
+                mkNode SynModuleDecl_DoExpr range
                 :: visitSynExpr expr
                 |> finalContinuation
             | SynModuleDecl.Types (typeDefs, range) ->
-                { Type = SynModuleDecl_Types
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = ast }
+                mkNode SynModuleDecl_Types range
                 :: (typeDefs |> List.collect visitSynTypeDefn)
                 |> finalContinuation
             | SynModuleDecl.Exception (exceptionDef, range) ->
-                { Type = SynModuleDecl_Exception
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = ast }
+                mkNode SynModuleDecl_Exception range
                 :: (visitSynExceptionDefn exceptionDef)
                 |> finalContinuation
             | SynModuleDecl.Open (target, parentRange) ->
                 // we use the parent ranges here to match up with the trivia parsed
                 match target with
                 | SynOpenDeclTarget.ModuleOrNamespace (_, _range) ->
-                    { Type = SynModuleDecl_Open
-                      Range = r parentRange
-                      Properties = Map.empty
-                      FsAstNode = ast }
+                    mkNode SynModuleDecl_Open parentRange
                     |> List.singleton
                     |> finalContinuation
                 | SynOpenDeclTarget.Type (synType, _range) ->
-                    { Type = SynModuleDecl_OpenType
-                      Range = r parentRange
-                      Properties = Map.empty
-                      FsAstNode = ast }
+                    mkNode SynModuleDecl_OpenType parentRange
                     :: (visitSynType synType)
                     |> finalContinuation
             | SynModuleDecl.Attributes (attrs, range) ->
-                { Type = SynModuleDecl_Attributes
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = ast }
+                mkNode SynModuleDecl_Attributes range
                 :: (visitSynAttributeLists range attrs)
                 |> finalContinuation
             | SynModuleDecl.HashDirective (hash, range) ->
-                [ { Type = SynModuleDecl_HashDirective
-                    Range = r range
-                    Properties = Map.empty
-                    FsAstNode = ast }
+                [ mkNode SynModuleDecl_HashDirective range
                   visitParsedHashDirective hash ]
                 |> finalContinuation
             | SynModuleDecl.NamespaceFragment (moduleOrNamespace) ->
-                { Type = SynModuleDecl_NamespaceFragment
-                  Range = noRange
-                  Properties = Map.empty
-                  FsAstNode = ast }
-                :: (visitSynModuleOrNamespace moduleOrNamespace)
+                visitSynModuleOrNamespace moduleOrNamespace
                 |> finalContinuation
 
         visit ast id
 
-    and visitSynExpr (synExpr: SynExpr) : Node list =
-        let rec visit (synExpr: SynExpr) (finalContinuation: Node list -> Node list) : Node list =
+    and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
+        let rec visit
+            (synExpr: SynExpr)
+            (finalContinuation: TriviaNodeAssigner list -> TriviaNodeAssigner list)
+            : TriviaNodeAssigner list =
             match synExpr with
-            | SynExpr.Paren (expr, leftParenRange, rightParenRange, range) ->
+            | SynExpr.Paren (expr, _, _, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        [ { Type = SynExpr_Paren
-                            Range = r range
-                            Properties =
-                                p [ yield "leftParenRange" ==> r leftParenRange
-                                    if rightParenRange.IsSome then
-                                        yield "rightParenRange" ==> r rightParenRange.Value ]
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_Paren range
                           yield! nodes ]
                         |> finalContinuation)
-            | SynExpr.Quote (operator, isRaw, quotedSynExpr, isFromQueryExpression, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list =
+            | SynExpr.Quote (operator, _, quotedSynExpr, _, range) ->
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit operator; visit quotedSynExpr ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynExpr_Quote
-                        Range = r range
-                        Properties =
-                            p [ "isRaw" ==> isRaw
-                                "isFromQueryExpression" ==> isFromQueryExpression ]
-                        FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    [ mkNode SynExpr_Quote range
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.Const (constant, range) ->
-                [ { Type = SynExpr_Const
-                    Range = r range
-                    Properties = Map.empty
-                    FsAstNode = synExpr }
+                [ mkNode SynExpr_Const range
                   visitSynConst range constant ]
                 |> finalContinuation
             | SynExpr.Typed (expr, typeName, _) ->
@@ -204,62 +146,46 @@ module private Ast =
                         //                        { Type = SynExpr_Typed
 //                           Range = r range
 //                           Properties = Map.empty
-//                           FsAstNode = synExpr }
+//                            }
                         nodes @ visitSynType typeName |> finalContinuation)
             | SynExpr.Tuple (_, exprs, _, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = exprs |> List.map visit
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    exprs |> List.map visit
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynExpr_Tuple
-                        Range = r range
-                        Properties = Map.empty
-                        FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    [ mkNode SynExpr_Tuple range
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.ArrayOrList (_, exprs, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = exprs |> List.map visit
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    exprs |> List.map visit
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynExpr_ArrayOrList
-                        Range = r range
-                        Properties = Map.empty
-                        FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    [ mkNode SynExpr_ArrayOrList range
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.Record (_, _, recordFields, range) ->
-                { Type = SynExpr_Record
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = synExpr }
+                mkNode SynExpr_Record range
                 :: (List.collect visitRecordField recordFields)
                 |> finalContinuation
             | SynExpr.AnonRecd (_, _, recordFields, range) ->
-                { Type = SynExpr_AnonRecd
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = synExpr }
+                mkNode SynExpr_AnonRecd range
                 :: (List.collect visitAnonRecordField recordFields)
                 |> finalContinuation
             | SynExpr.New (_, typeName, expr, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        [ { Type = SynExpr_New
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_New range
                           yield! nodes
                           yield! visitSynType typeName ]
                         |> finalContinuation)
             | SynExpr.ObjExpr (objType, argOptions, bindings, extraImpls, _, range) ->
-                { Type = SynExpr_ObjExpr
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = synExpr }
+                mkNode SynExpr_ObjExpr range
                 :: [ yield! visitSynType objType
                      if argOptions.IsSome then
                          yield! visitArgsOption argOptions.Value
@@ -267,42 +193,33 @@ module private Ast =
                      yield! bindings |> List.collect visitSynBinding ]
                 |> finalContinuation
             | SynExpr.While (_, whileExpr, doExpr, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit whileExpr; visit doExpr ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit whileExpr; visit doExpr ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynExpr_While
-                        Range = r range
-                        Properties = Map.empty
-                        FsAstNode = synExpr }
-                      yield! (List.collect id nodes) ]
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_While range
+                    :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.For (_, _, identBody, _, toBody, doBody, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list =
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit identBody
                       visit toBody
                       visit doBody ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynExpr_For
-                        Range = r range
-                        Properties = Map.empty
-                        FsAstNode = synExpr }
-                      yield! (List.collect id nodes) ]
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_For range
+                    :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.ForEach (_, (SeqExprOnly seqExprOnly), isFromSource, pat, enumExpr, bodyExpr, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit enumExpr; visit bodyExpr ]
+            | SynExpr.ForEach (_, (SeqExprOnly _), _, pat, enumExpr, bodyExpr, range) ->
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit enumExpr; visit bodyExpr ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynExpr_ForEach
-                        Range = r range
-                        Properties =
-                            p [ "isFromSource" ==> isFromSource
-                                "seqExprOnly" ==> seqExprOnly ]
-                        FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    [ mkNode SynExpr_ForEach range
                       yield! visitSynPat pat
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
@@ -312,47 +229,29 @@ module private Ast =
                 visit
                     expr
                     (fun nodes ->
-                        [ { Type = SynExpr_ArrayOrListOfSeqExpr
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = synExpr }
-                          yield! nodes ]
+                        mkNode SynExpr_ArrayOrListOfSeqExpr range :: nodes
                         |> finalContinuation)
             | SynExpr.CompExpr (_, _, expr, _) -> visit expr finalContinuation
             //                        { Type = SynExpr_CompExpr
 //                          Range = r range
-//                          Properties =
-//                              p [ "isArrayOrList" ==> isArrayOrList
-//                                  "isNotNakedRefCell" ==> isNotNakedRefCell ]
-//                          FsAstNode = synExpr }
-            | SynExpr.Lambda (fromMethod, inLambdaSeq, args, body, _parsedData, range) ->
+//                          Properties = Map.empty }
+            | SynExpr.Lambda (_, _, args, body, _parsedData, range) ->
                 visit
                     body
                     (fun nodes ->
-                        [ { Type = SynExpr_Lambda
-                            Range = r range
-                            Properties =
-                                p [ "fromMethod" ==> fromMethod
-                                    "inLambdaSeq" ==> inLambdaSeq ]
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_Lambda range
                           yield! visitSynSimplePats args
                           yield! nodes ]
                         |> finalContinuation)
             | SynExpr.MatchLambda (_, _, matchClauses, _, range) ->
-                { Type = SynExpr_MatchLambda
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = synExpr }
+                mkNode SynExpr_MatchLambda range
                 :: (List.collect visitSynMatchClause matchClauses)
                 |> finalContinuation
             | SynExpr.Match (_, expr, clauses, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        [ { Type = SynExpr_Match
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_Match range
                           yield! nodes
                           yield! (List.collect visitSynMatchClause clauses) ]
                         |> finalContinuation)
@@ -360,35 +259,20 @@ module private Ast =
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_Do
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
-                        :: nodes
+                        mkNode SynExpr_Do range :: nodes
                         |> finalContinuation)
             | SynExpr.Assert (expr, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_Assert
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
-                        :: nodes
+                        mkNode SynExpr_Assert range :: nodes
                         |> finalContinuation)
-            | SynExpr.App (atomicFlag, isInfix, funcExpr, argExpr, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit funcExpr; visit argExpr ]
+            | SynExpr.App (_, _, funcExpr, argExpr, range) ->
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit funcExpr; visit argExpr ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynExpr_App
-                      Range = r range
-                      Properties =
-                          p [ "atomicFlag"
-                              ==> (match atomicFlag with
-                                   | ExprAtomicFlag.Atomic -> "Atomic"
-                                   | _ -> "Not Atomic")
-                              "isInfix" ==> isInfix ]
-                      FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_App range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
@@ -397,10 +281,7 @@ module private Ast =
                 visit
                     expr
                     (fun nodes ->
-                        [ { Type = SynExpr_TypeApp
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_TypeApp range
                           yield! nodes
                           yield! (List.collect visitSynType typeNames) ]
                         |> finalContinuation)
@@ -413,30 +294,23 @@ module private Ast =
 //                            Properties =
 //                                p [ "isRecursive" ==> isRecursive
 //                                    "isUse" ==> isUse ]
-//                            FsAstNode = synExpr }
+//                             }
                         (List.collect visitSynBinding bindings) @ nodes
                         |> finalContinuation)
-            | SynExpr.TryWith (tryExpr, tryRange, withCases, withRange, range, _, _) ->
+            | SynExpr.TryWith (tryExpr, _, withCases, _, range, _, _) ->
                 visit
                     tryExpr
                     (fun nodes ->
-                        [ { Type = SynExpr_TryWith
-                            Range = r range
-                            Properties =
-                                p [ "tryRange" ==> r tryRange
-                                    "withRange" ==> r withRange ]
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_TryWith range
                           yield! nodes
                           yield! withCases |> List.collect visitSynMatchClause ]
                         |> finalContinuation)
             | SynExpr.TryFinally (tryExpr, finallyExpr, range, _, _) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit tryExpr; visit finallyExpr ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit tryExpr; visit finallyExpr ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynExpr_TryFinally
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_TryFinally range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
@@ -445,113 +319,83 @@ module private Ast =
                 visit
                     ex
                     (fun nodes ->
-                        { Type = SynExpr_Lazy
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
-                        :: nodes
+                        mkNode SynExpr_Lazy range :: nodes
                         |> finalContinuation)
             | SynExpr.Sequential (_, _, expr1, expr2, _) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit expr1; visit expr2 ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit expr1; visit expr2 ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
                     //                    { Type = SynExpr_Sequential
 //                      Range = r range
 //                      Properties = Map.empty
-//                      FsAstNode = synExpr }
+//                       }
                     (List.collect id nodes) |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.SequentialOrImplicitYield (_, expr1, expr2, ifNotStmt, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list =
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit expr1
                       visit expr2
                       visit ifNotStmt ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynExpr_SequentialOrImplicitYield
-                      Range = r range
-                      FsAstNode = synExpr
-                      Properties = Map.empty }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_SequentialOrImplicitYield range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.IfThenElse (ifExpr, thenExpr, elseExpr, _, isFromErrorRecovery, ifToThenRange, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list =
+            | SynExpr.IfThenElse (ifExpr, thenExpr, elseExpr, _, _, _, range) ->
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit ifExpr
                       visit thenExpr
                       yield! (Option.toList elseExpr |> List.map visit) ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynExpr_IfThenElse
-                      Range = r range
-                      Properties =
-                          p [ "isFromErrorRecovery" ==> isFromErrorRecovery
-                              "ifToThenRange" ==> r ifToThenRange ]
-                      FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_IfThenElse range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.Ident (id) ->
-                { Type = SynExpr_Ident
-                  Range = (i id).Range
-                  Properties = Map.empty
-                  FsAstNode = synExpr }
+                mkNode SynExpr_Ident (i id).Range
                 |> List.singleton
                 |> finalContinuation
-            | SynExpr.LongIdent (isOptional, longDotId, _, range) ->
-                { Type = SynExpr_LongIdent
-                  Range = r range
-                  Properties =
-                      p [ "isOptional" ==> isOptional
-                          "longDotId" ==> lid longDotId ]
-                  FsAstNode = synExpr }
+            | SynExpr.LongIdent (_, longDotId, _, range) ->
+                mkNode SynExpr_LongIdent range
                 :: (visitLongIdentWithDots longDotId)
                 |> finalContinuation
             | SynExpr.LongIdentSet (_, expr, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_LongIdentSet
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
-                        :: nodes
+                        mkNode SynExpr_LongIdentSet range :: nodes
                         |> finalContinuation)
             | SynExpr.DotGet (expr, _, longDotId, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        [ { Type = SynExpr_DotGet
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_DotGet range
                           yield! nodes
                           // Idents are collected as children here to deal with unit test ``Fluent api with comments should remain on same lines``
                           yield! (visitLongIdentWithDots longDotId) ]
                         |> finalContinuation)
             | SynExpr.DotSet (expr, _, e2, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit expr; visit e2 ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit expr; visit e2 ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynExpr_DotSet
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_DotSet range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.Set (e1, e2, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit e1; visit e2 ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit e1; visit e2 ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynExpr_Set
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_Set range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
@@ -560,46 +404,37 @@ module private Ast =
                 visit
                     objectExpr
                     (fun nodes ->
-                        [ { Type = SynExpr_DotIndexedGet
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_DotIndexedGet range
                           yield! nodes
                           yield! indexExprs |> List.collect visitSynIndexerArg ]
                         |> finalContinuation)
             | SynExpr.DotIndexedSet (objectExpr, indexExprs, valueExpr, _, _, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit objectExpr; visit valueExpr ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit objectExpr; visit valueExpr ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynExpr_DotIndexedSet
-                        Range = r range
-                        Properties = Map.empty
-                        FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    [ mkNode SynExpr_DotIndexedSet range
                       yield! (List.collect id nodes)
                       yield! indexExprs |> List.collect visitSynIndexerArg ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.NamedIndexedPropertySet (_, e1, e2, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit e1; visit e2 ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit e1; visit e2 ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynExpr_NamedIndexedPropertySet
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_NamedIndexedPropertySet range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.DotNamedIndexedPropertySet (expr, _, e1, e2, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit expr; visit e1; visit e2 ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit expr; visit e1; visit e2 ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynExpr_DotNamedIndexedPropertySet
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_DotNamedIndexedPropertySet range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
@@ -608,10 +443,7 @@ module private Ast =
                 visit
                     expr
                     (fun nodes ->
-                        [ { Type = SynExpr_TypeTest
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_TypeTest range
                           yield! nodes
                           yield! visitSynType typeName ]
                         |> finalContinuation)
@@ -619,10 +451,7 @@ module private Ast =
                 visit
                     expr
                     (fun nodes ->
-                        [ { Type = SynExpr_Upcast
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_Upcast range
                           yield! nodes
                           yield! visitSynType typeName ]
                         |> finalContinuation)
@@ -630,10 +459,7 @@ module private Ast =
                 visit
                     expr
                     (fun nodes ->
-                        [ { Type = SynExpr_Downcast
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_Downcast range
                           yield! nodes
                           yield! visitSynType typeName ]
                         |> finalContinuation)
@@ -641,101 +467,67 @@ module private Ast =
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_InferredUpcast
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
-                        :: nodes
+                        mkNode SynExpr_InferredUpcast range :: nodes
                         |> finalContinuation)
             | SynExpr.InferredDowncast (expr, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_InferredDowncast
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
-                        :: nodes
+                        mkNode SynExpr_InferredDowncast range :: nodes
                         |> finalContinuation)
             | SynExpr.Null (range) ->
-                { Type = SynExpr_Null
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = synExpr }
+                mkNode SynExpr_Null range
                 |> List.singleton
                 |> finalContinuation
             | SynExpr.AddressOf (_, expr, _, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_AddressOf
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
-                        :: nodes
+                        mkNode SynExpr_AddressOf range :: nodes
                         |> finalContinuation)
             | SynExpr.TraitCall (typars, sign, expr, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        [ { Type = SynExpr_TraitCall
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_TraitCall range
                           yield! typars |> List.collect visitSynTypar
                           yield! visitSynMemberSig sign
                           yield! nodes ]
                         |> finalContinuation)
             | SynExpr.JoinIn (expr, _, expr2, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit expr; visit expr2 ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit expr; visit expr2 ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynExpr_JoinIn
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_JoinIn range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.ImplicitZero (range) ->
-                { Type = SynExpr_ImplicitZero
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = synExpr }
+                mkNode SynExpr_ImplicitZero range
                 |> List.singleton
                 |> finalContinuation
             | SynExpr.YieldOrReturn (_, expr, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_YieldOrReturn
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
-                        :: nodes
+                        mkNode SynExpr_YieldOrReturn range :: nodes
                         |> finalContinuation)
             | SynExpr.YieldOrReturnFrom (_, expr, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_YieldOrReturnFrom
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
-                        :: nodes
+                        mkNode SynExpr_YieldOrReturnFrom range :: nodes
                         |> finalContinuation)
             | SynExpr.LetOrUseBang (_, _, _, pat, rhsExpr, andBangs, body, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list =
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit rhsExpr
                       visit body
                       yield! (List.map (fun (_, _, _, _, body, _) -> visit body) andBangs) ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynExpr_LetOrUseBang
-                        Range = r range
-                        Properties = Map.empty
-                        FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    [ mkNode SynExpr_LetOrUseBang range
                       yield! visitSynPat pat
                       yield! (List.collect id nodes)
                       yield!
@@ -748,10 +540,7 @@ module private Ast =
                 visit
                     expr
                     (fun nodes ->
-                        [ { Type = SynExpr_MatchBang
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = synExpr }
+                        [ mkNode SynExpr_MatchBang range
                           yield! nodes
                           yield! clauses |> List.collect visitSynMatchClause ]
                         |> finalContinuation)
@@ -759,90 +548,58 @@ module private Ast =
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_DoBang
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
-                        :: nodes
+                        mkNode SynExpr_DoBang range :: nodes
                         |> finalContinuation)
             | SynExpr.LibraryOnlyILAssembly (_, _, _, _, range) ->
-                { Type = SynExpr_LibraryOnlyILAssembly
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = synExpr }
+                mkNode SynExpr_LibraryOnlyILAssembly range
                 |> List.singleton
                 |> finalContinuation
             | SynExpr.LibraryOnlyStaticOptimization (_, _, _, range) ->
-                { Type = SynExpr_LibraryOnlyStaticOptimization
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = synExpr }
+                mkNode SynExpr_LibraryOnlyStaticOptimization range
                 |> List.singleton
                 |> finalContinuation
             | SynExpr.LibraryOnlyUnionCaseFieldGet (expr, _, _, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_LibraryOnlyUnionCaseFieldGet
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
+                        mkNode SynExpr_LibraryOnlyUnionCaseFieldGet range
                         :: nodes
                         |> finalContinuation)
             | SynExpr.LibraryOnlyUnionCaseFieldSet (e1, _, _, e2, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit e1; visit e2 ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit e1; visit e2 ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynExpr_LibraryOnlyUnionCaseFieldSet
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = synExpr }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_LibraryOnlyUnionCaseFieldSet range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.ArbitraryAfterError (_, range) ->
-                { Type = SynExpr_ArbitraryAfterError
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = synExpr }
+                mkNode SynExpr_ArbitraryAfterError range
                 |> List.singleton
                 |> finalContinuation
             | SynExpr.FromParseError (expr, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_FromParseError
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
-                        :: nodes
+                        mkNode SynExpr_FromParseError range :: nodes
                         |> finalContinuation)
             | SynExpr.DiscardAfterMissingQualificationAfterDot (expr, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_DiscardAfterMissingQualificationAfterDot
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
+                        mkNode SynExpr_DiscardAfterMissingQualificationAfterDot range
                         :: nodes
                         |> finalContinuation)
             | SynExpr.Fixed (expr, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        { Type = SynExpr_Fixed
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = synExpr }
-                        :: nodes
+                        mkNode SynExpr_Fixed range :: nodes
                         |> finalContinuation)
             | SynExpr.InterpolatedString (parts, range) ->
-                { Type = SynExpr_InterpolatedString
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = synExpr }
+                mkNode SynExpr_InterpolatedString range
                 :: (List.collect visitSynInterpolatedStringPart parts)
                 |> finalContinuation
 
@@ -851,132 +608,72 @@ module private Ast =
     and visitSynInterpolatedStringPart (synInterpolatedStringPart: SynInterpolatedStringPart) =
         match synInterpolatedStringPart with
         | SynInterpolatedStringPart.String (_, range) ->
-            { Type = SynInterpolatedStringPart_String
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = synInterpolatedStringPart }
+            mkNode SynInterpolatedStringPart_String range
             |> List.singleton
         | SynInterpolatedStringPart.FillExpr (expr, ident) ->
-            { Type = SynInterpolatedStringPart_FillExpr
-              Range = None
-              Properties = Map.empty
-              FsAstNode = synInterpolatedStringPart }
-            :: [ yield! visitSynExpr expr
-                 yield! (Option.toList ident |> List.map visitIdent) ]
+            visitSynExpr expr
+            @ (Option.toList ident |> List.map visitIdent)
 
-    and visitRecordField ((longId, _) as rfn: RecordFieldName, expr: SynExpr option, _: BlockSeparator option) =
-        { Type = RecordField_
-          Range = r longId.Range
-          Properties = Map.empty
-          FsAstNode = rfn }
+    and visitRecordField ((longId, _): RecordFieldName, expr: SynExpr option, _: BlockSeparator option) =
+        mkNode RecordField_ longId.Range
         :: (match expr with
             | Some e -> visitSynExpr e
             | None -> [])
 
-    and visitAnonRecordField (_: Ident, expr: SynExpr) =
-        { Type = AnonRecordField_
-          Range = noRange
-          Properties = Map.empty
-          FsAstNode = expr }
-        :: (visitSynExpr expr)
+    and visitAnonRecordField (_: Ident, expr: SynExpr) = visitSynExpr expr
 
-    and visitAnonRecordTypeField (_: Ident, t: SynType) =
-        { Type = AnonRecordTypeField_
-          Range = noRange
-          Properties = Map.empty
-          FsAstNode = t }
-        :: (visitSynType t)
+    and visitAnonRecordTypeField (_: Ident, t: SynType) = visitSynType t
 
-    and visitSynMemberSig (ms: SynMemberSig) : Node list =
+    and visitSynMemberSig (ms: SynMemberSig) : TriviaNodeAssigner list =
         match ms with
         | SynMemberSig.Member (valSig, _, range) ->
-            { Type = SynMemberSig_Member
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = ms }
+            mkNode SynMemberSig_Member range
             :: (visitSynValSig valSig)
         | SynMemberSig.Interface (typeName, range) ->
-            { Type = SynMemberSig_Interface
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = ms }
+            mkNode SynMemberSig_Interface range
             :: (visitSynType typeName)
         | SynMemberSig.Inherit (typeName, range) ->
-            { Type = SynMemberSig_Inherit
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = ms }
+            mkNode SynMemberSig_Inherit range
             :: (visitSynType typeName)
         | SynMemberSig.ValField (f, range) ->
-            { Type = SynMemberSig_ValField
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = ms }
+            mkNode SynMemberSig_ValField range
             :: (visitSynField f)
         | SynMemberSig.NestedType (typedef, range) ->
-            { Type = SynMemberSig_NestedType
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = ms }
+            mkNode SynMemberSig_NestedType range
             :: (visitSynTypeDefnSig typedef)
 
-    and visitSynIndexerArg (ia: SynIndexerArg) : Node list =
+    and visitSynIndexerArg (ia: SynIndexerArg) : TriviaNodeAssigner list =
         match ia with
-        | SynIndexerArg.One (e, _fromEnd, _) ->
-            { Type = SynIndexerArg_One
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = ia }
-            :: (visitSynExpr e)
-        | SynIndexerArg.Two (e1, _fromEnd1, e2, _fromEnd2, _, _) ->
-            { Type = SynIndexerArg_Two
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = ia }
-            :: [ yield! visitSynExpr e1
-                 yield! visitSynExpr e2 ]
+        | SynIndexerArg.One (e, _fromEnd, _) -> visitSynExpr e
+        | SynIndexerArg.Two (e1, _fromEnd1, e2, _fromEnd2, _, _) -> visitSynExpr e1 @ visitSynExpr e2
 
-    and visitSynMatchClause (mc: SynMatchClause) : Node list =
+    and visitSynMatchClause (mc: SynMatchClause) : TriviaNodeAssigner list =
         match mc with
         | SynMatchClause.Clause (pat, e1, e2, _range, _) ->
-            { Type = SynMatchClause_Clause
-              Range = r mc.Range // _range is the same range as pat, see https://github.com/dotnet/fsharp/issues/10877
-              Properties = Map.empty
-              FsAstNode = mc }
+            mkNode SynMatchClause_Clause mc.Range // _range is the same range as pat, see https://github.com/dotnet/fsharp/issues/10877
             :: [ yield! visitSynPat pat
                  if e1.IsSome then
                      yield! visitSynExpr e1.Value
                  yield! visitSynExpr e2 ]
 
-    and visitArgsOption (expr: SynExpr, _: Ident option) =
-        { Type = ArgOptions_
-          Range = noRange
-          Properties = Map.empty
-          FsAstNode = expr }
-        :: (visitSynExpr expr)
+    and visitArgsOption (expr: SynExpr, _: Ident option) = visitSynExpr expr
 
-    and visitSynInterfaceImpl (ii: SynInterfaceImpl) : Node list =
+    and visitSynInterfaceImpl (ii: SynInterfaceImpl) : TriviaNodeAssigner list =
         match ii with
         | InterfaceImpl (typ, bindings, range) ->
-            { Type = InterfaceImpl_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = ii }
-            :: [ yield! visitSynType typ
-                 yield! (bindings |> List.collect visitSynBinding) ]
+            [ mkNode InterfaceImpl_ range
+              yield! visitSynType typ
+              yield! (bindings |> List.collect visitSynBinding) ]
 
     and visitSynTypeDefn (td: SynTypeDefn) =
         match td with
         | TypeDefn (sci, stdr, members, range) ->
-            { Type = TypeDefn_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = td }
-            :: [ yield! visitSynComponentInfo sci
-                 yield! visitSynTypeDefnRepr stdr
-                 yield! (members |> List.collect visitSynMemberDefn) ]
+            [ mkNode TypeDefn_ range
+              yield! visitSynComponentInfo sci
+              yield! visitSynTypeDefnRepr stdr
+              yield! (members |> List.collect visitSynMemberDefn) ]
 
-    and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : Node list =
+    and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNodeAssigner list =
         match typeDefSig with
         | TypeDefnSig (sci, synTypeDefnSigReprs, memberSig, _) ->
             //            { Type = TypeDefnSig_
@@ -987,7 +684,7 @@ module private Ast =
               yield! visitSynTypeDefnSigRepr synTypeDefnSigReprs
               yield! (memberSig |> List.collect visitSynMemberSig) ]
 
-    and visitSynTypeDefnSigRepr (stdr: SynTypeDefnSigRepr) : Node list =
+    and visitSynTypeDefnSigRepr (stdr: SynTypeDefnSigRepr) : TriviaNodeAssigner list =
         match stdr with
         | SynTypeDefnSigRepr.ObjectModel (kind, members, _) ->
             //            { Type = SynTypeDefnSigRepr_ObjectModel
@@ -1002,116 +699,72 @@ module private Ast =
 //              Properties = Map.empty
 //              FsAstNode = stdr }
             (visitSynTypeDefnSimpleRepr simpleRepr)
-        | SynTypeDefnSigRepr.Exception (exceptionRepr) ->
-            { Type = SynTypeDefnSigRepr_Exception
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = stdr }
-            :: (visitSynExceptionDefnRepr exceptionRepr)
+        | SynTypeDefnSigRepr.Exception (exceptionRepr) -> visitSynExceptionDefnRepr exceptionRepr
 
-    and visitSynMemberDefn (mbrDef: SynMemberDefn) : Node list =
+    and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNodeAssigner list =
         match mbrDef with
         | SynMemberDefn.Open (target, parentRange) ->
             // we use the parent ranges here to match up with the trivia parsed
             match target with
             | SynOpenDeclTarget.ModuleOrNamespace (_, _range) ->
-                { Type = SynMemberDefn_Open
-                  Range = r parentRange
-                  Properties = Map.empty
-                  FsAstNode = target }
+                mkNode SynMemberDefn_Open parentRange
                 |> List.singleton
             | SynOpenDeclTarget.Type (synType, _range) ->
-                { Type = SynMemberDefn_OpenType
-                  Range = r parentRange
-                  Properties = Map.empty
-                  FsAstNode = target }
+                mkNode SynMemberDefn_OpenType parentRange
                 :: (visitSynType synType)
         | SynMemberDefn.Member (memberDefn, range) ->
-            { Type = SynMemberDefn_Member
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = mbrDef }
+            mkNode SynMemberDefn_Member range
             :: (visitSynBinding memberDefn)
         | SynMemberDefn.ImplicitCtor (_, attrs, ctorArgs, _, _xmlDoc, range) ->
-            { Type = SynMemberDefn_ImplicitCtor
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = mbrDef }
-            :: [ yield! (visitSynAttributeLists range attrs)
-                 yield! visitSynSimplePats ctorArgs ]
+            [ mkNode SynMemberDefn_ImplicitCtor range
+              yield! (visitSynAttributeLists range attrs)
+              yield! visitSynSimplePats ctorArgs ]
         | SynMemberDefn.ImplicitInherit (inheritType, inheritArgs, _, range) ->
-            { Type = SynMemberDefn_ImplicitInherit
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = mbrDef }
-            :: [ yield! visitSynType inheritType
-                 yield! visitSynExpr inheritArgs ]
+            [ mkNode SynMemberDefn_ImplicitInherit range
+              yield! visitSynType inheritType
+              yield! visitSynExpr inheritArgs ]
         | SynMemberDefn.LetBindings (bindings, _, _, range) ->
-            { Type = SynMemberDefn_LetBindings
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = mbrDef }
+            mkNode SynMemberDefn_LetBindings range
             :: (List.collect visitSynBinding bindings)
         | SynMemberDefn.AbstractSlot (valSig, _, range) ->
-            { Type = SynMemberDefn_AbstractSlot
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = mbrDef }
+            mkNode SynMemberDefn_AbstractSlot range
             :: (visitSynValSig valSig)
         | SynMemberDefn.Interface (typ, members, range) ->
-            { Type = SynMemberDefn_Interface
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = mbrDef }
-            :: [ yield! visitSynType typ
-                 if members.IsSome then
-                     yield! members.Value |> List.collect visitSynMemberDefn ]
+            [ mkNode SynMemberDefn_Interface range
+              yield! visitSynType typ
+              if members.IsSome then
+                  yield! members.Value |> List.collect visitSynMemberDefn ]
         | SynMemberDefn.Inherit (typ, _, range) ->
-            { Type = SynMemberDefn_Inherit
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = mbrDef }
+            mkNode SynMemberDefn_Inherit range
             :: (visitSynType typ)
         | SynMemberDefn.ValField (fld, range) ->
-            { Type = SynMemberDefn_ValField
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = mbrDef }
+            mkNode SynMemberDefn_ValField range
             :: (visitSynField fld)
         | SynMemberDefn.NestedType (typeDefn, _, range) ->
-            { Type = SynMemberDefn_NestedType
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = mbrDef }
+            mkNode SynMemberDefn_NestedType range
             :: (visitSynTypeDefn typeDefn)
         | SynMemberDefn.AutoProperty (attrs, _, _, typeOpt, _, _, _, _, synExpr, _, range) ->
-            { Type = SynMemberDefn_AutoProperty
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = mbrDef }
-            :: [ yield! (visitSynAttributeLists range attrs)
-                 if typeOpt.IsSome then
-                     yield! visitSynType typeOpt.Value
-                 yield! visitSynExpr synExpr ]
+            [ mkNode SynMemberDefn_AutoProperty range
+              yield! (visitSynAttributeLists range attrs)
+              if typeOpt.IsSome then
+                  yield! visitSynType typeOpt.Value
+              yield! visitSynExpr synExpr ]
 
-    and visitSynSimplePat (sp: SynSimplePat) : Node list =
-        let rec visit (sp: SynSimplePat) (continuation: Node list -> Node list) : Node list =
+    and visitSynSimplePat (sp: SynSimplePat) : TriviaNodeAssigner list =
+        let rec visit
+            (sp: SynSimplePat)
+            (continuation: TriviaNodeAssigner list -> TriviaNodeAssigner list)
+            : TriviaNodeAssigner list =
             match sp with
             | SynSimplePat.Id (_, _, _, _, _, range) ->
-                { Type = SynSimplePat_Id
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = sp }
+                mkNode SynSimplePat_Id range
                 |> List.singleton
                 |> continuation
             | SynSimplePat.Typed (simplePat, typ, range) ->
                 visit
                     simplePat
                     (fun nodes ->
-                        [ { Type = SynSimplePat_Typed
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = sp }
+                        [ mkNode SynSimplePat_Typed range
                           yield! nodes
                           yield! visitSynType typ ]
                         |> continuation)
@@ -1119,41 +772,32 @@ module private Ast =
                 visit
                     simplePat
                     (fun nodes ->
-                        [ { Type = SynSimplePat_Attrib
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = sp }
+                        [ mkNode SynSimplePat_Attrib range
                           yield! nodes
                           yield! (visitSynAttributeLists range attrs) ]
                         |> continuation)
 
         visit sp id
 
-    and visitSynSimplePats (sp: SynSimplePats) : Node list =
-        let rec visit (sp: SynSimplePats) (continuation: Node list -> Node list) =
+    and visitSynSimplePats (sp: SynSimplePats) : TriviaNodeAssigner list =
+        let rec visit (sp: SynSimplePats) (continuation: TriviaNodeAssigner list -> TriviaNodeAssigner list) =
             match sp with
             | SynSimplePats.SimplePats (pats, range) ->
-                { Type = SynSimplePats_SimplePats
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = sp }
+                mkNode SynSimplePats_SimplePats range
                 :: (List.collect visitSynSimplePat pats)
                 |> continuation
             | SynSimplePats.Typed (pats, typ, range) ->
                 visit
                     pats
                     (fun nodes ->
-                        [ { Type = SynSimplePat_Typed
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = sp }
+                        [ mkNode SynSimplePat_Typed range
                           yield! nodes
                           yield! visitSynType typ ]
                         |> continuation)
 
         visit sp id
 
-    and visitSynBinding (binding: SynBinding) : Node list =
+    and visitSynBinding (binding: SynBinding) : TriviaNodeAssigner list =
         match binding with
         | Binding (_, kind, _, _, attrs, _, valData, headPat, returnInfo, expr, range, _) ->
             let t =
@@ -1162,174 +806,124 @@ module private Ast =
                 | SynBindingKind.NormalBinding -> NormalBinding_
                 | SynBindingKind.DoBinding -> DoBinding_
 
-            { Type = t
-              Range = r binding.RangeOfBindingAndRhs
-              Properties = Map.empty
-              FsAstNode = binding }
-            :: [ yield! (visitSynAttributeLists range attrs)
-                 yield! visitSynValData valData
-                 yield! visitSynPat headPat
-                 if returnInfo.IsSome then
-                     yield! visitSynBindingReturnInfo returnInfo.Value
-                 yield! visitSynExpr expr ]
+            [ mkNode t binding.RangeOfBindingAndRhs
+              yield! visitSynAttributeLists range attrs
+              yield! visitSynValData valData
+              yield! visitSynPat headPat
+              yield!
+                  (match returnInfo with
+                   | Some ri -> visitSynBindingReturnInfo ri
+                   | None -> [])
+              yield! visitSynExpr expr ]
 
-    and visitSynValData (svd: SynValData) : Node list =
+    and visitSynValData (svd: SynValData) : TriviaNodeAssigner list =
         match svd with
-        | SynValData (_, svi, _) ->
-            { Type = SynValData_
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = svd }
-            :: (visitSynValInfo svi)
+        | SynValData (_, svi, _) -> visitSynValInfo svi
 
-    and visitSynValSig (svs: SynValSig) : Node list =
+    and visitSynValSig (svs: SynValSig) : TriviaNodeAssigner list =
         match svs with
         | ValSpfn (attrs, _, explicitValDecls, synType, arity, _, _, _, _, expr, range) ->
-            { Type = ValSpfn_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = svs }
-            :: [ yield! (visitSynAttributeLists range attrs)
-                 yield! visitSynValTyparDecls explicitValDecls
-                 yield! visitSynType synType
-                 yield! visitSynValInfo arity
-                 if expr.IsSome then
-                     yield! visitSynExpr expr.Value ]
+            [ mkNode ValSpfn_ range
+              yield! (visitSynAttributeLists range attrs)
+              yield! visitSynValTyparDecls explicitValDecls
+              yield! visitSynType synType
+              yield! visitSynValInfo arity
+              if expr.IsSome then
+                  yield! visitSynExpr expr.Value ]
 
-    and visitSynValTyparDecls (valTypeDecl: SynValTyparDecls) : Node list =
+    and visitSynValTyparDecls (valTypeDecl: SynValTyparDecls) : TriviaNodeAssigner list =
         match valTypeDecl with
-        | SynValTyparDecls (typardecls, _, _) ->
-            { Type = SynValTyparDecls_
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = valTypeDecl }
-            :: (List.collect visitSynTyparDecl typardecls)
+        | SynValTyparDecls (typardecls, _, _) -> List.collect visitSynTyparDecl typardecls
 
-    and visitSynTyparDecl (std: SynTyparDecl) : Node list =
+    and visitSynTyparDecl (std: SynTyparDecl) : TriviaNodeAssigner list =
         match std with
         | TyparDecl (attrs, typar) ->
-            { Type = TyparDecl_
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = std }
-            :: [ yield! (visitSynAttributeLists typar.Range attrs)
-                 yield! visitSynTypar typar ]
+            [ yield! (visitSynAttributeLists typar.Range attrs)
+              yield! visitSynTypar typar ]
 
-    and visitSynTypar (typar: SynTypar) : Node list =
+    and visitSynTypar (typar: SynTypar) : TriviaNodeAssigner list =
         match typar with
-        | Typar _ ->
-            { Type = Typar_
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = typar }
-            |> List.singleton
+        | Typar _ -> []
 
     and visitTyparStaticReq (tsr: TyparStaticReq) =
         match tsr with
         | NoStaticReq -> "NoStaticReq"
         | HeadTypeStaticReq -> "HeadTypeStaticReq"
 
-    and visitSynBindingReturnInfo (returnInfo: SynBindingReturnInfo) : Node list =
+    and visitSynBindingReturnInfo (returnInfo: SynBindingReturnInfo) : TriviaNodeAssigner list =
         match returnInfo with
         | SynBindingReturnInfo (typeName, range, attrs) ->
-            { Type = SynBindingReturnInfo_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = returnInfo }
-            :: [ yield! visitSynType typeName
-                 yield! (visitSynAttributeLists range attrs) ]
+            [ mkNode SynBindingReturnInfo_ range
+              yield! visitSynType typeName
+              yield! (visitSynAttributeLists range attrs) ]
 
-    and visitSynPat (sp: SynPat) : Node list =
-        let rec visit (sp: SynPat) (finalContinuation: Node list -> Node list) : Node list =
+    and visitSynPat (sp: SynPat) : TriviaNodeAssigner list =
+        let rec visit
+            (sp: SynPat)
+            (finalContinuation: TriviaNodeAssigner list -> TriviaNodeAssigner list)
+            : TriviaNodeAssigner list =
             match sp with
             | SynPat.Const (sc, range) ->
-                [ { Type = SynPat_Const
-                    Range = r range
-                    Properties = Map.empty
-                    FsAstNode = sp }
+                [ mkNode SynPat_Const range
                   visitSynConst range sc ]
                 |> finalContinuation
             | SynPat.Wild (range) ->
-                { Type = SynPat_Wild
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = sp }
+                mkNode SynPat_Wild range
                 |> List.singleton
                 |> finalContinuation
             | SynPat.Named (synPat, _, _, _, range) ->
                 visit
                     synPat
                     (fun nodes ->
-                        { Type = SynPat_Named
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = sp }
-                        :: nodes
+                        mkNode SynPat_Named range :: nodes
                         |> finalContinuation)
             | SynPat.Typed (synPat, synType, range) ->
                 visit
                     synPat
                     (fun nodes ->
-                        [ { Type = SynPat_Typed
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = sp }
-                          yield! nodes
-                          yield! (visitSynType synType) ]
+                        mkNode SynPat_Typed range
+                        :: (nodes @ visitSynType synType)
                         |> finalContinuation)
             | SynPat.Attrib (synPat, attrs, range) ->
                 visit
                     synPat
                     (fun nodes ->
-                        [ { Type = SynPat_Attrib
-                            Range = r range
-                            Properties = Map.empty
-                            FsAstNode = sp }
+                        [ mkNode SynPat_Attrib range
                           yield! nodes
                           yield! (visitSynAttributeLists range attrs) ]
                         |> finalContinuation)
             | SynPat.Or (synPat, synPat2, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit synPat; visit synPat2 ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit synPat; visit synPat2 ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynPat_Or
-                        Range = r range
-                        Properties = Map.empty
-                        FsAstNode = sp }
-                      yield! (List.collect id nodes) ]
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynPat_Or range :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynPat.Ands (pats, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = pats |> List.map visit
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    pats |> List.map visit
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynPat_Ands
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = sp }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynPat_Ands range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynPat.LongIdent (_, _, svtd, ctorArgs, _, range) ->
-                { Type = SynPat_LongIdent
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = sp }
-                :: [ if svtd.IsSome then
-                         yield! visitSynValTyparDecls svtd.Value
-                     yield! visitSynConstructorArgs ctorArgs ]
+                [ mkNode SynPat_LongIdent range
+                  if svtd.IsSome then
+                      yield! visitSynValTyparDecls svtd.Value
+                  yield! visitSynConstructorArgs ctorArgs ]
                 |> finalContinuation
             | SynPat.Tuple (_, pats, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = pats |> List.map visit
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    pats |> List.map visit
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynPat_Tuple
-                        Range = r range
-                        Properties = Map.empty
-                        FsAstNode = sp }
-                      yield! (List.collect id nodes) ]
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynPat_Tuple range
+                    :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
@@ -1337,117 +931,74 @@ module private Ast =
                 visit
                     pat
                     (fun nodes ->
-                        { Type = SynPat_Paren
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = sp }
-                        :: nodes
+                        mkNode SynPat_Paren range :: nodes
                         |> finalContinuation)
             | SynPat.ArrayOrList (_, pats, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = pats |> List.map visit
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    pats |> List.map visit
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynPat_ArrayOrList
-                        Range = r range
-                        Properties = Map.empty
-                        FsAstNode = sp }
-                      yield! (List.collect id nodes) ]
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynPat_ArrayOrList range
+                    :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynPat.Record (pats, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = pats |> List.map (snd >> visit)
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    pats |> List.map (snd >> visit)
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynPat_Record
-                        Range = r range
-                        Properties = Map.empty
-                        FsAstNode = sp }
-                      yield! (List.collect id nodes) ]
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynPat_Record range
+                    :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynPat.Null (range) ->
-                { Type = SynPat_Null
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = sp }
+                mkNode SynPat_Null range
                 |> List.singleton
                 |> finalContinuation
             | SynPat.OptionalVal (_, range) ->
-                { Type = SynPat_OptionalVal
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = sp }
+                mkNode SynPat_OptionalVal range
                 |> List.singleton
                 |> finalContinuation
             | SynPat.IsInst (typ, range) ->
-                { Type = SynPat_IsInst
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = sp }
-                :: visitSynType typ
+                mkNode SynPat_IsInst range :: visitSynType typ
                 |> finalContinuation
             | SynPat.QuoteExpr (expr, range) ->
-                { Type = SynPat_QuoteExpr
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = sp }
-                :: visitSynExpr expr
+                mkNode SynPat_QuoteExpr range :: visitSynExpr expr
                 |> finalContinuation
             | SynPat.DeprecatedCharRange (_, _, range) ->
-                { Type = SynPat_DeprecatedCharRange
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = sp }
+                mkNode SynPat_DeprecatedCharRange range
                 |> List.singleton
                 |> finalContinuation
             | SynPat.InstanceMember (_, _, _, _, range) ->
-                { Type = SynPat_InstanceMember
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = sp }
+                mkNode SynPat_InstanceMember range
                 |> List.singleton
                 |> finalContinuation
             | SynPat.FromParseError (pat, range) ->
                 visit
                     pat
                     (fun nodes ->
-                        { Type = SynPat_FromParseError
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = sp }
-                        :: nodes
+                        mkNode SynPat_FromParseError range :: nodes
                         |> finalContinuation)
 
         visit sp id
 
-    and visitSynConstructorArgs (ctorArgs: SynArgPats) : Node list =
+    and visitSynConstructorArgs (ctorArgs: SynArgPats) : TriviaNodeAssigner list =
         match ctorArgs with
-        | Pats (pats) ->
-            { Type = Pats_
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = ctorArgs }
-            :: (List.collect visitSynPat pats)
+        | Pats (pats) -> List.collect visitSynPat pats
         | NamePatPairs (pats, range) ->
-            { Type = NamePatPairs_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = ctorArgs }
+            mkNode NamePatPairs_ range
             :: (List.collect (snd >> visitSynPat) pats)
 
-    and visitSynComponentInfo (sci: SynComponentInfo) : Node list =
+    and visitSynComponentInfo (sci: SynComponentInfo) : TriviaNodeAssigner list =
         match sci with
         | ComponentInfo (attribs, typeParams, _, _, _, _, _, range) ->
-            { Type = ComponentInfo_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = sci }
-            :: [ yield! (visitSynAttributeLists range attribs)
-                 yield! (typeParams |> List.collect (visitSynTyparDecl)) ]
+            [ mkNode ComponentInfo_ range
+              yield! (visitSynAttributeLists range attribs)
+              yield! (typeParams |> List.collect (visitSynTyparDecl)) ]
 
-    and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : Node list =
+    and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : TriviaNodeAssigner list =
         match stdr with
         | SynTypeDefnRepr.ObjectModel (kind, members, _) ->
             //            { Type = SynTypeDefnRepr_ObjectModel
@@ -1462,162 +1013,66 @@ module private Ast =
 //              Properties = Map.empty
 //              FsAstNode = stdr }
             visitSynTypeDefnSimpleRepr simpleRepr
-        | SynTypeDefnRepr.Exception (exceptionRepr) ->
-            { Type = SynTypeDefnRepr_Exception
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = stdr }
-            :: (visitSynExceptionDefnRepr exceptionRepr)
+        | SynTypeDefnRepr.Exception (exceptionRepr) -> visitSynExceptionDefnRepr exceptionRepr
 
-    and visitSynTypeDefnKind (kind: SynTypeDefnKind) : Node list =
+    and visitSynTypeDefnKind (kind: SynTypeDefnKind) : TriviaNodeAssigner list =
         match kind with
-        | TyconUnspecified ->
-            { Type = SynTypeDefnKind_TyconUnspecified
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = kind }
-            |> List.singleton
-        | TyconClass ->
-            { Type = SynTypeDefnKind_TyconClass
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = kind }
-            |> List.singleton
-        | TyconInterface ->
-            { Type = SynTypeDefnKind_TyconInterface
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = kind }
-            |> List.singleton
-        | TyconStruct ->
-            { Type = SynTypeDefnKind_TyconStruct
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = kind }
-            |> List.singleton
-        | TyconRecord ->
-            { Type = SynTypeDefnKind_TyconRecord
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = kind }
-            |> List.singleton
-        | TyconUnion ->
-            { Type = SynTypeDefnKind_TyconUnion
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = kind }
-            |> List.singleton
-        | TyconAbbrev ->
-            { Type = SynTypeDefnKind_TyconAbbrev
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = kind }
-            |> List.singleton
-        | TyconHiddenRepr ->
-            { Type = SynTypeDefnKind_TyconHiddenRepr
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = kind }
-            |> List.singleton
-        | TyconAugmentation ->
-            { Type = SynTypeDefnKind_TyconAugmentation
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = kind }
-            |> List.singleton
-        | TyconILAssemblyCode ->
-            { Type = SynTypeDefnKind_TyconILAssemblyCode
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = kind }
-            |> List.singleton
-        | TyconDelegate (typ, valinfo) ->
-            { Type = SynTypeDefnKind_TyconDelegate
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = kind }
-            :: [ yield! visitSynType typ
-                 yield! visitSynValInfo valinfo ]
+        | TyconUnspecified
+        | TyconClass
+        | TyconInterface
+        | TyconStruct
+        | TyconRecord
+        | TyconAbbrev
+        | TyconHiddenRepr
+        | TyconAugmentation
+        | TyconUnion
+        | TyconILAssemblyCode -> []
+        | TyconDelegate (typ, valinfo) -> visitSynType typ @ visitSynValInfo valinfo
 
     and visitSynTypeDefnSimpleRepr (arg: SynTypeDefnSimpleRepr) =
         match arg with
         | SynTypeDefnSimpleRepr.None (range) ->
-            { Type = SynTypeDefnSimpleRepr_None
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = arg }
+            mkNode SynTypeDefnSimpleRepr_None range
             |> List.singleton
         | SynTypeDefnSimpleRepr.Union (_, unionCases, range) ->
-            { Type = SynTypeDefnSimpleRepr_Union
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = arg }
+            mkNode SynTypeDefnSimpleRepr_Union range
             :: (List.collect visitSynUnionCase unionCases)
         | SynTypeDefnSimpleRepr.Enum (enumCases, range) ->
-            { Type = SynTypeDefnSimpleRepr_Enum
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = arg }
+            mkNode SynTypeDefnSimpleRepr_Enum range
             :: (List.collect visitSynEnumCase enumCases)
         | SynTypeDefnSimpleRepr.Record (_, recordFields, range) ->
-            { Type = SynTypeDefnSimpleRepr_Record
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = arg }
+            mkNode SynTypeDefnSimpleRepr_Record range
             :: (List.collect visitSynField recordFields)
         | SynTypeDefnSimpleRepr.General (_, _, _, _, _, _, _, range) ->
-            { Type = SynTypeDefnSimpleRepr_General
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = arg }
+            mkNode SynTypeDefnSimpleRepr_General range
             |> List.singleton
         | SynTypeDefnSimpleRepr.LibraryOnlyILAssembly (_, range) ->
-            { Type = SynTypeDefnSimpleRepr_LibraryOnlyILAssembly
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = arg }
+            mkNode SynTypeDefnSimpleRepr_LibraryOnlyILAssembly range
             |> List.singleton
         | SynTypeDefnSimpleRepr.TypeAbbrev (_, typ, range) ->
-            { Type = SynTypeDefnSimpleRepr_TypeAbbrev
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = arg }
+            mkNode SynTypeDefnSimpleRepr_TypeAbbrev range
             :: (visitSynType typ)
-        | SynTypeDefnSimpleRepr.Exception (edr) ->
-            { Type = SynTypeDefnSimpleRepr_Exception
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = arg }
-            :: (visitSynExceptionDefnRepr edr)
+        | SynTypeDefnSimpleRepr.Exception (edr) -> visitSynExceptionDefnRepr edr
 
-    and visitSynExceptionDefn (exceptionDef: SynExceptionDefn) : Node list =
+    and visitSynExceptionDefn (exceptionDef: SynExceptionDefn) : TriviaNodeAssigner list =
         match exceptionDef with
         | SynExceptionDefn (sedr, members, range) ->
-            { Type = SynExceptionDefn_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = exceptionDef }
-            :: [ yield! visitSynExceptionDefnRepr sedr
-                 yield! (members |> List.collect visitSynMemberDefn) ]
+            [ mkNode SynExceptionDefn_ range
+              yield! visitSynExceptionDefnRepr sedr
+              yield! (members |> List.collect visitSynMemberDefn) ]
 
-    and visitSynExceptionDefnRepr (sedr: SynExceptionDefnRepr) : Node list =
+    and visitSynExceptionDefnRepr (sedr: SynExceptionDefnRepr) : TriviaNodeAssigner list =
         match sedr with
         | SynExceptionDefnRepr (attrs, unionCase, _, _, _, range) ->
-            { Type = SynExceptionDefnRepr_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = sedr }
-            :: [ yield! (visitSynAttributeLists range attrs)
-                 yield! visitSynUnionCase unionCase ]
+            [ mkNode SynExceptionDefnRepr_ range
+              yield! (visitSynAttributeLists range attrs)
+              yield! visitSynUnionCase unionCase ]
 
-    and visitSynAttribute (attr: SynAttribute) : Node list =
-        { Type = SynAttribute_
-          Range = r attr.Range
-          Properties = Map.empty
-          FsAstNode = attr }
+    and visitSynAttribute (attr: SynAttribute) : TriviaNodeAssigner list =
+        mkNode SynAttribute_ attr.Range
         :: (visitSynExpr attr.ArgExpr)
 
-    and visitSynAttributeLists (parentRange: Range) (attrs: SynAttributeList list) : Node list =
+    and visitSynAttributeLists (parentRange: Range) (attrs: SynAttributeList list) : TriviaNodeAssigner list =
         match attrs with
         | [ h ] -> visitSynAttributeList parentRange h
         | _ :: tail ->
@@ -1630,109 +1085,75 @@ module private Ast =
             |> List.collect (fun (a, r) -> visitSynAttributeList r a)
         | [] -> []
 
-    and visitSynAttributeList (parentRange: Range) (attrs: SynAttributeList) : Node list =
-        { Type = SynAttributeList_
-          Range = r attrs.Range
-          Properties = p [ "linesBetweenParent", box (parentRange.StartLine - attrs.Range.EndLine - 1) ]
-          FsAstNode = attrs }
+    and visitSynAttributeList (parentRange: Range) (attrs: SynAttributeList) : TriviaNodeAssigner list =
+        TriviaNodeAssigner(MainNode(SynAttributeList_), attrs.Range, parentRange.StartLine - attrs.Range.EndLine - 1)
         :: (List.collect visitSynAttribute attrs.Attributes)
 
-    and visitSynUnionCase (uc: SynUnionCase) : Node list =
+    and visitSynUnionCase (uc: SynUnionCase) : TriviaNodeAssigner list =
         match uc with
         | UnionCase (attrs, _, uct, _, _, range) ->
-            { Type = UnionCase_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = uc }
-            :: [ yield! visitSynUnionCaseType uct
-                 yield! (visitSynAttributeLists range attrs) ]
+            [ mkNode UnionCase_ range
+              yield! visitSynUnionCaseType uct
+              yield! (visitSynAttributeLists range attrs) ]
 
     and visitSynUnionCaseType (uct: SynUnionCaseType) =
         match uct with
-        | UnionCaseFields (cases) ->
-            { Type = UnionCaseFields_
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = uct }
-            :: (List.collect visitSynField cases)
-        | UnionCaseFullType (stype, valInfo) ->
-            { Type = UnionCaseFullType_
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = uct }
-            :: [ yield! visitSynType stype
-                 yield! visitSynValInfo valInfo ]
+        | UnionCaseFields (cases) -> List.collect visitSynField cases
+        | UnionCaseFullType (stype, valInfo) -> visitSynType stype @ visitSynValInfo valInfo
 
-    and visitSynEnumCase (sec: SynEnumCase) : Node list =
+    and visitSynEnumCase (sec: SynEnumCase) : TriviaNodeAssigner list =
         match sec with
         | EnumCase (attrs, ident, _, _, range) ->
-            { Type = EnumCase_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = sec }
-            :: [ yield! (visitSynAttributeLists range attrs)
-                 yield visitIdent ident ]
+            [ yield mkNode EnumCase_ range
+              yield! (visitSynAttributeLists range attrs)
+              yield visitIdent ident ]
 
-    and visitSynField (sfield: SynField) : Node list =
+    and visitSynField (sfield: SynField) : TriviaNodeAssigner list =
         match sfield with
         | Field (attrs, _, ident, typ, _, _, _, range) ->
             let parentRange =
                 Option.map (fun (i: Ident) -> i.idRange) ident
                 |> Option.defaultValue range
 
-            { Type = Field_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = sfield }
-            :: [ yield! (visitSynAttributeLists parentRange attrs)
-                 yield! visitSynType typ ]
+            [ mkNode Field_ range
+              yield! (visitSynAttributeLists parentRange attrs)
+              yield! visitSynType typ ]
 
     and visitSynType (st: SynType) =
-        let rec visit (st: SynType) (finalContinuation: Node list -> Node list) : Node list =
+        let rec visit
+            (st: SynType)
+            (finalContinuation: TriviaNodeAssigner list -> TriviaNodeAssigner list)
+            : TriviaNodeAssigner list =
             match st with
-            | SynType.LongIdent (li) ->
-                { Type = SynType_LongIdent
-                  Range = noRange
-                  Properties = Map.empty
-                  FsAstNode = st }
-                :: (visitLongIdentWithDots li)
-                |> finalContinuation
+            | SynType.LongIdent (li) -> visitLongIdentWithDots li |> finalContinuation
             | SynType.App (typeName, _, typeArgs, _, _, _, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list =
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield! (List.map visit typeArgs)
                       visit typeName ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynType_App
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = st }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynType_App range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynType.LongIdentApp (typeName, _, _, typeArgs, _, _, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list =
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield! (List.map visit typeArgs)
                       visit typeName ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynType_LongIdentApp
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = st }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynType_LongIdentApp range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynType.Tuple (_, typeNames, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = List.map (snd >> visit) typeNames
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    List.map (snd >> visit) typeNames
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynType_Tuple
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = st }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynType_Tuple range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
@@ -1741,68 +1162,46 @@ module private Ast =
                 visit
                     elementType
                     (fun nodes ->
-                        { Type = SynType_Array
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = st }
-                        :: nodes
+                        mkNode SynType_Array range :: nodes
                         |> finalContinuation)
             | SynType.Fun (argType, returnType, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit argType; visit returnType ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit argType; visit returnType ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynType_Fun
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = st }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynType_Fun range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynType.Var (genericName, range) ->
-                { Type = SynType_Var
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = st }
+                mkNode SynType_Var range
                 :: (visitSynTypar genericName)
                 |> finalContinuation
             | SynType.Anon (range) ->
-                { Type = SynType_Anon
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = st }
+                mkNode SynType_Anon range
                 |> List.singleton
                 |> finalContinuation
             | SynType.WithGlobalConstraints (typeName, _, range) ->
                 visit
                     typeName
                     (fun nodes ->
-                        { Type = SynType_WithGlobalConstraints
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = st }
+                        mkNode SynType_WithGlobalConstraints range
                         :: nodes
                         |> finalContinuation)
             | SynType.HashConstraint (synType, range) ->
                 visit
                     synType
                     (fun nodes ->
-                        { Type = SynType_HashConstraint
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = st }
-                        :: nodes
+                        mkNode SynType_HashConstraint range :: nodes
                         |> finalContinuation)
             | SynType.MeasureDivide (dividendType, divisorType, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list =
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit dividendType
                       visit divisorType ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynType_MeasureDivide
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = st }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynType_MeasureDivide range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
@@ -1811,59 +1210,40 @@ module private Ast =
                 visit
                     measureType
                     (fun nodes ->
-                        { Type = SynType_MeasurePower
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = st }
-                        :: nodes
+                        mkNode SynType_MeasurePower range :: nodes
                         |> finalContinuation)
             | SynType.StaticConstant (constant, range) ->
-                [ { Type = SynType_StaticConstant
-                    Range = r range
-                    Properties = Map.empty
-                    FsAstNode = st }
+                [ mkNode SynType_StaticConstant range
                   visitSynConst range constant ]
                 |> finalContinuation
             | SynType.StaticConstantExpr (expr, range) ->
-                { Type = SynType_StaticConstantExpr
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = st }
+                mkNode SynType_StaticConstantExpr range
                 :: (visitSynExpr expr)
                 |> finalContinuation
             | SynType.StaticConstantNamed (expr, typ, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = [ visit expr; visit typ ]
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit expr; visit typ ]
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    { Type = SynType_StaticConstantNamed
-                      Range = r range
-                      Properties = Map.empty
-                      FsAstNode = st }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynType_StaticConstantNamed range
                     :: (List.collect id nodes)
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynType.AnonRecd (_, typeNames, range) ->
-                { Type = SynType_AnonRecd
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = st }
+                mkNode SynType_AnonRecd range
                 :: (List.collect visitAnonRecordTypeField typeNames)
                 |> finalContinuation
             | SynType.Paren (innerType, range) ->
                 visit
                     innerType
                     (fun nodes ->
-                        { Type = SynType_Paren
-                          Range = r range
-                          Properties = Map.empty
-                          FsAstNode = st }
-                        :: nodes
+                        mkNode SynType_Paren range :: nodes
                         |> finalContinuation)
 
         visit st id
 
-    and visitSynConst (parentRange: Range) (sc: SynConst) : Node =
+    and visitSynConst (parentRange: Range) (sc: SynConst) : TriviaNodeAssigner =
         let t =
             match sc with
             | SynConst.Bool _ -> SynConst_Bool
@@ -1888,24 +1268,15 @@ module private Ast =
             | SynConst.UInt16s _ -> SynConst_UInt16s
             | SynConst.Measure _ -> SynConst_Measure
 
-        { Type = t
-          Range = r (sc.Range parentRange)
-          Properties = Map.empty
-          FsAstNode = sc }
+        mkNode t (sc.Range parentRange)
 
     and visitSynValInfo (svi: SynValInfo) =
         match svi with
         | SynValInfo (args, arg) ->
-            { Type = SynValInfo_
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = svi }
-            :: [ yield!
-                     args
-                     |> List.collect (List.collect visitSynArgInfo)
-                 yield! visitSynArgInfo arg ]
+            (List.collect (List.collect visitSynArgInfo) args)
+            @ visitSynArgInfo arg
 
-    and visitSynArgInfo (sai: SynArgInfo) : Node list =
+    and visitSynArgInfo (sai: SynArgInfo) : TriviaNodeAssigner list =
         match sai with
         | SynArgInfo (attrs, _, ident) ->
             let parentRange =
@@ -1913,11 +1284,7 @@ module private Ast =
                 |> Option.map (fun i -> i.idRange)
                 |> Option.defaultValue range.Zero
 
-            { Type = SynArgInfo_
-              Range = noRange
-              Properties = Map.empty
-              FsAstNode = sai }
-            :: (visitSynAttributeLists parentRange attrs)
+            visitSynAttributeLists parentRange attrs
 
     and visitSynAccess (a: SynAccess) =
         match a with
@@ -1940,15 +1307,11 @@ module private Ast =
         | MemberKind.PropertySet -> "PropertySet"
         | MemberKind.PropertyGetSet -> "PropertyGetSet"
 
-    and visitParsedHashDirective (hash: ParsedHashDirective) : Node =
+    and visitParsedHashDirective (hash: ParsedHashDirective) : TriviaNodeAssigner =
         match hash with
-        | ParsedHashDirective (_, _, range) ->
-            { Type = ParsedHashDirective_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = hash }
+        | ParsedHashDirective (_, _, range) -> mkNode ParsedHashDirective_ range
 
-    and visitSynModuleOrNamespaceSig (modOrNs: SynModuleOrNamespaceSig) : Node list =
+    and visitSynModuleOrNamespaceSig (modOrNs: SynModuleOrNamespaceSig) : TriviaNodeAssigner list =
         match modOrNs with
         | SynModuleOrNamespaceSig (longIdent, _, synModuleOrNamespaceKind, decls, _, attrs, _, range) ->
             let typeName =
@@ -1961,10 +1324,7 @@ module private Ast =
             [ // LongIdent inside Namespace is being processed as children.
               if typeName
                  <> SynModuleOrNamespaceSig_DeclaredNamespace then
-                  { Type = typeName
-                    Range = r range
-                    Properties = Map.empty
-                    FsAstNode = modOrNs }
+                  mkNode typeName range
               yield!
                   if synModuleOrNamespaceKind = SynModuleOrNamespaceKind.DeclaredNamespace then
                       visitLongIdent longIdent
@@ -1973,24 +1333,22 @@ module private Ast =
               yield! (visitSynAttributeLists range attrs)
               yield! (decls |> List.collect visitSynModuleSigDecl) ]
 
-    and visitSynModuleSigDecl (ast: SynModuleSigDecl) : Node list =
-        let rec visit (ast: SynModuleSigDecl) (finalContinuation: Node list -> Node list) : Node list =
+    and visitSynModuleSigDecl (ast: SynModuleSigDecl) : TriviaNodeAssigner list =
+        let rec visit
+            (ast: SynModuleSigDecl)
+            (finalContinuation: TriviaNodeAssigner list -> TriviaNodeAssigner list)
+            : TriviaNodeAssigner list =
             match ast with
             | SynModuleSigDecl.ModuleAbbrev (_, _, range) ->
-                { Type = SynModuleSigDecl_ModuleAbbrev
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = ast }
+                mkNode SynModuleSigDecl_ModuleAbbrev range
                 |> List.singleton
                 |> finalContinuation
             | SynModuleSigDecl.NestedModule (sci, _, decls, range) ->
-                let continuations : ((Node list -> Node list) -> Node list) list = List.map visit decls
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    List.map visit decls
 
-                let finalContinuation (nodes: Node list list) : Node list =
-                    [ { Type = SynModuleSigDecl_NestedModule
-                        Range = r range
-                        Properties = Map.empty
-                        FsAstNode = ast }
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    [ mkNode SynModuleSigDecl_NestedModule range
                       yield! visitSynComponentInfo sci
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
@@ -1998,92 +1356,58 @@ module private Ast =
                 Continuation.sequence continuations finalContinuation
             | SynModuleSigDecl.Val (SynValSig.ValSpfn _ as node, _) -> visitSynValSig node |> finalContinuation
             | SynModuleSigDecl.Types (typeDefs, range) ->
-                { Type = SynModuleSigDecl_Types
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = ast }
+                mkNode SynModuleSigDecl_Types range
                 :: (List.collect visitSynTypeDefnSig typeDefs)
                 |> finalContinuation
             | SynModuleSigDecl.Open (target, parentRange) ->
                 // we use the parent ranges here to match up with the trivia parsed
                 match target with
                 | SynOpenDeclTarget.ModuleOrNamespace (_, _range) ->
-                    { Type = SynModuleSigDecl_Open
-                      Range = r parentRange
-                      Properties = Map.empty
-                      FsAstNode = target }
+                    mkNode SynModuleSigDecl_Open parentRange
                     |> List.singleton
                     |> finalContinuation
                 | SynOpenDeclTarget.Type (synType, _range) ->
-                    { Type = SynModuleSigDecl_OpenType
-                      Range = r parentRange
-                      Properties = Map.empty
-                      FsAstNode = target }
+                    mkNode SynModuleSigDecl_OpenType parentRange
                     :: (visitSynType synType)
                     |> finalContinuation
             | SynModuleSigDecl.HashDirective (hash, range) ->
-                [ { Type = SynModuleSigDecl_HashDirective
-                    Range = r range
-                    Properties = Map.empty
-                    FsAstNode = ast }
+                [ mkNode SynModuleSigDecl_HashDirective range
                   (visitParsedHashDirective hash) ]
                 |> finalContinuation
             | SynModuleSigDecl.NamespaceFragment (moduleOrNamespace) ->
-                { Type = SynModuleSigDecl_NamespaceFragment
-                  Range = noRange
-                  Properties = Map.empty
-                  FsAstNode = ast }
-                :: (visitSynModuleOrNamespaceSig moduleOrNamespace)
+                visitSynModuleOrNamespaceSig moduleOrNamespace
                 |> finalContinuation
             | SynModuleSigDecl.Exception (synExceptionSig, range) ->
-                { Type = SynModuleSigDecl_Exception
-                  Range = r range
-                  Properties = Map.empty
-                  FsAstNode = ast }
+                mkNode SynModuleSigDecl_Exception range
                 :: (visitSynExceptionSig synExceptionSig)
                 |> finalContinuation
 
         visit ast id
 
-    and visitSynExceptionSig (exceptionDef: SynExceptionSig) : Node list =
+    and visitSynExceptionSig (exceptionDef: SynExceptionSig) : TriviaNodeAssigner list =
         match exceptionDef with
         | SynExceptionSig (sedr, members, range) ->
-            { Type = SynExceptionSig_
-              Range = r range
-              Properties = Map.empty
-              FsAstNode = exceptionDef }
-            :: [ yield! visitSynExceptionDefnRepr sedr
-                 yield! (members |> List.collect visitSynMemberSig) ]
+            [ mkNode SynExceptionSig_ range
+              yield! visitSynExceptionDefnRepr sedr
+              yield! (members |> List.collect visitSynMemberSig) ]
 
-    and visitLongIdentWithDots (lid: LongIdentWithDots) : Node list =
+    and visitLongIdentWithDots (lid: LongIdentWithDots) : TriviaNodeAssigner list =
         match lid with
         | LongIdentWithDots (ids, _) -> List.map visitIdent ids
 
-    and visitLongIdent (li: LongIdent) : Node list = List.map visitIdent li
+    and visitLongIdent (li: LongIdent) : TriviaNodeAssigner list = List.map visitIdent li
 
-    and visitIdent (ident: Ident) : Node =
-        { Type = Ident_
-          Range = r ident.idRange
-          Properties = Map.empty
-          FsAstNode = ident }
+    and visitIdent (ident: Ident) : TriviaNodeAssigner = mkNode Ident_ ident.idRange
 
-let astToNode (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list) : Node list =
+let astToNode (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list) : TriviaNodeAssigner list =
     let children =
         [ yield! List.collect Ast.visitSynModuleOrNamespace mdls
           yield! List.map Ast.visitParsedHashDirective hds ]
 
-    { Type = File_
-      Range = None
-      Properties = Map.empty
-      FsAstNode = mdls }
-    :: children
+    children
 
-let sigAstToNode (ast: SynModuleOrNamespaceSig list) : Node list =
+let sigAstToNode (ast: SynModuleOrNamespaceSig list) : TriviaNodeAssigner list =
     let children =
         List.collect Ast.visitSynModuleOrNamespaceSig ast
 
-    { Type = SigFile_
-      Range = None
-      Properties = Map.empty
-      FsAstNode = ast }
-    :: children
+    children
