@@ -1091,3 +1091,202 @@ Gen.frequency [
         genSubSynPat
 ] //
 """
+
+[<Test>]
+let ``don't repeat comment in nested Elmish element, 1347`` () =
+    formatSourceString
+        false
+        """
+let html =
+    Html.div [
+        prop.className "navbar-menu"
+        prop.children [
+            Html.div [
+                prop.className "navbar-start"
+                prop.children [
+                    Html.a [
+                        prop.className "navbar-item"
+                    ]
+                    (*
+                    Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
+                        prop.text "Files"
+                    ]*)
+                ]
+            ]
+        ]
+    ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let html =
+    Html.div [ prop.className "navbar-menu"
+               prop.children [ Html.div [ prop.className "navbar-start"
+                                          prop.children [ Html.a [ prop.className "navbar-item" ]
+                                                          (*
+                    Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
+                        prop.text "Files"
+                    ]*)
+                                                           ] ] ] ]
+"""
+
+[<Test>]
+let ``don't repeat comment in nested Elmish element, idempotent check`` () =
+    formatSourceString
+        false
+        """
+let html2 =
+    Html.div [ prop.className "navbar-menu"
+               prop.children [ Html.div [ prop.className "navbar-start"
+                                          prop.children [ Html.a [ prop.className "navbar-item" ]
+                                                          (*
+                    Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
+                        prop.text "Files"
+                    ]*)
+                                                           ] ] ] ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let html2 =
+    Html.div [ prop.className "navbar-menu"
+               prop.children [ Html.div [ prop.className "navbar-start"
+                                          prop.children [ Html.a [ prop.className "navbar-item" ]
+                                                          (*
+                    Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
+                        prop.text "Files"
+                    ]*)
+                                                           ] ] ] ]
+"""
+
+[<Test>]
+let ``don't repeat comment in nested Elmish element, single element mode`` () =
+    formatSourceString
+        false
+        """
+let html =
+    Html.div [
+        prop.className "navbar-menu"
+        prop.children [
+            Html.div [
+                prop.className "navbar-start"
+                prop.children [
+                    Html.a [
+                        prop.className "navbar-item"
+                    ]
+                    (*
+                    Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
+                        prop.text "Files"
+                    ]*)
+                ]
+            ]
+        ]
+    ]
+"""
+        { config with
+              SingleArgumentWebMode = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let html =
+    Html.div [
+        prop.className "navbar-menu"
+        prop.children [
+            Html.div [
+                prop.className "navbar-start"
+                prop.children [
+                    Html.a [ prop.className "navbar-item" ]
+                    (*
+                    Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
+                        prop.text "Files"
+                    ]*)
+                ]
+            ]
+        ]
+    ]
+"""
+
+[<Test>]
+let ``don't repeat comment in nested Elmish element, single element mode idempotent`` () =
+    formatSourceString
+        false
+        """
+let html =
+    Html.div [
+        prop.className "navbar-menu"
+        prop.children [
+            Html.div [
+                prop.className "navbar-start"
+                prop.children [
+                    Html.a [ prop.className "navbar-item" ]
+                    (*
+                    Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
+                        prop.text "Files"
+                    ]*)
+                ]
+            ]
+        ]
+    ]
+"""
+        { config with
+              SingleArgumentWebMode = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let html =
+    Html.div [
+        prop.className "navbar-menu"
+        prop.children [
+            Html.div [
+                prop.className "navbar-start"
+                prop.children [
+                    Html.a [ prop.className "navbar-item" ]
+                    (*
+                    Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
+                        prop.text "Files"
+                    ]*)
+                ]
+            ]
+        ]
+    ]
+"""
+
+[<Test>]
+let ``don't repeat comment in nested Elmish element, short block comment`` () =
+    formatSourceString
+        false
+        """
+let html =
+    Html.div [
+        prop.className "navbar-menu"
+        prop.children [
+            Html.div [
+                prop.className "navbar-start"
+                prop.children [
+                    Html.a [
+                        prop.className "navbar-item"
+                    ]
+                    (* meh *)
+                ]
+            ]
+        ]
+    ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let html =
+    Html.div [ prop.className "navbar-menu"
+               prop.children [ Html.div [ prop.className "navbar-start"
+                                          prop.children [ Html.a [ prop.className "navbar-item" ]
+                                                          (* meh *)
+                                                           ] ] ] ]
+"""

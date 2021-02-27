@@ -351,6 +351,7 @@ let internal lastWriteEventIsNewline ctx =
         (function
         | RestoreIndent _
         | RestoreAtColumn _
+        | UnIndentBy _
         | Write "" -> true
         | _ -> false)
     |> Seq.tryHead

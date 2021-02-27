@@ -1037,18 +1037,32 @@ and genExpr astContext synExpr ctx =
 
     let expr =
         match synExpr with
-        | ElmishReactWithoutChildren (identifier, isArray, children) when (not ctx.Config.DisableElmishSyntax) ->
-            fun ctx ->
+        | ElmishReactWithoutChildren (identifier, isArray, children, childrenRange) when
+            (not ctx.Config.DisableElmishSyntax) ->
+            fun (ctx: Context) ->
+                let tokenSize = if isArray then 2 else 1
+
+                let openingTokenRange, openTokenType =
+                    ctx.MkRangeWith
+                        (childrenRange.Start.Line, childrenRange.Start.Column)
+                        (childrenRange.Start.Line, (childrenRange.Start.Column + tokenSize)),
+                    (if isArray then LBRACK_BAR else LBRACK)
+
+                let closingTokenRange, closingTokenType =
+                    ctx.MkRangeWith
+                        (childrenRange.End.Line, (childrenRange.End.Column - tokenSize))
+                        (childrenRange.End.Line, childrenRange.End.Column),
+                    (if isArray then BAR_RBRACK else RBRACK)
+
                 let shortExpression =
                     let noChildren =
-                        ifElse isArray sepOpenAFixed sepOpenLFixed
-                        +> ifElse isArray sepCloseAFixed sepCloseLFixed
+                        tokN openingTokenRange openTokenType (ifElse isArray sepOpenAFixed sepOpenLFixed)
+                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseAFixed sepCloseLFixed)
 
                     let genChildren =
-                        ifElse isArray sepOpenA sepOpenL
+                        tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
                         +> col sepSemi children (genExpr astContext)
-                        +> enterNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
-                        +> ifElse isArray sepCloseA sepCloseL
+                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseA sepCloseL)
 
                     !-identifier
                     +> sepSpace
@@ -1057,27 +1071,42 @@ and genExpr astContext synExpr ctx =
                 let elmishExpression =
                     !-identifier
                     +> sepSpace
-                    +> ifElse isArray sepOpenA sepOpenL
+                    +> tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
                     +> atCurrentColumn (
                         col sepNln children (genExpr astContext)
-                        +> enterNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
+                        +> onlyIf
+                            (TriviaHelpers.``has content before that matches``
+                                (fun tn -> RangeHelpers.rangeEq tn.Range closingTokenRange)
+                                (function
+                                | Comment (BlockComment _) -> true
+                                | _ -> false)
+                                (Map.tryFindOrEmptyList closingTokenType ctx.TriviaTokenNodes))
+                            sepNln
+                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseA sepCloseL)
                     )
-                    +> ifElse isArray sepCloseA sepCloseL
-                    +> leaveNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
 
                 let felizExpression =
+                    let hasBlockCommentBeforeClosingToken =
+                        TriviaHelpers.``has content before that matches``
+                            (fun tn -> RangeHelpers.rangeEq tn.Range closingTokenRange)
+                            (function
+                            | Comment (BlockComment _) -> true
+                            | _ -> false)
+                            (Map.tryFindOrEmptyList closingTokenType ctx.TriviaTokenNodes)
+
                     atCurrentColumn (
                         !-identifier
                         +> sepSpace
-                        +> ifElse isArray sepOpenAFixed sepOpenLFixed
+                        +> tokN openingTokenRange openTokenType (ifElse isArray sepOpenAFixed sepOpenLFixed)
                         +> indent
                         +> sepNln
                         +> col sepNln children (genExpr astContext)
-                        +> unindent
-                        +> sepNln
-                        +> enterNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
+                        +> onlyIf hasBlockCommentBeforeClosingToken (sepNln +> unindent)
+                        +> enterNodeTokenByName closingTokenRange closingTokenType
+                        +> onlyIfNot hasBlockCommentBeforeClosingToken unindent
+                        +> sepNlnUnlessLastEventIsNewline
                         +> ifElse isArray sepCloseAFixed sepCloseLFixed
-                        +> leaveNodeTokenByName synExpr.Range (if isArray then BAR_RBRACK else RBRACK)
+                        +> leaveNodeTokenByName closingTokenRange closingTokenType
                     )
 
                 let multilineExpression =

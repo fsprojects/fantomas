@@ -18,6 +18,15 @@ module internal TriviaHelpers =
         |> Option.map (fun t -> t.ContentAfter |> List.exists contentAfter)
         |> Option.defaultValue false
 
+    let ``has content before that matches``
+        (findTrivia: TriviaNode -> bool)
+        (contentBefore: TriviaContent -> bool)
+        (trivia: TriviaNode list)
+        =
+        List.tryFind findTrivia trivia
+        |> Option.map (fun t -> t.ContentBefore |> List.exists contentBefore)
+        |> Option.defaultValue false
+
     let ``has single line comment before`` (triviaNode: TriviaNode) =
         triviaNode.ContentBefore
         |> List.exists
