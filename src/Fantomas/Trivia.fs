@@ -33,24 +33,6 @@ let isToken (node: TriviaNode) =
     | Token _ -> true
     | _ -> false
 
-let filterNodes nodes =
-    let filterOutNodeTypes =
-        set [ SynExpr_Sequential // some Sequential nodes are not visited in CodePrinter
-              SynModuleOrNamespace_DeclaredNamespace // LongIdent inside Namespace is being processed as children.
-              SynModuleOrNamespaceSig_DeclaredNamespace
-              SynExpr_LetOrUse
-              SynTypeDefnRepr_ObjectModel
-              SynTypeDefnRepr_Simple
-              TypeDefnSig_
-              SynTypeDefnSigRepr_ObjectModel
-              SynExpr_Typed
-              // SynType_StaticConstant
-              SynExpr_CompExpr ]
-    // SynExpr_Do ]
-
-    nodes
-    |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
-
 let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
     |> List.filter (fun { Range = r } -> r.StartLine = lineNumber)
@@ -540,10 +522,7 @@ let collectTrivia (mkRange: MkRange) tokens (ast: ParsedInput) =
         | { Range = Some r } :: _ -> r.StartLine
         | _ -> 1
 
-    let triviaNodesFromAST =
-        nodes
-        |> filterNodes // TODO: perhaps not capture in the first place?
-        |> List.choose mapNodeToTriviaNode
+    let triviaNodesFromAST = nodes |> List.choose mapNodeToTriviaNode
 
     let hasAnyAttributesWithLinesBetweenParent =
         List.exists (fun (tn: TriviaNodeAssigner) -> Option.isSome tn.AttributeLinesBetweenParent) triviaNodesFromAST
