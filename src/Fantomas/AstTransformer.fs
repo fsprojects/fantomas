@@ -4,11 +4,11 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.SyntaxTree
 open Fantomas.TriviaTypes
 
-let rec (|Sequentials|_|) =
-    function
-    | SynExpr.Sequential (_, isTrueSeq, e, Sequentials es, range) -> Some((isTrueSeq, e, None, range) :: es)
-    | SynExpr.Sequential (_, isTrueSeq, e1, e2, range) -> Some [ isTrueSeq, e1, Some e2, range ]
-    | _ -> None
+//let rec (|Sequentials|_|) =
+//    function
+//    | SynExpr.Sequential (_, isTrueSeq, e, Sequentials es, range) -> Some((isTrueSeq, e, None, range) :: es)
+//    | SynExpr.Sequential (_, isTrueSeq, e1, e2, range) -> Some [ isTrueSeq, e1, Some e2, range ]
+//    | _ -> None
 
 type Id = { Ident: string; Range: Range option }
 
@@ -18,7 +18,7 @@ type Node =
     { Type: FsAstType
       Range: Range option
       Properties: Map<string, obj>
-      Childs: Node list
+      // Childs: Node list
       FsAstNode: FsAstNode }
 
 module Helpers =
@@ -40,9 +40,9 @@ module Helpers =
 module private Ast =
     open Helpers
 
-    let rec visit (ast: SynModuleOrNamespace) : Node = visitSynModuleOrNamespace ast
+    let rec visit (ast: SynModuleOrNamespace) : Node list = visitSynModuleOrNamespace ast
 
-    and visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : Node =
+    and visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : Node list =
         match modOrNs with
         | SynModuleOrNamespace (longIdent, isRecursive, synModuleOrNamespaceKind, decls, _, attrs, access, range) ->
             let collectIdents (idents: LongIdent) =
@@ -52,8 +52,7 @@ module private Ast =
                         { Type = Ident_
                           Range = r ident.idRange
                           Properties = Map.empty
-                          FsAstNode = ident
-                          Childs = [] })
+                          FsAstNode = ident })
 
             let typeName =
                 match synModuleOrNamespaceKind with
@@ -61,7 +60,6 @@ module private Ast =
                 | SynModuleOrNamespaceKind.NamedModule -> SynModuleOrNamespace_NamedModule
                 | SynModuleOrNamespaceKind.DeclaredNamespace -> SynModuleOrNamespace_DeclaredNamespace
                 | SynModuleOrNamespaceKind.GlobalNamespace -> SynModuleOrNamespace_GlobalNamespace
-
 
             { Type = typeName
               Range = r range
@@ -73,58 +71,55 @@ module private Ast =
                       yield "longIdent" ==> li longIdent
                       if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = modOrNs
-              Childs =
-                  [ yield!
-                      if synModuleOrNamespaceKind = SynModuleOrNamespaceKind.DeclaredNamespace then
-                          collectIdents longIdent
-                      else
-                          []
-                    yield! (visitSynAttributeLists range attrs)
-                    yield! (decls |> List.map visitSynModuleDecl) ] }
+              FsAstNode = modOrNs }
+            :: [ yield!
+                     if synModuleOrNamespaceKind = SynModuleOrNamespaceKind.DeclaredNamespace then
+                         collectIdents longIdent
+                     else
+                         []
+                 yield! (visitSynAttributeLists range attrs)
+                 yield! (decls |> List.collect visitSynModuleDecl) ]
 
-    and visitSynModuleDecl (ast: SynModuleDecl) : Node =
+    and visitSynModuleDecl (ast: SynModuleDecl) : Node list =
         match ast with
         | SynModuleDecl.ModuleAbbrev (ident, longIdent, range) ->
-            { Type = SynModuleDecl_ModuleAbbrev
-              Range = r range
-              Properties =
-                  p [ "ident" ==> i ident
-                      "longIdent" ==> li longIdent ]
-              FsAstNode = ast
-              Childs = [] }
+            [ { Type = SynModuleDecl_ModuleAbbrev
+                Range = r range
+                Properties =
+                    p [ "ident" ==> i ident
+                        "longIdent" ==> li longIdent ]
+                FsAstNode = ast } ]
         | SynModuleDecl.NestedModule (sci, isRecursive, decls, _, range) ->
             { Type = SynModuleDecl_NestedModule
               Range = r range
               Properties = p [ "isRecursive" ==> isRecursive ]
-              FsAstNode = ast
-              Childs =
-                  [ yield visitSynComponentInfo sci
-                    yield! (decls |> List.map visitSynModuleDecl) ] }
+              FsAstNode = ast }
+            :: [ yield! visitSynComponentInfo sci
+                 yield! (decls |> List.collect visitSynModuleDecl) ]
         | SynModuleDecl.Let (_, bindings, range) ->
             { Type = SynModuleDecl_Let
               Range = r range
               Properties = p []
-              FsAstNode = ast
-              Childs = bindings |> List.map visitSynBinding }
+              FsAstNode = ast }
+            :: (bindings |> List.collect visitSynBinding)
         | SynModuleDecl.DoExpr (_, expr, range) ->
             { Type = SynModuleDecl_DoExpr
               Range = r range
               Properties = p []
-              FsAstNode = ast
-              Childs = [ visitSynExpr expr ] }
+              FsAstNode = ast }
+            :: visitSynExpr expr
         | SynModuleDecl.Types (typeDefs, range) ->
             { Type = SynModuleDecl_Types
               Range = r range
               Properties = p []
-              FsAstNode = ast
-              Childs = typeDefs |> List.map visitSynTypeDefn }
+              FsAstNode = ast }
+            :: (typeDefs |> List.collect visitSynTypeDefn)
         | SynModuleDecl.Exception (exceptionDef, range) ->
             { Type = SynModuleDecl_Exception
               Range = r range
               Properties = p []
-              FsAstNode = ast
-              Childs = [ visitSynExceptionDefn exceptionDef ] }
+              FsAstNode = ast }
+            :: (visitSynExceptionDefn exceptionDef)
         | SynModuleDecl.Open (target, parentRange) ->
             // we use the parent ranges here to match up with the trivia parsed
             match target with
@@ -132,34 +127,34 @@ module private Ast =
                 { Type = SynModuleDecl_Open
                   Range = r parentRange
                   Properties = p [ "longIdent" ==> li longIdent ]
-                  FsAstNode = ast
-                  Childs = [] }
+                  FsAstNode = ast }
+                |> List.singleton
             | SynOpenDeclTarget.Type (synType, _range) ->
                 { Type = SynModuleDecl_OpenType
                   Range = r parentRange
                   Properties = p []
-                  FsAstNode = ast
-                  Childs = [ visitSynType synType ] }
+                  FsAstNode = ast }
+                :: (visitSynType synType)
         | SynModuleDecl.Attributes (attrs, range) ->
             { Type = SynModuleDecl_Attributes
               Range = r range
               Properties = p []
-              FsAstNode = ast
-              Childs = visitSynAttributeLists range attrs }
+              FsAstNode = ast }
+            :: (visitSynAttributeLists range attrs)
         | SynModuleDecl.HashDirective (hash, range) ->
-            { Type = SynModuleDecl_HashDirective
-              Range = r range
-              Properties = p []
-              FsAstNode = ast
-              Childs = [ visitParsedHashDirective hash ] }
+            [ { Type = SynModuleDecl_HashDirective
+                Range = r range
+                Properties = p []
+                FsAstNode = ast }
+              visitParsedHashDirective hash ]
         | SynModuleDecl.NamespaceFragment (moduleOrNamespace) ->
             { Type = SynModuleDecl_NamespaceFragment
               Range = noRange
               Properties = p []
-              FsAstNode = ast
-              Childs = [ visitSynModuleOrNamespace moduleOrNamespace ] }
+              FsAstNode = ast }
+            :: (visitSynModuleOrNamespace moduleOrNamespace)
 
-    and visitSynExpr (synExpr: SynExpr) : Node =
+    and visitSynExpr (synExpr: SynExpr) : Node list =
         match synExpr with
         | SynExpr.Paren (expr, leftParenRange, rightParenRange, range) ->
             { Type = SynExpr_Paren
@@ -168,155 +163,146 @@ module private Ast =
                   p [ yield "leftParenRange" ==> r leftParenRange
                       if rightParenRange.IsSome then
                           yield "rightParenRange" ==> r rightParenRange.Value ]
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.Quote (operator, isRaw, quotedSynExpr, isFromQueryExpression, range) ->
             { Type = SynExpr_Quote
               Range = r range
               Properties =
                   p [ "isRaw" ==> isRaw
                       "isFromQueryExpression" ==> isFromQueryExpression ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr operator
-                    yield visitSynExpr quotedSynExpr ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr operator
+                 yield! visitSynExpr quotedSynExpr ]
         | SynExpr.Const (constant, range) ->
-            { Type = SynExpr_Const
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr
-              Childs = [ visitSynConst range constant ] }
+            [ { Type = SynExpr_Const
+                Range = r range
+                Properties = p []
+                FsAstNode = synExpr }
+              visitSynConst range constant ]
         | SynExpr.Typed (expr, typeName, range) ->
             { Type = SynExpr_Typed
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr expr
-                    yield visitSynType typeName ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr
+                 yield! visitSynType typeName ]
         | SynExpr.Tuple (isStruct, exprs, commaRanges, range) ->
             { Type = SynExpr_Tuple
               Range = r range
               Properties =
                   p [ "isStruct" ==> isStruct
                       "commaRanges" ==> (commaRanges |> List.map r) ]
-              FsAstNode = synExpr
-              Childs = [ yield! exprs |> List.map visitSynExpr ] }
+              FsAstNode = synExpr }
+            :: (exprs |> List.collect visitSynExpr)
         | SynExpr.ArrayOrList (isList, exprs, range) ->
             { Type = SynExpr_ArrayOrList
               Range = r range
               Properties = p [ "isList" ==> isList ]
-              FsAstNode = synExpr
-              Childs = [ yield! exprs |> List.map visitSynExpr ] }
+              FsAstNode = synExpr }
+            :: (exprs |> List.collect visitSynExpr)
         | SynExpr.Record (_, _, recordFields, range) ->
             { Type = SynExpr_Record
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield! recordFields |> List.map visitRecordField ] }
+              FsAstNode = synExpr }
+            :: (List.collect visitRecordField recordFields)
         | SynExpr.AnonRecd (_, _, recordFields, range) ->
             { Type = SynExpr_AnonRecd
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield! recordFields |> List.map visitAnonRecordField ] }
+              FsAstNode = synExpr }
+            :: (List.collect visitAnonRecordField recordFields)
         | SynExpr.New (isProtected, typeName, expr, range) ->
             { Type = SynExpr_New
               Range = r range
               Properties = p [ "isProtected" ==> isProtected ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr expr
-                    yield visitSynType typeName ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr
+                 yield! visitSynType typeName ]
         | SynExpr.ObjExpr (objType, argOptions, bindings, extraImpls, newExprRange, range) ->
             { Type = SynExpr_ObjExpr
               Range = r range
               Properties = p [ "newExprRange" ==> r newExprRange ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynType objType
-                    if argOptions.IsSome then
-                        yield visitArgsOption argOptions.Value
-                    yield! extraImpls |> List.map visitSynInterfaceImpl
-                    yield! bindings |> List.map visitSynBinding ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynType objType
+                 if argOptions.IsSome then
+                     yield! visitArgsOption argOptions.Value
+                 yield! extraImpls |> List.collect visitSynInterfaceImpl
+                 yield! bindings |> List.collect visitSynBinding ]
         | SynExpr.While (_, whileExpr, doExpr, range) ->
             { Type = SynExpr_While
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr whileExpr
-                    yield visitSynExpr doExpr ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr whileExpr
+                 yield! visitSynExpr doExpr ]
         | SynExpr.For (_, ident, identBody, _, toBody, doBody, range) ->
             { Type = SynExpr_For
               Range = r range
               Properties = p [ "ident" ==> i ident ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr identBody
-                    yield visitSynExpr toBody
-                    yield visitSynExpr doBody ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr identBody
+                 yield! visitSynExpr toBody
+                 yield! visitSynExpr doBody ]
         | SynExpr.ForEach (_, (SeqExprOnly seqExprOnly), isFromSource, pat, enumExpr, bodyExpr, range) ->
             { Type = SynExpr_ForEach
               Range = r range
               Properties =
                   p [ "isFromSource" ==> isFromSource
                       "seqExprOnly" ==> seqExprOnly ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynPat pat
-                    yield visitSynExpr enumExpr
-                    yield visitSynExpr bodyExpr ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynPat pat
+                 yield! visitSynExpr enumExpr
+                 yield! visitSynExpr bodyExpr ]
         | SynExpr.ArrayOrListOfSeqExpr (isArray, expr, range) ->
             { Type = SynExpr_ArrayOrListOfSeqExpr
               Range = r range
               Properties = p [ "isArray" ==> isArray ]
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.CompExpr (isArrayOrList, isNotNakedRefCell, expr, range) ->
             { Type = SynExpr_CompExpr
               Range = r range
               Properties =
                   p [ "isArrayOrList" ==> isArrayOrList
                       "isNotNakedRefCell" ==> isNotNakedRefCell ]
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.Lambda (fromMethod, inLambdaSeq, args, body, _parsedData, range) ->
             { Type = SynExpr_Lambda
               Range = r range
               Properties =
                   p [ "fromMethod" ==> fromMethod
                       "inLambdaSeq" ==> inLambdaSeq ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynSimplePats args
-                    yield visitSynExpr body ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynSimplePats args
+                 yield! visitSynExpr body ]
         | SynExpr.MatchLambda (isExnMatch, _, matchClauses, _, range) ->
             { Type = SynExpr_MatchLambda
               Range = r range
               Properties = p [ "isExnMatch" ==> isExnMatch ]
-              FsAstNode = synExpr
-              Childs = [ yield! matchClauses |> List.map visitSynMatchClause ] }
+              FsAstNode = synExpr }
+            :: (List.collect visitSynMatchClause matchClauses)
         | SynExpr.Match (_, expr, clauses, range) ->
             { Type = SynExpr_Match
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr expr
-                    yield! clauses |> List.map visitSynMatchClause ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr
+                 yield! clauses |> List.collect visitSynMatchClause ]
         | SynExpr.Do (expr, range) ->
             { Type = SynExpr_Do
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.Assert (expr, range) ->
             { Type = SynExpr_Assert
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.App (atomicFlag, isInfix, funcExpr, argExpr, range) ->
             { Type = SynExpr_App
               Range = r range
@@ -326,10 +312,9 @@ module private Ast =
                            | ExprAtomicFlag.Atomic -> "Atomic"
                            | _ -> "Not Atomic")
                       "isInfix" ==> isInfix ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr funcExpr
-                    yield visitSynExpr argExpr ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr funcExpr
+                 yield! visitSynExpr argExpr ]
         | SynExpr.TypeApp (expr, lESSrange, typeNames, commaRanges, gREATERrange, typeArgsRange, range) ->
             { Type = SynExpr_TypeApp
               Range = r range
@@ -339,112 +324,103 @@ module private Ast =
                       if gREATERrange.IsSome then
                           yield "gREATERrange" ==> r gREATERrange.Value
                       yield "typeArgsRange" ==> r typeArgsRange ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr expr
-                    yield! typeNames |> List.map visitSynType ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr
+                 yield! typeNames |> List.collect visitSynType ]
         | SynExpr.LetOrUse (isRecursive, isUse, bindings, body, range) ->
             { Type = SynExpr_LetOrUse
               Range = r range
               Properties =
                   p [ "isRecursive" ==> isRecursive
                       "isUse" ==> isUse ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield! bindings |> List.map visitSynBinding
-                    yield visitSynExpr body ] }
+              FsAstNode = synExpr }
+            :: [ yield! bindings |> List.collect visitSynBinding
+                 yield! visitSynExpr body ]
         | SynExpr.TryWith (tryExpr, tryRange, withCases, withRange, range, _, _) ->
             { Type = SynExpr_TryWith
               Range = r range
               Properties =
                   p [ "tryRange" ==> r tryRange
                       "withRange" ==> r withRange ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr tryExpr
-                    yield! withCases |> List.map visitSynMatchClause ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr tryExpr
+                 yield! withCases |> List.collect visitSynMatchClause ]
         | SynExpr.TryFinally (tryExpr, finallyExpr, range, _, _) ->
             { Type = SynExpr_TryFinally
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr tryExpr
-                    yield visitSynExpr finallyExpr ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr tryExpr
+                 yield! visitSynExpr finallyExpr ]
         | SynExpr.Lazy (ex, range) ->
             { Type = SynExpr_Lazy
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr ex ] }
-        | Sequentials xs ->
-            let rec cons xs =
-                match xs with
-                | [] -> failwith "should not happen" // expr2Opt is always Some in last item
-                | ((isTrueSeq, expr1, expr2Opt, range) :: rest) ->
-                    { Type = SynExpr_Sequential
-                      Range = r range
-                      Properties = p [ "isTrueSeq" ==> isTrueSeq ]
-                      FsAstNode = synExpr
-                      Childs =
-                          [ yield visitSynExpr expr1
-                            yield
-                                expr2Opt
-                                |> Option.map visitSynExpr
-                                |> Option.defaultWith (fun () -> cons rest) ] }
-
-            cons xs
+              FsAstNode = synExpr }
+            :: (visitSynExpr ex)
+        //        | Sequentials xs ->
+//            let rec cons xs =
+//                match xs with
+//                | [] -> failwith "should not happen" // expr2Opt is always Some in last item
+//                | ((isTrueSeq, expr1, expr2Opt, range) :: rest) ->
+//                    { Type = SynExpr_Sequential
+//                      Range = r range
+//                      Properties = p [ "isTrueSeq" ==> isTrueSeq ]
+//                      FsAstNode = synExpr
+//                      Childs =
+//                          [ yield visitSynExpr expr1
+//                            yield
+//                                expr2Opt
+//                                |> Option.map visitSynExpr
+//                                |> Option.defaultWith (fun () -> cons rest) ] }
+//
+//            cons xs
         | SynExpr.Sequential (_, isTrueSeq, expr1, expr2, range) ->
             { Type = SynExpr_Sequential
               Range = r range
               Properties = p [ "isTrueSeq" ==> isTrueSeq ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr expr1
-                    yield visitSynExpr expr2 ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr1
+                 yield! visitSynExpr expr2 ]
         | SynExpr.SequentialOrImplicitYield (seqPoint, expr1, expr2, ifNotStmt, range) ->
             { Type = SynExpr_SequentialOrImplicitYield
               Range = r range
               FsAstNode = synExpr
-              Properties = p [ "seqPoint" ==> seqPoint ]
-              Childs =
-                  [ yield visitSynExpr expr1
-                    yield visitSynExpr expr2
-                    yield visitSynExpr ifNotStmt ] }
+              Properties = p [ "seqPoint" ==> seqPoint ] }
+            :: [ yield! visitSynExpr expr1
+                 yield! visitSynExpr expr2
+                 yield! visitSynExpr ifNotStmt ]
         | SynExpr.IfThenElse (ifExpr, thenExpr, elseExpr, _, isFromErrorRecovery, ifToThenRange, range) ->
             { Type = SynExpr_IfThenElse
               Range = r range
               Properties =
                   p [ "isFromErrorRecovery" ==> isFromErrorRecovery
                       "ifToThenRange" ==> r ifToThenRange ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr ifExpr
-                    yield visitSynExpr thenExpr
-                    if elseExpr.IsSome then
-                        yield visitSynExpr elseExpr.Value ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr ifExpr
+                 yield! visitSynExpr thenExpr
+                 if elseExpr.IsSome then
+                     yield! visitSynExpr elseExpr.Value ]
         | SynExpr.Ident (id) ->
             { Type = SynExpr_Ident
               Range = (i id).Range
               Properties = p [ "ident" ==> i id ]
-              FsAstNode = synExpr
-              Childs = [] }
+              FsAstNode = synExpr }
+            |> List.singleton
         | SynExpr.LongIdent (isOptional, longDotId, _, range) ->
-            let ids = visitLongIdentWithDots longDotId
-
             { Type = SynExpr_LongIdent
               Range = r range
               Properties =
                   p [ "isOptional" ==> isOptional
                       "longDotId" ==> lid longDotId ]
-              FsAstNode = synExpr
-              Childs = ids }
+              FsAstNode = synExpr }
+            :: (visitLongIdentWithDots longDotId)
         | SynExpr.LongIdentSet (longDotId, expr, range) ->
             { Type = SynExpr_LongIdentSet
               Range = r range
               Properties = p [ "longDotId" ==> lid longDotId ]
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.DotGet (expr, rangeOfDot, longDotId, range) ->
             // Idents are collected as childs here to deal with unit test ``Fluent api with comments should remain on same lines``
             let ids = visitLongIdentWithDots longDotId
@@ -454,229 +430,215 @@ module private Ast =
               Properties =
                   p [ "rangeOfDot" ==> r rangeOfDot
                       "longDotId" ==> lid longDotId ]
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr; yield! ids ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr; yield! ids ]
         | SynExpr.DotSet (expr, longDotId, e2, range) ->
             { Type = SynExpr_DotSet
               Range = r range
               Properties = p [ "longDotId" ==> lid longDotId ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr expr
-                    yield visitSynExpr e2 ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr
+                 yield! visitSynExpr e2 ]
         | SynExpr.Set (e1, e2, range) ->
             { Type = SynExpr_Set
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr e1
-                    yield visitSynExpr e2 ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr e1
+                 yield! visitSynExpr e2 ]
         | SynExpr.DotIndexedGet (objectExpr, indexExprs, dotRange, range) ->
             { Type = SynExpr_DotIndexedGet
               Range = r range
               Properties = p [ "dotRange" ==> r dotRange ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr objectExpr
-                    yield! indexExprs |> List.map visitSynIndexerArg ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr objectExpr
+                 yield! indexExprs |> List.collect visitSynIndexerArg ]
         | SynExpr.DotIndexedSet (objectExpr, indexExprs, valueExpr, leftOfSetRange, dotRange, range) ->
             { Type = SynExpr_DotIndexedSet
               Range = r range
               Properties =
                   p [ "leftOfSetRange" ==> r leftOfSetRange
                       "dotRange" ==> r dotRange ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr objectExpr
-                    yield! indexExprs |> List.map visitSynIndexerArg
-                    yield visitSynExpr valueExpr ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr objectExpr
+                 yield! indexExprs |> List.collect visitSynIndexerArg
+                 yield! visitSynExpr valueExpr ]
         | SynExpr.NamedIndexedPropertySet (longDotId, e1, e2, range) ->
             { Type = SynExpr_NamedIndexedPropertySet
               Range = r range
               Properties = p [ "longDotId" ==> lid longDotId ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr e1
-                    yield visitSynExpr e2 ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr e1
+                 yield! visitSynExpr e2 ]
         | SynExpr.DotNamedIndexedPropertySet (expr, longDotId, e1, e2, range) ->
             { Type = SynExpr_DotNamedIndexedPropertySet
               Range = r range
               Properties = p [ "longDotId" ==> lid longDotId ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr expr
-                    yield visitSynExpr e1
-                    yield visitSynExpr e2 ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr
+                 yield! visitSynExpr e1
+                 yield! visitSynExpr e2 ]
         | SynExpr.TypeTest (expr, typeName, range) ->
             { Type = SynExpr_TypeTest
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr expr
-                    yield visitSynType typeName ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr
+                 yield! visitSynType typeName ]
         | SynExpr.Upcast (expr, typeName, range) ->
             { Type = SynExpr_Upcast
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr expr
-                    yield visitSynType typeName ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr
+                 yield! visitSynType typeName ]
         | SynExpr.Downcast (expr, typeName, range) ->
             { Type = SynExpr_Downcast
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr expr
-                    yield visitSynType typeName ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr
+                 yield! visitSynType typeName ]
         | SynExpr.InferredUpcast (expr, range) ->
             { Type = SynExpr_InferredUpcast
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.InferredDowncast (expr, range) ->
             { Type = SynExpr_InferredDowncast
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.Null (range) ->
             { Type = SynExpr_Null
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [] }
+              FsAstNode = synExpr }
+            |> List.singleton
         | SynExpr.AddressOf (isByref, expr, refRange, range) ->
             { Type = SynExpr_AddressOf
               Range = r range
               Properties =
                   p [ "isByref" ==> isByref
                       "refRange" ==> r refRange ]
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.TraitCall (typars, sign, expr, range) ->
             { Type = SynExpr_TraitCall
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs =
-                  [ yield! typars |> List.map visitSynTypar
-                    yield visitSynMemberSig sign
-                    yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: [ yield! typars |> List.collect visitSynTypar
+                 yield! visitSynMemberSig sign
+                 yield! visitSynExpr expr ]
         | SynExpr.JoinIn (expr, inrange, expr2, range) ->
             { Type = SynExpr_JoinIn
               Range = r range
               Properties = p [ "inRange" ==> r inrange ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr expr
-                    yield visitSynExpr expr2 ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr
+                 yield! visitSynExpr expr2 ]
         | SynExpr.ImplicitZero (range) ->
             { Type = SynExpr_ImplicitZero
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [] }
+              FsAstNode = synExpr }
+            |> List.singleton
         | SynExpr.YieldOrReturn (_, expr, range) ->
             { Type = SynExpr_YieldOrReturn
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.YieldOrReturnFrom (_, expr, range) ->
             { Type = SynExpr_YieldOrReturnFrom
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.LetOrUseBang (_, isUse, isFromSource, pat, rhsExpr, andBangs, body, range) ->
             { Type = SynExpr_LetOrUseBang
               Range = r range
               Properties =
                   p [ "isUse" ==> isUse
                       "isFromSource" ==> isFromSource ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynPat pat
-                    yield visitSynExpr rhsExpr
-                    yield!
-                        andBangs
-                        |> List.collect (fun (_, _, _, pat, body, _) -> visitSynPat pat :: [ visitSynExpr body ])
-                    yield visitSynExpr body ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynPat pat
+                 yield! visitSynExpr rhsExpr
+                 yield!
+                     andBangs
+                     |> List.collect (fun (_, _, _, pat, body, _) -> visitSynPat pat @ (visitSynExpr body))
+                 yield! visitSynExpr body ]
         | SynExpr.MatchBang (_, expr, clauses, range) ->
             { Type = SynExpr_MatchBang
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr expr
-                    yield! clauses |> List.map visitSynMatchClause ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr expr
+                 yield! clauses |> List.collect visitSynMatchClause ]
         | SynExpr.DoBang (expr, range) ->
             { Type = SynExpr_DoBang
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.LibraryOnlyILAssembly (_, _, _, _, range) ->
             { Type = SynExpr_LibraryOnlyILAssembly
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [] }
+              FsAstNode = synExpr }
+            |> List.singleton
         | SynExpr.LibraryOnlyStaticOptimization (_, _, _, range) ->
             { Type = SynExpr_LibraryOnlyStaticOptimization
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [] }
+              FsAstNode = synExpr }
+            |> List.singleton
         | SynExpr.LibraryOnlyUnionCaseFieldGet (expr, longId, _, range) ->
             { Type = SynExpr_LibraryOnlyUnionCaseFieldGet
               Range = r range
               Properties = p [ "longId" ==> li longId ]
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.LibraryOnlyUnionCaseFieldSet (e1, longId, _, e2, range) ->
             { Type = SynExpr_LibraryOnlyUnionCaseFieldSet
               Range = r range
               Properties = p [ "longId" ==> li longId ]
-              FsAstNode = synExpr
-              Childs =
-                  [ yield visitSynExpr e1
-                    yield visitSynExpr e2 ] }
+              FsAstNode = synExpr }
+            :: [ yield! visitSynExpr e1
+                 yield! visitSynExpr e2 ]
         | SynExpr.ArbitraryAfterError (debugStr, range) ->
             { Type = SynExpr_ArbitraryAfterError
               Range = r range
               Properties = p [ "debugStr" ==> debugStr ]
-              FsAstNode = synExpr
-              Childs = [] }
+              FsAstNode = synExpr }
+            |> List.singleton
         | SynExpr.FromParseError (expr, range) ->
             { Type = SynExpr_FromParseError
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.DiscardAfterMissingQualificationAfterDot (expr, range) ->
             { Type = SynExpr_DiscardAfterMissingQualificationAfterDot
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.Fixed (expr, range) ->
             { Type = SynExpr_Fixed
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = synExpr }
+            :: (visitSynExpr expr)
         | SynExpr.InterpolatedString (parts, range) ->
             { Type = SynExpr_InterpolatedString
               Range = r range
               Properties = p []
-              FsAstNode = synExpr
-              Childs = List.map visitSynInterpolatedStringPart parts }
+              FsAstNode = synExpr }
+            :: (List.collect visitSynInterpolatedStringPart parts)
 
     and visitSynInterpolatedStringPart (synInterpolatedStringPart: SynInterpolatedStringPart) =
         match synInterpolatedStringPart with
@@ -684,102 +646,99 @@ module private Ast =
             { Type = SynInterpolatedStringPart_String
               Range = r range
               Properties = p [ "value", box value ]
-              FsAstNode = synInterpolatedStringPart
-              Childs = [] }
+              FsAstNode = synInterpolatedStringPart }
+            |> List.singleton
         | SynInterpolatedStringPart.FillExpr (expr, ident) ->
             { Type = SynInterpolatedStringPart_FillExpr
               Range = None
               Properties = p []
-              FsAstNode = synInterpolatedStringPart
-              Childs =
-                  [ visitSynExpr expr
-                    yield! (Option.toList ident |> List.map visitIdent) ] }
+              FsAstNode = synInterpolatedStringPart }
+            :: [ yield! visitSynExpr expr
+                 yield! (Option.toList ident |> List.map visitIdent) ]
 
     and visitRecordField ((longId, _) as rfn: RecordFieldName, expr: SynExpr option, _: BlockSeparator option) =
         { Type = RecordField_
           Range = r longId.Range
           Properties = p [ "ident" ==> lid longId ]
-          FsAstNode = rfn
-          Childs =
-              [ if expr.IsSome then
-                    yield visitSynExpr expr.Value ] }
+          FsAstNode = rfn }
+        :: (match expr with
+            | Some e -> visitSynExpr e
+            | None -> [])
 
     and visitAnonRecordField (ident: Ident, expr: SynExpr) =
         { Type = AnonRecordField_
           Range = noRange
           Properties = p [ "ident" ==> i ident ]
-          FsAstNode = expr
-          Childs = [ yield visitSynExpr expr ] }
+          FsAstNode = expr }
+        :: (visitSynExpr expr)
 
     and visitAnonRecordTypeField (ident: Ident, t: SynType) =
         { Type = AnonRecordTypeField_
           Range = noRange
           Properties = p [ "ident" ==> i ident ]
-          FsAstNode = t
-          Childs = [ yield visitSynType t ] }
+          FsAstNode = t }
+        :: (visitSynType t)
 
-    and visitSynMemberSig (ms: SynMemberSig) : Node =
+    and visitSynMemberSig (ms: SynMemberSig) : Node list =
         match ms with
         | SynMemberSig.Member (valSig, _, range) ->
             { Type = SynMemberSig_Member
               Range = r range
               Properties = p []
-              FsAstNode = ms
-              Childs = [ yield visitSynValSig valSig ] }
+              FsAstNode = ms }
+            :: (visitSynValSig valSig)
         | SynMemberSig.Interface (typeName, range) ->
             { Type = SynMemberSig_Interface
               Range = r range
               Properties = p []
-              FsAstNode = ms
-              Childs = [ yield visitSynType typeName ] }
+              FsAstNode = ms }
+            :: (visitSynType typeName)
         | SynMemberSig.Inherit (typeName, range) ->
             { Type = SynMemberSig_Inherit
               Range = r range
               Properties = p []
-              FsAstNode = ms
-              Childs = [ yield visitSynType typeName ] }
+              FsAstNode = ms }
+            :: (visitSynType typeName)
         | SynMemberSig.ValField (f, range) ->
             { Type = SynMemberSig_ValField
               Range = r range
               Properties = p []
-              FsAstNode = ms
-              Childs = [ yield visitSynField f ] }
+              FsAstNode = ms }
+            :: (visitSynField f)
         | SynMemberSig.NestedType (typedef, range) ->
             { Type = SynMemberSig_NestedType
               Range = r range
               Properties = p []
-              FsAstNode = ms
-              Childs = [ yield visitSynTypeDefnSig typedef ] }
+              FsAstNode = ms }
+            :: (visitSynTypeDefnSig typedef)
 
-    and visitSynIndexerArg (ia: SynIndexerArg) : Node =
+    and visitSynIndexerArg (ia: SynIndexerArg) : Node list =
         match ia with
         | SynIndexerArg.One (e, _fromEnd, _) ->
             { Type = SynIndexerArg_One
               Range = noRange
               Properties = p []
-              FsAstNode = ia
-              Childs = [ yield visitSynExpr e ] }
+              FsAstNode = ia }
+            :: (visitSynExpr e)
         | SynIndexerArg.Two (e1, _fromEnd1, e2, _fromEnd2, _, _) ->
             { Type = SynIndexerArg_Two
               Range = noRange
               Properties = p []
-              FsAstNode = ia
-              Childs =
-                  [ yield visitSynExpr e1
-                    yield visitSynExpr e2 ] }
+              FsAstNode = ia }
+            :: [ yield! visitSynExpr e1
+                 yield! visitSynExpr e2 ]
 
-    and visitSynMatchClause (mc: SynMatchClause) : Node =
+    and visitSynMatchClause (mc: SynMatchClause) : Node list =
         match mc with
         | SynMatchClause.Clause (pat, e1, e2, _range, _) ->
             { Type = SynMatchClause_Clause
               Range = r mc.Range // _range is the same range as pat, see https://github.com/dotnet/fsharp/issues/10877
               Properties = p []
-              FsAstNode = mc
-              Childs =
-                  [ yield visitSynPat pat
-                    if e1.IsSome then
-                        yield visitSynExpr e1.Value
-                    yield visitSynExpr e2 ] }
+              FsAstNode = mc }
+            :: [ yield! visitSynPat pat
+                 if e1.IsSome then
+                     yield! visitSynExpr e1.Value
+                 yield! visitSynExpr e2 ]
 
     and visitArgsOption (expr: SynExpr, ident: Ident option) =
         { Type = ArgOptions_
@@ -787,19 +746,18 @@ module private Ast =
           Properties =
               p [ if ident.IsSome then
                       yield "ident" ==> i ident.Value ]
-          FsAstNode = expr
-          Childs = [ yield visitSynExpr expr ] }
+          FsAstNode = expr }
+        :: (visitSynExpr expr)
 
-    and visitSynInterfaceImpl (ii: SynInterfaceImpl) : Node =
+    and visitSynInterfaceImpl (ii: SynInterfaceImpl) : Node list =
         match ii with
         | InterfaceImpl (typ, bindings, range) ->
             { Type = InterfaceImpl_
               Range = r range
               Properties = p []
-              FsAstNode = ii
-              Childs =
-                  [ yield visitSynType typ
-                    yield! (bindings |> List.map visitSynBinding) ] }
+              FsAstNode = ii }
+            :: [ yield! visitSynType typ
+                 yield! (bindings |> List.collect visitSynBinding) ]
 
     and visitSynTypeDefn (td: SynTypeDefn) =
         match td with
@@ -807,48 +765,45 @@ module private Ast =
             { Type = TypeDefn_
               Range = r range
               Properties = p []
-              FsAstNode = td
-              Childs =
-                  [ yield visitSynComponentInfo sci
-                    yield visitSynTypeDefnRepr stdr
-                    yield! (members |> List.map visitSynMemberDefn) ] }
+              FsAstNode = td }
+            :: [ yield! visitSynComponentInfo sci
+                 yield! visitSynTypeDefnRepr stdr
+                 yield! (members |> List.collect visitSynMemberDefn) ]
 
-    and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : Node =
+    and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : Node list =
         match typeDefSig with
         | TypeDefnSig (sci, synTypeDefnSigReprs, memberSig, range) ->
             { Type = TypeDefnSig_
               Range = r range
               Properties = p []
-              FsAstNode = typeDefSig
-              Childs =
-                  [ yield visitSynComponentInfo sci
-                    yield visitSynTypeDefnSigRepr synTypeDefnSigReprs
-                    yield! (memberSig |> List.map visitSynMemberSig) ] }
+              FsAstNode = typeDefSig }
+            :: [ yield! visitSynComponentInfo sci
+                 yield! visitSynTypeDefnSigRepr synTypeDefnSigReprs
+                 yield! (memberSig |> List.collect visitSynMemberSig) ]
 
-    and visitSynTypeDefnSigRepr (stdr: SynTypeDefnSigRepr) : Node =
+    and visitSynTypeDefnSigRepr (stdr: SynTypeDefnSigRepr) : Node list =
         match stdr with
         | SynTypeDefnSigRepr.ObjectModel (kind, members, range) ->
             { Type = SynTypeDefnSigRepr_ObjectModel
               Range = r range
               Properties = p []
-              FsAstNode = stdr
-              Childs =
-                  [ yield visitSynTypeDefnKind kind
-                    yield! (members |> List.map visitSynMemberSig) ] }
+              FsAstNode = stdr }
+            :: [ yield! visitSynTypeDefnKind kind
+                 yield! (members |> List.collect visitSynMemberSig) ]
         | SynTypeDefnSigRepr.Simple (simpleRepr, range) ->
             { Type = SynTypeDefnSigRepr_ObjectModel
               Range = r range
               Properties = p []
-              FsAstNode = stdr
-              Childs = [ yield visitSynTypeDefnSimpleRepr simpleRepr ] }
+              FsAstNode = stdr }
+            :: (visitSynTypeDefnSimpleRepr simpleRepr)
         | SynTypeDefnSigRepr.Exception (exceptionRepr) ->
             { Type = SynTypeDefnSigRepr_Exception
               Range = noRange
               Properties = p []
-              FsAstNode = stdr
-              Childs = [ yield visitSynExceptionDefnRepr exceptionRepr ] }
+              FsAstNode = stdr }
+            :: (visitSynExceptionDefnRepr exceptionRepr)
 
-    and visitSynMemberDefn (mbrDef: SynMemberDefn) : Node =
+    and visitSynMemberDefn (mbrDef: SynMemberDefn) : Node list =
         match mbrDef with
         | SynMemberDefn.Open (target, parentRange) ->
             // we use the parent ranges here to match up with the trivia parsed
@@ -857,20 +812,20 @@ module private Ast =
                 { Type = SynMemberDefn_Open
                   Range = r parentRange
                   Properties = p [ "longIdent" ==> li longIdent ]
-                  FsAstNode = target
-                  Childs = [] }
+                  FsAstNode = target }
+                |> List.singleton
             | SynOpenDeclTarget.Type (synType, _range) ->
                 { Type = SynMemberDefn_OpenType
                   Range = r parentRange
                   Properties = p []
-                  FsAstNode = target
-                  Childs = [ visitSynType synType ] }
+                  FsAstNode = target }
+                :: (visitSynType synType)
         | SynMemberDefn.Member (memberDefn, range) ->
             { Type = SynMemberDefn_Member
               Range = r range
               Properties = p []
-              FsAstNode = mbrDef
-              Childs = [ yield visitSynBinding memberDefn ] }
+              FsAstNode = mbrDef }
+            :: (visitSynBinding memberDefn)
         | SynMemberDefn.ImplicitCtor (access, attrs, ctorArgs, selfIdentifier, _xmlDoc, range) ->
             { Type = SynMemberDefn_ImplicitCtor
               Range = r range
@@ -879,65 +834,62 @@ module private Ast =
                           yield "selfIdent" ==> i selfIdentifier.Value
                       if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = mbrDef
-              Childs =
-                  [ yield! (visitSynAttributeLists range attrs)
-                    yield visitSynSimplePats ctorArgs ] }
+              FsAstNode = mbrDef }
+            :: [ yield! (visitSynAttributeLists range attrs)
+                 yield! visitSynSimplePats ctorArgs ]
         | SynMemberDefn.ImplicitInherit (inheritType, inheritArgs, inheritAlias, range) ->
             { Type = SynMemberDefn_ImplicitInherit
               Range = r range
               Properties =
                   p [ if inheritAlias.IsSome then
                           yield "inheritAlias" ==> i inheritAlias.Value ]
-              FsAstNode = mbrDef
-              Childs =
-                  [ yield visitSynType inheritType
-                    yield visitSynExpr inheritArgs ] }
+              FsAstNode = mbrDef }
+            :: [ yield! visitSynType inheritType
+                 yield! visitSynExpr inheritArgs ]
         | SynMemberDefn.LetBindings (bindings, isStatic, isRecursive, range) ->
             { Type = SynMemberDefn_LetBindings
               Range = r range
               Properties =
                   p [ "isStatic" ==> isStatic
                       "isRecursive" ==> isRecursive ]
-              FsAstNode = mbrDef
-              Childs = [ yield! bindings |> List.map visitSynBinding ] }
+              FsAstNode = mbrDef }
+            :: (List.collect visitSynBinding bindings)
         | SynMemberDefn.AbstractSlot (valSig, _, range) ->
             { Type = SynMemberDefn_AbstractSlot
               Range = r range
               Properties = p []
-              FsAstNode = mbrDef
-              Childs = [ yield visitSynValSig valSig ] }
+              FsAstNode = mbrDef }
+            :: (visitSynValSig valSig)
         | SynMemberDefn.Interface (typ, members, range) ->
             { Type = SynMemberDefn_Interface
               Range = r range
               Properties = p []
-              FsAstNode = mbrDef
-              Childs =
-                  [ yield visitSynType typ
-                    if members.IsSome then
-                        yield! members.Value |> List.map visitSynMemberDefn ] }
+              FsAstNode = mbrDef }
+            :: [ yield! visitSynType typ
+                 if members.IsSome then
+                     yield! members.Value |> List.collect visitSynMemberDefn ]
         | SynMemberDefn.Inherit (typ, ident, range) ->
             { Type = SynMemberDefn_Inherit
               Range = r range
               Properties =
                   p [ if ident.IsSome then
                           yield "ident" ==> i ident.Value ]
-              FsAstNode = mbrDef
-              Childs = [ yield visitSynType typ ] }
+              FsAstNode = mbrDef }
+            :: (visitSynType typ)
         | SynMemberDefn.ValField (fld, range) ->
             { Type = SynMemberDefn_ValField
               Range = r range
               Properties = p []
-              FsAstNode = mbrDef
-              Childs = [ yield visitSynField fld ] }
+              FsAstNode = mbrDef }
+            :: (visitSynField fld)
         | SynMemberDefn.NestedType (typeDefn, access, range) ->
             { Type = SynMemberDefn_NestedType
               Range = r range
               Properties =
                   p [ if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = mbrDef
-              Childs = [ yield visitSynTypeDefn typeDefn ] }
+              FsAstNode = mbrDef }
+            :: (visitSynTypeDefn typeDefn)
         | SynMemberDefn.AutoProperty (attrs,
                                       isStatic,
                                       ident,
@@ -959,14 +911,13 @@ module private Ast =
                           yield "access" ==> (access.Value |> visitSynAccess)
                       if getSetRange.IsSome then
                           yield "getSetRange" ==> (getSetRange.Value |> r) ]
-              FsAstNode = mbrDef
-              Childs =
-                  [ yield! (visitSynAttributeLists range attrs)
-                    if typeOpt.IsSome then
-                        yield visitSynType typeOpt.Value
-                    yield visitSynExpr synExpr ] }
+              FsAstNode = mbrDef }
+            :: [ yield! (visitSynAttributeLists range attrs)
+                 if typeOpt.IsSome then
+                     yield! visitSynType typeOpt.Value
+                 yield! visitSynExpr synExpr ]
 
-    and visitSynSimplePat (sp: SynSimplePat) : Node =
+    and visitSynSimplePat (sp: SynSimplePat) : Node list =
         match sp with
         | SynSimplePat.Id (ident, _, isCompilerGenerated, isThisVar, isOptArg, range) ->
             { Type = SynSimplePat_Id
@@ -976,43 +927,40 @@ module private Ast =
                       "isThisVar" ==> isThisVar
                       "isOptArg" ==> isOptArg
                       "ident" ==> i ident ]
-              FsAstNode = sp
-              Childs = [] }
+              FsAstNode = sp }
+            |> List.singleton
         | SynSimplePat.Typed (simplePat, typ, range) ->
             { Type = SynSimplePat_Typed
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs =
-                  [ yield visitSynSimplePat simplePat
-                    yield visitSynType typ ] }
+              FsAstNode = sp }
+            :: [ yield! visitSynSimplePat simplePat
+                 yield! visitSynType typ ]
         | SynSimplePat.Attrib (simplePat, attrs, range) ->
             { Type = SynSimplePat_Attrib
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs =
-                  [ yield visitSynSimplePat simplePat
-                    yield! (visitSynAttributeLists range attrs) ] }
+              FsAstNode = sp }
+            :: [ yield! visitSynSimplePat simplePat
+                 yield! (visitSynAttributeLists range attrs) ]
 
-    and visitSynSimplePats (sp: SynSimplePats) : Node =
+    and visitSynSimplePats (sp: SynSimplePats) : Node list =
         match sp with
         | SynSimplePats.SimplePats (pats, range) ->
             { Type = SynSimplePats_SimplePats
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs = [ yield! pats |> List.map visitSynSimplePat ] }
+              FsAstNode = sp }
+            :: [ yield! pats |> List.collect visitSynSimplePat ]
         | SynSimplePats.Typed (pats, typ, range) ->
             { Type = SynSimplePat_Typed
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs =
-                  [ yield visitSynSimplePats pats
-                    yield visitSynType typ ] }
+              FsAstNode = sp }
+            :: [ yield! visitSynSimplePats pats
+                 yield! visitSynType typ ]
 
-    and visitSynBinding (binding: SynBinding) : Node =
+    and visitSynBinding (binding: SynBinding) : Node list =
         match binding with
         | Binding (access, kind, mustInline, isMutable, attrs, _, valData, headPat, returnInfo, expr, range, _) ->
             let t =
@@ -1029,16 +977,15 @@ module private Ast =
                       yield "kind" ==> visitSynBindingKind kind
                       if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = binding
-              Childs =
-                  [ yield! (visitSynAttributeLists range attrs)
-                    yield visitSynValData valData
-                    yield visitSynPat headPat
-                    if returnInfo.IsSome then
-                        yield visitSynBindingReturnInfo returnInfo.Value
-                    yield visitSynExpr expr ] }
+              FsAstNode = binding }
+            :: [ yield! (visitSynAttributeLists range attrs)
+                 yield! visitSynValData valData
+                 yield! visitSynPat headPat
+                 if returnInfo.IsSome then
+                     yield! visitSynBindingReturnInfo returnInfo.Value
+                 yield! visitSynExpr expr ]
 
-    and visitSynValData (svd: SynValData) : Node =
+    and visitSynValData (svd: SynValData) : Node list =
         match svd with
         | SynValData (_, svi, ident) ->
             { Type = SynValData_
@@ -1046,10 +993,10 @@ module private Ast =
               Properties =
                   p [ if ident.IsSome then
                           yield "ident" ==> (ident.Value |> i) ]
-              FsAstNode = svd
-              Childs = [ yield visitSynValInfo svi ] }
+              FsAstNode = svd }
+            :: (visitSynValInfo svi)
 
-    and visitSynValSig (svs: SynValSig) : Node =
+    and visitSynValSig (svs: SynValSig) : Node list =
         match svs with
         | ValSpfn (attrs, ident, explicitValDecls, synType, arity, isInline, isMutable, _, access, expr, range) ->
             { Type = ValSpfn_
@@ -1060,36 +1007,34 @@ module private Ast =
                       yield "isInline" ==> isInline
                       if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = svs
-              Childs =
-                  [ yield! (visitSynAttributeLists range attrs)
-                    yield visitSynValTyparDecls explicitValDecls
-                    yield visitSynType synType
-                    yield visitSynValInfo arity
-                    if expr.IsSome then
-                        yield visitSynExpr expr.Value ] }
+              FsAstNode = svs }
+            :: [ yield! (visitSynAttributeLists range attrs)
+                 yield! visitSynValTyparDecls explicitValDecls
+                 yield! visitSynType synType
+                 yield! visitSynValInfo arity
+                 if expr.IsSome then
+                     yield! visitSynExpr expr.Value ]
 
-    and visitSynValTyparDecls (valTypeDecl: SynValTyparDecls) : Node =
+    and visitSynValTyparDecls (valTypeDecl: SynValTyparDecls) : Node list =
         match valTypeDecl with
         | SynValTyparDecls (typardecls, _, _) ->
             { Type = SynValTyparDecls_
               Range = noRange
               Properties = p []
-              FsAstNode = valTypeDecl
-              Childs = [ yield! typardecls |> List.map visitSynTyparDecl ] }
+              FsAstNode = valTypeDecl }
+            :: (List.collect visitSynTyparDecl typardecls)
 
-    and visitSynTyparDecl (std: SynTyparDecl) : Node =
+    and visitSynTyparDecl (std: SynTyparDecl) : Node list =
         match std with
         | TyparDecl (attrs, typar) ->
             { Type = TyparDecl_
               Range = noRange
               Properties = p []
-              FsAstNode = std
-              Childs =
-                  [ yield! (visitSynAttributeLists typar.Range attrs)
-                    yield visitSynTypar typar ] }
+              FsAstNode = std }
+            :: [ yield! (visitSynAttributeLists typar.Range attrs)
+                 yield! visitSynTypar typar ]
 
-    and visitSynTypar (typar: SynTypar) : Node =
+    and visitSynTypar (typar: SynTypar) : Node list =
         match typar with
         | Typar (ident, staticReq, isComGen) ->
             { Type = Typar_
@@ -1098,39 +1043,39 @@ module private Ast =
                   p [ "ident" ==> i ident
                       "isComGen" ==> isComGen
                       "staticReq" ==> visitTyparStaticReq staticReq ]
-              FsAstNode = typar
-              Childs = [] }
+              FsAstNode = typar }
+            |> List.singleton
 
     and visitTyparStaticReq (tsr: TyparStaticReq) =
         match tsr with
         | NoStaticReq -> "NoStaticReq"
         | HeadTypeStaticReq -> "HeadTypeStaticReq"
 
-    and visitSynBindingReturnInfo (returnInfo: SynBindingReturnInfo) : Node =
+    and visitSynBindingReturnInfo (returnInfo: SynBindingReturnInfo) : Node list =
         match returnInfo with
         | SynBindingReturnInfo (typeName, range, attrs) ->
             { Type = SynBindingReturnInfo_
               Range = r range
               Properties = p []
-              FsAstNode = returnInfo
-              Childs =
-                  [ yield visitSynType typeName
-                    yield! (visitSynAttributeLists range attrs) ] }
+              FsAstNode = returnInfo }
+            :: [ yield! visitSynType typeName
+                 yield! (visitSynAttributeLists range attrs) ]
 
-    and visitSynPat (sp: SynPat) : Node =
+    // TODO: tail
+    and visitSynPat (sp: SynPat) : Node list =
         match sp with
         | SynPat.Const (sc, range) ->
-            { Type = SynPat_Const
-              Range = r range
-              Properties = p []
-              FsAstNode = sp
-              Childs = [ visitSynConst range sc ] }
+            [ { Type = SynPat_Const
+                Range = r range
+                Properties = p []
+                FsAstNode = sp }
+              visitSynConst range sc ]
         | SynPat.Wild (range) ->
             { Type = SynPat_Wild
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs = [] }
+              FsAstNode = sp }
+            |> List.singleton
         | SynPat.Named (synPat, ident, isSelfIdentifier, access, range) ->
             { Type = SynPat_Named
               Range = r range
@@ -1139,38 +1084,35 @@ module private Ast =
                       yield "isSelfIdentifier" ==> isSelfIdentifier
                       if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = sp
-              Childs = [ yield visitSynPat synPat ] }
+              FsAstNode = sp }
+            :: (visitSynPat synPat)
         | SynPat.Typed (synPat, synType, range) ->
             { Type = SynPat_Typed
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs =
-                  [ yield visitSynPat synPat
-                    yield visitSynType synType ] }
+              FsAstNode = sp }
+            :: [ yield! visitSynPat synPat
+                 yield! visitSynType synType ]
         | SynPat.Attrib (synPat, attrs, range) ->
             { Type = SynPat_Attrib
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs =
-                  [ yield visitSynPat synPat
-                    yield! (visitSynAttributeLists range attrs) ] }
+              FsAstNode = sp }
+            :: [ yield! visitSynPat synPat
+                 yield! (visitSynAttributeLists range attrs) ]
         | SynPat.Or (synPat, synPat2, range) ->
             { Type = SynPat_Or
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs =
-                  [ yield visitSynPat synPat
-                    yield visitSynPat synPat2 ] }
+              FsAstNode = sp }
+            :: [ yield! visitSynPat synPat
+                 yield! visitSynPat synPat2 ]
         | SynPat.Ands (pats, range) ->
             { Type = SynPat_Ands
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs = [ yield! pats |> List.map visitSynPat ] }
+              FsAstNode = sp }
+            :: (List.collect visitSynPat pats)
         | SynPat.LongIdent (longDotId, ident, svtd, ctorArgs, access, range) ->
             { Type = SynPat_LongIdent
               Range = r range
@@ -1180,65 +1122,64 @@ module private Ast =
                       yield "longDotId" ==> lid longDotId
                       if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = sp
-              Childs =
-                  [ if svtd.IsSome then
-                        yield visitSynValTyparDecls svtd.Value
-                    yield visitSynConstructorArgs ctorArgs ] }
+              FsAstNode = sp }
+            :: [ if svtd.IsSome then
+                     yield! visitSynValTyparDecls svtd.Value
+                 yield! visitSynConstructorArgs ctorArgs ]
         | SynPat.Tuple (isStruct, pats, range) ->
             { Type = SynPat_Tuple
               Range = r range
               Properties = p [ "isStruct" ==> isStruct ]
-              FsAstNode = sp
-              Childs = [ yield! pats |> List.map visitSynPat ] }
+              FsAstNode = sp }
+            :: (List.collect visitSynPat pats)
         | SynPat.Paren (pat, range) ->
             { Type = SynPat_Paren
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs = [ visitSynPat pat ] }
+              FsAstNode = sp }
+            :: visitSynPat pat
         | SynPat.ArrayOrList (_, pats, range) ->
             { Type = SynPat_ArrayOrList
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs = [ yield! pats |> List.map visitSynPat ] }
+              FsAstNode = sp }
+            :: (List.collect visitSynPat pats)
         | SynPat.Record (pats, range) ->
             { Type = SynPat_Record
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs = [ yield! pats |> List.map (snd >> visitSynPat) ] }
+              FsAstNode = sp }
+            :: (List.collect (snd >> visitSynPat) pats)
         | SynPat.Null (range) ->
             { Type = SynPat_Null
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs = [] }
+              FsAstNode = sp }
+            |> List.singleton
         | SynPat.OptionalVal (ident, range) ->
             { Type = SynPat_OptionalVal
               Range = r range
               Properties = p [ "ident" ==> i ident ]
-              FsAstNode = sp
-              Childs = [] }
+              FsAstNode = sp }
+            |> List.singleton
         | SynPat.IsInst (typ, range) ->
             { Type = SynPat_IsInst
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs = [ visitSynType typ ] }
+              FsAstNode = sp }
+            :: visitSynType typ
         | SynPat.QuoteExpr (expr, range) ->
             { Type = SynPat_QuoteExpr
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs = [ visitSynExpr expr ] }
+              FsAstNode = sp }
+            :: visitSynExpr expr
         | SynPat.DeprecatedCharRange (c, c2, range) ->
             { Type = SynPat_DeprecatedCharRange
               Range = r range
               Properties = p [ "c" ==> c; "c2" ==> c2 ]
-              FsAstNode = sp
-              Childs = [] }
+              FsAstNode = sp }
+            |> List.singleton
         | SynPat.InstanceMember (ident, ident2, ident3, access, range) ->
             { Type = SynPat_InstanceMember
               Range = r range
@@ -1249,31 +1190,31 @@ module private Ast =
                           yield "ident3" ==> (ident3.Value |> i)
                       if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = sp
-              Childs = [] }
+              FsAstNode = sp }
+            |> List.singleton
         | SynPat.FromParseError (pat, range) ->
             { Type = SynPat_FromParseError
               Range = r range
               Properties = p []
-              FsAstNode = sp
-              Childs = [ visitSynPat pat ] }
+              FsAstNode = sp }
+            :: (visitSynPat pat)
 
-    and visitSynConstructorArgs (ctorArgs: SynArgPats) : Node =
+    and visitSynConstructorArgs (ctorArgs: SynArgPats) : Node list =
         match ctorArgs with
         | Pats (pats) ->
             { Type = Pats_
               Range = noRange
               Properties = p []
-              FsAstNode = ctorArgs
-              Childs = [ yield! pats |> List.map visitSynPat ] }
+              FsAstNode = ctorArgs }
+            :: (List.collect visitSynPat pats)
         | NamePatPairs (pats, range) ->
             { Type = NamePatPairs_
               Range = r range
               Properties = p []
-              FsAstNode = ctorArgs
-              Childs = [ yield! pats |> List.map (snd >> visitSynPat) ] }
+              FsAstNode = ctorArgs }
+            :: (List.collect (snd >> visitSynPat) pats)
 
-    and visitSynComponentInfo (sci: SynComponentInfo) : Node =
+    and visitSynComponentInfo (sci: SynComponentInfo) : Node list =
         match sci with
         | ComponentInfo (attribs, typeParams, _, longId, _, preferPostfix, access, range) ->
             { Type = ComponentInfo_
@@ -1283,104 +1224,101 @@ module private Ast =
                       yield "preferPostfix" ==> preferPostfix
                       if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = sci
-              Childs =
-                  [ yield! (visitSynAttributeLists range attribs)
-                    yield! (typeParams |> List.map (visitSynTyparDecl)) ] }
+              FsAstNode = sci }
+            :: [ yield! (visitSynAttributeLists range attribs)
+                 yield! (typeParams |> List.collect (visitSynTyparDecl)) ]
 
-    and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : Node =
+    and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : Node list =
         match stdr with
         | SynTypeDefnRepr.ObjectModel (kind, members, range) ->
             { Type = SynTypeDefnRepr_ObjectModel
               Range = r range
               Properties = p []
-              FsAstNode = stdr
-              Childs =
-                  [ yield visitSynTypeDefnKind kind
-                    yield! (members |> List.map visitSynMemberDefn) ] }
+              FsAstNode = stdr }
+            :: [ yield! visitSynTypeDefnKind kind
+                 yield! (members |> List.collect visitSynMemberDefn) ]
         | SynTypeDefnRepr.Simple (simpleRepr, range) ->
             { Type = SynTypeDefnRepr_Simple
               Range = r range
               Properties = p []
-              FsAstNode = stdr
-              Childs = [ yield visitSynTypeDefnSimpleRepr simpleRepr ] }
+              FsAstNode = stdr }
+            :: (visitSynTypeDefnSimpleRepr simpleRepr)
         | SynTypeDefnRepr.Exception (exceptionRepr) ->
             { Type = SynTypeDefnRepr_Exception
               Range = noRange
               Properties = p []
-              FsAstNode = stdr
-              Childs = [ yield visitSynExceptionDefnRepr exceptionRepr ] }
+              FsAstNode = stdr }
+            :: (visitSynExceptionDefnRepr exceptionRepr)
 
-    and visitSynTypeDefnKind (kind: SynTypeDefnKind) =
+    and visitSynTypeDefnKind (kind: SynTypeDefnKind) : Node list =
         match kind with
         | TyconUnspecified ->
             { Type = SynTypeDefnKind_TyconUnspecified
               Range = noRange
               Properties = p []
-              FsAstNode = kind
-              Childs = [] }
+              FsAstNode = kind }
+            |> List.singleton
         | TyconClass ->
             { Type = SynTypeDefnKind_TyconClass
               Range = noRange
               Properties = p []
-              FsAstNode = kind
-              Childs = [] }
+              FsAstNode = kind }
+            |> List.singleton
         | TyconInterface ->
             { Type = SynTypeDefnKind_TyconInterface
               Range = noRange
               Properties = p []
-              FsAstNode = kind
-              Childs = [] }
+              FsAstNode = kind }
+            |> List.singleton
         | TyconStruct ->
             { Type = SynTypeDefnKind_TyconStruct
               Range = noRange
               Properties = p []
-              FsAstNode = kind
-              Childs = [] }
+              FsAstNode = kind }
+            |> List.singleton
         | TyconRecord ->
             { Type = SynTypeDefnKind_TyconRecord
               Range = noRange
               Properties = p []
-              FsAstNode = kind
-              Childs = [] }
+              FsAstNode = kind }
+            |> List.singleton
         | TyconUnion ->
             { Type = SynTypeDefnKind_TyconUnion
               Range = noRange
               Properties = p []
-              FsAstNode = kind
-              Childs = [] }
+              FsAstNode = kind }
+            |> List.singleton
         | TyconAbbrev ->
             { Type = SynTypeDefnKind_TyconAbbrev
               Range = noRange
               Properties = p []
-              FsAstNode = kind
-              Childs = [] }
+              FsAstNode = kind }
+            |> List.singleton
         | TyconHiddenRepr ->
             { Type = SynTypeDefnKind_TyconHiddenRepr
               Range = noRange
               Properties = p []
-              FsAstNode = kind
-              Childs = [] }
+              FsAstNode = kind }
+            |> List.singleton
         | TyconAugmentation ->
             { Type = SynTypeDefnKind_TyconAugmentation
               Range = noRange
               Properties = p []
-              FsAstNode = kind
-              Childs = [] }
+              FsAstNode = kind }
+            |> List.singleton
         | TyconILAssemblyCode ->
             { Type = SynTypeDefnKind_TyconILAssemblyCode
               Range = noRange
               Properties = p []
-              FsAstNode = kind
-              Childs = [] }
+              FsAstNode = kind }
+            |> List.singleton
         | TyconDelegate (typ, valinfo) ->
             { Type = SynTypeDefnKind_TyconDelegate
               Range = noRange
               Properties = p []
-              FsAstNode = kind
-              Childs =
-                  [ yield visitSynType typ
-                    yield visitSynValInfo valinfo ] }
+              FsAstNode = kind }
+            :: [ yield! visitSynType typ
+                 yield! visitSynValInfo valinfo ]
 
     and visitSynTypeDefnSimpleRepr (arg: SynTypeDefnSimpleRepr) =
         match arg with
@@ -1388,67 +1326,66 @@ module private Ast =
             { Type = SynTypeDefnSimpleRepr_None
               Range = r range
               Properties = p []
-              FsAstNode = arg
-              Childs = [] }
+              FsAstNode = arg }
+            |> List.singleton
         | SynTypeDefnSimpleRepr.Union (access, unionCases, range) ->
             { Type = SynTypeDefnSimpleRepr_Union
               Range = r range
               Properties =
                   p [ if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = arg
-              Childs = [ yield! unionCases |> List.map visitSynUnionCase ] }
+              FsAstNode = arg }
+            :: (List.collect visitSynUnionCase unionCases)
         | SynTypeDefnSimpleRepr.Enum (enumCases, range) ->
             { Type = SynTypeDefnSimpleRepr_Enum
               Range = r range
               Properties = p []
-              FsAstNode = arg
-              Childs = [ yield! enumCases |> List.map visitSynEnumCase ] }
+              FsAstNode = arg }
+            :: (List.collect visitSynEnumCase enumCases)
         | SynTypeDefnSimpleRepr.Record (access, recordFields, range) ->
             { Type = SynTypeDefnSimpleRepr_Record
               Range = r range
               Properties =
                   p [ if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = arg
-              Childs = [ yield! recordFields |> List.map visitSynField ] }
+              FsAstNode = arg }
+            :: (List.collect visitSynField recordFields)
         | SynTypeDefnSimpleRepr.General (_, _, _, _, _, _, _, range) ->
             { Type = SynTypeDefnSimpleRepr_General
               Range = r range
               Properties = p []
-              FsAstNode = arg
-              Childs = [] }
+              FsAstNode = arg }
+            |> List.singleton
         | SynTypeDefnSimpleRepr.LibraryOnlyILAssembly (_, range) ->
             { Type = SynTypeDefnSimpleRepr_LibraryOnlyILAssembly
               Range = r range
               Properties = p []
-              FsAstNode = arg
-              Childs = [] }
+              FsAstNode = arg }
+            |> List.singleton
         | SynTypeDefnSimpleRepr.TypeAbbrev (_, typ, range) ->
             { Type = SynTypeDefnSimpleRepr_TypeAbbrev
               Range = r range
               Properties = p []
-              FsAstNode = arg
-              Childs = [ visitSynType typ ] }
+              FsAstNode = arg }
+            :: (visitSynType typ)
         | SynTypeDefnSimpleRepr.Exception (edr) ->
             { Type = SynTypeDefnSimpleRepr_Exception
               Range = noRange
               Properties = p []
-              FsAstNode = arg
-              Childs = [ visitSynExceptionDefnRepr edr ] }
+              FsAstNode = arg }
+            :: (visitSynExceptionDefnRepr edr)
 
-    and visitSynExceptionDefn (exceptionDef: SynExceptionDefn) : Node =
+    and visitSynExceptionDefn (exceptionDef: SynExceptionDefn) : Node list =
         match exceptionDef with
         | SynExceptionDefn (sedr, members, range) ->
             { Type = SynExceptionDefn_
               Range = r range
               Properties = p []
-              FsAstNode = exceptionDef
-              Childs =
-                  [ yield visitSynExceptionDefnRepr sedr
-                    yield! (members |> List.map visitSynMemberDefn) ] }
+              FsAstNode = exceptionDef }
+            :: [ yield! visitSynExceptionDefnRepr sedr
+                 yield! (members |> List.collect visitSynMemberDefn) ]
 
-    and visitSynExceptionDefnRepr (sedr: SynExceptionDefnRepr) : Node =
+    and visitSynExceptionDefnRepr (sedr: SynExceptionDefnRepr) : Node list =
         match sedr with
         | SynExceptionDefnRepr (attrs, unionCase, longId, _, access, range) ->
             { Type = SynExceptionDefnRepr_
@@ -1458,12 +1395,11 @@ module private Ast =
                           yield "longIdent" ==> (longId.Value |> li)
                       if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = sedr
-              Childs =
-                  [ yield! (visitSynAttributeLists range attrs)
-                    yield visitSynUnionCase unionCase ] }
+              FsAstNode = sedr }
+            :: [ yield! (visitSynAttributeLists range attrs)
+                 yield! visitSynUnionCase unionCase ]
 
-    and visitSynAttribute (attr: SynAttribute) : Node =
+    and visitSynAttribute (attr: SynAttribute) : Node list =
         { Type = SynAttribute_
           Range = r attr.Range
           Properties =
@@ -1474,14 +1410,12 @@ module private Ast =
                       "appliesToGetterAndSetter"
                       ==> attr.AppliesToGetterAndSetter
                   yield "typeName" ==> lid attr.TypeName ]
-          FsAstNode = attr
-          Childs = [ visitSynExpr attr.ArgExpr ] }
+          FsAstNode = attr }
+        :: (visitSynExpr attr.ArgExpr)
 
     and visitSynAttributeLists (parentRange: Range) (attrs: SynAttributeList list) : Node list =
         match attrs with
-        | [ h ] ->
-            visitSynAttributeList parentRange h
-            |> List.singleton
+        | [ h ] -> visitSynAttributeList parentRange h
         | _ :: tail ->
             let aRanges =
                 tail
@@ -1489,17 +1423,17 @@ module private Ast =
                 |> fun r -> r @ [ parentRange ]
 
             List.zip attrs aRanges
-            |> List.map (fun (a, r) -> visitSynAttributeList r a)
+            |> List.collect (fun (a, r) -> visitSynAttributeList r a)
         | [] -> []
 
-    and visitSynAttributeList (parentRange: Range) (attrs: SynAttributeList) : Node =
+    and visitSynAttributeList (parentRange: Range) (attrs: SynAttributeList) : Node list =
         { Type = SynAttributeList_
           Range = r attrs.Range
           Properties = p [ "linesBetweenParent", box (parentRange.StartLine - attrs.Range.EndLine - 1) ]
-          FsAstNode = attrs
-          Childs = attrs.Attributes |> List.map visitSynAttribute }
+          FsAstNode = attrs }
+        :: (List.collect visitSynAttribute attrs.Attributes)
 
-    and visitSynUnionCase (uc: SynUnionCase) : Node =
+    and visitSynUnionCase (uc: SynUnionCase) : Node list =
         match uc with
         | UnionCase (attrs, ident, uct, _, access, range) ->
             { Type = UnionCase_
@@ -1508,10 +1442,9 @@ module private Ast =
                   p [ yield "ident" ==> i ident
                       if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = uc
-              Childs =
-                  [ yield visitSynUnionCaseType uct
-                    yield! (visitSynAttributeLists range attrs) ] }
+              FsAstNode = uc }
+            :: [ yield! visitSynUnionCaseType uct
+                 yield! (visitSynAttributeLists range attrs) ]
 
     and visitSynUnionCaseType (uct: SynUnionCaseType) =
         match uct with
@@ -1519,29 +1452,27 @@ module private Ast =
             { Type = UnionCaseFields_
               Range = noRange
               Properties = p []
-              FsAstNode = uct
-              Childs = [ yield! cases |> List.map visitSynField ] }
+              FsAstNode = uct }
+            :: (List.collect visitSynField cases)
         | UnionCaseFullType (stype, valInfo) ->
             { Type = UnionCaseFullType_
               Range = noRange
               Properties = p []
-              FsAstNode = uct
-              Childs =
-                  [ yield visitSynType stype
-                    yield visitSynValInfo valInfo ] }
+              FsAstNode = uct }
+            :: [ yield! visitSynType stype
+                 yield! visitSynValInfo valInfo ]
 
-    and visitSynEnumCase (sec: SynEnumCase) : Node =
+    and visitSynEnumCase (sec: SynEnumCase) : Node list =
         match sec with
         | EnumCase (attrs, ident, _, _, range) ->
             { Type = EnumCase_
               Range = r range
               Properties = p []
-              FsAstNode = sec
-              Childs =
-                  [ yield! (visitSynAttributeLists range attrs)
-                    yield visitIdent ident ] }
+              FsAstNode = sec }
+            :: [ yield! (visitSynAttributeLists range attrs)
+                 yield visitIdent ident ]
 
-    and visitSynField (sfield: SynField) : Node =
+    and visitSynField (sfield: SynField) : Node list =
         match sfield with
         | Field (attrs, isStatic, ident, typ, _, _, access, range) ->
             let parentRange =
@@ -1557,10 +1488,9 @@ module private Ast =
                       yield "isStatic" ==> isStatic
                       if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = sfield
-              Childs =
-                  [ yield! (visitSynAttributeLists parentRange attrs)
-                    yield visitSynType typ ] }
+              FsAstNode = sfield }
+            :: [ yield! (visitSynAttributeLists parentRange attrs)
+                 yield! visitSynType typ ]
 
     and visitSynType (st: SynType) =
         match st with
@@ -1568,8 +1498,8 @@ module private Ast =
             { Type = SynType_LongIdent
               Range = noRange
               Properties = p []
-              FsAstNode = st
-              Childs = visitLongIdentWithDots li }
+              FsAstNode = st }
+            :: (visitLongIdentWithDots li)
         | SynType.App (typeName, lessRange, typeArgs, commaRanges, greaterRange, isPostfix, range) ->
             { Type = SynType_App
               Range = r range
@@ -1580,10 +1510,9 @@ module private Ast =
                       if greaterRange.IsSome then
                           yield "greaterRange" ==> (greaterRange.Value |> r)
                       yield "isPostfix" ==> isPostfix ]
-              FsAstNode = st
-              Childs =
-                  [ yield! typeArgs |> List.map visitSynType
-                    yield visitSynType typeName ] }
+              FsAstNode = st }
+            :: [ yield! typeArgs |> List.collect visitSynType
+                 yield! visitSynType typeName ]
         | SynType.LongIdentApp (typeName, longDotId, lessRange, typeArgs, commaRanges, greaterRange, range) ->
             { Type = SynType_LongIdentApp
               Range = r range
@@ -1594,102 +1523,98 @@ module private Ast =
                       yield "commaRanges" ==> (commaRanges |> List.map r)
                       if greaterRange.IsSome then
                           yield "greaterRange" ==> (greaterRange.Value |> r) ]
-              FsAstNode = st
-              Childs =
-                  [ yield! typeArgs |> List.map visitSynType
-                    yield visitSynType typeName ] }
+              FsAstNode = st }
+            :: [ yield! typeArgs |> List.collect visitSynType
+                 yield! visitSynType typeName ]
         | SynType.Tuple (isStruct, typeNames, range) ->
             { Type = SynType_Tuple
               Range = r range
               Properties = p [ "isStruct" ==> isStruct ]
-              FsAstNode = st
-              Childs = [ yield! typeNames |> List.map (snd >> visitSynType) ] }
+              FsAstNode = st }
+            :: (List.collect (snd >> visitSynType) typeNames)
         | SynType.Array (_, elementType, range) ->
             { Type = SynType_Array
               Range = r range
               Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynType elementType ] }
+              FsAstNode = st }
+            :: (visitSynType elementType)
         | SynType.Fun (argType, returnType, range) ->
             { Type = SynType_Fun
               Range = r range
               Properties = p []
-              FsAstNode = st
-              Childs =
-                  [ yield visitSynType argType
-                    yield visitSynType returnType ] }
+              FsAstNode = st }
+            :: [ yield! visitSynType argType
+                 yield! visitSynType returnType ]
         | SynType.Var (genericName, range) ->
             { Type = SynType_Var
               Range = r range
               Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynTypar genericName ] }
+              FsAstNode = st }
+            :: (visitSynTypar genericName)
         | SynType.Anon (range) ->
             { Type = SynType_Anon
               Range = r range
               Properties = p []
-              FsAstNode = st
-              Childs = [] }
+              FsAstNode = st }
+            |> List.singleton
         | SynType.WithGlobalConstraints (typeName, _, range) ->
             { Type = SynType_WithGlobalConstraints
               Range = r range
               Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynType typeName ] }
+              FsAstNode = st }
+            :: (visitSynType typeName)
         | SynType.HashConstraint (synType, range) ->
             { Type = SynType_HashConstraint
               Range = r range
               Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynType synType ] }
+              FsAstNode = st }
+            :: (visitSynType synType)
         | SynType.MeasureDivide (dividendType, divisorType, range) ->
             { Type = SynType_MeasureDivide
               Range = r range
               Properties = p []
-              FsAstNode = st
-              Childs =
-                  [ yield visitSynType dividendType
-                    yield visitSynType divisorType ] }
+              FsAstNode = st }
+            :: [ yield! visitSynType dividendType
+                 yield! visitSynType divisorType ]
         | SynType.MeasurePower (measureType, _, range) ->
             { Type = SynType_MeasurePower
               Range = r range
               Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynType measureType ] }
+              FsAstNode = st }
+            :: (visitSynType measureType)
         | SynType.StaticConstant (constant, range) ->
             { Type = SynType_StaticConstant
               Range = r range
               Properties = p []
-              FsAstNode = st
-              Childs = [ visitSynConst range constant ] }
+              FsAstNode = st }
+            :: [ (visitSynConst range constant) ]
         | SynType.StaticConstantExpr (expr, range) ->
             { Type = SynType_StaticConstantExpr
               Range = r range
               Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynExpr expr ] }
+              FsAstNode = st }
+            :: (visitSynExpr expr)
         | SynType.StaticConstantNamed (expr, typ, range) ->
             { Type = SynType_StaticConstantNamed
               Range = r range
               Properties = p []
-              FsAstNode = st
-              Childs =
-                  [ yield visitSynType expr
-                    yield visitSynType typ ] }
+              FsAstNode = st }
+            :: [ yield! visitSynType expr
+                 yield! visitSynType typ ]
         | SynType.AnonRecd (isStruct, typeNames, range) ->
             { Type = SynType_AnonRecd
               Range = r range
               Properties = p [ "isStruct" ==> isStruct ]
-              FsAstNode = st
-              Childs = List.map visitAnonRecordTypeField typeNames }
+              FsAstNode = st }
+            :: (List.collect visitAnonRecordTypeField typeNames)
         | SynType.Paren (innerType, range) ->
             { Type = SynType_Paren
               Range = r range
               Properties = p []
-              FsAstNode = st
-              Childs = [ yield visitSynType innerType ] }
+              FsAstNode = st }
+            :: (visitSynType innerType)
 
-    and visitSynConst (parentRange: Range) (sc: SynConst) =
+    and visitSynConst (parentRange: Range) (sc: SynConst) : Node =
         let t =
             match sc with
             | SynConst.Bool _ -> SynConst_Bool
@@ -1717,8 +1642,7 @@ module private Ast =
         { Type = t
           Range = r (sc.Range parentRange)
           Properties = p []
-          FsAstNode = sc
-          Childs = [] }
+          FsAstNode = sc }
 
     and visitSynValInfo (svi: SynValInfo) =
         match svi with
@@ -1726,12 +1650,13 @@ module private Ast =
             { Type = SynValInfo_
               Range = noRange
               Properties = p []
-              FsAstNode = svi
-              Childs =
-                  [ yield! args |> List.collect (List.map visitSynArgInfo)
-                    yield visitSynArgInfo arg ] }
+              FsAstNode = svi }
+            :: [ yield!
+                     args
+                     |> List.collect (List.collect visitSynArgInfo)
+                 yield! visitSynArgInfo arg ]
 
-    and visitSynArgInfo (sai: SynArgInfo) =
+    and visitSynArgInfo (sai: SynArgInfo) : Node list =
         match sai with
         | SynArgInfo (attrs, optional, ident) ->
             let parentRange =
@@ -1745,8 +1670,8 @@ module private Ast =
                   p [ if ident.IsSome then
                           yield "ident" ==> i ident.Value
                       yield "optional" ==> optional ]
-              FsAstNode = sai
-              Childs = [ yield! (visitSynAttributeLists parentRange attrs) ] }
+              FsAstNode = sai }
+            :: (visitSynAttributeLists parentRange attrs)
 
     and visitSynAccess (a: SynAccess) =
         match a with
@@ -1777,10 +1702,9 @@ module private Ast =
               Properties =
                   p [ "ident" ==> ident
                       "longIdent" ==> longIdent ]
-              FsAstNode = hash
-              Childs = [] }
+              FsAstNode = hash }
 
-    and visitSynModuleOrNamespaceSig (modOrNs: SynModuleOrNamespaceSig) : Node =
+    and visitSynModuleOrNamespaceSig (modOrNs: SynModuleOrNamespaceSig) : Node list =
         match modOrNs with
         | SynModuleOrNamespaceSig (longIdent, isRecursive, synModuleOrNamespaceKind, decls, _, attrs, access, range) ->
             let typeName =
@@ -1799,17 +1723,16 @@ module private Ast =
                       yield "longIdent" ==> li longIdent
                       if access.IsSome then
                           yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = modOrNs
-              Childs =
-                  [ yield!
-                      if synModuleOrNamespaceKind = SynModuleOrNamespaceKind.DeclaredNamespace then
-                          visitLongIdent longIdent
-                      else
-                          []
-                    yield! (visitSynAttributeLists range attrs)
-                    yield! (decls |> List.map visitSynModuleSigDecl) ] }
+              FsAstNode = modOrNs }
+            :: [ yield!
+                     if synModuleOrNamespaceKind = SynModuleOrNamespaceKind.DeclaredNamespace then
+                         visitLongIdent longIdent
+                     else
+                         []
+                 yield! (visitSynAttributeLists range attrs)
+                 yield! (decls |> List.collect visitSynModuleSigDecl) ]
 
-    and visitSynModuleSigDecl (ast: SynModuleSigDecl) : Node =
+    and visitSynModuleSigDecl (ast: SynModuleSigDecl) : Node list =
         match ast with
         | SynModuleSigDecl.ModuleAbbrev (ident, longIdent, range) ->
             { Type = SynModuleSigDecl_ModuleAbbrev
@@ -1817,23 +1740,22 @@ module private Ast =
               Properties =
                   p [ "ident" ==> i ident
                       "longIdent" ==> li longIdent ]
-              FsAstNode = ast
-              Childs = [] }
+              FsAstNode = ast }
+            |> List.singleton
         | SynModuleSigDecl.NestedModule (sci, isRecursive, decls, range) ->
             { Type = SynModuleSigDecl_NestedModule
               Range = r range
               Properties = p [ "isRecursive" ==> isRecursive ]
-              FsAstNode = ast
-              Childs =
-                  [ yield visitSynComponentInfo sci
-                    yield! (decls |> List.map visitSynModuleSigDecl) ] }
+              FsAstNode = ast }
+            :: [ yield! visitSynComponentInfo sci
+                 yield! (decls |> List.collect visitSynModuleSigDecl) ]
         | SynModuleSigDecl.Val (SynValSig.ValSpfn _ as node, _) -> visitSynValSig node
         | SynModuleSigDecl.Types (typeDefs, range) ->
             { Type = SynModuleSigDecl_Types
               Range = r range
               Properties = p []
-              FsAstNode = ast
-              Childs = typeDefs |> List.map visitSynTypeDefnSig }
+              FsAstNode = ast }
+            :: (List.collect visitSynTypeDefnSig typeDefs)
         | SynModuleSigDecl.Open (target, parentRange) ->
             // we use the parent ranges here to match up with the trivia parsed
             match target with
@@ -1841,43 +1763,42 @@ module private Ast =
                 { Type = SynModuleSigDecl_Open
                   Range = r parentRange
                   Properties = p [ "longIdent" ==> li longIdent ]
-                  FsAstNode = target
-                  Childs = [] }
+                  FsAstNode = target }
+                |> List.singleton
             | SynOpenDeclTarget.Type (synType, _range) ->
                 { Type = SynModuleSigDecl_OpenType
                   Range = r parentRange
                   Properties = p []
-                  FsAstNode = target
-                  Childs = [ visitSynType synType ] }
+                  FsAstNode = target }
+                :: (visitSynType synType)
         | SynModuleSigDecl.HashDirective (hash, range) ->
-            { Type = SynModuleSigDecl_HashDirective
-              Range = r range
-              Properties = p []
-              FsAstNode = ast
-              Childs = [ visitParsedHashDirective hash ] }
+            [ { Type = SynModuleSigDecl_HashDirective
+                Range = r range
+                Properties = p []
+                FsAstNode = ast }
+              (visitParsedHashDirective hash) ]
         | SynModuleSigDecl.NamespaceFragment (moduleOrNamespace) ->
             { Type = SynModuleSigDecl_NamespaceFragment
               Range = noRange
               Properties = p []
-              FsAstNode = ast
-              Childs = [ visitSynModuleOrNamespaceSig moduleOrNamespace ] }
+              FsAstNode = ast }
+            :: (visitSynModuleOrNamespaceSig moduleOrNamespace)
         | SynModuleSigDecl.Exception (synExceptionSig, range) ->
             { Type = SynModuleSigDecl_Exception
               Range = r range
               Properties = p []
-              FsAstNode = ast
-              Childs = [ visitSynExceptionSig synExceptionSig ] }
+              FsAstNode = ast }
+            :: (visitSynExceptionSig synExceptionSig)
 
-    and visitSynExceptionSig (exceptionDef: SynExceptionSig) : Node =
+    and visitSynExceptionSig (exceptionDef: SynExceptionSig) : Node list =
         match exceptionDef with
         | SynExceptionSig (sedr, members, range) ->
             { Type = SynExceptionSig_
               Range = r range
               Properties = p []
-              FsAstNode = exceptionDef
-              Childs =
-                  [ yield visitSynExceptionDefnRepr sedr
-                    yield! (members |> List.map visitSynMemberSig) ] }
+              FsAstNode = exceptionDef }
+            :: [ yield! visitSynExceptionDefnRepr sedr
+                 yield! (members |> List.collect visitSynMemberSig) ]
 
     and visitLongIdentWithDots (lid: LongIdentWithDots) : Node list =
         match lid with
@@ -1889,26 +1810,25 @@ module private Ast =
         { Type = Ident_
           Range = r ident.idRange
           Properties = Map.empty
-          FsAstNode = ident
-          Childs = [] }
+          FsAstNode = ident }
 
-let astToNode (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list) : Node =
+let astToNode (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list) : Node list =
     let children =
-        [ yield! List.map Ast.visit mdls
+        [ yield! List.collect Ast.visit mdls
           yield! List.map Ast.visitParsedHashDirective hds ]
 
     { Type = File_
       Range = None
       Properties = Map.empty
-      FsAstNode = mdls
-      Childs = children }
+      FsAstNode = mdls }
+    :: children
 
-let sigAstToNode (ast: SynModuleOrNamespaceSig list) : Node =
+let sigAstToNode (ast: SynModuleOrNamespaceSig list) : Node list =
     let children =
-        List.map Ast.visitSynModuleOrNamespaceSig ast
+        List.collect Ast.visitSynModuleOrNamespaceSig ast
 
     { Type = SigFile_
       Range = None
       Properties = Map.empty
-      FsAstNode = ast
-      Childs = children }
+      FsAstNode = ast }
+    :: children

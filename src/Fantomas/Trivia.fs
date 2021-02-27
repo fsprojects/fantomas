@@ -33,13 +33,6 @@ let isToken (node: TriviaNode) =
     | Token _ -> true
     | _ -> false
 
-let rec private flattenNodeToList (node: Node) =
-    [ yield node
-      yield!
-          (node.Childs
-           |> List.map flattenNodeToList
-           |> List.collect id) ]
-
 let filterNodes nodes =
     let filterOutNodeTypes =
         set [ SynExpr_Sequential // some Sequential nodes are not visited in CodePrinter
@@ -536,20 +529,20 @@ let private triviaNodeIsNotEmpty (triviaNode: TriviaNodeAssigner) =
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
 let collectTrivia (mkRange: MkRange) tokens (ast: ParsedInput) =
-    let node =
+    let nodes =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _, hds, mns, _)) -> astToNode hds mns
 
         | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput (_, _, _, _, mns)) -> sigAstToNode mns
 
     let startOfSourceCode =
-        match node.Range with
-        | Some r -> r.StartLine
-        | None -> 1
+        match nodes with
+        | { Range = Some r } :: _ -> r.StartLine
+        | _ -> 1
 
     let triviaNodesFromAST =
-        flattenNodeToList node
-        |> filterNodes
+        nodes
+        |> filterNodes // TODO: perhaps not capture in the first place?
         |> List.choose mapNodeToTriviaNode
 
     let hasAnyAttributesWithLinesBetweenParent =
