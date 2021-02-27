@@ -11,11 +11,11 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="RangeHelpers.fs" />
     <Compile Include="TriviaTypes.fs" />
+    <Compile Include="Dbg.fs" />
+    <Compile Include="Utils.fs" />
     <Compile Include="AstTransformer.fs" />
     <Compile Include="SourceOrigin.fs" />
     <Compile Include="Version.fs" />
-    <Compile Include="Dbg.fs" />
-    <Compile Include="Utils.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="FormatConfig.fs" />
     <Compile Include="TokenParserBoolExpr.fs" />

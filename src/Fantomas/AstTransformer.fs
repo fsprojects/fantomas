@@ -3,6 +3,7 @@ module Fantomas.AstTransformer
 open FSharp.Compiler.Text
 open FSharp.Compiler.SyntaxTree
 open Fantomas.TriviaTypes
+open Fantomas
 
 //let rec (|Sequentials|_|) =
 //    function
@@ -40,9 +41,7 @@ module Helpers =
 module private Ast =
     open Helpers
 
-    let rec visit (ast: SynModuleOrNamespace) : Node list = visitSynModuleOrNamespace ast
-
-    and visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : Node list =
+    let rec visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : Node list =
         match modOrNs with
         | SynModuleOrNamespace (longIdent, isRecursive, synModuleOrNamespaceKind, decls, _, attrs, access, range) ->
             let collectIdents (idents: LongIdent) =
@@ -81,564 +80,827 @@ module private Ast =
                  yield! (decls |> List.collect visitSynModuleDecl) ]
 
     and visitSynModuleDecl (ast: SynModuleDecl) : Node list =
-        match ast with
-        | SynModuleDecl.ModuleAbbrev (ident, longIdent, range) ->
-            [ { Type = SynModuleDecl_ModuleAbbrev
-                Range = r range
-                Properties =
-                    p [ "ident" ==> i ident
-                        "longIdent" ==> li longIdent ]
-                FsAstNode = ast } ]
-        | SynModuleDecl.NestedModule (sci, isRecursive, decls, _, range) ->
-            { Type = SynModuleDecl_NestedModule
-              Range = r range
-              Properties = p [ "isRecursive" ==> isRecursive ]
-              FsAstNode = ast }
-            :: [ yield! visitSynComponentInfo sci
-                 yield! (decls |> List.collect visitSynModuleDecl) ]
-        | SynModuleDecl.Let (_, bindings, range) ->
-            { Type = SynModuleDecl_Let
-              Range = r range
-              Properties = p []
-              FsAstNode = ast }
-            :: (bindings |> List.collect visitSynBinding)
-        | SynModuleDecl.DoExpr (_, expr, range) ->
-            { Type = SynModuleDecl_DoExpr
-              Range = r range
-              Properties = p []
-              FsAstNode = ast }
-            :: visitSynExpr expr
-        | SynModuleDecl.Types (typeDefs, range) ->
-            { Type = SynModuleDecl_Types
-              Range = r range
-              Properties = p []
-              FsAstNode = ast }
-            :: (typeDefs |> List.collect visitSynTypeDefn)
-        | SynModuleDecl.Exception (exceptionDef, range) ->
-            { Type = SynModuleDecl_Exception
-              Range = r range
-              Properties = p []
-              FsAstNode = ast }
-            :: (visitSynExceptionDefn exceptionDef)
-        | SynModuleDecl.Open (target, parentRange) ->
-            // we use the parent ranges here to match up with the trivia parsed
-            match target with
-            | SynOpenDeclTarget.ModuleOrNamespace (longIdent, _range) ->
-                { Type = SynModuleDecl_Open
-                  Range = r parentRange
-                  Properties = p [ "longIdent" ==> li longIdent ]
-                  FsAstNode = ast }
-                |> List.singleton
-            | SynOpenDeclTarget.Type (synType, _range) ->
-                { Type = SynModuleDecl_OpenType
-                  Range = r parentRange
+        let rec visit (ast: SynModuleDecl) (finalContinuation: Node list -> Node list) : Node list =
+            match ast with
+            | SynModuleDecl.ModuleAbbrev (ident, longIdent, range) ->
+                [ { Type = SynModuleDecl_ModuleAbbrev
+                    Range = r range
+                    Properties =
+                        p [ "ident" ==> i ident
+                            "longIdent" ==> li longIdent ]
+                    FsAstNode = ast } ]
+                |> finalContinuation
+            | SynModuleDecl.NestedModule (sci, isRecursive, decls, _, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = decls |> List.map visit
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynModuleDecl_NestedModule
+                        Range = r range
+                        Properties = p [ "isRecursive" ==> isRecursive ]
+                        FsAstNode = ast }
+                      yield! visitSynComponentInfo sci
+                      yield! (List.collect id nodes) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynModuleDecl.Let (_, bindings, range) ->
+                { Type = SynModuleDecl_Let
+                  Range = r range
                   Properties = p []
                   FsAstNode = ast }
-                :: (visitSynType synType)
-        | SynModuleDecl.Attributes (attrs, range) ->
-            { Type = SynModuleDecl_Attributes
-              Range = r range
-              Properties = p []
-              FsAstNode = ast }
-            :: (visitSynAttributeLists range attrs)
-        | SynModuleDecl.HashDirective (hash, range) ->
-            [ { Type = SynModuleDecl_HashDirective
-                Range = r range
-                Properties = p []
-                FsAstNode = ast }
-              visitParsedHashDirective hash ]
-        | SynModuleDecl.NamespaceFragment (moduleOrNamespace) ->
-            { Type = SynModuleDecl_NamespaceFragment
-              Range = noRange
-              Properties = p []
-              FsAstNode = ast }
-            :: (visitSynModuleOrNamespace moduleOrNamespace)
+                :: (bindings |> List.collect visitSynBinding)
+                |> finalContinuation
+            | SynModuleDecl.DoExpr (_, expr, range) ->
+                { Type = SynModuleDecl_DoExpr
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = ast }
+                :: visitSynExpr expr
+                |> finalContinuation
+            | SynModuleDecl.Types (typeDefs, range) ->
+                { Type = SynModuleDecl_Types
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = ast }
+                :: (typeDefs |> List.collect visitSynTypeDefn)
+                |> finalContinuation
+            | SynModuleDecl.Exception (exceptionDef, range) ->
+                { Type = SynModuleDecl_Exception
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = ast }
+                :: (visitSynExceptionDefn exceptionDef)
+                |> finalContinuation
+            | SynModuleDecl.Open (target, parentRange) ->
+                // we use the parent ranges here to match up with the trivia parsed
+                match target with
+                | SynOpenDeclTarget.ModuleOrNamespace (longIdent, _range) ->
+                    { Type = SynModuleDecl_Open
+                      Range = r parentRange
+                      Properties = p [ "longIdent" ==> li longIdent ]
+                      FsAstNode = ast }
+                    |> List.singleton
+                    |> finalContinuation
+                | SynOpenDeclTarget.Type (synType, _range) ->
+                    { Type = SynModuleDecl_OpenType
+                      Range = r parentRange
+                      Properties = p []
+                      FsAstNode = ast }
+                    :: (visitSynType synType)
+                    |> finalContinuation
+            | SynModuleDecl.Attributes (attrs, range) ->
+                { Type = SynModuleDecl_Attributes
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = ast }
+                :: (visitSynAttributeLists range attrs)
+                |> finalContinuation
+            | SynModuleDecl.HashDirective (hash, range) ->
+                [ { Type = SynModuleDecl_HashDirective
+                    Range = r range
+                    Properties = p []
+                    FsAstNode = ast }
+                  visitParsedHashDirective hash ]
+                |> finalContinuation
+            | SynModuleDecl.NamespaceFragment (moduleOrNamespace) ->
+                { Type = SynModuleDecl_NamespaceFragment
+                  Range = noRange
+                  Properties = p []
+                  FsAstNode = ast }
+                :: (visitSynModuleOrNamespace moduleOrNamespace)
+                |> finalContinuation
+
+        visit ast id
 
     and visitSynExpr (synExpr: SynExpr) : Node list =
-        match synExpr with
-        | SynExpr.Paren (expr, leftParenRange, rightParenRange, range) ->
-            { Type = SynExpr_Paren
-              Range = r range
-              Properties =
-                  p [ yield "leftParenRange" ==> r leftParenRange
-                      if rightParenRange.IsSome then
-                          yield "rightParenRange" ==> r rightParenRange.Value ]
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.Quote (operator, isRaw, quotedSynExpr, isFromQueryExpression, range) ->
-            { Type = SynExpr_Quote
-              Range = r range
-              Properties =
-                  p [ "isRaw" ==> isRaw
-                      "isFromQueryExpression" ==> isFromQueryExpression ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr operator
-                 yield! visitSynExpr quotedSynExpr ]
-        | SynExpr.Const (constant, range) ->
-            [ { Type = SynExpr_Const
-                Range = r range
-                Properties = p []
-                FsAstNode = synExpr }
-              visitSynConst range constant ]
-        | SynExpr.Typed (expr, typeName, range) ->
-            { Type = SynExpr_Typed
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr
-                 yield! visitSynType typeName ]
-        | SynExpr.Tuple (isStruct, exprs, commaRanges, range) ->
-            { Type = SynExpr_Tuple
-              Range = r range
-              Properties =
-                  p [ "isStruct" ==> isStruct
-                      "commaRanges" ==> (commaRanges |> List.map r) ]
-              FsAstNode = synExpr }
-            :: (exprs |> List.collect visitSynExpr)
-        | SynExpr.ArrayOrList (isList, exprs, range) ->
-            { Type = SynExpr_ArrayOrList
-              Range = r range
-              Properties = p [ "isList" ==> isList ]
-              FsAstNode = synExpr }
-            :: (exprs |> List.collect visitSynExpr)
-        | SynExpr.Record (_, _, recordFields, range) ->
-            { Type = SynExpr_Record
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (List.collect visitRecordField recordFields)
-        | SynExpr.AnonRecd (_, _, recordFields, range) ->
-            { Type = SynExpr_AnonRecd
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (List.collect visitAnonRecordField recordFields)
-        | SynExpr.New (isProtected, typeName, expr, range) ->
-            { Type = SynExpr_New
-              Range = r range
-              Properties = p [ "isProtected" ==> isProtected ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr
-                 yield! visitSynType typeName ]
-        | SynExpr.ObjExpr (objType, argOptions, bindings, extraImpls, newExprRange, range) ->
-            { Type = SynExpr_ObjExpr
-              Range = r range
-              Properties = p [ "newExprRange" ==> r newExprRange ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynType objType
-                 if argOptions.IsSome then
-                     yield! visitArgsOption argOptions.Value
-                 yield! extraImpls |> List.collect visitSynInterfaceImpl
-                 yield! bindings |> List.collect visitSynBinding ]
-        | SynExpr.While (_, whileExpr, doExpr, range) ->
-            { Type = SynExpr_While
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr whileExpr
-                 yield! visitSynExpr doExpr ]
-        | SynExpr.For (_, ident, identBody, _, toBody, doBody, range) ->
-            { Type = SynExpr_For
-              Range = r range
-              Properties = p [ "ident" ==> i ident ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr identBody
-                 yield! visitSynExpr toBody
-                 yield! visitSynExpr doBody ]
-        | SynExpr.ForEach (_, (SeqExprOnly seqExprOnly), isFromSource, pat, enumExpr, bodyExpr, range) ->
-            { Type = SynExpr_ForEach
-              Range = r range
-              Properties =
-                  p [ "isFromSource" ==> isFromSource
-                      "seqExprOnly" ==> seqExprOnly ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynPat pat
-                 yield! visitSynExpr enumExpr
-                 yield! visitSynExpr bodyExpr ]
-        | SynExpr.ArrayOrListOfSeqExpr (isArray, expr, range) ->
-            { Type = SynExpr_ArrayOrListOfSeqExpr
-              Range = r range
-              Properties = p [ "isArray" ==> isArray ]
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.CompExpr (isArrayOrList, isNotNakedRefCell, expr, range) ->
-            { Type = SynExpr_CompExpr
-              Range = r range
-              Properties =
-                  p [ "isArrayOrList" ==> isArrayOrList
-                      "isNotNakedRefCell" ==> isNotNakedRefCell ]
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.Lambda (fromMethod, inLambdaSeq, args, body, _parsedData, range) ->
-            { Type = SynExpr_Lambda
-              Range = r range
-              Properties =
-                  p [ "fromMethod" ==> fromMethod
-                      "inLambdaSeq" ==> inLambdaSeq ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynSimplePats args
-                 yield! visitSynExpr body ]
-        | SynExpr.MatchLambda (isExnMatch, _, matchClauses, _, range) ->
-            { Type = SynExpr_MatchLambda
-              Range = r range
-              Properties = p [ "isExnMatch" ==> isExnMatch ]
-              FsAstNode = synExpr }
-            :: (List.collect visitSynMatchClause matchClauses)
-        | SynExpr.Match (_, expr, clauses, range) ->
-            { Type = SynExpr_Match
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr
-                 yield! clauses |> List.collect visitSynMatchClause ]
-        | SynExpr.Do (expr, range) ->
-            { Type = SynExpr_Do
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.Assert (expr, range) ->
-            { Type = SynExpr_Assert
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.App (atomicFlag, isInfix, funcExpr, argExpr, range) ->
-            { Type = SynExpr_App
-              Range = r range
-              Properties =
-                  p [ "atomicFlag"
-                      ==> (match atomicFlag with
-                           | ExprAtomicFlag.Atomic -> "Atomic"
-                           | _ -> "Not Atomic")
-                      "isInfix" ==> isInfix ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr funcExpr
-                 yield! visitSynExpr argExpr ]
-        | SynExpr.TypeApp (expr, lESSrange, typeNames, commaRanges, gREATERrange, typeArgsRange, range) ->
-            { Type = SynExpr_TypeApp
-              Range = r range
-              Properties =
-                  p [ yield "lESSrange" ==> r lESSrange
-                      yield "commaRanges" ==> (commaRanges |> List.map r)
-                      if gREATERrange.IsSome then
-                          yield "gREATERrange" ==> r gREATERrange.Value
-                      yield "typeArgsRange" ==> r typeArgsRange ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr
-                 yield! typeNames |> List.collect visitSynType ]
-        | SynExpr.LetOrUse (isRecursive, isUse, bindings, body, range) ->
-            { Type = SynExpr_LetOrUse
-              Range = r range
-              Properties =
-                  p [ "isRecursive" ==> isRecursive
-                      "isUse" ==> isUse ]
-              FsAstNode = synExpr }
-            :: [ yield! bindings |> List.collect visitSynBinding
-                 yield! visitSynExpr body ]
-        | SynExpr.TryWith (tryExpr, tryRange, withCases, withRange, range, _, _) ->
-            { Type = SynExpr_TryWith
-              Range = r range
-              Properties =
-                  p [ "tryRange" ==> r tryRange
-                      "withRange" ==> r withRange ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr tryExpr
-                 yield! withCases |> List.collect visitSynMatchClause ]
-        | SynExpr.TryFinally (tryExpr, finallyExpr, range, _, _) ->
-            { Type = SynExpr_TryFinally
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr tryExpr
-                 yield! visitSynExpr finallyExpr ]
-        | SynExpr.Lazy (ex, range) ->
-            { Type = SynExpr_Lazy
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (visitSynExpr ex)
-        //        | Sequentials xs ->
-//            let rec cons xs =
-//                match xs with
-//                | [] -> failwith "should not happen" // expr2Opt is always Some in last item
-//                | ((isTrueSeq, expr1, expr2Opt, range) :: rest) ->
-//                    { Type = SynExpr_Sequential
-//                      Range = r range
-//                      Properties = p [ "isTrueSeq" ==> isTrueSeq ]
-//                      FsAstNode = synExpr
-//                      Childs =
-//                          [ yield visitSynExpr expr1
-//                            yield
-//                                expr2Opt
-//                                |> Option.map visitSynExpr
-//                                |> Option.defaultWith (fun () -> cons rest) ] }
-//
-//            cons xs
-        | SynExpr.Sequential (_, isTrueSeq, expr1, expr2, range) ->
-            { Type = SynExpr_Sequential
-              Range = r range
-              Properties = p [ "isTrueSeq" ==> isTrueSeq ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr1
-                 yield! visitSynExpr expr2 ]
-        | SynExpr.SequentialOrImplicitYield (seqPoint, expr1, expr2, ifNotStmt, range) ->
-            { Type = SynExpr_SequentialOrImplicitYield
-              Range = r range
-              FsAstNode = synExpr
-              Properties = p [ "seqPoint" ==> seqPoint ] }
-            :: [ yield! visitSynExpr expr1
-                 yield! visitSynExpr expr2
-                 yield! visitSynExpr ifNotStmt ]
-        | SynExpr.IfThenElse (ifExpr, thenExpr, elseExpr, _, isFromErrorRecovery, ifToThenRange, range) ->
-            { Type = SynExpr_IfThenElse
-              Range = r range
-              Properties =
-                  p [ "isFromErrorRecovery" ==> isFromErrorRecovery
-                      "ifToThenRange" ==> r ifToThenRange ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr ifExpr
-                 yield! visitSynExpr thenExpr
-                 if elseExpr.IsSome then
-                     yield! visitSynExpr elseExpr.Value ]
-        | SynExpr.Ident (id) ->
-            { Type = SynExpr_Ident
-              Range = (i id).Range
-              Properties = p [ "ident" ==> i id ]
-              FsAstNode = synExpr }
-            |> List.singleton
-        | SynExpr.LongIdent (isOptional, longDotId, _, range) ->
-            { Type = SynExpr_LongIdent
-              Range = r range
-              Properties =
-                  p [ "isOptional" ==> isOptional
-                      "longDotId" ==> lid longDotId ]
-              FsAstNode = synExpr }
-            :: (visitLongIdentWithDots longDotId)
-        | SynExpr.LongIdentSet (longDotId, expr, range) ->
-            { Type = SynExpr_LongIdentSet
-              Range = r range
-              Properties = p [ "longDotId" ==> lid longDotId ]
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.DotGet (expr, rangeOfDot, longDotId, range) ->
-            // Idents are collected as childs here to deal with unit test ``Fluent api with comments should remain on same lines``
-            let ids = visitLongIdentWithDots longDotId
+        let rec visit (synExpr: SynExpr) (finalContinuation: Node list -> Node list) : Node list =
+            match synExpr with
+            | SynExpr.Paren (expr, leftParenRange, rightParenRange, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        [ { Type = SynExpr_Paren
+                            Range = r range
+                            Properties =
+                                p [ yield "leftParenRange" ==> r leftParenRange
+                                    if rightParenRange.IsSome then
+                                        yield "rightParenRange" ==> r rightParenRange.Value ]
+                            FsAstNode = synExpr }
+                          yield! nodes ]
+                        |> finalContinuation)
+            | SynExpr.Quote (operator, isRaw, quotedSynExpr, isFromQueryExpression, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list =
+                    [ visit operator; visit quotedSynExpr ]
 
-            { Type = SynExpr_DotGet
-              Range = r range
-              Properties =
-                  p [ "rangeOfDot" ==> r rangeOfDot
-                      "longDotId" ==> lid longDotId ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr; yield! ids ]
-        | SynExpr.DotSet (expr, longDotId, e2, range) ->
-            { Type = SynExpr_DotSet
-              Range = r range
-              Properties = p [ "longDotId" ==> lid longDotId ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr
-                 yield! visitSynExpr e2 ]
-        | SynExpr.Set (e1, e2, range) ->
-            { Type = SynExpr_Set
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr e1
-                 yield! visitSynExpr e2 ]
-        | SynExpr.DotIndexedGet (objectExpr, indexExprs, dotRange, range) ->
-            { Type = SynExpr_DotIndexedGet
-              Range = r range
-              Properties = p [ "dotRange" ==> r dotRange ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr objectExpr
-                 yield! indexExprs |> List.collect visitSynIndexerArg ]
-        | SynExpr.DotIndexedSet (objectExpr, indexExprs, valueExpr, leftOfSetRange, dotRange, range) ->
-            { Type = SynExpr_DotIndexedSet
-              Range = r range
-              Properties =
-                  p [ "leftOfSetRange" ==> r leftOfSetRange
-                      "dotRange" ==> r dotRange ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr objectExpr
-                 yield! indexExprs |> List.collect visitSynIndexerArg
-                 yield! visitSynExpr valueExpr ]
-        | SynExpr.NamedIndexedPropertySet (longDotId, e1, e2, range) ->
-            { Type = SynExpr_NamedIndexedPropertySet
-              Range = r range
-              Properties = p [ "longDotId" ==> lid longDotId ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr e1
-                 yield! visitSynExpr e2 ]
-        | SynExpr.DotNamedIndexedPropertySet (expr, longDotId, e1, e2, range) ->
-            { Type = SynExpr_DotNamedIndexedPropertySet
-              Range = r range
-              Properties = p [ "longDotId" ==> lid longDotId ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr
-                 yield! visitSynExpr e1
-                 yield! visitSynExpr e2 ]
-        | SynExpr.TypeTest (expr, typeName, range) ->
-            { Type = SynExpr_TypeTest
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr
-                 yield! visitSynType typeName ]
-        | SynExpr.Upcast (expr, typeName, range) ->
-            { Type = SynExpr_Upcast
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr
-                 yield! visitSynType typeName ]
-        | SynExpr.Downcast (expr, typeName, range) ->
-            { Type = SynExpr_Downcast
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr
-                 yield! visitSynType typeName ]
-        | SynExpr.InferredUpcast (expr, range) ->
-            { Type = SynExpr_InferredUpcast
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.InferredDowncast (expr, range) ->
-            { Type = SynExpr_InferredDowncast
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.Null (range) ->
-            { Type = SynExpr_Null
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            |> List.singleton
-        | SynExpr.AddressOf (isByref, expr, refRange, range) ->
-            { Type = SynExpr_AddressOf
-              Range = r range
-              Properties =
-                  p [ "isByref" ==> isByref
-                      "refRange" ==> r refRange ]
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.TraitCall (typars, sign, expr, range) ->
-            { Type = SynExpr_TraitCall
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: [ yield! typars |> List.collect visitSynTypar
-                 yield! visitSynMemberSig sign
-                 yield! visitSynExpr expr ]
-        | SynExpr.JoinIn (expr, inrange, expr2, range) ->
-            { Type = SynExpr_JoinIn
-              Range = r range
-              Properties = p [ "inRange" ==> r inrange ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr
-                 yield! visitSynExpr expr2 ]
-        | SynExpr.ImplicitZero (range) ->
-            { Type = SynExpr_ImplicitZero
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            |> List.singleton
-        | SynExpr.YieldOrReturn (_, expr, range) ->
-            { Type = SynExpr_YieldOrReturn
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.YieldOrReturnFrom (_, expr, range) ->
-            { Type = SynExpr_YieldOrReturnFrom
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.LetOrUseBang (_, isUse, isFromSource, pat, rhsExpr, andBangs, body, range) ->
-            { Type = SynExpr_LetOrUseBang
-              Range = r range
-              Properties =
-                  p [ "isUse" ==> isUse
-                      "isFromSource" ==> isFromSource ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynPat pat
-                 yield! visitSynExpr rhsExpr
-                 yield!
-                     andBangs
-                     |> List.collect (fun (_, _, _, pat, body, _) -> visitSynPat pat @ (visitSynExpr body))
-                 yield! visitSynExpr body ]
-        | SynExpr.MatchBang (_, expr, clauses, range) ->
-            { Type = SynExpr_MatchBang
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr expr
-                 yield! clauses |> List.collect visitSynMatchClause ]
-        | SynExpr.DoBang (expr, range) ->
-            { Type = SynExpr_DoBang
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.LibraryOnlyILAssembly (_, _, _, _, range) ->
-            { Type = SynExpr_LibraryOnlyILAssembly
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            |> List.singleton
-        | SynExpr.LibraryOnlyStaticOptimization (_, _, _, range) ->
-            { Type = SynExpr_LibraryOnlyStaticOptimization
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            |> List.singleton
-        | SynExpr.LibraryOnlyUnionCaseFieldGet (expr, longId, _, range) ->
-            { Type = SynExpr_LibraryOnlyUnionCaseFieldGet
-              Range = r range
-              Properties = p [ "longId" ==> li longId ]
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.LibraryOnlyUnionCaseFieldSet (e1, longId, _, e2, range) ->
-            { Type = SynExpr_LibraryOnlyUnionCaseFieldSet
-              Range = r range
-              Properties = p [ "longId" ==> li longId ]
-              FsAstNode = synExpr }
-            :: [ yield! visitSynExpr e1
-                 yield! visitSynExpr e2 ]
-        | SynExpr.ArbitraryAfterError (debugStr, range) ->
-            { Type = SynExpr_ArbitraryAfterError
-              Range = r range
-              Properties = p [ "debugStr" ==> debugStr ]
-              FsAstNode = synExpr }
-            |> List.singleton
-        | SynExpr.FromParseError (expr, range) ->
-            { Type = SynExpr_FromParseError
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.DiscardAfterMissingQualificationAfterDot (expr, range) ->
-            { Type = SynExpr_DiscardAfterMissingQualificationAfterDot
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.Fixed (expr, range) ->
-            { Type = SynExpr_Fixed
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (visitSynExpr expr)
-        | SynExpr.InterpolatedString (parts, range) ->
-            { Type = SynExpr_InterpolatedString
-              Range = r range
-              Properties = p []
-              FsAstNode = synExpr }
-            :: (List.collect visitSynInterpolatedStringPart parts)
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynExpr_Quote
+                        Range = r range
+                        Properties =
+                            p [ "isRaw" ==> isRaw
+                                "isFromQueryExpression" ==> isFromQueryExpression ]
+                        FsAstNode = synExpr }
+                      yield! (List.collect id nodes) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.Const (constant, range) ->
+                [ { Type = SynExpr_Const
+                    Range = r range
+                    Properties = p []
+                    FsAstNode = synExpr }
+                  visitSynConst range constant ]
+                |> finalContinuation
+            | SynExpr.Typed (expr, typeName, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        [ { Type = SynExpr_Typed
+                            Range = r range
+                            Properties = p []
+                            FsAstNode = synExpr }
+                          yield! nodes
+                          yield! visitSynType typeName ]
+                        |> finalContinuation)
+            | SynExpr.Tuple (isStruct, exprs, commaRanges, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = exprs |> List.map visit
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynExpr_Tuple
+                        Range = r range
+                        Properties =
+                            p [ "isStruct" ==> isStruct
+                                "commaRanges" ==> (commaRanges |> List.map r) ]
+                        FsAstNode = synExpr }
+                      yield! (List.collect id nodes) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.ArrayOrList (isList, exprs, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = exprs |> List.map visit
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynExpr_ArrayOrList
+                        Range = r range
+                        Properties = p [ "isList" ==> isList ]
+                        FsAstNode = synExpr }
+                      yield! (List.collect id nodes) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.Record (_, _, recordFields, range) ->
+                { Type = SynExpr_Record
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = synExpr }
+                :: (List.collect visitRecordField recordFields)
+                |> finalContinuation
+            | SynExpr.AnonRecd (_, _, recordFields, range) ->
+                { Type = SynExpr_AnonRecd
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = synExpr }
+                :: (List.collect visitAnonRecordField recordFields)
+                |> finalContinuation
+            | SynExpr.New (isProtected, typeName, expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        [ { Type = SynExpr_New
+                            Range = r range
+                            Properties = p [ "isProtected" ==> isProtected ]
+                            FsAstNode = synExpr }
+                          yield! nodes
+                          yield! visitSynType typeName ]
+                        |> finalContinuation)
+            | SynExpr.ObjExpr (objType, argOptions, bindings, extraImpls, newExprRange, range) ->
+                { Type = SynExpr_ObjExpr
+                  Range = r range
+                  Properties = p [ "newExprRange" ==> r newExprRange ]
+                  FsAstNode = synExpr }
+                :: [ yield! visitSynType objType
+                     if argOptions.IsSome then
+                         yield! visitArgsOption argOptions.Value
+                     yield! extraImpls |> List.collect visitSynInterfaceImpl
+                     yield! bindings |> List.collect visitSynBinding ]
+                |> finalContinuation
+            | SynExpr.While (_, whileExpr, doExpr, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit whileExpr; visit doExpr ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynExpr_While
+                        Range = r range
+                        Properties = p []
+                        FsAstNode = synExpr }
+                      yield! (List.collect id nodes) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.For (_, ident, identBody, _, toBody, doBody, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list =
+                    [ visit identBody
+                      visit toBody
+                      visit doBody ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynExpr_For
+                        Range = r range
+                        Properties = p [ "ident" ==> i ident ]
+                        FsAstNode = synExpr }
+                      yield! (List.collect id nodes) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.ForEach (_, (SeqExprOnly seqExprOnly), isFromSource, pat, enumExpr, bodyExpr, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit enumExpr; visit bodyExpr ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynExpr_ForEach
+                        Range = r range
+                        Properties =
+                            p [ "isFromSource" ==> isFromSource
+                                "seqExprOnly" ==> seqExprOnly ]
+                        FsAstNode = synExpr }
+                      yield! visitSynPat pat
+                      yield! (List.collect id nodes) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.ArrayOrListOfSeqExpr (isArray, expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        [ { Type = SynExpr_ArrayOrListOfSeqExpr
+                            Range = r range
+                            Properties = p [ "isArray" ==> isArray ]
+                            FsAstNode = synExpr }
+                          yield! nodes ]
+                        |> finalContinuation)
+            | SynExpr.CompExpr (isArrayOrList, isNotNakedRefCell, expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_CompExpr
+                          Range = r range
+                          Properties =
+                              p [ "isArrayOrList" ==> isArrayOrList
+                                  "isNotNakedRefCell" ==> isNotNakedRefCell ]
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.Lambda (fromMethod, inLambdaSeq, args, body, _parsedData, range) ->
+                visit
+                    body
+                    (fun nodes ->
+                        [ { Type = SynExpr_Lambda
+                            Range = r range
+                            Properties =
+                                p [ "fromMethod" ==> fromMethod
+                                    "inLambdaSeq" ==> inLambdaSeq ]
+                            FsAstNode = synExpr }
+                          yield! visitSynSimplePats args
+                          yield! nodes ]
+                        |> finalContinuation)
+            | SynExpr.MatchLambda (isExnMatch, _, matchClauses, _, range) ->
+                { Type = SynExpr_MatchLambda
+                  Range = r range
+                  Properties = p [ "isExnMatch" ==> isExnMatch ]
+                  FsAstNode = synExpr }
+                :: (List.collect visitSynMatchClause matchClauses)
+                |> finalContinuation
+            | SynExpr.Match (_, expr, clauses, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        [ { Type = SynExpr_Match
+                            Range = r range
+                            Properties = p []
+                            FsAstNode = synExpr }
+                          yield! nodes
+                          yield! (List.collect visitSynMatchClause clauses) ]
+                        |> finalContinuation)
+            | SynExpr.Do (expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_Do
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.Assert (expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_Assert
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.App (atomicFlag, isInfix, funcExpr, argExpr, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit funcExpr; visit argExpr ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynExpr_App
+                      Range = r range
+                      Properties =
+                          p [ "atomicFlag"
+                              ==> (match atomicFlag with
+                                   | ExprAtomicFlag.Atomic -> "Atomic"
+                                   | _ -> "Not Atomic")
+                              "isInfix" ==> isInfix ]
+                      FsAstNode = synExpr }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.TypeApp (expr, lESSrange, typeNames, commaRanges, gREATERrange, typeArgsRange, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        [ { Type = SynExpr_TypeApp
+                            Range = r range
+                            Properties =
+                                p [ yield "lESSrange" ==> r lESSrange
+                                    yield "commaRanges" ==> (commaRanges |> List.map r)
+                                    if gREATERrange.IsSome then
+                                        yield "gREATERrange" ==> r gREATERrange.Value
+                                    yield "typeArgsRange" ==> r typeArgsRange ]
+                            FsAstNode = synExpr }
+                          yield! nodes
+                          yield! (List.collect visitSynType typeNames) ]
+                        |> finalContinuation)
+            | SynExpr.LetOrUse (isRecursive, isUse, bindings, body, range) ->
+                visit
+                    body
+                    (fun nodes ->
+                        [ { Type = SynExpr_LetOrUse
+                            Range = r range
+                            Properties =
+                                p [ "isRecursive" ==> isRecursive
+                                    "isUse" ==> isUse ]
+                            FsAstNode = synExpr }
+                          yield! bindings |> List.collect visitSynBinding
+                          yield! nodes ]
+                        |> finalContinuation)
+            | SynExpr.TryWith (tryExpr, tryRange, withCases, withRange, range, _, _) ->
+                visit
+                    tryExpr
+                    (fun nodes ->
+                        [ { Type = SynExpr_TryWith
+                            Range = r range
+                            Properties =
+                                p [ "tryRange" ==> r tryRange
+                                    "withRange" ==> r withRange ]
+                            FsAstNode = synExpr }
+                          yield! nodes
+                          yield! withCases |> List.collect visitSynMatchClause ]
+                        |> finalContinuation)
+            | SynExpr.TryFinally (tryExpr, finallyExpr, range, _, _) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit tryExpr; visit finallyExpr ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynExpr_TryFinally
+                      Range = r range
+                      Properties = p []
+                      FsAstNode = synExpr }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.Lazy (ex, range) ->
+                visit
+                    ex
+                    (fun nodes ->
+                        { Type = SynExpr_Lazy
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            //        | Sequentials xs ->
+            //            let rec cons xs =
+            //                match xs with
+            //                | [] -> failwith "should not happen" // expr2Opt is always Some in last item
+            //                | ((isTrueSeq, expr1, expr2Opt, range) :: rest) ->
+            //                    { Type = SynExpr_Sequential
+            //                      Range = r range
+            //                      Properties = p [ "isTrueSeq" ==> isTrueSeq ]
+            //                      FsAstNode = synExpr
+            //                      Childs =
+            //                          [ yield visitSynExpr expr1
+            //                            yield
+            //                                expr2Opt
+            //                                |> Option.map visitSynExpr
+            //                                |> Option.defaultWith (fun () -> cons rest) ] }
+            //
+            //            cons xs
+            | SynExpr.Sequential (_, isTrueSeq, expr1, expr2, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit expr1; visit expr2 ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynExpr_Sequential
+                      Range = r range
+                      Properties = p [ "isTrueSeq" ==> isTrueSeq ]
+                      FsAstNode = synExpr }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.SequentialOrImplicitYield (seqPoint, expr1, expr2, ifNotStmt, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list =
+                    [ visit expr1
+                      visit expr2
+                      visit ifNotStmt ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynExpr_SequentialOrImplicitYield
+                      Range = r range
+                      FsAstNode = synExpr
+                      Properties = p [ "seqPoint" ==> seqPoint ] }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.IfThenElse (ifExpr, thenExpr, elseExpr, _, isFromErrorRecovery, ifToThenRange, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list =
+                    [ visit ifExpr
+                      visit thenExpr
+                      yield! (Option.toList elseExpr |> List.map visit) ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynExpr_IfThenElse
+                      Range = r range
+                      Properties =
+                          p [ "isFromErrorRecovery" ==> isFromErrorRecovery
+                              "ifToThenRange" ==> r ifToThenRange ]
+                      FsAstNode = synExpr }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.Ident (id) ->
+                { Type = SynExpr_Ident
+                  Range = (i id).Range
+                  Properties = p [ "ident" ==> i id ]
+                  FsAstNode = synExpr }
+                |> List.singleton
+                |> finalContinuation
+            | SynExpr.LongIdent (isOptional, longDotId, _, range) ->
+                { Type = SynExpr_LongIdent
+                  Range = r range
+                  Properties =
+                      p [ "isOptional" ==> isOptional
+                          "longDotId" ==> lid longDotId ]
+                  FsAstNode = synExpr }
+                :: (visitLongIdentWithDots longDotId)
+                |> finalContinuation
+            | SynExpr.LongIdentSet (longDotId, expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_LongIdentSet
+                          Range = r range
+                          Properties = p [ "longDotId" ==> lid longDotId ]
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.DotGet (expr, rangeOfDot, longDotId, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        [ { Type = SynExpr_DotGet
+                            Range = r range
+                            Properties =
+                                p [ "rangeOfDot" ==> r rangeOfDot
+                                    "longDotId" ==> lid longDotId ]
+                            FsAstNode = synExpr }
+                          yield! nodes
+                          // Idents are collected as childs here to deal with unit test ``Fluent api with comments should remain on same lines``
+                          yield! (visitLongIdentWithDots longDotId) ]
+                        |> finalContinuation)
+            | SynExpr.DotSet (expr, longDotId, e2, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit expr; visit e2 ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynExpr_DotSet
+                      Range = r range
+                      Properties = p [ "longDotId" ==> lid longDotId ]
+                      FsAstNode = synExpr }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.Set (e1, e2, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit e1; visit e2 ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynExpr_Set
+                      Range = r range
+                      Properties = p []
+                      FsAstNode = synExpr }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.DotIndexedGet (objectExpr, indexExprs, dotRange, range) ->
+                visit
+                    objectExpr
+                    (fun nodes ->
+                        [ { Type = SynExpr_DotIndexedGet
+                            Range = r range
+                            Properties = p [ "dotRange" ==> r dotRange ]
+                            FsAstNode = synExpr }
+                          yield! nodes
+                          yield! indexExprs |> List.collect visitSynIndexerArg ]
+                        |> finalContinuation)
+            | SynExpr.DotIndexedSet (objectExpr, indexExprs, valueExpr, leftOfSetRange, dotRange, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit objectExpr; visit valueExpr ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynExpr_DotIndexedSet
+                        Range = r range
+                        Properties =
+                            p [ "leftOfSetRange" ==> r leftOfSetRange
+                                "dotRange" ==> r dotRange ]
+                        FsAstNode = synExpr }
+                      yield! (List.collect id nodes)
+                      yield! indexExprs |> List.collect visitSynIndexerArg ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.NamedIndexedPropertySet (longDotId, e1, e2, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit e1; visit e2 ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynExpr_NamedIndexedPropertySet
+                      Range = r range
+                      Properties = p [ "longDotId" ==> lid longDotId ]
+                      FsAstNode = synExpr }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.DotNamedIndexedPropertySet (expr, longDotId, e1, e2, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit expr; visit e1; visit e2 ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynExpr_DotNamedIndexedPropertySet
+                      Range = r range
+                      Properties = p [ "longDotId" ==> lid longDotId ]
+                      FsAstNode = synExpr }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.TypeTest (expr, typeName, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        [ { Type = SynExpr_TypeTest
+                            Range = r range
+                            Properties = p []
+                            FsAstNode = synExpr }
+                          yield! nodes
+                          yield! visitSynType typeName ]
+                        |> finalContinuation)
+            | SynExpr.Upcast (expr, typeName, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        [ { Type = SynExpr_Upcast
+                            Range = r range
+                            Properties = p []
+                            FsAstNode = synExpr }
+                          yield! nodes
+                          yield! visitSynType typeName ]
+                        |> finalContinuation)
+            | SynExpr.Downcast (expr, typeName, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        [ { Type = SynExpr_Downcast
+                            Range = r range
+                            Properties = p []
+                            FsAstNode = synExpr }
+                          yield! nodes
+                          yield! visitSynType typeName ]
+                        |> finalContinuation)
+            | SynExpr.InferredUpcast (expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_InferredUpcast
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.InferredDowncast (expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_InferredDowncast
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.Null (range) ->
+                { Type = SynExpr_Null
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = synExpr }
+                |> List.singleton
+                |> finalContinuation
+            | SynExpr.AddressOf (isByref, expr, refRange, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_AddressOf
+                          Range = r range
+                          Properties =
+                              p [ "isByref" ==> isByref
+                                  "refRange" ==> r refRange ]
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.TraitCall (typars, sign, expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        [ { Type = SynExpr_TraitCall
+                            Range = r range
+                            Properties = p []
+                            FsAstNode = synExpr }
+                          yield! typars |> List.collect visitSynTypar
+                          yield! visitSynMemberSig sign
+                          yield! nodes ]
+                        |> finalContinuation)
+            | SynExpr.JoinIn (expr, inrange, expr2, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit expr; visit expr2 ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynExpr_JoinIn
+                      Range = r range
+                      Properties = p [ "inRange" ==> r inrange ]
+                      FsAstNode = synExpr }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.ImplicitZero (range) ->
+                { Type = SynExpr_ImplicitZero
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = synExpr }
+                |> List.singleton
+                |> finalContinuation
+            | SynExpr.YieldOrReturn (_, expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_YieldOrReturn
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.YieldOrReturnFrom (_, expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_YieldOrReturnFrom
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.LetOrUseBang (_, isUse, isFromSource, pat, rhsExpr, andBangs, body, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list =
+                    [ visit rhsExpr
+                      visit body
+                      yield! (List.map (fun (_, _, _, _, body, _) -> visit body) andBangs) ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynExpr_LetOrUseBang
+                        Range = r range
+                        Properties =
+                            p [ "isUse" ==> isUse
+                                "isFromSource" ==> isFromSource ]
+                        FsAstNode = synExpr }
+                      yield! visitSynPat pat
+                      yield! (List.collect id nodes)
+                      yield!
+                          andBangs
+                          |> List.collect (fun (_, _, _, pat, _, _) -> visitSynPat pat) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.MatchBang (_, expr, clauses, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        [ { Type = SynExpr_MatchBang
+                            Range = r range
+                            Properties = p []
+                            FsAstNode = synExpr }
+                          yield! nodes
+                          yield! clauses |> List.collect visitSynMatchClause ]
+                        |> finalContinuation)
+            | SynExpr.DoBang (expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_DoBang
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.LibraryOnlyILAssembly (_, _, _, _, range) ->
+                { Type = SynExpr_LibraryOnlyILAssembly
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = synExpr }
+                |> List.singleton
+                |> finalContinuation
+            | SynExpr.LibraryOnlyStaticOptimization (_, _, _, range) ->
+                { Type = SynExpr_LibraryOnlyStaticOptimization
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = synExpr }
+                |> List.singleton
+                |> finalContinuation
+            | SynExpr.LibraryOnlyUnionCaseFieldGet (expr, longId, _, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_LibraryOnlyUnionCaseFieldGet
+                          Range = r range
+                          Properties = p [ "longId" ==> li longId ]
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.LibraryOnlyUnionCaseFieldSet (e1, longId, _, e2, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit e1; visit e2 ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynExpr_LibraryOnlyUnionCaseFieldSet
+                      Range = r range
+                      Properties = p [ "longId" ==> li longId ]
+                      FsAstNode = synExpr }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynExpr.ArbitraryAfterError (debugStr, range) ->
+                { Type = SynExpr_ArbitraryAfterError
+                  Range = r range
+                  Properties = p [ "debugStr" ==> debugStr ]
+                  FsAstNode = synExpr }
+                |> List.singleton
+                |> finalContinuation
+            | SynExpr.FromParseError (expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_FromParseError
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.DiscardAfterMissingQualificationAfterDot (expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_DiscardAfterMissingQualificationAfterDot
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.Fixed (expr, range) ->
+                visit
+                    expr
+                    (fun nodes ->
+                        { Type = SynExpr_Fixed
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = synExpr }
+                        :: nodes
+                        |> finalContinuation)
+            | SynExpr.InterpolatedString (parts, range) ->
+                { Type = SynExpr_InterpolatedString
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = synExpr }
+                :: (List.collect visitSynInterpolatedStringPart parts)
+                |> finalContinuation
+
+        visit synExpr id
 
     and visitSynInterpolatedStringPart (synInterpolatedStringPart: SynInterpolatedStringPart) =
         match synInterpolatedStringPart with
@@ -1061,143 +1323,203 @@ module private Ast =
             :: [ yield! visitSynType typeName
                  yield! (visitSynAttributeLists range attrs) ]
 
-    // TODO: tail
     and visitSynPat (sp: SynPat) : Node list =
-        match sp with
-        | SynPat.Const (sc, range) ->
-            [ { Type = SynPat_Const
-                Range = r range
-                Properties = p []
-                FsAstNode = sp }
-              visitSynConst range sc ]
-        | SynPat.Wild (range) ->
-            { Type = SynPat_Wild
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            |> List.singleton
-        | SynPat.Named (synPat, ident, isSelfIdentifier, access, range) ->
-            { Type = SynPat_Named
-              Range = r range
-              Properties =
-                  p [ yield "ident" ==> i ident
-                      yield "isSelfIdentifier" ==> isSelfIdentifier
-                      if access.IsSome then
-                          yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = sp }
-            :: (visitSynPat synPat)
-        | SynPat.Typed (synPat, synType, range) ->
-            { Type = SynPat_Typed
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: [ yield! visitSynPat synPat
-                 yield! visitSynType synType ]
-        | SynPat.Attrib (synPat, attrs, range) ->
-            { Type = SynPat_Attrib
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: [ yield! visitSynPat synPat
-                 yield! (visitSynAttributeLists range attrs) ]
-        | SynPat.Or (synPat, synPat2, range) ->
-            { Type = SynPat_Or
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: [ yield! visitSynPat synPat
-                 yield! visitSynPat synPat2 ]
-        | SynPat.Ands (pats, range) ->
-            { Type = SynPat_Ands
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: (List.collect visitSynPat pats)
-        | SynPat.LongIdent (longDotId, ident, svtd, ctorArgs, access, range) ->
-            { Type = SynPat_LongIdent
-              Range = r range
-              Properties =
-                  p [ if ident.IsSome then
-                          yield "ident" ==> (ident.Value |> i)
-                      yield "longDotId" ==> lid longDotId
-                      if access.IsSome then
-                          yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = sp }
-            :: [ if svtd.IsSome then
-                     yield! visitSynValTyparDecls svtd.Value
-                 yield! visitSynConstructorArgs ctorArgs ]
-        | SynPat.Tuple (isStruct, pats, range) ->
-            { Type = SynPat_Tuple
-              Range = r range
-              Properties = p [ "isStruct" ==> isStruct ]
-              FsAstNode = sp }
-            :: (List.collect visitSynPat pats)
-        | SynPat.Paren (pat, range) ->
-            { Type = SynPat_Paren
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: visitSynPat pat
-        | SynPat.ArrayOrList (_, pats, range) ->
-            { Type = SynPat_ArrayOrList
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: (List.collect visitSynPat pats)
-        | SynPat.Record (pats, range) ->
-            { Type = SynPat_Record
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: (List.collect (snd >> visitSynPat) pats)
-        | SynPat.Null (range) ->
-            { Type = SynPat_Null
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            |> List.singleton
-        | SynPat.OptionalVal (ident, range) ->
-            { Type = SynPat_OptionalVal
-              Range = r range
-              Properties = p [ "ident" ==> i ident ]
-              FsAstNode = sp }
-            |> List.singleton
-        | SynPat.IsInst (typ, range) ->
-            { Type = SynPat_IsInst
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: visitSynType typ
-        | SynPat.QuoteExpr (expr, range) ->
-            { Type = SynPat_QuoteExpr
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: visitSynExpr expr
-        | SynPat.DeprecatedCharRange (c, c2, range) ->
-            { Type = SynPat_DeprecatedCharRange
-              Range = r range
-              Properties = p [ "c" ==> c; "c2" ==> c2 ]
-              FsAstNode = sp }
-            |> List.singleton
-        | SynPat.InstanceMember (ident, ident2, ident3, access, range) ->
-            { Type = SynPat_InstanceMember
-              Range = r range
-              Properties =
-                  p [ yield "ident" ==> i ident
-                      yield "ident2" ==> i ident2
-                      if ident3.IsSome then
-                          yield "ident3" ==> (ident3.Value |> i)
-                      if access.IsSome then
-                          yield "access" ==> (access.Value |> visitSynAccess) ]
-              FsAstNode = sp }
-            |> List.singleton
-        | SynPat.FromParseError (pat, range) ->
-            { Type = SynPat_FromParseError
-              Range = r range
-              Properties = p []
-              FsAstNode = sp }
-            :: (visitSynPat pat)
+        let rec visit (sp: SynPat) (finalContinuation: Node list -> Node list) : Node list =
+            match sp with
+            | SynPat.Const (sc, range) ->
+                [ { Type = SynPat_Const
+                    Range = r range
+                    Properties = p []
+                    FsAstNode = sp }
+                  visitSynConst range sc ]
+                |> finalContinuation
+            | SynPat.Wild (range) ->
+                { Type = SynPat_Wild
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = sp }
+                |> List.singleton
+                |> finalContinuation
+            | SynPat.Named (synPat, ident, isSelfIdentifier, access, range) ->
+                visit
+                    synPat
+                    (fun nodes ->
+                        { Type = SynPat_Named
+                          Range = r range
+                          Properties =
+                              p [ yield "ident" ==> i ident
+                                  yield "isSelfIdentifier" ==> isSelfIdentifier
+                                  if access.IsSome then
+                                      yield "access" ==> (access.Value |> visitSynAccess) ]
+                          FsAstNode = sp }
+                        :: nodes
+                        |> finalContinuation)
+            | SynPat.Typed (synPat, synType, range) ->
+                visit
+                    synPat
+                    (fun nodes ->
+                        [ { Type = SynPat_Typed
+                            Range = r range
+                            Properties = p []
+                            FsAstNode = sp }
+                          yield! nodes
+                          yield! (visitSynType synType) ]
+                        |> finalContinuation)
+            | SynPat.Attrib (synPat, attrs, range) ->
+                visit
+                    synPat
+                    (fun nodes ->
+                        [ { Type = SynPat_Attrib
+                            Range = r range
+                            Properties = p []
+                            FsAstNode = sp }
+                          yield! nodes
+                          yield! (visitSynAttributeLists range attrs) ]
+                        |> finalContinuation)
+            | SynPat.Or (synPat, synPat2, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = [ visit synPat; visit synPat2 ]
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynPat_Or
+                        Range = r range
+                        Properties = p []
+                        FsAstNode = sp }
+                      yield! (List.collect id nodes) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynPat.Ands (pats, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = pats |> List.map visit
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    { Type = SynPat_Ands
+                      Range = r range
+                      Properties = p []
+                      FsAstNode = sp }
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynPat.LongIdent (longDotId, ident, svtd, ctorArgs, access, range) ->
+                { Type = SynPat_LongIdent
+                  Range = r range
+                  Properties =
+                      p [ if ident.IsSome then
+                              yield "ident" ==> (ident.Value |> i)
+                          yield "longDotId" ==> lid longDotId
+                          if access.IsSome then
+                              yield "access" ==> (access.Value |> visitSynAccess) ]
+                  FsAstNode = sp }
+                :: [ if svtd.IsSome then
+                         yield! visitSynValTyparDecls svtd.Value
+                     yield! visitSynConstructorArgs ctorArgs ]
+                |> finalContinuation
+            | SynPat.Tuple (isStruct, pats, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = pats |> List.map visit
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynPat_Tuple
+                        Range = r range
+                        Properties = p [ "isStruct" ==> isStruct ]
+                        FsAstNode = sp }
+                      yield! (List.collect id nodes) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynPat.Paren (pat, range) ->
+                visit
+                    pat
+                    (fun nodes ->
+                        { Type = SynPat_Paren
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = sp }
+                        :: nodes
+                        |> finalContinuation)
+            | SynPat.ArrayOrList (_, pats, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = pats |> List.map visit
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynPat_ArrayOrList
+                        Range = r range
+                        Properties = p []
+                        FsAstNode = sp }
+                      yield! (List.collect id nodes) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynPat.Record (pats, range) ->
+                let continuations : ((Node list -> Node list) -> Node list) list = pats |> List.map (snd >> visit)
+
+                let finalContinuation (nodes: Node list list) : Node list =
+                    [ { Type = SynPat_Record
+                        Range = r range
+                        Properties = p []
+                        FsAstNode = sp }
+                      yield! (List.collect id nodes) ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+            | SynPat.Null (range) ->
+                { Type = SynPat_Null
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = sp }
+                |> List.singleton
+                |> finalContinuation
+            | SynPat.OptionalVal (ident, range) ->
+                { Type = SynPat_OptionalVal
+                  Range = r range
+                  Properties = p [ "ident" ==> i ident ]
+                  FsAstNode = sp }
+                |> List.singleton
+                |> finalContinuation
+            | SynPat.IsInst (typ, range) ->
+                { Type = SynPat_IsInst
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = sp }
+                :: visitSynType typ
+                |> finalContinuation
+            | SynPat.QuoteExpr (expr, range) ->
+                { Type = SynPat_QuoteExpr
+                  Range = r range
+                  Properties = p []
+                  FsAstNode = sp }
+                :: visitSynExpr expr
+                |> finalContinuation
+            | SynPat.DeprecatedCharRange (c, c2, range) ->
+                { Type = SynPat_DeprecatedCharRange
+                  Range = r range
+                  Properties = p [ "c" ==> c; "c2" ==> c2 ]
+                  FsAstNode = sp }
+                |> List.singleton
+                |> finalContinuation
+            | SynPat.InstanceMember (ident, ident2, ident3, access, range) ->
+                { Type = SynPat_InstanceMember
+                  Range = r range
+                  Properties =
+                      p [ yield "ident" ==> i ident
+                          yield "ident2" ==> i ident2
+                          if ident3.IsSome then
+                              yield "ident3" ==> (ident3.Value |> i)
+                          if access.IsSome then
+                              yield "access" ==> (access.Value |> visitSynAccess) ]
+                  FsAstNode = sp }
+                |> List.singleton
+                |> finalContinuation
+            | SynPat.FromParseError (pat, range) ->
+                visit
+                    pat
+                    (fun nodes ->
+                        { Type = SynPat_FromParseError
+                          Range = r range
+                          Properties = p []
+                          FsAstNode = sp }
+                        :: nodes
+                        |> finalContinuation)
+
+        visit sp id
 
     and visitSynConstructorArgs (ctorArgs: SynArgPats) : Node list =
         match ctorArgs with
@@ -1814,7 +2136,7 @@ module private Ast =
 
 let astToNode (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list) : Node list =
     let children =
-        [ yield! List.collect Ast.visit mdls
+        [ yield! List.collect Ast.visitSynModuleOrNamespace mdls
           yield! List.map Ast.visitParsedHashDirective hds ]
 
     { Type = File_
