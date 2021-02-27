@@ -148,12 +148,12 @@ let ``preserve compile directive between piped functions, 512`` () = ...
 - Give your PR a meaningful title. Make sure it covers the change you are introducing in Fantomas.
 
     For example:
-*"Fix bug 1404"* is a poor title as it does not tell the maintainers what changed to the codebase.<br />
-*"Don't double unindent when record has access modifier"* is better as informs what exactly has changed.
-- Add a link to the issue you are solved by using [a keyword](https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) in the PR description.<br />
+*"Fix bug 1404"* is a poor title as it does not tell the maintainers what changed in the codebase.<br />
+*"Don't double unindent when record has an access modifier"* is better as it informs us what exactly has changed.
+- Add a link to the issue you are solving by using [a keyword](https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) in the PR description.<br />
 *"Fixes #1404"* does the trick quite well.
-- Not mandatory but when fixing a bug, consider using the `fix-issue-number` as git branch name.<br />
-For example, `git checkout -b fix-1404`
+- Not mandatory, but when fixing a bug consider using `fix-<issue-number>` as the git branch name.<br />
+For example, `git checkout -b fix-1404`.
 
 ### Small steps
 
