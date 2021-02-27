@@ -7,11 +7,6 @@ open Fantomas
 
 type Id = { Ident: string; Range: Range }
 
-//type Node =
-//    { Type: FsAstType
-//      Range: Range
-//      LinesBetweenParent: int }
-
 module Helpers =
     let i (id: Ident) : Id =
         { Ident = id.idText
