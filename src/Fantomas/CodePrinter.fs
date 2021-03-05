@@ -1591,10 +1591,11 @@ and genExpr astContext synExpr ctx =
                 +> sepArrow
                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
             )
-        | MatchLambda (sp, _) ->
+        | MatchLambda (cs, _) ->
             !- "function "
             +> leaveNodeTokenByName synExpr.Range FUNCTION
-            +> colPre sepNln sepNln sp (genClause astContext true)
+            +> sepNln
+            +> genClauses astContext cs
         | Match (e, cs) ->
             let withRange =
                 ctx.MkRange e.Range.Start (List.head cs).Range.Start
@@ -1629,10 +1630,7 @@ and genExpr astContext synExpr ctx =
                                  +> tokN withRange WITH (!- " with"))
                                 ctx)
 
-            atCurrentColumn (
-                genMatchExpr
-                +> colPre sepNln sepNln cs (genClause astContext true)
-            )
+            atCurrentColumn (genMatchExpr +> sepNln +> genClauses astContext cs)
         | MatchBang (e, cs) ->
             let withRange =
                 ctx.MkRange e.Range.Start (List.head cs).Range.Start
@@ -1667,10 +1665,7 @@ and genExpr astContext synExpr ctx =
                                  +> tokN withRange WITH (!- " with"))
                                 ctx)
 
-            atCurrentColumn (
-                genMatchExpr
-                +> colPre sepNln sepNln cs (genClause astContext true)
-            )
+            atCurrentColumn (genMatchExpr +> sepNln +> genClauses astContext cs)
         | TraitCall (tps, msg, e) ->
             genTyparList astContext tps
             +> sepColon
@@ -2107,8 +2102,10 @@ and genExpr astContext synExpr ctx =
             let genClause (astContext: ASTContext) (b: bool) (c: SynMatchClause) =
                 ifElse
                     (hasCommentBeforeClause c)
-                    (indent +> genClause astContext b c +> unindent)
-                    (genClause astContext b c)
+                    (indent
+                     +> genClause astContext b true c
+                     +> unindent)
+                    (genClause astContext b true c)
 
             match cs with
             | [ SynMatchClause.Clause (PatOr _, _, _, _, _) ]
@@ -2427,12 +2424,19 @@ and genExpr astContext synExpr ctx =
                                 | Some (_, te, _) -> ctx.MkRange te.Range.End synExpr.Range.End
                                 | None -> synExpr.Range
 
+                            let shouldIndent (ctx: Context) =
+                                if ctx.Config.KeepIndentInBranch then
+                                    let es = List.map (fun (_, e, _, _, _) -> e) es
+                                    shouldIndentBranch e4 (e2 :: es)
+                                else
+                                    true
+
                             onlyIf (List.isNotEmpty elfis) sepNln
                             +> genElse correctedElseRange
-                            +> indent
+                            +> onlyIfCtx shouldIndent indent
                             +> sepNln
                             +> genExpr astContext e4
-                            +> unindent)
+                            +> onlyIfCtx shouldIndent unindent)
 
                 let shortIfThenElif (ctx: Context) =
                     // Try and format if each conditional follow the one-liner rules
@@ -4348,13 +4352,14 @@ and genInterfaceImpl astContext (InterfaceImpl (t, bs, range)) =
             bs
         +> unindent
 
-and genClause astContext hasBar (Clause (p, e, eo) as ce) =
-    let clauseBody e (ctx: Context) =
-        (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)) ctx
-
+and genClause astContext hasBar (shouldIndent: bool) (Clause (p, e, eo) as ce) =
     let arrowRange (ctx: Context) = ctx.MkRange p.Range.End e.Range.Start
 
-    let body = clauseBody e
+    let body =
+        if shouldIndent then
+            autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        else
+            autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     let astCtx =
         { astContext with
@@ -4389,6 +4394,30 @@ and genClause astContext hasBar (Clause (p, e, eo) as ce) =
     genTriviaBeforeClausePipe p.Range
     +> (onlyIf hasBar sepBar +> pat +> body
         |> genTriviaFor SynMatchClause_Clause ce.Range)
+
+and genClauses astContext cs =
+    let lastClauseIndex = cs.Length - 1
+
+    coli
+        sepNln
+        cs
+        (fun idx e ctx ->
+            let shouldIndent =
+                if ctx.Config.KeepIndentInBranch
+                   && idx = lastClauseIndex then
+                    let (Clause (_, e, _)) = e
+
+                    let es =
+                        cs
+                        |> List.rev
+                        |> List.map (fun (Clause (_, e, _)) -> e)
+                        |> List.tail
+
+                    shouldIndentBranch e es
+                else
+                    true
+
+            genClause astContext true shouldIndent e ctx)
 
 /// Each multiline member definition has a pre and post new line.
 and genMemberDefnList astContext nodes =

@@ -634,6 +634,8 @@ let internal ifElseCtx cond (f1: Context -> Context) f2 (ctx: Context) = if cond
 /// apply f only when cond is true
 let internal onlyIf cond f ctx = if cond then f ctx else ctx
 
+let internal onlyIfCtx cond f ctx = if cond ctx then f ctx else ctx
+
 let internal onlyIfNot cond f ctx = if cond then ctx else f ctx
 
 let internal whenShortIndent f ctx =

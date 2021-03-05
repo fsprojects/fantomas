@@ -1712,3 +1712,20 @@ let (|AppParenArg|_|) e =
     | AppParenTupleArg t -> Choice1Of2 t |> Some
     | AppParenSingleArg s -> Choice2Of2 s |> Some
     | _ -> None
+
+let shouldIndentBranch e es =
+    let isShortIfBranch e =
+        match e with
+        | ConstExpr _
+        | Sequential (_, _, true) -> true
+        | _ -> false
+
+    let isLongElseBranch e =
+        match e with
+        | LetOrUses _ -> true
+        | _ -> false
+
+    not (
+        List.forall isShortIfBranch es
+        && isLongElseBranch e
+    )
