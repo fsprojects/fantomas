@@ -1085,6 +1085,27 @@ type IExports =
 """
 
 [<Test>]
+let ``comment newline comment`` () =
+    formatSourceString
+        false
+        """
+// foo
+
+// bar
+let x = 8
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// foo
+
+// bar
+let x = 8
+"""
+
+[<Test>]
 let ``comments before no warn should not be removed, 1220`` () =
     formatSourceString
         false
@@ -1141,4 +1162,23 @@ if stateSub.Value |> State.hasChanges then
         pushed
         |> Option.bind Dto.changesAsImport
         |> Option.iter (fun changes -> update (Import changes) |> ignore)
+"""
+
+[<Test>]
+let ``very long comment on single line`` () =
+    formatSourceString
+        false
+        """
+// Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ipsum nulla, pellentesque eget maximus et, facilisis eu nibh. Suspendisse convallis scelerisque urna, id fringilla dolor mollis id. Etiam dictum pellentesque nisl, vel ullamcorper neque accumsan eget. Pellentesque at mattis magna. Cras varius nisl nisi, sed iaculis tortor auctor quis. Sed luctus eget ante in dapibus. Cras ac leo nibh. Sed commodo, ex vel interdum egestas, risus lorem volutpat sapien, at pellentesque lectus ipsum non libero. Pellentesque malesuada scelerisque augue at blandit. Fusce in nisl sapien. In hac habitasse platea dictumst. Aenean tristique nibh ac tortor laoreet, rutrum aliquam elit rutrum. In vitae dignissim neque.
+// Dollar
+let meh =   7
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ipsum nulla, pellentesque eget maximus et, facilisis eu nibh. Suspendisse convallis scelerisque urna, id fringilla dolor mollis id. Etiam dictum pellentesque nisl, vel ullamcorper neque accumsan eget. Pellentesque at mattis magna. Cras varius nisl nisi, sed iaculis tortor auctor quis. Sed luctus eget ante in dapibus. Cras ac leo nibh. Sed commodo, ex vel interdum egestas, risus lorem volutpat sapien, at pellentesque lectus ipsum non libero. Pellentesque malesuada scelerisque augue at blandit. Fusce in nisl sapien. In hac habitasse platea dictumst. Aenean tristique nibh ac tortor laoreet, rutrum aliquam elit rutrum. In vitae dignissim neque.
+// Dollar
+let meh = 7
 """

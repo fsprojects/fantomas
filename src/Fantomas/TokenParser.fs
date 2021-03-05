@@ -9,6 +9,7 @@ open FSharp.Compiler.SourceCodeServices
 
 let private whiteSpaceTag = 4
 let private lineCommentTag = 8
+let private commentTag = 3
 let private greaterTag = 160
 
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
@@ -599,6 +600,44 @@ let ``only whitespaces were found in the remainder of the line`` lineNumber toke
             && t.TokenInfo.Tag <> whiteSpaceTag)
     |> not
 
+let private (|LineComment|_|) (token: Token) =
+    if token.TokenInfo.Tag = lineCommentTag then
+        Some token
+    else
+        None
+
+let private (|NoCommentToken|_|) (token: Token) =
+    if token.TokenInfo.Tag <> lineCommentTag
+       && token.TokenInfo.Tag <> commentTag then
+        Some token
+    else
+        None
+
+let private (|WhiteSpaceToken|_|) (token: Token) =
+    if token.TokenInfo.Tag = whiteSpaceTag then
+        Some token
+    else
+        None
+
+let private (|LineComments|_|) (tokens: Token list) =
+    let rec collect (tokens: Token list) (lastLineNumber: int) (commentTokens: Token list) =
+        match tokens with
+        | LineComment lc :: rest when (lc.LineNumber <= lastLineNumber + 1) ->
+            collect rest lc.LineNumber (lc :: commentTokens)
+        | _ -> commentTokens
+
+    match tokens with
+    | LineComment h :: _ ->
+        collect tokens (h.LineNumber) []
+        |> fun commentTokens -> Some(List.rev commentTokens, List.skip commentTokens.Length tokens)
+    | _ -> None
+
+let private collectComment (commentTokens: Token list) =
+    commentTokens
+    |> List.groupBy (fun t -> t.LineNumber)
+    |> List.map (snd >> getContentFromTokens)
+    |> String.concat "\n"
+
 let rec private getTriviaFromTokensThemSelves
     (mkRange: MkRange)
     (allTokens: Token list)
@@ -606,50 +645,62 @@ let rec private getTriviaFromTokensThemSelves
     foundTrivia
     =
     match tokens with
-    | headToken :: rest when (headToken.TokenInfo.Tag = lineCommentTag) ->
-        let lineCommentTokens =
-            Seq.zip
-                rest
-                (headToken :: rest
-                 |> List.map (fun x -> x.LineNumber))
-            |> Seq.takeWhile
-                (fun (t, currentLineNumber) ->
-                    t.TokenInfo.Tag = lineCommentTag
-                    && t.LineNumber <= (currentLineNumber + 1))
-            |> Seq.map fst
-            |> Seq.toList
-
+    | (NoCommentToken nct) :: WhiteSpaceToken _ :: (LineComments (commentTokens, nextTokens)) ->
         let comment =
-            headToken
-            |> List.prependItem lineCommentTokens
-            |> List.groupBy (fun t -> t.LineNumber)
-            |> List.map (snd >> getContentFromTokens)
-            |> String.concat "\n"
+            let commentText = collectComment commentTokens
+            let firstCommentToken = List.head commentTokens
 
-        let nextTokens =
-            List.length lineCommentTokens
-            |> fun length -> List.skip length rest
+            (if nct.LineNumber < firstCommentToken.LineNumber then
+                 LineCommentOnSingleLine commentText
+             else
+                 LineCommentAfterSourceCode commentText)
+            |> Comment
 
         let range =
-            let lastToken = List.tryLast lineCommentTokens
+            let headToken = List.head commentTokens
+            let lastToken = List.tryLast commentTokens
             getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
 
         let info =
-            let toLineComment =
-                allTokens
-                |> List.exists
-                    (fun t ->
-                        t.LineNumber = headToken.LineNumber
-                        && t.TokenInfo.Tag <> whiteSpaceTag
-                        && t.TokenInfo.RightColumn < headToken.TokenInfo.LeftColumn)
-                |> fun e ->
-                    if e then
-                        LineCommentAfterSourceCode
-                    else
-                        LineCommentOnSingleLine
+            Trivia.Create comment range
+            |> List.appendItem foundTrivia
 
-            let comment = toLineComment comment |> Comment
+        getTriviaFromTokensThemSelves mkRange allTokens (nct :: nextTokens) info
+    | (NoCommentToken nct) :: (LineComments (commentTokens, nextTokens)) ->
+        let comment =
+            let commentText = collectComment commentTokens
+            let firstCommentToken = List.head commentTokens
 
+            (if nct.LineNumber < firstCommentToken.LineNumber
+                || (nct.TokenInfo.Tag = whiteSpaceTag
+                    && firstCommentToken.LineNumber = nct.LineNumber) then
+                 LineCommentOnSingleLine commentText
+             else
+                 LineCommentAfterSourceCode commentText)
+            |> Comment
+
+        let range =
+            let headToken = List.head commentTokens
+            let lastToken = List.tryLast commentTokens
+            getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
+
+        let info =
+            Trivia.Create comment range
+            |> List.appendItem foundTrivia
+
+        getTriviaFromTokensThemSelves mkRange allTokens (nct :: nextTokens) info
+    | LineComments (commentTokens, nextTokens) ->
+        let comment =
+            collectComment commentTokens
+            |> LineCommentOnSingleLine
+            |> Comment
+
+        let range =
+            let headToken = List.head commentTokens
+            let lastToken = List.tryLast commentTokens
+            getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
+
+        let info =
             Trivia.Create comment range
             |> List.appendItem foundTrivia
 
