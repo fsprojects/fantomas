@@ -31,15 +31,6 @@ let hasParenInPat =
     | PatParen _ -> true
     | _ -> false
 
-let getByLookup range f x =
-    fun ctx ->
-        if ctx.Config.StrictMode then
-            f x ctx
-        else
-            match lookup range ctx with
-            | Some x' -> str x' ctx
-            | None -> f x ctx
-
 // A few active patterns for printing purpose
 
 let rec (|DoExprAttributesL|_|) =

@@ -160,8 +160,6 @@ type internal Context =
       BreakOn: string -> bool
       /// The original source string to query as a last resort
       Content: string
-      /// Positions of new lines in the original source string
-      Positions: int []
       TriviaMainNodes: Map<FsAstType, TriviaNode list>
       TriviaTokenNodes: Map<FsTokenType, TriviaNode list>
       RecordBraceStart: int list
@@ -175,7 +173,6 @@ type internal Context =
           BreakLines = true
           BreakOn = (fun _ -> false)
           Content = ""
-          Positions = [||]
           TriviaMainNodes = Map.empty
           TriviaTokenNodes = Map.empty
           RecordBraceStart = []
@@ -190,12 +187,6 @@ type internal Context =
         (maybeAst: ParsedInput option)
         =
         let content = String.normalizeNewLine content
-
-        let positions =
-            content.Split('\n')
-            |> Seq.map (fun s -> String.length s + 1)
-            |> Seq.scan (+) 0
-            |> Seq.toArray
 
         let tokens =
             TokenParser.tokenize defines hashTokens content
@@ -234,7 +225,6 @@ type internal Context =
         { Context.Default with
               Config = config
               Content = content
-              Positions = positions
               TriviaMainNodes = triviaByNodes
               TriviaTokenNodes = triviaByTokenNames
               FileName = fileName }
@@ -1146,7 +1136,8 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     | StringContent _
     | IdentOperatorAsWord _
     | IdentBetweenTicks _
-    | CharContent _ -> sepNone // don't print here but somewhere in CodePrinter
+    | CharContent _
+    | EmbeddedIL _ -> sepNone // don't print here but somewhere in CodePrinter
     | Directive (s)
     | Comment (LineCommentOnSingleLine s) ->
         (ifElse addNewline sepNln sepNone)
