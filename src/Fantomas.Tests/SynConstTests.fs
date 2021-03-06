@@ -299,10 +299,12 @@ let f (c: char) =
 let ``hex escape in string literal should be preserved, 1508`` () =
     formatSourceString
         false
-        """let nullString = "\x00"
+        """let hexEscape = "\x00"
+let controlEscapes = "\a \b \f \v"
 """
         config
     |> should
         equal
-        """let nullString = "\x00"
+        """let hexEscape = "\x00"
+let controlEscapes = "\a \b \f \v"
 """
