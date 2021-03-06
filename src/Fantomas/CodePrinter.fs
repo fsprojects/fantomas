@@ -15,10 +15,7 @@ open Fantomas.TriviaContext
 
 /// This type consists of contextual information which is important for formatting
 type ASTContext =
-    {
-      /// Original file name without extension of the parsed AST
-      TopLevelModuleName: string
-      /// Current node is the first child of its parent
+    { /// Current node is the first child of its parent
       IsFirstChild: bool
       /// Current node is a subnode deep down in an interface
       InterfaceRange: Range option
@@ -35,8 +32,7 @@ type ASTContext =
       /// Inside a SynPat of MatchClause
       IsInsideMatchClausePattern: bool }
     static member Default =
-        { TopLevelModuleName = ""
-          IsFirstChild = false
+        { IsFirstChild = false
           InterfaceRange = None
           IsCStylePattern = false
           IsNakedRange = false
@@ -1688,8 +1684,22 @@ and genExpr astContext synExpr ctx =
             +> genExpr astContext e
 
         | Paren (_, ILEmbedded r, _, _) ->
-            // Just write out original code inside (# ... #)
-            fun ctx -> !- (defaultArg (lookup r ctx) "") ctx
+            fun ctx ->
+                let expr =
+                    Map.tryFindOrEmptyList SynExpr_LibraryOnlyILAssembly ctx.TriviaMainNodes
+                    |> List.choose
+                        (fun tn ->
+                            if RangeHelpers.rangeEq r tn.Range then
+                                match tn.ContentItself with
+                                | Some (EmbeddedIL eil) -> Some eil
+                                | _ -> None
+                            else
+                                None)
+                    |> List.tryHead
+                    |> Option.map (!-)
+                    |> Option.defaultValue sepNone
+
+                expr ctx
         | Paren (lpr, e, rpr, pr) ->
             match e with
             | MultilineString _ ->
@@ -4086,9 +4096,6 @@ and genField astContext prefix (Field (ats, px, ao, isStatic, isMutable, t, so) 
     +> t
     |> genTriviaFor Field_ range
 
-and genTypeByLookup astContext (t: SynType) =
-    getByLookup t.Range (genType astContext false) t
-
 and genType astContext outerBracket t =
     let rec loop current =
         match current with
@@ -4115,6 +4122,7 @@ and genType astContext outerBracket t =
         // Do similar for tuples after an arrow
         | TFun (t, TTuple ts) -> loop t +> sepArrow +> loopTTupleList ts
         | TFuns ts -> col sepArrow ts loop
+        | TApp (TLongIdent ("nativeptr"), [ t ], true) when (astContext.IsCStylePattern) -> loop t -- "*"
         | TApp (t, ts, isPostfix) ->
             let postForm =
                 match ts with
@@ -4144,12 +4152,14 @@ and genType astContext outerBracket t =
         | TWithGlobalConstraints (t, tcs) ->
             loop t
             +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
+        | SynType.LongIdent (LongIdentWithDots.LongIdentWithDots ([ lid ], _)) when
+            (astContext.IsCStylePattern && lid.idText = "[]") -> !- "[]"
         | TLongIdent s ->
             ifElseCtx
                 (fun ctx ->
                     not ctx.Config.StrictMode
                     && astContext.IsCStylePattern)
-                (genTypeByLookup astContext t)
+                (!-(if s = "unit" then "void" else s))
                 (!-s)
             |> genTriviaFor Ident_ current.Range
         | TAnonRecord (isStruct, fields) ->
@@ -4656,12 +4666,13 @@ and genPat astContext pat =
         // We lookup sources to get extern types since it has quite many exceptions compared to normal F# types
         ifElse
             astContext.IsCStylePattern
-            (genTypeByLookup astContext t
+            (genType astContext false t
              +> sepSpace
              +> genPat astContext p)
             (genPat astContext p
              +> sepColon
              +> atCurrentColumnIndent (genType astContext false t))
+
     | PatNamed (ao, PatNullary PatWild, s) ->
         opt sepSpace ao genAccess
         +> infixOperatorFromTrivia pat.Range s

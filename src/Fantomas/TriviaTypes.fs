@@ -85,6 +85,7 @@ type TriviaContent =
     | Newline
     | Directive of directive: string
     | CharContent of string
+    | EmbeddedIL of string
 
 type Trivia =
     { Item: TriviaContent

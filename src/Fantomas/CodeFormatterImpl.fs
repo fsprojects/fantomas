@@ -14,7 +14,6 @@ open Fantomas.FormatConfig
 open Fantomas.SourceOrigin
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
-open System.IO
 
 let private getSourceString (source: SourceOrigin) =
     match source with
@@ -378,9 +377,6 @@ let isValidFSharpCode (checker: FSharpChecker) (parsingOptions: FSharpParsingOpt
     }
 
 let formatWith ast defines hashTokens formatContext config =
-    let moduleName =
-        Path.GetFileNameWithoutExtension formatContext.FileName
-
     let sourceCodeOrEmptyString =
         if String.IsNullOrWhiteSpace formatContext.Source then
             String.Empty
@@ -392,10 +388,7 @@ let formatWith ast defines hashTokens formatContext config =
             Context.Context.Create config defines formatContext.FileName hashTokens sourceCodeOrEmptyString (Some ast)
 
         context
-        |> genParsedInput
-            { ASTContext.Default with
-                  TopLevelModuleName = moduleName }
-            ast
+        |> genParsedInput ASTContext.Default ast
         |> Dbg.tee (fun ctx -> printfn "%A" ctx.WriterEvents)
         |> Context.dump
 

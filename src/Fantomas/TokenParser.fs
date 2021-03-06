@@ -638,6 +638,33 @@ let private collectComment (commentTokens: Token list) =
     |> List.map (snd >> getContentFromTokens)
     |> String.concat "\n"
 
+let private (|EmbeddedILTokens|_|) (tokens: Token list) =
+    match tokens with
+    | { TokenInfo = { TokenName = "LPAREN"
+                      CharClass = FSharpTokenCharKind.Delimiter } } :: { TokenInfo = { TokenName = "HASH"
+                                                                                       CharClass = FSharpTokenCharKind.Delimiter } } :: { TokenInfo = { TokenName = "WHITESPACE"
+                                                                                                                                                        CharClass = FSharpTokenCharKind.WhiteSpace } } :: rest ->
+        let embeddedTokens =
+            tokens
+            |> List.takeWhile
+                (fun t ->
+                    not (
+                        t.TokenInfo.CharClass = FSharpTokenCharKind.Delimiter
+                        && t.TokenInfo.TokenName = "RPAREN"
+                    ))
+
+        let lastTokens =
+            embeddedTokens.[(embeddedTokens.Length - 2)..]
+
+        match lastTokens with
+        | [ { TokenInfo = { TokenName = "WHITESPACE"
+                            CharClass = FSharpTokenCharKind.WhiteSpace } };
+            { TokenInfo = { TokenName = "HASH"
+                            CharClass = FSharpTokenCharKind.Delimiter } } ] ->
+            Some(List.take (embeddedTokens.Length + 1) tokens, rest)
+        | _ -> None
+    | _ -> None
+
 let rec private getTriviaFromTokensThemSelves
     (mkRange: MkRange)
     (allTokens: Token list)
@@ -876,6 +903,23 @@ let rec private getTriviaFromTokensThemSelves
 
         getTriviaFromTokensThemSelves mkRange allTokens rest info
 
+    | EmbeddedILTokens (embeddedTokens, rest) ->
+        let content =
+            embeddedTokens
+            |> List.map (fun t -> t.Content)
+            |> String.concat String.Empty
+
+        let range =
+            let startT = embeddedTokens.Head
+            let endT = List.last embeddedTokens
+            // There is a one off problem in the range of SynExpr_LibraryOnlyILAssembly
+            mkRange (startT.LineNumber, startT.TokenInfo.LeftColumn) (endT.LineNumber, endT.TokenInfo.RightColumn + 1)
+
+        let info =
+            Trivia.Create(EmbeddedIL(content)) range
+            |> List.prependItem foundTrivia
+
+        getTriviaFromTokensThemSelves mkRange allTokens rest info
     | _ :: rest -> getTriviaFromTokensThemSelves mkRange allTokens rest foundTrivia
 
     | [] -> foundTrivia

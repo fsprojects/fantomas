@@ -513,6 +513,15 @@ let private addTriviaToTriviaNode
                 && t.Range.StartLine = range.StartLine)
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some iNode) triviaNodes
 
+    | { Item = EmbeddedIL _ as eil
+        Range = range } ->
+        triviaNodes
+        |> List.tryFind
+            (fun t ->
+                match t.Type with
+                | MainNode (SynExpr_LibraryOnlyILAssembly) -> RangeHelpers.rangeEq t.Range range
+                | _ -> false)
+        |> updateTriviaNode (fun tn -> tn.ContentItself <- Some eil) triviaNodes
     | _ -> triviaNodes
 
 let private triviaNodeIsNotEmpty (triviaNode: TriviaNodeAssigner) =
