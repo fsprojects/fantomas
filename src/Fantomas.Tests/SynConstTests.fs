@@ -294,3 +294,15 @@ let f (c: char) =
     | '\u0000'
     | _ -> ()
 """
+
+[<Test>]
+let ``hex escape in string literal should be preserved, 1508`` () =
+    formatSourceString
+        false
+        """let nullString = "\x00"
+"""
+        config
+    |> should
+        equal
+        """let nullString = "\x00"
+"""
