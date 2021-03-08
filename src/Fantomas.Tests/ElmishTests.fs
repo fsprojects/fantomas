@@ -1290,3 +1290,37 @@ let html =
                                                           (* meh *)
                                                            ] ] ] ]
 """
+
+[<Test>]
+let ``empty single list long expression, 1510`` () =
+    formatSourceString
+        false
+        """
+[<ReactComponent>]
+let Dashboard () =
+    Html.div [
+        Html.div []
+        Html.div [
+            Html.text "hola muy buenas"
+        ]
+    ]
+"""
+        { config with
+              RecordMultilineFormatter = Fantomas.FormatConfig.MultilineFormatterType.NumberOfItems
+              MaxArrayOrListWidth = 20
+              MaxElmishWidth = 10
+              SingleArgumentWebMode = true
+              MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+[<ReactComponent>]
+let Dashboard () =
+    Html.div [
+        Html.div []
+        Html.div [
+            Html.text "hola muy buenas"
+        ]
+    ]
+"""

@@ -1090,17 +1090,18 @@ and genExpr astContext synExpr ctx =
                             | _ -> false)
                             (Map.tryFindOrEmptyList closingTokenType ctx.TriviaTokenNodes)
 
+                    let hasChildren = List.isNotEmpty children
+
                     atCurrentColumn (
                         !-identifier
                         +> sepSpace
                         +> tokN openingTokenRange openTokenType (ifElse isArray sepOpenAFixed sepOpenLFixed)
-                        +> indent
-                        +> sepNln
+                        +> onlyIf hasChildren (indent +> sepNln)
                         +> col sepNln children (genExpr astContext)
                         +> onlyIf hasBlockCommentBeforeClosingToken (sepNln +> unindent)
                         +> enterNodeTokenByName closingTokenRange closingTokenType
                         +> onlyIfNot hasBlockCommentBeforeClosingToken unindent
-                        +> sepNlnUnlessLastEventIsNewline
+                        +> onlyIf hasChildren sepNlnUnlessLastEventIsNewline
                         +> ifElse isArray sepCloseAFixed sepCloseLFixed
                         +> leaveNodeTokenByName closingTokenRange closingTokenType
                     )
