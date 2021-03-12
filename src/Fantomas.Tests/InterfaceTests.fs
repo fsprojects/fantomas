@@ -372,7 +372,7 @@ type IFoo =
     abstract Blah : foo : string -> bar : string -> baz : string -> int
 """
         { config with
-              MaxLineLength = 60
+              MaxLineLength = 50
               SpaceBeforeColon = true }
     |> prepend newline
     |> should
@@ -442,7 +442,7 @@ type IFoo =
     abstract Bar : i : int -> a : string * foo : int -> string
 """
         { config with
-              MaxLineLength = 60
+              MaxLineLength = 50
               SpaceBeforeColon = true }
     |> prepend newline
     |> should

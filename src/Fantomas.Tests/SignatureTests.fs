@@ -1199,3 +1199,26 @@ type C =
     /// def
     member P2 : int
 """
+
+[<Test>]
+let ``long val signature, 1515`` () =
+    formatSourceString
+        true
+        """
+namespace Bug
+
+val create : something_really_long : unit -> another_really_long_thing : unit -> and_another_to_make_the_line_long_enough : unit -> unit
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Bug
+
+val create :
+  something_really_long: unit ->
+  another_really_long_thing: unit ->
+  and_another_to_make_the_line_long_enough: unit ->
+  unit
+"""
