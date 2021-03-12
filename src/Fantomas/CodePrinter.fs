@@ -4377,12 +4377,8 @@ and genClause astContext hasBar (Clause (p, e, eo) as ce) =
         +> fun ctx -> leaveNodeTokenByName (arrowRange ctx) RARROW ctx
 
     genTriviaBeforeClausePipe p.Range
-    +> ifElse
-        hasBar
-        (sepBar +> atCurrentColumnWithPrepend pat body
-         |> genTriviaFor SynMatchClause_Clause ce.Range)
-        (pat +> body
-         |> genTriviaFor SynMatchClause_Clause ce.Range)
+    +> (onlyIf hasBar sepBar +> pat +> body
+        |> genTriviaFor SynMatchClause_Clause ce.Range)
 
 /// Each multiline member definition has a pre and post new line.
 and genMemberDefnList astContext nodes =
