@@ -587,8 +587,8 @@ match x with
         """
 match x with
 | Some y ->
-    let z = 1
-    Some(y + z)
+  let z = 1
+  Some(y + z)
 | None -> None
 """
 
@@ -1386,4 +1386,27 @@ match!
     with
 | "" -> x
 | _ -> failwith ""
+"""
+
+[<Test>]
+let ``indented one step from the match/|., 1501`` () =
+    formatSourceString
+        false
+        """
+match x with
+| Some y ->
+    // meh
+    y
+| None -> 42
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| Some y ->
+  // meh
+  y
+| None -> 42
 """

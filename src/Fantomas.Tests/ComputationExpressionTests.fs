@@ -1609,25 +1609,25 @@ let rec loop () =
 
     match msg with
     | Handle (eventSource, command, reply) ->
-        let! stream = eventSource |> eventStore.GetStream
+      let! stream = eventSource |> eventStore.GetStream
 
-        let newEvents =
-          stream
-          |> Result.map (
-            asEvents
-            >> behaviour command
-            >> enveloped eventSource
-          )
+      let newEvents =
+        stream
+        |> Result.map (
+          asEvents
+          >> behaviour command
+          >> enveloped eventSource
+        )
 
-        let! result =
-          newEvents
-          |> function
-          | Ok events -> eventStore.Append events
-          | Error err -> async { return Error err}
+      let! result =
+        newEvents
+        |> function
+        | Ok events -> eventStore.Append events
+        | Error err -> async { return Error err}
 
-        do reply.Reply result
+      do reply.Reply result
 
-        return! loop ()
+      return! loop ()
   }
 """
 
@@ -2199,11 +2199,11 @@ type ProjectController(checker: FSharpChecker) =
     async {
       match Environment.workspaceLoadDelay () with
       | delay when delay > TimeSpan.Zero ->
-          do!
-            Async.Sleep(
-              Environment.workspaceLoadDelay().TotalMilliseconds
-              |> int
-            )
+        do!
+          Async.Sleep(
+            Environment.workspaceLoadDelay().TotalMilliseconds
+            |> int
+          )
       | _ -> ()
 
       return true
@@ -2237,11 +2237,11 @@ type ProjectController(checker: FSharpChecker) =
     async {
       match Environment.workspaceLoadDelay () with
       | delay when delay > TimeSpan.Zero ->
-          do
-            NonAsync.Sleep(
-              Environment.workspaceLoadDelay().TotalMilliseconds
-              |> int
-            )
+        do
+          NonAsync.Sleep(
+            Environment.workspaceLoadDelay().TotalMilliseconds
+            |> int
+          )
       | _ -> ()
 
       return true
