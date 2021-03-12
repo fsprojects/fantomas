@@ -131,18 +131,11 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.Const (constant, range) ->
-                [ mkNode SynExpr_Const range
-                  visitSynConst range constant ]
+                visitSynConst range constant
+                |> List.singleton
                 |> finalContinuation
             | SynExpr.Typed (expr, typeName, _) ->
-                visit
-                    expr
-                    (fun nodes ->
-                        //                        { Type = SynExpr_Typed
-//                           Range = r range
-//                           Properties = Map.empty
-//                            }
-                        nodes @ visitSynType typeName |> finalContinuation)
+                visit expr (fun nodes -> nodes @ visitSynType typeName |> finalContinuation)
             | SynExpr.Tuple (_, exprs, _, range) ->
                 let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     exprs |> List.map visit
@@ -227,9 +220,6 @@ module private Ast =
                         mkNode SynExpr_ArrayOrListOfSeqExpr range :: nodes
                         |> finalContinuation)
             | SynExpr.CompExpr (_, _, expr, _) -> visit expr finalContinuation
-            //                        { Type = SynExpr_CompExpr
-//                          Range = r range
-//                          Properties = Map.empty }
             | SynExpr.Lambda (_, _, args, body, _parsedData, range) ->
                 visit
                     body
@@ -284,12 +274,6 @@ module private Ast =
                 visit
                     body
                     (fun nodes ->
-                        //                          { Type = SynExpr_LetOrUse
-//                            Range = r range
-//                            Properties =
-//                                p [ "isRecursive" ==> isRecursive
-//                                    "isUse" ==> isUse ]
-//                             }
                         (List.collect visitSynBinding bindings) @ nodes
                         |> finalContinuation)
             | SynExpr.TryWith (tryExpr, _, withCases, _, range, _, _) ->
@@ -321,10 +305,6 @@ module private Ast =
                     [ visit expr1; visit expr2 ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    //                    { Type = SynExpr_Sequential
-//                      Range = r range
-//                      Properties = Map.empty
-//                       }
                     (List.collect id nodes) |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
@@ -671,10 +651,6 @@ module private Ast =
     and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNodeAssigner list =
         match typeDefSig with
         | TypeDefnSig (sci, synTypeDefnSigReprs, memberSig, _) ->
-            //            { Type = TypeDefnSig_
-//              Range = r range
-//              Properties = Map.empty
-//              FsAstNode = typeDefSig }
             [ yield! visitSynComponentInfo sci
               yield! visitSynTypeDefnSigRepr synTypeDefnSigReprs
               yield! (memberSig |> List.collect visitSynMemberSig) ]
@@ -682,18 +658,9 @@ module private Ast =
     and visitSynTypeDefnSigRepr (stdr: SynTypeDefnSigRepr) : TriviaNodeAssigner list =
         match stdr with
         | SynTypeDefnSigRepr.ObjectModel (kind, members, _) ->
-            //            { Type = SynTypeDefnSigRepr_ObjectModel
-//              Range = r range
-//              Properties = Map.empty
-//              FsAstNode = stdr }
             visitSynTypeDefnKind kind
             @ (members |> List.collect visitSynMemberSig)
-        | SynTypeDefnSigRepr.Simple (simpleRepr, _) ->
-            //            { Type = SynTypeDefnSigRepr_ObjectModel
-//              Range = r range
-//              Properties = Map.empty
-//              FsAstNode = stdr }
-            (visitSynTypeDefnSimpleRepr simpleRepr)
+        | SynTypeDefnSigRepr.Simple (simpleRepr, _) -> (visitSynTypeDefnSimpleRepr simpleRepr)
         | SynTypeDefnSigRepr.Exception (exceptionRepr) -> visitSynExceptionDefnRepr exceptionRepr
 
     and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNodeAssigner list =
@@ -859,8 +826,7 @@ module private Ast =
             : TriviaNodeAssigner list =
             match sp with
             | SynPat.Const (sc, range) ->
-                [ mkNode SynPat_Const range
-                  visitSynConst range sc ]
+                List.singleton (visitSynConst range sc)
                 |> finalContinuation
             | SynPat.Wild (range) ->
                 mkNode SynPat_Wild range
@@ -996,18 +962,9 @@ module private Ast =
     and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : TriviaNodeAssigner list =
         match stdr with
         | SynTypeDefnRepr.ObjectModel (kind, members, _) ->
-            //            { Type = SynTypeDefnRepr_ObjectModel
-//              Range = r range
-//              Properties = Map.empty
-//              FsAstNode = stdr }
             visitSynTypeDefnKind kind
             @ (members |> List.collect visitSynMemberDefn)
-        | SynTypeDefnRepr.Simple (simpleRepr, _) ->
-            //            { Type = SynTypeDefnRepr_Simple
-//              Range = r range
-//              Properties = Map.empty
-//              FsAstNode = stdr }
-            visitSynTypeDefnSimpleRepr simpleRepr
+        | SynTypeDefnRepr.Simple (simpleRepr, _) -> visitSynTypeDefnSimpleRepr simpleRepr
         | SynTypeDefnRepr.Exception (exceptionRepr) -> visitSynExceptionDefnRepr exceptionRepr
 
     and visitSynTypeDefnKind (kind: SynTypeDefnKind) : TriviaNodeAssigner list =
@@ -1098,10 +1055,11 @@ module private Ast =
 
     and visitSynEnumCase (sec: SynEnumCase) : TriviaNodeAssigner list =
         match sec with
-        | EnumCase (attrs, ident, _, _, range) ->
+        | EnumCase (attrs, ident, value, _, range) ->
             [ yield mkNode EnumCase_ range
               yield! (visitSynAttributeLists range attrs)
-              yield visitIdent ident ]
+              yield visitIdent ident
+              yield visitSynConst range value ]
 
     and visitSynField (sfield: SynField) : TriviaNodeAssigner list =
         match sfield with
@@ -1239,7 +1197,7 @@ module private Ast =
         visit st id
 
     and visitSynConst (parentRange: Range) (sc: SynConst) : TriviaNodeAssigner =
-        let t =
+        let t sc =
             match sc with
             | SynConst.Bool _ -> SynConst_Bool
             | SynConst.Unit _ -> SynConst_Unit
@@ -1263,7 +1221,13 @@ module private Ast =
             | SynConst.UInt16s _ -> SynConst_UInt16s
             | SynConst.Measure _ -> SynConst_Measure
 
-        mkNode t (sc.Range parentRange)
+        match sc with
+        | SynConst.Measure (n, SynMeasure.Seq (_, mr)) ->
+            let numberRange =
+                Range.mkRange mr.FileName parentRange.Start (Pos.mkPos mr.StartLine (mr.StartColumn - 1))
+
+            mkNode (t n) numberRange
+        | _ -> mkNode (t sc) (sc.Range parentRange)
 
     and visitSynValInfo (svi: SynValInfo) =
         match svi with

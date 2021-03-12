@@ -225,12 +225,36 @@ let synMemberDefnToFsAstType =
     | SynMemberDefn.NestedType _ -> SynMemberDefn_NestedType
     | SynMemberDefn.AutoProperty _ -> SynMemberDefn_AutoProperty
 
-let synExprToFsAstType =
+let synConstToFsAstType =
+    function
+    | SynConst.Bool _ -> SynConst_Bool
+    | SynConst.Unit _ -> SynConst_Unit
+    | SynConst.SByte _ -> SynConst_SByte
+    | SynConst.Byte _ -> SynConst_Byte
+    | SynConst.Int16 _ -> SynConst_Int16
+    | SynConst.UInt16 _ -> SynConst_UInt16
+    | SynConst.Int32 _ -> SynConst_Int32
+    | SynConst.UInt32 _ -> SynConst_UInt32
+    | SynConst.Int64 _ -> SynConst_Int64
+    | SynConst.UInt64 _ -> SynConst_UInt64
+    | SynConst.IntPtr _ -> SynConst_IntPtr
+    | SynConst.UIntPtr _ -> SynConst_UIntPtr
+    | SynConst.Single _ -> SynConst_Single
+    | SynConst.Double _ -> SynConst_Double
+    | SynConst.Char _ -> SynConst_Char
+    | SynConst.Decimal _ -> SynConst_Decimal
+    | SynConst.UserNum _ -> SynConst_UserNum
+    | SynConst.String _ -> SynConst_String
+    | SynConst.Bytes _ -> SynConst_Bytes
+    | SynConst.UInt16s _ -> SynConst_UInt16s
+    | SynConst.Measure _ -> SynConst_Measure
+
+let rec synExprToFsAstType =
     function
     | SynExpr.YieldOrReturn _ -> SynExpr_YieldOrReturn
     | SynExpr.IfThenElse _ -> SynExpr_IfThenElse
     | SynExpr.LetOrUseBang _ -> SynExpr_LetOrUseBang
-    | SynExpr.Const _ -> SynExpr_Const
+    | SynExpr.Const (c, _) -> synConstToFsAstType c
     | SynExpr.Lambda _ -> SynExpr_Lambda
     | SynExpr.Ident _ -> SynExpr_Ident
     | SynExpr.App _ -> SynExpr_App
@@ -245,19 +269,26 @@ let synExprToFsAstType =
     | SynExpr.New _ -> SynExpr_New
     | SynExpr.Quote _ -> SynExpr_Quote
     | SynExpr.DotIndexedSet _ -> SynExpr_DotIndexedSet
-    | SynExpr.LetOrUse _ -> SynExpr_LetOrUse
+    | SynExpr.LetOrUse (_, _, bs, e, _) ->
+        match bs with
+        | [] -> synExprToFsAstType e
+        | (SynBinding.Binding (kind = kind)) :: _ ->
+            match kind with
+            | SynBindingKind.StandaloneExpression -> StandaloneExpression_
+            | SynBindingKind.NormalBinding -> NormalBinding_
+            | SynBindingKind.DoBinding -> DoBinding_
     | SynExpr.TryWith _ -> SynExpr_TryWith
     | SynExpr.YieldOrReturnFrom _ -> SynExpr_YieldOrReturnFrom
     | SynExpr.While _ -> SynExpr_While
     | SynExpr.TryFinally _ -> SynExpr_TryFinally
     | SynExpr.Do _ -> SynExpr_Do
     | SynExpr.AddressOf _ -> SynExpr_AddressOf
-    | SynExpr.Typed _ -> SynExpr_Typed
+    | SynExpr.Typed (e, _, _) -> synExprToFsAstType e
     | SynExpr.ArrayOrList _ -> SynExpr_ArrayOrList
     | SynExpr.ObjExpr _ -> SynExpr_ObjExpr
     | SynExpr.For _ -> SynExpr_For
     | SynExpr.ForEach _ -> SynExpr_ForEach
-    | SynExpr.CompExpr _ -> SynExpr_CompExpr
+    | SynExpr.CompExpr (_, _, e, _) -> synExprToFsAstType e
     | SynExpr.MatchLambda _ -> SynExpr_MatchLambda
     | SynExpr.Assert _ -> SynExpr_Assert
     | SynExpr.TypeApp _ -> SynExpr_TypeApp
@@ -289,7 +320,7 @@ let synExprToFsAstType =
     | SynExpr.DiscardAfterMissingQualificationAfterDot _ -> SynExpr_DiscardAfterMissingQualificationAfterDot
     | SynExpr.Fixed _ -> SynExpr_Fixed
     | SynExpr.InterpolatedString _ -> SynExpr_InterpolatedString
-    | SynExpr.Sequential _ -> SynExpr_Sequential
+    | SynExpr.Sequential (_, _, e, _, _) -> synExprToFsAstType e
 
 let synModuleSigDeclToFsAstType =
     function

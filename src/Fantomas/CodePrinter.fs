@@ -2224,7 +2224,7 @@ and genExpr astContext synExpr ctx =
                         (function
                         | Comment (LineCommentAfterSourceCode _) -> true
                         | _ -> false)
-                        (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
+                        (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
 
                 let hasCommentAfterIfKeyword =
                     commentAfterKeyword IF (RangeHelpers.rangeStartEq synExpr.Range) ctx
@@ -2243,7 +2243,7 @@ and genExpr astContext synExpr ctx =
                             (function
                             | Comment (LineCommentAfterSourceCode _) -> true
                             | _ -> false)
-                            (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
+                            (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
 
                     let hasCommentAfterThenKeyword =
                         commentAfterKeyword THEN (RangeHelpers.``range contains`` fullRange) ctx
@@ -2339,7 +2339,7 @@ and genExpr astContext synExpr ctx =
                             (function
                             | Comment (LineCommentAfterSourceCode _) -> true
                             | _ -> false)
-                            (TriviaHelpers.getNodesForTypes [ SynExpr_Ident; SynExpr_Const ] ctx.TriviaMainNodes)
+                            (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
 
                     let elifExpr =
                         TriviaContext.``else if / elif`` fullRange
@@ -2703,7 +2703,6 @@ and genExpr astContext synExpr ctx =
         | e -> failwithf "Unexpected expression: %O" e
         |> (match synExpr with
             | SynExpr.App _ -> genTriviaFor SynExpr_App synExpr.Range
-            | SynExpr.Const _ -> genTriviaFor SynExpr_Const synExpr.Range
             | SynExpr.AnonRecd _ -> genTriviaFor SynExpr_AnonRecd synExpr.Range
             | SynExpr.Record _ -> genTriviaFor SynExpr_Record synExpr.Range
             | SynExpr.Ident _ -> genTriviaFor SynExpr_Ident synExpr.Range
@@ -3534,9 +3533,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
                  +> unindent)
 
         let genTypeBody =
-            autoIndentAndNlnIfExpressionExceedsPageWidth (
-                genTriviaFor SynTypeDefnRepr_ObjectModel tdr.Range genTypeAbbrev
-            )
+            autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeAbbrev)
             +> genMembers
 
         typeName +> sepEq +> sepSpace +> genTypeBody
@@ -3721,11 +3718,7 @@ and sepNlnBetweenSigTypeAndMembers (ms: SynMemberSig list) =
         sepNlnTypeAndMembers (Some range) mainNodeType
     | None -> sepNone
 
-and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix) as node) =
-    let range =
-        match node with
-        | SynTypeDefnSig.TypeDefnSig (_, _, _, r) -> r
-
+and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)) =
     let typeName =
         genPreXmlDoc px
         +> ifElse
@@ -3888,7 +3881,6 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
         +> unindent
 
     | SigExceptionRepr (SigExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody astContext ats px ao uc
-    |> genTriviaFor TypeDefnSig_ range
 
 and genSigSimpleRecord tdr ms ao' fs astContext =
     // the typeName is already printed
@@ -4065,8 +4057,24 @@ and genEnumCase astContext (EnumCase (ats, px, _, (_, _)) as node) =
         let expr =
             match node with
             | EnumCase (_, _, identInAST, (c, r)) ->
-                !-identInAST +> !- " = " +> genConst c r
-                |> genTriviaFor EnumCase_ r
+                let triviaNode =
+                    Map.tryFindOrEmptyList EnumCase_ ctx.TriviaMainNodes
+                    |> List.tryFind (fun tn -> RangeHelpers.rangeEq tn.Range r)
+
+                match triviaNode with
+                | Some ({ ContentItself = Some (Number n) } as tn) ->
+                    printContentBefore tn
+                    +> !-identInAST
+                    +> !- " = "
+                    +> !-n
+                    +> printContentAfter tn
+                | Some tn ->
+                    printContentBefore tn
+                    +> !-identInAST
+                    +> !- " = "
+                    +> genConst c r
+                    +> printContentAfter tn
+                | None -> !-identInAST +> !- " = " +> genConst c r
 
         expr ctx
 
@@ -5164,6 +5172,7 @@ and genConst (c: SynConst) (r: Range) =
         +> enterNodeTokenByName r RPAREN
         +> !- ")"
         +> leaveNodeTokenByName r RPAREN
+        |> genTriviaFor SynConst_Unit r
     | SynConst.Bool (b) -> !-(if b then "true" else "false")
     | SynConst.Byte _
     | SynConst.SByte _
@@ -5187,24 +5196,23 @@ and genConst (c: SynConst) (r: Range) =
                 Map.tryFindOrEmptyList SynConst_String ctx.TriviaMainNodes
                 |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range r)
 
-            let triviaStringContent =
-                trivia
-                |> Option.bind
-                    (fun tv ->
-                        match tv.ContentItself with
-                        | Some (StringContent (sc)) -> Some sc
-                        | _ -> None)
-
-            match triviaStringContent, trivia with
-            | Some stringContent, Some _ -> !-stringContent
-            | None,
-              Some ({ ContentBefore = [ Keyword ({ TokenInfo = { TokenName = "KEYWORD_STRING" }
+            match trivia with
+            | Some ({ ContentItself = Some (StringContent (sc)) } as tn) ->
+                printContentBefore tn
+                +> !-sc
+                +> printContentAfter tn
+            | Some ({ ContentBefore = [ Keyword ({ TokenInfo = { TokenName = "KEYWORD_STRING" }
                                                    Content = kw }) ] }) -> !-kw
-            | None,
-              Some ({ ContentBefore = [ Keyword ({ TokenInfo = { TokenName = "QMARK" } }) ]
+            | Some ({ ContentBefore = [ Keyword ({ TokenInfo = { TokenName = "QMARK" } }) ]
                       ContentItself = Some (IdentBetweenTicks ibt) }) -> !-ibt
-            | None, Some ({ ContentBefore = [ Keyword ({ TokenInfo = { TokenName = "QMARK" } }) ] }) -> !-s
-            | _ ->
+            | Some ({ ContentBefore = [ Keyword ({ TokenInfo = { TokenName = "QMARK" } }) ] }) -> !-s
+            | Some tn ->
+                let escaped = Regex.Replace(s, "\"{1}", "\\\"")
+
+                printContentBefore tn
+                +> !-(sprintf "\"%s\"" escaped)
+                +> printContentAfter tn
+            | None ->
                 let escaped = Regex.Replace(s, "\"{1}", "\\\"")
                 !-(sprintf "\"%s\"" escaped)
             <| ctx
@@ -5227,45 +5235,56 @@ and genConst (c: SynConst) (r: Range) =
             match m with
             | Measure m -> !-m
 
-        genConstNumber c r
+        let genNumber (ctx: Context) =
+            match m with
+            | SynMeasure.Seq (_, mr) ->
+                let numberRange =
+                    ctx.MkRange r.Start (Pos.mkPos mr.StartLine (mr.StartColumn - 1))
+
+                genConstNumber c numberRange ctx
+            | _ -> genConstNumber c r ctx
+
+        genNumber
         +> measure
         +> leaveNodeTokenByName r GREATER
 
 and genConstNumber (c: SynConst) (r: Range) =
     fun (ctx: Context) ->
-        TriviaHelpers.getNodesForTypes
-            [ SynExpr_Const
-              SynPat_Const
-              EnumCase_ ]
-            ctx.TriviaMainNodes
-        |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
-        |> Option.bind
-            (fun tn ->
-                match tn.ContentItself with
-                | Some (Number (n)) -> Some n
-                | _ -> None)
-        |> fun n ->
-            match n with
-            | Some n -> !-n
-            | None ->
-                match c with
-                | SynConst.Byte (v) -> !-(sprintf "%A" v)
-                | SynConst.SByte (v) -> !-(sprintf "%A" v)
-                | SynConst.Int16 (v) -> !-(sprintf "%A" v)
-                | SynConst.Int32 (v) -> !-(sprintf "%A" v)
-                | SynConst.Int64 (v) -> !-(sprintf "%A" v)
-                | SynConst.UInt16 (v) -> !-(sprintf "%A" v)
-                | SynConst.UInt16s (v) -> !-(sprintf "%A" v)
-                | SynConst.UInt32 (v) -> !-(sprintf "%A" v)
-                | SynConst.UInt64 (v) -> !-(sprintf "%A" v)
-                | SynConst.Double (v) -> !-(sprintf "%A" v)
-                | SynConst.Single (v) -> !-(sprintf "%A" v)
-                | SynConst.Decimal (v) -> !-(sprintf "%A" v)
-                | SynConst.IntPtr (v) -> !-(sprintf "%A" v)
-                | SynConst.UIntPtr (v) -> !-(sprintf "%A" v)
-                | SynConst.UserNum (v, s) -> !-(sprintf "%s%s" v s)
-                | _ -> failwithf "Cannot generating Const number for %A" c
-        <| ctx
+        let findNumberAsContentItself (fallback: Context -> Context) (nodeType: FsAstType) =
+            Map.tryFindOrEmptyList nodeType ctx.TriviaMainNodes
+            |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
+            |> fun tn ->
+                match tn with
+                | Some ({ ContentItself = Some (Number (n)) } as tn) ->
+                    printContentBefore tn
+                    +> !-n
+                    +> printContentAfter tn
+                | Some tn ->
+                    printContentBefore tn
+                    +> fallback
+                    +> printContentAfter tn
+                | _ -> fallback
+
+        let expr =
+            match c with
+            | SynConst.Byte (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Byte
+            | SynConst.SByte (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_SByte
+            | SynConst.Int16 (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Int16
+            | SynConst.Int32 (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Int32
+            | SynConst.Int64 (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Int64
+            | SynConst.UInt16 (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UInt16
+            | SynConst.UInt16s (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UInt16s
+            | SynConst.UInt32 (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UInt32
+            | SynConst.UInt64 (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UInt64
+            | SynConst.Double (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Double
+            | SynConst.Single (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Single
+            | SynConst.Decimal (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Decimal
+            | SynConst.IntPtr (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_IntPtr
+            | SynConst.UIntPtr (v) -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UIntPtr
+            | SynConst.UserNum (v, s) -> findNumberAsContentItself (!-(sprintf "%s%s" v s)) SynConst_UserNum
+            | _ -> failwithf "Cannot generating Const number for %A" c
+
+        expr ctx
 
 and genConstBytes (bytes: byte []) (r: Range) =
     fun (ctx: Context) ->

@@ -153,13 +153,26 @@ let private findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner list) line col
             || (range.StartLine = line
                 && range.StartColumn > column))
 
-let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (constantRange: Range) =
+let private findConstNumberNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (constantRange: Range) =
     nodes
     |> List.tryFind
         (fun tn ->
             match tn.Type with
-            | MainNode (SynExpr_Const)
-            | MainNode (SynPat_Const) ->
+            | MainNode (SynConst_Byte)
+            | MainNode (SynConst_SByte)
+            | MainNode (SynConst_Int16)
+            | MainNode (SynConst_Int32)
+            | MainNode (SynConst_Int64)
+            | MainNode (SynConst_UInt16)
+            | MainNode (SynConst_UInt16s)
+            | MainNode (SynConst_UInt32)
+            | MainNode (SynConst_UInt64)
+            | MainNode (SynConst_Double)
+            | MainNode (SynConst_Single)
+            | MainNode (SynConst_Decimal)
+            | MainNode (SynConst_IntPtr)
+            | MainNode (SynConst_UIntPtr)
+            | MainNode (SynConst_UserNum) ->
                 constantRange.StartLine = tn.Range.StartLine
                 && constantRange.StartColumn = tn.Range.StartColumn
             | MainNode (EnumCase_) ->
@@ -439,7 +452,7 @@ let private addTriviaToTriviaNode
 
     | { Item = Number _ as number
         Range = range } ->
-        findConstNodeOnLineAndColumn triviaNodes range
+        findConstNumberNodeOnLineAndColumn triviaNodes range
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some number) triviaNodes
 
     | { Item = CharContent _ as chNode
