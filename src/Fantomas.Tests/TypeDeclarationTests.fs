@@ -2410,7 +2410,7 @@ type Foo =
 type Foo =
     abstract Baaaaaaaaaaaaaarrrrrrr<'a> :
         'a -> int -> string -> string -> bool
-        when 'a: comparison
+            when 'a: comparison
 """
 
 [<Test>]

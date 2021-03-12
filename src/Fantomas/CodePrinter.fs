@@ -919,21 +919,17 @@ and genVal astContext (Val (ats, px, ao, s, t, vi, isInline, _) as node) =
 
     let (FunType namedArgs) = (t, vi)
 
-    genPreXmlDoc px
-    +> genAttributes astContext ats
-    +> atCurrentColumn (
-        indent -- "val "
-        +> onlyIf isInline (!- "inline ")
-        +> opt sepSpace ao genAccess
-        -- s
-        +> genericParams
-        +> sepColonWithSpacesFixed
-        +> ifElse
-            (List.isNotEmpty namedArgs)
-            (autoNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
-            (genConstraints astContext t vi)
-        +> unindent
-    )
+    genPreXmlDoc px +> genAttributes astContext ats
+    -- "val "
+    +> opt sepSpace ao genAccess
+    +> onlyIf isInline (!- "inline ")
+    -- s
+    +> genericParams
+    +> sepColonWithSpacesFixed
+    +> ifElse
+        (List.isNotEmpty namedArgs)
+        (autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
+        (genConstraints astContext t vi)
     |> genTriviaFor ValSpfn_ range
 
 and genRecordFieldName astContext (RecordFieldName (s, eo) as node) =
@@ -3946,21 +3942,22 @@ and genMemberSig astContext node =
 
         genPreXmlDoc px
         +> genAttributes astContext ats
-        +> atCurrentColumn (
-            genMemberFlagsForMemberBinding
-                { astContext with
-                      InterfaceRange = None }
-                mf
-                range
-            +> ifElse isInline (!- "inline ") sepNone
-            +> opt sepSpace ao genAccess
-            +> ifElse (s = "``new``") (!- "new") (!-s)
-            +> genTypeParamPostfix astContext tds tcs
-            +> sepColonWithSpacesFixed
-            +> genTypeList astContext namedArgs
-            +> genConstraints astContext t vi
-            -- (genPropertyKind (not isFunctionProperty) mf.MemberKind)
-        )
+        +> genMemberFlagsForMemberBinding
+            { astContext with
+                  InterfaceRange = None }
+            mf
+            range
+        +> ifElse isInline (!- "inline ") sepNone
+        +> opt sepSpace ao genAccess
+        +> ifElse (s = "``new``") (!- "new") (!-s)
+        +> genTypeParamPostfix astContext tds tcs
+        +> sepColonWithSpacesFixed
+        +> ifElse
+            (List.isNotEmpty namedArgs)
+            (autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
+            (genConstraints astContext t vi)
+        -- (genPropertyKind (not isFunctionProperty) mf.MemberKind)
+
 
     | MSInterface t -> !- "interface " +> genType astContext false t
     | MSInherit t -> !- "inherit " +> genType astContext false t
@@ -3992,7 +3989,7 @@ and genConstraints astContext (t: SynType) (vi: SynValInfo) =
             | _ -> genType astContext false ti
 
         genType
-        +> sepSpaceOrNlnIfExpressionExceedsPageWidth (
+        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
             ifElse (List.isNotEmpty tcs) (!- "when ") sepSpace
             +> col wordAnd tcs (genTypeConstraint astContext)
         )
@@ -4290,11 +4287,7 @@ and genTypeList astContext node =
 
     let shortExpr = col sepArrow node gt
 
-    let longExpr =
-        indent
-        +> sepNln
-        +> col (sepArrow +> sepNln) node gt
-        +> unindent
+    let longExpr = col (sepArrow +> sepNln) node gt
 
     expressionFitsOnRestOfLine shortExpr longExpr
 
@@ -4566,7 +4559,7 @@ and genMemberDefn astContext node =
         +> genAbstractMemberKeyword
         +> genTypeParamPostfix astContext tds tcs
         +> sepColonWithSpacesFixed
-        +> genTypeList astContext namedArgs
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs)
         -- genPropertyKind (not isFunctionProperty) mk
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genConstraints astContext t vi)
 
