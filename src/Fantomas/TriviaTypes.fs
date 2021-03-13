@@ -113,8 +113,8 @@ type FsAstType =
     | SynModuleDecl_NamespaceFragment
     | SynExpr_Paren
     | SynExpr_Quote
-    | SynExpr_Const
-    | SynExpr_Typed
+    // | SynExpr_Const use SynConst instead
+    // | SynExpr_Typed use either the nested SynExpr or SynType
     | SynExpr_Tuple
     | SynExpr_StructTuple
     | SynExpr_Record
@@ -126,7 +126,7 @@ type FsAstType =
     | SynExpr_ForEach
     | SynExpr_ArrayOrListOfSeqExpr
     | SynExpr_ArrayOrList
-    | SynExpr_CompExpr
+    // | SynExpr_CompExpr use first nested SynExpr
     | SynExpr_Lambda
     | SynExpr_MatchLambda
     | SynExpr_Match
@@ -134,11 +134,11 @@ type FsAstType =
     | SynExpr_Assert
     | SynExpr_App
     | SynExpr_TypeApp
-    | SynExpr_LetOrUse
+    // | SynExpr_LetOrUse use first nested SynExpr
     | SynExpr_TryWith
     | SynExpr_TryFinally
     | SynExpr_Lazy
-    | SynExpr_Sequential
+    // | SynExpr_Sequential use first nested SynExpr
     | SynExpr_SequentialOrImplicitYield
     | SynExpr_IfThenElse
     | SynExpr_Ident
@@ -191,8 +191,8 @@ type FsAstType =
     | ArgOptions_
     | InterfaceImpl_
     | TypeDefn_
-    | TypeDefnSig_
-    | SynTypeDefnSigRepr_ObjectModel
+    // | TypeDefnSig_ use first nested type
+    // | SynTypeDefnSigRepr_ObjectModel use first nested node
     | SynTypeDefnSigRepr_Exception
     | SynMemberDefn_Open
     | SynMemberDefn_OpenType
@@ -219,7 +219,7 @@ type FsAstType =
     | TyparDecl_
     | Typar_
     | ValSpfn_
-    | SynPat_Const
+    // | SynPat_Const, use SynConst instead
     | SynPat_Wild
     | SynPat_Named
     | SynPat_Typed
@@ -262,8 +262,8 @@ type FsAstType =
     | Pats_
     | NamePatPairs_
     | ComponentInfo_
-    | SynTypeDefnRepr_ObjectModel
-    | SynTypeDefnRepr_Simple
+    // | SynTypeDefnRepr_ObjectModel use first nested node
+    // | SynTypeDefnRepr_Simple use first nested node
     | SynTypeDefnRepr_Exception
     | SynTypeDefnKind_TyconUnspecified
     | SynTypeDefnKind_TyconClass

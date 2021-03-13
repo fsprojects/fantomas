@@ -33,31 +33,6 @@ let isToken (node: TriviaNode) =
     | Token _ -> true
     | _ -> false
 
-let rec private flattenNodeToList (node: Node) =
-    [ yield node
-      yield!
-          (node.Childs
-           |> List.map flattenNodeToList
-           |> List.collect id) ]
-
-let filterNodes nodes =
-    let filterOutNodeTypes =
-        set [ SynExpr_Sequential // some Sequential nodes are not visited in CodePrinter
-              SynModuleOrNamespace_DeclaredNamespace // LongIdent inside Namespace is being processed as children.
-              SynModuleOrNamespaceSig_DeclaredNamespace
-              SynExpr_LetOrUse
-              SynTypeDefnRepr_ObjectModel
-              SynTypeDefnRepr_Simple
-              TypeDefnSig_
-              SynTypeDefnSigRepr_ObjectModel
-              SynExpr_Typed
-              // SynType_StaticConstant
-              SynExpr_CompExpr ]
-    // SynExpr_Do ]
-
-    nodes
-    |> List.filter (fun (n: Node) -> not (Set.contains n.Type filterOutNodeTypes))
-
 let private findFirstNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
     |> List.filter (fun { Range = r } -> r.StartLine = lineNumber)
@@ -178,13 +153,26 @@ let private findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner list) line col
             || (range.StartLine = line
                 && range.StartColumn > column))
 
-let private findConstNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (constantRange: Range) =
+let private findConstNumberNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (constantRange: Range) =
     nodes
     |> List.tryFind
         (fun tn ->
             match tn.Type with
-            | MainNode (SynExpr_Const)
-            | MainNode (SynPat_Const) ->
+            | MainNode (SynConst_Byte)
+            | MainNode (SynConst_SByte)
+            | MainNode (SynConst_Int16)
+            | MainNode (SynConst_Int32)
+            | MainNode (SynConst_Int64)
+            | MainNode (SynConst_UInt16)
+            | MainNode (SynConst_UInt16s)
+            | MainNode (SynConst_UInt32)
+            | MainNode (SynConst_UInt64)
+            | MainNode (SynConst_Double)
+            | MainNode (SynConst_Single)
+            | MainNode (SynConst_Decimal)
+            | MainNode (SynConst_IntPtr)
+            | MainNode (SynConst_UIntPtr)
+            | MainNode (SynConst_UserNum) ->
                 constantRange.StartLine = tn.Range.StartLine
                 && constantRange.StartColumn = tn.Range.StartColumn
             | MainNode (EnumCase_) ->
@@ -199,22 +187,6 @@ let private findSynConstStringNodeAfter (nodes: TriviaNodeAssigner list) (range:
             match tn.Type, range.StartLine = tn.Range.StartLine, range.StartColumn + 1 = tn.Range.StartColumn with
             | MainNode (SynConst_String), true, true -> true
             | _ -> false)
-
-let private mapNodeToTriviaNode (node: Node) =
-    node.Range
-    |> Option.map
-        (fun range ->
-            let attributeParent =
-                Map.tryFind "linesBetweenParent" node.Properties
-                |> Option.bind
-                    (fun v ->
-                        match v with
-                        | :? int as i when (i > 0) -> Some i
-                        | _ -> None)
-
-            match attributeParent with
-            | Some i -> TriviaNodeAssigner(MainNode(node.Type), range, i)
-            | None -> TriviaNodeAssigner(MainNode(node.Type), range))
 
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: Range) =
     let hasNoNodesAfterRange =
@@ -480,7 +452,7 @@ let private addTriviaToTriviaNode
 
     | { Item = Number _ as number
         Range = range } ->
-        findConstNodeOnLineAndColumn triviaNodes range
+        findConstNumberNodeOnLineAndColumn triviaNodes range
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some number) triviaNodes
 
     | { Item = CharContent _ as chNode
@@ -536,21 +508,11 @@ let private triviaNodeIsNotEmpty (triviaNode: TriviaNodeAssigner) =
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
 let collectTrivia (mkRange: MkRange) tokens (ast: ParsedInput) =
-    let node =
+    let triviaNodesFromAST =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _, hds, mns, _)) -> astToNode hds mns
 
         | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput (_, _, _, _, mns)) -> sigAstToNode mns
-
-    let startOfSourceCode =
-        match node.Range with
-        | Some r -> r.StartLine
-        | None -> 1
-
-    let triviaNodesFromAST =
-        flattenNodeToList node
-        |> filterNodes
-        |> List.choose mapNodeToTriviaNode
 
     let hasAnyAttributesWithLinesBetweenParent =
         List.exists (fun (tn: TriviaNodeAssigner) -> Option.isSome tn.AttributeLinesBetweenParent) triviaNodesFromAST
@@ -573,6 +535,11 @@ let collectTrivia (mkRange: MkRange) tokens (ast: ParsedInput) =
 
     let trivias =
         TokenParser.getTriviaFromTokens mkRange tokens
+
+    let startOfSourceCode =
+        match tokens with
+        | h :: _ -> h.LineNumber // Keep track of comments or hash defines before the first AST node
+        | _ -> 1
 
     match trivias with
     | [] -> []
