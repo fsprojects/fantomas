@@ -5173,7 +5173,9 @@ and genConst (c: SynConst) (r: Range) =
         +> !- ")"
         +> leaveNodeTokenByName r RPAREN
         |> genTriviaFor SynConst_Unit r
-    | SynConst.Bool (b) -> !-(if b then "true" else "false")
+    | SynConst.Bool (b) ->
+        !-(if b then "true" else "false")
+        |> genTriviaFor SynConst_Bool r
     | SynConst.Byte _
     | SynConst.SByte _
     | SynConst.Int16 _
@@ -5218,18 +5220,29 @@ and genConst (c: SynConst) (r: Range) =
             <| ctx
     | SynConst.Char (c) ->
         fun (ctx: Context) ->
-            let charContentFromTrivia =
-                TriviaHelpers.``get CharContent`` r ctx.TriviaMainNodes
+            let tn =
+                Map.tryFindOrEmptyList SynConst_Char ctx.TriviaMainNodes
+                |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
 
             let expr =
-                match charContentFromTrivia with
-                | Some content -> !-content
+                match tn with
+                | Some ({ ContentItself = Some (CharContent (content)) } as tn) ->
+                    printContentBefore tn -- content
+                    +> printContentAfter tn
+                | Some tn ->
+                    let escapedChar = Char.escape c
+
+                    printContentBefore tn
+                    -- (sprintf "\'%s\'" escapedChar)
+                    +> printContentAfter tn
                 | None ->
                     let escapedChar = Char.escape c
                     !-(sprintf "\'%s\'" escapedChar)
 
             expr ctx
-    | SynConst.Bytes (bytes, r) -> genConstBytes bytes r
+    | SynConst.Bytes (bytes, r) ->
+        genConstBytes bytes r
+        |> genTriviaFor SynConst_Bytes r
     | SynConst.Measure (c, m) ->
         let measure =
             match m with
