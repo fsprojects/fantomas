@@ -404,7 +404,6 @@ let ``line comment inside array`` () =
 """
 
 [<Test>]
-[<Ignore("fails on ci")>]
 let ``long array sequence`` () =
     formatSourceString
         false
