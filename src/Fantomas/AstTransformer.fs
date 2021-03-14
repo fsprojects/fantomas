@@ -301,11 +301,7 @@ module private Ast =
                         mkNode SynExpr_Lazy range :: nodes
                         |> finalContinuation)
             | SynExpr.Sequential (_, _, expr1, expr2, _) ->
-                visit
-                    expr2
-                    (fun nodes1 ->
-                        visit expr1 (fun nodes2 -> nodes1 @ nodes2)
-                        |> finalContinuation)
+                visit expr2 (fun nodes1 -> visit expr1 (fun nodes2 -> nodes1 @ nodes2 |> finalContinuation))
             | SynExpr.SequentialOrImplicitYield (_, expr1, expr2, ifNotStmt, range) ->
                 let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit expr1

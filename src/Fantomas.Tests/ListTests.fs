@@ -403,6 +403,7 @@ let ``line comment inside array`` () =
  |]
 """
 
+#if RELEASE
 [<Test>]
 let ``long array sequence`` () =
     formatSourceString
@@ -1481,6 +1482,7 @@ let input =
 
 let sample = [| 0; 3; 0; 1; -3 |]
 """
+#endif
 
 [<Test>]
 let ``F# 4.7 implicit yield in sequence`` () =
