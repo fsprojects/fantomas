@@ -308,3 +308,109 @@ let controlEscapes = "\a \b \f \v"
         """let hexEscape = "\x00"
 let controlEscapes = "\a \b \f \v"
 """
+
+[<Test>]
+let ``trivia after SynConst.Boolean, 1518`` () =
+    formatSourceString
+        false
+        """
+    match ast with
+    | ParsedInput.SigFile _input ->
+        // There is not much to explore in signature files
+        true
+    | ParsedInput.ImplFile input -> validateImplFileInput input
+
+    match t with
+    | TTuple _ -> not node.IsEmpty
+    | TFun _ -> true // Fun is grouped by brackets inside 'genType astContext true t'
+    | _ -> false
+
+    let condition e =
+        match e with
+        | ElIf _
+        | SynExpr.Lambda _ -> true
+        | _ -> false // "if .. then .. else" have precedence over ","
+
+    let x = 9
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match ast with
+| ParsedInput.SigFile _input ->
+    // There is not much to explore in signature files
+    true
+| ParsedInput.ImplFile input -> validateImplFileInput input
+
+match t with
+| TTuple _ -> not node.IsEmpty
+| TFun _ -> true // Fun is grouped by brackets inside 'genType astContext true t'
+| _ -> false
+
+let condition e =
+    match e with
+    | ElIf _
+    | SynExpr.Lambda _ -> true
+    | _ -> false // "if .. then .. else" have precedence over ","
+
+let x = 9
+"""
+
+[<Test>]
+let ``trivia after SynConst.Char`` () =
+    formatSourceString
+        false
+        """
+let c = 'r' // meh
+let x = 1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let c = 'r' // meh
+let x = 1
+"""
+
+[<Test>]
+let ``trivia after SynConst.Bytes`` () =
+    formatSourceString
+        false
+        """
+let bytes = "meh"B // meh
+let x = 1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let bytes = "meh"B // meh
+let x = 1
+"""
+
+[<Test>]
+let ``trivia after SynConst.String, 1518`` () =
+    formatSourceString
+        false
+        "
+    let source = \"\"\"printfn foo
+
+printfn bar\"\"\" // difference is the 4 spaces on line 188
+
+    let x = 9
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let source = \"\"\"printfn foo
+
+printfn bar\"\"\" // difference is the 4 spaces on line 188
+
+let x = 9
+"

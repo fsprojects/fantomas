@@ -125,15 +125,5 @@ module internal TriviaHelpers =
                     | Some (StringContent sc) -> String.isMultiline sc
                     | _ -> false
 
-
                 RangeHelpers.rangeEq tn.Range range
                 && contentItSelfIsMultilineString ())
-
-    let ``get CharContent`` range (nodes: Map<FsAstType, TriviaNode list>) =
-        Map.tryFindOrEmptyList SynConst_Char nodes
-        |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range range)
-        |> Option.bind
-            (fun tv ->
-                match tv.ContentItself with
-                | Some (CharContent c) -> Some c
-                | _ -> None)

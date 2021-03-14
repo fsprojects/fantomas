@@ -41,12 +41,14 @@ let rec private tokenizeLine (tokenizer: FSharpLineTokenizer) sourceCodeLines st
         let extraToken =
             { TokenInfo = extraTokenInfo
               LineNumber = lineNumber
-              Content = getTokenText sourceCodeLines lineNumber extraTokenInfo }
+              Content = getTokenText sourceCodeLines lineNumber extraTokenInfo
+              Index = 0 }
 
         let token =
             { TokenInfo = tok
               LineNumber = lineNumber
-              Content = getTokenText sourceCodeLines lineNumber tok }
+              Content = getTokenText sourceCodeLines lineNumber tok
+              Index = 0 }
 
         tokenizeLine tokenizer sourceCodeLines state lineNumber (token :: extraToken :: tokens)
 
@@ -54,7 +56,8 @@ let rec private tokenizeLine (tokenizer: FSharpLineTokenizer) sourceCodeLines st
         let token : Token =
             { TokenInfo = tok
               LineNumber = lineNumber
-              Content = getTokenText sourceCodeLines lineNumber tok }
+              Content = getTokenText sourceCodeLines lineNumber tok
+              Index = 0 }
         // Tokenize the rest, in the new state
         tokenizeLine tokenizer sourceCodeLines state lineNumber (token :: tokens)
 
@@ -83,6 +86,7 @@ let private createHashToken lineNumber content offset =
 
     { LineNumber = lineNumber
       Content = content
+      Index = 0
       TokenInfo =
           { TokenName = "HASH_IF"
             LeftColumn = left
@@ -337,6 +341,7 @@ and tokenize defines (hashTokens: Token list) (content: string) : Token list =
             tokens
 
     combined
+    |> List.mapi (fun idx t -> { t with Index = idx })
 
 let getDefinesWords (tokens: Token list) =
     tokens
@@ -672,54 +677,26 @@ let rec private getTriviaFromTokensThemSelves
     foundTrivia
     =
     match tokens with
-    | (NoCommentToken nct) :: WhiteSpaceToken _ :: (LineComments (commentTokens, nextTokens)) ->
-        let comment =
-            let commentText = collectComment commentTokens
-            let firstCommentToken = List.head commentTokens
+    | LineComments (({ Index = headIndex
+                       LineNumber = headLineNumber } :: _ as commentTokens),
+                    nextTokens) ->
+        let prevToken = List.tryItem (headIndex - 1) allTokens
+        let prevButOneToken = List.tryItem (headIndex - 2) allTokens
 
-            (if nct.LineNumber < firstCommentToken.LineNumber then
-                 LineCommentOnSingleLine commentText
-             else
-                 LineCommentAfterSourceCode commentText)
-            |> Comment
+        let commentType =
+            match prevButOneToken, prevToken with
+            | Some ({ LineNumber = ncln }), Some (WhiteSpaceToken _) ->
+                if ncln = headLineNumber then
+                    LineCommentAfterSourceCode
+                else
+                    LineCommentOnSingleLine
+            | Some ({ LineNumber = l1 }), Some ({ LineNumber = l2 }) when (headLineNumber = l1 && headLineNumber = l2) ->
+                LineCommentAfterSourceCode
+            | _ -> LineCommentOnSingleLine
 
-        let range =
-            let headToken = List.head commentTokens
-            let lastToken = List.tryLast commentTokens
-            getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
-
-        let info =
-            Trivia.Create comment range
-            |> List.appendItem foundTrivia
-
-        getTriviaFromTokensThemSelves mkRange allTokens (nct :: nextTokens) info
-    | (NoCommentToken nct) :: (LineComments (commentTokens, nextTokens)) ->
-        let comment =
-            let commentText = collectComment commentTokens
-            let firstCommentToken = List.head commentTokens
-
-            (if nct.LineNumber < firstCommentToken.LineNumber
-                || (nct.TokenInfo.Tag = whiteSpaceTag
-                    && firstCommentToken.LineNumber = nct.LineNumber) then
-                 LineCommentOnSingleLine commentText
-             else
-                 LineCommentAfterSourceCode commentText)
-            |> Comment
-
-        let range =
-            let headToken = List.head commentTokens
-            let lastToken = List.tryLast commentTokens
-            getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
-
-        let info =
-            Trivia.Create comment range
-            |> List.appendItem foundTrivia
-
-        getTriviaFromTokensThemSelves mkRange allTokens (nct :: nextTokens) info
-    | LineComments (commentTokens, nextTokens) ->
         let comment =
             collectComment commentTokens
-            |> LineCommentOnSingleLine
+            |> commentType
             |> Comment
 
         let range =
