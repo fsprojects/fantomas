@@ -403,8 +403,8 @@ let ``line comment inside array`` () =
  |]
 """
 
+#if RELEASE
 [<Test>]
-[<Ignore("fails on ci")>]
 let ``long array sequence`` () =
     formatSourceString
         false
@@ -1482,6 +1482,7 @@ let input =
 
 let sample = [| 0; 3; 0; 1; -3 |]
 """
+#endif
 
 [<Test>]
 let ``F# 4.7 implicit yield in sequence`` () =
