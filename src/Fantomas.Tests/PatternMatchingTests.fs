@@ -1410,3 +1410,122 @@ match x with
   y
 | None -> 42
 """
+
+[<Test>]
+let ``or pattern in list with when clause, 1522`` () =
+    formatSourceString
+        false
+        """
+let args =
+    match args with
+    | [SynPatErrorSkip(SynPat.Tuple (false, args, _)) | SynPatErrorSkip(SynPat.Paren(SynPatErrorSkip(SynPat.Tuple (false, args, _)), _))] when numArgTys > 1 -> args
+    | _ -> failwith "meh"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let args =
+    match args with
+    | [ SynPatErrorSkip (SynPat.Tuple (false, args, _))
+         | SynPatErrorSkip (SynPat.Paren (SynPatErrorSkip (SynPat.Tuple (false, args, _)), _)) ] when numArgTys > 1 ->
+        args
+    | _ -> failwith "meh"
+"""
+
+[<Test>]
+let ``triple or in list, short`` () =
+    formatSourceString
+        false
+        """
+let args =
+    match args with
+    | [ LongPatIndentifierOne
+         | LongPatIndentifierTwo
+         | LongPatIndentifierThree ] ->
+        args
+    | _ -> failwith "meh"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let args =
+    match args with
+    | [ LongPatIndentifierOne | LongPatIndentifierTwo | LongPatIndentifierThree ] -> args
+    | _ -> failwith "meh"
+"""
+
+[<Test>]
+let ``triple or in list, long`` () =
+    formatSourceString
+        false
+        """
+let args =
+    match args with
+    | [ LongPatIndentifierOne
+         | LongPatIndentifierTwo
+         | LongPatIndentifierThree ] ->
+        args
+    | _ -> failwith "meh"
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let args =
+    match args with
+    | [ LongPatIndentifierOne
+         | LongPatIndentifierTwo
+         | LongPatIndentifierThree ] -> args
+    | _ -> failwith "meh"
+"""
+
+[<Test>]
+let ``triple or in array, short`` () =
+    formatSourceString
+        false
+        """
+let args =
+    match args with
+    | [| LongPatIndentifierOne | LongPatIndentifierTwo | LongPatIndentifierThree |] ->
+        args
+    | _ -> failwith "meh"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let args =
+    match args with
+    | [| LongPatIndentifierOne | LongPatIndentifierTwo | LongPatIndentifierThree |] -> args
+    | _ -> failwith "meh"
+"""
+
+[<Test>]
+let ``triple or in array, long`` () =
+    formatSourceString
+        false
+        """
+let args =
+    match args with
+    | [| LongPatIndentifierOne | LongPatIndentifierTwo | LongPatIndentifierThree |] ->
+        args
+    | _ -> failwith "meh"
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let args =
+    match args with
+    | [| LongPatIndentifierOne
+          | LongPatIndentifierTwo
+          | LongPatIndentifierThree |] -> args
+    | _ -> failwith "meh"
+"""

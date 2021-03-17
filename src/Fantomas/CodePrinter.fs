@@ -4739,6 +4739,32 @@ and genPat astContext pat =
         +> sepOpenT
         +> atCurrentColumn (colAutoNlnSkip0 sepComma ps (genPat astContext))
         +> sepCloseT
+    | PatSeq (patListType, [ PatOrs (patOrs) ]) ->
+        let sepOpen, sepClose =
+            match patListType with
+            | PatArray -> sepOpenA, sepCloseA
+            | PatList -> sepOpenL, sepCloseL
+
+        let short =
+            sepOpen
+            +> col (sepSpace +> sepBar) patOrs (genPat astContext)
+            +> sepClose
+
+        let long =
+            sepOpen
+            +> atCurrentColumnIndent (
+                match patOrs with
+                | [] -> sepNone
+                | hp :: pats ->
+                    genPat astContext hp +> sepNln -- " "
+                    +> atCurrentColumn (
+                        sepBar
+                        +> col (sepNln +> sepBar) pats (genPat astContext)
+                    )
+            )
+            +> sepClose
+
+        expressionFitsOnRestOfLine short long
     | PatSeq (PatList, ps) ->
         ifElse
             ps.IsEmpty
