@@ -25,7 +25,7 @@ Check out the [sample](https://github.com/fsprojects/fantomas/blob/master/fake-s
 
 ### JetBrains Rider
 
-The [fsharp-support](https://github.com/JetBrains/fsharp-support) uses fantomas under the hood to format the source code. No need for any additional plugins.
+The [resharper-fsharp](https://github.com/JetBrains/resharper-fsharp) uses fantomas under the hood to format the source code. No need for any additional plugins.
 
 #### Using the latest version inside Rider
 
