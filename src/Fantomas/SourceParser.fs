@@ -1,7 +1,6 @@
 module internal Fantomas.SourceParser
 
 open System
-open System.Diagnostics
 open FSharp.Compiler.SourceCodeServices.PrettyNaming
 open FSharp.Compiler.SourceCodeServices.FSharpKeywords
 open FSharp.Compiler.Text
@@ -13,10 +12,6 @@ open Fantomas.Context
 type Composite<'a, 'b> =
     | Pair of 'b * 'b
     | Single of 'a
-
-#if INTERACTIVE
-type Debug = Console
-#endif
 
 [<Literal>]
 let MaxLength = 512
@@ -1100,6 +1095,12 @@ let (|PatAttrib|_|) =
 let (|PatOr|_|) =
     function
     | SynPat.Or (p1, p2, _) -> Some(p1, p2)
+    | _ -> None
+
+let rec (|PatOrs|_|) =
+    function
+    | PatOr (PatOrs (pats), p2) -> Some [ yield! pats; yield p2 ]
+    | PatOr (p1, p2) -> Some [ p1; p2 ]
     | _ -> None
 
 let (|PatAnds|_|) =
