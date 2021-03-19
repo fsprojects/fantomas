@@ -232,7 +232,7 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, s, md
     +> leaveNodeFor SynModuleOrNamespaceSig_NamedModule range
 
 and genModuleDeclList astContext e =
-    let rec collectItems e =
+    let rec collectItems e : ColMultilineItem list =
         match e with
         | [] -> []
         | OpenL (xs, ys) ->
@@ -243,7 +243,8 @@ and genModuleDeclList astContext e =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Open r
 
-            [ expr, sepNln, r ] @ collectItems ys
+            ColMultilineItem(expr, sepNln, r)
+            :: collectItems ys
         | HashDirectiveL (xs, ys) ->
             let expr = col sepNln xs (genModuleDecl astContext)
 
@@ -252,7 +253,8 @@ and genModuleDeclList astContext e =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_HashDirective r
 
-            [ expr, sepNln, r ] @ collectItems ys
+            ColMultilineItem(expr, sepNln, r)
+            :: collectItems ys
         | AttributesL (xs, y :: rest) ->
             let attrs =
                 getRangesFromAttributesFromModuleDeclaration y
@@ -267,7 +269,8 @@ and genModuleDeclList astContext e =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Attributes r
 
-            [ expr, sepNln, r ] @ collectItems rest
+            ColMultilineItem(expr, sepNln, r)
+            :: collectItems rest
 
         | m :: rest ->
             let attrs =
@@ -277,7 +280,9 @@ and genModuleDeclList astContext e =
                 sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleDeclToFsAstType m) m.Range attrs
 
             let expr = genModuleDecl astContext m
-            (expr, sepNln, m.Range) :: (collectItems rest)
+
+            ColMultilineItem(expr, sepNln, m.Range)
+            :: (collectItems rest)
 
     collectItems e |> colWithNlnWhenItemIsMultiline
 
@@ -758,7 +763,8 @@ and genMemberBindingList astContext node =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType mb) r
 
-            (expr, sepNln, r) :: (collectItems rest)
+            ColMultilineItem(expr, sepNln, r)
+            :: (collectItems rest)
 
     collectItems node |> colWithNlnWhenItemIsMultiline
 
@@ -1450,10 +1456,7 @@ and genExpr astContext synExpr ctx =
                      +> sepNlnUnlessLastEventIsNewline
                      +> sepCloseSFixed))
 
-        | CompExprBody (expr) ->
-            let statements =
-                collectComputationExpressionStatements expr
-
+        | CompExprBody (statements) ->
             let genCompExprStatement astContext ces =
                 match ces with
                 | LetOrUseStatement (isRecursive, isUse, binding) ->
@@ -1497,7 +1500,7 @@ and genExpr astContext synExpr ctx =
                     let expr = genCompExprStatement astContext ces
                     let r = getRangeOfCompExprStatement ces
                     let sepNln = getSepNln ces r
-                    expr, sepNln, r)
+                    ColMultilineItem(expr, sepNln, r))
             |> colWithNlnWhenItemIsMultiline
 
         | ArrayOrListOfSeqExpr (isArray, e) as aNode ->
@@ -2066,7 +2069,7 @@ and genExpr astContext synExpr ctx =
                                 let sepNln =
                                     sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType x) range
 
-                                expr, sepNln, range)
+                                ColMultilineItem(expr, sepNln, range))
 
                     let sepNlnForNonSequential e r =
                         sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e) r
@@ -2077,7 +2080,7 @@ and genExpr astContext synExpr ctx =
                         | Sequentials (s) -> s |> List.collect synExpr
                         | _ ->
                             let r = e.Range
-                            [ genExpr astContext e, sepNlnForNonSequential e r, r ]
+                            [ ColMultilineItem(genExpr astContext e, sepNlnForNonSequential e r, r) ]
 
                     let items = letBindings bs @ synExpr e
                     atCurrentColumn (colWithNlnWhenItemIsMultiline items) ctx
@@ -2157,7 +2160,7 @@ and genExpr astContext synExpr ctx =
                         let sepNln =
                             sepConsideringTriviaContentBeforeForMainNode sepSemiNln fsAstType r
 
-                        expr, sepNln, r)
+                        ColMultilineItem(expr, sepNln, r))
 
             atCurrentColumn (colWithNlnWhenItemIsMultiline items)
 
@@ -2424,19 +2427,12 @@ and genExpr astContext synExpr ctx =
                                 | Some (_, te, _) -> ctx.MkRange te.Range.End synExpr.Range.End
                                 | None -> synExpr.Range
 
-                            let shouldIndent (ctx: Context) =
-                                if ctx.Config.KeepIndentInBranch then
-                                    let es = List.map (fun (_, e, _, _, _) -> e) es
-                                    shouldIndentBranch e4 (e2 :: es)
-                                else
-                                    true
-
                             onlyIf (List.isNotEmpty elfis) sepNln
                             +> genElse correctedElseRange
-                            +> onlyIfCtx shouldIndent indent
+                            +> indent
                             +> sepNln
                             +> genExpr astContext e4
-                            +> onlyIfCtx shouldIndent unindent)
+                            +> unindent)
 
                 let shortIfThenElif (ctx: Context) =
                     // Try and format if each conditional follow the one-liner rules
@@ -4359,7 +4355,7 @@ and genClause astContext hasBar (shouldIndent: bool) (Clause (p, e, eo) as ce) =
         if shouldIndent then
             autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
         else
-            autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            autoNlnIfExpressionExceedsPageWidth (genExprBodyOfSynBindingKeepIndentInBranch astContext e)
 
     let astCtx =
         { astContext with
@@ -4396,28 +4392,7 @@ and genClause astContext hasBar (shouldIndent: bool) (Clause (p, e, eo) as ce) =
         |> genTriviaFor SynMatchClause_Clause ce.Range)
 
 and genClauses astContext cs =
-    let lastClauseIndex = cs.Length - 1
-
-    coli
-        sepNln
-        cs
-        (fun idx e ctx ->
-            let shouldIndent =
-                if ctx.Config.KeepIndentInBranch
-                   && idx = lastClauseIndex then
-                    let (Clause (_, e, _)) = e
-
-                    let es =
-                        cs
-                        |> List.rev
-                        |> List.map (fun (Clause (_, e, _)) -> e)
-                        |> List.tail
-
-                    shouldIndentBranch e es
-                else
-                    true
-
-            genClause astContext true shouldIndent e ctx)
+    col sepNln cs (genClause astContext true true)
 
 /// Each multiline member definition has a pre and post new line.
 and genMemberDefnList astContext nodes =
@@ -4437,7 +4412,7 @@ and genMemberDefnList astContext nodes =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeWithAttributesFor SynMemberDefn_Member rangeOfFirstMember attrs
 
-            (expr, sepNln, rangeOfFirstMember)
+            ColMultilineItem(expr, sepNln, rangeOfFirstMember)
             :: (collectItems rest)
 
         | m :: rest ->
@@ -4449,7 +4424,8 @@ and genMemberDefnList astContext nodes =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeWithAttributesFor (synMemberDefnToFsAstType m) m.Range attrs
 
-            (expr, sepNln, m.Range) :: (collectItems rest)
+            ColMultilineItem(expr, sepNln, m.Range)
+            :: (collectItems rest)
 
     collectItems nodes
     |> colWithNlnWhenItemIsMultiline
@@ -4947,14 +4923,17 @@ and genSynBindingFunction
 
         expressionFitsOnRestOfLine short long
 
+    let body (ctx: Context) =
+        if ctx.Config.KeepIndentInBranch then
+            genExprBodyOfSynBindingKeepIndentInBranch astContext e ctx
+        else
+            genExpr astContext e ctx
+
     let genExpr isMultiline =
         if isMultiline then
-            (indent
-             +> sepNln
-             +> genExpr astContext e
-             +> unindent)
+            (indent +> sepNln +> body +> unindent)
         else
-            sepSpaceIfShortExpressionOrAddIndentAndNewline ctx.Config.MaxFunctionBindingWidth (genExpr astContext e)
+            sepSpaceIfShortExpressionOrAddIndentAndNewline ctx.Config.MaxFunctionBindingWidth body
 
     (genPreXmlDoc px
      +> genAttrIsFirstChild
@@ -5057,15 +5036,17 @@ and genSynBindingFunctionWithReturnType
 
         expressionFitsOnRestOfLine short long
 
+    let body (ctx: Context) =
+        if ctx.Config.KeepIndentInBranch then
+            genExprBodyOfSynBindingKeepIndentInBranch astContext e ctx
+        else
+            genExpr astContext e ctx
+
     let genExpr isMultiline =
         if isMultiline then
-            (indent
-             +> sepNln
-             +> genExpr astContext e
-             +> unindent)
-
+            (indent +> sepNln +> body +> unindent)
         else
-            sepSpaceIfShortExpressionOrAddIndentAndNewline ctx.Config.MaxFunctionBindingWidth (genExpr astContext e)
+            sepSpaceIfShortExpressionOrAddIndentAndNewline ctx.Config.MaxFunctionBindingWidth body
 
     (genPreXmlDoc px
      +> genAttrIsFirstChild
@@ -5219,6 +5200,127 @@ and genParenTupleWithIndentAndNewlines ps astContext =
     +> unindent
     +> sepNln
     +> sepCloseT
+
+and genExprBodyOfSynBindingKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context -> Context =
+    match e with
+    | Sequential (e1, (KeepIndentMatch (me, clauses, isBang) as e2), true) ->
+        let items =
+            [ ColMultilineItem(
+                genExpr astContext e1,
+                sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e1) e1.Range,
+                e1.Range
+              )
+              ColMultilineItem(
+                  genKeepIndentMatch astContext me clauses isBang,
+                  sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e2) e2.Range,
+                  e2.Range
+              ) ]
+
+        colWithNlnWhenItemIsMultiline items
+    | LetOrUses (bs, (KeepIndentMatch (me, clauses, isBang) as em)) ->
+        let bs =
+            List.map
+                (fun (s, synBinding: SynBinding) ->
+                    let range = synBinding.RangeOfBindingAndRhs
+
+                    let expr =
+                        enterNodeFor (synBindingToFsAstType synBinding) range
+                        +> genLetBinding astContext s synBinding
+
+
+                    let sepNln =
+                        sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType synBinding) range
+
+                    ColMultilineItem(expr, sepNln, range))
+                bs
+
+        let m =
+            ColMultilineItem(
+                genKeepIndentMatch astContext me clauses isBang,
+                sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType em) em.Range,
+                em.Range
+            )
+
+        colWithNlnWhenItemIsMultiline [ yield! bs
+                                        yield m ]
+    | KeepIndentMatch (me, clauses, isBang) -> genKeepIndentMatch astContext me clauses isBang
+    | Sequential (e1, (KeepIndentIfThenElse (branches, elseBranch) as e2), true) ->
+        let items =
+            [ ColMultilineItem(
+                genExpr astContext e1,
+                sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e1) e1.Range,
+                e1.Range
+              )
+              ColMultilineItem(
+                  genKeepIdentIf astContext branches elseBranch,
+                  sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e2) e2.Range,
+                  e2.Range
+              ) ]
+
+        colWithNlnWhenItemIsMultiline items
+    | LetOrUses (bs, (KeepIndentIfThenElse (branches, elseBranch) as ei)) ->
+        let bs =
+            List.map
+                (fun (s, synBinding: SynBinding) ->
+                    let range = synBinding.RangeOfBindingAndRhs
+
+                    let expr =
+                        enterNodeFor (synBindingToFsAstType synBinding) range
+                        +> genLetBinding astContext s synBinding
+
+
+                    let sepNln =
+                        sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType synBinding) range
+
+                    ColMultilineItem(expr, sepNln, range))
+                bs
+
+        let ifElse =
+            ColMultilineItem(
+                genKeepIdentIf astContext branches elseBranch,
+                sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType ei) ei.Range,
+                ei.Range
+            )
+
+        colWithNlnWhenItemIsMultiline [ yield! bs
+                                        yield ifElse ]
+    | KeepIndentIfThenElse (branches, elseBranch) -> genKeepIdentIf astContext branches elseBranch
+    | _ -> genExpr astContext e
+
+and genKeepIndentMatch
+    (astContext: ASTContext)
+    (e: SynExpr)
+    (clauses: SynMatchClause list)
+    (isBang: bool)
+    : Context -> Context =
+    let lastClauseIndex = clauses.Length - 1
+
+    ifElse isBang !- "match! " !- "match "
+    +> genExpr astContext e
+    -- " with"
+    +> sepNln
+    +> coli sepNln clauses (fun idx -> genClause astContext true (idx < lastClauseIndex))
+
+and genKeepIdentIf
+    (astContext: ASTContext)
+    (branches: (SynExpr * SynExpr * Range * Range * SynExpr) list)
+    (elseExpr: SynExpr)
+    =
+    coli
+        sepNln
+        branches
+        (fun idx (ifExpr, thenExpr, _r, _fullRange, _node) ->
+            ifElse (idx = 0) (!- "if ") (!- "elif ")
+            +> genExpr astContext ifExpr
+            +> !- " then"
+            +> indent
+            +> sepNln
+            +> genExpr astContext thenExpr
+            +> unindent)
+    +> sepNln
+    +> !- "else"
+    +> sepNln
+    +> genExprBodyOfSynBindingKeepIndentInBranch astContext elseExpr
 
 and genConst (c: SynConst) (r: Range) =
     match c with
