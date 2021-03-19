@@ -47,7 +47,7 @@ The output path is prompted by `--out` e.g.
 
 Both paths have to be files or folders at the same time. 
 If they are folders, the structure of input folder will be reflected in the output one. 
-The tool will explore the input folder recursively if you set `--recurse` option (see [Options section](#options)).
+The tool will explore the input folder recursively if you set `--recurse` option.
 If you omit the output path, Fantomas will overwrite the input files.
 
 ## Configuration
@@ -92,6 +92,7 @@ fsharp_align_function_signature_to_indentation=false
 fsharp_alternative_long_member_definitions=false
 fsharp_multi_line_lambda_closing_newline=false
 fsharp_disable_elmish_syntax=false
+fsharp_keep_indent_in_branch=false
 fsharp_strict_mode=false
 ```
 
@@ -1016,6 +1017,47 @@ let encodeUrlModel code model: JsonValue =
         [ "defines", Encode.string model.Defines
           "isFsi", Encode.bool model.IsFsi
           "code", Encode.string code ]
+```
+
+### fsharp_keep_indent_in_branch
+
+Breaks the normal indentation flow for the last branch of a pattern match of if/then/else expression.
+Only when the pattern match or if/then/else is the return value of a function or member.
+
+`defaultConfig`
+
+```fsharp
+let main argv =
+    let args = parse argv
+
+    let instructions = Library.foo args
+
+    if args.DryRun = RunMode.Dry then
+        printfn "Would execute actions, but --dry-run was supplied: %+A" instructions
+        0
+    else
+        // proceed with main method
+        let output = Library.execute instructions
+        // do more stuff
+        0
+```
+
+`{ defaultConfig with KeepIndentInBranch = true }`
+
+```fsharp
+let main argv =
+    let args = parse argv
+
+    let instructions = Library.foo args
+
+    if args.DryRun = RunMode.Dry then
+        printfn "Would execute actions, but --dry-run was supplied: %+A" instructions
+        0
+    else
+    // proceed with main method
+    let output = Library.execute instructions
+    // do more stuff
+    0
 ```
 
 ### fsharp_strict_mode

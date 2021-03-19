@@ -5,7 +5,6 @@ open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.Extras
 open Fantomas.Tests.TestHelper
-open FsUnit
 open NUnit.Framework
 open System.IO
 
@@ -431,3 +430,22 @@ fsharp_multi_line_lambda_closing_newline = true
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     Assert.IsTrue config.MultiLineLambdaClosingNewline
+
+[<Test>]
+let fsharp_keep_indent_in_branch () =
+    let rootDir = tempName ()
+
+    let editorConfig = """
+[*.fs]
+fsharp_keep_indent_in_branch = true
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
+
+    use fsharpFile = new FSharpFile(rootDir)
+
+    let config =
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    Assert.IsTrue config.KeepIndentInBranch
