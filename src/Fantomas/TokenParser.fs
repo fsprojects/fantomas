@@ -670,6 +670,27 @@ let private (|EmbeddedILTokens|_|) (tokens: Token list) =
         | _ -> None
     | _ -> None
 
+let rec private (|HashTokens|_|) (tokens: Token list) =
+    match tokens with
+    | ({ TokenInfo = { TokenName = "HASH_IF" } } as head) :: rest ->
+        let tokensFromSameLine =
+            List.takeWhile (fun t -> t.LineNumber = head.LineNumber) rest
+
+        let nextTokens =
+            List.skip tokensFromSameLine.Length rest
+            |> List.skipWhile (fun t -> t.TokenInfo.Tag = whiteSpaceTag)
+
+        match nextTokens with
+        | HashTokens (nextHashTokens, rest) ->
+            let totalHashTokens =
+                [ yield head
+                  yield! tokensFromSameLine
+                  yield! nextHashTokens ]
+
+            Some(totalHashTokens, rest)
+        | _ -> Some(head :: tokensFromSameLine, rest)
+    | _ -> None
+
 let rec private getTriviaFromTokensThemSelves
     (mkRange: MkRange)
     (allTokens: Token list)
@@ -710,7 +731,9 @@ let rec private getTriviaFromTokensThemSelves
 
         getTriviaFromTokensThemSelves mkRange allTokens nextTokens info
 
-    | headToken :: rest when (headToken.TokenInfo.TokenName = "COMMENT") ->
+    | headToken :: rest when
+        (headToken.TokenInfo.TokenName = "COMMENT"
+         && headToken.Content = "(*") ->
         let blockCommentTokens =
             rest
             |> List.takeWhileState
@@ -772,30 +795,34 @@ let rec private getTriviaFromTokensThemSelves
 
         getTriviaFromTokensThemSelves mkRange allTokens rest info
 
-    | headToken :: rest when (headToken.TokenInfo.TokenName = "HASH_IF") ->
-        let directiveTokens =
-            rest
-            |> List.filter (fun r -> r.LineNumber = headToken.LineNumber)
-            |> fun others -> List.prependItem others headToken
-
+    | HashTokens (hashTokens, rest) ->
         let directiveContent =
-            directiveTokens
-            |> List.map (fun t -> t.Content)
-            |> String.concat String.empty
+            let sb = StringBuilder()
+
+            hashTokens
+            |> List.fold
+                (fun (acc: StringBuilder, lastLine) token ->
+                    let sb =
+                        let delta = token.LineNumber - lastLine
+
+                        if delta > 0 then
+                            [ 1 .. delta ]
+                            |> List.fold (fun (sb: StringBuilder) _ -> sb.Append("\n")) acc
+                        else
+                            acc
+
+                    sb.Append(token.Content), token.LineNumber)
+                (sb, hashTokens.[0].LineNumber)
+            |> fun (sb, _) -> sb.ToString()
 
         let range =
-            getRangeBetween mkRange headToken (List.last directiveTokens)
+            getRangeBetween mkRange (List.head hashTokens) (List.last hashTokens)
 
         let info =
             Trivia.Create(Directive(directiveContent)) range
             |> List.prependItem foundTrivia
 
-        let nextRest =
-            match rest with
-            | [] -> []
-            | _ -> List.skip (List.length directiveTokens - 1) rest
-
-        getTriviaFromTokensThemSelves mkRange allTokens nextRest info
+        getTriviaFromTokensThemSelves mkRange allTokens rest info
 
     | EndOfInterpolatedString (stringTokens, interpStringEnd, rest) ->
         let stringContent =
@@ -936,28 +963,20 @@ let getTriviaFromTokens (mkRange: MkRange) (tokens: Token list) =
     let fromTokens =
         getTriviaFromTokensThemSelves mkRange tokens tokens []
 
-    let blockComments =
+    let isMultilineString (s: string) = s.Contains("\n")
+
+    let ignoreRanges =
         fromTokens
         |> List.choose
             (fun tc ->
                 match tc.Item with
+                | Directive (dc) when (isMultilineString dc) -> Some tc.Range
                 | Comment (BlockComment _) -> Some tc.Range
-                | _ -> None)
-
-    let isMultilineString (s: string) =
-        s.Split([| "\n" |], StringSplitOptions.None)
-        |> (Seq.isEmpty >> not)
-
-    let multilineStrings =
-        fromTokens
-        |> List.choose
-            (fun tc ->
-                match tc.Item with
                 | StringContent (sc) when (isMultilineString sc) -> Some tc.Range
                 | _ -> None)
 
     let newLines =
-        findEmptyNewlinesInTokens mkRange tokens (blockComments @ multilineStrings)
+        findEmptyNewlinesInTokens mkRange tokens ignoreRanges
 
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)

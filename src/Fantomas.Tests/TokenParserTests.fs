@@ -306,13 +306,10 @@ let x = 1
     let triviaNodes =
         TokenParser.tokenize defines.[0] hashTokens source
         |> getTriviaFromTokens
-        |> List.choose
-            (fun tv ->
-                match tv.Item with
-                | Directive (directive) -> Some directive
-                | _ -> None)
 
-    List.length triviaNodes == 3
+    match triviaNodes with
+    | [ { Item = Newline }; { Item = Directive "#if NOT_DEFINED\n#else\n\n#endif" } ] -> pass ()
+    | _ -> Assert.Fail(sprintf "Unexpected trivia %A" triviaNodes)
 
 [<Test>]
 let ``member and override`` () =

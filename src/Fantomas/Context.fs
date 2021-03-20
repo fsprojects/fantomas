@@ -360,6 +360,28 @@ let private (|CommentOrDefineEvent|_|) we =
     | Write (w) when (String.startsWithOrdinal "(*" w) -> Some we
     | _ -> None
 
+let private (|EmptyHashDefineBlock|_|) (events: WriterEvent array) =
+    match Array.tryHead events, Array.tryLast events with
+    | Some (CommentOrDefineEvent _), Some (CommentOrDefineEvent _) ->
+        // Check if there is an empty block between hash defines
+        // Example:
+        // #if FOO
+        //
+        // #endif
+        let emptyLinesInBetween =
+            Array.forall
+                (function
+                | WriteLineInsideStringConst
+                | Write "" -> true
+                | _ -> false)
+                events.[1..(events.Length - 2)]
+
+        if emptyLinesInBetween then
+            Some events
+        else
+            None
+    | _ -> None
+
 /// Validate if there is a complete blank line between the last write event and the last event
 let internal newlineBetweenLastWriteEvent ctx =
     ctx.WriterEvents
@@ -883,7 +905,8 @@ let internal leadingExpressionIsMultiline leadingExpression continuationExpressi
                 match e with
                 | [| CommentOrDefineEvent _ |]
                 | [| WriteLine |]
-                | [| Write "" |] -> true
+                | [| Write "" |]
+                | EmptyHashDefineBlock _ -> true
                 | _ -> false)
 
     continuationExpression hasWriteLineEventsAfterExpression contextAfterLeading

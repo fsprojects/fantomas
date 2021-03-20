@@ -300,7 +300,7 @@ doSomething()
 
     match withoutDefine with
     | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
-          ContentBefore = [ Directive ("#if NOT_DEFINED"); Directive ("#else") ]
+          ContentBefore = [ Directive ("#if NOT_DEFINED\n#else") ]
           ContentAfter = [ Directive ("#endif") ] } ] -> pass ()
     | _ -> fail ()
 
@@ -324,7 +324,7 @@ let x = 1
 
     match withoutDefine with
     | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
-          ContentAfter = [ Directive ("#if NOT_DEFINED"); Newline; Directive ("#endif") ]
+          ContentAfter = [ Directive ("#if NOT_DEFINED\n\n#endif") ]
           ContentBefore = [] } ] -> pass ()
     | _ -> fail ()
 
@@ -352,9 +352,8 @@ type ExtensibleDumper = A | B
 
     match trivias with
     | [ { Type = MainNode (Ident_)
-          ContentAfter = [ Directive ("#if EXTENSIBLE_DUMPER"); Directive ("#if DEBUG"); Newline; Directive ("#endif");
-                           Directive ("#endif") ] } ] -> pass ()
-    | _ -> fail ()
+          ContentAfter = [ Directive ("#if EXTENSIBLE_DUMPER\n#if DEBUG\n\n#endif\n#endif") ] } ] -> pass ()
+    | _ -> Assert.Fail(sprintf "Unexpected trivia %A" trivias)
 
 [<Test>]
 let ``trailing newlines should not be picked up in trivia`` () =
@@ -381,7 +380,7 @@ let foo = 42
 
     match trivia with
     | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
-          ContentAfter = [ Directive ("#if SOMETHING"); Newline; Directive ("#endif") ] } ] -> pass ()
+          ContentAfter = [ Directive ("#if SOMETHING\n\n#endif") ] } ] -> pass ()
     | _ -> fail ()
 
 
@@ -495,5 +494,25 @@ let ``number expression`` () =
 
     match trivia with
     | [ { ContentItself = Some (Number (n))
-          Type = TriviaNodeType.MainNode (SynExpr_Const) } ] -> n == "2.0m"
+          Type = TriviaNodeType.MainNode _ } ] -> n == "2.0m"
     | _ -> fail ()
+
+[<Test>]
+let ``collect multiple hash directive as one`` () =
+    let source = """
+let x =
+    #if DEBUG
+    printfn "DEBUG"
+    #endif
+    ()
+"""
+
+    let trivia =
+        toTriviaWithDefines source |> Map.find []
+
+    printfn "%A" trivia
+
+    match trivia with
+    | [ { Type = TriviaNodeType.MainNode SynConst_Unit
+          ContentBefore = [ Directive "#if DEBUG\n\n#endif" ] } ] -> pass ()
+    | _ -> Assert.Fail(sprintf "Unexpected trivia: %A" trivia)

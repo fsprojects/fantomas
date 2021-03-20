@@ -2306,3 +2306,111 @@ module ReactHookExtensions =
 
             deferred
 """
+
+[<Test>]
+let ``simple hash directive consider as one trivia`` () =
+    formatSourceStringWithDefines
+        []
+        """
+let x =
+    #if DEBUG
+    printfn "DEBUG"
+    #endif
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+#if DEBUG
+
+#endif
+    ()
+"""
+
+[<Test>]
+let ``hash if and hash else should be one trivia`` () =
+    formatSourceStringWithDefines
+        []
+        """
+#if FOO
+                printfn "FOO"
+#else
+                ()
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOO
+
+#else
+()
+#endif
+"""
+
+[<Test>]
+let ``empty hash directive block should not make expression multiline`` () =
+    formatSourceString
+        false
+        """
+    do
+#if FOOBAR
+
+#endif
+        assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+        assemblyName.HasPublicKey <- false
+        assemblyName.PublicKey <- null
+        assemblyName.PublicKeyToken <- null
+"""
+        { config with
+              MaxInfixOperatorExpression = 75 }
+    |> prepend newline
+    |> should
+        equal
+        """
+do
+#if FOOBAR
+
+#endif
+    assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+    assemblyName.HasPublicKey <- false
+    assemblyName.PublicKey <- null
+    assemblyName.PublicKeyToken <- null
+"""
+
+[<Test>]
+let ``comment after compiler define`` () =
+    formatSourceString
+        false
+        """
+#if EXTENDED_EXTENSION_MEMBERS // indicates if extension members can add additional constraints to type parameters
+    let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy = FreshenTyconRef m (if isExtrinsic then TyparRigidity.Flexible else rigid) tcref declaredTyconTypars
+#else
+    let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy = FreshenTyconRef m rigid tcref declaredTyconTypars
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if EXTENDED_EXTENSION_MEMBERS // indicates if extension members can add additional constraints to type parameters
+let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy =
+    FreshenTyconRef
+        m
+        (if isExtrinsic then
+             TyparRigidity.Flexible
+         else
+             rigid)
+        tcref
+        declaredTyconTypars
+#else
+let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy =
+    FreshenTyconRef m rigid tcref declaredTyconTypars
+#endif
+"""
