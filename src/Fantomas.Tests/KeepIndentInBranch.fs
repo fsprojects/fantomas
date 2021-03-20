@@ -408,7 +408,9 @@ let sum a b =
 
 [<Test>]
 let ``match followed by if should not indent in both cases`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let sum a b =
     if a < 0 then
         None
@@ -420,9 +422,12 @@ let sum a b =
             logMessage "a and b are both positive"
             // some grand explainer about the code
             Some (a + b)
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let sum a b =
     if a < 0 then
         None
