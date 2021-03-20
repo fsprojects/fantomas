@@ -2307,7 +2307,6 @@ module ReactHookExtensions =
             deferred
 """
 
-
 [<Test>]
 let ``simple hash directive consider as one trivia`` () =
     formatSourceStringWithDefines
@@ -2382,4 +2381,36 @@ do
     assemblyName.HasPublicKey <- false
     assemblyName.PublicKey <- null
     assemblyName.PublicKeyToken <- null
+"""
+
+[<Test>]
+let ``comment after compiler define`` () =
+    formatSourceString
+        false
+        """
+#if EXTENDED_EXTENSION_MEMBERS // indicates if extension members can add additional constraints to type parameters
+    let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy = FreshenTyconRef m (if isExtrinsic then TyparRigidity.Flexible else rigid) tcref declaredTyconTypars
+#else
+    let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy = FreshenTyconRef m rigid tcref declaredTyconTypars
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if EXTENDED_EXTENSION_MEMBERS // indicates if extension members can add additional constraints to type parameters
+let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy =
+    FreshenTyconRef
+        m
+        (if isExtrinsic then
+             TyparRigidity.Flexible
+         else
+             rigid)
+        tcref
+        declaredTyconTypars
+#else
+let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy =
+    FreshenTyconRef m rigid tcref declaredTyconTypars
+#endif
 """

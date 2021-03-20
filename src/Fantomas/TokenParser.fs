@@ -731,7 +731,9 @@ let rec private getTriviaFromTokensThemSelves
 
         getTriviaFromTokensThemSelves mkRange allTokens nextTokens info
 
-    | headToken :: rest when (headToken.TokenInfo.TokenName = "COMMENT") ->
+    | headToken :: rest when
+        (headToken.TokenInfo.TokenName = "COMMENT"
+         && headToken.Content = "(*") ->
         let blockCommentTokens =
             rest
             |> List.takeWhileState
