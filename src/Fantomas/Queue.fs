@@ -122,4 +122,4 @@ module Queue =
     let inline append (q: Queue<'T>) xs = q.Append xs
 
     /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.exists f
-    let inline skipExists n f p (q: Queue<'T>) = q.SkipExists n f p
+    let inline skipExists (n: int) (f: 'T -> bool) (p: 'T [] -> bool) (q: Queue<'T>) : bool = q.SkipExists n f p

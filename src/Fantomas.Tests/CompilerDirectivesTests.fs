@@ -2306,3 +2306,80 @@ module ReactHookExtensions =
 
             deferred
 """
+
+
+[<Test>]
+let ``simple hash directive consider as one trivia`` () =
+    formatSourceStringWithDefines
+        []
+        """
+let x =
+    #if DEBUG
+    printfn "DEBUG"
+    #endif
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+#if DEBUG
+
+#endif
+    ()
+"""
+
+[<Test>]
+let ``hash if and hash else should be one trivia`` () =
+    formatSourceStringWithDefines
+        []
+        """
+#if FOO
+                printfn "FOO"
+#else
+                ()
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOO
+
+#else
+()
+#endif
+"""
+
+[<Test>]
+let ``empty hash directive block should not make expression multiline`` () =
+    formatSourceString
+        false
+        """
+    do
+#if FOOBAR
+
+#endif
+        assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+        assemblyName.HasPublicKey <- false
+        assemblyName.PublicKey <- null
+        assemblyName.PublicKeyToken <- null
+"""
+        { config with
+              MaxInfixOperatorExpression = 75 }
+    |> prepend newline
+    |> should
+        equal
+        """
+do
+#if FOOBAR
+
+#endif
+    assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
+    assemblyName.HasPublicKey <- false
+    assemblyName.PublicKey <- null
+    assemblyName.PublicKeyToken <- null
+"""
