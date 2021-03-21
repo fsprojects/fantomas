@@ -2781,7 +2781,8 @@ and genExprInMultilineInfixExpr astContext e =
                 (sepNlnConsideringTriviaContentBeforeForMainNode (synExprToFsAstType e) e.Range
                  +> genExpr astContext e)
         )
-    | Paren (_, InfixApp (_, _, DotGet _, _), _, _) -> atCurrentColumnIndent (genExpr astContext e)
+    | Paren (_, InfixApp (_, _, DotGet _, _), _, _)
+    | Paren (_, DotGetApp _, _, _) -> atCurrentColumnIndent (genExpr astContext e)
     | _ -> genExpr astContext e
 
 and genLidsWithDots (lids: (string * range) list) =

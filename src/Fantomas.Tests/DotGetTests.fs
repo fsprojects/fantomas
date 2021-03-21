@@ -967,3 +967,37 @@ let PublishValueDefn cenv env declKind (vspec: Val) =
 
     ()
 """
+
+[<Test>]
+let ``DotGetApp inside multiline infix expression should indent, 1529`` () =
+    formatSourceString
+        false
+        """
+type Foobar =
+    member tcConfig.IsSystemAssembly (filename: string) =
+        try
+            FileSystem.SafeExists filename &&
+            ((tcConfig.GetTargetFrameworkDirectories() |> List.exists (fun clrRoot -> clrRoot = Path.GetDirectoryName filename)) ||
+             (tcConfig.FxResolver.GetSystemAssemblies().Contains (fileNameWithoutExtension filename)) ||
+             tcConfig.FxResolver.IsInReferenceAssemblyPackDirectory filename)
+        with _ ->
+            false
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foobar =
+    member tcConfig.IsSystemAssembly(filename: string) =
+        try
+            FileSystem.SafeExists filename
+            && ((tcConfig.GetTargetFrameworkDirectories()
+                 |> List.exists (fun clrRoot -> clrRoot = Path.GetDirectoryName filename))
+                || (tcConfig
+                       .FxResolver
+                       .GetSystemAssemblies()
+                       .Contains(fileNameWithoutExtension filename))
+                || tcConfig.FxResolver.IsInReferenceAssemblyPackDirectory filename)
+        with _ -> false
+"""
