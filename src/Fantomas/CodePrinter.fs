@@ -4356,7 +4356,7 @@ and genClause astContext hasBar (Clause (p, e, eo) as ce) =
     let arrowRange (ctx: Context) = ctx.MkRange p.Range.End e.Range.Start
 
     let body =
-        autoIndentAndNlnIfExpressionExceedsPageWidth (genExprBodyOfSynBindingKeepIndentInBranch astContext e)
+        autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     let astCtx =
         { astContext with
