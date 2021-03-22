@@ -1,3 +1,20 @@
+### 4.5.0-alpha-002 - 03/2021
+
+* Initial support of KeepIndentInBranch. [#1361](https://github.com/fsprojects/fantomas/issues/1361)
+* Improve: Collect empty define block as single trivia. [#1528](https://github.com/fsprojects/fantomas/pull/1528)
+* Improve: Refactor ASTTransformer. [#1497](https://github.com/fsprojects/fantomas/pull/1497)
+* Improve: replace genTypeByLookup with Trivia. [#594](https://github.com/fsprojects/fantomas/issues/594)
+* Fix DotGet infix expression. [#1529](https://github.com/fsprojects/fantomas/issues/1529)
+* Fix SynPat.Or should have the same indent. [#1522](https://github.com/fsprojects/fantomas/issues/1522)
+* Fix DotGet with parenthesis. [#1521](https://github.com/fsprojects/fantomas/issues/1521)
+* Fix Trivia regressions around SynConst. [#1518](https://github.com/fsprojects/fantomas/issues/1518)
+* Fix Long signatures have additonal newline inserted and don't respect the indent from the config. [#1515](https://github.com/fsprojects/fantomas/issues/1515)
+* Fix Bad formatting when using elmish style + empty arrays. [#1510](https://github.com/fsprojects/fantomas/issues/1510)
+* Fix \xHH escapes in string literal are expanded. [#1508](https://github.com/fsprojects/fantomas/issues/1508)
+* Fix Indentation of pattern match clause. [#1501](https://github.com/fsprojects/fantomas/issues/1501)
+* Fix Class parameters expands unit for long lines. [#1494](https://github.com/fsprojects/fantomas/issues/1494)
+* Fix Comments inside Elmish gets repeated. [#1347](https://github.com/fsprojects/fantomas/issues/1347)
+
 ### 4.5.0-alpha-001 - 02/2021
 
 * Update to FCS 39 [#1479](https://github.com/fsprojects/fantomas/pull/1479)
