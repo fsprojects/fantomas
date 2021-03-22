@@ -34,6 +34,7 @@ let foo () =
     if someCondition then
         0
     else
+
     let config =
         Configuration.Read "/myfolder/myfile.xml"
 
@@ -138,6 +139,59 @@ let main argv =
         0
     | RunMode.Wet ->
     // proceed with main method
+    let output = Library.execute instructions
+    // do more stuff
+    0
+"""
+
+[<Test>]
+let ``always add newline before un-indented last clause`` () =
+    formatSourceString
+        false
+        """
+open Library
+
+type RunMode =
+    | Dry
+    | Wet
+
+let main argv =
+    let args = parse argv
+
+    let instructions = Library.foo args
+    match args.DryRun with
+    | RunMode.Dry ->
+        printfn "Would execute actions, but --dry-run was supplied: %+A" instructions
+        0
+    | RunMode.Wet ->
+        printfn "here it comes"
+        let output = Library.execute instructions
+        // do more stuff
+        0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+open Library
+
+type RunMode =
+    | Dry
+    | Wet
+
+let main argv =
+    let args = parse argv
+
+    let instructions = Library.foo args
+
+    match args.DryRun with
+    | RunMode.Dry ->
+        printfn "Would execute actions, but --dry-run was supplied: %+A" instructions
+        0
+    | RunMode.Wet ->
+
+    printfn "here it comes"
     let output = Library.execute instructions
     // do more stuff
     0
@@ -332,6 +386,7 @@ let sum a b =
     | Negative _, _
     | _, Negative _ -> None
     | a, b ->
+
     logMessage "a and b are both positive"
     // some grand explainer about the code
     Some(a + b)
@@ -362,9 +417,11 @@ let sum a b =
     match a with
     | Negative -> None
     | _ ->
+
     match b with
     | Negative -> None
     | _ ->
+
     logMessage "a and b are both positive"
     // some grand explainer about the code
     Some(a + b)
@@ -396,11 +453,13 @@ let sum a b =
     if a < 0 then
         None
     else
+
     logMessage "a is positive"
 
     if b < 0 then
         None
     else
+
     logMessage "a and b are both positive"
     // some grand explainer about the code
     Some(a + b)
@@ -432,11 +491,13 @@ let sum a b =
     if a < 0 then
         None
     else
+
     logMessage "a is positive"
 
     match b with
     | Negative -> None
     | _ ->
+
     logMessage "a and b are both positive"
     // some grand explainer about the code
     Some(a + b)
