@@ -1,6 +1,7 @@
 module internal Fantomas.SourceTransformer
 
 open FSharp.Compiler.SyntaxTree
+open FSharp.Compiler.Text
 open Fantomas.Context
 open Fantomas.SourceParser
 open Fantomas.TriviaTypes
@@ -249,77 +250,77 @@ let synConstToFsAstType =
     | SynConst.UInt16s _ -> SynConst_UInt16s
     | SynConst.Measure _ -> SynConst_Measure
 
-let rec synExprToFsAstType =
-    function
-    | SynExpr.YieldOrReturn _ -> SynExpr_YieldOrReturn
-    | SynExpr.IfThenElse _ -> SynExpr_IfThenElse
-    | SynExpr.LetOrUseBang _ -> SynExpr_LetOrUseBang
-    | SynExpr.Const (c, _) -> synConstToFsAstType c
-    | SynExpr.Lambda _ -> SynExpr_Lambda
-    | SynExpr.Ident _ -> SynExpr_Ident
-    | SynExpr.App _ -> SynExpr_App
-    | SynExpr.Match _ -> SynExpr_Match
-    | SynExpr.Record _ -> SynExpr_Record
-    | SynExpr.Tuple _ -> SynExpr_Tuple
-    | SynExpr.DoBang _ -> SynExpr_DoBang
-    | SynExpr.Paren _ -> SynExpr_Paren
-    | SynExpr.AnonRecd _ -> SynExpr_AnonRecd
-    | SynExpr.ArrayOrListOfSeqExpr _ -> SynExpr_ArrayOrListOfSeqExpr
-    | SynExpr.LongIdentSet _ -> SynExpr_LongIdentSet
-    | SynExpr.New _ -> SynExpr_New
-    | SynExpr.Quote _ -> SynExpr_Quote
-    | SynExpr.DotIndexedSet _ -> SynExpr_DotIndexedSet
+let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
+    match expr with
+    | SynExpr.YieldOrReturn _ -> SynExpr_YieldOrReturn, expr.Range
+    | SynExpr.IfThenElse _ -> SynExpr_IfThenElse, expr.Range
+    | SynExpr.LetOrUseBang _ -> SynExpr_LetOrUseBang, expr.Range
+    | SynExpr.Const (c, _) -> synConstToFsAstType c, expr.Range
+    | SynExpr.Lambda _ -> SynExpr_Lambda, expr.Range
+    | SynExpr.Ident _ -> SynExpr_Ident, expr.Range
+    | SynExpr.App _ -> SynExpr_App, expr.Range
+    | SynExpr.Match _ -> SynExpr_Match, expr.Range
+    | SynExpr.Record _ -> SynExpr_Record, expr.Range
+    | SynExpr.Tuple _ -> SynExpr_Tuple, expr.Range
+    | SynExpr.DoBang _ -> SynExpr_DoBang, expr.Range
+    | SynExpr.Paren _ -> SynExpr_Paren, expr.Range
+    | SynExpr.AnonRecd _ -> SynExpr_AnonRecd, expr.Range
+    | SynExpr.ArrayOrListOfSeqExpr _ -> SynExpr_ArrayOrListOfSeqExpr, expr.Range
+    | SynExpr.LongIdentSet _ -> SynExpr_LongIdentSet, expr.Range
+    | SynExpr.New _ -> SynExpr_New, expr.Range
+    | SynExpr.Quote _ -> SynExpr_Quote, expr.Range
+    | SynExpr.DotIndexedSet _ -> SynExpr_DotIndexedSet, expr.Range
     | SynExpr.LetOrUse (_, _, bs, e, _) ->
         match bs with
         | [] -> synExprToFsAstType e
-        | (SynBinding.Binding (kind = kind)) :: _ ->
+        | (SynBinding.Binding (kind = kind) as b) :: _ ->
             match kind with
-            | SynBindingKind.StandaloneExpression -> StandaloneExpression_
-            | SynBindingKind.NormalBinding -> NormalBinding_
-            | SynBindingKind.DoBinding -> DoBinding_
-    | SynExpr.TryWith _ -> SynExpr_TryWith
-    | SynExpr.YieldOrReturnFrom _ -> SynExpr_YieldOrReturnFrom
-    | SynExpr.While _ -> SynExpr_While
-    | SynExpr.TryFinally _ -> SynExpr_TryFinally
-    | SynExpr.Do _ -> SynExpr_Do
-    | SynExpr.AddressOf _ -> SynExpr_AddressOf
+            | SynBindingKind.StandaloneExpression -> StandaloneExpression_, b.RangeOfBindingAndRhs
+            | SynBindingKind.NormalBinding -> NormalBinding_, b.RangeOfBindingAndRhs
+            | SynBindingKind.DoBinding -> DoBinding_, b.RangeOfBindingAndRhs
+    | SynExpr.TryWith _ -> SynExpr_TryWith, expr.Range
+    | SynExpr.YieldOrReturnFrom _ -> SynExpr_YieldOrReturnFrom, expr.Range
+    | SynExpr.While _ -> SynExpr_While, expr.Range
+    | SynExpr.TryFinally _ -> SynExpr_TryFinally, expr.Range
+    | SynExpr.Do _ -> SynExpr_Do, expr.Range
+    | SynExpr.AddressOf _ -> SynExpr_AddressOf, expr.Range
     | SynExpr.Typed (e, _, _) -> synExprToFsAstType e
-    | SynExpr.ArrayOrList _ -> SynExpr_ArrayOrList
-    | SynExpr.ObjExpr _ -> SynExpr_ObjExpr
-    | SynExpr.For _ -> SynExpr_For
-    | SynExpr.ForEach _ -> SynExpr_ForEach
+    | SynExpr.ArrayOrList _ -> SynExpr_ArrayOrList, expr.Range
+    | SynExpr.ObjExpr _ -> SynExpr_ObjExpr, expr.Range
+    | SynExpr.For _ -> SynExpr_For, expr.Range
+    | SynExpr.ForEach _ -> SynExpr_ForEach, expr.Range
     | SynExpr.CompExpr (_, _, e, _) -> synExprToFsAstType e
-    | SynExpr.MatchLambda _ -> SynExpr_MatchLambda
-    | SynExpr.Assert _ -> SynExpr_Assert
-    | SynExpr.TypeApp _ -> SynExpr_TypeApp
-    | SynExpr.Lazy _ -> SynExpr_Lazy
-    | SynExpr.LongIdent _ -> SynExpr_LongIdent
-    | SynExpr.DotGet _ -> SynExpr_DotGet
-    | SynExpr.DotSet _ -> SynExpr_DotSet
-    | SynExpr.Set _ -> SynExpr_Set
-    | SynExpr.DotIndexedGet _ -> SynExpr_DotIndexedGet
-    | SynExpr.NamedIndexedPropertySet _ -> SynExpr_NamedIndexedPropertySet
-    | SynExpr.DotNamedIndexedPropertySet _ -> SynExpr_DotNamedIndexedPropertySet
-    | SynExpr.TypeTest _ -> SynExpr_TypeTest
-    | SynExpr.Upcast _ -> SynExpr_Upcast
-    | SynExpr.Downcast _ -> SynExpr_Downcast
-    | SynExpr.InferredUpcast _ -> SynExpr_InferredUpcast
-    | SynExpr.InferredDowncast _ -> SynExpr_InferredDowncast
-    | SynExpr.Null _ -> SynExpr_Null
-    | SynExpr.TraitCall _ -> SynExpr_TraitCall
-    | SynExpr.JoinIn _ -> SynExpr_JoinIn
-    | SynExpr.ImplicitZero _ -> SynExpr_ImplicitZero
-    | SynExpr.SequentialOrImplicitYield _ -> SynExpr_SequentialOrImplicitYield
-    | SynExpr.MatchBang _ -> SynExpr_MatchBang
-    | SynExpr.LibraryOnlyILAssembly _ -> SynExpr_LibraryOnlyILAssembly
-    | SynExpr.LibraryOnlyStaticOptimization _ -> SynExpr_LibraryOnlyStaticOptimization
-    | SynExpr.LibraryOnlyUnionCaseFieldGet _ -> SynExpr_LibraryOnlyUnionCaseFieldGet
-    | SynExpr.LibraryOnlyUnionCaseFieldSet _ -> SynExpr_LibraryOnlyUnionCaseFieldSet
-    | SynExpr.ArbitraryAfterError _ -> SynExpr_ArbitraryAfterError
-    | SynExpr.FromParseError _ -> SynExpr_FromParseError
-    | SynExpr.DiscardAfterMissingQualificationAfterDot _ -> SynExpr_DiscardAfterMissingQualificationAfterDot
-    | SynExpr.Fixed _ -> SynExpr_Fixed
-    | SynExpr.InterpolatedString _ -> SynExpr_InterpolatedString
+    | SynExpr.MatchLambda _ -> SynExpr_MatchLambda, expr.Range
+    | SynExpr.Assert _ -> SynExpr_Assert, expr.Range
+    | SynExpr.TypeApp _ -> SynExpr_TypeApp, expr.Range
+    | SynExpr.Lazy _ -> SynExpr_Lazy, expr.Range
+    | SynExpr.LongIdent _ -> SynExpr_LongIdent, expr.Range
+    | SynExpr.DotGet _ -> SynExpr_DotGet, expr.Range
+    | SynExpr.DotSet _ -> SynExpr_DotSet, expr.Range
+    | SynExpr.Set _ -> SynExpr_Set, expr.Range
+    | SynExpr.DotIndexedGet _ -> SynExpr_DotIndexedGet, expr.Range
+    | SynExpr.NamedIndexedPropertySet _ -> SynExpr_NamedIndexedPropertySet, expr.Range
+    | SynExpr.DotNamedIndexedPropertySet _ -> SynExpr_DotNamedIndexedPropertySet, expr.Range
+    | SynExpr.TypeTest _ -> SynExpr_TypeTest, expr.Range
+    | SynExpr.Upcast _ -> SynExpr_Upcast, expr.Range
+    | SynExpr.Downcast _ -> SynExpr_Downcast, expr.Range
+    | SynExpr.InferredUpcast _ -> SynExpr_InferredUpcast, expr.Range
+    | SynExpr.InferredDowncast _ -> SynExpr_InferredDowncast, expr.Range
+    | SynExpr.Null _ -> SynExpr_Null, expr.Range
+    | SynExpr.TraitCall _ -> SynExpr_TraitCall, expr.Range
+    | SynExpr.JoinIn _ -> SynExpr_JoinIn, expr.Range
+    | SynExpr.ImplicitZero _ -> SynExpr_ImplicitZero, expr.Range
+    | SynExpr.SequentialOrImplicitYield _ -> SynExpr_SequentialOrImplicitYield, expr.Range
+    | SynExpr.MatchBang _ -> SynExpr_MatchBang, expr.Range
+    | SynExpr.LibraryOnlyILAssembly _ -> SynExpr_LibraryOnlyILAssembly, expr.Range
+    | SynExpr.LibraryOnlyStaticOptimization _ -> SynExpr_LibraryOnlyStaticOptimization, expr.Range
+    | SynExpr.LibraryOnlyUnionCaseFieldGet _ -> SynExpr_LibraryOnlyUnionCaseFieldGet, expr.Range
+    | SynExpr.LibraryOnlyUnionCaseFieldSet _ -> SynExpr_LibraryOnlyUnionCaseFieldSet, expr.Range
+    | SynExpr.ArbitraryAfterError _ -> SynExpr_ArbitraryAfterError, expr.Range
+    | SynExpr.FromParseError _ -> SynExpr_FromParseError, expr.Range
+    | SynExpr.DiscardAfterMissingQualificationAfterDot _ -> SynExpr_DiscardAfterMissingQualificationAfterDot, expr.Range
+    | SynExpr.Fixed _ -> SynExpr_Fixed, expr.Range
+    | SynExpr.InterpolatedString _ -> SynExpr_InterpolatedString, expr.Range
     | SynExpr.Sequential (_, _, e, _, _) -> synExprToFsAstType e
 
 let synModuleSigDeclToFsAstType =

@@ -93,6 +93,7 @@ type FormatConfig =
       MultiLineLambdaClosingNewline: bool
       DisableElmishSyntax: bool
       EndOfLine: EndOfLineStyle
+      KeepIndentInBranch: bool
       /// Pretty printing based on ASTs only
       StrictMode: bool }
 
@@ -132,4 +133,5 @@ type FormatConfig =
           MultiLineLambdaClosingNewline = false
           DisableElmishSyntax = false
           EndOfLine = EndOfLineStyle.FromEnvironment
+          KeepIndentInBranch = false
           StrictMode = false }

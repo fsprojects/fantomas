@@ -947,11 +947,12 @@ let rec collectComputationExpressionStatements e : ComputationExpressionStatemen
 /// Matches if the SynExpr has some or of computation expression member call inside.
 let rec (|CompExprBody|_|) expr =
     match expr with
-    | SynExpr.LetOrUse (_, _, _, CompExprBody _, _) -> Some expr
-    | SynExpr.LetOrUseBang _ -> Some expr
-    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn _, _) -> Some expr
-    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse _, _) -> Some expr
-    | SynExpr.Sequential (_, _, SynExpr.DoBang _, SynExpr.LetOrUseBang _, _) -> Some expr
+    | SynExpr.LetOrUse (_, _, _, CompExprBody _, _) -> Some(collectComputationExpressionStatements expr)
+    | SynExpr.LetOrUseBang _ -> Some(collectComputationExpressionStatements expr)
+    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn _, _) -> Some(collectComputationExpressionStatements expr)
+    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse _, _) -> Some(collectComputationExpressionStatements expr)
+    | SynExpr.Sequential (_, _, SynExpr.DoBang _, SynExpr.LetOrUseBang _, _) ->
+        Some(collectComputationExpressionStatements expr)
     | _ -> None
 
 let (|ForEach|_|) =
@@ -1711,4 +1712,56 @@ let (|AppParenArg|_|) e =
     match e with
     | AppParenTupleArg t -> Choice1Of2 t |> Some
     | AppParenSingleArg s -> Choice2Of2 s |> Some
+    | _ -> None
+
+let private shouldNotIndentBranch e es =
+    let isShortIfBranch e =
+        match e with
+        | SimpleExpr _
+        | Sequential (_, _, true) -> true
+        | _ -> false
+
+    let isLongElseBranch e =
+        match e with
+        | LetOrUses _
+        | Sequential _
+        | Match _ -> true
+        | _ -> false
+
+    List.forall isShortIfBranch es
+    && isLongElseBranch e
+
+let (|KeepIndentMatch|_|) (e: SynExpr) =
+    let mapClauses matchExpr clauses isBang =
+        match clauses with
+        | []
+        | [ _ ] -> None
+        | clauses ->
+            let firstClauses =
+                clauses
+                |> List.take (clauses.Length - 1)
+                |> List.map (fun (Clause (_, expr, _)) -> expr)
+
+            let (Clause (_, lastClause, _)) = List.last clauses
+
+            if shouldNotIndentBranch lastClause firstClauses then
+                Some(matchExpr, clauses, isBang)
+            else
+                None
+
+    match e with
+    | Match (matchExpr, clauses) -> mapClauses matchExpr clauses false
+    | MatchBang (matchExpr, clauses) -> mapClauses matchExpr clauses true
+    | _ -> None
+
+let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
+    match e with
+    | ElIf (branches, Some elseExpr) ->
+        let branchBodies =
+            branches |> List.map (fun (_, e, _, _, _) -> e)
+
+        if shouldNotIndentBranch elseExpr branchBodies then
+            Some(branches, elseExpr)
+        else
+            None
     | _ -> None

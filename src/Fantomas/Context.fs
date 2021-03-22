@@ -634,6 +634,8 @@ let internal ifElseCtx cond (f1: Context -> Context) f2 (ctx: Context) = if cond
 /// apply f only when cond is true
 let internal onlyIf cond f ctx = if cond then f ctx else ctx
 
+let internal onlyIfCtx cond f ctx = if cond ctx then f ctx else ctx
+
 let internal onlyIfNot cond f ctx = if cond then ctx else f ctx
 
 let internal whenShortIndent f ctx =
@@ -1440,16 +1442,17 @@ let internal addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTrivi
 ///
 /// The range in the tuple is the range of expression
 
-type internal ColMultilineItem = (Context -> Context) * (Context -> Context) * range
+type internal ColMultilineItem =
+    ColMultilineItem of expr: (Context -> Context) * sepNln: (Context -> Context) * range: range
 
 let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
     let firstItemRange =
         List.tryHead items
-        |> Option.map (fun (_, _, r) -> r)
+        |> Option.map (fun (ColMultilineItem (_, _, r)) -> r)
 
     let rec impl items =
         match items with
-        | (f1, sepNln1, r1) :: (_, sepNln2, _) :: _ ->
+        | (ColMultilineItem (f1, sepNln1, r1)) :: (ColMultilineItem (_, sepNln2, _)) :: _ ->
             let f1Expr =
                 match firstItemRange with
                 | Some (fr1) when (fr1 = r1) ->
@@ -1464,7 +1467,7 @@ let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
                         (autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNln1 f1)
 
             addExtraNewlineIfLeadingWasMultiline f1Expr sepNln2 (impl (List.skip 1 items))
-        | [ (f, sepNln, r) ] ->
+        | [ (ColMultilineItem (f, sepNln, r)) ] ->
             match firstItemRange with
             | Some (fr1) when (fr1 = r) ->
                 // this can only happen when there is only one item in items
