@@ -960,6 +960,16 @@ module Foo =
 
     type t = int
     val lmao: unit -> bool
+
+module Foo2 =
+    module Bar =
+        type t = bool
+
+        val lol: unit -> bool
+
+    type t = int
+
+    val lmao: unit -> bool
 """
         config
     |> prepend newline
@@ -969,6 +979,14 @@ module Foo =
 module Example
 
 module Foo =
+    module Bar =
+        type t = bool
+        val lol : unit -> bool
+
+    type t = int
+    val lmao : unit -> bool
+
+module Foo2 =
     module Bar =
         type t = bool
 
@@ -1221,4 +1239,62 @@ val create :
   another_really_long_thing: unit ->
   and_another_to_make_the_line_long_enough: unit ->
   unit
+"""
+
+[<Test>]
+let ``print trivia before exception`` () =
+    formatSourceString
+        true
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+/// The configuration of the compiler (TcConfig and TcConfigBuilder)
+module internal FSharp.Compiler.CompilerConfig
+
+open System
+open Internal.Utilities
+open Internal.Utilities.Library
+open FSharp.Compiler
+open FSharp.Compiler.AbstractIL
+open FSharp.Compiler.AbstractIL.IL
+open FSharp.Compiler.AbstractIL.ILBinaryReader
+open FSharp.Compiler.AbstractIL.ILPdbWriter
+open FSharp.Compiler.DependencyManager
+open FSharp.Compiler.Diagnostics
+open FSharp.Compiler.ErrorLogger
+open FSharp.Compiler.Features
+open FSharp.Compiler.CodeAnalysis
+open FSharp.Compiler.Text
+exception FileNameNotResolved of string (*description of searched locations*)  * string * range (*filename*)
+
+exception LoadedSourceNotFoundIgnoring of string * range (*filename*)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+/// The configuration of the compiler (TcConfig and TcConfigBuilder)
+module internal FSharp.Compiler.CompilerConfig
+
+open System
+open Internal.Utilities
+open Internal.Utilities.Library
+open FSharp.Compiler
+open FSharp.Compiler.AbstractIL
+open FSharp.Compiler.AbstractIL.IL
+open FSharp.Compiler.AbstractIL.ILBinaryReader
+open FSharp.Compiler.AbstractIL.ILPdbWriter
+open FSharp.Compiler.DependencyManager
+open FSharp.Compiler.Diagnostics
+open FSharp.Compiler.ErrorLogger
+open FSharp.Compiler.Features
+open FSharp.Compiler.CodeAnalysis
+open FSharp.Compiler.Text
+
+exception FileNameNotResolved of string (*description of searched locations*)  * string * range (*filename*)
+
+exception LoadedSourceNotFoundIgnoring of string * range (*filename*)
 """
