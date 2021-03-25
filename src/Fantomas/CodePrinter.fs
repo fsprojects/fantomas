@@ -3322,7 +3322,7 @@ and genAlternativeAppWithParenthesis app astContext =
     | Choice1Of2 t -> genAlternativeAppWithTupledArgument t astContext
     | Choice2Of2 s -> genAlternativeAppWithSingleParenthesisArgument s astContext
 
-and sepNlnBetweenTypeAndMembers (ms: SynMemberDefn list) =
+and sepNlnBetweenTypeAndMembers (tdr: SynTypeDefnRepr) (ms: SynMemberDefn list) =
     match List.tryHead ms with
     | Some m ->
         let range, mainNodeType =
@@ -3339,7 +3339,7 @@ and sepNlnBetweenTypeAndMembers (ms: SynMemberDefn list) =
             | SynMemberDefn.NestedType (_, _, r) -> r, SynMemberDefn_NestedType
             | SynMemberDefn.AutoProperty (_, _, _, _, _, _, _, _, _, _, r) -> r, SynMemberDefn_AutoProperty
 
-        sepNlnTypeAndMembers (Some range) mainNodeType
+        sepNlnTypeAndMembers tdr.Range.End range mainNodeType
     | None -> sepNone
 
 and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix) as node) =
@@ -3368,7 +3368,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
                     { astContext with
                           HasVerticalBar = true })
              +> onlyIf (List.isNotEmpty ms) sepNln
-             +> sepNlnBetweenTypeAndMembers ms
+             +> sepNlnBetweenTypeAndMembers tdr ms
              +> genMemberDefnList
                  { astContext with
                        InterfaceRange = None }
@@ -3423,7 +3423,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
         +> sepEq
         +> unionCases
         +> onlyIf (List.isNotEmpty ms) sepNln
-        +> sepNlnBetweenTypeAndMembers ms
+        +> sepNlnBetweenTypeAndMembers tdr ms
         +> genMemberDefnList
             { astContext with
                   InterfaceRange = None }
@@ -3485,7 +3485,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
                 (indent ++ "with"
                  +> indent
                  +> sepNln
-                 +> sepNlnBetweenTypeAndMembers ms
+                 +> sepNlnBetweenTypeAndMembers tdr ms
                  +> genMemberDefnList
                      { astContext with
                            InterfaceRange = None }
@@ -3528,7 +3528,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
         +> genTypeDefKind tdk
         +> indent
         +> onlyIf (List.isNotEmpty others) sepNln
-        +> sepNlnBetweenTypeAndMembers ms
+        +> sepNlnBetweenTypeAndMembers tdr ms
         +> genMemberDefnList astContext others
         +> unindent
         ++ "end"
@@ -3561,7 +3561,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
         +> indent
         // Remember that we use MemberDefn of parent node
         +> sepNln
-        +> sepNlnBetweenTypeAndMembers ms
+        +> sepNlnBetweenTypeAndMembers tdr ms
         +> genMemberDefnList
             { astContext with
                   InterfaceRange = None }
@@ -3637,7 +3637,7 @@ and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
     +> leaveNodeTokenByName tdr.Range RBRACE
     +> optSingle (fun _ -> unindent) ao'
     +> onlyIf (List.isNotEmpty ms) sepNln
-    +> sepNlnBetweenTypeAndMembers ms
+    +> sepNlnBetweenTypeAndMembers tdr ms
     +> genMemberDefnList
         { astContext with
               InterfaceRange = None }
@@ -3659,13 +3659,13 @@ and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
     +> sepCloseSFixed
     +> optSingle (fun _ -> unindent) ao'
     +> onlyIf (List.isNotEmpty ms) sepNln
-    +> sepNlnBetweenTypeAndMembers ms
+    +> sepNlnBetweenTypeAndMembers tdr ms
     +> genMemberDefnList
         { astContext with
               InterfaceRange = None }
         ms
 
-and sepNlnBetweenSigTypeAndMembers (ms: SynMemberSig list) =
+and sepNlnBetweenSigTypeAndMembers (synTypeDefnRepr: SynTypeDefnSigRepr) (ms: SynMemberSig list) : Context -> Context =
     match List.tryHead ms with
     | Some m ->
         let range, mainNodeType =
@@ -3676,7 +3676,7 @@ and sepNlnBetweenSigTypeAndMembers (ms: SynMemberSig list) =
             | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
             | SynMemberSig.ValField (_, r) -> r, SynMemberSig_ValField
 
-        sepNlnTypeAndMembers (Some range) mainNodeType
+        sepNlnTypeAndMembers synTypeDefnRepr.Range.End range mainNodeType
     | None -> sepNone
 
 and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)) =
@@ -3701,7 +3701,7 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
             (genEnumCase
                 { astContext with
                       HasVerticalBar = true })
-        +> sepNlnBetweenSigTypeAndMembers ms
+        +> sepNlnBetweenSigTypeAndMembers tdr ms
         +> colPre sepNln sepNln ms (genMemberSig astContext)
         // Add newline after un-indent to be spacing-correct
         +> unindent
@@ -3741,7 +3741,7 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
         typeName
         +> sepEq
         +> unionCases
-        +> sepNlnBetweenSigTypeAndMembers ms
+        +> sepNlnBetweenSigTypeAndMembers tdr ms
         +> colPre sepNln sepNln ms (genMemberSig astContext)
         +> unindent
 
@@ -3788,7 +3788,7 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
                 !- " with"
                 +> indent
                 +> sepNln
-                +> sepNlnBetweenSigTypeAndMembers ms
+                +> sepNlnBetweenSigTypeAndMembers tdr ms
                 +> col sepNln ms (genMemberSig astContext)
                 +> unindent
 
@@ -3853,7 +3853,7 @@ and genSigSimpleRecord tdr ms ao' fs astContext =
         +> col sepSemiNln fs (genField astContext "")
     )
     +> sepCloseS
-    +> sepNlnBetweenSigTypeAndMembers ms
+    +> sepNlnBetweenSigTypeAndMembers tdr ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)
     +> optSingle (fun _ -> unindent) ao'
 
@@ -3871,7 +3871,7 @@ and genSigSimpleRecordAlignBrackets tdr ms ao' fs astContext =
     +> unindent
     +> sepNln
     +> sepCloseSFixed
-    +> sepNlnBetweenSigTypeAndMembers ms
+    +> sepNlnBetweenSigTypeAndMembers tdr ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)
     +> onlyIf (Option.isSome ao') unindent
 

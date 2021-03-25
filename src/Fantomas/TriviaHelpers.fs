@@ -48,7 +48,7 @@ module internal TriviaHelpers =
                 |> Option.map contentAfterEnd)
         |> Option.defaultValue false
 
-    let ``keyword token inside range`` range (trivia: TriviaNode list) =
+    let ``keyword token inside range`` (range: Range) (trivia: TriviaNode list) : (Token * TriviaNode) list =
         trivia
         |> List.choose
             (fun t ->

@@ -2463,3 +2463,67 @@ type public Foo() =
             Blablablabla = moreStuff
         )
 """
+
+[<Test>]
+let ``blank line before with keyword should be preserved`` () =
+    formatSourceString
+        false
+        """
+type A =
+  | B of int
+  | C
+
+  with
+    member this.GetB =
+      match this with
+      | B x -> x
+      | _ -> failwith "shouldn't happen"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A =
+    | B of int
+    | C
+
+    member this.GetB =
+        match this with
+        | B x -> x
+        | _ -> failwith "shouldn't happen"
+"""
+
+[<Test>]
+let ``member inside compiler define using with keyword, 1503`` () =
+    formatSourceString
+        false
+        """
+type A =
+  | B of int
+  | C
+
+#if DEBUG
+  with
+    member this.GetB =
+      match this with
+      | B x -> x
+      | _ -> failwith "shouldn't happen"
+#endif
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type A =
+  | B of int
+  | C
+
+#if DEBUG
+  member this.GetB =
+    match this with
+    | B x -> x
+    | _ -> failwith "shouldn't happen"
+#endif
+"""

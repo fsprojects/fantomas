@@ -348,3 +348,65 @@ type andSeq<'t> =
             match this with
             | AndSeq xs -> xs.GetEnumerator() :> _
 """
+
+[<Test>]
+let ``blank line before with keyword should be preserved`` () =
+    formatSourceString
+        false
+        """
+type A =
+  | B of int
+  | C
+
+  with
+    member this.GetB =
+      match this with
+      | B x -> x
+      | _ -> failwith "shouldn't happen"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A =
+    | B of int
+    | C
+
+    member this.GetB =
+        match this with
+        | B x -> x
+        | _ -> failwith "shouldn't happen"
+"""
+
+[<Test>]
+let ``blank line before and after with keyword should be preserved`` () =
+    formatSourceString
+        false
+        """
+type A =
+  | B of int
+  | C
+
+  with
+
+    member this.GetB =
+      match this with
+      | B x -> x
+      | _ -> failwith "shouldn't happen"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A =
+    | B of int
+    | C
+
+
+    member this.GetB =
+        match this with
+        | B x -> x
+        | _ -> failwith "shouldn't happen"
+"""
