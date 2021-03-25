@@ -96,20 +96,6 @@ let rec (|SigValL|_|) =
     | SigVal _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
-let (|SigMultilineModuleDecl|_|) =
-    function
-    | SigHashDirective _
-    | SigModuleAbbrev _
-    | SigVal _
-    | SigOpen _ -> None
-    | md -> Some md
-
-let rec (|SigMultilineModuleDeclL|_|) =
-    function
-    | SigMultilineModuleDecl x :: SigMultilineModuleDeclL (xs, ys) -> Some(x :: xs, ys)
-    | SigMultilineModuleDecl x :: ys -> Some([ x ], ys)
-    | _ -> None
-
 /// Gather PropertyGetSet in one printing call.
 /// Assume that PropertySet comes right after PropertyGet.
 let (|PropertyWithGetSet|_|) =

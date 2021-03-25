@@ -286,86 +286,34 @@ and genModuleDeclList astContext e =
 
     collectItems e |> colWithNlnWhenItemIsMultiline
 
-and genSigModuleDeclList astContext node =
-    match node with
-    | [ x ] -> genSigModuleDecl astContext x
+and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
+    let rec collectItems (e: SynModuleSigDecl list) : ColMultilineItem list =
+        match e with
+        | [] -> []
+        | SigOpenL (xs, ys) ->
+            let expr =
+                col sepNln xs (genSigModuleDecl astContext)
 
-    | SigOpenL (xs, ys) ->
-        let sepXsAndYs =
-            match List.tryHead ys with
-            | Some _ -> sepNln
-            | None -> rep 2 sepNln
+            let r = List.head xs |> fun mdl -> mdl.Range
+            // SynModuleSigDecl.Open cannot have attributes
+            let sepNln =
+                sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_Open r
 
-        fun ctx ->
-            match ys with
-            | [] -> col sepNln xs (genSigModuleDecl astContext) ctx
-            | _ ->
-                (col sepNln xs (genSigModuleDecl astContext)
-                 +> sepXsAndYs
-                 +> genSigModuleDeclList astContext ys)
-                    ctx
+            ColMultilineItem(expr, sepNln, r)
+            :: collectItems ys
+        | s :: rest ->
+            let attrs =
+                getRangesFromAttributesFromSynModuleSigDeclaration s
 
-    | SigHashDirectiveL (xs, ys) ->
-        match ys with
-        | [] -> col sepNone xs (genSigModuleDecl astContext)
-        | _ ->
-            col sepNone xs (genSigModuleDecl astContext)
-            +> sepNln
-            +> genSigModuleDeclList astContext ys
+            let sepNln =
+                sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleSigDeclToFsAstType s) s.Range attrs
 
-    | SigModuleAbbrevL (xs, ys)
-    | SigValL (xs, ys) ->
-        match ys with
-        | [] -> col sepNln xs (genSigModuleDecl astContext)
-        | _ ->
-            let sepXsYs =
-                match List.tryHead ys with
-                | Some _ -> sepNln
-                | None -> rep 2 sepNln
+            let expr = genSigModuleDecl astContext s
 
-            col sepNln xs (genSigModuleDecl astContext)
-            +> sepXsYs
-            +> genSigModuleDeclList astContext ys
+            ColMultilineItem(expr, sepNln, s.Range)
+            :: (collectItems rest)
 
-    | SigMultilineModuleDeclL (xs, ys) ->
-        match ys with
-        | [] ->
-            colEx
-                (fun (x: SynModuleSigDecl) ->
-                    let attrs =
-                        getRangesFromAttributesFromSynModuleSigDeclaration x
-
-                    sepNln
-                    +> sepNlnConsideringTriviaContentBeforeWithAttributesFor
-                        (synModuleSigDeclToFsAstType x)
-                        x.Range
-                        attrs)
-                xs
-                (genSigModuleDecl astContext)
-        | _ ->
-            let sepXsYs =
-                match List.tryHead ys with
-                | Some y ->
-                    sepNln
-                    +> sepNlnConsideringTriviaContentBeforeForMainNode (synModuleSigDeclToFsAstType y) y.Range
-                | None -> rep 2 sepNln
-
-            colEx
-                (fun (x: SynModuleSigDecl) ->
-                    let attrs =
-                        getRangesFromAttributesFromSynModuleSigDeclaration x
-
-                    sepNln
-                    +> sepNlnConsideringTriviaContentBeforeWithAttributesFor
-                        (synModuleSigDeclToFsAstType x)
-                        x.Range
-                        attrs)
-                xs
-                (genSigModuleDecl astContext)
-            +> sepXsYs
-            +> genSigModuleDeclList astContext ys
-
-    | _ -> sepNone
+    collectItems e |> colWithNlnWhenItemIsMultiline
 
 and genModuleDecl astContext (node: SynModuleDecl) =
     match node with
@@ -515,6 +463,7 @@ and genSigModuleDecl astContext node =
         | SynModuleSigDecl.Open (SynOpenDeclTarget.ModuleOrNamespace _, _) ->
             genTriviaFor SynModuleSigDecl_Open node.Range
         | SynModuleSigDecl.Open (SynOpenDeclTarget.Type _, _) -> genTriviaFor SynModuleSigDecl_OpenType node.Range
+        | SynModuleSigDecl.Exception _ -> genTriviaFor SynModuleSigDecl_Exception node.Range
         | _ -> id)
 
 and genAccess (Access s) = !-s
