@@ -1529,3 +1529,73 @@ let args =
           | LongPatIndentifierThree |] -> args
     | _ -> failwith "meh"
 """
+
+[<Test>]
+let ``match followed by pipe, 1532`` () =
+    formatSourceString
+        false
+        """
+match x with
+| Foo f -> []
+| Bar x ->
+            "\n"
+            + columnHeadersText
+            + "\n"
+            + seprator
+            + "\n"
+            + itemsText
+|> Some
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+(match x with
+ | Foo f -> []
+ | Bar x ->
+   "\n"
+   + columnHeadersText
+   + "\n"
+   + seprator
+   + "\n"
+   + itemsText)
+|> Some
+"""
+
+[<Test>]
+let ``match followed by pipe, 4 spaces indent`` () =
+    formatSourceString
+        false
+        """
+match x with
+| Foo f ->
+            "\n"
+            + columnHeadersText
+            + "\n"
+            + seprator
+            + "\n"
+            + itemsText
+| Bar x ->
+                // comment
+                ""
+|||> Some
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(match x with
+ | Foo f ->
+     "\n"
+     + columnHeadersText
+     + "\n"
+     + seprator
+     + "\n"
+     + itemsText
+ | Bar x ->
+     // comment
+     "")
+|||> Some
+"""

@@ -1731,8 +1731,12 @@ and genExpr astContext synExpr ctx =
                         +> genExpr astContext e)
 
             let multilineExpr =
+                let operatorText = List.head es |> fun (s, _, _) -> s
+
                 (match e with
-                 | SynExpr.IfThenElse _ -> autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e)
+                 | SynExpr.IfThenElse _
+                 | SynExpr.Match _ when (ctx.Config.IndentSize <= operatorText.Length) ->
+                     autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e)
                  | _ -> genExpr astContext e)
                 +> sepNln
                 +> col
@@ -2707,10 +2711,12 @@ and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
     if noBreakInfixOps.Contains(operatorText) then
         genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2
     else
-        let genE1 =
+        let genE1 (ctx: Context) =
             match e1 with
-            | SynExpr.IfThenElse _ -> autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e1)
-            | _ -> genExpr astContext e1
+            | SynExpr.IfThenElse _
+            | SynExpr.Match _ when (ctx.Config.IndentSize <= operatorText.Length) ->
+                autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e1) ctx
+            | _ -> genExpr astContext e1 ctx
 
         atCurrentColumn (
             genE1
