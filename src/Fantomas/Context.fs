@@ -1388,11 +1388,33 @@ let internal sepNlnForEmptyNamespace (namespaceRange: Range) ctx =
         || hasPrintableContent node.ContentAfter -> ctx
     | _ -> sepNln ctx
 
-let internal sepNlnTypeAndMembers (firstMemberRange: Range option) (mainNodeType: FsAstType) ctx =
-    match firstMemberRange with
-    | Some range when (ctx.Config.NewlineBetweenTypeDefinitionAndMembers) ->
-        sepNlnConsideringTriviaContentBeforeForMainNode mainNodeType range ctx
-    | _ -> ctx
+let internal sepNlnTypeAndMembers
+    (lastPositionBeforeMembers: Pos)
+    (firstMemberRange: Range)
+    (mainNodeType: FsAstType)
+    (ctx: Context)
+    : Context =
+    let triviaNodeOfWithKeyword : TriviaNode option =
+        let r =
+            ctx.MkRange lastPositionBeforeMembers firstMemberRange.Start
+
+        Map.tryFindOrEmptyList WITH ctx.TriviaTokenNodes
+        |> TriviaHelpers.``keyword token inside range`` r
+        |> List.choose
+            (fun (_, tn) ->
+                if List.isNotEmpty tn.ContentBefore then
+                    Some tn
+                else
+                    None)
+        |> List.tryHead
+
+    match triviaNodeOfWithKeyword with
+    | Some tn -> printContentBefore tn ctx
+    | None ->
+        if ctx.Config.NewlineBetweenTypeDefinitionAndMembers then
+            sepNlnConsideringTriviaContentBeforeForMainNode mainNodeType firstMemberRange ctx
+        else
+            ctx
 
 let internal sepNlnWhenWriteBeforeNewlineNotEmpty fallback (ctx: Context) =
     if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
