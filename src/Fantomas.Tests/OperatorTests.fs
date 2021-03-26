@@ -971,3 +971,20 @@ let isCustomOperationProjectionParameter i (nm: Ident) =
             errorR (Error(FSComp.SR.tcCustomOperationInvalid opName, nm.idRange))
             false
 """
+
+[<Test>]
+let ``operator with QMARK_QMARK token, 1533`` () =
+    formatSourceString
+        false
+        """
+// Minimal code that displays the root of the issue:
+let inline (>??) x = x > x
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Minimal code that displays the root of the issue:
+let inline (>??) x = x > x
+"""
