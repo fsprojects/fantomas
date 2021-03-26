@@ -2414,3 +2414,34 @@ let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy =
     FreshenTyconRef m rigid tcref declaredTyconTypars
 #endif
 """
+
+[<Test>]
+let ``defines as trivia for SynExpr.TypeApp, 1543`` () =
+    formatSourceString
+        false
+        """
+let inputFileFlagsFsiBase (_tcConfigB: TcConfigBuilder) =
+#if NETSTANDARD
+    [ CompilerOption("usesdkrefs", tagNone, OptionSwitch (SetUseSdkSwitch _tcConfigB), None, Some (FSComp.SR.useSdkRefs())) ]
+#else
+    List.empty<CompilerOption>
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inputFileFlagsFsiBase (_tcConfigB: TcConfigBuilder) =
+#if NETSTANDARD
+    [ CompilerOption(
+          "usesdkrefs",
+          tagNone,
+          OptionSwitch(SetUseSdkSwitch _tcConfigB),
+          None,
+          Some(FSComp.SR.useSdkRefs ())
+      ) ]
+#else
+    List.empty<CompilerOption>
+#endif
+"""
