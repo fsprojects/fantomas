@@ -1057,6 +1057,7 @@ let internal getFsToken tokenName =
     | "LPAREN_STAR_RPAREN" -> LPAREN_STAR_RPAREN
     | "IN" -> IN
     | "DO" -> DO
+    | "QMARK_QMARK" -> QMARK_QMARK
     | _ -> failwithf "was not expecting token %s" tokenName
 
 let getTriviaNodesFromTokens (mkRange: MkRange) (tokens: Token list) =

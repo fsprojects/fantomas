@@ -52,6 +52,7 @@ type FsTokenType =
     | LPAREN_STAR_RPAREN
     | IN
     | DO
+    | QMARK_QMARK
 
 type Token =
     { TokenInfo: FSharpTokenInfo
