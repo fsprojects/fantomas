@@ -2706,6 +2706,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.ObjExpr _ -> genTriviaFor SynExpr_ObjExpr synExpr.Range
             | SynExpr.JoinIn _ -> genTriviaFor SynExpr_JoinIn synExpr.Range
             | SynExpr.Do _ -> genTriviaFor SynExpr_Do synExpr.Range
+            | SynExpr.TypeApp _ -> genTriviaFor SynExpr_TypeApp synExpr.Range
             | _ -> id)
 
     expr ctx
