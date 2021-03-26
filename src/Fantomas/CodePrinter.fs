@@ -2859,7 +2859,7 @@ and genMultilineRecordInstance
                         + 1
 
                     let delta = Math.Max((rbs - ctx.Column) - offset, 0)
-                    (!-System.String.Empty.PadRight(delta)) ({ ctx with RecordBraceStart = rest })
+                    (!- System.String.Empty.PadRight(delta)) ({ ctx with RecordBraceStart = rest })
                 else
                     sepNone ({ ctx with RecordBraceStart = rest })
             | [] -> sepNone ctx)
