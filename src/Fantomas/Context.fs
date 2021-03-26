@@ -1261,7 +1261,7 @@ let internal enterRightToken (tokenName: FsTokenType) (range: Range) (ctx: Conte
                     else
                         0
 
-                !-String.Empty.PadLeft(braceSize + spaceAround)
+                !- String.Empty.PadLeft(braceSize + spaceAround)
 
             let spaceAfterNewline =
                 if ctx.Config.SpaceAroundDelimiter then
