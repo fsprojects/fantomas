@@ -380,10 +380,12 @@ let ``line comment inside list`` () =
 """
         ({ config with
                SpaceAroundDelimiter = false })
+    |> prepend newline
     |> should
         equal
-        """[7
- // foo
+        """
+[7
+// foo
 ]
 """
 
@@ -396,10 +398,12 @@ let ``line comment inside array`` () =
 |]
 """
         config
+    |> prepend newline
     |> should
         equal
-        """[| 7
-   // foo
+        """
+[| 7
+// foo
  |]
 """
 
@@ -2221,4 +2225,31 @@ let foo =
 let foo =
     [| fun () -> 1
        fun () -> 2 |]
+"""
+
+[<Test>]
+let ``comment before closing bracket`` () =
+    formatSourceString
+        false
+        """
+let fns =
+    [ { x = "long enough to not go to one line"
+        y = 5 }
+ //      { name = fn "String" "endsWith" 0
+ //        deprecated = NotDeprecated }
+ // I think the space at the start of the lines above matter
+     ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let fns =
+    [ { x = "long enough to not go to one line"
+        y = 5 }
+    //      { name = fn "String" "endsWith" 0
+    //        deprecated = NotDeprecated }
+    // I think the space at the start of the lines above matter
+     ]
 """

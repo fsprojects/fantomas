@@ -330,3 +330,63 @@ let foo =
         fun () -> 2
     |]
 """
+
+[<Test>]
+let ``comments before closing bracket`` () =
+    formatSourceString
+        false
+        """
+let fns =
+    [ { x = "long enough to not go to one line"
+        y = 5 }
+ //      { name = fn "String" "endsWith" 0
+ //        deprecated = NotDeprecated }
+ // I think the space at the start of the lines above matter
+     ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let fns =
+    [
+        {
+            x = "long enough to not go to one line"
+            y = 5
+        }
+    //      { name = fn "String" "endsWith" 0
+    //        deprecated = NotDeprecated }
+    // I think the space at the start of the lines above matter
+    ]
+"""
+
+[<Test>]
+let ``comments before closing bracket, array`` () =
+    formatSourceString
+        false
+        """
+let fns =
+    [| { x = "long enough to not go to one line"
+         y = 5 }
+ //      { name = fn "String" "endsWith" 0
+ //        deprecated = NotDeprecated }
+ // I think the space at the start of the lines above matter
+    |]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let fns =
+    [|
+        {
+            x = "long enough to not go to one line"
+            y = 5
+        }
+    //      { name = fn "String" "endsWith" 0
+    //        deprecated = NotDeprecated }
+    // I think the space at the start of the lines above matter
+    |]
+"""

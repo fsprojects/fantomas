@@ -1454,30 +1454,45 @@ and genExpr astContext synExpr ctx =
                     ColMultilineItem(expr, sepNln, r))
             |> colWithNlnWhenItemIsMultiline
 
-        | ArrayOrListOfSeqExpr (isArray, e) as aNode ->
+        | ArrayOrListOfSeqExpr (isArray, e) as alNode ->
             let astContext = { astContext with IsNakedRange = true }
+            let tokenSize = if isArray then 2 else 1
+
+            let openingTokenRange =
+                ctx.MkRangeWith
+                    (alNode.Range.Start.Line, alNode.Range.Start.Column)
+                    (alNode.Range.Start.Line, (alNode.Range.Start.Column + tokenSize))
+
+            let closingTokenRange =
+                ctx.MkRangeWith
+                    (alNode.Range.End.Line, (alNode.Range.End.Column - tokenSize))
+                    (alNode.Range.End.Line, alNode.Range.End.Column)
+
 
             let shortExpression =
                 ifElse
                     isArray
-                    (sepOpenA
+                    ((tokN openingTokenRange LBRACK_BAR sepOpenA)
                      +> atCurrentColumnIndent (genExpr astContext e)
-                     +> enterRightBracketBar aNode.Range
-                     +> sepCloseA)
-                    (sepOpenL
+                     +> (tokN closingTokenRange BAR_RBRACK sepCloseA))
+                    ((tokN openingTokenRange LBRACK sepOpenL)
                      +> atCurrentColumnIndent (genExpr astContext e)
-                     +> enterRightBracket aNode.Range
-                     +> sepCloseL
-                     +> leaveNodeTokenByName aNode.Range RBRACK)
+                     +> (tokN closingTokenRange RBRACK sepCloseL))
 
             let bracketsOnSameColumn =
-                ifElse isArray sepOpenAFixed sepOpenLFixed
+                ifElse
+                    isArray
+                    (tokN openingTokenRange LBRACK_BAR sepOpenAFixed)
+                    (tokN openingTokenRange LBRACK sepOpenLFixed)
                 +> indent
                 +> sepNln
                 +> genExpr astContext e
                 +> unindent
                 +> sepNln
-                +> ifElse isArray sepCloseAFixed sepCloseLFixed
+                +> ifElse
+                    isArray
+                    (tokN closingTokenRange BAR_RBRACK sepCloseAFixed)
+                    (tokN closingTokenRange RBRACK sepCloseLFixed)
 
             let multilineExpression =
                 ifAlignBrackets bracketsOnSameColumn shortExpression
