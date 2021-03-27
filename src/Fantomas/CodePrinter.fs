@@ -2654,7 +2654,9 @@ and genExpr astContext synExpr ctx =
 
                                     !-stringFromTrivia
                                     |> genTriviaFor SynInterpolatedStringPart_String range
-                                | SynInterpolatedStringPart.FillExpr (expr, _ident) -> genInterpolatedFillExpr expr)
+                                | SynInterpolatedStringPart.FillExpr (expr, ident) ->
+                                    genInterpolatedFillExpr expr
+                                    +> optSingle (fun (Ident (format)) -> !-(sprintf ":%s" format)) ident)
                     else
                         !- "$\""
                         +> colEx

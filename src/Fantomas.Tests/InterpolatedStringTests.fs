@@ -178,3 +178,22 @@ let ``prefix application, 1414`` () =
         """
 !- $".{s}"
 """
+
+[<Test>]
+let ``format in FillExpr, 1549`` () =
+    formatSourceString
+        false
+        """
+let percent =0.1548486
+
+Console.WriteLine($"Formatted: {percent:p2}")
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let percent = 0.1548486
+
+Console.WriteLine($"Formatted: {percent:p2}")
+"""
