@@ -1001,3 +1001,44 @@ type Foobar =
                 || tcConfig.FxResolver.IsInReferenceAssemblyPackDirectory filename)
         with _ -> false
 """
+
+[<Test>]
+let ``lambda dotget with TypeApp in chain, 1550`` () =
+    formatSourceString
+        false
+        """
+services
+    .AddIdentityCore<web.ApplicationUser>(fun options ->
+            options.User.RequireUniqueEmail <- true
+            options.SignIn.RequireConfirmedEmail <- true)
+    .AddUserManager<UserManager<web.ApplicationUser>>()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+services
+    .AddIdentityCore<web.ApplicationUser>(fun options ->
+        options.User.RequireUniqueEmail <- true
+        options.SignIn.RequireConfirmedEmail <- true)
+    .AddUserManager<UserManager<web.ApplicationUser>>()
+"""
+
+[<Test>]
+let ``lambda dotget with TypeApp in chain in single line`` () =
+    formatSourceString
+        false
+        """
+services
+    .AddIdentityCore(fun options -> ())
+    .AddUserManager<UserManager<web.ApplicationUser>>()
+"""
+        { config with
+              MaxDotGetExpressionWidth = 200 }
+    |> prepend newline
+    |> should
+        equal
+        """
+services.AddIdentityCore(fun options -> ()).AddUserManager<UserManager<web.ApplicationUser>>()
+"""
