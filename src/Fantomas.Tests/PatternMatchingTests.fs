@@ -1088,7 +1088,8 @@ module Foo =
             match v.IsMember, v.IsInstanceMember, v.LogicalName, v.DisplayName with
             // Ordinary functions or values
             | false, _, _, name when
-                not (hasAttribute<RequireQualifiedAccessAttribute> v.ApparentEnclosingEntity.Attributes) ->
+                not (hasAttribute<RequireQualifiedAccessAttribute> v.ApparentEnclosingEntity.Attributes)
+                ->
                 name + " " + parArgs
             // Ordinary static members or things (?) that require fully qualified access
             | _, _, _, name -> name + parArgs
@@ -1118,7 +1119,8 @@ let ``maintain indent if when condition is multiline`` () =
 match foo with
 | headToken :: rest when
     (isOperatorOrKeyword headToken
-     && List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia) ->
+     && List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia)
+    ->
     let range =
         getRangeBetween "keyword" headToken headToken
 
@@ -1598,4 +1600,77 @@ match x with
      // comment
      "")
 |||> Some
+"""
+
+[<Test>]
+let ``pattern match inside when expression, 1545`` () =
+    formatSourceString
+        false
+        """
+let GenApp (cenv: cenv) cgbuf eenv (f, fty, tyargs, curriedArgs, m) sequel =
+  let g = cenv.g
+  match (f, tyargs, curriedArgs) with
+  // Look for tailcall to turn into branch
+  | (Expr.Val (v, _, _), _, _) when
+        match ListAssoc.tryFind g.valRefEq v eenv.innerVals with
+        | Some (kind, _) ->
+           (not v.IsConstructor &&
+            // when branch-calling methods we must have the right type parameters
+            (match kind with
+             | BranchCallClosure _ -> true
+             | BranchCallMethod (_, _, tps, _, _, _) ->
+                  (List.lengthsEqAndForall2 (fun ty tp -> typeEquiv g ty (mkTyparTy tp)) tyargs tps)) &&
+            // must be exact #args, ignoring tupling - we untuple if needed below
+            (let arityInfo =
+               match kind with
+               | BranchCallClosure arityInfo
+               | BranchCallMethod (arityInfo, _, _, _, _, _)  -> arityInfo
+             arityInfo.Length = curriedArgs.Length
+            ) &&
+            (* no tailcall out of exception handler, etc. *)
+            (match sequelIgnoringEndScopesAndDiscard sequel with Return | ReturnVoid -> true | _ -> false))
+        | None -> false
+    ->
+        let (kind, mark) = ListAssoc.find g.valRefEq v eenv.innerVals // already checked above in when guard
+        ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let GenApp (cenv: cenv) cgbuf eenv (f, fty, tyargs, curriedArgs, m) sequel =
+    let g = cenv.g
+
+    match (f, tyargs, curriedArgs) with
+    // Look for tailcall to turn into branch
+    | (Expr.Val (v, _, _), _, _) when
+        match ListAssoc.tryFind g.valRefEq v eenv.innerVals with
+        | Some (kind, _) ->
+            (not v.IsConstructor
+             &&
+             // when branch-calling methods we must have the right type parameters
+             (match kind with
+              | BranchCallClosure _ -> true
+              | BranchCallMethod (_, _, tps, _, _, _) ->
+                  (List.lengthsEqAndForall2 (fun ty tp -> typeEquiv g ty (mkTyparTy tp)) tyargs tps))
+             &&
+             // must be exact #args, ignoring tupling - we untuple if needed below
+             (let arityInfo =
+                 match kind with
+                 | BranchCallClosure arityInfo
+                 | BranchCallMethod (arityInfo, _, _, _, _, _) -> arityInfo
+
+              arityInfo.Length = curriedArgs.Length)
+             && (* no tailcall out of exception handler, etc. *)
+             (match sequelIgnoringEndScopesAndDiscard sequel with
+              | Return
+              | ReturnVoid -> true
+              | _ -> false))
+        | None -> false
+        ->
+        let (kind, mark) =
+            ListAssoc.find g.valRefEq v eenv.innerVals // already checked above in when guard
+
+        ()
 """

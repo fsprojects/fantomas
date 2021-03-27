@@ -4326,41 +4326,50 @@ and genInterfaceImpl astContext (InterfaceImpl (t, bs, range)) =
 and genClause astContext hasBar (Clause (p, e, eo) as ce) =
     let arrowRange (ctx: Context) = ctx.MkRange p.Range.End e.Range.Start
 
-    let body =
-        autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-
     let astCtx =
         { astContext with
               IsInsideMatchClausePattern = true }
 
-    let pat =
+    let patAndBody =
         genPat astCtx p
-        +> optPre
-            (!- " when")
-            sepNone
-            eo
-            (fun e ->
-                let short = sepSpace +> genExpr astContext e
+        +> leadingExpressionIsMultiline
+            (optPre
+                (!- " when")
+                sepNone
+                eo
+                (fun e ->
+                    let short = sepSpace +> genExpr astContext e
 
-                let long =
-                    match e with
-                    | AppParenArg app ->
-                        indent
-                        +> sepNln
-                        +> genAlternativeAppWithParenthesis app astContext
-                        +> unindent
-                    | e ->
-                        indent
-                        +> sepNln
-                        +> (genExpr astContext e)
-                        +> unindent
+                    let long =
+                        match e with
+                        | AppParenArg app ->
+                            indent
+                            +> sepNln
+                            +> genAlternativeAppWithParenthesis app astContext
+                            +> unindent
+                        | e ->
+                            indent
+                            +> sepNln
+                            +> (genExpr astContext e)
+                            +> unindent
 
-                expressionFitsOnRestOfLine short long)
-        +> sepArrow
-        +> fun ctx -> leaveNodeTokenByName (arrowRange ctx) RARROW ctx
+                    expressionFitsOnRestOfLine short long))
+            (fun isMultiline ctx ->
+                if isMultiline then
+                    (indent
+                     +> sepNln
+                     +> tokN (arrowRange ctx) RARROW sepArrowFixed
+                     +> sepNln
+                     +> genExpr astContext e
+                     +> unindent)
+                        ctx
+                else
+                    (tokN (arrowRange ctx) RARROW sepArrow
+                     +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                        ctx)
 
     genTriviaBeforeClausePipe p.Range
-    +> (onlyIf hasBar sepBar +> pat +> body
+    +> (onlyIf hasBar sepBar +> patAndBody
         |> genTriviaFor SynMatchClause_Clause ce.Range)
 
 and genClauses astContext cs =

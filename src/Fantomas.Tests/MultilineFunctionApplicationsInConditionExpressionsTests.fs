@@ -98,7 +98,8 @@ module ElectrumClient =
                         PROTOCOL_VERSION_SUPPORTED
                 with :? ElectrumServerReturningErrorException as except when
                     except.Message.EndsWith
-                        (PROTOCOL_VERSION_SUPPORTED.ToString()) ->
+                        (PROTOCOL_VERSION_SUPPORTED.ToString())
+                    ->
 
                     failwith "xxx"
 
