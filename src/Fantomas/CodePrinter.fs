@@ -1864,7 +1864,13 @@ and genExpr astContext synExpr ctx =
             let short =
                 genExpr astContext e
                 +> genExpr astContext px
-                +> col sepNone es (fun (lids, e, _) -> genLidsWithDots lids +> genExpr astContext e)
+                +> col
+                    sepNone
+                    es
+                    (fun (lids, e, ts) ->
+                        genLidsWithDots lids
+                        +> genGenericTypeParameters astContext ts
+                        +> genExpr astContext e)
 
             let long =
                 genLongFunctionName (genExpr astContext px)
@@ -1873,8 +1879,9 @@ and genExpr astContext synExpr ctx =
                 +> col
                     sepNln
                     es
-                    (fun (lids, e, _) ->
+                    (fun (lids, e, ts) ->
                         genLidsWithDotsAndNewlines lids
+                        +> genGenericTypeParameters astContext ts
                         +> genExpr astContext e)
                 +> unindent
 
