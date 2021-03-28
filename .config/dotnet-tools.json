@@ -21,7 +21,7 @@
       ]
     },
     "fantomas-tool": {
-      "version": "4.5.0-alpha-002",
+      "version": "4.5.0-alpha-003",
       "commands": [
         "fantomas"
       ]

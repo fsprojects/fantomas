@@ -985,7 +985,8 @@ and genExpr astContext synExpr ctx =
     let expr =
         match synExpr with
         | ElmishReactWithoutChildren (identifier, isArray, children, childrenRange) when
-            (not ctx.Config.DisableElmishSyntax) ->
+            (not ctx.Config.DisableElmishSyntax)
+            ->
             fun (ctx: Context) ->
                 let tokenSize = if isArray then 2 else 1
 
@@ -1069,7 +1070,8 @@ and genExpr astContext synExpr ctx =
                 isShortExpression ctx.Config.MaxElmishWidth smallExpression multilineExpression ctx
 
         | ElmishReactWithChildren ((identifier, _, _), attributes, (isArray, children, childrenRange)) when
-            (not ctx.Config.DisableElmishSyntax) ->
+            (not ctx.Config.DisableElmishSyntax)
+            ->
             let genChildren isShort =
                 match children with
                 | [] when (not isArray) ->
@@ -2637,7 +2639,9 @@ and genExpr astContext synExpr ctx =
                                 (fun tn ->
                                     match tn.Type, tn.ContentItself with
                                     | MainNode (SynInterpolatedStringPart_String), Some (StringContent sc) when
-                                        (RangeHelpers.rangeEq tn.Range range) -> Some sc
+                                        (RangeHelpers.rangeEq tn.Range range)
+                                        ->
+                                        Some sc
                                     | _ -> None)
                             |> List.tryHead
                             |> Option.map (fun sc -> range, sc))
@@ -4144,7 +4148,9 @@ and genType astContext outerBracket t =
             loop t
             +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
         | SynType.LongIdent (LongIdentWithDots.LongIdentWithDots ([ lid ], _)) when
-            (astContext.IsCStylePattern && lid.idText = "[]") -> !- "[]"
+            (astContext.IsCStylePattern && lid.idText = "[]")
+            ->
+            !- "[]"
         | TLongIdent s ->
             ifElseCtx
                 (fun ctx ->

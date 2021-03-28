@@ -478,7 +478,9 @@ let internal (+>) (ctx: Context -> Context) (f: _ -> Context) x =
     match y.WriterModel.Mode with
     | ShortExpression infos when
         infos
-        |> Seq.exists (fun x -> x.ConfirmedMultiline) -> y
+        |> Seq.exists (fun x -> x.ConfirmedMultiline)
+        ->
+        y
     | _ -> f y
 
 /// Break-line and append specified string
@@ -809,7 +811,9 @@ let private shortExpressionWithFallback
             (fun info ->
                 info.ConfirmedMultiline
                 || info.IsTooLong ctx.Config.MaxLineLength ctx.Column)
-            infos) -> ctx
+            infos)
+        ->
+        ctx
     | _ ->
         // create special context that will process the writer events slightly different
         let shortExpressionContext =
@@ -921,7 +925,9 @@ let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLo
             (fun info ->
                 info.ConfirmedMultiline
                 || info.IsTooLong ctx.Config.MaxLineLength ctx.Column)
-            infos) -> ctx
+            infos)
+        ->
+        ctx
     | ShortExpression _ ->
         // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
         (beforeShort +> expr +> afterShort) ctx
@@ -1385,7 +1391,9 @@ let internal sepNlnForEmptyNamespace (namespaceRange: Range) ctx =
     match TriviaHelpers.findInRange (Map.tryFindOrEmptyList Ident_ ctx.TriviaMainNodes) emptyNamespaceRange with
     | Some node when
         hasPrintableContent node.ContentBefore
-        || hasPrintableContent node.ContentAfter -> ctx
+        || hasPrintableContent node.ContentAfter
+        ->
+        ctx
     | _ -> sepNln ctx
 
 let internal sepNlnTypeAndMembers
