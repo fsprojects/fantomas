@@ -733,7 +733,8 @@ let rec private getTriviaFromTokensThemSelves
 
     | headToken :: rest when
         (headToken.TokenInfo.TokenName = "COMMENT"
-         && headToken.Content = "(*") ->
+         && headToken.Content = "(*")
+        ->
         let blockCommentTokens =
             rest
             |> List.takeWhileState
@@ -785,7 +786,8 @@ let rec private getTriviaFromTokensThemSelves
 
     | headToken :: rest when
         (isOperatorOrKeyword headToken
-         && List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia) ->
+         && List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia)
+        ->
         let range =
             getRangeBetween mkRange headToken headToken
 
@@ -859,7 +861,8 @@ let rec private getTriviaFromTokensThemSelves
 
     | minus :: head :: rest when
         (minus.TokenInfo.TokenName = "MINUS"
-         && isNumber head) ->
+         && isNumber head)
+        ->
         let range = getRangeBetween mkRange minus head
 
         let info =
@@ -889,7 +892,8 @@ let rec private getTriviaFromTokensThemSelves
     | head :: rest when
         (head.TokenInfo.TokenName = "IDENT"
          && head.Content.StartsWith("``")
-         && head.Content.EndsWith("``")) ->
+         && head.Content.EndsWith("``"))
+        ->
         let range = getRangeBetween mkRange head head
 
         let info =
