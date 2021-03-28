@@ -2753,10 +2753,9 @@ and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
 
 and genExprInMultilineInfixExpr astContext e =
     match e with
-    | LetOrUse (false, false, [ lb ], e) ->
+    | LetOrUses (xs, e) ->
         atCurrentColumn (
-            genLetBinding astContext "let " lb
-            +> !- " in"
+            col sepNln xs (fun (pref, lb) -> genLetBinding astContext pref lb +> !- " in")
             +> sepNln
             +> expressionFitsOnRestOfLine
                 (genExpr astContext e)
