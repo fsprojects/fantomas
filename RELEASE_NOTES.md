@@ -1,3 +1,15 @@
+### 4.5.0-alpha-003 - 03/2021
+
+* Fix Required type arguments are removed with DotGet lambda. [#1550](https://github.com/fsprojects/fantomas/issues/1550)
+* Fix Fantomas removes the format string from string interpolation. [#1549](https://github.com/fsprojects/fantomas/issues/1549)
+* Fix Missing in keyword. [#1548](https://github.com/fsprojects/fantomas/issues/1548)
+* Fix Pattern inside when clause. [#1545](https://github.com/fsprojects/fantomas/issues/1545)
+* Fix Hash defines in let binding. [#1543](https://github.com/fsprojects/fantomas/issues/1543)
+* Fix Comments are stripped at the end of a vertical list. [#1541](https://github.com/fsprojects/fantomas/issues/1541)
+* Fix Idempotency problem when match is follow by pipe. [#1532](https://github.com/fsprojects/fantomas/issues/1532)
+* Fix Idempotency problem when exceptions in signature file. [#1531](https://github.com/fsprojects/fantomas/issues/1531)
+* Fix Exception - detect of multiple defines when define surrounds a DU member. [#1503](https://github.com/fsprojects/fantomas/issues/1503)
+
 ### 4.5.0-alpha-002 - 03/2021
 
 * Initial support of KeepIndentInBranch. [#1361](https://github.com/fsprojects/fantomas/issues/1361)
