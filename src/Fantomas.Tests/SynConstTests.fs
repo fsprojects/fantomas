@@ -241,7 +241,8 @@ let a = \\\"\\\\\\\"
         "
 [<Test>]
 let ``defines inside string, escaped quote`` () =
-    let source = \"
+    let source =
+        \"
 let a = \\\"\\\\\\\"
 #if FOO
   #if BAR
@@ -408,9 +409,98 @@ printfn bar\"\"\" // difference is the 4 spaces on line 188
     |> should
         equal
         "
-let source = \"\"\"printfn foo
+let source =
+    \"\"\"printfn foo
 
 printfn bar\"\"\" // difference is the 4 spaces on line 188
 
 let x = 9
+"
+
+[<Test>]
+let ``multiline string in let value binding, 1556`` () =
+    formatSourceString
+        false
+        "
+let foo = \"\"\"moo,
+long
+triple quotes string thing
+\"\"\"
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let foo =
+    \"\"\"moo,
+long
+triple quotes string thing
+\"\"\"
+"
+
+[<Test>]
+let ``multiline string in let value binding, return type`` () =
+    formatSourceString
+        false
+        "
+let foo: string = \"\"\"moo,
+long
+triple quotes string thing
+\"\"\"
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let foo : string =
+    \"\"\"moo,
+long
+triple quotes string thing
+\"\"\"
+"
+
+[<Test>]
+let ``multiline string in let function binding, no return type`` () =
+    formatSourceString
+        false
+        "
+let foo () = \"\"\"moo,
+long
+triple quotes string thing
+\"\"\"
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let foo () =
+    \"\"\"moo,
+long
+triple quotes string thing
+\"\"\"
+"
+
+[<Test>]
+let ``multiline string in let function binding, return type`` () =
+    formatSourceString
+        false
+        "
+let foo () : string = \"\"\"moo,
+long
+triple quotes string thing
+\"\"\"
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let foo () : string =
+    \"\"\"moo,
+long
+triple quotes string thing
+\"\"\"
 "

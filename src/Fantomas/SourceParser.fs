@@ -232,11 +232,6 @@ let (|String|_|) e =
     | SynExpr.Const (SynConst.String (s, _), _) -> Some s
     | _ -> None
 
-let (|MultilineString|_|) e =
-    match e with
-    | String (s) when (String.isMultiline s) -> Some e
-    | _ -> None
-
 let (|Unresolved|) (Const s as c, r) = (c, r, s)
 
 // File level patterns
