@@ -408,7 +408,8 @@ let r =
            a
            && // && b
            c
-       Bar = \"\"\"
+       Bar =
+           \"\"\"
 Fooey
 \"\"\" |}
 "
@@ -535,7 +536,8 @@ type Database =
                             [| { Id = 0
                                  AuthorId = 1
                                  Title = \"What is the average wing speed of an unladen swallow?\"
-                                 Description = \"\"\"
+                                 Description =
+                                     \"\"\"
 Hello, yesterday I saw a flight of swallows and was wondering what their **average wing speed** is?
 
 If you know the answer please share it.
@@ -545,7 +547,8 @@ If you know the answer please share it.
                                           CreatedAt = DateTime.Parse \"2017-09-14T19:57:33.103Z\"
                                           AuthorId = 0
                                           Score = 2
-                                          Content = \"\"\"
+                                          Content =
+                                              \"\"\"
 > What do you mean, an African or European Swallow?
 >
 > Monty Python’s: The Holy Grail
@@ -558,7 +561,8 @@ I thought you were asking it seriously, well done.
                                           CreatedAt = DateTime.Parse \"2017-09-14T20:07:27.103Z\"
                                           AuthorId = 2
                                           Score = 1
-                                          Content = \"\"\"
+                                          Content =
+                                              \"\"\"
 Maxime,
 
 I believe you found [this blog post](http://www.saratoga.com/how-should-i-know/2013/07/what-is-the-average-air-speed-velocity-of-a-laden-swallow/).
@@ -571,7 +575,8 @@ And so Robin, the conclusion of the post is:
                                { Id = 1
                                  AuthorId = 0
                                  Title = \"Why did you create Fable?\"
-                                 Description = \"\"\"
+                                 Description =
+                                     \"\"\"
 Hello Alfonso,
 
 I wanted to know why you created Fable. Did you always plan to use F#? Or were you thinking in others languages?

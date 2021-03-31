@@ -1765,11 +1765,13 @@ let b = "
     |> should
         equal
         """
-let a = "
+let a =
+    "
 #if FOO
 "
 
-let b = "
+let b =
+    "
 #endif
 "
 """
@@ -1793,13 +1795,15 @@ let b = \"\"\"
     |> should
         equal
         "
-let a = \"\"\"
+let a =
+    \"\"\"
 \"
 #if FOO
 \"
 \"\"\"
 
-let b = \"\"\"
+let b =
+    \"\"\"
 #endif
 \"\"\"
 "
@@ -1820,11 +1824,13 @@ let b = "
     |> should
         equal
         """
-let a = "
+let a =
+    "
 #if FOO
 \""
 
-let b = "
+let b =
+    "
 #endif
 "
 """

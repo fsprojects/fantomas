@@ -896,18 +896,14 @@ and genRecordFieldName astContext (RecordFieldName (s, eo) as node) =
         eo
         (fun e ->
             let expr =
-                match e with
-                | MultilineString _ -> sepSpace +> genExpr astContext e
-                | _ -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+                sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
             !-s +> sepEq +> expr)
     |> genTriviaFor RecordField_ range
 
 and genAnonRecordFieldName astContext (AnonRecordFieldName (s, e)) =
     let expr =
-        match e with
-        | MultilineString _ -> sepSpace +> genExpr astContext e
-        | _ -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+        sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     !-s +> sepEq +> expr
 
@@ -955,26 +951,18 @@ and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 =
         +> sepSpace
         +> genExpr astContext e2
 
-    match e2 with
-    | MultilineString _ -> short
-    | _ ->
-        let long =
-            genExpr astContext e1
-            +> sepSpace
-            +> genInfixOperator "=" operatorExpr
-            +> indent
-            +> sepNln
-            +> genExpr astContext e2
-            +> unindent
+    let long =
+        genExpr astContext e1
+        +> sepSpace
+        +> genInfixOperator "=" operatorExpr
+        +> indent
+        +> sepNln
+        +> genExpr astContext e2
+        +> unindent
 
-        expressionFitsOnRestOfLine short long
+    expressionFitsOnRestOfLine short long
 
 and genExpr astContext synExpr ctx =
-    let appNlnFun e =
-        match e with
-        | MultilineString _ -> id
-        | _ -> autoNlnIfExpressionExceedsPageWidth
-
     let kw tokenName f = tokN synExpr.Range tokenName f
 
     let sepOpenTFor r = tokN r LPAREN sepOpenT
@@ -1665,10 +1653,6 @@ and genExpr astContext synExpr ctx =
                 expr ctx
         | Paren (lpr, e, rpr, pr) ->
             match e with
-            | MultilineString _ ->
-                sepOpenTFor lpr
-                +> atCurrentColumn (genExpr astContext e +> indentIfNeeded sepNone)
-                +> sepCloseTFor rpr pr
             | LetOrUses _ ->
                 sepOpenTFor lpr
                 +> atCurrentColumn (genExpr astContext e)
@@ -1983,7 +1967,7 @@ and genExpr astContext synExpr ctx =
             expressionFitsOnRestOfLine short long
 
         // Always spacing in multiple arguments
-        | App (e, es) -> genApp appNlnFun astContext e es
+        | App (e, es) -> genApp astContext e es
         | TypeApp (e, ts) ->
             genExpr astContext e
             +> genGenericTypeParameters astContext ts
@@ -3146,7 +3130,7 @@ and genIndexers astContext node =
         +> genRest astContext es
     | _ -> sepNone
 
-and genApp appNlnFun astContext e es ctx =
+and genApp astContext e es ctx =
     let shortExpression =
         let addFirstSpace =
             ifElseCtx
@@ -3166,7 +3150,7 @@ and genApp appNlnFun astContext e es ctx =
                 +> sepOpenSFixed
                 +> sepSpace
                 +> indent
-                +> appNlnFun e (genExpr astContext e)
+                +> autoNlnIfExpressionExceedsPageWidth (genExpr astContext e)
                 +> unindent
             else
                 genExpr astContext e
@@ -5168,21 +5152,7 @@ and genSynBindingValue
                 +> genExpr astContext e
                 +> unindent
 
-            let hasMultilineString =
-                match e with
-                | SynExpr.Const (SynConst.String (_, r), _) ->
-                    ctx.TriviaMainNodes
-                    |> Map.tryFindOrEmptyList SynConst_String
-                    |> TriviaHelpers.hasMultilineString r
-                | SynExpr.Const (SynConst.Bytes (_, r), _) ->
-                    ctx.TriviaMainNodes
-                    |> Map.tryFindOrEmptyList SynConst_Bytes
-                    |> TriviaHelpers.hasMultilineString r
-                | _ -> false
-
-            if hasMultilineString then
-                short ctx
-            elif isMultiline then
+            if isMultiline then
                 long ctx
             else
                 isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)

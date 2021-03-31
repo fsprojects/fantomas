@@ -53,7 +53,8 @@ let alu =
     |> should
         equal
         """
-let alu = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
+let alu =
+    "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
         GAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGA\
         CCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAAT\
         ACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCA\
@@ -153,10 +154,12 @@ let ``should preserve triple-quote strings`` () =
         equal
         "
 type GetList() =
-    let switchvox_users_voicemail_getList_response = \"\"\"
+    let switchvox_users_voicemail_getList_response =
+        \"\"\"
             </response>\"\"\"
 
-    let switchvox_users_voicemail_getList = \"\"\"
+    let switchvox_users_voicemail_getList =
+        \"\"\"
             </request>\"\"\"
 
     member self.X = switchvox_users_voicemail_getList_response
@@ -189,7 +192,8 @@ let main argv =
     use fun1 =
         R.eval (
             R.parse (
-                text = \"\"\"
+                text =
+                    \"\"\"
     function(i) {
         x <- rnorm(1000)
         y <- rnorm(1000)
@@ -242,7 +246,8 @@ with empty lines\"\"\"
     |> should
         equal
         "
-let x = \"\"\"some
+let x =
+    \"\"\"some
 
 content
 
@@ -273,7 +278,8 @@ let ``newline in string`` () =
         """
 [<Test>]
 let ``newline in string`` () =
-    let source = "\"
+    let source =
+        "\"
 \""
 
     let triviaNodes =
