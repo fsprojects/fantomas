@@ -1325,3 +1325,30 @@ type 'a Bar =
     ///
     | Quux
 """
+
+[<Test>]
+let ``comment between attribute and val, 1561`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+module Bar =
+
+    [<Obsolete "">]
+    ///
+    val f : unit -> unit
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+module Bar =
+
+    [<Obsolete "">]
+    ///
+    val f : unit -> unit
+"""

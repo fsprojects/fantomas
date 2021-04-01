@@ -862,7 +862,7 @@ and genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingA
             |> Option.defaultValue (!- "override ")
         <| ctx
 
-and genVal astContext (Val (ats, px, ao, s, t, vi, isInline, _) as node) =
+and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, _) as node) =
     let range, synValTyparDecls =
         match node with
         | ValSpfn (_, _, synValTyparDecls, _, _, _, _, _, _, _, range) -> range, synValTyparDecls
@@ -874,12 +874,14 @@ and genVal astContext (Val (ats, px, ao, s, t, vi, isInline, _) as node) =
 
     let (FunType namedArgs) = (t, vi)
 
-    genPreXmlDoc px +> genAttributes astContext ats
-    -- "val "
-    +> opt sepSpace ao genAccess
-    +> onlyIf isInline (!- "inline ")
-    -- s
-    +> genericParams
+    genPreXmlDoc px
+    +> genAttributes astContext ats
+    +> (!- "val "
+        +> opt sepSpace ao genAccess
+        +> onlyIf isInline (!- "inline ")
+        -- s
+        +> genericParams
+        |> genTriviaFor Ident_ identRange)
     +> sepColonWithSpacesFixed
     +> ifElse
         (List.isNotEmpty namedArgs)
@@ -3898,7 +3900,7 @@ and genMemberSig astContext node =
         | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
 
     match node with
-    | MSMember (Val (ats, px, ao, s, t, vi, isInline, ValTyparDecls (tds, _, tcs)), mf) ->
+    | MSMember (Val (ats, px, ao, s, _, t, vi, isInline, ValTyparDecls (tds, _, tcs)), mf) ->
         let (FunType namedArgs) = (t, vi)
 
         let isFunctionProperty =
