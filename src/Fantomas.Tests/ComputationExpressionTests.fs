@@ -1622,8 +1622,8 @@ let rec loop () =
       let! result =
         newEvents
         |> function
-        | Ok events -> eventStore.Append events
-        | Error err -> async { return Error err}
+          | Ok events -> eventStore.Append events
+          | Error err -> async { return Error err}
 
       do reply.Reply result
 
