@@ -778,8 +778,9 @@ module private Ast =
 
     and visitSynValSig (svs: SynValSig) : TriviaNodeAssigner list =
         match svs with
-        | ValSpfn (attrs, _, explicitValDecls, synType, arity, _, _, _, _, expr, range) ->
+        | ValSpfn (attrs, ident, explicitValDecls, synType, arity, _, _, _, _, expr, range) ->
             [ yield mkNode ValSpfn_ range
+              yield visitIdent ident
               yield! (visitSynAttributeLists range attrs)
               yield! visitSynValTyparDecls explicitValDecls
               yield! visitSynType synType
