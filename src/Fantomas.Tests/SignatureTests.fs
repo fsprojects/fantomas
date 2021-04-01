@@ -1352,3 +1352,60 @@ module Bar =
     ///
     val f : unit -> unit
 """
+
+[<Test>]
+let ``comment between recursive type, 1562`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+type Foo = | Foo of int
+
+///
+and [<RequireQualifiedAccess>] Bar<'a> =
+    | Bar of int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+type Foo = Foo of int
+
+///
+and [<RequireQualifiedAccess>] Bar<'a> = Bar of int
+"""
+
+[<Test>]
+let ``comments between multiple recursive types`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+type Foo = | Foo of int
+
+/// barry
+and Bar = | Bar of string
+
+/// mehhy
+and Meh = | Meh of DateTime
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+type Foo = Foo of int
+
+/// barry
+and Bar = Bar of string
+
+/// mehhy
+and Meh = Meh of DateTime
+"""

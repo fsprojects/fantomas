@@ -12,6 +12,7 @@ open Fantomas.SourceTransformer
 open Fantomas.Context
 open Fantomas.TriviaTypes
 open Fantomas.TriviaContext
+open Fantomas.AstExtensions
 
 /// This type consists of contextual information which is important for formatting
 type ASTContext =
@@ -454,8 +455,24 @@ and genSigModuleDecl astContext node =
     | SigOpen (s) -> !-(sprintf "open %s" s)
     | SigOpenType (s) -> !-(sprintf "open type %s" s)
     | SigTypes (t :: ts) ->
+        let sepTs =
+            match List.tryHead ts with
+            | Some t ->
+                let attributeRanges =
+                    getRangesFromAttributesFromSynTypeDefnSig t
+
+                sepNln
+                +> sepNlnConsideringTriviaContentBeforeWithAttributesFor TypeDefnSig_ t.FullRange attributeRanges
+            | None -> rep 2 sepNln
+
         genSigTypeDefn { astContext with IsFirstChild = true } t
-        +> colPre (rep 2 sepNln) (rep 2 sepNln) ts (genSigTypeDefn { astContext with IsFirstChild = false })
+        +> colPreEx
+            sepTs
+            (fun (ty: SynTypeDefnSig) ->
+                sepNln
+                +> sepNlnConsideringTriviaContentBeforeForMainNode TypeDefnSig_ ty.FullRange)
+            ts
+            (genSigTypeDefn { astContext with IsFirstChild = false })
     | md -> failwithf "Unexpected module signature declaration: %O" md
     |> (match node with
         | SynModuleSigDecl.Types _ -> genTriviaFor SynModuleSigDecl_Types node.Range
@@ -3700,13 +3717,23 @@ and sepNlnBetweenSigTypeAndMembers (synTypeDefnRepr: SynTypeDefnSigRepr) (ms: Sy
         sepNlnTypeAndMembers synTypeDefnRepr.Range.End range mainNodeType
     | None -> sepNone
 
-and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)) =
+and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix, fullRange)) =
+    let genTriviaForOnelinerAttributes f (ctx: Context) =
+        match ats with
+        | [] -> f ctx
+        | h :: _ ->
+            (enterNodeFor SynAttributeList_ h.Range
+             +> f
+             +> leaveNodeFor SynAttributeList_ h.Range)
+                ctx
+
     let typeName =
         genPreXmlDoc px
         +> ifElse
             astContext.IsFirstChild
             (genAttributes astContext ats -- "type ")
-            (!- "and " +> genOnelinerAttributes astContext ats)
+            ((!- "and " +> genOnelinerAttributes astContext ats)
+             |> genTriviaForOnelinerAttributes)
         +> opt sepSpace ao genAccess
         +> genTypeAndParam astContext s tds tcs preferPostfix
 
@@ -3864,6 +3891,7 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
         +> unindent
 
     | SigExceptionRepr (SigExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody astContext ats px ao uc
+    |> genTriviaFor TypeDefnSig_ fullRange
 
 and genSigSimpleRecord tdr ms ao' fs astContext =
     // the typeName is already printed

@@ -193,7 +193,7 @@ type FsAstType =
     | ArgOptions_
     | InterfaceImpl_
     | TypeDefn_
-    // | TypeDefnSig_ use first nested type
+    | TypeDefnSig_
     // | SynTypeDefnSigRepr_ObjectModel use first nested node
     | SynTypeDefnSigRepr_Exception
     | SynMemberDefn_Open
