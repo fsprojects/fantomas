@@ -1344,28 +1344,27 @@ let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
     (attributeRanges: Range seq)
     (ctx: Context)
     =
-    let triviaNode =
+    let triviaNodeBeforeMain =
         match Map.tryFind mainNode ctx.TriviaMainNodes with
         | Some triviaNodes ->
-            List.tryFind
+            List.exists
                 (fun { Range = r; ContentBefore = cb } ->
                     hasPrintableContent cb
                     && RangeHelpers.rangeEq r ownRange)
                 triviaNodes
-        | None -> None
+        | None -> false
 
-    let attributeNode =
+    let triviaNodeBeforeAttribute =
         match Map.tryFind SynAttributeList_ ctx.TriviaMainNodes with
         | Some attributeNodes ->
-            List.tryFind
+            List.exists
                 (fun { Range = r; ContentBefore = cb } ->
                     hasPrintableContent cb
                     && Seq.exists (RangeHelpers.rangeEq r) attributeRanges)
                 attributeNodes
-        | None -> None
+        | None -> false
 
-    if Option.isSome triviaNode
-       || Option.isSome attributeNode then
+    if triviaNodeBeforeMain || triviaNodeBeforeAttribute then
         ctx
     else
         sepNln ctx

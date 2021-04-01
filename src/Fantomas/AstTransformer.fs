@@ -3,6 +3,7 @@ module Fantomas.AstTransformer
 open FSharp.Compiler.Text
 open FSharp.Compiler.SyntaxTree
 open Fantomas.TriviaTypes
+open Fantomas.AstExtensions
 open Fantomas
 
 type Id = { Ident: string; Range: Range }
@@ -645,7 +646,8 @@ module private Ast =
     and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNodeAssigner list =
         match typeDefSig with
         | TypeDefnSig (sci, synTypeDefnSigReprs, memberSig, _) ->
-            [ yield! visitSynComponentInfo sci
+            [ yield mkNode TypeDefnSig_ typeDefSig.FullRange
+              yield! visitSynComponentInfo sci
               yield! visitSynTypeDefnSigRepr synTypeDefnSigReprs
               yield! (memberSig |> List.collect visitSynMemberSig) ]
 

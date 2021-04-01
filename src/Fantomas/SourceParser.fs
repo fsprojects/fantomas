@@ -8,6 +8,7 @@ open FSharp.Compiler.SyntaxTree
 open FSharp.Compiler.XmlDoc
 open Fantomas
 open Fantomas.Context
+open Fantomas.AstExtensions
 
 type Composite<'a, 'b> =
     | Pair of 'b * 'b
@@ -1353,9 +1354,9 @@ let (|SigTypeDef|)
     (SynTypeDefnSig.TypeDefnSig (SynComponentInfo.ComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _),
                                  tdr,
                                  ms,
-                                 _))
+                                 _) as node)
     =
-    (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)
+    (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix, node.FullRange)
 
 let (|TyparDecl|) (SynTyparDecl.TyparDecl (ats, tp)) = (ats, tp)
 
@@ -1587,6 +1588,10 @@ let getRangesFromAttributesFromSynModuleSigDeclaration (sdl: SynModuleSigDecl) =
                               _) -> collectAttributesRanges attrs
     | _ -> Seq.empty
     |> Seq.toList
+
+let getRangesFromAttributesFromSynTypeDefnSig (TypeDefnSig (comp, _, _, _)) =
+    match comp with
+    | SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _) -> collectAttributesRanges attrs
 
 let getRangesFromAttributesFromSynBinding (sb: SynBinding) =
     match sb with
