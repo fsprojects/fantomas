@@ -2056,3 +2056,32 @@ let lessonsForm (f: ValidatedForm<Request.CreateLessons>) dispatch =
                                                                          prop.onClick
                                                                              (fun _ -> CreateLessons |> dispatch) ] ] ] ]
 """
+
+[<Test>]
+let ``infix operation with long function call, 1564`` () =
+    formatSourceString
+        false
+        """
+if Uri.Compare(foo, bar, UriComponents.Host ||| UriComponents.Path, UriFormat.UriEscaped, StringComparison.CurrentCulture) = 0 then
+    ()
+else ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if
+    Uri.Compare
+        (
+            foo,
+            bar,
+            UriComponents.Host ||| UriComponents.Path,
+            UriFormat.UriEscaped,
+            StringComparison.CurrentCulture
+        ) = 0
+then
+    ()
+else
+    ()
+"""

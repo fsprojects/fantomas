@@ -2255,6 +2255,16 @@ and genExpr astContext synExpr ctx =
                             +> genAlternativeAppWithParenthesis app astContext
                             +> unindent
                             +> sepNln
+                        | InfixApp (s, e, AppParenArg app, e2) ->
+                            indent
+                            +> sepNln
+                            +> genAlternativeAppWithParenthesis app astContext
+                            +> sepSpace
+                            +> genInfixOperator s e
+                            +> sepSpace
+                            +> genExpr astContext e2
+                            +> unindent
+                            +> sepNln
                         | InfixApp (s, e, e1, AppParenArg app) ->
                             indent
                             +> sepNln
