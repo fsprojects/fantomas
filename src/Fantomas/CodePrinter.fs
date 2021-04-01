@@ -1748,7 +1748,7 @@ and genExpr astContext synExpr ctx =
                     (fun (s, oe, e) ->
                         genInfixOperator s oe
                         +> sepSpace
-                        +> genExpr astContext e)
+                        +> genExprInMultilineInfixExpr astContext e)
 
             fun ctx ->
                 atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
@@ -2756,6 +2756,13 @@ and genExprInMultilineInfixExpr astContext e =
         )
     | Paren (_, InfixApp (_, _, DotGet _, _), _, _)
     | Paren (_, DotGetApp _, _, _) -> atCurrentColumnIndent (genExpr astContext e)
+    | MatchLambda (cs, _) ->
+        !- "function "
+        +> leaveNodeTokenByName e.Range FUNCTION
+        +> indent
+        +> sepNln
+        +> genClauses astContext cs
+        +> unindent
     | _ -> genExpr astContext e
 
 and genLidsWithDots (lids: (string * range) list) =

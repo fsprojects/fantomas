@@ -1022,3 +1022,49 @@ let MethInfosEquivByNameAndSig erasureFlag ignoreFinal g amap m minfo minfo2 =
            typeAEquivAux erasureFlag g (TypeEquivEnv.FromEquivTypars formalMethTypars formalMethTypars2) retTy retTy2
        | _ -> false
 """
+
+[<Test>]
+let ``match lambda in infix expression should indent, 1559`` () =
+    formatSourceString
+        false
+        """
+let foo () =
+    blah
+    |> function
+        | x -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo () =
+    blah
+    |> function
+        | x -> ()
+"""
+
+[<Test>]
+let ``match lambda in multi pipe infix expression, 614`` () =
+    formatSourceString
+        false
+        """
+let expected =
+    b
+    |> function
+       | Some c -> c
+       | None -> 0
+    |> id
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let expected =
+    b
+    |> function
+        | Some c -> c
+        | None -> 0
+    |> id
+"""

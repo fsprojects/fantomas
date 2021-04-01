@@ -728,7 +728,7 @@ let f () =
     | 1 -> // comment 1
         ()
     |> function
-    | 3 -> ()
+        | 3 -> ()
 """
 
 [<Test>]
@@ -753,7 +753,7 @@ let f () =
     | 1 -> // comment 1
         () // comment 2
     |> function // comment 3
-    | 3 -> ()
+        | 3 -> ()
 """
 
 [<Test>]
