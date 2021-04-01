@@ -1298,3 +1298,30 @@ exception FileNameNotResolved of string (*description of searched locations*)  *
 
 exception LoadedSourceNotFoundIgnoring of string * range (*filename*)
 """
+
+[<Test>]
+let ``comment above first DU case`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+type 'a Bar =
+    ///
+    | Foo
+    ///
+    | Quux
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+type 'a Bar =
+    ///
+    | Foo
+    ///
+    | Quux
+"""
