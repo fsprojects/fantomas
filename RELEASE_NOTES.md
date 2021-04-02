@@ -1,3 +1,14 @@
+### 4.5.0-alpha-004 - 04/2021
+
+* Fix KeepIndentInBranch not being respected?. [#1569](https://github.com/fsprojects/fantomas/issues/1569)
+* Fix Split of very long function call in if body. [#1564](https://github.com/fsprojects/fantomas/issues/1564)
+* Fix fsi extension loses docstring in mutually recursive type. [#1562](https://github.com/fsprojects/fantomas/issues/1562)
+* Fix .fsi extension: attribute followed by docstring loses the docstring. [#1561](https://github.com/fsprojects/fantomas/issues/1561)
+* Fix .fsi extension causes first DU case's docstring to be lost. [#1560](https://github.com/fsprojects/fantomas/issues/1560)
+* Fix KeepIfThenInSameLine breaks function indentation. [#1559](https://github.com/fsprojects/fantomas/issues/1559)
+* Fix All SynExpr should start on next line and indent. [#1556](https://github.com/fsprojects/fantomas/issues/1556)
+* Fix Missing indentation when using pattern matching via anonymous functions in a pipeline. [#614](https://github.com/fsprojects/fantomas/issues/614)
+
 ### 4.5.0-alpha-003 - 03/2021
 
 * Fix Required type arguments are removed with DotGet lambda. [#1550](https://github.com/fsprojects/fantomas/issues/1550)
