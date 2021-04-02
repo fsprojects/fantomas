@@ -9,6 +9,7 @@ open FSharp.Compiler.XmlDoc
 open Fantomas
 open Fantomas.Context
 open Fantomas.AstExtensions
+open Fantomas.TriviaTypes
 
 type Composite<'a, 'b> =
     | Pair of 'b * 'b
@@ -1557,7 +1558,7 @@ let (|Extern|_|) =
 
 let private collectAttributesRanges (a: SynAttributes) =
     seq {
-        yield! (List.map (fun al -> al.Range) a)
+        yield! (List.map (fun (al: SynAttributeList) -> al.Range) a)
         yield! (Seq.collect (fun a -> a.Attributes |> List.map (fun a -> a.Range)) a)
     }
 
@@ -1727,14 +1728,15 @@ let private shouldNotIndentBranch e es =
         match e with
         | LetOrUses _
         | Sequential _
-        | Match _ -> true
+        | Match _
+        | TryWith _ -> true
         | _ -> false
 
     List.forall isShortIfBranch es
     && isLongElseBranch e
 
 let (|KeepIndentMatch|_|) (e: SynExpr) =
-    let mapClauses matchExpr clauses isBang =
+    let mapClauses matchExpr clauses range t =
         match clauses with
         | []
         | [ _ ] -> None
@@ -1747,13 +1749,13 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
             let (Clause (_, lastClause, _)) = List.last clauses
 
             if shouldNotIndentBranch lastClause firstClauses then
-                Some(matchExpr, clauses, isBang)
+                Some(matchExpr, clauses, range, t)
             else
                 None
 
     match e with
-    | Match (matchExpr, clauses) -> mapClauses matchExpr clauses false
-    | MatchBang (matchExpr, clauses) -> mapClauses matchExpr clauses true
+    | Match (matchExpr, clauses) -> mapClauses matchExpr clauses e.Range SynExpr_Match
+    | MatchBang (matchExpr, clauses) -> mapClauses matchExpr clauses e.Range SynExpr_MatchBang
     | _ -> None
 
 let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
@@ -1763,7 +1765,7 @@ let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
             branches |> List.map (fun (_, e, _, _, _) -> e)
 
         if shouldNotIndentBranch elseExpr branchBodies then
-            Some(branches, elseExpr)
+            Some(branches, elseExpr, e.Range)
         else
             None
     | _ -> None

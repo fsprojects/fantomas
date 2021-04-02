@@ -540,3 +540,322 @@ let rec getEndCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
             getEndCol r tokenizer lexState
     | None, _ -> r.EndColumn
 """
+
+[<Test>]
+let ``keep indent in SynModuleDecl.Do expression,  1569`` () =
+    formatSourceString
+        false
+        """
+if blah then
+    printfn "Aborting."
+    1
+else
+
+printfn "Foo"
+let message = baz
+if baz then
+    printfn "Aborting."
+    1
+else
+0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if blah then
+    printfn "Aborting."
+    1
+else
+
+printfn "Foo"
+let message = baz
+
+if baz then
+    printfn "Aborting."
+    1
+else
+    0
+"""
+
+[<Test>]
+let ``inside lambda expression`` () =
+    formatSourceString
+        false
+        """
+let foo =
+    bar
+    |> List.filter (fun i ->
+        if false then
+            false
+        else
+
+        let m = quux
+        quux.Success && somethingElse
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo =
+    bar
+    |> List.filter
+        (fun i ->
+            if false then
+                false
+            else
+
+            let m = quux
+            quux.Success && somethingElse)
+"""
+
+[<Test>]
+let ``inside desugared lambda expression`` () =
+    formatSourceString
+        false
+        """
+let foo =
+    bar
+    |> List.filter (fun { Index = i } ->
+        if false then
+            false
+        else
+
+        let m = quux
+        quux.Success && somethingElse
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo =
+    bar
+    |> List.filter
+        (fun { Index = i } ->
+            if false then
+                false
+            else
+
+            let m = quux
+            quux.Success && somethingElse)
+"""
+
+[<Test>]
+let ``match expression inside lambda expression`` () =
+    formatSourceString
+        false
+        """
+lock lockingObj (fun () ->
+    if not thing then
+        printfn ""
+
+    match error with
+    | Some error ->
+        if foo then ()
+        thing ()
+        false
+    | None ->
+
+    match list1, list2, list3 with
+    | [], [], [] ->
+        stuff ()
+        true
+    | [], [], _ ->
+        moreStuff ()
+        true
+    | _ ->
+
+    doMoreThings ()
+    false
+)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+lock
+    lockingObj
+    (fun () ->
+        if not thing then printfn ""
+
+        match error with
+        | Some error ->
+            if foo then ()
+            thing ()
+            false
+        | None ->
+
+        match list1, list2, list3 with
+        | [], [], [] ->
+            stuff ()
+            true
+        | [], [], _ ->
+            moreStuff ()
+            true
+        | _ ->
+
+        doMoreThings ()
+        false)
+"""
+
+[<Test>]
+let ``try with in else branch`` () =
+    formatSourceString
+        false
+        """
+type Foo () =
+    interface IDisposable with
+        override __.Dispose () =
+            if not blah then
+                ()
+            else
+
+            try
+                try
+                    cleanUp ()
+                with
+                | :? IOException ->
+                    foo ()
+            with exc ->
+                foooo ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo() =
+    interface IDisposable with
+        override __.Dispose() =
+            if not blah then
+                ()
+            else
+
+            try
+                try
+                    cleanUp ()
+                with :? IOException -> foo ()
+            with exc -> foooo ()
+"""
+
+[<Test>]
+let ``let or uses with sequential that has match `` () =
+    formatSourceString
+        false
+        """
+module Foo =
+
+    let main (args : _) =
+        let thing1 = ()
+        printfn ""
+
+        match instructions with
+        | Error e ->
+            printfn ""
+            2
+        | Ok (thing, instructions) ->
+
+        log.LogInformation("")
+        match Something.foo args with
+        | DryRunMode.Dry ->
+            printfn ""
+            0
+        | DryRunMode.Wet ->
+
+        Thing.execute
+            bar
+            baz
+            (thing, instructions)
+        0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+
+    let main (args: _) =
+        let thing1 = ()
+        printfn ""
+
+        match instructions with
+        | Error e ->
+            printfn ""
+            2
+        | Ok (thing, instructions) ->
+
+        log.LogInformation("")
+
+        match Something.foo args with
+        | DryRunMode.Dry ->
+            printfn ""
+            0
+        | DryRunMode.Wet ->
+
+        Thing.execute bar baz (thing, instructions)
+        0
+"""
+
+[<Test>]
+let ``let or uses with sequential that has if/then/else `` () =
+    formatSourceString
+        false
+        """
+module Foo =
+
+    let main (args : _) =
+        let thing1 = ()
+        printfn ""
+
+        if hasInstructions () then
+            printfn ""
+            2
+        else
+
+        log.LogInformation("")
+        match Something.foo args with
+        | DryRunMode.Dry ->
+            printfn ""
+            0
+        | DryRunMode.Wet ->
+
+        Thing.execute
+            bar
+            baz
+            (thing, instructions)
+        0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+
+    let main (args: _) =
+        let thing1 = ()
+        printfn ""
+
+        if hasInstructions () then
+            printfn ""
+            2
+        else
+
+        log.LogInformation("")
+
+        match Something.foo args with
+        | DryRunMode.Dry ->
+            printfn ""
+            0
+        | DryRunMode.Wet ->
+
+        Thing.execute bar baz (thing, instructions)
+        0
+"""
