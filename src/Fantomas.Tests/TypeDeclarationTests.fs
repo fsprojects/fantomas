@@ -2542,3 +2542,64 @@ type T = SomeTypeProvider<const(" string literal " + REUSED_ LITERAL_STRING)>
         """
 type T = SomeTypeProvider<const(" string literal " + REUSED_ LITERAL_STRING)>
 """
+
+[<Test>]
+let ``comment above constructor, 1286`` () =
+    formatSourceString
+        false
+        """
+/// This is the type
+type SomeType
+      /// This is the implicit constructor
+      (a: int, b: int) =
+
+    /// This is the member
+    member _.Sum() = a + b
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// This is the type
+type SomeType
+    /// This is the implicit constructor
+    (a: int, b: int) =
+
+    /// This is the member
+    member _.Sum() = a + b
+"""
+
+[<Test>]
+let ``comment above multiline constructor`` () =
+    formatSourceString
+        false
+        """
+/// This is the type
+type SomeTypeWithQuiteTheLongNameThere
+      /// This is the implicit constructor
+      (a: int, b: int, c: string, d: DateTimeOffset, e: SomeReallyLongTypeNameOhBoyOhBoy, f: EvenLongerLongerTypeNameThanThatOtherTypeName) =
+
+    /// This is the member
+    member _.Sum() = a + b
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// This is the type
+type SomeTypeWithQuiteTheLongNameThere
+    /// This is the implicit constructor
+    (
+        a: int,
+        b: int,
+        c: string,
+        d: DateTimeOffset,
+        e: SomeReallyLongTypeNameOhBoyOhBoy,
+        f: EvenLongerLongerTypeNameThanThatOtherTypeName
+    ) =
+
+    /// This is the member
+    member _.Sum() = a + b
+"""
