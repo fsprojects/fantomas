@@ -2269,7 +2269,7 @@ and genExpr astContext synExpr ctx =
                             indent
                             +> sepNln
                             +> genAlternativeAppWithParenthesis app astContext
-                            +> sepSpace
+                            +> ifElse (noBreakInfixOps.Contains(s)) sepSpace sepNln
                             +> genInfixOperator s e
                             +> sepSpace
                             +> genExpr astContext e2
