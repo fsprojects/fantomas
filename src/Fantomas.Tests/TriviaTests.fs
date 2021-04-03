@@ -38,7 +38,8 @@ let private toTriviaWithDefines source =
 
 [<Test>]
 let ``line comment that starts at the beginning of a line added to trivia`` () =
-    let source = """// meh
+    let source =
+        """// meh
 let a = 9
 """
 
@@ -50,7 +51,8 @@ let a = 9
 
 [<Test>]
 let ``line comment that is alone on the single, preceded by whitespaces`` () =
-    let source = """    // foo
+    let source =
+        """    // foo
 let a = 'c'
 """
 
@@ -72,9 +74,11 @@ let ``line comment on same line, is after last AST item`` () =
 
 [<Test>]
 let ``newline pick up before let binding`` () =
-    let source = """let a = 7
+    let source =
+        """let a = 7
 
 let b = 9"""
+
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
@@ -83,7 +87,8 @@ let b = 9"""
 
 [<Test>]
 let ``multiple comments should be linked to same trivia node`` () =
-    let source = """// foo
+    let source =
+        """// foo
 // bar
 let a = 7
 """
@@ -104,7 +109,8 @@ let a = 7
 
 [<Test>]
 let ``comments inside record`` () =
-    let source = """let a =
+    let source =
+        """let a =
     { // foo
     B = 7 }"""
 
@@ -117,7 +123,8 @@ let ``comments inside record`` () =
 
 [<Test>]
 let ``comment after all source code`` () =
-    let source = """type T() =
+    let source =
+        """type T() =
     let x = 123
 //    override private x.ToString() = ""
 """
@@ -147,7 +154,8 @@ let ``block comment added to trivia`` () =
 
 [<Test>]
 let ``block comment and newline added to trivia`` () =
-    let source = """(* meh *)
+    let source =
+        """(* meh *)
 let a =  b
 """
 
@@ -159,7 +167,8 @@ let a =  b
 
 [<Test>]
 let ``block comment on newline EOF added to trivia`` () =
-    let source = """let a =  b
+    let source =
+        """let a =  b
 (* meh *)"""
 
     let triviaNodes = toTrivia source |> List.head
@@ -180,7 +189,8 @@ let ``block comment on EOF added to trivia`` () =
 
 [<Test>]
 let ``nested block comment parsed correctly`` () =
-    let source = """(* (* meh *) *)
+    let source =
+        """(* (* meh *) *)
 let a =  c + d
 """
 
@@ -193,7 +203,8 @@ let a =  c + d
 
 [<Test>]
 let ``line comment inside block comment parsed correctly`` () =
-    let source = """(* // meh *)
+    let source =
+        """(* // meh *)
 let a =  9
 """
 
@@ -206,7 +217,8 @@ let a =  9
 
 [<Test>]
 let ``multiline block comment added to trivia`` () =
-    let source = """(* meh
+    let source =
+        """(* meh
 bla *)
 let a =  b
 """
@@ -225,7 +237,8 @@ bla *)"""
 
 [<Test>]
 let ``multiple block comments should be linked to same trivia node`` () =
-    let source = """let x = y / z
+    let source =
+        """let x = y / z
 (* foo *)
 (* bar *)
 x
@@ -241,7 +254,8 @@ x
 
 [<Test>]
 let ``block comment inside line comment parsed correctly`` () =
-    let source = """// (* meh *)
+    let source =
+        """// (* meh *)
 let a =  b + c
 """
 
@@ -253,7 +267,8 @@ let a =  b + c
 
 [<Test>]
 let ``newlines inside a block comment should not counts as newlines`` () =
-    let comment = """(*
+    let comment =
+        """(*
 
 MEH
 
@@ -269,7 +284,8 @@ MEH
 
 [<Test>]
 let ``if keyword before SynExpr.IfThenElse`` () =
-    let source = """if true then ()
+    let source =
+        """if true then ()
 elif true then ()"""
 
     let triviaNodes = toTrivia source |> List.head
@@ -287,7 +303,8 @@ elif true then ()"""
 
 [<Test>]
 let ``directives before and after are linked to let binding`` () =
-    let source = """#if NOT_DEFINED
+    let source =
+        """#if NOT_DEFINED
 #else
 doSomething()
 #endif
@@ -312,7 +329,8 @@ doSomething()
 
 [<Test>]
 let ``directive without else clause`` () =
-    let source = """#if NOT_DEFINED
+    let source =
+        """#if NOT_DEFINED
 let x = 1
 #endif
 """
@@ -339,7 +357,8 @@ let x = 1
 
 [<Test>]
 let ``unreachable directive should be present in trivia`` () =
-    let source = """namespace Internal.Utilities.Diagnostic
+    let source =
+        """namespace Internal.Utilities.Diagnostic
 #if EXTENSIBLE_DUMPER
 #if DEBUG
 type ExtensibleDumper = A | B
@@ -357,7 +376,8 @@ type ExtensibleDumper = A | B
 
 [<Test>]
 let ``trailing newlines should not be picked up in trivia`` () =
-    let source = """printfn someLogMessage
+    let source =
+        """printfn someLogMessage
 
 
 """
@@ -371,7 +391,8 @@ let ``trailing newlines should not be picked up in trivia`` () =
 
 [<Test>]
 let ``code in non-active defines should be returned in trivia`` () =
-    let source = """#if SOMETHING
+    let source =
+        """#if SOMETHING
 let foo = 42
 #endif"""
 
@@ -447,9 +468,11 @@ let ``char content`` () =
 
 [<Test>]
 let ``leading newlines should not be captured as trivia`` () =
-    let source = """
+    let source =
+        """
 let a = b
 """
+
     let trivia = toTrivia source |> List.head
 
     match trivia with
@@ -458,7 +481,8 @@ let a = b
 
 [<Test>]
 let ``multiple line comments form a single trivia`` () =
-    let source = """
+    let source =
+        """
 /// Represents a long identifier with possible '.' at end.
 ///
 /// Typically dotms.Length = lid.Length-1, but they may be same if (incomplete) code ends in a dot, e.g. "Foo.Bar."
@@ -469,6 +493,7 @@ let ``multiple line comments form a single trivia`` () =
 type LongIdentWithDots =
     | LongIdentWithDots of id: LongIdent * dotms: range list
 """
+
     let trivia = toTrivia source |> List.head
 
     let expectedComment =
@@ -499,7 +524,8 @@ let ``number expression`` () =
 
 [<Test>]
 let ``collect multiple hash directive as one`` () =
-    let source = """
+    let source =
+        """
 let x =
     #if DEBUG
     printfn "DEBUG"

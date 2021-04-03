@@ -206,7 +206,8 @@ type Foo =
 
 [<Test>]
 let ``print trivia linked to SynAttribute`` () =
-    let source = """
+    let source =
+        """
 module MyApp
 
 #if DEBUG

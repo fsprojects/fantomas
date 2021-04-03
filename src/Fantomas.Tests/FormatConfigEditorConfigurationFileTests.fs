@@ -171,7 +171,8 @@ let ``configuration file should not affect file extension`` () =
 let ``fantomas-tool configuration file`` () =
     let rootDir = tempName ()
 
-    let myConfig = """
+    let myConfig =
+        """
 [*.fs]
 fsharp_max_if_then_else_short_width=25
 fsharp_max_value_binding_width=40
@@ -218,7 +219,8 @@ let ``non existing file should return None for tryReadConfiguration`` () =
 let ``indent_style tab edge case`` () =
     let rootDir = tempName ()
 
-    let editorConfig = """
+    let editorConfig =
+        """
 [*.fs]
 indent_style=tab
 indent_size=tab
@@ -246,7 +248,8 @@ let ``print default editorconfig settings`` () =
 let ``list and array number_of_items parsing tests`` () =
     let rootDir = tempName ()
 
-    let editorConfig = """
+    let editorConfig =
+        """
 [*.fs]
 fsharp_array_or_list_multiline_formatter = number_of_items
 fsharp_max_array_or_list_number_of_items = 4
@@ -269,7 +272,8 @@ fsharp_max_array_or_list_number_of_items = 4
 let ``list and array character_width parsing test with single option`` () =
     let rootDir = tempName ()
 
-    let editorConfig = """
+    let editorConfig =
+        """
 [*.fs]
 fsharp_max_array_or_list_width = 123
 """
@@ -288,7 +292,8 @@ fsharp_max_array_or_list_width = 123
 let ``record number_of_items parsing tests`` () =
     let rootDir = tempName ()
 
-    let editorConfig = """
+    let editorConfig =
+        """
 [*.fs]
 fsharp_record_multiline_formatter = number_of_items
 fsharp_max_record_number_of_items = 4
@@ -310,7 +315,8 @@ fsharp_max_record_number_of_items = 4
 let ``record character_width parsing test with single option`` () =
     let rootDir = tempName ()
 
-    let editorConfig = """
+    let editorConfig =
+        """
 [*.fs]
 fsharp_max_record_width = 123
 """
@@ -329,7 +335,8 @@ fsharp_max_record_width = 123
 let ``infix operator expression character_width parsing test with single option`` () =
     let rootDir = tempName ()
 
-    let editorConfig = """
+    let editorConfig =
+        """
 [*.fs]
 fsharp_max_infix_operator_expression = 123
 """
@@ -348,7 +355,8 @@ fsharp_max_infix_operator_expression = 123
 let fsharp_disable_elmish_syntax () =
     let rootDir = tempName ()
 
-    let editorConfig = """
+    let editorConfig =
+        """
 [*.fs]
 fsharp_disable_elmish_syntax = true
 """
@@ -367,7 +375,8 @@ fsharp_disable_elmish_syntax = true
 let ``end_of_line = cr should throw`` () =
     let rootDir = tempName ()
 
-    let editorConfig = """
+    let editorConfig =
+        """
 [*.fs]
 end_of_line = cr
 """
@@ -416,7 +425,8 @@ end_of_line = %s
 let fsharp_multiLine_lambda_closing_newline () =
     let rootDir = tempName ()
 
-    let editorConfig = """
+    let editorConfig =
+        """
 [*.fs]
 fsharp_multi_line_lambda_closing_newline = true
 """
@@ -435,7 +445,8 @@ fsharp_multi_line_lambda_closing_newline = true
 let fsharp_keep_indent_in_branch () =
     let rootDir = tempName ()
 
-    let editorConfig = """
+    let editorConfig =
+        """
 [*.fs]
 fsharp_keep_indent_in_branch = true
 """

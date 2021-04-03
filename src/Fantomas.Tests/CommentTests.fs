@@ -14,7 +14,8 @@ let ``should keep sticky-to-the-left comments after nowarn directives`` () =
 
 [<Test>]
 let ``should keep sticky-to-the-right comments before module definition`` () =
-    let source = """
+    let source =
+        """
 // The original idea for this typeprovider is from Ivan Towlson
 // some text
 module FSharpx.TypeProviders.VectorTypeProvider
@@ -565,7 +566,8 @@ let x =
 
 [<Test>]
 let ``preserve newline false should not add additional newline`` () =
-    let source = """
+    let source =
+        """
 type T() =
     let x = 123
 //    override private x.ToString() = ""
@@ -606,7 +608,8 @@ type C() =
 
 [<Test>]
 let ``line comment with only two slashes`` () =
-    let source = """
+    let source =
+        """
 let foo = 7
 //
 """

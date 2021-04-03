@@ -16,7 +16,8 @@ let getDefineExprs source =
 
 [<Test>]
 let ``Get define exprs from complex statements`` () =
-    let source = """
+    let source =
+        """
 #if !(INTERACTIVE || !(FOO && BAR) || BUZZ)
 let x = 1
 #endif
@@ -39,7 +40,8 @@ let x = 1
 
 [<Test>]
 let ``Simple compiler directive - else expr`` () =
-    let source = """
+    let source =
+        """
 #if A
 setupServer false
 #if B
@@ -63,7 +65,8 @@ setupServer true
 
 [<Test>]
 let ``CNF form of exprs from complex statements`` () =
-    let source = """
+    let source =
+        """
 #if !(INTERACTIVE || !(FOO || BAR) || BUZZ)
 let x = 1
 #endif
@@ -81,7 +84,8 @@ let x = 1
 
 [<Test>]
 let ``CNF flatten form of exprs from complex statements`` () =
-    let source = """
+    let source =
+        """
 #if !(INTERACTIVE || !(FOO || BAR) || BUZZ)
 let x = 1
 #endif
@@ -307,7 +311,8 @@ let ``Hash ifs source format property`` () =
 
 [<Test>]
 let ``get define exprs from unit test with defines in triple quote string`` () =
-    let source = "
+    let source =
+        "
 \"\"\"
 #if FOO
 #if BAR
@@ -315,11 +320,13 @@ let ``get define exprs from unit test with defines in triple quote string`` () =
 #endif
 \"\"\"
 "
+
     getDefineExprs source == List<BoolExpr>.Empty
 
 [<Test>]
 let ``nested quote in triple quote string should not yield defines`` () =
-    let source = "
+    let source =
+        "
 \"\"\"
 \"
 #if FOO
@@ -329,4 +336,5 @@ let ``nested quote in triple quote string should not yield defines`` () =
 \"
 \"\"\"
 "
+
     getDefineExprs source == List<BoolExpr>.Empty

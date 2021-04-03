@@ -60,7 +60,8 @@ let ``sepColon should not add a space when space proceeds it`` () =
 
 [<Test>]
 let ``don't add space before block comment`` () =
-    let comment = """(*
+    let comment =
+        """(*
 
 Long comment
 

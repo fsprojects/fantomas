@@ -25,7 +25,8 @@ let ``source _directory keyword should not be replace with actual path`` () =
 [<Test>]
 let ``e2e script test with keyword __source__directory__`` () =
     async {
-        let source = """
+        let source =
+            """
 #I       __SOURCE_DIRECTORY__
 #load    ".paket/load/net471/main.group.fsx"
 """
@@ -54,7 +55,8 @@ let ``e2e script test with keyword __source__directory__`` () =
 [<Test>]
 let ``fantomas removes module and namespace if it is only 1 word`` () =
     async {
-        let source = """namespace Shared
+        let source =
+            """namespace Shared
 
     type Counter = int
     """
@@ -96,7 +98,8 @@ type Counter = int
 
 [<Test>]
 let ``number in the filename should not end up in the module name`` () =
-    let source = """let simplePatternMatch   =
+    let source =
+        """let simplePatternMatch   =
     let x = "a"
     match x with
     | "a" -> printfn "x is a"

@@ -31,7 +31,8 @@ let private getTriviaNodesFromTokens = getTriviaNodesFromTokens mkRange
 
 [<Test>]
 let ``Simple compiler directive should be found`` () =
-    let source = """
+    let source =
+        """
 #if DEBUG
 setupServer false
 #else
@@ -43,7 +44,8 @@ setupServer true
 
 [<Test>]
 let ``Simple compiler directive should be DEBUG`` () =
-    let source = """
+    let source =
+        """
 #if DEBUG
 setupServer false
 #else
@@ -57,7 +59,8 @@ setupServer true
 
 [<Test>]
 let ``Get defines from complex statements`` () =
-    let source = """
+    let source =
+        """
 #if INTERACTIVE || (FOO && BAR) || BUZZ
 let x = 1
 #endif
@@ -68,7 +71,8 @@ let x = 1
 
 [<Test>]
 let ``Tokens from directive inside a directive are being added`` () =
-    let source = """#if FOO
+    let source =
+        """#if FOO
   #if BAR
   #else
   #endif
@@ -95,7 +99,8 @@ let ``Tokens from directive inside a directive are being added`` () =
 
 [<Test>]
 let ``define with underscore`` () =
-    let source = """#if INVARIANT_CULTURE_STRING_COMPARISON
+    let source =
+        """#if INVARIANT_CULTURE_STRING_COMPARISON
 
 #else
 
@@ -129,8 +134,10 @@ let ``tokenize should return correct sequence of tokens`` () =
 
 [<Test>]
 let ``tokenize should work with multiple lines`` () =
-    let source = """let a = 8
+    let source =
+        """let a = 8
 let b = 9"""
+
     let tokens = tokenize source
     let tokensLength = List.length tokens
     tokensLength == 14
@@ -173,11 +180,13 @@ let ``Single line block comment should be found in tokens`` () =
 
 [<Test>]
 let ``multi line block comment should be found in tokens`` () =
-    let source = """let bar =
+    let source =
+        """let bar =
 (* multi
    line
    comment *)
     7"""
+
     let tokens = tokenize source
     let triviaNodes = getTriviaFromTokens tokens
 
@@ -197,7 +206,8 @@ let ``multi line block comment should be found in tokens`` () =
 
 [<Test>]
 let ``multiple line comment should be found in tokens`` () =
-    let source = """// meh
+    let source =
+        """// meh
 // foo
 let a = 9
 """
@@ -215,7 +225,8 @@ let a = 9
 
 [<Test>]
 let ``newline should be found in tokens`` () =
-    let source = """printfn foo
+    let source =
+        """printfn foo
 
 printfn bar"""
 
@@ -229,7 +240,8 @@ printfn bar"""
 
 [<Test>]
 let ``Only empty spaces in line are also consider as Newline`` () =
-    let source = """printfn foo
+    let source =
+        """printfn foo
 
 printfn bar""" // difference is the 4 spaces on line 188
 
@@ -243,7 +255,8 @@ printfn bar""" // difference is the 4 spaces on line 188
 
 [<Test>]
 let ``Comment after left brace of record`` () =
-    let source = """let a =
+    let source =
+        """let a =
     { // foo
     B = 7 }"""
 
@@ -269,7 +282,8 @@ let ``left brace should be found in tokens`` () =
 
 [<Test>]
 let ``leading and trailing whitespaces should be found in tokens`` () =
-    let source = """
+    let source =
+        """
 type T() =
     let x = 123
 """
@@ -282,7 +296,8 @@ type T() =
 
 [<Test>]
 let ``if keyword should be found in tokens`` () =
-    let source = """if true then ()
+    let source =
+        """if true then ()
 elif true then ()"""
 
     let triviaNodes = tokenize source |> getTriviaFromTokens
@@ -294,7 +309,8 @@ elif true then ()"""
 
 [<Test>]
 let ``directives are found in tokens`` () =
-    let source = """
+    let source =
+        """
 #if NOT_DEFINED
 #else
 let x = 1
@@ -313,7 +329,8 @@ let x = 1
 
 [<Test>]
 let ``member and override`` () =
-    let source = """
+    let source =
+        """
 type MyLogInteface() =
     interface LogInterface with
         member x.Print msg = printfn "%s" msg
@@ -350,7 +367,8 @@ let ``at before string`` () =
 
 [<Test>]
 let ``newline in string`` () =
-    let source = "\"
+    let source =
+        "\"
 \""
 
     let triviaNodes =
@@ -447,7 +465,8 @@ let ``escaped char content`` () =
 
 [<Test>]
 let ``open close of string on same line`` () =
-    let source = "
+    let source =
+        "
 let a = \"\"
 #if FOO
 #if BAR
@@ -459,7 +478,8 @@ let a = \"\"
 
 [<Test>]
 let ``open close of triple quote string on same line`` () =
-    let source = "
+    let source =
+        "
 let a = \"\"\"foo\"\"\"
 #if FOO
 #endif
@@ -469,7 +489,8 @@ let a = \"\"\"foo\"\"\"
 
 [<Test>]
 let ``open, quote, close of triple quote string on same line`` () =
-    let source = "
+    let source =
+        "
 let a = \"\"\"fo\"o\"\"\"
 #if FOO
 #endif
@@ -479,7 +500,8 @@ let a = \"\"\"fo\"o\"\"\"
 
 [<Test>]
 let ``defines inside string`` () =
-    let source = "
+    let source =
+        "
 let a = \"
 #if FOO
 #if BAR
@@ -492,7 +514,8 @@ let a = \"
 
 [<Test>]
 let ``defines inside string, escaped quote`` () =
-    let source = "
+    let source =
+        "
 let a = \"\\\"
 #if FOO
 #if BAR
@@ -505,7 +528,8 @@ let a = \"\\\"
 
 [<Test>]
 let ``defines inside triple quote string`` () =
-    let source = "
+    let source =
+        "
 let a = \"\"\"
 #if FOO
 #if BAR
@@ -518,7 +542,8 @@ let a = \"\"\"
 
 [<Test>]
 let ``defines inside triple quote string, escaped quote`` () =
-    let source = "
+    let source =
+        "
 let a = \"\"\"\\\"
 #if FOO
 #if BAR
@@ -531,7 +556,8 @@ let a = \"\"\"\\\"
 
 [<Test>]
 let ``defines inside triple quote string, escaped triple quote`` () =
-    let source = "
+    let source =
+        "
 let a = \"\"\"\\\"\"\"
 #if FOO
 #if BAR
@@ -544,7 +570,8 @@ let a = \"\"\"\\\"\"\"
 
 [<Test>]
 let ``backslashes in strings prior to hash directives should not affect token parsing`` () =
-    let source = "
+    let source =
+        "
 let file =
     System.IO.Path.Combine(contentDir,
                            (n |> System.IO.Path.GetFileNameWithoutExtension)
@@ -553,11 +580,13 @@ let file =
 #if WATCH
 #endif
 "
+
     getDefines source == [ "WATCH" ]
 
 [<Test>]
 let ``escaped backslash inside escaped string, 1290`` () =
-    let source = "
+    let source =
+        "
 [<Test>]
 let ``defines inside string, escaped quote`` () =
     let source = \"
@@ -576,7 +605,8 @@ let a = \\\"\\\\\\\"
 
 [<Test>]
 let ``opening quote in line comment, 1504`` () =
-    let source = "
+    let source =
+        "
 // \"
 type A () =
 
@@ -593,15 +623,18 @@ type A () =
       ()
 #endif
     "
+
     getDefines source == [ "DEBUG" ]
 
 [<Test>]
 let ``opening quote in second line comment`` () =
-    let source = "
+    let source =
+        "
 // nothing special here
 // \"
 #if DEBUG
 prinfn \"Debug shizzle\"
 #endif
     "
+
     getDefines source == [ "DEBUG" ]

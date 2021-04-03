@@ -14,7 +14,8 @@ let ``let in should be preserved`` () =
 
 [<Test>]
 let ``multiple let in lines, should keep in`` () =
-    let codeSnippet = """
+    let codeSnippet =
+        """
 let f () =
   let x = 1 in   // the "in" keyword is available in F#
     let y = 2 in
@@ -32,7 +33,8 @@ let f () =
 
 [<Test>]
 let ``multiple let in lines, should keep in, block comment`` () =
-    let codeSnippet = """
+    let codeSnippet =
+        """
 let f () =
   let x = 1 in   (* the "in" keyword is available in F# *)
     let y = 2 in
@@ -54,7 +56,8 @@ let f () =
 
 [<Test>]
 let ``multiline let in, should keep in`` () =
-    let codeSnippet = """
+    let codeSnippet =
+        """
 let f () =
   let x = 1 in if longIdentifierThatWillForceThisConstructToBeMultiline
                then x
@@ -77,7 +80,8 @@ let f () =
 
 [<Test>]
 let ``multiline let in, should remove in 2`` () =
-    let codeSnippet = """
+    let codeSnippet =
+        """
 let f () =
   let x = 1 in (while true do ()
                 x)

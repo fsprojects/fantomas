@@ -10,7 +10,8 @@ open Fantomas.Extras
 let ``sanitize filename if Program.fs`` () =
     let fileName = "Program.fs"
 
-    let source = """
+    let source =
+        """
 open System
 
 [<EntryPoint>]
@@ -36,7 +37,8 @@ let main argv _ =
 let ``sanitize filename if path with Program.fs`` () =
     let fileName = @"d:\dev\bootcamp\src\Program.fs"
 
-    let source = """
+    let source =
+        """
 open System
 open Poker.Main
 

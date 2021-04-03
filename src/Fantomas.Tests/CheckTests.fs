@@ -6,7 +6,8 @@ open Fantomas.Extras.FakeHelpers
 open Fantomas.Tests.TestHelper
 
 [<Literal>]
-let NeedsFormatting = """module A
+let NeedsFormatting =
+    """module A
 
 let a =       5
 let b= a +      123
@@ -16,7 +17,8 @@ let b= a +      123
 let WithErrors = """let a"""
 
 [<Literal>]
-let CorrectlyFormatted = """module A
+let CorrectlyFormatted =
+    """module A
 
 """
 

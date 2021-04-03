@@ -188,8 +188,8 @@ module BoolExpr =
             |> toFlatCNF
             |> trySolveSAT maxSolveSteps
             |> function
-            | Satisfiable x -> Some x
-            | _ -> None
+                | Satisfiable x -> Some x
+                | _ -> None
 
         let pairSolve e1 e2 = BoolExpr.And(e1, e2) |> solve //|> Dbg.tee (fun r -> printfn "%A: %A" (BoolExpr.And(e1, e2)) r)
 
@@ -238,8 +238,8 @@ module BoolExpr =
         |> toFlatCNF
         |> trySolveSAT maxSolveSteps
         |> function
-        | Satisfiable x -> Some x
-        | _ -> None
+            | Satisfiable x -> Some x
+            | _ -> None
 
 module BoolExprParser =
     let (|Eq|_|) x y = if x = y then Some() else None
