@@ -102,6 +102,7 @@ type SourceCodeState =
     | InsideString
     | InsideTripleQuoteString of startIndex: int
     | InsideMultilineComment
+    | InsideLineComment
 
 type SourceCodeParserState =
     { State: SourceCodeState
@@ -132,6 +133,13 @@ let rec private getTokenizedHashes (sourceCode: string) : Token list =
         let (|BackSlashChar|_|) = equalsChar '\\'
         let (|NoBackSlashChar|_|) = differsFromChar '\\'
         let (|CloseParenChar|_|) = equalsChar ')'
+        let (|ForwardSlashChar|_|) = equalsChar '/'
+
+        let (|LineCommentStart|_|) v =
+            match v with
+            | ForwardSlashChar, ForwardSlashChar, _ -> Some()
+            | _ -> None
+
         let isSpace = (=) ' '
 
         let processLine (hashContent: string) (lineContent: string) (lineNumber: int) (offset: int) : Token list =
@@ -256,6 +264,7 @@ let rec private getTokenizedHashes (sourceCode: string) : Token list =
                         { acc with
                               NewlineIndexes = idx :: acc.NewlineIndexes }
                     | Normal, (HashChar, _, _) -> captureHashDefine acc idx
+                    | Normal, LineCommentStart -> { acc with State = InsideLineComment }
                     | _ -> acc
 
                 elif idx < lastIndex then
@@ -274,6 +283,7 @@ let rec private getTokenizedHashes (sourceCode: string) : Token list =
                         { acc with
                               NewlineIndexes = idx :: acc.NewlineIndexes }
                     | Normal, (HashChar, _, _) -> captureHashDefine acc idx
+                    | Normal, LineCommentStart -> { acc with State = InsideLineComment }
                     | InsideString, (NewlineChar, _, _) ->
                         { acc with
                               NewlineIndexes = idx :: acc.NewlineIndexes }
@@ -305,6 +315,10 @@ let rec private getTokenizedHashes (sourceCode: string) : Token list =
                         match minusOne with
                         | AsteriskChar -> { acc with State = Normal }
                         | _ -> acc
+                    | InsideLineComment, (NewlineChar, _, _) ->
+                        { acc with
+                              State = Normal
+                              NewlineIndexes = idx :: acc.NewlineIndexes }
                     | _ -> acc
 
                 else

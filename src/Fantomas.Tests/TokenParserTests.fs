@@ -573,3 +573,35 @@ let a = \\\"\\\\\\\"
 "
 
     getDefines source == List<string>.Empty
+
+[<Test>]
+let ``opening quote in line comment, 1504`` () =
+    let source = "
+// \"
+type A () =
+
+#if DEBUG
+  let a() = ()
+#endif
+
+  let f (x: int) =
+    match x with
+    | _ ->
+#if DEBUG
+      ()
+#else
+      ()
+#endif
+    "
+    getDefines source == [ "DEBUG" ]
+
+[<Test>]
+let ``opening quote in second line comment`` () =
+    let source = "
+// nothing special here
+// \"
+#if DEBUG
+prinfn \"Debug shizzle\"
+#endif
+    "
+    getDefines source == [ "DEBUG" ]
