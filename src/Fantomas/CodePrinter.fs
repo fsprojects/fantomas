@@ -4481,9 +4481,10 @@ and genMemberDefn astContext node =
         let genCtor =
             let shortExpr =
                 optPre sepSpace sepSpace ao genAccess
-                +> sepOpenT
-                +> col sepComma (simplePats ps) (genSimplePat astContext)
-                +> sepCloseT
+                +> ((sepOpenT
+                     +> col sepComma (simplePats ps) (genSimplePat astContext)
+                     +> sepCloseT)
+                    |> genTriviaFor SynSimplePats_SimplePats ps.Range)
 
             let emptyPats =
                 let rec isEmpty ps =
@@ -4501,13 +4502,32 @@ and genMemberDefn astContext node =
                  +> ifElse
                      emptyPats
                      (sepOpenT +> sepCloseT)
-                     (sepOpenT
-                      +> indent
-                      +> sepNln
-                      +> col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext)
-                      +> unindent
-                      +> sepNln
-                      +> sepCloseT)
+                     (fun ctx ->
+                         let shortPats =
+                             sepOpenT
+                             +> col sepComma (simplePats ps) (genSimplePat astContext)
+                             +> sepCloseT
+
+                         let longPats =
+                             sepOpenT
+                             +> indent
+                             +> sepNln
+                             +> col (sepComma +> sepNln) (simplePats ps) (genSimplePat astContext)
+                             +> unindent
+                             +> sepNln
+                             +> sepCloseT
+
+                         let triviaBeforePats =
+                             Map.tryFindOrEmptyList SynSimplePats_SimplePats ctx.TriviaMainNodes
+                             |> List.tryFind (fun tn -> RangeHelpers.rangeEq tn.Range ps.Range)
+
+                         match triviaBeforePats with
+                         | Some tn ->
+                             (printContentBefore tn
+                              +> expressionFitsOnRestOfLine shortPats longPats
+                              +> printContentAfter tn)
+                                 ctx
+                         | _ -> longPats ctx)
                  +> onlyIf ctx.Config.AlternativeLongMemberDefinitions sepNln
                  +> unindent)
                     ctx
