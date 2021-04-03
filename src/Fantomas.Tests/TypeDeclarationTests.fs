@@ -2527,3 +2527,18 @@ type A =
     | _ -> failwith "shouldn't happen"
 #endif
 """
+
+[<Test>]
+let ``const keyword in StaticConstantExpr should be preserved, 1574`` () =
+    formatSourceString
+        false
+        """
+type T = SomeTypeProvider<const(" string literal " + REUSED_ LITERAL_STRING)>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type T = SomeTypeProvider<const(" string literal " + REUSED_ LITERAL_STRING)>
+"""
