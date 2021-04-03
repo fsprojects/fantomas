@@ -4138,7 +4138,7 @@ and genType astContext outerBracket t =
         | TMeasurePower (t, n) -> loop t -- "^" +> str n
         | TMeasureDivide (t1, t2) -> loop t1 -- " / " +> loop t2
         | TStaticConstant (c, r) -> genConst c r
-        | TStaticConstantExpr (e) -> genExpr astContext e
+        | TStaticConstantExpr (e) -> !- "const" +> genExpr astContext e
         | TStaticConstantNamed (t1, t2) ->
             loop t1 -- "="
             +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t2
