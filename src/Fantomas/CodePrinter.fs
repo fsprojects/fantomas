@@ -4152,6 +4152,7 @@ and genType astContext outerBracket t =
         | TFun (t, TTuple ts) -> loop t +> sepArrow +> loopTTupleList ts
         | TFuns ts -> col sepArrow ts loop
         | TApp (TLongIdent ("nativeptr"), [ t ], true) when (astContext.IsCStylePattern) -> loop t -- "*"
+        | TApp (TLongIdent ("byref"), [ t ], true) when (astContext.IsCStylePattern) -> loop t -- "&"
         | TApp (t, ts, isPostfix) ->
             let postForm =
                 match ts with

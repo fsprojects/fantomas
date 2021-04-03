@@ -759,3 +759,24 @@ type internal Handler() =
         val mutable mainWindow: Window
     end
 """
+
+[<Test>]
+let ``& in extern function declaration, 1567`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    module Bar =
+        [<DllImport("Kernel32.dll", SetLastError = true)>]
+        extern bool GetFileInformationByHandleEx(IntPtr hFile, FILE_INFO_BY_HANDLE_CLASS infoClass, [<Out>] FILE_NAME_INFO& info, uint32 dwBufferSize)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    module Bar =
+        [<DllImport("Kernel32.dll", SetLastError = true)>]
+        extern bool GetFileInformationByHandleEx(IntPtr hFile, FILE_INFO_BY_HANDLE_CLASS infoClass, [<Out>] FILE_NAME_INFO& info, uint32 dwBufferSize)
+"""
