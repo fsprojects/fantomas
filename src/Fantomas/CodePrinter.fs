@@ -1467,7 +1467,7 @@ and genExpr astContext synExpr ctx =
                     let r = getRangeOfCompExprStatement ces
                     let sepNln = getSepNln ces r
                     ColMultilineItem(expr, sepNln, r))
-            |> colWithNlnWhenItemIsMultiline
+            |> colWithNlnWhenItemIsMultilineBasedOnSetting
 
         | ArrayOrListOfSeqExpr (isArray, e) as alNode ->
             let astContext = { astContext with IsNakedRange = true }
@@ -2083,7 +2083,8 @@ and genExpr astContext synExpr ctx =
                               ) ]
 
                     let items = letBindings bs @ synExpr e
-                    atCurrentColumn (colWithNlnWhenItemIsMultiline items) ctx
+
+                    atCurrentColumn (colWithNlnWhenItemIsMultilineBasedOnSetting items) ctx
 
         // Could customize a bit if e is single line
         | TryWith (e, cs) ->
@@ -2160,7 +2161,7 @@ and genExpr astContext synExpr ctx =
 
                         ColMultilineItem(expr, sepNln, r))
 
-            atCurrentColumn (colWithNlnWhenItemIsMultiline items)
+            atCurrentColumn (colWithNlnWhenItemIsMultilineBasedOnSetting items)
 
         // A generalization of IfThenElse
         | ElIf ((e1, e2, _, _, _) :: es, enOpt) ->
@@ -4528,7 +4529,7 @@ and genMemberDefnList astContext nodes =
             :: (collectItems rest)
 
     collectItems nodes
-    |> colWithNlnWhenItemIsMultiline
+    |> colWithNlnWhenItemIsMultilineBasedOnSetting
 
 and genMemberDefn astContext node =
     match node with

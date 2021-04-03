@@ -1507,6 +1507,12 @@ let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
 
     impl items
 
+let internal colWithNlnWhenItemIsMultilineBasedOnSetting (items: ColMultilineItem list) (ctx: Context) =
+    if ctx.Config.NewlinesAroundInnerMultilineExpressions then
+        colWithNlnWhenItemIsMultiline items ctx
+    else
+        col sepNln items (fun (ColMultilineItem (expr, _, _)) -> expr) ctx
+
 let internal genTriviaBeforeClausePipe (rangeOfClause: Range) ctx =
     (Map.tryFindOrEmptyList BAR ctx.TriviaTokenNodes)
     |> List.tryFind
