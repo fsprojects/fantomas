@@ -1,3 +1,11 @@
+### 4.5.0-alpha-005 - 04/2021
+
+* Fix Const() stripped from string literals [bvreak. [#1574](https://github.com/fsprojects/fantomas/issues/1574)
+* Fix Conversion of & to byref is invalid in extern function declaration. [#1567](https://github.com/fsprojects/fantomas/issues/1567)
+* Fix Quote character in a comment results in removing code inside preprocessor directive. [#1504](https://github.com/fsprojects/fantomas/issues/1504)
+* Fix Documentation comment for primary class constructor is removed. [#1286](https://github.com/fsprojects/fantomas/issues/1286)
+* Fix A comment before an anonymous function gets swallowed up. [#1190](https://github.com/fsprojects/fantomas/issues/1190)
+
 ### 4.5.0-alpha-004 - 04/2021
 
 * Fix KeepIndentInBranch not being respected?. [#1569](https://github.com/fsprojects/fantomas/issues/1569)
