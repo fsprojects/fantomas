@@ -1542,7 +1542,7 @@ and genExpr astContext synExpr ctx =
             +> col sepSpace cps (fst >> genComplexPats astContext)
             +> sepArrow
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-        | Paren (lpr, Lambda (e, sps), rpr, pr) ->
+        | Paren (lpr, Lambda (e, sps, lambdaRange), rpr, pr) ->
             fun (ctx: Context) ->
                 let hasLineCommentAfterArrow =
                     findTriviaTokenFromName RARROW synExpr.Range ctx
@@ -1551,7 +1551,15 @@ and genExpr astContext synExpr ctx =
                 let body = genExprKeepIndentInBranch astContext e
 
                 let expr =
-                    sepOpenTFor lpr -- "fun "
+                    let triviaOfLambda f (ctx: Context) =
+                        (Map.tryFindOrEmptyList SynExpr_Lambda ctx.TriviaMainNodes
+                         |> List.tryFind (fun tn -> RangeHelpers.rangeEq tn.Range lambdaRange)
+                         |> optSingle f)
+                            ctx
+
+                    sepOpenTFor lpr
+                    +> triviaOfLambda printContentBefore
+                    -- "fun "
                     +> col sepSpace sps (genSimplePats astContext)
                     +> indent
                     +> triviaAfterArrow synExpr.Range
@@ -1564,7 +1572,7 @@ and genExpr astContext synExpr ctx =
                 expr ctx
 
         // When there are parentheses, most likely lambda will appear in function application
-        | Lambda (e, sps) ->
+        | Lambda (e, sps, _) ->
             atCurrentColumn (
                 !- "fun "
                 +> col sepSpace sps (genSimplePats astContext)
@@ -3253,7 +3261,7 @@ and genApp astContext e es ctx =
                                 |> fun lastPatRange -> ctx.MkRange lastPatRange.End e.Range.Start
 
                             genLambda (col sepSpace cps (fst >> genComplexPats astContext)) e lpr rpr arrowRange
-                        | Paren (lpr, Lambda (e, sps), rpr, _) ->
+                        | Paren (lpr, Lambda (e, sps, _), rpr, _) ->
                             let arrowRange =
                                 List.last sps
                                 |> fun sp -> ctx.MkRange sp.Range.End e.Range.Start
@@ -3294,7 +3302,7 @@ and genApp astContext e es ctx =
                                 |> fun lastPatRange -> ctx.MkRange lastPatRange.End e.Range.Start
 
                             genLambda (col sepSpace cps (fst >> genComplexPats astContext)) e lpr rpr arrowRange
-                        | Paren (lpr, Lambda (e, sps), rpr, _) ->
+                        | Paren (lpr, Lambda (e, sps, _), rpr, _) ->
                             let arrowRange =
                                 List.last sps
                                 |> fun sp -> ctx.MkRange sp.Range.End e.Range.Start

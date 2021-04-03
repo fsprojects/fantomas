@@ -848,8 +848,8 @@ let (|TernaryApp|_|) =
 /// Gather all arguments in lambda
 let rec (|Lambda|_|) =
     function
-    | SynExpr.Lambda (_, _, pats, Lambda (e, patss), _, _) -> Some(e, pats :: patss)
-    | SynExpr.Lambda (_, _, pats, e, _, _) -> Some(e, [ pats ])
+    | SynExpr.Lambda (_, _, pats, Lambda (e, patss, _), _, range) -> Some(e, (pats :: patss), range)
+    | SynExpr.Lambda (_, _, pats, e, _, range) -> Some(e, [ pats ], range)
     | _ -> None
 
 let (|MatchLambda|_|) =
@@ -1271,7 +1271,7 @@ let rec transformPatterns ss =
 /// Process compiler-generated matches in an appropriate way
 let (|DesugaredLambda|_|) =
     function
-    | Lambda (DesugaredMatch (ss, e), spss) -> Some(List.map (fun sp -> transformPatterns ss sp, sp.Range) spss, e)
+    | Lambda (DesugaredMatch (ss, e), spss, _) -> Some(List.map (fun sp -> transformPatterns ss sp, sp.Range) spss, e)
     | _ -> None
 
 // Type definitions

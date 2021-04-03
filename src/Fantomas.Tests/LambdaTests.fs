@@ -767,3 +767,37 @@ services.AddHttpsRedirection(
 )
 |> ignore
 """
+
+[<Test>]
+let ``comment between opening parenthesis and lambda, 1190`` () =
+    formatSourceString
+        false
+        """
+(
+    (* comment before gets swallowed *)
+    fun x -> x * 42
+)
+
+(
+    fun x -> x * 42
+    (* comment after is OK *)
+)
+
+(   (* comment on first line is OK too *)
+    fun x -> x * 42
+)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+( (* comment before gets swallowed *)
+fun x -> x * 42)
+
+(fun x ->
+    x * 42 (* comment after is OK *)
+    )
+
+( (* comment on first line is OK too *) fun x -> x * 42)
+"""
