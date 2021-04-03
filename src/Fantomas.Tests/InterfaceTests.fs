@@ -239,7 +239,8 @@ type IArgParserTemplate =
 
 [<Test>]
 let ``generic interface member should have space after name`` () =
-    let source = """
+    let source =
+        """
 type IFunc<'R> =
     abstract Invoke<'T> : unit -> 'R // without this space the code is invalid
 """

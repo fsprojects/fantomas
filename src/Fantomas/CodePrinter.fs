@@ -111,8 +111,8 @@ and genParsedHashDirective (ParsedHashDirective (h, s, r)) =
                         | _ -> None)
                 |> List.tryHead)
         |> function
-        | Some kw -> !-kw
-        | None -> col sepSpace s printArgument
+            | Some kw -> !-kw
+            | None -> col sepSpace s printArgument
         <| ctx
 
     !- "#" -- h +> sepSpace +> printIdent

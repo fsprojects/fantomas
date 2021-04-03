@@ -606,9 +606,10 @@ let private formatRange
 
             let! formattedSourceCode = format checker parsingOptions config formatContext
             // If the input is not inline, the output should not be inline as well
-            if sourceCode.EndsWith("\n")
-               && not
-                  <| formattedSourceCode.EndsWith(Environment.NewLine) then
+            if
+                sourceCode.EndsWith("\n") && not
+                                             <| formattedSourceCode.EndsWith(Environment.NewLine)
+            then
                 return formattedSourceCode + Environment.NewLine
             elif
                 not <| sourceCode.EndsWith("\n")

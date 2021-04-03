@@ -5,7 +5,8 @@ open FsUnit
 open Fantomas.CoreGlobalTool.Tests.TestHelpers
 
 [<Literal>]
-let NeedsFormatting = """module A
+let NeedsFormatting =
+    """module A
 
 let a =       5
 let b= a +      123
@@ -15,7 +16,8 @@ let b= a +      123
 let WithErrors = """let a ="""
 
 [<Literal>]
-let CorrectlyFormatted = """module A
+let CorrectlyFormatted =
+    """module A
 
 """
 
@@ -43,7 +45,8 @@ let ``files that need formatting should report exit code 99`` () =
 
 [<Test>]
 let ``check with Program.fs file`` () =
-    let codeSnippet = """[<EntryPoint>]
+    let codeSnippet =
+        """[<EntryPoint>]
 let main _ = 0
 """
 
@@ -55,7 +58,8 @@ let main _ = 0
 
 [<Test>]
 let ``check with different line endings`` () =
-    let codeSnippet = """let a =
+    let codeSnippet =
+        """let a =
     // some comment
     42
 """

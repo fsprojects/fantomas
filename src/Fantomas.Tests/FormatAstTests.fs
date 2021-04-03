@@ -50,7 +50,8 @@ let ``let in should not be used`` () =
 
 [<Test>]
 let ``elif keyword is not present in raw AST`` () =
-    let source = """
+    let source =
+        """
     if a then ()
     elif b then ()
     else ()"""

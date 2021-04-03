@@ -13,14 +13,16 @@ let private mergeAndCompare a b expected =
 
 [<Test>]
 let ``Merging of source code that starts with a hash`` () =
-    let a = """#if NOT_DEFINED
+    let a =
+        """#if NOT_DEFINED
     printfn \"meh\"
 #else
 
 #endif
 """
 
-    let b = """#if NOT_DEFINED
+    let b =
+        """#if NOT_DEFINED
 
 #else
     printfn \"foo\"
@@ -37,7 +39,8 @@ let ``Merging of source code that starts with a hash`` () =
 
 [<Test>]
 let ``Merging of defines content work when source code starts with a newline`` () =
-    let a = """
+    let a =
+        """
 [<Literal>]
 let private assemblyConfig() =
     #if TRACE
@@ -48,7 +51,8 @@ let private assemblyConfig() =
     x
 """
 
-    let b = """
+    let b =
+        """
 [<Literal>]
 let private assemblyConfig() =
     #if TRACE
@@ -73,7 +77,8 @@ let private assemblyConfig() =
 
 [<Test>]
 let ``Only split on control structure keyword`` () =
-    let a = """
+    let a =
+        """
 #if INTERACTIVE
 #else
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
@@ -84,7 +89,8 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #endif
 """
 
-    let b = """
+    let b =
+        """
 #if INTERACTIVE
 #else
 

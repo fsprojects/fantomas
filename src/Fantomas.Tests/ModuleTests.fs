@@ -386,7 +386,8 @@ module private rec Test =
 let ``Implicit module should not be added to code`` () =
     let fileName = "60Seconds.fsx"
 
-    let sourceCode = """open System
+    let sourceCode =
+        """open System
 
 type T() =
     interface IDisposable with
