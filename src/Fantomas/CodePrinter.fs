@@ -894,8 +894,8 @@ and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, _) as n
     genPreXmlDoc px
     +> genAttributes astContext ats
     +> (!- "val "
-        +> opt sepSpace ao genAccess
         +> onlyIf isInline (!- "inline ")
+        +> opt sepSpace ao genAccess
         -- s
         +> genericParams
         |> genTriviaFor Ident_ identRange)
