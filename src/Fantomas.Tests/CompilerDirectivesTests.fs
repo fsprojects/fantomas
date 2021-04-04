@@ -2451,3 +2451,51 @@ let inputFileFlagsFsiBase (_tcConfigB: TcConfigBuilder) =
     List.empty<CompilerOption>
 #endif
 """
+
+[<Test>]
+let ``define before opening bracket of array, 1597`` () =
+    formatSourceString
+        false
+        """
+    let Environment = { new IEnvironment with
+        member _.IsWindows() =
+            InteropServices.RuntimeInformation.IsOSPlatform(InteropServices.OSPlatform.Windows)
+
+        member _.GetScriptArgs() =
+    #if INTERACTIVE
+            fsi.CommandLineArgs
+            |> Array.skip 1
+    #else
+            [||]
+    #endif
+
+        member _.GetEnvironmentVariable(varName) =
+            System.Environment.GetEnvironmentVariable(varName)
+
+        member _.SetEnvironmentVariable(varName, value) =
+            System.Environment.SetEnvironmentVariable(varName, value)
+    }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let Environment =
+    { new IEnvironment with
+        member _.IsWindows() =
+            InteropServices.RuntimeInformation.IsOSPlatform(InteropServices.OSPlatform.Windows)
+
+        member _.GetScriptArgs() =
+#if INTERACTIVE
+            fsi.CommandLineArgs |> Array.skip 1
+#else
+            [||]
+#endif
+
+        member _.GetEnvironmentVariable(varName) =
+            System.Environment.GetEnvironmentVariable(varName)
+
+        member _.SetEnvironmentVariable(varName, value) =
+            System.Environment.SetEnvironmentVariable(varName, value) }
+"""
