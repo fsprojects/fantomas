@@ -2849,6 +2849,7 @@ and genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext
         +> unindent
         +> sepNln
         +> sepCloseTFor rpr pr
+        |> genTriviaFor SynExpr_Paren pr
 
     let genExpr astContext e =
         match e with

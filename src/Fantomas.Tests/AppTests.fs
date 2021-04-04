@@ -580,3 +580,49 @@ module SomeModule =
 
         initialAbs / 100
 """
+
+[<Test>]
+let ``comment after app with single tuple arg, 1276`` () =
+    formatSourceString
+        false
+        """
+SomeFunction(arg1,
+    arg2,
+    arg3) // does something
+SomeOtherFunction(arg1, arg2) // does another thing
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+SomeFunction(arg1, arg2, arg3) // does something
+SomeOtherFunction(arg1, arg2) // does another thing
+"""
+
+[<Test>]
+let ``comment after app with single tuple arg, multiline format`` () =
+    formatSourceString
+        false
+        """
+SomeFunction(arg1,
+    arg2,
+    arg3) // does something
+SomeOtherFunction(arg1, arg2) // does another thing
+"""
+        { config with MaxLineLength = 20 }
+    |> prepend newline
+    |> should
+        equal
+        """
+SomeFunction(
+    arg1,
+    arg2,
+    arg3
+) // does something
+
+SomeOtherFunction(
+    arg1,
+    arg2
+) // does another thing
+"""
