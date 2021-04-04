@@ -729,3 +729,26 @@ type Foo =
     | Bar = 3 // Foo
     | Baz = 5 // Eee
 """
+
+[<Test>]
+let ``union type with one of two cases depending on compiler define, 1483`` () =
+    formatSourceString
+        false
+        """
+type A =
+    | B
+#if DEBUG
+    |  C
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A =
+    | B
+#if DEBUG
+    | C
+#endif
+"""

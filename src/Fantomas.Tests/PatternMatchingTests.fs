@@ -1675,3 +1675,34 @@ let GenApp (cenv: cenv) cgbuf eenv (f, fty, tyargs, curriedArgs, m) sequel =
 
         ()
 """
+
+[<Test>]
+let ``match clause that is short or long depending on compiler define, 1484`` () =
+    formatSourceString
+        false
+        """
+let a = (fun _ -> function
+    | A ->
+        ()
+#if DEBUG
+        f()
+#endif
+    | B ->
+        ()
+)
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+  (fun _ ->
+    function
+    | A ->
+      ()
+#if DEBUG
+      f ()
+#endif
+    | B -> ())
+"""
