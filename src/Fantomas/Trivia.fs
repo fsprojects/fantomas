@@ -56,20 +56,18 @@ let inline private isNotMemberKeyword (node: TriviaNodeAssigner) =
 
 let private findFirstNodeAfterLine
     (nodes: TriviaNodeAssigner list)
-    lineNumber
-    hasAnonModulesAndOpenStatements
+    (lineNumber: int)
+    (hasAnonModulesAndOpenStatements: bool)
     : TriviaNodeAssigner option =
     nodes
     |> List.tryFind
         (fun tn ->
-            if tn.Range.StartLine > lineNumber
-               && isNotMemberKeyword tn then
-                not (
-                    hasAnonModulesAndOpenStatements
-                    && mainNodeIs SynModuleOrNamespace_AnonModule tn
-                )
-            else
-                false)
+            tn.Range.StartLine > lineNumber
+            && isNotMemberKeyword tn
+            && not (
+                hasAnonModulesAndOpenStatements
+                && mainNodeIs SynModuleOrNamespace_AnonModule tn
+            ))
 
 let private findLastNodeOnLine (nodes: TriviaNodeAssigner list) lineNumber : TriviaNodeAssigner option =
     nodes
@@ -433,7 +431,7 @@ let private addTriviaToTriviaNode
         match triviaBetweenAttributeAndParentBinding triviaNodes range.StartLine with
         | Some _ as node -> updateTriviaNode (fun tn -> tn.ContentAfter.Add(directive)) triviaNodes node
         | _ ->
-            match findNodeAfterLineAndColumn triviaNodes range.EndLine range.EndColumn with
+            match findFirstNodeAfterLine triviaNodes range.StartLine hasAnonModulesAndOpenStatements with
             | Some _ as node -> updateTriviaNode (fun tn -> tn.ContentBefore.Add(directive)) triviaNodes node
             | None ->
                 let findNode nodes =
