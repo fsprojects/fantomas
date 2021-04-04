@@ -2253,6 +2253,14 @@ and genExpr astContext synExpr ctx =
                     let short = genExpr astContext e
 
                     let long =
+                        let hasCommentBeforeExpr () =
+                            TriviaHelpers.``has content before that matches``
+                                (fun tn -> RangeHelpers.rangeEq tn.Range e.Range)
+                                (function
+                                | Comment (LineCommentOnSingleLine _) -> true
+                                | _ -> false)
+                                (Map.tryFindOrEmptyList (synExprToFsAstType e |> fst) ctx.TriviaMainNodes)
+
                         match e with
                         | App (SynExpr.DotGet _, [ (Paren _) ]) -> atCurrentColumn (genExpr astContext e)
                         | Paren (lpr, (AppSingleParenArg _ as ate), rpr, pr) ->
@@ -2316,7 +2324,15 @@ and genExpr astContext synExpr ctx =
                             +> genExpr astContext e
                             +> unindent
                             +> sepNln
-                        | _ -> genExpr astContext e
+                        | _ ->
+                            if hasCommentBeforeExpr () then
+                                indent
+                                +> sepNln
+                                +> genExpr astContext e
+                                +> unindent
+                                +> sepNln
+                            else
+                                genExpr astContext e
 
                     expressionFitsOnRestOfLine short long
 
