@@ -1431,3 +1431,32 @@ module internal FSharp.Compiler.TypedTreePickle
 val inline internal u_tup4 :
     unpickler<'T2> -> unpickler<'T3> -> unpickler<'T4> -> unpickler<'T5> -> unpickler<'T2 * 'T3 * 'T4 * 'T5>
 """
+
+[<Test>]
+let ``comments after indents in multiline type function signature, 1287`` () =
+    formatSourceString
+        true
+        """
+namespace Test
+
+module OrderProcessing =
+  type ValidateOrder =
+    CheckProductCodeExists    // dependency
+      -> CheckAddressExists   // dependency
+      -> UnvalidatedOrder     // input
+      -> Result<ValidatedOrder,ValidationError>  // output (Result b/c one of deps returns a Result)
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Test
+
+module OrderProcessing =
+    type ValidateOrder =
+        CheckProductCodeExists -> // dependency
+            CheckAddressExists -> // dependency
+            UnvalidatedOrder -> // input
+            Result<ValidatedOrder, ValidationError> // output (Result b/c one of deps returns a Result)
+"""

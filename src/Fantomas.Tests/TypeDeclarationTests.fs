@@ -2687,3 +2687,32 @@ type X =
     /// Get a blob of data indicating how this type is nested inside other namespaces, modules and types.
     member x.CompilationPathOpt = x.entity_cpath
 """
+
+[<Test>]
+let ``multiline type function signature`` () =
+    formatSourceString
+        false
+        """
+namespace Test
+
+module OrderProcessing =
+  type ValidateOrder =
+    CheckProductCodeExists    // dependency
+      -> CheckAddressExists   // dependency
+      -> UnvalidatedOrder     // input
+      -> Result<ValidatedOrder,ValidationError>  // output (Result b/c one of deps returns a Result)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Test
+
+module OrderProcessing =
+    type ValidateOrder =
+        CheckProductCodeExists -> // dependency
+            CheckAddressExists -> // dependency
+            UnvalidatedOrder -> // input
+            Result<ValidatedOrder, ValidationError> // output (Result b/c one of deps returns a Result)
+"""

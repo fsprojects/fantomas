@@ -3764,7 +3764,7 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
              +> leaveNodeFor SynAttributeList_ h.Range)
                 ctx
 
-    let typeName =
+    let genXmlTypeKeywordAttrsAccess =
         genPreXmlDoc px
         +> ifElse
             astContext.IsFirstChild
@@ -3772,6 +3772,9 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
             ((!- "and " +> genOnelinerAttributes astContext ats)
              |> genTriviaForOnelinerAttributes)
         +> opt sepSpace ao genAccess
+
+    let typeName =
+        genXmlTypeKeywordAttrsAccess
         +> genTypeAndParam astContext s tds tcs preferPostfix
 
     match tdr with
@@ -3890,7 +3893,23 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
             +> genType astContext false t
             +> ifElse needsParenthesis sepCloseT sepNone
 
-        typeName +> sepEq +> sepSpace +> genTypeAbbrev
+        let short =
+            genTypeAndParam astContext s tds tcs preferPostfix
+            +> sepEq
+            +> sepSpace
+            +> genTypeAbbrev
+
+        let long =
+            genTypeAndParam astContext s tds tcs preferPostfix
+            +> sepSpace
+            +> sepEqFixed
+            +> indent
+            +> sepNln
+            +> genTypeAbbrev
+            +> unindent
+
+        genXmlTypeKeywordAttrsAccess
+        +> expressionFitsOnRestOfLine short long
     | SigSimple (TDSRException (ExceptionDefRepr (ats, px, ao, uc))) -> genExceptionBody astContext ats px ao uc
 
     | SigObjectModel (TCSimple (TCStruct
@@ -4189,11 +4208,15 @@ and genType astContext outerBracket t =
                     +> sepCloseT
                     +> loop t
 
-            ifElse isPostfix postForm (loop t +> genPrefixTypes astContext ts)
+            ifElse
+                isPostfix
+                postForm
+                (loop t
+                 +> genPrefixTypes astContext ts current.Range)
 
         | TLongIdentApp (t, s, ts) ->
             loop t -- sprintf ".%s" s
-            +> genPrefixTypes astContext ts
+            +> genPrefixTypes astContext ts current.Range
         | TTuple ts -> loopTTupleList ts
         | TStructTuple ts ->
             !- "struct "
@@ -4260,7 +4283,23 @@ and genType astContext outerBracket t =
              +> loop t
              +> sepCloseT)
             (loopTTupleList ts +> sepArrow +> loop t)
-    | TFuns ts -> ifElse outerBracket (sepOpenT +> col sepArrow ts loop +> sepCloseT) (col sepArrow ts loop)
+    | TFuns ts ->
+        let short = col sepArrow ts loop
+
+        let long =
+            match ts with
+            | [] -> sepNone
+            | h :: rest ->
+                loop h
+                +> sepSpace
+                +> sepArrowFixed
+                +> indent
+                +> sepNln
+                +> col (sepSpace +> sepArrowFixed +> sepNln) rest loop
+
+        let genTs = expressionFitsOnRestOfLine short long
+
+        ifElse outerBracket (sepOpenT +> genTs +> sepCloseT) genTs
     | TTuple ts -> ifElse outerBracket (sepOpenT +> loopTTupleList ts +> sepCloseT) (loopTTupleList ts)
     | _ -> loop t
 
@@ -4282,7 +4321,7 @@ and addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: SynType) (ctx: Cont
 and genAnonRecordFieldType astContext (AnonRecordFieldType (s, t)) =
     !-s +> sepColon +> (genType astContext false t)
 
-and genPrefixTypes astContext node ctx =
+and genPrefixTypes astContext node (range: Range) ctx =
     match node with
     | [] -> ctx
     // Where <  and ^ meet, we need an extra space. For example:  seq< ^a >
@@ -4296,7 +4335,7 @@ and genPrefixTypes astContext node ctx =
          +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
          +> col sepComma node (genType astContext false)
          +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
-         -- ">")
+         +> tokN range GREATER (!- ">"))
             ctx
 
 and genTypeList astContext node =
