@@ -1027,55 +1027,56 @@ let private tokenKinds = [ FSharpTokenCharKind.Operator ]
 
 let internal getFsToken tokenName =
     match tokenName with
-    | "LBRACE" -> LBRACE
-    | "RBRACE" -> RBRACE
-    | "LPAREN" -> LPAREN
-    | "RPAREN" -> RPAREN
-    | "LBRACK" -> LBRACK
-    | "RBRACK" -> RBRACK
-    | "LBRACK_BAR" -> LBRACK_BAR
-    | "BAR_RBRACK" -> BAR_RBRACK
-    | "EQUALS" -> EQUALS
-    | "IF" -> IF
-    | "THEN" -> THEN
-    | "ELSE" -> ELSE
-    | "ELIF" -> ELIF
-    | "BAR" -> BAR
-    | "RARROW" -> RARROW
-    | "TRY" -> TRY
-    | "FINALLY" -> FINALLY
-    | "WITH" -> WITH
-    | "MEMBER" -> MEMBER
-    | "AND_BANG" -> AND_BANG
-    | "PERCENT_OP" -> PERCENT_OP
     | "AMP" -> AMP
+    | "AMP_AMP" -> AMP_AMP
+    | "AND_BANG" -> AND_BANG
+    | "BAR" -> BAR
+    | "BAR_BAR" -> BAR_BAR
+    | "BAR_RBRACK" -> BAR_RBRACK
+    | "COLON_COLON" -> COLON_COLON
+    | "COLON_EQUALS" -> COLON_EQUALS
+    | "COLON_GREATER" -> COLON_GREATER
+    | "COLON_QMARK" -> COLON_QMARK
+    | "COLON_QMARK_GREATER" -> COLON_QMARK_GREATER
+    | "DELAYED" -> DELAYED
+    | "DO" -> DO
+    | "DOLLAR" -> DOLLAR
+    | "DOT_DOT" -> DOT_DOT
+    | "DOT_DOT_HAT" -> DOT_DOT_HAT
+    | "ELIF" -> ELIF
+    | "ELSE" -> ELSE
+    | "EQUALS" -> EQUALS
+    | "FINALLY" -> FINALLY
+    | "FUNCTION" -> FUNCTION
+    | "GREATER" -> GREATER
+    | "IF" -> IF
+    | "IN" -> IN
+    | "INFIX_AMP_OP" -> INFIX_AMP_OP
     | "INFIX_BAR_OP" -> INFIX_BAR_OP
     | "INFIX_COMPARE_OP" -> INFIX_COMPARE_OP
-    | "LESS" -> LESS
-    | "AMP_AMP" -> AMP_AMP
-    | "GREATER" -> GREATER
     | "INFIX_STAR_DIV_MOD_OP" -> INFIX_STAR_DIV_MOD_OP
-    | "DELAYED" -> DELAYED
-    | "PLUS_MINUS_OP" -> PLUS_MINUS_OP
-    | "QMARK" -> QMARK
-    | "MINUS" -> MINUS
-    | "COLON_QMARK" -> COLON_QMARK
-    | "DOT_DOT" -> DOT_DOT
-    | "INT32_DOT_DOT" -> INT32_DOT_DOT
-    | "COLON_EQUALS" -> COLON_EQUALS
-    | "PREFIX_OP" -> PREFIX_OP
-    | "INFIX_AMP_OP" -> INFIX_AMP_OP
-    | "COLON_QMARK_GREATER" -> COLON_QMARK_GREATER
-    | "COLON_COLON" -> COLON_COLON
-    | "COLON_GREATER" -> COLON_GREATER
-    | "DOT_DOT_HAT" -> DOT_DOT_HAT
-    | "BAR_BAR" -> BAR_BAR
     | "INFIX_STAR_STAR_OP" -> INFIX_STAR_STAR_OP
-    | "FUNCTION" -> FUNCTION
+    | "INT32_DOT_DOT" -> INT32_DOT_DOT
+    | "LBRACE" -> LBRACE
+    | "LBRACK" -> LBRACK
+    | "LBRACK_BAR" -> LBRACK_BAR
+    | "LESS" -> LESS
+    | "LPAREN" -> LPAREN
     | "LPAREN_STAR_RPAREN" -> LPAREN_STAR_RPAREN
-    | "IN" -> IN
-    | "DO" -> DO
+    | "MEMBER" -> MEMBER
+    | "MINUS" -> MINUS
+    | "PERCENT_OP" -> PERCENT_OP
+    | "PLUS_MINUS_OP" -> PLUS_MINUS_OP
+    | "PREFIX_OP" -> PREFIX_OP
+    | "QMARK" -> QMARK
     | "QMARK_QMARK" -> QMARK_QMARK
+    | "RARROW" -> RARROW
+    | "RBRACE" -> RBRACE
+    | "RBRACK" -> RBRACK
+    | "RPAREN" -> RPAREN
+    | "THEN" -> THEN
+    | "TRY" -> TRY
+    | "WITH" -> WITH
     | _ -> failwithf "was not expecting token %s" tokenName
 
 let getTriviaNodesFromTokens (mkRange: MkRange) (tokens: Token list) =
