@@ -25,13 +25,7 @@ module String =
     let startsWithOrdinal (prefix: string) (str: string) =
         str.StartsWith(prefix, StringComparison.Ordinal)
 
-    let private lengthWithoutSpaces (str: string) =
-        normalizeNewLine str
-        |> fun s ->
-            s
-                .Replace("\n", String.Empty)
-                .Replace(" ", String.Empty)
-        |> String.length
+    let private lengthWithoutSpaces (str: string) = str.Replace(" ", String.Empty).Length
 
     let private hashRegex = @"^\s*#(if|elseif|else|endif).*"
 
