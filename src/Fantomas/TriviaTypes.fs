@@ -4,55 +4,56 @@ open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.Text
 
 type FsTokenType =
-    | LBRACE
-    | RBRACE
-    | LPAREN
-    | RPAREN
-    | LBRACK
-    | RBRACK
-    | LBRACK_BAR
-    | BAR_RBRACK
-    | EQUALS
-    | IF
-    | THEN
-    | ELSE
-    | ELIF
-    | BAR
-    | RARROW
-    | TRY
-    | FINALLY
-    | WITH
-    | MEMBER
-    | AND_BANG
-    | PERCENT_OP
     | AMP
+    | AMP_AMP
+    | AND_BANG
+    | BAR
+    | BAR_BAR
+    | BAR_RBRACK
+    | COLON_COLON
+    | COLON_EQUALS
+    | COLON_GREATER
+    | COLON_QMARK
+    | COLON_QMARK_GREATER
+    | DELAYED
+    | DO
+    | DOLLAR
+    | DOT_DOT
+    | DOT_DOT_HAT
+    | ELIF
+    | ELSE
+    | EQUALS
+    | FINALLY
+    | FUNCTION
+    | GREATER
+    | IF
+    | IN
+    | INFIX_AMP_OP
     | INFIX_BAR_OP
     | INFIX_COMPARE_OP
-    | LESS
-    | AMP_AMP
-    | GREATER
     | INFIX_STAR_DIV_MOD_OP
-    | DELAYED
-    | PLUS_MINUS_OP
-    | QMARK
-    | MINUS
-    | COLON_QMARK
-    | DOT_DOT
-    | INT32_DOT_DOT
-    | COLON_EQUALS
-    | PREFIX_OP
-    | INFIX_AMP_OP
-    | COLON_QMARK_GREATER
-    | COLON_COLON
-    | COLON_GREATER
-    | DOT_DOT_HAT
-    | BAR_BAR
     | INFIX_STAR_STAR_OP
-    | FUNCTION
+    | INT32_DOT_DOT
+    | LBRACE
+    | LBRACK
+    | LBRACK_BAR
+    | LESS
+    | LPAREN
     | LPAREN_STAR_RPAREN
-    | IN
-    | DO
+    | MEMBER
+    | MINUS
+    | PERCENT_OP
+    | PLUS_MINUS_OP
+    | PREFIX_OP
+    | QMARK
     | QMARK_QMARK
+    | RARROW
+    | RBRACE
+    | RBRACK
+    | RPAREN
+    | THEN
+    | TRY
+    | WITH
 
 type Token =
     { TokenInfo: FSharpTokenInfo

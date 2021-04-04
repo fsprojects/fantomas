@@ -1068,3 +1068,22 @@ let expected =
         | None -> 0
     |> id
 """
+
+[<Test>]
+let ``dollar in custom operator, 1598`` () =
+    formatSourceString
+        false
+        """
+/// Destructure and apply a tuple to an arbitrary value.
+/// E.g. `myFn $ (arg1, arg2)` in JS becomes `myFn(arg1, arg2)`
+let ($) (callee: obj) (args: obj): 'a = jsNative
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// Destructure and apply a tuple to an arbitrary value.
+/// E.g. `myFn $ (arg1, arg2)` in JS becomes `myFn(arg1, arg2)`
+let ($) (callee: obj) (args: obj) : 'a = jsNative
+"""
