@@ -1080,6 +1080,20 @@ and genExpr astContext synExpr ctx =
             (not ctx.Config.DisableElmishSyntax)
             ->
             let genChildren isShort =
+                let tokenSize = if isArray then 2 else 1
+
+                let openingTokenRange, openTokenType =
+                    ctx.MkRangeWith
+                        (childrenRange.Start.Line, childrenRange.Start.Column)
+                        (childrenRange.Start.Line, (childrenRange.Start.Column + tokenSize)),
+                    (if isArray then LBRACK_BAR else LBRACK)
+
+                let closingTokenRange, closingTokenType =
+                    ctx.MkRangeWith
+                        (childrenRange.End.Line, (childrenRange.End.Column - tokenSize))
+                        (childrenRange.End.Line, childrenRange.End.Column),
+                    (if isArray then BAR_RBRACK else RBRACK)
+
                 match children with
                 | [] when (not isArray) ->
                     sepOpenLFixed
@@ -1088,39 +1102,31 @@ and genExpr astContext synExpr ctx =
                 | [] when isArray -> sepOpenAFixed +> sepCloseAFixed
                 | [ singleChild ] ->
                     if isShort then
-                        ifElse isArray sepOpenA sepOpenL
+                        tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
                         +> genExpr astContext singleChild
-                        +> ifElse
-                            isArray
-                            sepCloseA
-                            (sepCloseL
-                             +> leaveNodeTokenByName childrenRange RBRACK)
+                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseA sepCloseL)
                     else
-                        ifElse isArray sepOpenA sepOpenL
+                        tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
                         +> indent
                         +> sepNln
                         +> genExpr astContext singleChild
                         +> unindent
                         +> sepNln
-                        +> ifElse
-                            isArray
-                            sepCloseAFixed
-                            (sepCloseLFixed
-                             +> leaveNodeTokenByName childrenRange RBRACK)
+                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseAFixed sepCloseLFixed)
 
                 | children ->
                     if isShort then
-                        ifElse isArray sepOpenA sepOpenL
+                        tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
                         +> col sepSemi children (genExpr astContext)
-                        +> ifElse isArray sepCloseA sepCloseL
+                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseA sepCloseL)
                     else
-                        ifElse isArray sepOpenA sepOpenL
+                        tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
                         +> indent
                         +> sepNln
                         +> col sepNln children (genExpr astContext)
                         +> unindent
                         +> sepNln
-                        +> ifElse isArray sepCloseAFixed sepCloseLFixed
+                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseAFixed sepCloseLFixed)
 
             let shortExpression =
                 !-identifier
