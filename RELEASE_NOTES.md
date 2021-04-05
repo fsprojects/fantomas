@@ -1,6 +1,22 @@
+### 4.5.0-alpha-006 - 04/2021
+
+* Feature BlankLinesAroundNestedMultilineExpressions. [#1587](https://github.com/fsprojects/fantomas/pull/1587)
+* Fix Block comment in Elmish expression removed. [#1601](https://github.com/fsprojects/fantomas/issues/1601)
+* Fix System.Exception: was not expecting token DOLLAR. [#1598](https://github.com/fsprojects/fantomas/issues/1598)
+* Fix Define before opening bracket. [#1597](https://github.com/fsprojects/fantomas/issues/1597)
+* Fix Swap internal and inline in signature file. [#1590](https://github.com/fsprojects/fantomas/issues/1590)
+* Fix member laced with conditional. [#1589](https://github.com/fsprojects/fantomas/issues/1589)
+* Fix if expression is not indented. [#1588](https://github.com/fsprojects/fantomas/issues/1588)
+* Fix Fantomas throws an exception with custom operator (>??). [#1533](https://github.com/fsprojects/fantomas/issues/1533)
+* Fix Unexpected identifier in lambda expression when using pre processor directives. [#1484](https://github.com/fsprojects/fantomas/issues/1484)
+* Fix FormatException: Unexpected symbol '|' for DU case under pre-processor directive. [#1483](https://github.com/fsprojects/fantomas/issues/1483)
+* Fix End-of-line comments lost when formatting multiline type function signature. [#1287](https://github.com/fsprojects/fantomas/issues/1287)
+* Fix Comments are sometimes removed unexpectedly during formatting. [#1276](https://github.com/fsprojects/fantomas/issues/1276)
+* Fix max_line_length not respected in mutliline infix expression in if. [#1584](https://github.com/fsprojects/fantomas/issues/1584)
+
 ### 4.5.0-alpha-005 - 04/2021
 
-* Fix Const() stripped from string literals [bvreak. [#1574](https://github.com/fsprojects/fantomas/issues/1574)
+* Fix Const() stripped from string literals break. [#1574](https://github.com/fsprojects/fantomas/issues/1574)
 * Fix Conversion of & to byref is invalid in extern function declaration. [#1567](https://github.com/fsprojects/fantomas/issues/1567)
 * Fix Quote character in a comment results in removing code inside preprocessor directive. [#1504](https://github.com/fsprojects/fantomas/issues/1504)
 * Fix Documentation comment for primary class constructor is removed. [#1286](https://github.com/fsprojects/fantomas/issues/1286)
