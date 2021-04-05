@@ -85,7 +85,7 @@
     <Compile Include="DotIndexedSetTests.fs" />
     <Compile Include="MultilineFunctionApplicationsInConditionExpressionsTests.fs" />
     <Compile Include="KeepIndentInBranch.fs" />
-    <Compile Include="NewlinesAroundInnerMultilineExpressions.fs" />
+    <Compile Include="BlankLinesAroundNestedMultilineExpressions.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

@@ -883,7 +883,7 @@ module Foo =
         0
 """
         { config with
-              NewlinesAroundInnerMultilineExpressions = false }
+              BlankLinesAroundNestedMultilineExpressions = false }
     |> prepend newline
     |> should
         equal

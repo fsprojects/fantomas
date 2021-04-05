@@ -1,4 +1,4 @@
-module Fantomas.Tests.NewlinesAroundInnerMultilineExpressions
+module Fantomas.Tests.BlankLinesAroundNestedMultilineExpressions
 
 open NUnit.Framework
 open FsUnit
@@ -6,7 +6,7 @@ open Fantomas.Tests.TestHelper
 
 let config =
     { config with
-          NewlinesAroundInnerMultilineExpressions = false }
+          BlankLinesAroundNestedMultilineExpressions = false }
 
 [<Test>]
 let ``basic behavior`` () =
