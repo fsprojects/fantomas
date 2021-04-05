@@ -1507,7 +1507,7 @@ let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
 
     impl items
 
-let internal colWithNlnWhenItemIsMultilineBasedOnSetting (items: ColMultilineItem list) (ctx: Context) =
+let internal colWithNlnWhenItemIsMultilineUsingConfig (items: ColMultilineItem list) (ctx: Context) =
     if ctx.Config.NewlinesAroundInnerMultilineExpressions then
         colWithNlnWhenItemIsMultiline items ctx
     else
