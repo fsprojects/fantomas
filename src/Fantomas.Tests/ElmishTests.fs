@@ -1324,3 +1324,119 @@ let Dashboard () =
         ]
     ]
 """
+
+[<Test>]
+let ``block comment in elmish expression with two lists, 1601`` () =
+    formatSourceString
+        false
+        """
+module CapitalGuardian.App
+
+open Fable.Core.JsInterop
+open Fable.React
+open Feliz
+
+[<ReactComponent()>]
+let private App () =
+    div [] [
+        str "meh 2000k"
+        (*
+                          {small && <Navigation />}
+              <Container>
+                {!small && <Header />}
+                {!small && <Navigation />}
+                {routeResult || <NotFoundPage />}
+              </Container>
+              <ToastContainer />
+        *)
+    ]
+
+exportDefault App
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module CapitalGuardian.App
+
+open Fable.Core.JsInterop
+open Fable.React
+open Feliz
+
+[<ReactComponent>]
+let private App () =
+    div [] [
+        str "meh 2000k"
+    (*
+                          {small && <Navigation />}
+              <Container>
+                {!small && <Header />}
+                {!small && <Navigation />}
+                {routeResult || <NotFoundPage />}
+              </Container>
+              <ToastContainer />
+        *)
+    ]
+
+exportDefault App
+"""
+
+[<Test>]
+let ``block comment in elmish expression with two lists, two children`` () =
+    formatSourceString
+        false
+        """
+module CapitalGuardian.App
+
+open Fable.Core.JsInterop
+open Fable.React
+open Feliz
+
+[<ReactComponent()>]
+let private App () =
+    div [] [
+        str "meh 2000k"
+        str "other meh"
+        (*
+                          {small && <Navigation />}
+              <Container>
+                {!small && <Header />}
+                {!small && <Navigation />}
+                {routeResult || <NotFoundPage />}
+              </Container>
+              <ToastContainer />
+        *)
+    ]
+
+exportDefault App
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module CapitalGuardian.App
+
+open Fable.Core.JsInterop
+open Fable.React
+open Feliz
+
+[<ReactComponent>]
+let private App () =
+    div [] [
+        str "meh 2000k"
+        str "other meh"
+    (*
+                          {small && <Navigation />}
+              <Container>
+                {!small && <Header />}
+                {!small && <Navigation />}
+                {routeResult || <NotFoundPage />}
+              </Container>
+              <ToastContainer />
+        *)
+    ]
+
+exportDefault App
+"""
