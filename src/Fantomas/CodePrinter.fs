@@ -1467,7 +1467,7 @@ and genExpr astContext synExpr ctx =
                     let r = getRangeOfCompExprStatement ces
                     let sepNln = getSepNln ces r
                     ColMultilineItem(expr, sepNln, r))
-            |> colWithNlnWhenItemIsMultiline
+            |> colWithNlnWhenItemIsMultilineUsingConfig
 
         | ArrayOrListOfSeqExpr (isArray, e) as alNode ->
             let astContext = { astContext with IsNakedRange = true }
@@ -2083,7 +2083,8 @@ and genExpr astContext synExpr ctx =
                               ) ]
 
                     let items = letBindings bs @ synExpr e
-                    atCurrentColumn (colWithNlnWhenItemIsMultiline items) ctx
+
+                    atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items) ctx
 
         // Could customize a bit if e is single line
         | TryWith (e, cs) ->
@@ -2160,7 +2161,7 @@ and genExpr astContext synExpr ctx =
 
                         ColMultilineItem(expr, sepNln, r))
 
-            atCurrentColumn (colWithNlnWhenItemIsMultiline items)
+            atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items)
 
         // A generalization of IfThenElse
         | ElIf ((e1, e2, _, _, _) :: es, enOpt) ->
@@ -4528,7 +4529,7 @@ and genMemberDefnList astContext nodes =
             :: (collectItems rest)
 
     collectItems nodes
-    |> colWithNlnWhenItemIsMultiline
+    |> colWithNlnWhenItemIsMultilineUsingConfig
 
 and genMemberDefn astContext node =
     match node with
@@ -5316,7 +5317,7 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
                       e2.Range
                   ) ]
 
-            colWithNlnWhenItemIsMultiline items
+            colWithNlnWhenItemIsMultilineUsingConfig items
         | LetOrUses (bs, (KeepIndentMatch (me, clauses, matchRange, matchTriviaType) as em)) ->
             let bs =
                 List.map
@@ -5341,8 +5342,8 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
                     em.Range
                 )
 
-            colWithNlnWhenItemIsMultiline [ yield! bs
-                                            yield m ]
+            colWithNlnWhenItemIsMultilineUsingConfig [ yield! bs
+                                                       yield m ]
         | LetOrUses (bs, Sequential (e1, KeepIndentMatch (me, clauses, matchRange, matchTriviaType), true)) ->
             let bs =
                 List.map
@@ -5373,9 +5374,9 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
                     matchRange
                 )
 
-            colWithNlnWhenItemIsMultiline [ yield! bs
-                                            yield e1
-                                            yield m ]
+            colWithNlnWhenItemIsMultilineUsingConfig [ yield! bs
+                                                       yield e1
+                                                       yield m ]
         | KeepIndentMatch (me, clauses, matchRange, matchTriviaType) ->
             genKeepIndentMatch astContext me clauses matchRange matchTriviaType
         | Sequential (e1, (KeepIndentIfThenElse (branches, elseBranch, ifElseRange) as e2), true) ->
@@ -5391,7 +5392,7 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
                       e2.Range
                   ) ]
 
-            colWithNlnWhenItemIsMultiline items
+            colWithNlnWhenItemIsMultilineUsingConfig items
         | LetOrUses (bs, (KeepIndentIfThenElse (branches, elseBranch, ifElseRange))) ->
             let bs =
                 List.map
@@ -5416,8 +5417,8 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
                     ifElseRange
                 )
 
-            colWithNlnWhenItemIsMultiline [ yield! bs
-                                            yield ifElse ]
+            colWithNlnWhenItemIsMultilineUsingConfig [ yield! bs
+                                                       yield ifElse ]
         | LetOrUses (bs, Sequential (e1, KeepIndentIfThenElse (branches, elseBranch, ifElseRange), true)) ->
             let bs =
                 List.map
@@ -5448,9 +5449,9 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
                     ifElseRange
                 )
 
-            colWithNlnWhenItemIsMultiline [ yield! bs
-                                            yield e1
-                                            yield ifElse ]
+            colWithNlnWhenItemIsMultilineUsingConfig [ yield! bs
+                                                       yield e1
+                                                       yield ifElse ]
         | KeepIndentIfThenElse (branches, elseBranch, ifElseRange) ->
             genKeepIdentIf astContext branches elseBranch ifElseRange
         | _ -> genExpr astContext e

@@ -859,3 +859,51 @@ module Foo =
         Thing.execute bar baz (thing, instructions)
         0
 """
+
+[<Test>]
+let ``in combination with NewlinesAroundInnerMultilineExpressions`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let main (args: _) =
+        let thing1 = ()
+        printfn ""
+        if hasInstructions () then
+            printfn ""
+            2
+        else
+        log.LogInformation("")
+        match Something.foo args with
+        | DryRunMode.Dry ->
+            printfn ""
+            0
+        | DryRunMode.Wet ->
+        Thing.execute bar baz (thing, instructions)
+        0
+"""
+        { config with
+              BlankLinesAroundNestedMultilineExpressions = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let main (args: _) =
+        let thing1 = ()
+        printfn ""
+        if hasInstructions () then
+            printfn ""
+            2
+        else
+
+        log.LogInformation("")
+        match Something.foo args with
+        | DryRunMode.Dry ->
+            printfn ""
+            0
+        | DryRunMode.Wet ->
+
+        Thing.execute bar baz (thing, instructions)
+        0
+"""

@@ -93,6 +93,7 @@ fsharp_alternative_long_member_definitions=false
 fsharp_multi_line_lambda_closing_newline=false
 fsharp_disable_elmish_syntax=false
 fsharp_keep_indent_in_branch=false
+fsharp_blank_lines_around_nested_multiline_expressions=true
 fsharp_strict_mode=false
 ```
 
@@ -1058,6 +1059,48 @@ let main argv =
     let output = Library.execute instructions
     // do more stuff
     0
+```
+
+### fsharp_blank_lines_around_nested_multiline_expressions
+
+Surround **nested** multi-line expressions with blank lines.
+Existing blank lines are always preserved (via trivia).
+Top level expressions will always follow the [2020 blank lines revision](https://github.com/fsprojects/fantomas/blob/master/docs/FormattingConventions.md#2020-revision) principle.
+Default = true.
+
+`defaultConfig`
+
+```fsharp
+let topLevelFunction () =
+    printfn "Something to print"
+
+    try
+            nothing ()
+    with
+    | ex ->
+        splash ()
+    ()
+
+let secondTopLevelFunction () =
+    // ...
+    ()
+```
+
+`{ defaultConfig with BlankLinesAroundNestedMultilineExpressions = false }`
+
+```fsharp
+let topLevelFunction () =
+    printfn "Something to print"
+    try
+            nothing ()
+    with
+    | ex ->
+        splash ()
+    ()
+
+let secondTopLevelFunction () =
+    // ...
+    ()
 ```
 
 ### fsharp_strict_mode

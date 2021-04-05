@@ -94,6 +94,7 @@ type FormatConfig =
       DisableElmishSyntax: bool
       EndOfLine: EndOfLineStyle
       KeepIndentInBranch: bool
+      BlankLinesAroundNestedMultilineExpressions: bool
       /// Pretty printing based on ASTs only
       StrictMode: bool }
 
@@ -134,4 +135,5 @@ type FormatConfig =
           DisableElmishSyntax = false
           EndOfLine = EndOfLineStyle.FromEnvironment
           KeepIndentInBranch = false
+          BlankLinesAroundNestedMultilineExpressions = true
           StrictMode = false }
