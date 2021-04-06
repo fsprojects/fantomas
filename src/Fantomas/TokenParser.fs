@@ -718,30 +718,85 @@ let rec private getTriviaFromTokensThemSelves
         let prevToken = List.tryItem (headIndex - 1) allTokens
         let prevButOneToken = List.tryItem (headIndex - 2) allTokens
 
-        let commentType =
+        let isAfterSourceCode =
             match prevButOneToken, prevToken with
             | Some ({ LineNumber = ncln }), Some (WhiteSpaceToken _) ->
-                if ncln = headLineNumber then
-                    LineCommentAfterSourceCode
-                else
-                    LineCommentOnSingleLine
-            | Some ({ LineNumber = l1 }), Some ({ LineNumber = l2 }) when (headLineNumber = l1 && headLineNumber = l2) ->
-                LineCommentAfterSourceCode
-            | _ -> LineCommentOnSingleLine
+                // IDENT WHITESPACE LINE_COMMENT
+                ncln = headLineNumber
+            | Some ({ LineNumber = l1 }), Some ({ LineNumber = l2 }) ->
+                // IDENT LINE_COMMENT
+                headLineNumber = l1 && headLineNumber = l2
+            | _ -> false
 
-        let comment =
-            collectComment commentTokens
-            |> commentType
-            |> Comment
+        let info, nextTokens =
+            if isAfterSourceCode then
+                // Only capture the first line of the comment as LineCommentAfterSourceCode
+                // The next line(s) will be a LineCommentOnSingleLine
+                let commentsByLine =
+                    commentTokens
+                    |> List.groupBy (fun t -> t.LineNumber)
 
-        let range =
-            let headToken = List.head commentTokens
-            let lastToken = List.tryLast commentTokens
-            getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
+                let firstComment =
+                    List.tryHead commentsByLine |> Option.map snd
 
-        let info =
-            Trivia.Create comment range
-            |> List.appendItem foundTrivia
+                match firstComment with
+                | Some (headToken :: _ as afterSourceTokens) ->
+                    let afterSourceCodeTrivia =
+                        let tc =
+                            collectComment afterSourceTokens
+                            |> LineCommentAfterSourceCode
+                            |> Comment
+
+                        let lastToken = List.tryLast afterSourceTokens
+
+                        let r =
+                            getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
+
+                        Trivia.Create tc r
+
+                    let lineCommentOnSingleLine =
+                        if commentTokens.Length > afterSourceTokens.Length then
+                            let commentTokens =
+                                commentTokens
+                                |> List.skip afterSourceTokens.Length
+
+                            let triviaContent =
+                                collectComment commentTokens
+                                |> LineCommentOnSingleLine
+                                |> Comment
+
+                            let range =
+                                let headToken = List.head commentTokens
+                                let lastToken = List.tryLast commentTokens
+                                getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
+
+                            Trivia.Create triviaContent range |> Some
+                        else
+                            None
+
+                    let trivia =
+                        match lineCommentOnSingleLine with
+                        | Some lcsl -> afterSourceCodeTrivia :: lcsl :: foundTrivia
+                        | None -> afterSourceCodeTrivia :: foundTrivia
+
+                    trivia, nextTokens
+
+                | _ ->
+                    // We should not hit this branch
+                    foundTrivia, nextTokens
+            else
+                let triviaContent =
+                    collectComment commentTokens
+                    |> LineCommentOnSingleLine
+                    |> Comment
+
+                let range =
+                    let headToken = List.head commentTokens
+                    let lastToken = List.tryLast commentTokens
+                    getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
+
+                let trivia = Trivia.Create triviaContent range
+                (trivia :: foundTrivia), nextTokens
 
         getTriviaFromTokensThemSelves mkRange allTokens nextTokens info
 

@@ -1624,3 +1624,20 @@ let myFun (a: decimal) b c : decimal = a + b + c
 let expensiveToCompute : int = 0
 let myFun (a: decimal) b c : decimal = a + b + c
 """
+
+[<Test>]
+let ``comments after short value binding, 1604`` () =
+    formatSourceString
+        false
+        """
+let foo = bar // bar
+//// hi!
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo = bar // bar
+//// hi!
+"""
