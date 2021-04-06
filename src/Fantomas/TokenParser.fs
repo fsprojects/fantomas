@@ -728,7 +728,7 @@ let rec private getTriviaFromTokensThemSelves
                 headLineNumber = l1 && headLineNumber = l2
             | _ -> false
 
-        let info, nextTokens =
+        let info =
             if isAfterSourceCode then
                 // Only capture the first line of the comment as LineCommentAfterSourceCode
                 // The next line(s) will be a LineCommentOnSingleLine
@@ -774,16 +774,12 @@ let rec private getTriviaFromTokensThemSelves
                         else
                             None
 
-                    let trivia =
-                        match lineCommentOnSingleLine with
-                        | Some lcsl -> afterSourceCodeTrivia :: lcsl :: foundTrivia
-                        | None -> afterSourceCodeTrivia :: foundTrivia
-
-                    trivia, nextTokens
-
+                    match lineCommentOnSingleLine with
+                    | Some lcsl -> afterSourceCodeTrivia :: lcsl :: foundTrivia
+                    | None -> afterSourceCodeTrivia :: foundTrivia
                 | _ ->
                     // We should not hit this branch
-                    foundTrivia, nextTokens
+                    foundTrivia
             else
                 let triviaContent =
                     collectComment commentTokens
@@ -795,8 +791,7 @@ let rec private getTriviaFromTokensThemSelves
                     let lastToken = List.tryLast commentTokens
                     getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
 
-                let trivia = Trivia.Create triviaContent range
-                (trivia :: foundTrivia), nextTokens
+                (Trivia.Create triviaContent range :: foundTrivia)
 
         getTriviaFromTokensThemSelves mkRange allTokens nextTokens info
 
