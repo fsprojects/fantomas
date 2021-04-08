@@ -3239,7 +3239,14 @@ and genApp astContext e es ctx =
                     sepNln
                     es
                     (fun e ->
-                        let genLambda pats (bodyExpr: SynExpr) lpr rpr arrowRange =
+                        let genLambda
+                            (pats: Context -> Context)
+                            (bodyExpr: SynExpr)
+                            (lpr: Range)
+                            (rpr: Range option)
+                            (arrowRange: Range)
+                            (pr: Range)
+                            : Context -> Context =
                             let sepOpenTFor r = tokN r LPAREN sepOpenT
 
                             let sepCloseTFor r =
@@ -3259,21 +3266,22 @@ and genApp astContext e es ctx =
                                  +> genExprAfterArrow bodyExpr
                                  +> unindent)
                                 (fun isMultiline -> onlyIf isMultiline sepNln +> sepCloseTFor rpr)
+                            |> genTriviaFor SynExpr_Paren pr
 
                         match e with
-                        | Paren (lpr, DesugaredLambda (cps, e), rpr, _) ->
+                        | Paren (lpr, DesugaredLambda (cps, e), rpr, pr) ->
                             let arrowRange =
                                 List.last cps
                                 |> snd
                                 |> fun lastPatRange -> ctx.MkRange lastPatRange.End e.Range.Start
 
-                            genLambda (col sepSpace cps (fst >> genComplexPats astContext)) e lpr rpr arrowRange
-                        | Paren (lpr, Lambda (e, sps, _), rpr, _) ->
+                            genLambda (col sepSpace cps (fst >> genComplexPats astContext)) e lpr rpr arrowRange pr
+                        | Paren (lpr, Lambda (e, sps, _), rpr, pr) ->
                             let arrowRange =
                                 List.last sps
                                 |> fun sp -> ctx.MkRange sp.Range.End e.Range.Start
 
-                            genLambda (col sepSpace sps (genSimplePats astContext)) e lpr rpr arrowRange
+                            genLambda (col sepSpace sps (genSimplePats astContext)) e lpr rpr arrowRange pr
                         | _ -> genExpr astContext e)
 
             let singleLambdaArgument =
