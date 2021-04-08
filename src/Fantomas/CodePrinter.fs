@@ -1754,7 +1754,8 @@ and genExpr astContext synExpr ctx =
             +> extraSpaceBeforeString
             +> genExpr astContext e
 
-        | NewlineInfixApp (operatorText, operatorExpr, (Lambda _ as e1), e2) ->
+        | NewlineInfixApp (operatorText, operatorExpr, (Lambda _ as e1), e2)
+        | NewlineInfixApp (operatorText, operatorExpr, (IfThenElse _ as e1), e2) ->
             genMultilineInfixExpr astContext e1 operatorText operatorExpr e2
 
         | NewlineInfixApps (e, es) ->
@@ -2748,6 +2749,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.JoinIn _ -> genTriviaFor SynExpr_JoinIn synExpr.Range
             | SynExpr.Do _ -> genTriviaFor SynExpr_Do synExpr.Range
             | SynExpr.TypeApp _ -> genTriviaFor SynExpr_TypeApp synExpr.Range
+            | SynExpr.Lazy _ -> genTriviaFor SynExpr_Lazy synExpr.Range
             | _ -> id)
 
     expr ctx
