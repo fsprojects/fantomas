@@ -1683,3 +1683,112 @@ stepLog.LogInformation (
         ThingThingThing.go options |> BlahBlah foo in a)
 )
 """
+
+[<Test>]
+let ``in keyword in let binding should stay in one line, 1610`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar () =
+
+        let f1 = ()
+        let runTest () = let (Thing f) = [a;b] |> Blah.tryConcat |> Option.get in f () |> ignore
+        Assert.Throws<exn> runTest
+        |> ignore
+
+    let bar2 () =
+
+        let f1 = ()
+
+        let runTest () =
+            let (Thing f) =
+                [ a ; b ] |> Blah.tryConcat |> Option.get in f () |> ignore
+
+        Assert.Throws<exn> runTest |> ignore
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              KeepIfThenInSameLine = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar () =
+
+        let f1 = ()
+
+        let runTest () =
+            let (Thing f) =
+                [ a ; b ] |> Blah.tryConcat |> Option.get in f () |> ignore
+
+        Assert.Throws<exn> runTest |> ignore
+
+    let bar2 () =
+
+        let f1 = ()
+
+        let runTest () =
+            let (Thing f) =
+                [ a ; b ] |> Blah.tryConcat |> Option.get in f () |> ignore
+
+        Assert.Throws<exn> runTest |> ignore
+"""
+
+[<Test>]
+let ``mhex xx 2`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar () =
+
+        let f1 = ()
+
+        let runTest () =
+            let (Thing f) =
+                [ a ; b ] |> Blah.tryConcat |> Option.get in f () |> ignore
+
+        Assert.Throws<exn> runTest |> ignore
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              KeepIfThenInSameLine = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar () =
+
+        let f1 = ()
+
+        let runTest () =
+            let (Thing f) =
+                [ a ; b ] |> Blah.tryConcat |> Option.get in f () |> ignore
+
+        Assert.Throws<exn> runTest |> ignore
+"""
