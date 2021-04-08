@@ -469,8 +469,11 @@ and genSigModuleDecl astContext node =
         +> colPreEx
             sepTs
             (fun (ty: SynTypeDefnSig) ->
+                let attributeRanges =
+                    getRangesFromAttributesFromSynTypeDefnSig ty
+
                 sepNln
-                +> sepNlnConsideringTriviaContentBeforeForMainNode TypeDefnSig_ ty.FullRange)
+                +> sepNlnConsideringTriviaContentBeforeWithAttributesFor TypeDefnSig_ ty.FullRange attributeRanges)
             ts
             (genSigTypeDefn { astContext with IsFirstChild = false })
     | md -> failwithf "Unexpected module signature declaration: %O" md

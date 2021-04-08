@@ -1460,3 +1460,59 @@ module OrderProcessing =
             UnvalidatedOrder -> // input
             Result<ValidatedOrder, ValidationError> // output (Result b/c one of deps returns a Result)
 """
+
+[<Test>]
+let ``take newline trivia between recursive types into account, 1605`` () =
+    formatSourceString
+        true
+        """
+namespace Test
+
+///
+type Foo =
+    ///
+    | Bar
+
+///
+and internal Hi<'a> =
+    ///
+    abstract Apply<'b> : Foo -> 'b
+
+
+///
+and [<CustomEquality>] Bang =
+    internal
+        {
+            LongNameBarBarBarBarBarBarBar: int
+        }
+        ///
+        override GetHashCode : unit -> int
+"""
+        { config with
+              MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Test
+
+///
+type Foo =
+    ///
+    | Bar
+
+///
+and internal Hi<'a> =
+    ///
+    abstract Apply<'b> : Foo -> 'b
+
+
+///
+and [<CustomEquality>] Bang =
+    internal
+        {
+            LongNameBarBarBarBarBarBarBar: int
+        }
+        ///
+        override GetHashCode : unit -> int
+"""
