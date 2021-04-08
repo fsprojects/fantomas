@@ -4295,6 +4295,7 @@ and genType astContext outerBracket t =
                 +> indent
                 +> sepNln
                 +> col (sepSpace +> sepArrowFixed +> sepNln) rest loop
+                +> unindent
 
         let genTs = expressionFitsOnRestOfLine short long
 

@@ -1792,3 +1792,42 @@ module Foo =
 
         Assert.Throws<exn> runTest |> ignore
 """
+
+[<Test>]
+let ``multiline return type followed by type declaration, 1624`` () =
+    formatSourceString
+        false
+        """
+let useGeolocation : unit ->
+    {| latitude: float
+       longitude: float
+       loading: bool
+       error: obj option |} =
+        import "useGeolocation" "react-use"
+
+type Viewport =
+    { width: string
+      height: string
+      latitude: float
+      longitude: float
+      zoom: int }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let useGeolocation : unit ->
+    {| latitude: float
+       longitude: float
+       loading: bool
+       error: obj option |} =
+    import "useGeolocation" "react-use"
+
+type Viewport =
+    { width: string
+      height: string
+      latitude: float
+      longitude: float
+      zoom: int }
+"""
