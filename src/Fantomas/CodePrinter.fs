@@ -2239,23 +2239,11 @@ and genExpr astContext synExpr ctx =
                 let genElse ifElseRange = tokN ifElseRange ELSE (!- "else ")
 
                 let genElifOneliner ((elf1: SynExpr), (elf2: SynExpr), fullRange) =
-                    let hasCommentAfterBoolExpr =
-                        TriviaHelpers.``has content after after that matches``
-                            (fun tn -> RangeHelpers.rangeEq tn.Range elf1.Range)
-                            (function
-                            | Comment (LineCommentAfterSourceCode _) -> true
-                            | _ -> false)
-                            (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
-
-                    let hasCommentAfterThenKeyword =
-                        commentAfterKeyword THEN (RangeHelpers.``range contains`` fullRange) ctx
-
                     TriviaContext.``else if / elif`` fullRange
                     +> genExpr astContext elf1
-                    +> sepSpace
-                    +> ifElse hasCommentAfterBoolExpr sepNln sepNone
+                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
                     +> genThen fullRange
-                    +> ifElse hasCommentAfterThenKeyword sepNln sepNone
+                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
                     +> genExpr astContext elf2
                     |> genTriviaFor SynExpr_IfThenElse fullRange
 
@@ -2361,18 +2349,10 @@ and genExpr astContext synExpr ctx =
                                     indent)
                         |> Option.defaultValue indent
 
-                    let hasCommentAfterBoolExpr =
-                        TriviaHelpers.``has content after after that matches``
-                            (fun tn -> RangeHelpers.rangeEq tn.Range elf1.Range)
-                            (function
-                            | Comment (LineCommentAfterSourceCode _) -> true
-                            | _ -> false)
-                            (Map.tryFindOrEmptyList SynExpr_Ident ctx.TriviaMainNodes)
-
                     let elifExpr =
                         TriviaContext.``else if / elif`` fullRange
                         +> genIfExpr elf1 astContext
-                        +> ifElse hasCommentAfterBoolExpr sepNln sepSpace
+                        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
                         +> genThen fullRange
                         +> indentAfterThenKeyword
                         +> sepNln
