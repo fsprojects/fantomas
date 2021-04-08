@@ -1557,27 +1557,24 @@ let (|Extern|_|) =
     | _ -> None
 
 let private collectAttributesRanges (a: SynAttributes) =
-    seq {
-        yield! (List.map (fun (al: SynAttributeList) -> al.Range) a)
-        yield! (Seq.collect (fun a -> a.Attributes |> List.map (fun a -> a.Range)) a)
-    }
+    [ yield! (List.map (fun (al: SynAttributeList) -> al.Range) a)
+      yield! (List.collect (fun a -> a.Attributes |> List.map (fun a -> a.Range)) a) ]
 
-let getRangesFromAttributesFromModuleDeclaration (mdl: SynModuleDecl) =
+let getRangesFromAttributesFromModuleDeclaration (mdl: SynModuleDecl) : Range list =
     match mdl with
     | SynModuleDecl.Let (_, bindings, _) ->
         bindings
-        |> Seq.collect (fun (Binding (_, _, _, _, attrs, _, _, _, _, _, _, _)) -> collectAttributesRanges attrs)
+        |> List.collect (fun (Binding (_, _, _, _, attrs, _, _, _, _, _, _, _)) -> collectAttributesRanges attrs)
     | SynModuleDecl.Types (types, _) ->
         types
-        |> Seq.collect
+        |> List.collect
             (fun t ->
                 match t with
                 | SynTypeDefn.TypeDefn ((SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _)), _, _, _) ->
                     collectAttributesRanges attrs)
     | SynModuleDecl.NestedModule ((SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _)), _, _, _, _) ->
         collectAttributesRanges attrs
-    | _ -> Seq.empty
-    |> Seq.toList
+    | _ -> List.empty
 
 let getRangesFromAttributesFromSynModuleSigDeclaration (sdl: SynModuleSigDecl) =
     match sdl with
@@ -1587,8 +1584,7 @@ let getRangesFromAttributesFromSynModuleSigDeclaration (sdl: SynModuleSigDecl) =
                                                           _,
                                                           _) :: _,
                               _) -> collectAttributesRanges attrs
-    | _ -> Seq.empty
-    |> Seq.toList
+    | _ -> List.empty
 
 let getRangesFromAttributesFromSynTypeDefnSig (TypeDefnSig (comp, _, _, _)) =
     match comp with
