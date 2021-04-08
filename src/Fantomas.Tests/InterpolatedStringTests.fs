@@ -197,3 +197,42 @@ let percent = 0.1548486
 
 Console.WriteLine($"Formatted: {percent:p2}")
 """
+
+[<Test>]
+let ``extra newlines in interpolated string, 1613`` () =
+    formatSourceString
+        false
+        "
+$\"\"\"
+{1}
+{2}
+\"\"\"
+
+$\"\"\"
+- {1}
+- 2
+
+- {4}
+- 5
+
+\"\"\"
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+$\"\"\"
+{1}
+{2}
+\"\"\"
+
+$\"\"\"
+- {1}
+- 2
+
+- {4}
+- 5
+
+\"\"\"
+"
