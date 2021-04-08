@@ -1,3 +1,7 @@
+### 4.5.0-alpha-008 - 04/2021
+
+* Fix Multiline type signature is not unindent. [#1624](https://github.com/fsprojects/fantomas/issues/1624)
+
 ### 4.5.0-alpha-007 - 04/2021
 
 * Fix Failure to unindent with KeepIndentInBranch. [#1621](https://github.com/fsprojects/fantomas/issues/1621)
