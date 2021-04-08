@@ -2169,3 +2169,57 @@ then
 
     ()
 """
+
+[<Test>]
+let ``comment after then of else if, 1606`` () =
+    formatSourceString
+        false
+        """
+type internal Foo private () =
+    static member Bar : int option =
+        if thing = 1 then
+            printfn "hi"
+        else if
+            veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong |> Seq.forall (fun (u : VeryVeryVeryVeryVeryVeryVeryLong) -> u.Length = 0) //
+            then
+              printfn "hi"
+        else failwith ""
+
+type internal Foo2 private () =
+    static member Bar : int option =
+        if thing = 1 then
+            printfn "hi"
+        else if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong
+                |> Seq.forall (fun (u: VeryVeryVeryVeryVeryVeryVeryLong) -> u.Length = 0) //
+        then
+            printfn "hi"
+        else
+            failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type internal Foo private () =
+    static member Bar : int option =
+        if thing = 1 then
+            printfn "hi"
+        else if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong
+                |> Seq.forall (fun (u: VeryVeryVeryVeryVeryVeryVeryLong) -> u.Length = 0) //
+        then
+            printfn "hi"
+        else
+            failwith ""
+
+type internal Foo2 private () =
+    static member Bar : int option =
+        if thing = 1 then
+            printfn "hi"
+        else if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong
+                |> Seq.forall (fun (u: VeryVeryVeryVeryVeryVeryVeryLong) -> u.Length = 0) //
+        then
+            printfn "hi"
+        else
+            failwith ""
+"""
