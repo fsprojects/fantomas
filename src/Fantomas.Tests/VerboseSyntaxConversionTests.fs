@@ -28,6 +28,5 @@ let ``verbose syntax`` () =
 let div2 = 2
 
 let f x =
-    let r = x % div2 in
-    if r = 1 then ("Odd") else ("Even")
+    let r = x % div2 in if r = 1 then ("Odd") else ("Even")
 """

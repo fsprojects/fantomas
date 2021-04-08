@@ -1199,9 +1199,7 @@ let x = List.singleton <|
         equal
         """
 let x =
-    List.singleton
-    <| let item = "text" in
-       item
+    List.singleton <| let item = "text" in item
 """
 
 [<Test>]
@@ -1640,4 +1638,84 @@ let foo = bar // bar
         """
 let foo = bar // bar
 //// hi!
+"""
+
+[<Test>]
+let ``let in should not add newline when it is short, 1608`` () =
+    formatSourceString
+        false
+        """
+stepLog.LogInformation ("Thing thing thing {Foo} thing", (let (DuCase a) = ThingThingThing.go options |> BlahBlah foo in a))
+
+stepLog.LogInformation (
+    "Thing thing thing {Foo} thing",
+    (let (DuCase a) =
+        ThingThingThing.go options |> BlahBlah foo in a)
+)
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              KeepIfThenInSameLine = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+stepLog.LogInformation (
+    "Thing thing thing {Foo} thing",
+    (let (DuCase a) =
+        ThingThingThing.go options |> BlahBlah foo in a)
+)
+
+stepLog.LogInformation (
+    "Thing thing thing {Foo} thing",
+    (let (DuCase a) =
+        ThingThingThing.go options |> BlahBlah foo in a)
+)
+"""
+
+[<Test>]
+let ``meh xy`` () =
+    formatSourceString
+        false
+        """
+stepLog.LogInformation (
+    "Thing thing thing {Foo} thing",
+    (let (DuCase a) =
+        ThingThingThing.go options |> BlahBlah foo in a)
+)
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              KeepIfThenInSameLine = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+stepLog.LogInformation (
+    "Thing thing thing {Foo} thing",
+    (let (DuCase a) =
+        ThingThingThing.go options |> BlahBlah foo in a)
+)
 """
