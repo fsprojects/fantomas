@@ -5295,155 +5295,79 @@ and genParenTupleWithIndentAndNewlines ps astContext =
 
 and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context -> Context =
     let keepIndentExpr =
+        let genOtherExprItem (e: SynExpr) : ColMultilineItem =
+            ColMultilineItem(
+                genExpr astContext e,
+                (let t, r = synExprToFsAstType e in sepNlnConsideringTriviaContentBeforeForMainNode t r),
+                e.Range
+            )
+
+        let genBindingItems (bs: (string * SynBinding) list) : ColMultilineItem list =
+            List.map
+                (fun (s, synBinding: SynBinding) ->
+                    let range = synBinding.RangeOfBindingAndRhs
+
+                    let expr =
+                        enterNodeFor (synBindingToFsAstType synBinding) range
+                        +> genLetBinding astContext s synBinding
+
+
+                    let sepNln =
+                        sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType synBinding) range
+
+                    ColMultilineItem(expr, sepNln, range))
+                bs
+
+        let genKeepIndentMatchItem
+            ((me, clauses, matchRange, matchTriviaType): SynExpr * SynMatchClause list * Range * FsAstType)
+            : ColMultilineItem =
+            ColMultilineItem(
+                genKeepIndentMatch astContext me clauses matchRange matchTriviaType,
+                sepNlnConsideringTriviaContentBeforeForMainNode matchTriviaType matchRange,
+                matchRange
+            )
+
+        let genKeepIndentIfThenElseItem
+            ((branches, elseBranch, ifElseRange): (SynExpr * SynExpr * Range * Range * SynExpr) list * SynExpr * Range)
+            : ColMultilineItem =
+            ColMultilineItem(
+                genKeepIdentIf astContext branches elseBranch ifElseRange,
+                sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_IfThenElse ifElseRange,
+                ifElseRange
+            )
+
         match e with
-        | Sequential (e1, (KeepIndentMatch (me, clauses, matchRange, matchTriviaType) as e2), true) ->
-            let items =
-                [ ColMultilineItem(
-                    genExpr astContext e1,
-                    (let t, r = synExprToFsAstType e1 in sepNlnConsideringTriviaContentBeforeForMainNode t r),
-                    e1.Range
-                  )
-                  ColMultilineItem(
-                      genKeepIndentMatch astContext me clauses matchRange matchTriviaType,
-                      sepNlnConsideringTriviaContentBeforeForMainNode matchTriviaType matchRange,
-                      e2.Range
-                  ) ]
-
-            colWithNlnWhenItemIsMultilineUsingConfig items
-        | LetOrUses (bs, (KeepIndentMatch (me, clauses, matchRange, matchTriviaType) as em)) ->
-            let bs =
-                List.map
-                    (fun (s, synBinding: SynBinding) ->
-                        let range = synBinding.RangeOfBindingAndRhs
-
-                        let expr =
-                            enterNodeFor (synBindingToFsAstType synBinding) range
-                            +> genLetBinding astContext s synBinding
-
-
-                        let sepNln =
-                            sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType synBinding) range
-
-                        ColMultilineItem(expr, sepNln, range))
-                    bs
-
-            let m =
-                ColMultilineItem(
-                    genKeepIndentMatch astContext me clauses matchRange matchTriviaType,
-                    sepNlnConsideringTriviaContentBeforeForMainNode matchTriviaType matchRange,
-                    em.Range
-                )
-
-            colWithNlnWhenItemIsMultilineUsingConfig [ yield! bs
-                                                       yield m ]
-        | LetOrUses (bs, Sequential (e1, KeepIndentMatch (me, clauses, matchRange, matchTriviaType), true)) ->
-            let bs =
-                List.map
-                    (fun (s, synBinding: SynBinding) ->
-                        let range = synBinding.RangeOfBindingAndRhs
-
-                        let expr =
-                            enterNodeFor (synBindingToFsAstType synBinding) range
-                            +> genLetBinding astContext s synBinding
-
-                        let sepNln =
-                            sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType synBinding) range
-
-                        ColMultilineItem(expr, sepNln, range))
-                    bs
-
-            let e1 =
-                ColMultilineItem(
-                    genExpr astContext e1,
-                    (let t, r = synExprToFsAstType e1 in sepNlnConsideringTriviaContentBeforeForMainNode t r),
-                    e1.Range
-                )
-
-            let m =
-                ColMultilineItem(
-                    genKeepIndentMatch astContext me clauses matchRange matchTriviaType,
-                    sepNlnConsideringTriviaContentBeforeForMainNode matchTriviaType matchRange,
-                    matchRange
-                )
-
-            colWithNlnWhenItemIsMultilineUsingConfig [ yield! bs
-                                                       yield e1
-                                                       yield m ]
+        | Sequential (e1, (KeepIndentMatch kim), true) ->
+            colWithNlnWhenItemIsMultilineUsingConfig [ genOtherExprItem e1
+                                                       genKeepIndentMatchItem kim ]
+        | Sequential (e1, LetOrUses (bs, (KeepIndentMatch kim)), true) ->
+            colWithNlnWhenItemIsMultilineUsingConfig [ yield genOtherExprItem e1
+                                                       yield! genBindingItems bs
+                                                       yield genKeepIndentMatchItem kim ]
+        | LetOrUses (bs, (KeepIndentMatch kim)) ->
+            colWithNlnWhenItemIsMultilineUsingConfig [ yield! genBindingItems bs
+                                                       yield genKeepIndentMatchItem kim ]
+        | LetOrUses (bs, Sequential (e1, KeepIndentMatch kim, true)) ->
+            colWithNlnWhenItemIsMultilineUsingConfig [ yield! genBindingItems bs
+                                                       yield genOtherExprItem e1
+                                                       yield genKeepIndentMatchItem kim ]
         | KeepIndentMatch (me, clauses, matchRange, matchTriviaType) ->
             genKeepIndentMatch astContext me clauses matchRange matchTriviaType
-        | Sequential (e1, (KeepIndentIfThenElse (branches, elseBranch, ifElseRange) as e2), true) ->
-            let items =
-                [ ColMultilineItem(
-                    genExpr astContext e1,
-                    (let t, r = synExprToFsAstType e1 in sepNlnConsideringTriviaContentBeforeForMainNode t r),
-                    e1.Range
-                  )
-                  ColMultilineItem(
-                      genKeepIdentIf astContext branches elseBranch ifElseRange,
-                      sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_IfThenElse ifElseRange,
-                      e2.Range
-                  ) ]
+        | Sequential (e1, (KeepIndentIfThenElse kii), true) ->
+            colWithNlnWhenItemIsMultilineUsingConfig [ genOtherExprItem e1
+                                                       genKeepIndentIfThenElseItem kii ]
+        | Sequential (e1, LetOrUses (bs, (KeepIndentIfThenElse kii)), true) ->
+            colWithNlnWhenItemIsMultilineUsingConfig [ yield genOtherExprItem e1
+                                                       yield! genBindingItems bs
+                                                       yield genKeepIndentIfThenElseItem kii ]
+        | LetOrUses (bs, (KeepIndentIfThenElse kii)) ->
+            colWithNlnWhenItemIsMultilineUsingConfig [ yield! genBindingItems bs
+                                                       yield genKeepIndentIfThenElseItem kii ]
+        | LetOrUses (bs, Sequential (e1, KeepIndentIfThenElse kii, true)) ->
 
-            colWithNlnWhenItemIsMultilineUsingConfig items
-        | LetOrUses (bs, (KeepIndentIfThenElse (branches, elseBranch, ifElseRange))) ->
-            let bs =
-                List.map
-                    (fun (s, synBinding: SynBinding) ->
-                        let range = synBinding.RangeOfBindingAndRhs
-
-                        let expr =
-                            enterNodeFor (synBindingToFsAstType synBinding) range
-                            +> genLetBinding astContext s synBinding
-
-
-                        let sepNln =
-                            sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType synBinding) range
-
-                        ColMultilineItem(expr, sepNln, range))
-                    bs
-
-            let ifElse =
-                ColMultilineItem(
-                    genKeepIdentIf astContext branches elseBranch ifElseRange,
-                    sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_IfThenElse ifElseRange,
-                    ifElseRange
-                )
-
-            colWithNlnWhenItemIsMultilineUsingConfig [ yield! bs
-                                                       yield ifElse ]
-        | LetOrUses (bs, Sequential (e1, KeepIndentIfThenElse (branches, elseBranch, ifElseRange), true)) ->
-            let bs =
-                List.map
-                    (fun (s, synBinding: SynBinding) ->
-                        let range = synBinding.RangeOfBindingAndRhs
-
-                        let expr =
-                            enterNodeFor (synBindingToFsAstType synBinding) range
-                            +> genLetBinding astContext s synBinding
-
-                        let sepNln =
-                            sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType synBinding) range
-
-                        ColMultilineItem(expr, sepNln, range))
-                    bs
-
-            let e1 =
-                ColMultilineItem(
-                    genExpr astContext e1,
-                    (let t, r = synExprToFsAstType e1 in sepNlnConsideringTriviaContentBeforeForMainNode t r),
-                    e1.Range
-                )
-
-            let ifElse =
-                ColMultilineItem(
-                    genKeepIdentIf astContext branches elseBranch ifElseRange,
-                    sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_IfThenElse ifElseRange,
-                    ifElseRange
-                )
-
-            colWithNlnWhenItemIsMultilineUsingConfig [ yield! bs
-                                                       yield e1
-                                                       yield ifElse ]
+            colWithNlnWhenItemIsMultilineUsingConfig [ yield! genBindingItems bs
+                                                       yield genOtherExprItem e1
+                                                       yield genKeepIndentIfThenElseItem kii ]
         | KeepIndentIfThenElse (branches, elseBranch, ifElseRange) ->
             genKeepIdentIf astContext branches elseBranch ifElseRange
         | _ -> genExpr astContext e
