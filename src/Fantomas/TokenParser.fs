@@ -606,7 +606,16 @@ let private extractContentPreservingNewLines (tokens: Token list) =
         | [] -> result
         | [ final ] -> final.Content :: result
         | current :: ((next :: _) as rest) when (current.LineNumber <> next.LineNumber) ->
-            loop ("\n" :: current.Content :: result) rest
+            let delta = next.LineNumber - current.LineNumber
+
+            let newlines =
+                [ 1 .. delta ] |> List.map (fun _ -> "\n")
+
+            loop
+                [ yield! newlines
+                  yield current.Content
+                  yield! result ]
+                rest
         | current :: rest -> loop (current.Content :: result) rest
 
     loop [] tokens |> List.rev
@@ -892,7 +901,20 @@ let rec private getTriviaFromTokensThemSelves
 
     | EndOfInterpolatedString (stringTokens, interpStringEnd, rest) ->
         let stringContent =
+            let addExtraNewline =
+                match List.tryLast stringTokens with
+                | Some lst ->
+                    let delta =
+                        interpStringEnd.LineNumber - lst.LineNumber
+
+                    if delta > 0 then
+                        [ 1 .. delta ] |> List.map (fun _ -> "\n")
+                    else
+                        []
+                | _ -> []
+
             [ yield! extractContentPreservingNewLines stringTokens
+              yield! addExtraNewline
               yield interpStringEnd.Content ]
             |> String.concat String.Empty
 
