@@ -2020,9 +2020,8 @@ and genExpr astContext synExpr ctx =
 
             let isInSameLine ctx =
                 match bs with
-                | [ _, (LetBinding (_, _, _, _, _, p, _, _) as binding) ] ->
+                | [ _, (LetBinding _ as binding) ] ->
                     Option.isSome (inKeyWordTrivia binding ctx)
-                    && p.Range.EndLine = e.Range.StartLine
                     && not (futureNlnCheck (genExpr astContext e) ctx)
                 | _ -> false
 
