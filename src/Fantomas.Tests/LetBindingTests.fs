@@ -1683,39 +1683,3 @@ stepLog.LogInformation (
         ThingThingThing.go options |> BlahBlah foo in a)
 )
 """
-
-[<Test>]
-let ``meh xy`` () =
-    formatSourceString
-        false
-        """
-stepLog.LogInformation (
-    "Thing thing thing {Foo} thing",
-    (let (DuCase a) =
-        ThingThingThing.go options |> BlahBlah foo in a)
-)
-"""
-        { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              KeepIfThenInSameLine = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-stepLog.LogInformation (
-    "Thing thing thing {Foo} thing",
-    (let (DuCase a) =
-        ThingThingThing.go options |> BlahBlah foo in a)
-)
-"""
