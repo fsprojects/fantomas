@@ -84,7 +84,7 @@
     <Compile Include="DotIndexedGetTests.fs" />
     <Compile Include="DotIndexedSetTests.fs" />
     <Compile Include="MultilineFunctionApplicationsInConditionExpressionsTests.fs" />
-    <Compile Include="KeepIndentInBranch.fs" />
+    <Compile Include="KeepIndentInBranchTests.fs" />
     <Compile Include="BlankLinesAroundNestedMultilineExpressions.fs" />
   </ItemGroup>
   <ItemGroup>
