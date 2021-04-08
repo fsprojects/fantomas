@@ -1087,3 +1087,61 @@ let ($) (callee: obj) (args: obj): 'a = jsNative
 /// E.g. `myFn $ (arg1, arg2)` in JS becomes `myFn(arg1, arg2)`
 let ($) (callee: obj) (args: obj) : 'a = jsNative
 """
+
+[<Test>]
+let ``if/then/else in infix should always be multiline, 1609`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar () =
+
+        if not <| RuntimeInformation.IsOSPlatform OSPlatform.Windows then
+            raise <| PlatformNotSupportedException ("Blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah")
+
+        lazy (
+            let foo = bar
+            if ret then
+                ""
+            else
+                ""
+            |> log.LogInformation
+            ret
+        )
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              KeepIfThenInSameLine = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar () =
+
+        if not
+           <| RuntimeInformation.IsOSPlatform OSPlatform.Windows then
+            raise
+            <| PlatformNotSupportedException (
+                "Blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah"
+            )
+
+        lazy
+            (let foo = bar
+
+             if ret then "" else ""
+             |> log.LogInformation
+
+             ret)
+"""
