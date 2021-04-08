@@ -1,3 +1,15 @@
+### 4.5.0-alpha-007 - 04/2021
+
+* Fix Failure to unindent with KeepIndentInBranch. [#1621](https://github.com/fsprojects/fantomas/issues/1621)
+* Fix Some of newlines in string interpolation is deleted. [#1613](https://github.com/fsprojects/fantomas/issues/1613)
+* Fix Idempotency problem when piping just before the keyword in. [#1610](https://github.com/fsprojects/fantomas/issues/1610)
+* Fix Idempotency problem with lazy. [#1609](https://github.com/fsprojects/fantomas/issues/1609)
+* Fix Idempotency issue with let … in. [#1608](https://github.com/fsprojects/fantomas/issues/1608)
+* Fix Idempotency problem when splitting && over multiple lines. [#1607](https://github.com/fsprojects/fantomas/issues/1607)
+* Fix Idempotency problem when splitting if-clause over multiple lines. [#1606](https://github.com/fsprojects/fantomas/issues/1606)
+* Fix Idempotency problem with recursive types in FSI. [#1605](https://github.com/fsprojects/fantomas/issues/1605)
+* Fix Idempotency problem with comments at the end of code. [#1604](https://github.com/fsprojects/fantomas/issues/1604)
+
 ### 4.5.0-alpha-006 - 04/2021
 
 * Feature BlankLinesAroundNestedMultilineExpressions. [#1587](https://github.com/fsprojects/fantomas/pull/1587)
