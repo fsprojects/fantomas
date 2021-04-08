@@ -560,3 +560,98 @@ module Caching =
                 cacheFiles.CachedNetworkData
                 (fun _ -> sessionCachedNetworkData)
 """
+
+[<Test>]
+let ``comment before paren function arg, 1607`` () =
+    formatSourceString
+        false
+        """
+namespace Bar
+
+[<RequireQualifiedAccess>]
+module Foo =
+    /// Blah
+    let bang<'a when 'a : equality> (a : Foo<'a>) (ans : ('a * System.TimeSpan) list) : bool =
+        List.length x = List.length y
+        &&
+        List.forall2
+        //
+          (fun (a, ta) (b, tb) -> a.Equals b && ta = tb)
+          x
+          y
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              KeepIfThenInSameLine = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Bar
+
+[<RequireQualifiedAccess>]
+module Foo =
+    /// Blah
+    let bang<'a when 'a : equality> (a : Foo<'a>) (ans : ('a * System.TimeSpan) list) : bool =
+        List.length x = List.length y
+        && List.forall2
+            //
+            (fun (a, ta) (b, tb) -> a.Equals b && ta = tb)
+            x
+            y
+"""
+
+[<Test>]
+let ``comment before paren function arg, idempotent`` () =
+    formatSourceString
+        false
+        """
+namespace Bar
+
+[<RequireQualifiedAccess>]
+module Foo =
+    /// Blah
+    let bang<'a when 'a : equality> (a : Foo<'a>) (ans : ('a * System.TimeSpan) list) : bool =
+        List.length x = List.length y
+        && List.forall2
+            //
+            (fun (a, ta) (b, tb) -> a.Equals b && ta = tb)
+            x
+            y
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              KeepIfThenInSameLine = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Bar
+
+[<RequireQualifiedAccess>]
+module Foo =
+    /// Blah
+    let bang<'a when 'a : equality> (a : Foo<'a>) (ans : ('a * System.TimeSpan) list) : bool =
+        List.length x = List.length y
+        && List.forall2
+            //
+            (fun (a, ta) (b, tb) -> a.Equals b && ta = tb)
+            x
+            y
+"""
