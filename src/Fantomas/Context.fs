@@ -205,7 +205,7 @@ type internal Context =
             |> List.choose
                 (fun tn ->
                     match tn.Type with
-                    | MainNode (mn) -> Some(mn, tn)
+                    | MainNode mn -> Some(mn, tn)
                     | _ -> None)
             |> List.groupBy fst
             |> List.map (fun (k, g) -> k, List.map snd g)
@@ -353,11 +353,11 @@ let internal lastWriteEventIsNewline ctx =
 
 let private (|CommentOrDefineEvent|_|) we =
     match we with
-    | Write (w) when (String.startsWithOrdinal "//" w) -> Some we
-    | Write (w) when (String.startsWithOrdinal "#if" w) -> Some we
-    | Write (w) when (String.startsWithOrdinal "#else" w) -> Some we
-    | Write (w) when (String.startsWithOrdinal "#endif" w) -> Some we
-    | Write (w) when (String.startsWithOrdinal "(*" w) -> Some we
+    | Write w when (String.startsWithOrdinal "//" w) -> Some we
+    | Write w when (String.startsWithOrdinal "#if" w) -> Some we
+    | Write w when (String.startsWithOrdinal "#else" w) -> Some we
+    | Write w when (String.startsWithOrdinal "#endif" w) -> Some we
+    | Write w when (String.startsWithOrdinal "(*" w) -> Some we
     | _ -> None
 
 let private (|EmptyHashDefineBlock|_|) (events: WriterEvent array) =
@@ -541,7 +541,7 @@ let internal coli f' (c: seq<'T>) f (ctx: Context) =
         else
             st <- f' st
 
-        st <- f i (e.Current) st
+        st <- f i e.Current st
         i <- i + 1
 
     st
@@ -560,7 +560,7 @@ let internal col f' (c: seq<'T>) f (ctx: Context) =
         else
             st <- f' st
 
-        st <- f (e.Current) st
+        st <- f e.Current st
 
     st
 
@@ -576,7 +576,7 @@ let internal colEx f' (c: seq<'T>) f (ctx: Context) =
         else
             st <- f' e.Current st
 
-        st <- f (e.Current) st
+        st <- f e.Current st
 
     st
 
@@ -798,7 +798,7 @@ let internal eventsWithoutMultilineWrite ctx =
 
 let private shortExpressionWithFallback
     (shortExpression: Context -> Context)
-    (fallbackExpression)
+    fallbackExpression
     maxWidth
     startColumn
     (ctx: Context)
@@ -841,7 +841,7 @@ let private shortExpressionWithFallback
             // you should never hit this branch
             fallbackExpression ctx
 
-let internal isShortExpression maxWidth (shortExpression: Context -> Context) (fallbackExpression) (ctx: Context) =
+let internal isShortExpression maxWidth (shortExpression: Context -> Context) fallbackExpression (ctx: Context) =
     shortExpressionWithFallback shortExpression fallbackExpression maxWidth None ctx
 
 let internal isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
@@ -864,24 +864,24 @@ let internal isSmallExpression size (smallExpression: Context -> Context) fallba
 
 /// provide the line and column before and after the leadingExpression to to the continuation expression
 let internal leadingExpressionResult leadingExpression continuationExpression (ctx: Context) =
-    let (lineCountBefore, columnBefore) =
+    let lineCountBefore, columnBefore =
         List.length ctx.WriterModel.Lines, ctx.WriterModel.Column
 
     let contextAfterLeading = leadingExpression ctx
 
-    let (lineCountAfter, columnAfter) =
+    let lineCountAfter, columnAfter =
         List.length contextAfterLeading.WriterModel.Lines, contextAfterLeading.WriterModel.Column
 
     continuationExpression ((lineCountBefore, columnBefore), (lineCountAfter, columnAfter)) contextAfterLeading
 
 /// combines two expression and let the second expression know if the first expression was longer than a given threshold.
 let internal leadingExpressionLong threshold leadingExpression continuationExpression (ctx: Context) =
-    let (lineCountBefore, columnBefore) =
+    let lineCountBefore, columnBefore =
         List.length ctx.WriterModel.Lines, ctx.WriterModel.Column
 
     let contextAfterLeading = leadingExpression ctx
 
-    let (lineCountAfter, columnAfter) =
+    let lineCountAfter, columnAfter =
         List.length contextAfterLeading.WriterModel.Lines, contextAfterLeading.WriterModel.Column
 
     continuationExpression
@@ -1020,7 +1020,7 @@ let internal futureNlnCheckMem (f, ctx) =
         WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.MaxLineLength
 
 let internal futureNlnCheck f (ctx: Context) =
-    let (isMultiLine, isLong) = futureNlnCheckMem (f, ctx)
+    let isMultiLine, isLong = futureNlnCheckMem (f, ctx)
     isMultiLine || isLong
 
 /// similar to futureNlnCheck but validates whether the expression is going over the max page width
@@ -1169,7 +1169,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     | IdentBetweenTicks _
     | CharContent _
     | EmbeddedIL _ -> sepNone // don't print here but somewhere in CodePrinter
-    | Directive (s)
+    | Directive s
     | Comment (LineCommentOnSingleLine s) ->
         (ifElse addNewline sepNln sepNone)
         +> !-s
@@ -1239,7 +1239,7 @@ let internal leaveLeftToken (tokenName: FsTokenType) (range: Range) (ctx: Contex
             && tn.Range.StartColumn = range.StartColumn)
     |> fun tn ->
         match tn with
-        | Some ({ ContentAfter = [ TriviaContent.Comment (LineCommentAfterSourceCode (lineComment)) ] }) ->
+        | Some { ContentAfter = [ TriviaContent.Comment (LineCommentAfterSourceCode lineComment) ] } ->
             !-lineComment +> sepNln
         | _ -> id
     <| ctx
@@ -1257,7 +1257,7 @@ let internal enterRightToken (tokenName: FsTokenType) (range: Range) (ctx: Conte
                 || tn.Range.EndColumn + 1 = range.EndColumn))
     |> fun tn ->
         match tn with
-        | Some ({ ContentBefore = [ TriviaContent.Comment (LineCommentOnSingleLine (lineComment)) ] }) ->
+        | Some { ContentBefore = [ TriviaContent.Comment (LineCommentOnSingleLine lineComment) ] } ->
             let spacesBeforeComment =
                 let braceSize = if tokenName = RBRACK then 1 else 2
 
@@ -1303,7 +1303,7 @@ let private sepConsideringTriviaContentBeforeBy
     (ctx: Context)
     =
     match findNode ctx range with
-    | Some ({ ContentBefore = contentBefore }) when (hasPrintableContent contentBefore) -> ctx
+    | Some { ContentBefore = contentBefore } when (hasPrintableContent contentBefore) -> ctx
     | _ -> sepF ctx
 
 let internal sepConsideringTriviaContentBefore sepF (key: Choice<FsAstType, FsTokenType>) (range: Range) ctx =
@@ -1481,10 +1481,10 @@ let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
 
     let rec impl items =
         match items with
-        | (ColMultilineItem (f1, sepNln1, r1)) :: (ColMultilineItem (_, sepNln2, _)) :: _ ->
+        | ColMultilineItem (f1, sepNln1, r1) :: ColMultilineItem (_, sepNln2, _) :: _ ->
             let f1Expr =
                 match firstItemRange with
-                | Some (fr1) when (fr1 = r1) ->
+                | Some fr1 when (fr1 = r1) ->
                     // first expression should always be executed as is.
                     f1
                 | _ ->
@@ -1498,7 +1498,7 @@ let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
             addExtraNewlineIfLeadingWasMultiline f1Expr sepNln2 (impl (List.skip 1 items))
         | [ (ColMultilineItem (f, sepNln, r)) ] ->
             match firstItemRange with
-            | Some (fr1) when (fr1 = r) ->
+            | Some fr1 when (fr1 = r) ->
                 // this can only happen when there is only one item in items
                 f
             | _ ->
@@ -1549,7 +1549,7 @@ let internal hasLineCommentAfterInfix (rangePlusInfix: Range) (ctx: Context) =
                 |> List.map
                     (fun ca ->
                         match ca with
-                        | TriviaContent.Comment (Comment.LineCommentAfterSourceCode (comment)) -> Some comment
+                        | TriviaContent.Comment (Comment.LineCommentAfterSourceCode comment) -> Some comment
                         | _ -> None)
                 |> List.choose id
                 |> List.tryHead)

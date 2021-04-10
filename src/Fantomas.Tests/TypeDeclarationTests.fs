@@ -20,9 +20,9 @@ let ``exception declarations with members`` () =
 exception BuildException of string*list<string>
   with
     override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)"""
-        ({ config with
-               MaxInfixOperatorExpression = 60
-               MaxFunctionBindingWidth = 120 })
+        { config with
+              MaxInfixOperatorExpression = 60
+              MaxFunctionBindingWidth = 120 }
     |> should
         equal
         """/// An exception type to signal build errors.
@@ -415,8 +415,8 @@ type SpeedingTicket() =
 let CalculateFine (ticket : SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
     if delta < 20 then 50.0 else 100.0"""
-        ({ config with
-               MaxValueBindingWidth = 120 })
+        { config with
+              MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -695,8 +695,8 @@ let ``should keep brackets around type signatures`` () =
 let user_printers = ref([] : (string * (term -> unit)) list)
 let the_interface = ref([] : (string * (string * hol_type)) list)
     """
-        ({ config with
-               MaxValueBindingWidth = 50 })
+        { config with
+              MaxValueBindingWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1083,9 +1083,9 @@ let ``operator in words should not print to symbol, 409`` () =
         false
         """type T() =
     static member op_LessThan(a, b) = a < b"""
-        ({ config with
-               SpaceBeforeMember = true
-               MaxFunctionBindingWidth = 120 })
+        { config with
+              SpaceBeforeMember = true
+              MaxFunctionBindingWidth = 120 }
     |> should
         equal
         """type T() =
@@ -1330,8 +1330,8 @@ let ``long type members should have parameters on separate lines, 719`` () =
         """type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
-        ({ config with
-               SpaceBeforeClassConstructor = true })
+        { config with
+              SpaceBeforeClassConstructor = true }
     |> prepend newline
     |> should
         equal
@@ -1353,8 +1353,8 @@ let ``long type member with return type should have parameters on separate lines
         """type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : int =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
-        ({ config with
-               SpaceBeforeClassConstructor = true })
+        { config with
+              SpaceBeforeClassConstructor = true }
     |> prepend newline
     |> should
         equal
@@ -1376,8 +1376,8 @@ let ``long constructors should have parameters on separate lines`` () =
         """type C (aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) =
     member this.X = 42
 """
-        ({ config with
-               SpaceBeforeClassConstructor = true })
+        { config with
+              SpaceBeforeClassConstructor = true }
     |> prepend newline
     |> should
         equal
@@ -1423,9 +1423,9 @@ let ``keep correct indentation after multiline member definition, 845`` () =
     member SomeOtherMember () =
         printfn "b"
 """
-        ({ config with
-               MaxLineLength = 80
-               MaxFunctionBindingWidth = 120 })
+        { config with
+              MaxLineLength = 80
+              MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -1454,9 +1454,9 @@ let ``keep correct indentation after multiline typed member definition`` () =
     member SomeOtherMember () =
         printfn "b"
 """
-        ({ config with
-               MaxLineLength = 80
-               MaxFunctionBindingWidth = 120 })
+        { config with
+              MaxLineLength = 80
+              MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal

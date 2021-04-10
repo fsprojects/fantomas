@@ -161,7 +161,7 @@ let ``simple line comment should be found in tokens`` () =
     let triviaNodes = getTriviaFromTokens tokens
 
     match List.tryLast triviaNodes with
-    | Some ({ Item = Comment (LineCommentAfterSourceCode (lineComment))
+    | Some ({ Item = Comment (LineCommentAfterSourceCode lineComment)
               Range = range }) ->
         lineComment == "// some comment"
         range.StartLine == range.EndLine
@@ -175,7 +175,7 @@ let ``Single line block comment should be found in tokens`` () =
     let triviaNodes = getTriviaFromTokens tokens
 
     match List.tryLast triviaNodes with
-    | Some ({ Item = Comment (BlockComment (blockComment, _, _)) }) -> blockComment == "(* not fonz *)"
+    | Some { Item = Comment (BlockComment (blockComment, _, _)) } -> blockComment == "(* not fonz *)"
     | _ -> failwith "expected block comment"
 
 [<Test>]
@@ -220,7 +220,7 @@ let a = 9
 // foo"""
 
     match triviaNodes with
-    | ({ Item = Comment (LineCommentOnSingleLine (l1)) }) :: _ -> String.normalizeNewLine l1 == expectedComment
+    | { Item = Comment (LineCommentOnSingleLine l1) } :: _ -> String.normalizeNewLine l1 == expectedComment
     | _ -> failwith "Expected two line comments"
 
 [<Test>]
@@ -263,7 +263,7 @@ let ``Comment after left brace of record`` () =
     let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
-    | [ { Item = Comment (LineCommentAfterSourceCode (comment))
+    | [ { Item = Comment (LineCommentAfterSourceCode comment)
           Range = range } ] ->
         comment == "// foo"
         range.StartLine == 2
@@ -303,8 +303,8 @@ elif true then ()"""
     let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
-    | [ { Item = Keyword ({ Content = "if" }) }; { Item = Keyword ({ Content = "then" }) };
-        { Item = Keyword ({ Content = "elif" }) }; { Item = Keyword ({ Content = "then" }) } ] -> pass ()
+    | [ { Item = Keyword { Content = "if" } }; { Item = Keyword { Content = "then" } };
+        { Item = Keyword { Content = "elif" } }; { Item = Keyword { Content = "then" } } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -343,7 +343,7 @@ type MyLogInteface() =
         |> List.choose
             (fun { Item = item } ->
                 match item with
-                | Keyword ({ Content = kw }) -> Some kw
+                | Keyword { Content = kw } -> Some kw
                 | _ -> None)
 
     match triviaNodes with
@@ -360,7 +360,7 @@ let ``at before string`` () =
         |> List.filter
             (fun { Item = item } ->
                 match item with
-                | StringContent ("@\"foo\"") -> true
+                | StringContent "@\"foo\"" -> true
                 | _ -> false)
 
     List.length triviaNodes == 1
@@ -377,7 +377,7 @@ let ``newline in string`` () =
         |> List.filter
             (fun { Item = item } ->
                 match item with
-                | StringContent ("\"\n\"") -> true
+                | StringContent "\"\n\"" -> true
                 | _ -> false)
 
     List.length triviaNodes == 1
@@ -392,7 +392,7 @@ let ``newline with slashes in string`` () =
         |> List.filter
             (fun { Item = item } ->
                 match item with
-                | StringContent ("\"\\r\\n\"") -> true
+                | StringContent "\"\\r\\n\"" -> true
                 | _ -> false)
 
     List.length triviaNodes == 1
@@ -407,7 +407,7 @@ let ``triple quotes`` () =
         |> List.filter
             (fun { Item = item } ->
                 match item with
-                | StringContent ("\"\"\"foo\"\"\"") -> true
+                | StringContent "\"\"\"foo\"\"\"" -> true
                 | _ -> false)
 
     List.length triviaNodes == 1
@@ -423,7 +423,7 @@ let ``with quotes`` () =
         |> List.filter
             (fun { Item = item } ->
                 match item with
-                | StringContent (sc) when (sc = source) -> true
+                | StringContent sc when (sc = source) -> true
                 | _ -> false)
 
     List.length triviaNodes == 1
@@ -450,7 +450,7 @@ let ``ident between tickets `` () =
     let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
-    | [ { Item = IdentBetweenTicks ("``/ operator combines paths``") } ] -> pass ()
+    | [ { Item = IdentBetweenTicks "``/ operator combines paths``" } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -460,7 +460,7 @@ let ``escaped char content`` () =
     let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
-    | [ { Item = CharContent ("\'\\u0000\'") } ] -> pass ()
+    | [ { Item = CharContent "\'\\u0000\'" } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]

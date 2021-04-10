@@ -15,8 +15,8 @@ let private carouselSample =
         fragment [] []
     ,"CarouselSample")
 """
-        ({ config with
-               MaxValueBindingWidth = 75 })
+        { config with
+              MaxValueBindingWidth = 75 }
     |> should
         equal
         """let private carouselSample = FunctionComponent.Of<obj>((fun _ -> fragment [] []), "CarouselSample")

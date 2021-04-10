@@ -69,8 +69,8 @@ let ``multiline if without else`` () =
         """
 if foo && bar && meh then aha
 """
-        ({ config with
-               MaxInfixOperatorExpression = 5 })
+        { config with
+              MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should
         equal
@@ -134,7 +134,7 @@ let ``longer condition, not multi-line`` () =
         false
         """if aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg then 1 else 0
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -151,7 +151,7 @@ let ``longer ifBranch, not multi-line`` () =
         false
         """if x then aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg else 0
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -168,7 +168,7 @@ let ``longer else branch, not multi-line`` () =
         false
         """if x then 1 else aaaaaaaaaBBBBBBBBBBccccccccccDDDDDDDDDeeeeeeeeeeeeeFFFFFFFFFFFggggggggg
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -185,7 +185,7 @@ let ``longer if else branch, not multi-line`` () =
         false
         """if aaaaaaaaaaaa then bbbbbbbbbbbb else if cccccccccccc then ddddddddddd else eeeeeee
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -201,7 +201,7 @@ let ``longer if else branch, longer elif branch, not multi-line`` () =
         false
         """if aaaaaa then bbbbbb else if ccccccc then ddddddd elif eeeee then ffffff else gggggg
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -219,7 +219,7 @@ let ``multiline condition`` () =
         """if (aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa && bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb) then
     x else y
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -240,7 +240,7 @@ let ``multiline if branch`` () =
     x + 2
 else y
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -262,7 +262,7 @@ else
     let y = 7;
     y + 9
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -285,7 +285,7 @@ let ``multiline else if branch`` () =
     else
         99
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -313,7 +313,7 @@ let ``multiline else if branch, multiline elif branch`` () =
     else
         99
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -949,8 +949,8 @@ elif strA.String == strB.String && strA.Offset = strB.Offset then
 else
     -1
 """
-        ({ config with
-               MaxInfixOperatorExpression = 55 })
+        { config with
+              MaxInfixOperatorExpression = 55 }
     |> prepend newline
     |> should
         equal
@@ -976,7 +976,7 @@ if someveryveryveryverylongexpression then
             someveryveryveryveryveryverylongexpression
 else someveryveryveryverylongexpression
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -1062,8 +1062,8 @@ else
     formatSourceString
         false
         source
-        ({ config with
-               MaxIfThenElseShortWidth = 55 })
+        { config with
+              MaxIfThenElseShortWidth = 55 }
     |> prepend newline
     |> should
         equal
@@ -1115,8 +1115,8 @@ if a then 0 else (tare + netWeight) + 10
     formatSourceString
         false
         source
-        ({ config with
-               MaxIfThenElseShortWidth = 20 })
+        { config with
+              MaxIfThenElseShortWidth = 20 }
     |> prepend newline
     |> should
         equal

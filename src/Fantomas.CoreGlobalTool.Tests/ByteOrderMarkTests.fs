@@ -22,7 +22,7 @@ let ``byte-order mark should be preserved, 795`` () =
     use fileFixture =
         new TemporaryFileCodeSample(Source, true)
 
-    let (exitCode, _) = runFantomasTool fileFixture.Filename
+    let exitCode, _ = runFantomasTool fileFixture.Filename
     exitCode |> should equal 0
 
     let expectedPreamble = Encoding.UTF8.GetPreamble()
@@ -36,7 +36,7 @@ let ``preserve byte-order from original file`` () =
 
     use outputFixture = new OutputFile()
 
-    let (exitCode, _) =
+    let exitCode, _ =
         sprintf "--out %s %s" outputFixture.Filename inputFixture.Filename
         |> runFantomasTool
 

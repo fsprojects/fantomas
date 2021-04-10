@@ -44,7 +44,7 @@ module BoolExpr =
 
         let doubleNegative =
             function
-            | BoolExpr.Not (BoolExpr.Not (e)) -> Some e
+            | BoolExpr.Not (BoolExpr.Not e) -> Some e
             | _ -> None
 
         let deMorgan =
@@ -128,7 +128,7 @@ module BoolExpr =
            |> Seq.exists (fun (_, g) -> List.length g > 1) then
             Unsatisfiable
         else
-            let (singletons, toSolve) =
+            let singletons, toSolve =
                 groupedLiterals allLiterals
                 |> List.partition (fun (_, g) -> List.length g = 1)
 
@@ -265,14 +265,14 @@ module BoolExprParser =
 
     let (|ListSplit|_|) split xs =
         match xs with
-        | TakeUntil split (x1, (_ :: x2)) -> Some(x1, x2)
+        | TakeUntil split (x1, _ :: x2) -> Some(x1, x2)
         | _ -> None
 
     let (|ListSplitPick|_|) split f xs =
         let rec loop prev xs =
             seq {
                 match xs with
-                | TakeUntil split (x1, (_ :: x2)) ->
+                | TakeUntil split (x1, _ :: x2) ->
                     yield (prev @ x1, x2)
                     yield! loop (prev @ x1 @ [ split ]) x2
                 | _ -> ()
@@ -288,7 +288,7 @@ module BoolExprParser =
     and (|AndExpr|_|) =
         let chooser =
             function
-            | (ExprPat e1, ExprPat e2) -> Some(e1, e2)
+            | ExprPat e1, ExprPat e2 -> Some(e1, e2)
             | _ -> None
 
         function
@@ -298,7 +298,7 @@ module BoolExprParser =
     and (|OrExpr|_|) =
         let chooser =
             function
-            | (ExprPat e1, ExprPat e2) -> Some(e1, e2)
+            | ExprPat e1, ExprPat e2 -> Some(e1, e2)
             | _ -> None
 
         function

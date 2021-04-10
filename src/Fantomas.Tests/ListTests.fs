@@ -311,7 +311,7 @@ let ``multiline list of string should not add ;`` () =
        [ "_Binaries/AltCover/Debug+AnyCPU/AltCover.exe"
          "_Binaries/AltCover.Shadow/Debug+AnyCPU/AltCover.Shadow.dll" ]
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> should
         equal
         """[ "_Binaries/AltCover/Debug+AnyCPU/AltCover.exe"
@@ -357,8 +357,8 @@ let prismCli commando =
         |]
     ()
 """
-        ({ config with
-               SpaceAroundDelimiter = false })
+        { config with
+              SpaceAroundDelimiter = false }
     |> should
         equal
         """let prismCli commando =
@@ -378,8 +378,8 @@ let ``line comment inside list`` () =
 // foo
 ]
 """
-        ({ config with
-               SpaceAroundDelimiter = false })
+        { config with
+              SpaceAroundDelimiter = false }
     |> prepend newline
     |> should
         equal
@@ -1583,7 +1583,7 @@ let nestedList: obj list = [
     ]
 ]
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -1615,7 +1615,7 @@ let nestedList: obj list = [|
     |]
 |]
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -1646,7 +1646,7 @@ let nestedList: obj list = [|
     |]
 |]
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -1678,7 +1678,7 @@ let nestedList: obj list = [
     ]
 ]
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -1711,7 +1711,7 @@ let nestedList: obj list = [|
     |]
 |]
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -1739,7 +1739,7 @@ let d = list.[^1..]   // 4,5
 let e = list.[^0..]   // 5
 let f = list.[^2..^1] // 3,4
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal

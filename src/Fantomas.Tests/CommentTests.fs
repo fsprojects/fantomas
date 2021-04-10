@@ -761,8 +761,8 @@ type substring =
                 min strA.Length strB.Length)
 #endif
 """
-        ({ config with
-               MaxInfixOperatorExpression = 60 })
+        { config with
+              MaxInfixOperatorExpression = 60 }
     |> should
         equal
         """(*

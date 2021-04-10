@@ -5,10 +5,10 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 let config =
-    ({ config with
-           MultilineBlockBracketsOnSameColumn = true
-           SpaceBeforeColon = true
-           SpaceBeforeSemicolon = true })
+    { config with
+          MultilineBlockBracketsOnSameColumn = true
+          SpaceBeforeColon = true
+          SpaceBeforeSemicolon = true }
 
 [<Test>]
 let ``array values`` () =

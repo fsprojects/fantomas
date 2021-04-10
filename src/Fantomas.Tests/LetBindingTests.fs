@@ -44,8 +44,8 @@ let f () =
     formatSourceString
         false
         codeSnippet
-        ({ config with
-               MaxValueBindingWidth = 50 })
+        { config with
+              MaxValueBindingWidth = 50 }
     |> should
         equal
         """let f () =
@@ -110,8 +110,8 @@ let tomorrow =
     DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
         .AddDays(1.)
 """
-        ({ config with
-               MaxValueBindingWidth = 70 })
+        { config with
+              MaxValueBindingWidth = 70 }
     |> prepend newline
     |> should
         equal
@@ -270,8 +270,8 @@ let ``newlines inside let binding should be not duplicated`` () =
 
     ()
 """
-        ({ config with
-               MaxInfixOperatorExpression = 60 })
+        { config with
+              MaxInfixOperatorExpression = 60 }
     |> should
         equal
         """let foo =
@@ -425,10 +425,10 @@ let ``line comment before return type info should indent before colon, 565`` () 
     =
     0
 """
-        ({ config with
-               SpaceAfterComma = false
-               SpaceAfterSemicolon = false
-               SpaceAroundDelimiter = false })
+        { config with
+              SpaceAfterComma = false
+              SpaceAfterSemicolon = false
+              SpaceAroundDelimiter = false }
     |> prepend newline
     |> should
         equal
@@ -477,11 +477,11 @@ let ``has symbol in signature requires paren, 564`` () =
   let meh (_: #seq<int>) = 2
   let evenMoreMeh (_: #seq<int>) : int = 2
 """
-        ({ config with
-               SpaceAfterComma = false
-               SpaceAfterSemicolon = false
-               SpaceAroundDelimiter = false
-               SpaceBeforeParameter = false })
+        { config with
+              SpaceAfterComma = false
+              SpaceAfterSemicolon = false
+              SpaceAroundDelimiter = false
+              SpaceBeforeParameter = false }
     |> prepend newline
     |> should
         equal

@@ -82,7 +82,7 @@ module internal TriviaHelpers =
         |> List.exists
             (fun tn ->
                 match RangeHelpers.rangeEq tn.Range range, tn.ContentItself with
-                | true, Some (t) -> predicate t
+                | true, Some t -> predicate t
                 | _ -> false)
 
     let ``has content itself that is multiline string`` range (triviaNodes: TriviaNode list) =
@@ -90,7 +90,7 @@ module internal TriviaHelpers =
         |> List.choose
             (fun tn ->
                 match RangeHelpers.rangeEq tn.Range range, tn.ContentItself with
-                | true, Some (StringContent (s)) when (String.isMultiline s) -> Some s
+                | true, Some (StringContent s) when (String.isMultiline s) -> Some s
                 | _ -> None)
         |> List.isNotEmpty
 

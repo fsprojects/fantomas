@@ -214,7 +214,7 @@ let toSynExprs (Input s) =
                                                           _))) |] ->
         List.choose
             (function
-            | (SynModuleDecl.DoExpr (_, expr, _)) -> Some expr
+            | SynModuleDecl.DoExpr (_, expr, _) -> Some expr
             | _ -> None)
             exprs
     | _ -> []

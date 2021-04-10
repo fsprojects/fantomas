@@ -181,7 +181,7 @@ type DerivedClass =
     val string2 : string
     new (str1, str2) = { inherit BaseClass(str1); string2 = str2 }
     new (str2) = { inherit BaseClass(); string2 = str2 }"""
-        ({ config with MaxRecordWidth = 45 })
+        { config with MaxRecordWidth = 45 }
     |> prepend newline
     |> should
         equal

@@ -114,7 +114,7 @@ let (|PropertyWithGetSet|_|) =
 
 let (|PropertyWithGetSetMemberDefn|_|) =
     function
-    | MDMember (x1) :: MDMember (x2) :: xs ->
+    | MDMember x1 :: MDMember x2 :: xs ->
         match [ x1; x2 ] with
         | PropertyWithGetSet ((x1, x2), []) -> Some((x1, x2), xs)
         | _ -> None
@@ -259,7 +259,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.LetOrUse (_, _, bs, e, _) ->
         match bs with
         | [] -> synExprToFsAstType e
-        | (SynBinding.Binding (kind = kind) as b) :: _ ->
+        | SynBinding.Binding (kind = kind) as b :: _ ->
             match kind with
             | SynBindingKind.StandaloneExpression -> StandaloneExpression_, b.RangeOfBindingAndRhs
             | SynBindingKind.NormalBinding -> NormalBinding_, b.RangeOfBindingAndRhs

@@ -27,7 +27,7 @@ let private getSourceString (source: SourceOrigin) =
 
 let private getSourceText (source: SourceOrigin) =
     match source with
-    | SourceString s -> FSharp.Compiler.Text.SourceText.ofString (s)
+    | SourceString s -> FSharp.Compiler.Text.SourceText.ofString s
     | SourceText st -> st
 
 let getSourceTextAndCode source =
@@ -49,7 +49,7 @@ let safeFileName (file: string) =
         file
 
 let createFormatContext fileName (source: SourceOrigin) =
-    let (sourceText, sourceCode) = getSourceTextAndCode source
+    let sourceText, sourceCode = getSourceTextAndCode source
 
     { FileName = safeFileName fileName
       Source = sourceCode
@@ -114,7 +114,7 @@ let isValidAST ast =
             List.forall validateMemberDefn synMembers
         | SynModuleDecl.Let (_isRecursive, bindings, _range) -> List.forall validateBinding bindings
         | SynModuleDecl.ModuleAbbrev (_lhs, _rhs, _range) -> true
-        | SynModuleDecl.NamespaceFragment (fragment) -> validateModuleOrNamespace fragment
+        | SynModuleDecl.NamespaceFragment fragment -> validateModuleOrNamespace fragment
         | SynModuleDecl.NestedModule (_componentInfo, _isRec, modules, _isContinuing, _range) ->
             List.forall validateModuleDecl modules
         | SynModuleDecl.Types (typeDefs, _range) -> List.forall validateTypeDefn typeDefs
@@ -263,7 +263,7 @@ let isValidAST ast =
             | Some synExpr3 -> List.forall validateExpr [ synExpr1; synExpr2; synExpr3 ]
             | None -> List.forall validateExpr [ synExpr1; synExpr2 ]
 
-        | SynExpr.Ident (_ident) -> true
+        | SynExpr.Ident _ident -> true
         | SynExpr.LongIdent (_, _longIdent, _altNameRefCell, _range) -> true
 
         | SynExpr.LongIdentSet (_longIdent, synExpr, _range) -> validateExpr synExpr
@@ -297,8 +297,8 @@ let isValidAST ast =
         | SynExpr.AddressOf (_, synExpr, _range, _range2) -> validateExpr synExpr
         | SynExpr.TraitCall (_synTyparList, _synMemberSig, synExpr, _range) -> validateExpr synExpr
 
-        | SynExpr.Null (_range)
-        | SynExpr.ImplicitZero (_range) -> true
+        | SynExpr.Null _range
+        | SynExpr.ImplicitZero _range -> true
 
         | SynExpr.YieldOrReturn (_, synExpr, _range)
         | SynExpr.YieldOrReturnFrom (_, synExpr, _range)
@@ -448,7 +448,7 @@ let isSignificantToken (tok: FSharpTokenInfo) =
 /// Find out the start token
 let rec getStartCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
     match tokenizer.ScanToken(!lexState) with
-    | Some (tok), state ->
+    | Some tok, state ->
         if tok.RightColumn >= r.StartColumn
            && isSignificantToken tok then
             tok.LeftColumn
@@ -460,7 +460,7 @@ let rec getStartCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
 /// Find out the end token
 let rec getEndCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
     match tokenizer.ScanToken(!lexState) with
-    | Some (tok), state ->
+    | Some tok, state ->
         Debug.WriteLine("End token: {0}", sprintf "%A" tok |> box)
 
         if tok.RightColumn >= r.EndColumn
@@ -545,7 +545,7 @@ let private formatRange
     let startCol = range.StartColumn
     let endLine = range.EndLine
 
-    let (start, finish) = stringPos range sourceCode
+    let start, finish = stringPos range sourceCode
 
     let pre =
         if start = 0 then
@@ -554,7 +554,7 @@ let private formatRange
             sourceCode.[0..start - 1].TrimEnd('\r')
 
     // Prepend selection by an appropriate amount of whitespace
-    let (selection, patch) =
+    let selection, patch =
         let sel = sourceCode.[start..finish].TrimEnd('\r')
 
         if startWithMember sel then
@@ -749,8 +749,8 @@ let formatSelection
     async {
         let! formatted = formatRange checker parsingOptions true modifiedRange lines config formatContext
 
-        let (start, finish) = stringPos range sourceCode
-        let (newStart, newFinish) = stringPos modifiedRange sourceCode
+        let start, finish = stringPos range sourceCode
+        let newStart, newFinish = stringPos modifiedRange sourceCode
 
         let pre =
             sourceCode.[start..newStart - 1].TrimEnd('\r')

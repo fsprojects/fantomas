@@ -526,10 +526,10 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
     | true -> Error collectedErrors
     | false -> Ok collectedOutputs
 """
-        ({ config with
-               MaxLineLength = 100
-               SpaceBeforeColon = true
-               MaxInfixOperatorExpression = 70 })
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeColon = true
+              MaxInfixOperatorExpression = 70 }
     |> prepend newline
     |> should
         equal
@@ -586,9 +586,9 @@ let ``internal keyword included in function signature length check`` () =
   let UpdateStrongNamingX (assembly : AssemblyDefinition) (key : StrongNameKeyPair option) =
     assembly.Name
 """
-        ({ config with
-               MaxLineLength = 90
-               SpaceBeforeColon = true })
+        { config with
+              MaxLineLength = 90
+              SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal
@@ -698,7 +698,7 @@ let private addTaskToScheduler (scheduler : IScheduler) taskName taskCron prio (
                 .WithIdentity(taskName, groupName).Build()
         1
 """
-        ({ config with MaxLineLength = 100 })
+        { config with MaxLineLength = 100 }
     |> prepend newline
     |> should
         equal
