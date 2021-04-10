@@ -1426,10 +1426,7 @@ and genExpr astContext synExpr ctx =
         | CompExprBody statements ->
             let genCompExprStatement astContext ces =
                 match ces with
-                | LetOrUseStatement (isRecursive, isUse, binding) ->
-                    let prefix =
-                        sprintf "%s%s" (if isUse then "use " else "let ") (if isRecursive then "rec " else "")
-
+                | LetOrUseStatement (prefix, binding) ->
                     enterNodeFor (synBindingToFsAstType binding) binding.RangeOfBindingAndRhs
                     +> genLetBinding astContext prefix binding
                 | LetOrUseBangStatement (isUse, pat, expr, r) ->
@@ -1448,14 +1445,14 @@ and genExpr astContext synExpr ctx =
 
             let getRangeOfCompExprStatement ces =
                 match ces with
-                | LetOrUseStatement (_, _, binding) -> binding.RangeOfBindingAndRhs
+                | LetOrUseStatement (_, binding) -> binding.RangeOfBindingAndRhs
                 | LetOrUseBangStatement (_, _, _, r) -> r
                 | AndBangStatement (_, _, r) -> r
                 | OtherStatement expr -> expr.Range
 
             let getSepNln ces r =
                 match ces with
-                | LetOrUseStatement (_, _, b) ->
+                | LetOrUseStatement (_, b) ->
                     sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) r
                 | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_LetOrUseBang r
                 | AndBangStatement _ -> sepNlnConsideringTriviaContentBeforeForToken AND_BANG r

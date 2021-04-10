@@ -906,22 +906,20 @@ let rec (|LetOrUses|_|) =
     | _ -> None
 
 type ComputationExpressionStatement =
-    | LetOrUseStatement of recursive: bool * isUse: bool * SynBinding
+    | LetOrUseStatement of prefix: string * binding: SynBinding
     | LetOrUseBangStatement of isUse: bool * SynPat * SynExpr * range
     | AndBangStatement of SynPat * SynExpr * range
     | OtherStatement of SynExpr
 
 let rec collectComputationExpressionStatements e : ComputationExpressionStatement list =
     match e with
-    | SynExpr.LetOrUse (isRecursive, isUse, bindings, body, _) ->
-        let bindings =
-            bindings
-            |> List.map (fun b -> LetOrUseStatement(isRecursive, isUse, b))
+    | LetOrUses (bindings, body) ->
+        let letBindings = bindings |> List.map LetOrUseStatement
 
         let returnExpr =
             collectComputationExpressionStatements body
 
-        [ yield! bindings; yield! returnExpr ]
+        letBindings @ returnExpr
     | SynExpr.LetOrUseBang (_, isUse, _, pat, expr, andBangs, body, r) ->
         let letOrUseBang =
             LetOrUseBangStatement(isUse, pat, expr, r)
