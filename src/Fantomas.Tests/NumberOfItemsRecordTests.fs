@@ -213,7 +213,7 @@ let ``anonymous record with multiple field update`` () =
         false
         """let a = {| foo with Level = 7; Square = 9 |}
 """
-        ({ config with MaxRecordWidth = 35 })
+        { config with MaxRecordWidth = 35 }
     |> prepend newline
     |> should
         equal
@@ -613,8 +613,8 @@ type ShortExpressionInfo =
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
     member x.Foo() = ()
 """
-        ({ config with
-               NewlineBetweenTypeDefinitionAndMembers = false })
+        { config with
+              NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -672,7 +672,7 @@ let ``indent update record fields far enough, 817`` () =
     formatSourceString
         false
         "let expected = { ThisIsAThing.Empty with TheNewValue = 1; ThatValue = 2 }"
-        ({ config with IndentSize = 2 })
+        { config with IndentSize = 2 }
     |> prepend newline
     |> should
         equal
@@ -688,7 +688,7 @@ let ``indent update anonymous record fields far enough`` () =
     formatSourceString
         false
         "let expected = {| ThisIsAThing.Empty with TheNewValue = 1; ThatValue = 2 |}"
-        ({ config with IndentSize = 2 })
+        { config with IndentSize = 2 }
     |> prepend newline
     |> should
         equal

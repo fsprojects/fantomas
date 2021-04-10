@@ -287,8 +287,8 @@ let ``should not add newline before = operator after |>`` () =
     formatSourceString
         false
         """1 |> max 0 = 1"""
-        ({ config with
-               MaxInfixOperatorExpression = 15 })
+        { config with
+              MaxInfixOperatorExpression = 15 }
     |> should
         equal
         """1 |> max 0 = 1
@@ -423,8 +423,8 @@ let ``giraffe sample`` () =
         """
 let WebApp = route "/ping" >=> authorized >=> text "pong"
 """
-        ({ config with
-               MaxInfixOperatorExpression = 20 })
+        { config with
+              MaxInfixOperatorExpression = 20 }
     |> prepend newline
     |> should
         equal

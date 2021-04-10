@@ -25,7 +25,7 @@ type Queue<'T>(data: list<'T []>, length: int) =
             else if this.GetHashCode() <> y.GetHashCode() then
                 false
             else
-                Seq.forall2 (Unchecked.equals) this y
+                Seq.forall2 Unchecked.equals this y
         | _ -> false
 
     member this.Head =
@@ -64,7 +64,7 @@ type Queue<'T>(data: list<'T []>, length: int) =
 
             let rec dataToEnd acc =
                 function
-                | (hd: _ []) :: tl ->
+                | hd: _ [] :: tl ->
                     if i > hd.Length then
                         i <- i - hd.Length
                         dataToEnd (hd :: acc) tl
@@ -75,7 +75,7 @@ type Queue<'T>(data: list<'T []>, length: int) =
 
             let rec exists xs =
                 match xs with
-                | (arr: _ []) :: tl ->
+                | arr: _ [] :: tl ->
                     while not r && i < arr.Length do
                         if f arr.[i] then r <- true
                         i <- i + 1

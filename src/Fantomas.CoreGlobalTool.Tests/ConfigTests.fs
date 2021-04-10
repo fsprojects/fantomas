@@ -21,7 +21,7 @@ indent_size=2
 """
         )
 
-    let (exitCode, output) = runFantomasTool fileFixture.Filename
+    let exitCode, output = runFantomasTool fileFixture.Filename
 
     exitCode |> should equal 0
 
@@ -80,7 +80,7 @@ end_of_line = %s
                 setting
         )
 
-    let (exitCode, _) = runFantomasTool fileFixture.Filename
+    let exitCode, _ = runFantomasTool fileFixture.Filename
 
     exitCode |> should equal 0
 

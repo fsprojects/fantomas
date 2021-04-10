@@ -5,11 +5,11 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 let config =
-    ({ config with
-           MultilineBlockBracketsOnSameColumn = true
-           SpaceBeforeColon = true
-           SpaceBeforeSemicolon = true
-           NewlineBetweenTypeDefinitionAndMembers = true })
+    { config with
+          MultilineBlockBracketsOnSameColumn = true
+          SpaceBeforeColon = true
+          SpaceBeforeSemicolon = true
+          NewlineBetweenTypeDefinitionAndMembers = true }
 
 [<Test>]
 let ``single member record stays on one line`` () =
@@ -226,7 +226,7 @@ let ``anonymous record with multiple field update`` () =
         false
         """let a = {| foo with Level = 7; Square = 9 |}
 """
-        ({ config with MaxRecordWidth = 35 })
+        { config with MaxRecordWidth = 35 }
     |> prepend newline
     |> should
         equal
@@ -671,8 +671,8 @@ type ShortExpressionInfo =
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
     member x.Foo() = ()
 """
-        ({ config with
-               NewlineBetweenTypeDefinitionAndMembers = false })
+        { config with
+              NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -733,10 +733,7 @@ type A =
 
 [<Test>]
 let ``indent update record fields far enough, 817`` () =
-    formatSourceString
-        false
-        "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }"
-        ({ config with IndentSize = 2 })
+    formatSourceString false "let expected = { ThisIsAThing.Empty with TheNewValue = 1 }" { config with IndentSize = 2 }
     |> prepend newline
     |> should
         equal
@@ -752,7 +749,7 @@ let ``indent update anonymous record fields far enough`` () =
     formatSourceString
         false
         "let expected = {| ThisIsAThing.Empty with TheNewValue = 1 |}"
-        ({ config with IndentSize = 2 })
+        { config with IndentSize = 2 }
     |> prepend newline
     |> should
         equal

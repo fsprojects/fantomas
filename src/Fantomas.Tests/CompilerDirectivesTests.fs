@@ -461,8 +461,8 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
                    assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
 """
-        ({ config with
-               MaxInfixOperatorExpression = 75 })
+        { config with
+              MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -510,8 +510,8 @@ let ``some spacing is still lost in and around #if blocks, no defines`` () =
                    assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
 """
-        ({ config with
-               MaxInfixOperatorExpression = 75 })
+        { config with
+              MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -559,8 +559,8 @@ let ``some spacing is still lost in and around #if blocks, NETCOREAPP2_0`` () =
                    assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
 """
-        ({ config with
-               MaxInfixOperatorExpression = 75 })
+        { config with
+              MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -1413,7 +1413,7 @@ type internal Close =
   | Pause
   | Resume
 """
-        ({ config with IndentSize = 2 })
+        { config with IndentSize = 2 }
     |> prepend newline
     |> should
         equal
@@ -1453,7 +1453,7 @@ type internal Close =
   | Pause
   | Resume
 """
-        ({ config with IndentSize = 2 })
+        { config with IndentSize = 2 }
     |> prepend newline
     |> should
         equal
@@ -1493,7 +1493,7 @@ type internal Close =
   | Pause
   | Resume
 """
-        ({ config with IndentSize = 2 })
+        { config with IndentSize = 2 }
     |> prepend newline
     |> should
         equal

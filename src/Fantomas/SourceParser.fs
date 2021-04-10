@@ -753,19 +753,19 @@ let (|App|_|) e =
         function
         // function application is left-recursive
         | SynExpr.App (_, _, e, e2, _) ->
-            let (e1, es) = loop e
+            let e1, es = loop e
             (e1, e2 :: es)
         | e -> (e, [])
 
     match loop e with
-    | (_, []) -> None
-    | (e, es) -> Some(e, List.rev es)
+    | _, [] -> None
+    | e, es -> Some(e, List.rev es)
 
 // captures application with single parenthesis argument
 let (|AppSingleParenArg|_|) =
     function
     | App (SynExpr.DotGet _, [ (Paren (_, Tuple _, _, _)) ]) -> None
-    | App (e, [ (Paren (_, singleExpr, _, _) as px) ]) ->
+    | App (e, [ Paren (_, singleExpr, _, _) as px ]) ->
         match singleExpr with
         | SynExpr.Lambda _
         | SynExpr.MatchLambda _ -> None
@@ -817,26 +817,26 @@ let (|NewlineInfixApps|_|) e =
     let rec loop synExpr =
         match synExpr with
         | NewlineInfixApp (s, opE, e, e2) ->
-            let (e1, es) = loop e
+            let e1, es = loop e
             (e1, (s, opE, e2) :: es)
         | e -> (e, [])
 
     match loop e with
-    | (e, es) when (List.length es > 1) -> Some(e, List.rev es)
+    | e, es when (List.length es > 1) -> Some(e, List.rev es)
     | _ -> None
 
 let (|SameInfixApps|_|) e =
     let rec loop operator synExpr =
         match synExpr with
         | InfixApp (s, opE, e, e2) when (s = operator) ->
-            let (e1, es) = loop operator e
+            let e1, es = loop operator e
             (e1, (s, opE, e2) :: es)
         | e -> (e, [])
 
     match e with
     | InfixApp (operatorText, _, _, _) ->
         match loop operatorText e with
-        | (e, es) when (List.length es > 1) -> Some(e, List.rev es)
+        | e, es when (List.length es > 1) -> Some(e, List.rev es)
         | _ -> None
     | _ -> None
 
@@ -980,20 +980,20 @@ let (|DotIndexedGet|_|) =
 
 let (|DotGet|_|) =
     function
-    | SynExpr.DotGet (e, _, (LongIdentWithDotsPieces lids), _) -> Some(e, lids)
+    | SynExpr.DotGet (e, _, LongIdentWithDotsPieces lids, _) -> Some(e, lids)
     | _ -> None
 
 /// Match function call followed by Property
 let (|DotGetAppParen|_|) e =
     match e with
     //| App(e, [DotGet (Paren _ as p, (s,r))]) -> Some (e, p, s, r)
-    | DotGet (App (e, [ (Paren (_, Tuple _, _, _) as px) ]), lids) -> Some(e, px, lids)
-    | DotGet (App (e, [ (Paren (_, singleExpr, _, _) as px) ]), lids) ->
+    | DotGet (App (e, [ Paren (_, Tuple _, _, _) as px ]), lids) -> Some(e, px, lids)
+    | DotGet (App (e, [ Paren (_, singleExpr, _, _) as px ]), lids) ->
         match singleExpr with
         | SynExpr.Lambda _
         | SynExpr.MatchLambda _ -> None
         | _ -> Some(e, px, lids)
-    | DotGet (App (e, [ (ConstExpr (SynConst.Unit, _) as px) ]), lids) -> Some(e, px, lids)
+    | DotGet (App (e, [ ConstExpr (SynConst.Unit, _) as px ]), lids) -> Some(e, px, lids)
     | _ -> None
 
 /// Gather series of application for line breaking
@@ -1097,7 +1097,7 @@ let (|PatOr|_|) =
 
 let rec (|PatOrs|_|) =
     function
-    | PatOr (PatOrs (pats), p2) -> Some [ yield! pats; yield p2 ]
+    | PatOr (PatOrs pats, p2) -> Some [ yield! pats; yield p2 ]
     | PatOr (p1, p2) -> Some [ p1; p2 ]
     | _ -> None
 
@@ -1190,7 +1190,7 @@ let (|PatExplicitCtor|_|) =
     | SynPat.LongIdent (LongIdentWithDots.LongIdentWithDots ([ newIdent ], _),
                         _,
                         _,
-                        SynArgPats.Pats ([ PatParen _ as pat ]),
+                        SynArgPats.Pats [ PatParen _ as pat ],
                         ao,
                         _) when (newIdent.idText = "new") -> Some(ao, pat)
     | _ -> None
@@ -1508,7 +1508,7 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) =
     | SynMemberSig.NestedType (tds, _) -> MSNestedType tds
 
 let (|Val|)
-    (ValSpfn (ats, ((IdentOrKeyword (OpNameFullInPattern (s, _)) as ident)), tds, t, vi, isInline, _, px, ao, _, _))
+    (ValSpfn (ats, (IdentOrKeyword (OpNameFullInPattern (s, _)) as ident), tds, t, vi, isInline, _, px, ao, _, _))
     =
     (ats, px, ao, s, ident.idRange, t, vi, isInline, tds)
 
@@ -1516,8 +1516,8 @@ let (|Val|)
 
 let (|RecordFieldName|) ((LongIdentWithDots s, _): RecordFieldName, eo: SynExpr option, _) = (s, eo)
 
-let (|AnonRecordFieldName|) ((Ident s): Ident, e: SynExpr) = (s, e)
-let (|AnonRecordFieldType|) ((Ident s): Ident, t: SynType) = (s, t)
+let (|AnonRecordFieldName|) (Ident s: Ident, e: SynExpr) = (s, e)
+let (|AnonRecordFieldType|) (Ident s: Ident, t: SynType) = (s, t)
 
 let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), p) = (s1, s2, p)
 
@@ -1570,15 +1570,15 @@ let getRangesFromAttributesFromModuleDeclaration (mdl: SynModuleDecl) : Range li
         |> List.collect
             (fun t ->
                 match t with
-                | SynTypeDefn.TypeDefn ((SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _)), _, _, _) ->
+                | SynTypeDefn.TypeDefn (SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _) ->
                     collectAttributesRanges attrs)
-    | SynModuleDecl.NestedModule ((SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _)), _, _, _, _) ->
+    | SynModuleDecl.NestedModule (SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _, _) ->
         collectAttributesRanges attrs
     | _ -> List.empty
 
 let getRangesFromAttributesFromSynModuleSigDeclaration (sdl: SynModuleSigDecl) =
     match sdl with
-    | SynModuleSigDecl.NestedModule ((SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _)), _, _, _)
+    | SynModuleSigDecl.NestedModule (SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _)
     | SynModuleSigDecl.Types (SynTypeDefnSig.TypeDefnSig (SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _),
                                                           _,
                                                           _,
@@ -1609,7 +1609,7 @@ let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
     let upperOrLower (v: string) =
         let isUpper =
             Seq.tryHead v
-            |> Option.map (Char.IsUpper)
+            |> Option.map Char.IsUpper
             |> Option.defaultValue false
 
         if isUpper then
@@ -1618,7 +1618,7 @@ let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
             LowercaseSynExpr
 
     match synExpr with
-    | SynExpr.Ident (Ident (id)) -> upperOrLower id
+    | SynExpr.Ident (Ident id) -> upperOrLower id
 
     | SynExpr.LongIdent (_, LongIdentWithDots lid, _, _) ->
         let lastPart = Array.tryLast (lid.Split('.'))
@@ -1627,7 +1627,7 @@ let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
         | Some lp -> upperOrLower lp
         | None -> LowercaseSynExpr
 
-    | SynExpr.DotGet (_, _, LongIdentWithDots (lid), _) -> upperOrLower lid
+    | SynExpr.DotGet (_, _, LongIdentWithDots lid, _) -> upperOrLower lid
 
     | SynExpr.DotIndexedGet (expr, _, _, _)
     | SynExpr.TypeApp (expr, _, _, _, _, _, _) -> (|UppercaseSynExpr|LowercaseSynExpr|) expr
@@ -1637,7 +1637,7 @@ let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
     let upperOrLower (v: string) =
         let isUpper =
             Seq.tryHead v
-            |> Option.map (Char.IsUpper)
+            |> Option.map Char.IsUpper
             |> Option.defaultValue false
 
         if isUpper then
@@ -1658,28 +1658,28 @@ let isFunctionBinding (p: SynPat) =
 
 let (|ElmishReactWithoutChildren|_|) e =
     match e with
-    | App (OptVar (ident, _, _), [ (ArrayOrList (isArray, children, _) as aolEx) ])
-    | App (OptVar (ident, _, _), [ (ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as aolEx) ]) ->
+    | App (OptVar (ident, _, _), [ ArrayOrList (isArray, children, _) as aolEx ])
+    | App (OptVar (ident, _, _), [ ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as aolEx ]) ->
         Some(ident, isArray, children, aolEx.Range)
-    | App (OptVar (ident, _, _), [ (ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as aolEx) ]) ->
+    | App (OptVar (ident, _, _), [ ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as aolEx ]) ->
         Some(ident, isArray, [ singleChild ], aolEx.Range)
     | _ -> None
 
 let (|ElmishReactWithChildren|_|) e =
     match e with
-    | App (OptVar (ident), [ ArrayOrList _ as attributes; ArrayOrList (isArray, children, _) as childrenNode ]) ->
+    | App (OptVar ident, [ ArrayOrList _ as attributes; ArrayOrList (isArray, children, _) as childrenNode ]) ->
         Some(ident, attributes, (isArray, children, childrenNode.Range))
-    | App (OptVar (ident),
+    | App (OptVar ident,
            [ ArrayOrListOfSeqExpr _ as attributes;
              ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as childrenNode ]) ->
         Some(ident, attributes, (isArray, children, childrenNode.Range))
-    | App (OptVar (ident),
+    | App (OptVar ident,
            [ ArrayOrListOfSeqExpr _ as attributes;
              ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ])
-    | App (OptVar (ident),
+    | App (OptVar ident,
            [ ArrayOrList _ as attributes; ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ]) ->
         Some(ident, attributes, (isArray, [ singleChild ], childrenNode.Range))
-    | App (OptVar (ident), [ ArrayOrListOfSeqExpr _ as attributes; ArrayOrList (isArray, [], _) as childrenNode ]) ->
+    | App (OptVar ident, [ ArrayOrListOfSeqExpr _ as attributes; ArrayOrList (isArray, [], _) as childrenNode ]) ->
         Some(ident, attributes, (isArray, [], childrenNode.Range))
 
     | _ -> None

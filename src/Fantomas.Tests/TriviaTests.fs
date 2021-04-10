@@ -46,7 +46,7 @@ let a = 9
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (lineComment)) ] } ] -> lineComment == "// meh"
+    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine lineComment) ] } ] -> lineComment == "// meh"
     | _ -> failwith "Expected line comment"
 
 [<Test>]
@@ -59,7 +59,7 @@ let a = 'c'
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (lineComment)) ] } ] -> lineComment == "// foo"
+    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine lineComment) ] } ] -> lineComment == "// foo"
     | _ -> failwith "Expected line comment"
 
 [<Test>]
@@ -68,8 +68,8 @@ let ``line comment on same line, is after last AST item`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
-          ContentAfter = [ Comment (LineCommentAfterSourceCode (lineComment)) ] } ] -> lineComment == "// should be 8"
+    | [ { Type = MainNode SynModuleOrNamespace_AnonModule
+          ContentAfter = [ Comment (LineCommentAfterSourceCode lineComment) ] } ] -> lineComment == "// should be 8"
     | _ -> fail ()
 
 [<Test>]
@@ -101,7 +101,7 @@ let a = 7
 // bar"""
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (comments)) ] } ] ->
+    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine comments) ] } ] ->
         String.normalizeNewLine comments
         == expectedComment
     | _ -> fail ()
@@ -118,7 +118,7 @@ let ``comments inside record`` () =
 
     match triviaNodes with
     | [ { Type = TriviaNodeType.Token (LBRACE, _)
-          ContentAfter = [ Comment (LineCommentAfterSourceCode ("// foo")) ] } ] -> pass ()
+          ContentAfter = [ Comment (LineCommentAfterSourceCode "// foo") ] } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -132,8 +132,8 @@ let ``comment after all source code`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { Type = MainNode (mn)
-          ContentAfter = [ Comment (LineCommentOnSingleLine (lineComment)) ] } ] ->
+    | [ { Type = MainNode mn
+          ContentAfter = [ Comment (LineCommentOnSingleLine lineComment) ] } ] ->
         mn == SynModuleDecl_Types
 
         lineComment
@@ -262,7 +262,7 @@ let a =  b + c
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (comment)) ] } ] -> comment == "// (* meh *)"
+    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine comment) ] } ] -> comment == "// (* meh *)"
     | _ -> failwith "Expected line comment"
 
 [<Test>]
@@ -292,13 +292,13 @@ elif true then ()"""
 
     match triviaNodes with
     | [ { Type = Token (IF, _)
-          ContentItself = Some (Keyword ({ Content = "if" })) };
+          ContentItself = Some (Keyword { Content = "if" }) };
         { Type = Token (THEN, _)
-          ContentItself = Some (Keyword ({ Content = "then" })) };
+          ContentItself = Some (Keyword { Content = "then" }) };
         { Type = Token (ELIF, _)
-          ContentItself = Some (Keyword ({ Content = "elif" })) };
+          ContentItself = Some (Keyword { Content = "elif" }) };
         { Type = Token (THEN, _)
-          ContentItself = Some (Keyword ({ Content = "then" })) } ] -> pass ()
+          ContentItself = Some (Keyword { Content = "then" }) } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -316,14 +316,14 @@ doSomething()
     let withoutDefine = Map.find [] triviaNodes
 
     match withoutDefine with
-    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
-          ContentBefore = [ Directive ("#if NOT_DEFINED\n#else") ]
-          ContentAfter = [ Directive ("#endif") ] } ] -> pass ()
+    | [ { Type = MainNode SynModuleOrNamespace_AnonModule
+          ContentBefore = [ Directive "#if NOT_DEFINED\n#else" ]
+          ContentAfter = [ Directive "#endif" ] } ] -> pass ()
     | _ -> fail ()
 
     match withDefine with
-    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
-          ContentBefore = [ Directive ("#if NOT_DEFINED"); Directive ("#else"); Directive ("#endif") ]
+    | [ { Type = MainNode SynModuleOrNamespace_AnonModule
+          ContentBefore = [ Directive "#if NOT_DEFINED"; Directive "#else"; Directive "#endif" ]
           ContentAfter = [] } ] -> pass ()
     | _ -> fail ()
 
@@ -341,18 +341,18 @@ let x = 1
     let withoutDefine = Map.find [] triviaNodes
 
     match withoutDefine with
-    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
-          ContentAfter = [ Directive ("#if NOT_DEFINED\n\n#endif") ]
+    | [ { Type = MainNode SynModuleOrNamespace_AnonModule
+          ContentAfter = [ Directive "#if NOT_DEFINED\n\n#endif" ]
           ContentBefore = [] } ] -> pass ()
     | _ -> fail ()
 
     match withDefine with
-    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
-          ContentBefore = [ Directive ("#if NOT_DEFINED") ]
+    | [ { Type = MainNode SynModuleOrNamespace_AnonModule
+          ContentBefore = [ Directive "#if NOT_DEFINED" ]
           ContentAfter = [] };
-        { Type = MainNode (SynModuleDecl_Let)
+        { Type = MainNode SynModuleDecl_Let
           ContentBefore = []
-          ContentAfter = [ Directive ("#endif") ] } ] -> pass ()
+          ContentAfter = [ Directive "#endif" ] } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -370,8 +370,8 @@ type ExtensibleDumper = A | B
     let trivias = Map.find [ "DEBUG" ] triviaNodes
 
     match trivias with
-    | [ { Type = MainNode (Ident_)
-          ContentAfter = [ Directive ("#if EXTENSIBLE_DUMPER\n#if DEBUG\n\n#endif\n#endif") ] } ] -> pass ()
+    | [ { Type = MainNode Ident_
+          ContentAfter = [ Directive "#if EXTENSIBLE_DUMPER\n#if DEBUG\n\n#endif\n#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" trivias)
 
 [<Test>]
@@ -400,8 +400,8 @@ let foo = 42
         toTriviaWithDefines source |> Map.find []
 
     match trivia with
-    | [ { Type = MainNode (SynModuleOrNamespace_AnonModule)
-          ContentAfter = [ Directive ("#if SOMETHING\n\n#endif") ] } ] -> pass ()
+    | [ { Type = MainNode SynModuleOrNamespace_AnonModule
+          ContentAfter = [ Directive "#if SOMETHING\n\n#endif" ] } ] -> pass ()
     | _ -> fail ()
 
 
@@ -411,9 +411,9 @@ let ``if keyword should be keyword itself`` () =
     let trivia = toTrivia source |> List.head
 
     match trivia with
-    | [ { ContentItself = Some (Keyword ({ TokenInfo = { TokenName = "IF" } }))
+    | [ { ContentItself = Some (Keyword { TokenInfo = { TokenName = "IF" } })
           Type = TriviaNodeType.Token (IF, _) };
-        { ContentItself = Some (Keyword ({ TokenInfo = { TokenName = "THEN" } }))
+        { ContentItself = Some (Keyword { TokenInfo = { TokenName = "THEN" } })
           Type = TriviaNodeType.Token (THEN, _) } ] -> pass ()
     | _ -> fail ()
 
@@ -432,8 +432,8 @@ with empty lines"
     let trivia = toTrivia source |> List.head
 
     match trivia with
-    | [ { ContentItself = Some (StringContent (sc))
-          Type = TriviaNodeType.MainNode (SynConst_String) } ] -> sc == sprintf "\"%s\"" multilineString
+    | [ { ContentItself = Some (StringContent sc)
+          Type = TriviaNodeType.MainNode SynConst_String } ] -> sc == sprintf "\"%s\"" multilineString
     | _ -> fail ()
 
 [<Test>]
@@ -452,8 +452,8 @@ with empty lines"
     let trivia = toTrivia source |> List.head
 
     match trivia with
-    | [ { ContentItself = Some (StringContent (sc))
-          Type = TriviaNodeType.MainNode (SynConst_String) } ] -> sc == sprintf "\"\"\"%s\"\"\"" multilineString
+    | [ { ContentItself = Some (StringContent sc)
+          Type = TriviaNodeType.MainNode SynConst_String } ] -> sc == sprintf "\"\"\"%s\"\"\"" multilineString
     | _ -> fail ()
 
 [<Test>]
@@ -462,8 +462,8 @@ let ``char content`` () =
     let trivia = toTrivia source |> List.head
 
     match trivia with
-    | [ { ContentItself = Some (CharContent ("\'\\u0000\'"))
-          Type = TriviaNodeType.MainNode (SynConst_Char) } ] -> pass ()
+    | [ { ContentItself = Some (CharContent "\'\\u0000\'")
+          Type = TriviaNodeType.MainNode SynConst_Char } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]
@@ -507,7 +507,7 @@ type LongIdentWithDots =
 /// LongIdent can be empty list - it is used to denote that name of some AST element is absent (i.e. empty type name in inherit)"""
 
     match trivia with
-    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine (comment)) ] } ] ->
+    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine comment) ] } ] ->
         String.normalizeNewLine comment == expectedComment
     | _ -> fail ()
 
@@ -518,7 +518,7 @@ let ``number expression`` () =
     let trivia = toTrivia source |> List.head
 
     match trivia with
-    | [ { ContentItself = Some (Number (n))
+    | [ { ContentItself = Some (Number n)
           Type = TriviaNodeType.MainNode _ } ] -> n == "2.0m"
     | _ -> fail ()
 

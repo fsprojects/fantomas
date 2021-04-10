@@ -69,7 +69,7 @@ let isInExcludedDir (fullPath: string) =
            ".fable"
            "node_modules" |]
     |> Set.map (fun dir -> sprintf "%c%s%c" Path.DirectorySeparatorChar dir Path.DirectorySeparatorChar)
-    |> Set.exists (fullPath.Contains)
+    |> Set.exists fullPath.Contains
 
 let isFSharpFile (s: string) =
     Set.contains (Path.GetExtension s) extensions
@@ -87,7 +87,7 @@ let rec allFiles isRec path =
         (fun f ->
             isFSharpFile f
             && not (isInExcludedDir f)
-            && not (IgnoreFile.isIgnoredFile (f)))
+            && not (IgnoreFile.isIgnoredFile f))
 
 /// Fantomas assumes the input files are UTF-8
 /// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
@@ -207,12 +207,12 @@ let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
     | InputPath.File f when (IgnoreFile.isIgnoredFile f) ->
         printfn "'%s' was ignored" f
         0
-    | InputPath.File (path) ->
+    | InputPath.File path ->
         path
         |> Seq.singleton
         |> check
         |> processCheckResult
-    | InputPath.Folder (path) ->
+    | InputPath.Folder path ->
         path
         |> allFiles recurse
         |> check

@@ -90,8 +90,8 @@ type Type
             | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
             | TyVar a -> a
             | TyCon (s, ts) -> s"""
-        ({ config with
-               NewlineBetweenTypeDefinitionAndMembers = true })
+        { config with
+              NewlineBetweenTypeDefinitionAndMembers = true }
     |> prepend newline
     |> should
         equal

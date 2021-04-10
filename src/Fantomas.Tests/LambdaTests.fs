@@ -11,9 +11,9 @@ let ``keep comment after arrow`` () =
         """_Target "FSharpTypesDotNet" (fun _ -> // obsolete
  ())
 """
-        ({ config with
-               IndentSize = 2
-               MaxLineLength = 90 })
+        { config with
+              IndentSize = 2
+              MaxLineLength = 90 }
     |> prepend newline
     |> should
         equal
@@ -111,7 +111,7 @@ let a =
     |> List.exists (fun p ->
         x && someVeryLongIdentifierrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrzzzz___________)
 """
-        ({ config with MaxLineLength = 80 })
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -233,7 +233,7 @@ let ``short ident in nested let binding`` () =
                 let b = 8
                 b)
 """
-        ({ config with IndentSize = 2 })
+        { config with IndentSize = 2 }
     |> prepend newline
     |> should
         equal
@@ -300,8 +300,8 @@ let ``line comment after lambda should not necessary make it multiline`` () =
         false
         """let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
 """
-        ({ config with
-               MaxFunctionBindingWidth = 150 })
+        { config with
+              MaxFunctionBindingWidth = 150 }
     |> prepend newline
     |> should
         equal
@@ -432,15 +432,15 @@ let projectIntoMap projection =
          state
          |> Map.add eventEnvelope.Metadata.Source newState
 """
-        ({ config with
-               IndentSize = 2
-               SpaceBeforeUppercaseInvocation = true
-               SpaceBeforeColon = true
-               SpaceAfterComma = false
-               SpaceAroundDelimiter = false
-               MaxInfixOperatorExpression = 40
-               MaxFunctionBindingWidth = 60
-               MultilineBlockBracketsOnSameColumn = true })
+        { config with
+              IndentSize = 2
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeColon = true
+              SpaceAfterComma = false
+              SpaceAroundDelimiter = false
+              MaxInfixOperatorExpression = 40
+              MaxFunctionBindingWidth = 60
+              MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal

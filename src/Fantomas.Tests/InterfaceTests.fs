@@ -193,10 +193,10 @@ type MyLogInteface() =
                 sprintf "date-%s.log" environment
         member x.Info () = ()
         override x.Version () = ()"""
-        ({ config with
-               MaxLineLength = 119
-               MaxFunctionBindingWidth = 120
-               MaxIfThenElseShortWidth = 80 })
+        { config with
+              MaxLineLength = 119
+              MaxFunctionBindingWidth = 120
+              MaxIfThenElseShortWidth = 80 }
     |> prepend newline
     |> should
         equal

@@ -82,7 +82,7 @@ let private tokenizeLines (sourceTokenizer: FSharpSourceTokenizer) allLines stat
     |> snd // ignore the state
 
 let private createHashToken lineNumber content offset =
-    let (left, right) = offset, String.length content + offset
+    let left, right = offset, String.length content + offset
 
     { LineNumber = lineNumber
       Content = content
@@ -107,7 +107,7 @@ type SourceCodeState =
 type SourceCodeParserState =
     { State: SourceCodeState
       NewlineIndexes: int list
-      Defines: (Token list) list }
+      Defines: Token list list }
 
 let rec private getTokenizedHashes (sourceCode: string) : Token list =
     let hasNoHashDirectiveStart (source: string) = not (source.Contains("#if"))
@@ -488,14 +488,14 @@ let private numberTrivia =
       "NATIVEINT"
       "UNATIVEINT" ]
 
-let private isOperatorOrKeyword ({ TokenInfo = { CharClass = cc } }) =
+let private isOperatorOrKeyword { TokenInfo = { CharClass = cc } } =
     cc = FSharpTokenCharKind.Keyword
     || cc = FSharpTokenCharKind.Operator
 
 let private onlyNumberRegex =
     System.Text.RegularExpressions.Regex(@"^\d+$")
 
-let private isNumber ({ TokenInfo = tn; Content = content }) =
+let private isNumber { TokenInfo = tn; Content = content } =
     tn.ColorClass = FSharpTokenColorKind.Number
     && List.contains tn.TokenName numberTrivia
     && not (onlyNumberRegex.IsMatch(content))
@@ -530,8 +530,8 @@ let escapedCharacterRegex =
 
 let rec private (|EndOfInterpolatedString|_|) tokens =
     match tokens with
-    | StringTextToken (stToken) :: InterpStringEndOrPartToken (endToken) :: rest -> Some([ stToken ], endToken, rest)
-    | StringTextToken (stToken) :: EndOfInterpolatedString (stringTokens, endToken, rest) ->
+    | StringTextToken stToken :: InterpStringEndOrPartToken endToken :: rest -> Some([ stToken ], endToken, rest)
+    | StringTextToken stToken :: EndOfInterpolatedString (stringTokens, endToken, rest) ->
         Some(stToken :: stringTokens, endToken, rest)
     | _ -> None
 
@@ -605,7 +605,7 @@ let private extractContentPreservingNewLines (tokens: Token list) =
         function
         | [] -> result
         | [ final ] -> final.Content :: result
-        | current :: ((next :: _) as rest) when (current.LineNumber <> next.LineNumber) ->
+        | current :: (next :: _ as rest) when (current.LineNumber <> next.LineNumber) ->
             let delta = next.LineNumber - current.LineNumber
 
             let newlines =
@@ -656,7 +656,7 @@ let private (|LineComments|_|) (tokens: Token list) =
 
     match tokens with
     | LineComment h :: _ ->
-        collect tokens (h.LineNumber) []
+        collect tokens h.LineNumber []
         |> fun commentTokens -> Some(List.rev commentTokens, List.skip commentTokens.Length tokens)
     | _ -> None
 
@@ -695,7 +695,7 @@ let private (|EmbeddedILTokens|_|) (tokens: Token list) =
 
 let rec private (|HashTokens|_|) (tokens: Token list) =
     match tokens with
-    | ({ TokenInfo = { TokenName = "HASH_IF" } } as head) :: rest ->
+    | { TokenInfo = { TokenName = "HASH_IF" } } as head :: rest ->
         let tokensFromSameLine =
             List.takeWhile (fun t -> t.LineNumber = head.LineNumber) rest
 
@@ -729,10 +729,10 @@ let rec private getTriviaFromTokensThemSelves
 
         let isAfterSourceCode =
             match prevButOneToken, prevToken with
-            | Some ({ LineNumber = ncln }), Some (WhiteSpaceToken _) ->
+            | Some { LineNumber = ncln }, Some (WhiteSpaceToken _) ->
                 // IDENT WHITESPACE LINE_COMMENT
                 ncln = headLineNumber
-            | Some ({ LineNumber = l1 }), Some ({ LineNumber = l2 }) ->
+            | Some { LineNumber = l1 }, Some { LineNumber = l2 } ->
                 // IDENT LINE_COMMENT
                 headLineNumber = l1 && headLineNumber = l2
             | _ -> false
@@ -828,8 +828,8 @@ let rec private getTriviaFromTokensThemSelves
                 |> List.groupBy (fun t -> t.LineNumber)
 
             let newLines =
-                let (min, _) = List.minBy fst groupedByLineNumber
-                let (max, _) = List.maxBy fst groupedByLineNumber
+                let min, _ = List.minBy fst groupedByLineNumber
+                let max, _ = List.maxBy fst groupedByLineNumber
 
                 [ min .. max ]
                 |> List.filter (fun l -> not (List.exists (fst >> ((=) l)) groupedByLineNumber))
@@ -988,7 +988,7 @@ let rec private getTriviaFromTokensThemSelves
 
         getTriviaFromTokensThemSelves mkRange allTokens rest info
 
-    | CharToken (head) :: rest ->
+    | CharToken head :: rest ->
         let range = getRangeBetween mkRange head head
 
         let info =
@@ -1060,9 +1060,9 @@ let getTriviaFromTokens (mkRange: MkRange) (tokens: Token list) =
         |> List.choose
             (fun tc ->
                 match tc.Item with
-                | Directive (dc) when (isMultilineString dc) -> Some tc.Range
+                | Directive dc when (isMultilineString dc) -> Some tc.Range
                 | Comment (BlockComment _) -> Some tc.Range
-                | StringContent (sc) when (isMultilineString sc) -> Some tc.Range
+                | StringContent sc when (isMultilineString sc) -> Some tc.Range
                 | _ -> None)
 
     let newLines =

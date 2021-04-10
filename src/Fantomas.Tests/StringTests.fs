@@ -9,8 +9,8 @@ let ``triple-quoted strings`` () =
     formatSourceString
         false
         "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\""
-        ({ config with
-               MaxValueBindingWidth = 60 })
+        { config with
+              MaxValueBindingWidth = 60 }
     |> should
         equal
         "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"
@@ -24,8 +24,8 @@ let ``string literals`` () =
 let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
 let str1 = "abc"
     """
-        ({ config with
-               MaxValueBindingWidth = 60 })
+        { config with
+              MaxValueBindingWidth = 60 }
     |> prepend newline
     |> should
         equal
@@ -224,7 +224,7 @@ let ``quotes should be escaped in strict mode`` () =
         // escape commas left in invalid entries
         sprintf "%i,\"%s\""
 """
-        ({ config with StrictMode = true })
+        { config with StrictMode = true }
     |> should
         equal
         """let formatter = sprintf "%i,\"%s\""

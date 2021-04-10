@@ -343,7 +343,7 @@ module C =
   [<DllImport("")>]
   extern IntPtr f()
 """
-        ({ config with StrictMode = true })
+        { config with StrictMode = true }
     |> prepend newline
     |> should
         equal
@@ -368,11 +368,11 @@ let main argv =
     |> Array.map getJsonNetJson |> Array.iter (printfn "%s")
     0 // return an integer exit code
 """
-        ({ config with
-               SpaceAfterComma = false
-               SpaceAfterSemicolon = false
-               SpaceAroundDelimiter = false
-               SpaceBeforeLowercaseInvocation = false })
+        { config with
+              SpaceAfterComma = false
+              SpaceAfterSemicolon = false
+              SpaceAroundDelimiter = false
+              SpaceBeforeLowercaseInvocation = false }
     |> prepend newline
     |> should
         equal

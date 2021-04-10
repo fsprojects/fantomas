@@ -16,8 +16,8 @@ let ``should not confuse me with an extra space at end of line v2`` () =
     formatSourceString
         false
         codeSnippet
-        ({ config with
-               MaxInfixOperatorExpression = 90 })
+        { config with
+              MaxInfixOperatorExpression = 90 }
     |> should
         equal
         """let ``should not extrude without positive distance`` () =

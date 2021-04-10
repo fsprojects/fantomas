@@ -106,9 +106,9 @@ let ``range expressions`` () =
 let factors number =
     {2L .. number / 2L}
     |> Seq.filter (fun x -> number % x = 0L)"""
-        ({ config with
-               MaxInfixOperatorExpression = 65
-               MaxFunctionBindingWidth = 65 })
+        { config with
+              MaxInfixOperatorExpression = 65
+              MaxFunctionBindingWidth = 65 }
     |> prepend newline
     |> should
         equal
@@ -1594,11 +1594,11 @@ let ``new line between let and let bang, 879`` () =
               return! loop ()
         }
 """
-        ({ config with
-               SpaceBeforeUppercaseInvocation = true
-               IndentSize = 2
-               SpaceAroundDelimiter = false
-               MultilineBlockBracketsOnSameColumn = true })
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              IndentSize = 2
+              SpaceAroundDelimiter = false
+              MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal

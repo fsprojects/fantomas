@@ -18,7 +18,7 @@ let ``ignore all fs files`` () =
     use ignoreFixture = new FantomasIgnoreFile("*.fs")
     use outputFixture = new OutputFile()
 
-    let (exitCode, _) =
+    let exitCode, _ =
         sprintf "--out %s %s" outputFixture.Filename inputFixture.Filename
         |> runFantomasTool
 
@@ -36,7 +36,7 @@ let ``ignore specific file`` () =
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
-    let (exitCode, output) = runFantomasTool inputFixture.Filename
+    let exitCode, output = runFantomasTool inputFixture.Filename
     exitCode |> should equal 0
 
     printfn "%s" output
@@ -52,7 +52,7 @@ let ``don't ignore other files`` () =
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
-    let (exitCode, output) = runFantomasTool inputFixture.Filename
+    let exitCode, output = runFantomasTool inputFixture.Filename
     exitCode |> should equal 0
 
     output |> should contain "Processing"
@@ -69,7 +69,7 @@ let ``ignore file in folder`` () =
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
-    let (exitCode, _) =
+    let exitCode, _ =
         runFantomasTool (sprintf ".%c%s" Path.DirectorySeparatorChar subFolder)
 
     exitCode |> should equal 0
@@ -86,7 +86,7 @@ let ``ignore file while checking`` () =
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
-    let (exitCode, output) =
+    let exitCode, output =
         sprintf "%s --check" inputFixture.Filename
         |> runFantomasTool
 
@@ -104,7 +104,7 @@ let ``ignore file in folder while checking`` () =
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
-    let (exitCode, _) =
+    let exitCode, _ =
         runFantomasTool (sprintf ".%c%s --check" Path.DirectorySeparatorChar subFolder)
 
     exitCode |> should equal 0

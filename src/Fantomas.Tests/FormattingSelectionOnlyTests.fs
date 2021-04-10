@@ -95,9 +95,9 @@ let source = "
       done;;
     Multiple9x9 ();;"
 """
-        ({ config with
-               MaxValueBindingWidth = 120
-               MaxRecordWidth = 50 })
+        { config with
+              MaxValueBindingWidth = 120
+              MaxRecordWidth = 50 }
     |> should equal """let config = { FormatConfig.Default with IndentSpaceNum = 2 }"""
 
 [<Test>]

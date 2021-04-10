@@ -102,7 +102,7 @@ module private Ast =
                 [ mkNode SynModuleDecl_HashDirective range
                   visitParsedHashDirective hash ]
                 |> finalContinuation
-            | SynModuleDecl.NamespaceFragment (moduleOrNamespace) ->
+            | SynModuleDecl.NamespaceFragment moduleOrNamespace ->
                 visitSynModuleOrNamespace moduleOrNamespace
                 |> finalContinuation
 
@@ -202,7 +202,7 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.ForEach (_, (SeqExprOnly _), _, pat, enumExpr, bodyExpr, range) ->
+            | SynExpr.ForEach (_, SeqExprOnly _, _, pat, enumExpr, bodyExpr, range) ->
                 let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit enumExpr; visit bodyExpr ]
 
@@ -327,7 +327,7 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.Ident (id) ->
+            | SynExpr.Ident id ->
                 mkNode SynExpr_Ident (i id).Range
                 |> List.singleton
                 |> finalContinuation
@@ -445,7 +445,7 @@ module private Ast =
                     (fun nodes ->
                         mkNode SynExpr_InferredDowncast range :: nodes
                         |> finalContinuation)
-            | SynExpr.Null (range) ->
+            | SynExpr.Null range ->
                 mkNode SynExpr_Null range
                 |> List.singleton
                 |> finalContinuation
@@ -474,7 +474,7 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.ImplicitZero (range) ->
+            | SynExpr.ImplicitZero range ->
                 mkNode SynExpr_ImplicitZero range
                 |> List.singleton
                 |> finalContinuation
@@ -657,7 +657,7 @@ module private Ast =
             visitSynTypeDefnKind kind
             @ (members |> List.collect visitSynMemberSig)
         | SynTypeDefnSigRepr.Simple (simpleRepr, _) -> (visitSynTypeDefnSimpleRepr simpleRepr)
-        | SynTypeDefnSigRepr.Exception (exceptionRepr) -> visitSynExceptionDefnRepr exceptionRepr
+        | SynTypeDefnSigRepr.Exception exceptionRepr -> visitSynExceptionDefnRepr exceptionRepr
 
     and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNodeAssigner list =
         match mbrDef with
@@ -825,7 +825,7 @@ module private Ast =
             | SynPat.Const (sc, range) ->
                 List.singleton (visitSynConst range sc)
                 |> finalContinuation
-            | SynPat.Wild (range) ->
+            | SynPat.Wild range ->
                 mkNode SynPat_Wild range
                 |> List.singleton
                 |> finalContinuation
@@ -911,7 +911,7 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynPat.Null (range) ->
+            | SynPat.Null range ->
                 mkNode SynPat_Null range
                 |> List.singleton
                 |> finalContinuation
@@ -944,7 +944,7 @@ module private Ast =
 
     and visitSynConstructorArgs (ctorArgs: SynArgPats) : TriviaNodeAssigner list =
         match ctorArgs with
-        | Pats (pats) -> List.collect visitSynPat pats
+        | Pats pats -> List.collect visitSynPat pats
         | NamePatPairs (pats, range) ->
             mkNode NamePatPairs_ range
             :: (List.collect (snd >> visitSynPat) pats)
@@ -954,7 +954,7 @@ module private Ast =
         | ComponentInfo (attribs, typeParams, _, _, _, _, _, range) ->
             [ yield mkNode ComponentInfo_ range
               yield! (visitSynAttributeLists range attribs)
-              yield! (typeParams |> List.collect (visitSynTyparDecl)) ]
+              yield! (typeParams |> List.collect visitSynTyparDecl) ]
 
     and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : TriviaNodeAssigner list =
         match stdr with
@@ -962,7 +962,7 @@ module private Ast =
             visitSynTypeDefnKind kind
             @ (members |> List.collect visitSynMemberDefn)
         | SynTypeDefnRepr.Simple (simpleRepr, _) -> visitSynTypeDefnSimpleRepr simpleRepr
-        | SynTypeDefnRepr.Exception (exceptionRepr) -> visitSynExceptionDefnRepr exceptionRepr
+        | SynTypeDefnRepr.Exception exceptionRepr -> visitSynExceptionDefnRepr exceptionRepr
 
     and visitSynTypeDefnKind (kind: SynTypeDefnKind) : TriviaNodeAssigner list =
         match kind with
@@ -980,7 +980,7 @@ module private Ast =
 
     and visitSynTypeDefnSimpleRepr (arg: SynTypeDefnSimpleRepr) =
         match arg with
-        | SynTypeDefnSimpleRepr.None (range) ->
+        | SynTypeDefnSimpleRepr.None range ->
             mkNode SynTypeDefnSimpleRepr_None range
             |> List.singleton
         | SynTypeDefnSimpleRepr.Union (_, unionCases, range) ->
@@ -1001,7 +1001,7 @@ module private Ast =
         | SynTypeDefnSimpleRepr.TypeAbbrev (_, typ, range) ->
             mkNode SynTypeDefnSimpleRepr_TypeAbbrev range
             :: (visitSynType typ)
-        | SynTypeDefnSimpleRepr.Exception (edr) -> visitSynExceptionDefnRepr edr
+        | SynTypeDefnSimpleRepr.Exception edr -> visitSynExceptionDefnRepr edr
 
     and visitSynExceptionDefn (exceptionDef: SynExceptionDefn) : TriviaNodeAssigner list =
         match exceptionDef with
@@ -1047,7 +1047,7 @@ module private Ast =
 
     and visitSynUnionCaseType (uct: SynUnionCaseType) =
         match uct with
-        | UnionCaseFields (cases) -> List.collect visitSynField cases
+        | UnionCaseFields cases -> List.collect visitSynField cases
         | UnionCaseFullType (stype, valInfo) -> visitSynType stype @ visitSynValInfo valInfo
 
     and visitSynEnumCase (sec: SynEnumCase) : TriviaNodeAssigner list =
@@ -1075,7 +1075,7 @@ module private Ast =
             (finalContinuation: TriviaNodeAssigner list -> TriviaNodeAssigner list)
             : TriviaNodeAssigner list =
             match st with
-            | SynType.LongIdent (li) -> visitLongIdentWithDots li |> finalContinuation
+            | SynType.LongIdent li -> visitLongIdentWithDots li |> finalContinuation
             | SynType.App (typeName, _, typeArgs, _, _, _, range) ->
                 let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield! (List.map visit typeArgs)
@@ -1128,7 +1128,7 @@ module private Ast =
                 mkNode SynType_Var range
                 :: (visitSynTypar genericName)
                 |> finalContinuation
-            | SynType.Anon (range) ->
+            | SynType.Anon range ->
                 mkNode SynType_Anon range
                 |> List.singleton
                 |> finalContinuation
@@ -1309,7 +1309,7 @@ module private Ast =
                 [ mkNode SynModuleSigDecl_HashDirective range
                   (visitParsedHashDirective hash) ]
                 |> finalContinuation
-            | SynModuleSigDecl.NamespaceFragment (moduleOrNamespace) ->
+            | SynModuleSigDecl.NamespaceFragment moduleOrNamespace ->
                 visitSynModuleOrNamespaceSig moduleOrNamespace
                 |> finalContinuation
             | SynModuleSigDecl.Exception (synExceptionSig, range) ->

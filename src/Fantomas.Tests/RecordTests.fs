@@ -256,8 +256,8 @@ let newDocument = //somecomment
       created = document.Created.ToLocalTime() }
     |> JsonConvert.SerializeObject
 """
-        ({ config with
-               MaxInfixOperatorExpression = 75 })
+        { config with
+              MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -352,7 +352,7 @@ let ``anon record`` () =
     {| Foo = 123
        Bar = "" |}
 """
-        ({ config with MaxRecordWidth = 10 })
+        { config with MaxRecordWidth = 10 }
     |> prepend newline
     |> should
         equal
@@ -371,7 +371,7 @@ let ``anon record - struct`` () =
     struct {| Foo = 123
               Bar = "" |}
 """
-        ({ config with MaxRecordWidth = 10 })
+        { config with MaxRecordWidth = 10 }
     |> prepend newline
     |> should
         equal
