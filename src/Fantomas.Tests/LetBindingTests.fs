@@ -1831,3 +1831,42 @@ type Viewport =
       longitude: float
       zoom: int }
 """
+
+[<Test>]
+let ``recursive let bindings in sequential expression, 1628`` () =
+    formatSourceString
+        false
+        """
+let foobar () =
+    Console.WriteLine("Hello")
+
+    let rec foo () = bar "Hello"
+    and bar str = printf "%s" str |> ignore
+
+    foo ()
+
+let foobar () =
+    let rec foo () = bar "Hello"
+    and bar str = printf "%s" str |> ignore
+
+    foo ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foobar () =
+    Console.WriteLine("Hello")
+
+    let rec foo () = bar "Hello"
+    and bar str = printf "%s" str |> ignore
+
+    foo ()
+
+let foobar () =
+    let rec foo () = bar "Hello"
+    and bar str = printf "%s" str |> ignore
+
+    foo ()
+"""
