@@ -780,7 +780,7 @@ let internal indentIfNeeded f (ctx: Context) =
         // this would lead to a compile error for the function application
         let missingSpaces =
             (savedColumn - ctx.FinalizeModel.Column)
-             + ctx.Config.IndentSize
+            + ctx.Config.IndentSize
 
         atIndentLevel true savedColumn (!-(String.replicate missingSpaces " ")) ctx
     else
