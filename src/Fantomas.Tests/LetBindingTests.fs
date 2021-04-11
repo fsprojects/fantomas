@@ -1903,7 +1903,7 @@ module PoorlyIndented =
                        select name
                        from things
                        where id = :id
-      "      >
+      "         >
                 dependency
 
         cmd.AsyncExecute(id = thingId)
