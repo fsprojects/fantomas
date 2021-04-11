@@ -855,7 +855,7 @@ namespace Blah
 /// Comment
 type Foo =
     /// Another
-    Foo of int
+    | Foo of int
 """
 
 [<Test>]
@@ -1515,4 +1515,27 @@ and [<CustomEquality>] Bang =
         }
         ///
         override GetHashCode : unit -> int
+"""
+
+[<Test>]
+let ``xml comment before SynTypeDefnSimpleRepr.Union should keep bar, 1563`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+type Foo =
+    /// Hi!
+    | Bar of int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+type Foo =
+    /// Hi!
+    | Bar of int
 """
