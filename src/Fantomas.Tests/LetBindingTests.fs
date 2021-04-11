@@ -1877,16 +1877,16 @@ let ```multiline type parameters in argument, 1611`` () =
     formatSourceString
         false
         """
-module PoorlyIndented = 
+module PoorlyIndented =
 
-    let findThing dependency thingId = 
-     use cmd = 
+    let findThing dependency thingId =
+     use cmd =
       query SomeDatabase.CreateCommand<"
                        select name
                        from things
                        where id = :id
       "> dependency
-   
+
      cmd.AsyncExecute(id = thingId)
 """
         config

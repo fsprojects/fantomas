@@ -779,8 +779,9 @@ let internal indentIfNeeded f (ctx: Context) =
         // of function expression being applied upon, otherwise (as known up to F# 4.7)
         // this would lead to a compile error for the function application
         let missingSpaces =
-            (savedColumn - ctx.FinalizeModel.Column + ctx.Config.IndentSize)
-
+            (savedColumn - ctx.FinalizeModel.Column)
+             + ctx.Config.IndentSize
+             
         atIndentLevel true savedColumn (!-(String.replicate missingSpaces " ")) ctx
     else
         f ctx
