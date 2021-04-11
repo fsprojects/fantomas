@@ -1870,3 +1870,41 @@ let foobar () =
 
     foo ()
 """
+
+
+[<Test>]
+let ```multiline type parameters in argument, 1611`` () =
+    formatSourceString
+        false
+        """
+module PoorlyIndented = 
+
+    let findThing dependency thingId = 
+     use cmd = 
+      query SomeDatabase.CreateCommand<"
+                       select name
+                       from things
+                       where id = :id
+      "> dependency
+   
+     cmd.AsyncExecute(id = thingId)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module PoorlyIndented =
+
+    let findThing dependency thingId =
+        use cmd =
+            query
+                SomeDatabase.CreateCommand<"
+                    select name
+                    from things
+                    where id = :id
+   "            >
+                dependency
+
+        cmd.AsyncExecute(id = thingId)
+"""
