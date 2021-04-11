@@ -202,7 +202,7 @@ let myTopLevelFunction v =
             let meh = "foo"
             a
         )
-        (fun { B = b } ->
+        (fun ({ B = b }) ->
             // probably wrong
             42
         )

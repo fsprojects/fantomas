@@ -171,7 +171,7 @@ List.filter (fun ({ ContentBefore = contentBefore }) ->
         equal
         """
 List.filter
-    (fun { ContentBefore = contentBefore } ->
+    (fun ({ ContentBefore = contentBefore }) ->
         // some comment
         let a = 8
         let b = List.length contentBefore
@@ -196,7 +196,7 @@ let a =
         equal
         """
 let a =
-    (fun { ContentBefore = contentBefore } ->
+    (fun ({ ContentBefore = contentBefore }) ->
         // some comment
         let a = 8
         let b = List.length contentBefore
@@ -800,4 +800,35 @@ fun x -> x * 42)
     )
 
 ( (* comment on first line is OK too *) fun x -> x * 42)
+"""
+
+[<Test>]
+let ``desugared union case, 1631`` () =
+    formatSourceString
+        false
+        """
+      col
+                        (fun (ArgInfo (ats, so, isOpt), t) -> sepNone)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+col (fun (ArgInfo (ats, so, isOpt), t) -> sepNone)
+"""
+
+[<Test>]
+let ``two wild args`` () =
+    formatSourceString
+        false
+        """
+fun _ _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun _ _ -> ()
 """
