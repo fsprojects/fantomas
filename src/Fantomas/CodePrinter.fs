@@ -3790,25 +3790,33 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
         // Add newline after un-indent to be spacing-correct
         +> unindent
 
-    | SigSimple (TDSRUnion (ao', xs)) ->
+    | SigSimple (TDSRUnion (ao', xs) as unionNode) ->
+        let hasLeadingTrivia (t: TriviaNode) =
+            RangeHelpers.rangeEq t.Range unionNode.Range
+            && not (List.isEmpty t.ContentBefore)
+
         let unionCases =
             match xs with
             | [] -> id
-            | [ UnionCase (attrs, _, _, _, UnionCaseType fs) as x ] when List.isEmpty ms ->
-                let hasVerticalBar =
-                    Option.isSome ao'
+            | [ UnionCase (attrs, _, _, _, UnionCaseType fields) as x ] when List.isEmpty ms ->
+                let hasVerticalBar (ctx: Context) =
+                    (Option.isSome ao' && List.length fields <> 1)
+                    || (Map.tryFindOrEmptyList SynTypeDefnSimpleRepr_Union ctx.TriviaMainNodes)
+                       |> List.exists hasLeadingTrivia
                     || not (List.isEmpty attrs)
-                    || List.isEmpty fs
+                    || List.isEmpty fields
 
                 let expr =
                     genTriviaFor
                         SynTypeDefnSimpleRepr_Union
                         tdr.Range
                         (opt sepSpace ao' genAccess
-                         +> genUnionCase
-                             { astContext with
-                                   HasVerticalBar = hasVerticalBar }
-                             x)
+                         +> (fun ctx ->
+                             genUnionCase
+                                 { astContext with
+                                       HasVerticalBar = hasVerticalBar ctx }
+                                 x
+                                 ctx))
 
                 expressionFitsOnRestOfLine (indent +> sepSpace +> expr) (indent +> sepNln +> expr)
             | xs ->
