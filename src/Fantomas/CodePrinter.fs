@@ -2843,6 +2843,7 @@ and genGenericTypeParameters astContext ts =
                     { astContext with
                           IsFirstTypeParam = idx = 0 }
                     false)
+        +> indentIfNeeded sepNone
         -- ">"
 
 and genMultilineRecordInstance
