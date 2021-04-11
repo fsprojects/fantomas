@@ -1,3 +1,9 @@
+### 4.5.0-alpha-009 - 04/2021
+
+* Fix Fantomas add extra parenthesis in desugared lambda. [#1631](https://github.com/fsprojects/fantomas/issues/1631)
+* Fix Mutually recursive functions break with function invocation above definition. [#1628](https://github.com/fsprojects/fantomas/issues/1628)
+* Fix Removal of bar in one-case DU. [#1563](https://github.com/fsprojects/fantomas/issues/1563)
+
 ### 4.5.0-alpha-008 - 04/2021
 
 * Fix Multiline type signature is not unindent. [#1624](https://github.com/fsprojects/fantomas/issues/1624)
