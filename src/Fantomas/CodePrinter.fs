@@ -1517,44 +1517,18 @@ and genExpr astContext synExpr ctx =
         | JoinIn (e1, e2) ->
             genExpr astContext e1 -- " in "
             +> genExpr astContext e2
-        | Paren (lpr, DesugaredLambda (cps, e), rpr, pr) ->
+        | Paren (lpr, Lambda (pats, expr, lambdaRange), rpr, pr) ->
             fun (ctx: Context) ->
                 let arrowRange =
-                    List.last cps
-                    |> snd
-                    |> fun lastPatRange -> ctx.MkRange lastPatRange.End e.Range.Start
+                    List.last pats
+                    |> fun lastPat -> ctx.MkRange lastPat.Range.End expr.Range.Start
 
                 let hasLineCommentAfterArrow =
                     findTriviaTokenFromName RARROW arrowRange ctx
                     |> Option.isSome
 
-                let body = genExprKeepIndentInBranch astContext e
-
-                let expr =
-                    sepOpenTFor lpr -- "fun "
-                    +> col sepSpace cps (fst >> genComplexPats astContext)
-                    +> indent
-                    +> triviaAfterArrow arrowRange
-                    +> ifElse
-                        hasLineCommentAfterArrow
-                        (body +> sepCloseTFor rpr pr)
-                        (autoNlnIfExpressionExceedsPageWidth (body +> sepCloseTFor rpr pr))
-                    +> unindent
-
-                expr ctx
-
-        | DesugaredLambda (cps, e) ->
-            !- "fun "
-            +> col sepSpace cps (fst >> genComplexPats astContext)
-            +> sepArrow
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-        | Paren (lpr, Lambda (e, sps, lambdaRange), rpr, pr) ->
-            fun (ctx: Context) ->
-                let hasLineCommentAfterArrow =
-                    findTriviaTokenFromName RARROW synExpr.Range ctx
-                    |> Option.isSome
-
-                let body = genExprKeepIndentInBranch astContext e
+                let body =
+                    genExprKeepIndentInBranch astContext expr
 
                 let expr =
                     let triviaOfLambda f (ctx: Context) =
@@ -1566,9 +1540,9 @@ and genExpr astContext synExpr ctx =
                     sepOpenTFor lpr
                     +> triviaOfLambda printContentBefore
                     -- "fun "
-                    +> col sepSpace sps (genSimplePats astContext)
+                    +> col sepSpace pats (genPat astContext)
                     +> indent
-                    +> triviaAfterArrow synExpr.Range
+                    +> triviaAfterArrow arrowRange
                     +> ifElse
                         hasLineCommentAfterArrow
                         (body +> sepCloseTFor rpr pr)
@@ -1578,12 +1552,12 @@ and genExpr astContext synExpr ctx =
                 expr ctx
 
         // When there are parentheses, most likely lambda will appear in function application
-        | Lambda (e, sps, _) ->
+        | Lambda (pats, expr, _range) ->
             atCurrentColumn (
                 !- "fun "
-                +> col sepSpace sps (genSimplePats astContext)
+                +> col sepSpace pats (genPat astContext)
                 +> sepArrow
-                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
             )
         | MatchLambda (cs, _) ->
             !- "function "
@@ -3267,19 +3241,12 @@ and genApp astContext e es ctx =
                             |> genTriviaFor SynExpr_Paren pr
 
                         match e with
-                        | Paren (lpr, DesugaredLambda (cps, e), rpr, pr) ->
+                        | Paren (lpr, Lambda (pats, expr, _range), rpr, pr) ->
                             let arrowRange =
-                                List.last cps
-                                |> snd
-                                |> fun lastPatRange -> ctx.MkRange lastPatRange.End e.Range.Start
+                                List.last pats
+                                |> fun lastPat -> ctx.MkRange lastPat.Range.End expr.Range.Start
 
-                            genLambda (col sepSpace cps (fst >> genComplexPats astContext)) e lpr rpr arrowRange pr
-                        | Paren (lpr, Lambda (e, sps, _), rpr, pr) ->
-                            let arrowRange =
-                                List.last sps
-                                |> fun sp -> ctx.MkRange sp.Range.End e.Range.Start
-
-                            genLambda (col sepSpace sps (genSimplePats astContext)) e lpr rpr arrowRange pr
+                            genLambda (col sepSpace pats (genPat astContext)) expr lpr rpr arrowRange pr
                         | _ -> genExpr astContext e)
 
             let singleLambdaArgument =
@@ -3308,19 +3275,12 @@ and genApp astContext e es ctx =
                             +> sepCloseTFor rpr
 
                         match e with
-                        | Paren (lpr, DesugaredLambda (cps, e), rpr, _) ->
+                        | Paren (lpr, Lambda (pats, expr, _range), rpr, _) ->
                             let arrowRange =
-                                List.last cps
-                                |> snd
-                                |> fun lastPatRange -> ctx.MkRange lastPatRange.End e.Range.Start
+                                List.last pats
+                                |> fun lastPat -> ctx.MkRange lastPat.Range.End expr.Range.Start
 
-                            genLambda (col sepSpace cps (fst >> genComplexPats astContext)) e lpr rpr arrowRange
-                        | Paren (lpr, Lambda (e, sps, _), rpr, _) ->
-                            let arrowRange =
-                                List.last sps
-                                |> fun sp -> ctx.MkRange sp.Range.End e.Range.Start
-
-                            genLambda (col sepSpace sps (genSimplePats astContext)) e lpr rpr arrowRange
+                            genLambda (col sepSpace pats (genPat astContext)) expr lpr rpr arrowRange
                         | _ -> genExpr astContext e)
 
             let argExpr =
@@ -4729,31 +4689,6 @@ and genSimplePats astContext node =
         +> sepCloseT
     | SPSTyped (ps, t) ->
         genSimplePats astContext ps
-        +> sepColon
-        +> genType astContext false t
-
-and genComplexPat astContext node =
-    match node with
-    | CPId p -> genPat astContext p
-    | CPSimpleId (s, isOptArg, _) -> ifElse isOptArg (!-(sprintf "?%s" s)) (!-s)
-    | CPTyped (sp, t) ->
-        genComplexPat astContext sp
-        +> sepColon
-        +> genType astContext false t
-    | CPAttrib (ats, sp) ->
-        genOnelinerAttributes astContext ats
-        +> genComplexPat astContext sp
-
-and genComplexPats astContext node =
-    match node with
-    | ComplexPats [ CPId _ as c ]
-    | ComplexPats [ CPSimpleId _ as c ] -> genComplexPat astContext c
-    | ComplexPats ps ->
-        sepOpenT
-        +> col sepComma ps (genComplexPat astContext)
-        +> sepCloseT
-    | ComplexTyped (ps, t) ->
-        genComplexPats astContext ps
         +> sepColon
         +> genType astContext false t
 

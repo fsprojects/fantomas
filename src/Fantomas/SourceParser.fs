@@ -845,13 +845,6 @@ let (|TernaryApp|_|) =
     | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
     | _ -> None
 
-/// Gather all arguments in lambda
-let rec (|Lambda|_|) =
-    function
-    | SynExpr.Lambda (_, _, pats, Lambda (e, patss, _), _, range) -> Some(e, (pats :: patss), range)
-    | SynExpr.Lambda (_, _, pats, e, _, range) -> Some(e, [ pats ], range)
-    | _ -> None
-
 let (|MatchLambda|_|) =
     function
     | SynExpr.MatchLambda (isMember, _, pats, _, _) -> Some(pats, isMember)
@@ -1219,57 +1212,18 @@ let (|RecordField|) =
 
 let (|Clause|) (SynMatchClause.Clause (p, eo, e, _, _)) = (p, e, eo)
 
-let rec private (|DesugaredMatch|_|) =
-    function
-    | SynExpr.Match (_, CompilerGeneratedVar s, [ Clause (p, DesugaredMatch (ss, e), None) ], _) ->
-        Some((s, p) :: ss, e)
-    | SynExpr.Match (_, CompilerGeneratedVar s, [ Clause (p, e, None) ], _) -> Some([ (s, p) ], e)
-    | _ -> None
-
-type ComplexPat =
-    | CPAttrib of SynAttributes * ComplexPat
-    | CPId of SynPat
-    | CPSimpleId of string * bool * bool
-    | CPTyped of ComplexPat * SynType
-
-type ComplexPats =
-    | ComplexPats of ComplexPat list
-    | ComplexTyped of ComplexPats * SynType
-
-/// Manipulate patterns in case the compiler generate spurious matches
-let rec transformPatterns ss =
-    function
-    | SimplePats sps ->
-        let rec loop sp =
-            match sp with
-            | SPAttrib (ats, sp) -> CPAttrib(ats, loop sp)
-            | SPId (s, b, true) ->
-                match List.tryPick (fun (s', p) -> if s = s' then Some p else None) ss with
-                | Some p ->
-                    match p with
-                    | PatConst _
-                    | PatQuoteExpr _
-                    | PatNullary _
-                    | PatRecord _
-                    | PatSeq ((PatList
-                              | PatArray),
-                              _) ->
-                        // A few patterns with delimiters
-                        CPId p
-                    | _ ->
-                        // Add parentheses to separate from other patterns
-                        CPId(SynPat.Paren(p, p.Range))
-                | None -> CPSimpleId(s, b, true)
-            | SPId (s, b, _) -> CPSimpleId(s, b, false)
-            | SPTyped (sp, t) -> CPTyped(loop sp, t)
-
-        List.map loop sps |> ComplexPats
-    | SPSTyped (sp, t) -> ComplexTyped(transformPatterns ss sp, t)
-
 /// Process compiler-generated matches in an appropriate way
-let (|DesugaredLambda|_|) =
+let (|Lambda|_|) =
     function
-    | Lambda (DesugaredMatch (ss, e), spss, _) -> Some(List.map (fun sp -> transformPatterns ss sp, sp.Range) spss, e)
+    | SynExpr.Lambda (_, _, _, _, Some (pats, body), range) ->
+        // find the body expression from the last lambda
+        let rec visit (e: SynExpr) : SynExpr =
+            match e with
+            | SynExpr.Match (matchSeqPoint = NoDebugPointAtInvisibleBinding; clauses = [ Clause (_, expr, _) ])
+            | SynExpr.Lambda (_, _, _, SynExpr.Match(clauses = [ Clause (_, expr, _) ]), _, _) -> visit expr
+            | _ -> e
+
+        Some(pats, visit body, range)
     | _ -> None
 
 // Type definitions
