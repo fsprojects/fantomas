@@ -2711,8 +2711,120 @@ namespace Test
 
 module OrderProcessing =
     type ValidateOrder =
-        CheckProductCodeExists -> // dependency
-            CheckAddressExists -> // dependency
-            UnvalidatedOrder -> // input
-            Result<ValidatedOrder, ValidationError> // output (Result b/c one of deps returns a Result)
+        CheckProductCodeExists // dependency
+            -> CheckAddressExists // dependency
+            -> UnvalidatedOrder // input
+            -> Result<ValidatedOrder, ValidationError> // output (Result b/c one of deps returns a Result)
+"""
+
+[<Test>]
+let ``generic type arguments in function invocation, 1637`` () =
+    formatSourceString
+        false
+        """
+[<NoEquality ; NoComparison>]
+type Foo<'context, 'a> =
+    | Apply of ApplyCrate<'context, 'a>
+
+and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
+    internal {
+        Hash : int
+        Foo : Foo<'a, 'b>
+    }
+    member this.InnerEquals<'innerContextLongLongLong, 'd, 'e> (a : Foo<'innerContextLongLongLong, 'd>) (b : Foo<'innerContext, 'd>) (cont : bool -> 'e) : 'e =
+        if a.Hash <> b.Hash then cont false
+        else
+            match a.Foo, b.Foo with
+            | Foo.Apply a, Foo.Apply b ->
+                a.Apply { new ApplyEval<_, _, _> with
+                    member __.Eval<'bb> (a : Foo<'innerContextLongLongLong, 'bb -> 'b> * Foo<'innerContextLongLongLong, 'bb>) =
+                        let (af, av) = a
+                        b.Apply { new ApplyEval<_, _, _> with
+                            member __.Eval<'cb> (b : Foo<'innerContextLongLongLong, 'cb -> 'b> * Foo<'innerContextLongLongLong, 'bc>) =
+                                let (bf, bv) = b
+                                if typeof<'bb> = typeof<'cb> then
+                                    let bv = unbox<Foo<'innerContextLongLongLong, 'bb>> bv
+                                    this.InnerEquals av bv (fun inner ->
+                                        if inner then
+                                            let bv = unbox<Foo<'innerContextLongLongLong, 'bb -> 'b>> bf
+                                            this.InnerEquals af bf cont
+                                        else cont false
+                                    )
+                                else cont false
+                        }
+                }
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              KeepIfThenInSameLine = true
+              KeepIndentInBranch = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+[<NoEquality ; NoComparison>]
+type Foo<'context, 'a> = Apply of ApplyCrate<'context, 'a>
+
+and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
+    internal
+        {
+            Hash : int
+            Foo : Foo<'a, 'b>
+        }
+    member this.InnerEquals<'innerContextLongLongLong, 'd, 'e>
+        (a : Foo<'innerContextLongLongLong, 'd>)
+        (b : Foo<'innerContext, 'd>)
+        (cont : bool -> 'e)
+        : 'e
+        =
+        if a.Hash <> b.Hash then
+            cont false
+        else
+            match a.Foo, b.Foo with
+            | Foo.Apply a, Foo.Apply b ->
+                a.Apply
+                    { new ApplyEval<_, _, _> with
+                        member __.Eval<'bb>
+                            (a : Foo<'innerContextLongLongLong, 'bb -> 'b> * Foo<'innerContextLongLongLong, 'bb>)
+                            =
+                            let (af, av) = a
+
+                            b.Apply
+                                { new ApplyEval<_, _, _> with
+                                    member __.Eval<'cb>
+                                        (b : Foo<'innerContextLongLongLong, 'cb -> 'b> * Foo<'innerContextLongLongLong, 'bc>)
+                                        =
+                                        let (bf, bv) = b
+
+                                        if typeof<'bb> = typeof<'cb> then
+                                            let bv =
+                                                unbox<Foo<'innerContextLongLongLong, 'bb>> bv
+
+                                            this.InnerEquals
+                                                av
+                                                bv
+                                                (fun inner ->
+                                                    if inner then
+                                                        let bv =
+                                                            unbox<Foo<'innerContextLongLongLong, 'bb
+                                                                -> 'b>>
+                                                                bf
+
+                                                        this.InnerEquals af bf cont
+                                                    else
+                                                        cont false
+                                                )
+                                        else
+                                            cont false
+                                }
+                    }
 """
