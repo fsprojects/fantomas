@@ -770,7 +770,7 @@ let internal sepCloseT = !- ")"
 // we need to make sure each expression in the function application has offset at least greater than
 // indentation of the function expression itself
 // we replace sepSpace in such case
-// remarks: https://github.com/fsprojects/fantomas/issues/545
+// remarks: https://github.com/fsprojects/fantomas/issues/1611
 let internal indentIfNeeded f (ctx: Context) =
     let savedColumn = ctx.WriterModel.AtColumn
 

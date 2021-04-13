@@ -3168,8 +3168,6 @@ and genApp astContext e es ctx =
                 sepSpace
                 sepNone
 
-        let addSpace = indentIfNeeded sepSpace
-
         let genEx e =
             if isCompExpr e then
                 sepSpace
@@ -3184,7 +3182,7 @@ and genApp astContext e es ctx =
         atCurrentColumn (
             genExpr astContext e
             +> addFirstSpace
-            +> col addSpace es genEx
+            +> col sepSpace es genEx
         )
 
     let isParenLambda =
