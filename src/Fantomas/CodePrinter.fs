@@ -4254,11 +4254,11 @@ and genType astContext outerBracket t =
             | [] -> sepNone
             | h :: rest ->
                 loop h
-                +> sepSpace
-                +> sepArrowFixed
                 +> indent
                 +> sepNln
-                +> col (sepSpace +> sepArrowFixed +> sepNln) rest loop
+                +> sepArrowFixed
+                +> sepSpace
+                +> col (sepNln +> sepArrowFixed +> sepSpace) rest loop
                 +> unindent
 
         let genTs = expressionFitsOnRestOfLine short long
