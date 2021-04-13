@@ -2763,7 +2763,6 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
               SpaceBeforeSemicolon = true
               MultilineBlockBracketsOnSameColumn = true
               KeepIfThenInSameLine = true
-              KeepIndentInBranch = true
               AlignFunctionSignatureToIndentation = true
               AlternativeLongMemberDefinitions = true
               MultiLineLambdaClosingNewline = true }
