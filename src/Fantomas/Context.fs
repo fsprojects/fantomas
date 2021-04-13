@@ -770,7 +770,7 @@ let internal sepCloseT = !- ")"
 // we need to make sure each expression in the function application has offset at least greater than
 // indentation of the function expression itself
 // we replace sepSpace in such case
-// remarks: https://github.com/fsprojects/fantomas/issues/545
+// remarks: https://github.com/fsprojects/fantomas/issues/1611
 let internal indentIfNeeded f (ctx: Context) =
     let savedColumn = ctx.WriterModel.AtColumn
 
@@ -779,7 +779,8 @@ let internal indentIfNeeded f (ctx: Context) =
         // of function expression being applied upon, otherwise (as known up to F# 4.7)
         // this would lead to a compile error for the function application
         let missingSpaces =
-            (savedColumn - ctx.FinalizeModel.Column + 1)
+            (savedColumn - ctx.FinalizeModel.Column)
+            + ctx.Config.IndentSize
 
         atIndentLevel true savedColumn (!-(String.replicate missingSpaces " ")) ctx
     else
