@@ -1669,7 +1669,8 @@ let private shouldNotIndentBranch e es =
     let isShortIfBranch e =
         match e with
         | SimpleExpr _
-        | Sequential (_, _, true) -> true
+        | Sequential (_, _, true)
+        | App (SimpleExpr _, [ SimpleExpr _ ]) -> true
         | _ -> false
 
     let isLongElseBranch e =
@@ -1677,7 +1678,8 @@ let private shouldNotIndentBranch e es =
         | LetOrUses _
         | Sequential _
         | Match _
-        | TryWith _ -> true
+        | TryWith _
+        | App (_, [ ObjExpr _ ]) -> true
         | _ -> false
 
     List.forall isShortIfBranch es
@@ -1686,8 +1688,12 @@ let private shouldNotIndentBranch e es =
 let (|KeepIndentMatch|_|) (e: SynExpr) =
     let mapClauses matchExpr clauses range t =
         match clauses with
-        | []
-        | [ _ ] -> None
+        | [] -> None
+        | [ (Clause (_, lastClause, _)) ] ->
+            if shouldNotIndentBranch lastClause [] then
+                Some(matchExpr, clauses, range, t)
+            else
+                None
         | clauses ->
             let firstClauses =
                 clauses
