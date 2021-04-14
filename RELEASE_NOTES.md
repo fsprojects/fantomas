@@ -1,3 +1,9 @@
+### 4.5.0-alpha-010 - 04/2021
+
+* Fix Another shape which isn't respecting KeepIndentInBranch. [#1638](https://github.com/fsprojects/fantomas/issues/1638)
+* Fix Incorrect code when function type parameter would break over line. [#1637](https://github.com/fsprojects/fantomas/issues/1637)
+* Fix Multiline type parameter arguments inside indentation. [#1611](https://github.com/fsprojects/fantomas/issues/1611)
+
 ### 4.5.0-alpha-009 - 04/2021
 
 * Fix Fantomas add extra parenthesis in desugared lambda. [#1631](https://github.com/fsprojects/fantomas/issues/1631)
