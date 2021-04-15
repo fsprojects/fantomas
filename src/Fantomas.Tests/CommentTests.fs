@@ -1185,3 +1185,70 @@ let meh =   7
 // Dollar
 let meh = 7
 """
+
+[<Test>]
+let ``comment after semi colon in record definition, 1643`` () =
+    formatSourceString
+        false
+        """
+type T =
+  { id : int
+  ; value : RT.Dval
+  ; retries : int
+  ; canvasID : CanvasID
+  ; canvasName : string
+  ; module_ : string
+  ; name : string
+  ; modifier : string
+  ; // Delay in ms since it entered the queue
+    delay : float }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type T =
+    { id: int
+      value: RT.Dval
+      retries: int
+      canvasID: CanvasID
+      canvasName: string
+      module_: string
+      name: string
+      modifier: string
+      // Delay in ms since it entered the queue
+      delay: float }
+"""
+
+[<Test>]
+let ``comment after semicolon`` () =
+    formatSourceString
+        false
+        """
+let a = 8 ; // foobar
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = 8 // foobar
+"""
+
+[<Test>]
+let ``comment after semicolon on next line`` () =
+    formatSourceString
+        false
+        """
+let a = 8
+; // foobar
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = 8
+// foobar
+"""
