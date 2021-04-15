@@ -648,6 +648,12 @@ let private (|WhiteSpaceToken|_|) (token: Token) =
     else
         None
 
+let private (|SemicolonToken|_|) (token: Token) =
+    if token.TokenInfo.Tag = 83 then
+        Some token
+    else
+        None
+
 let private (|LineComments|_|) (tokens: Token list) =
     let rec collect (tokens: Token list) (lastLineNumber: int) (commentTokens: Token list) =
         match tokens with
@@ -730,6 +736,20 @@ let rec private getTriviaFromTokensThemSelves
 
         let isAfterSourceCode =
             match prevButOneToken, prevToken with
+            | Some (SemicolonToken sc), Some (WhiteSpaceToken _) when sc.LineNumber = headLineNumber ->
+                let tokensOfSameLine =
+                    let rec collect (index: int) (acc: Token list) : Token list =
+                        match List.tryItem index allTokens with
+                        | Some t when (t.LineNumber = headLineNumber) -> collect (index - 1) (t :: acc)
+                        | _ -> acc
+
+                    collect (headIndex - 3) []
+
+                match tokensOfSameLine with
+                | []
+                // WHITESPACE SEMICOLON WHITESPACE LINE_COMMENT, see https://github.com/fsprojects/fantomas/issues/1643
+                | [ WhiteSpaceToken _ ] -> false
+                | _ -> true
             | Some { LineNumber = ncln }, Some (WhiteSpaceToken _) ->
                 // IDENT WHITESPACE LINE_COMMENT
                 ncln = headLineNumber
