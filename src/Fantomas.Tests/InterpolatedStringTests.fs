@@ -236,3 +236,26 @@ $\"\"\"
 
 \"\"\"
 "
+
+[<Test>]
+let ``verbatim interpolated strings, 1645 `` () =
+    formatSourceString
+        false
+        "
+let main _ =
+    let oldId = 1
+    let newId = 2
+    printfn $@\"Migrate notes of file \"\"{oldId}\"\" to new file \"\"{newId}\"\".\"
+    0
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let main _ =
+    let oldId = 1
+    let newId = 2
+    printfn $@\"Migrate notes of file \"\"{oldId}\"\" to new file \"\"{newId}\"\".\"
+    0
+"

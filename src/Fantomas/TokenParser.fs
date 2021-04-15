@@ -573,6 +573,7 @@ let private (|StringText|_|) tokens =
                 match stringContent.[0], stringContent.[1], stringContent.[2] with
                 | '@', '"', _
                 | '$', '"', _
+                | '$', '@', '"'
                 | '"', '"', '"' -> true
                 | _ -> false
             else
