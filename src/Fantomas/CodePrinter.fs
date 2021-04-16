@@ -2087,7 +2087,9 @@ and genExpr astContext synExpr ctx =
             let genClause (astContext: ASTContext) (b: bool) (c: SynMatchClause) =
                 ifElse
                     (hasCommentBeforeClause c)
-                    (indent +> genClause astContext b c +> unindent)
+                    (indentOnWith
+                     +> genClause astContext b c
+                     +> unindentOnWith)
                     (genClause astContext b c)
 
             match cs with
