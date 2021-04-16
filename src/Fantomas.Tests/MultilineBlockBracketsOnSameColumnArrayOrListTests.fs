@@ -390,3 +390,59 @@ let fns =
     // I think the space at the start of the lines above matter
     |]
 """
+
+[<Test>]
+let ``long list in for loop, 1650`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+
+    let foo () =
+        let bar =
+            seq {
+                for i in ["hello1" ; "hello1" ; "hello1" ; "hello1" ; "hello1"] do
+                    yield i, seq {
+                        yield "hi"
+                        yield "bye"
+                    }
+            }
+        ()
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              AlignFunctionSignatureToIndentation = true
+              MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+
+    let foo () =
+        let bar =
+            seq {
+                for i in
+                    [
+                        "hello1"
+                        "hello1"
+                        "hello1"
+                        "hello1"
+                        "hello1"
+                    ] do
+                    yield
+                        i,
+                        seq {
+                            yield "hi"
+                            yield "bye"
+                        }
+            }
+
+        ()
+"""

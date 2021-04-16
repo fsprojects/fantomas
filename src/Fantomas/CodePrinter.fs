@@ -1398,7 +1398,7 @@ and genExpr astContext synExpr ctx =
         | ForEach (p, e1, e2, isArrow) ->
             atCurrentColumn (
                 !- "for " +> genPat astContext p -- " in "
-                +> genExpr { astContext with IsNakedRange = true } e1
+                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr { astContext with IsNakedRange = true } e1)
                 +> ifElse
                     isArrow
                     (sepArrow
