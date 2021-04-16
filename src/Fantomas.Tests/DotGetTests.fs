@@ -1042,3 +1042,86 @@ services
         """
 services.AddIdentityCore(fun options -> ()).AddUserManager<UserManager<web.ApplicationUser>>()
 """
+
+[<Test>]
+let ``parenthesis argument expression inside DotGetApp chain, 1651`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar () =
+        let saveDir =
+            fs.DirectoryInfo.FromDirectoryName(fs.Path.Combine((ThingThing.rootRoot fs thingThing).FullName, "tada!")).EnumerateDirectories()
+            |> Seq.exactlyOne
+        ()
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              AlignFunctionSignatureToIndentation = true
+              MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar () =
+        let saveDir =
+            fs
+                .DirectoryInfo
+                .FromDirectoryName(
+                    fs.Path.Combine ((ThingThing.rootRoot fs thingThing).FullName, "tada!")
+                )
+                .EnumerateDirectories ()
+            |> Seq.exactlyOne
+
+        ()
+"""
+
+[<Test>]
+let ``parenthesis argument expression inside DotGetApp chain, max line 80`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar () =
+        let saveDir =
+            fs.DirectoryInfo.FromDirectoryName(fs.Path.Combine((ThingThing.rootRoot fs thingThing).FullName, "tada!")).EnumerateDirectories()
+            |> Seq.exactlyOne
+        ()
+"""
+        { config with
+              MaxLineLength = 80
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              AlignFunctionSignatureToIndentation = true
+              MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar () =
+        let saveDir =
+            fs
+                .DirectoryInfo
+                .FromDirectoryName(
+                    fs.Path.Combine (
+                        (ThingThing.rootRoot fs thingThing).FullName,
+                        "tada!"
+                    )
+                )
+                .EnumerateDirectories ()
+            |> Seq.exactlyOne
+
+        ()
+"""
