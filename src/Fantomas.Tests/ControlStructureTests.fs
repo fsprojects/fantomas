@@ -754,7 +754,7 @@ let ``line comment inside short `with` block (of a try-with), 1219`` () =
           ex ->
           MakeSureToCleanup(someParam)
 """
-        config
+        { config with IndentOnTryWith = true }
     |> prepend newline
     |> should
         equal
@@ -784,7 +784,7 @@ let ``line comment inside `with` block (of a try-with), 1219`` () =
                         return None
             }
 """
-        config
+        { config with IndentOnTryWith = true }
     |> prepend newline
     |> should
         equal
@@ -823,7 +823,7 @@ let ``line comment inside nested `with` block (of a try-with), 1219`` () =
           Infrastructure.ReportWarning ex
           return None
 """
-        config
+        { config with IndentOnTryWith = true }
     |> prepend newline
     |> should
         equal
@@ -900,4 +900,133 @@ things
         with
         | Foo _
         | Bar _ as e when true -> None)
+"""
+
+[<Test>]
+let ``comment above pipe of try/with`` () =
+    formatSourceString
+        false
+        """
+try
+    let defaultTime = (DateTime.FromFileTimeUtc 0L).ToLocalTime ()
+    foo.CreationTime <> defaultTime
+with
+// hmm
+| :? FileNotFoundException -> false
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    let defaultTime =
+        (DateTime.FromFileTimeUtc 0L).ToLocalTime()
+
+    foo.CreationTime <> defaultTime
+with
+// hmm
+:? FileNotFoundException -> false
+"""
+
+[<Test>]
+let ``comment above pipe of try/with, idempotent`` () =
+    formatSourceString
+        false
+        """
+try
+    let defaultTime =
+        (DateTime.FromFileTimeUtc 0L).ToLocalTime()
+
+    foo.CreationTime <> defaultTime
+with
+// hmm
+:? FileNotFoundException -> false
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    let defaultTime =
+        (DateTime.FromFileTimeUtc 0L).ToLocalTime()
+
+    foo.CreationTime <> defaultTime
+with
+// hmm
+:? FileNotFoundException -> false
+"""
+
+[<Test>]
+let ``respect IndentOnTryWith setting when there is trivia before SynMatchClause_Clause, 1647`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let blah () =
+        match foo with
+        | Thing crate ->
+
+        crate.Apply
+            { new Evaluator<_, _> with
+                member __.Eval inner teq =
+                    let foo =
+                        // blah
+                        let exists =
+                            try
+                                let defaultTime =
+                                    (DateTime.FromFileTimeUtc 0L).ToLocalTime ()
+
+                                foo.CreationTime <> defaultTime
+                            with
+                            // hmm
+                            :? FileNotFoundException -> false
+
+                        exists
+
+                    ()
+            }
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              KeepIfThenInSameLine = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let blah () =
+        match foo with
+        | Thing crate ->
+
+        crate.Apply
+            { new Evaluator<_, _> with
+                member __.Eval inner teq =
+                    let foo =
+                        // blah
+                        let exists =
+                            try
+                                let defaultTime =
+                                    (DateTime.FromFileTimeUtc 0L).ToLocalTime ()
+
+                                foo.CreationTime <> defaultTime
+                            with
+                            // hmm
+                            :? FileNotFoundException -> false
+
+                        exists
+
+                    ()
+            }
 """
