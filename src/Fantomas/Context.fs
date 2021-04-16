@@ -1126,7 +1126,7 @@ let internal ifAlignBrackets f g =
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     let currentLastLine = lastWriteEventOnLastLine ctx
 
-    // Some items like #if of Newline should be printed on a newline
+    // Some items like #if or Newline should be printed on a newline
     // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
     let addNewline =
         currentLastLine
@@ -1160,7 +1160,8 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     | IdentOperatorAsWord _
     | IdentBetweenTicks _
     | CharContent _
-    | EmbeddedIL _ -> sepNone // don't print here but somewhere in CodePrinter
+    | EmbeddedIL _
+    | KeywordString _ -> sepNone // don't print here but somewhere in CodePrinter
     | Directive s
     | Comment (LineCommentOnSingleLine s) ->
         (ifElse addNewline sepNln sepNone)
@@ -1237,46 +1238,6 @@ let internal leaveLeftToken (tokenName: FsTokenType) (range: Range) (ctx: Contex
     <| ctx
 
 let internal leaveLeftBrace = leaveLeftToken LBRACE
-let internal leaveLeftBrack = leaveLeftToken LBRACK
-let internal leaveLeftBrackBar = leaveLeftToken LBRACK_BAR
-
-let internal enterRightToken (tokenName: FsTokenType) (range: Range) (ctx: Context) =
-    (Map.tryFindOrEmptyList tokenName ctx.TriviaTokenNodes)
-    |> List.tryFind
-        (fun tn ->
-            tn.Range.EndLine = range.EndLine
-            && (tn.Range.EndColumn = range.EndColumn
-                || tn.Range.EndColumn + 1 = range.EndColumn))
-    |> fun tn ->
-        match tn with
-        | Some { ContentBefore = [ TriviaContent.Comment (LineCommentOnSingleLine lineComment) ] } ->
-            let spacesBeforeComment =
-                let braceSize = if tokenName = RBRACK then 1 else 2
-
-                let spaceAround =
-                    if ctx.Config.SpaceAroundDelimiter then
-                        1
-                    else
-                        0
-
-                !- String.Empty.PadLeft(braceSize + spaceAround)
-
-            let spaceAfterNewline =
-                if ctx.Config.SpaceAroundDelimiter then
-                    sepSpace
-                else
-                    sepNone
-
-            sepNln
-            +> spacesBeforeComment
-            +> !-lineComment
-            +> sepNln
-            +> spaceAfterNewline
-        | _ -> id
-    <| ctx
-
-let internal enterRightBracket = enterRightToken RBRACK
-let internal enterRightBracketBar = enterRightToken BAR_RBRACK
 
 let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
@@ -1479,7 +1440,7 @@ let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
 
     let rec impl items =
         match items with
-        | ColMultilineItem (f1, sepNln1, r1) :: ColMultilineItem (_, sepNln2, _) :: _ ->
+        | ColMultilineItem (f1, sepNln1, r1) :: (ColMultilineItem (_, sepNln2, _) :: _ as nextItems) ->
             let f1Expr =
                 match firstItemRange with
                 | Some fr1 when (fr1 = r1) ->
@@ -1493,7 +1454,7 @@ let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
                         f1
                         (autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNln1 f1)
 
-            addExtraNewlineIfLeadingWasMultiline f1Expr sepNln2 (impl (List.skip 1 items))
+            addExtraNewlineIfLeadingWasMultiline f1Expr sepNln2 (impl nextItems)
         | [ (ColMultilineItem (f, sepNln, r)) ] ->
             match firstItemRange with
             | Some fr1 when (fr1 = r) ->

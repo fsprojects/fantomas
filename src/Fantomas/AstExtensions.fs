@@ -9,3 +9,8 @@ type SynTypeDefnSig with
     member this.FullRange : Range =
         match this with
         | SynTypeDefnSig.TypeDefnSig (comp, _, _, r) -> mkRange r.FileName comp.Range.Start r.End
+
+let longIdentFullRange (li: LongIdent) : Range =
+    match li with
+    | [] -> range.Zero
+    | h :: _ -> unionRanges h.idRange (List.last li).idRange

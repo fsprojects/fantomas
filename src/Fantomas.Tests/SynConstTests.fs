@@ -504,3 +504,18 @@ long
 triple quotes string thing
 \"\"\"
 "
+
+[<Test>]
+let ``collect keyword string as separate trivia`` () =
+    formatSourceString
+        false
+        """
+__SOURCE_DIRECTORY__
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+__SOURCE_DIRECTORY__
+"""

@@ -16,11 +16,14 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #endif
 """
         config
+    |> prepend newline
     |> should
         equal
-        """#if INTERACTIVE
+        """
+#if INTERACTIVE
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+
 #load "__setup__.fsx"
 #endif
 """
@@ -38,12 +41,42 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #endif
 """
         config
+    |> prepend newline
     |> should
         equal
-        """#if INTERACTIVE
+        """
+#if INTERACTIVE
 #else
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+
+#load "__setup__.fsx"
+#endif
+"""
+
+[<Test>]
+let ``should keep compiler directives, idempotent`` () =
+    formatSourceString
+        false
+        """
+#if INTERACTIVE
+#else
+#load "../FSharpx.TypeProviders/SetupTesting.fsx"
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+
+#load "__setup__.fsx"
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if INTERACTIVE
+#else
+#load "../FSharpx.TypeProviders/SetupTesting.fsx"
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
+
 #load "__setup__.fsx"
 #endif
 """
@@ -211,7 +244,6 @@ namespace Internal.Utilities.Text.Lexing"""
         """
 #nowarn "47"
 namespace Internal.Utilities.Text.Lexing
-
 """
 
 [<Test>]
@@ -1027,6 +1059,23 @@ let foo = 42
         """
 #if SOMETHING
 let foo = 42
+#endif
+"""
+
+[<Test>]
+let ``no code for inactive define, no defines`` () =
+    formatSourceStringWithDefines
+        []
+        """#if SOMETHING
+let foo = 42
+#endif"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if SOMETHING
+
 #endif
 """
 

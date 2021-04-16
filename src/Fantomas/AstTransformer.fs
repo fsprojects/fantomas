@@ -9,13 +9,6 @@ open Fantomas
 type Id = { Ident: string; Range: Range }
 
 module Helpers =
-    let i (id: Ident) : Id =
-        { Ident = id.idText
-          Range = id.idRange }
-
-    let li (id: LongIdent) = id |> List.map i
-
-    let lid (id: LongIdentWithDots) = li id.Lid
     let mkNode (t: FsAstType) (r: range) = TriviaNodeAssigner(MainNode(t), r)
 
 module private Ast =
@@ -23,27 +16,13 @@ module private Ast =
 
     let rec visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : TriviaNodeAssigner list =
         match modOrNs with
-        | SynModuleOrNamespace (longIdent, _, synModuleOrNamespaceKind, decls, _, attrs, _, range) ->
-            let collectIdents (idents: LongIdent) =
-                idents
-                |> List.map (fun ident -> mkNode Ident_ ident.idRange)
+        | SynModuleOrNamespace (longIdent, _, kind, decls, _, attrs, _, range) ->
+            let longIdentNodes =
+                match kind, decls with
+                | SynModuleOrNamespaceKind.AnonModule, _ :: _ -> []
+                | _ -> visitLongIdentIncludingFullRange longIdent
 
-            let typeName =
-                match synModuleOrNamespaceKind with
-                | SynModuleOrNamespaceKind.AnonModule -> SynModuleOrNamespace_AnonModule
-                | SynModuleOrNamespaceKind.NamedModule -> SynModuleOrNamespace_NamedModule
-                | SynModuleOrNamespaceKind.DeclaredNamespace -> SynModuleOrNamespace_DeclaredNamespace
-                | SynModuleOrNamespaceKind.GlobalNamespace -> SynModuleOrNamespace_GlobalNamespace
-
-            [
-              // LongIdent inside Namespace is being processed as children.
-              if typeName <> SynModuleOrNamespace_DeclaredNamespace then
-                  mkNode typeName range
-              yield!
-                  if synModuleOrNamespaceKind = SynModuleOrNamespaceKind.DeclaredNamespace then
-                      collectIdents longIdent
-                  else
-                      []
+            [ yield! longIdentNodes
               yield! (visitSynAttributeLists range attrs)
               yield! (decls |> List.collect visitSynModuleDecl) ]
 
@@ -348,7 +327,7 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.Ident id ->
-                mkNode SynExpr_Ident (i id).Range
+                mkNode SynExpr_Ident id.idRange
                 |> List.singleton
                 |> finalContinuation
             | SynExpr.LongIdent (_, longDotId, _, range) ->
@@ -1268,23 +1247,13 @@ module private Ast =
 
     and visitSynModuleOrNamespaceSig (modOrNs: SynModuleOrNamespaceSig) : TriviaNodeAssigner list =
         match modOrNs with
-        | SynModuleOrNamespaceSig (longIdent, _, synModuleOrNamespaceKind, decls, _, attrs, _, range) ->
-            let typeName =
-                match synModuleOrNamespaceKind with
-                | SynModuleOrNamespaceKind.AnonModule -> SynModuleOrNamespaceSig_AnonModule
-                | SynModuleOrNamespaceKind.NamedModule -> SynModuleOrNamespaceSig_NamedModule
-                | SynModuleOrNamespaceKind.DeclaredNamespace -> SynModuleOrNamespaceSig_DeclaredNamespace
-                | SynModuleOrNamespaceKind.GlobalNamespace -> SynModuleOrNamespaceSig_GlobalNamespace
+        | SynModuleOrNamespaceSig (longIdent, _, kind, decls, _, attrs, _, range) ->
+            let longIdentNodes =
+                match kind, decls with
+                | SynModuleOrNamespaceKind.AnonModule, _ :: _ -> []
+                | _ -> visitLongIdentIncludingFullRange longIdent
 
-            [ // LongIdent inside Namespace is being processed as children.
-              if typeName
-                 <> SynModuleOrNamespaceSig_DeclaredNamespace then
-                  mkNode typeName range
-              yield!
-                  if synModuleOrNamespaceKind = SynModuleOrNamespaceKind.DeclaredNamespace then
-                      visitLongIdent longIdent
-                  else
-                      []
+            [ yield! longIdentNodes
               yield! (visitSynAttributeLists range attrs)
               yield! (decls |> List.collect visitSynModuleSigDecl) ]
 
@@ -1350,19 +1319,17 @@ module private Ast =
         match lid with
         | LongIdentWithDots (ids, _) -> List.map visitIdent ids
 
-    and visitLongIdent (li: LongIdent) : TriviaNodeAssigner list = List.map visitIdent li
+    and visitLongIdentIncludingFullRange (li: LongIdent) : TriviaNodeAssigner list =
+        // LongIdent is a bit of an artificial AST node
+        // meant to be used as namespace or module identifier
+        mkNode LongIdent_ (longIdentFullRange li)
+        :: List.map visitIdent li
 
     and visitIdent (ident: Ident) : TriviaNodeAssigner = mkNode Ident_ ident.idRange
 
 let astToNode (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list) : TriviaNodeAssigner list =
-    let children =
-        [ yield! List.collect Ast.visitSynModuleOrNamespace mdls
-          yield! List.map Ast.visitParsedHashDirective hds ]
-
-    children
+    [ yield! List.collect Ast.visitSynModuleOrNamespace mdls
+      yield! List.map Ast.visitParsedHashDirective hds ]
 
 let sigAstToNode (ast: SynModuleOrNamespaceSig list) : TriviaNodeAssigner list =
-    let children =
-        List.collect Ast.visitSynModuleOrNamespaceSig ast
-
-    children
+    List.collect Ast.visitSynModuleOrNamespaceSig ast

@@ -80,6 +80,7 @@ let a = 7
 
 type TriviaContent =
     | Keyword of Token
+    | KeywordString of string
     | Number of string
     | StringContent of string
     | IdentOperatorAsWord of string
@@ -99,10 +100,13 @@ type TriviaIndex = TriviaIndex of int * int
 
 type FsAstType =
     | Ident_
-    | SynModuleOrNamespace_AnonModule
-    | SynModuleOrNamespace_DeclaredNamespace
-    | SynModuleOrNamespace_GlobalNamespace
-    | SynModuleOrNamespace_NamedModule
+    | LongIdent_ // namespace or module identifier
+    // Modules and namespaces cannot really be trusted
+    // Their range can be influenced by non code constructs (like comments)
+    //    | SynModuleOrNamespace_AnonModule
+    //    | SynModuleOrNamespace_DeclaredNamespace
+    //    | SynModuleOrNamespace_GlobalNamespace
+    //    | SynModuleOrNamespace_NamedModule
     | SynModuleDecl_ModuleAbbrev
     | SynModuleDecl_NestedModule
     | SynModuleDecl_Let
@@ -317,10 +321,12 @@ type FsAstType =
     | SynValInfo_
     | SynArgInfo_
     | ParsedHashDirective_
-    | SynModuleOrNamespaceSig_AnonModule
-    | SynModuleOrNamespaceSig_DeclaredNamespace
-    | SynModuleOrNamespaceSig_GlobalNamespace
-    | SynModuleOrNamespaceSig_NamedModule
+    // Modules and namespaces cannot really be trusted
+    // Their range can be influenced by non code constructs (like comments)
+//    | SynModuleOrNamespaceSig_AnonModule
+//    | SynModuleOrNamespaceSig_DeclaredNamespace
+//    | SynModuleOrNamespaceSig_GlobalNamespace
+//    | SynModuleOrNamespaceSig_NamedModule
     | SynModuleSigDecl_ModuleAbbrev
     | SynModuleSigDecl_NestedModule
     | SynModuleSigDecl_Types

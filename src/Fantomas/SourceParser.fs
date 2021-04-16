@@ -53,7 +53,16 @@ let (|LongIdent|) (li: LongIdent) =
         else
             s
 
-let (|LongIdentPieces|_|) =
+let (|LongIdentPieces|) (li: LongIdent) =
+    li
+    |> List.map
+        (fun x ->
+            if x.idText = MangledGlobalName then
+                "global", x.idRange
+            else
+                (|Ident|) x, x.idRange)
+
+let (|LongIdentPiecesExpr|_|) =
     function
     | SynExpr.LongIdent (_, LongIdentWithDots (lids, _), _, _) ->
         lids
@@ -256,14 +265,22 @@ let (|ParsedImplFileInput|) (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _
 let (|ParsedSigFileInput|) (ParsedSigFileInput.ParsedSigFileInput (_, _, _, hs, mns)) = (hs, mns)
 
 let (|ModuleOrNamespace|)
-    (SynModuleOrNamespace.SynModuleOrNamespace (LongIdent s, isRecursive, isModule, mds, px, ats, ao, _))
+    (SynModuleOrNamespace.SynModuleOrNamespace (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, _))
     =
-    (ats, px, ao, s, mds, isRecursive, isModule)
+    (ats, px, ao, lids, mds, isRecursive, kind)
 
 let (|SigModuleOrNamespace|)
-    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (LongIdent s, isRecursive, isModule, mds, px, ats, ao, _))
+    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, _))
     =
-    (ats, px, ao, s, mds, isRecursive, isModule)
+    (ats, px, ao, lids, mds, isRecursive, kind)
+
+let (|EmptyFile|_|) (input: ParsedInput) =
+    match input with
+    | ImplFile (ParsedImplFileInput (_, [ ModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule) ])) ->
+        Some input
+    | SigFile (ParsedSigFileInput (_, [ SigModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule) ])) ->
+        Some input
+    | _ -> None
 
 let (|Attribute|) (a: SynAttribute) =
     let (LongIdentWithDots s) = a.TypeName

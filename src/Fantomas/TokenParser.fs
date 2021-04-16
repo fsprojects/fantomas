@@ -721,6 +721,12 @@ let rec private (|HashTokens|_|) (tokens: Token list) =
         | _ -> Some(head :: tokensFromSameLine, rest)
     | _ -> None
 
+let private (|KeywordString|_|) (token: Token) =
+    if token.TokenInfo.Tag = 192 then
+        Some token
+    else
+        None
+
 let rec private getTriviaFromTokensThemSelves
     (mkRange: MkRange)
     (allTokens: Token list)
@@ -877,6 +883,15 @@ let rec private getTriviaFromTokensThemSelves
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves mkRange allTokens nextTokens info
+
+    | KeywordString ks :: rest ->
+        let range = getRangeBetween mkRange ks ks
+
+        let info =
+            Trivia.Create(KeywordString(ks.Content)) range
+            |> List.prependItem foundTrivia
+
+        getTriviaFromTokensThemSelves mkRange allTokens rest info
 
     | headToken :: rest when
         (isOperatorOrKeyword headToken
