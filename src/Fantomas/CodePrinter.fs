@@ -1887,6 +1887,13 @@ and genExpr astContext synExpr ctx =
         | DotGetApp (e, es) ->
             let genLongFunctionName =
                 match e with
+                | AppOrTypeApp (LongIdentPieces lids, ts, [ Paren _ as px ]) when (List.moreThanOne lids) ->
+                    genFunctionNameWithMultilineLids
+                        (optSingle (genGenericTypeParameters astContext) ts
+                         +> expressionFitsOnRestOfLine
+                             (genExpr astContext px)
+                             (genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px))
+                        lids
                 | AppOrTypeApp (LongIdentPieces lids, ts, [ e2 ]) when (List.moreThanOne lids) ->
                     genFunctionNameWithMultilineLids
                         (optSingle (genGenericTypeParameters astContext) ts
@@ -4313,7 +4320,7 @@ and genTypeList astContext node =
                     col
                         sepBefore
                         (Seq.zip args (Seq.map snd ts'))
-                        (fun ((ArgInfo (ats, so, isOpt)), t) ->
+                        (fun (ArgInfo (ats, so, isOpt), t) ->
                             genOnelinerAttributes astContext ats
                             +> opt
                                 sepColon

@@ -2235,9 +2235,11 @@ let loadFile n =
         System
             .IO
             .Path
-            .Combine(contentDir,
-                     (n |> System.IO.Path.GetFileNameWithoutExtension)
-                     + ".md")
+            .Combine(
+                contentDir,
+                (n |> System.IO.Path.GetFileNameWithoutExtension)
+                + ".md"
+            )
             .Replace("\\", "/")
 
     ()
