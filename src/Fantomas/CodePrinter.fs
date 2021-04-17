@@ -2283,7 +2283,7 @@ and genExpr astContext synExpr ctx =
                                 +> unindent
                                 +> sepNln
                             else
-                                sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                                sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
                                 +> genExpr astContext e
 
                     expressionFitsOnRestOfLine short long
