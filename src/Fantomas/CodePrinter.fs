@@ -2158,8 +2158,8 @@ and genExpr astContext synExpr ctx =
                                 if idx = 0 then
                                     e2.Range.End
                                 else
-                                    let _, _, r, _, _ = es.[idx - 1]
-                                    r.End
+                                    let _, e2, _, _, _ = es.[idx - 1]
+                                    e2.Range.End
 
                             let maxRangeBetween =
                                 ctx.MkRange endOfPreviousBranch body.Range.End
