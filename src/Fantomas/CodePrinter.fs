@@ -2283,10 +2283,8 @@ and genExpr astContext synExpr ctx =
                                 +> unindent
                                 +> sepNln
                             else
-                                atCurrentColumnIndent (
-                                    sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-                                    +> genExpr astContext e
-                                )
+                                sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                                +> genExpr astContext e
 
                     expressionFitsOnRestOfLine short long
 

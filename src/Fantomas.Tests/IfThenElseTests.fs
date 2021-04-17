@@ -2386,3 +2386,34 @@ elif startLine = endLine then
 else
     failAndExit ()
 """
+
+[<Test>]
+let ``multiline but not that special if expression`` () =
+    formatSourceString
+        false
+        """
+if
+    List.exists
+        (function
+        | CompExpr _ -> true
+        | _ -> false)
+        es
+then
+    shortExpression ctx
+else
+    expressionFitsOnRestOfLine shortExpression longExpression ctx
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if List.exists
+    (function
+    | CompExpr _ -> true
+    | _ -> false)
+    es then
+    shortExpression ctx
+else
+    expressionFitsOnRestOfLine shortExpression longExpression ctx
+"""
