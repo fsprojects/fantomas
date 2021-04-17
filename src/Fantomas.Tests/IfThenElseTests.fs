@@ -928,7 +928,7 @@ if // c1
 else // c5
 if // c6
     c // c7
-    then // c8
+then // c8
     d // c9
 else // c10
     e // c11
@@ -2222,4 +2222,198 @@ type internal Foo2 private () =
             printfn "hi"
         else
             failwith ""
+"""
+
+[<Test>]
+let ``multiline else if expression with nested if/then/else in body`` () =
+    formatSourceString
+        false
+        """
+if result.LaunchSuccess && result.ExitCode = 0 then
+    Ok r
+else if result.ExitCode = 1 then
+    let stdout, stderr =
+        output
+        |> List.map
+            (function
+            | StdErr e -> Error e
+            | StdOut l -> Ok l)
+        |> Result.partition
+
+    if not stderr.IsEmpty then
+        failwithf "Got stderr bad bad bad"
+
+    match stdout with
+    | [] -> failwithf "Got no stdout :("
+    | xs when
+        xs
+        |> List.exists (fun i -> i.Contains "magic string goes here!")
+        ->
+        Error(Ok r)
+    | _ -> Error(Error r)
+else
+    failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if result.LaunchSuccess && result.ExitCode = 0 then
+    Ok r
+else if result.ExitCode = 1 then
+    let stdout, stderr =
+        output
+        |> List.map
+            (function
+            | StdErr e -> Error e
+            | StdOut l -> Ok l)
+        |> Result.partition
+
+    if not stderr.IsEmpty then
+        failwithf "Got stderr bad bad bad"
+
+    match stdout with
+    | [] -> failwithf "Got no stdout :("
+    | xs when
+        xs
+        |> List.exists (fun i -> i.Contains "magic string goes here!")
+        ->
+        Error(Ok r)
+    | _ -> Error(Error r)
+else
+    failwith ""
+"""
+
+[<Test>]
+let ``multiline elif expression with nested if/then/else in body`` () =
+    formatSourceString
+        false
+        """
+if result.LaunchSuccess && result.ExitCode = 0 then
+    Ok r
+elif result.ExitCode = 1 then
+    let stdout, stderr =
+        output
+        |> List.map
+            (function
+            | StdErr e -> Error e
+            | StdOut l -> Ok l)
+        |> Result.partition
+
+    if not stderr.IsEmpty then
+        failwithf "Got stderr bad bad bad"
+
+    match stdout with
+    | [] -> failwithf "Got no stdout :("
+    | xs when
+        xs
+        |> List.exists (fun i -> i.Contains "magic string goes here!")
+        ->
+        Error(Ok r)
+    | _ -> Error(Error r)
+else
+    failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if result.LaunchSuccess && result.ExitCode = 0 then
+    Ok r
+elif result.ExitCode = 1 then
+    let stdout, stderr =
+        output
+        |> List.map
+            (function
+            | StdErr e -> Error e
+            | StdOut l -> Ok l)
+        |> Result.partition
+
+    if not stderr.IsEmpty then
+        failwithf "Got stderr bad bad bad"
+
+    match stdout with
+    | [] -> failwithf "Got no stdout :("
+    | xs when
+        xs
+        |> List.exists (fun i -> i.Contains "magic string goes here!")
+        ->
+        Error(Ok r)
+    | _ -> Error(Error r)
+else
+    failwith ""
+"""
+
+[<Test>]
+let ``multiple multiline elifs`` () =
+    formatSourceString
+        false
+        """
+        if startWithMember sel then
+            (String.Join(String.Empty, "type T = ", Environment.NewLine, String(' ', startCol), sel), TypeMember)
+        elif String.startsWithOrdinal "and" (sel.TrimStart()) then
+            // Replace "and" by "type" or "let rec"
+            if startLine = endLine then
+                (pattern.Replace(sel, replacement, 1), p)
+            else
+                (String(' ', startCol)
+                 + pattern.Replace(sel, replacement, 1),
+                 p)
+        elif startLine = endLine then
+            (sel, Nothing)
+        else
+            failAndExit ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if startWithMember sel then
+    (String.Join(String.Empty, "type T = ", Environment.NewLine, String(' ', startCol), sel), TypeMember)
+elif String.startsWithOrdinal "and" (sel.TrimStart()) then
+    // Replace "and" by "type" or "let rec"
+    if startLine = endLine then
+        (pattern.Replace(sel, replacement, 1), p)
+    else
+        (String(' ', startCol)
+         + pattern.Replace(sel, replacement, 1),
+         p)
+elif startLine = endLine then
+    (sel, Nothing)
+else
+    failAndExit ()
+"""
+
+[<Test>]
+let ``multiline but not that special if expression`` () =
+    formatSourceString
+        false
+        """
+if
+    List.exists
+        (function
+        | CompExpr _ -> true
+        | _ -> false)
+        es
+then
+    shortExpression ctx
+else
+    expressionFitsOnRestOfLine shortExpression longExpression ctx
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if List.exists
+    (function
+    | CompExpr _ -> true
+    | _ -> false)
+    es then
+    shortExpression ctx
+else
+    expressionFitsOnRestOfLine shortExpression longExpression ctx
 """

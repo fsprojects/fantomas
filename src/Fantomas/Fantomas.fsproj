@@ -14,6 +14,7 @@
     <Compile Include="Dbg.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="AstExtensions.fs" />
+    <Compile Include="SourceParser.fs" />
     <Compile Include="AstTransformer.fs" />
     <Compile Include="SourceOrigin.fs" />
     <Compile Include="Version.fs" />
@@ -24,7 +25,6 @@
     <Compile Include="TokenParser.fs" />
     <Compile Include="Trivia.fs" />
     <Compile Include="Context.fs" />
-    <Compile Include="SourceParser.fs" />
     <Compile Include="SourceTransformer.fs" />
     <Compile Include="TriviaContext.fs" />
     <Compile Include="CodePrinter.fs" />

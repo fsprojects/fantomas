@@ -38,41 +38,25 @@ let ``else if / elif`` (rangeOfIfThenElse: Range) (ctx: Context) =
     let resultExpr =
         match keywords with
         | (ELSE, elseTrivia) :: (IF, ifTrivia) :: _ ->
-            let commentAfterElseKeyword =
-                TriviaHelpers.``has line comment after`` elseTrivia
-
-            let commentAfterIfKeyword =
-                TriviaHelpers.``has line comment after`` ifTrivia
-
-            let triviaBeforeIfKeyword =
-                (Map.tryFindOrEmptyList SynExpr_IfThenElse ctx.TriviaMainNodes) // ctx.Trivia
-                |> List.filter
-                    (fun t ->
-                        RangeHelpers.``range contains`` rangeOfIfThenElse t.Range
-                        && (RangeHelpers.``range after`` elseTrivia.Range t.Range))
-                |> List.tryHead
-
-            tokN rangeOfIfThenElse ELSE (!- "else")
-            +> ifElse commentAfterElseKeyword sepNln sepSpace
-            +> opt sepNone triviaBeforeIfKeyword printContentBefore
-            +> tokN rangeOfIfThenElse IF (!- "if ")
-            +> ifElse commentAfterIfKeyword (indent +> sepNln) sepNone
-
+            printContentBefore elseTrivia
+            +> (!- "else")
+            +> printContentAfter elseTrivia
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+            +> printContentBefore ifTrivia
+            +> (!- "if ")
+            +> printContentAfter ifTrivia
         | (ELIF, elifTok) :: _
         | [ (ELIF, elifTok) ] ->
-            let commentAfterElIfKeyword =
-                TriviaHelpers.``has line comment after`` elifTok
-
-            tokN rangeOfIfThenElse ELIF (!- "elif ")
-            +> ifElse commentAfterElIfKeyword (indent +> sepNln) sepNone
-
+            printContentBefore elifTok
+            +> (!- "elif ")
+            +> printContentAfter elifTok
         | [] ->
             // formatting from AST
             !- "else if "
-
         | _ ->
-            failwith
-                "Unexpected scenario when formatting else if / elif, please open an issue via https://jindraivanek.gitlab.io/fantomas-ui"
+            failwithf
+                "Unexpected scenario when formatting else if / elif (near %A), please open an issue via https://fsprojects.github.io/fantomas-tools/#/fantomas/preview"
+                rangeOfIfThenElse
 
     resultExpr ctx
 
