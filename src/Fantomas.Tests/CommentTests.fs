@@ -1297,7 +1297,7 @@ open Something
 """
 
 [<Test>]
-let ``meh 123`` () =
+let ``comment after let binding makes it multiline`` () =
     formatSourceString
         false
         """
