@@ -7,9 +7,17 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.SyntaxTree
 open FSharp.Compiler.XmlDoc
 open Fantomas
-open Fantomas.Context
 open Fantomas.AstExtensions
 open Fantomas.TriviaTypes
+
+/// Don't put space before and after these operators
+let internal noSpaceInfixOps = set [ "?" ]
+
+/// Always break into newlines on these operators
+let internal newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
+
+/// Never break into newlines on these operators
+let internal noBreakInfixOps = set [ "="; ">"; "<"; "%" ]
 
 type Composite<'a, 'b> =
     | Pair of 'b * 'b
@@ -1147,8 +1155,7 @@ let (|PatLongIdent|_|) =
                         _) ->
         match xs with
         | SynArgPats.Pats ps -> Some(ao, s, List.map (fun p -> (None, p)) ps, tpso)
-        | SynArgPats.NamePatPairs (nps, _) ->
-            Some(ao, s, List.map (fun ((Ident ident), p) -> (Some ident, p)) nps, tpso)
+        | SynArgPats.NamePatPairs (nps, _) -> Some(ao, s, List.map (fun (Ident ident, p) -> (Some ident, p)) nps, tpso)
     | _ -> None
 
 let (|PatParen|_|) =

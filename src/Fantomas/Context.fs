@@ -1123,15 +1123,6 @@ let internal unindentOnWith (ctx: Context) =
 let internal ifAlignBrackets f g =
     ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
 
-/// Don't put space before and after these operators
-let internal noSpaceInfixOps = set [ "?" ]
-
-/// Always break into newlines on these operators
-let internal newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
-
-/// Never break into newlines on these operators
-let internal noBreakInfixOps = set [ "="; ">"; "<"; "%" ]
-
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     let currentLastLine = lastWriteEventOnLastLine ctx
 
@@ -1429,6 +1420,12 @@ let internal sepNlnWhenWriteBeforeNewlineNotEmpty fallback (ctx: Context) =
         sepNln ctx
     else
         fallback ctx
+
+let internal autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (f: Context -> Context) (ctx: Context) =
+    if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
+        (indent +> sepNln +> f +> unindent) ctx
+    else
+        f ctx
 
 let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth
     sepNlnConsideringTriviaContentBefore

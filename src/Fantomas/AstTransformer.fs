@@ -315,6 +315,26 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
+            // don't collect nested elif expression as nodes.
+            // the ranges are often incorrect and using the else if or elif token is more reliable.
+            | SourceParser.ElIf ((ifExpr, thenExpr, _, range, _) :: es, elseExpr) ->
+                let elifs =
+                    es
+                    |> List.collect (fun (e1, e2, _, _, _) -> [ visit e1; visit e2 ])
+
+                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ yield visit ifExpr
+                      yield visit thenExpr
+                      yield! elifs
+                      yield! (Option.toList elseExpr |> List.map visit) ]
+
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_IfThenElse range
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
+
             | SynExpr.IfThenElse (ifExpr, thenExpr, elseExpr, _, _, _, range) ->
                 let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield visit ifExpr
